@@ -19,6 +19,9 @@ local smart_record_traffic = false
 
 -- POST check
 if(_SERVER["REQUEST_METHOD"] == "POST") then
+  local disk_space
+  local smart_disk_space
+
   if not isEmptyString(_POST["record_traffic"]) then
     record_traffic = true
     ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.enabled', "1")
@@ -32,7 +35,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   end
   ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.bpf_filter', bpf_filter)
 
-  local disk_space = recording_utils.default_disk_space
+  disk_space = recording_utils.default_disk_space
   if not isEmptyString(_POST["disk_space"]) then
     disk_space = tonumber(_POST["disk_space"])*1024
   end
@@ -49,7 +52,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
     end
     interface.updateSmartRecording()
 
-    local smart_disk_space = recording_utils.default_disk_space
+    smart_disk_space = recording_utils.default_disk_space
     if not isEmptyString(_POST["smart_disk_space"]) then
       smart_disk_space = tonumber(_POST["smart_disk_space"])*1024
     end
