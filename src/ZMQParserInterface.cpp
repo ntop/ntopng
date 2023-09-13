@@ -23,6 +23,8 @@
 
 #ifndef HAVE_NEDGE
 
+#define VLAN_HASH_KEY  "ntopng.vlan.%d.cache"
+
 /* **************************************************** */
 
 /* IMPORTANT: keep it in sync with flow_fields_description part of
@@ -186,6 +188,9 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addCounterMapping("ifOutPackets", SFLOW_IF_OUT_PACKETS);
   addCounterMapping("ifOutErrors", SFLOW_IF_OUT_ERRORS);
   addCounterMapping("ifPromiscuousMode", SFLOW_IF_PROMISCUOUS_MODE);
+
+  if(ntop->getPrefs()->is_cloud_edition())
+    loadVLANMappings();
 }
 
 /* **************************************************** */
@@ -829,7 +834,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
 #if 0
   case NPROBE_INSTANCE_NAME:
     if(ntop->getPrefs()->is_cloud_edition()) {
-      /* TODO: add dummy VLAN tag and mp it to the instance name*/
+
     }
     break;
 #endif
@@ -1440,13 +1445,11 @@ bool ZMQParserInterface::parseNProbeAgentField(
     }
   } else if (!strncmp(key, "IPV4_LOCAL_ADDR", 15) ||
              !strncmp(key, "IPV6_LOCAL_ADDR", 15)) {
-    flow->src_ip.set(
-        value->string); /* FIX: do not always assume Local == Client */
+    flow->src_ip.set(value->string); /* FIX: do not always assume Local == Client */
     ret = true;
   } else if (!strncmp(key, "IPV4_REMOTE_ADDR", 16) ||
              !strncmp(key, "IPV6_REMOTE_ADDR", 16)) {
-    flow->dst_ip.set(
-        value->string); /* FIX: do not always assume Remote == Server */
+    flow->dst_ip.set(value->string); /* FIX: do not always assume Remote == Server */
     ret = true;
   } else if (!strncmp(key, "L4_LOCAL_PORT", 13)) {
     flow->src_port = htons((u_int32_t)value->int_num);
@@ -3080,6 +3083,61 @@ void ZMQParserInterface::lua(lua_State *vm) {
                                 zrs->remote_collected_lifetime_timeout);
     lua_push_uint64_table_entry(vm, "timeout.idle", zrs->remote_idle_timeout);
   }
+}
+
+/* **************************************************** */
+
+void ZMQParserInterface::loadVLANMappings() {
+  char **keys, **values, buf[64];
+  int rc;
+  Redis *redis = ntop->getRedis();
+  
+  top_vlan_id = 0;
+
+  snprintf(buf, sizeof(buf), VLAN_HASH_KEY, get_id());
+  
+  rc = redis->hashGetAll(buf, &keys, &values);
+
+  if(rc > 0) {
+    for (int i = 0; i < rc; i++) {
+      if(values[i] && keys[i]) {
+	u_int16_t v = atoi(values[i]);
+	
+	if(v > top_vlan_id) top_vlan_id = v;	  
+	name_to_vlan[keys[i]] = v;
+      }
+
+      if (values[i]) free(values[i]);
+      if (keys[i])   free(keys[i]);
+    }
+
+    free(keys);
+    free(values);
+  }  
+}
+
+/* **************************************************** */
+
+u_int16_t ZMQParserInterface::findVLANMapping(std::string name) {
+  std::unordered_map<std::string, u_int16_t>::iterator it = name_to_vlan.find(name);
+
+  if(it != name_to_vlan.end())
+    return(it->second);
+  else if(top_vlan_id < 4095) {
+    char value[16], buf[64];
+    u_int16_t id = top_vlan_id++;
+    Redis *redis = ntop->getRedis();
+    
+    if(id >= 4096) return(0 /* too many vlans */);
+    
+    snprintf(value, sizeof(value), "%u", id);
+
+    snprintf(buf, sizeof(buf), VLAN_HASH_KEY, get_id());    
+    redis->hashSet(buf, name.c_str(), value);
+    
+    return(id);      
+  } else
+    return(0);
 }
 
 /* **************************************************** */
