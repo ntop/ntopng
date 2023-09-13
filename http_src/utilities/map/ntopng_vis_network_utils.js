@@ -18,21 +18,26 @@ const defaultOptions = {
       shadow: false,
   },
   edges: {
-      width: 0.15,
-      color: { inherit: "from" },
-      smooth: {
-          type: "continuous",
-          roundness: 0
-      },
+    width: 0.15,
+    color: { inherit: "from" },
+    smooth: {
+        type: "continuous",
+        roundness: 0
+    },
+    arrows: {
+      to: {
+        enabled: true,
+        scaleFactor: 0.3,
+      }
+    },
+    arrowStrikethrough: false,
+    scaling: {
+      min: 1,
+      max: 5,
+    }
   },
   layout: {
-    clusterThreshold: 5,
-    improvedLayout: true,
-    hierarchical: {
-      enabled: true,
-      levelSeparation: 100,
-      treeSpacing: 150,
-    }
+    improvedLayout: false,
   },
   interaction: {
     hideEdgesOnDrag: true,
@@ -41,7 +46,16 @@ const defaultOptions = {
     tooltipDelay: 0,
   },
   physics: {
-    enabled: false
+    enabled: true,
+    solver: "forceAtlas2Based",
+    stabilization: {
+      iterations: 2000,
+      enabled: true // This is here just to see what's going on from the very beginning.
+    },
+    forceAtlas2Based: {
+      centralGravity: 0.01,
+      springLength: 100,
+    }
   },
   groups: {
       unknown: {

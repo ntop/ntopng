@@ -107,7 +107,7 @@
     "popper.js": "^1.16.1",
     "select2": "^4.1.0-rc.0",
     "store-js": "^2.0.4",
-    "vis-network": "^9  .1.0",
+    "vis-network": "^9.1.6",
     "vue": "3.2.37"
   }
 }

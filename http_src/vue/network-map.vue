@@ -38,41 +38,7 @@ let update_view_state_id = null;
 let url_params = {};
 let is_destroyed = false;
 
-async function check_layout(network) {
-  /*
-  if(!network) return;
-  // get all nodes position
-  const positions = network.getPositions(network.body.data.nodes.map(x => x.id));
-  let refresh_layout = false;
-  console.log(positions);
-  try {
-    for (const [node1, position1] of Object.entries(positions)) {
-      for (const [node2, position2] of Object.entries(positions)) {
-        /* The x and y of the node1 is +-2 the x and y of the node2 */
-        /* In order to not have too close nodes */
-/*        if((node1 != node2)
-          && ((position2.x - 2) <= position1.x && position1.x <= (position2.x + 2))
-          && ((position2.y - 2) <= position1.y && position1.y <= (position2.y + 2))) {
-          console.log(position1);
-          console.log(position2);
-          refresh_layout = true;
-          break;
-        }
-      }
-
-      if(refresh_layout == true) {
-        break;
-      }
-    }
-    
-    if(refresh_layout == true) {
-      await reload();
-    }
-  } catch(error) {
-    console.log(error);
-  }
-  */
-}
+async function check_layout(network) {}
 
 onMounted(async () => {
   load_scale();
@@ -89,7 +55,6 @@ onMounted(async () => {
     const datasets = {nodes: nodes_dataset, edges: edges_dataset};
     empty_network(datasets);
     let options = ntopng_map_manager.get_default_options();
-    options.layout.randomSeed = layout.seed;
     network = new vis.Network(container, datasets, options);
     await check_layout(network);
     save_topology_view();
