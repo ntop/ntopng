@@ -842,6 +842,23 @@ local function validateServer(v)
     return validateIpAddress(v) or validateSingleWord(v)
 end
 
+local function validateHostName(v)
+
+    if (isEmptyString(v)) then
+        return false
+    end
+    
+    if (not validateSingleWord(v)) then
+        for str in ipairs(split(v, " ")) do
+            if(not validateSingleWord(str))then
+                return false
+            end
+        end
+    end
+
+    return true
+end
+
 local function validateColumnsIds(v)
     return validateUnchecked(v)
     -- An Array is composed by a series of string separated by commas
@@ -1655,8 +1672,8 @@ local known_parameters = {
     ["cli_ip"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateServer))), -- An IPv4 or IPv6 address or an Hostname
     ["srv_ip"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateServer))), -- An IPv4 or IPv6 address or an Hostname
     ["name"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateServer))), -- An IPv4 or IPv6 address or an Hostname
-    ["cli_name"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateServer))), -- An IPv4 or IPv6 address or an Hostname
-    ["srv_name"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateServer))), -- An IPv4 or IPv6 address or an Hostname
+    ["cli_name"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateHostName))), -- An IPv4 or IPv6 address or an Hostname
+    ["srv_name"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateHostName))), -- An IPv4 or IPv6 address or an Hostname
     ["cli_port"] = validateListOfTypeInline(validateFilters(validatePort)), -- Client port
     ["srv_port"] = validateListOfTypeInline(validateFilters(validatePort)), -- Server port
     ["cli_asn"] = validateListOfTypeInline(validateFilters(validateASN)),
