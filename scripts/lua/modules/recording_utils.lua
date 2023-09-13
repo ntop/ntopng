@@ -648,8 +648,12 @@ function recording_utils.createConfig(ifid, params)
     elseif prefs.capture_direction == "out" then
       f:write("--capture-direction=2\n")
     else
+      -- Default: RX+TX
       f:write("--capture-direction=0\n")
     end
+  else
+    -- Default on non packet interface: RX+TX
+    f:write("--capture-direction=0\n")
   end
 
   -- Capture filter (BPF)
