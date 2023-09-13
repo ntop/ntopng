@@ -245,12 +245,12 @@ function recording_utils.getExtInterfaces(ifid)
   local all_interfaces = ntop.listInterfaces()
   local ntopng_interfaces = swapKeysValues(interface.getIfNames()) 
   local inuse_ext_interfaces = getInUseExtInterfaces(ifid)
- 
+
   for ifname,_ in pairs(all_interfaces) do
-    if ntopng_interfaces[ifname] == nil and -- not in use as packet interface by ntopng 
-       inuse_ext_interfaces[ifname] == nil and -- not in use by other zmq interfaces
-       all_interfaces[ifname].module ~= nil and -- detected by pf_ring
-       all_interfaces[ifname].module ~= "pf_ring" -- ('pf_ring-zc', 'napatech', ..)
+    if ntopng_interfaces[ifname] == nil -- not in use as packet interface by ntopng 
+       and inuse_ext_interfaces[ifname] == nil -- not in use by other zmq interfaces
+       and all_interfaces[ifname].module ~= nil -- detected by pf_ring
+       -- and all_interfaces[ifname].module ~= "pf_ring" -- ('pf_ring-zc', 'napatech', ..)
       then
       local prefix = ""
       if all_interfaces[ifname].module == "pf_ring-zc" then
