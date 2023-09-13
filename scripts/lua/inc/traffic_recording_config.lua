@@ -16,6 +16,7 @@ end
 
 local record_traffic = false
 local smart_record_traffic = false
+local flow_export = false
 
 -- POST check
 if(_SERVER["REQUEST_METHOD"] == "POST") then
@@ -63,7 +64,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
     local ext_ifname
     if not isEmptyString(_POST["custom_name"]) then
       -- param check
-      for ifname,_ in pairs(recording_utils.getExtInterfaces(master_ifid)) do
+      for ifname,_ in pairs(recording_utils.getExtInterfaces(master_ifid, true)) do
         if ifname == _POST["custom_name"] then
           ext_ifname = ifname
           break
@@ -73,6 +74,14 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
     if ext_ifname ~= nil then
       ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.ext_ifname', ext_ifname) 
     end
+
+    if not isEmptyString(_POST["flow_export"]) then
+      flow_export = true
+      ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording_flow_export.enabled', "1")
+    else
+      ntop.delCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording_flow_export.enabled')
+    end
+
   end
   
   if record_traffic then
@@ -83,7 +92,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
       config.enable_smart_recording = true
       config.max_smart_disk_space = smart_disk_space
     end
-    if recording_utils.isSupportedZMQInterface(master_ifid) then 
+    if recording_utils.isSupportedZMQInterface(master_ifid) and flow_export then 
       config.zmq_endpoint = recording_utils.getZMQProbeAddr(master_ifid)
       recording_utils.stop(master_ifid) -- stop before starting as the interface can be changed
     end
@@ -100,6 +109,10 @@ if ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.enabled'
   if ntop.isEnterpriseXL() and ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.enabled') == "1" then
     smart_record_traffic = true
   end
+end
+
+if ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording_flow_export.enabled') == "1" then
+  flow_export = true
 end
 
 local bpf_filter = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.bpf_filter')
@@ -139,7 +152,7 @@ print [[
 
 if recording_utils.isSupportedZMQInterface(master_ifid) then
   local ext_ifname = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.ext_ifname')
-  local ext_interfaces = recording_utils.getExtInterfaces(master_ifid)
+  local ext_interfaces = recording_utils.getExtInterfaces(master_ifid, true)
 
   if isEmptyString(ext_ifname) then
     for ifname,_ in pairs(ext_interfaces) do
@@ -147,6 +160,7 @@ if recording_utils.isSupportedZMQInterface(master_ifid) then
       break
     end
   end
+
   print [[
       <tr>
         <th width=30%>]] print(i18n("traffic_recording.ext_interface")) print [[</th>
@@ -161,6 +175,21 @@ if recording_utils.isSupportedZMQInterface(master_ifid) then
         </td>
       </tr>
   ]]
+
+  print [[
+      <tr>
+        <th width=30%>]] print(i18n("traffic_recording.export_flows")) print [[</th>
+        <td colspan=2>]]
+  print(template.gen("on_off_switch.html", {
+    id = "flow_export",
+    checked = flow_export,
+    icon = [[<i class="fas fa-hdd fa-lg"></i> ]] .. i18n("traffic_recording.export_flows")
+  }))
+  print [[
+          <small>]] print(i18n("traffic_recording.export_flows_note"))  print[[</small>
+        </td>
+      </tr>
+  ]]
 end
 
 -- Traffic Recording Configuration
@@ -171,7 +200,7 @@ print [[
   print(template.gen("on_off_switch.html", {
     id = "record_traffic",
     checked = record_traffic,
-    icon = [[<i class="fas fa-hdd fa-lg"></i> ]] .. ternary(recording_utils.isSupportedZMQInterface(master_ifid), i18n("traffic_recording.continuous_recording_and_flows"), i18n("traffic_recording.continuous_recording"))
+    icon = [[<i class="fas fa-hdd fa-lg"></i> ]] .. i18n("traffic_recording.continuous_recording")
   }))
 print [[
           <small>]] print(i18n("traffic_recording.traffic_recording_note"))  print[[</small>

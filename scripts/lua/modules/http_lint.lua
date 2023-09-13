@@ -2336,6 +2336,7 @@ local known_parameters = {
     ["job_id"] = validateNumber,
     ["n2disk_license"] = {licenseCleanup, validateLicense},
     ["record_traffic"] = validateBool,
+    ["flow_export"] = validateBool,
     ["smart_record_traffic"] = validateBool,
     ["max_extracted_pcap_bytes"] = validateNumber,
     ["traffic_recording_provider"] = validateTrafficRecordingProvider,

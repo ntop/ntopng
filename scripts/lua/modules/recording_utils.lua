@@ -240,7 +240,7 @@ end
 --! @brief Return external interfaces, not in use by ntopng, that can be used through ZMQ interface for traffic recording and flow import
 --! @param ifid the interface identifier 
 --! @return a table with external interfaces information
-function recording_utils.getExtInterfaces(ifid)
+function recording_utils.getExtInterfaces(ifid, show_all)
   local ext_interfaces = {}
   local all_interfaces = ntop.listInterfaces()
   local ntopng_interfaces = swapKeysValues(interface.getIfNames()) 
@@ -248,7 +248,7 @@ function recording_utils.getExtInterfaces(ifid)
 
   for ifname,_ in pairs(all_interfaces) do
     if ntopng_interfaces[ifname] == nil -- not in use as packet interface by ntopng 
-       and inuse_ext_interfaces[ifname] == nil -- not in use by other zmq interfaces
+       and (show_all or inuse_ext_interfaces[ifname] == nil) -- not in use by other zmq interfaces
        and all_interfaces[ifname].module ~= nil -- detected by pf_ring
        -- and all_interfaces[ifname].module ~= "pf_ring" -- ('pf_ring-zc', 'napatech', ..)
       then
