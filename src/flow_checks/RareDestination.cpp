@@ -24,14 +24,14 @@
 
 /* ***************************************************** */
 
-u_int32_t RareDestination::getDestinationHash(Flow *f) {
+u_int32_t RareDestination::getDestinationHash(Flow *f, u_int8_t *destType) {
 
   u_int32_t hash = 0;
   Host *dest = f->get_srv_host();
 
   if (f->isLocalToLocal()) {
 
-    char buf[64];
+    *destType = 0;  // local destination
     LocalHost *ldest = (LocalHost*)dest;
 
     if (!ldest->isLocalUnicastHost() && dest->isDHCPHost()) {
@@ -45,6 +45,7 @@ u_int32_t RareDestination::getDestinationHash(Flow *f) {
 
   }
   else if (f->isLocalToRemote()) {
+    *destType = 1;  // remote destination
     hash = Utils::hashString(f->getFlowServerInfo());
   }
 
@@ -58,55 +59,55 @@ void RareDestination::protocolDetected(Flow *f) {
   bool is_rare_destination = false;
 
   if(f->getFlowServerInfo() != NULL && f->get_cli_host()->isLocalHost()) {
-    
-    LocalHost *cli_lhost = (LocalHost*)f->get_cli_host();
-    
+
     time_t t_now = time(NULL);
+    NetworkInterface *iface = f->getInterface();
 
-    /* check if training has to start */
-    if (!cli_lhost->getStartRareDestTraining()) {
-      cli_lhost->startRareDestTraining();
-      cli_lhost->setStartRareDestTraining(t_now);
-    }
-
-    u_int32_t hash = getDestinationHash(f);
+    u_int8_t destType;
+    u_int32_t hash = getDestinationHash(f, &destType);
     if(hash == 0) return;
 
-    /* if training */
-    if (cli_lhost->isTrainingRareDest()) {
-      cli_lhost->setRareDestBitmap(hash);
 
-      /* check if training has to end */
-      if (t_now - cli_lhost->getStartRareDestTraining() >= 3600 /* RARE_DEST_DURATION_TRAINING */ ) {
-        cli_lhost->stopRareDestTraining();
-        cli_lhost->setLastRareDestTraining(t_now);
-      }
+    /* initial training */
+    if (iface->rareDestInitalTraining()) {  // check initalTraining -- BEWARE: loadFromRedis -> initialTraining = TRUE
+
+      destType == 0 ? iface->setLocalRareDestBitmap(hash) : iface->setRemoteRareDestBitmap(hash);
+
+      if (!iface->rareDestTrainingStartTime())  // check trainingStartTime -- BEWARE: loadFromRedis -> trainingStartTime = 0
+        iface->setRareDestTrainingStartTime(t_now); // trainingStartTime = t_now
+
+      else if (t_now - iface->rareDestTrainingStartTime() >= RARE_DEST_TRAINING_DURATION)
+        iface->endRareDestInitialTraining(t_now)  // initialTraining = FALSE && trainingEndTime = t_now
       
       return;
     }
 
-    /* check if training has to restart */
-    time_t elapsedFromLastTraining = t_now - cli_lhost->getLastRareDestTraining();
-
-    if (elapsedFromLastTraining >= 2*RARE_DEST_LAST_TRAINING_GAP ) {
-      cli_lhost->clearRareDestBitmaps();
-      cli_lhost->setStartRareDestTraining(0);
-
-      return;
+    /* check if background training has to start */
+    if (!iface->rareDestTraining() && // check isTraining -- BEWARE: loadFromRedis -> isTraining = FALSE
+        t_now - iface->rareDestTrainingEndTime() >= RARE_DEST_TRAINING_GAP) { // check trainingEndTime
+      iface->startRareDestTraining(t_now);  // isTraining = TRUE && trainingStartTime = t_now
     }
 
-    if ( elapsedFromLastTraining >= RARE_DEST_LAST_TRAINING_GAP ) {
-      cli_lhost->updateRareDestBitmaps();
-      cli_lhost->setStartRareDestTraining(0);
-      return;
-    }
+    /* background training */
+    if (iface->rareDestTraining()) {
+      destType == 0 ? iface->setLocalRareDestBitmap_BG(hash) : iface->setRemoteRareDestBitmap_BG(hash);
 
-    /* update */
-    if (!cli_lhost->isSetRareDestBitmap(hash)){
-      cli_lhost->setRareDestBitmap(hash);
-      if (!cli_lhost->isSetRareDestLastBitmap(hash)) {
-        is_rare_destination = true;
+      /* check if background training has to end */
+      if (t_now - iface->rareDestTrainingStartTime() >= RARE_DEST_TRAINING_DURATION) {
+        iface->endRareDestTraining(t_now);  // isTraining = FALSE &&  trainingEndTime = t_now
+        iface->swapRareDestBitmaps(); // swap(local, localBG), free(localBG), swap(remote, remoteBG), free(remoteBG)
       }
+    }
+      
+    /* update bitmap */
+    if (destType == 0 && !iface->isSetLocalrareDestBitmap(hash)) {
+      is_rare_destination = true;
+      iface->setLocalRareDestBitmap(hash);
+    }
+
+    else if (destType == 1 && !iface->isSetRemoteRareDestBitmap(hash)) {
+      is_rare_destination = true;
+      iface->setRemoteRareDestBitmap(hash);
     }
   }
 
