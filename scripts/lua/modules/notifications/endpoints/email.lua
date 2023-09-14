@@ -37,6 +37,10 @@ local MAX_ALERTS_PER_EMAIL = 100
 local MAX_NUM_SEND_ATTEMPTS = 5
 local NUM_ATTEMPTS_KEY = "ntopng.alerts.modules_notifications_queue.email.num_attemps"
 
+if ntop.getPref("ntopng.prefs.debug_email") == "1" then
+   debug_endpoint = true
+end
+
 -- ##############################################
 
 -- @brief Returns the desided formatted output for recipient params
@@ -125,7 +129,7 @@ function email.sendEmail(subject, message_body, settings)
   if not isEmptyString(settings.username) then username = settings.username end
   if not isEmptyString(settings.password) then password = settings.password end
 
-  return ntop.sendMail(from, to, cc, message, smtp_server, username, password)
+  return ntop.sendMail(from, to, cc, message, smtp_server, username, password, debug_endpoint)
 end
 
 -- ##############################################
