@@ -102,7 +102,8 @@
             recipient_notifications_type: $(`${formSelector} [name='recipient_notifications_type']`).val()
         };
 
-        if($(`#per_alerts_tab`).hasClass('active') || $(`#edit_per_alerts_tab`).hasClass('active')) {
+        if($(`${formSelector} [for='per_alerts_tab']`).hasClass('btn-primary') 
+            || $(`${formSelector} [for='edit_per_alerts_tab']`).hasClass('btn-primary')) {
             params.recipient_checks = $(`${formSelector} [name='recipient_alerts']`).val().join(",");
         } else {
             params.recipient_minimum_severity = $(`${formSelector} [name='recipient_minimum_severity']`).val();
