@@ -182,6 +182,9 @@ function ts_schema:verifyTagsAndMetrics(tags_and_metrics)
     if tags_and_metrics[metric] == nil then
     tprint(debug.traceback())
       traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing mandatory metric '" .. metric .. "' while using schema " .. self.name)
+      tprint("tags_and_metrics: ")
+      tprint(tags_and_metrics)
+
       return nil
     end
 
