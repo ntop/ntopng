@@ -1343,8 +1343,7 @@ Flow *NetworkInterface::getFlow(Mac *src_mac, Mac *dst_mac, u_int16_t vlan_id,
       return (NULL);
     }
 
-    if (flows_hash->add(
-			ret, false /* Don't lock, we're inline with the purgeIdle */)) {
+    if (flows_hash->add(ret, false /* Don't lock, we're inline with the purgeIdle */)) {
       *src2dst_direction = true;
     } else {
       /* Note: this should never happen as we are checking hasEmptyRoom() */
@@ -2969,7 +2968,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 		     NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
 	    goto dissect_packet_end;
 	  }
-
+	  
 	  struct ndpi_udphdr *udp =
 	    (struct ndpi_udphdr *)&packet[ip_offset + ipv6_shift];
 	  u_int16_t sport = udp->source, dport = udp->dest;
@@ -3967,9 +3966,11 @@ void NetworkInterface::periodicStatsUpdate() {
 
   if (host_pools) host_pools->updateStats(&tv);
 
-  for (u_int16_t network_id = 0; network_id < ntop->getNumLocalNetworks();
-       network_id++) {
-    if (NetworkStats *ns = getNetworkStats(network_id)) ns->updateStats(&tv);
+  for (u_int16_t network_id = 0; network_id < ntop->getNumLocalNetworks(); network_id++) {
+    NetworkStats *ns = getNetworkStats(network_id);
+    
+    if(ns != NULL)
+      ns->updateStats(&tv);
   }
 
 #ifdef PERIODIC_STATS_UPDATE_DEBUG_TIMING
@@ -8192,8 +8193,7 @@ void NetworkInterface::addInterfaceNetwork(char *const net, char *addr) {
 
 /* **************************************** */
 
-bool NetworkInterface::isInterfaceNetwork(const IpAddress *const ipa,
-                                          int network_bits) const {
+bool NetworkInterface::isInterfaceNetwork(IpAddress *ipa, int network_bits) {
   return interface_networks.match(ipa, network_bits);
 }
 

@@ -593,12 +593,12 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
           flow->dst_ip.set(ntohl(value->int_num));
       } else {
         ip_aux.set((char *)value->string);
+	
         if (!ip_aux.isEmpty() &&
             !ntop->getPrefs()->do_override_dst_with_post_nat_dst())
-          ntop->getTrace()->traceEvent(
-              TRACE_WARNING,
-              "Attempt to set destination ip multiple times. "
-              "Check exported fields");
+          ntop->getTrace()->traceEvent(TRACE_WARNING,
+				       "Attempt to set destination ip multiple times. "
+				       "Check exported fields");
       }
       break;
     case L4_SRC_PORT:
@@ -705,7 +705,24 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
         /* Format: a.b.c.d, possibly overrides NPROBE_IPV4_ADDRESS */
         u_int32_t ip = ntohl(inet_addr(value->string));
 
-        if (ip) flow->device_ip = ip;
+        if (ip) {
+	  flow->device_ip = ip;
+	  
+	  if(ntop->getPrefs()->is_cloud_edition()) {
+	    char buf[32], ipb[24];
+	    std::unordered_map<u_int32_t, bool>::iterator it = cloud_flow_exporters.find(ip);
+	    
+	    if(it == cloud_flow_exporters.end()) {
+	      cloud_flow_exporters[ip] = true;
+	      snprintf(buf, sizeof(buf), "%s", Utils::intoaV4(ip, ipb, sizeof(ipb)));
+	      ntop->addLocalCloudAddress(buf);
+
+	      /* Re-evaluate IPVx_SRC_ADDR/IPVx_DST_ADDR */
+	      flow->src_ip.checkIP();
+	      flow->dst_ip.checkIP();
+	    }
+	  }
+	}
       }
       break;
     case EXPORTER_IPV6_ADDRESS:
@@ -746,7 +763,9 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
       if (ntop->getPrefs()->do_override_dst_with_post_nat_dst()) {
         if (value->string) {
           IpAddress tmp;
+	  
           tmp.set(value->string);
+	  
           if (!tmp.isEmpty()) {
             flow->dst_ip.set((char *)value->string);
           }
@@ -834,11 +853,11 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
   case NPROBE_INSTANCE_NAME:
     if(ntop->getPrefs()->is_cloud_edition()) {
       u_int16_t vlan_id = findVLANMapping((char*)value->string);
-      
+
       flow->vlan_id = vlan_id;
     }
     break;
-    
+
   case L7_PROTO_NAME:
     break;
 
@@ -932,7 +951,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
     break;
 
   case HTTP_USER_AGENT:
-    if (value->string && value->string[0] && value->string[0] != '\n') 
+    if (value->string && value->string[0] && value->string[0] != '\n')
       flow->setHTTPuserAgent(value->string);
     break;
 
@@ -1242,8 +1261,7 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow *const flow,
         struct ndpi_in6_addr ipv6;
 
         if (inet_pton(AF_INET6, value->string, &ipv6) <= 0) return false;
-        return (memcmp(&flow->device_ipv6, &ipv6, sizeof(flow->device_ipv6)) ==
-                0);
+        return (memcmp(&flow->device_ipv6, &ipv6, sizeof(flow->device_ipv6)) == 0);
       }
 
     case INPUT_SNMP:
@@ -1612,6 +1630,7 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
         flow->dst_ip.setVersion(6);
       else {
         invalid_flow = true;
+	
         ntop->getTrace()->traceEvent(
             TRACE_WARNING,
             "IP version mismatch: client:%d server:%d - flow will be ignored",
@@ -1637,10 +1656,9 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
                // && flow->in_pkts && flow->out_pkts /* Flows can be
                // mono-directional, so can't use this condition */
                &&
-               (flow->l4_proto !=
-                    IPPROTO_TCP /* Not TCP or TCP but without SYN (See
-                                   https://github.com/ntop/ntopng/issues/5058)
-                                 */
+               (flow->l4_proto != IPPROTO_TCP /* Not TCP or TCP but without SYN (See
+						 https://github.com/ntop/ntopng/issues/5058)
+					      */
                 /*
                   No SYN (cumulative flow->tcp.tcp_flags are NOT checked as
                   they can contain a SYN but the direction is unknown), do
@@ -2077,7 +2095,7 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char *payload,
   */
   return(0);
 #endif
-  
+
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "JSON: '%s' [len=%lu]", payload, strlen(payload));
   printf("\n\n%s\n\n", payload);
@@ -2147,7 +2165,7 @@ u_int8_t ZMQParserInterface::parseTLVFlow(const char *payload, int payload_size,
           "version available");
       once = true;
     }
-    
+
     return 0;
   }
 
@@ -3091,19 +3109,19 @@ void ZMQParserInterface::loadVLANMappings() {
   char **keys, **values, buf[64];
   int rc;
   Redis *redis = ntop->getRedis();
-  
+
   top_vlan_id = 1;
 
   snprintf(buf, sizeof(buf), VLAN_HASH_KEY, get_id());
-  
+
   rc = redis->hashGetAll(buf, &keys, &values);
 
   if(rc > 0) {
     for (int i = 0; i < rc; i++) {
       if(values[i] && keys[i]) {
 	u_int16_t v = atoi(values[i]);
-	
-	if(v > top_vlan_id) top_vlan_id = v;	  
+
+	if(v > top_vlan_id) top_vlan_id = v;
 	name_to_vlan[keys[i]] = v;
       }
 
@@ -3113,7 +3131,7 @@ void ZMQParserInterface::loadVLANMappings() {
 
     free(keys);
     free(values);
-  }  
+  }
 }
 
 /* **************************************************** */
@@ -3127,12 +3145,12 @@ u_int16_t ZMQParserInterface::findVLANMapping(std::string name) {
     char value[16], buf[64];
     u_int16_t id = top_vlan_id++;
     Redis *redis = ntop->getRedis();
-    
+
     if(id >= 4096) return(0 /* too many vlans */);
-    
+
     snprintf(value, sizeof(value), "%u", id);
 
-    snprintf(buf, sizeof(buf), VLAN_HASH_KEY, get_id());    
+    snprintf(buf, sizeof(buf), VLAN_HASH_KEY, get_id());
     redis->hashSet(buf, name.c_str(), value);
 
     /* Add VLAN mapping */
@@ -3140,7 +3158,7 @@ u_int16_t ZMQParserInterface::findVLANMapping(std::string name) {
 
     name_to_vlan[name] = id;
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Added %s = %d", name.c_str(), id);
-    return(id);      
+    return(id);
   } else
     return(0);
 }

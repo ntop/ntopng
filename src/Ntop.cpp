@@ -448,7 +448,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
   }
 
 #ifdef NTOPNG_PRO
-  /* 
+  /*
      This check is required when starting ntopng without --version
      but it's redundant when --version is used
   */
@@ -632,18 +632,18 @@ void Ntop::start() {
   snprintf(key, sizeof(key), "ntopng.prefs.config.repeater.*");
 
   int counter = redis->keys(key, &rsp);
-  
+
   memset(key, 0, sizeof(key));
 
   for(int i = 1; i<= counter; i++) {
     memset(key, 0, sizeof(key));
     snprintf(key, sizeof(key), "ntopng.prefs.config.repeater.%d",i);
 
-    memset(repeater, 0, sizeof(repeater)); 
+    memset(repeater, 0, sizeof(repeater));
     redis->get(key, repeater, sizeof(repeater));
 
     char *token = strtok(repeater, "|");
-   
+
     int h = 0;
     string ip = "";
     string port = "";
@@ -670,7 +670,7 @@ void Ntop::start() {
     MulticastForwarder *multicastForwarder = new (std::nothrow) MulticastForwarder(ip, stoi(port), interfaces);
 
     if (multicastForwarder) {
-      multicastForwarder->start(); 
+      multicastForwarder->start();
       multicastForwarders.push_back(multicastForwarder);
     } else {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Error occured instantiating Multicast Forwarder");
@@ -775,9 +775,25 @@ void Ntop::start() {
 bool Ntop::isLocalAddress(int family, void *addr, int16_t *network_id,
                           u_int8_t *network_mask_bits) {
   u_int8_t nmask_bits;
-  *network_id = this->localNetworkLookup(family, addr, &nmask_bits);
 
-  if (*network_id != -1 && network_mask_bits) *network_mask_bits = nmask_bits;
+
+  if(false) {
+    char ipb[32];
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "FIND XX %s",
+				 Utils::intoaV4(ntohl(*(u_int32_t*)addr), ipb, sizeof(ipb)));
+  }
+
+
+  *network_id = localNetworkLookup(family, addr, &nmask_bits);
+
+  if((*network_id != -1) && network_mask_bits)
+    *network_mask_bits = nmask_bits;
+  else {
+    if(getPrefs()->is_cloud_edition()) {
+      *network_id = cloudNetworkLookup(family, addr, &nmask_bits);
+    }
+  }
 
   return (((*network_id) == -1) ? false : true);
 };
@@ -919,8 +935,7 @@ void Ntop::loadLocalInterfaceAddress() {
 
     for (int id = 0; id < num_defined_interfaces; id++) {
       if ((name[0] != '\0') && (strstr(iface[id]->get_name(), name) != NULL)) {
-        u_int32_t bits = Utils::numberOfSetBits(
-            (u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
+        u_int32_t bits = Utils::numberOfSetBits((u_int32_t)pIPAddrTable->table[ifIdx].dwMask);
 
         IPAddr.S_un.S_addr = (u_long)pIPAddrTable->table[ifIdx].dwAddr;
         snprintf(buf, bufsize, "%s/32", inet_ntoa(IPAddr));
@@ -953,8 +968,7 @@ void Ntop::loadLocalInterfaceAddress() {
    * 3ffe:2fa0:1010:ca22:020a:95ff:fe8a:1cf8) */
   char buf_orig[bufsize + 32];
   char net_buf[bufsize + 32];
-  int sock =
-      Utils::openSocket(AF_INET, SOCK_STREAM, 0, "loadLocalInterfaceAddress");
+  int sock = Utils::openSocket(AF_INET, SOCK_STREAM, 0, "loadLocalInterfaceAddress");
 
   if (getifaddrs(&local_addresses) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -1005,8 +1019,7 @@ void Ntop::loadLocalInterfaceAddress() {
         char buf_orig2[bufsize + 32];
 
         snprintf(buf_orig2, sizeof(buf_orig2), "%s/%d", buf, 32);
-        ntop->getTrace()->traceEvent(
-            TRACE_NORMAL, "Adding %s as IPv4 interface address for %s",
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding %s as IPv4 interface address for %s",
             buf_orig2, iface[ifId]->get_name());
         local_interface_addresses.addAddress(buf_orig2);
         iface[ifId]->addInterfaceAddress(buf_orig2);
@@ -1722,7 +1735,7 @@ bool Ntop::checkUserPassword(const char *user, const char *password,
     *localuser = true;
     return (true);
   }
-  
+
   /* Now let's check the user by using LDAP (if available) */
 #if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
   if (ntop->getPro()->has_valid_license()) {
@@ -1808,7 +1821,7 @@ bool Ntop::checkUserPassword(const char *user, const char *password,
   }
 #endif
 
-/* If the user is not a local user and not LDAP user, 
+/* If the user is not a local user and not LDAP user,
     let's check Radius (if available) */
 #ifdef HAVE_RADIUS
   /*
@@ -3152,10 +3165,10 @@ void Ntop::shutdownAll() {
 void Ntop::purgeLoopBody() {
   while(!globals->isShutdown()) {
     current_time = time(NULL);
-    
+
     for (u_int i = 0; i < get_num_interfaces(); i++) {
       NetworkInterface *cur_iface = getInterface(i);
-      
+
       if (cur_iface) cur_iface->purgeQueuedIdleEntries();
     }
 
@@ -3514,6 +3527,13 @@ void Ntop::setScriptsDir() {
 inline int16_t Ntop::localNetworkLookup(int family, void *addr,
                                         u_int8_t *network_mask_bits) {
   return (local_network_tree.findAddress(family, addr, network_mask_bits));
+}
+
+/* ******************************************* */
+
+inline int16_t Ntop::cloudNetworkLookup(int family, void *addr,
+                                        u_int8_t *network_mask_bits) {
+  return (cloud_local_network_tree.findAddress(family, addr, network_mask_bits));
 }
 
 /* **************************************** */
@@ -4033,4 +4053,3 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
 void Ntop::incBlacklisHits(std::string listname) { blStats.incHits(listname); }
 
 /* ******************************************* */
-

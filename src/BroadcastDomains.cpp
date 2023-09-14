@@ -52,8 +52,7 @@ BroadcastDomains::~BroadcastDomains() {
 
 /* *************************************** */
 
-bool BroadcastDomains::addAddress(const IpAddress *const ipa,
-                                  int network_bits) {
+bool BroadcastDomains::addAddress(IpAddress *ipa, int network_bits) {
   ndpi_patricia_node_t *addr_node;
   u_int16_t domain_id;
 
@@ -120,8 +119,7 @@ bool BroadcastDomains::addAddress(const IpAddress *const ipa,
 
 /* *************************************** */
 
-bool BroadcastDomains::isGhostLocalBroadcastDomain(
-    bool is_interface_network) const {
+bool BroadcastDomains::isGhostLocalBroadcastDomain(bool is_interface_network) {
   return ((!is_interface_network) && (!iface->isTrafficMirrored()) &&
           iface->isPacketInterface() &&
           (iface->getIfType() != interface_type_PCAP_DUMP));
@@ -157,19 +155,18 @@ void BroadcastDomains::reloadBroadcastDomains(bool force_immediate_reload) {
 
 /* *************************************** */
 
-bool BroadcastDomains::isLocalBroadcastDomain(const IpAddress *const ipa,
+bool BroadcastDomains::isLocalBroadcastDomain(IpAddress *ipa,
                                               int network_bits,
-                                              bool isInlineCall) const {
-  AddressTree *cur_tree =
-      isInlineCall ? inline_broadcast_domains : broadcast_domains;
+                                              bool isInlineCall) {
+  AddressTree *cur_tree = isInlineCall ? inline_broadcast_domains : broadcast_domains;
 
   return cur_tree && cur_tree->match(ipa, network_bits);
 }
 
 /* *************************************** */
 
-bool BroadcastDomains::isLocalBroadcastDomainHost(const Host *const h,
-                                                  bool isInlineCall) const {
+bool BroadcastDomains::isLocalBroadcastDomainHost(Host *h,
+                                                  bool isInlineCall) {
   AddressTree *cur_tree =
       isInlineCall ? inline_broadcast_domains : broadcast_domains;
 
@@ -182,7 +179,7 @@ bool BroadcastDomains::isLocalBroadcastDomainHost(const Host *const h,
 /* *************************************** */
 
 struct bcast_domain_walk_data {
-  const BroadcastDomains *bcast_domains;
+  BroadcastDomains *bcast_domains;
   std::map<u_int16_t, bcast_domain_info> domains_info;
   lua_State *vm;
 };
@@ -217,7 +214,7 @@ static void bcast_domain_lua(ndpi_patricia_node_t *node, void *data,
 
 /* *************************************** */
 
-void BroadcastDomains::lua(lua_State *vm) const {
+void BroadcastDomains::lua(lua_State *vm) {
   AddressTree *cur_tree = broadcast_domains;
   struct bcast_domain_walk_data data;
 

@@ -41,14 +41,14 @@ class BroadcastDomains {
   BroadcastDomains(NetworkInterface *_iface);
   ~BroadcastDomains();
 
-  inline time_t getLastUpdate() const { return last_update; };
-  bool addAddress(const IpAddress *const ipa, int network_bits);
+  inline time_t getLastUpdate() { return last_update; };
+  bool addAddress(IpAddress *ipa, int network_bits);
   void reloadBroadcastDomains(bool force_immediate_reload = false);
-  bool isLocalBroadcastDomain(const IpAddress *const ipa, int network_bits,
-                              bool isInlineCall) const;
-  bool isLocalBroadcastDomainHost(const Host *const h, bool isInlineCall) const;
-  bool isGhostLocalBroadcastDomain(bool is_interface_network) const;
-  void lua(lua_State *vm) const;
+  bool isLocalBroadcastDomain(IpAddress *ipa, int network_bits,
+                              bool isInlineCall);
+  bool isLocalBroadcastDomainHost(Host *h, bool isInlineCall);
+  bool isGhostLocalBroadcastDomain(bool is_interface_network);
+  void lua(lua_State *vm);
 };
 
 #endif /* _BROADCAST_DOMAINS_H_ */

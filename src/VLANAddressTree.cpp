@@ -100,7 +100,7 @@ int16_t VLANAddressTree::findMac(u_int16_t vlan_id, const u_int8_t addr[]) {
 /* **************************************** */
 
 void *VLANAddressTree::findAndGetData(u_int16_t vlan_id,
-                                      const IpAddress *const ipa) const {
+                                      IpAddress *ipa) const {
   vlan_id &= 0xFFF; /* Make sure we use 12 bits */
 
   if (!tree[vlan_id]) return NULL;

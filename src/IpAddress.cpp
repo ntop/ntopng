@@ -289,12 +289,12 @@ bool IpAddress::isLocalHost(int16_t *network_id) const {
     u_int32_t v = /* htonl */ (addr.ipType.ipv4);
     local = ntop->isLocalAddress(AF_INET, (void *)&v, network_id);
   } else {
-    local =
-        ntop->isLocalAddress(AF_INET6, (void *)&addr.ipType.ipv6, network_id);
+    local = ntop->isLocalAddress(AF_INET6, (void *)&addr.ipType.ipv6, network_id);
   }
 
 #if 0 /* Debug */
   char buff[64];
+  
   ntop->getTrace()->traceEvent(TRACE_WARNING, "IP %s is %sLocal [broadcast=%u][multicast=%u]",
     print(buff, sizeof(buff), 128), local ? "" : "NOT ",
     addr.broadcastIP, addr.multicastIP);

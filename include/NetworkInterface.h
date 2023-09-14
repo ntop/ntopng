@@ -976,7 +976,7 @@ public:
   inline const char *getLocalIPAddresses() { return (ip_addresses.c_str()); }
   void addInterfaceAddress(char *const addr);
   void addInterfaceNetwork(char *const net, char *addr);
-  bool isInterfaceNetwork(const IpAddress *const ipa, int network_bits) const;
+  bool isInterfaceNetwork(IpAddress *ipa, int network_bits);
   inline int select_database(char *dbname) {
     return (db ? db->select_database(dbname) : -1);
   };

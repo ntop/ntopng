@@ -118,7 +118,7 @@ class Ntop {
   /* Local network address list */
   char *local_network_names[CONST_MAX_NUM_NETWORKS];
   char *local_network_aliases[CONST_MAX_NUM_NETWORKS];
-  AddressTree local_network_tree;
+  AddressTree local_network_tree, cloud_local_network_tree;
 
   /* Alerts */
   FlowAlertsLoader flow_alerts_loader;
@@ -150,6 +150,8 @@ class Ntop {
 
   /* For local network */
   inline int16_t localNetworkLookup(int family, void *addr,
+                                    u_int8_t *network_mask_bits = NULL);
+  inline int16_t cloudNetworkLookup(int family, void *addr,
                                     u_int8_t *network_mask_bits = NULL);
   bool addLocalNetwork(char *_net);
 
@@ -697,6 +699,8 @@ class Ntop {
 
   u_int16_t getLocalNetworkId(const char *network_name);
 
+  void addLocalCloudAddress(char *str) { cloud_local_network_tree.addAddress(str); }
+  
   // void getLocalAddresses(lua_State* vm) {
   // return(local_network_tree.getAddresses(vm)); };
 

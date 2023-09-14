@@ -62,7 +62,7 @@ NetworkStats::NetworkStats(NetworkInterface *iface, u_int16_t _network_id)
 
 /* *************************************** */
 
-bool NetworkStats::match(const AddressTree *const tree) const {
+bool NetworkStats::match(AddressTree *tree) {
   IpAddress *network_address = NULL;
   u_int8_t network_prefix;
   bool res = true;

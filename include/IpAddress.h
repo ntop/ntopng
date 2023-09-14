@@ -44,13 +44,13 @@ class IpAddress {
   u_int32_t ip_key;
 
   char* intoa(char* buf, u_short bufLen, u_int8_t bitmask) const;
-  void checkIP();
   void compute_key();
 
  public:
   IpAddress();
   IpAddress(const IpAddress& ipa);
 
+  void checkIP();
   bool isEmpty() const;
   inline void reset() { memset(&addr, 0, sizeof(addr)); }
   inline bool isIPv4() const { return ((addr.ipVersion == 4) ? true : false); }

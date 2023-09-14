@@ -92,6 +92,8 @@ ndpi_patricia_node_t *AddressTree::addAddress(const IpAddress *const ipa) {
                            : (void *)&ipa->getIP()->ipType.ipv6;
     ndpi_patricia_node_t *res;
 
+    updateLock.wrlock(__FILE__, __LINE__);
+    
     res = Utils::ptree_match(cur_ptree, cur_family, cur_addr, cur_bits);
 
     if (!res) {
@@ -99,12 +101,15 @@ ndpi_patricia_node_t *AddressTree::addAddress(const IpAddress *const ipa) {
 
       if (res) {
         numAddresses++;
+
         if (is_v4)
           numAddressesIPv4++;
         else
           numAddressesIPv6++;
       }
     }
+
+    updateLock.unlock(__FILE__, __LINE__);
 
     return res;
   }
@@ -156,6 +161,8 @@ ndpi_patricia_node_t *AddressTree::addAddress(const IpAddress *const ipa,
     void *cur_addr = is_v4 ? (void *)&ipa->getIP()->ipType.ipv4
                            : (void *)&ipa->getIP()->ipType.ipv6;
 
+    updateLock.wrlock(__FILE__, __LINE__);
+    
     res = Utils::ptree_match(cur_ptree, cur_family, cur_addr, cur_bits);
 
     if (!res) {
@@ -175,6 +182,8 @@ ndpi_patricia_node_t *AddressTree::addAddress(const IpAddress *const ipa,
       }
     }
 
+    updateLock.unlock(__FILE__, __LINE__);
+
     return res;
   }
 }
@@ -182,17 +191,22 @@ ndpi_patricia_node_t *AddressTree::addAddress(const IpAddress *const ipa,
 /* ******************************************* */
 
 bool AddressTree::addAddressAndData(const char *_what, void *user_data) {
-  ndpi_patricia_node_t *node =
-      Utils::ptree_add_rule(strchr(_what, '.') ? ptree_v4 : ptree_v6, _what);
+  ndpi_patricia_node_t *node;
+  bool ret;
+  
+  updateLock.wrlock(__FILE__, __LINE__);
+  
+  node = Utils::ptree_add_rule(strchr(_what, '.') ? ptree_v4 : ptree_v6, _what);
 
-  if (node)
-    ndpi_patricia_set_node_data(node, user_data);
-  else
-    return (false);
+  if (node) {
+    ndpi_patricia_set_node_data(node, user_data), ret = true;
+    numAddresses++;
+  } else
+    ret = false;
 
-  numAddresses++;
-
-  return (true);
+  updateLock.unlock(__FILE__, __LINE__);
+  
+  return(ret);
 }
 
 /* ******************************************* */
@@ -200,7 +214,8 @@ bool AddressTree::addAddressAndData(const char *_what, void *user_data) {
 bool AddressTree::addAddress(const char *_what, const int16_t user_data) {
   u_int32_t _mac[6];
   int16_t id = (user_data == -1) ? numAddresses : user_data;
-
+  bool ret = true;
+  
   if (sscanf(_what, "%02X:%02X:%02X:%02X:%02X:%02X", &_mac[0], &_mac[1],
              &_mac[2], &_mac[3], &_mac[4], &_mac[5]) == 6) {
     u_int8_t mac[6];
@@ -211,18 +226,25 @@ bool AddressTree::addAddress(const char *_what, const int16_t user_data) {
     mac_num = Utils::mac2int(mac);
     macs[mac_num] = id;
   } else {
-    ndpi_patricia_node_t *node =
-        Utils::ptree_add_rule(strchr(_what, '.') ? ptree_v4 : ptree_v6, _what);
+    ndpi_patricia_node_t *node;
+    
+    updateLock.wrlock(__FILE__, __LINE__);
+    
+    node = Utils::ptree_add_rule(strchr(_what, '.') ? ptree_v4 : ptree_v6, _what);
 
-    if (node)
+    if (node) {
       ndpi_patricia_set_node_u64(node, id);
-    else
-      return (false);
+      numAddresses++;
+      ret = true;
+    } else
+      ret = false;
+
+    updateLock.unlock(__FILE__, __LINE__);
   }
 
   numAddresses++;
 
-  return (true);
+  return(ret);
 }
 
 /* ******************************************* */
@@ -271,13 +293,15 @@ ndpi_patricia_node_t *AddressTree::matchAndGetNode(const char *addr) {
     bits = address.isIPv4() ? 32 : 128;
   }
 
+  updateLock.rdlock(__FILE__, __LINE__);
   if (address.isIPv4())
     node = Utils::ptree_match(ptree_v4, AF_INET, &address.getIP()->ipType.ipv4,
                               bits);
   else
     node = Utils::ptree_match(ptree_v6, AF_INET6,
                               (void *)&address.getIP()->ipType.ipv6, bits);
-
+  updateLock.unlock(__FILE__, __LINE__);
+  
   return node;
 }
 
@@ -298,25 +322,32 @@ bool AddressTree::match(char *addr) { return !!matchAndGetNode(addr); }
 
 /* ******************************************* */
 
-ndpi_patricia_node_t *AddressTree::match(const IpAddress *const ipa,
-                                         int network_bits) const {
+ndpi_patricia_node_t* AddressTree::match(IpAddress *ipa, int network_bits) {
+  ndpi_patricia_node_t *rc;
+  
   if (!ipa) return (NULL);
 
   bool is_v4 = ipa->isIPv4();
   if (!is_v4 && !ptree_v6) return (NULL);
 
+  updateLock.rdlock(__FILE__, __LINE__);
+  
   if (is_v4)
-    return Utils::ptree_match(ptree_v4, AF_INET, &ipa->getIP()->ipType.ipv4,
+    rc = Utils::ptree_match(ptree_v4, AF_INET, &ipa->getIP()->ipType.ipv4,
                               network_bits);
   else
-    return Utils::ptree_match(ptree_v6, AF_INET6, &ipa->getIP()->ipType.ipv6,
-                              network_bits);
+    rc = Utils::ptree_match(ptree_v6, AF_INET6, &ipa->getIP()->ipType.ipv6,
+			    network_bits);
+  updateLock.unlock(__FILE__, __LINE__);
+  
+  return(rc);
 }
 
 /* ******************************************* */
 
-void *AddressTree::matchAndGetData(const IpAddress *const ipa) const {
+void *AddressTree::matchAndGetData(IpAddress *ipa) {
   ndpi_patricia_node_t *node = match(ipa, ipa->isIPv4() ? 32 : 128);
+  
   if (node)
     return ndpi_patricia_get_node_data(node);
   else
@@ -325,8 +356,9 @@ void *AddressTree::matchAndGetData(const IpAddress *const ipa) const {
 
 /* ******************************************* */
 
-/* NOTE: this does NOT accept a char* address! Use AddressTree::find() instead.
- */
+/*
+  NOTE: this does NOT accept a char* address! Use AddressTree::find() instead.
+*/
 int16_t AddressTree::findAddress(int family, void *addr,
                                  u_int8_t *network_mask_bits) {
   ndpi_patricia_tree_t *p;
@@ -415,9 +447,11 @@ static void address_tree_dump_funct(ndpi_patricia_node_t *node, void *data,
 
 /* **************************************************** */
 
-void AddressTree::getAddresses(lua_State *vm) const {
+void AddressTree::getAddresses(lua_State *vm) {
   std::map<u_int64_t, int16_t>::const_iterator it;
 
+  updateLock.rdlock(__FILE__, __LINE__);
+  
   ndpi_patricia_walk_tree_inorder(ptree_v4, address_tree_dump_funct, vm);
 
   if (ptree_v6)
@@ -434,6 +468,8 @@ void AddressTree::getAddresses(lua_State *vm) const {
 
     lua_push_str_table_entry(vm, key, val);
   }
+
+  updateLock.unlock(__FILE__, __LINE__);
 }
 /* **************************************************** */
 
@@ -471,9 +507,11 @@ void AddressTree::walk(ndpi_patricia_tree_t *ptree, ndpi_void_fn3_t func,
 
 /* **************************************************** */
 
-void AddressTree::walk(ndpi_void_fn3_t func, void *const user_data) const {
+void AddressTree::walk(ndpi_void_fn3_t func, void *const user_data) {
+  updateLock.rdlock(__FILE__, __LINE__);
   walk(ptree_v4, func, user_data);
   walk(ptree_v6, func, user_data);
+  updateLock.unlock(__FILE__, __LINE__);
 }
 
 /* **************************************************** */
@@ -481,6 +519,8 @@ void AddressTree::walk(ndpi_void_fn3_t func, void *const user_data) const {
 void AddressTree::dump() {
   std::map<u_int64_t, int16_t>::iterator it;
 
+  updateLock.rdlock(__FILE__, __LINE__);
+  
   ndpi_patricia_walk_tree_inorder(ptree_v4, address_tree_dump_funct, NULL);
 
   if (ptree_v6)
@@ -495,6 +535,8 @@ void AddressTree::dump() {
 
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[AddressTree] %s", key);
   }
+
+  updateLock.unlock(__FILE__, __LINE__);
 }
 
 /* **************************************************** */

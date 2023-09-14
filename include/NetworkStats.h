@@ -132,7 +132,7 @@ class NetworkStats : public InterfaceMemberAlertableEntity,
   };
 
   void setNetworkId(u_int8_t id);
-  bool match(const AddressTree *const tree) const;
+  bool match(AddressTree *tree);
   void lua(lua_State *vm, bool diff = false);
   bool serialize(json_object *my_object);
   void housekeepAlerts(ScriptPeriodicity p);

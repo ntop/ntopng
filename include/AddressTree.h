@@ -33,7 +33,8 @@ class AddressTree {
   ndpi_patricia_tree_t *ptree_v4, *ptree_v6;
   std::map<u_int64_t, int16_t> macs;
   ndpi_void_fn_t free_func;
-
+  RwLock updateLock;
+  
   void removePrefix(bool isV4, ndpi_prefix_t *prefix);
   static void walk(ndpi_patricia_tree_t *ptree, ndpi_void_fn3_t func,
                    void *const user_data);
@@ -63,7 +64,7 @@ class AddressTree {
                                    bool compact_after_add);
   bool addAddresses(const char *net, const int16_t user_data = -1);
 
-  void getAddresses(lua_State *vm) const;
+  void getAddresses(lua_State *vm);
 
   int16_t findAddress(int family, void *addr,
                       u_int8_t *network_mask_bits = NULL);
@@ -77,12 +78,11 @@ class AddressTree {
   /* Return node on success, NULL otherwise */
   ndpi_patricia_node_t *matchAndGetNode(const char *addr);
 
-  ndpi_patricia_node_t *match(const IpAddress *const ipa,
-                              int network_bits) const;
-  void *matchAndGetData(const IpAddress *const ipa) const;
+  ndpi_patricia_node_t *match(IpAddress *ipa, int network_bits);
+  void *matchAndGetData(IpAddress *ipa);
 
   void dump();
-  void walk(ndpi_void_fn3_t func, void *const user_data) const;
+  void walk(ndpi_void_fn3_t func, void *const user_data);
 };
 
 #endif /* _ADDRESS_TREE_H_ */

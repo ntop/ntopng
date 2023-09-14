@@ -208,8 +208,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   srcIP.set(&zflow->src_ip), dstIP.set(&zflow->dst_ip);
 
-  INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::processFlow: getFlow",
-                                    0);
+  INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::processFlow: getFlow", 0);
 
   /* Updating Flow */
   flow = getFlow(srcMac, dstMac, zflow->vlan_id, zflow->observationPointId,
