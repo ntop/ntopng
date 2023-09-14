@@ -107,14 +107,6 @@ const load_scale = () => {
 }
 
 const set_event_listener = () => {
-  network.on("stabilizationIterationsDone", function () {
-    network.setOptions( { 
-      physics: {
-        enabled: false
-      } 
-    } );
-  });
-
   /* Default event listeners */
   network.on('hoverEdge', function() {
     $(`.vis-tooltip`).css('position', 'absolute');
