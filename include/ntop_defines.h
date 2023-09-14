@@ -241,7 +241,7 @@
 #define HTTP_ACL_MANAGEMENT_PORT "ntopng.prefs.http_acl_management_port"
 #define TEMP_ADMIN_PASSWORD "ntopng.prefs.temp_admin_password"
 #define LAST_RESET_TIME "ntopng.prefs.last_reset_time"
-
+#define NTOPNG_VLAN_ALIASES "ntopng.vlan_aliases"
 #define TRAFFIC_FILTERING_CACHE_DURATION 43200 /* 12 h */
 #define DNS_CACHE_DURATION            3600     /*  1 h */
 #define LOCAL_HOSTS_CACHE_DURATION    3600     /*  1 h */

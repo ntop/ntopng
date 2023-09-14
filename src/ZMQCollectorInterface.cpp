@@ -449,8 +449,7 @@ void ZMQCollectorInterface::collect_flows() {
             cache for a while. So we use this trick to avoid
             silly clock drift errors that instead are not an error
           */
-          msg_id =
-              0; /* So parseXXXX knowns that this message could be lost/OOO */
+          msg_id = 0; /* So parseXXXX knowns that this message could be lost/OOO */
         }
 
         /*

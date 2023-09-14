@@ -534,7 +534,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
 
 bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
                                            u_int32_t field,
-                                           ParsedValue *value) const {
+                                           ParsedValue *value) {
   IpAddress ip_aux; /* used to check empty IPs */
 
   switch (field) {
@@ -800,7 +800,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
 
 bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
                                            u_int32_t field,
-                                           ParsedValue *value) const {
+                                           ParsedValue *value) {
   /* Check for backward compatibility to handle cases like field = 123
    * (CLIENT_NW_LATENCY_MS) instead of field = 57595 (NTOP_BASE_ID + 123) */
   if (field < NTOP_BASE_ID) field += NTOP_BASE_ID;
@@ -831,13 +831,13 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
 #endif
     break;
 
-#if 0
   case NPROBE_INSTANCE_NAME:
     if(ntop->getPrefs()->is_cloud_edition()) {
-
+      u_int16_t vlan_id = findVLANMapping((char*)value->string);
+      
+      flow->vlan_id = vlan_id;
     }
     break;
-#endif
     
   case L7_PROTO_NAME:
     break;
@@ -1145,7 +1145,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
 
 bool ZMQParserInterface::matchPENZeroField(ParsedFlow *const flow,
                                            u_int32_t field,
-                                           ParsedValue *value) const {
+                                           ParsedValue *value) {
   IpAddress ip_aux; /* used to check empty IPs */
 
   switch (field) {
@@ -1307,7 +1307,7 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow *const flow,
 
 bool ZMQParserInterface::matchPENNtopField(ParsedFlow *const flow,
                                            u_int32_t field,
-                                           ParsedValue *value) const {
+                                           ParsedValue *value) {
   /* Check for backward compatibility to handle cases like field = 123
    * (CLIENT_NW_LATENCY_MS) instead of field = 57595 (NTOP_BASE_ID + 123) */
   if (field < NTOP_BASE_ID) field += NTOP_BASE_ID;
@@ -1433,7 +1433,7 @@ bool ZMQParserInterface::matchField(ParsedFlow *const flow, const char *key,
 
 bool ZMQParserInterface::parseNProbeAgentField(
     ParsedFlow *const flow, const char *key, ParsedValue *value,
-    json_object *const jvalue) const {
+    json_object *const jvalue) {
   bool ret = false;
   json_object *obj;
 
@@ -2625,7 +2625,7 @@ void ZMQParserInterface::setFieldValueMap(
 
 /* **************************************************** */
 
-u_int8_t ZMQParserInterface::parseOptionFieldMap(json_object *const jo) const {
+u_int8_t ZMQParserInterface::parseOptionFieldMap(json_object *const jo) {
   int arraylen = json_object_array_length(jo);
   json_object *w, *z;
   ZMQ_FieldMap field_map;
@@ -2661,7 +2661,7 @@ u_int8_t ZMQParserInterface::parseOptionFieldMap(json_object *const jo) const {
 /* **************************************************** */
 
 u_int8_t ZMQParserInterface::parseOptionFieldValueMap(
-    json_object *const w) const {
+    json_object *const w) {
   json_object *z;
   ZMQ_FieldValueMap field_value_map;
 
@@ -3092,7 +3092,7 @@ void ZMQParserInterface::loadVLANMappings() {
   int rc;
   Redis *redis = ntop->getRedis();
   
-  top_vlan_id = 0;
+  top_vlan_id = 1;
 
   snprintf(buf, sizeof(buf), VLAN_HASH_KEY, get_id());
   
@@ -3134,7 +3134,12 @@ u_int16_t ZMQParserInterface::findVLANMapping(std::string name) {
 
     snprintf(buf, sizeof(buf), VLAN_HASH_KEY, get_id());    
     redis->hashSet(buf, name.c_str(), value);
-    
+
+    /* Add VLAN mapping */
+    redis->hashSet(NTOPNG_VLAN_ALIASES, value, name.c_str());
+
+    name_to_vlan[name] = id;
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Added %s = %d", name.c_str(), id);
     return(id);      
   } else
     return(0);

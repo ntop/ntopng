@@ -60,26 +60,26 @@ class ZMQParserInterface : public ParserInterface {
                   const char *descr = NULL);
   void addCounterMapping(const char *sym, u_int32_t id);
   bool parsePENZeroField(ParsedFlow *const flow, u_int32_t field,
-                         ParsedValue *value) const;
+                         ParsedValue *value);
   bool parsePENNtopField(ParsedFlow *const flow, u_int32_t field,
-                         ParsedValue *value) const;
+                         ParsedValue *value);
   bool matchPENZeroField(ParsedFlow *const flow, u_int32_t field,
-                         ParsedValue *value) const;
+                         ParsedValue *value);
   bool matchPENNtopField(ParsedFlow *const flow, u_int32_t field,
-                         ParsedValue *value) const;
+                         ParsedValue *value);
   static bool parseContainerInfo(json_object *jo,
                                  ContainerInfo *const container_info);
   static void freeContainerInfo(ContainerInfo *const container_info);
   bool parseNProbeAgentField(ParsedFlow *const flow, const char *key,
                              ParsedValue *value,
-                             json_object *const jvalue) const;
+                             json_object *const jvalue);
   int parseSingleJSONFlow(json_object *o, u_int32_t source_id);
   int parseSingleTLVFlow(ndpi_deserializer *deserializer, u_int32_t source_id);
   void setFieldMap(const ZMQ_FieldMap *const field_map) const;
   void setFieldValueMap(const ZMQ_FieldValueMap *const field_value_map) const;
 
-  u_int8_t parseOptionFieldMap(json_object *const jo) const;
-  u_int8_t parseOptionFieldValueMap(json_object *const jo) const;
+  u_int8_t parseOptionFieldMap(json_object *const jo);
+  u_int8_t parseOptionFieldValueMap(json_object *const jo);
 
  protected:
   struct {
