@@ -2252,7 +2252,10 @@ int Prefs::checkOptions() {
 #ifdef NTOPNG_PRO
     ntop->getTrace()->set_trace_level((u_int8_t)0);
     ntop->registerPrefs(this, true);
-    ntop->getPro()->init_license();
+
+    // Note: This is called in registerPrefs already, no need to
+    // call it again (and creates issues with singleton check)
+    //ntop->getPro()->init_license();
 
     printf("Edition:\t%s\n", ntop->getPro()->get_edition());
     printf("License Type:\t%s\n",
