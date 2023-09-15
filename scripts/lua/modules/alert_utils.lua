@@ -192,7 +192,7 @@ end
 -- #################################
 
 -- This function formats flows in alerts
-function alert_utils.formatRawFlow(alert)
+function alert_utils.formatRawFlow(alert, nohtml)
     require "flow_utils"
     local time_bounds
     local add_links = false
@@ -212,7 +212,7 @@ function alert_utils.formatRawFlow(alert)
 
     flow = "<i class=\"fas fa-stream\"></i> " .. (getFlowLabel(flow, false, add_links, time_bounds, {
         page = "alerts"
-    }) or "")
+    },nil,nil,nohtml) or "")
 
     return flow
 end
@@ -548,7 +548,7 @@ function alert_utils.formatAlertNotification(notif, options)
         msg = msg .. "[" .. alert_consts.alertEntityLabel(notif.entity_id) .. "]"
         local ev
         if notif.entity_id == alert_entities.flow.entity_id then
-            ev = noHtml(alert_utils.formatRawFlow(notif))
+            ev = noHtml(alert_utils.formatRawFlow(notif, options.nohtml))
         else
             ev = notif.entity_val
             if notif.entity_id == alert_entities.host.entity_id then

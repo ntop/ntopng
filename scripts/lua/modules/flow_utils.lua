@@ -697,7 +697,7 @@ local function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
     }, port, port, true --[[ check href existance --]] )
 end
 
-function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperlink_suffix, add_flag, add_hostnames)
+function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperlink_suffix, add_flag, add_hostnames, nohtml)
     if flow == nil then
         return ""
     end
@@ -795,8 +795,11 @@ function getFlowLabel(flow, show_macs, add_hyperlinks, historical_bounds, hyperl
         end
     end
 
-    label = label .. "&nbsp; <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> &nbsp;"
-
+    if (not nohtml) then
+        label = label .. "&nbsp; <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> &nbsp;"
+    else
+        label = label .. " -> "
+    end
     if not isEmptyString(srv_name) then
         label = label .. srv_name
     end
