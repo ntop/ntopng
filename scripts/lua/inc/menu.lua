@@ -237,12 +237,17 @@ else
             hidden = not interface.isDiscoverableInterface() or interface.isLoopback(),
             url = "/lua/discover.lua"
         }, {
+            -- Pro or Enterprise with clickhouse disabled
             entry = page_utils.menu_entries.traffic_report,
-            hidden = not ntop.isPro() or ntop.isEnterprise(), -- Pro only
+            hidden = not (
+              (ntop.isPro() and not ntop.isEnterprise()) or 
+              (ntop.isEnterprise() and not prefs.is_dump_flows_to_clickhouse_enabled)
+            ),
             url = "/lua/pro/report.lua"
         }, {
+            -- Enterprise with clickhouse enabled
             entry = page_utils.menu_entries.traffic_report,
-            hidden = not ntop.isEnterprise() or not prefs.is_dump_flows_to_clickhouse_enabled,
+            hidden = not (ntop.isEnterprise() and prefs.is_dump_flows_to_clickhouse_enabled),
             url = "/lua/pro/reportng.lua"
         }}
     })
