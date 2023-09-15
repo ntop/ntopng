@@ -3542,7 +3542,8 @@ u_int16_t Ntop::getLocalNetworkId(const char *address_str) {
   u_int16_t i;
 
   for (i = 0; i < local_network_tree.getNumAddresses(); i++) {
-    if (!strcmp(address_str, local_network_names[i])) return (i);
+    if(local_network_names[i] && (!strcmp(address_str, local_network_names[i])))
+      return (i);
   }
 
   return ((u_int16_t)-1);
