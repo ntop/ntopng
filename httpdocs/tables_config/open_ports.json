@@ -1,0 +1,37 @@
+{
+	"id": "open_ports",
+	"data_url": "lua/pro/rest/v2/get/host/scan_port_list.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"columns": [
+		
+		{
+			"title_i18n": "port",
+			"data_field": "port",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "count",
+			"data_field": "count_host",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "hosts",
+			"data_field": "hosts",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}
