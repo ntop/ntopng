@@ -313,6 +313,7 @@ local lang = {
   ["interfaces"] = "Interfaces",
   ["interfaces_traffic"] = "Interfaces Traffic",
   ["intranet_traffic"] = "Intranet Traffic",
+  ["invalid_chars_in_query"] = "Invalid Characters in Query",
   ["invalid_password"] = "Password is not compliant with the ntop requirements: too short or does not contain valid ISO8859-1 (latin1) letters/numbers",
   ["invalid_value"] = "Invalid value",
   ["ip_address"] = "IP Address",
