@@ -263,6 +263,10 @@ function init_url_params() {
         && ntopng_url_manager.get_url_entry("status") == "engaged") {
         ntopng_url_manager.set_key_to_url("status", "historical");
     }
+    if (ntopng_url_manager.get_url_entry("aggregated") == null) {
+        ntopng_url_manager.set_key_to_url("aggregated","false");
+    }
+
 }
 
 
