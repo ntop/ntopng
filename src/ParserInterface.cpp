@@ -417,7 +417,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       defined in ntopng will still be applied to the protocols detected by
       nprobe.
     */
-    if(zflow->src_ip.isIPv4())
+    if(zflow->src_ip.isIPv4()) {
       guessed_protocol = ndpi_guess_undetected_protocol_v4(get_ndpi_struct(),
 							   flow->get_ndpi_flow(),
 							   flow->get_protocol(),
@@ -426,7 +426,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 							   ntohl(zflow->dst_ip.get_ipv4()),
 							   ntohs(zflow->dst_port)
 							   );
-    else {
+    } else {
       /* IPv6: use protcol guess only based on ports/protocol */
       
       guessed_protocol = ndpi_guess_undetected_protocol_v4(get_ndpi_struct(),
@@ -440,14 +440,14 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     }
     
 #ifdef NTOPNG_PRO
-  if (zflow->device_ip) {
-    // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() &&
-    // ntop->getPro()->has_valid_license()) {
-    if (!flow_interfaces_stats)
-      flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
+    if (zflow->device_ip) {
+      // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() &&
+      // ntop->getPro()->has_valid_license()) {
+      if (!flow_interfaces_stats)
+        flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
 
-    if (flow_interfaces_stats) {
-      flow_interfaces_stats->incStats(
+      if (flow_interfaces_stats) {
+        flow_interfaces_stats->incStats(
           now, zflow->device_ip, zflow->inIndex, flow->getStatsProtocol(),
           zflow->pkt_sampling_rate * zflow->out_pkts,
           zflow->pkt_sampling_rate * zflow->out_bytes,
@@ -458,119 +458,65 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
          interface). For this reason it is important to check the outIndex and
          increase its counters only if it is different from inIndex to avoid
          double counting. */
-      if (zflow->outIndex != zflow->inIndex)
-        flow_interfaces_stats->incStats(
+        if (zflow->outIndex != zflow->inIndex)
+          flow_interfaces_stats->incStats(
             now, zflow->device_ip, zflow->outIndex, flow->getStatsProtocol(),
             zflow->pkt_sampling_rate * zflow->in_pkts,
             zflow->pkt_sampling_rate * zflow->in_bytes,
             zflow->pkt_sampling_rate * zflow->out_pkts,
             zflow->pkt_sampling_rate * zflow->out_bytes);
+      }
     }
-  }
 #endif
 
-  flow->setFlowVerdict(zflow->getFlowVerdict());
-  flow->setJSONInfo(zflow->getAdditionalFieldsJSON());
-  flow->setTLVInfo(zflow->getAdditionalFieldsTLV());
+    flow->setFlowVerdict(zflow->getFlowVerdict());
+    flow->setJSONInfo(zflow->getAdditionalFieldsJSON());
+    flow->setTLVInfo(zflow->getAdditionalFieldsTLV());
 
-  /* This is now incremented in Flow::hosts_periodic_stats_update
-   * by calling iface->incLocalStats
-  flow->updateInterfaceLocalStats(src2dst_direction,
+    /* This is now incremented in Flow::hosts_periodic_stats_update
+     * by calling iface->incLocalStats
+    flow->updateInterfaceLocalStats(src2dst_direction,
                                   zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
                                   zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
   */
 
-  /*
-    Parse flow info into the corresponding element (without overriding
-    plugin-generated data:
-    - When nProbe has plugins enabled, plugin data is taken
-    - When nProbe has no plugins enabled, then nDPI data is taken
-  */
-  if (zflow->getL7Info() && zflow->getL7Info()[0]) {
-    if (flow->isDNS() && !zflow->getDNSQuery())
-      zflow->setDNSQuery(zflow->getL7Info());
-    else if (flow->isHTTP() && !zflow->getHTTPsite()) {
-      zflow->setHTTPsite(zflow->getL7Info());
-      if (flow->get_cli_host())
-        flow->get_cli_host()->incrVisitedWebSite(zflow->getHTTPsite());
-    } else if (flow->isTLS() && !zflow->getTLSserverName()) {
-      zflow->setTLSserverName(zflow->getL7Info());
-      if (flow->get_cli_host())
-        flow->get_cli_host()->incrVisitedWebSite(zflow->getTLSserverName());
-    }
-  }
-
-  flow->setErrorCode(zflow->getL7ErrorCode());
-  flow->setConfidence(zflow->getConfidence());
-
-  if (flow->isDNS())  flow->updateDNS(zflow);
-  if (flow->isHTTP()) flow->updateHTTP(zflow);
-  if (flow->isTLS())  flow->updateTLS(zflow);
-
-  if (zflow->getBittorrentHash())
-    flow->setBTHash(zflow->getBittorrentHash(true));
-
-  if (zflow->vrfId)  flow->setVRFid(zflow->vrfId);
-  if (zflow->src_as) flow->setSrcAS(zflow->src_as);
-  if (zflow->dst_as) flow->setDstAS(zflow->dst_as);
-
-  if (zflow->prev_adjacent_as) flow->setPrevAdjacentAS(zflow->prev_adjacent_as);
-  if (zflow->next_adjacent_as) flow->setNextAdjacentAS(zflow->next_adjacent_as);
-
-  if (zflow->getJA3cHash()) flow->updateJA3C(zflow->getJA3cHash());
-  if (zflow->getJA3sHash()) flow->updateJA3S(zflow->getJA3sHash());
-
-  if (zflow->getRiskInfo()) {
-    json_object *o, *obj;
-    enum json_tokener_error jerr = json_tokener_success;
-
-    flow->setJSONRiskInfo(zflow->getRiskInfo());
-
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s]",
-    // zflow->flow_risk_info);
-
     /*
-      We use riskInfo to grab some flow attributes
-      to enrich the memory flor representation
+      Parse flow info into the corresponding element (without overriding
+      plugin-generated data:
+      - When nProbe has plugins enabled, plugin data is taken
+      - When nProbe has no plugins enabled, then nDPI data is taken
     */
-    if ((o = json_tokener_parse_verbose(zflow->getRiskInfo(), &jerr)) !=
-        NULL) {
-      /* NOTE: keep in sync with  FlowRisk::ignoreRisk() */
-      if (json_object_object_get_ex(o, "6" /* NDPI_TLS_SELFSIGNED_CERTIFICATE */, &obj)) {
-        const char *issuerDN = json_object_get_string(obj);
-
-        if(flow->isTLS()) flow->setTLSCertificateIssuerDN((char *)issuerDN);
-      } else if (json_object_object_get_ex(o, "16" /* NDPI_SUSPICIOUS_DGA_DOMAIN */, &obj)) {
-        const char *dgaDomain = json_object_get_string(obj);
-
-        flow->setDGADomain((char *)dgaDomain);
+    if (zflow->getL7Info() && zflow->getL7Info()[0]) {
+      if (flow->isDNS() && !zflow->getDNSQuery())
+        zflow->setDNSQuery(zflow->getL7Info());
+      else if (flow->isHTTP() && !zflow->getHTTPsite()) {
+        zflow->setHTTPsite(zflow->getL7Info());
+        if (flow->get_cli_host())
+          flow->get_cli_host()->incrVisitedWebSite(zflow->getHTTPsite());
+      } else if (flow->isTLS() && !zflow->getTLSserverName()) {
+        zflow->setTLSserverName(zflow->getL7Info());
+        if (flow->get_cli_host())
+          flow->get_cli_host()->incrVisitedWebSite(zflow->getTLSserverName());
       }
-
-      json_object_put(o);
     }
-  }
 
 #ifdef NTOPNG_PRO
-  if (zflow->getCustomApp().pen) {
-    flow->setCustomApp(zflow->getCustomApp());
+    if (zflow->getCustomApp().pen) {
+      flow->setCustomApp(zflow->getCustomApp());
 
-    if (custom_app_stats ||
-        (custom_app_stats = new (std::nothrow) CustomAppStats(this))) {
-      custom_app_stats->incStats(
-	zflow->getCustomApp().remapped_app_id,
+      if (custom_app_stats ||
+          (custom_app_stats = new (std::nothrow) CustomAppStats(this))) {
+        custom_app_stats->incStats(
+        zflow->getCustomApp().remapped_app_id,
           zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
+      }
     }
-  }
 #endif
 
-  if (zflow->getExternalAlert()) {
-    enum json_tokener_error jerr = json_tokener_success;
-    json_object *o = json_tokener_parse_verbose(zflow->getExternalAlert(), &jerr);
-
-    if (o) flow->setExternalAlert(o);
-  }
-
-  flow->updateSuspiciousDGADomain();
+    /*
+      Set detected nDPI protocol *before* updating L7 info
+      like "flow->updateDNS" as they check the actual protocol
+     */
 
     if (
         /* If nprobe acts is in collector-passthrough mode L7_PROTO is not
@@ -600,6 +546,65 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     /* Here everything is setup and it is possible to set the actual protocol to
      * the flow */
     flow->setDetectedProtocol(p);
+
+    flow->setErrorCode(zflow->getL7ErrorCode());
+    flow->setConfidence(zflow->getConfidence());
+
+    if (flow->isDNS())  flow->updateDNS(zflow);
+    if (flow->isHTTP()) flow->updateHTTP(zflow);
+    if (flow->isTLS())  flow->updateTLS(zflow);
+
+    if (zflow->getBittorrentHash())
+      flow->setBTHash(zflow->getBittorrentHash(true));
+
+    if (zflow->vrfId)  flow->setVRFid(zflow->vrfId);
+    if (zflow->src_as) flow->setSrcAS(zflow->src_as);
+    if (zflow->dst_as) flow->setDstAS(zflow->dst_as);
+
+    if (zflow->prev_adjacent_as) flow->setPrevAdjacentAS(zflow->prev_adjacent_as);
+    if (zflow->next_adjacent_as) flow->setNextAdjacentAS(zflow->next_adjacent_as);
+
+    if (zflow->getJA3cHash()) flow->updateJA3C(zflow->getJA3cHash());
+    if (zflow->getJA3sHash()) flow->updateJA3S(zflow->getJA3sHash());
+
+    if (zflow->getRiskInfo()) {
+      json_object *o, *obj;
+      enum json_tokener_error jerr = json_tokener_success;
+
+      flow->setJSONRiskInfo(zflow->getRiskInfo());
+
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s]",
+      // zflow->flow_risk_info);
+
+      /*
+        We use riskInfo to grab some flow attributes
+        to enrich the memory flor representation
+      */
+      if ((o = json_tokener_parse_verbose(zflow->getRiskInfo(), &jerr)) !=
+          NULL) {
+        /* NOTE: keep in sync with  FlowRisk::ignoreRisk() */
+        if (json_object_object_get_ex(o, "6" /* NDPI_TLS_SELFSIGNED_CERTIFICATE */, &obj)) {
+          const char *issuerDN = json_object_get_string(obj);
+
+          if(flow->isTLS()) flow->setTLSCertificateIssuerDN((char *)issuerDN);
+        } else if (json_object_object_get_ex(o, "16" /* NDPI_SUSPICIOUS_DGA_DOMAIN */, &obj)) {
+          const char *dgaDomain = json_object_get_string(obj);
+
+          flow->setDGADomain((char *)dgaDomain);
+        }
+
+        json_object_put(o);
+      }
+    }
+
+    if (zflow->getExternalAlert()) {
+      enum json_tokener_error jerr = json_tokener_success;
+      json_object *o = json_tokener_parse_verbose(zflow->getExternalAlert(), &jerr);
+
+      if (o) flow->setExternalAlert(o);
+    }
+
+    flow->updateSuspiciousDGADomain();
   }
 
   /* Do not put incStats before guessing the flow protocol */
