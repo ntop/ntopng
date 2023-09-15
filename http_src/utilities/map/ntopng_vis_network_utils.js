@@ -6,19 +6,24 @@
 const defaultOptions = { 
   autoResize: true, /* By default already true */
   nodes: { 
-      shape: "dot", 
-      scaling: {
-          min: 10,
-          max: 30,
-          label: {
-              min: 15,
-              max: 15,
-          },
+    shape: "dot", 
+    scaling: {
+      min: 10,
+      max: 30,
+      label: {
+        enabled: true,
+        min: 8,
+        max: 30,
+        drawThreshold: 12,
       },
-      shadow: false,
+    },
+    font: {
+      color: "#212529"
+    },
+    shadow: false,
   },
   edges: {
-    width: 0.15,
+    width: 0.2,
     color: { inherit: "from" },
     smooth: {
         type: "continuous",
@@ -40,16 +45,16 @@ const defaultOptions = {
     improvedLayout: false,
   },
   interaction: {
-    hideEdgesOnDrag: true,
+    hideEdgesOnDrag: false,
     hideEdgesOnZoom: true,
-    hover: true,
+    hover: false,
     tooltipDelay: 0,
   },
   physics: {
     enabled: true,
     solver: "forceAtlas2Based",
     stabilization: {
-      iterations: 400,
+      iterations: 300,
       enabled: true // This is here just to see what's going on from the very beginning.
     },
     forceAtlas2Based: {

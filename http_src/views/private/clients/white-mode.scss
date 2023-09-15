@@ -892,3 +892,13 @@ table.dataTable thead th.sorting_asc::after {
 .nav-item {
   cursor: pointer;
 }
+
+.vis-tooltip {
+  visibility: hidden; 
+  border: 1px solid rgb(255, 255, 255); 
+  padding: 0.5rem; 
+  background-color: rgb(255, 255, 255); 
+  border-radius: 0.5rem; 
+  box-shadow: rgba(128, 128, 128, 0.5) 3px 3px 10px; 
+  white-space: nowrap; 
+}
