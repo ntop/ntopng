@@ -3554,7 +3554,6 @@ u_int16_t Ntop::getLocalNetworkId(const char *address_str) {
 bool Ntop::addLocalNetwork(char *_net) {
   char *net, *position_ptr;
   char alias[64] = "";
-
   int id = local_network_tree.getNumAddresses(), pos = 0;
 
   if (id >= CONST_MAX_NUM_NETWORKS) {

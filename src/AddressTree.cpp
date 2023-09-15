@@ -242,8 +242,6 @@ bool AddressTree::addAddress(const char *_what, const int16_t user_data) {
     updateLock.unlock(__FILE__, __LINE__);
   }
 
-  numAddresses++;
-
   return(ret);
 }
 
