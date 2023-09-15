@@ -69,14 +69,14 @@ void RareDestination::protocolDetected(Flow *f) {
 
 
     /* initial training */
-    if (iface->rareDestInitalTraining()) {  // check initalTraining -- BEWARE: loadFromRedis -> initialTraining = TRUE
+    if (iface->getRareDestInitalTraining()) {  // check initalTraining -- BEWARE: loadFromRedis -> initialTraining = TRUE
 
       destType == 0 ? iface->setLocalRareDestBitmap(hash) : iface->setRemoteRareDestBitmap(hash);
 
-      if (!iface->rareDestTrainingStartTime())  // check trainingStartTime -- BEWARE: loadFromRedis -> trainingStartTime = 0
+      if (!iface->getRareDestTrainingStartTime())  // check trainingStartTime -- BEWARE: loadFromRedis -> trainingStartTime = 0
         iface->setRareDestTrainingStartTime(t_now); // trainingStartTime = t_now
 
-      else if (t_now - iface->rareDestTrainingStartTime() >= RARE_DEST_TRAINING_DURATION)
+      else if (t_now - iface->getRareDestTrainingStartTime() >= RARE_DEST_TRAINING_DURATION)
         iface->endRareDestInitialTraining(t_now)  // initialTraining = FALSE && trainingEndTime = t_now
       
       return;
@@ -84,7 +84,7 @@ void RareDestination::protocolDetected(Flow *f) {
 
     /* check if background training has to start */
     if (!iface->rareDestTraining() && // check isTraining -- BEWARE: loadFromRedis -> isTraining = FALSE
-        t_now - iface->rareDestTrainingEndTime() >= RARE_DEST_TRAINING_GAP) { // check trainingEndTime
+        t_now - iface->getRareDestTrainingEndTime() >= RARE_DEST_TRAINING_GAP) { // check trainingEndTime
       iface->startRareDestTraining(t_now);  // isTraining = TRUE && trainingStartTime = t_now
     }
 
@@ -93,7 +93,7 @@ void RareDestination::protocolDetected(Flow *f) {
       destType == 0 ? iface->setLocalRareDestBitmap_BG(hash) : iface->setRemoteRareDestBitmap_BG(hash);
 
       /* check if background training has to end */
-      if (t_now - iface->rareDestTrainingStartTime() >= RARE_DEST_TRAINING_DURATION) {
+      if (t_now - iface->getRareDestTrainingStartTime() >= RARE_DEST_TRAINING_DURATION) {
         iface->endRareDestTraining(t_now);  // isTraining = FALSE &&  trainingEndTime = t_now
         iface->swapRareDestBitmaps(); // swap(local, localBG), free(localBG), swap(remote, remoteBG), free(remoteBG)
       }

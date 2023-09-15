@@ -106,6 +106,21 @@ protected:
     u_int32_t local_hosts, remote_hosts;
   } tot_num_anomalies;
   AlertsQueue *alertsQueue;
+
+  /* RareDestination data implementation*/
+  ndpi_bitmap *rare_dest_local;
+  ndpi_bitmap *rare_dest_remote;
+  ndpi_bitmap *rare_dest_local_bg;
+  ndpi_bitmap *rare_dest_remote_bg;
+
+  struct {
+    time_t startTime;
+    bool initialTraining;
+    bool isTraining;
+    time_t endTime;
+  } rareDestTraining;
+  /***************************************/
+
 #if defined(NTOPNG_PRO)
   PeriodicityMap *pMap;
   ServiceMap *sMap;
@@ -1369,6 +1384,38 @@ public:
   static bool get_vlan_host_ports(GenericHashEntry *node,
 				   void *user_data,
 				   bool *matched);
+
+  /*RareDestination method implementation*/
+
+  inline void setLocalRareDestBitmap(u_int32_t hash)            { if(rare_dest_local) ndpi_bitmap_set(rare_dest_local, hash); }
+  inline void setRemoteRareDestBitmap(u_int32_t hash)           { if(rare_dest_remote) ndpi_bitmap_set(rare_dest_remote, hash); }
+  inline bool isSetLocalRareDestBitmap(u_int32_t hash) const    { if(rare_dest_local) return ndpi_bitmap_isset(rare_dest_local, hash); return false;}
+  inline bool isSetRemoteRareDestBitmap(u_int32_t hash) const   { if(rare_dest_remote) return ndpi_bitmap_isset(rare_dest_remote, hash); return false;}
+  
+  inline void setLocalRareDestBitmap_BG(u_int32_t hash)         { if(rare_dest_local_bg) ndpi_bitmap_set(rare_dest_local_bg, hash); }
+  inline void setRemoteRareDestBitmap_BG(u_int32_t hash)        { if(rare_dest_remote_bg) ndpi_bitmap_set(rare_dest_remote_bg, hash); }
+  
+  inline bool getRareDestInitialTraining() const                { return rareDestTraining.initialTraining;}
+  
+  inline void endRareDestInitialTraining(time_t t)              { rareDestTraining.initialTraining=false; rareDestTraining.endTime=t;}
+  
+  inline void startRareDestTraining(time_t t)                   { rareDestTraining.isTraining = true; rareDestTraining.startTime=t;}
+  inline void endRareDestTraining(time_t t)                     { rareDestTraining.isTraining = false; rareDestTraining.endTime=t;}
+
+  inline time_t getRareDestTrainingStartTime() const            { return rareDestTraining.startTime;}
+  inline void setRareDestTrainingStartTime(time_t t)            { rareDestTraining.startTime = t;}
+  
+  inline time_t getRareDestTrainingEndTime() const              { return rareDestTraining.endTime;}
+  inline void setRareDestTrainingEndTime(time_t t)              { rareDestTraining.endTime = t;}
+
+  void swapRareDestBitmaps() {
+    rare_dest_local = rare_dest_local_bg;
+    free(rare_dest_local_bg);
+    rare_dest_remote = rare_dest_remote_bg;
+    free(rare_dest_remote_bg);
+  }
+
+  /***************************************/
 
 #ifdef NTOPNG_PRO
   static bool compute_client_server_flow_stats(GenericHashEntry *node,

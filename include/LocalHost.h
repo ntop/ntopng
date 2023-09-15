@@ -36,16 +36,6 @@ class LocalHost : public Host {
   u_int8_t router_mac_set : 1, drop_all_host_traffic : 1, systemHost : 1,
       _notused : 5;
 
-  /* RareDestination data implementation*/
-  ndpi_bitmap *rare_dest;
-  ndpi_bitmap *rare_dest_last;
-
-  struct {
-    time_t start;
-    time_t last_training;
-    bool training;
-  } rareDestTraining;
-
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail;
   /* END Host data: */
@@ -205,23 +195,6 @@ class LocalHost : public Host {
       bool isTCP) {
     return (usedPorts.getServerPorts(isTCP));
   };
-
-  inline time_t getStartRareDestTraining() const { return(rareDestTraining.start); }
-  inline void setStartRareDestTraining(time_t t) { rareDestTraining.start = t;     }
-
-  inline time_t getLastRareDestTraining() const { return(rareDestTraining.last_training); }
-  inline void setLastRareDestTraining(time_t t) { rareDestTraining.last_training = t;     }
-
-  inline bool isTrainingRareDest() const  { return(rareDestTraining.training); }
-  inline void startRareDestTraining()     { rareDestTraining.training = true;  }
-  inline void stopRareDestTraining()      { rareDestTraining.training = false; }
-
-  inline void clearRareDestBitmaps()  { ndpi_bitmap_clear(rare_dest); ndpi_bitmap_clear(rare_dest_last);  }
-  inline void updateRareDestBitmaps()  { ndpi_bitmap_free(rare_dest_last); rare_dest_last = rare_dest; rare_dest = ndpi_bitmap_alloc(); }
-
-  inline void setRareDestBitmap(u_int32_t hash)             { if(rare_dest) ndpi_bitmap_set(rare_dest, hash); }
-  inline bool isSetRareDestBitmap(u_int32_t hash) const     { if(rare_dest) return ndpi_bitmap_isset(rare_dest, hash); return false;}
-  inline bool isSetRareDestLastBitmap(u_int32_t hash) const { if(rare_dest_last) return ndpi_bitmap_isset(rare_dest_last, hash); return false;}
   
   void dumpRareDestToRedis();
   bool loadRareDestFromRedis();
