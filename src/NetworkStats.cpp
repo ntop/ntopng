@@ -133,6 +133,10 @@ void NetworkStats::lua(lua_State *vm, bool diff) {
   lua_newtable(vm);
 
   for (u_int16_t i = 0; i < ntop->getNumLocalNetworks(); i++) {
+    /* Safety check in case a local network is NULL */
+    if(!ntop->getLocalNetworkName(i))
+      continue;
+
     lua_newtable(vm);
     lua_push_uint64_table_entry(vm, "bytes_sent", network_matrix[i].bytes_sent);
     lua_push_uint64_table_entry(vm, "bytes_rcvd", network_matrix[i].bytes_rcvd);
