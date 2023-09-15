@@ -1409,10 +1409,15 @@ public:
   inline void setRareDestTrainingEndTime(time_t t)              { rareDestTraining.endTime = t;}
 
   void swapRareDestBitmaps() {
+    ndpi_bitmap *temp;
+    temp = rare_dest_local;
     rare_dest_local = rare_dest_local_bg;
-    free(rare_dest_local_bg);
+    rare_dest_local_bg = temp;
+    temp = rare_dest_remote;
     rare_dest_remote = rare_dest_remote_bg;
-    free(rare_dest_remote_bg);
+    rare_dest_remote_bg = temp;
+    ndpi_bitmap_clear(rare_dest_local_bg);
+    ndpi_bitmap_clear(rare_dest_remote_bg);
   }
 
   /***************************************/
