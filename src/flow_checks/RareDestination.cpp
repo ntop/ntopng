@@ -83,13 +83,13 @@ void RareDestination::protocolDetected(Flow *f) {
     }
 
     /* check if background training has to start */
-    if (!iface->rareDestTraining() && // check isTraining -- BEWARE: loadFromRedis -> isTraining = FALSE
+    if (!iface->getRareDestTraining() && // check isTraining -- BEWARE: loadFromRedis -> isTraining = FALSE
         t_now - iface->getRareDestTrainingEndTime() >= RARE_DEST_TRAINING_GAP) { // check trainingEndTime
       iface->startRareDestTraining(t_now);  // isTraining = TRUE && trainingStartTime = t_now
     }
 
     /* background training */
-    if (iface->rareDestTraining()) {
+    if (iface->getRareDestTraining()) {
       destType == 0 ? iface->setLocalRareDestBitmap_BG(hash) : iface->setRemoteRareDestBitmap_BG(hash);
 
       /* check if background training has to end */

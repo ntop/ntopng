@@ -1396,6 +1396,7 @@ public:
   inline void setRemoteRareDestBitmap_BG(u_int32_t hash)        { if(rare_dest_remote_bg) ndpi_bitmap_set(rare_dest_remote_bg, hash); }
   
   inline bool getRareDestInitialTraining() const                { return rareDestTraining.initialTraining;}
+  inline bool getRareDestTraining() const                       { return rareDestTraining.isTraining; }
   
   inline void endRareDestInitialTraining(time_t t)              { rareDestTraining.initialTraining=false; rareDestTraining.endTime=t;}
   
