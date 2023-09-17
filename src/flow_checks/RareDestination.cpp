@@ -69,23 +69,23 @@ void RareDestination::protocolDetected(Flow *f) {
 
 
     /* initial training */
-    if (iface->getRareDestInitalTraining()) {  // check initalTraining -- BEWARE: loadFromRedis -> initialTraining = TRUE
+    if (iface->getRareDestInitalTraining()) {
 
       destType == 0 ? iface->setLocalRareDestBitmap(hash) : iface->setRemoteRareDestBitmap(hash);
 
-      if (!iface->getRareDestTrainingStartTime())  // check trainingStartTime -- BEWARE: loadFromRedis -> trainingStartTime = 0
-        iface->setRareDestTrainingStartTime(t_now); // trainingStartTime = t_now
+      if (!iface->getRareDestTrainingStartTime())
+        iface->setRareDestTrainingStartTime(t_now);
 
       else if (t_now - iface->getRareDestTrainingStartTime() >= RARE_DEST_TRAINING_DURATION)
-        iface->endRareDestInitialTraining(t_now)  // initialTraining = FALSE && trainingEndTime = t_now
+        iface->endRareDestInitialTraining(t_now);
       
       return;
     }
 
     /* check if background training has to start */
-    if (!iface->getRareDestTraining() && // check isTraining -- BEWARE: loadFromRedis -> isTraining = FALSE
-        t_now - iface->getRareDestTrainingEndTime() >= RARE_DEST_TRAINING_GAP) { // check trainingEndTime
-      iface->startRareDestTraining(t_now);  // isTraining = TRUE && trainingStartTime = t_now
+    if (!iface->getRareDestTraining() &&
+        t_now - iface->getRareDestTrainingEndTime() >= RARE_DEST_TRAINING_GAP) {
+      iface->startRareDestTraining(t_now);
     }
 
     /* background training */
@@ -94,8 +94,8 @@ void RareDestination::protocolDetected(Flow *f) {
 
       /* check if background training has to end */
       if (t_now - iface->getRareDestTrainingStartTime() >= RARE_DEST_TRAINING_DURATION) {
-        iface->endRareDestTraining(t_now);  // isTraining = FALSE &&  trainingEndTime = t_now
-        iface->swapRareDestBitmaps(); // swap(local, localBG), free(localBG), swap(remote, remoteBG), free(remoteBG)
+        iface->endRareDestTraining(t_now);
+        iface->swapRareDestBitmaps();
       }
     }
       
