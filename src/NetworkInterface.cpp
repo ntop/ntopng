@@ -12423,7 +12423,7 @@ void NetworkInterface::saveRareDestToRedis() {
   setRareDestBitmapRedisField(key, "rare_dest_remote", rare_dest_remote);
   setRareDestBitmapRedisField(key, "rare_dest_remote_bg", rare_dest_remote_bg);
 
-  setRareDestStructRedisField(key, "checkPoint", (u_int64_t)rareDestTraining.startTime);
+  setRareDestStructRedisField(key, "checkPoint", (u_int64_t)rareDestTraining.checkPoint);
   setRareDestStructRedisField(key, "initialTraining", (u_int64_t)(rareDestTraining.initialTraining ? 1 : 0));
 }
 
