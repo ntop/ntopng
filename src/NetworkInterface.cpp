@@ -375,6 +375,19 @@ void NetworkInterface::init(const char *interface_name) {
     customFlowLuaScript_end = NULL;
   customHostLuaScript = NULL;
 
+  if( !loadRareDestFromRedis() || (( time(NULL) - rareDestTraining.endTime ) > (2 * RARE_DEST_TRAINING_DURATION)) ){
+    rareDestTraining.startTime = 0;
+    rareDestTraining.endTime = 0;
+    rareDestTraining.isTraining = false;
+
+    rareDestTraining.initialTraining = true;
+
+    rare_dest_local = ndpi_bitmap_alloc();
+    rare_dest_local_bg = ndpi_bitmap_alloc();
+    rare_dest_remote = ndpi_bitmap_alloc();
+    rare_dest_remote_bg = ndpi_bitmap_alloc();
+  }
+
   INTERFACE_PROFILING_INIT();
 }
 
@@ -1022,6 +1035,13 @@ NetworkInterface::~NetworkInterface() {
   cleanShadownDPI();
 
   if (smart_recording_instance_name) free(smart_recording_instance_name);
+
+  saveRareDestToRedis();
+  if(rare_dest_local) ndpi_bitmap_free(rare_dest_local);
+  if(rare_dest_local_bg) ndpi_bitmap_free(rare_dest_local_bg);
+  if(rare_dest_local) ndpi_bitmap_free(rare_dest_local);
+  if(rare_dest_remote) ndpi_bitmap_free(rare_dest_remote);
+  if(rare_dest_remote_bg) ndpi_bitmap_free(rare_dest_remote_bg);
 }
 
 /* **************************************************** */
@@ -12364,4 +12384,112 @@ void NetworkInterface::getActiveMacs(lua_State *vm) {
   s.vm = vm, s.num = 0;
   walker(&begin_slot, true /* walk_all */, walker_macs,
          active_mac_search_walker, (void *)&s);
+}
+
+/* *************************************** */
+
+void NetworkInterface::setRareDestStructRedisField(const char *key, const char *field, u_int64_t value){
+  char buf[32];
+  snprintf(buf, sizeof(buf), "%lu", value);
+  ntop->getRedis()->hashSet(key, field, buf);
+}
+
+void NetworkInterface::setRareDestBitmapRedisField(const char *key, const char *field, ndpi_bitmap *bitmap){
+  char *value;
+  size_t size;
+
+  size = ndpi_bitmap_serialize(bitmap, &value);
+  char *encoded_bmap = value ? Utils::base64_encode((unsigned char *)value, size) : NULL;
+
+  if (encoded_bmap != NULL) {
+    size = strlen(encoded_bmap);
+    ntop->getRedis()->hashSet(key, field, encoded_bmap);
+
+    char len_field[32];
+    snprintf(len_field, sizeof(key), "%s_len", field);
+    setRareDestStructRedisField(key, len_field, (u_int64_t)size);
+
+    free(encoded_bmap);
+    free(value);
+  }
+}
+
+void NetworkInterface::saveRareDestToRedis() {
+  char key[CONST_MAX_LEN_REDIS_KEY];
+
+  if((!ntop->getRedis()) || (!rare_dest_local) || (!rare_dest_remote)) return;
+  
+  snprintf(key, sizeof(key), IFACE_RARE_DEST_SERIALIZED_KEY, get_id());
+
+  setRareDestBitmapRedisField(key, "rare_dest_local", rare_dest_local);
+  setRareDestBitmapRedisField(key, "rare_dest_remote", rare_dest_remote);
+
+  setRareDestStructRedisField(key, "startTime", (u_int64_t)rareDestTraining.startTime);
+  setRareDestStructRedisField(key, "endTime", (u_int64_t)rareDestTraining.endTime);
+  setRareDestStructRedisField(key, "isTraining", (u_int64_t)(rareDestTraining.isTraining ? 1 : 0));
+  setRareDestStructRedisField(key, "initialTraining", (u_int64_t)(rareDestTraining.initialTraining ? 1 : 0));
+}
+
+bool NetworkInterface::getRareDestStructRedisField(const char *key, const char *field, u_int64_t *value){
+  char buf[32];
+  if( ntop->getRedis()->hashGet(key, field, buf, sizeof(buf)) != 0 ) return(false);
+  *value = strtoul(buf, NULL, 10);
+  return(true);
+}
+
+bool NetworkInterface::getRareDestBitmapRedisField(const char *key, const char *field, ndpi_bitmap *bitmap){
+  char *bitmap_field_val;
+  u_int64_t value;
+  size_t size;
+
+  char len_field[32];
+  snprintf(len_field, sizeof(key), "%s_len", field);
+
+  if (!getRareDestStructRedisField(key, len_field, &value)) return(false);
+  size = (size_t)(value);
+  
+  if((bitmap_field_val = (char *) malloc(size)) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
+    return(false);
+  }
+
+  if(ntop->getRedis()->hashGet(key, field, bitmap_field_val, size) != 0) {
+    free(bitmap_field_val);
+    return(false);
+  }
+
+  bitmap = ndpi_bitmap_deserialize((char *)Utils::base64_decode((std::string)bitmap_field_val).c_str());
+  free(bitmap_field_val);
+
+  return(true);
+}
+
+
+bool NetworkInterface::loadRareDestFromRedis() {
+  char key[CONST_MAX_LEN_REDIS_KEY], *bitmap_field_val;
+  u_int64_t value;
+  
+  if((!ntop->getRedis())) return(false); 
+
+  snprintf(key, sizeof(key), IFACE_RARE_DEST_SERIALIZED_KEY, get_id());
+
+  if (!getRareDestStructRedisField(key, "startTime", &value)) return(false);
+  rareDestTraining.startTime = (time_t)(value);
+
+  if (!getRareDestStructRedisField(key, "endTime", &value)) return(false);
+  rareDestTraining.endTime = (time_t)(value);
+
+  if (!getRareDestStructRedisField(key, "isTraining", &value)) return(false);
+  rareDestTraining.isTraining = value ? true : false;
+
+  if (!getRareDestStructRedisField(key, "initialTraining", &value)) return(false);
+  rareDestTraining.initialTraining = value ? true : false;
+
+  if (!getRareDestBitmapRedisField(key, "rare_dest_local", rare_dest_local)) return(false);
+  if (!getRareDestBitmapRedisField(key, "rare_dest_local_bg", rare_dest_local_bg)) return(false);
+
+  if (!getRareDestBitmapRedisField(key, "rare_dest_remote", rare_dest_remote)) return(false);
+  if (!getRareDestBitmapRedisField(key, "rare_dest_remote_bg", rare_dest_remote_bg)) return(false);
+
+  return(true);
 }

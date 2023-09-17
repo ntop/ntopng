@@ -115,9 +115,9 @@ protected:
 
   struct {
     time_t startTime;
+    time_t endTime;
     bool initialTraining;
     bool isTraining;
-    time_t endTime;
   } rareDestTraining;
   /***************************************/
 
@@ -447,6 +447,15 @@ protected:
                      u_int32_t size, u_int *num, bool set_resp);
   void build_protocol_flow_stats_lua_rsp(lua_State *vm, AggregatedFlowsStats *fs,
                                          u_int32_t size, u_int *num);
+
+  void saveRareDestToRedis();
+  bool loadRareDestFromRedis();
+
+  void setRareDestStructRedisField(const char *key, const char *field, u_int64_t value);
+  bool getRareDestStructRedisField(const char *key, const char *field, u_int64_t *value);
+
+  void setRareDestBitmapRedisField(const char *key, const char *field, ndpi_bitmap *bitmap);
+  bool getRareDestBitmapRedisField(const char *key, const char *field, ndpi_bitmap *bitmap);
 
 public:
   /**
@@ -1410,15 +1419,13 @@ public:
   inline void setRareDestTrainingEndTime(time_t t)              { rareDestTraining.endTime = t;}
 
   void swapRareDestBitmaps() {
-    ndpi_bitmap *temp;
-    temp = rare_dest_local;
+    ndpi_bitmap_free(rare_dest_local);
     rare_dest_local = rare_dest_local_bg;
-    rare_dest_local_bg = temp;
-    temp = rare_dest_remote;
+    rare_dest_local_bg = ndpi_bitmap_alloc();
+
+    ndpi_bitmap_free(rare_dest_remote);
     rare_dest_remote = rare_dest_remote_bg;
-    rare_dest_remote_bg = temp;
-    ndpi_bitmap_clear(rare_dest_local_bg);
-    ndpi_bitmap_clear(rare_dest_remote_bg);
+    rare_dest_remote_bg = ndpi_bitmap_alloc();
   }
 
   /***************************************/

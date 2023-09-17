@@ -195,10 +195,6 @@ class LocalHost : public Host {
       bool isTCP) {
     return (usedPorts.getServerPorts(isTCP));
   };
-  
-  void dumpRareDestToRedis();
-  bool loadRareDestFromRedis();
-
 };
 
 #endif /* _LOCAL_HOST_H_ */

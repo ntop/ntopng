@@ -27,20 +27,18 @@
 u_int32_t RareDestination::getDestinationHash(Flow *f, u_int8_t *destType) {
 
   u_int32_t hash = 0;
-  Host *dest = f->get_srv_host();
 
   if (f->isLocalToLocal()) {
 
     *destType = 0;  // local destination
-    LocalHost *ldest = (LocalHost*)dest;
+    LocalHost *ldest = (LocalHost*)f->get_srv_host();
 
-    if (!ldest->isLocalUnicastHost() && dest->isDHCPHost()) {
-      u_int8_t *mac = dest->getMac()->get_mac();
-      hash = Utils::macHash(mac);
+    if (!ldest->isLocalUnicastHost() && ldest->isDHCPHost()) {
+      Mac *mac = ldest->getMac();
+      hash = mac ? mac->key() : 0;
     }
-    else if (dest->isIPv6() || dest->isIPv4()) {
-      IpAddress *ip = dest->get_ip();
-      hash = ip->key();
+    else if (ldest->isIPv6() || ldest->isIPv4()) {
+      hash =  ldest->get_ip()->key();
     }
 
   }
@@ -58,7 +56,7 @@ void RareDestination::protocolDetected(Flow *f) {
 
   bool is_rare_destination = false;
 
-  if(f->getFlowServerInfo() != NULL && f->get_cli_host()->isLocalHost()) {
+  if(f->get_cli_host()->isLocalHost() && (f->getFlowServerInfo() != NULL || !f->get_srv_ip_addr()->isEmpty()) ) {
 
     time_t t_now = time(NULL);
     NetworkInterface *iface = f->getInterface();
@@ -67,9 +65,8 @@ void RareDestination::protocolDetected(Flow *f) {
     u_int32_t hash = getDestinationHash(f, &destType);
     if(hash == 0) return;
 
-
     /* initial training */
-    if (iface->getRareDestInitalTraining()) {
+    if (iface->getRareDestInitialTraining()) {
 
       destType == 0 ? iface->setLocalRareDestBitmap(hash) : iface->setRemoteRareDestBitmap(hash);
 
@@ -100,7 +97,7 @@ void RareDestination::protocolDetected(Flow *f) {
     }
       
     /* update bitmap */
-    if (destType == 0 && !iface->isSetLocalrareDestBitmap(hash)) {
+    if (destType == 0 && !iface->isSetLocalRareDestBitmap(hash)) {
       is_rare_destination = true;
       iface->setLocalRareDestBitmap(hash);
     }
