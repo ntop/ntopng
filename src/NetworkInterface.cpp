@@ -375,11 +375,8 @@ void NetworkInterface::init(const char *interface_name) {
     customFlowLuaScript_end = NULL;
   customHostLuaScript = NULL;
 
-  if( !loadRareDestFromRedis() || (( time(NULL) - rareDestTraining.endTime ) > (2 * RARE_DEST_TRAINING_DURATION)) ){
-    rareDestTraining.startTime = 0;
-    rareDestTraining.endTime = 0;
-    rareDestTraining.isTraining = false;
-
+  if( !loadRareDestFromRedis() || (( time(NULL) - rareDestTraining.checkPoint ) > (2 * RARE_DEST_BACKGROUND_TRAINING_DURATION)) ){
+    rareDestTraining.checkPoint = 0;
     rareDestTraining.initialTraining = true;
 
     rare_dest_local = ndpi_bitmap_alloc();
@@ -1039,7 +1036,6 @@ NetworkInterface::~NetworkInterface() {
   saveRareDestToRedis();
   if(rare_dest_local) ndpi_bitmap_free(rare_dest_local);
   if(rare_dest_local_bg) ndpi_bitmap_free(rare_dest_local_bg);
-  if(rare_dest_local) ndpi_bitmap_free(rare_dest_local);
   if(rare_dest_remote) ndpi_bitmap_free(rare_dest_remote);
   if(rare_dest_remote_bg) ndpi_bitmap_free(rare_dest_remote_bg);
 }
@@ -12422,11 +12418,12 @@ void NetworkInterface::saveRareDestToRedis() {
   snprintf(key, sizeof(key), IFACE_RARE_DEST_SERIALIZED_KEY, get_id());
 
   setRareDestBitmapRedisField(key, "rare_dest_local", rare_dest_local);
-  setRareDestBitmapRedisField(key, "rare_dest_remote", rare_dest_remote);
+  setRareDestBitmapRedisField(key, "rare_dest_local_bg", rare_dest_local_bg);
 
-  setRareDestStructRedisField(key, "startTime", (u_int64_t)rareDestTraining.startTime);
-  setRareDestStructRedisField(key, "endTime", (u_int64_t)rareDestTraining.endTime);
-  setRareDestStructRedisField(key, "isTraining", (u_int64_t)(rareDestTraining.isTraining ? 1 : 0));
+  setRareDestBitmapRedisField(key, "rare_dest_remote", rare_dest_remote);
+  setRareDestBitmapRedisField(key, "rare_dest_remote_bg", rare_dest_remote_bg);
+
+  setRareDestStructRedisField(key, "checkPoint", (u_int64_t)rareDestTraining.startTime);
   setRareDestStructRedisField(key, "initialTraining", (u_int64_t)(rareDestTraining.initialTraining ? 1 : 0));
 }
 
@@ -12473,14 +12470,8 @@ bool NetworkInterface::loadRareDestFromRedis() {
 
   snprintf(key, sizeof(key), IFACE_RARE_DEST_SERIALIZED_KEY, get_id());
 
-  if (!getRareDestStructRedisField(key, "startTime", &value)) return(false);
-  rareDestTraining.startTime = (time_t)(value);
-
-  if (!getRareDestStructRedisField(key, "endTime", &value)) return(false);
-  rareDestTraining.endTime = (time_t)(value);
-
-  if (!getRareDestStructRedisField(key, "isTraining", &value)) return(false);
-  rareDestTraining.isTraining = value ? true : false;
+  if (!getRareDestStructRedisField(key, "checkPoint", &value)) return(false);
+  rareDestTraining.checkPoint = (time_t)(value);
 
   if (!getRareDestStructRedisField(key, "initialTraining", &value)) return(false);
   rareDestTraining.initialTraining = value ? true : false;

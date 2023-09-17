@@ -114,10 +114,8 @@ protected:
   ndpi_bitmap *rare_dest_remote_bg;
 
   struct {
-    time_t startTime;
-    time_t endTime;
     bool initialTraining;
-    bool isTraining;
+    time_t checkPoint;
   } rareDestTraining;
   /***************************************/
 
@@ -1396,27 +1394,19 @@ public:
 
   /*RareDestination method implementation*/
 
-  inline void setLocalRareDestBitmap(u_int32_t hash)            { if(rare_dest_local) ndpi_bitmap_set(rare_dest_local, hash); }
-  inline void setRemoteRareDestBitmap(u_int32_t hash)           { if(rare_dest_remote) ndpi_bitmap_set(rare_dest_remote, hash); }
-  inline bool isSetLocalRareDestBitmap(u_int32_t hash) const    { if(rare_dest_local) return ndpi_bitmap_isset(rare_dest_local, hash); return false;}
-  inline bool isSetRemoteRareDestBitmap(u_int32_t hash) const   { if(rare_dest_remote) return ndpi_bitmap_isset(rare_dest_remote, hash); return false;}
+  inline void setLocalRareDestBitmap(u_int32_t hash)            { ndpi_bitmap_set(rare_dest_local, hash); }
+  inline void setRemoteRareDestBitmap(u_int32_t hash)           { ndpi_bitmap_set(rare_dest_remote, hash); }
+  inline bool isSetLocalRareDestBitmap(u_int32_t hash) const    { return ndpi_bitmap_isset(rare_dest_local, hash); }
+  inline bool isSetRemoteRareDestBitmap(u_int32_t hash) const   { return ndpi_bitmap_isset(rare_dest_remote, hash); }
   
-  inline void setLocalRareDestBitmap_BG(u_int32_t hash)         { if(rare_dest_local_bg) ndpi_bitmap_set(rare_dest_local_bg, hash); }
-  inline void setRemoteRareDestBitmap_BG(u_int32_t hash)        { if(rare_dest_remote_bg) ndpi_bitmap_set(rare_dest_remote_bg, hash); }
+  inline void setLocalRareDestBitmap_BG(u_int32_t hash)         { ndpi_bitmap_set(rare_dest_local_bg, hash); }
+  inline void setRemoteRareDestBitmap_BG(u_int32_t hash)        { ndpi_bitmap_set(rare_dest_remote_bg, hash); }
   
   inline bool getRareDestInitialTraining() const                { return rareDestTraining.initialTraining;}
-  inline bool getRareDestTraining() const                       { return rareDestTraining.isTraining; }
-  
-  inline void endRareDestInitialTraining(time_t t)              { rareDestTraining.initialTraining=false; rareDestTraining.endTime=t;}
-  
-  inline void startRareDestTraining(time_t t)                   { rareDestTraining.isTraining = true; rareDestTraining.startTime=t;}
-  inline void endRareDestTraining(time_t t)                     { rareDestTraining.isTraining = false; rareDestTraining.endTime=t;}
+  inline void endRareDestInitialTraining(time_t t)              { rareDestTraining.initialTraining = false; rareDestTraining.checkPoint = t; }
 
-  inline time_t getRareDestTrainingStartTime() const            { return rareDestTraining.startTime;}
-  inline void setRareDestTrainingStartTime(time_t t)            { rareDestTraining.startTime = t;}
-  
-  inline time_t getRareDestTrainingEndTime() const              { return rareDestTraining.endTime;}
-  inline void setRareDestTrainingEndTime(time_t t)              { rareDestTraining.endTime = t;}
+  inline time_t getRareDestTrainingCheckPoint() const           { return rareDestTraining.checkPoint; }
+  inline void setRareDestTrainingCheckPoint(time_t t)           { rareDestTraining.checkPoint = t; }
 
   void swapRareDestBitmaps() {
     ndpi_bitmap_free(rare_dest_local);

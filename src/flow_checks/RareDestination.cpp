@@ -70,32 +70,18 @@ void RareDestination::protocolDetected(Flow *f) {
 
       destType == 0 ? iface->setLocalRareDestBitmap(hash) : iface->setRemoteRareDestBitmap(hash);
 
-      if (!iface->getRareDestTrainingStartTime())
-        iface->setRareDestTrainingStartTime(t_now);
+      if (!iface->getRareDestTrainingCheckPoint())
+        iface->setRareDestTrainingCheckPoint(t_now);
 
-      else if (t_now - iface->getRareDestTrainingStartTime() >= RARE_DEST_TRAINING_DURATION)
+      else if (t_now - iface->getRareDestTrainingCheckPoint() >= RARE_DEST_INITIAL_TRAINING_DURATION)
         iface->endRareDestInitialTraining(t_now);
       
       return;
     }
 
-    /* check if background training has to start */
-    if (!iface->getRareDestTraining() &&
-        t_now - iface->getRareDestTrainingEndTime() >= RARE_DEST_TRAINING_GAP) {
-      iface->startRareDestTraining(t_now);
-    }
-
     /* background training */
-    if (iface->getRareDestTraining()) {
-      destType == 0 ? iface->setLocalRareDestBitmap_BG(hash) : iface->setRemoteRareDestBitmap_BG(hash);
+    destType == 0 ? iface->setLocalRareDestBitmap_BG(hash) : iface->setRemoteRareDestBitmap_BG(hash);
 
-      /* check if background training has to end */
-      if (t_now - iface->getRareDestTrainingStartTime() >= RARE_DEST_TRAINING_DURATION) {
-        iface->endRareDestTraining(t_now);
-        iface->swapRareDestBitmaps();
-      }
-    }
-      
     /* update bitmap */
     if (destType == 0 && !iface->isSetLocalRareDestBitmap(hash)) {
       is_rare_destination = true;
@@ -105,6 +91,12 @@ void RareDestination::protocolDetected(Flow *f) {
     else if (destType == 1 && !iface->isSetRemoteRareDestBitmap(hash)) {
       is_rare_destination = true;
       iface->setRemoteRareDestBitmap(hash);
+    }
+
+    /* check if background training has to restart */
+    if (t_now - iface->getRareDestTrainingCheckPoint() >= RARE_DEST_BACKGROUND_TRAINING_DURATION) {
+      iface->setRareDestTrainingCheckPoint(t_now);
+      iface->swapRareDestBitmaps();
     }
   }
 
