@@ -12402,7 +12402,7 @@ void NetworkInterface::setRareDestBitmapRedisField(const char *key, const char *
     ntop->getRedis()->hashSet(key, field, encoded_bmap);
 
     char len_field[32];
-    snprintf(len_field, sizeof(key), "%s_len", field);
+    snprintf(len_field, sizeof(len_field), "%s_len", field);
     setRareDestStructRedisField(key, len_field, (u_int64_t)size);
 
     free(encoded_bmap);
@@ -12440,7 +12440,7 @@ bool NetworkInterface::getRareDestBitmapRedisField(const char *key, const char *
   size_t size;
 
   char len_field[32];
-  snprintf(len_field, sizeof(key), "%s_len", field);
+  snprintf(len_field, sizeof(len_field), "%s_len", field);
 
   if (!getRareDestStructRedisField(key, len_field, &value)) return(false);
   size = (size_t)(value);
@@ -12463,7 +12463,7 @@ bool NetworkInterface::getRareDestBitmapRedisField(const char *key, const char *
 
 
 bool NetworkInterface::loadRareDestFromRedis() {
-  char key[CONST_MAX_LEN_REDIS_KEY], *bitmap_field_val;
+  char key[CONST_MAX_LEN_REDIS_KEY];
   u_int64_t value;
   
   if((!ntop->getRedis())) return(false); 
