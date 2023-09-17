@@ -12461,7 +12461,6 @@ bool NetworkInterface::getRareDestBitmapRedisField(const char *key, const char *
   return(true);
 }
 
-
 bool NetworkInterface::loadRareDestFromRedis() {
   char key[CONST_MAX_LEN_REDIS_KEY];
   u_int64_t value;
@@ -12477,10 +12476,22 @@ bool NetworkInterface::loadRareDestFromRedis() {
   rareDestTraining.initialTraining = value ? true : false;
 
   if (!getRareDestBitmapRedisField(key, "rare_dest_local", rare_dest_local)) return(false);
-  if (!getRareDestBitmapRedisField(key, "rare_dest_local_bg", rare_dest_local_bg)) return(false);
+  if (!getRareDestBitmapRedisField(key, "rare_dest_local_bg", rare_dest_local_bg)) {
+    ndpi_bitmap_free(rare_dest_local);
+    return(false);
+  }
 
-  if (!getRareDestBitmapRedisField(key, "rare_dest_remote", rare_dest_remote)) return(false);
-  if (!getRareDestBitmapRedisField(key, "rare_dest_remote_bg", rare_dest_remote_bg)) return(false);
+  if (!getRareDestBitmapRedisField(key, "rare_dest_remote", rare_dest_remote)) {
+    ndpi_bitmap_free(rare_dest_local);
+    ndpi_bitmap_free(rare_dest_local_bg);
+    return(false);
+  }
+  if (!getRareDestBitmapRedisField(key, "rare_dest_remote_bg", rare_dest_remote_bg)) {
+    ndpi_bitmap_free(rare_dest_local);
+    ndpi_bitmap_free(rare_dest_local_bg);
+    ndpi_bitmap_free(rare_dest_remote);
+    return(false);
+  }
 
   return(true);
 }
