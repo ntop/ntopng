@@ -293,7 +293,9 @@ function get_scan_frequency(scan_frequency) {
 function get_scan_status_value(is_ok_last_scan, r) {
   let status = "";
   if (is_ok_last_scan == 2) {
-    status = i18n("hosts_stats.page_scan_hosts.in_progress");
+    status = i18n("hosts_stats.page_scan_hosts.scheduled");
+  } else if (is_ok_last_scan == 4) {
+    status = i18n("hosts_stats.page_scan_hosts.scanning");
   } else if (is_ok_last_scan == 3 || is_ok_last_scan == null) {
     status = i18n("hosts_stats.page_scan_hosts.not_scanned");
   } else if (is_ok_last_scan == 1) {
@@ -414,6 +416,9 @@ const map_table_def_columns = (columns) => {
       }
     },
     "last_scan": (last_scan, row) => {
+      if (row.is_ok_last_scan == 2 || row.is_ok_last_scan == 4) {
+        return ``;
+      }
       if (last_scan !== undefined && last_scan.time !== undefined) {
         return last_scan.time;
       } else if (last_scan !== undefined) {
@@ -424,6 +429,9 @@ const map_table_def_columns = (columns) => {
     },
 
     "duration": (last_scan, row) => {
+      if (row.is_ok_last_scan == 2 || row.is_ok_last_scan == 4) {
+        return ``;
+      }
       if (row.last_scan !== undefined && row.last_scan.duration !== undefined) {
         return row.last_scan.duration;
       } else {
@@ -445,9 +453,13 @@ const map_table_def_columns = (columns) => {
     "is_ok_last_scan": (is_ok_last_scan) => {
       let label = ""
       if (is_ok_last_scan == 2) {
-        // in progress
-        label = i18n("hosts_stats.page_scan_hosts.in_progress");
-        return `<span class="badge bg-info" title="${label}">${label}</span>`;
+        // scheduled
+        label = i18n("hosts_stats.page_scan_hosts.scheduled");
+        return `<span class="badge bg-dark" title="${label}">${label}</span>`;
+      } else if (is_ok_last_scan == 4) {
+        // not scanned
+        label = i18n("hosts_stats.page_scan_hosts.scanning");
+        return `<span class="badge bg-info" title="${label}">${label}</span>`; 
       } else if (is_ok_last_scan == 3 || is_ok_last_scan == null) {
         // not scanned
         label = i18n("hosts_stats.page_scan_hosts.not_scanned");
@@ -497,7 +509,7 @@ const map_table_def_columns = (columns) => {
         b.f_map_class = (current_class, row) => { 
           current_class = current_class.filter((class_item) => class_item != "link-disabled");
           // FIX ME with UDP ports check
-          if((row.is_ok_last_scan == 4 || row.is_ok_last_scan == null || row.tcp_ports < 1) && visible_dict[b.id]) {
+          if((row.is_ok_last_scan == 3 || row.is_ok_last_scan == null || row.tcp_ports < 1) && visible_dict[b.id]) {
             current_class.push("link-disabled"); 
           }
           return current_class;

@@ -13,7 +13,7 @@
             
             <TableWithConfig ref="table_open_ports" :table_id="table_id" :csrf="context.csrf"
               :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
-              :f_sort_rows="columns_sorting" :f_map_config="map_config">
+              :f_sort_rows="columns_sorting" :f_map_config="map_config" @custom_event="on_table_custom_event">
               
             </TableWithConfig>
 
@@ -83,11 +83,7 @@ const get_extra_params_obj = () => {
 function on_table_custom_event(event) {
   
   let events_managed = {
-    "click_button_edit_host": click_button_edit_host,
-    "click_button_delete": click_button_delete,
-    "click_button_scan": click_button_scan,
-    "click_button_download": click_button_download,
-    "click_button_show_result": click_button_show_result,
+    "click_button_show_hosts": click_button_show_hosts
   };
   if (events_managed[event.event_id] == null) {
     return;
@@ -154,6 +150,7 @@ function format_num_ports_for_sort(num) {
 
 /* ******************************************************************** */ 
 
+
 /* Function to map columns data */
 const map_table_def_columns = (columns) => {
   const visible_dict = {
@@ -172,6 +169,11 @@ const map_table_def_columns = (columns) => {
         const scan_type = host_splitted[1];
         const date = host_splitted[2];
 
+        let host_name = '';
+        if (host_splitted.length > 3) {
+          host_name = host_splitted[3];
+        }
+
         let params = {
           host: host,
           scan_type: scan_type,
@@ -183,11 +185,13 @@ const map_table_def_columns = (columns) => {
         let url_params = ntopng_url_manager.obj_to_url_params(params);
 
         let url = `${active_monitoring_url}?${url_params}`;
-
+        
+        const host_label = host_name != ''? host_name : host;
+        
         if (label == ``)
-          label += `<a href="${url}">${host}</a>`;  
+          label += `<a href="${url}">${host_label}</a>`;  
         else
-          label += `,<a href="${url}">${host}</a>`;  
+          label += `,<a href="${url}">${host_label}</a>`;  
 
         i++;
       }
@@ -218,9 +222,21 @@ const map_table_def_columns = (columns) => {
 
 /* ************************** REST Functions ************************** */
 
-/* Function to add a new host during edit */
+/* Function to show all hosts during edit */
 
+async function click_button_show_hosts(event) {
+  console.log("HERE")
+  let port = event.row.port;
 
+  let params = {
+    port: port,
+  };
+
+  let url_params = ntopng_url_manager.obj_to_url_params(params);
+
+  let url = `${active_monitoring_url}?${url_params}`;
+  ntopng_url_manager.go_to_url(url);
+}
 
 
 /* Function to download last vulnerability scan result */
