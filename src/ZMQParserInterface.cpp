@@ -851,7 +851,8 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
     break;
 
   case NPROBE_INSTANCE_NAME:
-    if(ntop->getPrefs()->is_cloud_edition()) {
+    if(ntop->getPrefs()->is_cloud_edition()
+       && ntop->getPrefs()->addVLANCloudToExporters()) {
       u_int16_t vlan_id = findVLANMapping((char*)value->string);
 
       flow->vlan_id = vlan_id;
