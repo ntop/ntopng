@@ -66,7 +66,7 @@ apt-get install libpng-dev libzmq5-dev default-libmysqlclient-dev libgcrypt20-de
 On Other Debian
 ~~~~~~~~~~~~~~~
 
-apt-get install libmysqlclient-dev libzmq3-dev
+apt-get install libmysqlclient-dev libzmq3-dev libgcrypt20-dev
 
 On Raspbian 10
 ~~~~~~~~~~~~~~
