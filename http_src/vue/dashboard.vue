@@ -52,8 +52,8 @@
   </DateTimeRangePicker>
   
   <div v-if="enable_report_title" class="mt-3" style="margin-bottom:-0.5rem;"><h3 style="text-align:center;">Report: {{selected_report_template.value}}</h3></div>
-  <div ref="report_box" class="row">
-    <template v-for="c in components" >
+  <div ref="report_box" class="row" :key="components">
+    <template v-for="c in components">
       <Box style="min-width:20rem;"
            :color="c.color"
            :width="c.width" 
@@ -296,6 +296,7 @@ function select_report_template() {
     if (selected_report_template.value.is_open_report == true) {
         return;
     }
+    components_info = {};
     update_templates_list();
     const global_status = ntopng_status_manager.get_status(true);
     let epoch_interval = { epoch_begin: global_status.epoch_begin, epoch_end: global_status.epoch_end };
@@ -510,7 +511,6 @@ function get_component_data_func(component) {
     const get_component_data = async (url, url_params, post_params) => {
         
         let info = {};
-
         if (data_from_backup) {
             if (!components_info[component.component_id]) { /* Safety check */
                 console.log("No data for " + component.component_id);
