@@ -212,7 +212,7 @@ onBeforeMount(async () => {
         await open_report(report_name);
     } else {
         /* Load a template and build a new report */
-        await load_components(epoch_interval);
+        await load_components(epoch_interval, selected_report_template.value.value);
     }
 });
 
@@ -267,7 +267,7 @@ async function load_components(epoch_interval, template_name) {
     /* Enable REST calls */    
     data_from_backup = false;
     
-    let url_request = `${props.context.template_endpoint}?template=${template_name || props.context.template}`;
+    let url_request = `${props.context.template_endpoint}?template=${template_name}`;
     let res = await ntopng_utility.http_request(url_request);
     components.value = res.list.filter((c) => components_dict[c.component] != null)
         .map((c, index) => {
