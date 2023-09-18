@@ -105,6 +105,8 @@ function columns_sorting(col, r0, r1) {
       }
       return r1_col - r0_col;
     } else if(col.id == "count_host") {
+      r0_col = format_cve_num(r0_col);
+      r1_col = format_cve_num(r1_col);
       if (col.sort == 1) {
         return r0_col - r1_col;
       }
