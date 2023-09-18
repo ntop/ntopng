@@ -78,8 +78,10 @@ function display_name(file) {
 function sort_files_by() {
     files.value = files.value.sort((a, b) => {
 	if (order_by.value == "name") {
+            /* Name asc */
 	    return a.name.localeCompare(b.name);
 	} else {
+            /* Date desc (last first) */
 	    return b.epoch - a.epoch;
         }
     });
