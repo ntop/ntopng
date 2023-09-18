@@ -110,6 +110,15 @@ function columns_sorting(col, r0, r1) {
       }
       return r1_col - r0_col;
     }
+    else if(col.id == "cves") {
+      r0_col = format_cve_num(r0_col);
+      r1_col = format_cve_num(r1_col);
+
+      if (col.sort == 1) {
+        return r0_col - r1_col;
+      }
+      return r1_col - r0_col;
+    }
     else if(col.id == "hosts") {
       /* It's an array */
       if (col.sort == 1) {
@@ -125,6 +134,17 @@ function columns_sorting(col, r0, r1) {
 
 
 
+function format_cve_num(num) {
+  let value = 0;
+  if (num === "" || num === null || num === NaN || num === undefined) {
+    value = 0;
+  } else {
+    num = num.split(',').join("");
+    value = parseInt(num);
+  }
+
+  return value;
+}
 
 function format_num_for_sort(num) {
   if (num === "" || num === null || num === NaN || num === undefined) {
