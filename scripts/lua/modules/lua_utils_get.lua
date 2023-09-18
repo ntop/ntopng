@@ -1406,6 +1406,55 @@ end
 
 -- ##############################################
 
+local services = nil
+
+local function readServices()
+   if(services == nil) then
+      local file = io.open("/etc/services", "r")
+      if not file then return services end
+      
+      services = {}
+      
+      for line in file:lines() do
+	 if((line ~= "") and (not(string.starts(line, "#")))) then
+	    line = line:gsub("\t", " ")
+	    line = line:gsub("  ", " ")
+	    local elems = split(line, " ")
+	    local label = elems[1]
+	    local value
+	    local i = 2
+	    
+	    while(elems[i] ~= nil) do
+	       if(elems[i] ~=  "") then
+		  value = elems[i]
+		  break
+	       end
+
+	       i = i + 1
+	    end
+	    
+	    services[value] = label
+	    -- print(label.." = "..value.."<br>\n")
+	 end
+      end
+      
+      file:close()
+   end
+
+   return(services)
+end
+
+-- Example mapServiceName(80, "tcp")
+function mapServiceName(port, protocol)
+   readServices()
+   local key = tostring(port).."/"..protocol
+
+   return(services[key])
+end
+
+
+-- ##############################################
+
 if (trace_script_duration ~= nil) then
     io.write(debug.getinfo(1, 'S').source .. " executed in " .. (os.clock() - clock_start) * 1000 .. " ms\n")
 end
