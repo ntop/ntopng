@@ -49,7 +49,7 @@ Prefs::Prefs(Ntop *_ntop) {
     sniff_local_name_responses = true;
   use_promiscuous_mode = true, do_reforge_timestamps = false;
   resolve_all_host_ip = false, service_license_check = false;
-  add_vlan_tags_to_cloud_exporters = true;
+  add_vlan_tags_to_cloud_exporters = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS,
     max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   attacker_max_num_flows_per_sec = victim_max_num_flows_per_sec =

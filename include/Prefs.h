@@ -59,7 +59,7 @@ class Prefs {
     enable_asn_behaviour_analysis, enable_network_behaviour_analysis,
     enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
     dump_flows_on_clickhouse, use_mac_in_flow_key, do_reforge_timestamps,
-    add_vlan_tags_to_cloud_exporters;;
+    add_vlan_tags_to_cloud_exporters;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period, modbus_learning_period,
     devices_learning_period;
@@ -690,9 +690,10 @@ class Prefs {
   char* getKafkaTopic() { return (kafka_topic); }
   char* getKafkaOptions() { return (kafka_options); }
 #endif
-  inline bool useMacAddressInFlowKey()  { return (use_mac_in_flow_key);  }
-  inline bool doReforgeTimestamps()     { return(do_reforge_timestamps); }
-  inline bool addVLANCloudToExporters() { return(add_vlan_tags_to_cloud_exporters); }
+  inline bool useMacAddressInFlowKey()     { return (use_mac_in_flow_key);  }
+  inline bool doReforgeTimestamps()        { return(do_reforge_timestamps); }
+  inline void enableVLANCloudToExporters() { add_vlan_tags_to_cloud_exporters = true;  }
+  inline bool addVLANCloudToExporters()    { return(add_vlan_tags_to_cloud_exporters); }
 };
 
 #endif /* _PREFS_H_ */

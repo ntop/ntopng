@@ -4553,7 +4553,7 @@ Host *NetworkInterface::getHost(char *host_ip, u_int16_t vlan_id,
     if (ip) {
       ip->set(host_ip);
 
-      h = getHostByIP(ip, vlan_id, isInlineCall, observation_point_id);
+      h = getHostByIP(ip, vlan_id, observation_point_id, isInlineCall);
 
       delete ip;
     }

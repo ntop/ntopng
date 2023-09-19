@@ -1038,8 +1038,12 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
     if (value->string && value->string[0]) {
       flow->setParsedProcessInfo();
       flow->src_process_info.process_name = strdup(value->string);
-      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SRC] %s (%u)",
-       * flow->src_process_info.process_name, ntohs(flow->src_port)); */
+
+#if 0
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SRC] %s (%u)",
+				   flow->src_process_info.process_name,
+				   ntohs(flow->src_port));
+#endif
     }
     break;
 
@@ -1102,8 +1106,12 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
     if (value->string && value->string[0]) {
       flow->setParsedProcessInfo();
       flow->dst_process_info.process_name = strdup(value->string);
-      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DST] %s (%u)",
-       * flow->dst_process_info.process_name, ntohs(flow->dst_port)); */
+
+#if 0
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DST] %s (%u)",
+				   flow->dst_process_info.process_name,
+				   ntohs(flow->dst_port));
+#endif
     }
     break;
 
@@ -1614,7 +1622,7 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
   if ((flow->l4_proto == IPPROTO_ICMP) || (flow->l4_proto == IPPROTO_ICMPV6))
     flow->src_port = flow->dst_port = 0;
 
-  /* Handle zero IPv4/IPv6 discrepacies */
+  /* Handle zero IPv4/IPv6 discrepancies */
   if (!flow->hasParsedeBPF()) {
     if (flow->src_ip.getVersion() != flow->dst_ip.getVersion()) {
       if (flow->dst_ip.isIPv4() && flow->src_ip.isIPv6() &&
@@ -2726,7 +2734,14 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char *payload,
   if (o != NULL) {
     json_object *z;
     ListeningPorts pinfo;
-
+    u_int16_t vlan_id = 0;
+    
+    if(ntop->getPrefs()->is_cloud_edition()
+       && ntop->getPrefs()->addVLANCloudToExporters()) {
+      if(json_object_object_get_ex(o, "instance-name", &z))
+	vlan_id = findVLANMapping(json_object_get_string(z));
+    }
+    
     /* Parse port information */
     if (json_object_object_get_ex(o, "listening-ports", &z)) {
       enum json_type o_type = json_object_get_type(z);
@@ -2736,6 +2751,7 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char *payload,
         /* Parse list of IP addresses */
         if (json_object_object_get_ex(o, "ip-addresses", &z)) {
           enum json_type o_type = json_object_get_type(z);
+	 
           if (o_type == json_type_array) {
             for (u_int i = 0; i < (u_int)json_object_array_length(z); i++) {
               Host *h = NULL;
@@ -2747,11 +2763,16 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char *payload,
               // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
 
               /* Assign list of ports to the host */
-              h = getHost((char *)ip_addr, 0 /* TODO vlan_id */,
-                          0 /* observationPointId */, true /* inline */);
+
+              h = getHost((char *)ip_addr,
+			  vlan_id,
+                          0 /* observationPointId */,
+			  true /* inline */);
               if (h) {
                 h->setListeningPorts(pinfo);
-              }
+              } else {
+		// ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to find host  %s", (char *)ip_addr);
+	      }
             }
           }
         }

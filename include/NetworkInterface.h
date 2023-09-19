@@ -659,6 +659,7 @@ public:
     else
       icmp_v4.incStats(num_pkts, icmp_type, icmp_code, sent, NULL);
   };
+
   inline void incLocalStats(u_int num_pkts, u_int pkt_len, bool localsender,
                             bool localreceiver) {
     localStats.incStats(num_pkts, pkt_len, localsender, localreceiver);

@@ -5549,10 +5549,10 @@ void Flow::updateTcpSeqNum(const struct bpf_timeval *when, u_int32_t seq_num,
 
 u_int32_t Flow::getPid(bool client) {
   if (client && ebpf && ebpf->process_info_set)
-    return ebpf->src_process_info.pid;
+    return(ebpf->src_process_info.pid);
 
   if (!client && ebpf && ebpf->process_info_set)
-    return ebpf->dst_process_info.pid;
+    return(ebpf->dst_process_info.pid);
 
   return NO_PID;
 };
@@ -5561,10 +5561,10 @@ u_int32_t Flow::getPid(bool client) {
 
 u_int32_t Flow::getFatherPid(bool client) {
   if (client && ebpf && ebpf->process_info_set)
-    return ebpf->src_process_info.father_pid;
+    return(ebpf->src_process_info.father_pid);
 
   if (!client && ebpf && ebpf->process_info_set)
-    return ebpf->dst_process_info.father_pid;
+    return(ebpf->dst_process_info.father_pid);
 
   return NO_PID;
 };
@@ -5576,10 +5576,10 @@ u_int32_t Flow::get_uid(bool client) const {
   return NO_UID;
 #else
   if (client && ebpf && ebpf->process_info_set)
-    return ebpf->src_process_info.uid;
+    return(ebpf->src_process_info.uid);
 
   if (!client && ebpf && ebpf->process_info_set)
-    return ebpf->dst_process_info.uid;
+    return(ebpf->dst_process_info.uid);
 
   return NO_UID;
 #endif
@@ -5589,10 +5589,10 @@ u_int32_t Flow::get_uid(bool client) const {
 
 char *Flow::get_proc_name(bool client) {
   if (client && ebpf && ebpf->process_info_set)
-    return ebpf->src_process_info.process_name;
+    return(ebpf->src_process_info.process_name);
 
   if (!client && ebpf && ebpf->process_info_set)
-    return ebpf->dst_process_info.process_name;
+    return(ebpf->dst_process_info.process_name);
 
   return NULL;
 };
@@ -5601,10 +5601,10 @@ char *Flow::get_proc_name(bool client) {
 
 char *Flow::get_user_name(bool client) {
   if (client && ebpf && ebpf->process_info_set)
-    return ebpf->src_process_info.uid_name;
+    return(ebpf->src_process_info.uid_name);
 
   if (!client && ebpf && ebpf->process_info_set)
-    return ebpf->dst_process_info.uid_name;
+    return(ebpf->dst_process_info.uid_name);
 
   return NULL;
 }
