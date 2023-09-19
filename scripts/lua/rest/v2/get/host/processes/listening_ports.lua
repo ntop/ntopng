@@ -25,20 +25,39 @@ if isEmptyString(ip) and isEmptyString(vlan) then
   return
 end
 
+if not isEmptyString(_GET["ifid"]) then
+   interface.select(_GET["ifid"])
+else
+   interface.select(ifname)
+end
+
+local elems = string.split(ip, "@")
+
+if((elems ~= nil) and (elems[2] ~= nil)) then
+   vlan = elems[2]
+end
+
+if(vlan ~= nil) then
+   vlan = tonumber(vlan)
+end
+
+
 local host = interface.getHostInfo(ip, vlan)
 
-for listening_type, data in pairs(host.listening_ports or {}) do
-  for port, process_info in pairs(data) do
-    local process = {}
-    process["tcp_udp"] = listening_type
-    process["port"] = port
-    process["package"] = process_info["package"]
-    process["process"] = process_info["process"]
-
-    if table.len(process) > 0 then
-      res[#res + 1] = process
-    end
-  end
+if(host ~= nil) then
+   for listening_type, data in pairs(host.listening_ports or {}) do
+      for port, process_info in pairs(data) do
+	 local process = {}
+	 process["tcp_udp"] = listening_type
+	 process["port"] = port
+	 process["package"] = process_info["package"]
+	 process["process"] = process_info["process"]
+	 
+	 if table.len(process) > 0 then
+	    res[#res + 1] = process
+	 end
+      end
+   end
 end
 
 rest_utils.answer(rc, res)
