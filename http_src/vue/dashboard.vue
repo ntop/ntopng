@@ -327,8 +327,17 @@ function get_suggested_report_name() {
     return "report-" + ntopng_utility.from_utc_to_server_date_format(main_epoch_interval.value.epoch_end * 1000, 'DD-MM-YYYY');
 }
 
-const upload_report = async (content) => {
-    load_report(JSON.parse(content));
+const upload_report = async (content_string) => {
+    let content = JSON.parse(content_string);
+    set_report(content, content.name);
+    ntopng_url_manager.delete_key_from_url("report_name");
+}
+
+function set_report(content, name) {
+    update_templates_list(name);
+    const epoch_status = { epoch_begin: content.epoch_begin, epoch_end: content.epoch_end };
+    ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_status, props.context.page);
+    load_report(content);
 }
 
 const list_reports = async () => {
@@ -372,12 +381,9 @@ const load_report = async (content) => {
 }
 
 const open_report = async (file_name) => {
-    update_templates_list(file_name);
     let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/file.lua?ifid=${props.context.ifid}&report_name=${file_name}`;
     let content = await ntopng_utility.http_request(url);
-    const epoch_status = { epoch_begin: content.epoch_begin, epoch_end: content.epoch_end };
-    ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_status, props.context.page);
-    load_report(content);
+    set_report(content, file_name);
 }
 
 function update_templates_list(report_name_to_open) {
