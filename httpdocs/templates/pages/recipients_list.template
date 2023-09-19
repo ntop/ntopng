@@ -669,6 +669,22 @@
                     }
                 }
             });
+            
+            if(recipient.checks.length > 0) {
+                $(`#edit-recipient-modal form [for='edit_per_alerts_tab']`).addClass('btn-primary');
+                $(`#edit-recipient-modal form [for='edit_per_alerts_tab']`).removeClass('btn-secondary');
+                $(`#edit-recipient-modal form [for='edit_generic_tab']`).removeClass('btn-primary');
+                $(`#edit-recipient-modal form [for='edit_generic_tab']`).addClass('btn-secondary');
+                $(`#edit_generic_recipient`).attr('hidden', 'hidden');
+                $(`#edit_per_alerts_recipient`).removeAttr('hidden');
+            } else {
+                $(`#edit-recipient-modal form [for='edit_generic_tab']`).addClass('btn-primary');
+                $(`#edit-recipient-modal form [for='edit_generic_tab']`).removeClass('btn-secondary');
+                $(`#edit-recipient-modal form [for='edit_per_alerts_tab']`).removeClass('btn-primary');
+                $(`#edit-recipient-modal form [for='edit_per_alerts_tab']`).addClass('btn-secondary');
+                $(`#edit_per_alerts_recipient`).attr('hidden', 'hidden');
+                $(`#edit_generic_recipient`).removeAttr('hidden');
+            }
 
             /* bind testing button */
             $(`#edit-test-recipient`).off('click').click(async function (e) {
