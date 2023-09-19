@@ -499,7 +499,10 @@ function flowinfo2process(process, host_info_to_url)
       -- 					clean_user_name)
       -- end
 
-      fmt = string.format("[%s]", table.concat({proc_user_name, proc_name}, ' '))
+      
+      if((proc_user_name ~= '') or (proc_name ~= '')) then
+	 fmt = string.format("[%s]", table.concat({proc_user_name, proc_name}, ' '))
+      end
    end
 
    return fmt

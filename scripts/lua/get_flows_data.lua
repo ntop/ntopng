@@ -225,7 +225,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
             src_port = value["cli.port"] .. ''
         end
     end
-
+    
     if value["srv.allowed_host"] and not ifstats.isViewed then
         local dst_name = shortenString(srv_name, 36)
         if (value["srv.systemhost"] == true) then
