@@ -161,19 +161,26 @@ void Trace::traceEvent(int eventTraceLevel, const char *_file, const int line,
 
     while (buf[strlen(buf) - 1] == '\n') buf[strlen(buf) - 1] = '\0';
 
-    snprintf(out_buf, sizeof(out_buf) - 1, "[%s:%d] %s%s", file,
+    snprintf(out_buf, sizeof(out_buf) - 1, "%s [%s:%d] %s%s", theDate, file,
              line, extra_msg, buf);
 
     logEvent(eventTraceLevel, out_buf);
-    printf("%s %s\n", theDate, out_buf);
+    printf("%s\n", out_buf);
     fflush(stdout);
 
     if (traceRedis
 	&& traceRedis->isOperational()
-	&& ntop->getRedis()->isOperational())
-      traceRedis->lpush(NTOPNG_TRACE, out_buf, MAX_NUM_NTOPNG_TRACES,
+	&& ntop->getRedis()->isOperational()) {
+    if (traceRedis->llen(NTOPNG_TRACE) >= MAX_NUM_NTOPNG_TRACES) {
+      memset(buf, 0, sizeof(buf));
+
+      traceRedis->rpop(NTOPNG_TRACE,buf, sizeof(buf));
+    }
+    traceRedis->lpush(NTOPNG_TRACE, out_buf, MAX_NUM_NTOPNG_TRACES,
     			false /* Do not re-trace errors, re-tracing would yield a deadlock */);
   }
+  }
+
 }
 
 /* ******************************* */
