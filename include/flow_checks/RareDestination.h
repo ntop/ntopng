@@ -26,7 +26,7 @@
 
 class RareDestination : public FlowCheck {
  private:
-  u_int32_t getDestinationHash(Flow *f);
+  u_int32_t getDestinationHash(Flow *f, u_int8_t *destType);
   
  public:
   RareDestination()

@@ -24,26 +24,26 @@
 
 /* ***************************************************** */
 
-u_int32_t RareDestination::getDestinationHash(Flow *f) {
+u_int32_t RareDestination::getDestinationHash(Flow *f, u_int8_t *destType) {
 
   u_int32_t hash = 0;
-  Host *dest = f->get_srv_host();
 
   if (f->isLocalToLocal()) {
 
-    char buf[64];
+    *destType = 0;  // local destination
+    LocalHost *ldest = (LocalHost*)f->get_srv_host();
 
-    if (!dest->isMulticastHost() && dest->isDHCPHost()) {
-      char *mac = dest->getMac()->print(buf,sizeof(buf));
-      hash = Utils::hashString(mac);
+    if (!ldest->isLocalUnicastHost() && ldest->isDHCPHost()) {
+      Mac *mac = ldest->getMac();
+      hash = mac ? mac->key() : 0;
     }
-    else if (dest->isIPv6() || dest->isIPv4()) {
-      char *ip = dest->get_ip()->print(buf,sizeof(buf));
-      hash = Utils::hashString(ip);
+    else if (ldest->isIPv6() || ldest->isIPv4()) {
+      hash =  ldest->get_ip()->key();
     }
 
   }
   else if (f->isLocalToRemote()) {
+    *destType = 1;  // remote destination
     hash = Utils::hashString(f->getFlowServerInfo());
   }
 
@@ -56,56 +56,46 @@ void RareDestination::protocolDetected(Flow *f) {
 
   bool is_rare_destination = false;
 
-  if(f->getFlowServerInfo() != NULL && f->get_cli_host()->isLocalHost()) {
-    
-    LocalHost *cli_lhost = (LocalHost*)f->get_cli_host();
-    
+  if( f->get_cli_host()->isLocalHost() && (f->getFlowServerInfo() != NULL || !f->get_srv_ip_addr()->isEmpty()) ) {
+
     time_t t_now = time(NULL);
+    NetworkInterface *iface = f->getInterface();
 
-    /* check if training has to start */
-    if (!cli_lhost->getStartRareDestTraining()) {
-      cli_lhost->startRareDestTraining();
-      cli_lhost->setStartRareDestTraining(t_now);
-    }
-
-    u_int32_t hash = getDestinationHash(f);
+    u_int8_t destType;
+    u_int32_t hash = getDestinationHash(f, &destType);
     if(hash == 0) return;
 
-    /* if training */
-    if (cli_lhost->isTrainingRareDest()) {
-      cli_lhost->setRareDestBitmap(hash);
+    /* initial training */
+    if (iface->getRareDestInitialTraining()) {
+      destType == 0 ? iface->setLocalRareDestBitmap(hash) : iface->setRemoteRareDestBitmap(hash);
 
-      /* check if training has to end */
-      if (t_now - cli_lhost->getStartRareDestTraining() >= 3600 /* RARE_DEST_DURATION_TRAINING */ ) {
-        cli_lhost->stopRareDestTraining();
-        cli_lhost->setLastRareDestTraining(t_now);
-      }
+      if (!iface->getRareDestTrainingCheckPoint())
+        iface->setRareDestTrainingCheckPoint(t_now);
+
+      else if (t_now - iface->getRareDestTrainingCheckPoint() >= RARE_DEST_INITIAL_TRAINING_DURATION)
+        iface->endRareDestInitialTraining(t_now);
       
       return;
     }
 
-    /* check if training has to restart */
-    time_t elapsedFromLastTraining = t_now - cli_lhost->getLastRareDestTraining();
+    /* background training */
+    destType == 0 ? iface->setLocalRareDestBitmap_BG(hash) : iface->setRemoteRareDestBitmap_BG(hash);
 
-    if (elapsedFromLastTraining >= 2*RARE_DEST_LAST_TRAINING_GAP ) {
-      cli_lhost->clearRareDestBitmaps();
-      cli_lhost->setStartRareDestTraining(0);
-
-      return;
+    /* update bitmap */
+    if (destType == 0 && !iface->isSetLocalRareDestBitmap(hash)) {
+      is_rare_destination = true;
+      iface->setLocalRareDestBitmap(hash);
     }
 
-    if ( elapsedFromLastTraining >= RARE_DEST_LAST_TRAINING_GAP ) {
-      cli_lhost->updateRareDestBitmaps();
-      cli_lhost->setStartRareDestTraining(0);
-      return;
+    else if (destType == 1 && !iface->isSetRemoteRareDestBitmap(hash)) {
+      is_rare_destination = true;
+      iface->setRemoteRareDestBitmap(hash);
     }
 
-    /* update */
-    if (!cli_lhost->isSetRareDestBitmap(hash)){
-      cli_lhost->setRareDestBitmap(hash);
-      if (!cli_lhost->isSetRareDestLastBitmap(hash)) {
-        is_rare_destination = true;
-      }
+    /* check if background training has to restart */
+    if (t_now - iface->getRareDestTrainingCheckPoint() >= RARE_DEST_BACKGROUND_TRAINING_DURATION) {
+      iface->setRareDestTrainingCheckPoint(t_now);
+      iface->swapRareDestBitmaps();
     }
   }
 

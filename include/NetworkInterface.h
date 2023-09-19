@@ -106,6 +106,19 @@ protected:
     u_int32_t local_hosts, remote_hosts;
   } tot_num_anomalies;
   AlertsQueue *alertsQueue;
+
+  /* RareDestination data implementation*/
+  ndpi_bitmap *rare_dest_local;
+  ndpi_bitmap *rare_dest_remote;
+  ndpi_bitmap *rare_dest_local_bg;
+  ndpi_bitmap *rare_dest_remote_bg;
+
+  struct {
+    bool initialTraining;
+    time_t checkPoint;
+  } rareDestTraining;
+  /***************************************/
+
 #if defined(NTOPNG_PRO)
   PeriodicityMap *pMap;
   ServiceMap *sMap;
@@ -432,6 +445,15 @@ protected:
                      u_int32_t size, u_int *num, bool set_resp);
   void build_protocol_flow_stats_lua_rsp(lua_State *vm, AggregatedFlowsStats *fs,
                                          u_int32_t size, u_int *num);
+
+  void saveRareDestToRedis();
+  bool loadRareDestFromRedis();
+
+  void setRareDestStructRedisField(const char *key, const char *field, u_int64_t value);
+  bool getRareDestStructRedisField(const char *key, const char *field, u_int64_t *value);
+
+  void setRareDestBitmapRedisField(const char *key, const char *field, ndpi_bitmap **bitmap);
+  bool getRareDestBitmapRedisField(const char *key, const char *field, ndpi_bitmap **bitmap);
 
 public:
   /**
@@ -1369,6 +1391,34 @@ public:
   static bool get_vlan_host_ports(GenericHashEntry *node,
 				   void *user_data,
 				   bool *matched);
+
+  /*RareDestination method implementation*/
+
+  inline void setLocalRareDestBitmap(u_int32_t hash)            { if(rare_dest_local) ndpi_bitmap_set(rare_dest_local, hash); }
+  inline void setRemoteRareDestBitmap(u_int32_t hash)           { if(rare_dest_remote) ndpi_bitmap_set(rare_dest_remote, hash); }
+  inline bool isSetLocalRareDestBitmap(u_int32_t hash) const    { return ndpi_bitmap_isset(rare_dest_local, hash); }
+  inline bool isSetRemoteRareDestBitmap(u_int32_t hash) const   { return ndpi_bitmap_isset(rare_dest_remote, hash); }
+  
+  inline void setLocalRareDestBitmap_BG(u_int32_t hash)         { if(rare_dest_local_bg) ndpi_bitmap_set(rare_dest_local_bg, hash); }
+  inline void setRemoteRareDestBitmap_BG(u_int32_t hash)        { if(rare_dest_remote_bg) ndpi_bitmap_set(rare_dest_remote_bg, hash); }
+  
+  inline bool getRareDestInitialTraining() const                { return rareDestTraining.initialTraining;}
+  inline void endRareDestInitialTraining(time_t t)              { rareDestTraining.initialTraining = false; rareDestTraining.checkPoint = t; }
+
+  inline time_t getRareDestTrainingCheckPoint() const           { return rareDestTraining.checkPoint; }
+  inline void setRareDestTrainingCheckPoint(time_t t)           { rareDestTraining.checkPoint = t; }
+
+  void swapRareDestBitmaps() {
+    ndpi_bitmap_free(rare_dest_local);
+    rare_dest_local = rare_dest_local_bg;
+    rare_dest_local_bg = ndpi_bitmap_alloc();
+
+    ndpi_bitmap_free(rare_dest_remote);
+    rare_dest_remote = rare_dest_remote_bg;
+    rare_dest_remote_bg = ndpi_bitmap_alloc();
+  }
+
+  /***************************************/
 
 #ifdef NTOPNG_PRO
   static bool compute_client_server_flow_stats(GenericHashEntry *node,
