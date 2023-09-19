@@ -358,6 +358,9 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId,
                                         true /* Inline call */)) != NULL)
       obs_point->incUses();
   }
+
+  reloadHostBlacklist();
+  is_blacklisted = ip.isBlacklistedAddress();
 }
 
 /* *************************************** */
@@ -371,8 +374,7 @@ void Host::deferredInitialization() {
   is_in_broadcast_domain =
       iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
 
-  reloadHostBlacklist();
-  is_blacklisted = ip.isBlacklistedAddress();
+  
 
   reloadDhcpHost();
 }
