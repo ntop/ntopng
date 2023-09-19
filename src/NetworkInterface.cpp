@@ -6814,14 +6814,21 @@ static bool flow_stats_walker(GenericHashEntry *h, void *user_data,
                               bool *matched) {
   struct active_flow_stats *stats = (struct active_flow_stats *)user_data;
   Flow *flow = (Flow *)h;
+  
+  NetworkInterface *iface = flow->getInterface();
 
-  stats->num_flows++,
-    stats->ndpi_bytes[flow->get_detected_protocol().app_protocol] +=
-    (u_int32_t)flow->get_bytes(),
-    stats->breeds_bytes[flow->get_protocol_breed()] +=
-    (u_int32_t)flow->get_bytes();
+  if(iface) {
+    u_int32_t proto_id = ndpi_map_user_proto_id_to_ndpi_id(
+        iface->get_ndpi_struct(), flow->get_detected_protocol().app_protocol);
+    stats->num_flows++,
+      stats->ndpi_bytes[proto_id] +=
+      (u_int32_t)flow->get_bytes(),
+      stats->breeds_bytes[flow->get_protocol_breed()] +=
+      (u_int32_t)flow->get_bytes();
 
-  *matched = true;
+    *matched = true;
+
+  }
 
   return (false); /* false = keep on walking */
 }
@@ -7144,9 +7151,18 @@ static bool num_flows_walker(GenericHashEntry *node, void *user_data,
                              bool *matched) {
   Flow *flow = (Flow *)node;
   u_int32_t *num_flows = (u_int32_t *)user_data;
+  NetworkInterface *iface = flow->getInterface();
 
-  num_flows[flow->get_detected_protocol().app_protocol]++;
-  *matched = true;
+  if(iface) {
+    u_int32_t proto_id = ndpi_map_user_proto_id_to_ndpi_id(
+        iface->get_ndpi_struct(), flow->get_detected_protocol().app_protocol);
+/*
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, 
+      "Increasing usage of protocol %d, converted from %d", proto_id, flow->get_detected_protocol().app_protocol);
+*/
+    num_flows[proto_id]++;
+    *matched = true;
+  }
 
   return (false /* keep walking */);
 }
@@ -7178,6 +7194,10 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
   ndpi_proto_defaults_t *proto_defaults =
     ndpi_get_proto_defaults(get_ndpi_struct());
 
+  /*
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, 
+    "Allocating space for %d protocols", num_supported_protocols);
+  */
   num_flows = (u_int32_t *)calloc(num_supported_protocols, sizeof(u_int32_t));
 
   if (num_flows) {
