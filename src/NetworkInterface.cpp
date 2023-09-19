@@ -221,6 +221,15 @@ NetworkInterface::NetworkInterface(const char *name,
   }
 #endif
 
+  if( id >= 0 && (!loadRareDestFromRedis() || (( time(NULL) - rareDestTraining.checkPoint ) > (2 * RARE_DEST_BACKGROUND_TRAINING_DURATION))) ){
+    rareDestTraining.checkPoint = 0;
+    rareDestTraining.initialTraining = true;
+    rare_dest_local = ndpi_bitmap_alloc();
+    rare_dest_local_bg = ndpi_bitmap_alloc();
+    rare_dest_remote = ndpi_bitmap_alloc();
+    rare_dest_remote_bg = ndpi_bitmap_alloc();
+  }
+   
   is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
 
   updateTrafficMirrored();
@@ -374,16 +383,6 @@ void NetworkInterface::init(const char *interface_name) {
   customFlowLuaScript_proto = customFlowLuaScript_periodic =
     customFlowLuaScript_end = NULL;
   customHostLuaScript = NULL;
-
-  if( !loadRareDestFromRedis() || (( time(NULL) - rareDestTraining.checkPoint ) > (2 * RARE_DEST_BACKGROUND_TRAINING_DURATION)) ){
-    rareDestTraining.checkPoint = 0;
-    rareDestTraining.initialTraining = true;
-
-    rare_dest_local = ndpi_bitmap_alloc();
-    rare_dest_local_bg = ndpi_bitmap_alloc();
-    rare_dest_remote = ndpi_bitmap_alloc();
-    rare_dest_remote_bg = ndpi_bitmap_alloc();
-  }
 
   INTERFACE_PROFILING_INIT();
 }
@@ -1033,11 +1032,13 @@ NetworkInterface::~NetworkInterface() {
 
   if (smart_recording_instance_name) free(smart_recording_instance_name);
 
-  saveRareDestToRedis();
-  if(rare_dest_local) ndpi_bitmap_free(rare_dest_local);
-  if(rare_dest_local_bg) ndpi_bitmap_free(rare_dest_local_bg);
-  if(rare_dest_remote) ndpi_bitmap_free(rare_dest_remote);
-  if(rare_dest_remote_bg) ndpi_bitmap_free(rare_dest_remote_bg);
+  if ( id >= 0) {
+    saveRareDestToRedis();
+    if(rare_dest_local) ndpi_bitmap_free(rare_dest_local);
+    if(rare_dest_local_bg) ndpi_bitmap_free(rare_dest_local_bg);
+    if(rare_dest_remote) ndpi_bitmap_free(rare_dest_remote);
+    if(rare_dest_remote_bg) ndpi_bitmap_free(rare_dest_remote_bg);
+  }
 }
 
 /* **************************************************** */
@@ -12390,11 +12391,14 @@ void NetworkInterface::setRareDestStructRedisField(const char *key, const char *
   ntop->getRedis()->hashSet(key, field, buf);
 }
 
-void NetworkInterface::setRareDestBitmapRedisField(const char *key, const char *field, ndpi_bitmap *bitmap){
-  char *value;
+void NetworkInterface::setRareDestBitmapRedisField(const char *key, const char *field, ndpi_bitmap **bitmap){
+  char *value = NULL;
   size_t size;
 
-  size = ndpi_bitmap_serialize(bitmap, &value);
+  size = ndpi_bitmap_serialize((*bitmap), &value);
+  
+  if( value == NULL ) return;
+
   char *encoded_bmap = value ? Utils::base64_encode((unsigned char *)value, size) : NULL;
 
   if (encoded_bmap != NULL) {
@@ -12413,15 +12417,15 @@ void NetworkInterface::setRareDestBitmapRedisField(const char *key, const char *
 void NetworkInterface::saveRareDestToRedis() {
   char key[CONST_MAX_LEN_REDIS_KEY];
 
-  if((!ntop->getRedis()) || (!rare_dest_local) || (!rare_dest_remote)) return;
+  if((!ntop->getRedis()) || (!rare_dest_local) || (!rare_dest_remote) || (!rare_dest_local_bg) || (!rare_dest_remote_bg)) return;
   
   snprintf(key, sizeof(key), IFACE_RARE_DEST_SERIALIZED_KEY, get_id());
 
-  setRareDestBitmapRedisField(key, "rare_dest_local", rare_dest_local);
-  setRareDestBitmapRedisField(key, "rare_dest_local_bg", rare_dest_local_bg);
+  setRareDestBitmapRedisField(key, "rare_dest_local", &rare_dest_local);
+  setRareDestBitmapRedisField(key, "rare_dest_local_bg", &rare_dest_local_bg);
 
-  setRareDestBitmapRedisField(key, "rare_dest_remote", rare_dest_remote);
-  setRareDestBitmapRedisField(key, "rare_dest_remote_bg", rare_dest_remote_bg);
+  setRareDestBitmapRedisField(key, "rare_dest_remote", &rare_dest_remote);
+  setRareDestBitmapRedisField(key, "rare_dest_remote_bg", &rare_dest_remote_bg);
 
   setRareDestStructRedisField(key, "checkPoint", (u_int64_t)rareDestTraining.checkPoint);
   setRareDestStructRedisField(key, "initialTraining", (u_int64_t)(rareDestTraining.initialTraining ? 1 : 0));
@@ -12434,8 +12438,8 @@ bool NetworkInterface::getRareDestStructRedisField(const char *key, const char *
   return(true);
 }
 
-bool NetworkInterface::getRareDestBitmapRedisField(const char *key, const char *field, ndpi_bitmap *bitmap){
-  char *bitmap_field_val;
+bool NetworkInterface::getRareDestBitmapRedisField(const char *key, const char *field, ndpi_bitmap **bitmap){
+  char *bitmap_field_val = NULL;
   u_int64_t value;
   size_t size;
 
@@ -12444,26 +12448,29 @@ bool NetworkInterface::getRareDestBitmapRedisField(const char *key, const char *
 
   if (!getRareDestStructRedisField(key, len_field, &value)) return(false);
   size = (size_t)(value);
-  
+
   if((bitmap_field_val = (char *) malloc(size)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to allocate memory to deserialize %s", key);
     return(false);
   }
 
-  if(ntop->getRedis()->hashGet(key, field, bitmap_field_val, size) != 0) {
+  if(ntop->getRedis()->hashGet(key, field, bitmap_field_val, (size)) != 0) {
     free(bitmap_field_val);
     return(false);
   }
 
-  bitmap = ndpi_bitmap_deserialize((char *)Utils::base64_decode((std::string)bitmap_field_val).c_str());
-  free(bitmap_field_val);
+  if( bitmap_field_val == NULL ) return(false);
 
+  (*bitmap) = ndpi_bitmap_deserialize((char *)(Utils::base64_decode((std::string)bitmap_field_val).c_str()));
+  
+  free(bitmap_field_val);
   return(true);
 }
 
 bool NetworkInterface::loadRareDestFromRedis() {
   char key[CONST_MAX_LEN_REDIS_KEY];
   u_int64_t value;
+  rare_dest_local = rare_dest_local_bg = rare_dest_remote = rare_dest_remote_bg = NULL;
   
   if((!ntop->getRedis())) return(false); 
 
@@ -12475,18 +12482,20 @@ bool NetworkInterface::loadRareDestFromRedis() {
   if (!getRareDestStructRedisField(key, "initialTraining", &value)) return(false);
   rareDestTraining.initialTraining = value ? true : false;
 
-  if (!getRareDestBitmapRedisField(key, "rare_dest_local", rare_dest_local)) return(false);
-  if (!getRareDestBitmapRedisField(key, "rare_dest_local_bg", rare_dest_local_bg)) {
+  if (!getRareDestBitmapRedisField(key, "rare_dest_local", &rare_dest_local)) return(false);
+
+  if (!getRareDestBitmapRedisField(key, "rare_dest_local_bg", &rare_dest_local_bg)) {
     ndpi_bitmap_free(rare_dest_local);
     return(false);
   }
 
-  if (!getRareDestBitmapRedisField(key, "rare_dest_remote", rare_dest_remote)) {
+  if (!getRareDestBitmapRedisField(key, "rare_dest_remote", &rare_dest_remote)) {
     ndpi_bitmap_free(rare_dest_local);
     ndpi_bitmap_free(rare_dest_local_bg);
     return(false);
   }
-  if (!getRareDestBitmapRedisField(key, "rare_dest_remote_bg", rare_dest_remote_bg)) {
+
+  if (!getRareDestBitmapRedisField(key, "rare_dest_remote_bg", &rare_dest_remote_bg)) {
     ndpi_bitmap_free(rare_dest_local);
     ndpi_bitmap_free(rare_dest_local_bg);
     ndpi_bitmap_free(rare_dest_remote);

@@ -56,7 +56,7 @@ void RareDestination::protocolDetected(Flow *f) {
 
   bool is_rare_destination = false;
 
-  if(f->get_cli_host()->isLocalHost() && (f->getFlowServerInfo() != NULL || !f->get_srv_ip_addr()->isEmpty()) ) {
+  if( f->get_cli_host()->isLocalHost() && (f->getFlowServerInfo() != NULL || !f->get_srv_ip_addr()->isEmpty()) ) {
 
     time_t t_now = time(NULL);
     NetworkInterface *iface = f->getInterface();
@@ -67,7 +67,6 @@ void RareDestination::protocolDetected(Flow *f) {
 
     /* initial training */
     if (iface->getRareDestInitialTraining()) {
-
       destType == 0 ? iface->setLocalRareDestBitmap(hash) : iface->setRemoteRareDestBitmap(hash);
 
       if (!iface->getRareDestTrainingCheckPoint())
