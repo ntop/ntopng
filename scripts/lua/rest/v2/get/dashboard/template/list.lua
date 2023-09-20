@@ -16,11 +16,6 @@ local dashboard_utils = require "dashboard_utils"
 -- Example: curl -u admin:admin "http://localhost:3000/lua/pro/rest/v2/get/dashboard/template/list.lua"
 --
 
-if not ntop.isEnterpriseL() then
-   rest_utils.answer(rest_utils.consts.err.not_granted, {})
-   return
-end
-
 local page = "dashboard"
 
 local rc = rest_utils.consts.success.ok
