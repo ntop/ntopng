@@ -1781,7 +1781,7 @@ bool Utils::postHTTPTextFile(lua_State* vm, char *username, char *password, char
 /* **************************************** */
 
 bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *message,
-		     char *smtp_server, char *username, char *password) {
+		     char *smtp_server, char *username, char *password, bool verbose) {
   bool ret = true;
   const char *ret_str = "";
 
@@ -1832,7 +1832,7 @@ bool Utils::sendMail(lua_State* vm, char *from, char *to, char *cc, char *messag
     curl_easy_setopt(curl, CURLOPT_READDATA, upload_ctx);
     curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
 
-    if(ntop->getTrace()->get_trace_level() >= TRACE_LEVEL_DEBUG) {
+    if(ntop->getTrace()->get_trace_level() >= TRACE_LEVEL_DEBUG || verbose) {
       /* Show verbose message trace */
       curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
       curl_easy_setopt(curl, CURLOPT_DEBUGFUNCTION, curl_debugfunc);
