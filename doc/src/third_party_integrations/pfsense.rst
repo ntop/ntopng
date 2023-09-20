@@ -49,6 +49,40 @@ The output should look like the below.
 
   ntop Repository Installation
 
+pfSense Plus 23.05.01 and later
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Latest pfSense Plus is using a custom root certificate chain as default which is
+preventing the ntop repository package to be installed. In order to overcome this
+a manual change to the configuration is required.
+
+Create a text file /usr/local/etc/pkg/repos/ntop.conf (note this contains the 
+SSL_CA_CERT_FILE env variable used to specify the root file of the SSL certificates)
+with the below content, which contains information for the ntop repository:
+
+.. code:: text
+
+   ntop: {
+    env: {
+      SSL_CA_CERT_FILE=/usr/local/share/certs/ca-root-nss.crt
+    },
+    fingerprints: "/usr/local/etc/pkg/fingerprints/ntop",
+    url: https://packages.ntop.org/FreeBSD/${ABI}/latest,
+    signature_type: "fingerprints",
+    priority: 100,
+    enabled: yes
+   }
+
+Then also create a text file /usr/local/etc/pkg/fingerprints/ntop/trusted/packages.ntop.org.20210108 
+with the below content:
+
+.. code:: text
+
+   function: "sha256"
+   fingerprint: "d912f631f592c3aebc4f59b25ee85b5118d24a50066c6013d736fa64eb0c4cd2"
+
+At this point you should be able to update and install packages from the repository.
+
 Package Installation
 ====================
 
