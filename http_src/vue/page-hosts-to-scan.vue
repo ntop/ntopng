@@ -153,6 +153,8 @@ function refresh_table( disable_loading) {
   /* It's important to set autorefresh to false, in this way when refreshed 
      all the entries are going to be checked and if all of them are not scanning it stays false
    */
+
+  //console.log("REFRESHING")
   if(disable_loading != null)
     table_hosts_to_scan.value.refresh_table(disable_loading);
   else
@@ -593,10 +595,10 @@ const add_host_rest = async function (params) {
 
   }
 
-  if (params.is_edit != true)
-    check_autorefresh();
-
-  refresh_table(false);
+  if (params.is_edit != true){
+    check_autorefresh()
+    refresh_table(false);
+  };
 
 
 }
@@ -652,6 +654,8 @@ const check_in_progress_status = async function () {
   refresh_feedback_messages(result.rsp.total_in_progress);
   autorefresh.value = result.rsp.total_in_progress > 0 ;
   
+  
+  
 
   if (in_progress_number.value == 0) {
     in_progress_number.value = result.rsp.total_in_progress;
@@ -663,8 +667,11 @@ const check_in_progress_status = async function () {
     }
   }
   if(autorefresh.value == false) {
-    setTimeout(table_hosts_to_scan.value.refresh_table, 1000)
+    setTimeout(table_hosts_to_scan.value.refresh_table, 10000)
     in_progress_number.value = 0;
+  } else {
+    refresh_table(true);
+
   }
 }
 
