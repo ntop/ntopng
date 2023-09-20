@@ -110,6 +110,7 @@ const check_custom_rules = () => {
   let check = true
 
   let rules = custom_rules.value.split("\n");
+  debugger;
   rules.forEach((rule) => {
     check = check && (/* tcp:1100 */(/^((tcp|udp):(6553[0-5]|655[0-2][0-9]\d|65[0-4](\d){2}|6[0-4](\d){3}|[1-5](\d){4}|[1-9](\d){0,3}))$/.test(rule)) ||
                       /* tcp:1000-1002*/(/^((tcp|udp):(6553[0-5]|655[0-2][0-9]\d|65[0-4](\d){2}|6[0-4](\d){3}|[1-5](\d){4}|[1-9](\d){0,3})-(6553[0-5]|655[0-2][0-9]\d|65[0-4](\d){2}|6[0-4](\d){3}|[1-5](\d){4}|[1-9](\d){0,3}))$/.test(rule)) ||
@@ -117,33 +118,14 @@ const check_custom_rules = () => {
                       /* ip:1.1.1.1 */(/^(ip):(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(rule)) ||
                       /* ip:1.1.1.1:1010 */(/^(ip):(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):(6553[0-5]|655[0-2][0-9]\d|65[0-4](\d){2}|6[0-4](\d){3}|[1-5](\d){4}|[1-9](\d){0,3})$/.test(rule)) ||
                       /* host:google */(/^((host):[a-zA-Z0-9]+)$/.test(rule)) ||
+                      /* host:google.com */(/(host):[a-zA-Z0-9].[a-zA-Z]/g.test(rule)) ||
                       /* Empty string */rule === '');
   })
 
   return check
 }
 
-const populate_modal_form = function (row) {
-  selected_category.value = {
-    id: row.category_id,
-    label: row.category,
-  }
-  custom_rules.value = row.custom_rules.replaceAll(',', '\n');
-  last_application.value = row;
-  application_name.value = row.application
-}
 
-const format_category_list = function (list) {
-  let _category_list = []
-  const ordered_list = list.sort(
-    (cat1, cat2) => (cat1.name < cat2.name) ? -1 : (cat1.name > cat2.name) ? 1 : 0
-  )
-  ordered_list.forEach((category) => {
-    let item = { id: category.cat_id, label: category.name };
-    _category_list.push(item);
-  })
-  return _category_list
-}
 
 const show = (row) => {
   reset_modal_form();
