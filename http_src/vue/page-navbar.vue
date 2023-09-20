@@ -5,7 +5,7 @@
     <a v-if="main_title.href" :href="main_title.href" :title="main_title.title"> {{main_title.label}}</a>  
     <span v-else :title="main_title.title"> {{main_title.label}}</span>    
     <template v-for="item in secondary_title_list"> / 
-      <a v-if="item.href" :href="item.href" :title="item.title">
+      <a v-if="item.href" :class="item.class" :href="item.href" :title="item.title">
         {{item.label}}
         <i v-if="item.icon" :class="item.icon"></i>
       </a>  
@@ -20,7 +20,13 @@
     <ul class="navbar-nav">
       <template v-for="item in items_table">
 	<template v-if="item.active">
-	  <li  @click="this.$emit('click_item', item)" :class="{ 'active': item.active }" class="nav-item nav-link">
+	  <li v-if="item.active" @click="this.$emit('click_item', item)" class="nav-item nav-link active" :class="item.class">	    
+      <span v-if="item.badge_num > 0" class="badge rounded-pill bg-dark" style="float:right;margin-bottom:-10px;">{{ item.badge_num }}</span>
+	    <b><i :class="item.icon"></i>
+	      {{item.label}}
+	    </b>
+	  </li>
+    <li v-else @click="this.$emit('click_item', item)" class="nav-item nav-link" :class="item.class">
 	    <span v-if="item.badge_num > 0" class="badge rounded-pill bg-dark" style="float:right;margin-bottom:-10px;">{{ item.badge_num }}</span>
 	    <b><i :class="item.icon"></i>
 	      {{item.label}}
@@ -28,7 +34,7 @@
 	  </li>
 	</template>
 	<template v-else>
-	  <a @click="this.$emit('click_item', item)" href="#" class="nav-item nav-link">
+	  <a @click="this.$emit('click_item', item)" href="#" class="nav-item nav-link" :class="item.class">
 	    <span v-if="item.badge_num > 0" class="badge rounded-pill bg-dark" style="float:right;margin-bottom:-10px;">{{ item.badge_num }}</span>
 	    <i :class="item.icon"></i>
 	      {{item.label}}

@@ -116,8 +116,11 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
       this.updated_view = this.$props.view
 
       if(asset_map_filter_list && asset_table_filter_list) {
-        this.navbar_context.items_table.push({ active: false, label: i18n('asset_map'), id: "asset_map", page: "graph" })
-        this.navbar_context.items_table.push({ active: false, label: i18n('asset_table'), id: "asset_map", page: "table" })
+        this.navbar_context.items_table.push({ active: false, class: "disabled ps-0 pe-0", label: '-' })
+        this.navbar_context.items_table.push({ active: false, icon: "fas fa-lg fa-compass", class: "disabled pe-0", title: i18n('asset_map'), label: i18n('asset') + ": " })
+        this.navbar_context.items_table.push({ active: false, label: i18n('map_format'), id: "asset_map", page: "graph" })
+        this.navbar_context.items_table.push({ active: false, class: "disabled ps-0 pe-0", label: '/' })
+        this.navbar_context.items_table.push({ active: false, label: i18n('table_format'), id: "asset_map", page: "table" })
       }
 
       this.navbar_context.items_table.forEach((i) => {
@@ -162,10 +165,15 @@ import { ntopng_url_manager } from '../services/context/ntopng_globals_services'
           },
           secondary_title_list: [],
           items_table: [
-            { active: true, label: i18n('service_map'), id: "service_map", page: "graph" },
-            { active: false, label: i18n('service_table'), id: "service_map", page: "table" },
-            { active: false, label: i18n('periodicity_map'), id: "periodicity_map", page: "graph" },
-            { active: false, label: i18n('periodicity_table'), id: "periodicity_map", page: "table" },
+            { active: false, icon: "fas fa-lg fa-concierge-bell", class: "disabled pe-0", title: i18n('service_map'), label: i18n('service') + ": " },
+            { active: true, label: i18n('map_format'), id: "service_map", page: "graph" },
+            { active: false, class: "disabled ps-0 pe-0", label: '/' },
+            { active: false, label: i18n('table_format'), id: "service_map", page: "table" },
+            { active: false, class: "disabled ps-0 pe-0", label: '-' },
+            { active: false, icon: "fas fa-lg fa-clock", class: "disabled pe-0", title: i18n('periodicity_map'), label: i18n('periodicity') + ": " },
+            { active: false, label: i18n('map_format'), id: "periodicity_map", page: "graph" },
+            { active: false, class: "disabled ps-0 pe-0", label: '/' },
+            { active: false, label: i18n('table_format'), id: "periodicity_map", page: "table" },
           ],
         },
       };
