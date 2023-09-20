@@ -538,6 +538,11 @@ onMounted(async () => {
     modal_add.value.show(null, props.context.host);
   }
 
+  check_autorefresh()
+  refresh_table(false);
+
+
+
 })
 
 /* ************************** REST Functions ************************** */
