@@ -175,6 +175,16 @@ function ts_schema:verifyTagsAndMetrics(tags_and_metrics)
       return nil
     end
 
+    -- Return an error if the tag contains a / or \, because it could
+    -- generate errors in that case
+    if(string.match(self.name, "^(.*):ndpi$")) then
+      if(string.find(tags_and_metrics[tag], "/") 
+        or string.find(tags_and_metrics[tag], "\\")) then
+          traceError(TRACE_ERROR, TRACE_CONSOLE, "Invalid tag '" .. tag .. "' in schema " .. self.name .. ", it contains '\\' or '/' characters")
+          return nil
+      end
+    end
+
     tags[tag] = tags_and_metrics[tag]
   end
 
