@@ -1273,7 +1273,7 @@ bool Utils::purifyHTTPparam(char *const param, bool strict, bool allowURL,
     if(ret)
       return(true);
   }
-  
+
   if(strict) {
     for(int i = 0; xssAttempts[i] != NULL; i++) {
       if(strstr(param, xssAttempts[i])) {
@@ -1335,7 +1335,7 @@ bool Utils::purifyHTTPparam(char *const param, bool strict, bool allowURL,
       param[i - 1] = '_', param[i] = '_'; /* Invalidate the path */
     }
   }
-  
+
   return(false);
 }
 
@@ -3992,6 +3992,30 @@ u_int32_t Utils::findInterfaceGatewayIPv4(const char *ifname) {
 
 /* ******************************* */
 
+/* Exec the command and returns fals ein case of error, or true otherwise */
+bool Utils::execCmd(char *cmd, std::string *out) {
+#ifndef WIN32
+  FILE *fp;
+
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Executing %s", cmd);
+
+  if ((fp = popen(cmd, "r")) != NULL) {
+    char line[256], *l;
+
+    while((l = fgets(line, sizeof(line), fp)) != NULL)
+      out->append(l);
+
+    pclose(fp);
+
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Executed (%s) completed", cmd);
+    return(true);
+  } else
+#endif
+    return(false);
+}
+
+/* ******************************* */
+
 void Utils::maximizeSocketBuffer(int sock_fd, bool rx_buffer,
                                  u_int max_buf_mb) {
   int i, rcv_buffsize_base, rcv_buffsize,
@@ -4876,7 +4900,7 @@ void Utils::deferredExec(const char *command) {
     return;
 
   ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", command_buf);
-  
+
   if (system(command_buf) == -1)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Failed command %s: %d/%s",
                                  command_buf, errno, strerror(errno));
@@ -5514,7 +5538,7 @@ void Utils::swapfloat(float *a, float *b) {
 char* Utils::createRandomString(char *buf, size_t buf_len) {
   const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789,.-#'?!";
   int charset_len = (int)(sizeof(charset) -1);
-  
+
   for (u_int i = 0; i < buf_len; i++)
     buf[i] = charset[rand() % charset_len];
 
@@ -5529,7 +5553,7 @@ char* Utils::createRandomString(char *buf, size_t buf_len) {
 IpAddress* Utils::parseHostString(char *host_ip, u_int16_t *vlan_id /* out */) {
   IpAddress *ip_addr = NULL;
   char *ip = NULL, *vlan = NULL;
-  
+
   if (host_ip != NULL && host_ip[0] != 0) {
     char *token = strtok(host_ip, "@");
     int h = 0;
@@ -5547,10 +5571,10 @@ IpAddress* Utils::parseHostString(char *host_ip, u_int16_t *vlan_id /* out */) {
 
   if(ip != NULL) {
     ip_addr = new IpAddress();
-    if(ip_addr) ip_addr->set(ip);    
+    if(ip_addr) ip_addr->set(ip);
   } else
     ip_addr = NULL;
-  
+
   *vlan_id = vlan ? stoi(vlan) : 0;
 
   return(ip_addr);

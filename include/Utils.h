@@ -223,8 +223,8 @@ class Utils {
   static bool maskHost(bool isLocalIP);
   static char *getInterfaceDescription(char *ifname, char *buf, int buf_len);
   static int bindSockToDevice(int sock, int family, const char *devicename);
-  static void maximizeSocketBuffer(int sock_fd, bool rx_buffer,
-                                   u_int max_buf_mb);
+  static bool execCmd(char *cmd, std::string *out);
+  static void maximizeSocketBuffer(int sock_fd, bool rx_buffer, u_int max_buf_mb);
   static u_int32_t parsetime(char *str);
   static time_t str2epoch(const char *str);
   static u_int64_t mac2int(const u_int8_t *mac);
