@@ -72,7 +72,7 @@ if(props.is_local) {
   sankey_format_list.unshift({ filter_name: 'hosts_type', key: 2, id: 'remote_only', title: _i18n('flows_page.remote_only'), label: _i18n('flows_page.remote_only'),  filter_icon: false, countable: false })
 }
 
-const active_hosts_type = ref(sankey_format_list[0]);
+const active_hosts_type = ref(sankey_format_list[3]);
 
 const sankey_data = ref({});
 
