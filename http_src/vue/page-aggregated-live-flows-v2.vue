@@ -208,7 +208,7 @@ async function load_table_filters_array(action, filter) {
 function get_url_params() {
     let actual_params = {
         ifid: ntopng_url_manager.get_url_entry("ifid") || props.context.ifid,
-        vlan_id: ntopng_url_manager.get_url_entry("vlan_id") || '-1' /* No filter by default */,
+        vlan_id: ntopng_url_manager.get_url_entry("vlan_id")  /* No filter by default */,
         aggregation_criteria: ntopng_url_manager.get_url_entry("aggregation_criteria") || selected_criteria.value.param,
         host: ntopng_url_manager.get_url_entry("host") || props.context.host,
     };    

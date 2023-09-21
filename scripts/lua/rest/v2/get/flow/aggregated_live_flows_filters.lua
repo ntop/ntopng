@@ -24,14 +24,12 @@ if ntop.isEnterpriseM() then
 
 
 local ifid = _GET["ifid"]
-local vlan = tonumber(_GET["vlan_id"] or -1)
 local criteria = _GET["aggregation_criteria"] or ""
 local rc = rest_utils.consts.success.ok
 local filters = {}
 
-if (vlan) and (isEmptyString(vlan) or tonumber(vlan) == -1) then
-    vlan = nil
-end
+
+
 
 if isEmptyString(ifid) then
     ifid = interface.getId()
@@ -64,23 +62,23 @@ local x = 0
 
 -- Retrieve the flows
 local aggregated_info = interface.getProtocolFlowsStats(criteria_type_id, filters["page"], filters["sort_column"],
-							filters["sort_order"], filters["start"], filters["length"], ternary(not isEmptyString(filters["map_search"]), filters["map_search"], nil) , ternary(filters["host"]~= "", filters["host"], nil), vlan)
+							filters["sort_order"], filters["start"], filters["length"], ternary(not isEmptyString(filters["map_search"]), filters["map_search"], nil) , ternary(filters["host"]~= "", filters["host"], nil), nil)
 
 local formatted_vlan_filters = {}
 
 local function is_vlan_already_inserted(formatted_vlan_filters, vlan_id)
-    for _,x in ipairs(formatted_vlan_filters) do
+    for id,x in ipairs(formatted_vlan_filters) do
         if(x.value == vlan_id) then
-            x.count = x.count + 1
-            return true
+            return id
         end
     end
-    return false
+    return -1
 end
 
 for _, data in pairs(aggregated_info or {}) do
 
-    if not is_vlan_already_inserted(formatted_vlan_filters, data.vlan_id) then
+    local index = is_vlan_already_inserted(formatted_vlan_filters, data.vlan_id)
+    if index == -1 then
         local vlan_name = i18n('no_vlan')
 
         if data.vlan_id ~= 0 then
@@ -93,6 +91,8 @@ for _, data in pairs(aggregated_info or {}) do
             key = "vlan_id"
         }
         formatted_vlan_filters[#formatted_vlan_filters+1] = vlan
+    else
+        formatted_vlan_filters[index].count = formatted_vlan_filters[index].count + 1
     end
 end
 

@@ -200,11 +200,11 @@ for _, data in pairs(aggregated_info or {}) do
       }
    end
 
-   if add_server and (tonumber(vlan) ~=
+   if add_server and (vlan ~= nil and tonumber(vlan) ~=
    tonumber(data.srv_vlan_id)) then
       goto continue
    end
-   if add_client and ( tonumber(vlan) ~= tonumber(data.cli_vlan_id)) then
+   if add_client and ( vlan ~= nil and tonumber(vlan) ~= tonumber(data.cli_vlan_id)) then
          goto continue
    end
 
