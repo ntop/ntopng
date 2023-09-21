@@ -692,7 +692,8 @@ function system_config:applyChanges()
 
   if is_rebooting then
     self:writeSystemFiles()
-    tprint("Reboot!") -- sys_utils.rebootSystem()
+    --tprint("Reboot!")
+    sys_utils.rebootSystem()
   elseif is_self_restarting then
     sys_utils.restartSelf()
   end
