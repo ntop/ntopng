@@ -3132,7 +3132,7 @@ void ZMQParserInterface::loadVLANMappings() {
   int rc;
   Redis *redis = ntop->getRedis();
 
-  top_vlan_id = 1;
+  top_vlan_id = 0;
 
   snprintf(buf, sizeof(buf), VLAN_HASH_KEY, get_id());
 
@@ -3165,7 +3165,7 @@ u_int16_t ZMQParserInterface::findVLANMapping(std::string name) {
     return(it->second);
   else if(top_vlan_id < 4095) {
     char value[16], buf[64];
-    u_int16_t id = top_vlan_id++;
+    u_int16_t id = ++top_vlan_id;
     Redis *redis = ntop->getRedis();
 
     if(id >= 4096) return(0 /* too many vlans */);
