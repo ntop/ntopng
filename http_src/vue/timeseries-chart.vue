@@ -7,7 +7,8 @@
 			{{ item.name }}
 		</label>
 	</div>
-	<div class="mb-3" style="width:100%" ref="chart"></div>
+	<div v-if="disable_pointer_events == true" class="mb-3" style="width:100%;pointer-events:none;" ref="chart"></div>
+	<div v-else class="mb-3" style="width:100%;" ref="chart"></div>
 </template>
 
 <script>
@@ -21,6 +22,7 @@ export default {
 		base_url_request: String,
 		get_params_url_request: Function,
 		get_custom_chart_options: Function,
+		disable_pointer_events: Boolean,
 	},
 	emits: ["apply", "hidden", "showed", "chart_reloaded", "zoom"],
 	/** This method is the first method of the component called, it's called before html template creation. */

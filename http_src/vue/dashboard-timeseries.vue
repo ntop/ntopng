@@ -11,7 +11,8 @@
     :chart_type="chart_type"
     :base_url_request="base_url"
     :get_custom_chart_options="get_chart_options"
-    :register_on_status_change="false">
+    :register_on_status_change="false"
+    :disable_pointer_events="true">
   </TimeseriesChart>
 </div>
 </template>
