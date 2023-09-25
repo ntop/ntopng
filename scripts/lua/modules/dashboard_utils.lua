@@ -20,6 +20,7 @@ local dashboard_utils = {}
 -- Get all configured dashboard templates
 function dashboard_utils.get_templates(templates_dir)
    local templates = {}
+   local info = ntop.getInfo()
 
    local templates_names = ntop.readdir(templates_dir)
 
@@ -31,6 +32,21 @@ function dashboard_utils.get_templates(templates_dir)
       local template_path = os_utils.fixPath(templates_dir .. "/" .. template_name)
 
       local template = file_utils.read_json_file(template_path)
+
+      if not template then
+         goto continue
+      end
+
+      if template.requires then
+         if template.requires.model then
+            local model = template.requires.model
+            if     model == 'pro' and not info['pro.release']                   then goto continue
+            elseif model == 'm'   and not info['version.enterprise_m_edition']  then goto continue
+            elseif model == 'l'   and not info['version.enterprise_l_edition']  then goto continue
+            elseif model == 'xl'  and not info['version.enterprise_xl_edition'] then goto continue
+            end
+         end
+      end
 
       template_name = template_name:sub(1, #template_name - 5)
 
