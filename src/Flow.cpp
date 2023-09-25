@@ -5645,7 +5645,7 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
                                   "BitTorrent protocol", payload_len - 20);
 
     if(bt_proto) {
-      u_int l = strlen(bt_proto);
+      u_int l = strnlen(bt_proto, 27);
 
       if(l >= 27)
 	setBittorrentHash(&bt_proto[27]);
