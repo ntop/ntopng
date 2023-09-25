@@ -99,14 +99,14 @@ let learning_message= _i18n('edit_check.learning');
 let row_to_delete= ref(null);
 let row_to_edit= ref(null);
 
-
 const props = defineProps({
-  page_csrf: String,
-  is_clickhouse_enabled: Boolean
+    context: Object
 });
 
+
 const rest_params = {
-  csrf: props.page_csrf
+  csrf: props.context.page_csrf,
+  ifid: props.context.ifid
 };
 
 
@@ -410,7 +410,7 @@ const get_extra_params_obj = () => {
 
 function get_url_params() {
     let actual_params = {
-        ifid: ntopng_url_manager.get_url_entry("ifid") || 1,
+        ifid: ntopng_url_manager.get_url_entry("ifid") || props.context.ifid,
     };    
 
     return actual_params;
