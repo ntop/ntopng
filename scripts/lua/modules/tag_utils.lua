@@ -35,45 +35,63 @@ tag_utils.tag_operators = {
 
 -- #####################################
 
+-- Supported input types
+tag_utils.input_types = {
+    input = 'input',
+    select = 'select',
+    input_with_suggestions = 'input-with-suggestions'
+}
+
+
+-- #####################################
+
 tag_utils.defined_tags = {
     alert_id = {
+        type = tag_utils.input_types.select,
         value_type = 'alert_id',
         i18n_label = i18n('db_search.tags.alert_id'),
         operators = {'eq', 'neq'}
     },
     alert_category = {
+        type = tag_utils.input_types.select,
         value_type = 'alert_category',
         i18n_label = i18n('db_search.tags.alert_category'),
         operators = {'eq', 'neq'}
     },
     l7proto = {
+        type = tag_utils.input_types.select,
         value_type = 'l7_proto',
         i18n_label = i18n('db_search.tags.l7_proto'),
         operators = {'eq', 'neq'}
     },
     l7proto_master = {
+        type = tag_utils.input_types.select,
         value_type = 'l7_proto',
         i18n_label = i18n('db_search.tags.l7_proto'),
         operators = {'eq', 'neq'},
         hide = true
     },
     l7cat = {
+        type = tag_utils.input_types.select,
         value_type = 'l7_category',
         i18n_label = i18n('db_search.tags.l7cat'),
         operators = {'eq', 'neq'}
     },
     flow_risk = {
+        type = tag_utils.input_types.select,
         value_type = 'flow_risk',
         i18n_label = i18n('db_search.tags.flow_risk'),
         operators = {'eq', 'neq', 'in', 'nin'}
     },
     l4proto = {
+        type = tag_utils.input_types.select,
         value_type = 'l4_proto',
         i18n_label = i18n('db_search.tags.l4proto'),
         operators = {'eq', 'neq'},
         bpf_key = 'ip proto'
     },
     ip_version = {
+        type = tag_utils.input_types.select,
         value_type = 'ip_version',
         i18n_label = i18n('db_search.tags.ip_version'),
         operators = {'eq', 'neq'}
@@ -115,6 +133,7 @@ tag_utils.defined_tags = {
         bpf_key = 'net'
     },
     traffic_direction = {
+        type = tag_utils.input_types.select,
         value_type = 'traffic_direction',
         i18n_label = i18n('db_search.tags.traffic_direction'),
         operators = {'eq', 'neq'}
@@ -140,11 +159,13 @@ tag_utils.defined_tags = {
         operators = {'eq', 'neq'}
     },
     src2dst_dscp = {
+        type = tag_utils.input_types.select,
         value_type = 'dscp_type',
         i18n_label = i18n('db_search.tags.src2dst_dscp'),
         operators = {'eq', 'neq'}
     },
     dst2src_dscp = {
+        type = tag_utils.input_types.select,
         value_type = 'dscp_type',
         i18n_label = i18n('db_search.tags.dst2src_dscp'),
         operators = {'eq', 'neq'}
@@ -167,16 +188,19 @@ tag_utils.defined_tags = {
         bpf_key = 'port'
     },
     country = {
+        type = tag_utils.input_types.select,
         value_type = 'country',
         i18n_label = i18n('db_search.tags.country'),
         operators = {'eq', 'neq'}
     },
     cli_country = {
+        type = tag_utils.input_types.select,
         value_type = 'country',
         i18n_label = i18n('db_search.tags.cli_country'),
         operators = {'eq', 'neq'}
     },
     srv_country = {
+        type = tag_utils.input_types.select,
         value_type = 'country',
         i18n_label = i18n('db_search.tags.srv_country'),
         operators = {'eq', 'neq'}
@@ -207,11 +231,13 @@ tag_utils.defined_tags = {
         operators = {'eq', 'lt', 'gt', 'lte', 'gte'}
     },
     observation_point_id = {
+        type = tag_utils.input_types.select,
         value_type = 'observation_point_id',
         i18n_label = i18n('db_search.tags.observation_point_id'),
         operators = {'eq', 'neq'}
     },
     probe_ip = {
+        type = tag_utils.input_types.input_with_suggestions,
         value_type = 'probe_ip',
         i18n_label = i18n('db_search.tags.probe_ip'),
         operators = {'eq', 'neq'}
@@ -222,16 +248,19 @@ tag_utils.defined_tags = {
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
     },
     snmp_interface = {
+        type = tag_utils.input_types.select,
         value_type = 'snmp_interface',
         i18n_label = i18n('db_search.tags.snmp_interface'),
         operators = {'eq', 'neq'}
     },
     input_snmp = {
+        type = tag_utils.input_types.select,
         value_type = 'snmp_interface',
         i18n_label = i18n('db_search.tags.input_snmp'),
         operators = {'eq', 'neq'}
     },
     output_snmp = {
+        type = tag_utils.input_types.select,
         value_type = 'snmp_interface',
         i18n_label = i18n('db_search.tags.output_snmp'),
         operators = {'eq', 'neq'}
@@ -247,6 +276,7 @@ tag_utils.defined_tags = {
         operators = {'eq', 'neq', 'in', 'nin'}
     },
     severity = {
+        type = tag_utils.input_types.select,
         value_type = 'severity',
         i18n_label = i18n('db_search.tags.severity'),
         operators = {'eq', 'lte', 'gte', 'neq'}
@@ -275,16 +305,19 @@ tag_utils.defined_tags = {
         bpf_key = 'ether host'
     },
     network = {
+        type = tag_utils.input_types.input_with_suggestions,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.cli_network'),
         operators = {'eq', 'neq'}
     },
     cli_network = {
+        type = tag_utils.input_types.input_with_suggestions,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.cli_network'),
         operators = {'eq', 'neq'}
     },
     srv_network = {
+        type = tag_utils.input_types.input_with_suggestions,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.srv_network'),
         operators = {'eq', 'neq'}
@@ -325,16 +358,19 @@ tag_utils.defined_tags = {
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
     },
     host_pool_id = {
+        type = tag_utils.input_types.select,
         value_type = 'host_pool_id',
         i18n_label = i18n('db_search.tags.host_pool_id'),
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
     },
     cli_host_pool_id = {
+        type = tag_utils.input_types.select,
         value_type = 'host_pool_id',
         i18n_label = i18n('db_search.tags.cli_host_pool_id'),
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
     },
     srv_host_pool_id = {
+        type = tag_utils.input_types.select,
         value_type = 'host_pool_id',
         i18n_label = i18n('db_search.tags.srv_host_pool_id'),
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
@@ -345,11 +381,13 @@ tag_utils.defined_tags = {
         operators = {'eq', 'neq'}
     },
     role = {
+        type = tag_utils.input_types.select,
         value_type = 'role',
         i18n_label = i18n('db_search.tags.role'),
         operators = {'eq'}
     },
     role_cli_srv = {
+        type = tag_utils.input_types.select,
         value_type = 'role_cli_srv',
         i18n_label = i18n('db_search.tags.role_cli_srv'),
         operators = {'eq'}
@@ -360,6 +398,7 @@ tag_utils.defined_tags = {
         operators = {'eq', 'neq'}
     },
     confidence = {
+        type = tag_utils.input_types.select,
         value_type = 'confidence',
         i18n_label = i18n('db_search.tags.confidence'),
         operators = {'eq', 'neq'}
@@ -380,11 +419,13 @@ tag_utils.defined_tags = {
         operators = {'eq', 'neq', 'in', 'nin'}
     },
     http_method = {
+        type = tag_utils.input_types.select,
         value_type = 'http_method',
         i18n_label = i18n('db_search.tags.http_method'),
         operators = {'eq', 'neq'}
     },
     http_return = {
+        type = tag_utils.input_types.select,
         value_type = 'http_return',
         i18n_label = i18n('db_search.tags.http_return_code'),
         operators = {'eq', 'neq'}
@@ -430,11 +471,13 @@ tag_utils.defined_tags = {
         operators = {'eq', 'neq', 'in', 'nin'}
     },
     cli_location = {
+        type = tag_utils.input_types.select,
         value_type = 'location',
         i18n_label = i18n('db_search.tags.cli_location'),
         operators = {'eq', 'neq'}
     },
     srv_location = {
+        type = tag_utils.input_types.select,
         value_type = 'location',
         i18n_label = i18n('db_search.tags.srv_location'),
         operators = {'eq', 'neq'}
@@ -740,7 +783,8 @@ function tag_utils.get_tag_info(id, entity)
         label = tag.i18n_label,
         value_type = tag.value_type,
         value_label = tag.value_i18n_label or tag.i18n_label,
-        operators = {}
+        operators = {},
+        type = tag.type
     }
 
     for _, op in ipairs(tag.operators) do
@@ -900,7 +944,6 @@ function tag_utils.get_tag_info(id, entity)
         end
 
     elseif tag.value_type == "network_id" then
-        filter.value_type = 'array'
         filter.options = {}
         local networks_stats = interface.getNetworksStats()
         for n, ns in pairs(networks_stats) do
@@ -943,7 +986,6 @@ function tag_utils.get_tag_info(id, entity)
         end
 
     elseif tag.value_type == "probe_ip" then
-        filter.value_type = 'array'
         filter.options = {}
         if interface.getFlowDevices then -- Pro Only
             for probe, _ in pairsByValues(interface.getFlowDevices() or {}, asc) do
