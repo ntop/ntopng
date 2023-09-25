@@ -494,7 +494,7 @@ end
 -- ##############################################
 
 function isEmptyString(str)
-  if((str == nil) or (str == "")) then
+   if((str == nil) or (str == "") or (str == " ")) then
     return true
   else
     return false

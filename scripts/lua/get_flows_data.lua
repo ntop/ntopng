@@ -326,11 +326,10 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
     local column_client = src_key
 
     if info_cli then
-        column_client = column_client .. format_utils.formatMainAddressCategory(info_cli)
+       column_client = column_client .. format_utils.formatMainAddressCategory(info_cli)
     end
 
-    column_client = string.format("%s%s%s %s %s", column_client, ternary(src_port ~= '', ':', ''), src_port,
-        src_process, src_container)
+    column_client = string.format("%s%s%s %s %s", column_client, ternary(src_port ~= '', ':', ''), src_port, src_process, src_container)
 
     if (value["verdict.pass"] == false) then
         column_client = "<strike>" .. column_client .. "</strike>"
@@ -345,7 +344,7 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
     end
 
     column_server = string.format("%s%s%s %s %s", column_server, ternary(dst_port ~= '', ':', ''), dst_port,
-        dst_process, dst_container)
+				  dst_process, dst_container)
     if (value["verdict.pass"] == false) then
         column_server = "<strike>" .. column_server .. "</strike>"
     end

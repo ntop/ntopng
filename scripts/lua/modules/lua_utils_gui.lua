@@ -473,7 +473,7 @@ function flowinfo2process(process, host_info_to_url)
 
    if process then
       -- TODO: add links back once restored
-
+      
       if not isEmptyString(process["name"]) then
 	 local full_clean_name = process["name"]:gsub("'",'')
 	 local t = split(full_clean_name, "/")
