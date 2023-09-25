@@ -3,7 +3,7 @@
 -->
 
 <template>
-<div class="table-responsive" style="margin-left:-1rem;margin-right:-1rem;">
+<div class="table-responsive" :style="table_style">
   <BootstrapTable
     :id="table_id" 
     :columns="columns"
@@ -21,6 +21,7 @@ import { default as BootstrapTable } from "./bootstrap-table.vue";
 import { ntopng_custom_events, ntopng_events_manager } from "../services/context/ntopng_globals_services";
 import formatterUtils from "../utilities/formatter-utils";
 import NtopUtils from "../utilities/ntop-utils";
+import { scan_type_f,last_scan_f, duration_f, scan_frequency_f, is_ok_last_scan_f, tcp_ports_f, hosts_f  } from "../utilities/vs_report_formatter.js"; 
 
 const _i18n = (t) => i18n(t);
 
@@ -58,6 +59,17 @@ const columns = computed(() => {
     return columns;
 });
 
+let table_style = props.params.table_type == 'vs_scan_result' ? 
+      ref({
+        overflow: 'auto',
+        maxHeight: '288px',
+        marginLeft: '-1rem',
+        marginRight: '-1rem',
+      }) : 
+      ref({
+        marginLeft: '-1rem',
+        marginRight: '-1rem',
+      });
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
 watch(() => [props.epoch_begin, props.epoch_end], (cur_value, old_value) => {
@@ -120,6 +132,26 @@ const row_render_functions = {
     } else {
       return row[column.id];
     }
+  },
+
+  vs_scan_result: function(column, row) {
+    if(column.id == "last_scan") {
+      return last_scan_f(row[column.id], row);
+    } else if(column.id == "duration") {
+      return duration_f(row[column.id], row);
+    } else if(column.id == "scan_frequency") {
+      return scan_frequency_f(row[column.id]);
+    } else if(column.id == "is_ok_last_scan") {
+      return is_ok_last_scan_f(row[column.id]);
+    } else if(column.id == "tcp_ports") {
+      return tcp_ports_f(row[column.id], row);
+    } else if(column.id == "scan_type") {
+      return scan_type_f(row[column.id]);
+    } else if (column.id == "hosts") {
+      return hosts_f(row[column.id]);
+    } else {
+      return row[column.id];
+    }
   }
 };
 
@@ -155,8 +187,10 @@ async function refresh_table() {
     rows = data; /* default: data is the array of records */
   }
 
-  const max_rows = props.max_height ? ((props.max_height/4) * 6) : 6;
-  rows = rows.slice(0, max_rows);
+  if ( props.params.table_type != 'vs_scan_result') {
+    const max_rows = props.max_height ? ((props.max_height/4) * 6) : 6;
+    rows = rows.slice(0, max_rows);
+  } 
 
   table_rows.value = rows;
 }

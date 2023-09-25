@@ -1,0 +1,173 @@
+{
+	"name" : "Vulnerability Scan Report",
+	"toolbox" : {
+		"time" : {
+		  "hide" : true
+		}
+	  },
+	"requires" : {
+		"model" : "l"
+	  },
+	"components" : [
+	{
+		"component" : "table",
+		"id" : "vs_report",
+		"i18n_name" : "hosts_stats.page_scan_hosts.vs_result_total_reports",
+		"width" : 12,
+		"height" : 4,
+		"time_window" : "day",
+		"time_offset" : "",
+		"params" : {
+			 "url" : "/lua/rest/v2/get/host/to_scan_list.lua",
+			 "url_params" : {
+				"start" : 0,
+				"length" : 20,
+				"sort": "ip"
+			 },
+			 "custom_style" : ";max-width:288px;overflow:auto", 
+			 "table_type" : "vs_scan_result",
+			 "columns" : [
+				{
+					"i18n_name": "db_explorer.host_data",
+					"id": "host",
+					"data_type": "host"
+				},
+				{
+					"i18n_name": "db_explorer.host_name",
+					"id": "host_name",
+					"data_type": "string"
+				},
+				{
+					"i18n_name": "hosts_stats.page_scan_hosts.scan_type",
+					"id": "scan_type",
+					"data_type": "string"
+				},
+		
+				
+				{
+					"i18n_name": "hosts_stats.page_scan_hosts.num_open_ports_tcp",
+					"id": "tcp_ports",
+					"data_type": "string"
+				},
+				{
+					"i18n_name": "hosts_stats.page_scan_hosts.tcp_ports",
+					"id": "tcp_ports_list",
+					"data_type": "string"
+				},
+				
+				{
+					"i18n_name": "hosts_stats.page_scan_hosts.last_scan",
+					"id": "last_scan",
+					"data_type": "string"
+				},
+				{
+					"i18n_name": "hosts_stats.page_scan_hosts.last_scan_status",
+					"id": "is_ok_last_scan",
+					"data_type": "number"
+				},
+				{
+					"i18n_name": "hosts_stats.page_scan_hosts.num_vulnerabilities_found",
+					"id": "num_vulnerabilities_found",
+					"data_type": "string"
+				},
+				{
+					"i18n_name": "hosts_stats.page_scan_hosts.vulnerabilities_found_list",
+					"id": "cve",
+					"data_type": "object"
+				}
+			 ]
+		}
+	},
+	{
+		"component" : "table",
+		"id" : "vs_report_cve",
+		"i18n_name" : "hosts_stats.page_scan_hosts.num_vulnerabilities_found",
+		"width" : 12,
+		"height" : 4,
+		"time_window" : "day",
+		"time_offset" : "",
+		"params" : {
+			 "url" : "/lua/pro/rest/v2/get/host/scan_port_list.lua",
+			 "url_params" : {
+				"start" : 0,
+				"length" : 20,
+				"sort":"cve"
+
+			 
+			 },
+			 "table_type" : "vs_scan_result",
+			 "columns" : [
+				
+		
+				{
+					"i18n_name": "hosts_stats.page_scan_hosts.num_vulnerabilities_found",
+					"id": "cves",
+					"data_type": "string"
+				},
+				{
+					"i18n_name": "port",
+					"id": "port",
+					"data_type": "number"
+
+				},
+				
+				{
+					"i18n_name": "count",
+					"id": "count_host",
+					"data_type": "number"
+
+				},
+				{
+					"i18n_name": "hosts",
+					"id": "hosts",
+					"data_type": "string"
+
+				}
+			 ]
+		}
+	},
+	{
+		"component" : "table",
+		"id" : "vs_report_port",
+		"i18n_name" : "hosts_stats.page_scan_hosts.num_open_ports_tcp",
+		"width" : 12,
+		"height" : 4,
+		"time_window" : "day",
+		"time_offset" : "",
+		"params" : {
+			 "url" : "/lua/pro/rest/v2/get/host/scan_port_list.lua",
+			 "url_params" : {
+				"start" : 0,
+				"length" : 20,
+				"sort":"port"
+			 
+			 },
+			 "custom_style" : ";max-width:288px;overflow:auto", 
+			 "table_type" : "vs_scan_result",
+			 "columns" : [
+				
+		
+				{
+					"i18n_name": "port",
+					"id": "port",
+					"data_type": "number"
+
+				},
+				{
+					"i18n_name": "count",
+					"id": "count_host",
+					"data_type": "number"
+
+				},
+				{
+					"i18n_name": "hosts",
+					"id": "hosts",
+					"data_type": "string"
+
+				}
+			 ]
+		}
+	}
+	]
+}
+

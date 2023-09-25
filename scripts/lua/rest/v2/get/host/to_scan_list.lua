@@ -12,6 +12,8 @@ local search_map = _GET["map_search"]
 
 local port = _GET["port"]
 
+local sort = _GET["sort"]
+
 local function portCheck(tcp_ports_list, port) 
     if (isEmptyString(port)) then
         return true
@@ -31,6 +33,10 @@ end
 local function format_result(result) 
     local rsp = {}
     if result then
+
+        if not isEmptyString(sort) and sort == 'ip' then
+            table.sort(result, function (k1, k2) return k1.host < k2.host end )
+        end
         for _,value in ipairs(result) do
 
             -- FIX ME with udp port check
