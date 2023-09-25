@@ -30,6 +30,7 @@ const sankey_data = ref({});
 const body_div = ref(null);
 const width = ref(null);
 const height = ref(null);
+const height_per_row = 62.5 /* px */
 
 const props = defineProps({
     id: String,          /* Component ID */
@@ -212,7 +213,7 @@ function on_node_click(node) {
 }
 
 function update_height() {
-    height.value = $(body_div.value).height();
+    height.value = height_per_row * props.max_height;
 }
 
 function update_width() {

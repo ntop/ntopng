@@ -996,7 +996,7 @@ function getTopFlowPeers(hostname_vlan, max_hits, detailed, other_options)
     local detailed = detailed or false
 
     local paginator_options = {
-        sortColumn = "column_bytes",
+        sortColumn = "column_thpt",
         a2zSortOrder = false,
         detailedResults = detailed,
         maxHits = max_hits

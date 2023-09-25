@@ -29,7 +29,7 @@ end
 
 interface.select(ifid)
 
-local max_num_peers = 10
+local max_num_peers = 100
 local max_num_links = 32
 local peers = getTopFlowPeers(tracked_host, max_num_peers, true --[[ high details for cli2srv.last/srv2cli.last fields ]])
 local is_pcap_dump = interface.isPcapDumpInterface()
