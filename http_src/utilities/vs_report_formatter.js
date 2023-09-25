@@ -151,8 +151,10 @@ export const hosts_f = (hosts, row) => {
   let label = "";
 
   hosts_list.forEach((item) => {
-    label += item.split("-")[0];
-    label += ", ";
+    let host_info = item.split("-");
+    label += `<li>`;
+    label += host_info[3] != null && host_info[3] != "" ? host_info[3] : host_info[0];
+    label += `</li>`;
   })
   return label.substring(0, label.length - 2);
 }
