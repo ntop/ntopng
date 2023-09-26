@@ -186,7 +186,7 @@ const map_table_def_columns = (columns) => {
       const length = hosts_splited.length;
       let i = 0;
       while ( i < 5 && i < length) {
-        const host_splitted = hosts_splited[i].split("-");
+        const host_splitted = hosts_splited[i].split("|");
         const host = host_splitted[0];
         const scan_type = host_splitted[1];
         const date = host_splitted[2];
@@ -247,7 +247,6 @@ const map_table_def_columns = (columns) => {
 /* Function to show all hosts during edit */
 
 async function click_button_show_hosts(event) {
-  console.log("HERE")
   let port = event.row.port;
 
   let params = {

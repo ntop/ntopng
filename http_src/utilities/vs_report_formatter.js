@@ -149,12 +149,20 @@ export const hosts_f = (hosts, row) => {
 
   const hosts_list = hosts.split(", ");
   let label = "";
-
+  let hosts_map = new Map();
   hosts_list.forEach((item) => {
-    let host_info = item.split("-");
-    label += `<li>`;
-    label += host_info[3] != null && host_info[3] != "" ? host_info[3] : host_info[0];
-    label += `</li>`;
+    let host_info = item.split("|");
+
+    hosts_map.set(
+      host_info[3] != null && host_info[3] != "" ? host_info[3] : host_info[0], 
+      null)
+  });
+
+  hosts_map = new Map([...hosts_map.entries()].sort());
+
+
+  hosts_map.forEach((values, keys) => {
+    label += `<li> ${keys} </li>` ;
   })
-  return label.substring(0, label.length - 2);
+  return label;
 }
