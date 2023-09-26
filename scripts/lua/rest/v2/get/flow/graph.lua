@@ -35,6 +35,11 @@ local peers = getTopFlowPeers(tracked_host, max_num_peers, true --[[ high detail
 local is_pcap_dump = interface.isPcapDumpInterface()
 local debug = false
 
+-- In community version, due to dimension problems, restricting to 16 links
+if not ntop.isPro() then
+   max_num_links = 16
+end
+
 -- 1. compute total traffic
 local total_traffic = 0
 
