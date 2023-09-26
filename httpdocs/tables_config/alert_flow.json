@@ -86,6 +86,13 @@
 	    "class": ["text-nowrap"]
 	},
 	{
+	    "title_i18n": "datatable.fields.traffic_exchanged",
+	    "data_field": "total_bytes",
+	    "sortable": true,
+	    "render_type": "formatTraffic",
+	    "class": ["text-nowrap"]
+	},
+	{
 	    "title_i18n": "db_search.tags.cli_host_pool_id",
 	    "data_field": "cli_host_pool_id",
 	    "sortable": false,

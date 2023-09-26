@@ -956,6 +956,10 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
         return res
     end
 
+    if (fields == "*") then
+        fields = fields .. ", (srv2cli_bytes + cli2srv_bytes AS total_bytes)"
+    end
+
     where_clause = self:build_where_clause()
 
     if ((filter ~= nil) and (string.len(filter) > 0)) then

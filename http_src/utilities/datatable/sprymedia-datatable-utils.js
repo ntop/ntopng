@@ -690,6 +690,13 @@ export class DataTableRenders {
         return cell;
     }
 
+    static formatTraffic(obj, type, row, zero_is_null) {
+        if (type !== "display") return obj.total_bytes;
+        
+        const traffic = `${NtopUtils.formatPackets(obj.total_packets)} / ${NtopUtils.bytesToVolume(obj.total_bytes)}`
+        return traffic;
+    }
+
     static formatSubtype(obj, type, row, zero_is_null) {
         if (type !== "display") return obj;
 

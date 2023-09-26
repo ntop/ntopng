@@ -1787,6 +1787,7 @@ local lang = {
     ["select_filter"] = "Filter",
     ["fields"] = {
       ["info"] = "Info",
+      ["traffic_exchanged"] = "Traffic Exchanged",
     },
   },
   ["date_time_range_picker"] = {

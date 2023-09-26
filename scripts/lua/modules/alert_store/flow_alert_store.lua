@@ -653,6 +653,8 @@ local RNAME = {
    CLI_PORT = { name = "cli_port", export = false},
    SRV_PORT = { name = "srv_port", export = false},
    
+   TRAFFIC = { name = "total_bytes", export = false},
+   
    PROTO = { name = "proto", export = true},
    L7_PROTO = { name = "l7_proto", export = true},
    LINK_TO_PAST_FLOWS = { name = "link_to_past_flows", export = false},
@@ -1012,6 +1014,13 @@ function flow_alert_store:format_record(value, no_html)
       l7_label = l7_protocol or "",
       label = proto_label or "",
       confidence = format_confidence_from_json(value)
+   }
+
+   record[RNAME.TRAFFIC.name] = {
+      bytes_sent = tonumber(value["cli2srv_bytes"]),
+      bytes_rcvd = tonumber(value["srv2cli_bytes"]),
+      total_bytes = tonumber(value["total_bytes"]),
+      total_packets = tonumber(value["srv2cli_pkts"]) + tonumber(value["cli2srv_pkts"]),
    }
 
    -- Add link to historical flow
