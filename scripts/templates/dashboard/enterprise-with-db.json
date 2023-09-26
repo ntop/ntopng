@@ -1,5 +1,8 @@
 {
 	"name" : "Default Enterprise Dashboard",
+	"requires" : {
+		"modules" : [ "historical_flows" ]
+	},
 	"components" : [
 		{
 			"component" : "badge",

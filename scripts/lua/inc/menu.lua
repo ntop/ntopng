@@ -199,9 +199,6 @@ print [[`;
 prefs = ntop.getPrefs()
 local iface_names = interface.getIfNames()
 
--- tprint(prefs)
--- tprint(iface_names)
-
 num_ifaces = 0
 for k, v in pairs(iface_names) do
     num_ifaces = num_ifaces + 1
@@ -280,7 +277,7 @@ else
     -- Alerts
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.alerts,
-        hidden = not ntop.getPrefs().are_alerts_enabled or not auth.has_capability(auth.capabilities.alerts),
+        hidden = not prefs.are_alerts_enabled or not auth.has_capability(auth.capabilities.alerts),
         entries = {{
             entry = page_utils.menu_entries.alerts_list,
             url = "/lua/alert_stats.lua"
@@ -473,7 +470,7 @@ local health_entries = {{
 }, {
     entry = page_utils.menu_entries.clickhouse_status,
     url = '/lua/enterprise/monitor/clickhouse_monitor.lua',
-    hidden = not ntop.getPrefs().is_dump_flows_to_clickhouse_enabled
+    hidden = not prefs.is_dump_flows_to_clickhouse_enabled
 }}
 
 -- Add script entries relative to system health (e.g., redis) ...

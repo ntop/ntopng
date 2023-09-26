@@ -14,12 +14,18 @@ local lua_path_utils = require "lua_path_utils"
 local file_utils = require "file_utils"
 local json = require "dkjson"
 local vs_utils = require "vs_utils"
+local prefs = ntop.getPrefs()
 
 local dashboard_utils = {}
 
 -- ##############################################
 
+local function is_clickhouse_available()
+   return prefs.is_dump_flows_to_clickhouse_enabled
+end
+
 dashboard_utils.module_available = {
+   ['historical_flows']   = is_clickhouse_available,
    ['vulnerability_scan'] = vs_utils.is_available
 }
 
