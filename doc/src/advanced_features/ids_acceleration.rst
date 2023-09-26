@@ -1,8 +1,8 @@
 IDS Acceleration
 ================
 
-IDS/IPS systems are well known to be CPU bound and require quite some
-resources for signature-matching and other type of analysis.
+IDS/IPS systems, like Suricata and Zeek, are well known to be CPU bound and
+require quite some resources for signature-matching and other type of analysis.
 
 The `PF_RING <https://www.ntop.org/guides/pf_ring/>`_ framework
 can be used to accelerate the packet capture and make more CPU cycles available 
