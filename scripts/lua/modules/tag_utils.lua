@@ -988,12 +988,29 @@ function tag_utils.get_tag_info(id, entity)
     elseif tag.value_type == "probe_ip" then
         filter.options = {}
         if interface.getFlowDevices then -- Pro Only
-            for probe, _ in pairsByValues(interface.getFlowDevices() or {}, asc) do
-                local label = format_name_value(getProbeName(probe), probe)
-                filter.options[#filter.options + 1] = {
-                    value = probe,
-                    label = label
-                }
+            if interface.isView() then -- If it's view
+                local ifid = tostring(interface.getId())
+                for id, name in pairs(interface.getIfNames()) do 
+                    interface.select(id) -- Change the interface
+                    if interface.isViewed() then -- Viewed, add the exporters
+                        for probe, _ in pairsByValues(interface.getFlowDevices() or {}, asc) do
+                            local label = format_name_value(getProbeName(probe), probe)
+                            filter.options[#filter.options + 1] = {
+                                value = probe,
+                                label = label
+                            }
+                        end        
+                    end
+                end
+                interface.select(ifid)
+            else                        
+                for probe, _ in pairsByValues(interface.getFlowDevices() or {}, asc) do
+                    local label = format_name_value(getProbeName(probe), probe)
+                    filter.options[#filter.options + 1] = {
+                        value = probe,
+                        label = label
+                    }
+                end   
             end
         end
 
