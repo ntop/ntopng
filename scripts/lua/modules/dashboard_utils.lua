@@ -4,6 +4,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
 require "lua_utils"
 require "lua_utils_get"
@@ -12,8 +13,15 @@ local rest_utils = require "rest_utils"
 local lua_path_utils = require "lua_path_utils"
 local file_utils = require "file_utils"
 local json = require "dkjson"
+local vs_utils = require "vs_utils"
 
 local dashboard_utils = {}
+
+-- ##############################################
+
+dashboard_utils.module_available = {
+   ['vulnerability_scan'] = vs_utils.is_available
+}
 
 -- ##############################################
 
@@ -44,6 +52,15 @@ function dashboard_utils.get_templates(templates_dir)
             elseif model == 'm'   and not info['version.enterprise_m_edition']  then goto continue
             elseif model == 'l'   and not info['version.enterprise_l_edition']  then goto continue
             elseif model == 'xl'  and not info['version.enterprise_xl_edition'] then goto continue
+            end
+         end
+
+         if template.requires.modules then
+            for _, module in ipairs(template.requires.modules) do
+               if not dashboard_utils.module_available[module] or
+                  not dashboard_utils.module_available[module]() then
+                  goto continue
+               end
             end
          end
       end

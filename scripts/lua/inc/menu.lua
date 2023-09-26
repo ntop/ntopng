@@ -258,7 +258,6 @@ else
     -- The Monitoring entry are used to go to the System interface pages
     -- without using the Interface dropdown. The section is hidden
     -- in system interface.
-    local scan_modules = vs_utils.list_scan_modules()
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.monitoring,
         hidden = is_system_interface or not is_admin,
@@ -272,7 +271,7 @@ else
         }, {
             entry = page_utils.menu_entries.vulnerability_scan,
             url = '/lua/vulnerability_scan.lua',
-            hidden = #scan_modules == 0
+            hidden = not vs_utils.is_available()
         }}
     })
 

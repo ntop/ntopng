@@ -2,12 +2,13 @@
 	"name" : "Vulnerability Scan Report",
 	"toolbox" : {
 		"time" : {
-		  "hide" : true
+			"hide" : true
 		}
-	  },
+	},
 	"requires" : {
-		"model" : "l"
-	  },
+		"model" : "l",
+		"modules" : [ "vulnerability_scan" ]
+	},
 	"components" : [
 	{
 		"component" : "table",
