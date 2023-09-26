@@ -398,7 +398,6 @@ async function check_autorefresh() {
 
 /* Function to map columns data */
 const map_table_def_columns = async (columns) => {
-  await get_scan_type_list()
   let result = columns_formatter(columns, scan_type_list, false);
 
   return result;
