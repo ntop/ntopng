@@ -259,7 +259,7 @@ end
 function ts_utils.getQueryOptions(overrides)
     return table.merge({
         max_num_points = 80, -- maximum number of points per data serie
-        fill_value = 0, -- e.g. 0/0 for nan
+        fill_value = 0/0, -- e.g. 0/0 for nan
         min_value = 0, -- minimum value of a data point
         max_value = math.huge, -- maximum value for a data point
         top = 8, -- topk number of items
