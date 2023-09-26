@@ -15,6 +15,7 @@
   <!-- </Dropdown> -->
   
   <DateTimeRangePicker v-if="enable_date_time_range_picker"
+                       class="dontprint"
                        :disabled_date_picker="disable_date_time_picker"
                        id="dashboard-date-time-picker"
                        :round_time="true"
@@ -558,6 +559,11 @@ function get_component_data_func(component) {
 </script>
 
 <style scoped>
+@media print {
+.dontprint { display: none; }
+/* .pagebreak { page-break-before: always; } */
+.pagebreak { clear: both; page-break-after: always; }
+}
 /* @media print and (orientation: portrait) and (max-width: 297mm){ */
 /*     .col-4 { */
 /*         width: 50% !important; */

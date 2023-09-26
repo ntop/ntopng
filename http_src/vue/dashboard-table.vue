@@ -3,7 +3,7 @@
 -->
 
 <template>
-<div class="table-responsive" :style="table_style">
+<div class="table-responsive" style="margin-left:-1rem;margin-right:-1rem;" :style="custom_style">
   <BootstrapTable
     :id="table_id" 
     :columns="columns"
@@ -40,6 +40,13 @@ const props = defineProps({
     get_component_data: Function /* Callback to request data (REST) */
 });
 
+const custom_style = computed(() => {
+    if (props.params.custom_style) {
+        return props.params.custom_style;
+    }
+    return "";
+});
+
 const columns = computed(() => {
     let columns = props.params.columns.map((c) => {
         if (!c.style && c.data_type) {
@@ -58,18 +65,6 @@ const columns = computed(() => {
 
     return columns;
 });
-
-let table_style = props.params.table_type == 'vs_scan_result' ? 
-      ref({
-        overflow: 'auto',
-        maxHeight: '288px',
-        marginLeft: '-1rem',
-        marginRight: '-1rem',
-      }) : 
-      ref({
-        marginLeft: '-1rem',
-        marginRight: '-1rem',
-      });
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
 watch(() => [props.epoch_begin, props.epoch_end], (cur_value, old_value) => {
