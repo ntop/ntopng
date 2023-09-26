@@ -561,8 +561,8 @@ const ntopChartApex = function () {
       } else {
         throw `ntopChartApex::newChart: chart type = ${type} unsupported`;
       }
-        const setYaxisFormatter = (chartOptions) => {
-            if (chartOptions.yaxis && chartOptions.yaxis.labels && chartOptions.yaxis.labels.formatter) {
+        const setYaxisFormatter = (chartOptions) => {            
+            if (typeof(chartOptions?.yaxis?.labels?.formatter) == "string") {
               const formatter = chartOptions.yaxis.labels.formatter;
               let chartFormatter = FormatterUtils.getFormatter(formatter);
               if (chartFormatter != null) {

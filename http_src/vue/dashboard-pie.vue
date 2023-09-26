@@ -1,7 +1,6 @@
 <!--
   (C) 2013-22 - ntop.org
 -->
-      <!-- :get_params_url_request="get_url_params" -->
 
 <template>
 <div>
@@ -87,5 +86,5 @@ async function refresh_chart() {
 }
 </script>
 
-<style>
+<style scoped>
 </style>
