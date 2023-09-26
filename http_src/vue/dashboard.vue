@@ -509,7 +509,7 @@ async function download_report() {
 
 function print_report() {
     // PrintElem(report_box.value);
-    $(report_box.value).print({mediaPrint: true, timeout: 10000, title: "Ciao Mondo"}); 
+    $(report_box.value).print({mediaPrint: true, timeout: 1000}); 
     // $(report_box.value).print();
 }
 
