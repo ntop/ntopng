@@ -827,6 +827,9 @@ void Flow::processExtraDissectedInformation() {
       break;
       
     case NDPI_PROTOCOL_MINING:
+      if (protos.mining.currency == NULL)
+        protos.mining.currency = strdup(ndpiFlow->protos.mining.currency);
+
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "-->>> %s", ndpiFlow->protos.mining.currency); */
       break;
 
@@ -5307,6 +5310,10 @@ char *Flow::getFlowInfo(char *buf, u_int buf_len, bool isLuaRequest) {
 
     else if (isLuaRequest && hasRisk(NDPI_DESKTOP_OR_FILE_SHARING_SESSION))
       return ((char *)"<i class='fa fa-lg fa-binoculars'></i> Desktop Sharing");
+    else if (isMINING()) {
+      if(protos.mining.currency)
+        return protos.mining.currency;
+    }
   }
 
   return (char *)"";

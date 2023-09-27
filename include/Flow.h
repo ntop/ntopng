@@ -204,6 +204,11 @@ class Flow : public GenericHashEntry {
         float min_entropy, max_entropy;
       } client_to_server;
     } icmp;
+
+    struct {
+      char * currency;
+    } mining;
+    
   } protos;
 
   struct {
@@ -437,6 +442,7 @@ class Flow : public GenericHashEntry {
                                     ndpiDetectedProtocol));
   }
   inline bool isSSH() const { return (isProto(NDPI_PROTOCOL_SSH)); }
+  inline bool isMINING() const { return (isProto(NDPI_PROTOCOL_MINING));}
   inline bool isDNS() const { return (isProto(NDPI_PROTOCOL_DNS)); }
   inline bool isZoomRTP() const {
     return (isProto(NDPI_PROTOCOL_ZOOM) && (isProto(NDPI_PROTOCOL_RTP) || isProto(NDPI_PROTOCOL_SRTP)) );
