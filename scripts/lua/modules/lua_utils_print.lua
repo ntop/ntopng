@@ -75,12 +75,16 @@ function printVLANFilterDropdown(base_url, page_params)
    print[[\
       <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]] print(i18n("flows_page.vlan")) print[[]] print(vlan_id_filter) print[[<span class="caret"></span></button>\
       <ul class="dropdown-menu scrollable-dropdown" role="menu" id="flow_dropdown">\
-      ]]print('<li><a class="dropdown-item') print(page_params.vlan == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, vlan_id_params)) print[[">]] print(i18n("flows_page.all_vlan_ids")) print[[</a></li>\]]
+      ]]print('<li><a class="dropdown-item') print(page_params.vlan == nil and ' active' or '') print[[" href="]] print(getPageUrl(base_url, vlan_id_params)) print[[">]] print(i18n("all")) print[[</a></li>\]]
    for _, vid in ipairs(ids) do
       vlan_id_params["vlan"] = vid
+      local vlan_name = tostring(getFullVlanName(vid))
+      if isEmptyString(vlan_name) then
+         vlan_name = i18n('no_vlan')
+      end
       print[[
          <li>\
-           <a class="dropdown-item ]] print(vlan_id == tostring(vid) and 'active' or '') print[[" href="]] print(getPageUrl(base_url, vlan_id_params)) print[[">VLAN ]] print(tostring(getFullVlanName(vid))) print[[</a></li>\]]
+           <a class="dropdown-item ]] print(vlan_id == tostring(vid) and 'active' or '') print[[" href="]] print(getPageUrl(base_url, vlan_id_params)) print[[">]] print(vlan_name) print[[</a></li>\]]
    end
    print[[
 
