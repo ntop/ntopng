@@ -561,7 +561,6 @@ function refresh_page_components() {
 
 /* In case no rows are printed, then the message has to be displayed */
 function rows_loaded(res) {
-    debugger;
     if(res?.rows != null) {
         display_message.value = (res.rows.length == 0);
     }
