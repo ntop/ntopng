@@ -4,7 +4,7 @@
       <div class="card  card-shadow">
         <h3 class="d-inline-block pt-3 ps-3" v-html="title_html"></h3>
         <Loading v-if="loading"></Loading>
-        <div class="card-body" v-html="message_html"></div>
+        <div class="card-body" :class="[loading ? 'ntopng-gray-out' : '']" v-html="message_html"></div>
       </div>
     </div>
   </div>

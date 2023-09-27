@@ -17,7 +17,6 @@
     let vue_options = {
       components: {	  
         'page-manage-configurations-backup': ntopVue.PageManageConfigurationBackup,
-        //'page-manage-configurations-backup': ntopVue.PageManageConfigurationBackup2,
       },
       /**
       * First method called when the component is created.

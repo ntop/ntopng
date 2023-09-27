@@ -6,7 +6,7 @@
   <div class="row">
     <div class="col-12">
       <div class="card card-shadow">
-        <Loading ref="loading"></Loading>
+        <Loading v-if="loading"></Loading>
         <div class="card-body">
           <template v-if="error">
             <div class="alert alert-danger" role="alert" id='error-alert'>
@@ -54,7 +54,7 @@ const config_network_discovery = ref({});
 const progress_message = ref(null);
 const last_network_discovery = ref('')
 const discovery_requested_message = i18n('discover.network_discovery_not_enabled')
-const loading = ref(null);
+const loading = ref(false);
 const props = defineProps({
   ifid: String,
 })
@@ -107,7 +107,7 @@ const add_notes = (rsp) => {
  *  and the various messages
  */
 const checkDiscovery = async function() {
-  loading.value.hide_loading();
+  loading.value = false;
   await $.get(NtopUtils.buildURL(discovery_url, { ifid: props.ifid }), function(rsp, status){
     if(rsp.rsp.discovery_requested == true) {
       discovery_requested.value = true;
@@ -156,7 +156,7 @@ function start_datatable() {
     }, {
       text: i18n("discover.start_discovery") + ' <i class="fa-solid fa-play"></i>',
       action: function() {
-        loading.value.show_loading();
+        loading.value = false;
         $.get(NtopUtils.buildURL(run_network_discovery, { ifid: props.ifid }), function(_) {})
         /* Set the descovery requested to true */
         timeout_id = setInterval(checkDiscovery, 1000);

@@ -6,9 +6,9 @@
   <div class="row">
     <div class="col-md-12 col-lg-12">
       <div class="card  card-shadow">
-        <Loading ref="loading"></Loading>
         <div class="card-body">
-          <div id="manage_configurations_backup">
+          <Loading v-if="loading"></Loading>
+          <div id="manage_configurations_backup" :class="[ loading ? 'ntopng-gray-out' : '' ]">
             <Datatable ref="table_manage_configurations_backup" :id="table_config.id" :key="table_config.data_url"
               :table_buttons="table_config.table_buttons" :columns_config="table_config.columns_config"
               :data_url="table_config.data_url" :table_config="table_config.table_config">
@@ -28,12 +28,13 @@
 <script setup>
 import { ref, onBeforeMount } from "vue";
 import { default as Datatable } from "./datatable.vue";
-import { default as Loading } from "./loading.vue";
+import { default as Loading } from "./loading.vue"
 
 const _i18n = (t) => i18n(t);
 const table_manage_configurations_backup = ref(null);
 const url = `${http_prefix}/lua/rest/v2/get/system/configurations/list_available_backups.lua`
 const table_config = ref({})
+const loading = ref(false);
 
 const props = defineProps({
   date_format: String,
@@ -55,7 +56,9 @@ const format_flows_icon = function (data, rowData) {
 
 
 const reload_table = () => {
+  loading.value = true;
   table_manage_configurations_backup.value.reload();
+  loading.value = false;
 }
 
 onBeforeMount(async () => {

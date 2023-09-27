@@ -37,8 +37,7 @@
 
     let vue_options = {
       components: {	  
-        //'page-aggregated-live-flows': ntopVue.PageAggregatedLiveFlows,
-        'page-aggregated-live-flows': ntopVue.PageAggregatedLiveFlowsV2,
+        'page-aggregated-live-flows': ntopVue.PageAggregatedLiveFlows,
       },
       /**
       * First method called when the component is created.

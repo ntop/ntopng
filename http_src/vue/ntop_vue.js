@@ -30,13 +30,11 @@ import { default as PageAlertAnalysis } from "./page-alert-analysis.vue";
 import { default as PageHostMap } from "./page-host-map.vue";
 import { default as PageVLANPortsSankey } from "./page-vlan-ports-sankey.vue";
 import { default as PageAggregatedLiveFlows } from "./page-aggregated-live-flows.vue";
-import { default as PageAggregatedLiveFlowsV2 } from "./page-aggregated-live-flows-v2.vue";
 import { default as PageTestTable } from "./page-test-table.vue";
 import { default as NedgeRulesConfig } from "./page-nedge-rules-config.vue";
 import { default as PageEditApplications } from "./page-edit-applications.vue";
 import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
 import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
-import { default as PageManageConfigurationBackup2 } from "./page-manage-configurations-backup2.vue";
 import { default as PageSNMPDeviceRules } from "./page-snmp-device-rules.vue";
 import { default as PageSnmpDevicesInterfacesSimilarity } from "./page-snmp-devices-interfaces-similarity.vue";
 import { default as PageHostsPortsAnalysis } from "./page-hosts-ports-analysis.vue";
@@ -113,7 +111,6 @@ let ntopVue = {
     PageAlertAnalysis: PageAlertAnalysis,
     PageHostMap: PageHostMap,
     PageManageConfigurationBackup: PageManageConfigurationBackup,
-    PageManageConfigurationBackup2: PageManageConfigurationBackup2,
     PageSNMPDeviceRules: PageSNMPDeviceRules,
     PageHostsPortsAnalysis: PageHostsPortsAnalysis,
     PageInactiveHosts: PageInactiveHosts,
@@ -141,7 +138,6 @@ let ntopVue = {
     PageHostDetailsPorts: PageHostDetailsPorts,
 
     PageAggregatedLiveFlows: PageAggregatedLiveFlows,
-    PageAggregatedLiveFlowsV2: PageAggregatedLiveFlowsV2,
 
     PageNetworkDiscovery: PageNetworkDiscovery,
 

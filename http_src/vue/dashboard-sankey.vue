@@ -4,23 +4,20 @@
 
 <template>
 <div ref="body_div">
-  <Sankey3
+  <Sankey
     ref="sankey_chart"
     :width="width"
     :height="height"
     :no_data_message="no_data_message"
     :sankey_data="sankey_data"
     @node_click="on_node_click">
-  </Sankey3> 
+  </Sankey> 
 </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount, watch, computed } from "vue";
-import { ntopng_custom_events, ntopng_events_manager } from "../services/context/ntopng_globals_services";
-import formatterUtils from "../utilities/formatter-utils";
-import NtopUtils from "../utilities/ntop-utils";
-import { default as Sankey3 } from "./sankey_3.vue";
+import { ref, onMounted, onBeforeMount, watch } from "vue";
+import { default as Sankey } from "./sankey.vue";
 
 const _i18n = (t) => i18n(t);
 const no_data_message = _i18n('ports_analysis.no_data')

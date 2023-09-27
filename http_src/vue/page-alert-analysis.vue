@@ -4,7 +4,6 @@
 <div class="row">
   <div class="col-12">
     <div class="card">
-      <Loading ref="loading"></Loading>
       <div class="card-body">
         <div class='align-items-center justify-content-end mb-3' style='height: 70vh;'>
           <div class="d-flex ms-auto flex-row-reverse">
@@ -29,7 +28,8 @@
               </div>
             </template>
           </div>
-          <div :id="widget_name" style="height: 90%;">
+          <Loading v-if="loading"></Loading>
+          <div :id="widget_name" style="height: 90%;" :class="[ loading ? 'ntopng-gray-out' : '' ]">
             <Chart
               ref="bubble_chart"
               :id="widget_name"
@@ -63,10 +63,7 @@ const props = defineProps({
   available_filters: Object,
 })
 
-/* By default use the first entry */
-const currently_selected_chart = 0
-
-const loading = ref(null)
+const loading = ref(false);
 const chart_type = ntopChartApex.typeChart.BUBBLE
 const rest_url = `${http_prefix}/lua/pro/rest/v2/charts/alert/analysis.lua`
 const widget_name = 'alerts-map';
@@ -91,9 +88,9 @@ const format_request = function() {
 }
 
 const reload = function() {
-  loading.value.show_loading();
+  loading.value = true;
   bubble_chart.value.update_chart(`${rest_url}?${format_request()}`)
-  loading.value.hide_loading();
+  loading.value = false;
 }
 
 const format_options = function(mode_id) {
@@ -144,10 +141,10 @@ const get_f_get_custom_chart_options = function() {
 }
 
 const click_item = function(item) {
-  loading.value.show_loading();
+  loading.value = true;
   ntopng_url_manager.set_key_to_url(item.filter_name, item.id)
   bubble_chart.value.update_chart(`${rest_url}?${format_request()}`)
-  loading.value.hide_loading();
+  loading.value = false;
 }
 
 onBeforeMount(() => {
@@ -172,6 +169,6 @@ onBeforeMount(() => {
 });
 
 onMounted(() => {
-  loading.value.hide_loading();
+  loading.value = false;
 })
 </script>

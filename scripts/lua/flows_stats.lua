@@ -642,7 +642,7 @@ else
     }
 
     local json_context = json.encode(context)
-    template.render("pages/vue_page.template", { vue_page_name = "PageAggregatedLiveFlowsV2", page_context = json_context })
+    template.render("pages/vue_page.template", { vue_page_name = "PageAggregatedLiveFlows", page_context = json_context })
  
 end
 

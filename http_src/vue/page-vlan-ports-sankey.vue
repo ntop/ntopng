@@ -6,9 +6,9 @@
 <div class="row">
   <div class="col-md-12 col-lg-12">
     <div class="card card-shadow">
-      <Loading ref="loading"></Loading>
+      <Loading v-if="loading"></Loading>
       <div class="card-body">
-        <div class="align-items-center justify-content-end mb-2" style="height: 70vh;" ref="body_div">
+        <div class="align-items-center justify-content-end mb-2" :class="[loading ? 'ntopng-gray-out' : '']" style="height: 70vh;" ref="body_div">
           <div class="d-flex align-items-center flex-row-reverse mb-2">
             <div>
               <label class="my-auto me-1"></label>
@@ -39,7 +39,7 @@
             </template>
           </div>
 
-          <Sankey2
+          <Sankey
           ref="sankey_chart"
           :width="width"
           :height="height"
@@ -48,7 +48,7 @@
           @update_width="update_width"
           @update_height="update_height"
           @node_click="on_node_click">
-          </Sankey2>        
+          </Sankey>        
         </div>
       </div>
     </div>
@@ -61,7 +61,7 @@ import { ref, onMounted, onBeforeMount } from "vue";
 import { default as SelectSearch } from "./select-search.vue"
 import { default as Loading } from "./loading.vue"
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
-import { default as Sankey2 } from "./sankey_3.vue";
+import { default as Sankey } from "./sankey.vue";
 
 const active_filter_list = {}
 const props = defineProps({
@@ -80,7 +80,7 @@ const height = ref(null);
 const sankey_data = ref({});
 const live_rest = `${http_prefix}/lua/pro/rest/v2/get/vlan/live_ports.lua`
 const historical_rest = `${http_prefix}/lua/pro/rest/v2/get/vlan/historical_ports.lua`
-const loading = ref(null)
+const loading = ref(false)
 
 onBeforeMount(() => {
   /* Before mounting the various widgets, update the url to the correct one, by adding ifid, ecc. */
@@ -132,10 +132,10 @@ function check_max_entries(data) {
 }
 
 async function set_sankey_data() {
-  loading.value.show_loading();
+  loading.value = true;
   let data = await get_sankey_data();    
   sankey_data.value = data;
-  loading.value.hide_loading();
+  loading.value = false;
 }
 
 async function get_sankey_data() {
