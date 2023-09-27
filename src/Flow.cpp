@@ -882,6 +882,11 @@ void Flow::processExtraDissectedInformation() {
   getInterface()->updateServiceMap(this);
 #endif
 
+  /*
+    if(ndpiFlow->flow_extra_info)
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "-->>> %s", ndpiFlow->flow_extra_info);
+  */
+    
   if (get_ndpi_flow()) {
     /* Save riskInfo */
     char *out, buf[512];
