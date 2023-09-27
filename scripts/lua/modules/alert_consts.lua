@@ -591,6 +591,12 @@ end
 
 function alert_consts.alertSeverityRaw(severity_id)
    severity_id = tonumber(severity_id)
+   if not alert_severities_id_to_key[severity_id] then
+      tprint("Bad severity value")
+      tprint(severity_id)
+      tprint(debug.traceback())
+      severity_id = 1 -- falling back to min severity
+   end
    return alert_severities_id_to_key[severity_id] 
 end
 
