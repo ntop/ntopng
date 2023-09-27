@@ -29,16 +29,13 @@
 		    "table_type" : "vs_scan_result",
 			 "columns" : [
 				{
-					"i18n_name": "hosts_stats.page_scan_hosts.host_report",
+					"i18n_name": "hosts_stats.page_scan_hosts.host",
 					"id": "host",
 					"data_type": "host"
 				},
-				
-		
-				
 				{
-					"i18n_name": "hosts_stats.page_scan_hosts.num_open_ports_tcp",
-					"id": "tcp_ports",
+					"i18n_name": "hosts_stats.page_scan_hosts.scan_type",
+					"id": "scan_type",
 					"data_type": "string"
 				},
 				{
@@ -46,9 +43,6 @@
 					"id": "tcp_ports_list",
 					"data_type": "string"
 				},
-				
-				
-				
 				{
 					"i18n_name": "hosts_stats.page_scan_hosts.num_vulnerabilities_found",
 					"id": "num_vulnerabilities_found",
@@ -58,6 +52,11 @@
 					"i18n_name": "hosts_stats.page_scan_hosts.vulnerabilities_found_list",
 					"id": "cve",
 					"data_type": "object"
+				},
+				{
+					"i18n_name": "hosts_stats.page_scan_hosts.last_scan",
+					"id": "last_scan",
+					"data_type": "string"
 				}
 			 ]
 		}
