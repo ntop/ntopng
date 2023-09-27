@@ -2862,7 +2862,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 	vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] +
 		   ip6->ip6_dst.u6_addr.u6_addr8[15]
 		   : iph->saddr + iph->daddr) &
-	  0xFFF;
+	  SIMULATE_VLANS_MAX_VALUE;
 
       if (ntop->getPrefs()->do_ignore_macs())
 	ethernet = &dummy_ethernet;
@@ -3027,7 +3027,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 	  vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] +
 		     ip6->ip6_dst.u6_addr.u6_addr8[15]
 		     : iph->saddr + iph->daddr) %
-	    0xFF;
+	    SIMULATE_VLANS_MAX_VALUE;
 
 	if (ntop->getPrefs()->do_ignore_macs()) ethernet = &dummy_ethernet;
 

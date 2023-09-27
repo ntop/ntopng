@@ -1465,6 +1465,8 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
 #define INTERFACE_PROFILING_SUB_SECTION_EXIT(f, i)
 #endif
 
+#define SIMULATE_VLANS_MAX_VALUE 0x8 /* 8 in hexadecimal */
+
 #define CHECKS_PROFILING
 #if defined(PROFILING) && defined(CHECKS_PROFILING)
 #define CHECKS_PROFILING_DECLARE(n) PROFILING_DECLARE(n)

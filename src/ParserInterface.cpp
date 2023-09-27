@@ -65,7 +65,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if (zflow->vlan_id && ntop->getPrefs()->do_ignore_vlans()) zflow->vlan_id = 0;
 
   if ((zflow->vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
-    zflow->vlan_id = rand() % 0xFFF;
+    zflow->vlan_id = rand() % SIMULATE_VLANS_MAX_VALUE;
 
   if (discardProbingTraffic()) {
     if (isProbingFlow(zflow)) {
