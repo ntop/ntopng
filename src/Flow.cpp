@@ -825,6 +825,10 @@ void Flow::processExtraDissectedInformation() {
       */
       if (getInterface()->isPacketInterface()) free_ndpi_memory = false;
       break;
+      
+    case NDPI_PROTOCOL_MINING:
+      /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "-->>> %s", ndpiFlow->protos.mining.currency); */
+      break;
 
     case NDPI_PROTOCOL_HTTP:
         if (protos.http.last_url) {
@@ -882,11 +886,6 @@ void Flow::processExtraDissectedInformation() {
   getInterface()->updateServiceMap(this);
 #endif
 
-  /*
-    if(ndpiFlow->flow_extra_info)
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "-->>> %s", ndpiFlow->flow_extra_info);
-  */
-    
   if (get_ndpi_flow()) {
     /* Save riskInfo */
     char *out, buf[512];
