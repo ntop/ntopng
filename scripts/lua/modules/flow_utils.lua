@@ -1743,7 +1743,7 @@ end
 
 local function printFlowDevicesFilterDropdown(base_url, page_params)
     local snmp_cached_dev = require "snmp_cached_dev"
-    local flowdevs = interface.getFlowDevices()
+    local flowdevs = interface.getFlowDevices()       
 
     local observationPointId = ntop.getUserObservationPointId() or 0
 
@@ -1759,7 +1759,21 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
         end
 
         flowdevs = exporter_list
+    else
+        if interface.isView() then -- If it's view
+            local ifid = tostring(interface.getId())
+            for id, name in pairs(interface.getIfNames()) do 
+                interface.select(id) -- Change the interface
+                if interface.isViewed() then -- Viewed, add the exporters
+                    flowdevs = interface.getFlowDevices()       
+                end
+            end
+            interface.select(ifid)
+
+        end
     end
+
+    
 
     local ordering_fun = pairsByKeys
 
