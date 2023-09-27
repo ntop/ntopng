@@ -68,7 +68,8 @@
 			<div></div>
                         <TableWithConfig ref="table_alerts" :table_config_id="table_config_id" :table_id="table_id" :csrf="context.csrf"
                             :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
-                            @loaded="on_table_loaded" @custom_event="on_table_custom_event">
+                            :display_message="display_message" :message_to_display="message_to_display"
+                            @loaded="on_table_loaded" @custom_event="on_table_custom_event" @rows_loaded="rows_loaded">
                             <template v-slot:custom_header>
                                 <Dropdown v-for="(t, t_index) in top_table_array"
                                     :f_on_open="get_open_top_table_dropdown(t, t_index)"
@@ -167,6 +168,8 @@ const modal_delete = ref(null);
 const modal_acknowledge_alerts = ref(null);
 const modal_delete_alerts = ref(null);
 const count_page_components_reloaded = ref(0);
+const display_message = ref(false);
+const message_to_display = ref('');
 
 const current_alert = ref(null);
 const default_ifid = props.context.ifid;
@@ -199,7 +202,7 @@ const href_download_records = computed(() => {
 });
 
 onBeforeMount(async () => {
-
+    message_to_display.value = `<span class="alert alert-success alert-dismissable"><span>${i18n('no_alerts_require_attention')}</span></span>`;
     if (props.context.is_va) {
         ntopng_utility.check_and_set_default_time_interval("day");
     }
@@ -554,6 +557,14 @@ function refresh_page_components() {
         t.refresh_table();
         c.update_chart();
     }, 1 * 1000);
+}
+
+/* In case no rows are printed, then the message has to be displayed */
+function rows_loaded(res) {
+    debugger;
+    if(res?.rows != null) {
+        display_message.value = (res.rows.length == 0);
+    }
 }
 
 function on_table_custom_event(event) {

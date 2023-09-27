@@ -54,8 +54,10 @@
   </div> <!-- TableHeader -->
   
   <div :key="table_key" class="" style="overflow:auto;width:100%;"> <!-- Table -->
-    
-    <table ref="table" class="table table-striped table-bordered ml-0 mr-0 mb-0 " style="table-layout: auto; white-space: nowrap;" data-resizable="true" :data-resizable-columns-id="id"> <!-- Table -->
+    <div v-if="display_message == true" class="centered-message">
+        <span v-html="message_to_display"></span>
+    </div>
+    <table ref="table" class="table table-striped table-bordered ml-0 mr-0 mb-0 ntopng-table" :class="[ (display_message || loading) ? 'ntopng-gray-out' : '' ]" data-resizable="true" :data-resizable-columns-id="id"> <!-- Table -->
       <thead>
 	<tr>
 	  <template v-for="(col, col_index) in columns_wrap">
@@ -126,7 +128,10 @@ import { default as VueNode } from "./vue_node.vue";
 import { default as Loading } from "./loading.vue";
 import { default as Switch } from "./switch.vue";
 
-const emit = defineEmits(['custom_event', 'loaded']);
+/* rows_loaded, is emitted every time the rows are loaded,
+ * loaded,      is emitted when the table is loaded (mounted)
+ */
+const emit = defineEmits(['custom_event', 'loaded', 'rows_loaded']);
 const vue_obj = {
     emit,
     h,
@@ -151,6 +156,8 @@ const props = defineProps({
     default_sort: Object, // { column_id: string, sort: number (0, 1, 2) }
     csrf: String,
     paging: Boolean,
+    display_message: Boolean,
+    message_to_display: String,
 });
 
 const _i18n = (t) => i18n(t);
@@ -415,6 +422,7 @@ async function set_rows() {
     rows = res.rows;
     set_active_rows();    
     loading.value = false;
+    emit('rows_loaded', res);
     // changing_rows.value = false;
 }
 

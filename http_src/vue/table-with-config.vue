@@ -18,7 +18,10 @@
 	 :show_autorefresh="table_config.show_autorefresh"
 	 :paging="table_config.paging"
 	 :csrf="csrf"
+     :display_message="display_message"
+     :message_to_display="message_to_display"
 	 @loaded="on_loaded"
+     @rows_loaded="rows_loaded"
 	 @custom_event="on_custom_event">
     <template v-slot:custom_header>
       <slot name="custom_header"></slot>
@@ -31,7 +34,7 @@ import { ref, onMounted, computed, watch, onBeforeUnmount, nextTick } from "vue"
 import { default as Table } from "./table.vue";
 import TableUtils from "../utilities/table-utils";
 
-const emit = defineEmits(['custom_event', 'loaded'])
+const emit = defineEmits(['custom_event', 'loaded', 'rows_loaded'])
 const props = defineProps({
     table_config_id: String, // name of configuration file in httpdocs/tables_config
     table_id: String, // id of table, same table_config_id can have different table_id and then different columuns visible settins
@@ -40,6 +43,8 @@ const props = defineProps({
     f_map_columns: Function,
     f_sort_rows: Function,
     get_extra_params_obj: Function,
+    display_message: Boolean,
+    message_to_display: String,
 });
 
 const table_config = ref({});
@@ -82,6 +87,10 @@ function on_loaded() {
 
 function on_custom_event(event) {
     emit('custom_event', event);
+}
+
+function rows_loaded(res) {
+    emit('rows_loaded', res);
 }
 
 const refresh_table = (disable_loading) => {

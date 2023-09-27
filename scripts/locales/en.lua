@@ -401,6 +401,7 @@ local lang = {
   ["no"] = "No",
   ["noTraffic"] = "No traffic has been reported for the specified date/time selection",
   ["no_attacker_no_victim"] = "No Attacker/Victim",
+  ["no_alerts_require_attention"] = "All good. There is no alert requiring user actions in the selected time frame.",
   ["no_data_available"] = "No Data Available",
   ["no_external_link_url"] = "<span><button data-to-copy='%{proto}://%{url}' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button>  <a href='%{proto}://%{url}' target='_blank'><i class='fas fa-external-link-alt'></i> %{url_name}</a></span>",
   ["no_flows"] = "No Flows",
