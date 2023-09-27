@@ -4212,6 +4212,7 @@ local lang = {
       ["every_week"] = "Weekly",
       ["host"] = "Host",
       ["host_placeholder"] = "IP",
+      ["host_report"] = "Host (Scan Type) (Last Scan)",
       ["in_progress"] = "In Progress",
       ["last_scan"] = "Last Scan Date",
       ["last_scan_status"] = "Last Scan Status",

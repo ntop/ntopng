@@ -144,6 +144,23 @@ export const tcp_ports_f = (tcp_ports, row) => {
   return tcp_ports;
 }
 
+export const tcp_ports_list_f = (tcp_ports_list) => {
+
+  if (tcp_ports_list != null) {
+    const ports = tcp_ports_list.split(",");
+    let label = "";
+    ports.forEach((item) => {
+      label += `<li>${item}</li>`;
+    });
+
+    return label;
+  } 
+
+  return tcp_ports_list;
+  
+
+}
+
 
 export const hosts_f = (hosts, row) => {
 
@@ -166,3 +183,42 @@ export const hosts_f = (hosts, row) => {
   })
   return label;
 }
+
+export const host_f = (host, row) => {
+
+  let scan_type = row.scan_type
+  const i18n_name = "hosts_stats.page_scan_hosts.scan_type_list."+scan_type;
+  scan_type = i18n(i18n_name);
+
+  let date = ``;
+  
+  if (row.last_scan !== undefined && row.last_scan.time !== undefined) {
+    date = row.last_scan.time;
+  } else if (row.last_scan !== undefined) {
+    date = row.last_scan;
+  } else {
+    date = i18n("hosts_stats.page_scan_hosts.not_yet");
+  }
+
+  let label = host;
+  if (row.host_name != null && row.host_name != "") {
+    label = row.host_name;
+  }
+  return `${label} (${scan_type}) (${date})`;
+}
+
+export const cves_f = (cves, row) => {
+  let label = "";
+  let index = 0;
+  cves.forEach((item) => {
+    if (index < 100) {
+      label += `<li>${item}</li>`;
+      index++;
+    } else {
+      return label;
+    }
+  })
+
+  return label;
+}
+

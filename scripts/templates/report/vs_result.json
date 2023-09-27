@@ -29,20 +29,11 @@
 		    "table_type" : "vs_scan_result",
 			 "columns" : [
 				{
-					"i18n_name": "db_explorer.host_data",
+					"i18n_name": "hosts_stats.page_scan_hosts.host_report",
 					"id": "host",
 					"data_type": "host"
 				},
-				{
-					"i18n_name": "db_explorer.host_name",
-					"id": "host_name",
-					"data_type": "string"
-				},
-				{
-					"i18n_name": "hosts_stats.page_scan_hosts.scan_type",
-					"id": "scan_type",
-					"data_type": "string"
-				},
+				
 		
 				
 				{
@@ -56,16 +47,8 @@
 					"data_type": "string"
 				},
 				
-				{
-					"i18n_name": "hosts_stats.page_scan_hosts.last_scan",
-					"id": "last_scan",
-					"data_type": "string"
-				},
-				{
-					"i18n_name": "hosts_stats.page_scan_hosts.last_scan_status",
-					"id": "is_ok_last_scan",
-					"data_type": "number"
-				},
+				
+				
 				{
 					"i18n_name": "hosts_stats.page_scan_hosts.num_vulnerabilities_found",
 					"id": "num_vulnerabilities_found",
