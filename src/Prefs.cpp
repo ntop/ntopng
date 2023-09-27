@@ -300,7 +300,7 @@ void nDPIusage() {
   ndpi_set_protocol_detection_bitmask2(ndpi_struct, &all);
 
   printf("\nnDPI detected protocols:\n");
-  ndpi_dump_protocols(ndpi_struct);
+  ndpi_dump_protocols(ndpi_struct, stdout);
 
   exit(0);
 }
