@@ -827,7 +827,7 @@ void Flow::processExtraDissectedInformation() {
       break;
       
     case NDPI_PROTOCOL_MINING:
-      if (protos.mining.currency == NULL)
+      if ((protos.mining.currency == NULL) && (ndpiFlow->protos.mining.currency[0] != '\0'))
         protos.mining.currency = strdup(ndpiFlow->protos.mining.currency);
 
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "-->>> %s", ndpiFlow->protos.mining.currency); */
