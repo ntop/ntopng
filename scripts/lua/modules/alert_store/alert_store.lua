@@ -956,7 +956,7 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
         return res
     end
 
-    if (fields == "*") and table_name == 'flow_alerts' then
+    if table_name == 'flow_alerts' or table_name == 'flow_alerts_view' then
         fields = fields .. ", (srv2cli_bytes + cli2srv_bytes AS total_bytes)"
     end
 
