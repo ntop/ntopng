@@ -108,7 +108,11 @@
         };
 
         $inputsTemplate.each(function (i, input) {
-            params[$(this).attr('name')] = $(this).val().trim();
+            if ($(this).attr('type') == 'checkbox') {
+                params[$(this).attr('name')] = $(this).is(':checked');
+            } else {
+                params[$(this).attr('name')] = $(this).val().trim();
+            }
         });
 
         return params;
@@ -297,7 +301,12 @@
             $(`#edit-endpoint-modal form [name='name']`).val(data.endpoint_conf_name);
             $(`#edit-endpoint-modal form [name='endpoint_id']`).val(data.endpoint_id);
             $(`#edit-endpoint-modal form .endpoint-template-container [name]`).each(function (i, input) {
-                $(this).val(data.endpoint_conf[$(this).attr('name')]);
+                if ($(this).attr('type') == 'checkbox') {
+                    $(this).prop('checked', data.endpoint_conf[$(this).attr('name')] == 'true' );
+                } else {
+                    $(this).val(data.endpoint_conf[$(this).attr('name')]);
+
+                }
             });
         },
         onSubmitSuccess: function (response) {
