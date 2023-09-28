@@ -118,6 +118,20 @@
         return params;
     }
 
+    const getInvalidMessage = (formSelector, param) => {
+
+        const $inputsTemplate = $(`${formSelector} .endpoint-template-container [name]`);
+        
+        let localizedString = "";
+        $inputsTemplate.each(function (i, input) {
+            if ($(this).attr('name') == param) {
+                localizedString = $(this).attr('data-validation-message');
+            } 
+        });
+
+        return localizedString;
+    }
+
     const createTemplateOnSelect = (formSelector) => {
 
         const $templateContainer = $(`${formSelector} .endpoint-template-container`);
@@ -276,7 +290,7 @@
             }
 
             if (response.result.error) {
-                const localizedString = i18n_ext[response.result.error.type];
+                const localizedString = getInvalidMessage(`#add-endpoint-modal form`, response.result.error.missing_param);
                 $(`#add-endpoint-modal form .invalid-feedback`).text(localizedString).show();
             }
 
