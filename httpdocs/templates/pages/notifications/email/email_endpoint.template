@@ -15,7 +15,6 @@
         </div>
     </div>
 </div>
-
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         <b>{{ i18n("notification_endpoint.email.smtp_port") }}</b>
@@ -31,6 +30,16 @@
                 <span class="sr-only">Loading...</span>
             </div>
         </div>
+    </div>
+</div>
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("notification_endpoint.email.use_proxy") }}</b>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#email"><i class="fa-regular fa-circle-question"></i></a>
+    </label>
+    <div class="col-sm-7">
+        <input name="use_proxy" value="true" type="checkbox" class="form-check-input" id="email_use_proxy" />
+        <label class="form-check-label" for="email_use_proxy"><small>{{ i18n("notification_endpoint.email.use_proxy_descr") }}</small></label>
     </div>
 </div>
 <div class="mb-3 row">

@@ -8,6 +8,7 @@ local email = {
       { param_name = "smtp_server" },
       { param_name = "email_sender"},
       { param_name = "smtp_port", optional = true },
+      { param_name = "use_proxy", optional = true },
       { param_name = "smtp_username", optional = true },
       { param_name = "smtp_password", optional = true },
    },
@@ -25,6 +26,7 @@ local email = {
    },
 }
 
+require "lua_utils"
 local json = require("dkjson")
 local alert_utils = require "alert_utils"
 local format_utils = require "format_utils"
@@ -54,6 +56,7 @@ local function recipient2sendMessageSettings(recipient)
   local settings = {
     smtp_server = recipient.endpoint_conf.smtp_server,
     smtp_port = recipient.endpoint_conf.smtp_port,
+    use_proxy = toboolean(recipient.endpoint_conf.use_proxy),
     from_addr = recipient.endpoint_conf.email_sender,
     to_addr = recipient.recipient_params.email_recipient,
     cc_addr = recipient.recipient_params.cc,
@@ -97,6 +100,7 @@ end
 function email.sendEmail(subject, message_body, settings)
   local smtp_server = settings.smtp_server
   local smtp_port = settings.smtp_port
+  local use_proxy = settings.use_proxy
   local from = settings.from_addr:gsub(".*<(.*)>", "%1")
   local to = settings.to_addr:gsub(".*<(.*)>", "%1")
   local cc = settings.cc_addr:gsub(".*<(.*)>", "%1")
@@ -129,7 +133,7 @@ function email.sendEmail(subject, message_body, settings)
   if not isEmptyString(settings.username) then username = settings.username end
   if not isEmptyString(settings.password) then password = settings.password end
 
-  return ntop.sendMail(from, to, cc, message, smtp_server, username, password, debug_endpoint)
+  return ntop.sendMail(from, to, cc, message, smtp_server, username, password, use_proxy, debug_endpoint)
 end
 
 -- ##############################################

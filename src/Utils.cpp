@@ -1919,7 +1919,7 @@ bool Utils::postHTTPTextFile(lua_State *vm, char *username, char *password,
 
 bool Utils::sendMail(lua_State *vm, char *from, char *to, char *cc,
                      char *message, char *smtp_server, char *username,
-                     char *password, bool verbose) {
+                     char *password, bool use_proxy, bool verbose) {
   bool ret = true;
   const char *ret_str = "";
 
@@ -1939,7 +1939,10 @@ bool Utils::sendMail(lua_State *vm, char *from, char *to, char *cc,
   curl = curl_easy_init();
 
   if (curl) {
-    fillcURLProxy(curl);
+
+    if (use_proxy) {
+      fillcURLProxy(curl);
+    }
 
     if (username != NULL && password != NULL) {
       curl_easy_setopt(curl, CURLOPT_USERNAME, username);

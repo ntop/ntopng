@@ -2734,7 +2734,7 @@ static int ntop_post_http_text_file(lua_State *vm) {
 #ifdef HAVE_CURL_SMTP
 static int ntop_send_mail(lua_State *vm) {
   char *from, *to, *cc, *msg, *smtp_server, *username = NULL, *password = NULL;
-  bool verbose = false;
+  bool verbose = false, use_proxy = false;
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
@@ -2768,10 +2768,13 @@ static int ntop_send_mail(lua_State *vm) {
     password = (char *)lua_tostring(vm, 7);
 
   if (lua_type(vm, 8) == LUA_TBOOLEAN) /* Optional */
-    verbose = lua_toboolean(vm, 8);
+    use_proxy = lua_toboolean(vm, 8);
+
+  if (lua_type(vm, 9) == LUA_TBOOLEAN) /* Optional */
+    verbose = lua_toboolean(vm, 9);
 
   Utils::sendMail(vm, from, to, cc, msg, smtp_server, username, password,
-    verbose);
+    use_proxy, verbose);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }

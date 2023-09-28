@@ -929,7 +929,7 @@ local function validateLocalGlobal(p)
 end
 
 local function validateBool(p)
-    if ((p == "true") or (p == "false")) then
+    if (isEmptyString(p) or p == "false") or (p == "true") then
         return true
     else
         local n = tonumber(p)
@@ -2267,6 +2267,7 @@ local known_parameters = {
     ["smtp_port"] = validatePortRange,
     ["smtp_username"] = validateEmptyOr(validateSingleWord),
     ["smtp_password"] = validateEmptyOr(validatePassword),
+    ["use_proxy"] = validateBool,
     ["influx_dbname"] = validateSingleWord,
     ["influx_username"] = validateEmptyOr(validateSingleWord),
     ["influx_password"] = validateEmptyOr(validateSingleWord),
@@ -2722,6 +2723,7 @@ local function validateParameter(k, v)
         else
 	   if (trace_failures) then
 	      io.write("[LINT] validateParameter failed for parameter [" .. k .. "][".. type(f) .."]\n")
+              tprint(v)
 	   end
 
 	   -- io.write(debug.traceback())

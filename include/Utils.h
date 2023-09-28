@@ -114,7 +114,7 @@ class Utils {
                                int *response_code);
   static bool sendMail(lua_State *vm, char *from, char *to, char *cc,
                        char *message, char *smtp_server, char *username,
-                       char *password, bool verbose);
+                       char *password, bool use_proxy, bool verbose);
   static bool postHTTPTextFile(lua_State *vm, char *username, char *password,
                                char *url, char *path, int timeout,
                                HTTPTranferStats *stats);
