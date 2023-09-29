@@ -161,7 +161,7 @@ class Host : public GenericHashEntry,
   bool has_blocking_quota, has_blocking_shaper;
 #endif
   u_int16_t is_in_broadcast_domain : 1, is_dhcp_host : 1,
-      is_crawler_bot_scanner : 1, is_blacklisted : 1, is_rx_only : 1,
+      is_crawler_bot_scanner : 1, is_rx_only : 1,
       more_then_one_device : 1, stats_reset_requested : 1,
       name_reset_requested : 1, data_delete_requested : 1, prefs_loaded : 1,
       deferred_init : 1, _notused : 6;
@@ -397,8 +397,7 @@ class Host : public GenericHashEntry,
   inline bool isIPv4() const { return ip.isIPv4(); };
   inline bool isIPv6() const { return ip.isIPv6(); };
   void set_mac(Mac *m);
-  inline bool isBlacklisted() const { return (is_blacklisted); };
-  inline void blacklistHost() { is_blacklisted = true; };
+  inline bool isBlacklisted() const { return (((blacklist_name != NULL) && (blacklist_name[0] != '\0')) || (ip.isBlacklistedAddress())); };
   void reloadHostBlacklist();
   inline const u_int8_t *const get_mac() const {
     return (mac ? mac->get_mac() : NULL);
@@ -921,7 +920,7 @@ class Host : public GenericHashEntry,
   inline HostStats *getStats() { return (stats); }
   void setBlacklistName(char *name);
   inline void blacklistHost(char *blacklist_name) {
-    setBlacklistName(blacklist_name), is_blacklisted = 1;
+    setBlacklistName(blacklist_name);
   }
   virtual void setRxOnlyHost(bool set_it) { is_rx_only = set_it; };
   inline bool resetHostTopSites() {
