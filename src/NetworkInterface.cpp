@@ -7215,8 +7215,7 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
 
 /* *************************************** */
 
-void NetworkInterface::sumStats(
-				TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
+void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 				LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 				PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
 				ProtoStats *_discardedProbingStats, DSCPStats *_dscpStats,
