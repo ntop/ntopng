@@ -1324,23 +1324,15 @@ else
                     host["ssdp"] .. "'>" .. host["ssdp"] .. "<A></td></tr>\n")
         end
 
-        local hosts_vs_details = vs_utils.retrieve_hosts_to_scan(host["ip"])
-        
-        local host_vs_details = {}
-        for _,value in ipairs(hosts_vs_details) do
-            if value.host == host["ip"] then
-                host_vs_details = value
-                break
-            end
-        end
+        local host_vulnerabilities = vs_utils.retrieve_host(host["ip"])
 
-        if next(host_vs_details) ~= nil and host_vs_details.num_vulnerabilities_found and host_vs_details.num_vulnerabilities_found > 0 then
+        if next(host_vulnerabilities) ~= nil and host_vulnerabilities.num_vulnerabilities_found and host_vulnerabilities.num_vulnerabilities_found > 0 then
             print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
             print("<td colspan=2>")
             local i = 0
-            for _,vs in ipairs(host_vs_details.cve) do
+            for _,vs in ipairs(host_vulnerabilities.cve) do
                 if (i<5) then
-                    print('<a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=show_result&scan_date='..host_vs_details.last_scan.time..'&host='..host_vs_details.host..'&scan_type='..host_vs_details.scan_type..'"><span class="badge bg-secondary" title="'..vs..'">'..vs..'</span></a> ')
+                    print('<a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=show_result&scan_date='..host_vulnerabilities.last_scan.time..'&host='..host_vulnerabilities.host..'&scan_type='..host_vulnerabilities.scan_type..'"><span class="badge bg-secondary" title="'..vs..'">'..vs..'</span></a> ')
                 else
                     print('...')
                     break 
@@ -1348,12 +1340,12 @@ else
                 i = i + 1
             end
 
-        elseif (next(host_vs_details) ~= nil and (host_vs_details.num_vulnerabilities_found == nil or host_vs_details.num_vulnerabilities_found == 0)) then
+        elseif (next(host_vulnerabilities) ~= nil and (host_vulnerabilities.num_vulnerabilities_found == nil or host_vulnerabilities.num_vulnerabilities_found == 0)) then
             print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
             print("<td colspan=2>")
             print(i18n("hosts_stats.page_scan_hosts.no_cves_detected"))
             
-        elseif (next(host_vs_details) == nil) then
+        elseif (next(host_vulnerabilities) == nil) then
             print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
             print("<td colspan=2>")
             print('<a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=scan_hosts&host='..host["ip"]..'&ifid='..ifId..'">'.. i18n("hosts_stats.page_scan_hosts.add_to_scan_list")..'</a> ')

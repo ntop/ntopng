@@ -112,6 +112,8 @@ src/*.o
 
 # Ignore config files and tests
 .vscode/
+compile_commands.json
+compile_commands_script.sh
 tests/e2e/rest/conflicts/*
 ntopng.pid
 packages/wizard/ntopng-config

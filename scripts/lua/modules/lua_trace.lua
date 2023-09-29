@@ -77,6 +77,30 @@ function traceError(p_trace_level, p_trace_mode, p_message)
   end
 end
 
+function startProfiling(mod)
+  local profiling = {
+    starting_time = os.clock(), 
+    time = os.clock()
+  }
+  traceError(TRACE_NORMAL,TRACE_CONSOLE," --- Starting Profiling of ".. mod .. " --- \n")
+  return profiling
+end
+
+function endProfiling(mod, profiling_data)
+  traceError(TRACE_NORMAL,TRACE_CONSOLE," --- End Profiling of ".. mod .. 
+    " after: " .. os.clock() - profiling_data.starting_time .. " --- \n")
+end
+
+function traceProfiling(func, profiling_data, new_function)
+  local current_time = os.clock()
+  if new_function then
+    traceError(TRACE_NORMAL,TRACE_CONSOLE,"Start analyzing: " .. func .. "\n")
+    profiling_data.time = current_time
+  else
+    traceError(TRACE_NORMAL,TRACE_CONSOLE,"Function : " .. func .. ", time spent:".. current_time - profiling_data.time .. "\n")
+  end
+end
+
 function setTraceLevel(p_trace_level) 
   if (p_trace_level <= MAX_TRACE_LEVEL) then
     TRACE_LEVEL = p_trace_level

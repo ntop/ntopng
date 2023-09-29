@@ -95,19 +95,13 @@ local function get_host_data(host)
         res["column_thpt"] = "0 " .. throughput_type
     end
 
-    local hosts_vs_details = vs_utils.retrieve_hosts_to_scan()
-        
-    local host_vs_details = {}
-    for _,value in ipairs(hosts_vs_details) do
-        if value.host == host["ip"] then
-            host_vs_details = value
-            break
-        end
-    end
+    local host_vulnerabilities = vs_utils.retrieve_host(host["ip"])
 
-    if (host_vs_details and host_vs_details.num_vulnerabilities_found ~= nil and host_vs_details.num_vulnerabilities_found > 0) then
+    if (host_vulnerabilities and 
+        host_vulnerabilities.num_vulnerabilities_found ~= nil and 
+        host_vulnerabilities.num_vulnerabilities_found > 0) then
         res["column_num_vulnerabilities"] = format_high_num_value_for_tables(
-            host_vs_details, "num_vulnerabilities_found")
+            host_vulnerabilities, "num_vulnerabilities_found")
     end
 
 

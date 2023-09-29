@@ -178,16 +178,6 @@ if(hosts_stats ~= nil) then
 	 goto skip
       end
 
-      local hosts_vs_details = vs_utils.retrieve_hosts_to_scan()
-      local host_vs_details = {}
-      for _,value in ipairs(hosts_vs_details) do
-          if value.host == key then
-              host_vs_details = value
-              break
-          end
-      end
-      
-
       if(sortColumn == "column_") then
 	 vals[key] = key -- hosts_stats[key]["ipkey"]
       elseif(sortColumn == "column_name") then
@@ -262,27 +252,15 @@ for _key, _value in pairsByKeys(vals, funct) do
    local record = {}
    local key = vals[_key]
    local value = hosts_stats[key]
+   local host_vulnerabilities = vs_utils.retrieve_host(value["ip"])
 
+   if (host_vulnerabilities and 
+         host_vulnerabilities.num_vulnerabilities_found ~= nil and 
+         host_vulnerabilities.num_vulnerabilities_found > 0) then
+      record["column_num_vulnerabilities"] = format_high_num_value_for_tables(
+         { value = host_vulnerabilities.num_vulnerabilities_found }, "value")
+   end
    
-
-   local hosts_vs_details = vs_utils.retrieve_hosts_to_scan()
-    local host_vs_details = {}
-    for _,value in ipairs(hosts_vs_details) do
-        if value.host == key then
-            host_vs_details = value
-            break
-        end
-    end
-
-    if (host_vs_details and host_vs_details.num_vulnerabilities_found ~= nil and host_vs_details.num_vulnerabilities_found > 0) then
-      
-         
-        record["column_num_vulnerabilities"] = format_high_num_value_for_tables({
-                                             value = host_vs_details.num_vulnerabilities_found
-                                          }, "value")
-    end
-   
-
    local symkey = hostinfo2jqueryid(hosts_stats[key])
    record["key"] = symkey
 
@@ -435,5 +413,4 @@ result["currentPage"] = currentPage
 result["totalRows"] = total
 result["data"] = formatted_res
 result["sort"] = {{sortColumn, sortOrder}}
-
 print(json.encode(result))
