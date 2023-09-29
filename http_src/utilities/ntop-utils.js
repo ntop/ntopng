@@ -1422,6 +1422,24 @@ export default class NtopUtils {
       location.href = `${base_url}?${default_url}${search}`;
     }
   }
+
+
+  static apexChartJumpToHostDetails(event, chartContext, config) {
+    const { seriesIndex, dataPointIndex } = config;
+    const { series } = config.config;
+    if (seriesIndex === -1) return;
+    if (series === undefined) return;
+
+    const serie = series[seriesIndex];
+
+    const base_url = serie.base_url || series[0]['base_url']
+
+    if (base_url != null ) {
+      const url = `${base_url}?${serie.data[0].meta.url_query}`;
+      ntopng_url_manager.go_to_url(url);
+    }
+  }
+
   
   static formatApexChartLabelFromXandY({series, seriesIndex, dataPointIndex, w}) {
     const serie = w.config.series[seriesIndex]["data"][dataPointIndex];
