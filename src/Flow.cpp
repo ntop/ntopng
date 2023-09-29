@@ -64,7 +64,7 @@ Flow::Flow(NetworkInterface *_iface, u_int16_t _vlanId,
   cli2srv_tos = srv2cli_tos = 0;
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
   swap_done = swap_requested = 0;
-
+  
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
   marker = MARKER_NO_ACTION;
@@ -466,6 +466,7 @@ Flow::~Flow() {
     if (protos.tls.subjectDN) free(protos.tls.subjectDN);
   }
 
+  if(protos.mining.currency) free(protos.mining.currency);
   if (bt_hash) free(bt_hash);
 
   freeDPIMemory();
