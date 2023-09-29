@@ -464,9 +464,10 @@ Flow::~Flow() {
       free(protos.tls.client_tls_supported_versions);
     if (protos.tls.issuerDN) free(protos.tls.issuerDN);
     if (protos.tls.subjectDN) free(protos.tls.subjectDN);
+  } else if (isMining()) {
+    if(protos.mining.currency) free(protos.mining.currency);
   }
 
-  if(protos.mining.currency) free(protos.mining.currency);
   if (bt_hash) free(bt_hash);
 
   freeDPIMemory();
@@ -5311,7 +5312,7 @@ char *Flow::getFlowInfo(char *buf, u_int buf_len, bool isLuaRequest) {
 
     else if (isLuaRequest && hasRisk(NDPI_DESKTOP_OR_FILE_SHARING_SESSION))
       return ((char *)"<i class='fa fa-lg fa-binoculars'></i> Desktop Sharing");
-    else if (isMINING()) {
+    else if (isMining()) {
       if(protos.mining.currency)
         return protos.mining.currency;
     }
