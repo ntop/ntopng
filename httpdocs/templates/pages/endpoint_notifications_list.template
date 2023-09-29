@@ -326,7 +326,17 @@
         onSubmitSuccess: function (response) {
             if (response.result.status == "OK") {
                 $(`#edit-endpoint-modal`).modal('hide');
-                $endpointsTable.ajax.reload();
+
+                $endpointsTable.ajax.reload(function (data) {
+                    // disable endpoint type if a endpoint reached its max num config
+                    disableTypes(data);
+                });
+                return;
+            }
+
+            if (response.result.error) {
+                const localizedString = getInvalidMessage(`#edit-endpoint-modal form`, response.result.error.missing_param);
+                $(`#edit-endpoint-modal form .invalid-feedback`).text(localizedString).show();
             }
         }
     });
