@@ -1431,7 +1431,9 @@ export default class NtopUtils {
     if (series === undefined) return;
 
     const serie = series[seriesIndex];
+
     const base_url = serie.base_url || series[0]['base_url']
+    
     if (base_url != null ) {
       const url = `${base_url}?${serie.data[dataPointIndex].meta.url_query}`;
       ntopng_url_manager.go_to_url(url);
