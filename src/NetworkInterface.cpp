@@ -3840,24 +3840,21 @@ void NetworkInterface::findFlowHosts(u_int16_t vlan_id,
 
     if (_dst_ip &&
         (_dst_ip->isLocalHost() || _dst_ip->isLocalInterfaceAddress())) {
-      INTERFACE_PROFILING_SECTION_ENTER(
-					"NetworkInterface::findFlowHosts: new LocalHost", 4);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*dst) = new (std::nothrow)
 	LocalHost(this, dst_mac, vlan_id, observation_domain_id, _dst_ip);
       INTERFACE_PROFILING_SECTION_EXIT(4);
     } else {
-      INTERFACE_PROFILING_SECTION_ENTER(
-					"NetworkInterface::findFlowHosts: new RemoteHost", 5);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
       (*dst) = new (std::nothrow)
 	RemoteHost(this, dst_mac, vlan_id, observation_domain_id, _dst_ip);
       INTERFACE_PROFILING_SECTION_EXIT(5);
     }
 
     if (*dst) {
-      INTERFACE_PROFILING_SECTION_ENTER(
-					"NetworkInterface::findFlowHosts: hosts_hash->add", 6);
-      bool add_res = hosts_hash->add(
-				     *dst, false /* Don't lock, we're inline with the purgeIdle */);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->add", 6);
+      bool add_res = hosts_hash->add(*dst, false /* Don't lock, we're inline with the purgeIdle */);
+
       INTERFACE_PROFILING_SECTION_EXIT(6);
 
       if (!add_res) {

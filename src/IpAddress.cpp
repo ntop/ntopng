@@ -77,9 +77,10 @@ void IpAddress::reloadBlacklist(ndpi_detection_module_struct *ndpi_struct) {
   char *ip_str = print(ipbuf, sizeof(ipbuf));
   ndpi_protocol_category_t category;
 
-  if ((ndpi_get_custom_category_match(ndpi_struct, ip_str, strlen(ip_str),
-                                      &category) == 0) &&
-      category == CUSTOM_CATEGORY_MALWARE)
+  if ((ndpi_get_custom_category_match(ndpi_struct,
+				      ip_str, strlen(ip_str),
+				      &category) == 0)
+      && (category == CUSTOM_CATEGORY_MALWARE))
     addr.blacklistedIP = true;
 }
 
@@ -94,8 +95,7 @@ bool IpAddress::isEmpty() const {
     memset(&empty_ipv6, 0, sizeof(empty_ipv6));
     return memcmp((void *)&empty_ipv6, (void *)&addr.ipType.ipv6,
                   sizeof(empty_ipv6)) == 0
-               ? true
-               : false;
+               ? true : false;
   }
 
   return false;

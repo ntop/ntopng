@@ -148,7 +148,7 @@ void Trace::traceEvent(int eventTraceLevel, const char *_file, const int line,
      */
 
     memset(buf, 0, sizeof(buf));
-    strftime(theDate, 32, "%d/%b/%Y %H:%M:%S", localtime_r(&theTime, &result));
+    strftime(theDate, sizeof(theDate), "%d/%b/%Y %H:%M:%S", localtime_r(&theTime, &result));
 
     vsnprintf(buf, sizeof(buf) - 1, format, va_ap);
 

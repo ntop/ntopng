@@ -2687,7 +2687,24 @@ void Host::setPopServer(char *name) {
 /* *************************************** */
 
 void Host::setBlacklistName(char *name) {
-  if ((blacklist_name == NULL) && (name != NULL)) blacklist_name = strdup(name);
+  if(!name) return;
+
+  /* Avoid leaks when multiple sets are made */
+  if(blacklist_name != NULL) free(blacklist_name);
+  blacklist_name = strdup(name);
+
+  if(ntop->getPrefs()->collectBlackListStats()) {
+    char key[128], theDate[32], ip_buf[64];
+    time_t theTime = time(NULL);
+#ifndef WIN32
+    struct tm result;
+#endif
+
+    /* redis-cli set ntopng.prefs.collect_blacklist_stats 1 */
+    strftime(theDate, sizeof(theDate), "%d%m%Y", localtime_r(&theTime, &result));
+    snprintf(key, sizeof(key), CONST_BLACKLIST_DAILY_STATS, theDate);
+    ntop->getRedis()->hashSet(key, printMask(ip_buf, sizeof(ip_buf)), name);
+  }
 }
 
 /* *************************************** */

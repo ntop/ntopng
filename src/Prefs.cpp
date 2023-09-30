@@ -73,7 +73,7 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_informative_captive_portal = false,
     override_dst_with_post_nat_dst = false,
     override_src_with_post_nat_src = false;
-  hostMask = no_host_mask;
+  hostMask = no_host_mask, collect_blacklist_stats = false;
   enable_asn_behaviour_analysis = enable_network_behaviour_analysis =
     enable_iface_l7_behaviour_analysis = false;
   enable_broadcast_domain_too_large = false;
@@ -1004,6 +1004,9 @@ void Prefs::reloadPrefsFromRedis() {
   emit_host_alerts =
     getDefaultBoolPrefsValue(CONST_PREFS_EMIT_HOST_ALERTS, true);
 
+  /* Used for stats */
+  collect_blacklist_stats = getDefaultBoolPrefsValue(CONST_PREFS_COLLECT_BLACKLISTSTATS, false);
+  
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();
   refreshDeviceProtocolsPolicyPref();
