@@ -142,7 +142,7 @@ Flow::Flow(NetworkInterface *_iface, u_int16_t _vlanId,
     /*
       View Interface
       Client host has not been allocated, let's keep the info in an IpAddress.      
-     */
+    */
     if ((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
       cli_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
   }
@@ -157,7 +157,7 @@ Flow::Flow(NetworkInterface *_iface, u_int16_t _vlanId,
     /*
       View Interface
       Server host has not been allocated, let's keep the info in an IpAddress
-     */
+    */
     if ((srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip)))
       srv_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
   }
@@ -885,13 +885,27 @@ void Flow::processExtraDissectedInformation() {
 
     if (get_custom_category_file()) {
       char *cat = get_custom_category_file();
-      
+
       if (isBlacklistedClient()) {
-	if (cli_host)
-	  cli_host->setBlacklistName(cat);
+	if(cli_host)
+	  cli_host->setBlacklistName(cat); /* Standard Interface */
+	else if(cli_ip_addr != NULL) {
+	  /*
+	    View interface
+
+	    Will be updated by ViewInterface::viewed_flows_walker
+	  */
+	}	
       } else if (isBlacklistedServer()) {
-	if (srv_host)
-	  srv_host->setBlacklistName(cat);
+	if(srv_host)
+	  srv_host->setBlacklistName(cat); /* Standard Interface */
+	else if(srv_ip_addr != NULL) {
+	  /*
+	    View interface
+
+	    Will be updated by ViewInterface::viewed_flows_walker
+	  */
+	}
       }
       
       ntop->incBlacklisHits(std::string(cat));

@@ -644,26 +644,44 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
       if (cli_host) {
         if (first_partial) {
           cli_host->incNumFlows(f->get_last_seen(), true), cli_host->incUses();
-          network_stats =
-              cli_host->getNetworkStats(cli_host->get_local_network_id());
+          network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
+
           if (network_stats)
             network_stats->incNumFlows(f->get_last_seen(), true);
+
           if (f->getViewInterfaceFlowStats())
             f->getViewInterfaceFlowStats()->setClientHost(cli_host);
+
           cli_host->setLastDeviceIp(f->getFlowDeviceIP());
+	  
+	  if(f->isBlacklistedClient()) {
+	    char *cat = f->get_custom_category_file();
+	    
+	    if(cat != NULL)
+	      cli_host->setBlacklistName(cat);
+	  }
         }
       }
 
       if (srv_host) {
         if (first_partial) {
           srv_host->incUses(), srv_host->incNumFlows(f->get_last_seen(), false);
-          network_stats =
-              srv_host->getNetworkStats(srv_host->get_local_network_id());
+          network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
+	  
           if (network_stats)
             network_stats->incNumFlows(f->get_last_seen(), false);
+	  
           if (f->getViewInterfaceFlowStats())
             f->getViewInterfaceFlowStats()->setServerHost(srv_host);
+	  
           srv_host->setLastDeviceIp(f->getFlowDeviceIP());
+
+	  if(f->isBlacklistedServer()) {
+	    char *cat = f->get_custom_category_file();
+
+	    if(cat != NULL)
+	      srv_host->setBlacklistName(cat);
+	  }
         }
       }
 

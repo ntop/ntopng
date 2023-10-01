@@ -2687,10 +2687,11 @@ void Host::setPopServer(char *name) {
 /* *************************************** */
 
 void Host::setBlacklistName(char *name) {
-  if(!name) return;
+  if((name == NULL)
+     || (blacklist_name != NULL) /* Already set */
+     )
+    return;
 
-  /* Avoid leaks when multiple sets are made */
-  if(blacklist_name != NULL) free(blacklist_name);
   blacklist_name = strdup(name);
 
   if(ntop->getPrefs()->collectBlackListStats()) {
