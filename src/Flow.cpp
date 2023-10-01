@@ -50,15 +50,15 @@ Flow::Flow(NetworkInterface *_iface, u_int16_t _vlanId,
   predominant_alert.category = alert_category_other,
   predominant_alert_score = 0;
   predominant_alert_info.is_cli_attacker =
-      predominant_alert_info.is_cli_victim =
-          predominant_alert_info.is_srv_attacker =
-              predominant_alert_info.is_srv_victim = 0;
+    predominant_alert_info.is_cli_victim =
+    predominant_alert_info.is_srv_attacker =
+    predominant_alert_info.is_srv_victim = 0;
   predominant_alert_info.auto_acknowledge = 0;
   ndpiAddressFamilyProtocol = NULL;
   clearRisks();
   /* Note is_periodic_flow is updated by the updateFlowPeriodicity() call */
   detection_completed = 0, non_zero_payload_observed = 0, is_periodic_flow = 0,
-  extra_dissection_completed = 0,
+    extra_dissection_completed = 0,
   has_malicious_cli_signature = has_malicious_srv_signature = 0;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   cli2srv_tos = srv2cli_tos = 0;
@@ -130,26 +130,33 @@ Flow::Flow(NetworkInterface *_iface, u_int16_t _vlanId,
       memcpy(view_srv_mac, _view_srv_mac, sizeof(view_srv_mac));
   }
 
-  /* Increase the hosts counter or Init the IP Addresses in case hosts are null
-   */
+  /*
+    Standard Interface
+    Increase the hosts counter or Init the IP Addresses in case hosts are NULL
+  */
   if (cli_host) {
     cli_host->incUses(), cli_host->incNumFlows(last_seen, true);
     cli_host->incCliContactedPorts(_srv_port);
     cli_ip_addr = cli_host->get_ip();
   } else {
-    /* Client host has not been allocated, let's keep the info in an IpAddress
+    /*
+      View Interface
+      Client host has not been allocated, let's keep the info in an IpAddress.      
      */
     if ((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
       cli_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
   }
 
   if (srv_host) {
+    /* Standard Interface */
     srv_host->incUses(), srv_host->incNumFlows(last_seen, false);
     srv_host->incSrvPortsContacts(htons(_cli_port));
     srv_host->incSrvHostContacts(_cli_ip);
     srv_ip_addr = srv_host->get_ip();
   } else {
-    /* Server host has not been allocated, let's keep the info in an IpAddress
+    /*
+      View Interface
+      Server host has not been allocated, let's keep the info in an IpAddress
      */
     if ((srv_ip_addr = new (std::nothrow) IpAddress(*_srv_ip)))
       srv_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
@@ -875,11 +882,24 @@ void Flow::processExtraDissectedInformation() {
     }
 
     updateSuspiciousDGADomain();
+
+    if (get_custom_category_file()) {
+      char *cat = get_custom_category_file();
+      
+      if (isBlacklistedClient()) {
+	if (cli_host)
+	  cli_host->setBlacklistName(cat);
+      } else if (isBlacklistedServer()) {
+	if (srv_host)
+	  srv_host->setBlacklistName(cat);
+      }
+      
+      ntop->incBlacklisHits(std::string(cat));
+    }
   }
 
 #if defined(NTOPNG_PRO)
-  getInterface()->updateFlowPeriodicity(
-      this); /* <- here we eventually set is_periodic_flow */
+  getInterface()->updateFlowPeriodicity(this); /* <- here we eventually set is_periodic_flow */
 
   if (is_periodic_flow) {
     ndpi_risk_enum risk = NDPI_PERIODIC_FLOW;
@@ -1045,18 +1065,6 @@ void Flow::processPacket(const struct pcap_pkthdr *h, const u_char *ip_packet,
     if (!needsExtraDissection()) {
       setExtraDissectionCompleted();
       updateProtocol(proto_id);
-    }
-
-    if (get_custom_category_file()) {
-      if (isBlacklistedClient()) {
-        if (cli_host)
-          cli_host->setBlacklistName((char *)get_custom_category_file());
-      } else if (isBlacklistedServer()) {
-        if (srv_host)
-          srv_host->setBlacklistName((char *)get_custom_category_file());
-      }
-
-      ntop->incBlacklisHits(std::string(get_custom_category_file()));
     }
   }
 }
