@@ -42,7 +42,7 @@ local function format_result(result)
     local rsp = {}
     if result then
         if not isEmptyString(sort) and sort == 'ip' then
-            table.sort(result, function (k1, k2) return k1.host < k2.host end )
+            table.sort(result, function (k1, k2)  return (k1.host or k1.host_name) < (k2.host or k2.host_name) end )
         end
         for _,value in ipairs(result) do
             -- FIX ME with udp port check
@@ -56,13 +56,17 @@ local function format_result(result)
                     if (rsp[#rsp].tcp_ports == 0 and rsp[#rsp].udp_ports == 0) then
                         rsp[#rsp].tcp_ports = rsp[#rsp].num_open_ports
                     end
-                    rsp[#rsp].last_scan.time = format_epoch(value)
+                    if(rsp[#rsp].last_scan) then
+                        rsp[#rsp].last_scan.time = format_epoch(value)
+                    end
                 else 
                     if (value.host == search_map or string.find(value.host,search_map) or string.find(value.host_name,search_map)) then
                         rsp[#rsp+1] = value
                         rsp[#rsp].num_vulnerabilities_found = format_high_num_value_for_tables(value, "num_vulnerabilities_found")
                         rsp[#rsp].num_open_ports = format_high_num_value_for_tables(value, "num_open_ports")
-                        rsp[#rsp].last_scan.time = format_epoch(value)
+                        if(rsp[#rsp].last_scan) then
+                            rsp[#rsp].last_scan.time = format_epoch(value)
+                        end
                     end
                 end
 
@@ -86,9 +90,19 @@ local function format_result(result)
     
                     rsp[#rsp].tcp_ports_list = formatted_ports_list
                 end
-                
+
+                if not isEmptyString(sort) and sort == 'ip' then
+                    rsp[#rsp].host = ternary(isEmptyString(rsp[#rsp].host_name), rsp[#rsp].host, rsp[#rsp].host_name)
+                end
             end
         end
+
+        if not isEmptyString(sort) and sort == 'ip' then
+            table.sort(rsp, function (k1, k2)  return k1.host < k2.host end )
+        end
+
+
+
     end 
     return rsp 
 end

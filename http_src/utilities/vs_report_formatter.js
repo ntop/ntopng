@@ -212,14 +212,17 @@ export const host_f = (host, row) => {
 export const cves_f = (cves, row) => {
   let label = "";
   let index = 0;
-  cves.forEach((item) => {
-    if (index < 100) {
-      label += `<li>${item}</li>`;
-      index++;
-    } else {
-      return label;
-    }
-  })
+  if (cves != null) {
+    cves.forEach((item) => {
+      if (index < 100) {
+        label += `<li>${item}</li>`;
+        index++;
+      } else {
+        return label;
+      }
+    })
+  }
+  
 
   return label;
 }
