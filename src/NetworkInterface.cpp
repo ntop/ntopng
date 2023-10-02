@@ -12386,6 +12386,7 @@ void NetworkInterface::getActiveMacs(lua_State *vm) {
 
 /* **************************************************** */
 
+#ifdef NTOPNG_PRO
 void NetworkInterface::getFlowDevices(lua_State *vm) {
   /* Add the devices list only if not empty */
   if (flow_interfaces_stats) {
@@ -12396,6 +12397,7 @@ void NetworkInterface::getFlowDevices(lua_State *vm) {
     lua_settable(vm, -3);    
   }
 };
+#endif
 
 /* **************************************************** */
 
