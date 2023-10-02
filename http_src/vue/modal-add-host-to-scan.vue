@@ -11,11 +11,11 @@
           <b>{{_i18n("hosts_stats.page_scan_hosts.host")}}</b>
           </label>
           <div class="col-sm-8" >
-            <input v-model="host" @focusout="load_ports"  @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
+            <input v-model="host" @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
           </div>
           <div class="col-sm-2" >
             <SelectSearch v-model:selected_option="selected_cidr"
-                @select_option="load_ports"
+                @select_option="_load_ports"
                 :options="cidr_options_list">
             </SelectSearch>
           </div>
@@ -390,6 +390,14 @@ const add_ = async (is_edit) => {
   
 };
 
+function _load_ports() {
+  if (selected_cidr.value.id != "24") {
+    disable_load_ports.value = false;
+  } else {
+    disable_load_ports.value = true;
+  }
+}
+
 async function load_ports() {
 
   if (host.value != "")
@@ -425,8 +433,6 @@ async function load_ports() {
       message_feedback.value = "";
     }
   }
-  
-  
 }
 
 
