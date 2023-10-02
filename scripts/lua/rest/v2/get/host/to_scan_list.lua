@@ -39,6 +39,7 @@ local function format_result(result)
         end
         for _,value in ipairs(result) do
 
+
             -- FIX ME with udp port check
             if portCheck(value.tcp_ports_list, port) then
                 if (isEmptyString(search_map)) then
@@ -58,6 +59,9 @@ local function format_result(result)
                     end
                 end
             end
+
+            rsp[#rsp].last_scan.time = formatEpoch(value.last_scan.epoch)
+
         end
     end 
     return rsp 

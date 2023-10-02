@@ -75,6 +75,7 @@ async function get_result(host, scan_type, date) {
   
   
   title.value = i18n("hosts_stats.page_scan_hosts.vs_result").replace("%{host}", host_href);
+  date = date.replace("|"," ");
   title.value = title.value.replace("%{date}",date);
   title_html.value = title.value;
 
