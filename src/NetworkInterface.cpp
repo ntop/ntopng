@@ -12383,3 +12383,29 @@ void NetworkInterface::getActiveMacs(lua_State *vm) {
   walker(&begin_slot, true /* walk_all */, walker_macs,
          active_mac_search_walker, (void *)&s);
 }
+
+/* **************************************************** */
+
+void NetworkInterface::getFlowDevices(lua_State *vm) {
+  /* Add the devices list only if not empty */
+  if (flow_interfaces_stats) {
+    lua_newtable(vm);
+    flow_interfaces_stats->luaDeviceList(vm);
+    lua_pushinteger(vm, get_id());
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);    
+  }
+};
+
+/* **************************************************** */
+
+void NetworkInterface::getSFlowDevices(lua_State *vm) {
+  /* Add the devices list only if not empty */
+  if (interfaceStats) {
+    lua_newtable(vm);
+    interfaceStats->luaDeviceList(vm);
+    lua_pushinteger(vm, get_id());
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);    
+  }
+};

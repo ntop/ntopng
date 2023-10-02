@@ -2818,13 +2818,17 @@ static int ntop_delete_interface_observation_point(lua_State *vm) {
 static int ntop_get_flow_devices(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);;
+  lua_newtable(vm);
 
   if (!ntop_interface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   else {
     ntop_interface->getFlowDevices(vm);
 
+  /* Return a table with key, the interface id and as value, 
+   * a table with the IPs of the interface
+   */
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
   }
 }

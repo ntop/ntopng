@@ -96,6 +96,8 @@ class ViewInterface : public NetworkInterface {
   virtual void getFlowDevices(lua_State *vm);
   virtual void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP);
 #endif
+  virtual void getSFlowDevices(lua_State *vm);
+  virtual void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP);
 
   virtual u_int32_t getFlowsHashSize();
   virtual Flow *findFlowByKeyAndHashId(u_int32_t key, u_int hash_id,

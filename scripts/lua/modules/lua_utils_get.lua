@@ -95,13 +95,18 @@ end
 -- ##############################################
 
 function getProbesName(flowdevs, show_vlan, shorten_len)
-    local devips = {}
-
-    for dip, _ in pairsByValues(flowdevs, asc) do
-        devips[dip] = getProbeName(dip, show_vlan, shorten_len)
+    local probes_list = {}
+    for interface, devices in pairs(flowdevs or {}) do
+        local device_list = {} 
+        if table.len(devices or {}) > 0 then
+            for ip, _ in pairsByValues(devices or {}, asc) do
+                device_list[ip] = getProbeName(ip, show_vlan, shorten_len)
+            end
+            probes_list[interface] = device_list
+        end
     end
 
-    return devips
+    return probes_list
 end
 
 -- ##############################################

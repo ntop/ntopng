@@ -833,3 +833,17 @@ void ViewInterface::getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
 #endif
 
 /* **************************************************** */
+
+void ViewInterface::getSFlowDevices(lua_State *vm) {
+  for (int i = 0; i < num_viewed_interfaces; i++)
+    viewed_interfaces[i]->getSFlowDevices(vm);
+}
+
+/* **************************************************** */
+
+void ViewInterface::getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+  for (int i = 0; i < num_viewed_interfaces; i++)
+    viewed_interfaces[i]->getSFlowDeviceInfo(vm, deviceIP);
+}
+
+/* **************************************************** */

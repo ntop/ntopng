@@ -399,6 +399,7 @@ local lang = {
   ["new"] = "New",
   ["next"] = "Next",
   ["no"] = "No",
+  ["all_obs_points"] = "All Obs. Points",
   ["noTraffic"] = "No traffic has been reported for the specified date/time selection",
   ["no_attacker_no_victim"] = "No Attacker/Victim",
   ["no_alerts_require_attention"] = "All good. There is no alert requiring user actions in the selected time frame.",

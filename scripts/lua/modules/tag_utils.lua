@@ -988,30 +988,15 @@ function tag_utils.get_tag_info(id, entity)
     elseif tag.value_type == "probe_ip" then
         filter.options = {}
         if interface.getFlowDevices then -- Pro Only
-            if interface.isView() then -- If it's view
-                local ifid = tostring(interface.getId())
-                for id, name in pairs(interface.getIfNames()) do 
-                    interface.select(id) -- Change the interface
-                    if interface.isViewed() then -- Viewed, add the exporters
-                        for probe, _ in pairsByValues(interface.getFlowDevices() or {}, asc) do
-                            local label = format_name_value(getProbeName(probe), probe)
-                            filter.options[#filter.options + 1] = {
-                                value = probe,
-                                label = label
-                            }
-                        end        
-                    end
-                end
-                interface.select(ifid)
-            else                        
-                for probe, _ in pairsByValues(interface.getFlowDevices() or {}, asc) do
+            for interface, device_list in pairs(interface.getFlowDevices() or {}) do
+                for probe, _ in pairsByValues(device_list or {}, asc) do
                     local label = format_name_value(getProbeName(probe), probe)
                     filter.options[#filter.options + 1] = {
                         value = probe,
                         label = label
                     }
-                end   
-            end
+                end
+            end   
         end
 
     elseif tag.value_type == "ip_version" then
@@ -1086,9 +1071,11 @@ function tag_utils.get_tag_info(id, entity)
                 -- use pairsByKeys to impose order
                 for probe_ip, _ in pairsByKeys(devices) do
 
-                    if flow_devices[probe_ip] then
-                        -- Use SNMP info, remove from flow devices list
-                        flow_devices[probe_ip] = nil
+                    for interface, device_list in pairs(flow_devices or {}) do
+                        if flow_devices[interface][probe_ip] then
+                            -- Use SNMP info, remove from flow devices list
+                            flow_devices[interface][probe_ip] = nil
+                        end
                     end
 
                     local cached_device = snmp_cached_dev:get_interface_names(probe_ip)
@@ -1121,15 +1108,18 @@ function tag_utils.get_tag_info(id, entity)
                     end
                 end
 
-                -- Add interfaces for flow devices which are not polled by SNMP
-                for probe_ip, info in pairs(flow_devices) do
-                    local interfaces = interface.getFlowDeviceInfo(probe_ip)
-                    for interface_id, interface_info in pairs(interfaces) do
-                        local label = probe_ip .. ' · ' .. format_portidx_name(probe_ip, interface_id, true, true)
-                        filter.options[#filter.options + 1] = {
-                            value = probe_ip .. "_" .. interface_id,
-                            label = label
-                        }
+                
+                for interface, device_list in pairs(flow_devices or {}) do
+                    -- Add interfaces for flow devices which are not polled by SNMP
+                    for probe_ip, info in pairs(device_list) do
+                        local interfaces = interface.getFlowDeviceInfo(probe_ip)
+                        for interface_id, interface_info in pairs(interfaces) do
+                            local label = probe_ip .. ' · ' .. format_portidx_name(probe_ip, interface_id, true, true)
+                            filter.options[#filter.options + 1] = {
+                                value = probe_ip .. "_" .. interface_id,
+                                label = label
+                            }
+                        end
                     end
                 end
 

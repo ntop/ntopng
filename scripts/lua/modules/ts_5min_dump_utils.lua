@@ -447,32 +447,40 @@ end
 function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
     local flowdevs = interface.getSFlowDevices()
 
-    for flow_device_ip, _ in pairs(flowdevs) do
-        local ports = interface.getSFlowDeviceInfo(flow_device_ip)
+    -- Return in case of view interface, no timeseries for view interface,
+    -- already on the viewed interface.
+    if ifstats.isView then
+        return
+    end
 
-        if (verbose) then
-            print("[" .. __FILE__() .. ":" .. __LINE__() .. "] Processing sFlow probe " .. flow_device_ip .. "\n")
-        end
+    for interface_id, device_list in pairs(flowdevs or {}) do
+        for key, _value in pairs(device_list, asc) do
+            local ports = interface.getSFlowDeviceInfo(flow_device_ip)
 
-        for port_idx, port_value in pairs(ports) do
-            if ifstats.has_seen_ebpf_events then
-                -- This is actualy an event exporter
-                local dev_ifname = format_utils.formatExporterInterface(port_idx, port_value)
-                ts_utils.append("evexporter_iface:traffic", {
-                    ifid = ifstats.id,
-                    exporter = flow_device_ip,
-                    ifname = dev_ifname,
-                    bytes_sent = port_value.ifOutOctets,
-                    bytes_rcvd = port_value.ifInOctets
-                }, when)
-            else
-                ts_utils.append("sflowdev_port:traffic", {
-                    ifid = ifstats.id,
-                    device = flow_device_ip,
-                    port = port_idx,
-                    bytes_sent = port_value.ifOutOctets,
-                    bytes_rcvd = port_value.ifInOctets
-                }, when)
+            if (verbose) then
+                print("[" .. __FILE__() .. ":" .. __LINE__() .. "] Processing sFlow probe " .. flow_device_ip .. "\n")
+            end
+
+            for port_idx, port_value in pairs(ports) do
+                if ifstats.has_seen_ebpf_events then
+                    -- This is actualy an event exporter
+                    local dev_ifname = format_utils.formatExporterInterface(port_idx, port_value)
+                    ts_utils.append("evexporter_iface:traffic", {
+                        ifid = ifstats.id,
+                        exporter = flow_device_ip,
+                        ifname = dev_ifname,
+                        bytes_sent = port_value.ifOutOctets,
+                        bytes_rcvd = port_value.ifInOctets
+                    }, when)
+                else
+                    ts_utils.append("sflowdev_port:traffic", {
+                        ifid = ifstats.id,
+                        device = flow_device_ip,
+                        port = port_idx,
+                        bytes_sent = port_value.ifOutOctets,
+                        bytes_rcvd = port_value.ifInOctets
+                    }, when)
+                end
             end
         end
     end
@@ -483,33 +491,41 @@ end
 function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
     local flowdevs = interface.getFlowDevices() -- Flow, not sFlow here
 
-    for flow_device_ip, _ in pairs(flowdevs) do
-        local ports = interface.getFlowDeviceInfo(flow_device_ip)
+    -- Return in case of view interface, no timeseries for view interface,
+    -- already on the viewed interface.
+    if ifstats.isView then
+        return
+    end
 
-        if (verbose) then
-            print("[" .. __FILE__() .. ":" .. __LINE__() .. "] Processing flow probe " .. flow_device_ip .. "\n")
-        end
+    for interface, device_list in pairs(flowdevs or {}) do
+        for dev_ip, dev_resolved_name in pairsByValues(device_list, asc) do
+            local ports = interface.getFlowDeviceInfo(flow_device_ip)
 
-        for port_idx, port_value in pairs(ports) do
-            -- Traffic
-            ts_utils.append("flowdev_port:traffic", {
-                ifid = ifstats.id,
-                device = flow_device_ip,
-                port = port_idx,
-                bytes_sent = port_value["bytes.out_bytes"],
-                bytes_rcvd = port_value["bytes.in_bytes"]
-            }, when)
+            if (verbose) then
+                print("[" .. __FILE__() .. ":" .. __LINE__() .. "] Processing flow probe " .. flow_device_ip .. "\n")
+            end
 
-            -- nDPI
-            for proto_name, proto_stats in pairs(port_value["ndpi"]) do
-                ts_utils.append("flowdev_port:ndpi", {
+            for port_idx, port_value in pairs(ports) do
+                -- Traffic
+                ts_utils.append("flowdev_port:traffic", {
                     ifid = ifstats.id,
                     device = flow_device_ip,
                     port = port_idx,
-                    protocol = proto_name,
-                    bytes_sent = proto_stats["bytes.sent"],
-                    bytes_rcvd = proto_stats["bytes.rcvd"]
+                    bytes_sent = port_value["bytes.out_bytes"],
+                    bytes_rcvd = port_value["bytes.in_bytes"]
                 }, when)
+
+                -- nDPI
+                for proto_name, proto_stats in pairs(port_value["ndpi"]) do
+                    ts_utils.append("flowdev_port:ndpi", {
+                        ifid = ifstats.id,
+                        device = flow_device_ip,
+                        port = port_idx,
+                        protocol = proto_name,
+                        bytes_sent = proto_stats["bytes.sent"],
+                        bytes_rcvd = proto_stats["bytes.rcvd"]
+                    }, when)
+                end
             end
         end
     end

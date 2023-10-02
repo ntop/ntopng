@@ -1023,12 +1023,7 @@ public:
 #ifdef NTOPNG_PRO
   void updateBehaviorStats(const struct timeval *tv);
 
-  virtual void getFlowDevices(lua_State *vm) {
-    if (flow_interfaces_stats)
-      flow_interfaces_stats->luaDeviceList(vm);
-    else
-      lua_newtable(vm);
-  };
+  virtual void getFlowDevices(lua_State *vm);
   virtual void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
     if (flow_interfaces_stats)
       flow_interfaces_stats->luaDeviceInfo(vm, deviceIP, this);
@@ -1036,13 +1031,8 @@ public:
       lua_newtable(vm);
   };
 #endif
-  inline void getSFlowDevices(lua_State *vm) {
-    if (interfaceStats)
-      interfaceStats->luaDeviceList(vm);
-    else
-      lua_newtable(vm);
-  };
-  inline void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+  virtual void getSFlowDevices(lua_State *vm);
+  virtual void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
     if (interfaceStats)
       interfaceStats->luaDeviceInfo(vm, deviceIP);
     else
