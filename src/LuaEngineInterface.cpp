@@ -2999,6 +2999,7 @@ static int ntop_getsflowdevices(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_newtable(vm);
 
   if (!ntop_interface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
