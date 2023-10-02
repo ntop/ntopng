@@ -437,10 +437,15 @@ const add_host_rest = async function (params) {
     ...params
   })
 
+  insert_text = ref(_i18n('scan_host_inserted'));
+
   const result = await ntopng_utility.http_post_request(url, rest_params);
   modal_add.value.close();
   if (result.rsp == true) {
     
+    if (params.is_edit) {
+      insert_text = ref(_i18n('scan_host_updated'));
+    }
     if (params.cidr != null) {
       insert_text.value = insert_text.value.replace("%{host}", `${params.host}/${params.cidr}`);
     } else {

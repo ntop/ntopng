@@ -144,13 +144,27 @@ export const tcp_ports_f = (tcp_ports, row) => {
   return tcp_ports;
 }
 
+export const tcp_port_f = (port, row) => {
+  let label = "";
+
+  if (row.port_label != null && row.port_label != "") {
+    label = port + " ("+row.port_label+")";
+  } else {
+    label = port;
+  }
+
+  return label;
+
+}
+
 export const tcp_ports_list_f = (tcp_ports_list) => {
 
   if (tcp_ports_list != null) {
     const ports = tcp_ports_list.split(",");
     let label = "";
     ports.forEach((item) => {
-      label += `<li>${item}</li>`;
+      if(item != '')
+        label += `<li>${item}</li>`;
     });
 
     return label;
