@@ -2,7 +2,7 @@
 	"id": "open_ports",
 	"data_url": "lua/pro/rest/v2/get/host/scan_port_list.lua",
 	"use_current_page": false,
-	"enable_search": true,
+	"enable_search": false,
 	"paging": false,
 	"display_empty_rows": true,
 	"columns": [

@@ -27,19 +27,24 @@ local function portCheck(tcp_ports_list, port)
 
         return false
     end
+end
 
+
+local function format_epoch(value)
+    if (value.last_scan~= nil and value.last_scan.epoch~= nil) then
+        return formatEpoch(value.last_scan.epoch)
+    else 
+        return value.last_scan.time
+    end
 end
 
 local function format_result(result) 
     local rsp = {}
     if result then
-
         if not isEmptyString(sort) and sort == 'ip' then
             table.sort(result, function (k1, k2) return k1.host < k2.host end )
         end
         for _,value in ipairs(result) do
-
-
             -- FIX ME with udp port check
             if portCheck(value.tcp_ports_list, port) then
                 if (isEmptyString(search_map)) then
@@ -51,38 +56,37 @@ local function format_result(result)
                     if (rsp[#rsp].tcp_ports == 0 and rsp[#rsp].udp_ports == 0) then
                         rsp[#rsp].tcp_ports = rsp[#rsp].num_open_ports
                     end
+                    rsp[#rsp].last_scan.time = format_epoch(value)
                 else 
-                    if (value.host == search_map or string.find(value.host_name,search_map)) then
+                    if (value.host == search_map or string.find(value.host,search_map) or string.find(value.host_name,search_map)) then
                         rsp[#rsp+1] = value
                         rsp[#rsp].num_vulnerabilities_found = format_high_num_value_for_tables(value, "num_vulnerabilities_found")
                         rsp[#rsp].num_open_ports = format_high_num_value_for_tables(value, "num_open_ports")
-                    end
-                end
-            end
-
-            if (rsp[#rsp].last_scan and rsp[#rsp].last_scan.epoch) then
-                rsp[#rsp].last_scan.time = formatEpoch(value.last_scan.epoch)
-            end
-
-            if (not isEmptyString(rsp[#rsp].tcp_ports_list)) then
-                local formatted_ports_list = ""
-                for index,port in ipairs(split(rsp[#rsp].tcp_ports_list,',')) do
-                    local port_label = mapServiceName(port, "tcp") 
-                    if (isEmptyString(port_label)) then
-                        port_label = port
-                    else 
-                        port_label = port .. " ("..port_label..")"
-                    end
-
-                    
-                    if (index == 1) then
-                        formatted_ports_list = port_label
-                    else
-                        formatted_ports_list = formatted_ports_list.. ",".. port_label
+                        rsp[#rsp].last_scan.time = format_epoch(value)
                     end
                 end
 
-                rsp[#rsp].tcp_ports_list = formatted_ports_list
+                if (next(rsp) and not isEmptyString(rsp[#rsp].tcp_ports_list)) then
+                    local formatted_ports_list = ""
+                    for index,port in ipairs(split(rsp[#rsp].tcp_ports_list,',')) do
+                        local port_label = mapServiceName(port, "tcp") 
+                        if (isEmptyString(port_label)) then
+                            port_label = port
+                        else 
+                            port_label = port .. " ("..port_label..")"
+                        end
+    
+                        
+                        if (index == 1) then
+                            formatted_ports_list = port_label
+                        else
+                            formatted_ports_list = formatted_ports_list.. ",".. port_label
+                        end
+                    end
+    
+                    rsp[#rsp].tcp_ports_list = formatted_ports_list
+                end
+                
             end
         end
     end 
