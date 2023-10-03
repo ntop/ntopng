@@ -30,22 +30,27 @@
     </template>
     <template v-slot:extra_buttons>
       <button class="btn btn-link btn-sm"
+              type="button"
               @click="show_store_report_modal" :title="_i18n('dashboard.store')">
         <i class="fa-solid fa-floppy-disk"></i>
       </button>
       <button class="btn btn-link btn-sm"
+              type="button"
               @click="show_open_report_modal" :title="_i18n('dashboard.open')">
         <i class="fa-solid fa-folder-open"></i>
       </button>
       <button class="btn btn-link btn-sm"
+              type="button"
               @click="download_report" :title="_i18n('download')">
         <i class="fa-solid fa-file-arrow-down"></i>
       </button>
       <button class="btn btn-link btn-sm"
+              type="button"
               @click="show_upload_report_modal" :title="_i18n('upload')">
         <i class="fa-solid fa-file-arrow-up"></i>
       </button>
       <button class="btn btn-link btn-sm"
+              type="button"
               @click="print_report" :title="_i18n('dashboard.print')">
         <i class="fas fa-print"></i>
       </button>
@@ -72,6 +77,7 @@
         <template v-slot:box_content>
           <component :is="components_dict[c.component]"
                      :id="c.component_id"
+                     :style="component_custom_style(c)"
                      :epoch_begin="c.epoch_begin"
                      :epoch_end="c.epoch_end"
                      :i18n_title="c.i18n_name"
@@ -84,7 +90,7 @@
           </component>
         </template>
         <template v-slot:box_footer>
-          <span v-if="c.component != 'empty' && c.i18n_name" style="color: lightgray;font-size:12px;">
+          <span v-if="c.component != 'empty' && c.i18n_name && !disable_date" style="color: lightgray;font-size:12px;">
             {{ component_interval(c) }}
           </span>
         </template>
@@ -115,7 +121,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
-import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_events_manager } from "../services/context/ntopng_globals_services";
+import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_events_manager, ntopng_sync } from "../services/context/ntopng_globals_services";
 
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 
@@ -167,41 +173,49 @@ const selected_report_template = ref({});
 
 let components_info = {};
 let data_from_backup = false;
+let printable = false;
 
 const enable_date_time_range_picker = computed(() => {
     return props.context.page == "report";
 });
 
+const disable_date = computed(() => {
+    return selected_report_template.value?.toolbox?.time?.hide == true;
+});
+
 const disable_date_time_picker = computed(() => {
-    const disabled = selected_report_template.value.is_open_report == true;
+    const disabled = selected_report_template.value.is_open_report == true
+          || disable_date.value;
     return disabled;
 });
+
 
 const enable_report_title = computed(() => {
     const enable = selected_report_template.value.is_open_report == true;
     return enable;
 });
 
+const component_custom_style = computed(() => {
+    return (c) => {
+        if (c.params.custom_style != null && (!printable || c.params.custom_print_style)) {
+            return c.params.custom_style;
+        } else if (c.params.custom_print_style && printable == true) {
+            return c.params.custom_print_style;
+        }
+        return "";
+    };
+});
+
 const component_interval = computed(() => {
     return (c) => {
-        const epoch_begin_msec = c.epoch_begin * 1000;
-        const epoch_end_msec = c.epoch_end * 1000;
-
-        const begin_date = ntopng_utility.from_utc_to_server_date_format(epoch_begin_msec, 'DD/MM/YYYY');
-        const begin_time = ntopng_utility.from_utc_to_server_date_format(epoch_begin_msec, 'HH:mm:ss');
-
-        const end_date = ntopng_utility.from_utc_to_server_date_format(epoch_end_msec, 'DD/MM/YYYY');
-        const end_time = ntopng_utility.from_utc_to_server_date_format(epoch_end_msec, 'HH:mm:ss');
-
-        const begin = `${begin_date} ${begin_time}`;
-        const end = (begin_date == end_date) ? `${end_time}` : `${end_date} ${end_time}`;
-
-        return `${begin} - ${end}`;
+        const time_interval_string = get_time_interval_string(c.epoch_begin, c.epoch_end);
+        return time_interval_string;
     };
 });
 
 onBeforeMount(async () => {
     let epoch_interval = null;
+    printable = ntopng_url_manager.get_url_entry("printable") == "true";
     if (props.context.page == "report") {
         epoch_interval = ntopng_utility.check_and_set_default_time_interval(undefined, undefined, true, "min");
         main_epoch_interval.value = epoch_interval;
@@ -215,12 +229,20 @@ onBeforeMount(async () => {
         /* Load a template and build a new report */
         await load_components(epoch_interval, selected_report_template.value.value);
     }
+    if (printable == true) {
+        set_report_title();
+        // await nextTick();
+        // ntopng_sync.ready("print_report");
+    }
 });
 
 onMounted(async () => {
     if (props.context.page == "dashboard") {
         start_dashboard_refresh_loop();
     }
+    // if (printable == true) {
+    //     await ntopng_sync.on_ready("print_report");
+    // }
 });
 
 async function set_templates_list() {
@@ -233,6 +255,7 @@ async function set_templates_list() {
             value: t.name,
             label: t.label,
             disabled: false,
+            toolbox: t.toolbox,
             is_open_report: false,
         };
     });
@@ -258,7 +281,7 @@ function set_components_epoch_interval(epoch_interval) {
     if (epoch_interval) {
         main_epoch_interval.value = epoch_interval;
     }
-
+    
     components.value.forEach((c, i) => {
         update_component_epoch_interval(c, epoch_interval);
     });
@@ -294,6 +317,9 @@ function update_component_epoch_interval(c, epoch_interval) {
 }
 
 function select_report_template() {
+    if (printable == true) {
+        set_report_title();
+    }
     if (selected_report_template.value.is_open_report == true) {
         return;
     }
@@ -345,9 +371,9 @@ const list_reports = async () => {
     let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/list.lua?ifid=${props.context.ifid}`;
     let files_obj = await ntopng_utility.http_request(url);
     let files = ntopng_utility.object_to_array(files_obj);
-
+    
     /* Return array of [{ name: String, epoch: Number }, ...] */
-
+    
     return files;
 }
 
@@ -359,7 +385,7 @@ const load_report = async (content) => {
     };
     let tmp_template = content.template;
     let tmp_components_data = content.data;
-
+    
     let tmp_components_info = {};
     for (let key in tmp_components_data) {
         let info = {
@@ -367,16 +393,16 @@ const load_report = async (content) => {
         };
         tmp_components_info[key] = info;
     }
-
+    
     /* Disable REST calls */    
     data_from_backup = true;
-
+    
     /* Set the cached data from the backup */
     components_info = tmp_components_info;
-
+    
     /* Change the components (template) from the backup */
     components.value = tmp_template;
-
+    
     /* Change the time interval on components */
     set_components_epoch_interval(tmp_epoch_interval);
 }
@@ -399,6 +425,7 @@ function update_templates_list(report_name_to_open) {
         value: report_name_to_open,
         label: _i18n("dashboard.custom"),
         disabled: false,
+        toolbox: null,
         is_open_report: true,
     };
     reports_templates.value.push(t_entry);
@@ -409,13 +436,13 @@ function update_templates_list(report_name_to_open) {
 
 const delete_report = async (file_name) => {
     let success = false;
-
+    
     let params = {
         csrf: props.context.csrf,
         ifid: props.context.ifid,
     	report_name: file_name
     };
-
+    
     let url = `${http_prefix}/lua/pro/rest/v2/delete/report/backup/file.lua`;
     try {
     	let headers = {
@@ -426,18 +453,18 @@ const delete_report = async (file_name) => {
     } catch(err) {
     	console.error(err);
     }
-
+    
     return success;
 }
 
 /* Dump report content - keep in sync with dashboard_utils.build_report (lua) */
 const serialize_report = async (name) => {
-
+    
     let components_data = {};
     for (var key in components_info) {
         components_data[key] = await components_info[key].data;
     }
-
+    
     let content = {
         version: "1.0", // Report dump version
         name: name,
@@ -446,20 +473,20 @@ const serialize_report = async (name) => {
         template: components.value,
         data: components_data
     };
-
+    
     return JSON.stringify(content);
 }
 
 const store_report = async (file_name) => {
     let success = false;
-
+    
     let data = {
         csrf: props.context.csrf,
         ifid: props.context.ifid,
 	report_name: file_name,
         content: await serialize_report(file_name)
     };
-
+    
     let url = `${http_prefix}/lua/pro/rest/v2/add/report/backup/file.lua`;
     try {
 	let headers = {
@@ -470,7 +497,7 @@ const store_report = async (file_name) => {
     } catch(err) {
 	console.error(err);
     }
-
+    
     return success;
 }
 
@@ -487,30 +514,40 @@ async function download_report() {
     document.body.removeChild(element);
 }
 
-// function PrintElem(elem)
-// {
-//     var mywindow = window.open('', 'PRINT', 'height=400,width=600');
-
-//     mywindow.document.write('<html><head><title>' + document.title  + '</title>');
-//     mywindow.document.write('</head><body >');
-//     mywindow.document.write('<h1>' + document.title  + '</h1>');
-//     // mywindow.document.write(document.getElementById(elem).innerHTML);
-//     mywindow.document.write(elem.innerHTML);
-//     mywindow.document.write('</body></html>');
-
-//     mywindow.document.close(); // necessary for IE >= 10
-//     mywindow.focus(); // necessary for IE >= 10*/
-
-//     mywindow.print();
-//     mywindow.close();
-
-//     return true;
-// }
-
 function print_report() {
-    // PrintElem(report_box.value);
-    $(report_box.value).print({mediaPrint: true, timeout: 1000}); 
+    if (printable == true) {
+        window.print();
+        return false;
+    }
+    const print_key = "printable";
+    ntopng_url_manager.set_key_to_url(print_key, true);
+    ntopng_url_manager.open_new_window();
+    ntopng_url_manager.delete_key_from_url(print_key);
+    // $(report_box.value).print({mediaPrint: true, timeout: 1000}); 
     // $(report_box.value).print();
+}
+
+function get_time_interval_string(epoch_begin, epoch_end) {
+    if (disable_date.value == true) { return ""; }
+    
+    const epoch_begin_msec = epoch_begin * 1000;    
+    const epoch_end_msec = epoch_end * 1000;
+    
+    const begin_date = ntopng_utility.from_utc_to_server_date_format(epoch_begin_msec, 'DD/MM/YYYY');
+    const begin_time = ntopng_utility.from_utc_to_server_date_format(epoch_begin_msec, 'HH:mm:ss');
+    
+    const end_date = ntopng_utility.from_utc_to_server_date_format(epoch_end_msec, 'DD/MM/YYYY');
+    const end_time = ntopng_utility.from_utc_to_server_date_format(epoch_end_msec, 'HH:mm:ss');
+    
+    const begin = `${begin_date} ${begin_time}`;
+    const end = (begin_date == end_date) ? `${end_time}` : `${end_date} ${end_time}`;
+    return `${begin} - ${end}`;
+}
+
+function set_report_title() {
+    const epoch_interval = ntopng_status_manager.get_status(true);
+    const time_interval_string = get_time_interval_string(epoch_interval.epoch_begin, epoch_interval.epoch_end);
+    document.title = `ntopng - Report ${selected_report_template.value.label} ${time_interval_string}`;
 }
 
 /* Callback to request REST data from components */
@@ -520,15 +557,10 @@ function get_component_data_func(component) {
         let info = {};
         if (data_from_backup) {
             if (!components_info[component.component_id]) { /* Safety check */
-                console.log("No data for " + component.component_id);
+                console.error("No data for " + component.component_id);
                 info.data = {};
             } else {
-                // console.log("-------------------------");
-                // console.log(_i18n(component.i18n_name));
-                // console.log(component);
                 info = components_info[component.component_id];
-                // console.log(info.data);
-                // console.log("-------------------------");
             }
         } else {
 
@@ -550,7 +582,6 @@ function get_component_data_func(component) {
         
             components_info[component.component_id] = info;
         }
-
         return info.data;
     };
     return get_component_data;
@@ -561,9 +592,11 @@ function get_component_data_func(component) {
 <style scoped>
 @media print {
 .dontprint { display: none; }
-/* .pagebreak { page-break-before: always; } */
-.pagebreak { clear: both; page-break-after: always; }
+.pagebreak-begin { page-break-before: always; }
+.pagebreak-end { page-break-after: always !important; }
+.print-element-class { page-break-inside:avoid !important; page-break-after:auto }
 }
+
 /* @media print and (orientation: portrait) and (max-width: 297mm){ */
 /*     .col-4 { */
 /*         width: 50% !important; */
