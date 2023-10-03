@@ -156,7 +156,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       column_status = list.status_label,
       column_url = list.url,
       column_enabled = list.enabled,
-      column_num_hits = ternary(list.status.num_hits > 0, list.status.num_hits, ''),
+      column_num_hits = ternary(list.status.num_hits > 0, format_utils.formatValue(list.status.num_hits), ''),
       column_update_interval = list.update_interval,
       column_update_interval_label = update_interval_label,
       column_category = "cat_" .. list.category,
