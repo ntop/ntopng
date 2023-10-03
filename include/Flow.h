@@ -1346,6 +1346,7 @@ class Flow : public GenericHashEntry {
   inline bool isPeriodicFlow() { return (is_periodic_flow ? true : false); }
   void swap();
   bool isDPIDetectedFlow();
+  void updateHostBlacklists();
 };
 
 #endif /* _FLOW_H_ */

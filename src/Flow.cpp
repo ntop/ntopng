@@ -881,34 +881,7 @@ void Flow::processExtraDissectedInformation() {
     }
 
     updateSuspiciousDGADomain();
-
-    if (get_custom_category_file()) {
-      char *cat = get_custom_category_file();
-
-      if (isBlacklistedClient()) {
-	if(cli_host)
-	  cli_host->setBlacklistName(cat); /* Standard Interface */
-	else if(cli_ip_addr != NULL) {
-	  /*
-	    View interface
-
-	    Will be updated by ViewInterface::viewed_flows_walker
-	  */
-	}	
-      } else if (isBlacklistedServer()) {
-	if(srv_host)
-	  srv_host->setBlacklistName(cat); /* Standard Interface */
-	else if(srv_ip_addr != NULL) {
-	  /*
-	    View interface
-
-	    Will be updated by ViewInterface::viewed_flows_walker
-	  */
-	}
-      }
-      
-      ntop->incBlacklisHits(std::string(cat));
-    }
+    updateHostBlacklists();   
   }
 
 #if defined(NTOPNG_PRO)
@@ -1275,6 +1248,7 @@ void Flow::setExtraDissectionCompleted() {
           iface->get_ndpi_struct(), get_cli_ip_addr()->get_ipv4(),
           get_srv_ip_addr()->get_ipv4(), &ndpiDetectedProtocol);
       stats.setDetectedProtocol(&ndpiDetectedProtocol);
+      updateHostBlacklists();
     }
   }
 
@@ -1303,6 +1277,38 @@ void Flow::setExtraDissectionCompleted() {
   processExtraDissectedInformation();
 
   extra_dissection_completed = 1;
+}
+
+/* *************************************** */
+
+void Flow::updateHostBlacklists() {
+  if (get_custom_category_file()) {
+    char *cat = get_custom_category_file();
+
+    if (isBlacklistedClient()) {
+      if(cli_host)
+	cli_host->setBlacklistName(cat); /* Standard Interface */
+      else if(cli_ip_addr != NULL) {
+	/*
+	  View interface
+
+	  Will be updated by ViewInterface::viewed_flows_walker
+	*/
+      }	
+    } else if (isBlacklistedServer()) {
+      if(srv_host)
+	srv_host->setBlacklistName(cat); /* Standard Interface */
+      else if(srv_ip_addr != NULL) {
+	/*
+	  View interface
+
+	  Will be updated by ViewInterface::viewed_flows_walker
+	*/
+      }
+    }
+      
+    ntop->incBlacklisHits(std::string(cat));
+  }
 }
 
 /* *************************************** */
