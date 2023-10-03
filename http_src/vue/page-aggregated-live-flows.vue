@@ -226,7 +226,7 @@ const map_table_def_columns = async (columns) => {
     columns = [];
     columns.push(
         {
-            sortable: false,  name: 'flows_icon', data_field: 'client', class: ['text-center'], responsivePriority: 1, render_func: (data_field, rowData) => {
+            sortable: false, title_i18n:'flows_page.live_flows' ,name: 'flows_icon', data_field: 'client', class: ['text-center'], responsivePriority: 1, render_func: (data_field, rowData) => {
                 return format_flows_icon(data_field, rowData)
             }
         });
