@@ -1067,10 +1067,17 @@ class Flow : public GenericHashEntry {
   double getCliRetrPercentage();
   double getSrvRetrPercentage();
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
+#if defined(NTOPNG_PRO)
+#if !defined(HAVE_NEDGE)
   inline void updateProfile() { trafficProfile = iface->getFlowProfile(this); }
+#endif
   inline char *get_profile_name() {
-    return (trafficProfile ? trafficProfile->getName() : (char *)"");
+    return (
+#if !defined(HAVE_NEDGE)
+      trafficProfile ? trafficProfile->getName() : 
+#endif
+      (char *)""
+    );
   }
 #endif
   /* http://bradhedlund.com/2008/12/19/how-to-calculate-tcp-throughput-for-long-distance-links/

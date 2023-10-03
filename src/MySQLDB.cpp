@@ -640,8 +640,7 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf,
                    info_buf ? info_buf : "", json_buf ? json_buf : "",
                    ntop->getPrefs()->get_instance_name(), iface->get_id()
 #ifdef NTOPNG_PRO
-                                                              ,
-                   f->get_profile_name()
+                   , f->get_profile_name()
 #endif
     );
   } else {
@@ -656,8 +655,7 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf,
                  info_buf ? info_buf : "", json_buf ? json_buf : "",
                  ntop->getPrefs()->get_instance_name(), iface->get_id()
 #ifdef NTOPNG_PRO
-                                                            ,
-                 f->get_profile_name()
+                 , f->get_profile_name()
 #endif
         );
   }
