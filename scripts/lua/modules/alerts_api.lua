@@ -449,6 +449,13 @@ end
 
 -- ##############################################
 
+function alerts_api.releaseAllAlerts()
+  local alerts = interface.getEngagedAlerts()
+  alerts_api.releaseEntityAlerts(nil, alerts)
+end
+
+-- ##############################################
+
 -- Convenient method to release multiple alerts on an entity
 function alerts_api.releaseEntityAlerts(entity_info, alerts)
   if(alerts == nil) then
@@ -469,8 +476,15 @@ function alerts_api.releaseEntityAlerts(entity_info, alerts)
      cur_alert_instance:set_score(cur_alert.score)
      cur_alert_instance:set_subtype(cur_alert.subtype)
      cur_alert_instance:set_granularity(alert_consts.sec2granularity(cur_alert.granularity))
+     local entity = entity_info
+     if (entity_info == nil) then
+        entity = {
+          alert_entity = alert_consts.alertEntityById(cur_alert.entity_id),
+          entity_val = cur_alert.entity_val,
+        }
+     end
 
-     cur_alert_instance:release(entity_info)
+     cur_alert_instance:release(entity)
   end
 end
 
