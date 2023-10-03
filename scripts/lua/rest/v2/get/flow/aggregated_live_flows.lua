@@ -115,14 +115,14 @@ for _, data in pairs(aggregated_info or {}) do
    end
 
    -- In case the vlans are 0, put them to nil for semplicity later
-   if data.srv_vlan_id == 0 then
+   --[[if data.srv_vlan_id == 0 then
       data.srv_vlan_id = nil
    end
 
    if data.cli_vlan_id == 0 then
       data.cli_vlan_id = nil
    end
-
+   --]]
    local response = {}
    if (criteria_type_id == 1) then
       add_app_proto = true
