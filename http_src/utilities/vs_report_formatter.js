@@ -163,8 +163,12 @@ export const tcp_ports_list_f = (tcp_ports_list) => {
     const ports = tcp_ports_list.split(",");
     let label = "";
     ports.forEach((item) => {
-      if(item != '')
+      if(item != '') {
+        let port_details = item.split(" ");
+        port_details[0] += "/tcp";
+        item = port_details.join(" ");
         label += `<li>${item}</li>`;
+      }
     });
 
     return label;
