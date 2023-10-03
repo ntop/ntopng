@@ -519,10 +519,15 @@ function print_report() {
         window.print();
         return false;
     }
-    const print_key = "printable";
-    ntopng_url_manager.set_key_to_url(print_key, true);
-    ntopng_url_manager.open_new_window();
-    ntopng_url_manager.delete_key_from_url(print_key);
+
+    let url_params_obj = ntopng_url_manager.get_url_object();
+    url_params_obj.printable = true;
+    const params = ntopng_url_manager.obj_to_url_params(url_params_obj);
+    let url = `${http_prefix}/lua/pro/reportng.lua?${params}`;
+    //const print_key = "printable";
+    //ntopng_url_manager.set_key_to_url(print_key, true);
+    ntopng_url_manager.open_new_window(url);
+    //ntopng_url_manager.delete_key_from_url(print_key);
     // $(report_box.value).print({mediaPrint: true, timeout: 1000}); 
     // $(report_box.value).print();
 }
@@ -604,6 +609,7 @@ function get_component_data_func(component) {
 /*     } */
 /* } */
 @page {
+    /* size: A3 landscape; */
     /* position:absolute; width:100%; top:0;left:0;right:0;bottom:0; padding:0; margin:-1px; */
 }
 
