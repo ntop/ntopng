@@ -1305,9 +1305,7 @@ void Flow::updateHostBlacklists() {
 	  Will be updated by ViewInterface::viewed_flows_walker
 	*/
       }
-    }
-      
-    ntop->incBlacklisHits(std::string(cat));
+    }      
   }
 }
 

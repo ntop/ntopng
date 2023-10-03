@@ -2694,6 +2694,8 @@ void Host::setBlacklistName(char *name) {
 
   blacklist_name = strdup(name);
 
+  ntop->incBlacklisHits(std::string(name));
+  
   if(ntop->getPrefs()->collectBlackListStats()) {
     char key[128], theDate[32], ip_buf[64];
     time_t theTime = time(NULL);
