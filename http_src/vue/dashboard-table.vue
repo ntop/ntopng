@@ -3,7 +3,7 @@
 -->
 
 <template>
-<div class="table-responsive" style="margin-left:-1rem;margin-right:-1rem;" :style="custom_style">
+<div class="table-responsive" style="margin-left:-1rem;margin-right:-1rem;">
   <BootstrapTable
     :id="table_id" 
     :columns="columns"
@@ -38,13 +38,6 @@ const props = defineProps({
     max_height: Number,  /* Component Hehght (4, 8, 12)*/
     params: Object,      /* Component-specific parameters from the JSON template definition */
     get_component_data: Function /* Callback to request data (REST) */
-});
-
-const custom_style = computed(() => {
-    if (props.params.custom_style) {
-        return props.params.custom_style;
-    }
-    return "";
 });
 
 const columns = computed(() => {
