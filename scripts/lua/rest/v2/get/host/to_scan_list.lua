@@ -9,6 +9,7 @@ require "lua_utils"
 local rest_utils = require "rest_utils"
 local vs_utils = require "vs_utils"
 local search_map = _GET["map_search"]
+local format_utils = require "format_utils"
 
 local port = _GET["port"]
 
@@ -32,7 +33,7 @@ end
 
 local function format_epoch(value)
     if (value.last_scan~= nil and value.last_scan.epoch~= nil) then
-        return formatEpoch(value.last_scan.epoch)
+        return format_utils.formatPastEpochShort(value.last_scan.epoch)
     else 
         return value.last_scan.time
     end
