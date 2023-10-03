@@ -315,6 +315,23 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
             <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
           if disableAutocomplete then print(" autocomplete=\"off\"") end
         print [[/>]] print(extra.append or "") print[[
+            <span id="input_error_]] print(key) print[[" class="text-danger" hidden>!</span>
+            <script>
+            $("#]] print("id_input_" .. key) print[[").on( "focusout", function(tmp) {
+              const min_value = Number(this.getAttribute('min'));
+              const max_value = Number(this.getAttribute('max'));
+              const value = Number(this.value);
+
+              /* Incorrect value, text danger class! */
+              if(value < min_value || value > max_value) {
+                this.classList.add('ntopng-input-error');
+                $("#]] print("input_error_" .. key) print[[").removeAttr('hidden');
+              } else {
+                this.classList.remove('ntopng-input-error');
+                $("#]] print("input_error_" .. key) print[[").attr('hidden', true);
+              }
+            });
+            </script>
           </td>
         </tr>
         <tr>

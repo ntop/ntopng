@@ -921,3 +921,7 @@ table.dataTable thead th.sorting_asc::after {
   table-layout: auto; 
   white-space: nowrap;
 }
+
+.ntopng-input-error {
+  border-color: rgb(220,53,69);
+}
