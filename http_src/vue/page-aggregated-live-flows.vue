@@ -114,7 +114,7 @@ onBeforeMount(async () => {
 
 onMounted(async () => {
     load_table_filters_overview();
-
+    
 });
 
 function init_selected_criteria() {
@@ -131,7 +131,7 @@ async function update_criteria() {
 
 const get_extra_params_obj = () => {
     /*let params = get_url_params(active_page, per_page, columns_wrap, map_search, first_get_rows);
-    set_params_in_url(params);*/
+      set_params_in_url(params);*/
     let params = get_url_params();
     return params;
 };
@@ -145,7 +145,7 @@ function set_filter_array_label() {
         if (el.basic_label == null) {
             el.basic_label = el.label;
         }
-
+        
         const url_entry = ntopng_url_manager.get_url_entry(el.id)
         if (url_entry != null) {
             el.options.forEach((option) => {
@@ -189,7 +189,7 @@ async function load_table_filters_array(action, filter) {
     };
     let ifid_param_for_url = ntopng_url_manager.obj_to_url_params(ifid_param);
     
-
+    
     let url_params = ntopng_url_manager.get_url_params();
     const url = `${http_prefix}/lua/rest/v2/get/flow/aggregated_live_flows_filters.lua?action=${action}&${url_params}&${ifid_param_for_url}`;
     let res = await ntopng_utility.http_request(url);
@@ -211,7 +211,7 @@ function get_url_params() {
         aggregation_criteria: ntopng_url_manager.get_url_entry("aggregation_criteria") || selected_criteria.value.param,
         host: ntopng_url_manager.get_url_entry("host") || props.context.host,
     };    
-
+    
     return actual_params;
 }
 
@@ -223,10 +223,10 @@ const map_config = (config) => {
 
 /// methods to get columns config
 const map_table_def_columns = async (columns) => {
-    columns = [];
+    columns = [];    
     columns.push(
         {
-            sortable: false, title_i18n:'flows_page.live_flows' ,name: 'flows_icon', data_field: 'client', class: ['text-center'], responsivePriority: 1, render_func: (data_field, rowData) => {
+            sortable: false, title_i18n:'flows_page.live_flows' ,name: 'flows_icon', data_field: 'live_flows', class: ['text-center'], responsivePriority: 1, render_func: (data_field, rowData) => {
                 return format_flows_icon(data_field, rowData)
             }
         });
