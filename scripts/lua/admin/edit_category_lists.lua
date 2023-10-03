@@ -276,7 +276,7 @@ print[[],
     ], rowCallback: function(row, data) {
       var list_name = data.column_name;
       var enabled = data.column_enabled;
-      var actions_td_idx = 8;
+      var actions_td_idx = 9;
 
       datatableAddActionButtonCallback.bind(row)(actions_td_idx, "prepareEditListModal('" + list_name + "'); $('#editListModal').modal('show');", "<i class='fas fa-edit'></i>");
 
