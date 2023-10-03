@@ -324,12 +324,19 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
               /* Incorrect value, text danger class! */
               if(value < min_value || value > max_value) {
+                this.classList.add('text-danger');
                 this.classList.add('ntopng-input-error');
                 $("#]] print("input_error_" .. key) print[[").removeAttr('hidden');
               } else {
+                this.classList.remove('text-danger');
                 this.classList.remove('ntopng-input-error');
                 $("#]] print("input_error_" .. key) print[[").attr('hidden', true);
               }
+            });
+            $("#]] print("id_input_" .. key) print[[").on( "focusin", function(tmp) {
+              this.classList.remove('text-danger');
+              this.classList.remove('ntopng-input-error');
+              $("#]] print("input_error_" .. key) print[[").attr('hidden', true);
             });
             </script>
           </td>
