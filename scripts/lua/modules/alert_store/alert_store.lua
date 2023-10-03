@@ -941,23 +941,28 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
 
     -- TODO handle fields (e.g. add entity value to WHERE)
 
-    if ((fields == "*" and not (ntop.isClickHouseEnabled()))) then
-        -- SQLite needs BLOB conversion to HEX
-        fields = "*"
-        if table_name == 'flow_alerts' then
-            fields = fields .. ", hex(alerts_map) alerts_map"
-        end
-    end
-
     -- Select everything by default
     fields = fields or '*'
 
-    if not self:_valid_fields(fields) then
-        return res
+    local select_all = false
+
+    if fields == '*' then
+        select_all = true
+    else
+        if not self:_valid_fields(fields) then
+            return res
+        end
     end
 
-    if self._alert_entity == alert_entities.flow and fields == "*" then
-        fields = fields .. ", (srv2cli_bytes + cli2srv_bytes AS total_bytes)"
+    if self._alert_entity == alert_entities.flow and select_all then
+        fields = fields .. ", (srv2cli_bytes + cli2srv_bytes) total_bytes"
+    end
+
+    if select_all and not (ntop.isClickHouseEnabled()) then
+        -- SQLite needs BLOB conversion to HEX
+        if table_name == 'flow_alerts' then
+            fields = fields .. ", hex(alerts_map) alerts_map"
+        end
     end
 
     where_clause = self:build_where_clause()
