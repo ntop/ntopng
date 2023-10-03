@@ -881,7 +881,7 @@ void Flow::processExtraDissectedInformation() {
     }
 
     updateSuspiciousDGADomain();
-    updateHostBlacklists();   
+    // updateHostBlacklists();   
   }
 
 #if defined(NTOPNG_PRO)
