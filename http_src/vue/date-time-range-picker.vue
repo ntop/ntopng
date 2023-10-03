@@ -32,32 +32,32 @@
                     </div>
 
                     <div class="d-flex align-items-center ms-2">
-                        <button :disabled="!enable_apply || wrong_date || wrong_min_interval" @click="apply" class="btn btn-sm btn-primary">{{
+                        <button :disabled="!enable_apply || wrong_date || wrong_min_interval" @click="apply" type="button" class="btn btn-sm btn-primary">{{
                             i18n('apply') }}</button>
 
                         <div class="btn-group">
-                            <button :disabled="disabled_date_picker" @click="jump_time_back()" class="btn btn-sm btn-link" ref="btn-jump-time-back"
+                            <button :disabled="disabled_date_picker" @click="jump_time_back()" type="button" class="btn btn-sm btn-link" ref="btn-jump-time-back"
                                 :title="i18n('date_time_range_picker.btn_move_left')">
                                 <i class="fas fa-long-arrow-alt-left"></i>
                             </button>
-                            <button :disabled="disabled_date_picker" @click="jump_time_ahead()" class="btn btn-sm btn-link me-2" ref="btn-jump-time-ahead"
+                            <button :disabled="disabled_date_picker" @click="jump_time_ahead()" type="button" class="btn btn-sm btn-link me-2" ref="btn-jump-time-ahead"
                                 :title="i18n('date_time_range_picker.btn_move_right')">
                                 <i class="fas fa-long-arrow-alt-right"></i>
                             </button>
-                            <button :disabled="disabled_date_picker" @click="zoom(2)" class="btn btn-sm btn-link" ref="btn-zoom-in"
+                            <button :disabled="disabled_date_picker" @click="zoom(2)" type="button" class="btn btn-sm btn-link" ref="btn-zoom-in"
                                 :title="i18n('date_time_range_picker.btn_zoom_in')">
                                 <i class="fas fa-search-plus"></i>
                             </button>
-                            <button :disabled="disabled_date_picker" @click="zoom(0.5)" class="btn btn-sm btn-link" ref="btn-zoom-out"
+                            <button :disabled="disabled_date_picker" @click="zoom(0.5)" type="button" class="btn btn-sm btn-link" ref="btn-zoom-out"
                                 :title="i18n('date_time_range_picker.btn_zoom_out')">
                                 <i class="fas fa-search-minus"></i>
                             </button>
-                            <button :disabled="history_last_status == null || disabled_date_picker" @click="apply_status_by_history()"
+                            <button :disabled="history_last_status == null || disabled_date_picker" type="button" @click="apply_status_by_history()"
                                 class="btn btn-sm btn-link" :title="i18n('date_time_range_picker.btn_undo')">
                                 <i class="fas fa-undo"></i>
                             </button>
                             <button :disabled="select_time_value == 'custom' || disabled_date_picker" @click="change_select_time()"
-                                class="btn btn-sm btn-link" :title="i18n('date_time_range_picker.btn_refresh')">
+                                type="button" class="btn btn-sm btn-link" :title="i18n('date_time_range_picker.btn_refresh')">
                                 <i class="fas fa-sync"></i>
                             </button>
                             <slot name="extra_buttons"></slot>
