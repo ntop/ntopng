@@ -24,8 +24,15 @@
 /* *************************************************** */
 
 void BlacklistStats::incHits(std::string name) {
-  std::unordered_map<std::string, BlacklistUsageStats>::iterator it =
-      stats.find(name);
+  std::unordered_map<std::string, BlacklistUsageStats>::iterator it;
+
+   /*
+     Necessary as the core can increase the number of hits
+     while lua can read values
+   */
+  lock.wrlock(__FILE__, __LINE__);
+  
+  it = stats.find(name);
 
   if (it == stats.end()) {
     BlacklistUsageStats l;
@@ -33,18 +40,28 @@ void BlacklistStats::incHits(std::string name) {
     stats[name] = l;
   } else
     it->second.incHits();
+
+  lock.unlock(__FILE__, __LINE__);
 }
 
 /* *************************************************** */
 
 u_int32_t BlacklistStats::getNumHits(std::string name) {
-  std::unordered_map<std::string, BlacklistUsageStats>::iterator it =
-      stats.find(name);
+  std::unordered_map<std::string, BlacklistUsageStats>::iterator it;
+  u_int32_t ret;
+  
+  lock.rdlock(__FILE__, __LINE__);
+  
+  it = stats.find(name);
 
   if (it == stats.end())
-    return (0);
+    ret = 0;
   else
-    return (it->second.getNumHits());
+    ret = it->second.getNumHits();
+
+  lock.unlock(__FILE__, __LINE__);
+
+  return(ret);
 }
 
 /* *************************************************** */
@@ -52,8 +69,11 @@ u_int32_t BlacklistStats::getNumHits(std::string name) {
 void BlacklistStats::lua(lua_State* vm) {
   lua_newtable(vm);
 
-  for (std::unordered_map<std::string, BlacklistUsageStats>::iterator it =
-           stats.begin();
+  lock.rdlock(__FILE__, __LINE__);
+
+  for (std::unordered_map<std::string, BlacklistUsageStats>::iterator it = stats.begin();
        it != stats.end(); ++it)
     lua_push_int32_table_entry(vm, it->first.c_str(), it->second.getNumHits());
+
+  lock.unlock(__FILE__, __LINE__);
 }

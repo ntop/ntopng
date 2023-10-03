@@ -39,7 +39,7 @@ class BlacklistUsageStats {
 
  public:
   BlacklistUsageStats() {
-    num_hits = 0;
+    num_hits = 1;
 #ifdef FULL_BL_STATS
     num_true_positives = num_false_positives = num_false_negatives =
         num_true_negatives = 0;

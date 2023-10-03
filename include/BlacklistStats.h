@@ -24,6 +24,7 @@
 
 class BlacklistStats {
  private:
+  RwLock lock;
   std::unordered_map<std::string, BlacklistUsageStats> stats;
 
  public:

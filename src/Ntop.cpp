@@ -4050,6 +4050,8 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
 
 /* ******************************************* */
 
-void Ntop::incBlacklisHits(std::string listname) { blStats.incHits(listname); }
+void Ntop::incBlacklisHits(std::string listname) {
+  blStats.incHits(listname);
+}
 
 /* ******************************************* */

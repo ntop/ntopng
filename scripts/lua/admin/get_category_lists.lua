@@ -119,6 +119,8 @@ for list_name, list in pairs(lists) do
     sort_to_key[list_name] = list.status_label
   elseif sortColumn == "column_update_interval_label" then
     sort_to_key[list_name] = list.update_interval
+  elseif sortColumn == "column_num_hits" then
+    sort_to_key[list_name] = list.status.num_hits
   else
     -- default
     sort_to_key[list_name] = list_name
@@ -128,6 +130,8 @@ for list_name, list in pairs(lists) do
 end
 
 -- ################################################
+
+local stats = ntop.getBlacklistStats()
 
 local res = {}
 local i = 0
@@ -154,6 +158,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       column_status = list.status_label,
       column_url = list.url,
       column_enabled = list.enabled,
+      column_num_hits = stats[list.name] or 0,
       column_update_interval = list.update_interval,
       column_update_interval_label = update_interval_label,
       column_category = "cat_" .. list.category,

@@ -1,5 +1,5 @@
 --
--- (C) 2021 - ntop.org
+-- (C) 2021-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -177,6 +177,7 @@ if(stats) then
     print(i18n("category_lists.loading_stats", {
       when = format_utils.formatPastEpochShort(stats.begin),
       num_hosts = stats.num_hosts,
+      -- num_hits = stats.num_hits,
       num_ips = stats.num_ips,
       num_ja3 = stats.num_ja3,
       duration = secondsToTime(stats.duration),
@@ -187,11 +188,7 @@ end
 
 print[[
 </div>
-]]
 
-
-
-print[[
 <script>
   var url_update = "]] print(getPageUrl(ntop.getHttpPrefix()..[[/lua/admin/get_category_lists.lua]], page_params)) print[[";
 
@@ -251,6 +248,13 @@ print[[],
       }, {
         title: "]] print(i18n("graphs.metrics_prefixes.num_hosts")) print[[",
         field: "column_num_hosts",
+        sortable: true,
+        css: {
+            textAlign: 'center',
+        }
+      }, {
+        title: "]] print(i18n("graphs.metrics_prefixes.num_hits")) print[[",
+        field: "column_num_hits",
         sortable: true,
         css: {
             textAlign: 'center',

@@ -3932,6 +3932,7 @@ local lang = {
       ["num_devices"] = "Num Devices",
       ["num_flows"] = "Num Flows",
       ["num_hosts"] = "Num Hosts",
+      ["num_hits"] = "Num Hits",
       ["num_http_hosts"] = "Num HTTP Hosts",
       ["num_ms_rtt"] = "RTT ms",
       ["packets"] = "Packets",
