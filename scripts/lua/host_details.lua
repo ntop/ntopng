@@ -1999,8 +1999,7 @@ setInterval(update_icmp_table, 5000);
             for _, vlan in pairsByField(tmp_vlans or {}, 'label', asc_insensitive) do
                 vlans[#vlans + 1] = vlan
             end
-
-            template.render("pages/aggregated_live_flows.template", {
+            local context = {
                 ifid = ifId,
                 host = host_ip,
                 vlans = json.encode(vlans),
@@ -2012,7 +2011,12 @@ setInterval(update_icmp_table, 5000);
                 start = 0,
                 length = 10,
                 csrf = ntop.getRandomCSRFValue()
-            })
+            }
+        
+            local json_context = json.encode(context)
+            template.render("pages/vue_page.template", { vue_page_name = "PageAggregatedLiveFlows", page_context = json_context })
+         
+            
             print [[ 
                          </div>
 

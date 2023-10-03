@@ -3598,7 +3598,7 @@ local lang = {
     ["flows"] = "%{filter} Flows",
     ["flows_as_client"] = "Flows As Client",
     ["flows_as_server"] = "Flows As Server",
-    ["host"] = " [ Host <a href=`${http_prefix}/lua/host_details.lua?host=%{host}`>%{host_name}</a> ]",
+    ["host"] = " [ Host <a href='%{base_url}/lua/host_details.lua?host=%{host}'>%{host_name}</a> ]",
     ["host_pool_id"] = "Host Pool %{key}",
     ["hosts"] = "Hosts",
     ["icmp_only"] = "ICMP Only",
