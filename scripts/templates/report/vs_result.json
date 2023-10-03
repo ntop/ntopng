@@ -25,7 +25,8 @@
 				"length" : 20,
 				"sort": "ip"
 			 },
-			 "custom_style_" : "overflow:auto;max-height:288px;", 
+                    "custom_style" : "overflow:auto;max-height:30rem;",
+                    "custom_print_style" : "",
 		    "table_type" : "vs_scan_result",
 			 "columns" : [
 				{
@@ -125,7 +126,8 @@
 				"sort":"port"
 			 
 			 },
-			 "custom_style_" : "overflow:auto;max-height:288px;", 
+                    "custom_style" : "overflow:auto;max-height:30rem;",
+                    "custom_print_style" : "",
 			 "table_type" : "vs_scan_result",
 			 "columns" : [
 				
