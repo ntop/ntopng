@@ -427,6 +427,13 @@ export const ntopng_url_manager = function() {
             return obj;
         },
 
+        open_new_window: function(url) {
+            if (url == null) {
+                url = window.location;
+            }
+            window.open(url);
+        },
+
         reload_url: function() {
             window.location.reload();
         },
