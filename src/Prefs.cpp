@@ -520,10 +520,9 @@ void usage() {
 
 	 "[--packet-filter|-B] <filter>       | Ingress packet filter (BPF "
 	 "filter)\n"
-#ifndef HAVE_NEDGE
 	 "[--dump-flows|-F] <mode>            | Dump expired flows. Mode:\n"
 	 "                                    |\n"
-#endif
+#ifndef HAVE_NEDGE
 	 "                                    | es            Dump in "
 	 "ElasticSearch database\n"
 	 "                                    |   Format:\n"
@@ -540,6 +539,8 @@ void usage() {
 	 "                                    |   used until ElasticSearch "
 	 "version 6 and ignored in newer versions.\n"
 	 "                                    |\n"
+#endif
+#ifndef HAVE_NEDGE
 #if !defined(WIN32) && !defined(__APPLE__)
 	 "                                    | syslog        Dump in syslog\n"
 	 "                                    |   Format:\n"
@@ -551,6 +552,7 @@ void usage() {
 	 "                                    |   <facility-text> is "
 	 "case-insensitive.\n"
 	 "                                    |\n"
+#endif
 #endif
 #ifdef NTOPNG_PRO
 	 ,
@@ -573,6 +575,7 @@ void usage() {
 	 "                                    |   -F "
 	 "\"clickhouse;127.0.0.1@%u,%u;ntopng;default;\"\n"
 	 "                                    |\n"
+#ifndef HAVE_NEDGE
 	 "                                    | clickhouse-cluster    Dump in "
 	 "ClickHouse Cluster (Enterprise M/L/XL)\n"
 	 "                                    |   Format:\n"
@@ -586,13 +589,18 @@ void usage() {
 	 "                                    |   -F "
 	 "\"clickhouse-cluster;127.0.0.1@%u,%u;ntopng;default;ntop_cluster\"\n"
 	 "                                    |\n"
+#endif
 	 ,
-	 CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT,
 	 CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
+#ifndef HAVE_NEDGE
+         ,
+	 CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
+#endif
 	 );
 #endif
 
   printf(
+#ifndef HAVE_NEDGE
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
 	 "                                    | kafka   Dump to Kafka (Enterprise "
 	 "M/L/XL)\n"
@@ -610,7 +618,9 @@ void usage() {
 	 "the list of supported kafka configuration options.\n"
 	 "                                    |\n"
 #endif
+#endif
 
+#ifndef HAVE_NEDGE
 #ifdef HAVE_MYSQL
 	 "                                    | mysql         Dump in MySQL "
 	 "database\n"
@@ -619,6 +629,7 @@ void usage() {
 	 "mysql;<host[@port]|socket>;<dbname><user>;<pw>\n"
 	 "                                    |   mysql;127.0.0.1;ntopng;root;\n"
 	 "                                    |\n"
+#endif
 #endif
 	 "[--export-flows|-I] <endpoint>      | Export flows with the specified "
 	 "endpoint\n"

@@ -1087,7 +1087,6 @@ bool NetworkInterface::enqueueHostAlert(HostAlert *alert) {
 
 int NetworkInterface::dumpFlow(time_t when, Flow *f) {
   int rc = -1;
-#ifndef HAVE_NEDGE
 
   /* Asynchronous dump via a thread */
   if (f->get_state() == hash_entry_state_idle) {
@@ -1131,7 +1130,6 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
       incNumQueueDroppedFlows(1);
     }
   }
-#endif
 
   return (rc);
 }
