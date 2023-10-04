@@ -147,6 +147,7 @@ export const tcp_ports_f = (tcp_ports, row) => {
 export const tcp_port_f = (port, row) => {
   let label = "";
 
+  port = port + "/tcp";
   if (row.port_label != null && row.port_label != "") {
     label = port + " ("+row.port_label+")";
   } else {
