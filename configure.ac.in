@@ -339,6 +339,11 @@ AC_ARG_WITH(json-c-static,
     [PKG_CHECK_MODULES(JSON, json-c, [], [AC_MSG_ERROR(Please install libjson-c-dev package prerequisite)])]
 )
 
+if test -x /bin/freebsd-version; then
+ FREEBSD_VERSION=`freebsd-version | cut -f 1 -d '.'`
+fi
+
+if test "${FREEBSD_VERSION}" != "14"; then
 pkg-config --exists libssl
 if test "$?" -ne 1; then
   AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
@@ -372,7 +377,7 @@ else
     exit -1
   fi
 fi
-
+fi
 
 AC_MSG_CHECKING([PF_RING nBPF])
 NBPF_HOME=${PWD}/../PF_RING/userland/nbpf
@@ -751,11 +756,13 @@ if test $SYSTEM != "FreeBSD"; then
     echo "Building without support for MySQL libraries."
   fi
 else
-  dnl> FreeBSD
-  if test -f "/usr/local/lib/mysql/libmysqlclient.a"; then
-    MYSQL_LIB=/usr/local/lib/mysql/libmysqlclient.a
-    MYSQL_INC="-I /usr/local/include/mysql/"
-    AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
+  if test "${FREEBSD_VERSION}" != "14"; then
+   dnl> FreeBSD
+   if test -f "/usr/local/lib/mysql/libmysqlclient.a"; then
+     MYSQL_LIB=/usr/local/lib/mysql/libmysqlclient.a
+     MYSQL_INC="-I /usr/local/include/mysql/"
+     AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
+   fi
   fi
 fi
 
@@ -830,7 +837,6 @@ fi
 if test $SYSTEM = "Darwin"; then
    MYSQL_LIB=`echo $MYSQL_LIB | sed 's/openssl@1.1/openssl@1.1/g'`
 fi
-
 
 PWD=${HERE}
 AC_DEFINE_UNQUOTED(PACKAGE_RELEASE, "r$GIT_RELEASE", [GIT release of this package])
