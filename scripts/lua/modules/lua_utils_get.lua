@@ -1204,7 +1204,8 @@ function getHttpHost()
     local ntopng_protocol = "http://"
     local ntopng_port = ntopng_info.http_port
 
-    if ntopng_info.https_port and tonumber(ntopng_info.https_port) ~= 0 then
+    if not ntop.isnEdge()
+       and ntopng_info.https_port and tonumber(ntopng_info.https_port) ~= 0 then
         ntopng_protocol = "https://"
         ntopng_port = ntopng_info.https_port
     end
