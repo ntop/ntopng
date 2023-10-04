@@ -17,7 +17,6 @@
 	    "render_v_node_type": "button_list",
 	    "button_def_array": [
 		{ "id": "info", "icon": "fas fa-sm fa fa-search-plus", "class":["link-button"], "title_i18n": "info", "event_id": "click_button_info" },
-                { "id": "flow_alerts", "icon": "fas fa-sm fa-exclamation-triangle", "class":["link-button"], "title_i18n": "show_alerts.flow_alerts", "event_id": "click_button_flow_alerts" },
                 { "id": "pcap_download", "icon": "fas fa-sm fa-download", "class":["link-button"], "title_i18n": "traffic_recording.pcap_download", "event_id": "click_button_pcap_download"},
 				{ "id": "flow_historical", "icon": "fas fa-sm fa-stream", "title_i18n": "flows", "class":["link-button"], "event_id": "click_button_historical_flows" }
 	    ]
