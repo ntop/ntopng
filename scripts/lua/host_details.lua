@@ -833,7 +833,7 @@ else
                           i18n("details.label_system_ip") .. '\"></i></span>')
             end
             if (host["is_blacklisted"] == true) then
-                print(' <span class="badge bg-danger" style="cursor: help;">' .. i18n("details.label_blacklisted_host"))
+                print(' <span class="badge bg-danger">' .. i18n("details.label_blacklisted_host"))
 
                 if (host.blacklist_name ~= nil) then
                     print(' (' .. host.blacklist_name .. ')')
