@@ -543,8 +543,13 @@ function alert_consts.getAlertType(alert_key, alert_entity_id)
    if alerts_by_id[alert_entities.flow.entity_id][alert_key] then
       return alerts_by_id[alert_entities.flow.entity_id][alert_key]
    end
+   
+   -- Fallback 02: if no alert_entity_id is passed, alert_entity is assumed to be host.
+   if alerts_by_id[alert_entities.host.entity_id][alert_key] then
+      return alerts_by_id[alert_entities.host.entity_id][alert_key]
+   end
 
-   -- Fallback 02: if no alert_entity_id is passed, alert_entity is assumed to be other.
+   -- Fallback 03: if no alert_entity_id is passed, alert_entity is assumed to be other.
    if alerts_by_id[alert_entities.other.entity_id][alert_key] then
       return alerts_by_id[alert_entities.other.entity_id][alert_key]
    end
