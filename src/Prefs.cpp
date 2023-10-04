@@ -1752,10 +1752,11 @@ int Prefs::setOption(int optkey, char *optarg) {
   } break;
 
   case 'F':
-#ifndef HAVE_NEDGE
     if (!optarg)
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "No connection specified, -F ignored");
+
+#ifndef HAVE_NEDGE
     else if ((strncmp(optarg, "es", 2) == 0) && (strlen(optarg) > 3)) {
       char *elastic_index_type = NULL, *elastic_index_name = NULL,
 	*tmp = NULL, *elastic_url = NULL, *elastic_user = NULL,
@@ -1811,6 +1812,9 @@ int Prefs::setOption(int optkey, char *optarg) {
 				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
     }
+#endif /* HAVE_NEDGE */
+
+#ifndef HAVE_NEDGE
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
     else if ((strncmp(optarg, "kafka", 5) == 0) && (strlen(optarg) > 3)) {
       char *conf = strdup(&optarg[5]);
@@ -1857,6 +1861,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 				     TRACE_WARNING, "Discarding -F: unable to parse kafka options");
     }
 #endif
+#endif /* HAVE_NEDGE */
+
     else if ((!strncmp(optarg, "mysql", 5)) ||
 	     (!strncmp(optarg, "clickhouse", 10)) ||
 	     (!strncmp(optarg, "clickhouse-cluster", 18))) {
@@ -2013,6 +2019,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 				   "-F mysql/-F clickhouse not available: missing MySQL support in ntopng");
 #endif
     }
+
+#ifndef HAVE_NEDGE
 #if !defined(WIN32) && !defined(__APPLE__)
     else if (!strncmp(optarg, "syslog", strlen("syslog"))) {
       char *flows_syslog_facility_text;
@@ -2038,7 +2046,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 				   "Dumping flows to syslog in JSON format");
     }
 #endif
-#endif
+#endif /* HAVE_NEDGE */
+
     break;
 
 #ifndef WIN32
@@ -2966,12 +2975,13 @@ time_t Prefs::pro_edition_demo_ends_at() {
 void Prefs::validate() {
   /* Perform here post-initialization validations */
 
-  if (is_enterprise_m_edition() /* M or higher */) {
+  if (is_enterprise_m_edition() /* M or higher */
+      || is_nedge_enterprise_edition()) {
     ; /* All good */
   } else if (dump_flows_on_clickhouse) {
     ntop->getTrace()->traceEvent(
 				 TRACE_WARNING,
-				 "-F clickhouse is available only from Enterprise M and up");
+				 "-F clickhouse is available only on Enterprise");
     dump_flows_on_clickhouse = dump_flows_on_mysql = false;
   }
 }

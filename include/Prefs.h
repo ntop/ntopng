@@ -289,7 +289,7 @@ class Prefs {
   inline bool do_dump_flows_on_es() { return (dump_flows_on_es); };
   inline bool do_dump_flows_on_mysql() { return (dump_flows_on_mysql); };
   inline bool do_dump_flows_on_clickhouse() {
-    return (is_enterprise_m_edition() && dump_flows_on_clickhouse);
+    return ((is_enterprise_m_edition() || is_nedge_enterprise_edition()) && dump_flows_on_clickhouse);
   };
   inline bool do_dump_alerts_on_clickhouse() {
     return (do_dump_flows_on_clickhouse());

@@ -723,7 +723,6 @@ else
 fi
 
 if test $SYSTEM != "FreeBSD"; then
- if test "${with_nedge+set}" != set; then
   AC_CHECK_TOOL(MARIADB, mariadb_config)
   if test "x$ac_cv_prog_ac_ct_MARIADB" = "xmariadb_config"; then
     MYSQLTOOL="mariadb_config"
@@ -751,7 +750,6 @@ if test $SYSTEM != "FreeBSD"; then
   else
     echo "Building without support for MySQL libraries."
   fi
- fi
 else
   dnl> FreeBSD
   if test -f "/usr/local/lib/mysql/libmysqlclient.a"; then
