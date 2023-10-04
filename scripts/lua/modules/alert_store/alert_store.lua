@@ -954,14 +954,15 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
         end
     end
 
-    if self._alert_entity == alert_entities.flow and select_all then
-        fields = fields .. ", (srv2cli_bytes + cli2srv_bytes) total_bytes"
-    end
+    if select_all then
+        if self._alert_entity == alert_entities.flow then
+            -- Compute total_bytes
+            fields = fields .. ", (srv2cli_bytes + cli2srv_bytes) total_bytes"
 
-    if select_all and not (ntop.isClickHouseEnabled()) then
-        -- SQLite needs BLOB conversion to HEX
-        if table_name == 'flow_alerts' then
-            fields = fields .. ", hex(alerts_map) alerts_map"
+            -- SQLite needs BLOB conversion to HEX
+            if not ntop.isClickHouseEnabled() then
+                fields = fields .. ", hex(alerts_map) alerts_map"
+            end
         end
     end
 
