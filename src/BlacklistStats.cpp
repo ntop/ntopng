@@ -77,3 +77,13 @@ void BlacklistStats::lua(lua_State* vm) {
 
   lock.unlock(__FILE__, __LINE__);
 }
+
+/* *************************************************** */
+
+void BlacklistStats::reset() {
+  lock.wrlock(__FILE__, __LINE__);
+
+  stats.clear();
+
+  lock.unlock(__FILE__, __LINE__);
+}

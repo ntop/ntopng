@@ -37,6 +37,7 @@ class BlacklistStats {
 
   void incHits(std::string name);
   u_int32_t getNumHits(std::string name);
+  void reset();
   void lua(lua_State* vm);
 };
 
