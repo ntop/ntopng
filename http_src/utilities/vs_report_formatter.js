@@ -141,20 +141,67 @@ export const tcp_ports_f = (tcp_ports, row) => {
     return label;
   }
 
-  return tcp_ports;
+  switch(row.tcp_ports_case) {
+    case 4:
+        label += `${tcp_ports} <span class="badge bg-secondary"><i class="fa-solid fa-ghost"></i></span>`;
+      break;
+    case 3: 
+      label += `${tcp_ports} <span class="badge bg-secondary"><i class="fa-solid fa-filter"></i></span>`;
+      break;
+    default:
+      label = `${tcp_ports}`;
+      break;
+  }
+  return label;
 }
 
 export const tcp_port_f = (port, row) => {
   return row.port_label;
 }
+const find_badge = (port, row) => {
+  let result = ''
+  if (row.tcp_ports_unused != null) {
+    row.tcp_ports_unused.forEach((item) => {
+      if(port == Number(item) ) {
+        result = "unused";
+      }
+    })
+  }
 
-export const tcp_ports_list_f = (tcp_ports_list) => {
+  if(result != '') {
+    return result;
+  }
+
+  if (row.tcp_ports_filtered != null) {
+    row.tcp_ports_filtered.forEach((item) => {
+      if(port == Number(item)) {
+        result = "filtered";
+      }
+    })
+  }
+
+  return result;
+}
+export const tcp_ports_list_f = (tcp_ports_list, row) => {
 
   if (tcp_ports_list != null) {
     const ports = tcp_ports_list.split(",");
     let label = "";
     ports.forEach((item) => {
-      if(item != '') {
+      if(item != null && item != '') {
+        let port = item.split(" ")[0].split("/")[0];
+
+        let port_badge = find_badge(Number(port), row);
+        switch (port_badge) {
+          case 'unused': 
+              item += ` &nbsp;<span class="badge bg-secondary"><i class="fa-solid fa-ghost"></i>&nbsp;${i18n('hosts_stats.page_scan_hosts.unused_port')}</span>`
+            break;
+          case 'filtered':
+              item += ` &nbsp;<span class="badge bg-primary"><i class="fa-solid fa-filter"></i>&nbsp;${i18n('hosts_stats.page_scan_hosts.filtered_port')}</span>`
+            break;
+          default: 
+            break;
+        }
         label += `<li>${item}</li>`;
       }
     });

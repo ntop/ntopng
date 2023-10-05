@@ -46,8 +46,10 @@ local function format_result(result)
             table.sort(result, function (k1, k2)  return (k1.host or k1.host_name) < (k2.host or k2.host_name) end )
         end
         for _,value in ipairs(result) do
+
+            local tcp_ports_string_list = value.tcp_ports_list
             -- FIX ME with udp port check
-            if portCheck(value.tcp_ports_list, port) then
+            if portCheck(tcp_ports_string_list, port) then
                 if (isEmptyString(search_map)) then
                     rsp[#rsp+1] = value
                     rsp[#rsp].num_vulnerabilities_found = format_high_num_value_for_tables(value, "num_vulnerabilities_found")
@@ -71,9 +73,10 @@ local function format_result(result)
                     end
                 end
 
-                if (next(rsp) and not isEmptyString(rsp[#rsp].tcp_ports_list)) then
+
+                if (next(rsp) and not isEmptyString(tcp_ports_string_list)) then
                     local formatted_ports_list = ""
-                    for index,port in ipairs(split(rsp[#rsp].tcp_ports_list,',')) do
+                    for index,port in ipairs(split(tcp_ports_string_list,',')) do
                         local service_name = mapServiceName(port, "tcp")
                         local port_label = vs_utils.format_port_label(port, service_name, "tcp")
                         
@@ -91,6 +94,42 @@ local function format_result(result)
 
                 if not isEmptyString(sort) and sort == 'ip' then
                     rsp[#rsp].host = ternary(isEmptyString(rsp[#rsp].host_name), rsp[#rsp].host, rsp[#rsp].host_name)
+                end
+            end
+
+            if(next(rsp)) then
+                local tcp_ports_detected = vs_utils.retrieve_detected_ports(rsp[#rsp].host)
+
+                -- cases :
+                    -- 1: No host traffic but same vs ports and ntopng ports
+                    -- 2: Host traffic with same vs ports and ntopng ports
+                    -- 3: Host traffic and different ports (vs ports < ntopng ports)
+                    -- 4: Host traffic and different ports (vs ports > ntopng ports)
+                if (isEmptyString(tcp_ports_string_list) and not next(tcp_ports_detected)) then
+                    -- vs_scan ports = 0; detected_ports = 0;
+                    -- no badge
+
+                    rsp[#rsp].tcp_ports_case = vs_utils.tcp_ports_diff_case.no_diff
+                elseif ((not isEmptyString(tcp_ports_string_list)) and (not next(tcp_ports_detected))) then
+                    -- vs_scan ports != 0; detected_ports = 0;
+                    -- case 4
+                    rsp[#rsp].tcp_ports_case = vs_utils.tcp_ports_diff_case.vs_more_t_ntopng
+                    rsp[#rsp].tcp_ports_unused = split(tcp_ports_string_list,",")
+                elseif (isEmptyString(tcp_ports_string_list) and (next(tcp_ports_detected))) then
+                    -- vs_scan ports = 0; detected_ports != 0;
+                    -- case 3
+                    rsp[#rsp].tcp_ports_case = vs_utils.tcp_ports_diff_case.ntopng_more_t_vs
+                    rsp[#rsp].tcp_ports_filtered = tcp_ports_detected
+
+                elseif ((not isEmptyString(tcp_ports_string_list)) and (next(tcp_ports_detected))) then
+                    -- vs_scan ports != 0; detected_ports != 0;
+
+                    -- could be: 
+                        -- same ports with no traffic (case 1)
+                        -- same ports without traffic (case 2)
+                        -- different ports (case 3 or case 4)
+                    
+                    rsp[#rsp].tcp_ports_unused,rsp[#rsp].tcp_filtered_ports,rsp[#rsp].tcp_ports_case = vs_utils.compare_ports(tcp_ports_string_list,tcp_ports_detected)
                 end
             end
         end
