@@ -1915,7 +1915,7 @@ static int ntop_get_bl_stats(lua_State *vm) {
 
 static int ntop_reset_bl_stats(lua_State *vm) {
   ntop->resetBlacklistStats();
-
+  lua_pushnil(vm);
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
