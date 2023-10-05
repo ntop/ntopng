@@ -176,10 +176,10 @@ if(stats) then
     print([[<div class='card-footer'>]])
     print(i18n("category_lists.loading_stats", {
       when = format_utils.formatPastEpochShort(stats.begin),
-      num_hosts = stats.num_hosts,
+      num_hosts = format_high_num_value_for_tables(stats,"num_hosts"),
       -- num_hits = stats.num_hits,
-      num_ips = stats.num_ips,
-      num_ja3 = stats.num_ja3,
+      num_ips = format_high_num_value_for_tables(stats,"num_ips"),
+      num_ja3 = ternary(stats.num_ja3 > 0, format_high_num_value_for_tables(stats,"num_ja3"), stats.num_ja3),
       duration = secondsToTime(stats.duration),
     }))
     print([[</div>]])
