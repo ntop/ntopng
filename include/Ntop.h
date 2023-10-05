@@ -795,7 +795,8 @@ class Ntop {
   }
 #endif
   u_int64_t getNumActiveProbes() const;
-  BlacklistStats* getBlacklistStats() { return(&blStats); }
+  inline BlacklistStats* getBlacklistStats() { return(&blStats); }
+  inline void resetBlacklistStats()          { blStats.reset();  }
 };
 
 extern Ntop *ntop;

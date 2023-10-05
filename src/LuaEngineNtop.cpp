@@ -1913,6 +1913,14 @@ static int ntop_get_bl_stats(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_reset_bl_stats(lua_State *vm) {
+  ntop->resetBlacklistStats();
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_clickhouse_enabled(lua_State *vm) {
   lua_pushboolean(vm, ntop->getPrefs()->do_dump_flows_on_clickhouse());
 
@@ -7642,7 +7650,8 @@ static luaL_Reg _ntop_reg[] = {
     {"speedtest", ntop_speedtest},
 
     /* Blacklists */
-    {"getBlacklistStats", ntop_get_bl_stats},
+    {"getBlacklistStats",   ntop_get_bl_stats},
+    {"resetBlacklistStats", ntop_reset_bl_stats},
     
     /* ClickHouse */
     {"isClickHouseEnabled", ntop_clickhouse_enabled},
