@@ -38,7 +38,7 @@ end
 -- #################################
 
 page_utils.menu_sections = {
-   monitoring     = {key = "monitoring", i18n_title = "monitoring", icon = "fas fa-fast-forward"},
+   monitoring     = {key = "monitoring", i18n_title = "monitoring", icon = "fas fa-satellite-dish"},
    dashboard     = {key = "dashboard", i18n_title = "index_page.dashboard", icon = "fas fa-tachometer-alt"},
    alerts        = {key = "alerts", i18n_title = "details.alerts", icon = "fas fa-exclamation-triangle"},
    flows         = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},
