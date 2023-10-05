@@ -74,18 +74,15 @@ local function format_result(result)
                 if (next(rsp) and not isEmptyString(rsp[#rsp].tcp_ports_list)) then
                     local formatted_ports_list = ""
                     for index,port in ipairs(split(rsp[#rsp].tcp_ports_list,',')) do
-                        local port_label = mapServiceName(port, "tcp") 
-                        if (isEmptyString(port_label)) then
-                            port_label = port
-                        else 
-                            port_label = port .. " ("..port_label..")"
-                        end
+                        local service_name = mapServiceName(port, "tcp")
+                        local port_label = vs_utils.format_port_label(port, service_name, "tcp")
+                        
     
                         
                         if (index == 1) then
                             formatted_ports_list = port_label
                         else
-                            formatted_ports_list = formatted_ports_list.. ",".. port_label
+                            formatted_ports_list = string.format("%s,%s",formatted_ports_list,port_label)
                         end
                     end
     

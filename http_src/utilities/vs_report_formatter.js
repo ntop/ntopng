@@ -145,17 +145,7 @@ export const tcp_ports_f = (tcp_ports, row) => {
 }
 
 export const tcp_port_f = (port, row) => {
-  let label = "";
-
-  port = port + "/tcp";
-  if (row.port_label != null && row.port_label != "") {
-    label = port + " ("+row.port_label+")";
-  } else {
-    label = port;
-  }
-
-  return label;
-
+  return row.port_label;
 }
 
 export const tcp_ports_list_f = (tcp_ports_list) => {
@@ -165,9 +155,6 @@ export const tcp_ports_list_f = (tcp_ports_list) => {
     let label = "";
     ports.forEach((item) => {
       if(item != '') {
-        let port_details = item.split(" ");
-        port_details[0] += "/tcp";
-        item = port_details.join(" ");
         label += `<li>${item}</li>`;
       }
     });

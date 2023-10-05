@@ -39,7 +39,7 @@
 		},
 		{
 			"title_i18n": "hosts_stats.page_scan_hosts.service_name",	
-			"data_field": "port_label",
+			"data_field": "service_name",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
