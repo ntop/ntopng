@@ -833,13 +833,13 @@ else
                           i18n("details.label_system_ip") .. '\"></i></span>')
             end
             if (host["is_blacklisted"] == true) then
-                print(' <span class="badge bg-danger">' .. i18n("details.label_blacklisted_host"))
+                print(" <a href='"..ntop.getHttpPrefix().."/lua/admin/edit_category_lists.lua'><span class='badge bg-danger'>" .. i18n("details.label_blacklisted_host"))
 
                 if (host.blacklist_name ~= nil) then
                     print(' (' .. host.blacklist_name .. ')')
                 end
 
-                print('</span>')
+                print('</span></a>')
             end
 
             if ((host["privatehost"] == false) and (host["is_multicast"] == false) and (host["is_broadcast"] == false)) then
