@@ -254,7 +254,14 @@ export const cves_f = (cves, row) => {
   if (cves != null) {
     cves.forEach((item) => {
       if (index < 100) {
-        label += `<li>${item}</li>`;
+        let cve_details = item.split("|");
+
+        if (cve_details.length > 1) {
+          label += `<li>${cve_details[0]} : ${cve_details[1]}</li>`;
+
+        } else {
+          label += `<li>${item}</li>`;
+        }
         index++;
       } else {
         return label;
