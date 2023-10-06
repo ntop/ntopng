@@ -72,7 +72,7 @@ with others. If `traffic recording`_ is enabled, by clicking the |pcap_download_
 download a PCAP file of the interface or host traffic in the specified time frame. Depending on the selected
 historical timeseries, this could be available or not.
 
-By clicking on the |snapshot_icon| icon it's possible to `manage snapshots`_.
+By clicking on the |snapshot_icon| icon it's possible to :ref:`ManageSnapshots`.
 
 Storage Monitor
 ---------------

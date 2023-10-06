@@ -104,7 +104,7 @@ Information shown is useful to troubleshoot the following issues:
 Periodic Activities
 ^^^^^^^^^^^^^^^^^^^
 
-Periodic activities are Lua scripts executed by ntopng at regular intervals of time. Lua scripts are found in the `checks <https://github.com/ntop/ntopng/tree/dev/scripts/checks>`_. They can be run, in parallel, for each interface or for the system. Periodic activities include, but are not limited to:
+Periodic activities are Lua scripts executed by ntopng at regular intervals of time. Lua scripts are found in the `checks <https://github.com/ntop/ntopng/tree/dev/scripts/lua/modules/check_definitions>`_. They can be run, in parallel, for each interface or for the system. Periodic activities include, but are not limited to:
 
 - `Timeseries generation`.
 - `Execution of Checks` as described in :ref:`WebUIUserScripts`.
@@ -144,7 +144,7 @@ Aim of the `Periodic Activities` internals table is to monitor the execution of 
 
 Information shown in the table columns is:
 
-- `Periodic Activity`: The name of the periodic activity. Name equals the file name of the periodic activity Lua script which can be either found under the `system <https://github.com/ntop/ntopng/tree/dev/scripts/checks/system>`_ periodic activities, `interface <https://github.com/ntop/ntopng/tree/dev/scripts/checks/interface>`_ periodic activities, or both.
+- `Periodic Activity`: The name of the periodic activity. Name equals the file name of the periodic activity Lua script which can be either found under the `system <https://github.com/ntop/ntopng/tree/dev/scripts/lua/modules/check_definitions/system>`_ periodic activities, `interface <https://github.com/ntop/ntopng/tree/dev/scripts/lua/modules/check_definitions/interface>`_ periodic activities, or both.
 - `Frequency`: How often a periodic activity has to be executed.
 - `Max Duration`: How long the periodic activity execution can take.
 - `Chart`: A link to the historical charts of the periodic activity.
@@ -285,8 +285,6 @@ Available timeseries are:
 
 Timeseries can be disabled from the :ref:`ntopngPreferences`, tab *Timeseries->System Probes*.
 
-The Redis Monitor is implemented as an ntopng `script <https://github.com/ntop/ntopng/tree/dev/scripts/scripts/redis_monitor>`_.
-
 .. _InfluxDB Monitor:
 
 InfluxDB Monitor
@@ -308,7 +306,7 @@ The overview has the following items:
 - :code:`total exports`. Total number of successful writes into InfluxDB. A single write writes multiple points at once.
 - :code:`total points`: Total number of points successfully written into InfluxDB.
 - :code:`dropped points`: Total number of points dropped due to InfluxDB write failures.
-- :code:`series cardinality`: An indication of how challenging is for InfluxDB to `handle written points <https://docs.influxdata.com/influxdb/latest/concepts/glossary/#series-cardinality>`_.
+- :code:`series cardinality`: An indication of how challenging is for InfluxDB to handle written points.
 
 When InfluxDB is temporarily unable to export, the :code:`health` turns yellow.
 
