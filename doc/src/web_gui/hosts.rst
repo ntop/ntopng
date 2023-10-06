@@ -20,7 +20,6 @@ Host-related information pages available have the following content
 - Operating Systems page lists all host operating systems that have been detected. Detection is done
   using passive fingerprinting techniques
 - HTTP Servers (Local) page shows monitored HTTP servers, limited to local hosts only
-- Top Hosts Traffic page presents traffic of top hosts in order to typology selected
 - Server Ports Analysis page shows Local Hosts filtered by selected protocol and port. 
 
 Hosts
@@ -585,19 +584,6 @@ host, it is possible to display all active flows involving it.
   :alt: Local HTTP Servers List
 
   The Local HTTP Servers Summary Page
-
-Top Hosts (Local)
------------------
-
-Top hosts page provides hosts activity on time basis. The page should be kept open in order to allow the
-graph to dynamical update itself with real-time freshly collected data for each host. The time axis is
-divided in 5-minute bars and goes backwards in time in a right-to-left fashion, starting from the present.
-
-.. figure:: ../img/web_gui_hosts_top.png
-  :align: center
-  :alt: Top Hosts
-
-  The Top Hosts Summary Page
 
 Server Ports Analysis
 ---------------------
