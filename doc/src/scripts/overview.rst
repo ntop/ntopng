@@ -41,5 +41,5 @@ Availability
 
 ntopng community scripts are open source and available on the `ntopng
 GitHub scripts page
-<https://github.com/ntop/ntopng/tree/dev/scripts/scripts>`_.
+<https://github.com/ntop/ntopng/tree/dev/scripts>`_.
 

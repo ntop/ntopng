@@ -82,7 +82,7 @@ The installation procedure installs
 By default, the ntopng installer comes without capture drivers. You need to
 install manually `npcap drivers <https://nmap.org/npcap/>`_. If Wireshark is
 already installed on Windows, then `npcap drivers <https://nmap.org/npcap/>`_
-are already installed and no drviver installation is necessary.
+are already installed and no driver installation is necessary.
 
 In case you see a message as the one below
  

@@ -151,7 +151,7 @@ Network Matrix Timeseries
 
 .. note::
 
-  Network Matrix is not avaailble in the community edition.
+  Network Matrix is not available in the community edition.
 
   ntopng can store timeseries for communicatins across local networks, called Network Matrix.
   

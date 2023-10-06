@@ -253,6 +253,15 @@ Server Criteria
 
 You can use this aggregation criteria to cluster all flows targeting a specific server. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
 
+Client / Server / Destination Port Criteria
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. figure:: ../img/live_flows_analysis_client_server_dst_port_criteria.png
+  :align: center
+  :alt: Live Flows Analysis Client Server Dst Port Criteria
+
+You can use this aggregation criteria to cluster all flows with the same Client/Server/DstPort. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+
 .. note::
 
   The following aggregation criteria are available only from Enterprise M license or superior.
@@ -265,7 +274,7 @@ Client / Server Criteria
   :alt: Live Flows Analysis Client / Server Criteria
 
 
-You can use this aggregation criteria to cluster all flows wth the same Client/Server. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+You can use this aggregation criteria to cluster all flows with the same Client/Server. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
 
 App. Proto / Client / Server Criteria
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -274,7 +283,7 @@ App. Proto / Client / Server Criteria
   :align: center
   :alt: Live Flows Analysis App. Proto / Client / Server Criteria
 
-You can use this aggregation criteria to cluster all flows wth the same Application Protocol/Client/Server. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+You can use this aggregation criteria to cluster all flows with the same Application Protocol/Client/Server. Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
 
 Info Criteria
 ^^^^^^^^^^^^^
@@ -283,5 +292,5 @@ Info Criteria
   :align: center
   :alt: Live Flows Analysis Info Criteria
 
-You can use this aggregation criteria to cluster all flows wth the same information field (e.g. resolved host name in DNS flows). Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
+You can use this aggregation criteria to cluster all flows with the same information field (e.g. resolved host name in DNS flows). Clicking on the flows icon, allows you to drill down to 5-tuple flow level.
 

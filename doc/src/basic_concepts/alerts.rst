@@ -81,9 +81,9 @@ Behavior Alerts
 
 .. figure:: ../img/behavior_alert_example.png
   :align: center
-  :alt: Alert of an ASN with an Unexpected Behavior
+  :alt: Alert of a Network Interface with an Unexpected Behavior
 
-  Alert of an ASN with an Unexpected Behavior
+  Alert of a Network Interface with an Unexpected Behavior
 
 Behavior alerts are new types of alerts introduced lately. Differently from the usual alerts, configured using a static threshold, they have the ability to learn throught the time and change their threshold dinamically.
 
@@ -98,9 +98,9 @@ The alert is triggered only if the real value is lesser or greater then certain 
 
 .. figure:: ../img/behavior_graph_example.png
   :align: center
-  :alt: Timeserie of an ASN with an Unexpected Behavior
+  :alt: Timeserie of a Network Interface with an Unexpected Behavior
 
-  Timeserie of an ASN with an Unexpected Behavior
+  Timeserie of a Network Interface with an Unexpected Behavior
   
 
 User Activities

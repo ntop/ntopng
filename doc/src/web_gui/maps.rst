@@ -67,7 +67,7 @@ Periodicity Map
 ---------------
 .. _Periodicity Map:
 
-.. figure:: ../img/advanced_features_periodicity_map_graph.png
+.. figure:: ../img/advanced_features_periodicity_map.png
   :align: center
   :alt: Periodicity Map
 
@@ -85,7 +85,7 @@ Asset Map
 ---------
 .. _Asset Map:
 
-.. figure:: ../img/advanced_features_asset_map_graph.png
+.. figure:: ../img/advanced_features_asset_map.png
   :align: center
   :alt: Asset Map
 

@@ -7,4 +7,4 @@ ntopng instances can be monitored as if they were part of a mesh as described in
 
 .. note::
 
-	An ntopng Enterprise M license or above is required.
+	An ntopng Enterprise L license or above is required.
