@@ -72,6 +72,8 @@ const _remove = async (params) => {
   await $.get(url, function(rsp, status){
     show_message(i18n('custom_categories.succesfully_removed'));
   });
+
+  reload_table();
 }
 
 const open_delete_modal = (row) => {
@@ -100,6 +102,8 @@ const _add = async (params) => {
         show_message(i18n('custom_categories.succesfully_added'));
     }
   });
+
+  reload_table();
 }
 
 const open_add_modal = (row) => {

@@ -62,7 +62,7 @@ const emit = defineEmits(['add']);
 const is_edit_page = ref(false)
 const _i18n = (t) => i18n(t);
 const disable_add = ref(true)
-let title = i18n('add_application');
+let title = ref(i18n('add_application'));
 const comment = ref(i18n('details.custom_rules_placeholder'));
 const selected_category = ref({});
 const category_list = ref([]);
@@ -110,7 +110,6 @@ const check_custom_rules = () => {
   let check = true
 
   let rules = custom_rules.value.split("\n");
-  debugger;
   rules.forEach((rule) => {
     check = check && (/* tcp:1100 */(/^((tcp|udp):(6553[0-5]|655[0-2][0-9]\d|65[0-4](\d){2}|6[0-4](\d){3}|[1-5](\d){4}|[1-9](\d){0,3}))$/.test(rule)) ||
                       /* tcp:1000-1002*/(/^((tcp|udp):(6553[0-5]|655[0-2][0-9]\d|65[0-4](\d){2}|6[0-4](\d){3}|[1-5](\d){4}|[1-9](\d){0,3})-(6553[0-5]|655[0-2][0-9]\d|65[0-4](\d){2}|6[0-4](\d){3}|[1-5](\d){4}|[1-9](\d){0,3}))$/.test(rule)) ||
@@ -125,17 +124,28 @@ const check_custom_rules = () => {
   return check
 }
 
+const populate_modal_form = (row) => {
+  let edit_row_category = null;
+  category_list.value.forEach((item) => {
+    if(item.id == row.category_id) {
+      edit_row_category = item;
+    }
+  });
 
+  selected_category.value = edit_row_category;
+  custom_rules.value = row.custom_rules;
+}
 
 const show = (row) => {
   reset_modal_form();
   is_edit_page.value = false;
-  title = i18n('add_application');
+  title.value = i18n('add_application');
 
   if (row != null) {
-    application_id.value = row.application_id
+    application_id.value = row.application_id;
+    application_name.value = row.application;
     is_edit_page.value = true;
-    title = i18n('edit_application')
+    title.value = `${i18n('edit_application')}: ${application_name.value}`;
     populate_modal_form(row);
   }
   modal_id.value.show();
@@ -157,6 +167,27 @@ const add_ = () => {
 const close = () => {
   modal_id.value.close();
 };
+
+const format_category_list = (list) => {
+  let formatted_list = [];
+  list.forEach((item) => {
+    formatted_list.push({
+      id: item.cat_id,
+      label: item.name,
+      app_list: item.app_list
+
+    })
+  })
+
+  // sort formatted categories;
+  formatted_list = formatted_list.sort((a, b) => {
+		    if (a == null || a.label == null) { return -1; }
+		    if (b == null || b.label == null) { return 1; }
+		    return a.label.toString().localeCompare(b.label.toString());
+  });
+
+  return formatted_list;
+}
 
 const loadCategoryList = (list) => {
   category_list.value = format_category_list(list);

@@ -1,6 +1,6 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-<modal @showed="showed()" ref="modal_id">
+<modal ref="modal_id">
   <input class="form-control" type="text" v-model="application_name" spellcheck="false" hidden>
   <template v-slot:title>{{ title }}</template>
   <template v-slot:body>{{ body }}</template>
@@ -17,13 +17,15 @@ import { default as modal } from "./modal.vue";
 const modal_id = ref(null);
 const emit = defineEmits(['remove']);
 const _i18n = (t) => i18n(t);
-const title = i18n('custom_categories.delete_app')
-const body = i18n('custom_categories.delete_app_confirm')
 const application_name = ref(null)
+
+let title = ref(i18n('custom_categories.delete_app'));
+const body = i18n('custom_categories.delete_app_confirm')
 
 const show = (row) => {
   if(row != null) {
-    application_name.value = row.application
+    application_name.value = row.application;
+    title.value = `${i18n('custom_categories.delete_app')}: ${application_name.value}`;
   }
   modal_id.value.show();
 };
