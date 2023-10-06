@@ -11,4 +11,3 @@ ntopng (Enterprise M or better license is required) for using ClickHouse to stor
 
     installation
     clickhouse
-    historical_flow_explorer

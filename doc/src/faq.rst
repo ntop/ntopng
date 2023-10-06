@@ -57,17 +57,19 @@ The recommended number of interfaces monitored by an ntopng running on a commodi
 The maximum number of interfaces depends on the license, as is highlighted in the following table
 
 
-+--------------+-------------------------------+
-|              | Maximum Number of Interfaces  |
-+--------------+-------------------------------+
-| Community    | 8                             |
-+--------------+-------------------------------+
-| Pro          | 8                             |
-+--------------+-------------------------------+
-| Enterprise M | 16                            |
-+--------------+-------------------------------+
-| Enterprise L | 32                            |
-+--------------+-------------------------------+
++---------------+-------------------------------+
+|               | Maximum Number of Interfaces  |
++---------------+-------------------------------+
+| Community     | 8                             |
++---------------+-------------------------------+
+| Pro           | 8                             |
++---------------+-------------------------------+
+| Enterprise M  | 16                            |
++---------------+-------------------------------+
+| Enterprise L  | 32                            |
++---------------+-------------------------------+
+| Enterprise XL | 64                            |
++---------------+-------------------------------+
 
 Limits above also apply when disaggregated interfaces are used. For example, the maximum 32 interfaces limit can be hit when:
 

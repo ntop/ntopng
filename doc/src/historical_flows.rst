@@ -62,16 +62,6 @@ Historical flows data can be also accessed from the `Historical Charts`_ .
   :align: center
   :alt: Historical Flows Top L7 Contacts
 
-By clicking on the |drilldown_icon| icon, it's possible to explode a particular communication
-or host and analyze the raw flows.
-
-.. figure:: img/historical_flows_raw_flows.png
-  :align: center
-  :alt: Raw Flows
-
-The picture above, for example, shows the raw flows between `PC local` and
-`17.248.146.148` having the `AppleiCloud` protocol.
-
 
 Enabling Flow Dump
 ------------------
