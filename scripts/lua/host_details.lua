@@ -1332,6 +1332,10 @@ else
             local i = 0
             for _,vs in ipairs(host_vulnerabilities.cve) do
                 if (i<5) then
+                    
+                    if(host_vulnerabilities.last_scan.time == nil) then
+                        host_vulnerabilities.last_scan.time = format_utils.formatPastEpochShort(host_vulnerabilities.last_scan.epoch)     
+                    end
                     print('<a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=show_result&scan_date='..host_vulnerabilities.last_scan.time..'&host='..host_vulnerabilities.host..'&scan_type='..host_vulnerabilities.scan_type..'"><span class="badge bg-secondary" title="'..vs..'">'..vs..'</span></a> ')
                 else
                     print('...')
