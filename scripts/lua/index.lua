@@ -61,14 +61,23 @@ sendHTTPContentTypeHeader('text/html')
 -- ######################################
 
 local default_template = "community"
-if ntop.isEnterprise() or ntop.isnEdgeEnterprise() then
-  if ntop.isClickHouseEnabled() and auth.has_capability(auth.capabilities.historical_flows) then
-    default_template = "enterprise-with-db"
+
+if ntop.isnEdge() then
+  if ntop.isnEdgeEnterprise() then
+    default_template = "nedge-enterprise"
   else
-    default_template = "enterprise"
+    default_template = "nedge"
   end
-elseif ntop.isPro() then
-  default_template = "pro"
+else
+  if ntop.isEnterprise() then
+    if ntop.isClickHouseEnabled() and auth.has_capability(auth.capabilities.historical_flows) then
+      default_template = "enterprise-with-db"
+    else
+      default_template = "enterprise"
+    end
+  elseif ntop.isPro() then
+    default_template = "pro"
+  end
 end
 
 local template = _GET["template"] or default_template
