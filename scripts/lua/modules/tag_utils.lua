@@ -1109,7 +1109,7 @@ function tag_utils.get_tag_info(id, entity)
                 end
 
                 
-                for interface, device_list in pairs(flow_devices or {}) do
+                for _, device_list in pairs(flow_devices or {}) do
                     -- Add interfaces for flow devices which are not polled by SNMP
                     for probe_ip, info in pairs(device_list) do
                         local interfaces = interface.getFlowDeviceInfo(probe_ip)
