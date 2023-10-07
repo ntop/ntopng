@@ -6138,6 +6138,9 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
       first_char = false;
     }
 
+    if((i+sizeof(rsp)) >= payload_len)
+      return; /* packet too short */
+    
     memcpy(&rsp, &payload[i], sizeof(rsp));
     data_len = ntohs(rsp.data_len), rsp_type = ntohs(rsp.rsp_type);
 
