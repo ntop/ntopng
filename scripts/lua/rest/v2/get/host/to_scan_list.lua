@@ -98,7 +98,7 @@ local function format_result(result)
             end
 
             if(next(rsp)) then
-                local tcp_ports_detected = vs_utils.retrieve_detected_ports(rsp[#rsp].host)
+                local tcp_ports_detected,host_in_mem = vs_utils.retrieve_detected_ports(rsp[#rsp].host)
 
                 -- cases :
                     -- 1: No host traffic but same vs ports and ntopng ports
@@ -131,6 +131,7 @@ local function format_result(result)
                     
                     rsp[#rsp].tcp_ports_unused,rsp[#rsp].tcp_filtered_ports,rsp[#rsp].tcp_ports_case = vs_utils.compare_ports(tcp_ports_string_list,tcp_ports_detected)
                 end
+                rsp[#rsp].host_in_mem = host_in_mem
             end
         end
 

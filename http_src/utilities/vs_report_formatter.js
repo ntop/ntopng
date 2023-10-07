@@ -141,17 +141,21 @@ export const tcp_ports_f = (tcp_ports, row) => {
     return label;
   }
 
-  switch(row.tcp_ports_case) {
-    case 4:
-        label += `${tcp_ports} <span class="badge bg-secondary"><i class="fa-solid fa-ghost"></i></span>`;
-      break;
-    case 3: 
-      label += `${tcp_ports} <span class="badge bg-secondary"><i class="fa-solid fa-filter"></i></span>`;
-      break;
-    default:
-      label = `${tcp_ports}`;
-      break;
+  label = `${tcp_ports}`;
+
+  if (row.host_in_mem) {
+    switch(row.tcp_ports_case) {
+      case 4: 
+        label += ` <span class="badge bg-secondary"><i class="fa-solid fa-ghost"></i></span></div>`;
+        break;
+      case 3: 
+        label += ` <span class="badge bg-secondary"><i class="fa-solid fa-filter"></i></span>`;
+        break;
+      default:
+        break;
+    }
   }
+  
   return label;
 }
 
