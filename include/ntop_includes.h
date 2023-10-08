@@ -86,6 +86,9 @@
 #include <string.h>
 #include <math.h>
 #include <sys/stat.h>
+#ifdef WIN32
+#define ZMQ_STATIC
+#endif
 #include <zmq.h>
 #include <assert.h>
 #include <fcntl.h>
