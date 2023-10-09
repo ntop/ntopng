@@ -229,6 +229,17 @@ export const tcp_ports_list_f = (tcp_ports_list, row) => {
       }
     });
 
+    if (row.host == "192.168.1.22") {
+      console.log(row);
+    }
+    if (row.tcp_filtered_ports != null) {
+      row.tcp_filtered_ports.forEach((item) => {
+        item += `/tcp &nbsp;<span class="badge bg-primary"><i class="fa-solid fa-filter"></i>&nbsp;${i18n('hosts_stats.page_scan_hosts.filtered_port')}</span>`
+        label += `<li>${item}</li>`;
+      })
+
+    }
+
     return label;
   } 
 
