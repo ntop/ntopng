@@ -4004,6 +4004,8 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
 
       if (registerInterface(new_iface)) {
         initInterface(new_iface);
+        new_iface->reloadFlowChecks(flow_checks_loader);
+        new_iface->reloadHostChecks(host_checks_loader);
         new_iface->allocateStructures();
         new_iface->startPacketPolling();
         *iface_id = new_iface->get_id();
@@ -4012,6 +4014,8 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
       NetworkInterface *old = iface[slot_id];
 
       initInterface(new_iface);
+      new_iface->reloadFlowChecks(flow_checks_loader);
+      new_iface->reloadHostChecks(host_checks_loader);
       new_iface->allocateStructures();
       new_iface->startPacketPolling();
 
