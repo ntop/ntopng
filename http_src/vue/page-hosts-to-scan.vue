@@ -263,7 +263,14 @@ function columns_sorting(col, r0, r1) {
         return r0_col.localeCompare(r1_col);
       }
       return r1_col.localeCompare(r0_col);
-    } else if(col.id == "scan_frequency") {
+    } else if(col.id == "max_score_cve") {
+      r0_col = r0_col != null ? r0_col : 0;
+      r1_col = r1_col != null ? r1_col : 0;
+      if (col.sort == 1) {
+        return r0_col - r1_col;
+      }
+      return r1_col - r0_col; 
+    }else if(col.id == "scan_frequency") {
       r0_col = get_scan_frequency(r0_col);
       r1_col = get_scan_frequency(r1_col);
       if (col.sort == 1) {

@@ -23,6 +23,9 @@ export const columns_formatter = (columns, scan_type_list, is_report) => {
         return is_ok_last_scan_f(is_ok_last_scan);
         
       },
+      "max_score_cve": (max_score_cve, row) => {
+        return max_score_cve_f(max_score_cve);
+      },
       "tcp_ports": (tcp_ports, row) => {
         return tcp_ports_f(tcp_ports, row);
         
@@ -58,7 +61,31 @@ export const columns_formatter = (columns, scan_type_list, is_report) => {
     });
     
     return columns;
-  };
+};
+
+export const max_score_cve_f = (max_score_cve, row) => {
+  const score = Number(max_score_cve);
+  let font_color = "";
+
+  let label = "";
+  if (max_score_cve != null) {
+
+    if (score == 0) {
+      font_color = "green";
+    } else if(score < 3.9) {
+      font_color = "grey";
+    } else if(score < 7) {
+      font_color = "yellow";
+    } else  {
+      font_color = "red";
+    } 
+
+    label = `<FONT COLOR=${font_color}>${max_score_cve}`;
+  }
+  
+
+  return label;
+}
 
 
 export const scan_type_f = (scan_type, row, scan_type_list) => {
@@ -217,10 +244,10 @@ export const tcp_ports_list_f = (tcp_ports_list, row) => {
         let port_badge = find_badge(Number(port), row);
         switch (port_badge) {
           case 'unused': 
-              item += ` &nbsp;<span class="badge bg-secondary"><i class="fa-solid fa-ghost"></i>&nbsp;${i18n('hosts_stats.page_scan_hosts.unused_port')}</span>`
+              item += ` &nbsp;<span class="badge bg-secondary" title='${i18n('hosts_stats.page_scan_hosts.unused_port')}'><i class="fa-solid fa-ghost"></i></span>`
             break;
           case 'filtered':
-              item += ` &nbsp;<span class="badge bg-primary"><i class="fa-solid fa-filter"></i>&nbsp;${i18n('hosts_stats.page_scan_hosts.filtered_port')}</span>`
+              item += ` &nbsp;<span class="badge bg-primary" title='${i18n('hosts_stats.page_scan_hosts.filtered_port')}'><i class="fa-solid fa-filter"></i></span>`
             break;
           default: 
             break;
@@ -229,12 +256,9 @@ export const tcp_ports_list_f = (tcp_ports_list, row) => {
       }
     });
 
-    if (row.host == "192.168.1.22") {
-      console.log(row);
-    }
     if (row.tcp_filtered_ports != null) {
       row.tcp_filtered_ports.forEach((item) => {
-        item += `/tcp &nbsp;<span class="badge bg-primary"><i class="fa-solid fa-filter"></i>&nbsp;${i18n('hosts_stats.page_scan_hosts.filtered_port')}</span>`
+        item += `/tcp <span class="badge bg-primary" title='${i18n('hosts_stats.page_scan_hosts.filtered_port')}'><i class="fa-solid fa-filter"></i></span>`
         label += `<li>${item}</li>`;
       })
 
@@ -291,7 +315,19 @@ export const cves_f = (cves, row) => {
         let cve_details = item.split("|");
 
         if (cve_details.length > 1) {
-          label += `<li>${cve_details[0]} : ${cve_details[1]}</li>`;
+          let badge_type = "";
+          const score = Number(cve_details[1]);
+          if (score == 0) {
+            badge_type = "bg-success";
+          } else if(score < 3.9) {
+            badge_type = "bg-secondary";
+          } else if(score < 7) {
+            badge_type = "bg-warning";
+          } else {
+            badge_type = "bg-danger";
+          }
+          
+          label += `<li><span class="badge ${badge_type}">${cve_details[0]} <span/></li>`;
 
         } else {
           label += `<li>${item}</li>`;

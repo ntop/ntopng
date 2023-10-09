@@ -35,6 +35,11 @@
 					"data_type": "host"
 				},
 				{
+					"i18n_name": "score",
+					"id": "max_score_cve",
+					"data_type": "max_score_cve"
+				},
+				{
 					"i18n_name": "hosts_stats.page_scan_hosts.scan_type",
 					"id": "scan_type",
 					"data_type": "string"

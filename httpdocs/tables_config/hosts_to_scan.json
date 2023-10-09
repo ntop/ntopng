@@ -80,6 +80,15 @@
 				"text-nowrap"
 			]
 		},
+
+		{
+			"title_i18n": "score",
+			"data_field": "max_score_cve",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
 		{
 			"title_i18n": "hosts_stats.page_scan_hosts.scan_type",
 			"data_field": "scan_type",
