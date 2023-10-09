@@ -131,6 +131,21 @@ export const is_ok_last_scan_f = (is_ok_last_scan) => {
   } 
 }
 
+const ports_list_string = (port_list) => {
+  let ports_string = "";
+  if (port_list != null) {
+    port_list.forEach((item) => {
+      if(ports_string == "") {
+        ports_string = item;
+      } else {
+        ports_string += `, ${item}`;
+      }
+    });
+  }
+
+  return ports_string;
+}
+
 export const tcp_ports_f = (tcp_ports, row) => {
   if (tcp_ports == 0 && row.udp_ports == 0) {
     tcp_ports = row.num_open_ports;
@@ -145,11 +160,15 @@ export const tcp_ports_f = (tcp_ports, row) => {
 
   if (row.host_in_mem) {
     switch(row.tcp_ports_case) {
-      case 4: 
-        label += ` <span class="badge bg-secondary"><i class="fa-solid fa-ghost"></i></span></div>`;
+      case 4: {
+        let unused_port_list = ports_list_string(row.tcp_ports_unused);
+        label += ` <span class="badge bg-secondary"><i class="fa-solid fa-ghost" title='${unused_port_list}'></i></span></div>`;
+      }
         break;
-      case 3: 
-        label += ` <span class="badge bg-secondary"><i class="fa-solid fa-filter"></i></span>`;
+      case 3: {
+        let tcp_filtered_ports_list = ports_list_string(row.tcp_filtered_ports);
+        label += ` <span class="badge bg-secondary"><i class="fa-solid fa-filter" title='${tcp_filtered_ports_list}'></i></span>`;
+      }
         break;
       default:
         break;
