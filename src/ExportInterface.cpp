@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
 
 /* **************************************************** */
@@ -133,4 +135,5 @@ void ExportInterface::export_data(char *json) {
 
 /* **************************************************** */
 
+#endif
 #endif

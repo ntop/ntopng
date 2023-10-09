@@ -9,6 +9,8 @@
 
 #include "ntop_includes.h"
 
+
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
 
 /* *********************************************************** */
@@ -183,3 +185,4 @@ bool ZMQPublisher::sendMessage(const char *topic, char *str) {
 }
 
 #endif /* HAVE_NEDGE */
+#endif

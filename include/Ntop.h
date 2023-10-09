@@ -71,11 +71,16 @@ class Ntop {
   u_int32_t current_time; /* Upated by current_time */
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
+#ifdef HAVE_ZMQ
   ZMQPublisher *zmqPublisher;
+#endif
 #if !defined(WIN32) && !defined(__APPLE__)
   SyslogDump *syslog; /**< Pointer of Logstash. */
 #endif
+
+#ifdef HAVE_ZMQ
   ExportInterface *export_interface;
+ #endif
 #endif
 
 #ifdef HAVE_RADIUS
@@ -458,8 +463,11 @@ class Ntop {
   };
   inline Redis *getRedis() { return (redis); };
   inline TimelineExtract *getTimelineExtract() { return (extract); };
+
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
   inline ExportInterface *get_export_interface() { return (export_interface); };
+#endif
 #endif
 
   inline Prefs *getPrefs() { return (prefs); };

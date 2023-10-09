@@ -662,8 +662,10 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   /* Check if direct flow dump is enabled */
   if (ntop->getPrefs()->do_dump_flows_direct() &&
       (ntop->getPrefs()->is_flows_dump_enabled()
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
        || ntop->get_export_interface()
+#endif
 #endif
            )) {
     /* Dump flow */

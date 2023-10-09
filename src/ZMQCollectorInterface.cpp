@@ -24,6 +24,8 @@
 // #define MSG_DEBUG
 // #define MSG_ID_DEBUG
 
+
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
 
 /* **************************************************** */
@@ -725,4 +727,5 @@ void ZMQCollectorInterface::purgeIdle(time_t when, bool force_idle,
     it->second->purgeIdle(when, force_idle, full_scan);
 }
 
+#endif
 #endif

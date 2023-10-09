@@ -1499,6 +1499,8 @@ static int ntop_zmq_connect(lua_State *vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
+  
+#ifdef HAVE_ZMQ
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
   if ((endpoint = (char *)lua_tostring(vm, 1)) == NULL)
@@ -1525,6 +1527,7 @@ static int ntop_zmq_connect(lua_State *vm) {
 
   getLuaVMUservalue(vm, zmq_context) = context;
   getLuaVMUservalue(vm, zmq_subscriber) = subscriber;
+ #endif
 
   lua_pushnil(vm);
 
@@ -1634,6 +1637,8 @@ static int ntop_get_set_members_redis(lua_State *vm) {
 
 /* ****************************************** */
 
+
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
 
 static int ntop_zmq_disconnect(lua_State *vm) {
@@ -1726,6 +1731,7 @@ static int ntop_zmq_receive(lua_State *vm) {
   } else
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 }
+#endif
 #endif
 
 /* ****************************************** */
@@ -3759,11 +3765,13 @@ static int ntop_get_info(lua_State *vm) {
     lua_push_uint64_table_entry(vm, "constants.max_num_profiles",
                                 MAX_NUM_PROFILES);
 
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
     zmq_version(&major, &minor, &patch);
     snprintf(rsp, sizeof(rsp), "%d.%d.%d", major, minor, patch);
     lua_push_str_table_entry(vm, "version.zmq", rsp);
 #endif
+#endif  
   }
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -7335,9 +7343,12 @@ static luaL_Reg _ntop_reg[] = {
     {"isNProbeIPSConfigured", ntop_check_nprobe_ips_configured},
 
 #ifndef HAVE_NEDGE
+#ifdef HAVE_ZMQ
     {"zmq_connect", ntop_zmq_connect},
     {"zmq_disconnect", ntop_zmq_disconnect},
     {"zmq_receive", ntop_zmq_receive},
+#endif
+
     /* IPS */
     {"broadcastIPSMessage", ntop_brodcast_ips_message},
     {"timeToRefreshIPSRules", ntop_time_to_refresh_ips_rules},

@@ -69,9 +69,12 @@ Ntop::Ntop(const char *appName) {
 #endif
   custom_ndpi_protos = NULL;
   prefs = NULL, redis = NULL;
+
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
   export_interface = NULL;
   zmqPublisher = NULL;
+#endif
 #endif
   trackers_automa = NULL;
   num_cpus = -1;
@@ -347,7 +350,9 @@ Ntop::~Ntop() {
   if (geo) delete geo;
   if (mac_manufacturers) delete mac_manufacturers;
 #ifndef HAVE_NEDGE
+#ifdef HAVE_ZMQ
   if (zmqPublisher) delete zmqPublisher;
+#endif
 #endif
 
 #ifdef NTOPNG_PRO
@@ -507,12 +512,14 @@ void Ntop::resetNetworkInterfaces() {
 /* ******************************************* */
 
 void Ntop::createExportInterface() {
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
   if (prefs->get_export_endpoint())
     export_interface =
         new (std::nothrow) ExportInterface(prefs->get_export_endpoint());
   else
     export_interface = NULL;
+#endif
 #endif
 }
 
@@ -2790,9 +2797,11 @@ out:
 void Ntop::initInterface(NetworkInterface *_if) {
   /* Initialization related to flow-dump */
   if (ntop->getPrefs()->do_dump_flows()
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
       || ntop->get_export_interface()
 #endif
+      #endif
   ) {
     if (_if->initFlowDump(num_dump_interfaces)) num_dump_interfaces++;
     _if->startDBLoop();
@@ -3679,9 +3688,8 @@ bool Ntop::isDbCreated() {
 #ifndef HAVE_NEDGE
 
 bool Ntop::initPublisher() {
-
+#ifdef HAVE_ZMQ
   if (zmqPublisher == NULL) {
-
     if (prefs->getZMQPublishEventsURL() == NULL)
       return (false);
 
@@ -3697,6 +3705,9 @@ bool Ntop::initPublisher() {
                                  "Unable to create ZMQ publisher");
 
   return !!zmqPublisher;
+ #else
+    return(false);
+ #endif
 }
 
 /* ******************************************* */
@@ -3705,7 +3716,8 @@ bool Ntop::broadcastIPSMessage(char *msg) {
   bool rc = false;
 
   if (!msg) return (false);
-
+ 
+#ifdef HAVE_ZMQ
   /* Jeopardized users_m lock :-) */
   users_m.lock(__FILE__, __LINE__);
 
@@ -3717,6 +3729,7 @@ bool Ntop::broadcastIPSMessage(char *msg) {
   rc = zmqPublisher->sendIPSMessage(msg);
 
   users_m.unlock(__FILE__, __LINE__);
+ #endif
 
   return (rc);
 }
@@ -3727,7 +3740,8 @@ bool Ntop::broadcastControlMessage(char *msg) {
   bool rc = false;
 
   if (!msg) return (false);
-
+  
+#ifdef HAVE_ZMQ
   /* Jeopardized users_m lock :-) */
   users_m.lock(__FILE__, __LINE__);
 
@@ -3739,6 +3753,7 @@ bool Ntop::broadcastControlMessage(char *msg) {
   rc = zmqPublisher->sendControlMessage(msg);
 
   users_m.unlock(__FILE__, __LINE__);
+ #endif
 
   return (rc);
 }

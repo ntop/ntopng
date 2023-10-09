@@ -9,6 +9,8 @@
 
 #include "ntop_includes.h"
 
+
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
 
 /* *********************************************************** */
@@ -234,3 +236,4 @@ int ZMQUtils::setClientEncryptionKeys(void *zmq_socket, const char *server_publi
 #endif
 
 #endif /* HAVE_NEDGE */
+#endif

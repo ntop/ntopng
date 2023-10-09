@@ -86,10 +86,14 @@
 #include <string.h>
 #include <math.h>
 #include <sys/stat.h>
+
+#ifdef HAVE_ZMQ
 #ifdef WIN32
 #define ZMQ_STATIC
 #endif
 #include <zmq.h>
+#endif
+
 #include <assert.h>
 #include <fcntl.h>
 #ifndef WIN32
@@ -354,6 +358,7 @@ using namespace std;
 #include "RecipientQueue.h"
 #include "Recipients.h"
 #if defined(NTOPNG_PRO)
+#include "RankTable.h"
 #include "PeriodicityStats.h"
 #include "PeriodicityHash.h"
 #include "ServiceMap.h"

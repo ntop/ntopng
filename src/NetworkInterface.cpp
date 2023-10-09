@@ -1539,9 +1539,13 @@ NetworkInterface *NetworkInterface::getDynInterface(u_int64_t criteria,
     break;
   }
 
+  
+#ifdef HAVE_ZMQ
   if (dynamic_cast<ZMQParserInterface *>(this))
     sub_iface = new (std::nothrow) ZMQParserInterface(buf, vIface_type);
-  else if (dynamic_cast<SyslogParserInterface *>(this))
+  else 
+#endif
+   if (dynamic_cast<SyslogParserInterface *>(this))
     sub_iface = new (std::nothrow) SyslogParserInterface(buf, vIface_type);
   else
     sub_iface = new (std::nothrow) NetworkInterface(buf, vIface_type);
@@ -3307,8 +3311,11 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget,
   u_int64_t idle_flows_done = 0, active_flows_done = 0;
   time_t when = time(NULL);
 
+  
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
   if (ntop->get_export_interface() == NULL)
+#endif
 #endif
     if (dumper == NULL) {
       ntop->getTrace()->traceEvent(
@@ -3335,9 +3342,12 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget,
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
     }
 
+    
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
     if (ntop->get_export_interface() && (json != NULL))
       ntop->get_export_interface()->export_data(json);
+#endif
 #endif
 
     if (dumper != NULL) {

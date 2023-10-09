@@ -1185,6 +1185,8 @@ static int ntop_get_zmq_flow_field_descr(lua_State *vm) {
     lua_pushstring(vm, descr);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+#else
+  return (-1);
 #endif
 }
 #endif

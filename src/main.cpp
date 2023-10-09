@@ -204,7 +204,11 @@ int main(int argc, char *argv[])
         else
           endpoint = ifName;
 
+        
+#ifdef HAVE_ZMQ
         iface = new (std::nothrow) ZMQCollectorInterface(endpoint);
+#endif
+
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
       } else if (strstr(ifName, "kafka://")) {
         iface = new (std::nothrow) KafkaCollectorInterface(&ifName[8], false);

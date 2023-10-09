@@ -24,6 +24,8 @@
 
 #include "ntop_includes.h"
 
+
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
 
 class LuaEngine;
@@ -66,3 +68,4 @@ class ZMQCollectorInterface : public ZMQParserInterface {
 #endif /* HAVE_NEDGE */
 
 #endif /* _ZMQ_COLLECTOR_INTERFACE_H_ */
+#endif

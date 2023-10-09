@@ -2443,8 +2443,10 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 
 void Flow::dumpCheck(time_t t, bool last_dump_before_free) {
   if ((ntop->getPrefs()->is_flows_dump_enabled()
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
        || ntop->get_export_interface()
+#endif
 #endif
            )
 #ifdef NTOPNG_PRO
