@@ -369,7 +369,9 @@ static void checkInformativeCaptive(
 
 static int isWhitelistedURI(const char *uri) {
   /* URL whitelist */
-  if ((!strcmp(uri, LOGIN_URL)) || (!strcmp(uri, AUTHORIZE_URL))
+  if ((!strcmp(uri, LOGIN_URL)) 
+      || (!strcmp(uri, AUTHORIZE_URL))
+      || (!strcmp(uri, LOCALE_URL))
 #ifdef HAVE_NEDGE
       || (!strcmp(uri, HOTSPOT_DETECT_URL)) ||
       (!strcmp(uri, HOTSPOT_DETECT_LUA_URL)) ||

@@ -117,6 +117,7 @@
 #define ZMQ_MSG_VERSION 2
 #define ZMQ_MSG_VERSION_TLV 3
 #define LOGIN_URL "/lua/login.lua"
+#define LOCALE_URL "/lua/locale.lua"
 #define LOGOUT_URL "/lua/ntopng_logout.lua"
 #define CAPTIVE_PORTAL_URL "/lua/captive_portal.lua"
 #define CAPTIVE_PORTAL_LOGOUT_URL "/lua/logout.lua"
