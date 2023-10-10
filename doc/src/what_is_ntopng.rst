@@ -68,20 +68,17 @@ will start and ntopng will be installed, along with its dependencies.
 The installation procedure installs
 
 - ntopng
-- `Microsoft Visual C++ Redistributable
-  <https://support.microsoft.com/en-us/help/2977003/the-latest-supported-visual-c-downloads>`_
 - `Redis <https://redis.io/>`_
 
 .. note::
 
    If upgrading from an earlier version of ntopng for Windows, it is
    safe to skip the installation of any ntopng dependency. It is safe
-   to respond 'No' or click 'Cancel' when prompted to install 
-   Microsoft Visual C++ Redistributable, and Redis.
+   to respond 'No' or click 'Cancel' when prompted to install Redis.
 
-By default, the ntopng installer comes without capture drivers. You need to
-install manually `npcap drivers <https://nmap.org/npcap/>`_. If Wireshark is
-already installed on Windows, then `npcap drivers <https://nmap.org/npcap/>`_
+The ntopng installer comes without capture drivers. You need to
+install manually `npcap drivers <https://nmap.org/npcap/>`_ **BEFORE** you install ntopng. If Wireshark is
+already installed on Windows, then npcap drivers
 are already installed and no driver installation is necessary.
 
 .. figure:: ./img/npcap.png
