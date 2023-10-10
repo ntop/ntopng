@@ -214,7 +214,7 @@ function columns_sorting(col, r0, r1) {
         return r0_col - r1_col;
       }
       return r1_col - r0_col; 
-    } else if ( col.id == "tcp_ports" /*|| col.id == "udp_ports"*/) {
+    } else if ( col.id == "tcp_ports" || col.id == "udp_ports") {
       r0_col = format_num_ports_for_sort(r0_col);
       r1_col = format_num_ports_for_sort(r1_col);
       if (col.sort == 1) {

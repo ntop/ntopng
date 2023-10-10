@@ -26,6 +26,7 @@ local lang = {
   ["all_devices"] = "All Devices",
   ["all_hosts"] = "All Hosts",
   ["all_manufacturer"] = "All Manufacturer",
+  ["all_obs_points"] = "All Obs. Points",
   ["all_tcp_udp"] = "All (TCP and UDP)",
   ["allowed"] = "Allowed",
   ["analysis"] = "Analysis",
@@ -399,10 +400,9 @@ local lang = {
   ["new"] = "New",
   ["next"] = "Next",
   ["no"] = "No",
-  ["all_obs_points"] = "All Obs. Points",
   ["noTraffic"] = "No traffic has been reported for the specified date/time selection",
-  ["no_attacker_no_victim"] = "No Attacker/Victim",
   ["no_alerts_require_attention"] = "All good. There is no alert requiring user actions in the selected time frame.",
+  ["no_attacker_no_victim"] = "No Attacker/Victim",
   ["no_data_available"] = "No Data Available",
   ["no_external_link_url"] = "<span><button data-to-copy='%{proto}://%{url}' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button>  <a href='%{proto}://%{url}' target='_blank'><i class='fas fa-external-link-alt'></i> %{url_name}</a></span>",
   ["no_flows"] = "No Flows",
@@ -674,11 +674,6 @@ local lang = {
   ["vulnerability_scan_alert"] = "Change detected on host <b>%{host}</b>: %{msg}",
   ["vulnerability_scan_alert_new_issues"] = ": CVEs changed from %{num_issues} to %{new_cve} ]",
   ["vulnerability_scan_alert_ports_changed"] = " open ports changed from %{old_num_ports} to %{new_num_ports}",
-  ["vulnerability_scan_alert_ports_changed_cases"] = {
-    ["new_ports"] = " %{open_ports_num} new open ports %{open_ports}.",
-    ["ports_closed"] = " %{closed_ports_num} ports %{closed_ports} are now closed.",
-    ["ports_open_and_closed"] = " new open ports %{open_ports} and ports %{closed_ports} are now closed."
-  },
   ["vulnerability_scan_alert_solved_issues"] = " %{num_issues} CVEs, solved %{cve_solved} ]",
   ["waiting_for_clickhouse_msg"] = "ClickHouse did not start correctly: please check the ntopng startup log and fix the reported problems.",
   ["warning"] = "Warning",
@@ -3931,8 +3926,8 @@ local lang = {
       ["drops"] = "Drops",
       ["num_devices"] = "Num Devices",
       ["num_flows"] = "Num Flows",
-      ["num_hosts"] = "Entries",
       ["num_hits"] = "Hits",
+      ["num_hosts"] = "Entries",
       ["num_http_hosts"] = "Num HTTP Hosts",
       ["num_ms_rtt"] = "RTT ms",
       ["packets"] = "Packets",
@@ -4277,7 +4272,8 @@ local lang = {
       ["scan_type_list"] = {
         ["cve"] = "CVE",
         ["openvas"] = "OpenVAS",
-        ["tcp_openports"] = "TCP Portscan",
+        ["tcp_portscan"] = "TCP Portscan",
+        ["udp_portscan"] = "UDP Portscan",
         ["vulners"] = "Vulners",
       },
     },
@@ -7675,6 +7671,11 @@ local lang = {
   ["vlan_stats"] = {
     ["vlan_id"] = "VLAN ID",
     ["vlans"] = "VLANs",
+  },
+  ["vulnerability_scan_alert_ports_changed_cases"] = {
+    ["new_ports"] = " %{open_ports_num} new open ports %{open_ports}.",
+    ["ports_closed"] = " %{closed_ports_num} ports %{closed_ports} are now closed.",
+    ["ports_open_and_closed"] = " new open ports %{open_ports} and ports %{closed_ports} are now closed.",
   },
   ["widgets_page"] = {
     ["actions"] = "Actions",
