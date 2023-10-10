@@ -80,7 +80,9 @@ export const max_score_cve_f = (max_score_cve, row) => {
       font_color = "red";
     } 
 
-    label = `<FONT COLOR=${font_color}>${max_score_cve}`;
+    if (score != 0) {
+      label = `<FONT COLOR=${font_color}>${max_score_cve}`;
+    }
   }
   
 
