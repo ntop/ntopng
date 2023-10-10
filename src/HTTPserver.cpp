@@ -378,10 +378,14 @@ static int isWhitelistedURI(const char *uri) {
       (!strcmp(uri, ntop->getPrefs()->getCaptivePortalUrl())) ||
       (!strcmp(uri, KINDLE_WIFISTUB_URL))
 #endif
-  )
+  ) {
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Uri whitelisted requested: %s", uri);
     return (1);
-  else
+  }
+  else {
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Uri greylisted requested: %s", uri);
     return (0);
+  }
 }
 
 /* ****************************************** */
@@ -1390,7 +1394,9 @@ static int handle_lua_request(struct mg_connection *conn) {
 
       return (1);
     } else if ((strcmp(request_info->uri, CHANGE_PASSWORD_ULR) != 0) &&
-               (strcmp(request_info->uri, LOGOUT_URL) != 0) && authorized &&
+               (strcmp(request_info->uri, LOGOUT_URL) != 0) &&
+               (strcmp(request_info->uri, LOCALE_URL) != 0) &&
+               authorized &&
                ntop->mustChangePassword(username)) {
       redirect_to_password_change(conn, request_info);
       return (1);
