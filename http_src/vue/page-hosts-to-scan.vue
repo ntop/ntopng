@@ -282,6 +282,23 @@ function columns_sorting(col, r0, r1) {
       }
       return r1_col.localeCompare(r0_col);
     }	
+  } else {
+    col = {
+      "data": {
+          "title_i18n": "db_explorer.host_data",
+          "data_field": "host",
+          "sortable": true,
+          "class": [
+              "text-nowrap"
+          ]
+      }
+    }
+    let r0_col = r0[col.data.data_field];
+    let r1_col = r1[col.data.data_field];
+    r0_col = NtopUtils.convertIPAddress(r0_col);
+    r1_col = NtopUtils.convertIPAddress(r1_col);
+    
+    return r0_col.localeCompare(r1_col);
   }
   
 }
