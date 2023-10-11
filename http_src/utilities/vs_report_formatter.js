@@ -236,31 +236,38 @@ const find_badge = (port, row) => {
 }
 export const tcp_ports_list_f = (tcp_ports_list, row) => {
 
-  if (tcp_ports_list != null) {
+  if (tcp_ports_list != null ) {
     const ports = tcp_ports_list.split(",");
     let label = "";
     ports.forEach((item) => {
       if(item != null && item != '') {
-        let port = item.split(" ")[0].split("/")[0];
 
-        let port_badge = find_badge(Number(port), row);
-        switch (port_badge) {
-          case 'unused': 
-              item += ` &nbsp;<span class="badge bg-secondary" title='${i18n('hosts_stats.page_scan_hosts.unused_port')}'><i class="fa-solid fa-ghost"></i></span>`
-            break;
-          case 'filtered':
-              item += ` &nbsp;<span class="badge bg-primary" title='${i18n('hosts_stats.page_scan_hosts.filtered_port')}'><i class="fa-solid fa-filter"></i></span>`
-            break;
-          default: 
-            break;
+        if (row.host_in_mem) {
+          let port = item.split(" ")[0].split("/")[0];
+          let port_badge = find_badge(Number(port), row);
+          switch (port_badge) {
+            case 'unused': 
+                item += ` &nbsp;<span class="badge bg-secondary" title='${i18n('hosts_stats.page_scan_hosts.unused_port')}'><i class="fa-solid fa-ghost"></i></span>`;
+              break;
+            case 'filtered':
+                item += ` &nbsp;<span class="badge bg-primary" title='${i18n('hosts_stats.page_scan_hosts.filtered_port')}'><i class="fa-solid fa-filter"></i></span>`;
+              break;
+            default: 
+              break;
+          }
         }
+        
         label += `<li>${item}</li>`;
       }
     });
 
     if (row.tcp_filtered_ports != null) {
       row.tcp_filtered_ports.forEach((item) => {
-        item += `/tcp <span class="badge bg-primary" title='${i18n('hosts_stats.page_scan_hosts.filtered_port')}'><i class="fa-solid fa-filter"></i></span>`
+
+        item += `/tcp`;
+        if (row.host_in_mem) {
+          item += ` <span class="badge bg-primary" title='${i18n('hosts_stats.page_scan_hosts.filtered_port')}'><i class="fa-solid fa-filter"></i></span>`;
+        }
         label += `<li>${item}</li>`;
       })
 
