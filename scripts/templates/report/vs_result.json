@@ -32,7 +32,12 @@
 				{
 					"i18n_name": "hosts_stats.page_scan_hosts.host",
 					"id": "host",
-					"data_type": "host"
+					"data_type": "string"
+				},
+				{
+					"i18n_name": "db_explorer.host_name",
+					"id": "host_name",
+					"data_type": "string"
 				},
 				{
 					"i18n_name": "score",

@@ -39,12 +39,26 @@ local function format_epoch(value)
     end
 end
 
+local function compare_host(a,b)
+    
+    local a_tmp = a.host_name
+    if(isEmptyString(a_tmp)) then
+        a_tmp = a.host
+    end
+
+    local b_tmp = b.host_name
+    if(isEmptyString(b_tmp)) then
+        b_tmp = b.host
+    end
+
+    return a_tmp < b_tmp
+end
+
+
 local function format_result(result) 
     local rsp = {}
     if result then
-        if not isEmptyString(sort) and sort == 'ip' then
-            table.sort(result, function (k1, k2)  return (k1.host or k1.host_name) < (k2.host or k2.host_name) end )
-        end
+        
         for _,value in ipairs(result) do
 
             local tcp_ports_string_list = value.tcp_ports_list
@@ -92,9 +106,7 @@ local function format_result(result)
                     rsp[#rsp].tcp_ports_list = formatted_ports_list
                 end
 
-                if not isEmptyString(sort) and sort == 'ip' then
-                    rsp[#rsp].host = ternary(isEmptyString(rsp[#rsp].host_name), rsp[#rsp].host, rsp[#rsp].host_name)
-                end
+                
             end
 
             if(next(rsp)) then
@@ -136,7 +148,7 @@ local function format_result(result)
         end
 
         if not isEmptyString(sort) and sort == 'ip' then
-            table.sort(rsp, function (k1, k2)  return k1.host < k2.host end )
+            table.sort(rsp, compare_host)
         end
 
 

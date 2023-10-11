@@ -137,8 +137,6 @@ const row_render_functions = {
       return scan_type_f(row[column.id]);
     } else if (column.id == "hosts") {
       return hosts_f(row[column.id]);
-    } else if (column.id == "host") {
-      return host_f(row[column.id], row);
     } else if (column.id == "cve" || column.id == "cve_list") {
       return cves_f(row[column.id]);
     } else if (column.id == "tcp_ports_list") {
