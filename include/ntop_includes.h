@@ -360,6 +360,7 @@ using namespace std;
 #if defined(NTOPNG_PRO)
 #include "RankTable.h"
 #include "PeriodicityStats.h"
+#include "PeriodicCacheInfo.h"
 #include "PeriodicityHash.h"
 #include "ServiceMap.h"
 #include "PeriodicityMap.h"
