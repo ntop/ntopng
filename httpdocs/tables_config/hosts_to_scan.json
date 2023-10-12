@@ -69,7 +69,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_explorer.host_data",
+			"title_i18n": "ip_address",
 			"data_field": "host",
 			"sortable": true,
 			"class": [
@@ -77,7 +77,7 @@
 			]
 		},
 		{
-			"title_i18n": "db_explorer.host_name",
+			"title_i18n": "name",
 			"data_field": "host_name",
 			"sortable": true,
 			"class": [
