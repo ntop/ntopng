@@ -4902,11 +4902,10 @@ void Utils::deferredExec(const char *command) {
       res >= (int)sizeof(command_buf))
     return;
 
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", command_buf);
+  printf("%s\n", command_buf);
 
   if (system(command_buf) == -1)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Failed command %s: %d/%s",
-                                 command_buf, errno, strerror(errno));
+    fprintf(stderr, "Failed command %s: %d/%s", command_buf, errno, strerror(errno));
 }
 #endif
 
