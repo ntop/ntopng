@@ -21,7 +21,7 @@ import { default as BootstrapTable } from "./bootstrap-table.vue";
 import { ntopng_custom_events, ntopng_events_manager } from "../services/context/ntopng_globals_services";
 import formatterUtils from "../utilities/formatter-utils";
 import NtopUtils from "../utilities/ntop-utils";
-import { scan_type_f,last_scan_f, duration_f, scan_frequency_f, is_ok_last_scan_f, tcp_ports_f, tcp_port_f, hosts_f, host_f, cves_f, tcp_ports_list_f, max_score_cve_f  } from "../utilities/vs_report_formatter.js"; 
+import { scan_type_f,last_scan_f, duration_f, scan_frequency_f, is_ok_last_scan_f, tcp_ports_f, tcp_port_f, hosts_f, host_f, cves_f, tcp_ports_list_f, max_score_cve_f, udp_ports_list_f, udp_ports_f  } from "../utilities/vs_report_formatter.js"; 
 
 const _i18n = (t) => i18n(t);
 
@@ -43,7 +43,7 @@ const props = defineProps({
 const columns = computed(() => {
     let columns = props.params.columns.map((c) => {
         if (!c.style && c.data_type) {
-            if (c.data_type == "bytes") {
+            if (c.data_type == "bytes" || c.data_type == "date") {
                 c.style = "text-align: right";
             }
         }
@@ -133,7 +133,9 @@ const row_render_functions = {
       return is_ok_last_scan_f(row[column.id]);
     } else if(column.id == "tcp_ports") {
       return tcp_ports_f(row[column.id], row);
-    } else if(column.id == "scan_type") {
+    } else if(column.id == "udp_ports") {
+      return udp_ports_f(row[column.id], row);
+    }  else if(column.id == "scan_type") {
       return scan_type_f(row[column.id]);
     } else if (column.id == "hosts") {
       return hosts_f(row[column.id]);
@@ -141,7 +143,9 @@ const row_render_functions = {
       return cves_f(row[column.id]);
     } else if (column.id == "tcp_ports_list") {
       return tcp_ports_list_f(row[column.id], row); 
-    } else if (column.id == "port") {
+    } else if (column.id == "udp_ports_list") {
+      return udp_ports_list_f(row[column.id], row); 
+    }else if (column.id == "port") {
       return tcp_port_f(row[column.id],row);
     } else if (column.id == "max_score_cve") {
       return max_score_cve_f(row[column.id],row)

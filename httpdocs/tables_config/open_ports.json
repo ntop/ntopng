@@ -5,6 +5,10 @@
 	"enable_search": false,
 	"paging": false,
 	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "port",
+		"sort": 1
+		},
 	"columns": [
 		{
 			"id": "actions",

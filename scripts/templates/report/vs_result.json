@@ -55,6 +55,11 @@
 					"data_type": "string"
 				},
 				{
+					"i18n_name": "hosts_stats.page_scan_hosts.udp_ports",
+					"id": "udp_ports_list",
+					"data_type": "string"
+				},
+				{
 					"i18n_name": "hosts_stats.page_scan_hosts.num_vulnerabilities_found",
 					"id": "num_vulnerabilities_found",
 					"data_type": "string"
@@ -67,7 +72,7 @@
 				{
 					"i18n_name": "hosts_stats.page_scan_hosts.last_scan",
 					"id": "last_scan",
-					"data_type": "string"
+					"data_type": "date"
 				}
 			 ]
 		}

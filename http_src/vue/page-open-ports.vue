@@ -91,6 +91,25 @@ function on_table_custom_event(event) {
   events_managed[event.event_id](event);
 }
 
+
+function compare_by_port(r0,r1) {
+
+  let col = {
+      "data": {
+          "title_i18n": "port",
+          "data_field": "port",
+          "sortable": true,
+          "class": [
+              "text-nowrap",
+              "text-end"
+          ]
+      }
+    };
+  let r0_col = format_num_ports_for_sort(r0_col);
+  let r1_col = format_num_ports_for_sort(r1_col);
+  return r0_col - r1_col;
+}
+
 function columns_sorting(col, r0, r1) {
 
   if (col != null) {
@@ -107,6 +126,10 @@ function columns_sorting(col, r0, r1) {
     } else if(col.id == "count_host") {
       r0_col = format_cve_num(r0_col);
       r1_col = format_cve_num(r1_col);
+
+      if (r0_col == r1_col) {
+        return compare_by_port(r0,r1);
+      }
       if (col.sort == 1) {
         return r0_col - r1_col;
       }
@@ -116,6 +139,9 @@ function columns_sorting(col, r0, r1) {
       r0_col = format_cve_num(r0_col);
       r1_col = format_cve_num(r1_col);
 
+      if (r0_col == r1_col) {
+        return compare_by_port(r0,r1);
+      }
       if (col.sort == 1) {
         return r0_col - r1_col;
       }
@@ -123,12 +149,18 @@ function columns_sorting(col, r0, r1) {
     }
     else if(col.id == "hosts") {
       /* It's an array */
+
+      if (r0_col == r1_col) {
+        return compare_by_port(r0,r1);
+      }
       if (col.sort == 1) {
         return r0_col.localeCompare(r1_col);
       }
       return r1_col.localeCompare(r0_col);
     } 
    
+  } else {
+    return compare_by_port(r0,r1);
   }
   
 }
@@ -182,7 +214,7 @@ const map_table_def_columns = (columns) => {
   let map_columns = {
     "hosts": (hosts, row) => {
       let label = ``;
-      const hosts_splited = hosts.split(",");
+      const hosts_splited = hosts.split(", ");
       const length = hosts_splited.length;
       let i = 0;
       while ( i < 5 && i < length) {
@@ -213,7 +245,7 @@ const map_table_def_columns = (columns) => {
         if (label == ``)
           label += `<a href="${url}">${host_label}</a>`;  
         else
-          label += `,<a href="${url}">${host_label}</a>`;  
+          label += `, <a href="${url}">${host_label}</a>`;  
 
         i++;
       }
