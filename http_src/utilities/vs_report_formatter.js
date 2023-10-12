@@ -238,7 +238,11 @@ export const tcp_ports_f = (tcp_ports, row) => {
 }
 
 export const tcp_port_f = (port, row) => {
-  return row.port_label;
+  let rsp = port;
+  if (row.port_label != null && row.port_label != port) {
+    rsp += ` (${row.port_label})`
+  }
+  return rsp;
 }
 const find_badge = (port, row, ports_unused, ports_filtered) => {
   let result = ''
