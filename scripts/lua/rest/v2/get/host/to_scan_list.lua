@@ -217,11 +217,15 @@ local function format_result(result)
                 end
                 rsp[#rsp].host_in_mem = host_in_mem
             end
+
+            if (rsp[#rsp].cve ~= nil) then
+                table.sort(rsp[#rsp].cve, function (k1, k2) return split(k1,"|")[2] < split(k2,"|")[2] end)
+            end 
         end
 
         if not isEmptyString(sort) and sort == 'ip' then
             table.sort(rsp, compare_host)
-        end
+        end 
     end 
     return rsp 
 end
