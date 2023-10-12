@@ -14,6 +14,8 @@ if not ntop.isnEdge() then
    return
 end
 
+local info = ntop.getInfo()
+
 local remote_addr = _SERVER["REMOTE_ADDR"]
 local method = _SERVER["REQUEST_METHOD"]
 
@@ -73,8 +75,6 @@ end
 if not isEmptyString(r) then
    print("?referer="..r)
 end
-
-local info = ntop.getInfo()
 
 print[[" method="POST">
 	 <h2 class="form-signin-heading" style="font-weight: bold;">]] print(info["product"]) print [[ Access Portal</h2>
