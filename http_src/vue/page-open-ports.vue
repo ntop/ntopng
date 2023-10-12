@@ -105,8 +105,11 @@ function compare_by_port(r0,r1) {
           ]
       }
     };
-  let r0_col = format_num_ports_for_sort(r0_col);
-  let r1_col = format_num_ports_for_sort(r1_col);
+  let r0_col = r0[col.data.data_field];
+  let r1_col = r1[col.data.data_field];
+    
+  r0_col = format_num_ports_for_sort(r0_col);
+  r1_col = format_num_ports_for_sort(r1_col);
   return r0_col - r1_col;
 }
 
@@ -157,7 +160,27 @@ function columns_sorting(col, r0, r1) {
         return r0_col.localeCompare(r1_col);
       }
       return r1_col.localeCompare(r0_col);
-    } 
+    } else {
+
+      if (r0_col != null) {
+
+      } else {
+        r0_col = "";
+      }
+
+      if (r1_col != null) {
+
+      } else {
+        r1_col = "";
+      }
+      if (r0_col == r1_col) {
+        return compare_by_port(r0,r1);
+      }
+      if (col.sort == 1) {
+        return r0_col.localeCompare(r1_col);
+      }
+      return r1_col.localeCompare(r0_col);
+    }
    
   } else {
     return compare_by_port(r0,r1);
