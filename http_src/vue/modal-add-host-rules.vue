@@ -25,10 +25,10 @@
       <label v-if="flow_device_timeseries_available == true" class="btn " :class="[rule_type == 'exporter'?'btn-primary active':'btn-secondary']">
 	      <input @click="set_rule_type('exporter')" class="btn-check"  type="radio" name="rule_type" value="exporter"> {{ _i18n("if_stats_config.add_rules_type_flow_exporter") }}
 	    </label>
-      <label class="btn " :class="[rule_type == 'host_pool'?'btn-primary active':'btn-secondary']">
+      <label v-if="has_host_pools == false" class="btn " :class="[rule_type == 'host_pool'?'btn-primary active':'btn-secondary']">
 	      <input @click="set_rule_type('host_pool')" class="btn-check"  type="radio" name="rule_type" value="host_pool"> {{ _i18n("if_stats_config.add_rules_type_host_pool") }}
 	    </label>
-      <label class="btn " :class="[rule_type == 'CIDR'?'btn-primary active':'btn-secondary']">
+      <label v-if="has_cidr == false" class="btn " :class="[rule_type == 'CIDR'?'btn-primary active':'btn-secondary']">
 	      <input @click="set_rule_type('CIDR')" class="btn-check"  type="radio" name="rule_type" value="CIDR"> {{ _i18n("if_stats_config.add_rules_type_cidr") }}
 	    </label>
 	  </div>
@@ -241,6 +241,9 @@ import NtopUtils from "../utilities/ntop-utils";
 const input_mac_list = ref("");
 const input_trigger_alerts = ref("");
 
+
+let has_host_pools = ref(false);
+let has_cidr = ref(false);
 const modal_id = ref(null);
 const emit = defineEmits(['add','edit']);
 let title = i18n('if_stats_config.add_host_rules_title');
@@ -368,7 +371,7 @@ const reset_modal_form = async function() {
 
     is_edit_page.value = false;
     title = i18n('if_stats_config.add_host_rules_title');
-
+    console.log(frequency_list.value);
     selected_frequency.value = frequency_list.value[0];
     metric_type.value = metric_type_list.value[0];
     selected_exporter_device.value = flow_exporter_devices.value[0];
@@ -396,11 +399,15 @@ const reset_modal_form = async function() {
     metric_type_list.value.forEach((t) => t.active = false);
     metric_type_list.value[0].active = true;
 
-    selected_host_pool.value = host_pool_list.value[0];
+    if (host_pool_list.value != null)
+      selected_host_pool.value = host_pool_list.value[0];
+    
     selected_host_pool_metric.value = host_pool_metric_list.value[0];
 
-    selected_network.value = network_list.value[0];
-    selected_network_metric.value = network_metric_list.value[0];
+    if (network_list.value != null)
+      selected_network.value = network_list.value[0];
+    if(network_metric_list.value != null)
+      selected_network_metric.value = network_metric_list.value[0];
 
 
     reset_radio_selection(volume_threshold_list.value);
@@ -926,8 +933,15 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
   console.log(_flow_exporter_devices);
   flow_exporter_devices.value = format_flow_exporter_device_list(_flow_exporter_devices);
 
+  if (_host_pool_list != null) {
+    has_host_pools.value = true;
+  }
   host_pool_list.value = _host_pool_list;
   host_pool_metric_list.value = _host_pool_metric_list;
+
+  if (_network_list != null) {
+    has_cidr.value = true;
+  }
   network_list.value = _network_list;
   network_metric_list.value = _network_metric_list;
   flow_device_metric_list.value = _flow_exporter_devices_metric_list;
