@@ -692,7 +692,7 @@ function system_config:applyChanges()
 
   if is_rebooting then
     self:writeSystemFiles()
-    --tprint("Reboot!")
+    --tprint("Reboot! (debug mode - reboot is disabled)")
     sys_utils.rebootSystem()
   elseif is_self_restarting then
     sys_utils.restartSelf()

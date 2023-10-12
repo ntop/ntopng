@@ -21,7 +21,7 @@ local auth = require "auth"
 
 local email_peer_pattern = [[^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)$]]
 
-if (ntop.isPro()) then
+if ntop.isPro() or ntop.isnEdgeEnterprise() then
     package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
     if hasClickHouseSupport() then

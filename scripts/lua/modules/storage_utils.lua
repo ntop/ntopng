@@ -6,7 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 
-if ntop.isEnterpriseM() then
+if ntop.isEnterpriseM() or ntop.isnEdgeEnterprise() then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 end
 

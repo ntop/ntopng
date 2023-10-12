@@ -20,7 +20,6 @@ dirs = ntop.getDirs()
 
 package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/flow_dbms/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_trace"
@@ -311,7 +310,8 @@ end
 function hasClickHouseSupport()
    local auth = require "auth"
 
-   if not ntop.isPro() or ntop.isWindows() then
+   if not (ntop.isPro() or ntop.isnEdgeEnterprise())
+      or ntop.isWindows() then
       return false
    end
 
@@ -338,10 +338,6 @@ end
 function interfaceHasClickHouseSupport()
    return(hasClickHouseSupport() and ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"])
 end
-
---for _key, _value in pairsByKeys(vals, rev) do
---   print(_key .. "=" .. _value .. "\n")
---end
 
 -- ##############################################
 
