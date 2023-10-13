@@ -4926,7 +4926,7 @@ local lang = {
     ["generate_token"] = "Generate Token",
     ["generate_token_help"] = "More info about <A target='_blank' href='https://www.ntop.org/guides/ntopng/advanced_features/authentication.html?highlight=token#token-based-authentication'>token-based authentication</A> <i class='fas fa-external-link-alt'></i>  in ntopng API calls.",
     ["informative_captive_join"] = "Access the Internet",
-    ["informative_captive_portal_tos"] = "I have read and agreeed the <a target='_blank' href='%{url}'>terms of service</a>.",
+    ["informative_captive_portal_tos"] = "I have read and agreed the <a target='_blank' href='%{url}'>terms of service</a>.",
     ["internet_redirecting"] = "We're redirecting you to the Internet...",
     ["license"] = "%{product} is released under <a href=\"%{license_url}\">%{license}</a>.",
     ["links"] = "<A target=\"_blank\" href=\"https://www.ntop.org/support/documentation/documentation/\">User's Guides</A> | <A target=\"_blank\" HREF=\"https://www.ntop.org/community/\">Community</A> | <A target=\"_blank\" HREF=\"https://www.ntop.org/support/need-help-2/commercial-support/\">Support</A> | <A target=\"_blank\" HREF=\"https://www.ntop.org/support/documentation/faq/\">FAQ</A> | <A target=\"_blank\" HREF=\"https://github.com/ntop\">Code</A> | <A target=\"_blank\" href=\"https://www.ntop.org/support/need-help-2/contact-us/\">Contact Us</A>",
