@@ -871,6 +871,54 @@
         }
       }
     },
+    "/lua/rest/v2/get/host/vulnerability_scan_result.lua":
+    {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Retrieve last scan result.",
+        "description": "Retrieve the last scan result for a specific host in JSON format or download it as a TXT file.",
+        "operationId": "get_vulnerability_scan_result",
+        "produces": [
+          "application/json",
+          "application/octet-stream"
+        ],
+        "parameters": [
+          {
+            "name": "host",
+            "in": "query",
+            "description": "IP Address",
+            "required": true,
+            "type": "string"
+          }, 
+          {
+            "name": "scan_type",
+            "in": "query",
+            "description":"Scan Type (e.g. cve, tcp_portscan, udp_portscan, etc.)",
+            "required":true,
+            "type": "integer",
+            "format": "int32"
+
+          },
+          {
+            "name": "scan_return_result",
+            "in": "query",
+            "description":"Boolean to choose the response format (true: JSON Format; false: download TXT File) (default: false)",
+            "required":false,
+            "type":"boolean"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/host/vulnerability_scan_type_list.lua": {
       "get": {
         "tags": [
@@ -1667,6 +1715,103 @@
           },
           "-6": {
             "description": "INTERNAL_ERROR"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/flow/aggregated_live_flows.lua" : {
+      "get": {
+        "tags": [
+          "Flows"
+        ],
+        "summary": "Get aggregated live flows",
+        "description": "Retrieves live flows aggregated by the aggregation criteria (param: aggregatio_criteria)",
+        "operationId": "get_aggregated_live_flows",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "aggregation_criteria",
+            "in": "query",
+            "description": "Possible values include: 'application_protcol', 'client', 'server', 'client_server_srv_port', 'client_server', 'app_client_server', 'info' (default: application_protocol)",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "vlan_id",
+            "in": "query",
+            "description": "To filter live flows on VLAN ID before aggregating them",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "host",
+            "in": "query",
+            "description": "To filter live flows on Host Address before aggregating them",
+            "required": false,
+            "type": "string"
+          }, 
+          {
+            "name": "draw",
+            "in": "query",
+            "description":"Number of page (default: 0)",
+            "required":false,
+            "type": "integer",
+            "format": "int32"
+
+          },
+          {
+            "name": "sort_column",
+            "in": "query",
+            "description":"Column name to sort retrieved data (default: flows)",
+            "required":false,
+            "type":"string"
+          },
+          {
+            "name": "sort_order",
+            "in": "query",
+            "description":"Ascending (asc) or Descending (desc) (default: asc)",
+            "required":false
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "description":"It defines the position at which the data retrieval begins (default: 0)",
+            "required":false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "length",
+            "in": "query",
+            "description":"It determines how many items are displayed on each page or retrieved in a single request (default: 10)",
+            "required":false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "map_search",
+            "in": "query",
+            "description":"It filters based on a specific field (e.g., in the case of 'application_protocol,' it filters flows with an 'application_protocol' containing a substring equal to 'map_search').",
+            "required":false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
           }
         }
       }
