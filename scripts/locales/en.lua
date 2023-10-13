@@ -4246,6 +4246,7 @@ local lang = {
         ["count"] = "Hosts Count",
         ["cves"] = "CVEs",
         ["cves_list"] = "CVEs List",
+        ["cves_title"] = "ID (Score)",
         ["host_name"] = "Name",
         ["hosts"] = "Hosts",
         ["ip_address"] = "IP Address",

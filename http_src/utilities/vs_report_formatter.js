@@ -424,7 +424,7 @@ export const cves_f = (cves, row) => {
             badge_type = "bg-danger";
           }
           
-          label += `<li><span class="badge ${badge_type}">${key} </span> (${score})</li>`;
+          label += `<li  title='${i18n("hosts_stats.page_scan_hosts.report.cves_title")}'><span class="badge ${badge_type}">${key} </span> (${score})</li>`;
 
         
         index++;
