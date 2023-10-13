@@ -4390,9 +4390,12 @@ static bool find_host_by_name(GenericHashEntry *h, void *user_data,
 			       host->get_name(), info->host_to_find);
 #endif
 
-  if ((info->h == NULL) &&
-      (host->get_observation_point_id() == info->observationPointId) &&
-      (host->get_vlan_id() == info->vlan_id)) {
+  if ((info->h == NULL)
+#if 0
+      /* Commented out because of (***) */
+      && (host->get_observation_point_id() == info->observationPointId)
+#endif
+      && (host->get_vlan_id() == info->vlan_id)) {
     host->get_name(name_buf, sizeof(name_buf), false);
 
     if (strlen(name_buf) == 0 && host->get_ip()) {
@@ -5283,13 +5286,21 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data,
   struct flowHostRetriever *r = (struct flowHostRetriever *)user_data;
   Host *h = (Host *)he;
 
-  if (r->actNumEntries >= r->maxNumEntries) return (true); /* Limit reached */
+  if (r->actNumEntries >= r->maxNumEntries)
+    return(true); /* Limit reached */
 
-  // ntop->getTrace()->traceEvent(TRACE_WARNING, "Host %u / Menu %u",
-  // h->get_observation_point_id(), r->observationPointId);
-
-  if (!h || h->idle() || !h->match(r->allowed_hosts) ||
-      (h->get_observation_point_id() != r->observationPointId))
+  if (!h || h->idle() || !h->match(r->allowed_hosts)
+#if 0
+      /*
+	(***) The check below is commented out as it has no sense for hosts as written in
+	https://www.ntop.org/ntopng/data-aggregation-in-ntopng-host-pools-vs-observation-points/
+	
+	In conclusion, the observation point is a way to logically aggregate flows whereas pool
+	are used to aggregate hosts. For this reason they can be used simultaneously.
+      */
+      || (h->get_observation_point_id() != r->observationPointId)
+#endif
+      )
     return (false);
 
   if ((r->location == location_local_only && (!h->isLocalUnicastHost())) ||
