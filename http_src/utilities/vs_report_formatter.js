@@ -391,13 +391,29 @@ export const cves_f = (cves, row) => {
   let label = "";
   let index = 0;
   if (cves != null) {
-    cves.forEach((item) => {
-      if (index < 100) {
-        let cve_details = item.split("|");
 
-        if (cve_details.length > 1) {
+    let cves_map = new Map();
+
+    // map to sort cves on score
+    cves.forEach((item) => {
+      let cve_details = item.split("|");
+      let actual_score = 0;
+      if (cve_details.length> 1) {
+        actual_score = Number(cve_details[1]);
+      }
+  
+      cves_map.set(
+        cve_details[0], 
+        actual_score)
+    });
+  
+    cves_map = new Map([...cves_map.entries()].sort((a,b) => b[1] - a[1]));
+
+    // return first 100
+    cves_map.forEach((score, key) => {
+      if (index < 100) {
+
           let badge_type = "";
-          const score = Number(cve_details[1]);
           if (score == 0) {
             badge_type = "bg-success";
           } else if(score < 3.9) {
@@ -408,16 +424,15 @@ export const cves_f = (cves, row) => {
             badge_type = "bg-danger";
           }
           
-          label += `<li><span class="badge ${badge_type}">${cve_details[0]} <span/></li>`;
+          label += `<li><span class="badge ${badge_type}">${key} <span/></li>`;
 
-        } else {
-          label += `<li>${item}</li>`;
-        }
+        
         index++;
       } else {
         return label;
       }
-    })
+    });
+
   }
 
 
