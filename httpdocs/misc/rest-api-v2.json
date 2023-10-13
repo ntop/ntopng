@@ -369,11 +369,27 @@
         ],
         "parameters": [
           {
+            "name": "ifid",
+            "in": "formData",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
             "name": "host",
-            "in": "query",
+            "in": "formData",
             "description": "Host address",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "vlan",
+            "in": "formData",
+            "description": "VLAN ID",
+            "required": false,
+            "type": "integer",
+            "format": "int16"
           }
         ],
         "responses": {
@@ -795,6 +811,27 @@
             "description": "Automatic Vulnerability Scan Frequency",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "auto_scan_frequency",
+            "in": "formData",
+            "description": "Available only from Pro License. Automatic scanning, one option between: disabled, 1day (scan once per day), 1week (scan once a week)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "scan_id",
+            "in": "formData",
+            "description": "Scan ID",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "cidr",
+            "in": "formData",
+            "description": "Network CIDR",
+            "required": false,
+            "type": "string"
           }
         ],
         "responses": {
@@ -889,53 +926,6 @@
             "name":"scan_single_host",
             "in": "formData",
             "description": "Boolean to a single or all hosts",
-            "required": false,
-            "type": "boolean"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
-          },
-          "-8": {
-            "description": "BAD_CONTENT"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/delete/host/delete_host_to_scan.lua": {
-      "post": {
-        "tags": [
-          "Hosts"
-        ],
-        "summary": "Delete host from vulnerability scan hosts list",
-        "description": "Delete Host to Scan",
-        "operationId": "delete_host_to_scan",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "host",
-            "in": "formData",
-            "description": "Host address",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "scan_type",
-            "in": "formData",
-            "description": "Vulnerability Scan Type",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name":"delete_all_scan_hosts",
-            "in": "formData",
-            "description": "Boolean to delete all hosts to scan",
             "required": false,
             "type": "boolean"
           }
@@ -1206,14 +1196,14 @@
             "format": "int32"
           },
           {
-            "name": "order_by_clause",
+            "name": "order_by",
             "in": "query",
             "description": "Order by clause (default: no order)",
             "required": false,
             "type": "string"
           },
           {
-            "name": "group_by_clause",
+            "name": "group_by",
             "in": "query",
             "description": "Group by clause (default: no group)",
             "required": false,
@@ -1476,6 +1466,34 @@
         }
       }
     },
+    "/lua/rest/v2/get/network/networks.lua": {
+      "get": {
+        "tags": [
+          "Networks"
+        ],
+        "summary": "Return list of networks",
+        "description": "Return the list of all networks",
+        "operationId": "get_networks",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/lua/rest/version.lua": {
       "get": {
         "tags": [
@@ -1507,6 +1525,42 @@
           "application/json"
         ],
         "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "scripts/lua/rest/v2/delete/host/inactive_host.lua" : {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get ntopng actively monitored interfaces names and ids",
+        "description": "Interface name and integer interface id for each actively monitored ntopng interface",
+        "operationId": "get_ntopng_interfaces",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "serial_key",
+            "in": "query",
+            "description": "Host identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
         "responses": {
           "0": {
             "description": "OK"
@@ -3382,9 +3436,26 @@
         ],
         "parameters": [
           {
-            "pool_name": "string",
-            "pool_members": "string",
-            "confset_id": "int32"
+            "name": "pool_name",
+            "in": "formData",
+            "description": "Host Pool Name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "pool_members",
+            "in": "formData",
+            "description": "List of IPs separated by commas",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "confset_id",
+            "in": "formData",
+            "description": "Configuration ID",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
           }
         ],
         "responses": {
@@ -3416,10 +3487,34 @@
         ],
         "parameters": [
           {
-            "pool": "int32",
-            "pool_name": "string",
-            "pool_members": "string",
-            "confset_id": "int32"
+            "name": "pool",
+            "in": "formData",
+            "description": "Pool ID",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pool_name",
+            "in": "formData",
+            "description": "Pool Name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "pool_members",
+            "in": "formData",
+            "description": "Comma separated list of IPs/MACs/Networks cidr",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "confset_id",
+            "in": "formData",
+            "description": "Configuration ID",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
           }
         ],
         "responses": {
@@ -3567,7 +3662,7 @@
         }
       }
     },
-    "/lua/rest/v2/get/host/pools.lua": {
+    "/lua/rest/v2/get/host/pool/pools.lua": {
       "get": {
         "tags": [
           "Pools"
@@ -3580,7 +3675,12 @@
         ],
         "parameters": [
           {
-            "pool": "int32"
+            "name": "pool",
+            "in": "query",
+            "description": "Host Pool ID",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
           }
         ],
         "responses": {
@@ -3625,8 +3725,19 @@
         ],
         "parameters": [
           {
-            "pool": "int32",
-            "member": "string"
+            "name": "pool",
+            "in": "query",
+            "description": "Host Pool ID",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "member",
+            "in": "query",
+            "description": "IP/MAC/Network CIDR to add to the Host Pool ID",
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
@@ -3652,8 +3763,19 @@
         ],
         "parameters": [
           {
-            "pool": "int32",
-            "member": "string"
+            "name": "pool",
+            "in": "query",
+            "description": "Host Pool ID",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "member",
+            "in": "query",
+            "description": "IP/MAC/Network CIDR to add to the Host Pool ID",
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
@@ -3685,7 +3807,11 @@
         ],
         "parameters": [
           {
-            "member": "string"
+            "name": "member",
+            "in": "query",
+            "description": "IP/MAC/Network CIDR",
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
@@ -4231,6 +4357,20 @@
             "description": "Allow PCAPs download (1 to allow)",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "allow_historical_flows",
+            "in": "formData",
+            "description": "Allow Historical Flows page (1 to allow, 0 to deny)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "allow_alerts",
+            "in": "formData",
+            "description": "Allow Alerts page (1 to allow, 0 to deny)",
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
@@ -4308,6 +4448,27 @@
             "type": "string"
           },
           {
+            "name": "full_name",
+            "in": "formData",
+            "description": "Full name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "password",
+            "in": "formData",
+            "description": "Password",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "confirm_password",
+            "in": "formData",
+            "description": "Confirmed password",
+            "required": true,
+            "type": "string"
+          },
+          {
             "name": "user_role",
             "in": "formData",
             "description": "User role (unprivileged / administrator)",
@@ -4339,6 +4500,20 @@
             "name": "allow_pcap_download",
             "in": "formData",
             "description": "Allow PCAPs download (1 to allow)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "allow_historical_flows",
+            "in": "formData",
+            "description": "Allow Historical Flows page (1 to allow, 0 to deny)",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "allow_alerts",
+            "in": "formData",
+            "description": "Allow Alerts page (1 to allow, 0 to deny)",
             "required": true,
             "type": "string"
           }
@@ -4784,6 +4959,89 @@
           },
           "-5": {
             "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/application/application.lua": {
+      "get": {
+        "tags": [
+          "Checks"
+        ],
+        "summary": "Remove a custom protocol",
+        "description": "If run ntopng using -p option, delete a custom protocol if it exists",
+        "operationId": "disable_check",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "protocol_alias",
+            "in": "form",
+            "description": "Application Name",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/edit/application/application.lua": {
+      "get": {
+        "tags": [
+          "Checks"
+        ],
+        "summary": "Edit a custom protocol",
+        "description": "If run ntopng using -p option, edit a custom protocol if it exists",
+        "operationId": "disable_check",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "protocol_alias",
+            "in": "form",
+            "description": "Application Name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "category",
+            "in": "form",
+            "description": "Category ID",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "l7_proto_id",
+            "in": "form",
+            "description": "Application ID",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "custom_rules",
+            "in": "form",
+            "description": "List of custom rules separated by commas",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
           }
         }
       }
@@ -5792,10 +6050,33 @@
             "format": "int32"
           },
           {
+            "name": "label",
+            "in": "query",
+            "description": "Describe why the alert was ackowledge, it can be an empty string",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "row_id",
+            "in": "query",
+            "description": "Alert identifier of the exact alert",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
             "name": "epoch_begin",
             "in": "query",
             "description": "Start time (epoch)",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -5803,15 +6084,7 @@
             "name": "epoch_end",
             "in": "query",
             "description": "End time (epoch)",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "alert_id",
-            "in": "query",
-            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -5873,10 +6146,33 @@
             "format": "int32"
           },
           {
+            "name": "label",
+            "in": "query",
+            "description": "Describe why the alert was ackowledge, it can be an empty string",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "row_id",
+            "in": "query",
+            "description": "Alert identifier of the exact alert",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
             "name": "epoch_begin",
             "in": "query",
             "description": "Start time (epoch)",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -5884,15 +6180,7 @@
             "name": "epoch_end",
             "in": "query",
             "description": "End time (epoch)",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "alert_id",
-            "in": "query",
-            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -5989,10 +6277,33 @@
             "format": "int32"
           },
           {
+            "name": "label",
+            "in": "query",
+            "description": "Describe why the alert was ackowledge, it can be an empty string",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "row_id",
+            "in": "query",
+            "description": "Alert identifier of the exact alert",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
             "name": "epoch_begin",
             "in": "query",
             "description": "Start time (epoch)",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -6000,15 +6311,7 @@
             "name": "epoch_end",
             "in": "query",
             "description": "End time (epoch)",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "alert_id",
-            "in": "query",
-            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -6070,10 +6373,33 @@
             "format": "int32"
           },
           {
+            "name": "label",
+            "in": "query",
+            "description": "Describe why the alert was ackowledge, it can be an empty string",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "row_id",
+            "in": "query",
+            "description": "Alert identifier of the exact alert",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
             "name": "epoch_begin",
             "in": "query",
             "description": "Start time (epoch)",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -6081,15 +6407,7 @@
             "name": "epoch_end",
             "in": "query",
             "description": "End time (epoch)",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "alert_id",
-            "in": "query",
-            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -6144,10 +6462,33 @@
             "format": "int32"
           },
           {
+            "name": "label",
+            "in": "query",
+            "description": "Describe why the alert was ackowledge, it can be an empty string",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "row_id",
+            "in": "query",
+            "description": "Alert identifier of the exact alert",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
             "name": "epoch_begin",
             "in": "query",
             "description": "Start time (epoch)",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -6155,15 +6496,7 @@
             "name": "epoch_end",
             "in": "query",
             "description": "End time (epoch)",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "alert_id",
-            "in": "query",
-            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -6218,10 +6551,33 @@
             "format": "int32"
           },
           {
+            "name": "label",
+            "in": "query",
+            "description": "Describe why the alert was ackowledge, it can be an empty string",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "row_id",
+            "in": "query",
+            "description": "Alert identifier of the exact alert",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
             "name": "epoch_begin",
             "in": "query",
             "description": "Start time (epoch)",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -6229,15 +6585,7 @@
             "name": "epoch_end",
             "in": "query",
             "description": "End time (epoch)",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "alert_id",
-            "in": "query",
-            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -6292,10 +6640,33 @@
             "format": "int32"
           },
           {
+            "name": "label",
+            "in": "query",
+            "description": "Describe why the alert was ackowledge, it can be an empty string",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "row_id",
+            "in": "query",
+            "description": "Alert identifier of the exact alert",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
             "name": "epoch_begin",
             "in": "query",
             "description": "Start time (epoch)",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -6303,15 +6674,7 @@
             "name": "epoch_end",
             "in": "query",
             "description": "End time (epoch)",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "alert_id",
-            "in": "query",
-            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -6366,10 +6729,33 @@
             "format": "int32"
           },
           {
+            "name": "label",
+            "in": "query",
+            "description": "Describe why the alert was ackowledge, it can be an empty string",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "row_id",
+            "in": "query",
+            "description": "Alert identifier of the exact alert",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
             "name": "epoch_begin",
             "in": "query",
             "description": "Start time (epoch)",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -6377,15 +6763,7 @@
             "name": "epoch_end",
             "in": "query",
             "description": "End time (epoch)",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "alert_id",
-            "in": "query",
-            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -6573,157 +6951,6 @@
         }
       }
     },
-    "/lua/rest/v2/charts/host/map.lua": {
-      "get": {
-        "tags": [
-          "Charts"
-        ],
-        "summary": "Get an host map",
-        "description": "Get an host map",
-        "operationId": "charts_host_map",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "bubble_mode",
-            "in": "query",
-            "description": "The identifier of the bubble chart to obtain",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "show_remote",
-            "in": "query",
-            "description": "Whether to show remote hosts",
-            "required": false,
-            "type": "boolean"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/charts/time/data.lua": {
-      "get": {
-        "tags": [
-          "Charts"
-        ],
-        "summary": "Get widget time data",
-        "description": "Get widget time data",
-        "operationId": "charts_time_data",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "epoch_begin",
-            "in": "query",
-            "description": "Start time (epoch)",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "epoch_end",
-            "in": "query",
-            "description": "End time (epoch)",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "totalRows",
-            "in": "query",
-            "description": "The number of records",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/get/datasource/interface/packet_distro.lua": {
-      "get": {
-        "tags": [
-          "Datasource"
-        ],
-        "summary": "Get interface packets distribution",
-        "description": "Get interface packets distribution",
-        "operationId": "get_datasource_interface_packet_distro",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/get/datasource/datasource.lua": {
-      "get": {
-        "tags": [
-          "Datasource"
-        ],
-        "summary": "Get datasource",
-        "description": "Get datasource",
-        "operationId": "get_datasource",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/lua/rest/v2/get/interface/nprobes/data.lua": {
       "get": {
         "tags": [
@@ -6751,6 +6978,25 @@
           },
           "-2": {
             "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/connect/test.lua": {
+      "get": {
+        "tags": [
+          "Traffic"
+        ],
+        "summary": "Test ntopng",
+        "description": "Test ntopng  reachability and authentication",
+        "operationId": "test_connect",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
           }
         }
       }
@@ -7262,52 +7508,6 @@
         }
       }
     },
-    "/lua/rest/v2/get/host/l4/contacted_hosts_data.lua": {
-      "get": {
-        "tags": [
-          "Host"
-        ],
-        "summary": "Get the contacted hosts information",
-        "description": "Given an host, return the number of contacted hosts as a server and as a client",
-        "operationId": "get_geo_map_hosts",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "host",
-            "in": "query",
-            "description": "Host address",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "vlan",
-            "in": "query",
-            "description": "VLAN ID",
-            "required": false,
-            "type": "integer",
-            "format": "int16"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-2": {
-            "description": "INVALID_INTERFACE"
-          }
-        }
-      }
-    },
     "/lua/rest/v2/get/host/l4/data.lua": {
       "get": {
         "tags": [
@@ -7315,374 +7515,6 @@
         ],
         "summary": "Get the host information about transport protocols",
         "description": "Given an host, return the transport protocols information (bytes sent, received, ...) of an host",
-        "operationId": "get_geo_map_hosts",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "host",
-            "in": "query",
-            "description": "Host address",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "vlan",
-            "in": "query",
-            "description": "VLAN ID",
-            "required": false,
-            "type": "integer",
-            "format": "int16"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-2": {
-            "description": "INVALID_INTERFACE"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/get/host/l7/breed_data.lua": {
-      "get": {
-        "tags": [
-          "Host"
-        ],
-        "summary": "Get the host information about breed",
-        "description": "Given an host, return the top breed information (bytes sent, received, ...) of an host",
-        "operationId": "get_geo_map_hosts",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "host",
-            "in": "query",
-            "description": "Host address",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "vlan",
-            "in": "query",
-            "description": "VLAN ID",
-            "required": false,
-            "type": "integer",
-            "format": "int16"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-2": {
-            "description": "INVALID_INTERFACE"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/get/host/l7/cat_data.lua": {
-      "get": {
-        "tags": [
-          "Host"
-        ],
-        "summary": "Get the host information about categories",
-        "description": "Given an host, return the categories information (bytes sent, received, ...) of an host",
-        "operationId": "get_geo_map_hosts",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "host",
-            "in": "query",
-            "description": "Host address",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "vlan",
-            "in": "query",
-            "description": "VLAN ID",
-            "required": false,
-            "type": "integer",
-            "format": "int16"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-2": {
-            "description": "INVALID_INTERFACE"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/get/host/l7/proto_data.lua": {
-      "get": {
-        "tags": [
-          "Host"
-        ],
-        "summary": "Get the host information about application protocols",
-        "description": "Given an host, return the application protocols information (bytes sent, received, ...) of an host",
-        "operationId": "get_geo_map_hosts",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "host",
-            "in": "query",
-            "description": "Host address",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "vlan",
-            "in": "query",
-            "description": "VLAN ID",
-            "required": false,
-            "type": "integer",
-            "format": "int16"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-2": {
-            "description": "INVALID_INTERFACE"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/get/host/packets/arp_data.lua": {
-      "get": {
-        "tags": [
-          "Host"
-        ],
-        "summary": "Get the host information about ARP",
-        "description": "Given an host, return the ARP information (bytes sent, received, ...) of an host",
-        "operationId": "get_geo_map_hosts",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "host",
-            "in": "query",
-            "description": "Host address",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "vlan",
-            "in": "query",
-            "description": "VLAN ID",
-            "required": false,
-            "type": "integer",
-            "format": "int16"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-2": {
-            "description": "INVALID_INTERFACE"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/get/host/packets/tcp_flags_data.lua": {
-      "get": {
-        "tags": [
-          "Host"
-        ],
-        "summary": "Get the host information about TCP flags",
-        "description": "Given an host, return the TCP flags information (bytes sent, received, ...) of an host",
-        "operationId": "get_geo_map_hosts",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "host",
-            "in": "query",
-            "description": "Host address",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "vlan",
-            "in": "query",
-            "description": "VLAN ID",
-            "required": false,
-            "type": "integer",
-            "format": "int16"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-2": {
-            "description": "INVALID_INTERFACE"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/get/host/port/cli_port_data.lua": {
-      "get": {
-        "tags": [
-          "Host"
-        ],
-        "summary": "Get the host information about client ports",
-        "description": "Given an host, return the client ports total bytes of an host",
-        "operationId": "get_geo_map_hosts",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "host",
-            "in": "query",
-            "description": "Host address",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "vlan",
-            "in": "query",
-            "description": "VLAN ID",
-            "required": false,
-            "type": "integer",
-            "format": "int16"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-2": {
-            "description": "INVALID_INTERFACE"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/get/host/port/srv_port_data.lua": {
-      "get": {
-        "tags": [
-          "Host"
-        ],
-        "summary": "Get the host information about server ports",
-        "description": "Given an host, return the server ports total bytes of an host",
-        "operationId": "get_geo_map_hosts",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "host",
-            "in": "query",
-            "description": "Host address",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "vlan",
-            "in": "query",
-            "description": "VLAN ID",
-            "required": false,
-            "type": "integer",
-            "format": "int16"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-2": {
-            "description": "INVALID_INTERFACE"
-          }
-        }
-      }
-    },
-    "/lua/rest/v2/get/host/port/table_port_data.lua": {
-      "get": {
-        "tags": [
-          "Host"
-        ],
-        "summary": "Get the host information about ports used by application protocols",
-        "description": "Given an host, return the ports and the protocols used on each port of an host",
         "operationId": "get_geo_map_hosts",
         "produces": [
           "application/json"
@@ -8088,7 +7920,15 @@
         "produces": [
           "application/json"
         ],
-        "parameters": [],
+        "parameters": [          
+          {
+            "name": "download",
+            "in": "query",
+            "description": "Download the data or not",
+            "required": true,
+            "type": "boolean"
+          }
+        ],
         "responses": {
           "0": {
             "description": "OK"
@@ -9080,52 +8920,6 @@
         }
       }
     },
-    "/lua/rest/v2/get/geo_map/hosts.lua": {
-      "get": {
-        "tags": [
-          "Geo Map"
-        ],
-        "summary": "Get the Geo Map information",
-        "description": "Get the Geo Map information available in ntopng",
-        "operationId": "get_geo_map_hosts",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "ifid",
-            "in": "query",
-            "description": "Interface identifier",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "host",
-            "in": "query",
-            "description": "Host address",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "vlan",
-            "in": "query",
-            "description": "VLAN ID",
-            "required": false,
-            "type": "integer",
-            "format": "int16"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-2": {
-            "description": "INVALID_INTERFACE"
-          }
-        }
-      }
-    },
     "/lua/rest/v2/get/flow/alert/ts.lua": {
       "get": {
         "tags": [
@@ -9761,37 +9555,6 @@
         }
       }
     },
-    "/lua/rest/v2/set/checks/auto_refresh.lua": {
-      "post": {
-        "tags": [
-          "Checks"
-        ],
-        "summary": "Import Checks configuration",
-        "description": "Import Checks configuration",
-        "operationId": "import_checks_config",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "alert_page_refresh_rate_enabled",
-            "in": "form",
-            "description": "Enable the alert page refresh (1 to enable, 0 otherwise)",
-            "required": true,
-            "type": "number",
-            "format": "int8"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          }
-        }
-      }
-    },
     "/lua/rest/v2/import/pool/host_pool/members.lua": {
       "get": {
         "tags": [
@@ -9847,7 +9610,7 @@
         "parameters": [
           {
             "name": "username",
-            "in": "form",
+            "in": "formData",
             "description": "An existing ntopng username",
             "required": true,
             "type": "string"
@@ -10122,10 +9885,33 @@
             "format": "int32"
           },
           {
+            "name": "label",
+            "in": "query",
+            "description": "Describe why the alert was ackowledge, it can be an empty string",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "alert_id",
+            "in": "query",
+            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "row_id",
+            "in": "query",
+            "description": "Alert identifier of the exact alert",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
             "name": "epoch_begin",
             "in": "query",
             "description": "Start time (epoch)",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -10133,15 +9919,7 @@
             "name": "epoch_end",
             "in": "query",
             "description": "End time (epoch)",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          },
-          {
-            "name": "alert_id",
-            "in": "query",
-            "description": "Alert identifier (format: 'id;eq', where 'id' is the id and 'eq' stands for 'equal', currently available: 'eq', 'neq')",
-            "required": true,
+            "required": false,
             "type": "integer",
             "format": "int32"
           },
@@ -12939,135 +12717,6 @@
         }
       }
     },
-    "/lua/pro/rest/v2/add/filters/snapshot.lua": {
-      "get": {
-        "tags": [
-          "Alert"
-        ],
-        "summary": "Add a Snapshot",
-        "description": "Add an alert Snapshot, used to save the state of an alerts page",
-        "operationId": "add_alert_snapshot",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "snapshot_name",
-            "in": "query",
-            "description": "Snapshot",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "filters",
-            "in": "query",
-            "description": "Filters separated by & (like the URL parameters)",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Name of the alert page (flow, host, ...)",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
-          },
-          "-7": {
-            "description": "BAD_FORMAT"
-          }
-        }
-      }
-    },
-    "/lua/pro/rest/v2/get/filters/snapshot.lua": {
-      "get": {
-        "tags": [
-          "Alert"
-        ],
-        "summary": "Get a Snapshot",
-        "description": "Get an alert Snapshot, used to save the state of an alerts page",
-        "operationId": "get_alert_snapshot",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Name of the alert page (flow, host, ...)",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
-          },
-          "-7": {
-            "description": "BAD_FORMAT"
-          }
-        }
-      }
-    },
-    "/lua/pro/rest/v2/delete/filters/snapshot.lua": {
-      "get": {
-        "tags": [
-          "Alert"
-        ],
-        "summary": "Remove a Snapshot",
-        "description": "Remove an alert Snapshot, used to save the state of an alerts page",
-        "operationId": "delete_alert_snapshot",
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "snapshot_name",
-            "in": "query",
-            "description": "Snapshot",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "page",
-            "in": "query",
-            "description": "Name of the alert page (flow, host, ...)",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "0": {
-            "description": "OK"
-          },
-          "-5": {
-            "description": "INVALID_ARGUMENTS"
-          },
-          "-6": {
-            "description": "INTERNAL_ERROR"
-          },
-          "-7": {
-            "description": "BAD_FORMAT"
-          }
-        }
-      }
-    },
     "/lua/pro/rest/v2/add/interface/host_rules/add_host_rule.lua": {
       "get": {
         "tags": [
@@ -13371,6 +13020,36 @@
         }
       }
     },
+    "/lua/rest/v2/edit/host/update_va_scan_period.lua": {
+      "get": {
+        "tags": [
+          "Vulnerability Scan"
+        ],
+        "summary": "Update Vulnerability Scan",
+        "description": "Update Vulnerability Scan Frequency",
+        "operationId": "update_va_scan_frequency",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "auto_scan_frequency",
+            "in": "query",
+            "description": "Auto scan frequency, can be: disabled, 1day, 1week",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/system/configurations/list_availabled_backups.lua": {
       "get": {
         "tags": [
@@ -13406,8 +13085,19 @@
         ],
         "parameters": [
           {
-            "epoch": "string",
-            "download": "boolean"
+            "name": "epoch",
+            "in": "query",
+            "description": "The epoch of the backup",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },          
+          {
+            "name": "download",
+            "in": "query",
+            "description": "Download the backup or just retrive info",
+            "required": true,
+            "type": "boolean"
           }
         ],
         "responses": {

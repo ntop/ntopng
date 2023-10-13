@@ -15,7 +15,6 @@ local rest_utils = require "rest_utils"
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-local asn_id = tonumber(_GET["asn"])
 local ip = _GET['ip']
 local rc = rest_utils.consts.success.ok
 

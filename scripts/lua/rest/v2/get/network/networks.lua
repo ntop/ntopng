@@ -9,7 +9,12 @@ require "lua_utils"
 local rest_utils = require "rest_utils"
 
 
+local ifid = _GET["ifid"]
 
+if isEmptyString(ifid) then
+    rest_utils.answer(rest_utils.consts.err.invalid_interface)
+    return
+end
 
 local networks_stats = interface.getNetworksStats()
 
