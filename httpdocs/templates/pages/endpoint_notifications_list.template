@@ -301,6 +301,7 @@
         method: 'post',
         csrf: csrf,
         endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
+        resetAfterSubmit: false,
         beforeSumbit: function () {
             const body = makeFormData(`#edit-endpoint-modal form`);
             body.action = 'edit';
