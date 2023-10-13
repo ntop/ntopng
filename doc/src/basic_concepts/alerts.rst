@@ -21,63 +21,13 @@ Examples of thresholds include:
 - "Packet drops of an interface exceeds a given percentage of the total number of monitored packets"
 - "The total traffic originated at a network exceeds a certain threshold"
 
-ntopng Bahavioral Checks perform the evaluation of thresholds periodically, at predefined time intervals.
+ntopng checks perform the evaluation of thresholds periodically, at predefined time intervals.
 
 Alerts associated with a threshold have a duration, that is, they are active for a certain period of time. This period of time starts then the threshold is first met and stops when the threshold is no longer met. For this reason, such alerts are said to be *engaged* or *past*, depending on whether the triggering threshold is still met or not.
 
-.. _Engaged Alerts:
 
-Engaged Alerts
---------------
-
-When the threshold is first met, ntopng puts the corresponding alert in an *engaged* state. The set of alerts that are currently engaged is available from the engaged alerts page identified by the hourglass icon.
-
-.. figure:: ../img/basic_concepts_alerts_engaged_alerts.png
-  :align: center
-  :alt: Engaged Alerts Page
-
-  Engaged Alerts Page
-
-.. _PastAlerts:
-
-Past Alerts
------------
-
-When the triggering threshold of an engaged alert is no longer met, the alert becomes *past* an it will no longer be visible in the engaged alerts page. Alerts, once released, become available from the *all* alerts page identified by the inbox icon, and their duration is indicated in the corresponding column. 
-
-.. figure:: ../img/basic_concepts_alerts_past_alerts.png
-  :align: center
-  :alt: All Past Alerts Page
-
-  All Past Alerts Page
-
-Alerts associated with events don't have a duration associated. They are triggered *at the time of the event* but any duration is not meaningful for them. For this reason, such alerts are never *engaged*  or *released*, they are just considered *past* as soon as they are detected, and they are placed under the *all* alerts page without any duration indicated.
-
-.. _FlowAlerts:
-
-Flow Alerts
------------
-
-During its execution, ntopng can detect anomalous or suspicious flows for which it triggers special *flow alerts*. Such alerts not only carry the event that caused the alert to be fired, they also carry all the flow details, including source and destination IP addresses, layer-7 application protocol, and ports.
-
-*Flow alerts* are always associated with events and thus they are never *engaged*  or *released* and are placed in the past alerts directly. 
-
-.. figure:: ../img/basic_concepts_alerts_flow_alerts.png
-  :align: center
-  :alt: Flow Alerts Page
-
-  Flow Alerts Page
-
-Alerts that require human attention and should be manually handled (e.g. related to security issues), are also placed in the page identified by the eye icon, until they are acknowledged.
-
-.. figure:: ../img/basic_concepts_alerts_important_alerts.png
-  :align: center
-  :alt: Important Past Alerts Page
-
-  Important Past Alerts Page
-
-Behavior Alerts
----------------
+Behavioral Alerts
+-----------------
 
 .. figure:: ../img/behavior_alert_example.png
   :align: center
@@ -85,7 +35,7 @@ Behavior Alerts
 
   Alert of a Network Interface with an Unexpected Behavior
 
-Behavior alerts are new types of alerts introduced lately. Differently from the usual alerts, configured using a static threshold, they have the ability to learn throught the time and change their threshold dinamically.
+Unlike other alert families, usually based on a static threshold or check, bahavioral checks have the ability to learn throught the time and change their threshold dinamically.
 
 This is achived by using one of the three foresighting alghoritm developed by nDPI: Simple Exponential Smoothing, Double Exponential Smoothing, Triple Exponential Smoothing (Holt-Winters alghoritm).
 
@@ -176,3 +126,15 @@ Recipients
 Alerts are not only available within the ntopng web GUI, they can also be propagated to the outside using recipients that include mail, slack and syslog. To see the configuration details necessary to use recipients refer to :ref:`DeliveringAlertsToRecipients`.
 
 .. _`device protocols`: ../advanced_features/device_protocols.html
+
+Alerts Explorer
+---------------
+
+ntopng features a built-in Alerts Explorer for navigating and analysing alerts, for further information please read the :ref:`AlertsExplorer` section.
+
+.. figure:: ../img/basic_concepts_alerts_flow_alerts.png
+  :align: center
+  :alt: Alerts Explorer
+
+  Alerts Explorer
+
