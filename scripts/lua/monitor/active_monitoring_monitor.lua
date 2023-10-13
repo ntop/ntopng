@@ -93,7 +93,7 @@ if (page == "overview") then
     -- This information is required in active_monitoring_utils.js in order to properly
     -- render the template
     for key, info in pairs(active_monitoring_utils.getMeasurementsInfo()) do
-        if key == "vulnerability_scan" then
+        if key == "vulnerability_scan" or key == "cve_changes_detected" or key == "ports_changes_detected" then
             goto continue
         end
 
