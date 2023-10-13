@@ -1016,12 +1016,20 @@ function flow_alert_store:format_record(value, no_html)
       confidence = format_confidence_from_json(value)
    }
 
-   record[RNAME.TRAFFIC.name] = {
-      bytes_sent = tonumber(value["cli2srv_bytes"]),
-      bytes_rcvd = tonumber(value["srv2cli_bytes"]),
-      total_bytes = tonumber(value["total_bytes"]),
-      total_packets = tonumber(value["srv2cli_pkts"]) + tonumber(value["cli2srv_pkts"]),
-   }
+   local traffic_stats = {}
+   if value["cli2srv_bytes"] then
+      traffic_stats.bytes_sent = tonumber(value["cli2srv_bytes"])
+   end
+   if value["srv2cli_bytes"] then
+      traffic_stats.bytes_rcvd = tonumber(value["srv2cli_bytes"])
+   end
+   if value["total_bytes"] then
+      traffic_stats.total_bytes = tonumber(value["total_bytes"])
+   end
+   if value["srv2cli_pkts"] and value["cli2srv_pkts"] then
+      traffic_stats.total_packets = tonumber(value["srv2cli_pkts"]) + tonumber(value["cli2srv_pkts"])
+   end
+   record[RNAME.TRAFFIC.name] = traffic_stats
 
    -- Add link to historical flow
    if ntop.isEnterpriseM() and hasClickHouseSupport() and not no_html 
