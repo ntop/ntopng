@@ -219,7 +219,7 @@ local function format_result(result)
             end
 
             if (rsp[#rsp].cve ~= nil) then
-                table.sort(rsp[#rsp].cve, function (k1, k2) return split(k1,"|")[2] < split(k2,"|")[2] end)
+                table.sort(rsp[#rsp].cve, function (k1, k2) return tonumber(split(k1,"|")[2]) > tonumber(split(k2,"|")[2]) end)
             end 
         end
 

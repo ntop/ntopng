@@ -138,7 +138,52 @@
 			 "url_params" : {
 				"start" : 0,
 				"length" : 20,
-				"sort":"port"
+				"sort":"port",
+				"protocol":"tcp"
+			 
+			 },
+                    "custom_style" : "overflow:auto;max-height:30rem;",
+                    "custom_print_style" : "",
+			 "table_type" : "vs_scan_result",
+			 "columns" : [
+				
+		
+				{
+					"i18n_name": "port",
+					"id": "port",
+					"data_type": "number"
+
+				},
+				{
+					"i18n_name": "count",
+					"id": "count_host",
+					"data_type": "number"
+
+				},
+				{
+					"i18n_name": "hosts",
+					"id": "hosts",
+					"data_type": "string"
+
+				}
+			 ]
+		}
+	},
+	{
+		"component" : "table",
+		"id" : "vs_report_port",
+		"i18n_name" : "hosts_stats.page_scan_hosts.num_open_ports_udp",
+		"width" : 12,
+		"height" : -1,
+		"time_window" : "day",
+		"time_offset" : "",
+		"params" : {
+			 "url" : "/lua/pro/rest/v2/get/host/scan_port_list.lua",
+			 "url_params" : {
+				"start" : 0,
+				"length" : 20,
+				"sort":"port",
+				"protocol":"udp"
 			 
 			 },
                     "custom_style" : "overflow:auto;max-height:30rem;",
