@@ -1242,11 +1242,14 @@ void Flow::setExtraDissectionCompleted() {
     /* nDPI is not allocated for non-TCP non-UDP flows so, in order to
        make sure custom cateories are properly populated, function
        ndpi_fill_ip_protocol_category must be called explicitly. */
-    if (get_cli_ip_addr()->get_ipv4() &&
+    if (ndpiFlow &&
+        get_cli_ip_addr()->get_ipv4() &&
         get_srv_ip_addr()->get_ipv4() /* Only IPv4 is supported */) {
-      ndpi_fill_ip_protocol_category(
-          iface->get_ndpi_struct(), get_cli_ip_addr()->get_ipv4(),
-          get_srv_ip_addr()->get_ipv4(), &ndpiDetectedProtocol);
+      ndpi_fill_ip_protocol_category(iface->get_ndpi_struct(),
+          ndpiFlow,
+          get_cli_ip_addr()->get_ipv4(),
+          get_srv_ip_addr()->get_ipv4(),
+          &ndpiDetectedProtocol);
       stats.setDetectedProtocol(&ndpiDetectedProtocol);
       updateHostBlacklists();
     }
@@ -6646,8 +6649,9 @@ void Flow::fillZMQFlowCategory(ndpi_protocol *res) {
   const char *dst_name = NULL;
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
 
-  if (cli_ip && srv_ip && cli_ip->isIPv4()) {
-    if (ndpi_fill_ip_protocol_category(ndpi_struct, cli_ip->get_ipv4(),
+  if (ndpiFlow && cli_ip && srv_ip && cli_ip->isIPv4()) {
+    if (ndpi_fill_ip_protocol_category(ndpi_struct, ndpiFlow,
+                                       cli_ip->get_ipv4(),
                                        srv_ip->get_ipv4(), res))
       return;
   }
