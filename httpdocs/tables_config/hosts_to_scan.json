@@ -69,7 +69,7 @@
 			]
 		},
 		{
-			"title_i18n": "ip_address",
+			"title_i18n": "hosts_stats.page_scan_hosts.ip_address",
 			"data_field": "host",
 			"sortable": true,
 			"class": [
@@ -77,7 +77,7 @@
 			]
 		},
 		{
-			"title_i18n": "name",
+			"title_i18n": "hosts_stats.page_scan_hosts.host_name",
 			"data_field": "host_name",
 			"sortable": true,
 			"class": [
@@ -86,11 +86,12 @@
 		},
 
 		{
-			"title_i18n": "score",
+			"title_i18n": "hosts_stats.page_scan_hosts.score",
 			"data_field": "max_score_cve",
 			"sortable": true,
 			"class": [
-				"text-nowrap"
+				"text-nowrap",
+				"text-center"
 			]
 		},
 		{
@@ -109,7 +110,7 @@
 			"sortable": true,
 			"class": [
 				"text-nowrap",
-				"text-end"
+				"text-center"
 			]
 		},
 		{
@@ -119,7 +120,7 @@
 			
 			"class": [
 				"text-nowrap",
-				"text-end"
+				"text-center"
 			]
 		},
 		{
@@ -129,7 +130,7 @@
 			
 			"class": [
 				"text-nowrap",
-				"text-end"
+				"text-center"
 			]
 		},
 		{

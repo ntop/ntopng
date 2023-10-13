@@ -30,47 +30,47 @@
 		    "table_type" : "vs_scan_result",
 			 "columns" : [
 				{
-					"i18n_name": "hosts_stats.page_scan_hosts.host",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.ip_address",
 					"id": "host",
 					"data_type": "string"
 				},
 				{
-					"i18n_name": "db_explorer.host_name",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.host_name",
 					"id": "host_name",
 					"data_type": "string"
 				},
 				{
-					"i18n_name": "score",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.score",
 					"id": "max_score_cve",
-					"data_type": "max_score_cve"
+					"data_type": "count_score"
 				},
 				{
-					"i18n_name": "hosts_stats.page_scan_hosts.scan_type",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.scan_type",
 					"id": "scan_type",
 					"data_type": "string"
 				},
 				{
-					"i18n_name": "hosts_stats.page_scan_hosts.tcp_ports",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.tcp_ports",
 					"id": "tcp_ports_list",
 					"data_type": "string"
 				},
 				{
-					"i18n_name": "hosts_stats.page_scan_hosts.udp_ports",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.udp_ports",
 					"id": "udp_ports_list",
 					"data_type": "string"
 				},
 				{
-					"i18n_name": "hosts_stats.page_scan_hosts.num_vulnerabilities_found",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.cves",
 					"id": "num_vulnerabilities_found",
-					"data_type": "string"
+					"data_type": "count_score"
 				},
 				{
-					"i18n_name": "hosts_stats.page_scan_hosts.vulnerabilities_found_list",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.cves_list",
 					"id": "cve",
 					"data_type": "object"
 				},
 				{
-					"i18n_name": "hosts_stats.page_scan_hosts.last_scan",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.last_scan",
 					"id": "last_scan",
 					"data_type": "date"
 				}
@@ -99,25 +99,25 @@
 				
 		
 				{
-					"i18n_name": "hosts_stats.page_scan_hosts.num_vulnerabilities_found",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.cves",
 					"id": "cves",
-					"data_type": "string"
+					"data_type": "count_score"
 				},
 				{
-					"i18n_name": "port",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.port",
 					"id": "port",
 					"data_type": "number"
 
 				},
 				
 				{
-					"i18n_name": "count",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.count",
 					"id": "count_host",
-					"data_type": "number"
+					"data_type": "count_score"
 
 				},
 				{
-					"i18n_name": "hosts",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.hosts",
 					"id": "hosts",
 					"data_type": "string"
 
@@ -149,19 +149,19 @@
 				
 		
 				{
-					"i18n_name": "port",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.port",
 					"id": "port",
 					"data_type": "number"
 
 				},
 				{
-					"i18n_name": "count",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.count",
 					"id": "count_host",
-					"data_type": "number"
+					"data_type": "count_score"
 
 				},
 				{
-					"i18n_name": "hosts",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.hosts",
 					"id": "hosts",
 					"data_type": "string"
 
@@ -201,7 +201,7 @@
 				{
 					"i18n_name": "count",
 					"id": "count_host",
-					"data_type": "number"
+					"data_type": "count_score"
 
 				},
 				{

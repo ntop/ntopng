@@ -45,6 +45,8 @@ const columns = computed(() => {
         if (!c.style && c.data_type) {
             if (c.data_type == "bytes" || c.data_type == "date") {
                 c.style = "text-align: right";
+            } else  if (c.data_type == "count_score") {
+                c.style = "text-align: center"
             }
         }
 
