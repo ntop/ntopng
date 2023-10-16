@@ -1541,16 +1541,15 @@ static int ntop_get_batched_interface_hosts(lua_State *vm,
         lua_toboolean(vm, 5) ? traffic_type_all : traffic_type_bidirectional;
 
   if ((!ntop_interface) ||
-      ntop_interface->getActiveHostsList(
-          vm, &begin_slot, walk_all,
-          0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
-          get_allowed_nets(vm), show_details, location, country, mac_filter,
-          vlan_filter, os_filter, asn_filter, network_filter, pool_filter,
-          filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
-          traffic_type_filter, 0 /* probe ip */,
-          tsLua /* host->tsLua | host->lua */, anomalousOnly, dhcpOnly,
-          NULL /* cidr filter */, sortColumn, maxHits, toSkip,
-          a2zSortOrder) < 0)
+      ntop_interface->getActiveHostsList(vm, &begin_slot, walk_all,
+					 0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
+					 get_allowed_nets(vm), show_details, location, country, mac_filter,
+					 vlan_filter, os_filter, asn_filter, network_filter, pool_filter,
+					 filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
+					 traffic_type_filter, 0 /* probe ip */,
+					 tsLua /* host->tsLua | host->lua */, anomalousOnly, dhcpOnly,
+					 NULL /* cidr filter */, sortColumn, maxHits, toSkip,
+					 a2zSortOrder) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -1617,15 +1616,14 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
     device_ip = ntohl(inet_addr(lua_tostring(vm, 21)));
 
   if ((!ntop_interface) ||
-      ntop_interface->getActiveHostsList(
-          vm, &begin_slot, walk_all,
-          0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
-          get_allowed_nets(vm), show_details, location, country, mac_filter,
-          vlan_filter, os_filter, asn_filter, network_filter, pool_filter,
-          filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
-          traffic_type_filter, device_ip, false /* host->lua */, anomalousOnly,
-          dhcpOnly, cidr_filter_enabled ? &cidr_filter : NULL, sortColumn,
-          maxHits, toSkip, a2zSortOrder) < 0)
+      ntop_interface->getActiveHostsList(vm, &begin_slot, walk_all,
+					 0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
+					 get_allowed_nets(vm), show_details, location, country, mac_filter,
+					 vlan_filter, os_filter, asn_filter, network_filter, pool_filter,
+					 filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
+					 traffic_type_filter, device_ip, false /* host->lua */, anomalousOnly,
+					 dhcpOnly, cidr_filter_enabled ? &cidr_filter : NULL, sortColumn,
+					 maxHits, toSkip, a2zSortOrder) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -1707,12 +1705,11 @@ static int ntop_get_interface_macs_info(lua_State *vm) {
   if (lua_type(vm, 10) == LUA_TNUMBER) min_first_seen = lua_tonumber(vm, 10);
 
   if (!ntop_interface ||
-      ntop_interface->getActiveMacList(
-          vm, &begin_slot, walk_all,
-          0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
-          sourceMacsOnly, manufacturer, sortColumn, maxHits, toSkip,
-          a2zSortOrder, pool_filter, devtype_filter, location_filter,
-          min_first_seen) < 0)
+      ntop_interface->getActiveMacList(vm, &begin_slot, walk_all,
+				       0, /* bridge InterfaceId - TODO pass Id 0,1 for bridge devices*/
+				       sourceMacsOnly, manufacturer, sortColumn, maxHits, toSkip,
+				       a2zSortOrder, pool_filter, devtype_filter, location_filter,
+				       min_first_seen) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
