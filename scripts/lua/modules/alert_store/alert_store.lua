@@ -183,8 +183,8 @@ end
 
 -- ##############################################
 
--- @brief Add filters on status (engaged, historical, or acknowledged, one of `alert_consts.alert_status`)
--- @param status A key of `alert_consts.alert_status`
+-- @brief Add filters on status (any, engaged, historical, or acknowledged)
+-- @param status A status key (one of those enumerated in `alert_consts.alert_status`)
 -- @return True if set is successful, false otherwise
 function alert_store:add_status_filter(status, is_write)
     if not self._status then
