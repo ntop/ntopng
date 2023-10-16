@@ -38,6 +38,8 @@ class FlowRiskDNSSuspiciousTrafficAlert : public FlowRiskAlert {
       : FlowRiskAlert(c, f){};
   ~FlowRiskDNSSuspiciousTrafficAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
   u_int8_t getAlertScore() const { return getDefaultScore(); }
