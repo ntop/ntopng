@@ -44,7 +44,6 @@ import { default as PageInactiveHostDetails } from "./page-inactive-host-details
 import { default as PageFlowDeviceDetails } from "./page-flowdevice-config.vue";
 import { default as PageHostsToScan } from "./page-hosts-to-scan.vue";
 import { default as PageHostVsResult } from "./page-host-vs-result.vue";
-import { default as PageDeviceExclusionsV2 } from "./page-device-exclusions-v2.vue";
 import { default as PageOpenPorts } from "./page-open-ports.vue";
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -77,7 +76,6 @@ import { default as ListTimeseries } from "./list-timeseries.vue";
 // modals
 import { default as Modal } from "./modal.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
-import { default as ModalDeleteScanConfirm } from "./modal-delete-scan-confirm.vue";
 import { default as ModalAddCheckExclusion } from "./modal-add-check-exclusion.vue";
 import { default as ModalAddDeviceExclusion } from "./modal-add-device-exclusion.vue";
 import { default as ModalEditDeviceExclusion } from "./modal-edit-device-exclusion.vue";
@@ -89,7 +87,6 @@ import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalAddHostRules } from "./modal-add-host-rules.vue";
 import { default as ModalAddApplication } from "./modal-add-application.vue";
 import { default as ModalDeleteApplication } from "./modal-delete-application.vue";
-import { default as ModalUpdatePeriodicityScan } from "./modal-update-periodicity-scan.vue";
 
 let ntopVue = {
     // pages
@@ -117,7 +114,6 @@ let ntopVue = {
     PageInactiveHostDetails: PageInactiveHostDetails,
     PageHostsToScan: PageHostsToScan,
     PageHostVsResult: PageHostVsResult,
-    PageDeviceExclusionsV2: PageDeviceExclusionsV2,
     PageOpenPorts: PageOpenPorts,
     
     PageEditApplications: PageEditApplications,
