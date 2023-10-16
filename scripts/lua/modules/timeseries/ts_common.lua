@@ -81,6 +81,20 @@ function ts_common.calculateMinMax(total_serie)
         end
     end
 
+    -- Security check to not have null values
+    if (tostring(min_val) == "-nan") then
+        min_val = 0
+    end
+    if (tostring(max_val) == "-nan") then
+        max_val = 0
+    end
+    if (tostring(min_val_pt) == "-nan") then
+        min_val_pt = 1
+    end
+    if (tostring(max_val_pt) == "-nan") then
+        max_val_pt = 1
+    end
+
     return {
         min_val = min_val,
         max_val = max_val,
@@ -105,7 +119,7 @@ function ts_common.calculateStatistics(total_serie, step, notused, data_type)
     -- Use counter for excluding nan values
     local avg = total / counter
 
-    if avg == nan then
+    if tostring(avg) == '-nan' then
         avg = 0
     end
 
