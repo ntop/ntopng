@@ -68,7 +68,8 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
       or alert_type_params.metric == "iface:traffic_rxtx-rx"
       or alert_type_params.metric == "iface:traffic_rxtx-tx"
       or alert_type_params.metric == "flowdev:traffic"
-      or alert_type_params.metric == "flowdev_port:traffic") then
+      or alert_type_params.metric == "flowdev_port:traffic"
+      or string.contains(alert_type_params.metric, "top:iface:ndpi")) then
       if(alert_type_params.metric_type == "volume") then
          alert_type_params.value = bytesToSize(alert_type_params.value)
          alert_type_params.threshold = bytesToSize(alert_type_params.threshold)
