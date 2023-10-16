@@ -49,12 +49,12 @@ end
 -- @return A human-readable string
 function alert_device_connection_disconnection.format(ifid, alert, alert_type_params)
     local event = alert_type_params.event or "connected"
-
+    
     if event == 'connected' then
         return (i18n("alert_messages.device_has_connected", {
             device = mac2label(alert_type_params.device),
             device_url = getMacUrl(alert_type_params.device),
-            if_name = getInterfaceName(ifid),
+            if_name = getHumanReadableInterfaceName(ifid),
             if_url = getInterfaceUrl(ifid),
             exclusion_url = ntop.getHttpPrefix() .. "/lua/pro/admin/edit_device_exclusions.lua?mac=" .. alert_type_params.device 
         }))
@@ -62,7 +62,7 @@ function alert_device_connection_disconnection.format(ifid, alert, alert_type_pa
         return (i18n("alert_messages.device_has_disconnected", {
             device = mac2label(alert_type_params.device),
             device_url = getMacUrl(alert_type_params.device),
-            if_name = getInterfaceName(ifid),
+            if_name = getHumanReadableInterfaceName(ifid),
             if_url = getInterfaceUrl(ifid),
             exclusion_url = ntop.getHttpPrefix() .. "/lua/pro/admin/edit_device_exclusions.lua?mac=" .. alert_type_params.device
         }))
