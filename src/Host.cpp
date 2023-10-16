@@ -549,6 +549,7 @@ void Host::lua_get_ip(lua_State *vm) const {
   lua_push_uint32_table_entry(vm, "vlan", get_vlan_id());
   lua_push_uint32_table_entry(vm, "observation_point_id",
                               get_observation_point_id());
+  lua_push_uint32_table_entry(vm, "ip_version", ip.getVersion());
 }
 
 /* ***************************************************** */
