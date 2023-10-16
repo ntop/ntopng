@@ -84,6 +84,7 @@ function ts_data.get_timeseries(http_context)
     local ts_aggregation = http_context.ts_aggregation
 
     local options = {
+        min_num_points = 2,
         max_num_points = tonumber(http_context.limit) or 60,
         initial_point = toboolean(http_context.initial_point),
         epoch_begin = tonumber(http_context.epoch_begin) or (os.time() - 3600),

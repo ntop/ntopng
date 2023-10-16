@@ -81,6 +81,7 @@ export const ntopng_utility = function() {
             return {
                 "min": min,
                 "5_min": min * 5,
+                "10_min": min * 10,
                 "30_min": min * 30,
                 hour: min * 60,
                 "2_hours": 2 * min * 60,

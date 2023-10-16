@@ -513,6 +513,22 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
         next_t = next_t + time_step
     end
 
+    -- In case just one point is found, report as no points are found
+    for _, serie in pairs(series) do
+        local num_pts_not_filled = 0
+        for _, num in pairs(serie.data) do
+            if tostring(num) ~= tostring(options.fill_value) then
+                num_pts_not_filled = num_pts_not_filled + 1
+            end
+        end
+        -- Too few points to have a decent ts, reset all
+        if num_pts_not_filled < options.min_num_points then
+            for idx, num in pairs(serie.data) do
+                serie.data[idx] = options.fill_value
+            end
+        end
+    end
+
     local count = series_idx - 1
 
     return series, count, tstart
@@ -932,7 +948,7 @@ function driver:timeseries_query(options)
         series, count, options.epoch_begin = influx2Series(options.schema_info, options.epoch_begin + time_step,
             options.epoch_end, options.tags, options, data.series[1], time_step, last_ts)
     end
-
+    
     -- The data received from influx is formatted as the following
     -- [
     --      [ epoch1, value1, value2 ], [ epoch2, value1, value2 ]

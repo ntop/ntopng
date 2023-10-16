@@ -519,12 +519,25 @@ function driver:timeseries_query(options)
       local fdata_name = names[serie_idx]
       local serie = fdata[fdata_name]
       local modified_serie = {}
+      local num_not_nan_pts = 0
       count = 0
+
+      for i, v in pairs(serie) do
+         -- Keep track of NaN points
+         if v == v then
+            num_not_nan_pts = num_not_nan_pts + 1
+         end
+      end
 
       -- Normalize the value
       for i, v in pairs(serie) do
-	 modified_serie[i] = ts_common.normalizeVal(v, max_val, options)
-	 count = count + 1
+         -- Not enough point to represent the data, empty the serie
+         if num_not_nan_pts >= options.min_num_points then
+            modified_serie[i] = ts_common.normalizeVal(v, max_val, options)
+            count = count + 1
+         else
+            modified_serie[i] = options.fill_value
+         end
       end
 
       series[#series + 1] = {

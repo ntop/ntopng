@@ -4,7 +4,8 @@
         <AlertInfo></AlertInfo>
         <div class="card h-100 overflow-hidden">
             <DateTimeRangePicker style="margin-top:0.5rem;" class="ms-1" :id="id_date_time_picker" :enable_refresh="true"
-                ref="date_time_picker" @epoch_change="epoch_change" :min_time_interval_id="min_time_interval_id">
+                ref="date_time_picker" @epoch_change="epoch_change" :min_time_interval_id="min_time_interval_id"
+                :custom_time_interval_list="time_preset_list">
                 <template v-slot:begin>
                 </template>
                 <template v-slot:extra_buttons>
@@ -167,6 +168,19 @@ const custom_metric = { label: i18n('page_stats.custom_metrics'), currently_acti
 const page_snapshots = "timeseries";
 
 const ts_menu_ready = ref(false);
+const time_preset_list = [
+    { value: "10_min", label: i18n('show_alerts.presets.10_min'), currently_active: false },
+    { value: "30_min", label: i18n('show_alerts.presets.30_min'), currently_active: true },
+    { value: "hour", label: i18n('show_alerts.presets.hour'), currently_active: false },
+    { value: "2_hours", label: i18n('show_alerts.presets.2_hours'), currently_active: false },
+    { value: "6_hours", label: i18n('show_alerts.presets.6_hours'), currently_active: false },
+    { value: "12_hours", label: i18n('show_alerts.presets.12_hours'), currently_active: false },
+    { value: "day", label: i18n('show_alerts.presets.day'), currently_active: false },
+    { value: "week", label: i18n('show_alerts.presets.week'), currently_active: false },
+    { value: "month", label: i18n('show_alerts.presets.month'), currently_active: false },
+    { value: "year", label: i18n('show_alerts.presets.year'), currently_active: false },
+    { value: "custom", label: i18n('show_alerts.presets.custom'), currently_active: false, disabled: true, },
+];
 
 function init_groups_option_mode() {
     let groups_mode = ntopng_url_manager.get_url_entry("timeseries_groups_mode");
@@ -198,7 +212,7 @@ onBeforeMount(async () => {
     if (props.source_value_object.is_va) {
         min_time_interval_id.value = "hour";
         ntopng_utility.check_and_set_default_time_interval("day");
-    }
+    };
         
     set_default_source_object_in_url();
 });

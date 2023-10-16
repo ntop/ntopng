@@ -82,7 +82,8 @@ export default {
         enable_refresh: Boolean,
         disabled_date_picker: Boolean,
         min_time_interval_id: String,
-	round_time: Boolean, //if min_time_interval_id != null round time by min_time_interval_id
+	    round_time: Boolean, //if min_time_interval_id != null round time by min_time_interval_id
+        custom_time_interval_list: Array,
     },
     computed: {
         // a computed getter
@@ -119,6 +120,10 @@ export default {
     created() {
     },
     beforeMount() {
+        debugger;
+        if (this.$props.custom_time_interval_list != null) {
+            this.time_preset_list = this.$props.custom_time_interval_list;
+        }
         // filter interval
         if (this.min_time_interval_id == null) {
             this.time_preset_list_filtered = this.time_preset_list;
@@ -427,6 +432,7 @@ export default {
             flat_end_date: null,
             time_preset_list: [
                 { value: "5_min", label: i18n('show_alerts.presets.5_min'), currently_active: false },
+                { value: "10_min", label: i18n('show_alerts.presets.10_min'), currently_active: false },
                 { value: "30_min", label: i18n('show_alerts.presets.30_min'), currently_active: true },
                 { value: "hour", label: i18n('show_alerts.presets.hour'), currently_active: false },
                 { value: "2_hours", label: i18n('show_alerts.presets.2_hours'), currently_active: false },

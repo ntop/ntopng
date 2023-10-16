@@ -27,6 +27,8 @@ local function percentile(N, P)
 end
 
 function ts_common.ninetififthPercentile(serie)
+    local nan_points = 0
+
     if #serie <= 1 then
         return serie[1]
     end
@@ -35,11 +37,17 @@ function ts_common.ninetififthPercentile(serie)
 
     for i, val in ipairs(serie) do
         if val ~= val then
+            nan_points = nan_points + 1
             -- Convert NaN to 0
             val = 0
         end
 
         N[i] = val
+    end
+
+    -- No points to calculate percentile, return NaN
+    if nan_points == #serie then
+        return 0/0
     end
 
     table.sort(N) -- <<== Sort first
@@ -53,14 +61,14 @@ function ts_common.calculateMinMax(total_serie)
     local min_val_pt, max_val_pt
     local found = false
 
-    min_val = 0
-    max_val = 0
+    min_val = 0/0
+    max_val = 0/0
     min_val_pt = 1
     max_val_pt = 1
 
     for idx, val in pairs(total_serie) do
         -- Check if it's nan
-        if (tostring(val) ~= "-nan") then
+        if val == val then
             if (found == false) then
                 min_val = val
                 max_val = val
@@ -81,20 +89,6 @@ function ts_common.calculateMinMax(total_serie)
         end
     end
 
-    -- Security check to not have null values
-    if (tostring(min_val) == "-nan") then
-        min_val = 0
-    end
-    if (tostring(max_val) == "-nan") then
-        max_val = 0
-    end
-    if (tostring(min_val_pt) == "-nan") then
-        min_val_pt = 1
-    end
-    if (tostring(max_val_pt) == "-nan") then
-        max_val_pt = 1
-    end
-
     return {
         min_val = min_val,
         max_val = max_val,
@@ -106,22 +100,24 @@ end
 -- ##############################################
 
 function ts_common.calculateStatistics(total_serie, step, notused, data_type)
-    local total = 0
+    local total
     local counter = 0
+    local percentile = ts_common.ninetififthPercentile(total_serie) or 0
 
     for idx, val in pairs(total_serie) do
-        if tostring(val) ~= '-nan' then
+        -- not a NaN value
+        if val == val then
             counter = counter + 1
-            total = total + val
+            total = (total or 0) + val
         end
+    end
+    
+    if not total then
+        total = 0/0 -- NaN
     end
 
     -- Use counter for excluding nan values
     local avg = total / counter
-
-    if tostring(avg) == '-nan' then
-        avg = 0
-    end
 
     if data_type ~= ts_common.metrics.gauge then
         total = total * step
@@ -137,7 +133,7 @@ function ts_common.calculateStatistics(total_serie, step, notused, data_type)
     return {
         total = total,
         average = avg,
-        ["95th_percentile"] = ts_common.ninetififthPercentile(total_serie)
+        ["95th_percentile"] = percentile
     }
 end
 
@@ -212,13 +208,13 @@ function ts_common.normalizeVal(v, max_val, options)
     -- this was causing missing points in the charts
     -- with ZMQ interface which can actually exceed the nominal value
 
-    if tostring(v) == '-nan' then
-       if not options.keep_nan then
-	  -- NaN value
-	  v = options.fill_value
-       end
+    if v ~= v then
+        if not options.keep_nan then
+            -- NaN value
+            v = options.fill_value
+        end
     elseif v < options.min_value then
-       v = options.min_value
+        v = options.min_value
     end
 
     return v

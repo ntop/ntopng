@@ -258,6 +258,7 @@ end
 -- Get some default options to use in queries.
 function ts_utils.getQueryOptions(overrides)
     return table.merge({
+        min_num_points = 0, -- maximum number of points per data serie
         max_num_points = 80, -- maximum number of points per data serie
         fill_value = 0/0, -- e.g. 0/0 for nan
         min_value = 0, -- minimum value of a data point
