@@ -25,10 +25,10 @@
       <label v-if="flow_device_timeseries_available == true" class="btn " :class="[rule_type == 'exporter'?'btn-primary active':'btn-secondary']">
 	      <input @click="set_rule_type('exporter')" class="btn-check"  type="radio" name="rule_type" value="exporter"> {{ _i18n("if_stats_config.add_rules_type_flow_exporter") }}
 	    </label>
-      <label v-if="has_host_pools == false" class="btn " :class="[rule_type == 'host_pool'?'btn-primary active':'btn-secondary']">
+      <label v-if="has_host_pools == true" class="btn " :class="[rule_type == 'host_pool'?'btn-primary active':'btn-secondary']">
 	      <input @click="set_rule_type('host_pool')" class="btn-check"  type="radio" name="rule_type" value="host_pool"> {{ _i18n("if_stats_config.add_rules_type_host_pool") }}
 	    </label>
-      <label v-if="has_cidr == false" class="btn " :class="[rule_type == 'CIDR'?'btn-primary active':'btn-secondary']">
+      <label v-if="has_cidr == true" class="btn " :class="[rule_type == 'CIDR'?'btn-primary active':'btn-secondary']">
 	      <input @click="set_rule_type('CIDR')" class="btn-check"  type="radio" name="rule_type" value="CIDR"> {{ _i18n("if_stats_config.add_rules_type_cidr") }}
 	    </label>
 	  </div>
@@ -595,8 +595,9 @@ const set_row_to_edit = (row) => {
       
       //set metric
       if(row.extra_metric != null) {
+        
         metric_list.value.forEach((t) => {
-          if(t.id == row.metric && t.extra_metric == row.extra_metric)
+          if(row.metric.contains(t.id) && t.extra_metric == row.extra_metric)
             selected_metric.value = t;
           })
       } else {
