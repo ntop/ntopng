@@ -205,7 +205,9 @@ static void *packetPollLoop(void *ptr) {
     Utils::exec(test_pre_script_path);
 
     /* Allow check configs to be re-read */
-    sleep(8);
+    sleep(ntop->getPrefs()->get_housekeeping_frequency()*2);
+
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Processing PCAP file");
   }
 
   do {
