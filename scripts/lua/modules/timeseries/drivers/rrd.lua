@@ -565,8 +565,8 @@ function driver:timeseries_query(options)
 
    res = {
       metadata = {
-	 epoch_begin = options.epoch_begin,
-	 epoch_end = options.epoch_end,
+	 epoch_begin = fstart,
+	 epoch_end = fend,
 	 epoch_step = sampled_fstep,
 	 num_point = count or 0,
 	 schema = options.schema,
