@@ -324,6 +324,7 @@ void Flow::allocDPIMemory() {
 
 void Flow::freeDPIMemory() {
   if (ndpiFlow) {
+    setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
     ndpi_free_flow(ndpiFlow);
     ndpiFlow = NULL;
   }
@@ -3016,6 +3017,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
                        true /* Country and City */);
       }
     }
+    
     lua_confidence(vm);
     lua_get_risk_info(vm);
     lua_entropy(vm);
@@ -4257,8 +4259,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
 
   /* All the statuses set */
   char status_buf[64];
-  ndpi_serialize_string_string(
-      s, "alerts_map", alerts_map.toHexString(status_buf, sizeof(status_buf)));
+  ndpi_serialize_string_string(s, "alerts_map", alerts_map.toHexString(status_buf, sizeof(status_buf)));
 
   /* nDPI data */
   ndpi_serialize_string_string(

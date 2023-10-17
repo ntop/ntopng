@@ -244,6 +244,9 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
 
     /* NDPI_TLS_ALPN_SNI_MISMATCH */
     {{flow_alert_ndpi_tls_alpn_sni_mismatch, alert_category_security}, "ndpi_tls_alpn_sni_mismatch"},
+
+    /* NDPI_MALWARE_HOST_CONTACTED */
+    {{flow_alert_ndpi_malware_host_contacted, alert_category_security}, "ndpi_malware_host_contacted"},
 };
 
 /* **************************************************** */
