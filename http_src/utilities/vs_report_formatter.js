@@ -196,7 +196,7 @@ export const udp_ports_f = (udp_ports, row) => {
   }
   let label = "";
 
-  if (udp_ports <= 0) {
+  if (udp_ports == null || udp_ports <= 0) {
     return label;
   }
 
@@ -220,7 +220,7 @@ export const tcp_ports_f = (tcp_ports, row) => {
   }
   let label = "";
 
-  if (tcp_ports <= 0) {
+  if (tcp_ports == null || tcp_ports <= 0) {
     return label;
   }
 
