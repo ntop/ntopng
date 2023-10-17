@@ -424,7 +424,11 @@ export const cves_f = (cves, row) => {
             badge_type = "bg-danger";
           }
           
-          label += `<li  title='${i18n("hosts_stats.page_scan_hosts.report.cves_title")}'><span class="badge ${badge_type}">${key} </span> (${score})</li>`;
+          const url = ntopng_utility.get_cve_details_url(key, row.scan_type);
+          label += `<li  title='${i18n("hosts_stats.page_scan_hosts.report.cves_title")}'>
+                        <a href="${url}"><span class="badge ${badge_type}">${key} </span></a> 
+                        (${score})
+                    </li>`;
 
         
         index++;

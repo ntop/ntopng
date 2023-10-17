@@ -142,7 +142,7 @@ const row_render_functions = {
     } else if (column.id == "hosts") {
       return hosts_f(row[column.id]);
     } else if (column.id == "cve" || column.id == "cve_list") {
-      return cves_f(row[column.id]);
+      return cves_f(row[column.id], row);
     } else if (column.id == "tcp_ports_list") {
       return tcp_ports_list_f(row[column.id], row); 
     } else if (column.id == "udp_ports_list") {

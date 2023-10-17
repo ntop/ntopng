@@ -192,6 +192,15 @@ export const ntopng_utility = function() {
 	    	}
 	    }
 	},
+    get_cve_details_url(cve_id, scan_type) {
+        //  IMPORTANT: The retrieved value must match the value in 
+        //  scripts/lua/modules/vulnerability_scan/cve_utils.lua for the 'cve_utils.getDocURL' function.
+        if(scan_type == "cve") {
+            return `https://nvd.nist.gov/vuln/detail/${cve_id}`;
+        } else if(scan_type == "openvas") {
+            return `https://vulners.com/openvas/OPENVAS:${cve_id}`;
+        }
+    },
 	set_http_globals_headers(headers) {
 	    global_http_headers = headers;
 	},
