@@ -188,6 +188,7 @@ void FlowChecksLoader::loadConfiguration() {
   enum json_tokener_error jerr = json_tokener_success;
   char *value = NULL;
   u_int actual_len = ntop->getRedis()->len(CHECKS_CONFIG);
+  std::map<std::string, FlowCheck *> cb_all_clone = cb_all; /* All the checks instantiated */
 
   if ((value = (char *)malloc(actual_len + 1)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -196,17 +197,15 @@ void FlowChecksLoader::loadConfiguration() {
     goto out;
   }
 
-  if (ntop->getRedis()->get((char *)CHECKS_CONFIG, value, actual_len + 1) !=
-      0) {
+  if (ntop->getRedis()->get((char *)CHECKS_CONFIG, value, actual_len + 1) != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to find configuration %s",
                                  CHECKS_CONFIG);
     goto out;
   }
 
   if ((json = json_tokener_parse_verbose(value, &jerr)) == NULL) {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "JSON Parse error [%s] %s [len: %u][strlen: %u]",
-        json_tokener_error_desc(jerr), value, actual_len, strlen(value));
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "JSON Parse error [%s] %s [len: %u][strlen: %u]",
+				 json_tokener_error_desc(jerr), value, actual_len, strlen(value));
     goto out;
   }
 
@@ -233,43 +232,43 @@ void FlowChecksLoader::loadConfiguration() {
     const char *check_key = json_object_iter_peek_name(&it);
     json_object *check_config = json_object_iter_peek_value(&it);
     json_object *json_script_conf, *json_hook_all;
-
+    
     if (json_object_object_get_ex(check_config, "all", &json_hook_all)) {
       json_object *json_enabled;
       bool enabled;
 
       if (cb_all.find(check_key) != cb_all.end()) {
         FlowCheck *cb = cb_all[check_key];
-
+	
         if (!cb->isCheckCompatibleWithEdition()) {
-          ntop->getTrace()->traceEvent(
-              TRACE_INFO,
-              "Check not compatible with current edition [check: %s]",
-              check_key);
+          ntop->getTrace()->traceEvent(TRACE_INFO,
+				       "Check not compatible with current edition [check: %s]",
+				       check_key);
           goto next_object;
         }
 
-        if (json_object_object_get_ex(json_hook_all, "enabled", &json_enabled))
+        if (json_object_object_get_ex(json_hook_all, "enabled", &json_enabled)) {
           enabled = json_object_get_boolean(json_enabled);
-        else
+
+#if 0
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "*** %s *** [%s][%s]", check_key,
+				       cb->isGenericCheck() ? "GENERIC" : "", enabled ? "ENABLED" : "NOT enabled");
+#endif	    
+	  cb_all_clone.erase(std::string(check_key)); /* Remove the check for which a configuration exists */
+	} else 
           enabled = false;
 
         if (!enabled) {
-          ntop->getTrace()->traceEvent(
-              TRACE_INFO, "Skipping check not enabled [check: %s]", check_key);
+          ntop->getTrace()->traceEvent(TRACE_INFO, "Skipping check not enabled [check: %s]", check_key);
           goto next_object;
         }
 
         /* Script enabled */
-        if (json_object_object_get_ex(json_hook_all, "script_conf",
-                                      &json_script_conf)) {
+        if (json_object_object_get_ex(json_hook_all, "script_conf", &json_script_conf)) {
           if (cb->loadConfiguration(json_script_conf)) {
-            ntop->getTrace()->traceEvent(
-                TRACE_INFO, "Successfully enabled check %s", check_key);
+            ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully enabled check %s", check_key);
           } else {
-            ntop->getTrace()->traceEvent(
-                TRACE_WARNING, "Error while loading check %s configuration",
-                check_key);
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while loading check %s configuration", check_key);
           }
 
           cb->enable();
@@ -290,9 +289,9 @@ void FlowChecksLoader::loadConfiguration() {
             strcmp(check_key, "periodicity_changed")
 #endif
            )
-          ntop->getTrace()->traceEvent(
-              TRACE_WARNING, "Unable to find flow check '%s': skipping it",
-              check_key);
+          ntop->getTrace()->traceEvent(TRACE_WARNING,
+				       "Unable to find flow check '%s': skipping it",
+				       check_key);
       }
     }
 
@@ -305,6 +304,17 @@ out:
   /* Free the json */
   if (json) json_object_put(json);
   if (value) free(value);
+
+  /* Now enable generic checks without an enable/disable configuration */
+  for(std::map<std::string, FlowCheck *>::const_iterator it = cb_all_clone.begin(); it != cb_all_clone.end(); ++it) {
+    FlowCheck *cb = it->second;
+
+    if(cb->isGenericCheck()) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Enabling generic check with no configuration [%s]", it->first.c_str());
+      cb->enable();
+      cb->scriptEnable();
+    }
+  }
 }
 
 /* **************************************************** */
