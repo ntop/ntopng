@@ -44,6 +44,7 @@
 #include "flow_checks/FlowRiskMalformedPacket.h"
 #include "flow_checks/FlowRiskMaliciousJA3.h"
 #include "flow_checks/FlowRiskMaliciousSHA1Certificate.h"
+#include "flow_checks/FlowRiskMalwareHostContacted.h"
 #include "flow_checks/FlowRiskPeriodicFlow.h"
 #include "flow_checks/FlowRiskSMBInsecureVersion.h"
 #include "flow_checks/FlowRiskSSHObsoleteServer.h"

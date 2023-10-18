@@ -105,6 +105,7 @@ void FlowChecksLoader::registerChecks() {
   if ((fcb = new FlowRiskURLPossibleRCEInjection())) registerCheck(fcb);
   if ((fcb = new FlowRiskURLPossibleSQLInjection())) registerCheck(fcb);
   if ((fcb = new FlowRiskUnidirectionalTraffic())) registerCheck(fcb);
+  if ((fcb = new FlowRiskMalwareHostContacted())) registerCheck(fcb);
   if ((fcb = new IECUnexpectedTypeId())) registerCheck(fcb);
   if ((fcb = new IECInvalidTransition())) registerCheck(fcb);
   if ((fcb = new IECInvalidCommandTransition())) registerCheck(fcb);
