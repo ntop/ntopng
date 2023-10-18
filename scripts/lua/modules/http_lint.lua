@@ -229,6 +229,22 @@ local function validateInterfaceType(p)
 end
 
 local function validatePort(p)
+    local items = split(p, "/")
+
+    if(items == nil) then
+        return false
+    else
+        p = items[1]
+
+	if(items[2] ~= nil) then
+	  if((items[2] == "tcp") or (items[2] == "udp")) then
+	     -- Good: example 80/tcp
+	  else
+	     return false
+	  end
+	end
+    end
+    
     if not validateNumber(p) then
         return false
     end
