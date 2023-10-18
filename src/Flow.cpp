@@ -4994,7 +4994,7 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len, u_int8_t *payload,
 
     /*
       Need to reset this bit as nDPI might "forget" to do it in case of
-      protocol detection with onl one packet
+      protocol detection with only one packet
     */
     ndpi_flow_risk_bitmap &=
         ~(1UL << NDPI_UNIDIRECTIONAL_TRAFFIC); /* Clear bit */

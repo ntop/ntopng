@@ -81,7 +81,7 @@ void FlowRisk::checkRisk(Flow *f) {
 
 void FlowRisk::protocolDetected(Flow *f) {
   /* Handle risks that should be checked as soon as l7 protocol is detected */
-  /* Note: controlled by checkOnFlowEnd() */
+  /* Note: controlled by check_on_flow_end parameter of FlowRisk() constructor */
   checkRisk(f);
 }
 
@@ -89,7 +89,7 @@ void FlowRisk::protocolDetected(Flow *f) {
 
 void FlowRisk::flowEnd(Flow *f) { 
   /* Handle risks that should be checked at flow end (e.g. unidirectional flow) */
-  /* Note: controlled by checkOnFlowEnd() */
+  /* Note: controlled by check_on_flow_end parameter of FlowRisk() constructor */
   checkRisk(f);
 }
 
