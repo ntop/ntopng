@@ -120,7 +120,6 @@ export default {
     created() {
     },
     beforeMount() {
-        debugger;
         if (this.$props.custom_time_interval_list != null) {
             this.time_preset_list = this.$props.custom_time_interval_list;
         }
