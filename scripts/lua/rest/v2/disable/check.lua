@@ -18,26 +18,28 @@ local auth = require "auth"
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
+local subdir = _POST["check_subdir"]
+local script_key = _POST["script_key"]
+
+-- ################################################
+
 if not auth.has_capability(auth.capabilities.checks) then
    rest_utils.answer(rest_utils.consts.err.not_granted)
    return
 end
 
--- ################################################
-
-local subdir = _POST["check_subdir"]
 if(subdir == nil) then
   rest_utils.answer(rest_utils.consts.err.invalid_args)
   return
 end
 
 local script_type = checks.getScriptType(subdir)
+
 if(script_type == nil) then
   rest_utils.answer(rest_utils.consts.err.invalid_args)
   return
 end
 
-local script_key = _POST["script_key"]
 if(script_key == nil) then
   rest_utils.answer(rest_utils.consts.err.invalid_args)
   return
