@@ -121,6 +121,9 @@ function change_active_page(new_active_page, new_start_page_button) {
     active_page.value = new_active_page;
   } 
 */
+
+  active_page.value = new_active_page;
+
     // console.log(`new active page: ${new_active_page}`);
     // console.log(`new start page button: ${new_start_page_button}`);
 
