@@ -1799,20 +1799,24 @@ else {
 }
 
 $button.off('click').on('click', function () {
+   let url = "";
+   if (is_enabled) {
+      url = `${http_prefix}/lua/rest/v2/disable/check.lua`;
+   } else {
+      url = `${http_prefix}/lua/rest/v2/enable/check.lua`;
+   }
 
-   $.post(`${http_prefix}/lua/toggle_check.lua`, {
+   $.post(url, {
       check_subdir: row_data.subdir,
       script_key: row_data.key,
-      csrf: pageCsrf,
-      action: (is_enabled) ? 'disable' : 'enable'
+      csrf: pageCsrf
    })
       .done((d, status, xhr) => {
-
-         if (!d.success) {
-            $("#alert-row-buttons").text(d.error).removeClass('d-none').show();
+         if (d.rc < 0) {
+            $("#alert-row-buttons").text(d.rc_str).removeClass('d-none').show();
+         } else {
+            reloadPageAfterPOST();
          }
-
-         if (d.success) reloadPageAfterPOST();
       })
       .fail(({ status, statusText }) => {
          NtopUtils.check_status_code(status, statusText, $("#alert-row-buttons"));
