@@ -408,7 +408,7 @@ let force_disable_loading = false;
 async function refresh_table(disable_loading) {
     force_refresh = true;
     force_disable_loading = disable_loading || false;
-    select_table_page.value.change_active_page(0, 0);
+    select_table_page.value.change_active_page();
     await nextTick();
     force_refresh = false;
     force_disable_loading = false;
