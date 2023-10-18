@@ -8225,6 +8225,10 @@ void Flow::updateTCPHostServices(Host *cli_h, Host *srv_h) {
       }
       break;
 
+  case NDPI_PROTOCOL_SSH:
+    swap_requested = 1;
+    break;
+    
     default:
       break;
   } /* switch */
