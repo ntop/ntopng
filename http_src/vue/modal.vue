@@ -36,7 +36,7 @@ export default defineComponent({
     props: {
 	id: String,
     },
-    emits: ["hidden", "showed"],
+    emits: ["hidden", "showed", "closeModal", "openModal"],
     /** This method is the first method of the component called, it's called before html template creation. */
     created() {
     },
@@ -60,10 +60,15 @@ export default defineComponent({
     methods: {
 	show: function() {
 	    $(this.$refs["modal_id"]).modal("show");
+      // emit openmodal to disable the autorefresh on vs page.
+      this.$emit("openModal");
 	},
 	preventEnter: function() {},
 	close: function() {
 	    $(this.$refs["modal_id"]).modal("hide");
+      // emit closemodal to enable (eventually if autorefresh variable is true)
+      // the autorefresh on vs page.
+      this.$emit("closeModal");
 	},
     },
 });

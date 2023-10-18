@@ -59,7 +59,7 @@
       </div>
     </div>
   </div>
-  <ModalAddHostToScan ref="modal_add" :context="context" @add="add_host_rest" @edit="edit">
+  <ModalAddHostToScan ref="modal_add" :context="context" @add="add_host_rest" @edit="edit" @closeModal="update_modal_status(false)" @openModal="update_modal_status(true)" @hidden="update_modal_status(false)" >
   </ModalAddHostToScan>
 </template>
   
@@ -82,6 +82,7 @@ import { columns_formatter } from "../utilities/vs_report_formatter.js";
 const _i18n = (t) => i18n(t);
 
 let autorefresh = ref(false);
+let modal_opened = ref(false);
 let insert_with_success = ref(false);
 let already_inserted = ref(false);
 let note = _i18n('hosts_stats.page_scan_hosts.notes.generic_notes_1').replaceAll("${http_prefix}",`${http_prefix}`);
@@ -442,7 +443,7 @@ async function edit(params) {
 
 /* Every 10 second check if the autorefresh is enabled or not, if it is refresh the table */
 function set_autorefresh() {
-  if(autorefresh.value == true)
+  if(autorefresh.value == true && modal_opened.value == false)
     setTimeout(check_autorefresh, 10000);
 }
 
@@ -613,7 +614,7 @@ const check_in_progress_status = async function () {
   insert_with_success.value = false;
   already_inserted.value = false;
   refresh_feedback_messages(result.rsp.total_in_progress);
-  autorefresh.value = result.rsp.total_in_progress > 0 ;
+  autorefresh.value = result.rsp.total_in_progress > 0 && modal_opened.value == false;
   
   
   
@@ -627,7 +628,7 @@ const check_in_progress_status = async function () {
       in_progress_number.value = result.rsp.total_in_progress;
     }
   }
-  if(autorefresh.value == false) {
+  if(autorefresh.value == false && modal_opened.value == false) {
     setTimeout(table_hosts_to_scan.value.refresh_table, 10000)
     in_progress_number.value = 0;
   } else {
@@ -739,6 +740,14 @@ async function click_button_show_result(event) {
 
   let url = `${active_monitoring_url}?${url_params}`;
   ntopng_url_manager.go_to_url(url);
+}
+
+async function update_modal_status(value) {
+  // update the modal_opened var used for disable/enable autorefresh when
+  // modal is open/closed
+  modal_opened.value = value;
+  await check_autorefresh();
+  //refresh_table(false);
 }
 
 
