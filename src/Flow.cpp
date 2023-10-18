@@ -607,8 +607,9 @@ void Flow::processDetectedProtocolData() {
     case NDPI_PROTOCOL_TLS:
     case NDPI_PROTOCOL_QUIC:
       if (ndpiFlow->host_server_name[0] != '\0') {
-        if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_DOH_DOT &&
-            cli_h && cli_h->isLocalHost())
+        if ((ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_DOH_DOT)
+	    && cli_h
+	    && cli_h->isLocalHost())
           cli_h->incrVisitedWebSite(ndpiFlow->host_server_name);
 
         if (cli_h) cli_h->incContactedService(ndpiFlow->host_server_name);
@@ -2215,7 +2216,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
     else if((protos.tls.client_requested_server_name != NULL)
 	    && (!hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH))
 	    && (!Utils::isIPAddress(protos.tls.client_requested_server_name))
-	    && (get_packets() >= 20) /*
+	    && (get_packets() >= 16) /*
 				       Avoid micro-flows that might be an indication that
 				       the response page is too short and thus that
 				       it might be a denied page or similar
