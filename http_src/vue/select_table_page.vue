@@ -114,9 +114,13 @@ function back_page() {
 }
 
 function change_active_page(new_active_page, new_start_page_button) {
-  if (new_active_page != null) {
+/*
+    // Possible Fix regarding the reload of the pages without jumping
+    // back to the first page 
+    if (new_active_page != null) {
     active_page.value = new_active_page;
   } 
+*/
     // console.log(`new active page: ${new_active_page}`);
     // console.log(`new start page button: ${new_start_page_button}`);
 
