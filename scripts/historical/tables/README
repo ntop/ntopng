@@ -1,0 +1,106 @@
+Query Definitions
+-----------------
+
+Place in this directory query definitions in JSON format
+used by the Historical Flow Explorer.
+
+Built-in examples are provided and can be used as starting
+point for building new queries. Please note that:
+
+- The 'select' object can contain a list of items in the 'items'
+  array. A raw SQL select can be defined in the 'sql' string. A
+  list of items is still required to define the columns and value 
+  type (if not a plain column).
+
+- It is possible to use SQL functions as 'select' item as shown
+  in the examples by specifying the 'func' (e.g. SUM) and the
+  parameter (e.g. TOTAL_BYTES)
+
+- The 'filters' object contains a list of items to filter in the
+  'items' array. Defining the 'name' is enough, however additional
+  settings can be configured to overwrite the default (e.g. the
+  operators to be used, the input type, optional field, etc.).
+
+- The interface index, and first/last seen are automatically included
+  by the engine: no need to define them as filters in the query definition.
+
+- Custom SQL code can be also provided:
+  - For sections of the query (e.g. select.sql)
+  - For the full query - in this case $FROM$, $WHERE$, $GROUPBY$, $ORDERBY$, $LIMIT$ 
+    tokens can be used to inject conditions and values built from the engine.
+
+Examples
+--------
+
+Select example - list of fields:
+
+	"select" : {
+		"items" : [
+			{
+				"name": "IPV4_SRC_ADDR",
+			},
+			{
+				"name": "IPV4_DST_ADDR", 
+			},
+			{
+				"name": "VLAN_ID",
+			},
+			{
+				"name": "L7_PROTO",
+			},
+			{
+				"name": "bytes",
+				"func": "SUM",
+				"param": "TOTAL_BYTES",
+				"value_type": "bytes",
+			}
+		]
+	}
+
+Select example - custom SQL (note: list of items still need to be declared to build the datatable structure):
+
+	"select" : {
+		"sql": "IPv4NumToString(IPV4_SRC_ADDR) IPV4_SRC_ADDR_FORMATTED, IPv4NumToString(IPV4_DST_ADDR) IPV4_DST_ADDR_FORMATTED, L7_PROTO, SUM(TOTAL_BYTES) bytes",
+		"items" : [
+			{ 
+				"name" : "IPV4_SRC_ADDR" 
+			},
+			{
+				"name" : "IPV6_SRC_ADDR"
+			},
+			{
+				"name" : "bytes",
+				"func" : "",
+				"value_type" : "bytes"
+			}
+		]
+	}
+
+Filters examples:
+
+	"filters" : {
+		"items" : [
+			{
+				"name": "IPV4_SRC_ADDR"
+			},
+			{
+				"name": "TOTAL_BYTES",
+				"op": "gte",
+				"value_type": "number",
+				"input": "user",
+				"optional": true
+			},
+			{
+				"name": "L7_PROTO",
+				"op": "eq",
+				"value_type": "l7_proto",
+				"input": "fixed",
+				"value": "TLS"
+			}
+		]
+	}
+
+Full query using Custom SQL example (see top_receiver_networks.json):
+
+	"sql" : "SELECT VLAN_ID, NETWORK_ID, SUM(BYTES) AS total_bytes FROM (SELECT VLAN_ID,SRC_NETWORK_ID AS NETWORK_ID, DST2SRC_BYTES AS BYTES $FROM$ $WHERE$ AND SRC_NETWORK_ID!=65535 UNION ALL SELECT VLAN_ID,DST_NETWORK_ID AS NETWORK_ID, SRC2DST_BYTES AS BYTES $FROM$ $WHERE$ AND DST_NETWORK_ID!=65535) AS f $GROUPBY$ $ORDERBY$ $LIMIT$"
+

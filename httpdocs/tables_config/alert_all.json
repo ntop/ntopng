@@ -1,0 +1,50 @@
+{
+    "id": "alert_all",
+    "data_url": "lua/rest/v2/get/all/alert/list.lua",
+    "use_current_page": false,
+    "enable_search": true,
+    "paging": true,
+    "rsp_records_field": "records",
+    "rsp_query_info_field": "stats",
+	"display_empty_rows": true,
+    "columns": [
+	{
+	    "data_field": "entity",
+	    "sortable": false,
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "severity_groups.group_notice_or_lower",
+	    "data_field": "count_group_notice_or_lower",
+	    "render_type": "hideIfZero",
+	    "class": ["text-right", "font-weight-bold"]
+	},
+	{
+	    "title_i18n": "severity_groups.group_warning",
+	    "data_field": "count_group_warning",
+	    "render_type": "hideIfZero",
+	    "class": ["text-right", "font-weight-bold"]
+	},
+
+	{
+	    "title_i18n": "severity_groups.group_error",
+	    "data_field": "count_group_error",
+	    "render_type": "hideIfZero",
+	    "class": ["text-right", "font-weight-bold"]
+	},
+
+	{
+	    "title_i18n": "severity_groups.group_critical",
+	    "data_field": "count_group_critical",
+	    "render_type": "hideIfZero",
+	    "class": ["text-right", "font-weight-bold"]
+	},
+
+	{
+	    "title_i18n": "severity_groups.group_emergency",
+	    "data_field": "count_group_emergency",
+	    "render_type": "hideIfZero",
+	    "class": ["text-right", "font-weight-bold"]
+	}
+    ]
+}

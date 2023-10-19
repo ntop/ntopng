@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -13,14 +13,13 @@ local host_role = _POST["user_role"]
 local networks  = _POST["allowed_networks"]
 local allowed_interface = _POST["allowed_interface"]
 local allow_pcap_download = _POST["allow_pcap_download"]
+local allow_historical_flows = _POST["allow_historical_flows"]
+local allow_alerts = _POST["allow_alerts"]
 local language  = _POST["user_language"]
 
 -- for captive portal users
 local old_host_pool_id = _POST["old_host_pool_id"]
 local new_host_pool_id = _POST["host_pool_id"]
-local limited_lifetime = _POST["lifetime_limited"]
-local unlimited_lifetime = _POST["lifetime_unlimited"]
-local lifetime_secs = tonumber((_POST["lifetime_secs"] or -1))
 
 if(false) then
    io.write("\n")
@@ -62,26 +61,32 @@ local allow_pcap_download_enabled = false
 if allow_pcap_download and allow_pcap_download == "1" then
   allow_pcap_download_enabled = true;
 end
-if(not ntop.changeUserPermission(username, allow_pcap_download_enabled)) then
+if(not ntop.changePcapDownloadPermission(username, allow_pcap_download_enabled)) then
    print ("{ \"result\" : -1, \"message\" : \"Error in changing user permission\" }")
+   return
+end
+
+local allow_historical_flows_enabled = false
+if allow_historical_flows and allow_historical_flows == "1" then
+  allow_historical_flows_enabled = true;
+end
+if(not ntop.changeHistoricalFlowPermission(username, allow_historical_flows_enabled)) then
+   print ("{ \"result\" : -1, \"message\" : \"Error in changing user historical flow permission\" }")
+   return
+end
+
+local allow_alerts_enabled = false
+if allow_alerts and allow_alerts == "1" then
+  allow_alerts_enabled = true;
+end
+if(not ntop.changeAlertsPermission(username, allow_alerts_enabled)) then
+   print ("{ \"result\" : -1, \"message\" : \"Error in changing user alerts permission\" }")
    return
 end
 
 if(language ~= nil) then
    if(not ntop.changeUserLanguage(username, language)) then
       print ("{ \"result\" : -1, \"message\" : \"Error in changing the user language\" }")
-      return
-   end
-end
-
-if(limited_lifetime ~= nil) then
-   if not ntop.addUserLifetime(username, lifetime_secs) then
-      print ("{ \"result\" : -1, \"message\" : \"Error in changing the host lifetime\" }")
-      return
-   end
-elseif(unlimited_lifetime ~= nil) then
-   if not ntop.clearUserLifetime(username) then
-      print ("{ \"result\" : -1, \"message\" : \"Error in clearing the host lifetime\" }")
       return
    end
 end

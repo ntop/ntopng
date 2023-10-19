@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,17 +34,20 @@ class NtopGlobals {
   NtopGlobals();
   ~NtopGlobals();
 
-  inline u_int getUptime()                     const { return((u_int)(time(NULL)-start_time+1)); };
-  inline Trace *getTrace()                     const { return(trace);                   }; 
-  inline bool  decode_tunnels()                const { return(do_decode_tunnels);       };
-  inline bool  isShutdown()                    const { return(is_shutdown);             };
-  inline bool  isShutdownRequested()           const { return(shutdown_requested);      };
-  inline void  shutdown()                            { is_shutdown = true;              };
-  inline void  requestShutdown()                     { shutdown_requested = true;       };
-  inline u_int getSnaplen(const char * ifname) const {
-    return(Utils::getIfMTU(ifname) + 14 /* Ethernet */ + 4 /* VLAN */ + 4 /* QinQ */);
+  inline u_int getUptime() const {
+    return ((u_int)(time(NULL) - start_time + 1));
   };
-  char* get_temp_filename(char *buf, u_int buf_len);
+  inline Trace *getTrace() const { return (trace); };
+  inline bool decode_tunnels() const { return (do_decode_tunnels); };
+  inline bool isShutdown() const { return (is_shutdown); };
+  inline bool isShutdownRequested() const { return (shutdown_requested); };
+  inline void shutdown() { is_shutdown = true; };
+  inline void requestShutdown() { shutdown_requested = true; };
+  inline u_int getSnaplen(const char *ifname) const {
+    return (Utils::getIfMTU(ifname) + 14 /* Ethernet */ + 4 /* VLAN */ +
+            4 /* QinQ */);
+  };
+  char *get_temp_filename(char *buf, u_int buf_len);
 };
 
 #endif /* _NTOP_GLOBALS_H_ */

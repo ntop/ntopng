@@ -19,6 +19,8 @@
 // THE SOFTWARE.
 
 #if defined(_WIN32)
+#define NO_SSL_DL
+
 #if 0 /* ntop */
 #define _CRT_SECURE_NO_WARNINGS // Disable deprecation warning in VS2005
 #endif
@@ -1029,6 +1031,8 @@ static void send_http_error(struct mg_connection *conn, int status,
 	    "Connection: %s\r\n\r\n", status, reason, len,
 	    suggest_connection_header(conn));
   conn->num_bytes_sent += mg_printf(conn, "%s", buf);
+
+  traceHTTP(conn, (u_int16_t)status);
 }
 
 #if defined(_WIN32) && !defined(__SYMBIAN32__)
@@ -1075,6 +1079,15 @@ static void send_http_error(struct mg_connection *conn, int status,
   // Implementation with PulseEvent() has race condition, see
   // http://www.cs.wustl.edu/~schmidt/win32-cv-1.html
   return PulseEvent(cv->broadcast) == 0 ? -1 : 0;
+}
+
+/* static */int pthread_cond_timedwait(pthread_cond_t* cv, pthread_mutex_t* mutex, const struct timespec* abstime) {
+    HANDLE handles[] = { cv->signal, cv->broadcast };
+    DWORD msec = abstime->tv_sec * 1000 + abstime->tv_sec / 1000;
+
+    ReleaseMutex(*mutex);
+    WaitForMultipleObjects(2, handles, FALSE, msec);
+    return WaitForSingleObject(*mutex, msec) == WAIT_OBJECT_0 ? 0 : -1;
 }
 
 /* static */int pthread_cond_destroy(pthread_cond_t *cv) {
@@ -4258,12 +4271,14 @@ static void handle_lsp_request(struct mg_connection *conn, const char *path,
 }
 #endif // MONGOOSE_USE_LUA
 
-int mg_upload(struct mg_connection *conn, const char *destination_dir) {
+int mg_upload(struct mg_connection *conn, const char *destination_dir,
+	      char *fname, u_int fname_len) {
   const char *content_type_header, *boundary_start;
-  char buf[MG_BUF_LEN], path[PATH_MAX], fname[1024], boundary[100], *s;
+  char buf[MG_BUF_LEN], path[PATH_MAX], boundary[100], *s;
   FILE *fp;
   int bl, n, i, j, headers_len, boundary_len, len = 0, num_uploaded_files = 0;
 
+  fname[0] = '\0';
   // Request looks like this:
   //
   // POST /upload HTTP/1.1
@@ -4331,7 +4346,8 @@ int mg_upload(struct mg_connection *conn, const char *destination_dir) {
       s = fname;
     }
     // Open file in binary mode. TODO: set an exclusive lock.
-    snprintf(path, sizeof(path), "%s/%s", destination_dir, s);
+    snprintf(path, sizeof(path)-1, "%s/%s", destination_dir, s);
+    
     if ((fp = fopen(path, "wb")) == NULL) {
       break;
     }
@@ -4851,14 +4867,17 @@ static int set_ssl_option(struct mg_context *ctx) {
 
 #ifndef __APPLE__ /* Brew comes with an old OpenSSL version */
 #ifdef MODERN_OPENSSL
-#ifndef TLS1_1_VERSION
-#define TLS1_1_VERSION          0x0302
+#ifndef TLS1_2_VERSION
+#define TLS1_2_VERSION          0x0303
 #endif
-  SSL_CTX_set_min_proto_version(ctx->ssl_ctx, TLS1_1_VERSION);
+  SSL_CTX_set_min_proto_version(ctx->ssl_ctx, TLS1_2_VERSION);
 #else
   {
 #ifndef SSL_OP_NO_TLSv1
 #define SSL_OP_NO_TLSv1 0x04000000L
+#endif
+#ifndef SSL_OP_NO_TLSv1_1
+#define SSL_OP_NO_TLSv1_1 0x10000000L
 #endif
 #ifndef SSL_OP_NO_SSLv2
 #define SSL_OP_NO_SSLv2 0x01000000L
@@ -4870,6 +4889,7 @@ static int set_ssl_option(struct mg_context *ctx) {
     long opts = SSL_CTX_get_options(ctx->ssl_ctx);
     
     opts |= SSL_OP_NO_TLSv1;
+    opts |= SSL_OP_NO_TLSv1_1;
     opts |= SSL_OP_NO_SSLv2;
     opts |= SSL_OP_NO_SSLv3;
     SSL_CTX_set_options(ctx->ssl_ctx, opts);
@@ -5154,6 +5174,9 @@ static void process_new_connection(struct mg_connection *conn) {
       if (conn->ctx->callbacks.end_request != NULL) {
 	conn->ctx->callbacks.end_request(conn, conn->status_code);
       }
+#if 1 /* NTOP */
+      if(conn->status_code == 200) traceHTTP(conn, conn->status_code);
+#endif
       log_access(conn);
     }
     if (ri->remote_user != NULL) {

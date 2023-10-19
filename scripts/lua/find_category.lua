@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -19,7 +19,7 @@ local query = string.lower(_GET["query"])
 local categories = interface.getnDPICategories()
 
 for cat, id in pairsByKeys(categories, asc_insensitive) do
-  cat = getCategoryLabel(cat)
+  cat = getCategoryLabel(cat, id)
 
   if string.contains(string.lower(cat), query) then
     results[#results + 1] = {name=cat, key=id}

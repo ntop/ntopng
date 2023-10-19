@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2015-20 - ntop.org
+ * (C) 2015-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,11 +22,6 @@
 #ifndef _PACKET_DUMPER_GENERIC_H_
 #define _PACKET_DUMPER_GENERIC_H_
 
-typedef enum {
-  ATTACK,
-  GUI,
-  UNKNOWN
-}
-dump_reason;
+typedef enum { ATTACK, GUI, UNKNOWN } dump_reason;
 
 #endif /* _PACKET_DUMPER_GENERIC_H_ */

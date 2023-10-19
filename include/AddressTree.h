@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can addresstribute it and/or modify
@@ -28,40 +28,61 @@ class IpAddress;
 
 class AddressTree {
  protected:
-  u_int16_t numAddresses, numAddressesIPv4, numAddressesIPv6;
-  patricia_tree_t* getPatricia(char* what);
-  patricia_tree_t *ptree_v4, *ptree_v6;
+  u_int32_t numAddresses, numAddressesIPv4, numAddressesIPv6;
+  ndpi_patricia_tree_t *getPatricia(char *what);
+  ndpi_patricia_tree_t *ptree_v4, *ptree_v6;
   std::map<u_int64_t, int16_t> macs;
-  void removePrefix(bool isV4, prefix_t* prefix);
-  static void walk(const patricia_tree_t *ptree, void_fn3_t func, void * const user_data);
-  static bool removePrefix(patricia_tree_t *ptree, prefix_t* prefix);
+  ndpi_void_fn_t free_func;
+  RwLock updateLock;
+  
+  void removePrefix(bool isV4, ndpi_prefix_t *prefix);
+  static void walk(ndpi_patricia_tree_t *ptree, ndpi_void_fn3_t func,
+                   void *const user_data);
+  static bool removePrefix(ndpi_patricia_tree_t *ptree, ndpi_prefix_t *prefix);
+  void cleanup(ndpi_void_fn_t free_func);
 
  public:
-  AddressTree(bool handleIPv6 = true);
-  AddressTree(const AddressTree &at);
+  AddressTree(bool handleIPv6 = true, ndpi_void_fn_t data_free_func = NULL);
+  AddressTree(const AddressTree &at, ndpi_void_fn_t data_free_func = NULL);
   virtual ~AddressTree();
 
   void init(bool handleIPv6);
   void cleanup();
 
-  inline u_int16_t getNumAddresses()     const { return(numAddresses);     }
-  inline u_int16_t getNumAddressesIPv4() const { return(numAddressesIPv4); }
-  inline u_int16_t getNumAddressesIPv6() const { return(numAddressesIPv6); }
+  inline u_int32_t getNumAddresses() const { return (numAddresses); }
+  inline u_int32_t getNumAddressesIPv4() const { return (numAddressesIPv4); }
+  inline u_int32_t getNumAddressesIPv6() const { return (numAddressesIPv6); }
 
-  inline patricia_tree_t * getTree(bool isV4) const { return(isV4 ? ptree_v4 : ptree_v6); }
-  bool addAddress(const char * const _net, const int16_t user_data = -1);
-  bool addAddressAndData(const char * const _what, void *user_data);
-  patricia_node_t* addAddress(const IpAddress * const ipa);
-  patricia_node_t* addAddress(const IpAddress * const ipa, int network_bits, bool compact_after_add);
+  inline ndpi_patricia_tree_t *getTree(bool isV4) const {
+    return (isV4 ? ptree_v4 : ptree_v6);
+  }
+
+  bool addAddress(const char *_net, const int16_t user_data = -1);
+  bool addAddressAndData(const char *_what, void *user_data);
+  ndpi_patricia_node_t *addAddress(const IpAddress *const ipa);
+  ndpi_patricia_node_t *addAddress(const IpAddress *const ipa, int network_bits,
+                                   bool compact_after_add);
   bool addAddresses(const char *net, const int16_t user_data = -1);
-  void getAddresses(lua_State* vm) const;
-  int16_t findAddress(int family, void *addr, u_int8_t *network_mask_bits = NULL);
+
+  void getAddresses(lua_State *vm);
+
+  int16_t findAddress(int family, void *addr,
+                      u_int8_t *network_mask_bits = NULL);
   int16_t findMac(const u_int8_t addr[]);
   int16_t find(const char *addr, u_int8_t *network_mask_bits = NULL);
+
+  /* Return true on match, false otherwise */
   bool match(char *addr);
-  patricia_node_t* match(const IpAddress * const ipa, int network_bits) const;
+  /* Return user data on success, NULL otherwise */
+  void *matchAndGetData(const char *addr);
+  /* Return node on success, NULL otherwise */
+  ndpi_patricia_node_t *matchAndGetNode(const char *addr);
+
+  ndpi_patricia_node_t *match(IpAddress *ipa, int network_bits);
+  void *matchAndGetData(IpAddress *ipa);
+
   void dump();
-  void walk(void_fn3_t func, void * const user_data) const;
+  void walk(ndpi_void_fn3_t func, void *const user_data);
 };
 
 #endif /* _ADDRESS_TREE_H_ */

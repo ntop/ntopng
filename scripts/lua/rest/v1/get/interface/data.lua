@@ -7,36 +7,29 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
-local alert_utils = require "alert_utils"
-local json = require("dkjson")
 local ts_utils = require("ts_utils_core")
-local plugins_utils = require("plugins_utils")
 local periodic_activities_utils = require "periodic_activities_utils"
-local system_utils = require("system_utils")
+local cpu_utils = require("cpu_utils")
 local callback_utils = require("callback_utils")
 local recording_utils = require("recording_utils")
-local remote_assistance = require("remote_assistance")
-local alert_consts = require("alert_consts")
 local rest_utils = require("rest_utils")
 
 --
 -- Read information about an interface
--- Example: curl -u admin:admin -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/interface/data.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/interface/data.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 local ifid = _GET["ifid"]
 local iffilter = _GET["iffilter"]
 
 if isEmptyString(ifid) and isEmptyString(iffilter) then
-   rc = rest_utils.consts_invalid_interface
-   print(rest_utils.rc(rc))
+   rc = rest_utils.consts.err.invalid_interface
+   rest_utils.answer(rc)
    return
 end
 
@@ -116,7 +109,7 @@ function dumpInterfaceStats(ifid)
          res["has_alerts"]         = ifstats["has_alerts"]
          res["ts_alerts"] = {}
 
-         if ts_utils.getDriverName() == "influxdb" and plugins_utils.hasAlerts(getSystemInterfaceId(), {entity = alert_consts.alertEntity("influx_db")}) then
+         if ts_utils.getDriverName() == "influxdb" then
             res["ts_alerts"]["influxdb"] = true
          end
       end
@@ -146,7 +139,7 @@ function dumpInterfaceStats(ifid)
 	    res["out_of_maintenance"] = true
 	 end
       end
-      res["system_host_stats"] = system_utils.systemHostStats()
+      res["system_host_stats"] = cpu_utils.systemHostStats()
       res["hosts_pctg"] = hosts_pctg
       res["flows_pctg"] = flows_pctg
       res["macs_pctg"] = macs_pctg
@@ -213,14 +206,6 @@ function dumpInterfaceStats(ifid)
          res["profiles"] = ifstats["profiles"]
       end
 
-      if remote_assistance.isAvailable() then
-         if remote_assistance.isEnabled() then
-            res["remote_assistance"] = {
-               status = remote_assistance.getStatus(),
-            }
-         end
-      end
-
       if recording_utils.isAvailable() then
          if recording_utils.isEnabled(ifstats.id) then
             if recording_utils.isActive(ifstats.id) then
@@ -259,4 +244,4 @@ else
    res = dumpInterfaceStats(ifid)
 end
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)

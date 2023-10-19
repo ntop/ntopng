@@ -1,11 +1,4 @@
-/var/log/ntopng/*.log {
-	daily
-	missingok
-	rotate 4
-	copytruncate
-}
-
-/var/lib/ntopng/ntopng_access.log {
+/var/log/ntopng.log {
 	daily
 	missingok
 	rotate 4

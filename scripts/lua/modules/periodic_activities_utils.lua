@@ -1,25 +1,29 @@
 --
--- (C) 2020 - ntop.org
+-- (C) 2020-22 - ntop.org
 --
--- This file contains the user_script constats
+-- This file contains the check constats used to put alerts and red triangles when periodic activities are slow
+-- NOTE: this file needs some rework as the scripts have been modified in the latest release (TODO)
 
 local periodic_activities_utils = {}
+
+local clock_start = os.clock()
 
 -- ###########################################
 
 periodic_activities_utils.periodic_activities = {
    -- Can use this table to keep certain information for every periodic activity
    -- Keep in sync with PeriodicActivities.cpp
-   ["stats_update.lua"]      = { max_duration =    10 },
-   ["ht_state_update.lua"]   = { max_duration =    10 },
-   ["minute.lua"]            = { max_duration =    60 },
-   ["5min.lua"]              = { max_duration =   300 },
-   ["hourly.lua"]            = { max_duration =   600 },
-   ["daily.lua"]             = { max_duration =  3600 },
-   ["housekeeping.lua"]      = { max_duration =     6 },
-   ["discover.lua"]          = { max_duration =  3600 },
-   ["timeseries.lua"]        = { max_duration =  3600 },
-   ["second.lua"]            = { max_duration =     2 },
+   ["stats_update.lua"]            = { max_duration =    10 },
+   ["dequeue_flows_for_hooks.lua"] = { max_duration =  3600 },
+   ["periodic_checks.lua"]   = { max_duration =    60 },
+   ["minute.lua"]                  = { max_duration =    60 },
+   ["5min.lua"]                    = { max_duration =   300 },
+   ["hourly.lua"]                  = { max_duration =   600 },
+   ["daily.lua"]                   = { max_duration =  3600 },
+   ["housekeeping.lua"]            = { max_duration =     6 },
+   ["discover.lua"]                = { max_duration =  3600 },
+   ["timeseries.lua"]              = { max_duration =  3600 },
+   ["second.lua"]                  = { max_duration =     2 },
 }
 
 -- ###########################################
@@ -87,5 +91,9 @@ function periodic_activities_utils.have_degraded_performance()
 end
 
 -- ###########################################
+
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return periodic_activities_utils

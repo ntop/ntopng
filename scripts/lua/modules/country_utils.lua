@@ -12,12 +12,13 @@ function country2record(ifId, country)
    local country_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?country='..country["country"].."' title='"..country["country"].."'>"..country["country"]..'</A>'
    record["column_id"] = getFlag(country["country"]).."&nbsp&nbsp" .. country_link
 
-   record["column_hosts"] = country["num_hosts"]..""
+   record["column_score"] = format_high_num_value_for_tables(country, "score") 
+   record["column_hosts"] = format_high_num_value_for_tables(country, "num_hosts")
    record["column_since"] = secondsToTime(now - country["seen.first"] + 1)
 
    local sent2rcvd = round((country["egress"] * 100) / (country["egress"] + country["ingress"]), 0)
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
-      .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
+      .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
 
    if(throughput_type == "pps") then
       record["column_thpt"] = pktsToSize(country["throughput_pps"])

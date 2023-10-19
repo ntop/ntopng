@@ -1,0 +1,93 @@
+<div id='am-edit-modal' class="modal fade" tabindex="-1" role="dialog">
+	<form method="post" id='am-edit-form'>
+		<div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">{{ dialog.edit_record }}</h5>
+					<div class="modal-close">
+						<div class="confirm-closing" style="display: none;">
+							<span class='mx-2' style="vertical-align: middle;">
+								<b>{{ i18n("active_monitoring_stats.validation.abort_edit") }}</b>
+							</span>
+							<div class="btn-group btn-group-sm">
+								<button class="btn btn-secondary cancel" type="button">{{ i18n("cancel") }}</button>
+								<button data-bs-dismiss="modal" class="btn btn-danger confirm" type="button">{{ i18n("abort") }}</button>
+							</div>
+						</div>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+				</div>
+				<div class="modal-body container-fluid">
+					<div class="form-group mb-3  row">
+						<label class="col-sm-3 col-form-label">{{ dialog.measurement }}</label>
+						<div class="col-sm-5">
+							{* dialog.edit_measurement_select *}
+						</div>
+					</div>
+					<div class="form-group mb-3  row">
+						<label class="col-sm-3 col-form-label">{{ dialog.am_host }}</label>
+						<div class="col-sm-5">
+							<input placeholder="ntop.org" required id="input-edit-host" type="text" name="host"
+								class="form-select measurement-host" />
+						</div>
+					</div>
+					<div class="form-group mb-3  row">
+						<label class="col-sm-3 col-form-label">{{ dialog.periodicity }}</label>
+						<div class="col-sm-5">
+							{* dialog.edit_granularity_select *}
+						</div>
+					</div>
+					<div class="form-group mb-3  row">
+						<label class="col-sm-3 col-form-label">{{ dialog.threshold }}</label>
+						<div class="col-sm-5">
+							<div class="input-group">
+								<span class="input-group-text measurement-operator"></span>
+								<input required id="input-edit-threshold" name="threshold" type="number"
+									class="form-select rounded-right measurement-threshold" min="1" max="10000">
+							</div>
+						</div>
+						<div class="col-sm-2 pl-0">
+							<span class="my-auto ml-1 measurement-unit d-inline-block p-2"></span>
+						</div>
+					</div>
+					<div class="form-group mb-3  row interface-group" style="display: none;">
+						<label class="col-sm-3 col-form-label">
+							{{ i18n("interface") }}
+						</label>
+						<div class="col-sm-5">
+							<select class="form-select" name="iface">
+							  <option selected>{{ i18n("active_monitoring_stats.default_interface") }}</option>  
+							{%
+								for _, name in pairsByKeys(interface.getIfNames(), asc) do
+									interface.select(name)
+
+									if interface.isPacketInterface() and not interface.isPcapDumpInterface() then %}
+										<option value='{{ name }}'>{{ name }}</option>
+									{% end %}
+							{% 	end %}
+							</select>
+						</div>
+					</div>
+					<span class="invalid-feedback"></span>
+					<div id="hostCheck">
+					  <span class="spinner-border spinner-border-sm" role="status"></span><span> {{ i18n("active_monitoring_stats.checking_host") }}</span>
+					</div>
+					<div id='script-description' class='notes bg-light border' role='alert'>
+						<b>{{ dialog.notes }}</b>
+						<ul>
+							<li>{{ dialog.note_icmp }}</li>
+							<li>{{ dialog.note_http }}</li>
+							<li>{{ dialog.note_alert }}</li>
+							<li>{{ dialog.note_periodicity_change }}</li>
+						</ul>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button id="btn-reset-defaults" type="button"
+						class="btn btn-danger mr-auto">{{ dialog.reset }}</button>
+					<button type="submit" class="btn btn-primary">{{ i18n("apply") }}</button>
+				</div>
+			</div>
+		</div>
+	</form>
+</div>

@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -8,24 +8,20 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 
 require "lua_utils"
 local page_utils = require("page_utils")
-local plugins_utils = require("plugins_utils")
-local alert_consts = require("alert_consts")
+local script_manager = require("script_manager")
 local internals_utils = require "internals_utils"
-local system_utils = require("system_utils")
+local cpu_utils = require("cpu_utils")
 local ts_utils = require "ts_utils"
 local graph_utils = require("graph_utils")
-local alert_utils = require("alert_utils")
 
-local ts_creation = plugins_utils.timeseriesCreationEnabled()
+local ts_creation = script_manager.systemTimeseriesEnabled()
 
 if not isAllowedSystemInterface() then
    return
 end
 
 sendHTTPContentTypeHeader('text/html')
-
-
-page_utils.set_active_menu_entry(page_utils.menu_entries.system_status)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.system_status)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -48,12 +44,6 @@ page_utils.print_navbar(title, url,
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
 			   {
-			      hidden = interface.isPcapDumpInterface() or not isAdministrator() or not areAlertsEnabled(),
-			      active = page == "alerts",
-			      page_name = "alerts",
-			      label = "<i class=\"fas fa-exclamation-triangle fa-lg\"></i>",
-			   },
-			   {
 			      active = page == "internals",
 			      page_name = "internals",
 			      label = "<i class=\"fas fa-lg fa-wrench\"></i>",
@@ -66,11 +56,12 @@ page_utils.print_navbar(title, url,
 if(page == "overview") then
    local storage_utils = require("storage_utils")
 
+   print("<div class='table-responsive-lg table-responsive-md'>")
    print("<table class=\"table table-bordered table-striped\">\n")
 
    local system_rowspan = 1
    local ntopng_rowspan = 20
-   local system_host_stats = system_utils.systemHostStats()
+   local system_host_stats = cpu_utils.systemHostStats()
    local has_system = false
 
    if system_host_stats["cpu_load"] ~= nil then  system_rowspan = system_rowspan + 1; has_system = true end
@@ -83,16 +74,24 @@ if(page == "overview") then
 
    if system_host_stats["cpu_load"] ~= nil then
       local chart_available = ts_utils.exists("system:cpu_load", {ifid = getSystemInterfaceId()})
-      print("<tr><th nowrap>"..i18n("about.cpu_load").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=system:cpu_load'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='cpu-load-pct'>...</span></td></tr>\n")
+      print("<tr><th nowrap>"..i18n("about.cpu_load").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=system:cpu_load'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='cpu-load-pct'>" .. round(system_host_stats["cpu_load"], 2) .. "</span></td></tr>\n")
    end
 
    if system_host_stats["cpu_states"] and system_host_stats["cpu_states"]["iowait"] then
       local chart_available = ts_utils.exists("system:cpu_states", {ifid = getSystemInterfaceId()})
-      print("<tr><th nowrap>"..i18n("about.cpu_states").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=system:cpu_states'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='cpu-states'></span></td></tr>\n")
+      local iowait = i18n("about.iowait") .. ": " .. round(formatValue(system_host_stats["cpu_states"]["iowait"]), 2) .. "%"
+      local active = i18n("about.active") .. ": " .. round(formatValue(system_host_stats["cpu_states"]["user"] + system_host_stats["cpu_states"]["system"] + system_host_stats["cpu_states"]["nice"] + system_host_stats["cpu_states"]["irq"] + system_host_stats["cpu_states"]["softirq"] + system_host_stats["cpu_states"]["guest"] + system_host_stats["cpu_states"]["guest_nice"]), 2) .. "%"
+      local idle = i18n("about.idle") .. ": " .. round(formatValue(system_host_stats["cpu_states"]["idle"] + system_host_stats["cpu_states"]["steal"]), 2) .. "%"
+      print("<tr><th nowrap>"..i18n("about.cpu_states").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=system:cpu_states'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='cpu-states'>" .. iowait .. " / " .. active .. " / " .. idle .. "</span></td></tr>\n")
    end
 
    if system_host_stats["mem_total"] ~= nil then
-      print("<tr><th nowrap>"..i18n("about.ram_memory").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:resident_memory'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='ram-used'></span></td></tr>\n")
+    local ram_used = system_host_stats["mem_used"]
+    local ram_used_ratio = i18n("ram_used") .. ": " .. tostring(round((ram_used / system_host_stats["mem_total"]) * 100 * 100) / 100) .. "%";
+    local ram_available = i18n("ram_available") .. ": " .. bytesToSize((system_host_stats["mem_total"] - ram_used) * 1024)
+    local ram_total = i18n("ram_total") .. ": " .. bytesToSize(system_host_stats["mem_total"] * 1024)
+
+    print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-used'>" .. ram_used_ratio .. " / " .. ram_available .. " / " .. ram_total .. "</span></td></tr>\n")
    end
 
    print("<tr><th rowspan=".. ntopng_rowspan ..">"..info["product"].."</th>")
@@ -102,12 +101,12 @@ if(page == "overview") then
    end
    if system_host_stats["mem_ntopng_resident"] ~= nil then
       local chart_available = ts_utils.exists("process:resident_memory", {ifid = getSystemInterfaceId()})
-      print("<tr><th nowrap>"..i18n("about.ram_memory").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:resident_memory'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='ram-process-used'></span></td></tr>\n")
+      print("<tr><th nowrap>"..i18n("about.ram_memory").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:resident_memory'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='ram-process-used'>" .. i18n("ram_used") .. ": " .. bytesToSize(system_host_stats["mem_ntopng_resident"] * 1024) .. "</span></td></tr>\n")
    end
 
    if areAlertsEnabled() then
       local chart_available = ts_utils.exists("process:num_alerts", {ifid = getSystemInterfaceId()})
-      print("<tr><th nowrap>"..i18n("details.alerts").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:num_alerts'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td>"..i18n("about.alert_queries")..": <span id='alerts-queries'>...</span> / "..i18n("about.alerts_stored")..": <span id='stored-alerts'>...</span> / "..i18n("about.alerts_dropped")..": <span id='dropped-alerts'>...</span></td></tr>\n")
+      print("<tr><th nowrap>"..i18n("details.alerts").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:num_alerts'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td>"..i18n("about.alert_queries")..": <span id='alerts-queries'>" .. round(system_host_stats["alerts_queries"]) .. "</span> / "..i18n("about.alerts_stored")..": <span id='stored-alerts'>" .. round(system_host_stats["written_alerts"]) .. "</span> / "..i18n("about.alerts_dropped")..": <span id='dropped-alerts'>" .. round(system_host_stats["dropped_alerts"]) .. "</span></td></tr>\n")
    end
 
    print("<tr id='storage-info-tr'><th>"..i18n("traffic_recording.storage_utilization").."</th><td>")
@@ -119,17 +118,30 @@ if(page == "overview") then
    print("</td></tr>")
 
    if not info.oem then
-      print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
+      print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><div class='scrollable-log'><code>\n")
       for i=0,32 do
          msg = ntop.listIndexCache("ntopng.trace", i)
          if(msg ~= nil) then
-            print(noHtml(msg).."<br>\n")
+
+            local text = noHtml(msg)
+
+            -- encapsule the ERROR or WARNING string in a badge
+            -- so the log are more visible
+            if text:find("ERROR") then
+               text = text:gsub("(ERROR)(:)", "<span class='badge bg-danger'>%1</span>")
+            elseif text:find("WARNING") then
+               text = text:gsub("(WARNING)(:)", "<span class='badge bg-warning'>%1</span>")
+            end
+
+            print(text)
+            print("<br>")
          end
       end
-      print("</code></td></tr>\n")
+      print("</code></div></td></tr>\n")
    end
 
-   print("</table>\n")
+   print("</table>")
+   print("</div>")
 
    print [[
    <script>
@@ -159,57 +171,9 @@ print [[/lua/system_stats_data.lua',
    ]]
 
 elseif(page == "historical" and ts_creation) then
-   local sys_stats = ntop.systemHostStat()
-   local selected_epoch = _GET["epoch"] or ""
-   local tags = {ifid = getSystemInterfaceId()}
-   local skip_cpu_load = (sys_stats.cpu_load == nil)
-   local schema = _GET["ts_schema"] or ternary(skip_cpu_load, "process:num_alerts", "system:cpu_load")
-   url = url.."&page=historical"
-
-   graph_utils.drawGraphs(getSystemInterfaceId(), schema, tags, _GET["zoom"], url, selected_epoch, {
-      timeseries = {
-	 {
-	    schema = "system:cpu_load",
-	    label=i18n("about.cpu_load"),
-	    metrics_labels = {i18n("about.cpu_load")},
-	    value_formatter = {"ffloat"},
-	    skip = skip_cpu_load,
-	 },
-	 {
-	    schema="system:cpu_states",
-	    label=i18n("about.cpu_states"),
-	    metrics_labels = {i18n("about.iowait"), i18n("about.active"), i18n("about.idle")},
-	    value_formatter = {"fpercent"}
-	 },
-	 {
-	    schema="process:resident_memory",
-	    label=i18n("graphs.process_memory")
-	 },
-	 {
-	    schema="process:num_alerts",
-	    label=i18n("graphs.process_alerts"),
-	    metrics_labels = {i18n("about.alerts_stored"), i18n("about.alert_queries"), i18n("about.alerts_dropped")},
-	 },
-	 {
-	    schema="iface:alerts_stats",
-	    label=i18n("show_alerts.iface_engaged_dropped_alerts"),
-	 },
-      }
-   })
-elseif((page == "alerts") and isAdministrator()) then
-   local cur_id = interface.getId()
-   interface.select(getSystemInterfaceId())
-
-   _GET["ifid"] = getSystemInterfaceId()
-   _GET["entity_excludes"] = string.format("%u,%u,%u",
-      alert_consts.alertEntity("influx_db"), alert_consts.alertEntity("snmp_device"),
-      alert_consts.alertEntity("am_host"))
-
-   alert_utils.drawAlerts()
-
-   interface.select(tostring(cur_id))
+   graph_utils.drawNewGraphs({ ifid = interface.getId()})
 elseif page == "internals" then
-   internals_utils.printInternals(getSystemInterfaceId(), false --[[ hash tables ]], true --[[ periodic activities ]], false --[[ user scripts]])
+   internals_utils.printInternals(getSystemInterfaceId(), false --[[ hash tables ]], true --[[ periodic activities ]], true --[[ checks]], true --[[ queues --]])
 end
 
 -- #######################################################

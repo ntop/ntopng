@@ -31,3 +31,22 @@ An example of a configuration file is the following
 
    #--verbose
 
+
+Configuration Changes
+---------------------
+
+The configuration file can be edited manually with any text editor. Linux-based distributions are also shipped with an automatic configuration script :code:`ntopng-config` that provides a graphical way to modify the configuration file. The script can be executed, with root privileges, from the command line
+
+.. code:: bash
+
+   $ sudo ntopng-config
+
+A graphical interface is presented to modify some common options of ntopng.conf by selecting option :code:`Edit`.
+
+.. figure:: ../img/how_to_start_ntopng_config_script.png
+  :align: center
+  :alt: The ntopng-config script
+
+  The ntopng-config Script
+
+Specifically, it allows to change the maximum number of hosts and flows, as well as to configure local networks and interfaces.

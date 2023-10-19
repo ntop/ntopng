@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,15 +28,15 @@
 
 class DummyInterface : public ZMQParserInterface {
  private:
-  inline u_int32_t getNumDroppedPackets()   { return(0); };
+  inline u_int32_t getNumDroppedPackets() { return (0); };
 
  public:
   DummyInterface();
 
-  const char* get_type()                  { return(CONST_INTERFACE_TYPE_DUMMY);      };
-  virtual InterfaceType getIfType() const { return(interface_type_DUMMY);            };
-  virtual bool is_ndpi_enabled() const    { return(false);  };
-  virtual bool isPacketInterface() const  { return(false);  };
+  virtual const char* get_type() const { return (CONST_INTERFACE_TYPE_DUMMY); };
+  virtual InterfaceType getIfType() const { return (interface_type_DUMMY); };
+  virtual bool is_ndpi_enabled() const { return (false); };
+  virtual bool isPacketInterface() const { return (false); };
 
   void forgeFlow(u_int iteration);
   void startPacketPolling();
@@ -46,4 +46,3 @@ class DummyInterface : public ZMQParserInterface {
 #endif
 
 #endif /* _DUMMY_INTERFACE_H_ */
-

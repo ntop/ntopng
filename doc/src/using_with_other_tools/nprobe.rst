@@ -7,8 +7,8 @@ ntopng can be used to visualize traffic data that has been generated or collecte
 
 .. note::
 
-   ntopng Enterprise L already includes a nProbe Pro license, there is no need
-   to buy a nProbe license if a ntopng Enterprise L license is installed.
+   ntopng Enterprise L Bundle already includes a nProbe Pro license, there is no need
+   to buy a nProbe license if a ntopng Enterprise L Bundle license is installed.
 
 Using ntopng with nProbe is convenient in several scenarios, including:
 
@@ -47,7 +47,8 @@ Following is a minimum, working, configuration example of nProbe and ntopng to o
 
 Option :code:`-T "@NTOPNG@"`, known as template, tells nprobe the minimum set of fields it has to export in order to ensure interoperability with ntopng. Specifying this option is recommended when using nProbe with ntopng. Other collectors may require different sets of fields in order to work. Templates and exported fields are discussed below.
 
-For more information about configuring nProbe for ntopng check out https://www.ntop.org/nprobe/best-practices-for-the-collection-of-flows-with-ntopng-and-nprobe .
+For more information about configuring nProbe for ntopng check out https://www.ntop.org/nprobe/best-practices-for-the-collection-of-flows-with-ntopng-and-nprobe.
+
 
 Exported Flow Fields
 ====================
@@ -77,13 +78,13 @@ Collecting from Multiple Exporters
 There are two main ways to gather flows from multiple NetFlow/sFlow exporters and visualize data into ntopng:
 
 1. By running a single nProbe instance, and directing all the exporters to the same nProbe port.
-   This is the simpler option since adding a new exporter does not require any modification of
+   This is the simpler option since adding a new probe does not require any modification of
    the nProbe/ntopng configurations. It is also possible to enable `Dynamic Interfaces Disaggregation`_
    by Probe IP to separate the exporters flows.
 
 2. By running multiple nProbe instances, one for each exporter. This method is the most performant
    because each exported data will be handled by a separate thread into ntopng so it can leverage
-   the cpu cores of a multicore system.
+   the CPU cores of a multicore system.
 
 Here is an example on how to configure multiple nProbe instances (second approach):
 
@@ -101,6 +102,90 @@ will be split into two separate virtual network interfaces into ntopng:
      - `tcp://127.0.0.1:5557`: flows from exporter on port 6343
 
 .. _`Dynamic Interfaces Disaggregation`: advanced_features/dynamic_interfaces_disaggregation.html
+
+Observation Points
+~~~~~~~~~~~~~~~~~~
+
+ntopng 5.0 and later, and nProbe 9.6 and later, include support for Observation Points. An Observation Point is defined in
+IPFIX as a location in the Network where packets can be observed. This is useful when collecting flows
+on large networks from hundred of routers, as ntopng allows you to create a limited number of collection
+interfaces (up to 32 virtual at the moment), to avoid merging collected flows from all routers.
+
+.. figure:: ../img/observation_points_diagram.png
+  :align: center
+  :alt: Probes/Collector Architecture
+
+Each nProbe instance can be configured to set a numerical value for the Observation Point ID that uniquely
+identifies a site. Depending on the site size, a site can have one or multiple probes.
+
+The Observation Point can be configured in nProbe using the -E option as in the below example.
+
+Site A (1 nProbe intance):
+
+.. code:: bash
+
+   nprobe -i eth1 -E 0:1234 --zmq tcp://192.168.1.1:5556 --zmq-probe-mode
+
+Site B (2 nProbe instances):
+
+.. code:: bash
+
+   nprobe -i eth1 -E 0:1235 --zmq tcp://192.168.1.1:5556 --zmq-probe-mode
+   nprobe -i eth2 -E 0:1235 --zmq tcp://192.168.1.1:5556 --zmq-probe-mode
+
+Central ntopng (Flow Collector):
+
+.. code:: bash
+
+   ntopng -i tcp://92.168.1.100:5556c
+
+In this configuration, flows sent by nProbe to ntopng are marked with the Observation Point ID, which is
+reported by ntopng in the web interface.
+
+All the Observation Point IDs seen by ntopng are listed in the dropdown menu at the top of the page.
+By selecting an Observation Point it is possible to visualise only flows matching that Observation Point.
+
+.. figure:: ../img/observation_points_flow.png
+  :align: center
+  :alt: Observastion Point Selection and Flow Details
+
+On the Probes menu from the sidebar, it is possible to list all the Observation Point IDs seen by ntopng,
+set a custom name by clicking on the wheel icon, and visualize traffic statistics by clicking on the chart icon.
+
+.. figure:: ../img/observation_points_list.png
+  :align: center
+  :alt: Observastion Points List
+
+Please pay attention that, while flows are selected by the Observation Point when using the dropdown menu,
+traffic reported for hosts, ASs, networks etc is merged at the interface level regardless of the that.
+This allows statistics not to be duplicated when hosts from different Observation Points talk together.
+
+Observation Points Charts
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the Observation Points Page, 5 columns are shown: the `Observation Points` column, showing the Observation Point number and Alias (e.g. Paris); the `Chart` column, necessary to show the Observation Points graphs; the `Current Hosts` column that shows up the current number of hosts of the Observation Point; the `Current Throughput` that represents the current throughput of the Observation Point; the `Total Traffic` column, showing the total traffic done by an Observation Point (Bytes sent + receved).
+
+To be able to see Observation Points charts it's necessary to enable the corresponding timeseries settings. To do so go to `Settings`, `Timeseries` and scroll down; then enable the `Flow Probes` timeseries.
+
+.. figure:: ../img/observation_points_timeseries.png
+   :align: center
+   :alt: Observation Points Timeseries
+
+Other then the base timeseries (like Traffic, Score, ecc.) it is possible to have Applications timeseries. To have them it's needed to activate the Interfaces Application Timeseries (turn the Interface L-7 Application on 'Per Application' or on 'Both').
+
+.. figure:: ../img/interface_l7proto_timeseries.png
+   :align: center
+   :alt: Interface L7 Timeseries
+
+After that, all the Observation Points timeseries are going to be available (Traffic, Score and Applications timeseries); go to the Observation Points page and click the charts icon to see them. 
+
+.. figure:: ../img/observation_points_ts.png
+   :align: center
+   :alt: Flow Probes Timeseries
+
+.. note::
+
+   The maximum number of Observation Points is 256 and the timeseries data are going to be updated every 5 minutes. If ntopng is restarted, like other timeseries, these data (during the restart period) are going to be put at 0, after that everything is going to be working like usual.
 
 Using Behind a Firewall
 =======================
@@ -133,6 +218,11 @@ Note the two options:
 
 In essence the roles of nProbe and ntopng have been reverted so they behave as NetFlow/IPFIX probes do. Only the roles have been reverted. Everything else will continue to work normally and the flows will still go from nProbe to ntopng.
 
+Collector Passthrough
+=====================
+
+nProbe can be configured with option :code:`--collector-passthrough` to collect NetFlow/sFlow and immediately send it verbatim to ntopng. This may be beneficial for performances in high-speed environments. See https://www.ntop.org/guides/nprobe/case_study/flow_collection.html for a full discussion.
+
 Data Encryption
 ===============
 
@@ -156,16 +246,16 @@ Example:
 - Connect to the ntopng web GUI, select the ZMQ interface as in the above picture and copy the value of --zmq-encryption-key '...'
 - Start nprobe as follows:  :code:`nprobe --zmq-encryption-key '<pub key>' --zmq tcp://127.0.0.1:1234`
 
-ntopng saves the ZMQ public/private keypairs under /var/lib/ntopng/<interface id>/key.{pub,priv}
-  
+Note: unless a private key is provided, ntopng generates a public/private keypair and stores it under /var/lib/ntopng/key.{pub,priv}
+
 
 Quick Start
 ===========
 
-A sample configuration file for running ntopng as ZMQ collector for nProbe is installed on unix 
+A sample configuration file for running ntopng as ZMQ collector for nProbe is installed on Unix 
 systems under /etc/ntopng/ntopng.conf.nprobe.sample. As described in the *Running ntopng as a Daemon*
 section, the configuration file has to be named ntopng.conf and must be placed under /etc/ntopng/ when 
-running ntopng as a daemon on unix systems with *init.d* or *systemd* support. In order to enable 
+running ntopng as a daemon on Unix systems with *init.d* or *systemd* support. In order to enable 
 this configuration, you should replace the configuration file with the sample configuration and
 restart the service:
 
@@ -178,7 +268,7 @@ Please note that the sample configuration assumes that both ntopng and nProbe ar
 same (local) host. In case they run on separate machines, the configuration file has to be changed 
 with the address of the machine hosting nProbe.
 
-Similarly, a sample configuration file for nProbe is also installed (by the *nprobe* package) on unix 
+Similarly, a sample configuration file for nProbe is also installed (by the *nprobe* package) on Unix 
 systems under /etc/nprobe/nprobe.conf.ntopng.sample. In order to enable this configuration, also in
 this case, you should replace the configuration file with the sample configuration and restart the 
 service:

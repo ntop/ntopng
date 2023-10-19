@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local prefs = ntop.getPrefs()
@@ -42,7 +42,8 @@ else
     print(runtimeprefs:read "*a") 
 
   else -- Unix
-    local manage_config = "/usr/bin/ntopng-utils-manage-config"
+    local dirs = ntop.getDirs()
+    local manage_config = dirs.bindir.."/ntopng-utils-manage-config"
     if not ntop.exists(manage_config) then
       manage_config = os_utils.fixPath(dirs.installdir..'/httpdocs/misc/ntopng-utils-manage-config')
     end

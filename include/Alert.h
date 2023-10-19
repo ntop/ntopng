@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2019 - ntop.org
+ * (C) 2019-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,12 +24,12 @@
 
 class Alert {
  public:
-  time_t alert_tstamp_start;
+  time_t tstamp;
   time_t last_update;
-  AlertLevel alert_severity;
-  AlertType alert_type;
-  std::string alert_subtype;
-  std::string alert_json;
+  AlertType alert_id;
+  u_int8_t score;
+  std::string subtype;
+  std::string json;
 };
 
 #endif

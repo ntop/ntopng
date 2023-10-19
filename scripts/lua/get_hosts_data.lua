@@ -1,33 +1,36 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+
 require "lua_utils"
 local discover = require "discover_utils"
 local custom_column_utils = require "custom_column_utils"
 local format_utils = require "format_utils"
 local json = require "dkjson"
+local vs_utils = require "vs_utils"
 local have_nedge = ntop.isnEdge()
 
-sendHTTPContentTypeHeader('text/html')
+sendHTTPContentTypeHeader('text/json')
 
 -- Table parameters
-local all = _GET["all"]
-local currentPage = _GET["currentPage"]
-local perPage     = _GET["perPage"]
-local sortColumn  = _GET["sortColumn"]
-local sortOrder   = _GET["sortOrder"]
-local protocol    = _GET["protocol"]
-local long_names  = _GET["long_names"]
+local all           = _GET["all"]
+local currentPage   = _GET["currentPage"]
+local perPage       = _GET["perPage"]
+local sortColumn    = _GET["sortColumn"]
+local sortOrder     = _GET["sortOrder"]
+local protocol      = _GET["protocol"]
 local custom_column = _GET["custom_column"]
-local traffic_type = _GET["traffic_type"]
+local traffic_type  = _GET["traffic_type"]
+local device_ip     = _GET["deviceIP"]
 
 -- Host comparison parameters
-local mode        = _GET["mode"]
-local tracked     = _GET["tracked"]
-local ipversion   = _GET["version"]
+local mode          = _GET["mode"]
+local tracked       = _GET["tracked"]
+local ipversion     = _GET["version"]
 
 -- Used when filtering by ASn, VLAN or network
 local asn          = _GET["asn"]
@@ -38,12 +41,10 @@ local pool         = _GET["pool"]
 local country      = _GET["country"]
 local os_          = tonumber(_GET["os"])
 local mac          = _GET["mac"]
-local top_hidden   = ternary(_GET["top_hidden"] == "1", true, nil)
 
 function update_host_name(h)
    if(h["name"] == nil) then
       if(h["ip"] ~= nil) then
-
          h["name"] = ip2label(h["ip"])
       else
 	 h["name"] = h["mac"]
@@ -55,16 +56,6 @@ end
 
 -- Get from redis the throughput type bps or pps
 local throughput_type = getThroughputType()
-
-if(long_names == nil) then
-   long_names = false
-else
-   if(long_names == "1") then
-      long_names = true
-   else
-      long_names = false
-   end
-end
 
 local sortPrefs = "hosts"
 
@@ -124,12 +115,23 @@ local anomalous = false
 local dhcp_hosts = false
 
 local hosts_retrv_function = interface.getHostsInfo
+
 if mode == "local" then
    hosts_retrv_function = interface.getLocalHostsInfo
+elseif mode == "local_no_tx" then
+   hosts_retrv_function = interface.getLocalHostsInfoNoTX
+elseif mode == "local_no_tcp_tx" then
+   hosts_retrv_function = interface.getLocalHostsInfoNoTXTCP
 elseif mode == "remote" then
    hosts_retrv_function = interface.getRemoteHostsInfo
+elseif mode == "remote_no_tx" then
+   hosts_retrv_function = interface.getRemoteHostsInfoNoTX
+elseif mode == "remote_no_tcp_tx" then
+   hosts_retrv_function = interface.getRemoteHostsInfoNoTXTCP
 elseif mode == "broadcast_domain" then
    hosts_retrv_function = interface.getBroadcastDomainHostsInfo
+elseif mode == "broadcast_multicast" then
+   hosts_retrv_function = interface.getBroadcastMulticastHostsInfo
 elseif mode == "filtered" then
    filtered_hosts = true
 elseif mode == "blacklisted" then
@@ -143,7 +145,8 @@ local hosts_stats = hosts_retrv_function(false, sortColumn, perPage, to_skip, sO
 					 tonumber(network), mac,
 					 tonumber(pool), tonumber(ipversion),
 					 tonumber(protocol), traffic_type_filter,
-					 filtered_hosts, blacklisted_hosts, top_hidden, anomalous, dhcp_hosts, cidr)
+					 filtered_hosts, blacklisted_hosts,
+					 anomalous, dhcp_hosts, cidr, device_ip)
 
 if(hosts_stats == nil) then total = 0 else total = hosts_stats["numHosts"] end
 hosts_stats = hosts_stats["hosts"]
@@ -157,8 +160,8 @@ end
 
 local now = os.time()
 local vals = {}
-
 local num = 0
+
 if(hosts_stats ~= nil) then
    for key, value in pairs(hosts_stats) do
       num = num + 1
@@ -168,15 +171,26 @@ if(hosts_stats ~= nil) then
       -- tprint(hosts_stats[key])
       -- io.write("==>"..hosts_stats[key]["bytes.sent"].."[" .. sortColumn .. "]["..key.."]\n")
 
+      -- Safety check (trace failure for debugging)
+      if type(value) ~= "table" then
+         traceError(TRACE_WARNING, TRACE_CONSOLE, "Unexpected value for key = "..key.." (not a table)")
+	 tprint(value)
+	 goto skip
+      end
+
       if(sortColumn == "column_") then
 	 vals[key] = key -- hosts_stats[key]["ipkey"]
       elseif(sortColumn == "column_name") then
 	 hosts_stats[key]["name"] = update_host_name(hosts_stats[key])
-	 vals[hosts_stats[key]["name"]..postfix] = key
+         vals[hosts_stats[key]["name"]..postfix] = key
       elseif(sortColumn == "column_since") then
-	 vals[hosts_stats[key]["seen.first"]+postfix] = key
+         vals[hosts_stats[key]["seen.first"]+postfix] = key
       elseif(sortColumn == "column_alerts") then
-	 vals[hosts_stats[key]["num_alerts"]+postfix] = key
+         vals[hosts_stats[key]["seen.first"]+postfix] = key
+      elseif(sortColumn == "column_score") then
+	 if(hosts_stats[key]["score"] ~= nil) then
+	    vals[hosts_stats[key]["score"]+postfix] = key
+	 end
       elseif(sortColumn == "column_last") then
 	 vals[hosts_stats[key]["seen.last"]+postfix] = key
       elseif(sortColumn == "column_country") then
@@ -192,18 +206,37 @@ if(hosts_stats ~= nil) then
       elseif(sortColumn == "column_traffic") then
 	 vals[hosts_stats[key]["bytes.sent"]+hosts_stats[key]["bytes.rcvd"]+postfix] = key
       elseif(sortColumn == "column_thpt") then
-	 vals[hosts_stats[key]["throughput_"..throughput_type]+postfix] = key
+	 local v = hosts_stats[key]["throughput_"..throughput_type]
+
+	 if(v ~= nil) then
+	    vals[v+postfix] = key
+	 end
       elseif(sortColumn == "column_queries") then
 	 vals[hosts_stats[key]["queries.rcvd"]+postfix] = key
       elseif(sortColumn == "column_ip") then
-	 vals[hosts_stats[key]["ipkey"]+postfix] = key
+	 vals[hosts_stats[key]["iphex"]..postfix] = key
+      elseif(sortColumn == "column_num_vulnerabilities") then
+         if(host_vs_details.num_vulnerabilities_found ~= nil) then
+            vals[host_vs_details.num_vulnerabilities_found..postfix] = key
+         else
+            vals["0"..postfix] = key
+         end
       elseif custom_column_utils.isCustomColumn(sortColumn) then
 	 custom_column_key, custom_column_format = custom_column_utils.label2criteriakey(sortColumn)
 	 local val = custom_column_utils.hostStatsToColumnValue(hosts_stats[key], custom_column_key, false)
-	 vals[val + postfix] = key
+
+	 if(val == nil) then val = 0 end -- Just to avoid invalid table values
+	 
+	 if(tonumber(val)) then
+	    vals[val + postfix] = key
+	 else
+	    vals[val..postfix] = key
+	 end
       else
 	 vals[key] = key
       end
+
+      ::skip::
    end
 end
 
@@ -219,7 +252,15 @@ for _key, _value in pairsByKeys(vals, funct) do
    local record = {}
    local key = vals[_key]
    local value = hosts_stats[key]
+   local host_vulnerabilities = vs_utils.retrieve_host(value["ip"])
 
+   if (host_vulnerabilities and 
+         host_vulnerabilities.num_vulnerabilities_found ~= nil and 
+         host_vulnerabilities.num_vulnerabilities_found > 0) then
+      record["column_num_vulnerabilities"] = format_high_num_value_for_tables(
+         { value = host_vulnerabilities.num_vulnerabilities_found }, "value")
+   end
+   
    local symkey = hostinfo2jqueryid(hosts_stats[key])
    record["key"] = symkey
 
@@ -248,10 +289,6 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local host = interface.getHostInfo(hosts_stats[key].ip, hosts_stats[key].vlan)
 
-   if((host ~= nil) and (host.country ~= nil) and (host.country ~= "")) then
-      column_ip = column_ip .."&nbsp;<a href='".. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?country="..host.country.."'><img src='".. ntop.getHttpPrefix() .. "/img/blank.gif' class='flag flag-".. string.lower(host.country) .."'></a> "
-   end
-
    local icon = discover.getOsIcon(value["os"])
    if(host ~= nil) then
       icon = icon .." ".. discover.devtype2icon(host.devtype)
@@ -263,50 +300,35 @@ for _key, _value in pairsByKeys(vals, funct) do
       if(value.dhcpHost) then column_ip = column_ip .. "&nbsp;<i class='fas fa-flash fa-lg' title='DHCP Host'></i>" end
    end
 
-   if((host ~= nil) and (host["is_blacklisted"] == true)) then
-      column_ip = column_ip .. " <i class=\'fas fa-ban fa-sm\' title=\'"..i18n("hosts_stats.blacklisted").."\'></i>"
-   end
-
-   record["column_ip"] = column_ip
-
    if(url ~= nil) then
       record["column_url"] = url
    end
 
-   if(value["name"] == nil) then
-      local hinfo = hostkey2hostinfo(word)
-      value["name"] = hostinfo2label(hinfo)
-   end
+   local column_name = ''
+   if host then
+      if host["name"] then
+	 column_name = shortenString(host["name"], 36)
+      end
 
-   if(value["name"] == "") then
-      value["name"] = key
-   end
-
-   local column_name
-
-   -- Visualize both the MDNS/DHCP name from C and (possibly) the host label
-   if(long_names) then
-      column_name = value["name"]
-   else
-      column_name = shortHostName(value["name"])
-   end
-
-   if(value["ip"] ~= nil) then
-      local label = hostinfo2label(value)
-
-      if label ~= value["ip"] and column_name ~= label then
-	 column_name = column_name .. " ["..label.."]"
+      -- This is the label as set-up by the user
+      local alt_name = getHostAltName(host["ip"])
+      if not isEmptyString(alt_name) and alt_name ~= column_name then
+	 column_name = string.format("%s [%s]", column_name, shortenString(alt_name))
       end
    end
 
    if value["has_blocking_quota"] or value["has_blocking_shaper"] then
-      column_name = column_name .. " <i class='fas fa-ban' title='"..i18n("hosts_stats.blocking_traffic_policy_popup_msg").."'></i>"
+      column_name = column_name .. " <i class='fas fa-hourglass' title='"..i18n("hosts_stats.blocking_traffic_policy_popup_msg").."'></i>"
    end
 
-   record["column_name"] = column_name
+   if(host and (column_name == host.ip)) then
+      record["column_name"] = ""
+   else
+      record["column_name"] = column_name
+   end
 
    if value["vlan"] > 0 then
-      record["column_vlan"] = value["vlan"]
+      record["column_vlan"] = getFullVlanName(value["vlan"])
    end
 
    record["column_since"] = secondsToTime(now-value["seen.first"] + 1)
@@ -335,12 +357,12 @@ for _key, _value in pairsByKeys(vals, funct) do
       record["column_thpt"] = "0 "..throughput_type
    end
 
-   local column_info = hostinfo2detailshref(value, {page = "flows"}, "<span class='badge badge-info'>"..i18n("flows").."</span>")
+   local column_info = hostinfo2detailshref(value, {page = "flows"}, "<span class='btn btn-sm btn-info'><i class='fas fa-stream'></i></span>")
 
    if have_nedge and (host ~= nil) and (host.localhost or host.systemhost) then
       column_info = column_info.." <span title='"..
 	 (ternary(drop_traffic, i18n("host_config.unblock_host_traffic"), i18n("host_config.drop_all_host_traffic")))..
-	 "' class='badge badge-"..(ternary(drop_traffic, "danger", "secondary")).." block-badge' "..
+	 "' class='btn btn-sm "..(ternary(drop_traffic, "btn-danger", "btn-secondary")).." block-badge' "..
 	 (ternary(isAdministrator(), "onclick='block_host(\""..symkey.."\", \""..hostinfo2url(value)..
 		     "\");' style='cursor: pointer;'", "")).."><i class='fas fa-ban' /></span>"
    end
@@ -349,26 +371,15 @@ for _key, _value in pairsByKeys(vals, funct) do
    record["column_traffic"] = bytesToSize(value["bytes.sent"]+value["bytes.rcvd"])
    record["column_alerts"] = tostring((value["num_alerts"] or 0))
 
+   local column_location = ""
    if(value["localhost"] ~= nil or value["systemhost"] ~= nil) then
-      local column_location = ""
-      if value["localhost"] == true --[[or value["systemhost"] == true --]] then
-	 column_location = "<span class='badge badge-success'>"..i18n("hosts_stats.label_local_host").."</span>"
-      elseif value["is_multicast"] == true then
-	 column_location = "<span class='badge badge-primary'>" ..i18n("multicast").. "</span>"
-      elseif value["is_broadcast"] == true then
-	 column_location = "<span class='badge badge-dark'>" ..i18n("broadcast").. "</span>"
-      else
-	 column_location = "<span class='badge badge-secondary'>"..i18n("hosts_stats.label_remote_host").."</span>"
-      end
-
-      if value["broadcast_domain_host"] then
-	 column_location = column_location.." <span class='badge badge-info'><i class='fas fa-sitemap' title='"..i18n("hosts_stats.label_broadcast_domain_host").."'></i></span>"
-      end
-
-      record["column_location"] = column_location
+      column_location = format_utils.formatMainAddressCategory(host)
    end
 
-   record["column_num_flows"] = format_utils.formatValue(value["active_flows.as_client"] + value["active_flows.as_server"])
+   record["column_ip"] = column_ip .. column_location
+
+   value["num_flows"] = value["active_flows.as_client"] + value["active_flows.as_server"]
+   record["column_num_flows"] = format_high_num_value_for_tables(value, "num_flows") 
 
    -- exists only for bridged interfaces
    if isBridgeInterface(interface.getStats()) then
@@ -377,8 +388,9 @@ for _key, _value in pairsByKeys(vals, funct) do
 
    local sent2rcvd = round((value["bytes.sent"] * 100) / (value["bytes.sent"]+value["bytes.rcvd"]), 0)
    if(sent2rcvd == nil) then sent2rcvd = 0 end
+   record["column_score"] = format_high_num_value_for_tables(value, "score") 
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
-	     .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
+	     .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
 
    local _, custom_column_key = custom_column_utils.getCustomColumnName()
    record["column_"..custom_column_key] = custom_column_utils.hostStatsToColumnValue(value, custom_column_key, true)
@@ -401,5 +413,4 @@ result["currentPage"] = currentPage
 result["totalRows"] = total
 result["data"] = formatted_res
 result["sort"] = {{sortColumn, sortOrder}}
-
 print(json.encode(result))

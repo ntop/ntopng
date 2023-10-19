@@ -30,12 +30,25 @@ function template.gen(template_file, context, is_full_path)
   local path
 
   if is_full_path then
-    path = template_file
+     path = os_utils.fixPath(template_file)
   else
-    path = dirs.installdir.."/httpdocs/templates/"..template_file
+     path = os_utils.fixPath(dirs.installdir.."/httpdocs/templates/"..template_file)
+
+     if not ntop.exists(path) and ntop.isPro() then
+	-- Try in the pro dir
+	path = os_utils.fixPath(dirs.installdir.."/pro/httpdocs/templates/"..template_file)
+     end
   end
 
-  return template.compile(os_utils.fixPath(path), nil, nil)(context)
+  return template.compile(path, nil, nil)(context)
+end
+
+---Print the template inside the requested page
+---@param template_file string The template file to render
+---@param context table The data used by the page template
+---@param is_full_path boolean Is an absolute path?
+function template.render(template_file, context, is_full_path)
+  print(template.gen(template_file, context, is_full_path))
 end
 
 return template

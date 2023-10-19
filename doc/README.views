@@ -1,0 +1,16 @@
+Views Architecture
+------------------
+
+Vies are used to group interfaces into loginal interfaces.
+When using views the sub/real interfaces handle flows only, hosts are allocated in the view interface only.
+
+There is a SPSC queue for each sub/real interface belonging to the view interface.
+
+NetworkInterface::viewEnqueue enqueues flows, from Flow::housekeep (incUses is used to make sure flows are not purged when still in use)
+ViewInterface::viewDequeue dequeues flows in the view interface
+
+viewed_flows_walker takes care of hosts allocation/update with the flow information coming from the sub/real interfaces.
+
+Note: 
+- in the real interface there is no host allocation, as a consequence of this the Flow contructor allocates IpAddress (cli_ip_addr) instead of Host (cli_host) 
+- hosts are "Shared" between sub/real interfaces (pay attention to concurrent access)

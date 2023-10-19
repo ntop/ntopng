@@ -5,10 +5,11 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
+local locales_utils = require "locales_utils"
 
 sendHTTPHeader('application/json')
 
-if(haveAdminPrivileges()) then
+if(isAdministratorOrPrintErr()) then
    print("{\n")
 
    local users_list = ntop.getUsers()
@@ -17,9 +18,6 @@ if(haveAdminPrivileges()) then
 
 	 if value["group"] == "captive_portal" then
 	    print(' "host_pool_id": "'..value["host_pool_id"]..'",\n')
-	    if value["limited_lifetime"] then
-	       print(' "limited_lifetime": '..value["limited_lifetime"]..',\n')
-	    end
 	 else
 	    print(' "allowed_nets": "'..value["allowed_nets"]..'",\n')
 	    print(' "allowed_ifname": "'..value["allowed_ifname"]..'",\n')
@@ -47,12 +45,25 @@ if(haveAdminPrivileges()) then
 	       value["language"] = locales_utils.default_locale
 	    end
 	 end
-	 print(' "language": "'..value["language"]..'",\n')
+
+         print(' "language": "'..value["language"]..'",\n')
+
          if value["allow_pcap_download"] then
-           print(' "allow_pcap_download": true,\n')
+            print(' "allow_pcap_download": true,\n')
+         end
+	
+         if value["allow_historical_flows"] then
+            print(' "allow_historical_flows": true,\n')
+         end
+	
+         if value["allow_alerts"] then
+            print(' "allow_alerts": true,\n')
          end
 
+         local api_token = ntop.getUserAPIToken(key) or ""
+
 	 print(' "username": "'..key..'",\n')
+	 print(' "api_token": "' ..api_token.. '",\n')
 	 print(' "password": "'..value["password"]..'",\n')
 	 print(' "full_name": "'..value["full_name"]..'",\n')
 	 print(' "group": "'..value["group"]..'"\n')

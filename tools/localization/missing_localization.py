@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-
 #
-# missing_localization.py                                     Emanuele Faranda
+# (C) 2019-22 - ntop.org
+#
+# missing_localization.py
 # A tool to find missing localization strings
 #
 # Sample invocation:
@@ -53,6 +54,9 @@ class LocalizationFile(object):
             return ".".join(self.cur_section) + "." + localized_id, self.line_no, localized_str
         else:
           self.next_skip = line.endswith("..")
+  
+  def close(self):
+    self.f.close()
 
 # Wrapper to provide len and indexing on the LocalizationFile
 class LocalizationReaderWrapper(object):
@@ -97,15 +101,15 @@ def doCompare(base_file, cmp_file):
 
       line_info = wrapper.getLineInfo(line.split()[-1])
 
-      print("%d) %s = \"%s\"" % (
+      print(u"%d) %s = \"%s\"" % (
         line_info[1],
         line,
-        line_info[2],
+        line_info[2].encode("utf8"),
       ))
 
 def doMissing(base_file, cmp_file):
     existing = set([line[0] for line in base_file])
-  
+
     for line in cmp_file:
       stringid = line[0]
 
@@ -131,3 +135,6 @@ if __name__ == "__main__":
     doCompare(base_file, cmp_file)
   elif mode == "missing":
     doMissing(base_file, cmp_file)
+
+  base_file.close()
+  cmp_file.close()

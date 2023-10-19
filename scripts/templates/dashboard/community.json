@@ -1,0 +1,56 @@
+{
+	"name" : "Default Community Dashboard",
+	"components" : [
+		{
+			"component" : "sankey",
+			"id" : "top_flow_talkers",
+			"i18n_name" : "index_page.top_flow_talkers",
+			"width" : 6,
+			"height" : 4,
+			"params" : {
+				"url" : "/lua/rest/v2/get/flow/graph.lua",
+				"url_params" : {}
+			}
+		},
+		{
+			"component" : "pie",
+			"id" : "top_hosts",
+			"i18n_name" : "top_hosts.top_hosts_local",
+			"width" : 6,
+			"height" : 4,
+			"params" : {
+				"url" : "/lua/rest/v2/get/interface/top/hosts.lua",
+				"url_params" : {}
+			}
+		},
+		{
+			"component" : "pie",
+			"id" : "top_l7_proto",
+			"i18n_name" : "top_l7_proto",
+			"width" : 6,
+			"height" : 4,
+			"params" : {
+				"url" : "/lua/rest/v2/get/interface/l7/stats.lua",
+				"url_params" : {
+					"breed" : "true",
+					"ndpistats_mode" : "count"
+				}
+			}
+		},
+		{
+			"component" : "pie",
+			"id" : "traffic_classification",
+			"i18n_name" : "classification",
+			"width" : 6,
+			"height" : 4,
+			"params" : {
+				"url" : "/lua/rest/v2/get/interface/l7/stats.lua",
+				"url_params" : {
+					"breed" : "true",
+					"ndpistats_mode" : "sinceStartup"
+				}
+			}
+		}
+	]
+}
+

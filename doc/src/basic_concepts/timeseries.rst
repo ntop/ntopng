@@ -42,7 +42,7 @@ on an external host.
 
 .. note::
 
-   The minimum supported InfluxDB version is 1.5.1
+   ntopng supports InfluxDB version 1.x (no 2.x series) and the minimum supported version is 1.5.1
 
 .. figure:: ../img/basic_concepts_influxdb_settings.png
   :align: center
@@ -53,7 +53,7 @@ on an external host.
 Here is an overview of the features ntopng provides:
 
 - A database is automatically configured according to the *InfluxDB Database* field value
-- It is possible to specify the db authentication credentials if the InfluxDB database is protected
+- It is possible to specify authentication credentials if the InfluxDB database is protected
 
 InfluxDB is really suitable to export high frequency data due to the high insertion
 throughput. For this reason it's possible to increase the timeseries resolution to
@@ -86,6 +86,27 @@ get more detailed historical data. This can be configured from the
   "Runtime Status" page.
 
 InfluxDB status can be monitored using the  :ref:`InfluxDB Monitor`.
+
+Authentication
+~~~~~~~~~~~~~~
+
+InfluxDB supports HTTP/HTTPS authentication. To enable HTTP/HTTPS authentication, use the preferences toggle and specify a valid username/password pair.
+
+.. figure:: ../img/basic_concepts_influxdb_settings_auth.png
+  :align: center
+  :alt: InfluxDB Authentication Preferences
+
+  InfluxDB Authentication Preferences
+
+To enable InfluxDB authentication follow the steps highlighted at https://github.com/influxdata/influxdb/issues/8824#issuecomment-329746475.
+
+.. note::
+
+  ntopng creates retention policies and continuous queries. This requires an InfludDB user with admin privileges. It is not possible for non-admin users to create retention policies (https://stackoverflow.com/a/45656074).
+
+  Therefore, an admin user is required the first time ntopng is set up to use InfluxDB to allow creation of retention policies and continuous queries. Once the database has been created, a non-privileged user can used.
+
+
    
 Timeseries Configuration
 ------------------------
@@ -95,7 +116,7 @@ limits. Such limits usually are:
 
 - the storage size (more timeseries means more storage)
 - the storage speed
-- the time needed to write such timeseries to the timeseries db (in particular, this is
+- the time needed to write such timeseries to the timeseries database (in particular, this is
   a problem with RRD)
 
 Moreover, having a lot of timeseries usually means slower query time.
@@ -109,7 +130,7 @@ other hand, enabling the "Layer-7 Applications" (in particular for the local hos
 has a high impact since there are many protocols and timeseries must be processed
 for each of them.
 
-It is possible to skip timeseries generation for a particular network interface
+It is possible to skip timeseries generation for a specific network interface
 from the interface settings page. By disabling timeseries generation on a network
 interface, no timeseries data will be written for the interface itself and for
 all the local hosts belonging to it.
@@ -124,6 +145,35 @@ Countries, VLANs and so on, which can be enabled independently.
 .. figure:: ../img/basic_concepts_timeseries_to_enable_2.png
   :align: center
   :alt: InfluxDB Preferences
+
+Network Matrix Timeseries
+-------------------------
+
+.. note::
+
+  Network Matrix is not available in the community edition.
+
+  ntopng can store timeseries for communicatins across local networks, called Network Matrix.
+  
+It represent the traffic done between Local Networks (can be added to ntopng using the `-m` option in the configuration file), both sent and received.
+
+.. figure:: ../img/basic_concepts_timeseries_enable_network_matrix.png
+  :align: center
+  :alt: Network Matrix Preference
+
+It can be found into the Networks timeseries page; to jump to it, access the Networks tab and then click the charts icon. 
+This pspecific timeseries is reported in all time presets except the last 5 minutes.
+
+.. figure:: ../img/basic_concepts_timeseries_jump_to_network_matrix.png
+  :align: center
+  :alt: Network Matrix Preference
+
+|
+
+.. figure:: ../img/basic_concepts_timeseries_network_matrix.png
+  :align: center
+  :alt: Network Matrix
+
 
 
 .. _RRD: https://oss.oetiker.ch/rrdtool

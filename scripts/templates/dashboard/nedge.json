@@ -1,0 +1,77 @@
+{
+	"name" : "Default nEdge Dashboard",
+	"components" : [
+		{
+			"component" : "timeseries",
+			"id" : "traffic_chart",
+			"i18n_name" : "interfaces_traffic",
+			"width" : 12,
+			"height" : 3,
+			"params" : {
+			"url" : "/lua/pro/rest/v2/get/timeseries/ts_multi.lua",
+			"url_params" : { },
+			"post_params" : {
+				"limit" : 180,
+				"version" : 4,
+				"ts_requests": {
+					"$ANY_IFID$" : {
+						"ts_query": "ifid:$IFID$",
+						"ts_schema": "iface:traffic_rxtx",
+						"tskey": "$IFID$"
+					}
+				}
+			},
+			"source_type" : "interface"
+			}
+		},
+		{
+			"component" : "table",
+			"id" : "top_local_talkers",
+			"i18n_name" : "report.top_local_hosts",
+			"width" : 4,
+			"height" : 4,
+			"time_window" : "",
+			"time_offset" : "",
+			"params" : {
+				"url" : "/lua/pro/rest/v2/get/interface/top/local/talkers.lua",
+				"url_params" : {},
+				"table_type" : "throughput",
+				"columns" : [
+					{ "id" : "name", "i18n_name" : "host_details.host" },
+					{ "id" : "throughput", "i18n_name" : "dashboard.actual_traffic", "style" : "text-align: right" }
+				]
+			}
+		},
+		{
+			"component" : "table",
+			"id" : "top_remote_destinations",
+			"i18n_name" : "report.top_remote_hosts",
+			"width" : 4,
+			"height" : 4,
+			"params" : {
+				"url" : "/lua/pro/rest/v2/get/interface/top/remote/talkers.lua",
+				"url_params" : {},
+				"table_type" : "throughput",
+				"columns" : [
+					{ "id" : "name", "i18n_name" : "host_details.host" },
+					{ "id" : "throughput", "i18n_name" : "dashboard.actual_traffic", "style" : "text-align: right" }
+				]
+			}
+		},
+		{
+			"component" : "pie",
+			"id" : "top_l7_proto",
+			"i18n_name" : "top_l7_proto",
+			"width" : 4,
+			"height" : 4,
+			"params" : {
+				"url" : "/lua/rest/v2/get/interface/l7/stats.lua",
+				"url_params" : {
+					"breed" : "true",
+					"ndpistats_mode" : "count"
+				}
+			}
+		}
+	]
+}
+

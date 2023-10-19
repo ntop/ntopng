@@ -1,5 +1,5 @@
-Interfaces
-##########
+Interface
+#########
 
 The Interfaces dropdown menu entry in the top toolbar contains lists all the interfaces that are currently
 monitored by ntopng. Among all interfaces listed, one has a check mark that indicates the interface is
@@ -17,6 +17,9 @@ The dropdown menu is only used to switch between selected interfaces, it is also
 interface traffic statistics. Interface traffic statistics can be accessed by clicking on the currently selected
 interface.
 
+.. note::
+  See the available Network Interfaces types `here`_
+
 .. figure:: ../img/web_gui_interfaces_home.png
   :align: center
   :alt: Interface Home
@@ -27,13 +30,14 @@ A contextual menu with multiple options and badges appear right below the top to
 entries are discussed below.
 
 .. _`System Interface`: ../basic_concepts/system_interface.html
+.. _`here`: ../interfaces/index.html
 
 Home
 ----
 
 In the Home page it is possible to view general interface information, such as Id (a unique integer
 identifier ntopng assigns to each monitored interface), family (e.g., pcap), and the overall traffic counters in
-bytes. It is possible to customise the interface name just by writing a custom name into the Name textbook
+bytes. It is possible to customize the interface name just by writing a custom name into the Name textbook
 and clicking on “Save Name”. Interface monitoring can be temporarily paused from the ‘State’ toggle
 buttons.
 
@@ -54,7 +58,7 @@ Applications
 Applications page provides three pie charts and a specific table with nDPI-detected protocols for the selected
 interface.
 
-In the two top pie charts ntopng shows the application distribution and its categorisation. The bottom pie
+In the two top pie charts ntopng shows the application distribution and its categorization. The bottom pie
 chart shows nDPI-detected applications for currently active flows. All labels are clickable and point to
 detailed statistics pages. Belo pie charts there is a list of protocols detected with the corresponding total
 traffic, both in absolute terms and as a percentage of the total traffic.
@@ -96,14 +100,14 @@ Statistics
 Statistics page provides historical traffic statistics for the selected interface. The user can choose to filter
 statistics on a protocol basis and display data in several formats (e.g., bytes, packets, flows, and so on). In
 the Professional Version of ntopng, traffic for interface views in shown as stacked per physical interface.
-Physical interface visualisation can be toggled by clicking on the coloured dot just left of interface name.
+Physical interface visualization can be toggled by clicking on the coloured dot just left of interface name.
 
 The time series span can be adjusted by selecting values from 5 minutes up to 1 year. Moreover, drill-
 down is possible by clicking on the time series itself. Every click zooms the chart in, centering the time
 series around the clicked point.
 
 In addition, time series shown can be chosen via the dropdown menu labelled ‘Time series’. For example,
-it is possible to visualise all or just one protocol, traffic, packets, active hosts and flows, and so on. Ntopng
+it is possible to visualize all or just one protocol, traffic, packets, active hosts and flows, and so on. Ntopng
 is VLAN aware, hence if several VLANs are detected, traffic is accounted also on a VLAN basis.
 
 .. figure:: ../img/web_gui_interfaces_timeseries_dropdown.png
@@ -175,16 +179,10 @@ This setting also applies to the timeseries of the host. In a DHCP network,
 the IP address of a host usually changes so the host it's better identified
 by its MAC address in this case.
 
-**Hide from Top Networks**:
-This setting allows to specify a comma-separated list of networks
-containing hosts that have to be hidden from the top statistics. 
-Hosts belonging to the specified networks will not be shown in the top
-statistics.
-
 **Create Interface Timeseries**:
 This setting toggles the generation of timeseries for the selected
-interface. No timeseries will be generated when this setting in
-unticked, including timeseries associated with local hosts and networks.
+interface. No timeseries will be generated when this setting is
+unchecked, including timeseries associated with local hosts and networks.
 
 **Create One-Way Traffic Timeseries**:
 This setting toggles the generation of timeseries for one way traffic, which
@@ -227,49 +225,6 @@ When the Dynamic Traffic Disaggregation option is set, normally ntopng will only
 traffic on the disaggregated interfaces, hence the main interface will have no traffic. By
 enabling this option it's possible to also report the traffic on the main interface.
 
-Host Pools
-----------
-
-Host pools are logical groups of hosts. Pools are added using the “plus” button in the “Manage Pools” tab
-of the Host Pools page.
-
-.. figure:: ../img/web_gui_interfaces_edit_pools.png
-  :align: center
-  :alt: Interface Edit Pools
-
-  The Edit Host Pools “Manage Pools” of the Interface Details Page
-
-Once an Host Pool is created, it is possible to add members to it. Host Pool members are added using the
-“plus” button in the “Manage Pool Membership” tab of the Host Pools page.
-
-The interface host pools configuration, which includes the defined host pools along with
-the pools members, can be easily exported to JSON and imported into another ntopng instance.
-The imported host pools will replace the existing ones.
-
-An “Alias” can be associated to each pool member to ease the its identification. Typically, one would
-assign a mnemonic label as member alias (e.g., “John’s iPhone” or “Smart TV”). A “Device Type” can be
-associated to each member as well. Devices types are used to categorise members on the basis of the
-device type (e.g., TV, Camera, Smartphone).
-
-The image below shows an “IoT Devices” Host Pool with two members, namely a smart tv and a router.
-
-.. figure:: ../img/web_gui_interfaces_manage_pool.png
-  :align: center
-  :alt: Interface Manage Pool
-
-  The Edit Host Pools “Manage Pool Membership” of the Interface Details Page
-
-A view of every host pool is accessible from the “Hosts” menu, entry “Host Pools” as discussed in the
-`relevant section`_. The view shows live pool information (e.g., overall pool throughput) and provides access to
-the historical pool traffic timeseries (Professional version) as well as to the currently active pool members.
-
-Host pools can also be used to enforce traffic policies (e.g, block YouTube traffic for the “John” pool and
-limit Facebook traffic at 1 Mbps for the “Guests” pool). This feature is only available when ntopng is used
-inline and is a feature only available in the professional version. ntopng inline is described in the
-“Advanced ntopng Features” of this document.
-
-.. _`relevant section`: hosts.html#host-pools
-
 DHCP Range
 ----------
 
@@ -282,7 +237,7 @@ can assign.
   :alt: Interface DHCP Range Configuration
 
 When a DHCP range is configured, ntopng will monitor the DHCP traffic on the interface
-and report anomalous behaviours. For example, it detects if IP addresses are assigned outside
+and report anomalous behavior. For example, it detects if IP addresses are assigned outside
 the configured range and generate an alert. This can happen, for example, if a new
 misconfigured network device is attached to the network.
 
@@ -292,3 +247,53 @@ misconfigured network device is attached to the network.
 
 Since DHCP responses are usually directed to a specific host, this setting is
 most effective when the interface monitors mirrored traffic.
+
+
+Mirrored Traffic
+----------------
+
+The Alert notifies the user to enable mirroring when the system detects RX only.
+The toast is going to show only if the user has RX-only traffic (TX traffic is 0 and RX is greater then 0).
+It's still a dismissable toast (if you click dismiss, it's not going to pop-up again) and you can jump to the interface configuration by clicking the link in the toast.
+
+.. figure:: ../img/mirrored_traffic_toast.png
+  :align: center
+  :alt: Mirrore Traffic Alert
+
+|
+
+Server Ports Analysis
+---------------------
+
+By jumping to the Server Ports Analysis entry, available in the Interface entry, it's possible to jump to this page.
+
+.. note::
+  Server Ports Analysis is available only with Enterprise license
+
+.. figure:: ../img/server_ports_analysis_entry.png
+  :align: center
+  :alt: Mirrore Traffic Alert
+
+|
+
+This page is used to understand which server ports are currently in use in the current Interface.
+
+.. figure:: ../img/server_ports_analysis_sankey.png
+  :align: center
+  :alt: Mirrore Traffic Alert
+
+|
+
+On the left side of the map, there are the VLANs that currently have traffic on some server ports, in the center instead the protocol can be found and on the right, the server port used.
+It's possible add some filters by selecting the entries available in the right upper part of the table.
+Moreover if ClickHouse is enabled, it's possible to change the timeframe and not only take a look at the live traffic but even at the historical traffic.
+
+.. figure:: ../img/server_ports_analysis_filters.png
+  :align: center
+  :alt: Mirrore Traffic Alert
+
+|
+
+When clicking on the port, protocol or VLAN names available in the map, the user is going to be redirected to the requested flow page with the requested filter.
+
+(e.g. The user click on the QUIC.Youtube protocol, the user is going to be redirected to the live traffic with QUIC.Youtube traffic; if the user was instead taking a look at historical data, the user was going to be redirected to the historical page with the selected timeframe and protocol).

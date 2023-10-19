@@ -1,7 +1,2 @@
-In order to generate the minified css files, run:
-
-```
-  make minify
-```
-
-To add new css files to minify, edit the Makefile
+This folder is used just to add a custom_theme.css.
+See: https://www.ntop.org/guides/ntopng/advanced_features/oem.html?highlight=oem

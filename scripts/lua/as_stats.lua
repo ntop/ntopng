@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -12,14 +12,14 @@ local page_utils = require("page_utils")
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.autonomous_systems)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.autonomous_systems)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 page_utils.print_page_title(i18n("as_stats.autonomous_systems"))
 
 print [[
-      <div id="table-as"></div>
+	  <div id="table-as"></div>
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())
@@ -85,17 +85,22 @@ print [[
 			     }
 
 				 },
-			     {
-			     title: "]] print(i18n("show_alerts.alerts")) print[[",
-				 field: "column_alerts",
-				 /* TODO: alerts not implemented */
-				 hidden: true,
-				 sortable: false,
-                             css: {
-			        textAlign: 'center'
-			     }
-
-				 },
+         {
+          title: "]] print(i18n("score")) print[[",
+          field: "column_score",
+          sortable: true,
+                      css: {
+          textAlign: 'center'
+            }
+          },
+          {
+           title: "]] print(i18n("host_score_ratio")) print[[",
+           field: "column_host_score_ratio",
+           sortable: false,
+                       css: {
+           textAlign: 'center'
+             }
+           },
 			     {
 			     title: "]] print(i18n("name")) print[[",
 				 field: "column_asname",
@@ -114,6 +119,14 @@ print [[
 			     }
 
 				 },
+         {
+         title: "]] print(i18n("flow_details.alerted_flows")) print[[",
+       field: "column_alerted_flows",
+       sortable: true,
+                           css: {
+            textAlign: 'center'
+         },
+       },
 ]]
 
 print [[

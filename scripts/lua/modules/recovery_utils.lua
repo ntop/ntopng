@@ -1,5 +1,7 @@
 require "lua_utils"
+local configuration_utils = require "configuration_utils"
 local clean_shutdown_key = "ntopng.clean_shutdown"
+
 
 local recovery_utils = {}
 
@@ -12,6 +14,7 @@ function recovery_utils.unmark_clean_shutdown()
    -- delete the 'normal termination' key
    -- that will be inserted back during shutdown
    ntop.delCache(clean_shutdown_key)
+   configuration_utils.reset()
 end
 
 function recovery_utils.check_clean_shutdown()

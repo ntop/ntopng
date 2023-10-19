@@ -1,0 +1,21 @@
+[
+    /* Date */
+    {responsivePriority: 1, name: 'tstamp', data: 'tstamp', className: 'text-center text-nowrap', render: DataTableRenders.formatValueLabel, createdCell: DataTableRenders.applyCellStyle},
+    /* Score */
+    {responsivePriority: 2, name: 'score', data: 'score', className: 'text-center', render: DataTableRenders.formatValueLabel},
+    /* Duration */
+    {responsivePriority: 2, name: 'duration', data: 'duration', className: 'text-center', render: DataTableRenders.secondsToTime},
+    /* Alert */
+    {responsivePriority: 2, name: 'alert', data: 'msg', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatNameDescription },
+    /* IP Address */
+    {responsivePriority: 2, name: 'ip', data: 'ip', orderable: false, className: 'text-nowrap', render: DataTableRenders.formatHost},
+    /* Counts */
+    {responsivePriority: 3, name: 'count', className: 'text-center', data: 'count', visible: false},
+    /* Description */
+    {responsivePriority: 3, name: 'description', data: 'description', orderable: false, className: 'text-nowrap', width:'100%'},
+    /* Host Pool Id */
+    {responsivePriority: 4, name: 'host_pool_id', data: 'host_pool_id',  orderable: false, className: 'none', render: DataTableRenders.getFormatGenericField('host_pool_id')},
+    /* Network */
+    {responsivePriority: 5, name: 'network', data: 'network',  orderable: false, className: 'none', render: DataTableRenders.getFormatGenericField('network')},
+
+]

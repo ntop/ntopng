@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -45,11 +45,13 @@ class PF_RINGInterface : public NetworkInterface {
 
   void singlePacketPollLoop();
   void multiPacketPollLoop();
-  virtual bool areTrafficDirectionsSupported() { return(true); };
-  bool isDiscoverableInterface()               { return(!isTrafficMirrored());         };
-  virtual InterfaceType getIfType() const      { return(interface_type_PF_RING);       };
-  inline const char* get_type()                { return(CONST_INTERFACE_TYPE_PF_RING); };
-  inline int get_num_pfring_handles()          { return(num_pfring_handles); };
+  virtual bool areTrafficDirectionsSupported() { return (true); };
+  bool isDiscoverableInterface() { return (!isTrafficMirrored()); };
+  virtual InterfaceType getIfType() const { return (interface_type_PF_RING); };
+  virtual const char *get_type() const {
+    return (CONST_INTERFACE_TYPE_PF_RING);
+  };
+  inline int get_num_pfring_handles() { return (num_pfring_handles); };
   void startPacketPolling();
   void shutdown();
   bool set_packet_filter(char *filter);
@@ -58,4 +60,3 @@ class PF_RINGInterface : public NetworkInterface {
 #endif /* _PF_RING_NETWORK_INTERFACE_H_ */
 
 #endif /* HAVE_PF_RING */
-

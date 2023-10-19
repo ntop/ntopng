@@ -1,0 +1,58 @@
+{
+	"name" : "Top Remote Destinations",
+	"i18n_name" : "top_remote_destinations",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"visualization_type" : "table",
+	"hourly": true,
+	"sql" : "SELECT VLAN_ID, IP_PROTOCOL_VERSION, IPv4NumToString(IPV4_ADDR) IPV4_ADDR_FORMATTED, IPv6NumToString(IPV6_ADDR) IPV6_ADDR_FORMATTED, HOST_LABEL, COUNTRY_CODE, SUM(BYTES) total_bytes FROM (SELECT VLAN_ID, IP_PROTOCOL_VERSION, IPV4_SRC_ADDR IPV4_ADDR, IPV6_SRC_ADDR IPV6_ADDR, SRC_LABEL HOST_LABEL, SRC_COUNTRY_CODE COUNTRY_CODE, TOTAL_BYTES BYTES FROM flows $WHERE$ AND CLIENT_LOCATION=0 UNION ALL SELECT VLAN_ID, IP_PROTOCOL_VERSION, IPV4_DST_ADDR IPV4_ADDR, IPV6_DST_ADDR IPV6_ADDR, DST_LABEL HOST_LABEL, DST_COUNTRY_CODE COUNTRY_CODE, TOTAL_BYTES BYTES FROM flows $WHERE$ AND SERVER_LOCATION=0) AS f $GROUPBY$ $ORDERBY$ $LIMIT$",
+	"select" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "IPV4_ADDR"
+			},
+			{
+				"name" : "total_bytes",
+				"func" : "",
+				"value_type" : "bytes"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "IP_PROTOCOL_VERSION"
+			},
+			{
+				"name" : "IPV4_ADDR"
+			},
+			{
+				"name" : "IPV6_ADDR"
+			},
+			{
+				"name" : "HOST_LABEL"
+			},
+			{
+				"name" : "COUNTRY_CODE"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "total_bytes",
+				"order" : "DESC"
+			}
+		]
+	}
+}

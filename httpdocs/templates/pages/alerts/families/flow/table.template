@@ -1,0 +1,15 @@
+<th style="text-align: center;">{{ i18n("show_alerts.alert_datetime") }}</th>
+<th style="text-align: center;">{{ i18n("score") }}</th>
+<th style="text-align: center;">{{ i18n("application") }}</th>
+<th style="text-align: center;">{{ i18n("alerts_dashboard.alert") }}</th>
+<th style="text-align: center;">{{ i18n("flow") }}</th>
+<th style="text-align: center;">{{ i18n("show_alerts.alert_counts") }}</th>
+<th style="text-align: center;">{{ i18n("description") }}</th>
+<th style="text-align: center;">{{ i18n("db_search.tags.community_id") }}</th>
+<th style="text-align: center;">{{ i18n("datatable.fields.info") }}</th>
+<th style="text-align: center;">{{ i18n("db_search.tags.cli_host_pool_id") }}</th>
+<th style="text-align: center;">{{ i18n("db_search.tags.srv_host_pool_id") }}</th>
+<th style="text-align: center;">{{ i18n("db_search.tags.cli_network") }}</th>
+<th style="text-align: center;">{{ i18n("db_search.tags.srv_network") }}</th>
+<th style="text-align: center;">{{ i18n("db_search.tags.probe_ip") }}</th>
+<th style="text-align: center;">{{ i18n("actions") }}</th>

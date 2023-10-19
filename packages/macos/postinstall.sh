@@ -8,12 +8,17 @@ if [ ! -d "$DATA_DIR" ]; then
 fi
 
 # Enable + start redis
-NUM_REDIS_PROCESES=`ps auxw | grep redis-server | grep -v grep | wc -l`
+NUM_REDIS_PROCESES=`ps auxw | grep ntopng-redis-server | grep -v grep | wc -l`
 if [ "$NUM_REDIS_PROCESES" -eq "0" ]; then
-    ps auxw | grep redis-server|grep -v grep | wc -lx2
+    ps auxw | grep ntopng-redis-server|grep -v grep | wc -lx2
+    #
+    # Enable debug as follows
+    #
+    # sudo log config --mode "level:debug" --subsystem io.redis.redis-server
+    # tail -f /var/log/system.log
+    #
     sudo launchctl load -w /Library/LaunchDaemons/io.redis.redis-server.plist
 fi
 
 # Enable + start ntopng
-sudo launchctl enable /Library/LaunchDaemons/org.ntop.ntopng.plist
-sudo launchctl load   /Library/LaunchDaemons/org.ntop.ntopng.plist
+sudo launchctl load -w /Library/LaunchDaemons/org.ntop.ntopng.plist

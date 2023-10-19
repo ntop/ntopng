@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -11,7 +11,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Run a traffic extraction
--- Example: curl -u admin:admin -d '{"ifid": "1", "epoch_begin": 1589822000, "epoch_end": 15898221000 }' http://localhost:3000/lua/rest/v1/get/pcap/live_extraction.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1", "epoch_begin": 1589822000, "epoch_end": 15898221000 }' http://localhost:3000/lua/rest/v1/get/pcap/live_extraction.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
@@ -21,26 +21,23 @@ local filter = _GET["bpf_filter"]
 local time_from = tonumber(_GET["epoch_begin"])
 local time_to = tonumber(_GET["epoch_end"])
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 
 if not recording_utils.isExtractionAvailable() then
-   sendHTTPHeader('application/json')
-   rc = rest_utils.consts_not_granted
-   print(rest_utils.rc(rc))
+   rc = rest_utils.consts.err.not_granted
+   rest_utils.answer(rc)
    return
 end
 
 if isEmptyString(ifid) then
-   sendHTTPHeader('application/json')
-   rc = rest_utils.consts_invalid_interface
-   print(rest_utils.rc(rc))
+   rc = rest_utils.consts.err.invalid_interface
+   rest_utils.answer(rc)
    return
 end
 
 if _GET["epoch_begin"] == nil or _GET["epoch_end"] == nil then
-   sendHTTPHeader('application/json')
-   rc = rest_utils.consts_invalid_arguments
-   print(rest_utils.rc(rc))
+   rc = rest_utils.consts.err.invalid_arguments
+   rest_utils.answer(rc)
    return
 end
 

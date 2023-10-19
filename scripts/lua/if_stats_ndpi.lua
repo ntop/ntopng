@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -10,16 +10,11 @@ local graph_utils = require "graph_utils"
 
 local ifid = _GET["ifid"]
 
-if ifid ~= nil and ifid ~= "" then
-   if_name = getInterfaceName(ifid)
-else
-   if_name = ifname
-   ifid = interface.name2id(ifname)
+local ifstats = {}
+if ifid then
+   ifstats = interface.getStats()
+   interface.select(ifid)
 end
-
-interface.select(if_name)
-
-local ifstats = interface.getStats()
 
 local format = _GET["format"]
 if(format == "json") then
@@ -48,11 +43,14 @@ if(ifstats.stats ~= nil) then
   end
 end
 
-local total = ifstats.stats.bytes
+local total = 0
+if table.len(ifstats) > 0 then
+   total = ifstats.stats.bytes
+end
 
 local vals = {}
 
-for k, v in pairs(ifstats["ndpi"]) do
+for k, v in pairs(ifstats["ndpi"] or {}) do
    -- io.write("->"..k.."\n")
    if v["bytes.rcvd"] > 0 or v["bytes.sent"] > 0 then
     vals[k] = k
@@ -88,7 +86,7 @@ for _k in pairsByKeys(vals, asc) do
 
   if(has_ndpi_proto == "1") then
      if(not(json_format)) then
-	print("<A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid=" .. ifid .. "&page=historical&ts_schema=iface:ndpi&protocol=".. k .."\">".. k .." "..formatBreed(ifstats["ndpi"][k]["breed"]).."</A>")
+	print("<A HREF=\""..interface2detailhref(ifid, {page = "historical", ts_schema = "top:iface:ndpi", ts_query = "ifid:" .. ifid .. ",protocol:" .. k, zoom = '1d'}) .. "\">" .. k .." "..formatBreed(ifstats["ndpi"][k]["breed"]).."</A>")
      else
 	print('{ "proto": "'..k..'", "breed": "'..ifstats["ndpi"][k]["breed"]..'", ')
      end
@@ -103,8 +101,8 @@ for _k in pairsByKeys(vals, asc) do
   local t = ifstats["ndpi"][k]["bytes.sent"]+ifstats["ndpi"][k]["bytes.rcvd"]
 
   if(not(json_format)) then
-     if(k ~= "ARP") then print(" <A HREF=\""..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..k.."\"><i class=\"fas fa-search-plus\"></i></A>") end
-     print("</th><td class=\"text-right\" style=\"width: 20%;\">" ..bytesToSize(t).. "</td>")
+     if(k ~= "ARP") then print(" <A class='btn btn-sm bt-info' HREF=\""..ntop.getHttpPrefix().."/lua/flows_stats.lua?application="..k.."\"><i class=\"fas fa-search-plus\"></i></A>") end
+     print("</th><td class=\"text-end\" style=\"width: 20%;\">" ..bytesToSize(t).. "</td>")
      print("<td ><span style=\"width: 60%; float: left;\">")
      graph_utils.percentageBar(total, t, "") -- k
      -- print("</td>\n")
@@ -123,3 +121,4 @@ for _k in pairsByKeys(vals, asc) do
 end
 
 if(json_format) then print('\n]\n') end
+::exit::

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,66 +24,177 @@
 
 #include "ntop_includes.h"
 
-class LocalHost : public Host, public SerializableElement {
+class LocalHost : public Host {
  protected:
   int16_t local_network_id;
-  bool systemHost;
   time_t initialization_time;
   LocalHostStats *initial_ts_point;
+  UsedPorts usedPorts;
+  std::unordered_map<u_int32_t, DoHDoTStats *> doh_dot_map;
+  u_int8_t router_mac[6]; /* MAC address pf the first router used (no Mac* to
+                             avoid purging race conditions) */
+  u_int8_t router_mac_set : 1, drop_all_host_traffic : 1, systemHost : 1,
+      _notused : 5;
 
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
-  OperatingSystem os;
   char *os_detail;
-  bool drop_all_host_traffic;
   /* END Host data: */
 
   void initialize();
+  void deferredInitialization();
   void freeLocalHostData();
+  void addInactiveData();
+  void removeInactiveData();
   virtual void deleteHostData();
 
-  char* getMacBasedSerializationKey(char *redis_key, size_t size, char *mac_key);
-  char* getIpBasedSerializationKey(char *redis_key, size_t size);
+  char *getMacBasedSerializationKey(char *redis_key, size_t size,
+                                    char *mac_key);
+  char *getIpBasedSerializationKey(char *redis_key, size_t size);
+  void luaDoHDot(lua_State *vm);
 
  public:
-  LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _vlanId, IpAddress *_ip);
-  LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _vlanId);
+  LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _u_int16_t,
+            u_int16_t _observation_point_id, IpAddress *_ip);
+  LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _u_int16_t,
+            u_int16_t _observation_point_id);
   virtual ~LocalHost();
 
   virtual void set_hash_entry_state_idle();
-  virtual int16_t get_local_network_id() const { return(local_network_id);  };
-  virtual bool isLocalHost()  const            { return(true);              };
-  virtual bool isSystemHost() const            { return(systemHost);        };
-
-  virtual NetworkStats* getNetworkStats(int16_t networkId) {
-    return(iface->getNetworkStats(networkId));
+  virtual int16_t get_local_network_id() const { return (local_network_id); };
+  virtual bool isLocalHost() const { return (true); };
+  virtual bool isLocalUnicastHost() const {
+    return (!(isBroadcastHost() || isMulticastHost()));
   };
-  virtual u_int32_t getActiveHTTPHosts()       const { return(getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0); };
-  virtual HostStats* allocateStats()                 { return(new LocalHostStats(this));               };
+  virtual bool isSystemHost() const { return (systemHost); };
 
-  virtual bool dropAllTraffic() const { return(drop_all_host_traffic); };
+  virtual void updateNetworkRTT(u_int32_t rtt_msecs) {
+    NetworkStats *network = iface->getNetworkStats(get_local_network_id());
+    if (network) network->updateRoundTripTime(rtt_msecs);
+  }
+
+  void setRxOnlyHost(bool set_it);
+  virtual NetworkStats *getNetworkStats(int16_t networkId) {
+    return (iface->getNetworkStats(networkId));
+  };
+  virtual u_int32_t getActiveHTTPHosts() {
+    return (getHTTPstats() ? getHTTPstats()->get_num_virtual_hosts() : 0);
+  };
+  virtual HostStats *allocateStats() { return (new LocalHostStats(this)); };
+
+  virtual bool dropAllTraffic() const { return (drop_all_host_traffic); };
   virtual void inlineSetOSDetail(const char *_os_detail);
-  virtual const char* getOSDetail(char * const buf, ssize_t buf_len);
+  virtual const char *getOSDetail(char *const buf, ssize_t buf_len);
   virtual void updateHostTrafficPolicy(char *key);
 
-  virtual void luaHTTP(lua_State *vm)              const  { stats->luaHTTP(vm);         };
-  virtual void luaDNS(lua_State *vm, bool verbose) const  { stats->luaDNS(vm, verbose); };
-  virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) const  { stats->luaICMP(vm,isV4,verbose); };
-  virtual void incrVisitedWebSite(char *hostname)         { stats->incrVisitedWebSite(hostname); };
-  virtual HTTPstats* getHTTPstats()                const  { return(stats->getHTTPstats());       };
-  virtual DnsStats*  getDNSstats()                 const  { return(stats->getDNSstats());        };
-  virtual ICMPstats* getICMPstats()                const  { return(stats->getICMPstats());       };
-  virtual void luaTCP(lua_State *vm) const                { stats->lua(vm,false,details_normal); };
-  virtual u_int16_t getNumActiveContactsAsClient() const  { return stats->getNumActiveContactsAsClient(); };
-  virtual u_int16_t getNumActiveContactsAsServer() const  { return stats->getNumActiveContactsAsServer(); };
+  virtual void luaHTTP(lua_State *vm) { stats->luaHTTP(vm); };
+  virtual void luaDNS(lua_State *vm, bool verbose) {
+    stats->luaDNS(vm, verbose);
+    luaDoHDot(vm);
+  };
+  virtual void luaICMP(lua_State *vm, bool isV4, bool verbose) {
+    stats->luaICMP(vm, isV4, verbose);
+  };
+  virtual void lua_get_timeseries(lua_State *vm);
+  virtual void lua_peers_stats(lua_State *vm) const;
+  virtual void lua_contacts_stats(lua_State *vm) const;
+  virtual void incrVisitedWebSite(char *hostname) {
+    stats->incrVisitedWebSite(hostname);
+  };
+  virtual HTTPstats *getHTTPstats() { return (stats->getHTTPstats()); };
+  virtual DnsStats *getDNSstats() { return (stats->getDNSstats()); };
+  virtual ICMPstats *getICMPstats() { return (stats->getICMPstats()); };
+  virtual void luaTCP(lua_State *vm) { stats->lua(vm, false, details_normal); };
+  virtual u_int16_t getNumActiveContactsAsClient() {
+    return stats->getNumActiveContactsAsClient();
+  };
+  virtual u_int16_t getNumActiveContactsAsServer() {
+    return stats->getNumActiveContactsAsServer();
+  };
   virtual void reloadPrefs();
+  virtual void addContactedDomainName(char *domain_name) {
+    stats->addContactedDomainName(domain_name);
+  }
+  virtual u_int32_t getDomainNamesCardinality() {
+    return stats->getDomainNamesCardinality();
+  }
+  virtual void resetDomainNamesCardinality() {
+    stats->resetDomainNamesCardinality();
+  }
 
-  virtual void deserialize(json_object *obj);
-  virtual void serialize(json_object *obj, DetailsLevel details_level) { return Host::serialize(obj, details_level); };
-  virtual char* getSerializationKey(char *buf, uint bufsize);
+  virtual void serialize(json_object *obj, DetailsLevel details_level) {
+    return Host::serialize(obj, details_level);
+  };
+  virtual char *getSerializationKey(char *buf, uint bufsize);
+  char *getRedisKey(char *buf, uint buf_len, bool skip_prefix = false);
 
-  virtual void lua(lua_State* vm, AddressTree * ptree, bool host_details,
-		   bool verbose, bool returnHost, bool asListElement);
-  virtual void lua_get_timeseries(lua_State* vm);
+  virtual void lua(lua_State *vm, AddressTree *ptree, bool host_details,
+                   bool verbose, bool returnHost, bool asListElement);
+  void custom_periodic_stats_update(const struct timeval *tv) { ; }
+
+  virtual void luaHostBehaviour(lua_State *vm) {
+    if (stats) stats->luaHostBehaviour(vm);
+  }
+  virtual void incDohDoTUses(Host *srv_host);
+
+  virtual inline void incCountriesContacts(char *country) {
+    stats->incCountriesContacts(country);
+  }
+  virtual inline void resetCountriesContacts() {
+    stats->resetCountriesContacts();
+  }
+  virtual inline u_int8_t getCountriesContactsCardinality() {
+    return (stats->getCountriesContactsCardinality());
+  }
+
+  virtual inline bool incNTPContactCardinality(Host *h) {
+    return (stats->incNTPContactCardinality(h));
+  }
+  virtual inline bool incDNSContactCardinality(Host *h) {
+    return (stats->incDNSContactCardinality(h));
+  }
+  virtual inline bool incSMTPContactCardinality(Host *h) {
+    return (stats->incSMTPContactCardinality(h));
+  }
+  virtual inline bool incIMAPContactCardinality(Host *h) {
+    return (stats->incIMAPContactCardinality(h));
+  }
+  virtual inline bool incPOPContactCardinality(Host *h) {
+    return (stats->incPOPContactCardinality(h));
+  }
+
+  virtual inline u_int32_t getNTPContactCardinality() {
+    return (stats->getNTPContactCardinality());
+  }
+  virtual inline u_int32_t getDNSContactCardinality() {
+    return (stats->getDNSContactCardinality());
+  }
+  virtual inline u_int32_t getSMTPContactCardinality() {
+    return (stats->getSMTPContactCardinality());
+  }
+  virtual inline u_int32_t getIMAPContactCardinality() {
+    return (stats->getIMAPContactCardinality());
+  }
+  virtual inline u_int32_t getPOPContactCardinality() {
+    return (stats->getPOPContactCardinality());
+  }
+
+  void setRouterMac(Mac *gw);
+
+  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) {
+    usedPorts.setServerPort(isTCP, port, proto);
+  };
+  inline void setContactedPort(bool isTCP, u_int16_t port,
+                               ndpi_protocol *proto) {
+    usedPorts.setContactedPort(isTCP, port, proto);
+  };  
+  virtual inline void luaUsedPorts(lua_State *vm) { usedPorts.lua(vm, iface); };
+  virtual inline std::unordered_map<u_int16_t, ndpi_protocol> getUDPServerPorts() { return(usedPorts.getUDPServerPorts()); };
+  virtual inline std::unordered_map<u_int16_t, ndpi_protocol> getTCPServerPorts() { return(usedPorts.getTCPServerPorts()); };
+
+  virtual inline std::unordered_map<u_int16_t, ndpi_protocol> *getServerPorts(
+      bool isTCP) {
+    return (usedPorts.getServerPorts(isTCP));
+  };
 };
 
 #endif /* _LOCAL_HOST_H_ */

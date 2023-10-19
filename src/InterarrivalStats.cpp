@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+/* ******************************************** */
+
 InterarrivalStats::InterarrivalStats() {
   memset(&lastTime, 0, sizeof(lastTime));
   ndpi_init_data_analysis(&delta_ms, 0);
@@ -28,14 +30,18 @@ InterarrivalStats::InterarrivalStats() {
 
 /* ******************************************** */
 
+InterarrivalStats::~InterarrivalStats() {
+  ndpi_free_data_analysis(&delta_ms, 0);
+}
+/* ******************************************** */
+
 void InterarrivalStats::updatePacketStats(struct timeval* when,
-					  bool update_iat) {
-  if(update_iat && lastTime.tv_sec) {
+                                          bool update_iat) {
+  if (update_iat && lastTime.tv_sec) {
     float deltaMS = Utils::msTimevalDiff(when, &lastTime);
-    
-    if(deltaMS > 0)
-      ndpi_data_add_value(&delta_ms, (u_int32_t)deltaMS);    
+
+    if (deltaMS > 0) ndpi_data_add_value(&delta_ms, (u_int32_t)deltaMS);
   }
-  
-  memcpy(&lastTime, when, sizeof(struct timeval)); 
+
+  memcpy(&lastTime, when, sizeof(struct timeval));
 }

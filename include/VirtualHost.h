@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -33,26 +33,27 @@ class VirtualHost : public GenericHashEntry {
   TrafficStats sent_stats, rcvd_stats, num_requests;
   u_int64_t last_num_requests;
   u_int32_t last_diff;
+  u_int32_t vhost_key;
   ValueTrend trend;
-
- protected:
-  virtual void computeHostSerial() { ; }
 
  public:
   VirtualHost(HostHash *_h, char *_name);
   ~VirtualHost();
 
-  inline char* get_name()    { return(name);  };
-  inline void incStats(time_t t, u_int32_t num_req, u_int32_t bytes_sent, u_int32_t bytes_rcvd) {
+  u_int32_t key() { return vhost_key; };
+  inline char *get_name() { return name; };
+  inline void incStats(time_t t, u_int32_t num_req, u_int32_t bytes_sent,
+                       u_int32_t bytes_rcvd) {
+    updateSeen(t);
     sent_stats.incStats(t, 1, bytes_sent),
-      rcvd_stats.incStats(t, 1, bytes_rcvd),
-      num_requests.incStats(t, 1, num_req);
-  }  
-  inline u_int64_t  get_sent_bytes()   { return(sent_stats.getNumBytes());   };
-  inline u_int64_t  get_rcvd_bytes()   { return(rcvd_stats.getNumBytes());   };
-  inline u_int64_t  get_num_requests() { return(num_requests.getNumBytes()); };
-  inline u_int64_t  get_diff_num_requests() { return(last_diff);             };
-  inline ValueTrend get_trend()        { return(trend);                      };
+        rcvd_stats.incStats(t, 1, bytes_rcvd),
+        num_requests.incStats(t, 1, num_req);
+  }
+  inline u_int64_t get_sent_bytes() { return (sent_stats.getNumBytes()); };
+  inline u_int64_t get_rcvd_bytes() { return (rcvd_stats.getNumBytes()); };
+  inline u_int64_t get_num_requests() { return (num_requests.getNumBytes()); };
+  inline u_int64_t get_diff_num_requests() { return (last_diff); };
+  inline ValueTrend get_trend() { return (trend); };
   void update_stats();
 };
 

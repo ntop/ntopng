@@ -1,9 +1,13 @@
 --
--- (C) 2014-20 - ntop.org
+-- (C) 2014-22 - ntop.org
 --
 
-i18n = require "i18n"
 local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.path
+
+local clock_start = os.clock()
+
+i18n = require "i18n"
 
 local locales = {}
 
@@ -16,6 +20,7 @@ local locales_initialized = false
 
 local supported_locales = {
    {code = "en"},
+   {code = "cn"},
    {code = "it"},
    {code = "de"},
    {code = "jp"},
@@ -51,16 +56,16 @@ end
 function locales.loadLocaleFile(path, locale)
   local data = loadfile_to_data(path)
   local os_utils = require("os_utils")
-  local plugins_utils = require("plugins_utils")
+  local script_manager = require("script_manager")
 
-  -- Check if plugin specific locales exist
-  local plugins_locales = os_utils.fixPath(plugins_utils.getRuntimePath() .. "/locales/" .. locale .. ".lua")
+  -- Check if script specific locales exist
+  local scripts_locales = os_utils.fixPath(script_manager.getRuntimePath() .. "/locales/" .. locale .. ".lua")
 
-  if ntop.exists(plugins_locales) then
-     local plugins_data = loadfile_to_data(plugins_locales)
+  if ntop.exists(scripts_locales) then
+     local scripts_data = loadfile_to_data(scripts_locales)
 
-    -- Add the plugins localized strings
-    for k, v in pairs(plugins_data) do
+    -- Add the scripts localized strings
+    for k, v in pairs(scripts_data) do
       data[k] = v
     end
   end
@@ -160,5 +165,9 @@ end
 setmetatable(i18n, i18n_mt)
 
 -- ##############################################
+
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return locales

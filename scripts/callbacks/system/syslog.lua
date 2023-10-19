@@ -1,11 +1,17 @@
 --
--- (C) 2019-20 - ntop.org
+-- (C) 2019-22 - ntop.org
 --
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
-local user_scripts = require("user_scripts")
+local checks = require("checks")
+
+--
+-- This script is used to by the SyslogLuaEngine class to setup syslog collection
+-- and handle incoming events via the handleEvent() callback. This script
+-- lives on a private Lua VM (see lua_pcall in SyslogLuaEngine::SyslogLuaEngine()M
+--
 
 local syslog_modules = nil
 local syslog_conf = nil
@@ -15,10 +21,11 @@ local syslog_conf = nil
 -- The function below ia called once (#pragma once)
 function setup()
    local ifid = interface.getId()
-   syslog_modules = user_scripts.load(ifid, user_scripts.script_types.syslog, "syslog")
+   syslog_modules = checks.load(ifid, checks.script_types.syslog, "syslog")
 
-   local configsets = user_scripts.getConfigsets()
-   syslog_conf = user_scripts.getTargetConfig(configsets, "syslog", getInterfaceName(ifid))
+   local configset = checks.getConfigset()
+   -- Configuration is global, system-wide
+   syslog_conf = checks.getConfig(configset, "syslog")
 end
 
 -- #################################################################
@@ -42,7 +49,7 @@ function teardown()
       local script = all_modules[mod_name]
 
       if syslog_module.teardown ~= nil then
-          local conf = user_scripts.getTargetHookConfig(syslog_conf, script)
+          local conf = checks.getTargetHookConfig(syslog_conf, script)
 
           if conf.enabled then
             syslog_module.teardown(conf.script_conf)

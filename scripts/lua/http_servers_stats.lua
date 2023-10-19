@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -11,12 +11,12 @@ local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.http_servers)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.http_servers)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 page_utils.print_page_title(i18n("http_servers_stats.local_http_servers"))
 
 print [[
-      <div id="table-http"></div>
+	  <div id="table-http"></div>
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())

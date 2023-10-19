@@ -1,0 +1,56 @@
+{#
+  (C) 2022-23 - ntop.org
+  This template is used by the `Host Map` page available into the Alerts menu.    
+#}
+
+
+<div id="host-map">
+  <page-host-map
+  :ifid="ifid"
+  :page_csrf="page_csrf"
+  :charts_options="charts_options"
+  :available_filters="available_filters">
+  </host-map>
+</div>
+  
+<script type="text/javascript">  
+  const pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+  const ifid = "{{ ifid }}";
+  const charts_options = {* host_map.charts_options *};
+  const available_filters = {
+    'bubble_mode': {* host_map.select_options *},
+  }
+
+  function start_vue() {
+    let vue_options = {
+      components: {	  
+        'page-host-map': ntopVue.PageHostMap,
+      },
+      /**
+      * First method called when the component is created.
+      */
+      created() { },
+      mounted() {
+      },
+      data() {
+        return {
+          ifid: ifid,
+          page_csrf: pageCsrf,
+          charts_options: charts_options,
+          available_filters: available_filters,
+        };
+      },
+      methods: { },
+    };
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount('#host-map');
+    return vue_app;
+  }
+
+  /* ******************************************************* */
+
+  $(function () {
+    // initialize script table
+    start_vue();
+  });
+</script>

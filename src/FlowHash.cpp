@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,8 +23,9 @@
 
 /* ************************************ */
 
-FlowHash::FlowHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_size) 
-  : GenericHash(_iface, _num_hashes, _max_hash_size, "FlowHash") {
+FlowHash::FlowHash(NetworkInterface *_iface, u_int _num_hashes,
+                   u_int _max_hash_size)
+    : GenericHash(_iface, _num_hashes, _max_hash_size, "FlowHash") {
   ;
 };
 
@@ -32,99 +33,85 @@ FlowHash::FlowHash(NetworkInterface *_iface, u_int _num_hashes, u_int _max_hash_
 
 static u_int16_t max_num_loops = 0;
 
-Flow* FlowHash::find(IpAddress *src_ip, IpAddress *dst_ip,
-		     u_int16_t src_port, u_int16_t dst_port, 
-		     u_int16_t vlanId, u_int8_t protocol,
-		     const ICMPinfo * const icmp_info,
-		     bool *src2dst_direction,
-		     bool is_inline_call) {
-  u_int32_t hash = ((src_ip->key() + dst_ip->key()
-		     + (icmp_info ? icmp_info->key() : 0)
-		     + src_port + dst_port + vlanId + protocol) % num_hashes);
-  Flow *head = (Flow*)table[hash];
+Flow *FlowHash::find(Mac *src_mac, Mac *dst_mac, IpAddress *src_ip,
+                     IpAddress *dst_ip, u_int16_t src_port, u_int16_t dst_port,
+                     u_int16_t vlanId, u_int16_t observation_point_id,
+                     u_int32_t private_flow_id, u_int8_t protocol,
+                     const ICMPinfo *const icmp_info, bool *src2dst_direction,
+                     bool is_inline_call, Flow **unswapped_flow) {
+  u_int32_t hash =
+      ((src_ip->key() + dst_ip->key() + (icmp_info ? icmp_info->key() : 0) +
+        private_flow_id + src_port + dst_port + vlanId + protocol) %
+       num_hashes);
+  Flow *head = (Flow *)table[hash];
   u_int16_t num_loops = 0;
 
-  if(!head)
-    return(NULL);
+  *unswapped_flow = NULL;
 
-  if(!is_inline_call)
-    locks[hash]->rdlock(__FILE__, __LINE__);
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u:%u / %u:%u [icmp: %u][key: %u][icmp info key: %u][head: 0x%x]",
+			       src_ip->key(), src_port, dst_ip->key(), dst_port, icmp_info ? 1 : 0, hash, icmp_info ? icmp_info->key() : 0, head);
+#endif
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%u:%u / %u:%u [icmp: %u][key: %u][icmp info key: %u][head: 0x%x]", src_ip->key(), src_port, dst_ip->key(), dst_port, icmp_info ? 1 : 0, hash, icmp_info ? icmp_info->key() : 0, head);
+  if (!head) return (NULL);
 
-  while(head) {
-    if(!head->idle()
-       && head->equal(src_ip, dst_ip, src_port, dst_port, vlanId, protocol, icmp_info, src2dst_direction)) {
-      if(num_loops > max_num_loops) {
-	ntop->getTrace()->traceEvent(TRACE_INFO, "DEBUG: [Num loops: %u][hashId: %u]", num_loops, hash);
-	max_num_loops = num_loops;
+  if (!is_inline_call) locks[hash]->rdlock(__FILE__, __LINE__);
+
+  while (head) {
+    if (!head->idle() &&
+        head->equal(src_mac, dst_mac, src_ip, dst_ip, src_port, dst_port,
+                    vlanId, observation_point_id, private_flow_id, protocol,
+                    icmp_info, src2dst_direction)) {
+      if (num_loops > max_num_loops) {
+        ntop->getTrace()->traceEvent(
+            TRACE_INFO, "DEBUG: [Num loops: %u][hashId: %u]", num_loops, hash);
+        max_num_loops = num_loops;
+      }
+
+      if (head->is_swap_requested()) {
+        /*
+          This is a good flow but in the wrong direction
+          hence we remember the flow unswapped but merge
+          data with the flow with the correct direction
+         */
+        *unswapped_flow = head;
+        head = NULL;
       }
 
       break;
     } else
-      head = (Flow*)head->next(), num_loops++;
+      head = (Flow *)head->next(), num_loops++;
   }
 
-  if(num_loops > max_num_loops) {
-    ntop->getTrace()->traceEvent(TRACE_INFO, "DEBUG: [Num loops: %u][hashId: %u]", num_loops, hash);
+  if (num_loops > max_num_loops) {
+    ntop->getTrace()->traceEvent(
+        TRACE_INFO, "DEBUG: [Num loops: %u][hashId: %u]", num_loops, hash);
     max_num_loops = num_loops;
   }
 
-  if(!is_inline_call)
-    locks[hash]->unlock(__FILE__, __LINE__);
+  if (!is_inline_call) locks[hash]->unlock(__FILE__, __LINE__);
 
-  return(head);
+  return (head);
 }
 
 /* ************************************ */
 
-Flow* FlowHash::findByKeyAndHashId(u_int32_t key, u_int hash_id) {
+Flow *FlowHash::findByKeyAndHashId(u_int32_t key, u_int32_t hash_id) {
   u_int32_t hash = key % num_hashes;
-  Flow *head = (Flow*)table[hash];
+  Flow *head = (Flow *)table[hash];
 
-  if(head == NULL) return(NULL);
+  if (head == NULL) return (NULL);
 
   locks[hash]->rdlock(__FILE__, __LINE__);
 
-  while(head) {
-    if(!head->idle() && head->get_hash_entry_id() == hash_id)
+  while (head) {
+    if ((!head->idle()) && (head->get_hash_entry_id() == hash_id))
       break;
     else
-      head = (Flow*)head->next();
+      head = (Flow *)head->next();
   }
 
   locks[hash]->unlock(__FILE__, __LINE__);
 
-  return((Flow*)head);
-}
-
-/* ************************************ */
-
-void FlowHash::walkAllStates(bool (*walker)(GenericHashEntry *h, void *user_data), void *user_data) {
-  periodic_ht_state_update_user_data_t *data = (periodic_ht_state_update_user_data_t *) user_data;
-  FlowAlertCheckLuaEngine *acle = getLuaVMUservalue(data->vm, flow_acle);
-
-  if(!acle) {
-    /* Allocate the check engine in the vm to reuse it across multiple
-     * ht_stats_update.lua calls */
-    acle = new (std::nothrow) FlowAlertCheckLuaEngine(getInterface());
-    getLuaVMUservalue(data->vm, flow_acle) = acle;
-  }
-
-  /* Set the deadline from the currently executing VM */
-  if(acle) acle->setThreadedActivityData(data->vm);
-
-  GenericHash::walkAllStates(walker, user_data);
-
-  if(acle) {
-    acle->lua_stats(getName(), data->vm);
-
-    if(data->thstats && (!data->skip_user_scripts)) {
-      /* Assume that all the user scripts have been executed */
-      data->thstats->setCurrentProgress(100);
-    }
-
-    /* Prepare for the next run */
-    acle->reset_stats();
-  }
+  return ((Flow *)head);
 }

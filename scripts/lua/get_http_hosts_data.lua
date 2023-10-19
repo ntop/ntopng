@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -116,12 +116,12 @@ for _key, _value in pairsByKeys(vals, funct) do
 	    local k = string.gsub(key, "%.", "___") -- Needed as JQuery does not like . in id= field
 
 	    print('\"key\" : \"'.. k ..'\",\n')
-	    print(' \"column_http_virtual_host\" : \"<A HREF=\'http://'..key..'\'>'..key.."</A> <i class='fas fa-external-link-alt'></i>")
+	    print(' \"column_http_virtual_host\" : \"' .. format_external_link(key, key, false, "http"))
 
-	    print(" <A HREF='")
+	    print(" <A HREF=\'")
 	    local url = ntop.getHttpPrefix().."/lua/flows_stats.lua?vhost="..key
-	    print(url.."'>")
-	    print("<i class='fas fa-search-plus fa-lg'></i>")
+	    print(url.."\'>")
+	    print("<i class=\'fas fa-search-plus fa-lg\'></i>")
 	    print("</A>")
 	    print("\",\n")
 	    print(" \"column_server_ip\" : \""..ip2detailshref(value["server.ip"], value["server.vlan"], {page = "http"}, value["server.ip"]).."\"")

@@ -1,86 +1,71 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 require "os"
 require "lua_utils"
+
 local ts_utils = require("ts_utils_core")
 
 local template = require "template_utils"
+local stats_utils = require("stats_utils")
 local page_utils = require "page_utils"
-
 local have_nedge = ntop.isnEdge()
 local info = ntop.getInfo(true)
 local is_admin = isAdministrator()
+local maxSpeed
 
-
-interface.select(ifname)
-local iface_id = interface.name2id(ifname)
+local ifid = interface.getId()
 local _ifstats = interface.getStats()
-local ifid = _ifstats.id
 
 if not interface.isPcapDumpInterface() and not have_nedge then
-   if(ifname ~= nil) then
-      maxSpeed = getInterfaceSpeed(_ifstats.id)
-   end
-   -- io.write(maxSpeed)
-   if((maxSpeed == "") or (maxSpeed == nil)) then
-      -- if the speed in not custom we try to read the speed from the interface
-      -- and, as a final resort, we use 1Gbps
-      if tonumber(_ifstats.speed) ~= nil then
-	 maxSpeed = tonumber(_ifstats.speed) * 1e6
-      else
-	 maxSpeed = 1000000000 -- 1 Gbit
-      end
+   -- if the speed in not custom we try to read the speed from the interface
+   -- and, as a final resort, we use 1Gbps
+   if tonumber(_ifstats.speed) ~= nil then
+      maxSpeed = tonumber(_ifstats.speed) * 1e6
    else
-      -- use the user-specified custom value for the speed
-      maxSpeed = tonumber(maxSpeed)*1000000
+      maxSpeed = 1000000000 -- 1 Gbit
    end
 end -- closes interface.isPcapDumpInterface() == false
 
 if not info.oem then
 
-print ([[
-<footer id="n-footer">
-	<div class="container-fluid border-top">
-		<div class="row mt-2">
-			<div class="col-4 text-left">
-				<small>
-					<a href="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">
-				  		]] .. (info.product .. ' ' .. getNtopngRelease(info) .." Edition v.".. info.version) ..[[
-					</a>
-					|
-					<a href="https://github.com/ntop/ntopng"><i class="fab fa-github"></i></a>
-				</small>
-			</div>
-			<div class="col-4 text-center">
-				<small>]].. ntop.getInfo()["copyright"] ..[[</small>
-]])
-print [[
-			</div>
-			<div class="col-4 text-right">
-				<small>
-					<div class="text-right">
-						<i class="fas fa-clock" title="]] print(i18n("about.server_time")) print[["></i> <div class="d-inline-block" id='network-clock'></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
-					</div>
-				</small>
-			</div>
-     	</div>
-   </div>
-</footer>
-]]
+-- print ([[
+-- <hr>
+-- <footer id="n-footer">
+-- 	<div class="container-fluid">
+-- 		<div class="row mt-2">
+-- 			<div class="col-12 col-md-4 pl-md-0 text-center text-md-start">
+-- 				<small>
+-- 					<a href="https://www.ntop.org/products/traffic-analysis/ntop/" target="_blank">
+-- 				  		]] .. getNtopngRelease(info) ..[[
+-- 					</a>
+-- 				</small>
+-- 			</div>
+-- 			<div class="col-12 col-md-4 text-center">
+-- 				<small>]].. ntop.getInfo()["copyright"] ..[[</small>
+-- ]])
+-- print [[
+-- 			</div>
+-- 			<div class="col-12 col-md-4 text-center text-md-end pr-md-0">
+-- 				<small>
+-- 						<i class="fas fa-clock" title="]] print(i18n("about.server_time")) print[["></i> <div class="d-inline-block" id='network-clock'></div> ]] if(info.tzname ~= nil) then print(info.tzname) end print(" | ") print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
+-- 				</small>
+-- 			</div>
+--      	</div>
+--    </div>
+-- </footer>
+-- ]]
 
-else -- info.oem
-  print[[<div class="col-12 text-right">
-    <small>
-	    <div class="text-right">
-		    <i class="fas fa-clock"></i> <div class="d-inline-block" id='network-clock' title="]] print(i18n("about.server_time")) print[["></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
-	    </div>
-    </small>
-</div>]]
+-- else -- info.oem
+--   print[[<div class="col-12 text-end">
+--     <small>
+-- 		<i class="fas fa-clock"></i> <div class="d-inline-block" id='network-clock' title="]] print(i18n("about.server_time")) print[["></div> | ]] print(i18n("about.uptime")) print[[: <div class="d-inline-block" id='network-uptime'></div>
+--     </small>
+-- </div>]]
 end
 
-local traffic_peity_width = "64"
+local traffic_peity_width = "96"
 
 if ts_utils.getDriverName() == "influxdb" then
 
@@ -95,446 +80,383 @@ if ts_utils.getDriverName() == "influxdb" then
    end
 end
 
--- Toogle System Interface
+-- Dismiss Notification Code and Toggle Dark theme
+print([[
+	<script type='text/javascript'>
+		$(document).ready(function() {
+
+			$(`.notification button.dismiss`).click(function() {
+				const $toast = $(this).parents('.notification');
+				const id = $toast.data("toastId");
+				ToastUtils.dismissToast(id, "]].. ntop.getRandomCSRFValue() ..[[", (data) =>{
+					if (data.success) $toast.toast('hide');
+				});
+			});
+
+			$(`.toggle-dark-theme`).click(function() {
+				const request = $.post(`]].. ntop.getHttpPrefix() ..[[/lua/update_prefs.lua`, {
+					action: 'toggle_theme', toggle_dark_theme: ]].. tostring(not page_utils.is_dark_mode_enabled()) ..[[,
+					csrf: "]].. ntop.getRandomCSRFValue() ..[["
+				});
+				request.done(function(res) {
+					if (res.success) location.reload();
+				});
+			});
+		});
+	</script>
+]])
+
+-- Restart product code
+if (is_admin and ntop.isPackage() and not ntop.isWindows()) then
+
+	print(template.gen("modal_confirm_dialog.html", {
+		dialog = {
+			id = 'restart-modal',
+			action = 'restartService()',
+			title = i18n("restart.restart_product", {product=info.product}),
+			message = i18n("restart.confirm", {product=info.product}),
+			custom_alert_class = 'alert alert-danger',
+			confirm = i18n('restart.restart'),
+			confirm_button = 'btn-danger'
+		}
+	}))
+
+
+
+	print[[
+		<script type="text/javascript">
+
+		 const restartCSRF = ']] print(ntop.getRandomCSRFValue()) print[[';
+		 const restartService = function() {
+			 $.ajax({
+			   type: 'POST',
+			   url: ']] print (ntop.getHttpPrefix()) print [[/lua/admin/service_restart.lua',
+			   data: {
+				 csrf: restartCSRF
+			   },
+			   success: function(rsp) {
+				 alert("]] print(i18n("restart.restarting", {product=info.product})) print[[");
+				 $('#restart-modal').modal('hide');
+			   }
+			 });
+		 }
+
+		 $('.restart-service').click(() => {
+			$('#restart-modal').modal('show');
+		 });
+
+	   </script>
+	]]
+end
+
 
 -- render switchable system view
-
 print([[
 	<script type="text/javascript">
 
-	   const toggle_system_flag = (is_system_switch = false, $form = null) => {
-		  // if form it's empty it means the call was not invoked
-		  // by a form request
-		  // prevent the non admin user to switch in system interface
-		  const is_admin = ]].. (is_admin and "true" or "false") ..[[;
-		  const flag = (is_system_switch && is_admin) ? "1" : "0";
+		$(document).ready(function() {
 
-		  $.post(`]].. (ntop.getHttpPrefix()) ..[[/lua/switch_system_status.lua`, {
-			 system_interface: flag,
-			 csrf: "]].. ntop.getRandomCSRFValue() ..[["
-		  }, function(data) {
-			 if (data.success && $form == null) location.href = ']]..ntop.getHttpPrefix()..[[/';
-			 if (data.success && $form != null) $form.submit();
-			 if (!data.success) {
-				console.error("An error has occurred!");
-			 }
+			// ignore scientific numbers input
+			$(`.ignore-scientific`).keypress(function(e) {
+				if (e.which != 8 && e.which != 0 && e.which < 48 || e.which > 57) {
+					e.preventDefault();
+				}
+			})
 
-		  });
+			ToastUtils.initToasts();
+		});
+
+	   const toggleSystemInterface = ($form = null) => {
+			if($form != null) {
+				$form.submit(); 				
+			}
+			else {
+				console.error("An error has occurred when switching interface!");
+			}
 	   }
 	]])
-
-	if (not page_utils.is_system_view()) then
-
-		print([[
-		$(document).ready(function() {
-			$("#btn-trigger-system-mode").click(function(e) {
-				toggle_system_flag(]].. (is_admin and "true" or "false") ..[[);
-			});
-		});
-		]])
-	end
-
 print([[
 	</script>
 ]])
 
--- End of Toggle System Interface
-
--- Only show the message if the host protocol/category timeseries are enabled
-local message_enabled = (areHostL7TimeseriesEnabled(ifid) or areHostCategoriesTimeseriesEnabled(ifid)) and
-   (ts_utils.getDriverName() ~= "influxdb") and
-   (ntop.getPref("ntopng.prefs.disable_ts_migration_message") ~= "1")
-
 print [[
 <script type="text/javascript">
-
 ]]
-
-if not info.oem then
-
-	-- Blog Notification click handling
-	print([[
-		$(document).ready(function() {
-
-			const csrf_notification = "]].. ntop.getRandomCSRFValue() ..[[";
-			function blogNotifcationClick(e) {
-
-				if (e.type == "mousedown" && (e.metaKey || e.ctrlKey || e.which !== 2)) return;
-
-				const id = $(this).data('id');
-				$.post(`]].. ntop.getHttpPrefix() ..[[/lua/update_blog_posts.lua`, {
-					blog_notification_id: id,
-					csrf: csrf_notification
-				},
-				(data) => {
-
-					if (data.success) {
-						$(this)
-							.off('click').off('mousedown')
-							.attr('data-read', 'true').data('read', 'true')
-							.find('.badge').remove();
-						const count = $(`.blog-notification[data-read='false']`).length;
-
-						if (count == 0) {
-							$('.notification-bell').remove();
-							return;
-						}
-						$('.notification-bell').html(count);
-					}
-				});
-			}
-
-			$(`.blog-notification[data-read='false']`)
-				.click(blogNotifcationClick)
-				.mousedown(blogNotifcationClick);
-		});
-	]])
-
-	-- Major release check
-	local latest_major = ntop.getCache("ntopng.cache.major_release")
-
-	latest_major = trimSpace(string.gsub(latest_major, "\n", ""))
-
-	if isEmptyString(latest_major) then
-		print[[
-		$.ajax({
-		type: 'GET',
-		url: ']]
-			print (ntop.getHttpPrefix())
-			print [[/lua/check_major_release.lua',
-		data: {},
-		success: function(rsp) {
-			if(rsp && rsp.msg) {
-			$("#ntopng_update_available").html(rsp.msg);
-			$("#major-release-alert").show();
-			}
-		}
-		});
-		]]
-	else
-		local msg = get_version_update_msg(info, latest_major)
-
-		if not isEmptyString(msg) then
-		print[[
-		$("#ntopng_update_available").html(`]] print(msg) print[[`);
-		$("#major-release-alert").show();
-		]]
-		end
-	end
-end
 
 print[[
 var is_historical = false;
+let updatingChart_uploads = [
+	$("#n-navbar .network-load-chart-upload").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null }),
+	$(".mobile-menu-stats .network-load-chart-upload").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null }),
+];
+let updatingChart_downloads = [
+	$("#n-navbar .network-load-chart-download").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"}),
+	$(".mobile-menu-stats .network-load-chart-download").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"})
+];
+let updatingChart_totals = [
+	$("#n-navbar .network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null}),
+	$(".mobile-menu-stats .network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null})
+];
 
-function checkMigrationMessage(data) {
-  const max_local_hosts = 500;
-  let enabled = ]] print(ternary(message_enabled, "true", "false")) print[[;
+$(`.copy-http-url`).on('click', function() {
+  let sampleTextarea = document.createElement("textarea");
+  document.body.appendChild(sampleTextarea);
+  sampleTextarea.value = $(this).attr('data-to-copy');
+  sampleTextarea.select(); //select textarea content
+  document.execCommand("copy");
+  document.body.removeChild(sampleTextarea);
+})
 
-  if(enabled && (data.num_local_hosts > max_local_hosts))
-    $("#move-rrd-to-influxdb").show();
-}
-
-$("#move-rrd-to-influxdb, #host-id-message-warning, #influxdb-error-msg").on("close.bs.alert", function() {
-  $.ajax({
-		type: 'POST',
-		url: ']] print (ntop.getHttpPrefix()) print [[/lua/update_prefs.lua',
-		data: {
-			csrf: ']] print(ntop.getRandomCSRFValue()) print[[',
-			action: this.id,
-			ifid: ]] print(string.format("%u", _ifstats.id)) print[[,
-		}
-	});
-});
-
-let updatingChart_upload = $(".network-load-chart-upload").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null });
-let updatingChart_download = $(".network-load-chart-download").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null, fill: "lightgreen"});
-let updatingChart_total = $(".network-load-chart-total").show().peity("line", { width: ]] print(traffic_peity_width) print[[, max: null});
-
+let isFooterRefreshInProcess = false;
 const footerRefresh = function() {
-    $.ajax({
-      type: 'GET',
-	  url: ']]print (ntop.getHttpPrefix()) print [[/lua/rest/v1/get/interface/data.lua',
-	  data: { ifid: ]] print(tostring(ifid)) print[[ },
-	  /* error: function(content) { alert("JSON Error (session expired?): logging out"); window.location.replace("]] print (ntop.getHttpPrefix()) print [[/lua/logout.lua");  }, */
-	  success: function(content) {
-          if(content["rc_str"] != "OK") {
-            return;
-          }
+	if (isFooterRefreshInProcess == true) { return; }
+	isFooterRefreshInProcess = true;
+	$.ajax({
+		type: 'GET',
+		url: ']]print (ntop.getHttpPrefix()) print [[/lua/rest/v2/get/interface/data.lua',
+		data: { ifid: ]] print(tostring(ifid)) print[[, type: 'summary' },
+		success: function(content) {
+			isFooterRefreshInProcess = false;
+			if(content["rc_str"] != "OK") {
+				return;
+			}
 
-          const rsp = content["rsp"];
-	  try {
-	      var values = updatingChart_upload.text().split(",")
-	      var values1 = updatingChart_download.text().split(",")
-	      var values2 = updatingChart_total.text().split(",")
+			const rsp = content["rsp"];
 
-	      var pps = rsp.throughput_pps;
-	      var bps = rsp.throughput_bps * 8;
-	      var bps_upload = rsp.throughput.upload.bps * 8;
-	      var bps_download = rsp.throughput.download.bps * 8;
+      try {
+ntopng_events_manager.emit_custom_event(ntopng_custom_events.GET_INTERFACE_DATA, rsp);
+        let bps_upload = rsp.throughput.upload * 8;
+        let bps_download = rsp.throughput.download * 8;
 
-	      if(rsp.remote_pps != 0) {
-		pps = Math.max(rsp.remote_pps, 0);
-	      }
-	      if(rsp.remote_bps != 0) {
-		bps = Math.max(rsp.remote_bps, 0);
-		bps = Math.min(bps, rsp.speed * 1e6);
-	      }
+        /* Upload chart */
+        let values = updatingChart_uploads[0].text().split(",")
+        values.shift();
+        values.push(bps_upload.toString());
+        updatingChart_uploads[0].text(values.join(",")).change();
+        updatingChart_uploads[1].text(values.join(",")).change();
+        $('.chart-upload-text:visible').html(NtopUtils.bitsToSize(bps_upload, 1000));
+        
+        /* Download chart */
+        values = updatingChart_downloads[0].text().split(",")
+        values.shift();
+        values.push((-bps_download).toString());
+        updatingChart_downloads[0].text(values.join(",")).change();
+        updatingChart_downloads[1].text(values.join(",")).change();
+        $('.chart-download-text:visible').html(NtopUtils.bitsToSize(bps_download, 1000));
 
-	      values.shift();
-	      values.push(bps_upload);
-	      updatingChart_upload.text(values.join(",")).change();
-	      values1.shift();
-	      values1.push(-bps_download);
-	      updatingChart_download.text(values1.join(",")).change();
-	      values2.shift();
-	      values2.push(bps);
-	      updatingChart_total.text(values2.join(",")).change();
-	      var v = bps_upload - bps_download;
-
-]]
+        /* Disaggregate interface chart */
+        values = updatingChart_totals[0].text().split(",")
+        values.shift();
+        values.push(rsp.throughput_bps * 8);
+        updatingChart_totals[0].text(values.join(",")).change();
+        updatingChart_totals[1].text(values.join(",")).change();
+  ]]
 
 if (interface.isPcapDumpInterface() == false) and (not have_nedge) then
    print[[
-
-		var v = Math.round(Math.min((bps*100)/]] print(string.format("%u", maxSpeed)) print[[, 100));
-		$('#networkload').html(v+"%");
+        const v = Math.round(Math.min((rsp.throughput_bps * 8 *100)/]] print(string.format("%u", maxSpeed)) print[[, 100));
+        $('.network-load').html(v+"%");
 ]]
 end
 
+-- systemInterfaceEnabled is defined inside menu.lua
 print[[
-		$('#chart-upload-text').html(""+bitsToSize(bps_upload, 1000));
-		$('#chart-download-text').html(""+bitsToSize(bps_download, 1000));
-		$('#chart-total-text').html(""+bitsToSize(bps_upload + bps_download, 1000));
-     ]]
+				//$('#network-clock').html(`${rsp.localtime}`);
+				//$('#network-uptime').html(`${rsp.uptime}`);
 
--- system_view_enabled is defined inside menu.lua
+				let msg = `<div class='m-2'><div class='d-flex flex-wrap navbar-main-badges'>`;
+				
+				if(rsp.out_of_maintenance) {
+					msg += "<a href=\"https://www.ntop.org/support/faq/how-can-i-renew-maintenance-for-commercial-products/\" target=\"_blank\"><span class=\"badge bg-warning\">]] print(i18n("about.maintenance_expired", {product=info["product"]})) print[[ <i class=\"fas fa-external-link-alt\"></i></span></a> ";
+				}
 
-print[[
-		$('#network-clock').html(`${rsp.localtime}`);
-		$('#network-uptime').html(`${rsp.uptime}`);
+				if(rsp.degraded_performance) {
+				   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/system_interfaces_stats.lua?page=internals&tab=periodic_activities&periodic_script_issue=any_issue\">"
+					msg += "<span class=\"badge bg-warning\"><i class=\"fas fa-exclamation-triangle\" title=\"]] print(i18n("internals.degraded_performance")) print[[\"></i></span></a>";
+				}
 
-		let msg = `<li class='nav-item mx-2'><div class='d-flex'>`;
+				if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[) {
 
-		if (rsp.system_host_stats.cpu_states) {
-            const iowait = ']] print(i18n("about.iowait")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.iowait) + "%";
-            const active = ']] print(i18n("about.active")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.user + rsp.system_host_stats.cpu_states.system  + rsp.system_host_stats.cpu_states.nice + rsp.system_host_stats.cpu_states.irq + rsp.system_host_stats.cpu_states.softirq + rsp.system_host_stats.cpu_states.guest + rsp.system_host_stats.cpu_states.guest_nice) + "%";
-            const idle = ']] print(i18n("about.idle")) print[[: ' + formatValue(rsp.system_host_stats.cpu_states.idle + rsp.system_host_stats.cpu_states.steal) + "%";
-            $('#cpu-states').html(iowait + " / " + active + " / " + idle);
-        }
+					var error_color = "#B94A48";
 
-		if (rsp.system_host_stats.mem_total != undefined) {
-		   var mem_total = rsp.system_host_stats.mem_total;
-		   var mem_used = rsp.system_host_stats.mem_used;
-		   var mem_used_ratio = mem_used / mem_total;
+					if(rsp.engaged_alerts > 0) {
+                                                let alerts_badge = "bg-info";
 
-		   mem_used_ratio = mem_used_ratio * 100;
-		   mem_used_ratio = Math.round(mem_used_ratio * 100) / 100;
-		   mem_used_ratio = mem_used_ratio + "%";
+                                                if(rsp.engaged_alerts_error > 0) alerts_badge = "bg-danger";
+                                                else if(rsp.engaged_alerts_warning > 0) alerts_badge = "bg-warning";
 
-		   $('#ram-used').html(']] print(i18n("ram_used")) print[[: ' + mem_used_ratio + ' / ]] print(i18n("ram_available")) print[[: ' + bytesToSize((mem_total - mem_used) * 1024) + ' / ]] print(i18n("ram_total")) print[[: ' + bytesToSize(mem_total * 1024));
-		   $('#ram-process-used').html(']] print(i18n("ram_used")) print[[: ' + bytesToSize(rsp.system_host_stats.mem_ntopng_resident * 1024));
+						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/alert_stats.lua?ifid=]] print(tostring(ifid)) print[[&status=engaged\">"
+						msg += "<span class=\"badge " + alerts_badge + "\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.formatValue(rsp.engaged_alerts, 1)+"</span></a>";
+					}
+
+					if(rsp.alerted_flows_warning > 0 && !(systemInterfaceEnabled)) {
+						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?alert_type_severity=warning\">"
+						msg += "<span class=\"badge bg-warning\" title=']] print(i18n("flow_details.alerted_flows")) print[['>"+NtopUtils.formatValue(rsp.alerted_flows_warning, 1)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
+					}
+
+					if(rsp.alerted_flows_error > 0 && !(systemInterfaceEnabled)) {
+						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?alert_type_severity=error\">"
+						msg += "<span class=\"badge bg-danger\" title=']] print(i18n("flow_details.dangerous_flows")) print[['>"+NtopUtils.formatValue(rsp.alerted_flows_error, 1)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
+					}
+
+					if(rsp.active_discovery_active === true) {
+						msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/discover.lua'>"
+						msg += "<span class=\"badge bg-warning\" title=']] print(i18n("prefs.network_discovery_running")) print[['><i class=\"fas fa-project-diagram\"></i></span></a>";
+					}
+				}
+
+				if((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && $("#alerts-id").is(":visible") == false) {
+					$("#alerts-id").show();
+				}
+
+				if(rsp.ts_alerts && rsp.ts_alerts.influxdb && (!systemInterfaceEnabled)) {
+					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/monitor/influxdb_monitor.lua?ifid=]] print(tostring(ifid)) print[[&page=alerts#tab-table-engaged-alerts\">"
+					msg += "<span class=\"badge bg-danger\"><i class=\"fas fa-database\"></i></span></a>";
+				}
+
+				var alarm_threshold_low = 60;  /* 60% */
+				var alarm_threshold_high = 90; /* 90% */
+				var alert = 0;
+
+				if(rsp.num_local_hosts > 0 && (!systemInterfaceEnabled)) {
+					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=local\">";
+					msg += "<span title=\"]] print(i18n("local_hosts")) print[[\" class=\"badge bg-success\">";
+					msg += NtopUtils.formatValue(rsp.num_local_hosts, 1);
+					if(rsp.num_local_rcvd_only_hosts > 0) msg += " ("+NtopUtils.formatValue(rsp.num_local_rcvd_only_hosts, 1)+")";
+					msg += " <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+				}
+
+				const num_remote_hosts = rsp.num_hosts - rsp.num_local_hosts;
+				if(num_remote_hosts > 0 && (!systemInterfaceEnabled)) {
+					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=remote\">";
+					var remote_hosts_label = "]] print(i18n("remote_hosts")) print[[";
+
+					if (rsp.hosts_pctg < alarm_threshold_low && !systemInterfaceEnabled) {
+						msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge bg-secondary\">";
+					} else if (rsp.hosts_pctg < alarm_threshold_high && !systemInterfaceEnabled) {
+						alert = 1;
+						msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge bg-warning\">";
+					} else {
+						alert = 1;
+						msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge bg-danger\">";
+					}
+
+					msg += NtopUtils.formatValue(num_remote_hosts, 1);
+					if(rsp.num_rcvd_only_hosts > 0) msg += " ("+NtopUtils.formatValue(rsp.num_rcvd_only_hosts, 1)+")";
+					msg += " <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
+				}
+
+				if(rsp.num_devices > 0 && (!systemInterfaceEnabled)) {
+					var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
+					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
+
+					if (rsp.macs_pctg < alarm_threshold_low) {
+						msg += "<span title=\"" + macs_label +"\" class=\"badge bg-secondary\">";
+					} else if(rsp.macs_pctg < alarm_threshold_high) {
+						alert = 1;
+						msg += "<span title=\"" + macs_label +"\" class=\"badge bg-warning\">";
+					} else {
+						alert = 1;
+						msg += "<span title=\"" + macs_label +"\" class=\"badge bg-danger\">";
+					}
+
+					msg += NtopUtils.formatValue(rsp.num_devices, 1)+" <i class=\"fas fa-ethernet\"></i></span></a>";
+				}
+
+				if(rsp.num_flows > 0 && (!systemInterfaceEnabled)) {
+          msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua\">";
+          const flows_label = "]] print(i18n("live_flows")) print[["
+					if (rsp.flows_pctg < alarm_threshold_low) {
+						msg += "<span title=\"" + flows_label +"\" class=\"badge bg-secondary\">";
+					} else if(rsp.flows_pctg < alarm_threshold_high) {
+						alert = 1;
+						msg += "<span title=\"" + flows_label +"\" class=\"badge bg-warning\">";
+					} else {
+						alert = 1;
+						msg += "<span title=\"" + flows_label +"\" class=\"badge bg-danger\">";
+					}
+
+					msg += NtopUtils.formatValue(rsp.num_flows, 1)+" <i class=\"fas fa-stream\"></i>  </span> </a>";
+
+					if (rsp.flow_export_drops > 0) {
+						const export_pctg = rsp.flow_export_drops / (rsp.flow_export_count + rsp.flow_export_drops + 1);
+						if (export_pctg > ]] print(stats_utils.UPPER_BOUND_INFO_EXPORTS) print[[) {
+							const badge_class = (export_pctg <= ]] print(stats_utils.UPPER_BOUND_WARNING_EXPORTS) print[[) ? 'warning' : 'danger';
+							msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua\"><span class=\"badge bg-"+badge_class+"\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+NtopUtils.formatValue(rsp.flow_export_drops, 1)+" Export drop";
+							if(rsp.flow_export_drops > 1) msg += "s";
+							msg += "</span></a>";
+						}
+					}
+
+				}
+
+				if ((rsp.num_live_captures != undefined) && (rsp.num_live_captures > 0) && (!systemInterfaceEnabled)) {
+					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/live_capture_stats.lua\">";
+					msg += "<span class=\"badge bg-primary\">";
+					msg += NtopUtils.addCommas(rsp.num_live_captures)+" <i class=\"fas fa-download fa-lg\"></i></span></a>";
+				}
+
+				if (rsp.traffic_recording != undefined && (!systemInterfaceEnabled)) {
+
+					var status_label="primary";
+					var status_title="]] print(i18n("traffic_recording.recording")) print [[";
+
+					if (rsp.traffic_recording != "recording") {
+						status_label = "danger";
+						status_title = "]] print(i18n("traffic_recording.failure")) print [[";
+					}
+
+					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=traffic_recording&tab=status\">";
+					msg += "<span class=\"badge bg-"+status_label+"\" title=\""+NtopUtils.addCommas(status_title)+"\">";
+					msg += "<i class=\"fas fa-hdd fa-lg\"></i></span></a>";
+				}
+
+				if (rsp.traffic_extraction != undefined && (!systemInterfaceEnabled)) {
+
+					var status_title="]] print(i18n("traffic_recording.traffic_extraction_jobs")) print [[";
+					var status_label = "secondary";
+
+					if (rsp.traffic_extraction == "ready") status_label="primary";
+
+					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=traffic_recording&tab=jobs\">";
+					msg += "<span class=\"badge bg-"+status_label+"\" title=\""+NtopUtils.addCommas(status_title)+"\">";
+					msg += rsp.traffic_extraction_num_tasks+" <i class=\"fas fa-tasks fa-lg\"></i></span></a>";
+				}
+]]
+
+if ntop.isOffline() then
+	print [[
+				msg += "<a href=\"#\" style=\"cursor: default\"><span title=\"]] print (i18n("offline")) print [[\" class=\"badge bg-secondary\"><i class=\"fas fa-plane\"></i></span></a>";
+	]]
+end
+
+print [[
+				msg += '</div></div>';
+				// append the message inside the network-load element
+				const $msg = $(msg);
+				// resize element's font size to fit better
+				if ($msg.width() > $msg.css('max-width')) {
+					$msg.find('span').css('font-size', '0.748rem');
+				}
+
+				$('.network-load').html($msg);
+
+			} catch(e) {
+				console.warn(e);
+				/* alert("JSON Error (session expired?): logging out"); window.location.replace("]]print (ntop.getHttpPrefix())print [[/lua/logout.lua");  */
+			}
 		}
-
-                if(rsp.system_host_stats.dropped_alerts) {
-                  const drop_pct = rsp.system_host_stats.dropped_alerts / (rsp.system_host_stats.dropped_alerts + rsp.system_host_stats.written_alerts) * 100;
-                  $('#dropped-alerts').html(fint(rsp.system_host_stats.dropped_alerts) + " [" + fpercent(drop_pct) + "]");
-                } else {
-                  $('#dropped-alerts').html("0");
-                }
-		$('#stored-alerts').html(rsp.system_host_stats.written_alerts ? fint(rsp.system_host_stats.written_alerts) : "0");
-		$('#alerts-queries').html(rsp.system_host_stats.alerts_queries ? fint(rsp.system_host_stats.alerts_queries) : "0");
-
-		if (rsp.system_host_stats.cpu_load !== undefined) $('#cpu-load-pct').html(ffloat(rsp.system_host_stats.cpu_load));
-
-        if(rsp.out_of_maintenance) {
-          msg += "<a href=\"https://www.ntop.org/support/faq/how-can-i-renew-maintenance-for-commercial-products/\" target=\"_blank\"><span class=\"badge badge-warning\">]] print(i18n("about.maintenance_expired", {product=info["product"]})) print[[ <i class=\"fas fa-external-link-alt\"></i></span></a> ";
-        }
-
-        if(rsp.degraded_performance) {
-		   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/system_interfaces_stats.lua?page=internals&tab=periodic_activities&periodic_script_issue=any_issue\">"
-		    msg += "<span class=\"badge badge-warning\"><i class=\"fas fa-exclamation-triangle\" title=\"]] print(i18n("internals.degraded_performance")) print[[\"></i></span></a>";
-		}
-
-		if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[ && (!system_view_enabled)) {
-
-		   var error_color = "#B94A48";
-
-		   if(rsp.engaged_alerts > 0) {
-		   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/show_alerts.lua\">"
-		    msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\"></i> "+addCommas(rsp.engaged_alerts)+"</span></a>";
-		   }
-
-		   if(rsp.alerted_flows > 0) {
-			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?flow_status=alerted\">"
-		    msg += "<span class=\"badge badge-danger\">"+addCommas(rsp.alerted_flows)+ " ]] print(i18n("flows")) print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
-		   }
-		}
-
-		if((rsp.engaged_alerts > 0 || rsp.has_alerts > 0 || rsp.alerted_flows > 0) && $("#alerts-id").is(":visible") == false) {
-		  $("#alerts-id").show();
-		}
-
-		if(rsp.ts_alerts && rsp.ts_alerts.influxdb && (!system_view_enabled)) {
-		  msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/plugins/influxdb_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=alerts#tab-table-engaged-alerts\">"
-		  msg += "<span class=\"badge badge-danger\"><i class=\"fas fa-database\"></i></span></a>";
-		}
-
-		var alarm_threshold_low = 60;  /* 60% */
-		var alarm_threshold_high = 90; /* 90% */
-		var alert = 0;
-
-		if(rsp.num_local_hosts > 0 && (!system_view_enabled)) {
-		  msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=local\">";
-		  msg += "<span title=\"]] print(i18n("local_hosts")) print[[\" class=\"badge badge-success\">";
-		  msg += addCommas(rsp.num_local_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
-
-		  checkMigrationMessage(rsp);
-		}
-
-                const num_remote_hosts = rsp.num_hosts - rsp.num_local_hosts;
-		if(num_remote_hosts > 0 && !system_view_enabled) {
-			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=remote\">";
-			var remote_hosts_label = "]] print(i18n("remote_hosts")) print[[";
-
-			if (rsp.hosts_pctg < alarm_threshold_low && !system_view_enabled) {
-			  msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge badge-secondary\">";
-			}
-			else if (rsp.hosts_pctg < alarm_threshold_high && !system_view_enabled) {
-			  alert = 1;
-			  msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge badge-warning\">";
-			}
-			else {
-			  alert = 1;
-			  msg += "<span title=\"" + remote_hosts_label +"\" class=\"badge badge-danger\">";
-			}
-
-			msg += addCommas(num_remote_hosts)+" <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
-		}
-
-	    if(rsp.num_devices > 0 && !system_view_enabled) {
-	    	var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
-			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
-
-			if (rsp.macs_pctg < alarm_threshold_low) {
-				msg += "<span title=\"" + macs_label +"\" class=\"badge badge-secondary\">";
-			}
-			else if(rsp.macs_pctg < alarm_threshold_high) {
-				alert = 1;
-				msg += "<span title=\"" + macs_label +"\" class=\"badge badge-warning\">";
-			}
-			else {
-				alert = 1;
-				msg += "<span title=\"" + macs_label +"\" class=\"badge badge-danger\">";
-			}
-
-			msg += addCommas(rsp.num_devices)+" ]] print(i18n("devices")) print[[</span></a>";
-	    }
-
-	    if(rsp.num_flows > 0 && !system_view_enabled) {
-    		msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua\">";
-
-			if (rsp.flows_pctg < alarm_threshold_low) {
-				msg += "<span class=\"badge badge-secondary\">";
-			}
-			else if(rsp.flows_pctg < alarm_threshold_high) {
-				alert = 1;
-				msg += "<span class=\"badge badge-warning\">";
-			}
-			else {
-				alert = 1;
-				msg += "<span class=\"badge badge-danger\">";
-			}
-
-			msg += addCommas(rsp.num_flows)+" ]] print(i18n("flows")) print[[ </span> </a>";
-
-			if (rsp.flow_export_drops > 0) {
-		   		msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua\"><span class=\"badge badge-danger\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+addCommas(rsp.flow_export_drops)+" Export drop";
-		   		if(rsp.flow_export_drops > 1) msg += "s";
-				msg += "</span></a>";
-			}
-
-	    }
-
-	    if ((rsp.num_live_captures != undefined) && (rsp.num_live_captures > 0) && (!system_view_enabled)) {
-			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/live_capture_stats.lua\">";
-			msg += "<span class=\"badge badge-primary\">";
-			msg += addCommas(rsp.num_live_captures)+" <i class=\"fas fa-download fa-lg\"></i></span></a>";
-	    }
-
-	    if (rsp.remote_assistance != undefined && (!system_view_enabled)) {
-
-	    	var status = rsp.remote_assistance.status;
-		  	var status_label = (status == "active") ? "success" : "danger";
-	      	msg += "<a href=\"]] print(ntop.getHttpPrefix()) print[[/lua/admin/remote_assistance.lua?tab=status\"><span class=\"badge badge-" + status_label + "\" title=\"]] print(i18n("remote_assistance.remote_assistance")) print[[\">";
-	      	msg += "<i class=\"fas fa-comment-dots fa-lg\"></i></span></a>";
-	    }
-
-	    if (rsp.traffic_recording != undefined && (!system_view_enabled)) {
-
-			var status_label="primary";
-			var status_title="]] print(i18n("traffic_recording.recording")) print [[";
-
-			if (rsp.traffic_recording != "recording") {
-				status_label = "danger";
-				status_title = "]] print(i18n("traffic_recording.failure")) print [[";
-			}
-
-			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=traffic_recording&tab=status\">";
-			msg += "<span class=\"badge badge-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
-			msg += "<i class=\"fas fa-hdd fa-lg\"></i></span></a>";
-	    }
-
-	    if (rsp.traffic_extraction != undefined && (!system_view_enabled)) {
-
-			var status_title="]] print(i18n("traffic_recording.traffic_extraction_jobs")) print [[";
-			var status_label = "secondary";
-
-			if (rsp.traffic_extraction == "ready") status_label="primary";
-
-			msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=traffic_recording&tab=jobs\">";
-			msg += "<span class=\"badge badge-"+status_label+"\" title=\""+addCommas(status_title)+"\">";
-			msg += rsp.traffic_extraction_num_tasks+" <i class=\"fas fa-tasks fa-lg\"></i></span></a>";
-		}
-
-		msg += '</div></li>';
-		// append the message inside the network-load element
-		const $msg = $(msg);
-		// resize element's font size to fit better
-		if ($msg.width() > $msg.css('max-width')) {
-			$msg.find('span').css('font-size', '0.748rem');
-		}
-
-		$('#network-load').html($msg);
-
-	    if (alert) {
-			$('#toomany').html("<div class='alert alert-warning'><h4>]] print(i18n("warning")) print[[</h4>]] print(i18n("about.you_have_too_many_flows", {product=info["product"]})) print[[.</div>");
-	    }
-
-	  } catch(e) {
-	     console.warn(e);
-	     /* alert("JSON Error (session expired?): logging out"); window.location.replace("]]print (ntop.getHttpPrefix())print [[/lua/logout.lua");  */
-	  }
-	}
-      });
+	});
 }
 
 $(document).ajaxError(function(err, response, ajaxSettings, thrownError) {
-  if((response.status == 403) && (response.responseText == "Login Required"))
-    window.location.href = "]] print(ntop.getHttpPrefix().."/lua/login.lua") print[[";
+	if((response.status == 403) && (response.responseText == "Login Required"))
+		window.location.href = "]] print(ntop.getHttpPrefix().."/lua/login.lua") print[[";
 });
 
 footerRefresh();  /* call immediately to give the UI a more responsive look */
-setInterval(footerRefresh, ]]
 
-local footer_refresh_rate = ntop.getPrefs()["housekeeping_frequency"]
-
-print(footer_refresh_rate.."")
-print[[ * 1000);  /* re-schedule every [interface-rate] seconds */
-
-//Enable tooltip without a fixer placement
-$(document).ready(function () { $("[rel='tooltip']").tooltip(); });
-$(document).ready(function () { $("a").tooltip({ 'selector': ''});});
-$(document).ready(function () { $("i").tooltip({ 'selector': ''});});
+setInterval(footerRefresh, 7000); /* re-schedule every [interface-rate] seconds */
 
 //Automatically open dropdown-menu
 $(document).ready(function(){
@@ -568,7 +490,7 @@ print[[
 
 // hide the possibly shown alerts icon in the header
 ]]
-if not _ifstats.isView or ntop.getPrefs().are_alerts_enabled == false then
+if not _ifstats.isView then
    print("$('#alerts-li').hide();")
 else
    print("$('#alerts-li').show();")
@@ -613,12 +535,183 @@ if have_nedge then
 		      }
       })
    )
+
+
+
 end
 
--- ######################################
+   print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "ext_link_dialog",
+			 title   = i18n("external_link"),
+			 message = i18n("show_alerts.confirm_external_link"),
+			 confirm = i18n("redirect"),
+		      }
+      })
+   )
+
+
+   print[[
+        <script type="text/javascript">
+          $(document).ready(function(){
+            $(document).on('click','a.ntopng-external-link',function(event){
+              event.preventDefault();
+              const url=$(this)[0].href;
+              $("#url_ext_link_dialog").html(url+"<br/>]]print(i18n("are_you_sure"))print[[");
+              $("#btn-confirm-action_ext_link_dialog").attr('href',url);
+              $('#ext_link_dialog').modal('show');
+            });
+          });
+        </script>
+   ]]
+
+
+-- Updates submenu
+if hasSoftwareUpdatesSupport() then
+
+-- Updates check
+print[[
+<script type='text/javascript'>
+  $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
+  $('#updates-install-li').hide();
+
+  const updates_csrf = ']] print(ntop.getRandomCSRFValue()) print[[';
+
+  /* Updates status */
+  var updatesStatus = '';
+  var updatesLastCheck = 0;
+
+  /* Install latest update */
+  var installUpdate = function() {
+    if (confirm(']] print(i18n("updates.install_confirm"))
+      if info["pro.license_days_left"] ~= nil and info["pro.license_days_left"] <= 0 then
+        -- License is valid, however maintenance is expired: warning the user
+        print(" "..i18n("updates.maintenance_expired"))
+      end
+      print[[')) {
+      $.ajax({
+        type: 'POST',
+        url: ']] print (ntop.getHttpPrefix()) print [[/lua/install_update.lua',
+        data: {
+          csrf: updates_csrf
+        },
+        success: function(rsp) {
+          $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
+          $('#updates-info-li').attr('title', '');
+          $('#updates-install-li').hide();
+          $('#admin-badge').hide();
+	  updatesStatus = 'installing';
+        }
+      });
+    }
+  }
+
+  /* Check for new updates */
+  var checkForUpdates = function() {
+    $.ajax({
+      type: 'POST',
+      url: ']] print (ntop.getHttpPrefix()) print [[/lua/check_update.lua',
+      data: {
+        csrf: updates_csrf,
+        search: 'true'
+      },
+      success: function(rsp) {
+        $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
+        $('#updates-info-li').attr('title', '');
+        $('#updates-install-li').hide();
+        $('#admin-badge').hide();
+	updatesStatus = 'checking';
+      }
+    });
+  }
+
+  /* Update the menu with the current updates status */
+  var updatesRefresh = function() {
+    const now = Date.now()/1000;
+    let check_time_sec = 10;
+
+    if (updatesStatus == 'installing' || updatesStatus == 'checking') {
+        /* Go ahead (frequent update) */
+    } else if (updatesStatus == 'update-avail' || updatesStatus == 'upgrade-failure') {
+        return; /* no need to check again */
+    } else { /* updatesStatus == 'not-avail' || updatesStatus == 'update-failure' || updatesStatus == <other errors> || updatesStatus == '' */
+        check_time_sec = 300;
+    }
+
+    if (now < updatesLastCheck + check_time_sec) return; /* check with low freq */
+    updatesLastCheck = now; 
+
+    $.ajax({
+      type: 'GET',
+        url: ']] print (ntop.getHttpPrefix()) print [[/lua/check_update.lua',
+        data: {},
+        success: function(rsp) {
+          if(rsp && rsp.status) {
+
+	    updatesStatus = rsp.status;
+
+            if (rsp.status == 'installing') {
+              $('#updates-info-li').html(']] print(i18n("updates.installing")) print[[')
+              $('#updates-info-li').attr('title', '');
+              $('#updates-install-li').hide();
+              $('#admin-badge').hide();
+
+            } else if (rsp.status == 'checking') {
+              $('#updates-info-li').html(']] print(i18n("updates.checking")) print[[');
+              $('#updates-info-li').attr('title', '');
+              $('#updates-install-li').hide();
+              $('#admin-badge').hide();
+
+            } else if (rsp.status == 'update-avail' || rsp.status == 'upgrade-failure') {
+
+              $('#updates-info-li').html('<span class="badge bg-pill bg-danger">]] print(i18n("updates.available")) print[[</span> ]] print(info["product"]) print[[ ' + rsp.version);
+              $('#updates-info-li').attr('title', '');
+
+              var icon = '<i class="fas fa-download"></i>';
+              $('#updates-install-li').attr('title', '');
+              if (rsp.status !== 'update-avail') {
+                icon = '<i class="fas fa-exclamation-triangle text-danger"></i>';
+                $('#updates-install-li').attr('title', "]] print(i18n("updates.update_failure_message")) print [[: " + rsp.status);
+              }
+              $('#updates-install-li').html(icon + " ]] print(i18n("updates.install")) print[[");
+              $('#updates-install-li').show();
+              $('#updates-install-li').off("click");
+              $('#updates-install-li').click(installUpdate);
+
+              if (rsp.status !== 'update-avail') $('#admin-badge').html('!');
+              else $('#admin-badge').html('1');
+              $('#admin-badge').show();
+
+            } else /* (rsp.status == 'not-avail' || rsp.status == 'update-failure' || rsp.status == <other errors>) */ {
+
+              var icon = '';
+              $('#updates-info-li').attr('title', '');
+              if (rsp.status !== 'not-avail') {
+                icon = '<i class="fas fa-exclamation-triangle text-danger"></i> ';
+                $('#updates-info-li').attr('title', "]] print(i18n("updates.update_failure_message")) print [[: " + rsp.status);
+              }
+              $('#updates-info-li').html(icon + ']] print(i18n("updates.no_updates")) print[[');
+
+              $('#updates-install-li').html("<i class='fas fa-sync'></i> ]] print(i18n("updates.check")) print[[");
+              $('#updates-install-li').show();
+              $('#updates-install-li').off("click");
+              $('#updates-install-li').click(checkForUpdates);
+
+              $('#admin-badge').hide();
+            }
+          }
+        }
+    });
+  }
+  setInterval(updatesRefresh, 1000);
+</script>
+]]
+end
 
 -- close wrapper
 print[[
-  </div>
+      </main>
+    </div>
   </body>
 </html> ]]

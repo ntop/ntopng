@@ -1,0 +1,52 @@
+{#
+  (C) 2023 - ntop.org
+  This template is used by the `Live Flows` page inside the `Host Details`.    
+#}
+
+
+<div id="inactive-hosts">
+  <page-inactive-hosts
+  :ifid="ifid"
+  :csrf="csrf"
+  :show_historical="show_historical">
+  </page-inactive-hosts>
+</div>
+  
+<script type="text/javascript">  
+  const ifid = {* ifid *}
+  const csrf = "{* csrf *}"
+  const show_historical = "{* show_historical *}" == "true"
+  
+  function start_vue() {
+    let vue_options = {
+      components: {	  
+        'page-inactive-hosts': ntopVue.PageInactiveHosts,
+      },
+      /**
+      * First method called when the component is created.
+      */
+      created() { },
+      mounted() {
+      },
+      data() {
+        return {
+          ifid: ifid,
+          csrf: csrf,
+          show_historical: show_historical,
+        };
+      },
+      methods: { },
+    };
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount('#inactive-hosts');
+    return vue_app;
+  }
+
+  /* ******************************************************* */
+
+  $(function () {
+    // initialize script table
+    start_vue();
+  });
+</script>
+

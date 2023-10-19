@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -10,6 +10,8 @@ if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.
 require "lua_utils"
 local page_utils = require("page_utils")
 local internals_utils = require "internals_utils"
+local template = require "template_utils"
+
 
 if not isAllowedSystemInterface() then
    return
@@ -18,7 +20,7 @@ end
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.interfaces_status)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.interfaces_status)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -27,6 +29,33 @@ local page = _GET["page"] or "overview"
 local url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua?ifid="..interface.getId()
 local info = ntop.getInfo()
 local title = i18n("system_interfaces_status")
+
+print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "reset_stats_dialog",
+			 action  = "resetCounters(false)",
+			 title   = i18n("reset_ifs_title"),
+			 message = i18n("reset_ifs_message"),
+			 confirm = i18n("reset"),
+			 confirm_button = "btn-danger",
+		      }
+      })
+)
+
+print(
+      template.gen("modal_confirm_dialog.html", {
+		      dialog={
+			 id      = "reset_drops_dialog",
+			 action  = "resetCounters(true)",
+			 title   = i18n("reset_drops_ifs_title"),
+			 message = i18n("reset_drops_ifs_message"),
+			 confirm = i18n("reset"),
+			 confirm_button = "btn-danger",
+		      }
+      })
+)
+
 
 page_utils.print_navbar(title, url,
 			{
@@ -47,8 +76,19 @@ page_utils.print_navbar(title, url,
 
 if(page == "overview") then
    print[[
-<div id="table-system-interfaces-stats"></div>
-<script type='text/javascript'>
+    <div class='card'>
+      <div class='card-body'>
+        <div id="table-system-interfaces-stats"></div>
+      </div>
+      <div class='card-footer w-250'>]] print(i18n("if_stats_overview.reset_counters")) print[[
+         <button id='btn_reset_all' type='button' class='btn btn-danger' onclick='resetInterfaceCounters(false);'>]] print(i18n("if_stats_overview.all_counters")) print[[</button>&nbsp;
+
+         <button id='btn_reset_drops' type='button' class='btn btn-danger' onclick='resetInterfaceCounters(true);'>]] print(i18n("if_stats_overview.drops_only")) print[[</button>
+      </div>
+
+    </div>
+
+  <script type='text/javascript'>
 
 $("#table-system-interfaces-stats").datatable({
    title: "",]]
@@ -148,25 +188,53 @@ $("#table-system-interfaces-stats").datatable({
    ], tableCallback: function() {
       datatableInitRefreshRows($("#table-system-interfaces-stats"),
                                "column_ifid", 5000,
-                               {"column_packets": addCommas,
-                                "column_traffic": addCommas,
-                                "column_flows": addCommas,
-                                "column_devices": addCommas,
-                                "column_remote_hosts": addCommas,
-                                "column_local_hosts": addCommas,
-                                "column_alerted_flows": addCommas,
-                                "column_engaged_alerts": addCommas});
+                               {"column_packets": NtopUtils.addCommas,
+                                "column_traffic": NtopUtils.addCommas,
+                                "column_flows": NtopUtils.addCommas,
+                                "column_devices": NtopUtils.addCommas,
+                                "column_remote_hosts": NtopUtils.addCommas,
+                                "column_local_hosts": NtopUtils.addCommas,
+                                "column_alerted_flows": NtopUtils.addCommas,
+                                "column_engaged_alerts": NtopUtils.addCommas});
    },
 });
+
+function resetCounters(drops_only) {
+  var action = "reset_all";
+  if(drops_only) action = "reset_drops";
+  $.ajax({ type: 'post',
+    url: ']]
+print (ntop.getHttpPrefix())
+print [[/lua/reset_stats.lua',
+    data: {
+       ifid: 'all', 
+       resetstats_mode:  action, 
+       csrf: "]] print(ntop.getRandomCSRFValue()) print[["
+    },
+    success: function(rsp) {},
+    complete: function() {
+      /* reload the page to generate a new CSRF */
+      window.location.href = window.location.href;
+    }
+  });
+}
+
+var resetInterfaceCounters = function(drops_only) {
+  if(drops_only) 
+    $('#reset_drops_dialog').modal('show');
+  else
+    $('#reset_stats_dialog').modal('show');
+}
+
 </script>
  ]]
 
 elseif(page == "internals") then
-   internals_utils.printInternals(nil, true --[[ hash tables ]], true --[[ periodic activities ]], true --[[ user scripts]])
+   internals_utils.printInternals(nil, true --[[ hash tables ]], true --[[ periodic activities ]], true --[[ checks]])
    -- local base_url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua?page=internals"
    -- internals_utils.printHashTablesTable(base_url)
 end
 
--- #######################################################
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+

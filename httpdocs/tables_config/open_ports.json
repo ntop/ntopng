@@ -1,0 +1,80 @@
+{
+	"id": "open_ports",
+	"data_url": "lua/pro/rest/v2/get/host/scan_port_list.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "port",
+		"sort": 1
+		},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "show_hosts",
+					"icon": "fa-solid fa-list-ul",
+					"title_i18n": "hosts_stats.page_scan_hosts.show_hosts",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_show_hosts"
+				}
+			]
+		},
+		{
+			"title_i18n": "port",
+			"data_field": "port",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.service_name",	
+			"data_field": "service_name",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.num_vulnerabilities_found",
+			"data_field": "cves",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "count",
+			"data_field": "count_host",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "hosts",
+			"data_field": "hosts",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

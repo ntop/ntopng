@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -45,6 +45,5 @@ class RwLock {
   bool trywrlock(const char *filename, int line);
   void unlock(const char *filename, int line);
 };
-
 
 #endif /* _RWLOCK_H_ */

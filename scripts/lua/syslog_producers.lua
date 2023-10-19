@@ -1,14 +1,15 @@
 --
--- (C) 2019-20 - ntop.org
+-- (C) 2019-22 - ntop.org
 --
 
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
+
 require "lua_utils"
-local user_scripts = require "user_scripts"
-local template = require "template_utils"
+
+local checks = require "checks"
 
 if not isAdministrator() then
   return
@@ -22,8 +23,8 @@ elseif not ifid then
 end
 
 local producer_types = {};
-local syslog_plugins = user_scripts.listScripts(user_scripts.script_types.syslog, "syslog")
-for k,v in pairs(syslog_plugins) do
+local syslog_scripts = checks.listScripts(checks.script_types.syslog, "syslog")
+for k,v in pairs(syslog_scripts) do
   table.insert(producer_types, { title = i18n(v.."_collector.title"), value = v  })
 end
 
@@ -74,18 +75,16 @@ print([[
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">]] .. i18n("syslog.edit") .. [[</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body container-fluid">
-              <div class="form-group row">
+              <div class="form-group mb-3 row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("syslog.producer_type") .. [[</label>
                 <div class="col-sm-5">
                   ]].. generate_select("select-edit-producer", "syslog_producer_type", true, false, producer_types) ..[[
                 </div>
               </div>
-              <div class="form-group row">
+              <div class="form-group mb-3 row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("syslog.producer_host") .. [[</label>
                 <div class="col-sm-5">
                   <input placeholder="]] .. i18n("syslog.ip_or_device") .. [[" required id="input-edit-host" type="text" name="host" class="form-control" />
@@ -95,8 +94,7 @@ print([[
               <span class="invalid-feedback"></span>
             </div>
             <div class="modal-footer">
-              <button id="btn-reset-defaults" type="button" class="btn btn-danger mr-auto">]] .. i18n("reset") .. [[</button>
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">]] .. i18n("cancel") .. [[</button>
+              <button id="btn-reset-defaults" type="button" class="btn btn-danger me-auto">]] .. i18n("reset") .. [[</button>
               <button type="submit" class="btn btn-primary">]] .. i18n("apply") .. [[</button>
             </div>
           </div>
@@ -113,18 +111,16 @@ print([[
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">]] .. i18n("syslog.add") .. [[</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body container-fluid">
-              <div class="form-group row">
+              <div class="form-group mb-3 row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("syslog.producer_type") .. [[</label>
                 <div class="col-sm-5">
                   ]] .. generate_select("select-add-producer", "producer", true, false, producer_types) ..[[
                 </div>
               </div>
-              <div class="form-group row">
+              <div class="form-group mb-3 row">
                 <label class="col-sm-3 col-form-label">]] .. i18n("syslog.producer_host") .. [[</label>
                 <div class="col-sm-5">
                   <input placeholder="]] .. i18n("syslog.ip_or_device") .. [[" required id="input-add-host" type="text" name="host" class="form-control" />
@@ -134,7 +130,6 @@ print([[
               <span class="invalid-feedback"></span>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">]] .. i18n("cancel") .. [[</button>
               <button type="submit" class="btn btn-primary">]] .. i18n("add") .. [[</button>
             </div>
           </div>
@@ -151,9 +146,7 @@ print([[
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title">]] .. i18n("delete") .. [[: <span id="delete-host"></span></h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
               <p>
@@ -162,7 +155,6 @@ print([[
               <span class="invalid-feedback"></span>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">]] .. i18n("cancel") .. [[</button>
               <button id="btn-delete-producer" type="submit" class="btn btn-danger">]] .. i18n("delete") .. [[</button>
             </div>
           </div>
@@ -182,7 +174,6 @@ print([[
 
 -- Table Data
 print([[
-    <link href="]].. ntop.getHttpPrefix() ..[[/datatables/datatables.min.css" rel="stylesheet"/>
     <script type="text/javascript">
 
       i18n.showing_x_to_y_rows = "]].. i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) ..[[";
@@ -194,7 +185,211 @@ print([[
       let get_host = "]].. (_GET["host"] ~= nil and _GET["host"] or "") ..[[";
       let syslog_producers_csrf = "]].. ntop.getRandomCSRFValue() ..[[";
 
+      let syslog_producers_alert_timeout = null;
+  
+      $("#syslog-producers-add-form").on('submit', function(event) {
+  
+          event.preventDefault();
+  
+          const host = $("#input-add-host").val(), producer = $("#select-add-producer").val();
+  
+          perform_request(make_data_to_send('add', host, producer, syslog_producers_csrf));
+  
+      });
+  
+      $('#syslog-producers-table').on('click', `a[href='#syslog-producers-delete-modal']`, function(e) {
+  
+          const row_data = get_syslog_producers_data($syslog_producers_table, $(this));
+          $("#delete-host").html(`<b>${row_data.url}</b>`);
+          $(`#syslog-producers-delete-modal span.invalid-feedback`).hide();
+  
+          $('#syslog-producers-delete-form').off('submit').on('submit', function(e) {
+  
+              e.preventDefault();
+              perform_request({
+                  action: 'delete',
+                  syslog_producer_host: row_data.host,
+                  syslog_producer: row_data.producer,
+                  csrf: syslog_producers_csrf
+              })
+          });
+  
+  
+      });
+  
+      $('#syslog-producers-table').on('click', `a[href='#syslog-producers-edit-modal']`, function(e) {
+  
+          const fill_form = (data) => {
+  
+              const DEFAULT_PRODUCER = "";
+              const DEFAULT_HOST     = "";
+  
+              // fill input boxes
+              $('#select-edit-producer').val(data.producer || DEFAULT_PRODUCER);
+              $('#input-edit-host').val(data.host || DEFAULT_HOST);
+          }
+  
+          const data = get_syslog_producers_data($syslog_producers_table, $(this));
+  
+          // bind submit to form for edits
+          $("#syslog-producers-edit-form").off('submit').on('submit', function(event) {
+  
+              event.preventDefault();
+  
+              const host = $("#input-edit-host").val(), producer = $("#select-edit-producer").val();
+              const data_to_send = {
+                  action: 'edit',
+                  syslog_producer_host: host,
+                  syslog_producer: producer,
+                  old_syslog_producer_host: data.host,
+                  old_syslog_producer: data.producer,
+                  csrf: syslog_producers_csrf
+              };
+  
+              perform_request(data_to_send);
+  
+          });
+  
+          // create a closure for reset button
+          $('#btn-reset-defaults').off('click').on('click', function() {
+              fill_form(data);
+          });
+  
+          fill_form(data);
+          $(`#syslog-producers-edit-modal span.invalid-feedback`).hide();
+  
+      });
+  
+      const make_data_to_send = (action, syslog_producer_host, syslog_producers_measure, csrf) => {
+          return {
+              action: action,
+              syslog_producer_host: syslog_producer_host,
+              syslog_producer: syslog_producers_measure,
+              csrf: csrf
+          }
+      }
+  
+      const perform_request = (data_to_send) => {
+  
+          const {action} = data_to_send;
+          if (action != 'add' && action != 'edit' && action != "delete") {
+              console.error("The requested action is not valid!");
+              return;
+          }
+  
+          $(`#syslog-producers-${action}-modal span.invalid-feedback`).hide();
+          $('#syslog-producers-alert').hide();
+          $(`form#syslog-producers-${action}-modal button[type='submit']`).attr("disabled", "disabled");
+  
+          $.post(`${http_prefix}/lua/edit_syslog_producer.lua`, data_to_send)
+          .then((data, result, xhr) => {
+  
+              $(`form#syslog-producers-${action}-modal button[type='submit']`).removeAttr("disabled");
+              $('#syslog-producers-alert').addClass('alert-success').removeClass('alert-danger');
+  
+              if (data.success) {
+  
+                  if (!syslog_producers_alert_timeout) clearTimeout(syslog_producers_alert_timeout);
+                  syslog_producers_alert_timeout = setTimeout(() => {
+                      $('#syslog-producers-alert').fadeOut();
+                  }, 1000)
+  
+                  $('#syslog-producers-alert .alert-body').text(data.message);
+                  $('#syslog-producers-alert').fadeIn();
+                  $(`#syslog-producers-${action}-modal`).modal('hide');
+                  $syslog_producers_table.ajax.reload();
+                  return;
+              }
+  
+              const error_message = data.error;
+              $(`#syslog-producers-${action}-modal span.invalid-feedback`).html(error_message).show();
+  
+          })
+          .fail((status) => {
+              $('#syslog-producers-alert').removeClass('alert-success').addClass('alert-danger');
+              $('#syslog-producers-alert .alert-body').text(i18n.expired_csrf);
+          });
+      }
+  
+      const get_syslog_producers_data = ($syslog_producers_table, $button_caller) => {
+  
+          const row_data = $syslog_producers_table.row($button_caller.parent()).data();
+          return row_data;
+      }
+  
+      const $syslog_producers_table = $("#syslog-producers-table").DataTable({
+          pagingType: 'full_numbers',
+          lengthChange: false,
+          stateSave: true,
+          dom: 'lfBrtip',
+          language: {
+              info: i18n.showing_x_to_y_rows,
+              search: i18n.search,
+              infoFiltered: "",
+              paginate: {
+                  previous: '&lt;',
+                  next: '&gt;',
+                  first: '«',
+                  last: '»'
+              }
+          },
+          initComplete: function() {
+  
+              if (get_host != "") {
+                  $syslog_producers_table.search(get_host).draw(true);
+                  $syslog_producers_table.state.clear();
+              }
+  
+              setInterval(() => {
+                  $syslog_producers_table.ajax.reload()
+              }, 15000);
+          },
+          ajax: {
+              url: `${http_prefix}/lua/rest/v2/get/syslog/producer/list.lua`,
+              type: 'get',
+              dataSrc: ''
+          },
+          buttons: {
+              buttons: [
+                  {
+                      text: '<i class="fas fa-plus"></i>',
+                      className: 'btn-link',
+                      action: function(e, dt, node, config) {
+                          $('#input-add-host').val('');
+                          $(`#syslog-producers-add-modal span.invalid-feedback`).hide();
+                          $('#syslog-producers-add-modal').modal('show');
+                      }
+                  }
+              ],
+              dom: {
+                  button: {
+                      className: 'btn btn-link'
+                  }
+              }
+          },
+          columns: [
+              {
+                  data: 'producer_title'
+              },
+              {
+                  data: 'host',
+                  className: 'dt-body-right dt-head-center'
+              },
+              {
+                  targets: -1,
+                  data: null,
+                  sortable: false,
+                  name: 'actions',
+                  class: 'text-center',
+                  render: function() {
+                      return `
+                          <a class="badge bg-info" data-bs-toggle="modal" href="#syslog-producers-edit-modal">${i18n.edit}</a>
+                          <a class="badge bg-danger" data-bs-toggle="modal" href="#syslog-producers-delete-modal">${i18n.delete}</a>
+                      `;
+                  }
+              }
+          ]
+      });    
     </script>
-    <script type='text/javascript' src=']].. ntop.getHttpPrefix() ..[[/js/syslog/syslog-producers-utils.js?]] ..(ntop.getStartupEpoch()) ..[['></script>
 ]])
 

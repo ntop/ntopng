@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2017-20 - ntop.org
+ * (C) 2017-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,38 +29,51 @@ class QueuedThreadData {
   ThreadedActivity *j;
   char *script_path;
   NetworkInterface *iface;
-  bool high_priority;
+  bool adaptive_pool_size;
   time_t deadline;
-  
-  QueuedThreadData(ThreadedActivity *_j, char *_path, NetworkInterface *_iface, time_t _deadline) {
+
+  QueuedThreadData(ThreadedActivity *_j, char *_path, NetworkInterface *_iface,
+                   time_t _deadline) {
     j = _j, script_path = strdup(_path), iface = _iface;
     deadline = _deadline;
   }
 
-  ~QueuedThreadData() { if(script_path) free(script_path); }
+  ~QueuedThreadData() {
+    if (script_path) free(script_path);
+  }
 };
-	
+
 class ThreadPool {
  private:
-  bool terminating, high_priority;
-  u_int8_t pool_size;
+  u_int16_t num_threads;
+  bool terminating;
   pthread_cond_t condvar;
   Mutex *m;
-  pthread_t *threadsState;
-  std::queue <QueuedThreadData*> threads;
+#ifdef __linux__
+  cpu_set_t affinity_mask;
+#endif
 
-  QueuedThreadData* dequeueJob(bool waitIfEmpty);
-  
+  std::vector<pthread_t> threadsState;
+  std::queue<QueuedThreadData *> threads;
+
+  QueuedThreadData *dequeueJob(bool waitIfEmpty);
+
+  /*
+    Creates and starts a new pool thread
+   */
+  bool spawn();
+  bool isQueueable(ThreadedActivityState cur_state);
+
  public:
-  ThreadPool(bool _high_priority, u_int8_t _pool_size);
+  ThreadPool(char *comma_separated_affinity_mask = NULL);
   virtual ~ThreadPool();
 
   void shutdown();
   inline bool isTerminating() { return terminating; };
 
   void run();
-  bool queueJob(ThreadedActivity *ta, char *path, NetworkInterface *iface, time_t scheduled_time, time_t deadline);
+  bool queueJob(ThreadedActivity *ta, char *path, NetworkInterface *iface,
+                time_t scheduled_time, time_t deadline);
 };
-
 
 #endif /* _THREAD_POOL_H_ */

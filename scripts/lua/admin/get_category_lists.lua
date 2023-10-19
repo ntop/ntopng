@@ -1,5 +1,5 @@
 --
--- (C) 2018 - ntop.org
+-- (C) 2021 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -21,7 +21,7 @@ sendHTTPContentTypeHeader('application/json')
 
 local function getListStatusLabel(list)
   if not list.enabled then
-    return '<span class="badge badge-danger">'.. i18n("nedge.status_disabled") ..'</span>'
+    return '<span class="badge bg-danger">'.. i18n("nedge.status_disabled") ..'</span>'
   end
 
   if list.status.last_error then
@@ -33,10 +33,10 @@ local function getListStatusLabel(list)
       info_msg = list.status.last_error
     end
 
-    return '<span title="'.. info_msg ..'" class="badge badge-danger">'.. i18n("error") .. info ..'</span>'
+    return '<span title="'.. info_msg ..'" class="badge bg-danger">'.. i18n("error") .. info ..'</span>'
   end
 
-  return '<span class="badge badge-success">'.. i18n("category_lists.enabled") ..'</span>'
+  return '<span class="badge bg-success">'.. i18n("category_lists.enabled") ..'</span>'
 end
 
 -- ################################################
@@ -45,6 +45,7 @@ local currentPage  = _GET["currentPage"]
 local perPage      = _GET["perPage"]
 local sortColumn   = _GET["sortColumn"]
 local sortOrder    = _GET["sortOrder"]
+local enabledStatus  = _GET["enabled_status"]
 
 local sortPrefs = "category_lists"
 
@@ -96,6 +97,12 @@ for list_name, list in pairs(lists) do
     goto continue
   end
 
+  if enabledStatus == "disabled" and list.enabled then
+    goto continue
+  elseif enabledStatus == "enabled" and not list.enabled then
+    goto continue
+  end
+
   totalRows = totalRows + 1
 
   list.category_name = catname
@@ -103,7 +110,7 @@ for list_name, list in pairs(lists) do
   list.status_label = getListStatusLabel(list)
 
   if sortColumn == "column_category_name" then
-    sort_to_key[list_name] = getCategoryLabel(list.category_name)
+    sort_to_key[list_name] = getCategoryLabel(list.category_name, list.category)
   elseif sortColumn == "column_last_update" then
     sort_to_key[list_name] = list.status.last_update
   elseif sortColumn == "column_num_hosts" then
@@ -112,6 +119,8 @@ for list_name, list in pairs(lists) do
     sort_to_key[list_name] = list.status_label
   elseif sortColumn == "column_update_interval_label" then
     sort_to_key[list_name] = list.update_interval
+  elseif sortColumn == "column_num_hits" then
+    sort_to_key[list_name] = list.status.num_hits or 0
   else
     -- default
     sort_to_key[list_name] = list_name
@@ -137,19 +146,22 @@ for key in pairsByValues(sort_to_key, sOrder) do
        update_interval_label = i18n("alerts_thresholds_config.daily")
     elseif list.update_interval == 3600 then
        update_interval_label = i18n("alerts_thresholds_config.hourly")
+    elseif list.update_interval == 0 then
+       update_interval_label = i18n("alerts_thresholds_config.manual")
     end
 
     res[#res + 1] = {
       column_name = list.name,
-      column_label = list.name .. ' <a href="'.. list.url ..'" target="_blank"><i class="fas fa-external-link-alt"></i></a>',
+      column_label = list.name .. ' <a class="ntopng-external-link" href="'.. list.url ..'" target="_blank"><i  class="fas fa-external-link-alt"></i></a>',
       column_status = list.status_label,
       column_url = list.url,
       column_enabled = list.enabled,
+      column_num_hits = ternary(list.status.num_hits > 0, format_utils.formatValue(list.status.num_hits), ''),
       column_update_interval = list.update_interval,
       column_update_interval_label = update_interval_label,
       column_category = "cat_" .. list.category,
-      column_category_name = getCategoryLabel(list.category_name),
-      column_num_hosts = list.status.num_hosts,
+      column_category_name = getCategoryLabel(list.category_name, list.category),
+      column_num_hosts = ternary(list.status.num_hosts > 0, format_utils.formatValue(list.status.num_hosts), ''),
       column_last_update = format_utils.formatPastEpochShort(list.status.last_update),
     }
   end

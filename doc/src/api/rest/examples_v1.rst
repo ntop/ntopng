@@ -178,6 +178,35 @@ Response:
      "rc": 0
    }
 
+Get actively monitored interfaces
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -u admin:admin "http://localhost:3000/lua/rest/v1/get/ntopng/interfaces.lua"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rsp": [
+       {
+         "ifid": 0,
+         "ifname": "test_01.pcap"
+       },
+       {
+         "ifid": 1,
+         "ifname": "test_02.pcap"
+       }
+     ],
+     "rc": 0
+   }
+
+
 Hosts
 -----
 
@@ -517,6 +546,112 @@ Response:
      }
    }
 
+Get host custom data
+~~~~~~~~~~~~~~~~~~~~
+
+Get custom host data: "ip,bytes.sent=tdb,packets.sent" for host: "10.222.222.119" on
+monitoring interface (ifid): 0. Available fields can be found from the output
+of "Get host data" above. Each field can have an optional alias name. Use
+the "field=alias" syntax to define a field alias. Separate each
+field / field alias with a comma.
+
+*curl*
+
+.. code:: bash
+
+   curl --silent --insecure -u "admin:admin" \
+     -H "Content-Type: application/json" -d '{"ifid": 0, "host": "10.222.222.119", "field_alias": "ip,bytes.sent=tdb,packets.sent"}' \
+     "https://localhost:3001/lua/rest/v1/get/host/custom_data.lua"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rc": 0,
+     "rsp": {
+       "tdb": 71787960,
+       "ip": "10.222.222.119",
+       "packets.sent": 243977
+     }
+   }
+
+Get custom host data: "ip,bytes.sent=tdb,packets.sent=tdp" for all hosts on
+monitoring interface (ifid): 0.
+
+*curl*
+
+.. code:: bash
+
+   curl --silent --insecure -u "admin:admin" \
+     -H "Content-Type: application/json" -d '{"ifid": 0, "field_alias": "ip,bytes.sent=tdb,packets.sent=tdp"}' \
+     "https://localhost:3001/lua/rest/v1/get/host/custom_data.lua"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rc": 0,
+     "rsp": [
+       {
+         "ip": "ff02::1:ff00:1",
+         "tdb": 0,
+         "tdp": 0
+       },
+       {
+         "ip": "10.222.222.96",
+         "tdb": 106980522,
+         "tdp": 452276
+       },
+       {
+         "ip": "ff02::1:ffb7:97bf",
+         "tdb": 0,
+         "tdp": 0
+       },
+       {
+         "ip": "10.222.222.119",
+         "tdb": 76788610,
+         "tdp": 264447
+       }
+     ]
+   }
+
+Get all host data for all hosts on monitoring interface (ifid): 0.
+
+*curl*
+
+.. code:: bash
+
+   curl --silent --insecure -u "admin:admin" \
+     -H "Content-Type: application/json" -d '{"ifid": 0"}' \
+     "https://localhost:3001/lua/rest/v1/get/host/custom_data.lua"
+
+Response:
+
+.. code:: json
+
+   {
+     "rc_str": "OK",
+     "rc": 0,
+     "rsp": [
+       {
+         All host data for "ip": "ff02::1:ff00:1"
+       },
+       {
+         All host data for "ip": "10.222.222.96"
+       },
+       {
+         All host data for "ip": "ff02::1:ffb7:97bf"
+       },
+       {
+         "All host data for "ip": "10.222.222.119",
+       }
+     ]
+   }
+
 Get L7 statistics for a host
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -759,7 +894,7 @@ Get historical flows
 
 .. code:: bash
 
-   curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "select_clause": "*", "where_clause": "IPV4_SRC_ADDR = 192.168.56.1", "begin_time_clause": 1590480290, "end_time_clause": 1590480590, "flow_clause": "flows", "maxhits_clause": 10}' http://localhost:3000/lua/pro/rest/v1/get/db/flows.lua
+   curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": 0, "select_clause": "*", "where_clause": "IPV4_SRC_ADDR = 192.168.56.1", "begin_time_clause": 1590480290, "end_time_clause": 1590480590, "maxhits_clause": 10}' http://localhost:3000/lua/pro/rest/v1/get/db/flows.lua
 
 Response:
 
@@ -898,7 +1033,7 @@ Response:
          "severity": "error",
          "count": 1,
          "entity_val": "",
-         "msg": "TLS Certificate Expired [24/08/2019 18:04:13 - 22/11/2019 18:04:13] [Flow: <A HREF='/lua/flow_details.lua?flow_key=2169606404&flow_hash_id=131'><span class='badge badge-info'>Info</span></A> <a href='/lua/host_details.lua?host=192.168.1.93' data-toggle='tooltip' title=''>192.168.1.93</a>:<A HREF=\"/lua/port_details.lua?port=61650\">61650</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=28:37:37:00:6D:C8\">28:37:37:00:6D:C8</A> ] <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> <a href='/lua/host_details.lua?host=192.168.1.176' data-toggle='tooltip' title=''>192.168.1.176</a>:<A HREF=\"/lua/port_details.lua?port=443\">443</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=00:80:8F:9A:AE:BD\">00:80:8F:9A:AE:BD</A> ]] <a href=\"/lua/admin/edit_configset.lua?confset_id=0&subdir=flow&user_script=tls_certificate_expired#all\"><i class=\"fas fa-cog\" title=\"Edit Configuration\"></i></a>"
+         "msg": "TLS Certificate Expired [24/08/2019 18:04:13 - 22/11/2019 18:04:13] [Flow: <A HREF='/lua/flow_details.lua?flow_key=2169606404&flow_hash_id=131'><span class='badge badge-info'>Info</span></A> <a href='/lua/host_details.lua?host=192.168.1.93' data-toggle='tooltip' title=''>192.168.1.93</a>:<A HREF=\"/lua/port_details.lua?port=61650\">61650</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=28:37:37:00:6D:C8\">28:37:37:00:6D:C8</A> ] <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> <a href='/lua/host_details.lua?host=192.168.1.176' data-toggle='tooltip' title=''>192.168.1.176</a>:<A HREF=\"/lua/port_details.lua?port=443\">443</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=00:80:8F:9A:AE:BD\">00:80:8F:9A:AE:BD</A> ]] <a href=\"/lua/admin/edit_configset.lua?confset_id=0&subdir=flow&check=tls_certificate_expired#all\"><i class=\"fas fa-cog\" title=\"Edit Configuration\"></i></a>"
        },
        {
          "entity": "flow",
@@ -908,7 +1043,7 @@ Response:
          "severity": "error",
          "count": 1,
          "entity_val": "",
-         "msg": "TLS Certificate Mismatch [Client Requested: cdn.gigya.com] [Server Names: a248.e.akamai.net,*.akamaized-staging.net,*.akamaized.net,*.akamaihd-staging.net,*.akamaihd.net] [Flow: <A HREF='/lua/flow_details.lua?flow_key=2027748492&flow_hash_id=118'><span class='badge badge-info'>Info</span></A> <a href='/lua/host_details.lua?host=192.168.1.93' data-toggle='tooltip' title=''>192.168.1.93</a>:<A HREF=\"/lua/port_details.lua?port=61632\">61632</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=28:37:37:00:6D:C8\">28:37:37:00:6D:C8</A> ] <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> <a href='/lua/host_details.lua?host=184.51.127.56' data-toggle='tooltip' title=''>184.51.127.56</a>:<A HREF=\"/lua/port_details.lua?port=443\">443</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=10:13:31:F1:39:76\">10:13:31:F1:39:76</A> ]] <a href=\"/lua/admin/edit_configset.lua?confset_id=0&subdir=flow&user_script=tls_certificate_mismatch#all\"><i class=\"fas fa-cog\" title=\"Edit Configuration\"></i></a>"
+         "msg": "TLS Certificate Mismatch [Client Requested: cdn.gigya.com] [Server Names: a248.e.akamai.net,*.akamaized-staging.net,*.akamaized.net,*.akamaihd-staging.net,*.akamaihd.net] [Flow: <A HREF='/lua/flow_details.lua?flow_key=2027748492&flow_hash_id=118'><span class='badge badge-info'>Info</span></A> <a href='/lua/host_details.lua?host=192.168.1.93' data-toggle='tooltip' title=''>192.168.1.93</a>:<A HREF=\"/lua/port_details.lua?port=61632\">61632</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=28:37:37:00:6D:C8\">28:37:37:00:6D:C8</A> ] <i class=\"fas fa-exchange-alt fa-lg\"  aria-hidden=\"true\"></i> <a href='/lua/host_details.lua?host=184.51.127.56' data-toggle='tooltip' title=''>184.51.127.56</a>:<A HREF=\"/lua/port_details.lua?port=443\">443</A> [ <A HREF=\"/lua/hosts_stats.lua?mac=10:13:31:F1:39:76\">10:13:31:F1:39:76</A> ]] <a href=\"/lua/admin/edit_configset.lua?confset_id=0&subdir=flow&check=tls_certificate_mismatch#all\"><i class=\"fas fa-cog\" title=\"Edit Configuration\"></i></a>"
        }
      ],
      "rc": 0,
@@ -1243,4 +1378,208 @@ Response:
      ],
      "rc_str": "OK"
    }
+
+Pools
+-----
+
+Add an Host Pool
+~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themaina", "pool_members": "192.168.2.0/24@0", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/add/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themainamac", "pool_members": "AA:BB:CC:DD:EE:FF", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/add/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themainaip", "pool_members": "8.8.8.8/32@2", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/add/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool_name": "themainaempty", "pool_members": "", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/add/host/pool.lua
+
+Edit an Host Pool
+~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 1, "pool_name": "themaina", "pool_members": "192.168.3.0/24@0", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/edit/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 2, "pool_name": "themainamac", "pool_members": "AA:BB:CC:DD:EE:AA", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/edit/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 3, "pool_name": "themainaip", "pool_members": "1.1.1.1/32@2", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/edit/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 4, "pool_name": "themainaempty", "pool_members": "", "confset_id" : 0}' http://localhost:3000/lua/rest/v1/edit/host/pool.lua
+
+Delete an Host Pool
+~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 1}' http://localhost:3000/lua/rest/v1/delete/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 2}' http://localhost:3000/lua/rest/v1/delete/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 3}' http://localhost:3000/lua/rest/v1/delete/host/pool.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 4}' http://localhost:3000/lua/rest/v1/delete/host/pool.lua
+
+
+Get an Host Pool
+~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 1}' http://localhost:3000/lua/rest/v1/get/host/pools.lua
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{}' http://localhost:3000/lua/rest/v1/get/host/pools.lua
+
+
+Get Members of an Host Pool
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+    curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"pool": 2}' http://localhost:3000/lua/rest/v1/get/host/pool/members.lua
+
+Get All Pools of Any type
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code:: bash
+
+   curl -s -u admin:admin  -H "Content-Type: application/json" curl http://devel:3000/lua/rest/v1/get/pools.lua
+
+
+SNMP
+----
+
+Add an SNMP Device
+~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"snmp_host":"ubnt", "snmp_read_community":"public", "snmp_version": "1"}' http://localhost:3000/lua/pro/rest/v1/add/snmp/device.lua
+
+Response:
+
+.. code:: json
+
+   {
+	  "rc": 0,
+	  "rc_str": "OK",
+	  "rsp": {
+		  "added_devices": [
+			  {"ip": "192.168.2.1", "name": "ubnt"}
+		  ]
+	  }
+   }
+
+
+*curl*
+
+.. code:: bash
+
+   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"snmp_host":"192.168.2.169", "snmp_read_community":"public", "snmp_version": "1", "cidr":"32"}' http://localhost:3000/lua/pro/rest/v1/add/snmp/device.lua
+
+Response:
+
+.. code:: json
+
+   {
+	  "rc": 0,
+	  "rc_str": "OK",
+	  "rsp": {
+		  "added_devices": [
+			  {"ip": "192.168.2.169"}
+		  ]
+	  }
+   }
+
+*curl*
+
+.. code:: bash
+
+   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"snmp_host":"192.168.2.0", "snmp_read_community":"public", "snmp_version": "1", "cidr":"24"}' http://localhost:3000/lua/pro/rest/v1/add/snmp/device.lua
+
+Response:
+
+.. code:: json
+
+   {
+	  "rc": 0,
+	  "rc_str": "OK",
+	  "rsp": {
+		  "added_devices": [
+			  {"ip": "192.168.2.169"},
+			  {"ip": "192.168.2.1"}
+		  ]
+	  }
+   }
+
+Change the Status of an SNMP Device Interface
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -s -u admin:admin  -H "Content-Type: application/json" -u admin:admin -d '{"host": "192.168.2.169", "snmp_admin_status": "up", "snmp_port_idx": 26}' http://127.0.0.1:3000/lua/pro/rest/v1/change/snmp/device/interface/status.lua
+
+Response:
+
+.. code:: json
+
+   {"rc":0,
+   "rc_str_hr":"Success",
+   "rsp":[],
+   "rc_str":"OK"
+   }
+
+
+*curl*
+
+.. code:: bash
+
+   curl -s -u admin:admin  -H "Content-Type: application/json" -u admin:admin -d '{"host": "192.168.2.169", "snmp_admin_status": "down", "snmp_port_idx": 26}' http://127.0.0.1:3000/lua/pro/rest/v1/change/snmp/device/interface/status.lua
+
+Response:
+
+.. code:: json
+
+   {
+     "rc":0,
+     "rc_str_hr":"Success",
+     "rsp":[],
+     "rc_str":"OK"
+   }
+
+Misc
+----
+
+Create a Session Cookie
+~~~~~~~~~~~~~~~~~~~~~~~
+
+*curl*
+
+.. code:: bash
+
+   curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"username": "admin"}' "http://192.168.1.1:3000/lua/rest/v1/create/ntopng/session.lua"
+
+Response:
+
+.. code:: json
+
+   {
+   	"rc":0,
+   	"rc_str":"OK",
+   	"rc_str_hr":"Success",
+   	"rsp":{
+   		"session":"3ff5cf2aba7168e9ef955c20291a9ad4"
+   	}
+   }
+
+Using the session:
+
+.. code:: bash
+
+   curl --cookie "user=admin; session=3ff5cf2aba7168e9ef955c20291a9ad4" "http://192.168.1.1:3000/lua/rest/get/interface/data.lua?ifid=1"
 

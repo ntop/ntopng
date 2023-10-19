@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can addresstribute it and/or modify
@@ -25,27 +25,19 @@
 #include "ntop_includes.h"
 
 class AddressResolution {
-  AddressList localNetworks;
   int num_resolvers;
   u_int32_t num_resolved_addresses, num_resolved_fails;
   pthread_t *resolveThreadLoop;
   Mutex m;
 
  public:
-  AddressResolution();
+  AddressResolution(int num_resolvers);
   ~AddressResolution();
 
   void startResolveAddressLoop();
-  void resolveHostName(char *numeric_ip, char *rsp = NULL, u_int rsp_len = 0);
-  bool resolveHost(char *host, char *rsp, u_int rsp_len, bool v4);
-
-  inline u_int8_t getNumLocalNetworks()       { return localNetworks.getNumAddresses();    };
-  inline char *get_local_network(u_int8_t id) { return localNetworks.getAddressString(id); };
-  inline u_int8_t get_local_network_id(const char *network_id) { return localNetworks.getAddressId(network_id); };
-  bool setLocalNetworks(char *rule);
-  int16_t findAddress(int family, void *addr, u_int8_t *network_mask_bits = NULL);
-  void setLocalNetwork(char *net)             { localNetworks.addAddresses(net);           };
-  inline void dump()                          { localNetworks.dump(); }
+  void resolveHostName(const char *numeric_ip, char *rsp = NULL,
+                       u_int rsp_len = 0);
+  bool resolveHost(const char *host, char *rsp, u_int rsp_len, bool v4);
 };
 
 #endif /* _ADDRESS_RESOLUTION_H_ */

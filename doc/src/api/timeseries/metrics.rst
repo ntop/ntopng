@@ -1624,6 +1624,32 @@ Subnet Metrics
    +--------------------------+-----------------------------------------------------------+
    
 
+.. admonition:: subnet:rtt
+   
+   Round Trip Time for a Network, computed as exponentially weighted moving average.
+   
+   - **Type**: gauge 
+   - **Resolution**: 1m (RRD) / 10s-1min according to preferences (InfluxDB)
+   
+   **Tags**
+   
+   +--------------------------+-----------------------------------------------------------+
+   | Name                     | Description                                               |
+   +==========================+===========================================================+
+   | ifid                     | Interface index                                           |
+   +--------------------------+-----------------------------------------------------------+
+   | subnet                   | Subnet                                                    |
+   +--------------------------+-----------------------------------------------------------+
+
+   **Fields**
+   
+   +--------------------------+-----------------------------------------------------------+
+   | Name                     | Description                                               |
+   +==========================+===========================================================+
+   | millis_rtt               | Round Trip Time                                           |
+   +--------------------------+-----------------------------------------------------------+
+   
+
 .. admonition:: subnet:tcp_lost
    
    Total number of lost TCP packets for a subnet. 
@@ -2289,7 +2315,7 @@ Event Exporter Metrics
 
 .. admonition:: evexporter_iface:traffic
    
-   Total number of bytes sent and received on an interface of an event exporter (nProbe Agent).
+   Total number of bytes sent and received on an interface of an event probe (nProbe Agent).
    
    - **Type**: counter 
    - **Resolution**: 5m (RRD) / 10s-1min according to preferences (InfluxDB)

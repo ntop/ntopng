@@ -1,0 +1,96 @@
+{#
+    (C) 2021 - ntop.org    
+#}
+
+<div id="{{instance_name}}-tags" class="w-100">
+    <div class="d-flex mt-1">
+        <input class="w-100 form-control h-auto" name="tags" placeholder="{{ i18n('policy.rules') }}">
+
+        <button class="btn btn-link" type="button" onclick="{{ instance_name }}_global.ruleModalShow()"><span><i class="fas fa-plus" data-original-title="" title="{{ i18n('policy.add_rule') }}"></i></span>
+    </button>
+
+        <button data-bs-toggle="tooltip" data-placement="bottom" title="{{ i18n('policy.remove_rules') }}" class="btn ml-1 my-auto btn-sm btn-remove-tags">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+let {{instance_name}}_global = {};
+
+{{instance_name}}_global.tags = {* json.encode(tags) *};
+
+const {{instance_name}}Input = $(`#{{instance_name}}-tags [name='tags']`)[0];
+const tagify_{{instance_name}} = new Tagify({{instance_name}}Input, {
+    duplicate: false,
+    delimiters : null,
+    autoComplete: { enabled: false },
+    templates : {
+        tag : function(tagData){
+            try{
+                return `<tag title='${tagData.value}' contenteditable='false' spellcheck="false" class='tagify__tag ${tagData.class ? tagData.class : ""}' ${this.getAttributes(tagData)}>
+                        <x title='remove tag' class='tagify__tag__removeBtn'></x>
+                        <div>
+                            <span class='tagify__tag-text'><b>${tagData.label ? tagData.label : tagData.value}</span></b>&nbsp;
+                            <span style='color: ${tagData.marker == "drop" ? "red" : (tagData.marker == "pass" ? "green" : "orange") }'> ${tagData.marker_label ? tagData.marker_label : tagData.marker}</span>
+                        </div>
+                    </tag>`
+            }
+            catch(err){
+                console.error(`An error occured when creating a new tag: ${err}`);
+            }
+        },
+    }
+});
+
+$(document).ready(function() {
+    // add existing tags
+    tagify_{{instance_name}}.addTags({{instance_name}}_global.tags);
+
+    // intialize tooltip
+    $(`#{{instance_name}}-tags .btn-remove-tags`).tooltip();
+
+    const PAGE_CSRF = "{{ ntop.getRandomCSRFValue() }}";
+
+    {{instance_name}}_global.addTag = function(tag) {
+        // add rule!
+        tagify_{{instance_name}}.addTags([tag]);
+
+        //const existingTagElements = tagify_{{instance_name}}.getTagElms();
+        //existingTagElements.forEach(elem => console.log(tagify_{{instance_name}}.tagData(elem));
+    }
+
+    // Tag 'click' event handler to open the 'Edit' modal.
+    tagify_{{instance_name}}.on('click', async function(e) {
+        const detail = e.detail;
+        if (detail.data === undefined) { return; }
+        if (detail.data.value === undefined) {return;}
+        const tag = detail.data;
+
+        //{{instance_name}}_global.ruleModalShow(tag);
+    });
+
+    tagify_{{instance_name}}.on('change', async function (e) {
+        const detail = e.detail;
+        if (detail.value === undefined) {return;}
+        if (!detail.value) {detail.value = "[]";}
+        var tags = JSON.parse(detail.value);
+        {{instance_name}}_global.tags = tags;
+
+        policy_global.change('{{instance_name}}');
+
+        //var tags_parsed = tags.map(item => item.value).toString();
+        //console.log(tags_parsed);
+    });
+
+    // clear all the rules on click
+    $(`#{{instance_name}}-tags .btn-remove-tags`).on('click', async function() {
+        tagify_{{instance_name}}.removeAllTags();
+        {{instance_name}}_global.tags = {};
+        policy_global.change('{{instance_name}}');
+    });
+
+});
+</script>
+

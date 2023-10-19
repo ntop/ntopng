@@ -230,6 +230,7 @@ class Flow : public GenericHashEntry {
   inline bool isSSH()                  { return(isProto(NDPI_PROTOCOL_SSH));  }
   inline bool isDNS()                  { return(isProto(NDPI_PROTOCOL_DNS));  }
   inline bool isHTTP()                 { return(isProto(NDPI_PROTOCOL_HTTP)); }
+  inline bool isHTTP_PROXY()           { return(isProto(NDPI_PROTOCOL_HTTP_PROXY)); }
   inline bool isICMP()                 { return(isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6)); }
   char* serialize(bool es_json = false);
   json_object* flow2json();

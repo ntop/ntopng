@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2019 - ntop.org
+ * (C) 2019-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,7 +32,8 @@ class SyslogParserInterface : public ParserInterface {
   bool producers_reload_requested;
 
  public:
-  SyslogParserInterface(const char *endpoint, const char *custom_interface_type = NULL);
+  SyslogParserInterface(const char *endpoint,
+                        const char *custom_interface_type = NULL);
   ~SyslogParserInterface();
 
   void addProducerMapping(const char *host, const char *producer);
@@ -43,10 +44,8 @@ class SyslogParserInterface : public ParserInterface {
   u_int8_t parseLog(char *log_line, char *client_ip);
 
   u_int32_t getNumDroppedPackets() { return 0; };
-  virtual void lua(lua_State* vm);
+  virtual void lua(lua_State *vm);
   virtual void startPacketPolling();
 };
 
 #endif /* _SYSLOG_PARSER_INTERFACE_H_ */
-
-

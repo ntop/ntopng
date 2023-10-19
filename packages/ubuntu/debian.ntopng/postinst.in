@@ -1,5 +1,8 @@
 #!/bin/sh -e
 
+# Previous package version on upgrade
+PREV_VERSION=$2
+
 case "$1" in
     configure)
 	# continue below
@@ -22,6 +25,11 @@ if ! grep -q ntopng /etc/group; then
     /usr/sbin/groupadd -r ntopng
 fi
 
+# Enable nmap scan capabilities [https://secwiki.org/w/Running_nmap_as_an_unprivileged_user]
+if [ -x /usr/bin/nmap ]; then
+    setcap cap_net_raw,cap_net_admin,cap_net_bind_service+eip /usr/bin/nmap
+fi
+
 if ! /usr/bin/id -u ntopng > /dev/null 2>&1; then 
     echo "Creating ntopng user..."
     /usr/sbin/useradd -M -N -g ntopng -r -s /bin/false ntopng
@@ -36,12 +44,26 @@ if [ $(getent group n2disk) ] && [ $(getent passwd ntopng) ]; then
     fi
 fi
 
+TLS_DIR="/usr/share/ntopng/httpdocs/ssl"
+TLS_CERT_PATH="$TLS_DIR/ntopng-cert.pem"
+if [ ! -f "$TLS_CERT_PATH" ]; then
+    openssl req -new -x509 -sha1 -extensions v3_ca -nodes -days 365 -out $TLS_DIR/cert.pem -subj "/CN=ntopng.local"
+    mv privkey.pem $TLS_CERT_PATH
+    cat $TLS_DIR/cert.pem >> $TLS_CERT_PATH
+    rm $TLS_DIR/cert.pem
+fi
+
+
 DATA_DIR=/var/lib/ntopng
 if [ ! -d "$DATA_DIR" ]; then
     mkdir $DATA_DIR
     /bin/chown ntopng:ntopng $DATA_DIR
     /bin/chmod 700 $DATA_DIR
 fi
+
+/bin/chown ntopng:ntopng /usr/bin/ntopng-config
+/bin/chmod gou+s /usr/bin/ntopng-config
+/bin/chown -R ntopng:ntopng /etc/ntopng
 
 LOGROTATE_CONF=/etc/logrotate.d/ntopng
 /bin/chmod 644 $LOGROTATE_CONF
@@ -52,32 +74,57 @@ CRON_CONF=/etc/cron.d/ntopng
 echo "Rebuilding ld cache..."
 /sbin/ldconfig
 
-if [ ! -f /usr/local/bin/@APP@ ] && [ ! -L /usr/local/bin/@APP@ ] ; then
-    ln -s /usr/bin/@APP@ /usr/local/bin/@APP@
+# Check if systemd is supported (not a container)
+CMDLINE=$(tr -d '\0' < /proc/1/cmdline)
+if [ ! -z "${CMDLINE##*system*}" ] && [ ! -z "${CMDLINE##*init*}" ]; then
+  exit 0
 fi
-
-if [ -d /usr/local/share/ntopng ] ; then
-    mv /usr/local/share/ntopng /usr/local/share/ntopng.disabled
-fi
-
-if [ -f /.dockerenv ]; then exit 0; fi
 
 # Start service after upgrade/install
 echo "(Re)Starting @APP@..."
 if hash systemctl 2>/dev/null; then
     systemctl daemon-reload
     systemctl reset-failed
+
+    # Enable service on first installation only
+    if [ -z "$PREV_VERSION" ]; then
+        if hash deb-systemd-invoke 2>/dev/null; then
+            deb-systemd-invoke enable ntopng
+        else
+	    systemctl enable ntopng
+        fi
+    fi
+
+    # Start service if enabled
     if hash deb-systemd-invoke 2>/dev/null; then
-        deb-systemd-invoke enable ntopng
-        deb-systemd-invoke restart ntopng
+        systemctl -q is-enabled ntopng && deb-systemd-invoke restart ntopng
     else
-	systemctl enable ntopng
-	systemctl restart ntopng
+	systemctl -q is-enabled ntopng && systemctl restart ntopng
     fi
     systemctl restart 'ntopng@*' --all
 elif [ -f /etc/init.d/ntopng ]; then
-    update-rc.d ntopng defaults 93 >/dev/null
+    if [ -z "$PREV_VERSION" ]; then
+        update-rc.d ntopng defaults 93 >/dev/null
+    fi
+
+    # Restart service after upgrade/install
     /etc/init.d/ntopng restart
 fi
+
+echo ""
+echo "NOTE"
+echo ""
+echo "ntopng Community does not require a license."
+echo "ntopng Pro/Enterprise licenses are perpetual and include 1 year maintenance/updates:"
+echo "you can use the software even after maintenance is expired, however updating it after"
+echo "1 year would prevent ntopng from running. If you have automatic updates enabled, and"
+echo "maintenance is expired, it is recommended to put the package updates on hold with:"
+echo ""
+echo "apt-mark hold ntopng"
+echo ""
+echo "Automatic updates can be enabled again with:"
+echo ""
+echo "apt-mark unhold ntopng"
+echo ""
 
 exit 0

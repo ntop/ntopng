@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -13,21 +13,19 @@ local rest_utils = require("rest_utils")
 
 --
 -- Read the IP address(es) for an interface
--- Example: curl -u admin:admin -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/interface/addresses.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/interface/address.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 local ifid = _GET["ifid"]
 
 if isEmptyString(ifid) then
-   rc = rest_utils.consts_invalid_interface
-   print(rest_utils.rc(rc))
+   rc = rest_utils.consts.err.invalid_interface
+   rest_utils.answer(rc)
    return
 end
 
@@ -49,4 +47,4 @@ end
 
 res.addresses = addresses;
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)

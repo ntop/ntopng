@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2017-20 - ntop.org
+ * (C) 2017-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 
 /* *************************************** */
 
-FlowGrouper::FlowGrouper(sortField sf){
+FlowGrouper::FlowGrouper(sortField sf) {
   sorter = sf;
   app_protocol = 0;
   table_index = 1;
@@ -38,7 +38,7 @@ FlowGrouper::~FlowGrouper() {}
 /* *************************************** */
 
 bool FlowGrouper::inGroup(Flow *flow) {
-  switch(sorter) {
+  switch (sorter) {
     case column_ndpi:
       return (flow->get_detected_protocol().app_protocol == app_protocol);
     default:
@@ -49,12 +49,11 @@ bool FlowGrouper::inGroup(Flow *flow) {
 /* *************************************** */
 
 int FlowGrouper::newGroup(Flow *flow) {
-  if(flow == NULL)
-    return -1;
+  if (flow == NULL) return -1;
 
   memset(&stats, 0, sizeof(stats));
 
-  switch(sorter) {
+  switch (sorter) {
     case column_ndpi:
       app_protocol = flow->get_detected_protocol().app_protocol;
       break;
@@ -68,19 +67,18 @@ int FlowGrouper::newGroup(Flow *flow) {
 /* *************************************** */
 
 int FlowGrouper::incStats(Flow *flow) {
-  if(flow == NULL || !inGroup(flow))
-    return -1;
+  if (flow == NULL || !inGroup(flow)) return -1;
 
   stats.bytes += flow->get_bytes();
   stats.bytes_thpt += flow->get_bytes_thpt();
 
-  if(stats.first_seen == 0 || flow->get_first_seen() < stats.first_seen)
+  if (stats.first_seen == 0 || flow->get_first_seen() < stats.first_seen)
     stats.first_seen = flow->get_first_seen();
-  if(flow->get_last_seen() > stats.last_seen)
+  if (flow->get_last_seen() > stats.last_seen)
     stats.last_seen = flow->get_last_seen();
 
 #ifdef HAVE_NEDGE
-  if(!flow->isPassVerdict())
+  if (!flow->isPassVerdict())
 #endif
     stats.num_blocked_flows++;
 
@@ -90,7 +88,7 @@ int FlowGrouper::incStats(Flow *flow) {
 
 /* *************************************** */
 
-void FlowGrouper::lua(lua_State* vm) {
+void FlowGrouper::lua(lua_State *vm) {
   lua_newtable(vm);
 
   lua_push_uint64_table_entry(vm, "proto", app_protocol);
@@ -100,7 +98,8 @@ void FlowGrouper::lua(lua_State* vm) {
   lua_push_uint64_table_entry(vm, "seen.last", stats.last_seen);
   lua_push_uint64_table_entry(vm, "num_flows", stats.num_flows);
   lua_push_uint64_table_entry(vm, "num_blocked_flows", stats.num_blocked_flows);
-  lua_push_float_table_entry(vm, "throughput_bps", max_val(stats.bytes_thpt, 0));
+  lua_push_float_table_entry(vm, "throughput_bps",
+                             max_val(stats.bytes_thpt, 0));
 
   lua_rawseti(vm, -2, table_index++);
 }

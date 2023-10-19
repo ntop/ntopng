@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -7,27 +7,29 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 if(ntop.isPro()) then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-    require "snmp_utils"
+    local snmp_utils = require "snmp_utils"
 end
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
-local alert_utils = require "alert_utils"
+local tag_utils = require("tag_utils")
 local page_utils = require("page_utils")
-local ts_utils = require("ts_utils")
+local auth = require "auth"
 
-local network        = _GET["network"]
+local network_id        = _GET["network"]
 local network_name   = _GET["network_cidr"]
 local page           = _GET["page"]
+local subnet2        = _GET["subnet_2"]
+
+local network_behavior_update_freq = 300 -- Seconds
 
 local ifstats = interface.getStats()
 local ifId = ifstats.id
-local have_nedge = ntop.isnEdge()
 
 if(not isEmptyString(network_name)) then
-  network = ntop.getNetworkIdByName(network_name)
+  network_id = ntop.getNetworkIdByName(network_name)
 else
-  network_name = ntop.getNetworkNameById(tonumber(network))
+  network_name = ntop.getNetworkNameById(tonumber(network_id))
 end
 
 local custom_name = getLocalNetworkAlias(network_name)
@@ -38,20 +40,21 @@ if network_vlan == nil then network_vlan = 0 end
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.networks)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.networks)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-if(network == nil) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> ".. i18n("network_details.network_parameter_missing_message") .. "</div>")
-    return
+if(network_id == nil) then
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> ".. i18n("network_details.network_parameter_missing_message") .. "</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
 end
 
 --[[
 Create Menu Bar with buttons
 --]]
-local nav_url = ntop.getHttpPrefix().."/lua/network_details.lua?network="..tonumber(network)
-local title = i18n("network_details.network") .. ": "..network_name
+local nav_url = ntop.getHttpPrefix().."/lua/network_details.lua?network="..tonumber(network_id)
+local title = i18n("network_details.network") .. ": "..custom_name
 
 page_utils.print_navbar(title, nav_url,
 			{
@@ -61,9 +64,10 @@ page_utils.print_navbar(title, nav_url,
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
 			   {
-			      hidden = interface.isPcapDumpInterface() or not areAlertsEnabled(),
+			      hidden = not areAlertsEnabled() or  not auth.has_capability(auth.capabilities.alerts),
 			      active = page == "alerts",
 			      page_name = "alerts",
+			      url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?&page=network&network_name=" .. network_name .. tag_utils.SEPARATOR .. "eq",
 			      label = "<i class=\"fas fa-exclamation-triangle fa-lg\"></i>",
 			   },
 			   {
@@ -73,7 +77,7 @@ page_utils.print_navbar(title, nav_url,
 			      label = "<i class='fas fa-file-alt report-icon'></i>",
 			   },
 			   {
-			      hidden = not network or not isAdministrator(),
+			      hidden = not network_id or not isAdministrator(),
 			      active = page == "config",
 			      page_name = "config",
 			      label = "<i class=\"fas fa-cog fa-lg\"></i>",
@@ -85,26 +89,8 @@ page_utils.print_navbar(title, nav_url,
 Selectively render information pages
 --]]
 if page == "historical" then
-    local schema = _GET["ts_schema"] or "subnet:traffic"
-    local selected_epoch = _GET["epoch"] or ""
-    local url = ntop.getHttpPrefix()..'/lua/network_details.lua?ifid='..ifId..'&network='..network..'&page=historical'
-
-    local tags = {
-      ifid = ifId,
-      subnet = network_name,
-    }
-
-    graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-      timeseries = {
-	 {schema="subnet:traffic",             label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
-	 {schema="subnet:broadcast_traffic",   label=i18n("broadcast_traffic")},
-	 {schema="subnet:engaged_alerts",      label=i18n("show_alerts.engaged_alerts")},
-	 {schema="subnet:tcp_retransmissions", label=i18n("graphs.tcp_packets_retr"), nedge_exclude=1},
-	 {schema="subnet:tcp_out_of_order",    label=i18n("graphs.tcp_packets_ooo"), nedge_exclude=1},
-	 {schema="subnet:tcp_lost",            label=i18n("graphs.tcp_packets_lost"), nedge_exclude=1},
-	 {schema="subnet:tcp_keep_alive",      label=i18n("graphs.tcp_packets_keep_alive"), nedge_exclude=1},
-      }
-    })
+   local source_value_object = { subnet = network_name, ifid = interface.getId() }
+   graph_utils.drawNewGraphs(source_value_object)
 elseif (page == "config") then
     if(not isAdministrator()) then
       return
@@ -123,7 +109,13 @@ elseif (page == "config") then
    print [[<tr>
 	 <th>]] print(i18n("network_details.network_alias")) print[[</th>
 	 <td>
-	       <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]] print(custom_name) print[[">
+         <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]] print(custom_name) print[["
+         ]] 
+         local option_name = ntop.getLocalNetworkAlias(network_name) or nil
+         if option_name then
+            print[[disabled="disabled"]]
+         end
+         print[[>
 	 </td>
       </tr>]]
 
@@ -135,14 +127,21 @@ elseif (page == "config") then
      aysHandleForm("#network_config");
    </script>]]
 
-elseif(page == "alerts") then
-
-    alert_utils.printAlertTables("network", network_name,
-      "network_details.lua", {network=network}, network_name, "network",
-      {enable_label = i18n("show_alerts.trigger_network_alert_descr", {network = network_name})})
+  print([[
+    <div class="notes bg-light border">
+      <b>]] .. i18n("notes") .. [[</b>:
+      <ul>
+        <li>
+          ]] ..  i18n("network_stats.note_aliases_not_configurable") .. [[ 
+      </ul>
+    </div>
+  ]])
 
 elseif page == "traffic_report" then
-    dofile(dirs.installdir .. "/pro/scripts/lua/enterprise/traffic_report.lua")
+   package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/?.lua;" .. package.path
+   local traffic_report = require "traffic_report"
+
+   traffic_report.generate_traffic_report()
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -50,7 +50,7 @@ function ntop.changeAllowedNets(string username, string allowed_networks)
 --! @return true on success, false otherwise.
 function ntop.changeAllowedIfname(string username, string allowed_ifname)
 
---! @brief Change the gui language of a ntopng user.
+--! @brief Change the GUI language of a ntopng user.
 --! @param username the target user.
 --! @param language the new language code.
 --! @return true on success, false otherwise.
@@ -80,7 +80,7 @@ function ntop.getNologinUser()
 --! @return true if the user is administrator, false otherwise.
 function ntop.isAdministrator()
 
---! @brief Check if login to the ntopng gui is disabled.
+--! @brief Check if login to the ntopng GUI is disabled.
 --! @return true if the login is disabled, false otherwise.
 function ntop.isLoginDisabled()
 

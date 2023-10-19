@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2018-20 - ntop.org
+ * (C) 2018-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,15 +23,14 @@
 
 /* ******************************************************* */
 
-RRDTimeseriesExporter::RRDTimeseriesExporter(NetworkInterface *_if) : TimeseriesExporter(_if) {
-  ts_queue = new FifoStringsQueue(MAX_RRD_QUEUE_LEN);
+RRDTimeseriesExporter::RRDTimeseriesExporter(NetworkInterface* _if)
+    : TimeseriesExporter(_if) {
+  ts_queue = new (std::nothrow) StringFifoQueue(MAX_RRD_QUEUE_LEN);
 }
 
 /* ******************************************************* */
 
-RRDTimeseriesExporter::~RRDTimeseriesExporter() {
-  delete ts_queue;
-}
+RRDTimeseriesExporter::~RRDTimeseriesExporter() { delete ts_queue; }
 
 /* ******************************************************* */
 
@@ -39,7 +38,8 @@ bool RRDTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
   char data[LINE_PROTOCOL_MAX_LINE];
   bool rv = false;
 
-  if(line_protocol_write_line(vm, data, sizeof(data), NULL /* No need to escape here */) < 0)
+  if (line_protocol_write_line(vm, data, sizeof(data),
+                               NULL /* No need to escape here */) < 0)
     return false;
 
   rv = ts_queue->enqueue(data);
@@ -50,7 +50,10 @@ bool RRDTimeseriesExporter::enqueueData(lua_State* vm, bool do_lock) {
 /* ******************************************************* */
 
 char* RRDTimeseriesExporter::dequeueData() {
-  return ts_queue->dequeue();
+  if (ts_queue->empty())
+    return (NULL);
+  else
+    return (ts_queue->dequeue());
 }
 
 /* ******************************************************* */
@@ -61,5 +64,4 @@ u_int64_t RRDTimeseriesExporter::queueLength() const {
 
 /* ******************************************************* */
 
-void RRDTimeseriesExporter::flush() {
-}
+void RRDTimeseriesExporter::flush() {}

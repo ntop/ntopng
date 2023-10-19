@@ -1,7 +1,7 @@
 Alerts API
 ===========
 
-ntopng provides an alert engine to generate alerts and visualize them into the gui.
+ntopng provides an alert engine to generate alerts and visualize them into the GUI.
 
 Currently only built-in alerts are supported, which are described in https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/alert_consts.lua .
 

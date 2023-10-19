@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,18 +28,23 @@ class PeriodicActivities {
  private:
   ThreadedActivity *activities[CONST_MAX_NUM_THREADED_ACTIVITIES];
   u_int16_t num_activities;
-  ThreadPool *high_priority_pool, *standard_priority_pool, *timeseries_pool,
-    *no_priority_pool, *longrun_priority_pool, *discover_pool, *housekeeping_pool;
-  
+  ThreadPool *th_pool;
+  pthread_t pthreadLoop;
+  bool thread_running;
+
+  u_int8_t getNumThreadsPerPool(const char *path,
+                                std::vector<char *> *iface_scripts_list,
+                                std::vector<char *> *system_scripts_list);
+
  public:
   PeriodicActivities();
   ~PeriodicActivities();
 
   void startPeriodicActivitiesLoop();
-  void sendShutdownSignal();
-
   void lua(NetworkInterface *iface, lua_State *vm);
-  void reloadVMs();
+  void run();
+
+  inline bool isRunning() { return (thread_running); }
 };
 
 #endif /* _PERIODIC_ACTIVITIES_H_ */

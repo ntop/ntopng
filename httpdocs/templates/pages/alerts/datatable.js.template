@@ -1,0 +1,344 @@
+/*
+ *   (C) 2021-23 - ntop.org
+ *   Base template for the alert tables.
+ */
+
+const FAMILY = "{{ entity }}"
+
+$table.on('click', `a[href='#check_info']`, function (e) {
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
+    const href = "{* alert_details_url *}?page={* entity *}&status={* alert_status *}&row_id=" + alert.row_id + "&tstamp=" + alert.tstamp.value;
+    window.open(href, "_blank");
+});
+
+$table.on('click', `a[href='#check_snmp_info']`, function (e) {
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
+    const href = "/lua/pro/enterprise/snmp_device_details.lua?host="+alert.ip;
+    window.open(href, "_blank");
+});
+
+$table.on('click', `a[href='#check_settings']`, function (e) {
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
+    const check_settings_href = $(alert.msg.configset_ref).attr('href');
+    window.location.href = check_settings_href;
+});
+
+$table.on('click', `a[href='#flow_alerts']`, function (e) {
+    /* Create and redirect to the flow alerts filtered by alert timestamps and alert ip */
+
+    /* Prepare URL params */
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
+    const alert_tstamp = alert.tstamp.value;
+    const duration = alert.duration;
+    const [epoch_begin, epoch_end] = [alert_tstamp - 300 /* Look a bit before than the timestamp */, alert_tstamp + duration];
+    const alert_ip = alert.ip.value + "{{ require("tag_utils").SEPARATOR }}eq";
+
+    const flow_alerts_url = new URL(location);
+    const flow_search_params = {epoch_begin: epoch_begin, epoch_end: epoch_end, page: "flow"};
+
+    /*
+        For server alerts, we redirect to the flow alerts having this IP as server. For client alert, the
+        redirection is done on the client.
+     */
+    if(alert.is_server) {
+        flow_search_params["srv_ip"] = alert_ip;
+    } else { /* Client alert or unkown cli/srv role */
+        flow_search_params["cli_ip"] = alert_ip;
+    }
+
+    if(alert.vlan_id && alert.vlan_id != "") {
+        flow_search_params["vlan_id"] = alert.vlan_id + "{{ require("tag_utils").SEPARATOR }}eq";
+    }
+
+    flow_alerts_url.search = new URLSearchParams(flow_search_params);
+    window.location.href = flow_alerts_url.href;
+});
+
+$table.on('click', `a[href='#past_flows']`, function (e) {
+    /* Create and redirect to the past alerts filtered  */
+
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
+
+    	    if(alert.link_to_past_flows)
+	    	window.location.href = alert.link_to_past_flows;
+	    else
+	    	window.location.href = `${http_prefix}/lua/pro/db_search.lua`;
+});
+
+$table.on('click', `a[href='#delete_alert_dialog']`, function (e) {
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
+    $deleteAlertModal.invokeModalInit(alert);
+});
+
+const $deleteAlertModal = $('#delete_alert_dialog form').modalHandler({
+    method: 'post',
+    csrf: pageCsrf,
+    endpoint: `${http_prefix}{* datatable.endpoint_delete *}`,
+    beforeSumbit: function (alert) {
+        return { ifid: "{{ ifid }}", row_id: alert.row_id, status: "{{ alert_status }}"};
+    },
+    onModalInit: function (alert) {
+        $(`#delete_alert_dialog button[type='submit']`).removeAttr("disabled");
+    },
+    onSubmitSuccess: function (response) {
+        if (response.rc < 0) {
+            $('#delete_alert_dialog .invalid-feedback').html(i18n_ext.rest[response.rc_str]).show();
+        }
+        else {
+	    ntopng_status_manager.update_subscribers();
+        }
+
+        return (response.rc == 0);
+    }
+});
+
+$(`#dt-btn-acknowledge`).on('click', function (e) {
+    $acknowledgeFilteredAlerts.invokeModalInit();
+});
+
+const $acknowledgeFilteredAlerts = $('#dt-acknowledge-modal form').modalHandler({
+    method: 'post',
+    csrf: pageCsrf,
+    endpoint: `${http_prefix}{* datatable.endpoint_acknowledge *}`,
+    beforeSumbit: function (alert) {
+      let post_params = formatFilteredParams()
+
+      /* Read the label from the corresponding form field */
+      post_params["label"] = $("#dt-acknowledge-modal #alert-label-modal").val();
+
+      return post_params;
+    },
+    onModalInit: function () {
+        $(`#dt-acknowledge-modal button[type='submit']`).removeAttr("disabled");
+        $('#dt-acknowledge-modal .filters-list').empty();
+        let datasourceParams = ntopng_status_manager.get_status();
+        const tags = datasourceParams.filters
+
+        const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
+        const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
+
+        const sortedTags = tags.sort((a, b) => {
+          return i18n_ext.tags[a.id].localeCompare(i18n_ext.tags[b.id])
+        });
+
+        $('#dt-acknowledge-modal #end-epoch-acknowledge').val(endEpoch);
+        $('#dt-acknowledge-modal #begin-epoch-acknowledge').val(beginEpoch);
+
+        for (const tag of sortedTags) {
+          const { id, operator, value } = tag;
+          const label = i18n_ext.tags[key]
+          const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
+
+          $('#dt-acknowledge-modal .filters-list').append(child);
+        }
+    },
+    onSubmitSuccess: function (response) {
+	ntopng_status_manager.update_subscribers();
+        return (response.rc == 0);
+    }
+});
+
+const $deleteFilteredAlerts = $('#dt-delete-modal form').modalHandler({
+    method: 'post',
+    csrf: pageCsrf,
+    endpoint: `${http_prefix}{* datatable.endpoint_delete *}`,
+    beforeSumbit: function (alert) {
+      return formatFilteredParams()
+    },
+    onModalInit: function () {
+      $('#dt-delete-modal .filters-list').empty();
+
+      let datasourceParams = ntopng_status_manager.get_status();
+      const tags = datasourceParams.filters
+      const beginEpoch = moment(parseInt(datasourceParams["epoch_begin"]), 'X').format("DD/MM/YYYY HH:mm:ss");
+      const endEpoch = moment(parseInt(datasourceParams["epoch_end"]), 'X').format("DD/MM/YYYY HH:mm:ss");
+
+      const sortedTags = tags.sort((a, b) => {
+        return i18n_ext.tags[a.id].localeCompare(i18n_ext.tags[b.id])
+      });
+
+      $('#dt-delete-modal #end-epoch-delete').val(endEpoch);
+      $('#dt-delete-modal #begin-epoch-delete').val(beginEpoch);
+
+      for (const tag of sortedTags) {
+        const { id, operator, value } = tag;
+        const label = i18n_ext.tags[id]
+        const child = $('<div class="form-group row"><div class="col-sm-6"><label class="col-form-label"><b>'+label+'</b></label></div><div class="col-sm-6 mt-1"><input class="form-control" type="text" value="'+value+'" disabled/></div></div>');
+
+        $('#dt-delete-modal .filters-list').append(child);
+      }
+
+      $('#dt-delete-modal #dt-btn-delete').prop('disabled', false);
+    },
+    onSubmitSuccess: function (response) {
+	ntopng_status_manager.update_subscribers();
+        return (response.rc == 0);
+    }
+});
+
+$(`#dt-btn-delete`).on('click', function (e) {
+    $deleteFilteredAlerts.invokeModalInit();
+});
+
+// $table.on('click', `a[href='#alerts_filter_dialog']`, function (e) {
+//     const alert = $table.row($(this).parent().parent().parent().parent()).data();
+//     $disableAlert.invokeModalInit(alert);
+// });
+
+// const $disableAlert = $('#alerts_filter_dialog form').modalHandler({
+//     method: 'post',
+//     csrf: pageCsrf,
+//     endpoint: `${http_prefix}/lua/pro/rest/v2/add/alert/exclusion.lua`,
+//     beforeSumbit: function (alert) {
+//         let data = {
+//             subdir: FAMILY,
+//             script_key: alert.script_key,
+//             delete_alerts: $(`#delete_alerts_switch`).is(":checked"),
+//             alert_addr: $(`[name='alert_addr']:checked`).val(),
+//         };
+
+//         if(FAMILY === "flow")
+//             data["flow_alert_key"] = alert.alert_id.value;
+//         else if(FAMILY === "host")
+//             data["host_alert_key"] = alert.alert_id.value;
+
+//         return data;
+//     },
+//     onModalInit: function (alert) {
+//         const $type = $(`<span>${alert.alert_id.label}</span>`);
+//         $(`#alerts_filter_dialog .alert_label`).text($type.text().trim());
+
+//         if (FAMILY === "host") {
+//             const label = (alert.ip.label) ? `${alert.ip.label} (${alert.ip.value})` : alert.ip.value;
+//             $(`#srv_addr`).text(label);
+//             $(`#srv_radio`).val(alert.ip.value);
+//             $(`#cli_radio`).parent().hide();
+//         }
+//         else if (FAMILY === "flow") {
+//             let cliValue = alert.flow.cli_ip.value
+//             let srvValue = alert.flow.srv_ip.value
+
+//             if((alert.flow.vlan != undefined) && (alert.flow.vlan.value != 0)) {
+//               cliValue = cliValue + '@' + alert.flow.vlan.value
+//               srvValue = srvValue + '@' + alert.flow.vlan.value
+//             }
+
+//             const cliLabel = (alert.flow.cli_ip.label) ? `${alert.flow.cli_ip.label} (${cliValue})` : cliValue;
+//             const srvLabel = (alert.flow.srv_ip.label) ? `${alert.flow.srv_ip.label} (${srvValue})` : srvValue;
+
+//             $(`#cli_addr`).text(cliLabel);
+//             $(`#cli_radio`).val(cliValue);
+//             $(`#srv_addr`).text(srvLabel);
+//             $(`#srv_radio`).val(srvValue);
+//         }
+//         else {
+//             $(`.alert_entity_val`).text("Unexpected alert family")
+//         }
+
+//     },
+//     onSubmitSuccess: function (response, dataSent) {
+//         if (response.rc < 0) {
+//             $('#alerts_filter_dialog .invalid-feedback').html(i18n_ext.rest[response.rc_str] || response.rc_str).show();
+//         }
+//         else {
+
+//             if (dataSent.delete_alerts) {
+//                 //location.reload();
+//             }
+//             else {
+// 		ntopng_status_manager.update_subscribers();
+//             }
+//         }
+
+//         return (response.rc == 0);
+//     }
+// });
+
+$table.on('click', `a[href='#acknowledge_alert_dialog']`, function (e) {
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
+    $acknowledgeAlert.invokeModalInit(alert);
+});
+
+const $acknowledgeAlert = $('#acknowledge_alert_dialog form').modalHandler({
+    method: 'post',
+    csrf: pageCsrf,
+    endpoint: `${http_prefix}{* datatable.endpoint_acknowledge *}`,
+    beforeSumbit: function (alert) {
+        return { ifid: "{{ ifid }}",
+               row_id: alert.row_id,
+               label: $(`#acknowledge_alert_dialog #alert-label`).val()};
+    },
+    onModalInit: function (alert) {
+        $(`#acknowledge_alert_dialog button[type='submit']`).removeAttr("disabled");
+        const $type = $(`<span>${alert.alert_id.label}</span>`);
+        $(`#acknowledge_alert_dialog .alert_label`).text($type.text().trim());
+        $(`#acknowledge_alert_dialog #alert-label`).val(alert.user_label);
+    },
+    onSubmitSuccess: function (response, dataSent) {
+        if (response.rc < 0) {
+            $('#acknowledge_alert_dialog .invalid-feedback').html(i18n_ext.rest[response.rc_str] || response.rc_str).show();
+        }
+        else {
+
+            if (dataSent.delete_alerts) {
+                location.reload();
+            }
+            else {
+		ntopng_status_manager.update_subscribers();
+            }
+        }
+
+        return (response.rc == 0);
+    }
+});
+
+/**
+ * Release Button Handler
+$table.on('click', `a[href='#release_single_alert']`, function (e) {
+    const alert = $table.row($(this).parent().parent().parent().parent()).data();
+});
+
+const $releaseAlertModal = $('#release_single_alert form').modalHandler({
+    method: 'post',
+    csrf: pageCsrf,
+    endpoint: `${http_prefix}/lua/rest/v2/release/{{ entity }}/alerts.lua`,
+    beforeSumbit: function (alert) {
+        return {
+            ifid: "{{ ifid }}",
+            row_id: alert.row_id
+        };
+    },
+    onModalInit: function (alert) {
+        $(`#release_single_alert button[type='submit']`).removeAttr("disabled");
+    },
+    onSubmitSuccess: function (response) {
+        if (response.rc < 0) {
+            $('#release_single_alert .invalid-feedback').html(i18n_ext.rest[response.rc_str]).show();
+        }
+        else {
+            onRangePickerChange(false);
+        }
+
+        return (response.rc == 0);
+    }
+});*/
+
+function formatFilteredParams() {
+  const currentUrl = new URLSearchParams(window.location.search);
+  let datasourceParams = ntopng_status_manager.get_status();
+  let params = {}
+
+  /* Cycling the filters */
+  for (const tag of datasourceParams.filters) {
+    params[tag.id] = tag.value
+  }
+
+  /* Cycling other params not in filters, e.g. Epoch Begin-End */
+  for (const item in datasourceParams) {
+    if(typeof datasourceParams[item] !== 'object') params[item] = datasourceParams[item]
+  }
+
+  params['ifid'] = currentUrl.get('ifid');
+
+  return params;
+}

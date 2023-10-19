@@ -1,0 +1,13 @@
+{#
+    (C) 2020 - ntop.org
+    Template used by the 'Elephant Flows' User Script.
+#}
+
+<div class="mb-3 row">
+
+</div>
+<script type="text/javascript">
+    $(document).ready(function() {
+
+    });
+</script>

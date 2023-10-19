@@ -1,12 +1,13 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
+local categories_utils = require "categories_utils"
 
 local ifid = _GET["ifid"]
 
@@ -36,11 +37,11 @@ if(json_format) then print('[\n') end
 
 local num = 0
 for k, v in pairsByKeys(ifstats["ndpi_categories"], asc) do
-  local label = getCategoryLabel(k)
+  local label = getCategoryLabel(k, v.category)
 
   if(not(json_format)) then
      print('<tr id="t_protocol_'..k..'">')
-     print('<th style="width: 33%;">')
+     print('<th style="width: 20%;">')
   else
      if(num > 0) then
 	print(',\n')
@@ -49,7 +50,7 @@ for k, v in pairsByKeys(ifstats["ndpi_categories"], asc) do
 
   if(areInterfaceCategoriesTimeseriesEnabled(ifid)) then
      if(not(json_format)) then
-	print("<A HREF=\""..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid=" .. ifid .. "&page=historical&ts_schema=iface:ndpi_categories&category=".. k .."\">".. label .." </A>")
+	print("<A HREF=\""..interface2detailhref(ifid, {page = "historical", ts_schema = "top:iface:ndpi_categories", ts_query = "ifid:" .. ifid .. ",category:" .. k, zoom = '1d'}) .. "\">".. label .." </A>")
      else
 	print('{ "proto": "'..k..'", ')
      end
@@ -64,7 +65,11 @@ for k, v in pairsByKeys(ifstats["ndpi_categories"], asc) do
   local t = v["bytes"]
 
   if(not(json_format)) then
-     print("</th><td class=\"text-right\" style=\"width: 20%;\">" ..bytesToSize(t).. "</td>")
+     print("</th>")
+     print('<td  style="width: 50%;">')
+     print(categories_utils.get_category_protocols_list(v.category))
+     print("</td>")
+     print("<td class=\"text-end\" style=\"width: 10%;\">" ..bytesToSize(t).. "</td>")
      print("<td ><span style=\"width: 60%; float: left;\">")
      graph_utils.percentageBar(total, t, "") -- k
      -- print("</td>\n")

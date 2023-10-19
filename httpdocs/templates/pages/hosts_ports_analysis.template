@@ -1,0 +1,69 @@
+{#
+  (C) 2023 - ntop.org
+  This template is used by the `Live Flows` page inside the `Host Details`.    
+#}
+
+
+<div id="hosts-ports-analysis">
+  <page-hosts-ports-analysis
+  :is_ntop_enterprise_m="is_ntop_enterprise_m"
+  :ifid="ifid"
+  :draw="draw"
+  :sort="sort"
+  :order="order"
+  :start="start"
+  :length="length">
+  </page-hosts-ports-analysis>
+</div>
+  
+<script type="text/javascript">  
+  const ifid = {* ifid *}
+  const draw = {* draw *}
+  const sort = "{* sort *}"
+  const order = "{* order *}"
+  const start = {* start *}
+  const length = {* length *}
+  const is_live = "{* is_live *}"
+  
+  function start_vue() {
+    const isNtopEnterpriseM = '{* ntop.isEnterpriseM() *}' == 'true';
+    let vue_options;
+    if(is_live == "true") {
+        vue_options = {
+            components: {	  
+                'page-hosts-ports-analysis': ntopVue.PageHostsPortsAnalysis,
+            },
+            /**
+            * First method called when the component is created.
+            */
+            created() { },
+            mounted() {
+            },
+            data() {
+                return {
+                is_ntop_enterprise_m: isNtopEnterpriseM,
+                ifid: ifid,
+                draw: draw,
+                sort: sort,
+                order: order,
+                start: start,
+                length: length,
+                };
+            },
+            methods: { },
+        };
+    }
+    
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount('#hosts-ports-analysis');
+    return vue_app;
+  }
+
+  /* ******************************************************* */
+
+  $(function () {
+    // initialize script table
+    start_vue();
+  });
+</script>
+

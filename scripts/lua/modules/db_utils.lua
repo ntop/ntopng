@@ -1,5 +1,5 @@
 --
--- (C) 2014-20 - ntop.org
+-- (C) 2014-22 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -7,11 +7,126 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "template"
 require "lua_utils"
-require "flow_aggregation_utils"
 
 local db_debug = false
 
 local db_utils = {}
+
+-- ########################################################
+
+local function populate_l7_protocols()
+   -- Protocols table
+   local list = interface.getnDPIProtocols() or {}
+   local sql = "INSERT INTO ntopng.l7_protocols (*) Values"
+   for proto_name, proto_id in pairs(list) do
+      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding Protocol: " .. proto_name .. ", ID: " .. proto_id)
+      sql = string.format("%s (%u, '%s')", sql, tonumber(proto_id), proto_name)
+   end
+   interface.execSQLQuery(sql)
+end
+
+-- ########################################################
+
+local function populate_l7_categories()
+   -- Categories table
+   list = interface.getnDPICategories() or {}
+   sql = string.format("INSERT INTO ntopng.l7_categories (*) Values")
+   for category_name, category_id in pairs(list) do
+      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding Category: " .. category_name .. ", ID: " .. category_id)
+      sql = string.format("%s (%u, '%s')", sql, tonumber(category_id), category_name)
+   end
+
+   interface.execSQLQuery(sql)
+end
+
+-- ########################################################
+
+local function populate_l4_protocols()
+   -- L4 Protocols table
+   list = l4_proto_list()
+   sql = string.format("INSERT INTO ntopng.l4_protocols (*) Values")
+   for l4_proto_name, l4_proto_id in pairs(list) do
+      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding L4 Protocol: " .. l4_proto_name .. ", ID: " .. l4_proto_id)
+      sql = string.format("%s (%u, '%s')", sql, tonumber(l4_proto_id), l4_proto_name)
+   end
+
+   interface.execSQLQuery(sql)
+end
+
+-- ########################################################
+
+local function populate_flow_risks()
+   -- Flow Risk table
+   list = ntop.getRiskList()
+   sql = string.format("INSERT INTO ntopng.flow_risks (*) Values")
+   for flow_risk_id, flow_risk_name in pairs(list) do
+      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding L4 Protocol: " .. l4_proto_name .. ", ID: " .. l4_proto_id)
+      sql = string.format("%s (%u, '%s')", sql, tonumber(flow_risk_id), flow_risk_name)
+   end
+
+   interface.execSQLQuery(sql)
+end
+
+-- ########################################################
+
+local function populate_alert_severities()
+   -- Alert Severities table
+   list = require('alert_severities')
+   sql = string.format("INSERT INTO ntopng.alert_severities (*) Values")
+   for _, severity in pairs(list) do
+      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding L4 Protocol: " .. l4_proto_name .. ", ID: " .. l4_proto_id)
+      if severity.severity_id and severity.i18n_title then
+         sql = string.format("%s (%u, '%s')", sql, tonumber(severity.severity_id), i18n(severity.i18n_title))
+      end
+   end
+
+   interface.execSQLQuery(sql)
+end
+
+-- ########################################################
+
+local extra_tables = {
+   l7_protocols = {
+      populate_table = populate_l7_protocols,
+      flows_col_name = 'L7_PROTO_NAME',
+      flows_col = 'L7_PROTO',
+      alerts_col_name = 'l7_proto_name',
+      alerts_col = 'l7_proto',
+      alias = 'l7_protocols'
+   },
+   l7_categories = {
+      populate_table = populate_l7_categories,
+      flows_col_name = 'L7_CATEGORY_NAME',
+      flows_col = 'L7_CATEGORY',
+      alerts_col_name = 'l7_cat_name',
+      alerts_col = 'l7_cat',
+      alias = 'l7_categories'
+   },
+   l4_protocols = {
+      populate_table = populate_l4_protocols,
+      flows_col_name = 'PROTOCOL_NAME',
+      flows_col = 'PROTOCOL',
+      alerts_col_name = 'proto_name',
+      alerts_col = 'protocol',
+      alias = 'l4_protocols'
+   },
+   flow_risks = {
+      populate_table = populate_flow_risks,
+      flows_col_name = 'FLOW_RISK_NAME',
+      flows_col = 'FLOW_RISK',
+      alerts_col_name = 'flow_risk_name',
+      alerts_col = 'flow_risk',
+      alias = 'flow_risks'
+   },
+   alert_severities = {
+      populate_table = populate_alert_severities,
+      flows_col_name = 'SEVERITY_NAME',
+      flows_col = 'SEVERITY',
+      alerts_col_name = 'severity_name',
+      alerts_col = 'severity',
+      alias = 'alert_severities'
+   }
+}
 
 -- ########################################################
 
@@ -53,12 +168,6 @@ local function flowsTableName(version, force_raw)
    end
 
    local tblname = "flowsv"..version
-
-   if force_raw ~= true and ntop.isEnterpriseM() == true then
-      if useAggregatedFlows() == true then
-	 tblname = "aggr"..tblname
-      end
-   end
 
    -- return "flowsv"..version -- FIXX: remove this line when ready
    return tblname
@@ -163,7 +272,7 @@ end
 
 -- ########################################################
 
-function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7proto, l4proto, port, vlan, profile, info, begin_epoch, end_epoch, offset, max_num_flows, sort_column, sort_order, aggregated_flows)
+function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7proto, l4proto, port, vlan, profile, info, epoch_begin, epoch_end, offset, max_num_flows, sort_column, sort_order)
    -- CONVERT(UNCOMPRESS(JSON) USING 'utf8') AS JSON
 
    if(version == 4) then
@@ -175,7 +284,7 @@ function getInterfaceTopFlows(interface_id, version, host_or_profile, peer, l7pr
    follow = " ,L4_SRC_PORT,L4_DST_PORT,VLAN_ID,PROTOCOL,FIRST_SWITCHED,LAST_SWITCHED,PACKETS,IN_BYTES + OUT_BYTES as BYTES,IN_BYTES,OUT_BYTES,idx,L7_PROTO,INFO"
    if ntop.isPro() then follow = follow..",PROFILE" end
 
-   follow = follow.." from "..flowsTableName(version, true --[[ force raw flows --]]).." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   follow = follow.." from "..flowsTableName(version, true --[[ force raw flows --]]).." where FIRST_SWITCHED <= "..epoch_end.." and FIRST_SWITCHED >= "..epoch_begin
 
    if((l7proto ~= "") and (l7proto ~= "-1")) then follow = follow .." AND L7_PROTO="..l7proto end
    if((l4proto ~= "") and (l4proto ~= "-1")) then follow = follow .." AND PROTOCOL="..l4proto end
@@ -256,7 +365,7 @@ end
 
 -- ########################################################
 
-function getNumFlows(interface_id, version, host, protocol, port, l7proto, info, vlan, profile, begin_epoch, end_epoch, force_raw_flows, enforce_allowed_networks)
+function getNumFlows(interface_id, version, host, protocol, port, l7proto, info, vlan, profile, epoch_begin, epoch_end, force_raw_flows, enforce_allowed_networks)
    if(version == nil) then version = 4 end
 
    if(info == "") then info = nil end
@@ -282,7 +391,7 @@ function getNumFlows(interface_id, version, host, protocol, port, l7proto, info,
       end
    end
 
-   sql = "select COUNT(*) AS TOT_FLOWS, SUM(IN_BYTES + OUT_BYTES) AS TOT_BYTES, SUM(PACKETS) AS TOT_PACKETS FROM "..flowsTableName(version, force_raw_flows --[[force count from raw flows --]]).." where FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = "select COUNT(*) AS TOT_FLOWS, SUM(IN_BYTES + OUT_BYTES) AS TOT_BYTES, SUM(PACKETS) AS TOT_PACKETS FROM "..flowsTableName(version, force_raw_flows --[[force count from raw flows --]]).." where FIRST_SWITCHED <= "..epoch_end.." and FIRST_SWITCHED >= "..epoch_begin
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
    sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
@@ -330,7 +439,7 @@ end
 
 -- ########################################################
 
-function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l4proto, port, vlan, profile)
+function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, epoch_begin, epoch_end, ifid, l4proto, port, vlan, profile)
    local sql = ""
    local sql_bytes_packets = "PACKETS as packets, "
    local exclude_same_src_dst = false
@@ -356,7 +465,7 @@ function getOverallTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begi
    else
       sql = ""
    end
-   sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = sql.." WHERE FIRST_SWITCHED <= "..epoch_end.." and FIRST_SWITCHED >= "..epoch_begin
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='') "
    sql = sql.." AND (INTERFACE_ID='"..tonumber(ifid).."') "
    if(exclude_same_src_dst == true) then
@@ -389,7 +498,7 @@ end
 
 -- ########################################################
 
-function getOverallTopTalkers(interface_id, l4proto, port, vlan, profile, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+function getOverallTopTalkers(interface_id, l4proto, port, vlan, profile, info, epoch_begin, epoch_end, sort_column, sort_order, offset, limit)
    -- retrieves top talkers in the given time range
 
    if(info == "") then info = nil end
@@ -404,13 +513,13 @@ function getOverallTopTalkers(interface_id, l4proto, port, vlan, profile, info, 
    sql = sql.." FROM "
 
    sql = sql.."("
-   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id, l4proto, port, vlan, profile)
+   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, epoch_begin, epoch_end, interface_id, l4proto, port, vlan, profile)
    sql = sql.." UNION ALL "
-   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 4, begin_epoch, end_epoch, interface_id, l4proto, port, vlan, profile)
+   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 4, epoch_begin, epoch_end, interface_id, l4proto, port, vlan, profile)
    sql = sql.." UNION ALL "
-   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 6, begin_epoch, end_epoch, interface_id, l4proto, port, vlan, profile)
+   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 6, epoch_begin, epoch_end, interface_id, l4proto, port, vlan, profile)
    sql = sql.." UNION ALL "
-   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 6, begin_epoch, end_epoch, interface_id, l4proto, port, vlan, profile)
+   sql = sql..getOverallTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 6, epoch_begin, epoch_end, interface_id, l4proto, port, vlan, profile)
    sql = sql..") talkers"
    sql = sql.." group by addr "
 
@@ -454,7 +563,7 @@ end
 
 -- ########################################################
 
-function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, vlan, profile, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, vlan, profile, info, epoch_begin, epoch_end, sort_column, sort_order, offset, limit)
    -- obtains host top talkers, possibly restricting the range only to l7_proto_id
    if host == nil or host == "" then return {} end
 
@@ -484,7 +593,7 @@ function getHostTopTalkers(interface_id, host, l7_proto_id, l4_proto_id, port, v
    sql = sql.." FIRST_SWITCHED, LAST_SWITCHED "
    sql = sql.." FROM "..flowsTableName(version)
 
-   sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = sql.." WHERE FIRST_SWITCHED <= "..epoch_end.." and FIRST_SWITCHED >= "..epoch_begin
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
    sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
@@ -562,7 +671,7 @@ end
 
 -- ########################################################
 
-function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_epoch, end_epoch, ifid, l7_proto_id, l4_proto_id, port, vlan, profile)
+function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, epoch_begin, epoch_end, ifid, l7_proto_id, l4_proto_id, port, vlan, profile)
    local sql = ""
    local sql_bytes_packets = "PACKETS as packets, "
    local exclude_same_src_dst = false
@@ -589,7 +698,7 @@ function getAppTopTalkersSELECT_FROM_WHERE_clause(src_or_dst, v4_or_v6, begin_ep
       sql = ""
    end
 
-   sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = sql.." WHERE FIRST_SWITCHED <= "..epoch_end.." and FIRST_SWITCHED >= "..epoch_begin
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='') "
    sql = sql.." AND (INTERFACE_ID='"..tonumber(ifid).."') "
    sql = sql.." AND L7_PROTO = "..tonumber(l7_proto_id)
@@ -623,7 +732,7 @@ end
 
 -- ########################################################
 
-function getAppTopTalkers(interface_id, l7_proto_id, l4_proto_id, port, vlan, profile, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+function getAppTopTalkers(interface_id, l7_proto_id, l4_proto_id, port, vlan, profile, info, epoch_begin, epoch_end, sort_column, sort_order, offset, limit)
    -- retrieves top talkers in the given time range
    if(info == "") then info = nil end
 
@@ -637,13 +746,13 @@ function getAppTopTalkers(interface_id, l7_proto_id, l4_proto_id, port, vlan, pr
    sql = sql.." FROM "
 
    sql = sql.."("
-   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port, vlan, profile)
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 4, epoch_begin, epoch_end, interface_id, l7_proto_id, l4_proto_id, port, vlan, profile)
    sql = sql.." UNION ALL "
-   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 4, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port, vlan, profile)
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 4, epoch_begin, epoch_end, interface_id, l7_proto_id, l4_proto_id, port, vlan, profile)
    sql = sql.." UNION ALL "
-   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 6, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port, vlan, profile)
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_SRC_ADDR', 6, epoch_begin, epoch_end, interface_id, l7_proto_id, l4_proto_id, port, vlan, profile)
    sql = sql.." UNION ALL "
-   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 6, begin_epoch, end_epoch, interface_id, l7_proto_id, l4_proto_id, port, vlan, profile)
+   sql = sql..getAppTopTalkersSELECT_FROM_WHERE_clause('IP_DST_ADDR', 6, epoch_begin, epoch_end, interface_id, l7_proto_id, l4_proto_id, port, vlan, profile)
    sql = sql..") talkers"
    sql = sql.." group by addr "
 
@@ -687,7 +796,7 @@ end
 
 -- ########################################################
 
-function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id, port, vlan, profile, info, begin_epoch, end_epoch, sort_column, sort_order, offset, limit)
+function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id, port, vlan, profile, info, epoch_begin, epoch_end, sort_column, sort_order, offset, limit)
    -- tprint({n="getTopApplications", peer1=peer1, peer2=peer2})
    -- if both peers are nil, top applications are overall in the time range
    -- if peer1 is nil and peer2 is not nil, then top apps are for peer1
@@ -705,7 +814,7 @@ function getTopApplications(interface_id, peer1, peer2, l7_proto_id, l4_proto_id
    -- sql = sql.." (sum(LAST_SWITCHED) - sum(FIRST_SWITCHED)) / count(*) as avg_flow_duration "
    sql = sql.." FROM "..flowsTableName(version)
 
-   sql = sql.." WHERE FIRST_SWITCHED <= "..end_epoch.." and FIRST_SWITCHED >= "..begin_epoch
+   sql = sql.." WHERE FIRST_SWITCHED <= "..epoch_end.." and FIRST_SWITCHED >= "..epoch_begin
    sql = sql.." AND (NTOPNG_INSTANCE_NAME='"..ntop.getPrefs()["instance_name"].."'OR NTOPNG_INSTANCE_NAME IS NULL OR NTOPNG_INSTANCE_NAME='')"
    sql = sql.." AND (INTERFACE_ID='"..tonumber(interface_id).."')"
 
@@ -780,12 +889,55 @@ end
 
 -- ########################################################
 
-function db_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
-   local dbtables = {"flowsv4", "flowsv6"}
-   if useAggregatedFlows() then
-      dbtables[#dbtables+1] = "aggrflowsv4"
-      dbtables[#dbtables+1] = "aggrflowsv6"
+-- Delete partitions older than data_retention (epoch)
+function db_utils.clickhouseDeleteOldPartitions(data_retention, aggregated_retention)
+   -- [1] Non Aggregated Retention
+   local day_aligned_retention = data_retention - (data_retention % 86400)
+   -- Create a string that identifies the PARTITIONs name of the most recent partition that will be deleted
+   local retention_yyyymmdd = os.date("%Y%m%d", day_aligned_retention)
+
+   -- Deletion is done directly on partitions (Clickhouse database has daily partitions)
+
+   -- Query the partitions that need to be deleted. Convert YYYYMMDD strings into integers so that
+   -- only relevant partitions can be queried and deleted
+   -- The last condition > 999999 prevents old partitions created as YYYMM to be deleted
+   local partitions_q = string.format("SELECT DISTINCT database, table, toUInt32(partition) drop_part FROM system.parts WHERE active AND database='%s' AND table != 'l7_protocols' AND table != 'flow_risks' AND table != 'alert_severities' AND table != 'l7_categories' AND table != 'l4_protocols' AND table != 'hourly_flows' AND drop_part <= %u AND drop_part > 999999", ntop.getPrefs().mysql_dbname or 'ntopng', retention_yyyymmdd)
+   local partitions_res = interface.execSQLQuery(partitions_q)
+
+
+   if(partitions_res ~= nil) then
+      -- Iterate queried partitions and delete them (nil is returned if there is nothing to delete)
+      for _, partition_info in ipairs(partitions_res) do
+	 local delete_partition_q = string.format("ALTER TABLE %s.%s DROP PARTITION '%s'",
+						  partition_info["database"], partition_info["table"], partition_info["drop_part"])
+
+	 local delete_partition_res = interface.execSQLQuery(delete_partition_q)
+      end
    end
+
+   -- [2] Aggregated flows
+   day_aligned_retention = aggregated_retention - (aggregated_retention % 86400)
+   retention_yyyymmdd = os.date("%Y%m%d", day_aligned_retention)
+   partitions_q = string.format("SELECT DISTINCT database, table, toUInt32(partition) drop_part FROM system.parts WHERE active AND database='%s' AND table = 'hourly_flows' AND drop_part <= %u AND drop_part > 999999", ntop.getPrefs().mysql_dbname or 'ntopng', retention_yyyymmdd)
+   partitions_res = interface.execSQLQuery(partitions_q)
+
+   if(partitions_res ~= nil) then
+      -- Iterate queried partitions and delete them (nil is returned if there is nothing to delete)
+      for _, partition_info in ipairs(partitions_res) do
+	 local delete_partition_q = string.format("ALTER TABLE %s.%s DROP PARTITION '%s'",
+						  partition_info["database"], partition_info["table"], partition_info["drop_part"])
+
+	 local delete_partition_res = interface.execSQLQuery(delete_partition_q)
+      end
+   end
+
+   
+end
+
+-- ########################################################
+
+local function _harvest_expired_mysql_flows(ifname, mysql_retention, verbose)
+   local dbtables = {"flowsv4", "flowsv6"}
 
    if tonumber(ifname) == nil then
       ifname = getInterfaceId(ifname)
@@ -800,4 +952,33 @@ function db_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
    end
 end
 
+-- ########################################################
+
+function db_utils.harverstExpiredMySQLFlows(ifname, mysql_retention, verbose)
+   if not ntop.isClickHouseEnabled() then
+      return _harvest_expired_mysql_flows(ifname, mysql_retention, verbose)
+   end
+end
+
+-- ########################################################
+
+function db_utils.populateExtraTables()
+   for _, info in pairs(extra_tables) do
+      if info.populate_table then
+         info.populate_table()
+      else
+         traceError(TRACE_NORMAL, TRACE_CONSOLE, "Missing populate_table function")
+      end
+   end
+end
+
+-- ########################################################
+
+function db_utils.getExtraTables()
+   return extra_tables
+end
+
+-- ########################################################
+
 return db_utils
+

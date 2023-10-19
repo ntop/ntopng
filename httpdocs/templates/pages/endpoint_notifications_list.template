@@ -1,55 +1,429 @@
+{#
+    (C) 2020 - ntop.org
+
+    This is the template for the endpoints page.
+#}
+
 <div class="row mb-5">
     <div class="col-md-12">
-        <table class="table w-100 table-bordered table-striped table-hover my-3" id="notification-list">
-            <thead>
-                <tr>
-                    <th>{{ i18n('endpoint_notifications.name') }}</th>
-                    <th>{{ i18n('endpoint_notifications.type') }}</th>
-                    <th>{{ i18n('actions') }}</th>
-                </tr>
-            </thead>
-        </table>
+        <div class="card card-shadow">
+            <div class="card-body">
+                    <table class="table w-100 table-bordered table-striped table-hover my-3" id="notification-list">
+                        <thead>
+                            <tr>
+                                <th>{{ i18n('endpoint_notifications.name') }}</th>
+                                <th>{{ i18n('endpoint_notifications.type') }}</th>
+                                <th>{{ i18n('endpoint_notifications.used_by_recipients') }}</th>
+                                <th>{{ i18n('actions') }}</th>
+                            </tr>
+                        </thead>
+                    </table>
+            </div>
+            <div class="card-footer">
+                {* ui_utils.render_configuration_footer('notifications') *}
+            </div>
+        </div>
     </div>
 </div>
 
-{# Generate a template for each endpoint entry #}
-{% for endpoint_key, endpoint in pairs(notifications.endpoints) do %}
+{% for endpoint_key, endpoint in pairsByKeys(notifications.endpoints, asc) do %}
     <template id="{{ endpoint_key }}-template">
-        {% for i, param in ipairs(endpoint.conf_params) do %}
-        <div class="form-group row">
-            <label class="col-form-label col-sm-3">
-                {{ param.param_name }}
-            </label>
-            <div class="col-sm-5">
-                <input
-                    name="{{ param.param_name }}"
-                    type="{{ param.param_type }}"
-                    class="form-control"
-                    {{ (param.regex and 'pattern='..param.regex..'' or '') }}
-                    {{ (param.optional and '' or 'required') }}>
-            </div>
-        </div>
-        {% end %}
+        {* script_manager.renderNotificationTemplate(endpoint.endpoint_template.script_key, endpoint.endpoint_template.template_name) *}
     </template>
 {% end %}
 
 {* template_utils.gen("pages/modals/endpoint_notifications/add.template", notifications) *}
 {* template_utils.gen("pages/modals/endpoint_notifications/remove.template", notifications) *}
 {* template_utils.gen("pages/modals/endpoint_notifications/edit.template", notifications) *}
+{* template_utils.gen("pages/modals/factory-reset.template", {
+    body = i18n("endpoint_notifications.factory_reset.body", { reset_element = i18n("endpoint_notifications.endpoint_list") }),
+    title = i18n("endpoint_notifications.factory_reset.title", { reset_element = i18n("endpoint_notifications.endpoint_list") })
+}) *}
 
-
-<link href="{{ ntop.getHttpPrefix() }}/datatables/datatables.min.css" rel="stylesheet"/>
 <script type="text/javascript">
 
     let csrf = "{{ ntop.getRandomCSRFValue() }}";
+    const endpointTypeFilters = {* json.encode(notifications.filters.endpoint_types) *};
 
-    i18n.warning ="{{ i18n('warning', {}) }}";
-    i18n.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
-    i18n.search = "{{ i18n('search') }}";
-    i18n.edit = "{{ i18n('edit') }}";
-    i18n.remove = "{{ i18n('remove') }}";
+    i18n_ext.warning ="{{ i18n('warning', {}) }}";
+    i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+    i18n_ext.search = "{{ i18n('search') }}";
+    i18n_ext.edit = "{{ i18n('edit') }}";
+    i18n_ext.remove = "{{ i18n('remove') }}";
+    i18n_ext.delete = "{{ i18n('delete') }}";
+    i18n_ext.all = "{{ i18n('all') }}";
+    i18n_ext.timed_out = "{{ i18n('endpoint_notifications.timed_out') }}";
+    i18n_ext.server_error = "{{ i18n('endpoint_notifications.server_error') }}";
+    i18n_ext.endpoint_config_already_existing = "{{ i18n('endpoint_notifications.endpoint_config_already_existing') }}";
+    i18n_ext.endpoint_type = "{{ i18n('endpoint_notifications.type') }}";
+    i18n_ext.endpoint_types = {* json.encode(notifications.endpoint_types_labels) *};
 
-    i18n.endpoint_config_already_existing = "{{ i18n('endpoint_notifications.endpoint_config_already_existing') }}";
+    const endpoints_info = {* json.encode(notifications.endpoints_info) *};
+
+    // freeze the endpoints info
+    Object.freeze(endpoints_info);
+
+    const MAX_ENDPOINTS_COUNT = 10;
+    const COLUMN_INDEX_ENDPOINT_TYPE = 1;
+
+    const getTypesCount = (configs) => {
+
+        const currentTypesCount = {};
+        for (let i = 0; i < configs.length; i++) {
+
+            const config = configs[i];
+            if (!currentTypesCount[config.endpoint_key]) {
+                currentTypesCount[config.endpoint_key] = 1;
+            }
+            else {
+                currentTypesCount[config.endpoint_key]++;
+            }
+        }
+
+        return currentTypesCount;
+    }
+
+    const disableTypes = (configs) => {
+
+        // count the current types inside the datatable
+        const currentTypesCount = getTypesCount(configs);
+        for (let [key, max] of Object.entries(endpoints_info)) {
+            if (max != -1 && currentTypesCount[key] >= max) {
+                $(`#endpoint-type-select option[value='${key}']`).hide();
+            }
+            else {
+                $(`#endpoint-type-select option[value='${key}']`).show();
+            }
+        }
+    }
+
+    const makeFormData = (formSelector) => {
+
+        const $inputsTemplate = $(`${formSelector} .endpoint-template-container [name]`);
+
+        const params = {
+            endpoint_id: $(`${formSelector} [name='endpoint_id']`).val(),
+            endpoint_conf_name: $(`${formSelector} [name='name']`).val(),
+            endpoint_conf_type: $(`${formSelector} [name='type']`).val(),
+        };
+
+        $inputsTemplate.each(function (i, input) {
+            if ($(this).attr('type') == 'checkbox') {
+                params[$(this).attr('name')] = $(this).is(':checked');
+            } else {
+                params[$(this).attr('name')] = $(this).val().trim();
+            }
+        });
+
+        return params;
+    }
+
+    const getInvalidMessage = (formSelector, param) => {
+
+        const $inputsTemplate = $(`${formSelector} .endpoint-template-container [name]`);
+        
+        let localizedString = "";
+        $inputsTemplate.each(function (i, input) {
+            if ($(this).attr('name') == param) {
+                localizedString = $(this).attr('data-validation-message');
+            } 
+        });
+
+        return localizedString;
+    }
+
+    const createTemplateOnSelect = (formSelector) => {
+
+        const $templateContainer = $(`${formSelector} .endpoint-template-container`);
+        $(`${formSelector} select[name='type']`).change(function (e) {
+            const $cloned = cloneTemplate($(this).val());
+            $templateContainer.empty().append($cloned).fadeIn();
+        });
+    }
+
+    const cloneTemplate = (endpointType) => {
+        return $($(`template#${endpointType}-template`).html());
+    }
+
+    let dtConfig = DataTableUtils.getStdDatatableConfig([
+        {
+            text: '<i class="fas fa-plus"></i>',
+            className: 'btn-link',
+            action: function (e, dt, node, config) {
+                $('#add-endpoint-modal').modal('show');
+            }
+        },
+        {
+            text: '<i class="fas fa-sync"></i>',
+            className: 'btn-link',
+            action: function (e, dt, node, config) {
+                $endpointsTable.ajax.reload();
+            }
+        }
+    ]);
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/get_endpoint_configs.lua`);
+    dtConfig = DataTableUtils.extendConfig(dtConfig, {
+        columns: [
+            {
+                data: 'endpoint_conf_name'
+            },
+            {
+                data: 'endpoint_key',
+                render: function (key, type, endpoint) {
+                    if (type == "display") {
+
+                        let badge = '';
+                        const isBuiltin = endpoint.endpoint_conf.builtin || false;
+
+                        if (isBuiltin) {
+                            badge = ` <span class='badge bg-dark'>built-in</span>`;
+                        }
+
+                        return `${i18n_ext.endpoint_types[key]}${badge}`;
+                    }
+                    return key;
+                }
+            },
+            {
+                data: 'recipients',
+                render: (recipients, type) => {
+                    if (type == "display") {
+                        if (recipients.length == 0) {
+                            const destPage = NtopUtils.buildURL(`${http_prefix}/lua/admin/endpoint_notifications_list.lua?subdir=recipient`, {});
+                            return `<a href='${destPage}'>${i18n_ext.no_recipients}</a>`;
+                        } else {
+                            return NtopUtils.arrayToListString(recipients.map(recipient => {
+
+                                const destPage = NtopUtils.buildURL(`${http_prefix}/lua/admin/endpoint_notifications_list.lua?subdir=recipient`, {
+                                    recipient_id: recipient.recipient_id,
+                                });
+
+                                return `<a href='${destPage}'>${recipient.recipient_name}</a>`
+                            }), MAX_ENDPOINTS_COUNT);
+                        }
+                    }
+                    return recipients;
+                }
+            },
+            {
+              responsivePriority: 1,
+                targets: -1,
+                className: 'text-center',
+                data: null,
+                render: (_, type, endpoint) => {
+
+                    const isBuiltin = endpoint.endpoint_conf.builtin || false;
+
+                    return DataTableUtils.createActionButtons([
+                        {class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-edit', modal: '#edit-endpoint-modal', title: `${i18n_ext.edit}` },
+                        {class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-endpoint-modal', title: `${i18n_ext.delete}` },
+                    ]);
+                }
+            }
+        ],
+        initComplete: function (settings) {
+
+            const tableAPI = settings.oInstance.api();
+            disableTypes(tableAPI.rows().data());
+
+            // when the data has been fetched check if the url has a recipient_id param
+            // if the recipient is builtin then cancel the modal opening
+            DataTableUtils.openEditModalByQuery({
+                paramName: 'endpoint_conf_name',
+                datatableInstance: tableAPI,
+                modalHandler: $editEndpointModal,
+                cancelIf: (endpoint) => endpoint.endpoint_conf.builtin,
+            });
+
+        }
+    });
+
+    const $endpointsTable = $(`table#notification-list`).DataTable(dtConfig);
+    DataTableUtils.addToggleColumnsDropdown($endpointsTable);
+
+    const endpointTypeFilterMenu = new DataTableFiltersMenu({
+        filterTitle: i18n_ext.endpoint_type,
+        filters: endpointTypeFilters,
+        columnIndex: COLUMN_INDEX_ENDPOINT_TYPE,
+        tableAPI: $endpointsTable,
+        filterMenuKey: 'endpoint-type'
+    }).init();
+
+    /* bind add endpoint event */
+    $(`#add-endpoint-modal form`).modalHandler({
+        method: 'post',
+        endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
+        csrf: csrf,
+        resetAfterSubmit: false,
+        beforeSumbit: () => {
+
+            $(`#add-endpoint-modal form button[type='submit']`).click(function () {
+                $(`#add-endpoint-modal form span.invalid-feedback`).hide();
+            });
+
+            const body = makeFormData(`#add-endpoint-modal form`);
+            body.action = 'add';
+
+            return body;
+        },
+        onModalInit: () => {
+            createTemplateOnSelect(`#add-endpoint-modal`);
+            // trigger a change event to the select so the template will be loaded
+            $(`#add-endpoint-modal select[name='type']`).trigger('change');
+        },
+        onModalShow: () => {
+            // trigger a change event to the select so the template will be loaded
+            $(`#add-endpoint-modal select[name='type']`).trigger('change');
+        },
+        onSubmitSuccess: (response) => {
+
+            if (response.result.status == "OK") {
+
+                $(`#add-endpoint-modal`).modal('hide');
+                $(`#add-endpoint-modal form .endpoint-template-container`).hide();
+
+                $endpointsTable.ajax.reload(function (data) {
+                    // disable endpoint type if a endpoint reached its max num config
+                    disableTypes(data);
+                });
+                return;
+            }
+
+            if (response.result.error) {
+                const localizedString = getInvalidMessage(`#add-endpoint-modal form`, response.result.error.missing_param);
+                $(`#add-endpoint-modal form .invalid-feedback`).text(localizedString).show();
+            }
+
+        }
+    }).invokeModalInit();
+
+    const $editEndpointModal = $('#edit-endpoint-modal form').modalHandler({
+        method: 'post',
+        csrf: csrf,
+        endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
+        resetAfterSubmit: false,
+        beforeSumbit: function () {
+            const body = makeFormData(`#edit-endpoint-modal form`);
+            body.action = 'edit';
+            return body;
+        },
+        onModalInit: function (data) {
+            /* load the right template from templates */
+            $(`#edit-endpoint-modal form .endpoint-template-container`)
+                .empty().append(cloneTemplate(data.endpoint_key));
+            $(`#endpoint-type`).html(data.endpoint_conf_name);
+            /* load the values inside the template */
+            $(`#edit-endpoint-modal form [name='name']`).val(data.endpoint_conf_name);
+            $(`#edit-endpoint-modal form [name='endpoint_id']`).val(data.endpoint_id);
+            $(`#edit-endpoint-modal form .endpoint-template-container [name]`).each(function (i, input) {
+                if ($(this).attr('type') == 'checkbox') {
+                    $(this).prop('checked', data.endpoint_conf[$(this).attr('name')] == 'true' );
+                } else {
+                    $(this).val(data.endpoint_conf[$(this).attr('name')]);
+
+                }
+            });
+        },
+        onSubmitSuccess: function (response) {
+            if (response.result.status == "OK") {
+                $(`#edit-endpoint-modal`).modal('hide');
+
+                $endpointsTable.ajax.reload(function (data) {
+                    // disable endpoint type if a endpoint reached its max num config
+                    disableTypes(data);
+                });
+                return;
+            }
+
+            if (response.result.error) {
+                const localizedString = getInvalidMessage(`#edit-endpoint-modal form`, response.result.error.missing_param);
+                $(`#edit-endpoint-modal form .invalid-feedback`).text(localizedString).show();
+            }
+        }
+    });
+
+    const $removeEndpointModal = $(`#remove-endpoint-modal form`).modalHandler({
+        method: 'post',
+        csrf: csrf,
+        dontDisableSubmit: true,
+        endpoint: `${http_prefix}/lua/edit_endpoint.lua`,
+        beforeSumbit: (endpoint) => {
+            return {
+                action: 'remove',
+                endpoint_id: endpoint.endpoint_id
+            };
+        },
+        onModalInit: (endpoint) => {
+
+            // count recipients that are not builtins
+            const recipientsCount = endpoint.recipients.filter(recipient => !recipient.endpoint_conf.builtin).length;
+            if (recipientsCount > 0) {
+                $(`.count`).show();
+                $(`.recipients-count`).html(recipientsCount);
+            }
+            else {
+                $(`.count`).hide();
+            }
+
+            $(`.remove-endpoint-name`).text(endpoint.endpoint_conf_name);
+        },
+        onSubmitSuccess: (response) => {
+            if (response.result.status == "OK") {
+                $(`#remove-endpoint-modal`).modal('hide');
+                $endpointsTable.ajax.reload(function (data) {
+                    // re-enable endpoint type
+                    disableTypes(data);
+                });
+            }
+        }
+    });
+
+    /* bind edit endpoint event */
+    $(`table#notification-list`).on('click', `a[href='#edit-endpoint-modal']`, function (e) {
+
+        const endpointSelected = $endpointsTable.row($(this).parent().parent().parent().parent()).data();
+
+        // prevent the deleting of a builtin element
+        if (endpointSelected.endpoint_conf.builtin) {
+            e.preventDefault();
+            return;
+        }
+
+        $editEndpointModal.invokeModalInit(endpointSelected);
+    });
+
+    /* bind remove endpoint event */
+    $(`table#notification-list`).on('click', `a[href='#remove-endpoint-modal']`, function (e) {
+
+        const endpointSelected = $endpointsTable.row($(this).parent().parent().parent().parent()).data();
+
+        // prevent the deleting of a builtin element
+        if (endpointSelected.endpoint_conf.builtin) {
+            e.preventDefault();
+            return;
+        }
+
+        $removeEndpointModal.invokeModalInit(endpointSelected);
+    });
+
+    $(`#btn-factory-reset`).click(async function(event) {
+
+        try {
+
+            const response = await NtopUtils.fetchWithTimeout(`${http_prefix}/lua/rest/v2/delete/endpoints.lua`);
+            const result = await response.json();
+            if (result.rc == 0) {
+                $endpointsTable.ajax.reload();
+                $(`#factory-reset-modal`).modal('hide');
+            }
+        }
+        catch (error) {
+
+            if (error.message == "Response timed out") {
+                $(`#factory-reset-modal .invalid-feedback`).html(i18n_ext.timed_out);
+                return;
+            }
+        }
+    });
 
 </script>
-<script type="text/javascript" src="{{ ntop.getHttpPrefix() }}/js/pages/endpoint-notifications-list.js"></script>

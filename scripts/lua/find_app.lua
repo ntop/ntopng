@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -11,8 +11,12 @@ local json = require "dkjson"
 sendHTTPHeader('application/json')
 
 max_num_to_find = 7
-local res = {results={}}
-local results = res.results
+local res = { 
+  rsp = {
+    results={}
+  }
+}
+local results = res.rsp.results
 
 local ifid = _GET["ifId"]
 local query = string.lower(_GET["query"])

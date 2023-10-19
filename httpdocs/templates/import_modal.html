@@ -7,20 +7,22 @@
         </div>
         <div class="modal-body">
             <form class='form'>
-                <div class='form-group'>
-                    <label class='form-label' for='#import-input'>{{ dialog.label }}</label>
-                    <input id="import-input" class="ays-ignore" name="JSON" type="file" />
-                    <br/>
-                    <br/>
-                    <small>{{ dialog.message }}</small>
-                    <div class="invalid-feedback" id='import-error'>
-                        {message}
+                <div class="form-group mb-3 ">
+                    <div class='custom-file'>
+                        <input id="import-input" class="ays-ignore custom-file-input" name="JSON" type="file" />
+                        <label class='custom-file-label' for='#import-input'>{{ i18n("browse_config", {}) }}</label>
                     </div>
+                    <small class="text-muted form-text">
+                        {* dialog.message *}
+                    </small>
+                </div>
+                <div class="invalid-feedback" id='import-error'>
+                    {message}
                 </div>
             </form>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ dialog.cancel }}</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ dialog.cancel }}</button>
             <button type="button" id='btn-confirm-import' class="btn btn-primary">{{ dialog.apply }}</button>
         </div>
         </div>

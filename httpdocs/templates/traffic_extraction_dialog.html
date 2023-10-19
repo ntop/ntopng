@@ -2,8 +2,8 @@
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>{{dialog.title}}</h3>
-	<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h5>{{dialog.title}}</h5>
+	<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
       <div class="modal-body {{dialog.custom_dialog_class}}" style="padding-bottom:0">
@@ -17,20 +17,20 @@
           <div class="tab-content" style="height:100%;">
 
             <div class="row">
-              <div class="form-group col-md-3 has-feedback">
-                <button class="btn btn-sm btn-secondary" type="button" data-toggle="collapse" data-target="#{{dialog.id}}_advanced" aria-expanded="false" aria-controls="{{dialog.id}}_advanced" id="{{dialog.id}}_advanced_btn">{{i18n("advanced")}} <i class="fas fa-caret-down"></i></button>
+              <div class="form-group mb-3  col-md-3 has-feedback">
+                <button class="btn btn-sm btn-secondary {{dialog.advanced_class}}" type="button" data-bs-toggle="collapse" data-bs-target="#{{dialog.id}}_advanced" aria-expanded="false" aria-controls="{{dialog.id}}_advanced" id="{{dialog.id}}_advanced_btn">{{i18n("advanced")}} <i class="fas fa-caret-down"></i></button>
               </div>
 
-	      <div class="form-group col-md-9 text-right asd {{dialog.extract_now_class}}">
+	      <div class="form-group mb-3  col-md-9 text-right asd {{dialog.extract_now_class}}">
 		<label class="radio-inline"><input type="radio" name="extract_now" value="1" checked>{{i18n("traffic_recording.extract_now")}}</label>
 		<label class="radio-inline"><input type="radio" name="extract_now" value="0">{{i18n("traffic_recording.queue_as_job")}}</label>
 	      </div>
             </div>
 
-            <div class="row collapse" id="{{dialog.id}}_advanced">
-              <div class="form-group col-md-12 has-feedback">
+            <div class="row collapse {{dialog.advanced_class}}" id="{{dialog.id}}_advanced">
+              <div class="form-group mb-3  col-md-12 has-feedback">
 		<br />
-                <label class="form-label">{{i18n("traffic_recording.filter_bpf")}} <a href="https://www.ntop.org/guides/n2disk/filters.html"><i class="fas fa-external-link-alt"></i></a></label>
+                <label class="form-label">{{i18n("traffic_recording.filter_bpf")}} <a class="ntopng-external-link" href="https://www.ntop.org/guides/n2disk/filters.html"><i class="fas fa-external-link-alt"></i></a></label>
                 <div class="input-group">
                   <span class="input-group-addon"><span class="glyphicon glyphicon-filter"></span></span>
                   <input id="{{dialog.id}}_bpf_filter" name="bpf_filter" class="form-control input-sm" data-bpf="bpf" autocomplete="off" spellcheck="false" />
@@ -52,8 +52,8 @@
 
       </div>
       <div class="modal-footer" style="margin-top:0">
-        <button class="btn btn-secondary" data-dismiss="modal" aria-hidden="true">{{i18n("cancel")}}</button>
-        <button id="{{dialog.id}}SubmitBtn" class="btn btn-primary" onClick="$('#{{dialog.id}}Form').submit();">{{i18n("traffic_recording.extract_action")}}</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal" aria-hidden="true">{{i18n("cancel")}}</button>
+        <button id="{{dialog.id}}SubmitBtn" class="btn btn-primary" onClick="$('#{{dialog.id}}Form').submit();">{*dialog.submit*}</button>
       </div>
     </div>
   </div>

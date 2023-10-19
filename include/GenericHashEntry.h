@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,7 +41,7 @@ class Generichash;
  *  is set as soon as the GenericHashEntry is instantiated.
  *
  *  - hash_entry_state_idle. This state is set by method purgeIdle
- *  in class GenericHash and is used to explicitly mark the entry 
+ *  in class GenericHash and is used to explicitly mark the entry
  *  as idle. NOTE that purgeIdle is always called inline, that is,
  *  in the thread which receives the incoming packets (or incoming
  *  flows). Once the entry has been marked as hash_entry_state_idle,
@@ -91,30 +91,27 @@ class GenericHashEntry {
    * @param s A state of the enum HashEntryState
    */
   void set_state(HashEntryState s);
-  
+
  protected:
-  u_int64_t num_inc_uses;  /* Don't use 16 bits as we might run out of space on large networks with MACs, VLANs etc. */
-  u_int64_t num_dec_uses;  /* Don't use 16 bits as we might run out of space on large networks with MACs, VLANs etc. */
-  time_t first_seen;   /**< Time of first seen. */
-  time_t last_seen;    /**< Time of last seen. */
+  std::atomic<int32_t> num_uses;
+  time_t first_seen;       /**< Time of first seen. */
+  time_t last_seen;        /**< Time of last seen. */
   NetworkInterface *iface; /**< Pointer of network interface. */
-  bool isIdle(u_int max_idleness) const;
 
  public:
-
   /**
-    * @brief A Constructor
-    * @details Creating a new GenericHashEntry.
-    * 
-    * @param _iface Network interface pointer for the new hash.
-    * @return A new Instance of GenericHashEntry.
-    */
+   * @brief A Constructor
+   * @details Creating a new GenericHashEntry.
+   *
+   * @param _iface Network interface pointer for the new hash.
+   * @return A new Instance of GenericHashEntry.
+   */
   GenericHashEntry(NetworkInterface *_iface);
 
   /**
    * @brief A destructor.
    * @details Virtual method.
-   * 
+   *
    * @return Delete the instance.
    */
   virtual ~GenericHashEntry();
@@ -122,26 +119,26 @@ class GenericHashEntry {
   /**
    * @brief Get the first seen time.
    * @details Inline method.
-   * 
+   *
    * @return Time of first seen.
    */
-  inline time_t get_first_seen() const { return(first_seen); };
+  inline time_t get_first_seen() const { return (first_seen); };
 
   /**
    * @brief Get the last seen time.
    * @details Inline method.
-   * 
+   *
    * @return Time of last seen.
    */
-  inline time_t get_last_seen()  const { return(last_seen); };
+  inline time_t get_last_seen() const { return (last_seen); };
 
   /**
    * @brief Get the next hash entry.
    * @details Inline method.
-   * 
+   *
    * @return Return the next hash entry.
    */
-  inline GenericHashEntry* next()    { return(hash_next); };
+  inline GenericHashEntry *next() { return (hash_next); };
 
   /**
    * @brief Set a pointer to the hash table this entry
@@ -149,27 +146,27 @@ class GenericHashEntry {
    */
   void set_hash_table(GenericHash *gh) { hash_table = gh; };
 
-  inline GenericHash* get_hash_table() { return(hash_table); };
+  inline GenericHash *get_hash_table() { return (hash_table); };
 
   /**
    * @brief Set and id to uniquely identify this
    * hash entry into the hash table (class GenericHash)
    * it belongs to.
    */
-  virtual void set_hash_entry_id(u_int hash_entry_id) { };
+  virtual void set_hash_entry_id(u_int32_t hash_entry_id){};
 
   /**
    * @brief Set the next hash entry.
    * @details Inline method.
-   * 
+   *
    * @param n Hash entry to set as next hash entry.
    */
-  inline void set_next(GenericHashEntry *n) { hash_next = n;           };
+  inline void set_next(GenericHashEntry *n) { hash_next = n; };
 
   /**
    * @brief Set the hash entry state to idle. Must be called inline
    * with packets/flows processing.
-   * 
+   *
    */
   virtual void set_hash_entry_state_idle() {
     set_state(hash_entry_state_idle);
@@ -180,19 +177,19 @@ class GenericHashEntry {
    */
   inline void set_hash_entry_state_active() {
     set_state(hash_entry_state_active);
-  };  
+  };
 
   /**
    * @brief Set the hash entry state to not yet detected (nDPI)
    */
   inline void set_hash_entry_state_flow_notyetdetected() {
     set_state(hash_entry_state_flow_notyetdetected);
-  };  
+  };
 
   /**
    * @brief Set the hash entry state to protocol detected (nDPI).
    * Note that unknown (protocol) is a valid protocol
-  */
+   */
   inline void set_hash_entry_state_flow_protocoldetected() {
     set_state(hash_entry_state_flow_protocoldetected);
   };
@@ -206,48 +203,52 @@ class GenericHashEntry {
       to the initial state
     */
     hash_entry_state = hash_entry_state_allocated;
-  };  
+  };
 
   /**
-   * @brief Determine whether this entry is ready for the transition to the idle state
-   * 
-   */
-  virtual bool is_hash_entry_state_idle_transition_ready() const;
-  /**
-   * @brief Determine whether it is possible to perform the idle transition for this entry
-   * 
-   */
-  bool is_hash_entry_state_idle_transition_possible() const;
-  /**
-   * @brief Function in charge of hash entry offline state updates
+   * @brief Determine whether this entry is ready for the transition to the idle
+   * state
    *
-   * @param user_date A pointer to user submitted data potentially necessary for the update
-   * 
    */
-  virtual void periodic_hash_entry_state_update(void *user_data);
+  virtual bool is_hash_entry_state_idle_transition_ready() {
+    return ((getUses() == 0) && is_active_entry_now_idle(MAX_HASH_ENTRY_IDLE));
+  }
+
   /**
-   * @brief Function in charge of updating periodic entry stats (e.g., its throughput or L7 traffic)
+   * @brief Determine whether this active entry can be considered idle
    *
-   * @param user_date A pointer to user submitted data potentially necessary for the update
+   */
+  virtual bool is_active_entry_now_idle(u_int max_idleness) const;
+
+  /**
+   * @brief Function in charge of updating periodic entry stats (e.g., its
+   * throughput or L7 traffic)
+   *
+   * @param user_date A pointer to user submitted data potentially necessary for
+   * the update
    * @param quick Only perform minimal operations
-   * 
+   *
    */
-  virtual void periodic_stats_update(void *user_data);
-  HashEntryState get_state() const;
+  virtual void periodic_stats_update(const struct timeval *tv);
+  inline HashEntryState get_state() const { return (hash_entry_state); }
   void updateSeen();
   void updateSeen(time_t _last_seen);
-  bool equal(GenericHashEntry *b)         { return((this == b) ? true : false); };  
-  inline NetworkInterface* getInterface() { return(iface);                      };
-  bool idle() const;
-  virtual void housekeep(time_t t)     { return;                 };
-  inline u_int get_duration()    const { return((u_int)(1+last_seen-first_seen)); };
-  virtual u_int32_t key()              { return(0);         };  
-  virtual char* get_string_key(char *buf, u_int buf_len) const { buf[0] = '\0'; return(buf); };
-  void incUses()                       { num_inc_uses++;                     }
-  void decUses()                       { num_dec_uses++;                     }
-  u_int32_t getUses()            const { return num_inc_uses - num_dec_uses; }
+  bool equal(GenericHashEntry *b) { return ((this == b) ? true : false); };
+  inline NetworkInterface *getInterface() { return (iface); };
+  inline bool idle() const { return (get_state() > hash_entry_state_active); }
+  virtual void housekeep(time_t t) { return; };
+  inline u_int get_duration() const {
+    return ((u_int)(1 + last_seen - first_seen));
+  };
+  virtual u_int32_t key() { return (0); };
+  virtual char *get_string_key(char *buf, u_int buf_len) const {
+    buf[0] = '\0';
+    return (buf);
+  };
+  void incUses() { num_uses++; }
+  void decUses() { num_uses--; }
+  int32_t getUses() const { return (num_uses); }
 
-  virtual void deserialize(json_object *obj);
   virtual void getJSONObject(json_object *obj, DetailsLevel details_level);
 };
 

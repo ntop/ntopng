@@ -1,5 +1,5 @@
 --
--- (C) 2014-20 - ntop.org
+-- (C) 2014-22 - ntop.org
 --
 
 -- This file contains the description of all functions
@@ -9,7 +9,6 @@ local verbose = false
 local prefs = ntop.getPrefs()
 local info = ntop.getInfo()
 local menu_subpages = require "prefs_menu"
-show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
 local have_nedge = ntop.isnEdge()
 local skip_redis = false
 
@@ -49,18 +48,17 @@ DNS_PRESETS = {
   {id="cloudflare", label="Cloudflare DNS", url="https://www.cloudflare.com/learning/dns/what-is-1.1.1.1", primary_dns="1.1.1.1", secondary_dns="1.0.0.1"},
   {id="cleanbrowsing_security", label="CleanBrowsing - Security", url="https://cleanbrowsing.org",  primary_dns="185.228.168.9", secondary_dns="185.228.169.9"},
   {id="cleanbrwosing_adult", label="CleanBrowsing - Adult Filter", url="https://cleanbrowsing.org",  primary_dns="185.228.168.168", secondary_dns="185.228.169.168", child_safe=true},
-  {id="yandex_safe", label="Yandex - Safe", url="https://dns.yandex.com", primary_dns="77.88.8.88", secondary_dns="77.88.8.2"},
-  {id="yandex_family", label="Yandex - Family", url="https://dns.yandex.com", primary_dns="77.88.8.7", secondary_dns="77.88.8.3", child_safe=true},
 }
 
 function isSubpageAvailable(subpage, show_advanced_prefs)
   if show_advanced_prefs == nil then
+    local show_advanced_prefs_key = "ntopng.prefs.show_advanced_prefs"
     show_advanced_prefs = toboolean(ntop.getPref(show_advanced_prefs_key))
   end
-
   if (subpage.hidden) or
      ((subpage.advanced) and (not show_advanced_prefs)) or
      ((subpage.pro_only) and (not ntop.isPro())) or
+     (subpage.enterprise_l_only and (not info["version.enterprise_l_edition"]) and (not info["version.nedge_enterprise_edition"])) or
      ((subpage.enterprise_only) and (not info["version.enterprise_edition"]) and (not have_nedge)) or
      (subpage.nedge_hidden) and (have_nedge) then
     return false
@@ -75,7 +73,7 @@ function prefsGetActiveSubpage(show_advanced_prefs, tab)
   for _, subpage in ipairs(menu_subpages) do
     if not isSubpageAvailable(subpage, show_advanced_prefs) then
       subpage.hidden = true
-      
+
       if subpage.id == tab then
         -- will set to default
         tab = nil
@@ -101,10 +99,11 @@ function prefsGetActiveSubpage(show_advanced_prefs, tab)
 end
 
 function printMenuSubpages(tab)
+
   for _, subpage in ipairs(menu_subpages) do
     if not subpage.hidden then
       local url = ternary(subpage.disabled, "#", ntop.getHttpPrefix() .. [[/lua/admin/prefs.lua?tab=]] .. (subpage.id))
-      print[[<a href="]] print(url) print[[" class="list-group-item menu-item]]
+      print[[<a href="]] print(url) print[[" class="list-group-item list-group-item-action]]
 
       if(tab == subpage.id) then
         print(" active")
@@ -119,15 +118,12 @@ end
 
 -- ############################################
 
--- notify ntopng upon preference changes
-function notifyNtopng(key)
+--- Notify ntopng upon preference changes
+function notifyNtopng(key, value)
     if key == nil then return end
     -- notify runtime ntopng configuration changes
-    if string.starts(key, 'nagios') then
-        if verbose then io.write('notifying ntopng upon nagios pref change\n') end
-        ntop.reloadNagiosConfig()
-    elseif string.starts(key, 'toggle_logging_level') then
-        if verbose then io.write('notifying ntopng upon logging level pref change\n') end 
+    if string.starts(key, 'toggle_logging_level') then
+        if verbose then io.write('notifying ntopng upon logging level pref change\n') end
         ntop.setLoggingLevel(value)
     end
 end
@@ -148,8 +144,8 @@ function prefsResolutionButtons(fmt, value, fixed_id, format_spec, max_val)
 
   local res = makeResolutionButtons(format_spec or FMT_TO_DATA_TIME, ctrl_id, fmt, value, {classes={"float-right"}}, max_val)
 
-  res.value = truncate(res.value)
-  
+  res.value = truncate(res.value or 1)
+
   print(res.html)
   print("<script>")
   if not options_script_loaded then
@@ -182,7 +178,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
     v_cache = ntop.getPref(k)
     value = v_cache
-    if ((v_cache==nil) or (v_s ~= v_cache)) then
+    if ((v_cache == nil) or (v_s ~= v_cache)) then
       if(v ~= nil and (v > 0) and (v <= 86400)) then
         ntop.setPref(k, tostring(v))
         value = v
@@ -243,6 +239,22 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
     end
   end
 
+  if extra.minlength ~= nil then
+    if extra.tformat ~= nil then
+      attributes["data-minlength"] = extra.minlength
+    else
+      attributes["minlength"] = extra.minlength
+    end
+  end
+
+  if extra.maxlength ~= nil then
+    if extra.tformat ~= nil then
+      attributes["data-maxlength"] = extra.maxlength
+    else
+      attributes["maxlength"] = extra.maxlength
+    end
+  end
+
   if extra.step ~= nil then
     if extra.tformat ~= nil then
       attributes["data-step"] = extra.step
@@ -264,7 +276,8 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
   local input_type = "text"
   if _input_type ~= nil then input_type = _input_type end
-  print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td>')
+  print('<tr id="'..key..'" style="display: '..showEnabled..';"><td width=50%><strong>'..(label or "")..'</strong>')
+  if(comment ~= nil) then print('<p><small>'..comment..'</small></td>') end
 
   local style = {}
   style["text-align"] = "right"
@@ -272,7 +285,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
 
   print [[
     <td align=right>
-      <table class="table table-borderless form-group" style="margin-bottom: 0; min-width:22em;">
+      <table class="table table-borderless form-group mb-3" style="margin-bottom: 0; min-width:22em;">
         <tr>
           <td width="100%;"></td>
           <td style="vertical-align:top;">]]
@@ -302,11 +315,35 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
             <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
           if disableAutocomplete then print(" autocomplete=\"off\"") end
         print [[/>]] print(extra.append or "") print[[
+            <span id="input_error_]] print(key) print[[" class="text-danger" hidden>!</span>
+            <script>
+            $("#]] print("id_input_" .. key) print[[").on( "focusout", function(tmp) {
+              const min_value = Number(this.getAttribute('min'));
+              const max_value = Number(this.getAttribute('max'));
+              const value = Number(this.value);
+
+              /* Incorrect value, text danger class! */
+              if(value < min_value || value > max_value) {
+                this.classList.add('text-danger');
+                this.classList.add('ntopng-input-error');
+                $("#]] print("input_error_" .. key) print[[").removeAttr('hidden');
+              } else {
+                this.classList.remove('text-danger');
+                this.classList.remove('ntopng-input-error');
+                $("#]] print("input_error_" .. key) print[[").attr('hidden', true);
+              }
+            });
+            $("#]] print("id_input_" .. key) print[[").on( "focusin", function(tmp) {
+              this.classList.remove('text-danger');
+              this.classList.remove('ntopng-input-error');
+              $("#]] print("input_error_" .. key) print[[").attr('hidden', true);
+            });
+            </script>
           </td>
         </tr>
         <tr>
           <td colspan="3" style="padding:0;">
-            <div class="help-block with-errors text-right" style="height:1em;"></div>
+            <div class="help-block with-errors text-end" style="height:1em;"></div>
           </td>
         </tr>
       </table>
@@ -346,7 +383,7 @@ function prefsDropdownFieldPrefs(label, comment, key, values, default_value, sho
 
   print [[
     <td align=right>
-      <table class="form-group" style="margin-bottom: 0; min-width:22em;">
+      <table class="form-group mb-3" style="margin-bottom: 0; min-width:22em;">
         <tr>
           <td width="100%;"></td>]]
 
@@ -363,7 +400,7 @@ function prefsDropdownFieldPrefs(label, comment, key, values, default_value, sho
 
       print[[
           <td style="vertical-align:top; padding-left: 2em;">
-            <select id="id_input_]] print(key)  print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print((value or '')..'"') print[[>]]
+            <select id="id_input_]] print(key)  print [[" class="form-select" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print((value or '')..'"') print[[>]]
       if extra.keys == nil then
          for _, optname in pairs(values) do
 	 print("<option " .. ternary(optname == default_value, "selected", "") .. ">"..optname.."</option>")
@@ -381,7 +418,7 @@ function prefsDropdownFieldPrefs(label, comment, key, values, default_value, sho
         </tr>
         <tr>
           <td colspan="3" style="padding:0;">
-            <div class="help-block with-errors text-right" style="height:1em;"></div>
+            <div class="help-block with-errors text-end" style="height:1em;"></div>
           </td>
         </tr>
       </table>
@@ -456,8 +493,8 @@ local function toggleTableButtonPrefs(label, comment, on_label, on_value, on_col
                                 redis_key, default_value, disabled, elementToSwitch, hideOn, showElement, nested_to_switch)
 
 
- local value 
- 
+ local value
+
  if not skip_redis then
   value = ntop.getPref(redis_key)
   if(_POST[submit_field] ~= nil) then
@@ -501,9 +538,9 @@ local function toggleTableButtonPrefs(label, comment, on_label, on_value, on_col
   if(label ~= "") then print('<tr id="row_'..submit_field..'"'..objRow..'><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
 
   print([[
-    <div class="custom-control custom-switch ">
-      <input ]].. (value == off_value and '' or 'checked') ..[[ type="checkbox" class="custom-control-input" id="check-]].. submit_field ..[[">
-      <label class="custom-control-label custom-control-label-lg " for="check-]].. submit_field ..[["></label>
+    <div class="form-switch">
+      <input ]].. (value == off_value and '' or 'checked') ..[[ type="checkbox" class="form-check-input" id="check-]].. submit_field ..[[">
+      <label class="form-check-label" for="check-]].. submit_field ..[["></label>
       <input hidden id="input-]].. submit_field ..[[" name="]].. submit_field ..[[" value="]].. value ..[[">
   ]])
   print([[</div>]])
@@ -514,11 +551,11 @@ local function toggleTableButtonPrefs(label, comment, on_label, on_value, on_col
     $("#check-]].. submit_field.. [[").change(function(e) {
 
       const value = $(this).is(":checked");
-      
+
       if (value) {
         ]]..submit_field..[[_functionOn();
       }
-      else { 
+      else {
         ]]..submit_field..[[_functionOff();
       }
     });
@@ -571,7 +608,7 @@ local function get_pref_redis_key(options)
 end
 
 function prefsToggleButton(subpage_active, params)
-  defaults = {
+  local defaults = {
     to_switch = {},             -- a list of elements to be switched on or off
     on_text = "On",             -- The text when the button is on
     on_value = "1",             -- The value when the button is on
@@ -585,6 +622,11 @@ function prefsToggleButton(subpage_active, params)
 
   local options = table.merge(defaults, params)
   local redis_key = get_pref_redis_key(options)
+
+  -- used for debugging purpose:
+  -- if (subpage_active.entries[options.field] ~= nil) then
+  --  traceError(TRACE_ERROR, TRACE_CONSOLE, "Missing entry '" .. options.field .. "' inside entries field")
+  -- end
 
   return toggleTableButtonPrefs(params.title or subpage_active.entries[options.field].title,
     (params.description or subpage_active.entries[options.field].description) .. (params.content or subpage_active.entries[options.field].content or ""),
@@ -639,7 +681,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
   end
   if(value ~= nil) then
     if(label ~= "") then print('<tr id="row_'..submit_field..'"'..objRow..'><td width=50%><strong>'..label..'</strong><p><small>'..comment..'</small></td><td align=right>\n') end
-    print('<div class="btn-group" data-toggle="buttons-radio" data-toggle-name="'..submit_field..'">')
+    print('<div class="btn-group" role="group">')
 
     for nameCount = 1, #array_labels do
       local type_button = "btn-secondary"
@@ -652,10 +694,11 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
         end
         type_button = "btn-"..color.."  active"
       end
-      print('<button id="id_'..submit_field..'_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" type="button" class="btn btn-sm '..type_button..' ' .. disabled .. '"'.. disabled_attr ..' data-toggle="button">'..array_labels[nameCount]..'</button>\n')
+
+      print('<input type="radio" name="'..submit_field..'" id="id_'..submit_field..'_'..array_values[nameCount]..'" value="'..array_values[nameCount]..'" class="btn-check btn-primary" '.. disabled_attr ..'>\n')
+      print('<label class="btn btn-sm '..type_button..'"  for="id_'..submit_field..'_'..array_values[nameCount]..'">' .. array_labels[nameCount] .. '</label>\n')
     end
     print('</div>\n')
-    print('<input type="hidden" id="id-toggle-'..submit_field..'" name="'..submit_field..'" value="'..value..'" />\n')
     print('<script>\n')
 
     -- showElementArray can be either:
@@ -670,7 +713,7 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
     end
 
     for nameCount = 1, #array_labels do
-      print('$("#id_'..submit_field..'_'..array_values[nameCount]..'").click(function() {\n')
+      print('$(`label[for="id_'..submit_field..'_'..array_values[nameCount]..'"]`).click(function() {\n')
       print(' var field = $(\'#id-toggle-'..submit_field..'\');\n')
       print(' var oldval = field.val(); ')
       print(' field.val("'..array_values[nameCount]..'").trigger("change");\n')
@@ -683,12 +726,12 @@ function multipleTableButtonPrefs(label, comment, array_labels, array_values, de
           color = selected_color
         end
 
-        print[[ var class_]] print(array_values[indexLabel]) print[[ = document.getElementById("id_]] print(submit_field..'_') print(array_values[indexLabel]) print [[");
-        class_]] print(array_values[indexLabel]) print[[.removeAttribute("class");]]
+        print[[ let class_]] print(array_values[indexLabel]) print[[ = $(`label[for="id_]] print(submit_field..'_') print(array_values[indexLabel]) print [["]`);
+        class_]] print(array_values[indexLabel]) print[[.removeAttr("class");]]
         if(array_values[indexLabel] == array_values[nameCount]) then
-          print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-]]print(color) print[[ active");]]
+          print[[class_]] print(array_values[indexLabel]) print[[.attr("class", "btn btn-sm btn-]]print(color) print[[ active");]]
         else
-          print[[class_]] print(array_values[indexLabel]) print[[.setAttribute("class", "btn btn-sm btn-secondary");]]
+          print[[class_]] print(array_values[indexLabel]) print[[.attr("class", "btn btn-sm btn-secondary");]]
         end
       end
 
@@ -773,7 +816,7 @@ function loggingSelector(label, comment, submit_field, redis_key)
 end
 
 function printPageSection(section_name)
-   print('<thead class="thead-light"><tr><th colspan=2 class="info">'..section_name..'</th></tr></thead>')
+   print('<thead class="table-primary"><tr><th colspan=2 class="info">'..section_name..'</th></tr></thead>')
 end
 
 function printSaveButton(some_content)

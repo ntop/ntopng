@@ -56,7 +56,7 @@ if DHCP client mode is enabled for the interface.
 
 Custom gateways can also be created at will. A typical example is the
 use of a single WAN port to route the traffic through different gateways. All the
-gateways and the nEdge WAN port itself are connected through a multiport swtich.
+gateways and the nEdge WAN port itself are connected through a multiport switch.
 In this case, all the gateways must be on the same IP network in order for nEdge
 to correctly route the traffic through them.
 
@@ -84,6 +84,37 @@ The gateway status can be one:
     gateway IP address. This can be caused by an interface link down or by a
     misconfigured gateway/interface network.
 
+Statistics for individual physical interfaces are available as well. To
+see them, click on the interface name from the above gateways status view. This opens a page with interface details.
+
+
+.. figure:: img/gateways_physical_interface_details.png
+  :align: center
+  :alt: Physical Interface Details
+
+  Physical Interface Details
+
+The page reports interface statistics calculated since the most recent
+reboot of nEdge. Among the statistic show there are bytes and packets
+transmitted and received, as well as the current throughput.
+
+Physical interface statistics are also available as historical timeseries. To access these timeseries, click on the chart icon
+in the navbar.
+
+Available timeseries are:
+
+  - **Traffic** shown in both directions, i.e., sent (TX) and received (RX)
+  - **Traffic Total/Userspace** to show the fraction of the total traffic that has been offloaded to the kernel.
+
+
+.. figure:: img/gateways_physical_interface_timeseries.png
+  :align: center
+  :alt: Physical Interface Timeseries
+
+  Physical Interface Timeseries
+
+
+
 Routing Policies
 ----------------
 
@@ -98,7 +129,7 @@ the user devices. The `Default` routing policy is set by default on newly create
 
   Routing policy configuration
 
-By tweaking gateways priorities, it's possbile to effectively implement the **load balacing**
+By tweaking gateways priorities, it's possible to effectively implement the **load balancing**
 and **failover** between multiple the gateways. In particular, when some gateways have the
 same priority the traffic will be *load balanced* between them. When one gateway has lower
 priority then another, the gateways will work in a *failover* fashion where the gateway
@@ -161,6 +192,17 @@ possible to set static IP to MAC address mappings.
 
   DHCP static leases configuration
 
+To see all active DHCP leases, including the static ones, visit page "DHCP Active Leases" under System.
+
+
+.. figure:: img/dhcp_active_leases.png
+  :align: center
+  :alt: DHCP active leases
+
+  DHCP active leases
+
+
+
 Port Forwarding
 ---------------
 
@@ -169,7 +211,7 @@ the IP address of the WAN interface which is being used to route the traffic (un
 disabled). This means that a host connected on the WAN side of the network will not be
 able to reach the local clients connected to the LAN. In order to allow such communication,
 it is necessary to setup a Port Forwarding rule telling nEdge that all the incoming communications
-on a given TCP/UDP port should be mapped to an internal LAN ip and port. This can be configured
+on a given TCP/UDP port should be mapped to an internal LAN IP and port. This can be configured
 from the "Port Forwarding" page under the cog menu icon.
 
 .. figure:: img/port_forwarding_rules.png

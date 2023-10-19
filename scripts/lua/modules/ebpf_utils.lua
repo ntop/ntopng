@@ -1,5 +1,5 @@
 --
--- (C) 2017-20 - ntop.org
+-- (C) 2017-22 - ntop.org
 --
 local dirs = ntop.getDirs()
 
@@ -14,10 +14,10 @@ local ebpf_utils = {}
 function ebpf_utils.draw_processes_graph(host_info)
    print[[
 
-<div align="center" id="chart"></div>
+<div align="center" id="process-chart"></div>
 
 <script>
-draw_processes_graph(']] print(ntop.getHttpPrefix()) print[[',']] print("chart") print[[',']] print(hostinfo2hostkey(host_info)) print[[');
+  ebpfUtils.draw_processes_graph(']] print(ntop.getHttpPrefix()) print[[',']] print("process-chart") print[[',']] print(hostinfo2hostkey(host_info)) print[[');
 </script>
 ]]
 end
@@ -198,14 +198,14 @@ function ebpf_utils.draw_ndpi_piecharts(ifstats, url, host_info, username, pid_n
    if have_nedge then
       refresh_rate = 5
    else
-      refresh_rate = getInterfaceRefreshRate(ifstats["id"])
+      refresh_rate = interface.getStatsUpdateFreq(ifstats["id"])
    end
 
    print [[
 
   <table class="table table-bordered table-striped">
     <tr>
-      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("protocol")})) print[[</th>
+      <th class="text-start" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("protocol")})) print[[</th>
       <td>
 	<div class="pie-chart" id="topApplicationProtocols"></div>
       </td>
@@ -214,7 +214,7 @@ function ebpf_utils.draw_ndpi_piecharts(ifstats, url, host_info, username, pid_n
       </td>
     </tr>
     <tr>
-      <th class="text-left" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("category")})) print[[</th>
+      <th class="text-start" colspan=2>]] print(i18n("ndpi_page.overview", {what = i18n("category")})) print[[</th>
       <td colspan=2>
 	<div class="pie-chart" id="topApplicationCategories"></div>
       </td>
@@ -263,7 +263,7 @@ function ebpf_utils.draw_flows_datatable(ifstats, host_info, username, pid_name)
    var url_update = "]]
    print (ntop.getHttpPrefix())
    print [[/lua/get_flows_data.lua?]]
-   print(table.tconcat({username = username, pid_name = pid_name, host = hostinfo2hostkey(host_info)}, "=", "&"))
+   print(table.tconcat({ifid = interface.getId(), username = username, pid_name = pid_name, host = hostinfo2hostkey(host_info)}, "=", "&"))
    print ('";')
 
    local show_vlan

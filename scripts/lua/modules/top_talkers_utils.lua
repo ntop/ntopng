@@ -1,5 +1,5 @@
 --
--- (C) 2014-20 - ntop.org
+-- (C) 2014-22 - ntop.org
 --
 
 local callback_utils = require "callback_utils"
@@ -27,7 +27,7 @@ end
 -- ########################################################
 
 local function updateCache(cache, key, val)
-   if cache[key] == nil then
+   if((key ~= nil) and (cache[key] == nil)) then
       cache[key] = val
    end
 end
@@ -259,7 +259,8 @@ function top_talkers_utils.enrichRecordInformation(class_key, rec, show_vlan)
       url = ntop.getHttpPrefix()..'/lua/host_details.lua?always_show_hist=true&host='
 
       -- Use the host alias as label, if set
-      local alt_name = ip2label(address)
+      local alt_name = ip2label(address, 0, 100)
+
       if not isEmptyString(alt_name) and (alt_name ~= address) then
         label = alt_name
       else

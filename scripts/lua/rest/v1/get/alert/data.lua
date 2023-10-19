@@ -2,112 +2,104 @@
 -- (C) 2013-20 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
 
-require "lua_utils"
-local alert_utils = require "alert_utils"
-require "flow_utils"
-local alert_consts = require "alert_consts"
-local format_utils = require "format_utils"
-local json = require "dkjson"
 local rest_utils = require("rest_utils")
+local host_alert_store = require "host_alert_store".new()
+local auth = require "auth"
+local alert_entities = require "alert_entities"
+local alert_consts = require "alert_consts"
 
 --
 -- Read alerts data
--- Example: curl -u admin:admin -d '{"ifid": "1", "status": "historical"}' http://localhost:3000/lua/rest/v1/get/alert/data.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1", "status": "historical"}' http://localhost:3000/lua/rest/v1/get/alert/data.lua
+--
+-- status is currently mapped to the new alerts engine as below:
+-- - engaged: host alerts engaged
+-- - historical: host alerts past
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 local ifid = _GET["ifid"]
-local what = _GET["status"]
+local format = "json"
 local epoch_begin = _GET["epoch_begin"]
 local epoch_end = _GET["epoch_end"]
+local no_html = false
+
+local what = _GET["status"]
 local alert_type = _GET["alert_type"]
 local alert_severity = _GET["alert_severity"]
 
+if not auth.has_capability(auth.capabilities.alerts) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
+
 if isEmptyString(ifid) then
-   rc = rest_utils.consts_invalid_interface
-   print(rest_utils.rc(rc))
+   rc = rest_utils.consts.err.invalid_interface
+   rest_utils.answer(rc)
    return
 end
 
 interface.select(ifid)
 
 if isEmptyString(what) then
-   rc = rest_utils.consts_invalid_args
-   print(rest_utils.rc(rc))
+   rc = rest_utils.consts.err.invalid_args
+   rest_utils.answer(rc)
    return
 end
 
 local engaged = false
 if what == "engaged" then
    engaged = true
+   -- backwardcompatibility
+   _GET["status"] = "engaged"
+else
+   _GET["status"] = "historical"
 end
 
-local alert_options = {
-   epoch_begin = epoch_begin,
-   epoch_end = epoch_end,
-   alert_type = alert_type,
-   alert_severity = alert_severity,
-}
+-- Fetch the results
+local alerts, recordsFiltered
 
-local alerts = alert_utils.getAlerts(what, alert_options)
+if((epoch_begin ~= nil) and (epoch_end ~= nil)) then
+   epoch_begin = tonumber(epoch_begin)
+   epoch_end   = tonumber(epoch_end)
 
-if alerts == nil then alerts = {} end
+   if(epoch_begin <= epoch_end) then
+      host_alert_store:add_time_filter(epoch_begin, epoch_end)
+   end
+end
 
-for _key,_value in ipairs(alerts) do
+local entity = "host"
+
+alerts, recordsFiltered, info = host_alert_store:select_request(nil, "*")
+
+local alert_names = alert_consts.getAlertTypes(alert_entities[entity].entity_id)
+
+for _, _value in ipairs(alerts or {}) do
+   local formatted_val = host_alert_store:format_record(_value, no_html)
    local record = {}
-   local alert_entity
-   local alert_entity_val
 
-   if _value["alert_entity"] ~= nil then
-      alert_entity    = alert_consts.alertEntityLabel(_value["alert_entity"], true)
-   else
-      alert_entity = "flow" -- flow alerts page doesn't have an entity
-   end
+   tprint("----")
 
-   if _value["alert_entity_val"] ~= nil then
-      alert_entity_val = _value["alert_entity_val"]
-   else
-      alert_entity_val = ""
-   end
-
-   local duration
-   if engaged == true then
-      duration = os.time() - tonumber(_value["alert_tstamp"])
-   elseif tonumber(_value["alert_tstamp_end"]) ~= nil then
-      duration = tonumber(_value["alert_tstamp_end"]) - tonumber(_value["alert_tstamp"])
-   end
-
-   local severity = alert_consts.alertSeverityRaw(tonumber(_value["alert_severity"]))
-   local atype = alert_consts.alertTypeRaw(tonumber(_value["alert_type"]))
-   local count    = tonumber(_value["alert_counter"])
-   local score    = tonumber(_value["score"])
-   local alert_info      = alert_utils.getAlertInfo(_value)
-   local msg      = alert_utils.formatAlertMessage(ifid, _value, alert_info)
-   local date = _value["alert_tstamp"]
-
-   record["date"] = date
-   record["duration"] = duration
-   record["severity"] = severity
-   record["type"] = atype
-   record["count"] = count
-   record["score"] = score
-   record["msg"] = msg
-   record["entity"] = alert_entity
-   record["entity_val"] = alert_entity_val
-   -- record["value"] = _value
+   record["date"] = _value.tstamp_epoch
+   record["duration"] = _value.duration
+   record["score"] = _value.score
+   record["severity"] = alert_consts.alertSeverityRaw(_value.severity)
+   record["count"] = 1
+   record["msg"] = formatted_val.msg.description
+   record["type"] = alert_names[tonumber(_value.alert_id)]
+   record["entity"] = entity
+   record["entity_val"] = "" -- TODO
 
    res[#res + 1] = record
-	  
-end -- for
+end
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)
 

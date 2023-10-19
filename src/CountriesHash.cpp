@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,39 +24,37 @@
 /* ************************************ */
 
 CountriesHash::CountriesHash(NetworkInterface *_iface, u_int _num_hashes,
-					   u_int _max_hash_size) :
-  GenericHash(_iface, _num_hashes, _max_hash_size, "CountriesHash") {
+                             u_int _max_hash_size)
+    : GenericHash(_iface, _num_hashes, _max_hash_size, "CountriesHash") {
   ;
 }
 
 /* ************************************ */
 
-Country* CountriesHash::get(const char *country_name, bool is_inline_call) {
+Country *CountriesHash::get(const char *country_name, bool is_inline_call) {
   u_int32_t hash = Utils::stringHash(country_name);
 
   hash %= num_hashes;
 
-  if(table[hash] == NULL) {
-    return(NULL);
+  if (table[hash] == NULL) {
+    return (NULL);
   } else {
     Country *head;
 
-    if(!is_inline_call)
-      locks[hash]->rdlock(__FILE__, __LINE__);
+    if (!is_inline_call) locks[hash]->rdlock(__FILE__, __LINE__);
 
-    head = (Country*)table[hash];
+    head = (Country *)table[hash];
 
-    while(head != NULL) {
-      if((!head->idle()) && head->equal(country_name))
-	break;
+    while (head != NULL) {
+      if ((!head->idle()) && head->equal(country_name))
+        break;
       else
-	head = (Country*)head->next();
+        head = (Country *)head->next();
     }
 
-    if(!is_inline_call)
-      locks[hash]->unlock(__FILE__, __LINE__);
+    if (!is_inline_call) locks[hash]->unlock(__FILE__, __LINE__);
 
-    return(head);
+    return (head);
   }
 }
 
@@ -65,13 +63,13 @@ Country* CountriesHash::get(const char *country_name, bool is_inline_call) {
 #ifdef COUNTRY_DEBUG
 
 static bool print_country(GenericHashEntry *_country, void *user_data) {
-  Country *country = (Country*)_country;
+  Country *country = (Country *)_country;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Country [name: %s] [num_uses: %u]",
-			       country->get_name(),
-			       country->getNumHosts());
-  
-  return(false); /* false = keep on walking */
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                               "Country [name: %s] [num_uses: %u]",
+                               country->get_name(), country->getNumHosts());
+
+  return (false); /* false = keep on walking */
 }
 
 /* ************************************ */
@@ -80,7 +78,7 @@ void CountriesHash::printHash() {
   disablePurge();
 
   walk(print_country, NULL);
-  
+
   enablePurge();
 }
 

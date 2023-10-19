@@ -9,9 +9,15 @@ Source: ntopng-%{version}.tgz
 Packager: Luca Deri <deri@ntop.org>
 # Temporary location where the RPM will be built
 BuildRoot:  %{_tmppath}/%{name}-%{version}-root
-Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, mysql, mysql-libs, ethtool, redhat-lsb-core, libcap, json-c, expat, libzstd, libmaxminddb@CENTOS_N2N_DEP@
+%if 0%{?centos_ver} <= 8
+Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, mysql-libs, ethtool, redhat-lsb-core, libcap, json-c, expat, libzstd, net-snmp-libs, newt, libatomic, libmaxminddb, tcp_wrappers-libs, librdkafka, @LICENSE_DEP@
+%else
+Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, mysql-libs, ethtool, libcap, json-c, expat, libzstd, net-snmp-libs, newt, libatomic, libmaxminddb, tcp_wrappers-libs, librdkafka, @LICENSE_DEP@
+%endif
 # Disable shared libs dependency check (needed by FPGA libs)
 AutoReqProv: no
+# Make sure .build-id is not part of the package
+%define _build_id_links none
 
 %description
 ntopng high-speed web-based traffic monitoring and analysis tool (libpcap)
@@ -19,10 +25,11 @@ Web-based traffic monitoring
 
 %setup -q
 
+# https://imvoid.wordpress.com/2013/06/05/stripping-and-stopping-stripping-of-binaries-in-rpm-build/
 # Disable stripping
-%global _enable_debug_package 0
-%global debug_package %{nil}
-%global __os_install_post /usr/lib/rpm/brp-compress %{nil}
+# %global _enable_debug_package 0
+# %global debug_package %{nil}
+# %global __os_install_post /usr/lib/rpm/brp-compress %{nil}
 
 %build
 if ! test -f "$HOME/ntopng/pro/utils/snzip"; then echo "snzip missing"; exit; fi
@@ -40,6 +47,7 @@ mkdir -p $RPM_BUILD_ROOT/usr/bin $RPM_BUILD_ROOT/usr/share/ntopng $RPM_BUILD_ROO
 mkdir -p $RPM_BUILD_ROOT/var/lib/ntopng
 mkdir -p $RPM_BUILD_ROOT/etc/logrotate.d
 mkdir -p $RPM_BUILD_ROOT/etc/sudoers.d/
+mkdir -p $RPM_BUILD_ROOT/etc/rsyslog.d/
 mkdir -p $RPM_BUILD_ROOT/etc/cron.d/
 %if 0%{?centos_ver} == 6
 mkdir -p $RPM_BUILD_ROOT/etc/init.d 
@@ -48,10 +56,9 @@ cp $HOME/ntopng/ntopng $RPM_BUILD_ROOT/usr/bin
 strip $RPM_BUILD_ROOT/usr/bin/ntopng
 cp $HOME/ntopng/ntopng.8 $RPM_BUILD_ROOT/usr/share/man/man8/ 
 cp -Lr $HOME/ntopng/httpdocs $HOME/ntopng/scripts $RPM_BUILD_ROOT/usr/share/ntopng  # L to dereference symlinks
+cp $HOME/ntopng/packages/wizard/ntopng-config $RPM_BUILD_ROOT/usr/bin
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-config $RPM_BUILD_ROOT/usr/bin
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-updates $RPM_BUILD_ROOT/usr/bin
-%if 0%{?centos_ver} != 6
-%endif
 cp $HOME/ntopng/packages/usr/bin/ntopctl $RPM_BUILD_ROOT/usr/bin/
 # Make sure .mmdb files are not packaged by ntopng as they belong to ntopng-data
 rm -f $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/*.mmdb
@@ -75,10 +82,11 @@ else
    cp $HOME/ntopng/packages/etc/init.d/ntopng    $RPM_BUILD_ROOT/etc/init.d
 fi
 cp $HOME/ntopng/packages/etc/sudoers.d/ntopng      $RPM_BUILD_ROOT/etc/sudoers.d/
+cp $HOME/ntopng/packages/etc/rsyslog.d/20-ntopng.conf $RPM_BUILD_ROOT/etc/rsyslog.d/
 cp $HOME/ntopng/packages/etc/logrotate.d/ntopng    $RPM_BUILD_ROOT/etc/logrotate.d/
 cp $HOME/ntopng/packages/etc/cron.d/ntopng         $RPM_BUILD_ROOT/etc/cron.d/
 
-mkdir $RPM_BUILD_ROOT/etc/ntopng
+mkdir $RPM_BUILD_ROOT/etc/ntopng $RPM_BUILD_ROOT/etc/ntopng.conf.d
 cp $HOME/ntopng/packages/etc/ntopng/ntopng.conf               $RPM_BUILD_ROOT/etc/ntopng
 cp $HOME/ntopng/packages/etc/ntopng/ntopng.conf.nprobe.sample $RPM_BUILD_ROOT/etc/ntopng
 
@@ -96,6 +104,7 @@ rm -fr $RPM_BUILD_ROOT
 %files
 /usr/bin/ntopng
 /usr/bin/ntopctl
+/usr/bin/ntopng-config
 /usr/bin/ntopng-utils-manage-config
 /usr/bin/ntopng-utils-manage-updates
 /usr/share/man/man8/ntopng.8.gz
@@ -109,6 +118,7 @@ rm -fr $RPM_BUILD_ROOT
 %endif
 /etc/logrotate.d/ntopng
 /etc/sudoers.d/ntopng
+/etc/rsyslog.d/20-ntopng.conf
 /etc/cron.d/ntopng
 /usr/share/ntopng
 # Don't overwrite ntopng-cert.pem is the file is already present
@@ -166,13 +176,18 @@ esac
 %endif
 
 %post
+%if 0%{?centos_ver} == 6
+# systemd takes care of this on centos 7 and newer
 echo 'Setting up redis auto startup'
 /sbin/chkconfig redis on
-echo 'Creating link under /usr/local/bin'
-if test ! -e /usr/local/bin/ntopng ; then ln -s /usr/bin/ntopng /usr/local/bin/ntopng ; fi
-if test -d /usr/local/share/ntopng ; then  mv /usr/local/share/ntopng /usr/local/share/ntopng.disabled; fi
+%endif
 
-if [ ! -f /.dockerenv ]; then
+/bin/chown ntopng:ntopng /usr/bin/ntopng-config
+/bin/chmod gou+s /usr/bin/ntopng-config
+/bin/chown -R ntopng:ntopng /etc/ntopng
+
+CMDLINE=$(tr -d '\0' < /proc/1/cmdline) 
+if [ -z "${CMDLINE##*system*}" ] || [ -z "${CMDLINE##*init*}" ]; then # init/systemd (not a container)
 %if 0%{?centos_ver} != 6
 /bin/systemctl daemon-reload
 %systemd_post ntopng.service
@@ -181,21 +196,37 @@ if [ ! -f /.dockerenv ]; then
 %endif
 fi
 
-%if 0%{?centos_ver} == 6
+TLS_DIR="/usr/share/ntopng/httpdocs/ssl"
+TLS_CERT_PATH="$TLS_DIR/ntopng-cert.pem"
+if [ ! -f "$TLS_CERT_PATH" ]; then
+    openssl req -new -x509 -sha1 -extensions v3_ca -nodes -days 365 -out $TLS_DIR/cert.pem -subj "/CN=ntopng.local"
+    mv privkey.pem $TLS_CERT_PATH
+    cat $TLS_DIR/cert.pem >> $TLS_CERT_PATH
+    rm $TLS_DIR/cert.pem
+fi
+
 case "$1" in
   1)
     # install
-    /etc/init.d/ntopng start
-  ;;
-  2)
-    # upgrade
-    /etc/init.d/ntopng start
+    echo ''
+    echo 'NOTE'
+    echo ''
+    echo 'ntopng Community does not require a license.'
+    echo 'ntopng Pro/Enterprise licenses are perpetual and include 1 year maintenance/updates:'
+    echo 'you can use the software even after maintenance is expired, however updating it after'
+    echo '1 year would prevent ntopng from running. If you have automatic updates enabled, and'
+    echo 'maintenance is expired, it is recommended to put the package updates on hold by adding'
+    echo 'the "exclude=ntopng*" directive in /etc/yum.conf. Alternatively it is possible to install'
+    echo 'the versionlock plugin with "yum install yum-plugin-versionlock" and lock the ntopng'
+    echo 'version with "yum versionlock ntopng" (it can be unlocked with "yum versionlock clear")'
+    echo ''
   ;;
 esac
-%endif
 
 %preun
-if [ ! -f /.dockerenv ]; then
+
+CMDLINE=$(tr -d '\0' < /proc/1/cmdline) 
+if [ -z "${CMDLINE##*system*}" ] || [ -z "${CMDLINE##*init*}" ]; then # init/systemd (not a container)
 %if 0%{?centos_ver} == 6
 case "$1" in
   0)
@@ -216,13 +247,9 @@ esac
 fi
 
 %postun
-if [ ! -f /.dockerenv ]; then
+CMDLINE=$(tr -d '\0' < /proc/1/cmdline) 
+if [ -z "${CMDLINE##*system*}" ] || [ -z "${CMDLINE##*init*}" ]; then # init/systemd (not a container)
 %if 0%{?centos_ver} != 6
   %systemd_postun_with_restart ntopng.service
 %endif
-fi
-
-if [ $1 == 0 ] ; then
-    # Package removal, not upgrade
-    rm -f /usr/local/bin/ntopng > /dev/null 2>&1
 fi

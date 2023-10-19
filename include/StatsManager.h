@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,41 +28,45 @@ struct statsManagerRetrieval {
   vector<string> rows;
   int num_vals;
 
-  statsManagerRetrieval(): num_vals(0) {}
+  statsManagerRetrieval() : num_vals(0) {}
 };
 
-class StatsManager : protected StoreManager {
-public:
-    StatsManager(int interface_id, const char *db_filename);
-    ~StatsManager() {};
-    int insertMinuteSampling(time_t epoch, const char * const sampling);
-    int insertHourSampling(time_t epoch, const char * const sampling);
-    int insertDaySampling(time_t epoch, const char * const sampling);
-    int getMinuteSampling(time_t epoch, string * sampling);
-    int openStore(const char *cache_name);
-    int retrieveMinuteStatsInterval(time_t epoch_start, time_t epoch_end,
-                                    struct statsManagerRetrieval *retvals);
-    int retrieveHourStatsInterval(time_t epoch_start, time_t epoch_end,
+class StatsManager : protected SQLiteStoreManager {
+ public:
+  StatsManager(int interface_id, const char *db_filename);
+  ~StatsManager(){};
+  int insertMinuteSampling(time_t epoch, const char *sampling);
+  int insertHourSampling(time_t epoch, const char *sampling);
+  int insertDaySampling(time_t epoch, const char *sampling);
+  int getMinuteSampling(time_t epoch, string *sampling);
+  int openStore(const char *cache_name);
+  int retrieveMinuteStatsInterval(time_t epoch_start, time_t epoch_end,
                                   struct statsManagerRetrieval *retvals);
-    int retrieveDayStatsInterval(time_t epoch_start, time_t epoch_end,
-                                 struct statsManagerRetrieval *retvals);
-    int deleteMinuteStatsOlderThan(unsigned num_days);
-    int deleteHourStatsOlderThan(unsigned num_days);
-    int deleteDayStatsOlderThan(unsigned num_days);
-private:
-    const char *MINUTE_CACHE_NAME,
-	       *HOUR_CACHE_NAME, *DAY_CACHE_NAME; // see constructor for initialization
-    /*
-     * map has O(log(n)) access time, but we suppose the number
-     * of caches is not huge
-     */
-    std::map<string, bool> caches;
+  int retrieveHourStatsInterval(time_t epoch_start, time_t epoch_end,
+                                struct statsManagerRetrieval *retvals);
+  int retrieveDayStatsInterval(time_t epoch_start, time_t epoch_end,
+                               struct statsManagerRetrieval *retvals);
+  int deleteMinuteStatsOlderThan(unsigned num_days);
+  int deleteHourStatsOlderThan(unsigned num_days);
+  int deleteDayStatsOlderThan(unsigned num_days);
 
-    int insertSampling(const char * const sampling, const char * const cache_name, long int key);
-    int getSampling(string * sampling, const char * const cache_name, time_t key_low, time_t key_high);
-    int deleteStatsOlderThan(const char * const cache_name, const time_t key);
-    int retrieveStatsInterval(struct statsManagerRetrieval *retvals, const char * const cache_name,
-			      const time_t key_start, const time_t key_end);
+ private:
+  const char *MINUTE_CACHE_NAME, *HOUR_CACHE_NAME,
+      *DAY_CACHE_NAME;  // see constructor for initialization
+  /*
+   * map has O(log(n)) access time, but we suppose the number
+   * of caches is not huge
+   */
+  std::map<string, bool> caches;
+
+  int insertSampling(const char *sampling, const char *cache_name,
+                     long int key);
+  int getSampling(string *sampling, const char *cache_name, time_t key_low,
+                  time_t key_high);
+  int deleteStatsOlderThan(const char *cache_name, const time_t key);
+  int retrieveStatsInterval(struct statsManagerRetrieval *retvals,
+                            const char *cache_name, const time_t key_start,
+                            const time_t key_end);
 };
 
 #endif /* _STATS_MANAGER_H_ */

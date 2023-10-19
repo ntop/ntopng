@@ -1,0 +1,42 @@
+<!--
+  (C) 2013-22 - ntop.org
+-->
+
+<div id="vue-app">
+  <page-host-details-traffic 
+    :page_csrf="page_csrf">
+  </page-host-details-traffic>
+</div>
+
+<script type="application/javascript">
+
+let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+
+function start_vue() {
+  const page_csrf = '{* ntop.getRandomCSRFValue() *}'
+
+  const vue_options = {
+    components: {
+      'page-host-details-traffic': ntopVue.PageHostDetailsTraffic,
+    },
+    /**
+     * First method called when the component is created.
+     */
+    created() {},
+    mounted() {},
+    data() {
+      return {
+        page_csrf: page_csrf,
+      };
+    },
+    methods: {},
+  }; 
+  const _vue = ntopVue.Vue.createApp(vue_options);
+  const vue_app = _vue.mount("#vue-app");
+  return vue_app;
+}
+
+$(document).ready(async function(){
+  start_vue();
+});
+</script>

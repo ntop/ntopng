@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -12,10 +12,11 @@ if((not isAdministrator()) or (not recording_utils.isAvailable())) then
 end
 
 local ifstats = interface.getStats()
+local master_ifid = interface.getMasterInterfaceId()
 local enabled = false
 local running = false
 local restart_req = false
-local custom_provider = (recording_utils.getCurrentTrafficRecordingProvider(ifstats.id) ~= "ntopng")
+local custom_provider = (recording_utils.getCurrentTrafficRecordingProvider(master_ifid) ~= "ntopng")
 local extraction_checks_ok, extraction_checks_msg
 
 if _POST["action"] ~= nil and _POST["action"] == "restart" then
@@ -24,16 +25,16 @@ end
 
 if custom_provider then
    enabled = true
-   running = recording_utils.isActive(ifstats.id)
-   extraction_checks_ok, extraction_checks_msg = recording_utils.checkExtraction(ifstats.id)
+   running = recording_utils.isActive(master_ifid)
+   extraction_checks_ok, extraction_checks_msg = recording_utils.checkExtraction(master_ifid)
 
-elseif recording_utils.isEnabled(ifstats.id) then
+elseif recording_utils.isEnabled(master_ifid) then
   enabled = true
-  if recording_utils.isActive(ifstats.id) then
+  if recording_utils.isActive(master_ifid) then
     running = true
   else -- failure
     if restart_req then
-      recording_utils.restart(ifstats.id)
+      recording_utils.restart(master_ifid)
     end
   end
 end
@@ -66,52 +67,61 @@ end
 
 print("</td></tr>\n")
 
-local stats = recording_utils.stats(ifstats.id)
+-- Traffic Recording stats
 
-if stats ~= nil then
-  local first_epoch = nil
-  local last_epoch = nil
-  local start_time = nil
+local stats = recording_utils.stats(master_ifid)
 
-  if stats['FirstDumpedEpoch'] ~= nil and stats['LastDumpedEpoch'] ~= nil then
-    first_epoch = tonumber(stats['FirstDumpedEpoch'])
-    last_epoch = tonumber(stats['LastDumpedEpoch'])
-  end
+local first_epoch = stats['FirstDumpedEpoch']
+local last_epoch = stats['LastDumpedEpoch']
+local start_time = stats['StartEpoch']
 
-  if stats['Duration'] ~= nil then
-    local u = split(stats['Duration'], ':');
-    local uptime = tonumber(u[1])*24*60*60+tonumber(u[2])*60*60+tonumber(u[3])*60+u[4]
-    start_time = os.time()-uptime
-  end
-
-  if stats['FirstDumpedEpoch'] ~= nil then
-    print("<tr><th width='15%' nowrap>"..i18n("traffic_recording.dump_window").."</th><td>")
-    if first_epoch ~= nil and last_epoch ~= nil and 
-       first_epoch > 0 and last_epoch > 0 then
+if first_epoch ~= nil then
+   print("<tr><th width='15%' nowrap>"..i18n("traffic_recording.dump_window").."</th><td>")
+   if first_epoch ~= nil and last_epoch ~= nil and 
+      first_epoch > 0 and last_epoch > 0 then
       print(formatEpoch(first_epoch).." - "..formatEpoch(last_epoch))
-    else
+   else
       print(i18n("traffic_recording.no_file"))
-    end
-    print("</td></tr>\n")
-  end
+   end
+   print("</td></tr>\n")
+end
 
-  if start_time ~= nil then
-    print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time))
-    if (start_time ~= nil) and (first_epoch ~= nil) and (first_epoch > 0) and (start_time > first_epoch) then
+if start_time ~= nil then
+   print("<tr><th nowrap>"..i18n("traffic_recording.active_since").."</th><td>"..formatEpoch(start_time))
+   if (start_time ~= nil) and (first_epoch ~= nil) and (first_epoch > 0) and (start_time > (first_epoch + 10)) then
       print(' - <i class="fas fa-exclamation-triangle"></i> ')
       print(i18n("traffic_recording.missing_data_msg"))
-    end
-    print("</td></tr>\n")
-  end
-
-  if stats['Bytes'] ~= nil and stats['Packets'] ~= nil then
-    print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td>"..bytesToSize(stats['Bytes']).." ["..formatValue(stats['Packets']).." "..i18n("pkts").."]</td></tr>\n")
-  end
-
-  if stats['Dropped'] ~= nil then
-    print("<tr><th nowrap>"..i18n("if_stats_overview.dropped_packets").."</th><td>"..stats['Dropped'].." "..i18n("pkts").."</td></tr>\n")
-  end
+   end
+   print("</td></tr>\n")
 end
+
+if stats['Bytes'] ~= nil and stats['Packets'] ~= nil then
+   print("<tr><th nowrap>"..i18n("if_stats_overview.received_traffic").."</th><td>"..bytesToSize(stats['Bytes']).." ["..formatValue(stats['Packets']).." "..i18n("pkts").."]</td></tr>\n")
+end
+
+if stats['Dropped'] ~= nil then
+   print("<tr><th nowrap>"..i18n("if_stats_overview.dropped_packets").."</th><td>"..stats['Dropped'].." "..i18n("pkts").."</td></tr>\n")
+end
+
+-- Smart Recording stats
+
+stats = recording_utils.smartStats(master_ifid)
+
+first_epoch = stats['FirstDumpedEpoch']
+last_epoch = stats['LastDumpedEpoch']
+
+if first_epoch ~= nil then
+   print("<tr><th width='15%' nowrap>"..i18n("traffic_recording.smart_window").."</th><td>")
+   if first_epoch ~= nil and last_epoch ~= nil and 
+      first_epoch > 0 and last_epoch > 0 then
+      print(formatEpoch(first_epoch).." - "..formatEpoch(last_epoch))
+   else
+      print(i18n("traffic_recording.no_file"))
+   end
+   print("</td></tr>\n")
+end
+
+-- Custom Provider
 
 if custom_provider and running then
    local warn = ''
@@ -123,9 +133,11 @@ if custom_provider and running then
    print("<tr><th nowrap>"..i18n("traffic_recording.traffic_extractions").."</th><td>"..warn..extraction_checks_msg.."</td></tr>\n")
 end
 
+-- Logs
+
 print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><code>\n")
 
-local log = recording_utils.log(ifstats.id, 32)
+local log = recording_utils.log(master_ifid, 32)
 local logs = split(log, "\n")
 for i = 1, #logs do
   local row = split(logs[i], "]: ")

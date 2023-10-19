@@ -1,13 +1,13 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
-require "historical_utils"
+local categories_utils = require "categories_utils"
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -24,7 +24,7 @@ local ago1h  = now - 3600
 local protos = interface.getnDPIProtocols()
 
 if(host == nil) then
-   print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("ndpi_page.unable_to_find_host",{host_ip=host_ip}).."</div>")
+   print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("ndpi_page.unable_to_find_host",{host_ip=host_ip}).."</div>")
    return
 end
 
@@ -33,11 +33,11 @@ for k, v in pairs(host["ndpi_categories"]) do
    total = total + v["bytes"]
 end
 
-print("<tr><td>Total</td><td class=\"text-right\">".. secondsToTime(host["total_activity_time"]) .."</td><td colspan=2 class=\"text-right\">" ..  bytesToSize(total).. "</td></tr>\n")
+print("<tr><td colspan=2>Total</td><td class=\"text-end\">".. secondsToTime(host["total_activity_time"]) .."</td><td colspan=2 class=\"text-end\">" ..  bytesToSize(total).. "</td></tr>\n")
 
 for k, v in pairsByKeys(host["ndpi_categories"], desc) do
    print("<tr><td>")
-   local label = getCategoryLabel(k)
+   local label = getCategoryLabel(k, v.category)
 
    if(areHostCategoriesTimeseriesEnabled(ifid, host)) then
       local details_href = hostinfo2detailshref(host, {page = "historical", ts_schema = "host:ndpi_categories", category = k}, label)
@@ -48,10 +48,14 @@ for k, v in pairsByKeys(host["ndpi_categories"], desc) do
 
    local t = v["bytes"]
 
-   print('</td>')
+   print("</td>")
 
-   print("<td class=\"text-right\">" .. secondsToTime(v["duration"]) .. "</td>")
+   print("<td>")
+   print(categories_utils.get_category_protocols_list(v.category))
+   print("</td>")
 
-   print("<td class=\"text-right\">" .. bytesToSize(t).. "</td><td class=\"text-right\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
+   print("<td class=\"text-end\">" .. secondsToTime(v["duration"]) .. "</td>")
+
+   print("<td class=\"text-end\">" .. bytesToSize(t).. "</td><td class=\"text-end\">" .. round((t * 100)/total, 2).. " %</td></tr>\n")
 
 end

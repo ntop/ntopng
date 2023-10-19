@@ -1,0 +1,45 @@
+{#
+  (C) 2023 - ntop.org
+  This template is used by the `Network Discovery` page inside the `Dashboard`.    
+#}
+
+
+<div id="network-discovery">
+  <page-network-discovery
+  :ifid="ifid">
+  </page-network-discovery>
+</div>
+  
+<script type="text/javascript">  
+  const ifid = '{* ifid *}'
+
+  function start_vue() {
+    let vue_options = {
+      components: {	  
+        'page-network-discovery': ntopVue.PageNetworkDiscovery,
+      },
+      /**
+      * First method called when the component is created.
+      */
+      created() { },
+      mounted() {
+      },
+      data() {
+        return {
+          ifid: ifid,
+        };
+      },
+      methods: { },
+    };
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount('#network-discovery');
+    return vue_app;
+  }
+
+  /* ******************************************************* */
+
+  $(function () {
+    // initialize script table
+    start_vue();
+  });
+</script>

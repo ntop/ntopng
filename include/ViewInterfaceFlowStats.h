@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2020 - ntop.org
+ * (C) 2020-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,24 +24,24 @@
 
 class ViewInterfaceFlowStats {
  private:
-   PartializableFlowTrafficStats partializable_stats;
+  PartializableFlowTrafficStats partializable_stats;
 
-   /* NOTE: these pointers cannot be normally accessed by the subinterfaces
-    * as the same host may be used by more subinterfaces at the same time
-    * (hosts belong to the ViewInterface). */
-   Host *unsafe_cli;
-   Host *unsafe_srv;
+  /* NOTE: these pointers cannot be normally accessed by the subinterfaces
+   * as the same host may be used by more subinterfaces at the same time
+   * (hosts belong to the ViewInterface). */
+  Host *unsafe_cli;
+  Host *unsafe_srv;
 
  public:
-   ViewInterfaceFlowStats() {
-     unsafe_cli = unsafe_srv = NULL;
-   }
+  ViewInterfaceFlowStats() { unsafe_cli = unsafe_srv = NULL; }
 
-   inline void setClientHost(Host *host) 			 { unsafe_cli = host; };
-   inline void setServerHost(Host *host) 			 { unsafe_srv = host; };
-   inline PartializableFlowTrafficStats* getPartializableStats() { return(&partializable_stats); };
-   inline Host* unsafeGetClient() 				 { return(unsafe_cli); };
-   inline Host* unsafeGetServer() 				 { return(unsafe_srv); };
+  inline void setClientHost(Host *host) { unsafe_cli = host; };
+  inline void setServerHost(Host *host) { unsafe_srv = host; };
+  inline PartializableFlowTrafficStats *getPartializableStats() {
+    return (&partializable_stats);
+  };
+  inline Host *getViewSharedClient() { return (unsafe_cli); };
+  inline Host *getViewSharedServer() { return (unsafe_srv); };
 };
 
 #endif

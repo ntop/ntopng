@@ -1,0 +1,8 @@
+/stub/*.o
+/*.o
+/proto
+/!corpus/**/*.pcap
+/*.zip
+
+# Binaries
+/fuzz_dissect_packet

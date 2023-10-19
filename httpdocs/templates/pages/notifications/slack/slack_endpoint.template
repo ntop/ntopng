@@ -1,0 +1,19 @@
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("notification_endpoint.slack.sender_username") }}</b>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#slack"><i class="fa-regular fa-circle-question"></i></a>
+    </label>
+    <div class="col-sm-7">
+        <input data-pattern="username" name="slack_sender_username" type="text" class="form-control" required />
+    </div>
+</div>
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("notification_endpoint.slack.notification_webhook") }}</b>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#slack"><i class="fa-regular fa-circle-question"></i></a>
+    </label>
+    <div class="col-sm-7">
+        <input data-pattern="https" name="slack_webhook" type="text" class="form-control" required />
+    </div>
+</div>
+<small>{* i18n('notification_endpoint.slack.webhook_description') *}</small>

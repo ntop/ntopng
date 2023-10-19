@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -14,7 +14,7 @@ interface.select(ifname)
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.live_capture)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.live_capture)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 

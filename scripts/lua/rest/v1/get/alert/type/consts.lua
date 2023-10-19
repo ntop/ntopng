@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-21 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -12,20 +12,20 @@ local rest_utils = require "rest_utils"
 
 --
 -- Read all the defined alert type constants
--- Example: curl -u admin:admin http://localhost:3000/lua/rest/v1/get/alert/type/consts.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" http://localhost:3000/lua/rest/v1/get/alert/type/consts.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
 sendHTTPHeader('application/json')
 
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 for alert_type, alert in pairs(alert_consts.alert_types) do
    res[#res + 1] = {
-      type = alert_type, 
-      key = alert.alert_key,
+      type = alert_type,
+      key = alert.meta.alert_key,
    }
 end
 

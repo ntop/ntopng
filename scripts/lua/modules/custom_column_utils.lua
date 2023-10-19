@@ -1,5 +1,5 @@
 --
--- (C) 2018 - ntop.org
+-- (C) 2021 - ntop.org
 --
 
 local format_utils = require("format_utils")
@@ -14,43 +14,83 @@ local custom_column_pref_key = "ntopng.prefs.custom_column"
 --            AND NetworkInterface::getFlows()
 custom_column_utils.available_custom_columns = {
    -- KEY  LABEL   Host::lua()_label  formatting  additonal_url  hidden
+   { "mac", i18n("mac_address"), "mac", get_symbolic_mac --[[ Don't touch it, already formatted --]], "left" },
    { "traffic_sent", i18n("flows_page.total_bytes_sent"), "bytes.sent", bytesToSize, "right" },
    { "traffic_rcvd", i18n("flows_page.total_bytes_rcvd"), "bytes.rcvd", bytesToSize, "right" },
    { "traffic_unknown", i18n("flows_page.total_bytes_unknown"), "bytes.ndpi.unknown", bytesToSize, "right" },
    { "num_flows_as_client", i18n("flows_page.flows_as_client"), "active_flows.as_client", format_utils.formatValue, "center", {page = "flows"} },
    { "num_flows_as_server", i18n("flows_page.flows_as_server"), "active_flows.as_server", format_utils.formatValue, "center", {page = "flows"} },
-   { "total_num_misbehaving_flows_as_client", i18n("total_outgoing_misbehaving_flows"), "misbehaving_flows.as_client", format_utils.formatValue, "center" },
-   { "total_num_misbehaving_flows_as_server", i18n("total_incoming_misbehaving_flows"), "misbehaving_flows.as_server", format_utils.formatValue, "center" },
+   { "total_num_alerted_flows_as_client", i18n("total_outgoing_alerted_flows"), "alerted_flows.as_client", format_utils.formatValue, "center" },
+   { "total_num_alerted_flows_as_server", i18n("total_incoming_alerted_flows"), "alerted_flows.as_server", format_utils.formatValue, "center" },
    { "total_num_unreachable_flows_as_client", i18n("total_outgoing_unreachable_flows"), "unreachable_flows.as_client", format_utils.formatValue, "center" },
    { "total_num_unreachable_flows_as_server", i18n("total_incoming_unreachable_flows"), "unreachable_flows.as_server", format_utils.formatValue, "center" },
+   { "total_num_retx_sent", i18n("total_retransmissions_sent"), function(host_stats) return host_stats["tcpPacketStats.sent"]["retransmissions"] end, format_utils.formatValue, "center" },
+   { "total_num_retx_rcvd", i18n("total_retransmissions_rcvd"), function(host_stats) return host_stats["tcpPacketStats.rcvd"]["retransmissions"] end, format_utils.formatValue, "center" },
    { "alerts", i18n("show_alerts.engaged_alerts"), "num_alerts", format_utils.formatValue, "center", {page = "alerts"} },
    { "total_alerts", i18n("alerts_dashboard.total_alerts"), "total_alerts", format_utils.formatValue, "center" },
-   { "score", i18n("score"), "score", format_utils.formatValue, "center", nil, (not isScoreEnabled()) }
+   { "score_as_client", i18n("score_as_client"), "score.as_client", format_utils.formatValue, "center", nil, (not isScoreEnabled()) },
+   { "score_as_server", i18n("score_as_server"), "score.as_server", format_utils.formatValue, "center", nil, (not isScoreEnabled()) },
+   { "tcp_unresp_as_client", i18n("tcp_unresp_as_client"), "num_contacted_peers_with_tcp_flows_no_response", format_utils.formatValue, "center" },
+   { "tcp_unresp_as_server", i18n("tcp_unresp_as_server"), "num_incoming_peers_that_sent_tcp_flows_no_response", format_utils.formatValue, "center" },
 }
 local available_custom_columns = custom_column_utils.available_custom_columns
+
+-- ###########################################
+
+-- @brief Getter for host_stats values
+--        Need this getter as there are certain host keys which contain dots, so
+--        lua is unhappy and doesn't allow us to use the dot-notation to access table keys.
+--        For example host_stats["tcpPacketStats.sent"]["retransmissions"] has "tcpPacketStats.sent" which
+--        contains a dot so we are unable to use the notation host_stats.tcpPacketStats.sent.retransmissions as
+--        done for other keys. To access these keys, we need to use the [] notation inside a `key` function.
+local function host_stats_getter(host_stats, key)
+   if type(key) == "string" then
+      return host_stats[key]
+   elseif type(key) == "function" then
+      return  key(host_stats)
+   end
+end
+
+-- ###########################################
+
+function custom_column_utils.hostToScoreValue(host_stats)
+   local score = { "score", i18n("score"), "score", format_utils.formatValue, "center", nil, (not isScoreEnabled()) }
+   local val = nil
+   val = host_stats_getter(host_stats, score[3])
+
+   if not tonumber(val) or val > 0 then
+      val = score[4](val)
+   else
+      val = ""
+   end
+
+   if((score[6] ~= nil) and (tonumber(val) ~= 0)) then
+      val = hostinfo2detailshref(host_stats, score[6], val)
+   end
+   return(val)
+end
 
 -- ###########################################
 
 function custom_column_utils.hostStatsToColumnValue(host_stats, column, formatted)
    for _, c in ipairs(available_custom_columns) do
       if c[1] == column then
-	 local k = c[3]
 	 local val = nil
 
 	 if formatted then
-	    val = host_stats[c[3]]
+	    val = host_stats_getter(host_stats, c[3])
 
-	    if val ~= nil and val > 0 then
+	    if not tonumber(val) or val > 0 then
 	       val = c[4](val)
 	    else
-	       val = "0"
+	       val = ""
 	    end
 
-	   if((c[6] ~= nil) and (tonumber(val) ~= 0)) then
-	      val = hostinfo2detailshref(host_stats, c[6], val)
+	    if((c[6] ~= nil) and (tonumber(val) ~= 0)) then
+	       val = hostinfo2detailshref(host_stats, c[6], val)
 	   end
 	 else
-	    val = host_stats[c[3]]
+	    val = host_stats_getter(host_stats, c[3])
 	 end
 
          return(val)
@@ -153,7 +193,7 @@ function custom_column_utils.printCustomColumnDropdown(base_url, page_params)
    custom_column_params["custom_column"] = nil
 
    print[[\
-      <button class="btn btn-link dropdown-toggle" data-toggle="dropdown"><i class="fas fa-columns" aria-hidden="true"></i><span class="caret"></span></button>\
+      <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fas fa-columns" aria-hidden="true"></i><span class="caret"></span></button>\
       <ul class="dropdown-menu scrollable-dropdown" role="menu" id="custom_column_dropdown">]]
 
    for _, lg in ipairs(custom_column_utils.available_custom_columns) do

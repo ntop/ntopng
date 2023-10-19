@@ -1,0 +1,81 @@
+{
+	"name" : "Cli / Srv / Alert Type",
+	"i18n_name" : "contacts_by_type",
+	"select" : {
+		"items" : [
+			{
+				"name" : "vlan_id"
+			},
+			{
+				"name" : "cli_ip"
+			},
+			{
+				"name" : "srv_ip"
+			},
+			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
+			},
+			{
+				"name" : "alert_id"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name": "cli_ip"
+			},
+			{
+				"name": "srv_ip"
+			},
+			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
+			},
+			{
+				"name" : "alert_id"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "vlan_id"
+			},
+			{
+				"name" : "cli_ip"
+			},
+			{
+				"name" : "srv_ip"
+			},
+			{
+				"name" : "cli_name"
+			},
+			{
+				"name" : "srv_name"
+			},
+			{
+				"name" : "alert_id"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "count",
+				"order" : "DESC"
+			}
+		]
+	}
+}

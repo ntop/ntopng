@@ -1,0 +1,10 @@
+"""
+ntopng
+
+ntopng Python library.
+"""
+
+__version__ = "@NTOPNG_VERSION@"
+__author__ = 'packager@ntop.org'
+
+__all__ = [ 'ntopng',  'interface',  'historical', 'host', 'report', 'logo' ]

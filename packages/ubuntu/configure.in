@@ -2,43 +2,56 @@ AC_INIT([Makefile.in], 1.0)
 
 AC_ARG_WITH(nedge,          [  --with-nedge            Enable nEdge device build])
 
+CUSTOM_NTOPNG_DOT_CONF=""
+IS_EXA8=0
+if test -f "/etc/hostname"; then
+    IS_EXA8=`grep EXA8 /etc/hostname |wc -l`
+    if test $IS_EXA8 = "1"; then
+     CUSTOM_NTOPNG_DOT_CONF='cp ../ntopng.conf.exa8 ./debian/ntopng/etc/ntopng/ntopng.conf'
+    fi
+fi
+
 MACHINE=`uname -m`
 SHORT_MACHINE=`uname -m | cut -b1-3`
 
+EXTN=""
+
 if test $MACHINE = "x86_64"; then
-   EXTN="amd64"
+  EXTN="amd64"
 else
   if test $SHORT_MACHINE = "aar"; then
-     EXTN="arm64"
-     EXTRA_DEPS=""
-     LIBRRD="librrd4, "
+    EXTN="arm64"
+    EXTRA_DEPS=""
+    LIBRRD="librrd4, "
   else
-  if test $SHORT_MACHINE = "arm"; then
-     EXTN="armhf"
-     EXTRA_DEPS=""
-     LIBRRD="librrd8, "
-  else
-     if test $SHORT_MACHINE = "mip"; then
-       EXTN="mips"
-       EXTRA_DEPS=""
-       LIBRRD=""
-     else	
-       EXTN="i386"
-     fi
-   fi
+    if test $SHORT_MACHINE = "arm"; then
+      EXTN="armhf"
+      EXTRA_DEPS=""
+      LIBRRD="librrd8, "
+    else
+      if test $SHORT_MACHINE = "mip"; then
+        EXTN="mips"
+        EXTRA_DEPS=""
+        LIBRRD=""
+      else	
+        EXTN="i386"
+      fi
+    fi
   fi
 fi
 
 if [ test -d ../../pro/ ] && [ ! test -f ../../pro/utils/snzip ]; then
-   echo "snzip is missing: please compile it and try again"
-   exit
+  echo "snzip is missing: please compile it and try again"
+  exit
 fi
 
 if [ test -f /usr/bin/lsb_release ]; then
   UBUNTU_RELEASE=`lsb_release -r|cut -f 2`
   UBUNTU_SUB_RELEASE=`echo $UBUNTU_RELEASE|cut -f 1 -d '.'`
 
-  if test "$UBUNTU_SUB_RELEASE" = "9"; then
+  if test "$UBUNTU_SUB_RELEASE" = "8"; then
+    UBUNTU_RELEASE="debian"
+  elif test "$UBUNTU_SUB_RELEASE" = "9"; then
     UBUNTU_RELEASE="debian9"
   else
     # Debian buster
@@ -47,20 +60,20 @@ if [ test -f /usr/bin/lsb_release ]; then
     fi
   fi
 
-  if test "$UBUNTU_RELEASE" = "16.04" || test "$UBUNTU_RELEASE" = "18.04" || test "$UBUNTU_RELEASE" = "20.04" || test "$UBUNTU_RELEASE" = "debian9" || test "$UBUNTU_RELEASE" = "debian10" ; then
+  if test "$UBUNTU_RELEASE" = "16.04" || test "$UBUNTU_RELEASE" = "18.04" || test "$UBUNTU_RELEASE" = "20.04"  || test "$UBUNTU_RELEASE" = "22.04" || test "$UBUNTU_RELEASE" = "debian9" || test "$UBUNTU_RELEASE" = "debian10" || test "$UBUNTU_RELEASE" = "11" || test "$UBUNTU_RELEASE" = "12"; then
     ZMQ_DEP="libzmq5"
   else
     ZMQ_DEP="libzmq3"
   fi  
   EXTRA_DEPS=", debconf, libnuma1, $ZMQ_DEP, libnetfilter-queue1"
 
-  if [ test -d $HOME/PF_RING ]; then
+  if [ test $MACHINE = "x86_64" ] && [ test -d $HOME/PF_RING ]; then
     PFRING_VERS=`$HOME/PF_RING/package/version.sh --release`
     PFRING_RELEASE=`$HOME/PF_RING/package/version.sh --revision`
-    if [ ! "x$PFRING_VERS" = "x" ]; then
-      PFRING_DEP="pfring (=$PFRING_VERS-$PFRING_RELEASE)"
-    else
+    if test "x$PFRING_VERS" = "x"; then
       PFRING_DEP="pfring"
+    else
+      PFRING_DEP="pfring (=$PFRING_VERS-$PFRING_RELEASE)"
     fi
   else
     PFRING_VERS=""
@@ -68,12 +81,15 @@ if [ test -f /usr/bin/lsb_release ]; then
     PFRING_DEP=""
   fi
 
+  if test $IS_EXA8 = "1"; then
+    PFRING_VERS=""
+    PFRING_RELEASE=""
+    PFRING_DEP=""
+  fi
+  
   if test "$UBUNTU_RELEASE" = "12.04"; then
      EXTRA_DEPS=", libnuma1, libnetfilter-queue1"
   else
-    if test "$UBUNTU_SUB_RELEASE" = "8"; then
-       UBUNTU_RELEASE="14.04"
-    fi
     if test "$UBUNTU_SUB_RELEASE" = "7"; then
        UBUNTU_RELEASE="12.04"
     fi
@@ -104,12 +120,12 @@ fi
 
 CHOWN="$SUDO chown $USER:$GROUP ../$APP_*deb"
 
-SHORT_MACHINE=`uname -m | cut -b1-3`
+CONTROL_EXT="$UBUNTU_RELEASE"
 if test $SHORT_MACHINE = "mip"; then
-  UBUNTU_RELEASE="mips"
+  CONTROL_EXT="mips"
 else
   if test $SHORT_MACHINE = "arm"; then
-     UBUNTU_RELEASE=`lsb_release -c|cut -f 2`_pi
+     CONTROL_EXT=`lsb_release -c|cut -f 2`_pi
   fi
 fi
 
@@ -117,10 +133,10 @@ fi
 \cd debian.ntopng
 
 if test "${with_nedge+set}" = set; then
- ln -s control.nedge.$UBUNTU_RELEASE.in control.in
+ ln -s control.nedge.$CONTROL_EXT.in control.in
  DEFAULT_TARGET=nedge
 else
- ln -s control.$UBUNTU_RELEASE.in control.in
+ ln -s control.$CONTROL_EXT.in control.in
  DEFAULT_TARGET=ntopng
 fi
 
@@ -129,6 +145,21 @@ cd -
 NTOPNG_VERS=`cat ../../configure.ac | head -2 | grep 'C_INIT' | cut -d " " -f 2 | cut -d ')' -f 1 | cut -d ',' -f 2 | tail -c +2 | sed 's/.\{1\}$//'`
 GIT_RELEASE=`git rev-parse HEAD`
 GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[[:space:]]'`
+
+LICENSEDIR="`pwd`/../../../license"
+if test -d $LICENSEDIR; then
+  LICENSE_VERS=`$LICENSEDIR/packages/version.sh --release`
+  if test $MACHINE = "x86_64"; then
+    # ntop-license not installed on raspberry
+    EXTRA_DEPS="$EXTRA_DEPS, ntop-license (=$LICENSE_VERS)" 
+  fi
+fi
+
+if test -f /usr/bin/debsigs; then
+  SIGN_CMD="debsigs"
+else
+  SIGN_CMD="dpkg-sig"
+fi
 
 DATE=`date -R`
 KERNEL=`uname -r`
@@ -149,6 +180,8 @@ AC_SUBST(PFRING_DEP)
 AC_SUBST(LIBRRD)
 AC_SUBST(SUDO)
 AC_SUBST(CHOWN)
+AC_SUBST(CUSTOM_NTOPNG_DOT_CONF)
+AC_SUBST(SIGN_CMD)
 
 AC_CONFIG_FILES(Makefile)
 AC_CONFIG_FILES(debian.ntopng/changelog)

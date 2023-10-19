@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -8,10 +8,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 
 local page_utils = require("page_utils")
+local ui_utils = require("ui_utils")
 
 sendHTTPContentTypeHeader('text/html')
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.networks)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.networks)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -28,6 +29,24 @@ function getPageTitle()
 end
 
 page_utils.print_page_title(getPageTitle())
+
+-- ##############################
+
+if(ntop.isPro()) then
+   local networks_stats = interface.getNetworksStats()
+   local numNetworks = table.len(networks_stats)
+
+   if(numNetworks > 0) then
+      local template_utils = require "template_utils"
+      
+      template_utils.render("pages/networks_map.html", {
+			       url = ntop.getHttpPrefix()..'/lua/pro/rest/v2/get/host/top/network_hosts_score.lua',
+			       prefix = ntop.getHttpPrefix()
+      })
+   end
+end
+
+-- ##############################
 
 print [[
       <div id="table-network"></div>
@@ -94,6 +113,30 @@ print [[
 			     }
 
 				 },
+         {
+         title: "]] print(i18n("score")) print[[",
+       field: "column_score",
+       sortable: true,
+                           css: {
+            textAlign: 'center'
+         },
+       },
+       {
+       title: "]] print(i18n("host_score_ratio")) print[[",
+     field: "column_host_score_ratio",
+     sortable: false,
+                         css: {
+          textAlign: 'center'
+       },
+     },
+       {
+       title: "]] print(i18n("flow_details.alerted_flows")) print[[",
+     field: "column_alerted_flows",
+     sortable: true,
+                         css: {
+          textAlign: 'center'
+       },
+     },
 ]]
 
 print [[
@@ -128,8 +171,9 @@ print [[
        </script>
 ]]
 
-print(i18n("network_stats.note_overlapping_networks").."<ol>")
-print("<li>"..i18n("network_stats.note_see_both_network_entries"))
-print("<li>"..i18n("network_stats.note_broader_network").."</ol>")
+print(ui_utils.render_notes({
+	{content = i18n("network_stats.note_see_both_network_entries")},
+	{content = i18n("network_stats.note_broader_network")}
+}, i18n("network_stats.note_overlapping_networks"), true))
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

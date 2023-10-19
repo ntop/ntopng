@@ -17,5 +17,5 @@ testuser Cleartext-Password := "Password123"
   Filter-Id = "ntopAdmin"
 ```
 
-In order for authentication to work properly, testuser must actually exist as a linux user
+In order for authentication to work properly, testuser must actually exist as a Linux user
 in the system where FreeRadius is installed.

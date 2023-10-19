@@ -1,0 +1,171 @@
+{
+	"id": "inactive_hosts",
+	"data_url": "lua/rest/v2/get/host/to_scan_list.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "host",
+		"sort": 1
+		},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "hosts_stats.page_scan_hosts.edit_host",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_edit_host"
+				},
+				{
+					"id": "scan",
+					"icon": "fa-solid fa-clock-rotate-left",
+					"title_i18n": "hosts_stats.page_scan_hosts.schedule_scan",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_scan"
+				},
+				{
+					"id": "download",
+					"icon": "fas fa-lg fa-download",
+					"title_i18n": "hosts_stats.page_scan_hosts.download_last_scan_result",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_download"
+				},
+				{
+					"id": "show_result",
+					"icon": "fa-solid fa-list-ul",
+					"title_i18n": "hosts_stats.page_scan_hosts.show_result",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_show_result"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa fa-trash",
+					"title_i18n": "delete",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_delete"
+				}
+			]
+		},
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.ip_address",
+			"data_field": "host",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.host_name",
+			"data_field": "host_name",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.score",
+			"data_field": "max_score_cve",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.scan_type",
+			"data_field": "scan_type",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.num_vulnerabilities_found",
+			"data_field": "num_vulnerabilities_found",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.num_open_ports_tcp",
+			"data_field": "tcp_ports",
+			"sortable": true,
+			
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.num_open_ports_udp",
+			"data_field": "udp_ports",
+			"sortable": true,
+			
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.scan_duration",
+			"data_field": "duration",
+			"sortable": true,
+			"class": ["no-wrap text-center"]
+		},
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.last_scan",
+			"data_field": "last_scan",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.periodicity",
+			"data_field": "scan_frequency",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.last_scan_status",
+			"data_field": "is_ok_last_scan",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		}
+	]
+}

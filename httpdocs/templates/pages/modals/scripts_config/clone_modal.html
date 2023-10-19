@@ -7,7 +7,7 @@
         </div>
         <div class="modal-body">
             <form class='form'>
-                <div class='form-group'>
+                <div class='form-group mb-3 '>
                     <label class='form-label' for='#clone-input'>{{ i18n("config_scripts.config_clone_message", {}) }}:</label>
                     <input type='text' id='clone-input' class='form-control'/>
                     <div class="invalid-feedback" id='clone-error'>
@@ -17,7 +17,7 @@
             </form>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel", {}) }}</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ i18n("cancel", {}) }}</button>
             <button type="button" id='btn-confirm-clone' class="btn btn-primary">{{ i18n("apply", {}) }}</button>
         </div>
         </div>

@@ -394,7 +394,6 @@
 				return new Layout.ForceDirected.Spring(existingSpring.point1, existingSpring.point2, 0.0, 0.0);
 			}
 
-			var to = this.graph.getEdges(edge.target, edge.source);
 			from.forEach(function(e){
 				if (existingSpring === false && e.id in this.edgeSprings) {
 					existingSpring = this.edgeSprings[e.id];

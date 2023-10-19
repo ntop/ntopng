@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "flow_utils"
 local format_utils = require("format_utils")
-local flow_consts = require "flow_consts"
 local flow_utils = require "flow_utils"
 local icmp_utils = require "icmp_utils"
 local json = require "dkjson"
@@ -16,21 +15,20 @@ local rest_utils = require("rest_utils")
 
 --
 -- Read list of active flows
--- Example: curl -u admin:admin -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/flow/active.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v1/get/flow/active.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPContentTypeHeader('application/json')
-
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 local ifid = _GET["ifid"]
+local verbose = (_GET["verbose"] == "true")
 
 if isEmptyString(ifid) then
-   rc = rest_utils.consts_invalid_interface
-   print(rest_utils.rc(rc))
+   rc = rest_utils.consts.err.invalid_interface
+   rest_utils.answer(rc)
    return
 end
 
@@ -60,7 +58,7 @@ local flows_filter = getFlowsFilter()
 local flows_stats = interface.getFlowsInfo(flows_filter["hostFilter"], flows_filter)
 
 if flows_stats == nil then
-   print(rest_utils.rc(rest_utils.consts_not_found))
+   rest_utils.answer(rest_utils.consts.err.not_found)
    return
 end
 
@@ -69,7 +67,7 @@ local total = flows_stats["numFlows"]
 flows_stats = flows_stats["flows"]
 
 if flows_stats == nil then
-   print(rest_utils.rc(rest_utils.consts_internal_error))
+   rest_utils.answer(rest_utils.consts.err.internal_error)
    return
 end
 
@@ -139,7 +137,31 @@ for _key, value in ipairs(flows_stats) do
    record["breakdown"]["srv2cli"] =  (100-cli2srv)
 
    if isScoreEnabled() then
-      record["score"] = format_utils.formatValue(value["score"])
+      record["score"] = format_utils.formatValue(value["score"]["flow_score"])
+   end
+
+   if verbose then
+      record["packets"] = value["cli2srv.packets"] + value["srv2cli.packets"]
+
+      record["tcp"] = {}
+
+      record["tcp"]["appl_latency"] = value["tcp.appl_latency"]
+ 
+      record["tcp"]["nw_latency"] = {}
+      record["tcp"]["nw_latency"]["cli"] = value["tcp.nw_latency.client"]
+      record["tcp"]["nw_latency"]["srv"] = value["tcp.nw_latency.server"]
+
+      record["tcp"]["retransmissions"] = {}
+      record["tcp"]["retransmissions"]["cli2srv"] = value["cli2srv.retransmissions"]
+      record["tcp"]["retransmissions"]["srv2cli"] = value["srv2cli.retransmissions"]
+
+      record["tcp"]["out_of_order"] = {}
+      record["tcp"]["out_of_order"]["cli2srv"] = value["cli2srv.out_of_order"]
+      record["tcp"]["out_of_order"]["srv2cli"] = value["srv2cli.out_of_order"]
+
+      record["tcp"]["lost"] = {}
+      record["tcp"]["lost"]["cli2srv"] = value["cli2srv.lost"]
+      record["tcp"]["lost"]["srv2cli"] = value["srv2cli.lost"]
    end
 
    data[#data + 1] = record
@@ -159,4 +181,4 @@ res = {
    },
 }
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)

@@ -4,15 +4,18 @@ RESTful API v1 Specification
 Authentication
 --------------
 
-The HTTP authentication should be used, for example with `curl` 
+The HTTP/HTTPS authentication should be used, for example with `curl` 
 it is possible to specify username and password with 
 :code:`-u <user>:<password>`
+
+Using HTTPS is recommended for security. See  `this post <https://www.ntop.org/ntopng/best-practices-to-secure-ntopng/>`_ to enable HTTPS.
 
 Request Format
 --------------
 
 Parameters can be provided both using GET with a query string or
-POST using JSON. For example, to download data for a host you can 
+POST using JSON (in this case please make sure the correct 
+Content Type is provided). For example, to download data for a host you can 
 use the below `curl` command line using GET:
 
 .. code:: bash
@@ -23,7 +26,7 @@ or the below `curl` command line using POST:
 
 .. code:: bash
 	  
-   curl -s -u admin:admin -d '{"ifid": "1", "host": "192.168.1.2"}' "http://192.168.1.1:3000/lua/rest/v1/get/host/data.lua"
+   curl -s -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1", "host": "192.168.1.2"}' "http://192.168.1.1:3000/lua/rest/v1/get/host/data.lua"
 
 Please check the *Examples* section for more examples.
 

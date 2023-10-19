@@ -1,5 +1,5 @@
 --
--- (C) 2014-20 - ntop.org
+-- (C) 2014-22 - ntop.org
 --
 local dirs = ntop.getDirs()
 
@@ -72,7 +72,7 @@ local function delete_host_redis_keys(interface_id, host_info)
       serialized_k = string.format("ntopng.serialized_hosts.ifid_%d__%s@%d", interface_id, host_info["host"], host_info["vlan"] or "0")
       dns_k = string.format("ntopng.dns.cache.%s", host_info["host"]) -- neither vlan nor ifid implemented for the dns cache
       drop_k = "ntopng.prefs.drop_host_traffic"
-      label_k = "ntopng.host_labels"
+      label_k = getHostAltNamesKey(hostkey)
    else
       -- is a mac address, see MAC_SERIALIED_KEY (see ntop_defines.h)
       serialized_k = string.format("ntopng.serialized_macs.ifid_%d__%s", interface_id, host_info["host"])
@@ -88,7 +88,7 @@ local function delete_host_redis_keys(interface_id, host_info)
       if dns_k        then ntop.delCache(dns_k) end
       if dhcp_k       then ntop.delCache(dhcp_k) end
       if drop_k       then ntop.delHashCache(drop_k, hostkey) end
-      if label_k      then ntop.delHashCache(label_k, hostkey) end
+      if label_k      then ntop.delCache(label_k) end
    end
 
    return {status = status}
@@ -98,22 +98,43 @@ end
 
 local function delete_host_mysql_flows(interface_id, host_info)
    local status = "OK"
+   local addr = host_info["host"]
+   local vlan = host_info["vlan"] or 0
+   local q
 
-   if ntop.getPrefs()["is_dump_flows_to_mysql_enabled"] then
-      local addr = host_info["host"]
-      local vlan = host_info["vlan"] or 0
-      local q
+   if ntop.isClickHouseEnabled() then
+      local historical_flow_utils = require "historical_flow_utils"
+ 
+      local where_clause
 
       if isIPv4(addr) then
-	 q = string.format("DELETE FROM %s WHERE (IP_SRC_ADDR = INET_ATON('%s') OR IP_DST_ADDR = INET_ATON('%s')) AND VLAN_ID = %u and INTERFACE_ID = %d",
-			   "flowsv4", addr, addr, vlan, interface_id)
+         where_clause = string.format("(IPV4_SRC_ADDR = ('%s') OR IPV4_DST_ADDR = ('%s')) AND VLAN_ID = %u AND INTERFACE_ID = %d",
+            addr, addr, vlan, interface_id)
+      else
+         where_clause = string.format("(IPV6_SRC_ADDR = ('%s') OR IPV6_DST_ADDR = ('%s')) AND VLAN_ID = %u AND INTERFACE_ID = %d",
+            addr, addr, vlan, interface_id)
+      end
+
+      where_clause = historical_flow_utils.fixWhereTypes(where_clause)
+
+      q = string.format("ALTER TABLE `flows` DELETE WHERE %s", where_clause)
+
+      if not dry_run and q then
+         interface.execSQLQuery(q)
+      end
+
+   elseif ntop.getPrefs()["is_dump_flows_to_mysql_enabled"] then
+
+      if isIPv4(addr) then
+         q = string.format("DELETE FROM %s WHERE (IP_SRC_ADDR = INET_ATON('%s') OR IP_DST_ADDR = INET_ATON('%s')) AND VLAN_ID = %u and INTERFACE_ID = %d",
+            "flowsv4", addr, addr, vlan, interface_id)
       elseif isIPv6(addr) then
-	 q = string.format("DELETE FROM %s WHERE (IP_SRC_ADDR = '%s' OR IP_DST_ADDR = '%s') AND VLAN_ID = %u AND INTERFACE_ID = %d",
-			   "flowsv6", addr, addr, vlan, interface_id)
+         q = string.format("DELETE FROM %s WHERE (IP_SRC_ADDR = '%s' OR IP_DST_ADDR = '%s') AND VLAN_ID = %u AND INTERFACE_ID = %d",
+            "flowsv6", addr, addr, vlan, interface_id)
       end
 
       if not dry_run and q then
-	 interface.execSQLQuery(q)
+         interface.execSQLQuery(q)
       end
    end
 

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2014-20 - ntop.org
+ * (C) 2014-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,91 +24,133 @@
 
 #include "ntop_includes.h"
 
-/* Single producer, single/multi consumer */
+/* Lockless fixed-size Single-Producer Single-Consumer queue */
 
+#define QUEUE_WATERMARK 8 /* pow of 2 */
+#define QUEUE_WATERMARK_MASK (QUEUE_WATERMARK - 1)
+
+template <typename T>
 class SPSCQueue {
  private:
-  spsc_queue_t *q;
-  Mutex *m;
-    
+  char *name;
+  u_int64_t num_failed_enqueues; /* Counts the number of times the enqueue has
+                                    failed (queue full) */
+  u_int64_t shadow_head;
+  volatile u_int64_t head;
+  volatile u_int64_t tail;
+  u_int64_t shadow_tail;
+  Condvar c;
+  std::vector<T> queue;
+  u_int32_t queue_size;
+
  public:
-
-  SPSCQueue(bool multi_consumer = false) {
-    q = (spsc_queue_t *) calloc(1, sizeof(spsc_queue_t));
-    if(q == NULL) throw 1;
-    q->tail = q->shadow_tail = QUEUE_ITEMS - 1;
-    q->head = q->shadow_head = 0;
-
-    if(multi_consumer)
-      m = new Mutex();
-    else
-      m = NULL;
+  /**
+   * Constructor
+   * @param size The queue size (rounded up to the next power of 2)
+   */
+  SPSCQueue(u_int32_t size, const char *_name) {
+    queue_size = Utils::pow2(size);
+    queue.resize(queue_size);
+    tail = shadow_tail = queue_size - 1;
+    head = shadow_head = 0;
+    num_failed_enqueues = 0;
+    name = strdup(_name ? _name : "");
   }
 
-  /* ************************************** */
+  /**
+   * Destructor
+   */
+  ~SPSCQueue() {
+    if (name) free(name);
+  }
 
-  ~SPSCQueue() { free(q); if(m) delete m; }
-
-  /* ************************************** */
-
+  /**
+   * Return true if there is at least one item in the queue
+   */
   inline bool isNotEmpty() {
-    u_int32_t next_tail;
-    bool rc;
-    if(m) m->lock(__FILE__, __LINE__); 
-    next_tail = (q->shadow_tail + 1) & QUEUE_ITEMS_MASK;
-    rc = (next_tail != q->head);
-    if(m) m->unlock(__FILE__, __LINE__);
-    return(rc);
+    u_int32_t next_tail = (shadow_tail + 1) & (queue_size - 1);
+    return next_tail != head;
   }
 
-  /* ************************************** */
-
-  inline bool dequeue(void** item) {
-    u_int32_t next_tail;
-    bool rc;
-    
-    if(m) m->lock(__FILE__, __LINE__);
-    
-    next_tail = (q->shadow_tail + 1) & QUEUE_ITEMS_MASK;
-    if(next_tail != q->head) {
-      *item = q->items[next_tail];
-      q->shadow_tail = next_tail;
-
-      if((q->shadow_tail & QUEUE_WATERMARK_MASK) == 0) {
-        // gcc_mb();
-        q->tail = q->shadow_tail;
-      }
-
-      rc = true;
-    } else
-      rc = false;
-
-    if(m) m->unlock(__FILE__, __LINE__);
-    
-    return(rc);   
+  /**
+   * Return true if the queue is full
+   */
+  inline bool isFull() {
+    u_int32_t next_head = (shadow_head + 1) & (queue_size - 1);
+    return tail == next_head;
   }
 
-  /* ************************************** */
+  /**
+   * Pop an item from the tail
+   * Return the item (which is removed from the queue)
+   * Note: isNotEmpty() should be called before. Similar to std lists,
+   * if the container is not empty the function never throws exceptions.
+   * Otherwise, it causes undefined behavior.
+   */
+  inline T dequeue() {
+    u_int32_t next_tail;
 
-  inline bool enqueue(void *item, bool flush = true) {
+    next_tail = (shadow_tail + 1) & (queue_size - 1);
+    if (next_tail == head) throw "Empty queue";
+
+    T item = queue[next_tail];
+    shadow_tail = next_tail;
+
+    if ((shadow_tail & QUEUE_WATERMARK_MASK) == 0) tail = shadow_tail;
+
+    return item;
+  }
+
+  inline bool wait() { return ((c.wait() < 0) ? false : true); }
+
+  /**
+   * Push an item to the head
+   * @param item The item to add to the queue
+   * @param flush Immediately makes the item available to the consumer, a
+   * watermark is used otherwise Return true on success, false if there is no
+   * room
+   */
+  inline bool enqueue(T item, bool flush) {
     u_int32_t next_head;
 
-    next_head = (q->shadow_head + 1) & QUEUE_ITEMS_MASK;
+    next_head = (shadow_head + 1) & (queue_size - 1);
 
-    if(q->tail != next_head) {
-      q->items[q->shadow_head] = item;
+    if (tail != next_head) {
+      queue[shadow_head] = item;
 
-      q->shadow_head = next_head;
-      if(flush || (q->shadow_head & QUEUE_WATERMARK_MASK) == 0) {
-        // gcc_mb();
-        q->head = q->shadow_head;
-      }
+      shadow_head = next_head;
+      c.signal();
 
-      return true;
-    } else
-      return false;
+      if (flush || (shadow_head & QUEUE_WATERMARK_MASK) == 0)
+        head = shadow_head;
+
+      return true; /* success */
+    }
+
+    num_failed_enqueues++;
+    return false; /* no room */
   }
 
+  /**
+   * Return the number of failed enqueue attempts
+   */
+  inline u_int64_t get_num_failed_enqueues() const {
+    return num_failed_enqueues;
+  };
+
+  /**
+   * Writes queue stats in a table of the vm passed as parameter
+   */
+  inline void lua(lua_State *vm) const {
+    if (vm) {
+      lua_newtable(vm);
+      lua_push_uint64_table_entry(vm, "num_failed_enqueues",
+                                  num_failed_enqueues);
+      lua_pushstring(vm, name ? name : "");
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+  };
 };
 
 #endif /* _SPSC_QUEUE_H_ */

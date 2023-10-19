@@ -49,6 +49,7 @@ binary-arch: build install
 	dh_installdeb
 # install the files into debian/ntopng-data.
 # The next statement must be after all dh_install* statements
+	cp -a ./usr ./debian/ntopng-data
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb

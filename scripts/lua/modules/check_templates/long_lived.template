@@ -1,0 +1,110 @@
+{#
+    
+    (C) 2020 - ntop.org
+
+    Defined fields:
+    * hook_name: contains the name for the current rendered hook 
+    * hook_conf: contains the configuration for the current rendered hook
+    * user_script: contains data about the loaded user script
+
+#}
+
+{%
+            
+    local displaying_value
+    local selected_measure
+
+    local min_duration = tonumber(hook_conf.script_conf.min_duration)
+    local measure = {
+        minutes = {min = 1, max = 59, multiplier = 60, key = "minutes"},
+        hours = {min = 1, max = 23, multiplier = 3600, key = "hours"},
+        days = {min = 1, max = 365, multiplier = 86400, key = "seconds"} 
+    }
+
+    if min_duration < 3600 then
+        selected_measure = measure.minutes
+    elseif min_duration >= 3600 and min_duration < 86400 then
+        selected_measure = measure.hours
+    else
+        selected_measure = measure.days
+    end
+
+    displaying_value = min_duration / selected_measure.multiplier
+%}
+
+<input hidden type="number" value="{{ hook_conf.script_conf.min_duration }}" name="min_duration">
+<div class="mb-3 row">
+    <label class="col-sm-2 col-form-label">{{ i18n("enabled") }}</label>
+    <div class="col-2">
+        <div class="custom-control custom-switch">
+            <input id="ds-checkbox" name="enabled" class="custom-control-input" type="checkbox" {{ (hook_conf.enabled and 'checked' or '') }}>
+            <label class="custom-control-label" for="ds-checkbox"></label>
+        </div>
+    </div>
+</div>
+<div class="mb-3 row">
+    <label class="col-sm-2 col-form-label">{{ i18n("scripts_list.templates.flow_duration_threshold") }}</label>
+    <div class="col-2">
+        <div id="time-toggles" class="btn-group btn-group-toggle w-100" data-toggle="buttons">
+            <label class="btn {{ (selected_measure.key == 'minutes' and 'btn-primary active' or 'btn-secondary') }}">
+                <input class="ignore" value="60" type="radio" {{ (selected_measure.key == 'minutes' and 'checked' or '') }} name="ds_time"> {{ i18n("metrics.minutes") }}
+            </label>
+            <label class="btn {{ (selected_measure.key == 'hours' and 'btn-primary active' or 'btn-secondary') }}">
+                <input class="ignore" value="3600" type="radio" {{ (selected_measure.key == 'hours' and 'checked' or '') }} name="ds_time"> {{ i18n("metrics.hours") }}
+            </label>
+            <label class="btn {{ (selected_measure.key == 'days' and 'btn-primary active' or 'btn-secondary') }}">
+                <input class="ignore" value="86400" type="radio" {{ (selected_measure.key == 'days' and 'checked' or '') }} name="ds_time"> {{ i18n("metrics.days") }}
+            </label>
+        </div>
+    </div>
+    <div class="col-2">
+        <input {{ (hook_conf.enabled and '' or 'disabled') }} id="long-lived-time" type="number" class="form-control" value="{{ string.format('%d', displaying_value) }}" max="{{ selected_measure.max }}" min="{{ selected_measure.min }}">
+    </div>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        let multiplier = parseInt("{{ selected_measure.multiplier }}");
+
+        const $minDuration = $(`input[name='min_duration']`);
+        const $timeInput = $(`#long-lived-time`);
+        const $timeToggles = $(`#time-toggles`);
+
+        $timeInput.on('change', function() {
+            const value = parseInt($(this).val());
+            $minDuration.val(multiplier * value);   
+        });
+
+        // clamp values on radio change
+        $timeToggles.find(`input[type='radio']`).on('change', function () {
+            const timeSelected = $(this).val();
+            multiplier = timeSelected;
+            // set min/max bounds to input box
+            if (timeSelected == 60) {
+                $timeInput.attr("max", 59);
+            }
+            else if (timeSelected == 3600) {
+                $timeInput.attr("max", 23);
+            }
+            else {
+                $timeInput.attr("max", 365);
+            }
+        });
+
+        $timeToggles.find(`input[type='radio']`).on('click', function (e) {
+            // remove active class from every button
+            $timeToggles.find('label').removeClass('active').removeClass('btn-primary').addClass('btn-secondary');
+            // remove checked from buttons
+            $timeToggles.find('input').removeAttr('checked');
+            // add active class and btn-primary to the new one
+            $(this).prop('checked', '').parent().addClass('active btn-primary').removeClass('btn-secondary');
+        });
+
+        registerResetCallback('{{ hook_name }}', function(hookName, hook) {
+            const minDuration = hook.script_conf.min_duration;
+            $timeInput.val(minDuration);
+            // TODO: reset the rest...
+        }); 
+
+    });
+</script>

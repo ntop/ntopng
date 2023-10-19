@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -12,14 +12,14 @@ local page_utils = require("page_utils")
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.countries)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.countries)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 page_utils.print_page_title(i18n("countries"))
 
 print [[
-      <div id="table-country"></div>
+	  <div id="table-country"></div>
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())
@@ -107,6 +107,14 @@ print [[
 			     {
 			     title: "]] print(i18n("seen_since")) print[[",
 				 field: "column_since",
+				 sortable: true,
+			     css: {
+				textAlign: 'center'
+			     }
+
+				 }, {
+			     title: "]] print(i18n("score")) print[[",
+				 field: "column_score",
 				 sortable: true,
 			     css: {
 				textAlign: 'center'

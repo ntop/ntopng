@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-21 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -11,14 +11,12 @@ local rest_utils = require "rest_utils"
 
 --
 -- Read all the  L4 protocols
--- Example: curl -u admin:admin http://localhost:3000/lua/rest/v1/get/l4/protocol/consts.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" http://localhost:3000/lua/rest/v1/get/l4/protocol/consts.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 for _, l4_key in pairs(l4_keys) do
@@ -34,9 +32,10 @@ for _, l4_key in pairs(l4_keys) do
    -- 2.3 number 1
    res[#res + 1] = {
      name = l4_key[1], 
+     other = l4_key[2],
      id = l4_key[3],
    }
 end
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)
 

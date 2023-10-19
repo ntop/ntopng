@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -71,8 +71,6 @@ for k,v in pairs(versions) do
 
    ::continue::
 end
-
-totals["aggregated_flows"] = (prefs.is_flow_aggregation_enabled == true)
 
 sendHTTPHeader('application/json')
 print(json.encode(totals, nil))

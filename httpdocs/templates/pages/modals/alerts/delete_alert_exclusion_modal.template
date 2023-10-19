@@ -1,0 +1,27 @@
+<div class="modal fade" role="dialog" id='modal-script'>
+  <div class="modal-dialog modal-lg ">
+    <div class="modal-content">
+      <form id='edit-form' method='post'>
+        <input type="hidden" id="alert_addr" name="alert_addr">
+        <input type="hidden" id="alert_key" name="alert_key">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ i18n("edit_check.exclusion_list") }}: <span id='script-name'></span></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+	  <div class='message alert alert-danger'>
+	    {{ i18n("edit_check.delete_alert_exclusions") }} <b><span id='script-description'></span></b>?
+          </div>
+          <span class='invalid-feedback' id='apply-error'></span>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-apply" title='{{ i18n("delete", {}) }}' type="submit" class="btn btn-danger ml-auto">
+            {{ i18n("delete", {}) }}
+          </button>
+          <div class="alert alert-danger w-100" id="action-error" style="display: none;">
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

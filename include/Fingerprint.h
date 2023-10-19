@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,6 +27,7 @@
 typedef struct {
   std::string app_name; /* NetLink/eBPF-like only */
   u_int32_t num_uses;
+  bool is_malicious;
 } FingerprintStats;
 
 class Fingerprint {
@@ -35,12 +36,12 @@ class Fingerprint {
   std::map<std::string /* fingerprint */, FingerprintStats> fp;
 
   void prune();
-  
+
  public:
   Fingerprint() { ; }
 
-  void update(const char *fp, const char *app_name);
-  void lua(const char *key, lua_State* vm);
+  void update(const char *fp, const char *app_name, bool is_malicious);
+  void lua(const char *key, lua_State *vm);
 };
 
 #endif /* _FINGERPRINT_H_ */

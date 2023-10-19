@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,30 +27,41 @@
 class ElasticSearch : public DB {
  private:
   pthread_t esThreadLoop;
-  u_int num_queued_elems;
-  struct string_list *head, *tail;
-  Mutex listMutex;
+  std::atomic<u_int32_t> num_queued_elems;
+  SPSCQueue<char *> *export_queue;
+
   bool reportDrops;
+  time_t lastReportedDropsTime;
 
   char *es_template_push_url, *es_version_query_url;
   char es_version[2];
-  const char * const get_es_version();
-  const char * const get_es_template();
+  bool es_version_inited;
+
+  const char *get_es_version();
+  const char *get_es_template();
+  void shutdown();
 
  public:
   ElasticSearch(NetworkInterface *_iface);
   ~ElasticSearch();
 
   inline bool atleast_version_6() {
-    const char * const ver = get_es_version();
+    const char *ver = get_es_version();
+
     return ver && strcmp(ver, "6") >= 0;
   };
+
+  inline bool atleast_version_8() {
+    const char *ver = get_es_version();
+
+    return ver && strcmp(ver, "8") >= 0;
+  };
+
   void pushEStemplate();
   void indexESdata();
 
   virtual bool dumpFlow(time_t when, Flow *f, char *json);
-  virtual void startLoop();
+  virtual bool startQueryLoop();
 };
-
 
 #endif /* _ELASTIC_SEARCH_H_ */

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,63 +29,88 @@ class ViewInterface : public NetworkInterface {
   bool is_packet_interface;
   u_int8_t num_viewed_interfaces;
   NetworkInterface *viewed_interfaces[MAX_NUM_VIEW_INTERFACES];
+  SPSCQueue<Flow *> *viewed_interfaces_queues[MAX_NUM_VIEW_INTERFACES];
 
   virtual void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
-			LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
-			PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
-			ProtoStats *_discardedProbingStats) const;
+                        LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
+                        PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
+                        ProtoStats *_discardedProbingStats,
+                        DSCPStats *_dscpStats, SyslogStats *_syslogStats,
+                        RoundTripStats *_downloadStats,
+                        RoundTripStats *_uploadStats) const;
 
   bool addSubinterface(NetworkInterface *iface);
 
  public:
   ViewInterface(const char *_endpoint);
-  virtual void periodicHTStateUpdate(time_t deadline, lua_State* vm, bool skip_user_scripts);
-  bool walker(u_int32_t *begin_slot,
-	      bool walk_all,
-	      WalkerType wtype,
-	      bool (*walker)(GenericHashEntry *h, void *user_data, bool *matched),
-	      void *user_data);
-  void viewed_flows_walker(Flow *f, void *user_data);
-  static void generic_periodic_hash_entry_state_update(GenericHashEntry *node, void *user_data);
-  virtual InterfaceType getIfType() const { return interface_type_VIEW;           };
-  inline const char* get_type()           { return CONST_INTERFACE_TYPE_VIEW;     };
-  virtual bool is_ndpi_enabled()    const { return false;                         };
-  virtual bool isPacketInterface()  const { return is_packet_interface;           };
+  ~ViewInterface();
+
+  bool walker(u_int32_t *begin_slot, bool walk_all, WalkerType wtype,
+              bool (*walker)(GenericHashEntry *h, void *user_data,
+                             bool *matched),
+              void *user_data);
+  void viewed_flows_walker(Flow *f, const struct timeval *tv);
+  /* Enqueues a flow to a queue reserved for viewed interface identified by
+   * viewed_interface_id */
+  bool viewEnqueue(time_t t, Flow *f, u_int8_t viewed_interface_id);
+  /* Dequeues enqueued flows sequentially for each of the viewed interfaces
+     belonging to this view. The total number of elements dequeued is returned.
+   */
+  u_int64_t viewDequeue(u_int budget);
+  virtual bool areTrafficDirectionsSupported() { return (true); };
+  virtual InterfaceType getIfType() const { return interface_type_VIEW; };
+  virtual const char *get_type() const { return CONST_INTERFACE_TYPE_VIEW; };
+  virtual bool is_ndpi_enabled() const { return false; };
+  virtual bool isPacketInterface() const { return is_packet_interface; };
+  virtual bool isSampledTraffic() const;
+  virtual u_int32_t periodicStatsUpdateFrequency() const;
   void flowPollLoop();
   void startPacketPolling();
-  bool set_packet_filter(char *filter)    { return false ;                        };
+  bool set_packet_filter(char *filter) { return false; };
 
-  AlertsManager *getAlertsManager() const { return alertsManager; };
-  AlertsQueue* getAlertsQueue()     const { return alertsQueue;   };
+  AlertsQueue *getAlertsQueue() const { return alertsQueue; };
 
   virtual u_int64_t getNumPackets();
+  virtual u_int64_t getNumDroppedAlerts();
   virtual u_int64_t getNumBytes();
-  virtual u_int     getNumPacketDrops();
+  virtual u_int getNumPacketDrops();
   virtual u_int64_t getNumDiscardedProbingPackets() const;
-  virtual u_int64_t getNumDiscardedProbingBytes()   const;
+  virtual u_int64_t getNumDiscardedProbingBytes() const;
   virtual u_int64_t getNumNewFlows();
-  virtual u_int     getNumFlows();
-  virtual u_int32_t getNumDroppedFlowScriptsCalls();
+  virtual u_int getNumFlows();
   virtual u_int64_t getNumActiveAlertedFlows() const;
-  virtual u_int64_t getNumActiveMisbehavingFlows() const;
+  virtual u_int64_t getNumActiveAlertedFlows(
+      AlertLevelGroup alert_level_group) const;
 
   virtual u_int64_t getCheckPointNumPackets();
+  virtual u_int64_t getCheckPointDroppedAlerts();
   virtual u_int64_t getCheckPointNumBytes();
   virtual u_int32_t getCheckPointNumPacketDrops();
   virtual u_int64_t getCheckPointNumDiscardedProbingPackets() const;
   virtual u_int64_t getCheckPointNumDiscardedProbingBytes() const;
   virtual void checkPointCounters(bool drops_only);
 
-  virtual bool hasSeenVlanTaggedPackets() const;
+  virtual bool hasSeenVLANTaggedPackets() const;
+
+#ifdef NTOPNG_PRO
+  virtual void getFlowDevices(lua_State *vm);
+  virtual void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP);
+#endif
+  virtual void getSFlowDevices(lua_State *vm);
+  virtual void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP);
 
   virtual u_int32_t getFlowsHashSize();
-  virtual Flow* findFlowByKeyAndHashId(u_int32_t key, u_int hash_id, AddressTree *allowed_hosts);
-  virtual Flow* findFlowByTuple(u_int16_t vlan_id,
-  				IpAddress *src_ip,  IpAddress *dst_ip,
-  				u_int16_t src_port, u_int16_t dst_port,
-				u_int8_t l4_proto,
-				AddressTree *allowed_hosts) const;
+  virtual Flow *findFlowByKeyAndHashId(u_int32_t key, u_int hash_id,
+                                       AddressTree *allowed_hosts);
+  virtual Flow *findFlowByTuple(u_int16_t vlan_id,
+                                u_int16_t observation_domain_id,
+                                u_int32_t private_flow_id, Mac *src_mac,
+                                Mac *dst_mac, IpAddress *src_ip,
+                                IpAddress *dst_ip, u_int16_t src_port,
+                                u_int16_t dst_port, u_int8_t l4_proto,
+                                AddressTree *allowed_hosts) const;
+  void dumpFlowLoop();
+  virtual void lua_queues_stats(lua_State *vm);
 };
 
 #endif /* _VIEW_INTERFACE_H_ */
-

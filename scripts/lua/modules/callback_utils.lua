@@ -1,5 +1,5 @@
 --
--- (C) 2017-20 - ntop.org
+-- (C) 2017-22 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -8,6 +8,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local os_utils = require "os_utils"
 
 local callback_utils = {}
+
+local clock_start = os.clock()
 
 -- ########################################################
 
@@ -99,6 +101,12 @@ local function getBatchedIterator(batched_function, field, function_params)
    end
 end
 
+-- A batched iterator over the active flows
+-- @param flows_filter A table containing flow filters matching those specified in Paginator.cpp
+function callback_utils.getFlowsIterator(flows_filter)
+   return getBatchedIterator(interface.getBatchedFlowsInfo, "flows",  flows_filter)
+end
+
 -- A batched iterator over the local hosts with timeseries
 function callback_utils.getLocalHostsTsIterator(...)
    return getBatchedIterator(interface.getBatchedLocalHostsTs, "hosts", { ... })
@@ -126,12 +134,38 @@ end
 
 -- ########################################################
 
--- Iterates each active host on the ifname interface for RRD creation.
--- Each host is passed to the callback with some more information.
-function callback_utils.foreachLocalRRDHost(ifname, with_ts, with_one_way_traffic_hosts, callback)
+-- Iterates each active flow on the ifname interface.
+-- Each flow is passed to the callback with some more information.
+function callback_utils.foreachFlow(ifname, deadline, callback, ...)
    interface.select(ifname)
 
+   local iterator = callback_utils.getFlowsIterator({...})
+
+   for flow_key, flow in iterator do
+
+      if(ntop.isShutdown()) then return true end
+
+      if ((deadline ~= nil) and (os.time() >= deadline)) then
+	 -- Out of time
+	 return false
+      end
+
+      if callback(flow_key, flow) == false then
+	 return false
+      end
+   end
+
+   return true
+end
+
+-- ########################################################
+
+-- Iterates each active host on the ifname interface for timeseries creation.
+-- Each host is passed to the callback with some more information.
+function callback_utils.foreachLocalTimeseriesHost(ifname, with_ts, with_one_way_traffic_hosts, callback)
    local iterator
+   
+   interface.select(ifname)
 
    if with_ts then
       iterator = callback_utils.getLocalHostsTsIterator(nil --[[ show_details --]], nil --[[ maxHits --]], nil --[[ anomalousOnly --]], with_one_way_traffic_hosts)
@@ -240,5 +274,9 @@ function callback_utils.uploadTSdata()
    end
 end
 -- ########################################################
+
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return callback_utils

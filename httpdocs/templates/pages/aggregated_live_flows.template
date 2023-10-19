@@ -1,0 +1,76 @@
+{#
+  (C) 2023 - ntop.org
+  This template is used by the `Live Flows` page inside the `Host Details`.    
+#}
+
+
+<div id="aggregated-live-flows">
+  <page-aggregated-live-flows
+  :is_ntop_enterprise_m="is_ntop_enterprise_m"
+  :ifid="ifid"
+  :vlans="vlans"
+  :aggregation_criteria="aggregation_criteria"
+  :draw="draw"
+  :sort="sort"
+  :order="order"
+  :start="start"
+  :length="length"
+  :host="host">
+  </page-aggregated-live-flows>
+</div>
+  
+<script type="text/javascript">  
+  const ifid = {* ifid *}
+  const vlans = {* vlans *}
+  const aggregation_criteria = "{* aggregation_criteria *}"
+  const draw = {* draw *}
+  const sort = "{* sort *}"
+  const order = "{* order *}"
+  const start = {* start *}
+  const length = {* length *}
+  const host = "{* host *}"
+
+
+  
+  function start_vue() {
+    const isNtopEnterpriseM = '{* ntop.isEnterpriseM() *}' == 'true';
+
+    let vue_options = {
+      components: {	  
+        'page-aggregated-live-flows': ntopVue.PageAggregatedLiveFlows,
+      },
+      /**
+      * First method called when the component is created.
+      */
+      created() { },
+      mounted() {
+      },
+      data() {
+        return {
+          is_ntop_enterprise_m: isNtopEnterpriseM,
+          vlans: vlans,
+          ifid: ifid,
+          aggregation_criteria: aggregation_criteria,
+          draw: draw,
+          sort: sort,
+          order: order,
+          start: start,
+          length: length,
+          host: host,
+        };
+      },
+      methods: { },
+    };
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount('#aggregated-live-flows');
+    return vue_app;
+  }
+
+  /* ******************************************************* */
+
+  $(function () {
+    // initialize script table
+    start_vue();
+  });
+</script>
+

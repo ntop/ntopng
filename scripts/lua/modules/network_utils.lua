@@ -1,23 +1,45 @@
+--
+-- (C) 2013-23 - ntop.org
+--
+
+local clock_start = os.clock()
+
 require "lua_utils"
-local graph_utils = require "graph_utils"
+local format_utils = require "format_utils"
+
+local network_utils = {}
+
+network_utils.UNKNOWN_NETWORK = 65535 -- uint16 (-1)
 
 -- Get from redis the throughput type bps or pps
-local throughput_type = getThroughputType()
+local function getThroughputType()
+  local throughput_type = ntop.getCache("ntopng.prefs.thpt_content")
+  if throughput_type == "" then throughput_type = "bps" end
+  
+  return throughput_type
+end
 
-local now = os.time()
+-- network_utils.throughput_type = getThroughputType()
 
-function network2record(ifId, network)
+function network_utils.network2record(ifId, network)
    local record = {}
+   local throughput_type = getThroughputType()
+   
    record["key"] = tostring(network["network_id"])
 
    local network_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?network='..network["network_id"].."' title='"..network["network_key"].."'>"..getFullLocalNetworkName(network["network_key"])..'</A>'
-   record["column_id"] = network_link
+   
+   network["host_score_ratio"] = ternary(network["num_hosts"] and network["num_hosts"]>0, math.floor((network["score"] or 0) / (network["num_hosts"] or 0)) , '')
 
-   record["column_hosts"] = (network["num_hosts"] or 0)..""
+   record["column_id"] = network_link
+   record["column_score"] = format_high_num_value_for_tables(network, "score") 
+   record["column_hosts"] = format_high_num_value_for_tables(network, "num_hosts")
+   record["column_alerted_flows"] = format_high_num_value_for_tables(network["alerted_flows"], "total")
+   record["column_host_score_ratio"] = format_high_num_value_for_tables(network, "host_score_ratio")
 
    local sent2rcvd = round((network["bytes.sent"] * 100) / (network["bytes.sent"] + network["bytes.rcvd"]), 0)
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
-      .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-info' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
+      .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
 
    if(throughput_type == "pps") then
       record["column_thpt"] = pktsToSize(network["throughput_pps"])
@@ -32,7 +54,12 @@ function network2record(ifId, network)
    else
       record["column_chart"] = '<A HREF="'..ntop.getHttpPrefix()..'/lua/network_details.lua?network='..network["network_id"]..'&page=historical"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
    end
-
+   
    return record
 end
 
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
+
+return network_utils

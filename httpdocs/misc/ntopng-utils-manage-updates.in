@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # bin paths
-LSB_RELEASE="/usr/bin/lsb_release -i"
+LSB_RELEASE="/usr/bin/lsb_release"
 APT_GET="/usr/bin/apt-get -qq"
 YUM="/usr/bin/yum"
 NTOPNG_CONFIG_TOOL="/usr/bin/ntopng-utils-manage-config"
@@ -12,7 +12,7 @@ PRODUCT="ntopng"
 REDIS_CHECK_FOR_UPDATES_KEY="ntopng.updates.check_for_updates"
 REDIS_NEW_VERSION_AVAILABLE_KEY="ntopng.updates.new_version"
 REDIS_RUN_UPGRADE_KEY="ntopng.updates.run_upgrade"
-REDIS_UPGRADE_FAILURE_KEY="ntopng.updates.upgrade_failure"
+REDIS_UPDATE_FAILURE_KEY="ntopng.updates.update_failure"
 REDIS_AUTO_UPDATES_KEY="ntopng.prefs.is_autoupdates_enabled"
 REDIS_IN_PROGRESS_KEY="ntopng.updates.in_progress"
 REDIS_PRODUCT_NAME_KEY="ntopng.product_name"
@@ -53,9 +53,19 @@ fi
 
 # Detect OS
 OS="DEBIAN"
-REDHAT=$(${LSB_RELEASE} | grep -i "CentOS\|RedHat")
-if [ ! -z "${REDHAT}" ]; then
-	OS="REDHAT"
+if [ -x ${LSB_RELEASE} ]; then
+	REDHAT=$(${LSB_RELEASE} -i | grep -i "CentOS\|RedHat\|Oracle\|Rocky\|AlmaLinux")
+	if [ ! -z "${REDHAT}" ]; then
+		OS="REDHAT"
+	fi
+else
+	if [ -f /etc/rocky-release ]; then
+		OS="REDHAT"
+	elif [ -f /etc/oracle-release ]; then
+		OS="REDHAT"
+	elif [ -f /etc/redhat-release ]; then
+		OS="REDHAT"
+	fi
 fi
 
 if [ "${OS}" == "DEBIAN" ]; then
@@ -71,7 +81,13 @@ function logsetup {
 		LOGFILE="${LOGFILE_BASE}-$1.log"
 	fi
 	TMP=$(tail -n $RETAIN_NUM_LINES $LOGFILE 2>/dev/null) && echo "${TMP}" > $LOGFILE
-	exec > >(tee -a $LOGFILE)
+
+	# Log to file and stdout (trigger crontab events, e.g. mail)
+	#exec > >(tee -a $LOGFILE)
+
+	# Log to file only
+	exec > $LOGFILE
+
 	exec 2>&1
 }
 
@@ -88,6 +104,7 @@ function print_usage() {
 	echo "`basename $0` -a check-updates"
 	echo "`basename $0` -a check-updates-on-demand"
 	echo "`basename $0` -a handle-upgrade-requests"
+	echo "`basename $0` -a handle-on-demand-requests"
 	echo ""
 	echo "[-a check-updates]"
 	echo "`basename $0` -a check-updates"
@@ -101,11 +118,11 @@ function print_usage() {
 	echo "`basename $0` -a handle-upgrade-requests"
 	echo "Check for update requests and update ${PRODUCT}."
 	echo ""
+	echo "[-a handle-on-demand-requests]"
+	echo "`basename $0` -a handle-on-demand-requests"
+	echo "Check for requests from ${PRODUCT} (same as check-updates-on-demand + handle-upgrade-requests)."
+	echo ""
 }
-
-# Uncomment to enable logging
-#logsetup $ACTION
-#log Requested $ACTION
 
 POSITIONAL=()
 while [[ $# -gt 0 ]]
@@ -130,35 +147,67 @@ esac
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-if [[ ( $ACTION != "check-updates" && $ACTION != "check-updates-on-demand" && $ACTION != "handle-upgrade-requests" ) ]]; then
+if [[ ( $ACTION != "check-updates" && $ACTION != "check-updates-on-demand" && $ACTION != "handle-upgrade-requests" && $ACTION != "handle-on-demand-requests" ) ]]; then
 	print_usage
 	exit 1
 fi
 
+# Uncomment to enable logging (moved to the single functions to reduce verbosity)
+#logsetup $ACTION
+#log Requested $ACTION
+
+function set_failure() {
+	STATUS=$1
+	# Report failure status
+	${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "${STATUS}" >/dev/null 2>&1
+	# Cleanup requests
+	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} >/dev/null 2>&1 
+	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_RUN_UPGRADE_KEY} >/dev/null 2>&1
+}
+
 function stall_check() {
 	INSTANCES=$(pgrep -fc "$0 -a ${ACTION}")
 	if [ $INSTANCES -gt 2 ]; then
-		#echo "Another instance is running with the same action"
+		echo "Another instance is running with the same action"
 		exit 0
 	fi
 }
 
 function maintenance_check() {
-	APP_BIN="/usr/local/bin/${PRODUCT}"
+
+	APP_BIN="/usr/bin/${PRODUCT}"
 
 	NOW=`date +'%s'`
 	EXPIRY_EPOCH=`${APP_BIN} --check-maintenance | cut -d' ' -f 1`
 
 	if [ "${EXPIRY_EPOCH}" = "Invalid" ]; then
-		# Missing or invalid license.
-		exit 0
-	elif echo "${EXPIRY_EPOCH}${NOW}" | grep -q "^[0-9]\+$"; then
-		if [ "${EXPIRY_EPOCH}" -lt "${NOW}" ]; then
+		# Missing or expired or invalid license
+
+		# Allow updates on missing license file as this does not 
+		# invalidate the license and handle community mode
+		if [ `${APP_BIN} --check-license | grep Empty | wc -l ` -eq 0 ]; then
+
+			# Expired or invalid license
+			set_failure "no-license"
+			exit 0
+		fi
+	elif echo "${EXPIRY_EPOCH}" | grep -q "^[0-9]\+$"; then
+		if [ "${EXPIRY_EPOCH}" -gt "0" ] && [ "${EXPIRY_EPOCH}" -lt "${NOW}" ]; then
 			# Expired maintenance
+			set_failure "expired-maintenance"
 			exit 0
 		fi
 	else
 		# Unable to read maintenance
+		set_failure "no-license"
+		exit 0
+	fi
+}
+
+function service_enabled_check() {
+	SERVICE_ENABLED=$(/bin/systemctl is-enabled ${PRODUCT} 2>/dev/null)
+	if [ ! "${SERVICE_ENABLED}" == "enabled" ]; then
+		set_failure "service-not-enabled"
 		exit 0
 	fi
 }
@@ -174,20 +223,29 @@ function run_upgrade() {
 	fi
 
 	# Set "in progress" flag
-	${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_IN_PROGRESS_KEY} "1" EX 3600 2>&1 >/dev/null 
+	${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_IN_PROGRESS_KEY} "1" EX 3600 >/dev/null 2>&1 
+
+	logsetup $ACTION
+	log Requested $ACTION
 
 	if [ "${OS}" == "DEBIAN" ]; then
 		# Debian or Ubuntu
 
 		# Update repo index
-		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/${APT_SOURCE}" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+		#${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/${APT_SOURCE}" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
+		# Note: we are updating all the repos as ntopng may depend on old
+		# packages no longer available in other repos, leading to an upgrade failure.
+		${APT_GET} update
 
 		# Install
-		${APT_GET} upgrade --assume-yes --fix-broken --allow-unauthenticated ${PRODUCT}
+		#${APT_GET} upgrade --assume-yes --fix-broken --allow-unauthenticated --with-new-pkgs ${PRODUCT}
+		# Note: using install instead of upgrade to avoid blocking the installation due to 'kept back' packages
+		${APT_GET} install --assume-yes --fix-broken --allow-unauthenticated ${PRODUCT}
 		RESULT=$?
 
 		# Check if installation is successful (we do not trust $?)
-		NTOPNG_VERSION=$(${APT_GET} --just-print upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
+		#NTOPNG_VERSION=$(${APT_GET} --just-print upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
+		NTOPNG_VERSION=$(${APT_GET} --just-print install ${PRODUCT} 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
 		if [ -z "${NTOPNG_VERSION}" ]; then
 			RESULT=0
 		fi
@@ -204,24 +262,32 @@ function run_upgrade() {
 	if [ $RESULT -eq 0 ]; then
 		[ $QUIET = false ] && echo "${PRODUCT} updated successfully"
 		# Cleanup new version available key
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} 2>&1 >/dev/null 
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPGRADE_FAILURE_KEY} 2>&1 >/dev/null 
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} >/dev/null 2>&1 
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} >/dev/null 2>&1
+
+		# Restart the service if not running (e.g. old prerm was disabling it)
+		/bin/systemctl -q is-active ${PRODUCT} || /bin/systemctl restart ${PRODUCT}
 	else
 		[ $QUIET = false ] && echo "Unable to update"
-		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPGRADE_FAILURE_KEY} "upgrade-failure" 2>&1 >/dev/null 
+		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "upgrade-failure" >/dev/null 2>&1
 	fi
 
 	# Cleanup "in progress" flag
-	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_IN_PROGRESS_KEY} 2>&1 >/dev/null
+	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_IN_PROGRESS_KEY} >/dev/null 2>&1
 
 	# Cleanup upgrade request key if any
-	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_RUN_UPGRADE_KEY} 2>&1 >/dev/null
+	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_RUN_UPGRADE_KEY} >/dev/null 2>&1
 }
 
 # Check for new ntopng updates available
 function check_updates() {
+	CRON_UPDATES=$1
 	NTOPNG_VERSION=""
 	RESULT=1
+
+	logsetup $ACTION
+	log Requested $ACTION
+
 	if [ "${OS}" == "DEBIAN" ]; then
 		# Debian or Ubuntu
 
@@ -229,20 +295,24 @@ function check_updates() {
 		${APT_GET} update -o Dir::Etc::sourcelist="sources.list.d/${APT_SOURCE}" -o Dir::Etc::sourceparts="-" -o APT::Get::List-Cleanup="0"
 
 		# Check for broken packages
-		${APT_GET} --just-print upgrade 2>&1 >/dev/null
+		#${APT_GET} --just-print upgrade >/dev/null 2>&1
+		${APT_GET} --just-print install ${PRODUCT} >/dev/null 2>&1
 		if [ ! $? -eq 0 ]; then
 			# Something went wrong, trying to fix it
 			${APT_GET} --assume-yes --fix-broken install
 
-			${APT_GET} --just-print upgrade 2>&1 >/dev/null
+			#${APT_GET} --just-print upgrade >/dev/null 2>&1
+			${APT_GET} --just-print install ${PRODUCT} >/dev/null 2>&1
 		fi
 
 		if [ ! $? -eq 0 ]; then
 			# Something went wrong, unable to fix it
-			${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPGRADE_FAILURE_KEY} "upgrade-failure" 2>&1 >/dev/null 
+			${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "update-failure" >/dev/null 2>&1 
 		else
 			# Check update and get version
-			NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
+			#NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes --with-new-pkgs upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
+			# Note: using install instead of upgrade to handle 'kept back' packages
+			NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes install ${PRODUCT} 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
 			RESULT=0
 		fi
 	else
@@ -256,17 +326,23 @@ function check_updates() {
 
 	# If there is an update, set new version on redis, otherwise delete the current version (if any)
 	if [ ! -z "${NTOPNG_VERSION}" ]; then
-		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_NEW_VERSION_AVAILABLE_KEY} ${NTOPNG_VERSION} EX 86400 2>&1 >/dev/null 
+		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_NEW_VERSION_AVAILABLE_KEY} ${NTOPNG_VERSION} EX 86400 >/dev/null 2>&1 
 
-		# Check if automatic updates are enabled
-		AUTO_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_AUTO_UPDATES_KEY} 2>/dev/null | grep 1)
-		if [ "${AUTO_UPDATES}" == "1" ]; then
-			run_upgrade
+		# Reset failure reason if any
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} >/dev/null 2>&1
+
+		# Check if this is run by cron (not a manual check)
+		if [ "${CRON_UPDATES}" = "1" ]; then
+			# Check if automatic updates are enabled by the user
+			AUTO_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_AUTO_UPDATES_KEY} 2>/dev/null | grep 1)
+			if [ "${AUTO_UPDATES}" == "1" ]; then
+				run_upgrade
+			fi
 		fi
 	else
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} 2>&1 >/dev/null 
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} >/dev/null 2>&1 
 		if [ $RESULT -eq 0 ]; then
-			${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPGRADE_FAILURE_KEY} 2>&1 >/dev/null 
+			${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} >/dev/null 2>&1 
 		fi
 	fi
 }
@@ -276,8 +352,8 @@ function check_updates_on_demand() {
 	CHECK_FOR_UPDATES=$(${REDIS_CLI} ${REDIS_CLI_OPT} GET ${REDIS_CHECK_FOR_UPDATES_KEY} 2>/dev/null | grep 1)
 	if [ "${CHECK_FOR_UPDATES}" == "1" ]; then
 		stall_check
-		check_updates
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} 2>&1 >/dev/null 
+		check_updates 0
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} >/dev/null 2>&1 
 	fi
 }
 
@@ -294,12 +370,6 @@ function handle_upgrade_requests() {
 # Check if the product is under maintenance
 maintenance_check
 
-# Run this cron script when the ntopng service is enabled only
-SERVICE_ENABLED=$(/bin/systemctl is-enabled ${PRODUCT} 2>/dev/null)
-if [ ! "${SERVICE_ENABLED}" == "enabled" ]; then
-	exit 0
-fi
-
 # Check OEM mode
 OEM_MODE=$(${REDIS_CLI} ${REDIS_CLI_OPT} EXISTS ${REDIS_PRODUCT_NAME_KEY} 2>/dev/null | grep 1)
 if [ "${OEM_MODE}" == "1" ]; then
@@ -311,7 +381,10 @@ fi
 
 if [ $ACTION == "check-updates" ]; then
 
-	check_updates
+	# Run automatic update check when the ntopng service is enabled only
+	service_enabled_check
+
+	check_updates 1
 
 elif [ $ACTION == "check-updates-on-demand" ]; then
 
@@ -319,6 +392,12 @@ elif [ $ACTION == "check-updates-on-demand" ]; then
 
 elif [ $ACTION == "handle-upgrade-requests" ]; then
 
+	handle_upgrade_requests
+
+elif [ $ACTION == "handle-on-demand-requests" ]; then
+	# Same as check-updates-on-demand + handle-upgrade-requests
+
+	check_updates_on_demand
 	handle_upgrade_requests
 
 else

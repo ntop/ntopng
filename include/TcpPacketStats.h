@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,22 +30,32 @@ class TcpPacketStats {
 
  public:
   TcpPacketStats();
-  
-  inline void incRetr(u_int32_t num)      { pktRetr += num;      }
-  inline void incOOO(u_int32_t num)       { pktOOO += num;       }
-  inline void incLost(u_int32_t num)      { pktLost += num;      }
+
+  /* TCP Retransmissions */
+  inline void incRetr(u_int32_t num) { pktRetr += num; }
+
+  /* Out-of-Order */
+  inline void incOOO(u_int32_t num) { pktOOO += num; }
+
+  /* TCP Segments Lost */
+  inline void incLost(u_int32_t num) { pktLost += num; }
+
+  /* TCP Keep-Alive */
   inline void incKeepAlive(u_int32_t num) { pktKeepAlive += num; }
 
-  char* serialize();
-  void deserialize(json_object *o);
   json_object* getJSONObject();
-  inline bool seqIssues() const { return(pktRetr || pktOOO || pktLost || pktKeepAlive); }
-  void lua(lua_State* vm, const char *label);
-
-  inline void sum(TcpPacketStats *s) const {
-    s->pktRetr += pktRetr, s->pktOOO += pktOOO,
-      s->pktLost += pktLost, s->pktKeepAlive += pktKeepAlive;
+  inline bool seqIssues() const {
+    return (pktRetr || pktOOO || pktLost || pktKeepAlive);
   }
+  void lua(lua_State* vm, const char* label);
+
+  char* serialize();
+  inline void sum(TcpPacketStats* s) const {
+    s->pktRetr += pktRetr, s->pktOOO += pktOOO, s->pktLost += pktLost,
+        s->pktKeepAlive += pktKeepAlive;
+  }
+
+  inline u_int64_t get_retr() const { return pktRetr; };
 };
 
 #endif /* _TCP_PACKET_STATS_H_ */

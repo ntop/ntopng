@@ -1,16 +1,17 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
 local template = require "template_utils"
 local page_utils = require("page_utils")
-local host_pools_utils = require "host_pools_utils"
+local host_pools = require "host_pools"
 local template = require "template_utils"
 local presets_utils = require "presets_utils"
 local discover = require "discover_utils"
@@ -19,6 +20,9 @@ local discover = require "discover_utils"
 if not isAdministrator() then
    return
 end
+
+-- Instantiate host pools
+local host_pools_instance = host_pools:create()
 
 local page = _GET["page"] or ""
 local policy_filter = _GET["policy_filter"] or ""
@@ -33,9 +37,9 @@ presets_utils.init()
 
 local base_url = ""
 if is_nedge then
-   base_url = "/lua/pro/nedge/admin/nf_edit_user.lua"
+   base_url = ntop.getHttpPrefix().."/lua/pro/nedge/admin/nf_edit_user.lua"
 else
-   base_url = "/lua/admin/edit_device_protocols.lua"
+   base_url = ntop.getHttpPrefix().."/lua/admin/edit_device_protocols.lua"
 end
 
 -- ###################################################################
@@ -108,7 +112,7 @@ local function printDeviceProtocolsPage()
    local table_id = "device-protocols-table"
 
    if is_nedge then
-      local pool_name = host_pools_utils.DEFAULT_POOL_NAME
+      local pool_name = host_pools_instance.DEFAULT_POOL_NAME
       page_utils.print_page_title(i18n("nedge.user_device_protocols", {user=pool_name}))
    else
       page_utils.print_page_title(i18n("device_protocols.filter_device_protocols", {filter=filter_msg}))
@@ -119,7 +123,7 @@ local function printDeviceProtocolsPage()
        <td style="white-space:nowrap; padding-right:1em;">]]
 
    -- Device type selector
-   print(i18n("details.device_type")) print(': <select id="device_type_selector" class="form-control device-type-selector" style="display:inline; width: 200px" onchange="document.location.href=\'?page=device_protocols&l7proto=') print(proto_filter) print('&device_type=\' + $(this).val()">')
+   print(i18n("details.device_type")) print(': <select id="device_type_selector" class="form-select device-type-selector" style="display:inline; width: 200px" onchange="document.location.href=\'?page=device_protocols&l7proto=') print(proto_filter) print('&device_type=\' + $(this).val()">')
    discover.printDeviceTypeSelectorOptions(device_type, false)
    print[[</select></td><td style="width:100%"></td>]]
 
@@ -188,12 +192,11 @@ local function printDeviceProtocolsPage()
       if is_nedge and (ntop.getPref("ntopng.prefs.device_protocols_policing") ~= "1") then
         print([[
   <div class="alert alert-warning alert-dismissible" style="margin-top:2em; margin-bottom:0em;">
-    <button type="button" class="close" data-dismiss="alert" aria-label="]]..i18n("close")..[[">
-      <span aria-hidden="true">&times;</span>
-    </button><b>]]..i18n("warning")..[[</b>: ]].. i18n("nedge.device_protocols_blocked_warning", {
+    <b>]]..i18n("warning")..[[</b>: ]].. i18n("nedge.device_protocols_blocked_warning", {
       device_protocols_policies = '<a href="'.. ntop.getHttpPrefix() ..
          '/lua/pro/nedge/admin/nf_edit_user.lua?page=settings">'.. i18n("nedge.enable_device_protocols_policies") .. '</a>',
     }) ..[[
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div><br>]])
    end
 
@@ -233,7 +236,7 @@ local function printDeviceProtocolsPage()
       params.device_type = $('#device_type_selector').val();
       params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
 
-      var form = paramsToForm('<form method="post"></form>', params);
+      var form = NtopUtils.paramsToForm('<form method="post"></form>', params);
       form.appendTo('body').submit();
    }
 
@@ -256,7 +259,7 @@ local function printDeviceProtocolsPage()
       });
 
       aysResetForm("#]] print(form_id) print[[");
-      paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+      NtopUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
       return false;
     });
 
@@ -299,7 +302,7 @@ local function printDeviceProtocolsPage()
       buttons: []]
 
    -- 'Filter Policies' button
-   print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-toggle="dropdown">'..
+   print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">'..
          i18n("nedge.filter_policies") .. ternary(not isEmptyString(policy_filter), '<span class="fas fa-filter"></span>', '') ..
          '<span class="caret"></span></div> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
 

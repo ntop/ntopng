@@ -3,9 +3,9 @@ Interfaces Disaggregation
 
 ntopng can split and visualize the traffic into virtual sub-interfaces based on a specified criterion.
 This comes handy, for example, when a single nProbe instance is capturing flows from multiple
-NetFlow/sFLow exporters. By default, ntopng would aggregate all the exporters traffic together
+NetFlow/sFLow Exporters. By default, ntopng would aggregate all the Exporters traffic together
 into one `tcp://...` interface, whereas by enabling the disaggregation by "Probe IP" ntopng
-will also create as many virtual interfaces as the exporters, for example
+will also create as many virtual interfaces as the Exporters, for example
 `tcp://...192.168.0.1` and `tcp://...192.168.2.20`.
 
 Dynamic Disaggregation
@@ -39,13 +39,16 @@ Custom Disaggregation
 In addition to the dynamic disaggregation, it is also possible to use custom BPF-like filters to 
 disaggregate incoming traffic and divert it to logical sub-interfaces. This can be achieved by
 disabling Dynamic Traffic Disaggregation (setting it to 'None') and creating new rules in the 
-Custom Traffic Disaggregation tab.
+Custom Traffic Disaggregation tab. Alternatively you can use both disaggregation methods at the
+same time, by selecting a Dynamic disaggregation criteria and configuring custom rules at the 
+same time. Custom rules have higher priority: traffic matching custom rules will not be
+processed by the dynamic disaggregation.
 
 .. figure:: ./../img/custom_interface_disaggregation.png
   :align: center
   :alt: Custom Interfaces Disaggregation
 
-  Custom DIsaggregation Settings
+  Custom Disaggregation Settings
 
 An extended nBPF format is supported when defining sub-interfaces, in fact in addition to the 
 standard BPF primitives, NetFlow fields can also be used, including INPUT_SNMP, OUTPUT_SNMP, 

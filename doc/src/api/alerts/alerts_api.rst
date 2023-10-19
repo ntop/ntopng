@@ -21,7 +21,7 @@ Metadata
 `Metadata mandatory params`:
   - *type*: defines the type of the alert, for example "threshold_cross", "new_device"
   - *entity*: defines the type of the entity which this alert is inherent to, e.g. "host"
-    indentifies the alerts for the hosts, "influx_db" the alerts for InfluxDB
+    identifies the alerts for the hosts, "influx_db" the alerts for InfluxDB
   - *severity*: defines the alert severity, "info", "warning" or "error"
 
 `Metadata optional params`:
@@ -34,7 +34,7 @@ Metadata
     type="threshold_cross" and subtype="min_bytes"
   - *formatter*: a function that will be used to format the alert message.
     The function will receive two parameters (msg, alert_record). msg contains
-    the messagge of the alert (usually a parsed json), whereas alert_record
+    the message of the alert (usually a parsed JSON), whereas alert_record
     contains the fields of the alerts as stored into the database. (experimental)
 
 .. doxygenfile:: alerts_api.lua.cpp

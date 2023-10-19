@@ -2,7 +2,11 @@
 
 set -e
 
-if [ -f /.dockerenv ]; then exit 0; fi
+# Check if systemd is supported (not a container)
+CMDLINE=$(tr -d '\0' < /proc/1/cmdline)
+if [ ! -z "${CMDLINE##*system*}" ] && [ ! -z "${CMDLINE##*init*}" ]; then
+  exit 0
+fi
 
 . /usr/share/debconf/confmodule
 
@@ -17,10 +21,10 @@ check_upgrade_declined()
 	fi
 }
 
-promt_license_expired()
+prompt_license_expired()
 {
     local NOW=`date +'%s'`
-    local EXPIRY_EPOCH=`/usr/local/bin/@APP@ --check-maintenance | cut -d' ' -f 1`
+    local EXPIRY_EPOCH=`/usr/bin/@APP@ --check-maintenance | cut -d' ' -f 1`
 
     # always re-ask the question
     db_reset ntopng/license_expired_continue_installation || true
@@ -29,7 +33,7 @@ promt_license_expired()
 	# Permanent licenses are always valid even when the maintenance is expired.
 	:
     elif echo "${EXPIRY_EPOCH}${NOW}" | grep -q "^[0-9]\+$"; then
-	if [ "${EXPIRY_EPOCH}" -lt "${NOW}" ]; then
+	if [ "${EXPIRY_EPOCH}" -gt "0" ] && [ "${EXPIRY_EPOCH}" -lt "${NOW}" ]; then
 	    db_input high ntopng/license_expired_continue_installation || true
 	    db_go || true
 	    check_upgrade_declined
@@ -46,21 +50,26 @@ case "$1" in
 	;;
 
 	*)
-	if [ "$1" = "upgrade" ]; then promt_license_expired; fi
+	if [ "$1" = "upgrade" ]; then prompt_license_expired; fi
 	echo "Stopping @APP@ services..."
 	if hash systemctl 2>/dev/null; then
 	    if hash deb-systemd-invoke 2>/dev/null; then
 		deb-systemd-invoke stop ntopng
-		deb-systemd-invoke disable ntopng
 		deb-systemd-invoke stop 'ntopng@*'
-		#disable doesn't want the star after the @, it takes it automatically
-		deb-systemd-invoke disable 'ntopng@'
+                if [ ! "$1" = "upgrade" ] ; then
+                    # Disable unless this is an upgrade
+		    deb-systemd-invoke disable ntopng
+		    #disable doesn't want the star after the @, it takes it automatically
+		    deb-systemd-invoke disable 'ntopng@'
+                fi
 	    else
 		systemctl stop ntopng
-		systemctl disable ntopng
 		systemctl stop 'ntopng@*' --all
-		#disable doesn't want the star after the @, it takes it automatically
-		systemctl disable 'ntopng@' --all
+                if [ ! "$1" = "upgrade" ] ; then
+		    systemctl disable ntopng
+		    #disable doesn't want the star after the @, it takes it automatically
+		    systemctl disable 'ntopng@' --all
+                fi
 	    fi
 	    systemctl daemon-reload
 	    systemctl reset-failed

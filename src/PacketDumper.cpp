@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2015-20 - ntop.org
+ * (C) 2015-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,7 +25,7 @@
 
 PacketDumper::PacketDumper(NetworkInterface *i, const char *path) {
   init(i);
-  out_path = strdup(path); 
+  out_path = strdup(path);
 }
 
 /* ********************************************* */
@@ -48,9 +48,9 @@ void PacketDumper::init(NetworkInterface *i) {
   num_bytes_cur_file = 0;
   out_path = NULL;
 
-  if(strcmp(name, "lo") == 0)
+  if (strcmp(name, "lo") == 0)
     iface_type = DLT_NULL;
-  else if(!i->isPacketInterface())
+  else if (!i->isPacketInterface())
     iface_type = DLT_EN10MB;
   else
     iface_type = i->get_datalink();
@@ -59,7 +59,7 @@ void PacketDumper::init(NetworkInterface *i) {
 /* ********************************************* */
 
 void PacketDumper::closeDump() {
-  if(dumper) {
+  if (dumper) {
     pcap_dump_close(dumper);
     dumper = NULL;
   }
@@ -67,9 +67,7 @@ void PacketDumper::closeDump() {
 
 /* ********************************************* */
 
-void PacketDumper::idle() {
-  checkClose();
-}
+void PacketDumper::idle() { checkClose(); }
 
 /* ********************************************* */
 
@@ -87,40 +85,42 @@ bool PacketDumper::checkClose() {
 bool PacketDumper::openDump() {
   char pcap_path[MAX_PATH];
 
-  if (dumper != NULL)
-    return true;
+  if (dumper != NULL) return true;
 
   max_bytes_per_file = ntop->getPrefs()->get_max_extracted_pcap_bytes();
 
   Utils::mkdir_tree(out_path);
-  snprintf(pcap_path, sizeof(pcap_path), "%s/%u.pcap", out_path, file_id+1);
-  
-  dumper = pcap_dump_open(pcap_open_dead(iface_type, 16384 /* MTU */), pcap_path);
+  snprintf(pcap_path, sizeof(pcap_path), "%s/%u.pcap", out_path, file_id + 1);
+
+  dumper =
+      pcap_dump_open(pcap_open_dead(iface_type, 16384 /* MTU */), pcap_path);
 
   if (dumper == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create pcap file %s", pcap_path);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create pcap file %s",
+                                 pcap_path);
     return false;
-  } 
+  }
 
   file_id++;
   num_bytes_cur_file = 0;
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Created pcap dump %s [max bytes=%u]",
-    pcap_path, max_bytes_per_file);
+  ntop->getTrace()->traceEvent(TRACE_INFO,
+                               "Created pcap dump %s [max bytes=%u]", pcap_path,
+                               max_bytes_per_file);
 
   return true;
 }
 
 /* ********************************************* */
 
-void PacketDumper::dumpPacket(const struct pcap_pkthdr *h, const u_char *packet) {
+void PacketDumper::dumpPacket(const struct pcap_pkthdr *h,
+                              const u_char *packet) {
   if (dumper == NULL) {
     openDump();
-    if (dumper == NULL)
-      return;
+    if (dumper == NULL) return;
   }
 
-  pcap_dump((u_char*)dumper, h, packet);
+  pcap_dump((u_char *)dumper, h, packet);
 
   num_dumped_packets++;
   num_bytes_cur_file += sizeof(struct pcap_disk_pkthdr) + h->caplen;
@@ -129,4 +129,3 @@ void PacketDumper::dumpPacket(const struct pcap_pkthdr *h, const u_char *packet)
 }
 
 /* ********************************************* */
-

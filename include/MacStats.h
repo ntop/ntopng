@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,9 +22,12 @@
 #ifndef _MAC_STATS_H_
 #define _MAC_STATS_H_
 
-class MacStats: public GenericTrafficElement {
+class MacStats : public GenericTrafficElement {
  protected:
   NetworkInterface *iface;
+  struct {
+    u_int32_t num_req_sent, num_rep_rcvd;
+  } dhcp_stats;
   struct {
     struct {
       MonitoredCounter<u_int32_t> requests, replies;
@@ -34,30 +37,45 @@ class MacStats: public GenericTrafficElement {
  public:
   MacStats(NetworkInterface *_iface);
 
-  void lua(lua_State* vm, bool show_details);
-  inline void deserialize(json_object *obj)         { GenericTrafficElement::deserialize(obj, iface); }
-  inline void getJSONObject(json_object *my_object) { GenericTrafficElement::getJSONObject(my_object, iface); }
+  void lua(lua_State *vm, bool show_details);
+  inline void getJSONObject(json_object *my_object) {
+    GenericTrafficElement::getJSONObject(my_object, iface);
+  }
 
-  inline u_int64_t  getNumSentArp()   { return (u_int64_t)arp_stats.sent.requests.get() + arp_stats.sent.replies.get(); }
-  inline u_int64_t  getNumRcvdArp()   { return (u_int64_t)arp_stats.rcvd.requests.get() + arp_stats.rcvd.replies.get(); }
-  inline void incSentArpRequests()    { arp_stats.sent.requests.inc(1);         }
-  inline void incSentArpReplies()     { arp_stats.sent.replies.inc(1);          }
-  inline void incRcvdArpRequests()    { arp_stats.rcvd.requests.inc(1);         }
-  inline void incRcvdArpReplies()     { arp_stats.rcvd.replies.inc(1);          }
+  inline u_int64_t getNumSentArp() {
+    return (u_int64_t)arp_stats.sent.requests.get() +
+           arp_stats.sent.replies.get();
+  }
+  inline u_int64_t getNumRcvdArp() {
+    return (u_int64_t)arp_stats.rcvd.requests.get() +
+           arp_stats.rcvd.replies.get();
+  }
+  inline void incSentArpRequests() { arp_stats.sent.requests.inc(1); }
+  inline void incSentArpReplies() { arp_stats.sent.replies.inc(1); }
+  inline void incRcvdArpRequests() { arp_stats.rcvd.requests.inc(1); }
+  inline void incRcvdArpReplies() { arp_stats.rcvd.replies.inc(1); }
 
-  inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  { sent.incStats(t, num_pkts, num_bytes); }
-  inline void incRcvdStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes)  { rcvd.incStats(t, num_pkts, num_bytes); }
+  inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
+    sent.incStats(t, num_pkts, num_bytes);
+  }
+  inline void incRcvdStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
+    rcvd.incStats(t, num_pkts, num_bytes);
+  }
   inline void incnDPIStats(time_t when, ndpi_protocol_category_t ndpi_category,
-			   u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-			   u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
-    if(ndpiStats || (ndpiStats = new nDPIStats())) {
-      //ndpiStats->incStats(when, protocol.master_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-      //ndpiStats->incStats(when, protocol.app_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes);
-      ndpiStats->incCategoryStats(when,
-				  ndpi_category,
-				  sent_bytes, rcvd_bytes);
+                           u_int64_t sent_packets, u_int64_t sent_bytes,
+                           u_int64_t sent_goodput_bytes, u_int64_t rcvd_packets,
+                           u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes) {
+    if (ndpiStats || (ndpiStats = new nDPIStats())) {
+      // ndpiStats->incStats(when, protocol.master_proto, sent_packets,
+      // sent_bytes, rcvd_packets, rcvd_bytes); ndpiStats->incStats(when,
+      // protocol.app_proto, sent_packets, sent_bytes, rcvd_packets,
+      // rcvd_bytes);
+      ndpiStats->incCategoryStats(when, ndpi_category, sent_bytes, rcvd_bytes);
     }
   }
+
+  inline void incNumDHCPRequests() { dhcp_stats.num_req_sent++; }
+  inline void incNumDHCPReplies() { dhcp_stats.num_rep_rcvd++; }
 };
 
 #endif
