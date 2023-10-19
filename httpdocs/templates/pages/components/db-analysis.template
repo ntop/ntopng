@@ -24,15 +24,29 @@
 <div class='row'>
 
     <div class='col-12'>
-    <div class="mb-2">
-      <div class="w-100">
-	<div clas="range-container d-flex flex-wrap">
-	  <div class="range-picker d-flex m-auto flex-wrap" id="datatable-vue">
-	    <range-picker ref="range-picker-vue" id="range_picker"></range-picker>
-	  </div>
-	</div>
+      <div class="mb-2">
+        <div class="w-100">
+          <div clas="range-container d-flex flex-wrap">
+            <div class="range-picker d-flex m-auto flex-wrap" id="datatable-vue">
+              <div class="me-2 mb-1" >
+                <select id="new_query_preset"  onchange="set_new_query_preset(this);" class="me-2 form-select" style="min-width:8rem;">
+                  {% for item in pairs(query_presets) do %}
+                    {% 
+                      local name = i18n(query_presets[item]["i18n_name"])
+                      local query_item = query_presets[item]
+                    %}
+                    <option value="{{item}}" id="{{name}}">{{ name }}</option>
+                  {% end %}
+                </select>
+              </div>
+              <range-picker ref="range-picker-vue" class="col-8" id="range_picker">
+              </range-picker>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
 
   <div class='col-12'>
     <div class="card card-shadow widget-box-container">
@@ -62,7 +76,6 @@
       
         {% end %}
 
-        </div>
       </div>
     </div>
   </div>
@@ -70,6 +83,46 @@
 
 <script type="text/javascript">
     i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+    
+
+    function sortQueryPresets_loadSelected() {
+      const select = document.getElementById("new_query_preset");
+
+      // Get the options and convert them to an array
+      const options = Array.from(select.options);
+
+      // Sort the options by their value attribute
+      options.sort((a, b) => {
+        if (a.id < b.id) return -1;
+        if (a.id > b.id) return 1;
+        return 0;
+      });
+
+      // Remove the existing options from the select element
+      while (select.options.length > 0) {
+        select.remove(0);
+      }
+
+      // Add the sorted options back to the select element
+      options.forEach(option => {
+        select.add(option);
+      });
+
+      // select item with the query param
+      let selectElement = document.getElementById("new_query_preset");
+      let url_query_preset = ntopng_url_manager.get_url_entry("query_preset");
+      
+      const actual_value = url_query_preset != "" ? url_query_preset : "flow_status";
+      selectElement.value = actual_value;
+    }
+
+    function set_new_query_preset(query_preset) {
+      // set item and reload
+      ntopng_url_manager.set_key_to_url("query_preset", `${query_preset.value}`);
+      ntopng_url_manager.reload_url();
+    };
+
+
 </script>
 <script type='text/javascript'>
   let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
@@ -160,6 +213,6 @@
         }
 	{% end %}
     }, false);
-
+  sortQueryPresets_loadSelected();
 });
 </script>

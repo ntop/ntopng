@@ -1,6 +1,6 @@
 {
   "name": "Sites",  
-  "i18n_name" : "applications_long",
+  "i18n_name" : "top_sites",
     "data_source" : "flows",
     "chart" : [
 	{

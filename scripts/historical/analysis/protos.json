@@ -1,6 +1,6 @@
 {
   "name": "Applications",  
-  "i18n_name" : "applications_long",
+  "i18n_name" : "top_protos",
     "data_source" : "flows",
     "chart" : [
 	{
