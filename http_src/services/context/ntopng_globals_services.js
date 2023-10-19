@@ -157,6 +157,17 @@ export const ntopng_utility = function() {
 	    var d_server = new Date(utc + offset_ms);
 	    return d_server;
 	},
+    get_date_format: async function(is_range_picker, csrf, http_prefix) {
+        const rest_params = {
+            csrf: csrf
+        };
+
+        let date_format_url = `${http_prefix}/lua/rest/v2/get/timeseries/date_format.lua`;
+        const url = NtopUtils.buildURL(date_format_url, {
+            is_range_picker: is_range_picker
+        })
+        return await ntopng_utility.http_request(url, rest_params);    
+    },
 	from_utc_to_server_date_format: function(utc_ms, format) {
 	    if (format == null) { format = "DD/MMM/YYYY HH:mm"; }
 

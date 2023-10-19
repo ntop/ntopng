@@ -92,6 +92,7 @@ export default {
 		},
 		draw_chart: async function (url_request) {
 			let chart_options = await this.get_chart_options(url_request);
+			let date_format = await ntopng_utility.get_date_format(false, this.$props.csrf, http_prefix);
 			const data = chart_options.data || [];
 			chart_options.data = null;
 			chart_options.zoomCallback = this.on_zoomed;
@@ -104,7 +105,14 @@ export default {
 				id = id + 1;
 				visibility.push(true);
 			}
-			chart_options.visibility = visibility;
+			chart_options.axisLabelFormatter = function (date) {
+				return ntopng_utility.from_utc_to_server_date_format(date,date_format);
+			},
+			chart_options.valueFormatter = function(date) {
+				return ntopng_utility.from_utc_to_server_date_format(date,date_format);
+			},
+			chart_options.axisLabelWidth = 90;
+		
 			this.chart = new Dygraph(this.$refs["chart"], data, chart_options);
 		},
 		update_chart: async function (url_request) {

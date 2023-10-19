@@ -1716,6 +1716,7 @@ local known_parameters = {
     ["allow_pcap_download"] = validateEmptyOr(validateBool),
     ["allow_historical_flows"] = validateBool,
     ["allow_alerts"] = validateBool,
+    ["is_range_picker"] = validateBool,
 
     -- NDPI
     ["application"] = validateProtocolIdOrName, -- An nDPI application protocol name
