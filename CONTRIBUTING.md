@@ -15,8 +15,8 @@ ntopng source code.
 Run the Tests
 =============
 
-An automated test suite is available under ntopng/tests, in order
-to run it:
+An automated test suite is available under ntopng/tests/e2e/rest,
+in order to run it:
 
 1. Compile ntopng. Please read the 'Memory Leak Detection' section in order to also enable the runtime memory leak detector.
 
@@ -30,17 +30,17 @@ to run it:
 3. Run the run.sh script:
 
 ```
-cd ntopng/tests
+cd ntopng/tests/e2e/rest
 ./run.sh
 ```
 Please check that all the tests complete successfully before moving
 to the next step, sending the Pull Request.
 
 Note: in case of failures, the output of the tests is stored in the
-*ntopng/tests/rest/conflicts/* folder, in order to be able to compare
-it with the expected output in the *ntopng/tests/rest/result* folder. 
+*ntopng/tests/e2e/rest/conflicts/* folder, in order to be able to compare
+it with the expected output in the *ntopng/tests/e2e/rest/result* folder. 
 In case of test failures due to errors or warnings in the ntopng trace,
-the full ntopng log is stored in the *ntopng/tests/rest/logs/* folder.
+the full ntopng log is stored in the *ntopng/tests/e2e/rest/logs/* folder.
 
 Create a PR
 ===========
@@ -66,11 +66,11 @@ will compare the output of the test with the old one to make sure it
 is still the same.
 
 Creating a new test is as simple as creating a small .yaml file, with
-the test name as name of the file, under ntopng/tests/rest/tests/<API version>
+the test name as name of the file, under ntopng/tests/e2e/rest/tests/<API version>
 (where *API version* should be at least the latest API, e.g. v2) containing
 the below sections:
 
-- input: the name of a pcap in the 'ntopng/tests/rest/pcap' folder containing some traffic to be provided to ntopng as input
+- input: the name of a pcap in the 'ntopng/tests/e2e/rest/pcap' folder containing some traffic to be provided to ntopng as input
 - localnet: the local network(s) as usually specified with the -m option in ntopng
 - pre: a bash script with commands to be executed before processing the pcap in ntopng (initialization)
 - post: a bash script with commands to be executed after the pcap has been processed by ntopng and generating some json output (using the Rest API)
@@ -98,10 +98,10 @@ options:
   - -F=nindex
 ```
 
-In order to run a specific test and avoid running all the suite, it is possible to specify -y=<API version>/<test name> when running the run.sh script under ntopng/tests/rest:
+In order to run a specific test and avoid running all the suite, it is possible to specify -y=<API version>/<test name> when running the run.sh script under ntopng/tests/e2e/rest:
 
 ```
-cd ntopng/tests/rest
+cd ntopng/tests/e2e/rest
 ./run.sh -y=v2/get_alert_data_01
 ```
 
