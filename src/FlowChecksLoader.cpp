@@ -188,7 +188,6 @@ void FlowChecksLoader::loadConfiguration() {
   enum json_tokener_error jerr = json_tokener_success;
   char *value = NULL;
   u_int actual_len = ntop->getRedis()->len(CHECKS_CONFIG);
-  std::map<std::string, FlowCheck *> cb_all_clone = cb_all; /* All the checks instantiated */
 
   if ((value = (char *)malloc(actual_len + 1)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -254,7 +253,6 @@ void FlowChecksLoader::loadConfiguration() {
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "*** %s *** [%s][%s]", check_key,
 				       cb->isGenericCheck() ? "GENERIC" : "", enabled ? "ENABLED" : "NOT enabled");
 #endif	    
-	  cb_all_clone.erase(std::string(check_key)); /* Remove the check for which a configuration exists */
 	} else 
           enabled = false;
 
@@ -304,17 +302,6 @@ out:
   /* Free the json */
   if (json) json_object_put(json);
   if (value) free(value);
-
-  /* Now enable generic checks without an enable/disable configuration */
-  for(std::map<std::string, FlowCheck *>::const_iterator it = cb_all_clone.begin(); it != cb_all_clone.end(); ++it) {
-    FlowCheck *cb = it->second;
-
-    if(cb->isGenericCheck()) {
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Enabling generic check with no configuration [%s]", it->first.c_str());
-      cb->enable();
-      cb->scriptEnable();
-    }
-  }
 }
 
 /* **************************************************** */

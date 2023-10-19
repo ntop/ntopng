@@ -46,13 +46,6 @@ class FlowCheck : public Check {
   virtual void flowEnd(Flow *f){};
   virtual void flowBegin(Flow *f){};
 
-  /*
-    This is NOT a generic check (i.e. those that are used
-    to increment score etc. based on nDPI but that do not
-    have a more specific ntopng alert    
-  */
-  virtual bool isGenericCheck() { return(false); }
-  
   /* Used to build an alert when triggerAlertAsync is used */
   virtual FlowAlert *buildAlert(Flow *f) { return NULL; };
 

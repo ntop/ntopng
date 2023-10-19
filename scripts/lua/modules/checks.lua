@@ -1473,30 +1473,45 @@ function checks.initDefaultConfig()
                 -- Cleanup exclusion counters
                 ntop.delCache(string.format(NUM_FILTERED_KEY, subdir, key))
 
-                if ((usermod.default_enabled ~= nil) or (usermod.default_value ~= nil)) then
-                    default_conf[subdir] = default_conf[subdir] or {}
-                    default_conf[subdir][key] = default_conf[subdir][key] or {}
-                    local script_config = default_conf[subdir][key]
-                    local hooks = ternary(script_type.has_per_hook_config, usermod.hooks, {
-                        [ALL_HOOKS_CONFIG_KEY] = 1
-                    })
+                -- Add configuration when required (default_enabled or default_value)
+                if usermod.default_enabled ~= nil or usermod.default_value ~= nil then
 
-                    for hook in pairs(hooks) do
-                        -- Do not override an existing configuration
-                        if (script_config[hook] == nil) then
-                            script_config[hook] = {
-                                enabled = usermod.default_enabled or false,
-                                script_conf = usermod.default_value or {}
-                            }
+                    if default_conf[subdir] and default_conf[subdir][key] then
+                        -- There is already a configuration for this script
+                        -- (nothing to do)
+
+                    else
+                        -- Add default configuration
+                        default_conf[subdir] = default_conf[subdir] or {}
+                        default_conf[subdir][key] = default_conf[subdir][key] or {}
+                        local script_config = default_conf[subdir][key]
+                        local hooks = ternary(script_type.has_per_hook_config, usermod.hooks, {
+                            [ALL_HOOKS_CONFIG_KEY] = 1
+                        })
+
+                        for hook in pairs(hooks) do
+                            -- Do not override an existing configuration
+                            if (script_config[hook] == nil) then
+                                script_config[hook] = {
+                                    enabled = usermod.default_enabled or false,
+                                    script_conf = usermod.default_value or {}
+                                }
+                            end
                         end
+
                     end
+
                 end
 
                 if usermod.filter and usermod.filter.default_filters then
                     default_filters[subdir] = default_filters[subdir] or {}
 
-                    if not default_filters[subdir][key] then
+                    if default_filters[subdir][key] then
                         -- Do not override filter of an existing configuration
+                        -- (nothing to do)
+
+                    else
+                        -- Add filter
                         default_filters[subdir][key] = usermod.filter.default_filters
                     end
                 end
@@ -1505,16 +1520,13 @@ function checks.initDefaultConfig()
     end
 
     -- This is the new configset with all defaults
-    local configset = {
+    configset = {
         config = default_conf,
         filters = default_filters
     }
 
-    if (ntop.getCache(CONFIGSET_KEY) == "") then
-        -- save it only if empty to avoid overwriting
-        -- configurations if not necessary
-        saveConfigset(configset)
-    end
+    -- Save configuration (even if already present, as there may be new checks/risks)
+    saveConfigset(configset)
 end
 
 -- ##############################################

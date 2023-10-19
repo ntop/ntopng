@@ -1362,7 +1362,6 @@ else
 
         if not isEmptyString(flow.riskInfo) then
 	   riskInfo = json.decode(flow.riskInfo, 1, nil)
-	   tprint(riskInfo)
         end
 
         if (riskInfo ~= nil) then

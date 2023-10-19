@@ -41,7 +41,6 @@ class FlowRiskGeneric : public FlowRisk {
 
   std::string getName() const  { return (FlowRiskAlerts::getCheckName(risk)); }
   ndpi_risk_enum handledRisk() { return risk;  }
-  bool isGenericCheck()        { return(true); }
 };
 
 #endif
