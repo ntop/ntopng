@@ -44,8 +44,8 @@
                     <template v-slot:menu>
                         <div v-for="col in columns_wrap" class="form-check form-switch ms-1">
                             <input class="form-check-input" style="cursor:pointer;" :checked="col.visible == true"
-                                @click="change_columns_visibility(col)" type="checkbox" id="toggle-Begin">
-                            <label class="form-check-label" for="toggle-Begin" v-html="print_column_name(col.data)">
+                                @click="change_columns_visibility(col)" type="checkbox" :id="get_col_id(col)">
+                            <label class="form-check-label" :for="get_col_id(col)" v-html="print_column_name(col.data)">
                             </label>
                         </div>
                     </template>
@@ -212,6 +212,13 @@ watch(() => [props.id, props.columns], (cur_value, old_value) => {
     load_table();
 }, { flush: 'pre' });
 
+function get_col_id(col) {
+    if(col != null && col.id != null) {
+        return col.id;
+    } else {
+        return "toggle-Begin";
+    }
+}
 async function load_table() {
     await set_columns_wrap();
     await set_rows();
