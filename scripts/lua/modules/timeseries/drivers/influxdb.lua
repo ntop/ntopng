@@ -964,7 +964,7 @@ function driver:timeseries_query(options)
 
         if options.calculate_stats then
             statistics = ts_common.calculateStatistics(serie_data.data, time_step,
-                options.epoch_end - options.epoch_begin, data_type)
+                options.schema_info.options.keep_total, data_type)
             statistics = table.merge(statistics, ts_common.calculateMinMax(serie_data.data))
         end
 
@@ -1554,7 +1554,7 @@ function driver:timeseries_top(options, top_tags)
                 end
             end
             local statistics = ts_common.calculateStatistics(total_serie, time_step,
-                options.epoch_end - options.epoch_begin, data_type)
+                options.schema_info.options.keep_total, data_type)
             statistics = table.merge(statistics, ts_common.calculateMinMax(total_serie))
 
             local snmp_utils = require "snmp_utils"

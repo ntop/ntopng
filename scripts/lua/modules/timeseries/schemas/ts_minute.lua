@@ -282,9 +282,10 @@ if ntop.isEnterpriseM() then
 
     -- ##############################################
 
-    schema = ts_utils.newSchema("iface:traffic_tx_behavior_v4", {
+    schema = ts_utils.newSchema("iface:traffic_tx_behavior_v5", {
         step = 60,
-        metrics_type = ts_utils.metrics.gauge
+        metrics_type = ts_utils.metrics.gauge,
+        keep_total = true,
     })
     schema:addTag("ifid")
     schema:addMetric("value")
@@ -293,9 +294,10 @@ if ntop.isEnterpriseM() then
 
     -- ##############################################
 
-    schema = ts_utils.newSchema("iface:traffic_rx_behavior_v4", {
+    schema = ts_utils.newSchema("iface:traffic_rx_behavior_v5", {
         step = 60,
-        metrics_type = ts_utils.metrics.gauge
+        metrics_type = ts_utils.metrics.gauge,
+        keep_total = true,
     })
     schema:addTag("ifid")
     schema:addMetric("value")

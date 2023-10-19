@@ -942,11 +942,9 @@ end
 function ts_utils.getPossiblyChangedSchemas()
     return { -- Interface timeseries
     "iface:alerted_flows", "iface:score", "iface:score_behavior_v2", "iface:score_anomalies_v2",
-    "iface:traffic_anomalies_v2", "iface:traffic_rx_behavior_v4", "iface:traffic_tx_behavior_v4",
+    "iface:traffic_anomalies_v2", "iface:traffic_rx_behavior_v5", "iface:traffic_tx_behavior_v5",
     "iface:engaged_alerts", "iface:local_hosts", "subnet:score_anomalies",
-    "subnet:traffic_tx_behavior_v2", "subnet:traffic_rx_behavior_v2", "subnet:traffic_anomalies",
-    "subnet:score_behavior", "subnet:intranet_traffic", "subnet:intranet_traffic_min", "asn:score_anomalies",
-    "asn:score_behavior", "asn:traffic_anomalies", "asn:traffic_rx_behavior_v2", "asn:traffic_tx_behavior_v2", -- Host timeseries
+    "subnet:intranet_traffic", "subnet:intranet_traffic_min",
     "host:contacts", -- split in "as_client" and "as_server"
     "host:score", -- split in "cli_score" and "srv_score"
     "host:contacts_behaviour", "host:cli_active_flows_behaviour", "host:srv_active_flows_behaviour",

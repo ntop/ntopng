@@ -265,14 +265,14 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
         }, when)
 
         -- Traffic Behaviour
-        ts_utils.append("iface:traffic_rx_behavior_v4", {
+        ts_utils.append("iface:traffic_rx_behavior_v5", {
             ifid = ifstats.id,
             value = ifstats["traffic_rx_behavior"]["value"],
             lower_bound = ifstats["traffic_rx_behavior"]["lower_bound"],
             upper_bound = ifstats["traffic_rx_behavior"]["upper_bound"]
         }, when)
 
-        ts_utils.append("iface:traffic_tx_behavior_v4", {
+        ts_utils.append("iface:traffic_tx_behavior_v5", {
             ifid = ifstats.id,
             value = ifstats["traffic_tx_behavior"]["value"],
             lower_bound = ifstats["traffic_tx_behavior"]["lower_bound"],

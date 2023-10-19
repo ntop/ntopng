@@ -99,7 +99,7 @@ end
 
 -- ##############################################
 
-function ts_common.calculateStatistics(total_serie, step, notused, data_type)
+function ts_common.calculateStatistics(total_serie, step, keep_total, data_type)
     local total
     local counter = 0
     local percentile = ts_common.ninetififthPercentile(total_serie) or 0
@@ -121,14 +121,14 @@ function ts_common.calculateStatistics(total_serie, step, notused, data_type)
 
     if data_type ~= ts_common.metrics.gauge then
         total = total * step
+    else
+        if not keep_total then
+            -- no total for gauge values!
+            total = nil
+        end
     end
 
     -- tprint("num: "..#total_serie .. " / " .. "total: "..total .. " / step: "..step .. " / avg: "..avg)
-
-    if data_type == ts_common.metrics.gauge then
-        -- no total for gauge values!
-        total = nil
-    end
 
     return {
         total = total,
