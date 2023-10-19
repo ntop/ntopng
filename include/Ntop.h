@@ -50,6 +50,7 @@ class Ntop {
   bool interfacesShuttedDown;
   bool offline, forced_offline;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
+  JobQueue jobsQueue;
   AddressTree local_interface_addresses;
   char epoch_buf[11], *zoneinfo, *myTZname;
   char working_dir[MAX_PATH]; /**< Working directory. */
@@ -805,6 +806,7 @@ class Ntop {
   u_int64_t getNumActiveProbes() const;
   inline BlacklistStats* getBlacklistStats() { return(&blStats); }
   inline void resetBlacklistStats()          { blStats.reset();  }
+  inline JobQueue* getJobsQueue()            { return(&jobsQueue); }
 };
 
 extern Ntop *ntop;

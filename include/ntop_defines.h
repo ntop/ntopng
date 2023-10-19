@@ -1469,6 +1469,9 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
 #define INTERFACE_PROFILING_SUB_SECTION_EXIT(f, i)
 #endif
 
+#define MAX_NUM_CONCURRENT_JOBS  8
+#define MAX_NUM_QUEUED_JOBS      256
+
 #define SIMULATE_VLANS_MAX_VALUE 0x8 /* 8 in hexadecimal */
 
 #define CHECKS_PROFILING

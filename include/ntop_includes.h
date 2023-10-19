@@ -221,6 +221,7 @@ using namespace std;
 #include "PeerStats.h"
 #include "IpAddress.h"
 #include "Ping.h"
+#include "JobQueue.h"
 #include "ContinuousPingStats.h"
 #include "ContinuousPing.h"
 #include "TrafficStats.h"

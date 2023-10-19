@@ -2970,6 +2970,8 @@ void Ntop::runHousekeepingTasks() {
 #ifdef NTOPNG_PRO
   pro->runHousekeepingTasks();
 #endif
+
+  jobsQueue.idleTask();
 }
 
 /* ******************************************* */
@@ -3208,7 +3210,7 @@ bool Ntop::startPurgeLoop() {
     purgeLoop_started = true;
   }
 
-  return purgeLoop_started;
+  return(purgeLoop_started);
 }
 
 /* ******************************************* */
