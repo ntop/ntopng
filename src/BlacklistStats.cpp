@@ -38,9 +38,22 @@ void BlacklistStats::incHits(std::string name) {
     BlacklistUsageStats l;
 
     stats[name] = l;
-  } else
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                                "Blacklist %s contacted [hits=%u]",
+                                name, stats[name]);
+#endif
+  } else {
     it->second.incHits();
-
+    
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                                "Blacklist %s contacted [hits=%u]",
+                                name, it->second.getNumHits());
+#endif
+  }
+  
+  
   lock.unlock(__FILE__, __LINE__);
 }
 
