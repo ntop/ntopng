@@ -522,6 +522,7 @@ local lang = {
   ["scan_all_hosts_title"] = "Scan All Hosts",
   ["scan_details"] = "Scan Details",
   ["scan_host"] = "Do you really want to scan the selected host?",
+  ["note_scan_host"] = "The scanning should be scheduled in a couple of seconds, see 'Scan Status' to check the progresses",
   ["scan_host_already_inserted"] = "The host %{host} with Scan Type: %{scan_type} has already been added!",
   ["scan_host_inserted"] = "The host %{host} has been correctly added!",
   ["scan_host_title"] = "Scan Selected Host",
