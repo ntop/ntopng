@@ -141,6 +141,8 @@ void JobQueue::idleTask() {
 bool JobQueue::getJobResult(u_int32_t job_id, std::string *out) {
   std::map<u_int32_t /* id */, std::pair<time_t, std::string> >::iterator it;
   bool ret;
+
+  idleTask(); /* Refresh results first */
   
   lock.wrlock(__FILE__, __LINE__);
   it = completed_jobs.find(job_id);
