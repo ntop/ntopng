@@ -102,7 +102,11 @@ const get_columns_defs = () => {
     return table.value.get_columns_defs();
 }
 
-defineExpose({ refresh_table, get_columns_defs });
+const get_rows_num = () => {
+    return table.value.get_rows_num();
+}
+
+defineExpose({ refresh_table, get_columns_defs, get_rows_num });
 
 </script>
 

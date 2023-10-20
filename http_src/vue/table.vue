@@ -512,7 +512,11 @@ function get_columns_defs() {
     return columns_wrap.value;
 }
 
-defineExpose({ load_table, refresh_table, get_columns_defs });
+function get_rows_num() {
+    return total_rows.value;
+}
+
+defineExpose({ load_table, refresh_table, get_columns_defs, get_rows_num });
 
 </script>
 

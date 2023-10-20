@@ -39,14 +39,14 @@
           
         </div>
         <div class="card-footer mt-3">
-            <button type="button" ref="delete_all" @click="delete_all_entries" class="btn btn-danger me-1"><i
+            <button type="button" ref="delete_all" @click="delete_all_entries" class="btn btn-danger me-1" :class="{ 'disabled': total_rows == 0}"><i
                 class='fas fa-trash'></i> {{ _i18n("delete_all_entries") }}</button>
 
-            <button type="button" ref="scan_all" @click="confirm_scan_all_entries" class="btn btn-primary me-1"><i
+            <button type="button" ref="scan_all" @click="confirm_scan_all_entries" class="btn btn-primary me-1" :class="{ 'disabled': total_rows == 0}"><i
                 class='fas fa-clock-rotate-left'></i> {{ _i18n("hosts_stats.page_scan_hosts.schedule_all_scan") }}</button>
             <template v-if="props.context.is_enterprise_l">
 
-            <button type="button" ref="update_all" @click="update_all_periodicity" class="btn btn-secondary me-1">{{ _i18n("hosts_stats.page_scan_hosts.update_periodicity_title") }}</button>          
+            <button type="button" ref="update_all" @click="update_all_periodicity" class="btn btn-secondary me-1" :class="{ 'disabled': total_rows == 0}">{{ _i18n("hosts_stats.page_scan_hosts.update_periodicity_title") }}</button>          
             </template>
             </div>
 
@@ -109,6 +109,7 @@ const modal_delete_confirm = ref();
 const modal_add = ref();
 const modal_vs_result = ref();
 const modal_update_perioditicy_scan = ref();
+const total_rows = ref(0);
 
 const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`;
 const edit_host_url = `${http_prefix}/lua/rest/v2/edit/host/update_va_scan_period.lua`;
@@ -154,7 +155,8 @@ function refresh_table(disable_loading) {
   /* It's important to set autorefresh to false, in this way when refreshed 
      all the entries are going to be checked and if all of them are not scanning it stays false
    */
-
+  total_rows.value = table_hosts_to_scan.value.get_rows_num();
+  console.log(total_rows.value)
   //console.log("REFRESHING")
   if(disable_loading != null)
     table_hosts_to_scan.value.refresh_table(disable_loading);
@@ -445,6 +447,7 @@ function delete_all_entries() {
   already_inserted.value = false;
   refresh_feedback_messages();
   modal_delete_confirm.value.show('delete_all', i18n('delete_all_vs_hosts'));
+  total_rows.value = table_hosts_to_scan.value.get_rows_num();
 }
 
 /* Function to edit host to scan */
@@ -499,7 +502,8 @@ onBeforeMount(async () => {
 onMounted(async () => {
   await get_scan_type_list_v;
   await modal_add.value.metricsLoaded(scan_type_list, props.context.ifid, props.context.is_enterprise_l);
-
+  total_rows.value = table_hosts_to_scan.value.get_rows_num();
+  
   if (props.context.host != null) {
     modal_add.value.show(null, props.context.host);
   }
