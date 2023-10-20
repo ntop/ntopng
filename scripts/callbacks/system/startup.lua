@@ -8,6 +8,8 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+
 
 require "lua_utils"
 
@@ -29,6 +31,7 @@ local delete_data_utils = require "delete_data_utils"
 local ts_utils = require "ts_utils"
 local presets_utils = require "presets_utils"
 local blog_utils = require("blog_utils")
+local vs_utils = require "vs_utils"
 
 -- ##################################################################
 
@@ -231,5 +234,7 @@ if(ntop.exists(influxdb_dir)) then
       end
    end
 end
+
+vs_utils.restore_host_to_scan()
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")
