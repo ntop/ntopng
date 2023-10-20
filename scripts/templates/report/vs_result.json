@@ -193,19 +193,19 @@
 				
 		
 				{
-					"i18n_name": "port",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.port",
 					"id": "port",
 					"data_type": "number"
 
 				},
 				{
-					"i18n_name": "count",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.count",
 					"id": "count_host",
 					"data_type": "count_score"
 
 				},
 				{
-					"i18n_name": "hosts",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.hosts",
 					"id": "hosts",
 					"data_type": "string"
 
