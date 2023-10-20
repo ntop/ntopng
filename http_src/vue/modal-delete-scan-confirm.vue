@@ -3,7 +3,10 @@
 <modal @showed="showed()" ref="modal_id">
   <template v-slot:title>{{title}}</template>
   <template v-slot:body>
-    {{body}}
+    {{ body }}
+    <NoteList v-if="show_note_list"
+      :note_list="note_list">
+    </NoteList>
   </template>
   <template v-slot:footer>
     <template v-if="delete_type == 'delete_all' || delete_type == 'delete_single_row'">
@@ -20,6 +23,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from "vue";
 import { default as modal } from "./modal.vue";
+import { default as NoteList } from "./note-list.vue";
 
 const modal_id = ref(null);
 const emit = defineEmits(['delete','delete_all']);
@@ -33,9 +37,13 @@ const props = defineProps({
 const body = ref('');
 const title = ref('');
 const delete_type = ref('');
+const show_note_list = ref(true);
+const note_list = [
+  i18n('note_scan_host')
+];
 
 const show = (type, value) => {
-
+  show_note_list.value = false;
   delete_type.value = type
 
     if(type == "delete_all") {
@@ -48,6 +56,7 @@ const show = (type, value) => {
       title.value = i18n("scan_all_hosts_title");
       body.value = value;
     } else if(type == "scan_row") {
+      show_note_list.value = true;
       title.value = i18n("scan_host_title");
       body.value = value;
     }

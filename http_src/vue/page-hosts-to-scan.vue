@@ -409,12 +409,12 @@ async function click_button_delete(event) {
 
 /* Function to handle scan button */
 async function click_button_scan(event) {
-
   insert_with_success.value = false;
   already_inserted.value = false;
   refresh_feedback_messages();
   row_to_scan.value = event.row;
-  modal_delete_confirm.value.show("scan_row",i18n("scan_host"));  
+  const scan_host_msg = `${i18n("scan_host")}`
+  modal_delete_confirm.value.show("scan_row", scan_host_msg);  
 }
 
 /* Function to handle edit button */
@@ -640,9 +640,7 @@ const check_in_progress_status = async function () {
 /* Function to confirm to start all scan */
 const confirm_scan_all_entries = function() {
   modal_delete_confirm.value.show("scan_all_rows",i18n("scan_all_hosts"));  
-  //autorefresh.value = true;
   refresh_table(false);
-
 }
 
 /* Function to update all scan  frequencies*/
