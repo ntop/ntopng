@@ -113,35 +113,43 @@ function back_page() {
     change_active_page(active_page.value - 1);
 }
 
+/*  This function is used to set the current active page, if no params is passed
+    then it's going to keep the same page.
+    This function handles the case where the active page > last page,
+    setting the active page as the last page.
+ */
 function change_active_page(new_active_page, new_start_page_button) {
-/*
-    // Possible Fix regarding the reload of the pages without jumping
-    // back to the first page 
-    if (new_active_page != null) {
+  /* In case a new active page is requested, jump to that page */
+  if (new_active_page != null) {
     active_page.value = new_active_page;
   } 
-*/
 
-  active_page.value = new_active_page;
+  /* Change the table footer button */
+  if (new_start_page_button != null) {
+    start_page_button.value = new_start_page_button;
+  }
 
-    // console.log(`new active page: ${new_active_page}`);
-    // console.log(`new start page button: ${new_start_page_button}`);
+  /* Set up the correct start and end page of the table footer */
+  if (active_page.value == start_page_button.value && start_page_button.value > 0) {
+    start_page_button.value -= 1;
+  }
+  const end_page_button = start_page_button.value + num_page_buttons.value - 1;
+  if (active_page.value == end_page_button && total_pages.value - 1 > end_page_button) {
+    start_page_button.value += 1;	
+  }
 
-    if (new_start_page_button != null) {
-	start_page_button.value = new_start_page_button;
-    }
-    if (active_page.value == start_page_button.value && start_page_button.value > 0) {
-	start_page_button.value -= 1;
-    }
+  /* Check that the active_page is not greater then the last page */
+  /* otherwise set to the last page */
+  if(active_page.value > total_pages.value - 1 && total_pages.value != 0) {
+    active_page.value = total_pages.value - 1;
+    start_page_button.value = active_page.value;
+  }
 
-    let end_page_button = start_page_button.value + num_page_buttons.value - 1;
-    if (active_page.value == end_page_button && total_pages.value - 1 > end_page_button) {
-	start_page_button.value += 1;	
-    }
-    // console.log(`active page: ${active_page.value}`);
-    // console.log(`start page button: ${start_page_button.value}`);
-    set_text();
-    emit('change_active_page', active_page.value);
+  /* Set the text on the table footer, num_pages, total_rows, ecc. */
+  set_text();
+
+  /* Emit the change_active_page event */
+  emit('change_active_page', active_page.value);
 }
 
 function set_text() {

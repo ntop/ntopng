@@ -412,15 +412,34 @@ function get_sort_function() {
 
 let force_refresh = false;
 let force_disable_loading = false;
+
+/* ********************************************* */
+
+/*  Function used to reload the table contents, 
+    set disable_loading to true if no loading is needed and
+    consequently do not jump to the first page, but
+    just reload the current page
+*/
 async function refresh_table(disable_loading) {
+    /* NOTE: first refresh_table is called then set_rows */
     force_refresh = true;
     force_disable_loading = disable_loading || false;
-    /* To not reload starting from the first page, remove the args */
-    select_table_page.value.change_active_page(0, 0);
+
+    if(force_disable_loading) {
+        /* In case of disabled loading, reload the same page */
+        select_table_page.value.change_active_page();
+    } else {
+        /* Otherwise reload from page 1 */
+        select_table_page.value.change_active_page(0, 0);
+    }
     await nextTick();
+
+    /* Reset the refresh/loading params */
     force_refresh = false;
     force_disable_loading = false;
 }
+
+/* ********************************************* */
 
 let first_get_rows = true;
 async function set_rows() {
