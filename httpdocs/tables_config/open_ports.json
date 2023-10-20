@@ -60,7 +60,7 @@
 			]
 		},
 		{
-			"title_i18n": "count",
+			"title_i18n": "hosts_stats.page_scan_hosts.report.count",
 			"data_field": "count_host",
 			"sortable": true,
 			"class": [
@@ -69,7 +69,7 @@
 			]
 		},
 		{
-			"title_i18n": "hosts",
+			"title_i18n": "hosts_stats.page_scan_hosts.report.hosts",
 			"data_field": "hosts",
 			"sortable": false,
 			"class": [
