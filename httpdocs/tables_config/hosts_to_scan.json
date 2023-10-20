@@ -84,7 +84,15 @@
 				"text-nowrap"
 			]
 		},
-
+		{
+			"title_i18n": "hosts_stats.page_scan_hosts.last_scan_status",
+			"data_field": "is_ok_last_scan",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
 		{
 			"title_i18n": "hosts_stats.page_scan_hosts.score",
 			"data_field": "max_score_cve",
@@ -152,15 +160,6 @@
 		{
 			"title_i18n": "hosts_stats.page_scan_hosts.periodicity",
 			"data_field": "scan_frequency",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-center"
-			]
-		},
-		{
-			"title_i18n": "hosts_stats.page_scan_hosts.last_scan_status",
-			"data_field": "is_ok_last_scan",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
