@@ -95,7 +95,6 @@ let insert_text = ref(_i18n('scan_host_inserted'));
 let already_insert_text = ref(_i18n('scan_host_already_inserted'));
 let in_progress_scan_text = ref(_i18n('scan_in_progress'));
 
-let in_progress_number = ref(0);
 const title_html = ref(i18n("scan_hosts"));
 
 
@@ -119,10 +118,12 @@ const scan_type_list_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_sc
 const active_monitoring_url = `${http_prefix}/lua/vulnerability_scan.lua`;
 const scan_result_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_result.lua`;
 const check_status_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_status.lua`;
+const in_progress_number = ref(null);
 
 const row_to_delete = ref({});
 const row_to_scan = ref({});
 let scan_type_list = [];
+let get_scan_type_list_v = null;
 
 const props = defineProps({
   context: Object,
@@ -139,19 +140,17 @@ const context = ref({
 /* ******************************************************************** */ 
 
 /* Function to add a new host to scan */ 
-
 function add_host() {
   if (props.context.host != null && props.context.host != "")
     modal_add.value.show(null, props.context.host);
   else
     modal_add.value.show();
-  //refresh_table(true);
-
 }
 
-/* Function to refresh table */ 
+/* ******************************************************************** */ 
 
-function refresh_table( disable_loading) {
+/* Function to refresh table */ 
+function refresh_table(disable_loading) {
   /* It's important to set autorefresh to false, in this way when refreshed 
      all the entries are going to be checked and if all of them are not scanning it stays false
    */
@@ -351,6 +350,8 @@ function columns_sorting(col, r0, r1) {
   
 }
 
+/* ******************************************************************** */ 
+
 function get_scan_frequency(scan_frequency) {
   if (scan_frequency == "1day") {
     return i18n("hosts_stats.page_scan_hosts.daily");
@@ -360,6 +361,8 @@ function get_scan_frequency(scan_frequency) {
     return "";
   }
 }
+
+/* ******************************************************************** */ 
 
 function get_scan_status_value(is_ok_last_scan, r) {
   let status = "";
@@ -377,6 +380,8 @@ function get_scan_status_value(is_ok_last_scan, r) {
   return status + r.id;
 }
 
+/* ******************************************************************** */ 
+
 function format_num_for_sort(num) {
   if (num === "" || num === null || num === NaN || num === undefined) {
     num = 0;
@@ -388,6 +393,8 @@ function format_num_for_sort(num) {
   return num;
 }
 
+/* ******************************************************************** */ 
+
 function format_num_ports_for_sort(num) {
   if (num == "" || num == null || num == NaN || num == undefined) 
     num = 0;
@@ -395,6 +402,8 @@ function format_num_ports_for_sort(num) {
   num = parseInt(num);;
   return num;
 }
+
+/* ******************************************************************** */ 
 
 /* Function to handle delete button */
 async function click_button_delete(event) {
@@ -407,6 +416,8 @@ async function click_button_delete(event) {
   modal_delete_confirm.value.show("delete_single_row",i18n("delete_vs_host"));  
 }
 
+/* ******************************************************************** */ 
+
 /* Function to handle scan button */
 async function click_button_scan(event) {
   insert_with_success.value = false;
@@ -416,6 +427,8 @@ async function click_button_scan(event) {
   const scan_host_msg = `${i18n("scan_host")}`
   modal_delete_confirm.value.show("scan_row", scan_host_msg);  
 }
+
+/* ******************************************************************** */ 
 
 /* Function to handle edit button */
 function click_button_edit_host(event) {
@@ -476,29 +489,23 @@ const map_table_def_columns = async (columns) => {
 };
 
 /* ******************************************************************** */ 
-let get_scan_type_list_v;
+
 onBeforeMount(async () => {
   get_scan_type_list_v = Promise.all([get_scan_type_list(),check_in_progress_status()]);
-  
 })
 
-
+/* ******************************************************************** */ 
 
 onMounted(async () => {
-
   await get_scan_type_list_v;
   await modal_add.value.metricsLoaded(scan_type_list, props.context.ifid, props.context.is_enterprise_l);
 
-  
   if (props.context.host != null) {
     modal_add.value.show(null, props.context.host);
   }
 
-  check_autorefresh()
-  refresh_table(false);
-
-
-
+  /* Check again the status in 10 seconds, already checked a couple of seconds ago */
+  setTimeout(check_autorefresh, 10000);
 })
 
 /* ************************** REST Functions ************************** */
@@ -561,9 +568,9 @@ const add_host_rest = async function (params) {
     check_autorefresh()
     refresh_table(false);
   };
-
-
 }
+
+/* ******************************************************************** */ 
 
 const refresh_feedback_messages = function (in_progress) {
   already_insert_text.value = i18n('scan_host_already_inserted');  
@@ -578,8 +585,9 @@ const refresh_feedback_messages = function (in_progress) {
 
     }
   }
-
 }
+
+/* ******************************************************************** */ 
 
 const update_all_scan_frequencies = async function(params) {
   const url = NtopUtils.buildURL(edit_host_url, {
@@ -594,6 +602,8 @@ const update_all_scan_frequencies = async function(params) {
   refresh_table(false);
 }
 
+/* ******************************************************************** */ 
+
 /* Function to retrieve scan types list */
 const get_scan_type_list = async function () {
   const url = NtopUtils.buildURL(scan_type_list_url, {
@@ -603,6 +613,8 @@ const get_scan_type_list = async function () {
   const result = await ntopng_utility.http_request(url);
   scan_type_list = result.rsp;
 }
+
+/* ******************************************************************** */ 
 
 /* Function to check if there is a scan in progress */
 const check_in_progress_status = async function () {
@@ -614,28 +626,33 @@ const check_in_progress_status = async function () {
   insert_with_success.value = false;
   already_inserted.value = false;
   refresh_feedback_messages(result.rsp.total_in_progress);
-  autorefresh.value = result.rsp.total_in_progress > 0 && modal_opened.value == false;
   
-  
-  
-
-  if (in_progress_number.value == 0) {
+  /* Get the number of scans currently in progress */
+  /* In case the number changed, refresh the table */
+  if(in_progress_number.value == null) {
+    /* First time checking the number of scans, don't refresh the table */
     in_progress_number.value = result.rsp.total_in_progress;
-    refresh_table(true);
-  } else {
-    if (in_progress_number.value != result.rsp.total_in_progress) {
-      refresh_table(true);
-      in_progress_number.value = result.rsp.total_in_progress;
-    }
   }
-  if(autorefresh.value == false && modal_opened.value == false) {
-    setTimeout(table_hosts_to_scan.value.refresh_table, 10000)
-    in_progress_number.value = 0;
-  } else {
-    refresh_table(true);
 
+  const scans_ended = result.rsp.total_in_progress == 0 && in_progress_number.value > 0;
+  in_progress_number.value = result.rsp.total_in_progress;
+  autorefresh.value = (in_progress_number.value > 0
+                      && modal_opened.value === false);
+
+  if(autorefresh.value === true) {
+    /* Refresh the data, periodic update */
+    setTimeout(function() {
+      refresh_table(true);
+    }, 2000);
+  } else if(scans_ended) {
+    /* Refresh the data, all scans ended */
+    setTimeout(function() {
+      refresh_table(true);
+    }, 5000);    
   }
 }
+
+/* ******************************************************************** */ 
 
 /* Function to confirm to start all scan */
 const confirm_scan_all_entries = function() {
@@ -648,12 +665,16 @@ const update_all_periodicity = function() {
   modal_update_perioditicy_scan.value.show();
 }
 
+/* ******************************************************************** */ 
+
 /* Function to exec the vulnerability scan of a single host */
 const scan_row = async function () {
   const row = row_to_scan.value;
   await scan_row_rest(row.host,row.scan_type, row.ports, row.id);
   refresh_table(true /* Disable loading, annoying when enabling a scan */);
 }
+
+/* ******************************************************************** */ 
 
 const scan_row_rest = async function(host, scan_type, ports, id) {
   const url = NtopUtils.buildURL(scan_host_url, {
@@ -667,6 +688,8 @@ const scan_row_rest = async function(host, scan_type, ports, id) {
   check_autorefresh();
 }
 
+/* ******************************************************************** */ 
+
 /* Function to exec a vulnerability scan to all hosts set */
 async function scan_all_entries() {
   const url = NtopUtils.buildURL(scan_host_url, {
@@ -676,6 +699,8 @@ async function scan_all_entries() {
   check_autorefresh();
   refresh_table(false);
 }
+
+/* ******************************************************************** */ 
 
 /* Function to delete host to scan */
 const delete_row = async function () {
@@ -693,6 +718,7 @@ const delete_row = async function () {
   refresh_table(false);
 }
 
+/* ******************************************************************** */ 
 
 const delete_all_rows = async function() {
   const row = row_to_delete.value;
@@ -705,7 +731,7 @@ const delete_all_rows = async function() {
   refresh_table(false);
 }
 
-
+/* ******************************************************************** */ 
 
 /* Function to download last vulnerability scan result */
 async function click_button_download(event) {
@@ -745,7 +771,6 @@ async function update_modal_status(value) {
   // modal is open/closed
   modal_opened.value = value;
   await check_autorefresh();
-  //refresh_table(false);
 }
 
 
