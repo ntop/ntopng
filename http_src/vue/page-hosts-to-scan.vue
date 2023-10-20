@@ -654,7 +654,7 @@ const update_all_periodicity = function() {
 const scan_row = async function () {
   const row = row_to_scan.value;
   await scan_row_rest(row.host,row.scan_type, row.ports, row.id);
-  refresh_table(false);
+  refresh_table(true /* Disable loading, annoying when enabling a scan */);
 }
 
 const scan_row_rest = async function(host, scan_type, ports, id) {
