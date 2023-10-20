@@ -302,7 +302,7 @@ const map_table_def_columns = (columns) => {
 /* Function to show all hosts during edit */
 
 async function click_button_show_hosts(event) {
-  let port = event.row.port;
+  let port = event.row.port_number;
 
   let params = {
     port: port,

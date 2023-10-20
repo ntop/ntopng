@@ -165,7 +165,7 @@ local function format_result(result)
 	 if(value.scan_type == "udp_openports") then value.scan_type = "udp_portscan" end
 
 	 -- FIX ME with udp port check
-	 if portCheck(tcp_ports_string_list, port) then
+	 if (portCheck(tcp_ports_string_list, port) or portCheck(udp_ports_string_list, port)) then
 	    if (isEmptyString(search_map)) then
 	       rsp[#rsp+1] = value
 	       rsp[#rsp].num_vulnerabilities_found = format_high_num_value_for_tables(value, "num_vulnerabilities_found")
