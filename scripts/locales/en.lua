@@ -4663,6 +4663,7 @@ local lang = {
     ["note_probe_zmq_drops_flow_collection_udp_socket_drops"] = "Dropped flow packets on the nProbe collection socket",
     ["note_probe_zmq_timeout_lifetime"] = "Flow lifetime duration as advertised by nProbe and the real lifetime computed on collected flows",
     ["note_remote_probe_time"] = "Difference in seconds between ntopng time and remote nProbe time: ideally it should be close to zero. If too large please sync nProbe/ntopng time",
+    ["other_probes"] = "%{num} other probes",
     ["paused"] = "Paused",
     ["probe_ip"] = "Probe IP",
     ["probe_public_ip"] = "Probe Public IP",

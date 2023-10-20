@@ -452,7 +452,7 @@ if((page == "overview") or (page == nil)) then
    local nprobe_interface, nprobe_version, nprobe_probe_ip, nprobe_probe_public_ip, nprobe_edition, nprobe_license, nprobe_maintenance = {}, {}, {}, {}, {}, {}, {}
 
    local tot_num_nprobes = table.len(ifstats.probes or {})
-   local max_num_nprobes = 2
+   local max_num_nprobes = 4
    local cur_num_nprobes = 0
 
    for k, v in pairsByKeys(ifstats.probes or {}, asc) do
@@ -484,6 +484,18 @@ if((page == "overview") or (page == nil)) then
       nprobe_edition[#nprobe_edition + 1] = v["probe.probe_edition"]
       nprobe_license[#nprobe_license + 1] = v["probe.probe_license"] or i18n("if_stats_overview.no_license")
       nprobe_maintenance[#nprobe_maintenance + 1] = v["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance")
+   end
+
+   if tot_num_nprobes > max_num_nprobes then
+      local other_probes = tot_num_nprobes - max_num_nprobes
+      local other_probes_message = "... (" .. i18n("if_stats_overview.other_probes", {num = other_probes}) .. ")"
+      nprobe_interface[#nprobe_interface + 1] = other_probes_message
+      nprobe_version[#nprobe_version + 1] = other_probes_message
+      nprobe_probe_ip[#nprobe_probe_ip + 1] = other_probes_message
+      nprobe_probe_public_ip[#nprobe_probe_public_ip + 1] = other_probes_message
+      nprobe_edition[#nprobe_edition + 1] = other_probes_message
+      nprobe_license[#nprobe_license + 1] = other_probes_message
+      nprobe_maintenance[#nprobe_maintenance + 1] = other_probes_message
    end
 
    if cur_num_nprobes > 0 then
