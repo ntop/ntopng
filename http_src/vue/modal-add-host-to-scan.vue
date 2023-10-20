@@ -192,13 +192,16 @@ const reset_modal_form = function() {
     activate_spinner.value = false;
     activate_add_spinner.value = false;
     message_feedback.value = "";
-    row_to_edit_id.value = null;
     
     ports_placeholder = i18n('hosts_stats.page_scan_hosts.ports_placeholder');
 
 
     selected_scan_type.value = scan_type_list.value[0];
     selected_cidr.value = cidr_options_list.value[1];
+
+    row_to_edit_id.value = null;
+    is_edit_page.value = false;
+    title = i18n('hosts_stats.page_scan_hosts.add_host');
 }
 
 /**
