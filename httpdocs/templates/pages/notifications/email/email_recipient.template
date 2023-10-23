@@ -20,6 +20,6 @@
 	data-validation-message="{{ i18n('notification_endpoint.email.validation.invalid_email') }}"
 	data-validation-empty-message="{{ i18n('notification_endpoint.email.validation.empty_email') }}"
 	name="cc" data-pattern="email" class="form-control" />
-        <small class="text-muted">{{ i18n("optional_field") }}</small>
+        <small class="text-muted">{{ i18n("cc_list") }} {{ i18n("optional_field") }}</small>
     </div>
 </div>
