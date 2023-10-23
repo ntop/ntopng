@@ -1065,12 +1065,12 @@ else
             end
 
         elseif (host_vulnerabilities ~= nil and (host_vulnerabilities.num_vulnerabilities_found == nil or host_vulnerabilities.num_vulnerabilities_found == 0)) then
-            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
+            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. "</th>")
             print("<td colspan=2>")
             print(i18n("hosts_stats.page_scan_hosts.no_cves_detected"))
             
         elseif (host_vulnerabilities == nil) then
-            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
+            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. "</th>")
             print("<td colspan=2>")
             print('<a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=scan_hosts&host='..host["ip"]..'&ifid='..ifId..'">'.. i18n("hosts_stats.page_scan_hosts.add_to_scan_list")..'</a> ')
         end
