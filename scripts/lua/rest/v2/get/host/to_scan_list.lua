@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua
 require "lua_utils"
 local rest_utils = require "rest_utils"
 local vs_utils = require "vs_utils"
-local search_map = tostring(_GET["map_search"]) or nil
+local search_map = _GET["map_search"]
 local format_utils = require "format_utils"
 
 -- ##################################################################
