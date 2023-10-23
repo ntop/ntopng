@@ -7,6 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
+-- Logout page for nEdge Captive Portal users
+
 local captive_portal_utils = require("captive_portal_utils")
 
 if not ntop.isnEdge() then
