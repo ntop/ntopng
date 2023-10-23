@@ -1923,6 +1923,8 @@ bool Utils::sendMail(lua_State *vm, char *from, char *to, char *cc,
   bool ret = true;
   const char *ret_str = "";
 
+  verbose = true; // FIXME
+  
 #ifdef HAVE_CURL_SMTP
   CURL *curl;
   CURLcode res;
@@ -1966,7 +1968,23 @@ bool Utils::sendMail(lua_State *vm, char *from, char *to, char *cc,
     curl_easy_setopt(curl, CURLOPT_MAIL_FROM, from);
 
     recipients = curl_slist_append(recipients, to);
-    if (cc && cc[0]) recipients = curl_slist_append(recipients, cc);
+    if (cc && cc[0]) {
+      char *ccs = strdup(cc);
+
+      if(ccs) {
+	char *tmp, *rec;
+
+	rec = strtok_r(ccs, ",", &tmp);
+
+	while(rec != NULL) {
+	  if(verbose) ntop->getTrace()->traceEvent(TRACE_WARNING, "Adding cc: %s", rec);
+	  recipients = curl_slist_append(recipients, rec);
+	  rec = strtok_r(NULL, ",", &tmp);
+	}
+
+	free(ccs);
+      }
+    }
     curl_easy_setopt(curl, CURLOPT_MAIL_RCPT, recipients);
 
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, curl_smtp_payload_source);
