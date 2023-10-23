@@ -28,7 +28,7 @@
             </ModalUpdatePeriodicityScan>
             <TableWithConfig ref="table_hosts_to_scan" :table_id="table_id" :csrf="context.csrf"
               :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
-              :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event">
+              :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event" @rows_loaded="on_table_loaded">
               <template v-slot:custom_header>
                 <button class="btn btn-link" type="button" ref="add_host" @click="add_host"><i
                     class='fas fa-plus'></i></button>
@@ -155,15 +155,10 @@ function refresh_table(disable_loading) {
   /* It's important to set autorefresh to false, in this way when refreshed 
      all the entries are going to be checked and if all of them are not scanning it stays false
    */
-  total_rows.value = table_hosts_to_scan.value.get_rows_num();
-  console.log(total_rows.value)
-  //console.log("REFRESHING")
   if(disable_loading != null)
     table_hosts_to_scan.value.refresh_table(disable_loading);
   else
     table_hosts_to_scan.value.refresh_table(true);
-
-  
 }
 
 /* ******************************************************************** */ 
@@ -447,7 +442,6 @@ function delete_all_entries() {
   already_inserted.value = false;
   refresh_feedback_messages();
   modal_delete_confirm.value.show('delete_all', i18n('delete_all_vs_hosts'));
-  total_rows.value = table_hosts_to_scan.value.get_rows_num();
 }
 
 /* Function to edit host to scan */
@@ -484,6 +478,13 @@ async function check_autorefresh() {
 
 /* ******************************************************************** */ 
 
+/* Get the number of rows of the table */
+function on_table_loaded() {
+  total_rows.value = table_hosts_to_scan.value.get_rows_num();
+}
+
+/* ******************************************************************** */ 
+
 /* Function to map columns data */
 const map_table_def_columns = async (columns) => {
   let result = columns_formatter(columns, scan_type_list, false);
@@ -503,7 +504,6 @@ onMounted(async () => {
   await get_scan_type_list_v;
   await modal_add.value.metricsLoaded(scan_type_list, props.context.ifid, props.context.is_enterprise_l);
   total_rows.value = table_hosts_to_scan.value.get_rows_num();
-  
   if (props.context.host != null) {
     modal_add.value.show(null, props.context.host);
   }
