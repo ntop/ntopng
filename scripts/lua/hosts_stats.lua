@@ -662,7 +662,7 @@ if page == 'active_hosts' then
                }, 
                {
                title: "]]
-        print(i18n("hosts_stats.page_scan_hosts.vulnerabilities") )
+        print(i18n("hosts_stats.page_scan_hosts.title_hosts_page") )
         print [[",
                field: "column_num_vulnerabilities",
                sortable: false,

@@ -15,6 +15,7 @@ local ts_utils = require "ts_utils_core"
 
 
 local vs_utils = require "vs_utils"
+local cve_utils = require "cve_utils"
 
 if (ntop.isPro()) then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -1025,6 +1026,55 @@ else
 
         print("<tr><th colspan=4></th></tr>\n")
 
+        local host_vulnerabilities = vs_utils.retrieve_host(host["ip"])
+
+        if host_vulnerabilities ~= nil and host_vulnerabilities.num_vulnerabilities_found and host_vulnerabilities.num_vulnerabilities_found > 0 then
+            if(host_vulnerabilities.last_scan.time == nil) then
+                host_vulnerabilities.last_scan.time = format_utils.formatPastEpochShort(host_vulnerabilities.last_scan.epoch)     
+            end
+            
+            print('<tr><th><a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=show_result&scan_date='..host_vulnerabilities.last_scan.time..'&host='..host_vulnerabilities.host..'&scan_type='..host_vulnerabilities.scan_type..'">'.. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. '</a></th>')
+            print("<td colspan=2>")
+            local i = 0
+            for _,vs in ipairs(host_vulnerabilities.cve) do
+                if (i<5) then
+                    
+                    local cve_details = split(vs,"|")
+                    local cve_score = tonumber(cve_details[2])
+                    local cve_id = cve_details[1]
+
+                    local badge_type = "";
+                    if (cve_score == 0) then
+                        badge_type = "bg-success";
+                    elseif(cve_score < 3.9) then
+                        badge_type = "bg-secondary";
+                    elseif(cve_score < 7) then
+                        badge_type = "bg-warning";
+                    else
+                        badge_type = "bg-danger";
+                    end
+
+                    local url = cve_utils.getDocURL(cve_id, host_vulnerabilities.scan_type)
+                    
+                    print('<a href='..url..'><span class="badge '..badge_type..'">'..cve_id..' </span></a> ')
+                else
+                    print('...')
+                    break 
+                end
+                i = i + 1
+            end
+
+        elseif (host_vulnerabilities ~= nil and (host_vulnerabilities.num_vulnerabilities_found == nil or host_vulnerabilities.num_vulnerabilities_found == 0)) then
+            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
+            print("<td colspan=2>")
+            print(i18n("hosts_stats.page_scan_hosts.no_cves_detected"))
+            
+        elseif (host_vulnerabilities == nil) then
+            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
+            print("<td colspan=2>")
+            print('<a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=scan_hosts&host='..host["ip"]..'&ifid='..ifId..'">'.. i18n("hosts_stats.page_scan_hosts.add_to_scan_list")..'</a> ')
+        end
+
         -- ###########################################################
 
         print("<tr><th></th><th>" .. i18n("details.as_client") .. "</th><th>" .. i18n("details.as_server") ..
@@ -1324,36 +1374,7 @@ else
                     host["ssdp"] .. "'>" .. host["ssdp"] .. "<A></td></tr>\n")
         end
 
-        local host_vulnerabilities = vs_utils.retrieve_host(host["ip"])
-
-        if host_vulnerabilities ~= nil and host_vulnerabilities.num_vulnerabilities_found and host_vulnerabilities.num_vulnerabilities_found > 0 then
-            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
-            print("<td colspan=2>")
-            local i = 0
-            for _,vs in ipairs(host_vulnerabilities.cve) do
-                if (i<5) then
-                    
-                    if(host_vulnerabilities.last_scan.time == nil) then
-                        host_vulnerabilities.last_scan.time = format_utils.formatPastEpochShort(host_vulnerabilities.last_scan.epoch)     
-                    end
-                    print('<a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=show_result&scan_date='..host_vulnerabilities.last_scan.time..'&host='..host_vulnerabilities.host..'&scan_type='..host_vulnerabilities.scan_type..'"><span class="badge bg-secondary" title="'..vs..'">'..vs..'</span></a> ')
-                else
-                    print('...')
-                    break 
-                end
-                i = i + 1
-            end
-
-        elseif (host_vulnerabilities ~= nil and (host_vulnerabilities.num_vulnerabilities_found == nil or host_vulnerabilities.num_vulnerabilities_found == 0)) then
-            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
-            print("<td colspan=2>")
-            print(i18n("hosts_stats.page_scan_hosts.no_cves_detected"))
-            
-        elseif (host_vulnerabilities == nil) then
-            print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.vulnerabilities") .. "</th>")
-            print("<td colspan=2>")
-            print('<a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=scan_hosts&host='..host["ip"]..'&ifid='..ifId..'">'.. i18n("hosts_stats.page_scan_hosts.add_to_scan_list")..'</a> ')
-        end
+        
 
         print("<tr><th colspan=4></th></tr>\n")
 
