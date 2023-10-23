@@ -322,7 +322,7 @@ async function set_columns_wrap() {
         let id = props.get_column_id(c);
         let col_opt = cols_visibility_dict[id];
         let sort = col_opt?.sort;
-        if (is_table_not_sorted == false && sort == null && props.default_sort != null && id == props.default_sort.column_id) {
+        if (is_table_not_sorted == true && sort == null && props.default_sort != null && id == props.default_sort.column_id) {
             sort = props.default_sort.sort;
         } else if (col_opt?.sort) {
             sort = col_opt?.sort;
