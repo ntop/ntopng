@@ -2079,21 +2079,21 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx,
 	  switch(encoding_type) {
 	  case 13: /* Screen Share */
 	  case 30: /* Screen Share */
-	    flow->setRTPStreamType(rtp_screen_share);
+	    flow->setRTPStreamType(ndpi_multimedia_screen_sharing_flow);
 	    break;
 
 	  case 15: /* Audio */
-	    flow->setRTPStreamType(rtp_audio);
+	    flow->setRTPStreamType(ndpi_multimedia_audio_flow);
 	    break;
 
 	  case 16: /* Video */
-	    flow->setRTPStreamType(rtp_video);
-	    break;
+	    flow->setRTPStreamType(ndpi_multimedia_video_flow);
+	    break;	    
 	  }
 	}
-      } else if(flow->getRTPStreamType() == rtp_unknown) {
+      } else if(flow->getRTPStreamType() == ndpi_multimedia_unknown_flow) {
 	if(flow->get_ndpi_flow() != NULL) {
-	  flow->setRTPStreamType(flow->get_ndpi_flow()->protos.rtp.stream_type);
+	  flow->setRTPStreamType(flow->get_ndpi_flow()->flow_multimedia_type);
 	}
       }
       break;

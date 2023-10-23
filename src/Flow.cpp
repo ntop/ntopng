@@ -105,7 +105,7 @@ Flow::Flow(NetworkInterface *_iface,
   memset(&protos, 0, sizeof(protos));
   memset(&flow_device, 0, sizeof(flow_device));
 
-  flow_score = 0, rtp_stream_type = rtp_unknown;
+  flow_score = 0, rtp_stream_type = ndpi_multimedia_unknown_flow;
 
   INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_vlanId, _observation_point_id, _private_flow_id, _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
@@ -272,7 +272,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   default:
     setDetectedProtocol(ndpi_guess_undetected_protocol(iface->get_ndpi_struct(),
-						       NULL, protocol, 0, 0, 0, 0));
+						       NULL, protocol));
     break;
   }
 
@@ -1174,6 +1174,7 @@ void Flow::setExtraDissectionCompleted() {
        must be called explicitly. */
     if(get_cli_ip_addr()->get_ipv4() && get_srv_ip_addr()->get_ipv4() /* Only IPv4 is supported */) {
       ndpi_fill_ip_protocol_category(iface->get_ndpi_struct(),
+				     ndpiFlow,
 				     get_cli_ip_addr()->get_ipv4(), get_srv_ip_addr()->get_ipv4(),
 				     &ndpiDetectedProtocol);
       stats.setDetectedProtocol(&ndpiDetectedProtocol);
@@ -1847,7 +1848,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host, 
     /* Don't break, let's process also HTTP_PROXY */
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(srv_host) {
-      if(!Utils::isIPAddress(host_server_name) && hasRisk(NDPI_HTTP_NUMERIC_IP_HOST)) {
+      if(!Utils::isIPAddress(host_server_name) && hasRisk(NDPI_NUMERIC_IP_HOST)) {
         srv_host->offlineSetHTTPName(host_server_name);
       }
 
@@ -2564,21 +2565,17 @@ void Flow::lua(lua_State* vm, AddressTree * ptree,
     lua_push_int32_table_entry(vm, "flow_verdict", flow_verdict);
     lua_push_bool_table_entry(vm, "periodic_flow", is_periodic_flow ? true : false);
 
-    if(rtp_stream_type != rtp_unknown) {
+    if(rtp_stream_type != ndpi_multimedia_unknown_flow) {
       switch(rtp_stream_type) {
-      case rtp_audio:
+      case ndpi_multimedia_audio_flow:
 	lua_push_str_table_entry(vm, "rtp_stream_type", "audio");
 	break;
 
-      case rtp_video:
+      case ndpi_multimedia_video_flow:
 	lua_push_str_table_entry(vm, "rtp_stream_type", "video");
 	break;
 
-      case rtp_audio_video:
-	lua_push_str_table_entry(vm, "rtp_stream_type", "audio_video");
-	break;
-
-      case rtp_screen_share:
+      case ndpi_multimedia_screen_sharing_flow:
 	lua_push_str_table_entry(vm, "rtp_stream_type", "screen_share");
 	break;
 
@@ -5791,7 +5788,7 @@ void Flow::fillZmqFlowCategory(const ParsedFlow *zflow, ndpi_protocol *res) cons
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
 
   if(cli_ip && srv_ip && cli_ip->isIPv4()) {
-    if(ndpi_fill_ip_protocol_category(ndpi_struct, cli_ip->get_ipv4(), srv_ip->get_ipv4(), res))
+    if(ndpi_fill_ip_protocol_category(ndpi_struct, ndpiFlow, cli_ip->get_ipv4(), srv_ip->get_ipv4(), res))
       return;
   }
 
