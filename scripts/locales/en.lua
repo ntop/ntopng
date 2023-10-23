@@ -4054,8 +4054,8 @@ local lang = {
     ["enforce_quotas_per_pool_member"] = "Per-Member Quotas",
     ["enforce_shapers_per_pool_member"] = "Per-Member Shapers",
     ["from_pool"] = "from host pool",
-    ["host_members"] = "Host Pool Members",
-    ["host_pools"] = "Host Pools",
+    ["host_members"] = "Host/Network/MAC Pool Members",
+    ["host_pools"] = "Host/Network/MAC Pools",
     ["import_hosts"] = "Import Host Pools Members",
     ["import_hosts_desc"] = "Upload a CSV file containing the host pool members to insert.",
     ["import_hosts_title"] = "Import Host Pool Members: %{pool}",
@@ -5936,7 +5936,7 @@ local lang = {
     ["pool_parameter_missing_message"] = "Parameter is missing (internal error ?)",
   },
   ["pool_stats"] = {
-    ["host_pool_list"] = "Host Pool List",
+    ["host_pool_list"] = "Host/Network/MAC Pool List",
   },
   ["pools"] = {
     ["config_import"] = "Import Configuration",
