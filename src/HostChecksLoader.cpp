@@ -137,7 +137,14 @@ void HostChecksLoader::loadConfiguration() {
     const char *check_key = json_object_iter_peek_name(&it);
     json_object *check_config = json_object_iter_peek_value(&it);
     json_object *json_script_conf, *json_hook_all;
-
+ 
+    /* Skip this external_host_script check, it's an exception! */
+    if(strcmp(check_key, "external_host_script") == 0) {
+      /* Move to the next element */
+      json_object_iter_next(&it);
+      continue;
+    }
+    
     /* Periodicities that are currently available for user scripts */
     static std::map<std::string, u_int32_t> hooks = {{"min", 60},
                                                      {"5mins", 300}};
