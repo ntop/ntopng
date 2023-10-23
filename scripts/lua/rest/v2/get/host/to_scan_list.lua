@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua
 require "lua_utils"
 local rest_utils = require "rest_utils"
 local vs_utils = require "vs_utils"
-local search_map = _GET["map_search"]
+local search_map = tostring(_GET["map_search"]) or nil
 local format_utils = require "format_utils"
 
 -- ##################################################################
@@ -16,6 +16,10 @@ local format_utils = require "format_utils"
 local port = _GET["port"]
 local sort = _GET["sort"]
 
+if (not isEmptyString(search_map)) then
+   -- trim search_map string
+   search_map = trimString(search_map)
+end
 -- ##################################################################
 
 -- Function to convert ipv6 or ipv4 to hexadecimal int
