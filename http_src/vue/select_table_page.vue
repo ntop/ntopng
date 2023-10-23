@@ -71,7 +71,7 @@ onMounted(() => {
 
 watch(() => [props.total_rows, props.per_page], (cur_value, old_value) => {
     calculate_pages();
-}, { flush: 'pre'});
+}, { flush: 'pre', immediate: true });
 
 function calculate_pages() {
     if (props.total_rows == null) { return; }
@@ -79,12 +79,15 @@ function calculate_pages() {
     total_pages.value = Number.parseInt((props.total_rows + per_page - 1) / per_page);
     num_page_buttons.value = max_page_buttons;
     if (total_pages.value < num_page_buttons.value) {
-	num_page_buttons.value = total_pages.value;
+	    num_page_buttons.value = total_pages.value;
     }
     if (active_page.value >= total_pages.value && total_pages.value > 0) {
-	total_pages.value = total_pages.value + 1;
-	active_page.value = total_pages.value - 1;
-	start_page_button.value = total_pages.value - num_page_buttons.value;
+      //	total_pages.value = total_pages.value + 1;
+      /* In case the current active page is higher than the max pages, restart from page 1 */
+      active_page.value = total_pages.value - 1;
+      start_page_button.value = total_pages.value - num_page_buttons.value;
+      /* Redundant call in order to correctly load pages */
+      change_active_page(active_page.value);
     }
 
     set_text();
@@ -137,7 +140,7 @@ function change_active_page(new_active_page, new_start_page_button) {
   if (active_page.value == end_page_button && total_pages.value - 1 > end_page_button) {
     start_page_button.value += 1;	
   }
-
+  
   /* Check that the active_page is not greater then the last page */
   /* otherwise set to the last page */
   if(active_page.value > total_pages.value - 1 && total_pages.value != 0) {
@@ -156,10 +159,7 @@ function set_text() {
     text.value = text_template.replace("%active_page", format_number(`${active_page.value + 1}`))
 	.replace("%total_pages", format_number(`${total_pages.value}`))
 	.replace("%total_rows", format_number(`${props.total_rows}`))
-	.replace("%per_page", format_number(`${props.per_page}`))
-	;
-    // console.log(text.value);
-    // console.log(active_page.value);
+	.replace("%per_page", format_number(`${props.per_page}`));
 }
 
 function format_number(s) {

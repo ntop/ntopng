@@ -459,7 +459,6 @@ async function set_rows() {
     set_active_rows();
     loading.value = false;
     emit('rows_loaded', res);
-    // changing_rows.value = false;
 }
 
 function is_column_sortable(col) {
