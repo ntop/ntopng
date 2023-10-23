@@ -503,7 +503,6 @@ onBeforeMount(async () => {
 onMounted(async () => {
   await get_scan_type_list_v;
   await modal_add.value.metricsLoaded(scan_type_list, props.context.ifid, props.context.is_enterprise_l);
-  total_rows.value = table_hosts_to_scan.value.get_rows_num();
   if (props.context.host != null) {
     modal_add.value.show(null, props.context.host);
   }
