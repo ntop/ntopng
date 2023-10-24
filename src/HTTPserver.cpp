@@ -27,6 +27,8 @@ static void traceHTTP(const struct mg_connection *const conn, u_int16_t status_c
 #include "../third-party/mongoose/mongoose.c"
 #undef USE_LUA
 
+//#define DEBUG_CAPTIVE_PORTAL
+
 extern "C" {
 #include "lua.h"
 #include "lauxlib.h"
@@ -310,16 +312,19 @@ static int checkCaptive(const struct mg_connection *conn,
       This user logged onto ntopng via the captive portal
     */
     u_int16_t host_pool_id;
-    // #ifdef DEBUG
     char buf[32];
 
     ntop->getTrace()->traceEvent(
-        TRACE_INFO, "[CAPTIVE] %s @ %s/%08X [Redirecting to %s%s]", username,
+#ifdef DEBUG_CAPTIVE_PORTAL
+        TRACE_NORMAL,
+#else
+        TRACE_INFO,
+#endif
+        "[CAPTIVE] %s @ %s/%08X [Redirecting to %s%s]", username,
         Utils::intoaV4((unsigned int)conn->request_info.remote_ip, buf, sizeof(buf)),
         (unsigned int)conn->request_info.remote_ip,
         mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char *)"",
         request_info->uri);
-    // #endif
 
     char bridge_interface[32];
 
@@ -485,7 +490,7 @@ static int getAuthorizedUser(struct mg_connection *conn,
     Kindle
     1. KINDLE_WIFISTUB_URL
   */
-  if (!strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL)) {
+  if (strcmp(request_info->uri, AUTHORIZE_CAPTIVE_LUA_URL) == 0) {
     /* A captive portal request has been issued to the authorization url */
 
     if (ntop->getPrefs()->isInformativeCaptivePortalEnabled()) {
@@ -498,10 +503,11 @@ static int getAuthorizedUser(struct mg_connection *conn,
       /* Here the captive portal is not just informative; it requires
          authentication. For this reason it is necessary to check submitted
          username and password. */
-      if (!strcmp(request_info->request_method, "POST")) {
+      if (strcmp(request_info->request_method, "POST") == 0) {
         char post_data[1024];
         char label[128];
         int post_data_len = mg_read(conn, post_data, sizeof(post_data));
+        bool success;
 
         label[0] = '\0';
 
@@ -511,8 +517,15 @@ static int getAuthorizedUser(struct mg_connection *conn,
                    sizeof(password));
         mg_get_var(post_data, post_data_len, "label", label, sizeof(label));
 
-        return (ntop->checkCaptiveUserPassword(username, password, group) &&
-                checkCaptive(conn, request_info, username, password, label));
+        success = (ntop->checkCaptiveUserPassword(username, password, group) &&
+                   checkCaptive(conn, request_info, username, password, label));
+
+#ifdef DEBUG_CAPTIVE_PORTAL 
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Check Captive: %s",
+          success ? "AUTHORIZED" : "NOT authorized");
+#endif
+
+        return success;
       }
     }
   }
@@ -520,7 +533,7 @@ static int getAuthorizedUser(struct mg_connection *conn,
 
   if (
 #ifdef HAVE_NEDGE
-      (!strcmp(request_info->uri, CAPTIVE_PORTAL_LOGOUT_URL)) ||
+      (strcmp(request_info->uri, CAPTIVE_PORTAL_LOGOUT_URL) == 0) ||
 #endif
       user_login_disabled) {
     strncpy(username, NTOP_NOLOGIN_USER, NTOP_USERNAME_MAXLEN);
@@ -655,14 +668,12 @@ static int isCaptiveConnection(struct mg_connection *conn) {
 /* ****************************************** */
 
 static bool isCaptiveURL(char *url) {
-  if ((!strcmp(url, KINDLE_WIFISTUB_URL)) ||
-      (!strcmp(url, HOTSPOT_DETECT_URL)) ||
-      (!strcmp(url, HOTSPOT_DETECT_LUA_URL)) ||
-      (!strcmp(url, ntop->getPrefs()->getCaptivePortalUrl())) ||
-      (!strcmp(url, AUTHORIZE_CAPTIVE_LUA_URL)) || isRootURL(url))
-    return (true);
-  else
-    return (false);
+  return (strcmp(url, KINDLE_WIFISTUB_URL) == 0 ||
+          strcmp(url, HOTSPOT_DETECT_URL) == 0 ||
+          strcmp(url, HOTSPOT_DETECT_LUA_URL) == 0 ||
+          strcmp(url, ntop->getPrefs()->getCaptivePortalUrl()) == 0 ||
+          strcmp(url, AUTHORIZE_CAPTIVE_LUA_URL) == 0 ||
+          isRootURL(url));
 }
 #endif
 
@@ -779,6 +790,10 @@ static void redirect_to_login(struct mg_connection *conn,
             &has_custom_informative_url);
     const char *wispr_data = ntop->get_HTTPserver()->getWisprCaptiveData(
         wispr_captive_data, sizeof(wispr_captive_data), captive_login_url);
+
+#ifdef DEBUG_CAPTIVE_PORTAL 
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Redirect to login");
+#endif
 
     if (ntop->getPrefs()->isInformativeCaptivePortalEnabled() &&
         has_custom_informative_url) {
@@ -1187,7 +1202,7 @@ static int handle_lua_request(struct mg_connection *conn) {
     return (1);
   } else
 #endif
-      if (!strcmp(request_info->uri, HOTSPOT_DETECT_URL)) {
+  if (strcmp(request_info->uri, HOTSPOT_DETECT_URL) == 0) {
     mg_printf(
         conn,
         "HTTP/1.1 302 Found\r\n"
@@ -1958,7 +1973,7 @@ HTTPserver::~HTTPserver() {
 void HTTPserver::startCaptiveServer() {
   struct mg_callbacks captive_callbacks;
   char captive_port[64];
-  char access_log_path[MAX_PATH] = {0};
+  char access_log_path[MAX_PATH+32] = {0};
 
   snprintf(captive_port, sizeof(captive_port), "%u", CAPTIVE_PORTAL_PORT);
 
