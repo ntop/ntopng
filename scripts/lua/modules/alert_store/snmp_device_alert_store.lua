@@ -181,7 +181,7 @@ function snmp_device_alert_store:format_record(value, no_html)
    record[RNAME.IP.name] = value["ip"]
    record[RNAME.NAME.name] = snmp_utils.get_snmp_device_sysname(value["ip"]) or ""
    record[RNAME.PORT.name] = {
-      value = value["ip"] .. "_" .. value["port"],
+      value = value["port"],
       label = value["port_name"] or value["port"]
    }
 

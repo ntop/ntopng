@@ -653,7 +653,12 @@ function click_button_historical_flows(event) {
 
 function click_button_snmp_info(event) {
     const alert = event.row;
-    const href = `${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?host=${alert.ip}&snmp_port_idx=${alert.port.value}`;
+    let href = ``;
+    if (alert.port.value != null) {
+        href = `${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${alert.ip}&snmp_port_idx=${alert.port.value}`;
+    } else {
+        href = `${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?host=${alert.ip}`;
+    }
     window.open(href, "_blank");
 }
 
