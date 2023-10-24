@@ -89,6 +89,20 @@
         'emergency'
     ];
 
+
+    const getInvalidMessage = (formSelector, param) => {
+
+        const $inputsTemplate = $(`${formSelector} .recipient-template-container [name]`);
+        
+        let localizedString = "";
+        $inputsTemplate.each(function (i, input) {
+            if ($(this).attr('name') == param) {
+                localizedString = $(this).attr('data-validation-message');
+            } 
+        });
+        return localizedString;
+    }
+
     const makeFormData = (formSelector) => {
 
         const $inputsTemplate = $(`${formSelector} .recipient-template-container [name]`);
@@ -587,6 +601,7 @@
         method: 'post',
         csrf: pageCsrf,
         endpoint: `${http_prefix}/lua/edit_notification_recipient.lua`,
+        resetAfterSubmit: false,
         beforeSumbit: function () {
             const data = makeFormData(`#edit-recipient-modal form`);
             data.action = 'edit';
@@ -721,6 +736,11 @@
             if (response.result.status == "OK") {
                 $(`#edit-recipient-modal`).modal('hide');
                 $recipientsTable.ajax.reload();
+            }
+
+            if (response.result.error) {
+                const localizedString = getInvalidMessage(`#edit-recipient-modal form`, response.result.error.missing_param);
+                $(`#edit-recipient-modal form .invalid-feedback`).text(localizedString).show();
             }
         }
     });
