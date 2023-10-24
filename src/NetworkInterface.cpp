@@ -11616,7 +11616,7 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
       if (fs)
         build_lua_rsp(vm, fs, filter_type, vector_size, &num, true);
 
-      if (num >= max_num_rows) break;
+      if (max_num_rows != 0 && num >= max_num_rows) break;
     }
   } else {
     build_lua_rsp(vm, NULL, filter_type, vector_size, &num, false);

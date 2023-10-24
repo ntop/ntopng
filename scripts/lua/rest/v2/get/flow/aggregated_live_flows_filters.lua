@@ -41,8 +41,8 @@ interface.select(ifid)
 filters["page"] = tonumber(_GET["draw"] or 0)
 filters["sort_column"] = _GET["sort"] or 'flows'
 filters["sort_order"] = _GET["order"] or 'desc'
-filters["start"] = tonumber(_GET["start"] or 0)
-filters["length"] = tonumber(_GET["length"] or 10)
+filters["start"] = 0
+filters["length"] = 0
 filters["map_search"] = _GET["map_search"]
 filters["host"] = _GET["host"]
 -- Aggregation criteria 
