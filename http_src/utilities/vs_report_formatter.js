@@ -48,7 +48,7 @@ export const columns_formatter = (columns, scan_type_list, is_report, ifid) => {
         b.f_map_class = (current_class, row) => { 
           current_class = current_class.filter((class_item) => class_item != "link-disabled");
           // FIX ME with UDP ports check
-          if((row.is_ok_last_scan == 3 || row.is_ok_last_scan == null || (row.tcp_ports < 1 && row.udp_ports < 1) ) && visible_dict[b.id]) {
+          if((row.is_ok_last_scan == 3 || row.is_ok_last_scan == null || (row.tcp_ports < 1 && row.udp_ports < 1) || (row.last_scan.time == null || row.last_scan.date == null) ) && visible_dict[b.id]) {
             current_class.push("link-disabled"); 
           }
           return current_class;
