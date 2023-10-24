@@ -1,6 +1,7 @@
 --
 -- (C) 2013-23 - ntop.org
 --
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/pro/enterprise/modules/?.lua;" .. package.path
@@ -81,7 +82,7 @@ local criteria_type_id = 1 -- by default application_protocol
 if criteria == "client" then
    criteria_type_id = 2
 elseif criteria == "server" then
-      criteria_type_id = 3
+   criteria_type_id = 3
 elseif criteria == "client_server_srv_port" then
    criteria_type_id = 7
 elseif ntop.isEnterpriseM() then
@@ -90,9 +91,12 @@ end
 
 local isView = interface.isView()
 local x = 0
+
 -- Retrieve the flows
 local aggregated_info = interface.getProtocolFlowsStats(criteria_type_id, filters["page"], filters["sort_column"],
-							filters["sort_order"], filters["start"], filters["length"], ternary(not isEmptyString(filters["map_search"]), filters["map_search"], nil) , ternary(filters["host"]~= "", filters["host"], nil), vlan)
+							filters["sort_order"], filters["start"], filters["length"],
+							ternary(not isEmptyString(filters["map_search"]), filters["map_search"], nil),
+							ternary(filters["host"]~= "", filters["host"], nil), vlan)
 
 -- Formatting the data
 for _, data in pairs(aggregated_info or {}) do
@@ -109,19 +113,18 @@ for _, data in pairs(aggregated_info or {}) do
    local application = nil
    local srv_port = nil
 
-   if (vlan) and
-      (tonumber(vlan) ~= tonumber(data.vlan_id) ) then
+   if (vlan) and (tonumber(vlan) ~= tonumber(data.vlan_id) ) then
       goto continue
    end
 
    -- In case the vlans are 0, put them to nil for semplicity later
    --[[if data.srv_vlan_id == 0 then
       data.srv_vlan_id = nil
-   end
+      end
 
-   if data.cli_vlan_id == 0 then
+      if data.cli_vlan_id == 0 then
       data.cli_vlan_id = nil
-   end
+      end
    --]]
    local response = {}
    if (criteria_type_id == 1) then
@@ -139,10 +142,10 @@ for _, data in pairs(aggregated_info or {}) do
 	 add_server = true
       end
       if(data.client_ip ~= nil) then
-   add_client = true
+	 add_client = true
       end
       if(data.srv_port ~= nil) then
-   add_server_port = true
+	 add_server_port = true
       end
    elseif ntop.isEnterpriseM() then
       response = get_output_flags(criteria_type_id)
@@ -163,6 +166,10 @@ for _, data in pairs(aggregated_info or {}) do
       }
    end
 
+   if(data.num_entries == 0) then
+      goto continue
+   end
+   
    -- Format the client and server info
    if (add_client or (response ~= {} and response.add_client)) then
       local host = interface.getHostInfo(data.client_ip, data.cli_vlan_id or data.vlan_id)
@@ -201,11 +208,12 @@ for _, data in pairs(aggregated_info or {}) do
    end
 
    if add_server and (vlan ~= nil and tonumber(vlan) ~=
-   tonumber(data.srv_vlan_id)) then
+		      tonumber(data.srv_vlan_id)) then
       goto continue
    end
+   
    if add_client and ( vlan ~= nil and tonumber(vlan) ~= tonumber(data.cli_vlan_id)) then
-         goto continue
+      goto continue
    end
 
    if (table.len(response) > 0 and response.add_info) then
@@ -219,28 +227,28 @@ for _, data in pairs(aggregated_info or {}) do
    num_entries = data.num_entries
 
    local item =  {
-	 flows = format_high_num_value_for_tables(data, 'num_flows'),
+      flows = format_high_num_value_for_tables(data, 'num_flows'),
 
-	 breakdown = {
-	    percentage_bytes_sent = (bytes_sent * 100) / total_bytes,
-	    percentage_bytes_rcvd = (bytes_rcvd * 100) / total_bytes
-	 },
-	 bytes_rcvd = bytes_rcvd,
-	 bytes_sent = bytes_sent,
-	 tot_traffic = total_bytes,
-	 tot_score = format_high_num_value_for_tables(data, 'total_score'),
-	 num_servers = format_high_num_value_for_tables(data, 'num_servers'),
-	 num_clients = format_high_num_value_for_tables(data, 'num_clients'),
-	 client = client,
-	 server = server,
-	 info = info,
-    srv_port = srv_port,
-	 application = application,
-    vlan_id = {
-      id = nil,
-      label = nil
-    }
+      breakdown = {
+	 percentage_bytes_sent = (bytes_sent * 100) / total_bytes,
+	 percentage_bytes_rcvd = (bytes_rcvd * 100) / total_bytes
+      },
+      bytes_rcvd = bytes_rcvd,
+      bytes_sent = bytes_sent,
+      tot_traffic = total_bytes,
+      tot_score = format_high_num_value_for_tables(data, 'total_score'),
+      num_servers = format_high_num_value_for_tables(data, 'num_servers'),
+      num_clients = format_high_num_value_for_tables(data, 'num_clients'),
+      client = client,
+      server = server,
+      info = info,
+      srv_port = srv_port,
+      application = application,
+      vlan_id = {
+	 id = nil,
+	 label = nil
       }
+   }
 
    if data.vlan_id and data.vlan_id ~= 0 then
       item.vlan_id = {

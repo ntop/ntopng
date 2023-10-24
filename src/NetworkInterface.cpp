@@ -11051,7 +11051,9 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
   if(stats->ip_addr != NULL) {
     if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
       return(false);
-  } else if(stats->vlan_id != 0) {
+  }
+  
+  if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
   }
@@ -11103,7 +11105,9 @@ bool NetworkInterface::compute_client_flow_stats(GenericHashEntry *node,
   if(stats->ip_addr != NULL) {
     if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
       return(false);
-  } else if(stats->vlan_id != 0) {
+  }
+  
+  if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
   }
@@ -11148,7 +11152,9 @@ bool NetworkInterface::compute_server_flow_stats(GenericHashEntry *node,
   if(stats->ip_addr != NULL) {
     if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
       return(false);
-  } else if(stats->vlan_id != 0) {
+  }
+
+  if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
   }
@@ -11184,7 +11190,9 @@ bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntr
   if(stats->ip_addr != NULL) {
     if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
       return(false);
-  } else if(stats->vlan_id != 0) {
+  }
+
+  if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
   }
@@ -11491,6 +11499,8 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
   if (lua_type(vm, 6) == LUA_TNUMBER) max_num_rows = (u_int32_t)lua_tonumber(vm, 6);
   if (lua_type(vm, 7) == LUA_TSTRING) search_string = (char *)lua_tostring(vm, 7);
 
+  if(max_num_rows == 0) max_num_rows = 999; /* Set an upperbound */
+  
   is_asc = sortOrder ? (!strcmp(sortOrder, "asc")) : true;
 
   switch (filter_type) {
@@ -11609,14 +11619,14 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
 
   /* Build up the lua response */
   if (start < vector_size) {
-    for (vector_it = std::next(vector.begin(), start);
-         vector_it != vector.end(); ++vector_it) {
+    for (vector_it = std::next(vector.begin(), start); vector_it != vector.end(); ++vector_it) {
       AggregatedFlowsStats *fs = *vector_it;
 
-      if (fs)
+      if (fs) {
         build_lua_rsp(vm, fs, filter_type, vector_size, &num, true);
-
-      if (max_num_rows != 0 && num >= max_num_rows) break;
+	
+	if(num >= max_num_rows) break;
+      }
     }
   } else {
     build_lua_rsp(vm, NULL, filter_type, vector_size, &num, false);
@@ -11630,7 +11640,7 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
   struct aggregated_stats stats;
   AnalysisCriteria filter_type = (AnalysisCriteria)lua_tonumber(vm, 1);
   char *host_ip = NULL;
-  u_int16_t vlan_id = 0;
+  u_int16_t vlan_id = (u_int16_t)-1 /* Any VLAN */;
 
   /* NOTE: parsing of additional Lua parameters in NetworkInterface::sort_and_filter_flow_stats() */
   if (lua_type(vm, 8) == LUA_TSTRING) host_ip = (char *)lua_tostring(vm, 8);
@@ -11638,6 +11648,7 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
 
   stats.ip_addr = host_ip ? Utils::parseHostString(host_ip, &stats.vlan_id) : NULL;
   stats.vlan_id = vlan_id;
+  
   switch (filter_type) {
   case AnalysisCriteria::application_criteria:
     /* application protocol criteria flows stats case */
