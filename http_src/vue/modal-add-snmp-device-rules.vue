@@ -516,8 +516,8 @@ const add_ = (is_edit) => {
   const tmp_metric_label = selected_snmp_device_metric.value.label;
   const tmp_device = selected_snmp_device.value.label_to_insert;
   const tmp_device_label = selected_snmp_device.value.label;
-  const tmp_device_ifid = selected_snmp_interface.value == null ? "*": selected_snmp_interface.value.id;
-  const tmp_device_ifid_label = selected_snmp_interface.value == null ? "*":selected_snmp_interface.value.label;
+  const tmp_device_ifid = selected_snmp_interface.value == null || Object.entries(selected_snmp_interface.value).length === 0 ? "*": selected_snmp_interface.value.id;
+  const tmp_device_ifid_label = selected_snmp_interface.value == null || Object.entries(selected_snmp_interface.value).length === 0 ? "*":selected_snmp_interface.value.label;
   // debugger;
   // console.log(threshold)
   let tmp_metric_type = metric_type.value.id;
