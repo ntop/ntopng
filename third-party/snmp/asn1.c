@@ -590,13 +590,17 @@ int asn1_parse_string_type(ASN1Parser *parser, int *type, char **dest)
     }
   } else if(size == 4) {
     /* Check for IPv4 addresses */
-    char tmp[24];
-    
-    snprintf(tmp, sizeof(tmp), "%u.%u.%u.%u",
-	     (*dest)[0] & 0xFF, (*dest)[1] & 0xFF, (*dest)[2] & 0xFF, 
-	     (*dest)[3] & 0xFF);
-    free(*dest);
-    *dest = strdup(tmp);
+    u_int8_t v1 = (*dest)[0] & 0xFF, v2 = (*dest)[1] & 0xFF, v3 = (*dest)[2] & 0xFF, v4 = (*dest)[3] & 0xFF;
+
+    if(isalnum(v1) && isalnum(v2) && isalnum(v3) && isalnum(v4))
+      /* this looks like a string */;
+    else {
+      char tmp[24];
+      
+      snprintf(tmp, sizeof(tmp), "%u.%u.%u.%u", v1, v2, v3, v4);
+      free(*dest);
+      *dest = strdup(tmp);
+    }
   }
   
   consume(parser);
