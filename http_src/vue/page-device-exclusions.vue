@@ -105,7 +105,7 @@ const props = defineProps({
 
 
 const rest_params = {
-  csrf: props.context.page_csrf,
+  csrf: props.context.csrf,
   ifid: props.context.ifid
 };
 

@@ -78,7 +78,13 @@ const edit_all = ref(false);
 
 const show = (row) => {
     if(row != null) {
-      input_device_status.value = row.status;
+      let tmp_device_status = null;
+      device_status_list.value.forEach((item) => {
+        if(item.id == row.status) {
+          tmp_device_status = item;
+        }
+      });
+      input_device_status.value = tmp_device_status;
       input_mac_address_name.value = row.mac_address.mac;
       input_trigger_alerts.value = row.trigger_alert || false;
     } else {
