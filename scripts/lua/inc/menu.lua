@@ -649,9 +649,6 @@ page_utils.add_menubar_section({
         hidden = info["pro.forced_community"],
         url = '/lua/license.lua'
     }, {
-        entry = page_utils.menu_entries.divider,
-        hidden = not devices_exclusion_enabled
-    }, {
         entry = page_utils.menu_entries.divider
     }, {
         entry = page_utils.menu_entries.scripts_config,
@@ -664,7 +661,11 @@ page_utils.add_menubar_section({
         section = page_utils.menu_sections.checks,
         hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or not ntop.isEnterpriseM() or (tonumber(getSystemInterfaceId()) == tonumber(interface.getId())),
         url = '/lua/pro/admin/edit_alert_exclusions.lua?subdir=host'
-    }, {
+           }, {
+        entry = page_utils.menu_entries.category_lists,
+        hidden = not is_admin,
+        url = '/lua/admin/edit_category_lists.lua'
+}, {
         entry = page_utils.menu_entries.divider
     }, {
         entry = page_utils.menu_entries.manage_configurations,
@@ -684,10 +685,6 @@ page_utils.add_menubar_section({
         entry = page_utils.menu_entries.categories,
         hidden = not is_admin,
         url = '/lua/admin/edit_categories.lua'
-    }, {
-        entry = page_utils.menu_entries.category_lists,
-        hidden = not is_admin,
-        url = '/lua/admin/edit_category_lists.lua'
     }, {
         entry = page_utils.menu_entries.device_protocols,
         hidden = not is_admin,

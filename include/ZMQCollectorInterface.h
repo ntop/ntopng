@@ -55,7 +55,7 @@ class ZMQCollectorInterface : public ZMQParserInterface {
   virtual void checkPointCounters(bool drops_only);
   virtual bool isPacketInterface() const { return (false); };
   void collect_flows();
-
+  virtual bool is_ndpi_enabled() const { return (true /* Needed by blacklists and risks */); };
   virtual void purgeIdle(time_t when, bool force_idle = false,
                          bool full_scan = false);
 

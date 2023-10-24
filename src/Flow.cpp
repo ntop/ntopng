@@ -315,8 +315,7 @@ void Flow::deferredInitialization() {
 /* *************************************** */
 
 void Flow::allocDPIMemory() {
-  if ((ndpiFlow = (ndpi_flow_struct *)calloc(1, iface->get_flow_size())) ==
-      NULL)
+  if ((ndpiFlow = (ndpi_flow_struct *)calloc(1, iface->get_flow_size())) == NULL)
     throw "Not enough memory";
 }
 
@@ -479,6 +478,7 @@ Flow::~Flow() {
   if (bt_hash) free(bt_hash);
 
   freeDPIMemory();
+  
   if (icmp_info) delete (icmp_info);
   if (json_protocol_info) free(json_protocol_info);
   if (external_alert.json) json_object_put(external_alert.json);
@@ -645,9 +645,6 @@ void Flow::processDetectedProtocolData() {
  * including extra dissection information (e.g. the TLS certificate), is
  * available. */
 void Flow::processExtraDissectedInformation() {
-  bool free_ndpi_memory = true; /* Possibly set to false if the flow is DNS and
-                                   all the packets need to be dissected */
-
   if (ndpiFlow) {
     u_int16_t l7proto;
 
@@ -775,13 +772,13 @@ void Flow::processExtraDissectedInformation() {
 
                   if (addr->equal(ipv4_addr))
                     srv_host->setResolvedName(
-                        (char *)ndpiFlow->protos.dns.ptr_domain_name);
+					      (char *)ndpiFlow->protos.dns.ptr_domain_name);
                   else {
                     /* This is not the right IPv4 host: let's cache it for later
                      */
 
                     ntop->getRedis()->setResolvedAddress(
-                        buf, (char *)ndpiFlow->protos.dns.ptr_domain_name);
+							 buf, (char *)ndpiFlow->protos.dns.ptr_domain_name);
                   }
                 }
               } else if (strcmp(&ndpiFlow->host_server_name[len - 9],
@@ -791,7 +788,7 @@ void Flow::processExtraDissectedInformation() {
                 int a, b;
                 int i = 15;
                 char *tmp,
-                    *item = strtok_r(ndpiFlow->host_server_name, ".", &tmp);
+		  *item = strtok_r(ndpiFlow->host_server_name, ".", &tmp);
                 struct ndpi_in6_addr ipv6_addr;
 
                 while (item != NULL) {
@@ -811,31 +808,20 @@ void Flow::processExtraDissectedInformation() {
 
                 if (addr->equal(&ipv6_addr))
                   srv_host->setResolvedName(
-                      (char *)ndpiFlow->protos.dns.ptr_domain_name);
+					    (char *)ndpiFlow->protos.dns.ptr_domain_name);
                 else {
                   char buf[64];
 
                   /* This is not the right IPv6 host: let's cache it for later
                    */
-                  ntop->getRedis()->setResolvedAddress(
-                      Utils::intoaV6(ipv6_addr, 128, buf, sizeof(buf)),
-                      (char *)ndpiFlow->protos.dns.ptr_domain_name);
+                  ntop->getRedis()->setResolvedAddress(Utils::intoaV6(ipv6_addr, 128, buf, sizeof(buf)),
+						       (char *)ndpiFlow->protos.dns.ptr_domain_name);
                 }
               }
             }
           }
         }
-
-        /* No break */
-    case NDPI_PROTOCOL_IEC60870:
-    case NDPI_PROTOCOL_MODBUS:
-      /*
-	Don't free the memory, let the nDPI dissection run for DNS.
-	See Method Flow::processDNSPacket, Flow::processIEC60870Packet
-	and Flow::processModbusPacket
-      */
-      if (getInterface()->isPacketInterface()) free_ndpi_memory = false;
-      break;
+	break;
       
     case NDPI_PROTOCOL_MINING:
       if ((protos.mining.currency == NULL) && (ndpiFlow->protos.mining.currency[0] != '\0'))
@@ -933,9 +919,6 @@ void Flow::processExtraDissectedInformation() {
       break;
     }
   }
-
-  /* Free the nDPI memory */
-  if (free_ndpi_memory) freeDPIMemory();
 
   /*
     We need to change state here as in Lua scripts we need to know
@@ -1232,10 +1215,9 @@ void Flow::setExtraDissectionCompleted() {
   if (extra_dissection_completed) return;
 
   if (!detection_completed) {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR,
-        "Bad internal status: setExtraDissectionCompleted called before "
-        "setDetectedProtocol");
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Bad internal status: setExtraDissectionCompleted called before "
+				 "setDetectedProtocol");
     return;
   }
 
@@ -1244,22 +1226,22 @@ void Flow::setExtraDissectionCompleted() {
     /* nDPI is not allocated for non-TCP non-UDP flows so, in order to
        make sure custom cateories are properly populated, function
        ndpi_fill_ip_protocol_category must be called explicitly. */
-    if (ndpiFlow &&
-        get_cli_ip_addr()->get_ipv4() &&
-        get_srv_ip_addr()->get_ipv4() /* Only IPv4 is supported */) {
+    if (ndpiFlow
+	&& get_cli_ip_addr()->get_ipv4()
+	&& get_srv_ip_addr()->get_ipv4() /* Only IPv4 is supported */) {
       ndpi_fill_ip_protocol_category(iface->get_ndpi_struct(),
-          ndpiFlow,
-          get_cli_ip_addr()->get_ipv4(),
-          get_srv_ip_addr()->get_ipv4(),
-          &ndpiDetectedProtocol);
+				     ndpiFlow,
+				     get_cli_ip_addr()->get_ipv4(),
+				     get_srv_ip_addr()->get_ipv4(),
+				     &ndpiDetectedProtocol);
       stats.setDetectedProtocol(&ndpiDetectedProtocol);
       updateHostBlacklists();
     }
   }
-
+  
   if (ndpiFlow) {
     setErrorCode(ndpi_get_flow_error_code(ndpiFlow));
-
+    
     if (ndpiDetectedProtocol.protocol_by_ip != NDPI_PROTOCOL_UNKNOWN) {
       char *p = ndpi_get_proto_name(iface->get_ndpi_struct(),
                                     ndpiDetectedProtocol.protocol_by_ip);
@@ -1282,6 +1264,9 @@ void Flow::setExtraDissectionCompleted() {
   processExtraDissectedInformation();
 
   extra_dissection_completed = 1;
+
+  /* Free the nDPI memory */
+  freeDPIMemory();  
 }
 
 /* *************************************** */
