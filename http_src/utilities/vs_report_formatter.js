@@ -1,11 +1,14 @@
 
-export const columns_formatter = (columns, scan_type_list, is_report) => {
+export const columns_formatter = (columns, scan_type_list, is_report, ifid) => {
   const visible_dict = {
         download: true,
         show_result: true
       };
 
   let map_columns = {
+    "host": (host, row) => {
+      return host_f(host,row,ifid);
+    },
     "scan_type": (scan_type, row) => {
       return scan_type_f(scan_type, row, scan_type_list);
     },
@@ -367,23 +370,47 @@ export const hosts_f = (hosts, row) => {
 
     hosts_map.set(
       host_info[3] != null && host_info[3] != "" ? host_info[3] : host_info[0], 
-      null)
+      {
+        scan_type: host_info[1],
+        ip: host_info[0],
+        date: host_info[2]
+      })
   });
 
   hosts_map = new Map([...hosts_map.entries()].sort());
 
 
   hosts_map.forEach((values, keys) => {
-    label += `<li> ${keys} </li>` ;
+    let url = build_host_to_scan_report_url(values.ip, values.scan_type, values.date);
+
+    label += `<li> <a href="${url}">${keys} </a></li>` ;
   })
   return label;
 }
 
-export const host_f = (host, row) => {
+const build_host_to_scan_report_url = (host, scan_type, date) => {
+  const active_monitoring_url = `${http_prefix}/lua/vulnerability_scan.lua`;
+
+  let params = {
+    host: host,
+    scan_type: scan_type,
+    scan_return_result: true,
+    page: "show_result",
+    scan_date: date
+
+  };
+  let url_params = ntopng_url_manager.obj_to_url_params(params);
+
+  return `${active_monitoring_url}?${url_params}`;
+}
+
+export const host_f = (host, row, ifid) => {
   let label = host;
-  if (row.host_name != null && row.host_name != "") {
-    label = row.host_name;
-  }
+
+  let url = build_host_to_scan_report_url(host, row.scan_type, row.last_scan.time);
+
+  label = `<a href="${url}">${host}</a>`;
+  
   return label;
 }
 

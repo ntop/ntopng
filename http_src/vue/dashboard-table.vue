@@ -125,7 +125,9 @@ const row_render_functions = {
   },
 
   vs_scan_result: function(column, row) {
-    if(column.id == "last_scan") {
+    if(column.id == "host") {
+      return host_f(row[column.id], row, props.ifid);
+    } else if(column.id == "last_scan") {
       return last_scan_f(row[column.id], row);
     } else if(column.id == "duration") {
       return duration_f(row[column.id], row);
@@ -140,7 +142,7 @@ const row_render_functions = {
     }  else if(column.id == "scan_type") {
       return scan_type_f(row[column.id]);
     } else if (column.id == "hosts") {
-      return hosts_f(row[column.id]);
+      return hosts_f(row[column.id], row);
     } else if (column.id == "cve" || column.id == "cve_list") {
       return cves_f(row[column.id], row);
     } else if (column.id == "tcp_ports_list") {

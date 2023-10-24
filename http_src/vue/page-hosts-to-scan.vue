@@ -487,7 +487,7 @@ function on_table_loaded() {
 
 /* Function to map columns data */
 const map_table_def_columns = async (columns) => {
-  let result = columns_formatter(columns, scan_type_list, false);
+  let result = columns_formatter(columns, scan_type_list, false, props.context.ifid);
 
   return result;
 };
