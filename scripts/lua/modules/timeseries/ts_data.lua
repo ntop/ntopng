@@ -118,7 +118,10 @@ function ts_data.get_timeseries(http_context)
         end
 
         if tskey ~= 0 then
-            options.tags.host = tskey
+            -- In case of vlans, the vlan tag has to be there
+            for id, val in pairs(hostkey2hostinfo(tskey)) do
+                options.tags[id] = val
+            end
         end
     end
 
