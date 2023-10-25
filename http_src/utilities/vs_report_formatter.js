@@ -406,7 +406,7 @@ const build_host_to_scan_report_url = (host, scan_type, date) => {
 
 export const host_f = (host, row, ifid) => {
   let label = host;
-  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null)) {
+  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null) && (row.num_open_ports != "")) {
     let url = build_host_to_scan_report_url(host, row.scan_type, row.last_scan.time);
     label = `<a href="${url}">${host}</a>`;
   }
