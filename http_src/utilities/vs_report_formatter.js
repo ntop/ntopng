@@ -48,7 +48,7 @@ export const columns_formatter = (columns, scan_type_list, is_report, ifid) => {
         b.f_map_class = (current_class, row) => { 
           current_class = current_class.filter((class_item) => class_item != "link-disabled");
           // FIX ME with UDP ports check
-          if((row.is_ok_last_scan == 3 || row.is_ok_last_scan == null || (row.tcp_ports < 1 && row.udp_ports < 1) || (row.last_scan == null || ((row.last_scan != null && row.last_scan.time == null))) ) && visible_dict[b.id]) {
+          if((row.is_ok_last_scan != 1 || row.is_ok_last_scan == null || (row.tcp_ports < 1 && row.udp_ports < 1) || (row.last_scan == null || ((row.last_scan != null && row.last_scan.time == null))) ) && visible_dict[b.id]) {
             current_class.push("link-disabled"); 
           }
           return current_class;
@@ -406,7 +406,7 @@ const build_host_to_scan_report_url = (host, scan_type, date) => {
 
 export const host_f = (host, row, ifid) => {
   let label = host;
-  if (row.last_scan != null && row.last_scan.time != null) {
+  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null)) {
     let url = build_host_to_scan_report_url(host, row.scan_type, row.last_scan.time);
     label = `<a href="${url}">${host}</a>`;
   }
