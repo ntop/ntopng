@@ -202,7 +202,7 @@ const href_download_records = computed(() => {
 });
 
 onBeforeMount(async () => {
-    message_to_display.value = `<span class="alert alert-success alert-dismissable"><span>${i18n('no_alerts_require_attention')}</span></span>`;
+    message_to_display.value = `<div class="alert alert-success alert-dismissable"><span>${i18n('no_alerts_require_attention')}</span></div>`;
     if (props.context.is_va) {
         ntopng_utility.check_and_set_default_time_interval("day");
     }
