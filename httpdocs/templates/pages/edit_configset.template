@@ -707,10 +707,6 @@ const apply_event = (event) => {
    $table_editor.find("tr[id]").each(function (index) {
     
       const id = $(this).attr("id");
-
-      $(this).find("input").each(function(index) {
-        debugger
-      })
       const enabled = $(this).find("input[type='checkbox']").is(":checked");
       const $template = $(this).find(".template");
       const $error_label = $template.find(`.invalid-feedback`);
