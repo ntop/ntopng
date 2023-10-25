@@ -20,8 +20,8 @@
   const pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
   const is_ch_enabled = ("{{ ntop.isClickHouseEnabled() }}" == "true")
   const is_locale = "{{ is_locale }}"
-  const ts_l7_enabled = "{{ ts_l7_enabled }}"
-  const ts_cat_enabled = "{{ ts_cat_enabled }}"
+  const ts_l7_enabled = ("{{ ts_l7_enabled }}" == "true") ? true : false;
+  const ts_cat_enabled = ("{{ ts_cat_enabled }}" == "true") ? true : false;
 
   const url_params = {
     view: "{{ view or 'applications' }}",

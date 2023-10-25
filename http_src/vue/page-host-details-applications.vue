@@ -230,9 +230,9 @@ function start_datatable(PageVue) {
 
   let columns = [
     { columnName: i18n("host_details.application"), targets: 0, width: '20', name: 'application', data: 'application', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-      if (PageVue.$props.is_locale == "1" && PageVue.$props.ts_l7_enabled)
-        return `<a href="${http_prefix}/lua/host_details.lua?host=${PageVue.$props.url_params.host}@${PageVue.$props.url_params.vlan}&ts_schema=host:ndpi&page=historical&protocol=${data.label}" target="_blank">${data.label}</a>`
-      else
+      if (PageVue.$props.is_locale == "1" && PageVue.$props.ts_l7_enabled === true) {
+        return `<a href="${http_prefix}/lua/host_details.lua?host=${PageVue.$props.url_params.host}@${PageVue.$props.url_params.vlan}&page=historical&ifid=${PageVue.$props.url_params.ifid}&protocol=${data.label}&ts_schema=host:ndpi" target="_blank">${data.label}</a>`
+      } else
         return `${data.label}`;
       } 
     },
@@ -281,7 +281,7 @@ function start_datatable(PageVue) {
 
   columns = [
     { columnName: i18n("host_details.category"), targets: 0, name: 'category', data: 'category', className: 'text-nowrap', responsivePriority: 1, render: (data) => {
-      if (PageVue.$props.is_locale == "1" && PageVue.$props.ts_cat_enabled)
+      if (PageVue.$props.is_locale == "1" && PageVue.$props.ts_cat_enabled === true)
         return `<a href="${http_prefix}/lua/host_details.lua?host=${PageVue.$props.url_params.host}@${PageVue.$props.url_params.vlan}&ts_schema=host:ndpi_categories&page=historical&category=${data.label}" target="_blank">${data.label}</a>`
       else
         return `${data.label}`;
