@@ -243,7 +243,7 @@ static int ntop_shutdown(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_is_shutdown(lua_State *vm) {
+static int ntop_is_shuttingdown(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 			      
   lua_pushboolean(vm, ntop->getGlobals()->isShutdownRequested());
@@ -7623,7 +7623,7 @@ static luaL_Reg _ntop_reg[] = {
     {"tcpProbe", ntop_tcp_probe},
     {"getMacManufacturer", ntop_get_mac_manufacturer},
     {"getHostInformation", ntop_get_host_information},
-    {"isShutdown", ntop_is_shutdown},
+    {"isShuttingDown", ntop_is_shuttingdown},
     {"listInterfaces", ntop_list_interfaces},
     {"ipCmp", ntop_ip_cmp},
     {"matchCustomCategory", ntop_match_custom_category},
