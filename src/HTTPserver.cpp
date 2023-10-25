@@ -27,7 +27,8 @@ static void traceHTTP(const struct mg_connection *const conn, u_int16_t status_c
 #include "../third-party/mongoose/mongoose.c"
 #undef USE_LUA
 
-//#define DEBUG_CAPTIVE_PORTAL
+// #define DEBUG
+// #define DEBUG_CAPTIVE_PORTAL
 
 extern "C" {
 #include "lua.h"
@@ -474,7 +475,7 @@ static int getAuthorizedUser(struct mg_connection *conn,
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(
-      TRACE_WARNING, "[AUTHORIZATION] [%s][%s]", request_info->uri,
+      TRACE_NORMAL, "Check Auth [URI: %s][Query: %s]", request_info->uri,
       request_info->query_string ? request_info->query_string : "");
 #endif
 
@@ -1168,7 +1169,7 @@ static int handle_lua_request(struct mg_connection *conn) {
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(
-      TRACE_NORMAL, "[Host: %s][URI: %s][%s][Referer: %s]",
+      TRACE_NORMAL, "HTTP Request [Host: %s][URI: %s][Query: %s][Referer: %s]",
       mg_get_header(conn, "Host") ? mg_get_header(conn, "Host") : (char *)"",
       request_info->uri,
       request_info->query_string ? request_info->query_string : "",
@@ -1189,11 +1190,6 @@ static int handle_lua_request(struct mg_connection *conn) {
                    "(possibly starting up or shutting down). Please hold on.\n"
                    "</body></html>"));
   }
-
-#ifdef DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "################# [HTTP] %s [%s]",
-                               request_info->uri, referer);
-#endif
 
 #ifndef HAVE_NEDGE
   if (ntop->get_HTTPserver()->is_ssl_enabled() && (!request_info->is_ssl) &&
