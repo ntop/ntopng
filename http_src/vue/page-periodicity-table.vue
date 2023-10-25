@@ -237,6 +237,10 @@ function start_datatable(DatatableVue) {
   /* Standard table configuration */  
 
   columns = [
+    { columnName: i18n("actions"), name: 'actions',  className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) {
+        return DatatableVue.create_action_button_historical_flow_link(_, type,rowData);
+      },
+    },
     { columnName: i18n('map_page.last_seen'), name: 'last_seen', data: 'last_seen', className: 'text-center text-nowrap', render: (data, type) => { return data.value }, responsivePriority: 2 },
     { columnName: i18n('map_page.client'), name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 2 },
     { columnName: i18n('map_page.server'), name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 2 },
@@ -250,12 +254,8 @@ function start_datatable(DatatableVue) {
       }
     },
   ];
-  columns.push({ columnName: i18n("actions"), name: 'actions',  className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) {
-        return DatatableVue.create_action_button_historical_flow_link(_, type,rowData);
-      }
-    });
 
-  default_sorting_columns = 6 /* Observation column */
+  default_sorting_columns = 8 /* Observation column */
 
   /* Extra table configuration */
   let table_config = {

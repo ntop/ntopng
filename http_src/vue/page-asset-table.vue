@@ -251,18 +251,17 @@ function start_datatable(DatatableVue) {
   /* Standard table configuration */  
 
   columns = [
-    { columnName: i18n("map_page.client"), name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1 },
+    { columnName: i18n("actions"), name: 'actions',  className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) {
+        return DatatableVue.create_action_button_historical_flow_link(_, type,rowData);
+      }
+    }, { columnName: i18n("map_page.client"), name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 1 },
     { columnName: i18n("map_page.server"), name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 1 },
     { columnName: i18n("map_page.asset_family"), name: 'family', data: 'family', className: 'text-nowrap', responsivePriority: 2 },
     { columnName: i18n("map_page.last_seen"), name: 'last_seen', data: 'last_seen',  className: 'text-center', responsivePriority: 2 },
   ];
-  columns.push({ columnName: i18n("actions"), name: 'actions',  className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) {
-        return DatatableVue.create_action_button_historical_flow_link(_, type,rowData);
-      }
-    });
   
   let configDevices = ntopng_utility.clone(defaultDatatableConfig);
-  configDevices.table_config = { serverSide: false, order: [[ 3 /* Last Seen */, 'desc' ]] }
+  configDevices.table_config = { serverSide: false, order: [[ 4 /* Last Seen */, 'desc' ]] }
   configDevices.columns_config = columns;
   configDevices.table_filters = table_filters;
   DatatableVue.config_devices_standard = configDevices;
