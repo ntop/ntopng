@@ -4019,15 +4019,48 @@ bool Utils::execCmd(char *cmd, std::string *out) {
 #ifndef WIN32
   FILE *fp;
 
+  /* Do not start commands during shutdown */
+  if(ntop->getGlobals()->isShutdownRequested()) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping command during shutdown (%s)", cmd);
+    return(false);
+  }
+  
   ntop->getTrace()->traceEvent(TRACE_INFO, "Executing %s", cmd);
 
   if ((fp = popen(cmd, "r")) != NULL) {
     char line[256], *l;
+    int fd = fileno(fp);
+    
+    while(!ntop->getGlobals()->isShutdownRequested()) {
+      struct timeval ts;
+      fd_set rset;
+      int ret;
+      
+      FD_ZERO(&rset);
+      FD_SET(fd, &rset);
+      ts.tv_sec = 1, ts.tv_usec = 0;
+      
+      ret = select(fd + 1, &rset, NULL, NULL, &ts);
 
-    while((l = fgets(line, sizeof(line), fp)) != NULL)
-      out->append(l);
+      if(ret < 0)
+	break;
+      else if(ret > 0) {
+	if((l = fgets(line, sizeof(line), fp)) != NULL) {
+	  out->append(l);
+	  continue;
+	} else
+	  break;
+      }
+      
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Sleeping %s", cmd);
+      
+      _usleep(100000);
+    } /* while */
 
-    pclose(fp);
+    if(ntop->getGlobals()->isShutdownRequested())
+      ; /* Do not call pclose() otherwise we need to wait until the command ends */
+    else
+      pclose(fp);
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "Executed (%s) completed", cmd);
     return(true);

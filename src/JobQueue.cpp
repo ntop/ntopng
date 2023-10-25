@@ -40,7 +40,8 @@ JobQueue::~JobQueue() {
 /* ******************************* */
 
 bool JobQueue::queueJob(char *job, u_int32_t *id) {
-  if(job_queue.size() > MAX_NUM_QUEUED_JOBS /* Avoid growing too much */)
+  if(ntop->getGlobals()->isShutdown()
+     || (job_queue.size() > MAX_NUM_QUEUED_JOBS /* Avoid growing too much */))
     return(false);
   
   lock.wrlock(__FILE__, __LINE__);
@@ -60,7 +61,10 @@ bool JobQueue::queueJob(char *job, u_int32_t *id) {
 /* Periodic taask called by the Ntop class */
 void JobQueue::idleTask() {
   bool do_trace = false, job_completed = false;
-    
+
+  if(ntop->getGlobals()->isShutdown())
+    return;
+  
   if(do_trace) ntop->getTrace()->traceEvent(TRACE_WARNING, "JobQueue::idleTask()");
   
   lock.wrlock(__FILE__, __LINE__);
@@ -139,37 +143,44 @@ void JobQueue::idleTask() {
 /* ******************************* */
 
 bool JobQueue::getJobResult(u_int32_t job_id, std::string *out) {
-  std::map<u_int32_t /* id */, std::pair<time_t, std::string> >::iterator it;
-  bool ret;
-
-  idleTask(); /* Refresh results first */
-  
-  lock.wrlock(__FILE__, __LINE__);
-  it = completed_jobs.find(job_id);
-
-  if(it == completed_jobs.end()) {
-    /* Nothing found */
-    ret = false;
+  if(ntop->getGlobals()->isShutdown()) {
+    (*out) = "";
+    return(true);
   } else {
-    (*out) = it->second.second;
-    completed_jobs.erase(it++);
-    ret = true;
+    std::map<u_int32_t /* id */, std::pair<time_t, std::string> >::iterator it;
+    bool ret;
+    
+    idleTask(); /* Refresh results first */
+    
+    lock.wrlock(__FILE__, __LINE__);
+    it = completed_jobs.find(job_id);
+    
+    if(it == completed_jobs.end()) {
+      /* Nothing found */
+      ret = false;
+    } else {
+      (*out) = it->second.second;
+      completed_jobs.erase(it++);
+      ret = true;
+    }
+    
+    lock.unlock(__FILE__, __LINE__);
+    return(ret);
   }
-  
-  lock.unlock(__FILE__, __LINE__);
-  return(ret);
 }
 
 /* ******************************* */
 
 void JobQueue::purgeOldResults() {
-  /* Delete results queued for 5 or more minutes [no need to lock] */
-  u_int time_threshold = time(NULL) - 300 /* 5 min */;
-
-  for(std::map<u_int32_t /* id */, std::pair<time_t, std::string> >::iterator it = completed_jobs.begin(); it != completed_jobs.end(); ) {
-    if(it->second.first < time_threshold)
-      completed_jobs.erase(it++);
-    else
-      ++it;
+  if(!ntop->getGlobals()->isShutdown()) {
+    /* Delete results queued for 5 or more minutes [no need to lock] */
+    u_int time_threshold = time(NULL) - 300 /* 5 min */;
+    
+    for(std::map<u_int32_t /* id */, std::pair<time_t, std::string> >::iterator it = completed_jobs.begin(); it != completed_jobs.end(); ) {
+      if(it->second.first < time_threshold)
+	completed_jobs.erase(it++);
+      else
+	++it;
+    }
   }
 }

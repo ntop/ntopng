@@ -45,9 +45,9 @@ void sigproc(int sig)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Ok I am leaving now");
     _exit(0);
   } else {
+    ntop->getGlobals()->requestShutdown();
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Shutting down...");
     called = 1;
-    ntop->getGlobals()->requestShutdown();
   }
 }
 
@@ -477,6 +477,8 @@ int main(int argc, char *argv[])
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating...");
 
+  ntop->getGlobals()->requestShutdown();
+  
   /* Perform all the necessary cleanup (purge all flows, hosts, etc)
    * and wait for other threads termination */
   ntop->shutdownAll();

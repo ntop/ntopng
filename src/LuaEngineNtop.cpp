@@ -245,6 +245,7 @@ static int ntop_shutdown(lua_State *vm) {
 
 static int ntop_is_shutdown(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+			      
   lua_pushboolean(vm, ntop->getGlobals()->isShutdownRequested());
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
@@ -6391,6 +6392,13 @@ static int ntop_set_online(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_is_shutting_down(lua_State *vm) {
+  lua_pushboolean(vm, ntop->getGlobals()->isShutdown());
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 /* positional 1:4 parameters for ntop_rrd_fetch */
 static int __ntop_rrd_args(lua_State *vm, char **filename, char **cf,
                            time_t *start, time_t *end) {
@@ -7342,7 +7350,8 @@ static luaL_Reg _ntop_reg[] = {
     {"isForcedOffline", ntop_is_forced_offline},
     {"setOffline", ntop_set_offline},
     {"setOnline", ntop_set_online},
-
+    {"isShuttingDown", ntop_is_shutting_down},
+    
     /* Execute commands */
     {"execCmd", ntop_exec_cmd},
     {"execCmdAsync", ntop_exec_cmd_async},
@@ -7739,6 +7748,7 @@ static luaL_Reg _ntop_reg[] = {
     {"sendKafkaMessage", ntop_send_kafka_message},
 #endif
 
-    {NULL, NULL}};
+    {NULL, NULL}
+};
 
 luaL_Reg *ntop_reg = _ntop_reg;
