@@ -44,7 +44,7 @@ const REGEXES = {
         url: String.raw`^(https?\:\/\/[^\/\s]+(\/.*)?)$`,
         emailUrl: String.raw`^smtps?:\/\/[-a-zA-Z0-9:.]{1,256}+$`,
         macAddress: String.raw`^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$`,
-        hostname: String.raw`^[a-zA-Z0-9._:\-]{1,250}|^[a-zA-Z0-9._:\-]{1,250}@[0-9]{0,5}`,
+        hostname: String.raw`^(?!\s*$)[a-zA-Z0-9._: \-\/]{1,250}|^[a-zA-Z0-9._: \-\/]{1,250}@[0-9]{0,5}`,
         username: String.raw`^[a-zA-Z0-9._@!-?]{3,30}$`,
         singleword: String.raw`^(?=[a-zA-Z0-9._:\-]{3,253}$)(?!.*[_.:\-]{2})[^_.:\-].*[^_.:\-]$`,
     email: String.raw`^([a-zA-Z0-9.!#$%&'*+-/=?^_${backtick}{|}~]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)$`,
