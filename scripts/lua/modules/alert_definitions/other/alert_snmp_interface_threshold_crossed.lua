@@ -40,7 +40,7 @@ function alert_snmp_interface_threshold_crossed:init(device_ip, device_name, if_
   self.super:init()
 
   local sign = ">"
-  if threshold_sign < 0 then
+  if threshold_sign and threshold_sign < 0 then
     sign = "<"
   end
 

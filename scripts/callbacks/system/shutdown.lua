@@ -30,9 +30,11 @@ alert_utils.notify_ntopng_stop()
 -- Check and possibly dump preferences to disk
 prefs_dump_utils.check_dump_prefs_to_disk()
 
+-- First of all release the alert of the system interface (current one)
+alerts_api.releaseAllAlerts()
+-- Then release the alerts of all other interfaces
 for _, ifname in pairs(ifnames) do
   interface.select(ifname)
-  -- Release all alerts
   alerts_api.releaseAllAlerts()
 end
 

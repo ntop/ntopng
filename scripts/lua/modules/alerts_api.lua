@@ -462,7 +462,7 @@ function alerts_api.releaseEntityAlerts(entity_info, alerts)
     alerts = interface.getEngagedAlerts(entity_info.alert_entity.entity_id, entity_info.entity_val)
   end
 
-  for _, cur_alert in pairs(alerts) do
+  for _, cur_alert in ipairs(alerts) do
      -- NOTE: do not pass alerts here as a parameters as deleting items while
      -- does not work in lua
 
