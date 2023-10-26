@@ -392,11 +392,12 @@ export const hosts_f = (hosts, row) => {
     let host_info = item.split("|");
 
     hosts_map.set(
-      host_info[3] != null && host_info[3] != "" ? host_info[3] : host_info[0], 
+      host_info.length > 4 && host_info[4] != null && host_info[4] != "" ? host_info[4] : host_info[0], 
       {
         scan_type: host_info[1],
         ip: host_info[0],
-        date: host_info[2]
+        date: host_info[2],
+        is_ipv4: host_info[3] == 'true'
       })
   });
 
@@ -406,7 +407,11 @@ export const hosts_f = (hosts, row) => {
   hosts_map.forEach((values, keys) => {
     let url = build_host_to_scan_report_url(values.ip, values.scan_type, values.date);
 
-    label += `<li> <a href="${url}">${keys} </a></li>` ;
+    if (values.is_ipv4) {
+      label += `<li> <a href="${url}">${keys}</a></li>` ;
+    } else {
+      label += `<li> <a href="${url}">${keys} <span class="badge bg-secondary">${i18n('ipv6')}</span></a></li>` ;
+    }
   })
   return label;
 }

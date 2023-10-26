@@ -245,10 +245,11 @@ const map_table_def_columns = (columns) => {
         const host = host_splitted[0];
         const scan_type = host_splitted[1];
         const date = host_splitted[2];
+        const is_ipv4 = host_splitted[3] === 'true';
 
         let host_name = '';
-        if (host_splitted.length > 3) {
-          host_name = host_splitted[3];
+        if (host_splitted.length > 4) {
+          host_name = host_splitted[4];
         }
 
         let params = {
@@ -263,8 +264,11 @@ const map_table_def_columns = (columns) => {
 
         let url = `${active_monitoring_url}?${url_params}`;
         
-        const host_label = host_name != ''? host_name : host;
-        
+        const host_label = host_name != ''? (is_ipv4 == false ? `${host_name}  <span class="badge bg-secondary">${i18n('ipv6')}</span>` : host_name) : host;
+        console.log("-----------")
+        console.log(host)
+        console.log(host_label)
+        console.log(is_ipv4)
         if (label == ``)
           label += `<a href="${url}">${host_label}</a>`;  
         else
