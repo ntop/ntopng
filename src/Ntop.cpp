@@ -3565,7 +3565,8 @@ u_int16_t Ntop::getLocalNetworkId(const char *address_str) {
 bool Ntop::addLocalNetwork(char *_net) {
   char *net, *position_ptr;
   char alias[64] = "";
-  int id = local_network_tree.getNumAddresses(), pos = 0;
+  int id = local_network_tree.getNumAddresses();
+  int i, pos = 0;
 
   if (id >= CONST_MAX_NUM_NETWORKS) {
     ntop->getTrace()->traceEvent(
@@ -3589,6 +3590,14 @@ bool Ntop::addLocalNetwork(char *_net) {
   if (net == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
     return (false);
+  }
+
+  for (i = 0; i < id; i++) {
+    if (strcmp(local_network_names[i], net) == 0) {
+      /* Already present */
+      free(net);
+      return (false); 
+    }
   }
 
   // Adding the Network to the local Networks
