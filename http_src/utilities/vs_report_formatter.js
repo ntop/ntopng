@@ -27,7 +27,7 @@ export const columns_formatter = (columns, scan_type_list, is_report, ifid) => {
       
     },
     "max_score_cve": (max_score_cve, row) => {
-      return max_score_cve_f(max_score_cve);
+      return max_score_cve_f(max_score_cve, row);
     },
     "tcp_ports": (tcp_ports, row) => {
       return tcp_ports_f(tcp_ports, row);
@@ -36,6 +36,10 @@ export const columns_formatter = (columns, scan_type_list, is_report, ifid) => {
     "udp_ports": (udp_ports, row) => {
       return udp_ports_f(udp_ports, row);
     },
+    "num_vulnerabilities_found": (num_vs, row) => {
+      return num_vuln_found_f(num_vs,row);
+
+    }
   };
 
   columns.forEach((c) => {
@@ -60,27 +64,39 @@ export const columns_formatter = (columns, scan_type_list, is_report, ifid) => {
   return columns;
 };
 
-export const max_score_cve_f = (max_score_cve, row) => {
-  const score = Number(max_score_cve);
-  let font_color = "";
-
-  let label = "";
-  if (max_score_cve != null) {
-
-    if (score == 0) {
-      font_color = "green";
-    } else if(score < 3.9) {
-      font_color = "grey";
-    } else if(score < 7) {
-      font_color = "yellow";
-    } else  {
-      font_color = "red";
-    } 
-
-    if (score != 0) {
-      label = `<FONT COLOR=${font_color}>${max_score_cve}`;
-    }
+export const num_vuln_found_f = (num_vuln_found, row) => {
+  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null)) {
+    return num_vuln_found;
   }
+  return "";
+
+}
+export const max_score_cve_f = (max_score_cve, row) => {
+  let label = "";
+
+  if (row.is_ok_last_scan == 1  && (row.last_scan != null && row.last_scan.time != null)) {
+    const score = Number(max_score_cve);
+    let font_color = "";
+  
+    if (max_score_cve != null) {
+  
+      if (score == 0) {
+        font_color = "green";
+      } else if(score < 3.9) {
+        font_color = "grey";
+      } else if(score < 7) {
+        font_color = "yellow";
+      } else  {
+        font_color = "red";
+      } 
+  
+      if (score != 0) {
+        label = `<FONT COLOR=${font_color}>${max_score_cve}`;
+      }
+    }
+
+  }
+  
 
 
   return label;
@@ -203,13 +219,16 @@ export const udp_ports_f = (udp_ports, row) => {
     return label;
   }
 
-  label = `${udp_ports}`;
+  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null)) {
+  
+    label = `${udp_ports}`;
 
-  if (row.host_in_mem) {
+    if (row.host_in_mem) {
 
-    const num_ports_icon = get_num_open_ports_icon(row.udp_ports_case,row.udp_ports_unused, row.udp_filtered_ports);
-    if(num_ports_icon != null) {
-      label += num_ports_icon;
+      const num_ports_icon = get_num_open_ports_icon(row.udp_ports_case,row.udp_ports_unused, row.udp_filtered_ports);
+      if(num_ports_icon != null) {
+        label += num_ports_icon;
+      }
     }
   }
 
@@ -227,13 +246,17 @@ export const tcp_ports_f = (tcp_ports, row) => {
     return label;
   }
 
-  label = `${tcp_ports}`;
+  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null)) {
 
-  if (row.host_in_mem) {
+  
+    label = `${tcp_ports}`;
 
-    const num_ports_icon = get_num_open_ports_icon(row.tcp_ports_case,row.tcp_ports_unused, row.tcp_ports_filtered);
-    if(num_ports_icon != null) {
-      label += num_ports_icon;
+    if (row.host_in_mem) {
+
+      const num_ports_icon = get_num_open_ports_icon(row.tcp_ports_case,row.tcp_ports_unused, row.tcp_ports_filtered);
+      if(num_ports_icon != null) {
+        label += num_ports_icon;
+      }
     }
   }
 
@@ -324,7 +347,7 @@ export const udp_ports_list_f = (udp_ports_list, row) => {
 
 export const tcp_ports_list_f = (tcp_ports_list, row) => {
 
-  if (tcp_ports_list != null ) {
+  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null) && tcp_ports_list != null ) {
     const ports = tcp_ports_list.split(",");
     let label = "";
     ports.forEach((item) => {
@@ -355,7 +378,8 @@ export const tcp_ports_list_f = (tcp_ports_list, row) => {
     return label;
   } 
 
-  return tcp_ports_list;
+  //return tcp_ports_list;
+  return "";
 
 }
 
@@ -406,7 +430,7 @@ const build_host_to_scan_report_url = (host, scan_type, date) => {
 
 export const host_f = (host, row, ifid) => {
   let label = host;
-  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null) && (row.num_open_ports != "")) {
+  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null)) {
     let url = build_host_to_scan_report_url(host, row.scan_type, row.last_scan.time);
     label = `<a href="${url}">${host}</a>`;
   }
@@ -416,7 +440,7 @@ export const host_f = (host, row, ifid) => {
 export const cves_f = (cves, row) => {
   let label = "";
   let index = 0;
-  if (cves != null) {
+  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null) && cves != null) {
 
     let cves_map = new Map();
 
