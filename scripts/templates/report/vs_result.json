@@ -50,13 +50,8 @@
 					"data_type": "string"
 				},
 				{
-					"i18n_name": "hosts_stats.page_scan_hosts.report.tcp_ports",
-					"id": "tcp_ports_list",
-					"data_type": "string"
-				},
-				{
-					"i18n_name": "hosts_stats.page_scan_hosts.report.udp_ports",
-					"id": "udp_ports_list",
+					"i18n_name": "hosts_stats.page_scan_hosts.report.tcp_udp_ports",
+					"id": "tcp_udp_ports_list",
 					"data_type": "string"
 				},
 				{

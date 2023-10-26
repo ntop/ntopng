@@ -21,7 +21,7 @@ import { default as BootstrapTable } from "./bootstrap-table.vue";
 import { ntopng_custom_events, ntopng_events_manager } from "../services/context/ntopng_globals_services";
 import formatterUtils from "../utilities/formatter-utils";
 import NtopUtils from "../utilities/ntop-utils";
-import { scan_type_f,last_scan_f, duration_f, scan_frequency_f, is_ok_last_scan_f, tcp_ports_f, tcp_port_f, hosts_f, host_f, cves_f, tcp_ports_list_f, max_score_cve_f, udp_ports_list_f, udp_ports_f, num_vuln_found_f  } from "../utilities/vs_report_formatter.js"; 
+import { scan_type_f,last_scan_f, duration_f, scan_frequency_f, is_ok_last_scan_f, tcp_ports_f, tcp_port_f, hosts_f, host_f, cves_f, max_score_cve_f, udp_ports_f, num_vuln_found_f, tcp_udp_ports_list_f  } from "../utilities/vs_report_formatter.js"; 
 
 const _i18n = (t) => i18n(t);
 
@@ -145,16 +145,14 @@ const row_render_functions = {
       return hosts_f(row[column.id], row);
     } else if (column.id == "cve" || column.id == "cve_list") {
       return cves_f(row[column.id], row);
-    } else if (column.id == "tcp_ports_list") {
-      return tcp_ports_list_f(row[column.id], row); 
-    } else if (column.id == "udp_ports_list") {
-      return udp_ports_list_f(row[column.id], row); 
-    }else if (column.id == "port") {
+    } else if (column.id == "port") {
       return tcp_port_f(row[column.id],row);
     } else if (column.id == "max_score_cve") {
       return max_score_cve_f(row[column.id],row);
     } else if (column.id == "num_vulnerabilities_found") {
       return num_vuln_found_f(row[column.id],row);
+    } else if (column.id == "tcp_udp_ports_list") {
+      return tcp_udp_ports_list_f(row["tcp_ports_list"], row["udp_ports_list"], row);
     } else {
       return row[column.id];
     }

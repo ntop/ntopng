@@ -313,56 +313,28 @@ const get_icon_component = (item, row, ports_unused, ports_fitered) => {
   return icon_comp;
 }
 
-export const udp_ports_list_f = (udp_ports_list, row) => {
-  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null) && udp_ports_list != null) {
-    const ports = udp_ports_list.split(",");
-
-    let label = "";
-    ports.forEach((item) => {
-      if(item != null && item != '') {
-
-        if (row.host_in_mem) {
-          const icon_comp = get_icon_component(item, row, row.udp_ports_unused, row.udp_ports_filtered);
-          if(icon_comp != null) {
-            item += icon_comp;
-          }        
-        }
-        label += `<li>${item}</li>`;
-      }
-    });
-
-    if (row.udp_filtered_ports != null) {
-      row.udp_ports_filtered.forEach((item) => {
-
-        item += `/udp`;
-        if (row.host_in_mem) {
-          item += ` <span class="badge bg-primary" title='${i18n('hosts_stats.page_scan_hosts.filtered_port')}'><i class="fa-solid fa-filter"></i></span>`;
-        }
-        label += `<li>${item}</li>`;
-      });
-    }
-    return label;
-  }
-
-  return "";
-}
-
-export const tcp_ports_list_f = (tcp_ports_list, row) => {
+export const tcp_udp_ports_list_f = (tcp_ports_list,udp_ports_list, row) => {
+  let ports_map = new Map();
 
   if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null) && tcp_ports_list != null ) {
     const ports = tcp_ports_list.split(",");
     let label = "";
+    let port_id = "";
     ports.forEach((item) => {
       if(item != null && item != '') {
 
+        label = item;
+        port_id = item;
         if (row.host_in_mem) {
           const icon_comp = get_icon_component(item, row, row.tcp_ports_unused, row.tcp_ports_filtered);
           if(icon_comp != null) {
-            item += icon_comp;
+            label += icon_comp;
           }
         }
         
-        label += `<li>${item}</li>`;
+        label = `<li>${label}</li>`;
+
+        ports_map.set(item,  {port_label :label, port_id: Number(port_id.split("/")[0])})
       }
     });
 
@@ -370,16 +342,67 @@ export const tcp_ports_list_f = (tcp_ports_list, row) => {
       row.tcp_ports_filtered.forEach((item) => {
 
         item += `/tcp`;
+        label = item;
+        port_id = item;
         if (row.host_in_mem) {
-          item += ` <span class="badge bg-primary" title='${i18n('hosts_stats.page_scan_hosts.filtered_port')}'><i class="fa-solid fa-filter"></i></span>`;
+          label += ` <span class="badge bg-primary" title='${i18n('hosts_stats.page_scan_hosts.filtered_port')}'><i class="fa-solid fa-filter"></i></span>`;
         }
-        label += `<li>${item}</li>`;
+        label = `<li>${label}</li>`;
+        ports_map.set(item,  {port_label :label, port_id: Number(port_id.split("/")[0])});
+
+
       });
     }
-
-    return label;
+    
   } 
-  return "";
+
+
+  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null) && udp_ports_list != null) {
+    const ports = udp_ports_list.split(",");
+
+    let label = "";
+    let port_id = "";
+    ports.forEach((item) => {
+      if(item != null && item != '') {
+
+        label = item;
+        port_id = item;
+        if (row.host_in_mem) {
+          const icon_comp = get_icon_component(item, row, row.udp_ports_unused, row.udp_ports_filtered);
+          if(icon_comp != null) {
+            label += icon_comp;
+          }        
+        }
+        label = `<li>${label}</li>`;
+
+        ports_map.set(item, {port_label :label, port_id: Number(port_id.split("/")[0])});
+      }
+    });
+
+    if (row.udp_filtered_ports != null) {
+      row.udp_ports_filtered.forEach((item) => {
+
+        item += `/udp`;
+        label = item;
+        port_id = item;
+        if (row.host_in_mem) {
+          label += ` <span class="badge bg-primary" title='${i18n('hosts_stats.page_scan_hosts.filtered_port')}'><i class="fa-solid fa-filter"></i></span>`;
+        }
+        label = `<li>${item}</li>`;
+        ports_map.set(item, {port_label: label, port_id : Number(port_id.split("/")[0])})
+      });
+    }
+  }
+
+  let content_label = ""
+  ports_map = new Map([...ports_map.entries()].sort((a,b) => a[1].port_id-b[1].port_id));
+
+  ports_map.forEach((values, keys) => {
+    content_label += `${values.port_label}`;
+  })
+
+
+  return content_label;
 }
 
 

@@ -4306,6 +4306,7 @@ local lang = {
         ["scan_type"] = "Scan Type",
         ["score"] = "Score",
         ["tcp_ports"] = "TCP Ports",
+        ["tcp_udp_ports"] = "TCP/UDP Ports",
         ["title"] = "Last Scan Report",
         ["udp_ports"] = "UDP Ports",
       },
