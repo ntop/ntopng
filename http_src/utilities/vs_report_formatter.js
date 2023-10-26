@@ -314,7 +314,7 @@ const get_icon_component = (item, row, ports_unused, ports_fitered) => {
 }
 
 export const udp_ports_list_f = (udp_ports_list, row) => {
-  if (udp_ports_list != null) {
+  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null) && udp_ports_list != null) {
     const ports = udp_ports_list.split(",");
 
     let label = "";
@@ -343,6 +343,8 @@ export const udp_ports_list_f = (udp_ports_list, row) => {
     }
     return label;
   }
+
+  return "";
 }
 
 export const tcp_ports_list_f = (tcp_ports_list, row) => {
@@ -377,10 +379,7 @@ export const tcp_ports_list_f = (tcp_ports_list, row) => {
 
     return label;
   } 
-
-  //return tcp_ports_list;
   return "";
-
 }
 
 
