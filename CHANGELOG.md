@@ -3,7 +3,7 @@
 #### ntopng 6.0 (October 2023)
 
 ## Breakthroughs
- * New configurable Dashboard
+ * New configurable Dashboard with new built-in templates
  * New configurable Traffic Report
  * New Vulnerability Scans & CVEs support
  * Add support to Periodic Reports notified via Recipients (e.g. email)
@@ -25,6 +25,7 @@
 
 ## Improvements
  * Implement asynchronous VS scanning
+ * Implement Ms Teams call detection
  * Optimize blacklist handling
  * Improve Network Map charts physics
  * Extend support to deliver notification to specific recipients
@@ -34,6 +35,7 @@
  * Add custom queries for Top Local/Remote hosts
  * Add Top receiver/sender networks custom queries
  * Add openvas support
+ * Add new Vulners vulnerability scanner
  * Add ability to set probes aliases
  * Add MDNS, NETBios, HTTP historical filters
  * Improve FreeBSD clickhouse installation
@@ -54,15 +56,14 @@
  * Improve IP/MAC association in SNMP
 
 ## Changes
- * Reworked nDPI stats (and dependencies) Removed deserialization code
+ * Support multilple -m options
+ * Rework nDPI stats
  * Add support for multiple email recipients
  * Add logic to enable generic checks if without a configuration
  * Add malware host contacted check
  * Use REST API to enable/disable checks
  * Disabled the reset of the email notification modal upon failed edit submission
  * Whitelisted locale page
- * Updated doc with new images and fix typo
- * Add dashboard templates for nedge pro and enterprise
  * Add ability to reset blacklist stats
  * Implement blacklist stats
  * Add mining currency in flow info
@@ -74,107 +75,77 @@
  * Add explicit flag to enable flow export when recording on zmq interfaces
  * Add support for %NPROBE_INSTANCE_NAME
  * Add Ellio blocklist configuration (disabled by default)
- * Updated with latest nDPi risks
- * Add dashboard support to multiple timeseries
- * Add dashboard support to multiple params
+ * Update to the latest nDPI risks
  * Email endpoint improvements
  * Improve notification message
- * Add new Vulners vulnerability scanner
  * Add download/upload buttons
  * Add possibility to send notification to recipients
- * Add report dump version
- * Add --ndpi-protocols
- * Add support for direct mode in rest_utils
- * Rework menu entries
- * Implement reload of report (wip)
  * Add multicast broadcast filter
  * Updated checks lists per license
  * Add feedback of correctly host inserted or already present
  * Take the score into account when computing the top alerted hosts
- * Tiny linguistic changes
- * Removed useless comment and tprint
- * Add back end autorefresh support
+ * Add backend autorefresh support
  * Add flow exporter mapping to timeseries
  * Update default aggregation criteria in Aggregated live flows.
  * Add missing protocol mapping
  * Exported IP country information when using -F syslog
  * Change js formatting function for 'number' type, using thousands separator
- * Add alert json configurations.
  * Disabled LDAP support for FreeBSD
- * Add handling multilple -m option
  * Add VLAN bidirectional traffic alert 
  * Handle JSON format for NXLOG in Kerberos plugin
 
 ## nEdge
- * Always redirect somewhere on captive success, instead of displaying an empty page
- * Review and fix all nedge code accessing CH
- * Fix report email on nedge
- * Enable dump on nedge enterprise. Fix help.
+ * Add dashboard templates for nedge pro and enterprise
  * Enable CH support on nEdge Enterprise
  * Enable throughput charts on nedge
- * Major cleanup of (deprecated) nedge host pools code
  * Make Multicast repeater configurable
- * Add MDNS repeater
+ * Add MDNS and multicast repeater
+ * Major cleanup of (deprecated) nedge host pools code
  * Add support for custom informative captive portal
  * Set multiple LAN addresses in case of multiple LAN interfaces
  * Add inter-LANs policies
- * Use the new dashboard in nEdge. Delete old dashboard.
- * Add inter-LANs policies
+ * Always redirect somewhere on captive success, instead of displaying an empty page
  * nf_config API improvements
 
 ## Fixes
  * Fix edit rest in multicast forwarding
- * Fix missing validation function
+ * Fix missing validation functions
  * Fix traffic timeseries labels
  * Fix RedHat OS-name detection
  * Fix prototype pollution vulnerability
  * Fix thread pool spawning on freebsd
- * Fix missing schema error
- * Fix Zoom handling Implemented Ms Teams call detection
+ * Fix Zoom handling
  * Fix behavior alert not triggered
  * Fix naming with timeseries
- * Fix ndpi protocol id issues
+ * Fix nDPI protocol id issues
  * Fix RRD computation of sampled series with MAX as consolidated function
  * Fix flow alert where clause in write mode
  * Fix alert silencing not working
  * Fix application protocol ID using minor and major protocol
- * Fix spinner on loading
- * Fix recursive problem in active monitoring.
+ * Fix UI spinner on loading
+ * Fix recursive problem in active monitoring
  * Fix ts with vlans
  * Fix shutting down doesn't insert alerts in CH
  * Fix checks configuration initialization (default values) for new risks
- * Fix traffic behavior total not working
+ * Fix traffic behavior total not working in charts
  * Fix timeseries chart date format
  * Fix SSH flow swap heuristic
- * Fix avg empty value and added extra check for nan values
- * Fix pcap dynamically loaded not triggering alerts
- * Win ZMQ link fix
+ * Fix avg empty value and added extra check for nan values in js
+ * Fix pcap dynamically loaded not triggering alert
+ * Fix ZMQ linking on Win
  * Fix date format
  * Fix blacklist counter stats
  * Fix flow alert queries on SQLite
  * Fix interface and local networks alerts not released
- * Fix various links
- * Fix various compilation errors
  * Fix flow devices not working with view interface
- * Remove excessive description and fix untagged vlan name
  * Fix flow exporters not seen with aggregated interfaces
- * Fix in cloud license VLAN handling
  * Fix js regexes
- * Fix for handling process information in cloud mode
  * Fix for validating correctly host and VLAN
  * Fix segv with custom protocols
- * Fix silence switch not working
  * Fix l7 metadata ingestion (e.g. dns query) when collecting from ZMQ
  * Fix hostname resolving
- * Fix discover utils wrong device type
- * Fix direct call of rest endpoints
- * Fix rest paths
- * Fix possible exploit alert name
  * Fix ApexCharts formatter
- * Fix enable/disable report view/download
  * Fix heap-buffer-overflow in MDNS packet dissection
- * Fix formatters
- * Fix charts not working in the community version
  * Fix exclusion bitmap not correctly set
  * Fix some errors and leaks found while fuzzing locally
  * Fix Heap buffer overflow in IEC104Stats
