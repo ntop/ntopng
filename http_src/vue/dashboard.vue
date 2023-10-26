@@ -57,14 +57,13 @@
     </template>
   </DateTimeRangePicker>
   
-  <div v-if="enable_report_title" class="mt-3" style="margin-bottom:-0.5rem;"><h3 style="text-align:center;">Report: {{selected_report_template.value}}</h3></div>
-
-  <div v-if="enable_small_picker">
-    <button class="btn btn-link btn-sm"
-              type="button"
-              @click="print_report" :title="_i18n('dashboard.print')">
-      <i class="fas fa-print"></i>
-    </button>
+  <div v-if="enable_report_title" class="mt-3" style="margin-bottom:-0.5rem; display: inline">
+    <h3 style="text-align:center;">{{report_title}}
+      <button v-if="enable_small_picker" class="btn btn-link btn-sm" type="button"
+            @click="print_report" :title="_i18n('dashboard.print')">
+        <i class="fas fa-print"></i>
+      </button>
+    </h3>
   </div>
 
   <div ref="report_box" class="row" :key="components">
@@ -185,7 +184,7 @@ let data_from_backup = false;
 let printable = false;
 
 const enable_date_time_range_picker = computed(() => {
-    return props.context.page == "report";
+    return props.context.page == "report" && !printable;
 });
 
 const enable_small_picker = computed(() => {
@@ -202,10 +201,22 @@ const disable_date_time_picker = computed(() => {
     return disabled;
 });
 
-
 const enable_report_title = computed(() => {
-    const enable = selected_report_template.value.is_open_report == true;
+    const enable = selected_report_template.value.is_open_report == true
+          || props.context.page == "vs-report";
     return enable;
+});
+
+const report_title = computed(() => {
+    let title = "";
+
+    if (selected_report_template.value.is_open_report) {
+        title = `Report: ${selected_report_template.value.value}`;
+    } else if (props.context.title) {
+        title = props.context.title;
+    }
+
+    return title;
 });
 
 const component_custom_style = computed(() => {
