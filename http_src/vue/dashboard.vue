@@ -58,6 +58,15 @@
   </DateTimeRangePicker>
   
   <div v-if="enable_report_title" class="mt-3" style="margin-bottom:-0.5rem;"><h3 style="text-align:center;">Report: {{selected_report_template.value}}</h3></div>
+
+  <div v-if="enable_small_picker">
+    <button class="btn btn-link btn-sm"
+              type="button"
+              @click="print_report" :title="_i18n('dashboard.print')">
+      <i class="fas fa-print"></i>
+    </button>
+  </div>
+
   <div ref="report_box" class="row" :key="components">
     <template v-for="c in components">
       <Box style="min-width:20rem;"
@@ -177,6 +186,10 @@ let printable = false;
 
 const enable_date_time_range_picker = computed(() => {
     return props.context.page == "report";
+});
+
+const enable_small_picker = computed(() => {
+    return props.context.page == "vs-report";
 });
 
 const disable_date = computed(() => {
