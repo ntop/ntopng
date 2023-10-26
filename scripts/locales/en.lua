@@ -5639,10 +5639,10 @@ local lang = {
       ["use_proxy_descr"] = "Use system-wide Proxy configuration (HTTP_PROXY or http_proxy environment variables)",
       ["validation"] = {
         ["empty_SMTP_port"] = "Please insert a port.",
-        ["empty_SMTP_server"] = "Please insert a IPv4/IPv6/Host address.",
+        ["empty_SMTP_server"] = "Please insert a IPv4/IPv6/Host address/SMTP URL.",
         ["empty_email"] = "Please insert an email address.",
         ["invalid_SMTP_port"] = "Please type a valid port.",
-        ["invalid_SMTP_server"] = "Please type a valid IPv4/IPv6/Host address.",
+        ["invalid_SMTP_server"] = "Please type a valid IPv4/IPv6/Host address/SMTP URL.",
         ["invalid_email"] = "Please type a valid email address (i.e. name@domain.com).",
       },
     },

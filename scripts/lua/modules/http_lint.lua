@@ -301,20 +301,6 @@ http_lint.validateSingleWord = validateSingleWord
 
 -- ##############################################
 
-local function validateEmail(w)
-    local pattern = "^[%w.-]+@[%w.-]+%.%w+$"
-
-    local validated_string = string.match(w, pattern)
-    if validated_string then
-        return true
-    else
-        return false
-    end
-
-end
-http_lint.validateEmail = validateEmail
--- ##############################################
-
 -- @brief Returns true if inputstr is inside alert, function used to check
 --        if the filter is right or not
 local function validateScriptFilter(inputstr)
@@ -2262,8 +2248,8 @@ local known_parameters = {
     ["secondary_dns"] = validateEmptyOr(validateIPV4),
     ["informative_captive_portal_url"] = validateEmptyOr(validateSingleWord),
     ["redirection_url"] = validateEmptyOr(validateSingleWord),
-    ["email_sender"] = validateEmail,
-    ["email_recipient"] = validateEmail,
+    ["email_sender"] = validateSingleWord,
+    ["email_recipient"] = validateSingleWord,
     ["smtp_server"] = validateServer,
     ["smtp_port"] = validatePortRange,
     ["smtp_username"] = validateEmptyOr(validateSingleWord),
