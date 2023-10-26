@@ -547,10 +547,14 @@ function print_report() {
     let url_params_obj = ntopng_url_manager.get_url_object();
     url_params_obj.printable = true;
     const params = ntopng_url_manager.obj_to_url_params(url_params_obj);
-    let url = `${http_prefix}/lua/pro/reportng.lua?${params}`;
+
+    let url = `${window.location.origin}${window.location.pathname}?${params}`;
+
     //const print_key = "printable";
     //ntopng_url_manager.set_key_to_url(print_key, true);
+
     ntopng_url_manager.open_new_window(url);
+
     //ntopng_url_manager.delete_key_from_url(print_key);
     // $(report_box.value).print({mediaPrint: true, timeout: 1000}); 
     // $(report_box.value).print();
