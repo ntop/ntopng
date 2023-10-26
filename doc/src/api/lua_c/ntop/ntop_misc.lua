@@ -21,8 +21,8 @@ function ntop.getHttpPrefix()
 function ntop.getRandomCSRFValue()
 
 --! @brief Check if ntopng is shuttind down.
---! @return true if is shuttting down, false otherwise.
-function ntop.isShutdown()
+--! @return true if is shutting down, false otherwise.
+function ntop.isShuttingDown()
 
 --! @brief Get the ntopng local networks list.
 --! @return table (network_address -> "").

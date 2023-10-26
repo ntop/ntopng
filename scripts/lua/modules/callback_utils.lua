@@ -18,7 +18,7 @@ local clock_start = os.clock()
 -- NOTE: direction must only be used by second.lua
 function callback_utils.foreachInterface(ifnames, condition, callback, update_direction_stats)
    for _,_ifname in pairs(ifnames) do
-      if(ntop.isShutdown()) then return true end
+      if(ntop.isShuttingDown()) then return true end
 
       -- NOTE: "eth" will be overwritten here for emulated directions
       interface.select(_ifname)
@@ -143,7 +143,7 @@ function callback_utils.foreachFlow(ifname, deadline, callback, ...)
 
    for flow_key, flow in iterator do
 
-      if(ntop.isShutdown()) then return true end
+      if(ntop.isShuttingDown()) then return true end
 
       if ((deadline ~= nil) and (os.time() >= deadline)) then
 	 -- Out of time
@@ -174,7 +174,7 @@ function callback_utils.foreachLocalTimeseriesHost(ifname, with_ts, with_one_way
    end
 
    for hostname, host_ts in iterator do
-      if(ntop.isShutdown()) then return true end
+      if(ntop.isShuttingDown()) then return true end
       if ntop.isDeadlineApproaching() then
 	 -- Out of time
 	 return false
@@ -198,7 +198,7 @@ function callback_utils.foreachHost(ifname, callback)
    local iterator = callback_utils.getHostsIterator(false --[[ no details ]])
 
    for hostname, hoststats in iterator do
-      if(ntop.isShutdown()) then return true end
+      if(ntop.isShuttingDown()) then return true end
 
       if ntop.isDeadlineApproaching() then
 	 -- Out of time
@@ -223,7 +223,7 @@ function callback_utils.foreachLocalHost(ifname, callback)
    local iterator = callback_utils.getLocalHostsIterator(false --[[ no details ]])
 
    for hostname, hoststats in iterator do
-      if(ntop.isShutdown()) then return true end
+      if(ntop.isShuttingDown()) then return true end
 
       if ntop.isDeadlineApproaching() then
 	 -- Out of time
@@ -246,7 +246,7 @@ function callback_utils.foreachDevice(ifname, callback)
    local devices_stats = callback_utils.getDevicesIterator()
 
    for devicename, devicestats in devices_stats do
-      if(ntop.isShutdown()) then return true end
+      if(ntop.isShuttingDown()) then return true end
       devicename = hostinfo2hostkey(devicestats) -- make devicename the combination of mac address and vlan
 
       if ntop.isDeadlineApproaching() then

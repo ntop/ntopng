@@ -633,7 +633,7 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
 
       for line in f:lines() do
                 num_line = num_line + 1
-         if ntop.isShutdown() then
+         if ntop.isShuttingDown() then
             break
          end
          local trimmed = line:match("^%s*(.-)%s*$")
@@ -675,7 +675,7 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
 
    traceError(trace_level, TRACE_CONSOLE, string.format("\tRead '%d' rules", num_rules))
 
-   if((num_rules == 0) and (not limit_exceeded) and (not ntop.isShutdown())) then
+   if((num_rules == 0) and (not limit_exceeded) and (not ntop.isShuttingDown())) then
       traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("List '%s' has 0 rules. Please report this to https://github.com/ntop/ntopng", list_name))
    end
 
@@ -737,7 +737,7 @@ local function reloadListsNow()
    -- Load user-customized categories
    for category_id, hosts in pairs(user_custom_categories) do
       for _, host in ipairs(hosts) do
-         if ntop.isShutdown() then
+         if ntop.isShuttingDown() then
             break
          end
          loadListItem(host, category_id, user_custom_categories, { name = "__gui__" } --[[ No list --]], 0 --[[ No line number --]])

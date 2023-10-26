@@ -84,7 +84,7 @@ local function check_device_connection_disconnection(params)
 
    -- Safety check to avoid notifying disconnected devices
    -- during shutdown when they are no longer active in ntopng.
-   if not ntop.isShutdown() then
+   if not ntop.isShuttingDown() then
       for mac in pairs(prev_active_devices) do
 	 if not active_devices[mac] then
 	    -- Device disconnection

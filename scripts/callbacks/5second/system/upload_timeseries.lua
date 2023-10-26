@@ -15,7 +15,7 @@ local num_runs = 1
 local debug = false
 
 for i=1,num_runs do
-   if(ntop.isShutdown()) then break end
+   if(ntop.isShuttingDown()) then break end
 
    local now = os.time()
    if(debug) then io.write("[upload_timeseries.lua] Uploading...\n") end

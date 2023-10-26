@@ -27,7 +27,7 @@ require("ts_second")
 local num_runs = 60
 
 for i=1,num_runs do
-   if(ntop.isShutdown()) then break end
+   if(ntop.isShuttingDown()) then break end
 
    callback_utils.foreachInterface(ifnames, interface_rrd_creation_enabled, 
       function(ifname, ifstats)

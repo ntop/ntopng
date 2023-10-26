@@ -20,7 +20,7 @@ local num_runs = 60 / periodicity
 local sleep_duration = periodicity * 1000
 
 for i=1,num_runs do
-   if(ntop.isShutdown()) then break end
+   if(ntop.isShuttingDown()) then break end
 
    local now = os.time()
 
