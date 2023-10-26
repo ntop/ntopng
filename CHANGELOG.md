@@ -6,77 +6,52 @@
  * New configurable Dashboard
  * New configurable Traffic Report
  * New Vulnerability Scans & CVEs support
- * Add support to Periodic Reports sent via Recipients
+ * Add support to Periodic Reports notified via Recipients (e.g. email)
  * Add Inactive Hosts
+ * Add PagerDuty integration
+ * Add TheHive integration
  * Add support to Modbus and Modbus alerts
- * Enable multithreading (3 threads) in order to have more accurate measurements
- * Migrate front end chart timeseries library to Dygraph
- * Completely add support for MAC Address RADIUS accounting
- * Add OT, ICS, Scada section
+ * Add Server Ports Analysis page
+ * Enable multithreading in active measurements (more accurate)
+ * Migrate frontend chart timeseries library to Dygraph
+ * Add support for MAC Address based RADIUS accounting
+ * Improve OT, ICS, Scada support
  * Trigger External Host alerts directly from Lua (also for inactive hosts)
  * Add multicast forwarders
- * Add ntopng daily configuration automatic backup
  * Implement host blackhole
  * Add support for LLDP id to MIB-II InterfaceId mapping
  * Add support for bidirectional rules
  * Add support for Enterprise XL bundle
 
 ## Improvements
- * Improve email tracing
  * Implement asynchronous VS scanning
- * Improve pre-script timing
- * Optimize blacklist code
- * Minor codes cleanup
- * Optimize blacklist handling on view interfaces
- * Implement Utils::execCmd for avoiding lua popen Refreshed VS modules
- * Enhanced Cloud mode and VS
- * Implement automatic detection of cloud-generated local hosts
- * Improve network map physics
- * Improve VLAN mapping in cloud-mode
+ * Optimize blacklist handling
+ * Improve Network Map charts physics
  * Extend support to deliver notification to specific recipients
  * Improve traffic recording settings
- * Enable UDP and TCP scan on linux VS
- * Add host pools and networks in Local Traffic Rules
- * Add PagerDuty support
+ * Add support for Host Pools and Networks in Local Traffic Rules
  * Add search map
- * Include jquery print plugin in third-party
- * Add support for background color to Box
- * Add intelligent autorefresh
- * Improve nmap tool search
- * Add ASN mapping function
- * Add possibility to load table with preloaded search
  * Add custom queries for Top Local/Remote hosts
  * Add Top receiver/sender networks custom queries
  * Add openvas support
- * Add ability to set Probes aliases
- * Add TheHive integration
+ * Add ability to set probes aliases
  * Add MDNS, NETBios, HTTP historical filters
- * MySQL check reworked for FreeBSD
  * Improve FreeBSD clickhouse installation
- * Improve smart recording check
  * Implement `-L <path>` for logging HTTP requests
- * Add support for Cloud keys generation
- * Add deferred initialization to hosts
  * Add -z for enabling timestamp reforge when reading pcap files
  * Improve dark mode css
- * Add Server Ports Analysis page
  * Optimize ElasticSearch export (removed locks, increase export queue to 64K to handle spikes)
  * Add Radius chap validation
  * Add Radius auth protocol preference
- * Automated commit of clang-format CI changes.
+ * Automated commit of clang-format CI changes
  * Add tool for creating nProbe topics in a kafka broker
  * Implement host score in Host scripts
  * Improvements for No-RX traffic analysis
- * Improve not TX port calculation
- * nProbe time drift improvements
- * Improve notification message
- * Implement reports data retention
- * Add TheHive endpoint
+ * Improve nProbe time drift check
  * Implement clickhouse retention
  * Add new page with snmp device rules
  * Add limit to discard clickhouse dump files
  * Improve IP/MAC association in SNMP
- * Add clickhouse retention on startup
 
 ## Changes
  * Reworked nDPI stats (and dependencies) Removed deserialization code
