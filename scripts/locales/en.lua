@@ -4281,9 +4281,9 @@ local lang = {
         ["num_cves"] = "%{num} CVEs",
         ["num_tcp"] = "%{num} TCP open ports",
         ["num_udp"] = "%{num} UDP open ports",
-        ["periodicity_scan_1_day_ended"] = "<br>Daily Vulnerability Scan successfully completed.</br><br> Scan Duration: %{duration}. </br><br> Found %{cves}; %{udp_ports}; %{tcp_ports}.</br> <br>See full report here <a href='%{url}'> Vulnerability Scan Report</a>.</br>",
-        ["periodicity_scan_1_week_ended"] = "<br>Weekly Vulnerability Scan successfully completed.</br><br> Scan Duration: %{duration}. </br><br> Found %{cves}; %{udp_ports}; %{tcp_ports}.</br> <br> See full report here <a href='%{url}'> Vulnerability Scan Report</a>.</br>",
-        ["scan_all_ended"] = "<br>Vulnerability Scan of all entries successfully completed.</br><br> Scan Duration: %{duration}. </br> <br> Found %{cves}; %{udp_ports}; %{tcp_ports}.</br> <br> See full report here <a href='%{url}'> Vulnerability Scan Report</a>. </br>",
+        ["periodicity_scan_1_day_ended"] = "<br>Daily Vulnerability Scan successfully completed.</br><br> Start time: %{start_date}</br><br>End time: %{end_date}</br><br> Scan duration: %{duration}. </br><br> Found %{cves}; %{udp_ports}; %{tcp_ports}.</br> <br>See full report here <a href='%{url}'> Vulnerability Scan Report</a>.</br>",
+        ["periodicity_scan_1_week_ended"] = "<br>Weekly Vulnerability Scan successfully completed.</br><br> Start time: %{start_date}</br><br>End time: %{end_date}</br><br> Scan duration: %{duration}. </br><br> Found %{cves}; %{udp_ports}; %{tcp_ports}.</br> <br> See full report here <a href='%{url}'> Vulnerability Scan Report</a>.</br>",
+        ["scan_all_ended"] = "<br>Vulnerability Scan of all entries successfully completed.</br><br> Start time: %{start_date}</br><br>End time: %{end_date}</br><br> Scan duration: %{duration}. </br> <br> Found %{cves}; %{udp_ports}; %{tcp_ports}.</br> <br> See full report here <a href='%{url}'> Vulnerability Scan Report</a>. </br>",
         ["vulnerability_scan_report_title"] = "Vulnerability Scan Report",
       },
       ["notes"] = {
@@ -4306,6 +4306,7 @@ local lang = {
         ["scan_type"] = "Scan Type",
         ["score"] = "Score",
         ["tcp_ports"] = "TCP Ports",
+        ["title"] = "Last Scan Report",
         ["udp_ports"] = "UDP Ports",
       },
       ["scan_type_list"] = {
