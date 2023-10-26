@@ -295,14 +295,12 @@ void ThreadedActivity::runScript(time_t now, char *script_name,
     // activityPath());
 #endif
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Running %s (iface=%p)", script_name,
-                               iface);
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Running %s (iface=%p)", script_name, iface);
 
   l = loadVM(script_name, iface, now);
   if (!l) {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Unable to load the Lua vm [%s][vm: %s][script: %s]",
-        iface->get_name(), activityPath(), script_name);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to load the Lua vm [%s][vm: %s][script: %s]",
+				 iface->get_name(), activityPath(), script_name);
     return;
   } else
     l->setAsSystemVM(); /* Privileged VM used by the ntpng engine (no GUI) */
@@ -329,8 +327,7 @@ void ThreadedActivity::runScript(time_t now, char *script_name,
   l->run_loaded_script();
 
   gettimeofday(&end, NULL);
-  msec_diff =
-      (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
+  msec_diff = (end.tv_sec - begin.tv_sec) * 1000 + (end.tv_usec - begin.tv_usec) / 1000;
   updateThreadedActivityStatsEnd(iface, script_name, msec_diff);
 
   if (thstats && isDeadlineApproaching(deadline))
@@ -341,8 +338,7 @@ void ThreadedActivity::runScript(time_t now, char *script_name,
 
 /* ******************************************* */
 
-LuaEngine *ThreadedActivity::loadVM(char *script_name, NetworkInterface *iface,
-                                    time_t when) {
+LuaEngine *ThreadedActivity::loadVM(char *script_name, NetworkInterface *iface, time_t when) {
   LuaEngine *l = NULL;
 
 #if defined(NTOPNG_PRO) && defined(TRACE_SCRIPTS)
@@ -350,8 +346,7 @@ LuaEngine *ThreadedActivity::loadVM(char *script_name, NetworkInterface *iface,
       TRACE_NORMAL, "Running %s [is_pro: %s][demo_end_in: %d]", script_name,
       ntop->getPrefs()->is_pro_edition() ? "YES" : "NO",
       (ntop->getPro()->demo_ends_at() == 0)
-          ? 0
-          : (ntop->getPro()->demo_ends_at() - time(NULL)));
+          ? 0 : (ntop->getPro()->demo_ends_at() - time(NULL)));
 #endif
 
   try {
@@ -503,8 +498,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool,
                      ent->d_name);
 
 #ifdef THREAD_DEBUG
-            ntop->getTrace()->traceEvent(TRACE_NORMAL, "Processing %s",
-                                         script_path);
+            ntop->getTrace()->traceEvent(TRACE_INFO, "Processing %s", script_path);
 #endif
 
             if (pool->queueJob(this, script_path, ntop->getSystemInterface(),

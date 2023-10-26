@@ -111,8 +111,7 @@ LuaEngine::LuaEngine(lua_State *vm) {
   ctx = (void *)calloc(1, sizeof(struct ntopngLuaContext));
 
   if (!ctx) {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Unable to create a context for the new Lua state.");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create a context for the new Lua state.");
     lua_close(L);
     throw bax;
   }
@@ -470,8 +469,9 @@ void LuaEngine::lua_register_classes(lua_State *L, bool http_mode) {
     /* Overload the standard Lua print() with ntop_lua_http_print that dumps
      * data on HTTP server */
     lua_register(L, "print", ntop_lua_http_print);
-  } else
+  } else {
     lua_register(L, "print", ntop_lua_cli_print);
+  }
 
 #if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
   if (ntop->getPro()->has_valid_license()) {
@@ -597,18 +597,17 @@ int LuaEngine::run_loaded_script() {
   /* Copy the lua_chunk to be able to possibly run it again next time */
   lua_pushvalue(L, -1);
 
-  if (isSystemVM())
+  if (!isSystemVM())
     getLuaVMUservalue(L, capabilities) = (u_int64_t)-1; /* All set */
 
   /* Perform the actual call */
-  if (lua_pcall(L, 0,
-                LUA_MULTRET /* Allow the script to be called multiple times */,
+  if (lua_pcall(L, 0, LUA_MULTRET /* Allow the script to be called multiple times */,
                 0) != 0) {
     if (lua_type(L, -1) == LUA_TSTRING) {
       const char *err = lua_tostring(L, -1);
-      if (!loaded_script_path && !err)
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]",
-                                     loaded_script_path, err);
+
+      if(err)
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", err);
     }
 
     rv = -2;
@@ -1363,8 +1362,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
     // %s]", &ptree, val, user);
 
     snprintf(key, sizeof(key), CONST_STR_USER_LANGUAGE, user);
-    if ((ntop->getRedis()->get(key, val, sizeof(val)) != -1) &&
-        (val[0] != '\0')) {
+
+    if ((ntop->getRedis()->get(key, val, sizeof(val)) != -1) && (val[0] != '\0')) {
       lua_pushstring(L, val);
     } else
       lua_pushstring(L, NTOP_DEFAULT_USER_LANG);
