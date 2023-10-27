@@ -670,9 +670,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
         print [[" />
-
-        
-    print [[</form>]]
+    </form>]]
     end
 
     -- ================================================================================
