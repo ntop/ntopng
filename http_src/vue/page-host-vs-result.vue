@@ -49,12 +49,14 @@ async function get_result(host, scan_type, date) {
   message_html.value = `<pre>${message.value}</pre>`;
 
 
-  const host_href = `<a href="${http_prefix}/lua/host_details.lua?host=${host}">${host}</a>`;
+  const host_href = props.context.is_in_mem === 'true' || props.context.is_in_mem == true ? `${host} <a href="${http_prefix}/lua/host_details.lua?host=${host}"><i class = "fas fa-laptop"></i></a>`: host;
   
   
   title.value = i18n("hosts_stats.page_scan_hosts.vs_result").replace("%{host}", host_href);
   if (date != null)
     date = date.replaceAll("_"," ");
+
+  
   title.value = title.value.replace("%{date}",date);
   title_html.value = title.value;
 
