@@ -630,6 +630,17 @@ if auth.has_capability(auth.capabilities.preferences) then
             })
         end
 
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("hosts_stats.page_scan_hosts.prefs_tab_title") ..
+                  '</th></tr></thead>')
+
+        prefsInputFieldPrefs(subpage_active.entries["vs_concurrently_scan_number"].title,
+            subpage_active.entries["vs_concurrently_scan_number"].description, "ntopng.prefs.",
+            "host_to_scan_max_num_scans", 4, "number",
+            true, false, nil, {
+                min = 1,
+                max = 16
+            })
+
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.flow_table") ..
                   '</th></tr></thead>')
 
@@ -659,7 +670,9 @@ if auth.has_capability(auth.capabilities.preferences) then
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
         print [[" />
-    </form>]]
+
+        
+    print [[</form>]]
     end
 
     -- ================================================================================

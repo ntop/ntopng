@@ -334,7 +334,11 @@ local menu_subpages = { {
         flow_table_probe_order = {
             title = i18n("prefs.flow_table_probe_order_title"),
             description = i18n("prefs.flow_table_probe_order_description")
-        }
+        },
+        vs_concurrently_scan_number = {
+            title = i18n("prefs.vs_concurrently_scan_number_title"),
+            description = i18n("prefs.vs_concurrently_scan_number_descr")
+        },
     }
 }, {
     id = "discovery",

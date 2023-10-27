@@ -2259,7 +2259,7 @@ local known_parameters = {
     ["influx_username"] = validateEmptyOr(validateSingleWord),
     ["influx_password"] = validateEmptyOr(validateSingleWord),
     ["influx_query_timeout"] = validateNumber,
-
+    ["host_to_scan_max_num_scans"] = validateNumber,
     ["serial_key"] = validateSingleWord,
 
     -- Multiple Choice
