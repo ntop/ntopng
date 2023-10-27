@@ -635,7 +635,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         prefsInputFieldPrefs(subpage_active.entries["vs_concurrently_scan_number"].title,
             subpage_active.entries["vs_concurrently_scan_number"].description, "ntopng.prefs.",
-            "host_to_scan_max_num_scans", 4, "number",
+            "host_to_scan_max_num_scans", prefs.host_to_scan_max_num_scans or 4, "number",
             true, false, nil, {
                 min = 1,
                 max = 16

@@ -154,6 +154,7 @@ Prefs::Prefs(Ntop *_ntop) {
 #endif
   enable_runtime_flows_dump = true;
   enable_activities_debug = false;
+  vs_max_num_scans = 4;
 #ifndef HAVE_NEDGE
   appliance = false;
 #endif
@@ -862,6 +863,9 @@ void Prefs::reloadPrefsFromRedis() {
   use_mac_in_flow_key =
     getDefaultPrefsValue(CONST_PREFS_USE_MAC_IN_FLOW_KEY, false);
 
+  // vulnerability scan preferences
+  vs_max_num_scans = 
+    getDefaultPrefsValue(CONST_VS_MAX_NUM_SCANS, 4);
   // auth session preferences
   auth_session_duration = getDefaultPrefsValue(
 					       CONST_AUTH_SESSION_DURATION_PREFS, HTTP_SESSION_DURATION),
@@ -2629,6 +2633,8 @@ void Prefs::lua(lua_State *vm) {
                             dump_flows_on_syslog);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_clickhouse_enabled",
                             dump_flows_on_clickhouse);
+  lua_push_int32_table_entry(vm, "host_to_scan_max_num_scans",
+			     vs_max_num_scans);
 
 #ifdef HAVE_NEDGE
   lua_push_bool_table_entry(vm, "is_mac_based_captive_portal",
