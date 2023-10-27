@@ -501,6 +501,18 @@ end
 
 -- ######################################################
 
+local function format_no_html_vs_report_message(message) 
+   local formatted_message = message
+   formatted_message = formatted_message:gsub("<br>", "")
+   formatted_message = formatted_message:gsub("</br>","\n")
+   formatted_message = formatted_message:gsub("<a href='","")
+   formatted_message = formatted_message:gsub("'>","")
+   formatted_message = formatted_message:gsub("</a>","")
+   return formatted_message
+end
+
+-- ######################################################
+
 -- This is a basic function used to format notifications
 local function format_notification(notification, options)
    local message = notification.message or ""
@@ -509,6 +521,14 @@ local function format_notification(notification, options)
    if notification.notification_type == "reports" and 
       (not options or not options.nohtml) then
       message = format_report_email(notification)
+   end
+
+   if (notification.notification_type == "vulnerability_scans") then
+      if(not options or not options.nohtml) then
+          -- nothing to do
+      else
+         message = format_no_html_vs_report_message(message) 
+      end
    end
 
    return message

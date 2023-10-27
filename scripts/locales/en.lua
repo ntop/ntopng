@@ -4284,9 +4284,9 @@ local lang = {
         ["num_tcp"] = "%{num} TCP open ports",
         ["num_udp"] = "%{num} UDP open ports",
         ["num_scanned_hosts"] = "Scanned Hosts: %{num}.",
-        ["periodicity_scan_1_day_ended"] = "<br>Daily Vulnerability Scan successfully completed.</br><br> Start time: %{start_date}</br><br>End time: %{end_date}</br><br> Scan duration: %{duration}. </br><br>%{scanned_hosts}</br><br> Found %{cves}; %{udp_ports}; %{tcp_ports}.</br> <br>See full report here <a href='%{url}'> Vulnerability Scan Report</a>.</br>",
-        ["periodicity_scan_1_week_ended"] = "<br>Weekly Vulnerability Scan successfully completed.</br><br> Start time: %{start_date}</br><br>End time: %{end_date}</br><br> Scan duration: %{duration}. </br><br>%{scanned_hosts}</br><br> Found %{cves}; %{udp_ports}; %{tcp_ports}.</br> <br> See full report here <a href='%{url}'> Vulnerability Scan Report</a>.</br>",
-        ["scan_all_ended"] = "<br>Vulnerability Scan of all entries successfully completed.</br><br> Start time: %{start_date}</br><br>End time: %{end_date}</br><br> Scan duration: %{duration}. </br><br>%{scanned_hosts}</br><br> Found %{cves}; %{udp_ports}; %{tcp_ports}.</br> <br> See full report here <a href='%{url}'> Vulnerability Scan Report</a>. </br>",
+        ["periodicity_scan_1_day_ended"] = "<br>Daily Vulnerability Scan successfully completed.</br><br>Start time: %{start_date}.</br><br>End time: %{end_date}.</br><br>Scan duration: %{duration}.</br><br>%{scanned_hosts}</br><br>Found %{cves}; %{udp_ports}; %{tcp_ports}.</br><br>See full report here <a href='%{url}'> Vulnerability Scan Report</a>.</br>",
+        ["periodicity_scan_1_week_ended"] = "<br>Weekly Vulnerability Scan successfully completed.</br><br>Start time: %{start_date}.</br><br>End time: %{end_date}.</br><br> Scan duration: %{duration}.</br><br>%{scanned_hosts}</br><br>Found %{cves}; %{udp_ports}; %{tcp_ports}.</br><br>See full report here <a href='%{url}'> Vulnerability Scan Report</a>.</br>",
+        ["scan_all_ended"] = "<br>Vulnerability Scan of all entries successfully completed.</br><br>Start time: %{start_date}.</br><br>End time: %{end_date}.</br><br>Scan duration: %{duration}.</br><br>%{scanned_hosts}</br><br>Found %{cves}; %{udp_ports}; %{tcp_ports}.</br><br>See full report here <a href='%{url}'> Vulnerability Scan Report</a>.</br>",
         ["vulnerability_scan_report_title"] = "Vulnerability Scan Report",
       },
       ["notes"] = {
