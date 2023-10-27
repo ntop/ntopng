@@ -17,7 +17,6 @@ import { default as Loading } from "./loading.vue";
 import regexValidation from "../utilities/regex-validation.js";
 
 const scan_result_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_result.lua`;
-const resolve_host_name_url = `${http_prefix}/lua/rest/v2/get/host/resolve_host_name.lua`;
 
 const modal_id = ref(null);
 const loading = ref(false);
