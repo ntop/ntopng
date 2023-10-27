@@ -49,28 +49,8 @@ async function get_result(host, scan_type, date) {
   message.value = result.rsp;
   message_html.value = `<pre>${message.value}</pre>`;
 
-  let regex = new RegExp(regexValidation.get_data_pattern('ip'));
 
-  let verify_host_name = false;
-  if (!(regex.test(host.value))) {
-    if (host.value != "") {
-
-      verify_host_name = true;
-      
-    }
-  }
-
-  let result_ip = host;
-  if (verify_host_name) {
-    const url_host_name = NtopUtils.buildURL(resolve_host_name_url, {
-        host: host
-      })
-
-    result_ip = await ntopng_utility.http_request(url_host_name);
-  }
-  
-
-  const host_href = `<a href="${http_prefix}/lua/host_details.lua?host=${result_ip}">${host}</a>`;
+  const host_href = `<a href="${http_prefix}/lua/host_details.lua?host=${host}">${host}</a>`;
   
   
   title.value = i18n("hosts_stats.page_scan_hosts.vs_result").replace("%{host}", host_href);
