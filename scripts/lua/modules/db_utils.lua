@@ -901,7 +901,7 @@ function db_utils.clickhouseDeleteOldPartitions(data_retention, aggregated_reten
    -- Query the partitions that need to be deleted. Convert YYYYMMDD strings into integers so that
    -- only relevant partitions can be queried and deleted
    -- The last condition > 999999 prevents old partitions created as YYYMM to be deleted
-   local partitions_q = string.format("SELECT DISTINCT database, table, toUInt32(partition) drop_part FROM system.parts WHERE active AND database='%s' AND table != 'l7_protocols' AND table != 'flow_risks' AND table != 'alert_severities' AND table != 'l7_categories' AND table != 'l4_protocols' AND table != 'hourly_flows' AND drop_part <= %u AND drop_part > 999999", ntop.getPrefs().mysql_dbname or 'ntopng', retention_yyyymmdd)
+   local partitions_q = string.format("SELECT DISTINCT database, table, toUInt32(partition) drop_part FROM system.parts WHERE active AND database='%s' AND table != 'hourly_flows' AND drop_part <= %u AND drop_part > 999999", ntop.getPrefs().mysql_dbname or 'ntopng', retention_yyyymmdd)
    local partitions_res = interface.execSQLQuery(partitions_q)
 
 
