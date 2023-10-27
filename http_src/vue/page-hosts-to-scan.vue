@@ -753,7 +753,7 @@ async function click_button_download(event) {
 /* Function to show last vulnerability scan result */
 async function click_button_show_result(event) {
   let host = event.row.host;
-  let date = event.row.last_scan.time.replace(" ","|");
+  let date = event.row.last_scan.time.replace(" ","_");
 
   let params = {
     host: host,

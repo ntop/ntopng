@@ -419,7 +419,7 @@ export const hosts_f = (hosts, row) => {
       {
         scan_type: host_info[1],
         ip: host_info[0],
-        date: host_info[2],
+        date: host_info[2].replace(" ","_"),
         is_ipv4: host_info[3] == 'true'
       })
   });
@@ -458,7 +458,7 @@ const build_host_to_scan_report_url = (host, scan_type, date) => {
 export const host_f = (host, row, ifid) => {
   let label = host;
   if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null)) {
-    let url = build_host_to_scan_report_url(host, row.scan_type, row.last_scan.time);
+    let url = build_host_to_scan_report_url(host, row.scan_type, row.last_scan.time.replace(" ","_"));
     label = `<a href="${url}">${host}</a>`;
   }
   return label;

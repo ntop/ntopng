@@ -44,7 +44,6 @@ async function get_result(host, scan_type, date) {
 
   };
   let url_params = ntopng_url_manager.obj_to_url_params(params);
-
   let url = `${scan_result_url}?${url_params}`;
   let result = await ntopng_utility.http_request(url);
   message.value = result.rsp;
@@ -75,7 +74,8 @@ async function get_result(host, scan_type, date) {
   
   
   title.value = i18n("hosts_stats.page_scan_hosts.vs_result").replace("%{host}", host_href);
-  date = date.replace("|"," ");
+  if (date != null)
+    date = date.replaceAll("_"," ");
   title.value = title.value.replace("%{date}",date);
   title_html.value = title.value;
 

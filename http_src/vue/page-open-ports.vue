@@ -244,7 +244,7 @@ const map_table_def_columns = (columns) => {
         const host_splitted = hosts_splited[i].split("|");
         const host = host_splitted[0];
         const scan_type = host_splitted[1];
-        const date = host_splitted[2];
+        const date = host_splitted[2].replace(" ","_");
         const is_ipv4 = host_splitted[3] === 'true';
 
         let host_name = '';
