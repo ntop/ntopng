@@ -116,13 +116,6 @@ function ts_data.get_timeseries(http_context)
         if options.tags.host then
             options.tags = addHostInfo(options.tags)
         end
-
-        if tskey ~= 0 then
-            -- In case of vlans, the vlan tag has to be there
-            for id, val in pairs(hostkey2hostinfo(tskey)) do
-                options.tags[id] = val
-            end
-        end
     end
 
     if ((options.schema == "top:flow_check:duration") or (options.schema == "top:elem_check:duration")) then

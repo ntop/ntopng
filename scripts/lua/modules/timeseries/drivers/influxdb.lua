@@ -513,16 +513,19 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
         next_t = next_t + time_step
     end
 
+
     -- In case just one point is found, report as no points are found
     for _, serie in pairs(series) do
-        local num_pts_not_filled = 0
+        local num_not_nan_pts = 0
         for _, num in pairs(serie.data) do
-            if tostring(num) ~= tostring(options.fill_value) then
-                num_pts_not_filled = num_pts_not_filled + 1
+            -- Not NAN points
+            if num == num then
+                num_not_nan_pts = num_not_nan_pts + 1
             end
         end
+
         -- Too few points to have a decent ts, reset all
-        if num_pts_not_filled < options.min_num_points then
+        if num_not_nan_pts < options.min_num_points then
             for idx, num in pairs(serie.data) do
                 serie.data[idx] = options.fill_value
             end
