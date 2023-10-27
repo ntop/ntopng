@@ -597,7 +597,7 @@ int LuaEngine::run_loaded_script() {
   /* Copy the lua_chunk to be able to possibly run it again next time */
   lua_pushvalue(L, -1);
 
-  if (!isSystemVM())
+  if (isSystemVM())
     getLuaVMUservalue(L, capabilities) = (u_int64_t)-1; /* All set */
 
   /* Perform the actual call */
