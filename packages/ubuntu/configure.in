@@ -150,6 +150,12 @@ if test -d $LICENSEDIR; then
   fi
 fi
 
+if test -f /usr/bin/debsigs; then
+  SIGN_CMD="debsigs"
+else
+  SIGN_CMD="dpkg-sig"
+fi
+
 DATE=`date -R`
 KERNEL=`uname -r`
 
@@ -170,6 +176,7 @@ AC_SUBST(LIBRRD)
 AC_SUBST(SUDO)
 AC_SUBST(CHOWN)
 AC_SUBST(CUSTOM_NTOPNG_DOT_CONF)
+AC_SUBST(SIGN_CMD)
 
 AC_CONFIG_FILES(Makefile)
 AC_CONFIG_FILES(debian.ntopng/changelog)
