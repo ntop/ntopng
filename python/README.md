@@ -45,6 +45,10 @@ We encourage our users to extend this API. For your convenience we are sharing a
 Documentation
 -------------
 
+For detailed documentation on each API class please visit:
+
+- [Python API Docs] (https://github.com/ntop/ntopng/blob/dev/python/docs/python_API_index.md)
+
 For further information please visit the API documentation available at:
 
 [ntopng Python API](https://www.ntop.org/guides/ntopng/api/python/index.html)
