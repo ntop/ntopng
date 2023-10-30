@@ -11,6 +11,8 @@ local alert_consts = require "alert_consts"
 local alert_entities = require "alert_entities"
 local checks = require "checks"
 local endpoints = require("endpoints")
+local am_utils = require "am_utils"
+
 local last_error_notification = 0
 local MIN_ERROR_DELAY = 60 -- 1 minute
 local ERROR_KEY = "ntopng.cache.%s.error_time"
@@ -1063,10 +1065,16 @@ function recipients.dispatch_notification(notification, current_script, notifica
          if recipient_ok then
             if notification.entity_id == alert_entities.am_host.entity_id and notification.entity_val then
                if recipient.recipient_name ~= "builtin_recipient_alert_store_db" and recipient.am_hosts then
-                  local am_hosts_map = swapKeysValues(recipient.am_hosts)
-                  if not am_hosts_map[notification.entity_val] then
-                     recipient_ok = false
-                     debug_print("X Discarding " .. notification.entity_val .. " alert for recipient " .. recipient.recipient_name .. " due to AM selection")
+
+                  local am_host_info = am_utils.key2host(notification.entity_val)
+                  if am_host_info.measurement == "vs" then
+                     -- Vulnerability scan - enabled for any hosts
+                  else
+                     local am_hosts_map = swapKeysValues(recipient.am_hosts)
+                     if not am_hosts_map[notification.entity_val] then
+                        recipient_ok = false
+                        debug_print("X Discarding " .. notification.entity_val .. " alert for recipient " .. recipient.recipient_name .. " due to AM selection")
+                     end
                   end
                end
             end

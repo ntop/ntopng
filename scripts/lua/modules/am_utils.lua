@@ -251,7 +251,9 @@ local function key2amhost(host)
   local measurement, amhost = string.match(host, "^([^@]+)@(.+)")
 
   if measurement and amhost then
-     return amhost, measurement
+    return amhost, measurement
+  else
+    return nil, nil
   end
 end
 
