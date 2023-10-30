@@ -11,7 +11,6 @@ local alert_consts = require "alert_consts"
 local alert_entities = require "alert_entities"
 local checks = require "checks"
 local endpoints = require("endpoints")
-local am_utils = require "am_utils"
 
 local last_error_notification = 0
 local MIN_ERROR_DELAY = 60 -- 1 minute
@@ -1066,8 +1065,15 @@ function recipients.dispatch_notification(notification, current_script, notifica
             if notification.entity_id == alert_entities.am_host.entity_id and notification.entity_val then
                if recipient.recipient_name ~= "builtin_recipient_alert_store_db" and recipient.am_hosts then
 
-                  local am_host_info = am_utils.key2host(notification.entity_val)
-                  if am_host_info.measurement == "vs" then
+                  local am_measurement
+                  local am_host
+                  local parts = split(notification.entity_val, "@")
+                  if #parts == 2 then
+                     am_measurement = parts[1]
+                     am_host = parts[2]
+                  end
+
+                  if am_measurement == "vs" then
                      -- Vulnerability scan - enabled for any hosts
                   else
                      local am_hosts_map = swapKeysValues(recipient.am_hosts)
