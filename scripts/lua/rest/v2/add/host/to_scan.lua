@@ -29,18 +29,24 @@ local result = nil
 local id = nil
 
 if isEmptyString(cidr) then
-    result,id = vs_utils.save_host_to_scan(scan_type, host, nil, nil, nil, nil, scan_ports, scan_frequency, scan_id, true)
 
     if (not is_edit) then
+        result,id = vs_utils.add_host_pref(scan_type, host,scan_ports, scan_frequency)
+
         vs_utils.schedule_host_scan(scan_type,host,scan_ports,id,false)
+    else 
+        result,id = vs_utils.edit_host_pref(scan_type, host,scan_ports, scan_frequency)
     end
 else 
     local hosts_to_save = vs_utils.get_active_hosts(host, cidr)
 
     for _,item in ipairs(hosts_to_save) do
-        result,id = vs_utils.save_host_to_scan(scan_type, item, nil, nil, nil, nil, scan_ports, scan_frequency, nil, nil, nil, scan_id, true )
         if (not is_edit) then
+            result,id = vs_utils.add_host_pref(scan_type, item,scan_ports, scan_frequency)
             vs_utils.schedule_host_scan(scan_type,item,scan_ports,id,false)
+        else
+            result,id = vs_utils.edit_host_pref(scan_type, item,scan_ports, scan_frequency)
+
         end
     end
 end

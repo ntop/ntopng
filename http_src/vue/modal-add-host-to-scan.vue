@@ -6,15 +6,15 @@
       <!-- Target information, here an IP is put -->
     
   
-      <div  class="form-group ms-2 me-2 mt-3 row">
+      <div  class="form-group ms-2 me-2 mt-3 row" >
           <label class="col-form-label col-sm-2" >
           <b>{{_i18n("hosts_stats.page_scan_hosts.host")}}</b>
           </label>
           <div class="col-sm-8" >
-            <input v-model="host" @input="check_empty_host" class="form-control" type="text" :placeholder="host_placeholder" required>
+            <input v-model="host" @input="check_empty_host" :disabled="is_edit_page" class="form-control" type="text" :placeholder="host_placeholder" required>
           </div>
           <div class="col-sm-2" >
-            <SelectSearch v-model:selected_option="selected_cidr"
+            <SelectSearch v-model:selected_option="selected_cidr" :disabled="is_edit_page" 
                 @select_option="_load_ports"
                 :options="cidr_options_list">
             </SelectSearch>
@@ -50,7 +50,7 @@
         <div class="col-10">
           
           <SelectSearch v-model:selected_option="selected_scan_type"
-                :options="scan_type_list">
+                :options="scan_type_list" :disabled="is_edit_page">
           </SelectSearch>
         </div> 
       </div>
