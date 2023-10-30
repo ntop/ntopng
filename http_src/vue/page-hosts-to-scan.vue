@@ -1,5 +1,5 @@
 <!--
-  (C) 2013-22 - ntop.org
+  (C) 2013-23 - ntop.org
 -->
 
 <template>
@@ -30,25 +30,28 @@
               :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
               :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event" @rows_loaded="on_table_loaded">
               <template v-slot:custom_header>
-                <button class="btn btn-link" type="button" ref="add_host" @click="add_host"><i
-                    class='fas fa-plus'></i></button>
+                <button class="btn btn-link" type="button" ref="add_host" @click="add_host">
+                  <i class='fas fa-plus'></i>
+                </button>
               </template>
             </TableWithConfig>
-
           </div>
-          
         </div>
         <div class="card-footer mt-3">
-            <button type="button" ref="delete_all" @click="delete_all_entries" class="btn btn-danger me-1" :class="{ 'disabled': total_rows == 0}"><i
-                class='fas fa-trash'></i> {{ _i18n("delete_all_entries") }}</button>
-
-            <button type="button" ref="scan_all" @click="confirm_scan_all_entries" class="btn btn-primary me-1" :class="{ 'disabled': total_rows == 0}"><i
-                class='fas fa-clock-rotate-left'></i> {{ _i18n("hosts_stats.page_scan_hosts.schedule_all_scan") }}</button>
-            <template v-if="props.context.is_enterprise_l">
-
-            <button type="button" ref="update_all" @click="update_all_periodicity" class="btn btn-secondary me-1" :class="{ 'disabled': total_rows == 0}">{{ _i18n("hosts_stats.page_scan_hosts.update_periodicity_title") }}</button>          
-            </template>
-            </div>
+          <button type="button" ref="delete_all" @click="delete_all_entries" class="btn btn-danger me-1" :class="{ 'disabled': total_rows == 0}">
+            <i class='fas fa-trash'></i>
+            {{ _i18n("delete_all_entries") }}
+          </button>
+          <button type="button" ref="scan_all" @click="confirm_scan_all_entries" class="btn btn-primary me-1" :class="{ 'disabled': total_rows == 0}">
+            <i class='fas fa-clock-rotate-left'></i> 
+            {{ _i18n("hosts_stats.page_scan_hosts.schedule_all_scan") }}
+          </button>
+          <template v-if="props.context.is_enterprise_l">
+            <button type="button" ref="update_all" @click="update_all_periodicity" class="btn btn-secondary me-1" :class="{ 'disabled': total_rows == 0}">
+              {{ _i18n("hosts_stats.page_scan_hosts.update_periodicity_title") }}
+            </button>          
+          </template>
+        </div>
 
         <div class="card-footer">
         <NoteList
@@ -66,7 +69,7 @@
 <script setup>
 
 /* Imports */ 
-import { ref, onBeforeMount, onMounted, nextTick } from "vue";
+import { ref, onBeforeMount, onMounted } from "vue";
 import { default as NoteList } from "./note-list.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
@@ -75,41 +78,24 @@ import { default as ModalUpdatePeriodicityScan } from "./modal-update-periodicit
 import { ntopng_utility } from '../services/context/ntopng_globals_services';
 import { default as ModalAddHostToScan } from "./modal-add-host-to-scan.vue";
 import { columns_formatter } from "../utilities/vs_report_formatter.js"; 
+import { default as sortingFunctions } from "../utilities/sorting-utils.js"; 
 
 /* ******************************************************************** */ 
 
 /* Consts */ 
 const _i18n = (t) => i18n(t);
 
-let autorefresh = ref(false);
-let modal_opened = ref(false);
-let insert_with_success = ref(false);
-let already_inserted = ref(false);
-let note = _i18n('hosts_stats.page_scan_hosts.notes.generic_notes_1').replaceAll("${http_prefix}",`${http_prefix}`);
-
+const note = i18n('hosts_stats.page_scan_hosts.notes.generic_notes_1').replaceAll("${http_prefix}",`${http_prefix}`);
 const note_list = [
   note
 ]
 
-let insert_text = ref(_i18n('scan_host_inserted'));
-let already_insert_text = ref(_i18n('scan_host_already_inserted'));
-let in_progress_scan_text = ref(_i18n('scan_in_progress'));
-
-const title_html = ref(i18n("scan_hosts"));
-
-
-const table_id = ref('hosts_to_scan');
-let title_delete = _i18n('hosts_stats.page_scan_hosts.delete_host_title');
-let body_delete = _i18n('hosts_stats.page_scan_hosts.delete_host_description');
-
-let title_update_periodicity_scan = _i18n('hosts_stats.page_scan_hosts.update_periodicity_title');
-
-const table_hosts_to_scan = ref();
-const modal_delete_confirm = ref();
-const modal_add = ref();
-const modal_vs_result = ref();
-const modal_update_perioditicy_scan = ref();
-const total_rows = ref(0);
+const insert_text = ref(i18n('scan_host_inserted'));
+const already_insert_text = ref(i18n('scan_host_already_inserted'));
+const in_progress_scan_text = ref("");
+const title_delete = i18n('hosts_stats.page_scan_hosts.delete_host_title');
+const body_delete = i18n('hosts_stats.page_scan_hosts.delete_host_description');
+const title_update_periodicity_scan = i18n('hosts_stats.page_scan_hosts.update_periodicity_title');
 
 const add_host_url = `${http_prefix}/lua/rest/v2/add/host/to_scan.lua`;
 const edit_host_url = `${http_prefix}/lua/rest/v2/edit/host/update_va_scan_period.lua`;
@@ -119,12 +105,20 @@ const scan_type_list_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_sc
 const active_monitoring_url = `${http_prefix}/lua/vulnerability_scan.lua`;
 const scan_result_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_result.lua`;
 const check_status_url = `${http_prefix}/lua/rest/v2/get/host/vulnerability_scan_status.lua`;
-const in_progress_number = ref(null);
 
+const table_id = ref('hosts_to_scan');
+const table_hosts_to_scan = ref();
+const modal_delete_confirm = ref();
+const modal_add = ref();
+const modal_update_perioditicy_scan = ref();
+const total_rows = ref(0);
+const in_progress_number = ref(null);
 const row_to_delete = ref({});
 const row_to_scan = ref({});
-let scan_type_list = [];
-let get_scan_type_list_v = null;
+const autorefresh = ref(false);
+const modal_opened = ref(false);
+const insert_with_success = ref(false);
+const already_inserted = ref(false);
 
 const props = defineProps({
   context: Object,
@@ -137,6 +131,28 @@ const context = ref({
   ifid: props.context.ifid,
   is_enterprise_l: props.context.is_enterprise_l
 });
+
+let scan_type_list = [];
+let get_scan_type_list_v = null;
+
+/* ******************************************************************** */ 
+
+onBeforeMount(() => {
+  get_scan_type_list_v = Promise.all([get_scan_type_list(), check_in_progress_status()]);
+})
+
+/* ******************************************************************** */ 
+
+onMounted(async () => {
+  await get_scan_type_list_v;
+  await modal_add.value.metricsLoaded(scan_type_list, props.context.ifid, props.context.is_enterprise_l);
+  if (props.context.host != null) {
+    modal_add.value.show(null, props.context.host);
+  }
+
+  /* Check the status periodically every 10 seconds */
+  setInterval(check_autorefresh, 10000);
+})
 
 /* ******************************************************************** */ 
 
@@ -172,7 +188,6 @@ const get_extra_params_obj = () => {
 
 /* Function to handle all buttons */
 function on_table_custom_event(event) {
-  
   let events_managed = {
     "click_button_edit_host": click_button_edit_host,
     "click_button_delete": click_button_delete,
@@ -186,161 +201,67 @@ function on_table_custom_event(event) {
   events_managed[event.event_id](event);
 }
 
+/* ******************************************************************** */ 
 
-function compare_by_host_ip(r0,r1) {
-
-  const col = {
-      "data": {
-          "title_i18n": "db_explorer.host_data",
-          "data_field": "host",
-          "sortable": true,
-          "class": [
-              "text-nowrap"
-          ]
-      }
-    }
-    let r0_col = r0[col.data.data_field];
-    let r1_col = r1[col.data.data_field];
-    r0_col = NtopUtils.convertIPAddress(r0_col);
-    r1_col = NtopUtils.convertIPAddress(r1_col);
-    
-    return r0_col.localeCompare(r1_col);
+/* Default sorting, by default default by IP in Asc order */
+function compare_by_host_ip(r0, r1) {
+  return sortingFunctions.sortByIP(r0["host"], r1["host"], 1 /* by default asc */);
 }
 
+/* ******************************************************************** */ 
 
+/* This function simply return the data of the exact column and row requested */
+function column_data(col, row) {
+  let data = row[col.data.data_field];
+  if(col.id == "duration") {
+    data = row["last_scan"] === undefined ? -1 : row["last_scan"][col.data.data_field];
+  } else if(col.id == "last_scan") {
+    data = row["last_scan"] === undefined || row["is_ok_last_scan"] != 1 ? "0" : row["last_scan"]["time"];
+  } else if(col.id == "is_ok_last_scan") {
+    data = get_scan_status_value(data, row);
+  } else if(col.id == "scan_frequency") {
+    data = get_scan_frequency(data);
+  }
+
+  return data;
+}
+
+/* ******************************************************************** */ 
+
+/* Function used to sort the columns of the table */
 function columns_sorting(col, r0, r1) {
   if (col != null) {
-    let r0_col = r0[col.data.data_field];
-    let r1_col = r1[col.data.data_field];
-    if(col.id == "host") {
-      r0_col = NtopUtils.convertIPAddress(r0_col);
-      r1_col = NtopUtils.convertIPAddress(r1_col);
-      if (col.sort == 1) {
-        return r0_col.localeCompare(r1_col);
-      }
-      return r1_col.localeCompare(r0_col);
-    } else if(col.id == "host_name") {
+    let r0_col = column_data(col, r0);
+    let r1_col = column_data(col, r1);
 
-      if (r0_col == r1_col) {
-        return compare_by_host_ip(r0,r1);
-      }
-      if (col.sort == 1) {
-        return r0_col.localeCompare(r1_col);
-      }
-      return r1_col.localeCompare(r0_col);
+    /* In case the values are the same, sort by IP */
+    if(r0_col == r1_col) {
+      return compare_by_host_ip(r0, r1);
     }
-    else if(col.id == "num_vulnerabilities_found") {
-      /* It's an array */
-      r0_col = format_num_for_sort(r0_col);
-      r1_col = format_num_for_sort(r1_col);
-
-      if (r0_col == r1_col) {
-        return compare_by_host_ip(r0,r1);
-      }
-      if (col.sort == 1) {
-        return r0_col - r1_col;
-      }
-      return r1_col - r0_col; 
-    } else if ( col.id == "tcp_ports" || col.id == "udp_ports") {
-      r0_col = format_num_ports_for_sort(r0_col);
-      r1_col = format_num_ports_for_sort(r1_col);
-      if (r0_col == r1_col) {
-        return compare_by_host_ip(r0,r1);
-      }
-      if (col.sort == 1) {
-        return r0_col - r1_col;
-      }
-      return r1_col - r0_col;
-    } 
-    else if(col.id == "duration") {
-      r0_col = r0["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r0["last_scan"][col.data.data_field];
-      r1_col = r1["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r1["last_scan"][col.data.data_field];
-      if (r1_col != i18n("hosts_stats.page_scan_hosts.not_yet"))
-        r1_col = r1_col.split(" ")[0];
-      
-      if (r0_col != i18n("hosts_stats.page_scan_hosts.not_yet"))
-        r0_col = r0_col.split(" ")[0];
-      
-      
-      if (r0_col == r1_col) {
-        return compare_by_host_ip(r0,r1);
-      }
-      if (col.sort == 1) {
-        return r0_col.localeCompare(r1_col);
-      }
-
-      if(r0_col == i18n("hosts_stats.page_scan_hosts.not_yet")){
-        r0_col = "-1";
-
-      }
-      if(r1_col == i18n("hosts_stats.page_scan_hosts.not_yet"))
-        r1_col = "-1";
-
-      if (r0_col == r1_col) {
-        return compare_by_host_ip(r0,r1);
-      }
-      return r1_col.localeCompare(r0_col);
+    if(col.id == "host") {
+      return sortingFunctions.sortByIP(r0_col, r1_col, col.sort);
+    } else if(col.id == "host_name") {
+      return sortingFunctions.sortByName(r0_col, r1_col, col.sort);
+    } else if(col.id == "num_vulnerabilities_found") {
+      return sortingFunctions.sortByNumber(r0_col, r1_col, col.sort);
+    } else if(col.id == "tcp_ports" || col.id == "udp_ports") {
+      return sortingFunctions.sortByNumber(r0_col, r1_col, col.sort);
+    } else if(col.id == "duration") {
+      return sortingFunctions.sortByNumber(r0_col, r1_col, col.sort);
     } else if(col.id == "last_scan") {
-
-      r0_col = r0["last_scan"] === undefined || r0["is_ok_last_scan"] != 1 ? "0000000000" : r0["last_scan"]["time"];
-      r1_col = r1["last_scan"] === undefined || r1["is_ok_last_scan"] != 1 ? "0000000000" : r1["last_scan"]["time"];
-      
-      if (r0_col == r1_col) {
-        return compare_by_host_ip(r0,r1);
-      }
-      if (col.sort == 1) {
-        return r0_col.localeCompare(r1_col);
-      }
-
-      return r1_col.localeCompare(r0_col);
-    } else if (col.id == "is_ok_last_scan") {
-      r0_col = get_scan_status_value(r0_col, r0);
-      r1_col = get_scan_status_value(r1_col, r1);
-
-      if (r0_col == r1_col) {
-        return compare_by_host_ip(r0,r1);
-      }
-      if (col.sort == 1) {
-        return r0_col.localeCompare(r1_col);
-      }
-      return r1_col.localeCompare(r0_col);
+      return sortingFunctions.sortByName(r0_col, r1_col, col.sort);
+    } else if(col.id == "is_ok_last_scan") {
+      return sortingFunctions.sortByName(r0_col, r1_col, col.sort);
     } else if(col.id == "max_score_cve") {
-      r0_col = r0_col != null ? r0_col : 0;
-      r1_col = r1_col != null ? r1_col : 0;
-
-      if (r0_col == r1_col) {
-        return compare_by_host_ip(r0,r1);
-      }
-      if (col.sort == 1) {
-        return r0_col - r1_col;
-      }
-      return r1_col - r0_col; 
-    }else if(col.id == "scan_frequency") {
-      r0_col = get_scan_frequency(r0_col);
-      r1_col = get_scan_frequency(r1_col);
-
-
-      if (r0_col == r1_col) {
-        return compare_by_host_ip(r0,r1);
-      }
-      if (col.sort == 1) {
-        return r0_col.localeCompare(r1_col);
-      }
-      return r1_col.localeCompare(r0_col);  
+      return sortingFunctions.sortByNumber(r0_col, r1_col, col.sort);
+    } else if(col.id == "scan_frequency") {
+      return sortingFunctions.sortByName(r0_col, r1_col, col.sort);
     } else {
-
-      if (r0_col == r1_col) {
-        return compare_by_host_ip(r0,r1);
-      }
-      if (col.sort == 1) {
-        return r0_col.localeCompare(r1_col);
-      }
-      return r1_col.localeCompare(r0_col);
+      return sortingFunctions.sortByName(r0_col, r1_col, col.sort);
     }	
-  } else {
-    return compare_by_host_ip(r0,r1);
   }
   
+  return compare_by_host_ip(r0, r1);
 }
 
 /* ******************************************************************** */ 
@@ -375,35 +296,10 @@ function get_scan_status_value(is_ok_last_scan, r) {
 
 /* ******************************************************************** */ 
 
-function format_num_for_sort(num) {
-  if (num === "" || num === null || num === NaN || num === undefined) {
-    num = 0;
-  } else {
-    num = num.split(',').join("")
-    num = parseInt(num);
-  }
-
-  return num;
-}
-
-/* ******************************************************************** */ 
-
-function format_num_ports_for_sort(num) {
-  if (num == "" || num == null || num == NaN || num == undefined) 
-    num = 0;
-
-  num = parseInt(num);;
-  return num;
-}
-
-/* ******************************************************************** */ 
-
 /* Function to handle delete button */
-async function click_button_delete(event) {
-
+function click_button_delete(event) {
   insert_with_success.value = false;
   already_inserted.value = false;
-  
   refresh_feedback_messages();
   row_to_delete.value = event.row;
   modal_delete_confirm.value.show("delete_single_row",i18n("delete_vs_host"));  
@@ -412,7 +308,7 @@ async function click_button_delete(event) {
 /* ******************************************************************** */ 
 
 /* Function to handle scan button */
-async function click_button_scan(event) {
+function click_button_scan(event) {
   insert_with_success.value = false;
   already_inserted.value = false;
   refresh_feedback_messages();
@@ -425,9 +321,7 @@ async function click_button_scan(event) {
 
 /* Function to handle edit button */
 function click_button_edit_host(event) {
-  const row = event.row;
-  //row_to_delete.value = row;
-  modal_add.value.show(row);
+  modal_add.value.show(event.row);
 }
 
 /* ******************************************************************** */ 
@@ -440,36 +334,32 @@ function delete_all_entries() {
   modal_delete_confirm.value.show('delete_all', i18n('delete_all_vs_hosts'));
 }
 
+/* ******************************************************************** */ 
+
 /* Function to edit host to scan */
 async function edit(params) {
-  //await delete_row();
   params.is_edit = true;
   await add_host_rest(params);
 }
 
-/* Every 10 second check if the autorefresh is enabled or not, if it is refresh the table */
-function set_autorefresh() {
-  if(autorefresh.value == true && modal_opened.value == false)
-    setTimeout(check_autorefresh, 10000);
-}
+/* ******************************************************************** */ 
 
 /* Every 10 second check to disable feedbacks */
-async function set_already_insert_or_insert_with_success() {
-  if(insert_with_success.value == true) {
+function set_already_insert_or_insert_with_success() {
+  if(insert_with_success.value === true) {
     insert_with_success.value = false;
-    insert_text.value = i18n('scan_host_inserted');
   }
 
-  if(already_inserted.value == true) {
-    already_insert_text.value = i18n('scan_host_already_inserted');  
+  if(already_inserted.value === true) {
     already_inserted.value = false;
   }
 }
 
+/* ******************************************************************** */ 
+
 /* Every 10 second check to disable autorefresh */
-async function check_autorefresh() {
-  await check_in_progress_status();
-  set_autorefresh();
+function check_autorefresh() {
+  check_in_progress_status();
 }
 
 /* ******************************************************************** */ 
@@ -482,30 +372,9 @@ function on_table_loaded() {
 /* ******************************************************************** */ 
 
 /* Function to map columns data */
-const map_table_def_columns = async (columns) => {
-  let result = columns_formatter(columns, scan_type_list, false, props.context.ifid);
-
-  return result;
+const map_table_def_columns = (columns) => {
+  return columns_formatter(columns, scan_type_list, false, props.context.ifid);
 };
-
-/* ******************************************************************** */ 
-
-onBeforeMount(async () => {
-  get_scan_type_list_v = Promise.all([get_scan_type_list(),check_in_progress_status()]);
-})
-
-/* ******************************************************************** */ 
-
-onMounted(async () => {
-  await get_scan_type_list_v;
-  await modal_add.value.metricsLoaded(scan_type_list, props.context.ifid, props.context.is_enterprise_l);
-  if (props.context.host != null) {
-    modal_add.value.show(null, props.context.host);
-  }
-
-  /* Check again the status in 10 seconds, already checked a couple of seconds ago */
-  setTimeout(check_autorefresh, 10000);
-})
 
 /* ************************** REST Functions ************************** */
 
@@ -515,34 +384,21 @@ const add_host_rest = async function (params) {
     ...params
   })
 
-  insert_text = ref(_i18n('scan_host_inserted'));
-
   const result = await ntopng_utility.http_post_request(url, rest_params);
   modal_add.value.close();
-  if (result.rsp == true) {
-    
-    if (params.is_edit) {
-      insert_text = ref(_i18n('scan_host_updated'));
-    }
-    if (params.cidr != null) {
-      insert_text.value = insert_text.value.replace("%{host}", `${params.host}/${params.cidr}`);
-    } else {
-      insert_text.value = insert_text.value.replace("%{host}", `${params.host}`);
-    }
+  if (result.rsp === true) {
+    (params.cidr != null) ? 
+      insert_text.value = i18n('scan_host_updated').replace("%{host}", `${params.host}/${params.cidr}`) :
+      insert_text.value = i18n('scan_host_updated').replace("%{host}", `${params.host}`);
+
     insert_with_success.value = true;
     already_inserted.value = false;
-    already_insert_text.value = i18n('scan_host_already_inserted');  
-
     setTimeout(set_already_insert_or_insert_with_success,10000);
-
     refresh_table(false);
-    
   } else {
-    if (params.cidr != null) {
-      already_insert_text.value = already_insert_text.value.replace("%{host}", `${params.host}/${params.cidr}`);
-    } else {
-      already_insert_text.value = already_insert_text.value.replace("%{host}", `${params.host}`);
-    }
+    (params.cidr != null) ? 
+      already_insert_text.value = i18n('scan_host_already_inserted').replace("%{host}", `${params.host}/${params.cidr}`) :
+      already_insert_text.value = i18n('scan_host_already_inserted').replace("%{host}", `${params.host}`);
 
     let scan_type_label = "";
 
@@ -552,37 +408,24 @@ const add_host_rest = async function (params) {
       }
     });
 
-    already_insert_text.value = already_insert_text.value.replace("%{scan_type}", `${scan_type_label}`);
-
-
+    already_insert_text.value = i18n('scan_host_already_inserted').replace("%{scan_type}", `${scan_type_label}`);
     already_inserted.value = true;
     insert_with_success.value = false;
     setTimeout(set_already_insert_or_insert_with_success,10000);
-
-    insert_text.value = i18n('scan_host_inserted');
-
   }
 
-  if (params.is_edit != true){
-    check_autorefresh()
+  if (params.is_edit !== true){
     refresh_table(false);
   };
 }
 
 /* ******************************************************************** */ 
 
+/* This function adds a feedback message on the page */
 const refresh_feedback_messages = function (in_progress) {
-  already_insert_text.value = i18n('scan_host_already_inserted');  
-  insert_text.value = i18n('scan_host_inserted');
+  /* In case a in_progress is a number, customize the feedback message */
   if (in_progress != null && in_progress != 0) {
-    if (in_progress_scan_text.value.includes("total"))
-      in_progress_scan_text.value = in_progress_scan_text.value.replace("total",`${in_progress}`);
-    else {
-
-      in_progress_scan_text.value = _i18n('scan_in_progress');
-      in_progress_scan_text.value = in_progress_scan_text.value.replace("total",`${in_progress}`);
-
-    }
+    in_progress_scan_text.value = i18n('scan_in_progress').replace("total",`${in_progress}`);
   }
 }
 
@@ -659,6 +502,8 @@ const confirm_scan_all_entries = function() {
   refresh_table(false);
 }
 
+/* ******************************************************************** */ 
+
 /* Function to update all scan  frequencies*/
 const update_all_periodicity = function() {
   modal_update_perioditicy_scan.value.show();
@@ -684,7 +529,6 @@ const scan_row_rest = async function(host, scan_type, ports, id) {
     scan_id: id
   })
   await ntopng_utility.http_post_request(url, rest_params);
-  check_autorefresh();
 }
 
 /* ******************************************************************** */ 
@@ -695,7 +539,6 @@ async function scan_all_entries() {
     scan_single_host: false,
   })
   await ntopng_utility.http_post_request(url, rest_params);
-  check_autorefresh();
   refresh_table(false);
 }
 
@@ -705,12 +548,10 @@ async function scan_all_entries() {
 const delete_row = async function () {
   const row = row_to_delete.value;
   const url = NtopUtils.buildURL(remove_host_url, {
-
     host: row.host,
     scan_type: row.scan_type,
     delete_all_scan_hosts: false,
     scan_id: row.id
-
   })
 
   await ntopng_utility.http_post_request(url, rest_params);
@@ -719,59 +560,57 @@ const delete_row = async function () {
 
 /* ******************************************************************** */ 
 
+/* This function deletes all the rows */
 const delete_all_rows = async function() {
-  const row = row_to_delete.value;
   const url = NtopUtils.buildURL(remove_host_url, {
     delete_all_scan_hosts: true
   })
 
   await ntopng_utility.http_post_request(url, rest_params);
-  autorefresh.value = false;
   refresh_table(false);
 }
 
 /* ******************************************************************** */ 
 
 /* Function to download last vulnerability scan result */
-async function click_button_download(event) {
-  let params = {
+function click_button_download(event) {
+  const params = {
     host: event.row.host,
     scan_type: event.row.scan_type
   };
-  let url_params = ntopng_url_manager.obj_to_url_params(params);
+  const url_params = ntopng_url_manager.obj_to_url_params(params);
 
-  let url = `${scan_result_url}?${url_params}`;
+  const url = `${scan_result_url}?${url_params}`;
   ntopng_utility.download_URI(url);
 }
 
 /* ******************************************************************** */ 
 
 /* Function to show last vulnerability scan result */
-async function click_button_show_result(event) {
-  let host = event.row.host;
-  let date = event.row.last_scan.time.replace(" ","_");
+function click_button_show_result(event) {
+  const host = event.row.host;
+  const date = event.row.last_scan.time.replace(" ","_");
 
-  let params = {
+  const params = {
     host: host,
     scan_type: event.row.scan_type,
     scan_return_result: true,
     page: "show_result",
     scan_date: date
-
   };
-  let url_params = ntopng_url_manager.obj_to_url_params(params);
+  const url_params = ntopng_url_manager.obj_to_url_params(params);
 
-  let url = `${active_monitoring_url}?${url_params}`;
+  const url = `${active_monitoring_url}?${url_params}`;
   ntopng_url_manager.go_to_url(url);
 }
 
-async function update_modal_status(value) {
-  // update the modal_opened var used for disable/enable autorefresh when
-  // modal is open/closed
-  modal_opened.value = value;
-  await check_autorefresh();
-}
+/* ******************************************************************** */ 
 
+function update_modal_status(value) {
+  /* update the modal_opened var used for disable/enable 
+     autorefresh when modal is open/closed */
+  modal_opened.value = value;
+}
 
 /* ******************************************************************** */ 
 
