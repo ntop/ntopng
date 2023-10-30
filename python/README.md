@@ -47,7 +47,7 @@ Documentation
 
 For detailed documentation on each API class please visit:
 
-- [Python API Docs] (https://github.com/ntop/ntopng/blob/dev/python/docs/README.md)
+- [Python API Docs] (https://github.com/ntop/ntopng/blob/python_docs/python/docs/README.md)
 
 For further information please visit the API documentation available at:
 
