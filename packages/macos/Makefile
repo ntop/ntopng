@@ -18,7 +18,7 @@ ntopng-build:
 	./copylibs.sh ${NTOPNG_BUILD}/usr/local/opt/ntopng
 
 	cp redis-server ${NTOPNG_BUILD}/usr/local/bin/redis-server-bin
-	cp /usr/local/bin/redis-server ${NTOPNG_BUILD}/usr/local/bin/ntopng-redis-server
+	cp /opt/homebrew/bin/redis-server ${NTOPNG_BUILD}/usr/local/bin/ntopng-redis-server
 
 	cp ../../httpdocs/geoip/dbip-asn-*.mmdb ../../httpdocs/geoip/dbip-country-*.mmdb ${NTOPNG_BUILD}/usr/local/share/ntopng/httpdocs/geoip
 
