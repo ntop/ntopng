@@ -5005,7 +5005,8 @@ local lang = {
     ["source_macs"] = "Source Only",
   },
   ["manage_configurations"] = {
-    ["active_monitoring"] = "Active monitoring",
+    ["active_monitoring"] = "Active Monitoring",
+    ["active_monitoring_vs"] = "Active Monitoring and Vulnerability Scan",
     ["after_behavior_changes"] = "<b>Restart</b> %{product} to make the behavior changes effective.",
     ["after_reset_request"] = "<b>Restart</b> %{product} to make the configuration factory reset effective.",
     ["checks"] = "Behavioural Checks",

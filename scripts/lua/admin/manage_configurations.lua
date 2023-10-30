@@ -51,7 +51,7 @@ if not ntop.isnEdge() then
         },
         active_monitoring = {
             key = "active_monitoring",
-            label = i18n("manage_configurations.active_monitoring"),
+            label = i18n("manage_configurations.active_monitoring_vs"),
             order = 2
         },
         checks = {
