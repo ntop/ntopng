@@ -7721,9 +7721,9 @@ local lang = {
     ["vlans"] = "VLANs",
   },
   ["vulnerability_scan_alert_ports_changed_cases"] = {
-    ["new_ports"] = " %{open_ports_num} new %{protocol} open port/s %{open_ports}.",
-    ["ports_closed"] = " %{closed_ports_num} %{protocol} port/s %{closed_ports} is/are now closed.",
-    ["ports_open_and_closed"] = " new %{protocol} open port/s %{open_ports} and %{protocol} port/s %{closed_ports} is/are now closed.",
+    ["new_ports"] = " %{open_ports_num} new %{protocol} open port(s) %{open_ports}.",
+    ["ports_closed"] = " %{closed_ports_num} %{protocol} port(s) %{closed_ports} is/are now closed.",
+    ["ports_open_and_closed"] = " new %{protocol} open port(s) %{open_ports} and %{protocol} port(s) %{closed_ports} is/are now closed.",
   },
   ["widgets_page"] = {
     ["actions"] = "Actions",
