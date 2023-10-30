@@ -281,8 +281,10 @@ function columns_sorting(col, r0, r1) {
       }
       return r1_col.localeCompare(r0_col);
     } else if(col.id == "last_scan") {
-      r0_col = r0["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r0["last_scan"]["time"];
-      r1_col = r1["last_scan"] === undefined ? i18n("hosts_stats.page_scan_hosts.not_yet") : r1["last_scan"]["time"];
+
+      r0_col = r0["last_scan"] === undefined || r0["is_ok_last_scan"] != 1 ? "0000000000" : r0["last_scan"]["time"];
+      r1_col = r1["last_scan"] === undefined || r1["is_ok_last_scan"] != 1 ? "0000000000" : r1["last_scan"]["time"];
+      
       if (r0_col == r1_col) {
         return compare_by_host_ip(r0,r1);
       }
@@ -290,12 +292,6 @@ function columns_sorting(col, r0, r1) {
         return r0_col.localeCompare(r1_col);
       }
 
-      if(r0_col == i18n("hosts_stats.page_scan_hosts.not_yet")){
-        r0_col = "00000000";
-      }
-      if(r1_col == i18n("hosts_stats.page_scan_hosts.not_yet"))
-        r1_col = "0000000000";
-      
       return r1_col.localeCompare(r0_col);
     } else if (col.id == "is_ok_last_scan") {
       r0_col = get_scan_status_value(r0_col, r0);
