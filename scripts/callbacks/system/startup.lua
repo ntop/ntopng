@@ -235,6 +235,8 @@ if(ntop.exists(influxdb_dir)) then
    end
 end
 
+-- Vulnerability scan activities
+vs_utils.migrate_keys()
 vs_utils.restore_host_to_scan()
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")
