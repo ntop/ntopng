@@ -36,8 +36,8 @@ fi
 ##########################################
 
 TODAY=`date +%y%m%d`
-MAJOR_RELEASE="5"
-MINOR_RELEASE="7"
+MAJOR_RELEASE="6"
+MINOR_RELEASE="0"
 SHORT_VERSION="$MAJOR_RELEASE.$MINOR_RELEASE"
 VERSION="$SHORT_VERSION.$TODAY"
 
