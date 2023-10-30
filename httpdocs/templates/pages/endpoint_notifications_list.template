@@ -11,10 +11,10 @@
                     <table class="table w-100 table-bordered table-striped table-hover my-3" id="notification-list">
                         <thead>
                             <tr>
+                                <th>{{ i18n('actions') }}</th>
                                 <th>{{ i18n('endpoint_notifications.name') }}</th>
                                 <th>{{ i18n('endpoint_notifications.type') }}</th>
                                 <th>{{ i18n('endpoint_notifications.used_by_recipients') }}</th>
-                                <th>{{ i18n('actions') }}</th>
                             </tr>
                         </thead>
                     </table>
@@ -165,6 +165,21 @@
     dtConfig = DataTableUtils.extendConfig(dtConfig, {
         columns: [
             {
+              responsivePriority: 1,
+                targets: -1,
+                className: 'text-center',
+                data: null,
+                render: (_, type, endpoint) => {
+
+                    const isBuiltin = endpoint.endpoint_conf.builtin || false;
+
+                    return DataTableUtils.createActionButtons([
+                        {class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-edit', modal: '#edit-endpoint-modal', title: `${i18n_ext.edit}` },
+                        {class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-endpoint-modal', title: `${i18n_ext.delete}` },
+                    ]);
+                }
+            },
+            {
                 data: 'endpoint_conf_name'
             },
             {
@@ -203,21 +218,6 @@
                         }
                     }
                     return recipients;
-                }
-            },
-            {
-              responsivePriority: 1,
-                targets: -1,
-                className: 'text-center',
-                data: null,
-                render: (_, type, endpoint) => {
-
-                    const isBuiltin = endpoint.endpoint_conf.builtin || false;
-
-                    return DataTableUtils.createActionButtons([
-                        {class: `btn-info ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-edit', modal: '#edit-endpoint-modal', title: `${i18n_ext.edit}` },
-                        {class: `btn-danger ${isBuiltin ? 'disabled' : ''}`, icon: 'fa-trash', modal: '#remove-endpoint-modal', title: `${i18n_ext.delete}` },
-                    ]);
                 }
             }
         ],
