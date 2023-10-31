@@ -724,7 +724,15 @@ local function delta_val(reg, metric_name, granularity, curr_val, skip_first)
    local key = string.format("%s:%s", metric_name, granularity_num)
 
    -- Read cached value and purify it
-   local prev_val = tonumber(reg.getCachedAlertValue(key, granularity_num))
+   local prev_val
+   local prev = reg.getCachedAlertValue(key, granularity_num)
+   if prev == nil or type(prev) ~= "number" then -- Safety check and debug
+      traceError(TRACE_ERROR, TRACE_CONSOLE, "Bad prev val")
+      tprint(prev)
+      tprint(debug.traceback())
+   else
+      prev_val = tonumber(prev)
+   end
 
    -- Save the value for the next round
    reg.setCachedAlertValue(key, tostring(curr_val), granularity_num)
