@@ -25,11 +25,11 @@ Prerequisites
 On Ubuntu/Debian
 ~~~~~~~~~~~~~~~~
 
-apt-get install build-essential git bison flex libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf pkg-config automake autogen redis-server wget libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev zlib1g-dev libssl-dev libcap-dev libnetfilter-conntrack-dev libreadline-dev libjson-c-dev libldap2-dev rename libsnmp-dev libexpat1-dev libmaxminddb-dev libradcli-dev libjson-c-dev libzmq3-dev
+apt install build-essential git bison flex libxml2-dev libpcap-dev libtool libtool-bin rrdtool librrd-dev autoconf pkg-config automake autogen redis-server wget libsqlite3-dev libhiredis-dev libmaxminddb-dev libcurl4-openssl-dev libpango1.0-dev libcairo2-dev libnetfilter-queue-dev zlib1g-dev libssl-dev libcap-dev libnetfilter-conntrack-dev libreadline-dev libjson-c-dev libldap2-dev rename libsnmp-dev libexpat1-dev libmaxminddb-dev libradcli-dev libjson-c-dev libzmq3-dev
 
 
 If you plan to manipulate javascript you also need to do
-- apt-get install npm 
+- apt install npm 
 - npm install -g uglify-es
 - npm install -g clean-css-cli
 
@@ -43,35 +43,35 @@ If you plan to build ntopng dependencies you should also install:
 On Ubuntu16/18
 ~~~~~~~~~~~~~~
 
-You also need to do "apt-get install libtool-bin"
-You can decide to use MariaDB (instead of MySQL) do "apt-get install libmariadb-client-lgpl-dev" instead.
+You also need to do "apt install libtool-bin"
+You can decide to use MariaDB (instead of MySQL) do "apt install libmariadb-client-lgpl-dev" instead.
 
 On Ubuntu20
 ~~~~~~~~~~~~~~
 
-You also need to do "apt-get install libmariadbclient-dev libzmq3-dev"
+You also need to do "apt install libmariadbclient-dev libzmq3-dev"
 
 On Ubuntu22
 ~~~~~~~~~~~~~~
 
-You need to do "apt-get install libmariadb-dev"
+You need to do "apt install libmariadb-dev"
 
 On Debian 9/10/11/12
 ~~~~~~~~~~~~~~~~~~~~
 
 You need to do add the `contrib` component to /etc/apt/sources.list entries, then
 
-apt-get install libpng-dev libzmq5-dev default-libmysqlclient-dev libgcrypt20-dev
+apt install libpng-dev libzmq5-dev default-libmysqlclient-dev libgcrypt20-dev
 
 On Other Debian
 ~~~~~~~~~~~~~~~
 
-apt-get install libmysqlclient-dev libzmq3-dev libgcrypt20-dev
+apt install libmysqlclient-dev libzmq3-dev libgcrypt20-dev
 
 On Raspbian 10
 ~~~~~~~~~~~~~~
 
-apt-get install libmariadb-dev libzmq3-dev
+apt install libmariadb-dev libzmq3-dev
 
 On CentOS Stream (8)
 ~~~~~~~~~~~~~~~~~~~~
