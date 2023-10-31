@@ -13,7 +13,7 @@ local vs_utils = require "vs_utils"
 local host = _GET["host"]
 local scan_type = _GET["scan_type"]
 local scan_ports = _GET["scan_ports"]
-local scan_frequency = _GET["auto_scan_frequency"]
+local scan_frequency = _GET["scan_frequency"]
 local scan_id = _GET["scan_id"] or nil
 local is_edit = toboolean(_GET["is_edit"])
 

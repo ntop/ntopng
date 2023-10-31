@@ -10,7 +10,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua
 local vs_utils = require "vs_utils"
 local rest_utils = require "rest_utils"
 
-local scan_frequency = _GET["auto_scan_frequency"]
+local scan_frequency = _GET["scan_frequency"]
 if (scan_frequency == "disabled") then
     scan_frequency = nil
 end

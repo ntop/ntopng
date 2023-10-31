@@ -6433,15 +6433,8 @@
           {
             "name": "scan_frequency",
             "in": "formData",
-            "description": "Automatic Vulnerability Scan Frequency",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "auto_scan_frequency",
-            "in": "formData",
             "description": "Available only from Pro License. Automatic scanning, one option between: disabled, 1day (scan once per day), 1week (scan once a week)",
-            "required": true,
+            "required": false,
             "type": "string"
           },
           {
@@ -8010,7 +8003,7 @@
         ],
         "parameters": [
           {
-            "name": "auto_scan_frequency",
+            "name": "scan_frequency",
             "in": "query",
             "description": "Auto scan frequency, can be: disabled, 1day, 1week",
             "required": true,

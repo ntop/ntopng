@@ -51,7 +51,7 @@ const show = (row) => {
 };
 
 const update_ = () => {
-    emit('update', {auto_scan_frequency: selected_scan_frequency.value.id});
+    emit('update', {scan_frequency: selected_scan_frequency.value.id});
 
     close();
 };

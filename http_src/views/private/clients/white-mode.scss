@@ -880,11 +880,16 @@ table.dataTable thead th.sorting_asc::after {
   padding-left: 3px !important;
 }
 
-.component-fade-enter-active, .component-fade-leave-active {
+.component-fade-enter-active,
+.component-fade-leave-active {
   transition: opacity .3s ease;
 }
-.component-fade-enter, .component-fade-leave-to
-/* .component-fade-leave-active below version 2.1.8 */ {
+
+.component-fade-enter,
+.component-fade-leave-to
+
+/* .component-fade-leave-active below version 2.1.8 */
+  {
   opacity: 0;
 }
 
@@ -893,13 +898,13 @@ table.dataTable thead th.sorting_asc::after {
 }
 
 .vis-tooltip {
-  visibility: hidden; 
-  border: 1px solid rgb(255, 255, 255); 
-  padding: 0.5rem; 
-  background-color: rgb(255, 255, 255); 
-  border-radius: 0.5rem; 
-  box-shadow: rgba(128, 128, 128, 0.5) 3px 3px 10px; 
-  white-space: nowrap; 
+  visibility: hidden;
+  border: 1px solid rgb(255, 255, 255);
+  padding: 0.5rem;
+  background-color: rgb(255, 255, 255);
+  border-radius: 0.5rem;
+  box-shadow: rgba(128, 128, 128, 0.5) 3px 3px 10px;
+  white-space: nowrap;
 }
 
 .centered-message {
@@ -907,21 +912,31 @@ table.dataTable thead th.sorting_asc::after {
   margin-top: 4rem;
   margin-left: auto;
   margin-right: auto;
-  z-index: 10!important;
-  left: 50%; /* 50% left from the parent */
-  transform: translate(-50%, 0); /* 50% from the element itself */
-} /* left + transform center orizzontally the elements */
+  z-index: 10 !important;
+  left: 50%;
+  /* 50% left from the parent */
+  transform: translate(-50%, 0);
+  /* 50% from the element itself */
+}
+
+/* left + transform center orizzontally the elements */
 
 .ntopng-gray-out {
   opacity: 0.6;
   filter: blur(1px);
-} /* Gray out an html element using blur effect */ 
+}
+
+/* Gray out an html element using blur effect */
 
 .ntopng-table {
-  table-layout: auto; 
+  table-layout: auto;
   white-space: nowrap;
 }
 
 .ntopng-input-error {
-  border-color: rgb(220,53,69);
+  border-color: rgb(220, 53, 69);
+}
+
+.ntopng-hide-placeholder {
+  color: transparent;
 }
