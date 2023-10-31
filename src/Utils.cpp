@@ -2760,29 +2760,27 @@ void Utils::readMac(const char *_ifname, dump_mac_t mac_addr) {
     ntop->getTrace()->traceEvent(
         TRACE_INFO, "Interface %s has MAC %s", ifname,
         formatMac((u_int8_t *)mac_addr, mac_addr_buf, sizeof(mac_addr_buf)));
-}
-
 #else
-char ebuf[PCAP_ERRBUF_SIZE];
-pcap_if_t *pdevs, *pdev;
-bool found = false;
-
+  char ebuf[PCAP_ERRBUF_SIZE];
+  pcap_if_t *pdevs, *pdev;
+  bool found = false;
+  
   memset(mac_addr, 0, 6);
-
- if (pcap_findalldevs(&pdevs, ebuf) == 0) {
-  pdev = pdevs;
-  while (pdev != NULL) {
-    if (Utils::validInterface(pdev) && Utils::isInterfaceUp(pdev->name)) {        
-        if (strstr(pdev->name, _ifname) != NULL) {
-          memcpy(mac_addr, pdev->addresses->addr->sa_data, 6);
-          break;
-        }
+  
+  if (pcap_findalldevs(&pdevs, ebuf) == 0) {
+    pdev = pdevs;
+    while (pdev != NULL) {
+      if (Utils::validInterface(pdev) && Utils::isInterfaceUp(pdev->name)) {        
+	if (strstr(pdev->name, _ifname) != NULL) {
+	  memcpy(mac_addr, pdev->addresses->addr->sa_data, 6);
+	  break;
+	}
+      }
+      pdev = pdev->next;
     }
-    pdev = pdev->next;
+    
+    pcap_freealldevs(pdevs);
   }
-
-  pcap_freealldevs(pdevs);
-}
 #endif
 }
 
