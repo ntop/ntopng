@@ -19,6 +19,7 @@
  *
  */
 
+#include <netinet/tcp.h>
 #include "ntop_includes.h"
 #include "flow_checks_includes.h"
 
@@ -34,7 +35,14 @@ void RemoteAccess::protocolDetected(Flow *f) {
     case NDPI_PROTOCOL_CATEGORY_REMOTE_ACCESS:
     case NDPI_PROTOCOL_CATEGORY_VPN:
     case NDPI_PROTOCOL_CATEGORY_FILE_SHARING:
-      if (!f->isLocalToLocal()) {
+      if (!f->isLocalToLocal() && (f->getTcpFlagsCli2Srv() & TH_SYN)) {
+  #ifdef DEBUG_REMOTE_ACCESS
+        ntop->getTrace()->traceEvent(
+            TRACE_WARNING, "SYN Flag %s for flow %p; flags: %u",
+            (f->getTcpFlagsCli2Srv() & TH_SYN) ? "set" : "not set", f,
+            f->getTcpFlagsCli2Srv());
+        break;
+  #endif
         if (cli) cli->incrRemoteAccess();
 
         computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
