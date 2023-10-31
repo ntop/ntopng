@@ -2713,9 +2713,8 @@ u_int64_t Utils::macaddr_int(const u_int8_t *mac) {
 
 /* **************************************** */
 
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
-
 void Utils::readMac(const char *_ifname, dump_mac_t mac_addr) {
+#if defined(__linux__) || defined(__FreeBSD__) || defined(__APPLE__)
   char ifname[15];
   macstr_t mac_addr_buf;
   int res;
@@ -2764,10 +2763,28 @@ void Utils::readMac(const char *_ifname, dump_mac_t mac_addr) {
 }
 
 #else
-void Utils::readMac(const char *ifname, dump_mac_t mac_addr) {
+char ebuf[PCAP_ERRBUF_SIZE];
+pcap_if_t *pdevs, *pdev;
+bool found = false;
+
   memset(mac_addr, 0, 6);
+
+ if (pcap_findalldevs(&pdevs, ebuf) == 0) {
+  pdev = pdevs;
+  while (pdev != NULL) {
+    if (Utils::validInterface(pdev) && Utils::isInterfaceUp(pdev->name)) {        
+        if (strstr(pdev->name, _ifname) != NULL) {
+          memcpy(mac_addr, pdev->addresses->addr->sa_data, 6);
+          break;
+        }
+    }
+    pdev = pdev->next;
+  }
+
+  pcap_freealldevs(pdevs);
 }
 #endif
+}
 
 /* **************************************** */
 
