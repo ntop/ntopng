@@ -1063,8 +1063,7 @@ function recipients.dispatch_notification(notification, current_script, notifica
 
          if recipient_ok then
             if notification.entity_id == alert_entities.am_host.entity_id and notification.entity_val then
-               if recipient.recipient_name ~= "builtin_recipient_alert_store_db" and recipient.am_hosts then
-
+               if recipient.recipient_name ~= "builtin_recipient_alert_store_db" then
                   local am_measurement
                   local am_host
                   local parts = split(notification.entity_val, "@")
@@ -1076,10 +1075,13 @@ function recipients.dispatch_notification(notification, current_script, notifica
                   if am_measurement == "vs" then
                      -- Vulnerability scan - enabled for any hosts
                   else
-                     local am_hosts_map = swapKeysValues(recipient.am_hosts)
-                     if not am_hosts_map[notification.entity_val] then
-                        recipient_ok = false
-                        debug_print("X Discarding " .. notification.entity_val .. " alert for recipient " .. recipient.recipient_name .. " due to AM selection")
+                     -- Active Monitoring measurements
+                     if recipient.am_hosts then
+                        local am_hosts_map = swapKeysValues(recipient.am_hosts)
+                        if not am_hosts_map[notification.entity_val] then
+                           recipient_ok = false
+                           debug_print("X Discarding " .. notification.entity_val .. " alert for recipient " .. recipient.recipient_name .. " due to AM selection")
+                        end
                      end
                   end
                end

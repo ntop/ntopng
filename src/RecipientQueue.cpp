@@ -82,15 +82,20 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
                              AlertEntity alert_entity) {
   bool res = false;
 
+#ifdef DEBUG_RECIPIENT_QUEUE
+  //if (recipient_id != 0 && alert_entity == alert_entity_am_host)
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enqueueing alert to recipient %d", recipient_id);
+#endif
+
   /* Checking if the alerts have not to be enqueued */
   if(skip_alerts && notification->score > 0)
     return true; /* Skipping alerts */
   else if(!skip_alerts) {
     /* In case alerts have not to be skipped, check the filters */
-  #ifdef DEBUG_RECIPIENT_QUEUE
+#ifdef DEBUG_RECIPIENT_QUEUE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checking alert (entity %d) for recipient %d", alert_entity, recipient_id);
-  #endif
-    
+#endif
+   
     if (!notification ||
         notification->alert_severity <
             minimum_severity /* Severity too low for this recipient     */
@@ -105,9 +110,9 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
         ||
         (alert_entity_host == alert_entity && !enabled_host_checks.isSetBit(notification->alert_id))
     ) {
-  #ifdef DEBUG_RECIPIENT_QUEUE
+#ifdef DEBUG_RECIPIENT_QUEUE
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Alert filtered out due to filtering policy for recipient %d", recipient_id);
-  #endif
+#endif
       return true; /* Nothing to enqueue */
     }
 
@@ -118,9 +123,9 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
       * on historical flows) */
       /* But still increment the number of uses */
       uses++;
-  #ifdef DEBUG_RECIPIENT_QUEUE
+#ifdef DEBUG_RECIPIENT_QUEUE
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow alert (no enqueue - clickhouse uses: %u)", uses);
-  #endif
+#endif
       return true;
     }
 
