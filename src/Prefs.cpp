@@ -2477,7 +2477,7 @@ int Prefs::loadFromFile(const char *path) {
       while (opt->name != NULL) {
         opt_name_len = strlen(opt->name);
 
-        if (!strncmp(key, opt->name, opt_name_len) &&
+        if (strncmp(key, opt->name, opt_name_len) == 0 &&
             (line_len <= opt_name_len || key[opt_name_len] == '\0' ||
              key[opt_name_len] == ' ' || key[opt_name_len] == '=')) {
           if (line_len > opt_name_len) key[opt_name_len] = '\0';
@@ -2496,7 +2496,9 @@ int Prefs::loadFromFile(const char *path) {
     } else if (line[0] == '-') { /* short opt */
       key = &line[1], line_len--;
 
-      if ((key[1] != ' ') && (key[1] != '=')) {
+      if (key[1] != ' ' && 
+          key[1] != '=' &&
+          key[1] != '\0') {
         ntop->getTrace()->traceEvent(
 				     TRACE_WARNING, "Skipping unrecognized line format %s:%u : %s",
 				     config_file_path, num_line, buffer);
@@ -2505,10 +2507,11 @@ int Prefs::loadFromFile(const char *path) {
 
       if (line_len > 1) key[1] = '\0';
       if (line_len > 2) value = Utils::trim(&key[2]);
+      else value = NULL;
 
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "key: %c value: %s", key[0],
-      // value);
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "key: %c value: %s", key[0], value);
       setOption(key[0], value);
+
     } else {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
                                    "Skipping unrecognized line format %s:%u",
