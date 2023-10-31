@@ -77,10 +77,13 @@ void LocalHost::set_hash_entry_state_idle() {
     }
   }
 
-  iface->decNumHosts(true /* A local host */, isRxOnlyHost());
+  /* Only increase the number of host if it's a unicast host */
+  if(isLocalUnicastHost()) {
+    iface->decNumHosts(true /* A local host */, isRxOnlyHost());
 
-  if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
-    ns->decNumHosts();
+    if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
+      ns->decNumHosts();
+  }
 
   GenericHashEntry::set_hash_entry_state_idle();
 }
@@ -130,9 +133,12 @@ void LocalHost::initialize() {
   updateHostTrafficPolicy(host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 18);
 
-  iface->incNumHosts(true /* Local Host */, isRxOnlyHost());
-  if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
-    ns->incNumHosts();
+  /* Only increase the number of host if it's a unicast host */
+  if(isLocalUnicastHost()) {
+    iface->incNumHosts(true /* Local Host */, isRxOnlyHost());
+    if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
+      ns->incNumHosts();
+  }
 
 #ifdef LOCALHOST_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s [%p]",
