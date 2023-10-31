@@ -21,6 +21,11 @@
 
 #include "ntop_includes.h"
 
+#ifdef WIN32
+#define popen(a, b) _popen(a, b)
+#define pclose(a)   _pclose(a)
+#endif
+
 /* ******************************* */
 
 JobQueue::JobQueue() {
