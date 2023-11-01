@@ -1,4 +1,4 @@
-<!-- (C) 2022 - ntop.org     -->
+<!-- (C) 2023 - ntop.org     -->
 <template>
   <modal ref="modal_id">
     <template v-slot:title>{{ title }}</template>
@@ -311,7 +311,8 @@ const check_host_regex = () => {
 
 /* Regex to check if ports list is correct or not */
 const check_ports = () => {
-  if (!regexValidation.validateCommaSeparatedPortList(ports.value)) {
+  if ((!regexValidation.validateCommaSeparatedPortList(ports.value))
+      && (!regexValidation.validatePortRange(ports.value))) {
     disable_add.value = true;
   } else {
     disable_add.value = false;

@@ -5,43 +5,60 @@
 /* ****************************************************** */
 
 const regexes = {
-	ipv4: /^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}$/gm,
-	ipv6: /^(?:(?:[a-fA-F\d]{1,4}:){7}(?:[a-fA-F\d]{1,4}|:)|(?:[a-fA-F\d]{1,4}:){6}(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|:[a-fA-F\d]{1,4}|:)|(?:[a-fA-F\d]{1,4}:){5}(?::(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,2}|:)|(?:[a-fA-F\d]{1,4}:){4}(?:(?::[a-fA-F\d]{1,4}){0,1}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,3}|:)|(?:[a-fA-F\d]{1,4}:){3}(?:(?::[a-fA-F\d]{1,4}){0,2}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,4}|:)|(?:[a-fA-F\d]{1,4}:){2}(?:(?::[a-fA-F\d]{1,4}){0,3}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,5}|:)|(?:[a-fA-F\d]{1,4}:){1}(?:(?::[a-fA-F\d]{1,4}){0,4}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,6}|:)|(?::(?:(?::[a-fA-F\d]{1,4}){0,5}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,7}|:)))(?:%[0-9a-zA-Z]{1,})?$/gm,
-	mac_address: String.raw`^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$`,
-	comma_separted_port_regex: /^(\d{1,5})(,\s*\d{1,5})*$/,
+    ipv4: /^(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}$/gm,
+    ipv6: /^(?:(?:[a-fA-F\d]{1,4}:){7}(?:[a-fA-F\d]{1,4}|:)|(?:[a-fA-F\d]{1,4}:){6}(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|:[a-fA-F\d]{1,4}|:)|(?:[a-fA-F\d]{1,4}:){5}(?::(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,2}|:)|(?:[a-fA-F\d]{1,4}:){4}(?:(?::[a-fA-F\d]{1,4}){0,1}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,3}|:)|(?:[a-fA-F\d]{1,4}:){3}(?:(?::[a-fA-F\d]{1,4}){0,2}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,4}|:)|(?:[a-fA-F\d]{1,4}:){2}(?:(?::[a-fA-F\d]{1,4}){0,3}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,5}|:)|(?:[a-fA-F\d]{1,4}:){1}(?:(?::[a-fA-F\d]{1,4}){0,4}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,6}|:)|(?::(?:(?::[a-fA-F\d]{1,4}){0,5}:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)(?:\\.(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)){3}|(?::[a-fA-F\d]{1,4}){1,7}|:)))(?:%[0-9a-zA-Z]{1,})?$/gm,
+    mac_address: String.raw`^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$`,
+    comma_separted_port_regex: /^(\d{1,5})(,\s*\d{1,5})*$/,
+    port_range_regex: /^(\d{1,5})-(\d{1,5})$/,
 }
 
 /* ****************************************************** */
 
 const validateIP = (ip) => {
-	const ipv4 = regexes.ipv4;
-	const ipv6 = regexes.ipv6;
+    const ipv4 = regexes.ipv4;
+    const ipv6 = regexes.ipv6;
 
-	return (ipv4.test(ip) || ipv6.test(ip));
+    return (ipv4.test(ip) || ipv6.test(ip));
 }
 
 /* ****************************************************** */
 
 const validateIPv4 = (ip) => {
-	const ipv4 = regexes.ipv4;
+    const ipv4 = regexes.ipv4;
 
-	return ipv4.test(ip);
+    return ipv4.test(ip);
 }
 
 /* ****************************************************** */
 
 const validateIPv6 = (ip) => {
-	const ipv6 = regexes.ipv6;
+    const ipv6 = regexes.ipv6;
 
-	return ipv6.test(ip);
+    return ipv6.test(ip);
 }
 
 /* ****************************************************** */
 
 const validateCommaSeparatedPortList = (ports) => {
-	const port_list = regexes.comma_separted_port_regex;
+    const port_list = regexes.comma_separted_port_regex;
 
-	return port_list.test(ports);
+    return port_list.test(ports);
+}
+
+/* ****************************************************** */
+
+const validatePortRange = (ports) => {
+    const port_array = ports.split("-", 2);
+    const low  = Number(port_array[0]);
+    const high = Number(port_array[1]);
+
+    if((low == NaN) || (high == NaN))
+	return false;
+    
+    if((low > 0) && (low < high) && (high < 65536))
+	return true;
+    else
+	return false;
 }
 
 /* ****************************************************** */
@@ -83,11 +100,12 @@ function get_data_pattern(type) {
 
 const regexValidation = function() {
     return {
-			get_data_pattern,
-			validateIP,
-			validateIPv4,
-			validateIPv6,
-			validateCommaSeparatedPortList,
+	get_data_pattern,
+	validateIP,
+	validateIPv4,
+	validateIPv6,
+	validateCommaSeparatedPortList,
+	validatePortRange,
     };
 }();
 
