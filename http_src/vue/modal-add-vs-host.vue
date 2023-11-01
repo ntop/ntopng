@@ -2,7 +2,7 @@
 <template>
   <modal ref="modal_id">
     <template v-slot:title>{{ title }}</template>
-    <template v-slot:body>
+    <template v-slot:body>v_
       <!-- Target information, here an IP is put -->
       <div class="form-group ms-2 me-2 mt-3 row">
         <label class="col-form-label col-sm-2">
@@ -135,7 +135,7 @@
     </template>
   </modal>
 </template>
-  
+
 <script setup>
 /* Imports */
 import { ref } from "vue";
@@ -311,11 +311,12 @@ const check_host_regex = () => {
 
 /* Regex to check if ports list is correct or not */
 const check_ports = () => {
-  if ((!regexValidation.validateCommaSeparatedPortList(ports.value))
-      && (!regexValidation.validatePortRange(ports.value))) {
-    disable_add.value = true;
-  } else {
+  if ((ports.value == "")
+      || regexValidation.validateCommaSeparatedPortList(ports.value)
+      || regexValidation.validatePortRange(ports.value)) {
     disable_add.value = false;
+  } else {
+    disable_add.value = true;
   }
 };
 
@@ -446,4 +447,3 @@ async function load_ports() {
 
 defineExpose({ show, close, metricsLoaded });
 </script>
-    
