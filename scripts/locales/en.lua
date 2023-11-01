@@ -4292,7 +4292,7 @@ local lang = {
       ["notes"] = {
         ["generic_notes_1"] = "If a <a href=\"${http_prefix}/lua/admin/endpoint_notifications_list.lua\">notification endpoint</a> and the related recipient with the ‘Notification Type’ set to ‘Vulnerability Scan Reports’ are enabled, a notification is sent when the periodic vulnerability scan begins and ends.",
         ["note_1"] = "Host: host IP to scan.",
-        ["note_2"] = "Ports: a comma-separated list of ports; if empty, all host ports are going to be considered.",
+        ["note_2"] = "Ports: a comma-separated list (or port range) of ports; if empty, all host ports are going to be considered. If ntopng knows the specified it, clicking on the load open ports button, populates the Ports field with the known host server ports.",
         ["note_3"] = "Scan Type: select a specific vulnerability scan type.",
         ["note_4"] = "Periodicity: select the automatic scan frequency.",
       },
