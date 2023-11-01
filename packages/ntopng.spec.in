@@ -10,7 +10,7 @@ Packager: Luca Deri <deri@ntop.org>
 # Temporary location where the RPM will be built
 BuildRoot:  %{_tmppath}/%{name}-%{version}-root
 %if 0%{?centos_ver} <= 8
-Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, mysql-libs, ethtool, redhat-lsb-core, libcap, json-c, expat, libzstd, net-snmp-libs, newt, libatomic, libmaxminddb, tcp_wrappers-libs, librdkafka, @LICENSE_DEP@
+Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, mysql-libs, ethtool, redhat-lsb-core, libcap, json-c, expat, libzstd, net-snmp-libs, newt, libatomic, libmaxminddb, tcp_wrappers-libs, librdkafka, nmap, @LICENSE_DEP@
 %else
 Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, mysql-libs, ethtool, libcap, json-c, expat, libzstd, net-snmp-libs, newt, libatomic, libmaxminddb, tcp_wrappers-libs, librdkafka, @LICENSE_DEP@
 %endif
@@ -60,6 +60,13 @@ cp $HOME/ntopng/packages/wizard/ntopng-config $RPM_BUILD_ROOT/usr/bin
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-config $RPM_BUILD_ROOT/usr/bin
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/misc/ntopng-utils-manage-updates $RPM_BUILD_ROOT/usr/bin
 cp $HOME/ntopng/packages/usr/bin/ntopctl $RPM_BUILD_ROOT/usr/bin/
+
+# nmap vulnerability scan - https://github.com/scipag/vulscan
+\mkdir -p $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan
+wget -O $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan/vulscan.nse https://raw.githubusercontent.com/scipag/vulscan/master/vulscan.nse
+wget -O $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan/cve.csv 	https://www.computec.ch/projekte/vulscan/download/cve.csv
+#wget -O $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan/openvas.csv 	https://www.computec.ch/projekte/vulscan/download/openvas.csv
+
 # Make sure .mmdb files are not packaged by ntopng as they belong to ntopng-data
 rm -f $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/geoip/*.mmdb
 mv $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem.dummy $RPM_BUILD_ROOT/usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
@@ -125,6 +132,8 @@ rm -fr $RPM_BUILD_ROOT
 %config(noreplace) /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
 #/etc/ntopng/ntopng.conf.sample
 #/etc/ntopng/ntopng.start
+/usr/share/nmap/scripts/vulscan/vulscan.nse
+/usr/share/nmap/scripts/vulscan/cve.csv
 
 %dir %attr(700, ntopng, ntopng) /var/lib/ntopng
 
