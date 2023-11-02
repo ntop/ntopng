@@ -463,23 +463,27 @@ end
  
 -- ##############################################
 
-function alert_consts.alertTypeLabel(alert_id, nohtml, alert_entity_id)
+function alert_consts.alertTypeLabel(alert_id, nohtml, alert_entity_id, nil_on_not_found)
    local alert_key = alert_consts.getAlertType(alert_id, alert_entity_id)
 
-   if(alert_key) then
+   if alert_key then
       local type_info = alert_consts.alert_types[alert_key]
       -- TODO: .meta is the new format, OR are for compatibility and can be removed when migration is done
       local title = i18n(type_info.i18n_title or type_info.meta.i18n_title) or type_info.i18n_title or type_info.meta.i18n_title
 
-      if(nohtml) then
-        return(title)
+      if nohtml then
+        return title
       else
         -- return(string.format('<i class="%s"></i> %s', type_info.icon or type_info.meta.icon, shortenString(title)))
-        return(string.format('<i class="%s"></i> %s', type_info.icon or type_info.meta.icon, title))
+        return string.format('<i class="%s"></i> %s', type_info.icon or type_info.meta.icon, title)
       end
-   end
 
-   return(i18n("unknown"))
+   elseif nil_on_not_found then
+      return nil
+
+   else
+      return(i18n("unknown"))
+   end
 end
 
 -- ##############################################

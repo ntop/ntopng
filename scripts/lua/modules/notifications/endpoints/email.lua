@@ -196,7 +196,7 @@ function email.dequeueRecipientAlerts(recipient, budget)
     -- Body
     local messages = {}
     for _, notif in ipairs(notifications) do
-      messages[#messages + 1] = format_utils.formatMessage(notif, {show_entity = true, nohtml=false})
+      messages[#messages + 1] = format_utils.formatMessage(notif, {show_entity = true, nohtml=false, nolabelhtml=true})
     end
     local message_body = table.concat(messages, "<br>")
 
