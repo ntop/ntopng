@@ -578,6 +578,7 @@ function alert_utils.formatAlertNotification(notif, options)
 
     -- add the label, that is, engaged or released
     msg = msg .. " " .. alertNotificationActionToLabel(notif.action, options.emoji) .. " "
+
     local alert_message = alert_utils.formatAlertMessage(notif.ifid, notif)
 
     if (options.add_cr) then
