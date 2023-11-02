@@ -177,12 +177,12 @@ function alert_consts.formatAlertEntity(ifid, entity_type, entity_value)
       value = resolveAddress(host_info)
 
       if host_info ~= nil then
-	 if hostinfo2hostkey(host_info) ~= value then
-	    -- Avoid overwriting the IP
-	    value = string.format("%s [%s]", hostinfo2hostkey(host_info), value)
-	 end
+         if hostinfo2hostkey(host_info) ~= value then
+            -- Avoid overwriting the IP
+            value = string.format("%s [%s]", hostinfo2hostkey(host_info), value)
+         end
 
-	 value = hostinfo2detailshref(host_info, {page = "historical", epoch_begin = epoch_begin, epoch_end = epoch_end}, value, nil, true --[[ check if the link brings to an active page]])
+         value = hostinfo2detailshref(host_info, {page = "historical", epoch_begin = epoch_begin, epoch_end = epoch_end}, value, nil, true --[[ check if the link brings to an active page]])
       end
    elseif entity_type == "interface" then
       value = "<a href='"..ntop.getHttpPrefix().."/lua/if_stats.lua?ifid="..ifid..
@@ -264,7 +264,7 @@ local function showSnmpUrl(snmp_device)
       local device_config = snmp_config.get_device_config(snmp_device)
 
       if not device_config then
-	 show_url = false
+         show_url = false
       end
    elseif not snmp_device then
       show_url = false
@@ -299,11 +299,11 @@ function alert_consts.getDefinititionDirs()
    local dirs = ntop.getDirs()
 
    return({
-	 -- Path for ntopng-defined builtin alerts
-	 os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions/flow"),
-	 os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions/host"),
-	 os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions/other"),
-	  }
+         -- Path for ntopng-defined builtin alerts
+         os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions/flow"),
+         os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions/host"),
+         os_utils.fixPath(dirs.installdir .. "/scripts/lua/modules/alert_definitions/other"),
+          }
    )
 end
 
@@ -355,40 +355,40 @@ local function loadAlertsDefs()
             local def_script = require(mod_fname)
 
             if(def_script == nil) then
-	       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading alert definition from %s", mod_fname))
-	       goto next_script
+               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error loading alert definition from %s", mod_fname))
+               goto next_script
             end
 
             if not loadDefinition(def_script, mod_fname, defs_dir) then
-	       -- Retry reload
-	       package.loaded[mod_fname] = nil
-	    end
+               -- Retry reload
+               package.loaded[mod_fname] = nil
+            end
          end
 
          ::next_script::
       end
 
       if defs_dir:ends(os_utils.fixPath("/flow")) then
-	 -- Load flow alerts for flows with nDPI risks that don't have an alert .lua file explicitly defined under alert_definitions/
-	 local flow_risk_alerts = ntop.getFlowRiskAlerts()
-	 for mod_fname, flow_risk_alert in pairs(flow_risk_alerts) do
-	    local alert_type = alert_consts.getAlertType(flow_risk_alert.alert_id, alert_entities.flow.entity_id)
+         -- Load flow alerts for flows with nDPI risks that don't have an alert .lua file explicitly defined under alert_definitions/
+         local flow_risk_alerts = ntop.getFlowRiskAlerts()
+         for mod_fname, flow_risk_alert in pairs(flow_risk_alerts) do
+            local alert_type = alert_consts.getAlertType(flow_risk_alert.alert_id, alert_entities.flow.entity_id)
 
-	    -- Make sure the alert hasn't already been loaded via a dedicated alert_definition .lua file
-	    if not alert_type then
-	       -- Can't use the require. Require always returns the same table and this would result in overwritten alert_key and title
-	       local def_script = dofile(os_utils.fixPath(string.format("%s/scripts/lua/modules/flow_risk_simple_alert_definition.lua", dirs.installdir)))
+            -- Make sure the alert hasn't already been loaded via a dedicated alert_definition .lua file
+            if not alert_type then
+               -- Can't use the require. Require always returns the same table and this would result in overwritten alert_key and title
+               local def_script = dofile(os_utils.fixPath(string.format("%s/scripts/lua/modules/flow_risk_simple_alert_definition.lua", dirs.installdir)))
 
-	       -- Add the mandatory fields according to what arrives from C++
-	       def_script.meta.alert_key = flow_risk_alert.alert_id
-	       def_script.meta.i18n_title = flow_risk_alert.risk_name
+               -- Add the mandatory fields according to what arrives from C++
+               def_script.meta.alert_key = flow_risk_alert.alert_id
+               def_script.meta.i18n_title = flow_risk_alert.risk_name
 
-	       if not loadDefinition(def_script, mod_fname, defs_dir) then
-		  -- Retry reload
-		  package.loaded[mod_fname] = nil
-	       end
-	    end
-	 end
+               if not loadDefinition(def_script, mod_fname, defs_dir) then
+                  -- Retry reload
+                  package.loaded[mod_fname] = nil
+               end
+            end
+         end
       end
    end
 end
@@ -407,8 +407,8 @@ function loadDefinition(def_script, mod_fname, script_path)
    -- Check the required metadata fields
    for _, k in pairs(required_fields) do
       if(def_script.meta[k] == nil) then
-	 traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s from %s", k, mod_fname, script_path))
-	 return(false)
+         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Missing required field '%s' in %s from %s", k, mod_fname, script_path))
+         return(false)
       end
    end
 
@@ -530,7 +530,7 @@ function alert_consts.getAlertType(alert_key, alert_entity_id)
    -- under modules/alert_definitions. All other entities currently fall under the 'other' entity.
    if alert_entity_id and (alert_entity_id == alert_entities.flow.entity_id or alert_entity_id == alert_entities.host.entity_id) then
       if alerts_by_id[alert_entity_id] and alerts_by_id[alert_entity_id][alert_key] then
-	 return alerts_by_id[alert_entity_id][alert_key]
+         return alerts_by_id[alert_entity_id][alert_key]
       end
 
       -- Alert entity explicitly submitted and no alert found. Returning.
@@ -626,13 +626,13 @@ function alert_consts.alertSeverityLabel(score, nohtml, emoji)
       local title = i18n(severity_info.i18n_title) or severity_info.i18n_title
 
       if(emoji) then
-	      title = (severity_info.emoji or "").. " " .. title
+         title = (severity_info.emoji or "").. " " .. title
       end
       
       if(nohtml) then
         return(title)
       else
-        return(string.format('<span class="badge %s" title="%s">%s</span>', severity_info.label, title, title:sub(1, 1)))
+        return(string.format('<span class="badge %s" title="%s">%s</span>', severity_info.label, title, title))
       end
    end
 
