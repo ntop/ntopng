@@ -2,7 +2,7 @@
 <template>
   <modal ref="modal_id">
     <template v-slot:title>{{ title }}</template>
-    <template v-slot:body>v_
+    <template v-slot:body>
       <!-- Target information, here an IP is put -->
       <div class="form-group ms-2 me-2 mt-3 row">
         <label class="col-form-label col-sm-2">
