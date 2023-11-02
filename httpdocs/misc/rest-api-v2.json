@@ -5203,13 +5203,6 @@
             "type": "number"
           },
           {
-            "name": "initial_point",
-            "in": "query",
-            "description": "A boolean used to return the first point of the timeseries or not",
-            "required": false,
-            "type": "boolean"
-          },
-          {
             "name": "ts_compare",
             "in": "query",
             "description": "Choices available: '30m', '1h', '1d'. A string reporting the timeframe of the timeseries to be compared to (e.g. '30m', means to return other then the timeserie requested, the 30 minutes before)",
