@@ -107,7 +107,10 @@ function email.sendEmail(subject, message_body, settings)
   local product = ntop.getInfo(false).product
   local info = ntop.getHostInformation()
 
-  subject = product .. " [" .. info.instance_name .. " (" .. info.ip .. ")] " .. subject
+  if not isEmptyString(subject) then
+    subject = subject .. " - "
+  end
+  subject = subject .. product .. " [" .. info.instance_name .. " (" .. info.ip .. ")]"
 
   if not string.find(smtp_server, "://") then
     smtp_server = "smtp://" .. smtp_server
