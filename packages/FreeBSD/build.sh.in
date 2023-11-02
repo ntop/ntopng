@@ -59,6 +59,11 @@ find ${STAGEDIR}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec ${NTOPNG
 find ${STAGEDIR}/usr/local/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';';
 find ${STAGEDIR}/usr/local/share/ntopng/pro/scripts -name "*.luar" | xargs renamex -s/.luar/.lua/s;
 
+# Vulscan
+\mkdir -p ${STAGEDIR}/usr/local/share/nmap/scripts/vulscan
+curl -o ${STAGEDIR}/usr/local/share/nmap/scripts/vulscan/vulscan.nse https://raw.githubusercontent.com/scipag/vulscan/master/vulscan.nse
+curl -o ${STAGEDIR}/usr/local/share/nmap/scripts/vulscan/cve.csv     https://www.computec.ch/projekte/vulscan/download/cve.csv
+
 rm -f ${STAGEDIR}/usr/local/share/ntopng/httpdocs/geoip/*
 find ${STAGEDIR}/usr/local/share/ntopng -name "*~"   | xargs /bin/rm -f
 find ${STAGEDIR}/usr/local/share/ntopng -name ".svn" | xargs /bin/rm -rf
