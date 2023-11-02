@@ -52,3 +52,9 @@ IPv4 and IPv6 flows are stored in table :code:`flows`. A column :code:`INTERFACE
 
 Alerts are stored in several tables, all ending with suffix :code:`_alerts`. The table prefix indicates the alert family, e.g. :code:`host_alerts` table contains alerts for hosts, :code:`flow_alerts` table contains alerts for flows, and so on.
 
+For more information, check the full schema available:
+
+.. toctree::
+    :maxdepth: 1
+
+    clickhouse_schema
