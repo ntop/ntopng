@@ -561,8 +561,8 @@ local function parse_ip_csv_line(line)
    local words = string.split(line, ",")
    local host = nil
 
-   if(words and (#words == 3)) then
-      host = words[2]
+   if(words and (#words == 2)) then
+      host = words[1]
 
       if((host == "localhost") or (host == "127.0.0.1") or (host == "::1")) then
          host = nil
