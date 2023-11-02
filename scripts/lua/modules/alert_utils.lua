@@ -503,8 +503,10 @@ end
 function alert_utils.formatAlertNotification(notif, options)
     -- Otherwise format the alert
     local defaults = {
+        show_severity = true,
         nohtml = false,
-        show_severity = true
+        nolabelhtml = false,
+        emoji = false
     }
     options = table.merge(defaults, options)
 
@@ -521,7 +523,7 @@ function alert_utils.formatAlertNotification(notif, options)
     if (options.show_severity == false) then
         severity = ""
     else
-        severity = " [Severity: " .. alert_consts.alertSeverityLabel(notif.score, options.nohtml, options.emoji) .. "]"
+        severity = " [Severity: " .. alert_consts.alertSeverityLabel(notif.score, options.nohtml or options.nolabelhtml, options.emoji) .. "]"
     end
 
     if (options.nodate == true) then
@@ -534,29 +536,44 @@ function alert_utils.formatAlertNotification(notif, options)
         end
 
         if (not options.no_bracket_around_date) then
-            when = "[" .. when .. "]"
+            when = " [" .. when .. "]"
         end
 
         when = when .. " "
     end
 
-    local msg = string.format("%s%s%s [%s]", when, ifname, severity,
-        alert_consts.alertTypeLabel(notif.alert_id, options.nohtml, notif.entity_id))
+    local msg = string.format("%s%s%s", when, ifname, severity)
 
     -- entity can be hidden for example when one is OK with just the message
     if options.show_entity then
-        msg = msg .. "[" .. alert_consts.alertEntityLabel(notif.entity_id) .. "]"
-        local ev
+        msg = msg .. " [" .. alert_consts.alertEntityLabel(notif.entity_id) .. "]"
+    end
+
+    local alert_type_label = alert_consts.alertTypeLabel(notif.alert_id, options.nohtml or options.nolabelhtml, notif.entity_id, true)
+    if alert_type_label then
+       msg = msg .. " [" .. alert_type_label .. "]"
+    end
+
+    -- entity can be hidden for example when one is OK with just the message
+    if options.show_entity then
+        local ev = notif.entity_val
+
         if notif.entity_id == alert_entities.flow.entity_id then
             ev = noHtml(alert_utils.formatRawFlow(notif, options.nohtml))
-        else
-            ev = notif.entity_val
-            if notif.entity_id == alert_entities.host.entity_id then
-                -- suppresses @0 when the vlan is zero
-                ev = hostinfo2hostkey(hostkey2hostinfo(notif.entity_val))
+
+        elseif notif.entity_id == alert_entities.host.entity_id then
+            -- suppress @0 when the vlan is zero
+            ev = hostinfo2hostkey(hostkey2hostinfo(notif.entity_val))
+
+        elseif notif.entity_id == alert_entities.am_host.entity_id then
+            -- show host only, hiding measurement id (e.g. vs@)
+            local parts = split(notif.entity_val, "@")
+            if #parts == 2 then
+               ev = parts[2]
             end
+
         end
-        msg = msg .. "[" .. (ev or '') .. "]"
+        msg = msg .. " [" .. (ev or '') .. "]"
     end
 
     -- add the label, that is, engaged or released
@@ -574,7 +591,9 @@ function alert_utils.formatAlertNotification(notif, options)
     end
 
     local alert_title = string.format("[%s]: %s", alert_consts.alertEntityLabel(notif.entity_id),alert_consts.alertTypeLabel(notif.alert_id, options.nohtml, notif.entity_id))
+
     local alert_type = alert_consts.alertEntityLabel(notif.entity_id)
+
     return msg, alert_title, alert_type
 end
 
