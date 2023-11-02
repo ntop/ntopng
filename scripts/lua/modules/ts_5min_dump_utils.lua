@@ -325,7 +325,7 @@ function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
     end
 
     for interface_id, device_list in pairs(flowdevs or {}) do
-        for key, _value in pairs(device_list, asc) do
+       for flow_device_ip, _value in pairs(device_list, asc) do
             local ports = interface.getSFlowDeviceInfo(flow_device_ip)
 
             if (verbose) then
@@ -368,8 +368,8 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
         return
     end
 
-    for interface, device_list in pairs(flowdevs or {}) do
-        for dev_ip, dev_resolved_name in pairsByValues(device_list, asc) do
+    for interface_id, device_list in pairs(flowdevs or {}) do
+       for flow_device_ip, dev_resolved_name in pairsByValues(device_list, asc) do
             local ports = interface.getFlowDeviceInfo(flow_device_ip)
 
             if (verbose) then
