@@ -36,9 +36,9 @@
         <div class="col-sm-2"></div>
         <div class="col-sm-3">
 
-          <button type="button" @click="load_ports" :disabled="disable_add || disable_load_ports" class="btn btn-primary" >{{_i18n('hosts_stats.page_scan_hosts.load_ports')}}</button>
+          <button type="button" @click="load_ports" :disabled="disable_load_ports" class="btn btn-primary" >{{_i18n('hosts_stats.page_scan_hosts.load_ports')}}</button>
           <Spinner :show="activate_spinner" size="1rem" class="ms-1"></Spinner>
-              <a class="ntopng-truncate" :title="disable_add"></a>
+              <a class="ntopng-truncate"></a>
 
         </div>
         <div class="col-sm-3 mt-1">{{ message_feedback }}</div>
@@ -90,16 +90,16 @@
 
       <template v-if="is_edit_page == false">
       <div>
-      <button type="button" @click="add_" class="btn btn-primary"  :disabled="disable_add">{{_i18n('add')}}</button>
+      <button type="button" @click="add_" class="btn btn-primary"  :disabled="disable_host || disable_port || disable_cidr">{{_i18n('add')}}</button>
       <Spinner :show="activate_add_spinner" size="1rem" class="ms-1"></Spinner>
-              <a class="ntopng-truncate" :title="disable_add"></a>
+              <a class="ntopng-truncate"></a>
       </div>  
     </template>
       <template v-else>
       <div>
-      <button type="button" @click="edit_" class="btn btn-primary"  :disabled="disable_add">{{_i18n('apply')}}</button>
+      <button type="button" @click="edit_" class="btn btn-primary"  :disabled="disable_host || disable_port || disable_cidr">{{_i18n('apply')}}</button>
       <Spinner :show="activate_add_spinner" size="1rem" class="ms-1"></Spinner>
-              <a class="ntopng-truncate" :title="disable_add"></a>
+              <a class="ntopng-truncate"></a>
     </div>
     </template>
     </template>
@@ -135,7 +135,9 @@ const server_ports = `${http_prefix}/lua/iface_ports_list.lua`; // ?clisrv=serve
 const nmap_server_ports = `${http_prefix}/lua/rest/v2/get/host/ports_by_nmap.lua`;
 
 const _i18n = (t) => i18n(t);
-const disable_add = ref(true);
+const disable_host = ref(true);
+const disable_cidr = ref(false);
+const disable_port = ref(false);
 const disable_load_ports = ref(false);
 const activate_add_spinner = ref(false);
 
@@ -188,7 +190,9 @@ const is_enterprise_l = ref(null);
 const reset_modal_form = function() {
     host.value = "";
     ports.value = "";
-    disable_add.value = true;
+    disable_cidr.value = false;
+    disable_port.value = false;
+    disable_host.value = true;
     activate_spinner.value = false;
     activate_add_spinner.value = false;
     message_feedback.value = "";
@@ -214,11 +218,12 @@ const set_row_to_edit = (row) => {
     title = _i18n('hosts_stats.page_scan_hosts.edit_host_title');
     is_edit_page.value = true;
 
-    disable_add.value = false;
 
       //set host
     host.value = row.host;
     ports.value = row.ports;
+    disable_host.value = false;
+    disable_port.value = false;
 
     row_to_edit_id.value = row.id;
 
@@ -248,6 +253,7 @@ const set_row_to_edit = (row) => {
       }
     })
       
+    disable_cidr.value = false;
       
     
   }
@@ -261,7 +267,7 @@ const show = (row, _host) => {
   
   if(_host!=null && _host!="") {
     host.value = _host;
-    disable_add.value = false;
+    disable_host.value = false;
   }
   
   modal_id.value.show();
@@ -280,13 +286,13 @@ const check_empty_host = async () => {
     if (last_part != "0") {
       selected_cidr.value = cidr_options_list.value[1];
     }
-    disable_add.value = false;
+    disable_host.value = false;
   } else if (ipv6_regex.test(host.value)) {
     selected_cidr.value = cidr_options_list.value[2];
-    disable_add.value = false;
+    disable_host.value = false;
 
   } else if (host.value != null && host.value != "") {
-    disable_add.value = false;
+    disable_host.value = true;
   }
   
 }
@@ -296,10 +302,10 @@ const check_ports = () => {
 
   if (ports.value != "" && !comma_separted_port_regex.test(ports.value)) {
 
-    disable_add.value = true; 
+    disable_port.value = true; 
   } else {
     ports_placeholder = i18n('hosts_stats.page_scan_hosts.ports_placeholder');
-    disable_add.value = false;
+    disable_port.value = false;
   }
 
 
@@ -347,22 +353,22 @@ const add_ = async (is_edit) => {
       verify_host_name = true;
       
     } else {
-      disable_add.value = true;
+      disable_host.value = true;
     }
   } else {
-    disable_add.value = false;
+    disable_host.value = false;
   }
 
 
   if (verify_host_name) {
     let result = await resolve_host_name(host.value);
-    disable_add.value = result == "no_success";
-    if (!disable_add.value) {
+    disable_host.value = result == "no_success";
+    if (!disable_host.value) {
       tmp_host = result;
     }
   }
 
-  if (!(disable_add.value)) {
+  if (!(disable_host.value)) {
     
     if(is_enterprise_l) {
       const a_scan_frequency = selected_automatic_scan_frequency.value.id;
@@ -386,7 +392,7 @@ const add_ = async (is_edit) => {
     }
 
     activate_add_spinner.value = true;
-    disable_add.value = true;
+    disable_host.value = true;
     
   }
 
