@@ -54,13 +54,13 @@
           <button
             type="button"
             @click="load_ports"
-            :disabled="disable_add || disable_load_ports"
+            :disabled="disable_load_ports"
             class="btn btn-primary"
           >
             {{ _i18n("hosts_stats.page_scan_hosts.load_ports") }}
           </button>
           <Spinner :show="activate_spinner" size="1rem" class="ms-1"></Spinner>
-          <a class="ntopng-truncate" :title="disable_add"></a>
+          <a class="ntopng-truncate"></a>
         </div>
         <div v-if="show_port_feedback" class="col-sm-3 mt-1">
           {{ port_feedback }}
@@ -112,7 +112,7 @@
           type="button"
           @click="add_"
           class="btn btn-primary"
-          :disabled="disable_add"
+          :disabled="!(is_cidr_correct && is_host_correct && is_port_correct)"
         >
           {{ _i18n("add") }}
         </button>
@@ -121,7 +121,7 @@
           type="button"
           @click="edit_"
           class="btn btn-primary"
-          :disabled="disable_add"
+          :disabled="!(is_cidr_correct && is_host_correct && is_port_correct)"
         >
           {{ _i18n("apply") }}
         </button>
@@ -130,7 +130,7 @@
           size="1rem"
           class="ms-1"
         ></Spinner>
-        <a class="ntopng-truncate" :title="disable_add"></a>
+        <a class="ntopng-truncate"></a>
       </div>
     </template>
   </modal>
@@ -177,7 +177,6 @@ const modal_id = ref(null);
 const selected_scan_type = ref({});
 const hide_ports_placeholder = ref("");
 const row_to_edit_id = ref("");
-const disable_add = ref(true);
 const disable_load_ports = ref(false);
 const activate_add_spinner = ref(false);
 const activate_spinner = ref(false);
@@ -188,6 +187,9 @@ const host = ref(null);
 const ports = ref(null);
 const show_port_feedback = ref(false);
 const is_enterprise_l = ref(null);
+const is_port_correct = ref(true);
+const is_cidr_correct = ref(true);
+const is_host_correct = ref(false);
 const scan_frequencies_list = ref([
   { id: "disabled", label: i18n("hosts_stats.page_scan_hosts.disabled") },
   { id: "1day", label: i18n("hosts_stats.page_scan_hosts.every_night") },
@@ -209,7 +211,9 @@ const selected_scan_frequency = ref(scan_frequencies_list.value[0]);
 const reset_modal_form = function () {
   host.value = "";
   ports.value = "";
-  disable_add.value = true;
+  is_port_correct.value = true;
+  is_cidr_correct.value = true;
+  is_host_correct.value = false;
   activate_spinner.value = false;
   activate_add_spinner.value = false;
   show_port_feedback.value = false;
@@ -226,11 +230,12 @@ const reset_modal_form = function () {
  */
 const set_row_to_edit = (row) => {
   is_edit_page.value = true;
-  disable_add.value = false;
 
   /* Set host values */
   host.value = row.host;
   ports.value = row.ports;
+  is_host_correct.value = true;
+  is_port_correct.value = true;
 
   row_to_edit_id.value = row.id;
 
@@ -240,19 +245,17 @@ const set_row_to_edit = (row) => {
     (item) => item.id == row.scan_type
   );
 
-  console.log(regexValidation.validateIPv4(row.host));
   /* CIDR */
   if (regexValidation.validateIPv4(row.host)) {
-    console.log("Validate ipv4");
     selected_cidr.value = cidr_options_list.value.find(
       (item) => item.id == "32"
     ); /* IPv4 */
   } else {
-    console.log("Validate ipv6");
     selected_cidr.value = cidr_options_list.value.find(
       (item) => item.id == "128"
     ); /* IPv6 */
   }
+  is_cidr_correct.value = true;
 
   /* Scan Frequency */
   if (is_enterprise_l) {
@@ -277,7 +280,7 @@ const show = (row, _host) => {
 
   if (!dataUtils.isEmptyOrNull(_host)) {
     host.value = _host;
-    disable_add.value = false;
+    is_host_correct.value = true;
   }
 
   modal_id.value.show();
@@ -295,13 +298,13 @@ const check_host_regex = () => {
         (item) => item.id == "32"
       ); /* IPv4 */
     }
-    disable_add.value = false;
+    is_host_correct.value = true;
   } else if (regexValidation.validateIPv6(host.value)) {
     /* IPv6 */
     selected_cidr.value = cidr_options_list.value[2];
-    disable_add.value = false;
+    is_host_correct.value = true;
   } else {
-    disable_add.value = true;
+    is_host_correct.value = false;
   }
   /* Check if there is a need to disabled the button or not */
   disable_ports();
@@ -311,12 +314,14 @@ const check_host_regex = () => {
 
 /* Regex to check if ports list is correct or not */
 const check_ports = () => {
-  if ((ports.value == "")
-      || regexValidation.validateCommaSeparatedPortList(ports.value)
-      || regexValidation.validatePortRange(ports.value)) {
-    disable_add.value = false;
+  if (
+    !regexValidation.validateCommaSeparatedPortList(ports.value) &&
+    !dataUtils.isEmptyOrNull(ports.value)
+  ) {
+    is_port_correct.value = false;
   } else {
-    disable_add.value = true;
+    /* Empty port is alright! */
+    is_port_correct.value = true;
   }
 };
 
