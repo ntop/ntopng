@@ -175,8 +175,7 @@ protected:
   RoundTripStats *download_stats, *upload_stats;
 
   bool is_view; /* Whether this is a view interface */
-  ViewInterface
-  *viewed_by; /* Whether this interface is 'viewed' by a ViewInterface */
+  ViewInterface *viewed_by; /* Whether this interface is 'viewed' by a ViewInterface */
   u_int8_t viewed_interface_id; /* When this is a 'viewed' interface, this id
                                    represents a unique interface identifier
                                    inside the view */
