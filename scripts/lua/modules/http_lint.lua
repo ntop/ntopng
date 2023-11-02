@@ -1063,7 +1063,7 @@ end
 -- #################################
 
 local function validateInterface(i)
-    return interface.isValidIfId(i)
+   return interface.isValidIfId(tonumber(i))
 end
 http_lint.validateInterface = validateInterface
 
