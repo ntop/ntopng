@@ -73,8 +73,6 @@ if(isEmptyString(query)) then
       results = {},
    }
    
-   -- tprint(results)
-   
    rest_utils.answer(rc, data)
    return
 end
@@ -370,48 +368,94 @@ local hosts = {}
 
 if not is_system_interface then
 
+   -- 1st look at custom names (aliases)
+
+   -- Note: inefficient, so a limit on the maximum number must be enforced.
+   local name_prefix = getHostAltNamesKey("")
+   local ip_to_name = {}
+   local max_num_names = 100 -- Avoid doing too many searches
+   local name_keys = ntop.getKeysCache(getHostAltNamesKey("*")) or {}
+   for k, _ in pairs(name_keys) do
+      local name = ntop.getCache(k)
+
+      if not isEmptyString(name) then
+         local ip = k:gsub(name_prefix, "")
+         ip_to_name[ip] = name
+      end
+
+      max_num_names = max_num_names - 1
+      if max_num_names == 0 then
+         break
+      end
+   end
+
+   for ip, name in pairs(ip_to_name) do
+      if not hosts[ip] then
+         if string.containsIgnoreCase(name, query) then
+            local links = {}
+
+            if name == ip then -- IP
+               add_host_link(links)
+               add_historical_flows_link(links, 'ip', ip)
+            else -- Name
+               add_host_link(links)
+               add_historical_flows_link(links, 'name', name)
+            end
+
+            hosts[ip] = {
+               label = hostinfo2label({host = ip, name = name}),
+               ip = ip,
+               name = name,
+               links = links,
+            }
+         end
+      end
+   end
+
    -- Active Hosts
    local res = interface.findHost(query)
 
    for k, host_key in pairs(res) do
-      local badges = {}
-      local links = {}
+      if not hosts[k] then
+         local badges = {}
+         local links = {}
 
-      local ip = nil
-      local mac = nil
+         local ip = nil
+         local mac = nil
 
-      local label = host_key
-      if host_key ~= k then
-         label = label .. " · " .. k
+         local label = host_key
+         if host_key ~= k then
+            label = label .. " · " .. k
+         end
+
+         if isMacAddress(host_key) then -- MAC
+            mac = host_key
+            add_device_link(links)
+            add_historical_flows_link(links, 'mac', host_key)
+         elseif isIPv6(host_key) then -- IP
+            ip = host_key
+            add_host_link(links)
+            add_historical_flows_link(links, 'ip', host_key)
+            add_badge(badges, 'IPv6')
+         elseif k == host_key then -- IP
+            ip = host_key
+            add_host_link(links)
+            add_historical_flows_link(links, 'ip', host_key)
+         else -- Name
+            ip = k
+            add_host_link(links)
+            add_historical_flows_link(links, 'name', host_key)
+         end
+
+         hosts[k] = {
+            label = label,
+            name = host_key,
+            ip = ip,
+            mac = mac,
+            links = links,
+            badges = badges,
+         }
       end
-
-      if isMacAddress(host_key) then -- MAC
-         mac = host_key
-         add_device_link(links)
-         add_historical_flows_link(links, 'mac', host_key)
-      elseif isIPv6(host_key) then -- IP
-         ip = host_key
-         add_host_link(links)
-         add_historical_flows_link(links, 'ip', host_key)
-         add_badge(badges, 'IPv6')
-      elseif k == host_key then -- IP
-         ip = host_key
-         add_host_link(links)
-         add_historical_flows_link(links, 'ip', host_key)
-      else -- Name
-         ip = k
-         add_host_link(links)
-         add_historical_flows_link(links, 'name', host_key)
-      end
-
-      hosts[k] = {
-         label = label,
-         name = host_key,
-         ip = ip,
-         mac = mac,
-         links = links,
-         badges = badges,
-      }
    end
 
    -- Inactive hosts - by MAC
@@ -421,7 +465,7 @@ if not is_system_interface then
       -- Serialization by MAC address found
       local h = hostkey2hostinfo(string.sub(k, key_to_ip_offset))
 
-      if(not hosts[h.host]) then
+      if not hosts[h.host] then
          -- Do not override active hosts
          local links = {}
          add_host_link(links)
@@ -443,8 +487,8 @@ if not is_system_interface then
       end
    end
 
-
    -- Inactive hosts - by IP
+   --[[ Note: host serialization is disabled
    local key_to_ip_offset = string.len(string.format("ntopng.serialized_hosts.ifid_%u__", ifid)) + 1
 
    for k in pairs(ntop.getKeysCache(string.format("ntopng.serialized_hosts.ifid_%u__%s*", ifid, query)) or {}) do
@@ -473,67 +517,31 @@ if not is_system_interface then
          }
       end
    end
+   --]]
 
-   -- Also look at the custom names
-   -- Note: inefficient, so a limit on the maximum number must be enforced.
-   local name_prefix = getHostAltNamesKey("")
-   local name_keys = ntop.getKeysCache(getHostAltNamesKey("*")) or {}
-   local ip_to_name = {}
-
-   local max_num_names = 100 -- Avoid doing too many searches
-   for k, _ in pairs(name_keys) do
-      local name = ntop.getCache(k)
-
-      if not isEmptyString(name) then
-         local ip = k:gsub(name_prefix, "")
-         ip_to_name[ip] = name
-      end
-
-      max_num_names = max_num_names - 1
-      if max_num_names == 0 then
-         break
-      end
-   end
-
-   for ip,name in pairs(ip_to_name) do
-      if string.containsIgnoreCase(name, query) then
-         local links = {}
-
-         if name == value then -- IP
-            add_host_link(links)
-            add_historical_flows_link(links, 'ip', value)
-         else -- Name
-            add_host_link(links)
-            add_historical_flows_link(links, 'name', value)
-         end
-
-         hosts[ip] = {
-            label = hostinfo2label({host = ip, name = name}),
-            ip = ip,
-            name = name,
-            links = links,
-         }
-      end
-   end
 
    -- Also look at the DHCP cache
    local key_prefix_offset = string.len(getDhcpNameKey(getInterfaceId(ifname), "")) + 1
    local mac_to_name = ntop.getKeysCache(getDhcpNameKey(getInterfaceId(ifname), "*")) or {}
    for k in pairs(mac_to_name) do
+
       local mac = string.sub(k, key_prefix_offset)
-      local name = ntop.getCache(k)
+      if hosts[mac] then
 
-      if not isEmptyString(name) and string.containsIgnoreCase(name, query) then
-         local links = {}
-         add_device_link(links)
-         add_historical_flows_link(links, 'mac', mac)
+         local name = ntop.getCache(k)
+         if not isEmptyString(name) and string.containsIgnoreCase(name, query) then
 
-         hosts[mac] = {
-            label = hostinfo2label({host = mac, mac = mac, name = name}) .. " · " .. mac,
-            mac = mac,
-            name = name,
-            links = links,
-         }
+            local links = {}
+            add_device_link(links)
+            add_historical_flows_link(links, 'mac', mac)
+
+            hosts[mac] = {
+               label = hostinfo2label({host = mac, mac = mac, name = name}) .. " · " .. mac,
+               mac = mac,
+               name = name,
+               links = links,
+            }
+         end
       end
    end
 
@@ -585,7 +593,6 @@ if not is_system_interface then
 
    if #results == 0 and not isEmptyString(query) then
       -- No results - add shortcut to search in historical data
-      --tprint(query)
       if hasClickHouseSupport() then
          local label = ""
          local what = ""
@@ -598,12 +605,10 @@ if not is_system_interface then
             label = i18n("db_search.find_in_historical", {what=what, query=query})
             query = query .. tag_utils.SEPARATOR .. "eq"
          elseif isCommunityId(query) then
-         --tprint("HERE")
             what = "community_id"
             label = i18n("db_search.find_in_historical", {what=what, query=query})
             query = query .. tag_utils.SEPARATOR .. "eq"
          elseif isJA3(query) then
-         --tprint("HERE")
             what = "ja3_client"
             label = i18n("db_search.find_in_historical", {what=what, query=query})
             query = query .. tag_utils.SEPARATOR .. "eq"
@@ -617,7 +622,6 @@ if not is_system_interface then
             query = query .. tag_utils.SEPARATOR .. "in"
          end
 
-         --tprint(query)
          results[#results + 1] = build_result(label, query, what, nil, nil, "historical")
       end
    end
@@ -628,8 +632,6 @@ local data = {
    interface = ifname,
    results = results,
 }
-
--- tprint(results)
 
 rest_utils.answer(rc, data)
 
