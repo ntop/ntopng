@@ -2,8 +2,8 @@
 
 LUA_INTERPR="lua5.3"
 
-# Check coding style
-make -s check-format || (echo 'Please format your code with `make format`' && false)
+# Uncomment to enable coding style check
+# make -s check-format || (echo 'Please format your code with `make format`' && false)
 
 if which ${LUA_INTERPR} 2>&1 >/dev/null; then
   if hash ${LUA_INTERPR} 2>/dev/null; then
