@@ -52,6 +52,8 @@ for i=1,num_runs do
                   bytes_sent=ifstats.eth.egress.bytes, bytes_rcvd=ifstats.eth.ingress.bytes}, when)
 
             end
+            ts_utils.append("iface:traffic_ip", {ifid=ifstats.id,
+                                                   bytes_ipv4=ifstats.eth.IPv4_bytes, bytes_ipv6=ifstats.eth.IPv6_bytes}, when)
          end
 
          -- ZMQ stats (only for non-packet interfaces)

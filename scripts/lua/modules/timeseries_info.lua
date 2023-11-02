@@ -115,6 +115,25 @@ local community_timeseries = {{
     alwais_visibile = true,
     default_visible = true
 }, {
+    schema = "iface:traffic_ip",
+    id = timeseries_id.iface,
+    label = i18n("graphs.traffic_ip"),
+    priority = 0,
+    measure_unit = "bps",
+    scale = i18n("graphs.metric_labels.traffic"),
+    timeseries = {
+        bytes_ipv4 = {
+            label = i18n('graphs.metric_labels.ipv4'),
+            color = timeseries_info.get_timeseries_color('bytes_sent')
+        },
+        bytes_ipv6 = {
+            label = i18n('graphs.metric_labels.ipv6'),
+            color = timeseries_info.get_timeseries_color('bytes_rcvd')
+        }
+    },
+    alwais_visibile = true,
+    draw_stacked = true
+}, {
     schema = "iface:flows",
     id = timeseries_id.iface,
     label = i18n("graphs.active_flows"),
