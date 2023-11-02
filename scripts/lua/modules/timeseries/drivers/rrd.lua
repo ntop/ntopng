@@ -555,7 +555,7 @@ function driver:timeseries_query(options)
    for i, data_serie in pairs(series) do
       -- Add statistics if requested, by default yes
       if options.calculate_stats then
-	 local s = ts_common.calculateStatistics(series[i].data, fstep, options.schema_info.options.keep_total,
+	 local s = ts_common.calculateStatistics(series[i].data, sampled_fstep, options.schema_info.options.keep_total,
 						 options.schema_info.options.metrics_type)
 	 local min_max = ts_common.calculateMinMax(data_serie.data)
 	 local statistics = table.merge(s, min_max)
