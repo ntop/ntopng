@@ -77,8 +77,9 @@ http_lint.validateChoiceInline = validateChoiceInline
 
 local function validateListOfType(l, validate_callback, separator)
     local separator = separator or ","
-    if isEmptyString(l) then
-        return true
+    
+    if (isEmptyString(l) or (l == "-1")) then
+       return true
     end
 
     local items = split(l, separator)
