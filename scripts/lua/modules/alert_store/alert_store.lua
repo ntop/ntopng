@@ -2006,10 +2006,6 @@ local BASE_RNAME = {
         name = "alert_category",
         export = true
     },
-    ALERT_CATEGORY = {
-        name = "alert_category",
-        export = true
-    },
     SCORE = {
         name = "score",
         export = true
