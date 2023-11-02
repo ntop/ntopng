@@ -878,6 +878,7 @@ local lang = {
   },
   ["alert_messages"] = {
     ["a_new_device_has_connected"] = "New device <a href=\"%{url}\">%{device}</a> has connected to the network.",
+    ["alert"] = "Alert",
     ["alert_ids_ips_jail_add"] = "Host %{host} added to the jailed hosts pool on %{when}",
     ["alert_ids_ips_jail_remove"] = "Host %{host} removed from the jailed hosts pool on %{when}",
     ["alert_port_too_many_macs"] = "Too many MACs on non-trunk <a href=\"%{url}\">%{ip}</a> Interface Id <a href=\"%{port_url}\">%{port}</a> [%{value} %{op} %{threshold} MACs]",
@@ -7732,6 +7733,7 @@ local lang = {
       ["ports_closed"] = "%{closed_ports_num} %{protocol} ports (%{closed_ports}) are now closed",
       ["ports_open_and_closed"] = "%{protocol} (%{open_ports}) and %{protocol} (%{closed_ports}) ports are now closed",
     },
+    ["report"] = "Vulnerability Scan Report",
     ["solved_issues"] = " %{num_issues} CVEs, %{cve_solved} solved",
   },
   ["widgets_page"] = {

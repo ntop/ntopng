@@ -513,6 +513,33 @@ end
 
 -- ######################################################
 
+local function format_notification_subject(notifications)
+   
+   if not notifications or #notifications < 1 then
+      subject = ""
+
+   else
+      local notification = notifications[1]
+
+      if notification.notification_type == "reports" then
+         subject = i18n("report.traffic_report")
+
+      elseif notification.notification_type == "vulnerability_scans" then
+         subject = i18n("vulnerability_scan.report")
+
+      else
+         local subject = i18n("alert_messages.alert")
+         if #notifications > 1 then
+            subject = i18n("alert_messages.x_alerts", {num=#notifications})
+         end
+      end
+   end
+
+   return subject
+end
+
+-- ######################################################
+
 -- This is a basic function used to format notifications
 local function format_notification(notification, options)
    local message = notification.message or ""
@@ -521,17 +548,23 @@ local function format_notification(notification, options)
    if notification.notification_type == "reports" and 
       (not options or not options.nohtml) then
       message = format_report_email(notification)
-   end
 
-   if (notification.notification_type == "vulnerability_scans") then
+   elseif (notification.notification_type == "vulnerability_scans") then
       if(not options or not options.nohtml) then
           -- nothing to do
       else
          message = format_no_html_vs_report_message(message) 
       end
+
    end
 
    return message
+end
+
+-- ######################################################
+
+function format_utils.formatSubject(notifications)
+   return format_notification_subject(notifications)
 end
 
 -- ######################################################

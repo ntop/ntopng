@@ -110,7 +110,7 @@ function email.sendEmail(subject, message_body, settings)
   if not isEmptyString(subject) then
     subject = subject .. " - "
   end
-  subject = subject .. product .. " [" .. info.instance_name .. " (" .. info.ip .. ")]"
+  subject = subject .. product .. " @ " .. info.instance_name .. " (" .. info.ip .. ")"
 
   if not string.find(smtp_server, "://") then
     smtp_server = "smtp://" .. smtp_server
@@ -191,10 +191,7 @@ function email.dequeueRecipientAlerts(recipient, budget)
     -- Prepare email
 
     -- Subject
-    local subject = ""
-    if #notifications > 1 then
-      subject = "(" .. i18n("alert_messages.x_alerts", {num=#notifications}) .. ")"
-    end
+    local subject = format_utils.formatSubject(notifications)
 
     -- Body
     local messages = {}
