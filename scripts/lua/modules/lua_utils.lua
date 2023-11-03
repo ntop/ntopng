@@ -830,7 +830,13 @@ function setHostAltName(host_info, alt_name)
      host_key = host_info
    end
 
-   ntop.setCache(getHostAltNamesKey(host_key), alt_name)
+   local key = getHostAltNamesKey(host_key)
+
+   if isEmptyString(alt_name) then
+      ntop.delCache(key)
+   else
+      ntop.setCache(key, alt_name)
+   end
 end
 
 -- ##############################################

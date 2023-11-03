@@ -373,19 +373,22 @@ if not is_system_interface then
    -- Note: inefficient, so a limit on the maximum number must be enforced.
    local name_prefix = getHostAltNamesKey("")
    local ip_to_name = {}
-   local max_num_names = 100 -- Avoid doing too many searches
+   local max_num_names = 500 -- Limit the number of keys in the lookup
    local name_keys = ntop.getKeysCache(getHostAltNamesKey("*")) or {}
    for k, _ in pairs(name_keys) do
       local name = ntop.getCache(k)
 
-      if not isEmptyString(name) then
+      if isEmptyString(name) then
+         -- key cleanup (unused)
+         ntop.delCache(k)
+      else
          local ip = k:gsub(name_prefix, "")
          ip_to_name[ip] = name
-      end
 
-      max_num_names = max_num_names - 1
-      if max_num_names == 0 then
-         break
+         max_num_names = max_num_names - 1
+         if max_num_names == 0 then
+            break
+         end
       end
    end
 
