@@ -317,21 +317,22 @@ end
 function getHostAltName(host_info)
     local host_key
 
+    -- Check if there is an alias for the host@vlan
+    -- Note: this is not used for backward compatibility (see setHostAltName)
+    --if type(host_info) == "table" and host_info["vlan"] then
+    --    host_key = hostinfo2hostkey(host_info)
+    --    alt_name = ntop.getCache(getHostAltNamesKey(host_key))
+    --    return alt_name
+    --end
+
+    -- Check if there is an alias for the host
     if type(host_info) == "table" then
         host_key = host_info["host"]
     else
         host_key = host_info
     end
 
-    local alt_name = ntop.getCache(getHostAltNamesKey(host_key))
-
-    if isEmptyString(alt_name) and type(host_info) == "table" and host_info["vlan"] then
-        -- Check if there is an alias for the host@vlan
-        host_key = hostinfo2hostkey(host_info)
-        alt_name = ntop.getCache(getHostAltNamesKey(host_key))
-    end
-
-    return alt_name
+    return ntop.getCache(getHostAltNamesKey(host_key))
 end
 
 -- ##############################################
