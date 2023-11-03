@@ -142,18 +142,26 @@ static int ntop_get_first_interface_id(lua_State *vm) {
 
 static int ntop_select_interface(lua_State *vm) {
   char *ifname;
-
+  bool already_set = false;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (lua_type(vm, 1) == LUA_TNIL)
     ifname = (char *)"any";
   else {
-    if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    if (lua_type(vm, 1) == LUA_TSTRING)
+      ifname = (char *)lua_tostring(vm, 1);
+    else if(lua_type(vm, 1) == LUA_TNUMBER) {
+      int ifid = lua_tonumber(vm, 1);
+
+      getLuaVMUservalue(vm, iface) = ntop->getNetworkInterface(vm, ifid);
+      already_set = true;
+    } else    
       return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-    ifname = (char *)lua_tostring(vm, 1);
   }
 
-  getLuaVMUservalue(vm, iface) = ntop->getNetworkInterface(ifname, vm);
+  if(!already_set)
+    getLuaVMUservalue(vm, iface) = ntop->getNetworkInterface(ifname, vm);
 
   // lua_pop(vm, 1); /* Cleanup the Lua stack */
   lua_pushnil(vm);
