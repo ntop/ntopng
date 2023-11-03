@@ -109,6 +109,8 @@ function email.sendEmail(subject, message_body, settings)
 
   if not isEmptyString(subject) then
     subject = subject .. " - "
+  else
+    subject = ""
   end
   subject = subject .. product .. " @ " .. info.instance_name .. " (" .. info.ip .. ")"
 
