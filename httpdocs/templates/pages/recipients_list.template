@@ -669,7 +669,7 @@
                 $(this).val(recipient.recipient_params[$(this).attr('name')]);
             });
 
-            if(recipient.notifications_type && recipient.notifications_type == "vulnerability_scans") {
+            if(recipient.notifications_type && recipient.notifications_type != "alerts") {
                 $(`#edit_alert_filters`).attr('hidden', 'hidden');
             } else {
                 $(`#edit_alert_filters`).removeAttr('hidden');
