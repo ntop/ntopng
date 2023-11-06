@@ -2020,7 +2020,6 @@ local known_parameters = {
     ["scan_single_host"] = validateBool,
     ["delete_all_scan_hosts"] = validateBool,
     ["scan_return_result"] = validateBool,
-    ["scan_ports_rsp"] = validateBool,
     ["scan_date"] = validateSingleWord,
     ["scan_frequency"] = validateSingleWord,
     ["scan_id"] = validateSingleWord,

@@ -49,21 +49,24 @@
         </div>
       </div>
       <div class="form-group ms-2 me-2 mt-3 row">
-        <div class="col-sm-2"></div>
-        <div class="col-sm-3">
+        <div class="col-2"></div>
+        <div class="col-10 d-flex align-items-center">
           <button
             type="button"
             @click="load_ports"
-            :disabled="disable_load_ports"
+            :disabled="!is_host_correct || disable_load_ports"
             class="btn btn-primary"
           >
             {{ _i18n("hosts_stats.page_scan_hosts.load_ports") }}
           </button>
+          <dd
+            v-if="show_port_feedback"
+            class="ms-2 mb-0 text-danger"
+          >
+            {{ port_feedback }}
+          </dd>
           <Spinner :show="activate_spinner" size="1rem" class="ms-1"></Spinner>
           <a class="ntopng-truncate"></a>
-        </div>
-        <div v-if="show_port_feedback" class="col-sm-3 mt-1">
-          {{ port_feedback }}
         </div>
       </div>
       <div class="form-group ms-2 me-2 mt-3 row">
@@ -159,8 +162,8 @@ const props = defineProps({
 const title = ref(i18n("hosts_stats.page_scan_hosts.add_host"));
 const host_placeholder = i18n("hosts_stats.page_scan_hosts.host_placeholder");
 const ports_placeholder = i18n("hosts_stats.page_scan_hosts.ports_placeholder");
-const port_feedback = i18n("hosts_stats.page_scan_hosts.unknown_host");
-const server_ports = `${http_prefix}/lua/iface_ports_list.lua`;
+const port_feedback = i18n("hosts_stats.page_scan_hosts.no_ports_detected");
+const server_ports = `${http_prefix}/lua/rest/v2/get/host/open_ports.lua`;
 const note_list = [
   _i18n("hosts_stats.page_scan_hosts.notes.note_1"),
   _i18n("hosts_stats.page_scan_hosts.notes.note_2"),
@@ -195,6 +198,9 @@ const scan_frequencies_list = ref([
   { id: "1day", label: i18n("hosts_stats.page_scan_hosts.every_night") },
   { id: "1week", label: i18n("hosts_stats.page_scan_hosts.every_week") },
 ]);
+const cidr_24 = "24";
+const cidr_32 = "32";
+const cidr_128 = "128";
 const cidr_options_list = ref([
   { id: "24", label: "/24" },
   { id: "32", label: "/32" },
@@ -236,7 +242,7 @@ const set_row_to_edit = (row) => {
   ports.value = row.ports;
   is_host_correct.value = true;
   is_port_correct.value = true;
-
+  disable_load_ports.value = false;
   row_to_edit_id.value = row.id;
 
   /* Set the correct values if available */
@@ -248,11 +254,11 @@ const set_row_to_edit = (row) => {
   /* CIDR */
   if (regexValidation.validateIPv4(row.host)) {
     selected_cidr.value = cidr_options_list.value.find(
-      (item) => item.id == "32"
+      (item) => item.id == cidr_32
     ); /* IPv4 */
   } else {
     selected_cidr.value = cidr_options_list.value.find(
-      (item) => item.id == "128"
+      (item) => item.id == cidr_128
     ); /* IPv6 */
   }
   is_cidr_correct.value = true;
@@ -290,19 +296,25 @@ const show = (row, _host) => {
 
 /* Regex to check if the host is correct or not */
 const check_host_regex = () => {
-  if (regexValidation.validateIPv4(host.value)) {
+  const is_ipv4 = regexValidation.validateIPv4(host.value);
+  const is_ipv6 = regexValidation.validateIPv6(host.value);
+  if (is_ipv4) {
     /* IPv4 */
+    is_host_correct.value = true;
     if (!host.value.endsWith(0)) {
       /* In case the CIDR is wrong */
       selected_cidr.value = cidr_options_list.value.find(
-        (item) => item.id == "32"
+        (item) => item.id == cidr_32
       ); /* IPv4 */
     }
-    is_host_correct.value = true;
-  } else if (regexValidation.validateIPv6(host.value)) {
+  } else if (is_ipv6) {
     /* IPv6 */
     selected_cidr.value = cidr_options_list.value[2];
     is_host_correct.value = true;
+      /* In case the CIDR is wrong */
+      selected_cidr.value = cidr_options_list.value.find(
+        (item) => item.id == cidr_128
+      ); /* IPv6 */
   } else {
     is_host_correct.value = false;
   }
@@ -315,6 +327,7 @@ const check_host_regex = () => {
 /* Regex to check if ports list is correct or not */
 const check_ports = () => {
   if (
+    !regexValidation.validatePortRange(ports.value) &&
     !regexValidation.validateCommaSeparatedPortList(ports.value) &&
     !dataUtils.isEmptyOrNull(ports.value)
   ) {
@@ -331,7 +344,7 @@ const check_ports = () => {
  * in case of a network the port is not needed
  */
 function disable_ports() {
-  if (selected_cidr.value.id != "24") {
+  if (selected_cidr.value.id != cidr_24) {
     disable_load_ports.value = false;
   } else {
     disable_load_ports.value = true;
@@ -430,7 +443,6 @@ async function load_ports() {
   const url = NtopUtils.buildURL(server_ports, {
     host: host.value,
     ifid: ifid.value,
-    scan_ports_rsp: true,
     clisrv: "server",
   });
 
@@ -439,13 +451,16 @@ async function load_ports() {
   /* Show the results or empty if no data was found */
   if (!dataUtils.isEmptyOrNull(result)) {
     ports.value = result
-      .filter((x) => typeof x.key === "number")
       .map((x) => x.key)
       .join(",");
     show_port_feedback.value = false;
   } else {
     show_port_feedback.value = true;
     ports.value = "";
+    /* Remove the message after 5 seconds! */
+    setTimeout(() => {
+      show_port_feedback.value = false;
+    }, 5000);
   }
   activate_spinner.value = false;
 }
