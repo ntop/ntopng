@@ -33,7 +33,7 @@ if isEmptyString(cidr) then
     if (not is_edit) then
         result,id = vs_utils.add_host_pref(scan_type, host,scan_ports, scan_frequency)
 
-        vs_utils.schedule_host_scan(scan_type,host,scan_ports,id,false)
+        vs_utils.schedule_ondemand_single_host_scan(scan_type,host,scan_ports,id,false)
     else 
         result,id = vs_utils.edit_host_pref(scan_type, host,scan_ports, scan_frequency)
     end
@@ -43,7 +43,7 @@ else
     for _,item in ipairs(hosts_to_save) do
         if (not is_edit) then
             result,id = vs_utils.add_host_pref(scan_type, item,scan_ports, scan_frequency)
-            vs_utils.schedule_host_scan(scan_type,item,scan_ports,id,false)
+            vs_utils.schedule_ondemand_single_host_scan(scan_type,item,scan_ports,id,false)
         else
             result,id = vs_utils.edit_host_pref(scan_type, item,scan_ports, scan_frequency)
 
