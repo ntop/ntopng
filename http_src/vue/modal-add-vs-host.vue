@@ -51,7 +51,9 @@
       <div class="form-group ms-2 me-2 mt-3 row">
         <div class="col-2"></div>
         <div class="col-10 d-flex align-items-center">
-          <button
+          <!--
+            HIDDEN BUTTON FOR NOW
+            <button
             type="button"
             @click="load_ports"
             :disabled="!is_host_correct || disable_load_ports"
@@ -59,6 +61,7 @@
           >
             {{ _i18n("hosts_stats.page_scan_hosts.load_ports") }}
           </button>
+          -->
           <dd
             v-if="show_port_feedback"
             class="ms-2 mb-0 text-danger"
