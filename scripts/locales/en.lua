@@ -7723,7 +7723,7 @@ local lang = {
   },
   ["vulnerability_scan"] = {
     ["and_other_n"] = "and other %{n}",
-    ["host_alert"] = "%{msg} on <b>%{host}</b> (check the <a href=\"%{url}\">Report</a>)",
+    ["host_alert"] = "%{msg} on <b>%{host}</b> using %{scan_type} (check the <a href=\"%{url}\">Report</a>)",
     ["new_issues"] = "CVEs changed from %{num_issues} to %{new_cve}",
     ["ports_changed"] = "Open ports changed from %{old_num_ports} to %{new_num_ports}",
     ["ports_changed_cases"] = {
