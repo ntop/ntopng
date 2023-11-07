@@ -18,6 +18,11 @@ local ERROR_KEY = "ntopng.cache.%s.error_time"
 
 local do_trace = false
 
+-- Enable debug with:
+-- redis-cli set "ntopng.prefs.vs.notifications_debug_enabled" "1"
+-- systemctl restart ntopng
+local debug_vs = ntop.getCache("ntopng.prefs.vs.notifications_debug_enabled") == "1"
+
 -- ##############################################
 
 local recipients = {}
@@ -881,16 +886,6 @@ end
 
 -- ##############################################
 
-local function skip_alerts(notifications_type)
-   -- If it's null consider like NOT skipping alerts
-   if notifications_type and notifications_type ~= "alerts" then
-      return true -- Skip alerts
-   end
-   return false
-end
-
--- ##############################################
-
 -- @brief This function deliver a notification to a specific recipient id
 --        without checking for filters, ecc.
 -- @param notification An notification in table format
@@ -943,6 +938,10 @@ function recipients.dispatch_notification(notification, current_script, notifica
       -- tprint(debug.traceback())
    end
 
+   if debug_vs and notification_type == 'vulnerability_scans' then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: dispatching notification")
+   end
+
    local notification_category = get_notification_category(notification, current_script)
 
    local recipients = recipients.get_all_recipients()
@@ -953,12 +952,18 @@ function recipients.dispatch_notification(notification, current_script, notifica
 
       -- If an exception occurred, print the notification and exit
       if not status then
-         --tprint({notification, json_notification})
+         traceError(TRACE_ERROR, TRACE_CONSOLE, "Failure encoding notification")
+         tprint(notification)
          return
       end
 
       for _, recipient in ipairs(recipients) do
          local recipient_ok = true
+
+         if debug_vs and notification_type == 'vulnerability_scans' then
+            traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: evaluating recipient")
+            tprint(recipient)
+         end
 
          -- If recipient_id is not nil, it means that notification has to be 
          -- dispatched only to the specific recipient
@@ -973,9 +978,12 @@ function recipients.dispatch_notification(notification, current_script, notifica
          -- Checking if a specific notification type is requested
          -- otherwise go to the alerts filters
          if recipient_ok and notification_type and notification_type ~= "alerts" then
-            if skip_alerts(recipient.notifications_type) then
+            if recipient.notifications_type and recipient.notifications_type ~= "alerts" then
                if notification_type == recipient.notifications_type then
                   notification, notification_category = set_default_notification_params(notification)
+                  if debug_vs and notification_type == 'vulnerability_scans' then
+                     traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: recipient match!")
+                  end
                   goto skip_filters
                end
             end
@@ -1093,6 +1101,9 @@ function recipients.dispatch_notification(notification, current_script, notifica
          if recipient_ok then
             -- Enqueue alert
             --debug_print(" ===> Delivering alert for entity id " .. notification.entity_id .. " to recipient " .. recipient.recipient_name)
+            if debug_vs and notification_type == 'vulnerability_scans' then
+               traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: enqueueing notification to recipient")
+            end
             ntop.recipient_enqueue(recipient.recipient_id, 
               json_notification --[[ alert --]],
               notification.score,
