@@ -948,8 +948,7 @@ class Host : public GenericHashEntry,
     ;
   };
   virtual void luaUsedPorts(lua_State *vm) { ; }
-  virtual std::unordered_map<u_int16_t, ndpi_protocol> *getServerPorts(
-      bool isTCP) {
+  virtual std::unordered_map<u_int16_t, ndpi_protocol> *getServerPorts(bool isTCP) {
     return (NULL);
   }
 
@@ -959,9 +958,8 @@ class Host : public GenericHashEntry,
   }
   inline bool isCustomHostScriptAlreadyEvaluated(time_t when) {
     return ((customHostAlert.hostAlreadyEvaluated &&
-             (customHostAlert.skip_until_epoch < when))
-                ? true
-                : false);
+             (customHostAlert.skip_until_epoch <  (u_int32_t)when))
+                ? true : false);
   }
   inline bool isCustomHostScriptFirstRun() {
     return (customHostAlert.checkAlreadyExecutedOnce ? false : true);
@@ -991,8 +989,7 @@ class Host : public GenericHashEntry,
 
   inline u_int16_t getNumContactedTCPUDPServerPortsNoTX() {
     return (tcp_udp_contacted_ports_no_tx ? (u_int16_t)ndpi_bitmap_cardinality(
-                                                tcp_udp_contacted_ports_no_tx)
-                                          : 0);
+                                                tcp_udp_contacted_ports_no_tx) : 0);
   }
   inline void setContactedTCPUDPServerPortNoTX(u_int16_t port) {
     if (tcp_udp_contacted_ports_no_tx)
