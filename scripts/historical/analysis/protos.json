@@ -1,7 +1,8 @@
 {
-  "name": "Applications",  
-  "i18n_name" : "top_protos",
+    "name": "Applications",  
+    "i18n_name" : "top_protos",
     "data_source" : "flows",
+    "hourly": true,
     "chart" : [
 	{
 	    "chart_id" : "top_l7_categories", // Each id MUST be different

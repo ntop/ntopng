@@ -2,6 +2,7 @@
     "name" : "Autonomous Systems",
     "i18n_name" : "top_asn",
     "data_source" : "flows",
+    "hourly": true,
     "chart" : [
 	{
             "chart_id" : "top_src_asn", // Each id MUST be different

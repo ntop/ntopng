@@ -2,6 +2,7 @@
     "name" : "Score",
     "i18n_name" : "score_distribution",
     "data_source" : "flows",
+    "hourly": true,
     "chart" : [
 	{
 	    "chart_id" : "top_src_score", // Each id MUST be different

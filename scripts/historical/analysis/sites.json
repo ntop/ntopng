@@ -1,7 +1,8 @@
 {
-  "name": "Sites",  
-  "i18n_name" : "top_sites",
+    "name": "Sites",  
+    "i18n_name" : "top_sites",
     "data_source" : "flows",
+    "hourly": true,
     "chart" : [
 	{
 	    "chart_id" : "top_sites_volume", // Each id MUST be different

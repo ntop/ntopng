@@ -20,6 +20,7 @@ local lang = {
   ["advanced"] = "Advanced",
   ["advanced_charts_test"] = "Advanced Charts Test",
   ["aggregation"] = "Aggregation",
+  ["alerted_flows"] = "Alerted Flows",
   ["alerts_analysis"] = "Flow Alerts Analyser",
   ["alias"] = "Alias",
   ["all"] = "All",
