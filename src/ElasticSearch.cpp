@@ -140,7 +140,7 @@ bool ElasticSearch::startQueryLoop() {
 /* **************************************** */
 
 void ElasticSearch::indexESdata() {
-  time_t last_dump = time(0);
+  u_int32_t last_dump = (u_int32_t)time(NULL);
   char *postbuf = (char *)malloc(ES_BULK_BUFFER_SIZE);
   char *pending_flow = NULL;
 
@@ -150,10 +150,11 @@ void ElasticSearch::indexESdata() {
   }
 
   while (!ntop->getGlobals()->isShutdown() && isRunning()) {
-    time_t now = time(0);
+    u_int32_t now = (u_int32_t)time(NULL);
 
     if ((num_queued_elems >= ES_MIN_BUFFERED_FLOWS) ||
-        ((num_queued_elems > 0 || pending_flow) && (now >= last_dump + ntop->getPrefs()->get_dump_frequency()))) {
+        ((num_queued_elems > 0 || pending_flow)
+	 && (now >= last_dump + ntop->getPrefs()->get_dump_frequency()))) {
       u_int len, num_flows;
       char index_name[64], header[256];
       struct tm *tm_info;
