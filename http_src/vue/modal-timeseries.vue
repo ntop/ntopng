@@ -45,7 +45,7 @@
 	  <!-- select -->
 	  <div v-if="source_def.ui_type == ui_types.select" class="form-group mt-2 row">
 	    <label class="col-form-label col-sm-4" >
-              <b>{{source_def.label}} {{source_def_index}}</b>
+              <b>{{source_def.label}}</b>
 	    </label>
 	    <div class="col-sm-8">
 	      <SelectSearch v-model:selected_option="selected_source_array[source_def_index]"
