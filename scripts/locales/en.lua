@@ -3944,6 +3944,7 @@ local lang = {
       ["num_http_hosts"] = "Num HTTP Hosts",
       ["num_ms_rtt"] = "RTT ms",
       ["packets"] = "Packets",
+      ["chart"] = "Chart",
     },
     ["metrics_suffixes"] = {
       ["by_as"] = "%{metric} by AS",

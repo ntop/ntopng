@@ -260,6 +260,13 @@ print[[],
             textAlign: 'center',
         }
       }, {
+        title: "]] print(i18n("graphs.metrics_prefixes.chart")) print[[",
+        field: "column_chart",
+        sortable: false,
+        css: {
+            textAlign: 'center',
+        }
+      }, {
         title: "]] print(i18n("actions")) print[[",
         field: "column_actions",
         sortable: false,
@@ -276,7 +283,7 @@ print[[],
     ], rowCallback: function(row, data) {
       var list_name = data.column_name;
       var enabled = data.column_enabled;
-      var actions_td_idx = 9;
+      var actions_td_idx = 10; /* Column id */
 
       datatableAddActionButtonCallback.bind(row)(actions_td_idx, "prepareEditListModal('" + list_name + "'); $('#editListModal').modal('show');", "<i class='fas fa-edit'></i>");
 
