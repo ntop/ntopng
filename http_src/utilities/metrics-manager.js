@@ -183,7 +183,7 @@ const get_source_array_from_value_array = async (http_prefix, source_type, sourc
             if (source_def.sources_url) {
                 sources = await get_sources(http_prefix, source_type.id, source_def);
             } else {
-                sources = source_def.sources_function();
+                sources = await source_def.sources_function();
             }
             source = sources.find((s) => s.value == source_value);
             if (source == null) {

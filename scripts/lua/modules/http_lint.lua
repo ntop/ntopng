@@ -2533,6 +2533,7 @@ local known_parameters = {
     ["query_preset"] = validateEmptyOr(validateSingleWord),
     ["new_charts"] = validateBool,
     ["sankey_version"] = validateNumber,
+    ["blacklist_name"] = validateUnquoted,
 
     -- nEdge policy
     ["default_policy"] = validatePolicy, -- users, nedge policies

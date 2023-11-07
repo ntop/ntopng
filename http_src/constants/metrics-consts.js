@@ -10,50 +10,57 @@ const ui_types = {
 };
 
 const sources_url_el_to_source = {
-	ifid: (s) => {
-		let label = s.ifname;
-		if (s.name != null) {
-			label = s.name;
-		}
-		return {
-			label,
-			value: s.ifid,
-		};
-	},
-	pool: (p) => {
-		let label = p.pool_id;
-		if (p.name != null) { label = p.name; }
-		return {
-			label,
-			value: p.pool_id,
-		};
-	},
-	am_host: (am) => {
-		let label = `${am.label} ${am.measurement}`;
-		let value = `${am.host},metric:${am.measurement_key}`;
-		return {
-			label,
-			value,
-		};
-	},
-	device: (device) => {
-		let label = `${device.name}`;
-		let value = `${device.ip}`;
-		return {
-			label,
-			value,
-		};
-	},
-	if_index: (index) => {
-		console.log(index.device.ip);
-		return '';
+    ifid: (s) => {
+	let label = s.ifname;
+	if (s.name != null) {
+	    label = s.name;
+	}
+	return {
+	    label,
+	    value: s.ifid,
+	};
+    },
+    pool: (p) => {
+	let label = p.pool_id;
+	if (p.name != null) { label = p.name; }
+	return {
+	    label,
+	    value: p.pool_id,
+	};
+    },
+    am_host: (am) => {
+	let label = `${am.label} ${am.measurement}`;
+	let value = `${am.host},metric:${am.measurement_key}`;
+	return {
+	    label,
+	    value,
+	};
+    },
+    blacklist: (b) => {
+        let label = `${b.column_name}`;
+        let value = label;
+        return {
+            label,
+            value,
+        };
+    },
+    device: (device) => {
+	let label = `${device.name}`;
+	let value = `${device.ip}`;
+	return {
+	    label,
+	    value,
+	};
+    },
+    if_index: (index) => {
+	return '';
 	/*	let label = `${index.name}`;
 		let value = `${index.ip}`;
 		return {
-			label,
-			value,
+		label,
+		value,
 		};*/
-	}
+    }
 };
 
 const sources_types_tables = {
@@ -85,6 +92,33 @@ const sources_types = [
 			f_set_value_url: null, // overwrite value and value_url to set start value in url
 			ui_type: ui_types.select,
 		}],
+	},
+	{
+	    id: "blacklist", //unique id
+	    regex_page_url: "lua\/blacklists_stats", // regex to match url page
+	    label: i18n("page_stats.source_def.blacklist"),
+	    query: "blacklist",
+	    source_def_array: [{
+		label: i18n("page_stats.source_def.interface"),
+		sources_function: () => { return [{ label: "System", value: -1 }] },
+		value: "ifid",
+		ui_type: ui_types.hide,
+	    },{
+		main_source_def: true,
+		label: i18n("page_stats.source_def.blacklist"),
+		regex_type: "blacklist_name",
+		value: "blacklist_name",
+		// disable_tskey: true,
+                sources_function: async function() {
+                    const url = `${http_prefix}/lua/admin/get_category_lists.lua`
+                    let res = await ntopng_utility.http_request(url, null, null, true);
+                    let sources = res.data.map((el) => {
+                        return { label: el.column_name, value: el.column_name };
+                    });
+                    return sources;
+                },
+		ui_type: ui_types.select,
+	    }]
 	},
 	{
 		id: "vulnerability_scan", //unique id

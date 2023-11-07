@@ -246,6 +246,16 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("blacklist:hits", {
+    step = 300,
+    metrics_type = ts_utils.metrics.counter
+})
+schema:addTag("ifid")
+schema:addTag("blacklist_name")
+schema:addMetric("hits")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("obs_point:score", {
     step = 300,
     metrics_type = ts_utils.metrics.gauge

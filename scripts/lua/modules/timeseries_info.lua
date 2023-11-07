@@ -76,6 +76,7 @@ local timeseries_id = {
     sflow_port = "sflowdev_port",
     flow_dev = "flowdev",
     flow_port = "flowdev_port",
+    blacklist = "blacklist",
     nedge = "nedge"
 }
 
@@ -144,6 +145,19 @@ local community_timeseries = {{
         num_flows = {
             label = i18n('graphs.metric_labels.num_flows'),
             color = timeseries_info.get_timeseries_color('flows')
+        }
+    }
+}, {
+    schema = "blacklist:hits",
+    id = timeseries_id.blacklist,
+    label = i18n('graphs.metric_labels.blacklist_hits'),
+    priority = 0,
+    measure_unit = "number",
+    scale = i18n('graphs.metric_labels.blacklist_hits'),
+    timeseries = {
+        hits = {
+            label = i18n('graphs.metric_labels.blacklist_num_hits'),
+            color = timeseries_info.get_timeseries_color('')
         }
     }
 }, {
@@ -2871,7 +2885,7 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
             end
 
             if not (info.schema:find("top", 1, true)) and not info.alwais_visibile then
-                local tot = 0
+               local tot = 0
                 local tot_serie = ts_utils.queryTotal(info.schema, tags.epoch_begin, tags.epoch_end, table.clone(tags))
 
                 -- Remove serie with no data

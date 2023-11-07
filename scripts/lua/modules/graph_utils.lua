@@ -381,6 +381,7 @@ function graph_utils.drawNewGraphs(source_value_object)
         sflow_device = flow_device_ts_enabled,
         sflow_interface = flow_device_ts_enabled,
         observation_point = obs_point_ts_enabled,
+        blacklist = true,
         nedge = ntop.isnEdge()
     }
 

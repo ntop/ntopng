@@ -66,6 +66,23 @@ end
 
 -- ########################################################
 
+function ts_dump.blacklist_update(when, verbose)
+   local lists_utils = require("lists_utils")
+   local lists = lists_utils.getCategoryLists()
+
+   for k, v in pairs(lists) do
+      if v.status.num_hits > 0 then
+         ts_utils.append("blacklist:hits", {
+           ifid = getSystemInterfaceId(),
+           blacklist_name = k,
+           hits = v.status.num_hits
+         }, when)
+      end
+   end   
+end
+
+-- ########################################################
+
 function ts_dump.asn_update_rrds(when, ifstats, verbose)
     local asn_info = interface.getASesInfo({
         detailsLevel = "higher"
