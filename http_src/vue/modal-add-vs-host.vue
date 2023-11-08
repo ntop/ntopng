@@ -9,23 +9,11 @@
           <b>{{ _i18n("hosts_stats.page_scan_hosts.host") }}</b>
         </label>
         <div class="col-sm-8">
-          <input
-            v-model="host"
-            @input="check_host_regex"
-            :disabled="is_edit_page"
-            class="form-control"
-            type="text"
-            :placeholder="host_placeholder"
-            required
-          />
+          <input v-model="host" @input="check_host_regex" :disabled="is_edit_page" class="form-control" type="text"
+            :placeholder="host_placeholder" required />
         </div>
         <div class="col-sm-2">
-          <SelectSearch
-            v-model:selected_option="selected_cidr"
-            :disabled="is_edit_page"
-            @select_option="disable_ports"
-            :options="cidr_options_list"
-          >
+          <SelectSearch v-model:selected_option="selected_cidr" :disabled="is_edit_page" :options="cidr_options_list">
           </SelectSearch>
         </div>
       </div>
@@ -35,38 +23,8 @@
           <b>{{ _i18n("hosts_stats.page_scan_hosts.ports") }}</b>
         </label>
         <div class="col-sm-10">
-          <input
-            v-model="ports"
-            @focusout="check_ports"
-            class="form-control"
-            :class="
-              hide_ports_placeholder === true ? 'ntopng-hide-placeholder' : ''
-            "
-            type="text"
-            :placeholder="ports_placeholder"
-            required
-          />
-        </div>
-      </div>
-      <div class="form-group ms-2 me-2 mt-3 row">
-        <div class="col-2"></div>
-        <div class="col-10 d-flex align-items-center">
-          <!--
-            HIDDEN BUTTON FOR NOW
-            <button
-            type="button"
-            @click="load_ports"
-            :disabled="!is_host_correct || disable_load_ports"
-            class="btn btn-primary"
-          >
-            {{ _i18n("hosts_stats.page_scan_hosts.load_ports") }}
-          </button>
-          -->
-          <dd v-if="show_port_feedback" class="ms-2 mb-0 text-danger">
-            {{ port_feedback }}
-          </dd>
-          <Spinner :show="activate_spinner" size="1rem" class="ms-1"></Spinner>
-          <a class="ntopng-truncate"></a>
+          <input v-model="ports" @focusout="check_ports" class="form-control" :class="hide_ports_placeholder === true ? 'ntopng-hide-placeholder' : ''
+            " type="text" :placeholder="ports_placeholder" required />
         </div>
       </div>
       <div class="form-group ms-2 me-2 mt-3 row">
@@ -74,11 +32,7 @@
           <b>{{ _i18n("hosts_stats.page_scan_hosts.scan_type") }}</b>
         </label>
         <div class="col-10">
-          <SelectSearch
-            v-model:selected_option="selected_scan_type"
-            :options="scan_type_list"
-            :disabled="is_edit_page"
-          >
+          <SelectSearch v-model:selected_option="selected_scan_type" :options="scan_type_list" :disabled="is_edit_page">
           </SelectSearch>
         </div>
       </div>
@@ -89,10 +43,7 @@
             <b>{{ _i18n("hosts_stats.page_scan_hosts.periodicity") }}</b>
           </label>
           <div class="col-10">
-            <SelectSearch
-              v-model:selected_option="selected_scan_frequency"
-              :options="scan_frequencies_list"
-            >
+            <SelectSearch v-model:selected_option="selected_scan_frequency" :options="scan_frequencies_list">
             </SelectSearch>
           </div>
         </div>
@@ -109,34 +60,19 @@
     </template>
 
     <template v-slot:footer>
-      <div v-if="is_data_not_ok" class="alert alert-info test-feedback w-100">
-        {{ _i18n("hosts_stats.page_scan_hosts.host_not_resolved") }}
+      <div v-if="is_data_not_ok" class="me-auto text-danger d-inline">
+        {{ no_host_feedback }}
       </div>
       <div>
-        <button
-          v-if="is_edit_page == false"
-          type="button"
-          @click="add_"
-          class="btn btn-primary"
-          :disabled="!(is_cidr_correct && is_host_correct && is_port_correct)"
-        >
+        <Spinner :show="activate_add_spinner" size="1rem" class="me-2"></Spinner>
+        <button v-if="is_edit_page == false" type="button" @click="add_" class="btn btn-primary"
+          :disabled="!(is_cidr_correct && is_host_correct && is_port_correct)">
           {{ _i18n("add") }}
         </button>
-        <button
-          v-else
-          type="button"
-          @click="edit_"
-          class="btn btn-primary"
-          :disabled="!(is_cidr_correct && is_host_correct && is_port_correct)"
-        >
+        <button v-else type="button" @click="edit_" class="btn btn-primary"
+          :disabled="!(is_cidr_correct && is_host_correct && is_port_correct)">
           {{ _i18n("apply") }}
         </button>
-        <Spinner
-          :show="activate_add_spinner"
-          size="1rem"
-          class="ms-1"
-        ></Spinner>
-        <a class="ntopng-truncate"></a>
       </div>
     </template>
   </modal>
@@ -163,10 +99,9 @@ const props = defineProps({
 
 /* Consts */
 const title = ref(i18n("hosts_stats.page_scan_hosts.add_host"));
+const no_host_feedback = ref(i18n("hosts_stats.page_scan_hosts.host_not_resolved"));
 const host_placeholder = i18n("hosts_stats.page_scan_hosts.host_placeholder");
 const ports_placeholder = i18n("hosts_stats.page_scan_hosts.ports_placeholder");
-const port_feedback = i18n("hosts_stats.page_scan_hosts.no_ports_detected");
-const server_ports = `${http_prefix}/lua/rest/v2/get/host/open_ports.lua`;
 const note_list = [
   _i18n("hosts_stats.page_scan_hosts.notes.note_1"),
   _i18n("hosts_stats.page_scan_hosts.notes.note_2"),
@@ -183,9 +118,7 @@ const modal_id = ref(null);
 const selected_scan_type = ref({});
 const hide_ports_placeholder = ref("");
 const row_to_edit_id = ref("");
-const disable_load_ports = ref(false);
 const activate_add_spinner = ref(false);
-const activate_spinner = ref(false);
 const is_edit_page = ref(false);
 const scan_type_list = ref([]);
 const ifid = ref(null);
@@ -201,9 +134,9 @@ const scan_frequencies_list = ref([
   { id: "1day", label: i18n("hosts_stats.page_scan_hosts.every_night") },
   { id: "1week", label: i18n("hosts_stats.page_scan_hosts.every_week") },
 ]);
-const cidr_24 = "24";
-const cidr_32 = "32";
-const cidr_128 = "128";
+const CIDR_24 = "24";
+const CIDR_32 = "32";
+const CIDR_128 = "128";
 const cidr_options_list = ref([
   { id: "24", label: "/24" },
   { id: "32", label: "/32" },
@@ -211,7 +144,8 @@ const cidr_options_list = ref([
 ]);
 const selected_cidr = ref(cidr_options_list.value[1]);
 const selected_scan_frequency = ref(scan_frequencies_list.value[0]);
-let is_data_not_ok = ref(false);
+const is_data_not_ok = ref(false);
+
 /* ****************************************************** */
 
 /*
@@ -223,13 +157,13 @@ const reset_modal_form = function () {
   is_port_correct.value = true;
   is_cidr_correct.value = true;
   is_host_correct.value = false;
-  activate_spinner.value = false;
   activate_add_spinner.value = false;
   show_port_feedback.value = false;
   selected_scan_type.value = scan_type_list.value[0];
   selected_cidr.value = cidr_options_list.value[1];
   row_to_edit_id.value = null;
   is_edit_page.value = false;
+  is_data_not_ok.value = false;
 };
 
 /* ****************************************************** */
@@ -245,7 +179,6 @@ const set_row_to_edit = (row) => {
   ports.value = row.ports;
   is_host_correct.value = true;
   is_port_correct.value = true;
-  disable_load_ports.value = false;
   row_to_edit_id.value = row.id;
 
   /* Set the correct values if available */
@@ -257,11 +190,11 @@ const set_row_to_edit = (row) => {
   /* CIDR */
   if (regexValidation.validateIPv4(row.host)) {
     selected_cidr.value = cidr_options_list.value.find(
-      (item) => item.id == cidr_32
+      (item) => item.id == CIDR_32
     ); /* IPv4 */
   } else {
     selected_cidr.value = cidr_options_list.value.find(
-      (item) => item.id == cidr_128
+      (item) => item.id == CIDR_128
     ); /* IPv6 */
   }
   is_cidr_correct.value = true;
@@ -298,7 +231,7 @@ const show = (row, _host) => {
 /* ****************************************************** */
 
 /* Regex to check if the host is correct or not */
-const check_host_regex = async () => {
+const check_host_regex = () => {
   const is_ipv4 = regexValidation.validateIPv4(host.value);
   const is_ipv6 = regexValidation.validateIPv6(host.value);
   const is_host_name = regexValidation.validateHostName(host.value);
@@ -308,7 +241,7 @@ const check_host_regex = async () => {
     if (!host.value.endsWith(0)) {
       /* In case the CIDR is wrong */
       selected_cidr.value = cidr_options_list.value.find(
-        (item) => item.id == cidr_32
+        (item) => item.id == CIDR_32
       ); /* IPv4 */
     }
   } else if (is_ipv6) {
@@ -317,20 +250,18 @@ const check_host_regex = async () => {
     is_host_correct.value = true;
     /* In case the CIDR is wrong */
     selected_cidr.value = cidr_options_list.value.find(
-      (item) => item.id == cidr_128
+      (item) => item.id == CIDR_128
     ); /* IPv6 */
   } else if (is_host_name) {
     /* Host Name */
     is_host_correct.value = true;
     /* In case the CIDR is wrong */
     selected_cidr.value = cidr_options_list.value.find(
-      (item) => item.id == cidr_32
+      (item) => item.id == CIDR_32
     );
   } else {
     is_host_correct.value = false;
   }
-  /* Check if there is a need to disabled the button or not */
-  disable_ports();
 };
 
 /* ****************************************************** */
@@ -348,19 +279,6 @@ const check_ports = () => {
     is_port_correct.value = true;
   }
 };
-
-/* ****************************************************** */
-
-/* Function called whenever the CIDR changes,
- * in case of a network the port is not needed
- */
-function disable_ports() {
-  if (selected_cidr.value.id != cidr_24) {
-    disable_load_ports.value = false;
-  } else {
-    disable_load_ports.value = true;
-  }
-}
 
 /* ****************************************************** */
 
@@ -392,52 +310,51 @@ const close = () => {
 
 /* Function to add host to scan */
 const add_ = async (is_edit) => {
-  const tmp_ports = ports.value;
-  const tmp_scan_type = selected_scan_type.value.id;
-  let tmp_host = host.value;
-  let emit_event = "add";
-  let tmp_row_id = null;
-  let tmp_host_name = false;
-  let tmp_host_name_resolved = false;
-  let is_host_ok_to_add = false;
+  const host_ports = ports.value;
+  const host_scan_type = selected_scan_type.value.id;
+  const emit_event = (is_edit === true) ? "edit" : "add";
+  const row_id = (is_edit === true) ? row_to_edit_id.value : null;
+  let new_host = host.value;
+  let new_host_name_resolved = true;
 
-  /* It's an edit, not an add, change the event to emit */
-  if (is_edit === true) {
-    emit_event = "edit";
-    tmp_row_id = row_to_edit_id.value;
-  }
+  /* Activate the spinner to give the user a feedback */
+  activate_add_spinner.value = true;
 
-  /* Check if it's possible to resolve the hostname or not */
-  if (!dataUtils.isEmptyOrNull(tmp_host)) {
-    tmp_host_name = true;
-    const result = await resolve_host_name(host.value);
-    /* The resolution went well */
-    if (result != "no_success") {
-      tmp_host_name_resolved = true;
-      tmp_host = result;
+  /* Check if it's an IP or not, if not it means it's an hostname */
+  if (!regexValidation.validateIP(host.value)) {
+    /* During the validation disable the add button */
+    is_host_correct.value = false;
+    new_host = await resolve_host_name(host.value);
+    if (new_host === "no_success") {
+      /* The resolution failed! */
+      new_host_name_resolved = false;
+      no_host_feedback.value = host.value + " " + i18n("hosts_stats.page_scan_hosts.host_not_resolved");
+      is_data_not_ok.value = true;
+      /* Hide the message after 3 seconds */
+      setTimeout(() => {
+        is_data_not_ok.value = false
+      }, 4000)
     }
+    /* Validation ended, re-enable the button */
+    is_host_correct.value = true;
   }
 
-  is_host_ok_to_add =
-    (tmp_host_name && tmp_host_name_resolved) || !tmp_host_name;
-  /* first case: host.value is an hostname and ntopng resolved it successfully; second case: host.value is not an hostname */
+  /* If the resolution was ok or no resolution at all was done emit the event */
+  activate_add_spinner.value = new_host_name_resolved;
 
-  /* Emit the event */
-  if (is_host_ok_to_add) {
-    activate_add_spinner.value = true;
-
+  if (new_host_name_resolved) {
+    /* Emit the event, only if the resolution 
+    was ok or no resolution at all was needed */
     emit(emit_event, {
-      host: tmp_host,
-      scan_type: tmp_scan_type,
-      scan_ports: tmp_ports,
+      host: new_host,
+      scan_type: host_scan_type,
+      scan_ports: host_ports,
       cidr: selected_cidr.value.id,
       scan_frequency: is_enterprise_l ? selected_scan_frequency.value.id : null,
-      scan_id: tmp_row_id,
+      scan_id: row_id,
     });
-  } else {
-    is_data_not_ok.value = true;
-    activate_add_spinner.value = false;
   }
+
 };
 
 /* ****************************************************** */
@@ -454,18 +371,59 @@ const metricsLoaded = async (_scan_type_list, _ifid, _is_enterprise_l) => {
 };
 
 /* ****************************************************** */
+/* ****************************************************** */
+
+/* Function called whenever the CIDR changes,
+ * in case of a network the port is not needed
+ */
+/* 
+
+<div class="form-group ms-2 me-2 mt-3 row">
+  <div class="col-2"></div>
+  <div class="col-10 d-flex align-items-center">
+    <!--
+      HIDDEN BUTTON FOR NOW
+      <button
+      type="button"
+      @click="load_ports"
+      :disabled="!is_host_correct || disable_load_ports"
+      class="btn btn-primary"
+    >
+      {{ _i18n("hosts_stats.page_scan_hosts.load_ports") }}
+    </button>
+    -->
+    <dd v-if="show_port_feedback" class="ms-2 mb-0 text-danger">
+      {{ port_feedback }}
+    </dd>
+    <a class="ntopng-truncate"></a>
+  </div>
+</div>
+
+ -- Hidden function for now, it's not needed --
+
+const port_feedback = i18n("hosts_stats.page_scan_hosts.no_ports_detected");
+const server_ports = `${http_prefix}/lua/rest/v2/get/host/open_ports.lua`;
+const disable_load_ports = ref(false);
+
+function disable_ports() {
+  if (selected_cidr.value.id != cidr_24) {
+    disable_load_ports.value = false;
+  } else {
+    disable_load_ports.value = true;
+  }
+}
 
 async function load_ports() {
   activate_spinner.value = true;
   /* In case the host is not empty, hide the placeholder */
-  if (dataUtils.isEmptyOrNull(host.value)) {
+/*  if (dataUtils.isEmptyOrNull(host.value)) {
     hide_ports_placeholder.value = true;
   } else {
     hide_ports_placeholder.value = false;
   }
 
   /* Request for the available ports */
-  const url = NtopUtils.buildURL(server_ports, {
+/*  const url = NtopUtils.buildURL(server_ports, {
     host: host.value,
     ifid: ifid.value,
     clisrv: "server",
@@ -474,19 +432,20 @@ async function load_ports() {
   const result = await ntopng_utility.http_request(url);
 
   /* Show the results or empty if no data was found */
-  if (!dataUtils.isEmptyOrNull(result)) {
+/*  if (!dataUtils.isEmptyOrNull(result)) {
     ports.value = result.map((x) => x.key).join(",");
     show_port_feedback.value = false;
   } else {
     show_port_feedback.value = true;
     ports.value = "";
     /* Remove the message after 5 seconds! */
-    setTimeout(() => {
+/*    setTimeout(() => {
       show_port_feedback.value = false;
     }, 5000);
   }
   activate_spinner.value = false;
 }
+*/
 
 defineExpose({ show, close, metricsLoaded });
 </script>
