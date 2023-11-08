@@ -187,8 +187,7 @@ local function isUserAccessAllowed(tags)
     local user = _SESSION and _SESSION["user"] or ""
 
     if tags.ifid and not ntop.isnEdge() and not ntop.isAllowedInterface(tonumber(tags.ifid)) then
-        traceError(TRACE_ERROR, TRACE_CONSOLE,
-            "User: " .. user .. " is not allowed to access interface " .. tags.ifid)
+        traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. user .. " is not allowed to access interface " .. tags.ifid)
         return false
     end
 
@@ -200,8 +199,7 @@ local function isUserAccessAllowed(tags)
     end
 
     if tags.subnet and not ntop.isAllowedNetwork(tags.subnet) then
-        traceError(TRACE_ERROR, TRACE_CONSOLE,
-            "User: " .. user .. " is not allowed to access subnet " .. tags.subnet)
+        traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. user .. " is not allowed to access subnet " .. tags.subnet)
         return false
     end
 
@@ -260,13 +258,12 @@ function ts_utils.getQueryOptions(overrides)
     return table.merge({
         min_num_points = 0, -- maximum number of points per data serie
         max_num_points = 80, -- maximum number of points per data serie
-        fill_value = 0/0, -- e.g. 0/0 for nan
+        fill_value = 0 / 0, -- e.g. 0/0 for nan
         min_value = 0, -- minimum value of a data point
         max_value = math.huge, -- maximum value for a data point
-        top = 8, -- topk number of items
+        top = 8, -- top number of items
         calculate_stats = true, -- calculate stats if possible
         initial_point = false, -- add an extra initial point, not accounted in statistics but useful for drawing graphs
-        with_series = false, -- in topk query, if true, also get top items series data
         no_timeout = true, -- do not abort queries automatically by default
         fill_series = false, -- if true, filling missing points is required
         keep_nan = false
@@ -317,7 +314,7 @@ function ts_utils.query(schema_name, tags, tstart, tend, options)
 
     rv["end"] = tend
 
-    -- Add tags information for consistency with queryTopk
+    -- Add tags information for consistency with timeseries_top
     for _, serie in pairs(rv.series) do
         serie.tags = actual_tags
     end
@@ -365,18 +362,17 @@ end
 
 -- ##############################################
 
-local function host_rev(a, b)
-    return rev(a.value, b.value)
-end
-
-local function getTopTalkers(schema_id, tags, tstart, tend, options)
+local function get_top_talkers(schema_id, tags, tstart, tend, options)
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
     local top_utils = require "top_utils"
     local num_minutes = math.floor((tend - tstart) / 60)
     local top_talkers = top_utils.getAggregatedTop(getInterfaceName(ifId), tend, num_minutes)
-
-    local direction
-    local select_col
+    local top_series = {}
+    local top_hosts = {}
+    local direction = nil
+    local select_col = nil
+    local step = 0
+    local count = 0
 
     if schema_id == "local_senders" then
         direction = "senders"
@@ -385,7 +381,6 @@ local function getTopTalkers(schema_id, tags, tstart, tend, options)
         direction = "receivers"
         select_col = "rcvd"
     end
-    local tophosts = {}
 
     for _, vlan in pairs(top_talkers.vlan or {}) do
         for _, host in pairs(vlan.hosts[1][direction] or {}) do
@@ -394,34 +389,40 @@ local function getTopTalkers(schema_id, tags, tstart, tend, options)
                 ifid = tags.ifid,
                 host = host.address
             }
-            local host_partials = ts_utils.queryTotal("host:traffic", tstart, tend, host_tags)
-            local host_value = tonumber(host.value)
+            local host_options = ts_utils.getQueryOptions({
+                schema = "host:traffic",
+                epoch_begin = tstart,
+                epoch_end = tend,
+                tags = host_tags
+            })
+            local host_partials = ts_utils.timeseries_query(host_options) or {}
+            local data_direction = ternary(direction == "senders", "bytes_sent", "bytes_rcvd")
 
             if not table.empty(host_partials) then
-                host_value = ternary(direction == "senders", host_partials["bytes_sent"], host_partials["bytes_rcvd"])
-            else
-                host_partials = nil
-            end
+                for _, timeseries_info in pairs(host_partials.series) do
+                    if timeseries_info.id == data_direction then
+                        host_partials = timeseries_info
+                        top_hosts[host.address] = timeseries_info.statistics.total or 0
+                        break
+                    end
+                end
 
-            if ((host_value ~= nil) and (host_value > 0)) then
-                tophosts[host.address] = {
-                    value = host_value,
+                top_series[host.address] = table.merge({
                     tags = host_tags,
-                    partials = host_partials,
                     meta = {
                         url = host.url,
                         label = host.label,
                         ipaddr = host.ipaddr, -- optional
                         visual_addr = host.visual_addr -- optional
                     }
-                }
+                }, host_partials)
             end
         end
     end
 
     local res = {}
-    for _, host in pairsByValues(tophosts, host_rev) do
-        res[#res + 1] = host
+    for host, _ in pairsByValues(top_hosts, rev) do
+        res[#res + 1] = top_series[host]
 
         if #res >= options.top then
             break
@@ -429,17 +430,23 @@ local function getTopTalkers(schema_id, tags, tstart, tend, options)
     end
 
     return {
-        topk = res,
-        schema = ts_utils.getSchema("host:traffic"),
-        statistics = stats
+        metadata = {
+            epoch_begin = options.epoch_begin,
+            epoch_end = options.epoch_end,
+            epoch_step = step,
+            num_point = count,
+            schema = options.schema,
+            query = options.tags
+        },
+        series = res
     }
 end
 
 -- A bunch of pre-computed top items functions
--- Must return in the same format as driver:topk
+-- Must return in the same format as driver:timeseries_top
 local function getPrecomputedTops(schema_id, tags, tstart, tend, options)
     if (schema_id == "local_senders") or (schema_id == "local_receivers") then
-        return getTopTalkers(schema_id, tags, tstart, tend, options)
+        return get_top_talkers(schema_id, tags, tstart, tend, options)
     end
 
     return nil
@@ -447,7 +454,7 @@ end
 
 -- ##############################################
 
--- ! @brief Perform a topk query.
+-- ! @brief Perform a top query.
 -- ! @param options contains all the info available of the timeseries
 --                  from the schema to the timeframe, options, ecc.
 function ts_utils.timeseries_query_top(options)
@@ -499,158 +506,6 @@ function ts_utils.timeseries_query_top(options)
 
         -- Find the top items
         top_items = driver:timeseries_top(options, top_tags)
-    end
-
-    return top_items
-end
-
--- ##############################################
-
--- ! @brief Perform a topk query.
--- ! @param schema_name the schema identifier.
--- ! @param tags a list of filter tags. All the tags for the given schema must be specified.
--- ! @param tstart lower time bound for the query.
--- ! @param tend upper time bound for the query.
--- ! @param options (optional) query options.
--- ! @return query result on success, nil on error.
-function ts_utils.queryTopk(schema_name, tags, tstart, tend, options)
-    local query_options = ts_utils.getQueryOptions(options)
-    local top_items = nil
-    local schema = nil
-
-    if not isUserAccessAllowed(tags) then
-        return nil
-    end
-
-    local driver = ts_utils.getQueryDriver()
-
-    if not driver then
-        return nil
-    end
-
-    ts_common.clearLastError()
-
-    local pre_computed = getPrecomputedTops(schema_name, tags, tstart, tend, query_options)
-
-    if pre_computed then
-        -- Use precomputed top items
-        top_items = pre_computed
-        schema = pre_computed.schema
-    else
-        schema = ts_utils.getSchema(schema_name)
-
-        if not schema then
-            traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
-            return nil
-        end
-
-        local top_tags = {}
-
-        for _, tag in ipairs(schema._tags) do
-            if not tags[tag] then
-                top_tags[#top_tags + 1] = tag
-            end
-        end
-
-        if table.empty(top_tags) then
-            -- no top tags, just a plain query
-            return ts_utils.query(schema_name, tags, tstart, tend, query_options)
-        end
-
-        -- Find the top items
-        top_items = driver:topk(schema, tags, tstart, tend, query_options, top_tags)
-    end
-
-    if table.empty(top_items) then
-        return nil
-    end
-
-    if options.with_series then
-        top_items.series = {}
-
-        -- Query the top items data
-        local options = table.merge(query_options, {
-            calculate_stats = false,
-            fill_series = true
-        })
-        local count = 0
-        local step = nil
-        local raw_step = nil
-        local start = 0
-
-        for _, top in ipairs(top_items.topk) do
-            local top_res = driver:query(schema, tstart, tend, top.tags, options)
-
-            if not top_res then
-                -- traceError(TRACE_WARNING, TRACE_CONSOLE, "Topk series query on '" .. schema.name .. "' with filter '".. table.tconcat(top.tags, "=", ",") .."' returned nil")
-                goto continue
-            end
-
-            if #top_res.series > 1 then
-                -- Unify multiple series into one (e.g. for Top Protocols)
-                local aggregated = {}
-
-                for i = 1, top_res.count do
-                    aggregated[i] = 0
-                end
-
-                for _, serie in pairs(top_res.series) do
-                    for i, v in pairs(serie.data) do
-                        aggregated[i] = aggregated[i] + v
-                    end
-                end
-
-                top_res.series = {{
-                    label = "bytes",
-                    data = aggregated
-                }}
-            end
-
-            for _, serie in pairs(top_res.series) do
-                count = math.max(#serie.data, count)
-            end
-
-            start = top_res.start
-            if step then
-                step = math.min(step, top_res.step)
-            else
-                step = top_res.step
-            end
-            if raw_step then
-                raw_step = math.min(raw_step, top_res.raw_step)
-            else
-                raw_step = top_res.raw_step
-            end
-
-            for _, serie in ipairs(top_res.series) do
-                serie.tags = top.tags
-                top_items.series[#top_items.series + 1] = serie
-            end
-
-            ::continue::
-        end
-
-        -- Possibly fix series inconsistencies due to RRA steps
-        for _, serie in pairs(top_items.series or {}) do
-            if count > #serie.data then
-                traceError(TRACE_INFO, TRACE_CONSOLE,
-                    "Upsampling " .. table.tconcat(serie.tags, "=", ",") .. " from " .. #serie.data .. " to " .. count)
-                serie.data = ts_common.upsampleSerie(serie.data, count)
-            end
-        end
-        for key, serie in pairs(top_items.additional_series or {}) do
-            if count > #serie then
-                traceError(TRACE_INFO, TRACE_CONSOLE, "Upsampling " .. key .. " from " .. #serie .. " to " .. count)
-                top_items.additional_series[key] = ts_common.upsampleSerie(serie, count)
-            end
-        end
-
-        top_items.count = count
-        top_items.step = step
-        top_items.raw_step = raw_step
-        top_items.start = start
-    else
-        top_items.additional_series = nil
     end
 
     return top_items
@@ -858,7 +713,7 @@ function ts_utils.queryTotal(schema_name, tstart, tend, tags, options)
     if not isUserAccessAllowed(tags) then
         return nil
     end
-    
+
     local schema = ts_utils.getSchema(schema_name)
 
     if not schema then
@@ -943,9 +798,8 @@ function ts_utils.getPossiblyChangedSchemas()
     return { -- Interface timeseries
     "iface:alerted_flows", "iface:score", "iface:score_behavior_v2", "iface:score_anomalies_v2",
     "iface:traffic_anomalies_v2", "iface:traffic_rx_behavior_v5", "iface:traffic_tx_behavior_v5",
-    "iface:engaged_alerts", "iface:local_hosts", "subnet:score_anomalies",
-    "subnet:intranet_traffic", "subnet:intranet_traffic_min",
-    "host:contacts", -- split in "as_client" and "as_server"
+    "iface:engaged_alerts", "iface:local_hosts", "subnet:score_anomalies", "subnet:intranet_traffic",
+    "subnet:intranet_traffic_min", "host:contacts", -- split in "as_client" and "as_server"
     "host:score", -- split in "cli_score" and "srv_score"
     "host:contacts_behaviour", "host:cli_active_flows_behaviour", "host:srv_active_flows_behaviour",
     "host:cli_score_behaviour", "host:srv_score_behaviour", "host:cli_active_flows_anomalies",
@@ -983,6 +837,23 @@ function ts_utils.get_write_success_query(influxdb, schema, tstart, tend, time_s
                   " GROUP BY id)" .. " GROUP BY TIME(" .. time_step .. "s)"
 
     return (q)
+end
+
+-- ##############################################
+
+-- This function return a table of options used by timeseries
+function ts_utils.get_stats_options(basic_options)
+    return {
+        calculate_stats = true,
+        top = 30, -- this is higher to calculate the totals
+        tags = basic_options.tags,
+        schema = basic_options.ts_schema,
+        epoch_begin = basic_options.epoch_begin,
+        epoch_end = basic_options.epoch_end,
+        initial_point = false,
+        with_series = true,
+        keep_nan = false
+    }
 end
 
 -- ##############################################

@@ -90,29 +90,42 @@ export default {
 
 			return `${this.$props.base_url_request || ''}?${url_params}`;
 		},
+		get_chart_options: async function (url_request) {
+			let chart_options = null;
+			const date_format = await ntopng_utility.get_date_format(false, this.$props.csrf, http_prefix);
+
+			/* Retrieve the chart options */
+			if (this.$props.get_custom_chart_options == null) {
+				chart_options = await ntopng_utility.http_request(url_request);
+			} else {
+				chart_options = await this.$props.get_custom_chart_options(url_request);
+			}
+			/* Set the date depending on the server date */
+			chart_options.axes.x.axisLabelFormatter = function (date) {
+				return ntopng_utility.from_utc_to_server_date_format(date, date_format);
+			};
+			chart_options.axes.x.valueFormatter = function (date) {
+				return ntopng_utility.from_utc_to_server_date_format(date, date_format);
+			};
+			chart_options.axes.x.axisLabelWidth = 90;
+			/* Emit the chart_reloaded event */
+			this.$emit('chart_reloaded', chart_options);
+			return chart_options;
+		},
 		draw_chart: async function (url_request) {
 			let chart_options = await this.get_chart_options(url_request);
-			let date_format = await ntopng_utility.get_date_format(false, this.$props.csrf, http_prefix);
 			const data = chart_options.data || [];
 			chart_options.data = null;
 			chart_options.zoomCallback = this.on_zoomed;
 			this.timeseries_list = [];
 			let visibility = [];
-			let last_point = null;
 			let id = 0;
 			for (const key in chart_options.series) {
 				this.timeseries_list.push({ name: key, checked: true, id: id, color: chart_options.colors[id] + "!important" });
 				id = id + 1;
 				visibility.push(true);
 			}
-			chart_options.axisLabelFormatter = function (date) {
-				return ntopng_utility.from_utc_to_server_date_format(date,date_format);
-			},
-			chart_options.valueFormatter = function(date) {
-				return ntopng_utility.from_utc_to_server_date_format(date,date_format);
-			},
-			chart_options.axisLabelWidth = 90;
-		
+
 			this.chart = new Dygraph(this.$refs["chart"], data, chart_options);
 		},
 		update_chart: async function (url_request) {
@@ -125,16 +138,6 @@ export default {
 		update_chart_series: function (series) {
 			if (series == null) { return; }
 			this.chart.updateOptions({ 'file': series });
-		},
-		get_chart_options: async function (url_request) {
-			let chart_options;
-			if (this.$props.get_custom_chart_options == null) {
-				chart_options = await ntopng_utility.http_request(url_request);
-			} else {
-				chart_options = await this.$props.get_custom_chart_options(url_request);
-			}
-			this.$emit('chart_reloaded', chart_options);
-			return chart_options;
 		},
 		on_zoomed: function (minDate, maxDate) {
 			this.from_zoom = true;

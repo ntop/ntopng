@@ -278,7 +278,7 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare, useFullName)
 				const ts_info = serie[key];
 				if (formatted_serie[time] == null)
 					formatted_serie[time] = [
-						{ value: ntopng_utility.from_utc_s_to_server_date(time), name: "Time" },
+						{ value: new Date(time * 1000), name: "Time" },
 						{ value: ts_info, name: formatted_name }
 					]
 					
@@ -360,7 +360,7 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare, useFullName)
 					const serie_point = serie[point];
 					/* If the point is inserted for the first time, add the time before everything else */
 					if (formatted_serie[time] == null) {
-						formatted_serie[time] = [{ value: ntopng_utility.from_utc_s_to_server_date(time), name: "Time" }];
+						formatted_serie[time] = [{ value: new Date(time * 1000), name: "Time" }];
 					}
 					/* Add the point to the array */
 					if (serie_point != null) {
@@ -468,7 +468,9 @@ function buildChartOptions(series, labels, serie_properties, formatters, colors,
 			highlightCircleSize: 6,
 		},
 		axisLabelFontSize: 12,
-		axes: {},
+		axes: {
+			x: {}
+		},
 		colors: interpolated_colors,
 	};
 

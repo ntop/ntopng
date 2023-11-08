@@ -354,9 +354,9 @@ function graph_utils.drawNewGraphs(source_value_object)
                                             interface_ts_enabled == "full")
     local interface_has_top_categories = (interface_ts_enabled == "both" or interface_ts_enabled == "per_category" or
                                              interface_ts_enabled == "full")
-    local host_has_top_protocols = (host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ==
-                                       "full")
-
+    local host_has_top_protocols = (host_ts_enabled == "both" or host_ts_enabled == "per_protocol")
+    local host_has_top_categories = (host_ts_enabled == "both" or host_ts_enabled == "per_category")
+      
     local sources_types_enabled = {
         interface = true, -- alwais enabled
         host = host_ts_creation,
@@ -393,7 +393,8 @@ function graph_utils.drawNewGraphs(source_value_object)
             top_receivers = topk_heuristic ~= "disabled" or true
         },
         host = {
-            top_protocols = host_has_top_protocols
+            top_protocols = host_has_top_protocols,
+            top_categories = host_has_top_categories,
         },
         snmp = {
             top_snmp_ifaces = true
