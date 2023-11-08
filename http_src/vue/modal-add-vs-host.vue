@@ -62,10 +62,7 @@
             {{ _i18n("hosts_stats.page_scan_hosts.load_ports") }}
           </button>
           -->
-          <dd
-            v-if="show_port_feedback"
-            class="ms-2 mb-0 text-danger"
-          >
+          <dd v-if="show_port_feedback" class="ms-2 mb-0 text-danger">
             {{ port_feedback }}
           </dd>
           <Spinner :show="activate_spinner" size="1rem" class="ms-1"></Spinner>
@@ -112,6 +109,9 @@
     </template>
 
     <template v-slot:footer>
+      <div v-if="is_data_not_ok" class="alert alert-info test-feedback w-100">
+        {{ _i18n("hosts_stats.page_scan_hosts.host_not_resolved") }}
+      </div>
       <div>
         <button
           v-if="is_edit_page == false"
@@ -211,7 +211,7 @@ const cidr_options_list = ref([
 ]);
 const selected_cidr = ref(cidr_options_list.value[1]);
 const selected_scan_frequency = ref(scan_frequencies_list.value[0]);
-
+let is_data_not_ok = ref(false);
 /* ****************************************************** */
 
 /*
@@ -298,9 +298,10 @@ const show = (row, _host) => {
 /* ****************************************************** */
 
 /* Regex to check if the host is correct or not */
-const check_host_regex = () => {
+const check_host_regex = async () => {
   const is_ipv4 = regexValidation.validateIPv4(host.value);
   const is_ipv6 = regexValidation.validateIPv6(host.value);
+  const is_host_name = regexValidation.validateHostName(host.value);
   if (is_ipv4) {
     /* IPv4 */
     is_host_correct.value = true;
@@ -314,10 +315,17 @@ const check_host_regex = () => {
     /* IPv6 */
     selected_cidr.value = cidr_options_list.value[2];
     is_host_correct.value = true;
-      /* In case the CIDR is wrong */
-      selected_cidr.value = cidr_options_list.value.find(
-        (item) => item.id == cidr_128
-      ); /* IPv6 */
+    /* In case the CIDR is wrong */
+    selected_cidr.value = cidr_options_list.value.find(
+      (item) => item.id == cidr_128
+    ); /* IPv6 */
+  } else if (is_host_name) {
+    /* Host Name */
+    is_host_correct.value = true;
+    /* In case the CIDR is wrong */
+    selected_cidr.value = cidr_options_list.value.find(
+      (item) => item.id == cidr_32
+    );
   } else {
     is_host_correct.value = false;
   }
@@ -389,8 +397,9 @@ const add_ = async (is_edit) => {
   let tmp_host = host.value;
   let emit_event = "add";
   let tmp_row_id = null;
-
-  activate_add_spinner.value = true;
+  let tmp_host_name = false;
+  let tmp_host_name_resolved = false;
+  let is_host_ok_to_add = false;
 
   /* It's an edit, not an add, change the event to emit */
   if (is_edit === true) {
@@ -400,22 +409,35 @@ const add_ = async (is_edit) => {
 
   /* Check if it's possible to resolve the hostname or not */
   if (!dataUtils.isEmptyOrNull(tmp_host)) {
+    tmp_host_name = true;
     const result = await resolve_host_name(host.value);
     /* The resolution went well */
     if (result != "no_success") {
+      tmp_host_name_resolved = true;
       tmp_host = result;
     }
   }
 
+  is_host_ok_to_add =
+    (tmp_host_name && tmp_host_name_resolved) || !tmp_host_name;
+  /* first case: host.value is an hostname and ntopng resolved it successfully; second case: host.value is not an hostname */
+
   /* Emit the event */
-  emit(emit_event, {
-    host: tmp_host,
-    scan_type: tmp_scan_type,
-    scan_ports: tmp_ports,
-    cidr: selected_cidr.value.id,
-    scan_frequency: is_enterprise_l ? selected_scan_frequency.value.id : null,
-    scan_id: tmp_row_id,
-  });
+  if (is_host_ok_to_add) {
+    activate_add_spinner.value = true;
+
+    emit(emit_event, {
+      host: tmp_host,
+      scan_type: tmp_scan_type,
+      scan_ports: tmp_ports,
+      cidr: selected_cidr.value.id,
+      scan_frequency: is_enterprise_l ? selected_scan_frequency.value.id : null,
+      scan_id: tmp_row_id,
+    });
+  } else {
+    is_data_not_ok.value = true;
+    activate_add_spinner.value = false;
+  }
 };
 
 /* ****************************************************** */
@@ -453,9 +475,7 @@ async function load_ports() {
 
   /* Show the results or empty if no data was found */
   if (!dataUtils.isEmptyOrNull(result)) {
-    ports.value = result
-      .map((x) => x.key)
-      .join(",");
+    ports.value = result.map((x) => x.key).join(",");
     show_port_feedback.value = false;
   } else {
     show_port_feedback.value = true;

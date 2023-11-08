@@ -4231,6 +4231,7 @@ local lang = {
       ["filtered_port"] = "Filtered Port",
       ["host"] = "Host",
       ["host_name"] = "Name",
+      ["host_not_resolved"] = "Host Name Not Resolved",
       ["host_placeholder"] = "IP",
       ["host_report"] = "Host (Scan Type) (Last Scan)",
       ["in_progress"] = "In Progress",

@@ -10,6 +10,7 @@ const regexes = {
     mac_address: String.raw`^([0-9A-Fa-f]{2}:){5}([0-9A-Fa-f]{2})$`,
     comma_separted_port_regex: String.raw`^(\d{1,5})(,\s*\d{1,5})*$`,
     port_range_regex: String.raw`^(\d{1,5})-(\d{1,5})$`,
+	host_name: String.raw`^(?!\s*$)[a-zA-Z0-9._: \-\/]{1,250}|^[a-zA-Z0-9._: \-\/]{1,250}@[0-9]{0,5}`,
 }
 
 /* ****************************************************** */
@@ -32,6 +33,12 @@ const validateIPv6 = (ip) => {
     const ipv6 = new RegExp(regexes.ipv6);
 
     return ipv6.test(ip);
+}
+
+const validateHostName = (host_name) => {
+	const host_name_regexp = new RegExp(regexes.host_name);
+
+	return host_name_regexp.test(host_name);
 }
 
 /* ****************************************************** */
@@ -101,6 +108,7 @@ const regexValidation = function () {
         validateIP,
         validateIPv4,
         validateIPv6,
+		validateHostName,
         validateCommaSeparatedPortList,
         validatePortRange,
     };
