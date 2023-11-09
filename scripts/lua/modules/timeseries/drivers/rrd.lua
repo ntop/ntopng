@@ -1163,7 +1163,8 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
         for i, v in pairs(serie) do
             local v = ts_common.normalizeVal(v, max_val, options)
 
-            if type(v) == "number" then
+            -- v is not null
+            if v == v then
                 sum = sum + v * fstep
             end
         end
