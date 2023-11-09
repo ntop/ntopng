@@ -49,6 +49,13 @@ else
    page_utils.print_navbar(title, nav_url,
 			   {
 			      {
+                  active = page == 'vlans_list',
+                  page_name = 'vlans_list',
+                  url = ntop.getHttpPrefix() .. "/lua/vlan_stats.lua",
+                  label = "<i class=\"fas fa-home fa-lg\"></i>",
+               }
+               ,
+               {
                   active = page == "historical" or not page,
                   page_name = "historical",
                   label = "<i class='fas fa-lg fa-chart-area'></i>",
