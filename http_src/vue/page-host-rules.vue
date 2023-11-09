@@ -333,7 +333,6 @@ const format_target = function(data, rowData) {
   if ((rowData.rule_type) && (rowData.rule_type == 'interface') ) {
     formatted_data = rowData.selected_iface;
   } else if(rowData.rule_type && (rowData.rule_type == 'Host' || rowData.rule_type == 'CIDR') ){
-    console.log(data)
     formatted_data = rowData.target;
   } else if(rowData.rule_type == 'host_pool') {
     formatted_data = rowData.host_pool_label;
