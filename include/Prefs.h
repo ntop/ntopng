@@ -116,7 +116,8 @@ class Prefs {
   u_int http_port, https_port;
   u_int8_t num_interfaces;
   u_int16_t auto_assigned_pool_id;
-  u_int8_t vs_max_num_scans; 
+  u_int8_t vs_max_num_scans;
+  bool vs_slow_scan; 
   bool dump_flows_on_es, dump_flows_on_mysql, dump_flows_on_syslog,
       dump_json_flows_on_disk, dump_ext_json;
 #ifdef NTOPNG_PRO

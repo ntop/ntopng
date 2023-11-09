@@ -334,11 +334,7 @@ local menu_subpages = { {
         flow_table_probe_order = {
             title = i18n("prefs.flow_table_probe_order_title"),
             description = i18n("prefs.flow_table_probe_order_description")
-        },
-        vs_concurrently_scan_number = {
-            title = i18n("prefs.vs_concurrently_scan_number_title"),
-            description = i18n("prefs.vs_concurrently_scan_number_descr")
-        },
+        }
     }
 }, {
     id = "discovery",
@@ -753,6 +749,24 @@ local menu_subpages = { {
             description = i18n("prefs.toggle_menu_entry_developer_description")
         }
     }
-}}
+},
+{
+    id = "vulnerability_scan",
+    label = i18n("prefs.vulnerability_scan"),
+    advanced = false,
+    pro_only = true,
+    hidden = false,
+    entries = {
+        vs_concurrently_scan_number = {
+            title = i18n("prefs.vs_concurrently_scan_number_title"),
+            description = i18n("prefs.vs_concurrently_scan_number_descr")
+        },        
+        toggle_slow_mode = {
+            title = i18n("prefs.vs_slow_mode_title"),
+            description = i18n("prefs.vs_slow_mode_description")
+        }
+    }
+}
+}
 
 return menu_subpages

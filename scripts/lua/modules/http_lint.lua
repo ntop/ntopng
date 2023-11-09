@@ -2199,6 +2199,7 @@ local known_parameters = {
     ["toggle_menu_entry_help"] = validateBool,
     ["toggle_menu_entry_developer"] = validateBool,
     ["toggle_flow_aggregated_alerted_flows"] = validateBool,
+    ["toggle_slow_mode"] = validateBool,
 
     -- Input fields
     ["companion_interface"] = validateEmptyOr(validateInterface),

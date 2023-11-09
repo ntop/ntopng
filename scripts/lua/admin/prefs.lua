@@ -630,16 +630,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             })
         end
 
-        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("hosts_stats.page_scan_hosts.prefs_tab_title") ..
-                  '</th></tr></thead>')
-
-        prefsInputFieldPrefs(subpage_active.entries["vs_concurrently_scan_number"].title,
-            subpage_active.entries["vs_concurrently_scan_number"].description, "ntopng.prefs.",
-            "host_to_scan_max_num_scans", prefs.host_to_scan_max_num_scans or 4, "number",
-            true, false, nil, {
-                min = 1,
-                max = 16
-            })
+        
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.flow_table") ..
                   '</th></tr></thead>')
@@ -1828,6 +1819,40 @@ if auth.has_capability(auth.capabilities.preferences) then
   </table>]]
     end
 
+    function printVulnerabilityScan() 
+        print('<form method="post">')
+        print('<table class="table">')
+
+
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("hosts_stats.page_scan_hosts.prefs_tab_title") ..
+        '</th></tr></thead>')
+
+        prefsInputFieldPrefs(subpage_active.entries["vs_concurrently_scan_number"].title,
+            subpage_active.entries["vs_concurrently_scan_number"].description, "ntopng.prefs.",
+            "host_to_scan_max_num_scans", prefs.host_to_scan_max_num_scans or 4, "number",
+            true, false, nil, {
+                min = 1,
+                max = 16
+            })
+            local default_vs_slow_scan_value = ternary(prefs.vs_slow_scan == false, "0","1")
+            prefsToggleButton(subpage_active, {
+                field = "toggle_slow_mode",
+                default = default_vs_slow_scan_value,
+                pref = "vs.vs_slow_scan"
+            })
+        
+            print(
+           '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+           i18n("save") .. '</button></th></tr>')
+        
+        print [[<input name="csrf" type="hidden" value="]]
+        print(ntop.getRandomCSRFValue())
+        print [[" />
+    </form>
+    </table>]]
+        
+    end
+
     function printDumpSettings()
         print('<form method="post">')
         print('<table class="table">')
@@ -2102,6 +2127,10 @@ if auth.has_capability(auth.capabilities.preferences) then
     end
     if (tab == "snmp") then
         printSnmp()
+    end
+
+    if (tab == "vulnerability_scan") then
+        printVulnerabilityScan()
     end
 
     print [[
