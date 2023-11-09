@@ -12,11 +12,17 @@ const isEmptyOrNull = (value) => {
   return !!(value == null || value == "" || value == 0);
 }
 
+/* This function check if value is null, or an empty array */
+const isEmptyArrayOrNull = (value) => {
+  return !!(value == null || value.length === 0);
+}
+
 /* ******************************************************************** */
 
 const dataUtils = function () {
   return {
     isEmptyOrNull,
+    isEmptyArrayOrNull,
   };
 }();
 
