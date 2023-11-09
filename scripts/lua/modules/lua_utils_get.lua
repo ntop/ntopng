@@ -515,8 +515,9 @@ function getFullVlanName(vlan_id, compact)
     local alias = getVlanAlias(vlan_id)
 
     -- In case of vlan 0, return empty string as name
+    -- fix for untagged vlan (#7998)
     if tonumber(vlan_id) == 0 then
-        return ''
+        return i18n('no_vlan')
     end
 
     if not isEmptyString(alias) then

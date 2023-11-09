@@ -28,7 +28,7 @@ page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.vlans)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-if vlan_id == nil or tonumber(vlan_id) == nil or tonumber(vlan_id) == 0 then
+if vlan_id == nil or tonumber(vlan_id) == nil then
    print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " .. i18n("vlan_details.vlan_id_parameter_missing_or_invalid_message") .. "</div>")
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
    return
