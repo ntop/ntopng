@@ -393,7 +393,7 @@ const format_server_name = function (data, rowData) {
 
     } else {
         if (selected_criteria.value.value == 7 &&  rowData.srv_port != null) {
-            return `<a href="${http_prefix}/lua/flows_stats.lua?server=${data.ip}&vlan=${data.vlan_id}">${data.label}</a> ${alert_label} ${data.extra_labels} <a href="${http_prefix}/lua/host_details.lua?host=${data.ip}&vlan=${data.vlan_id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>:<a href="${http_prefix}/lua/flows_stats.lua?srv_port=${rowData.srv_port.id}&vlan=${data.vlan_id}">${rowData.srv_port.label}</a>`;
+            return `<a href="${http_prefix}/lua/flows_stats.lua?server=${data.ip}&vlan=${data.vlan_id}">${data.label}</a> ${alert_label} ${data.extra_labels} <a href="${http_prefix}/lua/host_details.lua?host=${data.ip}&vlan=${data.vlan_id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>:<a href="${http_prefix}/lua/flows_stats.lua?port=${rowData.srv_port.id}&vlan=${data.vlan_id}">${rowData.srv_port.label}</a>`;
         } else {
             return `<a href="${http_prefix}/lua/flows_stats.lua?server=${data.ip}&vlan=${data.vlan_id}">${data.label}</a> ${alert_label} ${data.extra_labels} <a href="${http_prefix}/lua/host_details.lua?host=${data.ip}&vlan=${data.vlan_id}" data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
 
