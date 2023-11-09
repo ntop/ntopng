@@ -120,9 +120,9 @@ let network_metric_list = []
 
 
 const frequency_list = [
-  { title: i18n('show_alerts.5_min'), label: i18n('show_alerts.5_min'), id: '5min' },
-  { title: i18n('show_alerts.hourly'), label: i18n('show_alerts.hourly'), id: 'hour' },
-  { title: i18n('show_alerts.daily'), label: i18n('show_alerts.daily'), id: 'day' }
+  { title: i18n('show_alerts.5_min'), label: i18n('show_alerts.5_min'), id: '5min', value: '5min' },
+  { title: i18n('show_alerts.hourly'), label: i18n('show_alerts.hourly'), id: 'hour', value: 'hour' },
+  { title: i18n('show_alerts.daily'), label: i18n('show_alerts.daily'), id: 'day', value: 'day' }
 ]
 
 const show_delete_dialog = function(row) {

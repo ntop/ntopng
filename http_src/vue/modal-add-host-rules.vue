@@ -237,6 +237,7 @@ import { default as SelectSearch } from "./select-search.vue";
 import { default as NoteList } from "./note-list.vue";
 import regexValidation from "../utilities/regex-validation.js";
 import NtopUtils from "../utilities/ntop-utils";
+import dataUtils from "../utilities/data-utils"
 
 const input_mac_list = ref("");
 const input_trigger_alerts = ref("");
@@ -386,11 +387,13 @@ const reset_modal_form = async function() {
       await $.get(url_device_exporter_details, function(rsp, status){
         ifids = rsp.rsp;
       });
-      exporter_ifids.push({id: -1, label: "No ifid", timeseries_available: ifids[0].timeseries_available})
+      exporter_ifids.push({id: "*",value:"*", label: "*", timeseries_available: ifids[0].timeseries_available})
       ifids.forEach((resp) => {
         exporter_ifids.push({id: resp.ifindex, label: resp.name, timeseries_available: resp.timeseries_available});
       })
       flow_exporter_device_ifid_list.value = exporter_ifids;
+      selected_exporter_device_ifid.value = flow_exporter_device_ifid_list.value[1];
+
       flow_device_timeseries_available.value = flow_exporter_device_ifid_list.value[0].timeseries_available;
 
     }
@@ -581,11 +584,11 @@ const set_row_to_edit = (row) => {
       }
     } else if (rule_type.value == 'exporter'){
       flow_exporter_devices.value.forEach((item) => {
-        if(item == row.target)
+        if(item.id == row.target)
           selected_exporter_device.value = item
       })
       flow_exporter_device_ifid_list.value.forEach((item) => {
-        if(item == row.flow_exp_ifid)
+        if(item.id == row.flow_exp_ifid)
           selected_exporter_device_ifid.value = item
       })
     } else if (rule_type.value == 'Host'){
@@ -654,9 +657,12 @@ const set_row_to_edit = (row) => {
 }
 
 const show = (row) => {
-  reset_modal_form();
-  if(row != null)
+  if(row != null) {
     set_row_to_edit(row);
+  } else {
+    reset_modal_form();
+  }
+
   
   modal_id.value.show();
 };
@@ -811,7 +817,7 @@ const add_ = (is_edit) => {
     const flow_device_ifindex_name = selected_exporter_device_ifid.value.label;
     const flow_device_ip = selected_exporter_device.value.id;
     let metric_exp;
-    if(flow_device_ifindex != undefined) {
+    if(flow_device_ifindex != null && flow_device_ifindex != '*') {
       flow_device_metric_list.value.forEach((item) => {
         if(item.id == "flowdev_port:traffic")
           metric_exp = item;
@@ -920,9 +926,11 @@ const format_flow_exporter_device_list = function(data) {
 
     let ip = dev.column_ip.split("=")[2].split("&")[0];
     let details = dev.column_ip.split("'")[1];
-    let item = {id: ip, label: ip, details: details};
+    let item = {id: ip, label: ip, value: ip, details: details};
     _f_exp_dev_list.push(item);
   })
+  console.log("ECCO I DEVICES IN FORMAT FUNC: ");
+  console.log(_f_exp_dev_list);
   return _f_exp_dev_list;
 }
 
@@ -934,20 +942,20 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
   console.log(_flow_exporter_devices);
   flow_exporter_devices.value = format_flow_exporter_device_list(_flow_exporter_devices);
 
-  if (_host_pool_list != null) {
+  if (!dataUtils.isEmptyArrayOrNull(_host_pool_list)) {
     has_host_pools.value = true;
   }
   host_pool_list.value = _host_pool_list;
   host_pool_metric_list.value = _host_pool_metric_list;
 
-  if (_network_list != null) {
+  if (!dataUtils.isEmptyArrayOrNull(_network_list)) {
     has_cidr.value = true;
   }
   network_list.value = _network_list;
   network_metric_list.value = _network_metric_list;
   flow_device_metric_list.value = _flow_exporter_devices_metric_list;
 
-
+  console.log("HERE")
   selected_exporter_device.value = flow_exporter_devices.value[0];
   console.log(selected_exporter_device.value);
   if(selected_exporter_device.value != null) {
@@ -961,11 +969,12 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
     await $.get(url_device_exporter_details, function(rsp, status){
       ifids = rsp.rsp;
     });
-    exporter_ifids.push({id: -1, label: "No ifid", timeseries_available: ifids[0].timeseries_available})
+    exporter_ifids.push({id: "*",value:"*", label: "*", timeseries_available: ifids[0].timeseries_available})
     ifids.forEach((resp) => {
-      exporter_ifids.push({id: resp.ifindex, label: resp.name, timeseries_available: resp.timeseries_available});
+      exporter_ifids.push({id: resp.ifindex, value: resp.ifindex, label: resp.name, timeseries_available: resp.timeseries_available});
     })
     flow_exporter_device_ifid_list.value = exporter_ifids;
+    selected_exporter_device_ifid.value = flow_exporter_device_ifid_list.value[1];
 
     flow_device_timeseries_available.value = flow_exporter_device_ifid_list.value[0].timeseries_available;
 
