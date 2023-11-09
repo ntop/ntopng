@@ -372,7 +372,6 @@ const reset_modal_form = async function() {
 
     is_edit_page.value = false;
     title = i18n('if_stats_config.add_host_rules_title');
-    console.log(frequency_list.value);
     selected_frequency.value = frequency_list.value[0];
     metric_type.value = metric_type_list.value[0];
     selected_exporter_device.value = flow_exporter_devices.value[0];
@@ -729,7 +728,6 @@ const add_ = (is_edit) => {
     tmp_metric = selected_interface_metric.value.id
     tmp_metric_label = selected_interface_metric.value.label;
   } else if(rule_type.value == "host_pool") {
-    console.log(selected_host_pool_metric.value);
     tmp_metric = selected_host_pool_metric.value.schema;
     tmp_metric_label = selected_host_pool_metric.value.label;
   } else if(rule_type.value == "CIDR") {
@@ -929,8 +927,6 @@ const format_flow_exporter_device_list = function(data) {
     let item = {id: ip, label: ip, value: ip, details: details};
     _f_exp_dev_list.push(item);
   })
-  console.log("ECCO I DEVICES IN FORMAT FUNC: ");
-  console.log(_f_exp_dev_list);
   return _f_exp_dev_list;
 }
 
@@ -939,7 +935,6 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
   metric_list.value = _metric_list;
   interface_metric_list.value = _interface_metric_list;
   ifid_list.value = format_ifid_list(_ifid_list);
-  console.log(_flow_exporter_devices);
   flow_exporter_devices.value = format_flow_exporter_device_list(_flow_exporter_devices);
 
   if (!dataUtils.isEmptyArrayOrNull(_host_pool_list)) {
@@ -955,9 +950,7 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
   network_metric_list.value = _network_metric_list;
   flow_device_metric_list.value = _flow_exporter_devices_metric_list;
 
-  console.log("HERE")
   selected_exporter_device.value = flow_exporter_devices.value[0];
-  console.log(selected_exporter_device.value);
   if(selected_exporter_device.value != null) {
     rest_params.csrf = page_csrf_.value;
     const url_device_exporter_details = NtopUtils.buildURL(`${http_prefix}/lua/pro/rest/v2/get/flowdevice/stats.lua?`+selected_exporter_device.value.details.split("?")[1], {
@@ -978,7 +971,6 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
 
     flow_device_timeseries_available.value = flow_exporter_device_ifid_list.value[0].timeseries_available;
 
-    console.log(flow_device_timeseries_available.value);
   }
   
   frequency_list.value = props.frequency_list;
