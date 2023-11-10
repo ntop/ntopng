@@ -422,6 +422,11 @@ print[[
 					msg += "<span class=\"badge bg-"+status_label+"\" title=\""+NtopUtils.addCommas(status_title)+"\">";
 					msg += rsp.traffic_extraction_num_tasks+" <i class=\"fas fa-tasks fa-lg\"></i></span></a>";
 				}
+				if (rsp.vs_in_progress != undefined && rsp.vs_in_progress > 0 && (!systemInterfaceEnabled)) {
+					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/vulnerability_scan.lua\">";
+					msg += "<span class=\"badge bg-primary\">";
+					msg += NtopUtils.addCommas(rsp.vs_in_progress) +" <i class=\"fas fa-satellite-dish\"></i></span></a>";
+				}
 ]]
 
 if ntop.isOffline() then
