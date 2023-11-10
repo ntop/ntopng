@@ -65,13 +65,11 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
     else
       stats.reverse_msgs++;
 
-    while (offset /* Skip START byte */ < payload_len) {
+    while ((offset+1) /* Skip START byte */ < payload_len) {
       /* https://infosys.beckhoff.com/english.php?content=../content/1033/tcplclibiec870_5_104/html/tcplclibiec870_5_104_objref_overview.htm&id
        */
-      u_int8_t len = payload[offset],
-               pdu_type = ((payload[offset + 1] & 0x01) == 0)
-                              ? 0
-                              : (payload[offset + 1] & 0x03);
+      u_int8_t len = payload[offset];
+      u_int8_t pdu_type = ((payload[offset + 1] & 0x01) == 0) ? 0 : (payload[offset + 1] & 0x03);
 
 #ifdef DEBUG_IEC60870
       ntop->getTrace()->traceEvent(TRACE_WARNING, "[%s] %02X %02X %02X %02X",
