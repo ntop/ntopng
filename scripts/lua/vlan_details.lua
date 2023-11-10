@@ -45,7 +45,9 @@ else
    --]]
    local nav_url = ntop.getHttpPrefix().."/lua/vlan_details.lua?vlan="..vlan_id
    local title = i18n("vlan")..": "..vlan_id..""
-
+   if (vlan_id == 0 or vlan_id == '0') then
+      title = i18n('untagged')
+   end
    page_utils.print_navbar(title, nav_url,
 			   {
 			      {
