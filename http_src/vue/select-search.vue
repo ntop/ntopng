@@ -31,6 +31,7 @@ const props = defineProps({
     options: Array,
     selected_option: Object,
     multiple: Boolean,
+    add_tag: Boolean,
     disable_change: Boolean,
 });
 
@@ -101,15 +102,23 @@ const render = () => {
 	    theme: 'bootstrap-5',
 	    dropdownParent: $(select2Div).parent(),
 	    dropdownAutoWidth : true,
+            tags: props.add_tag && !props.multiple,
 	});
 	$(select2Div).on('select2:select', function (e) {
 	    let data = e.params.data;
-	    let value = data.element._value;
-	    let option = find_option_from_value(value);
-	    if (value != props.selected_option) {
+            if (data.element == null) {
+                //TODO: implement for multiselect
+                let option = { label: data.text, value: data.id };
 		emit('update:selected_option', option);
 		emit('select_option', option);
-	    }
+            } else {
+	        let value = data.element._value;
+	        let option = find_option_from_value(value);
+	        if (value != props.selected_option) {
+		    emit('update:selected_option', option);
+		    emit('select_option', option);
+	        }
+            }
 	    if (!props.multiple) {
 		return;
 	    }

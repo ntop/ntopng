@@ -32,9 +32,10 @@
             </div>
             <div class="col-sm-9" v-if="input_type == 'select'">
               <select-search v-model:selected_option="option_selected"
-                :id="'data_filter'"
-                :options="options_to_show"
-                @select_option="change_data_filter">
+                             :id="'data_filter'"
+                             :add_tag="true"
+                             :options="options_to_show"
+                             @select_option="change_data_filter">
               </select-search>
             </div>
             <div class="col-sm-9" v-else-if="input_type == 'input-with-suggestions'">
@@ -89,7 +90,7 @@ export default {
 	    operator_selected: {},
 	    option_selected: {},
 	    input_value: null,
-			input_type: null,
+	    input_type: null,
 	    data_pattern_selected: null,
 	    input_required: false,
 	    options_to_show: null,
@@ -146,10 +147,10 @@ export default {
 	    this.option_selected = selected_filter
 	},  
 	change_input_value: function(input) {
-		this.input_value = input;
+	    this.input_value = input;
 	},
 	change_filter: function(selected_filter) {
-		  this.options_to_show = null;
+	    this.options_to_show = null;
 	    this.option_selected = null;
 	    this.input_value = null
 	    let filters_options = this.$props.filters_options;
@@ -158,7 +159,7 @@ export default {
 	    if (filter == null) { 
 		return; 
 	    }
-			/* Set the correct filters to display */
+	    /* Set the correct filters to display */
 	    this.input_type = filter.type;
 	    this.operators_to_show = filter.operators;
 	    this.filter_type_label_selected = filter.label;
@@ -170,13 +171,13 @@ export default {
 		});
 		this.option_selected = this.options_to_show[0];
 	    } else if (this.input_type == 'input-with-suggestions') {
-				this.options_to_show = filter.options?.sort((a, b) => {
-						if (a == null || a.label == null) { return -1; }
-						if (b == null || b.label == null) { return 1; }
-						return a.label.toString().localeCompare(b.label.toString());
-				});
-				this.data_pattern_selected = this.get_data_pattern(filter.value_type);
-			} else {
+		this.options_to_show = filter.options?.sort((a, b) => {
+		    if (a == null || a.label == null) { return -1; }
+		    if (b == null || b.label == null) { return 1; }
+		    return a.label.toString().localeCompare(b.label.toString());
+		});
+		this.data_pattern_selected = this.get_data_pattern(filter.value_type);
+	    } else {
 		this.options_to_show = null;
 		this.data_pattern_selected = this.get_data_pattern(filter.value_type);
 	    }
@@ -218,11 +219,15 @@ export default {
 	    return disable_apply;
 	},
 	apply: function() {
-		  let value = this.input_value;
+	    let value = this.input_value;
 	    let value_label = this.input_value;
 	    if (value == null || (this.option_selected?.value != null)) {
 		let filter = this.filters_options.find((fo) => fo.id == this.filter_type_selected.id);
+                
 		let option = filter.options.find((o) => o.value == this.option_selected.value);
+                if (option == null) {
+                    option = this.option_selected;
+                }
 		value = option.value;
 		value_label = option.value_label || option.label;
 	    }
