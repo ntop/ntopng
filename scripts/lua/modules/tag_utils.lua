@@ -39,9 +39,8 @@ tag_utils.tag_operators = {
 tag_utils.input_types = {
     input = 'input',
     select = 'select',
-    input_with_suggestions = 'input-with-suggestions'
+    select_with_input = 'select-with-input'
 }
-
 
 -- #####################################
 
@@ -237,7 +236,7 @@ tag_utils.defined_tags = {
         operators = {'eq', 'neq'}
     },
     probe_ip = {
-        type = tag_utils.input_types.input_with_suggestions,
+        type = tag_utils.input_types.select_with_input,
         value_type = 'probe_ip',
         i18n_label = i18n('db_search.tags.probe_ip'),
         operators = {'eq', 'neq'}
@@ -305,19 +304,19 @@ tag_utils.defined_tags = {
         bpf_key = 'ether host'
     },
     network = {
-        type = tag_utils.input_types.input_with_suggestions,
+        type = tag_utils.input_types.select_with_input,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.cli_network'),
         operators = {'eq', 'neq'}
     },
     cli_network = {
-        type = tag_utils.input_types.input_with_suggestions,
+        type = tag_utils.input_types.select_with_input,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.cli_network'),
         operators = {'eq', 'neq'}
     },
     srv_network = {
-        type = tag_utils.input_types.input_with_suggestions,
+        type = tag_utils.input_types.select_with_input,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.srv_network'),
         operators = {'eq', 'neq'}

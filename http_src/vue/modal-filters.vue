@@ -33,17 +33,18 @@
             <div class="col-sm-9" v-if="input_type == 'select'">
               <select-search v-model:selected_option="option_selected"
                              :id="'data_filter'"
-                             :add_tag="true"
                              :options="options_to_show"
                              @select_option="change_data_filter">
               </select-search>
             </div>
-            <div class="col-sm-9" v-else-if="input_type == 'input-with-suggestions'">
-              <input-with-suggestions
-								:pattern="data_pattern_selected"
-                :option_list="options_to_show"
-                @input_changed="change_input_value">
-              </input-with-suggestions>
+            <div class="col-sm-9" v-else-if="input_type == 'select-with-input'">
+              <select-search v-model:selected_option="option_selected"
+                             :id="'data_filter'"
+                             :add_tag="true"
+			     :pattern="data_pattern_selected"
+                             :options="options_to_show"
+                             @select_option="change_data_filter">
+              </select-search>
             </div>
             <template v-else>
               <input v-model="input_value" :pattern="data_pattern_selected" name="value" :required="input_required" type="text" class="form-control">
@@ -65,14 +66,12 @@
 <script type="text/javascript">
 import { default as Modal } from "./modal.vue";
 import { default as SelectSearch } from './select-search.vue'
-import { default as InputWithSuggestions } from './input-with-suggestions.vue'
 import regexValidation from "../utilities/regex-validation.js";
 
 export default {
     components: {
 	'modal': Modal,
 	'select-search': SelectSearch,
-	'input-with-suggestions': InputWithSuggestions,
     }, 
     props: {
 	id: String,
@@ -170,12 +169,13 @@ export default {
 		    return a.label.toString().localeCompare(b.label.toString());
 		});
 		this.option_selected = this.options_to_show[0];
-	    } else if (this.input_type == 'input-with-suggestions') {
+	    } else if (this.input_type == 'select-with-input') {
 		this.options_to_show = filter.options?.sort((a, b) => {
 		    if (a == null || a.label == null) { return -1; }
 		    if (b == null || b.label == null) { return 1; }
 		    return a.label.toString().localeCompare(b.label.toString());
 		});
+		this.option_selected = this.options_to_show[0];
 		this.data_pattern_selected = this.get_data_pattern(filter.value_type);
 	    } else {
 		this.options_to_show = null;

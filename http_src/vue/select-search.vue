@@ -1,10 +1,10 @@
 <template>
   <select class="select2 form-select" ref="select2" required name="filter_type" :multiple="multiple">
-    <option class="ntopng-dropdown-min-width no-wrap" v-for="(item, i) in options_2" :selected="is_item_selected(item)" :value="item.value" :disabled="item.disabled">
+    <option class="ntopng-dropdown-min-width no-wrap" v-for="(item, i) in options_2" :selected="is_selected(item)" :value="item.value" :disabled="item.disabled">
       {{item.label}}
     </option>
     <optgroup v-for="(item, i) in groups_options_2" :label="item.group">
-      <option v-for="(opt, j) in item.options" :selected="is_item_selected(opt)" :value="opt.value" :disabled="opt.disabled">
+      <option v-for="(opt, j) in item.options" :selected="is_selected(opt)" :value="opt.value" :disabled="opt.disabled">
         {{opt.label}}
       </option>
     </optgroup>
@@ -157,7 +157,7 @@ function change_select_2_selected_value() {
     }
 }
 
-function is_item_selected(item) {
+function is_selected(item) {
     if (!props.multiple) {
 	const is_zero_value = selected_option_2.value.value == 0 ||selected_option_2.value.value == "0";
 	return item.value == selected_option_2.value.value || (is_zero_value && item.label == selected_option_2.value.label);
