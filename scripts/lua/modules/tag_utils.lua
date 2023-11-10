@@ -304,19 +304,19 @@ tag_utils.defined_tags = {
         bpf_key = 'ether host'
     },
     network = {
-        type = tag_utils.input_types.select_with_input,
+        type = tag_utils.input_types.select,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.cli_network'),
         operators = {'eq', 'neq'}
     },
     cli_network = {
-        type = tag_utils.input_types.select_with_input,
+        type = tag_utils.input_types.select,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.cli_network'),
         operators = {'eq', 'neq'}
     },
     srv_network = {
-        type = tag_utils.input_types.select_with_input,
+        type = tag_utils.input_types.select,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.srv_network'),
         operators = {'eq', 'neq'}
