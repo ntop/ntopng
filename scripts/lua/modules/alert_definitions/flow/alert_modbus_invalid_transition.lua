@@ -58,6 +58,7 @@ local function function_code_to_string(function_id)
   if(function_id == 24) then   return("Read FIFO Queue (" .. function_id .. ")") end
   if(function_id == 43) then   return("Encapsulated Interface Transport (" .. function_id .. ")") end
   if(function_id == 90) then   return("Unity (Schneider) (" .. function_id .. ")") end
+  if(function_id == 100) then  return("Scattered Holding Register Read  (" .. function_id .. ")") end
 
    return(function_id)
 end
