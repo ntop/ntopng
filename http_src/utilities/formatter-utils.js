@@ -48,6 +48,14 @@ const types = {
         scale_values: null,        
         absolute_value: true,
     },
+    alertps: {
+        id: "alertps",
+        um: ["alerts/s", "Kalerts/s", "Malerts/s", "Galerts/s"],
+        step: 1000,
+        decimal: 2,
+        scale_values: null,        
+        absolute_value: true,
+    },
     pps: {
         id: "pps",
         um: ["pps", "Kpps", "Mpps", "Gpps", "Tpps"],
