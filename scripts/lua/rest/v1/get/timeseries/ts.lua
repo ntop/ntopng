@@ -122,7 +122,9 @@ local function performQuery(tstart, tend, keep_total, additional_options)
   if starts(ts_schema, "top:") then
     local ts_schema = split(ts_schema, "top:")[2]
 
-    res = ts_utils.queryTopk(ts_schema, tags, tstart, tend, options)
+    res = {} 
+    -- No more supported 
+    -- ts_utils.queryTopk(ts_schema, tags, tstart, tend, options)
   else
     res = ts_utils.query(ts_schema, tags, tstart, tend, options)
 

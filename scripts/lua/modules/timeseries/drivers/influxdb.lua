@@ -1574,11 +1574,13 @@ function driver:timeseries_top(options, top_tags)
             end
 
             sorted[#sorted + 1] = {
+                tags = query_tag,
                 statistics = statistics,
                 id = id,
                 ext_label = ext_label,
                 type = "line",
-                data = total_serie
+                data = total_serie,          
+                name = value[3],
             }
         end
     end

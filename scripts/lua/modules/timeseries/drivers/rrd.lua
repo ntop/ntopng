@@ -850,31 +850,31 @@ function driver:timeseries_top(options, top_tags)
    if #top_tags > 1 then
       traceError(TRACE_ERROR, TRACE_CONSOLE, "RRD driver does not support topk on multiple tags")
       return nil
-   end
+  end
 
-   local top_tag = top_tags[1]
+  local top_tag = top_tags[1]
 
-   if top_tag ~= options.schema_info._tags[#options.schema_info._tags] then
+  if top_tag ~= options.schema_info._tags[#options.schema_info._tags] then
       traceError(TRACE_ERROR, TRACE_CONSOLE,
-		 "RRD driver only support topk with topk tag in the last tag, got topk on '" .. (top_tag or "") .. "'")
+          "RRD driver only support topk with topk tag in the last tag, got topk on '" .. (top_tag or "") .. "'")
       return nil
-   end
+  end
 
-   local series = driver:listSeries(options.schema_info, options.tags, top_tags, options.epoch_begin)
-   if not series then
+  local series = driver:listSeries(options.schema_info, options.tags, top_tags, options.epoch_begin)
+  if not series then
       return nil
-   end
+  end
 
-   local available_items = {}
-   local available_tags = {}
-   local available_series = {}
-   local total_valid = true
-   local step = 0
-   local query_start = options.epoch_begin
-   local cf = getConsolidationFunction(options.schema_info)
+  local available_items = {}
+  local available_tags = {}
+  local available_series = {}
+  local total_valid = true
+  local step = 0
+  local query_start = options.epoch_begin
+  local cf = getConsolidationFunction(options.schema_info)
 
-   -- Quering all the different schema and unify all the data
-   for _, serie_tags in pairs(series) do
+  -- Quering all the different schema and unify all the data
+  for _, serie_tags in pairs(series) do
       local rrdfile = driver.schema_get_full_path(options.schema_info, serie_tags)
       options.rrdfile = rrdfile
       local options_merged = options
@@ -884,97 +884,100 @@ function driver:timeseries_top(options, top_tags)
       local serie_idx = 0
 
       if stats then
-	 local sum = 0
-	 step = stats.metadata.epoch_step
-	 local aggregated_serie = {}
-	 local statistics = {}
-	 -- For each serie, get the sum and other stats
-	 for _, serie in pairs(stats.series or {}) do
-	    serie_idx = serie_idx + 1 -- the first id is 1
-	    local name = options.schema_info._metrics[serie_idx]
+          local sum = 0
+          step = stats.metadata.epoch_step
+          local aggregated_serie = {}
+          local statistics = {}
+          -- For each serie, get the sum and other stats
+          for _, serie in pairs(stats.series or {}) do
+              serie_idx = serie_idx + 1 -- the first id is 1
+              local name = options.schema_info._metrics[serie_idx]
 
-	    if table.len(statistics) == 0 then
-	       statistics = serie.statistics
-	    else
-	       for stat_name, value in pairs(serie.statistics) do
-		  statistics[stat_name] = statistics[stat_name] + value
-	       end
-	    end
-	    partials[name] = 0
+              if table.len(statistics) == 0 then
+                  statistics = serie.statistics
+              else
+                  for stat_name, value in pairs(serie.statistics) do
+                      statistics[stat_name] = statistics[stat_name] + value
+                  end
+              end
+              partials[name] = 0
 
-	    for i, serie_point in pairs(serie.data) do
-	       if tostring(serie_point) ~= '-nan' then
-		  sum = sum + tonumber(serie_point)
-	       end
+              for i, serie_point in pairs(serie.data) do
+                  if tostring(serie_point) ~= '-nan' then
+                      sum = sum + tonumber(serie_point)
+                  end
 
-	       if not aggregated_serie[i] then
-		  aggregated_serie[i] = 0
-	       end
+                  if not aggregated_serie[i] then
+                      aggregated_serie[i] = 0
+                  end
 
-	       aggregated_serie[i] = aggregated_serie[i] + serie_point
-	       partials[name] = partials[name] + serie_point * step
-	    end
-	 end
+                  aggregated_serie[i] = aggregated_serie[i] + serie_point
+                  partials[name] = partials[name] + serie_point * step
+              end
+          end
 
-	 available_items[serie_tags[top_tag]] = sum * step
-	 available_tags[serie_tags[top_tag]] = {serie_tags, partials}
-	 available_series[serie_tags[top_tag]] = {
-	    data = aggregated_serie,
-	    statistics = statistics
-	 }
+          available_items[serie_tags[top_tag]] = sum * step
+          available_tags[serie_tags[top_tag]] = {serie_tags, partials}
+          available_series[serie_tags[top_tag]] = {
+              data = aggregated_serie,
+              statistics = statistics,
+              tags = options_merged.tags
+          }
       end
-   end
+  end
 
-   local top_series = {}
-   local count = 0
-   local id = "bytes"
+  local top_series = {}
+  local count = 0
+  local id = "bytes"
 
-   if ends(options.schema, "packets") then
+  if ends(options.schema, "packets") then
       id = "packets"
-   end
+  end
 
-   for top_item, value in pairsByValues(available_items, rev) do
+  for top_item, value in pairsByValues(available_items, rev) do
       if value > 0 then
-	 local snmp_utils = require "snmp_utils"
-	 local snmp_cached_dev = require "snmp_cached_dev"
-	 local cached_device = snmp_cached_dev:create(options.tags.device)
-	 local ifindex = available_tags[top_item][1].if_index or available_tags[top_item][1].port
-	 local ext_label = nil
-	 if cached_device then
-	    ext_label = snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex])
-	    if isEmptyString(ext_label) then
-	       ext_label = ifindex
-	    end
-	 end
+          local snmp_utils = require "snmp_utils"
+          local snmp_cached_dev = require "snmp_cached_dev"
+          local cached_device = snmp_cached_dev:create(options.tags.device)
+          local ifindex = available_tags[top_item][1].if_index or available_tags[top_item][1].port
+          local ext_label = nil
+          if cached_device then
+              ext_label = snmp_utils.get_snmp_interface_label(cached_device["interfaces"][ifindex])
+              if isEmptyString(ext_label) then
+                  ext_label = ifindex
+              end
+          end
 
-	 count = table.len(available_series[top_item].data)
-	 top_series[#top_series + 1] = {
-	    data = available_series[top_item].data,
-	    id = id,
-	    type = "line",
-	    statistics = available_series[top_item].statistics,
-	    ext_label = ext_label
-	 }
+          count = table.len(available_series[top_item].data)
+          top_series[#top_series + 1] = {
+              data = available_series[top_item].data,
+              id = id,
+              type = "line",
+              statistics = available_series[top_item].statistics,
+              tags = available_series[top_item].tags,
+              name = top_item,
+              ext_label = ext_label
+          }
       end
 
       if #top_series >= options.top then
-	 break
+          break
       end
-   end
+  end
 
-   local stats = nil
+  local stats = nil
 
-   return {
+  return {
       metadata = {
-	 epoch_begin = options.epoch_begin,
-	 epoch_end = options.epoch_end,
-	 epoch_step = step,
-	 num_point = count,
-	 schema = options.schema,
-	 query = options.tags
+          epoch_begin = options.epoch_begin,
+          epoch_end = options.epoch_end,
+          epoch_step = step,
+          num_point = count,
+          schema = options.schema,
+          query = options.tags
       },
       series = top_series
-   }
+  }
 end
 
 -- ##############################################
@@ -1154,9 +1157,10 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
 
       for i, v in pairs(serie) do
 	 local v = ts_common.normalizeVal(v, max_val, options)
-
-	 if type(v) == "number" then
-	    sum = sum + v * fstep
+	 
+     -- v is not null
+     if v == v then
+        sum = sum + v * fstep
 	 end
       end
 

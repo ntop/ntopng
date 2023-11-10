@@ -348,8 +348,6 @@ async function load_selected_metric_page_stats_data() {
 }
 
 function epoch_change(new_epoch) {
-
-    console.log(id_date_time_picker);
     let push_custom_metric = selected_metric.value.label == custom_metric.label;
     load_page_stats_data(last_timeseries_groups_loaded, true, false, new_epoch.refresh_data);
     refresh_top_table();
