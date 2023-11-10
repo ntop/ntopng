@@ -516,7 +516,16 @@ function getFullVlanName(vlan_id, compact)
     -- In case of vlan 0, return empty string as name
     -- fix for untagged vlan (#7998)
     if tonumber(vlan_id) == 0 then
-        return i18n('no_vlan')
+        if (isEmptyString(alias)) then
+            return i18n('no_vlan')
+        else 
+            if (compact) then
+                alias = shortenString(alias)
+                return string.format("%s", alias)
+            else
+                return string.format("%s [%s]",i18n('no_vlan'),alias)
+            end
+        end
     end
 
     if not isEmptyString(alias) then

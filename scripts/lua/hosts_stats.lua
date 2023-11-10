@@ -239,9 +239,13 @@ if (vlan ~= nil) then
     local link_periodicity_map = generate_map_url(interface.periodicityMap(nil, tonumber(vlan)), "periodicity_map",
         "vlan=" .. vlan, "fas fa-clock")
 
-    vlan_title = " [" .. i18n("hosts_stats.vlan_title", {
-        vlan = vlan
-    }) .. "] <A HREF='" .. ntop.getHttpPrefix() .. "/lua/vlan_details.lua?vlan=" .. vlan .. "&page=config" ..
+    local vlan_label = i18n('untagged')
+    if (vlan ~= 0 and vlan ~= '0') then
+        vlan_label = i18n("hosts_stats.vlan_title", {
+            vlan = vlan
+        })
+    end
+    vlan_title = " [" .. vlan_label .. "] <A HREF='" .. ntop.getHttpPrefix() .. "/lua/vlan_details.lua?vlan=" .. vlan .. "&page=config" ..
                      "'><i class='fas fa-cog fa-sm'></i></A>" .. link_service_map .. " " .. link_periodicity_map
     if (vlan == getVlanAlias(vlan)) then
         vlan_alias = ""
@@ -305,6 +309,7 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
 }})
 
 if page == 'active_hosts' then
+    tprint(vlan_title)
     page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, device_ip_title, network_name, cidr,
         ipver_title, os_title, country_title, asninfo, mac_title, pool_title, vlan_title, vlan_alias))
 
