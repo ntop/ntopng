@@ -1545,7 +1545,6 @@ function driver:timeseries_top(options, top_tags)
 
             local top_serie = self:timeseries_query(options_merged)
             local total_serie = {}
-            tprint(top_serie)
 
             for _, values in pairs(top_serie.series or {}) do
                 num_point = #values.data
@@ -1575,9 +1574,10 @@ function driver:timeseries_top(options, top_tags)
             end
 
             sorted[#sorted + 1] = {
+                tags = query_tag,
                 statistics = statistics,
                 id = id,
-                name = top_item,
+                name = value[3],
                 ext_label = ext_label,
                 type = "line",
                 data = total_serie
