@@ -245,6 +245,23 @@ if [ test -f /usr/bin/lsb_release ]; then
   fi
 fi
 
+NTOPCLOUD_HOME="../ntopcloud"
+if test -d "${NTOPCLOUD_HOME}"; then
+  CNATS_HOME=/opt/homebrew/Cellar/cnats/3.7.0
+
+  if test -d "${CNATS_HOME}"; then
+    CFLAGS="${CFLAGS} -I${CNATS_HOME}"
+    NATS_LIB="-L ${CNATS_HOME}/lib -lnats"
+  else
+    NATS_LIB="-lnats"
+  fi
+  
+  CFLAGS="${CFLAGS} -I${NTOPCLOUD_HOME}"
+  CXXFLAGS="${CXXFLAGS} -I${NTOPCLOUD_HOME}"
+  LIBS="${LIBS} ${NTOPCLOUD_HOME}/libcloud.a ${NATS_LIB}"
+  AC_DEFINE(HAVE_NTOP_CLOUD, 1, [ntop cloud detected])
+fi
+
 SHORT_MACHINE=`uname -m | cut -b1-3`
 
 GIT_RELEASE="@GIT_RELEASE@"
