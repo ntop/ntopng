@@ -612,8 +612,8 @@ void ZMQCollectorInterface::collect_flows() {
           /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h->url,
            * uncompressed); */
 
-         recv_next:
 #ifdef HAVE_ZLIB
+	recv_next:
           if (compressed /* only if the traffic was actually compressed */)
             if (uncompressed) free(uncompressed);
 #endif
