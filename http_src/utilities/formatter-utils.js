@@ -56,6 +56,14 @@ const types = {
         scale_values: null,        
         absolute_value: true,
     },
+    hitss: {
+        id: "hitss",
+        um: ["hits/s", "Khits/s", "Mhits/s", "Ghits/s"],
+        step: 1000,
+        decimal: 2,
+        scale_values: null,        
+        absolute_value: true,
+    },
     pps: {
         id: "pps",
         um: ["pps", "Kpps", "Mpps", "Gpps", "Tpps"],

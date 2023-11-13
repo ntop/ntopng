@@ -128,7 +128,7 @@ function tsArrayToOptionsArrayRaw(tsOptionsArray, tsGroupsArray, groupsOptionsMo
 				tsDict[yaxisId].push(tsEl);
 			}
 		});
-		useFullName = tsGroupsArray.length > 1;
+		useFullName = tsGroupsArray.length > 1 || tsGroup.source_type.display_full_name == true;
 		let DygraphOptionsArray = [];
 		for (let key in tsDict) {
 			let tsArray = tsDict[key];
@@ -139,7 +139,8 @@ function tsArrayToOptionsArrayRaw(tsOptionsArray, tsGroupsArray, groupsOptionsMo
 		}
 		return DygraphOptionsArray;
 	} else if (groupsOptionsMode.value == groupsOptionsModesEnum["1_chart_x_metric"].value) {
-		useFullName = tsOptionsArray.length > 1;
+	    useFullName = tsOptionsArray.length > 1 || (tsGroupsArray.length > 0
+                                                        && tsGroupsArray[0].source_type.display_full_name == true);
 		let optionsArray = [];
 		tsOptionsArray.forEach((tsOptions, i) => {
 			let options = tsArrayToOptions([tsOptions], [tsGroupsArray[i]], tsCompare, useFullName);
@@ -285,7 +286,7 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare, useFullName)
 				time = time + step;
 			});
 		} else {
-			series.forEach((ts_info, j) => {
+		    series.forEach((ts_info, j) => {
 				const serie = ts_info.data || []; /* Safety check */
 				let time = epoch_begin;
 				
@@ -293,7 +294,10 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare, useFullName)
 				let s_metadata = tsGroupsArray[i].metric.timeseries[ts_id];
 				let extra_timeseries = tsGroupsArray[i].timeseries[j];
 				let scalar = 1;
-				let name = s_metadata.label
+			let name = s_metadata.label
+                        if (s_metadata.use_serie_name == true) {
+                            name = ts_info.name;
+                        }
 
 				if (stacked == false) {
 					stacked = tsGroupsArray[i].metric.draw_stacked;
@@ -539,6 +543,7 @@ async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseries
 			version: 4,
 			ts_compare: tsCompare,
 		};
+            
 		let tsRequests = timeseriesGroups.map((tsGroup) => {
 			let main_source_index = getMainSourceDefIndex(tsGroup);
 			let tsQuery = getTsQuery(tsGroup);

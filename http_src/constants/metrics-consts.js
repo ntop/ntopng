@@ -98,27 +98,13 @@ const sources_types = [
 	    regex_page_url: "lua\/blacklists_stats", // regex to match url page
 	    label: i18n("page_stats.source_def.blacklist"),
 	    query: "blacklist",
+            // display_full_name: true,
 	    source_def_array: [{
 		label: i18n("page_stats.source_def.interface"),
 		sources_function: () => { return [{ label: "System", value: -1 }] },
 		value: "ifid",
 		ui_type: ui_types.hide,
-	    },{
-		main_source_def: true,
-		label: i18n("page_stats.source_def.blacklist"),
-		regex_type: "blacklist_name",
-		value: "blacklist_name",
-		// disable_tskey: true,
-                sources_function: async function() {
-                    const url = `${http_prefix}/lua/admin/get_category_lists.lua`
-                    let res = await ntopng_utility.http_request(url, null, null, true);
-                    let sources = res.data.map((el) => {
-                        return { label: el.column_name, value: el.column_name };
-                    });
-                    return sources;
-                },
-		ui_type: ui_types.select,
-	    }]
+	    },]
 	},
 	{
 		id: "vulnerability_scan", //unique id

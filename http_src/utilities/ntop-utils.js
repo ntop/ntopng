@@ -1138,8 +1138,8 @@ export default class NtopUtils {
   }
         
   static sortAlphabetically(a, b) {
-    const nameA = a.label.toUpperCase(); // ignore upper and lowercase
-    const nameB = b.label.toUpperCase(); // ignore upper and lowercase
+    const nameA = a.label?.toUpperCase(); // ignore upper and lowercase
+    const nameB = b.label?.toUpperCase(); // ignore upper and lowercase
     if (nameA < nameB) { return -1; }
     if (nameA > nameB) { return 1; }
     return 0;

@@ -148,19 +148,21 @@ local community_timeseries = {{
         }
     }
 }, {
-    schema = "blacklist:hits",
+    schema = "top:blacklist:hits",
     id = timeseries_id.blacklist,
-    label = i18n('graphs.metric_labels.blacklist_hits'),
+    label = "top " .. i18n('graphs.metric_labels.blacklist_hits'),
     priority = 0,
-    measure_unit = "number",
+    measure_unit = "hitss",
     scale = i18n('graphs.metric_labels.blacklist_hits'),
+    -- draw_stacked = true,
     timeseries = {
-        hits = {
-            label = i18n('graphs.metric_labels.blacklist_num_hits'),
-            color = timeseries_info.get_timeseries_color('')
-        }
+       hits = {
+          use_serie_name = true,
+          label = i18n('graphs.metric_labels.blacklist_num_hits'),
+          color = timeseries_info.get_timeseries_color('')
+       }
     }
-}, {
+   }, {
     schema = "iface:new_flows",
     id = timeseries_id.iface,
     label = i18n("graphs.new_flows"),
@@ -2063,6 +2065,45 @@ end
 
 -- #################################
 
+local function add_top_blacklist_hits_timeseries(tags, timeseries)
+   local series = ts_utils.listSeries("blacklist:hits", table.clone(tags), tags.epoch_begin) or {}
+   local tmp_tags = table.clone(tags)
+
+   if table.empty(series) then
+      return;
+   end
+   for _, serie in pairs(series or {}) do
+      tmp_tags.blacklist_name = serie.blacklist_name
+      local tot = 0
+      local tot_serie = ts_utils.queryTotal("blacklist:hits", tags.epoch_begin, tags.epoch_end, tmp_tags)
+      for _, value in pairs(tot_serie or {}) do
+         tot = tot + tonumber(value)
+      end
+      if tot <= 0 then
+         return
+      end
+      timeseries[#timeseries + 1] = {
+         schema = "top:blacklist:hits",
+         id = timeseries_id.blacklist,
+         group = i18n("graphs.metric_labels.blacklist_num_hits"),
+         priority = 0,
+         query = "blacklist_name:" .. serie.blacklist_name,
+         label = serie.blacklist_name:gsub("_", " "),
+         measure_unit = "hitss",
+         scale = i18n('graphs.metric_labels.blacklist_hits'),
+         timeseries = {
+            hits = {
+               label = i18n('graphs.metric_labels.blacklist_num_hits'),
+               color = timeseries_info.get_timeseries_color('')
+            }
+         }
+      }
+   end
+   return timeseries
+end
+
+-- #################################
+
 local function add_top_vlan_timeseries(tags, timeseries)
     local vlan_ts_enabled = ntop.getCache("ntopng.prefs.vlan_rrd_creation")
 
@@ -2859,8 +2900,12 @@ local function add_top_timeseries(tags, prefix, timeseries)
     elseif prefix == timeseries_id.flow_port then
         -- Add the top interface timeseries
         timeseries = add_top_flow_port_timeseries(tags, timeseries)
+    elseif prefix == timeseries_id.blacklist then
+        -- Add the top interface timeseries
+       timeseries = add_top_blacklist_hits_timeseries(tags, timeseries)
     end
-
+    if timeseries ~= nil then
+    end
     return timeseries
 end
 
@@ -2880,12 +2925,12 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
 
     for _, info in pairs(timeseries_list) do
         if (prefix ~= nil) then
-            if info.id ~= prefix then
+           if info.id ~= prefix then
                 goto skip
             end
 
             if not (info.schema:find("top", 1, true)) and not info.alwais_visibile then
-               local tot = 0
+               local tot = 0 -- change to view also empty series
                 local tot_serie = ts_utils.queryTotal(info.schema, tags.epoch_begin, tags.epoch_end, table.clone(tags))
 
                 -- Remove serie with no data
@@ -2915,7 +2960,6 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
     end
 
     timeseries = add_top_timeseries(tags, prefix, timeseries)
-
     return timeseries
 end
 

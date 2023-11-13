@@ -754,7 +754,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, not_p
 
         return nil
     end
-
+    
     local wildcard_tag = wildcard_tags[1]
 
     if not wildcard_tag then
@@ -786,7 +786,6 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, not_p
     for f in pairs(files or {}) do
         local v = string.split(f, "%.rrd")
         local fpath = base .. "/" .. f
-
         if ((v ~= nil) and (#v == 1)) then
             local last_update = ntop.rrd_lastupdate(fpath)
             if last_update ~= nil and last_update >= start_time then
@@ -937,7 +936,10 @@ function driver:timeseries_top(options, top_tags)
 
     if ends(options.schema, "packets") then
         id = "packets"
+    elseif ends(options.schema, "hits") then
+       id = "hits"
     end
+    
 
     for top_item, value in pairsByValues(available_items, rev) do
         if value > 0 then

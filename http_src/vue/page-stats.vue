@@ -197,7 +197,7 @@ function set_default_source_object_in_url() {
 }
 
 onBeforeMount(async () => {
-
+    
     if (ntopng_url_manager.get_url_entry("page") == "va_historical") {
         let columns_tmp = [];
         stats_columns.forEach((item) => {
@@ -205,15 +205,15 @@ onBeforeMount(async () => {
                 columns_tmp.push(item);
             }
         })
-
+        
         stats_columns = columns_tmp;
     }
-
+    
     if (props.source_value_object.is_va) {
         min_time_interval_id.value = "hour";
         ntopng_utility.check_and_set_default_time_interval("day");
     };
-        
+    
     set_default_source_object_in_url();
 });
 
@@ -242,7 +242,7 @@ async function init() {
         timeseries_groups = await metricsManager.get_default_timeseries_groups(http_prefix, metric_ts_schema, metric_query);
     }
     metrics.value = await get_metrics(push_custom_metric);
-
+    
     if (push_custom_metric == true) {
         selected_metric.value = custom_metric;
     } else {
@@ -256,7 +256,7 @@ let last_push_custom_metric = null;
 async function get_metrics(push_custom_metric, force_refresh) {
     let metrics = await metricsManager.get_metrics(http_prefix);
     if (!force_refresh && last_push_custom_metric == push_custom_metric) { return metrics.value; }
-
+    
     if (push_custom_metric) {
         metrics.push(custom_metric);
     }
@@ -270,14 +270,14 @@ async function get_metrics(push_custom_metric, force_refresh) {
     /* Order Metrics */
     if (metrics.length > 0)
         metrics.sort(NtopUtils.sortAlphabetically);
-
+    
     return metrics;
 }
 
 async function get_snapshots_metrics() {
     if (!props.enable_snapshots) { return; }
     let url = `${http_prefix}/lua/pro/rest/v2/get/filters/snapshots.lua?page=${page_snapshots}`;
-
+    
     let snapshots_obj = await ntopng_utility.http_request(url);
     let snapshots = ntopng_utility.object_to_array(snapshots_obj);
     let metrics_snapshots = snapshots.map((s) => {
@@ -412,6 +412,11 @@ async function load_page_stats_data(timeseries_groups, reload_charts_data, reloa
          *      }
          *  ]
          */
+        if (timeseries_groups == null) {
+            timeseries_groups = [];
+            console.warn("Empty timeseries_groups request");
+            return;
+        }
         ts_charts_options = await timeseriesUtils.getTsChartsOptions(http_prefix, status, ts_compare, timeseries_groups, props.is_ntop_pro);
     }
 
@@ -655,7 +660,10 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
             let s_metadata = ts_group.metric.timeseries[ts_id];
             let formatter = formatterUtils.getFormatter(ts_group.metric.measure_unit);
             let ts_stats;
-            let name = s_metadata.label
+            let name = s_metadata.label;
+            if (s_metadata.use_serie_name == true) {
+                name = s.name;
+            }
             if (s?.data.length > j) {
                 ts_stats = s.statistics;
             }
