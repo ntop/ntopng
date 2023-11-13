@@ -7741,6 +7741,7 @@ local lang = {
     ["report"] = "Vulnerability Scan Report",
     ["solved_issues"] = " %{num_issues} CVEs, %{cve_solved} solved",
     ["ports_changed_cases"] = {
+      ['cve_scan_case'] = "TCP Ports changes detected",
       ["new_ports"] = "%{open_ports_num} new %{protocol} open port(s) (%{open_ports})",
       ["ports_closed"] = "%{closed_ports_num} %{protocol} port(s) (%{closed_ports}) are now closed",
       ["ports_open_and_closed"] = "%{protocol} (%{open_ports}) and %{protocol} (%{closed_ports}) port(s) are now closed",
