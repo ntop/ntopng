@@ -90,7 +90,7 @@
                 </div> <!-- card body -->
 
                 <div v-show="page != 'all'" class="card-footer">
-                    <button v-if="context.show_acknowledge_all" @click="show_modal_acknoledge_alerts"
+                    <button v-if="context.show_acknowledge_all" @click="show_modal_acknowledge_alerts"
                         class="btn btn-primary me-1">
                         <i class="fas fa fa-user-check"></i> {{_i18n("acknowledge_alerts")}}
                     </button>
