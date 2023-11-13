@@ -1520,6 +1520,8 @@ function driver:timeseries_top(options, top_tags)
 
     if ends(options.schema, "packets") then
         id = "packets"
+    elseif ends(options.schema, "hits") then
+       id = "hits"
     end
 
     for idx in pairsByValues(res, rev) do
