@@ -275,11 +275,17 @@ function alert_utils.getConfigsetAlertLink(alert_json, alert --[[ optional --]] 
         local info = alert_json.alert_generation or (alert_json.alert_info and alert_json.alert_info.alert_generation)
         if alert_entity and alert_entity == alert_entities.am_host.entity_id then
             local host = alert_json.host.host or alert_json.host
-            local measurement = alert_json.host.measurement or alert_json.measurement
             if host then
-                return ' <a href="' .. ntop.getHttpPrefix() .. '/lua/monitor/active_monitoring_monitor.lua?am_host=' ..
+                local measurement = alert_json.host.measurement or alert_json.measurement
+                if measurement then
+                    return ' <a href="' .. ntop.getHttpPrefix() .. '/lua/monitor/active_monitoring_monitor.lua?am_host=' ..
                            host .. '&measurement=' .. measurement ..
                            '&page=overview"><i class="fas fa-cog" title="' .. i18n("edit_configuration") .. '"></i></a>'
+                else
+                    return ' <a href="' .. ntop.getHttpPrefix() .. '/lua/monitor/active_monitoring_monitor.lua?am_host=' ..
+                           host ..
+                           '&page=overview"><i class="fas fa-cog" title="' .. i18n("edit_configuration") .. '"></i></a>'
+                end
             else
                 return ' <a href="' .. ntop.getHttpPrefix() ..
                            '/lua/monitor/active_monitoring_monitor.lua?page=overview"><i class="fas fa-cog" title="' ..

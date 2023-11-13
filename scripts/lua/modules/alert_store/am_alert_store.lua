@@ -135,7 +135,9 @@ function am_alert_store:format_record(value, no_html)
    end
 
    local measurement_info = am_utils.getMeasurementInfo(alert_info.host.measurement or alert_info.measurement)
-   record[RNAME.MEASUREMENT.name] = i18n(measurement_info.i18n_label)
+   if measurement_info then
+      record[RNAME.MEASUREMENT.name] = i18n(measurement_info.i18n_label)
+   end
 
    record[RNAME.ALERT_NAME.name] = alert_name
 
