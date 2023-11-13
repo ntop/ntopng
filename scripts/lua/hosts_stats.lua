@@ -245,8 +245,16 @@ if (vlan ~= nil) then
             vlan = vlan
         })
     end
-    vlan_title = " [" .. vlan_label .. "] <A HREF='" .. ntop.getHttpPrefix() .. "/lua/vlan_details.lua?vlan=" .. vlan .. "&page=config" ..
-                     "'><i class='fas fa-cog fa-sm'></i></A>" .. link_service_map .. " " .. link_periodicity_map
+    vlan_title = " [" .. vlan_label .. "]" 
+    local config_button = " <A HREF='" .. ntop.getHttpPrefix() .. "/lua/vlan_details.lua?vlan=" .. vlan .. "&page=config" ..
+                     "'><i class='fas fa-cog fa-sm'></i></A>" 
+    
+    -- in case of untagged traffic is not possible to set a vlan alias
+    if (vlan ~= 0 and vlan ~= '0') then
+        vlan_title = vlan_title .. config_button
+    end
+
+    vlan_title = vlan_title .. " " .. link_service_map .. " " .. link_periodicity_map
     if (vlan == getVlanAlias(vlan)) then
         vlan_alias = ""
     else
@@ -309,7 +317,6 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
 }})
 
 if page == 'active_hosts' then
-    tprint(vlan_title)
     page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, device_ip_title, network_name, cidr,
         ipver_title, os_title, country_title, asninfo, mac_title, pool_title, vlan_title, vlan_alias))
 
