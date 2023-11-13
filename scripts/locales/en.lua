@@ -7732,15 +7732,15 @@ local lang = {
   },
   ["vulnerability_scan"] = {
     ["and_other_n"] = "and other %{n}",
-    ["host_alert"] = "%{msg} on <b>%{host}</b> using %{scan_type} (check the <a href=\"%{url}\">Report</a>)",
+    ["host_alert"] = "%{msg} on <b><a href='%{url}'>%{host}</a></b> using %{scan_type}.",
     ["new_issues"] = "CVEs changed from %{num_issues} to %{new_cve}",
     ["ports_changed"] = "Open ports changed from %{old_num_ports} to %{new_num_ports}",
     ["report"] = "Vulnerability Scan Report",
     ["solved_issues"] = " %{num_issues} CVEs, %{cve_solved} solved",
     ["ports_changed_cases"] = {
-      ["new_ports"] = "%{open_ports_num} new %{protocol} open ports (%{open_ports})",
-      ["ports_closed"] = "%{closed_ports_num} %{protocol} ports (%{closed_ports}) are now closed",
-      ["ports_open_and_closed"] = "%{protocol} (%{open_ports}) and %{protocol} (%{closed_ports}) ports are now closed",
+      ["new_ports"] = "%{open_ports_num} new %{protocol} open port(s) (%{open_ports})",
+      ["ports_closed"] = "%{closed_ports_num} %{protocol} port(s) (%{closed_ports}) are now closed",
+      ["ports_open_and_closed"] = "%{protocol} (%{open_ports}) and %{protocol} (%{closed_ports}) port(s) are now closed",
     },
   },
   ["widgets_page"] = {
