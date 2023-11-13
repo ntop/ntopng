@@ -75,6 +75,7 @@ LuaEngine *CustomHostLuaScript::initVM() {
     try {
       lua = new LuaEngine(NULL);
       lua->load_script((char *)where,
+		       lua_engine_mode_callback,
                        NULL /* NetworkInterface filled later below */);
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loaded custom user script %s",
                                    where);

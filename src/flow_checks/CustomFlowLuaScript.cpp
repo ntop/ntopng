@@ -53,9 +53,9 @@ LuaEngine *CustomFlowLuaScript::initVM(const char *script_path) {
 
     try {
       lua = new LuaEngine(NULL);
-      lua->load_script(
-          (char *)where,
-          NULL /* NetworkInterface filled later via lua->setFlow(f); */);
+      lua->load_script((char *)where,
+		       lua_engine_mode_callback,
+		       NULL /* NetworkInterface filled later via lua->setFlow(f); */);
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Loaded custom user script %s",
                                    where);
     } catch (std::bad_alloc &ba) {

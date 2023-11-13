@@ -121,6 +121,12 @@ typedef enum {
 #define MAX_NUM_PERIODIC_SCRIPTS 6
 
 typedef enum {
+  lua_engine_mode_http = 1,
+  lua_engine_mode_callback,
+  lua_engine_mode_cloud
+} LuaEngineMode;
+
+typedef enum {
   trend_unknown = 0,
   trend_up = 1,
   trend_down = 2,
@@ -889,6 +895,7 @@ class Host;
 class Flow;
 class ThreadedActivity;
 class ThreadedActivityStats;
+class LuaEngine;
 
 struct ntopngLuaContext {
   char *allowed_ifname, *user, *group, *csrf;
@@ -905,7 +912,8 @@ struct ntopngLuaContext {
   Flow *flow;
   bool localuser;
   u_int16_t observationPointId;
-
+  LuaEngine *engine;
+  
   /* Capabilities bitmap */
   u_int64_t capabilities;
 

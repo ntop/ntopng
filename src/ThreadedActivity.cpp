@@ -338,7 +338,8 @@ void ThreadedActivity::runScript(time_t now, char *script_name,
 
 /* ******************************************* */
 
-LuaEngine *ThreadedActivity::loadVM(char *script_name, NetworkInterface *iface, time_t when) {
+LuaEngine *ThreadedActivity::loadVM(char *script_name,
+				    NetworkInterface *iface, time_t when) {
   LuaEngine *l = NULL;
 
 #if defined(NTOPNG_PRO) && defined(TRACE_SCRIPTS)
@@ -353,7 +354,7 @@ LuaEngine *ThreadedActivity::loadVM(char *script_name, NetworkInterface *iface, 
     /* NOTE: this needs to be deallocated by the caller */
     l = new LuaEngine(NULL);
 
-    if (l->load_script(script_name, iface) != 0) {
+    if (l->load_script(script_name, lua_engine_mode_callback, iface) != 0) {
       delete l;
       l = NULL;
     }

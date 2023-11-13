@@ -44,8 +44,9 @@ class LuaEngine {
   lua_State *L; /**< The LuaEngine state. */
   char *loaded_script_path;
   bool is_system_vm; /* Executed by callbacks */
+  std::string cloud_string;
 
-  void lua_register_classes(lua_State *L, bool http_mode);
+  void lua_register_classes(lua_State *L, LuaEngineMode mode);
 
  public:
   /**
@@ -80,7 +81,7 @@ class LuaEngine {
   }
   NetworkStats *getNetwork() { return (getLuaVMContext(L)->network); }
 
-  int load_script(char *script_path, NetworkInterface *iface);
+  int load_script(char *script_path, LuaEngineMode mode, NetworkInterface *iface);
   int run_loaded_script();
 
   /**
@@ -117,6 +118,10 @@ class LuaEngine {
 
   inline void setAsSystemVM() { is_system_vm = true; }
   inline bool isSystemVM() { return (is_system_vm); }
+
+  void pushResultString(char *str);
+  void pushResultNumber(float f);
+  const char* getCloudString() { return(cloud_string.c_str()); }
 };
 
 /**

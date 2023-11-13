@@ -151,10 +151,8 @@ LuaEngine::~LuaEngine() {
       if ((ctx->iface != NULL) && ctx->live_capture.pcaphdr_sent)
         ctx->iface->deregisterLiveCapture(ctx);
 
-      if (ctx->addr_tree != NULL) delete ctx->addr_tree;
-
+      if (ctx->addr_tree != NULL)   delete ctx->addr_tree;
       if (ctx->sqlite_hosts_filter) free(ctx->sqlite_hosts_filter);
-
       if (ctx->sqlite_flows_filter) free(ctx->sqlite_flows_filter);
 
 #if defined(NTOPNG_PRO)
@@ -222,8 +220,7 @@ int ntop_lua_return_value(lua_State *vm, const char *function_name, int val) {
                                    "https://github.com/ntop/ntopng/issues");
     }
 
-    lua_pushnil(
-        vm); /* Add dummy push to make sure the stack has a return value */
+    lua_pushnil(vm); /* Add dummy push to make sure the stack has a return value */
   }
 
   return (val);
@@ -299,6 +296,7 @@ static int ntop_lua_http_print(lua_State *vm) {
           mg_printf(conn, "%s", key);
           // PrintTable(vm);
         }
+	
         lua_pop(vm, 1);
       }
     } break;
@@ -331,6 +329,35 @@ int ntop_lua_cli_print(lua_State *vm) {
     case LUA_TNUMBER:
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "%f",
                                    (float)lua_tonumber(vm, 1));
+      break;
+
+    default:
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(): Lua type %d is not handled", __FUNCTION__, t);
+      return (CONST_LUA_ERROR);
+  }
+
+  lua_pushnil(vm);
+  return (CONST_LUA_OK);
+}
+
+/* ****************************************** */
+
+int ntop_lua_cloud_print(lua_State *vm) {
+  int t;
+  LuaEngine *engine = getLuaVMUserdata(vm, engine);
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  switch (t = lua_type(vm, 1)) {
+    case LUA_TSTRING: {
+      char *str = (char *)lua_tostring(vm, 1);
+
+      if (str && (strlen(str) > 0))
+        engine->pushResultString(str);
+    } break;
+
+    case LUA_TNUMBER:
+      engine->pushResultNumber((float)lua_tonumber(vm, 1));
       break;
 
     default:
@@ -455,9 +482,11 @@ static int ntop_lua_loadfile(lua_State *L) { return ntop_lua_xfile(L, false); }
 
 /* ****************************************** */
 
-void LuaEngine::lua_register_classes(lua_State *L, bool http_mode) {
+void LuaEngine::lua_register_classes(lua_State *L, LuaEngineMode mode) {
   if (!L) return;
 
+  getLuaVMContext(L)->engine = this;
+    
   /* ntop add-ons */
   luaRegister(L, "interface", ntop_interface_reg);
   luaRegister(L, "ntop", ntop_reg);
@@ -465,14 +494,22 @@ void LuaEngine::lua_register_classes(lua_State *L, bool http_mode) {
   luaRegister(L, "flow", ntop_flow_reg);
   luaRegister(L, "host", ntop_host_reg);
 
-  if (http_mode) {
+  switch(mode) {
+  case lua_engine_mode_http:
     /* Overload the standard Lua print() with ntop_lua_http_print that dumps
      * data on HTTP server */
     lua_register(L, "print", ntop_lua_http_print);
-  } else {
+    break;
+    
+  case lua_engine_mode_callback:
     lua_register(L, "print", ntop_lua_cli_print);
-  }
+    break;
 
+  case lua_engine_mode_cloud:
+    lua_register(L, "print", ntop_lua_cloud_print);    
+    break;
+  }
+  
 #if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
   if (ntop->getPro()->has_valid_license()) {
     lua_register(L, "ntopRequire", ntop_lua_require);
@@ -531,7 +568,9 @@ static int post_iterator(void *cls,
 /* ****************************************** */
 
 /* Loads a script into the engine from within ntopng (no HTTP GUI). */
-int LuaEngine::load_script(char *script_path, NetworkInterface *iface) {
+int LuaEngine::load_script(char *script_path,
+			   LuaEngineMode mode,
+			   NetworkInterface *iface) {
   int rc = 0;
   bool initialized;
 
@@ -545,7 +584,7 @@ int LuaEngine::load_script(char *script_path, NetworkInterface *iface) {
   try {
     if (!initialized) {
       luaL_openlibs(L);               /* Load base libraries */
-      lua_register_classes(L, false); /* Load custom classes */
+      lua_register_classes(L, mode);  /* Load custom classes */
     } else
       lua_settop(L, lua_gettop(L)); /* Reset the stack */
 
@@ -988,8 +1027,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 
   if (!L) return (-1);
 
-  luaL_openlibs(L);              /* Load base libraries */
-  lua_register_classes(L, true); /* Load custom classes */
+  luaL_openlibs(L);                              /* Load base libraries */
+  lua_register_classes(L, lua_engine_mode_http); /* Load custom classes */
 
   getLuaVMUservalue(L, conn) = conn;
 
@@ -1462,4 +1501,19 @@ void LuaEngine::setThreadedActivityData(const ThreadedActivity *ta,
     cur_ctx->threaded_activity = ta;
     cur_ctx->threaded_activity_stats = tas;
   }
+}
+
+/* ****************************************** */
+
+void LuaEngine::pushResultString(char *str) {
+  cloud_string.append(str);
+}
+
+/* ****************************************** */
+
+void LuaEngine::pushResultNumber(float f) {
+  char buf[32];
+
+  snprintf(buf, sizeof(buf), "%f", f);
+  cloud_string.append(buf);
 }
