@@ -510,14 +510,18 @@ end
 
 -- ##############################################
 
-function getFullVlanName(vlan_id, compact)
+function getFullVlanName(vlan_id, compact, return_untagged)
     local alias = getVlanAlias(vlan_id)
 
     -- In case of vlan 0, return empty string as name
     -- fix for untagged vlan (#7998)
     if tonumber(vlan_id) == 0 then
-        if (isEmptyString(alias)) then
-            return i18n('no_vlan')
+        if (isEmptyString(alias) or alias == '0') then
+
+            if (return_untagged) then
+                return i18n('no_vlan')
+            end
+            return ''
         else 
             if (compact) then
                 alias = shortenString(alias)
