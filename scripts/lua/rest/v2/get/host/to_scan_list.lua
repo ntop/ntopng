@@ -18,7 +18,7 @@ local sort = _GET["sort"]
 
 if (not isEmptyString(search_map)) then
     -- trim search_map string
-    search_map = trimString(search_map)
+    search_map = trimString(search_map):gsub("-",'%%-')
 end
 -- ##################################################################
 
