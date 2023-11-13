@@ -713,7 +713,10 @@ local menu_subpages = { {
     pro_only = false,
     hidden = false,
     entries = {
-
+        ntopng_host_address = {
+            title = i18n("prefs.ntopng_host_address_title"),
+            description = i18n("prefs.ntopng_host_address_description")
+        },
         toggle_date_type = {
             title = i18n("prefs.toggle_date_type_title"),
             description = i18n("prefs.toggle_date_type_description")

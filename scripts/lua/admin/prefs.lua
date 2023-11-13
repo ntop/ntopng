@@ -496,11 +496,25 @@ if auth.has_capability(auth.capabilities.preferences) then
     -- #####################
 
     function printGUI()
+        local ntopng_host_info = ntop.getHostInformation()
+
         print('<form method="post">')
         print('<table class="table">')
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.web_user_interface") ..
                   '</th></tr></thead>')
+
+        prefsInputFieldPrefs(subpage_active.entries["ntopng_host_address"].title,
+            subpage_active.entries["ntopng_host_address"].description,
+            "ntopng.prefs.", "ntopng_host_address",
+            ntopng_host_info.ip or "", -- default
+            false, true, nil, nil, {
+                attributes = {
+                    spellcheck = "false"
+                },
+                required = false
+            })
+
 
         if prefs.is_autologout_enabled == true then
             prefsToggleButton(subpage_active, {
