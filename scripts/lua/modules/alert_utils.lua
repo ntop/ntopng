@@ -33,13 +33,19 @@ local alert_utils = {}
 
 -- ##############################################
 
+-- @brief Return a callback for formatting the alert
+-- @param alert_key The alert type
+-- @param entity_id The alert entity
+-- @return a format callback as defined in alert_definitions whose parameters are:
+-- - ifid
+-- - alert
+-- - alert_json
+-- - local_explorer: true if called by the local alert explorer, false if exported to an endpoint
 local function alertTypeDescription(alert_key, entity_id)
     local alert_id = alert_consts.getAlertType(alert_key, entity_id)
 
-    if (alert_id) then
-        if alert_consts.alert_types[alert_id].format then
-            return alert_consts.alert_types[alert_id].format
-        end
+    if alert_id and alert_consts.alert_types[alert_id].format then
+        return alert_consts.alert_types[alert_id].format
     end
 
     return nil
@@ -307,7 +313,7 @@ end
 
 -- #################################
 
-function alert_utils.formatAlertMessage(ifid, alert, alert_json)
+function alert_utils.formatAlertMessage(ifid, alert, alert_json, local_explorer)
     local msg
 
     if (alert_json == nil) then
@@ -321,7 +327,7 @@ function alert_utils.formatAlertMessage(ifid, alert, alert_json)
         -- localization string
         msg = i18n(description, msg)
     elseif (type(description) == "function") then
-        msg = description(ifid, alert, alert_json)
+        msg = description(ifid, alert, alert_json, local_explorer)
     end
 
     if (type(msg) == "table") then
@@ -366,7 +372,7 @@ end
 
 -- #################################
 
-function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score)
+function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, local_explorer)
     local msg
     local alert_risk
 
@@ -384,7 +390,7 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score)
         -- localization string
         msg = i18n(description, alert_json)
     elseif (type(description) == "function") then
-        msg = description(ifid, alert, alert_json)
+        msg = description(ifid, alert, alert_json, local_explorer)
     end
 
     if isEmptyString(msg) then
