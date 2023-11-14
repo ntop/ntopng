@@ -6641,6 +6641,7 @@ local lang = {
     ["traffic_anomalies_local_hosts"] = "Local Hosts Anomalies",
     ["traffic_anomalies_remote_hosts"] = "Remote Hosts Anomalies",
     ["traffic_report"] = "Traffic Report",
+    ["unable_to_open"] = "Unable to open report (not found)",
     ["use_server_timezone"] = "Use Server Timezone",
   },
   ["rest_consts"] = {

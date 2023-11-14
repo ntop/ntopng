@@ -67,6 +67,13 @@
   </div>
 
   <div ref="report_box" class="row" :key="components">
+
+    <div v-if="warning_message" class="col-sm mt-1">
+      <div class="alert alert-warning">
+        {{ warning_message }}
+      </div>
+    </div>
+
     <template v-for="c in components">
       <Box style="min-width:20rem;"
            :color="c.color"
@@ -178,6 +185,8 @@ const components = ref([]);
 
 const reports_templates = ref([]);
 const selected_report_template = ref({});
+
+const warning_message = ref("");
 
 let components_info = {};
 let data_from_backup = false;
@@ -434,7 +443,12 @@ const load_report = async (content) => {
 const open_report = async (file_name) => {
     let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/file.lua?ifid=${props.context.ifid}&report_name=${file_name}`;
     let content = await ntopng_utility.http_request(url);
-    set_report(content, file_name);
+    if (content) {
+        set_report(content, file_name);
+        warning_message.value = "";
+    } else {
+        warning_message.value = _i18n("report.unable_to_open");
+    }
 }
 
 function update_templates_list(report_name_to_open) {
@@ -580,7 +594,8 @@ function get_time_interval_string(epoch_begin, epoch_end) {
 function set_report_title() {
     const epoch_interval = ntopng_status_manager.get_status(true);
     const time_interval_string = get_time_interval_string(epoch_interval.epoch_begin, epoch_interval.epoch_end);
-    document.title = `ntopng - Report ${selected_report_template.value.label} ${time_interval_string}`;
+    let title = `ntopng - Report ${selected_report_template.value.label} ${time_interval_string}`;
+    document.title = title;
 }
 
 /* Callback to request REST data from components */
