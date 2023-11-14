@@ -645,9 +645,15 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
     enable_stats_table.value = timeseries_groups.map((ts_group) => !ts_group.source_type.disable_stats).reduce((res, el) => res | el, false);
     if (!enable_stats_table.value) { return; }
     const f_get_total_formatter_type = (type) => {
-        if (type == "bps") {
-            return "bytes";
-            // return "bytes_network";
+        let map_type = {
+            "bps": "bytes",
+            "fps": "flows",
+            "alertps": "alerts",
+            "hitss": "hits",
+            "pps": "packets",
+        };
+        if (map_type[type] != null) {
+            return map_type[type];
         }
         return type;
     };
