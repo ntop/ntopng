@@ -150,7 +150,7 @@ local community_timeseries = {{
 }, {
     schema = "top:blacklist:hits",
     id = timeseries_id.blacklist,
-    label = "top " .. i18n('graphs.metric_labels.blacklist_hits'),
+    label = i18n('graphs.metric_labels.top_blacklist_hits'),
     priority = 0,
     measure_unit = "hitss",
     scale = i18n('graphs.metric_labels.blacklist_hits'),

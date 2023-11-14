@@ -3933,6 +3933,7 @@ local lang = {
       ["servers"] = "Servers",
       ["srv_score"] = "Server Score",
       ["throughput"] = "Throughput",
+      ["top_blacklist_hits"] = "Top Blacklist Hits",
       ["traffic"] = "Traffic",
     },
     ["metrics_prefixes"] = {
