@@ -1090,7 +1090,7 @@ local additional_flow_columns = {
    ['THROUGHPUT'] =           { tag = "throughput",   dt_func = dt_format_thpt },
    ['DURATION'] =             { tag = "duration",     dt_func = dt_format_duration },   
    ['IPV4_ADDR'] =            { tag = "ip",           dt_func = dt_format_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_ip },
-   -- ['IPV6_ADDR'] =            { tag = "ip",           dt_func = dt_format_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_ip },
+   ['IPV6_ADDR'] =            { tag = "ip",           dt_func = dt_format_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_ip },
    ['NETWORK_ID'] =           { tag = "network", dt_func = dt_format_network },
    ['ASN'] =                  { tag = "asn", simple_dt_func = simple_format_asn },
    ['COUNTRY_CODE'] =         { tag = "country", dt_func = dt_format_country },
@@ -1188,7 +1188,6 @@ historical_flow_utils.extra_where_tags = {
    ["vlan_id"] = "VLAN_ID",
    ["community_id"] = "COMMUNITY_ID",
    ["duration"] = "DURATION",
-
 }
 
 historical_flow_utils.topk_tags_v4 = {
@@ -1340,7 +1339,7 @@ function historical_flow_utils.get_flow_columns_to_tags(aggregated)
       if v.tag then 
          if not t2c[v.tag] then -- tag not already defined in real columns
             c2t[k] = v.tag
-            t2c[v.tag] = k
+            -- t2c[v.tag] = k
          end
       end
    end

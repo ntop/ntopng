@@ -145,7 +145,7 @@
 		},
 		{
 			"component" : "table",
-			"id" : "top_local_talkers",
+			"id" : "top_local_talkers_historical",
 			"i18n_name" : "report.top_local_hosts",
 			"width" : 4,
 			"height" : 4,
@@ -161,14 +161,14 @@
 				},
 				"table_type" : "db_search",
 				"columns" : [
-					{ "id" : "ip",		  "data_type" : "host",  "i18n_name" : "host_details.host" },
+					{ "id" : "ip",		"data_type" : "host",  "i18n_name" : "host_details.host" },
 					{ "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
 				]
 			}
 		},
 		{
 			"component" : "table",
-			"id" : "top_remote_hosts",
+			"id" : "top_remote_hosts_historical",
 			"i18n_name" : "report.top_remote_hosts",
 			"width" : 4,
 			"height" : 4,
@@ -184,7 +184,7 @@
 				},
 				"table_type" : "db_search",
 				"columns" : [
-					{ "id" : "ip",		  "data_type" : "host",  "i18n_name" : "host_details.host" },
+					{ "id" : "ip",		"data_type" : "host",  "i18n_name" : "host_details.host" },
 					{ "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
 				]
 			}
