@@ -29,40 +29,54 @@
       </div>
     </template>
     <template v-slot:extra_buttons>
-      <button class="btn btn-link btn-sm"
-              type="button"
+      <button class="btn btn-link btn-sm" type="button"
               @click="show_store_report_modal" :title="_i18n('dashboard.store')">
         <i class="fa-solid fa-floppy-disk"></i>
       </button>
-      <button class="btn btn-link btn-sm"
-              type="button"
+      <button class="btn btn-link btn-sm" type="button"
               @click="show_open_report_modal" :title="_i18n('dashboard.open')">
         <i class="fa-solid fa-folder-open"></i>
       </button>
-      <button class="btn btn-link btn-sm"
-              type="button"
+      <button class="btn btn-link btn-sm" type="button"
               @click="download_report" :title="_i18n('download')">
         <i class="fa-solid fa-file-arrow-down"></i>
       </button>
-      <button class="btn btn-link btn-sm"
-              type="button"
+      <button class="btn btn-link btn-sm" type="button"
               @click="show_upload_report_modal" :title="_i18n('upload')">
         <i class="fa-solid fa-file-arrow-up"></i>
       </button>
-      <button class="btn btn-link btn-sm"
-              type="button"
+      <button class="btn btn-link btn-sm" type="button"
               @click="print_report" :title="_i18n('dashboard.print')">
         <i class="fas fa-print"></i>
       </button>
     </template>
   </DateTimeRangePicker>
-  
+ 
   <div v-if="enable_report_title" class="mt-3" style="margin-bottom:-0.5rem; display: inline">
     <h3 style="text-align:center;">{{report_title}}
-      <button v-if="enable_small_picker" class="btn btn-link btn-sm" type="button"
-            @click="print_report" :title="_i18n('dashboard.print')">
-        <i class="fas fa-print"></i>
-      </button>
+      <span v-if="enable_small_picker">
+        <template v-if="enable_small_picker_actions">
+        <button class="btn btn-link btn-sm"
+                type="button"
+                @click="show_open_report_modal" :title="_i18n('dashboard.open')">
+          <i class="fa-solid fa-folder-open"></i>
+        </button>
+        <button class="btn btn-link btn-sm"
+                type="button"
+                @click="download_report" :title="_i18n('download')">
+          <i class="fa-solid fa-file-arrow-down"></i>
+        </button>
+        <button class="btn btn-link btn-sm"
+                type="button"
+                @click="show_upload_report_modal" :title="_i18n('upload')">
+          <i class="fa-solid fa-file-arrow-up"></i>
+        </button>
+        </template>
+        <button class="btn btn-link btn-sm" type="button"
+                @click="print_report" :title="_i18n('dashboard.print')">
+          <i class="fas fa-print"></i>
+        </button>
+      </span>
     </h3>
   </div>
 
@@ -193,11 +207,16 @@ let data_from_backup = false;
 let printable = false;
 
 const enable_date_time_range_picker = computed(() => {
-    return props.context.page == "report" && !printable;
+    return props.context.page == "report"
+           && !printable;
 });
 
 const enable_small_picker = computed(() => {
     return props.context.page == "vs-report";
+});
+
+const enable_small_picker_actions = computed(() => {
+    return false; //TODO
 });
 
 const disable_date = computed(() => {
@@ -384,7 +403,12 @@ function show_upload_report_modal() {
 }
 
 function get_suggested_report_name() {
-    return "report-" + ntopng_utility.from_utc_to_server_date_format(main_epoch_interval.value.epoch_end * 1000, 'DD-MM-YYYY');
+    let name = "report";
+    if (main_epoch_interval.value && 
+        main_epoch_interval.value.epoch_end) {
+        name += "-" + ntopng_utility.from_utc_to_server_date_format(main_epoch_interval.value.epoch_end * 1000, 'DD-MM-YYYY');
+    }
+    return name;
 }
 
 const upload_report = async (content_string) => {
@@ -506,11 +530,16 @@ const serialize_report = async (name) => {
     let content = {
         version: "1.0", // Report dump version
         name: name,
-        epoch_begin: main_epoch_interval.value.epoch_begin,
-        epoch_end: main_epoch_interval.value.epoch_end,
         template: components.value,
         data: components_data
     };
+
+    if (main_epoch_interval.value &&
+        main_epoch_interval.value.epoch_begin &&
+        main_epoch_interval.value.epoch_end) {
+        content.epoch_begin = main_epoch_interval.value.epoch_begin;
+        content.epoch_end = main_epoch_interval.value.epoch_end;
+    }
     
     return JSON.stringify(content);
 }
