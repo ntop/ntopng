@@ -216,7 +216,7 @@ const enable_small_picker = computed(() => {
 });
 
 const enable_small_picker_actions = computed(() => {
-    return false; //TODO
+    return true; // Set to false for hiding open/save actions in the small picker
 });
 
 const disable_date = computed(() => {
@@ -425,7 +425,7 @@ function set_report(content, name) {
 }
 
 const list_reports = async () => {
-    let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/list.lua?ifid=${props.context.ifid}`;
+    let url = `${props.context.report_list_endpoint}?ifid=${props.context.ifid}`;
     let files_obj = await ntopng_utility.http_request(url);
     let files = ntopng_utility.object_to_array(files_obj);
     
@@ -465,7 +465,7 @@ const load_report = async (content) => {
 }
 
 const open_report = async (file_name) => {
-    let url = `${http_prefix}/lua/pro/rest/v2/get/report/backup/file.lua?ifid=${props.context.ifid}&report_name=${file_name}`;
+    let url = `${props.context.report_open_endpoint}?ifid=${props.context.ifid}&report_name=${file_name}`;
     let content = await ntopng_utility.http_request(url);
     if (content) {
         set_report(content, file_name);
@@ -505,7 +505,7 @@ const delete_report = async (file_name) => {
     	report_name: file_name
     };
     
-    let url = `${http_prefix}/lua/pro/rest/v2/delete/report/backup/file.lua`;
+    let url = `${props.context.report_delete_endpoint}`;
     try {
     	let headers = {
     	    'Content-Type': 'application/json'
@@ -554,7 +554,7 @@ const store_report = async (file_name) => {
         content: await serialize_report(file_name)
     };
     
-    let url = `${http_prefix}/lua/pro/rest/v2/add/report/backup/file.lua`;
+    let url = `${props.context.report_store_endpoint}`;
     try {
 	let headers = {
 	    'Content-Type': 'application/json'
