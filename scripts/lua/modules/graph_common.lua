@@ -1,11 +1,12 @@
 --
--- (C) 2020 - ntop.org
+-- (C) 2020-22 - ntop.org
 --
 
 -- Module for sharred methods between community graph_utils.lua
 -- and pro/enterprise nv_graph_utils.lua
 
 local ts_utils = require("ts_utils")
+local dscp_consts = require("dscp_consts")
 local have_nedge = ntop.isnEdge()
 
 -- ##############################################
@@ -30,7 +31,7 @@ graph_common.zoom_vals = {
     --{ "6M",  "now-6mon", 60*60*24*31*6},
     { "1Y",  "now-1y",   60*60*24*366}
  }
- 
+
  -- ##############################################
 
 function graph_common.getZoomDuration(cur_zoom)
@@ -39,10 +40,10 @@ function graph_common.getZoomDuration(cur_zoom)
       return(graph_common.zoom_vals[k][3])
        end
     end
- 
+
     return(180)
  end
- 
+
  -- ##############################################
 
  function graph_common.getZoomAtPos(cur_zoom, pos_offset)
@@ -59,7 +60,7 @@ function graph_common.getZoomDuration(cur_zoom)
     end
     return new_zoom_level
   end
-  
+
  -- ##############################################
 
 local graph_menu_entries = {}
@@ -134,19 +135,18 @@ end
 
 function graph_common.graphMenuGetActive(schema, params)
    -- These tags are used to determine the active timeseries entry
-   local match_tags = {ts_schema=1, ts_query=1, protocol=1, category=1, snmp_port_idx=1, exporter_ifname=1, l4proto=1, command=1}
-
+   local match_tags = {ts_schema=1, ts_query=1, protocol=1, category=1, snmp_port_idx=1, exporter_ifname=1, l4proto=1, command=1, dscp_class=1}
    for _, entry in pairs(graph_menu_entries) do
       local extra_params = entry.extra_params or {}
 
       if entry.schema == schema and entry.params then
-	 for k, v in pairs(params) do
-	    if (match_tags[k] or extra_params[k]) and tostring(entry.params[k]) ~= tostring(v) then
-	       goto continue
-	    end
-	 end
+      	for k, v in pairs(params) do
+      	   if (match_tags[k] or extra_params[k]) and (entry.params[k]) and (tostring(entry.params[k]) ~= tostring(v)) then
+      	      goto continue
+      	   end
+      	end
 
-	 return entry
+	      return entry
       end
 
       ::continue::
@@ -221,14 +221,78 @@ end
 
 -- Prints the menu from the populated graph_menu_entries.
 -- The entry_print_callback is called to print the actual entries.
-function graph_common.printGraphMenuEntries(entry_print_callback, active_entry, start_time, end_time)
+function graph_common.printGraphMenuEntries(entry_print_callback, active_entry, start_time, end_time, light_config)
    local active_entries = {}
    local active_idx = 1 -- index in active_entries
-   local needs_separator = false
-   local separator_label = nil
    local tdiff = (end_time - start_time)
 
+   -- Sort entries based on label, preserving groups
+   local graph_menu_entries_sorted = {}
+   local sort_table = {}
+   local needs_separator = false
+   local separator_label = nil
+   local first
+
    for _, entry in ipairs(graph_menu_entries) do
+     if entry.needs_separator 
+        or entry.label == nil -- divider
+     then
+       -- sort group
+       first = true
+       for k,v in pairsByKeys(sort_table) do
+         if first then
+           v.needs_separator = needs_separator
+           v.separator_label = separator_label
+           first = false
+         end
+         graph_menu_entries_sorted[#graph_menu_entries_sorted+1] = v
+       end
+
+       -- backup group separator, if any
+       needs_separator = entry.needs_separator or false
+       separator_label = entry.separator_label
+       -- reset group separator on this item
+       entry.needs_separator = false
+       entry.separator_label = nil
+
+       -- append
+       sort_table = {}
+       if entry.label == nil then -- divider
+         graph_menu_entries_sorted[#graph_menu_entries_sorted+1] = entry
+       else
+         sort_table[entry.label] = entry
+       end
+     else
+       -- append
+       sort_table[entry.label] = entry
+     end
+   end
+   -- sort group
+   first = true
+   for k,v in pairsByKeys(sort_table) do
+      if (light_config == true) 
+         and (v["params"]["host"])
+         and (v["params"]["dscp_class"]) then
+            graph_menu_entries_sorted[#graph_menu_entries_sorted] = nil
+            v["pending"] = 1 -- Skip the record
+            goto continue
+      end
+
+      if first then
+         v.needs_separator = needs_separator
+         v.separator_label = separator_label
+         first = false
+      end
+      ::continue::
+
+      graph_menu_entries_sorted[#graph_menu_entries_sorted+1] = v
+   end
+
+   -- Print entries
+   needs_separator = false
+   separator_label = nil
+   for _, entry in ipairs(graph_menu_entries_sorted) do
+
       if active_idx ~= 1 then
 	 needs_separator = needs_separator or entry.needs_separator
 	 separator_label = separator_label or entry.separator_label
@@ -258,7 +322,7 @@ function graph_common.printGraphMenuEntries(entry_print_callback, active_entry, 
       end
 
       if entry.html then
-	 print(entry.html)
+	   print(entry.html)
       else
 	 entry_print_callback(active_idx, entry)
 	 active_entries[#active_entries + 1] = entry
@@ -414,6 +478,38 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
       ::continue::
    end
 
+   -- DSCP
+   if options.dscp_classes then
+      local schema = options.dscp_classes
+      -- table.clone needed as dscp_tags is modified below
+      local dscp_tags = table.clone(tags)
+      dscp_tags.dscp_class = nil
+
+      local series = ts_utils.listSeries(schema, dscp_tags, start_time)
+
+      if not table.empty(series) then
+	 graph_common.graphMenuDivider()
+	 graph_common.graphMenuHeader(i18n("dscp"))
+
+	 local by_class = {}
+	 for _, serie in pairs(series) do
+	    local sortkey = serie.dscp_class
+
+	    if sortkey == "unknown" then
+	       -- place at the end
+	       sortkey = "z" .. sortkey
+	    end
+
+	    by_class[sortkey] = serie.dscp_class
+	 end
+
+	 for _, class in pairsByKeys(by_class, asc) do
+	    local label = dscp_consts.ds_class_descr(class)
+	    graph_common.populateGraphMenuEntry(label, base_url, table.merge(params, {ts_schema=schema, dscp_class=class}))
+	 end
+      end
+   end
+
    -- nDPI applications
    if options.top_protocols then
       local schema = split(options.top_protocols, "top:")[2]
@@ -433,7 +529,7 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
 	    by_protocol[serie.protocol] = 1
 	 end
 
-	 for protocol in pairsByKeys(by_protocol, asc) do
+	 for protocol in pairsByKeys(by_protocol, asc_insensitive) do
 	    local proto_id = protocol
 	    graph_common.populateGraphMenuEntry(protocol, base_url, table.merge(params, {ts_schema=schema, protocol=proto_id}))
 	 end
@@ -466,7 +562,7 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
 	    by_protocol[sortkey] = serie.l4proto
 	 end
 
-	 for _, protocol in pairsByKeys(by_protocol, asc) do
+	 for _, protocol in pairsByKeys(by_protocol, asc_insensitive) do
 	    local proto_id = protocol
 	    local label
 
@@ -496,10 +592,10 @@ function graph_common.printSeries(options, tags, start_time, end_time, base_url,
 	 local by_category = {}
 
 	 for _, serie in pairs(series) do
-	    by_category[getCategoryLabel(serie.category)] = serie.category
+	    by_category[getCategoryLabel(serie.category, interface.getnDPICategoryId(serie.category))] = serie.category
 	 end
 
-	 for label, category in pairsByKeys(by_category, asc) do
+	 for label, category in pairsByKeys(by_category, asc_insensitive) do
 	    graph_common.populateGraphMenuEntry(label, base_url, table.merge(params, {ts_schema=schema, category=category}))
 	 end
       end
@@ -537,6 +633,11 @@ local locally_defined_custom_schemas = {
       axis = {1,2,2},
       exclude = {virtual_bytes=1},
       tags_override = {{ifid=getSystemInterfaceId()},},
+   }, ["custom:score_vs_flows_hosts"] = {
+      bases = {"iface:score", "iface:flows", "iface:hosts"},
+      types = {"line", "bar", "bar"},
+      axis = {1,2,2},
+      exclude = {virtual_bytes=1},
    }, ["custom:snmp_traffic_vs_errors"] = {
       bases = {"snmp_if:traffic", "snmp_if:errors"},
       types = {"line", "bar"},
@@ -561,29 +662,25 @@ local locally_defined_custom_schemas = {
       bases = {"flow_script:skipped_calls", "flow_script:pending_calls", "flow_script:successful_calls"},
       types = {"area", "area", "line"},
       axis = {1, 1, 1},
-   }, ["custom:flow_user_script:vs_total"] = {
-      bases = {"flow_user_script:duration", "flow_user_script:total_stats", "flow_user_script:num_calls"},
+   }, ["custom:flow_check:vs_total"] = {
+      bases = {"flow_check:duration", "flow_check:total_stats", "flow_check:num_calls"},
       types = {"line", "line", "bar"},
       axis = {1, 1, 2},
-      tags_ignore = {nil, {user_script=1}},
+      tags_ignore = {nil, {check=1}},
       exclude = {nil, {num_calls=1}},
-   }, ["custom:elem_user_script:vs_total"] = {
-      bases = {"elem_user_script:duration", "elem_user_script:total_stats", "elem_user_script:num_calls"},
+   }, ["custom:elem_check:vs_total"] = {
+      bases = {"elem_check:duration", "elem_check:total_stats", "elem_check:num_calls"},
       types = {"line", "line", "bar"},
       axis = {1, 1, 2},
-      tags_ignore = {nil, {user_script=1}},
+      tags_ignore = {nil, {check=1}},
       exclude = {nil, {num_calls=1}},
-   }, ["custom:flow_user_script:total_stats"] = {
-      bases = {"flow_user_script:total_stats"},
+   }, ["custom:flow_check:total_stats"] = {
+      bases = {"flow_check:total_stats"},
       types = {"line"},
       axis = {1},
-      tags_ignore = {nil, {user_script=1}},
+      tags_ignore = {nil, {check=1}},
       exclude = {num_calls=1},
-   }, ["custom:flow_misbehaving_vs_alerted"] = {
-      bases = {"iface:misbehaving_flows", "iface:alerted_flows"},
-      types = {"line", "line"},
-      axis = {1,1},
-   }
+   },
 }
 
 -- ##############################################

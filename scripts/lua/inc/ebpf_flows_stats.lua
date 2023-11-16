@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -16,7 +16,7 @@ local have_nedge = ntop.isnEdge()
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.flows)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.flows)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -32,13 +32,13 @@ local ipversion = _GET["version"]
 local vlan = _GET["vlan"]
 local l4proto = _GET["l4proto"]
 
--- remote exporters address and interfaces
+-- remote probes address and interfaces
 local deviceIP = _GET["deviceIP"]
 local inIfIdx  = _GET["inIfIdx"]
 local outIfIdx = _GET["outIfIdx"]
 
 local traffic_type = _GET["traffic_type"]
-local flow_status = _GET["flow_status"]
+local alert_type = _GET["alert_type"]
 local tcp_state   = _GET["tcp_flow_state"]
 local port = _GET["port"]
 local container = _GET["container"]
@@ -55,7 +55,7 @@ local ifstats = interface.getStats()
 local ndpistats = interface.getActiveFlowsStats()
 
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
-local page_params = {}
+local page_params = { ifid = interface.getId() }
 
 if (page == "flows" or page == nil) then
 
@@ -115,8 +115,8 @@ if(traffic_type ~= nil) then
    page_params["traffic_type"] = traffic_type
 end
 
-if(flow_status ~= nil) then
-   page_params["flow_status"] = flow_status
+if(alert_type ~= nil) then
+   page_params["alert_type"] = alert_type
 end
 
 if(tcp_state ~= nil) then

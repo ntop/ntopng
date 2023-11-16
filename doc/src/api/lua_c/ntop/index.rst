@@ -1,5 +1,5 @@
-ntop
-====
+ntop Lua Object
+===============
 
 The ntop object exposes global utility functions which are not bound to a specific
 network interface.

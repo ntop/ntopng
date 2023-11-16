@@ -1,11 +1,11 @@
-Lua C API
+Lua API
 =========
 
-The ntopng core provides a Lua C API to interact with it. The API is internally used
-by periodic scripts and gui scripts to extract information or to apply configuration
+The ntopng core provides a LuaAPI to interact with it. The API is internally used
+by periodic scripts and GUI scripts to extract information or to apply configuration
 changes.
 
-Custom user scripts can use the API, for example, to provide new data visualizations
+Custom checks can use the API, for example, to provide new data visualizations
 or extract the data to send it to an external program.
 
 Since some API functions can return very complex objects, which will not be covered here,
@@ -28,7 +28,7 @@ so it's available through the interface object API via `interface.getFlowsInfo()
 
     ntop/index
     interface/index
-    flow_user_scripts/index
-    interface_user_scripts/index
-    host_user_scripts/index
-    network_user_scripts/index
+    host_checks/index
+    flow_checks/index
+    interface_checks/index
+    network_checks/index

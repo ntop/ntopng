@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -34,36 +34,31 @@ class MDNS {
   u_int32_t gatewayIPv4;
   bool sentAnyQuery;
   pthread_t resolverCheck;
-  
-  u_int16_t buildMDNSRequest(char *query, u_int8_t query_type,
-			     char *mdnsbuf, u_int mdnsbuf_len,
-			     u_int16_t tid);
+
+  u_int16_t buildMDNSRequest(char *query, u_int8_t query_type, char *mdnsbuf,
+                             u_int mdnsbuf_len, u_int16_t tid);
 
   u_int16_t prepareIPv4ResolveQuery(u_int32_t ipv4addr /* network byte order */,
-				    char *mdnsbuf, u_int mdnsbuf_len,
-				    u_int16_t tid = 0);
+                                    char *mdnsbuf, u_int mdnsbuf_len,
+                                    u_int16_t tid = 0);
   u_int16_t prepareAnyQuery(char *query, char *mdnsbuf, u_int mdnsbuf_len,
-			    u_int16_t tid = 0);
-  char* decodePTRResponse(char *mdnsbuf, u_int mdnsbuf_len,
-			  char *buf, u_int buf_len,
-			  u_int32_t *resolved_ip);
-  char* decodeAnyResponse(char *mdnsbuf, u_int mdnsbuf_len,
-			  char *buf, u_int buf_len);
-  char* decodeNetBIOS(u_char *buf, u_int buf_len, char *out, u_int out_len);
-  
-public:
+                            u_int16_t tid = 0);
+  char *decodePTRResponse(char *mdnsbuf, u_int mdnsbuf_len, char *buf,
+                          u_int buf_len, u_int32_t *resolved_ip);
+  char *decodeAnyResponse(char *mdnsbuf, u_int mdnsbuf_len, char *buf,
+                          u_int buf_len);
+  char *decodeNetBIOS(u_char *buf, u_int buf_len, char *out, u_int out_len);
+
+ public:
   MDNS(NetworkInterface *iface);
   ~MDNS();
 
   void initializeResolver();
-    
+
   /* Batch interface (via Lua) */
   bool sendAnyQuery(char *targetIPv4, char *query);
   bool queueResolveIPv4(u_int32_t ipv4addr, bool alsoUseGatewayDNS);
-  void fetchResolveResponses(lua_State* vm, int32_t timeout_sec);  
-  
-  /* Resolve the IPv4 immediately discarding */
-  char* resolveIPv4(u_int32_t ipv4addr /* network byte order */, char *buf, u_int buf_len, u_int timeout_sec);
+  void fetchResolveResponses(lua_State *vm, int32_t timeout_sec);
 };
 
 #endif /* _MDNS_H_ */

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,21 +24,42 @@
 
 #include "ntop_includes.h"
 
+template <typename T>
 class Bitmap {
-private:
-  u_int64_t bitmap; /* Sync with BITMAP_NUM_BITS */
+ private:
+  T bitmap;
 
-public:
+ public:
   Bitmap() { reset(); }
 
-  inline void reset()                       { bitmap = 0; }
-  inline void setBit(u_int8_t id)           { bitmap = Utils::bitmapSet(bitmap, id);  }
-  inline void clearBit(u_int8_t id)         { bitmap = Utils::bitmapClear(bitmap, id);}
-  inline bool issetBit(u_int8_t id) const   { return(Utils::bitmapIsSet(bitmap, id)); }
-  inline void bitmapOr(Bitmap b)            { bitmap |= b.bitmap;                     }
-  inline u_int64_t get() const              { return(bitmap);                         }
-  inline void set(Bitmap *b)                { bitmap = b->bitmap;                     }
-  inline bool equal(Bitmap *b) const        { return((bitmap == b->bitmap) ? true : false); }
+  static inline u_int numBits() { return sizeof(bitmap) * 8; };
+  inline void reset() { bitmap = 0; };
+  inline void setBit(u_int8_t id) { bitmap |= ((T)1) << id; };
+  inline void clearBit(u_int8_t id) { bitmap &= ~(((T)1) << id); };
+  inline bool isSetBit(u_int8_t id) const {
+    return (((bitmap >> id) & 1) ? true : false);
+  };
+  inline void bitmapOr(const Bitmap b) { bitmap |= b.bitmap; };
+  inline void set(const Bitmap *b) { bitmap = b->bitmap; };
+  inline bool equal(const Bitmap *b) const { return bitmap == b->bitmap; };
+
+  void lua(lua_State *vm, const char *label) const {
+    lua_newtable(vm);
+
+    for (u_int i = 0; i < numBits(); i++) {
+      if (isSetBit(i)) {
+        lua_pushboolean(vm, true); /* The boolean indicating this risk is set */
+        lua_pushinteger(
+            vm, i); /* The integer risk id, used as key of this lua table */
+        lua_insert(vm, -2);
+        lua_settable(vm, -3);
+      }
+    }
+
+    lua_pushstring(vm, label);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  };
 };
 
 #endif /* _BITMAP_H_ */

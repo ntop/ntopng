@@ -78,9 +78,6 @@ class Checker(object):
         self.timeout = timeout
         self.verbose = verbose
 
-        if self.verbose:
-            print('[%s:%u][ifid: %u][ntopng auth: %s/%s][ssl: %u][unsecure: %u][timeout: %u]' % (self.host, self.port, self.ifid, self.user, self.secret, self.use_ssl, self.unsecure, self.timeout))
-
     def check_url(self, ifid, checked_host, check_type):
         """
         Requests

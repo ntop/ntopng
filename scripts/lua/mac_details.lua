@@ -1,19 +1,22 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
+local snmp_utils
+local snmp_location
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-   require "snmp_utils"
+   snmp_utils = require "snmp_utils"
+   snmp_location = require "snmp_location"
 end
 
 require "lua_utils"
 local graph_utils = require "graph_utils"
 local alert_utils = require "alert_utils"
-require "historical_utils"
 require "discover_utils"
 require "mac_utils"
 
@@ -24,7 +27,7 @@ local have_nedge = ntop.isnEdge()
 local info = ntop.getInfo()
 local os_utils = require "os_utils"
 local discover = require "discover_utils"
-local host_pools_utils = require "host_pools_utils"
+local host_pools = require "host_pools"
 local template = require "template_utils"
 local page        = _GET["page"]
 local host_info = url2hostinfo(_GET)
@@ -33,6 +36,9 @@ local mac         = host_info["host"]
 local pool_id
 
 interface.select(ifname)
+
+-- Instantiate host pools
+local host_pools_instance = host_pools:create()
 
 local ifstats = interface.getStats()
 local ifId = ifstats.id
@@ -44,24 +50,21 @@ if isAdministrator() then
 
       local devtype = tonumber(_POST["device_type"])
       setCustomDeviceType(mac, devtype)
-      interface.setMacDeviceType(mac, devtype, true --[[ overwrite ]])
+      ntop.setMacDeviceType(mac, devtype, true --[[ overwrite ]])
 
       pool_id = _POST["pool"]
-      local prev_pool = host_pools_utils.getMacPool(mac)
-
-      if pool_id ~= prev_pool then
-         local key = mac
-         if not host_pools_utils.changeMemberPool(ifId, key, pool_id) then
-            pool_id = nil
-         else
-            interface.reloadHostPools()
-         end
-      end
+      host_pools_instance:bind_member(mac, tonumber(pool_id))
    end
 end
 
 if (pool_id == nil) then
-   pool_id = host_pools_utils.getMacPool(mac)
+   local cur_pool = host_pools_instance:get_pool_by_member(mac)
+
+   if cur_pool then
+      pool_id = cur_pool["pool_id"]
+   else
+      pool_id = host_pools_instance.DEFAULT_POOL_ID
+   end
 end
 
 local vlanId      = host_info["vlan"]
@@ -74,21 +77,22 @@ if(vlanId == nil) then vlanId = 0 end
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.devices)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.devices)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 if(mac == nil) then
-   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png>" .. " " .. i18n("mac_details.mac_parameter_missing_message") .. "</div>")
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i>" .. " " .. i18n("mac_details.mac_parameter_missing_message") .. "</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
    return
 end
 
 if isAdministrator() then
    if _POST["action"] == "reset_stats" then
       if interface.resetMacStats(mac) then
-         print("<div class=\"alert alert alert-success\">")
-         print[[<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>]]
+         print("<div class=\"alert alert alert-dismissable alert-success\">")
          print(i18n("mac_details.reset_stats_in_progress"))
+         print([[<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>]])
          print("</div>")
       end
    end
@@ -99,16 +103,18 @@ local mac_info = interface.getMacInfo(mac)
 -- tprint(mac_info)
 
 local only_historical = (mac_info == nil) and (page == "historical")
-
+local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. ifId .. ".serialize_local_broadcast_hosts_as_macs")) == "1"
+local historical_flow_link = ntop.getHttpPrefix() .. "/lua/db_search.lua?ifid=" .. ifId .. ";eq&mac=" .. mac ..
+                                     ";eq"
 if(mac_info == nil) and not only_historical then
-   print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle fa-lg"></i>'..' '..i18n("mac_details.mac_cannot_be_found_message",{mac=mac}))
+   print('<div class=\"alert alert-danger\"><i class="fas fa-exclamation-triangle fa-lg fa-ntopng-warning"></i>'..' '..i18n("mac_details.mac_cannot_be_found_message",{mac=mac}))
    print("</div>")
    dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
    return
 end
 
 local url = ntop.getHttpPrefix().."/lua/mac_details.lua?"..hostinfo2url(host_info)
-local has_snmp_location = info["version.enterprise_edition"] and host_has_snmp_location(mac)
+local has_snmp_location = snmp_location and snmp_location.host_has_snmp_location(mac)
 local title = i18n("mac_details.mac")..": "..mac
 
 page_utils.print_navbar(title, url,
@@ -132,11 +138,18 @@ page_utils.print_navbar(title, url,
 			      label = i18n("host_details.snmp"),
 			   },
 			   {
-			      hidden = not areMacsTimeseriesEnabled(ifId),
+			      hidden = not areMacsTimeseriesEnabled(ifId) and not serialize_by_mac,
 			      active = page == "historical",
 			      page_name = "historical",
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
+            {
+               hidden = not prefs.is_dump_flows_to_clickhouse_enabled,
+               active = page == "db_search",
+               page_name = "db_search",
+               label = "<i class=\"fas fa-search-plus\" title='" .. i18n("db_explorer.historical_data_explorer") .. "'\"></i>",
+               url = historical_flow_link
+            },
 			   {
 			      hidden = not isAdministrator() or interface.isPcapDumpInterface(),
 			      active = page == "config",
@@ -190,7 +203,7 @@ if((page == "overview") or (page == nil)) then
    end
 
    if has_snmp_location then
-      print_host_snmp_location(mac, url .. [[&page=snmp]])
+      snmp_location.print_host_snmp_location(mac, url .. [[&page=snmp]])
    end
 
    print("<tr><th>"..i18n("name").."</th><td><span id=name>"..label.."</span>")
@@ -206,14 +219,14 @@ if((page == "overview") or (page == nil)) then
 
    print[[<span>]] print(i18n(ternary(have_nedge, "nedge.user", "details.host_pool"))..": ")
    if not ifstats.isView then
-      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, pool_id)) print[[</a></span>]]
+      print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(pool_id) print[[">]] print(host_pools_instance:get_pool_name(pool_id)) print[[</a></span>]]
          if isAdministrator() then
           print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/mac_details.lua?]] print(hostinfo2url(mac_info)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
           print[[<i class="fas fa-sm fa-cog" aria-hidden="true"></i></a></span>]]
          end
       else
         -- no link for view interfaces
-        print(host_pools_utils.getPoolName(ifId, pool_id))
+        print(host_pools_instance:get_pool_name(pool_id))
       end
       print("</td></tr>")
 
@@ -250,9 +263,9 @@ if((page == "overview") or (page == nil)) then
       print("</td></tr>\n")
    end
 
-   local first_observed = ntop.getHashCache(getFirstSeenDevicesHashKey(ifId), mac_info["mac"])
+   local first_observed = ntop.getHashCache(getDevicesHashMapKey(ifId), mac_info["mac"])
 
-   if(not isEmptyString(first_observed)) then
+   if(not isEmptyString(first_observed)) and (tonumber(first_observed)) then
       print("<tr><th>" .. i18n("details.first_observed_on") .. "</th><td colspan=2>")
       print(formatEpoch(first_observed))
       print("</td></tr>\n")
@@ -268,6 +281,8 @@ if((page == "overview") or (page == nil)) then
    end
 
    print("<tr><th>" .. i18n("details.traffic_sent_received") .. "</th><td><span id=pkts_sent>" .. formatPackets(mac_info["packets.sent"]) .. "</span> / <span id=bytes_sent>".. bytesToSize(mac_info["bytes.sent"]) .. "</span> <span id=sent_trend></span></td><td><span id=pkts_rcvd>" .. formatPackets(mac_info["packets.rcvd"]) .. "</span> / <span id=bytes_rcvd>".. bytesToSize(mac_info["bytes.rcvd"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
+
+   print("<tr><th>" .. i18n("details.dhcp_sent_received") .. "</th><td><span id=dhcp_sent>" .. formatPackets(mac_info["dhcp.sent"]) .. "</span> <span id=dhcp_sent_trend></span></td><td><span id=dhcp_pkts_rcvd>" .. formatPackets(mac_info["dhcp.rcvd"]) .. "</span> <span id=dhcp_rcvd_trend></span></td></tr>\n")
 
 if not have_nedge then
    print([[
@@ -309,6 +324,9 @@ end
    print("var last_pkts_sent = " .. mac_info["packets.sent"] .. ";\n")
    print("var last_pkts_rcvd = " .. mac_info["packets.rcvd"] .. ";\n")
 
+   print("var last_dhcp_pkts_sent = " .. mac_info["dhcp.sent"] .. ";\n")
+   print("var last_dhcp_pkts_rcvd = " .. mac_info["dhcp.rcvd"] .. ";\n")
+
    print [[
 
 var host_details_interval = window.setInterval(function() {
@@ -320,21 +338,33 @@ var host_details_interval = window.setInterval(function() {
     /* error: function(content) { alert("]] print(i18n("mac_details.json_error_inactive", {product=info["product"]})) print[["); }, */
     success: function(content) {
       var host = jQuery.parseJSON(content);
-      $('#first_seen').html(epoch2Seen(host["seen.first"]));
-      $('#last_seen').html(epoch2Seen(host["seen.last"]));
-      $('#pkts_sent').html(formatPackets(host["packets.sent"]));
-      $('#pkts_rcvd').html(formatPackets(host["packets.rcvd"]));
-      $('#bytes_sent').html(bytesToVolume(host["bytes.sent"]));
-      $('#bytes_rcvd').html(bytesToVolume(host["bytes.rcvd"]));
-      $('#arp_requests_sent').html(addCommas(host["arp_requests.sent"]));
-      $('#arp_requests_rcvd').html(addCommas(host["arp_requests.rcvd"]));
-      $('#arp_replies_sent').html(addCommas(host["arp_replies.sent"]));
-      $('#arp_replies_rcvd').html(addCommas(host["arp_replies.rcvd"]));
+      $('#first_seen').html(NtopUtils.epoch2Seen(host["seen.first"]));
+      $('#last_seen').html(NtopUtils.epoch2Seen(host["seen.last"]));
+      $('#pkts_sent').html(NtopUtils.formatPackets(host["packets.sent"]));
+      $('#pkts_rcvd').html(NtopUtils.formatPackets(host["packets.rcvd"]));
+      $('#dhcp_pkts_sent').html(NtopUtils.formatPackets(host["dhcp.sent"]));
+      $('#dhcp_pkts_rcvd').html(NtopUtils.formatPackets(host["dhcp.rcvd"]));
+      $('#bytes_sent').html(NtopUtils.bytesToVolume(host["bytes.sent"]));
+      $('#bytes_rcvd').html(NtopUtils.bytesToVolume(host["bytes.rcvd"]));
+      $('#arp_requests_sent').html(NtopUtils.addCommas(host["arp_requests.sent"]));
+      $('#arp_requests_rcvd').html(NtopUtils.addCommas(host["arp_requests.rcvd"]));
+      $('#arp_replies_sent').html(NtopUtils.addCommas(host["arp_replies.sent"]));
+      $('#arp_replies_rcvd').html(NtopUtils.addCommas(host["arp_replies.rcvd"]));
+
+     $('#sent_trend').html(NtopUtils.drawTrend(host["packets.sent"], last_pkts_sent, " style=\"color: #B94A48;\""));
+     $('#rcvd_trend').html(NtopUtils.drawTrend(host["packets.rcvd"], last_pkts_rcvd, " style=\"color: #B94A48;\""));
+     $('#dhcp_sent_trend').html(NtopUtils.drawTrend(host["dhcp.sent"], last_dhcp_pkts_sent, " style=\"color: #B94A48;\""));
+     $('#dhcp_rcvd_trend').html(NtopUtils.drawTrend(host["dhcp.rcvd"], last_dhcp_pkts_rcvd, " style=\"color: #B94A48;\""));
+
+     last_pkts_sent = host["packets.sent"];
+     last_pkts_rcvd = host["packets.rcvd"];
+     last_dhcp_pkts_sent = host["dhcp.sent"];
+     last_dhcp_pkts_rcvd = host["dhcp.rcvd"];
 ]]
    if interface.isBridgeInterface(ifstats) then
 print[[
       if(host["flows.dropped"] > 0) {
-        $('#bridge_dropped_flows').html(addCommas(host["flows.dropped"]));
+        $('#bridge_dropped_flows').html(NtopUtils.addCommas(host["flows.dropped"]));
 
         $('#bridge_dropped_flows_tr').show();
       } else {
@@ -357,7 +387,7 @@ elseif(page == "packets") then
    print[[</table>
 
    <script type='text/javascript'>
-    var refresh = ]] print(getInterfaceRefreshRate(ifstats.id)) print[[ * 1000; /* ms */;
+    var refresh = ]] print(interface.getStatsUpdateFreq(ifstats.id)) print[[ * 1000; /* ms */;
 
 	 window.onload=function() {
        do_pie("#ipverDistro", ']]
@@ -368,28 +398,13 @@ elseif(page == "packets") then
    };
    </script>]]
 
-elseif(page == "snmp") then
+elseif(page == "snmp" and has_snmp_location) then
    print[[<table class="table table-bordered table-striped">]]
-   print_host_snmp_localization_table_entry(mac)
+   snmp_location.print_host_snmp_localization_table_entry(mac)
    print[[</table>]]
 elseif(page == "historical") then
-   local schema = _GET["ts_schema"] or "mac:traffic"
-   local selected_epoch = _GET["epoch"] or ""
-   url = url..'&page=historical'
-
-   local tags = {
-      ifid = ifId,
-      mac = mac,
-      category = _GET["category"],
-   }
-
-   graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-      top_categories = "top:mac:ndpi_categories",
-      timeseries = table.merge({
-         {schema="mac:traffic",                 label=i18n("traffic"), split_directions = true --[[ split RX and TX directions ]]},
-      }, graph_utils.getDeviceCommonTimeseries())
-   })
-
+   local source_value_object = { ifid = interface.getId() }
+   graph_utils.drawNewGraphs(source_value_object)
 elseif(page == "config") then
    if(not isAdministrator()) then
       return
@@ -414,7 +429,7 @@ elseif(page == "config") then
       </tr>]]
 
       if not ifstats.isView then
-	 graph_utils.printPoolChangeDropdown(ifId, pool_id, have_nedge)
+	 graph_utils.printPoolChangeDropdown(ifId, pool_id.."", have_nedge)
       end
 
 print[[

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,20 +23,28 @@
 
 /* *************************************** */
 
-HostStats::HostStats(Host *_host) : GenericTrafficElement() {
+HostStats::HostStats(Host* _host) : GenericTrafficElement() {
   host = _host;
-  iface = _host->getInterface();
 
-  misbehaving_flows_as_client = misbehaving_flows_as_server = 0;
+  alerted_flows_as_client = alerted_flows_as_server = 0;
   unreachable_flows_as_client = unreachable_flows_as_server = 0;
   host_unreachable_flows_as_client = host_unreachable_flows_as_server = 0;
   udp_sent_unicast = udp_sent_non_unicast = 0;
   total_num_flows_as_client = total_num_flows_as_server = 0;
+  total_alerts = 0;
   num_flow_alerts = 0;
+  periodicUpdate = 0;
+  periodic_stats_update = 0;
+  consecutive_high_score = 0;
+  client_flows_anomaly = server_flows_anomaly = client_score_anomaly =
+      server_score_anomaly = 0;
 
   /* NOTE: deleted by ~GenericTrafficElement */
-  ndpiStats = new nDPIStats();
-  //printf("SIZE: %lu, %lu, %lu\n", sizeof(nDPIStats), MAX_NDPI_PROTOS, NDPI_PROTOCOL_NUM_CATEGORIES);
+  ndpiStats = new (std::nothrow) nDPIStats();
+  // printf("SIZE: %lu, %lu, %lu\n", sizeof(nDPIStats), MAX_NDPI_PROTOS,
+  // NDPI_PROTOCOL_NUM_CATEGORIES);
+
+  dscpStats = new (std::nothrow) DSCPStats();
 
   last_epoch_update = 0;
   total_activity_time = 0;
@@ -52,27 +60,204 @@ HostStats::HostStats(Host *_host) : GenericTrafficElement() {
 
 HostStats::~HostStats() {
 #ifdef NTOPNG_PRO
-  if(quota_enforcement_stats)        delete quota_enforcement_stats;
-  if(quota_enforcement_stats_shadow) delete quota_enforcement_stats_shadow;
+  if (quota_enforcement_stats) delete quota_enforcement_stats;
+  if (quota_enforcement_stats_shadow) delete quota_enforcement_stats_shadow;
 #endif
 }
 
 /* *************************************** */
 
-/* NOTE: this function is used by Lua to create the minute-by-minute host top talkers,
-   both for remote and local hosts. Top talkerts are created by doing a checkpoint
-   of the current value. */
+void HostStats::updateStats(const struct timeval* tv) {
+  /*
+    Do not update throughput stats too often, use the interface periodic stats
+    update frequency to make sure packet interfaces update faster than ZMQ
+    interfaces.
+   */
+  if (tv->tv_sec >= periodic_stats_update) {
+    GenericTrafficElement::updateStats(tv);
+    periodic_stats_update =
+        tv->tv_sec + getHost()->getInterface()->periodicStatsUpdateFrequency();
+  }
+
+#if 0
+  char buf[64];
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Stats updated [%s][%.5f][last: %u][freq: %u]", getHost()->get_ip()->print(buf, sizeof(buf)), getBytesThpt(), getTh()->get_last_update_time(), getHost()->getInterface()->periodicStatsUpdateFrequency());
+#endif
+
+  if (tv->tv_sec >= periodicUpdate) {
+    u_int32_t num_anomalies = 0;
+
+    if (active_flows_cli.addObservation(host->getNumOutgoingFlows())) {
+      char buf[64];
+
+      ntop->getTrace()->traceEvent(
+          TRACE_INFO, "[ANOMALY] %s [%s][client flows] [value: %u]",
+          host->get_ip()->print(buf, sizeof(buf)),
+          host->getInterface()->get_name(), host->getNumOutgoingFlows());
+      num_anomalies++;
+      client_flows_anomaly = 1;
+    } else
+      client_flows_anomaly = 0;
+
+    if (active_flows_srv.addObservation(host->getNumIncomingFlows())) {
+      char buf[64];
+
+      ntop->getTrace()->traceEvent(
+          TRACE_INFO, "[ANOMALY] %s [%s][server flows] [value: %u]",
+          host->get_ip()->print(buf, sizeof(buf)),
+          host->getInterface()->get_name(), host->getNumIncomingFlows());
+      num_anomalies++;
+      server_flows_anomaly = 1;
+    } else
+      server_flows_anomaly = 0;
+
+    if (score_cli.addObservation(host->getScoreAsClient())) {
+      char buf[64];
+
+      ntop->getTrace()->traceEvent(
+          TRACE_INFO, "[ANOMALY] %s [%s][client score] [value: %u]",
+          host->get_ip()->print(buf, sizeof(buf)),
+          host->getInterface()->get_name(), host->getScoreAsClient());
+      num_anomalies++;
+      client_score_anomaly = 1;
+    } else
+      client_score_anomaly = 0;
+
+    if (score_srv.addObservation(host->getScoreAsServer())) {
+      char buf[64];
+
+      ntop->getTrace()->traceEvent(
+          TRACE_INFO, "[ANOMALY] %s [%s][server score] [value: %u]",
+          host->get_ip()->print(buf, sizeof(buf)),
+          host->getInterface()->get_name(), host->getScoreAsServer());
+      num_anomalies++;
+      server_score_anomaly = 1;
+    } else
+      server_score_anomaly = 0;
+
+    if (num_anomalies > 0) {
+      if (host->isLocalHost())
+        host->getInterface()->incHostAnomalies(num_anomalies, 0);
+      else
+        host->getInterface()->incHostAnomalies(0, num_anomalies);
+    }
+
+    periodicUpdate = tv->tv_sec + HOST_SITES_REFRESH; /* 5 min */
+  }
+}
+
+/* *************************************** */
+
+void HostStats::luaActiveFlowsBehaviour(lua_State* vm) {
+  /* Active flows */
+
+  lua_newtable(vm);
+
+  lua_newtable(vm);
+  lua_push_bool_table_entry(vm, "anomaly", active_flows_cli.anomalyFound());
+  lua_push_uint64_table_entry(vm, "value", active_flows_cli.getLastValue());
+  lua_push_uint64_table_entry(vm, "lower_bound",
+                              active_flows_cli.getLastLowerBound());
+  lua_push_uint64_table_entry(vm, "upper_bound",
+                              active_flows_cli.getLastUpperBound());
+
+  lua_pushstring(vm, "as_client");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_newtable(vm);
+
+  lua_push_bool_table_entry(vm, "anomaly", active_flows_srv.anomalyFound());
+  lua_push_uint64_table_entry(vm, "value", active_flows_srv.getLastValue());
+  lua_push_uint64_table_entry(vm, "lower_bound",
+                              active_flows_srv.getLastLowerBound());
+  lua_push_uint64_table_entry(vm, "upper_bound",
+                              active_flows_srv.getLastUpperBound());
+
+  lua_pushstring(vm, "as_server");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_push_uint64_table_entry(
+      vm, "tot_num_anomalies",
+      active_flows_srv.getTotAnomalies() + active_flows_cli.getTotAnomalies());
+
+  lua_pushstring(vm, "active_flows_behaviour");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
+void HostStats::luaNdpiStats(lua_State* vm) {
+  if (ndpiStats)
+    ndpiStats->lua(host->getInterface(), vm, true, false);
+  else
+    lua_pushnil(vm);
+}
+
+/* *************************************** */
+
+void HostStats::luaScoreBehaviour(lua_State* vm) {
+  /* Client score behaviour */
+
+  lua_newtable(vm);
+
+  lua_newtable(vm);
+  /* Client score behaviour */
+  lua_push_bool_table_entry(vm, "anomaly", score_cli.anomalyFound());
+  lua_push_uint64_table_entry(vm, "value", score_cli.getLastValue());
+  lua_push_uint64_table_entry(vm, "lower_bound", score_cli.getLastLowerBound());
+  lua_push_uint64_table_entry(vm, "upper_bound", score_cli.getLastUpperBound());
+
+  lua_pushstring(vm, "as_client");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_newtable(vm);
+  /* Server score behaviour */
+  lua_push_bool_table_entry(vm, "anomaly", score_srv.anomalyFound());
+  lua_push_uint64_table_entry(vm, "value", score_srv.getLastValue());
+  lua_push_uint64_table_entry(vm, "lower_bound", score_srv.getLastLowerBound());
+  lua_push_uint64_table_entry(vm, "upper_bound", score_srv.getLastUpperBound());
+
+  lua_pushstring(vm, "as_server");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_push_uint64_table_entry(
+      vm, "tot_num_anomalies",
+      score_cli.getTotAnomalies() + score_srv.getTotAnomalies());
+
+  lua_pushstring(vm, "score_behaviour");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+}
+
+/* *************************************** */
+
+void HostStats::luaHostBehaviour(lua_State* vm) {
+  luaScoreBehaviour(vm);
+  luaActiveFlowsBehaviour(vm);
+}
+
+/* *************************************** */
+
+/* NOTE: this function is used by Lua to create the minute-by-minute host top
+   talkers, both for remote and local hosts. Top talkerts are created by doing a
+   checkpoint of the current value. */
 void HostStats::checkpoint(lua_State* vm) {
   u_int64_t new_val;
 
   lua_newtable(vm);
-
   lua_newtable(vm);
 
-  lua_push_uint64_table_entry(vm, "sent", (new_val = getNumBytesSent()) - checkpoints.sent_bytes);
+  lua_push_uint64_table_entry(
+      vm, "sent", (new_val = getNumBytesSent()) - checkpoints.sent_bytes);
   checkpoints.sent_bytes = new_val;
 
-  lua_push_uint64_table_entry(vm, "rcvd", (new_val = getNumBytesRcvd()) - checkpoints.rcvd_bytes);
+  lua_push_uint64_table_entry(
+      vm, "rcvd", (new_val = getNumBytesRcvd()) - checkpoints.rcvd_bytes);
   checkpoints.rcvd_bytes = new_val;
 
   lua_pushstring(vm, "delta");
@@ -83,25 +268,41 @@ void HostStats::checkpoint(lua_State* vm) {
 /* *************************************** */
 
 /* NOTE: check out LocalHostStats for deserialization */
-void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level) {
-  if(details_level >= details_high) {
-    json_object_object_add(my_object, "flows.as_client", json_object_new_int(getTotalNumFlowsAsClient()));
-    json_object_object_add(my_object, "flows.as_server", json_object_new_int(getTotalNumFlowsAsServer()));
-    json_object_object_add(my_object, "misbehaving_flows.as_client", json_object_new_int(getTotalMisbehavingNumFlowsAsClient()));
-    json_object_object_add(my_object, "misbehaving_flows.as_server", json_object_new_int(getTotalMisbehavingNumFlowsAsServer()));
-    json_object_object_add(my_object, "unreachable_flows.as_client", json_object_new_int(unreachable_flows_as_client));
-    json_object_object_add(my_object, "unreachable_flows.as_server", json_object_new_int(unreachable_flows_as_server));
-    json_object_object_add(my_object, "host_unreachable_flows.as_client", json_object_new_int(host_unreachable_flows_as_client));
-    json_object_object_add(my_object, "host_unreachable_flows.as_server", json_object_new_int(host_unreachable_flows_as_server));
+void HostStats::getJSONObject(json_object* my_object,
+                              DetailsLevel details_level) {
+  if (details_level >= details_high) {
+    json_object_object_add(my_object, "flows.as_client",
+                           json_object_new_int(getTotalNumFlowsAsClient()));
+    json_object_object_add(my_object, "flows.as_server",
+                           json_object_new_int(getTotalNumFlowsAsServer()));
+    json_object_object_add(
+        my_object, "alerted_flows.as_client",
+        json_object_new_int(getTotalAlertedNumFlowsAsClient()));
+    json_object_object_add(
+        my_object, "alerted_flows.as_server",
+        json_object_new_int(getTotalAlertedNumFlowsAsServer()));
+    json_object_object_add(my_object, "unreachable_flows.as_client",
+                           json_object_new_int(unreachable_flows_as_client));
+    json_object_object_add(my_object, "unreachable_flows.as_server",
+                           json_object_new_int(unreachable_flows_as_server));
+    json_object_object_add(
+        my_object, "host_unreachable_flows.as_client",
+        json_object_new_int(host_unreachable_flows_as_client));
+    json_object_object_add(
+        my_object, "host_unreachable_flows.as_server",
+        json_object_new_int(host_unreachable_flows_as_server));
 
-    json_object_object_add(my_object, "total_activity_time", json_object_new_int(total_activity_time));
-    GenericTrafficElement::getJSONObject(my_object, iface);
+    json_object_object_add(my_object, "total_activity_time",
+                           json_object_new_int(total_activity_time));
+    GenericTrafficElement::getJSONObject(my_object, host->getInterface());
 
     /* TCP stats */
-    if(tcp_packet_stats_sent.seqIssues())
-      json_object_object_add(my_object, "tcpPacketStats.sent", tcp_packet_stats_sent.getJSONObject());
-    if(tcp_packet_stats_rcvd.seqIssues())
-      json_object_object_add(my_object, "tcpPacketStats.recv", tcp_packet_stats_rcvd.getJSONObject());
+    if (tcp_packet_stats_sent.seqIssues())
+      json_object_object_add(my_object, "tcpPacketStats.sent",
+                             tcp_packet_stats_sent.getJSONObject());
+    if (tcp_packet_stats_rcvd.seqIssues())
+      json_object_object_add(my_object, "tcpPacketStats.recv",
+                             tcp_packet_stats_rcvd.getJSONObject());
   }
 }
 
@@ -110,108 +311,138 @@ void HostStats::getJSONObject(json_object *my_object, DetailsLevel details_level
 /* NOTE: this method is also called by Host::lua
  * Return only the minimal information needed by the timeseries
  * to avoid slowing down the periodic scripts too much! */
-void HostStats::luaStats(lua_State* vm, NetworkInterface *iface, bool host_details, bool verbose, bool tsLua) {
-  /* NOTE: this class represents a (previously saved) timeseries point. Do not access Host data and push it directly here! */
+void HostStats::luaStats(lua_State* vm, NetworkInterface* iface,
+                         bool host_details, bool verbose, bool tsLua) {
+  /* NOTE: this class represents a (previously saved) timeseries point. Do not
+   * access Host data and push it directly here! */
   lua_push_uint64_table_entry(vm, "bytes.sent", sent.getNumBytes());
   lua_push_uint64_table_entry(vm, "bytes.rcvd", rcvd.getNumBytes());
-  lua_push_uint64_table_entry(vm, "total_flows.as_client", total_num_flows_as_client);
-  lua_push_uint64_table_entry(vm, "total_flows.as_server", total_num_flows_as_server);
+  lua_push_uint64_table_entry(vm, "total_flows.as_client",
+                              total_num_flows_as_client);
+  lua_push_uint64_table_entry(vm, "total_flows.as_server",
+                              total_num_flows_as_server);
 
-  if(verbose) {
-    if(ndpiStats) ndpiStats->lua(iface, vm, true, tsLua);
+  host->lua_get_score(vm);
+
+  if (verbose) {
+    if (ndpiStats) ndpiStats->lua(iface, vm, true, tsLua);
+    if (dscpStats) dscpStats->lua(iface, vm, tsLua);
   }
 
-  if(host_details) {
-    lua_push_uint64_table_entry(vm, "misbehaving_flows.as_client", getTotalMisbehavingNumFlowsAsClient());
-    lua_push_uint64_table_entry(vm, "misbehaving_flows.as_server", getTotalMisbehavingNumFlowsAsServer());
-    lua_push_uint64_table_entry(vm, "unreachable_flows.as_client", unreachable_flows_as_client);
-    lua_push_uint64_table_entry(vm, "unreachable_flows.as_server", unreachable_flows_as_server);
-    lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client", host_unreachable_flows_as_client);
-    lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server", host_unreachable_flows_as_server);
+  if (host_details) {
+    lua_push_uint64_table_entry(vm, "alerted_flows.as_client",
+                                getTotalAlertedNumFlowsAsClient());
+    lua_push_uint64_table_entry(vm, "alerted_flows.as_server",
+                                getTotalAlertedNumFlowsAsServer());
+    lua_push_uint64_table_entry(vm, "unreachable_flows.as_client",
+                                unreachable_flows_as_client);
+    lua_push_uint64_table_entry(vm, "unreachable_flows.as_server",
+                                unreachable_flows_as_server);
+    lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_client",
+                                host_unreachable_flows_as_client);
+    lua_push_uint64_table_entry(vm, "host_unreachable_flows.as_server",
+                                host_unreachable_flows_as_server);
     lua_push_uint64_table_entry(vm, "total_alerts", getTotalAlerts());
     lua_push_uint64_table_entry(vm, "num_flow_alerts", num_flow_alerts);
 
     l4stats.luaStats(vm);
     lua_push_uint64_table_entry(vm, "udpBytesSent.unicast", udp_sent_unicast);
-    lua_push_uint64_table_entry(vm, "udpBytesSent.non_unicast", udp_sent_non_unicast);
+    lua_push_uint64_table_entry(vm, "udpBytesSent.non_unicast",
+                                udp_sent_non_unicast);
   }
 }
 
 /* *************************************** */
 
 void HostStats::lua(lua_State* vm, bool mask_host, DetailsLevel details_level) {
-  if(details_level >= details_high)
-    lua_push_uint64_table_entry(vm, "bytes.ndpi.unknown", getnDPIStats() ? getnDPIStats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN) : 0);
+  if (details_level >= details_high)
+    lua_push_uint64_table_entry(
+        vm, "bytes.ndpi.unknown",
+        getnDPIStats() ? getnDPIStats()->getProtoBytes(NDPI_PROTOCOL_UNKNOWN)
+                       : 0);
 
-  if(details_level >= details_max) {
+  if (details_level >= details_max) {
 #ifdef NTOPNG_PRO
-    if(custom_app_stats) custom_app_stats->lua(vm);
+    if (custom_app_stats) custom_app_stats->lua(vm);
 #endif
 
     sent_stats.lua(vm, "pktStats.sent");
     recv_stats.lua(vm, "pktStats.recv");
   }
 
-  lua_push_bool_table_entry(vm, "tcp.packets.seq_problems",
-			    tcp_packet_stats_sent.seqIssues() || tcp_packet_stats_rcvd.seqIssues() ? true : false);
+  lua_push_bool_table_entry(
+      vm, "tcp.packets.seq_problems",
+      tcp_packet_stats_sent.seqIssues() || tcp_packet_stats_rcvd.seqIssues()
+          ? true
+          : false);
   tcp_packet_stats_sent.lua(vm, "tcpPacketStats.sent");
   tcp_packet_stats_rcvd.lua(vm, "tcpPacketStats.rcvd");
 
-  if(details_level >= details_higher) {
+  if (details_level >= details_higher) {
     /* Bytes anomalies */
     l4stats.luaAnomalies(vm);
-  
+
     lua_push_uint64_table_entry(vm, "total_activity_time", total_activity_time);
-    lua_push_uint64_table_entry(vm, "flows.as_client", getTotalNumFlowsAsClient());
-    lua_push_uint64_table_entry(vm, "flows.as_server", getTotalNumFlowsAsServer());
+    lua_push_uint64_table_entry(vm, "flows.as_client",
+                                getTotalNumFlowsAsClient());
+    lua_push_uint64_table_entry(vm, "flows.as_server",
+                                getTotalNumFlowsAsServer());
   }
 
-  if(details_level >= details_high) {
+  if (details_level >= details_high) {
     ((GenericTrafficElement*)this)->lua(vm, details_level >= details_higher);
-    luaStats(vm, iface, details_level >= details_higher, details_level >= details_max, false);
+    luaStats(vm, host->getInterface(), details_level >= details_higher,
+             details_level >= details_max, false);
   }
 }
 
 /* *************************************** */
 
-u_int32_t HostStats::getTotalAlerts() const {
-  std::map<AlertType, u_int32_t>::const_iterator it;
-  u_int32_t num_alerts = 0;
+void HostStats::incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
+                         ndpi_protocol_category_t ndpi_category,
+                         custom_app_t custom_app, u_int64_t sent_packets,
+                         u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+                         u_int64_t rcvd_packets, u_int64_t rcvd_bytes,
+                         u_int64_t rcvd_goodput_bytes, bool peer_is_unicast) {
+  if ((getNumPktsSent() == 0) /* Current count */
+      && (!host->isBroadcastHost()) && (!host->isMulticastHost()) &&
+      (sent_packets > 0)) {
+    /*
+      This is a host (non broadcast/multicast host)
+      that used to be rcvdOnly and that has now sent traffic
+    */
 
-  for(it = total_alerts.begin(); it != total_alerts.end(); ++it)
-    num_alerts += it->second;
+    host->getInterface()->decNumSentRcvdHosts(host->isLocalHost());
+    host->setRxOnlyHost(false /* no longer RX-only */);
+  }
 
-  return(num_alerts);
-}
-
-/* *************************************** */
-
-void HostStats::incStats(time_t when, u_int8_t l4_proto,
-			 u_int ndpi_proto, ndpi_protocol_category_t ndpi_category,
-			 custom_app_t custom_app,
-			 u_int64_t sent_packets, u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
-			 u_int64_t rcvd_packets, u_int64_t rcvd_bytes, u_int64_t rcvd_goodput_bytes,
-			 bool peer_is_unicast) {
   sent.incStats(when, sent_packets, sent_bytes),
-    rcvd.incStats(when, rcvd_packets, rcvd_bytes);
-  
-  if(ndpiStats) {
-    ndpiStats->incStats(when, ndpi_proto, sent_packets, sent_bytes, rcvd_packets, rcvd_bytes),
-      ndpiStats->incCategoryStats(when, ndpi_category, sent_bytes, rcvd_bytes);
+      rcvd.incStats(when, rcvd_packets, rcvd_bytes);
+
+  if (ndpiStats) {
+    ndpiStats->incStats(when, ndpi_proto, sent_packets, sent_bytes,
+                        rcvd_packets, rcvd_bytes),
+        ndpiStats->incCategoryStats(when, ndpi_category, sent_bytes,
+                                    rcvd_bytes);
   }
 
 #ifdef NTOPNG_PRO
-  if(custom_app.pen
-     && (custom_app_stats || (custom_app_stats = new(std::nothrow) CustomAppStats(iface)))) {
-    custom_app_stats->incStats(custom_app.remapped_app_id, sent_bytes + rcvd_bytes); 
+  if (custom_app.pen &&
+      (custom_app_stats || (custom_app_stats = new (std::nothrow)
+                                CustomAppStats(host->getInterface())))) {
+    custom_app_stats->incStats(custom_app.remapped_app_id,
+                               sent_bytes + rcvd_bytes);
   }
 #endif
 
-  if(when && when - last_epoch_update >= ntop->getPrefs()->get_housekeeping_frequency())
-    total_activity_time += ntop->getPrefs()->get_housekeeping_frequency(), last_epoch_update = when;
+  if (when && when - last_epoch_update >=
+                  ntop->getPrefs()->get_housekeeping_frequency())
+    total_activity_time += ntop->getPrefs()->get_housekeeping_frequency(),
+        last_epoch_update = when;
 
   /* Packet stats sent_stats and rcvd_stats are incremented in Flow::incStats */
-  l4stats.incStats(when, l4_proto, rcvd_packets, rcvd_bytes, sent_packets, sent_bytes);
+  l4stats.incStats(when, l4_proto, rcvd_packets, rcvd_bytes, sent_packets,
+                   sent_bytes);
 }
 
 #ifdef NTOPNG_PRO
@@ -219,44 +450,50 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto,
 /* *************************************** */
 
 void HostStats::allocateQuotaEnforcementStats() {
-      if(!quota_enforcement_stats) {
-        quota_enforcement_stats = new HostPoolStats(iface);
+  if (!quota_enforcement_stats) {
+    quota_enforcement_stats =
+        new (std::nothrow) HostPoolStats(host->getInterface());
 
 #ifdef HOST_POOLS_DEBUG
-        char buf[128];
-        ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Allocating quota stats for %s [quota_enforcement_stats: %p] [host pool: %i]",
-				     ip.print(buf, sizeof(buf)), (void*)quota_enforcement_stats, host_pool_id);
+    char buf[128];
+    ntop->getTrace()->traceEvent(
+        TRACE_NORMAL,
+        "Allocating quota stats for %s [quota_enforcement_stats: %p] [host "
+        "pool: %i]",
+        ip.print(buf, sizeof(buf)), (void*)quota_enforcement_stats,
+        host_pool_id);
 #endif
-      }
+  }
 }
 
 /* *************************************** */
 
 void HostStats::deleteQuotaEnforcementStats() {
-    if(quota_enforcement_stats_shadow) {
-      delete quota_enforcement_stats_shadow;
-      quota_enforcement_stats_shadow = NULL;
+  if (quota_enforcement_stats_shadow) {
+    delete quota_enforcement_stats_shadow;
+    quota_enforcement_stats_shadow = NULL;
 
 #ifdef HOST_POOLS_DEBUG
-      char buf[128];
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-           "Freeing shadow pointer of longer quota stats for %s [host pool: %i]",
-           ip.print(buf, sizeof(buf)), host_pool_id);
+    char buf[128];
+    ntop->getTrace()->traceEvent(
+        TRACE_NORMAL,
+        "Freeing shadow pointer of longer quota stats for %s [host pool: %i]",
+        ip.print(buf, sizeof(buf)), host_pool_id);
 #endif
-    }
+  }
 
-    if(quota_enforcement_stats) {
-      quota_enforcement_stats_shadow = quota_enforcement_stats;
-      quota_enforcement_stats = NULL;
+  if (quota_enforcement_stats) {
+    quota_enforcement_stats_shadow = quota_enforcement_stats;
+    quota_enforcement_stats = NULL;
 
 #ifdef HOST_POOLS_DEBUG
-      char buf[128];
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-           "Moving quota stats to the shadow pointer for %s [host pool: %i]",
-           ip.print(buf, sizeof(buf)), host_pool_id);
+    char buf[128];
+    ntop->getTrace()->traceEvent(
+        TRACE_NORMAL,
+        "Moving quota stats to the shadow pointer for %s [host pool: %i]",
+        ip.print(buf, sizeof(buf)), host_pool_id);
 #endif
-    }
+  }
 }
 
 #endif

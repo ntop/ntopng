@@ -1,0 +1,53 @@
+{#
+  (C) 2022 - ntop.org
+  This template is used by the `Host Details - Connections` page inside the `Host Details`.    
+#}
+
+
+<div id="vlan-ports-sankey">
+  <page-vlan-ports-sankey
+  :ifid="ifid"
+  :available_filters="available_filters">
+  </page-vlan-ports-sankey>
+</div>
+  
+<script type="text/javascript">
+  const ifid = {* ifid *}
+  const rest_url = '{* rest_url *}'
+  const available_filters = {
+    'timeframe': {* ports_analysis.timeframe_options *},
+    'vlan': {* ports_analysis.vlan_options *},
+    'l4proto': {* ports_analysis.l4_proto_options *},
+  }
+  function start_vue() {
+    let vue_options = {
+      components: {	  
+        'page-vlan-ports-sankey': ntopVue.PageVLANPortsFlowSankey,
+      },
+      /**
+      * First method called when the component is created.
+      */
+      created() { },
+      mounted() {
+      },
+      data() {
+        return {
+          ifid: ifid,
+          available_filters: available_filters,
+        };
+      },
+      methods: { },
+    };
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount('#vlan-ports-sankey');
+    return vue_app;
+  }
+
+  /* ******************************************************* */
+
+  $(function () {
+    // initialize script table
+    start_vue();
+  });
+</script>
+

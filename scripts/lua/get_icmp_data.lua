@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 local graph_utils = require "graph_utils"
 require "flow_utils"
-require "historical_utils"
 local icmp_utils = require "icmp_utils"
 
 sendHTTPContentTypeHeader('text/html')
@@ -63,7 +62,7 @@ if(stats ~= nil) then
 
 	    print('<tr><td><a href="'..ntop.getHttpPrefix()..'/lua/flows_stats.lua?icmp_type='..
 		     icmp_type..'&icmp_cod='..icmp_value..'&version='.. ternary(is_v4, "4", "6") ..'">'..
-		     icmp_utils.get_icmp_label(ternary(is_v4, 4, 6), icmp_type, icmp_value)..'</a>')
+		     icmp_utils.get_icmp_label(icmp_type, icmp_value)..'</a>')
 
 	    print(string.format("<td>%u</td>", icmp_type))
 	    print(string.format("<td>%u</td>", icmp_value))

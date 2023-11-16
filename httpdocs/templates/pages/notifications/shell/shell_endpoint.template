@@ -1,0 +1,32 @@
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+	    <b>{{ i18n("notification_endpoint.shell.shell_script") }}</b>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#shell"><i class="fa-regular fa-circle-question"></i></a>
+    </label>
+    <div class="col-sm-7">
+    <select name="shell_script" class="form-select" required>
+        {%
+            for key, dir in pairs(ntop.readdir("/usr/share/ntopng/scripts/shell/")) do 
+                if(key:match('^(.*).[sh|py]$'))then   
+        %}
+                    <option value='{{ key }}'>{{ dir }}</option>
+            {%  
+                end  
+            %}
+        {% 
+            end 
+        %}
+        {%
+            for key, dir in pairs(ntop.readdir(dirs.installdir.."/scripts/shell")) do 
+                if(key:match('^(.*).[sh|py]$')) then   
+        %}
+                    <option value='{{ key }}'>{{ dir }}</option>
+            {%  
+                end  
+            %}
+        {% 
+            end 
+        %}
+    </select>
+    </div>
+</div>

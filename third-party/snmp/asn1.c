@@ -1,4 +1,4 @@
-#include "asn1.h"
+#include "_asn1.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -95,12 +95,12 @@ void *render_header(int type, int data_len, void *dest)
 
 int sequence_header_length(int data_len)
 {
-  return header_length(ASN1_SEQUENCE_TYPE, data_len);
+  return header_length(NTOP_ASN1_SEQUENCE_TYPE, data_len);
 }
 
 void *render_sequence_header(int data_len, void *dest)
 {
-  return render_header(ASN1_SEQUENCE_TYPE, data_len, dest);
+  return render_header(NTOP_ASN1_SEQUENCE_TYPE, data_len, dest);
 }
 
 static int null_length()
@@ -138,7 +138,7 @@ static void *render_integer(int x, void *dest)
 void *render_integer_object(int x, void *dest)
 {
   int data_len = integer_length(x);
-  dest = render_header(ASN1_INTEGER_TYPE, data_len, dest);
+  dest = render_header(NTOP_ASN1_INTEGER_TYPE, data_len, dest);
   return render_integer(x, dest);
 }
 
@@ -158,7 +158,7 @@ static void *render_string(char *str, void *dest)
 void *render_string_object(char *str, void *dest)
 {
   int data_len = string_length(str);
-  dest = render_header(ASN1_STRING_TYPE, data_len, dest);
+  dest = render_header(NTOP_ASN1_STRING_TYPE, data_len, dest);
   return render_string(str, dest);
 }
 
@@ -260,7 +260,7 @@ static void *render_oid(char *oid, void *dest)
 void *render_oid_object(char *oid, void *dest)
 {
   int data_len = oid_length(oid);
-  dest = render_header(ASN1_OID_TYPE, data_len, dest);
+  dest = render_header(NTOP_ASN1_OID_TYPE, data_len, dest);
   return render_oid(oid, dest);
 }
 
@@ -309,10 +309,11 @@ static void *read_oid(void *src, char **oid, int size)
     
   *oid = (char*)malloc(len+1);
   p = *oid;
-  p += sprintf(p, "%lu", (unsigned long)parts[0]);
+  p += snprintf(p, len, "%lu", (unsigned long)parts[0]);
+  
   for (i =1; i < num_parts; i++)
     {
-      p += sprintf(p, ".%lu", (unsigned long)parts[i]);
+      p += snprintf(p, len, ".%lu", (unsigned long)parts[i]);
     }
     
   return src;
@@ -322,11 +323,11 @@ int value_length(int render_as_type, Value value)
 {
   switch (render_as_type)
     {
-    case ASN1_NULL_TYPE:
+    case NTOP_ASN1_NULL_TYPE:
       return null_length();
-    case ASN1_INTEGER_TYPE:
+    case NTOP_ASN1_INTEGER_TYPE:
       return integer_length(value.int_value);
-    case ASN1_STRING_TYPE:
+    case NTOP_ASN1_STRING_TYPE:
       return string_length(value.str_value);
     default:
       abort();
@@ -337,11 +338,11 @@ char *render_value(int render_as_type, Value value, char *dest)
 {
   switch (render_as_type)
     {
-    case ASN1_NULL_TYPE:
+    case NTOP_ASN1_NULL_TYPE:
       return (char*)render_null(dest);
-    case ASN1_INTEGER_TYPE:
+    case NTOP_ASN1_INTEGER_TYPE:
       return (char*)render_integer(value.int_value, dest);
-    case ASN1_STRING_TYPE:
+    case NTOP_ASN1_STRING_TYPE:
       return (char*)render_string(value.str_value, dest);
     default:
       abort();
@@ -355,11 +356,11 @@ char *render_value_object(int value_type, int render_as_type, Value value, char 
     
   switch (render_as_type)
     {
-    case ASN1_NULL_TYPE:
+    case NTOP_ASN1_NULL_TYPE:
       return (char*)render_null(dest);
-    case ASN1_INTEGER_TYPE:
+    case NTOP_ASN1_INTEGER_TYPE:
       return (char*)render_integer(value.int_value, dest);
-    case ASN1_STRING_TYPE:
+    case NTOP_ASN1_STRING_TYPE:
       return (char*)render_string(value.str_value, dest);
     default:
       abort();
@@ -474,7 +475,7 @@ int asn1_parse_peek(ASN1Parser *parser, int *type, int *len)
 int asn1_parse_sequence(ASN1Parser *parser)
 {
   int type;
-  if (next_type(parser) != ASN1_SEQUENCE_TYPE)
+  if (next_type(parser) != NTOP_ASN1_SEQUENCE_TYPE)
     return 0;
   return asn1_parse_structure(parser, &type);
 }
@@ -526,7 +527,7 @@ int asn1_parse_integer(ASN1Parser *parser, int *dest)
 {
   int64_t dest64;
 
-  if (next_type(parser) != ASN1_INTEGER_TYPE)
+  if (next_type(parser) != NTOP_ASN1_INTEGER_TYPE)
     return 0;
 
   asn1_parse_integer_type(parser, NULL, &dest64);
@@ -537,7 +538,7 @@ int asn1_parse_integer(ASN1Parser *parser, int *dest)
 
 int asn1_parse_integer64(ASN1Parser *parser, int64_t *dest)
 {
-  if (next_type(parser) != ASN1_INTEGER_TYPE)
+  if (next_type(parser) != NTOP_ASN1_INTEGER_TYPE)
     return 0;
     
   return asn1_parse_integer_type(parser, NULL, dest);
@@ -587,6 +588,19 @@ int asn1_parse_string_type(ASN1Parser *parser, int *type, char **dest)
       free(*dest);
       *dest = strdup(tmp);
     }
+  } else if(size == 4) {
+    /* Check for IPv4 addresses */
+    u_int8_t v1 = (*dest)[0] & 0xFF, v2 = (*dest)[1] & 0xFF, v3 = (*dest)[2] & 0xFF, v4 = (*dest)[3] & 0xFF;
+
+    if(isalnum(v1) && isalnum(v2) && isalnum(v3) && isalnum(v4))
+      /* this looks like a string */;
+    else {
+      char tmp[24];
+      
+      snprintf(tmp, sizeof(tmp), "%u.%u.%u.%u", v1, v2, v3, v4);
+      free(*dest);
+      *dest = strdup(tmp);
+    }
   }
   
   consume(parser);
@@ -595,7 +609,7 @@ int asn1_parse_string_type(ASN1Parser *parser, int *type, char **dest)
 
 int asn1_parse_string(ASN1Parser *parser, char **dest)
 {
-  if (next_type(parser) != ASN1_STRING_TYPE)
+  if (next_type(parser) != NTOP_ASN1_STRING_TYPE)
     return 0;
   return asn1_parse_string_type(parser, NULL, dest);
 }
@@ -605,7 +619,7 @@ int asn1_parse_oid(ASN1Parser *parser, char **dest)
   int size;
   void *payload;
     
-  if (next_type(parser) != ASN1_OID_TYPE)
+  if (next_type(parser) != NTOP_ASN1_OID_TYPE)
     return 0;
   size = next_len(parser);
   payload = next_payload(parser);
@@ -625,14 +639,14 @@ int asn1_parse_primitive_value(ASN1Parser *parser, int *type, Value *value)
     
   switch (the_type)
     {
-    case ASN1_NULL_TYPE:
+    case NTOP_ASN1_NULL_TYPE:
       consume(parser);
       return 1;
         
-    case ASN1_INTEGER_TYPE:
+    case NTOP_ASN1_INTEGER_TYPE:
       return asn1_parse_integer64(parser, &value->int_value);
         
-    case ASN1_STRING_TYPE:
+    case NTOP_ASN1_STRING_TYPE:
       return asn1_parse_string(parser, &value->str_value);
         
     default:

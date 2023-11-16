@@ -1,0 +1,46 @@
+<div class="row">
+    <div class="col-12">
+        <div class="card card-shadow">
+            <div class="card-body">
+                <table id="arp-table" class="table w-100 table-bordered table-striped table-hover ">
+                    <thead>                
+                        <tr>
+                            <th>{{ i18n("arp_page.arp_type") }}</th>
+                            <th>{{ i18n("packets") }}</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+i18n_ext.warning ="{{ i18n('warning', {}) }}";
+i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+i18n_ext.search = "{{ i18n('search') }}";
+i18n_ext.edit = "{{ i18n('edit') }}";
+i18n_ext.remove = "{{ i18n('remove') }}";
+i18n_ext.all = "{{ i18n('all') }}";
+
+$(document).ready(function() {
+    let dtConfig = DataTableUtils.getStdDatatableConfig();
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, "{* sites.endpoint *}", "rsp");
+    dtConfig = DataTableUtils.extendConfig(dtConfig, {
+        columns: [
+            {"data": "type"},
+		    { "data": "packets", className: "text-right" , render: function (data, type, row, meta)
+                    {
+                      if (type === 'display') {
+                          return NtopUtils.formatValue(data);
+                      }
+                      return data;
+                    }
+                 }
+              ]
+    });
+
+   const $arpDatatable = $(`#arp-table`).DataTable(dtConfig);
+
+});
+</script>

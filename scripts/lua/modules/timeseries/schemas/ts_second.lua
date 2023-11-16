@@ -1,5 +1,5 @@
 --
--- (C) 2018 - ntop.org
+-- (C) 2021 - ntop.org
 --
 
 local ts_utils = require "ts_utils_core"
@@ -17,6 +17,35 @@ schema = ts_utils.newSchema("iface:traffic_rxtx", {step=1, is_critical_ts=true})
 schema:addTag("ifid")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("iface:traffic_ip", {step=1, is_critical_ts=true})
+schema:addTag("ifid")
+schema:addMetric("bytes_ipv4")
+schema:addMetric("bytes_ipv6")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("iface:throughput_bps", {
+   step=1,
+   is_critical_ts=true,
+   metrics_type = ts_utils.metrics.gauge,
+   aggregation_function = ts_utils.aggregation.max
+})
+schema:addTag("ifid")
+schema:addMetric("bps")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("iface:throughput_pps", {
+   step=1,
+   is_critical_ts=true,
+   metrics_type = ts_utils.metrics.gauge,
+   aggregation_function = ts_utils.aggregation.max
+})
+schema:addTag("ifid")
+schema:addMetric("pps")
 
 -- ##############################################
 
@@ -53,13 +82,6 @@ schema:addMetric("drops")
 schema = ts_utils.newSchema("iface:zmq_flow_coll_udp_drops", {step = 1, rrd_fname = "zmq_flow_udp_drops"})
 schema:addTag("ifid")
 schema:addMetric("drops")
-
--- ##############################################
-
-schema = ts_utils.newSchema("iface:exported_vs_dropped_flows", {step=1, is_critical_ts=true})
-schema:addTag("ifid")
-schema:addMetric("exported")
-schema:addMetric("dropped")
 
 -- ##############################################
 

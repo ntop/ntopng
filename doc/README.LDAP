@@ -1,7 +1,7 @@
 # OpenLDAP as Active Directory proxy
 
 When using the sAMAccount account type in combination with OpenLDAP as an Active Directory proxy,
-the ntopng auth will not work because the "memberOf" attribute used by ntopng is not found.
+ntopng authentication will not work because the "memberOf" attribute used by ntopng is not found.
 In fact, OpenLDAP does not understand the "memberOf" attribute of AD and so it creates a
 MEMBEROF (uppercase) pseudo attribute, which is not standard.
 
@@ -16,7 +16,7 @@ attributetype ( 1.2.840.113556.1.2.102
 
 *IMPORTANT*
 
-When using Posix accounts, the LDAP server should be configured as follows in order
+When using POSIX accounts, the LDAP server should be configured as follows in order
 to work correctly with ntopng:
 
 - Into the LDAP user configuration, note down the "uid" parameter (called "User Name"

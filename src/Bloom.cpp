@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,7 +29,7 @@
  */
 Bloom::Bloom(u_int32_t _num_bloom_bits) {
   num_bloom_bits = Utils::pow2(_num_bloom_bits);
-  bitmask = new Bitmask(_num_bloom_bits);
+  bitmask = new (std::nothrow) Bitmask(_num_bloom_bits);
   mask = num_bloom_bits - 1;
 }
 
@@ -38,9 +38,7 @@ Bloom::Bloom(u_int32_t _num_bloom_bits) {
 /**
  * Destructor.
  */
-Bloom::~Bloom() {
-  delete bitmask;
-}
+Bloom::~Bloom() { delete bitmask; }
 
 /* ******************************************************* */
 
@@ -52,9 +50,7 @@ Bloom::~Bloom() {
 u_int32_t Bloom::ntophash(char *str) {
   u_int32_t hash = 0;
 
-  for(u_int32_t i = 0; str[i] != 0; i++)
-    hash += tolower(str[i])*(i+1);
+  for (u_int32_t i = 0; str[i] != 0; i++) hash += tolower(str[i]) * (i + 1);
 
-  return(hash & mask);
+  return (hash & mask);
 }
-

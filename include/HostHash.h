@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 #define _HOST_HASH_H_
 
 #include "ntop_includes.h"
- 
+
 class HostHash : public GenericHash {
  private:
   u_int32_t num_http_hosts;
@@ -33,12 +33,13 @@ class HostHash : public GenericHash {
   HostHash(NetworkInterface *iface, u_int _num_hashes, u_int _max_hash_size);
 
   /* Search for an host by IP and VLAN */
-  Host* get(u_int16_t vlanId, IpAddress *key, bool is_inline_call);
+  Host *get(u_int16_t vlanId, IpAddress *key, Mac *mac, bool is_inline_call,
+            u_int16_t observation_point_id);
 
-  void incNumHTTPEntries();  
+  void incNumHTTPEntries();
   void decNumHTTPEntries();
-  
-  inline u_int32_t getNumHTTPEntries() { return(num_http_hosts); }
+
+  inline u_int32_t getNumHTTPEntries() { return (num_http_hosts); }
 };
 
 #endif /* _HOST_HASH_H_ */

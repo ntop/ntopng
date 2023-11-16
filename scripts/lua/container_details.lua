@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -20,20 +20,17 @@ local ts_utils = require("ts_utils")
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.containers)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.containers)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-if(container == nil) then
-    return
+if not container or not ts_utils.exists("container:num_flows", {ifid=ifId, container=container}) then
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " .. i18n("no_data_available") .. "</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
 end
 
 local container_label = format_utils.formatContainerFromId(container)
-
-if(not ts_utils.exists("container:num_flows", {ifid=ifId, container=container})) then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("no_data_available") .. "</div>")
-    return
-end
 
 --[[
 Create Menu Bar with buttons
@@ -56,22 +53,7 @@ page_utils.print_navbar(title, nav_url,
 Selectively render information pages
 --]]
 if page == "historical" then
-  local schema = _GET["ts_schema"] or "container:num_flows"
-  local selected_epoch = _GET["epoch"] or ""
-  local url = ntop.getHttpPrefix()..'/lua/container_details.lua?container='..container..'&page=historical'
-
-  local tags = {
-    ifid = ifId,
-    container = container,
-  }
-
-  graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], url, selected_epoch, {
-    timeseries = {
-      {schema="container:num_flows",             label=i18n("graphs.active_flows")},
-      {schema="container:rtt",                   label=i18n("containers_stats.avg_rtt")},
-      {schema="container:rtt_variance",          label=i18n("containers_stats.avg_rtt_variance")},
-    }
-  })
+   graph_utils.drawNewGraphs({ container = container, ifid = interface.getId()})
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

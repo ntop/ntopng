@@ -1,5 +1,5 @@
 --
--- (C) 2017-20 - ntop.org
+-- (C) 2017-22 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -10,7 +10,7 @@ local json = require("dkjson")
 
 sendHTTPHeader('application/json')
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
   return
 end
 

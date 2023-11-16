@@ -1,11 +1,11 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
-require "network_utils"
+local network_utils = require "network_utils"
 
 local json = require("dkjson")
 
@@ -63,17 +63,23 @@ for n, ns in pairs(networks_stats) do
 
    if sortColumn == "column_hosts" then
       sort_helper[n] = ns["num_hosts"]
-   elseif sortColumn == "column_thpt" then
+    elseif sortColumn == "column_thpt" then
       sort_helper[n] = ns["throughput_bps"]
-   elseif sortColumn == "column_traffic" then
+    elseif sortColumn == "column_score" then
+      sort_helper[n] = ns["score"]
+    elseif sortColumn == "column_alerted_flows" then
+      sort_helper[n] = ns["alerted_flows"]["total"]
+    elseif sortColumn == "column_traffic" then
       sort_helper[n] = ns["bytes.sent"] + ns["bytes.rcvd"]
-   else
+    else
       sort_helper[n] = getLocalNetworkAlias(ns["network_key"])
-   end
+    end
 end
+
 
 local res_formatted = {}
 local cur_row = 0
+local tot_row_in_page = 0
 
 for n, _ in pairsByValues(sort_helper, ternary(sOrder, asc, rev)) do
    cur_row = cur_row + 1
@@ -82,10 +88,12 @@ for n, _ in pairsByValues(sort_helper, ternary(sOrder, asc, rev)) do
       goto continue
    end
 
-   local record = network2record(interface.getId(), networks_stats[n])
+   local record = network_utils.network2record(interface.getId(), networks_stats[n])
    res_formatted[#res_formatted + 1] = record
 
-   if cur_row >= perPage then
+   tot_row_in_page = tot_row_in_page + 1
+
+   if tot_row_in_page >= perPage then
       break
    end
 

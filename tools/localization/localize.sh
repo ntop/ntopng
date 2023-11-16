@@ -1,5 +1,11 @@
 #!/bin/bash
 
+LUA_INTERPR="`which lua5.3`"
+
+if [ -z "$LUA_INTERPR" ]; then
+    LUA_INTERPR="`which lua5.4`"
+fi
+
 function usage {
   echo -e "Usage: `basename $0` action parameters"
   echo
@@ -20,6 +26,7 @@ function usage {
 # pro root
 base_path="../tools/localization"
 root_path=".."
+LUA="lua5.3"
 
 if [[ -d src ]]; then
   # ntopng root
@@ -49,7 +56,7 @@ sort)
   lang=$2
   if [[ -z $lang ]]; then usage; fi
 
-  lua "$base_path/sort_localization_file.lua" "$lang"
+  ${LUA_INTERPR} "$base_path/sort_localization_file.lua" "$lang"
   ;;
 status)
   lang=$2
@@ -63,8 +70,8 @@ missing)
   if [[ -z $lang ]]; then usage; fi
   get_lang_path "$lang"
 
-  lua "$base_path/sort_localization_file.lua" "en"
-  lua "$base_path/sort_localization_file.lua" "$lang"
+  ${LUA_INTERPR} "$base_path/sort_localization_file.lua" "en"
+  ${LUA_INTERPR} "$base_path/sort_localization_file.lua" "$lang"
   missing_lines=`"$base_path/missing_localization.py" missing "$root_path/scripts/locales/en.lua" "$lang_path"`
   if [[ ! -z $missing_lines ]]; then
     echo "*** REMOVE THE FOLLOWING LINES FROM ${lang}.lua BEFORE PROCEEDING ****" >&2
@@ -86,7 +93,7 @@ extend)
   if [[ -z $lang ]]; then usage; fi
   if [[ -z $extension_file ]]; then usage; fi
 
-  lua "$base_path/sort_localization_file.lua" "$lang" "$extension_file"
+  ${LUA_INTERPR} "$base_path/sort_localization_file.lua" "$lang" "$extension_file"
   ;;
 *)  usage
 esac

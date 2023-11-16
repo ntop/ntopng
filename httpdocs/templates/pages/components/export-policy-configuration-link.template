@@ -1,0 +1,3 @@
+<a href="{{ ntop.getHttpPrefix() }}/lua/pro/rest/v2/export/pool/policy.lua?download=1" class="btn btn-primary">
+    <i class='fas fa-file-export'></i> {{ i18n("manage_configurations.export_policy") }}
+</a>

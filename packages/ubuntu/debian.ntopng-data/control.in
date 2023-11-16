@@ -6,7 +6,7 @@ Standards-Version: @NTOPNG_VERS@
 Build-Depends:
 Build-Conflicts:
 
-Depends: geoipupdate
+Depends: 
 Package: ntopng-data
 Architecture: all
 Recommends:
@@ -15,4 +15,4 @@ Pre-Depends:
 Conflicts:
 Provides:
 Replaces:
-Description: Geolocation databases download helper for ntopng and other ntop software
+Description: Geolocation databases for ntopng and other ntop software packaged from https://db-ip.com

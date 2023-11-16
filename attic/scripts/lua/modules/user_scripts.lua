@@ -29,7 +29,7 @@ end
 
 -- ##############################################
 
--- Get the user scripts configuration
+-- Get the checks configuration
 -- @param subdir: the subdir
 -- @return a table
 -- {[hook] = {entity_value -> {enabled=true, script_conf = {a = 1}, }, ..., default -> {enabled=false, script_conf = {}, }}, ...}
@@ -49,7 +49,7 @@ end
 
 -- ##############################################
 
--- Save the user scripts configuration.
+-- Save the checks configuration.
 -- @param subdir: the subdir
 -- @param config: the configuration to save
 local function saveConfiguration(subdir, config)

@@ -1,9 +1,8 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 -- ########################################################
--- require "flow_utils"
 
 
 local payload_type = 0
@@ -119,13 +118,13 @@ function MosPercentageBar(value)
    value = tonumber(value)
 
    if (value >= 4.0)  then
-      ret_bar = '<span class="badge badge-success">'..value..' '..i18n("flow_details.desirable_label")..'</span>'
+      ret_bar = '<span class="badge bg-success">'..value..' '..i18n("flow_details.desirable_label")..'</span>'
    elseif ((value >= 3.6) and (value < 4.0)) then
-      ret_bar = '<span class="badge badge-info">'..value..' '..i18n("flow_details.acceptable_label")..'</span>'
+      ret_bar = '<span class="badge bg-info">'..value..' '..i18n("flow_details.acceptable_label")..'</span>'
    elseif ((value >= 2.6) and (value < 3.6)) then
-      ret_bar = '<span class="badge badge-warning">'..value..' '..i18n("flow_details.reach_connection_label")..'</span>'
+      ret_bar = '<span class="badge bg-warning">'..value..' '..i18n("flow_details.reach_connection_label")..'</span>'
    elseif ((value > 0) and (value < 2.6)) then
-      ret_bar = '<span class="badge badge-danger">'..value..' '..i18n("flow_details.not_recommended_label")..'</span>'
+      ret_bar = '<span class="badge bg-danger">'..value..' '..i18n("flow_details.not_recommended_label")..'</span>'
    end
 
    return ret_bar
@@ -138,13 +137,13 @@ function RFactorPercentageBar(value)
    value = tonumber(value)
 
    if (value >= 80.0)  then
-      ret_bar = '<span class="badge badge-success">'..value..' '..i18n("flow_details.desirable_label")..'</span>'
+      ret_bar = '<span class="badge bg-success">'..value..' '..i18n("flow_details.desirable_label")..'</span>'
    elseif ((value >= 70.0) and (value < 80.0)) then
-      ret_bar = '<span class="badge badge-info">'..value..' '..i18n("flow_details.acceptable_label")..'</span>'
+      ret_bar = '<span class="badge bg-info">'..value..' '..i18n("flow_details.acceptable_label")..'</span>'
    elseif ((value >= 50.0) and (value < 70.0)) then
-      ret_bar = '<span class="badge badge-warning">'..value..' '..i18n("flow_details.reach_connection_label")..'</span>'
+      ret_bar = '<span class="badge bg-warning">'..value..' '..i18n("flow_details.reach_connection_label")..'</span>'
    elseif ((value >= 0) and (value < 50.0)) then
-      ret_bar = '<span class="badge badge-danger">'..value..' '..i18n("flow_details.not_recommended_label")..'</span>'
+      ret_bar = '<span class="badge bg-danger">'..value..' '..i18n("flow_details.not_recommended_label")..'</span>'
    end
 
    return ret_bar
@@ -154,34 +153,34 @@ end
 
 function SipCallStatePercentageBar(state)
   -- Wireshark use different state http://wiki.wireshark.org/VoIP_calls
-  label_class =  "badge-secondary"
+  label_class =  "bg-secondary"
 
   if (state == "REGISTER") then
-    label_class = "badge-info"
+    label_class = "bg-info"
   end
 
   if (state == "CALL_STARTED") then
-    label_class = "badge-info"
+    label_class = "bg-info"
   end
 
   if (state == "CALL_IN_PROGRESS") then
-    label_class = "badge-progress"
+    label_class = "bg-progress"
   end
 
   if (state == "CALL_COMPLETED") then
-    label_class = "badge-success"
+    label_class = "bg-success"
   end
 
   if (state == "CALL_ERROR") then
-    label_class = "badge-danger"
+    label_class = "bg-danger"
   end
 
   if (state == "CALL_CANCELED") then
-    label_class = "badge-warning"
+    label_class = "bg-warning"
   end
 
   if (state == "UNKNOWN") then
-    label_class = "badge-warning"
+    label_class = "bg-warning"
   end
 
   print('<span class="badge '..label_class..'">'..state..'</span>')
@@ -284,7 +283,7 @@ print [[
   }
 
   if( rsp["rtp.packet_lost_in"] && (rsp["rtp.packet_lost_in"] != "") ){
-    $('#packet_lost_in').html(formatPackets(rsp["rtp.packet_lost_in"]));
+    $('#packet_lost_in').html(NtopUtils.formatPackets(rsp["rtp.packet_lost_in"]));
     if(packet_lost_in_trend){
       if(rsp["rtp.packet_lost_in"] > packet_lost_in_trend){
           $('#packet_lost_in_trend').html("<i class=\"fas fa-arrow-up\"></i>");
@@ -301,7 +300,7 @@ print [[
   packet_lost_in_trend = rsp["rtp.packet_lost_in"];
 
   if( rsp["rtp.packet_lost_out"] && (rsp["rtp.packet_lost_out"] != "") ){
-    $('#packet_lost_out').html(formatPackets(rsp["rtp.packet_lost_out"]));
+    $('#packet_lost_out').html(NtopUtils.formatPackets(rsp["rtp.packet_lost_out"]));
     if(packet_lost_out_trend){
       if(rsp["rtp.packet_lost_out"] > packet_lost_out_trend){
           $('#packet_lost_out_trend').html("<i class=\"fas fa-arrow-up\"></i>");
@@ -329,7 +328,7 @@ print [[
   }
 
   if( rsp["rtp.packet_drop_in"] && (rsp["rtp.packet_drop_in"] != "") ){
-    $('#packet_drop_in').html(formatPackets(rsp["rtp.packet_drop_in"]));
+    $('#packet_drop_in').html(NtopUtils.formatPackets(rsp["rtp.packet_drop_in"]));
     if(packet_drop_in_trend){
       if(rsp["rtp.packet_drop_in"] > packet_drop_in_trend){
           $('#packet_drop_in_trend').html("<i class=\"fas fa-arrow-up\"></i>");
@@ -346,7 +345,7 @@ print [[
   packet_drop_in_trend = rsp["rtp.packet_drop_in"];
 
   if( rsp["rtp.packet_drop_out"] && (rsp["rtp.packet_drop_out"] != "") ){
-    $('#packet_drop_out').html(formatPackets(rsp["rtp.packet_drop_out"]));
+    $('#packet_drop_out').html(NtopUtils.formatPackets(rsp["rtp.packet_drop_out"]));
     if(packet_drop_out_trend){
       if(rsp["rtp.packet_drop_out"] > packet_drop_out_trend){
           $('#packet_drop_out_trend').html("<i class=\"fas fa-arrow-up\"></i>");

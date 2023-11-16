@@ -1,5 +1,5 @@
 --
--- (C) 2018 - ntop.org
+-- (C) 2021 - ntop.org
 --
 
 local categories_utils = {}
@@ -14,6 +14,12 @@ end
 
 -- ##############################################
 
+local function getCategoryNameKey()
+  return "ntopng.prefs.category_name"
+end
+
+-- ##############################################
+
 function categories_utils.updateCustomCategoryHosts(category_id, hosts)
   local k = getCustomCategoryKey()
 
@@ -24,6 +30,41 @@ function categories_utils.updateCustomCategoryHosts(category_id, hosts)
   end
 
   return true
+end
+
+-- ##############################################
+
+function categories_utils.updateCategoryName(category_id, category_alias)
+  local k = getCategoryNameKey()
+
+  if not isEmptyString(category_alias) then
+    ntop.setHashCache(k, tostring(category_id), category_alias)
+  end
+
+  return true
+end
+
+-- ##############################################
+
+function categories_utils.getCustomCategoryName(category_id, category_name)
+  local k = getCategoryNameKey()
+  local alias = ''
+
+  if category_id then
+    alias = ntop.getHashCache(k, tostring(category_id))
+  end
+
+  if isEmptyString(alias) then
+    alias = i18n("ndpi_categories." .. category_name)
+    if alias then
+     -- Localized string found
+     return alias
+    end
+  
+    alias = category_name:gsub("^%l", string.upper)
+  end
+
+  return alias
 end
 
 -- ##############################################
@@ -61,6 +102,44 @@ function categories_utils.getCustomCategoryHosts(category_id)
   end
 
   return {}
+end
+
+-- ##############################################
+
+-- @brief Return a comma-separated list of protocols belonging to `cat_id`
+--        If protocols are more than 5, an hyperlink with the whole list is shown.
+function categories_utils.get_category_protocols_list(cat_id, return_list)
+   local res = {}
+   local max_protocols_in_list = 5
+
+   for proto_name, proto_id in pairsByKeys(interface.getnDPIProtocols(cat_id), asc_insensitive) do
+      res[#res + 1] = proto_name
+   end
+
+   local overflown_protos
+   if #res > max_protocols_in_list then -- maximum number of entries shown
+      overflown_protos = #res - max_protocols_in_list
+   else
+      max_protocols_in_list = #res
+   end
+
+   local res_str
+
+   if overflown_protos and not return_list then
+      res_str = string.format("%s <a href='%s/lua/admin/edit_categories.lua?tab=protocols&category=cat_%i'>%s</a>", table.concat(res, ', ', 1, max_protocols_in_list), ntop.getHttpPrefix(), cat_id, i18n("and_x_more", {num = overflown_protos}))
+   elseif overflown_protos and return_list then
+      local list = {
+        href = 'lua/admin/edit_categories.lua?tab=protocols&category=cat_',
+        category_id = cat_id,
+        label = table.concat(res, ', ', 1, max_protocols_in_list),
+        more_protos = i18n("and_x_more", {num = overflown_protos})
+      }
+      res_str = list
+   else
+      res_str = table.concat(res, ', ', 1, max_protocols_in_list)
+   end
+
+   return res_str
 end
 
 -- ##############################################

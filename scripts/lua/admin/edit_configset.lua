@@ -1,5 +1,5 @@
 --
--- (C) 2019-20 - ntop.org
+-- (C) 2019-22 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -13,42 +13,76 @@ local page_utils = require("page_utils")
 local format_utils = require("format_utils")
 local os_utils = require "os_utils"
 local template = require "template_utils"
-local user_scripts = require "user_scripts"
+local checks = require "checks"
 local json = require "dkjson"
 local discover = require "discover_utils"
-local mud_utils = require "mud_utils"
+local rest_utils = require "rest_utils"
+local auth = require "auth"
+local checks_utils = require("checks_utils")
+
+if not auth.has_capability(auth.capabilities.checks) then
+   rest_utils.answer(rest_utils.consts.err.not_granted)
+   return
+end
 
 sendHTTPContentTypeHeader('text/html')
 
-
 -- get config parameters like the id and name
-local script_subdir = _GET["subdir"]
-local confset_id = _GET["confset_id"]
-local script_filter = _GET["user_script"]
-local configset = user_scripts.getConfigsets()[tonumber(confset_id)]
-local script_type = user_scripts.getScriptType(script_subdir)
-interface.select(getSystemInterfaceId())
-local scripts = user_scripts.load(getSystemInterfaceId(), script_type, script_subdir)
+local check_subdir = _GET["subdir"]
+local script_filter = _GET["check"]
+local search_filter = _GET["search_script"]
+local ifid = _GET["ifid"]
 
-if not haveAdminPrivileges() or not configset then
+local configset = checks.getConfigset()
+
+if not isAdministratorOrPrintErr() or not configset then
   return
 end
 
-local confset_name = configset.name
-
 -- create a table that holds localization about hooks name
-local titles = {
-   ["host"] = i18n("config_scripts.granularities.host"),
-   ["snmp_device"] = i18n("config_scripts.granularities.snmp_device"),
-   ["system"] = i18n("config_scripts.granularities.system"),
-   ["flow"] = i18n("config_scripts.granularities.flow"),
-   ["interface"] = i18n("config_scripts.granularities.interface"),
-   ["network"] = i18n("report.local_networks"),
-   ["syslog"] = i18n("config_scripts.granularities.syslog")
-}
+local titles = checks_utils.load_configset_titles()
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.scripts_config)
---page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=titles[script_subdir], config=confset_name }))
+local sub_menu_entries = {
+  ['all'] = {
+     order = 0,
+     entry = page_utils.menu_entries.scripts_config_all
+  },
+  ['host'] = {
+     order = 1,
+     entry = page_utils.menu_entries.scripts_config_hosts
+  },
+  ['interface'] = {
+     order = 2, 
+     entry = page_utils.menu_entries.scripts_config_interfaces
+  },
+  ['network'] = {
+     order = 3,
+     entry = page_utils.menu_entries.scripts_config_networks
+  },
+  ['snmp_device'] = {
+     order = 4,
+     entry = page_utils.menu_entries.scripts_config_snmp_devices
+  },
+  ['flow'] = {
+     order = 5,
+     entry = page_utils.menu_entries.scripts_config_flows
+  },
+  ['system'] = {
+     order = 6,
+     entry = page_utils.menu_entries.scripts_config_system
+  },
+  ['active_monitoring'] = {
+     order = 7,
+     entry = page_utils.menu_entries.scripts_config_active_monitoring
+  },
+  ['syslog'] = {
+     order = 8,
+     entry = page_utils.menu_entries.scripts_config_syslog
+  }
+}
+local active_entry = sub_menu_entries[check_subdir].entry or page_utils.menu_entries.scripts_config
+page_utils.print_header_and_set_active_menu_entry(active_entry)
+--page_utils.print_header(i18n("scripts_list.scripts_x", { subdir=titles[check_subdir], config=confset_name }))
 
 -- append the menu above the page
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
@@ -71,17 +105,6 @@ end
 
 apps_and_categories = {cat_groups, app_groups}
 
---tprint(user_scripts.script_categories)
-local script_categories = {}
-for script_name, script in pairs(scripts.modules) do
-   for cat_k, cat_v in pairs(user_scripts.script_categories) do
-      if script["category"]["id"] == cat_v["id"] and not script_categories[cat_k] then
-	 script_categories[cat_k] = cat_v
-	 break
-      end
-   end
-end
-
 -- Device types
 
 local device_types = {}
@@ -95,34 +118,39 @@ end
 
 local device_types_list = {{elements = device_types}}
 
--- MUD max recording
+local url = ntop.getHttpPrefix() .. "/lua/admin/edit_configset.lua"
+local navbar_menu = {}
+for key, sub_menu in pairsByField(sub_menu_entries, 'order', asc) do
+   navbar_menu[#navbar_menu+1] = {
+      active = (check_subdir == key),
+      page_name = key,
+      label = i18n(sub_menu.entry.i18n_title),
+      url = url .. "?subdir="..key
+  }
+end
 
-local mud_max_recording = {
-   {3600, mud_utils.formatMaxRecording(3600)},
-   {86400, mud_utils.formatMaxRecording(86400)},
-   {604800, mud_utils.formatMaxRecording(604800)},
-}
+page_utils.print_navbar(i18n("internals.checks"), '#', navbar_menu)
 
 local context = {
    script_list = {
-      subdir = script_subdir,
+      subdir = check_subdir,
       template_utils = template,
       hooks_localizated = titles,
-      confset_id = confset_id,
-      script_subdir = script_subdir,
-      confset_name = confset_name,
+      check_subdir = check_subdir,
       script_filter = script_filter,
-      page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?confset_id=%u&subdir=%s", confset_id, script_subdir),
+      search_filter = search_filter,
+      page_url = ntop.getHttpPrefix() .. string.format("/lua/admin/edit_configset.lua?subdir=%s", check_subdir),
       apps_and_categories = json.encode(apps_and_categories),
       device_types = json.encode(device_types_list),
-      mud_max_recording = json.encode(mud_max_recording),
    },
-   script_categories = script_categories,
+   check_categories = checks.check_categories,
    info = ntop.getInfo(),
+   json = json,
+   ifid = ifid or interface.getId()
 }
 
 -- print config_list.html template
-print(template.gen("pages/edit_configset.html", context))
+template.render("pages/edit_configset.template", context)
 
 -- append the menu below the page
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

@@ -1,3 +1,14 @@
+Using ntopng with Docker
+------------------------
+
+You can find
+- Ready to go containers at https://hub.docker.com/u/ntop
+- Docker files at https://github.com/ntop/docker-ntop
+
+
+Docker+OpenStack
+----------------
+
 ntopng can be built as a docker container. You can read more about this
 at http://www.ntop.org/ntopng/using-ntop-applications-with-docker-and-openstack/
 where it is also explained how to download the container.

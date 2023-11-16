@@ -2,24 +2,31 @@
 <div class="modal fade" id="import-modal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-        <div class="modal-header">
-            <h5 class="modal-title">{{ i18n("config_scripts.config_import", {}) }}</h5>
-        </div>
-        <div class="modal-body">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <span class='import-title'>{* dialog.title *}</span>
+                    <span style="display: none;" class='restore-title'>{{ i18n("manage_configurations.import_modal.all_title", {product = ntop.getInfo()["product"]}) }}</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
             <form class='form'>
-                <div class='form-group'>
-                    <label class='form-label' for='#import-input'>{{ i18n("config_scripts.config_import_message", {}) }}</label>
-                    <input id="import-input" name="JSON" type="file" />
-                    <div class="invalid-feedback" id='import-error'>
-                        {message}
+                <div class="modal-body">
+                    <div class="custom-file">
+                        <label class='form-label' for='import-input'>
+                            {{ i18n("browse_config", {}) }}
+                        </label>
+                        <input required class="custom-file-input form-control" id="import-input" name="JSON" type="file" />
+                        <small class="text-muted">{{ dialog.input_description }}</small>
+                        <div class="invalid-feedback" id='import-error'>
+                            {message}
+                        </div>
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <button type="submit" id='btn-confirm-import' disabled
+                        class="btn btn-primary">{{ i18n("import", {}) }}</button>
+                </div>
             </form>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel", {}) }}</button>
-            <button type="button" id='btn-confirm-import' class="btn btn-primary">{{ i18n("apply", {}) }}</button>
-        </div>
         </div>
     </div>
 </div>

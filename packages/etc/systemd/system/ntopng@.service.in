@@ -1,0 +1,24 @@
+[Unit]
+Description=@APP@ high-speed web-based traffic monitoring and analysis tool
+After=@SERVICE_AFTER@
+Requires=@SERVICE_REQUIRES@
+Wants=@SERVICE_WANTS@
+PartOf=@SERVICE_WANTS@
+
+[Service]
+Type=simple
+
+# Config restore only available for non instantiated-services
+# ExecStartPre=/bin/sh -c '/usr/bin/ntopng-utils-manage-config -a check-restore  && /usr/bin/ntopng-utils-manage-config -a restore || true'
+ExecStartPre=/bin/sh -c '/bin/sed "/^[ ]*-e.*$\\|^[ ]*-G.*\\|^[ ]*--daemon.*\\|^[ ]*--pid.*/s/^/#/" /etc/ntopng/ntopng-%i.conf > /run/ntopng-%i.conf'
+
+ExecStart=/usr/bin/ntopng /run/ntopng-%i.conf
+
+ExecStopPost=-/bin/rm -rf /run/ntopng-%i.conf /run/ntopng.pid
+
+Restart=on-abnormal
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+Alias=

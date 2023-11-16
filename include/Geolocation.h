@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -28,7 +28,8 @@ class Geolocation {
  private:
 #ifdef HAVE_MAXMINDDB
   MMDB_s geo_ip_asn_mmdb, geo_ip_city_mmdb;
-  bool loadMaxMindDB(const char * const base_path, const char * const db_name, MMDB_s * const mmdb) const;
+  bool loadGeoDB(const char *base_path, const char *db_name,
+                 MMDB_s *const mmdb) const;
   bool mmdbs_ok;
 #endif
 
@@ -42,13 +43,14 @@ class Geolocation {
 
   inline bool isAvailable() {
 #ifdef HAVE_MAXMINDDB
-      return(mmdbs_ok);
+    return (mmdbs_ok);
 #else
-      return(false);
+    return (false);
 #endif
   };
   void getAS(IpAddress *addr, u_int32_t *asn, char **asname);
-  void getInfo(IpAddress *addr, char **continent_code, char **country_code, char **city, float *latitude, float *longitude);
+  void getInfo(IpAddress *addr, char **continent_code, char **country_code,
+               char **city, float *latitude, float *longitude);
   static void freeInfo(char **continent_code, char **country_code, char **city);
 };
 

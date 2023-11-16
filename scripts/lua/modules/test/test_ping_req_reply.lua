@@ -1,5 +1,5 @@
 --
--- (C) 2017-20 - ntop.org
+-- (C) 2017-22 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -58,7 +58,7 @@ unittest:appendTest("REST API: hosts",
    end
 )
 
-unittest:appendTest("Dummy test",
+unittest:appendTest("Test",
    function()
       unittest:assertEqual(1, 1, "Math is an opinion")
    end

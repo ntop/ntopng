@@ -3,12 +3,12 @@
 ntopng support the reception of eBPF/Netlink events over ZMQ. Such events can be produced either with:
 
 - `nprobe_mini` (note that this name might be changed in the future)
-- `libebpfflow` (opensource library available at https://github.com/ntop/libebpfflow)
+- `libebpfflow` (open source library available at https://github.com/ntop/libebpfflow)
 
 Received events are of different kinds, namely:
 
 - `flow` events carry information of communication flows and will be shown by ntopng as if they were - almost - regular flows.
-- `netstat` events carry traffic updates for the active traffic flows and also for the listening sockets - think to these events as the equivalents of the linux `netstat` tool.
+- `netstat` events carry traffic updates for the active traffic flows and also for the listening sockets - think to these events as the equivalents of the Linux `netstat` tool.
 - `counters` events carry traffic update for the system interfaces.
 
 ## Setup
@@ -31,7 +31,7 @@ Event producers have, in turn, to be instructed to deliver events to ntopng righ
 ./nprobe_mini   -v --zmq tcp://127.0.0.1:1234c
 ```
 
-One might need to adjust the ZMQ url to connect to an ntopng running on a remote machine or on a different port.
+One might need to adjust the ZMQ URL to connect to an ntopng running on a remote machine or on a different port.
 
 ### Setting up `libebpfflow`
 

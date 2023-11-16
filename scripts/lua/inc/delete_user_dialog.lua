@@ -3,8 +3,8 @@ print [[
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 id="delete_user_dialog_label">]] print(i18n("users.delete_user")) print[[</h3>
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button>
+        <h5 class='modal-title' id="delete_user_dialog_label">]] print(i18n("users.delete_user")) print[[ <span class="password_dialog_title"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
 <div class="modal-body">
@@ -13,13 +13,13 @@ print [[
 
 <script>
   delete_user_alert = function() {}
-  delete_user_alert.error =   function(message) { $('#delete_user_alert_placeholder').html('<div class="alert alert-danger"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>');
+  delete_user_alert.error =   function(message) { $('#delete_user_alert_placeholder').html('<div class="alert alert-dismissable alert-danger">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>');
  }
-  delete_user_alert.success = function(message) { $('#delete_user_alert_placeholder').html('<div class="alert alert-success"><button type="button" class="close" data-dismiss="alert">x</button>' + message + '</div>'); }
+  delete_user_alert.success = function(message) { $('#delete_user_alert_placeholder').html('<div class="alert alert-dismissable alert-success">' + message + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>'); }
   delete_user_alert.warning = function(message) { $('#delete_user_alert_placeholder').html('<div class="alert alert-warning">' + message + '</div>'); }
 </script>
 
-  <form id="form_delete_user" class="form-horizontal" method="post" action="delete_user.lua">
+  <form id="form_delete_user" class="form-horizontal" method="post" action="]] print(ntop.getHttpPrefix()) print[[/lua/rest/v2/delete/ntopng/user.lua">
 			      ]]
 print('<input name="csrf" type="hidden" value="'..ntop.getRandomCSRFValue()..'" />\n')
 
@@ -37,12 +37,11 @@ print [[
       url: frmdeluser.attr('action'),
       data: frmdeluser.serialize(),
       success: function (data) {
-        var response = jQuery.parseJSON(data);
-        if (response.result == 0) {
-          delete_user_alert.success(response.message); 
+        if (data.rc == 0) {
+          delete_user_alert.success(data.rc_str);
           window.location.href = ']] print(location_href) print[[';
         } else {
-          delete_user_alert.error(response.message);
+          delete_user_alert.error(data.rc_str);
         }
       }, error: function (data) {
         delete_user_alert.error("]] print(i18n("users.delete_user_error")) print[[");
@@ -55,8 +54,7 @@ print [[
 </div> <!-- modal-body -->
 
 <div class="modal-footer">
-  <button class="btn btn-secondary btn-sm" data-dismiss="modal" aria-hidden="true">]] print(i18n("close")) print[[</button>
-  <button id="delete_user_submit" class="btn btn-danger btn-sm">]] print(i18n("delete")) print[[</button>
+  <button id="delete_user_submit" class="btn btn-danger">]] print(i18n("delete")) print[[</button>
 </div>
 
 <script>

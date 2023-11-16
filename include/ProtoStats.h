@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -31,17 +31,21 @@ class ProtoStats {
  public:
   ProtoStats();
 
-  inline void reset()                              { numPkts = 0, numBytes = 0; };
-  inline void inc(u_int32_t pkts, u_int32_t bytes) { numPkts += pkts, numBytes += bytes; };
-  inline void incPkts(u_int32_t pkts)              { numPkts += pkts; };
-  inline void incBytes(u_int32_t bytes)            { numBytes += bytes; };
-  inline u_int64_t getPkts()                 const { return(numPkts);  };
-  inline u_int64_t getBytes()                const { return(numBytes); };
-  inline void setPkts(u_int64_t v)                 { numPkts = v;  };
-  inline void setBytes(u_int64_t v)                { numBytes = v; };
+  inline void reset() { numPkts = 0, numBytes = 0; };
+  inline void inc(u_int32_t pkts, u_int32_t bytes) {
+    numPkts += pkts, numBytes += bytes;
+  };
+  inline void incPkts(u_int32_t pkts) { numPkts += pkts; };
+  inline void incBytes(u_int32_t bytes) { numBytes += bytes; };
+  inline u_int64_t getPkts() const { return (numPkts); };
+  inline u_int64_t getBytes() const { return (numBytes); };
+  inline void setPkts(u_int64_t v) { numPkts = v; };
+  inline void setBytes(u_int64_t v) { numBytes = v; };
   void lua(lua_State *vm, const char *prefix);
   void print(const char *prefix);
-  inline void sum(ProtoStats *p) const { p->numPkts += numPkts, p->numBytes += numBytes; };
+  inline void sum(ProtoStats *p) const {
+    p->numPkts += numPkts, p->numBytes += numBytes;
+  };
 };
 
 #endif /* _PROTO_STATS_H_ */

@@ -10,8 +10,9 @@ ntopng centers and has been developed around some basic concepts that include in
     system_interface
     hosts
     host_pools
+    stats
     alerts
     timeseries
-    plugins
+    scripts
     local_broadcast_domain
     disk_space

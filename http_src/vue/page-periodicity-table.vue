@@ -1,0 +1,280 @@
+{#
+  (C) 2022 - ntop.org
+  This template is used by the `Periodicity Map` page inside the `Hosts` menu.    
+#}
+
+<template>
+
+<div class="row">
+  <div class="col-md-12 col-lg-12">
+    <div class="alert alert-danger d-none" id='alert-row-buttons' role="alert">
+    </div>
+    <div class="card">
+      <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
+        <div class="text-center">
+          <div class="spinner-border text-primary mt-5" role="status">
+            <span class="sr-only position-absolute">Loading...</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+      	<div id="periodicity-table">
+          <modal-delete-confirm ref="modal_delete_all"
+            :title="title_delete"
+            :body="body_delete"
+            @delete="delete_all">
+          </modal-delete-confirm>
+
+          <datatable ref="table_periodicity"
+            :table_buttons="config_devices_standard.table_buttons"
+            :columns_config="config_devices_standard.columns_config"
+            :data_url="config_devices_standard.data_url"
+            :enable_search="config_devices_standard.enable_search"
+            :filter_buttons="config_devices_standard.table_filters"
+            :table_config="config_devices_standard.table_config"
+            :base_url="base_url"
+            :base_params="url_params">
+          </datatable>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button v-if="is_admin" type="button" id='btn-delete-all' class="btn btn-danger me-1"><i class='fas fa-trash'></i> {{ i18n("map_page.delete_services") }}</button>
+        <a v-bind:href="get_url" class="btn btn-primary" role="button" aria-disabled="true"  download="periodicity_map.json" target="_blank"><i class="fas fa-download"></i></a>
+      </div>
+    </div>
+  </div>
+</div>
+</template>
+
+<script>
+import { default as Datatable } from "./datatable.vue";
+import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
+import { ntopng_url_manager } from '../services/context/ntopng_globals_services';
+
+export default {
+  components: {	  
+    'datatable': Datatable,
+    'modal-delete-confirm': ModalDeleteConfirm,
+  },
+  props: {
+    page_csrf: String,
+    url_params: Object,
+    view: String,
+    table_filters: Array,
+    is_admin: Boolean,
+  },
+  /**
+   * First method called when the component is created.
+   */
+  created() {
+    start_datatable(this);
+  },
+  mounted() {  
+    $("#btn-delete-all").click(() => this.show_delete_all_dialog());
+    
+    ntopng_events_manager.on_custom_event("page_periodicity_table", ntopng_custom_events.DATATABLE_LOADED, () => {
+      if(ntopng_url_manager.get_url_entry('host'))
+        this.hide_dropdowns();
+    });
+  },    
+  data() {
+    return {
+      i18n: (t) => i18n(t),
+      base_url: `${http_prefix}/lua/pro/enterprise/get_map.lua`,
+      config_devices_standard: null,
+      config_devices_centrality: null,
+      title_delete: i18n('map_page.delete_services'),
+      body_delete: i18n('map_page.delete_services_message'),
+      title_download: i18n('map_page.download'),
+      body_download: i18n('map_page.download_message'),
+      get_url: null,
+    };
+  },
+  methods: { 
+    hide_dropdowns: function() {
+      $(`#network_dropdown`).attr('hidden', 'hidden')
+      $(`#vlan_id_dropdown`).attr('hidden', 'hidden')
+      $(`#network_dropdown`).removeClass('d-inline')
+      $(`#vlan_id_dropdown`).removeClass('d-inline')
+    }, 
+    create_action_button_historical_flow_link: function(_, type, rowData) {
+    let historical_flow_link = {
+      handlerId: "historical_flow_link",
+      onClick: () => {
+        historical_flow(rowData);
+      },
+    }
+    let live_flow_link = {
+      handlerId: "live_flow_link",
+      onClick: () => {
+        live_flow(rowData);
+      },
+    }
+
+    return DataTableUtils.createActionButtons([
+      { class: `pointer`, handler: historical_flow_link, icon: 'fas fa-stream', title: i18n('db_explorer.historical_data') },
+      { class: `pointer`, handler: live_flow_link, icon: 'fas fa-stream', title: i18n('live_flows') },
+
+    ]);
+    
+    },
+    delete_all: async function() {
+      let url = `${http_prefix}/lua/pro/enterprise/network_maps.lua`;
+      let params = {
+        ifid: this.url_params.ifid,
+        action: 'reset',
+        page: this.url_params.page,
+        csrf: this.$props.page_csrf,
+        map: this.url_params.map
+      };
+      try {
+        let headers = {
+          'Content-Type': 'application/json'
+        };
+        await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+        this.reload_table();
+      } catch(err) {
+        this.reload_table();  
+      }      
+    },
+    reload_table: function() {
+      let table = this.get_active_table();
+      NtopUtils.showOverlays();
+      table.reload();
+      NtopUtils.hideOverlays();
+    },
+    destroy: function() {
+      let table = this.get_active_table();
+      table.destroy_table();
+    },
+    get_active_table: function() {
+      return this.$refs[`table_periodicity`];
+    },
+    show_delete_all_dialog: function() {
+      this.$refs["modal_delete_all"].show();
+    },  
+  },
+}  
+
+function historical_flow(row) {
+  const client_ip = row.client.split("host=")[1].split(">")[0];
+  const client = client_ip.substring(0, client_ip.length - 1);
+  const server_ip = row.server.split("host=")[1].split(">")[0];
+  const server = server_ip.substring(0, server_ip.length - 1);
+  const port = row.port;
+
+  const epoch_begin = row.first_seen;
+  const epoch_end = row.last_seen.epoch_end;
+
+  const params = {
+    epoch_begin: epoch_begin,
+    epoch_end: epoch_end,
+    srv_ip: `${server};eq`,
+    cli_ip: `${client};eq`,
+    srv_port: `${port};eq`,
+  }
+  const url_params = ntopng_url_manager.obj_to_url_params(params);
+  const url = `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
+  ntopng_url_manager.go_to_url(url);
+
+}
+
+function live_flow(row) {
+  const client_ip = row.client.split("host=")[1].split(">")[0];
+  const client = client_ip.substring(0, client_ip.length - 1);
+  const server_ip = row.server.split("host=")[1].split(">")[0];
+  const server = server_ip.substring(0, server_ip.length - 1);
+  const port = row.port;
+
+
+  const params = {
+    server: `${server}`,
+    client: `${client}`,
+    port: `${port}`,
+  }
+  const url_params = ntopng_url_manager.obj_to_url_params(params);
+  const url = `${http_prefix}/lua/flows_stats.lua?${url_params}`;
+  ntopng_url_manager.go_to_url(url);
+}
+
+function start_datatable(DatatableVue) {
+  const datatableButton = [];
+  let columns = [];
+  let default_sorting_columns = 0;
+  DatatableVue.get_url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, url_params)
+  
+  /* Manage the buttons close to the search box */
+  datatableButton.push({
+    text: '<i class="fas fa-sync"></i>',
+    className: 'btn-link',
+    action: function (e, dt, node, config) {
+      DatatableVue.reload_table();
+    }
+  });
+  
+  let tmp_params = ntopng_utility.clone(url_params)
+  tmp_params['view'] = null
+  let defaultDatatableConfig = {
+    table_buttons: datatableButton,
+    columns_config: [],
+    data_url: NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, tmp_params),
+    enable_search: true,
+  };
+
+  let table_filters = []
+  for (let filter of (DatatableVue.$props.table_filters || [])) {
+    filter.callbackFunction = (table, value) => {
+      tmp_params[filter.filterMenuKey] = value.id;
+      ntopng_url_manager.set_key_to_url(filter.filterMenuKey, value.id);
+      table.ajax.url(NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/get_map.lua`, tmp_params));
+      NtopUtils.showOverlays();
+      table.ajax.reload();
+      NtopUtils.hideOverlays();
+    },
+    table_filters.push(filter);
+  }
+  
+  /* Standard table configuration */  
+
+  columns = [
+    { columnName: i18n("actions"), name: 'actions',  className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) {
+        return DatatableVue.create_action_button_historical_flow_link(_, type,rowData);
+      },
+    },
+    { columnName: i18n('map_page.last_seen'), name: 'last_seen', data: 'last_seen', className: 'text-center text-nowrap', render: (data, type) => { return data.value }, responsivePriority: 2 },
+    { columnName: i18n('map_page.client'), name: 'client', data: 'client', className: 'text-nowrap', responsivePriority: 2 },
+    { columnName: i18n('map_page.server'), name: 'server', data: 'server', className: 'text-nowrap', responsivePriority: 2 },
+    { columnName: i18n('map_page.port'), name: 'port', data: 'port',  className: 'text-center', responsivePriority: 4 },
+    { columnName: i18n('map_page.protocol'), name: 'l7proto', data: 'protocol', className: 'text-nowrap', responsivePriority: 3 },
+    { columnName: i18n('map_page.first_seen'), name: 'first_seen', data: 'first_seen', visible: false, responsivePriority: 3 },
+    { columnName: i18n('duration'), name: 'duration', data: 'duration', className: 'text-center text-nowrap',  responsivePriority: 3, orderable: true,  },
+    { columnName: i18n('map_page.observations'), name: 'observations', data: 'observations', className: 'text-center', responsivePriority: 4 },
+    { columnName: i18n('map_page.frequency'), name: 'frequency', data: 'frequency', className: 'text-center', orderable: true, responsivePriority: 4, render: ( data, type, row ) => {
+        return (type == "sort" || type == 'type') ? data : data + " sec"; 
+      }
+    },
+  ];
+
+  default_sorting_columns = 8 /* Observation column */
+
+  /* Extra table configuration */
+  let table_config = {
+    serverSide: true,
+    order: [[ default_sorting_columns, 'desc' ]]
+  }
+  
+  let configDevices = ntopng_utility.clone(defaultDatatableConfig);
+  configDevices.table_buttons = defaultDatatableConfig.table_buttons;
+  configDevices.data_url = `${configDevices.data_url}`;
+  configDevices.columns_config = columns;
+  configDevices.table_filters = table_filters;
+  configDevices.table_config = ntopng_utility.clone(table_config);
+  DatatableVue.config_devices_standard = configDevices;
+}
+</script>
+
+
+
+
+
+

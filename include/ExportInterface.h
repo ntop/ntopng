@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,8 @@
 
 #include "ntop_includes.h"
 
+
+#ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
 
 class ExportInterface {
@@ -38,6 +40,6 @@ class ExportInterface {
   void export_data(char *json);
 };
 #endif
+#endif
 
 #endif /* _EXPORT_INTERFACE_H_ */
-

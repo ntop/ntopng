@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -19,14 +19,13 @@ local flow = interface.findFlowByKeyAndHashId(tonumber(flow_key), tonumber(flow_
 local throughput_type = getThroughputType()
 
 sendHTTPContentTypeHeader('text/html')
---sendHTTPHeader('application/json')
 
 if(flow == nil) then
- print('{}')
+   print('{}')
 else
 
- diff0 = os.time()-flow["seen.first"]
- diff = os.time()-flow["seen.last"]
+   diff0 = os.time()-flow["seen.first"]
+   diff = os.time()-flow["seen.last"]
    -- Default values
    thpt = 0
    thpt_display = bitsToSize(0)
@@ -41,7 +40,8 @@ else
       top_thpt_display = pktsToSize(flow["top_throughput_pps"])
     end
     print('{ ' .. '"seen.last": "'.. formatEpoch(flow["seen.last"]) .. ' ['.. secondsToTime(diff) .. ' ago]", '
-    .. '"seen.first": "'.. formatEpoch(flow["seen.first"]) .. ' ['.. secondsToTime(diff0) .. ' ago]"'
+	  .. '"seen.first": "'.. formatEpoch(flow["seen.first"]) .. ' ['.. secondsToTime(diff0) .. ' ago]"'
+	  .. ', "seen.duration": "'.. secondsToTime(flow["seen.last"] - flow["seen.first"]) .. '"'
     .. ', "bytes": ' .. flow["bytes"] .. ', "goodput_bytes": ' .. flow["goodput_bytes"] .. ', "cli2srv.packets": ' .. flow["cli2srv.packets"] .. ', "srv2cli.packets": ' .. flow["srv2cli.packets"] .. ', "cli2srv.bytes": ' .. flow["cli2srv.bytes"] .. ', "srv2cli.bytes": ' .. flow["srv2cli.bytes"].. ', "throughput": "' .. thpt_display..'", "top_throughput_display": "'.. top_thpt_display ..'", "throughput_raw": ' .. thpt)
 
     local ifstats = interface.getStats()
@@ -414,9 +414,12 @@ else
         if((getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~=nil) and (getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")~="")) then
           sip_rtp_dst_addr = 1
           local address_ip = getFlowValue(info, "SIP_RTP_IPV4_DST_ADDR")
-          if (address_ip ~= "0.0.0.0") then
+
+	  if (address_ip ~= "0.0.0.0") then
             interface.select(ifname)
+	    
             rtp_host = interface.getHostInfo(address_ip)
+	    
             if(rtp_host ~= nil) then
 	      print(hostinfo2detailshref(rtp_host, nil, address_ip))
             end

@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2015-20 - ntop.org
+ * (C) 2015-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -46,7 +46,7 @@ class PacketDumper {
   bool openDump();
   void dumpPacket(const struct pcap_pkthdr *h, const u_char *packet);
   inline u_int64_t get_num_dumped_packets() { return num_dumped_packets; }
-  inline u_int64_t get_num_dumped_files()   { return file_id; }
+  inline u_int64_t get_num_dumped_files() { return file_id; }
 };
 
 #endif /* _PACKET_DUMPER_H_ */

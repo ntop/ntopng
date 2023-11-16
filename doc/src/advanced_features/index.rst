@@ -14,12 +14,17 @@ section.
     view_interfaces
     dynamic_interfaces_disaggregation
     traffic_profiles
+    host_rules
+    multitenancy
     device_protocols
     category_lists
+    devices_exclusion
+    behavior_analysis
     bridging_and_policing
     flows_dump
     live_pcap_download
     syslog
-    suricata
+    ids_acceleration
     additional_features
     oem
+    snapshots

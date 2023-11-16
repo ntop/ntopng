@@ -1,11 +1,8 @@
 # /etc/cron.d/ntopng: crontab fragment for ntopng
 # This is used to handle software updates.
 
-# Check for upgrade requests (every minute)
-* * * * * root /usr/bin/ntopng-utils-manage-updates -a handle-upgrade-requests
-
-# Check for updates if requested (every minute)
-* * * * * root /usr/bin/ntopng-utils-manage-updates -a check-updates-on-demand
+# Check for updates or upgrade if requested (every minute)
+* * * * * root /usr/bin/ntopng-utils-manage-updates -a handle-on-demand-requests
 
 # Check for updates (every 24h at 5am)
 30 5 * * * root /usr/bin/ntopng-utils-manage-updates -a check-updates

@@ -1,10 +1,56 @@
 --
--- (C) 2019-20 - ntop.org
+-- (C) 2019-22 - ntop.org
 --
 
 local file_utils = {}
 local os_utils = require("os_utils")
+local json = require "dkjson"
 
+-- ##############################################
+
+function file_utils.write_file(file_path, content)
+   local file = io.open(file_path, "w")
+
+   if not file then
+      return false
+   end
+   
+   file:write(content)
+
+   file:close()
+   return true
+end
+
+
+-- ##############################################
+
+function file_utils.read_file(file_path)
+   local content = nil
+
+   local file = io.open(file_path, "r")
+
+   if file ~= nil then
+      content = file:read("*all")
+      file:close()
+   end
+
+   return content
+end
+
+-- ##############################################
+
+function file_utils.read_json_file(file_path)
+   local json_content = nil
+
+   local content = file_utils.read_file(file_path)
+
+   if content ~= nil then
+      json_content = json.decode(content)
+   end
+
+   return json_content
+end
+ 
 -- ##############################################
 
 function file_utils.copy_file(fname, src_path, dst_path)
@@ -32,7 +78,8 @@ function file_utils.copy_file(fname, src_path, dst_path)
 
    if(ntop.exists(dst)) then
       -- NOTE: overwriting is not allowed as it means that a file was already provided by
-      -- another plugin
+      -- another script
+      -- io.write(debug.traceback())
       traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Trying to overwrite existing file %s", dst))
       return(false)
    end
@@ -51,6 +98,11 @@ function file_utils.copy_file(fname, src_path, dst_path)
       return(false)
    end
 
+   if (instr == nil) then
+      traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Could not write the string into file %s", dst))
+      return (false)
+   end
+
    outfile:write(instr)
    outfile:close()
 
@@ -61,14 +113,26 @@ end
 
 -- #########################################################
 
-function file_utils.recursive_copy(src_path, dst_path, path_map)
+function file_utils.recursive_copy(src_path, dst_path, path_map, required_extension)
    for fname in pairs(ntop.readdir(src_path)) do
-      if not file_utils.copy_file(fname, src_path, dst_path) then
-	 return(false)
+      local do_copy = true
+
+      if((required_extension ~= nil) and not(ends(fname, ".lua"))) then
+	 -- Don't copy
+	 do_copy = false
+	 traceError(TRACE_INFO, TRACE_CONSOLE, "SKIP file_utils.recursive_copy("..fname.." ["..src_path.." -> "..dst_path.."])\n")
       end
 
-      if path_map then
-	 path_map[os_utils.fixPath(dst_path .. "/" .. fname)] = os_utils.fixPath(src_path .. "/" .. fname)
+      if(do_copy) then
+	 traceError(TRACE_INFO, TRACE_CONSOLE, "COPY file_utils.recursive_copy("..fname.." ["..src_path.." -> "..dst_path.."])\n")
+
+	 if not file_utils.copy_file(fname, src_path, dst_path) then
+	    return(false)
+	 end
+
+	 if path_map then
+	    path_map[os_utils.fixPath(dst_path .. "/" .. fname)] = os_utils.fixPath(src_path .. "/" .. fname)
+	 end
       end
    end
 

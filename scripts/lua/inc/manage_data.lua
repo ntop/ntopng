@@ -31,12 +31,12 @@ if _POST and table.len(_POST) > 0 and isAdministrator() then
       end
 
       if #err_msgs == 0 then
-	      print('<div class="alert alert-success alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_inactive_interfaces_data_ok')..'</div>')
+	      print('<div class="alert alert-success alert-dismissable">'..i18n('delete_data.delete_inactive_interfaces_data_ok')..'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
       else
-	      print('<div class="alert alert-danger alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>'..i18n('delete_data.delete_inactive_interfaces_data_failed')..' '..table.concat(err_msgs, ' ')..'</div>')
+	      print('<div class="alert alert-danger alert-dismissable">'..i18n('delete_data.delete_inactive_interfaces_data_failed')..' '..table.concat(err_msgs, ' ')..'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>')
       end
 
-   elseif _POST["delete_active_if_data_system"] then
+   else
 
       -- Data for the active interface can't be hot-deleted.
       -- a restart of ntopng is required so we just mark the deletion.
@@ -44,8 +44,8 @@ if _POST and table.len(_POST) > 0 and isAdministrator() then
 
       print([[
          <div class="alert alert-success alert-dismissable">
-            <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
             ]]..i18n('delete_data.delete_active_interface_data_ok', {ifname = i18n("system"), product = ntop.getInfo().product})..[[
+               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
          </div>
       ]])
    end
@@ -63,6 +63,7 @@ if not delete_active_interface_requested then
 			   message = i18n("delete_data.delete_active_interface_confirmation", {ifname = "<span id='interface-name-to-delete'></span>", product = ntop.getInfo().product}),
 			   confirm = i18n("delete"),
             confirm_button = "btn-danger",
+            custom_alert_class = 'alert alert-danger'
 		   }
       })
    )
@@ -93,31 +94,11 @@ if num_inactive_interfaces > 0 then
             message = i18n("delete_data.delete_inactive_interfaces_confirmation", {interfaces_list = inactive_list}),
             confirm = i18n("delete"),
             confirm_button = "btn-danger",
+            custom_alert_class = 'alert alert-danger'
 		   }
       })
    )
 end
-
--- if num_inactive_interfaces > 0 then
---    print[[
--- 	<form class="interface_data_form" id="form_delete_inactive_interfaces" method="POST">
--- 	  <button class="btn btn-secondary" type="submit" onclick="return delete_interfaces_data_show_modal('delete_inactive_interfaces_data');" style="float:right; margin-right:1em;"><i class="fas fa-trash" aria-hidden="true" data-original-title="" title="]] print(i18n("manage_data.delete_inactive_interfaces")) print[["></i> ]] print() print[[</button>
--- 	</form>
--- ]]
--- end
-
--- print[[
--- <form class="interface_data_form" method="POST">
---   <button
---     class="btn btn-secondary"
---     type="submit"
---     onclick="$('#interface-name-to-delete').html(']] print(i18n("system")) print[['); delete_system_iface = true; return delete_interfaces_data_show_modal('delete_active_interface_data');"
---     style="float:right; margin-right:1em;"
---       >
--- ]]
--- print[[</button>
--- </form>
--- ]]
 
 print([[
    <script type="text/javascript">
@@ -130,7 +111,7 @@ print([[
       params.ifid = ]].. getSystemInterfaceId() ..[[;
       params.csrf = "]].. ntop.getRandomCSRFValue() ..[[";
 
-      const form = paramsToForm('<form method="post"></form>', params);
+      const form = NtopUtils.paramsToForm('<form method="post"></form>', params);
       form.appendTo('body').submit();
    };
 

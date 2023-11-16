@@ -8,18 +8,20 @@ require "lua_utils"
 
 sendHTTPHeader('application/json')
 
-if(haveAdminPrivileges()) then
+if(isAdministratorOrPrintErr()) then
 local currentPage     = _GET["currentPage"]
 local perPage         = _GET["perPage"]
 local sortColumn      = _GET["sortColumn"]
 local sortOrder       = _GET["sortOrder"]
 local captivePortal   = _GET["captive_portal_users"]
 
-local host_pools_utils = nil
+local logged_user = _SESSION["user"]
+
+local host_pools_nedge = nil
 local pool_names = nil
 if captivePortal then
-   local host_pools_utils = require "host_pools_utils"
-   local names = host_pools_utils.getPoolsList(getInterfaceId(ifname), false)
+   local host_pools_nedge = require "host_pools_nedge"
+   local names = host_pools_nedge.getPoolsList(false)
    pool_names = {}
    for _, p in pairs(names) do
       pool_names[tonumber(p["id"])] = p["name"]
@@ -81,6 +83,8 @@ for _key, _value in pairsByValues(vals, funct) do
    local key = _key
    local value = users_list[_key]
    local js_key = _key:gsub("%.", "\\\\\\\\.")
+   local id_key = _key:gsub("%.", "")
+   id_key = id_key:gsub("@", "")
 
    if(to_skip > 0) then
       to_skip = to_skip-1
@@ -110,11 +114,14 @@ else
 end
 
 	 print ("  \"column_group\"     : \"" .. group_label .. "\", ")
-	 print ("  \"column_edit\"      : \"<a href='#password_dialog' data-toggle='modal' onclick='return(reset_pwd_dialog(\\\"".. js_key.."\\\"));'><span class='badge badge-info'>" .. i18n("manage_users.manage") .. "</span></a> ")
+	 print ("  \"column_edit\"      : \"<a href='#password_dialog' class='btn btn-sm btn-info' data-bs-toggle='modal' onclick='return(reset_pwd_dialog(\\\"".. js_key.."\\\"));'><i class='fas fa-edit'></i></a> ")
+   
+    local can_be_deleted = (key ~= "admin" and key ~= logged_user)
 
-  if(key ~= "admin") then
-	    print ("<a href='#delete_user_dialog' role='button' class='add-on' data-toggle='modal' id='delete_btn_" .. key .. "'><span class='badge badge-danger'>" .. i18n("delete") .. "</span></a><script> $('#delete_btn_" .. js_key .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
-	 end
+    local id_key2 = id_key:gsub('[%p%c%s]', '')
+    
+    print ("<a href='#delete_user_dialog' role='button' class='add-on btn btn-sm btn-danger ".. (not can_be_deleted and 'disabled' or '') .."' data-bs-toggle='modal' id='delete_btn_" .. id_key2 .. "'><i class='fas fa-trash'></i></a><script> $('#delete_btn_" .. id_key2 .. "').on('mouseenter', function() { delete_user_alert.warning('" .. i18n("manage_users.confirm_delete_user", {user=key}) .. "'); $('#delete_dialog_username').val('" .. key .. "'); }); </script>")
+
 	 print ("\"}")
 	 num = num + 1
       end

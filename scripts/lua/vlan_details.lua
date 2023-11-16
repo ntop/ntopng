@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 if(ntop.isPro()) then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-    require "snmp_utils"
+    local snmp_utils = require "snmp_utils"
 end
 
 require "lua_utils"
@@ -16,7 +16,7 @@ local page_utils = require("page_utils")
 
 local info = ntop.getInfo(false)
 local vlan_id        = _GET["vlan"]
-local page           = "historical" -- only historical for now _GET["page"]
+local page           = _GET["page"] -- only historical for now _GET["page"]
 
 interface.select(ifname)
 ifId = getInterfaceId(ifname)
@@ -24,33 +24,56 @@ ifId = getInterfaceId(ifname)
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.vlans)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.vlans)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-if vlan_id == nil or tonumber(vlan_id) == nil or tonumber(vlan_id) == 0 then
-    print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("vlan_details.vlan_id_parameter_missing_or_invalid_message") .. "</div>")
-    return
+if vlan_id == nil or tonumber(vlan_id) == nil then
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " .. i18n("vlan_details.vlan_id_parameter_missing_or_invalid_message") .. "</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
 end
 
-if(not areVlanTimeseriesEnabled(ifId)) then
-   print("<div class=\"alert alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> " .. i18n("vlan_details.no_available_stats_for_vlan_message",{vlan_id=vlan_id, product=info["product"]}).."</div>")
-
+if(not areVlanTimeseriesEnabled(ifId)) and (page ~= "config") then
+   print("<div class=\"alert alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> " .. i18n("vlan_details.no_available_stats_for_vlan_message",{vlan_id=vlan_id, product=info["product"]}).."</div>")
+   dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")
+   return
 else
 
    --[[
       Create Menu Bar with buttons
    --]]
-   local nav_url = ntop.getHttpPrefix().."/lua/vlan_details.lua?vlan"..vlan_id
-   local title = i18n("vlan")..": "..vlan_id
-
+   local nav_url = ntop.getHttpPrefix().."/lua/vlan_details.lua?vlan="..vlan_id
+   local title = i18n("vlan")..": "..vlan_id..""
+   if (vlan_id == 0 or vlan_id == '0') then
+      title = i18n('untagged')
+   end
    page_utils.print_navbar(title, nav_url,
 			   {
 			      {
-				 active = page == "historical" or not page,
-				 page_name = "historical",
-				 label = "<i class='fas fa-lg fa-chart-area'></i>",
+                  active = page == 'vlans_list',
+                  page_name = 'vlans_list',
+                  url = ntop.getHttpPrefix() .. "/lua/vlan_stats.lua",
+                  label = "<i class=\"fas fa-home fa-lg\"></i>",
+               }
+               ,
+               {
+                  active = page == "historical" or not page,
+                  page_name = "historical",
+                  label = "<i class='fas fa-lg fa-chart-area'></i>",
 			      },
+               {
+                  active = page == "alerts",
+                  page_name = "alerts",
+                  url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua",
+                  label = "<i class=\"fas fa-exclamation-triangle fa-lg\"></i>",
+               },
+               {
+                  hidden = not network or not isAdministrator(),
+                  active = page == "config",
+                  page_name = "config",
+                  label = "<i class=\"fas fa-cog fa-lg\"></i>",
+               },
 			   }
    )
 
@@ -58,24 +81,45 @@ else
       Selectively render information pages
    --]]
    if page == "historical" then
-      local schema = _GET["ts_schema"] or "vlan:traffic"
-      local selected_epoch = _GET["epoch"] or ""
-      local vlan_url = ntop.getHttpPrefix()..'/lua/vlan_details.lua?ifid='..ifId..'&vlan='..vlan_id..'&page=historical'
+      local source_value_object = { vlan = tonumber(vlan_id), ifid = interface.getId() }
+      graph_utils.drawNewGraphs(source_value_object)
+   elseif (page == "config") then
+      if(not isAdministrator()) then
+         return
+      end
+      print[[
+      <form id="vlan_config" class="form-inline" style="margin-bottom: 0px;" method="post">
+      <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[["/>
+      <table class="table table-bordered table-striped">]]
 
-      local tags = {
-         ifid = ifId,
-         vlan = vlan_id,
-         protocol = _GET["protocol"],
-      }
+      if _SERVER["REQUEST_METHOD"] == "POST" then
+         setVlanAlias(tonumber(vlan_id), _POST["custom_name"])
+         custom_name = getVlanAlias(tonumber(vlan_id))
+      end
+      custom_name = getVlanAlias(vlan_id)
 
-      graph_utils.drawGraphs(ifId, schema, tags, _GET["zoom"], vlan_url, selected_epoch, {
-         top_protocols = "top:vlan:ndpi",
-         timeseries = {
-            {schema="vlan:traffic",             	  label=i18n("traffic")},
-         },
-      })
+      print [[<tr>
+       <th>]] print(i18n("vlan_details.vlan_alias")) print[[</th>
+       <td>
+            <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]]print(custom_name)
+            print[["]]
+
+            print[[>
+                  </td>
+                     </tr>
+                  ]]
+
+         print[[
+            </table>
+            <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]] print(i18n("save_settings")) print[[</button><br><br>
+            </form>
+            <script>
+              aysHandleForm("#vlan_config");
+            </script>
+         ]]
+
+      print[[</table>]]
    end
-
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

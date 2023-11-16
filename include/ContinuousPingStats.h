@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2019 - ntop.org
+ * (C) 2019-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -35,16 +35,25 @@ class ContinuousPingStats {
  private:
   time_t last_refresh;
   struct cp_stats stats;
+  Ping *pinger;
 
  public:
-  ContinuousPingStats() { reset(); heartbeat(); }
+  ContinuousPingStats(Ping *p) {
+    pinger = p;
+    reset();
+    heartbeat();
+  }
 
-  inline void getStats(struct cp_stats *out) { memcpy(out, &stats, sizeof(struct cp_stats));  }
-  inline void heartbeat()                    { last_refresh = time(NULL);                     }
-  inline void incSent()                      { stats.num_ping_sent++;                         }
-  inline time_t getLastHeartbeat()           { return(last_refresh);                          }
+  inline Ping *getPinger() { return (pinger); }
+  inline void getStats(struct cp_stats *out) {
+    memcpy(out, &stats, sizeof(struct cp_stats));
+  }
+  inline void heartbeat() { last_refresh = time(NULL); }
+  inline void incSent() { stats.num_ping_sent++; }
+  inline time_t getLastHeartbeat() { return (last_refresh); }
   void update(float rtt);
-  float getSuccessRate(float *min_rtt, float *max_rtt, float *jitter, float *mean);
+  float getSuccessRate(float *min_rtt, float *max_rtt, float *jitter,
+                       float *mean);
   inline void reset() { memset(&stats, 0, sizeof(stats)); }
 };
 

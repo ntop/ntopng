@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -25,6 +25,7 @@ if((host_info ~= nil) and (host_info["host"] ~= nil)) then
       if((host["ip"] == host["name"]) and ntop.shouldResolveHost(host["ip"])) then
          -- Actively resolve host if resolution is enabled
          host["name"] = resolveAddress(hostinfo)
+         interface.setHostResolvedName(hostinfo2hostkey(hostinfo), host["name"])
       end
    end
 else

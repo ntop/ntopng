@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -11,20 +11,18 @@ local rest_utils = require("rest_utils")
 
 --
 -- Retrieves all ntopng interfaces of a given host
--- Example: curl -u admin:admin -d '{"host" : "192.168.1.1"}' http://localhost:3000/lua/rest/v1/get/host/interfaces.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"host" : "192.168.1.1"}' http://localhost:3000/lua/rest/v1/get/host/interfaces.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
 
-sendHTTPHeader('application/json')
-
-local rc = rest_utils.consts_ok
+local rc = rest_utils.consts.success.ok
 local res = {}
 
 local host_info = url2hostinfo(_GET)
 
 if isEmptyString(host_info["host"]) then
-   print(rest_utils.rc(rest_utils.consts_invalid_args))
+   rest_utils.answer(rest_utils.consts.err.invalid_args)
    return
 end
 
@@ -44,5 +42,5 @@ for ifid, _ in pairs(interface.getIfNames()) do
    end
 end
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rc, res)
 

@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -9,10 +9,6 @@ require "lua_utils"
 local json = require "dkjson"
 
 sendHTTPHeader('application/json')
-
-max_num_to_find = 7
-local res = {results={}}
-local results = res.results
 
 local ifid = _GET["ifId"]
 local query = string.lower(_GET["query"])
@@ -25,6 +21,9 @@ if not isEmptyString(category_filter) and starts(category_filter, "cat_") then
   category_filter = split(category_filter, "cat_")[2]
 end
 
+local max_num_to_find = 7
+local results = {}
+
 local protocols = interface.getnDPIProtocols(tonumber(category_filter), toboolean(skip_critical))
 
 for proto, id in pairsByKeys(protocols, asc_insensitive) do
@@ -35,5 +34,11 @@ for proto, id in pairsByKeys(protocols, asc_insensitive) do
     end
   end
 end
+
+local res = {
+  rsp = {
+    results = results
+  }
+}
 
 print(json.encode(res, nil, 1))

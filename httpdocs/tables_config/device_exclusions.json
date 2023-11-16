@@ -1,0 +1,111 @@
+{
+	"id": "device_exclusions",
+	"data_url": "lua/pro/rest/v2/get/device/exclusion.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "edit",
+					"icon": "fas fa-edit",
+					"title_i18n": "hosts_stats.page_scan_hosts.edit_host",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_edit_device"
+				},
+				{ 
+					"id": "historical_data", 
+					"icon": "fas fa-stream", 
+					"title_i18n": "db_explorer.historical_data", 
+					"class":["link-button"], 
+					"event_id": "click_button_historical_flows" 
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa fa-trash",
+					"title_i18n": "delete",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_delete"
+				}
+			]
+		},
+		{
+			"title_i18n": "edit_check.device",
+			"data_field": "mac_address",
+			"sortable": true,
+			"class": [
+				"applyCellStyle",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "ip_address",
+			"data_field": "last_ip",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "mac_stats.manufacturer",
+			"data_field": "manufacturer",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "first_seen",
+			"data_field": "first_seen",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+
+		{
+			"title_i18n": "last_seen",
+			"data_field": "last_seen",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+
+		{
+			"title_i18n": "edit_check.device_status",
+			"data_field": "status",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "edit_check.trigger_alert",
+			"data_field": "trigger_alert",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		}
+	]
+}

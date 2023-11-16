@@ -1,12 +1,12 @@
 --
--- (C) 2014-20 - ntop.org
+-- (C) 2014-22 - ntop.org
 --
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 
-if ntop.isEnterpriseM() then
+if ntop.isEnterpriseM() or ntop.isnEdgeEnterprise() then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 end
 
@@ -35,9 +35,9 @@ function storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume, refresh_
       info["total"] = info["total"] + rrd_storage_info.total
     -- end
 
-    if interfaceHasNindexSupport() then
-      local nindex_utils = require "nindex_utils"
-      local flows_storage_info = nindex_utils.storageInfo(ifid, timeout)
+    if interfaceHasClickHouseSupport() then
+      local flow_db_utils = require "flow_db_utils"
+      local flows_storage_info = flow_db_utils.storageInfo(ifid, timeout)
       info["flows"] = flows_storage_info.total
       info["total"] = info["total"] + flows_storage_info.total
     end
@@ -98,10 +98,13 @@ function storage_utils.storageInfo(refresh_cache, timeout)
   for id, name in pairs(ifnames) do
     local ifid = tonumber(id)
     local if_info = storage_utils.interfaceStorageInfo(ifid, separate_pcap_volume, refresh_cache, timeout)
-    info.interfaces[ifid] = if_info
-    info.total = info.total + if_info.total
-    if if_info.pcap ~= nil then
-      info.pcap_total = info.pcap_total + if_info.pcap
+    if if_info then
+      info.interfaces[ifid] = if_info
+      info.interfaces[ifid]["name"] = name
+      info.total = info.total + if_info.total
+      if if_info.pcap ~= nil then
+        info.pcap_total = info.pcap_total + if_info.pcap
+      end
     end
   end
 

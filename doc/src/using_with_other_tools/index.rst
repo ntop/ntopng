@@ -8,5 +8,8 @@ section.
     :maxdepth: 2
 
     nprobe
+    nprobe_collector_mode
+    cloud
+    nprobe_ips
     nprobeagent
     n2disk

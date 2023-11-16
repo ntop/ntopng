@@ -1,0 +1,29 @@
+<div class="modal fade" id="external-link" tabindex="-1" role='dialog' aria-labelledby="externalLink" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="externalLink">{* dialog.title *}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+      <div class="alert alert-danger"> {* dialog.message *} <span id='url'></span> <br> {* dialog.message2 *}  </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{* dialog.cancel *}</button>
+        <a href="" id='redirect-href' class="btn btn-primary">{* dialog.apply *}</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+$(document).ready(function(){
+  $(document).on('click','#external-link-href',function(){
+    url=document.getElementById('tmpUrl').title;
+    document.getElementById("url").innerHTML = url;
+    href=document.getElementById("redirect-href");
+    href.setAttribute('href','http://'+url)
+  });
+});
+</script>

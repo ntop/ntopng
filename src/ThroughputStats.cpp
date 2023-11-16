@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,9 +23,7 @@
 
 /* *************************************** */
 
-ThroughputStats::ThroughputStats() {
-  resetStats();
-}
+ThroughputStats::ThroughputStats() { resetStats(); }
 
 /* *************************************** */
 
@@ -49,15 +47,19 @@ ThroughputStats::ThroughputStats(const ThroughputStats &thpts) {
 
 /* *************************************** */
 
-void ThroughputStats::updateStats(struct timeval *tv, u_int64_t new_val) {
-  if(last_update_time.tv_sec > 0 /* Waits at least two calls before computing the throughput */
-     && new_val >= last_val /* Protects against resets / wraps */) {
+void ThroughputStats::updateStats(const struct timeval *tv, u_int64_t new_val) {
+  if (last_update_time.tv_sec >
+          0 /* Waits at least two calls before computing the throughput */
+      && new_val >= last_val /* Protects against resets / wraps */) {
     float tdiff = Utils::msTimevalDiff(tv, &last_update_time);
     float new_thpt = ((float)((new_val - last_val) * 1000)) / (1 + tdiff);
 
-    if(thpt < new_thpt)      thpt_trend = trend_up;
-    else if(thpt > new_thpt) thpt_trend = trend_down;
-    else                     thpt_trend = trend_stable;
+    if (thpt < new_thpt)
+      thpt_trend = trend_up;
+    else if (thpt > new_thpt)
+      thpt_trend = trend_down;
+    else
+      thpt_trend = trend_stable;
 
     last_thpt = thpt;
     thpt = new_thpt;
@@ -68,3 +70,11 @@ void ThroughputStats::updateStats(struct timeval *tv, u_int64_t new_val) {
 }
 
 /* *************************************** */
+
+void ThroughputStats::set(ThroughputStats *v) {
+  last_val = v->last_val;
+  thpt = v->thpt, last_thpt = v->last_thpt;
+  thpt_trend = v->thpt_trend;
+  last_update_time.tv_sec = v->last_update_time.tv_sec;
+  last_update_time.tv_usec = v->last_update_time.tv_usec;
+}

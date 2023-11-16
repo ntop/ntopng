@@ -1,6 +1,18 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-DEFAULT_CONF_FILE="/etc/ntopng/ntopng.conf"
+OS="`uname`"
+
+NTOPNG_CONFIG_PATH="/etc/ntopng"
+
+case $OS in
+  'FreeBSD')
+    NTOPNG_CONFIG_PATH="/usr/local/etc"
+    ;;
+  'Linux') ;;
+  *) ;;
+esac
+
+DEFAULT_CONF_FILE="${NTOPNG_CONFIG_PATH}/ntopng.conf"
 
 DEFAULT_DATADIR="/var/lib/ntopng"
 OLD_DEFAULT_DATADIR="/var/tmp/ntopng"
@@ -452,6 +464,26 @@ function install_n2disk_conf() {
     ln -sf "${SOURCE_FILE}" "${DEST_FILE}"
 }
 
+function install_disk2disk_conf() {
+    if [ "${INTERFACE}" == "" ]; then
+        return
+    fi
+
+    local SOURCE_FILE="${DATADIR}/disk2disk/disk2disk-${INTERFACE}.conf"
+
+    if [ ! -f "${SOURCE_FILE}" ]; then
+	return
+    fi
+
+    local DEST_PATH="/etc/disk2disk"
+    local DEST_FILE="${DEST_PATH}/disk2disk-ntopng-${INTERFACE}.conf"
+
+    mkdir -p "${DEST_PATH}"
+
+    rm -rf "${DEST_FILE}"
+    ln -sf "${SOURCE_FILE}" "${DEST_FILE}"
+}
+
 function install_n2n_conf() {
     local SOURCE_FILE="${DATADIR}/n2n/edge.conf"
 
@@ -506,6 +538,7 @@ elif [ $ACTION == "install-n2disk-conf" ]; then
     [ $QUIET = false ] && echo "Installing n2disk configuration for ${INTERFACE} ..."
 
     install_n2disk_conf
+    install_disk2disk_conf
 
 elif [ $ACTION == "install-n2n-conf" ]; then
     [ $QUIET = false ] && echo "Installing n2n configuration ..."

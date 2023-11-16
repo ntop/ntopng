@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2019 - ntop.org
+ * (C) 2021-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,80 +24,44 @@
 
 #include "ntop_includes.h"
 
+class NetworkInterface;
+
 class AlertableEntity {
-protected:
+ private:
   AlertEntity entity_type;
   std::string entity_val;
   NetworkInterface *alert_iface;
+  u_int num_engaged_alerts;
 
-  /*
-    Creating multiple maps guarantees that periodic scripts at different granularities
-    do not interfere each other and thus that they can run concurrently without locking.
+ protected:
+  RwLock
+      engaged_alerts_lock; /* Lock to handle concurrent access from the GUI */
 
-    However while alert_cache is accessed only by the alert engine and thus it is "thread-safe"
-    as concurrent scripts (i.e. at different granularities) cannot call it, triggered_alerts
-    needs to be protected as
-    - it can be called by the Lua GUI
-    - it can be called by the alert engine
-  */
-  std::map<std::string, std::string> alert_cache[MAX_NUM_PERIODIC_SCRIPTS];
-  std::map<std::string, Alert> triggered_alerts[MAX_NUM_PERIODIC_SCRIPTS];
-  RwLock *locks[MAX_NUM_PERIODIC_SCRIPTS];
-  u_int num_triggered_alerts;
+  void incNumAlertsEngaged(AlertLevel alert_severity);
+  void decNumAlertsEngaged(AlertLevel alert_severity);
 
-  RwLock* getLock(ScriptPeriodicity p);
-  void rdLock(ScriptPeriodicity p, const char *filename, int line);
-  void wrLock(ScriptPeriodicity p, const char *filename, int line);
-  void unlock(ScriptPeriodicity p, const char *filename, int line);
-  void syncReadonlyTriggeredAlerts();
-  void updateNumTriggeredAlerts();
-  void getPeriodicityAlerts(lua_State* vm, ScriptPeriodicity p,
-				AlertType type_filter, AlertLevel severity_filter, u_int *idx);
-
-public:
+ public:
   AlertableEntity(NetworkInterface *alert_iface, AlertEntity entity);
   virtual ~AlertableEntity();
 
-  /*
-    getAlertCachedValue and setAlertCacheValue as thread safe as they are invoked only by
-    periodic scripts and are not accessed by the GUI lua methods
-  */
-  inline std::string getAlertCachedValue(std::string key, ScriptPeriodicity p) {
-    std::map<std::string, std::string>::iterator it = alert_cache[(u_int)p].find(key);
+  inline NetworkInterface *getAlertInterface() { return alert_iface; }
 
-    return((it != alert_cache[(u_int)p].end()) ? it->second : std::string(""));
-  }
-
-  inline void setAlertCacheValue(std::string key, std::string value,
-				 ScriptPeriodicity p) {
-    alert_cache[(u_int)p][key] = value;
-  }
-
-  u_int getNumTriggeredAlerts(ScriptPeriodicity p) const;
-  inline u_int getNumTriggeredAlerts() const { return(num_triggered_alerts); }
-  
   inline void setEntityValue(const char *ent_val) { entity_val = ent_val; }
-  inline std::string getEntityValue()       const { return(entity_val); }
-  inline AlertEntity getEntityType()        const { return(entity_type); }
+  inline std::string getEntityValue() const { return (entity_val); }
 
-  bool triggerAlert(lua_State* vm, std::string key,
-		    ScriptPeriodicity p, time_t now,
-		    AlertLevel alert_severity, AlertType alert_type,
-		    const char *alert_subtype,
-		    const char *alert_json);
-  bool releaseAlert(lua_State* vm, std::string key,
-		    ScriptPeriodicity p, time_t now);
+  inline AlertEntity getEntityType() const { return (entity_type); }
 
-  void luaAlert(lua_State* vm, const Alert *alert, ScriptPeriodicity p) const;
-  void countAlerts(grouped_alerts_counters *counters);
-  void getAlerts(lua_State* vm, ScriptPeriodicity p, AlertType type_filter,
-		 AlertLevel severity_filter, u_int *idx);
+  inline u_int getNumEngagedAlerts() const { return (num_engaged_alerts); }
+
+  virtual void countAlerts(grouped_alerts_counters *counters){};
+  virtual void getAlerts(lua_State *vm, ScriptPeriodicity p,
+                         AlertType type_filter, AlertLevel severity_filter,
+                         AlertRole role_filter, u_int *idx){};
+
   bool matchesAllowedNetworks(AddressTree *allowed_nets);
 
-  /* This must be called once per script and updates what the user see on the gui. */
-  inline void refreshAlerts() {
-    syncReadonlyTriggeredAlerts();
-  }
+  static int parseEntityValueIp(const char *alert_entity_value,
+                                struct in6_addr *ip_raw);
 };
 
 #endif

@@ -3,32 +3,55 @@
    https://github.com/compex-systems/speedtest-cli
 */
 
+/*
+ * To compile as standalone application:
+ * gcc -DTEST_SPEEDTEST -DHAVE_EXPAT -I/usr/include/json-c speedtest.c -o speedtest -ljson-c -lexpat -lcurl -lpthread -lm
+ * Run:
+ * ./speedtest
+ */
+
+#include <stdio.h>
+#include <string.h>
+#ifndef WIN32
+#include <unistd.h>
+#include <pthread.h>
+#endif
+#include <math.h>
+#include <curl/curl.h>
+#include "json.h"
+
+#ifdef DEBUG_SPEEDTEST
+#define INFO_SPEEDTEST
+#endif
+
 #ifdef HAVE_EXPAT
 
 #include <float.h>
 #include <math.h>
 #include "expat.h"
 
-#define URL_LENGTH_MAX       255
-#define THREAD_NUM_MAX       1
-#define UPLOAD_EXT_LENGTH_MAX 5
-#define SPEEDTEST_TIME_MAX   10
-#define CUNTRY_NAME_MAX      64
+#define URL_LENGTH_MAX         255
+#define THREAD_NUM_MAX           3
+#define UPLOAD_EXT_LENGTH_MAX    5
+#define SPEEDTEST_TIME_MAX      10
+#define CUNTRY_NAME_MAX         64
+
 #define UPLOAD_EXTENSION_TAG "upload_extension"
 #define LATENCY_TXT_URL "/speedtest/latency.txt"
 
 #define INIT_DOWNLOAD_FILE_RESOLUTION 750
 #define FILE_350_SIZE                 245388
 
-#define MAX_ISP_NAME         255
-#define MAX_IPADDRESS_STRLEN 48
-#define MAX_CLOSEST_SERVER_NUM 5
+#define MAX_ISP_NAME           255
+#define MAX_IPADDRESS_STRLEN    48
+#define MAX_CLOSEST_SERVER_NUM  64
+#define MIN_SERVERS_TO_CHECK     5
 
-#define RECORED_EVERY_SEC    0.2
-#define PRINT_RECORED_NUM    2
+#define RECORED_EVERY_SEC        0.2
+#define PRINT_RECORED_NUM        2
 
-#define PI                      3.1415926
-#define EARTH_RADIUS            6378.137
+#define PI                       3.1415926
+#define EARTH_RADIUS          6378.137
 
 #define UPLOAD_CHRUNK_SIZE_MAX  512000 // Max upload chunk size 512K
 
@@ -77,14 +100,19 @@ struct server_info
   double distance;
 };
 
-int depth;
-struct client_info client;
-struct server_info servers[MAX_CLOSEST_SERVER_NUM];
+static int depth;
+static struct client_info client;
+static struct server_info servers[MAX_CLOSEST_SERVER_NUM];
+static int num_servers = 0;
+
+/* ***************************************** */
 
 static int calc_past_time(struct timeval* start, struct timeval* end)
 {
   return (end->tv_sec - start->tv_sec) * 1000 + (end->tv_usec - start->tv_usec)/1000;
 }
+
+/* ***************************************** */
 
 static size_t write_data(void* ptr, size_t size, size_t nmemb, void *stream)
 {
@@ -102,6 +130,7 @@ static size_t write_data(void* ptr, size_t size, size_t nmemb, void *stream)
   return size * nmemb;
 }
 
+/* ***************************************** */
 
 size_t
 write_web_buf(void *ptr, size_t size, size_t nmemb, void *data)
@@ -118,10 +147,13 @@ write_web_buf(void *ptr, size_t size, size_t nmemb, void *data)
   return realsize;
 }
 
-double radian(double d)
-{
+/* ***************************************** */
+
+double radian(double d) {
   return d * PI / 180.0;
 }
+
+/* ***************************************** */
 
 double get_distance(double lat1, double lng1, double lat2, double lng2)
 {
@@ -136,6 +168,8 @@ double get_distance(double lat1, double lng1, double lat2, double lng2)
   dst= round(dst * 10000) / 10000;
   return dst;
 }
+
+/* ***************************************** */
 
 static void XMLCALL start_element(void *userData, const char *el, const char **atts)
 {
@@ -180,39 +214,50 @@ static void XMLCALL start_element(void *userData, const char *el, const char **a
   depth++;
 }
 
+/* ***************************************** */
+
 static void XMLCALL end_element(void *userData, const char *name)
 {
   depth--;
 
   if (strcmp(name, "server") == 0) {
-    int     i;
+    int i;
     struct server_info *p_server = (struct server_info *)userData;
+    double max_distance = 0;
+    int max_distance_i = -1;
 
     p_server->distance = get_distance(client.lat, client.lon, p_server->lat, p_server->lon);
 
     for (i = 0; i < MAX_CLOSEST_SERVER_NUM; i++) {
-
-      if ( servers[i].url[0] == 0 ) {
-
+      if (servers[i].url[0] == 0 ) {
         break;
-      }
-    }
-
-    if ( i == MAX_CLOSEST_SERVER_NUM ) {
-
-      for (i = 0; i <MAX_CLOSEST_SERVER_NUM; i++) {
-
-        if (servers[i].distance >  p_server->distance) {
-          break;
+      } else {
+        if (servers[i].distance >= max_distance) {
+          /* Keep track of the server with max distance */
+          max_distance = servers[i].distance;
+          max_distance_i = i;
         }
       }
     }
-    if (i != MAX_CLOSEST_SERVER_NUM)
+
+    if (i == MAX_CLOSEST_SERVER_NUM) {
+      /* No room */
+      if (max_distance > p_server->distance) {
+        /* Replacing the server with max distance */
+        i = max_distance_i;
+      }
+    }
+
+    if (i != MAX_CLOSEST_SERVER_NUM) {
       memcpy(&servers[i], p_server, sizeof(struct server_info));
+      num_servers++; /* Note: this also includes servers discarded due to distance */
+    }
+
     memset(p_server, 0, sizeof(struct server_info));
   }
-
 }
+
+/* ***************************************** */
 
 static int do_latency(char *p_url)
 {
@@ -220,25 +265,43 @@ static int do_latency(char *p_url)
   CURL *curl;
   CURLcode res;
   long response_code;
+  double v = (double) (rand() % 1000) / 100;
+  char useragent[16];
 
   curl = curl_easy_init();
 
-  sprintf(latency_url, "%s%s", p_url, LATENCY_TXT_URL);
+  snprintf(latency_url, sizeof(latency_url), "%s%s", p_url, LATENCY_TXT_URL);
+  snprintf(useragent, sizeof(useragent), "curl/%.02f.0", v);
+
+#ifdef DEBUG_SPEEDTEST
+  printf("Calling %s\n", latency_url);  
+#endif
+  
   curl_easy_setopt(curl, CURLOPT_URL, latency_url);
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
   curl_easy_setopt(curl, CURLOPT_TIMEOUT, 3L);
+
+#ifdef DEBUG_SPEEDTEST
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+
   res = curl_easy_perform(curl);
+
   curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
   curl_easy_cleanup(curl);
 
   if (res != CURLE_OK || response_code != 200) {
-
-    //printf("curl_easy_perform() failed: %s %ld\n", curl_easy_strerror(res), response_code);
+#ifdef DEBUG_SPEEDTEST
+    printf("curl_easy_perform() failed for %s: '%s' (%ld)\n", p_url, curl_easy_strerror(res), response_code);
+#endif
     return NOK;
   }
   return OK;
 }
+
+/* ***************************************** */
 
 static double test_latency(char *p_url)
 {
@@ -254,36 +317,56 @@ static double test_latency(char *p_url)
   return latency;
 }
 
+/* ***************************************** */
+
 static void* do_download(void* data)
 {
   CURL *curl;
   CURLcode res;
   struct thread_para* p_para = (struct thread_para*)data;
-  double length = 0;
+  double size = 0;
   double time = 0, time1 = 0, time2;
-
+  char useragent[16];
+  double v = (double) (rand() % 1000) / 100;
+  
   curl = curl_easy_init();
-
-  //printf("image url = %s\n", p_para->url);
+  snprintf(useragent, sizeof(useragent), "curl/%.02f.0", v);
+  
+#ifdef DEBUG_SPEEDTEST
+  printf("image url = %s\n", p_para->url);
+#endif
   curl_easy_setopt(curl, CURLOPT_URL, p_para->url);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, p_para);
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent);
+  
+#ifdef DEBUG_SPEEDTEST
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+  
   res = curl_easy_perform(curl);
+
   if (res != CURLE_OK) {
-    // printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
-    curl_easy_cleanup(curl);
-    return NULL;
+#ifdef DEBUG_SPEEDTEST
+    printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+#endif
+  } else {
+    curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &size);
+    curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &time);
+    curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &time1);
+    curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &time2);
+#ifdef DEBUG_SPEEDTEST
+    printf("Completed: [Size: %lf][TotalTime: %lf][ConnectTime: %lf][TransferTime: %lf]\n", size, time, time1, time2);
+#endif
+    p_para->result = size;
+    p_para->finish = 1;
   }
-  curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &length);
-  curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &time);
-  curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &time1);
-  curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &time2);
-  //printf("Length is %lf %lf %lf %lf\n", length, time, time1, time2);
-  p_para->result = length;
-  p_para->finish = 1;
+  
   curl_easy_cleanup(curl);
   return NULL;
 }
+
+/* ***************************************** */
 
 static void loop_threads(struct thread_para *p_thread,
 			 int num_thread, double *speed, int *p_num_speed)
@@ -311,7 +394,7 @@ static void loop_threads(struct thread_para *p_thread,
       //printf("p_thread[i].now = %lf\n", p_thread[i].now);
     }
 
-    _usleep(RECORED_EVERY_SEC*1000*1000); //0.2s
+    usleep(RECORED_EVERY_SEC*1000*1000); //0.2s
     if (sum == 0 && num_speed == 0)
       continue;
 
@@ -332,6 +415,8 @@ static void loop_threads(struct thread_para *p_thread,
   *p_num_speed = num_speed;
   return;
 }
+
+/* ***************************************** */
 
 static double calculate_average_speed(double *p_speed, int num_speed)
 {
@@ -357,7 +442,7 @@ static double calculate_average_speed(double *p_speed, int num_speed)
     }
 
   }
-#if 0
+#ifdef DEBUG_SPEEDTEST
   for (i = 0; i < num_speed; i++) {
     printf("%0.2lf ", p_speed[i]*8/(1024*1024));
     if (i%10 == 0)
@@ -374,8 +459,12 @@ static double calculate_average_speed(double *p_speed, int num_speed)
   }
   //printf("speed = %0.2lf\n", (sum*8/(end - start))/(1024*1024));
 
+  if(end == start) end++;
+  
   return sum/(end - start);
 }
+
+/* ***************************************** */
 
 static int init_instant_speed(double **p_speed, int *p_speed_num)
 {
@@ -389,7 +478,10 @@ static int init_instant_speed(double **p_speed, int *p_speed_num)
   memset(*p_speed, 0, (*p_speed_num)*sizeof(double));
   return 0;
 }
-static int test_download(char *p_url, int num_thread, int dsize, char init)
+
+/* ***************************************** */
+
+static double test_download(char *p_url, int num_thread, int dsize, char init)
 {
   struct timeval s_time;
   int time, i;
@@ -402,17 +494,16 @@ static int test_download(char *p_url, int num_thread, int dsize, char init)
   gettimeofday(&s_time, NULL);
   init_instant_speed(&instant_speed, &speed_num);
 
-  for ( i = 0; i < num_thread; i++) {
+  for (i = 0; i < num_thread; i++) {
     //int error;
 
     memset(&paras[i], 0, sizeof(struct thread_para));
-    sprintf(paras[i].url, "%s/speedtest/random%dx%d.jpg", p_url, dsize, dsize);
+    snprintf(paras[i].url, sizeof(paras[i].url), "%s/speedtest/random%dx%d.jpg", p_url, dsize, dsize);
     paras[i].result = 0;
 
     //error = 
-
 #if THREAD_NUM_MAX > 1
-    pthread_mutex_init(paras[i].lock, NULL);
+    pthread_mutex_init(&paras[i].lock, NULL);
 #endif
 
     pthread_create(&paras[i].tid, NULL, do_download, (void*)&paras[i]);
@@ -420,10 +511,9 @@ static int test_download(char *p_url, int num_thread, int dsize, char init)
     // if ( error != 0) printf("Can't Run thread num %d, error %d\n", i, error);
   }
 
-  if (init != 0)
-    {
-      loop_threads(paras, num_thread, instant_speed, &speed_num);
-    }
+  if (init != 0) {
+    loop_threads(paras, num_thread, instant_speed, &speed_num);
+  }
 
   for (i = 0;i < num_thread; i++) {
     pthread_join(paras[i].tid, NULL);
@@ -431,20 +521,28 @@ static int test_download(char *p_url, int num_thread, int dsize, char init)
   }
 
   if (init != 0) {
-
     speed = calculate_average_speed(instant_speed, speed_num);
-  }else {
 
+#ifdef DEBUG_SPEEDTEST
+    printf("speed = %0.2fMbps (%0.1fBps)\n", (speed*8)/(1024*1024), speed);
+#endif
+  } else {
     struct timeval  e_time;
 
     gettimeofday(&e_time, NULL);
     time = calc_past_time(&s_time, &e_time);
     speed = (sum*1000)/time;
-    //printf("msec = %d speed = %0.2fMbps\n", time, ((sum*8*1000/time))/(1024*1024));
+
+#ifdef DEBUG_SPEEDTEST
+    printf("speed = %0.2fMbps (sum = %f) (msec = %d)\n", (speed*8)/(1024*1024), sum, time);
+#endif
   }
   free(instant_speed);
+  if (!(speed >= 0)) speed = 0;
   return speed;
 }
+
+/* ***************************************** */
 
 #ifdef FULL_REPORT
 static size_t read_data(void* ptr, size_t size, size_t nmemb, void *userp)
@@ -472,7 +570,7 @@ static size_t read_data(void* ptr, size_t size, size_t nmemb, void *userp)
   para->chunk_size -= length;
 
 #if THREAD_NUM_MAX > 1
-  pthread_mutex_lock(&para);
+  pthread_mutex_lock(&para->lock);
 #endif
   para->now += length;
 #if THREAD_NUM_MAX > 1
@@ -482,27 +580,36 @@ static size_t read_data(void* ptr, size_t size, size_t nmemb, void *userp)
   return  length;
 }
 
+/* ***************************************** */
+
 static void* do_upload(void *p) {
   struct thread_para* para = (struct thread_para*)p;
   CURL *curl;
   CURLcode res;
   long size = para->upload_size;
   int loop = 1;
-
+  char useragent[16];
+  double v = (double) (rand() % 1000) / 100;
+  
   if (size > UPLOAD_CHRUNK_SIZE_MAX)
     loop = (size / UPLOAD_CHRUNK_SIZE_MAX) + 1;
 
   curl = curl_easy_init();
-
+  snprintf(useragent, sizeof(useragent), "curl/%.02f.0", v);
+  
   curl_easy_setopt(curl, CURLOPT_URL, para->url);
   curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_data);
   curl_easy_setopt(curl, CURLOPT_READDATA, para);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS, NULL);
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent);
+
+#ifdef DEBUG_SPEEDTEST
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
 
   while (loop) {
-
     double size_upload;
 
     para->chunk_size = size - para->result> UPLOAD_CHRUNK_SIZE_MAX ?
@@ -523,13 +630,16 @@ static void* do_upload(void *p) {
 
   curl_easy_cleanup(curl);
   para->finish = 1;
-  //printf("size upload = %lf\n", size_upload);
-
+#ifdef DEBUG_SPEEDTEST
+  printf("size upload = %lu\n", para->result);
+#endif
+  
   return(NULL);
 }
 
+/* ***************************************** */
 
-static int test_upload(char *p_url, int num_thread, long size,
+static double test_upload(char *p_url, int num_thread, long size,
 		       char *p_ext, char init)
 {
   struct timeval s_time;
@@ -544,39 +654,58 @@ static int test_upload(char *p_url, int num_thread, long size,
 
   for ( i = 0; i < num_thread; i++) {
     memset(&paras[i], 0, sizeof(struct thread_para));
-    sprintf(paras[i].url, "%s/speedtest/upload.%s", p_url, p_ext);
+    snprintf(paras[i].url, sizeof(paras[i].url), "%s/speedtest/upload.%s", p_url, p_ext);
     paras[i].result = 0;
     paras[i].finish = 0;
     paras[i].upload_size = size/num_thread;
+#ifdef DEBUG_SPEEDTEST
+    printf("[thread %u] Upload size: %lu\n", i, paras[i].upload_size);
+#endif
+    
     //printf("szeleft = %ld\n", paras[i].upload_size);
     //int error = 
     pthread_create(&paras[i].tid, NULL, do_upload, (void*)&paras[i]);
     // if ( error != 0) printf("Can't Run thread num %d, error %d\n", i, error);
   }
-  if (init != 0)
-    {
-      loop_threads(paras, num_thread, instant_speed, &speed_num);
-    }
+  
+  if (init != 0) {
+    loop_threads(paras, num_thread, instant_speed, &speed_num);
+  }
+
   for (i = 0;i < num_thread; i++) {
     pthread_join(paras[i].tid, NULL);
     sum += paras[i].result;
   }
-  if (init != 0) {
 
+#ifdef DEBUG_SPEEDTEST
+  printf("Total size upload = %lf\n", sum);
+#endif
+
+  if (init != 0) {
     speed = calculate_average_speed(instant_speed, speed_num);
-  }else {
+
+#ifdef DEBUG_SPEEDTEST
+    printf("speed = %0.2fMbps\n", (speed*8)/(1024*1024));
+#endif
+  } else {
     struct timeval e_time;
     int time;
 
     gettimeofday(&e_time, NULL);
     time = calc_past_time(&s_time, &e_time);
     speed = (sum*1000)/time; //bytes per second
+
+#ifdef DEBUG_SPEEDTEST
+    printf("speed = %0.2fMbps (msec = %d)\n", (speed*8)/(1024*1024), time);
+#endif
   }
-  //printf("msec = %d speed = %0.2fMbps\n", time, ((sum*8*1000/time))/(1024*1024));
   free(instant_speed);
+  if (!(speed >= 0)) speed = 0;
   return speed;
 }
 #endif
+
+/* ***************************************** */
 
 static int get_download_filename(double speed, int num_thread)
 {
@@ -584,21 +713,26 @@ static int get_download_filename(double speed, int num_thread)
   int filelist[] = {350, 500, 750, 1000, 1500, 2000, 3000, 3500, 4000};
   int num_file = ARRAY_SIZE(filelist);
 
+  if(speed == 0) speed = 1;
+  
   for (i = 1; i < num_file; i++) {
-
-    int time;
+    long long int time;
     float times = (float)filelist[i]/350;
     //printf("time %f speed %lf\n", times, speed);
     times = (times*times);
-    time = (num_thread*times*FILE_350_SIZE)/speed;
-    //printf("%d %d %f\n", filelist[i], time, times);
+    time = (long long int) ((long long int) num_thread*times*FILE_350_SIZE)/speed;
+    //printf("%d %lld %f\n", filelist[i], time, times);
     if (time > SPEEDTEST_TIME_MAX)
       break;
   }
+
   if (i < num_file)
     return filelist[i - 1];
+
   return filelist[num_file - 1];
 }
+
+/* ***************************************** */
 
 static int get_upload_extension(char *server, char *p_ext)
 {
@@ -638,6 +772,8 @@ cleanup:
   return rv;
 }
 
+/* ***************************************** */
+
 static int get_client_info(struct client_info *p_client)
 {
   CURL *curl;
@@ -654,18 +790,26 @@ static int get_client_info(struct client_info *p_client)
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &web);
   curl_easy_setopt(curl, CURLOPT_USERAGENT, "haibbo speedtest-cli");
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-  //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+
+#ifdef DEBUG_SPEEDTEST
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+
   res = curl_easy_perform(curl);
   curl_easy_cleanup(curl);
+  
   if (res != CURLE_OK) {
-    // printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+#ifdef DEBUG_SPEEDTEST
+    printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+#endif
     goto cleanup;
   }
   XML_SetUserData(xml, p_client);
   XML_SetElementHandler(xml, start_element, end_element);
   if (XML_Parse(xml, web.data, web.size , 1) == XML_STATUS_ERROR) {
-
-    // fprintf(stderr, "Parse client failed\n");
+#ifdef DEBUG_SPEEDTEST
+    fprintf(stderr, "Parse client failed\n");
+#endif
     // exit(-1);
     goto cleanup;
   }
@@ -678,6 +822,8 @@ cleanup:
 
   return rv;
 }
+
+/* ***************************************** */
 
 static int get_closest_server()
 {
@@ -687,29 +833,45 @@ static int get_closest_server()
   struct web_buffer web;
   struct server_info server;
   int rv = NOK;
-
+  char useragent[16];
+  const char *url = "https://www.speedtest.net/speedtest-servers.php";
+  double v = (double) (rand() % 1000) / 100;
+  
   memset(&web, 0, sizeof(web));
-
+  snprintf(useragent, sizeof(useragent), "curl/%.02f.0", v);
+  
   curl = curl_easy_init();
 
-  curl_easy_setopt(curl, CURLOPT_URL, "http://www.speedtest.net/speedtest-servers.php");
+#ifdef DEBUG_SPEEDTEST
+  printf("Retrieving servers list %s\n", url);
+#endif
+
+  curl_easy_setopt(curl, CURLOPT_URL, url);
   curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_web_buf);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &web);
-  curl_easy_setopt(curl, CURLOPT_USERAGENT, "Mozilla/5.0 (Windows NT 6.2; rv:22.0) Gecko/20130405 Firefox/22.0");
-  //curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+  curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent);
+
+#ifdef DEBUG_SPEEDTEST
+  curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+#endif
+  
   res = curl_easy_perform(curl);
   curl_easy_cleanup(curl);
+  
   if (res != CURLE_OK) {
-    // printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+#ifdef DEBUG_SPEEDTEST
+    printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
+#endif
     goto cleanup;
   }
   XML_SetUserData(xml, &server);
   depth = 0;
   XML_SetElementHandler(xml, start_element, end_element);
   if (XML_Parse(xml, web.data, web.size , 1) == XML_STATUS_ERROR) {
-
-    // fprintf(stderr, "Parse servers list failed\n");
+#ifdef DEBUG_SPEEDTEST
+    fprintf(stderr, "Parse servers list failed\n");
+#endif
     // exit(-1);
     goto cleanup;
   }
@@ -723,6 +885,8 @@ cleanup:
   return rv;
 }
 
+/* ***************************************** */
+
 static int get_best_server(int *p_index)
 {
   int     i;
@@ -730,21 +894,43 @@ static int get_best_server(int *p_index)
   char    server[URL_LENGTH_MAX] = {0};
 
   for (i = 0; i < MAX_CLOSEST_SERVER_NUM; i++) {
-
     double latency;
 
-    sscanf(servers[i].url, "http://%[^/]speedtest/upload.%*s", server);
-    latency = test_latency(server);
-    if (minimum > latency ) {
+    if (minimum != DBL_MAX && i >= MIN_SERVERS_TO_CHECK)
+      break; /* MIN_SERVERS_TO_CHECK evaluated and at least one found */
 
+    if((strlen(servers[i].url) == 0))
+      continue;
+
+    sscanf(servers[i].url, "http://%[^/]speedtest/upload.%*s", server);
+    if(server[0] == '\0')
+      sscanf(servers[i].url, "https://%[^/]speedtest/upload.%*s", server);
+    
+    if(server[0] == '\0')
+      continue;
+    
+    latency = test_latency(server);
+
+#ifdef DEBUG_SPEEDTEST
+    printf("Measured latency for %s is %0.3fms\n", server, latency);
+#endif
+    
+    if (minimum > latency ) {
       minimum = latency;
       *p_index = i;
+#ifdef DEBUG_SPEEDTEST
+      printf("Best server set to %u (%s)\n", i, server);
+#endif
     }
-  }
+  } /* for */
+
   if (minimum == DBL_MAX)
     return NOK;
+
   return OK;
 }
+
+/* ***************************************** */
 
 json_object* speedtest() {
   int     num_thread;
@@ -756,7 +942,12 @@ json_object* speedtest() {
   int     dsize, sindex;
   json_object *rc = json_object_new_object();
 
-  if(rc == NULL) return(rc);
+  if(rc == NULL) {
+#ifdef INFO_SPEEDTEST
+    printf("speedtest: failure allocating memory\n");
+#endif
+    return(rc);
+  }
 
   //Initialization
 
@@ -766,55 +957,95 @@ json_object* speedtest() {
   memset(server_url, 0, sizeof(server_url));
   memset(ext, 0, sizeof(ext));
 
-  if (server_url[0] == 0) {
-    // printf("Retrieving speedtest.net configuration...\n");
-    get_client_info(&client);
-    // printf("Retrieving speedtest.net server list...\n");
-    get_closest_server();
-    // printf("Testing from %s (%s)...\n", client.isp, client.ip);
+#ifdef DEBUG_SPEEDTEST
+  printf("Retrieving speedtest.net configuration...\n");
+#endif
+  get_client_info(&client);
 
-    json_object_object_add(rc, "client.isp", json_object_new_string(client.isp));
-    json_object_object_add(rc, "client.ip", json_object_new_string(client.ip));
+#ifdef DEBUG_SPEEDTEST
+  printf("Retrieving speedtest.net server list...\n");
+#endif
+  get_closest_server();
 
-    // printf("Selecting best server based on ping...\n");
-    get_best_server(&sindex);
-    sscanf(servers[sindex].url, "http://%[^/]/speedtest/upload.%4s", server_url, ext);
-    // printf("Bestest server: %s(%0.2fKM)\n", server_url, servers[sindex].distance);
-    json_object_object_add(rc, "server.url", json_object_new_string(server_url));
-    json_object_object_add(rc, "server.distance", json_object_new_double(servers[sindex].distance));
+#ifdef DEBUG_SPEEDTEST
+  printf("Testing from %s (%s)...\n", client.isp, client.ip);
+#endif
+
+  json_object_object_add(rc, "client.isp", json_object_new_string(client.isp));
+  json_object_object_add(rc, "client.ip", json_object_new_string(client.ip));
+
+#ifdef DEBUG_SPEEDTEST
+  printf("Selecting best server based on ping...\n");
+#endif
+
+  if (get_best_server(&sindex) != OK) {
+#ifdef INFO_SPEEDTEST
+    printf("speedtest: failure selecting the best server out of %u\n", num_servers);
+#endif
+    return(rc);
   }
+  
+  sscanf(servers[sindex].url, "http://%[^/]/speedtest/upload.%4s", server_url, ext);
+
+  if(server_url[0] == '\0')
+    sscanf(servers[sindex].url, "https://%[^/]/speedtest/upload.%4s", server_url, ext);
+  
+#ifdef DEBUG_SPEEDTEST
+  printf("Best server: %s (%0.2fKM) [index: %u][%s]\n",
+	 server_url, servers[sindex].distance, sindex, servers[sindex].url);
+#endif
+  json_object_object_add(rc, "server.url", json_object_new_string(server_url));
+  json_object_object_add(rc, "server.distance", json_object_new_double(servers[sindex].distance));
 
   /* Must initialize libcurl before any threads are started */
   curl_global_init(CURL_GLOBAL_ALL);
 
 #ifdef FULL_REPORT
   latency = test_latency(server_url);
-  if (latency == DBL_MAX)
+  if (latency == DBL_MAX) {
+#ifdef INFO_SPEEDTEST
+    printf("speedtest: failure testing latency\n");
+#endif
     return(rc);
+  }
 
-  //printf("Server latency is %0.0fms\n", latency);
+#ifdef DEBUG_SPEEDTEST
+  printf("Server latency is %0.0fms\n", latency);
+#endif
   json_object_object_add(rc, "server.latency", json_object_new_double(latency));
 #endif
 
   speed = test_download(server_url, num_thread, dsize, 0);
 
   dsize = get_download_filename(speed, num_thread);
-  // // fprintf(stderr, "Testing download speed");
+#ifdef DEBUG_SPEEDTEST
+  fprintf(stderr, "Testing download speed\n");
+#endif
   download_speed = test_download(server_url, num_thread, dsize, 1);
 
-  // printf("Download speed: %0.2fMbps\n", ((download_speed*8)/(1024*1024)));
+#ifdef DEBUG_SPEEDTEST
+  printf("Download speed: %0.2fMbps\n", ((download_speed*8)/(1024*1024)));
+#endif
   json_object_object_add(rc, "download.speed", json_object_new_double((download_speed*8)/(1024*1024)));
 
-  if (ext[0] == 0 && get_upload_extension(server_url, ext) != OK)
+  if (ext[0] == 0 && get_upload_extension(server_url, ext) != OK) {
+#ifdef INFO_SPEEDTEST
+    printf("speedtest: failure in upload extension\n");
+#endif
     return(rc);
+  }
 
 #ifdef FULL_REPORT
   speed = test_upload(server_url, num_thread, speed, ext, 0);
 
-  // // fprintf(stderr, "Testing upload speed");
+#ifdef DEBUG_SPEEDTEST
+  fprintf(stderr, "Testing upload speed\n");
+#endif
   upload_speed = test_upload(server_url, num_thread, speed*SPEEDTEST_TIME_MAX, ext, 1);
 
-  // printf("Upload speed: %0.2fMbps\n", ((upload_speed*8)/(1024*1024)));
+#ifdef DEBUG_SPEEDTEST
+  printf("Upload speed: %0.2fMbps\n", ((upload_speed*8)/(1024*1024)));
+#endif
   json_object_object_add(rc, "upload.speed", json_object_new_double(((upload_speed*8)/(1024*1024))));
 #endif
 
@@ -824,3 +1055,22 @@ json_object* speedtest() {
 #else
 json_object* speedtest() { return(NULL); }
 #endif /* HAVE_EXPAT */
+
+#ifdef TEST_SPEEDTEST
+int main(int argc, char *argv[]) {
+  json_object *out;
+ 
+  out = speedtest();
+
+  if (out == NULL) {
+    printf("failure\n");
+    return 1;
+  }
+
+  printf("%s\n", json_object_to_json_string(out));
+
+  json_object_put(out);
+
+  return 0;
+}
+#endif

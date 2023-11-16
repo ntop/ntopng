@@ -1,1 +1,0 @@
-curl -s -u admin:admin  -H "Content-Type: application/json" -d '{"ifid": 0}' http://localhost:3000/lua/rest/v1/get/flow/active.lua

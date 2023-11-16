@@ -2,8 +2,8 @@
   <div class="modal-dialog" style="{{wizard.style or ''}}">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 id="{{wizard.id}}Label">{{wizard.title}}</h3>
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h5 id="{{wizard.id}}Label">{{wizard.title}}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
 
       {% wizard.actual_steps = {}; wizard.size_sum = 0 %}
@@ -18,7 +18,7 @@
           <div class="navbar-inner">
             <ul class="nav nav-wizard">
             {% for step_idx, step in ipairs(wizard.actual_steps) do %}
-              <li{% if step_idx == 1 then %} class="active" {% end %} style="width: {{ (step.size or 1) / wizard.size_sum *100 }}%;"><a{% if step_idx ~= 1 then %} class="disabled" {% end %} href="#{{wizard.id}}Step{{step_idx}}" data-toggle="tab" data-step="{{step_idx}}">{{step.title}}</a></li>
+              <li{% if step_idx == 1 then %} class="active" {% end %} style="width: {{ (step.size or 1) / wizard.size_sum *100 }}%;"><a{% if step_idx ~= 1 then %} class="disabled" {% end %} href="#{{wizard.id}}Step{{step_idx}}" data-bs-toggle="tab" data-step="{{step_idx}}">{{step.title}}</a></li>
             {% end %}
             </ul>
           </div>
@@ -46,7 +46,7 @@
         </form>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-secondary" data-dismiss="modal" aria-hidden="true">{{i18n("abort")}}</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal" aria-hidden="true">{{i18n("abort")}}</button>
         <button id="{{wizard.id}}SaveBtn" class="btn btn-primary" onClick="$('#{{wizard.id}}Form').submit();">{{i18n("save_configuration")}}</button>
       </div>
     </div>
@@ -54,7 +54,7 @@
 </div>
 
 <script>
-  var {{wizard.id}}CurrentStep = 1;
+  var CurrentStep = 1;
 
   /* Before modal open */
   $("#{{wizard.id}}").on("show.bs.modal", function() {
@@ -111,7 +111,7 @@
     {% end %}
   {% end %}
 
-  $('#{{wizard.id}} a[data-toggle="tab"]')
+  $('#{{wizard.id}} a[data-bs-toggle="tab"]')
     /* On Tab click */
     .on("click", function(e) {
       if ($(this).hasClass("disabled")) {

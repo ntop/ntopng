@@ -1,5 +1,5 @@
 --
--- (C) 2018 - ntop.org
+-- (C) 2021 - ntop.org
 --
 
 local influxdb = require("influxdb")
@@ -392,7 +392,7 @@ end
 
 -- ##############################################
 
---http://127.0.0.1:3000/lua/rest/v1/get/timeseries/ts.lua?ts_query=ifid:1&epoch_end=1534493220&ts_schema=iface:flows&epoch_begin=1534492620&initial_point=true&ts_compare=30m&limit=42
+--http://127.0.0.1:3000/lua/rest/v2/get/timeseries/ts.lua?ts_query=ifid:1&epoch_end=1534493220&ts_schema=iface:flows&epoch_begin=1534492620&initial_point=true&ts_compare=30m&limit=42
 
 function test_skip_initial1(test)
   local tags = {}

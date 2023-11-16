@@ -1,5 +1,5 @@
 --
--- (C) 2019-20 - ntop.org
+-- (C) 2019-22 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -64,11 +64,11 @@ end
 
 local function status2label(status)
    if status == "running" then
-      return([[<span class="badge badge-success">]] .. i18n("running") .. [[</span>]])
+      return([[<span class="badge bg-success">]] .. i18n("running") .. [[</span>]])
    elseif status == "queued" then
-      return([[<span class="badge badge-warning">]] .. i18n("internals.queued") .. [[</span>]])
+      return([[<span class="badge bg-warning">]] .. i18n("internals.queued") .. [[</span>]])
    elseif status == "sleeping" then
-      return([[<span class="badge badge-secondary">]] .. i18n("internals.sleeping") .. [[</span>]])
+      return([[<span class="badge bg-secondary">]] .. i18n("internals.sleeping") .. [[</span>]])
    else
       return("")
    end
@@ -149,8 +149,9 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
    end
 
    if periodic_script_issue then
-      local cur_issue = script_stats.stats[periodic_script_issue]
-
+      local cur_issue = script_stats.stats[periodic_script_issue] or nil
+      local num_cur_issue = script_stats.stats["num_" .. periodic_script_issue] or nil
+      
       if periodic_script_issue == "any_issue" then
 	 local found = false
 
@@ -164,7 +165,7 @@ for k, script_stats in pairs(ifaces_scripts_stats) do
 	 if not found then
 	    goto continue
 	 end
-      elseif not cur_issue then
+      elseif not cur_issue and not num_cur_issue then
 	 goto continue
       end
    end
@@ -288,7 +289,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
       local utiliz = time_utilization(script_stats.stats)
       record["column_time_perc"] = internals_utils.getPeriodicActivitiesFillBar(utiliz["busy"], utiliz["available"])
 
-      record["column_last_duration"] = get_last_duration_ms(script_stats.stats)
+      record["column_last_duration"] = format_utils.secondsToTime(get_last_duration_ms(script_stats.stats) / 1000)
 
       record["column_status"] = status2label(status)
 
@@ -303,20 +304,11 @@ for key in pairsByValues(sort_to_key, sOrder) do
 	 activity_desc = ""
       end
 
-      -- local activity_name = string.format("<span id='%s' data-toggle='popover' data-trigger='hover'  data-placement='top' title='%s' data-content='%s'>%s</span><script>$('#%s').popover('hide');$('#%s').popover({placement : 'top', trigger : 'hover'});</script>", activity_id, script_stats.script, i18n("periodic_activities_descr."..script_stats.script), script_stats.script, activity_id, activity_id)
+      -- local activity_name = string.format("<span id='%s' data-bs-toggle='popover' data-trigger='hover'  data-placement='top' title='%s' data-content='%s'>%s</span><script>$('#%s').popover('hide');$('#%s').popover({placement : 'top', trigger : 'hover'});</script>", activity_id, script_stats.script, i18n("periodic_activities_descr."..script_stats.script), script_stats.script, activity_id, activity_id)
       local activity_name = string.format("<span id='%s' title='%s'>%s</span>", activity_id, i18n("periodic_activities_descr."..script_stats.script), script_stats.script)
       record["column_periodic_activity_name"] = warn .. activity_name .. activity_desc
 
       record["column_periodicity"] = format_utils.secondsToTime(script_stats.stats.periodicity)
-
-      if areInternalTimeseriesEnabled(script_stats.ifid) then
-	 if script_stats.ifid == getSystemInterfaceId() then
-	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/system_periodic_script_details.lua?periodic_script='..script_stats.script..'&ts_schema=periodic_script:duration\"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
-	 else
-	    record["column_chart"] = '<A HREF=\"'..ntop.getHttpPrefix()..'/lua/periodic_script_details.lua?periodic_script='..script_stats.script..'&ts_schema=periodic_script:duration&ifid='..script_stats.ifid..'\"><i class=\'fas fa-chart-area fa-lg\'></i></A>'
-	 end
-      end
-
 
       res[#res + 1] = record
    end

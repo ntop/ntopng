@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -41,20 +41,22 @@ class ThreadedActivityStats;
 
 class LuaEngine {
  protected:
-  lua_State *L; /**< The LuaEngine state.*/
+  lua_State *L; /**< The LuaEngine state. */
   char *loaded_script_path;
-  
-  void lua_register_classes(lua_State *L, bool http_mode);
+  bool is_system_vm; /* Executed by callbacks */
+  std::string cloud_string;
+
+  void lua_register_classes(lua_State *L, LuaEngineMode mode);
 
  public:
   /**
-  * @brief A Constructor
-  * @details Creating a new lua state.
-  *
-  * @return A new instance of lua.
-  */
+   * @brief A Constructor
+   * @details Creating a new lua state.
+   *
+   * @return A new instance of lua.
+   */
   LuaEngine(lua_State *vm);
- 
+
   /**
    * @brief A Destructor.
    *
@@ -62,66 +64,91 @@ class LuaEngine {
   virtual ~LuaEngine();
 
   /* Set Hosts and Networks into the Lua context */
-  void setHost(Host* h);
-  void setNetwork(NetworkStats* ns);
-  void setFlow(Flow*f);
+  void setHost(Host *h);
+  void setNetwork(NetworkStats *ns);
+  void setFlow(Flow *f);
 
   /* Set the deadline into the Lua context from an existing vm */
-  void setThreadedActivityData(lua_State* from);
-  /* Set the deadline into the Lua context from a threaded activity and a deadline */
-  void setThreadedActivityData(const ThreadedActivity *ta, ThreadedActivityStats *tas, time_t deadline);
+  void setThreadedActivityData(lua_State *from);
+  /* Set the deadline into the Lua context from a threaded activity and a
+   * deadline */
+  void setThreadedActivityData(const ThreadedActivity *ta,
+                               ThreadedActivityStats *tas, time_t deadline);
 
-  inline Host* getHost()     { return(getLuaVMContext(L)->host); }
-  inline NetworkInterface* getNetworkInterface() { return(getLuaVMContext(L)->iface); }
-  NetworkStats* getNetwork() { return(getLuaVMContext(L)->network); }
+  inline Host *getHost() { return (getLuaVMContext(L)->host); }
+  inline NetworkInterface *getNetworkInterface() {
+    return (getLuaVMContext(L)->iface);
+  }
+  NetworkStats *getNetwork() { return (getLuaVMContext(L)->network); }
 
-  int load_script(char *script_path, NetworkInterface *iface);
+  int load_script(char *script_path, LuaEngineMode mode, NetworkInterface *iface);
   int run_loaded_script();
 
   /**
    * @brief Handling of request info of script.
-   * @details Read from the request the parameters and put the GET parameters and the _SESSION parameters into the environment. 
-   * Once all parameters have been load we running the script.
-   * 
+   * @details Read from the request the parameters and put the GET parameters
+   * and the _SESSION parameters into the environment. Once all parameters have
+   * been load we running the script.
+   *
    * @param conn This structure contains handle for the individual connection.
-   * @param request_info This structure contains information about the HTTP request.
+   * @param request_info This structure contains information about the HTTP
+   * request.
    * @param script_path Full path of lua script.
    * @return The result of the execution of the script.
    */
   int handle_script_request(struct mg_connection *conn,
-			    const struct mg_request_info *request_info, 
-			    char *script_path, bool *attack_attempt, const char *user, const char *group,
-			    const char *session_csrf, bool localuser);
+                            const struct mg_request_info *request_info,
+                            char *script_path, bool *attack_attempt,
+                            const char *user, const char *group,
+                            const char *session_csrf, bool localuser);
 
-  bool setParamsTable(lua_State* vm,
-		      const struct mg_request_info *request_info,
-		      const char* table_name,
-		      const char* query) const;
+  bool setParamsTable(lua_State *vm, const struct mg_request_info *request_info,
+                      const char *table_name, const char *query) const;
 
-#ifdef NOT_USED /* Use Utils::purifyHTTPParam */
-  static void purifyHTTPParameter(char *param);
-#endif
-  static void luaRegister(lua_State *L, const ntop_class_reg *reg);
-  static void luaRegisterInternalRegs(lua_State *L);
+  void luaRegister(lua_State *L, const char *class_name,
+                   luaL_Reg *class_methods);
 
-  inline lua_State* getState() const { return(L); }
- 
-  bool switchInterface(struct lua_State *vm, const char *ifid, const char *user, const char *session);
-  void setInterface(const char * user, char * const ifname, u_int16_t ifname_len, bool * const is_allowed) const;
+  inline lua_State *getState() const { return (L); }
+
+  bool switchInterface(struct lua_State *vm, const char *ifid,
+                       const char *observation_point_id, const char *user,
+                       const char *group, const char *session);
+  void setInterface(const char *user, char *const ifname, u_int16_t ifname_len,
+                    bool *const is_allowed) const;
+
+  inline void setAsSystemVM() { is_system_vm = true; }
+  inline bool isSystemVM() { return (is_system_vm); }
+
+  void pushResultString(char *str);
+  void pushResultNumber(float f);
+  const char* getCloudString() { return(cloud_string.c_str()); }
 };
 
 /**
  * @brief Push string value to table entry specify the key.
- * 
+ *
  * @param L The lua state.
  * @param key The key of hash table.
  * @param value The value of hash table.
  */
-extern void lua_push_str_table_entry(lua_State *L, const char * const key, const char * const value);
+extern void lua_push_str_table_entry(lua_State *L, const char *key,
+                                     const char *value);
+
+/**
+ * @brief Push string value to table entry specify the key and lenght.
+ *
+ * @param L The lua state.
+ * @param key The key of hash table.
+ * @param value The value of hash table.
+ * @param value_len lenght of the value field
+ */
+extern void lua_push_str_len_table_entry(lua_State *L, const char *key,
+					 const char *value,
+					 unsigned int value_len);
 
 /**
  * @brief Push null value to table entry specify the key.
- * 
+ *
  * @param L The lua state.
  * @param key The key of hash table.
  */
@@ -129,16 +156,26 @@ extern void lua_push_nil_table_entry(lua_State *L, const char *key);
 
 /**
  * @brief Push int value to table entry specify the key.
- * 
+ *
  * @param L The lua state.
  * @param key The key of hash table.
  * @param value The value of hash table.
  */
-extern void lua_push_uint64_table_entry(lua_State *L, const char *key, u_int64_t value);
+extern void lua_push_uint64_table_entry(lua_State *L, const char *key,
+                                        u_int64_t value);
+
+/**
+ * @brief Push int64 value to table entry specify the key.
+ *
+ * @param L The lua state.
+ * @param key The key of hash table.
+ * @param value The value of hash table.
+ */
+void lua_push_int64_table_entry(lua_State *L, const char *key, int64_t value);
 
 /**
  * @brief Push int32 value to table entry specify the key.
- * 
+ *
  * @param L The lua state.
  * @param key The key of hash table.
  * @param value The value of hash table.
@@ -146,36 +183,61 @@ extern void lua_push_uint64_table_entry(lua_State *L, const char *key, u_int64_t
 void lua_push_int32_table_entry(lua_State *L, const char *key, int32_t value);
 
 /**
- * @brief Push bool value to table entry specify the key.
- * @details Using LUA_NUMBER (double: 64 bit) in place of LUA_INTEGER (ptrdiff_t: 32 or 64 bit
-   * according to the platform) to handle big counters. (luaconf.h)
-   * 
+ * @brief Push uint32 value to table entry specify the key.
+ *
  * @param L The lua state.
  * @param key The key of hash table.
  * @param value The value of hash table.
  */
-extern void lua_push_bool_table_entry(lua_State *L, const char *key, bool value);
+void lua_push_uint32_table_entry(lua_State *L, const char *key,
+                                 u_int32_t value);
+
+/**
+ * @brief Push bool value to table entry specify the key.
+ * @details Using LUA_NUMBER (double: 64 bit) in place of LUA_INTEGER
+ * (ptrdiff_t: 32 or 64 bit according to the platform) to handle big counters.
+ * (luaconf.h)
+ *
+ * @param L The lua state.
+ * @param key The key of hash table.
+ * @param value The value of hash table.
+ */
+extern void lua_push_bool_table_entry(lua_State *L, const char *key,
+                                      bool value);
 
 /**
  * @brief Push float value to table entry specify the key.
- * 
+ *
  * @param L The lua state.
  * @param key The key of hash table.
  * @param value The value of hash table.
  */
-extern void lua_push_float_table_entry(lua_State *L, const char *key, float value);
+extern void lua_push_float_table_entry(lua_State *L, const char *key,
+                                       float value);
 
 /**
  * @brief Push boolean value to table entry specify the key.
- * 
+ *
  * @param L The lua state.
  * @param key The key of hash table.
  * @param value The value of hash table.
  */
-extern void lua_push_bool_table_entry(lua_State *L, const char *key, bool value);
+extern void lua_push_bool_table_entry(lua_State *L, const char *key,
+                                      bool value);
 
-int ntop_lua_check(lua_State* vm, const char* func, int pos, int expected_type);
+int ntop_lua_check(lua_State *vm, const char *func, int pos, int expected_type);
 
-void get_host_vlan_info(char* lua_ip, char** host_ip, u_int16_t* vlan_id, char *buf, u_int buf_len);
+/**
+ * @brief Checks the lua stack after a C function is called
+ *
+ * @param vm The lua state.
+ * @param function_name The function name that triggered the error
+ * @param val The return value
+ */
+extern int ntop_lua_return_value(lua_State *vm, const char *function_name,
+                                 int val);
+
+extern void get_host_vlan_info(char *lua_ip, char **host_ip, u_int16_t *vlan_id,
+                               char *buf, u_int buf_len);
 
 #endif /* _LUA_H_ */

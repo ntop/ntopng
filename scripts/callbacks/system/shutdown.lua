@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 --
@@ -15,18 +15,32 @@ local recovery_utils = require "recovery_utils"
 
 require "lua_utils" -- NOTE: required by alert_utils
 local alert_utils = require "alert_utils"
+local alerts_api = require "alerts_api"
+local recipients = require "recipients"
+local checks = require "checks"
+local periodicity = 3
 
 local now = os.time()
 local ifnames = interface.getIfNames()
 
-alert_utils.notify_ntopng_stop()
-prefs_dump_utils.savePrefsToDisk()
+-- io.write("shutdown.lua ["..os.time().."]\n")
 
+alert_utils.notify_ntopng_stop()
+
+-- Check and possibly dump preferences to disk
+prefs_dump_utils.check_dump_prefs_to_disk()
+
+-- First of all release the alert of the system interface (current one)
+alerts_api.releaseAllAlerts()
+-- Then release the alerts of all other interfaces
 for _, ifname in pairs(ifnames) do
   interface.select(ifname)
-  interface.releaseEngagedAlerts()
+  alerts_api.releaseAllAlerts()
 end
 
-alert_utils.processAlertNotifications(now, 3 --[[ deadline ]], true --[[ force ]])
+recipients.process_notifications(now, now + 1000 --[[ deadline ]], 3 --[[ periodicity ]], true)
+
+-- Unload all checks
+checks.loadUnloadUserScripts(false --[[ unload --]])
 
 recovery_utils.mark_clean_shutdown()

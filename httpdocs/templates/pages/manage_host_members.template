@@ -1,0 +1,514 @@
+{#
+    (C) 2020 - ntop.org
+
+    This is the template to generate the page to Manage Host Pool Members.
+#}
+{%
+    local selected_pool_name
+    local selected_pool_id
+%}
+{% if (pool:get_num_pools() > 1) then %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card card-shadow">
+            <div class="card-header">
+                <div class="row">
+                    <div class="col-4">
+                        <div class="mb-3">
+                            <label>{* i18n("host_pools.select_host_pool") *}</label>
+                            <div class="d-flex">
+                                <select id="select-host-pool" class="form-select">
+                                    {% for _, p in pairs(manage_host_members.all_pools) do %}
+                                        {% if p.pool_id ~= pool.DEFAULT_POOL_ID then %}
+                                            {% if (p.pool_id == tonumber(manage_host_members.pool_id_get)) then %}
+                                                <option selected value="{{ p.pool_id }}">{{ p.name }}</option>
+                                                {%
+                                                    selected_pool_id = p.pool_id
+                                                    selected_pool_name = p.name
+                                                %}
+                                            {% else %}
+                                                <option value="{{ p.pool_id }}">{{ p.name }}</option>
+                                            {% end %}
+                                        {% end %}
+                                    {% end %}
+                                </select>
+                                <a class="align-self-center edit-pool-link ms-2" href='{{ ntop.getHttpPrefix() }}/lua/admin/manage_pools.lua?pool=host&pool_id={{selected_pool_id}}'>
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                    <table id="host-members-table" class="table table-bordered table-striped w-100">
+                        <thead>
+                            <tr>
+                                <th>{{ i18n("host_pools.member_address") }}</th>
+                                <th>{{ i18n("vlan") }}</th>
+                                <th>{{ i18n("actions") }}</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+            </div>
+            <div class="card-footer">
+                <a class="btn btn-secondary" data-bs-toggle='modal' href="#import-modal">
+                    <i class='fas fa-file-import'></i> {{ i18n("host_pools.import_hosts") }}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-info">
+            {{i18n("host_pools.no_hosts_defined")}} <a href="{{ntop.getHttpPrefix()}}/lua/admin/manage_pools.lua?page=host"><i class="fas fa-edit" aria-hidden="true"></i></a>
+        </div>
+    </div>
+</div>
+
+{% end %}
+
+{* template_utils.gen("pages/modals/pools/host_pool_member.template", {
+    modal_type = "add",
+    pool = pool,
+}) *}
+
+{* template_utils.gen("pages/modals/pools/host_pool_member.template", {
+    modal_type = "edit",
+    pool = pool,
+}) *}
+
+{* template_utils.gen("pages/modals/pools/remove_host_pool_member.template") *}
+
+{*
+    template_utils.gen("pages/modals/scripts_config/import_modal.html", {
+        dialog={
+            title   = i18n("host_pools.import_hosts_title", {pool = "<span class='member-name'></span>"}),
+            label   = "",
+            message = i18n("host_pools.config_import_message"),
+            cancel  = i18n("cancel"),
+            apply   = i18n("apply"),
+            input_description = i18n("host_pools.import_hosts_desc")
+        }
+      })
+*}
+
+<script type="text/javascript">
+
+    let addCsrf = "{{ ntop.getRandomCSRFValue() }}";
+    let editCsrf = "{{ ntop.getRandomCSRFValue() }}";
+    let removeCsrf = "{{ ntop.getRandomCSRFValue() }}";
+    const importCsrf = "{{ ntop.getRandomCSRFValue() }}";
+
+    let queryPoolId = {{ manage_host_members.pool_id_get }};
+    let selectedPool = { id: queryPoolId, name:  "{{selected_pool_name}}" };
+    const defaultPoolId = {{ pool.DEFAULT_POOL_ID }};
+
+    i18n_ext.warning ="{{ i18n('warning', {}) }}";
+    i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+    i18n_ext.search = "{{ i18n('search') }}";
+    i18n_ext.delete = "{{ i18n('delete') }}";
+    i18n_ext.edit = "{{ i18n('edit') }}";
+    i18n_ext.config = "{{ i18n('config') }}";
+    i18n_ext.all = "{{ i18n('all') }}";
+    i18n_ext.used_by = "{{ i18n('used_by') }}";
+    i18n_ext.member_type = "{{ i18n('host_pools.member_type') }}";
+    i18n_ext.ipv4 = "{{ i18n('host_pools.ipv4') }}";
+    i18n_ext.ipv6 = "{{ i18n('host_pools.ipv6') }}";
+    i18n_ext.mac_filter = "{{ i18n('host_pools.mac_filter') }}";
+
+    i18n_ext.rest = {
+        INVALID_HOST: "{{ i18n('rest_consts.INVALID_HOST') }}",
+        INVALID_ARGUMENTS: "{{ i18n('rest_consts.INVALID_ARGUMENTS') }}",
+        NOT_GRANTED: "{{ i18n('rest_consts.NOT_GRANTED') }}",
+        BIND_POOL_MEMBER_ALREADY_BOUND: "{{ i18n('rest_consts.BIND_POOL_MEMBER_ALREADY_BOUND') }}"
+    };
+
+    // this is the current filtering type for the datatable
+    let currentType = null;
+    const INDEX_MEMBER_FILTER = 0;
+
+    let changable_pool = true;
+
+    for(const pool_names of unchangable_pool_names) {
+        if(pool_names === selectedPool.name) {
+            changable_pool = false;
+            break;
+        }
+    }
+
+    const filters = [
+        {
+            regex: NtopUtils.getIPv4RegexWithCIDR(),
+            label: i18n_ext.ipv4,
+            key: 'ipv4_filter',
+            countable: true,
+            callback: () => { currentType = "ip"; $hostMembersTable.rows().invalidate(); }
+        },
+        {
+            regex: NtopUtils.getIPv6RegexWithCIDR(),
+            label: i18n_ext.ipv6,
+            key: 'ipv6_filter',
+            countable: true,
+            callback: () => { currentType = "ip"; $hostMembersTable.rows().invalidate(); }
+        },
+        {
+            regex: NtopUtils.REGEXES.macAddress,
+            label: i18n_ext.mac_filter,
+            key: 'mac_filter',
+            countable: true,
+            callback: () => { currentType = "mac"; $hostMembersTable.rows().invalidate(); }
+        },
+    ];
+
+    let buttonArray = function() {
+	let buttons = [];
+
+	buttons.push({
+            text: '<i class="fas fa-plus"></i>',
+            action: () => { $(`#add-member-modal`).modal('show'); }
+        });
+
+	buttons.push({
+            text: '<i class="fas fa-sync"></i>',
+            action: function(e, dt, node, config) {
+                $hostMembersTable.ajax.reload();
+            }
+        });
+
+        {% if ntop.isPro() then %}
+	if(changable_pool) {
+	    buttons.push({
+	    text: '<i class="fas fa-key"></i>',
+            action: () => { location.href = `${http_prefix}/lua/pro/policy.lua?pool=${selectedPool.id}`; }
+	    });
+        }
+        {% end %}
+
+	return buttons;
+    }
+
+    let dtConfig = DataTableUtils.getStdDatatableConfig(buttonArray());
+    dtConfig = DataTableUtils.setAjaxConfig(dtConfig, `${http_prefix}/lua/rest/v2/get/host/pool/members.lua?pool=${queryPoolId}`, `rsp`);
+    dtConfig = DataTableUtils.extendConfig(dtConfig, {
+        stateSave: true,
+        hasFilters: true,
+        columns: [
+            {
+                data: 'name',
+                render: function (data, type, row) {
+
+                    if (type == "sort" || type == "type") {
+                        if (currentType == "mac") return $.fn.dataTableExt.oSort["mac-address-pre"](data);
+                        return $.fn.dataTableExt.oSort["ip-address-pre"](data);
+                    }
+
+                    return data;
+                }
+            },
+            {
+                data: 'vlan',
+                width: '5%',
+                className: 'text-center',
+                render: function (data, type, row) {
+
+                    if (data == 0 && type == "display") return "";
+                    return data;
+                }
+            },
+            {
+                data: null, targets: -1, className: 'text-center',
+                width: "10%",
+                render: () => {
+                    return DataTableUtils.createActionButtons([
+                        { class: 'btn-info',   icon: 'fa-edit', modal: '#edit-member-modal', title: `${i18n_ext.edit}` },
+                        { class: 'btn-danger', icon: 'fa-trash', modal: '#remove-member-host-pool', title: `${i18n_ext.delete}` }
+                    ]);
+                }
+            }
+        ]
+    });
+
+    const $hostMembersTable = $(`#host-members-table`).DataTable(dtConfig);
+    DataTableUtils.addToggleColumnsDropdown($hostMembersTable);
+
+    const hostMemersTableFilters = new DataTableFiltersMenu({
+        tableAPI: $hostMembersTable,
+        filters: filters,
+        filterMenuKey: 'host-members',
+        filterTitle: i18n_ext.member_type,
+        columnIndex: INDEX_MEMBER_FILTER,
+    }).init();
+
+    $(`#host-members-table`).on('click', `a[href='#edit-member-modal']`, function (e) {
+        const memberRowData = $hostMembersTable.row($(this).parent().parent().parent().parent()).data();
+        $editModalHandler.invokeModalInit(memberRowData);
+        $(`#edit-member-modal`).modal('show')
+    });
+
+    $(`#host-members-table`).on('click', `a[href='#remove-member-host-pool']`, function (e) {
+        const memberRowData = $hostMembersTable.row($(this).parent().parent().parent().parent()).data();
+        $removeModalHandler.invokeModalInit(memberRowData);
+        $(`#remove-member-host-pool`).modal('show')
+    });
+    
+    $(`#select-host-pool`).change(function () {
+	const poolId = $(this).val();
+	location.href = `${http_prefix}/lua/admin/manage_host_members.lua?pool=${poolId}`;
+    });
+
+    $(`[href='#import-modal']`).click(function() {
+        $(`.member-name`).html(selectedPool.name);
+    });
+
+    $(`input#import-input`).on('change', function () {
+        const filename = $(this).val().replace("C:\\fakepath\\", "");
+        $(`label[for='#import-input']`).html(filename);
+        $(`#btn-confirm-import`).removeAttr("disabled");
+    });
+
+    const oldLabelImportInput = $(`label[for='#import-input']`).html();
+    $(`#import-modal`).on('hidden.bs.modal', function () {
+        $(`#import-input`).val('');
+        $(`label[for='#import-input']`).html(oldLabelImportInput);
+        $("#import-error").hide().removeClass('text-warning').addClass('invalid-feedback');
+        $(`#btn-confirm-import`).attr("disabled", "disabled");
+    });
+
+    $(`#import-modal form`).submit(function(e) {
+        e.preventDefault();
+
+        const $button = $(`#btn-confirm-import`);
+
+        const inputFilename = $('#import-input')[0].files[0];
+        if (!inputFilename) {
+            $("#import-error").text(`${i18n_ext.no_file}`).show();
+            $button.removeAttr("disabled");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.readAsText(inputFilename, "UTF-8");
+
+        reader.onload = (function() {
+            const req = $.post(`${http_prefix}/lua/rest/v2/import/pool/host_pool/members.lua`, {csrf: importCsrf, pool: selectedPool.id, host_pool_members: reader.result});
+            req.then(function(response) {
+
+                if (response.rc < 0) {
+                    $("#import-error").show().html(response.rc_str_hr);
+                    return;
+                }
+
+                location.reload();
+            });
+            req.fail(function(response) {
+                if (response.rc < 0) {
+                    $("#import-error").show().html(response.rc_str_hr);
+                }
+            });
+        });
+    });
+
+    $(window).on('popstate', function (e) {
+        const { state } = e.originalEvent;
+        if(state) 
+          $(`#select-host-pool`).val(state.pool).trigger('change');
+    });
+
+
+    $(`#add-member-modal form`).modalHandler({
+        method: 'post',
+        csrf: addCsrf,
+        resetAfterSubmit: false,
+        endpoint: `${http_prefix}/lua/rest/v2/bind/host/pool/member.lua`,
+        onModalShow: function () {
+            // hide the fields and select default type entry
+            const macAndNetworkFields = "#add-member-modal .mac-fields, #add-member-modal .network-fields";
+            $(macAndNetworkFields).hide();
+
+            $(`#add-member-modal .ip-fields`).show().find(`input,select`).removeAttr("disabled");
+            $(`#add-modal-feedback`).hide();
+
+            $(`#add-member-modal [name='member_type']`).removeAttr('checked').parent().removeClass('active');
+            // show the default view
+            $(`#add-member-modal #ip-radio-add`).attr('checked', '').parent().addClass('active');
+        },
+        onModalInit: function (_, modalHandler) {
+            $(`#add-member-modal [class*='fields']`).hide();
+            $(`#add-member-modal [class*='fields'] input, #add-member-modal [class*='fields'] select`).attr("disabled", "disabled");
+
+            $(`#add-member-modal [class='ip-fields']`).show().find('input,select').removeAttr("disabled");
+        
+            // on select member type shows only the fields interested
+            $(`#add-member-modal [name='member_type']`).change(function () {
+                const value = $(this).val();
+                $(`#add-member-modal [name='member_type']`).removeAttr('checked').parent().removeClass('active');
+                $(this).attr('checked', '');
+
+                // clean the members and show the selected one
+                $(`#add-member-modal [class*='fields']`).hide();
+                $(`#add-member-modal [class*='fields'] input, #add-member-modal [class*='fields'] select`).attr("disabled", "disabled");
+
+                $(`#add-member-modal [class='${value}-fields']`).show().find('input,select').removeAttr("disabled");
+            $(`#add-member-modal #${value}-radio-add`).attr('checked', '').parent().addClass('active');
+
+                modalHandler.toggleFormSubmission();
+            });
+
+        },
+        beforeSumbit: function () {
+            let member;
+            const typeSelected = $(`#add-member-modal [name='member_type']:checked`).val();
+
+            if (typeSelected == "mac") {
+                member = $(`#add-member-modal input[name='mac_address']`).val();
+            }
+            else if (typeSelected == "ip") {
+
+                const ipAddress = $(`#add-member-modal input[name='ip_address']`).val();
+                const vlan = $(`#add-member-modal input[name='ip_vlan']`).val() || 0;
+                const cidr = NtopUtils.is_good_ipv6(ipAddress) ? 128 : 32;
+                member = `${ipAddress}/${cidr}@${vlan}`;
+            }
+            else {
+
+                const network = $(`#add-member-modal input[name='network']`).val();
+                const cidr = $(`#add-member-modal input[name='cidr']`).val();
+                const vlan = $(`#add-member-modal input[name='network_vlan']`).val() || 0;
+
+                member = `${network}/${cidr}@${vlan}`;
+            }
+
+            return { pool: selectedPool.id, member: member };
+        },
+        onSubmitSuccess: function (response, textStatus, modalHandler) {
+
+            if (response.rc < 0) {
+                $(`#add-modal-feedback`).html(i18n_ext.rest[response.rc_str]).show();
+                return;
+            }
+
+            $hostMembersTable.ajax.reload();
+            $(`#add-member-modal`).modal('hide');
+        }
+    }).invokeModalInit();
+
+    const $removeModalHandler = $(`#remove-member-host-pool form`).modalHandler({
+        method: 'post',
+        csrf: removeCsrf,
+        endpoint: `${http_prefix}/lua/rest/v2/bind/host/pool/member.lua`,
+        onModalShow: function () {
+            $(`#remove-modal-feedback`).hide();
+        },
+        onModalInit: function (hostMember) {
+            $(`.remove-member-name`).html(`${hostMember.name}`);
+            $(`#remove-pool-name`).html(`<b>${selectedPool.name}</b>`);
+        },
+        beforeSumbit: function (hostMember) {
+            return { pool: defaultPoolId, member: hostMember.member, pool_name: selectedPool.name };
+        },
+        onSubmitSuccess: function (response, textStatus, modalHandler) {
+
+            if (response.rc < 0) {
+                $(`#remove-modal-feedback`).html(i18n_ext.rest[response.rc_str]).fadeIn();
+                return;
+            }
+            $hostMembersTable.ajax.reload();
+            $(`#remove-member-host-pool`).modal('hide');
+        }
+    });
+
+    const $editModalHandler = $(`#edit-member-modal form`).modalHandler({
+        method: 'post',
+        csrf: addCsrf,
+        endpoint: `${http_prefix}/lua/rest/v2/bind/host/pool/member.lua`,
+        onModalShow: function () {
+            // hide the fields and select default type entry
+            $(`#edit-modal-feedback`).hide();
+            $(`#edit-member-modal #ip-radio-edit`).attr('checked', '').parent().addClass('active');
+            $(`#edit-confirm-host-pool`).removeAttr('disabled');
+        },
+        onModalInit: function (hostMember, modalHandler) {
+            let typeSelected = hostMember.type;
+            let hiddenFields = "#edit-member-modal .ip-fields, #edit-member-modal .network-fields";
+
+            if (typeSelected == "mac") {
+                $(`#edit-member-modal input[name='mac_address']`).val(hostMember.name);
+            }
+            else if (typeSelected == "ip") {
+                hiddenFields = "#edit-member-modal .mac-fields, #edit-member-modal .network-fields";
+
+                $(`#edit-member-modal input[name='ip_address']`).val(hostMember.name);
+                $(`#edit-member-modal input[name='ip_vlan']`).val(hostMember.vlan);
+            }
+            else {
+                const tmp_info = hostMember.name.split('/')
+                typeSelected = 'network';
+                hiddenFields = "#edit-member-modal .mac-fields, #edit-member-modal .ip-fields";
+
+                $(`#edit-member-modal input[name='network']`).val(tmp_info[0]);
+                $(`#edit-member-modal input[name='cidr']`).val(tmp_info[1]);
+                $(`#edit-member-modal input[name='network_vlan']`).val(hostMember.vlan);
+            }
+
+            $(hiddenFields).hide();     
+            $(`#edit-member-modal [name='member_type']`).removeAttr('checked').parent().removeClass('active');   
+            $(`#edit-member-modal #${typeSelected}-radio-edit`).attr('checked', '').parent().addClass('active');        
+            $(`#edit-member-modal [class*='fields'] input, #edit-member-modal [class*='fields'] select`).attr("disabled", "disabled");
+            $(`#edit-member-modal [class='${typeSelected}-fields']`).show().find('input,select').removeAttr("disabled");
+
+            // on select member type shows only the fields interested
+            $(`#edit-member-modal [name='member_type']`).change(function () {
+                const value = $(this).val();
+                $(`#edit-member-modal [name='member_type']`).removeAttr('checked').parent().removeClass('active');
+                $(this).attr('checked', '');
+                // clean the members and show the selected one
+                $(`#edit-member-modal [class*='fields']`).hide();
+                $(`#edit-member-modal [class*='fields'] input, #edit-member-modal [class*='fields'] select`).attr("disabled", "disabled");
+                $(`#edit-member-modal #${value}-radio-edit`).attr('checked', '').parent().addClass('active');
+                $(`#edit-member-modal [class='${value}-fields']`).show().find('input,select').removeAttr("disabled");
+                modalHandler.toggleFormSubmission();
+            });
+
+            modalHandler.toggleFormSubmission();
+        },
+        beforeSumbit: function (hostMember) {
+            let member;
+            const typeSelected = $(`#edit-member-modal [name='member_type']:checked`).val();
+
+            if (typeSelected == "mac") {
+                member = $(`#edit-member-modal input[name='mac_address']`).val();
+            }
+            else if (typeSelected == "ip") {
+
+                const ipAddress = $(`#edit-member-modal input[name='ip_address']`).val();
+                const vlan = $(`#edit-member-modal input[name='ip_vlan']`).val() || 0;
+                const cidr = NtopUtils.is_good_ipv6(ipAddress) ? 128 : 32;
+                member = `${ipAddress}/${cidr}@${vlan}`;
+            }
+            else {
+
+                const network = $(`#edit-member-modal input[name='network']`).val();
+                const cidr = $(`#edit-member-modal input[name='cidr']`).val();
+                const vlan = $(`#edit-member-modal input[name='network_vlan']`).val() || 0;
+
+                member = `${network}/${cidr}@${vlan}`;
+            }
+
+            return { pool: selectedPool.id, member: member, action: 'edit', old_member: hostMember.member };
+        },
+        onSubmitSuccess: function (response, textStatus, modalHandler) {
+            if (response.rc < 0) {
+                $(`#edit-modal-feedback`).html(i18n_ext.rest[response.rc_str]).show();
+                return;
+            }
+
+            $hostMembersTable.ajax.reload();
+            $(`#edit-member-modal`).modal('hide');
+        }
+    });
+</script>

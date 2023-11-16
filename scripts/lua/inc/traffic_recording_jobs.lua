@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -7,7 +7,7 @@ local dirs = ntop.getDirs()
 require "lua_utils"
 local template = require "template_utils"
 local recording_utils = require "recording_utils"
-local ifid = getInterfaceId(ifname)
+local master_ifid = interface.getMasterInterfaceId()
 
 if((not isAdministrator()) or (not recording_utils.isAvailable()) or (not ntop.isEnterpriseM())) then
   return
@@ -23,7 +23,7 @@ if not isEmptyString(_POST["job_action"]) then
   else
     -- no job id
     if _POST["job_action"] == "delete" then
-      recording_utils.deleteAndStopAllJobs(ifid)
+      recording_utils.deleteAndStopAllJobs(master_ifid)
     end
   end
 end
@@ -35,7 +35,8 @@ print(template.gen("modal_confirm_dialog.html", {
     id      = "PcapDownloadDialog",
     title   = i18n("traffic_recording.download"),
     custom_alert_class = "alert alert-info",
-    message = i18n("traffic_recording.multiple_extracted_files", { mb = tostring(math.floor(prefs.max_extracted_pcap_bytes/(1024*1024))) })
+    message = i18n("traffic_recording.multiple_extracted_files", { mb = tostring(math.floor(prefs.max_extracted_pcap_bytes/(1024*1024))) }),
+    confirm = i18n("confirm"),   
  }
 }))
 
@@ -160,7 +161,7 @@ print[[
             if(num_job_files > 1) {
               var links = "<ul>";
 
-              for(var file_id=0; file_id<num_job_files; file_id++)
+              for(var file_id=1; file_id<num_job_files; file_id++)
                 links = links + "<li><a href=\\']] print(ntop.getHttpPrefix())
                 print[[/lua/get_extracted_traffic.lua?job_id=" + job_id + "&file_id=" + file_id + "\\'>" + "]]
                 print(i18n("traffic_recording.download_nth_pcap")) print[[".sformat(file_id) + "</a></li>";
@@ -187,8 +188,9 @@ print[[
   });
 
   function downloadJobFiles(links) {
-    $('#PcapDownloadDialog_more_content').html(links);
+    $('#url_PcapDownloadDialog').html(links);
     $('#PcapDownloadDialog').modal('show');
+    $('#btn-confirm-action_PcapDownloadDialog').css("display", "none");
   }
 
   function deleteJob(job_id) {
@@ -196,7 +198,7 @@ print[[
     params.job_action = 'delete';
     params.job_id = job_id;
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+    NtopUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
 
   function stopJob(job_id) {
@@ -204,14 +206,14 @@ print[[
     params.job_action = 'stop';
     params.job_id = job_id;
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+    NtopUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
 
   function deleteAllExtractionJobs() {
     var params = {}
     params.job_action = 'delete';
     params.csrf = "]] print(ntop.getRandomCSRFValue()) print[[";
-    paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
+    NtopUtils.paramsToForm('<form method="post"></form>', params).appendTo('body').submit();
   }
   </script>
 ]]

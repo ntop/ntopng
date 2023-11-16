@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2014-20 - ntop.org
+ * (C) 2014-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,18 +24,41 @@
 
 #include "ntop_includes.h"
 
-/* A simple thread safe FIFO non-blocking bounded queue for strings */
-class FifoSerializerQueue : public FifoQueue {
+class FifoSerializerQueue : public FifoQueue<ndpi_serializer*> {
  public:
-  FifoSerializerQueue(u_int32_t queue_size) : FifoQueue(queue_size) {}
+  FifoSerializerQueue(u_int32_t queue_size)
+      : FifoQueue<ndpi_serializer*>(queue_size) {}
 
   ~FifoSerializerQueue() {
-    ndpi_serializer *tmp;
-    
-    while ((tmp = (ndpi_serializer *) dequeue()) != NULL) {
-      ndpi_term_serializer(tmp);
-      free(tmp);
+    while (!q.empty()) {
+      ndpi_serializer* s = q.front();
+
+      q.pop();
+      ndpi_term_serializer(s);
+      free(s);
     }
+  }
+
+  bool enqueue(ndpi_serializer* item) {
+    bool rv;
+
+    m.lock(__FILE__, __LINE__);
+
+    if (canEnqueue()) {
+      q.push(item);
+      rv = true;
+    } else {
+      rv = false;
+    }
+
+    if (rv)
+      num_enqueued++;
+    else
+      num_not_enqueued++;
+
+    m.unlock(__FILE__, __LINE__);
+
+    return (rv);
   }
 };
 

@@ -1,5 +1,5 @@
 --
--- (C) 2017-20 - ntop.org
+-- (C) 2017-22 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -11,14 +11,14 @@ local info = ntop.getInfo()
 
 sendHTTPHeader('application/json')
 
-if not haveAdminPrivileges() then
+if not isAdministratorOrPrintErr() then
   return
 end
 
 local new_version_available_key = "ntopng.updates.new_version"
 local check_for_updates_key = "ntopng.updates.check_for_updates"
 local upgrade_request_key = "ntopng.updates.run_upgrade"
-local upgrade_failure_key = "ntopng.updates.upgrade_failure"
+local update_failure_key = "ntopng.updates.update_failure"
 
 function version2number(v, rev)
   if v == nil then
@@ -33,12 +33,14 @@ function version2number(v, rev)
 
   local major = e[1]
   local minor = e[2]
+  local date  = e[3]
 
   if major == nil or tonumber(major) == nil then major = 0 end
   if minor == nil or tonumber(minor) == nil then minor = 0 end
-  if rev   == nil or tonumber(rev)   == nil then rev = 0   end
+  if rev   == nil or tonumber(rev)   == nil then rev   = 0 end
+  if date  == nil or tonumber(date)  == nil then date  = 0 end
 
-  local version = tonumber(major)*1000000 + tonumber(minor)*10000 + tonumber(rev)
+  local version = tonumber(major)*10000000000000 + tonumber(minor)*100000000000 + tonumber(date)*100000 + tonumber(rev)
 
   return version
 end
@@ -51,7 +53,20 @@ if _POST["search"] ~= nil then
   checking_updates = "1"
 end
 
+-- Checking if there is a new version and current version is < available version
 local new_version = ntop.getCache(new_version_available_key)
+if not isEmptyString(new_version) then
+  local curr_version = version2number(info["version"], info["revision"])
+  local new_version_spl = string.split(new_version, "-");
+  if new_version_spl ~= nil then
+    local avail_version = version2number(new_version_spl[1], new_version_spl[2])
+    if avail_version <= curr_version then
+      new_version = nil
+    end
+  else
+    new_version = nil
+  end
+end
 
 -- Check if an upgrade has been already requested
 local installing = ntop.getCache(upgrade_request_key)
@@ -63,23 +78,30 @@ else
   if checking_updates == nil then
     checking_updates = ntop.getCache(check_for_updates_key)
   end
+
   if not isEmptyString(checking_updates) then
+    -- Checking updates
     status = "checking"
+  else
 
-  -- Check if the availability of a new update has been detected
-  elseif not isEmptyString(new_version) then
+    -- Check for failures
+    local update_failure = ntop.getCache(update_failure_key)
 
-    -- Checking if current version is < available version (to handle manual updates)
-    local curr_version = version2number(info["version"], info["revision"])
-    local new_version_spl = string.split(new_version, "-");
-    if new_version_spl ~= nil then
-      local avail_version = version2number(new_version_spl[1], new_version_spl[2])
-      if avail_version > curr_version then
+    -- Allow updates with no license in forced Community mode
+    if not isEmptyString(update_failure) then
+      if update_failure == "no-license" and ntop.isForcedCommunity() then
+        update_failure = nil
+      elseif update_failure == "upgrade-failure" and isEmptyString(new_version) then
+        update_failure = nil -- Manual update after a failure?
+      end
+    end
+
+    if not isEmptyString(update_failure) then
+      status = update_failure
+    else
+      -- Check if the availability of a new update has been detected
+      if not isEmptyString(new_version) then
         status = "update-avail"
-        local upgrade_failure = ntop.getCache(upgrade_failure_key)
-        if not isEmptyString(upgrade_failure) then
-          status = upgrade_failure
-        end
       end
     end
   end

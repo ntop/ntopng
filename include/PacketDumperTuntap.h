@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2015-20 - ntop.org
+ * (C) 2015-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -24,16 +24,15 @@
 
 #include "ntop_includes.h"
 
-
 class PacketDumperTuntap {
  private:
   NetworkInterface *iface;
-  int           fd;
-  u_int8_t      mac_addr[6];
-  u_int16_t     mtu;
-  char          dev_name[DUMP_IFNAMSIZ];
-  bool		init_ok;
-  u_int32_t     num_dumped_packets;
+  int fd;
+  u_int8_t mac_addr[6];
+  u_int16_t mtu;
+  char dev_name[15];
+  bool init_ok;
+  u_int32_t num_dumped_packets;
 
   int getIPAddress(struct ifreq *ifr, char *if_name);
   int getNetmask(struct ifreq *ifr, char *if_name);
@@ -45,11 +44,11 @@ class PacketDumperTuntap {
   ~PacketDumperTuntap();
 
   int openTap(char *dev, /* user-definable interface name, eg. edge0 */
-		int mtu);
+              int mtu);
   int readTap(unsigned char *buf, int len);
   int writeTap(unsigned char *buf, int len, dump_reason reason,
                unsigned int sampling_rate);
-  inline char *getName(void) { return((char*)dev_name); }
+  inline char *getName(void) { return ((char *)dev_name); }
   void closeTap();
 
   u_int32_t get_num_dumped_packets(void) { return num_dumped_packets; }

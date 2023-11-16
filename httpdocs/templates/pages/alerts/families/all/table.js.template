@@ -1,0 +1,13 @@
+[
+    /* Description */
+    {name: 'entity_id', data: 'entity', orderable: false, className: 'text-nowrap'},
+    /* Counts */
+    {name: 'count_group_notice_or_lower', data: 'count_group_notice_or_lower', className: 'text-right font-weight-bold', width: '15%', render: DataTableRenders.hideIfZero},
+    {name: 'count_group_warning', data: 'count_group_warning', className: 'text-right font-weight-bold', width: '15%', render: DataTableRenders.hideIfZero},
+    {name: 'count_group_error', data: 'count_group_error', className: 'text-right font-weight-bold', width: '15%', render: DataTableRenders.hideIfZero},
+    {name: 'count_group_critical', data: 'count_group_critical', className: 'text-right font-weight-bold', width: '15%', render: DataTableRenders.hideIfZero},
+    {name: 'count_group_emergency', data: 'count_group_emergency', className: 'text-right font-weight-bold', width: '15%', render: DataTableRenders.hideIfZero},
+    /* Total Counts */
+    {name: 'count', data: 'count', className: 'text-right font-weight-bold', width: '15%', render: DataTableRenders.hideIfZero}
+
+]

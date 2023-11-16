@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,16 +26,17 @@
  * @file Bloom.h
  *
  * @brief      Bloom class implementation.
- * @details    A Bloom instance represents a bitmask that can be used as bloom filter for strings.
+ * @details    A Bloom instance represents a bitmask that can be used as bloom
+ * filter for strings.
  */
 
 #include "ntop_includes.h"
 
 class Bloom {
  private:
-  Bitmask *bitmask; /**< The bitmask */
+  Bitmask *bitmask;         /**< The bitmask */
   u_int32_t num_bloom_bits; /**< The bitmask size */
-  u_int32_t mask; /**< The mask to be used for the hash */
+  u_int32_t mask;           /**< The mask to be used for the hash */
 
   u_int32_t ntophash(char *str);
 
@@ -48,6 +49,7 @@ class Bloom {
    * @param str The value to set.
    */
   inline void setBit(char *str) { bitmask->set_bit(ntophash(str)); }
+  inline void setBit(u_int32_t value) { bitmask->set_bit(value & mask); }
 
   /**
    * Removes a value to the bloom unsetting the relative bit in the bitmask.
@@ -56,13 +58,16 @@ class Bloom {
    * @param str The value to set.
    */
   inline void unsetBit(char *str) { bitmask->clear_bit(ntophash(str)); }
+  inline void unsetBit(u_int32_t value) { bitmask->clear_bit(value & mask); }
 
   /**
    * Checks if a value is set in the bloom filter.
    * @param str The value to check.
    * @return True is the hash for the provided value is set, false otherwise.
    */
-  inline bool issetBit(char *str) { return(bitmask->is_set_bit(ntophash(str))); }
+  inline bool isSetBit(char *str) {
+    return (bitmask->is_set_bit(ntophash(str)));
+  }
 };
 
 #endif /* _BLOOM_H_ */

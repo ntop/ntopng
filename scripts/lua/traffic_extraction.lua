@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -12,24 +12,25 @@ sendHTTPContentTypeHeader('application/json')
 
 local res = {}
 
+local filter = _POST["bpf_filter"] or _GET["bpf_filter"]
+local time_from = _POST["epoch_begin"] or _GET["epoch_begin"]
+local time_to = _POST["epoch_end"] or _GET["epoch_end"]
+local chart_url = _POST["url"] or _GET["url"]
+
 if not recording_utils.isAvailable() then
   res.error = i18n("traffic_recording.not_granted") 
 else
-  if _POST["epoch_begin"] == nil or _POST["epoch_end"] == nil then
+  if time_from == nil or time_to == nil then
     res.error = i18n("traffic_recording.missing_parameters")
   else
     interface.select(ifname)
 
     local ifstats = interface.getStats()
 
-    local filter = _POST["bpf_filter"]
-    local time_from = tonumber(_POST["epoch_begin"])
-    local time_to = tonumber(_POST["epoch_end"])
-    local chart_url = _POST["url"]
-    local timeline_path
-    if recording_utils.getCurrentTrafficRecordingProvider(ifstats.id) ~= "ntopng" then
-       timeline_path = recording_utils.getCurrentTrafficRecordingProviderTimelinePath(ifstats.id)
-    end
+    time_from = tonumber(time_from)
+    time_to = tonumber(time_to)
+
+    local timeline_path = recording_utils.getTimelineByInterval(ifstats.id, time_from, time_to)
 
     local params = {
       time_from = time_from,

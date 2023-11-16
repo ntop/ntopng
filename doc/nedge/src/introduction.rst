@@ -1,11 +1,11 @@
 Overview
 ========
 
-Securing devices is a challanging task in the current era, affecting large
-enterprise network as well as small home network. In home networks, there is ofter
+Securing devices is a challenging task in the current era, affecting large
+enterprise network as well as small home network. In home networks, there is often
 any knowledge on the devices connected to the network or how the network bandwidth is
 being used. On the other end, security in enterprise networks is traditionally demanded to
-firewall appliances, where it often ends up to the use of static rules targetting
+firewall appliances, where it often ends up to the use of static rules targeting
 some specific devices, which are difficult to manage in a constantly changing network.
 Moreover, since the BYOD_ practice is becoming more and more widespread, it is important for
 the network administrator to know what devices are currently connected to the network and
@@ -24,7 +24,7 @@ are still the same:
 
 nEdge is the ntop response to the outlined problems.
 
-Let's analize how nEdge works with some use cases.
+Let's analyze how nEdge works with some use cases.
 
 Small Business
 --------------
@@ -33,9 +33,9 @@ Business environments are characterized by variegated network topologies and
 appliances. A solution which requires a change in network topology can be
 expensive and can create conflicts with existing devices.
 
-By deployng nEdge in bridge_ mode, no topology change is required. Moreover,
+By deploying nEdge in bridge_ mode, no topology change is required. Moreover,
 nEdge does not interfere with other network appliances. It can be deployed in
-different points of the network to provide visilibity and protection on the
+different points of the network to provide visibility and protection on the
 network segment of choice.
 
 .. figure:: img/edge_traffic_policing.png
@@ -71,7 +71,7 @@ Usually the same Internet gateway is also being used by the hotel staff,
 so it can become unresponsive when some guest abuses network bandwidth or when a
 lot of clients are connected.
 
-The problem can be easily solved by using nedge in bridge_ mode as shown in the
+The problem can be easily solved by using nEdge in bridge_ mode as shown in the
 picture.
 
 .. figure:: img/hotel_use_case.png
@@ -92,7 +92,7 @@ The following nEdge configuration will be used:
 This setup will ensure that the staff will have a reserved 65% bandwidth to use
 when needed, while still allow guests to run at full bandwidth when the staff is idle.
 
-Morover, with nEdge the guests bandwidth will be split in a fair way, so that a
+Moreover, with nEdge the guests bandwidth will be split in a fair way, so that a
 single guest won't be able to monopolize the network. For further control,
 some bandwidth consuming protocols like Bittorrent can also be disabled.
 
@@ -117,7 +117,7 @@ As an example, let's suppose there are 3 different customers plans to manage:
 - Normal User: uses WiFi gateway by default, but may also use the 3G is WiFi is not available.
 - Gold User: can use any of the available gateways and it has a 70% of the available bandwidth reserved
 
-The desidered behaviour is that a user should always use the less expensive gateway available,
+The desired behavior is that a user should always use the less expensive gateway available,
 based on its plan. If such a gateway becomes unavailable, Normal/Gold users should use an
 alternative gateway as long as it remains unavailable and then switch back to the less
 expensive when available.
@@ -156,17 +156,12 @@ if multiple network interfaces are available.
 Programmatic Configuration
 --------------------------
 
-ntopng can be configured programmatically without any interaction with
-it's user interface.
+ntopng can be configured programmatically without any GUI interaction.
 
 This is particularly useful for those who wants to integrate ntopng
 Edge in their own automatized solutions. Let's consider the following case as an example.
 
-An Internet connectivity provider, say ACME ISP, is sells three Internet profiles:
-
-- :code:`basic`
-- :code:`gold`
-- :code:`platinum`
+An Internet connectivity provider, say ACME ISP, is sells three Internet profiles: :code:`basic`, :code:`gold` and :code:`platinum`.
 
 The service provider wants to policy the profiles as follow:
 
@@ -193,10 +188,8 @@ At this point, ACME ISP wants to programmatically configure ntopng Edge to
    of the purchased profile.
 
 Policies can be created programmatically by serving ntopng Edge a
-configuration JSON via web. Upon startup, ntopng Edge will connect to
-the  ACME ISP web server to fetch the configuration JSON.
-ACME ISP will serve the following JSON to create the policies
-described above
+configuration JSON, which is downloaded upon startup from the ACME ISP 
+as configured in *http_bridge_conf_utils.HTTP_BRIDGE_CONFIGURATION_URL*.
 
 .. code:: json
 
@@ -221,8 +214,8 @@ described above
 		       "default_policy": "pass",
 		       "policies" : {
 		       }
-		 },
-	  },
+		 }
+	  }
    }
 
 After the startup, ntopng Edge is ready to associate the Mac addresses
@@ -234,15 +227,15 @@ associations using an HTTP POST.
 
 A JSON that tells ntopng Edge the three associations exemplified above is the following:
 
-
 .. code:: json
 
-	  "associations" : {
+   {
+	   "associations" : {
 		"AA:BB:CC:DD:EE:11"  : {"group" : "basic",    "connectivity" : "pass"},
 		"AA:BB:CC:DD:EE:22"  : {"group" : "gold",     "connectivity" : "pass"},
-		"AA:BB:CC:DD:EE:33"  : {"group" : "platinum", "connectivity" : "pass"},
+		"AA:BB:CC:DD:EE:33"  : {"group" : "platinum", "connectivity" : "pass"}
 	  }
-
+   }
 
 From now on, ntopng Edge will be able to correctly associate the
 traffic exchanged by any of the three Mac addresses above with the
@@ -262,9 +255,11 @@ member from a policy, ACME ISP, will only have to change to :code:`reject` the
 
 .. code:: json
 
+   {
 	  "associations" : {
 		"AA:BB:CC:DD:EE:33"  : {"group" : "platinum", "connectivity" : "reject"},
 	  }
+   }
 
 
 An in-depth explanation on how to programmatically configure ntopng

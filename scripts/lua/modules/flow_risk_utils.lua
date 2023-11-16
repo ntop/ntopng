@@ -1,49 +1,43 @@
 --
--- (C) 2017-20 - ntop.org
+-- (C) 2017-22 - ntop.org
 --
 
 local flow_risk_utils = {}
 
--- ##############################################
-
--- Keep in sync with ndpi_typedefs.h, table keys are risk ids as found in nDPI
-local id2name = {
-   [0]  = "ndpi_no_risk",
-   [1]  = "ndpi_url_possible_xss",
-   [2]  = "ndpi_url_possible_sql_injection",
-   [3]  = "ndpi_url_possible_rce_injection",
-   [4]  = "ndpi_binary_application_transfer",
-   [5]  = "ndpi_known_protocol_on_non_standard_port",
-   [6]  = "ndpi_tls_selfsigned_certificate",
-   [7]  = "ndpi_tls_obsolete_version",
-   [8]  = "ndpi_tls_weak_cipher",
-   [9]  = "ndpi_tls_certificate_expired",
-   [10] = "ndpi_tls_certificate_mismatch",
-   [11] = "ndpi_http_suspicious_user_agent",
-   [12] = "ndpi_http_numeric_ip_host",
-   [13] = "ndpi_http_suspicious_url",
-}
+local clock_start = os.clock()
 
 -- ##############################################
 
--- Same as id2name, just with keys swapped
-flow_risk_utils["risks"] = {}
+function flow_risk_utils.get_documentation_link(risk_id)
+   local url = string.format("https://www.ntop.org/guides/nDPI/flow_risks.html#risk-%.3u", risk_id)
+   local link = string.format('<a href="%s" target="_blank"><i class="fas fa-lg fa-question-circle"></i></a>', url)
 
-for risk_id, risk_name in pairs(id2name) do
-   flow_risk_utils["risks"][risk_name] = risk_id
+   return link
 end
 
 -- ##############################################
 
--- @brief Returns an i18n-localized risk description given a risk_id as defined in nDPI
-function flow_risk_utils.risk_id_2_i18n(risk_id)
-   if risk_id and id2name[risk_id] then
-      return i18n("flow_risk."..id2name[risk_id])
+--@brief Returns a table with all available risk strings, keyed by risk id.
+function flow_risk_utils.get_risks_info()
+   local res = {}
+
+   for risk_id = 1,127 do
+      local risk_str = ntop.getRiskStr(risk_id)
+      if risk_id == tonumber(risk_str) then
+	 break
+      end
+
+      -- Use string keys to avoid tricking lua into thinking it is processing an array
+      res[tostring(risk_id)] = {label = risk_str, id = risk_id}
    end
 
-   return ''
+   return res
 end
 
 -- ##############################################
+
+if(trace_script_duration ~= nil) then
+  io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return flow_risk_utils

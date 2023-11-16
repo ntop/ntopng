@@ -3,7 +3,7 @@ Instructions
 
 This file contains a list of beta/debugging features hidden into ntopng.
 These are subject to change. The feature can be enabled by enabling the
-corresponding redis preference. The correct sequence to follow is:
+corresponding Redis preference. The correct sequence to follow is:
 
   1. ntopng must be running
   2. run the feature-specific command
@@ -11,6 +11,11 @@ corresponding redis preference. The correct sequence to follow is:
 
 List of beta/debug features and how to enable them
 --------------------------------------------------
+
+## [Feature] Enable periodic dump of preferences to a disk file which is the reloaded during startup.
+             Useful when ntopng is run on appliances that don't feature a persistent Redis.
+             In this case, it may be useful to dump changed preferences to a file and to restore them during boot.
+redis-cli set "ntopng.prefs.dump_prefs_to_disk" "1"
 
 ## [Feature] Disable InfluxDB data rollup via Continuous Queries
 redis-cli set "ntopng.prefs.disable_influxdb_rollup" "1"
@@ -27,8 +32,11 @@ redis-cli set "ntopng.prefs.rrd_debug_enabled" "1"
 ## [Debug] Writes periodic activities duration and scheduling problems to the stdout
 redis-cli set "ntopng.prefs.periodic_activities_stats_to_stdout" "1"
 
-## [Experimental] Hourly interfaces/hosts traffic delta charts
-redis-cli set "ntopng.prefs.enable_ts_deltas_writes" "1"
-
 ## [Debug] Log VPN events from firewalls plugins (2 for more verbosity)
 redis-cli set "ntopng.prefs.vpn_debug_enabled" "1"
+
+## [Feature] SNMP. Disables the polling of fat MIBs (e.g., the bridge MIB)
+redis-cli set "ntopng.prefs.snmp.disable_fat_mibs_polling" "1"
+
+## [Feature] SNMP. Enables SNMP traces. Traces are shown under the SNMP internals page
+redis-cli set "ntopng.prefs.snmp.do_trace" "1"

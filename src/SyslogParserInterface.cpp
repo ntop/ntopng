@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2019 - ntop.org
+ * (C) 2019-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,11 +23,13 @@
 
 #ifndef HAVE_NEDGE
 
-//#define SYSLOG_DEBUG
+// #define SYSLOG_DEBUG
 
 /* **************************************************** */
 
-SyslogParserInterface::SyslogParserInterface(const char *endpoint, const char *custom_interface_type) : ParserInterface(endpoint, custom_interface_type) {
+SyslogParserInterface::SyslogParserInterface(const char *endpoint,
+                                             const char *custom_interface_type)
+    : ParserInterface(endpoint, custom_interface_type) {
   le = NULL;
   producers_reload_requested = true;
 }
@@ -35,37 +37,47 @@ SyslogParserInterface::SyslogParserInterface(const char *endpoint, const char *c
 /* **************************************************** */
 
 void SyslogParserInterface::startPacketPolling() {
-  /* Allocate the SyslogLuaEngine only after the plugins have been loaded */
-  le = new SyslogLuaEngine(this);
+  /* Allocate the SyslogLuaEngine only after the scripts have been loaded */
+  le = new (std::nothrow) SyslogLuaEngine(this);
 
-  ParserInterface::startPacketPolling(); /* -> NetworkInterface::startPacketPolling(); */
+  ParserInterface::
+      startPacketPolling(); /* -> NetworkInterface::startPacketPolling(); */
 }
 
 /* **************************************************** */
 
 SyslogParserInterface::~SyslogParserInterface() {
-  if (le)
-    delete le;
+  if (le) delete le;
 }
 
 /* **************************************************** */
 
 u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
   const char *producer_name = NULL;
-  char *prio = NULL, *parsed_client_ip = NULL, *device = NULL, *application = NULL, *content = NULL;
+  char *prio = NULL, *parsed_client_ip = NULL, *device = NULL,
+       *application = NULL, *content = NULL;
   char *tmp;
+  u_int32_t num_total_events = 0, num_malformed = 0;
 
   if (producers_reload_requested) {
     doProducersMappingUpdate();
     producers_reload_requested = false;
   }
 
-  if (log_line == NULL || strlen(log_line) == 0)
-    return 0;
+  /* Event parsing */
+
+  if (log_line == NULL || strlen(log_line) == 0) goto exit;
 
 #ifdef SYSLOG_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Raw message: %s", log_line);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Raw message: %s",
+                               log_line);
 #endif
+
+  /* Check if this is a clean JSON (no Syslog header) */
+  if (log_line[0] == '{') {
+    content = log_line;
+    goto detect_producer;
+  }
 
   /*
    * Supported Log Format ({} are used to indicate optional items)
@@ -74,48 +86,52 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
 
   /* Look for <PRIO> */
   prio = strchr(log_line, '<');
-  if (prio == NULL)
-    return 0;
+  if (prio == NULL) {
+    num_malformed++;
+    goto exit;
+  }
 
   if (prio != log_line) { /* Parse TIMESTAMP;HOST; <PRIO> */
     prio[0] = '\0';
 
     parsed_client_ip = strchr(log_line, ';');
-    if(parsed_client_ip != NULL) {
+    if (parsed_client_ip != NULL) {
       parsed_client_ip++;
       tmp = strchr(parsed_client_ip, ';');
-      if (tmp != NULL)
-        tmp[0] = '\0';
-    } 
+      if (tmp != NULL) tmp[0] = '\0';
+    }
   }
 
   prio++;
   log_line = strchr(prio, '>');
-  if (log_line == NULL)
-    return 0;
+  if (log_line == NULL) {
+    num_malformed++;
+    goto exit;
+  }
 
   log_line[0] = '\0';
   log_line++;
 
   if (strncmp(log_line, "date=", 5) == 0) { /* Parse custom Fortinet format */
+    producer_name = "fortinet";             /* fortinet detected */
     content = log_line;
-  } else if ((tmp = strstr(log_line, "]: ")) != NULL) { /* Parse APPLICATION[PID]: */
+  } else if ((tmp = strstr(log_line, "]: ")) !=
+             NULL) { /* Parse APPLICATION[PID]: */
     content = &tmp[3];
     tmp[1] = '\0';
     tmp = strrchr(log_line, '[');
-    if(tmp != NULL) {
+    if (tmp != NULL) {
       tmp[0] = '\0';
 
       /* Parse APPLICATION */
       tmp = strrchr(log_line, ' ');
-      if(tmp != NULL) {
+      if (tmp != NULL) {
         tmp[0] = '\0';
         application = &tmp[1];
- 
+
         /* Parse DEVICE */
         tmp = strrchr(log_line, ' ');
-        if(tmp != NULL)
-          device = &tmp[1];
+        if (tmp != NULL) device = &tmp[1];
       }
     }
   } else if ((tmp = strstr(log_line, ": ")) != NULL) { /* Parse APPLICATION: */
@@ -123,63 +139,79 @@ u_int8_t SyslogParserInterface::parseLog(char *log_line, char *client_ip) {
     tmp[0] = '\0';
 
     tmp = strrchr(log_line, ' ');
-    if(tmp != NULL) {
+    if (tmp != NULL) {
       tmp[0] = '\0';
 
       /* Parse DEVICE */
       tmp = strrchr(log_line, ' ');
-      if(tmp != NULL)
-        device = &tmp[1];
+      if (tmp != NULL) device = &tmp[1];
     }
   } else { /* Ignore ':' as last resort  */
     content = log_line;
   }
- 
-  if (producer_name == NULL && parsed_client_ip != NULL)
+
+  num_total_events++;
+
+  /* Producer Lookup */
+
+detect_producer:
+
+  if (producer_name == NULL && parsed_client_ip != NULL) {
+    Utils::stringtolower(parsed_client_ip); /* normalize */
     producer_name = getProducerName(parsed_client_ip);
+  }
 
-  if (producer_name == NULL && device != NULL)
+  if (producer_name == NULL && device != NULL) {
+    Utils::stringtolower(device); /* normalize */
     producer_name = getProducerName(device);
+  }
 
-  if (producer_name == NULL && client_ip != NULL)
+  if (producer_name == NULL && client_ip != NULL) {
     producer_name = getProducerName(client_ip);
+  }
 
-  if (producer_name == NULL && application != NULL)
+  if (producer_name == NULL && application != NULL) {
+    Utils::stringtolower(application); /* normalize */
     producer_name = application;
+  }
 
-  if (producer_name == NULL)
+  if (producer_name == NULL) {
     producer_name = getProducerName("*");
+  }
 
-  if (producer_name == NULL)
-    return 0;
+  if (producer_name == NULL) goto exit;
 
 #ifdef SYSLOG_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[SYSLOG] Application: %s Message: %s",
-    producer_name, content);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                               "[SYSLOG] Application: %s Message: %s",
+                               producer_name, content);
 #endif
 
-  if (le) 
-    le->handleEvent(producer_name, content, 
-      parsed_client_ip ? parsed_client_ip : client_ip, 
-      prio ? atoi(prio) : 0);
+  /* Dispatching */
 
+  if (le)
+    le->handleEvent(producer_name, content,
+                    parsed_client_ip ? parsed_client_ip : client_ip,
+                    prio ? atoi(prio) : 0);
+
+exit:
+  incSyslogStats(num_total_events, num_malformed, 0, 0, 0, 0, 0);
   return 0;
 }
 
 /* **************************************************** */
 
-void SyslogParserInterface::lua(lua_State* vm) {
-  NetworkInterface::lua(vm);
-}
+void SyslogParserInterface::lua(lua_State *vm) { NetworkInterface::lua(vm); }
 
 /* **************************************************** */
 
-void SyslogParserInterface::addProducerMapping(const char *host, const char *producer) {
+void SyslogParserInterface::addProducerMapping(const char *host,
+                                               const char *producer) {
   string host_ip(host);
   string producer_name(producer);
   producers_map_t::iterator it;
 
-  if((it = producers_map.find(host_ip)) == producers_map.end())
+  if ((it = producers_map.find(host_ip)) == producers_map.end())
     producers_map.insert(make_pair(host_ip, producer_name));
   else
     it->second = producer_name;
@@ -194,19 +226,21 @@ void SyslogParserInterface::doProducersMappingUpdate() {
 
   producers_map.clear();
 
-  snprintf(key, sizeof(key), SYSLOG_PRODUCERS_MAP_KEY, get_id()); 
+  snprintf(key, sizeof(key), SYSLOG_PRODUCERS_MAP_KEY, get_id());
 
   rc = ntop->getRedis()->hashGetAll(key, &keys, &values);
 
   if (rc > 0) {
     for (int i = 0; i < rc; i++) {
       if (keys[i] && values[i]) {
-        ntop->getTrace()->traceEvent(TRACE_INFO, "Adding syslog producer %s (%s)", keys[i], values[i]);
+        ntop->getTrace()->traceEvent(
+            TRACE_INFO, "Adding syslog producer %s (%s)", keys[i], values[i]);
+        Utils::stringtolower(keys[i]); /* normalize */
         addProducerMapping(keys[i], values[i]);
       }
 
-      if(values[i]) free(values[i]);
-      if(keys[i]) free(keys[i]);
+      if (values[i]) free(values[i]);
+      if (keys[i]) free(keys[i]);
     }
 
     free(keys);
@@ -220,7 +254,7 @@ const char *SyslogParserInterface::getProducerName(const char *host) {
   string host_ip(host);
   producers_map_t::const_iterator it;
 
-  if((it = producers_map.find(host_ip)) != producers_map.end())
+  if ((it = producers_map.find(host_ip)) != producers_map.end())
     return it->second.c_str();
 
   return NULL;

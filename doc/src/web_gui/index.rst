@@ -29,16 +29,16 @@ Administrator privileges are granted to user *admin*. If an unauthenticated user
 The header bar show the ntopng status information, in particular:
 
 - The currently `selected interface <interfaces.html>`_.
-- The interface Up/Down througput chart.
+- The interface Up/Down throughput chart.
 - A series of coloured badges.
 - A `search box <host_search.html>`_.
 - The notifications bell and the `user administration menu <administration.html>`_.
 
 The coloured indicate the status of many components in ntopng. The badges in the above picture have the following meaning (from left to right):
 
-- Yellow triangle of `Degraded performance <../self_monitoring/internals.html#degraded-performance>`_.
-- Red triangle with the `Engaged alerts <../basic_concepts/alerts.html#engaged-alerts>`_ count.
-- Red triangle with the `Alerted Flows <../basic_concepts/alerts.html#flow-alerts>`_ count.
+- Yellow triangle with the `Engaged alerts <../basic_concepts/alerts.html#engaged-alerts>`_ count.
+- Yellow triangle with the Warning `Alerted Flows <../basic_concepts/alerts.html#flow-alerts>`_ count.
+- Red triangle with the Error `Alerted Flows <../basic_concepts/alerts.html#flow-alerts>`_ count.
 - Green badge with the number of active local hosts.
 - Gray badge with the number of active remote hosts.
 - Gray badge with the number of active devices.
@@ -55,19 +55,9 @@ Each individual menu bar entry will be discussed below.
 .. toctree::
     :maxdepth: 2
 
-    help_menu
-    dashboard_menu
-    dashboard
-    historical
-    report
-    flows
-    user_scripts
-    categories
-    hosts
-    host_details
-    interfaces
+    network_index
+    system_index
     settings
-    administration
-    alerts
-    host_search
-    storage_monitor
+    developer
+    help_menu
+    other_components

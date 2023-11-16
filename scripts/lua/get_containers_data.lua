@@ -1,5 +1,5 @@
 --
--- (C) 2019-20 - ntop.org
+-- (C) 2019-22 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -94,7 +94,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
 
    local column_info = "<a href='"
       ..ntop.getHttpPrefix().."/lua/flows_stats.lua?container="..key.."'>"
-      .."<span class='badge badge-info'>"..i18n("flows").."</span>"
+      .."<span class='badge bg-info'>"..i18n("flows").."</span>"
       .."</a>"
    local chart = "-"
 

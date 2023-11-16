@@ -2,7 +2,7 @@
 Using ntopng as a WiFi Access Point/Router+NAT
 ----------------------------------------------
 Suppose you have a device (e.g. a Raspberry PI) that has a wifi device you want to turn into
-a an access point that connects to the Internet though the ethernet port. ntopng can be used
+a an access point that connects to the Internet though the Ethernet port. ntopng can be used
 to enforce traffic policies as described below (valid for Debian-based distributions).
 
 - Edit /etc/wpa_supplicant/wpa_supplicant.conf and edit the configuration (e.g. edit the country field

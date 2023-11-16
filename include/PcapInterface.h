@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -27,36 +27,58 @@
 class PcapInterface : public NetworkInterface {
  private:
   pcap_t *pcap_handle;
-  bool read_pkts_from_pcap_dump, read_pkts_from_pcap_dump_done, emulate_traffic_directions;
+  char *pcap_path;
+  bool read_pkts_from_pcap_dump, read_pkts_from_pcap_dump_done,
+      emulate_traffic_directions, read_from_stdin_pipe, delete_pcap_when_done;
   ProtoStats prev_stats_in, prev_stats_out;
   FILE *pcap_list;
 
   pcap_stat last_pcap_stat;
   u_int32_t getNumDroppedPackets();
   void cleanupPcapDumpDir();
-  virtual void incEthStats(bool ingressPacket, u_int16_t proto, u_int32_t num_pkts,
-			   u_int32_t num_bytes, u_int pkt_overhead) {
-    if (!emulate_traffic_directions)
-      ethStats.incStats(ingressPacket, proto, num_pkts, num_bytes, pkt_overhead);
+
+  virtual void incEthStats(bool ingressPacket, u_int16_t proto,
+                           u_int32_t num_pkts, u_int32_t num_bytes,
+                           u_int pkt_overhead) {
+    if (read_from_stdin_pipe || (!emulate_traffic_directions))
+      ethStats.incStats(ingressPacket, num_pkts, num_bytes, pkt_overhead);
+
+    ethStats.incProtoStats(proto, num_pkts, num_bytes);
   };
 
  public:
-  PcapInterface(const char *name, u_int8_t ifIdx);
+  PcapInterface(const char *name, u_int8_t ifIdx, bool _delete_pcap_when_done);
   virtual ~PcapInterface();
 
-  bool isDiscoverableInterface()    { return(getMDNS() != NULL  && !isTrafficMirrored()); };
-  virtual InterfaceType getIfType() const { return((read_pkts_from_pcap_dump && !reproducePcapOriginalSpeed()) ? interface_type_PCAP_DUMP : interface_type_PCAP); }
-  inline const char* get_type()     { return((read_pkts_from_pcap_dump && !reproducePcapOriginalSpeed()) ? CONST_INTERFACE_TYPE_PCAP_DUMP : CONST_INTERFACE_TYPE_PCAP); };
-  inline pcap_t* get_pcap_handle()  { return(pcap_handle);   };
-  inline virtual bool areTrafficDirectionsSupported() { return(emulate_traffic_directions); };
+  bool isDiscoverableInterface() {
+    return (getMDNS() != NULL && !isTrafficMirrored());
+  };
+  virtual InterfaceType getIfType() const {
+    return ((read_pkts_from_pcap_dump && !reproducePcapOriginalSpeed())
+                ? interface_type_PCAP_DUMP
+                : interface_type_PCAP);
+  }
+  virtual const char *get_type() const {
+    return ((read_pkts_from_pcap_dump && !reproducePcapOriginalSpeed())
+                ? CONST_INTERFACE_TYPE_PCAP_DUMP
+                : CONST_INTERFACE_TYPE_PCAP);
+  };
+  inline pcap_t *get_pcap_handle() { return (pcap_handle); };
+  inline virtual bool areTrafficDirectionsSupported() {
+    return (emulate_traffic_directions);
+  };
   inline void set_pcap_handle(pcap_t *p) { pcap_handle = p; };
-  inline FILE*   get_pcap_list()   { return(pcap_list);     };
+  inline FILE *get_pcap_list() { return (pcap_list); };
   void startPacketPolling();
   bool set_packet_filter(char *filter);
-  bool read_from_pcap_dump()      const { return(read_pkts_from_pcap_dump);        };
-  bool read_from_pcap_dump_done() const { return(read_pkts_from_pcap_dump_done);   };
-  void set_read_from_pcap_dump_done()   { read_pkts_from_pcap_dump_done = true;    };
-  inline void sendTermination()     { if(pcap_handle) pcap_breakloop(pcap_handle); };
+  bool read_from_pcap_dump() const { return (read_pkts_from_pcap_dump); };
+  bool read_from_pcap_dump_done() const {
+    return (read_pkts_from_pcap_dump_done);
+  };
+  void set_read_from_pcap_dump_done() { read_pkts_from_pcap_dump_done = true; };
+  inline void sendTermination() {
+    if (pcap_handle) pcap_breakloop(pcap_handle);
+  };
   bool reproducePcapOriginalSpeed() const;
   virtual void updateDirectionStats();
 };

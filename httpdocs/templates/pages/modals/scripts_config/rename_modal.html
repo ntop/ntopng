@@ -4,10 +4,11 @@
         <div class="modal-content">
         <div class="modal-header">
             <h5 class="modal-title">{{ i18n("config_scripts.config_rename", {}) }}: <span id='config-name'></span></h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
             <form class='form'>
-                <div class='form-group'>
+                <div class='form-group mb-3 '>
                     <label class='form-label' for='#rename-input'>{{ i18n("config_scripts.config_rename_message", {}) }}:</label>
                     <input type='text' id='rename-input' class='form-control' />
                     <div class="invalid-feedback" id='rename-error' >
@@ -16,7 +17,6 @@
             </form>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ i18n("cancel", {}) }}</button>
             <button type="button" id='btn-confirm-rename' class="btn btn-primary">{{ i18n("apply", {}) }}</button>
         </div>
         </div>

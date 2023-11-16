@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,19 +25,20 @@
 #include "ntop_includes.h"
 
 class InterarrivalStats {
-private:
+ private:
   struct timeval lastTime;
   ndpi_analyze_struct delta_ms;
 
-public:
+ public:
   InterarrivalStats();
+  ~InterarrivalStats();
 
   void updatePacketStats(struct timeval *when, bool update_iat);
 
-  inline u_int32_t getMin()    { return(ndpi_data_min(&delta_ms));     }
-  inline u_int32_t getMax()    { return(ndpi_data_max(&delta_ms));     }
-  inline float     getAvg()    { return(ndpi_data_average(&delta_ms)); }
-  inline float     getStdDev() { return(ndpi_data_stddev(&delta_ms));  }
+  inline u_int32_t getMin() { return (ndpi_data_min(&delta_ms)); }
+  inline u_int32_t getMax() { return (ndpi_data_max(&delta_ms)); }
+  inline float getAvg() { return (ndpi_data_average(&delta_ms)); }
+  inline float getStdDev() { return (ndpi_data_stddev(&delta_ms)); }
 };
 
 #endif /* _INTERARRIVAL_STATS_H_ */

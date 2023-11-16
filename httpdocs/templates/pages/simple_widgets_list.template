@@ -8,4 +8,4 @@
     </div>
 </div>
 
-<script type="module" src="{{ ntop.getHttpPrefix() }}/js/widgets/ntop-widget-utils.js"></script>
+<script type="module" src="{{ ntop.getHttpPrefix() }}/js/widgets/ntop-widget-utils.js?{{ ntop.getStaticFileEpoch() }}"></script>

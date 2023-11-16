@@ -37,10 +37,10 @@ get_initd_service_start_file() {
 check_interface() {
     local CHECK_IFNAME="$1"
 
-    if [[ "${CHECK_IFNAME}" =~ ^[a-zA-Z0-9:_-]{1,24}$ ]]; then
+    if [[ "${CHECK_IFNAME}" =~ ^[a-zA-Z0-9:_,-]{1,64}$ ]]; then
 	:
     else
-	[ $QUIET = false ] && echo "Invalid interface $IFNAME"
+	[ $QUIET = false ] && echo "Invalid interface $CHECK_IFNAME"
 	print_usage
     fi
 
@@ -234,13 +234,13 @@ install_service_conf() {
 
 ALLOWED_OPTIONS_N2DISK="is-active|log|stats|list"
 ALLOWED_OPTIONS_N2DISK_NTOPNG="start|stop|restart|enable|disable|status|is-active|is-enabled|has-service|log|stats|set-license"
-ALLOWED_OPTIONS_N2N="start|stop|restart|enable|disable|status|is-active|is-enabled|has-service|log"
 
 print_usage() {
     echo "Usage:"
-    echo " n2n {${ALLOWED_OPTIONS_N2N}} [params]"
-    echo " n2disk-ntopng {${ALLOWED_OPTIONS_N2DISK_NTOPNG}} [params]"
     echo " n2disk {${ALLOWED_OPTIONS_N2DISK}} [params]"
+    echo " n2disk-ntopng {${ALLOWED_OPTIONS_N2DISK_NTOPNG}} [params]"
+    echo " disk2disk {${ALLOWED_OPTIONS_N2DISK}} [params]"
+    echo " disk2disk-ntopng {${ALLOWED_OPTIONS_N2DISK_NTOPNG}} [params]"
     exit 1
 }
 
@@ -292,15 +292,30 @@ case "$1" in
 	fi
 	;;
 
-    n2n)
-	check_allowed_options "$2" "${ALLOWED_OPTIONS_N2N}"
+    disk2disk)
+	check_allowed_options "$2" "${ALLOWED_OPTIONS_N2DISK}"
+	SERVICE_NAME="disk2disk"
 
-	SERVICE_NAME="edge-ntopng"
-	CONFIG_INSTALL_TARGET="install-n2n-conf"
+	if [ -z "$3" ] && [ "$2" != "list" ]; then
+	    print_usage
+	fi
 
 	if [ ! -z "$3" ]; then
-	    SERVICE_PARAM="$3"
+	    check_interface "$3"
 	fi
+	;;
+
+    disk2disk-ntopng)
+	check_allowed_options "$2" "${ALLOWED_OPTIONS_N2DISK_NTOPNG}"
+
+	CONFIG_INSTALL_TARGET="install-n2disk-conf"
+	SERVICE_NAME="disk2disk-ntopng"
+
+	if [ -z "$3" ]; then
+	    print_usage
+	fi
+
+	check_interface "$3"
 	;;
 
     *)

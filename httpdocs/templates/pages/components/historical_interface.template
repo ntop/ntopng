@@ -1,0 +1,61 @@
+<div id="vue-app">
+  <page-stats 
+    :csrf="csrf"
+    :source_value_object="source_value_object"
+    :sources_types_enabled="sources_types_enabled"
+    :sources_types_top_enabled="sources_types_top_enabled"
+    :is_ntop_pro="is_ntop_pro"
+    :enable_snapshots="is_ntop_enterprise_m"
+    :is_history_enabled="is_history_enabled"
+    :traffic_extraction_permitted="traffic_extraction_permitted"
+    :is_dark_mode="is_dark_mode">
+  </page-stats>
+</div>
+
+<script type="application/javascript">
+  let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+  
+  function start_vue() {
+    const is_ntop_pro = '{* ntop.isPro() *}' == 'true';
+    const is_ntop_enterprise_m = '{* ntop.isEnterpriseM() *}' == 'true';
+    const is_history_enabled = '{* ntop.isClickHouseEnabled() *}' == 'true';
+    const traffic_extraction_permitted = '{* traffic_extraction_permitted *}' == 'true';
+    const source_value_object = {* source_value_object *};
+    const sources_types_enabled = {* sources_types_enabled *};
+    const sources_types_top_enabled = {* sources_types_top_enabled *};
+    const is_dark_mode = '{* is_dark_mode *}' == 'true';
+
+    const vue_options = {
+    	components: {
+	    'page-stats': ntopVue.PageStats,
+	},
+	/**
+	 * First method called when the component is created.
+	 */
+	created() {},
+	mounted() {},
+	data() {
+	    return {
+	      csrf: pageCsrf,
+	      source_value_object: source_value_object,
+	      sources_types_enabled,
+	      sources_types_top_enabled,
+	      is_ntop_pro,
+	      is_ntop_enterprise_m,
+	      traffic_extraction_permitted,
+              is_history_enabled,
+	      is_dark_mode,
+	    };
+	},
+	methods: {},
+    }; 
+    const _vue = ntopVue.Vue.createApp(vue_options);
+    const vue_app = _vue.mount("#vue-app");
+    return vue_app;
+}
+
+$(document).ready(async function(){
+    start_vue();
+});
+
+</script>

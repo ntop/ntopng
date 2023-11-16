@@ -1,5 +1,5 @@
 --
--- (C) 2019-20 - ntop.org
+-- (C) 2019-22 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -12,7 +12,7 @@ local ebpf_utils = require "ebpf_utils"
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.flows)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.flows)
 
 local page = _GET["page"]
 if isEmptyString(page) then page = "process_ndpi" end
@@ -28,16 +28,16 @@ local have_nedge = ntop.isnEdge()
 if have_nedge then
    refresh_rate = 5
 else
-   refresh_rate = getInterfaceRefreshRate(ifstats["id"])
+   refresh_rate = interface.getStatsUpdateFreq(ifstats["id"])
 end
 
 if not pid or not name_key then
-   print("<div class=\"alert alert-danger\"><img src=/img/warning.png> "..i18n("processes_stats.missing_pid_name_message").."</div>")
+   print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("processes_stats.missing_pid_name_message").."</div>")
 else
 
    local name = ''
    if num == 0 then
-      print("<div class=\"alert alert-danger\"><img src=".. ntop.getHttpPrefix() .. "/img/warning.png> "..i18n("processes_stats.no_traffic_detected").."</div>")
+      print("<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> "..i18n("processes_stats.no_traffic_detected").."</div>")
    else
       local title = ''
       local nav_url = ntop.getHttpPrefix().."/lua/process_details.lua?pid="..pid.."&pid_name="..name_key
@@ -63,7 +63,7 @@ else
 				 {
 				    active = page == "flows",
 				    page_name = "flows",
-				    label = i18n("flows"),
+				    label = '<i class="fas fa-stream"></i>',
 				 },
 			      }
       )

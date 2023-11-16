@@ -1,0 +1,923 @@
+{#
+    (C) 2021 - ntop.org    
+    Base template for datatables.
+#}
+<style>
+.table.dataTable {
+  padding: 0;
+}
+</style>
+<!--
+.table.dataTable th {
+    white-space: nowrap;
+    overflow: hidden;
+}
+ 
+
+.table.dataTable td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+-->
+<!-- vue3 -->
+<!-- <script src="{* ntop.getHttpPrefix() *}/vue/vue-dev.js?{* ntop.getStaticFileEpoch() *}"></script> 
+<script src="{* ntop.getHttpPrefix() *}/vue/vue3-sfc-loader.js?{* ntop.getStaticFileEpoch() *}"></script>
+<script src="{* ntop.getHttpPrefix() *}/vue/ntopng_vue_loader.js?{* ntop.getStaticFileEpoch() *}"></script>
+-->
+<!-- defines base_path globals const-->
+<script type='text/javascript'>
+  const base_path = '{* ntop.getHttpPrefix() *}';
+  const default_ifid = '{* interface.getId() *}';
+  const show_permalink = '{* show_permalink *}' == 'true';
+  const show_download = '{* show_download *}' == 'true';
+  const download_endpoint = '{* datatable.download.endpoint *}';
+  const navbar_context = {* navbar *};
+  const show_pcap_download = '{* show_pcap_download *}' == 'true';
+  const isNtopEnterpriseM = '{* ntop.isEnterpriseM() *}' == 'true';
+  const show_chart = '{* show_chart *}' == 'true';
+</script>
+<div id="navbar">
+<page-navbar
+	id="page_navbar"
+	:main_title="navbar_context.main_title"
+	:base_url="navbar_context.base_url"
+	:help_link="navbar_context.help_link"
+	:items_table="navbar_context.items_table"
+	@click_item="click_item">
+</page-navbar>
+</div>
+
+<div class='row'>
+  <div class='col-12'>
+    <div class="mb-2">
+      <div class="w-100">
+	<div clas="range-container d-flex flex-wrap">
+	  <div class="range-picker d-flex m-auto flex-wrap" id="rangepicker">
+	  <alert-info id="alert_info" :global="true" ref="alert_info"></alert-info>
+	  <modal-traffic-extraction id="modal_traffic_extraction" ref="modal_traffic_extraction"></modal-traffic-extraction>
+	  <modal-snapshot ref="modal_snapshot"
+	    :csrf="csrf">
+	  </modal-snapshot>
+	    <range-picker ref="range-picker-vue" :id="id_range_picker">
+	    <template v-slot:extra_range_buttons>
+	    <button v-if="show_permalink" class="btn btn-link btn-sm" @click="get_permanent_link" :title="i18n('graphs.get_permanent_link')" ref="permanet_link_button"><i class="fas fa-lg fa-link"></i></button>
+	    <a v-if="show_download" class="btn btn-link btn-sm" id="dt-btn-download" :title="i18n('graphs.download_records')" ><i class="fas fa-lg fa-file"></i></a>
+	    <button v-if="show_pcap_download" class="btn btn-link btn-sm" @click="show_modal_traffic_extraction" :title="i18n('traffic_recording.pcap_download')"><i class="fas fa-lg fa-download"></i></button>
+	    <button v-if="is_ntop_enterprise_m" class="btn btn-link btn-sm" @click="show_modal_snapshot" :title="i18n('datatable.manage_snapshots')"><i class="fas fa-lg fa-camera-retro"></i></button>
+	    </template>
+	    </range-picker>
+	  </div>
+	</div>
+      </div>
+    </div>
+  </div>
+
+  <div class='col-12'>
+    <div class="card card-shadow">
+      <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
+        <div class="text-center">
+          <div class="spinner-border text-primary mt-5" role="status">
+            <span class="sr-only position-absolute">Loading...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body">
+
+        {% if show_chart then %}
+        <div class="row">
+
+          <div class="col-12 mb-2" id="chart-vue">
+            <div class="card h-100 overflow-hidden">
+              <chart ref="chart"
+	        id="chart_0"
+          :chart_type="chart_type"
+	        :base_url_request="chart_base_url_request"
+		:register_on_status_change="false">
+	      </chart>
+	      <modal-alerts-filter
+	        :alert="current_alert"
+		:page="page"
+		@exclude="add_exclude"
+		ref="modal_alerts_filter">
+	      </modal-alerts-filter>
+            </div>
+          </div>
+      {% end  %}          
+
+          <table id='{{ datatable.name }}' class='table table-striped table-bordered w-100'>
+            <thead>
+              <tr>
+                {* datatable.columns_header *}
+              </tr>
+            </thead>
+          </table>
+
+          <div class="mt-2">
+            {% if show_tot_records then %}
+            <div class="text-end">
+                <small id="{{ datatable.name }}-tot_records" style="display: none;" class="query text-end"><span class="records">{}</span>.</small>
+            </div>
+            {% end %}
+            <div class="text-start">
+                <small id="{{ datatable.name }}-query-time" style="display: none;" class="query">{{ i18n('db_search.query_performed') }} <span class="seconds">{}</span> seconds. <span id="{{ datatable.name }}-query" style="display: none; cursor: pointer;" class="badge bg-secondary">SQL</span></small>
+            </div>
+          </div>
+      {% if show_chart then %}
+        </div>
+      {% end  %}
+      </div>
+
+      {% if show_acknowledge_all or show_delete_all then %}
+      <div class="card-footer">
+
+        {% if show_acknowledge_all then %}
+        <button id="dt-btn-acknowledge" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#dt-acknowledge-modal' data-bs-toggle="modal" class="btn btn-primary">
+          <i class="fas fa fa-user-check"></i> {{ i18n("acknowledge_alerts")}}
+        </button>
+        {% end %}
+
+        {% if show_delete_all then %}
+        <button id="dt-btn-delete" {{ ternary(datatable.show_admin_controls, "", 'hidden="hidden"') }} data-bs-target='#dt-delete-modal' data-bs-toggle="modal" class="btn btn-danger">
+          <i class="fas fa fa-trash"></i> {{ i18n("delete_alerts")}}
+        </button>
+        {% end %}
+
+      </div>
+      {% end %}
+    </div>
+
+    {% if notes then %}
+      {* ui_utils.render_notes({ {content = notes} }) *}
+    {% end %}
+
+  </div>
+</div>
+
+{# add modals if defined #}
+{% if datatable.modals then %}
+<div class="modals">
+    {% for _, modal in pairs(datatable.modals) do %}
+        {* modal *}
+    {% end %}
+</div>
+{% end %}
+
+<script type="text/javascript">
+    i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+</script>
+<script type='text/javascript'>
+  let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+  let $table;
+  let RANGEPICKER_APP;
+  let CHART_APP;
+  let datatable_columns;
+  const datatableButton = {* (datatable.buttons or '[]') *};
+  const ifid = {{ ifid }}
+  const local_storage_order_key = "{* datatable.name *}_column" + ifid
+  const local_storage_order_asc_desc = "{* datatable.name *}_order" + ifid
+
+    const INITIAL_ROWS_LENGTH = {{datatable.initialLength}};
+
+    {% if show_chart then %}
+    const chartParams = {* json.encode(chart.params) *};
+    {% end %}
+
+    let intervalId = 0;
+
+    $(`#{{ datatable.name }}-query`).click(function(e) {
+        NtopUtils.copyToClipboard($(e.target).attr('title'), this);
+    })
+
+    function updateDownloadButton() {
+        if (!$(`#dt-btn-download`)) return;
+
+	let dataSourceParams = ntopng_url_manager.get_url_object();
+        // update the link of the download button
+        //const href = $(`#dt-btn-download`).attr('href');
+        const newDownloadURL = new URL(download_endpoint, location.origin);
+        newDownloadURL.search = new URLSearchParams(dataSourceParams); 
+        newDownloadURL.searchParams.set("visible_columns", getVisibleColumns($table).join(','));
+        newDownloadURL.searchParams.set("format", "txt");
+        $(`#dt-btn-download`).attr('href', newDownloadURL.toString());
+    }
+
+    // define a globals cache for cards
+    let globalCardsCache = { cardsData: null, requestDictionary: {} };
+
+    const updateCardsCache = function(cache) {
+      return (cardsData) => {
+        if (cache.cardsData == null) { cache.cardsData = cardsData; }
+	for (let i = 0; i < cardsData.length; i += 1) {
+	  let newTopData = cardsData[i];
+	  if (newTopData.value == null || newTopData.value.length == 0) {
+	    continue;
+	  }
+	  // update cache
+	  cache.cardsData[i] = newTopData;
+	}
+      }
+    }(globalCardsCache);
+
+    const getTopCardsData = function(cache) {
+      return async (endpoint_url, action) => {
+	// check if we have cards requested in cache
+        if (cache.requestDictionary[action] == null) {
+	  let res = await $.getJSON(`${endpoint_url}`);
+	  let cardsData = res.rsp;
+	  cache.requestDictionary[action] = true;
+	  updateCardsCache(cardsData);
+	}
+	return cache.cardsData;
+      };
+    }(globalCardsCache);
+
+    const updateCardStatsContent = function(cache) {
+      let lastUrlParams = null;
+      return async (cardId, action) => {
+        let params = ntopng_url_manager.get_url_params();
+	// check if we must reset cache 
+	if (lastUrlParams != params) { cache.requestDictionary = {}; }
+	lastUrlParams = params;
+	// check if we have already data in cache
+	if (cache.requestDictionary[action] == true) { return; }
+        if ($(`#${cardId}`).dropdown().hasClass("show")) {
+	  $(`#${cardId}`).dropdown("hide");
+	}
+	$(`#${cardId} > .spinner-border`).show();
+	await updateCardStats(action);
+	$(`#${cardId} > .spinner-border`).hide();
+	$(`#${cardId}`).dropdown("show");
+      };
+    }(globalCardsCache);
+    
+    /* Cards */
+  {% if show_cards then %}
+    let tableBarMenuHtml = null;
+    let updateCardStats = async (action) => {
+	// if action == 'overview' we ask only the names of the menu (avoiding queries for menu content) 
+    	let paramAction = "";
+	if (action != null) { paramAction = `&action=${action}`; }
+	let params = ntopng_url_manager.get_url_params();
+	let cardsData;
+	try {
+          // data = await $.getJSON(`{* endpoint_cards *}?${params}${paramAction}`);
+	  let endpoint_url = `{* endpoint_cards *}?${params}${paramAction}`;
+          cardsData = await getTopCardsData(endpoint_url, action);
+	} catch(e) {
+	  console.error(e); return;
+	}
+	let menuContent = [];
+	for (i = 0; i < cardsData.length; i++){
+	  if (cardsData[i] == null || cardsData[i].value == null){
+	  continue;
+	} else {
+	    let menuOptions = [];
+	    if (cardsData[i].value != null) {
+	      for (j = 0; j < cardsData[i].value.length; j++) {
+	        // Concat the name with the percentage of the stat
+	        // NB: These name should be filters if available
+	        if(cardsData[i].value[j] != null){
+	          let restText = " (" + (cardsData[i].value[j].count).toFixed(1) + "%)";
+	          if(cardsData[i].value[j].count != 0 && cardsData[i].value[j].count < 0.1){restText = " (< 0.1%)";}
+
+		  let operator = "";
+		  if (cardsData[i].value[j].operator != null) {
+		    operator = `  data-tag-operator='${cardsData[i].value[j].operator}' `;
+		  }
+	          let a_tag = "<a class='ntopng-truncate tag-filter dropdown-item' data-tag-key='" + cardsData[i].value[j].key + 
+	            "' title='" + ( cardsData[i].value[j].title || cardsData[i].value[j].value) +
+		    "' data-tag-value='" + cardsData[i].value[j].value + 
+		    "' data-tag-label='" + cardsData[i].value[j].label + "'" +
+		    operator +
+		    " href='#'>" + cardsData[i].value[j].label + "" + restText + "</a>";
+
+                  let itemText = '<li style="max-width:90rem;" class="dropdown-item pointer">' + a_tag + '</li>';
+		  menuOptions.push(itemText);
+		}
+	      }
+	    }
+	    //if (menuOptions.length > 0){
+	      let cardId = `card_id_${i}`;
+	      let cardAction = cardsData[i].action;
+	      let menu = `<div class="btn-group dropdown">
+	      <button id="${cardId}" onClick="updateCardStatsContent('${cardId}', '${cardAction}')" class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown" type="button" title="`+ cardsData[i].tooltip + `">
+	      <div class="spinner-border spinner-border-sm" style="display:none;" role="status">
+	      <span class="visually-hidden">Loading...</span>
+	      </div>	      
+
+	      ` + cardsData[i].label +
+	      `</button>
+	      <ul class="dropdown-menu">`
+	    	+ menuOptions.join("") + 
+              `</ul>
+	      </div>`;
+              menuContent.push(menu);
+            //}
+          }
+        }
+        if (tableBarMenuHtml == null) {
+          tableBarMenuHtml = $(".dataTables_wrapper .row .text-end").html();
+        }
+        let menuContentHtml = '' + menuContent.join("") + '';
+        $(".dataTables_wrapper .row .text-end").html(menuContentHtml);
+        $(".dataTables_wrapper .row .text-end").append(tableBarMenuHtml);
+        $(".dataTables_wrapper .dropdown .tag-filter" ).addClass("dropdown-item");
+    };
+    {% end %}
+
+  async function reloadTable($table, url_params) {
+      if ($table == null) {
+	  return;
+      }
+      //NtopUtils.showOverlays();
+      // reload the table
+        $table.ajax.url(`{* datatable.datasource.name *}?` + url_params).load();
+
+        {% if show_cards then %}
+        //updateCardStats();
+        {% end %} 
+    }
+
+    function printQueryTime($table) {
+        const response = $table.ajax.json();
+        // if the response contains the query time period
+        if (response !== undefined && (response.rsp.stats !== undefined && response.rsp.stats.query_duration_msec !== undefined)) {
+            const sec = response.rsp.stats.query_duration_msec / 1000.0;
+            $(`#{{ datatable.name }}-query-time`).show();
+            $(`#{{ datatable.name }}-query-time .seconds`).text((sec < 0.01) ? '< 0.01' : NtopUtils.ffloat(sec)); // The time is in sec
+            $(`#{{ datatable.name }}-query`).show();
+            $(`#{{ datatable.name }}-query`).prop('title', response.rsp.stats.query);
+            {% if show_tot_records then %}
+            if(response.rsp.stats.num_records_processed !== undefined) {
+                const num_records_processed = response.rsp.stats.num_records_processed;
+                $(`#{{ datatable.name }}-tot_records`).show();
+                $(`#{{ datatable.name }}-tot_records .records`).text(num_records_processed);
+            }
+            {% end %}
+        }
+    }
+
+    function getVisibleColumns($tableApi) {
+        const visibleColumns = [];
+        $tableApi.columns().every(function(idx) {   
+            const $column = $tableApi.column(idx);
+            if ($column.visible() && $column.name() !== '') {
+                visibleColumns.push($column.name());
+            } 
+        });
+
+        return visibleColumns;
+    }
+
+    function loadColumns() {
+
+        let columns = [];
+        {% if datatable.columns_js then %}
+        columns = {* datatable.columns_js *};
+        {% end %}
+
+        /* Actions Column */
+        {% if show_actions then %}
+	let handlerId = "disableAlerts";
+        columns.push({responsivePriority: 1, width: '5%', targets: -1, className: 'text-center text-nowrap', orderable: false, data: null, handlerId, render: (rowData, type, dataRow) => {
+            let handlerDisableAlerts = {
+	      handlerId,
+	      onClick: () => {
+		CHART_APP.show_modal_alerts_filter(rowData);
+	      },
+	    };
+            const buttons = [
+                {% if actions.show_info then %}
+                {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_info'},
+                {% end %}
+
+                {% if actions.show_snmp_info then %}
+                {icon: 'fa fa-search-plus', title: "{{ i18n('info') }}", href: '#check_snmp_info'},
+                {% end %}
+
+                {% if actions.show_alerts then %}
+                /* Button to jump to flow alerts within the same time period */
+                {icon: 'fas fa-exclamation-triangle', title: "{{ i18n('show_alerts.flow_alerts') }}", href: '#check_alerts'},
+		{% end %}
+
+                {% if actions.show_flows then %}
+                /* Button to jump to flow alerts within the same time period */
+                {icon: 'fa-exclamation-triangle', title: "{{ i18n('show_alerts.flow_alerts') }}", modal: '#flow_alerts'},
+		{% end %}
+
+                {% if actions.show_historical then %}
+		/* Button to jump to historical flows */
+                {icon: 'fa-stream', title: "{{ i18n('db_explorer.historical_data') }}", modal: '#past_flows'},
+		{% end %}
+
+                {% if actions.show_pcap_download then %}
+		/* Button to open the pcap download dialog */
+                {icon: 'fa-download', title: "{{ i18n('traffic_recording.pcap_download') }}", onclick: 'pcapDownload(' + dataRow.filter.epoch_begin + ', ' + dataRow.filter.epoch_end+ ', "' + dataRow.filter.bpf + '"); return false;'},
+		{% end %}
+
+                {% if actions.show_acknowledge then %}
+                {icon: 'fa fa-user-check', title: "{{ i18n('acknowledge') }}", modal: '#acknowledge_alert_dialog'},
+                {% end %}
+
+                {% if actions.show_disable then %}
+                /* Bell button to disable alerts is only supported for hosts and flows */
+                {icon: 'fa-bell-slash', class: "pointer", handler: handlerDisableAlerts, title: "{{ i18n('disable') }}"},
+                {% end %}
+
+                {% if actions.show_settings then %}
+                {icon: 'fa fa-cog', title: "{{ i18n('settings') }}", href: '#check_settings'},
+                {% end %}
+
+                {% if actions.show_delete then %}
+                {icon: 'fa fa-trash', title: "{{ i18n('remove') }}", modal: '#delete_alert_dialog'},
+                {% end %}
+            ];
+
+            return DataTableUtils.createActionButtons(buttons, dataRow);
+          }
+        });
+        {% end %}
+
+        return columns;
+    }
+
+  function setUserColumnsDefWidths() {
+    let userColumnDef;
+    /* Get the settings for this table from localStorage */
+    let userColumnDefs = JSON.parse(localStorage.getItem('{{ datatable.name }}')) || [];
+
+    if (userColumnDefs.length === 0 ) return;
+    datatable_columns.forEach( function(columnDef, index) {
+      // Check if there is a width specified for this column
+      userColumnDef = userColumnDefs.find( function(column) {
+        return column.targets === index /* Column target */;
+      });
+
+      // If there is, set the width of this columnDef in px
+      if ( userColumnDef ) {
+        columnDef.width = userColumnDef.width + 'px';
+      }
+    });
+  }
+
+
+  function saveColumnSettings() {
+    let userColumnDefs = JSON.parse(localStorage.getItem('{{ datatable.name }}')) || [];
+    let width, header, existingSetting; 
+
+    $table.columns().every( function ( targets ) {
+      // Check if there is a setting for this column in localStorage
+      existingSetting = userColumnDefs.findIndex( function(column) { return column.targets === targets;});
+      // Get the width of this column
+      header = this.header();
+      width = $(header).width();
+
+      if ( existingSetting !== -1 ) {
+        // Update the width
+        userColumnDefs[existingSetting].width = width;
+      } else {
+        // Add the width for this column
+        userColumnDefs.push({
+          targets: targets,
+          width:  width,
+        });
+      }
+    });
+
+    // Save (or update) the settings in localStorage
+    localStorage.setItem('{{ datatable.name }}', JSON.stringify(userColumnDefs));
+  }
+
+  function refreshTime() {
+      let epoch_status = ntopng_status_manager.get_status();
+      let now = Number.parseInt(Date.now() / 1000);
+      let delta = now - Number.parseInt(epoch_status.epoch_end);
+      if (delta < 0) { return; }
+      let epoch_begin = Number.parseInt(epoch_status.epoch_begin) + delta;
+      ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, { epoch_begin, epoch_end: now });
+  }
+  function start_navbar() {
+      let navbar_vue_options = {
+	  components: {	  
+   	      // 'page-navbar': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/page-navbar.vue`, ntopng_vue_loader.loadOptions) ),
+   	      'page-navbar': ntopVue.PageNavbar,	      
+	  },
+	  /**
+	   * First method called when the component is created.
+	   */
+	  created() {},
+	  mounted() {
+	  },
+	  data() {
+	      return {
+		  navbar_context: navbar_context,
+	      };
+	  },
+	  methods: {
+	      remove_filters_from_url: function() {
+	        let status = ntopng_status_manager.get_status();
+		let filters = status.filters;
+		if (filters == null) { return; }		
+		ntopng_url_manager.delete_params(filters.map((f) => f.id));
+	      },
+	      click_item: function(item) {
+	        ntopng_url_manager.set_key_to_url('page', item.page_name);
+	        let is_alert_stats_url = window.location.toString().match(/alert_stats.lua/) != null;
+	        if (is_alert_stats_url) {
+	          this.remove_filters_from_url();
+	        }
+		ntopng_url_manager.reload_url();
+	      },
+	  },
+      };
+      const navbar_vue = ntopVue.Vue.createApp(navbar_vue_options);
+      const vue_app = navbar_vue.mount("#navbar");
+      return vue_app;
+      }
+
+  function start_chart() {
+    let is_alert_stats_url = window.location.toString().match(/alert_stats.lua/) != null;
+    let page;
+    let chart_data_url = `${base_path}/lua/pro/rest/v2/get/db/ts.lua`;
+    if (is_alert_stats_url) {
+      page = ntopng_url_manager.get_url_entry("page");
+      if (page == null) { page = "all"; }
+      chart_data_url = (page == "snmp_device") ? `${base_path}/lua/pro/rest/v2/get/snmp/device/alert/ts.lua` : `${base_path}/lua/rest/v2/get/${page}/alert/ts.lua`;
+    }
+
+    let chart_vue_options = {
+    	components: {
+   	      // 'chart': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/chart.vue`, ntopng_vue_loader.loadOptions) ),
+   	      'chart': ntopVue.Chart,
+	      'modal-alerts-filter': ntopVue.ModalAlertsFilter,
+	  },
+	  /**
+	   * First method called when the component is created.
+	   */
+	  created() {},
+	  mounted() {},
+	  data() {
+	      return {
+	          csrf: pageCsrf,
+            chart_type: ntopChartApex.typeChart.TS_COLUMN,
+		  chart_base_url_request: chart_data_url,
+		  page: page,
+		  current_alert: null,
+		  i18n: (t) => { return i18n(t); },
+	      };
+	  },
+	  methods: {
+	    chart_options_converter: function(options) {
+	      
+	      let formatter = ntopChartOptionsUtility.getApexYFormatter()
+	      if (is_alert_stats_url) {
+	        
+	      }
+	    },
+	    show_modal_alerts_filter: function(alert) {
+	      this.current_alert = alert;
+	      this.$refs["modal_alerts_filter"].show();
+	    },
+	    register_status: function() {
+	      this.$refs["chart"].register_status();
+	    },
+	    add_exclude: async function(params) {
+	      params.csrf = pageCsrf;
+	      let url = `${http_prefix}/lua/pro/rest/v2/add/alert/exclusion.lua`;
+	      try {
+	        let headers = {
+		  'Content-Type': 'application/json'
+		};
+		await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+		let url_params = ntopng_url_manager.get_url_params();
+		setTimeout(() => {
+		  reloadTable($table, url_params);
+		  ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_GLOBAL_ALERT_INFO, { text_html: i18n('check_exclusion.disable_warn'), type: "alert-info", timeout: 2 });
+		  
+		}, 1000);
+              } catch(err) {
+	        console.error(err);
+              }
+	    }
+	  },
+      }; 
+      const chart_vue = ntopVue.Vue.createApp(chart_vue_options);
+      const vue_app = chart_vue.mount("#chart-vue");
+      return vue_app;
+  }
+
+  function start_range_picker() {
+      let rangepicker_vue_options = {
+	  props: {
+	      id: String,
+	  },
+	  components: {
+   	      // 'range-picker': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/range-picker.vue`, ntopng_vue_loader.loadOptions) ),
+   	      // 'modal-traffic-extraction': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/modal-traffic-extraction.vue`, ntopng_vue_loader.loadOptions) ),
+   	      // 'alert-info': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/alert-info.vue`, ntopng_vue_loader.loadOptions) ),
+   	      'range-picker': ntopVue.RangePicker,
+   	      'modal-traffic-extraction': ntopVue.ModalTrafficExtraction,
+	      'modal-snapshot': ntopVue.ModalSnapshot,
+   	      'alert-info': ntopVue.AlertInfo,
+	  },
+	  /**
+	   * First method called when the component is created.
+	   */
+	  created() {},
+	  mounted() {},
+	  data() {
+	      return {
+	          csrf: pageCsrf,
+		  is_ntop_enterprise_m: isNtopEnterpriseM,
+            chart_type: ntopChartApex.typeChart.TS_COLUMN,
+		  chart_base_url_request: `${base_path}/lua/rest/v2/get/flow/alert/ts.lua`,
+		  show_download: show_download,
+		  show_permalink: show_permalink,
+		  show_pcap_download: show_pcap_download,
+		  id_range_picker: `range_picker`,
+		  i18n: (t) => { return i18n(t); },
+	      };
+	  },
+	  methods: {
+	  show_modal_traffic_extraction: async function() {
+	  this.$refs["modal_traffic_extraction"].show();
+	  },
+	  show_modal_snapshot: function() {
+	    this.$refs["modal_snapshot"].show();
+	  },
+	  get_permanent_link: function() {
+	  const $this = $(this.$refs['permanet_link_button']);
+	  const placeholder = document.createElement('input');
+	  placeholder.value = location.href;
+	  document.body.appendChild(placeholder);
+	  placeholder.select();
+
+	  // copy the url to the clipboard from the placeholder
+	  document.execCommand("copy");
+	  document.body.removeChild(placeholder);
+
+	  $this.attr("title", "{{ i18n('copied') }}!")
+	  .tooltip("dispose")
+	  .tooltip()
+	  .tooltip("show");
+	  },
+	  download_chart_data: function() {
+	  }
+	  },
+      }; 
+      const rangepicker_vue = ntopVue.Vue.createApp(rangepicker_vue_options);
+      const vue_app = rangepicker_vue.mount("#rangepicker");
+      return vue_app;
+  }
+  
+  $(document).ready(async function(){
+  setTimeout(() => start_navbar(), 0);
+      if (ntopng_url_manager.get_url_entry("ifid") == null) {
+	  ntopng_url_manager.set_key_to_url("ifid", default_ifid);
+      }
+      if (ntopng_url_manager.get_url_entry("epoch_begin") == null
+      	 || ntopng_url_manager.get_url_entry("epoch_end") == null) {
+	 let default_epoch_begin = Number.parseInt((Date.now() - 1000 * 30 * 60) / 1000);
+	 let default_epoch_end = Number.parseInt(Date.now() / 1000);
+	 ntopng_url_manager.set_key_to_url("epoch_begin", default_epoch_begin);
+	 ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
+      }
+      if (ntopng_url_manager.get_url_entry("page") == "flow"
+      	 && ntopng_url_manager.get_url_entry("status") == "engaged") {
+	 ntopng_url_manager.set_key_to_url("status", "historical");
+      }
+      if (show_chart) {
+        CHART_APP = start_chart();
+      }
+      RANGEPICKER_APP = start_range_picker();
+    datatableButton.push({
+        text: '<i class="fas fa-sync"></i>',
+        action: async function (e, dt, node, config) {
+	    refreshTime();
+        }
+    });
+    
+    datatable_columns = loadColumns();
+    const column_order_name = "{{ datatable.order_name }}";
+    let column_order_id = 1;
+    datatable_columns.forEach((element, index) => {
+        if(element.data && element.data == column_order_name) {
+            column_order_id = index;
+        }
+    });
+    column_order_id = localStorage.getItem(local_storage_order_key) || column_order_id
+    const column_order_sorting = localStorage.getItem(local_storage_order_asc_desc) || "{* datatable.order_sorting *}"
+    
+
+    /* Ordering the array in order to have the selected row length at the beginning of the array */
+    let length_array = NtopUtils.getNumTableRows();
+    let index = length_array.indexOf(INITIAL_ROWS_LENGTH);
+    /* Validate index */
+    (index >= 0) ? index = index : index = length_array.length - 1; /* Use the last index */
+
+      let url_params = ntopng_url_manager.get_url_params();
+      let config = DataTableUtils.getStdDatatableConfig(datatableButton);
+      config = DataTableUtils.extendConfig(config, {
+          serverSide: true,
+          searching: false,
+          info: false,
+          order: [[ column_order_id,  column_order_sorting]],
+          pagingType: '{{ datatable.pagination }}',
+          autoWidth: false,
+          destroy: false,
+          responsive: false,
+          scrollX: true,
+          ajax: {
+              method: 'get',
+              url: '{* datatable.datasource.name *}?' + url_params,
+              dataSrc: 'rsp.records',
+              data: (data, settings) => {
+
+                  const tableApi = settings.oInstance.api();
+                  const orderColumnIndex = data.order[0].column;
+                  const orderColumnName = tableApi.column(orderColumnIndex).name() || undefined;
+                  
+                  if (data.order) {
+                      data.order = data.order[0].dir;
+                      data.sort = orderColumnName;
+                      localStorage.setItem(local_storage_order_key, orderColumnIndex);
+                      localStorage.setItem(local_storage_order_asc_desc, data.order || "{* datatable.order_sorting *}")
+                  }
+
+                  if (data.columns !== undefined) {
+                      delete data.columns;
+                  }
+
+                  if (data.search !== undefined) {
+                      delete data.search;
+                  }
+                
+                  data.visible_columns = getVisibleColumns(tableApi).join(',');
+                  return data;
+              },
+              beforeSend: function() {
+                NtopUtils.showOverlays();
+              },
+              complete: function() {
+                NtopUtils.hideOverlays();
+              }
+          },
+          drawCallback: () => {
+              updateDownloadButton();
+          },
+          lengthMenu: [length_array, length_array],
+          pageLength: INITIAL_ROWS_LENGTH,
+          columns: datatable_columns,
+      });
+
+      $table = $(`#{{ datatable.name }}`).DataTable(config);
+      {% if datatable.refresh_rate and datatable.refresh_rate > 0 then %}
+      intervalId = setInterval(function() {
+    refreshTime();
+      }, {{ datatable.refresh_rate }});
+      {% end %}
+
+      let toggleColumnsDropdownAlreadyAdded = false;
+
+      // on ajax request complete then print the query time
+      $table.on('xhr', function() {
+        printQueryTime($table);
+        $(this).css('table-layout', 'auto')
+        if (toggleColumnsDropdownAlreadyAdded == true) { return; }
+        DataTableUtils.addToggleColumnsDropdown($table, function(col, visible) {
+          $table.ajax.reload();
+        });
+        toggleColumnsDropdownAlreadyAdded = true;
+      });
+
+      $table.on('click', `a.tag-filter`, async function (e) {
+          addFilter(e, $(this), $table);
+      });
+
+    /* Top Host and Top Alerts filters */
+    {% if show_cards then %}
+      $(".dataTables_wrapper .row .text-end").on("click", "a.tag-filter", async function (e) {
+            addFilter(e, $(this));
+    });
+    {% end %}
+
+    const addFilter = (e, a, from_table) => {
+	e.preventDefault();
+
+	let key = undefined;
+	let displayValue = undefined;
+	let realValue = undefined;
+	let operator = 'eq';
+
+	if (from_table != undefined) {
+            const colIndex = from_table.cell(a.parent()).index().column;
+
+            // Read tag key from the column
+            key = from_table.column(colIndex).name()
+
+	    // Read tag key from the cell if any
+            const data = from_table.cell(a.parent()).data();
+            if (data.tag_key)
+		key = data.tag_key;
+
+	    // Read value from the cell
+            displayValue = (data.label ? data.label : ((data.value != undefined) ? data.value : data));
+            displayValue  = NtopUtils.stripTags(displayValue);
+            realValue = ((data.value != undefined) ? data.value : data);
+	}
+	
+	// Read tag key and value from the <a> itself if provided
+	if (a.data('tagKey')        != undefined) key          = a.data('tagKey');
+	if (a.data('tagLabel')      != undefined) displayValue = a.data('tagLabel');
+	if (a.data('tagRealvalue')  != undefined) realValue    = a.data('tagRealvalue');
+	else if (a.data('tagValue') != undefined) realValue    = a.data('tagValue');
+	if (a.data('tagOperator')   != undefined) operator     = a.data('tagOperator');
+
+	// const tag = {
+        //     label: i18n_ext.tags[key],
+        //     key: key,
+        //     value: displayValue,
+        //     realValue: realValue,
+        //     title: realValue,
+        //     selectedOperator: operator
+	// };
+	//addFilterTag(tag);
+	let filter = {
+	    id: key,
+	    value: realValue,
+	    operator: operator,
+	};
+	if (RANGEPICKER_APP.$refs["range-picker-vue"].is_filter_defined(filter)) {
+	    ntopng_events_manager.emit_custom_event(ntopng_custom_events.SHOW_MODAL_FILTERS, filter);
+	} else {
+	    ntopng_url_manager.set_key_to_url("query_preset", "");
+	    ntopng_url_manager.set_key_to_url(filter.id, `${filter.value};${filter.operator}`);
+	    ntopng_url_manager.reload_url();
+	}
+
+	// let status = ntopng_status_manager.get_status();
+	// let filters = status["filters"] == null ? [] : status["filters"];
+	// filters.push(filter);
+	// // notifies to all the updated status
+	// ntopng_status_manager.add_value_to_status("filters", filters);
+    }    
+    {% if show_cards then %}
+    updateCardStats('overview');
+    {% end %}
+
+    /* HTTP copy URL button */
+    $table.on('click', `.copy-http-url`, function (e) {
+        let sampleTextarea = document.createElement("textarea");
+        document.body.appendChild(sampleTextarea);
+        sampleTextarea.value = $(this).attr('data-to-copy'); //url
+        sampleTextarea.select(); //select textarea content
+        document.execCommand("copy");
+        document.body.removeChild(sampleTextarea);
+    });
+
+    /* Auto-refresh handling */
+    $(`#autoRefreshEnabled`).on('click', async function(e) {
+      const auto_refresh_button = $(this);
+      const enable_refresh_rate = (auto_refresh_button.hasClass('fa-spin') == false);
+      const auto_refresh_url = '{* ntop.getHttpPrefix() *}/lua/rest/v2/set/checks/auto_refresh.lua' 
+
+      $.post(auto_refresh_url, {
+        ifid: {{ ifid }},
+        alert_page_refresh_rate_enabled: enable_refresh_rate,
+        csrf: pageCsrf,
+      })  
+      .done(function(rsp) {
+        if(enable_refresh_rate) {
+          if (rsp.rsp.refresh_rate > 0 && !intervalId) {
+            intervalId = setInterval(function() {
+              refreshTime();
+            }, rsp.rsp.refresh_rate);
+            auto_refresh_button.addClass('fa-spin');
+          }
+        } else {
+          clearInterval(intervalId);
+          intervalId = null;
+          auto_refresh_button.removeClass('fa-spin');
+        }
+      })
+    });
+
+    // register to global event change status
+    await ntopng_sync.on_ready("range_picker");
+    if (show_chart) {      
+      CHART_APP.register_status();
+    }
+    updateDownloadButton();
+    ntopng_status_manager.on_status_change("datatable", (new_status) => {
+      let url_params = ntopng_url_manager.get_url_params();
+      reloadTable($table, url_params);
+    }, false);
+
+    {% if extra_js then %}
+      {* template_utils.gen(extra_js, extra_js_context) *}
+    {% end %}
+
+}); 
+</script>

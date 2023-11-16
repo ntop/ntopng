@@ -74,7 +74,7 @@ local f3 = function(n)
 end
 pluralization[f3] = {'ar'}
 
-local f4 = function(n)
+local f4 = function()
   return "other"
 end
 pluralization[f4] = words([[

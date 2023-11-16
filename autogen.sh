@@ -36,7 +36,7 @@ fi
 ##########################################
 
 TODAY=`date +%y%m%d`
-MAJOR_RELEASE="4"
+MAJOR_RELEASE="6"
 MINOR_RELEASE="1"
 SHORT_VERSION="$MAJOR_RELEASE.$MINOR_RELEASE"
 VERSION="$SHORT_VERSION.$TODAY"
@@ -61,11 +61,12 @@ PRO_GIT_RELEASE=""
 PRO_GIT_DATE=""
 fi
 
-cat configure.seed | sed \
+cat configure.ac.in | sed \
     -e "s/@VERSION@/$VERSION/g" \
     -e "s/@SHORT_VERSION@/$SHORT_VERSION/g" \
     -e "s/@GIT_TAG@/$GIT_TAG/g" \
     -e "s/@GIT_DATE@/$GIT_DATE/g" \
+    -e "s/@TODAY@/$TODAY/g" \
     -e "s/@GIT_RELEASE@/$GIT_RELEASE/g" \
     -e "s/@GIT_BRANCH@/$GIT_BRANCH/g" \
     -e "s/@PRO_GIT_RELEASE@/$PRO_GIT_RELEASE/g" \
@@ -73,6 +74,11 @@ cat configure.seed | sed \
     > configure.ac
 
 rm -f config.h config.h.in *~ #*
+
+git submodule init
+git submodule update --remote
+
+# git submodule update --init --recursive
 
 echo "Wait please..."
 autoreconf -if

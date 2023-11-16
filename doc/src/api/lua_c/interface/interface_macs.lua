@@ -35,12 +35,6 @@ function interface.getMacManufacturers(int maxHits=32768, bool sourceMacsOnly=fa
 --! @param os_id the operating system id to set.
 function interface.setMacOperatingSystem(string mac, int os_id)
 
---! @brief Set L2 device type.
---! @param mac device MAC address
---! @param device_type the device type id to set.
---! @param overwrite if true, the existing device type, if any, will be overwritten.
-function interface.setMacDeviceType(string mac, int device_type, bool overwrite)
-
 --! @brief Get a list of device types from active devices.
 --! @param maxHits maximum number of returned items.
 --! @param sourceMacsOnly if true, only sender devices will be return

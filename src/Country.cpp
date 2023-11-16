@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,28 +23,29 @@
 
 /* *************************************** */
 
-Country::Country(NetworkInterface *_iface, const char *country) : GenericHashEntry(_iface), dirstats(_iface, 0) {
+Country::Country(NetworkInterface *_iface, const char *country)
+    : GenericHashEntry(_iface),
+      GenericTrafficElement(),
+      Score(_iface),
+      dirstats(_iface, 0) {
   country_name = strdup(country);
 
 #ifdef COUNTRY_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Country %s", country_name);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Created Country %s",
+                               country_name);
 #endif
-
-  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
-    deserializeFromRedis();
 }
+
 /* *************************************** */
 
-void Country::set_hash_entry_state_idle() {
-  if(ntop->getPrefs()->is_idle_local_host_cache_enabled())
-    serializeToRedis();
-}
+void Country::set_hash_entry_state_idle() { ; /* Nothing to do */ }
 
 /* *************************************** */
 
 Country::~Country() {
 #ifdef COUNTRY_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Country %s", country_name);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Country %s",
+                               country_name);
 #endif
 
   free(country_name);
@@ -52,15 +53,16 @@ Country::~Country() {
 
 /* *************************************** */
 
-void Country::lua(lua_State* vm, DetailsLevel details_level, bool asListElement) {
+void Country::lua(lua_State *vm, DetailsLevel details_level,
+                  bool asListElement) {
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "country", country_name);
   lua_push_uint64_table_entry(vm, "bytes", getNumBytes());
 
-  if(details_level >= details_high) {
-    GenericTrafficElement::lua(vm, true);
+  if (details_level >= details_high) {
     dirstats.lua(vm);
+    GenericTrafficElement::lua(vm, true); /* Must stay after dirstats */
     lua_push_uint64_table_entry(vm, "seen.first", first_seen);
     lua_push_uint64_table_entry(vm, "seen.last", last_seen);
     lua_push_uint64_table_entry(vm, "duration", get_duration());
@@ -68,7 +70,10 @@ void Country::lua(lua_State* vm, DetailsLevel details_level, bool asListElement)
     lua_push_uint64_table_entry(vm, "num_hosts", getNumHosts());
   }
 
-  if(asListElement) {
+  Score::lua_get_score(vm);
+  Score::lua_get_score_breakdown(vm);
+
+  if (asListElement) {
     lua_pushstring(vm, country_name);
     lua_insert(vm, -2);
     lua_settable(vm, -3);
@@ -78,19 +83,7 @@ void Country::lua(lua_State* vm, DetailsLevel details_level, bool asListElement)
 /* *************************************** */
 
 bool Country::equal(const char *country) {
-  return(strcmp(country_name, country) == 0);
-}
-
-/* *************************************** */
-
-void Country::deserialize(json_object *o) {
-  json_object *obj;
-
-  GenericHashEntry::deserialize(o);
-  if(json_object_object_get_ex(o, "traffic", &obj))
-    sent.deserialize(obj);
-  if(json_object_object_get_ex(o, "dirstats", &obj))
-    dirstats.deserialize(obj);
+  return (strcmp(country_name, country) == 0);
 }
 
 /* *************************************** */
@@ -99,9 +92,9 @@ void Country::serialize(json_object *o, DetailsLevel details_level) {
   json_object *obj;
   GenericHashEntry::getJSONObject(o, details_level);
 
-  if((obj = sent.getJSONObject()) != NULL)
+  if ((obj = sent.getJSONObject()) != NULL)
     json_object_object_add(o, "traffic", obj);
-  if((obj = json_object_new_object()) != NULL) {
+  if ((obj = json_object_new_object()) != NULL) {
     dirstats.serialize(obj);
     json_object_object_add(o, "dirstats", obj);
   }

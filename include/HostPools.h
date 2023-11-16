@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2015-20 - ntop.org
+ * (C) 2015-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,9 +30,7 @@ class Mac;
 
 class HostPools {
  private:
-  Mutex *swap_lock;
-  volatile time_t latest_swap;
-  VlanAddressTree *tree, *tree_shadow;
+  VLANAddressTree *tree, *tree_shadow;
   NetworkInterface *iface;
   u_int16_t max_num_pools;
   int32_t *num_active_hosts_inline, *num_active_hosts_offline;
@@ -45,33 +43,24 @@ class HostPools {
   u_int8_t *routing_policy_id;
   u_int16_t *pool_shaper;
   u_int32_t *schedule_bitmap;
-  bool *enforce_quotas_per_pool_member;   /* quotas can be pool-wide or per pool member */
+  bool *enforce_quotas_per_pool_member; /* quotas can be pool-wide or per pool
+                                           member */
   bool *enforce_shapers_per_pool_member;
-  volatile_members_t **volatile_members;
-  Mutex **volatile_members_lock;
-
-  void reloadVolatileMembers(VlanAddressTree *_trees);
-  void addVolatileMember(char *host_or_mac, u_int16_t user_pool_id, time_t lifetime);
 #endif
-  inline HostPoolStats* getPoolStats(u_int16_t host_pool_id) {
-    if((host_pool_id >= max_num_pools) || (!stats))
-      return NULL;
+  inline HostPoolStats *getPoolStats(u_int16_t host_pool_id) {
+    if ((host_pool_id >= max_num_pools) || (!stats)) return NULL;
     return stats[host_pool_id];
   }
   void reloadPoolStats();
   static void deleteStats(HostPoolStats ***hps);
 
-  void swap(VlanAddressTree *new_trees, HostPoolStats **new_stats);
-
-  void loadFromRedis();
+  void swap(VLANAddressTree *new_trees, HostPoolStats **new_stats);
 
   inline void incNumMembers(u_int16_t pool_id, int32_t *ctr) const {
-    if(ctr && pool_id < max_num_pools)
-      ctr[pool_id]++;
+    if (ctr && pool_id < max_num_pools) ctr[pool_id]++;
   };
   inline void decNumMembers(u_int16_t pool_id, int32_t *ctr) const {
-    if(ctr && pool_id < max_num_pools)
-      ctr[pool_id]--;
+    if (ctr && pool_id < max_num_pools) ctr[pool_id]--;
   };
 
  public:
@@ -82,50 +71,57 @@ class HostPools {
   void reloadPools();
   u_int16_t getPool(Host *h);
   u_int16_t getPool(Mac *m);
+  u_int16_t getPoolByName(const char *pool_name);
 
-  bool findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool, patricia_node_t **found_node);
-  bool findMacPool(const u_int8_t * const mac, u_int16_t *found_pool);
+  bool findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool,
+                  ndpi_patricia_node_t **found_node);
+  bool findMacPool(const u_int8_t *const mac, u_int16_t *found_pool);
   bool findMacPool(Mac *mac, u_int16_t *found_pool);
   void lua(lua_State *vm);
 
   inline int32_t getNumPoolHosts(u_int16_t pool_id) {
-    if(pool_id >= max_num_pools)
-      return 0;
+    if (pool_id >= max_num_pools) return NO_HOST_POOL_ID;
     return num_active_hosts_inline[pool_id] + num_active_hosts_offline[pool_id];
   }
 
   inline int32_t getNumPoolL2Devices(u_int16_t pool_id) {
-    if(pool_id >= max_num_pools)
-      return 0;
+    if (pool_id >= max_num_pools) return NO_HOST_POOL_ID;
 
-    return num_active_l2_devices_inline[pool_id] + num_active_l2_devices_offline[pool_id];
+    return num_active_l2_devices_inline[pool_id] +
+           num_active_l2_devices_offline[pool_id];
   }
 
   inline void incNumHosts(u_int16_t pool_id, bool isInlineCall) {
-    incNumMembers(pool_id, isInlineCall ? num_active_hosts_inline : num_active_hosts_offline);
+    incNumMembers(pool_id, isInlineCall ? num_active_hosts_inline
+                                        : num_active_hosts_offline);
   };
   inline void decNumHosts(u_int16_t pool_id, bool isInlineCall) {
-    decNumMembers(pool_id, isInlineCall ? num_active_hosts_inline : num_active_hosts_offline);
+    decNumMembers(pool_id, isInlineCall ? num_active_hosts_inline
+                                        : num_active_hosts_offline);
   };
   inline void incNumL2Devices(u_int16_t pool_id, bool isInlineCall) {
-    incNumMembers(pool_id, isInlineCall ? num_active_l2_devices_inline : num_active_l2_devices_offline);
+    incNumMembers(pool_id, isInlineCall ? num_active_l2_devices_inline
+                                        : num_active_l2_devices_offline);
   };
   inline void decNumL2Devices(u_int16_t pool_id, bool isInlineCall) {
-    decNumMembers(pool_id, isInlineCall ? num_active_l2_devices_inline : num_active_l2_devices_offline);
+    decNumMembers(pool_id, isInlineCall ? num_active_l2_devices_inline
+                                        : num_active_l2_devices_offline);
   };
 
   void incPoolNumDroppedFlows(u_int16_t pool_id);
-  void incPoolStats(u_int32_t when, u_int16_t host_pool_id, u_int16_t ndpi_proto,
-		    ndpi_protocol_category_t category_id, u_int64_t sent_packets, u_int64_t sent_bytes,
-		    u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
-  void updateStats(struct timeval *tv);
+  void incPoolStats(u_int32_t when, u_int16_t host_pool_id,
+                    u_int16_t ndpi_proto, ndpi_protocol_category_t category_id,
+                    u_int64_t sent_packets, u_int64_t sent_bytes,
+                    u_int64_t rcvd_packets, u_int64_t rcvd_bytes);
+  void updateStats(const struct timeval *tv);
   void luaStats(lua_State *vm);
   void luaStats(lua_State *mv, u_int16_t pool_id);
 
   /* To be called on the same thread as incPoolStats */
   void checkPoolsStatsReset();
 
-  inline bool getProtoStats(u_int16_t host_pool_id, u_int16_t ndpi_proto, u_int64_t *bytes, u_int32_t *duration) {
+  inline bool getProtoStats(u_int16_t host_pool_id, u_int16_t ndpi_proto,
+                            u_int64_t *bytes, u_int32_t *duration) {
     HostPoolStats *hps;
     if (!(hps = getPoolStats(host_pool_id))) return false;
 
@@ -133,7 +129,9 @@ class HostPools {
     return true;
   }
 
-  inline bool getCategoryStats(u_int16_t host_pool_id, ndpi_protocol_category_t category_id, u_int64_t *bytes, u_int32_t *duration) {
+  inline bool getCategoryStats(u_int16_t host_pool_id,
+                               ndpi_protocol_category_t category_id,
+                               u_int64_t *bytes, u_int32_t *duration) {
     HostPoolStats *hps;
     if (!(hps = getPoolStats(host_pool_id))) return false;
 
@@ -141,7 +139,8 @@ class HostPools {
     return true;
   }
 
-  inline bool getStats(u_int16_t host_pool_id, u_int64_t *bytes, u_int32_t *duration) {
+  inline bool getStats(u_int16_t host_pool_id, u_int64_t *bytes,
+                       u_int32_t *duration) {
     HostPoolStats *hps;
     if (!(hps = getPoolStats(host_pool_id))) return false;
 
@@ -153,32 +152,37 @@ class HostPools {
 
 #ifdef NTOPNG_PRO
   inline bool enforceQuotasPerPoolMember(u_int16_t pool_id) {
-    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? enforce_quotas_per_pool_member[pool_id] : false);
+    return (((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools))
+                ? enforce_quotas_per_pool_member[pool_id]
+                : false);
   }
   inline bool enforceShapersPerPoolMember(u_int16_t pool_id) {
-    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? enforce_shapers_per_pool_member[pool_id] : false);
+    return (((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools))
+                ? enforce_shapers_per_pool_member[pool_id]
+                : false);
   }
   inline u_int16_t getPoolShaper(u_int16_t pool_id) {
-    return((pool_id < max_num_pools) ? pool_shaper[pool_id] : DEFAULT_SHAPER_ID);
+    return ((pool_id < max_num_pools) ? pool_shaper[pool_id]
+                                      : DEFAULT_SHAPER_ID);
   }
   inline u_int32_t getPoolSchedule(u_int16_t pool_id) {
-    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? schedule_bitmap[pool_id] : DEFAULT_TIME_SCHEDULE);
+    return (((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools))
+                ? schedule_bitmap[pool_id]
+                : DEFAULT_TIME_SCHEDULE);
   }
-  void luaVolatileMembers(lua_State *vm);
-  void addToPool(char *host_or_mac, u_int16_t user_pool_id, int32_t lifetime_secs);
-  void removeVolatileMemberFromPool(char *host_or_mac, u_int16_t user_pool_id);
-  void purgeExpiredVolatileMembers();
 
   inline bool isChildrenSafePool(u_int16_t pool_id) {
-    return((pool_id < max_num_pools) ? children_safe[pool_id] : false);
+    return ((pool_id < max_num_pools) ? children_safe[pool_id] : false);
   }
 
   inline bool forgeGlobalDns(u_int16_t pool_id) {
-    return((pool_id < max_num_pools) ? forge_global_dns[pool_id] : false);
+    return ((pool_id < max_num_pools) ? forge_global_dns[pool_id] : false);
   }
 
   inline u_int8_t getRoutingPolicy(u_int16_t pool_id) {
-    return(((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools)) ? routing_policy_id[pool_id] : DEFAULT_ROUTING_TABLE_ID);
+    return (((pool_id != NO_HOST_POOL_ID) && (pool_id < max_num_pools))
+                ? routing_policy_id[pool_id]
+                : DEFAULT_ROUTING_TABLE_ID);
   }
 #endif
 };

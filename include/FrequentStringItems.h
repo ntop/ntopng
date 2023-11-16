@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2017-20 - ntop.org
+ * (C) 2017-23 - ntop.org
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,33 +23,30 @@
 
 #include "ntop_includes.h"
 
-/* https://resources.sei.cmu.edu/asset_files/Presentation/2010_017_001_49763.pdf */
-
-typedef struct {
-  char *key;
-  u_int32_t value;
-  UT_hash_handle hh;         /* makes this structure hashable */
-} FrequentStringKey_t;
+/* https://resources.sei.cmu.edu/asset_files/Presentation/2010_017_001_49763.pdf
+ */
 
 /* *************************************** */
 
 class FrequentStringItems {
  private:
   u_int32_t max_items, max_items_threshold;
-  FrequentStringKey_t *q;
+  std::map<std::string, u_int32_t> q;
   Mutex m;
   bool thread_safe;
-  
-  void cleanup();
+
   void prune();
-  
+
  public:
-  FrequentStringItems(u_int32_t _max_items, bool _thread_safe = true) { max_items =_max_items, max_items_threshold = 2*_max_items, q = NULL, thread_safe = _thread_safe; }
-  ~FrequentStringItems();
-  
-  void add(char *key, u_int32_t value);
-  void print();
-  char* json();
+  FrequentStringItems(u_int32_t _max_items, bool _thread_safe = true) {
+    max_items = _max_items, max_items_threshold = 2 * _max_items,
+    thread_safe = _thread_safe;
+  }
+
+  inline u_int32_t getSize() { return q.size(); };
+  void add(char* key, u_int32_t value);
+  char* json(u_int32_t max_num_items = (u_int32_t)-1);
+  inline void clear() { q.clear(); }
 };
 
 #endif /* _FREQUENT_STRING_ITEMS_H_ */

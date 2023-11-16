@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,19 +23,18 @@
 
 /* *************************************** */
 
-ProtoStats::ProtoStats() {
-  reset();
-}
+ProtoStats::ProtoStats() { reset(); }
 
 /* *************************************** */
 
 void ProtoStats::print(const char *prefix) {
   char bytes_buf[32], packets_buf[32];
-  
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, 
-			       "%s %s/%s Packets", prefix,
-			       Utils::formatTraffic((float)numBytes, false, bytes_buf, sizeof(bytes_buf)),
-			       Utils::formatPackets((float)numPkts, packets_buf, sizeof(packets_buf)));
+
+  ntop->getTrace()->traceEvent(
+      TRACE_NORMAL, "%s %s/%s Packets", prefix,
+      Utils::formatTraffic((float)numBytes, false, bytes_buf,
+                           sizeof(bytes_buf)),
+      Utils::formatPackets((float)numPkts, packets_buf, sizeof(packets_buf)));
 }
 
 /* *************************************** */

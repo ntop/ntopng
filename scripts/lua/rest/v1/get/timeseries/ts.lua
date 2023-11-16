@@ -1,5 +1,11 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
+--
+
+--
+-- Example of REST call
+-- 
+-- curl -u admin:admin -X POST -d '{"ts_schema":"host:traffic", "ts_query": "ifid:3,host:192.168.1.98", "epoch_begin": "1532180495", "epoch_end": "1548839346"}' -H "Content-Type: application/json" "http://127.0.0.1:3000/lua/rest/get/timeseries/ts.lua"
 --
 
 local dirs = ntop.getDirs()
@@ -14,40 +20,15 @@ local ts_common = require("ts_common")
 local json = require("dkjson")
 local rest_utils = require("rest_utils")
 
---
--- Read timeseries data
--- Example: curl -u admin:admin -d '{"ifid": 3, "ts_schema":"host:traffic", "ts_query": "host:192.168.1.98", "epoch_begin": "1532180495", "epoch_end": "1548839346"}' http://localhost:3000/lua/rest/v1/get/timeseries/ts.lua
---
--- NOTE: in case of invalid login, no error is returned but redirected to login
---
-
-sendHTTPHeader('application/json')
-
-local rc = rest_utils.consts_ok
-local res = {}
-
-local ifid = _GET["ifid"]
-local query            = _GET["ts_query"]
-local ts_schema        = _GET["ts_schema"]
-local tstart           = _GET["epoch_begin"]
-local tend             = _GET["epoch_end"]
+local ts_schema = _GET["ts_schema"]
+local query     = _GET["ts_query"]
+local tstart    = _GET["epoch_begin"]
+local tend      = _GET["epoch_end"]
 local compare_backward = _GET["ts_compare"]
-local extended_times   = _GET["extended"]
-local ts_aggregation   = _GET["ts_aggregation"]
+local tags      = _GET["ts_query"]
+local extended_times  = _GET["extended"]
+local ts_aggregation  = _GET["ts_aggregation"]
 local no_fill = tonumber(_GET["no_fill"])
-
-if isEmptyString(ifid) then
-  rc = rest_utils.consts_invalid_interface
-  print(rest_utils.rc(rc))
-  return
-end
-
-interface.select(ifid)
-
-if _POST["payload"] ~= nil then
-  -- REST request, use extended mode
-  extended_times = true
-end
 
 -- Epochs in _GET are assumed to be adjusted to UTC. This is always the case when the browser submits epoch using a
 -- datetimepicker (e.g., from any chart page).
@@ -70,13 +51,26 @@ end
 
 tstart = tonumber(tstart) or (os.time() - 3600)
 tend = tonumber(tend) or os.time()
-tags = tsQueryToTags(query)
-
-tags.ifid = ifid
+tags = tsQueryToTags(tags)
 
 if _GET["tskey"] then
-  -- this can contain a MAC address for local broadcast domain hosts
-  tags.host = _GET["tskey"]
+  -- This can contain a MAC address for local broadcast domain hosts
+  local tskey = _GET["tskey"]
+
+  -- Setting host_ip (check that the provided IP matches the provided
+  -- mac address as safety check and to avoid security issues)
+  if tags.host then
+    local host = hostkey2hostinfo(tags.host)
+    if not isEmptyString(host["host"]) then
+      local host_info = interface.getHostInfo(host["host"], host["vlan"])
+      local mac_info = split(tskey, "_")
+      if host_info.mac == mac_info[1] then
+         tags.host_ip = tags.host;
+      end
+    end
+  end
+
+  tags.host = tskey
 end
 
 local driver = ts_utils.getQueryDriver()
@@ -92,15 +86,33 @@ if(no_fill == 1) then
   options.fill_value = 0/0 -- NaN
 end
 
-if((ts_schema == "top:flow_user_script:duration")
-    or (ts_schema == "top:elem_user_script:duration")
-    or (ts_schema == "custom:flow_user_script:total_stats")
-    or (ts_schema == "custom:elem_user_script:total_stats")) then
-  -- NOTE: Temporary fix for top user scripts page
-  tags.user_script = nil
+-- Not necessary anymore as the influxdb driver:query method uses the
+-- series last timestamp to avoid going in the future
+--[[
+-- Check end time bound and realign if necessary
+local latest_tstamp = driver:getLatestTimestamp(tags.ifid or -1)
+
+if (tend > latest_tstamp) and ((tend - latest_tstamp) <= ts_utils.MAX_EXPORT_TIME) then
+  local delta = tend - latest_tstamp
+  local alignment = (tend - tstart) / options.max_num_points
+
+  delta = delta + (alignment - delta % alignment)
+  tend = math.floor(tend - delta)
+  tstart = math.floor(tstart - delta)
+end
+]]
+
+if tags.ifid then
+  interface.select(tags.ifid)
 end
 
-sendHTTPHeader('application/json')
+if((ts_schema == "top:flow_check:duration")
+    or (ts_schema == "top:elem_check:duration")
+    or (ts_schema == "custom:flow_check:total_stats")
+    or (ts_schema == "custom:elem_check:total_stats")) then
+  -- NOTE: Temporary fix for top checks page
+  tags.check = nil
+end
 
 local function performQuery(tstart, tend, keep_total, additional_options)
   local res
@@ -110,7 +122,9 @@ local function performQuery(tstart, tend, keep_total, additional_options)
   if starts(ts_schema, "top:") then
     local ts_schema = split(ts_schema, "top:")[2]
 
-    res = ts_utils.queryTopk(ts_schema, tags, tstart, tend, options)
+    res = {} 
+    -- No more supported 
+    -- ts_utils.queryTopk(ts_schema, tags, tstart, tend, options)
   else
     res = ts_utils.query(ts_schema, tags, tstart, tend, options)
 
@@ -141,14 +155,17 @@ else
 end
 
 if res == nil then
-  if(ts_utils.getLastError() ~= nil) then
-    res["tsLastError"] = ts_utils.getLastError()
-    res["error"] = ts_utils.getLastErrorMessage()
-  end
+   res = {}
 
-  rc = rest_utils.consts_internal_error
-  print(rest_utils.rc(rc, res))
-  return
+   if(ts_utils.getLastError() ~= nil) then
+      res["tsLastError"] = ts_utils.getLastError()
+      res["error"] = ts_utils.getLastErrorMessage()
+      rest_utils.answer(rest_utils.consts.err.internal_error, res)
+   else
+      rest_utils.answer(rest_utils.consts.success.ok, res)
+   end
+
+   return
 end
 
 -- Add metadata
@@ -214,4 +231,4 @@ if extended_times then
   end
 end
 
-print(rest_utils.rc(rc, res))
+rest_utils.answer(rest_utils.consts.success.ok, res)

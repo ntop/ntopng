@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -12,18 +12,18 @@ local page_utils = require("page_utils")
 sendHTTPContentTypeHeader('text/html')
 
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.operating_systems)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.operating_systems)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 page_utils.print_page_title(i18n("os_stats.hosts_by_operating_system"))
 
 print [[
-      <div id="table-os"></div>
+	  <div id="table-os"></div>
 	 <script>
 	 var url_update = "]]
 print (ntop.getHttpPrefix())
-print [[/lua/get_grouped_hosts_data.lua?grouped_by=os]]
+print [[/lua/get_oses_data.lua]]
 
 print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/os_stats_id.inc")
@@ -64,10 +64,22 @@ print [[
 			        textAlign: 'left'
 			     }
 
-				 },
-			  ]]
+				 }, {
+					title: "]] print(i18n("chart")) print[[",
+					field: "column_chart",
+					sortable: false,]]
 
-print [[
+local charts_enabled = areOSTimeseriesEnabled(interface.getId())
+
+if not charts_enabled then
+   print("hidden: true,\n")
+end
+
+print[[
+						css: {
+				textAlign: 'center'
+			     }
+				 },
 			     {
 			     title: "]] print(i18n("hosts_stats.hosts")) print[[",
 				 field: "column_hosts",
@@ -80,7 +92,7 @@ print [[
 			     {
 			     title: "]] print(i18n("show_alerts.alerts")) print[[",
 				 field: "column_alerts",
-				 sortable: true,
+				 sortable: false,
                              css: {
 			        textAlign: 'center'
 			     }
@@ -96,10 +108,6 @@ print [[
 			     }
 
 				 },
-
-]]
-
-print [[
 			     {
 			     title: "]] print(i18n("breakdown")) print[[",
 				 field: "column_breakdown",

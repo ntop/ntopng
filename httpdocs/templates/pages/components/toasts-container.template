@@ -1,0 +1,5 @@
+<div class="toast-container flex-column d-flex align-items-end" {{ (container_id == nil and "" or "id=".. container_id .."") }}>
+    {% for _, toast in ipairs(toasts) do %}
+        {* toast:render() *}
+    {% end %}
+</div>

@@ -8,7 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 if(ntop.isPro()) then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-   require "snmp_utils"
+   local snmp_utils = require "snmp_utils"
    shaper_utils = require("shaper_utils")
    host_pools_utils = require "host_pools_utils"
 end
@@ -20,8 +20,10 @@ require "historical_utils"
 
 local json = require ("dkjson")
 local host_pools_utils = require "host_pools_utils"
+local host_pools = require "host_pools"
 local page_utils = require("page_utils")
 
+local host_pool = host_pools:create()
 
 debug_hosts = false
 page        = _GET["page"]
@@ -87,10 +89,10 @@ if (host ~= nil) then
 
       if host_pool_id ~= prev_pool then
          local key = host2member(host["ip"], host["vlan"])
-         if not host_pools_utils.changeMemberPool(ifId, key, prev_pool, host_pool_id) then
+         if not host_pools_utils.changeMemberPool(key, prev_pool, host_pool_id) then
             host_pool_id = nil
          else
-            interface.reloadHostPools()
+            ntop.reloadHostPools()
          end
       end
 
@@ -415,7 +417,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if(host['localhost'] and (host["mac"] ~= "") and (info["version.enterprise_edition"])) then
-	 local ports = find_mac_snmp_ports(host["mac"], _GET["snmp_recache"] == "true")
+	 local ports = snmp_utils.find_mac_snmp_ports(host["mac"], _GET["snmp_recache"] == "true")
 
 	 if(ports ~= nil) then
 	    local rsps = 1
@@ -428,7 +430,7 @@ if((page == "overview") or (page == nil)) then
 	       print('<tr><td width=35% rowspan='..rsps..'><b>Host SNMP Localization <a href="'..url..'&snmp_recache=true" title="Refresh"><i class="fa fa-refresh fa-sm" aria-hidden="true"></i></a></b><p><small>NOTE: Hosts are located in SNMP devices using the <A HREF=https://tools.ietf.org/html/rfc4188>Bridge MIB</A>.</small></td>')
 	       print("<th>SNMP Device</th><th>Device Port</th></tr>\n")
 		    for snmp_device_ip,port in pairs(ports) do
-		       local community = get_snmp_community(snmp_device_ip)
+		       local community = snmp_utils.get_snmp_community(snmp_device_ip)
 		       local trunk
 
 		       print("<tr><td align=right><A HREF='" .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_info.lua?ip="..snmp_device_ip.."'>"..getResolvedAddress(hostkey2hostinfo(snmp_device_ip)).."</A></td>")
@@ -456,12 +458,12 @@ if((page == "overview") or (page == nil)) then
 
       print[[</td><td><span>Host Pool: ]]
       if not ifstats.isView then
-	 print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(ifId, host_pool_id)) print[[</a></span>]]
+	 print[[<a href="]] print(ntop.getHttpPrefix()) print[[/lua/hosts_stats.lua?pool=]] print(host_pool_id) print[[">]] print(host_pools_utils.getPoolName(host_pool_id)) print[[</a></span>]]
 	 print[[&nbsp; <a href="]] print(ntop.getHttpPrefix()) print[[/lua/host_details.lua?]] print(hostinfo2url(host)) print[[&page=config&ifid=]] print(tostring(ifId)) print[[">]]
 	 print[[<i class="fa fa-sm fa-cog" aria-hidden="true" title="Change Host Pool"></i></a></span>]]
       else
         -- no link for view interfaces
-        print(host_pools_utils.getPoolName(ifId, host_pool_id))
+        print(host_pools_utils.getPoolName(host_pool_id))
       end
       print("</td></tr>")
    else
@@ -513,7 +515,7 @@ if((page == "overview") or (page == nil)) then
       end
 
       if(host["ip"] == host["name"]) then
-	 print("<img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style=\"vertical-align:text-top;\" id=throbber> ")
+         print('<div id="throbber" class="spinner-border spinner-border-sm text-primary" role="status"><span class="sr-only">Loading...</span></div>')
       end
 
 --tprint(host) io.write("\n")
@@ -1673,16 +1675,16 @@ print [[
 ]]
 elseif(page == "snmp" and ntop.isPro()) then
    local sys_object_id = true
-   local community = get_snmp_community(host_ip)
+   local community = snmp_utils.get_snmp_community(host_ip)
 
-   local snmp_devices = get_snmp_devices()
+   local snmp_devices = snmp_utils.get_snmp_devices()
    if snmp_devices[host_ip] == nil then -- host has not been configured
 
       local msg = "Host "..host_ip.. " has not been configured as an SNMP device."
       msg = msg.." Visit page <a href='"..ntop.getHttpPrefix().."/lua/pro/enterprise/snmpdevices_stats.lua'>SNMP</a> to add this host to the list of configured SNMP devices."
 
       local trying =  "<span id='trying_default_community'> Trying to retrieve host SNMP MIB using the default community '"..community.."'"
-      trying = trying.. " <img border=0 src=".. ntop.getHttpPrefix() .. "/img/throbber.gif style='vertical-align:text-top;' id=throbber></span>"
+      trying = trying.. " <span id='throbber' class='spinner-border spinner-border-sm text-primary' role='status'><span class='sr-only'>Loading...</span></span></span>"
       if ntop.isEnterprise() then
         print("<div class='alert alert-info'><i class='fa fa-info-circle fa-lg' aria-hidden='true'></i> "..msg.."</div>")
       end
@@ -2039,8 +2041,8 @@ elseif (page == "config") then
          <th>Host Pool</th>
          <td>
             <form class="form-inline" style="margin-bottom: 0px; display:inline;" method="post">
-               <select name="pool" class="form-control" style="width:20em; display:inline;">]]
-   for _,pool in ipairs(host_pools_utils.getPoolsList(ifId)) do
+               <select name="pool" class="form-control" style="width:0em; display:inline;">]]
+   for _,pool in ipairs(host_pool:get_all_pools()) do
       print[[<option value="]] print(pool.id) print[["]]
       if pool.id == host_pool_id then
          print[[ selected]]
@@ -2048,9 +2050,9 @@ elseif (page == "config") then
       print[[>]] print(pool.name) print[[</option>]]
    end
    print[[
-               </select>&nbsp;
+               </select>
                <input id="csrf" name="csrf" type="hidden" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-               <button type="submit" class="btn btn-default">]] print(i18n("save")) print[[</button>
+               <button type="submit" class="btn btn-default ml-1">]] print(i18n("save")) print[[</button>
             </form>
          </td>
       </tr>]]
@@ -2415,7 +2417,7 @@ end
 end
 
 if (host ~= nil) then
-   print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js"></script>]]
+   print[[<script type="text/javascript" src="]] print(ntop.getHttpPrefix()) print [[/js/jquery.tablesorter.js?]] print(ntop.getStaticFileEpoch()) print[["></script>]]
 
    print [[
    <script>

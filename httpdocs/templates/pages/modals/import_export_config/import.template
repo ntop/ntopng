@@ -1,0 +1,27 @@
+<!--import modal-->
+<div class="modal fade" id="import-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">{* i18n("import_export.config_import", {}) *}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form class='form'>
+                <div class="custom-file mb-3">
+                    <label class='form-label' for='#import-input'>
+                        {{ i18n("browse_config", {}) }}
+                    </label>
+                    <input class="form-control" id="import-input" name="JSON" type="file" />
+                    <div class="invalid-feedback" id='import-error'>
+                        {message}
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id='btn-confirm-import' class="btn btn-primary">{{ i18n("import", {}) }}</button>
+        </div>
+        </div>
+    </div>
+</div>

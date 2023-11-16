@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -54,10 +54,14 @@ else
    tablePreferences("rows_number", perPage)
 end
 
-local source_macs_only = false
+local source_macs_only   = false
+local inactive_macs_only = true
 
 if devices_mode == "source_macs_only" then
    source_macs_only = true
+elseif devices_mode == "inactive_macs_only" then
+   source_macs_only = true
+   inactive_macs_only = true   		    
 end
 
 interface.select(ifname)
@@ -69,7 +73,7 @@ if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
 local macs_stats = interface.getMacsInfo(sortColumn, perPage, to_skip, sOrder,
 					 source_macs_only, manufacturer,
-					 nil, device_type, "")
+					 nil, device_type, "", nil)
 
 local total_rows = 0
 

@@ -1,14 +1,19 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
-dirs = ntop.getDirs()
+local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 require "lua_utils"
 require "mac_utils"
-local host_pools_utils = require("host_pools_utils")
+local host_pools = require "host_pools"
 local json = require("dkjson")
+
 sendHTTPContentTypeHeader('text/html')
+
+-- Instantiate host pools
+local host_pools_instance = host_pools:create()
 
 interface.select(ifname)
 local ifstats = interface.getStats()
@@ -86,8 +91,8 @@ end
 -- First data source: memory
 -- NB: we must fetch this data even if mode is "inactive_only", to properly filter redis data
 local macs_stats = interface.getMacsInfo(nil, nil, nil, nil,
-         true --[[ sourceMacsOnly ]], nil--[[manufacturer]],
-	 tonumber(host_pools_utils.DEFAULT_POOL_ID), false)
+					 true --[[ sourceMacsOnly ]], nil--[[manufacturer]],
+					 tonumber(host_pools_instance.DEFAULT_POOL_ID), nil, nil, nil)
 
 if (macs_stats ~= nil) then
    macs_stats = macs_stats.macs
@@ -118,7 +123,7 @@ if devices_mode ~= "active_only" then
    for key in pairs(keys or {}) do
       local device = json.decode(ntop.getCache(key))
 
-      if (device ~= nil) and (not mac_to_device[device["mac"]]) and (tostring(interface.findMacPool(device["mac"]) or 0) == host_pools_utils.DEFAULT_POOL_ID) then
+      if (device ~= nil) and (not mac_to_device[device["mac"]]) and (tostring(interface.findMacPool(device["mac"]) or 0) == host_pools_instance.DEFAULT_POOL_ID) then
          device.in_memory_mac = "0" .. device["mac"]
          mac_to_device[device["mac"]] = device
 

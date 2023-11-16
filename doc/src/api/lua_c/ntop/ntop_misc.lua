@@ -21,8 +21,8 @@ function ntop.getHttpPrefix()
 function ntop.getRandomCSRFValue()
 
 --! @brief Check if ntopng is shuttind down.
---! @return true if is shuttting down, false otherwise.
-function ntop.isShutdown()
+--! @return true if is shutting down, false otherwise.
+function ntop.isShuttingDown()
 
 --! @brief Get the ntopng local networks list.
 --! @return table (network_address -> "").
@@ -31,6 +31,15 @@ function ntop.getLocalNetworks()
 --! @brief Add a network to the ntopng local networks list.
 --! @param network_cidr the network to add in CIDR format.
 function ntop.addLocalNetwork(string network_cidr)
+
+--! @brief Set L2 device type.
+--! @param mac device MAC address
+--! @param device_type the device type id to set.
+--! @param overwrite if true, the existing device type, if any, will be overwritten.
+function ntop.setMacDeviceType(string mac, int device_type, bool overwrite)
+
+--! @brief Reload Host Pool membership information after changes from Lua.
+function interface.reloadHostPools()
 
 --! @brief Retrieves a ntopng local network by its id.
 --! @param network_id the local network id.
@@ -81,7 +90,7 @@ function ntop.getticks()
 --! @notes this can be used with ntop.getticks() deltas to calculate time spent.
 function ntop.gettickspersec()
 
---! @brief Check if the ntopng gui login is disable.
+--! @brief Check if the ntopng GUI login is disable.
 --! @return true if login is disabled, false otherwise.
 function ntop.isLoginDisabled()
 
@@ -118,7 +127,7 @@ function ntop.md5(string s)
 function ntop.exec_sql_query(string query)
 
 --! @brief Resets multiple stats in ntopng, which include the hosts and mac traffic counters.
---! @note This is the function called when "Midnight Stats Reset" is enabled from the gui.
+--! @note This is the function called when "Midnight Stats Reset" is enabled from the GUI.
 function ntop.resetStats()
 
 --! @brief Check if ntopng has the pro features.
@@ -137,7 +146,7 @@ function ntop.isEnterpriseL()
 --! @return true if running as service, false otherwise.
 function ntop.isPackage()
 
---! @brief Get the startup unix epoch of ntopng
+--! @brief Get the startup Unix epoch of ntopng
 --! @return the startup epoch
 function ntop.getStartupEpoch()
 

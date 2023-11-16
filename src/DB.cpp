@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -29,41 +29,35 @@ DB::DB(NetworkInterface *_iface) {
 
   lastUpdateTime.tv_sec = 0, lastUpdateTime.tv_usec = 0;
   droppedFlows = queueDroppedFlows = exportedFlows = lastExportedFlows = 0;
-  checkpointDroppedFlows = checkpointQueueDroppedFlows = checkpointExportedFlows = 0;
+  checkpointDroppedFlows = checkpointQueueDroppedFlows =
+      checkpointExportedFlows = 0;
   exportRate = 0;
 }
 
 /* ******************************************* */
 
-#ifdef NTOPNG_PRO
-bool DB::dumpAggregatedFlow(time_t when, AggregatedFlow *f, bool is_top_aggregated_flow, bool is_top_cli, bool is_top_srv) {
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error");
-  return(false);
-}
-#endif
-
-/* ******************************************* */
-
-void DB::shutdown() {
-  running = false;
-}
+void DB::shutdown() { running = false; }
 
 /* ******************************************* */
 
 void DB::lua(lua_State *vm, bool since_last_checkpoint) const {
-  lua_push_uint64_table_entry(vm, "flow_export_count",
-			   exportedFlows - (since_last_checkpoint ? checkpointExportedFlows : 0));
-  lua_push_int32_table_entry(vm, "flow_export_drops",
-			   getNumDroppedFlows() - (since_last_checkpoint ? (checkpointDroppedFlows + checkpointQueueDroppedFlows) : 0));
+  lua_push_uint64_table_entry(
+      vm, "flow_export_count",
+      exportedFlows - (since_last_checkpoint ? checkpointExportedFlows : 0));
+  lua_push_int32_table_entry(
+      vm, "flow_export_drops",
+      getNumDroppedFlows() -
+          (since_last_checkpoint
+               ? (checkpointDroppedFlows + checkpointQueueDroppedFlows)
+               : 0));
   lua_push_float_table_entry(vm, "flow_export_rate",
-			   exportRate >= 0 ? exportRate : 0);
+                             exportRate >= 0 ? exportRate : 0);
 }
 
 /* ******************************************* */
 
 void DB::checkPointCounters(bool drops_only) {
-  if(!drops_only)
-    checkpointExportedFlows = exportedFlows;
+  if (!drops_only) checkpointExportedFlows = exportedFlows;
 
   checkpointDroppedFlows = droppedFlows;
   checkpointQueueDroppedFlows = queueDroppedFlows;
@@ -72,11 +66,11 @@ void DB::checkPointCounters(bool drops_only) {
 /* ******************************************* */
 
 void DB::updateStats(const struct timeval *tv) {
-  if(tv == NULL) return;
+  if (tv == NULL) return;
 
-  if(lastUpdateTime.tv_sec > 0) {
+  if (lastUpdateTime.tv_sec > 0) {
     float tdiffMsec = Utils::msTimevalDiff(tv, &lastUpdateTime);
-    if(tdiffMsec >= 1000) { /* al least one second */
+    if (tdiffMsec >= 1000) { /* al least one second */
       u_int64_t diffFlows = exportedFlows - lastExportedFlows;
       lastExportedFlows = exportedFlows;
 

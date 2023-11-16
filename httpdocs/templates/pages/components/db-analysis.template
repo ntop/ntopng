@@ -1,0 +1,211 @@
+{#
+    (C) 2021 - ntop.org    
+    Base template for datatables.
+#}
+
+<!-- defines base_path globals const-->
+<script type='text/javascript'>
+  const base_path = '{* ntop.getHttpPrefix() *}';
+  const default_ifid = '{* interface.getId() *}';
+  const navbar_context = {* navbar *};
+</script>
+
+<div id="navbar">
+<page-navbar
+	id="page_navbar"
+	:main_title="navbar_context.main_title"
+	:base_url="navbar_context.base_url"
+	:help_link="navbar_context.help_link"
+	:items_table="navbar_context.items_table"
+	@click_item="click_item">
+</page-navbar>
+</div>
+
+<div class='row'>
+  <div class='col-9'>
+    <div class="mb-2">
+      <div class="w-100">
+        <div clas="range-container d-flex flex-wrap">
+          <div class="range-picker d-flex m-auto flex-wrap" id="datatable-vue">
+            <range-picker ref="range-picker-vue"  id="range_picker">
+              <template v-slot:begin>
+                <div class="me-2">
+                  <select-search ref="select-search-vue" :options="custom_queries_list" 
+                      v-model:selected_option="selected_custom_queries" 
+                      @select_option="set_query_preset_in_url">
+                  </select-search>
+                </div>
+              </template>
+            </range-picker>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class='col-12'>
+    <div class="card card-shadow widget-box-container">
+      <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
+        <div class="text-center">
+          <div class="spinner-border text-primary mt-5" role="status">
+            <span class="sr-only position-absolute">Loading...</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="row"  style="justify-content: space-evenly; gap: 5rem 0%; margin: 2rem;">
+
+        {% for _, chart_opts in ipairs(charts) do %}
+          
+          <div class="col-{{ chart_opts.chart_width }}">
+            <div class="widget-box widget-box-fix" id="{{ chart_opts.chart_id }}">
+            {* 
+              widget_gui_utils.render_chart(chart_opts.chart_id, {
+                displaying_label = chart_opts.chart_name,
+                css_styles = chart_opts.css_styles,
+                chart_type = chart_opts.chart_type,
+              }) 
+            *}
+            </div>
+          </div>
+      
+        {% end %}
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+    i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+    
+
+</script>
+<script type='text/javascript'>
+  let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+  let table = undefined;
+  let VUE_APP;
+
+  let custom_queries_list = [];
+  let selected_custom_queries = {};
+  {% for item in pairs(query_presets) do %}
+                  {% 
+                  local name = i18n(query_presets[item]["i18n_name"])
+                  local query_item = query_presets[item]
+                  %}
+                  custom_queries_list.push({
+                    value: "{{item}}",
+                    label: "{{name}}"
+                  });
+      {% end %}
+
+  custom_queries_list.sort((a,b) => {
+
+    if(a.label < b.label) 
+      return -1;
+    if(a.label > b.label) 
+      return 1;
+    
+    return 0;
+    
+  });
+  let aggregation_criteria = ntopng_url_manager.get_url_entry("query_preset");
+
+  selected_custom_queries = custom_queries_list.find((c) => c.value == aggregation_criteria);
+
+  function start_navbar() {
+      let navbar_vue_options = {
+	  components: {	  
+   	      // 'page-navbar': Vue.defineAsyncComponent( () => ntopng_vue_loader.loadModule(`${base_path}/vue/components/page-navbar.vue`, ntopng_vue_loader.loadOptions) ),
+   	      'page-navbar': ntopVue.PageNavbar,
+	  },
+	  /**
+	   * First method called when the component is created.
+	   */
+	  created() {},
+	  mounted() {
+	  },
+	  data() {
+	      return {
+		  navbar_context: navbar_context,
+	      };
+	  },
+	  methods: {
+	      click_item: function(item) {
+	      ntopng_url_manager.set_key_to_url('page', item.page_name);
+	      ntopng_url_manager.set_key_to_url('query_preset', '');
+	      ntopng_url_manager.reload_url();
+	      },
+	  },
+      };
+      const navbar_vue = ntopVue.Vue.createApp(navbar_vue_options);
+      const vue_app = navbar_vue.mount("#navbar");
+      return vue_app;
+      }
+
+  function start_range_picker() {
+      let datatable_vue_options = {
+	  props: {
+	      id: String,
+	  },
+	  components: {	  
+   	      'range-picker': ntopVue.RangePicker,
+   	      'select-search': ntopVue.SelectSearch,
+	  },
+	  /**
+	   * First method called when the component is created.
+	   */
+	  created() {},
+	  mounted() {},
+	  data() {
+	      return {
+          custom_queries_list: custom_queries_list,
+          selected_custom_queries: selected_custom_queries,
+	      };
+	  },
+	  methods: {
+	    set_query_preset_in_url: function(elem) {
+	      ntopng_url_manager.set_key_to_url('query_preset', elem.value);
+	      ntopng_url_manager.reload_url();
+      }
+    },
+      };
+
+      const datatable_vue = ntopVue.Vue.createApp(datatable_vue_options);
+      const vue_app = datatable_vue.mount("#datatable-vue");
+      return vue_app;
+  }
+
+  $(document).ready(async function(){
+      setTimeout(() => start_navbar(), 0);
+      if (ntopng_url_manager.get_url_entry("ifid") == null) {
+	  ntopng_url_manager.add_obj_to_url({ifid: default_ifid});
+      }
+      if (ntopng_url_manager.get_url_entry("epoch_begin") == null
+      	 || ntopng_url_manager.get_url_entry("epoch_end") == null) {
+	 let default_epoch_begin = Number.parseInt((Date.now() - 1000 * 30 * 60) / 1000);
+	 let default_epoch_end = Number.parseInt(Date.now() / 1000);
+	 ntopng_url_manager.set_key_to_url("epoch_begin", default_epoch_begin);
+	 ntopng_url_manager.set_key_to_url("epoch_end", default_epoch_end);
+      }
+      
+      VUE_APP = start_range_picker();
+      
+      await ntopng_sync.on_ready("range_picker");
+      NtopUtils.hideOverlays();
+
+    ntopng_status_manager.on_status_change("datatable", (new_status) => {
+	let url_params = ntopng_url_manager.get_url_params();
+	{% for _, chart_opts in ipairs(charts) do %}
+        if("{{ chart_opts.chart_type }}" === "geomap") {
+            redraw_hosts(null, true, url_params + "&chart_id={{ chart_opts.chart_id }}");
+        } else {
+	    let obj_params = ntopng_url_manager.get_url_object();
+            obj_params["chart_id"] = "{{ chart_opts.chart_id }}";
+            WidgetUtils.getWidgetByName("{{ chart_opts.chart_id }}").update(obj_params);
+        }
+	{% end %}
+    }, false);
+});
+</script>

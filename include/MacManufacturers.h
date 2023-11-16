@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -37,12 +37,13 @@ class MacManufacturers {
   inline u_int32_t mac2key(u_int8_t mac[]) {
     u_int32_t v = 0;
     memcpy(&v, mac, 3);
-    return(v);
+    return (v);
   }
 
   void init();
+
  public:
-  MacManufacturers(const char * const mac_file_home);
+  MacManufacturers(const char *mac_file_home);
   ~MacManufacturers();
 
   const char *getManufacturer(u_int8_t mac[]);

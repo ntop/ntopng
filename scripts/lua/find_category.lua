@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -10,16 +10,15 @@ local json = require "dkjson"
 
 sendHTTPHeader('application/json')
 
-max_num_to_find = 7
-local res = {results={}}
-local results = res.results
-
 local query = string.lower(_GET["query"])
+
+local max_num_to_find = 7
+local results = {}
 
 local categories = interface.getnDPICategories()
 
 for cat, id in pairsByKeys(categories, asc_insensitive) do
-  cat = getCategoryLabel(cat)
+  cat = getCategoryLabel(cat, id)
 
   if string.contains(string.lower(cat), query) then
     results[#results + 1] = {name=cat, key=id}
@@ -28,5 +27,11 @@ for cat, id in pairsByKeys(categories, asc_insensitive) do
     end
   end
 end
+
+local res = {
+  rsp = {
+    results = results
+  }
+}
 
 print(json.encode(res, nil, 1))

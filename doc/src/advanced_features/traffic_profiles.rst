@@ -19,7 +19,7 @@ In the screenshot above, ntopng has been configured with a profile that logicall
 traffic having source and/or destination hosts within the private network 192.168.2.0/24.
 
 Profiles must be expressed using the Berkeley Packet Filter (BPF) syntax. Filters will be parsed and syntax
-will be checked every time thew ‘Save Profile’ button is hit. Errors are raised when the syntax is not BPF
+will be checked every time the ‘Save Profile’ button is clicked. Errors are raised when the syntax is not BPF
 compliant. A thorough discussion of the BPF falls outside the scope of this work. The interested reader cat
 refer to http://biot.com/capstats/bpf.html for a detailed description of the syntax.
 

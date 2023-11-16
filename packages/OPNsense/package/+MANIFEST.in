@@ -1,0 +1,11 @@
+name:        os-ntopng-enterprise
+version:     "@PACKAGE_VERSION@"
+origin:      opnsense/os-ntopng-enterprise
+comment:     "Network Traffic Analysis and Flow Collection"
+desc:        "ntopng is a high-speed web-based network traffic analysis and flow collection tool"
+maintainer:  packager@ntop.org
+www:         https://www.ntop.org
+prefix:      /
+deps: {
+  ntopng: { version: "@PACKAGE_VERSION@", origin: net/ntopng }
+}

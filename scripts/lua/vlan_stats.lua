@@ -1,5 +1,5 @@
 --
--- (C) 2013-20 - ntop.org
+-- (C) 2013-23 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -16,7 +16,7 @@ if (group_col == nil) then
    group_col = "asn"
 end
 
-page_utils.set_active_menu_entry(page_utils.menu_entries.vlans)
+page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.vlans)
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
@@ -103,7 +103,14 @@ print [[
                              css: {
 			        textAlign: 'center'
 			     }
-
+				 },
+			     {
+			     title: "]] print(i18n("score")) print[[",
+				 field: "column_score",
+				 sortable: true,
+	 	             css: {
+			        textAlign: 'center'
+			     }
 				 },
 ]]
 

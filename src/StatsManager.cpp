@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,31 +21,38 @@
 
 #include "ntop_includes.h"
 
+//#define DEBUG_STATS_MANAGER 1
 
-StatsManager::StatsManager(int interface_id, const char *filename) : StoreManager(interface_id) {
-  char filePath[MAX_PATH], fileFullPath[MAX_PATH], fileName[MAX_PATH];
+/* ******************************************* */
+
+StatsManager::StatsManager(int interface_id, const char *filename)
+    : SQLiteStoreManager(interface_id) {
+  char filePath[MAX_PATH + 16], fileFullPath[MAX_PATH + 162],
+      fileName[MAX_PATH + 16];
 
   MINUTE_CACHE_NAME = "MINUTE_STATS";
   HOUR_CACHE_NAME = "HOUR_STATS";
   DAY_CACHE_NAME = "DAY_STATS";
 
-  snprintf(filePath, sizeof(filePath), "%s/%d/top_talkers/",
+  snprintf(filePath, sizeof(filePath) - 1, "%s/%d/top_talkers/",
            ntop->get_working_dir(), ifid);
   strncpy(fileName, filename, sizeof(fileName));
   fileName[sizeof(fileName) - 1] = '\0';
-  snprintf(fileFullPath, sizeof(fileFullPath), "%s/%d/top_talkers/%s",
-	   ntop->get_working_dir(), ifid, filename);
+  snprintf(fileFullPath, sizeof(fileFullPath) - 1, "%s/%d/top_talkers/%s",
+           ntop->get_working_dir(), ifid, filename);
   ntop->fixPath(filePath);
   ntop->fixPath(fileFullPath);
 
-  if(!Utils::mkdir_tree(filePath)) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING,
-				 "Unable to create directory %s", filePath);
+  if (!Utils::mkdir_tree(filePath)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create directory %s",
+                                 filePath);
     return;
   }
 
   init(fileFullPath);
 }
+
+/* ******************************************* */
 
 /**
  * @brief Opens a new cache to be used to store statistics.
@@ -57,33 +64,32 @@ StatsManager::StatsManager(int interface_id, const char *filename) : StoreManage
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StatsManager::openStore(const char *cache_name)
-{
+int StatsManager::openStore(const char *cache_name) {
   char table_query[STORE_MANAGER_MAX_QUERY];
   int rc;
 
-  if(!db)
-    return 1;
+  if (!db) return 1;
 
-  if(caches[cache_name])
-    return 0;
+  if (caches[cache_name]) return 0;
 
   snprintf(table_query, sizeof(table_query),
-	   "CREATE TABLE IF NOT EXISTS %s "
-	   "(TSTAMP INTEGER PRIMARY KEY NOT NULL,"
-	   "STATS TEXT NOT NULL);", cache_name);
+           "CREATE TABLE IF NOT EXISTS %s "
+           "(TSTAMP INTEGER PRIMARY KEY NOT NULL,"
+           "STATS TEXT NOT NULL);",
+           cache_name);
 
   m.lock(__FILE__, __LINE__);
 
   rc = exec_query(table_query, NULL, NULL);
 
-  if(!rc)
-    caches[cache_name] = true;
+  if (!rc) caches[cache_name] = true;
 
   m.unlock(__FILE__, __LINE__);
 
   return rc;
 }
+
+/* ******************************************* */
 
 /**
  * @brief Database interface to implement stats purging.
@@ -96,19 +102,19 @@ int StatsManager::openStore(const char *cache_name)
  * @param key Key to use as boundary.
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::deleteStatsOlderThan(const char * const cache_name, const time_t key) {
+int StatsManager::deleteStatsOlderThan(const char *cache_name,
+                                       const time_t key) {
   char query[STORE_MANAGER_MAX_QUERY];
   int rc;
 
-  if(!db)
-    return -1;
+  if (!db) return -1;
 
-  if(openStore(cache_name))
-    return -1;
+  if (openStore(cache_name)) return -1;
 
-  snprintf(query, sizeof(query), "DELETE FROM %s WHERE "
-	   "CAST(TSTAMP AS INTEGER) < %lu",
-	   cache_name, static_cast<long int>(key));
+  snprintf(query, sizeof(query),
+           "DELETE FROM %s WHERE "
+           "CAST(TSTAMP AS INTEGER) < %lu",
+           cache_name, static_cast<long int>(key));
 
   m.lock(__FILE__, __LINE__);
 
@@ -118,6 +124,8 @@ int StatsManager::deleteStatsOlderThan(const char * const cache_name, const time
 
   return rc;
 }
+
+/* ******************************************* */
 
 /**
  * @brief Minute stats interface to database purging.
@@ -137,6 +145,8 @@ int StatsManager::deleteMinuteStatsOlderThan(unsigned num_days) {
   return deleteStatsOlderThan(MINUTE_CACHE_NAME, rawtime);
 }
 
+/* ******************************************* */
+
 /**
  * @brief Hour stats interface to database purging.
  * @details This function hides cache-specific details (e.g. building the key
@@ -154,6 +164,8 @@ int StatsManager::deleteHourStatsOlderThan(unsigned num_days) {
 
   return deleteStatsOlderThan(HOUR_CACHE_NAME, rawtime);
 }
+
+/* ******************************************* */
 
 /**
  * @brief Day stats interface to database purging.
@@ -173,6 +185,8 @@ int StatsManager::deleteDayStatsOlderThan(unsigned num_days) {
   return deleteStatsOlderThan(DAY_CACHE_NAME, rawtime);
 }
 
+/* ******************************************* */
+
 /**
  * @brief Callback for completion of retrieval of an interval of stats
  *
@@ -183,17 +197,23 @@ int StatsManager::deleteDayStatsOlderThan(unsigned num_days) {
  *
  * @return Zero in case of success, nonzero in case of error.
  */
-static int get_samplings_db(void *data, int argc,
-                            char **argv, char **azColName) {
+static int get_samplings_db(void *data, int argc, char **argv,
+                            char **azColName) {
   struct statsManagerRetrieval *retr = (struct statsManagerRetrieval *)data;
 
-  if(argc > 1) return -1;
+  if (argc > 1) return -1;
+
+#ifdef DEBUG_STATS_MANAGER
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats Results: %s", argv[0]);
+#endif
 
   retr->rows.push_back(argv[0]);
   retr->num_vals++;
 
   return 0;
 }
+
+/* ******************************************* */
 
 /**
  * @brief Retrieve an interval of samplings from a database
@@ -210,25 +230,29 @@ static int get_samplings_db(void *data, int argc,
  * @return Zero in case of success, nonzero in case of error.
  */
 int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
-					const char * const cache_name,
+                                        const char *cache_name,
                                         const time_t key_start,
-					const time_t key_end) {
+                                        const time_t key_end) {
   char query[STORE_MANAGER_MAX_QUERY];
   int rc;
 
-  if(!db)
-    return -1;
+  if (!db) return -1;
 
-  if(openStore(cache_name))
-    return -1;
+  if (openStore(cache_name)) return -1;
 
   // Set retvals to empty values - cannot use memset because of the vector
   struct statsManagerRetrieval empty;
   *retvals = empty;
 
-  snprintf(query, sizeof(query), "SELECT STATS FROM %s WHERE TSTAMP >= %lu "
-	   "AND TSTAMP <= %lu",
-           cache_name, static_cast<long int>(key_start), static_cast<long int>(key_end));
+  snprintf(query, sizeof(query),
+           "SELECT STATS FROM %s WHERE TSTAMP >= %lu "
+           "AND TSTAMP <= %lu",
+           cache_name, static_cast<long int>(key_start),
+           static_cast<long int>(key_end));
+
+#ifdef DEBUG_STATS_MANAGER
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats Query: %s", query);
+#endif
 
   m.lock(__FILE__, __LINE__);
 
@@ -238,6 +262,8 @@ int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
 
   return rc;
 }
+
+/* ******************************************* */
 
 /**
  * @brief Retrieve an interval of samplings from the minute stats cache
@@ -252,14 +278,16 @@ int StatsManager::retrieveStatsInterval(struct statsManagerRetrieval *retvals,
  *
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::retrieveMinuteStatsInterval(time_t epoch_start,
-				              time_t epoch_end,
-                                              struct statsManagerRetrieval *retvals) {
-  if(!retvals)
-    return -1;
+int StatsManager::retrieveMinuteStatsInterval(
+    time_t epoch_start, time_t epoch_end,
+    struct statsManagerRetrieval *retvals) {
+  if (!retvals) return -1;
 
-  return retrieveStatsInterval(retvals, MINUTE_CACHE_NAME, epoch_start, epoch_end);
+  return retrieveStatsInterval(retvals, MINUTE_CACHE_NAME, epoch_start,
+                               epoch_end);
 }
+
+/* ******************************************* */
 
 /**
  * @brief Retrieve an interval of samplings from the hour stats cache
@@ -274,14 +302,16 @@ int StatsManager::retrieveMinuteStatsInterval(time_t epoch_start,
  *
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::retrieveHourStatsInterval(time_t epoch_start,
-					    time_t epoch_end,
-                                            struct statsManagerRetrieval *retvals) {
-  if(!retvals)
-    return -1;
+int StatsManager::retrieveHourStatsInterval(
+    time_t epoch_start, time_t epoch_end,
+    struct statsManagerRetrieval *retvals) {
+  if (!retvals) return -1;
 
-  return retrieveStatsInterval(retvals, HOUR_CACHE_NAME, epoch_start, epoch_end);
+  return retrieveStatsInterval(retvals, HOUR_CACHE_NAME, epoch_start,
+                               epoch_end);
 }
+
+/* ******************************************* */
 
 /**
  * @brief Retrieve an interval of samplings from the day stats cache
@@ -296,14 +326,15 @@ int StatsManager::retrieveHourStatsInterval(time_t epoch_start,
  *
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::retrieveDayStatsInterval(time_t epoch_start,
-					   time_t epoch_end,
-                                           struct statsManagerRetrieval *retvals) {
-  if(!retvals)
-    return -1;
+int StatsManager::retrieveDayStatsInterval(
+    time_t epoch_start, time_t epoch_end,
+    struct statsManagerRetrieval *retvals) {
+  if (!retvals) return -1;
 
   return retrieveStatsInterval(retvals, DAY_CACHE_NAME, epoch_start, epoch_end);
 }
+
+/* ******************************************* */
 
 /**
  * @brief Database interface to add a new stats sampling
@@ -316,41 +347,49 @@ int StatsManager::retrieveDayStatsInterval(time_t epoch_start,
  *
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::insertSampling(const char * const sampling, const char * const cache_name,
+int StatsManager::insertSampling(const char *sampling, const char *cache_name,
                                  long int key) {
   char query[STORE_MANAGER_MAX_QUERY];
   sqlite3_stmt *stmt = NULL;
   int rc = 0;
 
-  if(!db)
-    return -1;
+  if (!db) return -1;
 
-  if(openStore(cache_name))
-    return -1;
+  if (openStore(cache_name)) return -1;
 
-  snprintf(query, sizeof(query), "INSERT INTO %s (TSTAMP, STATS) VALUES(?,?)", cache_name);
+  snprintf(query, sizeof(query), "INSERT INTO %s (TSTAMP, STATS) VALUES(?,?)",
+           cache_name);
+
+#ifdef DEBUG_STATS_MANAGER
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats Insert Query: %s", query);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Stats Insert Data: %s", sampling);
+#endif
+
 
   m.lock(__FILE__, __LINE__);
 
-  if(sqlite3_prepare_v2(db, query, -1, &stmt, 0) ||
-     sqlite3_bind_int64(stmt, 1, key) ||
-     sqlite3_bind_text(stmt, 2, sampling, strlen(sampling), SQLITE_TRANSIENT)) {
+  if (sqlite3_prepare_v2(db, query, -1, &stmt, 0) ||
+      sqlite3_bind_int64(stmt, 1, key) ||
+      sqlite3_bind_text(stmt, 2, sampling, strlen(sampling),
+                        SQLITE_TRANSIENT)) {
     rc = 1;
     goto out;
   }
 
-  if((rc = exec_statement(stmt)) != SQLITE_DONE) {
+  if ((rc = exec_statement(stmt)) != SQLITE_DONE) {
     rc = 1;
     goto out;
   }
 
   rc = 0;
- out:
+out:
   if (stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
 
   return rc;
 }
+
+/* ******************************************* */
 
 /**
  * @brief Interface function for insertion of a new minute stats sampling
@@ -362,12 +401,14 @@ int StatsManager::insertSampling(const char * const sampling, const char * const
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StatsManager::insertMinuteSampling(time_t epoch, const char * const sampling) {
-  if(!sampling)
-    return -1;
+int StatsManager::insertMinuteSampling(time_t epoch, const char *sampling) {
+  if (!sampling) return -1;
 
-  return insertSampling(sampling, MINUTE_CACHE_NAME, static_cast<long int>(epoch));
+  return insertSampling(sampling, MINUTE_CACHE_NAME,
+                        static_cast<long int>(epoch));
 }
+
+/* ******************************************* */
 
 /**
  * @brief Interface function for insertion of a new hour stats sampling
@@ -379,12 +420,14 @@ int StatsManager::insertMinuteSampling(time_t epoch, const char * const sampling
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StatsManager::insertHourSampling(time_t epoch, const char * const sampling) {
-  if(!sampling)
-    return -1;
+int StatsManager::insertHourSampling(time_t epoch, const char *sampling) {
+  if (!sampling) return -1;
 
-  return insertSampling(sampling, HOUR_CACHE_NAME, static_cast<long int>(epoch));
+  return insertSampling(sampling, HOUR_CACHE_NAME,
+                        static_cast<long int>(epoch));
 }
+
+/* ******************************************* */
 
 /**
  * @brief Interface function for insertion of a new day stats sampling
@@ -396,9 +439,8 @@ int StatsManager::insertHourSampling(time_t epoch, const char * const sampling) 
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StatsManager::insertDaySampling(time_t epoch, const char * const sampling) {
-  if(!sampling)
-    return -1;
+int StatsManager::insertDaySampling(time_t epoch, const char *sampling) {
+  if (!sampling) return -1;
 
   return insertSampling(sampling, DAY_CACHE_NAME, static_cast<long int>(epoch));
 }
@@ -415,18 +457,20 @@ int StatsManager::insertDaySampling(time_t epoch, const char * const sampling) {
  *
  * @return Zero in case of success, nonzero in case of error.
  */
-static int get_sampling_db_callback(void *data, int argc,
-                                    char **argv, char **azColName) {
+static int get_sampling_db_callback(void *data, int argc, char **argv,
+                                    char **azColName) {
   string *buffer = (string *)data;
 
-  if(argc > 1)
-    ntop->getTrace()->traceEvent(TRACE_INFO, "%s: more than one row (%d) returned",
-				 __FUNCTION__, argc);
+  if (argc > 1)
+    ntop->getTrace()->traceEvent(
+        TRACE_INFO, "%s: more than one row (%d) returned", __FUNCTION__, argc);
 
   buffer->assign(argv[0]);
 
   return 0;
 }
+
+/* ******************************************* */
 
 /**
  * @brief Database interface to retrieve a stats sampling
@@ -440,24 +484,23 @@ static int get_sampling_db_callback(void *data, int argc,
  *
  * @return Zero in case of success, nonzero in case of error.
  */
-int StatsManager::getSampling(string * sampling, const char * const cache_name,
+int StatsManager::getSampling(string *sampling, const char *cache_name,
                               time_t key_low, time_t key_high) {
-
   char query[STORE_MANAGER_MAX_QUERY];
   int rc;
 
   *sampling = "[ ]";
 
-  if(!db)
-    return -1;
+  if (!db) return -1;
 
-  if(openStore(cache_name))
-    return -1;
+  if (openStore(cache_name)) return -1;
 
-  snprintf(query, sizeof(query), "SELECT STATS FROM %s WHERE "
-	   "CAST(TSTAMP AS INTEGER) <= %lu AND "
-	   "CAST(TSTAMP AS INTEGER) >= %lu",
-           cache_name, static_cast<long int>(key_high), static_cast<long int>(key_low));
+  snprintf(query, sizeof(query),
+           "SELECT STATS FROM %s WHERE "
+           "CAST(TSTAMP AS INTEGER) <= %lu AND "
+           "CAST(TSTAMP AS INTEGER) >= %lu",
+           cache_name, static_cast<long int>(key_high),
+           static_cast<long int>(key_low));
 
   m.lock(__FILE__, __LINE__);
 
@@ -467,6 +510,8 @@ int StatsManager::getSampling(string * sampling, const char * const cache_name,
 
   return rc;
 }
+
+/* ******************************************* */
 
 /**
  * @brief Interface function for retrieval of a minute stats sampling
@@ -479,9 +524,8 @@ int StatsManager::getSampling(string * sampling, const char * const cache_name,
  *
  * @return Zero in case of success, nonzero in case of failure.
  */
-int StatsManager::getMinuteSampling(time_t epoch, string * sampling) {
-  if(!sampling)
-    return -1;
+int StatsManager::getMinuteSampling(time_t epoch, string *sampling) {
+  if (!sampling) return -1;
 
   time_t epoch_start = epoch - (epoch % 60);
   time_t epoch_end = epoch_start + 59;
@@ -489,3 +533,4 @@ int StatsManager::getMinuteSampling(time_t epoch, string * sampling) {
   return getSampling(sampling, MINUTE_CACHE_NAME, epoch_start, epoch_end);
 }
 
+/* ******************************************* */

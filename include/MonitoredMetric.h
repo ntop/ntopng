@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,58 +22,66 @@
 #ifndef _MONITORED_METRIC_H_
 #define _MONITORED_METRIC_H_
 
-template <typename METRICTYPE> class MonitoredMetric {
+template <typename METRICTYPE>
+class MonitoredMetric {
  protected:
   METRICTYPE value, last_value, gains, losses;
-  time_t     last_update;
+  time_t last_update;
   METRICTYPE anomaly_index;
 
   inline void updateAnomalyIndex(time_t when, int64_t delta) {
-    if(delta > 0)
-      gains = ewma((METRICTYPE)delta, gains),
-	losses = ewma(0, losses);
+    if (delta > 0)
+      gains = ewma((METRICTYPE)delta, gains), losses = ewma(0, losses);
     else
-      gains = ewma(0, gains),
-      losses = ewma((METRICTYPE)-delta, losses);
+      gains = ewma(0, gains), losses = ewma((METRICTYPE)-delta, losses);
 
+    anomaly_index = 0;
     if(delta /* No variation -> no anomaly */
        && last_update /* Wait at least two points */
-       && (gains || losses) /* Meaningless to calculate an anomaly when both are at zero */)
-      anomaly_index = (METRICTYPE)(100 - (100 / (float)(1 + ((float)(gains) / (float)(losses) + 1))));
-    else
-      anomaly_index = 0;
-    
+       && (gains || losses) /* Meaningless to calculate an anomaly when both are at zero */) {
+      float gain_loss_ratio = 1;
+      if (losses != 0) gain_loss_ratio = (float)(gains) / (float)(losses) + 1;
+      if (gain_loss_ratio != 0)
+        anomaly_index = (METRICTYPE)(100 - (100 / (float)(gain_loss_ratio)));
+    }
+
 #ifdef MONITOREDMETRIC_DEBUG
-    if((anomaly_index > 0) && ((anomaly_index < 25) || (anomaly_index > 75)) && (gains > 0))
-      printf("%s[%s] [RSI: %u][gains: %lu][losses: %lu][delta: %" PRId64 "][last_update: %u]\n",
-	     is_misbehaving(when) ? "<<<***>>> Anomaly " : "",
-	     __FUNCTION__, (unsigned int)anomaly_index, (unsigned long)gains, (unsigned long)losses,
-	     delta, (unsigned int)last_update);
+    if ((anomaly_index > 0) && ((anomaly_index < 25) || (anomaly_index > 75)) &&
+        (gains > 0))
+      printf("%s[%s] [RSI: %u][gains: %lu][losses: %lu][delta: %" PRId64
+             "][last_update: %u]\n",
+             is_misbehaving(when) ? "<<<***>>> Anomaly " : "", __FUNCTION__,
+             (unsigned int)anomaly_index, (unsigned long)gains,
+             (unsigned long)losses, delta, (unsigned int)last_update);
 #endif
   }
-  
-  static METRICTYPE ewma(METRICTYPE sample, METRICTYPE ewma, u_int8_t alpha_percent = 50) {
+
+  static METRICTYPE ewma(METRICTYPE sample, METRICTYPE ewma,
+                         u_int8_t alpha_percent = 50) {
     // if(alpha_percent > 100) alpha_percent = 100;
-    return((alpha_percent * sample + (100 - alpha_percent) * ewma) / 100);
+    return ((alpha_percent * sample + (100 - alpha_percent) * ewma) / 100);
   }
 
-public:
-  MonitoredMetric() {
-    reset();
-  }
-  virtual ~MonitoredMetric() {};
+ public:
+  MonitoredMetric() { reset(); }
+  virtual ~MonitoredMetric(){};
 
   virtual void reset() {
-    value = 0, last_value = 0, gains = 0, losses = 0, last_update = 0, anomaly_index = 0;
+    value = 0, last_value = 0, gains = 0, losses = 0, last_update = 0,
+    anomaly_index = 0;
   }
-  inline METRICTYPE get()             const { return(value);         }
-  inline METRICTYPE getAnomalyIndex() const { return(anomaly_index); }
+  inline METRICTYPE get() const { return (value); }
+  inline METRICTYPE getAnomalyIndex() const { return (anomaly_index); }
   virtual void computeAnomalyIndex(time_t when) = 0;
-  inline bool is_misbehaving(time_t when, u_int8_t low_threshold = 25, u_int8_t high_threshold = 75) const {
-    return(last_update
-	   && ((anomaly_index > 0 && anomaly_index < low_threshold) || (anomaly_index > high_threshold)) ? true : false);
+  inline bool is_misbehaving(time_t when, u_int8_t low_threshold = 25,
+                             u_int8_t high_threshold = 75) const {
+    return (last_update &&
+                    ((anomaly_index > 0 && anomaly_index < low_threshold) ||
+                     (anomaly_index > high_threshold))
+                ? true
+                : false);
   }
-  
+
   inline void setInitialValue(METRICTYPE v) {
     reset();
     last_value = value = v;
@@ -81,16 +89,18 @@ public:
 
   inline float inc(METRICTYPE v) {
     value += v;
-    return((float)anomaly_index /* Last computed */);
+    return ((float)anomaly_index /* Last computed */);
   }
 
-  const char * const print(char * const buf, ssize_t buf_size) {
-    if(buf && buf_size) {
-      snprintf(buf, buf_size, "%s[value: %lu][last_value: %lu][RSI: %lu][gains: %lu][losses: %lu][last_update: %u]\n",
-	       this->is_misbehaving(0) ? "<<<***>>> Anomaly " : "",
-	       (unsigned long)this->value, (unsigned long)this->last_value,
-	       (unsigned long)this->anomaly_index, (unsigned long)this->gains, (unsigned long)this->losses,
-	       (unsigned int)this->last_update);
+  const char *print(char *const buf, ssize_t buf_size) {
+    if (buf && buf_size) {
+      snprintf(buf, buf_size,
+               "%s[value: %lu][last_value: %lu][RSI: %lu][gains: %lu][losses: "
+               "%lu][last_update: %u]\n",
+               this->is_misbehaving(0) ? "<<<***>>> Anomaly " : "",
+               (unsigned long)this->value, (unsigned long)this->last_value,
+               (unsigned long)this->anomaly_index, (unsigned long)this->gains,
+               (unsigned long)this->losses, (unsigned int)this->last_update);
     }
 
     return buf;

@@ -1,0 +1,73 @@
+
+#!/bin/sh
+#
+# PROVIDE: ntopng
+# REQUIRE: LOGIN netif redis
+# KEYWORD: shutdown
+#
+# Add the following lines to /etc/rc.conf to enable ntopng:
+#
+# ntopng_enable (bool):		Set it to "YES" to enable ntopng
+#				Default is "NO".
+# ntopng_flags (flags):		Set extra flags to ntopng
+#				Empty by default.
+# ntopng_pidfile (path):	Path to the pidfile
+#				Default /var/run/ntopng/ntopng.pid
+#
+
+. /etc/rc.subr
+
+name=ntopng
+desc="Web-based network traffic monitoring tool"
+rcvar=ntopng_enable
+
+load_rc_config $name
+
+: ${ntopng_enable:=NO}
+: ${ntopng_pidfile:=/var/run/ntopng.pid}
+: ${ntopng_config:=/usr/local/etc/ntopng/ntopng.conf}
+
+start_precmd=ntopng_precmd
+command="/usr/local/bin/ntopng"
+pidfile=${ntopng_pidfile}
+required_files=${ntopng_config}
+command_args="${ntopng_config} -G ${ntopng_pidfile} -e"
+
+if [ ! -f "${ntopng_config}" ]; then
+  # Using sample file as config file is missing
+  cp /usr/local/etc/ntopng/ntopng.conf.sample ${ntopng_config}
+  chown ntopng:ntopng ${ntopng_config}
+fi
+    
+ntopng_precmd()
+{
+    local ntopng_user="ntopng"
+    local ntopng_conf=${ntopng_config}
+    local ntopng_datadir="/var/db/ntopng-enterprise"
+    local rundir=${ntopng_pidfile%/*}
+
+    if ! id "${ntopng_user}" >/dev/null 2>&1; then
+	# ntopng user does not exist: create it!
+	pw useradd ${ntopng_user} -s /sbin/nologin -d /nonexistent -c "ntopng user" -w no
+    fi
+    
+    if [ ! -d $rundir ] ; then
+        install -d -m 0755 -o ${ntopng_user} -g ${ntopng_user} $rundir
+    fi
+
+    if [ -f "${ntopng_conf}" ]; then
+        local curr_user=$(stat -f '%Su' ${ntopng_conf})
+        if [ "${curr_user}" != "${ntopng_user}" ]; then
+            chown -R ${ntopng_user}:${ntopng_user} ${ntopng_conf}
+        fi
+    fi
+
+    if [ -d "${ntopng_datadir}" ]; then
+        local curr_user=$(stat -f '%Su' ${ntopng_datadir})
+        if [ "${curr_user}" != "${ntopng_user}" ]; then
+            chown -R ${ntopng_user}:${ntopng_user} ${ntopng_datadir}
+        fi
+    fi
+}
+
+run_rc_command "$1"

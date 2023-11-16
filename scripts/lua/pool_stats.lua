@@ -1,5 +1,5 @@
 --
--- (C) 2017-20 - ntop.org
+-- (C) 2017-22 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -14,9 +14,9 @@ sendHTTPContentTypeHeader('text/html')
 
 
 if not ntop.isnEdge() then
-   page_utils.set_active_menu_entry(page_utils.menu_entries.host_pools)
+   page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.host_pools)
 else
-   page_utils.set_active_menu_entry(page_utils.menu_entries.users)
+   page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.users)
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
@@ -25,8 +25,10 @@ local title
 
 if have_nedge then
     title = i18n("nedge.users_list") .. " <small><a title='".. i18n("manage_users.manage_users") .."' href='".. ntop.getHttpPrefix() .."/lua/pro/nedge/admin/nf_list_users.lua'><i class='fas fa-cog'></i></a></small>"
+elseif isAdministrator() then
+   title = i18n("pool_stats.host_pool_list").." <small><a title='".. i18n("host_pools.manage_pools") .."' href='".. ntop.getHttpPrefix() .."/lua/admin/manage_pools.lua'><i class='fas fa-cog'></i></a></small>"
 else
-    title = i18n("pool_stats.host_pool_list")
+   title = i18n("pool_stats.host_pool_list")
 end
 
 page_utils.print_page_title(title)
@@ -59,9 +61,7 @@ print ('sort: [ ["' .. getDefaultTableSort("pool_id") ..'","' .. getDefaultTable
 
 print [[
         showPagination: true,
-        buttons: [
-         '<a href="]] print(ntop.getHttpPrefix()) print[[/lua/if_stats.lua?ifid=8&page=pools#create" class="add-on btn"><i class="fas fa-plus" aria-hidden="true"></i></a>'
-        ],
+        buttons: [ ],
         columns: [
         {
             title: "Key",

@@ -1,3 +1,5 @@
+.. _RESTAPIDoc target:
+
 RESTful API
 ===========
 
@@ -8,7 +10,7 @@ Interfaces/Hosts/Flows information and raw PCAP data.
     :maxdepth: 2
     :numbered:
 
+    api_v2
+    examples_v2
     api_v1
     examples_v1
-    api
-    examples

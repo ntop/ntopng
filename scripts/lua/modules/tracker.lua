@@ -1,6 +1,8 @@
 --
--- (C) 2017-20 - ntop.org
+-- (C) 2017-22 - ntop.org
 --
+
+local clock_start = os.clock()
 
 local json = require "dkjson"
 
@@ -38,16 +40,17 @@ function tracker.log(f_name, f_args)
   local old_iface = ifid
   interface.select(getSystemInterfaceId())
 
-  alerts_api.store(
-     alerts_api.userEntity(entity_value),
-     alert_consts.alert_types.alert_user_activity.create(
-	alert_consts.alert_severities.info,
-	'function',
-	f_name,
-	f_args,
-	remote_addr
-     )
+  local alert = alert_consts.alert_types.alert_user_activity.new(
+    'function',
+    f_name,
+    f_args,
+    remote_addr
   )
+
+  alert:set_score_notice()
+  alert:set_subtype('function'.."/"..(f_name or '').."/"..(remote_addr or ''))
+
+  alert:store(alerts_api.userEntity(entity_value))
 
   interface.select(tostring(old_iface))
 end
@@ -63,8 +66,6 @@ local function tracker_filter_pref(key)
      k == "probing_alerts" or
      k == "tls_alerts" or
      k == "dns_alerts" or
-     k == "ip_reassignment_alerts" or
-     k == "remote_to_remote_alerts" or
      k == "mining_alerts" or
      k == "host_blacklist" or
      k == "external_alerts" or
@@ -75,7 +76,6 @@ local function tracker_filter_pref(key)
      k == "alerts.email_notifications_enabled" or
      k == "alerts.slack_notifications_enabled" or
      k == "alerts.syslog_notifications_enabled" or
-     k == "alerts.nagios_notifications_enabled" or
      k == "alerts.webhook_notifications_enabled"
   then
     return true
@@ -189,6 +189,10 @@ function tracker.track(table, fn)
 end
 
 -- #################################
+
+if(trace_script_duration ~= nil) then
+   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+end
 
 return tracker
 

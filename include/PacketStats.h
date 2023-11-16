@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-20 - ntop.org
+ * (C) 2013-23 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -26,10 +26,8 @@
 
 class PacketStats {
  private:
-  u_int64_t upTo64, upTo128, upTo256,
-    upTo512, upTo1024, upTo1518,
-    upTo2500, upTo6500, upTo9000,
-    above9000;
+  u_int64_t upTo64, upTo128, upTo256, upTo512, upTo1024, upTo1518, upTo2500,
+      upTo6500, upTo9000, above9000;
   u_int64_t syn, synack, finack, rst;
 
   /* Function to increase TCP flag stats when the flags are
@@ -48,19 +46,21 @@ class PacketStats {
   void incFlagStats(u_int8_t flags, bool cumulative_flags);
   void incStats(u_int num_pkts, u_int pkt_len);
   char* serialize();
-  void deserialize(json_object *o);
   json_object* getJSONObject();
-  void lua(lua_State* vm, const char *label);
-  inline void sum(PacketStats *s) const {
-    s->upTo64 += upTo64, s->upTo128 += upTo128,
-      s->upTo128 += upTo128, s->upTo256 += upTo256,
-      s->upTo512 += upTo512, s->upTo1024 += upTo1024,
-      s->upTo1518 += upTo1518, s->upTo2500 += upTo2500,
-      s->upTo6500 += upTo6500, s->upTo9000 += upTo9000,
-      s->above9000 += above9000,
-      s->syn += syn, s->synack += synack,
-      s->finack += finack,
-      s->rst += rst;
+  void lua(lua_State* vm, const char* label);
+
+  inline u_int64_t getNumSYN() { return (syn); }
+  inline u_int64_t getNumSYNACK() { return (synack); }
+  inline u_int64_t getNumFINACK() { return (finack); }
+  inline u_int64_t getNumRST() { return (rst); }
+
+  inline void sum(PacketStats* s) const {
+    s->upTo64 += upTo64, s->upTo128 += upTo128, s->upTo128 += upTo128,
+        s->upTo256 += upTo256, s->upTo512 += upTo512, s->upTo1024 += upTo1024,
+        s->upTo1518 += upTo1518, s->upTo2500 += upTo2500,
+        s->upTo6500 += upTo6500, s->upTo9000 += upTo9000,
+        s->above9000 += above9000, s->syn += syn, s->synack += synack,
+        s->finack += finack, s->rst += rst;
   };
 };
 
