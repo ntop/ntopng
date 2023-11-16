@@ -8040,10 +8040,9 @@ void Flow::check_swap() {
     return;
 
   if (!(get_cli_ip_addr()->isNonEmptyUnicastAddress() &&
-        (!get_srv_ip_addr()
-              ->isNonEmptyUnicastAddress())) /* Everything that is NOT
-                                                unicast-to-non-unicast needs to
-                                                be checked */
+        (!get_srv_ip_addr()->isNonEmptyUnicastAddress())) /* Everything that is NOT
+							     unicast-to-non-unicast needs to
+							     be checked */
       // && get_cli_port() < 1024 /* Relax this constraint and also apply to
       // non-well-known ports such as 8080 */
       && (get_cli_port() < get_srv_port())) {
@@ -8212,7 +8211,10 @@ void Flow::updateTCPHostServices(Host *cli_h, Host *srv_h) {
       break;
 
   case NDPI_PROTOCOL_SSH:
-    swap_requested = 1;
+    if((((src2dst_tcp_flags & TH_SYN) == 0) && ((dst2src_tcp_flags & TH_SYN) != 0))
+       || ((((src2dst_tcp_flags|dst2src_tcp_flags) & TH_SYN) == 0) /* No SYN observed */
+	   && (get_cli_port() < get_srv_port())))
+      swap_requested = 1;
     break;
     
     default:
