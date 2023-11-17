@@ -268,10 +268,16 @@ const component_interval = computed(() => {
 onBeforeMount(async () => {
     let epoch_interval = null;
     printable = ntopng_url_manager.get_url_entry("printable") == "true";
-    if (props.context.page == "report") {
-        epoch_interval = ntopng_utility.check_and_set_default_time_interval(undefined, undefined, true, "min");
+
+    if (props.context.page == "report" || props.context.page == "vs-report") {
+        if (props.context.page == "report") {
+            epoch_interval = ntopng_utility.check_and_set_default_time_interval(undefined, undefined, true, "min");
+        } else if (props.context.page == "vs-report") {
+            epoch_interval = ntopng_utility.check_and_set_default_time_interval(undefined, undefined, true);
+        }
         main_epoch_interval.value = epoch_interval;
     }
+
     await set_templates_list();
     let report_name = ntopng_url_manager.get_url_entry("report_name");
     if (report_name != null && report_name != "") {
