@@ -247,7 +247,7 @@ fi
 
 NTOPCLOUD_HOME="../ntopcloud"
 if test -d "${NTOPCLOUD_HOME}"; then
-  CNATS_HOME=/opt/homebrew/Cellar/cnats/3.7.0
+  CNATS_HOME=/opt/homebrew/include
 
   if test -d "${CNATS_HOME}"; then
     CFLAGS="${CFLAGS} -I${CNATS_HOME}"
