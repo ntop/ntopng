@@ -5922,6 +5922,7 @@ local lang = {
     ["risk_rules_descr"] = "Configure here policies based on the flow risk computed by nDPI.",
     ["rule"] = "Rule",
     ["rules"] = "Policy Rules",
+    ["traffic_policies"] = "Traffic Policies",
     ["traffic_policy_for"] = "Traffic Policies for <a href='%{url}'>%{pool} <i class='fas fa-users'></i></a>",
     ["markers"] = {
       ["drop"] = "Drop",

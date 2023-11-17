@@ -120,6 +120,7 @@
     i18n_ext.ipv4 = "{{ i18n('host_pools.ipv4') }}";
     i18n_ext.ipv6 = "{{ i18n('host_pools.ipv6') }}";
     i18n_ext.mac_filter = "{{ i18n('host_pools.mac_filter') }}";
+    i18n_ext.traffic_policies = "{{ i18n('policy.traffic_policies') }}";
 
     i18n_ext.rest = {
         INVALID_HOST: "{{ i18n('rest_consts.INVALID_HOST') }}",
@@ -183,7 +184,7 @@
         {% if ntop.isPro() then %}
 	if(changable_pool) {
 	    buttons.push({
-	    text: '<i class="fas fa-key"></i>',
+	    text: '<i class="fas fa-key" title="' + i18n_ext.traffic_policies + '"></i>',
             action: () => { location.href = `${http_prefix}/lua/pro/policy.lua?pool=${selectedPool.id}`; }
 	    });
         }
