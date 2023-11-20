@@ -912,7 +912,7 @@ local context = {
    actions = {
        show_settings = (page ~= 'system') and isAdministrator(),
        show_flows = (page == 'host'),
-       show_historical = ((page == 'host') or (page == 'flow')) and ntop.isEnterpriseM() and hasClickHouseSupport(),
+       show_historical = ((page == 'host') or (page == 'flow') or (page == 'am_host')) and ntop.isEnterpriseM() and hasClickHouseSupport(),
        show_pcap_download = traffic_extraction_available and page == 'flow',
        show_disable = ((page == 'host') or (page == 'flow')) and isAdministrator() and ntop.isEnterpriseM(),
        show_acknowledge = (page ~= 'all') and (status == "historical") and isAdministrator(),
