@@ -525,7 +525,7 @@ CREATE TABLE IF NOT EXISTS `vulnerability_scan_data` ON CLUSTER '$CLUSTER' (
   `HOST` String NOT NULL,
   `SCAN_TYPE` String NOT NULL,
   `LAST_SCAN` DateTime NOT NULL,
-  `INFO` String,
+  `JSON_INFO` String,
   `VS_RESULT_FILE` String,
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(LAST_SCAN) ORDER BY (LAST_SCAN, HOST, SCAN_TYPE);
 
@@ -533,7 +533,7 @@ CREATE TABLE IF NOT EXISTS `vulnerability_scan_data` ON CLUSTER '$CLUSTER' (
 CREATE TABLE IF NOT EXISTS `vulnerability_scan_report` ON CLUSTER '$CLUSTER' (
   `REPORT_NAME` String,
   `REPORT_DATE` DateTime NOT NULL,
-  `REPORT_INFO` String,
+  `REPORT_JSON_INFO` String,
   `NUM_SCANNED_HOSTS` UInt32,
   `NUM_CVES` UInt32,
   `NUM_TCP_PORTS` UInt32,

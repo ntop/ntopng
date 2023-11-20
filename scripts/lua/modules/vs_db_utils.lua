@@ -35,7 +35,7 @@ function vs_db_utils.save_vs_result(scan_type, host, end_epoch, json_info, scan_
         traceError(TRACE_NORMAL,TRACE_CONSOLE, "Saving on DB HOST: ".. host .. " SCAN_TYPE: " .. scan_type .. " ENDEPOCH: "..end_epoch.." \n")
     end
 
-    local sql = string.format("INSERT INTO %s (HOST, SCAN_TYPE, LAST_SCAN, INFO, VS_RESULT_FILE) Values",data_table_name)
+    local sql = string.format("INSERT INTO %s (HOST, SCAN_TYPE, LAST_SCAN, JSON_INFO, VS_RESULT_FILE) Values",data_table_name)
     -- it's necessary replace the ' character with a common character like |
     scan_result = scan_result:gsub("%'","|")
 
@@ -79,7 +79,7 @@ function vs_db_utils.retrieve_reports(sort_item, epoch)
         sort_item = 'REPORT_NAME'
     end
 
-    local sql = "SELECT REPORT_NAME, toInt32(REPORT_DATE) REPORT_DATE, REPORT_INFO, "
+    local sql = "SELECT REPORT_NAME, toInt32(REPORT_DATE) REPORT_DATE, REPORT_JSON_INFO, "
                 .."NUM_SCANNED_HOSTS,NUM_CVES, NUM_TCP_PORTS,NUM_UDP_PORTS " ..
                 "FROM %s "
 
@@ -115,7 +115,7 @@ end
 -- ####################################################################################
 -- Function to retrieve single report from DB
 function vs_db_utils.retrieve_report(epoch)
-    local sql = "SELECT REPORT_NAME,toInt32(REPORT_DATE) REPORT_DATE, REPORT_INFO, "
+    local sql = "SELECT REPORT_NAME,toInt32(REPORT_DATE) REPORT_DATE, REPORT_JSON_INFO, "
                 .."NUM_SCANNED_HOSTS,NUM_CVES, NUM_TCP_PORTS,NUM_UDP_PORTS " ..
                 "FROM %s " ..
                 "WHERE REPORT_DATE = %u"
@@ -137,9 +137,9 @@ function vs_db_utils.retrieve_report(epoch)
             tcp_ports = item.NUM_TCP_PORTS,
             udp_ports = item.NUM_UDP_PORTS,
             num_hosts = item.NUM_SCANNED_HOSTS,
-            info = item.REPORT_INFO
+            info = item.REPORT_JSON_INFO
         }
-        report_info = json.decode(item.REPORT_INFO)
+        report_info = json.decode(item.REPORT_JSON_INFO)
     end
     return result,report_info
 end
