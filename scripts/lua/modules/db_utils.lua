@@ -901,9 +901,8 @@ function db_utils.clickhouseDeleteOldPartitions(data_retention, aggregated_reten
    -- Query the partitions that need to be deleted. Convert YYYYMMDD strings into integers so that
    -- only relevant partitions can be queried and deleted
    -- The last condition > 999999 prevents old partitions created as YYYMM to be deleted
-   local partitions_q = string.format("SELECT DISTINCT database, table, toUInt32(partition) drop_part FROM system.parts WHERE active AND database='%s' AND table != 'hourly_flows' AND table = 'l4_protocols' AND table = 'l7_protocols' AND table = 'l7_categories' AND table = 'alert_severities' AND drop_part <= %u AND drop_part > 999999", ntop.getPrefs().mysql_dbname or 'ntopng', retention_yyyymmdd)
+   local partitions_q = string.format("SELECT DISTINCT database, table, toUInt32(partition) drop_part FROM system.parts WHERE active AND database='%s' AND table != 'hourly_flows' AND table != 'l4_protocols' AND table != 'l7_protocols' AND table != 'l7_categories' AND table != 'alert_severities' AND table != 'flow_risks' AND drop_part <= %u AND drop_part > 999999", ntop.getPrefs().mysql_dbname or 'ntopng', retention_yyyymmdd)
    local partitions_res = interface.execSQLQuery(partitions_q)
-
 
    if(partitions_res ~= nil) then
       -- Iterate queried partitions and delete them (nil is returned if there is nothing to delete)
@@ -918,7 +917,12 @@ function db_utils.clickhouseDeleteOldPartitions(data_retention, aggregated_reten
    -- [2] Aggregated flows
    day_aligned_retention = aggregated_retention - (aggregated_retention % 86400)
    retention_yyyymmdd = os.date("%Y%m%d", day_aligned_retention)
-   partitions_q = string.format("SELECT DISTINCT database, table, toUInt32(partition) drop_part FROM system.parts WHERE active AND database='%s' AND table = 'hourly_flows' AND table = 'l4_protocols' AND table = 'l7_protocols' AND table = 'l7_categories' AND table = 'alert_severities' AND drop_part <= %u AND drop_part > 999999", ntop.getPrefs().mysql_dbname or 'ntopng', retention_yyyymmdd)
+   partitions_q = string.format("SELECT DISTINCT database, table, toUInt32(partition) drop_part FROM system.parts WHERE active AND database='%s' AND table = 'hourly_flows' AND drop_part <= %u AND drop_part > 999999", ntop.getPrefs().mysql_dbname or 'ntopng', retention_yyyymmdd)
+
+   if ntop.getCache("ntopng.debug.retention_query") == "1" then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Clickhouse retention query: " .. partitions_q)
+   end
+
    partitions_res = interface.execSQLQuery(partitions_q)
 
    if(partitions_res ~= nil) then
