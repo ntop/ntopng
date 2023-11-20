@@ -1423,6 +1423,49 @@ bool Utils::sendTCPData(char *host, int port, char *data,
   return rc;
 }
 
+/* ************************************************************ */
+
+bool Utils::sendUDPData(char *host, int port, char *data) {
+  int sockfd = ntop->getUdpSock();
+  int rc = -1;
+
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s: %s:%d %s", __FUNCTION__,
+  //  host, port, data);
+
+  if (sockfd == -1)
+    return false;
+
+  if (strchr(host, ':') != NULL) {
+    struct sockaddr_in6 serv_addr;
+
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin6_family = AF_INET6;
+    inet_pton(AF_INET6, host, &serv_addr.sin6_addr);
+    serv_addr.sin6_port = htons(port);
+
+    rc = sendto(sockfd, data, strlen(data), 0, (struct sockaddr *)&serv_addr,
+                sizeof(serv_addr));
+  } else {
+    struct sockaddr_in serv_addr;
+    struct hostent *server = NULL;
+
+    server = gethostbyname(host);
+    if (server == NULL) return false;
+
+    memset((char *)&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    //serv_addr.sin_addr.s_addr = inet_addr(host);
+    memcpy((char *)&serv_addr.sin_addr.s_addr, (char *)server->h_addr,
+           server->h_length);
+    serv_addr.sin_port = htons(port);
+
+    rc = sendto(sockfd, data, strlen(data), 0, (struct sockaddr *)&serv_addr,
+                sizeof(serv_addr));
+  }
+
+  return rc != -1;
+}
+
 /* **************************************************** */
 
 /* holder for curl fetch */

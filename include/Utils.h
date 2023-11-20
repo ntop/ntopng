@@ -104,6 +104,7 @@ class Utils {
                               bool allowDots);
   static char *stripHTML(const char *str);
   static bool sendTCPData(char *host, int port, char *data, int timeout);
+  static bool sendUDPData(char *host, int port, char *data);
   static bool postHTTPJsonData(char *bearer_token, char *username,
                                char *password, char *url, char *json,
                                int timeout, HTTPTranferStats *stats);
