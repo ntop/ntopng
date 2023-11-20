@@ -891,6 +891,7 @@ end
 
 -- Delete partitions older than data_retention (epoch)
 function db_utils.clickhouseDeleteOldPartitions(data_retention, aggregated_retention)
+   traceError(TRACE_NORMAL, TRACE_CONSOLE, "Performing Clickhouse cleanup")
    -- [1] Non Aggregated Retention
    local day_aligned_retention = data_retention - (data_retention % 86400)
    -- Create a string that identifies the PARTITIONs name of the most recent partition that will be deleted
@@ -902,6 +903,11 @@ function db_utils.clickhouseDeleteOldPartitions(data_retention, aggregated_reten
    -- only relevant partitions can be queried and deleted
    -- The last condition > 999999 prevents old partitions created as YYYMM to be deleted
    local partitions_q = string.format("SELECT DISTINCT database, table, toUInt32(partition) drop_part FROM system.parts WHERE active AND database='%s' AND table != 'hourly_flows' AND table = 'l4_protocols' AND table = 'l7_protocols' AND table = 'l7_categories' AND table = 'alert_severities' AND drop_part <= %u AND drop_part > 999999", ntop.getPrefs().mysql_dbname or 'ntopng', retention_yyyymmdd)
+
+   if ntop.getCache("ntopng.debug.retention_query") == "1" then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "Clickhouse retention query: " .. partitions_q)      
+   end
+   
    local partitions_res = interface.execSQLQuery(partitions_q)
 
 
@@ -930,8 +936,7 @@ function db_utils.clickhouseDeleteOldPartitions(data_retention, aggregated_reten
 	 local delete_partition_res = interface.execSQLQuery(delete_partition_q)
       end
    end
-
-   
+   traceError(TRACE_NORMAL, TRACE_CONSOLE, "Clickhouse cleanup completed")
 end
 
 -- ########################################################
