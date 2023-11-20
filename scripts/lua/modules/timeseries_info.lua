@@ -1735,12 +1735,13 @@ local community_timeseries = {{
             label = i18n('about.iowait'),
             color = timeseries_info.get_timeseries_color('default')
         },
-        active_pct = {
-            label = i18n('about.active'),
-            color = timeseries_info.get_timeseries_color('default')
-        },
         idle_pct = {
             label = i18n('about.idle'),
+            color = timeseries_info.get_timeseries_color('default'),
+            hidden = true
+        },
+        active_pct = {
+            label = i18n('about.active'),
             color = timeseries_info.get_timeseries_color('default')
         }
     },

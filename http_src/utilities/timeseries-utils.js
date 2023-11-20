@@ -89,12 +89,12 @@ function tsArrayToOptionsArray(tsOptionsArray, tsGroupsArray, groupsOptionsMode,
 	return [...DygraphOptionsStacked, ...DygraphOptionsNotStacked];
 }
 
-function splitTsArrayStacked(tsOptionsArray, tsGrpupsArray) {
+function splitTsArrayStacked(tsOptionsArray, tsGroupsArray) {
 	let tsOptionsArrayStacked = [];
 	let tsGroupsArrayStacked = [];
 	let tsOptionsArrayNotStacked = [];
 	let tsGroupsArrayNotStacked = [];
-	tsGrpupsArray.forEach((tsGroup, i) => {
+	tsGroupsArray.forEach((tsGroup, i) => {
 		if (tsGroup.metric.draw_stacked == true) {
 			tsOptionsArrayStacked.push(tsOptionsArray[i]);
 			tsGroupsArrayStacked.push(tsGroup);
@@ -253,6 +253,7 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare, useFullName)
 		/* the data in Dygraphs should be formatted as follow:
 		 * { [ time_1, serie1_1, serie2_1 ], [ time_2, serie1_2, serie2_2 ] } 
 		 */
+
 		const series = tsOptions.series || [];
 		const epoch_begin = tsOptions.metadata.epoch_begin
 		const step = tsOptions.metadata.epoch_step
@@ -296,6 +297,11 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare, useFullName)
 				let extra_timeseries = tsGroupsArray[i].timeseries[j];
 				let scalar = 1;
 				let name = s_metadata.label
+
+				if (s_metadata.hidden) {
+					return;
+				}
+
 				if (s_metadata.use_serie_name == true) {
 					name = ts_info.name;
 				}

@@ -667,6 +667,10 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
             let formatter = formatterUtils.getFormatter(ts_group.metric.measure_unit);
             let ts_stats;
             let name = s_metadata.label;
+            if (s_metadata.hidden) {
+                /* Skip in case it's requested to hide the Timeserie */
+                return;
+            }
             if (s_metadata.use_serie_name == true) {
                 name = s.name;
             }
