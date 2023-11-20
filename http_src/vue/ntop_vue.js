@@ -45,6 +45,8 @@ import { default as PageFlowDeviceDetails } from "./page-flowdevice-config.vue";
 import { default as PageVulnerabilityScan } from "./page-vulnerability-scan.vue";
 import { default as PageHostVsResult } from "./page-host-vs-result.vue";
 import { default as PageOpenPorts } from "./page-open-ports.vue";
+import { default as PageVulnerabilityScanReport } from "./page-vulnerability-scan-report.vue"
+
 // components
 import { default as AlertInfo } from "./alert-info.vue";
 import { default as Chart } from "./chart.vue";
@@ -87,6 +89,7 @@ import { default as ModalSnapshot } from "./modal-snapshot.vue";
 import { default as ModalAddHostRules } from "./modal-add-host-rules.vue";
 import { default as ModalAddApplication } from "./modal-add-application.vue";
 import { default as ModalDeleteApplication } from "./modal-delete-application.vue";
+import { default as ModalEditReport } from "./modal-edit-vs-report.vue";
 
 let ntopVue = {
     // pages
@@ -115,6 +118,7 @@ let ntopVue = {
     PageVulnerabilityScan: PageVulnerabilityScan,
     PageHostVsResult: PageHostVsResult,
     PageOpenPorts: PageOpenPorts,
+    PageVulnerabilityScanReport: PageVulnerabilityScanReport,
     
     PageEditApplications: PageEditApplications,
 
@@ -181,6 +185,7 @@ let ntopVue = {
     ModalAddHostRules: ModalAddHostRules,
     ModalAddApplication: ModalAddApplication,
     ModalDeleteApplication: ModalDeleteApplication,
+    ModalEditReport: ModalEditReport,
 
     Vue: Vue,
 };

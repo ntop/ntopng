@@ -415,12 +415,13 @@ export const hosts_f = (hosts, row) => {
     let host_info = item.split("|");
 
     hosts_map.set(
-      host_info.length > 4 && host_info[4] != null && host_info[4] != "" ? host_info[4] : host_info[0], 
+      host_info.length > 5 && host_info[5] != null && host_info[5] != "" ? host_info[5] : host_info[0], 
       {
         scan_type: host_info[1],
         ip: host_info[0],
         date: host_info[2].replace(" ","_"),
-        is_ipv4: host_info[3] == 'true'
+        is_ipv4: host_info[3] == 'true',
+        epoch: host_info[4]
       })
   });
 
@@ -428,7 +429,7 @@ export const hosts_f = (hosts, row) => {
 
 
   hosts_map.forEach((values, keys) => {
-    let url = build_host_to_scan_report_url(values.ip, values.scan_type, values.date);
+    let url = build_host_to_scan_report_url(values.ip, values.scan_type, values.date, values.epoch);
 
     if (values.is_ipv4) {
       label += `<li> <a href="${url}">${keys}</a></li>` ;
@@ -439,7 +440,7 @@ export const hosts_f = (hosts, row) => {
   return label;
 }
 
-const build_host_to_scan_report_url = (host, scan_type, date) => {
+const build_host_to_scan_report_url = (host, scan_type, date, epoch) => {
   const active_monitoring_url = `${http_prefix}/lua/vulnerability_scan.lua`;
 
   let params = {
@@ -447,7 +448,8 @@ const build_host_to_scan_report_url = (host, scan_type, date) => {
     scan_type: scan_type,
     scan_return_result: true,
     page: "show_result",
-    scan_date: date
+    scan_date: date,
+    epoch: epoch
 
   };
   let url_params = ntopng_url_manager.obj_to_url_params(params);
@@ -458,7 +460,7 @@ const build_host_to_scan_report_url = (host, scan_type, date) => {
 export const host_f = (host, row, ifid) => {
   let label = host;
   if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null)) {
-    let url = build_host_to_scan_report_url(host, row.scan_type, row.last_scan.time.replace(" ","_"));
+    let url = build_host_to_scan_report_url(host, row.scan_type, row.last_scan.time.replace(" ","_"), row.last_scan.epoch);
     label = `<a href="${url}">${host}</a>`;
   }
   return label;

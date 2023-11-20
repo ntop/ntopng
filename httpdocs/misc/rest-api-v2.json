@@ -41,6 +41,10 @@
     {
       "name": "Configurations",
       "description": "Everything about system configurations"
+    },
+    {
+      "name": "Vulnerability Scan",
+      "description": "Everything about vulnerability scan"
     }
   ],
   "schemes": [
@@ -1169,6 +1173,38 @@
         }
       }
     },
+    "/lua/pro/rest/v2/delete/vs/report.lua": {
+      "get": {
+        "tags": [
+          "Vulnerability Scan"
+        ],
+        "summary": "Delete a vulnerability scan report",
+        "description": "Delete a vulnerability scan report",
+        "operationId": "delete_vs_report",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Epoch of vulnerability scan report to delete",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+
     "/lua/pro/rest/v2/edit/device/exclusion.lua": {
       "get": {
         "tags": [
@@ -1426,6 +1462,45 @@
           },
           "-22": {
             "description": "SNMP_UNKNOWN_DEVICE"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/vs/report.lua": {
+      "get": {
+        "tags": [
+          "Vulnerability Scan"
+        ],
+        "summary": "Edit a Vulnerability Scan report",
+        "description": "Edit an existing Vulnerability Scan report",
+        "operationId": "edit_vs_report",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "Epoch of vulnerability scan report to edit",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "report_title",
+            "in": "query",
+            "description": "The new report name",
+            "required": true,
+            "type": "string"
+          }
+          
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
           }
         }
       }
@@ -5300,6 +5375,24 @@
           },
           "-3": {
             "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/vs/report_list.lua": {
+      "get": {
+        "tags": [
+          "Vulnerability Scan"
+        ],
+        "summary": "Get all vulnerability scan reports",
+        "description": "Get VS reports",
+        "operationId": "get_vs_report_list",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
           }
         }
       }

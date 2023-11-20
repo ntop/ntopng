@@ -4317,8 +4317,21 @@ local lang = {
         ["score"] = "Score",
         ["tcp_ports"] = "TCP Ports",
         ["tcp_udp_ports"] = "TCP/UDP Ports",
-        ["title"] = "Last Scan Report",
+        ["title"] = "Report",
         ["udp_ports"] = "UDP Ports",
+      },
+      ["reports_page"] = {
+        ["cves"] = "Num CVEs",
+        ["date"] = "Date",
+        ["delete_description"] = "Are you sure to remove the selected report? This action cannot be undone.",
+        ["delete_title"] = "Delete Report",
+        ["edit_report"] = "Edit Report",
+        ["name"] = "Name",
+        ["num_hosts"] = "Num Hosts",
+        ["reports"] = "Scan Reports",
+        ["tcp_ports"] = "Num TCP Ports",
+        ["udp_ports"] = "Num UDP Ports",
+        
       },
       ["scan_type_list"] = {
         ["cve"] = "CVE",

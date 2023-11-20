@@ -30,9 +30,9 @@ function format_num_for_sort(num) {
 /* Sort by Name */
 const sortByName = function(val_1, val_2, sort) {
   if (sort == 1) {
-    return val_1.localeCompare(val_2);
+    return val_1?.localeCompare(val_2);
   }
-  return val_2.localeCompare(val_1);
+  return val_2?.localeCompare(val_1);
 }
 
 /* ******************************************************************** */ 

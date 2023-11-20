@@ -59,6 +59,9 @@ const show = (type, value) => {
       show_note_list.value = true;
       title.value = i18n("scan_host_title");
       body.value = value;
+    } else if (type == "delete_single_report") {
+      title.value = i18n("hosts_stats.page_scan_hosts.reports_page.delete_title");
+      body.value = i18n("hosts_stats.page_scan_hosts.reports_page.delete_description");
     }
     
     modal_id.value.show();

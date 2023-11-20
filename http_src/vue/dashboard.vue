@@ -58,11 +58,6 @@
         <template v-if="enable_small_picker_actions">
         <button class="btn btn-link btn-sm"
                 type="button"
-                @click="show_open_report_modal" :title="_i18n('dashboard.open')">
-          <i class="fa-solid fa-folder-open"></i>
-        </button>
-        <button class="btn btn-link btn-sm"
-                type="button"
                 @click="download_report" :title="_i18n('download')">
           <i class="fa-solid fa-file-arrow-down"></i>
         </button>
@@ -410,7 +405,9 @@ function show_upload_report_modal() {
 
 function get_suggested_report_name() {
     let name = "report";
-    if (main_epoch_interval.value && 
+    if(props.context.page == "vs-report") {
+        name = props.context.title;
+    } else if (main_epoch_interval.value && 
         main_epoch_interval.value.epoch_end) {
         name += "-" + ntopng_utility.from_utc_to_server_date_format(main_epoch_interval.value.epoch_end * 1000, 'DD-MM-YYYY');
     }

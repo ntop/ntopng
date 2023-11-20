@@ -33,13 +33,14 @@ const title = ref('');
 const my_array = ref([]);
 
 
-async function get_result(host, scan_type, date) {
+async function get_result(host, scan_type, date, epoch) {
   
   loading.value = true;
   let params = {
     host: host,
     scan_type: scan_type,
-    scan_return_result: true
+    scan_return_result: true,
+    epoch: epoch
 
   };
   let url_params = ntopng_url_manager.obj_to_url_params(params);
@@ -68,7 +69,7 @@ async function get_result(host, scan_type, date) {
 /* ******************************************************************** */ 
 
 onBeforeMount(async () => {
-  await get_result(props.context.host, props.context.scan_type, props.context.date);
+  await get_result(props.context.host, props.context.scan_type, props.context.date, props.context.epoch);
 })
 
 

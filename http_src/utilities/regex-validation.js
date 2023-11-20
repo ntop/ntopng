@@ -11,6 +11,7 @@ const regexes = {
     comma_separted_port_regex: String.raw`^(\d{1,5})(,\s*\d{1,5})*$`,
     port_range_regex: String.raw`^(\d{1,5})-(\d{1,5})$`,
 	host_name: String.raw`^(?!\s*$)[a-zA-Z0-9._: \-\/]{1,250}|^[a-zA-Z0-9._: \-\/]{1,250}@[0-9]{0,5}`,
+    singleword: String.raw`^(?=[a-zA-Z0-9._:\-]{3,253}$)(?!.*[_.:\-]{2})[^_.:\-].*[^_.:\-]$`,
 }
 
 /* ****************************************************** */
@@ -47,6 +48,12 @@ const validateCommaSeparatedPortList = (ports) => {
     const port_list = new RegExp(regexes.comma_separted_port_regex);
 
     return port_list.test(ports);
+}
+
+const validateSingleWord = (word) => {
+    const singelWordRegex = new RegExp(regexes.singleword)
+
+    return singelWordRegex.test(word);
 }
 
 /* ****************************************************** */
@@ -111,6 +118,7 @@ const regexValidation = function () {
 		validateHostName,
         validateCommaSeparatedPortList,
         validatePortRange,
+        validateSingleWord,
     };
 }();
 
