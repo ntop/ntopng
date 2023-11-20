@@ -521,7 +521,7 @@ local function loadListItem(host, category, user_custom_categories, list, num_li
          loadWarning(string.format("Unsupported IPv6 address '%s' found in list '%s'", host, list.name))
       else
          -- Domain
-         if((not list) or (list.format ~= "ip")) then
+         if(list and list.format ~= "ip") then
             if not ntop.loadCustomCategoryHost(host, category, list.name) then
               loadWarning(string.format("Failure loading host '%s' category '%s' in list '%s'",  host, category, list.name))
             end
