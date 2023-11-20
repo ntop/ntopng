@@ -43,8 +43,8 @@ Paginator::Paginator() {
   /* int */
   max_hits = CONST_MAX_NUM_HITS;
   to_skip = 0;
-  l7proto_filter_master_proto = NDPI_PROTOCOL_UNKNOWN;
-  l7proto_filter_app_proto = NDPI_PROTOCOL_UNKNOWN;
+  l7proto_filter_master_proto = -1;
+  l7proto_filter_app_proto = -1;
   l7category_filter = -1;
   port_filter = 0;
   local_network_filter = CONST_MAX_NUM_NETWORKS + 1;

@@ -142,8 +142,9 @@ class Paginator {
 
   inline bool l7protoFilter(int *f_master_proto, int *f_app_proto) const {
     if ((l7proto_filter_master_proto >= 0) || (l7proto_filter_app_proto >= 0)) {
-      *f_master_proto = l7proto_filter_master_proto,
-      *f_app_proto = l7proto_filter_app_proto;
+      /* In this way, only if the filter is selected, the filter is applied */
+      *f_master_proto = (l7proto_filter_master_proto >= 0) ? l7proto_filter_master_proto : NDPI_PROTOCOL_UNKNOWN;
+      *f_app_proto = (l7proto_filter_app_proto >= 0) ? l7proto_filter_app_proto : NDPI_PROTOCOL_UNKNOWN;
       return true;
     }
 

@@ -4909,13 +4909,32 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     if (retriever->pag &&
         retriever->pag->l7protoFilter(&ndpi_proto_master_proto,
                                       &ndpi_proto_app_proto)) {
-      if (((ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN) ||
-           (ndpi_proto_master_proto ==
-            f->get_detected_protocol().master_protocol)) &&
-          ((ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN) ||
-           (ndpi_proto_app_proto == f->get_detected_protocol().app_protocol)))
-        ; /* We're good */
-      else
+      bool is_ok = false;
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+        "Filtering app protocol: %u, master protocol: %u | Flow app protocol: %u, master protocol: %u",
+        ndpi_proto_app_proto, ndpi_proto_master_proto,
+        f->get_detected_protocol().app_protocol,
+        f->get_detected_protocol().master_protocol);
+      /* We need a specific filter in case both protos are unknown */
+      if(ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN &&
+          ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN) {
+        if(
+            (ndpi_proto_master_proto == f->get_detected_protocol().master_protocol) &&
+            (ndpi_proto_app_proto == f->get_detected_protocol().app_protocol)
+          )
+          /* We're good */
+          is_ok = true;
+      } else {
+        if (((ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN) ||
+              (ndpi_proto_master_proto == f->get_detected_protocol().master_protocol)) &&
+            ((ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN) ||
+              (ndpi_proto_app_proto == f->get_detected_protocol().app_protocol))
+          )
+          /* We're good */
+          is_ok = true;
+      }
+
+      if(!is_ok)
         return (false);
     }
 
