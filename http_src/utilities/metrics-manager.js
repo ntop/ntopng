@@ -132,15 +132,17 @@ function get_timeseries(timeseries_url, metric) {
     let timeseries = [];
     ts_url_array.forEach((ts_url) => {
         let values = r.exec(ts_url);
-        let id = values[1];
-        let label = metric.timeseries[id].label;
-        let raw = JSON.parse(values[2]);
-        let past = JSON.parse(values[3]);
-        let avg = JSON.parse(values[4]);
-        let perc_95 = JSON.parse(values[5]);
-        timeseries.push({
-            id, label, raw, past, avg, perc_95,
-        });
+        if(values.length > 0) {
+            let id = values[1];
+            let label = metric.timeseries[id].label;
+            let raw = JSON.parse(values[2]);
+            let past = JSON.parse(values[3]);
+            let avg = JSON.parse(values[4]);
+            let perc_95 = JSON.parse(values[5]);
+            timeseries.push({
+                id, label, raw, past, avg, perc_95,
+            });    
+        }
     });
     return timeseries;
 }
