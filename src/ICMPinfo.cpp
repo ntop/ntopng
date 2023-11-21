@@ -100,25 +100,20 @@ void ICMPinfo::dissectICMP(u_int16_t const payload_len,
     icmp_type = payload_data[0], icmp_code = payload_data[1];
 
     if (icmp_type == ICMP_DEST_UNREACH && icmp_code == ICMP_PORT_UNREACH &&
-        payload_len >= sizeof(struct ndpi_iphdr)) {
-      struct ndpi_iphdr *icmp_port_unreach_ip =
-          (struct ndpi_iphdr *)&payload_data[8];
-      u_short icmp_port_unreach_iph_len =
-          (u_short)(icmp_port_unreach_ip->ihl * 4);
+        payload_len >= (sizeof(struct ndpi_iphdr) + 8)) {
+      struct ndpi_iphdr *icmp_port_unreach_ip = (struct ndpi_iphdr *)&payload_data[8];
+      u_short icmp_port_unreach_iph_len = (u_short)(icmp_port_unreach_ip->ihl * 4);
 
-      if (payload_len >=
-              icmp_port_unreach_iph_len + sizeof(struct ndpi_udphdr) &&
-          icmp_port_unreach_ip->protocol == IPPROTO_UDP &&
-          (unreach ||
-           (unreach = (unreachable_t *)calloc(1, sizeof(*unreach))))) {
-        struct ndpi_udphdr *icmp_port_unreach_udp =
-            (struct ndpi_udphdr *)&payload_data[8 + icmp_port_unreach_iph_len];
-
+      if ((payload_len >= (8 + icmp_port_unreach_iph_len + sizeof(struct ndpi_udphdr)))
+	  && (icmp_port_unreach_ip->protocol == IPPROTO_UDP)
+	  && (unreach || (unreach = (unreachable_t *)calloc(1, sizeof(*unreach))))) {
+        struct ndpi_udphdr *icmp_port_unreach_udp = (struct ndpi_udphdr *)&payload_data[8 + icmp_port_unreach_iph_len];
+	
         unreach->src_ip.set(icmp_port_unreach_ip->saddr),
-            unreach->dst_ip.set(icmp_port_unreach_ip->daddr),
-            unreach->src_port = icmp_port_unreach_udp->source,
-            unreach->dst_port = icmp_port_unreach_udp->dest,
-            unreach->protocol = icmp_port_unreach_ip->protocol;
+	  unreach->dst_ip.set(icmp_port_unreach_ip->daddr),
+	  unreach->src_port = icmp_port_unreach_udp->source,
+	  unreach->dst_port = icmp_port_unreach_udp->dest,
+	  unreach->protocol = icmp_port_unreach_ip->protocol;
       }
     } else if ((icmp_type == ICMP_ECHO || icmp_type == ICMP_ECHOREPLY ||
                 icmp_type == ICMP_TIMESTAMP ||
