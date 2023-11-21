@@ -13,7 +13,7 @@ local script = {
    default_enabled = true,
    hooks = {},
 
-   severity = alert_consts.get_printable_severities().critical,
+   severity = alert_consts.get_printable_severities().emergency,
 
    gui = {
       i18n_title        = "checks.no_if_activity_title",

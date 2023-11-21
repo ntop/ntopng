@@ -388,34 +388,34 @@ end
 
 -- ###############################################
 
-local function create_critical_notifications_toast(toast, message)
-    local title = i18n("critical_notifications")
+local function create_emergency_notifications_toast(toast, message)
+    local title = i18n("emergency_notifications")
     return toast_ui:new(toast.id, title, message, ToastLevel.INFO, nil, toast.dismissable)
 end
 
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
-function predicates.critical_recipient(toast, container)
+function predicates.emergency_recipient(toast, container)
     if not IS_ADMIN then
         return
     end
 
     -- check if ntopng is oem and the user is an Administrator
     local is_not_oem_and_administrator = IS_ADMIN and not info.oem
-    local message = i18n('check_critical_recipient', {
+    local message = i18n('check_emergency_recipient', {
         http_prefix = ntop.getHttpPrefix()
     })
-    local critical_recipient_configured = false
+    local emergency_recipient_configured = false
 
     for _, recipient in pairs(recipients.get_all_recipients()) do
-        if recipient.minimum_severity >= alert_severities.critical.severity_id then
-            critical_recipient_configured = true
+        if recipient.minimum_severity >= alert_severities.emergency.severity_id then
+            emergency_recipient_configured = true
             break
         end
     end
 
-    if is_not_oem_and_administrator and not isEmptyString(message) and not critical_recipient_configured then
-        table.insert(container, create_critical_notifications_toast(toast, message))
+    if is_not_oem_and_administrator and not isEmptyString(message) and not emergency_recipient_configured then
+        table.insert(container, create_emergency_notifications_toast(toast, message))
         return true
     end
 end
