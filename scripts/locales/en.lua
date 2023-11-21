@@ -4238,6 +4238,7 @@ local lang = {
       ["host_not_resolved"] = "host not found, please insert a valid host",
       ["host_placeholder"] = "IP",
       ["host_report"] = "Host (Scan Type) (Last Scan)",
+      ["inconsistency_state"] = "FOUND INCONSISTENCY, RESCANNING PORT",
       ["in_progress"] = "In Progress",
       ["ip_address"] = "IP Address",
       ["last_scan"] = "Last Scan",
