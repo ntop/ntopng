@@ -32,6 +32,41 @@ end
 
 local round = format_utils.round
 
+function format_utils.timeToSeconds(time)
+   if(isEmptyString(time)) then return 0 end
+
+   local seconds = 0
+   -- Remove the sec string at the end, e.g. 00:01 sec
+   local time_splitted = time:split(" ") or {}
+   if table.len(time_splitted) == 2 then
+      time_splitted = time_splitted[1]
+   else
+      time_splitted = time
+   end
+
+   local index = 1 -- represents which time we are analyzing, seconds, minutes, ecc.
+   -- Split by : to get days, hours, minutes and seconds
+   for _, time_in_string in pairsByKeys(time_splitted:split(":") or {}, rev) do
+      if index == 1 then
+         -- Seconds
+         seconds = seconds + tonumber(time_in_string)
+      elseif index == 2 then
+         -- Minutes
+         seconds = seconds + tonumber(time_in_string) * 60
+      elseif index == 3 then
+         -- Hours
+         seconds = seconds + tonumber(time_in_string) * 3600
+      elseif index == 4 then
+         -- Days
+         seconds = seconds + tonumber(time_in_string) * 86400
+      end
+
+      index = index + 1
+   end 
+
+   return seconds
+end
+
 function format_utils.secondsToTime(seconds)
    local seconds = tonumber(seconds)
    if(seconds == nil) then return "" end
