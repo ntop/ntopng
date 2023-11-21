@@ -101,7 +101,7 @@ local lang = {
   ["check_live"] = "Check Live",
   ["check_mirrored_traffic"] = "RX only traffic detected. Perhaps do you need to activate 'Mirrored Traffic' option in the <a href='/lua/if_stats.lua?ifid=%{id}&page=config'>Interface options</a>?",
   ["critical_notifications"] = "Critical Notifications",
-  ["check_critical_recipient"] = "No recipient configured for Critical Alerts, please <a href='%{http_prefix}/lua/admin/endpoint_notifications_list.lua?subdir=recipient'>configure</a> it to receive important notifications!",
+  ["check_critical_recipient"] = "No recipient configured for Critical Alerts (alerts with Critical severity), please <a href='%{http_prefix}/lua/admin/endpoint_notifications_list.lua?subdir=recipient'>configure</a> it to receive important notifications!",
   ["classification"] = "Traffic Classification",
   ["cli_port"] = "Cli Port",
   ["click_to_expand"] = "Click to expand",
