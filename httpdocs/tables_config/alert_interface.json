@@ -53,7 +53,7 @@
 	    "class": ["text-nowrap"]
 	},
 	{
-	    "title_i18n": "culprit",
+	    "title_i18n": "interface",
 	    "data_field": "subtype",
 	    "sortable": true,
 	    "render_type": "formatSubtype",
