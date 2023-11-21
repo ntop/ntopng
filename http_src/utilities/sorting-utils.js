@@ -25,6 +25,18 @@ function format_num_for_sort(num) {
   return num;
 }
 
+// max number value for sort number with normalize option 
+// for cases: last scan and last duration column to handle empty values
+const MAX_NUMBER_VALUE = 99999999999;
+
+const normalize_number_value = function(lower_value, val, sort) {
+  if (val == lower_value) {
+    if (sort == 1) {
+      val = MAX_NUMBER_VALUE;
+    }
+  }    
+  return val; 
+}
 /* ******************************************************************** */ 
 
 /* Sort by Name */
@@ -63,11 +75,22 @@ const sortByNumber = function(val_1, val_2, sort) {
 
 /* ******************************************************************** */ 
 
+/* Sort by Number after values normalization */
+const sortByNumberWithNormalizationValue = function(val_1, val_2, sort, lower_value) {
+  val_1 = normalize_number_value(lower_value, val_1, sort);
+  val_2 = normalize_number_value(lower_value, val_2, sort);
+
+  return sortByNumber(val_1,val_2,sort);
+}
+
+/* ******************************************************************** */ 
+
 const sortingFunctions = function () {
   return {
     sortByIP,
     sortByName,
     sortByNumber,
+    sortByNumberWithNormalizationValue,
   };
 }();
 
