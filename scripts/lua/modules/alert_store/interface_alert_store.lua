@@ -114,7 +114,10 @@ function interface_alert_store:format_record(value, no_html)
    local msg = alert_utils.formatAlertMessage(interface.getId(), value, alert_info)
 
    record[RNAME.ALERT_NAME.name] = alert_name
-   record[RNAME.SUBTYPE.name] = subtype
+   record[RNAME.SUBTYPE.name] = {
+      value = subtype,
+      name = getHumanReadableInterfaceName(subtype)
+   }
 
    if string.lower(noHtml(msg)) == string.lower(noHtml(alert_name)) then
       msg = ""

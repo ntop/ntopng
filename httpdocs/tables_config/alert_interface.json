@@ -56,7 +56,7 @@
 	    "title_i18n": "interface",
 	    "data_field": "subtype",
 	    "sortable": true,
-	    "render_type": "formatSubtype",
+	    "render_type": "formatSubtypeValueLabel",
 	    "class": ["text-nowrap"]
 	},
 	{

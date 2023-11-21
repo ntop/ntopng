@@ -861,39 +861,16 @@ export class DataTableRenders {
         return `${active_ref} ${cliLabel}${cliBlacklisted}${cliFlagLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvBlacklisted}${srvFlagLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
     }
 
+    static formatSubtypeValueLabel(obj, type, row, zero_is_null) {
+        if (type !== "display") return obj.name;
+        let msg = DataTableRenders.filterize('subtype', obj.value, obj.name, obj.fullname, obj.fullname);
+
+        return msg;
+    }
+
     static formatNameDescription(obj, type, row, zero_is_null) {
         if (type !== "display") return obj.name;
         let msg = DataTableRenders.filterize('alert_id', obj.value, obj.name, obj.fullname, obj.fullname);
-
-        /* DECIDED NOT TO SHOW SHORTENED DESCRIPTIONS IN THE ALERT COLUMNS
-        if(obj.description) {
-           const strip_tags = function(html) { let t = document.createElement("div"); t.innerHTML = html; return t.textContent || t.innerText || ""; }
-           let desc = strip_tags(obj.description);
-           if(desc.startsWith(obj.name)) desc = desc.replace(obj.name, "");
-           let name_len = strip_tags(obj.name).length;
-           let desc_len = desc.length;
-           let total_len = name_len + desc_len;
-           let tooltip = ""
-
-           let limit = 30; // description limit
-           if (row.family != 'flow') {
-             limit = 50; // some families have room for bigger descriptions
-           }
-
-           if (total_len > limit) { // cut and set a tooltip
-             if (name_len >= limit) {
-               desc = ""; // name is already too long, no description
-             } else { // cut the description
-               desc = desc.substr(0, limit - obj.name.length);
-               desc = desc.replace(/\s([^\s]*)$/, ''); // word break
-               desc = desc + '&hellip;'; // add '...'
-             }
-             tooltip = strip_tags(obj.description);
-           }
-
-           msg = msg + ': <span title="' + tooltip + '">' + desc + '</span>';
-        }
-        */
 
         return msg;
     }

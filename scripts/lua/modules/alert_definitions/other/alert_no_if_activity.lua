@@ -49,7 +49,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_no_if_activity.format(ifid, alert, alert_type_params)
-  return(i18n("checks.no_activity_description", { ifname = alert_type_params.ifname_no_activity }))
+  return(i18n("checks.no_activity_description", { ifname = getHumanReadableInterfaceName(alert_type_params.ifname_no_activity) }))
 end
 
 -- #######################################################
