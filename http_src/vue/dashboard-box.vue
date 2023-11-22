@@ -5,26 +5,23 @@ ntopng_utility.from_utc_to_server_date_format(epoch_begin * 1000, 'DD/MM/YYYY HH
 <template>
   <div :class="width_class" class="widget-box-main-dashboard">
     <div :class="height_class" class="widget-box" style="position:relative;">
-        
       <!-- title -->
       <slot name="box_title"></slot>
 
-      <!-- content -->  
+      <!-- content -->
       <slot name="box_content"></slot>
 
       <!-- footer -->
       <div class="mb-1 me-3" style="position:absolute;bottom:0px;right:0px;">
         <slot name="box_footer"></slot>
       </div>
-
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
-import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_events_manager } from "../services/context/ntopng_globals_services";
-  
+import { ref, computed } from "vue";
+
 const props = defineProps({
   color: String,
   width: Number,
@@ -32,20 +29,18 @@ const props = defineProps({
 });
 
 const width_class = computed(() => {
-    return `col-${props.width || 4}`;
+  return `col-${props.width || 4}`;
 });
 
 const height_class = computed(() => {
-    let color_class = ``;
+  let color_class = ``;
 
-    if (props.color) {
-        /* Accepted colors: primary, secondary, success, danger, warning, info, light, dark, white */
-        color_class = `bg-${props.color}`;
-    }
+  if (props.color) {
+    /* Accepted colors: primary, secondary, success, danger, warning, info, light, dark, white */
+    color_class = `bg-${props.color}`;
+  }
 
-    return `row-${props.height || 4} ${color_class}`;
+  return `row-${props.height || 4} ${color_class}`;
 });
 </script>
 
-<style scoped>
-</style>

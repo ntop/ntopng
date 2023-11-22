@@ -208,7 +208,7 @@ export const ntopng_utility = function() {
 	    if (params.csrf == null) {
 		throw `NULL csrf in ${url} POST request.`;
 	    }
-	    return this.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+	    return this.http_request(url, { method: 'post', headers, body: JSON.stringify(params) }, throw_exception, not_unwrap);
 	},
 	http_request: async function(url, options, throw_exception, not_unwrap) {
 	    try {
@@ -225,13 +225,13 @@ export const ntopng_utility = function() {
 		    };
 		}
 		let res = await fetch(url, options);
-		if (res.ok == false) {
+		if (res.ok === false) {
 		    console.error(`http_request ${url}\n ok == false`);
 		    console.error(res);
 		    return null;
 		}
 		let json_res = await res.json();
-		if (not_unwrap == true) { return json_res; }
+		if (not_unwrap === true) { return json_res; }
 		return json_res.rsp;
 	    } catch (err) {
 		console.error(err);
