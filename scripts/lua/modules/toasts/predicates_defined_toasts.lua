@@ -573,6 +573,24 @@ function predicates.hosts_geomap(toast, container)
     end
 end
 
+--- @param toast table The toast is the logic model defined in defined_toasts
+--- @param container table Is the table where to put the new toast ui
+function predicates.vulnerability_scan(toast, container)
+
+    if not IS_ADMIN then
+        return
+    end
+
+    local is_clickhouse_enable = ntop.isClickHouseEnabled()
+    if (not is_clickhouse_enable) then
+
+        local body = i18n("hosts_stats.page_scan_hosts.enable_clickhouse_toast_label", {
+            link = "https://www.ntop.org/guides/ntopng/vulnerability_scan/index.html#scan-reports"
+        })
+        table.insert(container, toast_ui:new(toast.id, i18n("info"),body,
+            ToastLevel.INFO, nil, toast.dismissable))
+    end
+end
 --- This is a simple placeholder for new toasts
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui

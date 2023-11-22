@@ -199,15 +199,19 @@ function vs_db_utils.edit_report(epoch, report_name)
     return(interface.execSQLQuery(sql))
 end
 
-function vs_db_utils.update_last_result(scan_result, scan_type, host, epoch)
+function vs_db_utils.update_last_result(scan_result, scan_type, host, epoch, last_port)
     local db_current_scan_result = vs_db_utils.retrieve_scan_result(scan_type,host,epoch)
 
     scan_result = scan_result:gsub("%'","|")
 
-    local merged_results = string.format("%s\n\n%s\n%s",db_current_scan_result,i18n("hosts_stats.page_scan_hosts.inconsistency_state"),scan_result)
+    local merged_results = vs_db_utils.get_updated_vs_result(db_current_scan_result, scan_result, last_port)
     
     local sql = string.format("ALTER TABLE %s UPDATE VS_RESULT_FILE = '%s' WHERE HOST = '%s' AND SCAN_TYPE = '%s' AND LAST_SCAN = %u;",data_table_name,merged_results,host,scan_type, tonumber(epoch))
     return(interface.execSQLQuery(sql))
+end
+
+function vs_db_utils.get_updated_vs_result(current_gloal_result, last_single_scan, last_port)
+    return(string.format("%s\n\n%s\n%s",current_gloal_result,i18n("hosts_stats.page_scan_hosts.inconsistency_state", {port =last_port}),last_single_scan))
 end
 -- ####################################################################################
 
