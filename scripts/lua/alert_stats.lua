@@ -812,7 +812,7 @@ end
 local alert_details_url = ntop.getHttpPrefix().."/lua/alert_details.lua"
 
 -- ClickHouse enabled, redirect to the pro details page
-if ((page == 'host') or (page == 'flow')) and 
+if ((page == 'host') or (page == 'flow') or (page =='am_host')) and 
     ntop.isEnterpriseM() and 
     hasClickHouseSupport() then
   alert_details_url = ntop.getHttpPrefix().."/lua/pro/db_flow_details.lua"
@@ -873,7 +873,7 @@ local datatable = {
    endpoint_acknowledge = endpoint_acknowledge,
    refresh_rate = refresh_rate,
    actions = {
-       disable = (page ~= "host" and page ~= "flow")
+       disable = (page ~= "host" and page ~= "flow" and page ~= 'am_host')
    },
 }
 

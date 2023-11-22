@@ -107,7 +107,8 @@ local RNAME = {
    MEASURE_THRESHOLD = { name = "measure_threshold", export = true},
    MEASURE_VALUE = { name = "measure_value", export = true},
    DESCRIPTION = { name = "description", export = true},
-   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
+   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}},
+   LINK_TO_PAST_FLOWS = { name = "link_to_past_flows", export = true},
 }
 
 function am_alert_store:get_rnames()
@@ -146,7 +147,10 @@ function am_alert_store:format_record(value, no_html)
    end
 
    record[RNAME.DESCRIPTION.name] = msg
-
+   if (not isEmptyString(alert_info.host)) then
+      local tmp_table = table.merge(value,{ip = alert_info.host})
+      record[RNAME.LINK_TO_PAST_FLOWS.name] = alert_utils.getLinkToPastFlows(ifid, tmp_table, alert_info)
+   end
    record[RNAME.MSG.name] = {
      name = noHtml(alert_name),
      fullname = alert_fullname,
