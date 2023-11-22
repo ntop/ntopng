@@ -34,8 +34,12 @@ end
 function Alert:set_info(params)
     local alert_consts = require "alert_consts"
     local script = params.check
-    if (not self.score or self.score == 0) then
+    if (not self.score or self.score == 0) and (script) then
         self.score = ntop.mapSeverityToScore(script.severity.severity_id or 0 --[[ no score ]] )
+    elseif (script == nil) then
+        self.score = ntop.mapSeverityToScore(0 --[[ no score ]])
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("No script detected for entity %s, granularity: %s", params.entity_info.name, params.granularity))
+        tprint(debug.traceback())
     end
 
     if params.entity_info then
