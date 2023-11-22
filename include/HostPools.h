@@ -67,7 +67,6 @@ class HostPools {
   HostPools(NetworkInterface *_iface);
   virtual ~HostPools();
 
-  void dumpToRedis();
   void reloadPools();
   u_int16_t getPool(Host *h);
   u_int16_t getPool(Mac *m);
