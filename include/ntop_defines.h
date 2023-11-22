@@ -227,6 +227,7 @@
 #define ASSET_SERVICE_KEY "ntopng.asset.%d.%s" /* ifId.host */
 #define DHCP_STORM_PPS_THSHOLD 2048
 #define NTOPNG_TRACE "ntopng.trace"
+#define ALERT_TRACE_ERRORS "ntopng.trace_error.alert_queue"
 #define TRACES_PER_LOG_FILE_HIGH_WATERMARK 10000
 #define MAX_NUM_NTOPNG_LOG_FILES 5
 #define MAX_NUM_NTOPNG_TRACES 32
@@ -1514,6 +1515,7 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
   "scripts/callbacks/checks/flows/custom_flow_end_script.lua"
 
 #define OFFLINE_LOCAL_HOSTS_KEY "ntopng.hosts.offline.ifid_%d"
+
 /******************************************************************************/
 
 #endif /* _NTOP_DEFINES_H_ */

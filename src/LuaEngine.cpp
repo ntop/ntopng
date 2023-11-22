@@ -465,6 +465,10 @@ static int ntop_lua_xfile(lua_State *L, bool ex) {
   if (ret && (!lua_isnil(L, -1))) {
     const char *msg = lua_tostring(L, -1);
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure %s", msg);
+    if(ntop->getRedis()) {
+      /* Push the alert into this queue, used by the alert */
+      ntop->getRedis()->lpush(ALERT_TRACE_ERRORS, msg, 0 /* No Trim */);
+    }
   }
 
   return !ret;
@@ -645,8 +649,10 @@ int LuaEngine::run_loaded_script() {
     if (lua_type(L, -1) == LUA_TSTRING) {
       const char *err = lua_tostring(L, -1);
 
-      if(err)
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", err);
+      if(err) {
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", err);
+        ntop->getRedis()->lpush(ALERT_TRACE_ERRORS, err, 0 /* No Trim */);   
+      }
     }
 
     rv = -2;
