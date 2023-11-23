@@ -4910,12 +4910,13 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
         retriever->pag->l7protoFilter(&ndpi_proto_master_proto,
                                       &ndpi_proto_app_proto)) {
       bool is_ok = false;
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
+
+/*      ntop->getTrace()->traceEvent(TRACE_WARNING,
         "Filtering app protocol: %u, master protocol: %u | Flow app protocol: %u, master protocol: %u",
         ndpi_proto_app_proto, ndpi_proto_master_proto,
         f->get_detected_protocol().app_protocol,
         f->get_detected_protocol().master_protocol);
-      /* We need a specific filter in case both protos are unknown */
+*/    /* We need a specific filter in case both protos are unknown */
       if(ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN &&
           ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN) {
         if(
