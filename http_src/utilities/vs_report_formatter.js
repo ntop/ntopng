@@ -170,6 +170,10 @@ export const is_ok_last_scan_f = (is_ok_last_scan) => {
     // error
     label = i18n("hosts_stats.page_scan_hosts.error");
     return `<span class="badge bg-danger" title="${label}">${label}</span>`;
+  } else if (is_ok_last_scan == 5) {
+    // warning -> failed
+    label = i18n("hosts_stats.page_scan_hosts.failed");
+    return `<span class="badge bg-warning" title="${label}">${label}</span>`;
   } 
 }
 
@@ -459,9 +463,13 @@ const build_host_to_scan_report_url = (host, scan_type, date, epoch) => {
 
 export const host_f = (host, row, ifid) => {
   let label = host;
-  if (row.is_ok_last_scan == 1 && (row.last_scan != null && row.last_scan.time != null)) {
+  let host_not_reachable = row.is_ok_last_scan == 5 && row.is_down != null && row.is_down == true;
+  if ((row.is_ok_last_scan == 1 || host_not_reachable) && (row.last_scan != null && row.last_scan.time != null)) {
     let url = build_host_to_scan_report_url(host, row.scan_type, row.last_scan.time.replace(" ","_"), row.last_scan.epoch);
     label = `<a href="${url}">${host}</a>`;
+    if (host_not_reachable) {
+      label = `<a href="${url}">${host} <i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> </a>`;
+    }
   }
   return label;
 }
