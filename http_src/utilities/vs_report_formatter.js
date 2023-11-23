@@ -52,7 +52,7 @@ export const columns_formatter = (columns, scan_type_list, is_report, ifid) => {
         b.f_map_class = (current_class, row) => { 
           current_class = current_class.filter((class_item) => class_item != "link-disabled");
           // FIX ME with UDP ports check
-          if((row.is_ok_last_scan == 0 || row.is_ok_last_scan == 3 || row.is_ok_last_scan == null || (row.tcp_ports < 1 && row.udp_ports < 1) || (row.last_scan == null || ((row.last_scan != null && row.last_scan.time == null))) ) && visible_dict[b.id]) {
+          if((row.is_ok_last_scan == 3 || row.is_ok_last_scan == null || (row.last_scan == null || ((row.last_scan != null && row.last_scan.time == null))) ) && visible_dict[b.id]) {
             current_class.push("link-disabled"); 
           }
           return current_class;
@@ -113,7 +113,7 @@ export const scan_type_f = (scan_type, row, scan_type_list) => {
 }
 
 export const last_scan_f = (last_scan, row) => {
-  if (row.is_ok_last_scan == 3 || row.is_ok_last_scan == 0) {
+  if (row.is_ok_last_scan == 3) {
     return ``;
   }
   if (last_scan !== undefined && last_scan.time !== undefined) {
@@ -126,7 +126,7 @@ export const last_scan_f = (last_scan, row) => {
 } 
 
 export const duration_f = (last_scan, row) => {
-  if (row.is_ok_last_scan == 3 || row.is_ok_last_scan == 0) {
+  if (row.is_ok_last_scan == 3 ) {
     return ``;
   }
   if (row.last_scan !== undefined && row.last_scan.duration !== undefined) {
