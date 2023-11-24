@@ -187,7 +187,14 @@ const href_download_records = computed(() => {
 });
 
 let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
-const chart_type = ntopChartApex.typeChart.TS_COLUMN;
+const chart_type = computed(() => {
+    //TODO: set chart_type in context when we are in top chart
+    if (props.context?.chart_type == "top") {
+        return ntopChartApex.typeChart.TS_LINE;
+    }
+    return ntopChartApex.typeChart.TS_COLUMN;
+});
+
 const top_table_array = ref([]);
 const top_table_dropdown_array = ref([]);
 
