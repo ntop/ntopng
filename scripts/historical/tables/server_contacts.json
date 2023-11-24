@@ -5,6 +5,13 @@
 	"chart" : [],
 	"show_in_page" : "overview",
 	"hourly": true,
+	"chart" : [{
+		"chart_id" : "server_contacts",
+		"chart_type" : "topk-timeseries",
+		"params" : {
+			"count" : "total_bytes"
+		}
+	}],
 	"visualization_type" : "table",
 	"select" : {
 		"items" : [

@@ -8,7 +8,7 @@
 		"chart_id" : "server_ports",
 		"chart_type" : "topk-timeseries",
 		"params" : {
-			"count" : "TOTAL_BYTES"
+			"count" : "count"
 		}
 	}],
 	"visualization_type" : "table",
