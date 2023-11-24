@@ -8,7 +8,7 @@
 		"chart_id" : "conversations",
 		"chart_type" : "topk-timeseries",
 		"params" : {
-			"count" : "total_bytes"
+			"count" : "TOTAL_BYTES"
 		}
 	}],
 	"visualization_type" : "table",
