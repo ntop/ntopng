@@ -4291,7 +4291,9 @@ local lang = {
       ["vulnerability_scan_reports"] = "Vulnerability Scan Reports",
       ["weekly"] = "Weekly",
       ["email"] = {
-        ["discrepancy"] = "<br>Found some discrepancy with respect to the previous scan.</br><br> %{new_ports_open} new ports open, %{cves_fixed} CVEs fixed.</br><br> %{hosts_discrepancy_details}</br>",
+        ["discrepancy"] = "<br>Found some discrepancy with respect to the previous scan.</br><br> %{new_ports_open} new ports open, %{cves_fixed} CVEs fixed.</br><p><ul style='list-style-type: none;'>%{hosts_discrepancy_details}</ul></p>",
+        ["host_cve_discrepancy_description"] = "<li>Host %{host_id} has solved these CVEs: %{cves}.</li>",
+        ["host_port_discrepancy_description"] = "<li>Host %{host_id} has these %{port_type} ports open: %{ports}.</li>",
         ["no_cves"] = "no CVEs",
         ["no_scanned_hosts"] = "No hosts scanned.",
         ["no_tcp"] = "no TCP open ports",
