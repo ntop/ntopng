@@ -3,8 +3,15 @@
 	"i18n_name" : "server_ports",
 	"data_source" : "flows",
 	"show_in_page" : "overview",
-	"visualization_type" : "table",
 	"hourly": true,
+	"chart" : [{
+		"chart_id" : "server_ports",
+		"chart_type" : "topk-timeseries",
+		"params" : {
+			"count" : "TOTAL_BYTES"
+		}
+	}],
+	"visualization_type" : "table",
 	"select" : {
 		"items" : [
 			{

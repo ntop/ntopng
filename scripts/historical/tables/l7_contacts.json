@@ -2,6 +2,8 @@
 	"name" : "L7 Contacts",
 	"i18n_name" : "l7_contacts",
 	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"hourly": true,
 	"chart" : [{
 		"chart_id" : "l7_contacts",
 		"chart_type" : "histogram",
@@ -11,8 +13,6 @@
 			"limit" : 10
 		}
 	}],
-	"show_in_page" : "overview",
-	"hourly": true,
 	"visualization_type" : "table",
 	"select" : {
 		"items" : [
