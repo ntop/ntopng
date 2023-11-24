@@ -188,8 +188,8 @@ const href_download_records = computed(() => {
 
 let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
 const chart_type = computed(() => {
-    //TODO: set chart_type in context when we are in top chart
-    if (props.context?.chart_type == "top") {
+    /* Chart type defined the json template (defaults in db_search.lua) */
+    if (props.context?.chart_type == "topk-timeseries") {
         return ntopChartApex.typeChart.TS_LINE;
     }
     return ntopChartApex.typeChart.TS_COLUMN;

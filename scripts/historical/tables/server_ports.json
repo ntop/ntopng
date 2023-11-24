@@ -2,7 +2,7 @@
 	"name" : "Server Ports",
 	"i18n_name" : "server_ports",
 	"data_source" : "flows",
-    "show_in_page" : "overview",
+	"show_in_page" : "overview",
 	"visualization_type" : "table",
 	"hourly": true,
 	"select" : {

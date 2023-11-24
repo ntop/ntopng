@@ -4,7 +4,7 @@
 	"data_source" : "flows",
 	"chart" : [{
 		"chart_id" : "l7_contacts",
-		"chart_type" : "timeseries_area_chart",
+		"chart_type" : "histogram",
 		"params" : {
 			"count" : "TOTAL_BYTES",
 			"groupby" : "L7_PROTO",
