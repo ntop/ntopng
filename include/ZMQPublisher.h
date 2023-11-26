@@ -21,6 +21,8 @@
 #ifndef _ZMQ_PUBLISHER_H_
 #define _ZMQ_PUBLISHER_H_
 
+#ifdef HAVE_ZMQ
+
 class ZMQPublisher {
  private:
   void *context; /**< ZMQ context */
@@ -41,5 +43,7 @@ class ZMQPublisher {
   inline bool sendIPSMessage(char *msg)     { return (sendMessage("ips", msg)); }
   inline bool sendControlMessage(char *msg) { return (sendMessage("message", msg)); }
 };
+
+#endif /* HAVE_ZMQ */
 
 #endif /* _ZMQ_PUBLISHER_H_ */

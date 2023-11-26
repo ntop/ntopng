@@ -16,6 +16,8 @@
 
 #ifndef HAVE_NEDGE
 
+#ifdef HAVE_ZMQ
+
 class ZMQUtils {
  private:
 
@@ -31,5 +33,6 @@ class ZMQUtils {
 #endif
 };
 
+#endif /* HAVE_ZMQ */
 #endif /* HAVE_NEDGE */
 #endif /* _ZMQ_UTILS_H_ */
