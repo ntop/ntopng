@@ -1036,34 +1036,8 @@ else
                 
                 print('<tr><th><a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=show_result&scan_date='..host_vulnerabilities.last_scan.time..'&host='..host_vulnerabilities.host..'&scan_type='..host_vulnerabilities.scan_type..'">'.. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. '</a></th>')
                 print("<td colspan=2>")
-                local i = 0
-                for _,vs in ipairs(host_vulnerabilities.cve) do
-                    if (i<5) then
-                        
-                        local cve_details = split(vs,"|")
-                        local cve_score = tonumber(cve_details[2])
-                        local cve_id = cve_details[1]
-
-                        local badge_type = "";
-                        if (cve_score == 0) then
-                            badge_type = "bg-success";
-                        elseif(cve_score < 3.9) then
-                            badge_type = "bg-secondary";
-                        elseif(cve_score < 7) then
-                            badge_type = "bg-warning";
-                        else
-                            badge_type = "bg-danger";
-                        end
-
-                        local url = cve_utils.getDocURL(cve_id, host_vulnerabilities.scan_type)
-                        
-                        print('<a href='..url..'><span class="badge '..badge_type..'">'..cve_id..' </span></a> ')
-                    else
-                        print('...')
-                        break 
-                    end
-                    i = i + 1
-                end
+                cve_utils.getFirst5(host_vulnerabilities.cve,host_vulnerabilities.scan_type, true)
+                
 
             elseif (host_vulnerabilities ~= nil and (host_vulnerabilities.num_vulnerabilities_found == nil or host_vulnerabilities.num_vulnerabilities_found == 0)) then
                 print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. "</th>")
