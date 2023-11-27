@@ -444,7 +444,7 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTimex
+`user_label_tstamp` DateTime
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `system_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
