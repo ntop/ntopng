@@ -986,8 +986,22 @@ function tag_utils.get_tag_info(id, entity)
 
     elseif tag.value_type == "probe_ip" then
         filter.options = {}
+        -- Add both Flow devices
         if interface.getFlowDevices then -- Pro Only
             for interface, device_list in pairs(interface.getFlowDevices() or {}) do
+                for probe, _ in pairsByValues(device_list or {}, asc) do
+                    local probe_name = getProbeName(probe)
+                    -- local label = format_name_value(probe_name, probe)
+                    filter.options[#filter.options + 1] = {
+                        value = probe,
+                        label = probe_name
+                    }
+                end
+            end   
+        end
+        -- And sFlow devices
+        if interface.getSFlowDevices then -- Pro Only
+            for interface, device_list in pairs(interface.getSFlowDevices() or {}) do
                 for probe, _ in pairsByValues(device_list or {}, asc) do
                     local probe_name = getProbeName(probe)
                     -- local label = format_name_value(probe_name, probe)
