@@ -37,7 +37,8 @@ const props = defineProps({
     max_width: Number,   /* Component Width (4, 8, 12) */
     max_height: Number,  /* Component Hehght (4, 8, 12)*/
     params: Object,      /* Component-specific parameters from the JSON template definition */
-    get_component_data: Function /* Callback to request data (REST) */
+    get_component_data: Function, /* Callback to request data (REST) */
+    filters: Object
 });
 
 const columns = computed(() => {
@@ -62,9 +63,9 @@ const columns = computed(() => {
 });
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
-watch(() => [props.epoch_begin, props.epoch_end], (cur_value, old_value) => {
+watch(() => [props.epoch_begin, props.epoch_end, props.filters], (cur_value, old_value) => {
     refresh_table();
-}, { flush: 'pre'});
+}, { flush: 'pre', deep: true });
 
 onBeforeMount(() => {
     init();
@@ -177,7 +178,8 @@ async function refresh_table() {
      ifid: props.ifid,
      epoch_begin: props.epoch_begin,
      epoch_end: props.epoch_end,
-     ...props.params.url_params
+     ...props.params.url_params,
+        ...props.filters
   }
   const query_params = ntopng_url_manager.obj_to_url_params(url_params);
  

@@ -23,6 +23,14 @@
                         @select_option="select_report_template">
                     </SelectSearch>
                 </div>
+
+                <template v-for="(filter_options, filter_id) in available_filters">
+                    <div class="me-2">
+                        <SelectSearch v-model:selected_option="selected_filters[filter_id]" :options="filter_options"
+                            @select_option="select_filter(selected_filters[filter_id], filter_id)">
+                        </SelectSearch>
+                    </div>
+                </template>
             </template>
             <template v-slot:extra_buttons>
                 <button class="btn btn-link btn-sm" type="button" @click="show_store_report_modal"
@@ -88,13 +96,13 @@
                         </div>
                     </template>
                     <template v-slot:box_content>
-                        <Loading v-if="loading" :styles="'margin-top: 2rem !important;'"></Loading>
-                        <div :class="[(loading) ? 'ntopng-gray-out' : '']">
+                        <Loading v-if="loading && show_loading" :styles="'margin-top: 2rem !important;'"></Loading>
+                        <div :class="[(loading && show_loading) ? 'ntopng-gray-out' : '']">
                             <component :is="components_dict[c.component]" :id="c.component_id"
                                 :style="component_custom_style(c)" :epoch_begin="c.epoch_begin" :epoch_end="c.epoch_end"
                                 :i18n_title="c.i18n_name" :ifid="c.ifid ? c.ifid : context.ifid" :max_width="c.width"
                                 :max_height="c.height" :params="c.params" :get_component_data="get_component_data_func(c)"
-                                :csrf="context.csrf">
+                                :csrf="context.csrf" :filters="c.filters">
                             </component>
                         </div>
                     </template>
@@ -139,7 +147,7 @@ import { default as PieComponent } from "./dashboard-pie.vue";
 import { default as TimeseriesComponent } from "./dashboard-timeseries.vue";
 import { default as SankeyComponent } from "./dashboard-sankey.vue";
 import { default as SelectSearch } from "./select-search.vue";
-import { default as Dropdown } from "./dropdown.vue"
+import { default as dataUtils } from "../utilities/data-utils";
 
 const _i18n = (t) => i18n(t);
 const timeframes_dict = ntopng_utility.get_timeframes_dict();
@@ -159,7 +167,7 @@ const components_dict = {
 
 const loading = ref(true);
 const page_id = "page-dashboard";
-const default_ifid = props.context.ifid;
+const show_loading = props.context.show_loading || false;
 const report_box = ref(null);
 
 const modal_store_report = ref(null);
@@ -169,6 +177,8 @@ const modal_upload_report = ref(null);
 const main_epoch_interval = ref(null);
 
 const components = ref([]);
+const selected_filters = ref({});
+const available_filters = ref({});
 
 const reports_templates = ref([]);
 const selected_report_template = ref({});
@@ -308,6 +318,14 @@ function start_dashboard_refresh_loop() {
     }, loop_interval);
 }
 
+function set_components_filter(filter_id, filter_value) {
+    if (filter_value) { filter_value = filter_value + ";eq"; }
+    ntopng_url_manager.set_key_to_url(filter_id, filter_value);
+    components.value.forEach((c, i) => {
+        update_component_filters(c, filter_id, filter_value);
+    });
+}
+
 function set_components_epoch_interval(epoch_interval) {
     if (epoch_interval) {
         main_epoch_interval.value = epoch_interval;
@@ -315,6 +333,30 @@ function set_components_epoch_interval(epoch_interval) {
 
     components.value.forEach((c, i) => {
         update_component_epoch_interval(c, epoch_interval);
+    });
+}
+
+/* This function loads the filters */
+async function load_filters(filters_available) {
+    const res = await ntopng_utility.http_request(`${props.context.report_filters_endpoint}`);
+    filters_available.forEach((element) => {
+        const id = element?.name || "";
+        const filter_options = res.find((el) => el.id == id)?.options;
+        /* Check the filters available, if no filter or only 1 filter is provided, hide the dropdown */
+        if (filter_options && filter_options.length > 1) {
+            let all_label = i18n('db_search.all.' + id)
+            if(dataUtils.isEmptyOrNull(all_label)) {
+                all_label = i18n('all') + " " + i18n('db_search.' + id);
+            }
+            /* Add the 'All' filter */
+            filter_options.unshift({
+                value: null,
+                label: all_label
+            });
+            /* To be safe, add a default name */
+            available_filters.value[id] = filter_options;
+            selected_filters.value[id] = filter_options[0];
+        }
     });
 }
 
@@ -328,11 +370,13 @@ async function load_components(epoch_interval, template_name) {
         .map((c, index) => {
             let c_ext = {
                 component_id: get_component_id(c.id, index),
+                filters: {},
                 ...c
             };
             update_component_epoch_interval(c_ext, epoch_interval);
             return c_ext;
         });
+    load_filters(res.filters)
     await nextTick();
 }
 
@@ -345,6 +389,14 @@ function update_component_epoch_interval(c, epoch_interval) {
     const utc_offset = timeframes_dict[c.time_offset] || 0;
     c.epoch_begin = epoch_interval.epoch_begin - utc_offset;
     c.epoch_end = epoch_interval.epoch_end - utc_offset;
+}
+
+function update_component_filters(c, filter_id, filter_value) {
+    c.filters[filter_id] = filter_value;
+}
+
+function select_filter(option, filter_id) {
+    set_components_filter(filter_id, option.value);
 }
 
 function select_report_template() {
@@ -611,7 +663,6 @@ function set_report_title() {
 /* Callback to request REST data from components */
 function get_component_data_func(component) {
     const get_component_data = async (url, url_params, post_params) => {
-
         let info = {};
         if (data_from_backup) {
             if (!components_info[component.component_id]) { /* Safety check */

@@ -1896,6 +1896,9 @@ local lang = {
     ["vlan_id"] = "VLAN Id",
   },
   ["db_search"] = {
+    ["all"] = {
+      ["probe_ip"] = "All Flow Exporters",
+    },
     ["alert_category"] = "Category",
     ["alert_id"] = "Status",
     ["asn"] = "ASN",

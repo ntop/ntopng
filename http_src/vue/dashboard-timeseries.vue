@@ -45,7 +45,8 @@ const props = defineProps({
   max_height: Number,  /* Component Hehght (4, 8, 12)*/
   params: Object,      /* Component-specific parameters from the JSON template definition */
   get_component_data: Function, /* Callback to request data (REST) */
-  csrf: String
+  csrf: String,
+  filters: Object,
 });
 
 /* *************************************************** */
@@ -173,9 +174,9 @@ async function get_chart_options() {
 /* *************************************************** */
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
-watch(() => [props.epoch_begin, props.epoch_end], (cur_value, old_value) => {
+watch(() => [props.epoch_begin, props.epoch_end, props.filters], (cur_value, old_value) => {
   refresh_chart();
-}, { flush: 'pre'});
+}, { flush: 'pre', deep: true });
 
 /* *************************************************** */
 

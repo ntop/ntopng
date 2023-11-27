@@ -3,16 +3,11 @@
 -->
 
 <template>
-<div>
-  <Chart
-    ref="chart"
-    :id="id"
-    :chart_type="chart_type"
-    :base_url_request="base_url"
-    :get_custom_chart_options="get_chart_options"
-    :register_on_status_change="false">
-  </Chart>
-</div>
+    <div>
+        <Chart ref="chart" :id="id" :chart_type="chart_type" :base_url_request="base_url"
+            :get_custom_chart_options="get_chart_options" :register_on_status_change="false">
+        </Chart>
+    </div>
 </template>
 
 <script setup>
@@ -36,27 +31,29 @@ const props = defineProps({
     max_width: Number,   /* Component Width (4, 8, 12) */
     max_height: Number,  /* Component Hehght (4, 8, 12)*/
     params: Object,      /* Component-specific parameters from the JSON template definition */
-    get_component_data: Function /* Callback to request data (REST) */
+    get_component_data: Function, /* Callback to request data (REST) */
+    filters: Object
 });
 
 const base_url = computed(() => {
-  return `${http_prefix}${props.params.url}`;
+    return `${http_prefix}${props.params.url}`;
 });
 
 const get_url_params = () => {
-  const url_params = {
-     ifid: props.ifid,
-     epoch_begin: props.epoch_begin,
-     epoch_end: props.epoch_end,
-     new_charts: true,
-     ...props.params.url_params
-  }
-  let query_params = ntopng_url_manager.obj_to_url_params(url_params);
+    const url_params = {
+        ifid: props.ifid,
+        epoch_begin: props.epoch_begin,
+        epoch_end: props.epoch_end,
+        new_charts: true,
+        ...props.params.url_params,
+        ...props.filters
+    }
+    let query_params = ntopng_url_manager.obj_to_url_params(url_params);
 
-  /* Push ifid to the parameters (e.g. "ts_query=ifid:$IFID$" */
-  query_params = query_params.replaceAll("%24IFID%24" /* $IFID$ */, props.ifid);
+    /* Push ifid to the parameters (e.g. "ts_query=ifid:$IFID$" */
+    query_params = query_params.replaceAll("%24IFID%24" /* $IFID$ */, props.ifid);
 
-  return query_params;
+    return query_params;
 }
 
 function get_chart_options() {
@@ -66,9 +63,9 @@ function get_chart_options() {
 }
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
-watch(() => [props.epoch_begin, props.epoch_end], (cur_value, old_value) => {
+watch(() => [props.epoch_begin, props.epoch_end, props.filters], (cur_value, old_value) => {
     refresh_chart();
-}, { flush: 'pre'});
+}, { flush: 'pre', deep: true });
 
 onBeforeMount(() => {
     init();
@@ -85,6 +82,3 @@ async function refresh_chart() {
     chart.value.update_chart();
 }
 </script>
-
-<style scoped>
-</style>

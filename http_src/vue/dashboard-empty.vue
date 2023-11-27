@@ -25,13 +25,14 @@ const props = defineProps({
     max_width: Number,   /* Component Width (4, 8, 12) */
     max_height: Number,  /* Component Hehght (4, 8, 12)*/
     params: Object,      /* Component-specific parameters from the JSON template definition */
-    get_component_data: Function /* Callback to request data (REST) */
+    get_component_data: Function, /* Callback to request data (REST) */
+    filters: Object
 });
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
-watch(() => [props.epoch_begin, props.epoch_end], (cur_value, old_value) => {
+watch(() => [props.epoch_begin, props.epoch_end, props.filters], (cur_value, old_value) => {
     refresh_component();
-}, { flush: 'pre'});
+}, { flush: 'pre', deep: true });
 
 onBeforeMount(() => {
     init();
