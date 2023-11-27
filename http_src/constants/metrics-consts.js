@@ -411,6 +411,17 @@ const sources_types = [
 		}],
 	},
 	{
+		id: "top_flow_dev",
+		label: i18n("page_stats.source_def.flow_exporter_traffic"),
+		query: "top_flowdev",
+		source_def_array: [{
+			label: i18n("page_stats.source_def.interface"),
+			sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
+			value: "ifid",
+			ui_type: ui_types.select,
+		}],
+	},
+	{
 		id: "flow_interface",
 		regex_page_url: "lua\/pro\/enterprise\/flowdevice_interface_details",
 		label: i18n("page_stats.source_def.flow_interface"),

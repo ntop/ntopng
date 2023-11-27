@@ -390,10 +390,13 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
     for interface_id, device_list in pairs(flowdevs or {}) do
        for flow_device_ip, dev_resolved_name in pairsByValues(device_list, asc) do
             local ports = interface.getFlowDeviceInfo(flow_device_ip)
+            local bytes_sent = 0
+            local bytes_rcvd = 0
 
             if (verbose) then
                 print("[" .. __FILE__() .. ":" .. __LINE__() .. "] Processing flow probe " .. flow_device_ip .. "\n")
             end
+
 
             for port_idx, port_value in pairs(ports) do
                 -- Traffic
@@ -404,6 +407,9 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
                     bytes_sent = port_value["bytes.out_bytes"],
                     bytes_rcvd = port_value["bytes.in_bytes"]
                 }, when)
+                
+                bytes_sent = bytes_sent + port_value["bytes.out_bytes"]
+                bytes_rcvd = bytes_rcvd + port_value["bytes.in_bytes"]
 
                 -- nDPI
                 for proto_name, proto_stats in pairs(port_value["ndpi"]) do
@@ -417,6 +423,14 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
                     }, when)
                 end
             end
+
+            -- Total Traffic
+            ts_utils.append("flowdev:traffic", {
+                ifid = ifstats.id,
+                device = flow_device_ip,
+                bytes_sent = bytes_sent,
+                bytes_rcvd = bytes_rcvd
+            }, when)
         end
     end
 end

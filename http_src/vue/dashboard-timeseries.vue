@@ -56,6 +56,7 @@ const base_url = computed(() => {
   return `${http_prefix}${props.params.url}`;
 });
 
+/* *************************************************** */
 
 function substitute_ifid(params_to_format, current_ifid) {
   let new_formatted_params = {};
@@ -65,6 +66,23 @@ function substitute_ifid(params_to_format, current_ifid) {
       new_formatted_params[param] = params_to_format[param].replace('$IFID$', current_ifid);
     } else {
       /* does NOT Contains $IFID$, add the plain param */
+      new_formatted_params[param] = params_to_format[param];
+    }
+  }
+
+  return new_formatted_params;
+}
+
+/* *************************************************** */
+
+function substitute_exporter(params_to_format, current_exporter) {
+  let new_formatted_params = {};
+  for(const param in (params_to_format)) {
+    if(params_to_format[param].contains('$EXPORTER$')) {
+      /* Contains $EXPORTER$, substitute with the interface id */
+      new_formatted_params[param] = params_to_format[param].replace('$EXPORTER$', current_exporter);
+    } else {
+      /* does NOT Contains $EXPORTER$, add the plain param */
       new_formatted_params[param] = params_to_format[param];
     }
   }
@@ -92,6 +110,29 @@ async function format_ifids(params_to_format) {
 
 /* *************************************************** */
 
+/* This function is used to substitute to the $EXPORTER$ found in the
+ * configuration the correct flow exporter
+ */
+async function format_exporters(params_to_format) {
+  if(ts_request.value.length > 0) {
+    /* Already populated, return */
+    return;
+  }
+  const exporters_url = "lua/pro/rest/v2/get/flowdevices/stats.lua"
+  const exporters_list = await ntopng_utility.http_request(`${http_prefix}/${exporters_url}?ifid=${props.ifid}&gui=true`) || [];
+  if(exporters_list) {
+    exporters_list.forEach((exporter) => {
+      if(exporter) {
+        let new_formatted_params = substitute_exporter(params_to_format, exporter.probe_ip);
+        new_formatted_params = substitute_ifid(new_formatted_params, exporter.ifid);
+        ts_request.value.push(new_formatted_params);
+      }
+    });
+  }
+}
+
+/* *************************************************** */
+
 /* This function is used to transform the $ANY$ params in the 
  * correct value (e.g. $ANY_IFID$ -> list of all ifid)
  */
@@ -102,6 +143,9 @@ async function resolve_any_params() {
     switch (any_param) {
       case '$ANY_IFID$': 
         await format_ifids(params[any_param]);
+        break;
+      case '$ANY_EXPORTER$': 
+        await format_exporters(params[any_param]);
         break;
       default:
         ts_request.value.push(substitute_ifid(params[any_param], props.ifid));

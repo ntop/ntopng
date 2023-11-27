@@ -361,6 +361,17 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("flowdev:traffic", {
+    step = 300,
+    rrd_fname = "bytes"
+})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addMetric("bytes_sent")
+schema:addMetric("bytes_rcvd")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("flowdev_port:traffic", {
     step = 300,
     rrd_fname = "bytes"

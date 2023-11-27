@@ -156,13 +156,13 @@ local community_timeseries = {{
     scale = i18n('graphs.metric_labels.blacklist_hits'),
     -- draw_stacked = true,
     timeseries = {
-       hits = {
-          use_serie_name = true,
-          label = i18n('graphs.metric_labels.blacklist_num_hits'),
-          color = timeseries_info.get_timeseries_color('')
-       }
+        hits = {
+            use_serie_name = true,
+            label = i18n('graphs.metric_labels.blacklist_num_hits'),
+            color = timeseries_info.get_timeseries_color('')
+        }
     }
-   }, {
+}, {
     schema = "iface:new_flows",
     id = timeseries_id.iface,
     label = i18n("graphs.new_flows"),
@@ -280,7 +280,7 @@ local community_timeseries = {{
             label = i18n('graphs.metric_labels.throughput'),
             color = timeseries_info.get_timeseries_color('bytes')
         }
-    },
+    }
 }, {
     schema = "iface:throughput_pps",
     id = timeseries_id.iface,
@@ -293,7 +293,7 @@ local community_timeseries = {{
             label = i18n('graphs.metric_labels.throughput'),
             color = timeseries_info.get_timeseries_color('bytes')
         }
-    },
+    }
 }, {
     schema = "iface:score",
     id = timeseries_id.iface,
@@ -1761,7 +1761,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
-    alwais_visibile = true,
+    alwais_visibile = true
 }, {
     schema = "process:num_alerts",
     id = timeseries_id.system,
@@ -1801,9 +1801,8 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
-    alwais_visibile = true,
-},
-{
+    alwais_visibile = true
+}, {
     schema = "redis:memory",
     id = timeseries_id.redis,
     label = i18n("about.ram_memory"),
@@ -1816,7 +1815,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
-    alwais_visibile = true,
+    alwais_visibile = true
 }, {
     schema = "redis:keys",
     id = timeseries_id.redis,
@@ -1844,7 +1843,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
-    alwais_visibile = true,
+    alwais_visibile = true
 }, {
     schema = "influxdb:memory_size",
     id = timeseries_id.influxdb,
@@ -2067,40 +2066,40 @@ end
 -- #################################
 
 local function add_top_blacklist_hits_timeseries(tags, timeseries)
-   local series = ts_utils.listSeries("blacklist:hits", table.clone(tags), tags.epoch_begin) or {}
-   local tmp_tags = table.clone(tags)
+    local series = ts_utils.listSeries("blacklist:hits", table.clone(tags), tags.epoch_begin) or {}
+    local tmp_tags = table.clone(tags)
 
-   if table.empty(series) then
-      return;
-   end
-   for _, serie in pairs(series or {}) do
-      tmp_tags.blacklist_name = serie.blacklist_name
-      local tot = 0
-      local tot_serie = ts_utils.queryTotal("blacklist:hits", tags.epoch_begin, tags.epoch_end, tmp_tags)
-      for _, value in pairs(tot_serie or {}) do
-         tot = tot + tonumber(value)
-      end
-      if tot <= 0 then
-         return
-      end
-      timeseries[#timeseries + 1] = {
-         schema = "top:blacklist:hits",
-         id = timeseries_id.blacklist,
-         group = i18n("graphs.metric_labels.blacklist_num_hits"),
-         priority = 0,
-         query = "blacklist_name:" .. serie.blacklist_name,
-         label = serie.blacklist_name:gsub("_", " "),
-         measure_unit = "hitss",
-         scale = i18n('graphs.metric_labels.blacklist_hits'),
-         timeseries = {
-            hits = {
-               label = i18n('graphs.metric_labels.blacklist_num_hits'),
-               color = timeseries_info.get_timeseries_color('')
+    if table.empty(series) then
+        return;
+    end
+    for _, serie in pairs(series or {}) do
+        tmp_tags.blacklist_name = serie.blacklist_name
+        local tot = 0
+        local tot_serie = ts_utils.queryTotal("blacklist:hits", tags.epoch_begin, tags.epoch_end, tmp_tags)
+        for _, value in pairs(tot_serie or {}) do
+            tot = tot + tonumber(value)
+        end
+        if tot <= 0 then
+            return
+        end
+        timeseries[#timeseries + 1] = {
+            schema = "top:blacklist:hits",
+            id = timeseries_id.blacklist,
+            group = i18n("graphs.metric_labels.blacklist_num_hits"),
+            priority = 0,
+            query = "blacklist_name:" .. serie.blacklist_name,
+            label = serie.blacklist_name:gsub("_", " "),
+            measure_unit = "hitss",
+            scale = i18n('graphs.metric_labels.blacklist_hits'),
+            timeseries = {
+                hits = {
+                    label = i18n('graphs.metric_labels.blacklist_num_hits'),
+                    color = timeseries_info.get_timeseries_color('')
+                }
             }
-         }
-      }
-   end
-   return timeseries
+        }
+    end
+    return timeseries
 end
 
 -- #################################
@@ -2703,7 +2702,7 @@ local function add_flowdev_interfaces_timeseries(tags, timeseries)
             }
         }
     end
-    
+
     return timeseries
 end
 
@@ -2903,7 +2902,7 @@ local function add_top_timeseries(tags, prefix, timeseries)
         timeseries = add_top_flow_port_timeseries(tags, timeseries)
     elseif prefix == timeseries_id.blacklist then
         -- Add the top interface timeseries
-       timeseries = add_top_blacklist_hits_timeseries(tags, timeseries)
+        timeseries = add_top_blacklist_hits_timeseries(tags, timeseries)
     end
     if timeseries ~= nil then
     end
@@ -2926,12 +2925,12 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
 
     for _, info in pairs(timeseries_list) do
         if (prefix ~= nil) then
-           if info.id ~= prefix then
+            if info.id ~= prefix then
                 goto skip
             end
 
             if not (info.schema:find("top", 1, true)) and not info.alwais_visibile then
-               local tot = 0 -- change to view also empty series
+                local tot = 0 -- change to view also empty series
                 local tot_serie = ts_utils.queryTotal(info.schema, tags.epoch_begin, tags.epoch_end, table.clone(tags))
 
                 -- Remove serie with no data
@@ -2979,15 +2978,13 @@ function timeseries_info.get_host_rules_schema(rule_type)
             label = i18n('graphs.traffic_rxtx'),
             id = 'host:traffic' --[[ here the ID is the schema ]] ,
             show_volume = true
-        },
-        {
+        }, {
             title = i18n('graphs.traffic_rcvd'),
             group = i18n('generic_data'),
             label = i18n('graphs.traffic_rcvd'),
             id = 'host:traffic-RX' --[[ here the ID is the schema ]] ,
             show_volume = true
-        },
-        {
+        }, {
             title = i18n('graphs.traffic_sent'),
             group = i18n('generic_data'),
             label = i18n('graphs.traffic_sent'),
@@ -3042,13 +3039,13 @@ function timeseries_info.get_host_rules_schema(rule_type)
             label = i18n('graphs.traffic_rxtx'),
             id = 'iface:traffic_rxtx' --[[ here the ID is the schema ]] ,
             show_volume = true
-        },{
+        }, {
             title = i18n('graphs.traffic_rcvd'),
             group = i18n('generic_data'),
             label = i18n('graphs.traffic_rcvd'),
             id = 'iface:traffic_rxtx-rx' --[[ here the ID is the schema ]] ,
             show_volume = true
-        },{
+        }, {
             title = i18n('graphs.traffic_sent'),
             group = i18n('generic_data'),
             label = i18n('graphs.traffic_sent'),
@@ -3111,101 +3108,100 @@ function timeseries_info.get_host_rules_schema(rule_type)
         return metric_list
     elseif rule_type == "host_pool" then
         local metric_list = {}
-        for _,item in ipairs(community_timeseries) do
-            if(item.id == timeseries_id.host_pool) then
-                
-                metric_list[#metric_list+1] = item
+        for _, item in ipairs(community_timeseries) do
+            if (item.id == timeseries_id.host_pool) then
+
+                metric_list[#metric_list + 1] = item
             end
         end
 
-        metric_list[#metric_list+1] = {
-            
+        metric_list[#metric_list + 1] = {
+
             title = i18n('graphs.traffic_rcvd'),
-            --group = i18n('generic_data'),
+            -- group = i18n('generic_data'),
             measure_unit = "bps",
             label = i18n('graphs.traffic_rcvd'),
             id = 'host_pool:traffic-RX' --[[ here the ID is the schema ]] ,
             schema = 'host_pool:traffic-RX',
             show_volume = true
-            
+
         }
 
-        metric_list[#metric_list+1] = {
-            
+        metric_list[#metric_list + 1] = {
+
             title = i18n('graphs.traffic_sent'),
-            --group = i18n('generic_data'),
+            -- group = i18n('generic_data'),
             label = i18n('graphs.traffic_sent'),
             measure_unit = "bps",
             id = 'host_pool:traffic-TX' --[[ here the ID is the schema ]] ,
             schema = 'host_pool:traffic-TX',
             show_volume = true
-            
+
         }
 
         return metric_list
     elseif rule_type == "CIDR" then
         local metric_list = {}
-        for _,item in ipairs(community_timeseries) do
-            
-            if(item.schema == "subnet:traffic") then
+        for _, item in ipairs(community_timeseries) do
+
+            if (item.schema == "subnet:traffic") then
                 item.label = i18n("graphs.traffic_rxtx")
             end
-            if(item.schema == "subnet:broadcast_traffic") then
+            if (item.schema == "subnet:broadcast_traffic") then
                 item.label = i18n("broadcast_traffic_rx_tx")
             end
-            if(item.id == timeseries_id.network) then
-                
-                metric_list[#metric_list+1] = item
+            if (item.id == timeseries_id.network) then
+
+                metric_list[#metric_list + 1] = item
             end
         end
 
-        metric_list[#metric_list+1] = {
-            
+        metric_list[#metric_list + 1] = {
+
             title = i18n('graphs.traffic_rcvd'),
-            --group = i18n('generic_data'),
+            -- group = i18n('generic_data'),
             measure_unit = "bps",
             label = i18n('graphs.traffic_rcvd'),
             id = 'subnet:traffic-ingress' --[[ here the ID is the schema ]] ,
             schema = 'subnet:traffic-ingress',
             show_volume = true
-            
+
         }
 
-        metric_list[#metric_list+1] = {
+        metric_list[#metric_list + 1] = {
 
             title = i18n('graphs.traffic_sent'),
-            --group = i18n('generic_data'),
+            -- group = i18n('generic_data'),
             label = i18n('graphs.traffic_sent'),
             measure_unit = "bps",
             id = 'subnet:traffic-egress' --[[ here the ID is the schema ]] ,
             schema = 'subnet:traffic-egress',
             show_volume = true
-                
+
         }
 
+        metric_list[#metric_list + 1] = {
 
-        metric_list[#metric_list+1] = {
-            
             title = i18n('broadcast_traffic_rx'),
-            --group = i18n('generic_data'),
+            -- group = i18n('generic_data'),
             measure_unit = "bps",
             label = i18n('broadcast_traffic_rx'),
             id = 'subnet:broadcast_traffic-ingress' --[[ here the ID is the schema ]] ,
             schema = 'subnet:broadcast_traffic-ingress',
             show_volume = true
-            
+
         }
 
-        metric_list[#metric_list+1] = {
+        metric_list[#metric_list + 1] = {
 
             title = i18n('broadcast_traffic_tx'),
-            --group = i18n('generic_data'),
+            -- group = i18n('generic_data'),
             label = i18n('broadcast_traffic_tx'),
             measure_unit = "bps",
             id = 'subnet:broadcast_traffic-egress' --[[ here the ID is the schema ]] ,
             schema = 'subnet:broadcast_traffic-egress',
             show_volume = true
-                
+
         }
         return metric_list
 
