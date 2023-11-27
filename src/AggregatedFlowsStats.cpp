@@ -26,7 +26,7 @@
 AggregatedFlowsStats::AggregatedFlowsStats(const IpAddress* c, const IpAddress* s, u_int8_t _l4_proto,
 					   u_int64_t bytes_sent, u_int64_t bytes_rcvd, u_int32_t score) {
   num_flows = tot_sent = tot_rcvd = tot_score =
-  key = vlan_id = proto_key = 0;
+  key = vlan_id = flow_device_ip = proto_key = 0;
   l4_proto = _l4_proto;
   proto_name = info_key = NULL;
   server = client = NULL;
@@ -61,8 +61,9 @@ void AggregatedFlowsStats::incFlowStats(const IpAddress* _client,
 
 /* *************************************** */
 
-void AggregatedFlowsStats::setFlowIPVLAN(Flow *f) {
+void AggregatedFlowsStats::setFlowIPVLANDeviceIP(Flow *f) {
   setClient(f->get_cli_ip_addr(), f->get_cli_host());
   setServer(f->get_srv_ip_addr(), f->get_srv_host());
   setVlanId(f->get_vlan_id());
+  setFlowDeviceIP(f->getFlowDeviceIP());
 }

@@ -928,6 +928,7 @@ class Flow : public GenericHashEntry {
   bool match(AddressTree *ptree);
   bool matchFlowIP(IpAddress *ip, u_int16_t vlan_id);
   bool matchFlowVLAN(u_int16_t vlan_id);
+  bool matchFlowDeviceIP(u_int32_t flow_device_ip);
   void dissectHTTP(bool src2dst_direction, char *payload,
                    u_int16_t payload_len);
   void dissectDNS(bool src2dst_direction, char *payload, u_int16_t payload_len);

@@ -41,6 +41,7 @@ class AggregatedFlowsStats {
   u_int64_t key;
   u_int64_t proto_key;
   bool is_not_guessed;
+  u_int32_t flow_device_ip;
 
  public:
   AggregatedFlowsStats(const IpAddress* c, const IpAddress* s, u_int8_t _l4_proto,
@@ -50,24 +51,27 @@ class AggregatedFlowsStats {
 
 
   /* Getters */
+  inline u_int8_t getL4Protocol() { return (l4_proto); };
+  inline u_int16_t getSrvPort() { return (srv_port); };
+  inline u_int16_t getVlanId() { return vlan_id; };
+  inline u_int16_t getCliVLANId() { return (client ? client->getVLANId() : 0); };
+  inline u_int16_t getSrvVLANId() { return (server ? server->getVLANId() : 0); };
   inline u_int32_t getNumClients() { return (clients.size()); };
   inline u_int32_t getNumServers() { return (servers.size()); };
-  inline u_int8_t getL4Protocol() { return (l4_proto); };
   inline u_int32_t getNumFlows() { return (num_flows); };
-  inline u_int64_t getTotalSent() { return (tot_sent); };
-  inline u_int64_t getTotalRcvd() { return (tot_rcvd); };
   inline u_int32_t getTotalScore() { return (tot_score); };
-  inline u_int16_t getVlanId() { return vlan_id; };
   inline u_int64_t getKey() { return key; };
   inline u_int64_t getProtoKey() { return proto_key; };
+  inline u_int64_t getTotalSent() { return (tot_sent); };
+  inline u_int64_t getTotalRcvd() { return (tot_rcvd); };
   inline char* getProtoName() { return (proto_name ? proto_name : (char *)""); };
   inline char* getInfoKey() { return (info_key ? info_key : (char *)""); };
+ 
   inline const char* getCliIP(char* buf, u_int len) { return (client ? client->getIP(buf, len) : (char *)""); };
   inline const char* getSrvIP(char* buf, u_int len) { return (server ? server->getIP(buf, len) : (char *)""); };
+  
   inline IpAddress* getClientIPaddr() { return(client ? client->getIPaddr() : NULL); }
   inline IpAddress* getServerIPaddr() { return(server ? server->getIPaddr() : NULL); }
-  inline u_int16_t getSrvPort() { return (srv_port); };
-
 
   inline const char* getCliName(char* buf, u_int len) {
     return (client ? client->getHostName(buf, len) : (char *)"");
@@ -81,8 +85,9 @@ class AggregatedFlowsStats {
   inline const char* getSrvIPHex(char* buf, u_int len) {
     return (server ? server->getIPHex(buf, len) : (char *)"");
   };
-  inline u_int16_t getCliVLANId() { return (client ? client->getVLANId() : 0); };
-  inline u_int16_t getSrvVLANId() { return (server ? server->getVLANId() : 0); };
+  inline const char* getFlowDeviceIP(char* buf, u_int len) {
+    return (flow_device_ip != 0 ? Utils::intoaV4(flow_device_ip, buf, len) : (char *)"");
+  };
   inline bool isNotGuessed() { return(is_not_guessed); };
 
   /* Setters */
@@ -104,8 +109,9 @@ class AggregatedFlowsStats {
     if(!server) { server = new (std::nothrow) FlowsHostInfo(_ip, _host); }
   };
   inline void setSrvPort(u_int16_t _srv_port) { srv_port = _srv_port; };
+  inline void setFlowDeviceIP(u_int32_t _flow_device_ip) { flow_device_ip = _flow_device_ip; };
 
-  void setFlowIPVLAN(Flow *f);
+  void setFlowIPVLANDeviceIP(Flow *f);
 
   inline bool isCliInMem() { return (client->isHostInMem()); };
   inline bool isSrvInMem() { return (server->isHostInMem()); };
@@ -121,6 +127,7 @@ struct aggregated_stats {
   std::unordered_map<string, AggregatedFlowsStats *> info_count;
   IpAddress *ip_addr;
   u_int16_t vlan_id;
+  u_int32_t flow_device_ip;
 };
 
 #endif /* _FLOWS_STATS_H_ */

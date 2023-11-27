@@ -23,6 +23,7 @@ end
 
 local ifid = _GET["ifid"]
 local vlan = tonumber(_GET["vlan_id"] or -1)
+local device_ip = _GET["deviceIP"]
 local criteria = _GET["aggregation_criteria"] or ""
 local rc = rest_utils.consts.success.ok
 local filters = {}
@@ -37,6 +38,10 @@ filters["host"] = _GET["host"]
 
 if (vlan) and (isEmptyString(vlan) or tonumber(vlan) == -1) then
    vlan = nil
+end
+
+if (isEmptyString(device_ip)) then
+   device_ip = nil
 end
 
 interface.select(ifid)
@@ -96,8 +101,7 @@ local x = 0
 local aggregated_info = interface.getProtocolFlowsStats(criteria_type_id, filters["page"], filters["sort_column"],
 							filters["sort_order"], filters["start"], filters["length"],
 							ternary(not isEmptyString(filters["map_search"]), filters["map_search"], nil),
-							ternary(filters["host"]~= "", filters["host"], nil), vlan)
-
+							ternary(filters["host"]~= "", filters["host"], nil), vlan, device_ip)
 -- Formatting the data
 for _, data in pairs(aggregated_info or {}) do
    local bytes_sent = data.bytes_sent or 0
@@ -244,6 +248,7 @@ for _, data in pairs(aggregated_info or {}) do
       info = info,
       srv_port = srv_port,
       application = application,
+      device_ip = data.device_ip,
       vlan_id = {
 	 id = nil,
 	 label = nil
