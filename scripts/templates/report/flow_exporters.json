@@ -296,7 +296,7 @@
 	{
 		"component" : "timeseries",
 		"id" : "traffic_chart",
-		"i18n_name" : "interface_traffic",
+		"i18n_name" : "flow_exporter_traffic",
 		"width" : 12,
 		"height" : 6,
 		"params" : {

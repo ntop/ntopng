@@ -1,10 +1,5 @@
 {
 	"name" : "Default Report",
-	"filters" : [
-		{
-			"name" : "probe_ip"
-		}
-	],
 	"components" : [
 	{
 		"component" : "pie",

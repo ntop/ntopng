@@ -317,6 +317,7 @@ local lang = {
   ["interface_status"] = "Operational Status",
   ["interface_status_short"] = "Oper. Status",
   ["interface_traffic"] = "Interface Traffic",
+  ["flow_exporter_traffic"] = "Flow Exporter Traffic",
   ["interfaces"] = "Interfaces",
   ["interfaces_traffic"] = "Interfaces Traffic",
   ["intranet_traffic"] = "Intranet Traffic",
