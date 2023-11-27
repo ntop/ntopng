@@ -11078,6 +11078,11 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
       return(false);
   }
 
+  if (stats->flow_device_ip != (u_int32_t)-1 /* -1 == any Flow Device IP */) {
+    if(!f->matchFlowDeviceIP(stats->flow_device_ip))
+      return(false);
+  }
+
   /* <vlan_id (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
   key = 
     ((u_int64_t)vlan_id << 32) +
@@ -11092,7 +11097,7 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
 
     if (fs) {
       fs->setProtoKey(key);
-      fs->setFlowIPVLAN(f);
+      fs->setFlowIPVLANDeviceIP(f);
       fs->setIsNotGuessed(is_not_guessed);
       stats->count[key] = fs;
     }
@@ -11132,6 +11137,11 @@ bool NetworkInterface::compute_client_flow_stats(GenericHashEntry *node,
       return(false);
   }
 
+  if (stats->flow_device_ip != (u_int32_t)-1 /* -1 == any Flow Device IP */) {
+    if(!f->matchFlowDeviceIP(stats->flow_device_ip))
+      return(false);
+  }
+
   it = stats->count.find(key);
 
   if (it == stats->count.end()) {
@@ -11139,7 +11149,7 @@ bool NetworkInterface::compute_client_flow_stats(GenericHashEntry *node,
 								       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
 
     if (fs != NULL) {
-      fs->setFlowIPVLAN(f);
+      fs->setFlowIPVLANDeviceIP(f);
       fs->setKey(key);
       stats->count[key] = fs;
     }
@@ -11179,6 +11189,10 @@ bool NetworkInterface::compute_server_flow_stats(GenericHashEntry *node,
       return(false);
   }
 
+  if (stats->flow_device_ip != (u_int32_t)-1 /* -1 == any Flow Device IP */) {
+    if(!f->matchFlowDeviceIP(stats->flow_device_ip))
+      return(false);
+  }
   it = stats->count.find(key);
 
   if (it == stats->count.end()) {
@@ -11186,7 +11200,7 @@ bool NetworkInterface::compute_server_flow_stats(GenericHashEntry *node,
 								       f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
 
     if (fs != NULL) {
-      fs->setFlowIPVLAN(f);
+      fs->setFlowIPVLANDeviceIP(f);
       fs->setKey(key);
       stats->count[key] = fs;
     }
@@ -11217,6 +11231,11 @@ bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntr
       return(false);
   }
 
+  if (stats->flow_device_ip != (u_int32_t)-1 /* -1 == any Flow Device IP */) {
+    if(!f->matchFlowDeviceIP(stats->flow_device_ip))
+      return(false);
+  }
+
   u_int64_t vlan_id = f->get_vlan_id();
   std::unordered_map<u_int64_t, AggregatedFlowsStats *>::iterator it;
   u_int64_t key = (((u_int64_t)f->get_cli_ip_addr()->key()) << 16) +
@@ -11232,7 +11251,7 @@ bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntr
 					      f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
     
     if (fs != NULL) {
-      fs->setFlowIPVLAN(f);
+      fs->setFlowIPVLANDeviceIP(f);
       fs->setSrvPort(f->get_srv_port());
       fs->setKey(key);
       stats->count[key] = fs;
@@ -11477,6 +11496,8 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
 
     lua_push_uint64_table_entry(vm, "vlan_id",
                                 (u_int64_t)flow_stats->getVlanId());
+    lua_push_str_table_entry(vm, "device_ip",
+                               flow_stats->getFlowDeviceIP(buf, sizeof(buf)));
     lua_push_uint32_table_entry(vm, "l4_proto", flow_stats->getL4Protocol());
     lua_push_uint32_table_entry(vm, "num_clients", flow_stats->getNumClients());
     lua_push_uint32_table_entry(vm, "num_servers", flow_stats->getNumServers());
@@ -11660,15 +11681,18 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
   struct aggregated_stats stats;
   AnalysisCriteria filter_type = (AnalysisCriteria)lua_tonumber(vm, 1);
   char *host_ip = NULL;
+  char *flow_device_ip = NULL;
   u_int16_t vlan_id = (u_int16_t)-1 /* Any VLAN */;
 
   /* NOTE: parsing of additional Lua parameters in NetworkInterface::sort_and_filter_flow_stats() */
   if (lua_type(vm, 8) == LUA_TSTRING) host_ip = (char *)lua_tostring(vm, 8);
   if (lua_type(vm, 9) == LUA_TNUMBER) vlan_id = lua_tonumber(vm,9);
+  if (lua_type(vm, 10) == LUA_TSTRING) flow_device_ip = (char*)lua_tostring(vm,10); 
 
   stats.ip_addr = host_ip ? Utils::parseHostString(host_ip, &stats.vlan_id) : NULL;
   stats.vlan_id = vlan_id;
-  
+  stats.flow_device_ip = flow_device_ip ? ntohl(inet_addr(flow_device_ip)) : /* Any flow device */ (u_int32_t)-1;
+
   switch (filter_type) {
   case AnalysisCriteria::application_criteria:
     /* application protocol criteria flows stats case */

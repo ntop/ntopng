@@ -8319,3 +8319,9 @@ bool Flow::matchFlowIP(IpAddress *ip, u_int16_t vlan_id) {
 bool Flow::matchFlowVLAN(u_int16_t vlan_id) {
   return(get_vlan_id() == vlan_id ? true : false);
 }
+
+/* **************************************************** */
+
+bool Flow::matchFlowDeviceIP(u_int32_t flow_device_ip) {
+  return(getFlowDeviceIP() == flow_device_ip ? true : false);
+}
