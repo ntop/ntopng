@@ -1621,12 +1621,18 @@ function format_name_value(name, value, shorten)
 
   if not isEmptyString(name) and name ~= value then
     if (shorten) and (shorten == true) then
-      formatted_name_value = shortenString(name) .. " [" .. value .. "]"
+      formatted_name_value = shortenString(name)
     else
-      formatted_name_value = name .. " [" .. value .. "]"
+      formatted_name_value = name
     end
   end
 
+  local idx = string.find(formatted_name_value, value)
+
+  if (idx == nil) then
+   formatted_name_value = formatted_name_value .. " ["..value.."]"
+  end
+  
   return formatted_name_value
 end
 
