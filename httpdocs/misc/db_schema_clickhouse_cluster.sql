@@ -513,7 +513,7 @@ CREATE TABLE IF NOT EXISTS `hourly_flows` ON CLUSTER '$CLUSTER' (
        `INPUT_SNMP` UInt32,
        `OUTPUT_SNMP` UInt32,
        `SRC_NETWORK_ID` UInt16,
-       `DST_NETWORK_ID` UInt16,
+       `DST_NETWORK_ID` UInt16
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (IPV4_SRC_ADDR, IPV4_DST_ADDR, FIRST_SEEN);
 @
 ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS SRC_LABEL String;
@@ -526,7 +526,7 @@ CREATE TABLE IF NOT EXISTS `vulnerability_scan_data` ON CLUSTER '$CLUSTER' (
   `SCAN_TYPE` String NOT NULL,
   `LAST_SCAN` DateTime NOT NULL,
   `JSON_INFO` String,
-  `VS_RESULT_FILE` String,
+  `VS_RESULT_FILE` String
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(LAST_SCAN) ORDER BY (LAST_SCAN, HOST, SCAN_TYPE);
 
 @
@@ -537,5 +537,5 @@ CREATE TABLE IF NOT EXISTS `vulnerability_scan_report` ON CLUSTER '$CLUSTER' (
   `NUM_SCANNED_HOSTS` UInt32,
   `NUM_CVES` UInt32,
   `NUM_TCP_PORTS` UInt32,
-  `NUM_UDP_PORTS` UInt32,
+  `NUM_UDP_PORTS` UInt32
 ) ENGINE =  ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(REPORT_DATE) ORDER BY (REPORT_DATE); 

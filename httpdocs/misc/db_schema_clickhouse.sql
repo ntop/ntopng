@@ -106,7 +106,7 @@ ALTER TABLE flows ADD COLUMN IF NOT EXISTS `ALERT_STATUS` UInt8
 @
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `USER_LABEL` String
 @
-ALTER TABLE flows ADD COLUMN IF NOT EXISTS `USER_LABEL_TSTAMP` DateTime 
+ALTER TABLE flows ADD COLUMN IF NOT EXISTS `USER_LABEL_TSTAMP` DateTime
 @
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `ALERT_JSON` String
 @
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime NULL 
+`user_label_tstamp` DateTime NULL
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `active_monitoring_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
@@ -243,7 +243,7 @@ CREATE TABLE IF NOT EXISTS `flow_alerts` (
 `alerts_map` String, -- An HEX bitmap of all flow statuses
 `flow_risk_bitmap` UInt64 NOT NULL,
 `user_label` String,
-`user_label_tstamp` DateTime 
+`user_label_tstamp` DateTime
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(first_seen) ORDER BY (first_seen);
 @
 ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS cli_host_pool_id UInt16;
@@ -292,7 +292,7 @@ CREATE TABLE IF NOT EXISTS `host_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime 
+`user_label_tstamp` DateTime
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS host_pool_id UInt16;
@@ -324,7 +324,7 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime 
+`user_label_tstamp` DateTime
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `mac_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
@@ -349,7 +349,7 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime 
+`user_label_tstamp` DateTime
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `snmp_alerts` MODIFY COLUMN `port` UInt32;
@@ -363,7 +363,7 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 `local_network_id` UInt16 NOT NULL,
 `alert_id` UInt32 NOT NULL,
 `alert_status` UInt8 NOT NULL,
-`interface_id` UInt16 NULL,	
+`interface_id` UInt16 NULL,
 `name` String,
 `alias` String,
 `tstamp` DateTime NOT NULL,
@@ -375,7 +375,7 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime 
+`user_label_tstamp` DateTime
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `network_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
@@ -400,7 +400,7 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime 
+`user_label_tstamp` DateTime
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `interface_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
@@ -422,7 +422,7 @@ CREATE TABLE IF NOT EXISTS `user_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime 
+`user_label_tstamp` DateTime
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `user_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
@@ -444,7 +444,7 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime 
+`user_label_tstamp` DateTimex
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `system_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
@@ -455,7 +455,7 @@ DROP VIEW IF EXISTS `all_alerts_view`;
 @
 CREATE VIEW IF NOT EXISTS `all_alerts_view` AS
 SELECT 8 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `active_monitoring_alerts`
-UNION ALL 
+UNION ALL
 SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, ALERT_STATUS AS alert_status, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score, ALERT_CATEGORY AS alert_category FROM `flows` WHERE (STATUS != 0 AND IS_ALERT_DELETED != 1)
 UNION ALL
 SELECT 1 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `host_alerts`
@@ -560,7 +560,7 @@ CREATE TABLE IF NOT EXISTS `vulnerability_scan_data` (
   `SCAN_TYPE` String NOT NULL,
   `LAST_SCAN` DateTime NOT NULL,
   `JSON_INFO` String,
-  `VS_RESULT_FILE` String,
+  `VS_RESULT_FILE` String
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(LAST_SCAN) ORDER BY (LAST_SCAN, HOST, SCAN_TYPE);
 
 @
@@ -571,5 +571,5 @@ CREATE TABLE IF NOT EXISTS `vulnerability_scan_report` (
   `NUM_SCANNED_HOSTS` UInt32,
   `NUM_CVES` UInt32,
   `NUM_TCP_PORTS` UInt32,
-  `NUM_UDP_PORTS` UInt32,
-) ENGINE =  MergeTree() PARTITION BY toYYYYMMDD(REPORT_DATE) ORDER BY (REPORT_DATE); 
+  `NUM_UDP_PORTS` UInt32
+) ENGINE =  MergeTree() PARTITION BY toYYYYMMDD(REPORT_DATE) ORDER BY (REPORT_DATE);
