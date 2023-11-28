@@ -31,6 +31,9 @@ end
 -- #################################################################
 
 -- The function below is called for each received alert
+-- @param name Message producer (name)
+-- @param message Message content
+-- @param host Message producer (host)
 function handleEvent(name, message, host, priority)
    local event_handler = syslog_modules.hooks["handleEvent"][name]
 
