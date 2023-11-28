@@ -133,6 +133,10 @@ const load_categories = async () => {
   });
   modal_add_application.value.loadCategoryList(category_list.value);
 }
+
+const search = (filter_app) => {
+  applications_table.value.search_value(filter_app);
+}
     
 onBeforeMount(async () => {
   start_datatable();
@@ -140,6 +144,10 @@ onBeforeMount(async () => {
 
 onMounted(async () => {
   await load_categories();
+  const filter_app = ntopng_url_manager.get_url_entry("application");
+  if(filter_app) {
+    search(filter_app);
+  }
 })
 
 onUnmounted(async () => {

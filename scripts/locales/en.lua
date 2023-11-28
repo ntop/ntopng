@@ -74,6 +74,7 @@ local lang = {
   ["begin"] = "Begin",
   ["big_endian"] = "Year/Month/Day",
   ["bind"] = "Bind",
+  ["blacklisted_category"] = "Application category Malware detected %{config_href}",
   ["breakdown"] = "Breakdown",
   ["bridge"] = "Bridge",
   ["broadcast"] = "Broadcast",
