@@ -15,8 +15,10 @@ local syslog_module = {
 
   key = "host_log",
 
-  -- See below
-  hooks = {},
+  default_value = {
+    operator = "lt",
+    threshold = 5,
+  },
 
   gui = {
     i18n_title = "host_log_collector.title",
@@ -27,10 +29,8 @@ local syslog_module = {
     field_operator = "lt"
   },
 
-  default_value = {
-    operator = "lt",
-    threshold = 5,
-  },
+  -- See below
+  hooks = {},
 }
 
 -- #################################################################

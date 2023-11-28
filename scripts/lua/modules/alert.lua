@@ -55,6 +55,7 @@ function Alert:_build_type_info()
     local type_info = {
         -- Keys necessary for the engine
         alert_type = self.meta,
+        alert_category = self.category,
         subtype = self.subtype,
         granularity = self.granularity,
         score = self.score,
@@ -131,6 +132,12 @@ function Alert:store(entity_info)
     end
 
     return alerts_api.store(entity_info, self:_build_type_info())
+end
+
+-- ##############################################
+
+function Alert:set_category(category)
+    self.category = category
 end
 
 -- ##############################################

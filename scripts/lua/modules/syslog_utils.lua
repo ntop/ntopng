@@ -90,6 +90,7 @@ function syslog_utils.handle_event(message, host, priority, level_threshold)
          
       type_info:set_subtype(getLogSubtype(message))
       type_info:set_score(score)
+      type_info:set_category(alert_consts.categories.security)
 
       -- Deliver alert
       type_info:store(entity)

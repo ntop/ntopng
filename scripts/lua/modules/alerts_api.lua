@@ -212,6 +212,7 @@ function alerts_api.store(entity_info, type_info, when)
     ifid = ifid,
     action = "store",
     alert_id = type_info.alert_type.alert_key,
+    alert_category = type_info.alert_category and type_info.alert_category.id,
     subtype = subtype,
     granularity = granularity_sec,
     entity_id = entity_info.alert_entity.entity_id,
