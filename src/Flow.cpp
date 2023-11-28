@@ -473,6 +473,8 @@ Flow::~Flow() {
     if (protos.tls.subjectDN) free(protos.tls.subjectDN);
   } else if (isMining()) {
     if(protos.mining.currency) free(protos.mining.currency);
+  } else if (isDHCP()) {
+    if(protos.dhcp.name) free(protos.dhcp.name);
   }
 
   if (bt_hash) free(bt_hash);
@@ -2091,6 +2093,13 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
           cli_host->offlineSetNetbiosName(protos.netbios.name);
       }
       break;
+    
+    case NDPI_PROTOCOL_DHCP:
+      if (cli_host) {
+        if (protos.dhcp.name) {
+          cli_host->offlineSetDHCPName(protos.dhcp.name);
+        }
+      }
 
     case NDPI_PROTOCOL_NTP:
       if (cli_host && srv_host) {
@@ -5353,6 +5362,12 @@ u_int32_t Flow::getNextTcpSeq(u_int8_t tcpFlags, u_int32_t tcpSeqNum,
 
 /* *************************************** */
 
+void Flow::setDHCPHostName(const char* name) {
+  if ((name && name[0]) && (protos.dhcp.name == NULL)) protos.dhcp.name = strdup(name);
+}
+
+/* *************************************** */
+
 void Flow::incTcpBadStats(bool src2dst_direction, Host *cli, Host *srv,
                           NetworkInterface *iface, u_int32_t ooo_pkts,
                           u_int32_t retr_pkts, u_int32_t lost_pkts,
@@ -6329,6 +6344,8 @@ void Flow::dissectNetBIOS(u_int8_t *payload, u_int16_t payload_len) {
     if (name[0]) protos.netbios.name = strdup(name);
   }
 }
+
+
 
 /* *************************************** */
 

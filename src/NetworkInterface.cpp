@@ -2151,6 +2151,15 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx, bool ingressPac
 	  }
 	}
       }
+
+      if (*dstHost) {
+        char host_name[64];
+        Mac *dst_mac = (*dstHost)->getMac();
+        if (dst_mac && !(dst_mac->isBroadcast())) {
+          flow->setDHCPHostName(dst_mac->getDHCPNameNotLowerCase(host_name, sizeof(host_name)));
+        }
+      }
+      
       break;
 
     case NDPI_PROTOCOL_DHCPV6:

@@ -72,6 +72,7 @@ class Host : public GenericHashEntry,
     char *http;        /* The HTTP Host: name */
     char *server_name; /* TLS/HTTP or other protocols requesting the host with a
                           specific server name */
+    char *dhcp;  /* name from a DHCP reply */
   } names;
 
   char *ssdpLocation;
@@ -413,6 +414,7 @@ class Host : public GenericHashEntry,
   char *getMDNSTXTName(char *const buf, ssize_t buf_len);
   char *getMDNSInfo(char *const buf, ssize_t buf_len);
   char *getNetbiosName(char *const buf, ssize_t buf_len);
+  char *getDHCPName(char *const buf, ssize_t buf_len);
   char *getTLSName(char *const buf, ssize_t buf_len);
   char *getHTTPName(char *const buf, ssize_t buf_len);
 #ifdef HAVE_NEDGE
@@ -789,6 +791,7 @@ class Host : public GenericHashEntry,
   void offlineSetMDNSInfo(char *const s);
   void offlineSetMDNSName(const char *n);
   void offlineSetMDNSTXTName(const char *n);
+  void offlineSetDHCPName(const char *n);
   void setServerName(const char *n);
   void setResolvedName(const char *resolved_name);
   inline Fingerprint *getJA3Fingerprint() { return (&fingerprints.ja3); }

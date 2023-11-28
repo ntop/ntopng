@@ -533,6 +533,9 @@ void Host::lua_get_names(lua_State *const vm, char *const buf,
       cur_mac->getDHCPName(buf, buf_size);
       if (buf[0]) lua_push_str_table_entry(vm, "dhcp", buf);
     }
+
+    getDHCPName(buf, buf_size);
+    if (buf[0]) lua_push_str_table_entry(vm, "dhcp", buf);
   }
 
   lua_pushstring(vm, "names");
@@ -1053,6 +1056,9 @@ char *Host::get_name(char *buf, u_int buf_len,
   getServerName(name_buf, sizeof(name_buf));
   if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
 
+  getDHCPName(name_buf, sizeof(name_buf));
+  if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
+
   /* Most relevant names goes first */
   if (isBroadcastDomainHost()) {
     Mac *cur_mac = getMac(); /* Cache it as it can change */
@@ -1204,6 +1210,18 @@ char *Host::getTLSName(char *const buf, ssize_t buf_len) {
   }
 
   return Utils::stringtolower(buf);
+}
+
+/* ***************************************** */
+
+char *Host::getDHCPName(char *const buf, ssize_t buf_len) {
+  if (buf && buf_len) {
+    m.lock(__FILE__, __LINE__);
+    snprintf(buf, buf_len, "%s", names.dhcp ? names.dhcp : "");
+    m.unlock(__FILE__, __LINE__);
+  }
+
+  return ((char*)buf);
 }
 
 /* ***************************************** */
@@ -1683,6 +1701,19 @@ void Host::offlineSetMDNSName(const char *mdns_n) {
 
 /* *************************************** */
 
+void Host::offlineSetDHCPName(const char *dhcp_n) {
+  if (!isValidHostName(dhcp_n)) return;
+  char ip_buf[64];
+  if (!names.dhcp && dhcp_n &&
+      (names.dhcp = strdup(dhcp_n))) {
+#ifdef NTOPNG_PRO
+    ntop->get_am()->setResolvedName(this, label_dhcp, names.dhcp);
+#endif
+  }
+}
+
+/* *************************************** */
+
 void Host::offlineSetMDNSTXTName(const char *mdns_n_txt) {
   if (!names.mdns_txt && mdns_n_txt &&
       (names.mdns_txt = Utils::toLowerResolvedNames(mdns_n_txt))) {
@@ -1989,6 +2020,10 @@ void Host::freeHostNames() {
   if (names.tls) {
     free(names.tls);
     names.tls = NULL;
+  }
+  if (names.dhcp) {
+    free(names.dhcp);
+    names.dhcp = NULL;
   }
 }
 

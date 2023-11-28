@@ -171,6 +171,10 @@ class Flow : public GenericHashEntry {
     } netbios;
 
     struct {
+      char *name;
+    } dhcp;
+
+    struct {
       char *client_signature, *server_signature;
       struct {
         /* https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c
@@ -939,6 +943,7 @@ class Flow : public GenericHashEntry {
   void dissectNetBIOS(u_int8_t *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void fillZMQFlowCategory(ndpi_protocol *res);
+  void setDHCPHostName(const char* name);
   inline void setICMP(bool src2dst_direction, u_int8_t icmp_type,
                       u_int8_t icmp_code, u_int8_t *icmpdata) {
     if (isICMP()) {

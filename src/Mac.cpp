@@ -298,6 +298,18 @@ char *Mac::getDHCPName(char *const buf, ssize_t buf_size) {
 
 /* *************************************** */
 
+char *Mac::getDHCPNameNotLowerCase(char *const buf, ssize_t buf_size) {
+  if (buf && buf_size) {
+    m.lock(__FILE__, __LINE__);
+    snprintf(buf, buf_size, "%s", names.dhcp ? names.dhcp : "");
+    m.unlock(__FILE__, __LINE__);
+  }
+
+  return ((char*)buf);
+}
+
+/* *************************************** */
+
 void Mac::checkDeviceTypeFromManufacturer() {
   if (isNull()) return;
 
@@ -363,7 +375,7 @@ void Mac::inlineSetSSID(const char *s) {
 
 void Mac::inlineSetDHCPName(const char *dhcp_name) {
   if (!names.dhcp && dhcp_name &&
-      (names.dhcp = Utils::toLowerResolvedNames(dhcp_name)))
+      (names.dhcp = strdup(dhcp_name)))
     ;
 }
 
