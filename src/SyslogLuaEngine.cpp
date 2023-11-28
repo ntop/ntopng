@@ -84,6 +84,10 @@ bool SyslogLuaEngine::pcall(int num_args, int num_results) {
 void SyslogLuaEngine::handleEvent(const char *producer, const char *message,
                                   const char *host, int priority) {
   lua_State *L = getState();
+
+  //ntop->getTrace()->traceEvent(TRACE_WARNING, "Producer = %s Host = %s Message = %s",
+  //  producer ? producer : "", host ? host : "", message ? message : "");
+
   lua_getglobal(L, SYSLOG_SCRIPT_CALLBACK_EVENT);
   lua_pushstring(L, producer ? producer : "");
   lua_pushstring(L, message ? message : "");
