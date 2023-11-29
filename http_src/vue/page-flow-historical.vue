@@ -61,9 +61,13 @@
                     <div class="row">
                         <div v-if="context.show_chart" class="col-12 mb-2" id="chart-vue">
                             <div class="card h-100 overflow-hidden">
-                                <Chart ref="chart" id="chart_0" :chart_type="chart_type" :base_url_request="chart_data_url"
-                                    :register_on_status_change="false" :min_time_interval_id="min_time_interval_id"
-                                    :round_time="round_time">
+                              <Chart ref="chart" id="chart_0"
+                                     :chart_type="chart_type"
+                                     :base_url_request="chart_data_url"
+                                     :map_chart_options="f_map_chart_options"
+                                     :register_on_status_change="false"
+                                     :min_time_interval_id="min_time_interval_id"
+                                     :round_time="round_time">
                                 </Chart>
                             </div>
                         </div>
@@ -126,7 +130,7 @@ import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng
 import NtopUtils from "../utilities/ntop-utils";
 import { ntopChartApex } from "../components/ntopChartApex.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
-import TableUtils from "../utilities/table-utils";
+import FormatterUtils from "../utilities/formatter-utils.js";
 
 import { default as SelectSearch } from "./select-search.vue";
 import { default as Navbar } from "./page-navbar.vue";
@@ -225,10 +229,9 @@ function init_params() {
     page.value = ntopng_url_manager.get_url_entry("page");
     if (page.value == null) { page.value = "overview"; }
     chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
-
+    
     selected_query_preset.value = {
         value: ntopng_url_manager.get_url_entry("query_preset"),
-        count: ntopng_url_manager.get_url_entry("count"),
     };
     if (selected_query_preset.value.value == null) {
         selected_query_preset.value.value = "";
@@ -265,7 +268,7 @@ function init_url_params() {
             ntopng_url_manager.set_key_to_url("epoch_end", epoch_interval.epoch_end);
         }
     }
-
+    
     if (ntopng_url_manager.get_url_entry("page") == "flow"
         && ntopng_url_manager.get_url_entry("status") == "engaged") {
         ntopng_url_manager.set_key_to_url("status", "historical");
@@ -273,28 +276,39 @@ function init_url_params() {
     if (ntopng_url_manager.get_url_entry("aggregated") == null) {
         ntopng_url_manager.set_key_to_url("aggregated","false");
     }
-
+    
 }
 
+function get_chart_config_from_preset_const(preset_const) {
+    let chart = preset_const?.chart;
+    if (chart != null && chart.length > 0) {
+        return chart[0];
+    }
+    return {};
+}
 
 async function set_query_presets() {
     let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/preset/consts.lua?page=${page.value}&aggregated=${flows_aggregated.value}`;
     let res = await ntopng_utility.http_request(url_request);
-
+    
     query_presets.value = res[0].list.map((el) => {
+        let chart_config = get_chart_config_from_preset_const(el);
         return {
             value: el.id, //== null ? "flow" : el.id,
             name: el.name,
-            count: el.count,
+            count: chart_config?.params?.count,
+            chart_config: chart_config,
             builtin: true,
         };
     });
     if (res.length > 1) {
         res[1].list.forEach((el) => {
+            let chart_config = get_chart_config_from_preset_const(el);
             let query = {
                 value: el.id,
                 name: el.name,
-                count: el.count,
+                count: chart_config?.params?.count,
+                chart_config: chart_config,
                 is_preset: true,
             };
             query_presets.value.push(query);
@@ -310,6 +324,16 @@ async function set_query_presets() {
     ntopng_url_manager.set_key_to_url("count", selected_query_preset.value.count);
     ntopng_sync.ready(get_query_presets_sync_key());
 }
+
+const f_map_chart_options = async (chart_options) => {
+    await ntopng_sync.on_ready(get_query_presets_sync_key());
+    let formatter_type = selected_query_preset.value.chart_config?.unit_measure;
+    if (formatter_type == null) {
+        formatter_type = "number";
+    }
+    chart_options.yaxis.labels.formatter = FormatterUtils.getFormatter(formatter_type);
+    return chart_options;
+};
 
 function change_flow_type() {
     // if (flows_aggregated.value == false) {

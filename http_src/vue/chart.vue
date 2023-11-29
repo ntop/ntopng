@@ -17,6 +17,7 @@ export default {
 	base_url_request: String,
 	get_params_url_request: Function,
 	get_custom_chart_options: Function,
+        map_chart_options: Function,
         min_time_interval_id: String,	
 	round_time: Boolean, //if min_time_interval_id != null round time by min_time_interval_id	
     },
@@ -126,6 +127,9 @@ export default {
 	    } else {
 		chart_options = await this.get_custom_chart_options(url_request);
 	    }
+            if (this.map_chart_options != null) {
+                chart_options = this.map_chart_options(chart_options);
+            }
 	    this.$emit('chart_reloaded', chart_options);
 	    return chart_options;
 	},

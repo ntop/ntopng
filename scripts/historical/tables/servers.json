@@ -3,10 +3,11 @@
 	"i18n_name" : "servers",
 	"data_source" : "flows",
 	"show_in_page" : "overview",
-	"hourly": true,
+    "hourly": true,
 	"chart" : [{
 		"chart_id" : "servers",
 		"chart_type" : "topk-timeseries",
+            "unit_measure": "bytes",
 		"params" : {
 			"count" : "TOTAL_BYTES"
 		}

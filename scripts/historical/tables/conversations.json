@@ -7,6 +7,7 @@
 	"chart" : [{
 		"chart_id" : "conversations",
 		"chart_type" : "topk-timeseries",
+            "unit_measure": "bytes",
 		"params" : {
 			"count" : "TOTAL_BYTES"
 		}

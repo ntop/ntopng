@@ -8,6 +8,7 @@
 	"chart" : [{
 		"chart_id" : "server_contacts",
 		"chart_type" : "topk-timeseries",
+            "unit_measure": "bytes",
 		"params" : {
 			"count" : "TOTAL_BYTES"
 		}
