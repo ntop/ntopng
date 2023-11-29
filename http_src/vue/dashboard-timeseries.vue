@@ -119,7 +119,6 @@ async function format_ifids(params_to_format) {
     new_formatted_params.source_def = [iface.ifid]
     ts_request.value.push(new_formatted_params);
   });
-  source_def_array.value.shift(current_ifid);
 }
 
 /* *************************************************** */
