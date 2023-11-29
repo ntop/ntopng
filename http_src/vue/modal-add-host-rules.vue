@@ -516,6 +516,8 @@ const set_row_to_edit = (row) => {
       }
     })
 
+    active_metric_type_list.value = metric_type_list.value;
+
     // set threshold
     if(row.metric_type == 'volume')
       volume_threshold_list.value.forEach((t) => {
@@ -893,6 +895,7 @@ const edit_ = () => {
 
 const close = () => {
   is_edit_page.value = false;
+  invalid_add.value = false;
   modal_id.value.close();
 };
 
@@ -935,6 +938,20 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
   metric_list.value = _metric_list;
   interface_metric_list.value = _interface_metric_list;
   ifid_list.value = format_ifid_list(_ifid_list);
+  
+  frequency_list.value = props.frequency_list;
+  selected_frequency.value = frequency_list.value[0];
+  selected_metric.value = metric_list.value[0];
+  selected_ifid.value = ifid_list.value[0];
+  page_csrf_.value = page_csrf;
+  if(_init_func) {
+    init_func.value = _init_func;
+  }
+
+  if(_delete_row) {
+    delete_row.value = _delete_row;
+  }
+  
   flow_exporter_devices.value = format_flow_exporter_device_list(_flow_exporter_devices);
 
   if (!dataUtils.isEmptyArrayOrNull(_host_pool_list)) {
@@ -973,18 +990,7 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
 
   }
   
-  frequency_list.value = props.frequency_list;
-  selected_frequency.value = frequency_list.value[0];
-  selected_metric.value = metric_list.value[0];
-  selected_ifid.value = ifid_list.value[0];
-  page_csrf_.value = page_csrf;
-  if(_init_func) {
-    init_func.value = _init_func;
-  }
-
-  if(_delete_row) {
-    delete_row.value = _delete_row;
-  }
+  
   
 }
 
@@ -996,6 +1002,7 @@ onBeforeMount(() => {
     }
 
   })
+invalid_add.value = false;
 })
 
 defineExpose({ show, close, metricsLoaded, invalidAdd });
