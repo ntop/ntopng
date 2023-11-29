@@ -60,7 +60,8 @@
 
                     <div class="row">
                         <div v-if="context.show_chart" class="col-12 mb-2" id="chart-vue">
-                            <div class="card h-100 overflow-hidden">
+                            <div class="card overflow-hidden" style="height:400px!important">
+                            <!-- <div class="card h-450 overflow-hidden"> -->
                               <Chart ref="chart" id="chart_0"
                                      :chart_type="chart_type"
                                      :base_url_request="chart_data_url"
