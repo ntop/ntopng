@@ -2,13 +2,16 @@
 	"name" : "Default Report",
 	"filters" : [
 		{
+			"name" : "network"
+		},
+		{
 			"name" : "l4proto"
 		},
 		{
-			"name" : "l7proto"
+			"name" : "l7cat"
 		},
 		{
-			"name" : "network"
+			"name" : "l7proto"
 		}
 	],
 	"components" : [
