@@ -19,7 +19,7 @@ const component_id = ref('empty_component');
 const props = defineProps({
     id: String,          /* Component ID */
     i18n_title: String,  /* Title (i18n) */
-    ifid: Number,        /* Interface ID */
+    ifid: String,        /* Interface ID */
     epoch_begin: Number, /* Time interval begin */
     epoch_end: Number,   /* Time interval end */
     max_width: Number,   /* Component Width (4, 8, 12) */

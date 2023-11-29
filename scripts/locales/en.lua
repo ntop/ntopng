@@ -1902,6 +1902,8 @@ local lang = {
     ["all"] = {
       ["probe_ip"] = "All Flow Exporters",
       ["network"] = "All Networks",
+      ["l4proto"] = "All L4 Protocols",
+      ["l7proto"] = "All Applications",
     },
     ["alert_category"] = "Category",
     ["alert_id"] = "Status",

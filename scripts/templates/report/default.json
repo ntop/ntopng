@@ -1,5 +1,16 @@
 {
 	"name" : "Default Report",
+	"filters" : [
+		{
+			"name" : "l4proto"
+		},
+		{
+			"name" : "l7proto"
+		},
+		{
+			"name" : "network"
+		}
+	],
 	"components" : [
 	{
 		"component" : "pie",
@@ -301,7 +312,7 @@
 				"limit" : 180,
 				"version" : 4,
 				"ts_requests": {
-					"$IFID$" : {
+					"ifid" : {
 						"ts_query": "ifid:$IFID$",
 						"ts_schema": "iface:traffic_rxtx",
 						"tskey": "$IFID$"

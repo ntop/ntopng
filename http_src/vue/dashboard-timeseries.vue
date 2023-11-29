@@ -6,7 +6,7 @@
 <template>
   <div>
     <TimeseriesChart ref="chart" :id="id" :chart_type="chart_type" :base_url_request="base_url"
-      :get_custom_chart_options="get_chart_options" :register_on_status_change="false" :disable_pointer_events="true">
+      :get_custom_chart_options="get_chart_options" :register_on_status_change="false" :disable_pointer_events="false">
     </TimeseriesChart>
   </div>
 </template>
@@ -33,7 +33,7 @@ const source_def_array = ref([])
 const props = defineProps({
   id: String,          /* Component ID */
   i18n_title: String,  /* Title (i18n) */
-  ifid: Number,        /* Interface ID */
+  ifid: String,        /* Interface ID */
   epoch_begin: Number, /* Time interval begin */
   epoch_end: Number,   /* Time interval end */
   max_width: Number,   /* Component Width (4, 8, 12) */
@@ -175,6 +175,8 @@ async function format_networks(params_to_format) {
  * correct value (e.g. $ANY_IFID$ -> list of all ifid)
  */
 async function resolve_any_params() {
+  /* Clear the Array */
+  ts_request.value = [];
   /* Here possible ANY, can be found in the post_params */
   const params = props.params.post_params?.ts_requests;
   for (const any_param in (params || {})) {
@@ -235,10 +237,22 @@ async function retrieve_basic_info() {
 
 /* *************************************************** */
 
+/* Remove the property otherwise it's going to be added to the REST */
+function remove_extra_params() {
+  for (const value of ts_request.value) {
+    if (value.source_def) {
+      delete value.source_def
+    }
+  }
+}
+
+/* *************************************************** */
+
 /* This function run the REST API with the data */
 async function get_chart_options() {
   await resolve_any_params();
   await retrieve_basic_info();
+  remove_extra_params();
   const url = base_url.value;
   const post_params = {
     csrf: props.csrf,

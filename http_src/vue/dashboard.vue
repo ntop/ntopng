@@ -23,14 +23,6 @@
                         @select_option="select_report_template">
                     </SelectSearch>
                 </div>
-
-                <template v-for="(filter_options, filter_id) in available_filters">
-                    <div class="me-2">
-                        <SelectSearch v-model:selected_option="selected_filters[filter_id]" :options="filter_options"
-                            @select_option="select_filter(selected_filters[filter_id], filter_id)">
-                        </SelectSearch>
-                    </div>
-                </template>
             </template>
             <template v-slot:extra_buttons>
                 <button class="btn btn-link btn-sm" type="button" @click="show_store_report_modal"
@@ -53,6 +45,16 @@
                 </button>
             </template>
         </DateTimeRangePicker>
+
+        <div class="btn-group me-auto mt-2 btn-group-sm flex-wrap d-flex">
+            <template v-for="(filter_options, filter_id) in available_filters">
+                <div class="me-2">
+                    <SelectSearch v-model:selected_option="selected_filters[filter_id]" :options="filter_options"
+                        @select_option="select_filter(selected_filters[filter_id], filter_id)">
+                    </SelectSearch>
+                </div>
+            </template>
+        </div>
 
         <div v-if="enable_report_title" class="mt-3" style="margin-bottom:-0.5rem; display: inline">
             <h3 style="text-align:center;">{{ report_title }}
@@ -345,7 +347,7 @@ async function load_filters(filters_available) {
         /* Check the filters available, if no filter or only 1 filter is provided, hide the dropdown */
         if (filter_options && filter_options.length > 1) {
             let all_label = i18n('db_search.all.' + id)
-            if(dataUtils.isEmptyOrNull(all_label)) {
+            if (dataUtils.isEmptyOrNull(all_label)) {
                 all_label = i18n('all') + " " + i18n('db_search.' + id);
             }
             /* Add the 'All' filter */
@@ -363,6 +365,8 @@ async function load_filters(filters_available) {
 async function load_components(epoch_interval, template_name) {
     /* Enable REST calls */
     data_from_backup = false;
+    available_filters.value = {};
+    selected_filters.value = {};
 
     let url_request = `${props.context.template_endpoint}?template=${template_name}`;
     let res = await ntopng_utility.http_request(url_request);
