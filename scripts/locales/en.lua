@@ -318,6 +318,7 @@ local lang = {
   ["interface_status"] = "Operational Status",
   ["interface_status_short"] = "Oper. Status",
   ["interface_traffic"] = "Interface Traffic",
+  ["network_traffic"] = "Network Traffic",
   ["flow_exporter_traffic"] = "Flow Exporter Traffic",
   ["interfaces"] = "Interfaces",
   ["interfaces_traffic"] = "Interfaces Traffic",
@@ -1900,6 +1901,7 @@ local lang = {
   ["db_search"] = {
     ["all"] = {
       ["probe_ip"] = "All Flow Exporters",
+      ["network"] = "All Networks",
     },
     ["alert_category"] = "Category",
     ["alert_id"] = "Status",

@@ -1309,6 +1309,7 @@ function historical_flow_utils.get_tags()
    flow_defined_tags["srv_network_cidr"] = tag_utils.defined_tags["srv_network_cidr"]
    flow_defined_tags["cli_network_cidr"] = tag_utils.defined_tags["cli_network_cidr"]
    flow_defined_tags["duration"] = tag_utils.defined_tags["duration"]
+   flow_defined_tags["network"] = tag_utils.defined_tags["network"]
 
    return flow_defined_tags
 end

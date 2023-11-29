@@ -1,8 +1,8 @@
 {
-	"name" : "Flow Exporters",
+	"name" : "Networks Report",
 	"filters" : [
 		{
-			"name" : "probe_ip"
+			"name" : "network"
 		}
 	],
 	"components" : [
@@ -296,7 +296,7 @@
 	{
 		"component" : "timeseries",
 		"id" : "traffic_chart",
-		"i18n_name" : "flow_exporter_traffic",
+		"i18n_name" : "network_traffic",
 		"width" : 12,
 		"height" : 6,
 		"params" : {
@@ -306,14 +306,14 @@
 				"limit" : 180,
 				"version" : 4,
 				"ts_requests": {
-					"$ANY_EXPORTER$" : {
-						"ts_query": "ifid:$IFID$,device:$EXPORTER$",
-						"ts_schema": "flowdev:traffic",
-						"tskey": "$EXPORTER$"
+					"$ANY_NETWORK$" : {
+						"ts_query": "ifid:$IFID$,subnet:$NETWORK$",
+						"ts_schema": "subnet:traffic",
+						"tskey": "$NETWORK$"
 					}
 				}
 			},
-			"source_type" : "top_flow_dev"
+			"source_type" : "network"
 		}
 	},
 	{

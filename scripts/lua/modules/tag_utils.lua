@@ -306,7 +306,7 @@ tag_utils.defined_tags = {
     network = {
         type = tag_utils.input_types.select,
         value_type = 'network_id',
-        i18n_label = i18n('db_search.tags.cli_network'),
+        i18n_label = i18n('db_search.tags.network'),
         operators = {'eq', 'neq'}
     },
     cli_network = {
