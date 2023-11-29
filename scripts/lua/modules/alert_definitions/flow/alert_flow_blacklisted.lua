@@ -8,6 +8,7 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+local blacklist_debug = 'ntopng.debug.alerts.blacklisted_flow'
 
 -- ##############################################
 
@@ -81,6 +82,11 @@ function alert_flow_blacklisted.format(ifid, alert, alert_type_params)
     })
 
     if #who == 0 and alert_type_params["cat_blacklisted"] then
+        if ntop.getCache(blacklist_debug) == '1' then
+            traceError(TRACE_NORMAL, TRACE_CONSOLE, "Blacklisted flow with no blacklisted client nor server. Info:\n")
+            tprint(alert)
+            tprint(alert_type_params)
+        end
         local l7_protocol
         if tonumber(alert["l7_master_proto"]) and tonumber(alert["l7_proto"]) then
             l7_protocol =
