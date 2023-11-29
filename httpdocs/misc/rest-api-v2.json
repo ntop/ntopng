@@ -13329,7 +13329,7 @@
           "Hosts"
         ],
         "summary": "Set host alias",
-        "description": "Set hsot custom name",
+        "description": "Set host custom name",
         "operationId": "set_host_alias",
         "produces": [
           "application/json"
@@ -13339,6 +13339,117 @@
             "name": "host",
             "in": "formData",
             "description": "Host address",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "custom_name",
+            "in": "formData",
+            "description": "Custom name",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/device/alias.lua": {
+      "post": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Set device alias",
+        "description": "Set device custom name",
+        "operationId": "set_device_alias",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "device",
+            "in": "formData",
+            "description": "Device MAC Address",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "custom_name",
+            "in": "formData",
+            "description": "Custom name",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/network/alias.lua": {
+      "post": {
+        "tags": [
+          "Networks"
+        ],
+        "summary": "Set network alias",
+        "description": "Set network custom name",
+        "operationId": "set_network_alias",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "network_cidr",
+            "in": "formData",
+            "description": "Network CIDR",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "custom_name",
+            "in": "formData",
+            "description": "Custom name",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/set/interface/alias.lua": {
+      "post": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Set interface alias",
+        "description": "Set interface custom name",
+        "operationId": "set_interface_alias",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "formData",
+            "description": "Interface ID",
             "required": true,
             "type": "string"
           },

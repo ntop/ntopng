@@ -427,6 +427,12 @@ end
 
 -- ##############################################
 
+function getInterfaceAliasKey(ifid)
+    return "ntopng.prefs.ifid_" .. ifid .. ".name"
+end
+
+-- ##############################################
+
 function getLocalNetworkAliasById(network)
     local network_utils = require "network_utils"
 

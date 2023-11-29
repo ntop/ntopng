@@ -1050,6 +1050,26 @@ end
 
 -- ##############################################
 
+-- This function set the interface alias, return true if the
+-- alias is set, false otherwise
+function setInterfaceAlias(iface, alias)
+   local ok = true
+
+   if(isEmptyString(iface)) then
+      ok = false
+   end
+   
+   if(ok and (iface ~= alias) and not isEmptyString(alias)) then
+      ntop.setCache(getInterfaceAliasKey(iface), alias)
+   else
+      ok = false
+   end
+
+   return ok
+end
+
+-- ##############################################
+
 function setLocalNetworkAlias(network, alias)
    if((network ~= alias) or isEmptyString(alias)) then
       ntop.setHashCache(getLocalNetworkAliasKey(), network, alias)
