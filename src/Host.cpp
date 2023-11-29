@@ -1703,7 +1703,6 @@ void Host::offlineSetMDNSName(const char *mdns_n) {
 
 void Host::offlineSetDHCPName(const char *dhcp_n) {
   if (!isValidHostName(dhcp_n)) return;
-  char ip_buf[64];
   if (!names.dhcp && dhcp_n &&
       (names.dhcp = strdup(dhcp_n))) {
 #ifdef NTOPNG_PRO
