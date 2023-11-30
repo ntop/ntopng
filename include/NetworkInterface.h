@@ -1030,7 +1030,7 @@ public:
       lua_newtable(vm);
   };
 #endif
-  virtual void getSFlowDevices(lua_State *vm);
+  virtual void getSFlowDevices(lua_State *vm, bool add_table);
   virtual void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
     if (interfaceStats)
       interfaceStats->luaDeviceInfo(vm, deviceIP);

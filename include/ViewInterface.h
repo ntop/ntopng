@@ -96,7 +96,7 @@ class ViewInterface : public NetworkInterface {
   virtual void getFlowDevices(lua_State *vm, bool add_table);
   virtual void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP);
 #endif
-  virtual void getSFlowDevices(lua_State *vm);
+  virtual void getSFlowDevices(lua_State *vm, bool add_table);
   virtual void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP);
 
   virtual u_int32_t getFlowsHashSize();

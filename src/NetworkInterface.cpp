@@ -4019,24 +4019,6 @@ void NetworkInterface::periodicStatsUpdate() {
 #endif
 }
 
-/* *************************************** */
-
-#ifdef NTOPNG_PRO
-
-void NetworkInterface::updateBehaviorStats(const struct timeval *tv) {
-  /* 5 Min Update */
-  /* Traffic behavior stats update, currently score, traffic rx and tx */
-  score_behavior->updateBehavior(this, score_as_cli + score_as_srv, "score", false);
-
-  traffic_tx_behavior->updateBehavior(this, ethStats.getNumEgressBytes(), "traffic_tx_behavior",
-                                      false);
-
-  traffic_rx_behavior->updateBehavior(this, ethStats.getNumIngressBytes(), "traffic_rx_behavior",
-                                      false);
-}
-
-#endif
-
 /* **************************************************** */
 
 /*
@@ -12470,28 +12452,13 @@ void NetworkInterface::getActiveMacs(lua_State *vm) {
 
 /* **************************************************** */
 
-#ifdef NTOPNG_PRO
-void NetworkInterface::getFlowDevices(lua_State *vm, bool add_table) {
-  /* Add the devices list only if not empty */
-  if (flow_interfaces_stats) {
-    if(add_table) lua_newtable(vm);
-
-    flow_interfaces_stats->luaDeviceList(vm);
-    
-    lua_pushinteger(vm, get_id());
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-  }
-};
-#endif
-
-/* **************************************************** */
-
-void NetworkInterface::getSFlowDevices(lua_State *vm) {
+void NetworkInterface::getSFlowDevices(lua_State *vm, bool add_table) {
   /* Add the devices list only if not empty */
   if (interfaceStats) {
-    lua_newtable(vm);
+    if(add_table) lua_newtable(vm);
+    
     interfaceStats->luaDeviceList(vm);
+    
     lua_pushinteger(vm, get_id());
     lua_insert(vm, -2);
     lua_settable(vm, -3);

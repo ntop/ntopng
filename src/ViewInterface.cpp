@@ -836,9 +836,11 @@ void ViewInterface::getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
 
 /* **************************************************** */
 
-void ViewInterface::getSFlowDevices(lua_State *vm) {
+void ViewInterface::getSFlowDevices(lua_State *vm, bool add_table) {
+  if(add_table) lua_newtable(vm);
+  
   for (int i = 0; i < num_viewed_interfaces; i++)
-    viewed_interfaces[i]->getSFlowDevices(vm);
+    viewed_interfaces[i]->getSFlowDevices(vm, false);
 }
 
 /* **************************************************** */

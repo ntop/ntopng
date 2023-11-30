@@ -3011,7 +3011,7 @@ static int ntop_getsflowdevices(lua_State *vm) {
   if (!ntop_interface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   else {
-    ntop_interface->getSFlowDevices(vm);
+    ntop_interface->getSFlowDevices(vm, false);
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
   }
 }
