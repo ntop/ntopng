@@ -60,8 +60,8 @@
 
                     <div class="row">
                         <div v-if="context.show_chart" class="col-12 mb-2" id="chart-vue">
-                            <div class="card overflow-hidden" style="height:400px!important">
-                            <!-- <div class="card h-450 overflow-hidden"> -->
+                            <div class="card overflow-hidden" :style="chart_style">
+                            <!-- <div class="card h-300 overflow-hidden"> -->
                               <Chart ref="chart" id="chart_0"
                                      :chart_type="chart_type"
                                      :base_url_request="chart_data_url"
@@ -192,10 +192,18 @@ const href_download_records = computed(() => {
 });
 
 let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
+
+const chart_style = computed(() => {
+    if (props.context?.chart_type == "topk-timeseries") {
+        return "height:400px!important";
+    }
+    return "height:300px!important";
+
+});
 const chart_type = computed(() => {
     /* Chart type defined the json template (defaults in db_search.lua) */
     if (props.context?.chart_type == "topk-timeseries") {
-        return ntopChartApex.typeChart.TS_LINE;
+        return ntopChartApex.typeChart.TS_STACKED;
     }
     return ntopChartApex.typeChart.TS_COLUMN;
 });
