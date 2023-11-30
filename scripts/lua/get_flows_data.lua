@@ -160,14 +160,16 @@ for _key, value in ipairs(flows_stats) do -- pairsByValues(vals, funct) do
     if not info_cli then
         info_cli = {
             host = value["cli.ip"],
-            vlan = value["cli.vlan"]
+            vlan = value["cli.vlan"],
+            localhost = value["cli.localhost"]
         }
     end
 
     if not info_srv then
         info_srv = {
             host = value["srv.ip"],
-            vlan = value["srv.vlan"]
+            vlan = value["srv.vlan"],
+            localhost = value["srv.localhost"]
         }
     end
 

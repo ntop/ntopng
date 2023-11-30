@@ -1325,17 +1325,21 @@ class Flow : public GenericHashEntry {
   inline void setConfidence(ndpi_confidence_t rc) { confidence = rc; }
 
   inline u_int8_t getCliLocation() {
-    if (cli_host && cli_host->isMulticastHost())
+    if ((cli_host && cli_host->isMulticastHost()) ||
+        (cli_ip_addr && cli_ip_addr->isMulticastAddress()))
       return 2;  // Multicast host
-    else if (cli_host && cli_host->isLocalHost())
+    else if ((cli_host && cli_host->isLocalHost()) ||
+            (cli_ip_addr && cli_ip_addr->isLocalHost()))
       return 1;  // Local host
     else
       return 0;  // Remote host
   }
   inline u_int8_t getSrvLocation() {
-    if (srv_host && srv_host->isMulticastHost())
+    if ((srv_host && srv_host->isMulticastHost()) ||
+        (srv_ip_addr && srv_ip_addr->isMulticastAddress()))
       return 2;  // Multicast host
-    else if (srv_host && srv_host->isLocalHost())
+    else if ((srv_host && srv_host->isLocalHost()) ||
+            (srv_ip_addr && srv_ip_addr->isLocalHost()))
       return 1;  // Local host
     else
       return 0;  // Remote host

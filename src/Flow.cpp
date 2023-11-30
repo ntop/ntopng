@@ -6979,9 +6979,14 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
 
   lua_get_mac(vm, client);
 
-  if (h_ip)
+  if (h_ip) {
     lua_push_bool_table_entry(vm, client ? "cli.private" : "srv.private",
                               h_ip->isPrivateAddress());
+
+    lua_push_bool_table_entry(vm, client ? "cli.localhost" : "srv.localhost",
+                              h_ip->isLocalHost());
+
+  }
 }
 
 /* ***************************************************** */
@@ -7008,10 +7013,8 @@ void Flow::lua_get_min_info(lua_State *vm) {
 
   lua_push_int32_table_entry(vm, "cli.port", get_cli_port());
   lua_push_int32_table_entry(vm, "srv.port", get_srv_port());
-  lua_push_bool_table_entry(vm, "cli.localhost",
-                            cli_host ? cli_host->isLocalHost() : false);
-  lua_push_bool_table_entry(vm, "srv.localhost",
-                            srv_host ? srv_host->isLocalHost() : false);
+  lua_push_bool_table_entry(vm, "cli.localhost", getCliLocation() == 1);
+  lua_push_bool_table_entry(vm, "srv.localhost", getSrvLocation() == 1);
   lua_push_int32_table_entry(vm, "duration", get_duration());
   lua_push_str_table_entry(vm, "proto.l4", get_protocol_name());
   lua_push_str_table_entry(vm, "proto.ndpi",
@@ -7053,10 +7056,8 @@ void Flow::getInfo(ndpi_serializer *serializer) {
 
   ndpi_serialize_string_int32(serializer, "cli.port", get_cli_port());
   ndpi_serialize_string_int32(serializer, "srv.port", get_srv_port());
-  ndpi_serialize_string_boolean(serializer, "cli.localhost",
-                                cli_host ? cli_host->isLocalHost() : false);
-  ndpi_serialize_string_boolean(serializer, "srv.localhost",
-                                srv_host ? srv_host->isLocalHost() : false);
+  ndpi_serialize_string_boolean(serializer, "cli.localhost", getCliLocation() == 1);
+  ndpi_serialize_string_boolean(serializer, "srv.localhost", getSrvLocation() == 1);
   ndpi_serialize_string_int32(serializer, "duration", get_duration());
   ndpi_serialize_string_string(serializer, "proto.l4", get_protocol_name());
   ndpi_serialize_string_string(serializer, "proto.ndpi",
