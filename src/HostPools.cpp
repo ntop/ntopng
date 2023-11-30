@@ -295,7 +295,7 @@ void HostPools::lua(lua_State *vm) {
 
 /* *************************************** */
 
-void HostPools::reloadPool(u_int16_t _pool_id, VLANAddressTree *new_tree) {
+void HostPools::reloadPool(u_int16_t _pool_id, VLANAddressTree *new_tree, HostPoolStats **new_stats) {
   char kname[CONST_MAX_LEN_REDIS_KEY];
   char **pool_members, *at, *member;
   Redis *redis = ntop->getRedis();
@@ -306,6 +306,13 @@ void HostPools::reloadPool(u_int16_t _pool_id, VLANAddressTree *new_tree) {
   snprintf(pool_id, sizeof(pool_id), "%u", _pool_id);
 
   snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, _pool_id);
+
+  /* Initialize the name */
+  if (new_stats[_pool_id]) {
+    char name_rsp[POOL_MAX_NAME_LEN];
+    redis->hashGet(kname, (char *)"name", name_rsp, sizeof(name_rsp));
+    new_stats[_pool_id]->updateName(name_rsp);
+  }
 
 #ifdef NTOPNG_PRO
   char rsp[16] = {0};
@@ -491,14 +498,7 @@ void HostPools::reloadPools() {
 	new_stats[_pool_id] = new (std::nothrow) HostPoolStats(iface);
     }
 
-    /* Initialize the name */
-    if (new_stats[_pool_id]) {
-      char name_rsp[POOL_MAX_NAME_LEN];
-      redis->hashGet(kname, (char *)"name", name_rsp, sizeof(name_rsp));
-      new_stats[_pool_id]->updateName(name_rsp);
-    }
-
-    reloadPool(_pool_id, new_tree);
+    reloadPool(_pool_id, new_tree, new_stats);
 
     if (_pool_id == 0) 
       default_pool_loaded = true;
@@ -509,7 +509,7 @@ void HostPools::reloadPools() {
   if (pools) free(pools);
 
   if (!default_pool_loaded)
-    reloadPool(0, new_tree);
+    reloadPool(0, new_tree, new_stats);
 
   swap(new_tree, new_stats);
 
