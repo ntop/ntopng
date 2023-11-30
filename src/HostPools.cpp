@@ -295,15 +295,142 @@ void HostPools::lua(lua_State *vm) {
 
 /* *************************************** */
 
+void HostPools::reloadPool(u_int16_t _pool_id, VLANAddressTree *new_tree) {
+  char kname[CONST_MAX_LEN_REDIS_KEY];
+  char **pool_members, *at, *member;
+  Redis *redis = ntop->getRedis();
+  int num_members, actual_num_members;
+  u_int16_t vlan_id;
+  char pool_id[64];
+
+  snprintf(pool_id, sizeof(pool_id), "%u", _pool_id);
+
+  snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, _pool_id);
+
+#ifdef NTOPNG_PRO
+  char rsp[16] = {0};
+
+  children_safe[_pool_id] =
+      ((redis->hashGet(kname, (char *)CONST_CHILDREN_SAFE, rsp,
+		       sizeof(rsp)) != -1) &&
+       (!strcmp(rsp, "true")));
+
+  forge_global_dns[_pool_id] =
+      ((redis->hashGet(kname, (char *)CONST_FORGE_GLOBAL_DNS, rsp,
+		       sizeof(rsp)) != -1) &&
+       (!strcmp(rsp, "true")));
+
+  routing_policy_id[_pool_id] =
+      (redis->hashGet(kname, (char *)CONST_ROUTING_POLICY_ID, rsp,
+		      sizeof(rsp)) != -1)
+	  ? atoi(rsp)
+	  : DEFAULT_ROUTING_TABLE_ID;
+
+  pool_shaper[_pool_id] = (redis->hashGet(kname, (char *)CONST_POOL_SHAPER_ID,
+					  rsp, sizeof(rsp)) != -1)
+			      ? atoi(rsp)
+			      : DEFAULT_SHAPER_ID;
+
+  schedule_bitmap[_pool_id] =
+      (redis->hashGet(kname, (char *)CONST_SCHEDULE_BITMAP, rsp,
+		      sizeof(rsp)) != -1)
+	  ? strtol(rsp, NULL, 16)
+	  : DEFAULT_TIME_SCHEDULE;
+
+  enforce_quotas_per_pool_member[_pool_id] =
+      ((redis->hashGet(kname, (char *)CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER,
+		       rsp, sizeof(rsp)) != -1) &&
+       (!strcmp(rsp, "true")));
+  ;
+  enforce_shapers_per_pool_member[_pool_id] =
+      ((redis->hashGet(kname, (char *)CONST_ENFORCE_SHAPERS_PER_POOL_MEMBER,
+		       rsp, sizeof(rsp)) != -1) &&
+       (!strcmp(rsp, "true")));
+  ;
+
+#ifdef HOST_POOLS_DEBUG
+  redis->hashGet(kname, (char *)"name", rsp, sizeof(rsp));
+  ntop->getTrace()->traceEvent(
+      TRACE_NORMAL,
+      "Loading pool [%s][iteration: %u][pool_id: %u][name: %s]"
+      "[children_safe: %i]"
+      "[forge_global_dns: %i]"
+      "[pool_shaper: %i]"
+      "[schedule_bitmap: %i]"
+      "[enforce_quotas_per_pool_member: %i]"
+      "[enforce_shapers_per_pool_member: %i]",
+      iface->get_name(), i, _pool_id, rsp, children_safe[_pool_id],
+      forge_global_dns[_pool_id], pool_shaper[_pool_id],
+      schedule_bitmap[_pool_id], enforce_quotas_per_pool_member[_pool_id],
+      enforce_shapers_per_pool_member[_pool_id]);
+#endif
+
+#endif /* NTOPNG_PRO */
+
+  snprintf(kname, sizeof(kname), HOST_POOL_MEMBERS_KEY, pool_id);
+
+  /* Pool members are the elements of the list */
+  if ((num_members = redis->smembers(kname, &pool_members)) > 0) {
+    // NOTE: the auto-assigned host_pool must not be limited as it receives
+    // devices assigments automatically
+    actual_num_members =
+	min_val((u_int32_t)num_members,
+		((_pool_id == ntop->getPrefs()->get_auto_assigned_pool_id())
+		     ? MAX_NUM_INTERFACE_HOSTS
+		     : MAX_NUM_POOL_MEMBERS));
+
+    if (actual_num_members < num_members) {
+      ntop->getTrace()->traceEvent(
+	  TRACE_WARNING,
+	  "Too many members [pool id: %2d][pool members: %d]. "
+	  "Maximum number of pool members for this license is %u, so %u pool "
+	  "members will be ignored.",
+	  _pool_id, num_members, actual_num_members,
+	  num_members - actual_num_members, actual_num_members);
+    }
+
+    for (int k = 0; k < actual_num_members; k++) {
+      member = pool_members[k];
+
+      if (!member) continue;
+
+      if ((at = strchr(member, '@'))) {
+	vlan_id = atoi(at + 1);
+	*at = '\0';
+      } else
+	vlan_id = 0;
+
+      bool rc;
+
+      if (!(rc = new_tree->addAddress(vlan_id, member, _pool_id))
+#ifdef HOST_POOLS_DEBUG
+	  || true
+#endif
+      )
+
+	ntop->getTrace()->traceEvent(
+	    TRACE_NORMAL, "%s tree node for %s [vlan %i] [host pool: %s]",
+	    rc ? "Successfully added" : "Unable to add", member, vlan_id,
+	    pool_id);
+
+      free(member);
+    }
+
+    free(pool_members);
+  }
+}
+
+/* *************************************** */
+
 void HostPools::reloadPools() {
   char kname[CONST_MAX_LEN_REDIS_KEY];
-  char **pools, **pool_members, *at, *member;
-  int num_pools, num_members, actual_num_members;
+  char **pools;
+  int num_pools;
   u_int16_t _pool_id;
-  u_int16_t vlan_id;
   VLANAddressTree *new_tree;
   HostPoolStats **new_stats;
   Redis *redis = ntop->getRedis();
+  bool default_pool_loaded = false;
 
   if (!iface || (iface->get_id() == -1)) return;
 
@@ -343,26 +470,25 @@ void HostPools::reloadPools() {
   for (int i = 0; i < num_pools; i++) {
     if (!pools[i]) continue;
 
-    _pool_id = (u_int16_t)atoi(pools[i]);
+    _pool_id = (u_int16_t) atoi(pools[i]);
+
     if (_pool_id >= MAX_NUM_HOST_POOLS) {
       ntop->getTrace()->traceEvent(
-          TRACE_WARNING,
-          "Ignoring pool [pool id: %2d]. "
-          "Maximum number of host pools for this license is %u, inclusive of "
-          "the Not Assigned pool.",
-          _pool_id, MAX_NUM_HOST_POOLS);
+	TRACE_WARNING,
+	"Ignoring pool [pool id: %2d]. "
+	"Maximum number of host pools for this license is %u, inclusive of "
+	"the Not Assigned pool.",
+	_pool_id, MAX_NUM_HOST_POOLS);
 
       free(pools[i]);
       continue;
     }
 
-    snprintf(kname, sizeof(kname), HOST_POOL_DETAILS_KEY, _pool_id);
-
     if (_pool_id != 0) {            /* Pool id 0 stats already updated */
       if (stats && stats[_pool_id]) /* Duplicate existing statistics */
-        new_stats[_pool_id] = new (std::nothrow) HostPoolStats(*stats[_pool_id]);
+	new_stats[_pool_id] = new (std::nothrow) HostPoolStats(*stats[_pool_id]);
       else /* Brand new statistics */
-        new_stats[_pool_id] = new (std::nothrow) HostPoolStats(iface);
+	new_stats[_pool_id] = new (std::nothrow) HostPoolStats(iface);
     }
 
     /* Initialize the name */
@@ -372,120 +498,18 @@ void HostPools::reloadPools() {
       new_stats[_pool_id]->updateName(name_rsp);
     }
 
-#ifdef NTOPNG_PRO
-    char rsp[16] = {0};
+    reloadPool(_pool_id, new_tree);
 
-    children_safe[_pool_id] =
-        ((redis->hashGet(kname, (char *)CONST_CHILDREN_SAFE, rsp,
-                         sizeof(rsp)) != -1) &&
-         (!strcmp(rsp, "true")));
-
-    forge_global_dns[_pool_id] =
-        ((redis->hashGet(kname, (char *)CONST_FORGE_GLOBAL_DNS, rsp,
-                         sizeof(rsp)) != -1) &&
-         (!strcmp(rsp, "true")));
-
-    routing_policy_id[_pool_id] =
-        (redis->hashGet(kname, (char *)CONST_ROUTING_POLICY_ID, rsp,
-                        sizeof(rsp)) != -1)
-            ? atoi(rsp)
-            : DEFAULT_ROUTING_TABLE_ID;
-    pool_shaper[_pool_id] = (redis->hashGet(kname, (char *)CONST_POOL_SHAPER_ID,
-                                            rsp, sizeof(rsp)) != -1)
-                                ? atoi(rsp)
-                                : DEFAULT_SHAPER_ID;
-    schedule_bitmap[_pool_id] =
-        (redis->hashGet(kname, (char *)CONST_SCHEDULE_BITMAP, rsp,
-                        sizeof(rsp)) != -1)
-            ? strtol(rsp, NULL, 16)
-            : DEFAULT_TIME_SCHEDULE;
-
-    enforce_quotas_per_pool_member[_pool_id] =
-        ((redis->hashGet(kname, (char *)CONST_ENFORCE_QUOTAS_PER_POOL_MEMBER,
-                         rsp, sizeof(rsp)) != -1) &&
-         (!strcmp(rsp, "true")));
-    ;
-    enforce_shapers_per_pool_member[_pool_id] =
-        ((redis->hashGet(kname, (char *)CONST_ENFORCE_SHAPERS_PER_POOL_MEMBER,
-                         rsp, sizeof(rsp)) != -1) &&
-         (!strcmp(rsp, "true")));
-    ;
-
-#ifdef HOST_POOLS_DEBUG
-    redis->hashGet(kname, (char *)"name", rsp, sizeof(rsp));
-    ntop->getTrace()->traceEvent(
-        TRACE_NORMAL,
-        "Loading pool [%s][iteration: %u][pool_id: %u][name: %s]"
-        "[children_safe: %i]"
-        "[forge_global_dns: %i]"
-        "[pool_shaper: %i]"
-        "[schedule_bitmap: %i]"
-        "[enforce_quotas_per_pool_member: %i]"
-        "[enforce_shapers_per_pool_member: %i]",
-        iface->get_name(), i, _pool_id, rsp, children_safe[_pool_id],
-        forge_global_dns[_pool_id], pool_shaper[_pool_id],
-        schedule_bitmap[_pool_id], enforce_quotas_per_pool_member[_pool_id],
-        enforce_shapers_per_pool_member[_pool_id]);
-#endif
-
-#endif /* NTOPNG_PRO */
-
-    snprintf(kname, sizeof(kname), HOST_POOL_MEMBERS_KEY, pools[i]);
-
-    /* Pool members are the elements of the list */
-    if ((num_members = redis->smembers(kname, &pool_members)) > 0) {
-      // NOTE: the auto-assigned host_pool must not be limited as it receives
-      // devices assigments automatically
-      actual_num_members =
-          min_val((u_int32_t)num_members,
-                  ((_pool_id == ntop->getPrefs()->get_auto_assigned_pool_id())
-                       ? MAX_NUM_INTERFACE_HOSTS
-                       : MAX_NUM_POOL_MEMBERS));
-
-      if (actual_num_members < num_members) {
-        ntop->getTrace()->traceEvent(
-            TRACE_WARNING,
-            "Too many members [pool id: %2d][pool members: %d]. "
-            "Maximum number of pool members for this license is %u, so %u pool "
-            "members will be ignored.",
-            _pool_id, num_members, actual_num_members,
-            num_members - actual_num_members, actual_num_members);
-      }
-
-      for (int k = 0; k < actual_num_members; k++) {
-        member = pool_members[k];
-
-        if (!member) continue;
-
-        if ((at = strchr(member, '@'))) {
-          vlan_id = atoi(at + 1);
-          *at = '\0';
-        } else
-          vlan_id = 0;
-
-        bool rc;
-
-        if (!(rc = new_tree->addAddress(vlan_id, member, _pool_id))
-#ifdef HOST_POOLS_DEBUG
-            || true
-#endif
-        )
-
-          ntop->getTrace()->traceEvent(
-              TRACE_NORMAL, "%s tree node for %s [vlan %i] [host pool: %s]",
-              rc ? "Successfully added" : "Unable to add", member, vlan_id,
-              pools[i]);
-
-        free(member);
-      }
-
-      free(pool_members);
-    }
+    if (_pool_id == 0) 
+      default_pool_loaded = true;
 
     free(pools[i]);
   }
 
   if (pools) free(pools);
+
+  if (!default_pool_loaded)
+    reloadPool(0, new_tree);
 
   swap(new_tree, new_stats);
 
