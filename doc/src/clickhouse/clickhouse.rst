@@ -58,3 +58,43 @@ For more information, check the full schema available:
     :maxdepth: 1
 
     clickhouse_schema
+
+SSL Connection
+--------------
+
+To connect ntopng with ClickHouse using a secure TCP connection, first, create the server certificate with the following command:
+
+.. code:: bash 
+
+    openssl req -subj "/CN=localhost" -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout /etc/clickhouse-server/server.key -out /etc/clickhouse-server/server.crt
+
+This command generates a server certificate for secure communication between ntopng and ClickHouse, establishing a secure TCP connection.
+
+.. note::
+    
+    To enable the ClickHouse user to use the `server.crt` and `server.key` files, it is necessary to change their owner. 
+    Run the following command as a superuser to grant the required permissions:
+    
+.. code:: bash 
+
+    chown clickhouse:clickhouse /etc/clickhouse-server/server.key /etc/clickhouse-server/server.crt
+
+Open the ClickHouse config.xml file and uncomment the following lines:
+
+- :code:`<!--<tcp_port_secure>9440</tcp_port_secure>-->`
+- :code:`<!--<certificateFile>/etc/clickhouse-server/server.crt</certificateFile>-->`
+- :code:`<!--<privateKeyFile>/etc/clickhouse-server/server.key</privateKeyFile>-->`
+
+Restart ClickHouse.
+
+Start ntopng using the `-F` option, but in this case, it is mandatory to indicate the database port with an `s` at the end of it.
+
+.. code:: bash
+
+    clickhouse;<host[@<port>s]>;<dbname>;<user>;<pw>
+
+For example: 
+
+.. code:: bash 
+
+    ./ntopng -F="clickhouse;127.0.0.1@9440s;ntopng;default;default`
