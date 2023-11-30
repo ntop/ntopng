@@ -103,7 +103,10 @@ export const max_score_cve_f = (max_score_cve, row) => {
 }
 
 
-export const scan_type_f = (scan_type, row, scan_type_list) => {
+export const scan_type_f = (scan_type, from_report, row) => {
+  if (from_report && row.is_down) {
+    return '';
+  }
   if (scan_type !== undefined) {
     let label = scan_type
     const i18n_name = "hosts_stats.page_scan_hosts.scan_type_list."+scan_type;

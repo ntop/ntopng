@@ -9,7 +9,7 @@
     </NoteList>
   </template>
   <template v-slot:footer>
-    <template v-if="delete_type == 'delete_all' || delete_type == 'delete_single_row'">
+    <template v-if="delete_type == 'delete_all' || delete_type == 'delete_single_row' || delete_type == 'delete_single_report'">
       <button type="button" @click="delete_" class="btn btn-danger">{{_i18n('delete')}}</button>
     </template>
     <template v-else>
@@ -70,7 +70,7 @@ const show = (type, value) => {
 const delete_ = () => {
     if (delete_type.value == "delete_all") {
       emit('delete_all');
-    } else if ( delete_type.value == "delete_single_row") {
+    } else if ( delete_type.value == "delete_single_row" || delete_type.value == "delete_single_report") {
       emit('delete');
     } else if (delete_type.value == "scan_all_rows") {
       emit('scan_all_rows');

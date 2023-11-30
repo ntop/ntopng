@@ -141,7 +141,7 @@ const row_render_functions = {
     } else if(column.id == "udp_ports") {
       return udp_ports_f(row[column.id], row);
     }  else if(column.id == "scan_type") {
-      return scan_type_f(row[column.id]);
+      return scan_type_f(row[column.id], true, row);
     } else if (column.id == "hosts") {
       return hosts_f(row[column.id], row);
     } else if (column.id == "cve" || column.id == "cve_list") {
