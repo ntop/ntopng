@@ -5238,6 +5238,8 @@ static void *worker_thread(void *thread_func_param) {
   struct mg_context *ctx = (struct mg_context *)thread_func_param;
   struct mg_connection *conn;
 
+  Utils::setThreadName("ntopng-http-worker");
+  
   conn = (struct mg_connection *) calloc(1, sizeof(*conn) + MAX_REQUEST_SIZE);
   if (conn == NULL) {
     cry(fc(ctx), "%s", "Cannot create new connection struct, OOM");
@@ -5372,6 +5374,8 @@ static void *master_thread(void *thread_func_param) {
   struct pollfd *pfd;
   int i;
 
+  Utils::setThreadName("ntopng-mongoose");
+  
   // Increase priority of the master thread
 #if defined(_WIN32)
   SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);

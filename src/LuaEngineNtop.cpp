@@ -3515,8 +3515,10 @@ static int ntop_system_host_stat(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_newtable(vm);
+  
   if (ntop->getCPULoad(&cpu_load))
     lua_push_float_table_entry(vm, "cpu_load", cpu_load);
+  
   Utils::luaMeminfo(vm);
 
   for (int i = -1; i < ntop->get_num_interfaces(); i++) {
@@ -6374,6 +6376,13 @@ static int ntop_is_shutting_down(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_limit_resources_usage(lua_State *vm) {
+  lua_pushboolean(vm, ntop->getPrefs()->limitResourcesUsage());
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 /* positional 1:4 parameters for ntop_rrd_fetch */
 static int __ntop_rrd_args(lua_State *vm, char **filename, char **cf,
                            time_t *start, time_t *end) {
@@ -7326,6 +7335,7 @@ static luaL_Reg _ntop_reg[] = {
     {"setOffline", ntop_set_offline},
     {"setOnline", ntop_set_online},
     {"isShuttingDown", ntop_is_shutting_down},
+    {"limitResourcesUsage", ntop_limit_resources_usage},
     
     /* Execute commands */
     {"execCmd", ntop_exec_cmd},

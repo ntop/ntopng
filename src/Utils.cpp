@@ -3803,11 +3803,10 @@ void Utils::luaMeminfo(lua_State *vm) {
 
     if ((fp = fopen("/proc/self/status", "r"))) {
       while ((read = getline(&line, &len, fp)) != -1) {
-        if (!strncmp(line, "VmRSS", strlen("VmRSS")) &&
-            sscanf(line, "%*s %lu kB", &mem_resident))
+        if (!strncmp(line, "VmRSS", strlen("VmRSS")) && sscanf(line, "%*s %lu kB", &mem_resident))
           lua_push_uint64_table_entry(vm, "mem_ntopng_resident", mem_resident);
-        else if (!strncmp(line, "VmSize", strlen("VmSize")) &&
-                 sscanf(line, "%*s %lu kB", &mem_virtual))
+	
+        else if (!strncmp(line, "VmSize", strlen("VmSize")) && sscanf(line, "%*s %lu kB", &mem_virtual))
           lua_push_uint64_table_entry(vm, "mem_ntopng_virtual", mem_virtual);
       }
 

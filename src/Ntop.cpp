@@ -52,8 +52,6 @@ extern struct keyval string_to_replace[]; /* LuaEngine.cpp */
 /* ******************************************* */
 
 Ntop::Ntop(const char *appName) {
-  int num_resolvers;
-
   // WTF: it's weird why do you want a global instance of ntop.
   ntop = this;
   globals = new (std::nothrow) NtopGlobals();
@@ -109,7 +107,6 @@ Ntop::Ntop(const char *appName) {
   memset(&cpu_stats, 0, sizeof(cpu_stats));
   cpu_load = 0;
   system_interface = NULL;
-  purgeLoop_started = false;
   interfacesShuttedDown = false;
 #ifndef WIN32
   cping = NULL, default_ping = NULL;
@@ -127,9 +124,8 @@ Ntop::Ntop(const char *appName) {
   }
 #endif
 
-  internal_alerts_queue =
-      new (std::nothrow) FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
-
+  internal_alerts_queue = new (std::nothrow) FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
+  
   resolvedHostsBloom = new (std::nothrow) Bloom(NUM_HOSTS_RESOLVED_BITS);
 
 #ifdef WIN32
@@ -202,14 +198,9 @@ Ntop::Ntop(const char *appName) {
 #else
   pro = NULL;
 #endif
-
-  num_resolvers = CONST_NUM_RESOLVERS;
-#if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
-  if (pro->is_embedded_version())
-    num_resolvers = 1;
-#endif
-  address = new (std::nothrow) AddressResolution(num_resolvers);
-
+  
+  address = NULL;
+    
 #ifdef __linux__
   inotify_fd = -1;
 #endif
@@ -308,8 +299,6 @@ Ntop::~Ntop() {
     delete httpd; /* Stop the http server before tearing down network interfaces
                    */
 
-  if (purgeLoop_started) pthread_join(purgeLoop, NULL);
-
   /* The free below must be called before deleting the interface */
   if (flow_checks_loader) delete flow_checks_loader;
   if (host_checks_loader) delete host_checks_loader;
@@ -372,10 +361,12 @@ Ntop::~Ntop() {
     delete redis;
     redis = NULL;
   }
+  
   if (prefs) {
     delete prefs;
     prefs = NULL;
   }
+  
   if (globals) {
     delete globals;
     globals = NULL;
@@ -439,18 +430,18 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
                    quick_registration);
   if (redis) redis->setDefaults();
 
-  if (!quick_registration) {
+  if((!quick_registration) && (!prefs->limitResourcesUsage())) {
     /* Initialize another redis instance for the trace of events */
-    ntop->getTrace()->initRedis(
-        prefs->get_redis_host(), prefs->get_redis_password(),
-        prefs->get_redis_port(), prefs->get_redis_db_id());
+    ntop->getTrace()->initRedis(prefs->get_redis_host(), prefs->get_redis_password(),
+				prefs->get_redis_port(), prefs->get_redis_db_id());
 
     if (ntop->getRedis() == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                   "Unable to initialize redis. Quitting...");
+				   "Unable to initialize redis. Quitting...");
       exit(-1);
     }
-  }
+  } else
+    ntop->getTrace()->setRedis(getRedis());
 
 #ifdef NTOPNG_PRO
   /*
@@ -463,10 +454,18 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     prefs->toggle_dump_flows_direct(false);
 #endif
 
-  if (quick_registration) return;
+  if (quick_registration)
+    return;
 
   checkReloadAlertExclusions();
 
+  int num_resolvers = ntop->getPrefs()->limitResourcesUsage() ? 1 : CONST_NUM_RESOLVERS;
+#if defined(NTOPNG_PRO) || defined(HAVE_NEDGE)
+  if (pro->is_embedded_version())
+    num_resolvers = 1;
+#endif
+  address = new (std::nothrow) AddressResolution(num_resolvers);
+  
   system_interface = new (std::nothrow)
       NetworkInterface(SYSTEM_INTERFACE_NAME, SYSTEM_INTERFACE_NAME);
 
@@ -490,7 +489,10 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 #endif
 
 #ifdef HAVE_RADIUS
-  radiusAcc = new (std::nothrow) Radius();
+  if(!prefs->limitResourcesUsage())
+    radiusAcc = new (std::nothrow) Radius();
+  else
+    radiusAcc = NULL;
 #endif
 
   redis->setInitializationComplete();
@@ -501,8 +503,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 void Ntop::resetNetworkInterfaces() {
   if (iface) delete[] iface;
 
-  if ((iface = new (std::nothrow)
-           NetworkInterface *[MAX_NUM_DEFINED_INTERFACES]()) == NULL)
+  if ((iface = new (std::nothrow) NetworkInterface *[MAX_NUM_DEFINED_INTERFACES]()) == NULL)
     throw "Not enough memory";
 
   ntop->getTrace()->traceEvent(TRACE_INFO, "Interfaces Available: %u",
@@ -691,10 +692,6 @@ void Ntop::start() {
 
   for (int i = 0; i < num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
-
-  startPurgeLoop();
-
-  // sleep(2);
 
   for (int i = 0; i < num_defined_interfaces; i++)
     iface[i]->checkPointCounters(true); /* Reset drop counters */
@@ -1745,10 +1742,10 @@ bool Ntop::checkUserPassword(const char *user, const char *password,
 
   /* Now let's check the user by using LDAP (if available) */
 #if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
-  if (ntop->getPro()->has_valid_license()) {
-    if (ntop->getRedis()->get((char *)PREF_NTOP_LDAP_AUTH, val, sizeof(val)) >=
-            0 &&
-        val[0] == '1') {
+  if (ntop->getPro()->has_valid_license()
+      && (!ntop->getPrefs()->limitResourcesUsage())) {
+    if((ntop->getRedis()->get((char *)PREF_NTOP_LDAP_AUTH, val, sizeof(val)) >= 0)
+       && (val[0] == '1')) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Checking LDAP auth");
 
       bool ldap_ret = false;
@@ -1838,43 +1835,44 @@ bool Ntop::checkUserPassword(const char *user, const char *password,
      the implementation with a public server
   */
 
-  if (ntop->getRedis()->get((char *)PREF_NTOP_RADIUS_AUTH, val, sizeof(val)) >=
-          0 &&
-      val[0] == '1') {
-    bool is_admin = false, has_unprivileged_capabilities = false;
+  if(!ntop->getPrefs()->limitResourcesUsage()) {
+    if((ntop->getRedis()->get((char *)PREF_NTOP_RADIUS_AUTH, val, sizeof(val)) >= 0)
+       && (val[0] == '1')) {
+      bool is_admin = false, has_unprivileged_capabilities = false;
 
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Checking RADIUS auth");
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Checking RADIUS auth");
 
-    if (!password || !password[0]) return false;
+      if (!password || !password[0]) return false;
 
-    if (!radiusAcc) return false;
+      if (!radiusAcc) return false;
 
-    if (radiusAcc->authenticate(user, password, &has_unprivileged_capabilities,
-                                &is_admin)) {
-      /* Check permissions */
-      if (has_unprivileged_capabilities) {
-        changeUserPcapDownloadPermission(user, true, 86400 /* 1 day */);
-        changeUserHistoricalFlowPermission(user, true, 86400 /* 1 day */);
-        changeUserAlertsPermission(user, true, 86400 /* 1 day */);
-      } else {
-        char key[64];
+      if (radiusAcc->authenticate(user, password, &has_unprivileged_capabilities,
+				  &is_admin)) {
+	/* Check permissions */
+	if (has_unprivileged_capabilities) {
+	  changeUserPcapDownloadPermission(user, true, 86400 /* 1 day */);
+	  changeUserHistoricalFlowPermission(user, true, 86400 /* 1 day */);
+	  changeUserAlertsPermission(user, true, 86400 /* 1 day */);
+	} else {
+	  char key[64];
 
-        snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, user);
-        ntop->getRedis()->del(key);
+	  snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, user);
+	  ntop->getRedis()->del(key);
 
-        snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, user);
-        ntop->getRedis()->del(key);
+	  snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, user);
+	  ntop->getRedis()->del(key);
 
-        snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_ALERTS, user);
-        ntop->getRedis()->del(key);
+	  snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_ALERTS, user);
+	  ntop->getRedis()->del(key);
+	}
+
+	strncpy(group,
+		is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED,
+		NTOP_GROUP_MAXLEN);
+	group[NTOP_GROUP_MAXLEN - 1] = '\0';
+
+	return true;
       }
-
-      strncpy(group,
-              is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED,
-              NTOP_GROUP_MAXLEN);
-      group[NTOP_GROUP_MAXLEN - 1] = '\0';
-
-      return true;
     }
   }
 #endif
@@ -2724,8 +2722,7 @@ NetworkInterface *Ntop::getNetworkInterface(const char *name, lua_State *vm) {
   /* if here, name is a string */
   for (int i = 0; i < num_defined_interfaces; i++) {
     if (!strcmp(name, iface[i]->get_name())) {
-      NetworkInterface *ret_iface =
-          isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
+      NetworkInterface *ret_iface = isInterfaceAllowed(vm, iface[i]->get_name()) ? iface[i] : NULL;
 
       if (ret_iface) return (ret_iface);
     }
@@ -2964,7 +2961,10 @@ void Ntop::runHousekeepingTasks() {
   checkReloadHostChecks();
 
   for (int i = 0; i < get_num_interfaces(); i++) {
-    if (!iface[i]->isStartingUp()) iface[i]->runHousekeepingTasks();
+    if (!iface[i]->isStartingUp()) {
+      iface[i]->runHousekeepingTasks();
+      iface[i]->purgeQueuedIdleEntries();
+    }
   }
 
 #ifdef NTOPNG_PRO
@@ -3169,48 +3169,6 @@ void Ntop::shutdownAll() {
     (*it)->stop();
   }
 #endif
-}
-
-/* **************************************************** */
-
-void Ntop::purgeLoopBody() {
-  while(!globals->isShutdown()) {
-    current_time = time(NULL);
-
-    for (u_int i = 0; i < get_num_interfaces(); i++) {
-      NetworkInterface *cur_iface = getInterface(i);
-
-      if (cur_iface) cur_iface->purgeQueuedIdleEntries();
-    }
-
-    /* Safe to sleep 100ms as entries are marked as idle by interfaces purgeIdle
-     which runs every second on 1/24th of the hash table. This is run faster
-     that 1 second as there may be idle entries not deleted (number of uses
-     greater than 0) */
-    _usleep(100000);
-  }
-}
-
-/* **************************************************** */
-
-static void *purgeLoop(void *arg) {
-  ntop->purgeLoopBody();
-  return NULL;
-}
-
-/* **************************************************** */
-
-/*
-  Thread which iterates on all available interfaces and perform the delete
-  operations on idle hash table entries
- */
-bool Ntop::startPurgeLoop() {
-  if (!purgeLoop_started) {
-    pthread_create(&purgeLoop, NULL, ::purgeLoop, NULL);
-    purgeLoop_started = true;
-  }
-
-  return(purgeLoop_started);
 }
 
 /* ******************************************* */

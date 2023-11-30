@@ -686,6 +686,8 @@ end
 
 -- NOTE: this must be executed in the same thread as checkListsUpdate
 local function reloadListsNow()
+   if(ntop.limitResourcesUsage()) then return end
+   
    local user_custom_categories = categories_utils.getAllCustomCategoryHosts()
    local lists = lists_utils.getCategoryLists()
    local stats = {num_hosts = 0, num_ips = 0, num_ja3 = 0, begin = os.time(), duration = 0}
@@ -820,6 +822,7 @@ function lists_utils.startup()
    local all_lists = get_lists()
 
    -- tprint(all_lists)
+   if(ntop.limitResourcesUsage()) then return end
    
    if ntop.isOffline() then
       traceError(TRACE_NORMAL, TRACE_CONSOLE, "Category lists not loaded (offline)")

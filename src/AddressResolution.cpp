@@ -27,8 +27,7 @@ AddressResolution::AddressResolution(int _num_resolvers) {
   num_resolved_addresses = num_resolved_fails = 0;
   num_resolvers = _num_resolvers;
 
-  if (!(resolveThreadLoop =
-            (pthread_t *)calloc(num_resolvers, sizeof(pthread_t))))
+  if (!(resolveThreadLoop = (pthread_t *)calloc(num_resolvers, sizeof(pthread_t))))
     throw 2;
 }
 

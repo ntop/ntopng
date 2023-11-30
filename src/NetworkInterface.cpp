@@ -115,8 +115,7 @@ NetworkInterface::NetworkInterface(const char *name,
   if (custom_interface_type)
     ifDescription = strdup(name);
   else
-    ifDescription =
-      strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
+    ifDescription = strdup(Utils::getInterfaceDescription(ifname, buf, sizeof(buf)));
 
   if (strchr(name, ':') || strchr(name, '@') || (!strcmp(name, "dummy")) ||
       strchr(name, '/')        /* file path */
@@ -136,18 +135,22 @@ NetworkInterface::NetworkInterface(const char *name,
                                    "Unable to read IPv4 address of %s: %s",
                                    ifname, pcap_error_buffer);
     } else {
-      try {
-        discovery = new NetworkDiscovery(this);
-      } catch (...) {
-        discovery = NULL;
-      }
-
-      if (discovery) {
-        try {
-          mdns = new MDNS(this);
-        } catch (...) {
-          mdns = NULL;
-        }
+      if(ntop->getPrefs()->limitResourcesUsage()) {
+	discovery = NULL, mdns = NULL;
+      } else {
+	try {
+	  discovery = new NetworkDiscovery(this);
+	} catch (...) {
+	  discovery = NULL;
+	}
+	
+	if (discovery) {
+	  try {
+	    mdns = new MDNS(this);
+	  } catch (...) {
+	    mdns = NULL;
+	  }
+	}
       }
     }
   }
@@ -8426,12 +8429,10 @@ void NetworkInterface::allocateStructures() {
       !isViewed() /* Skip for viewed interface, only store service maps in the
                      view to save memory */
       ) {
-    pMap = new (std::nothrow)
-      PeriodicityMap(this, ntop->getPrefs()->get_max_num_flows() / 8,
-		     3600 /* 1h idleness */);
-    sMap = new (std::nothrow)
-      ServiceMap(this, ntop->getPrefs()->get_max_num_flows() / 8,
-		 86400 /* 1d idleness */);
+    if(!ntop->getPrefs()->limitResourcesUsage()) 
+      pMap = new (std::nothrow) PeriodicityMap(this, ntop->getPrefs()->get_max_num_flows() / 8, 3600 /* 1h idleness */);
+    
+    sMap = new (std::nothrow) ServiceMap(this, ntop->getPrefs()->get_max_num_flows() / 8, 86400 /* 1d idleness */);
   } else
     pMap = NULL, sMap = NULL;
 

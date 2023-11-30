@@ -10,6 +10,10 @@ local callback_utils = require "callback_utils"
 
 -- ########################################################
 
+if(ntop.limitResourcesUsage()) then return end
+
+-- ########################################################
+
 local ifnames = interface.getIfNames()
 
 -- ########################################################

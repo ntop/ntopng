@@ -231,7 +231,7 @@ else
             entry = page_utils.menu_entries.divider
         }, {
             entry = page_utils.menu_entries.network_discovery,
-            hidden = not interface.isDiscoverableInterface() or interface.isLoopback(),
+            hidden = not interface.isDiscoverableInterface() or interface.isLoopback() or ntop.limitResourcesUsage(),
             url = "/lua/discover.lua"
         }, {
             -- Pro or Enterprise with clickhouse disabled

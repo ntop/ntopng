@@ -28,16 +28,17 @@ Trace::Trace() {
   logFile = NULL;
   logFd = NULL;
   traceRedis = NULL;
-
+  dontFreeRedis = false;
   open_log();
 };
 
 /* ******************************* */
 
 Trace::~Trace() {
-  if (logFd) fclose(logFd);
+  if (logFd)   fclose(logFd);
   if (logFile) free(logFile);
-  if (traceRedis) delete traceRedis;
+  if (traceRedis && (!dontFreeRedis))
+    delete traceRedis;
 };
 
 /* ******************************* */
@@ -109,6 +110,7 @@ void Trace::initRedis(const char *redis_host, const char *redis_password,
                       u_int16_t redis_port, u_int8_t _redis_db_id) {
   Utils::initRedis(&traceRedis, redis_host, redis_password, redis_port,
                    _redis_db_id, false);
+  dontFreeRedis = false; /* Free traceRedis on shutdown */
 }
 
 /* ******************************* */
@@ -203,6 +205,13 @@ void Trace::logEvent(int eventTraceLevel, char *log_line) {
       syslog(LOG_WARNING, "%s", log_line);
 #endif
   }
+}
+
+/* ******************************* */
+
+void Trace::setRedis(Redis *r) {
+  traceRedis = r;
+  dontFreeRedis = true; /* No need to free traceRedis as this is a shared pointer */
 }
 
 /* ******************************* */

@@ -163,6 +163,8 @@ void ThreadPool::run() {
 #endif
 
       delete q;
+
+      Utils::setThreadName("ntopng-idle-thpool");
     }
   }
 
@@ -266,12 +268,15 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *script_path,
     return (false);
   }
 
-  if ((int)threads.size() > (num_threads - 3)) {
+  /* With limited resorces we do not spawn new threads */
+  if(!ntop->getPrefs()->limitResourcesUsage()) {
+    if ((int)threads.size() > (num_threads - 3)) {
 #ifdef THREAD_DEBUG
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Job queue: %u", threads.size());
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Job queue: %u", threads.size());
 #endif
-
-    spawn(); /* Spawn a new thread if there are queued jobs */
+      
+      spawn(); /* Spawn a new thread if there are queued jobs */
+    }
   }
 
   m->lock(__FILE__, __LINE__);

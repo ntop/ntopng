@@ -41,10 +41,6 @@ class Ntop {
 #ifndef WIN32
   int startupLockFile;
 #endif
-  pthread_t purgeLoop;    /* Loop which iterates on active interfaces to delete
-                             idle hash table entries */
-  bool purgeLoop_started; /* Flag that indicates whether the purgeLoop has been
-                             started */
   bool flowChecksReloadInProgress, hostChecksReloadInProgress;
   bool hostPoolsReloadInProgress;
   bool interfacesShuttedDown;
@@ -170,8 +166,6 @@ class Ntop {
                               char *group) const;
   bool checkUserPassword(const char *user, const char *password, char *group,
                          bool *localuser) const;
-  bool startPurgeLoop();
-
   void checkReloadFlowChecks();
   void checkReloadHostChecks();
   void checkReloadAlertExclusions();
@@ -694,7 +688,6 @@ class Ntop {
     char val[64];
     return getUserPasswordHashLocal(user, val, sizeof(val));
   }
-  void purgeLoopBody();
 
   /* Local network address list methods */
   inline u_int16_t getNumLocalNetworks() {

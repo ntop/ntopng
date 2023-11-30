@@ -46,7 +46,7 @@ Prefs::Prefs(Ntop *_ntop) {
   local_networks_set = false, shutdown_when_done = false;
   enable_users_login = true, disable_localhost_login = false;
   enable_dns_resolution = sniff_dns_responses = sniff_name_responses =
-    sniff_local_name_responses = true;
+    sniff_local_name_responses = true, limited_resources_mode = false;
   use_promiscuous_mode = true, do_reforge_timestamps = false;
   resolve_all_host_ip = false, service_license_check = false;
   add_vlan_tags_to_cloud_exporters = false;
@@ -701,6 +701,8 @@ void usage() {
 	 "(debug only)\n"
 	 "[--simulate-ips] <num>              | Simulate IPs by choosing clients "
 	 "and servers among <num> random addresses\n"
+	 "[--limit-resources]                 | Non-essential features are disabled\n"
+	 "                                    | in order to save memoty and threads\n"
 	 "[--help|-h]                         | Help\n"
 	 );
 
@@ -1161,6 +1163,7 @@ static const struct option long_options[] = {
   {"callbacks-dir", required_argument, NULL, '3'},
   {"prefs-dir", required_argument, NULL, '4'},
   {"pcap-dir", required_argument, NULL, '5'},
+  {"limit-resources", no_argument, NULL, 200},
   {"test-script-post", required_argument, NULL, 201},
 #ifdef NTOPNG_PRO
   {"log-labels", no_argument, NULL, 202},
@@ -2090,6 +2093,10 @@ int Prefs::setOption(int optkey, char *optarg) {
     print_version = true;
     break;
 
+  case 200:
+    limited_resources_mode = true;
+    break;
+      
   case 201:
     if (test_post_script_path) free(test_post_script_path);
     test_post_script_path = strdup(optarg);
@@ -2779,6 +2786,7 @@ void Prefs::lua(lua_State *vm) {
                            Utils::captureDirection2Str(captureDirection));
 
   lua_push_str_table_entry(vm, "zmq_publish_events_url", zmq_publish_events_url);
+  lua_push_bool_table_entry(vm, "limited_resources_mode", limited_resources_mode);
 }
 
 /* *************************************** */

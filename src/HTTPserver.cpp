@@ -1809,7 +1809,8 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   addHTTPOption("document_root", _docs_dir);
   addHTTPOption("access_control_list", acl_management);
   /* (char*)"extra_mime_types", (char*)"" */ /* see mongoose.c */
-  addHTTPOption("num_threads", "5");
+
+  addHTTPOption("num_threads", ntop->getPrefs()->limitResourcesUsage() ? "3" : "5");
 
   /* Randomize data */
   gettimeofday(&tv, NULL);

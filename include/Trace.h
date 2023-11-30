@@ -52,6 +52,7 @@ class Trace {
   FILE *logFd;
   Redis *traceRedis;
   int numLogLines;
+  bool dontFreeRedis;
   volatile u_int8_t traceLevel;
   Mutex rotate_mutex;
   void open_log();
@@ -66,6 +67,7 @@ class Trace {
   void init();
   void initRedis(const char *redis_host, const char *redis_password,
                  u_int16_t redis_port, u_int8_t _redis_db_id);
+  void setRedis(Redis *r);
   void rotate_logs(bool forceRotation);
   void set_log_file(const char *log_file);
   void set_trace_level(u_int8_t id);

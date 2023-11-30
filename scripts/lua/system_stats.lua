@@ -13,6 +13,7 @@ local internals_utils = require "internals_utils"
 local cpu_utils = require("cpu_utils")
 local ts_utils = require "ts_utils"
 local graph_utils = require("graph_utils")
+local format_utils = require("format_utils")
 
 local ts_creation = script_manager.systemTimeseriesEnabled()
 
@@ -88,8 +89,8 @@ if(page == "overview") then
    if system_host_stats["mem_total"] ~= nil then
     local ram_used = system_host_stats["mem_used"]
     local ram_used_ratio = i18n("ram_used") .. ": " .. tostring(round((ram_used / system_host_stats["mem_total"]) * 100 * 100) / 100) .. "%";
-    local ram_available = i18n("ram_available") .. ": " .. bytesToSize((system_host_stats["mem_total"] - ram_used) * 1024)
-    local ram_total = i18n("ram_total") .. ": " .. bytesToSize(system_host_stats["mem_total"] * 1024)
+    local ram_available = i18n("ram_available") .. ": " .. format_utils.bytesToSize((system_host_stats["mem_total"] - ram_used) * 1024)
+    local ram_total = i18n("ram_total") .. ": " .. format_utils.bytesToSize(system_host_stats["mem_total"] * 1024)
 
     print("<tr><th nowrap>"..i18n("about.ram_memory").."</th><td><span id='ram-used'>" .. ram_used_ratio .. " / " .. ram_available .. " / " .. ram_total .. "</span></td></tr>\n")
    end
@@ -99,9 +100,10 @@ if(page == "overview") then
    if(info.pid ~= nil) then
       print("<tr><th nowrap>PID (Process ID)</th><td>"..info.pid.."</td></tr>\n")
    end
+
    if system_host_stats["mem_ntopng_resident"] ~= nil then
       local chart_available = ts_utils.exists("process:resident_memory", {ifid = getSystemInterfaceId()})
-      print("<tr><th nowrap>"..i18n("about.ram_memory").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:resident_memory'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='ram-process-used'>" .. i18n("ram_used") .. ": " .. bytesToSize(system_host_stats["mem_ntopng_resident"] * 1024) .. "</span></td></tr>\n")
+      print("<tr><th nowrap>"..i18n("about.ram_memory").." "..ternary(chart_available, "<A HREF='"..url.."&page=historical&ts_schema=process:resident_memory'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td><span id='ram-process-used'>" .. i18n("ram_used") .. ": " .. format_utils.bytesToSize(system_host_stats["mem_ntopng_resident"] * 1024) .. "</span></td></tr>\n")
    end
 
    if areAlertsEnabled() then
