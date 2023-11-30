@@ -2,7 +2,27 @@
 	"name" : "Flow Exporters",
 	"filters" : [
 		{
-			"name" : "probe_ip"
+			"name" : "probe_ip",
+			"nested" : [
+				{
+					"name" : "output_snmp"
+				},
+				{
+					"name" : "input_snmp"
+				}
+			]
+		},
+		{
+			"name" : "network"
+		},
+		{
+			"name" : "l4proto"
+		},
+		{
+			"name" : "l7cat"
+		},
+		{
+			"name" : "l7proto"
 		}
 	],
 	"components" : [

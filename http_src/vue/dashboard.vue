@@ -47,11 +47,18 @@
         </DateTimeRangePicker>
 
         <div class="btn-group me-auto mt-2 btn-group-sm flex-wrap d-flex">
-            <template v-for="(filter_options, filter_id) in available_filters">
+            <template v-for="filter_id in filters_to_show">
                 <div class="me-2">
-                    <SelectSearch v-model:selected_option="selected_filters[filter_id]" :options="filter_options"
+                    <SelectSearch v-model:selected_option="selected_filters[filter_id]"
+                        :options="filtered_filters[filter_id]"
                         @select_option="select_filter(selected_filters[filter_id], filter_id)">
                     </SelectSearch>
+                </div>
+            </template>
+            <template v-if="Object.keys(filters_to_show).length > 0">
+                <div class="d-flex align-items-center ms-2">
+                    <button type="button" class="btn btn-sm btn-primary" @click="reset_filters">{{ _i18n('reset')
+                    }}</button>
                 </div>
             </template>
         </div>
@@ -180,7 +187,10 @@ const main_epoch_interval = ref(null);
 
 const components = ref([]);
 const selected_filters = ref({});
-const available_filters = ref({});
+const all_available_filters = ref({});
+const filtered_filters = ref({});
+const filters_to_show = ref([]);
+const nested_filters = ref([]);
 
 const reports_templates = ref([]);
 const selected_report_template = ref({});
@@ -338,10 +348,25 @@ function set_components_epoch_interval(epoch_interval) {
     });
 }
 
+/* This is used to reset the filters putting all of them to the ALL value */
+function reset_filters() {
+    /* Iterate all the filters available */
+    for (const [filter, value] of Object.entries(all_available_filters.value)) {
+        /* Set each filter to the ALL value (first value) */
+        set_components_filter(filter, value[0].value);
+        selected_filters.value[filter] = value[0];
+        /* Hide all the needed filters */
+        hide_nested_filters(filter);
+    }
+}
+
 /* This function loads the filters */
-async function load_filters(filters_available) {
-    const res = await ntopng_utility.http_request(`${props.context.report_filters_endpoint}`);
-    filters_available.forEach((element) => {
+async function load_filters(filters_available, res) {
+    const added_filters_list = [];
+    if (!res) {
+        res = await ntopng_utility.http_request(`${props.context.report_filters_endpoint}`);
+    }
+    filters_available.forEach(async (element) => {
         const id = element?.name || "";
         const filter_options = res.find((el) => el.id == id)?.options;
         /* Check the filters available, if no filter or only 1 filter is provided, hide the dropdown */
@@ -351,22 +376,35 @@ async function load_filters(filters_available) {
                 all_label = i18n('all') + " " + i18n('db_search.' + id);
             }
             /* Add the 'All' filter */
+            /* To be safe, add a default name */
             filter_options.unshift({
                 value: null,
                 label: all_label
             });
-            /* To be safe, add a default name */
-            available_filters.value[id] = filter_options;
+
+            all_available_filters.value[id] = filter_options;
             selected_filters.value[id] = filter_options[0];
+            filtered_filters.value[id] = filter_options
+            added_filters_list.push(id);
+
+            const nested = element?.nested || [];
+            if (nested.length > 0) {
+                nested_filters.value[id] = await load_filters(nested, res /* Skip the request to the backend */)
+            }
+            /* Now check the nested filters, they appear ONLY 
+            * if the filter selected is not ALL (first entry) 
+            */
         }
     });
+    return added_filters_list;
 }
 
 async function load_components(epoch_interval, template_name) {
     /* Enable REST calls */
     data_from_backup = false;
-    available_filters.value = {};
+    all_available_filters.value = {};
     selected_filters.value = {};
+    filtered_filters.value = {};
 
     let url_request = `${props.context.template_endpoint}?template=${template_name}`;
     let res = await ntopng_utility.http_request(url_request);
@@ -380,7 +418,7 @@ async function load_components(epoch_interval, template_name) {
             update_component_epoch_interval(c_ext, epoch_interval);
             return c_ext;
         });
-    load_filters(res.filters)
+    filters_to_show.value = await load_filters(res.filters);
     await nextTick();
 }
 
@@ -399,9 +437,78 @@ function update_component_filters(c, filter_id, filter_value) {
     c.filters[filter_id] = filter_value;
 }
 
-function select_filter(option, filter_id) {
-    set_components_filter(filter_id, option.value);
+/* ********************************************* */
+
+/* This function hides the nested filters (the ones to not show) */
+function hide_nested_filters(filter) {
+    const to_hide_filters = nested_filters.value[filter];
+    to_hide_filters?.forEach((filter_to_remove) => {
+        /* For each filter check if currently it's displayed */
+        if (filters_to_show.value.includes(filter_to_remove)) {
+            /* If it's displayed, then remove it */
+            filters_to_show.value = filters_to_show.value.filter((element) => {
+                return element != filter_to_remove;
+            });
+            /* Reset its value to the default one */
+            const all_value = all_available_filters.value[filter_to_remove][0];
+            selected_filters.value[filter_to_remove] = all_value;
+            set_components_filter(filter_to_remove, all_value.value)
+        }
+    })
 }
+
+/* ********************************************* */
+
+/* This function shows the filters when clicking on a filter having a nested option */
+function show_nested_filters(filter_to_check, currently_selected_filter) {
+    /* Gets the nested filters of the filter to check */
+    const show_filters = nested_filters.value[filter_to_check];
+    show_filters?.forEach((filter_to_add) => {
+        /* Get all the available options for the nested option */
+        const all_filters = all_available_filters.value[filter_to_add];
+        const filters_to_enable = [];
+
+        /* Check if the currently selected filter is the filter to check for the nested filters */
+        if (currently_selected_filter == filter_to_check) {
+            /* If it is, reset its value to the default ones */
+            const all_value = all_available_filters.value[filter_to_add][0];
+            selected_filters.value[filter_to_add] = all_value;
+            set_components_filter(filter_to_add, all_value.value)
+        }
+
+        /* Filter out the values of the nested filter that have to be hide */
+        all_filters?.forEach((element) => {
+            if (element.show_only_value === selected_filters.value[filter_to_check].value || element.value == null)
+                filters_to_enable.push(element);
+        });
+
+        /* Add the remaining values to the array that shows the filters */
+        if (!filters_to_show.value.includes(filter_to_add)) {
+            const index_to_push = filters_to_show.value.indexOf(filter_to_check);
+            filters_to_show.value.splice(index_to_push + 1, 0, filter_to_add);
+        }
+        filters_to_enable.length > 0 ?
+            filtered_filters.value[filter_to_add] = filters_to_enable :
+            delete filtered_filters.value[filter_to_add]
+    })
+}
+
+/* ********************************************* */
+
+/* This function is called whenever a filter is clicked */
+function select_filter(option, filter_id) {
+    /* Set the filter, ready for the rest */
+    set_components_filter(filter_id, option.value);
+    for (const [filter, _] of Object.entries(all_available_filters.value)) {
+        /* Iterate all the available filters and hide the ones to hide
+        * and show the ones to show
+        */
+        const filter_to_check = selected_filters.value[filter];
+        filter_to_check?.value ? show_nested_filters(filter, filter_id) : hide_nested_filters(filter);
+    }
+}
+
+/* ********************************************* */
 
 function select_report_template() {
     if (printable == true) {

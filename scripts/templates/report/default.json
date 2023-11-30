@@ -2,6 +2,17 @@
 	"name" : "Default Report",
 	"filters" : [
 		{
+			"name" : "probe_ip",
+			"nested" : [
+				{
+					"name" : "output_snmp"
+				},
+				{
+					"name" : "input_snmp"
+				}
+			]
+		},
+		{
 			"name" : "network"
 		},
 		{

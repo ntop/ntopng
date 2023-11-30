@@ -1904,6 +1904,8 @@ local lang = {
       ["network"] = "All Networks",
       ["l4proto"] = "All L4 Protocols",
       ["l7proto"] = "All Applications",
+      ["input_snmp"] = "All Input Interfaces",
+      ["output_snmp"] = "All Output Interfaces",
     },
     ["alert_category"] = "Category",
     ["alert_id"] = "Status",
