@@ -109,7 +109,7 @@
                         <div :class="[(loading && show_loading) ? 'ntopng-gray-out' : '']">
                             <component :is="components_dict[c.component]" :id="c.component_id"
                                 :style="component_custom_style(c)" :epoch_begin="c.epoch_begin" :epoch_end="c.epoch_end"
-                                :i18n_title="c.i18n_name" :ifid="c.ifid ? c.ifid : context.ifid" :max_width="c.width"
+                                :i18n_title="c.i18n_name" :ifid="c.ifid ? c.ifid.toString() : context.ifid.toString()" :max_width="c.width"
                                 :max_height="c.height" :params="c.params" :get_component_data="get_component_data_func(c)"
                                 :csrf="context.csrf" :filters="c.filters">
                             </component>
@@ -138,7 +138,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
-import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_events_manager, ntopng_sync } from "../services/context/ntopng_globals_services";
+import { ntopng_status_manager, ntopng_url_manager, ntopng_utility, ntopng_events_manager, ntopng_sync } from "../services/context/ntopng_globals_services";
 
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 
@@ -402,9 +402,6 @@ async function load_filters(filters_available, res) {
 async function load_components(epoch_interval, template_name) {
     /* Enable REST calls */
     data_from_backup = false;
-    all_available_filters.value = {};
-    selected_filters.value = {};
-    filtered_filters.value = {};
 
     let url_request = `${props.context.template_endpoint}?template=${template_name}`;
     let res = await ntopng_utility.http_request(url_request);
@@ -418,6 +415,7 @@ async function load_components(epoch_interval, template_name) {
             update_component_epoch_interval(c_ext, epoch_interval);
             return c_ext;
         });
+    reset_filters();
     filters_to_show.value = await load_filters(res.filters);
     await nextTick();
 }
@@ -579,7 +577,6 @@ const list_reports = async () => {
 }
 
 const load_report = async (content) => {
-    let tmp_name = content.name;
     let tmp_epoch_interval = {
         epoch_begin: content.epoch_begin,
         epoch_end: content.epoch_end

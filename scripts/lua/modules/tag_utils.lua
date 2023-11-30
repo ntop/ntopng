@@ -1115,11 +1115,11 @@ function tag_utils.get_tag_info(id, entity)
                                 interface_name = interface_info.name
                             end
 
-                            local label = probe_label .. ' · ' .. interface_name
+                            local label = interface_name .. ' · ' .. probe_label
 
                             filter.options[#filter.options + 1] = {
                                 value = probe_ip .. "_" .. interface_id,
-                                label = label,
+                                label = shortenString(label, 36),
                                 show_only_value = probe_ip
                             }
                         end
