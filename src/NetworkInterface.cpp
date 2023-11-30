@@ -143,7 +143,7 @@ NetworkInterface::NetworkInterface(const char *name,
 	} catch (...) {
 	  discovery = NULL;
 	}
-	
+
 	if (discovery) {
 	  try {
 	    mdns = new MDNS(this);
@@ -1300,7 +1300,7 @@ Flow *NetworkInterface::getFlow(Mac *src_mac, Mac *dst_mac, u_int16_t vlan_id,
   if(ntop->getPrefs()->is_cloud_edition()) {
     /* TODO: check that deviceIP matches ret */
   }
-  
+
   if ((ret == NULL) && (unswapped_flow != NULL)) {
     /*
       We have found this flow but with the wrong direction
@@ -1542,11 +1542,11 @@ NetworkInterface *NetworkInterface::getDynInterface(u_int64_t criteria,
     break;
   }
 
-  
+
 #ifdef HAVE_ZMQ
   if (dynamic_cast<ZMQParserInterface *>(this))
     sub_iface = new (std::nothrow) ZMQParserInterface(buf, vIface_type);
-  else 
+  else
 #endif
    if (dynamic_cast<SyslogParserInterface *>(this))
     sub_iface = new (std::nothrow) SyslogParserInterface(buf, vIface_type);
@@ -2162,7 +2162,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx, bool ingressPac
           flow->setDHCPHostName(dst_mac->getDHCPNameNotLowerCase(host_name, sizeof(host_name)));
         }
       }
-      
+
       break;
 
     case NDPI_PROTOCOL_DHCPV6:
@@ -2982,7 +2982,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 		     NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
 	    goto dissect_packet_end;
 	  }
-	  
+
 	  struct ndpi_udphdr *udp =
 	    (struct ndpi_udphdr *)&packet[ip_offset + ipv6_shift];
 	  u_int16_t sport = udp->source, dport = udp->dest;
@@ -3323,7 +3323,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget,
   u_int64_t idle_flows_done = 0, active_flows_done = 0;
   time_t when = time(NULL);
 
-  
+
 #ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
   if (ntop->get_export_interface() == NULL)
@@ -3354,7 +3354,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget,
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
     }
 
-    
+
 #ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
     if (ntop->get_export_interface() && (json != NULL))
@@ -3985,7 +3985,7 @@ void NetworkInterface::periodicStatsUpdate() {
 
   for (u_int16_t network_id = 0; network_id < ntop->getNumLocalNetworks(); network_id++) {
     NetworkStats *ns = getNetworkStats(network_id);
-    
+
     if(ns != NULL)
       ns->updateStats(&tv);
   }
@@ -5326,7 +5326,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data,
       /*
 	(***) The check below is commented out as it has no sense for hosts as written in
 	https://www.ntop.org/ntopng/data-aggregation-in-ntopng-host-pools-vs-observation-points/
-	
+
 	In conclusion, the observation point is a way to logically aggregate flows whereas pool
 	are used to aggregate hosts. For this reason they can be used simultaneously.
       */
@@ -6715,7 +6715,7 @@ int NetworkInterface::getActiveHostsList(lua_State *vm, u_int32_t *begin_slot, b
 
   memset(&retriever, 0, sizeof(struct flowHostRetriever));
   retriever.observationPointId = getLuaVMUservalue(vm, observationPointId);
-  
+
   if (sortHosts(begin_slot, walk_all, &retriever, bridge_iface_idx,
                 allowed_hosts, host_details, location, countryFilter,
                 mac_filter, vlan_id, osFilter, asnFilter, networkFilter,
@@ -6862,7 +6862,7 @@ static bool flow_stats_walker(GenericHashEntry *h, void *user_data,
                               bool *matched) {
   struct active_flow_stats *stats = (struct active_flow_stats *)user_data;
   Flow *flow = (Flow *)h;
-  
+
   NetworkInterface *iface = flow->getInterface();
 
   if(iface) {
@@ -7205,7 +7205,7 @@ static bool num_flows_walker(GenericHashEntry *node, void *user_data,
     u_int32_t proto_id = ndpi_map_user_proto_id_to_ndpi_id(
         iface->get_ndpi_struct(), flow->get_detected_protocol().app_protocol);
 /*
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, 
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
       "Increasing usage of protocol %d, converted from %d", proto_id, flow->get_detected_protocol().app_protocol);
 */
     num_flows[proto_id]++;
@@ -7243,7 +7243,7 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
     ndpi_get_proto_defaults(get_ndpi_struct());
 
   /*
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
     "Allocating space for %d protocols", num_supported_protocols);
   */
   num_flows = (u_int32_t *)calloc(num_supported_protocols, sizeof(u_int32_t));
@@ -8429,9 +8429,9 @@ void NetworkInterface::allocateStructures() {
       !isViewed() /* Skip for viewed interface, only store service maps in the
                      view to save memory */
       ) {
-    if(!ntop->getPrefs()->limitResourcesUsage()) 
+    if(!ntop->getPrefs()->limitResourcesUsage())
       pMap = new (std::nothrow) PeriodicityMap(this, ntop->getPrefs()->get_max_num_flows() / 8, 3600 /* 1h idleness */);
-    
+
     sMap = new (std::nothrow) ServiceMap(this, ntop->getPrefs()->get_max_num_flows() / 8, 86400 /* 1d idleness */);
   } else
     pMap = NULL, sMap = NULL;
@@ -11082,7 +11082,7 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
     if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
       return(false);
   }
-  
+
   if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
@@ -11094,7 +11094,7 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
   }
 
   /* <vlan_id (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
-  key = 
+  key =
     ((u_int64_t)vlan_id << 32) +
     (((u_int64_t)detected_protocol.app_protocol) << 16) +
     (u_int64_t)detected_protocol.master_protocol;
@@ -11141,7 +11141,7 @@ bool NetworkInterface::compute_client_flow_stats(GenericHashEntry *node,
     if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
       return(false);
   }
-  
+
   if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
@@ -11230,7 +11230,7 @@ bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntr
 								 void *user_data, bool *matched) {
   Flow *f = (Flow *)node;
   struct aggregated_stats *stats = (struct aggregated_stats*)user_data;
-  
+
   if(stats->ip_addr != NULL) {
     if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
       return(false);
@@ -11259,7 +11259,7 @@ bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntr
     AggregatedFlowsStats *fs =
       new (std::nothrow) AggregatedFlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(), f->get_protocol(),
 					      f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
-    
+
     if (fs != NULL) {
       fs->setFlowIPVLANDeviceIP(f);
       fs->setSrvPort(f->get_srv_port());
@@ -11270,8 +11270,8 @@ bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntr
     it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
 			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
 			     f->getScore());
-  
-  *matched = true;  
+
+  *matched = true;
 
   return (false); /* false = keep on walking */
 }
@@ -11551,7 +11551,7 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
   if (lua_type(vm, 7) == LUA_TSTRING) search_string = (char *)lua_tostring(vm, 7);
 
   if(max_num_rows == 0) max_num_rows = 999; /* Set an upperbound */
-  
+
   is_asc = sortOrder ? (!strcmp(sortOrder, "asc")) : true;
 
   switch (filter_type) {
@@ -11572,7 +11572,7 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
   detected_protocol.app_protocol    = (u_int16_t)((it->first >> 16) & 0x000000000000FFFF);
 
   proto = get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf));
-  
+
   it->second->setProtoName(proto);
 
 	if(search_string == NULL)
@@ -11675,7 +11675,7 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
 
       if (fs) {
         build_lua_rsp(vm, fs, filter_type, vector_size, &num, true);
-	
+
 	if(num >= max_num_rows) break;
       }
     }
@@ -11697,7 +11697,7 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
   /* NOTE: parsing of additional Lua parameters in NetworkInterface::sort_and_filter_flow_stats() */
   if (lua_type(vm, 8) == LUA_TSTRING) host_ip = (char *)lua_tostring(vm, 8);
   if (lua_type(vm, 9) == LUA_TNUMBER) vlan_id = lua_tonumber(vm,9);
-  if (lua_type(vm, 10) == LUA_TSTRING) flow_device_ip = (char*)lua_tostring(vm,10); 
+  if (lua_type(vm, 10) == LUA_TSTRING) flow_device_ip = (char*)lua_tostring(vm,10);
 
   stats.ip_addr = host_ip ? Utils::parseHostString(host_ip, &stats.vlan_id) : NULL;
   stats.vlan_id = vlan_id;
@@ -12471,14 +12471,16 @@ void NetworkInterface::getActiveMacs(lua_State *vm) {
 /* **************************************************** */
 
 #ifdef NTOPNG_PRO
-void NetworkInterface::getFlowDevices(lua_State *vm) {
+void NetworkInterface::getFlowDevices(lua_State *vm, bool add_table) {
   /* Add the devices list only if not empty */
   if (flow_interfaces_stats) {
-    lua_newtable(vm);
+    if(add_table) lua_newtable(vm);
+
     flow_interfaces_stats->luaDeviceList(vm);
+    
     lua_pushinteger(vm, get_id());
     lua_insert(vm, -2);
-    lua_settable(vm, -3);    
+    lua_settable(vm, -3);
   }
 };
 #endif
@@ -12492,6 +12494,6 @@ void NetworkInterface::getSFlowDevices(lua_State *vm) {
     interfaceStats->luaDeviceList(vm);
     lua_pushinteger(vm, get_id());
     lua_insert(vm, -2);
-    lua_settable(vm, -3);    
+    lua_settable(vm, -3);
   }
 };

@@ -819,9 +819,11 @@ void ViewInterface::lua_queues_stats(lua_State *vm) {
 /* **************************************************** */
 
 #ifdef NTOPNG_PRO
-void ViewInterface::getFlowDevices(lua_State *vm) {
+void ViewInterface::getFlowDevices(lua_State *vm, bool add_table) {
+  if(add_table) lua_newtable(vm);
+  
   for (int i = 0; i < num_viewed_interfaces; i++)
-    viewed_interfaces[i]->getFlowDevices(vm);
+    viewed_interfaces[i]->getFlowDevices(vm, false);
 }
 
 /* **************************************************** */

@@ -1022,7 +1022,7 @@ public:
 #ifdef NTOPNG_PRO
   void updateBehaviorStats(const struct timeval *tv);
 
-  virtual void getFlowDevices(lua_State *vm);
+  virtual void getFlowDevices(lua_State *vm, bool add_table);
   virtual void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
     if (flow_interfaces_stats)
       flow_interfaces_stats->luaDeviceInfo(vm, deviceIP, this);
