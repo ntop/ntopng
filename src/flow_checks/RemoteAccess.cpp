@@ -19,7 +19,7 @@
  *
  */
 
-#include <netinet/tcp.h>
+
 #include "ntop_includes.h"
 #include "flow_checks_includes.h"
 
