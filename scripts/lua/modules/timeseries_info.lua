@@ -2079,9 +2079,10 @@ local function add_top_blacklist_hits_timeseries(tags, timeseries)
         for _, value in pairs(tot_serie or {}) do
             tot = tot + tonumber(value)
         end
-        if tot <= 0 then
-            return
-        end
+        -- Uncomment to return only timeseries with values
+        -- if tot <= 0 then
+        --     return
+        -- end
         timeseries[#timeseries + 1] = {
             schema = "top:blacklist:hits",
             id = timeseries_id.blacklist,

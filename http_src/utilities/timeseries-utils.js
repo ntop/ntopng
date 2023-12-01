@@ -203,7 +203,7 @@ function formatBoundsSerie(series, series_info) {
 
 		if (s_metadata.type == "metric") {
 			let name = s_metadata.label
-			serie_name = getSerieName(name, ts_id, series_info, true)
+		    serie_name = getSerieName(name, ts_id, series_info, true);
 			serie_properties = formatSerieProperties('bounds');
 
 			color_palette = { color: s_metadata.color, palette: 0 };
@@ -253,13 +253,15 @@ function tsArrayToOptions(tsOptionsArray, tsGroupsArray, tsCompare, useFullName)
 		/* the data in Dygraphs should be formatted as follow:
 		 * { [ time_1, serie1_1, serie2_1 ], [ time_2, serie1_2, serie2_2 ] } 
 		 */
-
+            if (tsGroupsArray[i].source_type.f_map_ts_options != null) {
+                const f_map_ts_options = tsGroupsArray[i].source_type.f_map_ts_options;
+                tsOptions = f_map_ts_options(tsOptions, tsGroupsArray[i]);
+            }
 		const series = tsOptions.series || [];
 		const epoch_begin = tsOptions.metadata.epoch_begin
 		const step = tsOptions.metadata.epoch_step
 		const past_serie = tsOptions.additional_series
 		const bounds = tsGroupsArray[i].metric.bounds || false;
-
 		/* The serie can possibly have multiple timeseries, like for the 
 		 * bytes, we have sent and rcvd, so compact them 
 		 */
