@@ -114,11 +114,14 @@ Host::~Host() {
   */
   iface->decPoolNumHosts(get_host_pool(), false /* Host is deleted offline */);
   if (customHostAlert.msg) free(customHostAlert.msg);
-  if (tcp_udp_contacted_ports_no_tx)
-    ndpi_bitmap_free(tcp_udp_contacted_ports_no_tx);
 
-  ndpi_hll_destroy(&outgoing_hosts_tcp_udp_port_with_no_tx_hll);
-  ndpi_hll_destroy(&incoming_hosts_tcp_udp_port_with_no_tx_hll);
+  if(!ntop->getPrefs()->limitResourcesUsage()) {
+    if (tcp_udp_contacted_ports_no_tx)
+      ndpi_bitmap_free(tcp_udp_contacted_ports_no_tx);
+    
+    ndpi_hll_destroy(&outgoing_hosts_tcp_udp_port_with_no_tx_hll);
+    ndpi_hll_destroy(&incoming_hosts_tcp_udp_port_with_no_tx_hll);
+  }
 }
 
 /* *************************************** */
@@ -326,12 +329,14 @@ void Host::initialize(Mac *_mac, u_int16_t _vlanId,
   fin_scan.fin_recvd_last_min = fin_scan.finack_sent_last_min = 0;
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 17);
 
-  tcp_udp_contacted_ports_no_tx = ndpi_bitmap_alloc();
-  ndpi_hll_init(&outgoing_hosts_tcp_udp_port_with_no_tx_hll,
-                5 /* StdError: 18.4% */);
-  ndpi_hll_init(&incoming_hosts_tcp_udp_port_with_no_tx_hll,
-                5 /* StdError: 18.4% */);
-
+  if(!ntop->getPrefs()->limitResourcesUsage()) {
+    tcp_udp_contacted_ports_no_tx = ndpi_bitmap_alloc();
+    ndpi_hll_init(&outgoing_hosts_tcp_udp_port_with_no_tx_hll,
+		  5 /* StdError: 18.4% */);
+    ndpi_hll_init(&incoming_hosts_tcp_udp_port_with_no_tx_hll,
+		  5 /* StdError: 18.4% */);
+  }
+  
   if (ip.getVersion() /* IP is set */) {
     char country_name[64];
 
@@ -2788,7 +2793,9 @@ void Host::setUnidirectionalTCPUDPNoTXIngressFlow(IpAddress *ip,
 /* *************************************** */
 
 void Host::resetHostContacts() {
-  ndpi_hll_reset(&outgoing_hosts_tcp_udp_port_with_no_tx_hll);
-  ndpi_hll_reset(&incoming_hosts_tcp_udp_port_with_no_tx_hll);
-  ndpi_bitmap_clear(tcp_udp_contacted_ports_no_tx);
+  if(!ntop->getPrefs()->limitResourcesUsage()) {
+    ndpi_hll_reset(&outgoing_hosts_tcp_udp_port_with_no_tx_hll);
+    ndpi_hll_reset(&incoming_hosts_tcp_udp_port_with_no_tx_hll);
+    ndpi_bitmap_clear(tcp_udp_contacted_ports_no_tx);
+  }
 }
