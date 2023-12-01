@@ -25,6 +25,10 @@ local script = {
 
 local function dropped_alerts_check(params)
    local dropped_alerts = interface.getStats()["num_dropped_alerts"]
+   -- This is the default value
+   if not dropped_alerts then
+      dropped_alerts = ""
+   end
 
    -- Compute the delta with the previous value for drops
    local delta_drops = alerts_api.interface_delta_val(script.key, params.granularity, dropped_alerts, true --[[ skip first --]])
