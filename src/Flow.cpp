@@ -34,7 +34,8 @@ const ndpi_protocol Flow::ndpiUnknownProtocol = {
 
 /* *************************************** */
 
-Flow::Flow(NetworkInterface *_iface, u_int16_t _vlanId,
+Flow::Flow(NetworkInterface *_iface,
+	   int32_t _iface_idx, u_int16_t _vlanId,
            u_int16_t _observation_point_id, u_int32_t _private_flow_id,
            u_int8_t _protocol, Mac *_cli_mac, IpAddress *_cli_ip,
            u_int16_t _cli_port, Mac *_srv_mac, IpAddress *_srv_ip,
@@ -42,6 +43,7 @@ Flow::Flow(NetworkInterface *_iface, u_int16_t _vlanId,
            time_t _first_seen, time_t _last_seen, u_int8_t *_view_cli_mac,
            u_int8_t *_view_srv_mac)
     : GenericHashEntry(_iface) {
+  iface_index = _iface_idx,
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port,
   srv_port = _srv_port, privateFlowId = _private_flow_id;
   flow_dropped_counts_increased = 0, vrfId = 0, protocolErrorCode = 0;
@@ -109,7 +111,7 @@ Flow::Flow(NetworkInterface *_iface, u_int16_t _vlanId,
 
   INTERFACE_PROFILING_SUB_SECTION_ENTER(iface,
                                         "Flow::Flow: iface->findFlowHosts", 7);
-  iface->findFlowHosts(_vlanId, _observation_point_id, _private_flow_id,
+  iface->findFlowHosts(_iface_idx, _vlanId, _observation_point_id, _private_flow_id,
                        _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip,
                        &srv_host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 7);
@@ -2738,6 +2740,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
   lua_get_ip(vm, true /* Client */);
   lua_get_ip(vm, false /* Server */);
   lua_push_uint32_table_entry(vm, "vlan", get_vlan_id());
+  lua_push_int32_table_entry(vm, "iface_index", iface_index);
   lua_get_port(vm, true /* Client */);
   lua_get_port(vm, false /* Server */);
 

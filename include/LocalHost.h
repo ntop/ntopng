@@ -53,9 +53,11 @@ class LocalHost : public Host {
   void luaDoHDot(lua_State *vm);
 
  public:
-  LocalHost(NetworkInterface *_iface, Mac *_mac, u_int16_t _u_int16_t,
+  LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
+	    Mac *_mac, u_int16_t _u_int16_t,
             u_int16_t _observation_point_id, IpAddress *_ip);
-  LocalHost(NetworkInterface *_iface, char *ipAddress, u_int16_t _u_int16_t,
+  LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
+	    char *ipAddress, u_int16_t _u_int16_t,
             u_int16_t _observation_point_id);
   virtual ~LocalHost();
 

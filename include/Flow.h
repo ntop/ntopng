@@ -37,6 +37,7 @@ class FlowCheck;
 
 class Flow : public GenericHashEntry {
  private:
+  int32_t iface_index; /* Interface index on which this flow has been first observed */
   Host *cli_host, *srv_host;
   IpAddress *cli_ip_addr, *srv_ip_addr;
   ICMPinfo *icmp_info;
@@ -351,7 +352,8 @@ class Flow : public GenericHashEntry {
   void updateUDPHostServices();
 
  public:
-  Flow(NetworkInterface *_iface, u_int16_t _u_int16_t,
+  Flow(NetworkInterface *_iface, int32_t iface_idx,
+       u_int16_t _vlanId,
        u_int16_t _observation_point_id, u_int32_t _private_flow_id,
        u_int8_t _protocol, Mac *_cli_mac, IpAddress *_cli_ip,
        u_int16_t _cli_port, Mac *_srv_mac, IpAddress *_srv_ip,
@@ -1364,6 +1366,7 @@ class Flow : public GenericHashEntry {
   void swap();
   bool isDPIDetectedFlow();
   void updateHostBlacklists();
+  inline int32_t getInterfaceIndex() { return(iface_index); };
 };
 
 #endif /* _FLOW_H_ */

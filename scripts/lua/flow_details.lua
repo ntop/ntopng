@@ -540,6 +540,7 @@ else
         print(" <span class='badge bg-warning text-dark'>" .. i18n("periodic_flow") .. "</span>")
     end
 
+    printInterfaceIndex(flow.iface_index)
     print("</td></tr>\n")
 
     print("<tr><th width=30%>" .. i18n("protocol") .. " / " .. i18n("application") .. "</th>")

@@ -1,5 +1,5 @@
 --
--- (C) 2014-22 - ntop.org
+-- (C) 2014-23 - ntop.org
 --
 
 local clock_start = os.clock()
@@ -487,6 +487,36 @@ function table.is_equal(t1, t2, ignore_keys)
    end
 
    return true
+end
+
+-- ##############################################
+
+function printInterfaceIndex(idx)
+   local ifaces
+   local basedir = "/sys/class/net"
+   
+   if((idx == nil) or (idx == "")) then return end
+   
+   idx = tostring(idx)
+   if(idx == "0") then return end
+
+   ifaces = ntop.readdir(basedir)
+
+   for k,v in pairs(ifaces) do
+      local path = basedir .. "/" .. k.. "/" .. "ifindex"
+      local f = io.open(path, "r")
+
+      if(f ~= nil) then
+	 local if_idx = trimString(f:read("*all"))
+	 io.close(f)
+
+	 if(if_idx == idx) then
+	    print("[ <span class=\"fas fa-ethernet\"></span> " .. k .. " ]")
+	    return
+	 end
+	 --tprint(k.." = "..if_idx)
+      end
+   end
 end
 
 -- ##############################################

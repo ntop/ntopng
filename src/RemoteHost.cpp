@@ -23,10 +23,10 @@
 
 /* *************************************** */
 
-RemoteHost::RemoteHost(NetworkInterface *_iface, Mac *_mac,
+RemoteHost::RemoteHost(NetworkInterface *_iface, int32_t _iface_idx, Mac *_mac,
                        u_int16_t _u_int16_t, u_int16_t _observation_point_id,
                        IpAddress *_ip)
-    : Host(_iface, _mac, _u_int16_t, _observation_point_id, _ip) {
+  : Host(_iface, _iface_idx, _mac, _u_int16_t, _observation_point_id, _ip) {
 #ifdef REMOTEHOST_DEBUG
   char buf[48];
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Instantiating REMOTE host %s",
@@ -37,9 +37,10 @@ RemoteHost::RemoteHost(NetworkInterface *_iface, Mac *_mac,
 
 /* *************************************** */
 
-RemoteHost::RemoteHost(NetworkInterface *_iface, char *ipAddress,
-                       u_int16_t _u_int16_t, u_int16_t _observation_point_id)
-    : Host(_iface, ipAddress, _u_int16_t, _observation_point_id) {
+RemoteHost::RemoteHost(NetworkInterface *_iface, int32_t _iface_idx,
+		       char *ipAddress, u_int16_t _u_int16_t,
+		       u_int16_t _observation_point_id)
+  : Host(_iface, _iface_idx, ipAddress, _u_int16_t, _observation_point_id) {
   initialize();
 }
 

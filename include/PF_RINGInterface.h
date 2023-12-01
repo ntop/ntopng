@@ -33,7 +33,7 @@ class PF_RINGInterface : public NetworkInterface {
   pfring *pfring_handle[PF_RING_MAX_SOCKETS];
   int num_pfring_handles;
   u_int32_t dropped_packets;
-
+  bool merged_interfaces;
   pfring_stat last_pfring_stat;
   void updatePacketsStats();
   u_int32_t getNumDroppedPackets();

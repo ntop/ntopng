@@ -1386,6 +1386,8 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
 
 #define UNKNOWN_FLOW_DIRECTION 2
 
+#define UNKNOWN_PKT_IFACE_IDX  -1
+
 /******************************************************************************/
 
 /* ClickHouse */

@@ -26,7 +26,6 @@ local have_nedge = ntop.isnEdge()
 local wheel = nil
 
 local function generate_map_url(map, map_type, query, icon)
-
     local url = ""
 
     if (ntop.isPro()) then
@@ -60,7 +59,6 @@ local ipversion = _GET["version"]
 local traffic_type = _GET["traffic_type"]
 local device_ip = _GET["deviceIP"]
 local page = _GET["page"] or 'active_hosts'
-
 local base_url = ntop.getHttpPrefix() .. "/lua/hosts_stats.lua"
 local page_params = {}
 local charts_icon = ""
@@ -245,10 +243,10 @@ if (vlan ~= nil) then
             vlan = vlan
         })
     end
-    vlan_title = " [" .. vlan_label .. "]" 
+    vlan_title = " [" .. vlan_label .. "]"
     local config_button = " <A HREF='" .. ntop.getHttpPrefix() .. "/lua/vlan_details.lua?vlan=" .. vlan .. "&page=config" ..
-                     "'><i class='fas fa-cog fa-sm'></i></A>" 
-    
+                     "'><i class='fas fa-cog fa-sm'></i></A>"
+
     -- in case of untagged traffic is not possible to set a vlan alias
     if (vlan ~= 0 and vlan ~= '0') then
         vlan_title = vlan_title .. config_button
@@ -263,7 +261,6 @@ if (vlan ~= nil) then
 end
 
 if (pool ~= nil) then
-
     local link_service_map = ""
     local link_periodicity_map = ""
     local charts_available = areHostPoolsTimeseriesEnabled(ifstats.id)
@@ -363,7 +360,6 @@ if page == 'active_hosts' then
         end
 
         -- build the current filter url
-
         page_params["os"] = os_
         page_params["asn"] = asn
         page_params["community"] = community
@@ -519,7 +515,7 @@ if page == 'active_hosts' then
         print('">' .. i18n("hosts_stats.blacklisted_hosts_only") .. '</a></li>')
 
         if interface.isPacketInterface() and not interface.isPcapDumpInterface() then
-            
+
             hosts_filter_params.mode = "broadcast_domain"
             print('<li ')
             print('"><a class="dropdown-item ' .. ternary(mode == "broadcast_domain", "active", "") .. '" href="')
@@ -534,21 +530,19 @@ if page == 'active_hosts' then
         print('">' .. i18n("hosts_stats.broadcast_and_multicast") .. '</a></li>')
 
         if interface.isPacketInterface() and not interface.isPcapDumpInterface() then
-            
-            
             hosts_filter_params.mode = "dhcp"
             print('<li ')
             print('"><a class="dropdown-item ' .. ternary(mode == "dhcp", "active", "") .. '" href="')
             print(getPageUrl(base_url, hosts_filter_params))
             print('">' .. i18n("mac_stats.dhcp_only") .. '</a></li>')
-
         end
 
         -- Host pools
-        if not ifstats.isView then
+        if (not ifstats.isView) and (hosts_filter_params.pool ~= nil)  then
             hosts_filter_params.mode = nil
             hosts_filter_params.pool = nil
             print('<li role="separator" class="divider"></li>')
+	    
             for _, _pool in ipairs(host_pools_instance:get_all_pools()) do
                 hosts_filter_params.pool = _pool.pool_id
                 print('<li ')
@@ -559,8 +553,7 @@ if page == 'active_hosts' then
                     }) .. '</li>')
             end
         end
-
-
+	
         hosts_filter_params.mode = "local"
         print('<li ')
         print('"><a class="dropdown-item ' .. ternary(mode == "local", "active", "") .. '" href="')
@@ -597,7 +590,6 @@ if page == 'active_hosts' then
         print(getPageUrl(base_url, hosts_filter_params))
         print('">' .. i18n("hosts_stats.remote_no_tcp_tx") .. '</a></li>')
 
-        
         if isBridgeInterface(ifstats) then
             hosts_filter_params.mode = "filtered"
             print('<li ')
@@ -605,9 +597,6 @@ if page == 'active_hosts' then
             print(getPageUrl(base_url, hosts_filter_params))
             print('">' .. i18n("hosts_stats.filtered_hosts_only") .. '</a></li>')
         end
-
-       
-        
 
         print('</ul></div>\'')
 
@@ -671,7 +660,7 @@ if page == 'active_hosts' then
                   textAlign: 'center'
                }
 
-               }, 
+               },
                {
                title: "]]
         print(i18n("hosts_stats.page_scan_hosts.title_hosts_page") )

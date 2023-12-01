@@ -539,7 +539,8 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 	}
 #endif
 	
-        findFlowHosts(f->get_vlan_id(), f->get_observation_point_id(),
+        findFlowHosts(f->getInterfaceIndex(),
+		      f->get_vlan_id(), f->get_observation_point_id(),
                       f->getPrivateFlowId(), srcMac,
                       (IpAddress *)cli_ip, &cli_host, dstMac,
                       (IpAddress *)srv_ip, &srv_host);

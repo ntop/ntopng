@@ -1268,7 +1268,7 @@ bool NetworkInterface::walker(u_int32_t *begin_slot, bool walk_all,
 
 /* **************************************************** */
 
-Flow *NetworkInterface::getFlow(Mac *src_mac, Mac *dst_mac, u_int16_t vlan_id,
+Flow *NetworkInterface::getFlow(int32_t if_index, Mac *src_mac, Mac *dst_mac, u_int16_t vlan_id,
 				u_int16_t observation_domain_id, u_int32_t private_flow_id,
 				u_int32_t deviceIP, u_int32_t inIndex, u_int32_t outIndex,
 				const ICMPinfo *const icmp_info, IpAddress *src_ip, IpAddress *dst_ip,
@@ -1325,10 +1325,10 @@ Flow *NetworkInterface::getFlow(Mac *src_mac, Mac *dst_mac, u_int16_t vlan_id,
     }
 
     try {
-      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::getFlow: new Flow",
-                                        2);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::getFlow: new Flow", 2);
+      
       ret = new (std::nothrow)
-	Flow(this, vlan_id, observation_domain_id, private_flow_id, l4_proto,
+	Flow(this, if_index, vlan_id, observation_domain_id, private_flow_id, l4_proto,
 	     src_mac, src_ip, src_port, dst_mac, dst_ip, dst_port, icmp_info,
 	     first_seen, last_seen, view_cli_mac, view_srv_mac);
       INTERFACE_PROFILING_SECTION_EXIT(2);
@@ -1572,7 +1572,7 @@ NetworkInterface *NetworkInterface::getDynInterface(u_int64_t criteria,
 
 /* **************************************************** */
 
-bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx, bool ingressPacket,
+bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_idx, bool ingressPacket,
 				     const struct bpf_timeval *when, const u_int64_t packet_time,
 				     struct ndpi_ethhdr *eth, u_int16_t vlan_id, struct ndpi_iphdr *iph,
 				     struct ndpi_ipv6hdr *ip6, u_int16_t ip_offset,
@@ -1614,7 +1614,8 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx, bool ingressPac
 #ifndef HAVE_NEDGE
     /* Custom disaggregation */
     if (sub_interfaces && (sub_interfaces->getNumSubInterfaces() > 0)) {
-      processed = sub_interfaces->processPacket(bridge_iface_idx, ingressPacket, when, packet_time, eth, vlan_id, iph,
+      processed = sub_interfaces->processPacket(if_index, bridge_iface_idx, ingressPacket,
+						when, packet_time, eth, vlan_id, iph,
 						ip6, ip_offset, encapsulation_overhead, len_on_wire, h, packet,
 						ndpiProtocol, srcHost, dstHost, hostFlow);
     }
@@ -1628,7 +1629,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx, bool ingressPac
 
         if ((vIface = getDynInterface((u_int32_t)vlan_id, false)) != NULL) {
           vIface->setTimeLastPktRcvd(h->ts.tv_sec);
-          pass_verdict = vIface->processPacket(bridge_iface_idx, ingressPacket, when, packet_time, eth, vlan_id,
+          pass_verdict = vIface->processPacket(if_index, bridge_iface_idx, ingressPacket, when, packet_time, eth, vlan_id,
 					       iph, ip6, ip_offset, encapsulation_overhead, len_on_wire, h,
 					       packet, ndpiProtocol, srcHost, dstHost, hostFlow);
           processed = true;
@@ -1916,7 +1917,7 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx, bool ingressPac
 
  pre_get_flow:
   /* Updating Flow */
-  flow = getFlow(
+  flow = getFlow(if_index,
 		 srcMac, dstMac, vlan_id, 0 /* observationPointId */, private_flow_id, 0,
 		 0, 0, l4_proto == IPPROTO_ICMP ? &icmp_info : NULL, &src_ip, &dst_ip,
 		 src_port, dst_port, l4_proto, &src2dst_direction, last_pkt_rcvd,
@@ -2363,8 +2364,7 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
   u_int n, m, o;
   last_pkt_rcvd = when;
 
-  bcast_domains->reloadBroadcastDomains(
-					full_scan /* Force a reload only if a full scan is requested */);
+  bcast_domains->reloadBroadcastDomains(full_scan /* Force a reload only if a full scan is requested */);
 
   if ((n = purgeIdleFlows(force_idle, full_scan)) > 0)
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u/%u idle flows on %s",
@@ -2375,9 +2375,8 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
                                  m, getNumHosts(), ifname);
 
   if ((o = purgeIdleMacsASesCountriesVLANs(force_idle, full_scan)) > 0)
-    ntop->getTrace()->traceEvent(
-				 TRACE_DEBUG, "Purged %u idle ASs, MAC, Countries, VLANs... on %s", o,
-				 ifname);
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Purged %u idle ASs, MAC, Countries, VLANs... on %s",
+				 o, ifname);
 
   for (std::map<u_int64_t, NetworkInterface *>::iterator it =
 	 flowHashing.begin();
@@ -2432,7 +2431,8 @@ u_int16_t NetworkInterface::guessEthType(const u_char *p, u_int len,
 
 /* **************************************************** */
 
-bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
+bool NetworkInterface::dissectPacket(int32_t if_index,
+				     u_int32_t bridge_iface_idx,
                                      bool ingressPacket, u_int8_t *sender_mac,
                                      const struct pcap_pkthdr *h,
                                      const u_char *packet,
@@ -2893,7 +2893,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
       }
 
       try {
-	pass_verdict = processPacket(
+	pass_verdict = processPacket(if_index,
 				     bridge_iface_idx, ingressPacket, &h->ts, time, ethernet, vlan_id,
 				     iph, ip6, ip_offset, encapsulation_overhead, len_on_wire, h,
 				     packet, ndpiProtocol, srcHost, dstHost, flow);
@@ -3046,7 +3046,7 @@ bool NetworkInterface::dissectPacket(u_int32_t bridge_iface_idx,
 	if (ntop->getPrefs()->do_ignore_macs()) ethernet = &dummy_ethernet;
 
 	try {
-	  pass_verdict = processPacket(
+	  pass_verdict = processPacket(if_index,
 				       bridge_iface_idx, ingressPacket, &h->ts, time, ethernet,
 				       vlan_id, iph, ip6, ip_offset, encapsulation_overhead,
 				       len_on_wire, h, packet, ndpiProtocol, srcHost, dstHost, flow);
@@ -3143,7 +3143,7 @@ void NetworkInterface::pollQueuedeCompanionEvents() {
        * to handle it (TODO)
        */
 
-      flow = getFlow(NULL /* srcMac */, NULL /* dstMac */, dequeued->vlan_id,
+      flow = getFlow(UNKNOWN_PKT_IFACE_IDX, NULL /* srcMac */, NULL /* dstMac */, dequeued->vlan_id,
                      0 /* observationPointId */, private_flow_id,
                      0 /* deviceIP */, 0 /* inIndex */, 1 /* outIndex */,
                      NULL /* ICMPinfo */, &dequeued->src_ip, &dequeued->dst_ip,
@@ -3782,7 +3782,7 @@ void NetworkInterface::cleanup() {
   Used by ViewInterface to find hosts bound to flows
   in the ViewInterface
 */
-void NetworkInterface::findFlowHosts(u_int16_t vlan_id,
+void NetworkInterface::findFlowHosts(int32_t iface_idx, u_int16_t vlan_id,
                                      u_int16_t observation_domain_id,
                                      u_int32_t private_flow_id, Mac *src_mac,
                                      IpAddress *_src_ip, Host **src,
@@ -3812,22 +3812,18 @@ void NetworkInterface::findFlowHosts(u_int16_t vlan_id,
         (_src_ip->isLocalHost() || _src_ip->isLocalInterfaceAddress())) {
       INTERFACE_PROFILING_SECTION_ENTER(
 					"NetworkInterface::findFlowHosts: new LocalHost", 4);
-      (*src) = new (std::nothrow)
-	LocalHost(this, src_mac, vlan_id, observation_domain_id, _src_ip);
+      (*src) = new (std::nothrow)LocalHost(this, iface_idx, src_mac, vlan_id, observation_domain_id, _src_ip);
       INTERFACE_PROFILING_SECTION_EXIT(4);
     } else {
       INTERFACE_PROFILING_SECTION_ENTER(
 					"NetworkInterface::findFlowHosts: new RemoteHost", 5);
-      (*src) = new (std::nothrow)
-	RemoteHost(this, src_mac, vlan_id, observation_domain_id, _src_ip);
+      (*src) = new (std::nothrow)RemoteHost(this, iface_idx, src_mac, vlan_id, observation_domain_id, _src_ip);
       INTERFACE_PROFILING_SECTION_EXIT(5);
     }
 
     if (*src) {
-      INTERFACE_PROFILING_SECTION_ENTER(
-					"NetworkInterface::findFlowHosts: hosts_hash->add", 6);
-      bool add_res = hosts_hash->add(
-				     *src, false /* Don't lock, we're inline with the purgeIdle */);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->add", 6);
+      bool add_res = hosts_hash->add(*src, false /* Don't lock, we're inline with the purgeIdle */);
       INTERFACE_PROFILING_SECTION_EXIT(6);
 
       if (!add_res) {
@@ -3845,8 +3841,7 @@ void NetworkInterface::findFlowHosts(u_int16_t vlan_id,
 
   /* ***************************** */
 
-  INTERFACE_PROFILING_SECTION_ENTER(
-				    "NetworkInterface::findFlowHosts: hosts_hash->get", 3);
+  INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
   (*dst) = hosts_hash->get(vlan_id, _dst_ip, dst_mac, true /* Inline call */,
                            observation_domain_id);
   INTERFACE_PROFILING_SECTION_EXIT(3);
@@ -3861,13 +3856,11 @@ void NetworkInterface::findFlowHosts(u_int16_t vlan_id,
     if (_dst_ip &&
         (_dst_ip->isLocalHost() || _dst_ip->isLocalInterfaceAddress())) {
       INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
-      (*dst) = new (std::nothrow)
-	LocalHost(this, dst_mac, vlan_id, observation_domain_id, _dst_ip);
+      (*dst) = new (std::nothrow)LocalHost(this, iface_idx, dst_mac, vlan_id, observation_domain_id, _dst_ip);
       INTERFACE_PROFILING_SECTION_EXIT(4);
     } else {
       INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
-      (*dst) = new (std::nothrow)
-	RemoteHost(this, dst_mac, vlan_id, observation_domain_id, _dst_ip);
+      (*dst) = new (std::nothrow)RemoteHost(this, iface_idx, dst_mac, vlan_id, observation_domain_id, _dst_ip);
       INTERFACE_PROFILING_SECTION_EXIT(5);
     }
 
@@ -5255,8 +5248,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data,
 	retriever->elems[retriever->actNumEntries++].numericValue = 0;
       break;
     case column_key:
-      retriever->elems[retriever->actNumEntries++].numericValue =
-	f->get_hash_entry_id();
+      retriever->elems[retriever->actNumEntries++].numericValue = f->get_hash_entry_id();
       break;
     case column_info: {
       char buf[64];
@@ -10570,8 +10562,7 @@ void NetworkInterface::checkHostsToRestore() {
     vlan_id = atoi(d + 1);
     ipa.set(ip);
 
-    if ((h = getHost(ip, vlan_id, 0 /* any observation point */,
-                     true /* inline call */)))
+    if ((h = getHost(ip, vlan_id, 0 /* any observation point */, true /* inline call */)))
       /* Host already exists */
       goto next_host;
 
@@ -10585,8 +10576,7 @@ void NetworkInterface::checkHostsToRestore() {
 
       /* The host is possibly a LBD host in DHCP range, so also bring up its MAC
        * for the deserialization */
-      if ((!ntop->getRedis()->get(key, mac_buf, sizeof(mac_buf))) &&
-          (mac_buf[0] != '\0')) {
+      if ((!ntop->getRedis()->get(key, mac_buf, sizeof(mac_buf))) && (mac_buf[0] != '\0')) {
         Utils::parseMac(mac_bytes, mac_buf);
         mac = getMac(mac_bytes, true /* Create if not present */,
                      true /* inline call */);
@@ -10598,16 +10588,15 @@ void NetworkInterface::checkHostsToRestore() {
     /* TODO provide the host MAC address when available to properly restore LBD
      * hosts */
     if (ipa.isLocalHost() || ipa.isLocalInterfaceAddress())
-      h = new (std::nothrow)
-	LocalHost(this, mac, vlan_id, 0 /* any observation point */, &ipa);
+      h = new (std::nothrow)LocalHost(this, UNKNOWN_PKT_IFACE_IDX,
+				      mac, vlan_id, 0 /* any observation point */, &ipa);
     else
-      h = new (std::nothrow)
-	RemoteHost(this, mac, vlan_id, 0 /* any observation point */, &ipa);
+      h = new (std::nothrow)RemoteHost(this, UNKNOWN_PKT_IFACE_IDX,
+				       mac, vlan_id, 0 /* any observation point */, &ipa);
 
     if (!h) goto next_host;
 
-    if (!hosts_hash->add(
-			 h, false /* Don't lock, we're inline with the purgeIdle */))
+    if (!hosts_hash->add(h, false /* Don't lock, we're inline with the purgeIdle */))
       delete h;
 
   next_host:

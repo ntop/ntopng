@@ -23,19 +23,21 @@
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _u_int16_t,
+Host::Host(NetworkInterface *_iface, int32_t _iface_idx,
+	   char *ipAddress, u_int16_t _vlan_id,
            u_int16_t observation_point_id)
     : GenericHashEntry(_iface),
       HostAlertableEntity(_iface, alert_entity_host),
       Score(_iface),
       HostChecksStatus() {
   ip.set(ipAddress);
-  initialize(NULL, _u_int16_t, observation_point_id);
+  initialize(NULL, _iface_idx, _vlan_id, observation_point_id);
 }
 
 /* *************************************** */
 
-Host::Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _u_int16_t,
+Host::Host(NetworkInterface *_iface, int32_t _iface_idx,
+	   Mac *_mac, u_int16_t _vlan_id,
            u_int16_t observation_point_id, IpAddress *_ip)
     : GenericHashEntry(_iface),
       HostAlertableEntity(_iface, alert_entity_host),
@@ -51,7 +53,7 @@ Host::Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _u_int16_t,
                                isBroadcastHost() ? 1 : 0);
 #endif
 
-  initialize(_mac, _u_int16_t, observation_point_id);
+  initialize(_mac, _iface_idx, _vlan_id, observation_point_id);
 }
 
 /* *************************************** */
@@ -260,12 +262,14 @@ void Host::housekeep(time_t t) {
 
 /* *************************************** */
 
-void Host::initialize(Mac *_mac, u_int16_t _vlanId,
+void Host::initialize(Mac *_mac, int32_t _iface_idx,
+		      u_int16_t _vlanId,
                       u_int16_t observation_point_id) {
   if (_vlanId == (u_int16_t)-1) _vlanId = 0;
 
   vlan_id = _vlanId & 0xFFF; /* Cleanup any possible junk */
-
+  iface_index = _iface_idx;
+  
   /* stats = NULL; useless initi, it will be instantiated by specialized classes
    */
   stats_shadow = NULL;
@@ -906,6 +910,7 @@ void Host::lua(lua_State *vm, AddressTree *ptree, bool host_details,
   lua_push_str_table_entry(vm, "ip",
                            (ipaddr = printMask(ip_buf, sizeof(ip_buf))));
   lua_push_uint32_table_entry(vm, "vlan", get_vlan_id());
+  lua_push_int32_table_entry(vm, "iface_index", iface_index);
   lua_push_uint32_table_entry(vm, "observation_point_id",
                               get_observation_point_id());
   lua_push_bool_table_entry(vm, "serialize_by_mac", serializeByMac());

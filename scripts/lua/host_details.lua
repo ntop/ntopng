@@ -632,10 +632,9 @@ else
         print("<table class=\"table table-striped table-bordered\">\n")
         if (host["ip"] ~= nil) then
             if (host["mac"] ~= "00:00:00:00:00:00") then
-
                 if (host.router ~= nil) then
                     print("<tr><th width=35%>" .. i18n("details.router_access_point_mac_address") ..
-                              "</th><td colspan=2>" .. get_symbolic_mac(host.router, false) .. "</td></tr>")
+                              "</th><td colspan=2>" .. get_symbolic_mac(host.router, false) .. " </td></tr>")
                     print("<tr><th width=35%>" .. i18n("details.host_mac_address") .. "</th><td>" ..
                               get_symbolic_mac(host["mac"], false) .. " " .. discover.devtype2icon(host["device_type"]))
                 else
@@ -648,6 +647,8 @@ else
                                   get_symbolic_mac(host["mac"], false) .. " " ..
                                   discover.devtype2icon(host["device_type"]))
                     end
+
+		    printInterfaceIndex(host.iface_index)
                 end
                 print('</td><td>')
 

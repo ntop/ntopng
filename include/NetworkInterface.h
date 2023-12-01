@@ -167,9 +167,7 @@ protected:
    * them occurs. A lock is necessary to guard the insert/delete operations from
    * lookup operations requested from the GUI and to ensure that a delete
    * operation does generate a use-after-free. */
-  std::map<std::pair<AlertEntity, std::string>,
-           InterfaceMemberAlertableEntity *>
-  external_alerts;
+  std::map<std::pair<AlertEntity, std::string>, InterfaceMemberAlertableEntity *> external_alerts;
   Mutex external_alerts_lock;
 
   RoundTripStats *download_stats, *upload_stats;
@@ -344,7 +342,7 @@ protected:
   void deleteDataStructures();
 
   NetworkInterface *getDynInterface(u_int64_t criteria, bool parser_interface);
-  Flow *getFlow(Mac *srcMac, Mac *dstMac, u_int16_t vlan_id,
+  Flow *getFlow(int32_t if_index, Mac *srcMac, Mac *dstMac, u_int16_t vlan_id,
                 u_int16_t observation_domain_id, u_int32_t private_flow_id,
                 u_int32_t deviceIP, u_int32_t inIndex, u_int32_t outIndex,
                 const ICMPinfo *const icmp_info, IpAddress *src_ip,
@@ -708,7 +706,8 @@ public:
   void checkHostsToRestore();
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname,
                                  u_int ifname_len);
-  void findFlowHosts(u_int16_t vlan_id, u_int16_t observation_domain_id,
+  void findFlowHosts(int32_t _iface_idx, u_int16_t vlan_id,
+		     u_int16_t observation_domain_id,
                      u_int32_t private_flow_id, Mac *src_mac,
                      IpAddress *_src_ip, Host **src, Mac *dst_mac,
                      IpAddress *_dst_ip, Host **dst);
@@ -725,12 +724,12 @@ public:
   bool findHostsByMac(lua_State *vm, u_int8_t *mac);
   Host *findHostByMac(u_int8_t *mac);
 
-  bool dissectPacket(
+  bool dissectPacket(int32_t iface_index,
 		     u_int32_t bridge_iface_idx, bool ingressPacket,
 		     u_int8_t *sender_mac, /* Non NULL only for NFQUEUE interfaces */
 		     const struct pcap_pkthdr *h, const u_char *packet,
 		     u_int16_t *ndpiProtocol, Host **srcHost, Host **dstHost, Flow **flow);
-  bool processPacket(u_int32_t bridge_iface_idx, bool ingressPacket,
+  bool processPacket(int32_t if_index, u_int32_t bridge_iface_idx, bool ingressPacket,
                      const struct bpf_timeval *when, const u_int64_t time,
                      struct ndpi_ethhdr *eth, u_int16_t vlan_id,
                      struct ndpi_iphdr *iph, struct ndpi_ipv6hdr *ip6,

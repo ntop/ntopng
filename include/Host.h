@@ -40,6 +40,7 @@ class Host : public GenericHashEntry,
     Fingerprint hassh;
   } fingerprints;
 
+  int32_t iface_index; /* Interface index on which this host has been first observed */
   u_int16_t host_pool_id, host_services_bitmap;
   u_int16_t vlan_id;
   u_int16_t observationPointId;
@@ -177,7 +178,8 @@ class Host : public GenericHashEntry,
   ListeningPorts *listening_ports, *listening_ports_shadow;
 #endif
 
-  void initialize(Mac *_mac, u_int16_t _vlan_id,
+  void initialize(Mac *_mac, int32_t _iface_idx,
+		  u_int16_t _vlan_id,
                   u_int16_t observation_point_id);
   void inlineSetOS(OSType _os);
   bool statsResetRequested();
@@ -202,9 +204,11 @@ class Host : public GenericHashEntry,
   virtual void deferredInitialization();
 
  public:
-  Host(NetworkInterface *_iface, char *ipAddress, u_int16_t _u_int16_t,
+  Host(NetworkInterface *_iface, int32_t _iface_idx,
+       char *ipAddress, u_int16_t _vlan_id,
        u_int16_t observation_point_id);
-  Host(NetworkInterface *_iface, Mac *_mac, u_int16_t _u_int16_t,
+  Host(NetworkInterface *_iface, int32_t _iface_idx,
+       Mac *_mac, u_int16_t _vlan_id,
        u_int16_t observation_point_id, IpAddress *_ip);
 
   virtual ~Host();
@@ -1000,6 +1004,7 @@ class Host : public GenericHashEntry,
   }
 
   void resetHostContacts();
+  inline int32_t getInterfaceIndex()            { return(iface_index); };
 };
 
 #endif /* _HOST_H_ */

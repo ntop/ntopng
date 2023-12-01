@@ -211,7 +211,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::processFlow: getFlow", 0);
 
   /* Updating Flow */
-  flow = getFlow(srcMac, dstMac, zflow->vlan_id, zflow->observationPointId,
+  flow = getFlow(UNKNOWN_PKT_IFACE_IDX,
+		 srcMac, dstMac, zflow->vlan_id, zflow->observationPointId,
                  0 /* private_flow_id */, zflow->device_ip, zflow->inIndex,
                  zflow->outIndex, NULL /* ICMPinfo */, &srcIP, &dstIP,
                  zflow->src_port, zflow->dst_port, zflow->l4_proto,
