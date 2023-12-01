@@ -83,7 +83,7 @@ function tsArrayToOptionsArray(tsOptionsArray, tsGroupsArray, groupsOptionsMode,
 		return tsArrayToOptionsArrayRaw(tsOptionsArray, tsGroupsArray, groupsOptionsMode, tsCompare);
 	}
 	let splittedTsArray = splitTsArrayStacked(tsOptionsArray, tsGroupsArray);
-	let DygraphOptionsStacked = tsArrayToOptionsArrayRaw(splittedTsArray.stacked.tsOptionsArray, splittedTsArray.stacked.tsGroupsArray, groupsOptionsModesEnum["1_chart_x_metric"], tsCompare);
+	let DygraphOptionsStacked = tsArrayToOptionsArrayRaw(splittedTsArray.stacked.tsOptionsArray, splittedTsArray.stacked.tsGroupsArray, groupsOptionsMode, tsCompare);
 	let DygraphOptionsNotStacked = tsArrayToOptionsArrayRaw(splittedTsArray.not_stacked.tsOptionsArray, splittedTsArray.not_stacked.tsGroupsArray, groupsOptionsMode, tsCompare);
 	//console.log([...DygraphOptionsStacked, ...DygraphOptionsNotStacked])
 	return [...DygraphOptionsStacked, ...DygraphOptionsNotStacked];

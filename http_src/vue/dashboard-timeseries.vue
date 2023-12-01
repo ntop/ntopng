@@ -23,10 +23,9 @@ const height_per_row = 62.5 /* px */
 const chart_type = ref(ntopChartApex.typeChart.TS_LINE);
 const chart = ref(null);
 const timeseries_groups = ref([]);
-const group_option_mode = ref(null);
+const group_option_mode = timeseriesUtils.getGroupOptionMode('1_chart_x_yaxis');
 const height = ref(null);
 const ts_request = ref([]);
-const source_def_array = ref([])
 
 /* *************************************************** */
 
@@ -138,7 +137,7 @@ async function format_exporters(params_to_format) {
       if (exporter) {
         let new_formatted_params = substitute_exporter(params_to_format, exporter.probe_ip);
         new_formatted_params = substitute_ifid(new_formatted_params, exporter.ifid);
-        new_formatted_params.source_def = [exporter.probe_ip]
+        new_formatted_params.source_def = [exporter.ifid, exporter.probe_ip]
         ts_request.value.push(new_formatted_params);
       }
     });
@@ -229,10 +228,6 @@ async function retrieve_basic_info() {
       timeseries_groups.value.push(group);
     }
   }
-  /* NOTE: currently only accepted the 1_chart_x_yaxis mode */
-  if (group_option_mode.value == null) {
-    group_option_mode.value = timeseriesUtils.getGroupOptionMode('1_chart_x_yaxis');
-  }
 }
 
 /* *************************************************** */
@@ -267,7 +262,7 @@ async function get_chart_options() {
   /* Have to be used this get_component_data, in order to create report too */
   let result = await props.get_component_data(url, '', post_params);
   /* Format the result in the format needed by Dygraph */
-  result = timeseriesUtils.tsArrayToOptionsArray(result, timeseries_groups.value, group_option_mode.value, '');
+  result = timeseriesUtils.tsArrayToOptionsArray(result, timeseries_groups.value, group_option_mode, '');
   if (result[0]) {
     result[0].height = height.value;
   }

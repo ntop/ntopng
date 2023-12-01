@@ -49,16 +49,22 @@
         <div class="btn-group me-auto mt-2 btn-group-sm flex-wrap d-flex">
             <template v-for="filter_id in filters_to_show">
                 <div class="me-2">
+                    <label class="ms-1 my-auto me-2 filters-label"><b>{{ _i18n('db_search.' + filter_id) }}</b></label>
                     <SelectSearch v-model:selected_option="selected_filters[filter_id]"
-                        :options="filtered_filters[filter_id]"
+                        :options="filtered_filters[filter_id]" :style="'width: 50%;'"
                         @select_option="select_filter(selected_filters[filter_id], filter_id)">
                     </SelectSearch>
                 </div>
             </template>
             <template v-if="Object.keys(filters_to_show).length > 0">
                 <div class="d-flex align-items-center ms-2">
-                    <button type="button" class="btn btn-sm btn-primary" @click="reset_filters">{{ _i18n('reset')
-                    }}</button>
+                    <div class="me-2">
+                        <div>
+                            <label class="my-auto me-2"></label>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-primary" @click="reset_filters">{{ _i18n('reset')
+                        }}</button>
+                    </div>
                 </div>
             </template>
         </div>

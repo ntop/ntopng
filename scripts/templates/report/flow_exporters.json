@@ -315,7 +315,7 @@
 	},
 	{
 		"component" : "timeseries",
-		"id" : "traffic_chart",
+		"id" : "traffic_per_exporter",
 		"i18n_name" : "flow_exporter_traffic",
 		"width" : 12,
 		"height" : 6,
@@ -334,6 +334,29 @@
 				}
 			},
 			"source_type" : "top_flow_dev"
+		}
+	},
+	{
+		"component" : "timeseries",
+		"id" : "traffic_per_interface",
+		"i18n_name" : "top_interfaces_traffic",
+		"width" : 12,
+		"height" : 6,
+		"params" : {
+			"url" : "/lua/pro/rest/v2/get/timeseries/ts_multi.lua",
+			"url_params" : { },
+			"post_params" : {
+				"limit" : 180,
+				"version" : 4,
+				"ts_requests": {
+					"$ANY_EXPORTER$" : {
+						"ts_query": "ifid:$IFID$,device:$EXPORTER$",
+						"ts_schema": "top:flowdev_port:traffic",
+						"tskey": "$EXPORTER$"
+					}
+				}
+			},
+			"source_type" : "flow_device"
 		}
 	},
 	{
