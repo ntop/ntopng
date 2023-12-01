@@ -2749,6 +2749,8 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
   lua_get_bytes(vm);
 
   if (details_level >= details_high) {
+    if(swap_done) lua_push_bool_table_entry(vm, "flow_swapped", true);
+    
     lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
     lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
 

@@ -541,6 +541,10 @@ else
     end
 
     printInterfaceIndex(flow.iface_index)
+    if(flow.flow_swapped == true) then
+       print(' <abbr title="'..  i18n("swapped_flow") ..'"><i class="fa-solid fa-repeat"></i></abbr>')
+    end
+    
     print("</td></tr>\n")
 
     print("<tr><th width=30%>" .. i18n("protocol") .. " / " .. i18n("application") .. "</th>")

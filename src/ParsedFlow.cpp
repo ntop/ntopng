@@ -27,6 +27,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   additional_fields_json = NULL;
   additional_fields_tlv = NULL;
   l7_info = NULL;
+  is_swapped = false;
   http_url = http_site = http_user_agent = NULL;
   http_method = NDPI_HTTP_METHOD_UNKNOWN;
   dns_query = tls_server_name = NULL;
@@ -268,4 +269,5 @@ void ParsedFlow::freeMemory() {
 void ParsedFlow::swap() {
   ParsedFlowCore::swap();
   ParsedeBPF::swap();
+  is_swapped = true;
 }

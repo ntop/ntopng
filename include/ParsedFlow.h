@@ -26,7 +26,7 @@
 
 class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
  private:
-  bool has_parsed_ebpf;
+  bool has_parsed_ebpf, is_swapped;
   json_object *additional_fields_json;
   ndpi_serializer *additional_fields_tlv;
   char *l7_info;
@@ -133,6 +133,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline custom_app_t getCustomApp() { return(custom_app ); }
   inline ndpi_confidence_t getConfidence() { return(confidence); }
   inline ndpi_risk getRisk() { return(ndpi_flow_risk_bitmap); }
+  inline bool isSwapped() { return(is_swapped); }
 };
 
 #endif /* _PARSED_FLOW_H_ */
