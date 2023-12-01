@@ -6,6 +6,7 @@
 			"id" : "critical_alert_count",
 			"i18n_name" : "",
 			"color" : "danger",
+			"inactive_color" : "secondary",
 			"width" : 4,
 			"height" : 2,
 			"params" : {
@@ -30,6 +31,7 @@
 			"id" : "active_host_count",
 			"i18n_name" : "",
 			"color" : "success",
+			"inactive_color" : "secondary",
 			"width" : 4,
 			"height" : 2,
 			"params" : {
@@ -52,6 +54,7 @@
 			"id" : "active_flow_count",
 			"i18n_name" : "",
 			"color" : "info",
+			"inactive_color" : "secondary",
 			"width" : 4,
 			"height" : 2,
 			"params" : {
