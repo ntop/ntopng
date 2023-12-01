@@ -6436,8 +6436,9 @@ void Flow::updateFlowShapers(bool first_update) {
                                                   true /* client */) !=
          device_proto_allowed) ||
         (srv_host->getDeviceAllowedProtocolStatus(
-             ndpiDetectedProtocol, false /* server */) != device_proto_allowed))
+             ndpiDetectedProtocol, false /* server */) != device_proto_allowed)) {
       new_verdict = false;
+    }
   }
 
   /* Set the new verdict */

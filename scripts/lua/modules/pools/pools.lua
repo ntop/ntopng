@@ -94,6 +94,9 @@ function pools:_initialize()
         -- Init the default pool, if not already initialized.
         -- The default pool has always empty members
         local default_pool = self:get_pool(pools.DEFAULT_POOL_ID)
+       
+        -- Note: adding this before the 'if' below to fix previously created pools
+        self:_add_pool_id(pools.DEFAULT_POOL_ID)
 
         if not default_pool then
 	   -- Raw call to persist, no need to go through add_pool as here all the parameters are trusted and
@@ -145,6 +148,13 @@ end
 
 -- ##############################################
 
+function pools:_add_pool_id(new_pool_id)
+    ntop.setMembersCache(self:_get_pool_ids_key(),
+                         string.format("%d", new_pool_id))
+end
+
+-- ##############################################
+
 function pools:_assign_pool_id()
     local next_pool_id_key = self:_get_next_pool_id_key()
 
@@ -157,8 +167,7 @@ function pools:_assign_pool_id()
     end
 
     -- Add the atomically assigned pool id to the set of current pool ids (set wants a string)
-    ntop.setMembersCache(self:_get_pool_ids_key(),
-                         string.format("%d", next_pool_id))
+    self:_add_pool_id(next_pool_id)
 
     return next_pool_id
 end

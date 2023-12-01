@@ -437,7 +437,6 @@ void HostPools::reloadPools() {
   VLANAddressTree *new_tree;
   HostPoolStats **new_stats;
   Redis *redis = ntop->getRedis();
-  bool default_pool_loaded = false;
 
   if (!iface || (iface->get_id() == -1)) return;
 
@@ -500,16 +499,10 @@ void HostPools::reloadPools() {
 
     reloadPool(_pool_id, new_tree, new_stats);
 
-    if (_pool_id == 0) 
-      default_pool_loaded = true;
-
     free(pools[i]);
   }
 
   if (pools) free(pools);
-
-  if (!default_pool_loaded)
-    reloadPool(0, new_tree, new_stats);
 
   swap(new_tree, new_stats);
 
