@@ -99,7 +99,7 @@
             </div>
 
             <template v-for="c in components">
-                <Box style="min-width:20rem;" :color="c.color" :width="c.width" :height="c.height">
+                <Box style="min-width:20rem;" :color="(c.active && c.color) || c.inactive_color" :width="c.width" :height="c.height">
                     <template v-slot:box_title>
                         <div v-if="c.i18n_name" class="dashboard-component-title">
                             <h4>
@@ -116,7 +116,9 @@
                             <component :is="components_dict[c.component]" :id="c.component_id"
                                 :style="component_custom_style(c)" :epoch_begin="c.epoch_begin" :epoch_end="c.epoch_end"
                                 :i18n_title="c.i18n_name" :ifid="c.ifid ? c.ifid.toString() : context.ifid.toString()" :max_width="c.width"
-                                :max_height="c.height" :params="c.params" :get_component_data="get_component_data_func(c)"
+                                :max_height="c.height" :params="c.params"
+                                :get_component_data="get_component_data_func(c)"
+                                :set_component_attr="set_component_attr_func(c)"
                                 :csrf="context.csrf" :filters="c.filters">
                             </component>
                         </div>
@@ -812,6 +814,14 @@ function get_component_data_func(component) {
         return info.data;
     };
     return get_component_data
+}
+
+/* Callback to request REST data from components */
+function set_component_attr_func(component) {
+    const set_component_attr = async (attr, value) => {
+        component[attr] = value;
+    }
+    return set_component_attr;
 }
 
 </script>

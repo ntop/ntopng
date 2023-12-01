@@ -41,6 +41,7 @@ const props = defineProps({
     max_height: Number,  /* Component Hehght (4, 8, 12)*/
     params: Object,      /* Component-specific parameters from the JSON template definition */
     get_component_data: Function, /* Callback to request data (REST) */
+    set_component_attr: Function, /* Callback to set component attributes (e.g. Box active color) */
     filters: Object
 });
 
@@ -95,6 +96,10 @@ async function refresh_component() {
 
     let formatCounter = formatterUtils.getFormatter(counter_formatter);
     counter.value = formatCounter(counter_value)
+
+    if (counter_value) {
+        props.set_component_attr('active', true);
+    }
 
     if (props.params.link) {
       const link_url_params = {
