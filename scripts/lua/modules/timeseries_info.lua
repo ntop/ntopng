@@ -2091,9 +2091,11 @@ local function add_top_blacklist_hits_timeseries(tags, timeseries)
             query = "blacklist_name:" .. serie.blacklist_name,
             label = serie.blacklist_name:gsub("_", " "),
             measure_unit = "hitss",
+            
             scale = i18n('graphs.metric_labels.blacklist_hits'),
             timeseries = {
                 hits = {
+                   use_serie_name = true,
                     label = i18n('graphs.metric_labels.blacklist_num_hits'),
                     color = timeseries_info.get_timeseries_color('')
                 }

@@ -100,12 +100,16 @@ const sources_types = [
 	    label: i18n("page_stats.source_def.blacklist"),
 	    query: "blacklist",
             f_map_ts_options: (ts_options, ts_group) => {
-                if (ts_group.metric.query != null || ts_options.series == null) {
+                if (ts_options.series == null) {                    
                     return ts_options;
                 }
                 ts_options.series.forEach((s) => {
-                    s.name = s.name.replaceAll("_", " ");
-                    s.type = undefined;
+                    if (ts_group.metric.query != null) {
+                        s.name = ts_group.metric.label;
+                    } else {
+                        s.name = s.name.replaceAll("_", " ");
+                        s.type = undefined;
+                    }
                 });
                 return ts_options;
             },
