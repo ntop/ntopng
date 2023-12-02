@@ -1,11 +1,11 @@
 Connect to ClickHouse
 --------------------
 
-To connect ntopng to ClickHouse use option :code:`-F`. The format of this option is the following
+In order to connect ntopng to ClickHouse use option :code:`-F`. The format of this option is the following
 
 .. code:: bash
 
-    clickhouse;<host[@port]|socket>;<dbname>;<user>;<pw>
+    clickhouse;<host[@port]|unix-socket;<dbname>;<user>;<pw>
 
 or 
 
@@ -15,14 +15,13 @@ or
 
 Where
 
-- :code:`<host[@port]|socket>` Specifies the database :code:`host` or a :code:`socket` file. By default, port :code:`9000` is used for the connection. To use a different port, specify it with :code:`@port`. The host can be a symbolic name or an IP address.
+- :code:`<host[@port]|socket>` Specifies the database :code:`host` or a :code:`socket` file. By default, port :code:`9000` is used for the connection via clickhouse-client. To use a different port, specify it with :code:`@port`. The host can be a symbolic name or an IP address. By default ntopng connects in clear text, this unless you want to do it over TLS and in this case you need to append a 's' after the port. Example :code:`192.168.2.1@9004s`. Please see later in this pare more information about SSL connections.
 - :code:`<dbname>` Specifies the name of the database to be used and defaults to :code:`ntopng`
 - :code:`<user>` Specifies an user with read and write permissions on :code:`<dbname>`
 - :code:`<pw>` Specifies the password that authenticates :code:`<user>`
 - :code:`<cluster name>` Specifies the name of the ClickHouse cluster :code:`<user>`
 
 If you use a stand-alone ClickHouse database you need to use :code:`-F clickhouse;....` whereas with a cluster you need to use :code:`-F clickhouse-cluster;....`
-
   
 Example
 =======
@@ -43,8 +42,8 @@ The above example with a ClickHouse cluster would be:
 
 
 
-Stored Information
-------------------
+What's stored in ClickHouse
+---------------------------
 
 ntopng stores both historical flows and alerts in ClickHouse.
 
@@ -52,12 +51,7 @@ IPv4 and IPv6 flows are stored in table :code:`flows`. A column :code:`INTERFACE
 
 Alerts are stored in several tables, all ending with suffix :code:`_alerts`. The table prefix indicates the alert family, e.g. :code:`host_alerts` table contains alerts for hosts, :code:`flow_alerts` table contains alerts for flows, and so on.
 
-For more information, check the full schema available:
-
-.. toctree::
-    :maxdepth: 1
-
-    clickhouse_schema
+For more information, check the [ntopng database schema](https://github.com/ntop/ntopng/blob/dev/httpdocs/misc/db_schema_clickhouse.sql).
 
 SSL Connection
 --------------
