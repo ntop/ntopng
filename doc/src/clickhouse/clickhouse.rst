@@ -15,7 +15,7 @@ or
 
 Where
 
-- :code:`<host[@port]|socket>` Specifies the database :code:`host` or a :code:`socket` file. By default, port :code:`9000` is used for the connection via clickhouse-client. To use a different port, specify it with :code:`@port`. The host can be a symbolic name or an IP address. By default ntopng connects in clear text, this unless you want to do it over TLS and in this case you need to append a 's' after the port. Example :code:`192.168.2.1@9004s`. Please see later in this pare more information about SSL connections.
+- :code:`<host[@port]|socket>` Specifies the database :code:`host` or a :code:`socket` file. By default, port :code:`9000` is used for the connection via clickhouse-client. To use a different port, specify it with :code:`@port`. The host can be a symbolic name or an IP address. By default ntopng connects in clear text, this unless you want to do it over TLS and in this case you need to append a 's' after the port. Example :code:`192.168.2.1@9004s`. Please see later in this pare more information about TLS connections.
 - :code:`<dbname>` Specifies the name of the database to be used and defaults to :code:`ntopng`
 - :code:`<user>` Specifies an user with read and write permissions on :code:`<dbname>`
 - :code:`<pw>` Specifies the password that authenticates :code:`<user>`
@@ -42,7 +42,7 @@ The above example with a ClickHouse cluster would be:
 
 
 
-What's stored in ClickHouse
+What's Stored in ClickHouse
 ---------------------------
 
 ntopng stores both historical flows and alerts in ClickHouse.
@@ -51,9 +51,9 @@ IPv4 and IPv6 flows are stored in table :code:`flows`. A column :code:`INTERFACE
 
 Alerts are stored in several tables, all ending with suffix :code:`_alerts`. The table prefix indicates the alert family, e.g. :code:`host_alerts` table contains alerts for hosts, :code:`flow_alerts` table contains alerts for flows, and so on.
 
-For more information, check the [ntopng database schema](https://github.com/ntop/ntopng/blob/dev/httpdocs/misc/db_schema_clickhouse.sql).
+For more information, check the `ntopng database schema <https://github.com/ntop/ntopng/blob/dev/httpdocs/misc/db_schema_clickhouse.sql>`_.
 
-SSL Connection
+TLS Connection
 --------------
 
 To connect ntopng with ClickHouse using a secure TCP connection, first, create the server certificate with the following command:
