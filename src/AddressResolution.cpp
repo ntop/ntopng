@@ -146,7 +146,7 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
       ntop->getRedis()->setResolvedAddress(numeric_ip, hostname);
       if ((symbolic != NULL) && (symbolic_len > 0))
         snprintf(symbolic, symbolic_len, "%s", hostname);
-      ntop->getTrace()->traceEvent(TRACE_INFO, "Resolved %s to %s", numeric_ip,
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Resolved %s to %s", numeric_ip,
                                    hostname);
       m.lock(__FILE__, __LINE__);
       num_resolved_addresses++;
