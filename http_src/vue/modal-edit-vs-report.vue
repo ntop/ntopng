@@ -66,9 +66,7 @@ const row_to_edit = ref(null);
 const is_report_name_correct = ref(false);
 
 const note_list = [
-  _i18n("hosts_stats.page_scan_hosts.notes.note_1"),
-  _i18n("hosts_stats.page_scan_hosts.notes.note_2"),
-  _i18n("hosts_stats.page_scan_hosts.notes.note_3"),
+  _i18n("hosts_stats.page_scan_hosts.reports_page.notes.note_1"),
 ];
 /* ****************************************************** */
 
@@ -115,7 +113,7 @@ const show = (row) => {
 /* Function called when the edit button is clicked */
 const edit_ = () => {
   const tmp_report_date = row_to_edit.value.epoch;
-  const tmp_name = report_name.value;
+  const tmp_name = report_name.value.replaceAll(" ", "_");
 
   emit("edit", {
       report_title: tmp_name,
@@ -139,8 +137,13 @@ const close = () => {
 /* ****************************************************** */
 
 const check_title = () => {
-  const isSingleValidWorld = regexValidation.validateSingleWord(report_name.value);
-  is_report_name_correct.value = isSingleValidWorld;
+  let report_name_splitted_by_spaces = report_name.value.split(" ");
+
+  // with .every the loop stops when the condition is not met (like while)
+  const isReportNameValid = report_name_splitted_by_spaces.every((single_word) =>
+      regexValidation.validateSingleWord(single_word));
+
+  is_report_name_correct.value = isReportNameValid;
 };
 
 

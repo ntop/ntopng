@@ -4366,6 +4366,9 @@ local lang = {
         ["delete_title"] = "Delete Report",
         ["edit_report"] = "Edit Report",
         ["name"] = "Name",
+        ["notes"] = {
+          ["note_1"] = "Name: new report name."
+        },
         ["num_hosts"] = "Num Hosts",
         ["reports"] = "Scan Reports",
         ["tcp_ports"] = "Num TCP Ports",
