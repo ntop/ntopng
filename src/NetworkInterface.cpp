@@ -2464,20 +2464,17 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
   } else if (h->len > ifMTU) {
     if (!mtuWarningShown) {
 #ifdef __linux__
-      ntop->getTrace()->traceEvent(
-				   TRACE_NORMAL,
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Packets exceeding the expected max size have been received "
-				   "[len: %u][max len: %u].",
-				   h->len, ifMTU);
+				   "[%s][len: %u][max len: %u].",
+				   get_name(), h->len, ifMTU);
 
       if (!read_from_pcap_dump()) {
-        ntop->getTrace()->traceEvent(
-				     TRACE_WARNING,
+        ntop->getTrace()->traceEvent(TRACE_WARNING,
 				     "If TSO/GRO is enabled, please disable it for best accuracy");
         if (strchr(ifname, ':') ==
             NULL) /* print ethtool command for standard interfaces only */
-          ntop->getTrace()->traceEvent(
-				       TRACE_WARNING,
+          ntop->getTrace()->traceEvent(TRACE_WARNING,
 				       "using: sudo ethtool -K %s gro off gso off tso off", ifname);
       }
 #endif
