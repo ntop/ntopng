@@ -985,18 +985,11 @@ class Host : public GenericHashEntry,
   void setUnidirectionalTCPUDPNoTXEgressFlow(IpAddress *ip, u_int16_t port);
   void setUnidirectionalTCPUDPNoTXIngressFlow(IpAddress *ip, u_int16_t port);
 
-  inline u_int32_t getNumContactedPeersAsClientTCPUDPNoTX() {
-    return (
-        (u_int32_t)ndpi_hll_count(&outgoing_hosts_tcp_udp_port_with_no_tx_hll));
-  };
-  inline u_int32_t getNumContactsFromPeersAsServerTCPUDPNoTX() {
-    return (
-        (u_int32_t)ndpi_hll_count(&incoming_hosts_tcp_udp_port_with_no_tx_hll));
-  };
+  u_int32_t getNumContactedPeersAsClientTCPUDPNoTX();
+  u_int32_t getNumContactsFromPeersAsServerTCPUDPNoTX();
 
   inline u_int16_t getNumContactedTCPUDPServerPortsNoTX() {
-    return (tcp_udp_contacted_ports_no_tx ? (u_int16_t)ndpi_bitmap_cardinality(
-                                                tcp_udp_contacted_ports_no_tx) : 0);
+    return (tcp_udp_contacted_ports_no_tx ? (u_int16_t)ndpi_bitmap_cardinality(tcp_udp_contacted_ports_no_tx) : 0);
   }
   inline void setContactedTCPUDPServerPortNoTX(u_int16_t port) {
     if (tcp_udp_contacted_ports_no_tx)

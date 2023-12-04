@@ -339,7 +339,8 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
 		  5 /* StdError: 18.4% */);
     ndpi_hll_init(&incoming_hosts_tcp_udp_port_with_no_tx_hll,
 		  5 /* StdError: 18.4% */);
-  }
+  } else
+    tcp_udp_contacted_ports_no_tx = NULL;
   
   if (ip.getVersion() /* IP is set */) {
     char country_name[64];
@@ -2804,3 +2805,15 @@ void Host::resetHostContacts() {
     ndpi_bitmap_clear(tcp_udp_contacted_ports_no_tx);
   }
 }
+
+/* *************************************** */
+
+u_int32_t Host::getNumContactedPeersAsClientTCPUDPNoTX() {
+  return (ntop->getPrefs()->limitResourcesUsage() ? (u_int32_t)ndpi_hll_count(&outgoing_hosts_tcp_udp_port_with_no_tx_hll) : 0);
+};
+
+/* *************************************** */
+
+u_int32_t Host::getNumContactsFromPeersAsServerTCPUDPNoTX() {
+  return (ntop->getPrefs()->limitResourcesUsage() ? (u_int32_t)ndpi_hll_count(&incoming_hosts_tcp_udp_port_with_no_tx_hll) : 0);
+};
