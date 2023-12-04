@@ -4256,6 +4256,8 @@ local lang = {
       ["failed"] = "Failed",
       ["filtered_port"] = "Filtered Port",
       ["host"] = "Host",
+      ["host_discovered_scan_type"] = "Host Discovered Scan Type", 
+      ["host_or_network"] = "Host/Network",
       ["host_is_not_up_and_running"] = "Host down or unreachable.",
       ["host_name"] = "Name",
       ["host_not_resolved"] = "host not found, please insert a valid host",
@@ -4376,6 +4378,7 @@ local lang = {
       },
       ["scan_type_list"] = {
         ["cve"] = "CVE",
+        ["ipv4_netscan"] = "IPv4 Network Scan",
         ["openvas"] = "OpenVAS",
         ["tcp_portscan"] = "TCP Portscan",
         ["udp_portscan"] = "UDP Portscan",
@@ -7795,7 +7798,8 @@ local lang = {
   ["vulnerability_scan"] = {
     ["and_other_n"] = "and other %{n}",
     ["host_alert"] = "%{msg} on <b><a href='%{url}'>%{host}</a></b> using %{scan_type}.",
-    ["host_down_case"] = "Host %{host} is not reachable",
+    ["host_down_case"] = "Host %{host} is not reachable.",
+    ["host_not_configured"] = "Host %{host} is not configured on the Vulnerability Scan page.",
     ["new_issues"] = "CVEs changed from %{num_issues} to %{new_cve}",
     ["ports_changed"] = "Open ports changed from %{old_num_ports} to %{new_num_ports}",
     ["report"] = "Vulnerability Scan Report",
