@@ -2809,11 +2809,11 @@ void Host::resetHostContacts() {
 /* *************************************** */
 
 u_int32_t Host::getNumContactedPeersAsClientTCPUDPNoTX() {
-  return (ntop->getPrefs()->limitResourcesUsage() ? (u_int32_t)ndpi_hll_count(&outgoing_hosts_tcp_udp_port_with_no_tx_hll) : 0);
+  return (!ntop->getPrefs()->limitResourcesUsage() ? (u_int32_t)ndpi_hll_count(&outgoing_hosts_tcp_udp_port_with_no_tx_hll) : 0);
 };
 
 /* *************************************** */
 
 u_int32_t Host::getNumContactsFromPeersAsServerTCPUDPNoTX() {
-  return (ntop->getPrefs()->limitResourcesUsage() ? (u_int32_t)ndpi_hll_count(&incoming_hosts_tcp_udp_port_with_no_tx_hll) : 0);
+  return (!ntop->getPrefs()->limitResourcesUsage() ? (u_int32_t)ndpi_hll_count(&incoming_hosts_tcp_udp_port_with_no_tx_hll) : 0);
 };
