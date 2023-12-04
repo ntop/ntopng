@@ -63,6 +63,10 @@ function host_alert_store:insert(alert)
         extra_values = "generateUUIDv4(), "
     end
 
+    if alert.alert_category == nil then
+        traceError(TRACE_NORMAL, TRACE_CONSOLE, "alert_category is not set for host alert_id %u", alert.alert_id)
+    end
+
     local insert_stmt = string.format("INSERT INTO %s " ..
         "(%salert_id, alert_status, alert_category, interface_id, ip_version, ip, vlan_id, name, country, is_attacker, is_victim, " ..
         "is_client, is_server, tstamp, tstamp_end, severity, score, granularity, host_pool_id, network, json) " ..
