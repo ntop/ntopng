@@ -2779,8 +2779,9 @@ void Host::triggerCustomHostAlert(u_int8_t score, char *msg) {
 */
 void Host::setUnidirectionalTCPUDPNoTXEgressFlow(IpAddress *ip,
                                                  u_int16_t port) {
-  ndpi_hll_add_number(&outgoing_hosts_tcp_udp_port_with_no_tx_hll,
-                      ip->key() + (port << 8));  // Simple hash
+  if(!ntop->getPrefs()->limitResourcesUsage())
+    ndpi_hll_add_number(&outgoing_hosts_tcp_udp_port_with_no_tx_hll,
+			ip->key() + (port << 8));  // Simple hash
 }
 
 /* *************************************** */
@@ -2792,8 +2793,9 @@ void Host::setUnidirectionalTCPUDPNoTXEgressFlow(IpAddress *ip,
 */
 void Host::setUnidirectionalTCPUDPNoTXIngressFlow(IpAddress *ip,
                                                   u_int16_t port) {
-  ndpi_hll_add_number(&incoming_hosts_tcp_udp_port_with_no_tx_hll,
-                      ip->key() + (port << 8));  // Simple hash
+  if(!ntop->getPrefs()->limitResourcesUsage())
+    ndpi_hll_add_number(&incoming_hosts_tcp_udp_port_with_no_tx_hll,
+			ip->key() + (port << 8));  // Simple hash
 }
 
 /* *************************************** */
