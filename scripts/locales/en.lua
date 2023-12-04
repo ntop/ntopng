@@ -3673,7 +3673,7 @@ local lang = {
     ["vlan"] = "VLAN",
   },
   ["fortinet_collector"] = {
-    ["description"] = "Collect logs from Fortinet firewalls: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)",
+    ["description"] = "Collect logs from Fortinet firewalls: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max).<br />Supported severity levels:<ul><li><b>1</b>: Alert/Emergency</li><li><b>2</b>: Critical</li><li><b>3</b>: Error</li><li><b>4</b>: Warning</li><li><b>5</b>: Notice</li><li><b>6</b>: Info</li><li><b>7</b>: Debug</li></ul>",
     ["title"] = "Fortinet",
   },
   ["geo_map"] = {
@@ -4047,7 +4047,7 @@ local lang = {
     ["unknown_device_type"] = "Unknown Device Type",
   },
   ["host_log_collector"] = {
-    ["description"] = "Collect syslog logs from hosts and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)",
+    ["description"] = "Collect syslog logs from hosts and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max).<br />Supported severity levels:<ul><li><b>1</b>: Alert/Emergency</li><li><b>2</b>: Critical</li><li><b>3</b>: Error</li><li><b>4</b>: Warning</li><li><b>5</b>: Notice</li><li><b>6</b>: Info</li><li><b>7</b>: Debug</li></ul>",
     ["title"] = "Host Log",
   },
   ["host_pools"] = {
@@ -4956,7 +4956,7 @@ local lang = {
     ["invalid_subdir"] = "Invalid subdir given",
   },
   ["kerberos_collector"] = {
-    ["description"] = "Collect Kerberos authentication logs exported by NXLog in XML format: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)",
+    ["description"] = "Collect Kerberos authentication logs exported by NXLog in XML format: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max).<br />Supported severity levels:<ul><li><b>1</b>: Alert/Emergency</li><li><b>2</b>: Critical</li><li><b>3</b>: Error</li><li><b>4</b>: Warning</li><li><b>5</b>: Notice</li><li><b>6</b>: Info</li><li><b>7</b>: Debug</li></ul>",
     ["title"] = "Kerberos/NXLog",
   },
   ["license_page"] = {
@@ -5253,7 +5253,7 @@ local lang = {
     ["title"] = "Manage Timeseries",
   },
   ["nbox_collector"] = {
-    ["description"] = "Collect events from nBox appliances and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)",
+    ["description"] = "Collect events from nBox appliances and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max).<br />Supported severity levels:<ul><li><b>1</b>: Alert/Emergency</li><li><b>2</b>: Critical</li><li><b>3</b>: Error</li><li><b>4</b>: Warning</li><li><b>5</b>: Notice</li><li><b>6</b>: Info</li><li><b>7</b>: Debug</li></ul>",
     ["title"] = "nBox",
   },
   ["ndpi_categories"] = {
@@ -5820,11 +5820,11 @@ local lang = {
     },
   },
   ["openvpn_collector"] = {
-    ["description"] = "Collect logs from OpenVPN: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)",
+    ["description"] = "Collect logs from OpenVPN: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max).<br />Supported severity levels:<ul><li><b>1</b>: Alert/Emergency</li><li><b>2</b>: Critical</li><li><b>3</b>: Error</li><li><b>4</b>: Warning</li><li><b>5</b>: Notice</li><li><b>6</b>: Info</li><li><b>7</b>: Debug</li></ul>",
     ["title"] = "OpenVPN",
   },
   ["opnsense_collector"] = {
-    ["description"] = "Collect logs from OPNsense firewalls: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)",
+    ["description"] = "Collect logs from OPNsense firewalls: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max).<br />Supported severity levels:<ul><li><b>1</b>: Alert/Emergency</li><li><b>2</b>: Critical</li><li><b>3</b>: Error</li><li><b>4</b>: Warning</li><li><b>5</b>: Notice</li><li><b>6</b>: Info</li><li><b>7</b>: Debug</li></ul>",
     ["title"] = "OPNsense",
   },
   ["os_details"] = {
@@ -7271,11 +7271,11 @@ local lang = {
     ["timeseries_start_time_mismatch"] = "Timeseries not aligned.",
   },
   ["sonicwall_collector"] = {
-    ["description"] = "Collect logs from SonicWALL firewalls: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)",
+    ["description"] = "Collect logs from SonicWALL firewalls: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max).<br />Supported severity levels:<ul><li><b>1</b>: Alert/Emergency</li><li><b>2</b>: Critical</li><li><b>3</b>: Error</li><li><b>4</b>: Warning</li><li><b>5</b>: Notice</li><li><b>6</b>: Info</li><li><b>7</b>: Debug</li></ul>",
     ["title"] = "SonicWALL",
   },
   ["sophos_collector"] = {
-    ["description"] = "Collect logs from Sophos firewalls: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max)",
+    ["description"] = "Collect logs from Sophos firewalls: handle Identity Management (user correlation) and trigger alerts according to the configured severity level (0 for min verbosity, 7 for max).<br />Supported severity levels:<ul><li><b>1</b>: Alert/Emergency</li><li><b>2</b>: Critical</li><li><b>3</b>: Error</li><li><b>4</b>: Warning</li><li><b>5</b>: Notice</li><li><b>6</b>: Info</li><li><b>7</b>: Debug</li></ul>",
     ["title"] = "Sophos",
   },
   ["sprobe_page"] = {
