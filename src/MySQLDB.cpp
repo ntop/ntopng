@@ -769,8 +769,7 @@ MYSQL *MySQLDB::mysql_try_connect(MYSQL *conn, const char *dbname) {
   /* Set the maximum database connection timeout */
   mysql_options(conn, MYSQL_OPT_CONNECT_TIMEOUT, &connection_timeout);
   
-  if ((!ntop->getPrefs()->do_dump_flows_on_clickhouse()) &&
-      (host[0] == '/') /* Use socketD */)
+  if ((!ntop->getPrefs()->do_dump_flows_on_clickhouse()) && (host[0] == '/') /* Use socketD */)
     rc = mysql_real_connect(conn, NULL, /* Host */
                             user, ntop->getPrefs()->get_mysql_pw(), dbname, 0,
                             host /* socket */, flags);
@@ -848,20 +847,17 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
   db_operational = false;
 
   if ((host == NULL) || (user == NULL)) {
-    ntop->getTrace()->traceEvent(
-        TRACE_WARNING, "%s not configured: connection failed", getEngineName());
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s not configured: connection failed", getEngineName());
     return (db_operational);
   }
 
-  ntop->getTrace()->traceEvent(
-      TRACE_INFO, "Attempting to connect to %s for interface %s...",
-      getEngineName(), iface->get_name());
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Attempting to connect to %s for interface %s...",
+			       getEngineName(), iface->get_name());
 
   m.lock(__FILE__, __LINE__);
 
   if (mysql_init(conn) == NULL) {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Failed to initialize %s connection", getEngineName());
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failed to initialize %s connection", getEngineName());
     m.unlock(__FILE__, __LINE__);
     return (db_operational);
   }

@@ -567,8 +567,8 @@ void usage() {
 	 "                                    | clickhouse    Dump in ClickHouse "
 	 "(Enterprise M/L/XL)\n"
 	 "                                    |   Format:\n"
-	 "                                    |   clickhouse;<host[@[<tcp "
-	 "port>,]<mysqlport]|socket>;<dbname>;<user>;<pw>\n"
+	 "                                    |   clickhouse;<host[@[<tcp-"
+	 "port>,]<mysql-port>]|socket>;<dbname>;<user>;<pw>\n"
 	 "                                    |   Example:\n"
 	 "                                    |   "
 	 "clickhouse;127.0.0.1;ntopng;default;\n"
@@ -581,8 +581,8 @@ void usage() {
 	 "                                    | clickhouse-cluster    Dump in "
 	 "ClickHouse Cluster (Enterprise M/L/XL)\n"
 	 "                                    |   Format:\n"
-	 "                                    |   clickhouse-cluster;<host[@[<tcp "
-	 "port>,]<mysqlport]|socket>;<dbname>;<user>;<pw>;<cluster name>\n"
+	 "                                    |   clickhouse-cluster;<host[@[<tcp-"
+	 "port>,]<mysql-port]|socket>;<dbname>;<user>;<pw>;<cluster name>\n"
 	 "                                    |   Example:\n"
 	 "                                    |   "
 	 "clickhouse-cluster;127.0.0.1;ntopng;default;ntop_cluster\n"
@@ -1901,22 +1901,17 @@ int Prefs::setOption(int optkey, char *optarg) {
 	bool use_clickhouse_cluster;
 
 	dump_flows_on_clickhouse = (optarg[0] == 'c') ? true : false;
-	use_clickhouse_cluster =
-	  (strncmp(optarg, "clickhouse-cluster", 18) == 0) ? true : false;
+	use_clickhouse_cluster   = (strncmp(optarg, "clickhouse-cluster", 18) == 0) ? true : false;
 
 	if (dump_flows_on_clickhouse) {
 	  /* Check if CLICKHOUSE_CLIENT is present */
 	  struct stat buf;
-	  bool client_found =
-	    ((stat(CLICKHOUSE_CLIENT, &buf) == 0) && (S_ISREG(buf.st_mode)))
-	    ? true
-	    : false;
+	  bool client_found =((stat(CLICKHOUSE_CLIENT, &buf) == 0)
+			      && (S_ISREG(buf.st_mode))) ? true : false;
 
 	  if (!client_found) {
 	    client_found = ((stat(CLICKHOUSE_ALT_CLIENT, &buf) == 0) &&
-			    (S_ISREG(buf.st_mode)))
-	      ? true
-	      : false;
+			    (S_ISREG(buf.st_mode))) ? true : false;
 	    if (client_found) clickhouse_client = CLICKHOUSE_ALT_CLIENT;
 	  } else
 	    clickhouse_client = CLICKHOUSE_CLIENT;
@@ -1985,6 +1980,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    /* Default ports */
 	    mysql_port = CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT;
 	    clickhouse_tcp_port = CONST_DEFAULT_CLICKHOUSE_TCP_PORT;
+
 	    if (!dump_flows_on_clickhouse)
 	      mysql_port = CONST_DEFAULT_MYSQL_PORT;
 
@@ -2004,9 +2000,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 		l = strtol(clickhouse_tcp_port_str, NULL, 10);
 
 		if (errno || !l)
-		  ntop->getTrace()->traceEvent(
-					       TRACE_WARNING,
-					       "Invalid mysql port, using default port %d [%s]",
+		  ntop->getTrace()->traceEvent(TRACE_WARNING,
+					       "Invalid MySQL port, using default port %d [%s]",
 					       clickhouse_tcp_port, strerror(errno));
 		else
 		  clickhouse_tcp_port = (int)l;
@@ -2016,9 +2011,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 	      l = strtol(mysql_port_str, NULL, 10);
 
 	      if (errno || !l)
-		ntop->getTrace()->traceEvent(
-					     TRACE_WARNING,
-					     "Invalid mysql port, using default port %d [%s]",
+		ntop->getTrace()->traceEvent(TRACE_WARNING,
+					     "Invalid MySQL port, using default port %d [%s]",
 					     mysql_port, strerror(errno));
 	      else
 		mysql_port = (int)l;
