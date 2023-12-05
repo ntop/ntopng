@@ -421,6 +421,17 @@ end
 
 -- ##############################################
 
+function replace(str, o, n)
+  local i, j = string.find(str, o, 1, true)
+  if i then
+    return string.sub(str, 1, i-1) .. n .. string.sub(str, j+1, -1)
+  else
+    return str
+  end
+end
+
+-- ##############################################
+
 function formatEpoch(epoch, full_time)
    return(format_utils.formatEpoch(epoch, full_time))
 end
