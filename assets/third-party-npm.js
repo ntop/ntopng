@@ -19,6 +19,9 @@ import './scripts/vendors/jquery/jquery-print.min.js';
 import * as store from 'store-js';
 window.store = store;
 
+import Sortable from './scripts/vendors/sortablejs/sortable.core.esm.js';
+window.Sortable = Sortable
+
 /* See https://datatables.net/forums/discussion/comment/103356 */
 import dt from 'datatables.net-dt'
 import 'datatables.net-buttons-dt'
