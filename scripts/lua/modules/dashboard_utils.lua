@@ -32,7 +32,7 @@ dashboard_utils.module_available = {
 -- ##############################################
 
 -- Get all configured dashboard templates
-function dashboard_utils.get_templates(templates_dir)
+local function get_templates_from_dir(templates_dir)
    local templates = {}
    local info = ntop.getInfo()
 
@@ -79,6 +79,24 @@ function dashboard_utils.get_templates(templates_dir)
       end
 
       ::continue::
+   end
+
+   return templates
+end
+
+-- ##############################################
+
+-- Get all configured dashboard templates
+function dashboard_utils.get_templates(templates_dirs)
+   local templates = {}
+
+   if type(templates_dirs) == "string" then
+      templates = get_templates_from_dir(templates_dirs)
+   else -- array of dir
+      for _, dir in ipairs(templates_dirs) do
+          local dir_templates = get_templates_from_dir(dir)
+          templates = table.merge(templates, dir_templates)
+      end
    end
 
    return templates
