@@ -172,8 +172,8 @@ class Prefs {
 #if !defined(WIN32) && !defined(__APPLE__)
   int flows_syslog_facility;
 #endif
-  int mysql_port;
-  int clickhouse_tcp_port;
+  int mysql_port, clickhouse_tcp_port;
+  bool mysql_port_secure, clickhouse_tcp_port_secure;
   char *ls_host, *ls_port, *ls_proto;
   bool has_cmdl_trace_lvl; /**< Indicate whether a verbose level
                               has been provided on the command line.*/
@@ -466,6 +466,8 @@ class Prefs {
   inline char* get_mysql_host() { return (mysql_host); };
   inline int get_mysql_port() { return (mysql_port); };
   inline int get_clickhouse_tcp_port() { return (clickhouse_tcp_port); };
+  inline bool is_mysql_port_secure() { return (mysql_port_secure); };
+  inline bool is_clickhouse_tcp_port_secure() { return (clickhouse_tcp_port_secure); };
   inline char* get_mysql_dbname() { return (mysql_dbname); };
   inline char* get_mysql_tablename() { return ((char*)"flows"); };
   inline char* get_mysql_user() { return (mysql_user); };

@@ -193,6 +193,7 @@ Prefs::Prefs(Ntop *_ntop) {
   mysql_host = mysql_dbname = mysql_user = mysql_pw = NULL;
   mysql_port = CONST_DEFAULT_MYSQL_PORT;
   clickhouse_tcp_port = CONST_DEFAULT_CLICKHOUSE_TCP_PORT;
+  mysql_port_secure = clickhouse_tcp_port_secure = false; /* No TLS */
 #if !defined(WIN32) && !defined(__APPLE__)
   flows_syslog_facility = CONST_DEFAULT_DUMP_SYSLOG_FACILITY;
 #endif
@@ -569,6 +570,7 @@ void usage() {
 	 "                                    |   Format:\n"
 	 "                                    |   clickhouse;<host[@[<tcp-"
 	 "port>,]<mysql-port>]|socket>;<dbname>;<user>;<pw>\n"
+	 "port>,]<mysql-port]|socket>;<dbname>;<user>;<pw>\n"
 	 "                                    |   Example:\n"
 	 "                                    |   "
 	 "clickhouse;127.0.0.1;ntopng;default;\n"
@@ -590,7 +592,9 @@ void usage() {
 	 "clickhouse-cluster as alias of:\n"
 	 "                                    |   -F "
 	 "\"clickhouse-cluster;127.0.0.1@%u,%u;ntopng;default;ntop_cluster\"\n"
-	 "                                    |\n"
+	 "NOTE:                               |\n"
+	 "- tcp-port used by clickhouse-client|\n"
+	 "- mysql-port used for queries       |\n"
 #endif
 	 ,
 	 CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
@@ -1980,7 +1984,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    /* Default ports */
 	    mysql_port = CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT;
 	    clickhouse_tcp_port = CONST_DEFAULT_CLICKHOUSE_TCP_PORT;
-
+	    mysql_port_secure = clickhouse_tcp_port_secure = false; /* No TLS */
+	    
 	    if (!dump_flows_on_clickhouse)
 	      mysql_port = CONST_DEFAULT_MYSQL_PORT;
 
@@ -1988,15 +1993,26 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    if ((mysql_port_str = strchr(mysql_host, '@'))) {
 	      char *comma, *clickhouse_tcp_port_str;
 	      long l;
-
+	      int len;
+	      
 	      *(mysql_port_str++) = '\0';
 
-	      if ((comma = strchr(mysql_port_str, ','))) {
+	      if ((comma = strchr(mysql_port_str, ','))) {		
 		clickhouse_tcp_port_str = mysql_port_str;
 		*(comma++) = '\0';
 		mysql_port_str = comma;
 
 		errno = 0;
+		len = strlen(clickhouse_tcp_port_str);
+
+		if(len > 1) {
+		  len--;
+
+		  if(clickhouse_tcp_port_str[len] == 's') {
+		    clickhouse_tcp_port_secure = true;
+		    clickhouse_tcp_port_str[len] = '\0';
+		  }
+		}
 		l = strtol(clickhouse_tcp_port_str, NULL, 10);
 
 		if (errno || !l)
@@ -2008,6 +2024,17 @@ int Prefs::setOption(int optkey, char *optarg) {
 	      }
 
 	      errno = 0;
+	      len = strlen(mysql_port_str);
+
+	      if(len > 1) {
+		len--;
+
+		if(mysql_port_str[len] == 's') {
+		  mysql_port_secure = true;
+		  mysql_port_str[len] = '\0';
+		}
+	      }
+	      
 	      l = strtol(mysql_port_str, NULL, 10);
 
 	      if (errno || !l)
