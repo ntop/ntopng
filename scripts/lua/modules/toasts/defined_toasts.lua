@@ -260,7 +260,7 @@ local defined_toats = {
     },
     {
         id = 23,
-        dismissable = false,
+        dismissable = true,
         has_priority = true,
         predicate = predicates.emergency_recipient,
         pages = EMPTY_PAGES,
