@@ -41,8 +41,8 @@
           <label class="col-form-label col-sm-2">
             <b>{{ _i18n("hosts_stats.page_scan_hosts.host_discovered_scan_type") }}</b>
           </label>
-          <div class="col-10 mt-4">
-            <SelectSearch v-model:selected_option="selected_discovered_scan_type" :options="discovered_scan_type_list">
+          <div class="col-10" >
+            <SelectSearch v-model:selected_options="selected_discovered_scan_types" @change_selected_options="update_selected_discovered_scan_types" @unselect_option="remove_selected_discovered_scan_types" :options="discovered_scan_type_list" :multiple="true">
             </SelectSearch>
           </div>
         </div>
@@ -76,11 +76,11 @@
       <div>
         <Spinner :show="activate_add_spinner" size="1rem" class="me-2"></Spinner>
         <button v-if="is_edit_page == false" type="button" @click="add_" class="btn btn-primary"
-          :disabled="!(is_cidr_correct && is_host_correct && is_port_correct)">
+          :disabled="!(is_cidr_correct && is_host_correct && is_port_correct && is_netscan_ok)">
           {{ _i18n("add") }}
         </button>
         <button v-else type="button" @click="edit_" class="btn btn-primary"
-          :disabled="!(is_cidr_correct && is_host_correct && is_port_correct)">
+          :disabled="!(is_cidr_correct && is_host_correct && is_port_correct && is_netscan_ok)">
           {{ _i18n("apply") }}
         </button>
       </div>
@@ -90,7 +90,7 @@
 
 <script setup>
 /* Imports */
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { default as modal } from "./modal.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as NoteList } from "./note-list.vue";
@@ -116,17 +116,19 @@ const note_list = [
   _i18n("hosts_stats.page_scan_hosts.notes.note_1"),
   _i18n("hosts_stats.page_scan_hosts.notes.note_2"),
   _i18n("hosts_stats.page_scan_hosts.notes.note_3"),
+  _i18n("hosts_stats.page_scan_hosts.notes.note_3_1"),
 ];
 const enterprise_note_list = [
   _i18n("hosts_stats.page_scan_hosts.notes.note_1"),
   _i18n("hosts_stats.page_scan_hosts.notes.note_2"),
   _i18n("hosts_stats.page_scan_hosts.notes.note_3"),
+  _i18n("hosts_stats.page_scan_hosts.notes.note_3_1"),
   _i18n("hosts_stats.page_scan_hosts.notes.note_4"),
 ];
 
 const modal_id = ref(null);
 const selected_scan_type = ref({});
-const selected_discovered_scan_type = ref({})
+const selected_discovered_scan_types = ref([]); // array for hosts discovered scan types
 const hide_ports_placeholder = ref("");
 const row_to_edit_id = ref("");
 const activate_add_spinner = ref(false);
@@ -140,6 +142,7 @@ const show_port_feedback = ref(false);
 const is_enterprise_l = ref(null);
 const is_port_correct = ref(true);
 const is_cidr_correct = ref(true);
+const is_netscan_ok = ref(true); // bool to be sure that on netscan at least one discovered hosts scan type is selected
 const is_host_correct = ref(false);
 const is_ipv4_netscan = ref(false);
 const scan_frequencies_list = ref([
@@ -158,7 +161,7 @@ const cidr_options_list = ref([
 const selected_cidr = ref(cidr_options_list.value[1]);
 const selected_scan_frequency = ref(scan_frequencies_list.value[0]);
 const is_data_not_ok = ref(false);
-
+const refresh_select_search = ref(false);
 /* ****************************************************** */
 
 /*
@@ -173,12 +176,13 @@ const reset_modal_form = function () {
   activate_add_spinner.value = false;
   show_port_feedback.value = false;
   selected_scan_type.value = scan_type_list.value[0];
-  selected_discovered_scan_type.value = discovered_scan_type_list.value[0];
+  selected_discovered_scan_types.value = [];
   selected_cidr.value = cidr_options_list.value[1];
   row_to_edit_id.value = null;
   is_edit_page.value = false;
   is_data_not_ok.value = false;
   is_ipv4_netscan.value = false;
+  is_netscan_ok.value = !is_ipv4_netscan.value;
 };
 
 /* ****************************************************** */
@@ -201,8 +205,17 @@ const set_row_to_edit = (row) => {
   selected_scan_type.value = scan_type_list.value.find(
     (item) => item.id == row.scan_type
   );
-  if (row.discovered_scan_type != null) {
-    selected_discovered_scan_type.value = discovered_scan_type_list.value.find((item) => item.id == row.discovered_scan_type);
+
+  /* Sub Scans Types */
+  if (row.discovered_host_scan_type != null) {
+    const discovered_scan_type_ids_array = row.discovered_host_scan_type.split(",");
+    let tmp_selected_scan_types = [];
+    let tmp_found_scan_type;
+    discovered_scan_type_ids_array.forEach((setted_scan_type) => {
+      tmp_found_scan_type = discovered_scan_type_list.value.find((item) => item.id == setted_scan_type);
+      tmp_selected_scan_types.push(tmp_found_scan_type);
+    })
+    selected_discovered_scan_types.value = tmp_selected_scan_types;
   }
 
   /* CIDR */
@@ -253,6 +266,23 @@ const show = (row, _host) => {
 
 /* ****************************************************** */
 
+/* Function called when a new selected discovered scan type
+   is added
+*/
+const update_selected_discovered_scan_types = (items) => {
+  selected_discovered_scan_types.value = items;
+  is_netscan_ok.value = selected_discovered_scan_types.value.length > 0;
+}
+
+/* Function called when is removed a selected discovered scan type
+*/
+const remove_selected_discovered_scan_types = (item_to_delete) => {
+  selected_discovered_scan_types.value = selected_discovered_scan_types.value.filter((item) => item.id != item_to_delete.id);
+  is_netscan_ok.value = selected_discovered_scan_types.value.length > 0; 
+}
+
+/* ****************************************************** */
+
 /* Function to set is_ipv4_netscan in order to disable cidr selectio
    only /24 (for now)
 */
@@ -262,12 +292,17 @@ const set_is_ipv4_netscan = () => {
     selected_cidr.value = cidr_options_list.value.find(
       (item) => item.id == CIDR_24
     ); 
-    
-
+    // is_ipv4_netscan -> enable the discovered_hosts_scan_types multiselection
     is_ipv4_netscan.value = true;
+    // is_netscan_ok -> disabled apply or add button because is necessary at least one discovered_hosts_scan_type
+    is_netscan_ok.value = false;
   } else {
+    // is_ipv4_netscan -> disable the discovered_hosts_scan_types multiselection
     is_ipv4_netscan.value = false;
+    // is_netscan_ok -> enable the add or apply button because is not ipv4_netscan case
+    is_netscan_ok.value = true;
   }
+
 }
 
 /* ****************************************************** */
@@ -277,33 +312,50 @@ const check_host_regex = () => {
   const is_ipv4 = regexValidation.validateIPv4(host.value);
   const is_ipv6 = regexValidation.validateIPv6(host.value);
   const is_host_name = regexValidation.validateHostName(host.value);
-  if (is_ipv4) {
-    /* IPv4 */
-    is_host_correct.value = true;
-    if (!host.value.endsWith(0)) {
+  if (selected_scan_type.value.id == 'ipv4_netscan') {
+    
+    if (is_ipv4) {
+      // the IP must be an IPv4
+      /* IPv4 */
+      is_host_correct.value = true;
+      // the selected_discovered_scan_types must be an array with lenght more than 0
+      is_netscan_ok.value = selected_discovered_scan_types.value && selected_discovered_scan_types.value.length > 0;
+    }
+
+    is_netscan_ok.value = true; // not ipv4_netscan case so is_netscan_ok is true
+  } else {
+
+    /* When it isn't the ipv4_netscan case the cidr selection is enabled */
+
+    if (is_ipv4) {
+      /* IPv4 */
+      is_host_correct.value = true;
+      if (!host.value.endsWith(0)) {
+        /* In case the CIDR is wrong */
+        selected_cidr.value = cidr_options_list.value.find(
+          (item) => item.id == CIDR_32
+        ); /* IPv4 */
+      }
+    } else if (is_ipv6) {
+      /* IPv6 */
+      selected_cidr.value = cidr_options_list.value[2];
+      is_host_correct.value = true;
+      /* In case the CIDR is wrong */
+      selected_cidr.value = cidr_options_list.value.find(
+        (item) => item.id == CIDR_128
+      ); /* IPv6 */
+    } else if (is_host_name) {
+      /* Host Name */
+      is_host_correct.value = true;
       /* In case the CIDR is wrong */
       selected_cidr.value = cidr_options_list.value.find(
         (item) => item.id == CIDR_32
-      ); /* IPv4 */
+      );
+    } else {
+      is_host_correct.value = false;
     }
-  } else if (is_ipv6) {
-    /* IPv6 */
-    selected_cidr.value = cidr_options_list.value[2];
-    is_host_correct.value = true;
-    /* In case the CIDR is wrong */
-    selected_cidr.value = cidr_options_list.value.find(
-      (item) => item.id == CIDR_128
-    ); /* IPv6 */
-  } else if (is_host_name) {
-    /* Host Name */
-    is_host_correct.value = true;
-    /* In case the CIDR is wrong */
-    selected_cidr.value = cidr_options_list.value.find(
-      (item) => item.id == CIDR_32
-    );
-  } else {
-    is_host_correct.value = false;
   }
+
 };
 
 /* ****************************************************** */
@@ -345,6 +397,7 @@ const edit_ = () => {
 
 /* Function called when the modal is closed */
 const close = () => {
+  refresh_select_search.value = false;
   modal_id.value.close();
 };
 
@@ -381,7 +434,14 @@ const add_ = async (is_edit) => {
     is_host_correct.value = true;
   }
 
-  const tmp_second_scan_type = host_scan_type == 'ipv4_netscan' ? selected_discovered_scan_type.value.id : null;
+  let tmp_second_scan_types = [];
+  
+  selected_discovered_scan_types.value.forEach((item) => {
+    tmp_second_scan_types.push(item.id);
+  })
+  /* The discovered scan types are sent to the rest in comma separated string list */
+  const tmp_second_scan_types_formatted = tmp_second_scan_types.join(",");
+
   /* If the resolution was ok or no resolution at all was done emit the event */
   activate_add_spinner.value = new_host_name_resolved;
 
@@ -395,7 +455,7 @@ const add_ = async (is_edit) => {
       cidr: selected_cidr.value.id,
       scan_frequency: is_enterprise_l ? selected_scan_frequency.value.id : null,
       scan_id: row_id,
-      discovered_host_scan_type : tmp_second_scan_type
+      discovered_host_scan_type : tmp_second_scan_types_formatted
     });
   }
 
@@ -413,7 +473,6 @@ const metricsLoaded = async (_scan_type_list, _ifid, _is_enterprise_l) => {
   discovered_scan_type_list.value = scan_types.filter((item) => (item.id != 'ipv4_netscan'));
   is_enterprise_l.value = _is_enterprise_l;
   selected_scan_type.value = scan_type_list.value[0];
-  selected_discovered_scan_type.value = discovered_scan_type_list.value[0];
 };
 
 /* ****************************************************** */
@@ -493,5 +552,10 @@ async function load_ports() {
 }
 */
 
+
+onMounted(() => {
+    
+  console.log("CIAO MONDO2");
+});
 defineExpose({ show, close, metricsLoaded });
 </script>
