@@ -1265,4 +1265,16 @@ end
 
 -- ##############################################
 
+function recipients.isAlertsRecipient(recipient)
+   return recipient.notifications_type == "alerts"
+end
+
+-- ##############################################
+
+function recipients.isBuiltinRecipient(recipient)
+   return recipient.recipient_name == "builtin_recipient_alert_store_db"
+end
+
+-- ##############################################
+
 return recipients

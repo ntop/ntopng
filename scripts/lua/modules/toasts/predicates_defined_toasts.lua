@@ -408,7 +408,9 @@ function predicates.emergency_recipient(toast, container)
     local emergency_recipient_configured = false
 
     for _, recipient in pairs(recipients.get_all_recipients()) do
-        if recipient.minimum_severity >= alert_severities.emergency.severity_id then
+        if recipients.isAlertsRecipient(recipient) and 
+            not recipients.isBuiltinRecipient(recipient) and
+            recipient.minimum_severity >= alert_severities.notice.severity_id then
             emergency_recipient_configured = true
             break
         end
