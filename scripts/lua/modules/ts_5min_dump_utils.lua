@@ -390,11 +390,11 @@ function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
                     -- Round the value correctly
                     in_bytes_percentage = math.floor((in_bytes_percentage / exporter_config.downlink_speed * 100) + 0.5)
     
-                    if debug then
-                        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-                            "interface_usage_out_bytes" .. flow_device_ip .. '_' .. port_idx .. ', out bit perc.: ' ..
-                                out_bytes_percentage .. ' | in bit perc.: ' .. in_bytes_percentage)
-                    end
+--                    if debug then
+--                        traceError(TRACE_NORMAL, TRACE_CONSOLE,
+--                            "interface_usage_out_bytes" .. flow_device_ip .. '_' .. port_idx .. ', out bit perc.: ' ..
+--                                out_bytes_percentage .. ' | in bit perc.: ' .. in_bytes_percentage)
+--                    end
     
                     -- Traffic
                     ts_utils.append("sflowdev_port:usage", {
@@ -475,11 +475,13 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
                 -- Round the value correctly
                 in_bytes_percentage = math.floor((in_bytes_percentage / exporter_config.downlink_speed * 100) + 0.5)
 
-                if debug then
-                    traceError(TRACE_NORMAL, TRACE_CONSOLE,
-                        "interface_usage_out_bytes" .. flow_device_ip .. '_' .. port_idx .. ', out bit perc.: ' ..
-                            out_bytes_percentage .. ' | in bit perc.: ' .. in_bytes_percentage)
-                end
+--                    if debug then
+--                        traceError(TRACE_NORMAL, TRACE_CONSOLE,
+--                            "interface_usage_out_bytes" .. flow_device_ip .. '_' .. port_idx .. ', out bit perc.: ' ..
+--                                out_bytes_percentage .. ' | in bit perc.: ' .. in_bytes_percentage)
+--                    end
+    
+
 
                 -- Traffic
                 ts_utils.append("flowdev_port:usage", {
