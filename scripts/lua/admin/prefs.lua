@@ -505,8 +505,7 @@ if auth.has_capability(auth.capabilities.preferences) then
                   '</th></tr></thead>')
 
         prefsInputFieldPrefs(subpage_active.entries["ntopng_host_address"].title,
-            subpage_active.entries["ntopng_host_address"].description,
-            "ntopng.prefs.", "ntopng_host_address",
+            subpage_active.entries["ntopng_host_address"].description, "ntopng.prefs.", "ntopng_host_address",
             ntopng_host_info.ip or "", -- default
             false, true, nil, nil, {
                 attributes = {
@@ -514,7 +513,6 @@ if auth.has_capability(auth.capabilities.preferences) then
                 },
                 required = false
             })
-
 
         if prefs.is_autologout_enabled == true then
             prefsToggleButton(subpage_active, {
@@ -643,8 +641,6 @@ if auth.has_capability(auth.capabilities.preferences) then
                 pref = "use_mac_in_flow_key"
             })
         end
-
-        
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.flow_table") ..
                   '</th></tr></thead>')
@@ -866,8 +862,8 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- RADIUS GUI authentication
 
         local elementToSwitch = {"row_toggle_radius_accounting", "radius_admin_group",
-                                 "radius_unpriv_capabilties_group", "radius_server_address", "radius_acct_server_address",
-                                 "radius_secret", "row_radius_auth_proto"}
+                                 "radius_unpriv_capabilties_group", "radius_server_address",
+                                 "radius_acct_server_address", "radius_secret", "row_radius_auth_proto"}
 
         prefsToggleButton(subpage_active, {
             field = auth_toggles.radius,
@@ -966,7 +962,6 @@ if auth.has_capability(auth.capabilities.preferences) then
             default = "0",
             to_switch = elementToSwitch
         })
-        
 
         local showElements = (ntop.getPref("ntopng.prefs.http_authenticator.auth_enabled") == "1")
 
@@ -981,12 +976,12 @@ if auth.has_capability(auth.capabilities.preferences) then
                 }
             })
 
-
         local showElements = (ntop.getPref("ntopng.prefs.http_authenticator.log_positive_event_enabled") == "1")
 
         prefsInputFieldPrefs(subpage_active.entries["http_auth_server"].title,
-            subpage_active.entries["http_auth_server"].description, "ntopng.prefs.http_authenticator.log_positive_event_enabled", "http_auth_url",
-            "", nil, showElements, true, true --[[ allowUrls ]] , {
+            subpage_active.entries["http_auth_server"].description,
+            "ntopng.prefs.http_authenticator.log_positive_event_enabled", "http_auth_url", "", nil, showElements, true,
+            true --[[ allowUrls ]] , {
                 attributes = {
                     spellcheck = "false",
                     maxlength = 255,
@@ -1192,15 +1187,16 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- #####################
 
         local is_device_connection_disconnection_analysis_enabled = ntop.isEnterpriseM()
-        
+
         if is_device_connection_disconnection_analysis_enabled then
             print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.devices_behaviour") ..
-            '</th></tr></thead>')
+                      '</th></tr></thead>')
             -- Behavior analysis for asn, network and l7proto (iface)
 
             prefsInputFieldPrefs(subpage_active.entries["devices_learning_period"].title,
-                subpage_active.entries["devices_learning_period"].description, "ntopng.prefs.", "devices_learning_period",
-                prefs.devices_learning_period, "number", is_device_connection_disconnection_analysis_enabled, nil, nil, {
+                subpage_active.entries["devices_learning_period"].description, "ntopng.prefs.",
+                "devices_learning_period", prefs.devices_learning_period, "number",
+                is_device_connection_disconnection_analysis_enabled, nil, nil, {
                     min = 7200,
                     tformat = "hd"
                 })
@@ -1218,8 +1214,8 @@ if auth.has_capability(auth.capabilities.preferences) then
                 subpage_active.entries["devices_status_post_learning"].description,
                 {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
                 {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
-                "primary", "devices_status_post_learning", "ntopng.prefs.devices_status_post_learning", false, {}, nil, nil,
-                is_device_connection_disconnection_analysis_enabled --[[show]] )
+                "primary", "devices_status_post_learning", "ntopng.prefs.devices_status_post_learning", false, {}, nil,
+                nil, is_device_connection_disconnection_analysis_enabled --[[show]] )
         end
         -- #####################
 
@@ -1497,15 +1493,14 @@ if auth.has_capability(auth.capabilities.preferences) then
             subpage_active.entries["influxdb_query_timeout"].description, "ntopng.prefs.", "influx_query_timeout", "10",
             "number", influx_active, nil, nil, {
                 min = 1
-            })        
-            
+            })
+
         prefsInputFieldPrefs(subpage_active.entries["ts_data_retention"].title,
             subpage_active.entries["ts_data_retention"].description, "ntopng.prefs.",
             "ts_and_stats_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil, {
                 min = 1,
                 max = 365 * 10
             })
-
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.interfaces_timeseries') ..
                   '</th></tr></thead>')
@@ -1590,6 +1585,25 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "system_probes_timeseries"
         })
 
+        if ntop.isPro() then
+            print('<thead class="table-primary"><tr><th colspan=2 class="info">' ..
+                      i18n('prefs.exporter_timeseries') .. '</th></tr></thead>')
+
+            prefsToggleButton(subpage_active, {
+                field = "toggle_flow_rrds",
+                default = "0",
+                pref = "flow_device_port_rrd_creation",
+                disabled = not info["version.enterprise_edition"]
+            })
+
+            prefsToggleButton(subpage_active, {
+                field = "toggle_interface_usage_probes_timeseries",
+                default = "1",
+                pref = "interface_usage_probes_timeseries",
+                disabled = not info["version.enterprise_edition"]
+            })
+        end
+
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.other_timeseries') ..
                   '</th></tr></thead>')
 
@@ -1604,13 +1618,6 @@ if auth.has_capability(auth.capabilities.preferences) then
                 field = "toggle_observation_points_rrd_creation",
                 default = "0",
                 pref = "observation_points_rrd_creation",
-                disabled = not info["version.enterprise_edition"]
-            })
-
-            prefsToggleButton(subpage_active, {
-                field = "toggle_flow_rrds",
-                default = "0",
-                pref = "flow_device_port_rrd_creation",
                 disabled = not info["version.enterprise_edition"]
             })
 
@@ -1833,38 +1840,36 @@ if auth.has_capability(auth.capabilities.preferences) then
   </table>]]
     end
 
-    function printVulnerabilityScan() 
+    function printVulnerabilityScan()
         print('<form method="post">')
         print('<table class="table">')
 
-
-        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("hosts_stats.page_scan_hosts.prefs_tab_title") ..
-        '</th></tr></thead>')
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' ..
+                  i18n("hosts_stats.page_scan_hosts.prefs_tab_title") .. '</th></tr></thead>')
 
         prefsInputFieldPrefs(subpage_active.entries["vs_concurrently_scan_number"].title,
             subpage_active.entries["vs_concurrently_scan_number"].description, "ntopng.prefs.",
-            "host_to_scan_max_num_scans", prefs.host_to_scan_max_num_scans or 4, "number",
-            true, false, nil, {
+            "host_to_scan_max_num_scans", prefs.host_to_scan_max_num_scans or 4, "number", true, false, nil, {
                 min = 1,
                 max = 16
             })
-            local default_vs_slow_scan_value = ternary(prefs.vs_slow_scan == false, "0","1")
-            prefsToggleButton(subpage_active, {
-                field = "toggle_slow_mode",
-                default = default_vs_slow_scan_value,
-                pref = "vs.vs_slow_scan"
-            })
-        
-            print(
-           '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-           i18n("save") .. '</button></th></tr>')
-        
+        local default_vs_slow_scan_value = ternary(prefs.vs_slow_scan == false, "0", "1")
+        prefsToggleButton(subpage_active, {
+            field = "toggle_slow_mode",
+            default = default_vs_slow_scan_value,
+            pref = "vs.vs_slow_scan"
+        })
+
+        print(
+            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+                i18n("save") .. '</button></th></tr>')
+
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
         print [[" />
     </form>
     </table>]]
-        
+
     end
 
     function printDumpSettings()
@@ -1934,11 +1939,10 @@ if auth.has_capability(auth.capabilities.preferences) then
                 max = 2 ^ 32 - 1
             })
 
-        
         print(
-           '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-           i18n("save") .. '</button></th></tr>')
-        
+            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+                i18n("save") .. '</button></th></tr>')
+
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
         print [[" />
@@ -1955,12 +1959,12 @@ if auth.has_capability(auth.capabilities.preferences) then
         local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
 
         prefsInputFieldPrefs(subpage_active.entries["flow_data_retention"].title,
-        subpage_active.entries["flow_data_retention"].description, "ntopng.prefs.",
-        "flows_and_alerts_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil,
-        {
-            min = 1,
-            max = 365 * 10
-        })
+            subpage_active.entries["flow_data_retention"].description, "ntopng.prefs.",
+            "flows_and_alerts_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil,
+            {
+                min = 1,
+                max = 365 * 10
+            })
 
         prefsInputFieldPrefs(subpage_active.entries["aggregated_flows_data_retention"].title,
             subpage_active.entries["aggregated_flows_data_retention"].description, "ntopng.prefs.",
@@ -1970,21 +1974,20 @@ if auth.has_capability(auth.capabilities.preferences) then
                 max = 365 * 10
             })
         prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_limit"].title,
-                             subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
-                             "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound or 1000,
-                             "number", showAggregateFlowsPrefs,
-                             false, nil, {
-                                min = 10000,
-                                max = 10000000
-        })
-        
+            subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
+            "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound or 1000, "number",
+            showAggregateFlowsPrefs, false, nil, {
+                min = 10000,
+                max = 10000000
+            })
+
         prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_traffic_limit"].title,
-                             subpage_active.entries["toggle_flow_aggregated_traffic_limit"].description, "ntopng.prefs.",
-                             "max_aggregated_flows_traffic_upperbound", prefs.max_aggregated_flows_traffic_upperbound or 5, "number",
-                             showAggregateFlowsPrefs, false, nil, {
-                                min = 0,
-                                max = 5000
-        })
+            subpage_active.entries["toggle_flow_aggregated_traffic_limit"].description, "ntopng.prefs.",
+            "max_aggregated_flows_traffic_upperbound", prefs.max_aggregated_flows_traffic_upperbound or 5, "number",
+            showAggregateFlowsPrefs, false, nil, {
+                min = 0,
+                max = 5000
+            })
 
         prefsToggleButton(subpage_active, {
             field = "toggle_flow_aggregated_alerted_flows",
@@ -1993,9 +1996,9 @@ if auth.has_capability(auth.capabilities.preferences) then
             hidden = not showAggregateFlowsPrefs
         })
         print(
-           '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-           i18n("save") .. '</button></th></tr>')
-        
+            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+                i18n("save") .. '</button></th></tr>')
+
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
         print [[" />]]
@@ -2018,14 +2021,16 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
 
         prefsInputFieldPrefs(subpage_active.entries["reports_data_retention_time"].title,
-        subpage_active.entries["reports_data_retention_time"].description, "ntopng.prefs.",
-        "reports_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil,
-        { min = 1, max = 365 * 10 })
+            subpage_active.entries["reports_data_retention_time"].description, "ntopng.prefs.",
+            "reports_data_retention_days", data_retention_utils.getDefaultRetention(), "number", nil, nil, nil, {
+                min = 1,
+                max = 365 * 10
+            })
 
         print(
-           '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-           i18n("save") .. '</button></th></tr>')
-        
+            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+                i18n("save") .. '</button></th></tr>')
+
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
         print [[" />]]

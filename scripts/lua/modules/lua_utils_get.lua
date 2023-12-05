@@ -1275,6 +1275,85 @@ end
 
 -- ##############################################
 
+function getFlowDevInterfaceKey(ifid)
+    return "ntopng.flow_dev_interface.ifid_" .. ifid .. ".config"
+end
+
+-- ##############################################
+
+function getFlowDevInterfaceConfig(device_ip, port_index, ifid)
+    local json = require "dkjson"
+    local key = string.format("%s_%s", device_ip, port_index)
+    local config = ntop.getHashCache(getFlowDevInterfaceKey(ifid), key)
+    local ret = {}
+    config = json.decode(config)
+    -- As priority get the configuration set up by the user, if no config is found,
+    -- create a default configuration based on SNMP or default values
+    if config then
+        ret = {
+            alias = config.alias,
+            uplink_speed = tonumber(config.uplink_speed),
+            downlink_speed = tonumber(config.downlink_speed),
+        }
+    else
+        -- Default values, get the snmp name and uplink and downlink at 1 Gbit
+        local interface_label = port_index
+        local uplink_speed = 1000000000 -- By default it's 1 Gbit link
+        local downlink_speed = 1000000000 -- By default it's 1 Gbit link
+        
+        if ntop.isPro() then
+            package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+            local snmp_utils = require "snmp_utils"
+            local snmp_cached_dev = require "snmp_cached_dev"
+            local cached_device = snmp_cached_dev:create(device_ip) or {}
+            local interfaces = cached_device["interfaces"] or {}
+            interface_label = snmp_utils.get_snmp_interface_label(interfaces[port_index] or {index = port_index}, true)
+            if interfaces[port_index] and interfaces[port_index]["speed"] then
+                uplink_speed = interfaces[port_index]["speed"] 
+                downlink_speed = interfaces[port_index]["speed"]               
+            end
+        end
+
+        ret = {
+            alias = interface_label,
+            uplink_speed = uplink_speed,
+            downlink_speed = downlink_speed,
+        }
+    end
+
+    return ret
+end
+
+-- ##############################################
+
+function setFlowDevInterfaceConfig(device_ip, port_index, ifid, config)
+    local json = require "dkjson"
+    local key = string.format("%s_%s", device_ip, port_index)
+    
+    -- Just to be sure in case some config param is missing, put default values
+    if not config or table.len(config) == 0 then
+        config = {
+            alias = port_index,
+            uplink_speed = 1000000000, -- By default it's 1 Gbit link
+            downlink_speed = 1000000000 -- By default it's 1 Gbit link
+        }
+    end
+    if not config.alias then
+        config.alias = port_index
+    end
+    if not config.uplink_speed then
+        config.uplink_speed = 1000000000
+    end
+    if not config.uplink_speed then
+        config.uplink_speed = 1000000000
+    end
+
+    config = json.encode(config)
+    ntop.setHashCache(getFlowDevInterfaceKey(ifid), key, config)
+end
+
+-- ##############################################
+
 function getFlowDevAliasKey()
     return "ntopng.flow_dev_aliases"
 end

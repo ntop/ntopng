@@ -333,7 +333,7 @@
 					}
 				}
 			},
-			"source_type" : "top_flow_dev"
+			"source_type" : "flow_dev"
 		}
 	},
 	{

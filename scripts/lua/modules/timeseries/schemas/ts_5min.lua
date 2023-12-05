@@ -359,6 +359,16 @@ schema:addTag("port")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
 
+schema = ts_utils.newSchema("sflowdev_port:usage", {
+    step = 300,
+    rrd_fname = "usage"
+})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addTag("port")
+schema:addMetric("uplink")
+schema:addMetric("downlink")
+
 -- ##############################################
 
 schema = ts_utils.newSchema("flowdev:traffic", {
@@ -381,6 +391,17 @@ schema:addTag("device")
 schema:addTag("port")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
+
+schema = ts_utils.newSchema("flowdev_port:usage", {
+    step = 300,
+    rrd_fname = "usage",
+    metrics_type = ts_utils.metrics.gauge
+})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addTag("port")
+schema:addMetric("uplink")
+schema:addMetric("downlink")
 
 schema = ts_utils.newSchema("flowdev_port:ndpi", {
     step = 300

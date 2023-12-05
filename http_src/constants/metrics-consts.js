@@ -426,25 +426,6 @@ const sources_types = [
 		}],
 	},
 	{
-		id: "top_flow_dev",
-		label: i18n("flow_exporter_traffic"),
-		query: "top_flowdev",
-		source_def_array: [{
-			label: i18n("page_stats.source_def.interface"),
-			sources_url: "lua/rest/v2/get/ntopng/interfaces.lua",
-			value: "ifid",
-			ui_type: ui_types.select,
-		}, {
-			main_source_def: true,
-			label: i18n("page_stats.source_def.device"),
-			sources_url: "lua/pro/rest/v2/get/flowdevices/list.lua", // url to get sources list
-			regex_type: "ip",
-			value: "device",
-			value_url: "ip",
-			ui_type: ui_types.input,
-		}],
-	},
-	{
 		id: "flow_interface",
 		regex_page_url: "lua\/pro\/enterprise\/flowdevice_interface_details",
 		label: i18n("page_stats.source_def.flow_interface"),

@@ -67,20 +67,20 @@ end
 -- ########################################################
 
 function ts_dump.blacklist_update(when, verbose)
-   local lists_utils = require("lists_utils")
-   local lists = lists_utils.getCategoryLists()
+    local lists_utils = require("lists_utils")
+    local lists = lists_utils.getCategoryLists()
 
-   for list_name, v in pairs(lists) do
-      if v.status.num_hits > 0 then
-	 list_name = list_name:gsub("%s+", "_") -- replace space with underscore
-	    
-         ts_utils.append("blacklist:hits", {
-           ifid = getSystemInterfaceId(),
-           blacklist_name = list_name,
-           hits = v.status.num_hits
-         }, when)
-      end
-   end   
+    for list_name, v in pairs(lists) do
+        if v.status.num_hits > 0 then
+            list_name = list_name:gsub("%s+", "_") -- replace space with underscore
+
+            ts_utils.append("blacklist:hits", {
+                ifid = getSystemInterfaceId(),
+                blacklist_name = list_name,
+                hits = v.status.num_hits
+            }, when)
+        end
+    end
 end
 
 -- ########################################################
@@ -343,8 +343,10 @@ function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
         return
     end
 
+    local alerts_api = require "alerts_api"
+
     for interface_id, device_list in pairs(flowdevs or {}) do
-       for flow_device_ip, _value in pairs(device_list, asc) do
+        for flow_device_ip, _value in pairs(device_list, asc) do
             local ports = interface.getSFlowDeviceInfo(flow_device_ip)
 
             if (verbose) then
@@ -370,6 +372,38 @@ function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
                         bytes_sent = port_value.ifOutOctets,
                         bytes_rcvd = port_value.ifInOctets
                     }, when)
+
+                    local exporter_config = getFlowDevInterfaceConfig(flow_device_ip, port_idx, ifstats.id)
+                    local out_bytes_percentage = alerts_api.interface_delta_val(
+                        "interface_usage_out_bytes_sflow" .. flow_device_ip .. '_' .. port_idx, "5mins",
+                        port_value["bytes.out_bytes"] * 8, true)
+                    -- Now divide the difference by the time, to have the right value
+                    out_bytes_percentage = out_bytes_percentage / 300
+                    -- Round the value correctly
+                    out_bytes_percentage = math.floor((out_bytes_percentage / exporter_config.uplink_speed * 100) + 0.5)
+                    -- Now for the in_bytes
+                    local in_bytes_percentage = alerts_api.interface_delta_val(
+                        "interface_usage_in_bytes_sflow" .. flow_device_ip .. '_' .. port_idx, "5mins",
+                        port_value["bytes.in_bytes"] * 8, true)
+                    -- Now divide the difference by the time, to have the right value
+                    in_bytes_percentage = in_bytes_percentage / 300
+                    -- Round the value correctly
+                    in_bytes_percentage = math.floor((in_bytes_percentage / exporter_config.downlink_speed * 100) + 0.5)
+    
+                    if debug then
+                        traceError(TRACE_NORMAL, TRACE_CONSOLE,
+                            "interface_usage_out_bytes" .. flow_device_ip .. '_' .. port_idx .. ', out bit perc.: ' ..
+                                out_bytes_percentage .. ' | in bit perc.: ' .. in_bytes_percentage)
+                    end
+    
+                    -- Traffic
+                    ts_utils.append("sflowdev_port:usage", {
+                        ifid = ifstats.id,
+                        device = flow_device_ip,
+                        port = port_idx,
+                        uplink = out_bytes_percentage,
+                        downlink = in_bytes_percentage
+                    }, when)
                 end
             end
         end
@@ -380,6 +414,7 @@ end
 
 function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
     local flowdevs = interface.getFlowDevices() -- Flow, not sFlow here
+    local debug = false
 
     -- Return in case of view interface, no timeseries for view interface,
     -- already on the viewed interface.
@@ -387,8 +422,10 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
         return
     end
 
+    local alerts_api = require "alerts_api"
+
     for interface_id, device_list in pairs(flowdevs or {}) do
-       for flow_device_ip, dev_resolved_name in pairsByValues(device_list, asc) do
+        for flow_device_ip, dev_resolved_name in pairsByValues(device_list, asc) do
             local ports = interface.getFlowDeviceInfo(flow_device_ip)
             local bytes_sent = 0
             local bytes_rcvd = 0
@@ -396,7 +433,6 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
             if (verbose) then
                 print("[" .. __FILE__() .. ":" .. __LINE__() .. "] Processing flow probe " .. flow_device_ip .. "\n")
             end
-
 
             for port_idx, port_value in pairs(ports) do
                 -- Traffic
@@ -407,7 +443,7 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
                     bytes_sent = port_value["bytes.out_bytes"],
                     bytes_rcvd = port_value["bytes.in_bytes"]
                 }, when)
-                
+
                 bytes_sent = bytes_sent + port_value["bytes.out_bytes"]
                 bytes_rcvd = bytes_rcvd + port_value["bytes.in_bytes"]
 
@@ -422,6 +458,37 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
                         bytes_rcvd = proto_stats["bytes.rcvd"]
                     }, when)
                 end
+                local exporter_config = getFlowDevInterfaceConfig(flow_device_ip, port_idx, ifstats.id)
+                local out_bytes_percentage = alerts_api.interface_delta_val(
+                    "interface_usage_out_bytes" .. flow_device_ip .. '_' .. port_idx, "5mins",
+                    port_value["bytes.out_bytes"] * 8, true)
+                -- Now divide the difference by the time, to have the right value
+                out_bytes_percentage = out_bytes_percentage / 300
+                -- Round the value correctly
+                out_bytes_percentage = math.floor((out_bytes_percentage / exporter_config.uplink_speed * 100) + 0.5)
+                -- Now for the in_bytes
+                local in_bytes_percentage = alerts_api.interface_delta_val(
+                    "interface_usage_in_bytes" .. flow_device_ip .. '_' .. port_idx, "5mins",
+                    port_value["bytes.in_bytes"] * 8, true)
+                -- Now divide the difference by the time, to have the right value
+                in_bytes_percentage = in_bytes_percentage / 300
+                -- Round the value correctly
+                in_bytes_percentage = math.floor((in_bytes_percentage / exporter_config.downlink_speed * 100) + 0.5)
+
+                if debug then
+                    traceError(TRACE_NORMAL, TRACE_CONSOLE,
+                        "interface_usage_out_bytes" .. flow_device_ip .. '_' .. port_idx .. ', out bit perc.: ' ..
+                            out_bytes_percentage .. ' | in bit perc.: ' .. in_bytes_percentage)
+                end
+
+                -- Traffic
+                ts_utils.append("flowdev_port:usage", {
+                    ifid = ifstats.id,
+                    device = flow_device_ip,
+                    port = port_idx,
+                    uplink = out_bytes_percentage,
+                    downlink = in_bytes_percentage
+                }, when)
             end
 
             -- Total Traffic
