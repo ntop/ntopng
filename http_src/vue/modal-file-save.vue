@@ -9,7 +9,7 @@
       <div class="form-group ms-2 me-2 mt-3 row">
 	<label class="col-form-label col-sm-4"><b>{{_i18n("name")}}:</b></label>
 	<div class="col-sm-6">
-	  <input :pattern="pattern_singleword" placeholder="" required type="text" class="form-control" v-model="file_name">
+	  <input :pattern="pattern" placeholder="" required type="text" class="form-control" v-model="file_name">
 	</div>
       </div>
     </div>
@@ -35,14 +35,15 @@ const props = defineProps({
     title: String,
     get_suggested_file_name: Function,
     store_file: Function,
+    allow_spaces: Boolean
 });
 
 const emit = defineEmits(['file_stored']);
 
-let pattern_singleword = NtopUtils.REGEXES.singleword;
+let pattern = NtopUtils.REGEXES.singleword;
 
 const disable_add = computed(() => {
-    let rg = new RegExp(pattern_singleword);
+    let rg = new RegExp(pattern);
     return !rg.test(file_name.value);
 });
 
@@ -68,6 +69,11 @@ const close = () => {
 defineExpose({ show, close });
 
 onMounted(() => {
+    if (props.allow_spaces) {
+        pattern = NtopUtils.REGEXES.multiword;
+    } else {
+        pattern = NtopUtils.REGEXES.singleword;
+    }
 });
 
 const _i18n = (t) => i18n(t);
