@@ -44,6 +44,7 @@ ntopng-build:
 	find ${NTOPNG_BUILD}/usr/local/share/ntopng -name ".git" | xargs /bin/rm -rf
 	@find . -name "*#" -exec /bin/rm {} ';'
 	@find . -name "*~" -exec /bin/rm {} ';'
+	/bin/rm -f ${NTOPNG_BUILD}/usr/local/share/ntopng/httpdocs/geoip/GeoLite*
 
 clean:
 	rm -rf *~ install
