@@ -376,7 +376,7 @@ function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
                     local exporter_config = getFlowDevInterfaceConfig(flow_device_ip, port_idx, ifstats.id)
                     local out_bytes_percentage = alerts_api.interface_delta_val(
                         "interface_usage_out_bytes_sflow" .. flow_device_ip .. '_' .. port_idx, "5mins",
-                        port_value["bytes.out_bytes"] * 8, true)
+                        port_value.ifOutOctets * 8, true)
                     -- Now divide the difference by the time, to have the right value
                     out_bytes_percentage = out_bytes_percentage / 300
                     -- Round the value correctly
@@ -384,7 +384,7 @@ function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
                     -- Now for the in_bytes
                     local in_bytes_percentage = alerts_api.interface_delta_val(
                         "interface_usage_in_bytes_sflow" .. flow_device_ip .. '_' .. port_idx, "5mins",
-                        port_value["bytes.in_bytes"] * 8, true)
+                        port_value.ifInOctets * 8, true)
                     -- Now divide the difference by the time, to have the right value
                     in_bytes_percentage = in_bytes_percentage / 300
                     -- Round the value correctly
