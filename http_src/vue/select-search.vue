@@ -18,7 +18,7 @@ const select2 = ref(null);
 
 // const selected2_option = ref({});
 
-const emit = defineEmits(['update:selected_option', 'select_option', 'unselect_option', 'change_selected_options']);
+const emit = defineEmits(['update:selected_option', 'update:selected_options', 'select_option', 'unselect_option', 'change_selected_options']);
 
 const options_2 = ref([]);
 const groups_options_2 = ref([]);
@@ -30,6 +30,7 @@ const props = defineProps({
     id: String,
     options: Array,
     selected_option: Object,
+    selected_options: Array,
     multiple: Boolean,
     add_tag: Boolean,
     disable_change: Boolean,
@@ -46,9 +47,14 @@ onMounted(() => {
 
 watch(() => props.selected_option, (cur_value, old_value) => {
     set_selected_option(cur_value);
-    let select2Div = select2.value;
     change_select_2_selected_value();
 }, { flush: 'pre'});
+
+watch(() => props.selected_options, (cur_value, old_value) => {
+    set_selected_values(cur_value);
+    change_select_2_selected_value();
+}, { flush: 'pre'});
+
 
 watch([refresh_options], (cur_value, old_value) => {
     render();
@@ -60,9 +66,11 @@ watch(() => props.options, (current_value, old_value) => {
     set_input();
 }, { flush: 'pre'});
 
+
 function set_input() {
     set_options();
     set_selected_option();
+    set_selected_values();
 }
 
 function set_options() {
@@ -111,13 +119,13 @@ const render = () => {
                 let option = { label: data.text, value: data.id };
 		emit('update:selected_option', option);
 		emit('select_option', option);
-            } else {
-	        let value = data.element._value;
-	        let option = find_option_from_value(value);
-	        if (value != props.selected_option) {
-		    emit('update:selected_option', option);
-		    emit('select_option', option);
-	        }
+                return;
+            } 
+	    let value = data.element._value;
+	    let option = find_option_from_value(value);
+	    if (value != props.selected_option) {
+		emit('update:selected_option', option);
+		emit('select_option', option);
             }
 	    if (!props.multiple) {
 		return;
@@ -125,6 +133,7 @@ const render = () => {
 	    selected_values.value = selected_values.value.filter((v) => v != value);
 	    selected_values.value.push(value);
 	    let options = find_options_from_values(selected_values.value);
+	    emit('update:selected_options', options);
 	    emit('change_selected_options', options);		 
 	});
 	$(select2Div).on('select2:unselect', function (e) {
@@ -137,6 +146,7 @@ const render = () => {
 	    let option = find_option_from_value(value);
 	    let options = find_options_from_values(selected_values.value);
 	    emit('unselect_option', option);
+	    emit('update:selected_options', options);
 	    emit('change_selected_options', options);		 
 	});
     }
@@ -161,8 +171,19 @@ function is_selected(item) {
     if (!props.multiple) {
 	const is_zero_value = selected_option_2.value.value == 0 ||selected_option_2.value.value == "0";
 	return item.value == selected_option_2.value.value || (is_zero_value && item.label == selected_option_2.value.label);
+}
+   return selected_values.value.find((v) => v == item.value) != null || item.selected; 
+}
+
+function set_selected_values() {
+    if (props.selected_options == null || !props.multiple) {
+        return;
     }
-    return selected_values.value.find((v) => v == item.value) != null; 
+    selected_values.value = [];
+    props.selected_options.forEach((opt) => {
+        let value = opt.value || opt.label;
+        selected_values.value.push(value);
+    });
 }
 
 function set_selected_option(selected_option) {
@@ -170,9 +191,6 @@ function set_selected_option(selected_option) {
 	selected_option = get_props_selected_option();
     }
     selected_option_2.value = selected_option;
-    // if (props.multiple == true && selected_option_2.value?.value != null) {
-    // 	selected_values.value.push(selected_option_2.value.value);
-    // }
 }
 
 function get_props_selected_option() {
