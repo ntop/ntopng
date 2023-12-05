@@ -5,12 +5,12 @@
 	"show_in_page" : "overview",
 	"hourly": true,
 	"chart" : [{
-		"chart_id" : "conversations",
-		"chart_type" : "topk-timeseries",
+	    "chart_id" : "conversations",
+	    "chart_type" : "topk-timeseries",
             "unit_measure": "bytes",
-		"params" : {
-			"count" : "TOTAL_BYTES"
-		}
+	    "params" : {
+		"count" : "TOTAL_BYTES"
+	    }
 	}],
 	"visualization_type" : "table",
 	"select" : {
@@ -82,7 +82,7 @@
 	"sortby" : {
 		"items" : [
 			{
-				"name" : "count",
+				"name" : "total_bytes",
 				"order" : "DESC"
 			}
 		]

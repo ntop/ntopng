@@ -6,11 +6,10 @@
 	"hourly": true,
 	"chart" : [{
 		"chart_id" : "l7_contacts",
-		"chart_type" : "histogram",
+		"chart_type" : "topk-timeseries",
+            "unit_measure": "bytes",
 		"params" : {
 			"count" : "TOTAL_BYTES",
-			"groupby" : "L7_PROTO",
-			"limit" : 10
 		}
 	}],
 	"visualization_type" : "table",
@@ -101,7 +100,7 @@
 	"sortby" : {
 		"items" : [
 			{
-				"name" : "count",
+				"name" : "total_bytes",
 				"order" : "DESC"
 			}
 		]

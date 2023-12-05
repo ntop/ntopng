@@ -95,7 +95,7 @@
 	"sortby" : {
 		"items" : [
 			{
-				"name" : "count",
+				"name" : "total_bytes",
 				"order" : "DESC"
 			}
 		]
