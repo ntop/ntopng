@@ -3096,15 +3096,13 @@ function timeseries_info.get_host_rules_schema(rule_type)
             title = i18n('traffic'),
             group = i18n('generic_data'),
             label = i18n('traffic'),
-            id = 'flowdev:traffic' --[[ here the ID is the schema ]] ,
             show_volume = true,
-            type = 'flowdev'
         }, {
-            title = i18n('traffic'),
+            title = i18n("graphs.usage"),
             group = i18n('generic_data'),
-            label = i18n('traffic'),
-            id = 'flowdev_port:traffic' --[[ here the ID is the schema ]] ,
-            show_volume = true,
+            label = i18n("graphs.usage"),
+            id = 'flowdev_port:usage' --[[ here the ID is the schema ]] ,
+            show_volume = false,
             type = 'flowdev_port'
         }}
 
