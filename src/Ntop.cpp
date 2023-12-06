@@ -764,8 +764,7 @@ void Ntop::start() {
         usec_diff = Utils::usecTimevalDiff(&end, &begin);
 
         if (rc < 0)
-          break; /* fall back to sleeping to avoid spinning on a failing select
-                  */
+          break; /* fall back to sleeping to avoid spinning on a failing select */
       }
     }
 #endif
