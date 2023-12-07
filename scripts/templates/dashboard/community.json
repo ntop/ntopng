@@ -1,5 +1,6 @@
 {
 	"name" : "Default Community Dashboard",
+	"readonly" : true,
 	"components" : [
 		{
 			"component" : "sankey",

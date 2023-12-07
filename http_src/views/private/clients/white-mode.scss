@@ -944,3 +944,24 @@ table.dataTable thead th.sorting_asc::after {
 .filters-label {
   color: rgb(108,117,125);
 }
+
+.wizard-card {
+  margin-top: 10px;
+  border-radius: 4px;
+  box-shadow: 0px 2px 3px 0 #AAA; /* Blue shadow */
+}
+
+/* .wizard-selected */
+.wizard-card:hover {
+  background: #EBF5FB;
+  box-shadow: 0px 2px 3px 0 #2471A3; /* Blue shadow */
+}
+
+.wizard-form-group {
+  padding-top: 0rem;
+}
+
+.wizard-link {
+  text-decoration: none;
+}
+

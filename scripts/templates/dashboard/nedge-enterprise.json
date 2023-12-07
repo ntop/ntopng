@@ -1,5 +1,6 @@
 {
 	"name" : "Default nEdge Enterprise Dashboard",
+	"readonly" : true,
 	"components" : [
 		{
 			"component" : "badge",

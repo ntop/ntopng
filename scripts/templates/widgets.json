@@ -1,38 +1,16 @@
 {
-	"name" : "Default Report",
-	"readonly" : true,
-	"filters" : [
-		{
-			"name" : "probe_ip",
-			"nested" : [
-				{
-					"name" : "output_snmp"
-				},
-				{
-					"name" : "input_snmp"
-				}
-			]
-		},
-		{
-			"name" : "network"
-		},
-		{
-			"name" : "l4proto"
-		},
-		{
-			"name" : "l7cat"
-		},
-		{
-			"name" : "l7proto"
-		}
-	],
-	"components" : [
+	"name" : "Template Widgets Definitions",
+	"widgets" : [
 	{
-		"component" : "pie",
 		"id" : "top_l7_categories",
+		"component" : "pie",
 		"i18n_name" : "top_l7_cat",
+		"i18n_descr" : "top_l7_cat",
 		"width" : 4,
 		"height" : 4,
+		"requires" : {
+			"modules" : [ "historical_flows" ]
+		},
 		"params" : {
 			"url" : "/lua/pro/rest/v2/get/db/charts/top_l7_categories.lua",
 			"url_params" : {
@@ -47,11 +25,15 @@
 		}
 	},
 	{
-		"component" : "pie",
 		"id" : "top_l7_proto",
+		"component" : "pie",
 		"i18n_name" : "top_l7_proto",
+		"i18n_descr" : "top_l7_proto",
 		"width" : 4,
 		"height" : 4,
+		"requires" : {
+			"modules" : [ "historical_flows" ]
+		},
 		"params" : {
 			"url" : "/lua/pro/rest/v2/get/db/charts/top_l7_proto.lua",
 			"url_params" : {
@@ -66,11 +48,15 @@
 		}
 	},
 	{
-		"component" : "pie",
 		"id" : "top_l4_proto",
+		"component" : "pie",
 		"i18n_name" : "top_l4_proto",
+		"i18n_descr" : "top_l4_proto",
 		"width" : 4,
 		"height" : 4,
+		"requires" : {
+			"modules" : [ "historical_flows" ]
+		},
 		"params" : {
 			"url" : "/lua/pro/rest/v2/get/db/charts/top_l4_proto.lua",
 			"url_params" : {
@@ -85,13 +71,17 @@
 		}
 	},
 	{
-		"component" : "table",
 		"id" : "top_local_talkers",
+		"component" : "table",
 		"i18n_name" : "report.top_local_hosts",
+		"i18n_descr" : "report.top_local_hosts",
 		"width" : 6,
 		"height" : 4,
 		"time_window" : "day",
 		"time_offset" : "",
+		"requires" : {
+			"modules" : [ "historical_flows" ]
+		},
 		"params" : {
 			 "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
 			 "url_params" : {
@@ -102,19 +92,23 @@
 			 },
 			 "table_type" : "db_search",
 			 "columns" : [
-					{ "id" : "ip",		"data_type" : "host",	"i18n_name" : "host_details.host" },
+					{ "id" : "ip",		"data_type" : "host",  "i18n_name" : "host_details.host" },
 					{ "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
 			 ]
 		}
 	},
 	{
-		"component" : "table",
 		"id" : "top_remote_hosts",
+		"component" : "table",
 		"i18n_name" : "report.top_remote_hosts",
+		"i18n_descr" : "report.top_remote_hosts",
 		"width" : 6,
 		"height" : 4,
 		"time_window" : "day",
 		"time_offset" : "",
+		"requires" : {
+			"modules" : [ "historical_flows" ]
+		},
 		"params" : {
 			 "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
 			 "url_params" : {
@@ -125,19 +119,23 @@
 			 },
 			 "table_type" : "db_search",
 			 "columns" : [
-					{ "id" : "ip",		"data_type" : "host",	"i18n_name" : "host_details.host" },
+					{ "id" : "ip",		"data_type" : "host",  "i18n_name" : "host_details.host" },
 					{ "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
 			 ]
 		}
 	},
 	{
-		"component" : "table",
 		"id" : "top_clients",
+		"component" : "table",
 		"i18n_name" : "db_search.top_clients",
+		"i18n_descr" : "db_search.top_clients",
 		"width" : 6,
 		"height" : 4,
 		"time_window" : "day",
 		"time_offset" : "",
+		"requires" : {
+			"modules" : [ "historical_flows" ]
+		},
 		"params" : {
 			 "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
 			 "url_params" : {
@@ -148,19 +146,23 @@
 			 },
 			 "table_type" : "db_search",
 			 "columns" : [
-					{ "id" : "cli_ip",	"data_type" : "host",	"i18n_name" : "host_details.host" },
+					{ "id" : "cli_ip",	"data_type" : "host",  "i18n_name" : "host_details.host" },
 					{ "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
 			 ]
 		}
 	},
 	{
-		"component" : "table",
 		"id" : "top_servers",
+		"component" : "table",
 		"i18n_name" : "db_search.top_servers",
+		"i18n_descr" : "db_search.top_servers",
 		"width" : 6,
 		"height" : 4,
 		"time_window" : "day",
 		"time_offset" : "",
+		"requires" : {
+			"modules" : [ "historical_flows" ]
+		},
 		"params" : {
 			 "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
 			 "url_params" : {
@@ -171,19 +173,23 @@
 			 },
 			 "table_type" : "db_search",
 			 "columns" : [
-					{ "id" : "srv_ip",	"data_type" : "host",	 "i18n_name" : "host_details.host" },
+					{ "id" : "srv_ip",	"data_type" : "host",  "i18n_name" : "host_details.host" },
 					{ "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
 			 ]
 		}
 	},
 	{
-		"component" : "table",
 		"id" : "top_receiver_networks",
+		"component" : "table",
 		"i18n_name" : "report.top_receiver_networks",
+		"i18n_descr" : "report.top_receiver_networks",
 		"width" : 6,
 		"height" : 4,
 		"time_window" : "day",
 		"time_offset" : "",
+		"requires" : {
+			"modules" : [ "historical_flows" ]
+		},
 		"params" : {
 			 "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
 			 "url_params" : {
@@ -200,13 +206,17 @@
 		}
 	},
 	{
-		"component" : "table",
 		"id" : "top_sender_networks",
+		"component" : "table",
 		"i18n_name" : "report.top_sender_networks",
+		"i18n_descr" : "report.top_sender_networks",
 		"width" : 6,
 		"height" : 4,
 		"time_window" : "day",
 		"time_offset" : "",
+		"requires" : {
+			"modules" : [ "historical_flows" ]
+		},
 		"params" : {
 			 "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
 			 "url_params" : {
@@ -223,13 +233,17 @@
 		}
 	},
 	{
-		"component" : "table",
 		"id" : "top_receiver_as",
+		"component" : "table",
 		"i18n_name" : "report.top_receiver_as",
+		"i18n_descr" : "report.top_receiver_as",
 		"width" : 6,
 		"height" : 4,
 		"time_window" : "day",
 		"time_offset" : "",
+		"requires" : {
+			"modules" : [ "historical_flows" ]
+		},
 		"params" : {
 			 "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
 			 "url_params" : {
@@ -240,19 +254,23 @@
 			 },
 			 "table_type" : "db_search",
 			 "columns" : [
-					{ "id" : "asn",		"data_type" : "asn",	 "i18n_name" : "as" },
+					{ "id" : "asn",		"data_type" : "asn",   "i18n_name" : "as" },
 					{ "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
 			 ]
 		}
 	},
 	{
-		"component" : "table",
 		"id" : "top_sender_as",
+		"component" : "table",
 		"i18n_name" : "report.top_sender_as",
+		"i18n_descr" : "report.top_sender_as",
 		"width" : 6,
 		"height" : 4,
 		"time_window" : "day",
 		"time_offset" : "",
+		"requires" : {
+			"modules" : [ "historical_flows" ]
+		},
 		"params" : {
 			 "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
 			 "url_params" : {
@@ -263,19 +281,23 @@
 			 },
 			 "table_type" : "db_search",
 			 "columns" : {
-					{ "id" : "asn",		"data_type" : "asn",	 "i18n_name" : "as" },
+					{ "id" : "asn",		"data_type" : "asn",   "i18n_name" : "as" },
 					{ "id" : "total_bytes", "data_type" : "bytes", "i18n_name" : "volume" }
 			 }
 		}
 	},
 	{
-		"component" : "table",
 		"id" : "top_receiver_countries",
+		"component" : "table",
 		"i18n_name" : "report.top_receiver_countries",
+		"i18n_descr" : "report.top_receiver_countries",
 		"width" : 6,
 		"height" : 4,
 		"time_window" : "day",
 		"time_offset" : "",
+		"requires" : {
+			"modules" : [ "historical_flows" ]
+		},
 		"params" : {
 			 "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
 			 "url_params" : {
@@ -292,13 +314,17 @@
 		}
 	},
 	{
-		"component" : "table",
 		"id" : "top_sender_countries",
+		"component" : "table",
 		"i18n_name" : "report.top_sender_countries",
+		"i18n_descr" : "report.top_sender_countries",
 		"width" : 6,
 		"height" : 4,
 		"time_window" : "day",
 		"time_offset" : "",
+		"requires" : {
+			"modules" : [ "historical_flows" ]
+		},
 		"params" : {
 			 "url" : "/lua/pro/rest/v2/get/db/historical_db_search.lua",
 			 "url_params" : {
@@ -315,9 +341,10 @@
 		}
 	},
 	{
-		"component" : "timeseries",
 		"id" : "traffic_chart",
+		"component" : "timeseries",
 		"i18n_name" : "interface_traffic",
+		"i18n_descr" : "interface_traffic",
 		"width" : 12,
 		"height" : 6,
 		"params" : {
@@ -338,9 +365,10 @@
 		}
 	},
 	{
-		"component" : "pie",
 		"id" : "top_alerted_hosts",
+		"component" : "pie",
 		"i18n_name" : "top_alerted_hosts",
+		"i18n_descr" : "top_alerted_hosts",
 		"width" : 12,
 		"height" : 4,
 		"params" : {
@@ -353,4 +381,3 @@
 	}
 	]
 }
-

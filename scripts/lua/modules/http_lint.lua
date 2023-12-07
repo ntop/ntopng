@@ -1796,6 +1796,7 @@ local known_parameters = {
     ["tab"] = validateSingleWord, -- Currently active tab, handled by javascript
     ["template"] = validateSingleWord, -- Currently selected template
     ["template_name"] = validateUnquoted,
+    ["component"] = validateSingleWord,
     ["system_interface"] = validateBool,
 
     -- CONFIGSETS

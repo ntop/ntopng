@@ -1,5 +1,6 @@
 {
 	"name" : "Networks Report",
+	"readonly" : true,
 	"filters" : [
 		{
 			"name" : "probe_ip",

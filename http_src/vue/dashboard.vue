@@ -1,6 +1,7 @@
 <!-- (C) 2023 - ntop.org -->
 <template>
     <div class='row'>
+
         <!-- <Dropdown v-for="(t, t_index) in top_table_array" -->
         <!--           :ref="el => { top_table_dropdown_array[t_index] = el }"> -->
         <!--   <template v-slot:title> -->
@@ -17,6 +18,8 @@
         <DateTimeRangePicker v-if="enable_date_time_range_picker" class="dontprint"
             :disabled_date_picker="disable_date_time_picker" id="dashboard-date-time-picker" :round_time="true"
             min_time_interval_id="min" @epoch_change="set_components_epoch_interval">
+
+            <!-- Report Selector -->
             <template v-slot:begin>
                 <div class="me-2">
                     <SelectSearch v-model:selected_option="selected_report_template" :options="reports_templates"
@@ -24,6 +27,8 @@
                     </SelectSearch>
                 </div>
             </template>
+
+            <!-- Report Toolbox (Store, Save, ...) -->
             <template v-slot:extra_buttons>
                 <button class="btn btn-link btn-sm" type="button" @click="show_store_report_modal"
                     :title="_i18n('dashboard.store')">
@@ -43,9 +48,16 @@
                 <button class="btn btn-link btn-sm" type="button" @click="print_report" :title="_i18n('dashboard.print')">
                     <i class="fas fa-print"></i>
                 </button>
+                <button class="btn btn-link btn-sm" type="button" @click="show_new_template_modal" :title="_i18n('dashboard.new_template')">
+                    <i class="fas fa-folder-plus"></i>
+                </button>
+                <button v-if="selected_report_template.allow_edit" class="btn btn-link btn-sm" :class="edit_mode ? 'text-warning' : ''" type="button" @click="toggle_edit_mode" :title="_i18n('dashboard.edit_mode')">
+                    <i class="fas fa-pen-to-square"></i>
+                </button>
             </template>
         </DateTimeRangePicker>
 
+        <!-- Filters -->
         <div class="btn-group me-auto mt-2 btn-group-sm flex-wrap d-flex">
             <template v-for="filter_id in filters_to_show">
                 <div class="me-2">
@@ -56,19 +68,35 @@
                     </SelectSearch>
                 </div>
             </template>
+
             <template v-if="Object.keys(filters_to_show).length > 0">
                 <div class="d-flex align-items-center ms-2">
                     <div class="me-2">
                         <div>
                             <label class="my-auto me-2"></label>
                         </div>
-                        <button type="button" class="btn btn-sm btn-primary" @click="reset_filters">{{ _i18n('reset')
-                        }}</button>
+                        <button type="button" class="btn btn-sm btn-primary" @click="reset_filters">{{ _i18n('reset') }}</button>
                     </div>
                 </div>
             </template>
         </div>
 
+        <!-- Template Editor Toolbox -->
+        <div v-if="edit_mode" class="me-auto mt-2 flex-wrap d-flex">
+            <button class="btn btn-lg btn-link text-warning" type="button" @click="show_add_template_component_modal" :title="_i18n('dashboard.add_component')">
+                <i class="fas fa-square-plus"></i>
+            </button>
+            <button class="btn btn-lg btn-link text-warning" type="button" @click="show_delete_template_modal" :title="_i18n('dashboard.del_template')">
+                <i class="fas fa-trash-can"></i>
+            </button>
+            <h2 class="text-warning" style="margin-top: 0.5rem; margin-left: 1rem">{{ _i18n('dashboard.edit_mode') }}</h2>
+            <!--
+            <div style="margin: auto"></div>
+            <h4><span class="badge bg-warning">{{ _i18n('dashboard.edit_mode') }}</span></h4>
+            -->
+        </div>
+
+        <!-- Report Title and small buttons -->
         <div v-if="enable_report_title" class="mt-3" style="margin-bottom:-0.5rem; display: inline">
             <h3 style="text-align:center;">{{ report_title }}
                 <span v-if="enable_small_picker">
@@ -90,24 +118,42 @@
             </h3>
         </div>
 
-        <div ref="report_box" class="row" :key="components">
+        <!-- Report/Dashboard Content -->
+        <div ref="report_box" id="drag-zone" class="row" :key="components">
 
+            <!-- Warning Message -->
             <div v-if="warning_message" class="col-sm mt-1">
                 <div class="alert alert-warning">
                     {{ warning_message }}
                 </div>
             </div>
 
+            <!-- Empty template message -->
+            <div v-if="components_loaded && !components.length && !edit_mode" class="col-sm mt-1">
+                <div class="alert alert-secondary sm-1 text-center" style="width:40%; margin: auto; margin-top: 5vh; margin-bottom: 5vh">
+                    <h4 class="alert-heading">
+                        {{ _i18n("dashboard.empty_template") }}
+                    </h4>
+                    <p class="mb-0">
+                        {{ _i18n("dashboard.empty_template_note") }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Rendered Components -->
             <template v-for="c in components">
-                <Box style="min-width:20rem;" :color="(c.active && c.color) || c.inactive_color" :width="c.width" :height="c.height">
+                <Box style="min-width:20rem;" :color="(c.active && c.color) || c.inactive_color" :width="c.width" :height="c.height" :id="c.component_id" class="drag-item">
                     <template v-slot:box_title>
-                        <div v-if="c.i18n_name" class="dashboard-component-title">
-                            <h4>
+                        <div v-if="c.i18n_name" class="dashboard-component-title modal-header">
+                            <h4 class="modal-title">
                                 {{ _i18n(c.i18n_name) }}
                                 <span style="color: gray">
                                     {{ c.time_offset ? _i18n('dashboard.time_ago.' + c.time_offset) : '' }}
                                 </span>
                             </h4>
+                            <div v-if="edit_mode" class="modal-close">
+                              <button type="button" class="btn-close" :data-component-id="c.component_id" @click="remove_template_component"></button>
+                            </div>
                         </div>
                     </template>
                     <template v-slot:box_content>
@@ -132,7 +178,9 @@
                 </Box>
             </template>
         </div>
+
     </div> <!-- div row -->
+
     <ModalSave ref="modal_store_report" :get_suggested_file_name="get_suggested_report_name" :store_file="store_report"
         :csrf="context.csrf" :title="_i18n('dashboard.store')">
     </ModalSave>
@@ -142,6 +190,15 @@
     <ModalUpload ref="modal_upload_report" :upload_file="upload_report" :title="_i18n('upload')"
         :file_title="_i18n('report.file')">
     </ModalUpload>
+    <ModalSave ref="modal_new_template" :get_suggested_file_name="get_suggested_template_name" :store_file="new_template" :allow_spaces="true"
+        :csrf="context.csrf" :title="_i18n('dashboard.new_template')">
+    </ModalSave>
+    <ModalSelectComponent ref="modal_add_template_component" :list_components="list_template_components" :add_component="add_template_component"
+        :csrf="context.csrf" :title="_i18n('dashboard.add_component')">
+    </ModalSelectComponent>
+    <ModalDeleteConfirm ref="modal_delete_template" :title="_i18n('dashboard.del_template')" :body="_i18n('dashboard.del_template_confirm')" @delete="delete_template">
+    </ModalDeleteConfirm>
+
 </template>
 
 <script setup>
@@ -153,6 +210,8 @@ import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as ModalSave } from "./modal-file-save.vue";
 import { default as ModalOpen } from "./modal-file-open.vue";
 import { default as ModalUpload } from "./modal-file-upload.vue";
+import { default as ModalSelectComponent } from "./modal-select-component.vue";
+import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 import { default as Loading } from "./loading.vue";
 
 import { default as Box } from "./dashboard-box.vue";
@@ -165,6 +224,8 @@ import { default as TimeseriesComponent } from "./dashboard-timeseries.vue";
 import { default as SankeyComponent } from "./dashboard-sankey.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as dataUtils } from "../utilities/data-utils";
+
+import { default as Switch } from "./switch.vue";
 
 const _i18n = (t) => i18n(t);
 const timeframes_dict = ntopng_utility.get_timeframes_dict();
@@ -191,9 +252,14 @@ const modal_store_report = ref(null);
 const modal_open_report = ref(null);
 const modal_upload_report = ref(null);
 
+const modal_add_template_component = ref(null);
+const modal_delete_template = ref(null)
+
 const main_epoch_interval = ref(null);
 
 const components = ref([]);
+const components_loaded = ref(false);
+
 const selected_filters = ref({});
 const all_available_filters = ref({});
 const filtered_filters = ref({});
@@ -208,6 +274,10 @@ const warning_message = ref("");
 let components_info = {};
 let data_from_backup = false;
 let printable = false;
+
+const edit_mode = ref(false);
+let template_sortable = null;
+const modal_new_template = ref(null);
 
 const enable_date_time_range_picker = computed(() => {
     return props.context.page == "report"
@@ -268,8 +338,10 @@ const component_interval = computed(() => {
     };
 });
 
-onBeforeMount(async () => {
+/* Param report_template is optional (uses url report_template or props.context.template otherwise) */
+async function set_template(report_template) {
     let epoch_interval = null;
+
     printable = ntopng_url_manager.get_url_entry("printable") == "true";
 
     if (props.context.page == "report" || props.context.page == "vs-report") {
@@ -281,7 +353,8 @@ onBeforeMount(async () => {
         main_epoch_interval.value = epoch_interval;
     }
 
-    await set_templates_list();
+    await set_templates_list(report_template);
+
     let report_name = ntopng_url_manager.get_url_entry("report_name");
     if (report_name != null && report_name != "") {
         /* Report name provided - open a report backup */
@@ -295,6 +368,12 @@ onBeforeMount(async () => {
         // await nextTick();
         // ntopng_sync.ready("print_report");
     }
+
+    components_loaded.value = true
+}
+
+onBeforeMount(async () => {
+    set_template();
 });
 
 onMounted(async () => {
@@ -306,24 +385,39 @@ onMounted(async () => {
     // }
 });
 
-async function set_templates_list() {
+async function set_templates_list(report_template) {
     const url_request = props.context.template_list_endpoint;
     let res = await ntopng_utility.http_request(url_request);
     if (res?.list == null) { return; }
 
-    reports_templates.value = res.list.map((t) => {
+    let templates_list = res.list.map((t) => {
         return {
             value: t.name,
             label: t.label,
             disabled: false,
             toolbox: t.toolbox,
             is_open_report: false,
+            allow_edit: t.allow_edit,
         };
     });
-    const report_template_value = ntopng_url_manager.get_url_entry("report_template") || props.context.template;
+
+    templates_list.sort((a, b) => a.label.toUpperCase().localeCompare(b.label.toUpperCase()));
+
+    reports_templates.value = templates_list;
+
+    const report_template_value = report_template || 
+      ntopng_url_manager.get_url_entry("report_template") || 
+      props.context.template;
+
+    props.context.template = report_template_value;
     selected_report_template.value = reports_templates.value.find((t) => t.value == report_template_value);
+
     if (selected_report_template.value == null) {
         selected_report_template.value = reports_templates.value[0];
+    }
+
+    if (!selected_report_template.value.allow_edit && edit_mode.value) {
+        toggle_edit_mode();
     }
 }
 
@@ -517,6 +611,10 @@ function select_filter(option, filter_id) {
 /* ********************************************* */
 
 function select_report_template() {
+    if (!selected_report_template.value.allow_edit && edit_mode.value) {
+        toggle_edit_mode();
+    }
+
     if (printable == true) {
         set_report_title();
     }
@@ -628,6 +726,7 @@ function update_templates_list(report_name_to_open) {
     reports_templates.value = reports_templates.value.filter((t) => t.is_open_report == false);
     if (report_name_to_open == null) { // in this case is selected a report_template
         ntopng_url_manager.set_key_to_url("report_template", selected_report_template.value.value);
+        props.context.template = selected_report_template.value.value;
         ntopng_url_manager.delete_key_from_url("report_name");
         return;
     }
@@ -638,9 +737,11 @@ function update_templates_list(report_name_to_open) {
         disabled: false,
         toolbox: null,
         is_open_report: true,
+        allow_edit: false
     };
     reports_templates.value.push(t_entry);
     selected_report_template.value = t_entry;
+    props.context.template = report_name_to_open;
     ntopng_url_manager.set_key_to_url("report_name", selected_report_template.value.value);
     ntopng_url_manager.delete_key_from_url("report_template");
 }
@@ -823,6 +924,176 @@ function set_component_attr_func(component) {
     }
     return set_component_attr;
 }
+
+/* ********************************************* */
+/* ************** Template Editor ************** */
+
+function show_new_template_modal() {
+    modal_new_template.value.show();
+}
+
+function get_suggested_template_name() {
+    let name = "New Template";
+    return name;
+}
+
+const new_template = async (template_name) => {
+    let success = false;
+
+    let data = {
+        csrf: props.context.csrf,
+        template_name: template_name,
+    };
+
+    let url = `${props.context.template_add_endpoint}`;
+    try {
+        let headers = {
+            'Content-Type': 'application/json'
+        };
+        let res = await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(data) });
+
+        if (res && res.template_id) {
+            await set_template(res.template_id);
+        }
+
+        success = true;
+    } catch (err) {
+        console.error(err);
+    }
+
+    return success;
+}
+
+function update_template(e) {
+
+    //TODO make persistent
+
+    //if (e) {
+    //    console.log(e);
+    //}
+
+    //console.log(template_sortable.toArray());
+
+    //$('.drag-item').each(function(i, obj) {
+    //    console.log(i);
+    //    console.log(obj);
+    //});
+}
+
+function set_sortable_template() {
+    if (template_sortable) {
+        return;
+    }
+
+    var drag_zone = document.getElementById('drag-zone');
+    template_sortable = window.Sortable.create(drag_zone, {
+        draggable: ".drag-item",
+        dataIdAttr: "id",
+        onUpdate: update_template
+    });
+
+    //console.log("Sortable ON");
+}
+
+function unset_sortable_template() {
+    if (template_sortable) {
+        template_sortable.destroy();
+        template_sortable = null;
+        //console.log("Sortable OFF");
+    }
+}
+
+function toggle_edit_mode() {
+    edit_mode.value = !edit_mode.value;
+
+    if (edit_mode.value) {
+        set_sortable_template();
+    } else {
+        unset_sortable_template();
+    }
+}
+
+const list_template_components = async () => {
+    let url = `${props.context.template_list_widgets_endpoint}`;
+    let res = await ntopng_utility.http_request(url);
+    if (res?.list == null) { return {}; }
+    let widgets = res.list;
+
+    widgets.sort((a, b) => _i18n(a.i18n_name).toUpperCase().localeCompare(_i18n(b.i18n_name).toUpperCase()));
+
+    return widgets;
+}
+
+function show_add_template_component_modal() {
+    modal_add_template_component.value.show();
+}
+
+function show_delete_template_modal() {
+    modal_delete_template.value.show();
+}
+
+const add_template_component = async (c) => {
+    unset_sortable_template();
+
+    let url = `${props.context.template_component_add_endpoint}`;
+    let params = {
+        csrf: props.context.csrf,
+        template: props.context.template,
+        component: c.id
+    };
+    let headers = {
+        'Content-Type': 'application/json'
+    };
+    try {
+        let content = await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+        warning_message.value = "";
+        await set_template(selected_report_template.value.value);
+    } catch (err) {
+        warning_message.value = _i18n("report.unable_to_open");
+    }
+
+    await nextTick();
+    set_sortable_template();
+}
+
+async function remove_template_component(e) {
+    unset_sortable_template();
+
+    const component_id = e.target.dataset.componentId;
+    components.value = components.value.filter(e => e.component_id !== component_id);
+
+    //TODO make persistent
+
+    await nextTick();
+    set_sortable_template();
+}
+
+async function delete_template() {
+    let success = false;
+
+    let data = {
+        csrf: props.context.csrf,
+        template: selected_report_template.value.value,
+    };
+
+    let url = `${props.context.template_delete_endpoint}`;
+    try {
+        let headers = {
+            'Content-Type': 'application/json'
+        };
+        let res = await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(data) });
+
+        await set_template();
+
+        success = true;
+    } catch (err) {
+        console.error(err);
+    }
+
+    return success;
+}
+
+/* ********************************************* */
 
 </script>
 

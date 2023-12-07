@@ -1,5 +1,6 @@
 {
 	"name" : "Default Pro Dashboard",
+	"readonly" : true,
 	"components" : [
 		{
 			"component" : "badge",

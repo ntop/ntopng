@@ -104,5 +104,32 @@ end
 
 -- #################################################################
 
+function dashboard_utils.get_widgets_definitions()
+   local path = os_utils.fixPath(dirs.installdir .. "/scripts/templates/widgets.json")
+
+   local definitions = file_utils.read_json_file(path)
+
+   if not definitions or not definitions.widgets then
+      return {}
+   end
+
+   return definitions.widgets
+end
+
+-- #################################################################
+
+function dashboard_utils.get_widgets_definitions_by_id()
+   local widgets = dashboard_utils.get_widgets_definitions()
+
+   local widgets_by_id = {}
+   for _, c in ipairs(widgets) do
+      widgets_by_id[c.id] = c
+   end
+
+   return widgets_by_id
+end
+
+-- #################################################################
+
 return dashboard_utils
 

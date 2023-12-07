@@ -108,7 +108,7 @@ end
 -- Merges table a and table b into a new table. If some elements are presents in
 -- both a and b, b elements will have precedence.
 -- NOTE: this does *not* perform a deep merge. Only first level is merged.
-function table.merge(a, b)
+function table.merge(a, b, nodup)
   local merged = {}
   a = a or {}
   b = b or {}
@@ -117,7 +117,9 @@ function table.merge(a, b)
     -- index based tables
     for _, t in ipairs({a, b}) do
        for _,v in pairs(t) do
-         merged[#merged + 1] = v
+         if not nodup or not table.contains(merged, v) then
+           merged[#merged + 1] = v
+         end
        end
    end
   else

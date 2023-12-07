@@ -422,12 +422,7 @@ end
 -- ##############################################
 
 function replace(str, o, n)
-  local i, j = string.find(str, o, 1, true)
-  if i then
-    return string.sub(str, 1, i-1) .. n .. string.sub(str, j+1, -1)
-  else
-    return str
-  end
+  return string.gsub(str, o, n)
 end
 
 -- ##############################################

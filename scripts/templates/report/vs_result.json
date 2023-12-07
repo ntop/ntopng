@@ -1,5 +1,6 @@
 {
 	"name" : "Vulnerability Scan Report",
+	"readonly" : true,
 	"toolbox" : {
 		"time" : {
 			"hide" : true

@@ -1,5 +1,6 @@
 {
 	"name" : "Default nEdge Dashboard",
+	"readonly" : true,
 	"components" : [
 		{
 			"component" : "timeseries",
