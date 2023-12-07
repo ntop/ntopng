@@ -87,6 +87,15 @@ local to_skip = (currentPage - 1) * perPage
 local totalRows = 0
 local sort_to_key = {}
 
+local MAX_NUM_HITS = 99999999999
+local function normalize_blist_hits(num_hits) 
+    if (sortOrder ~= "desc") then
+        if (num_hits == 0) then
+            return MAX_NUM_HITS
+        end
+    end
+    return num_hits
+end
 for list_name, list in pairs(lists) do
     local catname = interface.getnDPICategoryName(list.category)
 
@@ -117,7 +126,7 @@ for list_name, list in pairs(lists) do
     elseif sortColumn == "column_update_interval_label" then
         sort_to_key[list_name] = list.update_interval
     elseif sortColumn == "column_num_hits" then
-       	  sort_to_key[list_name] = 0
+       	  sort_to_key[list_name] = normalize_blist_hits(list.status.num_hits.current or 0)
     else
         -- default
         sort_to_key[list_name] = list_name
