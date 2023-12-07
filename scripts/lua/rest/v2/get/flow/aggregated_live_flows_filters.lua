@@ -13,6 +13,9 @@ local rest_utils = require "rest_utils"
 local format_utils = require("format_utils")
 require "lua_utils_get"
 
+if ntop.isEnterpriseM() then
+    require "aggregate_live_flows"
+end
 -- ##################################################################
 -- REST params
 
@@ -50,8 +53,7 @@ local function retrieve_aggregation_criteria(criteria)
     elseif criteria == "client_server_srv_port" then
         criteria_type_id = 7
     elseif ntop.isEnterpriseM() then
-        local aggregate_live_flows_utils = require "aggregate_live_flows"
-        criteria_type_id = aggregate_live_flows_utils.get_criteria_type_id(criteria)
+        criteria_type_id = get_criteria_type_id(criteria)
     end
     return criteria_type_id
 end
