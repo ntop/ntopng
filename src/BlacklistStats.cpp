@@ -84,10 +84,16 @@ void BlacklistStats::lua(lua_State* vm) {
 
   lock.rdlock(__FILE__, __LINE__);
 
-  for (std::unordered_map<std::string, BlacklistUsageStats>::iterator it = stats.begin();
-       it != stats.end(); ++it)
-    lua_push_int32_table_entry(vm, it->first.c_str(), it->second.getNumHits());
+  for(std::unordered_map<std::string, BlacklistUsageStats>::iterator it = stats.begin(); it != stats.end(); ++it) {
+    lua_newtable(vm);
+    lua_push_int32_table_entry(vm, "total", it->second.getNumTotalHits());
+    lua_push_int32_table_entry(vm, "current", it->second.getNumHits());
+    lua_pushstring(vm, it->first.c_str());
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
 
+  }
+  
   lock.unlock(__FILE__, __LINE__);
 }
 
@@ -96,7 +102,8 @@ void BlacklistStats::lua(lua_State* vm) {
 void BlacklistStats::reset() {
   lock.wrlock(__FILE__, __LINE__);
 
-  stats.clear();
-
+  for(std::unordered_map<std::string, BlacklistUsageStats>::iterator it = stats.begin(); it != stats.end(); ++it)
+    it->second.resetNumHits();  
+    
   lock.unlock(__FILE__, __LINE__);
 }

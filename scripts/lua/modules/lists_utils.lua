@@ -202,13 +202,14 @@ function lists_utils.getCategoryLists()
    local redis_lists = loadListsFromRedis()
    local all_lists = get_lists()
    local blacklists_stats = ntop.getBlacklistStats()
-   
+
    local default_status = {last_update=0, num_hosts=0, last_error=false, num_errors=0}
 
    for key, default_values in pairs(all_lists) do
       local list = table.merge(default_values, redis_lists[key] or {status = {}})
       list.status = table.merge(default_status, list.status)
-      list.status.num_hits = blacklists_stats[key] or 0
+
+      list.status.num_hits = blacklists_stats[key] or { current = 0, total = 0 }
       lists[key] = list
       list.name = key
    end

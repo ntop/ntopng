@@ -394,6 +394,7 @@ function rev(a,b)
       return false
    elseif type(a) ~= type(b) then
       traceError(TRACE_WARNING, TRACE_CONSOLE, "Bad types in rev(): " .. a .. " (".. type(a) ..") vs " .. b .. " (".. type(b) .. ")")
+      tprint(debug.traceback())
       return false
    end
 

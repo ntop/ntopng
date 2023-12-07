@@ -117,7 +117,7 @@ for list_name, list in pairs(lists) do
     elseif sortColumn == "column_update_interval_label" then
         sort_to_key[list_name] = list.update_interval
     elseif sortColumn == "column_num_hits" then
-        sort_to_key[list_name] = list.status.num_hits or 0
+       	  sort_to_key[list_name] = 0
     else
         -- default
         sort_to_key[list_name] = list_name
@@ -139,6 +139,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
     if (i >= to_skip) then
         local list = lists[key]
         local update_interval_label = ''
+	
         if list.update_interval == 86400 then
             update_interval_label = i18n("alerts_thresholds_config.daily")
         elseif list.update_interval == 3600 then
@@ -146,7 +147,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
         elseif list.update_interval == 0 then
             update_interval_label = i18n("alerts_thresholds_config.manual")
         end
-
+	
         res[#res + 1] = {
             column_name = list.name,
             column_label = list.name .. ' <a class="ntopng-external-link" href="' .. list.url ..
@@ -154,8 +155,8 @@ for key in pairsByValues(sort_to_key, sOrder) do
             column_status = list.status_label,
             column_url = list.url,
             column_enabled = list.enabled,
-            column_num_hits = ternary(list.status.num_hits > 0, format_utils.formatValue(list.status.num_hits), ''),
-            column_chart = ternary(list.status.num_hits > 0,
+	    column_num_hits = list.status.num_hits.current,
+            column_chart = ternary(list.status.num_hits.current > 0,
                 ' <A HREF="' .. ntop.getHttpPrefix() .. '/lua/blacklists_stats.lua?ts_query=blacklist_name:' ..
                     list.name:gsub("%s+", "_") ..
                     '&ts_schema=top:blacklist:hits"><i class="fas fa-lg fa-chart-area"></i></A>', ''),

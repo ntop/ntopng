@@ -24,7 +24,7 @@
 
 class BlacklistUsageStats {
  private:
-  u_int32_t num_hits;
+  u_int32_t num_hits, num_total_hits;
 
 #ifdef FULL_BL_STATS
   u_int32_t num_true_positives, /* the number of IPs that attack and are in the
@@ -39,7 +39,7 @@ class BlacklistUsageStats {
 
  public:
   BlacklistUsageStats() {
-    num_hits = 1;
+    num_hits = num_total_hits = 1;
 #ifdef FULL_BL_STATS
     num_true_positives = num_false_positives = num_false_negatives =
         num_true_negatives = 0;
@@ -70,8 +70,10 @@ class BlacklistUsageStats {
   }
 #endif
 
-  inline void incHits() { num_hits++; }
-  inline u_int32_t getNumHits() { return (num_hits); }
+  inline void incHits()              { num_hits++, num_total_hits++; }
+  inline u_int32_t getNumHits()      { return (num_hits);            }
+  inline u_int32_t getNumTotalHits() { return (num_total_hits);      }
+  inline void      resetNumHits()    { num_hits = 0;                 }
 };
 
 #endif /* _BLACKLIST_USAGE_STATS_H_ */

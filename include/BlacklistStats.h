@@ -31,8 +31,7 @@ class BlacklistStats {
   BlacklistStats() { ; }
 
 #ifdef FULL_BL_STATS
-  void inc(std::string name, u_int32_t tp, u_int32_t fp, u_int32_t fn,
-           u_int32_t tn);
+  void inc(std::string name, u_int32_t tp, u_int32_t fp, u_int32_t fn, u_int32_t tn);
 #endif
 
   void incHits(std::string name);
