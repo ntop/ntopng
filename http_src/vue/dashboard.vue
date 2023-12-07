@@ -142,7 +142,7 @@
 
             <!-- Rendered Components -->
             <template v-for="c in components">
-                <Box style="min-width:20rem;" :color="(c.active && c.color) || c.inactive_color" :width="c.width" :height="c.height" :id="c.component_id" class="drag-item">
+                <Box style="min-width:20rem;" :color="(c.active && c.color) || c.inactive_color" :width="c.width" :height="c.height" :id="c.id" class="drag-item">
                     <template v-slot:box_title>
                         <div v-if="c.i18n_name" class="dashboard-component-title modal-header">
                             <h4 class="modal-title">
@@ -152,14 +152,14 @@
                                 </span>
                             </h4>
                             <div v-if="edit_mode" class="modal-close">
-                              <button type="button" class="btn-close" :data-component-id="c.component_id" @click="remove_template_component"></button>
+                              <button type="button" class="btn-close" :data-component-id="c.id" @click="remove_template_component"></button>
                             </div>
                         </div>
                     </template>
                     <template v-slot:box_content>
                         <Loading v-if="loading && show_loading" :styles="'margin-top: 2rem !important;'"></Loading>
                         <div :class="[(loading && show_loading) ? 'ntopng-gray-out' : '']">
-                            <component :is="components_dict[c.component]" :id="c.component_id"
+                            <component :is="components_dict[c.component]" :id="c.id"
                                 :style="component_custom_style(c)" :epoch_begin="c.epoch_begin" :epoch_end="c.epoch_end"
                                 :i18n_title="c.i18n_name" :ifid="c.ifid ? c.ifid.toString() : context.ifid.toString()" :max_width="c.width"
                                 :max_height="c.height" :params="c.params"
@@ -510,7 +510,6 @@ async function load_components(epoch_interval, template_name) {
     components.value = res.list.filter((c) => components_dict[c.component] != null)
         .map((c, index) => {
             let c_ext = {
-                component_id: get_component_id(c.id, index),
                 filters: {},
                 ...c
             };
@@ -630,10 +629,6 @@ function select_report_template() {
         ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_interval, props.context.page);
     }
     load_components(epoch_interval, selected_report_template.value.value);
-}
-
-function get_component_id(id, index) {
-    return `${page_id}_${id}_${index}`;
 }
 
 function show_store_report_modal() {
@@ -882,17 +877,17 @@ function get_component_data_func(component) {
     const get_component_data = async (url, url_params, post_params) => {
         let info = {};
         if (data_from_backup) {
-            if (!components_info[component.component_id]) { /* Safety check */
-                console.error("No data for " + component.component_id);
+            if (!components_info[component.id]) { /* Safety check */
+                console.error("No data for " + component.id);
                 info.data = {};
             } else {
-                info = components_info[component.component_id];
+                info = components_info[component.id];
             }
         } else {
 
             /* Check if there is already a promise for the same request */
-            if (components_info[component.component_id]) {
-                info = components_info[component.component_id];
+            if (components_info[component.id]) {
+                info = components_info[component.id];
                 if (info.data) {
                     await info.data; /* wait in case of previous pending requests */
                 }
@@ -910,7 +905,7 @@ function get_component_data_func(component) {
                 loading.value = false;
             });
 
-            components_info[component.component_id] = info;
+            components_info[component.id] = info;
         }
         return info.data;
     };
@@ -964,20 +959,47 @@ const new_template = async (template_name) => {
     return success;
 }
 
-function update_template(e) {
+async function commit_template_change(e) {
 
-    //TODO make persistent
+    let components_ids = components.value.map((c) => { return c.id; });
 
-    //if (e) {
-    //    console.log(e);
-    //}
+    let data = {
+        csrf: props.context.csrf,
+        template: selected_report_template.value.value,
+        components: components_ids.toString()
+    };
 
-    //console.log(template_sortable.toArray());
+    let success = false;
+    let url = `${props.context.template_edit_endpoint}`;
+    try {
+        let headers = {
+            'Content-Type': 'application/json'
+        };
+        let res = await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(data) });
+        success = true;
+    } catch (err) {
+        console.error(err);
+    }
 
-    //$('.drag-item').each(function(i, obj) {
-    //    console.log(i);
-    //    console.log(obj);
-    //});
+    return success;
+}
+
+async function component_dragged(e) {
+
+    /* console.log(template_sortable.toArray().toString()); */
+
+    let new_components = template_sortable.toArray().map((id) => {
+        return components.value.find((c) => c.id == id);
+    });
+
+    unset_sortable_template();
+
+    components.value = new_components;
+
+    await nextTick();
+    set_sortable_template();
+
+    commit_template_change();
 }
 
 function set_sortable_template() {
@@ -989,7 +1011,7 @@ function set_sortable_template() {
     template_sortable = window.Sortable.create(drag_zone, {
         draggable: ".drag-item",
         dataIdAttr: "id",
-        onUpdate: update_template
+        onUpdate: component_dragged
     });
 
     //console.log("Sortable ON");
@@ -1060,12 +1082,12 @@ async function remove_template_component(e) {
     unset_sortable_template();
 
     const component_id = e.target.dataset.componentId;
-    components.value = components.value.filter(e => e.component_id !== component_id);
-
-    //TODO make persistent
+    components.value = components.value.filter(c => c.id !== component_id);
 
     await nextTick();
     set_sortable_template();
+
+    commit_template_change();
 }
 
 async function delete_template() {

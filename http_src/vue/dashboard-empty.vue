@@ -14,8 +14,6 @@ import NtopUtils from "../utilities/ntop-utils";
 
 const _i18n = (t) => i18n(t);
 
-const component_id = ref('empty_component');
-
 const props = defineProps({
     id: String,          /* Component ID */
     i18n_title: String,  /* Title (i18n) */

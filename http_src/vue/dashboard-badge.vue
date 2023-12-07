@@ -24,8 +24,6 @@ import NtopUtils from "../utilities/ntop-utils";
 
 const _i18n = (t) => i18n(t);
 
-const component_id = ref('empty_component');
-
 const counter = ref('')
 const name = ref('')
 const icon = ref('')
