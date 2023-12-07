@@ -298,7 +298,14 @@ QueuedThreadData *ThreadPool::dequeueJob(bool waitIfEmpty) {
 
   m->lock(__FILE__, __LINE__);
   if (waitIfEmpty) {
-    while (threads.empty() && (!isTerminating())) m->cond_wait(&condvar);
+#ifdef WIN32
+    /*  Use sleep() on window as cond_wait seems to leak */
+    sleep(1);
+#else
+    while (threads.empty() && (!isTerminating()))
+        m->cond_wait(&condvar);
+
+#endif
   }
 
   if (threads.empty() || isTerminating()) {
