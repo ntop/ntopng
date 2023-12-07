@@ -1056,7 +1056,7 @@ function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
       vlan = flow_info["vlan"],
    }
 
-   return(hostinfo2label(hostinfo))
+   return(hostinfo2label(hostinfo, true, false, true))
 end
 
 -- ##############################################

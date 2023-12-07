@@ -209,16 +209,18 @@ function alert_utils.formatRawFlow(alert, nohtml)
         ["cli.port"] = tonumber(alert["cli_port"]),
         ["cli.blacklisted"] = tostring(alert["cli_blacklisted"]) == "1",
         ["cli.localhost"] = tostring(alert["cli_localhost"]) == "1",
+        ["cli.host"] = alert["cli_name"],
         ["srv.ip"] = alert["srv_ip"],
         ["srv.port"] = tonumber(alert["srv_port"]),
         ["srv.blacklisted"] = tostring(alert["srv_blacklisted"]) == "1",
         ["srv.localhost"] = tostring(alert["srv_localhost"]) == "1",
-        ["vlan"] = alert["vlan_id"]
+        ["srv.host"] = alert["srv_name"],
+        ["vlan"] = alert["vlan_id"],
     }
 
     flow = "<i class=\"fas fa-stream\"></i> " .. (getFlowLabel(flow, false, add_links, time_bounds, {
         page = "alerts"
-    },nil,nil,nohtml) or "")
+    },nil,true,nohtml) or "")
 
     return flow
 end
