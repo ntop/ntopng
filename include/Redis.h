@@ -71,7 +71,7 @@ class Redis {
 
   inline char *getVersion() { return (redis_version); }
   inline u_int32_t getNumVersion() { return (num_redis_version); }
-  inline bool haveRedisDump() {
+  inline bool hasRedisDump() {
     return ((num_redis_version >= 0x020600) ? true : false);
   }
   void setDefaults();

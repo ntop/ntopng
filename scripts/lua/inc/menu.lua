@@ -669,7 +669,7 @@ page_utils.add_menubar_section({
         entry = page_utils.menu_entries.divider
     }, {
         entry = page_utils.menu_entries.manage_configurations,
-        hidden = not is_admin or is_windows,
+        hidden = not is_admin or not ntop.hasDumpCache(),
         url = '/lua/admin/manage_configurations.lua'
     }, {
         entry = page_utils.menu_entries.manage_data,

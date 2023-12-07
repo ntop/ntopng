@@ -5447,13 +5447,22 @@ static int ntop_llen_redis(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_redis_has_dump(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  lua_pushboolean(vm, ntop->getRedis()->hasRedisDump());
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_redis_dump(lua_State *vm) {
   char *key, *dump;
   Redis *redis = ntop->getRedis();
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if (!redis->haveRedisDump()) {
+  if (!redis->hasRedisDump()) {
     lua_pushnil(vm); /* This is old redis */
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
   } else {
@@ -5481,7 +5490,7 @@ static int ntop_redis_restore(lua_State *vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if (!redis->haveRedisDump()) {
+  if (!redis->hasRedisDump()) {
     lua_pushnil(vm); /* This is old redis */
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
   } else {
@@ -7369,6 +7378,7 @@ static luaL_Reg _ntop_reg[] = {
     {"getHashKeysCache", ntop_get_hash_keys_redis},
     {"getHashAllCache", ntop_get_hash_all_redis},
     {"getKeysCache", ntop_get_keys_redis},
+    {"hasDumpCache", ntop_redis_has_dump},
     {"dumpCache", ntop_redis_dump},
     {"restoreCache", ntop_redis_restore},
     {"addLocalNetwork", ntop_add_local_network},
