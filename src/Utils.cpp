@@ -5690,3 +5690,38 @@ IpAddress* Utils::parseHostString(char *host_ip, u_int16_t *vlan_id /* out */) {
 
   return(ip_addr);
 }
+
+/* ******************************************* */
+
+bool Utils::nwInterfaceExists(char *if_name) {
+#ifdef __linux__
+  char path[64];
+  struct stat buf;
+
+  snprintf(path, sizeof(path), "/sys/class/net/%s", if_name);
+  return((stat(path, &buf) == 0) ? true : false);
+#else
+  bool found = false;
+  struct if_nameindex *ifp, *ifpsave;
+
+  ifpsave = ifp = if_nameindex();
+
+  if(!ifp)
+    return(false);
+  
+  while(ifp->if_index) {
+    if(strcmp(ifp->if_name, if_name) == 0){
+      found = true;
+      break;
+    }
+    
+    ifp++;
+  }
+
+  if_freenameindex(ifpsave);
+
+  return(found);
+#endif
+}
+
+  

@@ -12450,3 +12450,14 @@ void NetworkInterface::getSFlowDevices(lua_State *vm, bool add_table) {
     lua_settable(vm, -3);
   }
 };
+
+/* **************************************************** */
+
+bool NetworkInterface::nwInterfaceExists() {
+  if((strchr(ifname, ',') == NULL) /* eth0,eth1 */
+     && (strchr(ifname, ':') == NULL) /* zc:XXX*/
+     && (!Utils::nwInterfaceExists(ifname)))
+    return(false);
+  else
+    return(true);
+}

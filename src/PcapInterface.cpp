@@ -71,8 +71,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
         free(old);
       }
 
-      ntop->getTrace()->traceEvent(
-          TRACE_NORMAL, "Reading packets from pcap file %s...", ifname);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s...", ifname);
       read_pkts_from_pcap_dump = true,
       purge_idle_flows_hosts = ntop->getPrefs()->purgeHostsFlowsOnPcapFiles();
       pcap_datalink_type = pcap_datalink(pcap_handle);
@@ -135,8 +134,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
     char id_str[8];
     snprintf(id_str, sizeof(id_str), "%d", get_id());
 
-    ntop->getRedis()->hashSet(PCAP_DUMP_INTERFACES_DELETE_HASH, id_str,
-                              get_name());
+    ntop->getRedis()->hashSet(PCAP_DUMP_INTERFACES_DELETE_HASH, id_str, get_name());
   }
 
   if (ntop->getPrefs()->are_ixia_timestamps_enabled())
@@ -266,8 +264,9 @@ static void *packetPollLoop(void *ptr) {
 
     firstPktTS.tv_sec = 0;
 
-    while ((pd != NULL) && iface->isRunning() &&
-           (!ntop->getGlobals()->isShutdown())) {
+    while ((pd != NULL)
+	   && iface->isRunning()
+	   && (!ntop->getGlobals()->isShutdown())) {
       const u_char *pkt;
       struct pcap_pkthdr *hdr;
       int rc;
@@ -286,6 +285,12 @@ static void *packetPollLoop(void *ptr) {
 
         tv.tv_sec = 1, tv.tv_usec = 0;
         if (select(fd + 1, &rset, NULL, NULL, &tv) == 0) {
+	  if(!iface->nwInterfaceExists()) {
+	    ntop->getTrace()->traceEvent(TRACE_WARNING,
+					 "Network Interface %s disappeared (is it is down ?)",
+					 iface->get_name());
+	  }
+				       
           iface->purgeIdle(time(NULL));
           continue;
         }
