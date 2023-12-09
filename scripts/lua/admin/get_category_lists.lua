@@ -164,7 +164,7 @@ for key in pairsByValues(sort_to_key, sOrder) do
             column_status = list.status_label,
             column_url = list.url,
             column_enabled = list.enabled,
-	    column_num_hits = list.status.num_hits.current,
+	        column_num_hits = format_high_num_value_for_tables({value = list.status.num_hits.current}, "value"),
             column_chart = ternary(list.status.num_hits.current > 0,
                 ' <A HREF="' .. ntop.getHttpPrefix() .. '/lua/blacklists_stats.lua?ts_query=blacklist_name:' ..
                     list.name:gsub("%s+", "_") ..
