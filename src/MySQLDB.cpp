@@ -748,9 +748,9 @@ bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
 void MySQLDB::disconnectFromDB(MYSQL *conn) {
   if (conn != NULL) {
     mysql_close(conn);
-    ntop->getTrace()->traceEvent(
-        TRACE_NORMAL, "Disconnected from MySQL for interface %s...",
-        iface->get_name() ? iface->get_name() : "<unknown>");
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "Disconnected from MySQL for interface %s...",
+				 iface->get_name() ? iface->get_name() : "<unknown>");
   }
 }
 
@@ -763,20 +763,48 @@ MYSQL *MySQLDB::mysql_try_connect(MYSQL *conn, const char *dbname) {
   char *user = ntop->getPrefs()->get_mysql_user();
   u_int port = ntop->getPrefs()->get_mysql_port();
   unsigned int connection_timeout = 5 /* sec */;
-  
+
   if (!host) return (NULL);
 
   /* Set the maximum database connection timeout */
   mysql_options(conn, MYSQL_OPT_CONNECT_TIMEOUT, &connection_timeout);
-  
+
+  if(ntop->getPrefs()->is_mysql_port_secure()) {
+#ifndef LIBMARIADB
+    /* MySQL */
+#if MYSQL_VERSION_ID > 50710
+    unsigned int opt_use_ssl = SSL_MODE_REQUIRED;
+
+    if(mysql_options(conn, MYSQL_OPT_SSL_MODE, (unsigned int const*) &opt_use_ssl) == 0)
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enabled TLS support in MySQL client connection");
+    else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to enable TLS support in MySQL: %s", mysql_error(conn));
+#else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "TLS not supported in this MySQL client version");
+#endif
+#else
+    /*
+       MariaDB [https://mariadb.com/kb/en/mysql_optionsv/]
+
+       MYSQL_OPT_SSL_ENFORCE: Whether to force TLS. This enables TLS with the default system settings.
+       It does not prevent the connection from being created if the server does not support TLS.
+    */
+    my_bool enforce_tls = 1;
+
+    if(mysql_optionsv(conn, MYSQL_OPT_SSL_ENFORCE, (void *)&enforce_tls) == 0)
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enabled TLS support in MariaDB client connection (if server supports TLS)");
+    else
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to enable TLS support in MariaDB: %s", mysql_error(conn));
+#endif
+  }
+
   if ((!ntop->getPrefs()->do_dump_flows_on_clickhouse()) && (host[0] == '/') /* Use socketD */)
     rc = mysql_real_connect(conn, NULL, /* Host */
                             user, ntop->getPrefs()->get_mysql_pw(), dbname, 0,
                             host /* socket */, flags);
   else {
-    ntop->getTrace()->traceEvent(
-        TRACE_INFO, "ClickHouse Connecting to %s:%u [user: %s][db: %s]", host,
-        port, user, dbname ? dbname : "");
+    ntop->getTrace()->traceEvent(TRACE_INFO, "ClickHouse Connecting to %s:%u [user: %s][db: %s]", host,
+				 port, user, dbname ? dbname : "");
     rc = mysql_real_connect(conn, host, user, ntop->getPrefs()->get_mysql_pw(),
                             dbname, port, NULL /* socket */, flags);
   }
@@ -874,13 +902,13 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 
   if(ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
     if(!ntop->getPrefs()->is_enterprise_m_edition() && !ntop->getPrefs()->is_nedge_enterprise_edition()) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Enterprise license is required in order to use ClickHouse");      
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Enterprise license is required in order to use ClickHouse");
       m.unlock(__FILE__, __LINE__);
       return (db_operational);
     }
-    
+
     int rc = mysql_query(conn, "SELECT VERSION()");
-    
+
     if (rc < 0) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to read ClickHouse version");
       m.unlock(__FILE__, __LINE__);
@@ -888,14 +916,14 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
     } else {
       MYSQL_RES *result = mysql_store_result(conn);
       MYSQL_ROW row = result ? mysql_fetch_row(result) : NULL;
-      
+
       if(!row) {
 	if(result) mysql_free_result(result);
 	m.unlock(__FILE__, __LINE__);
-	return (false);	
+	return (false);
       } else {
 	int clickhouse_version = atoi(row[0]);
-	int min_clickhouse_version = 22; /* See https://www.ntop.org/guides/ntopng/clickhouse/installation.html */       
+	int min_clickhouse_version = 22; /* See https://www.ntop.org/guides/ntopng/clickhouse/installation.html */
 
 	if(clickhouse_version < min_clickhouse_version) {
 	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Your ClickHouse server v.%s is too old (< %u.X.X.X): please update",
@@ -906,19 +934,18 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 	} else
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "Succesfully connected to ClickHouse server v.%s", row[0]);
       }
-      
+
       mysql_free_result(result);
     }
   }
-  
+
   db_operational = true;
 
-  ntop->getTrace()->traceEvent(
-      TRACE_NORMAL,
-      "Successfully connected to %s [%s@%s:%i][dbname: %s] for interface %s",
-      getEngineName(), user, host, port, dbname ? dbname : "",
-      iface->get_name());
-
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Successfully connected to %s [%s@%s:%i][dbname: %s] for interface %s",
+			       getEngineName(), user, host, port, dbname ? dbname : "<no db>",
+			       iface->get_name());
+  
   m.unlock(__FILE__, __LINE__);
   return (db_operational);
 }

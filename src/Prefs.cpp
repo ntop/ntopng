@@ -632,8 +632,10 @@ void usage() {
 	 "database\n"
 	 "                                    |   Format:\n"
 	 "                                    |   "
-	 "mysql;<host[@port]|socket>;<dbname><user>;<pw>\n"
+	 "mysql;<host[@port]|socket>;<dbname>;<user>;<pw>\n"
 	 "                                    |   mysql;127.0.0.1;ntopng;root;\n"
+	 "                                    |   \"mysql;127.0.0.1@3306;ntopng;root;\" [Cleartext (no TLS)]\n"
+	 "                                    |   \"mysql;127.0.0.1@3306s;ntopng;root;\" [TLS]\n"
 	 "                                    |\n"
 #endif
 #endif
@@ -1898,8 +1900,7 @@ int Prefs::setOption(int optkey, char *optarg) {
       char *sep = strchr(optarg, ';');
 
       if ((!sep) && (optarg[0] != 'c')) {
-	ntop->getTrace()->traceEvent(
-				     TRACE_WARNING, "Invalid --mysql/--clickhouse format: ignored");
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid --mysql/--clickhouse format: ignored");
       } else {
 	bool all_good = true;
 	bool use_clickhouse_cluster;
@@ -1946,8 +1947,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    mysql_pw = strdup((char *)"");
 
 	    if (use_clickhouse_cluster)
-	      clickhouse_cluster_name =
-		strdup((char *)DEFAULT_CLICKHOUSE_CLUSTER);
+	      clickhouse_cluster_name = strdup((char *)DEFAULT_CLICKHOUSE_CLUSTER);
 	  } else {
 	    optarg = Utils::tokenizer(sep + 1, ';', &mysql_host);
 	    optarg = Utils::tokenizer(optarg, ';', &mysql_dbname);

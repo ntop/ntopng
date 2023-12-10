@@ -1,6 +1,12 @@
 Connect to ClickHouse
 --------------------
 
+ntopng connect sto clickhouse using two different connections:
+
+- Flows are imported into the database in batch mode using clickhouse-client. This is because in columnary databases this is the most efficient technique for importing large volumes of data.
+- MySQL connection to insert alerts (theoretically this is not a large capacity actovoty so avoiding batch inserts reduces latency) and perform queries.
+
+
 In order to connect ntopng to ClickHouse use option :code:`-F`. The format of this option is the following
 
 .. code:: bash
