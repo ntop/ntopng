@@ -530,8 +530,6 @@ bool PcapInterface::reproducePcapOriginalSpeed() const {
           ntop->getPrefs()->reproduceOriginalSpeed());
 }
 
-#endif
-
 /* **************************************************** */
 
 bool PcapInterface::reopen() {  
@@ -563,3 +561,5 @@ bool PcapInterface::reopen() {
   
   return(false);
 }
+
+#endif
