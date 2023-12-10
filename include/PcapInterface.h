@@ -81,6 +81,7 @@ class PcapInterface : public NetworkInterface {
   };
   bool reproducePcapOriginalSpeed() const;
   virtual void updateDirectionStats();
+  bool reopen();
 };
 
 #endif /* _PCAP_INTERFACE_H_ */

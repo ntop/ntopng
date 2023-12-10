@@ -285,10 +285,19 @@ static void *packetPollLoop(void *ptr) {
 
         tv.tv_sec = 1, tv.tv_usec = 0;
         if (select(fd + 1, &rset, NULL, NULL, &tv) == 0) {
+
 	  if(!iface->nwInterfaceExists()) {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING,
 					 "Network Interface %s disappeared (is it is down ?)",
 					 iface->get_name());
+	    if(iface->reopen()) {
+	      pd = iface->get_pcap_handle();
+	      
+#ifdef __linux__
+	      fd = pcap_get_selectable_fd(pd);
+#endif	      
+	    } else
+	      break;
 	  }
 				       
           iface->purgeIdle(time(NULL));
@@ -522,3 +531,35 @@ bool PcapInterface::reproducePcapOriginalSpeed() const {
 }
 
 #endif
+
+/* **************************************************** */
+
+bool PcapInterface::reopen() {  
+  pcap_close(pcap_handle);
+
+  Utils::gainWriteCapabilities();
+  
+  while(!ntop->getGlobals()->isShutdown()) {
+    char pcap_error_buffer[PCAP_ERRBUF_SIZE];
+    
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to open %s", ifname);
+    
+    pcap_handle = pcap_open_live(ifname, ntop->getGlobals()->getSnaplen(ifname),
+				 ntop->getPrefs()->use_promiscuous(),
+				 1000 /* 1 sec */, pcap_error_buffer);
+    
+    if(pcap_handle) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface %s is back", ifname);
+      Utils::dropWriteCapabilities();
+      return(true);
+    } else
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to open %s: %s",
+				   ifname, pcap_error_buffer);
+	      
+    sleep(1);
+  }
+
+  Utils::dropWriteCapabilities();
+  
+  return(false);
+}
