@@ -412,7 +412,15 @@ export const tcp_udp_ports_list_f = (tcp_ports_list,udp_ports_list, row) => {
   return content_label;
 }
 
-
+export const discoverd_hosts_list_f = (hosts_string) => {
+  const hosts_list = hosts_string.split(",");
+  let label = "";
+  hosts_list.forEach((item) => {
+    if (item != "")
+      label += `<li>${item}</li>`;
+  })
+  return label;
+}
 export const hosts_f = (hosts, row) => {
 
   const hosts_list = hosts.split(", ");
@@ -469,6 +477,10 @@ export const host_f = (host, row, ifid) => {
   let host_not_reachable = row.is_ok_last_scan == 5 && row.is_down != null && row.is_down == true;
   if ((row.is_ok_last_scan == 1 || host_not_reachable) && (row.last_scan != null && row.last_scan.time != null)) {
     let url = build_host_to_scan_report_url(host, row.scan_type, row.last_scan.time.replace(" ","_"), row.last_scan.epoch);
+    if (row.scan_type == 'ipv4_netscan') {
+      // add cidr only for ipv4_netscan 
+      host = host + "/24"
+    }
     label = `<a href="${url}">${host}</a>`;
     if (host_not_reachable) {
       label = `<a href="${url}">${host} <i class=\"fas fa-exclamation-triangle\" style='color: #B94A48;'></i> </a>`;

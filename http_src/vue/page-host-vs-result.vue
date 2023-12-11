@@ -49,7 +49,9 @@ async function get_result(host, scan_type, date, epoch) {
   message.value = result.rsp;
   message_html.value = `<pre>${message.value}</pre>`;
 
-
+  if (scan_type == 'ipv4_netscan') {
+    host += "/24";
+  }
   const host_href = props.context.is_in_mem === 'true' || props.context.is_in_mem == true ? `${host} <a href="${http_prefix}/lua/host_details.lua?host=${host}"><i class = "fas fa-laptop"></i></a>`: host;
   
   

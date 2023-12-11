@@ -17,6 +17,7 @@ local port = _GET["port"]
 local sort = _GET["sort"]
 local epoch = _GET["epoch_end"]
 local was_down = toboolean(_GET["was_down"] or false)
+local netscan_report = toboolean(_GET["netscan_report"] or false)
 
 if (not isEmptyString(search_map)) then
     -- trim search_map string
@@ -32,7 +33,7 @@ end
 local function retrieve_host()
     local result = vs_utils.retrieve_hosts_to_scan(epoch)
 
-    return vs_rest_utils.format_overview_result(result, search_map, sort, port, was_down)
+    return vs_rest_utils.format_overview_result(result, search_map, sort, port, was_down, netscan_report)
 end
 
 -- ##################################################################

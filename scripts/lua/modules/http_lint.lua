@@ -2052,6 +2052,7 @@ local known_parameters = {
     ["is_va"] = validateBool,
     ["is_edit"] = validateBool,
     ["was_down"] = validateBool,
+    ["netscan_report"] = validateBool,
 
     ["snmp_device"] = validateDevice,
     ["snmp_device_port"] = validateSNMPIfidNumber,
