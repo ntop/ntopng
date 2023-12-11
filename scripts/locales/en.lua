@@ -7823,7 +7823,7 @@ local lang = {
     ["and_other_n"] = "and other %{n}",
     ["host_alert"] = "%{msg} on <b><a href='%{url}'>%{host}</a></b> using %{scan_type}.",
     ["host_down_case"] = "Host %{host} is not reachable.",
-    ["host_not_configured"] = "Host %{host} with Scan Type %{scan_type_label} was not configured.",
+    ["host_not_configured"] = "Host %{host} was not configured.",
     ["new_issues"] = "CVEs changed from %{num_issues} to %{new_cve}",
     ["ports_changed"] = "Open ports changed from %{old_num_ports} to %{new_num_ports}",
     ["report"] = "Vulnerability Scan Report",
