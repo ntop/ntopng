@@ -592,9 +592,9 @@ void usage() {
 	 "clickhouse-cluster as alias of:\n"
 	 "                                    |   -F "
 	 "\"clickhouse-cluster;127.0.0.1@%u,%u;ntopng;default;ntop_cluster\"\n"
-	 "NOTE:                               |\n"
-	 "- tcp-port used by clickhouse-client|\n"
-	 "- mysql-port used for queries       |\n"
+	 "                                    | NOTE:\n"
+	 "                                    | - tcp-port used by clickhouse-client\n"
+	 "                                    | - mysql-port used for queries\n"
 #endif
 	 ,
 	 CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
