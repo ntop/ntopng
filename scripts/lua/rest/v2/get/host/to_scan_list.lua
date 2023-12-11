@@ -16,6 +16,7 @@ local vs_rest_utils = require "vs_rest_utils"
 local port = _GET["port"]
 local sort = _GET["sort"]
 local epoch = _GET["epoch_end"]
+local was_down = toboolean(_GET["was_down"] or false)
 
 if (not isEmptyString(search_map)) then
     -- trim search_map string
@@ -31,7 +32,7 @@ end
 local function retrieve_host()
     local result = vs_utils.retrieve_hosts_to_scan(epoch)
 
-    return vs_rest_utils.format_overview_result(result, search_map, sort, port)
+    return vs_rest_utils.format_overview_result(result, search_map, sort, port, was_down)
 end
 
 -- ##################################################################

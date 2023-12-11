@@ -2037,6 +2037,8 @@ local known_parameters = {
     ["is_ifname"] = validateBool,
     ["metric_label"] = validateUnquoted,
     ["flows_page_type"] = validateSingleWord,
+    
+    -- VULNERABILITY SCAN
     ["scan_type"] = validateSingleWord,
     ["discovered_host_scan_type"] = validateListOfTypeInline(validateSingleWord),
     ["scan_ports"] = validateSingleWord,
@@ -2049,6 +2051,7 @@ local known_parameters = {
     ["scan_id"] = validateSingleWord,
     ["is_va"] = validateBool,
     ["is_edit"] = validateBool,
+    ["was_down"] = validateBool,
 
     ["snmp_device"] = validateDevice,
     ["snmp_device_port"] = validateSNMPIfidNumber,
