@@ -1,7 +1,11 @@
 /**
     (C) 2022 - ntop.org    
 */
-import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
+
+import { ntopng_utility } from "../../services/context/ntopng_globals_services.js";
+
+
+/* ***************************************** */
 
 function transformColors(colors) {
     let colorsPositionDict = {};
@@ -28,11 +32,15 @@ function transformColors(colors) {
     return newColors;
 }
 
+/* ***************************************** */
+
 function getColorsFromColor(color, n) {
     return [...Array(n).keys()].map((c, i) => {
 	return generateColor(color, i + 1, n);
     });
 }
+
+/* ***************************************** */
 
 /**
  * Generate a color that represent the index-th tint of n of baseColor.
@@ -54,6 +62,8 @@ function generateColor(baseColor, index, n) {
     return rgbToHex(cRed, cGreen, cBlue);
 }
 
+/* ***************************************** */
+
 function getColorInterpolation(colorSource, i, n) {    
     if (n <= 1) {
 	return colorSource;
@@ -66,18 +76,24 @@ function getColorInterpolation(colorSource, i, n) {
     // return colorStart + (n - i) * interval;
 }
 
+/* ***************************************** */
+
 function rgbToHex(r, g, b) {
     return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
+
+/* ***************************************** */
 
 function componentToHex(c) {
     let hex = c.toString(16);
     return hex.length == 1 ? "0" + hex : hex;
 }
 
+/* ***************************************** */
+
 const colorsInterpolation = function() {
     return {
-	transformColors,
+	    transformColors,
     };
 }();
 

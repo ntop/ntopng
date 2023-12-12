@@ -1581,7 +1581,6 @@ function driver:timeseries_top(options, top_tags)
                 id = id,
                 name = value[3],
                 ext_label = ext_label,
-                type = "line",
                 data = total_serie
             }
         end

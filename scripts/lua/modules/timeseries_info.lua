@@ -155,6 +155,7 @@ local community_timeseries = {{
     measure_unit = "hitss",
     scale = i18n('graphs.metric_labels.blacklist_hits'),
     draw_stacked = true,
+    chart_type = "line",
     timeseries = {
         hits = {
             use_serie_name = true,

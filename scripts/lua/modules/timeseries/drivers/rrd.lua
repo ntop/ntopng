@@ -959,7 +959,6 @@ function driver:timeseries_top(options, top_tags)
             top_series[#top_series + 1] = {
                 data = available_series[top_item].data,
                 id = id,
-                type = "line",
                 statistics = available_series[top_item].statistics,
                 tags = available_series[top_item].tags,
                 name = top_item,
