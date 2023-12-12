@@ -463,7 +463,7 @@ function update_url_params() {
 function update_charts(charts_options) {
     charts_options.forEach((options, i) => {
         // charts.value[i].update_chart_options({ yaxis: options.yaxis });
-        charts.value[i].update_chart_series(options?.series);
+        charts.value[i].update_chart_series(options?.serie);
     });
 }
 
