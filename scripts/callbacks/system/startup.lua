@@ -239,4 +239,7 @@ end
 vs_utils.migrate_keys()
 vs_utils.restore_host_to_scan()
 
+-- Reload Alert Exclusions
+ntop.reloadAlertExclusions()
+
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")
