@@ -330,3 +330,92 @@ The retention of the flows dump on disk can be configured from the
 .. _`Flows Dump documentation` : advanced_features/flows_dump.html
 .. _`Historical Charts`: web_gui/historical.html
 .. _`tabular view`: web_gui/historical.html#tabular-view
+
+Hourly Historical Flows
+-----------------------
+ 
+.. note::
+
+   The Hourly Historical Flows view is exclusive to ntopng Enterprise XL.
+
+Enabling the 'Hourly' flag on the Historical Flow Explorer in ntopng displays an aggregated view of the historical flows.
+
+.. figure:: img/clickhouse_hourly_historical_flows.png
+  :align: center
+  :alt: Hourly Historical Flows Explorer
+  
+  Hourly Historical Flows Explorer
+
+The historical flows are aggregated by several fields, including:
+
+- **Begin** (Start epoch of the flows)
+- **End** (End epoch of the flows)
+- **Protocol** (L4 Protocol)
+- **Application** (L7 Protocol)
+- **Flow** (Client IP - Client Port - Server IP - Server Port)
+- **Avg Score** (The average score of the aggregated raw flows)
+- **Total Flows** (The total number of aggregated flows in the single entry)
+- **Pkts** (The total number of packets in the aggregated flows in the single entry)
+- **Total Bytes** (The sum of TX and RX traffic of the aggregated flows in the single entry)
+- **Client ASN** (Autonomous System Number assigned to the client)
+- **Server ASN** (Autonomous System Number assigned to the server)
+- **Flow Risk** (Level of risk associated with flow)
+- **Flow Exporter** (System or tool exporting flow data)
+- **Client Network** (Network associated with the client)
+- **Server Network** (Network associated with the server)
+- **In SNMP iface** (Input SNMP interface)
+- **Out SNMP iface** (Output SNMP interface)
+- **Client Country** (Country associated with the client)
+- **Server Country** (Country associated with the server)
+- **Client MAC** (MAC Address of the client)
+- **Server MAC** (MAC Address of the server)
+- **ntopng Instance Name**
+
+With Hourly Historical Flows, it is possible to better analyze past traffic by providing a summary of historical flows.
+
+Clicking on the 'Flows' entry in the 'Actions' menu of a specific hourly historical flow entry allows the user to navigate back to the Historical Flows, filtered by client IP, server IP, server port, flow exporter, and ntopng instance name. 
+
+.. figure:: img/clickhouse_hourly_flows_button.png
+  :align: center
+  :alt: Hourly Historical Flows - Flows button
+
+  Hourly Historical Flows - Flows button
+
+This displays the flows that compose the single entry of the hourly historical flows.
+
+.. figure:: img/clickhouse_historical_flows_filtered_with_hourly_fields.png
+  :align: center
+  :alt: Historical Flows Filtered
+
+  Historical Flows Filtered
+
+On the Hourly Historical Flows Explorer, many 'Top Filters' are present, including:
+
+.. figure:: img/clickhouse_hourly_historical_flows_filters.png
+  :align: center
+  :alt: Hourly Historical Flows Filters
+
+  Hourly Historical Flows Filters
+
+- **Top Applications** (L7 Protocols with most traffic)
+- **Top Protocols** (L4 Protocols with most traffic)
+- **Top Clients** (Clients with most traffic)
+- **Top Servers** (Servers with most traffic)
+- **Top Hosts** (Hosts with most traffic)
+
+Aggregation Preferences
+-----------------------
+
+On the preferences page, in the ClickHouse tab, it is possible to modify the hourly flows aggregation settings.
+
+.. figure:: img/clickhouse_hourly_historical_flows_settings.png
+  :align: center
+  :alt: Hourly Historical Flows Settings
+
+  Hourly Historical Flows Settings
+
+- **ClickHouse Aggregated Flows Data Retention**: Number of days to retain aggregated flow information (must be greater than the retention period for unaggregated flows); the default is 60 days.
+- **ClickHouse Limit Aggregated Flows**: Maximum number of aggregated flow entries to insert in each hourly dump.
+- **ClickHouse Minimum Aggregated Flow Traffic**: Discard aggregated flows with a size less than the specified value (in kilobytes).
+- **Include Alerted Flows**: Include all alerted flows in the aggregated flows.
+
