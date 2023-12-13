@@ -652,36 +652,35 @@ void Ntop::start() {
 
     char *token = strtok(repeater, "|");
 
-    int h = 0;
-    string ip = "";
-    string port = "";
-    string interfaces = "";
+    string ip;
+    int port;
+    string interfaces;
     string type;
-    while (token != NULL)
-    {
-        if(h == 0) {
-          type = token;
-        } else if (h == 1) {
-          ip = token;
-        } else if (h == 2) {
-          port = token;
-        } else if(h == 3) {
-          interfaces = token;
-        }
+
+    if (token != NULL) {
+      type = token;
+      token = strtok(NULL, "|");
+      if (token != NULL) {
+        ip = token;
         token = strtok(NULL, "|");
-        h++;
-    }
+        if (token != NULL) {
+          port = atoi(token);
+          token = strtok(NULL, "|");
+          if (token != NULL) {
+            interfaces = token;
 
-    if(!strcmp(ip.c_str(),"") || !strcmp(port.c_str(),"") || !strcmp(interfaces.c_str(),""))
-      continue;
+            MulticastForwarder *multicastForwarder = new (std::nothrow) MulticastForwarder(ip, port, interfaces);
 
-    MulticastForwarder *multicastForwarder = new (std::nothrow) MulticastForwarder(ip, stoi(port), interfaces);
-
-    if (multicastForwarder) {
-      multicastForwarder->start();
-      multicastForwarders.push_back(multicastForwarder);
-    } else {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error occured instantiating Multicast Forwarder");
+            if (multicastForwarder) {
+              ntop->getTrace()->traceEvent(TRACE_NORMAL, "Multicast forwarder initialized on IP %s Port %d Interfaces %s", ip, port, interfaces);
+              multicastForwarder->start();
+              multicastForwarders.push_back(multicastForwarder);
+            } else {
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "Error occured instantiating Multicast Forwarder");
+            }
+          }
+        }
+      }
     }
   }
 #endif
