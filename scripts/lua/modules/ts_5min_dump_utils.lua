@@ -394,6 +394,12 @@ function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
 --                            "interface_usage_out_bytes" .. flow_device_ip .. '_' .. port_idx .. ', out bit perc.: ' ..
 --                                out_bytes_percentage .. ' | in bit perc.: ' .. in_bytes_percentage)
 --                    end
+                    if in_bytes_percentage > 100 then
+                        in_bytes_percentage = 100
+                    end
+                    if out_bytes_percentage > 100 then
+                        out_bytes_percentage = 100
+                    end
     
                     -- Traffic
                     ts_utils.append("sflowdev_port:usage", {
@@ -480,7 +486,12 @@ function ts_dump.flow_device_update_rrds(when, ifstats, verbose)
 --                                out_bytes_percentage .. ' | in bit perc.: ' .. in_bytes_percentage)
 --                    end
     
-
+                if in_bytes_percentage > 100 then
+                    in_bytes_percentage = 100
+                end
+                if out_bytes_percentage > 100 then
+                    out_bytes_percentage = 100
+                end
 
                 -- Traffic
                 ts_utils.append("flowdev_port:usage", {

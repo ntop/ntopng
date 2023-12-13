@@ -253,6 +253,10 @@ function formatStandardSerie(timeserie_info, timeserie_options, config, tsCompar
   const epoch_begin = timeserie_options.metadata.epoch_begin;
   const step = timeserie_options.metadata.epoch_step;
   const formatter = timeserie_info.metric.measure_unit;
+  const max_value = timeserie_info.metric.max_value || null;
+  const min_value = timeserie_info.metric.min_value || null;
+  
+  config.value_range = [min_value, max_value];
   config.plotter = getPlotter(chart_type);
   if (!config.stacked) {
     config.stacked = timeserie_info.metric.draw_stacked || false;

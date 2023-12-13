@@ -93,6 +93,7 @@ function buildChartOptions(options) {
   config.series = options.properties;
   config.data = options.serie;
   config.stackedGraph = options.stacked;
+  config.valueRange = options.value_range;
   config.highlightSeriesBackgroundColor = highlight_color;
   config.colors = interpolated_colors;
 
