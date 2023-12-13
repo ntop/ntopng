@@ -48,10 +48,10 @@
                 <button class="btn btn-link btn-sm" type="button" @click="print_report" :title="_i18n('dashboard.print')">
                     <i class="fas fa-print"></i>
                 </button>
-                <button class="btn btn-link btn-sm" type="button" @click="show_new_template_modal" :title="_i18n('dashboard.new_template')">
+                <button v-if="allow_edit" class="btn btn-link btn-sm" type="button" @click="show_new_template_modal" :title="_i18n('dashboard.new_template')">
                     <i class="fas fa-folder-plus"></i>
                 </button>
-                <button v-if="selected_report_template.allow_edit" class="btn btn-link btn-sm" :class="edit_mode ? 'text-warning' : ''" type="button" @click="toggle_edit_mode" :title="_i18n('dashboard.edit_mode')">
+                <button v-if="allow_edit && selected_report_template.allow_edit" class="btn btn-link btn-sm" :class="edit_mode ? 'text-warning' : ''" type="button" @click="toggle_edit_mode" :title="_i18n('dashboard.edit_mode')">
                     <i class="fas fa-pen-to-square"></i>
                 </button>
             </template>
@@ -246,6 +246,7 @@ const components_dict = {
 const loading = ref(true);
 const page_id = "page-dashboard";
 const show_loading = props.context.show_loading || false;
+const allow_edit = props.context.allow_edit || false;
 const report_box = ref(null);
 
 const modal_store_report = ref(null);
