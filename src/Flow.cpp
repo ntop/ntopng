@@ -4417,20 +4417,17 @@ void Flow::decAllFlowScores() {
         If this flow belong to a view, the actual score value is the one
         registered in the partializable stats of the view.
       */
-      cli_score_val =
-          getViewInterfaceFlowStats()->getPartializableStats()->get_cli_score(
-              score_category);
-      srv_score_val =
-          getViewInterfaceFlowStats()->getPartializableStats()->get_srv_score(
-              score_category);
+      cli_score_val = getViewInterfaceFlowStats()->getPartializableStats()->get_cli_score(score_category);
+      srv_score_val = getViewInterfaceFlowStats()->getPartializableStats()->get_srv_score(score_category);
     }
 
     if (cli_u && cli_score_val)
       cli_u->decScoreValue(cli_score_val, score_category, true /* as client */);
+    
     if (srv_u && srv_score_val)
-      srv_u->decScoreValue(srv_score_val, score_category,
-                           false /* as server */);
+      srv_u->decScoreValue(srv_score_val, score_category, false /* as server */);
   }
+  
   /*
   Perform other operations to decrease counters increased by flow user script
   hooks (we're in the same thread)
@@ -7822,8 +7819,7 @@ void Flow::setPredominantAlertInfo(FlowAlert *alert) {
   alert_json_serializer = alert->getSerializedAlert();
 
   if (alert_json_serializer)
-    alert_json =
-        ndpi_serializer_get_buffer(alert_json_serializer, &alert_json_len);
+    alert_json = ndpi_serializer_get_buffer(alert_json_serializer, &alert_json_len);
 
   if (json_protocol_info) free(json_protocol_info);
   json_protocol_info = strdup(alert_json ? alert_json : "");

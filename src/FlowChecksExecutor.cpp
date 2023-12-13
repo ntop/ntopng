@@ -118,7 +118,69 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
 
   /* Do NOT allocate any alert, there is nothing left to do as flow alerts don't
    * have to be emitted */
-  if (ntop->getPrefs()->dontEmitFlowAlerts()) return (NULL);
+  if (ntop->getPrefs()->dontEmitFlowAlerts())
+    return (NULL);
+
+  if(predominant_check) {
+    Host *cli_u = f->getViewSharedClient(), *srv_u = f->getViewSharedServer();
+#ifdef DEBUG
+    char buf[64];
+#endif
+
+#ifdef DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s/%u][%s] ->> %p/%p [%s]",
+				 predominant_check->getName().c_str(), c,
+				 f->getInterface()->get_name(),
+				 cli_u, srv_u, f->print(buf, sizeof(buf)));
+#endif
+
+    if(cli_u && srv_u) {
+      if(cli_u->isFlowAlertDisabled(predominant_alert)
+	 || srv_u->isFlowAlertDisabled(predominant_alert)) {
+#ifdef DEBUG
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skipping alert");
+#endif
+
+	return(NULL);
+      }
+    } else {
+      /* This flow has not yet been walked by ViewInterface::viewed_flows_walker() */
+      const IpAddress *cli_ip = f->get_cli_ip_addr(), *srv_ip = f->get_srv_ip_addr();
+      Host *cli_host, *srv_host;
+      Mac *srcMac = NULL, *dstMac = NULL;
+      ViewInterface *viewedBy = f->getInterface()->viewedBy();
+
+#ifdef DEBUG
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Searching hosts %p", viewedBy);
+#endif
+
+      if(viewedBy) {
+	viewedBy->findFlowHosts(f->getInterfaceIndex(),
+				f->get_vlan_id(), f->get_observation_point_id(),
+				f->getPrivateFlowId(), srcMac,
+				(IpAddress *)cli_ip, &cli_host, dstMac,
+				(IpAddress *)srv_ip, &srv_host);
+
+	if(cli_host && srv_host) {
+#ifdef DEBUG
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hosts found");
+#endif
+
+	  if(cli_host->isFlowAlertDisabled(predominant_alert)
+	     || srv_host->isFlowAlertDisabled(predominant_alert)) {
+#ifdef DEBUG
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Skipping alert");
+#endif
+	    return(NULL);
+	  }
+	} else {
+#ifdef DEBUG
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Hosts NOT found");
+#endif
+	}
+      }
+    }
+  }
 
   if (predominant_check) {
     /* Allocate the alert */
