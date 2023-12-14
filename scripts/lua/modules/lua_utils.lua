@@ -94,6 +94,7 @@ l4_keys = {
    { "OSPF",      "ospf",       89 },
    { "PIM",       "pim",       103 },
    { "VRRP",      "vrrp",      112 },
+   { "L2TP",      "l2tp",      115 },
    { "HIP",       "hip",       139 },
    { "SCTP",      "sctp",      132 },
    { "ICMPv6",    "icmpv6",     58 },
