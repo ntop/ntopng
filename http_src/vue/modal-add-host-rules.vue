@@ -841,9 +841,11 @@ const add_ = (is_edit) => {
       metric_exp = flow_device_metric_list.value.find((item) => item.id === null);
       /* In case no metric id is found, it means it's the traffic one */
       if (flow_device_ifindex != null && flow_device_ifindex != '*') {
+        metric_exp = selected_flow_device_metric.value;
         metric_exp.id = "flowdev_port:traffic";
       }
       else {
+        metric_exp = selected_flow_device_metric.value;
         metric_exp.id = "flowdev:traffic";
       }
     } else {

@@ -3147,10 +3147,10 @@ function timeseries_info.get_host_rules_schema(rule_type)
         for _, item in ipairs(community_timeseries) do
 
             if (item.schema == "subnet:traffic") then
-                item.label = i18n("graphs.traffic_rxtx")
+                item.label = i18n("graphs.network_traffic.total")
             end
             if (item.schema == "subnet:broadcast_traffic") then
-                item.label = i18n("broadcast_traffic_rx_tx")
+                item.label = i18n("graphs.network_broadcast_traffic.total")
             end
             if (item.id == timeseries_id.network) then
 
@@ -3160,10 +3160,10 @@ function timeseries_info.get_host_rules_schema(rule_type)
 
         metric_list[#metric_list + 1] = {
 
-            title = i18n('graphs.traffic_rcvd'),
+            title = i18n('graphs.network_traffic.ingress'),
             -- group = i18n('generic_data'),
             measure_unit = "bps",
-            label = i18n('graphs.traffic_rcvd'),
+            label = i18n('graphs.network_traffic.ingress'),
             id = 'subnet:traffic-ingress' --[[ here the ID is the schema ]] ,
             schema = 'subnet:traffic-ingress',
             show_volume = true
@@ -3172,9 +3172,9 @@ function timeseries_info.get_host_rules_schema(rule_type)
 
         metric_list[#metric_list + 1] = {
 
-            title = i18n('graphs.traffic_sent'),
+            title = i18n('graphs.network_traffic.egress'),
             -- group = i18n('generic_data'),
-            label = i18n('graphs.traffic_sent'),
+            label = i18n('graphs.network_traffic.egress'),
             measure_unit = "bps",
             id = 'subnet:traffic-egress' --[[ here the ID is the schema ]] ,
             schema = 'subnet:traffic-egress',
@@ -3184,10 +3184,21 @@ function timeseries_info.get_host_rules_schema(rule_type)
 
         metric_list[#metric_list + 1] = {
 
-            title = i18n('broadcast_traffic_rx'),
+            title = i18n('graphs.network_traffic.inner'),
+            -- group = i18n('generic_data'),
+            label = i18n('graphs.network_traffic.inner'),
+            measure_unit = "bps",
+            id = 'subnet:traffic-inner' --[[ here the ID is the schema ]] ,
+            schema = 'subnet:traffic-inner',
+            show_volume = true
+        }
+
+        metric_list[#metric_list + 1] = {
+
+            title = i18n('graphs.network_broadcast_traffic.ingress'),
             -- group = i18n('generic_data'),
             measure_unit = "bps",
-            label = i18n('broadcast_traffic_rx'),
+            label = i18n('graphs.network_broadcast_traffic.ingress'),
             id = 'subnet:broadcast_traffic-ingress' --[[ here the ID is the schema ]] ,
             schema = 'subnet:broadcast_traffic-ingress',
             show_volume = true
@@ -3196,12 +3207,24 @@ function timeseries_info.get_host_rules_schema(rule_type)
 
         metric_list[#metric_list + 1] = {
 
-            title = i18n('broadcast_traffic_tx'),
+            title = i18n('graphs.network_broadcast_traffic.egress'),
             -- group = i18n('generic_data'),
-            label = i18n('broadcast_traffic_tx'),
+            label = i18n('graphs.network_broadcast_traffic.egress'),
             measure_unit = "bps",
             id = 'subnet:broadcast_traffic-egress' --[[ here the ID is the schema ]] ,
             schema = 'subnet:broadcast_traffic-egress',
+            show_volume = true
+
+        }
+
+        metric_list[#metric_list + 1] = {
+
+            title = i18n('graphs.network_broadcast_traffic.inner'),
+            -- group = i18n('generic_data'),
+            label = i18n('graphs.network_broadcast_traffic.inner'),
+            measure_unit = "bps",
+            id = 'subnet:broadcast_traffic-inner' --[[ here the ID is the schema ]] ,
+            schema = 'subnet:broadcast_traffic-inner',
             show_volume = true
 
         }

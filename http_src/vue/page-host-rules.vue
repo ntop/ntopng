@@ -284,7 +284,7 @@ const format_last_measurement = function (data, rowData) {
     return "";
   }
   if ((rowData.metric_type) && (rowData.metric_type == 'throughput')) {
-    formatted_data = NtopUtils.bitsToSize(data * 8)
+    formatted_data = NtopUtils.bitsToSize(data)
   } else if ((rowData.metric_type) && (rowData.metric_type == 'volume')) {
     formatted_data = NtopUtils.bytesToSize(data);
   } else if ((rowData.metric_type) && (rowData.metric_type == 'percentage')) {
@@ -328,7 +328,8 @@ const format_target = function (data, rowData) {
   } else if (rowData.rule_type && rowData.rule_type == 'exporter' && rowData.metric == "flowdev:traffic") {
     formatted_data = rowData.target;
   } else {
-    formatted_data = rowData.target + " " + _i18n("on_interface") + ": " + rowData.flow_exp_ifid_name;
+    let interface_label = rowData.flow_exp_ifid_name != "" ? rowData.flow_exp_ifid_name : rowData.flow_exp_ifid;
+    formatted_data = rowData.target + " " + _i18n("on_interface") + ": " + interface_label;
   }
   return formatted_data;
 }
