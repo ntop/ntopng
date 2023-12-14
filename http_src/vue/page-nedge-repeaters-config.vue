@@ -73,11 +73,7 @@ function set_rule(rule, url) {
 
 
 const format_interfaces = function(data, rowData) { 
-    if(data) {
-        let string_without_end = data.replace(/.$/, ''); 
-        return string_without_end;
-    }
-    return data;
+    return data.split(",").join(", ");
 }
 function set_datatable_config() {
     const datatableButton = [];
@@ -118,11 +114,9 @@ function set_datatable_config() {
      { 
 	    columnName: _i18n("nedge.page_repeater_config.port"), targets: 0, name: 'port', data: 'port', className: 'text-nowrap text-left', responsivePriority: 1
 	},
-     { 
+    {
 	    columnName: _i18n("nedge.page_repeater_config.interfaces"), targets: 0, name: 'interfaces', data: 'details', className: 'text-nowrap text-left', responsivePriority: 1, render: function (data,_,rowData)  {
-		    
 		    return format_interfaces(data, rowData)}
-	    
 	},
     ];
     let wrap_columns_config = columns.map((c) => c);
@@ -154,7 +148,7 @@ const add_action_column = function (rowData) {
     ]);
 };
 
-async function delete_rule(repeater) {
+function delete_rule(repeater) {
     const add_url = `${http_prefix}/lua/rest/v2/delete/nedge/forwarder.lua`;
     let headers = {
         'Content-Type': 'application/json'

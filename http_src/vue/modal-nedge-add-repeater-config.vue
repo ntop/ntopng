@@ -55,7 +55,8 @@
         <b>{{_i18n("nedge.page_repeater_config.interfaces")}}</b>
 	    </label>
 				<SelectSearch ref="interfaces_search"
-													:options="interface_array"
+						v-model:selected_options="selected_interfaces"
+						:options="interface_array"
                           :multiple="true"
                           @select_option="update_interfaces_selected"
                           @unselect_option="remove_interfaces_selected"
@@ -86,6 +87,7 @@ const _i18n = (t) => i18n(t);
 const host_placeholder = i18n('if_stats_config.multicast_ip_placeholder')
 const port_placeholder = i18n('if_stats_config.port_placeholder')
 const modal_id = ref(null);
+const selected_interfaces = ref([]);
 const ip = ref(null);
 const port = ref(null);
 const repeater_type = ref({value: "mdns", label: "MDNS" });
@@ -136,12 +138,12 @@ const all_criteria = (item) => {
 	invalid_iface_number.value = item.length < 2;
 }
 
-const update_interfaces_selected = (item) => {
-
+const update_interfaces_selected = (items) => {
+	selected_interfaces.value = items;
 }
 
-const remove_interfaces_selected = (item) => {
-
+const remove_interfaces_selected = (item_to_delete) => {
+	selected_interfaces.value = selected_interfaces.value.filter((item) => item.label != item_to_delete.label);
 }
 
 const show = (row ) => {
@@ -179,16 +181,14 @@ function init(row) {
 		
 		if (is_open_in_add.value == false) {
 			const row_interfaces = row.interfaces.split(",");
-			let selected_interfaces = [] 
-			interface_array.value.forEach(function(el) {
-				el.selected = false;
-				if(row_interfaces.find(element => element == el.value)) {
-					el.selected = true;
+			let tmp_selected_interfaces = [];
+			row_interfaces.forEach((row_iface) => {
+				if (row_iface != '' && row_iface != null) {
+					tmp_selected_interfaces.push(interface_array.value.find((iface) => iface.value == row_iface));
 				}
-				
-				selected_interfaces.push(el);
 			})
-			interfaces_search.value.update_multiple_values(selected_interfaces);
+
+			selected_interfaces.value = tmp_selected_interfaces;
 		}
 }
 
@@ -239,19 +239,24 @@ const apply = () => {
 	event = "edit";
     }
 
-		let interfaces = "";
-		let details = "";
+	let interfaces = [];
+	let details = [];
+	
+	selected_dest_interface.value.forEach((i) => {
+		interfaces.push(i.value);
 		
-		selected_dest_interface.value.forEach((i) => {
-			interfaces +=i.value+",";
-			
-			if(i.value != i.label && !i.label.includes(i.value)) 
-				details += i.label+" ("+i.value+")"+",";
-			else 
-				details += i.label+",";
-		});
-		obj.interfaces = interfaces;
-		obj.interface_details = details;
+		if(i.value != i.label && !i.label.includes(i.value)) {
+			details.push(i.label+" ("+i.value+")");
+		} else {
+			details.push(i.label);
+		}
+	});
+
+	const tmp_interfaces = interfaces.join(",");
+	const tmp_details = details.join(",");
+
+	obj.interfaces = tmp_interfaces;
+	obj.interface_details = tmp_details;
     emit(event, obj);
     close();
 };
