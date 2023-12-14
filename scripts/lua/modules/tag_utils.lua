@@ -242,7 +242,7 @@ tag_utils.defined_tags = {
         operators = {'eq', 'neq'}
     },
     vlan_id = {
-        value_type = 'id',
+        value_type = 'vlan_id',
         i18n_label = i18n('db_search.tags.vlan_id'),
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
     },
@@ -981,6 +981,23 @@ function tag_utils.get_tag_info(id, entity)
             filter.options[#filter.options + 1] = {
                 value = id,
                 label = label
+            }
+        end
+
+    elseif tag.value_type == "vlan_id" then
+        filter.options = {}
+        local vlans = interface.getVLANsList()
+     
+        if vlans == nil then vlans = {VLANs={}} end
+        vlans = vlans["VLANs"]
+        for _, vlan in pairs(vlans) do
+            local vlan_name = getFullVlanName(vlan["vlan_id"])
+            if isEmptyString(vlan_name) then
+               vlan_name = i18n('no_vlan')
+            end
+            filter.options[#filter.options + 1] = {
+                value = vlan["vlan_id"],
+                label = vlan_name
             }
         end
 

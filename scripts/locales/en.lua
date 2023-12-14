@@ -1982,6 +1982,7 @@ local lang = {
       ["network"] = "All Networks",
       ["output_snmp"] = "All Interfaces",
       ["probe_ip"] = "All Exporters",
+      ["vlan_id"] = "All VLANs",
     },
     ["tags"] = {
       ["acknowledged"] = "Acknowledged",
