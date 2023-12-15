@@ -105,7 +105,6 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
          frequency = alert_type_params.frequency
       }))
   else
-   tprint("HERE")
       return(i18n("alert_messages.traffic_flowdev_port_volume_alert", {
             url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flowdevice_details.lua?ip=" .. alert_type_params.host,
             iface = alert_type_params.ifname,

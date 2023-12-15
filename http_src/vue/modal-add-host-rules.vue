@@ -864,6 +864,7 @@ const add_ = (is_edit) => {
       metric_type: tmp_metric_type,
       rule_type: tmp_rule_type,
       interface: flow_device_ifindex,
+      ifname: flow_device_ifindex_name,
       ifid: ifid,
       rule_threshold_sign: tmp_sign_value,
       rule_id: tmp_edit_row_id
