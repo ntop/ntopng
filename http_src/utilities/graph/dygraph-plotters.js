@@ -18,7 +18,7 @@ function darkenColor(colorStr) {
   color.r = Math.floor((255 + color.r) / 2);
   color.g = Math.floor((255 + color.g) / 2);
   color.b = Math.floor((255 + color.b) / 2);
-  return 'rgb(' + color.r + ',' + color.g + ',' + color.b + ')';
+  return 'rgb(' + color.r + ',' + color.g + ',' + color.b + ', 0.9)';
 }
 
 /* *********************************************** */

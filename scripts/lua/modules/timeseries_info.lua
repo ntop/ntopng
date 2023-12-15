@@ -46,6 +46,12 @@ local series_extra_info = {
     },
     default = {
         color = '#c6d9fd'
+    },
+    usage_sent = {
+        color = '#b3abd6'
+    },
+    usage_rcvd = {
+        color = '#2f4241'
     }
 }
 
