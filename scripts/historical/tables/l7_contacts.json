@@ -9,7 +9,7 @@
 		"chart_type" : "topk-timeseries",
 		"unit_measure": "bytes",
 		"params" : {
-			"count" : "TOTAL_BYTE"
+			"count" : "TOTAL_BYTES"
 		}
 	}],
 	"visualization_type" : "table",
