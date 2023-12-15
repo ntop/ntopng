@@ -32,6 +32,18 @@
 				"name" : "IPV6_DST_ADDR"
 			},
 			{
+				"name" : "SRC_LABEL",
+				"func" : "any",
+				"param" : "SRC_LABEL",
+				"value_type" : "string"
+			},
+			{
+				"name" : "DST_LABEL",
+				"func" : "any",
+				"param" : "DST_LABEL",
+				"value_type" : "string"
+			},
+			{
 				"name" : "PROTOCOL"
 			},
 			{
