@@ -268,6 +268,11 @@ const close = () => {
     modal_id.value.close();
 };
 
+const normalize_alert_key_value = (alert_key) => {
+  if (alert_key == "") return -1;
+  return alert_key;
+} 
+
 const add = () => {
     let params;
     let alert_addr = input_ip.value;
@@ -278,7 +283,7 @@ const add = () => {
         if (input_vlan.value != null && input_vlan.value != 0) {
 	    alert_addr = `${alert_addr}@${input_vlan.value}`;
         }
-	params = { alert_addr, host_alert_key: host_selected.value, flow_alert_key: flow_selected.value };
+	params = { alert_addr, host_alert_key: normalize_alert_key_value(host_selected.value), flow_alert_key: normalize_alert_key_value(flow_selected.value) };
     } else if (props.alert_exclusions_page == "domain_names") {
 	params = { alert_domain: input_text.value };
     } else if (props.alert_exclusions_page == "tls_certificate") {
