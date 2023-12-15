@@ -48,7 +48,7 @@ char *Redis::getVersion() { return (char *)this->redisVersion.c_str(); }
 
 u_int32_t Redis::getNumVersion() { return 1; }
 
-bool Redis::haveRedisDump() { return false; }
+bool Redis::hasRedisDump() { return false; }
 
 void Redis::setDefaults() {}
 

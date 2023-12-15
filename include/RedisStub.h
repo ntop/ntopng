@@ -51,7 +51,7 @@ class Redis {
 
   char *getVersion();
   u_int32_t getNumVersion();
-  bool haveRedisDump();
+  bool hasRedisDump();
   void setDefaults();
   bool isOperational();
   void setInitializationComplete();
