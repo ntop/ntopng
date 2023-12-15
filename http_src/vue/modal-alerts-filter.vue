@@ -114,12 +114,31 @@ watch(() => props.alert, (current_value, old_value) => {
     if (current_value == null) { return; }
     radio_selected.value = "any";
     disable_alerts.value = true;
-    domain.value = current_value.info?.value == "" ? null : current_value.info?.value;
+    domain.value = current_value.info?.value == "" ? null : extract_domain_name_from_info(current_value.info?.value);
     tls_certificate.value = current_value.info?.issuerdn == "" ? null : current_value.info?.issuerdn;
 });
-// const click_delete_disable_alerts = () => {
-// };
 
+const extract_domain_name_from_info = (info) => {
+
+  let domain_name = info;
+  // remove schema https:// etc
+  let info_splitted_ = info.split("://");
+  debugger;
+  if (info_splitted_.length > 1) domain_name = info_splitted_[1];
+
+  // remove net port
+  domain_name = domain_name.split(":")[0];
+
+  // remove www.
+  let info_splitted_on_www = domain_name.split("www.");
+  if (info_splitted_on_www.length > 1) domain_name = info_splitted_on_www[1];
+
+  // remove path
+  domain_name = domain_name.split("/")[0];
+  
+  return domain_name;
+
+}
 const check_disable_apply = () => {
     if (radio_selected.value == "domain") {
 	let regex_domain = new RegExp(pattern_domain);
