@@ -7,9 +7,9 @@
 	"chart" : [{
 		"chart_id" : "l7_contacts",
 		"chart_type" : "topk-timeseries",
-            "unit_measure": "bytes",
+		"unit_measure": "bytes",
 		"params" : {
-			"count" : "TOTAL_BYTES",
+			"count" : "TOTAL_BYTE"
 		}
 	}],
 	"visualization_type" : "table",
@@ -29,6 +29,18 @@
 			},
 			{
 				"name" : "IPV6_DST_ADDR"
+			},
+			{
+				"name" : "SRC_LABEL",
+				"func" : "any",
+				"param" : "SRC_LABEL",
+				"value_type" : "string"
+			},
+			{
+				"name" : "DST_LABEL",
+				"func" : "any",
+				"param" : "DST_LABEL",
+				"value_type" : "string"
 			},
 			{
 				"name" : "PROTOCOL"
