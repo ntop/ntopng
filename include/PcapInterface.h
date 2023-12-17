@@ -26,13 +26,17 @@
 
 class PcapInterface : public NetworkInterface {
  private:
-  pcap_t *pcap_handle;
+  u_int8_t num_ifaces;
+  pcap_t *pcap_handle[MAX_NUM_PCAP_INTERFACES];
+  unsigned int ifname_indexes[MAX_NUM_PCAP_INTERFACES];
   char *pcap_path;
   bool read_pkts_from_pcap_dump, read_pkts_from_pcap_dump_done,
-      emulate_traffic_directions, read_from_stdin_pipe, delete_pcap_when_done;
+    emulate_traffic_directions, read_from_stdin_pipe,
+    delete_pcap_when_done;
   ProtoStats prev_stats_in, prev_stats_out;
   FILE *pcap_list;
-
+  struct timeval startTS, firstPktTS;
+  
   pcap_stat last_pcap_stat;
   u_int32_t getNumDroppedPackets();
   void cleanupPcapDumpDir();
@@ -63,11 +67,11 @@ class PcapInterface : public NetworkInterface {
                 ? CONST_INTERFACE_TYPE_PCAP_DUMP
                 : CONST_INTERFACE_TYPE_PCAP);
   };
-  inline pcap_t *get_pcap_handle() { return (pcap_handle); };
+  inline pcap_t *get_pcap_handle(u_int8_t id) { return ((id < num_ifaces) ? pcap_handle[id] : NULL); };
   inline virtual bool areTrafficDirectionsSupported() {
     return (emulate_traffic_directions);
   };
-  inline void set_pcap_handle(pcap_t *p) { pcap_handle = p; };
+  inline void set_pcap_handle(pcap_t *p, u_int8_t id) { if(id < num_ifaces) pcap_handle[id] = p; };
   inline FILE *get_pcap_list() { return (pcap_list); };
   void startPacketPolling();
   bool set_packet_filter(char *filter);
@@ -76,12 +80,13 @@ class PcapInterface : public NetworkInterface {
     return (read_pkts_from_pcap_dump_done);
   };
   void set_read_from_pcap_dump_done() { read_pkts_from_pcap_dump_done = true; };
-  inline void sendTermination() {
-    if (pcap_handle) pcap_breakloop(pcap_handle);
-  };
+  void sendTermination();
   bool reproducePcapOriginalSpeed() const;
   virtual void updateDirectionStats();
-  bool reopen();
+  inline u_int8_t get_num_ifaces() { return(num_ifaces); }
+  bool processNextPacket(pcap_t *pd, int32_t if_index);
+  bool reopen(u_int8_t iface_id);  
+  unsigned int get_ifindex(int i) { return((i < MAX_NUM_PCAP_INTERFACES) ? ifname_indexes[i] : 0); }
 };
 
 #endif /* _PCAP_INTERFACE_H_ */

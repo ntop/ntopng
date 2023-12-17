@@ -31,17 +31,19 @@
 
 PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
                              bool _delete_pcap_when_done)
-    : NetworkInterface(name) {
+  : NetworkInterface(name) {
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
   struct stat buf;
 
   delete_pcap_when_done = _delete_pcap_when_done;
-  pcap_handle = NULL, pcap_list = NULL;
+  memset(pcap_handle, 0, sizeof(pcap_handle));
+  num_ifaces = 0, pcap_list = NULL;
   memset(&last_pcap_stat, 0, sizeof(last_pcap_stat));
   emulate_traffic_directions = false;
   read_pkts_from_pcap_dump = read_pkts_from_pcap_dump_done = false,
-  read_from_stdin_pipe = false;
-  ;
+    read_from_stdin_pipe = false;
+
+  firstPktTS.tv_sec = 0;
   pcap_path = NULL;
 
   if ((stat(name, &buf) == 0) || (name[0] == '-') ||
@@ -54,14 +56,13 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
     if (strcmp(name, "-") == 0 || !strncmp(name, "stdin", 5)) {
       /* stdin */
       pcap_error_buffer[0] = '\0';
-      pcap_handle = pcap_fopen_offline(stdin, pcap_error_buffer);
-      pcap_datalink_type = pcap_datalink(pcap_handle);
+      pcap_handle[0] = pcap_fopen_offline(stdin, pcap_error_buffer);
+      pcap_datalink_type = pcap_datalink(pcap_handle[0]);
       read_pkts_from_pcap_dump = false;
       is_traffic_mirrored = true;
       emulate_traffic_directions = true;
       read_from_stdin_pipe = true;
-    } else if ((pcap_handle = pcap_open_offline(ifname, pcap_error_buffer)) !=
-               NULL) {
+    } else if ((pcap_handle[0] = pcap_open_offline(ifname, pcap_error_buffer)) != NULL) {
       char *slash = strrchr(ifname, '/');
 
       pcap_path = strdup(ifname);
@@ -73,60 +74,73 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
 
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s...", ifname);
       read_pkts_from_pcap_dump = true,
-      purge_idle_flows_hosts = ntop->getPrefs()->purgeHostsFlowsOnPcapFiles();
-      pcap_datalink_type = pcap_datalink(pcap_handle);
+	purge_idle_flows_hosts = ntop->getPrefs()->purgeHostsFlowsOnPcapFiles();
+      pcap_datalink_type = pcap_datalink(pcap_handle[0]);
+      num_ifaces = 1;
     } else {
       /* Trying to open a playlist */
       if ((pcap_list = fopen(name, "r")) != NULL) {
         read_pkts_from_pcap_dump = true;
       } else {
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file %s",
-                                     name);
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open file %s", name);
         exit(0);
       }
     }
   } else {
-    pcap_handle = pcap_open_live(ifname, ntop->getGlobals()->getSnaplen(ifname),
-                                 ntop->getPrefs()->use_promiscuous(),
-                                 1000 /* 1 sec */, pcap_error_buffer);
+    char dev_names[64], *dev;
 
-    if (pcap_handle) {
-      char *bl = strrchr(ifname,
-#ifdef WIN32
-                         '\\'
-#else
-                         '/'
-#endif
-      );
+    snprintf(dev_names, sizeof(dev_names), "%s", ifname);
+    dev = strtok(dev_names, ",");
 
-      if (bl != NULL) {
-        char *tmp = ifname;
-        ifname = strdup(&bl[1]);
-        free(tmp);
+    while(dev != NULL) {
+      if(num_ifaces == MAX_NUM_PCAP_INTERFACES) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Too many interfaces (%d) in %s: skipping", num_ifaces, ifname);
+	break;
       }
 
-      pcap_path = NULL;
-      ntop->getTrace()->traceEvent(
-          TRACE_NORMAL, "Reading packets from %s [id: %d]",
-          ntop->getPrefs()->get_if_descr(ifIdx), ifIdx);
-      read_pkts_from_pcap_dump = false;
-      pcap_datalink_type = pcap_datalink(pcap_handle);
+      pcap_handle[num_ifaces] = pcap_open_live(dev, ntop->getGlobals()->getSnaplen(dev),
+						ntop->getPrefs()->use_promiscuous(),
+						1000 /* 1 sec */, pcap_error_buffer);
 
-      Utils::readMac(ifname, ifMac);
+      if(pcap_handle[num_ifaces] != NULL) {
+	int datalink = pcap_datalink(pcap_handle[num_ifaces]);
+
+	ifname_indexes[num_ifaces] = if_nametoindex(dev);
+	
+	pcap_path = NULL;
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from %s [id: %d]",
+				     ntop->getPrefs()->get_if_descr(ifIdx), ifIdx);
+	read_pkts_from_pcap_dump = false;
+
+	if(num_ifaces > 0) {
+	  if(pcap_datalink_type != datalink) {
+	    ntop->getTrace()->traceEvent(TRACE_ERROR, "The specified interfaces %s do not have the same datalink", ifname);
+	    throw -1;
+	  }
+	}
+	
+	pcap_datalink_type = datalink;
+
+	Utils::readMac(dev, ifMac);
 
 #ifndef WIN32
-      if (pcap_setdirection(pcap_handle,
-                            ntop->getPrefs()->getCaptureDirection()) != 0)
-        ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                     "Unable to set packet capture direction");
+	if (pcap_setdirection(pcap_handle[num_ifaces],
+			      ntop->getPrefs()->getCaptureDirection()) != 0)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING,
+				       "Unable to set packet capture direction");
 
-      if (!isTrafficMirrored()) {
-        if (Utils::readInterfaceStats(ifname, &prev_stats_in, &prev_stats_out))
-          emulate_traffic_directions = true;
-      }
+	if (!isTrafficMirrored()) {
+	  if (Utils::readInterfaceStats(dev, &prev_stats_in, &prev_stats_out))
+	    emulate_traffic_directions = true;
+	}
 #endif
-    } else
-      throw errno;
+
+	num_ifaces++;
+      } else
+	throw errno;
+
+      dev = strtok(NULL, ",");
+    } /* while */
   }
 
   if (read_pkts_from_pcap_dump) {
@@ -138,22 +152,23 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
   }
 
   if (ntop->getPrefs()->are_ixia_timestamps_enabled())
-    ntop->getTrace()->traceEvent(
-        TRACE_WARNING,
-        "Hardware timestamps are supported only on PF_RING capture interfaces");
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				 "Hardware timestamps are supported only on PF_RING capture interfaces");
 }
 
 /* **************************************************** */
 
 PcapInterface::~PcapInterface() {
-  if (pcap_handle) {
-    pcap_close(pcap_handle);
-    pcap_handle = NULL;
-
-    if (pcap_path != NULL) {
-      if (delete_pcap_when_done) unlink(pcap_path);
-      free(pcap_path);
+  for(u_int8_t i=0; i < get_num_ifaces(); i++) {
+    if (pcap_handle[i]) {
+      pcap_close(pcap_handle[i]);
+      pcap_handle[i] = NULL;
     }
+  }
+
+  if (pcap_path != NULL) {
+    if (delete_pcap_when_done) unlink(pcap_path);
+    free(pcap_path);
   }
 
   if (getIfType() == interface_type_PCAP_DUMP) {
@@ -178,11 +193,9 @@ void PcapInterface::cleanupPcapDumpDir() {
 
 static void *packetPollLoop(void *ptr) {
   PcapInterface *iface = (PcapInterface *)ptr;
-  pcap_t *pd;
   FILE *pcap_list = iface->get_pcap_list();
-  struct timeval startTS, firstPktTS;
-  int fd = -1;
-
+  int fds[MAX_NUM_PCAP_INTERFACES] = { -1 };
+  
   /* Wait until the initialization completes */
   while (iface->isStartingUp()) sleep(1);
 
@@ -240,7 +253,7 @@ static void *packetPollLoop(void *ptr) {
           } else {
             ntop->getTrace()->traceEvent(
                 TRACE_NORMAL, "Reading packets from pcap file %s", path);
-            iface->set_pcap_handle(file_pcap_handle);
+            iface->set_pcap_handle(file_pcap_handle, 0);
             break;
           }
         } else
@@ -256,131 +269,75 @@ static void *packetPollLoop(void *ptr) {
         iface->set_datalink(pcap_datalink(file_pcap_handle));
     }
 
-    pd = iface->get_pcap_handle();
+    /* Wait until the interface is active */
+    while (iface->idle()) {
+      iface->purgeIdle(time(NULL));
+      sleep(1);
+    }
 
-#ifdef __linux__
-    fd = pcap_get_selectable_fd(pd);
+#ifndef WIN32
+    for(u_int8_t i=0; i < iface->get_num_ifaces(); i++) {
+      pcap_t *pd = iface->get_pcap_handle(i);
+
+      fds[i] = pcap_get_selectable_fd(pd);
+    }
 #endif
 
-    firstPktTS.tv_sec = 0;
+  while (iface->isRunning() && (!ntop->getGlobals()->isShutdown())) {
+      int max_fd = 0;
+#ifndef WIN32
+      fd_set rset;
+      struct timeval tv;
 
-    while ((pd != NULL)
-	   && iface->isRunning()
-	   && (!ntop->getGlobals()->isShutdown())) {
-      const u_char *pkt;
-      struct pcap_pkthdr *hdr;
-      int rc;
+      FD_ZERO(&rset);
 
-      while (iface->idle()) {
-        iface->purgeIdle(time(NULL));
-        sleep(1);
+      for(u_int8_t i=0; i < iface->get_num_ifaces(); i++) {
+	FD_SET(fds[i], &rset);
+	if(fds[i] > max_fd) max_fd = fds[i];
       }
 
-      if (fd > 0) {
-        fd_set rset;
-        struct timeval tv;
+      tv.tv_sec = 1, tv.tv_usec = 0;
 
-        FD_ZERO(&rset);
-        FD_SET(fd, &rset);
+      if(select(max_fd + 1, &rset, NULL, NULL, &tv) == 0) {
+	if(iface->get_num_ifaces() == 1) {
+	  /*
+	    Reopen the interface if it's single.
+	    TODO: add support for multiple interfaces
+	   */
+	  for(u_int8_t i=0; i < iface->get_num_ifaces(); i++) {
+	    if(!iface->nwInterfaceExists(/* i */)) {
+	      ntop->getTrace()->traceEvent(TRACE_WARNING,
+					   "Network Interface %s (id %d) disappeared (is it is down ?)",
+					   iface->get_name(), i);
+	    }
 
-        tv.tv_sec = 1, tv.tv_usec = 0;
-        if (select(fd + 1, &rset, NULL, NULL, &tv) == 0) {
-
-	  if(!iface->nwInterfaceExists()) {
-	    ntop->getTrace()->traceEvent(TRACE_WARNING,
-					 "Network Interface %s disappeared (is it is down ?)",
-					 iface->get_name());
-	    if(iface->reopen()) {
-	      pd = iface->get_pcap_handle();
-	      
-#ifdef __linux__
-	      fd = pcap_get_selectable_fd(pd);
-#endif	      
-	    } else
-	      break;
+	    iface->purgeIdle(time(NULL));
+	    continue;
 	  }
-				       
-          iface->purgeIdle(time(NULL));
-          continue;
-        }
-      }
-
-      if ((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
-	if(ntop->getPrefs()->doReforgeTimestamps())
-	  gettimeofday(&hdr->ts, NULL);
-	
-        if (iface->reproducePcapOriginalSpeed()) {
-          struct timeval now;
-
-          gettimeofday(&now, NULL);
-
-          if (firstPktTS.tv_sec == 0) {
-            startTS = now;
-            firstPktTS = hdr->ts;
-          } else {
-            u_int32_t packetTimeDelta =
-                Utils::msTimevalDiff(&hdr->ts, &firstPktTS);
-            u_int32_t fromStartTimeDelta = Utils::msTimevalDiff(&now, &startTS);
-
-            if (packetTimeDelta > fromStartTimeDelta) {
-              u_int32_t sleepMs = packetTimeDelta - fromStartTimeDelta;
-
-              ntop->getTrace()->traceEvent(TRACE_DEBUG, "Sleeping %.3f sec",
-                                           ((float)(sleepMs)) / 1000);
-
-              _usleep(sleepMs * 1000);
-
-              /* Recompute after sleep */
-              gettimeofday(&now, NULL);
-            }
-          }
-
-          hdr->ts = now;
-        }
-
-        if ((pkt != NULL) && (hdr->caplen > 0)) {
-          u_int16_t p;
-          Host *srcHost = NULL, *dstHost = NULL;
-          Flow *flow = NULL;
-
-#ifdef WIN32
-          /*
-            For some unknown reason, on Windows winpcap
-            gets crazy with specific packets and so ntopng
-            crashes. Copying the packet memory onto a local buffer
-            prevents that, as specified in
-            https://github.com/ntop/ntopng/issues/194
-          */
-          u_char pkt_copy[1600];
-          struct pcap_pkthdr hdr_copy;
-
-          memcpy(&hdr_copy, hdr, sizeof(hdr_copy));
-          hdr_copy.len = min(hdr->len, sizeof(pkt_copy) - 1);
-          hdr_copy.caplen = min(hdr_copy.len, hdr_copy.caplen);
-          memcpy(pkt_copy, pkt, hdr_copy.len);
-          iface->dissectPacket(UNKNOWN_PKT_IFACE_IDX,
-			       DUMMY_BRIDGE_INTERFACE_ID,
-                               true /* ingress - TODO: see if we pass the real
-                                       packet direction */
-                               ,
-                               NULL, &hdr_copy, (const u_char *)pkt_copy, &p,
-                               &srcHost, &dstHost, &flow);
-#else
-          hdr->caplen = min_val(hdr->caplen, iface->getMTU());
-          iface->dissectPacket(UNKNOWN_PKT_IFACE_IDX,
-			       DUMMY_BRIDGE_INTERFACE_ID,
-                               true /* ingress - TODO: see if we pass the real
-                                       packet direction */
-                               ,
-                               NULL, hdr, pkt, &p, &srcHost, &dstHost, &flow);
-#endif
-        }
-      } else if (rc < 0) {
-        if (iface->read_from_pcap_dump()) break;
+	} else
+	  iface->purgeIdle(time(NULL));
       } else {
-        /* No packet received before the timeout */
-        iface->purgeIdle(time(NULL));
+	bool do_break = false;
+
+	for(u_int8_t i=0; i < iface->get_num_ifaces(); i++) {
+	  if(FD_ISSET(fds[i], &rset)) {
+	    /* ntop->getTrace()->traceEvent(TRACE_WARNING, "processNextPacket(%d)", i); */
+	    
+	    if(iface->processNextPacket(iface->get_pcap_handle(i), iface->get_ifindex(i)) == false) {
+	      do_break = true;
+	      break;
+	    }
+	  }
+	}
+
+	if(do_break)
+	  break;
       }
+#else
+      if(processNextPacket(iface->get_pcap_handle(0), iface->get_ifindex(0)) == false) {
+	break;
+      }
+#endif
     } /* while */
   } while (pcap_list != NULL);
 
@@ -408,50 +365,57 @@ void PcapInterface::startPacketPolling() {
 
 u_int32_t PcapInterface::getNumDroppedPackets() {
 #ifndef WIN32
-  /* It seems this leads to crashes on Windows */
-  struct pcap_stat pcapStat;
+  u_int32_t tot = 0;
 
-  if (pcap_handle && (pcap_stats(pcap_handle, &pcapStat) >= 0)) {
-    return (pcapStat.ps_drop);
-  } else
+  for(u_int8_t i=0; i < get_num_ifaces(); i++) {
+    /* It seems this leads to crashes on Windows */
+    struct pcap_stat pcapStat;
+
+    if (pcap_handle[i] && (pcap_stats(pcap_handle[i], &pcapStat) >= 0)) {
+      tot += pcapStat.ps_drop;
+    }
+  }
+
+  return(tot);
 #endif
-    return 0;
+
+  return 0;
 }
 
 /* **************************************************** */
 
 bool PcapInterface::set_packet_filter(char *filter) {
-  struct bpf_program fcode;
-  struct in_addr netmask;
-  int rc;
+  for(u_int8_t i=0; i < get_num_ifaces(); i++) {
+    struct bpf_program fcode;
+    struct in_addr netmask;
+    int rc;
 
-  if (!pcap_handle) return (false);
+    if (!pcap_handle[i]) return (false);
 
-  netmask.s_addr = htonl(0xFFFFFF00);
+    netmask.s_addr = htonl(0xFFFFFF00);
 
-  rc = pcap_compile(pcap_handle, &fcode, filter, 1, netmask.s_addr);
+    rc = pcap_compile(pcap_handle[i], &fcode, filter, 1, netmask.s_addr);
 
-  if (rc < 0) {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Unable to compile %s filter %s. Filter ignored.", ifname,
-        filter);
-    return (false);
-  }
+    if (rc < 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to compile %s filter %s. Filter ignored.", ifname,
+				   filter);
+      return (false);
+    }
 
-  rc = pcap_setfilter(pcap_handle, &fcode);
+    rc = pcap_setfilter(pcap_handle[i], &fcode);
 
-  pcap_freecode(&fcode);
+    pcap_freecode(&fcode);
 
-  if (rc < 0) {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Unable to set on %s filter %s. Filter ignored.", ifname,
-        filter);
-    return (false);
-  }
+    if (rc < 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set on %s filter %s. Filter ignored.", ifname,
+				   filter);
+      return (false);
+    }
+  } /* for */
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-                               "Packet capture filter on %s set to \"%s\"",
-                               ifname, filter);
+			       "Packet capture filter on %s set to \"%s\"",
+			       ifname, filter);
 
   /* can't get consistent stats while bpf is set */
   emulate_traffic_directions = false;
@@ -532,34 +496,130 @@ bool PcapInterface::reproducePcapOriginalSpeed() const {
 
 /* **************************************************** */
 
-bool PcapInterface::reopen() {  
-  pcap_close(pcap_handle);
+bool PcapInterface::reopen(u_int8_t iface_id) {
+  pcap_close(pcap_handle[iface_id]);
 
   Utils::gainWriteCapabilities();
-  
+
   while(!ntop->getGlobals()->isShutdown()) {
     char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-    
+
     ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to open %s", ifname);
-    
-    pcap_handle = pcap_open_live(ifname, ntop->getGlobals()->getSnaplen(ifname),
+
+    pcap_handle[iface_id] = pcap_open_live(ifname, ntop->getGlobals()->getSnaplen(ifname),
 				 ntop->getPrefs()->use_promiscuous(),
 				 1000 /* 1 sec */, pcap_error_buffer);
-    
-    if(pcap_handle) {
+
+    if(pcap_handle[iface_id]) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface %s is back", ifname);
       Utils::dropWriteCapabilities();
       return(true);
     } else
       ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to open %s: %s",
 				   ifname, pcap_error_buffer);
-	      
+
     sleep(1);
   }
 
   Utils::dropWriteCapabilities();
-  
+
   return(false);
+}
+
+/* **************************************************** */
+
+void PcapInterface::sendTermination() {
+  for(u_int8_t i=0; i < get_num_ifaces(); i++) {
+    if(pcap_handle[i])
+      pcap_breakloop(pcap_handle[i]);
+  }
+}
+
+/* **************************************************** */
+
+bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index) {
+  const u_char *pkt;
+  struct pcap_pkthdr *hdr;
+  int rc;
+
+  if ((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
+    if(ntop->getPrefs()->doReforgeTimestamps())
+      gettimeofday(&hdr->ts, NULL);
+
+    if (reproducePcapOriginalSpeed()) {
+      struct timeval now;
+
+      gettimeofday(&now, NULL);
+
+      if (firstPktTS.tv_sec == 0) {
+	startTS = now;
+	firstPktTS = hdr->ts;
+      } else {
+	u_int32_t packetTimeDelta    = Utils::msTimevalDiff(&hdr->ts, &firstPktTS);
+	u_int32_t fromStartTimeDelta = Utils::msTimevalDiff(&now, &startTS);
+
+	if (packetTimeDelta > fromStartTimeDelta) {
+	  u_int32_t sleepMs = packetTimeDelta - fromStartTimeDelta;
+
+	  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Sleeping %.3f sec",
+				       ((float)(sleepMs)) / 1000);
+
+	  _usleep(sleepMs * 1000);
+
+	  /* Recompute after sleep */
+	  gettimeofday(&now, NULL);
+	}
+      }
+
+      hdr->ts = now;
+    }
+
+    if ((pkt != NULL) && (hdr->caplen > 0)) {
+      u_int16_t p;
+      Host *srcHost = NULL, *dstHost = NULL;
+      Flow *flow = NULL;
+
+#ifdef WIN32
+      /*
+	For some unknown reason, on Windows winpcap
+	gets crazy with specific packets and so ntopng
+	crashes. Copying the packet memory onto a local buffer
+	prevents that, as specified in
+	https://github.com/ntop/ntopng/issues/194
+      */
+      u_char pkt_copy[1600];
+      struct pcap_pkthdr hdr_copy;
+
+      memcpy(&hdr_copy, hdr, sizeof(hdr_copy));
+      hdr_copy.len = min(hdr->len, sizeof(pkt_copy) - 1);
+      hdr_copy.caplen = min(hdr_copy.len, hdr_copy.caplen);
+      memcpy(pkt_copy, pkt, hdr_copy.len);
+      iface->dissectPacket(if_index,
+			   DUMMY_BRIDGE_INTERFACE_ID,
+			   true /* ingress - TODO: see if we pass the real
+				   packet direction */
+			   ,
+			   NULL, &hdr_copy, (const u_char *)pkt_copy, &p,
+			   &srcHost, &dstHost, &flow);
+#else
+      hdr->caplen = min_val(hdr->caplen, getMTU());
+      dissectPacket(if_index,
+		    DUMMY_BRIDGE_INTERFACE_ID,
+		    true /* ingress - TODO: see if we pass the real
+			    packet direction */
+		    ,
+		    NULL, hdr, pkt, &p, &srcHost, &dstHost, &flow);
+#endif
+    }
+  } else if (rc < 0) {
+    if (read_from_pcap_dump())
+      return(false);
+  } else {
+    /* No packet received before the timeout */
+    purgeIdle(time(NULL));
+  }
+   
+  return(true);
 }
 
 #endif

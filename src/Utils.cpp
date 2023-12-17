@@ -5723,5 +5723,3 @@ bool Utils::nwInterfaceExists(char *if_name) {
   return(found);
 #endif
 }
-
-  
