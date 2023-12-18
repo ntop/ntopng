@@ -1,6 +1,7 @@
 --
--- (C) 2019-22 - ntop.org
+-- (C) 2019-23 - ntop.org
 --
+
 local ts_utils = require "ts_utils_core"
 local schema
 
@@ -461,6 +462,7 @@ schema = ts_utils.newSchema("snmp_if:usage", {
     step = 300,
     rrd_heartbeat = 3000,
     rrd_fname = "usage",
+    metrics_type = ts_utils.metrics.gauge,
     is_system_schema = true
 })
 schema:addTag("ifid")
