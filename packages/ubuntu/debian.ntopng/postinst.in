@@ -44,6 +44,14 @@ if [ $(getent group n2disk) ] && [ $(getent passwd ntopng) ]; then
     fi
 fi
 
+if [ $(getent group systemd-journal) ] && [ $(getent passwd ntopng) ]; then
+    # this is necessary to allow ntopng to read journalctl logs
+    if ! id -nG ntopng | grep -qw "systemd-journal"; then
+	echo "Adding user ntopng to group systemd-journal..."
+	/usr/sbin/usermod -a -G systemd-journal ntopng
+    fi
+fi
+
 TLS_DIR="/usr/share/ntopng/httpdocs/ssl"
 TLS_CERT_PATH="$TLS_DIR/ntopng-cert.pem"
 if [ ! -f "$TLS_CERT_PATH" ]; then

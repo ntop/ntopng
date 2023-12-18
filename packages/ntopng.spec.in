@@ -172,6 +172,14 @@ if [ $(getent group n2disk) ] && [ $(getent passwd ntopng) ]; then
     fi
 fi
 
+if [ $(getent group systemd-journal) ] && [ $(getent passwd ntopng) ]; then
+    # this is necessary to allow ntopng to read journalctl logs
+    if ! id -nG ntopng | grep -qw "systemd-journal"; then
+       echo "Adding user ntopng to group systemd-journal..."
+       /usr/sbin/usermod -a -G systemd-journal ntopng
+    fi
+fi
+
 %if 0%{?centos_ver} == 6
 case "$1" in
   1)
