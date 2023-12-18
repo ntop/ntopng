@@ -14,8 +14,8 @@
                     <button v-if="traffic_extraction_permitted" class="btn btn-link btn-sm"
                         @click="show_modal_traffic_extraction" :title="_i18n('traffic_recording.pcap_download')"><i
                             class="fas fa-lg fa-download"></i></button>
-                    <button v-if="!is_safari" class="btn btn-link btn-sm" @click="show_modal_download_file"
-                        :title="_i18n('page_stats.title_modal_download_file')"><i
+                    <button :disabled="is_safari" class="btn btn-link btn-sm" @click="show_modal_download_file"
+                        :title="image_button_title"><i
                             class="fas fa-lg fa-file-image"></i></button>
                     <button v-if="is_history_enabled" class="btn btn-link btn-sm" @click="jump_to_historical_flows"
                         :title="_i18n('page_stats.historical_flows')"><i class="fas fa-lg fa-table"></i></button>
@@ -139,6 +139,7 @@ const modal_snapshot = ref(null);
 const modal_download_file = ref(null);
 
 const is_safari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+const image_button_title = is_safari ? _i18n('page_stats.download_image_disabled') : _i18n('page_stats.title_modal_download_file');
 
 const min_time_interval_id = ref(null);
 const metrics = ref([]);

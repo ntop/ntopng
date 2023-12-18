@@ -5900,6 +5900,7 @@ local lang = {
     ["95_perc"] = "95th Percentile",
     ["average"] = "Average",
     ["custom_metrics"] = "Custom Metrics",
+    ["download_image_disabled"] = "Button currently disabled on Safari",
     ["historical_flows"] = "Jump to Historical Flows",
     ["layout_1_per_1"] = "One Chart per Metric",
     ["layout_1_per_all"] = "Single Chart",
