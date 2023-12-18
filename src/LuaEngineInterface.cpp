@@ -143,7 +143,7 @@ static int ntop_get_first_interface_id(lua_State *vm) {
 static int ntop_select_interface(lua_State *vm) {
   char *ifname;
   bool already_set = false;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (lua_type(vm, 1) == LUA_TNIL)
@@ -156,7 +156,7 @@ static int ntop_select_interface(lua_State *vm) {
 
       getLuaVMUservalue(vm, iface) = ntop->getNetworkInterface(vm, ifid);
       already_set = true;
-    } else    
+    } else
       return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }
 
@@ -867,10 +867,10 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
     wait_for_db_created = lua_toboolean(vm, 3) ? true : false;
   }
 
-  /* In case the users login is disabled, the users have not the ability to run 
+  /* In case the users login is disabled, the users have not the ability to run
    * queries, check if the users login is enabled or not
    */
-  if (!ntop->hasCapability(vm, capability_historical_flows) 
+  if (!ntop->hasCapability(vm, capability_historical_flows)
       && ntop->getPrefs()->is_users_login_enabled()) {
     ntop->getTrace()->traceEvent(TRACE_WARNING,
                                  "User is not allowed to run query: %s", sql);
@@ -2074,7 +2074,7 @@ static int ntop_radius_accounting_start(lua_State *vm) {
 
 #ifdef HAVE_RADIUS
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *mac = NULL, *session_id = NULL, *username = NULL; 
+  char *mac = NULL, *session_id = NULL, *username = NULL;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (!ntop_interface)
@@ -2166,7 +2166,9 @@ static int ntop_radius_accounting_update(lua_State *vm) {
 #ifdef HAVE_RADIUS
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   const char *username = NULL, *session_id = NULL, *password = NULL;
-  char *mac = NULL;  
+#if 0
+  char *mac = NULL; /* unused */
+#endif
   RadiusTraffic traffic_data;
 
   memset(&traffic_data, 0, sizeof(traffic_data));
@@ -2176,9 +2178,11 @@ static int ntop_radius_accounting_update(lua_State *vm) {
   if (!ntop_interface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
-
+#if 0
+  /* unused */
   if (lua_type(vm, 1) == LUA_TSTRING)
     mac = (char *)lua_tostring(vm, 1);
+#endif
 
   if (lua_type(vm, 2) == LUA_TSTRING)
     session_id = (const char *)lua_tostring(vm, 2);
@@ -2201,7 +2205,7 @@ static int ntop_radius_accounting_update(lua_State *vm) {
   if (lua_type(vm, 8) == LUA_TNUMBER)
     traffic_data.packets_rcvd = (u_int64_t)lua_tonumber(vm, 8);
 
-  /* The update is strange, you have to first update 
+  /* The update is strange, you have to first update
     * and then authenticate again to be able to check if the user
     * is still able to navigate or not.
     */
@@ -2836,7 +2840,7 @@ static int ntop_get_flow_devices(lua_State *vm) {
   else {
     ntop_interface->getFlowDevices(vm, false);
 
-  /* Return a table with key, the interface id and as value, 
+  /* Return a table with key, the interface id and as value,
    * a table with the IPs of the interface
    */
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -5166,7 +5170,7 @@ static int ntop_clickhouse_exec_csv_query(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
   sql = lua_tostring(vm, 1);
-  
+
   if (lua_type(vm, 2) == LUA_TBOOLEAN) /* optional */
     use_json = lua_toboolean(vm, 2) ? true : false;
 
@@ -5376,7 +5380,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"getRxOnlyHostsList", ntop_get_rxonly_hosts_list},
     {"getBroadcastDomainHostsInfo",
      ntop_get_interface_broadcast_domain_hosts_info},
-    {"getBroadcastMulticastHostsInfo", 
+    {"getBroadcastMulticastHostsInfo",
      ntop_get_interface_broadcast_multicast_hosts_info},
     {"getPublicHostsInfo", ntop_get_public_hosts_info},
     {"getBatchedFlowsInfo", ntop_get_batched_interface_flows_info},
@@ -5459,11 +5463,11 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"getVLANFlowsStats", ntop_get_vlan_flows_stats},
     {"getHostsPorts", ntop_get_hosts_ports},
     {"getVLANHostsPorts", ntop_get_vlan_hosts_ports},
-    {"getHostsByPort", ntop_get_hosts_by_port}, 
+    {"getHostsByPort", ntop_get_hosts_by_port},
     { "radiusAccountingStart", ntop_radius_accounting_start },
     { "radiusAccountingStop", ntop_radius_accounting_stop },
     { "radiusAccountingUpdate", ntop_radius_accounting_update },
-    { "getHostsByService", ntop_get_hosts_by_service }, 
+    { "getHostsByService", ntop_get_hosts_by_service },
 
     /* Addresses */
     {"getAddressInfo", ntop_get_address_info},
