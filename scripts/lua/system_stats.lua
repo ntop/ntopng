@@ -122,7 +122,7 @@ if(page == "overview") then
    if not info.oem then
       print("<tr><th nowrap>"..i18n("about.last_log"))
 
-      if not ntop.isWindows() then
+      if not ntop.isWindows() and not ntop.isFreeBSD() then
          local days = 1
          print(" <A HREF='" .. ntop.getHttpPrefix() .. "/lua/rest/v2/get/system/logs.lua?days="..days.."'><i class='fas fa-download fa-sm' title='" .. i18n("download_days", { days = days }) .. "'></i></a>")
       end
