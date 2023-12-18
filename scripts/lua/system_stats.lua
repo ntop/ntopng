@@ -123,7 +123,8 @@ if(page == "overview") then
       print("<tr><th nowrap>"..i18n("about.last_log"))
 
       if not ntop.isWindows() then
-         print(" <A HREF='" .. ntop.getHttpPrefix() .. "/lua/rest/v2/get/system/logs.lua'><i class='fas fa-download fa-sm' title='" .. i18n("download") .. "'></i></a>")
+         local days = 1
+         print(" <A HREF='" .. ntop.getHttpPrefix() .. "/lua/rest/v2/get/system/logs.lua?days="..days.."'><i class='fas fa-download fa-sm' title='" .. i18n("download_days", { days = days }) .. "'></i></a>")
       end
 
       print("</th>")

@@ -19,6 +19,16 @@ local extra_headers = {}
 
 extra_headers["Content-Disposition"] = "attachment;filename=\"ntopng_logs_"..os.time()..".log\""
 
-local output = ntop.execCmd("journalctl -u ntopng --since '1 days ago'")
+local days
+if not isEmptyString(_GET["days"]) then
+   days = tonumber(_GET["days"])
+end
+if not days then
+   days = 1
+end
+
+local since = days .. " days ago"
+
+local output = ntop.execCmd("journalctl -u ntopng --since '"..since.."'")
 
 rest_utils.vanilla_payload_response(rest_utils.consts.success.ok, output, "text/plain;charset=UTF-8", extra_headers)

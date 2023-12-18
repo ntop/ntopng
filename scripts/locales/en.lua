@@ -187,6 +187,7 @@ local lang = {
   ["double_click_node"] = "<b>Note:</b> Double click on a host rectangle to drill down.",
   ["double_num_flows_hosts"] = "Double Number",
   ["download"] = "Download",
+  ["download_days"] = "Download last %{days} day(s)",
   ["download_format"] = "Please select the format of the data to download:",
   ["download_icon"] = "<i class='fas fa-arrow-down'></i>",
   ["download_x"] = "%{what} Download",
