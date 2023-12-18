@@ -14,7 +14,7 @@
                     <button v-if="traffic_extraction_permitted" class="btn btn-link btn-sm"
                         @click="show_modal_traffic_extraction" :title="_i18n('traffic_recording.pcap_download')"><i
                             class="fas fa-lg fa-download"></i></button>
-                    <button class="btn btn-link btn-sm" @click="show_modal_download_file"
+                    <button v-if="!is_safari" class="btn btn-link btn-sm" @click="show_modal_download_file"
                         :title="_i18n('page_stats.title_modal_download_file')"><i
                             class="fas fa-lg fa-file-image"></i></button>
                     <button v-if="is_history_enabled" class="btn btn-link btn-sm" @click="jump_to_historical_flows"
@@ -137,6 +137,8 @@ const top_table_ref = ref(null);
 const modal_timeseries = ref(null);
 const modal_snapshot = ref(null);
 const modal_download_file = ref(null);
+
+const is_safari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
 const min_time_interval_id = ref(null);
 const metrics = ref([]);
