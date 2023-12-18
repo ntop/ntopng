@@ -69,7 +69,13 @@ const top_snmp_interface = {
 			//return NtopUtils.bytesToSize(data)
 		},
 	}, {
-		columnName: i18n("percentage"), name: 'traffic_perc', className: 'text-center', data: 'percentage',
+		columnName: i18n("downlink_usage"), name: 'traffic_perc', className: 'text-center no-wrap', data: 'downlink_usage_percentage',
+		render: (data) => {
+			const percentage = data.toFixed(1);
+			return NtopUtils.createProgressBar(percentage)
+		}
+	}, {
+		columnName: i18n("uplink_usage"), name: 'traffic_perc', className: 'text-center no-wrap', data: 'uplink_usage_percentage',
 		render: (data) => {
 			const percentage = data.toFixed(1);
 			return NtopUtils.createProgressBar(percentage)

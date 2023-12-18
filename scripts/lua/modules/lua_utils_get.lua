@@ -1304,14 +1304,9 @@ function getFlowDevInterfaceConfig(device_ip, port_index, ifid)
         if ntop.isPro() then
             package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
             local snmp_utils = require "snmp_utils"
-            local snmp_cached_dev = require "snmp_cached_dev"
-            local cached_device = snmp_cached_dev:create(device_ip) or {}
-            local interfaces = cached_device["interfaces"] or {}
-            interface_label = snmp_utils.get_snmp_interface_label(interfaces[port_index] or {index = port_index}, true)
-            if interfaces[port_index] and interfaces[port_index]["speed"] then
-                uplink_speed = interfaces[port_index]["speed"] 
-                downlink_speed = interfaces[port_index]["speed"]               
-            end
+            local current_config = snmp_utils.getSNMPInterfaceSpeedConfig(device_ip, port_index)
+            uplink_speed = current_config.uplink_speed
+            downlink_speed = current_config.downlink_speed
         end
 
         ret = {
