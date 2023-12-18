@@ -26,7 +26,7 @@ function radius_handler.accountingStart(name, username, password)
 
     math.randomseed(os.time())
     local session_id = tostring(math.random(100000000000000000, 999999999999999999))
-    local accounting_started = interface.radiusAccountingStart(name --[[ MAC Address ]] , session_id)
+    local accounting_started = interface.radiusAccountingStart(username --[[ Username ]], name --[[ MAC Address ]], session_id)
 
     if accounting_started then
         local json = require("dkjson")
@@ -58,7 +58,7 @@ function radius_handler.accountingStop(name, bytes_sent, bytes_rcvd, packets_sen
     local is_accounting_on, user_data = radius_handler.isAccountingRequested(name)
 
     if is_accounting_on then
-        interface.radiusAccountingStop(name --[[ MAC Address ]] , user_data.session_id, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
+        interface.radiusAccountingStop(user_data.username --[[ Username ]] , user_data.session_id, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
         ntop.delCache(string.format(redis_accounting_key, name))
     end
 end
@@ -89,7 +89,7 @@ function radius_handler.accountingUpdate(name, info)
             -- An accounting stop has to be sent, the allowed data for name
             -- are expired, requesting stop 
             
-            radius_handler.accountingStop(name, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
+            radius_handler.accountingStop(user_data.username, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
             res = false
         end
     end

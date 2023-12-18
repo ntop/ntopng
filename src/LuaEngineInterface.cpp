@@ -2074,11 +2074,14 @@ static int ntop_radius_accounting_start(lua_State *vm) {
 
 #ifdef HAVE_RADIUS
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *mac = NULL, *session_id = NULL; 
+  char *mac = NULL, *session_id = NULL, *username = NULL; 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (!ntop_interface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  if (lua_type(vm, 1) == LUA_TSTRING)
+    username = (char *)lua_tostring(vm, 1);
 
   if (lua_type(vm, 1) == LUA_TSTRING)
     mac = (char *)lua_tostring(vm, 1);
@@ -2088,7 +2091,7 @@ static int ntop_radius_accounting_start(lua_State *vm) {
 
   /* First reset the stats then start the accounting */
   ntop_interface->resetMacStats(vm, mac, false);
-  res = ntop->radiusAccountingStart(mac, session_id);
+  res = ntop->radiusAccountingStart(username, session_id);
 #endif
 
   lua_pushboolean(vm, res);
@@ -2103,7 +2106,7 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
 
 #ifdef HAVE_RADIUS
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *mac = NULL, *session_id = NULL;
+  char *username = NULL, *session_id = NULL;
   RadiusTraffic traffic_data;
 
   memset(&traffic_data, 0, sizeof(traffic_data));
@@ -2114,7 +2117,7 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   if (lua_type(vm, 1) == LUA_TSTRING)
-    mac = (char *)lua_tostring(vm, 1);
+    username = (char *)lua_tostring(vm, 1);
 
   if (lua_type(vm, 2) == LUA_TSTRING)
     session_id = (char *)lua_tostring(vm, 2);
@@ -2131,7 +2134,7 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
   if (lua_type(vm, 6) == LUA_TNUMBER)
     traffic_data.packets_rcvd = (u_int64_t)lua_tonumber(vm, 6);
 
-  res = ntop->radiusAccountingStop(mac, session_id, &traffic_data);
+  res = ntop->radiusAccountingStop(username, session_id, &traffic_data);
 
 #endif
 
@@ -2202,7 +2205,7 @@ static int ntop_radius_accounting_update(lua_State *vm) {
     * and then authenticate again to be able to check if the user
     * is still able to navigate or not.
     */
-  res = ntop->radiusAccountingUpdate(mac, session_id, &traffic_data);
+  res = ntop->radiusAccountingUpdate(username, session_id, &traffic_data);
   if(res) {
     bool is_admin = false, has_unprivileged_capabilities = false;
     res = ntop->radiusAuthenticate(username, password, &has_unprivileged_capabilities, &is_admin);
