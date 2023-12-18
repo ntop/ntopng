@@ -457,6 +457,18 @@ schema:addMetric("nucast_sent")
 schema:addMetric("ucast_rcvd")
 schema:addMetric("nucast_rcvd")
 
+schema = ts_utils.newSchema("snmp_if:usage", {
+    step = 300,
+    rrd_heartbeat = 3000,
+    rrd_fname = "usage",
+    is_system_schema = true
+})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addTag("if_index")
+schema:addMetric("uplink")
+schema:addMetric("downlink")
+
 schema = ts_utils.newSchema("snmp_if:errors", {
     step = 300,
     rrd_heartbeat = 3000,
