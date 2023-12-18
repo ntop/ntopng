@@ -88,30 +88,34 @@ function shell.runScript(alerts, settings)
    end
 
   for key, alert in ipairs(alerts) do
-    -- Executing the script
-    local exec_script = fullpath
+    -- Trigger the script for the stored alert
+    -- Trigger the script just one time in case of engaged/released alerts
+    if not alert.action or alert.action == "engage" then
+      -- Executing the script
+      local exec_script = fullpath
 
-    -- Mask output
-    local cmd = exec_script .. " " .. options .. " > /dev/null"
+      -- Mask output
+      local cmd = exec_script .. " " .. options .. " > /dev/null"
 
-    -- Running script with the alert (json) as input (stdin)
-    sys_utils.execShellCmd(cmd, json.encode(alert))
+      -- Running script with the alert (json) as input (stdin)
+      sys_utils.execShellCmd(cmd, json.encode(alert))
 
-    if (alert.alert_id ~= other_alert_keys.alert_shell_script_executed) then
-      -- Trigger alert (exclude those for the shell script execution itself to avoid loops)
+      if (alert.alert_id ~= other_alert_keys.alert_shell_script_executed) then
+        -- Trigger alert (exclude those for the shell script execution itself to avoid loops)
 
-      -- Storing an alert-notice in regard of the shell script execution
-      -- for security reasons
-      local entity_info = alerts_api.systemEntity(ntop.getInfo().product)
+        -- Storing an alert-notice in regard of the shell script execution
+        -- for security reasons
+        local entity_info = alerts_api.systemEntity(ntop.getInfo().product)
 
-      local type_info = alert_consts.alert_types.alert_shell_script_executed.new(
-        exec_script,
-        alert_consts.alertTypeLabel(alert["alert_id"], true)
-      )
-  
-      type_info:set_score_notice()
+        local type_info = alert_consts.alert_types.alert_shell_script_executed.new(
+          exec_script,
+          alert_consts.alertTypeLabel(alert["alert_id"], true)
+        )
+    
+        type_info:set_score_notice()
 
-      type_info:store(entity_info)
+        type_info:store(entity_info)
+      end
     end
   end -- for
 
