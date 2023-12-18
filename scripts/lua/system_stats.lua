@@ -120,7 +120,15 @@ if(page == "overview") then
    print("</td></tr>")
 
    if not info.oem then
-      print("<tr><th nowrap>"..i18n("about.last_log").."</th><td><div class='scrollable-log'><code>\n")
+      print("<tr><th nowrap>"..i18n("about.last_log"))
+
+      if not ntop.isWindows() then
+         print(" <A HREF='" .. ntop.getHttpPrefix() .. "/lua/rest/v2/get/system/logs.lua'><i class='fas fa-download fa-sm' title='" .. i18n("download") .. "'></i></a>")
+      end
+
+      print("</th>")
+      print("<td><div class='scrollable-log'><code>\n")
+
       for i=0,32 do
          msg = ntop.listIndexCache("ntopng.trace", i)
          if(msg ~= nil) then

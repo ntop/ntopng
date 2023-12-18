@@ -4071,7 +4071,7 @@ u_int32_t Utils::findInterfaceGatewayIPv4(const char *ifname) {
 
 /* ******************************* */
 
-/* Exec the command and returns fals ein case of error, or true otherwise */
+/* Exec the command and returns false in case of error, or true otherwise */
 bool Utils::execCmd(char *cmd, std::string *out) {
 #ifndef WIN32
   FILE *fp;
