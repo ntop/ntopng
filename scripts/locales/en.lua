@@ -3900,6 +3900,7 @@ local lang = {
     ["traffic_rx_behavior"] = "Behaviour: Traffic RX",
     ["traffic_rxtx"] = "Traffic RX/TX",
     ["traffic_sent"] = "Traffic TX",
+    ["traffic_per_minute"] = "Traffic per Min.",
     ["traffic_tx_behavior"] = "Behaviour: Traffic TX",
     ["traffic_userspace"] = "Userspace",
     ["traffic_vs_errors"] = "Traffic vs Errors",

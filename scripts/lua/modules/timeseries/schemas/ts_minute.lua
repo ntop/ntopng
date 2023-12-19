@@ -755,7 +755,7 @@ schema:addMetric("num_calls")
 schema = ts_utils.newSchema("snmp_if:traffic_min", {
     step = 60,
     rrd_heartbeat = 600,
-    rrd_fname = "bytes",
+    rrd_fname = "bytes_per_minute",
     is_system_schema = true
 })
 schema:addTag("ifid")
