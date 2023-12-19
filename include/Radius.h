@@ -49,7 +49,7 @@ class Radius {
   bool authenticate(const char *user, const char *password,
                     bool *has_unprivileged_capabilities, bool *is_admin);
   bool startSession(const char *username, const char *session_id);
-  bool stopSession(const char *username, const char *session_id, RadiusTraffic *info);
+  bool stopSession(const char *username, const char *mac, const char *last_ip, const char *session_id, RadiusTraffic *info);
   bool updateSession(const char *username, const char *session_id, RadiusTraffic *info);
 };
 

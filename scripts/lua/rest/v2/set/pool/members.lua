@@ -31,6 +31,7 @@ sendHTTPContentTypeHeader('application/json')
          connectivity = "reject"
          username: "905395124063",
          password: "XXX",
+         terminateCause: "1"
        },
        ["192.168.2.221/32@0"] = {
          group = "staff", 
@@ -90,10 +91,12 @@ for member, info in pairs(_POST["associations"] or {}) do
             res["associations"][member]["status_msg"] = "Failure adding member, maybe bad member MAC or IP"
         end
     elseif info["connectivity"] == "reject" then
+        -- To check radius termination cause see https://datatracker.ietf.org/doc/html/rfc2866#section-5.10
+        local terminate_cause = info["terminateCause"] or 3 -- Lost service
         s:bind_member(member, host_pools.DEFAULT_POOL_ID)
         res["associations"][member]["status"] = "OK"
         interface.select(tostring(interface.getFirstInterfaceId()))
-        radius_handler.accountingStop(member)
+        radius_handler.accountingStop(member, terminate_cause)
         interface.select("-1") -- System Interface
     else
         res["associations"][member]["status"] = "ERROR"

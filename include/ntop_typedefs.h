@@ -1221,6 +1221,7 @@ typedef struct {
   u_int64_t bytes_rcvd;
   u_int64_t packets_sent;
   u_int64_t packets_rcvd;
+  u_int8_t terminate_cause;
 } RadiusTraffic;
 
 typedef enum {

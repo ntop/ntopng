@@ -489,8 +489,8 @@ bool Radius::updateSession(const char *username, const char *session_id, RadiusT
 
 /* *************************************** */
 
-bool Radius::stopSession(const char *username, const char *session_id,
-                         RadiusTraffic *info) {
+bool Radius::stopSession(const char *username, const char *mac, const char *last_ip,
+                          const char *session_id, RadiusTraffic *info) {
   /* Reset the return */
   bool radius_ret = false;
   rc_handle *rh = NULL;
@@ -510,15 +510,31 @@ bool Radius::stopSession(const char *username, const char *session_id,
     goto radius_auth_out;
   }
 
+  if(last_ip) {
+    u_int32_t addr = ntohl(inet_addr(last_ip));
+    if (rc_avpair_add(rh, &send, PW_FRAMED_IP_ADDRESS, &(addr), -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set IP Address");
+      return false;
+    }
+  }
+
+  if(mac) {
+    if (rc_avpair_add(rh, &send, PW_CALLING_STATION_ID, mac, -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set MAC Address");
+      return false;
+    }
+  }
+
   /* Add to the dictionary the interim-update data (needed even in the stop) */
   addUpdateConfigurationAcct(rh, &send, info);
 
-  /* TODO: Change the terminate clause to the correct one */
-  if (rc_avpair_add(rh, &send, PW_ACCT_TERMINATE_CAUSE, "No More Allowed", -1,
-                    0) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Radius: unable to set Bytes Sent");
-    return false;
+  if(info->terminate_cause) {
+    if (rc_avpair_add(rh, &send, PW_ACCT_TERMINATE_CAUSE, &(info->terminate_cause), -1,
+                      0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+                                  "Radius: unable to set Bytes Sent");
+      return false;
+    }
   }
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Radius: performing accounting stop for: %s", username);
