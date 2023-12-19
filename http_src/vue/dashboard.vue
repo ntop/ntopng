@@ -146,13 +146,21 @@
                     <template v-slot:box_title>
                         <div v-if="c.i18n_name" class="dashboard-component-title modal-header">
                             <h4 class="modal-title">
-                                {{ _i18n(c.i18n_name) }}
+                                <template v-if="c.custom_name"> 
+                                    {{ c.custom_name }}
+                                </template>
+                                <template v-else>
+                                    {{ _i18n(c.i18n_name) }}
+                                </template>
                                 <span style="color: gray">
                                     {{ c.time_offset ? _i18n('dashboard.time_ago.' + c.time_offset) : '' }}
                                 </span>
                             </h4>
                             <div v-if="edit_mode" class="modal-close">
-                              <button type="button" class="btn-close" :data-component-id="c.id" @click="remove_template_component"></button>
+                                <div class ='btn-group'>
+                                    <button  type="button" class="btn-edit me-1" :data-component-id="c.id" @click="show_edit_template_component"></button> 
+                                    <button type="button" class="btn-close" :data-component-id="c.id" @click="remove_template_component"></button>
+                                </div>
                             </div>
                         </div>
                     </template>
@@ -196,6 +204,8 @@
     <ModalSelectComponent ref="modal_add_template_component" :list_components="list_template_components" :add_component="add_template_component"
         :csrf="context.csrf" :title="_i18n('dashboard.add_component')">
     </ModalSelectComponent>
+    <ModalEditComponent ref="modal_edit_template_component" :csrf="context.csrf" @edit="edit_template_component">
+    </ModalEditComponent>
     <ModalDeleteConfirm ref="modal_delete_template" :title="_i18n('dashboard.del_template')" :body="_i18n('dashboard.del_template_confirm')" @delete="delete_template">
     </ModalDeleteConfirm>
 
@@ -211,6 +221,7 @@ import { default as ModalSave } from "./modal-file-save.vue";
 import { default as ModalOpen } from "./modal-file-open.vue";
 import { default as ModalUpload } from "./modal-file-upload.vue";
 import { default as ModalSelectComponent } from "./modal-select-component.vue";
+import { default as ModalEditComponent } from "./modal-edit-component.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 import { default as Loading } from "./loading.vue";
 
@@ -254,6 +265,7 @@ const modal_open_report = ref(null);
 const modal_upload_report = ref(null);
 
 const modal_add_template_component = ref(null);
+const modal_edit_template_component = ref(null);
 const modal_delete_template = ref(null)
 
 const main_epoch_interval = ref(null);
@@ -1089,6 +1101,50 @@ async function remove_template_component(e) {
     set_sortable_template();
 
     commit_template_change();
+}
+
+/**
+ * @brief The method used to open the edit component modal 
+ *        involves triggering a click event on the 'Edit' (pencil icon) button.
+ * @param e event object
+ */
+function show_edit_template_component(e) {
+    const component_id = e.target.dataset.componentId;
+    const component = components.value.find(c => c.id === component_id);
+    modal_edit_template_component.value.show(component);
+}
+
+/**
+ * 
+ * @brief The method used to update the selected component with new settings 
+ *        involves making a REST call.
+ * @param new_component An object with new settings for the component to edit. 
+ */
+async function edit_template_component(new_component) {
+    unset_sortable_template();
+
+    let url = `${props.context.template_component_edit_endpoint}`;
+    let params = {
+        csrf: props.context.csrf,
+        template: props.context.template,
+        component: new_component.id,
+        component_title: new_component.title,
+        component_height: new_component.height,
+        component_width: new_component.width
+    };
+    let headers = {
+        'Content-Type': 'application/json'
+    };
+    try {
+        let content = await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+        warning_message.value = "";
+        await set_template(selected_report_template.value.value);
+    } catch (err) {
+        warning_message.value = _i18n("report.unable_to_open");
+    }
+
+    await nextTick();
+    set_sortable_template();
 }
 
 async function delete_template() {
