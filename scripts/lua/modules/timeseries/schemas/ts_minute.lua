@@ -748,3 +748,19 @@ schema = ts_utils.newSchema("redis:hits", {
 schema:addTag("ifid")
 schema:addTag("command")
 schema:addMetric("num_calls")
+
+-- ################################################
+
+-- SNMP
+schema = ts_utils.newSchema("snmp_if:traffic_min", {
+    step = 60,
+    rrd_heartbeat = 600,
+    rrd_fname = "bytes",
+    is_system_schema = true
+})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addTag("if_index")
+schema:addMetric("bytes_sent")
+schema:addMetric("bytes_rcvd")
+
