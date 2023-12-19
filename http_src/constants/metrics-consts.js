@@ -2,11 +2,13 @@ import interfaceTopTables from "./interface_top_tables.js";
 import hostTopTables from "./host_top_tables.js";
 import snmpInterfaceTopTables from "./snmp_interface_top_tables.js";
 import flowDeviceTopTables from "./flow_device_top_tables.js";
+import proxySnmp from "../proxies/snmp.js";
 
 const ui_types = {
 	hide: "hide",
 	select: "select",
 	input: "input",
+	input: "input_confirm",
 };
 
 const sources_url_el_to_source = {
@@ -74,25 +76,26 @@ const sources_types_tables = {
 
 const sources_types = [
 	{
-		id: "interface", //unique id
-		regex_page_url: "lua\/if_stats", // regex to match url page
-		label: i18n("page_stats.source_def.interface"),
+	    id: "interface", //unique id
+	    regex_page_url: "lua\/if_stats", // regex to match url page
+	    label: i18n("page_stats.source_def.interface"),
 	    query: "iface",
             f_map_ts_options: null, // convert rest result
-		source_def_array: [{
-			main_source_def: true,
-			label: i18n("page_stats.source_def.interface"),
-			regex_type: null,
-			sources_url: "lua/rest/v2/get/ntopng/interfaces.lua", // url to get sources list
-			sources_function: null, // custom function that return sources_list, overwrite sources_url
-			value: "ifid", // used in tsQuery parameter, to get init and set value in url
-			value_url: null, // overwrite value to get and set value in url
-			value_map_sources_res: null,
-			disable_tskey: null,
-			f_get_value_url: null, // overwrite value and value_url to get start value from url
-			f_set_value_url: null, // overwrite value and value_url to set start value in url
-			ui_type: ui_types.select,
-		}],
+	    source_def_array: [{
+		main_source_def: true,
+		label: i18n("page_stats.source_def.interface"),
+		regex_type: null,
+                refresh_on_sources_change: false, // if true sources list are realoaded every time some selected sources changed 
+		sources_url: "lua/rest/v2/get/ntopng/interfaces.lua", // url to get sources list
+		sources_function: null, // custom function that return sources_list, overwrite sources_url
+		value: "ifid", // used in tsQuery parameter, to get init and set value in url
+		value_url: null, // overwrite value to get and set value in url
+		value_map_sources_res: null,
+		disable_tskey: null,
+		f_get_value_url: null, // overwrite value and value_url to get start value from url
+		f_set_value_url: null, // overwrite value and value_url to set start value in url
+		ui_type: ui_types.select,
+	    }],
 	},
 	{
 	    id: "blacklist", //unique id
@@ -355,33 +358,43 @@ const sources_types = [
 		}],
 	},
 	{
-		id: "snmp_interface",
-		id_group: "snmp",
-		// disable_stats: true,
-		regex_page_url: "lua\/pro\/enterprise\/snmp_interface_details",
+	    id: "snmp_interface",
+	    id_group: "snmp",
+	    // disable_stats: true,
+	    regex_page_url: "lua\/pro\/enterprise\/snmp_interface_details",
+	    label: i18n("page_stats.source_def.snmp_interface"),
+	    query: "snmp_interface",
+            f_map_ts_options: (ts_options, ts_group) => {
+                return ts_options;
+            },
+            source_def_array: [{
+		label: i18n("page_stats.source_def.interface"),
+		sources_function: () => { return [{ label: "", value: -1 }] },
+		value: "ifid",
+		ui_type: ui_types.hide,
+	    }, {
+		label: i18n("page_stats.source_def.device"),
+		regex_type: "ip",
+		sources_url: "lua/pro/rest/v2/get/snmp/device/list.lua", // url to get sources list
+		value: "device",
+		value_url: "host",
+                // refresh_i18n: 'modal_timeseries.snmp_confirm_device',
+		// ui_type: ui_types.input_confirm,
+                ui_type: ui_types.select,
+	    }, {
+		main_source_def: true,
 		label: i18n("page_stats.source_def.snmp_interface"),
-		query: "snmp_interface",
-		source_def_array: [{
-			label: i18n("page_stats.source_def.interface"),
-			sources_function: () => { return [{ label: "", value: -1 }] },
-			value: "ifid",
-			ui_type: ui_types.hide,
-		}, {
-			label: i18n("page_stats.source_def.device"),
-			regex_type: "ip",
-			sources_url: "lua/pro/rest/v2/get/snmp/device/list.lua", // url to get sources list
-			value: "device",
-			value_url: "host",
-			ui_type: ui_types.input,
-		}, {
-			main_source_def: true,
-			label: i18n("page_stats.source_def.snmp_interface"),
-//			sources_url: "lua/pro/rest/v2/get/snmp/device/interfaces.lua",
-			regex_type: "text",
-			value: "if_index",
-			value_url: "snmp_port_idx",
-			ui_type: ui_types.input,
-		}],
+		regex_type: "text",
+                refresh_on_sources_change: true,
+		sources_function: async (selected_source_value_array) => {
+                    const device_host = selected_source_value_array[1];
+                    let snmp_interfaces = await proxySnmp.available_interfaces(device_host);
+                    return snmp_interfaces.map((iface) => { return { label: iface.name, value: iface.id }; });
+                },
+		value: "if_index",
+		value_url: "snmp_port_idx",
+		ui_type: ui_types.select,
+	    }],
 	},
 	{
 		id: "snmp_device",

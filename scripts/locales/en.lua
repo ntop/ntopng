@@ -5294,6 +5294,7 @@ local lang = {
     ["apply_source"] = "Apply Source",
     ["manage_timeseries"] = "Manage Timeseries",
     ["metric"] = "Metric",
+    ["snmp_confirm_device"] = "Reload SNMP Interfaces",
     ["source"] = "Source",
     ["source_type"] = "Source Type",
     ["timeseries_list"] = "Timeseries:",
