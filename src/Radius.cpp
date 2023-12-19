@@ -154,7 +154,7 @@ bool Radius::buildConfiguration(rc_handle **rh) {
 /* Performs the basic configuration for the accounting, Status type, service,
  * username and session id */
 bool Radius::addBasicConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
-                                       u_int16_t status_type,
+                                       u_int32_t status_type,
                                        const char *username,
                                        const char *session_id) {
   if (rc_avpair_add(rh, send, PW_ACCT_STATUS_TYPE, &status_type, -1, 0) == NULL) {
@@ -404,7 +404,6 @@ bool Radius::startSession(const char *username, const char *session_id) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Configuration Failed");
     goto radius_auth_out;
   }
-
   if (!addBasicConfigurationAcct(rh, &send, PW_ACCOUNTING_ON, username, session_id)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");

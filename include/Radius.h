@@ -36,7 +36,7 @@ class Radius {
 
   bool buildConfiguration(rc_handle **rh);
   bool addBasicConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
-                                 u_int16_t status_type, const char *username,
+                                 u_int32_t status_type, const char *username,
                                  const char *session_id);
   bool addUpdateConfigurationAcct(rc_handle *rh, VALUE_PAIR **send, RadiusTraffic *info);
 
