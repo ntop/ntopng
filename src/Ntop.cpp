@@ -672,7 +672,7 @@ void Ntop::start() {
             MulticastForwarder *multicastForwarder = new (std::nothrow) MulticastForwarder(ip, port, interfaces);
 
             if (multicastForwarder) {
-              ntop->getTrace()->traceEvent(TRACE_NORMAL, "Multicast forwarder initialized on IP %s Port %d Interfaces %s", ip, port, interfaces);
+              ntop->getTrace()->traceEvent(TRACE_NORMAL, "Multicast forwarder initialized on IP %s Port %d Interfaces %s", ip.c_str(), port, interfaces.c_str());
               multicastForwarder->start();
               multicastForwarders.push_back(multicastForwarder);
             } else {
