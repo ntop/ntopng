@@ -27,6 +27,10 @@ function getColor(current_value, max_value, default_color) {
   if(!max_value || !current_value) {
     return darkenColor(default_color);
   }
+  /* Security check */
+  if(current_value > max_value) {
+    current_value = max_value;
+  }
 
   const colors_module = max_value / FILL_COLORS.length;
   for(let i = 1; i < FILL_COLORS.length + 1; i++) {

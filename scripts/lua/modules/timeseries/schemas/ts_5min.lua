@@ -362,7 +362,8 @@ schema:addMetric("bytes_rcvd")
 
 schema = ts_utils.newSchema("sflowdev_port:usage", {
     step = 300,
-    rrd_fname = "usage"
+    rrd_fname = "usage",
+    metrics_type = ts_utils.metrics.gauge
 })
 schema:addTag("ifid")
 schema:addTag("device")
