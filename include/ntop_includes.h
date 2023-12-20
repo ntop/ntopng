@@ -489,7 +489,9 @@ using namespace std;
 #include "HostChecksLoader.h"
 #include "HostChecksExecutor.h"
 #ifdef HAVE_NEDGE
+#include "Forwarder.h"
 #include "MulticastForwarder.h"
+#include "BroadcastForwarder.h"
 #endif
 #include "Radius.h"
 #include "Ntop.h"
