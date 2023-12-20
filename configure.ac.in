@@ -247,15 +247,6 @@ fi
 
 NTOPCLOUD_HOME="../ntopcloud"
 if test -d "${NTOPCLOUD_HOME}"; then
-  CNATS_HOME=/opt/homebrew/include
-
-  if test -d "${CNATS_HOME}"; then
-    CFLAGS="${CFLAGS} -I${CNATS_HOME}"
-    NATS_LIB="-L ${CNATS_HOME}/lib -lnats"
-  else
-    NATS_LIB="-lnats"
-  fi
-  
   CFLAGS="${CFLAGS} -I${NTOPCLOUD_HOME}"
   CXXFLAGS="${CXXFLAGS} -I${NTOPCLOUD_HOME}"
   LIBS="${LIBS} ${NTOPCLOUD_HOME}/libcloud.a ${NATS_LIB}"
