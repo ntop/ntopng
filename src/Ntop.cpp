@@ -669,14 +669,18 @@ void Ntop::start() {
           if (token != NULL) {
             interfaces = token;
 
-            MulticastForwarder *multicastForwarder = new (std::nothrow) MulticastForwarder(ip, port, interfaces);
+            Forwarder *multicastForwarder;
+
+            if (ip.length() > 3 && strcmp(ip.c_str() + ip.length() - 3, "255") == 0)
+              multicastForwarder = new (std::nothrow) BroadcastForwarder(ip, port, interfaces);
+            else
+              multicastForwarder = new (std::nothrow) MulticastForwarder(ip, port, interfaces);
 
             if (multicastForwarder) {
-              ntop->getTrace()->traceEvent(TRACE_NORMAL, "Multicast forwarder initialized on IP %s Port %d Interfaces %s", ip.c_str(), port, interfaces.c_str());
               multicastForwarder->start();
               multicastForwarders.push_back(multicastForwarder);
             } else {
-              ntop->getTrace()->traceEvent(TRACE_ERROR, "Error occured instantiating Multicast Forwarder");
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "Error occured instantiating forwarder on IP %s Port %d", ip.c_str(), port);
             }
           }
         }
