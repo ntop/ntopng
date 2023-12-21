@@ -146,19 +146,14 @@
                     <template v-slot:box_title>
                         <div v-if="c.i18n_name" class="dashboard-component-title modal-header">
                             <h4 class="modal-title">
-                                <template v-if="c.custom_name"> 
-                                    {{ c.custom_name }}
-                                </template>
-                                <template v-else>
-                                    {{ _i18n(c.i18n_name) }}
-                                </template>
+                                {{ c.custom_name ?  c.custom_name : _i18n(c.i18n_name) }}
                                 <span style="color: gray">
                                     {{ c.time_offset ? _i18n('dashboard.time_ago.' + c.time_offset) : '' }}
                                 </span>
                             </h4>
                             <div v-if="edit_mode" class="modal-close">
                                 <div class ='btn-group'>
-                                    <button  type="button" class="btn-edit me-1" :data-component-id="c.id" @click="show_edit_template_component"></button> 
+                                    <button  type="button" class="btn-close btn-edit me-1" :data-component-id="c.id" @click="show_edit_template_component"></button> 
                                     <button type="button" class="btn-close" :data-component-id="c.id" @click="remove_template_component"></button>
                                 </div>
                             </div>
@@ -1111,7 +1106,8 @@ async function remove_template_component(e) {
 function show_edit_template_component(e) {
     const component_id = e.target.dataset.componentId;
     const component = components.value.find(c => c.id === component_id);
-    modal_edit_template_component.value.show(component);
+    const is_report_page = props.context.page == 'report';
+    modal_edit_template_component.value.show(component, is_report_page);
 }
 
 /**
@@ -1130,8 +1126,12 @@ async function edit_template_component(new_component) {
         component: new_component.id,
         component_title: new_component.title,
         component_height: new_component.height,
-        component_width: new_component.width
+        component_width: new_component.width,
+        component_time_offset: new_component.time_offset,
+        component_time_window: new_component.time_window,
+        component_params: new_component.rest_params
     };
+
     let headers = {
         'Content-Type': 'application/json'
     };
