@@ -128,7 +128,11 @@ local function schema_get_path(schema, tags)
         suffix = tags.if_index .. "/"
     elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
        if(tags.port) then
-	  suffix = tags.port .. "/"
+	  if(type(tags.port) == "table") then
+	     suffix = tags.port.ifindex .. "/"
+	  else
+	     suffix = tags.port .. "/"
+	  end
        elseif(tags.ifid) then
 	  suffix = tags.ifid .. "/"
        else
