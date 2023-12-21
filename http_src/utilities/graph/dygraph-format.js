@@ -276,7 +276,7 @@ function formatStandardSerie(timeserie_info, timeserie_options, config, tsCompar
     const avg_name = getSerieName(timeserie_name + " Avg", ts_id, timeserie_info, config.use_full_name)
     const perc_name = getSerieName(timeserie_name + " 95th Perc", ts_id, timeserie_info, config.use_full_name);
     const past_name = getSerieName(timeserie_name + " " + tsCompare + " Ago", ts_id, timeserie_info, config.use_full_name);
-    const past_value = past_serie[`${tsCompare}_ago`]?.series[j]?.data;
+    const past_value = (past_serie) ? past_serie[`${tsCompare}_ago`]?.series[j]?.data : null;
     /* An option used to not display a timeserie */
     if (metadata.hidden) {
       return;
