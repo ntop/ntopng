@@ -54,8 +54,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_params)
-   
-   if(alert_type_params.frequency == "5min") then
+   if(alert_type_params.frequency == "5min") or (alert_type_params.frequency == "5mins") then
       alert_type_params.frequency = i18n("edit_check.hooks_name.5mins")
    elseif(alert_type_params.frequency == "hour") then
       alert_type_params.frequency = i18n("edit_check.hooks_name.hour")
@@ -82,12 +81,15 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
       end
    end
 
-   
+   local ifname = alert_type_params.ifname
+   if isEmptyString(ifname) then
+      ifname = alert_type_params.ifid
+   end
    
    if( alert_type_params.metric ~= "flowdev:traffic" and alert_type_params.metric ~= "flowdev_port:traffic" )then
       return(i18n("alert_messages.traffic_interface_volume_alert", {
          url = ntop.getHttpPrefix() .. "/lua/if_stats.lua?ifid=" .. alert_type_params.ifid,
-         iface = alert_type_params.ifname,
+         iface = ifname,
          metric = alert_type_params.metric,
          value = alert_type_params.value,
          threshold_sign = alert_type_params.threshold_sign,
@@ -107,7 +109,7 @@ function alert_network_rule_threshold_cross.format(ifid, alert, alert_type_param
   else
       return(i18n("alert_messages.traffic_flowdev_port_volume_alert", {
             url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/flowdevice_details.lua?ip=" .. alert_type_params.host,
-            iface = alert_type_params.ifname,
+            iface = ifname,
             host = alert_type_params.host,
             metric = alert_type_params.metric,
             value = alert_type_params.value,

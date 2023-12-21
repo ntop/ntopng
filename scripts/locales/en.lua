@@ -1012,7 +1012,7 @@ local lang = {
     ["too_many_hosts_details"] = "Do you want to double the current number of maximum Hosts?",
     ["too_many_hosts_err"] = "Unable to double max Hosts. Please tune -X from the configuration file and restart ntopng.",
     ["too_many_hosts_title"] = "Double Max Hosts",
-    ["traffic_flowdev_port_volume_alert"] = "[Flow Exporter Device: <a href=\"%{url}\">%{host} on %{iface}</a>] [Metric: %{metric}] [Condition: %{value} %{threshold_sign} %{threshold}] [Check Frequency: %{frequency}]",
+    ["traffic_flowdev_port_volume_alert"] = "[Flow Exporter Device: <a href=\"%{url}\" target='_blank'>%{host}</a> Interface %{iface}] [Metric: %{metric}] [Condition: %{value} %{threshold_sign} %{threshold}] [Check Frequency: %{frequency}]",
     ["traffic_flowdev_volume_alert"] = "[Flow Exporter Device: <a href=\"%{url}\">%{host}</a>] [Metric: %{metric}] [Condition: %{value} %{threshold_sign} %{threshold}] [Check Frequency: %{frequency}]",
     ["traffic_host_pool_volume_alert"] = "[Host Pool: <a href=\"%{url}%{host_pool_id}\">%{host_pool_label}</a>] [Metric: %{metric}] [Condition: %{value} %{threshold_sign} %{threshold}] [Check Frequency: %{frequency}]",
     ["traffic_interface_volume_alert"] = "[Interface: <a href=\"%{url}\">%{iface}</a>] [Metric: %{metric}] [Condition: %{value} %{threshold_sign} %{threshold}] [Check Frequency: %{frequency}]",
