@@ -1354,7 +1354,7 @@ local community_timeseries = {{
             label = i18n('score_as_server')
         }
     }
-}, -- os_details.lua (Operative System): --
+}, -- os_details.lua (Operating System): --
 {
     schema = "os:traffic",
     id = timeseries_id.os,
@@ -2838,7 +2838,7 @@ local function choose_traffic_serie(tags, timeseries)
         timeseries[#timeseries + 1] = {
             schema = "snmp_if:traffic_min",
             id = timeseries_id.snmp_interface,
-            label = i18n("graphs.traffic_rxtx"),
+            label = i18n("graphs.traffic_rxtx_snmp_min"),
             priority = 2,
             measure_unit = "bps",
             scale = i18n("graphs.metric_labels.traffic"),
@@ -2860,7 +2860,7 @@ local function choose_traffic_serie(tags, timeseries)
         timeseries[#timeseries + 1] = {
             schema = "snmp_if:traffic",
             id = timeseries_id.snmp_interface,
-            label = i18n("graphs.traffic_per_minute"), --i18n("graphs.traffic_rxtx")
+            label = i18n("graphs.traffic_rxtx_snmp"), --i18n("graphs.traffic_rxtx")
             priority = 2,
             measure_unit = "bps",
             scale = i18n("graphs.metric_labels.traffic"),
@@ -2945,7 +2945,7 @@ local function add_top_flow_port_timeseries(tags, timeseries)
                 timeseries[#timeseries + 1] = {
                     schema = "snmp_if:traffic_min",
                     id = timeseries_id.flow_port,
-                    label = i18n("graphs.traffic_per_minute"),--i18n("graphs.traffic_rxtx")
+                    label = i18n("graphs.traffic_rxtx_snmp_min"),--i18n("graphs.traffic_rxtx")
                     priority = 2,
                     measure_unit = "bps",
                     scale = i18n("graphs.metric_labels.traffic"),
@@ -2971,7 +2971,7 @@ local function add_top_flow_port_timeseries(tags, timeseries)
             timeseries[#timeseries + 1] = {
                 schema = "flowdev_port:traffic",
                 id = timeseries_id.flow_port,
-                label = i18n("graphs.traffic_rxtx"),
+                label = i18n("graphs.traffic_rxtx_netflow"),
                 priority = 2,
                 measure_unit = "bps",
                 scale = i18n("graphs.metric_labels.traffic"),
@@ -3104,8 +3104,7 @@ end
 function timeseries_info.get_host_rules_schema(rule_type)
     if rule_type == "host" then
         local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
-        local has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~=
-                                      "0"
+        local has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~= "0"
         local has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
 
         local metric_list = {{
@@ -3165,8 +3164,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
         return metric_list
     elseif rule_type == "interface" then
         local ifname_ts_enabled = ntop.getCache("ntopng.prefs.ifname_ndpi_timeseries_creation")
-        local has_top_protocols = ifname_ts_enabled == "both" or ifname_ts_enabled == "per_protocol" or
-                                      ifname_ts_enabled ~= "0"
+        local has_top_protocols = ifname_ts_enabled == "both" or ifname_ts_enabled == "per_protocol" or ifname_ts_enabled ~= "0"
         local has_top_categories = ifname_ts_enabled == "both" or ifname_ts_enabled == "per_category"
 
         local metric_list = {{

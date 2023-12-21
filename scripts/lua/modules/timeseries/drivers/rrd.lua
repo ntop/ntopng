@@ -127,7 +127,13 @@ local function schema_get_path(schema, tags)
     if parts[1] == "snmp_if" then
         suffix = tags.if_index .. "/"
     elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
-        suffix = tags.port .. "/"
+       if(tags.port) then
+	  suffix = tags.port .. "/"
+       elseif(tags.ifid) then
+	  suffix = tags.ifid .. "/"
+       else
+	  suffix = tags.port.ifindex .. "/"
+       end
     elseif parts[2] == "ndpi_categories" then
         suffix = "ndpi_categories/"
     elseif parts[2] == "ndpi_flows" then
