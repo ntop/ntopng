@@ -2772,6 +2772,11 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	      goto dissect_packet_end;
 	    }
 	  }
+	} else if ((sport == EOIP_PORT) && (dport == EOIP_PORT)) {
+	  u_int offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr) + 12;
+
+	  eth_offset = offset;
+	  goto datalink_check;
 	} else if ((sport == TZSP_PORT) || (dport == TZSP_PORT)) {
 	  /* https://en.wikipedia.org/wiki/TZSP */
 	  u_int offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr);
