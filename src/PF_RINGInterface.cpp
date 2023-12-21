@@ -210,7 +210,7 @@ void PF_RINGInterface::singlePacketPollLoop() {
 
         if (hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
         dissectPacket(merged_interfaces ? hdr.extended_hdr.if_index : UNKNOWN_PKT_IFACE_IDX,
-		      DUMMY_BRIDGE_INTERFACE_ID,
+		      DUMMY_BRIDGE_INTERFACE_ID, pcap_datalink_type,
                       (hdr.extended_hdr.rx_direction == 1) ? true /* ingress */
                                                            : false /* egress */,
                       NULL, (const struct pcap_pkthdr *)&hdr, buffer, &p,
@@ -260,7 +260,7 @@ void PF_RINGInterface::multiPacketPollLoop() {
 
         if (hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
 	dissectPacket(merged_interfaces ? hdr.extended_hdr.if_index : UNKNOWN_PKT_IFACE_IDX,
-		      DUMMY_BRIDGE_INTERFACE_ID,
+		      DUMMY_BRIDGE_INTERFACE_ID, pcap_datalink_type,
                       (idx == 0) /* Assuming 0 ingress, 1 egress (TAP) */, NULL,
                       (const struct pcap_pkthdr *)&hdr, buffer, &p, &srcHost,
                       &dstHost, &flow);

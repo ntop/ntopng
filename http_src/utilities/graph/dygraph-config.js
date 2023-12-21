@@ -103,7 +103,7 @@ function buildChartOptions(options) {
   }
 
   changeFormatters(config, options);
-  
+
   return config;
 }
 
@@ -111,6 +111,12 @@ function buildChartOptions(options) {
 
 function formatSerieProperties(type) {
   switch (type) {
+    case 'dash':
+      return {
+        fillGraph: false,
+        customBars: false,
+        strokePattern: Dygraph.DASHED_LINE
+      };
     case 'point':
       return {
         fillGraph: false,

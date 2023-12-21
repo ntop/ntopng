@@ -1518,7 +1518,7 @@ extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
 
 #define OFFLINE_LOCAL_HOSTS_KEY "ntopng.hosts.offline.ifid_%d"
 
-#define MAX_NUM_PCAP_INTERFACES   3
+#define MAX_NUM_PCAP_INTERFACES 8
 
 /******************************************************************************/
 

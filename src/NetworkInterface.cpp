@@ -1572,7 +1572,8 @@ NetworkInterface *NetworkInterface::getDynInterface(u_int64_t criteria,
 
 /* **************************************************** */
 
-bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_idx, bool ingressPacket,
+bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_idx,
+				     int pcap_datalink_type, bool ingressPacket,
 				     const struct bpf_timeval *when, const u_int64_t packet_time,
 				     struct ndpi_ethhdr *eth, u_int16_t vlan_id, struct ndpi_iphdr *iph,
 				     struct ndpi_ipv6hdr *ip6, u_int16_t ip_offset,
@@ -1614,7 +1615,8 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 #ifndef HAVE_NEDGE
     /* Custom disaggregation */
     if (sub_interfaces && (sub_interfaces->getNumSubInterfaces() > 0)) {
-      processed = sub_interfaces->processPacket(if_index, bridge_iface_idx, ingressPacket,
+      processed = sub_interfaces->processPacket(if_index, bridge_iface_idx,
+						pcap_datalink_type, ingressPacket,
 						when, packet_time, eth, vlan_id, iph,
 						ip6, ip_offset, encapsulation_overhead, len_on_wire, h, packet,
 						ndpiProtocol, srcHost, dstHost, hostFlow);
@@ -1629,7 +1631,8 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 
         if ((vIface = getDynInterface((u_int32_t)vlan_id, false)) != NULL) {
           vIface->setTimeLastPktRcvd(h->ts.tv_sec);
-          pass_verdict = vIface->processPacket(if_index, bridge_iface_idx, ingressPacket, when, packet_time, eth, vlan_id,
+          pass_verdict = vIface->processPacket(if_index, bridge_iface_idx,
+					       pcap_datalink_type, ingressPacket, when, packet_time, eth, vlan_id,
 					       iph, ip6, ip_offset, encapsulation_overhead, len_on_wire, h,
 					       packet, ndpiProtocol, srcHost, dstHost, hostFlow);
           processed = true;
@@ -2433,6 +2436,7 @@ u_int16_t NetworkInterface::guessEthType(const u_char *p, u_int len,
 
 bool NetworkInterface::dissectPacket(int32_t if_index,
 				     u_int32_t bridge_iface_idx,
+				     int pcap_datalink_type,
                                      bool ingressPacket, u_int8_t *sender_mac,
                                      const struct pcap_pkthdr *h,
                                      const u_char *packet,
@@ -2443,7 +2447,6 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
   u_int16_t eth_type, ip_offset = 0, vlan_id = 0, eth_offset = 0,
     encapsulation_overhead = 0;
   u_int32_t null_type;
-  int pcap_datalink_type = get_datalink();
   bool pass_verdict = true;
   u_int32_t len_on_wire = h->len * getScalingFactor();
   *flow = NULL;
@@ -2890,8 +2893,8 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
       }
 
       try {
-	pass_verdict = processPacket(if_index,
-				     bridge_iface_idx, ingressPacket, &h->ts, time, ethernet, vlan_id,
+	pass_verdict = processPacket(if_index, bridge_iface_idx,
+				     pcap_datalink_type, ingressPacket, &h->ts, time, ethernet, vlan_id,
 				     iph, ip6, ip_offset, encapsulation_overhead, len_on_wire, h,
 				     packet, ndpiProtocol, srcHost, dstHost, flow);
       } catch (std::bad_alloc &ba) {
@@ -3043,8 +3046,8 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	if (ntop->getPrefs()->do_ignore_macs()) ethernet = &dummy_ethernet;
 
 	try {
-	  pass_verdict = processPacket(if_index,
-				       bridge_iface_idx, ingressPacket, &h->ts, time, ethernet,
+	  pass_verdict = processPacket(if_index, bridge_iface_idx, pcap_datalink_type,
+				       ingressPacket, &h->ts, time, ethernet,
 				       vlan_id, iph, ip6, ip_offset, encapsulation_overhead,
 				       len_on_wire, h, packet, ndpiProtocol, srcHost, dstHost, flow);
 	} catch (std::bad_alloc &ba) {

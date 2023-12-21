@@ -57,7 +57,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
       /* stdin */
       pcap_error_buffer[0] = '\0';
       pcap_handle[0] = pcap_fopen_offline(stdin, pcap_error_buffer);
-      pcap_datalink_type = pcap_datalink(pcap_handle[0]);
+      iface_datalink[0] = pcap_datalink(pcap_handle[0]);
       read_pkts_from_pcap_dump = false;
       is_traffic_mirrored = true;
       emulate_traffic_directions = true;
@@ -75,7 +75,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s...", ifname);
       read_pkts_from_pcap_dump = true,
 	purge_idle_flows_hosts = ntop->getPrefs()->purgeHostsFlowsOnPcapFiles();
-      pcap_datalink_type = pcap_datalink(pcap_handle[0]);
+      iface_datalink[0] = pcap_datalink(pcap_handle[0]);
       num_ifaces = 1;
     } else {
       /* Trying to open a playlist */
@@ -103,24 +103,14 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
 						1000 /* 1 sec */, pcap_error_buffer);
 
       if(pcap_handle[num_ifaces] != NULL) {
-	int datalink = pcap_datalink(pcap_handle[num_ifaces]);
-
+	iface_datalink[num_ifaces] = pcap_datalink(pcap_handle[num_ifaces]);
 	ifname_indexes[num_ifaces] = if_nametoindex(dev);
 	
 	pcap_path = NULL;
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from %s [id: %d]",
 				     ntop->getPrefs()->get_if_descr(ifIdx), ifIdx);
 	read_pkts_from_pcap_dump = false;
-
-	if(num_ifaces > 0) {
-	  if(pcap_datalink_type != datalink) {
-	    ntop->getTrace()->traceEvent(TRACE_ERROR, "The specified interfaces %s do not have the same datalink", ifname);
-	    throw -1;
-	  }
-	}
 	
-	pcap_datalink_type = datalink;
-
 	Utils::readMac(dev, ifMac);
 
 #ifndef WIN32
@@ -323,7 +313,9 @@ static void *packetPollLoop(void *ptr) {
 	  if(FD_ISSET(fds[i], &rset)) {
 	    /* ntop->getTrace()->traceEvent(TRACE_WARNING, "processNextPacket(%d)", i); */
 	    
-	    if(iface->processNextPacket(iface->get_pcap_handle(i), iface->get_ifindex(i)) == false) {
+	    if(iface->processNextPacket(iface->get_pcap_handle(i),
+					iface->get_ifindex(i),
+					iface->get_ifdatalink(i)) == false) {
 	      do_break = true;
 	      break;
 	    }
@@ -537,7 +529,7 @@ void PcapInterface::sendTermination() {
 
 /* **************************************************** */
 
-bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index) {
+bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_datalink_type) {
   const u_char *pkt;
   struct pcap_pkthdr *hdr;
   int rc;
@@ -595,7 +587,7 @@ bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index) {
       hdr_copy.caplen = min(hdr_copy.len, hdr_copy.caplen);
       memcpy(pkt_copy, pkt, hdr_copy.len);
       iface->dissectPacket(if_index,
-			   DUMMY_BRIDGE_INTERFACE_ID,
+			   DUMMY_BRIDGE_INTERFACE_ID, pcap_datalink_type,
 			   true /* ingress - TODO: see if we pass the real
 				   packet direction */
 			   ,
@@ -604,7 +596,7 @@ bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index) {
 #else
       hdr->caplen = min_val(hdr->caplen, getMTU());
       dissectPacket(if_index,
-		    DUMMY_BRIDGE_INTERFACE_ID,
+		    DUMMY_BRIDGE_INTERFACE_ID, pcap_datalink_type,
 		    true /* ingress - TODO: see if we pass the real
 			    packet direction */
 		    ,

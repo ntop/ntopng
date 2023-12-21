@@ -29,6 +29,7 @@ class PcapInterface : public NetworkInterface {
   u_int8_t num_ifaces;
   pcap_t *pcap_handle[MAX_NUM_PCAP_INTERFACES];
   unsigned int ifname_indexes[MAX_NUM_PCAP_INTERFACES];
+  int iface_datalink[MAX_NUM_PCAP_INTERFACES];
   char *pcap_path;
   bool read_pkts_from_pcap_dump, read_pkts_from_pcap_dump_done,
     emulate_traffic_directions, read_from_stdin_pipe,
@@ -84,9 +85,10 @@ class PcapInterface : public NetworkInterface {
   bool reproducePcapOriginalSpeed() const;
   virtual void updateDirectionStats();
   inline u_int8_t get_num_ifaces() { return(num_ifaces); }
-  bool processNextPacket(pcap_t *pd, int32_t if_index);
+  bool processNextPacket(pcap_t *pd, int32_t if_index, int pcap_datalink_type);
   bool reopen(u_int8_t iface_id);  
-  unsigned int get_ifindex(int i) { return((i < MAX_NUM_PCAP_INTERFACES) ? ifname_indexes[i] : 0); }
+  unsigned int get_ifindex(int i) { return(ifname_indexes[i]); }
+  int get_ifdatalink(int i)       { return(iface_datalink[i]); }
 };
 
 #endif /* _PCAP_INTERFACE_H_ */

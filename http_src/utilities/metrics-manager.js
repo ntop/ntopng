@@ -182,11 +182,7 @@ const get_source_array_from_value_array = async (http_prefix, source_type, sourc
         let source_def = source_type.source_def_array[i];
         if (source_def.sources_url || source_def.sources_function) {
             let sources = [];
-            if (source_def.sources_url) {
-                sources = await get_sources(http_prefix, source_type.id, source_def);
-            } else {
-                sources = await source_def.sources_function();
-            }
+            sources = await get_sources(http_prefix, source_type.id, source_def, source_value_array);
             source = sources.find((s) => s.value == source_value);
             if (source == null) {
                 source = sources[0];
@@ -201,14 +197,24 @@ const get_source_array_from_value_array = async (http_prefix, source_type, sourc
 
 let cache_sources = {};
 
-const get_sources = async (http_prefix, id, source_def) => {
+function get_source_def_key(id, source_def, selected_source_value_array) {
     let key = `${id}_${source_def.value}`;
+    if (!source_def.refresh_on_sources_change) {
+        return key;
+    }
+    const value_array = selected_source_value_array.join("_");
+    key = `${key}_${value_array}`;
+    return key;
+}
+
+const get_sources = async (http_prefix, id, source_def, selected_source_value_array) => {
+    let key = get_source_def_key(id, source_def, selected_source_value_array);
     if (cache_sources[key] == null) {
         if (source_def.sources_url) {
             let url = `${http_prefix}/${source_def.sources_url}`;
             cache_sources[key] = ntopng_utility.http_request(url);
         } else if (source_def.sources_function) {
-            cache_sources[key] = source_def.sources_function();
+            cache_sources[key] = source_def.sources_function(selected_source_value_array);
         } else {
             return [];
         }
@@ -222,9 +228,9 @@ const get_sources = async (http_prefix, id, source_def) => {
         if (f_map_source_element == null) {
             throw `:Error: metrics-manager.js, missing sources_url_to_source ${source_def.value} key`;
         }
-        sources = sources.map((s) => f_map_source_element(s))
+        sources = sources.map((s) => f_map_source_element(s));
     }
-    return sources.sort(NtopUtils.sortAlphabetically)
+    return sources.sort(NtopUtils.sortAlphabetically);
 };
 
 function set_source_value_object_in_url(source_type, source_value_object) {

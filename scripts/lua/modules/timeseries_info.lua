@@ -1601,6 +1601,7 @@ local community_timeseries = {{
     label = i18n("about.cpu_load"),
     priority = 0,
     measure_unit = "number",
+    chart_type = "bar",
     ts_query = "CountriesHash",
     scale = i18n('graphs.metric_labels.hash_entries'),
     timeseries = {
@@ -1736,6 +1737,7 @@ local community_timeseries = {{
     label = i18n("about.cpu_load"),
     priority = 0,
     measure_unit = "percentage",
+    chart_type = "bar",
     scale = i18n('graphs.metric_labels.load'),
     timeseries = {
         iowait_pct = {
@@ -2098,11 +2100,11 @@ local function add_top_blacklist_hits_timeseries(tags, timeseries)
             query = "blacklist_name:" .. serie.blacklist_name,
             label = serie.blacklist_name:gsub("_", " "),
             measure_unit = "hitss",
-            
+
             scale = i18n('graphs.metric_labels.blacklist_hits'),
             timeseries = {
                 hits = {
-                   use_serie_name = true,
+                    use_serie_name = true,
                     label = i18n('graphs.metric_labels.blacklist_num_hits'),
                     color = timeseries_info.get_timeseries_color('')
                 }
@@ -2825,7 +2827,66 @@ end
 
 -- #################################
 
+local function choose_traffic_serie(tags, timeseries)
+    local tot = 0
+    local tot_serie = ts_utils.queryTotal("snmp_if:traffic_min", tags.epoch_begin, tags.epoch_end, tags)
+    for _, value in pairs(tot_serie or {}) do
+        tot = tot + tonumber(value)
+    end
+
+    --if (tot > 0) then
+        timeseries[#timeseries + 1] = {
+            schema = "snmp_if:traffic_min",
+            id = timeseries_id.snmp_interface,
+            label = i18n("graphs.traffic_rxtx"),
+            priority = 2,
+            measure_unit = "bps",
+            scale = i18n("graphs.metric_labels.traffic"),
+            timeseries = {
+                bytes_sent = {
+                    label = i18n('graphs.metric_labels.out_bytes'),
+                    color = timeseries_info.get_timeseries_color('bytes_sent')
+                },
+                bytes_rcvd = {
+                    invert_direction = true,
+                    label = i18n('graphs.metric_labels.in_bytes'),
+                    color = timeseries_info.get_timeseries_color('bytes_rcvd')
+                }
+            },
+            alwais_visibile = true,
+            default_visible = true
+        }
+    --else
+        timeseries[#timeseries + 1] = {
+            schema = "snmp_if:traffic",
+            id = timeseries_id.snmp_interface,
+            label = i18n("graphs.traffic_per_minute"), --i18n("graphs.traffic_rxtx")
+            priority = 2,
+            measure_unit = "bps",
+            scale = i18n("graphs.metric_labels.traffic"),
+            timeseries = {
+                bytes_sent = {
+                    label = i18n('graphs.metric_labels.out_bytes'),
+                    color = timeseries_info.get_timeseries_color('bytes_sent')
+                },
+                bytes_rcvd = {
+                    invert_direction = true,
+                    label = i18n('graphs.metric_labels.in_bytes'),
+                    color = timeseries_info.get_timeseries_color('bytes_rcvd')
+                }
+            },
+            alwais_visibile = true,
+            default_visible = true
+        }
+    --end
+
+    return timeseries
+end
+
+-- #################################
+
 local function add_top_flow_port_timeseries(tags, timeseries)
+    local add_standard_traffic = true
     local top_protocols_pref = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
 
     -- Top l7 Protocols
@@ -2866,6 +2927,69 @@ local function add_top_flow_port_timeseries(tags, timeseries)
                 end
             end
         end
+
+        if ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1" then
+            tmp_tags.if_index = tags.port
+            tmp_tags.ifid = getSystemInterfaceId()
+            tmp_tags.port = nil
+            tmp_tags.protocol = nil
+            local tot = 0
+            local tot_serie = ts_utils.queryTotal("snmp_if:traffic_min", tags.epoch_begin, tags.epoch_end, tmp_tags)
+            for _, value in pairs(tot_serie or {}) do
+                tot = tot + tonumber(value)
+            end
+
+            if (tot > 0) then
+                add_standard_traffic = false
+                -- Add this unique serie if snmp timeseries are enabled
+                timeseries[#timeseries + 1] = {
+                    schema = "snmp_if:traffic_min",
+                    id = timeseries_id.flow_port,
+                    label = i18n("graphs.traffic_per_minute"),--i18n("graphs.traffic_rxtx")
+                    priority = 2,
+                    measure_unit = "bps",
+                    scale = i18n("graphs.metric_labels.traffic"),
+                    timeseries = {
+                        bytes_sent = {
+                            label = i18n('graphs.metric_labels.out_bytes'),
+                            color = timeseries_info.get_timeseries_color('bytes_sent')
+                        },
+                        bytes_rcvd = {
+                            invert_direction = true,
+                            label = i18n('graphs.metric_labels.in_bytes'),
+                            color = timeseries_info.get_timeseries_color('bytes_rcvd')
+                        }
+                    },
+                    alwais_visibile = true,
+                    default_visible = true
+                }
+            end
+        end
+
+        if true --[[add_standard_traffic]] then
+            -- Flow Port: --
+            timeseries[#timeseries + 1] = {
+                schema = "flowdev_port:traffic",
+                id = timeseries_id.flow_port,
+                label = i18n("graphs.traffic_rxtx"),
+                priority = 2,
+                measure_unit = "bps",
+                scale = i18n("graphs.metric_labels.traffic"),
+                timeseries = {
+                    bytes_sent = {
+                        label = i18n('graphs.metric_labels.out_bytes'),
+                        color = timeseries_info.get_timeseries_color('bytes_sent')
+                    },
+                    bytes_rcvd = {
+                        invert_direction = true,
+                        label = i18n('graphs.metric_labels.in_bytes'),
+                        color = timeseries_info.get_timeseries_color('bytes_rcvd')
+                    }
+                },
+                alwais_visibile = true,
+                default_visible = true
+            }
+        end
     end
 
     return timeseries
@@ -2901,6 +3025,8 @@ local function add_top_timeseries(tags, prefix, timeseries)
     elseif prefix == timeseries_id.observation_point then
         -- Add top observation points timeseries
         timeseries = add_top_obs_point_timeseries(tags, timeseries)
+    elseif prefix == timeseries_id.snmp_interface then
+        timeseries = choose_traffic_serie(tags, timeseries)
     elseif prefix == timeseries_id.snmp_device then
         -- Add the interfaces timeseries
         timeseries = add_snmp_interfaces_timeseries(tags, timeseries)
@@ -3103,7 +3229,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
             title = i18n('traffic'),
             group = i18n('generic_data'),
             label = i18n('traffic'),
-            show_volume = true,
+            show_volume = true
         }, {
             title = i18n("graphs.usage"),
             group = i18n('generic_data'),

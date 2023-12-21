@@ -162,7 +162,7 @@ DEFINE_PROTO_FUZZER(const ntopng_fuzz::Pcap &message) {
     //        hdr->ts.tv_sec, hdr->ts.tv_usec);
 
     iface->dissectPacket(UNKNOWN_PKT_IFACE_IDX,
-			 DUMMY_BRIDGE_INTERFACE_ID, true, NULL, hdr, pkt,
+			 DUMMY_BRIDGE_INTERFACE_ID, true, DLT_NULL, NULL, hdr, pkt,
 			 &p, &srcHost, &dstHost, &flow);
     // ntop->getTrace()->traceEvent(TRACE_ERROR, "dissecting packet");
   }
@@ -196,7 +196,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
 
   while (pcap_next_ex(pcap_handle, &hdr, &pkt) > 0) {
     iface->dissectPacket(UNKNOWN_PKT_IFACE_IDX,
-			 DUMMY_BRIDGE_INTERFACE_ID, true, NULL, hdr, pkt,
+			 DUMMY_BRIDGE_INTERFACE_ID, DLT_NULL, true, NULL, hdr, pkt,
 			 &p, &srcHost, &dstHost, &flow);
   }
   pcap_close(pcap_handle);

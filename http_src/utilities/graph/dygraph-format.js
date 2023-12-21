@@ -121,11 +121,11 @@ function addNewSerie(serie_name, chart_type, color, config) {
 /* *********************************************** */
 
 /* This function given a serie, format the array needed */
-function compactSerie(config, ts_info, extra_timeseries, serie, scalar, step, epoch_begin, names) {
+function compactSerie(config, ts_info, extra_timeseries, serie, past_serie, scalar, step, epoch_begin, names) {
   const avg_value = ts_info.statistics["average"];
   const perc_value = ts_info.statistics["95th_percentile"];
   let time = epoch_begin;
-
+    
   /* Now format the timeserie */
   for (let point = 0; point < serie.length; point++) {
     const serie_point = serie[point];
@@ -146,12 +146,10 @@ function compactSerie(config, ts_info, extra_timeseries, serie, scalar, step, ep
       config.serie[time].push({ value: perc_value * scalar, name: names.perc_name });
     }
     if (extra_timeseries?.past == true) {
-      for (const key in past_serie) {
-        const past_value = past_serie[key]?.series[j]?.data[point];
-        (past_value) ?
-          config.serie[time].push({ value: past_value * scalar, name: names.past_name }) :
-          config.serie[time].push({ value: NaN, name: names.past_label });
-      }
+      const past_value = (past_serie) ? past_serie[point] : null;
+      (past_value) ?
+        config.serie[time].push({ value: past_value * scalar, name: names.past_name }) :
+        config.serie[time].push({ value: NaN, name: names.past_label });
     }
 
     /* Increase the time using the step */
@@ -259,6 +257,7 @@ function formatStandardSerie(timeserie_info, timeserie_options, config, tsCompar
   const formatter = timeserie_info.metric.measure_unit;
   const max_value = timeserie_info.metric.max_value || null;
   const min_value = timeserie_info.metric.min_value || null;
+  const past_serie = timeserie_options.additional_series;
   
   config.value_range = [min_value, max_value];
   config.plotter = getPlotter(chart_type);
@@ -268,7 +267,7 @@ function formatStandardSerie(timeserie_info, timeserie_options, config, tsCompar
 
   series.forEach((ts_info, j) => {
     const serie = ts_info.data || []; /* Safety check */
-    const extra_timeseries = timeserie_info.timeseries[j]; /* e.g. the Average */
+    const extra_timeseries = timeserie_info.timeseries[0]; /* e.g. the Average */
     const ts_id = getSerieId(ts_info);
     const metadata = timeserie_info.metric.timeseries[ts_id];
     const scalar = (metadata.invert_direction === true) ? -1 : 1;
@@ -277,7 +276,7 @@ function formatStandardSerie(timeserie_info, timeserie_options, config, tsCompar
     const avg_name = getSerieName(timeserie_name + " Avg", ts_id, timeserie_info, config.use_full_name)
     const perc_name = getSerieName(timeserie_name + " 95th Perc", ts_id, timeserie_info, config.use_full_name);
     const past_name = getSerieName(timeserie_name + " " + tsCompare + " Ago", ts_id, timeserie_info, config.use_full_name);
-
+    const past_value = past_serie[`${tsCompare}_ago`]?.series[j]?.data;
     /* An option used to not display a timeserie */
     if (metadata.hidden) {
       return;
@@ -299,12 +298,12 @@ function formatStandardSerie(timeserie_info, timeserie_options, config, tsCompar
       addNewSerie(perc_name, "point", { color: constant_serie_colors["perc_95"], palette: 1 }, config)
     }
     if (extra_timeseries?.past == true) {
-      addNewSerie(past_name, "line", { color: constant_serie_colors["past"], palette: 1 }, config)
+      addNewSerie(past_name, "dash", { color: constant_serie_colors["past"], palette: 1 }, config)
     }
 
     /* ************************************** */
 
-    compactSerie(config, ts_info, extra_timeseries, serie, scalar, step, epoch_begin, {
+    compactSerie(config, ts_info, extra_timeseries, serie, past_value, scalar, step, epoch_begin, {
       serie_name: serie_name,
       avg_name: avg_name,
       perc_name: perc_name,

@@ -10,7 +10,7 @@ local host_pools = require "host_pools"
 
 -- #################################################################
 
-if radius_handler.isAccountingEnabled() then-- and ntop.isnEdge() then
+if radius_handler.isAccountingEnabled() then
     -- Instantiate host pools
     local pool = host_pools:create()
     local pools_list = {}

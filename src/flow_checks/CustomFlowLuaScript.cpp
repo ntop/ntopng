@@ -44,7 +44,7 @@ LuaEngine *CustomFlowLuaScript::initVM(const char *script_path) {
 
   if (stat(where, &s) != 0) {
     ntop->getTrace()->traceEvent(
-        TRACE_NORMAL,
+        TRACE_DEBUG,
         "Unable to find script %s: ignored `Flow User Check Script` flow check",
         where);
     return (NULL);

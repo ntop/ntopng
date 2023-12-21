@@ -49,7 +49,7 @@
 	    </label>
 	    <div class="col-sm-8">
 	      <SelectSearch v-model:selected_option="selected_source_array[source_def_index]"
-			    @select_option="change_selected_source()"
+			    @select_option="change_selected_source(source_def, source_def_index, true)"
 			    :options="sources_array[source_def_index]">
 	      </SelectSearch>
 	    </div>
@@ -61,9 +61,22 @@
               <b>{{source_def.label}}</b>
 	    </label>
 	    <div class="col-sm-8">
-	      <input class="form-control" @input="change_selected_source()" v-model="selected_source_text_array[source_def_index]" :pattern="source_text_validation_array[source_def_index]" required type="text" placeholder="">
+	      <input class="form-control" @input="change_selected_source(source_def, source_def_index)" v-model="selected_source_text_array[source_def_index]" :pattern="source_text_validation_array[source_def_index]" required type="text" placeholder="">
 	    </div>
-	  </div> <!-- input text -->	  
+	  </div> <!-- input text -->
+
+	  <!-- input confirm text -->
+	  <div v-if="source_def.ui_type == ui_types.input_confirm" class="form-group mt-2 row">
+	    <label class="col-form-label col-sm-4" >
+              <b>{{source_def.label}}</b>
+	    </label>
+	    <div class="col-sm-7">
+	      <input class="form-control" @input="change_selected_source(source_def, source_def_index)" v-model="selected_source_text_array[source_def_index]" :pattern="source_text_validation_array[source_def_index]" required type="text" placeholder="">
+	    </div>
+	    <div class="col-sm-1">
+              <button type="button" class="btn btn-link btn-sm" @click="reload_sources(source_def, source_def_index)" :title="_i18n(source_def.refresh_i18n)" :disabled="!enable_apply_source"><i class="fas fa-refresh"></i></button>
+            </div>
+	  </div> <!-- input confirm text -->
 	</template>
 	
 	<div v-show="enable_apply_source" class="form-group row mt-2" style="text-align:end;">
@@ -111,7 +124,7 @@
   </template><!-- modal-body -->
   
   <template v-slot:footer>
-    <button v-show="action == 'add'" type="button" @click="apply" class="btn btn-primary">{{_i18n("modal_timeseries.add")}}</button>
+    <button v-show="action == 'add'" type="button" @click="apply" :disabled="enable_apply_source" class="btn btn-primary">{{_i18n("modal_timeseries.add")}}</button>
     <button v-show="action == 'select'" type="button" @click="apply" class="btn btn-primary">{{_i18n("modal_timeseries.apply")}}</button>
   </template>
 </modal>
@@ -181,6 +194,7 @@ const timeseries_to_add = ref([]);
 const emit = defineEmits(['apply']);
 
 let wait_init = null;
+let last_source_value_array = null;
 
 onBeforeMount(() => {
     sources_types.forEach((source_type) => {
@@ -225,20 +239,50 @@ async function apply_source_array() {
 	let source_def = selected_source_type.value.source_def_array[i];
 	if (source_def.ui_type == ui_types.input) {
 	    let source = selected_source_array.value[i];
-	    source.value = source_value;
-	    source.label = source_value;
+            set_source_input(source, source_value)
 	}
     });    
     await change_source_array();
     set_selected_sources_union_label();
 }
 
-async function change_source_array() {    
+function set_source_input(source, source_value) {
+    source.value = source_value;
+    source.label = source_value;
+}
+
+async function change_source_array() {
+    // reload metrics 
     await set_metrics();
 }
 
-function change_selected_source() {
+function change_selected_source(source_def, source_def_index, force_reload_sources) {
     is_selected_source_changed.value = true;
+    if (force_reload_sources == true) {
+        reload_sources(source_def, source_def_index);
+    }
+}
+
+// reload all sources for each source_def with refresh_on_sources_change == true
+async function reload_sources(source_def, source_def_index) {
+    if (source_def.ui_type == ui_types.input_confirm) {
+        set_source_input(selected_source_array.value[source_def_index], selected_source_text_array.value[source_def_index]);
+    }
+    let source_def_array = selected_source_type.value.source_def_array;
+    let source_value_array = selected_source_array.value.map((s) => s.value);
+    for (let i = source_def_index + 1; i < source_def_array.length; i += 1) {
+        const source_def = source_def_array[i];
+        if (!source_def.refresh_on_sources_change) { continue; }
+
+        let sources = await metricsManager.get_sources(http_prefix, selected_source_type.value.id, source_def, source_value_array);
+        sources_array.value[i] = sources;
+        if (sources.length > 0) {
+            selected_source_array.value[i] = sources[0];
+        } else {
+            selected_source_array.value[i] = { label: "", value: "" };
+            console.warn(`No sources availables to select for ${selected_source_type.value.id} sorce_def`);
+        }
+    }
 }
 
 function set_regex() {
@@ -263,14 +307,15 @@ function set_selected_sources_union_label() {
 async function set_sources_array() {
     let source_def_array = selected_source_type.value.source_def_array;
     let sources_array_temp = [];
+    let default_source_array = await metricsManager.get_default_source_array(http_prefix, selected_source_type.value);
+    let default_soruce_value_array = default_source_array.map((s) => s.value);
     for (let i = 0; i < source_def_array.length; i += 1) {
-	let sources = await metricsManager.get_sources(http_prefix, selected_source_type.value.id, source_def_array[i]);
+	let sources = await metricsManager.get_sources(http_prefix, selected_source_type.value.id, source_def_array[i], default_soruce_value_array);
 	sources_array_temp.push(sources);
     }
-    let default_source_array = await metricsManager.get_default_source_array(http_prefix, selected_source_type.value);
     selected_source_array.value = default_source_array;
     sources_array.value = sources_array_temp;
-    selected_source_text_array.value = default_source_array.map((s) => s.value);
+    selected_source_text_array.value = default_soruce_value_array;
     set_selected_sources_union_label();
 }
 
