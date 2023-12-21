@@ -101,6 +101,12 @@ function ts_data.get_timeseries(http_context)
         interface.select(options.tags.ifid)
     end
 
+    if options.schema == 'snmp_if:traffic_min' and options.tags.port then
+        options.tags.if_index = options.tags.port
+        options.tags.ifid = getSystemInterfaceId()
+        options.tags.port = nil
+    end
+
     if http_context.tskey then
         -- This can contain a MAC address for local broadcast domain hosts
         local tskey = http_context.tskey
