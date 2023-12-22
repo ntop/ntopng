@@ -1798,6 +1798,12 @@ local known_parameters = {
     ["template"] = validateSingleWord, -- Currently selected template
     ["template_name"] = validateUnquoted,
     ["component"] = validateSingleWord,
+    ["component_title"] = validateUnquoted,
+    ["component_width"] = validateNumber,
+    ["component_height"] = validateNumber,
+    ["component_time_offset"] = validateSingleWord,
+    ["component_time_window"] = validateSingleWord,
+    ["component_params"] = {jsonCleanup, validateJSON},
     ["components"] = validateColumnsIds, -- Comma separated list of component ids
     ["system_interface"] = validateBool,
 
