@@ -20,15 +20,18 @@
                     <b>{{ _i18n("dashboard.component_width") }}</b>
                 </label>
                 <div class="col-sm-6 mt-2">
-                    <input type="range" id="slider" v-model="width_selected" style="width:100%" list="steplist" min="1"
+                    <div class="range">
+                    <input type="range" id="slider" v-model="width_selected" style="width:100%" min="1"
                         max="3" step="1">
-                    <datalist class="datalist" id="steplist">
-                        <option value="1" id="4" label="Small"></option>
-                        <option value="2" id="6" label="Medium"></option>
-                        <option value="3" id="12" label="Large"></option>
-                    </datalist>
+                    <div class="sliderticks">
+                        <p>{{ _i18n("dashboard.component_sizes.small") }}</p>
+                        <p>{{ _i18n("dashboard.component_sizes.medium") }}</p>
+                        <p>{{ _i18n("dashboard.component_sizes.large") }}</p>
+                    </div>
+                </div>
                 </div>
             </div>
+
             
             <!-- Height -->
             <div class="form-group ms-2 me-2 mt-3 row">
@@ -36,14 +39,16 @@
                     <b>{{ _i18n("dashboard.component_height") }}</b>
                 </label>
                 <div class="col-sm-9 mt-2">
-                    <input type="range" id="slider" v-model="height_selected" style="width:97%" list="steplist" min="1"
-                        max="4" step="1">
-                    <datalist class="datalist" id="steplist">
-                        <option value="1" label="Small"></option>
-                        <option value="2" label="Medium"></option>
-                        <option value="3" label="Large"></option>
-                        <option value="4" label="Auto"></option>
-                    </datalist>
+                    <div class="range">
+                        <input type="range" id="slider" v-model="height_selected" style="width:100%" min="1"
+                            max="4" step="1">
+                        <div class="sliderticks">
+                            <p>{{ _i18n("dashboard.component_sizes.small") }}</p>
+                            <p>{{ _i18n("dashboard.component_sizes.medium") }}</p>
+                            <p>{{ _i18n("dashboard.component_sizes.large") }}</p>
+                            <p>{{ _i18n("dashboard.component_sizes.auto") }}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 

@@ -1746,6 +1746,12 @@ local lang = {
     ["component_json_error"] = "There is an error in the JSON syntax",
     ["component_title"] = "Title",
     ["component_width"] = "Width",
+    ["component_sizes"] = {
+      ["auto"] = "Auto",
+      ["large"] = "Large",
+      ["medium"] = "Medium",
+      ["small"] = "Small",
+    },
     ["current_time"] = "Current",
     ["custom"] = "Custom",
     ["del_template"] = "Delete Template",

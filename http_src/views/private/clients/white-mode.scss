@@ -30,9 +30,23 @@ code {
   margin-right: 3px;
 }
 
-.datalist {
+
+.sliderticks {
   display: flex;
   justify-content: space-between;
+  padding: 0 10px;
+}
+
+.sliderticks p {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  width: 1px;
+  background: #D3D3D3;
+  height: 10px;
+  line-height: 40px;
+  margin: 0 0 20px 0;
 }
 
 .btn-edit {
@@ -49,6 +63,7 @@ code {
   border: 1px solid #ccc;
   background-color: #3e3d3d;
 }
+
 
 
 /* sprobe ****************************** */
