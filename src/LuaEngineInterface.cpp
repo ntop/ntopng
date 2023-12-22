@@ -2083,11 +2083,11 @@ static int ntop_radius_accounting_start(lua_State *vm) {
   if (lua_type(vm, 1) == LUA_TSTRING)
     username = (char *)lua_tostring(vm, 1);
 
-  if (lua_type(vm, 1) == LUA_TSTRING)
-    mac = (char *)lua_tostring(vm, 1);
-
   if (lua_type(vm, 2) == LUA_TSTRING)
-    session_id = (char *)lua_tostring(vm, 2);
+    mac = (char *)lua_tostring(vm, 2);
+
+  if (lua_type(vm, 3) == LUA_TSTRING)
+    session_id = (char *)lua_tostring(vm, 3);
 
   /* First reset the stats then start the accounting */
   ntop_interface->resetMacStats(vm, mac, false);

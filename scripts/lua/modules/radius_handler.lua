@@ -28,6 +28,7 @@ function radius_handler.accountingStart(name, username, password)
     local session_id = tostring(math.random(100000000000000000, 999999999999999999))
     local accounting_started = interface.radiusAccountingStart(username --[[ Username ]], name --[[ MAC Address ]], session_id)
 
+    tprint("Accounting Started for user: " .. username .. ", " .. ternary(accounting_started, "OK", "Error"))
     if accounting_started then
         local json = require("dkjson")
         local key = string.format(redis_accounting_key, name)
