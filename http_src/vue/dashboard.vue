@@ -148,7 +148,7 @@
                             <h4 class="modal-title">
                                 {{ c.custom_name ?  c.custom_name : _i18n(c.i18n_name) }}
                                 <span style="color: gray">
-                                    {{ c.time_offset ? _i18n('dashboard.time_ago.' + c.time_offset) : '' }}
+                                    {{ c.time_offset ? _i18n('dashboard.' + (is_live ? 'time_ago' : 'time_offset_list') + '.' + c.time_offset) : '' }}
                                 </span>
                             </h4>
                             <div v-if="edit_mode" class="modal-close">
@@ -286,6 +286,10 @@ let printable = false;
 const edit_mode = ref(false);
 let template_sortable = null;
 const modal_new_template = ref(null);
+
+const is_live = computed(() => {
+    return props.context.page != "report" && props.context.page != "vs-report";
+});
 
 const enable_date_time_range_picker = computed(() => {
     return props.context.page == "report"
