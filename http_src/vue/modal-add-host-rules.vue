@@ -318,6 +318,12 @@ const metric_type_list = ref([
   { title: _i18n('percentage'), label: _i18n('percentage'), id: 'percentage', active: false },
 ])
 
+/* Currently disabled the percentage */
+const exporter_metric_type_list = ref([
+  { title: _i18n('volume'), label: _i18n('volume'), id: 'volume', active: true },
+  { title: _i18n('throughput'), label: _i18n('throughput'), id: 'throughput', active: false },
+])
+
 const pool_metric_type_list = ref([
   { title: _i18n('volume'), label: _i18n('volume'), id: 'volume', active: true, measure_unit: 'bps' },
   { title: _i18n('throughput'), label: _i18n('throughput'), id: 'throughput', active: false, measure_unit: 'bps' },
@@ -468,7 +474,7 @@ const change_metric_type_exporter = () => {
     })
     active_metric_type_list.value = tmp_metric_type_list;
   } else {
-    metric_type_list.value.forEach((item) => {
+    exporter_metric_type_list.value.forEach((item) => {
       if (item.id != 'value') {
         tmp_metric_type_list.push(item);
       }

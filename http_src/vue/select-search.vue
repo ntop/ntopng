@@ -43,6 +43,7 @@ onMounted(() => {
     if (!props.disable_change || !first_time_render) {
     	set_input();
     }
+    emit('select_option', props.selected_option);
 });
 
 watch(() => props.selected_option, (cur_value, old_value) => {
