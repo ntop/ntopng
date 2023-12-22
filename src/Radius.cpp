@@ -404,7 +404,7 @@ bool Radius::startSession(const char *username, const char *session_id) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Configuration Failed");
     goto radius_auth_out;
   }
-  if (!addBasicConfigurationAcct(rh, &send, PW_ACCOUNTING_ON, username, session_id)) {
+  if (!addBasicConfigurationAcct(rh, &send, PW_STATUS_START, username, session_id)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
@@ -502,7 +502,7 @@ bool Radius::stopSession(const char *username, const char *mac, const char *last
   }
 
   /* Create the basic configuration, used by the accounting */
-  if (!addBasicConfigurationAcct(rh, &send, PW_ACCOUNTING_OFF,
+  if (!addBasicConfigurationAcct(rh, &send, PW_STATUS_STOP,
 				 username, session_id)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
