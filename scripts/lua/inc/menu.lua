@@ -35,7 +35,6 @@ local behavior_utils = require("behavior_utils")
 local session_user = _SESSION['user']
 
 local observationPointId = nil
-
 print([[
    <div class='wrapper'>
 ]])
