@@ -25,6 +25,8 @@
 #include <uuid/uuid.h>
 #endif
 
+// #define DEBUG_POLLING
+
 #ifndef HAVE_NEDGE
 
 /* **************************************************** */
@@ -289,6 +291,10 @@ static void *packetPollLoop(void *ptr) {
       tv.tv_sec = 1, tv.tv_usec = 0;
 
       if(select(max_fd + 1, &rset, NULL, NULL, &tv) == 0) {
+#ifdef DEBUG_POLLING
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "No packet to process");
+#endif
+
 	if(iface->get_num_ifaces() == 1) {
 	  /*
 	    Reopen the interface if it's single.
@@ -308,10 +314,15 @@ static void *packetPollLoop(void *ptr) {
 	  iface->purgeIdle(time(NULL));
       } else {
 	bool do_break = false;
-
+#ifdef DEBUG_POLLING
+	bool found = false;
+#endif
+	
 	for(u_int8_t i=0; i < iface->get_num_ifaces(); i++) {
 	  if(FD_ISSET(fds[i], &rset)) {
-	    /* ntop->getTrace()->traceEvent(TRACE_WARNING, "processNextPacket(%d)", i); */
+#ifdef DEBUG_POLLING
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "processNextPacket(%d)", i);
+#endif
 	    
 	    if(iface->processNextPacket(iface->get_pcap_handle(i),
 					iface->get_ifindex(i),
@@ -319,9 +330,16 @@ static void *packetPollLoop(void *ptr) {
 	      do_break = true;
 	      break;
 	    }
+#ifdef DEBUG_POLLING
+	    found = true;
+#endif
 	  }
 	}
 
+#ifdef DEBUG_POLLING
+	if(!found)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "**** NO packet");
+#endif
 	if(do_break)
 	  break;
       }
