@@ -224,7 +224,7 @@ NetworkInterface::NetworkInterface(const char *name,
   }
 #endif
 
-  is_loopback = (strncmp(ifname, "lo", 2) == 0) ? true : false;
+  is_loopback = ((strcmp(ifname, "lo") == 0) || (strcmp(ifname, "lo0") == 0));
 
   updateTrafficMirrored();
   updateSmartRecording();
@@ -2473,12 +2473,15 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 				   get_name(), h->len, ifMTU);
 
       if (!read_from_pcap_dump()) {
-        ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "If TSO/GRO is enabled, please disable it for best accuracy");
-        if (strchr(ifname, ':') ==
-            NULL) /* print ethtool command for standard interfaces only */
-          ntop->getTrace()->traceEvent(TRACE_WARNING,
-				       "using: sudo ethtool -K %s gro off gso off tso off", ifname);
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "If TSO/GRO is enabled, please disable it for best accuracy");
+	
+        if(strchr(ifname, ':') == NULL) {
+	  if(strchr(ifname, ',') == NULL) {
+	    /* print ethtool command for standard interfaces only */	  
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "using: sudo ethtool -K %s gro off gso off tso off",
+					 (strchr(ifname, ',') == NULL) ? ifname : "<interface name>");
+	  }
+	}
       }
 #endif
       mtuWarningShown = true;
@@ -7300,9 +7303,9 @@ void NetworkInterface::lua(lua_State *vm) {
                             hasSeenDHCPAddresses());
   /* Note: source MAC is now used to get traffic direction when not
    * areTrafficDirectionsSupported() */
-  lua_push_bool_table_entry(
-			    vm, "has_traffic_directions",
-			    (areTrafficDirectionsSupported() || (!Utils::isEmptyMac(ifMac))) && (!isLoopback()) /* && (!isTrafficMirrored() || isGwMacConfigured())*/);
+  lua_push_bool_table_entry( vm, "has_traffic_directions",
+			     (areTrafficDirectionsSupported() || (!Utils::isEmptyMac(ifMac)))
+			     && (!isLoopback()) /* && (!isTrafficMirrored() || isGwMacConfigured())*/);
   lua_push_bool_table_entry(vm, "has_seen_pods", hasSeenPods());
   lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
   lua_push_bool_table_entry(vm, "has_seen_external_alerts",
@@ -12446,17 +12449,3 @@ void NetworkInterface::getSFlowDevices(lua_State *vm, bool add_table) {
   }
 };
 
-/* **************************************************** */
-
-bool NetworkInterface::nwInterfaceExists() {
-#ifdef WIN32
-  return(true); /* Improve one day */
-#else
-  if((strchr(ifname, ',') == NULL) /* eth0,eth1 */
-     && (strchr(ifname, ':') == NULL) /* zc:XXX*/
-     && (!Utils::nwInterfaceExists(ifname)))
-    return(false);
-  else
-    return(true);
-#endif
-}

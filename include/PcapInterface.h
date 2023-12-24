@@ -27,7 +27,8 @@
 class PcapInterface : public NetworkInterface {
  private:
   u_int8_t num_ifaces;
-  pcap_t *pcap_handle[MAX_NUM_PCAP_INTERFACES];
+  char* pcap_ifaces[MAX_NUM_PCAP_INTERFACES]; /* Used when interfaces such as eth0,eth1 */
+  pcap_t* pcap_handle[MAX_NUM_PCAP_INTERFACES];
   unsigned int ifname_indexes[MAX_NUM_PCAP_INTERFACES];
   int iface_datalink[MAX_NUM_PCAP_INTERFACES];
   char *pcap_path;
@@ -89,6 +90,7 @@ class PcapInterface : public NetworkInterface {
   bool reopen(u_int8_t iface_id);  
   unsigned int get_ifindex(int i) { return(ifname_indexes[i]); }
   int get_ifdatalink(int i)       { return(iface_datalink[i]); }
+  char* getPcapIfaceName(int i)   { return(pcap_ifaces[i]);    }
 };
 
 #endif /* _PCAP_INTERFACE_H_ */

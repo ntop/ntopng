@@ -2910,11 +2910,9 @@ u_int16_t Utils::getIfMTU(const char *ifname) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket");
   } else {
     if (ioctl(fd, SIOCGIFMTU, &ifr) == -1)
-      ntop->getTrace()->traceEvent(TRACE_INFO,
-                                   "Unable to read MTU for device %s", ifname);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to read MTU for device %s", ifname);
     else {
-      max_packet_size =
-          ifr.ifr_mtu + sizeof(struct ndpi_ethhdr) + sizeof(Ether80211q);
+      max_packet_size = ifr.ifr_mtu + sizeof(struct ndpi_ethhdr) + sizeof(Ether80211q);
 
       if (max_packet_size > ((u_int16_t)-1)) max_packet_size = ((u_int16_t)-1);
     }
@@ -4628,12 +4626,13 @@ const char *Utils::captureDirection2Str(pcap_direction_t dir) {
 bool Utils::readInterfaceStats(const char *ifname, ProtoStats *in_stats,
                                ProtoStats *out_stats) {
   bool rv = false;
-#ifndef WIN32
+#ifdef __linux__
   FILE *f = fopen("/proc/net/dev", "r");
 
   if (f) {
     char line[512];
     char to_find[IFNAMSIZ + 2];
+    
     snprintf(to_find, sizeof(to_find), "%s:", ifname);
 
     while (fgets(line, sizeof(line), f)) {
@@ -4642,15 +4641,12 @@ bool Utils::readInterfaceStats(const char *ifname, ProtoStats *in_stats,
       if (strstr(line, to_find) &&
           sscanf(line, "%*[^:]: %llu %llu %*u %*u %*u %*u %*u %*u %llu %llu",
                  &in_bytes, &in_packets, &out_bytes, &out_packets) == 4) {
-        ntop->getTrace()->traceEvent(
-            TRACE_DEBUG,
-            "iface_counters: in_bytes=%llu in_packets=%llu - out_bytes=%llu "
-            "out_packets=%llu",
-            in_bytes, in_packets, out_bytes, out_packets);
-        in_stats->setBytes(in_bytes);
-        in_stats->setPkts(in_packets);
-        out_stats->setBytes(out_bytes);
-        out_stats->setPkts(out_packets);
+        ntop->getTrace()->traceEvent(TRACE_DEBUG,
+				     "iface_counters: in_bytes=%llu in_packets=%llu - out_bytes=%llu "
+				     "out_packets=%llu",
+				     in_bytes, in_packets, out_bytes, out_packets);
+        in_stats->incBytes(in_bytes), in_stats->incPkts(in_packets),
+	  out_stats->incBytes(out_bytes), out_stats->incPkts(out_packets);
         rv = true;
         break;
       }

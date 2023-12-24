@@ -1370,7 +1370,6 @@ public:
                                       bool *matched);
 #endif
   void getActiveMacs(lua_State *vm);
-  bool nwInterfaceExists();
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

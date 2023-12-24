@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  *
- */
+xo */
 
 #include "ntop_includes.h"
 
@@ -25,7 +25,7 @@
 #include <uuid/uuid.h>
 #endif
 
-// #define DEBUG_POLLING
+//#define DEBUG_POLLING
 
 #ifndef HAVE_NEDGE
 
@@ -107,6 +107,15 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
       if(pcap_handle[num_ifaces] != NULL) {
 	iface_datalink[num_ifaces] = pcap_datalink(pcap_handle[num_ifaces]);
 	ifname_indexes[num_ifaces] = if_nametoindex(dev);
+	pcap_ifaces[num_ifaces]    = strdup(dev);
+
+	if(pcap_ifaces[num_ifaces] == NULL) {
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Not enough memory");
+	  break;
+	}
+
+	/* This is necessay as with multiple comma separated interfaces we need to take the max MTU */
+	ifMTU = ndpi_max(ifMTU, Utils::getIfMTU(pcap_ifaces[num_ifaces]));
 	
 	pcap_path = NULL;
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from %s [id: %d]",
@@ -116,12 +125,10 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
 	Utils::readMac(dev, ifMac);
 
 #ifndef WIN32
-	if (pcap_setdirection(pcap_handle[num_ifaces],
-			      ntop->getPrefs()->getCaptureDirection()) != 0)
-	  ntop->getTrace()->traceEvent(TRACE_WARNING,
-				       "Unable to set packet capture direction");
+	if (pcap_setdirection(pcap_handle[num_ifaces], ntop->getPrefs()->getCaptureDirection()) != 0)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to set packet capture direction");
 
-	if (!isTrafficMirrored()) {
+	if(!isTrafficMirrored()) {
 	  if (Utils::readInterfaceStats(dev, &prev_stats_in, &prev_stats_out))
 	    emulate_traffic_directions = true;
 	}
@@ -156,6 +163,8 @@ PcapInterface::~PcapInterface() {
       pcap_close(pcap_handle[i]);
       pcap_handle[i] = NULL;
     }
+
+    free(pcap_ifaces[i]);
   }
 
   if (pcap_path != NULL) {
@@ -295,23 +304,16 @@ static void *packetPollLoop(void *ptr) {
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "No packet to process");
 #endif
 
-	if(iface->get_num_ifaces() == 1) {
-	  /*
-	    Reopen the interface if it's single.
-	    TODO: add support for multiple interfaces
-	   */
-	  for(u_int8_t i=0; i < iface->get_num_ifaces(); i++) {
-	    if(!iface->nwInterfaceExists(/* i */)) {
-	      ntop->getTrace()->traceEvent(TRACE_WARNING,
-					   "Network Interface %s (id %d) disappeared (is it is down ?)",
-					   iface->get_name(), i);
-	    }
-
-	    iface->purgeIdle(time(NULL));
-	    continue;
+	for(u_int8_t i=0; i < iface->get_num_ifaces(); i++) {
+	  if(!Utils::nwInterfaceExists(iface->getPcapIfaceName(i))) {
+	    ntop->getTrace()->traceEvent(TRACE_WARNING,
+					 "Network Interface %s (id %d) disappeared (is it is down ?)",
+					 iface->getPcapIfaceName(i), i);
+	    iface->reopen(i); /* Try to reopen the interface that disappeared */
 	  }
-	} else
+	  
 	  iface->purgeIdle(time(NULL));
+	} /* for */
       } else {
 	bool do_break = false;
 #ifdef DEBUG_POLLING
@@ -381,8 +383,11 @@ u_int32_t PcapInterface::getNumDroppedPackets() {
     /* It seems this leads to crashes on Windows */
     struct pcap_stat pcapStat;
 
-    if (pcap_handle[i] && (pcap_stats(pcap_handle[i], &pcapStat) >= 0)) {
+    if(pcap_handle[i] && (pcap_stats(pcap_handle[i], &pcapStat) >= 0)) {
       tot += pcapStat.ps_drop;
+#ifdef DEBUG_POLLING
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[id: %u][pkts: %u][drops: %u]", i, pcapStat.ps_recv, pcapStat.ps_drop);
+#endif
     }
   }
 
@@ -407,8 +412,8 @@ bool PcapInterface::set_packet_filter(char *filter) {
     rc = pcap_compile(pcap_handle[i], &fcode, filter, 1, netmask.s_addr);
 
     if (rc < 0) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to compile %s filter %s. Filter ignored.", ifname,
-				   filter);
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to compile %s filter %s. Filter ignored.",
+				   ifname, filter);
       return (false);
     }
 
@@ -417,8 +422,8 @@ bool PcapInterface::set_packet_filter(char *filter) {
     pcap_freecode(&fcode);
 
     if (rc < 0) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set on %s filter %s. Filter ignored.", ifname,
-				   filter);
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set on %s filter %s. Filter ignored.",
+				   ifname, filter);
       return (false);
     }
   } /* for */
@@ -459,40 +464,36 @@ static u_int64_t getCounterInc(u_int64_t old_v, u_int64_t new_v) {
  * statistics per direction. Make sure ethStats are not increased
  * by the packet processing function when this is in place. */
 void PcapInterface::updateDirectionStats() {
-  ProtoStats current_stats_in, current_stats_out;
+  if(emulate_traffic_directions) {	
+    ProtoStats current_stats_in, current_stats_out;
+    bool ret = true;
+    
+    for(u_int8_t i=0; i < get_num_ifaces(); i++)
+      ret &= Utils::readInterfaceStats(pcap_ifaces[i], &current_stats_in, &current_stats_out);    
+    
+    if(ret) {
+      pcap_direction_t capture_dir = ntop->getPrefs()->getCaptureDirection();
+	
+      /* grsec check, the new ntopng user may not able to read the stats anymore */
+      if ((prev_stats_in.getPkts() || prev_stats_out.getPkts())
+	  && (!(current_stats_in.getPkts() || current_stats_out.getPkts()))) {
+	ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "Cannot read interface stats after user "
+				     "change (grsec kernel hardening in place?)");
+	emulate_traffic_directions = false;
+      } else {
+	if ((capture_dir == PCAP_D_INOUT) || (capture_dir == PCAP_D_IN)) {
+	  ethStats.incNumPackets(true, getCounterInc(prev_stats_in.getPkts(), current_stats_in.getPkts()));
+	  ethStats.incNumBytes(true, getCounterInc(prev_stats_in.getBytes(),  current_stats_in.getBytes()));
+	}
 
-  if (emulate_traffic_directions &&
-      Utils::readInterfaceStats(ifname, &current_stats_in,
-                                &current_stats_out)) {
-    pcap_direction_t capture_dir = ntop->getPrefs()->getCaptureDirection();
+	if ((capture_dir == PCAP_D_INOUT) || (capture_dir == PCAP_D_OUT)) {
+	  ethStats.incNumPackets(false, getCounterInc(prev_stats_out.getPkts(), current_stats_out.getPkts()));
+	  ethStats.incNumBytes(false, getCounterInc(prev_stats_out.getBytes(),  current_stats_out.getBytes()));
+	}
 
-    /* grsec check, the new ntopng user may not able to read the stats anymore
-     */
-    if ((prev_stats_in.getPkts() || prev_stats_out.getPkts()) &&
-        !(current_stats_in.getPkts() || current_stats_out.getPkts())) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                   "Cannot read interface stats after user "
-                                   "change (grsec kernel hardening in place?)");
-      emulate_traffic_directions = false;
-    } else {
-      if ((capture_dir == PCAP_D_INOUT) || (capture_dir == PCAP_D_IN)) {
-        ethStats.incNumPackets(true, getCounterInc(prev_stats_in.getPkts(),
-                                                   current_stats_in.getPkts()));
-        ethStats.incNumBytes(true, getCounterInc(prev_stats_in.getBytes(),
-                                                 current_stats_in.getBytes()));
+	prev_stats_in = current_stats_in, prev_stats_out = current_stats_out;
       }
-
-      if ((capture_dir == PCAP_D_INOUT) || (capture_dir == PCAP_D_OUT)) {
-        ethStats.incNumPackets(false,
-                               getCounterInc(prev_stats_out.getPkts(),
-                                             current_stats_out.getPkts()));
-        ethStats.incNumBytes(false,
-                             getCounterInc(prev_stats_out.getBytes(),
-                                           current_stats_out.getBytes()));
-      }
-
-      prev_stats_in = current_stats_in;
-      prev_stats_out = current_stats_out;
     }
   }
 }
@@ -500,8 +501,8 @@ void PcapInterface::updateDirectionStats() {
 /* **************************************************** */
 
 bool PcapInterface::reproducePcapOriginalSpeed() const {
-  return (read_pkts_from_pcap_dump &&
-          ntop->getPrefs()->reproduceOriginalSpeed());
+  return (read_pkts_from_pcap_dump
+	  && ntop->getPrefs()->reproduceOriginalSpeed());
 }
 
 /* **************************************************** */
@@ -514,19 +515,19 @@ bool PcapInterface::reopen(u_int8_t iface_id) {
   while(!ntop->getGlobals()->isShutdown()) {
     char pcap_error_buffer[PCAP_ERRBUF_SIZE];
 
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to open %s", ifname);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Trying to open %s", pcap_ifaces[iface_id]);
 
-    pcap_handle[iface_id] = pcap_open_live(ifname, ntop->getGlobals()->getSnaplen(ifname),
+    pcap_handle[iface_id] = pcap_open_live(pcap_ifaces[iface_id], ntop->getGlobals()->getSnaplen(pcap_ifaces[iface_id]),
 				 ntop->getPrefs()->use_promiscuous(),
 				 1000 /* 1 sec */, pcap_error_buffer);
 
     if(pcap_handle[iface_id]) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface %s is back", ifname);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Interface %s is back", pcap_ifaces[iface_id]);
       Utils::dropWriteCapabilities();
       return(true);
     } else
       ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to open %s: %s",
-				   ifname, pcap_error_buffer);
+				   pcap_ifaces[iface_id], pcap_error_buffer);
 
     sleep(1);
   }
@@ -613,6 +614,7 @@ bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_dat
 			   &srcHost, &dstHost, &flow);
 #else
       hdr->caplen = min_val(hdr->caplen, getMTU());
+      
       dissectPacket(if_index,
 		    DUMMY_BRIDGE_INTERFACE_ID, pcap_datalink_type,
 		    true /* ingress - TODO: see if we pass the real
