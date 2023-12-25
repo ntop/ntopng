@@ -118,8 +118,8 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
 	ifMTU = ndpi_max(ifMTU, Utils::getIfMTU(pcap_ifaces[num_ifaces]));
 	
 	pcap_path = NULL;
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from %s [id: %d]",
-				     ntop->getPrefs()->get_if_descr(ifIdx), ifIdx);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from %s [ifId: %d]",
+				     dev, ifIdx);
 	read_pkts_from_pcap_dump = false;
 	
 	Utils::readMac(dev, ifMac);
