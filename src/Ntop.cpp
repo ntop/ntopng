@@ -2766,7 +2766,7 @@ bool Ntop::registerInterface(NetworkInterface *_if) {
 
   if (num_defined_interfaces < MAX_NUM_DEFINED_INTERFACES) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
-                                 "Registered interface %s [id: %d]",
+                                 "Registered interface '%s' [id: %d]",
                                  _if->get_description(), _if->get_id());
     iface[num_defined_interfaces++] = _if;
 

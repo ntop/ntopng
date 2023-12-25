@@ -1326,7 +1326,7 @@ Flow *NetworkInterface::getFlow(int32_t if_index, Mac *src_mac, Mac *dst_mac, u_
 
     try {
       INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::getFlow: new Flow", 2);
-      
+
       ret = new (std::nothrow)
 	Flow(this, if_index, vlan_id, observation_domain_id, private_flow_id, l4_proto,
 	     src_mac, src_ip, src_port, dst_mac, dst_ip, dst_port, icmp_info,
@@ -2474,13 +2474,11 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 
       if (!read_from_pcap_dump()) {
         ntop->getTrace()->traceEvent(TRACE_WARNING, "If TSO/GRO is enabled, please disable it for best accuracy");
-	
+
         if(strchr(ifname, ':') == NULL) {
-	  if(strchr(ifname, ',') == NULL) {
-	    /* print ethtool command for standard interfaces only */	  
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "using: sudo ethtool -K %s gro off gso off tso off",
-					 (strchr(ifname, ',') == NULL) ? ifname : "<interface name>");
-	  }
+	  /* print ethtool command for standard interfaces only */
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "using: sudo ethtool -K %s gro off gso off tso off",
+				       (strchr(ifname, ',') == NULL) ? ifname : "<interface name>");
 	}
       }
 #endif
@@ -3474,9 +3472,8 @@ void NetworkInterface::flowAlertsDequeueLoop() {
   snprintf(buf, sizeof(buf), "ntopng-%d-fchek", get_id());
   Utils::setThreadName(buf);
 
-  ntop->getTrace()->traceEvent(
-			       TRACE_NORMAL,
-			       "Started flow user script hooks loop on interface %s [id: %u]...",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Started flow user script hooks loop on interface '%s' [id: %u]...",
 			       get_description(), get_id());
 
   /* Wait until it starts up */
@@ -3534,9 +3531,8 @@ void NetworkInterface::hostAlertsDequeueLoop() {
   snprintf(buf, sizeof(buf), "ntopng-%d-hcheck", get_id());
   Utils::setThreadName(buf);
 
-  ntop->getTrace()->traceEvent(
-			       TRACE_NORMAL,
-			       "Started host user script hooks loop on interface %s [id: %u]...",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Started host user script hooks loop on interface '%s' [id: %u]...",
 			       get_description(), get_id());
 
   /* Wait until it starts up */
@@ -3725,7 +3721,7 @@ void NetworkInterface::startPacketPolling() {
   }
 
   ntop->getTrace()->traceEvent(
-			       TRACE_NORMAL, "Started packet polling on interface %s [id: %u]...",
+			       TRACE_NORMAL, "Started packet polling on interface '%s' [id: %u]...",
 			       get_description(), get_id());
 
   running = true;
@@ -12440,12 +12436,11 @@ void NetworkInterface::getSFlowDevices(lua_State *vm, bool add_table) {
   /* Add the devices list only if not empty */
   if (interfaceStats) {
     if(add_table) lua_newtable(vm);
-    
+
     interfaceStats->luaDeviceList(vm);
-    
+
     lua_pushinteger(vm, get_id());
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
 };
-
