@@ -315,8 +315,9 @@ void ZMQCollectorInterface::collect_flows() {
 
       if (rc < 0 || !isRunning()) {
         if (payload) free(payload);
-        ntop->getTrace()->traceEvent(
-            TRACE_NORMAL, "Flow collection is over: ntop is shutting down");
+        ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Flow collection is over on %s: ntop is shutting down",
+				     ifname);
         return;
       }
 
