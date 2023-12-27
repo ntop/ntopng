@@ -578,11 +578,14 @@ end
 -- This is a basic function used to format notifications
 local function format_notification(notification, options)
    local message = notification.message or ""
+   local handled = false
+
    -- TODO: add the support to options 
 
    if notification.notification_type == "reports" and 
       (not options or not options.nohtml) then
       message = format_report_email(notification)
+      handled = true
 
    elseif (notification.notification_type == "vulnerability_scans") then
       if(not options or not options.nohtml) then
@@ -590,10 +593,11 @@ local function format_notification(notification, options)
       else
          message = format_no_html_vs_report_message(message) 
       end
+      handled = true
 
    end
 
-   return message
+   return handled, message
 end
 
 -- ######################################################
@@ -611,12 +615,16 @@ end
 function format_utils.formatMessage(notification, options)
    if not notification.score or notification.score == 0 then
       -- In case it is just a message/report (so no score), format like a normal msg
-      return format_notification(notification, options)
-   else
-      -- In case it is an alert, format it by using the standard function
-      local alert_utils = require "alert_utils"
-      return alert_utils.formatAlertNotification(notification, options)
+      local handled, message format_notification(notification, options)
+
+      if handled then
+         return message
+      end
    end
+   
+   -- In case it is an alert, format it by using the standard function
+   local alert_utils = require "alert_utils"
+   return alert_utils.formatAlertNotification(notification, options)
 end
 
 -- ######################################################

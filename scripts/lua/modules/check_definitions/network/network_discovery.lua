@@ -26,8 +26,8 @@ local function check_network_discovery(params)
    -- Get total number of packets, flows and interface id
    local network_discovery_check = alert_consts.alert_types.alert_network_discovery_executed.new()
 
-   network_discovery_check:set_subtype(params)
-  
+   network_discovery_check:set_score_notice()
+
    local discovery_executed = ntop.getCache("ntopng.cache.network_discovery_executed.ifid_" .. interface.getId()) == "1"
 
    if discovery_executed == true then

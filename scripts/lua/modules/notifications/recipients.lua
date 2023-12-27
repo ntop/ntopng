@@ -915,18 +915,6 @@ end
 
 -- #############################################
 
--- @brief Set default score to the notification and return the default category
--- @params notification The notification in table format
--- @return notification The notification in table format with the changed score
--- @return category The category of the notification 
-local function set_default_notification_params(notification)
-   local checks = require "checks"
-   notification.score = 0
-   return notification, checks.check_categories.other.id
-end
-
--- ##############################################
-
 -- @brief Dispatches a `notification` to all the interested recipients
 -- Note: this is similar to RecipientQueue::enqueue does in C++)
 -- @param notification An alert notification
@@ -942,11 +930,16 @@ function recipients.dispatch_notification(notification, current_script, notifica
       traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: dispatching notification")
    end
 
+   if not notification.score then
+      notification.score = 0
+   end
+
    local notification_category = get_notification_category(notification, current_script)
 
    local recipients = recipients.get_all_recipients()
 
    if #recipients > 0 then
+
       -- Use pcall to catch possible exceptions, e.g., (string expected, got light userdata)
       local status, json_notification = pcall(function() return json.encode(notification) end)
 
@@ -969,7 +962,6 @@ function recipients.dispatch_notification(notification, current_script, notifica
          -- dispatched only to the specific recipient
          if recipient_ok and recipient_id then
             if recipient_id == recipient.recipient_id then
-               notification, notification_category = set_default_notification_params(notification)
                goto skip_filters
             end
             recipient_ok = false
@@ -980,7 +972,6 @@ function recipients.dispatch_notification(notification, current_script, notifica
          if recipient_ok and notification_type and notification_type ~= "alerts" then
             if recipient.notifications_type and recipient.notifications_type ~= "alerts" then
                if notification_type == recipient.notifications_type then
-                  notification, notification_category = set_default_notification_params(notification)
                   if debug_vs and notification_type == 'vulnerability_scans' then
                      traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: recipient match!")
                   end
@@ -1104,6 +1095,7 @@ function recipients.dispatch_notification(notification, current_script, notifica
             if debug_vs and notification_type == 'vulnerability_scans' then
                traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: enqueueing notification to recipient")
             end
+
             ntop.recipient_enqueue(recipient.recipient_id, 
               json_notification --[[ alert --]],
               notification.score,
