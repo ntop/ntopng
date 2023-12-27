@@ -726,7 +726,7 @@ void Ntop::start() {
 
     if (usec_diff >= nap_usec)
       ntop->getTrace()->traceEvent(
-          TRACE_NORMAL, "Houkeeping activities (main loop) took %.3fs",
+          TRACE_NORMAL, "Housekeeping activities (main loop) took %.3fs",
           (float)usec_diff / 1e6);
 
 #ifdef __linux__
