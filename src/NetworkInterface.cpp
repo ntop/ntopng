@@ -2451,10 +2451,10 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
   u_int32_t len_on_wire = h->len * getScalingFactor();
   *flow = NULL;
 
-  /* Note summy ethernet is always 0 unless sender_mac is set (Netfilter only)
-   */
+  /* Note dummy ethernet is always 0 unless sender_mac is set (Netfilter only) */
   memset(&dummy_ethernet, 0, sizeof(dummy_ethernet));
 
+  /* Periodic housekeeping activites put here to avoid locks during code execution */
   pollQueuedeCompanionEvents();
   bcast_domains->reloadBroadcastDomains();
 
@@ -2981,17 +2981,18 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	  }
 	} else if (ntop->getGlobals()->decode_tunnels() &&
 		   (l4_proto == IPPROTO_UDP)) {
-	  // ip_offset += ipv6_shift;
-	  if ((ip_offset + ipv6_shift) >= h->len) {
+	  struct ndpi_udphdr *udp;
+	  u_int16_t sport, dport;
+	  
+	  if ((ip_offset + ipv6_shift + sizeof(struct ndpi_udphdr)) > h->caplen) {
 	    incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6,
 		     NDPI_PROTOCOL_UNKNOWN,
 		     NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
 	    goto dissect_packet_end;
 	  }
 
-	  struct ndpi_udphdr *udp =
-	    (struct ndpi_udphdr *)&packet[ip_offset + ipv6_shift];
-	  u_int16_t sport = udp->source, dport = udp->dest;
+	  udp = (struct ndpi_udphdr *)&packet[ip_offset + ipv6_shift];
+	  sport = udp->source, dport = udp->dest;
 
 	  if ((sport == CAPWAP_DATA_PORT) || (dport == CAPWAP_DATA_PORT)) {
 	    /*
@@ -3005,37 +3006,42 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 
 	      Total = CAPWAP_header_length + 24 + 8
 	    */
-
 	    u_short eth_type;
+	    u_int8_t capwap_header_len;
+
 	    ip_offset = ip_offset + ipv6_shift + sizeof(struct ndpi_udphdr);
-	    u_int8_t capwap_header_len =
-	      ((*(u_int8_t *)&packet[ip_offset + 1]) >> 3) * 4;
-	    ip_offset = ip_offset + capwap_header_len + 24 + 8;
 
-	    if (ip_offset >= h->len) {
-	      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
-		       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
-	      goto dissect_packet_end;
-	    }
-	    eth_type = ntohs(*(u_int16_t *)&packet[ip_offset - 2]);
+	    if((ip_offset + 1) < h->caplen) {
+	      capwap_header_len = ((*(u_int8_t *)&packet[ip_offset + 1]) >> 3) * 4;
+	      ip_offset = ip_offset + capwap_header_len + 24 + 8;
 
-	    switch (eth_type) {
-	    case ETHERTYPE_IP:
-	      iph = (struct ndpi_iphdr *)&packet[ip_offset];
-	      ip6 = NULL;
-	      break;
-	    case ETHERTYPE_IPV6:
-	      ip6 = (struct ndpi_ipv6hdr *)&packet[ip_offset];
-	      break;
-	    default:
-	      incStats(
-		       ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
-		       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
-	      goto dissect_packet_end;
+	      if (ip_offset >= h->caplen) {
+		incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+			 NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
+		goto dissect_packet_end;
+	      }
+
+	      eth_type = ntohs(*(u_int16_t *)&packet[ip_offset - 2]);
+
+	      switch (eth_type) {
+	      case ETHERTYPE_IP:
+		iph = (struct ndpi_iphdr *)&packet[ip_offset];
+		ip6 = NULL;
+		break;
+		
+	      case ETHERTYPE_IPV6:
+		ip6 = (struct ndpi_ipv6hdr *)&packet[ip_offset];
+		break;
+		
+	      default:
+		incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+			 NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
+		goto dissect_packet_end;
+	      }
 	    }
 	  }
-	} else if (ntop->getGlobals()->decode_tunnels() &&
-		   (l4_proto == IPPROTO_IP_IN_IP)) {
+	} else if (ntop->getGlobals()->decode_tunnels()
+		   && (l4_proto == IPPROTO_IP_IN_IP)) {
 	  eth_type = ETHERTYPE_IP;
 	  ip_offset += sizeof(struct ndpi_ipv6hdr);
 	  encapsulation_overhead = ip_offset;
