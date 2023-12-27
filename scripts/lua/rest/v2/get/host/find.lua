@@ -426,7 +426,7 @@ if not is_system_interface then
          local ip = nil
          local mac = nil
 
-         local label = host_key
+         local label = hostinfo2label(hostkey2hostinfo(host_key), true)
          if host_key ~= k then
             label = label .. " · " .. k
          end
@@ -481,7 +481,7 @@ if not is_system_interface then
          add_inactive_badge(badges)
 
          hosts[h.host] = {
-            label = hostinfo2hostkey({host=h.host, vlan=h.vlan}),
+            label = hostinfo2label({host=h.host, vlan=h.vlan}, true),
             ip = h.host,
             name = h.host,
             links = links,
