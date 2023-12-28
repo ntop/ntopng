@@ -542,7 +542,7 @@ static int ntop_interface_set_idle(lua_State *vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if (!ntop_interface) {
+  if((!ntop_interface) || (!ntop->isUserAdministrator(vm))) {
     lua_pushnil(vm);
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }
