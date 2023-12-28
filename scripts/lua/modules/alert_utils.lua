@@ -560,7 +560,13 @@ function alert_utils.formatAlertNotification(notif, options)
 
     -- entity can be hidden for example when one is OK with just the message
     if options.show_entity then
-        msg = msg .. " [" .. alert_consts.alertEntityLabel(notif.entity_id) .. "]"
+        local entity_label = alert_consts.alertEntityLabel(notif.entity_id)
+        if not isEmptyString(entity_label) then
+           msg = msg .. " [" .. entity_label .. "]"
+        else
+           traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown entity_id " .. (notif.entity_id or "(none)"))
+           tprint(notif)
+        end
     end
 
     local alert_type_label = alert_consts.alertTypeLabel(notif.alert_id, options.nohtml or options.nolabelhtml, notif.entity_id, true)
