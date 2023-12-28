@@ -18,6 +18,11 @@ AS_IF([test "${with_leak_sanitizer+set}" = set],[
     USE_CLANG=yes
 ])
 
+if test $SYSTEM = "Darwin" && "${with_leak_sanitizer+set}" = set; then
+  echo "FATAL ERROR: sorry --with-leak-sanitizer is not available on macOS"
+  exit -1
+fi
+
 AC_ARG_WITH(sanitizer,     [  --with-sanitizer   Build with support for the LLVM address sanitizer])
 AS_IF([test "${with_sanitizer+set}" = set],[
     CFLAGS="${CFLAGS} -g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
