@@ -101,7 +101,7 @@
             <b v-if="alert_exclusions_page == 'tls_certificate'">{{ _i18n("check_exclusion.tls_certificate") }}</b>
           </label>
           <div class="col-sm-6">
-            <input v-if="alert_exclusions_page == 'domain_names'" placeholder="" :pattern="pattern_text" required type="text" name="ip_address" class="form-control" v-model="input_text" />
+            <input v-if="alert_exclusions_page == 'domain_names'" placeholder="" :pattern="pattern_domain" required type="text" name="ip_address" class="form-control" v-model="input_text" />
             <input v-if="alert_exclusions_page == 'tls_certificate'" placeholder="CN=813845657003339838, O=Code42, OU=TEST, ST=MN, C=U" :pattern="pattern_certificate" required type="text" name="ip_address" class="form-control" v-model="input_text" />
           </div>
 	</div>
@@ -171,6 +171,7 @@ const props = defineProps({
 let pattern_ip = get_data_pattern("ip");
 let pattern_text = get_data_pattern("text");
 let pattern_certificate = get_data_pattern("certificate");
+let pattern_domain = get_data_pattern("domain_name_not_strict");
 
 const set_exclude_type = (type) => {
     exclude_type.value = type;
@@ -190,7 +191,7 @@ const check_disable_apply = () => {
 		|| (netmask.value == null || netmask.value == "" || parseInt(netmask.value) < 1 || parseInt(netmask.value) > 127);
 	}
     } else if (props.alert_exclusions_page == 'domain_names') {
-	regex = new RegExp(pattern_text);
+	regex = new RegExp(pattern_domain);
 	disable_apply = (input_text.value == null || input_text.value == "") || (regex.test(input_text.value) == false);
 	
     } else if (props.alert_exclusions_page == 'tls_certificate') {
