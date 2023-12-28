@@ -350,7 +350,7 @@ Ntop::~Ntop() {
   if (alert_exclusions_shadow) delete alert_exclusions_shadow;
 #endif
 
-#if defined(NTOPNG_PROT) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   if (clickhouseImport) delete clickhouseImport;
 #endif
 
