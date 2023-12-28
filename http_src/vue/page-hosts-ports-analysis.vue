@@ -102,8 +102,8 @@ const _i18n = (t) => i18n(t);
 
 /* L4 Protocol List */
 const criteria_list_def = [
+    { label: _i18n("tcp"), value: 6, param: "tcp", table_id: "tcp_ports_analysis", enterprise_m: false },
     { label: _i18n("udp"), value: 17, param: "udp", table_id: "udp_ports_analysis", enterprise_m: false },
-    { label: _i18n("tcp"), value: 6, param: "client", table_id: "tcp_ports_analysis", enterprise_m: false },
 ];
 
 
@@ -294,7 +294,7 @@ async function update_dropdown_menus(is_application_selected, app, port) {
 
     res.rsp.forEach((item) => {
         let name = item.l7_proto_name.split(".")[0];
-        ports.push({ label: item.srv_port + "/" + name + " (" + item.n_hosts + ")", id: item.srv_port, application: name, num_hosts: item.n_hosts, vlan_id:item.vlan_id })
+        ports.push({ label: `${item.srv_port}/${name} (${item.n_hosts})`, id: item.srv_port, application: name, num_hosts: item.n_hosts, vlan_id:item.vlan_id })
     })
 
     ports.forEach((port) => {
