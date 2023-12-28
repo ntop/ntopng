@@ -1,5 +1,3 @@
-.. _Reports:
-
 Traffic Reports
 ===============
 
