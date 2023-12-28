@@ -146,7 +146,15 @@ const remove_interfaces_selected = (item_to_delete) => {
 	selected_interfaces.value = selected_interfaces.value.filter((item) => item.label != item_to_delete.label);
 }
 
+const reset_modal = () => {
+	selected_repeater_type.value = {};
+	ip.value = "";
+	port.value = "";
+	selected_interfaces.value = [];
+}
+
 const show = (row ) => {
+	reset_modal();
     init(row);
     modal_id.value.show();
 };
