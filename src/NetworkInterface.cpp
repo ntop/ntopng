@@ -3011,7 +3011,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 
 	    ip_offset = ip_offset + ipv6_shift + sizeof(struct ndpi_udphdr);
 
-	    if((ip_offset + 1) < h->caplen) {
+	    if(((unsigned int) ip_offset + 1) < h->caplen) {
 	      capwap_header_len = ((*(u_int8_t *)&packet[ip_offset + 1]) >> 3) * 4;
 	      ip_offset = ip_offset + capwap_header_len + 24 + 8;
 
