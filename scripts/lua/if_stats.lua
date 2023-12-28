@@ -434,7 +434,8 @@ if((page == "overview") or (page == nil)) then
    if(ifstats.description ~= ifstats.name) then print(" ("..ifstats.description..")") end
    print("</td></tr>\n")
 
-   if not is_pcap_dump and ifstats["type"] ~= "netfilter" then
+   
+   if  isAdministrator() and (not is_pcap_dump and ifstats["type"] ~= "netfilter") then
       print("<tr><th width=250>"..i18n("if_stats_overview.state").."</th><td colspan=6>")
       state = toggleTableButton("", "", i18n("if_stats_overview.active"), "1","primary", i18n("if_stats_overview.paused"), "0","primary", "toggle_local", "ntopng.prefs.ifid_"..tostring(ifid).."_not_idle")
 
