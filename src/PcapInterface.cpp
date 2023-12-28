@@ -281,23 +281,57 @@ static void *packetPollLoop(void *ptr) {
       pcap_t *pd = iface->get_pcap_handle(i);
 
       fds[i] = pcap_get_selectable_fd(pd);
+
+#if defined(__APPLE__) || defined(__FreeBSD__)
+      char pcap_error_buffer[PCAP_ERRBUF_SIZE];
+      
+      if(pcap_setnonblock(pd, 1, pcap_error_buffer))
+	ntop->getTrace()->traceEvent(TRACE_ERROR,
+				     "Unable to enable non blocking mode on %s: %s",
+				     iface->getPcapIfaceName(i),
+				     pcap_error_buffer);
+
+#endif
     }
 #endif
-
+    
   while (iface->isRunning() && (!ntop->getGlobals()->isShutdown())) {
       int max_fd = 0;
 #ifndef WIN32
       fd_set rset;
       struct timeval tv;
+      bool do_break = false;
+#ifdef DEBUG_POLLING
+      bool found = false;
+#endif
 
       FD_ZERO(&rset);
 
       for(u_int8_t i=0; i < iface->get_num_ifaces(); i++) {
 	FD_SET(fds[i], &rset);
+	
 	if(fds[i] > max_fd) max_fd = fds[i];
       }
 
+#if defined(__APPLE__) || defined(__FreeBSD__)
+      /*
+	On some, but not all, platforms, if a packet buffer timeout was specified,
+	the wait will terminate after the packet buffer timeout expires; applications
+	should be prepared for this, as it happens on some platforms, but should not
+	rely on it, as it does not happen on other platforms. Note that the wait might,
+	or might not, terminate even if no packets are available; applications should
+	be prepared for this to happen, but must not rely on it happening.
+
+	A handle can be put into ``non-blocking mode'', so that those routines will,
+	rather than blocking, return an indication that no packets are available to read.
+	Call pcap_setnonblock() to put a handle into non-blocking mode or to take it out
+	of non-blocking mode; call pcap_getnonblock() to determine whether a
+	handle is in non-blocking mode.
+      */
+      tv.tv_sec = 0, tv.tv_usec = 10000 /* it must be < pcap_open_live() timeout */;
+#else
       tv.tv_sec = 1, tv.tv_usec = 0;
+#endif
 
       if(select(max_fd + 1, &rset, NULL, NULL, &tv) == 0) {
 #ifdef DEBUG_POLLING
@@ -314,43 +348,47 @@ static void *packetPollLoop(void *ptr) {
 	  
 	  iface->purgeIdle(time(NULL));
 	} /* for */
-      } else {
-	bool do_break = false;
-#ifdef DEBUG_POLLING
-	bool found = false;
-#endif
-	
-	for(u_int8_t i=0; i < iface->get_num_ifaces(); i++) {
-	  if(FD_ISSET(fds[i], &rset)) {
-#ifdef DEBUG_POLLING
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "processNextPacket(%d)", i);
-#endif
-	    
-	    if(iface->processNextPacket(iface->get_pcap_handle(i),
-					iface->get_ifindex(i),
-					iface->get_ifdatalink(i)) == false) {
-	      do_break = true;
-	      break;
-	    }
-#ifdef DEBUG_POLLING
-	    found = true;
-#endif
-	  }
-	}
 
+#if !(defined(__APPLE__) || defined(__FreeBSD__))
+	continue;
+#endif
+      }
+
+      if(iface->idle())
+	continue;
+	
+      for(u_int8_t i=0; i < iface->get_num_ifaces(); i++) {
+#if !(defined(__APPLE__) || defined(__FreeBSD__))
+	if(FD_ISSET(fds[i], &rset))
+#endif
+	  {
 #ifdef DEBUG_POLLING
-	if(!found)
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "**** NO packet");
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "processNextPacket(%d)", i);
 #endif
-	if(do_break)
-	  break;
+	  
+	  if(iface->processNextPacket(iface->get_pcap_handle(i),
+				      iface->get_ifindex(i),
+				      iface->get_ifdatalink(i)) == false) {
+	    do_break = true;
+	    break;
+	  }
+#ifdef DEBUG_POLLING
+	  found = true;
+#endif
+	}
       }
-#else
-      if(processNextPacket(iface->get_pcap_handle(0), iface->get_ifindex(0)) == false) {
+      
+#ifdef DEBUG_POLLING
+      if(!found)
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "**** NO packet");
+#endif
+      if(do_break)
 	break;
-      }
+#else
+      if(processNextPacket(iface->get_pcap_handle(0), iface->get_ifindex(0)) == false)
+	break;      
 #endif
-    } /* while */
+  } /* while */
   } while (pcap_list != NULL);
 
   if (iface->read_from_pcap_dump()) iface->set_read_from_pcap_dump_done();
