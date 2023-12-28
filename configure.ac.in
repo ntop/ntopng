@@ -362,7 +362,7 @@ else
   if test -d "/usr/local/Cellar/openssl@1.1"; then
     AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
     SSL_INC="-I/usr/local/Cellar/openssl@1.1/include"
-    SSL_LIB="-L/usr/local/Cellar/openssl@1.1 -lssl -lcrypto"
+    SSL_LIB="-L/usr/local/Cellar/openssl@1.1/lib -lssl -lcrypto"
   elif test -d "/usr/local/opt/openssl/lib"; then
     AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
     SSL_INC="-I/usr/local/opt/openssl/include"
