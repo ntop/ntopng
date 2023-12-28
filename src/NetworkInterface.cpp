@@ -11901,15 +11901,15 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
 
     std::unordered_map<u_int64_t, HostDetails*> *host_details = hostsPortsAnalysis->get_hosts_details();
     if (host_details && host_details->find(host_key) == host_details->end() ) {
-
+      
       /* Not found in hash the host details */
       char ip_buf[64];
       char mac_buf[64];
       char ip_hex_buf[64];
       char name[64];
       HostDetails *host_info = new (std::nothrow) HostDetails(h->get_ip()->print(ip_buf, sizeof(ip_buf)),
-							      h->getMac()->print(mac_buf, sizeof(mac_buf)),
-							      (char*)h->getMac()->get_manufacturer(),
+							      h->getMac() ? h->getMac()->print(mac_buf, sizeof(mac_buf)) : (char*)"",
+							      h->getMac() ? (char*)h->getMac()->get_manufacturer() : (char*)"",
 							      h->getNumBytesUDPSent() + h->getNumBytesUDPRcvd(),
 							      h->get_ip()->get_ip_hex(ip_hex_buf, sizeof(ip_hex_buf)),
 							      h->get_vlan_id(),
@@ -11995,8 +11995,8 @@ bool NetworkInterface::get_hosts_by_service(GenericHashEntry *node,
       char ip_hex_buf[64];
       char name[64];
       HostDetails *host_info = new (std::nothrow) HostDetails(h->get_ip()->print(ip_buf, sizeof(ip_buf)),
-							      h->getMac()->print(mac_buf, sizeof(mac_buf)),
-							      (char*)h->getMac()->get_manufacturer(),
+							      h->getMac() ? h->getMac()->print(mac_buf, sizeof(mac_buf)) : (char*)"",
+							      h->getMac() ? (char*)h->getMac()->get_manufacturer() : (char*)"",
 							      h->getNumBytesUDPSent() + h->getNumBytesUDPRcvd(),
 							      h->get_ip()->get_ip_hex(ip_hex_buf, sizeof(ip_hex_buf)),
 							      h->get_vlan_id(),
