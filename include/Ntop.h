@@ -146,10 +146,6 @@ class Ntop {
   std::map<std::string /* ifname */, Ping *> ping;
 #endif
 
-#ifdef __linux__
-  int inotify_fd;
-#endif
-
   /* For local network */
   inline int16_t localNetworkLookup(int family, void *addr,
                                     u_int8_t *network_mask_bits = NULL);
