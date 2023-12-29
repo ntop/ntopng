@@ -164,11 +164,10 @@ const delete_row = async function () {
 }
 
 const add_host_rule = async function (params) {
-  const url = NtopUtils.buildURL(add_rule_url, {
-    ...params
-  })
 
-  const rsp = await ntopng_utility.http_post_request(url, rest_params);
+  params.csrf = props.page_csrf;
+  params.ifid = props.ifid;
+  const rsp = await ntopng_utility.http_post_request(add_rule_url, params);
 
   invalid_add.value = rsp.rsp;
 
@@ -259,7 +258,7 @@ const format_threshold = function (data, rowData) {
     formatted_data = threshold_sign + NtopUtils.bitsToSize(data)
   } else if ((rowData.metric_type) && (rowData.metric_type == 'volume')) {
     formatted_data = threshold_sign + NtopUtils.bytesToSize(data);
-  } else if ((rowData.metric_type) && ((rowData.metric_type == 'percentage') || (rowData.metric_type == 'absolute_percentage'))) {
+  } else if ((rowData.metric_type) && (rowData.metric_type.contains('percentage'))) {
     if (data < 0) {
       data = data * (-1);
     }
@@ -287,11 +286,10 @@ const format_last_measurement = function (data, rowData) {
     formatted_data = NtopUtils.bitsToSize(data)
   } else if ((rowData.metric_type) && (rowData.metric_type == 'volume')) {
     formatted_data = NtopUtils.bytesToSize(data);
-  } else if ((rowData.metric_type) && (rowData.metric_type == 'percentage')) {
-    if (data < 0) {
-      data = data * (-1);
-    }
-    formatted_data = NtopUtils.fpercent(data);
+  } else if ((rowData.metric_type) && (rowData.metric_type.includes('percentage'))) {
+    const sign_data = data < 0 ? -1 : 1;
+    const absolute_value = NtopUtils.fpercent(data * sign_data);
+    formatted_data = sign_data == -1 ? `<label title='${i18n("percentage_decrease")}'> (-) ${absolute_value} </label>` : `<label title='${i18n("percentage_increase")}'>${absolute_value}</label>`;
   }
 
   return formatted_data
@@ -311,8 +309,9 @@ const format_rule_type = function (data, rowData) {
   } else if ((rowData.rule_type) && (rowData.rule_type == 'exporter') && rowData.metric == "flowdev:traffic") {
     formatted_data = "<span class='badge bg-secondary'>" + _i18n("flow_exporter_device") + " <i class='fas fa-laptop'></i></span>"
 
-  } else if ((rowData.rule_type) && (rowData.rule_type == 'exporter') && rowData.metric == "flowdev_port:traffic")
+  } else if ((rowData.rule_type) && (rowData.rule_type == 'exporter') && rowData.metric.includes("flowdev_port")) {
     formatted_data = "<span class='badge bg-secondary'>" + _i18n("interface_flow_exporter_device") + " <i class='fas fa-ethernet'></i></span>"
+  }
 
   return formatted_data;
 }
@@ -328,7 +327,7 @@ const format_target = function (data, rowData) {
   } else if (rowData.rule_type && rowData.rule_type == 'exporter' && rowData.metric == "flowdev:traffic") {
     formatted_data = rowData.target;
   } else {
-    let interface_label = rowData.flow_exp_ifid_name != "" ? rowData.flow_exp_ifid_name : rowData.flow_exp_ifid;
+    let interface_label = rowData.flow_exp_ifid_name != "" && rowData.flow_exp_ifid_name != null  ? rowData.flow_exp_ifid_name : rowData.flow_exp_ifid;
     formatted_data = rowData.target + " " + _i18n("on_interface") + ": " + interface_label;
   }
   return formatted_data;

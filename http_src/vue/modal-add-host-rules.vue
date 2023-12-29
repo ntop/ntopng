@@ -97,7 +97,7 @@
           </SelectSearch>
         </div>
 
-
+        <template v-if="selected_exporter_device.id != '*'">
         <label class="col-form-label col-sm-2">
           <b>{{ _i18n("if_stats_config.target_exporter_device_ifid") }}</b>
         </label>
@@ -106,6 +106,7 @@
           <SelectSearch v-model:selected_option="selected_exporter_device_ifid" :options="flow_exporter_device_ifid_list">
           </SelectSearch>
         </div>
+      </template>
       </div>
 
 
@@ -230,7 +231,7 @@
       </template>
     </template>
     <template v-slot:footer>
-      <NoteList :note_list="note_list">
+      <NoteList :note_list="note_list" :add_sub_notes="true" :sub_note_list="sub_notes_list">
       </NoteList>
       <template v-if="is_edit_page == false">
         <button type="button" @click="add_" class="btn btn-primary" :disabled="disable_add && rule_type == 'Host'">{{
@@ -309,8 +310,11 @@ const note_list = [
   _i18n('if_stats_config.note_2'),
   _i18n('if_stats_config.note_3'),
   _i18n('if_stats_config.note_4'),
+];
+
+const sub_notes_list = [
   _i18n('if_stats_config.note_5')
-]
+];
 
 const metric_type_list = ref([
   { title: _i18n('volume'), label: _i18n('volume'), id: 'volume', active: true },
@@ -322,6 +326,7 @@ const metric_type_list = ref([
 const exporter_metric_type_list = ref([
   { title: _i18n('volume'), label: _i18n('volume'), id: 'volume', active: true },
   { title: _i18n('throughput'), label: _i18n('throughput'), id: 'throughput', active: false },
+  { title: _i18n('percentage'), label: _i18n('percentage'), id: 'percentage', active: false },
 ])
 
 const pool_metric_type_list = ref([
@@ -398,7 +403,7 @@ const reset_modal_form = async function () {
   title = i18n('if_stats_config.add_host_rules_title');
   selected_frequency.value = frequency_list.value[0];
   metric_type.value = metric_type_list.value[0];
-  selected_exporter_device.value = flow_exporter_devices.value[0];
+  selected_exporter_device.value = flow_exporter_devices.value[1];
   if (selected_exporter_device.value != null) {
     update_exporter_interfaces()
   }
@@ -795,7 +800,7 @@ const add_ = (is_edit) => {
   } else if (tmp_metric_type == 'percentage') {
     sign_threshold_list.value.forEach((measure) => { if (measure.active) basic_sign_value = measure.value; })
     tmp_sign_value = parseInt(basic_sign_value);
-    tmp_threshold = tmp_sign_value * parseInt(threshold.value.value);
+    tmp_threshold = parseInt(threshold.value.value);
   } else if (tmp_metric_type == 'value' || tmp_metric_type == 'absolute_percentage') {
     sign_threshold_list.value.forEach((measure) => { if (measure.active) basic_sign_value = measure.value; })
     tmp_sign_value = parseInt(basic_sign_value);
@@ -836,9 +841,11 @@ const add_ = (is_edit) => {
 
     });
   else if (rule_type.value == "exporter") {
-    const flow_device_ifindex = selected_exporter_device_ifid.value.id;
+    let flow_device_ifindex = selected_exporter_device_ifid.value.id;
     const flow_device_ifindex_name = selected_exporter_device_ifid.value.label;
     const flow_device_ip = selected_exporter_device.value.id;
+    if (flow_device_ip == '*') 
+      flow_device_ifindex = '*';
     const ifid = selected_exporter_device.value.ifid;
     let metric_exp;
 
@@ -976,7 +983,7 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
   network_metric_list.value = _network_metric_list;
   flow_device_metric_list.value = _flow_exporter_devices_metric_list;
 
-  selected_exporter_device.value = flow_exporter_devices.value[0];
+  selected_exporter_device.value = flow_exporter_devices.value[1];
   if (selected_exporter_device.value != null) {
     update_exporter_interfaces()
   }
@@ -989,6 +996,9 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
  */
 async function update_exporter_interfaces() {
   let interfaces_list = [];
+  if (selected_exporter_device.value.id == '*') {
+    return;
+  }
   const url_device_exporter_details =
     NtopUtils.buildURL(`${http_prefix}/lua/pro/rest/v2/get/flowdevice/stats.lua?ip=${selected_exporter_device.value.id}&ifid=${selected_exporter_device.value.ifid}`);
 
@@ -1015,7 +1025,9 @@ async function update_exporter_interfaces() {
  * Function to format flow exporter device list 
  */
 const format_flow_exporter_device_list = function (data) {
-  const _f_exp_dev_list = [];
+  const _f_exp_dev_list = [
+    { id: "*", value: "*", label: "*" }
+  ];
 
   data.forEach((dev) => {
     const ip = dev.probe_ip;
