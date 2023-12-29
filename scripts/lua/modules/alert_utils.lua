@@ -558,15 +558,14 @@ function alert_utils.formatAlertNotification(notif, options)
 
     local msg = string.format("%s%s%s", when, ifname, severity)
 
+    local entity_label = ""
+    if notif.entity_id then
+       entity_label = alert_consts.alertEntityLabel(notif.entity_id) or ""
+    end
+
     -- entity can be hidden for example when one is OK with just the message
-    if options.show_entity then
-        local entity_label = alert_consts.alertEntityLabel(notif.entity_id)
-        if not isEmptyString(entity_label) then
-           msg = msg .. " [" .. entity_label .. "]"
-        else
-           traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown entity_id " .. (notif.entity_id or "(none)"))
-           tprint(notif)
-        end
+    if options.show_entity and not isEmptyString(entity_label) then
+       msg = msg .. " [" .. entity_label .. "]"
     end
 
     local alert_type_label = alert_consts.alertTypeLabel(notif.alert_id, options.nohtml or options.nolabelhtml, notif.entity_id, true)
@@ -575,7 +574,7 @@ function alert_utils.formatAlertNotification(notif, options)
     end
 
     -- entity can be hidden for example when one is OK with just the message
-    if options.show_entity then
+    if options.show_entity and notif.entity_id and notif.entity_val then
         local ev = notif.entity_val
 
         if notif.entity_id == alert_entities.flow.entity_id then
@@ -611,11 +610,13 @@ function alert_utils.formatAlertNotification(notif, options)
         msg = msg .. alert_message
     end
 
-    local alert_title = string.format("[%s]: %s", alert_consts.alertEntityLabel(notif.entity_id),alert_consts.alertTypeLabel(notif.alert_id, options.nohtml, notif.entity_id))
+    local alert_title = ""
+    if not isEmptyString(entity_label) then
+       alert_title = string.format("[%s]: ", entity_label)
+    end
+    alert_title = alert_title .. alert_consts.alertTypeLabel(notif.alert_id, options.nohtml, notif.entity_id)
 
-    local alert_type = alert_consts.alertEntityLabel(notif.entity_id)
-
-    return msg, alert_title, alert_type
+    return msg, alert_title, entity_label
 end
 
 -- ##############################################

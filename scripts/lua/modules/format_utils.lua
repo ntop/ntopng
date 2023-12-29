@@ -615,7 +615,7 @@ end
 function format_utils.formatMessage(notification, options)
    if not notification.score or notification.score == 0 then
       -- In case it is just a message/report (so no score), format like a normal msg
-      local handled, message format_notification(notification, options)
+      local handled, message = format_notification(notification, options)
 
       if handled then
          return message
@@ -624,7 +624,9 @@ function format_utils.formatMessage(notification, options)
    
    -- In case it is an alert, format it by using the standard function
    local alert_utils = require "alert_utils"
-   return alert_utils.formatAlertNotification(notification, options)
+   local message =  alert_utils.formatAlertNotification(notification, options)
+
+   return message
 end
 
 -- ######################################################
