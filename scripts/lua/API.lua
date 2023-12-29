@@ -88,12 +88,6 @@ function getHostInfo(host_ip,vlan_id)
 function getHostActivityMap(host_ip,vlan_id)
 
 --! @memberof interface
---! @brief Restore the host of network interface.
---! @details Get the ntop interface global variable of lua and the IP address of host form the lua stack and restore the host into hash host of network interface.For more information please read the @ref ntop_restore_interface_host documentation.
---! @tparam string host_ip The IP address of host.
-function restoreHost(host_ip)
-
---! @memberof interface
 --! @memberof interface
 --! @brief Get the flow information (minimal details) of network interface.
 --! @details For more information please read the @ref ntop_get_interface_flows_info documentation.

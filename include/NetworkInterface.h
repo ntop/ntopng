@@ -159,9 +159,6 @@ protected:
   */
   bool flows_dump_json_use_labels;
 
-  /* Queue containing the ip@vlan strings of the hosts to restore. */
-  StringFifoQueue *hosts_to_restore;
-
   /* External alerts contain alertable entities other than
    * host/interface/network which are dynamically allocated when an alert for
    * them occurs. A lock is necessary to guard the insert/delete operations from
@@ -702,8 +699,6 @@ public:
   void updateLbdIdentifier();
   void updateDiscardProbingTraffic();
   void updateFlowsOnlyInterface();
-  bool restoreHost(char *host_ip, u_int16_t vlan_id);
-  void checkHostsToRestore();
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname,
                                  u_int ifname_len);
   void findFlowHosts(int32_t _iface_idx, u_int16_t vlan_id,

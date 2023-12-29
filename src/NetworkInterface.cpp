@@ -287,7 +287,6 @@ void NetworkInterface::init(const char *interface_name) {
 
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
-  hosts_to_restore = new (std::nothrow) StringFifoQueue(64);
 
   ip_addresses = "", networkStats = NULL, pcap_datalink_type = 0,
     cpu_affinity = -1;
@@ -954,7 +953,6 @@ NetworkInterface::~NetworkInterface() {
   if (alertsQueue) delete alertsQueue;
   if (ndpiStats) delete ndpiStats;
   if (dscpStats) delete dscpStats;
-  if (hosts_to_restore) delete hosts_to_restore;
   if (networkStats) {
     u_int16_t numNetworks = ntop->getNumLocalNetworks();
 
@@ -2385,8 +2383,6 @@ void NetworkInterface::purgeIdle(time_t when, bool force_idle, bool full_scan) {
 	 flowHashing.begin();
        it != flowHashing.end(); ++it)
     it->second->purgeIdle(when, force_idle, full_scan);
-
-  checkHostsToRestore();
 
 #if defined(NTOPNG_PRO)
   if (pMap) pMap->purgeIdle(when);
@@ -4495,21 +4491,6 @@ static bool find_vlan_by_vlan_id(GenericHashEntry *he, void *user_data,
   }
 
   return (false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-/* Enqueues an host restore request on the interface. The checkHostsToRestore
- * function, in the datapath, will take care of restoring the host. */
-bool NetworkInterface::restoreHost(char *host_ip, u_int16_t vlan_id) {
-  char buf[64];
-  bool rv;
-
-  snprintf(buf, sizeof(buf), "%s@%u", host_ip, vlan_id);
-
-  rv = hosts_to_restore->enqueue(buf);
-
-  return (rv);
 }
 
 /* **************************************************** */
@@ -10531,75 +10512,6 @@ void NetworkInterface::processExternalAlertable(AlertEntity entity,
   }
 
   external_alerts_lock.unlock(__FILE__, __LINE__);
-}
-
-/* *************************************** */
-
-void NetworkInterface::checkHostsToRestore() {
-  int i = 0;
-
-  if (!hosts_hash) return;
-
-  /* Restore at maximum 5 hosts per run */
-  for (i = 0; (i < 5) && hosts_hash->hasEmptyRoom(); i++) {
-    char *ip, *d;
-    Host *h;
-    Mac *mac = NULL;
-    u_int16_t vlan_id;
-    IpAddress ipa;
-
-    if (hosts_to_restore->empty()) break;
-
-    ip = hosts_to_restore->dequeue();
-
-    if (!(d = strchr(ip, '@'))) goto next_host;
-
-    /* Split IP from VLAN */
-    *d = '\0';
-    vlan_id = atoi(d + 1);
-    ipa.set(ip);
-
-    if ((h = getHost(ip, vlan_id, 0 /* any observation point */, true /* inline call */)))
-      /* Host already exists */
-      goto next_host;
-
-    if (serializeLbdHostsAsMacs()) {
-      /* Try to retrieve the associated MAC address (only for LBD hosts) */
-      char key[CONST_MAX_LEN_REDIS_KEY];
-      char mac_buf[64];
-      u_int8_t mac_bytes[6];
-
-      snprintf(key, sizeof(key), IP_MAC_ASSOCIATION, get_id(), ip, vlan_id);
-
-      /* The host is possibly a LBD host in DHCP range, so also bring up its MAC
-       * for the deserialization */
-      if ((!ntop->getRedis()->get(key, mac_buf, sizeof(mac_buf))) && (mac_buf[0] != '\0')) {
-        Utils::parseMac(mac_bytes, mac_buf);
-        mac = getMac(mac_bytes, true /* Create if not present */,
-                     true /* inline call */);
-      } else {
-        goto next_host;
-      }
-    }
-
-    /* TODO provide the host MAC address when available to properly restore LBD
-     * hosts */
-    if (ipa.isLocalHost() || ipa.isLocalInterfaceAddress())
-      h = new (std::nothrow)LocalHost(this, UNKNOWN_PKT_IFACE_IDX,
-				      mac, vlan_id, 0 /* any observation point */, &ipa);
-    else
-      h = new (std::nothrow)RemoteHost(this, UNKNOWN_PKT_IFACE_IDX,
-				       mac, vlan_id, 0 /* any observation point */, &ipa);
-
-    if (!h) goto next_host;
-
-    if (!hosts_hash->add(h, false /* Don't lock, we're inline with the purgeIdle */))
-      delete h;
-
-  next_host:
-    /* Always free the string retrieved from the queue */
-    free(ip);
-  }
 }
 
 /* *************************************** */

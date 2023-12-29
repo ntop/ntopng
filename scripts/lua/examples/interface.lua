@@ -247,7 +247,6 @@ print('<li>getEndpoint')
 print('<li>incrDrops')
 print('<li>getNdpiProtoName')
 print('<li>flushHostContacts')
-print('<li>restoreHost')
 
 print('</ul></p>')
 

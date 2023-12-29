@@ -3056,33 +3056,6 @@ static int ntop_getsflowdeviceinfo(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_restore_interface_host(lua_State *vm) {
-  NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *host_ip;
-  u_int16_t vlan_id = 0;
-  char buf[64];
-  AddressTree *ptree = get_allowed_nets(vm);
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  get_host_vlan_info((char *)lua_tostring(vm, 1), &host_ip, &vlan_id, buf,
-                     sizeof(buf));
-
-  if (!ntop_interface)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-
-  /* Ensure that the user has privileges for the given host */
-  if (ptree && !ptree->match(host_ip))
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-
-  lua_pushboolean(vm, ntop_interface->restoreHost(host_ip, vlan_id));
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-/* ****************************************** */
-
 static int ntop_get_interface_flow_key(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
   Host *cli, *srv;
@@ -5265,13 +5238,6 @@ static int ntop_interface_trigger_traffic_alert(lua_State *vm) {
     h = ntop_interface->findHostByIP(&ptree, ipaddress, vlan_id,
                                      observation_point_id);
 
-    if (h == NULL) {
-      /* Host not found in memory: let's try to restore it from cache */
-      ntop_interface->restoreHost(ipaddress, vlan_id);
-      h = ntop_interface->findHostByIP(&ptree, ipaddress, vlan_id,
-                                       observation_point_id);
-    }
-
     if (h != NULL) {
       HostAlert *alert;
       time_t now = time(NULL);
@@ -5405,7 +5371,6 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"getNetworksStats", ntop_get_interface_networks_stats},
     {"getLocalServerPorts", ntop_get_local_server_ports},
     {"getNetworkStats", ntop_get_interface_network_stats},
-    {"restoreHost", ntop_restore_interface_host},
     {"checkpointHostTalker", ntop_checkpoint_host_talker},
     {"getFlowsInfo", ntop_get_interface_flows_info},
     {"getGroupedFlows", ntop_get_interface_get_grouped_flows},

@@ -111,18 +111,6 @@ end
 local restoreFailed = false
 local restoreInProgress = false
 
---[[
--- Host restore disabled as persistency has been removed
--- Note: enabling this, hosts can still be "restored" creating them with empty metadata
-if ((host == nil) and ((_GET["mode"] == "restore"))) then
-    restoreFailed = not interface.restoreHost(host_info["host"], host_vlan)
-
-    if (not restoreFailed) then
-        restoreInProgress = true
-    end
-end
---]]
-
 -- #####################################################
 
 local function takeHistoricalBaseUrl(port)
