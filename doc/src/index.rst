@@ -20,7 +20,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    using_with_other_tools/index
    clickhouse/index
    historical_flows
-   reports
+   reports/index
    containers   
    scada/index
    kafka/index
