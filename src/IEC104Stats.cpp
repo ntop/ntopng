@@ -88,7 +88,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
       switch (pdu_type) {
         case 0x03: /* U */
-        {
+	{
           u_int8_t u_type = (payload[offset + 1] & 0xFC) >> 2;
           const char *u_type_str;
 
@@ -131,37 +131,38 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
           snprintf(infobuf, sizeof(infobuf) - 1, "%s U (%s)",
                    tx_direction ? "->" : "<-", u_type_str);
-        } break;
+        }
+	break;
 
         case 0x01: /* S */
-          if (len >= 4) {
-            u_int16_t rx = ((((u_int16_t)payload[offset + 4]) << 8) +
-                            payload[offset + 3]) >>
-                           1;
+	  if((offset+4) < payload_len) {
+	    if (len >= 4) {
+	      u_int16_t rx = ((((u_int16_t)payload[offset + 4]) << 8) + payload[offset + 3]) >> 1;
 
-            if (last_i_apdu.tv_sec != 0) {
-              float ms = Utils::msTimevalDiff(packet_time, &last_i_apdu);
+	      if (last_i_apdu.tv_sec != 0) {
+		float ms = Utils::msTimevalDiff(packet_time, &last_i_apdu);
 
 #ifdef IEC60870_TRACE
-              ntop->getTrace()->traceEvent(
+		ntop->getTrace()->traceEvent(
                   TRACE_NORMAL,
                   "A-PDU S [last I-TX: %u][S RX ack: %u][tdiff: %.2f msec]",
                   tx_seq_num, rx, ms);
 #endif
-              /*
-                In theory if all is in good shape
-                (rx + 1) == tx_seq_num
-              */
+		/*
+		  In theory if all is in good shape
+		  (rx + 1) == tx_seq_num
+		*/
 
-              ndpi_data_add_value(i_s_apdu, ms);
-            }
+		ndpi_data_add_value(i_s_apdu, ms);
+	      }
 
-            /* No rx and tx to be updated */
-            snprintf(infobuf, sizeof(infobuf) - 1, "%s S, RX %u",
-                     tx_direction ? "->" : "<-", rx);
-          }
+	      /* No rx and tx to be updated */
+	      snprintf(infobuf, sizeof(infobuf) - 1, "%s S, RX %u",
+		       tx_direction ? "->" : "<-", rx);
+	    }
 
-          stats.type_s++;
+	    stats.type_s++;
+	  }
           break;
       }
 
