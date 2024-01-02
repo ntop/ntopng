@@ -2174,6 +2174,7 @@ local known_parameters = {
     ["toggle_local_host_cache_enabled"] = validateBool,
     ["toggle_active_local_host_cache_enabled"] = validateBool,
     ["toggle_network_discovery"] = validateBool,
+    ["toggle_network_discovery_debug"] = validateBool,
     ["toggle_interface_traffic_rrd_creation"] = validateBool,
     ["toggle_local_hosts_traffic_rrd_creation"] = validateBool,
     ["toggle_local_hosts_stats_rrd_creation"] = validateBool,

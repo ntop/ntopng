@@ -375,7 +375,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.network_discovery") ..
                   '</th></tr></thead>')
 
-        local elementToSwitch = {"network_discovery_interval"}
+        local elementToSwitch = {"network_discovery_interval", "network_discovery_debug"}
 
         prefsToggleButton(subpage_active, {
             field = "toggle_network_discovery",
@@ -402,6 +402,12 @@ if auth.has_capability(auth.capabilities.preferences) then
                 min = 60 * 15,
                 tformat = "mhd"
             })
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_network_discovery_debug",
+            default = "0",
+            pref = "network_discovery_debug"
+        })
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..

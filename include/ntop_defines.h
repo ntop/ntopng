@@ -751,6 +751,9 @@
 #define CONST_PREFS_USE_MAC_IN_FLOW_KEY \
   NTOPNG_PREFS_PREFIX ".use_mac_in_flow_key"
 
+#define CONST_PREFS_NETWORK_DISCOVERY_DEBUG \
+  NTOPNG_PREFS_PREFIX ".network_discovery_debug"
+
 #define CONST_USER_GROUP_ADMIN "administrator"
 #define CONST_USER_GROUP_UNPRIVILEGED "unprivileged"
 #define CONST_USER_GROUP_CAPTIVE_PORTAL "captive_portal"

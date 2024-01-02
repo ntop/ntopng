@@ -350,6 +350,10 @@ local menu_subpages = { {
         network_discovery_interval = {
             title = i18n("prefs.network_discovery_interval_title"),
             description = i18n("prefs.network_discovery_interval_description")
+        },
+        toggle_network_discovery_debug = {
+            title = i18n("prefs.toggle_network_discovery_debug_title"),
+            description = i18n("prefs.toggle_network_discovery_debug_description")
         }
     }
 },{

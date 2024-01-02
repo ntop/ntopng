@@ -21,8 +21,6 @@
 
 #include "ntop_includes.h"
 
-// #define DEBUG_DISCOVERY
-
 /* ******************************* */
 
 NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
@@ -36,6 +34,7 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
 
   mdns_vm = NULL;
   has_bpf_filter = false;
+  debug_mode = false;
 
 #if !defined(__arm__)
   if ((pd = pcap_open_live(ifname, 128 /* snaplen */, 0 /* no promisc */, 5,
@@ -151,7 +150,7 @@ void NetworkDiscovery::queueMDNSResponse(u_int32_t src_ip_nw_byte_order,
 /* ******************************* */
 
 typedef struct {
-  NetworkDiscovery *discover;
+  NetworkDiscovery *obj;
   int fd;
   int mdns_sock;
   lua_State *vm;
@@ -163,6 +162,7 @@ typedef struct {
   const char *ifname;
 } arp_data;
 
+/* Scan all hosts in a Network */
 static void arp_scan_hosts(ndpi_patricia_node_t *node, void *data,
                            void *user_data) {
   u_int32_t netp, maskp;
@@ -185,7 +185,7 @@ static void arp_scan_hosts(ndpi_patricia_node_t *node, void *data,
     else
       sender_ip.s_addr = 0;
 
-    arp_d->discover->sendArpNetwork(arp_d, netp, maskp, sender_ip.s_addr);
+    arp_d->obj->sendArpNetwork(arp_d, netp, maskp, sender_ip.s_addr);
   }
 }
 
@@ -222,18 +222,17 @@ void NetworkDiscovery::sendArpNetwork(void *data, u_int32_t netp,
 
   if (mdns_sock > max_sock) max_sock = mdns_sock;
 
-#ifdef DEBUG_DISCOVERY
-  {
+  if (debug_mode) {
     char buf0[32], buf1[32], buf2[32];
     u_int32_t first_ip_nbo = htonl(first_ip);
     u_int32_t last_ip_nbo = htonl(last_ip);
 
-    printf("ARP scan [as %s]: %s-%s\n",
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+      "ARP scan [as %s]: %s-%s\n",
            inet_ntop(AF_INET, &sender_ip, buf0, sizeof(buf0)),
            inet_ntop(AF_INET, &first_ip_nbo, buf1, sizeof(buf1)),
            inet_ntop(AF_INET, &last_ip_nbo, buf2, sizeof(buf2)));
   }
-#endif
 
   for (int num_runs = 0; num_runs < 2; num_runs++) {
     for (host_ip = first_ip; host_ip < last_ip; host_ip++) {
@@ -269,9 +268,11 @@ void NetworkDiscovery::sendArpNetwork(void *data, u_int32_t netp,
             vm, Utils::formatMac(reply->arph.arp_sha, macbuf, sizeof(macbuf)),
             Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
 
-        ntop->getTrace()->traceEvent(
-            TRACE_INFO, "Received ARP reply from %s",
+        if (debug_mode) {
+          ntop->getTrace()->traceEvent(
+            TRACE_NORMAL, "Received ARP reply from %s",
             Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
+        }
 
         if (mdns_sock != -1) {
           mdns_dest->sin_addr.s_addr = reply->arph.arp_spa, dns_h->tr_id++;
@@ -322,6 +323,12 @@ void NetworkDiscovery::arpScan(lua_State *vm) {
   int fd = -1;
   const char *ifname = iface->altDiscoverableName();
   arp_data arp_d;
+  char val[16];
+
+  val[0] = '\0';
+  debug_mode = (ntop->getRedis()->get(
+    (char *)CONST_PREFS_NETWORK_DISCOVERY_DEBUG, val, sizeof(val), true) == 0)
+    && (val[0] == '1');
 
 #ifndef WIN32
   fd = pcap_get_selectable_fd(pd);
@@ -420,7 +427,7 @@ void NetworkDiscovery::arpScan(lua_State *vm) {
   mdns_dest.sin_family = AF_INET, mdns_dest.sin_port = htons(5353);
 
   /* Start the polling */
-  arp_d.discover = this;
+  arp_d.obj = this;
   arp_d.fd = fd;
   arp_d.mdns_sock = mdns_sock;
   arp_d.vm = vm;
@@ -431,6 +438,7 @@ void NetworkDiscovery::arpScan(lua_State *vm) {
   arp_d.arp = &arp;
   arp_d.ifname = ifname;
 
+  /* Scan all interface networks */
   iface->getInterfaceNetworks()->walk(arp_scan_hosts, &arp_d);
 
   /* Collect possibly pending replies */
@@ -451,9 +459,12 @@ void NetworkDiscovery::arpScan(lua_State *vm) {
           vm, Utils::formatMac(reply->arph.arp_sha, macbuf, sizeof(macbuf)),
           Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
 
-      ntop->getTrace()->traceEvent(
-          TRACE_INFO, "Received ARP reply from %s",
+      if (debug_mode) {
+        ntop->getTrace()->traceEvent(
+          TRACE_NORMAL, "Received ARP reply from %s",
           Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
+      }
+
       mdns_dest.sin_addr.s_addr = reply->arph.arp_spa, dns_h->tr_id++;
       if ((sendto(mdns_sock, mdnsbuf, dns_query_len, 0,
                   (struct sockaddr *)&mdns_dest,
@@ -886,10 +897,12 @@ void NetworkDiscovery::discover(lua_State *vm, u_int timeout) {
     int len =
         recvfrom(udp_sock, (char *)msg, sizeof(msg), 0, (sockaddr *)&from, &s);
 
-    ntop->getTrace()->traceEvent(
-        TRACE_INFO, "Received SSDP packet from %s:%u",
+    if (debug_mode) {
+      ntop->getTrace()->traceEvent(
+        TRACE_NORMAL, "Received SSDP packet from %s:%u",
         Utils::intoaV4(ntohl(from.sin_addr.s_addr), ipbuf, sizeof(ipbuf)),
         ntohs(from.sin_port));
+    }
 
     if (len > 0) {
       char src[32],
