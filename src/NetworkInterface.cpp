@@ -2094,64 +2094,63 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 	    mac->incNumDHCPReplies();
 	  }
 
-	  for (u_int32_t i = 240; i < trusted_payload_len;) {
+	  for (u_int32_t i = 240; (i+1) < trusted_payload_len;) {
 	    u_int8_t id = payload[i], len = payload[i + 1];
 
 	    if (len == 0) break;
 
 #ifdef DHCP_DEBUG
-	    ntop->getTrace()->traceEvent(TRACE_WARNING,
-					 "[DHCP] [id=%u][len=%u]", id, len);
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] [id=%u][len=%u]", id, len);
 #endif
 
-	    if (id == 12 /* Host Name */) {
-	      char name[64], buf[24], *client_mac, key[64];
-	      int j;
+	    if((i + 2 + len) < trusted_payload_len) {
+	      if (id == 12 /* Host Name */) {
+		char name[64], buf[24], *client_mac, key[64];
+		int j;
 
-	      j = ndpi_min(len, sizeof(name) - 1);
-	      strncpy((char *)name, (char *)&payload[i + 2], j);
-	      name[j] = '\0';
+		j = ndpi_min(len, sizeof(name) - 1);
+		strncpy((char *)name, (char *)&payload[i + 2], j);
+		name[j] = '\0';
+	      
+		client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
+		ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'",
+					     client_mac, name);
+	      
+		snprintf(key, sizeof(key), DHCP_CACHE, get_id(), client_mac);
+		ntop->getRedis()->set(key, name, 86400 /* 1d duration */);
+	      
+		if ((payload_cli_mac = getMac(&payload[28], false /* Do not create if missing */,
+					      true /* Inline call */)))
+		  payload_cli_mac->inlineSetDHCPName(name);
+	      
+#ifdef DHCP_DEBUG
+		ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] %s = '%s'",
+					     client_mac, name);
+#endif	      
+	      } else if ((id == 55 /* Parameters List (Fingerprint) */) && flow->get_ndpi_flow()) {
+		char fingerprint[64], buf[32];
+		u_int idx, offset = 0;
 
-	      client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
-	      ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'",
-					   client_mac, name);
+		len = ndpi_min(len, sizeof(buf) / 2);
 
-	      snprintf(key, sizeof(key), DHCP_CACHE, get_id(), client_mac);
-	      ntop->getRedis()->set(key, name, 86400 /* 1d duration */);
-
-	      if ((payload_cli_mac = getMac(
-					    &payload[28], false /* Do not create if missing */,
-					    true /* Inline call */)))
-		payload_cli_mac->inlineSetDHCPName(name);
+		for (idx = 0; idx < len; idx++) {
+		  snprintf((char *)&fingerprint[offset],
+			   sizeof(fingerprint) - offset - 1, "%02X",
+			   payload[i + 2 + idx] & 0xFF);
+		  offset += 2;
+		}
 
 #ifdef DHCP_DEBUG
-	      ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] %s = '%s'",
-					   client_mac, name);
+		ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s",
+					     mac->print(buf, sizeof(buf)),
+					     fingerprint);
 #endif
-	    } else if ((id == 55 /* Parameters List (Fingerprint) */) &&
-		       flow->get_ndpi_flow()) {
-	      char fingerprint[64], buf[32];
-	      u_int idx, offset = 0;
-
-	      len = ndpi_min(len, sizeof(buf) / 2);
-
-	      for (idx = 0; idx < len; idx++) {
-		snprintf((char *)&fingerprint[offset],
-			 sizeof(fingerprint) - offset - 1, "%02X",
-			 payload[i + 2 + idx] & 0xFF);
-		offset += 2;
-	      }
-
-#ifdef DHCP_DEBUG
-	      ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s",
-					   mac->print(buf, sizeof(buf)),
-					   fingerprint);
-#endif
-	      mac->inlineSetFingerprint(
-					(char *)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
-	    } else if (id == 0xFF)
-	      break; /* End of options */
-
+		mac->inlineSetFingerprint((char *)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
+	      } else if (id == 0xFF)
+		break; /* End of options */
+	    } else
+	      break; /* Invalid lenght */
+	    
 	    i += len + 2;
 	  }
 	}
@@ -2160,6 +2159,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
       if (*dstHost) {
         char host_name[64];
         Mac *dst_mac = (*dstHost)->getMac();
+	
         if (dst_mac && !(dst_mac->isBroadcast())) {
           flow->setDHCPHostName(dst_mac->getDHCPNameNotLowerCase(host_name, sizeof(host_name)));
         }
