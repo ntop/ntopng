@@ -85,10 +85,11 @@ for editing the widget configuration or removing them from the template.
   Widget Actions in Edit Mode
 
 By clicking on the edit button on a widget, it is possible to configure them,
-including changing the displayed title, setting the widget size (heigth and width),
-or setting the time reference (the Time Offset is used to show traffic information
-with a time shift with respect to the time selected for the report, e.g. show
-traffic information 1 week ago, to compare it with the current traffic).
+including changing:
+
+- displayed title
+- widget size (heigth and width)
+- time reference (the Time Offset is used to show traffic information with a time shift with respect to the time selected for the report, e.g. show traffic information 1 week ago, to compare it with the current traffic)
 
 .. figure:: ../img/report_editor_edit.png
   :align: center
@@ -99,6 +100,10 @@ traffic information 1 week ago, to compare it with the current traffic).
 An Advanced Settings toggle is also available. This allows to deeply customize
 the content of the Widget, by changing settings including the REST API URL and
 parameters, which are encoded in JSON format.
+
+Special tokens are also supported in the JSON configuration to dynamically pass
+arguments to the widgets, e.g. $IFID$ is dynamically replaced with the current
+interface ID selected in ntopng while rendering the report.
 
 .. figure:: ../img/report_editor_advanced_edit.png
   :align: center
