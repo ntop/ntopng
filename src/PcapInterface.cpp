@@ -219,7 +219,7 @@ static void *packetPollLoop(void *ptr) {
     /* Allow check configs to be re-read */
     sleep(ntop->getPrefs()->get_housekeeping_frequency()*2);
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Processing PCAP file");
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Processing pcap file");
   }
 
   do {
@@ -246,14 +246,12 @@ static void *packetPollLoop(void *ptr) {
         }
 
         if (fname != NULL) {
-          if ((file_pcap_handle = pcap_open_offline(path, pcap_error_buffer)) ==
-              NULL) {
+          if ((file_pcap_handle = pcap_open_offline(path, pcap_error_buffer)) ==  NULL) {
             ntop->getTrace()->traceEvent(TRACE_ERROR,
                                          "Unable to open file '%s': %s", path,
                                          pcap_error_buffer);
           } else {
-            ntop->getTrace()->traceEvent(
-                TRACE_NORMAL, "Reading packets from pcap file %s", path);
+            ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from pcap file %s", path);
             iface->set_pcap_handle(file_pcap_handle, 0);
             break;
           }
@@ -262,8 +260,7 @@ static void *packetPollLoop(void *ptr) {
       }
 
       if (fname == NULL) {
-        ntop->getTrace()->traceEvent(TRACE_NORMAL,
-                                     "No more pcap files to read");
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "No more pcap files to read");
         fclose(pcap_list);
         break;
       } else
@@ -283,14 +280,15 @@ static void *packetPollLoop(void *ptr) {
       fds[i] = pcap_get_selectable_fd(pd);
 
 #if defined(__APPLE__) || defined(__FreeBSD__)
-      char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-      
-      if(pcap_setnonblock(pd, 1, pcap_error_buffer))
-	ntop->getTrace()->traceEvent(TRACE_ERROR,
-				     "Unable to enable non blocking mode on %s: %s",
-				     iface->getPcapIfaceName(i),
-				     pcap_error_buffer);
-
+      if(!iface->read_from_pcap_dump()) {
+	char pcap_error_buffer[PCAP_ERRBUF_SIZE];
+	
+	if(pcap_setnonblock(pd, 1, pcap_error_buffer))
+	  ntop->getTrace()->traceEvent(TRACE_ERROR,
+				       "Unable to enable non blocking mode on %s: %s",
+				       iface->getPcapIfaceName(i),
+				       pcap_error_buffer);
+      }
 #endif
     }
 #endif
