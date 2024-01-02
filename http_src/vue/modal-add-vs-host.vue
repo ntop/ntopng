@@ -553,9 +553,5 @@ async function load_ports() {
 */
 
 
-onMounted(() => {
-    
-  console.log("CIAO MONDO2");
-});
 defineExpose({ show, close, metricsLoaded });
 </script>
