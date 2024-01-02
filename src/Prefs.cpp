@@ -876,9 +876,9 @@ void Prefs::reloadPrefsFromRedis() {
     getDefaultPrefsValue(CONST_PREFS_USE_MAC_IN_FLOW_KEY, false);
 
   // vulnerability scan preferences
-  vs_max_num_scans = 
+  vs_max_num_scans =
     getDefaultPrefsValue(CONST_VS_MAX_NUM_SCANS, 4);
-  vs_slow_scan = 
+  vs_slow_scan =
     getDefaultBoolPrefsValue(CONST_VS_SLOW_SCAN, false);
   // auth session preferences
   auth_session_duration = getDefaultPrefsValue(
@@ -1035,7 +1035,7 @@ void Prefs::reloadPrefsFromRedis() {
 
   /* Used for stats */
   collect_blacklist_stats = getDefaultBoolPrefsValue(CONST_PREFS_COLLECT_BLACKLISTSTATS, false);
-  
+
   setTraceLevelFromRedis();
   refreshHostsAlertsPrefs();
   refreshDeviceProtocolsPolicyPref();
@@ -1437,7 +1437,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 
 #if 0
 	u_int32_t mgmt_ip = Utils::getHostManagementIPv4Address();
-	
+
 	ntop->getTrace()->traceEvent(TRACE_ERROR, "Hint: nprobe -i <iface> --cloud tcp://%s:%d",
 				     Utils::intoaV4(ntohl(mgmt_ip), buffer, sizeof(buffer)), port);
 #endif
@@ -1486,18 +1486,17 @@ int Prefs::setOption(int optkey, char *optarg) {
     if (cur_nets) {
       if (!local_networks_set) {
 	free(local_networks);
+
 	local_networks = cur_nets;
 	local_networks_set = true;
-
       } else {
 	/* If local_networks is already set up, the new -m argument is going
 	 * to be concat (comma separeted) to the old one */
 
 	if (strlen(cur_nets) > 0) {
-	  int new_local_networks_size =
-	    strlen(local_networks) + strlen(cur_nets) + 2;
-	  char *new_local_networks =
-	    (char *)malloc(sizeof(char) * new_local_networks_size);
+	  int new_local_networks_size = strlen(local_networks) + strlen(cur_nets) + 2;
+	  char *new_local_networks    = (char *)malloc(sizeof(char) * new_local_networks_size);
+
 	  if (new_local_networks) {
 	    snprintf(new_local_networks, new_local_networks_size, "%s,%s",
 		     local_networks, cur_nets);
@@ -1505,6 +1504,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    local_networks = new_local_networks;
 	  }
 	}
+
 	free(cur_nets);
       }
     }
@@ -1811,35 +1811,48 @@ int Prefs::setOption(int optkey, char *optarg) {
       }
 
       if (elastic_index_type && elastic_index_name && elastic_url) {
-	free(es_type), free(es_index), free(es_url), free(es_user),
-	  free(es_pwd), free(es_host);
+	if(es_type)  free(es_type);
+	if(es_index) free(es_index);
+	if(es_url)   free(es_url);
+	if(es_user)  free(es_user);
+	if(es_pwd)   free(es_pwd);
+	if(es_host)  free(es_host);
 
-	es_type = strdup(elastic_index_type);
-	es_index = strdup(elastic_index_name);
-	es_url = strdup(elastic_url);
-	es_user = strdup(elastic_user ? elastic_user : "");
-	es_pwd = strdup(elastic_pwd ? elastic_pwd : "");
+	if((es_type = strdup(elastic_index_type)) == NULL)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
 
-	es_host = strdup(es_url);
-	if (!strncmp(es_host, "http://",
-		     7))  // url starts either with http or https
-	  Utils::tokenizer(es_host + 7, '/', NULL);
-	else if (!strncmp(es_host, "https://", 8))
-	  Utils::tokenizer(es_host + 8, '/', NULL);
-	else
-	  Utils::tokenizer(es_host, '/', NULL);
+	if((es_index = strdup(elastic_index_name)) == NULL)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
 
-	ntop->getTrace()->traceEvent(
-				     TRACE_NORMAL,
-				     "Using ElasticSearch for data dump [%s][%s][%s][%s]", es_type,
-				     es_index, es_url, es_host);
-	dump_flows_on_es = true;
+	if((es_url   = strdup(elastic_url)) == NULL)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+
+	if((es_user  = strdup(elastic_user ? elastic_user : "")) == NULL)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+
+	if((es_pwd   = strdup(elastic_pwd ? elastic_pwd : "")) == NULL)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+
+	if((es_host  = strdup(elastic_url)) == NULL)
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+
+	if(es_type && es_index && es_url && es_user && es_pwd && es_host) {
+	  if (!strncmp(es_host, "http://", 7))  // url starts either with http or https
+	    Utils::tokenizer(es_host + 7, '/', NULL);
+	  else if (!strncmp(es_host, "https://", 8))
+	    Utils::tokenizer(es_host + 8, '/', NULL);
+	  else
+	    Utils::tokenizer(es_host, '/', NULL);
+
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				       "Using ElasticSearch for data dump [%s][%s][%s][%s]", es_type,
+				       es_index, es_url, es_host);
+	  dump_flows_on_es = true;
+	} else
+	  dump_flows_on_es = false;
       } else {
-	ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "Discarding -F: invalid format for es");
-	ntop->getTrace()->traceEvent(
-				     TRACE_WARNING,
-				     "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarding -F: invalid format for es");
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Format: -F es;<index type>;<index name>;<es URL>;<user>:<pwd>");
       }
     }
 #endif /* HAVE_NEDGE */
@@ -1985,7 +1998,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    mysql_port = CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT;
 	    clickhouse_tcp_port = CONST_DEFAULT_CLICKHOUSE_TCP_PORT;
 	    mysql_port_secure = clickhouse_tcp_port_secure = false; /* No TLS */
-	    
+
 	    if (!dump_flows_on_clickhouse)
 	      mysql_port = CONST_DEFAULT_MYSQL_PORT;
 
@@ -1994,10 +2007,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 	      char *comma, *clickhouse_tcp_port_str;
 	      long l;
 	      int len;
-	      
+
 	      *(mysql_port_str++) = '\0';
 
-	      if ((comma = strchr(mysql_port_str, ','))) {		
+	      if ((comma = strchr(mysql_port_str, ','))) {
 		clickhouse_tcp_port_str = mysql_port_str;
 		*(comma++) = '\0';
 		mysql_port_str = comma;
@@ -2034,7 +2047,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 		  mysql_port_str[len] = '\0';
 		}
 	      }
-	      
+
 	      l = strtol(mysql_port_str, NULL, 10);
 
 	      if (errno || !l)
@@ -2117,7 +2130,7 @@ int Prefs::setOption(int optkey, char *optarg) {
   case 200:
     limited_resources_mode = true;
     break;
-      
+
   case 201:
     if (test_post_script_path) free(test_post_script_path);
     test_post_script_path = strdup(optarg);
@@ -2530,7 +2543,7 @@ int Prefs::loadFromFile(const char *path) {
     } else if (line[0] == '-') { /* short opt */
       key = &line[1], line_len--;
 
-      if (key[1] != ' ' && 
+      if (key[1] != ' ' &&
           key[1] != '=' &&
           key[1] != '\0') {
         ntop->getTrace()->traceEvent(
