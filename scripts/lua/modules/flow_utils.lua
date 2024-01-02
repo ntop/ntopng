@@ -1992,7 +1992,8 @@ function printActiveFlowsDropdown(base_url, page_params, ifstats, flowstats, is_
     -- Local / Remote hosts selector
     -- table.clone needed to modify some parameters while keeping the original unchanged
     local flowhosts_type_params = table.clone(page_params)
-
+    flowhosts_type_params["flowhosts_type"] = nil
+    
     print [['\
        <div class="btn-group">\
 	  <button class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">]]
