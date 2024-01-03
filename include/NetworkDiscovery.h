@@ -34,7 +34,6 @@ class NetworkDiscovery {
   lua_State *mdns_vm;
   Mutex m;
   struct bpf_program fcode;
-  bool has_bpf_filter;
   bool debug_mode;
 
   u_int32_t wrapsum(u_int32_t sum);

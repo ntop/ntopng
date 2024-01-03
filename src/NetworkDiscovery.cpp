@@ -33,8 +33,9 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
   if (ifname == NULL) ifname = iface->get_name();
 
   mdns_vm = NULL;
-  has_bpf_filter = false;
   debug_mode = false;
+
+  /* Open pcap socket to capture ARP traffic */
 
 #if !defined(__arm__)
   if ((pd = pcap_open_live(ifname, 128 /* snaplen */, 0 /* no promisc */, 5,
@@ -43,7 +44,8 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
   /* pcap_next can really block a lot if we do not activate immediate mode! See
    * https://github.com/mfontanini/libtins/issues/180 */
   if (((pd = pcap_create(ifname, errbuf)) == NULL) ||
-      (pcap_set_timeout(pd, 5) != 0) || (pcap_set_snaplen(pd, 128) != 0) ||
+      (pcap_set_timeout(pd, 5) != 0) ||
+      (pcap_set_snaplen(pd, 128) != 0) ||
       (pcap_set_immediate_mode(pd, 1) != 0) || /* enable immediate mode */
       (pcap_activate(pd) != 0))
 #endif
@@ -52,18 +54,20 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
                                  "Unable to create pcap socket on %s [%d/%s]",
                                  ifname, errno, strerror(errno));
     udp_sock = -1;
-    throw("Unable to start network discovery");
-  } else {
-    const char *bpfFilter =
-        "arp && arp[6:2] = 2";  // arp[x:y] - from byte 6 for 2 bytes
-                                // (arp.opcode == 2 -> reply)
-
-    /* Set ARP filter */
-    if (pcap_compile(pd, &fcode, bpfFilter, 1, 0xFFFFFF00) == 0) {
-      pcap_setfilter(pd, &fcode);
-      has_bpf_filter = true;
-    }
+    throw("Unable to start Network Discovery");
   }
+
+  /* Set ARP filter */
+  // arp[x:y] - from byte 6 for 2 bytes
+  // (arp.opcode == 2 -> reply)
+  const char *bpfFilter = "arp && arp[6:2] = 2";  
+
+  if (pcap_compile(pd, &fcode, bpfFilter, 1, 0xFFFFFF00) == 0) {
+    pcap_setfilter(pd, &fcode);
+    throw("Unable to set ARP filter for Network Discovery");
+  }
+
+  /* Open UDP socket */
 
   if ((udp_sock = Utils::openSocket(AF_INET, SOCK_DGRAM, 0,
                                     "NetworkDiscovery UDP")) != -1) {
@@ -88,7 +92,7 @@ NetworkDiscovery::~NetworkDiscovery() {
 
   Utils::closeSocket(udp_sock);
 
-  if (has_bpf_filter) pcap_freecode(&fcode);
+  pcap_freecode(&fcode);
 }
 
 /* ******************************************* */
@@ -330,13 +334,13 @@ void NetworkDiscovery::arpScan(lua_State *vm) {
     (char *)CONST_PREFS_NETWORK_DISCOVERY_DEBUG, val, sizeof(val), true) == 0)
     && (val[0] == '1');
 
-#ifndef WIN32
-  fd = pcap_get_selectable_fd(pd);
-#endif
-
   if (ifname == NULL) ifname = iface->get_name();
 
   if (!pd || !iface->getInterfaceNetworks()) return;
+
+#ifndef WIN32
+  fd = pcap_get_selectable_fd(pd);
+#endif
 
   lua_newtable(vm);
 
@@ -359,10 +363,13 @@ void NetworkDiscovery::arpScan(lua_State *vm) {
 
   if (ntop->getGlobals()->isShutdown()) return;
 
+  /* Opening MDNS socket */
   if ((mdns_sock = Utils::openSocket(AF_INET, SOCK_DGRAM, 0,
-                                     "NetworkDiscovery MDNS")) == -1)
+                                     "NetworkDiscovery MDNS")) == -1) {
+
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create MDNS socket");
-  else {
+
+  } else {
     const char *anyservices = "_services._dns-sd._udp.local";
     u_int last_dot = 0;
     char *queries;
@@ -441,6 +448,10 @@ void NetworkDiscovery::arpScan(lua_State *vm) {
   /* Scan all interface networks */
   iface->getInterfaceNetworks()->walk(arp_scan_hosts, &arp_d);
 
+  if (debug_mode) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Collect pending ARP replies");
+  }
+
   /* Collect possibly pending replies */
   while (true) {
     if (fd != -1) {
@@ -454,29 +465,40 @@ void NetworkDiscovery::arpScan(lua_State *vm) {
       if (select(fd + 1, &rset, NULL, NULL, &tv) <= 0) break;
     }
 
-    if ((reply = (struct arp_packet *)pcap_next(pd, &h)) != NULL) {
-      lua_push_str_table_entry(
-          vm, Utils::formatMac(reply->arph.arp_sha, macbuf, sizeof(macbuf)),
-          Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
+    reply = (struct arp_packet *) pcap_next(pd, &h);
 
-      if (debug_mode) {
-        ntop->getTrace()->traceEvent(
-          TRACE_NORMAL, "Received ARP reply from %s",
-          Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
-      }
-
-      mdns_dest.sin_addr.s_addr = reply->arph.arp_spa, dns_h->tr_id++;
-      if ((sendto(mdns_sock, mdnsbuf, dns_query_len, 0,
-                  (struct sockaddr *)&mdns_dest,
-                  sizeof(struct sockaddr_in)) < 0) &&
-          (errno != 0))
-        ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno,
-                                     strerror(errno));
-    } else
+    if (reply == NULL)
       break;
+
+    lua_push_str_table_entry(
+        vm, Utils::formatMac(reply->arph.arp_sha, macbuf, sizeof(macbuf)),
+        Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
+
+    if (debug_mode) {
+      ntop->getTrace()->traceEvent(
+        TRACE_NORMAL, "Received ARP reply from %s",
+        Utils::intoaV4(ntohl(reply->arph.arp_spa), ipbuf, sizeof(ipbuf)));
+    }
+
+    mdns_dest.sin_addr.s_addr = reply->arph.arp_spa, dns_h->tr_id++;
+    if ((sendto(mdns_sock, mdnsbuf, dns_query_len, 0,
+                (struct sockaddr *)&mdns_dest,
+                sizeof(struct sockaddr_in)) < 0) &&
+        (errno != 0))
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Send error [%d/%s]", errno,
+                                     strerror(errno));
+  }
+
+  if (debug_mode) {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Done reading ARP replies");
   }
 
   if (mdns_sock != -1) {
+
+    if (debug_mode) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Collect pending MDNS replies");
+    }
+
     while (true) {
       FD_ZERO(&rset);
       FD_SET(mdns_sock, &rset);
@@ -493,7 +515,12 @@ void NetworkDiscovery::arpScan(lua_State *vm) {
         break;
     }
 
+    /* Closing MDNS socket */
     Utils::closeSocket(mdns_sock);
+
+    if (debug_mode) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Done reading MDNS replies");
+    }
   }
 
   setMDNSvm(NULL);
