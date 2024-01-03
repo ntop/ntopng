@@ -663,16 +663,20 @@ class Ntop {
     return radiusAcc->authenticate(username, password, has_unprivileged_capabilities, is_admin);
   };
   inline bool radiusAccountingStart(const char *username,
-                                    const char *session_id) {
-    return radiusAcc->startSession(username, session_id);
+                                    const char *session_id,
+                                    const char *mac, 
+                                    const char *last_ip) {
+    return radiusAcc->startSession(username, session_id, mac, last_ip);
   };
   inline bool radiusAccountingUpdate(const char *username,
-                                     const char *session_id, RadiusTraffic *info) {
+                                     const char *session_id, 
+                                     RadiusTraffic *info) {
     return radiusAcc->updateSession(username, session_id, info);
   };
-  inline bool radiusAccountingStop(const char *username, const char *mac, const char *last_ip, 
-                                    const char *session_id, RadiusTraffic *info) {
-    return radiusAcc->stopSession(username, mac, last_ip, session_id, info);
+  inline bool radiusAccountingStop(const char *username,
+                                    const char *session_id, 
+                                    RadiusTraffic *info) {
+    return radiusAcc->stopSession(username, session_id, info);
   };
 #endif
 

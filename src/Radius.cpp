@@ -394,7 +394,7 @@ bool Radius::authenticate(const char *user, const char *password,
 
 /* *************************************** */
 
-bool Radius::startSession(const char *username, const char *session_id) {
+bool Radius::startSession(const char *username, const char *session_id, const char *mac, const char *last_ip) {
   /* Reset the return */
   bool radius_ret = false;
   rc_handle *rh = NULL;
@@ -404,10 +404,26 @@ bool Radius::startSession(const char *username, const char *session_id) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: Configuration Failed");
     goto radius_auth_out;
   }
+  
   if (!addBasicConfigurationAcct(rh, &send, PW_STATUS_START, username, session_id)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
+  }
+
+  if(last_ip) {
+    u_int32_t addr = ntohl(inet_addr(last_ip));
+    if (rc_avpair_add(rh, &send, PW_FRAMED_IP_ADDRESS, &(addr), -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set IP Address");
+      return false;
+    }
+  }
+
+  if(mac) {
+    if (rc_avpair_add(rh, &send, PW_CALLING_STATION_ID, mac, -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set MAC Address");
+      return false;
+    }
   }
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
@@ -488,8 +504,7 @@ bool Radius::updateSession(const char *username, const char *session_id, RadiusT
 
 /* *************************************** */
 
-bool Radius::stopSession(const char *username, const char *mac, const char *last_ip,
-                          const char *session_id, RadiusTraffic *info) {
+bool Radius::stopSession(const char *username, const char *session_id, RadiusTraffic *info) {
   /* Reset the return */
   bool radius_ret = false;
   rc_handle *rh = NULL;
@@ -507,21 +522,6 @@ bool Radius::stopSession(const char *username, const char *mac, const char *last
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
-  }
-
-  if(last_ip) {
-    u_int32_t addr = ntohl(inet_addr(last_ip));
-    if (rc_avpair_add(rh, &send, PW_FRAMED_IP_ADDRESS, &(addr), -1, 0) == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set IP Address");
-      return false;
-    }
-  }
-
-  if(mac) {
-    if (rc_avpair_add(rh, &send, PW_CALLING_STATION_ID, mac, -1, 0) == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set MAC Address");
-      return false;
-    }
   }
 
   /* Add to the dictionary the interim-update data (needed even in the stop) */

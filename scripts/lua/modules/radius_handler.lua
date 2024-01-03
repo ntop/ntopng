@@ -24,11 +24,26 @@ function radius_handler.accountingStart(name, username, password)
         return true
     end
 
+    -- Get the first ip used by the mac
+    local first_host = {}
+    local mac_hosts = interface.getMacHosts(name) or {}
+    if table.len(mac_hosts) > 0 then
+        for _, h in pairsByKeys(mac_hosts, asc) do
+            first_host = h
+            break
+        end
+    end
+
+    local ip_address = first_host["ip"]
+    if isEmptyString(ip_address) then
+        ip_address = nil
+    end
+
     math.randomseed(os.time())
     local session_id = tostring(math.random(100000000000000000, 999999999999999999))
-    local accounting_started = interface.radiusAccountingStart(username --[[ Username ]], name --[[ MAC Address ]], session_id)
+    local accounting_started = interface.radiusAccountingStart(username --[[ Username ]] , name --[[ MAC Address ]] ,
+        session_id, ip_address --[[ First IP Address ]])
 
-    tprint("Accounting Started for user: " .. username .. ", " .. ternary(accounting_started, "OK", "Error"))
     if accounting_started then
         local json = require("dkjson")
         local key = string.format(redis_accounting_key, name)
@@ -38,7 +53,7 @@ function radius_handler.accountingStart(name, username, password)
             password = password,
             session_id = session_id
         }
-        
+
         ntop.setCache(key, json.encode(user_data))
     end
 
@@ -58,18 +73,8 @@ function radius_handler.accountingStop(name, terminate_cause, bytes_sent, bytes_
     local is_accounting_on, user_data = radius_handler.isAccountingRequested(name)
 
     if is_accounting_on then
-        -- Get the first ip used by the mac
-        local first_host = {}
-        local mac_hosts = interface.getMacHosts(name) or {}
-        if table.len(mac_hosts) > 0 then
-            for _, h in pairsByKeys(mac_hosts, asc) do
-                first_host = h
-                break
-            end    
-        end
-
-        interface.radiusAccountingStop(user_data.username --[[ Username ]], user_data.session_id, name --[[ MAC Address]], 
-            first_host["ip"] --[[ First IP Address ]], bytes_sent, bytes_rcvd, packets_sent, packets_rcvd, terminate_cause)
+        interface.radiusAccountingStop(user_data.username --[[ Username ]] , user_data.session_id, name --[[ MAC Address]] ,
+            bytes_sent, bytes_rcvd, packets_sent, packets_rcvd, terminate_cause)
         ntop.delCache(string.format(redis_accounting_key, name))
     end
 end
@@ -100,7 +105,8 @@ function radius_handler.accountingUpdate(name, info)
             -- An accounting stop has to be sent, the allowed data for name
             -- are expired, requesting stop 
             local termination_cause = 3 -- Lost service
-            radius_handler.accountingStop(user_data.username, termination_cause, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
+            radius_handler.accountingStop(user_data.username, termination_cause, bytes_sent, bytes_rcvd, packets_sent,
+                packets_rcvd)
             res = false
         end
     end
