@@ -32,7 +32,7 @@ page_utils.print_navbar(i18n('discover.network_discovery'), base_url, {
 
 -- ##############################################
 
-local discovered = discover.discover2table(ifname)
+-- local discovered = discover.discover2table(ifname)
 
 -- ##############################################
 

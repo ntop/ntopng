@@ -2948,8 +2948,9 @@ static int ntop_arpscan_iface_hosts(lua_State *vm) {
     }
 
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-  } else
+  } else {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
 }
 
 /* ****************************************** */

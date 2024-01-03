@@ -1387,7 +1387,7 @@ local function discovery2config(interface_name)
     local disc = json.decode(cached)
 
     if isEmptyString(cached) or not disc then
-        return
+        return nil
     end
 
     disc["devices"] = ntop.lrangeCache(getCachedDiscoveredDevicesKey(interface_name), 0, -1) or {}
@@ -1428,11 +1428,10 @@ function discover.discover2table(interface_name, recache)
 
     local cached = discovery2config(interface_name)
 
-    if recache ~= true then
-        if not isEmptyString(cached) then
-            return cached or {
-                status = discoverStatus("ERROR", i18n("discover.error_unable_to_decode_json"))
-            }
+    if not recache then
+        if cached then
+            return cached
+              -- or { status = discoverStatus("ERROR", i18n("discover.error_unable_to_decode_json")) }
         else
             return {
                 status = discoverStatus("NOCACHE", i18n("discover.error_no_discovery_cached"))
@@ -1441,6 +1440,7 @@ function discover.discover2table(interface_name, recache)
     end
 
     setDiscoveryProgress("[0 %]")
+
     -- ARP
     local arp_d = discoverARP()
     if arp_d["status"]["code"] ~= "OK" then
@@ -1706,6 +1706,7 @@ function discover.discover2table(interface_name, recache)
         discovery_timestamp = os.time(),
         too_many_devices_discovered = too_many_devices_discovered
     }
+
     ntop.setCache(getCachedDiscoveryKey(interface_name), json.encode(response))
 
     -- Save the actually discovered devices
@@ -1717,6 +1718,27 @@ function discover.discover2table(interface_name, recache)
     end
 
     return response
+end
+
+-- ################################################################################
+
+function discover.discovery_function(ifname, ifstats)
+
+   if not interface.isDiscoverableInterface() then
+      return
+   end
+
+   ntop.setPref("ntopng.prefs.is_periodic_network_discovery_running.ifid_" .. interface.getId(), "1")
+   ntop.setCache("ntopng.cache.network_discovery_executed.ifid_" .. interface.getId(), "1", 300)
+	      
+   traceError(TRACE_INFO,TRACE_CONSOLE, "[Discover] Started periodic discovery on interface "..ifname)
+
+   local res = discover.discover2table(ifname, true --[[ recache --]])
+
+   traceError(TRACE_INFO,TRACE_CONSOLE, "[Discover] Completed periodic discovery on interface "..ifname)
+   discover.clearNetworkDiscovery(ifstats.id)
+     
+   ntop.setPref("ntopng.prefs.is_periodic_network_discovery_running.ifid_" .. interface.getId(), "0")
 end
 
 -- ################################################################################

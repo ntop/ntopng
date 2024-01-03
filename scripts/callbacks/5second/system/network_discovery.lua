@@ -18,59 +18,13 @@ local ifnames = interface.getIfNames()
 
 -- ########################################################
 
-local periodic_discovery_condition = function(ifId)
-   return discover_utils.interfaceNetworkDiscoveryEnabled(ifId)
-end
-
--- ########################################################
-
 local oneshot_discovery_condition = function(ifId)
-   return discover_utils.networkDiscoveryRequested(ifId)
+   local check_requested = discover_utils.networkDiscoveryRequested(ifId)
+   return check_requested
 end
 
 -- ########################################################
 
-local discovery_function = function(ifname, ifstats)
-   if interface.isDiscoverableInterface() then
-      ntop.setPref("ntopng.prefs.is_periodic_network_discovery_running.ifid_" .. interface.getId(), "1")
-      ntop.setCache("ntopng.cache.network_discovery_executed.ifid_" .. interface.getId(), "1", 300)
-	      
-      traceError(TRACE_INFO,TRACE_CONSOLE, "[Discover] Started periodic discovery on interface "..ifname)
+-- discovery requests performed by the user from the GUI
+callback_utils.foreachInterface(ifnames, oneshot_discovery_condition, discover_utils.discovery_function)
 
-      local res = discover_utils.discover2table(ifname, true --[[ recache --]])
-
-      traceError(TRACE_INFO,TRACE_CONSOLE, "[Discover] Completed periodic discovery on interface "..ifname)
-      discover_utils.clearNetworkDiscovery(ifstats.id)
-      
-      ntop.setPref("ntopng.prefs.is_periodic_network_discovery_running.ifid_" .. interface.getId(), "0")
-   end
-end
-
--- ########################################################
-
--- periodic discovery enabled
-local discovery_enabled = (ntop.getPref("ntopng.prefs.is_periodic_network_discovery_enabled") == "1")
-local discovery_interval = ntop.getPref("ntopng.prefs.network_discovery_interval")
-
--- Run this script for a minute before quitting (this reduces load on Lua VM infrastructure)
-local num_runs = 12
-
-for i=1,num_runs do
-   if(ntop.isShuttingDown()) then break end
-
-   if discovery_enabled then  
-      if isEmptyString(discovery_interval) then discovery_interval = 15 * 60 --[[ 15 minutes --]] end
-
-      local now = os.time()
-      local diff = now % tonumber(discovery_interval)
-      
-      if diff < 5 then
-         callback_utils.foreachInterface(ifnames, periodic_discovery_condition, discovery_function)
-      end
-   end
-   
-   -- discovery requests performed by the user from the GUI
-   callback_utils.foreachInterface(ifnames, oneshot_discovery_condition, discovery_function)
-   
-   ntop.msleep(5000) -- 5 seconds frequency
-end

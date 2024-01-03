@@ -140,14 +140,18 @@ NetworkInterface::NetworkInterface(const char *name,
       } else {
 	try {
 	  discovery = new NetworkDiscovery(this);
+          //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Network Discovery initialized");
 	} catch (...) {
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure initializing Network Discovery");
 	  discovery = NULL;
 	}
 
 	if (discovery) {
 	  try {
 	    mdns = new MDNS(this);
+            //ntop->getTrace()->traceEvent(TRACE_NORMAL, "MDNS initialized");
 	  } catch (...) {
+            ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure initializing MDNS");
 	    mdns = NULL;
 	  }
 	}
