@@ -199,7 +199,7 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` ON CLUSTER '$CLUSTER' (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime NULL
-) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (tstamp);
 @
 ALTER TABLE `active_monitoring_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
@@ -456,23 +456,23 @@ ALTER TABLE `system_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS alert
 DROP VIEW IF EXISTS `all_alerts_view` ON CLUSTER '$CLUSTER';
 @
 CREATE VIEW IF NOT EXISTS `all_alerts_view` ON CLUSTER '$CLUSTER' AS
-SELECT 8 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `active_monitoring_alerts`
+SELECT 8 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `active_monitoring_alerts`
 UNION ALL
 SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, 0 AS alert_status, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score, ALERT_CATEGORY AS alert_category FROM `flows` WHERE (STATUS != 0 AND IS_ALERT_DELETED != 1)
 UNION ALL
-SELECT 1 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `host_alerts`
+SELECT 1 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `host_alerts`
 UNION ALL
-SELECT 5 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `mac_alerts`
+SELECT 5 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `mac_alerts`
 UNION ALL
-SELECT 3 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `snmp_alerts`
+SELECT 3 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `snmp_alerts`
 UNION ALL
-SELECT 2 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `network_alerts`
+SELECT 2 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `network_alerts`
 UNION ALL
-SELECT 0 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `interface_alerts`
+SELECT 0 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `interface_alerts`
 UNION ALL
-SELECT 7 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `user_alerts`
+SELECT 7 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `user_alerts`
 UNION ALL
-SELECT 9 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score FROM `system_alerts`
+SELECT 9 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `system_alerts`
 ;
 
 @
