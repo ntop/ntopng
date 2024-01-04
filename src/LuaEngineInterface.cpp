@@ -2109,7 +2109,8 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
 
 #ifdef HAVE_RADIUS
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *username = NULL, *session_id = NULL, *mac = NULL;
+  char *username = NULL, *session_id = NULL;
+  //char *mac = NULL;
   RadiusTraffic traffic_data;
 
   memset(&traffic_data, 0, sizeof(traffic_data));
@@ -2125,8 +2126,8 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
   if (lua_type(vm, 2) == LUA_TSTRING)
     session_id = (char *)lua_tostring(vm, 2);
 
-  if (lua_type(vm, 3) == LUA_TSTRING)
-    mac = (char *)lua_tostring(vm, 3);
+  //if (lua_type(vm, 3) == LUA_TSTRING)
+  //  mac = (char *)lua_tostring(vm, 3);
 
   if (lua_type(vm, 4) == LUA_TNUMBER)
     traffic_data.bytes_sent = (u_int32_t)lua_tonumber(vm, 4);
