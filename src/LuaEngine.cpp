@@ -1056,16 +1056,22 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
                                    content_len, HTTP_MAX_POST_DATA_LEN,
                                    request_info->uri);
       valid_csrf = 0;
-    } else {
-      if (is_file_upload) {
-        if ((!is_file_upload) && (content_len > HTTP_MAX_UPLOAD_DATA_LEN)) {
+
+    } else { /* Content Len Ok or File Upload */
+
+      if (is_file_upload) { /* File Upload */
+
+        if (content_len > HTTP_MAX_UPLOAD_DATA_LEN) { /* Content Len Too Big */
+
           ntop->getTrace()->traceEvent(TRACE_WARNING,
                                        "You are uploading a file that is too "
                                        "big [len: %u][max len: %u][URI: %s]",
                                        content_len, HTTP_MAX_UPLOAD_DATA_LEN,
                                        request_info->uri);
           valid_csrf = 0;
-        } else {
+
+        } else { /* Content Len Ok */
+
           char fname[1024], upload_dir[512];
 
           snprintf(upload_dir, sizeof(upload_dir), "%s/tmp/upload",
