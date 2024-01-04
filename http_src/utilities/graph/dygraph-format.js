@@ -176,7 +176,7 @@ function splitBoundSerie(series, timeserie_info) {
     const ts_id = getSerieId(ts_info);
     const serie = ts_info.data || []; /* Safety check */
     const metadata = timeserie_info.metric.timeseries[ts_id];
-    const scalar = (metadata.invert_direction === true) ? 1 : -1;
+    const scalar = (metadata?.invert_direction === true) ? 1 : -1;
 
     /* Just add the name, properties, colors, ecc, for the 
      * "main" timeserie and not for the bounds ones 
