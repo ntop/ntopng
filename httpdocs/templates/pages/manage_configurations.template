@@ -115,7 +115,6 @@
   }
 
   $(`input[name='configuration']`).change(function() {
-
     const key = $(this).val();
     let label = $(this).parent("div").find("label").text();
     if (label.indexOf('(') >= 0) label = label.substr(0, label.indexOf('('));
@@ -132,7 +131,6 @@
     const key = $(`input[name='configuration']:checked`).val();
 
     try {
-
         const request = await fetch(`${http_prefix}/lua/rest/v2/reset/${key}/config.lua`);
         const response = await request.json();
 
@@ -160,16 +158,18 @@
     finally {
         $(this).removeAttr("disabled");
     }
+  });
 
+  $("#btn-confirm-import").click(() => $("#import-modal").modal("hide"));
 
-    });
-
-    $("#btn-confirm-import").click(() => $("#import-modal").modal("hide"));
-    // configure import config modal
-    NtopUtils.importModalHelper({
-    loadConfigXHR: (jsonConf) => {
-        const key = $(`input[name='configuration']:checked`).val();
-        return $.post(`${http_prefix}/lua/rest/v2/import/${key}/config.lua`, { JSON: jsonConf, csrf: importCSRF});
-    }
+  // configure import config modal
+  NtopUtils.importModalHelper({
+      loadConfigXHR: (jsonConf) => {
+          const key = $(`input[name='configuration']:checked`).val();
+          return $.post(`${http_prefix}/lua/rest/v2/import/${key}/config.lua`, { 
+              JSON: jsonConf, 
+              csrf: importCSRF
+          });
+      }
   });
 </script>
