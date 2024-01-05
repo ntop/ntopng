@@ -7,7 +7,6 @@ SYSTEM=`uname -s`
 
 if test "${with_sanitizer+set}" = set || "${with_leak_sanitizer+set}" = set; then
   # Setting debug flags in CFLAGS/CXXFLAGS to avoid AC_PROG_CPP add -O2
-  echo "Resetting CFLAGS"
   CFLAGS="-g -O0"
   CXXFLAGS="-g -O0"
 fi
