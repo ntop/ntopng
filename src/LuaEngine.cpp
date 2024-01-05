@@ -1140,7 +1140,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
         } else {
           /* If here, authentication has taken place using a session, thus CSRF
              is mandatory in POST request and must be checked for validity. Note
-             that session_csrf is trusted, that it it comes from ntopng, whereas
+             that session_csrf is trusted, that it comes from ntopng, whereas
              csrf read from the POST is untrusted. */
           if (strstr(content_type, "application/json") == content_type) {
             /*

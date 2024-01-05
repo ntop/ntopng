@@ -34,7 +34,8 @@ end
 local items = {}
 
 local all_ie = all_import_export:create()
-items[#items+1] = { name = "all",
+items[#items+1] = {
+  name = "all",
   conf = modules["all"],
   instance = all_ie
 }
