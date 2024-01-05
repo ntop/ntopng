@@ -60,7 +60,13 @@ end
 -- @brief Export configuration
 -- @return The current configuration
 function all_import_export:export()
-   return prefs_dump_utils.build_prefs_dump_table()
+   local prefs_dump = prefs_dump_utils.build_prefs_dump_table()
+
+   -- Remove the config_save_backup key, if any,
+   -- as it produces a huge json and it is not really required
+   prefs_dump['ntopng.prefs.config_save_backup'] = nil
+
+   return prefs_dump
 end
 
 -- ##############################################
