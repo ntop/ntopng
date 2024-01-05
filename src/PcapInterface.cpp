@@ -39,6 +39,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
 
   delete_pcap_when_done = _delete_pcap_when_done;
   memset(pcap_handle, 0, sizeof(pcap_handle));
+  memset(pcap_ifaces, 0, sizeof(pcap_ifaces));
   num_ifaces = 0, pcap_list = NULL;
   memset(&last_pcap_stat, 0, sizeof(last_pcap_stat));
   emulate_traffic_directions = false;
@@ -164,7 +165,8 @@ PcapInterface::~PcapInterface() {
       pcap_handle[i] = NULL;
     }
 
-    free(pcap_ifaces[i]);
+    if (pcap_ifaces[i])
+      free(pcap_ifaces[i]);
   }
 
   if (pcap_path != NULL) {
@@ -504,8 +506,11 @@ void PcapInterface::updateDirectionStats() {
     ProtoStats current_stats_in, current_stats_out;
     bool ret = true;
     
-    for(u_int8_t i=0; i < get_num_ifaces(); i++)
-      ret &= Utils::readInterfaceStats(pcap_ifaces[i], &current_stats_in, &current_stats_out);    
+    for(u_int8_t i=0; i < get_num_ifaces(); i++) {
+      if (pcap_ifaces[i]) {
+        ret &= Utils::readInterfaceStats(pcap_ifaces[i], &current_stats_in, &current_stats_out);
+      }
+    }
     
     if(ret) {
       pcap_direction_t capture_dir = ntop->getPrefs()->getCaptureDirection();
