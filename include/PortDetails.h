@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2019-23 - ntop.org
+ * (C) 2019-24 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,20 +25,22 @@
 #include "ntop_includes.h"
 
 class PortDetails {
-    private: 
-        ndpi_protocol protocol;
-        u_int64_t h_count;
-    public:
-        PortDetails(){
-            h_count = 1;
-        };
-        ~PortDetails(){};
+  private: 
+    /* <srv_host_key, vlan_id > -> 1 */
+    std::unordered_map<u_int64_t, u_int8_t> hosts;
+  
+  public:
+    PortDetails(){};
+    ~PortDetails(){};
 
-        void inc_h_count() { h_count++;};
-        u_int64_t get_h_count() { return(h_count);};
-        void set_protocol(ndpi_protocol _p) {protocol = _p;};
-        ndpi_protocol get_protocol() {return(protocol);};
-
+    /* Getters */
+    inline u_int16_t get_size() { return(hosts.size());};
+    
+    /* Setters */
+    /* host_key = <srv_host_key, vlan_id> */
+    void add_host(u_int64_t host_key) { 
+      hosts[host_key] = (hosts.find(host_key) == hosts.end()) ? 1 : hosts[host_key]; 
+    };
 };
 
 #endif /* _PORT_DETAILS_H_ */
