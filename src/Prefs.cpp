@@ -571,7 +571,6 @@ void usage() {
 	 "(Enterprise M/L/XL)\n"
 	 "                                    |   Format:\n"
 	 "                                    |   clickhouse;<host[@[<tcp-"
-	 "port>,]<mysql-port>]|socket>;<dbname>;<user>;<pw>\n"
 	 "port>,]<mysql-port]|socket>;<dbname>;<user>;<pw>\n"
 	 "                                    |   Example:\n"
 	 "                                    |   "
@@ -610,6 +609,7 @@ void usage() {
   printf(
 #ifndef HAVE_NEDGE
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
+	 "                                    |\n"
 	 "                                    | kafka   Dump to Kafka (Enterprise "
 	 "M/L/XL)\n"
 	 "                                    |   Format:\n"
