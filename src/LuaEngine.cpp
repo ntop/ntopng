@@ -30,13 +30,18 @@
 #endif
 
 struct keyval string_to_replace[MAX_NUM_HTTP_REPLACEMENTS] = {
-    {NULL, NULL}}; /* TODO remove */
+  { NULL, NULL }
+}; /* TODO remove */
 
 extern luaL_Reg *ntop_interface_reg;
 extern luaL_Reg *ntop_reg;
 extern luaL_Reg *ntop_network_reg;
 extern luaL_Reg *ntop_flow_reg;
 extern luaL_Reg *ntop_host_reg;
+
+#ifdef HAVE_NTOP_CLOUD
+extern luaL_Reg *ntop_cloud_reg;
+#endif
 
 #define HTTP_MAX_UPLOAD_DATA_LEN \
   25000000 /* ~25MB (see also upload_pcap.template) */
@@ -493,11 +498,14 @@ void LuaEngine::lua_register_classes(lua_State *L, LuaEngineMode mode) {
     
   /* ntop add-ons */
   luaRegister(L, "interface", ntop_interface_reg);
-  luaRegister(L, "ntop", ntop_reg);
-  luaRegister(L, "network", ntop_network_reg);
-  luaRegister(L, "flow", ntop_flow_reg);
-  luaRegister(L, "host", ntop_host_reg);
-
+  luaRegister(L, "ntop",      ntop_reg);
+  luaRegister(L, "network",   ntop_network_reg);
+  luaRegister(L, "flow",      ntop_flow_reg);
+  luaRegister(L, "host",      ntop_host_reg);
+#ifdef HAVE_NTOP_CLOUD
+  luaRegister(L, "cloud",     ntop_cloud_reg);
+#endif
+  
   switch(mode) {
   case lua_engine_mode_http:
     /* Overload the standard Lua print() with ntop_lua_http_print that dumps
