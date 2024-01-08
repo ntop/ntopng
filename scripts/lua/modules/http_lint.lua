@@ -1847,6 +1847,7 @@ local known_parameters = {
     ["discord_username"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
 
     ["shell_script"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
+    ["shell_script_execution"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
     ["shell_script_options"] = http_lint.validateEmptyOr(http_lint.validateUnquoted),
 
     ["syslog_alert_format"] = http_lint.validateEmptyOr(http_lint.validateSyslogFormat),
