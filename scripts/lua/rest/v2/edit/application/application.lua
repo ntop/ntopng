@@ -57,7 +57,7 @@ if l7_proto_id then
     local old_category = ntop.getnDPIProtoCategory(l7_proto_id)
 
     if old_category.id ~= l7_category then
-        -- io.write("Changing nDPI category for " .. id .. ": " .. old_cat .. " -> " .. new_cat .. "\n")
+        -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Changing nDPI category for " .. l7_proto_id .. ": " .. old_category.id .. " -> " .. l7_category .. "\n")
         setCustomnDPIProtoCategory(l7_proto_id, l7_category)
     end
 end

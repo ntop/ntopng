@@ -133,7 +133,7 @@ const populate_modal_form = (row) => {
   });
 
   selected_category.value = edit_row_category;
-  custom_rules.value = row.custom_rules;
+  custom_rules.value = row.custom_rules?.replace(',', '\n');
 }
 
 const show = (row) => {
