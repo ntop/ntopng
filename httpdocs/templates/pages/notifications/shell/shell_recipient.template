@@ -1,9 +1,22 @@
-<div class="form-group row">
+<div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         <b>{{ i18n("notification_endpoint.shell.shell_options") }}</b>
         <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#mattermost"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
 	<input data-pattern="^[0-9 a-fA-Z-]{32}" name="shell_script_options" type="text" class="form-control"/>
+    </div>
+</div>
+<div class="mb-3 row">
+    <label class="col-form-label col-sm-3">
+        <b>{{ i18n("notification_endpoint.shell.shell_script_execution") }}</b>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#mattermost"><i class="fa-regular fa-circle-question"></i></a>
+    </label>
+    <div class="col-sm-7">
+        <select name="shell_script_execution" class="form-select" required>
+            <option value='always'>{{ i18n('always') }}</option>     
+            <option value='engage'>{{ i18n('on_trigger') }}</option>            
+            <option value='release'>{{ i18n('on_release') }}</option>            
+        </select>
     </div>
 </div>

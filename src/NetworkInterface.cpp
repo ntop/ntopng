@@ -469,6 +469,7 @@ bool NetworkInterface::initnDPIReload() {
 
   /* No need to dedicate another variable for the reload, we can use the shadow
    * itself */
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI reload started");
   ndpi_struct_shadow = initnDPIStruct();
   return (true);
 }
@@ -503,7 +504,7 @@ void NetworkInterface::finalizenDPIReload() {
 
     reloadHostsBlacklist();
 
-    ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI reload completed");
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI reload completed");
     ndpiReloadInProgress = false;
   }
 }
@@ -528,6 +529,7 @@ void NetworkInterface::loadProtocolsAssociations(
 
       if (keys[i] && values[i]) {
         protoId = atoi(keys[i]);
+        protoId = ndpi_map_user_proto_id_to_ndpi_id(ndpi_str, protoId);
         protoCategory = (ndpi_protocol_category_t)atoi(values[i]);
 
         ntop->getTrace()->traceEvent(
