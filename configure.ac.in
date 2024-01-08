@@ -362,7 +362,6 @@ if test -x /bin/freebsd-version; then
  FREEBSD_VERSION=`freebsd-version | cut -f 1 -d '.'`
 fi
 
-if test "${FREEBSD_VERSION}" != "14"; then
 pkg-config --exists libssl
 if test "$?" -ne 1; then
   AC_DEFINE_UNQUOTED(NO_SSL_DL, 1, [has openssl])
@@ -395,7 +394,6 @@ else
     echo "Please install openssl-dev(el) package prerequisite"
     exit -1
   fi
-fi
 fi
 
 AC_MSG_CHECKING([PF_RING nBPF])
@@ -775,14 +773,12 @@ if test $SYSTEM != "FreeBSD"; then
     echo "Building without support for MySQL libraries."
   fi
 else
-  if test "${FREEBSD_VERSION}" != "14"; then
    dnl> FreeBSD
    if test -f "/usr/local/lib/mysql/libmysqlclient.a"; then
      MYSQL_LIB=/usr/local/lib/mysql/libmysqlclient.a
      MYSQL_INC="-I /usr/local/include/mysql/"
      AC_DEFINE_UNQUOTED(HAVE_MYSQL, 1, [use mysql])
    fi
-  fi
 fi
 
 AC_CHECK_LIB([expat], [XML_ParserCreate], expat=true)
