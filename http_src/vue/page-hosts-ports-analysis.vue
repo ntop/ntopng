@@ -301,8 +301,9 @@ async function update_dropdown_menus(is_application_selected, app, port) {
     })
 
     ports.forEach((port) => {
-        if (! application_list.value.find(item => item.id == (port.application_id))) {
-            application_list.value.push({ label: port.application, id: port.application_id, value: port.application_id });
+        let proto_id = Number(port.application_id.split('.')[0]);
+        if (! application_list.value.find(item => item.id == proto_id)) {
+            application_list.value.push({ label: port.application, id: port.application_id, value: proto_id });
         }
     })
 
