@@ -538,19 +538,23 @@ if page == 'active_hosts' then
         end
 
         -- Host pools
-        if (not ifstats.isView) and (hosts_filter_params.pool ~= nil)  then
+        if (not ifstats.isView) then
             hosts_filter_params.mode = nil
             hosts_filter_params.pool = nil
-            print('<li role="separator" class="divider"></li>')
-	    
-            for _, _pool in ipairs(host_pools_instance:get_all_pools()) do
-                hosts_filter_params.pool = _pool.pool_id
-                print('<li ')
-                print('"><a class="dropdown-item ' .. ternary(pool == _pool.pool_id, "active", "") .. '" href="')
-                print(getPageUrl(base_url, hosts_filter_params) .. '">' ..
-                          i18n(ternary(have_nedge, "hosts_stats.user", "hosts_stats.host_pool"), {
-                        pool_name = string.gsub(_pool.name, "'", "\\'")
-                    }) .. '</li>')
+            local pools = host_pools_instance:get_all_pools()
+            if (table.len(pools) > 2) then
+                -- Not only the default and jailed (host pools or nEdge users)
+                print('<li role="separator" class="divider"></li>')
+                for _, _pool in ipairs(pools) do
+                    hosts_filter_params.pool = _pool.pool_id
+                    print('<li ')
+                    print('"><a class="dropdown-item ' .. ternary((tonumber(pool) == _pool.pool_id), 'active', '') .. '" href="')
+                    print(getPageUrl(base_url, hosts_filter_params) .. '">' ..
+                              i18n(ternary(have_nedge, "hosts_stats.user", "hosts_stats.host_pool"), {
+                            pool_name = string.gsub(_pool.name, "'", "\\'")
+                        }) .. '</li>')
+                end
+                hosts_filter_params.pool = nil
             end
         end
 	
