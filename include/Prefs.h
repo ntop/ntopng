@@ -59,7 +59,8 @@ class Prefs {
     enable_asn_behaviour_analysis, enable_network_behaviour_analysis,
     enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
     dump_flows_on_clickhouse, use_mac_in_flow_key, do_reforge_timestamps,
-    add_vlan_tags_to_cloud_exporters, collect_blacklist_stats, limited_resources_mode;
+    add_vlan_tags_to_cloud_exporters, collect_blacklist_stats,
+    fail_on_invalid_license, limited_resources_mode;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period, modbus_learning_period,
     devices_learning_period;
@@ -700,6 +701,7 @@ class Prefs {
   inline bool addVLANCloudToExporters()    { return(add_vlan_tags_to_cloud_exporters); }
   inline bool collectBlackListStats()      { return(collect_blacklist_stats);          }
   inline bool limitResourcesUsage()        { return(limited_resources_mode);           }
+  inline bool failOnInvalidLicense()       { return(fail_on_invalid_license);          }
 };
 
 #endif /* _PREFS_H_ */

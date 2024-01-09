@@ -59,6 +59,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ewma_alpha_percent = CONST_DEFAULT_EWMA_ALPHA_PERCENT;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   emit_flow_alerts = emit_host_alerts = true;
+  fail_on_invalid_license = false;
   zmq_publish_events_url = NULL;
   enable_access_log = false, enable_sql_log = false;
   enable_flow_device_port_rrd_creation =
@@ -675,16 +676,16 @@ void usage() {
 #ifdef NTOPNG_PRO
 	 "[--community]                       | Start ntopng in community "
 	 "edition.\n"
+	 "[--fail-invalid-license]            | Exit without a valid license.\n"
 	 "[--check-license]                   | Check if the license is valid.\n"
-	 "[--check-maintenance]               | Check until maintenance is "
-	 "included\n"
+	 "[--check-maintenance]               | Check until maintenance is included\n"
 	 "                                    | in the license.\n"
 #endif
-	 "[--version|-V]                      | Print version and license "
-	 "information, then quit\n"
+	 "[--version|-V]                      | Print version and license\n"
+	 "                                    | information, then quit\n"
 #ifdef NTOPNG_PRO
-	 "[--version-json]                    | Print version and license "
-	 "information in JSON format, then quit\n"
+	 "[--version-json]                    | Print version and license\n"
+	 "                                    | info in JSON format, then quit\n"
 #endif
 	 "[--verbose|-v] <level>              | Verbose tracing [range 0 (min).. 6 (max)]\n"
 	 "                                    | 0 - Errors only\n"
@@ -1209,8 +1210,7 @@ static const struct option long_options[] = {
   {"insecure", no_argument, NULL, 225},
   {"offline", no_argument, NULL, 226},
 #ifdef NTOPNG_PRO
-  {"vm", no_argument, NULL,
-   251},  // --vm no longer used (keeping for backward cmpatibility)
+  {"fail-invalid-license", no_argument, NULL, 251},
   {"check-maintenance", no_argument, NULL, 252},
   {"check-license", no_argument, NULL, 253},
   {"community", no_argument, NULL, 254},
@@ -2258,11 +2258,9 @@ int Prefs::setOption(int optkey, char *optarg) {
     break;
 
 #ifdef NTOPNG_PRO
-#ifdef __linux__
   case 251:
-    // --vm no longer used (keeping for backward cmpatibility)
+    fail_on_invalid_license = true;
     break;
-#endif
 
   case 252:
     print_maintenance = true;
