@@ -452,7 +452,7 @@ bool Radius::startSession(const char *username, const char *session_id, const ch
 
 /* *************************************** */
 
-bool Radius::updateSession(const char *username, const char *session_id, RadiusTraffic *info) {
+bool Radius::updateSession(const char *username, const char *session_id, const char *mac, const char *last_ip, RadiusTraffic *info) {
   /* Reset the return */
   bool radius_ret = false;
   rc_handle *rh = NULL;
@@ -470,6 +470,21 @@ bool Radius::updateSession(const char *username, const char *session_id, RadiusT
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
+  }
+
+  if(last_ip) {
+    u_int32_t addr = ntohl(inet_addr(last_ip));
+    if (rc_avpair_add(rh, &send, PW_FRAMED_IP_ADDRESS, &(addr), -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set IP Address");
+      return false;
+    }
+  }
+
+  if(mac) {
+    if (rc_avpair_add(rh, &send, PW_CALLING_STATION_ID, mac, -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set MAC Address");
+      return false;
+    }
   }
 
   /* Add to the dictionary the interim-update data (needed even in the stop) */

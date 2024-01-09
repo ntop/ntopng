@@ -12,21 +12,10 @@ local radius_handler = {}
 local session_id_length = 32
 local redis_accounting_key = "ntopng.radius.accounting.%s"
 
--- ##############################################
-
----@brief Handles the Radius accounting start request
----@param name string, used to identify the the user logged in
----@param username string, used to login the account to radius
----@param password string, used to login the account to radius
----@return boolean, true if the accounting start went well, false otherwise
-function radius_handler.accountingStart(name, username, password)
-    if not radius_handler.isAccountingEnabled() then
-        return true
-    end
-
+local function get_first_ip(mac)
     -- Get the first ip used by the mac
     local first_host = {}
-    local mac_hosts = interface.getMacHosts(name) or {}
+    local mac_hosts = interface.getMacHosts(mac) or {}
     if table.len(mac_hosts) > 0 then
         for _, h in pairsByKeys(mac_hosts, asc) do
             first_host = h
@@ -39,10 +28,25 @@ function radius_handler.accountingStart(name, username, password)
         ip_address = nil
     end
 
+    return ip_address
+end
+
+-- ##############################################
+
+---@brief Handles the Radius accounting start request
+---@param name string, used to identify the the user logged in
+---@param username string, used to login the account to radius
+---@param password string, used to login the account to radius
+---@return boolean, true if the accounting start went well, false otherwise
+function radius_handler.accountingStart(name, username, password)
+    if not radius_handler.isAccountingEnabled() then
+        return true
+    end
+    local ip_address = get_first_ip(name)
     math.randomseed(os.time())
     local session_id = tostring(math.random(100000000000000000, 999999999999999999))
     local accounting_started = interface.radiusAccountingStart(username --[[ Username ]] , name --[[ MAC Address ]] ,
-        session_id, ip_address --[[ First IP Address ]])
+        session_id, ip_address --[[ First IP Address ]] )
 
     if accounting_started then
         local json = require("dkjson")
@@ -91,15 +95,16 @@ function radius_handler.accountingUpdate(name, info)
 
     local is_accounting_on, user_data = radius_handler.isAccountingRequested(name)
     local res = true
-
+    
     if is_accounting_on then
+        local ip_address = get_first_ip(name)
         local bytes_sent = info["bytes.sent"]
         local bytes_rcvd = info["bytes.rcvd"]
         local packets_sent = info["packets.sent"]
         local packets_rcvd = info["packets.rcvd"]
 
         local is_accounting_ok = interface.radiusAccountingUpdate(name, user_data.session_id, user_data.username,
-            user_data.password, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
+            user_data.password, ip_address, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
 
         if not is_accounting_ok then
             -- An accounting stop has to be sent, the allowed data for name

@@ -2175,10 +2175,7 @@ static int ntop_radius_accounting_update(lua_State *vm) {
 
 #ifdef HAVE_RADIUS
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  const char *username = NULL, *session_id = NULL, *password = NULL;
-#if 0
-  char *mac = NULL; /* unused */
-#endif
+  const char *username = NULL, *session_id = NULL, *password = NULL, *ip_address = NULL, *mac = NULL;
   RadiusTraffic traffic_data;
 
   memset(&traffic_data, 0, sizeof(traffic_data));
@@ -2188,11 +2185,8 @@ static int ntop_radius_accounting_update(lua_State *vm) {
   if (!ntop_interface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
-#if 0
-  /* unused */
   if (lua_type(vm, 1) == LUA_TSTRING)
     mac = (char *)lua_tostring(vm, 1);
-#endif
 
   if (lua_type(vm, 2) == LUA_TSTRING)
     session_id = (const char *)lua_tostring(vm, 2);
@@ -2203,23 +2197,26 @@ static int ntop_radius_accounting_update(lua_State *vm) {
   if (lua_type(vm, 4) == LUA_TSTRING)
     password = (const char *)lua_tostring(vm, 4);
 
-  if (lua_type(vm, 5) == LUA_TNUMBER)
-    traffic_data.bytes_sent = (u_int64_t)lua_tonumber(vm, 5);
+  if (lua_type(vm, 5) == LUA_TSTRING)
+    ip_address = (const char *)lua_tostring(vm, 5);
 
   if (lua_type(vm, 6) == LUA_TNUMBER)
-    traffic_data.bytes_rcvd = (u_int64_t)lua_tonumber(vm, 6);
+    traffic_data.bytes_sent = (u_int64_t)lua_tonumber(vm, 6);
 
   if (lua_type(vm, 7) == LUA_TNUMBER)
-    traffic_data.packets_sent = (u_int64_t)lua_tonumber(vm, 7);
+    traffic_data.bytes_rcvd = (u_int64_t)lua_tonumber(vm, 7);
 
   if (lua_type(vm, 8) == LUA_TNUMBER)
-    traffic_data.packets_rcvd = (u_int64_t)lua_tonumber(vm, 8);
+    traffic_data.packets_sent = (u_int64_t)lua_tonumber(vm, 8);
+
+  if (lua_type(vm, 9) == LUA_TNUMBER)
+    traffic_data.packets_rcvd = (u_int64_t)lua_tonumber(vm, 9);
 
   /* The update is strange, you have to first update
     * and then authenticate again to be able to check if the user
     * is still able to navigate or not.
     */
-  res = ntop->radiusAccountingUpdate(username, session_id, &traffic_data);
+  res = ntop->radiusAccountingUpdate(username, session_id, mac, ip_address, &traffic_data);
   if(res) {
     bool is_admin = false, has_unprivileged_capabilities = false;
     res = ntop->radiusAuthenticate(username, password, &has_unprivileged_capabilities, &is_admin);

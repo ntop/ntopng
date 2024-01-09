@@ -669,9 +669,11 @@ class Ntop {
     return radiusAcc->startSession(username, session_id, mac, last_ip);
   };
   inline bool radiusAccountingUpdate(const char *username,
-                                     const char *session_id, 
+                                     const char *session_id,
+                                     const char *mac, 
+                                     const char *last_ip,
                                      RadiusTraffic *info) {
-    return radiusAcc->updateSession(username, session_id, info);
+    return radiusAcc->updateSession(username, session_id, mac, last_ip, info);
   };
   inline bool radiusAccountingStop(const char *username,
                                     const char *session_id, 
