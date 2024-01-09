@@ -130,7 +130,6 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex) {
 
 /* ************************************ */
 
-#if 0
 /* static */int pthread_cond_init(pthread_cond_t *cv, const void *unused) {
 	unused = NULL;
 	cv->signal = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -158,9 +157,7 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex) {
 /* static */int pthread_cond_destroy(pthread_cond_t *cv) {
 	return CloseHandle(cv->signal) && CloseHandle(cv->broadcast) ? 0 : -1;
 }
-#endif
 
-#if 0
 /* static */int pthread_cond_timedwait(pthread_cond_t* cv, pthread_mutex_t* mutex, const struct timespec* abstime) {
 	HANDLE handles[] = { cv->signal, cv->broadcast };
 	DWORD msec = abstime->tv_sec * 1000 + abstime->tv_sec / 1000;
@@ -169,7 +166,7 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex) {
 	WaitForMultipleObjects(2, handles, FALSE, msec);
 	return WaitForSingleObject(*mutex, msec) == WAIT_OBJECT_0 ? 0 : -1;
 }
-#endif
+
 /* ************************************ */
 
 unsigned long waitForNextEvent(unsigned long ulDelay /* ms */) {

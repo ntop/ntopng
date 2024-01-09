@@ -1057,6 +1057,7 @@ static void send_http_error(struct mg_connection *conn, int status,
 }
 #endif
 
+#if 0 /* see ntop_win32.c */
 /* static */int pthread_cond_init(pthread_cond_t *cv, const void *unused) {
   unused = NULL;
   cv->signal = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -1093,6 +1094,8 @@ static void send_http_error(struct mg_connection *conn, int status,
 /* static */int pthread_cond_destroy(pthread_cond_t *cv) {
   return CloseHandle(cv->signal) && CloseHandle(cv->broadcast) ? 0 : -1;
 }
+#endif
+
 
 // For Windows, change all slashes to backslashes in path names.
 static void change_slashes_to_backslashes(char *path) {
