@@ -255,7 +255,7 @@ const show = (row) => {
       input_ip.value = "";
       input_network.value = "";
       input_vlan.value = 0;
-      host_selected.value = "";
+      host_selected.value = "0";
       flow_selected.value = "";
       netmask.value = "";
       input_text.value = "";
