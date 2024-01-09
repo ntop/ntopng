@@ -385,7 +385,9 @@ static void *packetPollLoop(void *ptr) {
       if(do_break)
 	break;
 #else
-      if(processNextPacket(iface->get_pcap_handle(0), iface->get_ifindex(0)) == false)
+      if(iface->processNextPacket(iface->get_pcap_handle(0),
+                                   iface->get_ifindex(0),
+                                   iface->get_ifdatalink(0)) == false)
 	break;      
 #endif
   } /* while */
@@ -646,7 +648,7 @@ bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_dat
       hdr_copy.len = min(hdr->len, sizeof(pkt_copy) - 1);
       hdr_copy.caplen = min(hdr_copy.len, hdr_copy.caplen);
       memcpy(pkt_copy, pkt, hdr_copy.len);
-      iface->dissectPacket(if_index,
+        dissectPacket(if_index,
 			   DUMMY_BRIDGE_INTERFACE_ID, pcap_datalink_type,
 			   true /* ingress - TODO: see if we pass the real
 				   packet direction */

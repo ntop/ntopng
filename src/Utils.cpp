@@ -5690,6 +5690,9 @@ IpAddress* Utils::parseHostString(char *host_ip, u_int16_t *vlan_id /* out */) {
 /* ******************************************* */
 
 bool Utils::nwInterfaceExists(char *if_name) {
+#ifdef WIN32
+ return(true);
+ #else
 #ifdef __linux__
   char path[64];
   struct stat buf;
@@ -5717,5 +5720,6 @@ bool Utils::nwInterfaceExists(char *if_name) {
   if_freenameindex(ifpsave);
 
   return(found);
+#endif
 #endif
 }

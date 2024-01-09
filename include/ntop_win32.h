@@ -36,6 +36,7 @@
 #include <io.h>
 #include <stdio.h>
 #include <share.h>
+#include <netioapi.h>
 
 #ifdef __cplusplus
 extern "C" {
