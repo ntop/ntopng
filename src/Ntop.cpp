@@ -531,7 +531,7 @@ void Ntop::start() {
   if (PACKAGE_OS[0] != '\0')
     getTrace()->traceEvent(TRACE_NORMAL, "Built on %s", PACKAGE_OS);
 
-  getTrace()->traceEvent(TRACE_NORMAL, "(C) 1998-23 ntop");
+  getTrace()->traceEvent(TRACE_NORMAL, "(C) 1998-24 ntop");
 
   last_modified_static_file_epoch = start_time = time(NULL);
   snprintf(epoch_buf, sizeof(epoch_buf), "%u", (u_int32_t)start_time);
