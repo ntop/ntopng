@@ -253,6 +253,7 @@ import { default as NoteList } from "./note-list.vue";
 import regexValidation from "../utilities/regex-validation.js";
 import NtopUtils from "../utilities/ntop-utils";
 import dataUtils from "../utilities/data-utils"
+import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 
 const input_mac_list = ref("");
 const input_trigger_alerts = ref("");
@@ -936,6 +937,15 @@ const invalidAdd = () => {
   invalid_add.value = true;
 };
 
+const compare_labels = function (a,b) {
+  let x = a.label.toLowerCase();
+  let y = b.label.toLowerCase();
+
+  if (x < y) { return -1; }
+  if (x > y) { return 1; }
+  return 0;
+}
+
 /**
  * 
  * Function to format ifid list
@@ -946,6 +956,7 @@ const format_ifid_list = function (data) {
     let item = { id: ifid.ifid, label: ifid.name };
     _ifid_list.push(item);
   })
+  _ifid_list.sort((a, b) => compare_labels(a,b));
   return _ifid_list
 }
 
@@ -1038,6 +1049,12 @@ const format_flow_exporter_device_list = function (data) {
       ifid: dev.ifid
     });
   })
+
+  _f_exp_dev_list.sort((a, b) => sortingFunctions.sortByIP(
+    a.label,
+    b.label,
+    1 /* by default asc */
+  ));
   return _f_exp_dev_list;
 }
 
