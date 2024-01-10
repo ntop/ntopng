@@ -450,24 +450,23 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
         flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
 
       if (flow_interfaces_stats) {
-        flow_interfaces_stats->incStats(
-          now, zflow->device_ip, zflow->inIndex, flow->getStatsProtocol(),
-          zflow->pkt_sampling_rate * zflow->out_pkts,
-          zflow->pkt_sampling_rate * zflow->out_bytes,
-          zflow->pkt_sampling_rate * zflow->in_pkts,
-          zflow->pkt_sampling_rate * zflow->in_bytes);
-      /* If the SNMP device is actually an host with an SNMP agent, then traffic
-         can enter and leave it from the same interface (think to a management
-         interface). For this reason it is important to check the outIndex and
-         increase its counters only if it is different from inIndex to avoid
-         double counting. */
+        flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->inIndex, flow->getStatsProtocol(),
+					zflow->pkt_sampling_rate * zflow->out_pkts,
+					zflow->pkt_sampling_rate * zflow->out_bytes,
+					zflow->pkt_sampling_rate * zflow->in_pkts,
+					zflow->pkt_sampling_rate * zflow->in_bytes);
+	/* If the SNMP device is actually an host with an SNMP agent, then traffic
+	   can enter and leave it from the same interface (think to a management
+	   interface). For this reason it is important to check the outIndex and
+	   increase its counters only if it is different from inIndex to avoid
+	   double counting. */
+	
         if (zflow->outIndex != zflow->inIndex)
-          flow_interfaces_stats->incStats(
-            now, zflow->device_ip, zflow->outIndex, flow->getStatsProtocol(),
-            zflow->pkt_sampling_rate * zflow->in_pkts,
-            zflow->pkt_sampling_rate * zflow->in_bytes,
-            zflow->pkt_sampling_rate * zflow->out_pkts,
-            zflow->pkt_sampling_rate * zflow->out_bytes);
+          flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->outIndex, flow->getStatsProtocol(),
+					  zflow->pkt_sampling_rate * zflow->in_pkts,
+					  zflow->pkt_sampling_rate * zflow->in_bytes,
+					  zflow->pkt_sampling_rate * zflow->out_pkts,
+					  zflow->pkt_sampling_rate * zflow->out_bytes);
       }
     }
 #endif
@@ -509,9 +508,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
       if (custom_app_stats ||
           (custom_app_stats = new (std::nothrow) CustomAppStats(this))) {
-        custom_app_stats->incStats(
-        zflow->getCustomApp().remapped_app_id,
-          zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
+        custom_app_stats->incStats(zflow->getCustomApp().remapped_app_id,
+				   zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
       }
     }
 #endif

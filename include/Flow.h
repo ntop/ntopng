@@ -769,9 +769,6 @@ class Flow : public GenericHashEntry {
   inline time_t get_partial_last_seen() const {
     return (last_db_dump.last_seen);
   };
-  inline u_int32_t get_duration() const {
-    return ((u_int32_t)(1 + get_last_seen() - get_first_seen()));
-  };
   inline char *get_protocol_name() const {
     return (Utils::l4proto2name(protocol));
   };

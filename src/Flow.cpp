@@ -2240,13 +2240,9 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
   float bytes_msec_cli2srv = ((float)(diff_sent_bytes * 1000)) / tdiff_msec;
   float bytes_msec_srv2cli = ((float)(diff_rcvd_bytes * 1000)) / tdiff_msec;
   float bytes_msec = bytes_msec_cli2srv + bytes_msec_srv2cli;
-
-  float goodput_bytes_msec_cli2srv =
-      ((float)(diff_sent_goodput_bytes * 1000)) / tdiff_msec;
-  float goodput_bytes_msec_srv2cli =
-      ((float)(diff_rcvd_goodput_bytes * 1000)) / tdiff_msec;
-  float goodput_bytes_msec =
-      goodput_bytes_msec_cli2srv + goodput_bytes_msec_srv2cli;
+  float goodput_bytes_msec_cli2srv = ((float)(diff_sent_goodput_bytes * 1000)) / tdiff_msec;
+  float goodput_bytes_msec_srv2cli = ((float)(diff_rcvd_goodput_bytes * 1000)) / tdiff_msec;
+  float goodput_bytes_msec         =  goodput_bytes_msec_cli2srv + goodput_bytes_msec_srv2cli;
 
   /* Just to be safe */
   if (bytes_msec < 0) bytes_msec = 0;
@@ -2256,7 +2252,7 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
   if (goodput_bytes_msec_cli2srv < 0) goodput_bytes_msec_cli2srv = 0;
   if (goodput_bytes_msec_srv2cli < 0) goodput_bytes_msec_srv2cli = 0;
 
-  if ((bytes_msec > 0) || iface->isPacketInterface()) {
+  if (bytes_msec > 0) {
     // refresh trend stats for the overall throughput
     if (get_bytes_thpt() < bytes_msec)
       bytes_thpt_trend = trend_up;
@@ -2281,12 +2277,12 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
 
 #if DEBUG_TREND
     u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
-    ntop->getTrace()->traceEvent(
-        TRACE_NORMAL,
-        "[tdiff_msec: %.2f][diff_bytes: %lu][diff_sent_bytes: "
-        "%lu][diff_rcvd_bytes: %lu][bytes_thpt: %.4f]",
-        tdiff_msec, diff_bytes, diff_sent_bytes, diff_rcvd_bytes,
-        get_bytes_thpt() * 8);
+    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "[tdiff_msec: %.2f][diff_bytes: %lu][diff_sent_bytes: "
+				 "%lu][diff_rcvd_bytes: %lu][bytes_thpt: %.4f]",
+				 tdiff_msec, diff_bytes, diff_sent_bytes, diff_rcvd_bytes,
+				 get_bytes_thpt() * 8);
 #endif
 
     if (top_bytes_thpt < get_bytes_thpt())
@@ -2298,10 +2294,7 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
 #ifdef NTOPNG_PRO
     throughputTrend.update(get_bytes_thpt()),
         goodputTrend.update(get_goodput_bytes_thpt());
-    thptRatioTrend.update(
-        (bytes_msec != 0)
-            ? (((double)(goodput_bytes_msec * 100)) / (double)bytes_msec)
-            : 0);
+    thptRatioTrend.update((bytes_msec != 0) ? (((double)(goodput_bytes_msec * 100)) / (double)bytes_msec) : 0);
 
 #ifdef DEBUG_TREND
     if ((get_goodput_bytes_cli2srv() + get_goodput_bytes_srv2cli()) > 0) {
@@ -2427,14 +2420,23 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
     }
   } /* Closes if(cli_h && srv_h) */
 
-#ifndef HAVE_NEDGE /* For nEdge check Flow::setPacketsBytes */
+#ifndef HAVE_NEDGE
+/* For nEdge check Flow::setPacketsBytes */
   /* Update throughput */
-  if (last_update_time.tv_sec > 0) {
-    float tdiff_msec = Utils::msTimevalDiff(tv, &last_update_time);
+  if(iface->isPacketInterface()) {
+    /*
+      In case of ZMQ the throughput is computed whenever a new
+      flow update is received for this flow
+      by Flow::addFlowStats()
+    */
 
-    updateThroughputStats(tdiff_msec, diff_sent_packets, diff_sent_bytes,
-                          diff_sent_goodput_bytes, diff_rcvd_packets,
-                          diff_rcvd_bytes, diff_rcvd_goodput_bytes);
+    if (last_update_time.tv_sec > 0) {
+      float tdiff_msec = Utils::msTimevalDiff(tv, &last_update_time);
+      
+      updateThroughputStats(tdiff_msec, diff_sent_packets, diff_sent_bytes,
+			    diff_sent_goodput_bytes, diff_rcvd_packets,
+			    diff_rcvd_bytes, diff_rcvd_goodput_bytes);
+    }
   }
 #endif
 
@@ -5032,7 +5034,8 @@ void Flow::addFlowStats(bool new_flow, bool cli2srv_direction, u_int in_pkts,
                         u_int in_fragments, u_int out_fragments,
                         time_t first_seen, time_t last_seen) {
   /* Don't update seen if no traffic has been observed */
-  if (!(in_bytes || out_bytes || in_pkts || out_pkts)) return;
+  if (!(in_bytes || out_bytes || in_pkts || out_pkts))
+    return;
 
   updateSeen(last_seen);
   callFlowUpdate(last_seen);
@@ -5059,13 +5062,14 @@ void Flow::addFlowStats(bool new_flow, bool cli2srv_direction, u_int in_pkts,
 			       ((in_bytes + out_bytes) / difftime(last_seen, first_seen)) / 1024 / 1024 * 8);
 #endif
   /* New flow, update throughput, otherwise update it in the periodic update */
-  if (new_flow) {
+  //if (new_flow)
+  {
+    float tdiff_msec = (float)(ndpi_max(1, (last_seen-first_seen))) * 1000.;
+    
     if (cli2srv_direction)
-      updateThroughputStats(difftime(last_seen, first_seen), in_pkts, in_bytes,
-                            0, out_pkts, out_bytes, 0);
+      updateThroughputStats(tdiff_msec, in_pkts, in_bytes, 0, out_pkts, out_bytes, 0);
     else
-      updateThroughputStats(difftime(last_seen, first_seen), out_pkts,
-                            out_bytes, 0, in_pkts, in_bytes, 0);
+      updateThroughputStats(tdiff_msec, out_pkts, out_bytes, 0, in_pkts, in_bytes, 0);
   }
 }
 
@@ -6528,12 +6532,12 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 
   if (last_conntrack_update > 0) {
     float tdiff_msec = (now - last_conntrack_update) * 1000;
-    updateThroughputStats(
-        tdiff_msec,
-        nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
-        nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes, 0,
-        nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts,
-        nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes, 0);
+    
+    updateThroughputStats( tdiff_msec,
+			   nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
+			   nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes, 0,
+			   nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts,
+			   nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes, 0);
   }
 
   /*
