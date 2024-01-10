@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-23 - ntop.org
+ * (C) 2013-24 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,46 +23,18 @@
 
 /* *************************************** */
 
-void HostsPorts::mergeSrvPorts(std::unordered_map<u_int16_t, ndpi_protocol> *new_server_ports) {
-    std::unordered_map<u_int16_t, PortDetails*>::iterator server_ports_it;
-    std::unordered_map<u_int16_t, ndpi_protocol>::iterator new_server_ports_it;
-
-    for (new_server_ports_it = new_server_ports->begin(); new_server_ports_it != new_server_ports->end(); ++new_server_ports_it ) {
-        server_ports_it = server_ports.find(new_server_ports_it->first);
-        if(server_ports_it == server_ports.end()) {
-            PortDetails *port_details = new (std::nothrow) PortDetails();
-            if(port_details) {
-                port_details->set_protocol(new_server_ports_it->second);
-                server_ports[new_server_ports_it->first] = port_details;
-            }
-        } else {
-            server_ports_it->second->inc_h_count();
-
-        }
+void HostsPorts::add_srv_port(u_int64_t key, u_int64_t host_key) {
+  if (srv_ports.find(key) == srv_ports.end()) {
+    /* port not found case */
+    PortDetails* portDetails = new (std::nothrow) PortDetails();
+    if (portDetails) {
+      portDetails->add_host(host_key);
+      srv_ports[key] = portDetails;
     }
-                  
-}
-
-/* *************************************** */
-
-void HostsPorts::mergeVLANPorts(std::unordered_map<u_int16_t, ndpi_protocol> *new_server_ports, u_int16_t vlan_id) {
-    std::unordered_map<u_int32_t, u_int64_t>::iterator vlan_port_it;
-    std::unordered_map<u_int16_t, ndpi_protocol>::iterator new_server_ports_it;
-
-    for (new_server_ports_it = new_server_ports->begin(); new_server_ports_it != new_server_ports->end(); ++new_server_ports_it ) {
-        
-        /* <port (16 bit)> <vlan_id (16 bit)>*/
-
-        u_int32_t key = ((u_int32_t) vlan_id) +
-                        ((u_int32_t) new_server_ports_it->first << 16);
-        vlan_port_it = vlan_ports.find(key);
-        if(vlan_port_it == vlan_ports.end()) {
-            vlan_ports[key] = 1;
-        } else {
-            vlan_port_it->second++;
-        }
-    }
-                  
+  } else {
+    /* port already present so add just the host */
+    srv_ports[key]->add_host(host_key);
+  }
 }
 
 /* *************************************** */

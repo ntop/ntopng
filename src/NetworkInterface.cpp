@@ -11655,81 +11655,15 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
 
 /* **************************************************** */
 
-void NetworkInterface::getVLANHostsPorts(lua_State *vm) {
-  HostsPorts count;
-  u_int32_t begin_slot = 0;
-  u_int32_t protocol = 0;
-  if (lua_type(vm, 1) == LUA_TNUMBER) {
-    protocol = (u_int32_t)lua_tonumber(vm, 1);
-    count.set_protocol(protocol);
-  }
-
-  walker(&begin_slot, true , walker_hosts,
-    get_vlan_host_ports, &count);
-
-  vlan_ports_lua_response(vm, &count);
-
-}
-
-/* **************************************************** */
-
-bool NetworkInterface::get_vlan_host_ports(GenericHashEntry *node,
-					  void *user_data,
-					  bool *matched) {
-  Host *h = (Host *)node;
-
-  if (!h || !h->isLocalHost())
-    return false;
-
-  u_int16_t vlan_id = h->get_vlan_id();
-  HostsPorts *hostsPorts = static_cast< HostsPorts *>(user_data);
-  LocalHost *lh = (LocalHost*) h;
-
-
-  std::unordered_map<u_int16_t, ndpi_protocol> ports = (hostsPorts->get_protocol() == 6) ? lh->getTCPServerPorts() : lh->getUDPServerPorts();
-
-  hostsPorts->mergeVLANPorts(&ports,vlan_id);
-
-  *matched = true;
-
-  return (false); /* false = keep on walking */
-}
-
-/* **************************************************** */
-
-void NetworkInterface::vlan_ports_lua_response(lua_State *vm,
-    HostsPorts *count) {
-
-  std::unordered_map<u_int32_t, u_int64_t> vlan_ports = count->getVLANPorts();
-  std::unordered_map<u_int32_t, u_int64_t>::iterator it;
-
-  lua_newtable(vm);
-  u_int num = 0;
-
-
-  for (it = vlan_ports.begin(); it != vlan_ports.end(); ++it) {
-    lua_newtable(vm);
-
-    lua_push_uint32_table_entry(vm, "vlan_id", (u_int16_t) (it->first & 0x00000000000FFFF));
-    lua_push_uint32_table_entry(vm, "port", (u_int16_t) ((it->first >> 16) & 0x00000000000FFFF));
-    lua_push_uint64_table_entry(vm, "n_hosts", it->second);
-    lua_pushinteger(vm, ++num);
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
-  }
-
-}
-
-/* **************************************************** */
-
 void NetworkInterface::getHostsPorts(lua_State *vm) {
   u_int32_t begin_slot = 0;
   HostsPorts count;
-  u_int32_t protocol = 0;
+  u_int8_t l4_protocol = 0;
   u_int16_t vlan_id = 0;
+  
   if (lua_type(vm, 1) == LUA_TNUMBER) {
-    protocol = (u_int32_t)lua_tonumber(vm, 1);
-    count.set_protocol(protocol);
+    l4_protocol = (u_int8_t)lua_tonumber(vm, 1);
+    count.set_protocol(l4_protocol);
   }
 
   if (lua_type(vm, 2) == LUA_TNUMBER) {
@@ -11737,14 +11671,14 @@ void NetworkInterface::getHostsPorts(lua_State *vm) {
     count.set_vlan_id(vlan_id);
   }
 
-  walker(&begin_slot, true , walker_hosts,
+  walker(&begin_slot, true , walker_flows,
 	  get_host_ports, &count);
 
-  sort_ports(vm, &count, protocol);
+  lua_push_ports(vm, &count, l4_protocol);
 
   /* Free memory before leaving */
-  std::unordered_map<u_int16_t, PortDetails*> server_ports = count.getSrvPort();
-  std::unordered_map<u_int16_t, PortDetails*>::iterator it;
+  std::unordered_map<u_int64_t, PortDetails*> server_ports = count.get_srv_ports();
+  std::unordered_map<u_int64_t, PortDetails*>::iterator it;
   for ( it = server_ports.begin(); it != server_ports.end(); ++it) {
     delete it->second;
   }
@@ -11756,54 +11690,106 @@ void NetworkInterface::getHostsPorts(lua_State *vm) {
 bool NetworkInterface::get_host_ports(GenericHashEntry *node,
 					  void *user_data,
 					  bool *matched) {
-  Host *h = (Host *)node;
+  /* Retrieve HostsPorts instance */
+  HostsPorts* hostsPorts = static_cast< HostsPorts *>(user_data);
+  if (!hostsPorts) 
+    return (false); /* false = keep on walking */ 
+  
+  /* Retrieve flow instance */
+  Flow* f = (Flow *)node;
+  if (!f)
+    return (false); /* false = keep on walking */ 
 
-  if (!h || !h->isLocalHost())
-    return false;
+  /* Retrieve the server host instance */
+  Host* server = f->get_srv_host();
+  if (!server)
+    return (false); /* false = keep on walking */ 
+  
+  /* Filters */
+  u_int16_t filter_vlan_id        = hostsPorts->get_vlan_id();
+  u_int8_t filter_l4_proto        = hostsPorts->get_protocol();
 
-  HostsPorts *hostsPorts = static_cast< HostsPorts *>(user_data);
-  u_int16_t vlan_id = hostsPorts->get_vlan_id();
+  /* Flow's attributes */
+  u_int16_t flow_vlan_id          = f->get_vlan_id();
+  u_int8_t flow_l4_proto          = f->get_protocol();
+  u_int16_t srv_port              = f->get_srv_port();
+  ndpi_protocol detected_protocol = f->get_detected_protocol();
 
-  if ( (vlan_id != 0) && (h->get_vlan_id() != vlan_id) ) {
-    *matched = true;
-    return (false); /* false = keep on walking */
-  }
+  /* Server Host attribute */
+  u_int16_t srv_vlan_id           = server->get_vlan_id();
+  
+  /* check l4_proto filter */
+  if (flow_l4_proto != filter_l4_proto)
+    return (false); /* false = keep on walking */ 
 
-  LocalHost *lh = (LocalHost*) h;
+  /* check vlan filter */
+  if (filter_vlan_id != 0) {
+    /* check flow vlan */
+    if (flow_vlan_id != filter_vlan_id)
+      return (false); /* false = keep on walking */ 
+    /* check server host vlan */
+    if ((srv_vlan_id != 0) && (srv_vlan_id != filter_vlan_id))
+      return (false); /* false = keep on walking */ 
+  } 
 
-  std::unordered_map<u_int16_t, ndpi_protocol> ports = (hostsPorts->get_protocol() == 6) ? lh->getTCPServerPorts() : lh->getUDPServerPorts();
+  /* <srv_port (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
+  u_int64_t port_proto_key =
+    ((u_int64_t)srv_port << 32) +
+    (((u_int64_t)detected_protocol.app_protocol) << 16) +
+    (u_int64_t)detected_protocol.master_protocol;
 
-  hostsPorts->mergeSrvPorts(&ports);
+  /* <srv_key (16 bit)><srv_vlan_id (16 bit)> */
+  u_int64_t host_key =
+    (((u_int64_t)server->key()) << 16) + 
+    ((u_int64_t)srv_vlan_id);
+
+  /* Add the server port + the host on the hosts u_map*/
+  hostsPorts->add_srv_port(port_proto_key, host_key);
 
   *matched = true;
-
   return (false); /* false = keep on walking */
 }
 
 /* **************************************************** */
 
-void NetworkInterface::sort_ports(lua_State *vm,
+void NetworkInterface::lua_push_ports(lua_State *vm,
 				  HostsPorts *count,
 				  u_int16_t protocol) {
-  std::map<u_int16_t, PortDetails*> ordered(count->getSrvPort().begin(), count->getSrvPort().end());
-  std::map<u_int16_t, PortDetails*>::iterator it;
-  bool isTCP = protocol == 6;
 
-  /* Build up the lua response */
+  std::unordered_map<u_int64_t, PortDetails*> port_list = count->get_srv_ports();
+  std::unordered_map<u_int64_t, PortDetails*>::iterator it;
+
+  /* Build the lua response */
   lua_newtable(vm);
-
-  u_int16_t size = ordered.size();
+  u_int16_t size = port_list.size();
   u_int num = 0;
 
-  for (it = ordered.begin(); it != ordered.end(); ++it) {
-    char str[32], buf[64];
+  for (it = port_list.begin(); it != port_list.end(); ++it) {
+    char buf[64], proto[16];
     lua_newtable(vm);
 
-    snprintf(str, sizeof(str), "%s:%u", isTCP ? "tcp" : "udp", it->first);
-    lua_push_str_table_entry(vm, str,
-			     ndpi_protocol2name(get_ndpi_struct(), it->second->get_protocol(), buf, sizeof(buf)));
-    lua_push_uint32_table_entry(vm, "num_hosts", (u_int32_t) it->second->get_h_count());
-    lua_push_uint32_table_entry(vm, "num_entries", (u_int32_t)size);
+    u_int64_t key = it->first;
+    ndpi_protocol detected_protocol;
+    detected_protocol.master_protocol = (u_int16_t)(key & 0x00000000000FFFF);
+    detected_protocol.app_protocol    = (u_int16_t)((key >> 16) & 0x000000000000FFFF);
+    u_int16_t srv_port                = (u_int64_t)((key >> 32) & 0x000000000000FFFF);
+
+    if (detected_protocol.master_protocol == detected_protocol.app_protocol)
+      snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
+    else if (detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+      snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
+    else if (detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
+      snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
+    else
+      snprintf(proto, sizeof(proto), "%u.%u", detected_protocol.master_protocol, detected_protocol.app_protocol);
+    
+    lua_push_str_table_entry(vm, "proto_id", proto);
+    lua_push_str_table_entry(vm, "l7_proto_name",
+            get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
+    lua_push_uint32_table_entry(vm, "srv_port", srv_port);
+    lua_push_str_table_entry(vm, "l4_proto", Utils::l4proto2name(count->get_protocol()));
+    lua_push_uint64_table_entry(vm, "n_hosts", it->second->get_size());
+    lua_push_uint64_table_entry(vm, "num_entries", (u_int64_t)size);
 
     lua_pushinteger(vm, ++num);
     lua_insert(vm, -2);
@@ -11816,52 +11802,72 @@ void NetworkInterface::sort_ports(lua_State *vm,
 bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
 					 void *user_data,
 					 bool *matched) {
-  Host *h = (Host *)node;
-  if (!h || !h->isLocalHost())
-    return(false);
-
+  /* Retrieve HostsPortsAnalysis instance */
   HostsPortsAnalysis *hostsPortsAnalysis = static_cast< HostsPortsAnalysis *>(user_data);
-
   if ( hostsPortsAnalysis == NULL )
     return(false);
 
-  u_int32_t l4_proto = hostsPortsAnalysis->get_l4_proto();
-
-  if ((l4_proto == 0) || (hostsPortsAnalysis->get_port() == 0))
+  /* Retrieve flow instance */
+  Flow *f = (Flow *)node;
+  if (!f)
     return(false);
 
-  LocalHost *lh = (LocalHost*) h;
-  std::unordered_map<u_int16_t, ndpi_protocol> ports_list = l4_proto == 6 ? lh->getTCPServerPorts() : lh->getUDPServerPorts();
-  std::unordered_map<u_int16_t, ndpi_protocol>::iterator port_finder;
-  port_finder = ports_list.find(hostsPortsAnalysis->get_port());
+  /* Retrieve the server host instance */
+  Host* h = f->get_srv_host();
+  if (!h)
+    return(false);
 
-  if (port_finder != ports_list.end()) {
-    u_int64_t vlan_id = (u_int64_t) h->get_vlan_id();
-    u_int64_t host_key = (((u_int64_t)h->get_ip()->key()) << 16) + ((u_int64_t)vlan_id);
+  /* Filters */
+  u_int8_t filter_l4_proto  = hostsPortsAnalysis->get_l4_proto();
+  u_int16_t filter_srv_port = hostsPortsAnalysis->get_port();
 
-    std::unordered_map<u_int64_t, HostDetails*> *host_details = hostsPortsAnalysis->get_hosts_details();
-    if (host_details && host_details->find(host_key) == host_details->end() ) {
-      
-      /* Not found in hash the host details */
+  /* Check filters values */
+  if ((filter_l4_proto == 0) || (filter_srv_port == 0))
+    return(false);
+
+  /* Check filters with flow's values (L4 Protocol & Dst Port)*/
+  if ((filter_l4_proto != f->get_protocol()) || (filter_srv_port != f->get_srv_port()))
+    return(false);
+
+  /* Retrieve server host VLAN and host_key */
+  u_int64_t vlan_id = (u_int64_t) h->get_vlan_id();
+  u_int64_t host_key = (((u_int64_t)h->key()) << 16) + ((u_int64_t)vlan_id);
+
+  /* Retrieve host_details hash */
+  std::unordered_map<u_int64_t, HostDetails*> *host_details = hostsPortsAnalysis->get_hosts_details();
+  std::unordered_map<u_int64_t, HostDetails *>::iterator it;
+  
+  if (host_details) {
+    /* Search the server host in hash */
+    it = host_details->find(host_key);
+    if(it == host_details->end())  {
+      /* Host not found in hash */
       char ip_buf[64];
       char mac_buf[64];
       char ip_hex_buf[64];
       char name[64];
-      HostDetails *host_info = new (std::nothrow) HostDetails(h->get_ip()->print(ip_buf, sizeof(ip_buf)),
-							      h->getMac() ? h->getMac()->print(mac_buf, sizeof(mac_buf)) : (char*)"",
-							      h->getMac() ? (char*)h->getMac()->get_manufacturer() : (char*)"",
-							      h->getNumBytesUDPSent() + h->getNumBytesUDPRcvd(),
-							      h->get_ip()->get_ip_hex(ip_hex_buf, sizeof(ip_hex_buf)),
-							      h->get_vlan_id(),
-							      h->getScore(),
-							      h->getNumIncomingFlows(),
-							      h->get_name(name, sizeof(name), false),
-							      host_key);
-      if(host_info)
+      u_int32_t flows_count = 1; 
+      /* Build new host_info instance */
+      HostDetails *host_info = new (std::nothrow) HostDetails(
+                    h->get_ip()->print(ip_buf, sizeof(ip_buf)),
+                    h->getMac() ? h->getMac()->print(mac_buf, sizeof(mac_buf)) : (char*)"",
+                    h->getMac() ? (char*)h->getMac()->get_manufacturer() : (char*)"",
+                    f->get_bytes_cli2srv() + f->get_bytes_srv2cli(),
+                    h->get_ip()->get_ip_hex(ip_hex_buf, sizeof(ip_hex_buf)),
+                    h->get_vlan_id(),
+                    h->getScore(),
+                    flows_count,
+                    h->get_name(name, sizeof(name), false),
+                    host_key);
+      if(host_info) {
         host_details->insert({host_key, host_info});
+      }
+    } else {
+      /* Found host in hash -> update stats */
+      it->second->inc_stats(f->get_bytes_cli2srv() + f->get_bytes_srv2cli());
     }
   }
-
+  
   *matched = true;
   return (false);
 }
@@ -11870,12 +11876,12 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
 
 void NetworkInterface::getHostsByPort(lua_State *vm) {
   u_int32_t begin_slot = 0;
-  u_int32_t protocol = 0;
+  u_int8_t protocol = 0;
   u_int16_t port = 0;
   HostsPortsAnalysis count;
 
   if (lua_type(vm, 1) == LUA_TNUMBER)
-    protocol = (u_int32_t)lua_tonumber(vm, 1);
+    protocol = (u_int8_t)lua_tonumber(vm, 1);
   count.set_l4_proto(protocol);
 
   if (lua_type(vm, 2) == LUA_TNUMBER) {
@@ -11883,7 +11889,7 @@ void NetworkInterface::getHostsByPort(lua_State *vm) {
     count.set_port(port);
   }
 
-  walker(&begin_slot, true , walker_hosts,
+  walker(&begin_slot, true , walker_flows,
 	 get_hosts_by_port, &count);
 
   sort_hosts_details(vm, &count, protocol, false);
@@ -11902,7 +11908,7 @@ bool NetworkInterface::get_hosts_by_service(GenericHashEntry *node,
   HostsPortsAnalysis *hostsPortsAnalysis = static_cast< HostsPortsAnalysis *>(user_data);
 
   int l7_proto = hostsPortsAnalysis->get_l7_proto();
-  u_int32_t l4_proto = hostsPortsAnalysis->get_l4_proto();
+  u_int8_t l4_proto = hostsPortsAnalysis->get_l4_proto();
 
   if ((l7_proto == 0) || (l4_proto == 0)) {
     return (false);
@@ -11961,7 +11967,7 @@ bool NetworkInterface::get_hosts_by_service(GenericHashEntry *node,
 
 void NetworkInterface::getHostsByService(lua_State *vm) {
   int l7_proto = 0;
-  u_int32_t protocol = 0;
+  u_int8_t protocol = 0;
   u_int32_t begin_slot = 0;
 
 

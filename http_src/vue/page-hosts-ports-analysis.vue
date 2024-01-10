@@ -132,15 +132,14 @@ const criteria_list = function () {
 }();
 
 onMounted(async () => {
-    load_table_filters_overview();
     let port = ntopng_url_manager.get_url_entry('port');
     let l4_proto = ntopng_url_manager.get_url_entry('protocol');
-    const app = ntopng_url_manager.get_url_entry('application');
+    const l7_proto = ntopng_url_manager.get_url_entry('application');
 
     if (port != null && port.localeCompare("") != 0 &&
         l4_proto != null && l4_proto.localeCompare("") != 0 &&
-        app != null && app.localeCompare("") != 0) {
-
+        l7_proto != null && l7_proto.localeCompare("") != 0) {
+        
         port = Number(port);
         l4_proto = Number(l4_proto);
         criteria_list_def.forEach((proto) => {
@@ -149,14 +148,17 @@ onMounted(async () => {
             }
         })
 
-        await update_dropdown_menus(false, app, port);
+        await update_dropdown_menus(false, l7_proto, port);
 
     } else {
         selected_criteria.value = criteria_list_def[0];
         await update_dropdown_menus(false);
-        table_server_ports_analysis.value.refresh_table();
 
     }
+
+    load_table_filters_overview();
+    table_server_ports_analysis.value.refresh_table();
+
 
 });
 
@@ -252,7 +254,8 @@ const live_flows = function (data) {
     let params = {
         l4proto: selected_criteria.value.value,
         server: data,
-        port: selected_port.value.id
+        port: selected_port.value.id,
+        vlan: ntopng_url_manager.get_url_entry('vlan_id')
     };
     let url_params = ntopng_url_manager.obj_to_url_params(params);
     const url = `${http_prefix}/lua/flows_stats.lua?${url_params}`;
@@ -293,13 +296,14 @@ async function update_dropdown_menus(is_application_selected, app, port) {
     port_list.value = [];
 
     res.rsp.forEach((item) => {
-        let name = item.l7_proto_name.split(".")[0];
-        ports.push({ label: `${item.srv_port}/${name} (${item.n_hosts})`, id: item.srv_port, application: name, num_hosts: item.n_hosts, vlan_id:item.vlan_id })
+        let name = item.l7_proto_name;
+        ports.push({ label: `${item.srv_port}/${name} (${item.n_hosts})`, id: item.srv_port, application: name, application_id: item.proto_id,num_hosts: item.n_hosts, vlan_id:item.vlan_id })
     })
 
     ports.forEach((port) => {
-        if (application_list.value.find(item => item.id.localeCompare(port.application) == 0) == undefined) {
-            application_list.value.push({ label: port.application, id: port.application, value: port.application });
+        let proto_id = Number(port.application_id.split('.')[0]);
+        if (! application_list.value.find(item => item.id == proto_id)) {
+            application_list.value.push({ label: port.application, id: port.application_id, value: proto_id });
         }
     })
 
@@ -312,21 +316,25 @@ async function update_dropdown_menus(is_application_selected, app, port) {
         return 0;
     })
 
-    if (!is_application_selected && app == null)
-        selected_application.value = application_list.value[0];
-
-    if (!is_application_selected && app != null) {
-        application_list.value.forEach((item) => {
-            if (item.label == app) {
-                selected_application.value = item;
-            }
-        })
+    if (!is_application_selected) {
+      // by default select first l7_proto
+      selected_application.value =  (app == null) ? 
+                                    application_list.value[0] :
+                                    application_list.value.find((item) => (item.id == app));
     }
-
     ntopng_url_manager.set_key_to_url("application", selected_application.value.id);
     ports.forEach((item) => {
         if (item.application == selected_application.value.label)
             port_list.value.push({ label: item.id + " (" + item.num_hosts + ")", id: item.id, value: item.id, vlan_id: item.vlan_id, n_hosts: item.num_hosts });
+    })
+
+    port_list.value.sort((a, b) => {
+        let x = a.id;
+        let y = b.id;
+
+        if (x < y) { return -1; }
+        if (x > y) { return 1; }
+        return 0;
     })
 
     if (port != null) {

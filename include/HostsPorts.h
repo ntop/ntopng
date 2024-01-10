@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2019-23 - ntop.org
+ * (C) 2019-24 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -25,28 +25,25 @@
 #include "ntop_includes.h"
 
 class HostsPorts {
-    private:
-        std::unordered_map<u_int16_t, PortDetails*> server_ports;
-        /* <vlan, port> -> n_hosts */
-        std::unordered_map<u_int32_t, u_int64_t> vlan_ports;
-        u_int32_t protocol;
-        u_int16_t vlan_id;
+  private:
+    /* <srv_port, app_proto, master_proto> -> (<srv_host, vlan_id> -> 1)*/
+    std::unordered_map<u_int64_t, PortDetails*> srv_ports;
+    u_int8_t protocol = 0;
+    u_int16_t vlan_id = 0;
+  
+  public:
+    HostsPorts(){};
+    ~HostsPorts(){};
+
+    /* Getters */
+    inline std::unordered_map<u_int64_t, PortDetails*> get_srv_ports() { return(srv_ports); };
+    inline u_int8_t get_protocol() { return(protocol); };
+    inline u_int16_t get_vlan_id() { return(vlan_id); };
     
-    public:
-        HostsPorts(){};
-        ~HostsPorts(){};
-
-        /* Getters */
-        inline std::unordered_map<u_int16_t, PortDetails*> getSrvPort() { return(server_ports); };
-        inline std::unordered_map<u_int32_t, u_int64_t> getVLANPorts() { return(vlan_ports); };
-        inline u_int32_t get_protocol() { return(protocol); };
-        inline u_int16_t get_vlan_id() { return(vlan_id); };
-
-        /* Setters */
-        void mergeSrvPorts(std::unordered_map<u_int16_t, ndpi_protocol> *new_server_ports); 
-        void mergeVLANPorts(std::unordered_map<u_int16_t, ndpi_protocol> *new_server_ports, u_int16_t vlan_id); 
-        void set_protocol(u_int32_t _protocol) { protocol = _protocol; };
-        void set_vlan_id(u_int16_t _vlan_id) { vlan_id = _vlan_id; };
+    /* Setters */
+    void set_protocol(u_int8_t _protocol) { protocol = _protocol; };
+    void set_vlan_id(u_int16_t _vlan_id) { vlan_id = _vlan_id; };
+    void add_srv_port(u_int64_t key, u_int64_t host_key); 
 };
 
 #endif /* _HOSTS_PORTS_H_ */
