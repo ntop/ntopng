@@ -295,9 +295,8 @@ void ZMQCollectorInterface::collect_flows() {
       sleep(1);
 
       if (ntop->getGlobals()->isShutdown()) {
-        ntop->getTrace()->traceEvent(
-            TRACE_NORMAL,
-            "Flow collection on %s is over: ntop is shutting down", ifname);
+        ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Flow collection on %s is over: ntop is shutting down", ifname);
         free(payload);
         return;
       }
@@ -321,8 +320,9 @@ void ZMQCollectorInterface::collect_flows() {
         return;
       }
 
-      if ((rc == 0) || (now >= next_purge_idle) ||
-          (zmq_max_num_polls_before_purge == 0)) {
+      if ((rc == 0)
+	  || (now >= next_purge_idle)
+	  || (zmq_max_num_polls_before_purge == 0)) {
         checkIdleProbes(now);
         purgeIdle(now);
         next_purge_idle = now + FLOW_PURGE_FREQUENCY;

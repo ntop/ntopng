@@ -2851,7 +2851,7 @@ local lang = {
   },
   ["flow_details"] = {
     ["acceptable_label"] = "Acceptable",
-    ["actual_peak_throughput"] = "Actual / Peak Throughput",
+    ["actual_peak_throughput"] = "Actual / Peak / Average Throughput",
     ["additional_alert_type"] = "Other Issues",
     ["additional_flow_elements"] = "Additional Flow Elements",
     ["alert_type"] = "Flow Status",

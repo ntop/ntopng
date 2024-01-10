@@ -321,6 +321,11 @@ u_int GenericHash::purgeIdle(const struct timeval *tv, bool force_idle,
   size_t idle_entries_shadow_old_size;
   vector<GenericHashEntry *>::const_iterator it;
 
+  if(ntop->getPrefs()->disablePurge()) {
+    /* ntop->getTrace()->traceEvent(TRACE_WARNING, "Purge disabled"); */
+    return(0);
+  }
+  
   if (!idle_entries) {
     idle_entries = idle_entries_shadow;
 

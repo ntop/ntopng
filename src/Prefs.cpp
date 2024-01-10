@@ -49,7 +49,7 @@ Prefs::Prefs(Ntop *_ntop) {
     sniff_local_name_responses = true, limited_resources_mode = false;
   use_promiscuous_mode = true, do_reforge_timestamps = false;
   resolve_all_host_ip = false, service_license_check = false;
-  add_vlan_tags_to_cloud_exporters = false;
+  add_vlan_tags_to_cloud_exporters = false, disable_purge = false;
   max_num_hosts = MAX_NUM_INTERFACE_HOSTS,
     max_num_flows = MAX_NUM_INTERFACE_HOSTS;
   attacker_max_num_flows_per_sec = victim_max_num_flows_per_sec =
@@ -467,6 +467,7 @@ void usage() {
 	 "user\n"
 	 "                                    | instead of %s\n"
 	 "[--dont-change-user|-s]             | Do not change user (debug only)\n"
+	 "[--disable-purge]                   | Disable data purge (debug only)\n"
 	 "[--shutdown-when-done]              | Terminate after reading the pcap "
 	 "(debug only)\n"
 	 "[--offline]                         | Run in offline mode (avoid "
@@ -1170,6 +1171,7 @@ static const struct option long_options[] = {
   {"callbacks-dir", required_argument, NULL, '3'},
   {"prefs-dir", required_argument, NULL, '4'},
   {"pcap-dir", required_argument, NULL, '5'},
+  {"disable-purge", no_argument, NULL, 199},
   {"limit-resources", no_argument, NULL, 200},
   {"test-script-post", required_argument, NULL, 201},
 #ifdef NTOPNG_PRO
@@ -2125,6 +2127,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'V':
     print_version = true;
+    break;
+
+  case 199:
+    disable_purge = true;
     break;
 
   case 200:

@@ -1500,13 +1500,13 @@ else
     if ((flow.client_process == nil) and (flow.server_process == nil)) then
         print("<tr><th width=30%>" .. i18n("flow_details.actual_peak_throughput") .. "</th><td width=20%>")
         if (throughput_type == "bps") then
-            print("<span id='flow-throughput' class='peity'>" .. bitsToSize(8 * flow["throughput_bps"]) ..
-                      "</span> <span id=throughput_trend></span>")
+	   print("<span id='flow-throughput' class='peity'>" .. bitsToSize(8 * flow["throughput_bps"]) ..
+		 "</span> <span id=throughput_trend></span>")
         elseif (throughput_type == "pps") then
-            print("<span id='flow-throughput' class='peity'>" .. pktsToSize(flow["throughput_bps"]) ..
-                      "</span> <span id=throughput_trend></span>")
+	   print("<span id='flow-throughput' class='peity'>" .. pktsToSize(flow["throughput_bps"]) ..
+		 "</span> <span id=throughput_trend></span>")
         end
-
+	
         if (throughput_type == "bps") then
             print(" / <span id=top-flow-throughput>" .. bitsToSize(8 * flow["top_throughput_bps"]) ..
                       "</span> <span id=top_throughput_trend></span>")
@@ -1515,6 +1515,14 @@ else
                       "</span> <span id=top_throughput_trend></span>")
         end
 
+        if (throughput_type == "bps") then
+            print(" / <span id=average-flow-throughput>" .. bitsToSize(8 * flow["average_throughput_bps"]) ..
+                      "</span> <span id=average_throughput_trend></span>")
+        elseif (throughput_type == "pps") then
+            print(" / <span id=average-flow-throughput>" .. pktsToSize(flow["average_throughput_bps"]) ..
+                      "</span> <span id=average_throughput_trend></span>")
+        end
+	
         print("</td><td><span id=thpt-load-chart>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>")
         print("</td></tr>\n")
     end
@@ -2165,7 +2173,10 @@ print [[
                            $('#top-flow-throughput').html(rsp["top_throughput_display"]);
                         } else {
                            $('#throughput_trend').html("<i class=\"fas fa-minus\"></i>");
-                        } ]]
+                        }
+
+                        $('#average-flow-throughput').html(rsp["avg_throughput"]);
+]]
 
 if (isThereSIP == 1) then
     updatePrintSip()

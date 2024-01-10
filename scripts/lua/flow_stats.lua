@@ -30,19 +30,21 @@ else
    thpt = 0
    thpt_display = bitsToSize(0)
    if (throughput_type == "bps") then
-    thpt = 8*flow["throughput_bps"]
-    thpt_display = bitsToSize(thpt)
-    top_thpt_display = bitsToSize(8*flow["top_throughput_bps"])
-
+      thpt = 8*flow["throughput_bps"]
+      thpt_display = bitsToSize(thpt)
+      top_thpt_display = bitsToSize(8*flow["top_throughput_bps"])
+      avg_thpt_display = bitsToSize(8*flow["average_throughput_bps"])
     elseif (throughput_type == "pps") then
       thpt = flow["throughput_pps"]
       thpt_display = pktsToSize(thpt)
       top_thpt_display = pktsToSize(flow["top_throughput_pps"])
+      avg_thpt_display = pktsToSize(flow["average_throughput_pps"])
     end
+   
     print('{ ' .. '"seen.last": "'.. formatEpoch(flow["seen.last"]) .. ' ['.. secondsToTime(diff) .. ' ago]", '
 	  .. '"seen.first": "'.. formatEpoch(flow["seen.first"]) .. ' ['.. secondsToTime(diff0) .. ' ago]"'
 	  .. ', "seen.duration": "'.. secondsToTime(flow["seen.last"] - flow["seen.first"]) .. '"'
-    .. ', "bytes": ' .. flow["bytes"] .. ', "goodput_bytes": ' .. flow["goodput_bytes"] .. ', "cli2srv.packets": ' .. flow["cli2srv.packets"] .. ', "srv2cli.packets": ' .. flow["srv2cli.packets"] .. ', "cli2srv.bytes": ' .. flow["cli2srv.bytes"] .. ', "srv2cli.bytes": ' .. flow["srv2cli.bytes"].. ', "throughput": "' .. thpt_display..'", "top_throughput_display": "'.. top_thpt_display ..'", "throughput_raw": ' .. thpt)
+	  .. ', "bytes": ' .. flow["bytes"] .. ', "goodput_bytes": ' .. flow["goodput_bytes"] .. ', "cli2srv.packets": ' .. flow["cli2srv.packets"] .. ', "srv2cli.packets": ' .. flow["srv2cli.packets"] .. ', "cli2srv.bytes": ' .. flow["cli2srv.bytes"] .. ', "srv2cli.bytes": ' .. flow["srv2cli.bytes"].. ', "throughput": "' .. thpt_display..'", "top_throughput_display": "'.. top_thpt_display ..'", "throughput_raw": ' .. thpt .. ', "avg_throughput": "'..avg_thpt_display..'"' )
 
     local ifstats = interface.getStats()
 

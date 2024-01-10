@@ -2289,7 +2289,9 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
         get_bytes_thpt() * 8);
 #endif
 
-    if (top_bytes_thpt < get_bytes_thpt()) top_bytes_thpt = get_bytes_thpt();
+    if (top_bytes_thpt < get_bytes_thpt())
+      top_bytes_thpt = get_bytes_thpt();
+    
     if (top_goodput_bytes_thpt < get_goodput_bytes_thpt())
       top_goodput_bytes_thpt = get_goodput_bytes_thpt();
 
@@ -3215,10 +3217,12 @@ bool Flow::is_hash_entry_state_idle_transition_ready() {
        * This prevents finalized/reset flows, or flows with an imcomplete
        * TWH from staying in memory for too long.
        */
-      if ((
-              tcp_flags & TH_FIN ||
-              tcp_flags & TH_RST || ((iface->isPacketInterface() || tcp_flags /* If not a packet interfaces, we expect flags to be set to be sure they've been exported */) && !isThreeWayHandshakeOK())) &&
-          is_active_entry_now_idle(iface->getFlowMaxIdle())) {
+      if ((tcp_flags & TH_FIN
+	   || tcp_flags & TH_RST
+	   || ((iface->isPacketInterface()
+		|| tcp_flags /* If not a packet interfaces, we expect flags to be set to be sure they've been exported */)
+	       && !isThreeWayHandshakeOK()))
+	  && is_active_entry_now_idle(iface->getFlowMaxIdle())) {
         ret = true;
       }
     }
@@ -3607,31 +3611,31 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
         Utils::jsonLabel(is_client ? IN_BYTES : OUT_BYTES, "bytes", jsonbuf,
                          sizeof(jsonbuf)),
         json_object_new_int64(is_client ? get_partial_bytes_cli2srv()
-                                        : get_partial_bytes_srv2cli()));
+			      : get_partial_bytes_srv2cli()));
     json_object_object_add(
-        host_object,
-        Utils::jsonLabel(TCP_FLAGS, "packtes_retrasmissions", jsonbuf,
-                         sizeof(jsonbuf)),
-        json_object_new_int64(is_client ? stats.get_cli2srv_tcp_retr()
-                                        : stats.get_srv2cli_tcp_retr()));
+			   host_object,
+			   Utils::jsonLabel(TCP_FLAGS, "packtes_retrasmissions", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_int64(is_client ? stats.get_cli2srv_tcp_retr()
+						 : stats.get_srv2cli_tcp_retr()));
     json_object_object_add(
-        host_object,
-        Utils::jsonLabel(TCP_FLAGS, "packtes_out_of_order", jsonbuf,
-                         sizeof(jsonbuf)),
-        json_object_new_int64(is_client ? stats.get_cli2srv_tcp_ooo()
-                                        : stats.get_srv2cli_tcp_ooo()));
+			   host_object,
+			   Utils::jsonLabel(TCP_FLAGS, "packtes_out_of_order", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_int64(is_client ? stats.get_cli2srv_tcp_ooo()
+						 : stats.get_srv2cli_tcp_ooo()));
     json_object_object_add(
-        host_object,
-        Utils::jsonLabel(TCP_FLAGS, "packtes_lost", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_int64(is_client ? stats.get_cli2srv_tcp_lost()
-                                        : stats.get_srv2cli_tcp_lost()));
-
+			   host_object,
+			   Utils::jsonLabel(TCP_FLAGS, "packtes_lost", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int64(is_client ? stats.get_cli2srv_tcp_lost()
+						 : stats.get_srv2cli_tcp_lost()));
+    
     if (vlanId > 0)
       json_object_object_add(host_object,
                              Utils::jsonLabel(is_client ? SRC_VLAN : DST_VLAN,
                                               "vlan", jsonbuf, sizeof(jsonbuf)),
                              json_object_new_int(vlanId));
-
+    
     if (protocol == IPPROTO_TCP)
       json_object_object_add(
           host_object,
@@ -6773,20 +6777,23 @@ void Flow::lua_get_protocols(lua_State *vm) const {
 void Flow::lua_get_bytes(lua_State *vm) const {
   lua_push_uint64_table_entry(vm, "bytes",
                               get_bytes_cli2srv() + get_bytes_srv2cli());
-  lua_push_uint64_table_entry(
-      vm, "goodput_bytes",
-      get_goodput_bytes_cli2srv() + get_goodput_bytes_srv2cli());
-  lua_push_uint64_table_entry(
-      vm, "bytes.last",
-      get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
+  lua_push_uint64_table_entry(vm, "goodput_bytes",
+			      get_goodput_bytes_cli2srv() + get_goodput_bytes_srv2cli());
+  lua_push_uint64_table_entry(vm, "bytes.last",
+			      get_current_bytes_cli2srv() + get_current_bytes_srv2cli());
   lua_push_uint64_table_entry(vm, "goodput_bytes.last",
                               get_current_goodput_bytes_cli2srv() +
-                                  get_current_goodput_bytes_srv2cli());
+			      get_current_goodput_bytes_srv2cli());
 }
 
 /* ***************************************************** */
 
 void Flow::lua_get_throughput(lua_State *vm) const {
+  lua_push_float_table_entry(vm, "average_throughput_bps",
+			     (get_bytes_cli2srv() + get_bytes_srv2cli()) / get_duration());
+  lua_push_float_table_entry(vm, "average_throughput_pps",
+			     (get_packets_cli2srv() + get_packets_srv2cli()) / get_duration());
+  
   // overall throughput stats
   lua_push_float_table_entry(vm, "top_throughput_bps", top_bytes_thpt);
   lua_push_float_table_entry(vm, "throughput_bps", get_bytes_thpt());

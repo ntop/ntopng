@@ -44,7 +44,7 @@ class Prefs {
   char **deferred_interfaces_to_register, *cli;
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
-  bool enable_client_x509_auth, reproduce_at_original_speed;
+  bool enable_client_x509_auth, reproduce_at_original_speed, disable_purge;
   char* zmq_publish_events_url, *http_log_path;
   const char *clickhouse_client, *clickhouse_cluster_name;
   Ntop* ntop;
@@ -632,6 +632,7 @@ class Prefs {
   inline bool purgeHostsFlowsOnPcapFiles() {
     return (pcap_file_purge_hosts_flows);
   };
+  inline bool disablePurge() { return (disable_purge);  };
   inline void enableBehaviourAnalysis() { enable_behaviour_analysis = true; };
   inline bool isBehavourAnalysisEnabled() {
     return (enable_behaviour_analysis);
