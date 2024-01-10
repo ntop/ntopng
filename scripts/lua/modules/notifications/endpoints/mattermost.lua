@@ -67,7 +67,7 @@ function mattermost.sendMattermost(message_body,settings)
 
     local msg = message_body
     local body = json.encode({channel_id = settings.mattermost_channel, message = msg})
-    if (body.message.alert_type ~= nil) 
+    if (body ~= nil) 
     then
       -- Only if a custom alert is thrown this script will be run
       local post_rc = ntop.postHTTPJsonData("", "", settings.url, body, nil, settings.mattermost_token)
