@@ -578,6 +578,30 @@ end
 
 -- ##############################################
 
+local function parse_ip_occurencies_line(line)
+   local words = {}
+   -- split line by space
+   for word in line:gmatch("%S+") do table.insert(words, word) end
+
+   local host = nil
+   local ip_occurencies = nil
+
+   if (table.len(words) == 2) then
+      ip_occurencies = tonumber(words[2])
+      host           = words[1]
+
+      -- IP occurrences must be greater than 2 or equal to 2
+      -- and the host must not be 127.0.0.1
+      if (host == "127.0.0.1" or ip_occurencies < 2) then
+         host = nil
+      end
+   end
+
+   return(host)
+end
+
+-- ##############################################
+
 local function handle_ja3_suricata_csv_line(line)
    local parts = string.split(line, ",")
 
@@ -646,7 +670,9 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
                host = parse_hosts_line(trimmed)
 	    elseif(list.format == "ip_csv") then
 	       host = parse_ip_csv_line(trimmed)
-            end
+       elseif(list.format == "ip_occurencies") then
+          host = parse_ip_occurencies_line(trimmed)
+       end
 
             if host then
                local rv = loadListItem(host, list.category, user_custom_categories, list, num_line)
