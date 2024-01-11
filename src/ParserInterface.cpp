@@ -312,6 +312,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   flow->setRtt();
 
   if(zflow->isSwapped()) flow->set_swap_done();
+
+  flow->setFlowSource(zflow->getFlowSource());
   
   if (src2dst_direction && (zflow->tcp.applLatencyMsec != 0))
     flow->setFlowApplLatency(zflow->tcp.applLatencyMsec);

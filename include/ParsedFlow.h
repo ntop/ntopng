@@ -44,7 +44,8 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   custom_app_t custom_app;
   ndpi_confidence_t confidence;
   ndpi_risk ndpi_flow_risk_bitmap;
-
+  FlowSource flow_source;
+  
  public:
   ParsedFlow();
   
@@ -87,29 +88,30 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   void swap();
   void fromLua(lua_State *L, int index);
 
-  void setL7Info(const char *str)  { if(l7_info != NULL) free(l7_info); if(str) { l7_info = strdup(str); } else l7_info = NULL; }
-  void setHTTPurl(const char *str) { if(http_url != NULL) free(http_url);  if(str) { http_url = strdup(str); } else http_url = NULL; }
-  void setHTTPsite(const char *str) { if(http_site != NULL) free(http_site);  if(str) { http_site = strdup(str);} else http_site = NULL; }
-  void setHTTPuserAgent(const char *str) { if(http_user_agent != NULL) free(http_user_agent);  if(str) { http_user_agent = strdup(str);} else http_user_agent = NULL; }
-  void setHTTPMethod(ndpi_http_method m) { http_method = m; }
-  void setDNSQuery(const char *str) { if(dns_query != NULL) free(dns_query);  if(str) { dns_query = strdup(str);} else dns_query = NULL; }
-  void setTLSserverName(const char *str) { if(tls_server_name != NULL) free(tls_server_name);  if(str) { tls_server_name = strdup(str);} else tls_server_name = NULL; }
-  void setBittorrentHash(const char *str) { if(bittorrent_hash != NULL) free(bittorrent_hash);  if(str) { bittorrent_hash = strdup(str);} else bittorrent_hash = NULL; }
-  void setJA3cHash(const char *str) { if(ja3c_hash != NULL) free(ja3c_hash);  if(str) { ja3c_hash = strdup(str); } else ja3c_hash = NULL; }
-  void setJA3sHash(const char *str) { if(ja3s_hash != NULL) free(ja3s_hash);  if(str) { ja3s_hash = strdup(str); } else ja3s_hash = NULL; }
-  void setRiskInfo(const char *str) { if(flow_risk_info != NULL) free(flow_risk_info);  if(str) { flow_risk_info = strdup(str); } else flow_risk_info = NULL; }
-  void setExternalAlert(const char *str) { if(external_alert != NULL) free(external_alert);  if(str) { external_alert = strdup(str);} else external_alert = NULL; }
-  void setTLSUnsafeCipher(u_int8_t v) { tls_unsafe_cipher = v; }
-  void setTLSCipher(u_int16_t v) { tls_cipher = v; }
-  void setFlowVerdict(u_int8_t v) { flow_verdict = v; }
-  void setHTTPRetCode(u_int16_t v) { http_ret_code = v; }
-  void setDNSQueryType(u_int16_t v) { dns_query_type = v; }
-  void setDNSRetCode(u_int16_t v) { dns_ret_code = v; }
-  void setL7ErrorCode(u_int32_t v) { l7_error_code = v; }
-  void setCustomApp(custom_app_t c) { custom_app = c; }
-  void setConfidence(ndpi_confidence_t c) { confidence = c; }
-  void setRisk(ndpi_risk r) { ndpi_flow_risk_bitmap = r; }
-
+  inline void setL7Info(const char *str)  { if(l7_info != NULL) free(l7_info); if(str) { l7_info = strdup(str); } else l7_info = NULL; }
+  inline void setHTTPurl(const char *str) { if(http_url != NULL) free(http_url);  if(str) { http_url = strdup(str); } else http_url = NULL; }
+  inline void setHTTPsite(const char *str) { if(http_site != NULL) free(http_site);  if(str) { http_site = strdup(str);} else http_site = NULL; }
+  inline void setHTTPuserAgent(const char *str) { if(http_user_agent != NULL) free(http_user_agent);  if(str) { http_user_agent = strdup(str);} else http_user_agent = NULL; }
+  inline void setHTTPMethod(ndpi_http_method m) { http_method = m; }
+  inline void setDNSQuery(const char *str) { if(dns_query != NULL) free(dns_query);  if(str) { dns_query = strdup(str);} else dns_query = NULL; }
+  inline void setTLSserverName(const char *str) { if(tls_server_name != NULL) free(tls_server_name);  if(str) { tls_server_name = strdup(str);} else tls_server_name = NULL; }
+  inline void setBittorrentHash(const char *str) { if(bittorrent_hash != NULL) free(bittorrent_hash);  if(str) { bittorrent_hash = strdup(str);} else bittorrent_hash = NULL; }
+  inline void setJA3cHash(const char *str) { if(ja3c_hash != NULL) free(ja3c_hash);  if(str) { ja3c_hash = strdup(str); } else ja3c_hash = NULL; }
+  inline void setJA3sHash(const char *str) { if(ja3s_hash != NULL) free(ja3s_hash);  if(str) { ja3s_hash = strdup(str); } else ja3s_hash = NULL; }
+  inline void setRiskInfo(const char *str) { if(flow_risk_info != NULL) free(flow_risk_info);  if(str) { flow_risk_info = strdup(str); } else flow_risk_info = NULL; }
+  inline void setExternalAlert(const char *str) { if(external_alert != NULL) free(external_alert);  if(str) { external_alert = strdup(str);} else external_alert = NULL; }
+  inline void setTLSUnsafeCipher(u_int8_t v) { tls_unsafe_cipher = v; }
+  inline void setTLSCipher(u_int16_t v) { tls_cipher = v; }
+  inline void setFlowVerdict(u_int8_t v) { flow_verdict = v; }
+  inline void setHTTPRetCode(u_int16_t v) { http_ret_code = v; }
+  inline void setDNSQueryType(u_int16_t v) { dns_query_type = v; }
+  inline void setDNSRetCode(u_int16_t v) { dns_ret_code = v; }
+  inline void setL7ErrorCode(u_int32_t v) { l7_error_code = v; }
+  inline void setCustomApp(custom_app_t c) { custom_app = c; }
+  inline void setConfidence(ndpi_confidence_t c) { confidence = c; }
+  inline void setRisk(ndpi_risk r) { ndpi_flow_risk_bitmap = r; }
+  inline void setFlowSource(FlowSource n) { flow_source = n; }
+  
   /* ****** */
   inline char* getL7Info(bool setToNULL = false)  { char *r = l7_info; if(setToNULL) l7_info = NULL; return(r); }
   inline char* getHTTPurl(bool setToNULL = false) { char *r = http_url; if(setToNULL) http_url = NULL; return(r); }
@@ -134,6 +136,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline ndpi_confidence_t getConfidence() { return(confidence); }
   inline ndpi_risk getRisk() { return(ndpi_flow_risk_bitmap); }
   inline bool isSwapped() { return(is_swapped); }
+  inline FlowSource getFlowSource() { return(flow_source); }
 };
 
 #endif /* _PARSED_FLOW_H_ */

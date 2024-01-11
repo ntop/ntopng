@@ -54,6 +54,13 @@ typedef enum {
   mask_remote_hosts = 2
 } HostMask;
 
+/* Keep it in sync with nProbe */
+typedef enum {
+  packet_to_flow = 0,          /* packet capture or nTap  */
+  collected_netflow_ipfix = 1, /* collected NetFlow/IPFIX */
+  collected_sflow = 2          /* collected sFlow/nfLite  */
+} FlowSource;
+
 /* Struct used to pass parameters when walking hosts and flows periodically to
  * update their stats */
 class AlertCheckLuaEngine;

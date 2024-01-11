@@ -235,19 +235,14 @@ class GenericHashEntry {
   void updateSeen(time_t _last_seen);
   bool equal(GenericHashEntry *b) { return ((this == b) ? true : false); };
   inline NetworkInterface *getInterface() { return (iface); };
-  inline bool idle() const { return (get_state() > hash_entry_state_active); }
-  virtual void housekeep(time_t t) { return; };
-  inline u_int get_duration() const {
-    return ((u_int)(1 + last_seen - first_seen));
-  };
-  virtual u_int32_t key() { return (0); };
-  virtual char *get_string_key(char *buf, u_int buf_len) const {
-    buf[0] = '\0';
-    return (buf);
-  };
-  void incUses() { num_uses++; }
-  void decUses() { num_uses--; }
-  int32_t getUses() const { return (num_uses); }
+  inline bool idle() const          { return (get_state() > hash_entry_state_active); }
+  virtual void housekeep(time_t t)  { return; };
+  inline u_int get_duration() const { return ((u_int)((1 + last_seen) - first_seen)); };
+  virtual u_int32_t key()           { return (0); };
+  virtual char *get_string_key(char *buf, u_int buf_len) const { buf[0] = '\0'; return (buf); };
+  void incUses()                    { num_uses++; }
+  void decUses()                    { num_uses--; }
+  int32_t getUses() const           { return (num_uses); }
 
   virtual void getJSONObject(json_object *obj, DetailsLevel details_level);
 };

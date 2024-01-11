@@ -133,6 +133,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addMapping("L7_PROTO_RISK", L7_PROTO_RISK, NTOP_PEN);
   addMapping("FLOW_VERDICT", FLOW_VERDICT, NTOP_PEN);
   addMapping("L7_RISK_INFO", L7_RISK_INFO, NTOP_PEN);
+  addMapping("FLOW_SOURCE", FLOW_SOURCE, NTOP_PEN);
 
   /* eBPF / Process */
   addMapping("SRC_PROC_PID", SRC_PROC_PID, NTOP_PEN);
@@ -1006,6 +1007,19 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
       flow->setRiskInfo(value->string);
     break;
 
+  case FLOW_SOURCE:
+    {
+      FlowSource s;
+
+      if((value->int_num < packet_to_flow) || (value->int_num > collected_sflow))	
+	s = packet_to_flow; /* Default value */
+      else
+	s = static_cast<FlowSource>(value->int_num);
+      
+      flow->setFlowSource(s);
+    }
+    break;
+    
   case BITTORRENT_HASH:
     if (value->string && value->string[0] && value->string[0] != '\n')
       flow->setBittorrentHash(value->string);
@@ -2010,12 +2024,9 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
 
               while (
                   !json_object_iter_equal(&additional_it, &additional_itEnd)) {
-                const char *additional_key =
-                    json_object_iter_peek_name(&additional_it);
-                json_object *additional_v =
-                    json_object_iter_peek_value(&additional_it);
-                const char *additional_value =
-                    json_object_get_string(additional_v);
+                const char *additional_key   = json_object_iter_peek_name(&additional_it);
+                json_object *additional_v    = json_object_iter_peek_value(&additional_it);
+                const char *additional_value = json_object_get_string(additional_v);
 
                 if ((additional_key != NULL) && (additional_value != NULL)) {
                   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional
@@ -2377,11 +2388,10 @@ u_int8_t ZMQParserInterface::parseTLVCounter(const char *payload,
         key_is_string = true;
         break;
       default:
-        ntop->getTrace()->traceEvent(
-            TRACE_WARNING,
-            "Unsupported TLV key type %u: "
-            "please update both ntopng and the probe to the same version",
-            kt);
+        ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "Unsupported TLV key type %u: "
+				     "please update both ntopng and the probe to the same version",
+				     kt);
         goto error;
     }
 

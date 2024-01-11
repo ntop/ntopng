@@ -3633,7 +3633,7 @@ static int ntop_get_info(lua_State *vm) {
 #ifdef NTOPNG_PRO
       ntop->getPro()->is_oem() ? (char *)"" :
 #endif
-                               (char *)"&copy; 1998-23 - ntop");
+                               (char *)"&copy; 1998-24 - ntop");
   lua_push_str_table_entry(vm, "authors", (char *)"The ntop team");
   lua_push_str_table_entry(vm, "license", (char *)"GNU GPLv3");
   lua_push_str_table_entry(vm, "platform", (char *)PACKAGE_MACHINE);

@@ -63,8 +63,9 @@ class Flow : public GenericHashEntry {
   */
   Bitmap128 alerts_map;
   FlowAlertType predominant_alert;   /* This is the predominant alert */
-  u_int16_t predominant_alert_score; /* The score associated to the predominant
-                                        alert */
+  u_int16_t predominant_alert_score; /* The score associated to the predominant alert */
+  FlowSource flow_source;
+  
   struct {
     u_int8_t is_cli_attacker : 1, is_cli_victim : 1, is_srv_attacker : 1,
         is_srv_victim : 1, auto_acknowledge : 1;
@@ -1363,7 +1364,9 @@ class Flow : public GenericHashEntry {
   void swap();
   bool isDPIDetectedFlow();
   void updateHostBlacklists();
-  inline int32_t getInterfaceIndex() { return(iface_index); };
+  inline int32_t getInterfaceIndex()      { return(iface_index); };
+  inline void setFlowSource(FlowSource n) { flow_source = n;     }
+  inline FlowSource getFlowSource()       { return(flow_source); }
 };
 
 #endif /* _FLOW_H_ */

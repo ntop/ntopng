@@ -72,7 +72,7 @@ Flow::Flow(NetworkInterface *_iface,
   marker = MARKER_NO_ACTION;
 #endif
 
-  host_server_name = NULL;
+  host_server_name = NULL, flow_source = packet_to_flow;
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
   ndpiFlow = NULL, confidence = NDPI_CONFIDENCE_UNKNOWN;
   json_info = NULL, tlv_info = NULL, twh_over = twh_ok = 0,
@@ -2453,13 +2453,12 @@ void Flow::dumpCheck(time_t t, bool last_dump_before_free) {
        || ntop->get_export_interface()
 #endif
 #endif
-           )
+       )
 #ifdef NTOPNG_PRO
       && (getInterface()->isPacketInterface() /* Not a ZMQ interface */
-          || (!ntop->getPrefs()
-                   ->do_dump_flows_direct() /* Direct dump not enabled */))
+          || (!ntop->getPrefs()->do_dump_flows_direct() /* Direct dump not enabled */))
 #endif
-  ) {
+      ) {
     dump(t, last_dump_before_free);
   }
 }
@@ -6532,12 +6531,11 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 
   if (last_conntrack_update > 0) {
     float tdiff_msec = (now - last_conntrack_update) * 1000;
-    
-    updateThroughputStats( tdiff_msec,
-			   nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
-			   nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes, 0,
-			   nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts,
-			   nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes, 0);
+    updateThroughputStats(tdiff_msec,
+			  nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
+			  nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes, 0,
+			  nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts,
+			  nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes, 0);
   }
 
   /*

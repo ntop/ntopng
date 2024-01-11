@@ -41,6 +41,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   bittorrent_hash = NULL;
   l7_error_code = 0;
   confidence = NDPI_CONFIDENCE_UNKNOWN;
+  flow_source = packet_to_flow;
   memset(&custom_app, 0, sizeof(custom_app));
 
   has_parsed_ebpf = false;
