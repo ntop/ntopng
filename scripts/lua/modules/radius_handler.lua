@@ -69,7 +69,7 @@ end
 -- @brief Handles the Radius accounting stop request
 ---@param name string, used to check if name is an accounting going on
 ---@return boolean, true if the accounting went well, false otherwise and the stop was called
-function radius_handler.accountingStop(name, terminate_cause, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
+function radius_handler.accountingStop(name, terminate_cause, info)
     if not radius_handler.isAccountingEnabled() then
         return true
     end
@@ -77,7 +77,20 @@ function radius_handler.accountingStop(name, terminate_cause, bytes_sent, bytes_
     local is_accounting_on, user_data = radius_handler.isAccountingRequested(name)
 
     if is_accounting_on then
-        interface.radiusAccountingStop(user_data.username --[[ Username ]] , user_data.session_id, name --[[ MAC Address]] ,
+        local ip_address = get_first_ip(name)
+        local bytes_sent = 0
+        local bytes_rcvd = 0
+        local packets_sent = 0
+        local packets_rcvd = 0
+
+        if info then
+            bytes_sent = info["bytes.sent"]
+            bytes_rcvd = info["bytes.rcvd"]
+            packets_sent = info["packets.sent"]
+            packets_rcvd = info["packets.rcvd"]    
+        end
+
+        interface.radiusAccountingStop(user_data.username --[[ Username ]] , user_data.session_id, name --[[ MAC Address]], ip_address,
             bytes_sent, bytes_rcvd, packets_sent, packets_rcvd, terminate_cause)
         ntop.delCache(string.format(redis_accounting_key, name))
     end
@@ -110,8 +123,7 @@ function radius_handler.accountingUpdate(name, info)
             -- An accounting stop has to be sent, the allowed data for name
             -- are expired, requesting stop 
             local termination_cause = 3 -- Lost service
-            radius_handler.accountingStop(user_data.username, termination_cause, bytes_sent, bytes_rcvd, packets_sent,
-                packets_rcvd)
+            radius_handler.accountingStop(user_data.username, termination_cause, info)
             res = false
         end
     end

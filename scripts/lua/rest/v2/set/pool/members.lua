@@ -96,7 +96,8 @@ for member, info in pairs(_POST["associations"] or {}) do
         s:bind_member(member, host_pools.DEFAULT_POOL_ID)
         res["associations"][member]["status"] = "OK"
         interface.select(tostring(interface.getFirstInterfaceId()))
-        radius_handler.accountingStop(member, terminate_cause)
+        local mac_info = interface.getMacInfo(member)
+        radius_handler.accountingStop(member, terminate_cause, mac_info)
         interface.select("-1") -- System Interface
     else
         res["associations"][member]["status"] = "ERROR"

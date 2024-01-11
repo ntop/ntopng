@@ -2094,8 +2094,7 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
 
 #ifdef HAVE_RADIUS
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *username = NULL, *session_id = NULL;
-  //char *mac = NULL;
+  char *username = NULL, *session_id = NULL, *mac = NULL, *ip_address = NULL;
   RadiusTraffic traffic_data;
 
   memset(&traffic_data, 0, sizeof(traffic_data));
@@ -2111,25 +2110,28 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
   if (lua_type(vm, 2) == LUA_TSTRING)
     session_id = (char *)lua_tostring(vm, 2);
 
-  //if (lua_type(vm, 3) == LUA_TSTRING)
-  //  mac = (char *)lua_tostring(vm, 3);
+  if (lua_type(vm, 3) == LUA_TSTRING)
+    mac = (char *)lua_tostring(vm, 3);
 
-  if (lua_type(vm, 4) == LUA_TNUMBER)
-    traffic_data.bytes_sent = (u_int32_t)lua_tonumber(vm, 4);
+  if (lua_type(vm, 4) == LUA_TSTRING)
+    ip_address = (char *)lua_tostring(vm, 4);
 
   if (lua_type(vm, 5) == LUA_TNUMBER)
-    traffic_data.bytes_rcvd = (u_int32_t)lua_tonumber(vm, 5);
+    traffic_data.bytes_sent = (u_int32_t)lua_tonumber(vm, 5);
 
   if (lua_type(vm, 6) == LUA_TNUMBER)
-    traffic_data.packets_sent = (u_int32_t)lua_tonumber(vm, 6);
+    traffic_data.bytes_rcvd = (u_int32_t)lua_tonumber(vm, 6);
 
   if (lua_type(vm, 7) == LUA_TNUMBER)
-    traffic_data.packets_rcvd = (u_int32_t)lua_tonumber(vm, 7);
+    traffic_data.packets_sent = (u_int32_t)lua_tonumber(vm, 7);
 
   if (lua_type(vm, 8) == LUA_TNUMBER)
-    traffic_data.terminate_cause = (u_int32_t)lua_tonumber(vm, 8);
+    traffic_data.packets_rcvd = (u_int32_t)lua_tonumber(vm, 8);
 
-  res = ntop->radiusAccountingStop(username, session_id, &traffic_data);
+  if (lua_type(vm, 9) == LUA_TNUMBER)
+    traffic_data.terminate_cause = (u_int32_t)lua_tonumber(vm, 9);
+
+  res = ntop->radiusAccountingStop(username, session_id, mac, ip_address, &traffic_data);
 
 #endif
 
