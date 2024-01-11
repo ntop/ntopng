@@ -404,9 +404,10 @@ u_int16_t NetworkInterface::getnDPIProtoByName(const char *name) {
 
 struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   struct ndpi_detection_module_struct *ndpi_s =
-    ndpi_init_detection_module(ndpi_track_flow_payload);
+    ndpi_init_detection_module();
   ndpi_port_range d_port[MAX_DEFAULT_PORTS];
   NDPI_PROTOCOL_BITMASK all;
+  ndpi_cfg_error rc;
 
   if (ndpi_s == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
@@ -416,6 +417,12 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   // enable all protocols
   NDPI_BITMASK_SET_ALL(all);
   ndpi_set_protocol_detection_bitmask2(ndpi_s, &all);
+
+  rc = ndpi_set_config(ndpi_s, NULL, "flow.track_payload.enable", "1");
+  if (rc != NDPI_CFG_OK) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error ndpi_set_config: %d", rc);
+    exit(-1);
+  }
 
   if (ntop->getCustomnDPIProtos() != NULL)
     ndpi_load_protocols_file(ndpi_s, ntop->getCustomnDPIProtos());
@@ -480,13 +487,18 @@ void NetworkInterface::finalizenDPIReload() {
 
   if (ndpi_struct_shadow) {
     struct ndpi_detection_module_struct *old_struct;
+    int rc;
 
     ntop->getTrace()->traceEvent(TRACE_INFO,
                                  "Going to reload custom categories");
 
     /* The new categories were loaded on the current ndpi_struct_shadow */
     ndpi_enable_loaded_categories(ndpi_struct_shadow);
-    ndpi_finalize_initialization(ndpi_struct_shadow);
+    rc = ndpi_finalize_initialization(ndpi_struct_shadow);
+    if (rc != 0) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+                                   "Error ndpi_finalize_initialization: %d", rc);
+    }
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "nDPI finalizing reload...");
 
