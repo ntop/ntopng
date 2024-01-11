@@ -119,7 +119,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     default_visible = true
 }, {
     schema = "iface:traffic_ip",
@@ -138,7 +138,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     draw_stacked = true
 }, {
     schema = "iface:flows",
@@ -609,7 +609,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     default_visible = true
 }, {
     schema = "host:score",
@@ -1019,7 +1019,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     default_visible = true
 }, -- network_details.lua (SUBNET): --
 {
@@ -1042,7 +1042,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     default_visible = true
 }, {
     schema = "subnet:broadcast_traffic",
@@ -1199,7 +1199,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     default_visible = true
 }, {
     schema = "asn:rtt",
@@ -1358,7 +1358,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     default_visible = true
 }, {
     schema = "country:score",
@@ -1396,7 +1396,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     default_visible = true
 }, -- vlan_details.lua (VLAN): --
 {
@@ -1417,7 +1417,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     default_visible = true
 }, {
     schema = "vlan:score",
@@ -1456,7 +1456,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     default_visible = true
 }, {
     schema = "host_pool:blocked_flows",
@@ -1515,7 +1515,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     default_visible = true
 }, {
     schema = "pod:num_containers",
@@ -1582,7 +1582,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes_rcvd')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     default_visible = true
 }, {
     schema = "container:rtt",
@@ -1638,7 +1638,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('default')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     default_visible = true
 }, {
     schema = "ht:state",
@@ -1778,7 +1778,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('default')
         }
     },
-    alwais_visibile = true,
+    always_visibile = true,
     default_visible = true,
     draw_stacked = true
 }, {
@@ -1794,7 +1794,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
-    alwais_visibile = true
+    always_visibile = true
 }, {
     schema = "process:num_alerts",
     id = timeseries_id.system,
@@ -1834,7 +1834,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
-    alwais_visibile = true
+    always_visibile = true
 }, {
     schema = "redis:memory",
     id = timeseries_id.redis,
@@ -1848,7 +1848,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
-    alwais_visibile = true
+    always_visibile = true
 }, {
     schema = "redis:keys",
     id = timeseries_id.redis,
@@ -1876,7 +1876,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('bytes')
         }
     },
-    alwais_visibile = true
+    always_visibile = true
 }, {
     schema = "influxdb:memory_size",
     id = timeseries_id.influxdb,
@@ -2877,7 +2877,7 @@ local function choose_traffic_serie(tags, timeseries)
                 color = timeseries_info.get_timeseries_color('bytes_rcvd')
             }
         },
-        alwais_visibile = true,
+        always_visibile = true,
         default_visible = true
     }
     -- else
@@ -2899,7 +2899,7 @@ local function choose_traffic_serie(tags, timeseries)
                 color = timeseries_info.get_timeseries_color('bytes_rcvd')
             }
         },
-        alwais_visibile = true,
+        always_visibile = true,
         default_visible = true
     }
     -- end
@@ -2984,7 +2984,7 @@ local function add_top_flow_port_timeseries(tags, timeseries)
                             color = timeseries_info.get_timeseries_color('bytes_rcvd')
                         }
                     },
-                    alwais_visibile = true,
+                    always_visibile = true,
                     default_visible = true
                 }
             end
@@ -3010,7 +3010,7 @@ local function add_top_flow_port_timeseries(tags, timeseries)
                         color = timeseries_info.get_timeseries_color('bytes_rcvd')
                     }
                 },
-                alwais_visibile = true,
+                always_visibile = true,
                 default_visible = true
             }
         end
@@ -3110,7 +3110,7 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
                 if (tot == 0) then
                     goto skip
                 end
-            elseif not (info.schema:find("top", 1, true)) and not info.alwais_visibile then
+            elseif not (info.schema:find("top", 1, true)) and not info.always_visibile then
                 local tot = check_total(info.schema, tags)
 
                 if (tot == 0) then

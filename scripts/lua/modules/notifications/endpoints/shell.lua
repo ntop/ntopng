@@ -97,7 +97,7 @@ function shell.runScript(alerts, settings)
         -- Trigger the script for the stored alert
         -- Trigger the script just one time in case of engaged/released alerts
         if not alert.action 
-          or settings.execution_period == "alwais" 
+          or settings.execution_period == "always" 
           or alert.action == settings.execution_period then
             -- Executing the script
             local exec_script = fullpath

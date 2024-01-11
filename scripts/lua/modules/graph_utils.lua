@@ -330,7 +330,7 @@ function graph_utils.drawNewGraphs(source_value_object)
     local host_ts_creation = ntop.getPref("ntopng.prefs.hosts_ts_creation") ~= nil
     local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
     local l2_ts_enabled = ntop.getPref("ntopng.prefs.l2_device_rrd_creation") == "1"
-    local network_ts_enabled = true -- alwais enabled
+    local network_ts_enabled = true -- always enabled
     local asn_ts_enabled = ntop.getPref("ntopng.prefs.asn_rrd_creation") == "1"
     local country_ts_enabled = ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"
     local os_ts_enabled = ntop.getPref("ntopng.prefs.os_rrd_creation") == "1"
@@ -358,7 +358,7 @@ function graph_utils.drawNewGraphs(source_value_object)
     local host_has_top_categories = (host_ts_enabled == "both" or host_ts_enabled == "per_category")
       
     local sources_types_enabled = {
-        interface = true, -- alwais enabled
+        interface = true, -- always enabled
         host = host_ts_creation,
         mac = l2_ts_enabled,
         network = network_ts_enabled,
