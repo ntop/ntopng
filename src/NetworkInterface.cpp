@@ -504,7 +504,7 @@ void NetworkInterface::finalizenDPIReload() {
 
     reloadHostsBlacklist();
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "nDPI reload completed");
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "nDPI reload completed");
     ndpiReloadInProgress = false;
   }
 }
