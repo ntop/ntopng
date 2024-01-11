@@ -64,7 +64,7 @@ function host_alert_store:insert(alert)
     end
 
     if alert.alert_category == nil then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE, "alert_category is not set for host alert_id %u", alert.alert_id)
+        traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("alert_category is not set for host alert_id %u", alert.alert_id))
     end
 
     local insert_stmt = string.format("INSERT INTO %s " ..
