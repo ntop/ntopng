@@ -585,6 +585,17 @@ else
             print(" [" .. i18n("ndpi_confidence") .. ": " .. format_confidence_badge(flow.confidence) .. "]")
         end
 
+	-- See FlowSource in ntop_typedefs.h
+	if(flow.flow_source == 0) then
+	   -- packet to flow
+	elseif(flow.flow_source == 1) then
+	   -- collected NetFlow/IPFIX
+	   print(" "..i18n("flow_source_netflow"))					     
+	elseif(flow.flow_source == 2) then
+	   -- collected sFlow/nfLite
+	   print(" "..i18n("flow_source_sflow"))
+	end
+	   
         if (flow.rtp_stream_type ~= nil) then
 	   print(" [ " .. getRTPInfo(flow) .. " ]")
         end

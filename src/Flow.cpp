@@ -2421,11 +2421,11 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
   } /* Closes if(cli_h && srv_h) */
 
 #ifndef HAVE_NEDGE
-/* For nEdge check Flow::setPacketsBytes */
+  /* For nEdge check Flow::setPacketsBytes */
   /* Update throughput */
-  if(iface->isPacketInterface()) {
+  if(getFlowSource() != collected_netflow_ipfix) {
     /*
-      In case of ZMQ the throughput is computed whenever a new
+      In case of NetFlow/IPFIX throughput is computed whenever a new
       flow update is received for this flow
       by Flow::addFlowStats()
     */
@@ -2753,7 +2753,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
   if (details_level >= details_high) {
     if(swap_done) lua_push_bool_table_entry(vm, "flow_swapped", true);
-    
+    lua_push_uint32_table_entry(vm, "flow_source", flow_source);   
     lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
     lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
 
@@ -3924,22 +3924,19 @@ void Flow::formatGenericFlow(json_object *my_object) {
     json_object_object_add(my_object, "json", json_object_get(json_info));
 
   if (vlanId > 0)
-    json_object_object_add(
-        my_object,
-        Utils::jsonLabel(SRC_VLAN, "SRC_VLAN", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_int(vlanId));
-
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(SRC_VLAN, "SRC_VLAN", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int(vlanId));
+  
   if (protocol == IPPROTO_TCP) {
-    json_object_object_add(
-        my_object,
-        Utils::jsonLabel(CLIENT_NW_LATENCY_MS, "CLIENT_NW_LATENCY_MS", jsonbuf,
-                         sizeof(jsonbuf)),
-        json_object_new_double(toMs(&clientNwLatency)));
-    json_object_object_add(
-        my_object,
-        Utils::jsonLabel(SERVER_NW_LATENCY_MS, "SERVER_NW_LATENCY_MS", jsonbuf,
-                         sizeof(jsonbuf)),
-        json_object_new_double(toMs(&serverNwLatency)));
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(CLIENT_NW_LATENCY_MS, "CLIENT_NW_LATENCY_MS", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_double(toMs(&clientNwLatency)));
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(SERVER_NW_LATENCY_MS, "SERVER_NW_LATENCY_MS", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_double(toMs(&serverNwLatency)));
   }
 
   c = cli_host ? cli_host->get_country(buf, sizeof(buf)) : NULL;

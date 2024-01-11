@@ -708,6 +708,8 @@ local lang = {
   ["year"] = "Year",
   ["years"] = "Years",
   ["yes"] = "Yes",
+  ["flow_source_netflow"] = "<span class=\"badge bg-secondary\">NetFlow/IPFIX</span>",
+  ["flow_source_sflow"] = "<span class=\"badge bg-secondary\">sFlow</span>",
   ["about"] = {
     ["about"] = "About",
     ["about_x"] = "About %{product}",
