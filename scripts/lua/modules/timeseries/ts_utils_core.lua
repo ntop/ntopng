@@ -738,6 +738,35 @@ end
 
 -- ##############################################
 
+function ts_utils.queryLastValues(schema_name, tstart, tend, tags, options)
+    if not isUserAccessAllowed(tags) then
+        return nil
+    end
+
+    local schema = ts_utils.getSchema(schema_name)
+
+    if not schema then
+        if print_error then
+            traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
+        end
+        return nil
+    end
+
+    local driver = ts_utils.getQueryDriver()
+
+    if not driver or not driver.queryLastValues then
+        return nil
+    end
+
+    local query_options = ts_utils.getQueryOptions(options)
+
+    ts_common.clearLastError()
+
+    return driver:queryLastValues(schema, tstart, tend, tags, query_options)
+end
+
+-- ##############################################
+
 function ts_utils.queryMean(schema_name, tstart, tend, tags, options)
     if not isUserAccessAllowed(tags) then
         return nil

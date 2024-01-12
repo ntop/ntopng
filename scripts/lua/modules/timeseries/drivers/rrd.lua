@@ -1186,6 +1186,49 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
     return totals
 end
 
+
+-- ##############################################
+
+function driver:queryLastValues(schema, tstart, tend, tags, options)
+    local rrdfile = driver.schema_get_full_path(schema, tags)
+    if not rrdfile or not ntop.notEmptyFile(rrdfile) then
+        return nil
+    end
+
+    touchRRD(rrdfile)
+
+    local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema),
+        tstart, tend)
+    local last_values = {}
+
+    local serie_idx = 0
+    for _, _ in pairs(fdata or {}) do
+        serie_idx = serie_idx + 1 -- the first id is 1
+        local name = schema._metrics[serie_idx]
+        local fdata_name = names[serie_idx]
+        local serie = fdata[fdata_name]
+
+        local max_val = ts_common.getMaxPointValue(schema, name, tags)
+
+        -- Remove the last value: RRD seems to give an additional point
+        serie[#serie] = nil
+
+        local values = {}
+        -- Start from the last series item - 1 because RRD seems to give an additional point 
+        for i = (#serie - 1), 1, -1 do
+            if (#values == options.num_points) then
+                break
+            end
+            -- nan check
+            if serie[i] == serie[i] then 
+                values[#values + 1] = ts_common.normalizeVal(serie[i], max_val, options)
+            end
+        end
+        last_values[name] = values
+    end
+    return last_values
+end
+
 -- ##############################################
 
 local function deleteAllData(ifid)

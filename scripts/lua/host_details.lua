@@ -1994,6 +1994,7 @@ setInterval(update_icmp_table, 5000);
                 host = host_ip,
                 vlans = json.encode(vlans),
                 http_prefix = ntop.getHttpPrefix(),
+                is_ntop_enterprise_m = ntop.isEnterpriseM(),
                 aggregation_criteria = "application_protocol",
                 draw = 0,
                 sort = "flows",
