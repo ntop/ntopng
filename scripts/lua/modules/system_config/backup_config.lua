@@ -1,5 +1,5 @@
 --
--- (C) 2013-23 - ntop.org
+-- (C) 2013-24 - ntop.org
 --
 --
 -- This script implements the backup of ntopng configurations

@@ -1,5 +1,5 @@
 --
--- (C) 2017-22 - ntop.org
+-- (C) 2017-24 - ntop.org
 --
 -- Module to keep things in common across alert_exclusions of various type
 

@@ -1,5 +1,5 @@
 --
--- (C) 2019-22 - ntop.org
+-- (C) 2019-24 - ntop.org
 --
 -- Checks provide a scriptable way to interact with the ntopng
 -- core. Users can provide their own modules to trigger custom alerts,

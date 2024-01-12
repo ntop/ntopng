@@ -1,5 +1,5 @@
 --
--- (C) 2020-22 - ntop.org
+-- (C) 2020-24 - ntop.org
 --
 -- This file is used to report SNMP interface information sent by nprobe with --snmp-mappings
 

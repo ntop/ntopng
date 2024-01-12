@@ -1,5 +1,5 @@
 --
--- (C) 2014-22 - ntop.org
+-- (C) 2014-24 - ntop.org
 --
 --
 -- Container for GUI-related stuff that used to be part of lua_utils.lua

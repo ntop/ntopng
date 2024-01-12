@@ -1,5 +1,5 @@
 --
--- (C) 2013-23 - ntop.org
+-- (C) 2013-24 - ntop.org
 --
 -- This script is used to perform activities that are low
 -- priority with respect to second.lua but that require

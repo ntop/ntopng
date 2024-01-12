@@ -1,5 +1,5 @@
 --
--- (C) 2014-23 - ntop.org
+-- (C) 2014-24 - ntop.org
 --
 
 local clock_start = os.clock()

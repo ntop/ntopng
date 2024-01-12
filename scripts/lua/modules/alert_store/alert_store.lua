@@ -1,5 +1,5 @@
 --
--- (C) 2021-22 - ntop.org
+-- (C) 2021-24 - ntop.org
 --
 -- Module to keep things in common across alert_store of various type
 local dirs = ntop.getDirs()

@@ -1,5 +1,5 @@
 --
--- (C) 2013-23 - ntop.org
+-- (C) 2013-24 - ntop.org
 --
 -- trace_script_duration = true
 local dirs = ntop.getDirs()
