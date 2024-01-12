@@ -11585,8 +11585,8 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
   if (lua_type(vm, 9) == LUA_TNUMBER) vlan_id = lua_tonumber(vm,9);
   if (lua_type(vm, 10) == LUA_TSTRING) flow_device_ip = (char*)lua_tostring(vm,10);
 
-  stats.ip_addr = host_ip ? Utils::parseHostString(host_ip, &stats.vlan_id) : NULL;
   stats.vlan_id = vlan_id;
+  stats.ip_addr = host_ip ? Utils::parseHostString(host_ip, &stats.vlan_id) : NULL;
   stats.flow_device_ip = flow_device_ip ? ntohl(inet_addr(flow_device_ip)) : /* Any flow device */ (u_int32_t)-1;
 
   switch (filter_type) {
