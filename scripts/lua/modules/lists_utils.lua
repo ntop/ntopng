@@ -59,13 +59,13 @@ local is_nedge = ntop.isnEdge()
 local function parse_lists_from_dir(where)
   local files = ntop.readdir(where)
   local ret = {}
-  
+
   for _,f in pairs(files) do
     if(string.ends(f, ".list")) then
       local path = where .. "/" .. f
       local content = file_utils.read_file(path)
       local j = json.decode(content)
-      
+
       if(j == nil) then
 	 traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path..": parse error")
       else
@@ -74,9 +74,9 @@ local function parse_lists_from_dir(where)
 
         if(j.category == nil) then
           traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": no category")
-          skip = true   
+          skip = true
 
-        else 
+        else
          local category = string.lower(tostring(j.category))
          if(category == "mining")        then j.category = CUSTOM_CATEGORY_MINING
          elseif(category == "malware")       then j.category = CUSTOM_CATEGORY_MALWARE
@@ -91,7 +91,7 @@ local function parse_lists_from_dir(where)
           traceError(TRACE_WARNING, TRACE_CONSOLE, "Skipping invalid list "..path ..": missing name")
           skip = true
         end
-        
+
         if(not(skip)) then
           ret[j.name] = j
         end
@@ -172,7 +172,7 @@ end
 local function saveListsMetadataToRedis(lists)
    local metadata = {}
    local all_lists = get_lists()
-   
+
    for list_name, list in pairs(lists or {}) do
       local default_prefs = all_lists[list_name]
       local meta = {}
@@ -464,9 +464,12 @@ local function loadWarning(msg)
       return
    end
 
-   traceError(TRACE_NORMAL, TRACE_CONSOLE, msg)
+   -- traceError(TRACE_NORMAL, TRACE_CONSOLE, msg)
+
    cur_load_warnings = cur_load_warnings + 1
 end
+
+-- ##############################################
 
 --@return nil on parse error, "domain" if the loaded item is an host, "ip" or "ip_csv" otherwise
 local function loadListItem(host, category, user_custom_categories, list, num_line)
@@ -503,7 +506,7 @@ local function loadListItem(host, category, user_custom_categories, list, num_li
 		  else
 		     if((category == CUSTOM_CATEGORY_MALWARE) and isLocal(host)) then
 			local alert = alert_consts.alert_types.alert_local_host_blacklisted.new(list.name, host)
-			
+
 			alert:set_score_error()
 			alert:store(alerts_api.systemEntity(list.name, host))
 
@@ -511,7 +514,7 @@ local function loadListItem(host, category, user_custom_categories, list, num_li
 		     end
                   end
                end
-       
+
                return "ip"
             end
          else
@@ -572,7 +575,7 @@ local function parse_ip_csv_line(line)
       -- invalid host
       host = nil
    end
-   
+
    return(host)
 end
 
@@ -711,10 +714,33 @@ end
 
 -- ##############################################
 
+function loadnDPIExceptions()
+   local EXCEPTIONS_KEY = "ntopng.prefs.alert_exclusions"
+   local ndpi_exceptions_json = ntop.getPref(EXCEPTIONS_KEY)
+
+   if isEmptyString(ndpi_exceptions_json) then
+      return
+   else
+      ndpi_exceptions = json.decode(ndpi_exceptions_json)
+   end
+
+   for key, value in pairs(ndpi_exceptions) do
+      if value.type == "domain" then
+	 ntop.setDomainMask(key)
+      elseif value.type == "host" then
+	 -- Skip
+      elseif value.type == "certificate" then
+	 ntop.setDomainMask(key)
+      end
+   end
+end
+
+-- ##############################################
+
 -- NOTE: this must be executed in the same thread as checkListsUpdate
 local function reloadListsNow()
    if(ntop.limitResourcesUsage()) then return end
-   
+
    local user_custom_categories = categories_utils.getAllCustomCategoryHosts()
    local lists = lists_utils.getCategoryLists()
    local stats = {num_hosts = 0, num_ips = 0, num_ja3 = 0, begin = os.time(), duration = 0}
@@ -725,6 +751,9 @@ local function reloadListsNow()
       traceError(trace_level, TRACE_CONSOLE, string.format("custom categories: too early reload"))
       return(false)
    end
+
+   traceError(trace_level, TRACE_CONSOLE, string.format("loading ndpi exceptions"))
+   loadnDPIExceptions()
 
    traceError(trace_level, TRACE_CONSOLE, string.format("custom categories: reloading now"))
 
@@ -780,7 +809,7 @@ local function reloadListsNow()
    stats.duration = (os.time() - stats.begin)
 
    traceError(TRACE_NORMAL, TRACE_CONSOLE,
-              string.format("Category Lists (%u hosts, %u IPs, %u JA3) loaded in %d sec",
+              string.format("Loaded Category Lists (%u hosts, %u IPs, %u JA3) loaded in %d sec",
                             stats.num_hosts, stats.num_ips, stats.num_ja3, stats.duration))
 
    -- Save the stats
@@ -805,7 +834,6 @@ end
 
 -- This is run in housekeeping.lua
 function lists_utils.checkReloadLists()
-
    if ntop.isOffline() then
       return
    end
@@ -850,7 +878,7 @@ function lists_utils.startup()
 
    -- tprint(all_lists)
    if(ntop.limitResourcesUsage()) then return end
-   
+
    if ntop.isOffline() then
       traceError(TRACE_NORMAL, TRACE_CONSOLE, "Category lists not loaded (offline)")
       -- Reload the last list version as we're offline

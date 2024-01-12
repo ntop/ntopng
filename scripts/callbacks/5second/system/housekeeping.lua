@@ -33,10 +33,10 @@ for i=1,num_runs do
 
    if(scripts_triggers.checkReloadLists()) then
       local lists_utils = require "lists_utils"
-      
+
       lists_utils.checkReloadLists()
    end
-   
+
    if scripts_triggers.isRecordingAvailable() then
       local recording_utils = require "recording_utils"
       

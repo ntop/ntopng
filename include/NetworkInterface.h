@@ -1277,7 +1277,8 @@ public:
   bool nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id,
                                 char *list_name);
   int nDPILoadMaliciousJA3Signatures(const char *file_path);
-
+  int setDomainMask(const char *domain, u_int64_t domain_mask);
+  int addTrustedIssuerDN(const char *dn);
   inline void setLastInterfacenDPIReload(time_t now) { last_ndpi_reload = now; }
   inline bool needsnDPICleanup() { return (ndpi_cleanup_needed); }
   inline void setnDPICleanupNeeded(bool needed) {
@@ -1359,6 +1360,7 @@ public:
                                       bool *matched);
 #endif
   void getActiveMacs(lua_State *vm);
+  
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

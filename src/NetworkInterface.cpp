@@ -428,14 +428,6 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   // load custom protocols
   loadProtocolsAssociations(ndpi_s);
 
-#ifdef NTOPNG_PRO
-  if (ifname && strcmp(ifname, SYSTEM_INTERFACE_NAME)) {
-    AlertExclusions *excl = ntop->getAlertExclusions();
-
-    if (excl) excl->loadnDPIExclusions(ndpi_s);
-  }
-#endif
-
   return (ndpi_s);
 }
 
@@ -590,6 +582,24 @@ int NetworkInterface::nDPILoadMaliciousJA3Signatures(const char *file_path) {
     n = ndpi_load_malicious_ja3_file(ndpi_struct_shadow, file_path);
 
   return n;
+}
+
+/* *************************************** */
+
+int NetworkInterface::setDomainMask(const char *domain, u_int64_t domain_mask) {
+  if(domain && ndpi_struct_shadow)
+    return(ndpi_add_host_risk_mask(ndpi_struct_shadow, (char*)domain, domain_mask));
+
+  return(-1);
+}
+
+/* *************************************** */
+
+int NetworkInterface::addTrustedIssuerDN(const char *dn) {
+  if(dn && ndpi_struct_shadow)
+    return(ndpi_add_trusted_issuer_dn(ndpi_struct_shadow, (char*)dn));
+
+  return(-1);
 }
 
 /* *************************************** */

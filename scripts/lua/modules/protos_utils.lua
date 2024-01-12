@@ -19,15 +19,9 @@ end
 
 -- Function used to reload the custom applications (the protocol file, -p option)
 local function reloadApplications()
-    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Reloading the custom applications"))
-    if (not ntop.initnDPIReload()) then
-        -- Too early, need to retry later
-        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Error while reloading the custom applications"))
-        return (false)
-    end
+   local lists_utils = require "lists_utils"
 
-    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Finalizing the reload of custom applications"))
-    ntop.finalizenDPIReload()
+   lists_utils.reloadLists()
 end
 
 -- ##############################################

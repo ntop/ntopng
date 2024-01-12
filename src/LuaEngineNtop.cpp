@@ -296,6 +296,42 @@ static int ntop_loadMaliciousJA3Signatures(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_setDomainMask(lua_State *vm) {
+  const char *domain;
+  int rc;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  
+  domain = lua_tostring(vm, 1);
+
+  rc = ntop->getSystemInterface()->setDomainMask(domain, 0 /* mask all */);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, rc));
+}
+
+/* ****************************************** */
+
+static int ntop_addTrustedIssuerDN(lua_State *vm) {
+  const char *dn;
+  int rc;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  
+  dn = lua_tostring(vm, 1);
+
+  rc = ntop->getSystemInterface()->addTrustedIssuerDN(dn);
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, rc));
+}
+
+/* ****************************************** */
+
 static int ntop_set_mac_device_type(lua_State *vm) {
   char *mac = NULL;
   DeviceType dtype = device_unknown;
@@ -7607,7 +7643,9 @@ static luaL_Reg _ntop_reg[] = {
     {"loadCustomCategoryIp", ntop_loadCustomCategoryIp},
     {"loadCustomCategoryHost", ntop_loadCustomCategoryHost},
     {"loadMaliciousJA3Signatures", ntop_loadMaliciousJA3Signatures},
-
+    {"setDomainMask", ntop_setDomainMask},
+    {"addTrustedIssuerDN", ntop_addTrustedIssuerDN},
+      
     /* Privileges */
     {"gainWriteCapabilities", ntop_gainWriteCapabilities},
     {"dropWriteCapabilities", ntop_dropWriteCapabilities},
