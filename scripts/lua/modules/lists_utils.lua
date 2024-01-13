@@ -259,7 +259,6 @@ end
 
 -- ##############################################
 
-
 local function getListCacheFile(list_name, downloading)
    local f = string.format("%s/category_lists/%s.txt", dirs.workingdir, list_name)
 
@@ -310,7 +309,15 @@ function shouldUpdate(list_name, list, now)
       return(false)
    end
 
+   traceError(trace_level, TRACE_CONSOLE, string.format("Checking if list '%s' will be updated... ", list_name))
+
    list_file = getListCacheFile(list_name, false)
+
+   if(not(ntop.exists(list_file))) then
+      -- The file does not exist: it needs to be downladed for sure
+      return true
+   end
+
    next_update = getNextListUpdate(list, now)
 
    if next_update == -1 then
@@ -354,6 +361,8 @@ local function checkListsUpdate(timeout)
    local all_processed = true
 
    initListCacheDir()
+
+   traceError(trace_level, TRACE_INFO, "checkListsUpdate()")
 
    for list_name, list in pairsByKeys(lists) do
       local list_file = getListCacheFile(list_name, false)
@@ -660,8 +669,9 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
       end
 
       for line in f:lines() do
-                num_line = num_line + 1
-         if ntop.isShuttingDown() then
+	 num_line = num_line + 1
+
+	 if ntop.isShuttingDown() then
             break
          end
          local trimmed = line:match("^%s*(.-)%s*$")
@@ -752,10 +762,10 @@ local function reloadListsNow()
       return(false)
    end
 
-   traceError(trace_level, TRACE_CONSOLE, string.format("loading ndpi exceptions"))
+   traceError(trace_level, TRACE_CONSOLE, string.format("Loading nDPI Exceptions"))
    loadnDPIExceptions()
 
-   traceError(trace_level, TRACE_CONSOLE, string.format("custom categories: reloading now"))
+   traceError(trace_level, TRACE_CONSOLE, string.format("Custom categories: reloading now"))
 
    -- Load hosts from cached URL lists
    for list_name, list in pairsByKeys(lists) do
@@ -834,6 +844,8 @@ end
 
 -- This is run in housekeeping.lua
 function lists_utils.checkReloadLists()
+   traceError(trace_level, TRACE_CONSOLE, "Checking list reload")
+
    if ntop.isOffline() then
       return
    end
@@ -852,10 +864,8 @@ function lists_utils.checkReloadLists()
       reload_now = forced_reload
    end
 
-   -- print("[DEBUG]  Checking reload [") if(reload_now) then print("reload now") else print("don't reload") end print("] !!!!\n")
-
    if reload_now then
-      -- print("[DEBUG] **** Reloading ****\n")
+      traceError(trace_level, TRACE_INFO, "[DEBUG] Reloading lists")
 
       if reloadListsNow() then
          -- print("[DEBUG]  Success !!!!\n")
