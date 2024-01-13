@@ -122,6 +122,7 @@ class LuaEngine {
   void pushResultString(char *str);
   void pushResultNumber(float f);
   const char* getCloudString() { return(cloud_string.c_str()); }
+  inline lua_State* getState() { return(L);                    }
 };
 
 /**

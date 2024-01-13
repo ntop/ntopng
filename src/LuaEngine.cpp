@@ -1054,8 +1054,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   if ((strcmp(request_info->request_method, "POST") == 0) &&
       (content_type != NULL)) {
     int content_len = mg_get_content_len(conn) + 1;
-    bool is_file_upload =
-        (strncmp(content_type, "multipart/form-data", 19) == 0) ? true : false;
+    bool is_file_upload = (strncmp(content_type, "multipart/form-data", 19) == 0) ? true : false;
 
     if ((!is_file_upload) && (content_len > HTTP_MAX_POST_DATA_LEN)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
