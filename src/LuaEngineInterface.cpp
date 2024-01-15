@@ -2198,16 +2198,8 @@ static int ntop_radius_accounting_update(lua_State *vm) {
 
   if (lua_type(vm, 9) == LUA_TNUMBER)
     traffic_data.packets_rcvd = (u_int64_t)lua_tonumber(vm, 9);
-
-  /* The update is strange, you have to first update
-    * and then authenticate again to be able to check if the user
-    * is still able to navigate or not.
-    */
+  
   res = ntop->radiusAccountingUpdate(username, session_id, mac, ip_address, &traffic_data);
-  if(res) {
-    bool is_admin = false, has_unprivileged_capabilities = false;
-    res = ntop->radiusAuthenticate(username, password, &has_unprivileged_capabilities, &is_admin);
-  }
 #endif
 
   lua_pushboolean(vm, res);

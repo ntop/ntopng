@@ -76,7 +76,8 @@ function radius_handler.accountingStop(name, terminate_cause, info)
 
     local is_accounting_on, user_data = radius_handler.isAccountingRequested(name)
 
-    if is_accounting_on then
+    -- Check in case no user_data is found
+    if user_data then
         local ip_address = get_first_ip(name)
         local bytes_sent = 0
         local bytes_rcvd = 0
@@ -116,16 +117,8 @@ function radius_handler.accountingUpdate(name, info)
         local packets_sent = info["packets.sent"]
         local packets_rcvd = info["packets.rcvd"]
 
-        local is_accounting_ok = interface.radiusAccountingUpdate(name, user_data.session_id, user_data.username,
+        interface.radiusAccountingUpdate(name, user_data.session_id, user_data.username,
             user_data.password, ip_address, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
-
-        if not is_accounting_ok then
-            -- An accounting stop has to be sent, the allowed data for name
-            -- are expired, requesting stop 
-            local termination_cause = 3 -- Lost service
-            radius_handler.accountingStop(user_data.username, termination_cause, info)
-            res = false
-        end
     end
 
     return res

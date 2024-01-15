@@ -93,12 +93,13 @@ for member, info in pairs(_POST["associations"] or {}) do
     elseif info["connectivity"] == "reject" then
         -- To check radius termination cause see https://datatracker.ietf.org/doc/html/rfc2866#section-5.10
         local terminate_cause = info["terminateCause"] or 3 -- Lost service
+        local current_interface = interface.getId() or -1 -- System Interface
         s:bind_member(member, host_pools.DEFAULT_POOL_ID)
         res["associations"][member]["status"] = "OK"
         interface.select(tostring(interface.getFirstInterfaceId()))
         local mac_info = interface.getMacInfo(member)
         radius_handler.accountingStop(member, terminate_cause, mac_info)
-        interface.select("-1") -- System Interface
+        interface.select(current_interface) 
     else
         res["associations"][member]["status"] = "ERROR"
         res["associations"][member]["status_msg"] = "Unknown association: allowed associations are 'pass' and 'reject'"
