@@ -2210,13 +2210,21 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
        && (strchr(protos.tls.server_names, ',') == NULL))
       srv_host->offlineSetTLSName(protos.tls.server_names);
     else if((protos.tls.client_requested_server_name != NULL)
-	    && (!hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH))
+	    && (!hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH)) /* Certificates (if present) do not mismatch */
 	    && (!Utils::isIPAddress(protos.tls.client_requested_server_name))
 	    && (get_packets() >= 16) /*
 				       Avoid micro-flows that might be an indication that
 				       the response page is too short and thus that
 				       it might be a denied page or similar
 				     */
+	    && (!srv_host->isLocalHost()
+		/*
+		  As in TLS we cannot check if the connection reported
+		  some mismatches we do not set TLS names for local hosts
+		  that are more subject to naming errors, and that whose
+		  name could be set via other protocols
+		*/
+		)
 	    )
       srv_host->offlineSetTLSName(protos.tls.client_requested_server_name); /* (***) */
   }
