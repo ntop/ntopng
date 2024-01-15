@@ -178,7 +178,7 @@ function maintenance_check() {
 	APP_BIN="/usr/bin/${PRODUCT}"
 
 	NOW=`date +'%s'`
-	EXPIRY_EPOCH=`${APP_BIN} --check-maintenance | cut -d' ' -f 1`
+	EXPIRY_EPOCH=`${APP_BIN} --check-maintenance | head -n 1 | tr -d '\n' | cut -d' ' -f 1`
 
 	if [ "${EXPIRY_EPOCH}" = "Invalid" ]; then
 		# Missing or expired or invalid license
