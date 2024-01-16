@@ -2159,10 +2159,9 @@ static int ntop_get_hosts_by_service(lua_State *vm) {
 
 static int ntop_radius_accounting_update(lua_State *vm) {
   bool res = false;
-
 #ifdef HAVE_RADIUS
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  const char *username = NULL, *session_id = NULL, *password = NULL, *ip_address = NULL, *mac = NULL;
+  const char *username = NULL, *session_id = NULL, *ip_address = NULL, *mac = NULL;
   RadiusTraffic traffic_data;
 
   memset(&traffic_data, 0, sizeof(traffic_data));
@@ -2181,8 +2180,10 @@ static int ntop_radius_accounting_update(lua_State *vm) {
   if (lua_type(vm, 3) == LUA_TSTRING)
     username = (const char *)lua_tostring(vm, 3);
 
+  /* Unused
   if (lua_type(vm, 4) == LUA_TSTRING)
     password = (const char *)lua_tostring(vm, 4);
+  */
 
   if (lua_type(vm, 5) == LUA_TSTRING)
     ip_address = (const char *)lua_tostring(vm, 5);
