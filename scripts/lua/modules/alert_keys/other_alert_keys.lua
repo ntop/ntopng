@@ -36,7 +36,7 @@ local other_alert_keys = {
    alert_am_threshold_cross             =  OTHER_BASE_KEY + 23,
    alert_port_duplexstatus_change       =  OTHER_BASE_KEY + 24,
    alert_port_errors                    =  OTHER_BASE_KEY + 25,
-   alert_port_load_threshold_exceeded   =  OTHER_BASE_KEY + 26,
+   alert_port_load_threshold_exceeded   =  OTHER_BASE_KEY + 26, -- No longer used
    alert_port_mac_changed               =  OTHER_BASE_KEY + 27,
    alert_port_status_change             =  OTHER_BASE_KEY + 28,
    alert_process_notification           =  OTHER_BASE_KEY + 29,
@@ -101,7 +101,8 @@ local other_alert_keys = {
    alert_vulnerability_scan             = OTHER_BASE_KEY + 88,
    alert_host_pool_rule_threshold_crossed = OTHER_BASE_KEY + 89,
    alert_cidr_rule_threshold_crossed    = OTHER_BASE_KEY + 90,
-   alert_system_error                   = OTHER_BASE_KEY + 91
+   alert_system_error                   = OTHER_BASE_KEY + 91,
+   alert_port_avg_usages_threshold_crossed = OTHER_BASE_KEY + 92
 }
 
 -- ##############################################

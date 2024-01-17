@@ -36,6 +36,22 @@ The alert is sent when an interface error is seen.
 *Enabled by Default*
 
 
+**Interface Avg Usage Threshold**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks if the threshold for port in or out traffic (avg) usage is being respected.
+
+Port exhaustion occurs when a node runs out of available ports. After an application stops using a specific port, it enters a "time-wait state" before becoming available for use by another application.
+
+When the average usage of in or out traffic exceeds the configured limit, it is dropped.
+
+The alert is triggered when the threshold is exceeded.
+
+*Category: SNMP*
+
+*Disabled by Default*
+
+
 **Interface Errors Exceeded**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -44,22 +60,6 @@ Checks for Interface Errors.
 An high rate of errors in comparison with packets could represent many issues on a device.
 
 The alert is sent when the errors counter of an interface exceed 5% of packets.
-
-*Category: SNMP*
-
-*Enabled by Default*
-
-
-**Interface Load Threshold**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Checks if the threshold for port load is respected.
-
-Port exhaustion occurs when a node runs out of available ports. When an application stops using a specific port, the port enters a "time-wait state" before it becomes available for use by another application.
-
-When traffic exceeds the configured limit, it is dropped.
-
-The alert is sent when the threshold is exceeds.
 
 *Category: SNMP*
 
