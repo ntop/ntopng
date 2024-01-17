@@ -47,6 +47,7 @@ import { default as PageVulnerabilityScan } from "./page-vulnerability-scan.vue"
 import { default as PageHostVsResult } from "./page-host-vs-result.vue";
 import { default as PageOpenPorts } from "./page-open-ports.vue";
 import { default as PageVulnerabilityScanReport } from "./page-vulnerability-scan-report.vue"
+import { default as PageSNMPUsage } from "./page-snmp-usage.vue"
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -120,6 +121,7 @@ let ntopVue = {
     PageHostVsResult: PageHostVsResult,
     PageOpenPorts: PageOpenPorts,
     PageVulnerabilityScanReport: PageVulnerabilityScanReport,
+    PageSNMPUsage: PageSNMPUsage,
     
     PageEditApplications: PageEditApplications,
 

@@ -44,7 +44,7 @@ Dygraph.Plugins.Legend.prototype.select = function (e) {
 		// offset 50 px to the right and down from the first selection point
 		// 50 px is guess based on mouse cursor size
 		const followOffsetX = e.dygraph.getNumericOption('legendFollowOffsetX');
-		const x = (point?.x) ? point.x : 1;
+		const x = (point?.x != null) ? point.x : 1;
 		var leftLegend = x * area.w + followOffsetX;
 
 		// if legend floats to end of the chart area, it flips to the other

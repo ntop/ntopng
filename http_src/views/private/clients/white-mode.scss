@@ -893,10 +893,12 @@ table.dataTable thead th.sorting_asc::after {
   border-style: solid;
   border-width: thin;
   z-index: 80 !important;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, .3);
-  border-radius: 3px;
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+  border-radius: 0.375rem;
   position: fixed;
   width: auto;
+  word-wrap: break-word;
+  padding: 8px !important;
 }
 
 .dygraph-legend>span {
@@ -909,11 +911,6 @@ table.dataTable thead th.sorting_asc::after {
 
 .dygraph-legend>span:first-child {
   margin-top: 2px;
-}
-
-.highlight {
-  border-left: 2px solid #BABABA;
-  padding-left: 3px !important;
 }
 
 .component-fade-enter-active,

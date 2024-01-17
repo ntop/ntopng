@@ -105,6 +105,14 @@ function tsArrayToOptionsArrayRaw(tsOptionsArray, tsGroupsArray, groupsOptionsMo
 
 /* *********************************************** */
 
+/* This function is used to format a simple timeseries given an array 
+ */
+function formatSimpleSerie(data, serie_name, chart_type, formatters, value_range) {
+	return dygraphFormat.formatSimpleSerie(data, serie_name, chart_type, formatters, value_range);
+}
+
+/* *********************************************** */
+
 /* Given an array of timeseries, it compacts them into a single array 
  * and return the configuration for the timeserie with the data 
  */
@@ -193,6 +201,7 @@ const timeseriesUtils = function () {
 	return {
 		groupsOptionsModesEnum,
 		tsArrayToOptions,
+		formatSimpleSerie,
 		tsArrayToOptionsArray,
 		getGroupOptionMode,
 		getSerieId,

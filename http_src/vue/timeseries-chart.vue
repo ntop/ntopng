@@ -101,13 +101,19 @@ export default {
 				chart_options = await this.$props.get_custom_chart_options(url_request);
 			}
 			/* Set the date depending on the server date */
-			chart_options.axes.x.axisLabelFormatter = function (date) {
-				return ntopng_utility.from_utc_to_server_date_format(date, date_format);
-			};
-			chart_options.axes.x.valueFormatter = function (date) {
-				return ntopng_utility.from_utc_to_server_date_format(date, date_format);
-			};
-			chart_options.axes.x.axisLabelWidth = 90;
+			if (chart_options.customXFormatter == null) {
+				chart_options.axes.x.axisLabelFormatter = function (date) {
+					return ntopng_utility.from_utc_to_server_date_format(date, date_format);
+				};
+				chart_options.axes.x.valueFormatter = function (date) {
+					return ntopng_utility.from_utc_to_server_date_format(date, date_format);
+				};
+				chart_options.axes.x.axisLabelWidth = 90;
+    		chart_options.yRangePad = 1;
+			} else {
+				chart_options.axes.x.axisLabelFormatter = chart_options.customXFormatter;
+				chart_options.axes.x.valueFormatter = chart_options.customXFormatter;
+			}
 			/* Emit the chart_reloaded event */
 			this.$emit('chart_reloaded', chart_options);
 			return chart_options;
@@ -120,12 +126,13 @@ export default {
 			this.timeseries_list = [];
 			let visibility = [];
 			let id = 0;
-			for (const key in chart_options.series) {
-				this.timeseries_list.push({ name: key, checked: true, id: id, color: chart_options.colors[id] + "!important" });
-				id = id + 1;
-				visibility.push(true);
+			if(!chart_options.disableTsList) {
+				for (const key in chart_options.series) {
+					this.timeseries_list.push({ name: key, checked: true, id: id, color: chart_options.colors[id] + "!important" });
+					id = id + 1;
+					visibility.push(true);
+				}
 			}
-
 			this.chart = new Dygraph(this.$refs["chart"], data, chart_options);
 		},
 		update_chart: async function (url_request) {

@@ -40,6 +40,14 @@ const types = {
         scale_values: 8,
         absolute_value: true,
     },
+    speed: {
+        id: "speed",
+        um: ["bit", "Kbit", "Mbit", "Gbit", "Tbit", "Pbit"],
+        step: 1000,
+        decimal: 2,
+        scale_values: null,
+        absolute_value: true,
+    },
     flows: {
         id: "flows",
         um: ["flows", "Kflows", "Mflows", "Gflows"],

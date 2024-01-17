@@ -1,0 +1,232 @@
+<!-- (C) 2024 - ntop.org     -->
+<template>
+    <div class="card h-100 overflow-hidden">
+        <DateTimeRangePicker style="margin-top:0.5rem;" class="ms-1" :id="id_date_time_picker" :enable_refresh="false"
+            ref="date_time_picker" @epoch_change="epoch_change" :custom_time_interval_list="time_preset_list">
+        </DateTimeRangePicker>
+        <div class="m-2 mb-5">
+            <TimeseriesChart ref="chart" :id="chart_id" :chart_type="chart_type" :base_url_request="base_url"
+                :get_custom_chart_options="get_chart_options" :register_on_status_change="false"
+                :disable_pointer_events="false">
+            </TimeseriesChart>
+        </div>
+        <div class="m-2 mb-3">
+            <TableWithConfig ref="table_snmp_usage" :table_id="table_id" :csrf="csrf" :f_map_columns="map_table_def_columns"
+                :get_extra_params_obj="get_extra_params_obj" :f_sort_rows="columns_sorting"
+                @custom_event="on_table_custom_event">
+            </TableWithConfig>
+        </div>
+    </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from "vue";
+import { default as TableWithConfig } from "./table-with-config.vue";
+import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
+import { default as sortingFunctions } from "../utilities/sorting-utils.js";
+import { default as TimeseriesChart } from "./timeseries-chart.vue";
+import timeseriesUtils from "../utilities/timeseries-utils.js";
+import formatterUtils from "../utilities/formatter-utils";
+
+/* ************************************** */
+
+const props = defineProps({
+    context: Object,
+});
+
+/* ************************************** */
+const time_preset_list = [
+    { value: "10_min", label: i18n('show_alerts.presets.10_min'), currently_active: false },
+    { value: "30_min", label: i18n('show_alerts.presets.30_min'), currently_active: true },
+    { value: "hour", label: i18n('show_alerts.presets.hour'), currently_active: false },
+    { value: "2_hours", label: i18n('show_alerts.presets.2_hours'), currently_active: false },
+    { value: "6_hours", label: i18n('show_alerts.presets.6_hours'), currently_active: false },
+    { value: "12_hours", label: i18n('show_alerts.presets.12_hours'), currently_active: false },
+    { value: "day", label: i18n('show_alerts.presets.day'), currently_active: false },
+    { value: "week", label: i18n('show_alerts.presets.week'), currently_active: false },
+    { value: "month", label: i18n('show_alerts.presets.month'), currently_active: false },
+    { value: "year", label: i18n('show_alerts.presets.year'), currently_active: false },
+    { value: "custom", label: i18n('show_alerts.presets.custom'), currently_active: false, disabled: true, },
+];
+
+const table_snmp_usage = ref(null);
+const date_time_picker = ref(null);
+const table_id = ref('snmp_usage');
+const chart_id = ref('snmp_usage_chart');
+const csrf = props.context.csrf;
+const system_interface_id = -1;
+const chart = ref(null);
+const chart_type = ref(ntopChartApex.typeChart.TS_LINE);
+const base_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/metric/usage_chart.lua`
+let id_date_time_picker = "date_time_picker";
+
+/* ************************************** */
+
+const map_table_def_columns = (columns) => {
+    const formatter = formatterUtils.getFormatter("percentage");
+    let map_columns = {
+        "type": (type, row) => {
+            if (type == 'uplink') {
+                return `${i18n('uplink_usage')} <i class="fa-solid fa-circle-arrow-up" style="color: #C6D9FD"></i>`
+            } else {
+                return `${i18n('downlink_usage')} <i class="fa-solid fa-circle-arrow-down" style="color: #90EE90"></i>`
+            }
+        },
+        "speed": (value, row) => {
+            return formatterUtils.getFormatter("speed")(value);
+        },
+        "min": (value, row) => {
+            return formatter(value);
+        },
+        "max": (value, row) => {
+            return formatter(value);
+        },
+        "average": (value, row) => {
+            return formatter(value);
+        },
+        "last_value": (value, row) => {
+            return formatter(value);
+        }
+    };
+    columns.forEach((c) => {
+        c.render_func = map_columns[c.data_field];
+        if (c.id == "actions") {
+            const visible_dict = {
+                historical_data: props.show_historical,
+            };
+            c.button_def_array.forEach((b) => {
+                if (!visible_dict[b.id]) {
+                    b.class.push("disabled");
+                }
+            });
+        }
+    });
+
+    return columns;
+};
+
+/* ************************************** */
+
+function columns_sorting(col, r0, r1) {
+    if (col != null) {
+        const r0_col = r0[col.data.data_field];
+        const r1_col = r1[col.data.data_field];
+
+        /* In case the values are the same, sort by IP */
+        if (r0_col == r1_col) {
+            return sortingFunctions.sortByName(r0.device, r1.device, col ? col.sort : null);
+        }
+        if (col.id == "device_name") {
+            return sortingFunctions.sortByName(r0_col, r1_col, col.sort);
+        } else if (col.id == "ip") {
+            return sortingFunctions.sortByIP(r0_col, r1_col, col.sort);
+        } else if (col.id == "interface") {
+            return sortingFunctions.sortByName(r0_col, r1_col, col.sort);
+        } else if (col.id == "type") {
+            return sortingFunctions.sortByName(r0_col, r1_col, col.sort);
+        } else if (col.id == "speed") {
+            const lower_value = -1;
+            return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort, lower_value);
+        } else if (col.id == "min") {
+            const lower_value = -1;
+            return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort, lower_value);
+        } else if (col.id == "max") {
+            const lower_value = -1;
+            return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort, lower_value);
+        } else if (col.id == "average") {
+            const lower_value = -1;
+            return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort, lower_value);
+        } else if (col.id == "last_value") {
+            const lower_value = -1;
+            return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort, lower_value);
+        }
+    }
+
+    return sortingFunctions.sortByName(r0.device, r1.device, col ? col.sort : null);
+}
+
+/* ************************************** */
+
+async function epoch_change() {
+    if (table_snmp_usage.value) {
+        table_snmp_usage.value.refresh_table();
+    }
+
+    if (chart.value) {
+        const options = await get_chart_options();
+        chart.value.update_chart_series(options?.data);
+    }
+}
+
+/* ************************************** */
+
+const get_extra_params_obj = () => {
+    let extra_params = ntopng_url_manager.get_url_object();
+    return extra_params;
+};
+
+/* ************************************** */
+
+function click_button_timeseries(event) {
+    const row = event.row;
+    const epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
+    const epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
+    window.open(`${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${row.ip}&snmp_port_idx=${row.ifid}&page=historical&ifid=-1&epoch_end=${epoch_end}&epoch_begin=${epoch_begin}&timeseries_groups_mode=1_chart_x_metric&timeseries_groups=snmp_interface;-1%2B${row.ip}%2B${row.ifid};snmp_if:usage;uplink=true:false:false:false|downlink=true:false:false:false`);
+}
+
+/* ************************************** */
+
+function click_button_configuration(event) {
+    const row = event.row;
+    window.open(`${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${row.ip}&snmp_port_idx=${row.ifid}&page=config`);
+}
+
+/* ************************************** */
+
+function on_table_custom_event(event) {
+    let events_managed = {
+        "click_button_timeseries": click_button_timeseries,
+        "click_button_configuration": click_button_configuration
+    };
+    if (events_managed[event.event_id] == null) {
+        return;
+    }
+    events_managed[event.event_id](event);
+}
+
+/* *************************************************** */
+
+/* This function run the REST API with the data */
+async function get_chart_options() {
+    let result = null;
+    const post_params = {
+        csrf: csrf,
+        ifid: system_interface_id,
+        epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
+        epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
+    }
+
+    result = await ntopng_utility.http_post_request(base_url, post_params)
+    /* Format the result in the format needed by Dygraph */
+    const config = timeseriesUtils.formatSimpleSerie(result, "Congestion", "bar", ["percentage"], [0, 100]);
+
+    /* Custom options for this chart */
+    config.title = '<div class="mb-2">' + i18n('snmp.top_congested_devices') + '</div>';
+    config.axes.y.axisLabelWidth = 40;
+    config.xAxisHeight = 8;
+    config.axes.x.axisLabelWidth = 100;
+    config.axes.x.pixelsPerLabel = 20;
+    config.xRangePad = 80;
+    config.yRangePad = 1;
+    return config;
+}
+
+/* ************************************** */
+
+onMounted(async () => {
+    await Promise.all([
+        ntopng_sync.on_ready(id_date_time_picker),
+    ]);
+});
+
+</script>

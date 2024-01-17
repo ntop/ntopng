@@ -26,6 +26,7 @@ const defaultColors = [
 /* ***************************************** */
 
 const constant_serie_colors = {
+  "default_color": "#C6D9FD",
   "95_perc": "#8EA4E8",
   "avg": "#839BE6",
 }
@@ -33,7 +34,7 @@ const constant_serie_colors = {
 /* ***************************************** */
 
 function getSerieId(serie) {
-	return `${serie.id}`;
+  return `${serie.id}`;
 }
 
 /* ***************************************** */
@@ -45,7 +46,7 @@ function formatSerieColors(palette_list) {
   let colors1 = d3v7.schemeCategory10;
   colors_list.forEach((s, index) => {
     if (s.palette == 0) {
-      if(palette_list.find((element, j) => (element.color === s.color && j !== index))) {
+      if (palette_list.find((element, j) => (element.color === s.color && j !== index))) {
         palette_list[index] = colors0[count0 % colors0.length];
       } else {
         palette_list[index] = s.color;
@@ -62,29 +63,29 @@ function formatSerieColors(palette_list) {
 
 /* Return the formatted serie name */
 function getSerieName(name, id, tsGroup, useFullName) {
-	if (name == null) {
-		name = id;
-	}
-	let name_more_space = "";
-	if (name != null) {
-		name_more_space = `${name}`;
-	}
-	if (useFullName == false) {
-		return name;
-	}
-	let source_index = 0;  
-	let source_def_array = tsGroup.source_type.source_def_array;
-	for (let i = 0; i < source_def_array.length; i += 1) {
-		let source_def = source_def_array[i];
-		if (source_def.main_source_def == true) {
-      source_index = i; 
+  if (name == null) {
+    name = id;
+  }
+  let name_more_space = "";
+  if (name != null) {
+    name_more_space = `${name}`;
+  }
+  if (useFullName == false) {
+    return name;
+  }
+  let source_index = 0;
+  let source_def_array = tsGroup.source_type.source_def_array;
+  for (let i = 0; i < source_def_array.length; i += 1) {
+    let source_def = source_def_array[i];
+    if (source_def.main_source_def == true) {
+      source_index = i;
       break;
     }
-	}
+  }
 
-	let source = tsGroup.source_array[source_index];
-	let prefix = `${source.label}`;
-	return `${prefix} - ${name_more_space}`;
+  let source = tsGroup.source_array[source_index];
+  let prefix = `${source.label}`;
+  return `${prefix} - ${name_more_space}`;
 }
 
 /* *********************************************** */
@@ -125,7 +126,7 @@ function compactSerie(config, ts_info, extra_timeseries, serie, past_serie, scal
   const avg_value = ts_info.statistics["average"];
   const perc_value = ts_info.statistics["95th_percentile"];
   let time = epoch_begin;
-    
+
   /* Now format the timeserie */
   for (let point = 0; point < serie.length; point++) {
     const serie_point = serie[point];
@@ -258,7 +259,7 @@ function formatStandardSerie(timeserie_info, timeserie_options, config, tsCompar
   const max_value = timeserie_info.metric.max_value || null;
   const min_value = timeserie_info.metric.min_value || null;
   const past_serie = timeserie_options.additional_series;
-  
+
   config.value_range = [min_value, max_value];
   config.plotter = getPlotter(chart_type);
   if (!config.stacked) {
@@ -289,7 +290,7 @@ function formatStandardSerie(timeserie_info, timeserie_options, config, tsCompar
 
     /* Add the serie */
     addNewSerie(serie_name, chart_type, { color: metadata.color, palette: 0 }, config)
-    
+
     /* Adding the extra timeseries, 30m ago, avg and 95th */
     if (extra_timeseries?.avg == true) {
       addNewSerie(avg_name, "point", { color: constant_serie_colors["avg"], palette: 1 }, config)
@@ -368,6 +369,57 @@ function formatSingleSerie(timeserie_info, timeserie_options, tsCompare, config)
 
 /* *********************************************** */
 
+function formatSimpleSerie(data, serie_name, chart_type, formatters, value_range) {
+  let counter = 1;
+  const tmp_serie = [];
+  data.serie.forEach((value) => {
+    tmp_serie.push([counter, value]);
+    counter++;
+  });
+
+  /* To not have an error, just add a null value */
+  if(tmp_serie.length == 0) {
+    tmp_serie.push([1, null]);
+  }
+
+  localStorage.setItem(`${serie_name}_x_axis_label`, JSON.stringify(data.labels))
+  const config = {
+    serie: tmp_serie,
+    formatters: formatters,
+    labels: ["index"],
+    colors: [],
+    properties: dygraphConfig.formatSerieProperties(chart_type),
+    stacked: false,
+    customBars: false,
+    use_full_name: false,
+    custom_x_formatter: function (value, granularity, opts, dygraph) {
+      /* Sometimes happens that X values are approximated in DyGraph, e.g. 5 becomes 5.000001
+       * In this case no label is found even if it's present, su round the value before checking the label
+       */
+      if (value != null) {
+        const rounded_value = Number(value.toFixed(4))
+        const serie_name = dygraph.attributes_.labels_[0];
+        const labels_json = localStorage.getItem(`${serie_name}_x_axis_label`)
+        const labels_array = JSON.parse(labels_json);
+        const label = labels_array[rounded_value - 1];
+        if (label)
+          return `<span style="white-space: pre-wrap">${label}</span>`
+
+        return ''
+      }
+    },
+    plotter: getPlotter(chart_type),
+    value_range: value_range,
+    disable_ts_list: true,
+  };
+
+  addNewSerie(serie_name, chart_type, { color: constant_serie_colors["default_color"], palette: 0 }, config)
+  formatSerieColors(config.colors);
+  return dygraphConfig.buildChartOptions(config);
+}
+
+/* *********************************************** */
+
 function formatSerie(tsOptionsArray, tsGroupsArray, tsCompare, useFullName) {
   const config = {
     serie: [],
@@ -399,6 +451,7 @@ function formatSerie(tsOptionsArray, tsGroupsArray, tsCompare, useFullName) {
 const dygraphFormat = function () {
   return {
     formatSerie,
+    formatSimpleSerie,
     getSerieId,
     getSerieName,
   };
