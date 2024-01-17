@@ -295,7 +295,7 @@ CREATE TABLE IF NOT EXISTS `host_alerts` ON CLUSTER '$CLUSTER' (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime
-) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
+) ENGINE = ReplicatedMergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `host_alerts` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS host_pool_id UInt16;
 @
