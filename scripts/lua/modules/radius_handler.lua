@@ -43,10 +43,11 @@ function radius_handler.accountingStart(name, username, password)
         return true
     end
     local ip_address = get_first_ip(name)
-    math.randomseed(os.time())
+    local current_time = os.time()
+    math.randomseed(current_time)
     local session_id = tostring(math.random(100000000000000000, 999999999999999999))
     local accounting_started = interface.radiusAccountingStart(username --[[ Username ]] , name --[[ MAC Address ]] ,
-        session_id, ip_address --[[ First IP Address ]] )
+        session_id, ip_address --[[ First IP Address ]] , current_time)
 
     if accounting_started then
         local json = require("dkjson")
@@ -55,7 +56,8 @@ function radius_handler.accountingStart(name, username, password)
             name = name,
             username = username,
             password = password,
-            session_id = session_id
+            session_id = session_id,
+            start_session_time = current_time
         }
 
         ntop.setCache(key, json.encode(user_data))
@@ -83,16 +85,18 @@ function radius_handler.accountingStop(name, terminate_cause, info)
         local bytes_rcvd = 0
         local packets_sent = 0
         local packets_rcvd = 0
+        local current_time = os.time()
 
         if info then
             bytes_sent = info["bytes.sent"]
             bytes_rcvd = info["bytes.rcvd"]
             packets_sent = info["packets.sent"]
-            packets_rcvd = info["packets.rcvd"]    
+            packets_rcvd = info["packets.rcvd"]
         end
 
-        interface.radiusAccountingStop(user_data.username --[[ Username ]] , user_data.session_id, name --[[ MAC Address]], ip_address,
-            bytes_sent, bytes_rcvd, packets_sent, packets_rcvd, terminate_cause)
+        interface.radiusAccountingStop(user_data.username --[[ Username ]] , user_data.session_id, name --[[ MAC Address]] ,
+            ip_address, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd, terminate_cause,
+            current_time - user_data.start_session_time)
         ntop.delCache(string.format(redis_accounting_key, name))
     end
 end
@@ -109,16 +113,17 @@ function radius_handler.accountingUpdate(name, info)
 
     local is_accounting_on, user_data = radius_handler.isAccountingRequested(name)
     local res = true
-    
+
     if is_accounting_on then
         local ip_address = get_first_ip(name)
         local bytes_sent = info["bytes.sent"]
         local bytes_rcvd = info["bytes.rcvd"]
         local packets_sent = info["packets.sent"]
         local packets_rcvd = info["packets.rcvd"]
+        local current_time = os.time()
 
-        interface.radiusAccountingUpdate(name, user_data.session_id, user_data.username,
-            user_data.password, ip_address, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd)
+        interface.radiusAccountingUpdate(name, user_data.session_id, user_data.username, user_data.password, ip_address,
+            bytes_sent, bytes_rcvd, packets_sent, packets_rcvd, current_time - user_data.start_session_time)
     end
 
     return res

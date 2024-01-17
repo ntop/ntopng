@@ -36,8 +36,7 @@ class Radius {
 
   bool buildConfiguration(rc_handle **rh);
   bool addBasicConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
-                                 u_int32_t status_type, const char *username,
-                                 const char *session_id);
+                                 u_int32_t status_type, RadiusTraffic *info);
   bool addUpdateConfigurationAcct(rc_handle *rh, VALUE_PAIR **send, RadiusTraffic *info);
 
  public:
@@ -48,9 +47,9 @@ class Radius {
 
   bool authenticate(const char *user, const char *password,
                     bool *has_unprivileged_capabilities, bool *is_admin);
-  bool startSession(const char *username, const char *session_id, const char *mac, const char *last_ip);
-  bool stopSession(const char *username, const char *session_id, const char *mac, const char *last_ip, RadiusTraffic *info);
-  bool updateSession(const char *username, const char *session_id, const char *mac, const char *last_ip, RadiusTraffic *info);
+  bool startSession(RadiusTraffic *info);
+  bool stopSession(RadiusTraffic *info);
+  bool updateSession(RadiusTraffic *info);
 };
 
 #endif

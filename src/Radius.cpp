@@ -155,22 +155,53 @@ bool Radius::buildConfiguration(rc_handle **rh) {
  * username and session id */
 bool Radius::addBasicConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
                                        u_int32_t status_type,
-                                       const char *username,
-                                       const char *session_id) {
+                                       RadiusTraffic *info) {
   if (rc_avpair_add(rh, send, PW_ACCT_STATUS_TYPE, &status_type, -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Status Type");
     return false;
   }
 
-  if (rc_avpair_add(rh, send, PW_USER_NAME, username, -1, 0) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set username");
-    return false;
+  if(info->username) {
+    if (rc_avpair_add(rh, send, PW_USER_NAME, info->username, -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set username");
+      return false;
+    }
   }
 
-  if (rc_avpair_add(rh, send, PW_ACCT_SESSION_ID, session_id, -1, 0) == NULL) {
+  if(info->session_id) {
+    if (rc_avpair_add(rh, send, PW_ACCT_SESSION_ID, info->session_id, -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+                                  "Radius: unable to set Session ID");
+      return false;
+    }
+  }
+
+  if(info->last_ip) {
+    u_int32_t addr = ntohl(inet_addr(info->last_ip));
+    if (rc_avpair_add(rh, send, PW_FRAMED_IP_ADDRESS, &(addr), -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set IP Address");
+      return false;
+    }
+  }
+
+  if(info->mac) {
+    if (rc_avpair_add(rh, send, PW_CALLING_STATION_ID, info->mac, -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set MAC Address");
+      return false;
+    }
+  }
+
+  if(info->nas_port_name) {
+    if (rc_avpair_add(rh, send, PW_NAS_PORT_ID_STRING, info->nas_port_name, -1, 0) == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set Nas Port Name");
+      return false;
+    }
+  }
+
+  if (rc_avpair_add(rh, send, PW_NAS_PORT, &(info->nas_port_id), -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Radius: unable to set Session ID");
+                                 "Radius: unable to set Nas Port ID");
     return false;
   }
 
@@ -217,6 +248,12 @@ bool Radius::addUpdateConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
   if (rc_avpair_add(rh, send, PW_ACCT_OUTPUT_OCTETS, &(info->bytes_sent), -1, 0) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: unable to set Bytes Sent");
+    return false;
+  }
+
+  if (rc_avpair_add(rh, send, PW_ACCT_SESSION_TIME, &(info->time), -1, 0) == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+                                 "Radius: unable to set Accounting Session Time");
     return false;
   }
 
@@ -394,7 +431,7 @@ bool Radius::authenticate(const char *user, const char *password,
 
 /* *************************************** */
 
-bool Radius::startSession(const char *username, const char *session_id, const char *mac, const char *last_ip) {
+bool Radius::startSession(RadiusTraffic *info) {
   /* Reset the return */
   bool radius_ret = false;
   rc_handle *rh = NULL;
@@ -405,29 +442,14 @@ bool Radius::startSession(const char *username, const char *session_id, const ch
     goto radius_auth_out;
   }
   
-  if (!addBasicConfigurationAcct(rh, &send, PW_STATUS_START, username, session_id)) {
+  if (!addBasicConfigurationAcct(rh, &send, PW_STATUS_START, info)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
   }
 
-  if(last_ip) {
-    u_int32_t addr = ntohl(inet_addr(last_ip));
-    if (rc_avpair_add(rh, &send, PW_FRAMED_IP_ADDRESS, &(addr), -1, 0) == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set IP Address");
-      return false;
-    }
-  }
-
-  if(mac) {
-    if (rc_avpair_add(rh, &send, PW_CALLING_STATION_ID, mac, -1, 0) == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set MAC Address");
-      return false;
-    }
-  }
-
   ntop->getTrace()->traceEvent(TRACE_DEBUG,
-			       "Radius: performing accounting start for: %s", username);
+			       "Radius: performing accounting start for: %s", info->username);
 
   /* ****************************** */
 
@@ -452,7 +474,7 @@ bool Radius::startSession(const char *username, const char *session_id, const ch
 
 /* *************************************** */
 
-bool Radius::updateSession(const char *username, const char *session_id, const char *mac, const char *last_ip, RadiusTraffic *info) {
+bool Radius::updateSession(RadiusTraffic *info) {
   /* Reset the return */
   bool radius_ret = false;
   rc_handle *rh = NULL;
@@ -465,26 +487,10 @@ bool Radius::updateSession(const char *username, const char *session_id, const c
   }
 
   /* Create the basic configuration, used by the accounting */
-  if (!addBasicConfigurationAcct(rh, &send, PW_STATUS_ALIVE, username,
-                                 session_id)) {
+  if (!addBasicConfigurationAcct(rh, &send, PW_STATUS_ALIVE, info)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
-  }
-
-  if(last_ip) {
-    u_int32_t addr = ntohl(inet_addr(last_ip));
-    if (rc_avpair_add(rh, &send, PW_FRAMED_IP_ADDRESS, &(addr), -1, 0) == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set IP Address");
-      return false;
-    }
-  }
-
-  if(mac) {
-    if (rc_avpair_add(rh, &send, PW_CALLING_STATION_ID, mac, -1, 0) == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set MAC Address");
-      return false;
-    }
   }
 
   /* Add to the dictionary the interim-update data (needed even in the stop) */
@@ -495,7 +501,7 @@ bool Radius::updateSession(const char *username, const char *session_id, const c
   }
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "Radius: performing accounting interim-update for: %s",
-			       username);
+			       info->username);
 
   /* ****************************** */
 
@@ -519,7 +525,7 @@ bool Radius::updateSession(const char *username, const char *session_id, const c
 
 /* *************************************** */
 
-bool Radius::stopSession(const char *username, const char *session_id, const char *mac, const char *last_ip, RadiusTraffic *info) {
+bool Radius::stopSession(RadiusTraffic *info) {
   /* Reset the return */
   bool radius_ret = false;
   rc_handle *rh = NULL;
@@ -532,26 +538,10 @@ bool Radius::stopSession(const char *username, const char *session_id, const cha
   }
 
   /* Create the basic configuration, used by the accounting */
-  if (!addBasicConfigurationAcct(rh, &send, PW_STATUS_STOP,
-				 username, session_id)) {
+  if (!addBasicConfigurationAcct(rh, &send, PW_STATUS_STOP, info)) {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Radius: Accounting Configuration Failed");
     goto radius_auth_out;
-  }
-
-  if(last_ip) {
-    u_int32_t addr = ntohl(inet_addr(last_ip));
-    if (rc_avpair_add(rh, &send, PW_FRAMED_IP_ADDRESS, &(addr), -1, 0) == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set IP Address");
-      return false;
-    }
-  }
-
-  if(mac) {
-    if (rc_avpair_add(rh, &send, PW_CALLING_STATION_ID, mac, -1, 0) == NULL) {
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "Radius: unable to set MAC Address");
-      return false;
-    }
   }
 
   /* Add to the dictionary the interim-update data (needed even in the stop) */
@@ -566,7 +556,7 @@ bool Radius::stopSession(const char *username, const char *session_id, const cha
     }
   }
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Radius: performing accounting stop for: %s", username);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Radius: performing accounting stop for: %s", info->username);
 
   /* ****************************** */
 

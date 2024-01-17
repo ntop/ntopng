@@ -662,25 +662,14 @@ class Ntop {
                                 bool *is_admin) {
     return radiusAcc->authenticate(username, password, has_unprivileged_capabilities, is_admin);
   };
-  inline bool radiusAccountingStart(const char *username,
-                                    const char *session_id,
-                                    const char *mac, 
-                                    const char *last_ip) {
-    return radiusAcc->startSession(username, session_id, mac, last_ip);
+  inline bool radiusAccountingStart(RadiusTraffic *info) {
+    return radiusAcc->startSession(info);
   };
-  inline bool radiusAccountingUpdate(const char *username,
-                                     const char *session_id,
-                                     const char *mac, 
-                                     const char *last_ip,
-                                     RadiusTraffic *info) {
-    return radiusAcc->updateSession(username, session_id, mac, last_ip, info);
+  inline bool radiusAccountingUpdate(RadiusTraffic *info) {
+    return radiusAcc->updateSession(info);
   };
-  inline bool radiusAccountingStop(const char *username,
-                                    const char *session_id, 
-                                    const char *mac, 
-                                    const char *last_ip,
-                                    RadiusTraffic *info) {
-    return radiusAcc->stopSession(username, session_id, mac, last_ip, info);
+  inline bool radiusAccountingStop(RadiusTraffic *info) {
+    return radiusAcc->stopSession(info);
   };
 #endif
 

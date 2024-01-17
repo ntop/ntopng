@@ -2059,27 +2059,35 @@ static int ntop_radius_accounting_start(lua_State *vm) {
 
 #ifdef HAVE_RADIUS
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *mac = NULL, *session_id = NULL, *username = NULL, *last_ip = NULL;
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  RadiusTraffic traffic_data;
+
+  memset(&traffic_data, 0, sizeof(traffic_data));
 
   if (!ntop_interface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   if (lua_type(vm, 1) == LUA_TSTRING)
-    username = (char *)lua_tostring(vm, 1);
+    traffic_data.username = (char *)lua_tostring(vm, 1);
 
   if (lua_type(vm, 2) == LUA_TSTRING)
-    mac = (char *)lua_tostring(vm, 2);
+    traffic_data.mac = (char *)lua_tostring(vm, 2);
 
   if (lua_type(vm, 3) == LUA_TSTRING)
-    session_id = (char *)lua_tostring(vm, 3);
+    traffic_data.session_id = (char *)lua_tostring(vm, 3);
 
   if (lua_type(vm, 4) == LUA_TSTRING)
-    last_ip = (char *)lua_tostring(vm, 4);
+    traffic_data.last_ip = (char *)lua_tostring(vm, 4);
+
+  if (lua_type(vm, 5) == LUA_TSTRING)
+    traffic_data.time = (u_int32_t)lua_tonumber(vm, 5);
+
+  traffic_data.nas_port_name = ntop_interface->get_name();
+  traffic_data.nas_port_id = ntop_interface->get_id();
 
   /* First reset the stats then start the accounting */
-  ntop_interface->resetMacStats(vm, mac, false);
-  res = ntop->radiusAccountingStart(username, session_id, mac, last_ip);
+  ntop_interface->resetMacStats(vm, traffic_data.mac, false);
+  res = ntop->radiusAccountingStart(&traffic_data);
 #endif
 
   lua_pushboolean(vm, res);
@@ -2094,7 +2102,6 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
 
 #ifdef HAVE_RADIUS
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  char *username = NULL, *session_id = NULL, *mac = NULL, *ip_address = NULL;
   RadiusTraffic traffic_data;
 
   memset(&traffic_data, 0, sizeof(traffic_data));
@@ -2105,16 +2112,16 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   if (lua_type(vm, 1) == LUA_TSTRING)
-    username = (char *)lua_tostring(vm, 1);
+    traffic_data.username = (char *)lua_tostring(vm, 1);
 
   if (lua_type(vm, 2) == LUA_TSTRING)
-    session_id = (char *)lua_tostring(vm, 2);
+    traffic_data.session_id = (char *)lua_tostring(vm, 2);
 
   if (lua_type(vm, 3) == LUA_TSTRING)
-    mac = (char *)lua_tostring(vm, 3);
+    traffic_data.mac = (char *)lua_tostring(vm, 3);
 
   if (lua_type(vm, 4) == LUA_TSTRING)
-    ip_address = (char *)lua_tostring(vm, 4);
+    traffic_data.last_ip = (char *)lua_tostring(vm, 4);
 
   if (lua_type(vm, 5) == LUA_TNUMBER)
     traffic_data.bytes_sent = (u_int32_t)lua_tonumber(vm, 5);
@@ -2131,7 +2138,13 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
   if (lua_type(vm, 9) == LUA_TNUMBER)
     traffic_data.terminate_cause = (u_int32_t)lua_tonumber(vm, 9);
 
-  res = ntop->radiusAccountingStop(username, session_id, mac, ip_address, &traffic_data);
+  if (lua_type(vm, 10) == LUA_TNUMBER)
+    traffic_data.time = (u_int32_t)lua_tonumber(vm, 10);
+
+  traffic_data.nas_port_name = ntop_interface->get_name();
+  traffic_data.nas_port_id = ntop_interface->get_id();
+
+  res = ntop->radiusAccountingStop(&traffic_data);
 
 #endif
 
@@ -2161,7 +2174,6 @@ static int ntop_radius_accounting_update(lua_State *vm) {
   bool res = false;
 #ifdef HAVE_RADIUS
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  const char *username = NULL, *session_id = NULL, *ip_address = NULL, *mac = NULL;
   RadiusTraffic traffic_data;
 
   memset(&traffic_data, 0, sizeof(traffic_data));
@@ -2172,13 +2184,13 @@ static int ntop_radius_accounting_update(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   if (lua_type(vm, 1) == LUA_TSTRING)
-    mac = (char *)lua_tostring(vm, 1);
+    traffic_data.mac = (char *)lua_tostring(vm, 1);
 
   if (lua_type(vm, 2) == LUA_TSTRING)
-    session_id = (const char *)lua_tostring(vm, 2);
+    traffic_data.session_id = (char *)lua_tostring(vm, 2);
 
   if (lua_type(vm, 3) == LUA_TSTRING)
-    username = (const char *)lua_tostring(vm, 3);
+    traffic_data.username = (char *)lua_tostring(vm, 3);
 
   /* Unused
   if (lua_type(vm, 4) == LUA_TSTRING)
@@ -2186,21 +2198,27 @@ static int ntop_radius_accounting_update(lua_State *vm) {
   */
 
   if (lua_type(vm, 5) == LUA_TSTRING)
-    ip_address = (const char *)lua_tostring(vm, 5);
+    traffic_data.last_ip = (char *)lua_tostring(vm, 5);
 
   if (lua_type(vm, 6) == LUA_TNUMBER)
-    traffic_data.bytes_sent = (u_int64_t)lua_tonumber(vm, 6);
+    traffic_data.bytes_sent = (u_int32_t)lua_tonumber(vm, 6);
 
   if (lua_type(vm, 7) == LUA_TNUMBER)
-    traffic_data.bytes_rcvd = (u_int64_t)lua_tonumber(vm, 7);
+    traffic_data.bytes_rcvd = (u_int32_t)lua_tonumber(vm, 7);
 
   if (lua_type(vm, 8) == LUA_TNUMBER)
-    traffic_data.packets_sent = (u_int64_t)lua_tonumber(vm, 8);
+    traffic_data.packets_sent = (u_int32_t)lua_tonumber(vm, 8);
 
   if (lua_type(vm, 9) == LUA_TNUMBER)
-    traffic_data.packets_rcvd = (u_int64_t)lua_tonumber(vm, 9);
+    traffic_data.packets_rcvd = (u_int32_t)lua_tonumber(vm, 9);
+
+  if (lua_type(vm, 10) == LUA_TNUMBER)
+    traffic_data.time = (u_int32_t)lua_tonumber(vm, 10);
+
+  traffic_data.nas_port_name = ntop_interface->get_name();
+  traffic_data.nas_port_id = ntop_interface->get_id();
   
-  res = ntop->radiusAccountingUpdate(username, session_id, mac, ip_address, &traffic_data);
+  res = ntop->radiusAccountingUpdate(&traffic_data);
 #endif
 
   lua_pushboolean(vm, res);

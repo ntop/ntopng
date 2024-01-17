@@ -1226,11 +1226,18 @@ typedef struct {
 typedef struct {
   /* All int32 because following the rfc, they use 32 bits */
   /* See: https://datatracker.ietf.org/doc/html/rfc2866 */
+  char *mac;
+  char *last_ip;
+  char *username;
+  char *session_id;
+  char *nas_port_name;
+  u_int32_t nas_port_id;
   u_int32_t bytes_sent;
   u_int32_t bytes_rcvd;
   u_int32_t packets_sent;
   u_int32_t packets_rcvd;
   u_int32_t terminate_cause;
+  u_int32_t time;
 } RadiusTraffic;
 
 typedef enum {
