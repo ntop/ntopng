@@ -6442,8 +6442,10 @@ void Flow::updateFlowShapers(bool first_update) {
       false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
   new_verdict = (cli2srv_verdict && srv2cli_verdict);
 
-  if (ntop->getPrefs()->are_device_protocol_policies_enabled() && cli_host &&
-      srv_host && new_verdict) {
+  if (ntop->getPrefs()->are_device_protocol_policies_enabled() && 
+      cli_host &&
+      srv_host && 
+      new_verdict) {
     /* NOTE: this must be handled differently to only consider actual peers
      * direction */
     if ((cli_host->getDeviceAllowedProtocolStatus(ndpiDetectedProtocol,
@@ -6451,8 +6453,16 @@ void Flow::updateFlowShapers(bool first_update) {
          device_proto_allowed) ||
         (srv_host->getDeviceAllowedProtocolStatus(
              ndpiDetectedProtocol, false /* server */) != device_proto_allowed)) {
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s Device Protocol Policies -> DROP", __FUNCTION__);
       new_verdict = false;
     }
+  }
+
+  if (!new_verdict) {
+    /* Always allow network critical protocols */
+    if (Utils::isCriticalNetworkProtocol(ndpiDetectedProtocol.master_protocol) ||
+        Utils::isCriticalNetworkProtocol(ndpiDetectedProtocol.app_protocol))
+      new_verdict = true;
   }
 
   /* Set the new verdict */
