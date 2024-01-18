@@ -639,7 +639,8 @@ void Ntop::start() {
               multicastForwarder->start();
               multicastForwarders.push_back(multicastForwarder);
             } else {
-              ntop->getTrace()->traceEvent(TRACE_ERROR, "Error occured instantiating forwarder on IP %s Port %d", ip.c_str(), port);
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "Error occured instantiating forwarder on IP %s Port %d",
+					   ip.c_str(), port);
             }
           }
         }
@@ -666,7 +667,9 @@ void Ntop::start() {
 
   Utils::setThreadName("ntopng-main");
 
-  while ((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
+  globals->setInitialized(); /* We're ready to go */
+  
+  while((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
     const u_int32_t nap_usec = ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
 
     gettimeofday(&begin, NULL);
@@ -689,7 +692,7 @@ void Ntop::start() {
 				   (float)usec_diff / 1e6);
 
     if (usec_diff < nap_usec) _usleep(nap_usec - usec_diff);
-  }
+  } 
 }
 
 /* ******************************************* */

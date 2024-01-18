@@ -25,7 +25,7 @@
 #include "ntop_includes.h"
 
 class NtopGlobals {
-  bool is_shutdown, shutdown_requested, do_decode_tunnels;
+  bool is_shutdown, shutdown_requested, do_decode_tunnels, is_initialized;
   time_t start_time;
   Trace *trace;
   u_int16_t file_id;
@@ -34,10 +34,10 @@ class NtopGlobals {
   NtopGlobals();
   ~NtopGlobals();
 
-  inline u_int getUptime() const {
-    return ((u_int)(time(NULL) - start_time + 1));
-  };
-  inline Trace *getTrace() const { return (trace); };
+  inline u_int getUptime() const { return ((u_int)(time(NULL) - start_time + 1)); };
+  inline void  setInitialized()  { is_initialized = true; }
+  inline bool  isInitialized()   { return(is_initialized); }
+  inline Trace* getTrace() const { return (trace); };
   inline bool decode_tunnels() const { return (do_decode_tunnels); };
   inline bool isShutdown() const { return (is_shutdown); };
   inline bool isShutdownRequested() const { return (shutdown_requested); };
