@@ -323,7 +323,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
               const value = Number(this.value);
 
               /* Incorrect value, text danger class! */
-              if(value < min_value || value > max_value) {
+              if(value < min_value || (max_value != 0  && value > max_value)) {
                 this.classList.add('text-danger');
                 this.classList.add('ntopng-input-error');
                 $("#]] print("input_error_" .. key) print[[").removeAttr('hidden');
