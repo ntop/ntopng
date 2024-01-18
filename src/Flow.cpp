@@ -6453,7 +6453,6 @@ void Flow::updateFlowShapers(bool first_update) {
          device_proto_allowed) ||
         (srv_host->getDeviceAllowedProtocolStatus(
              ndpiDetectedProtocol, false /* server */) != device_proto_allowed)) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s Device Protocol Policies -> DROP", __FUNCTION__);
       new_verdict = false;
     }
   }
