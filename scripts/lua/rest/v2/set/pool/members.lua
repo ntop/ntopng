@@ -84,8 +84,11 @@ for member, info in pairs(_POST["associations"] or {}) do
 
     if connectivity == "pass" then
         if s:bind_member(member, pool_id) == true then
+            local current_interface = interface.getId() or -1 -- System Interface
             res["associations"][member]["status"] = "OK"
+            interface.select(tostring(interface.getFirstInterfaceId()))
             radius_handler.accountingStart(member, username, password)
+            interface.select(current_interface) 
         else
             res["associations"][member]["status"] = "ERROR"
             res["associations"][member]["status_msg"] = "Failure adding member, maybe bad member MAC or IP"
