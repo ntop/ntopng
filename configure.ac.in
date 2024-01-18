@@ -5,6 +5,12 @@ AC_CONFIG_MACRO_DIR([m4])
 HERE=`pwd`
 SYSTEM=`uname -s`
 
+if test "${with_sanitizer+set}" = set || "${with_leak_sanitizer+set}" = set; then
+  # Setting debug flags in CFLAGS/CXXFLAGS to avoid AC_PROG_CPP add -O2
+  CFLAGS="-g -O0"
+  CXXFLAGS="-g -O0"
+fi
+
 AC_PROG_CPP
 AC_PROG_CXX
 
@@ -12,16 +18,16 @@ PKG_PROG_PKG_CONFIG
 
 AC_ARG_WITH(leak-sanitizer,     [  --with-leak-sanitizer   Build with support for the LLVM address leak and sanitizer])
 AS_IF([test "${with_leak_sanitizer+set}" = set],[
-    CFLAGS="${CFLAGS} -g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
-    CXXFLAGS="${CXXFLAGS} -g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
+    CFLAGS="${CFLAGS} -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
+    CXXFLAGS="${CXXFLAGS} -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak -fno-omit-frame-pointer"
     LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fsanitize=leak"
     USE_CLANG=yes
 ])
 
 AC_ARG_WITH(sanitizer,     [  --with-sanitizer   Build with support for the LLVM address sanitizer])
 AS_IF([test "${with_sanitizer+set}" = set],[
-    CFLAGS="${CFLAGS} -g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
-    CXXFLAGS="${CXXFLAGS} -g -O0 -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
+    CFLAGS="${CFLAGS} -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
+    CXXFLAGS="${CXXFLAGS} -Wall -Wno-unused-value -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment -fno-omit-frame-pointer"
     LDFLAGS="${LDFLAGS} -fsanitize=address -fsanitize=undefined -fno-sanitize=alignment"
     USE_CLANG=yes
 ])
