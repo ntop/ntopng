@@ -40,6 +40,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
   delete_pcap_when_done = _delete_pcap_when_done;
   memset(pcap_handle, 0, sizeof(pcap_handle));
   memset(pcap_ifaces, 0, sizeof(pcap_ifaces));
+  memset(ifname_indexes, 0, sizeof(ifname_indexes));
   num_ifaces = 0, pcap_list = NULL;
   memset(&last_pcap_stat, 0, sizeof(last_pcap_stat));
   emulate_traffic_directions = false;
