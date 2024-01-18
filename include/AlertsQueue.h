@@ -31,7 +31,7 @@ class AlertsQueue {
   NetworkInterface *iface;
 
   void pushAlertJson(ndpi_serializer *alert, const char *atype,
-                     const char *a_subtype = NULL);
+                     const char *a_subtype = NULL, AlertCategory alert_category = alert_category_network);
 
  public:
   AlertsQueue(NetworkInterface *iface);

@@ -33,10 +33,11 @@ AlertsQueue::AlertsQueue(NetworkInterface *_iface) { iface = _iface; }
  * free(tlv);
  */
 void AlertsQueue::pushAlertJson(ndpi_serializer *alert, const char *atype,
-                                const char *a_subtype) {
+                                const char *a_subtype, AlertCategory alert_category) {
   /* These are mandatory fields, present in all the pushed alerts */
   ndpi_serialize_string_uint32(alert, "ifid", iface->get_id());
   ndpi_serialize_string_string(alert, "alert_id", atype);
+  ndpi_serialize_string_uint32(alert, "alert_category", alert_category);
   if (a_subtype && a_subtype[0] != '\0')
     ndpi_serialize_string_string(alert, "subtype", a_subtype);
   ndpi_serialize_string_uint64(alert, "tstamp", time(NULL));
@@ -179,7 +180,7 @@ void AlertsQueue::pushLoginTrace(const char *user, bool authorized) {
     ndpi_serialize_string_string(tlv, "scope", "login");
     ndpi_serialize_string_string(tlv, "user", user);
 
-    pushAlertJson(tlv, authorized ? "user_activity" : "login_failed");
+    pushAlertJson(tlv, authorized ? "user_activity" : "login_failed", NULL, alert_category_system);
   }
 }
 
@@ -200,6 +201,6 @@ void AlertsQueue::pushNfqFlushedAlert(int queue_len, int queue_len_pct,
     ndpi_serialize_string_int32(tlv, "pct", queue_len_pct);
     ndpi_serialize_string_int32(tlv, "dropped", queue_dropped);
 
-    pushAlertJson(tlv, "nfq_flushed");
+    pushAlertJson(tlv, "nfq_flushed", NULL, alert_category_system);
   }
 }
