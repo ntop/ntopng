@@ -66,7 +66,7 @@ function barChartPlotter(e) {
     const p = points[i];
     const center_x = p.canvasx;
     const current_value = p.yval;
-    ctx.fillStyle = getColor(current_value, max_value, default_color);
+    ctx.fillStyle = getColor(Math.abs(current_value), Math.abs(max_value), default_color);
     ctx.fillRect(center_x - bar_width / 2, p.canvasy,
       bar_width, y_bottom - p.canvasy);
     ctx.strokeRect(center_x - bar_width / 2, p.canvasy,

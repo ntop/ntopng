@@ -503,6 +503,11 @@ async function on_change_map_search() {
 
 }
 
+function search_value(value) {
+    map_search.value = value; /* Add the new value */
+    on_change_map_search();
+}
+
 function copy_query_into_clipboard($event) {
     NtopUtils.copyToClipboard(query_info.value.query, query_info_sql_button.value);
 }
@@ -515,7 +520,7 @@ function get_rows_num() {
     return total_rows.value;
 }
 
-defineExpose({ load_table, refresh_table, get_columns_defs, get_rows_num });
+defineExpose({ load_table, refresh_table, get_columns_defs, get_rows_num, search_value });
 
 </script>
 

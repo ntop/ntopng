@@ -16,7 +16,6 @@ function getDefaultConfig() {
     includeZero: true,
     drawPoints: true,
     highlightSeriesBackgroundAlpha: 0.7,
-    customXFormatter: null,
     highlightSeriesOpts: {
       strokeWidth: 2,
       pointSize: 3,
@@ -24,7 +23,9 @@ function getDefaultConfig() {
     },
     axisLabelFontSize: 12,
     axes: {
-      x: {}
+      x: {
+        axisLabelWidth: 90
+      }
     },
   };
 }
@@ -97,8 +98,8 @@ function buildChartOptions(options) {
   config.valueRange = options.value_range;
   config.highlightSeriesBackgroundColor = highlight_color;
   config.colors = interpolated_colors;
-  config.customXFormatter = options.custom_x_formatter;
   config.disableTsList = options.disable_ts_list;
+  config.yRangePad = options.yRangePad || 1;
 
   /* Change the plotter */
   if (options.plotter) {

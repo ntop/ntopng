@@ -4,7 +4,7 @@
         <DateTimeRangePicker style="margin-top:0.5rem;" class="ms-1" :id="id_date_time_picker" :enable_refresh="false"
             ref="date_time_picker" @epoch_change="epoch_change" :custom_time_interval_list="time_preset_list">
         </DateTimeRangePicker>
-        <div class="m-2 mb-5">
+        <div class="m-2 mt-0" style="margin-bottom: ;">
             <TimeseriesChart ref="chart" :id="chart_id" :chart_type="chart_type" :base_url_request="base_url"
                 :get_custom_chart_options="get_chart_options" :register_on_status_change="false"
                 :disable_pointer_events="false">
@@ -16,11 +16,16 @@
                 @custom_event="on_table_custom_event">
             </TableWithConfig>
         </div>
+
+        <div class="card-footer">
+            <NoteList :note_list="note_list"> </NoteList>
+        </div>
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { default as NoteList } from "./note-list.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
@@ -49,6 +54,7 @@ const time_preset_list = [
     { value: "custom", label: i18n('show_alerts.presets.custom'), currently_active: false, disabled: true, },
 ];
 
+const serie_name = "Congestion";
 const table_snmp_usage = ref(null);
 const date_time_picker = ref(null);
 const table_id = ref('snmp_usage');
@@ -59,6 +65,13 @@ const chart = ref(null);
 const chart_type = ref(ntopChartApex.typeChart.TS_LINE);
 const base_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/metric/usage_chart.lua`
 let id_date_time_picker = "date_time_picker";
+
+const note_list = [
+    i18n('snmp.chart_congestion_rate_note'),
+    i18n('snmp.chart_congestion_link'),
+    i18n('snmp.chart_congestion_configuration'),
+    i18n('snmp.chart_congestion_rate_color'),
+];
 
 /* ************************************** */
 
@@ -85,6 +98,9 @@ const map_table_def_columns = (columns) => {
             return formatter(value);
         },
         "last_value": (value, row) => {
+            return formatter(value);
+        },
+        "congestion_rate": (value, row) => {
             return formatter(value);
         }
     };
@@ -134,6 +150,9 @@ function columns_sorting(col, r0, r1) {
             const lower_value = -1;
             return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort, lower_value);
         } else if (col.id == "average") {
+            const lower_value = -1;
+            return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort, lower_value);
+        } else if (col.id == "congestion_rate") {
             const lower_value = -1;
             return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort, lower_value);
         } else if (col.id == "last_value") {
@@ -206,18 +225,52 @@ async function get_chart_options() {
         epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
     }
 
-    result = await ntopng_utility.http_post_request(base_url, post_params)
+    result = await ntopng_utility.http_post_request(base_url, post_params);
     /* Format the result in the format needed by Dygraph */
-    const config = timeseriesUtils.formatSimpleSerie(result, "Congestion", "bar", ["percentage"], [0, 100]);
+    const config = timeseriesUtils.formatSimpleSerie(result, serie_name, "bar", ["percentage"], [0, 100]);
 
     /* Custom options for this chart */
-    config.title = '<div class="mb-2">' + i18n('snmp.top_congested_devices') + '</div>';
+    config.title = '<div style="font-size:18px;">' + i18n('snmp.top_congested_devices') + '</div>';
+    config.titleHeight = 48;
     config.axes.y.axisLabelWidth = 40;
-    config.xAxisHeight = 8;
-    config.axes.x.axisLabelWidth = 100;
+    config.xAxisHeight = 6;
+    config.axes.x.axisLabelWidth = 120;
     config.axes.x.pixelsPerLabel = 20;
-    config.xRangePad = 80;
-    config.yRangePad = 1;
+    config.xRangePad = 50;
+
+    localStorage.setItem(`${serie_name}_x_axis_label`, JSON.stringify(result.labels));
+    localStorage.setItem(`${serie_name}_metadata`, JSON.stringify(result.metadata));
+    config.axes.x.axisLabelFormatter = function (value, granularity, opts, dygraph) {
+        return ''
+    };
+
+    config.axes.x.valueFormatter = function (value, granularity, opts, dygraph) {
+        /* Sometimes happens that X values are approximated in DyGraph, e.g. 5 becomes 5.000001
+         * In this case no label is found even if it's present, su round the value before checking the label
+         */
+        if (value != null) {
+            const rounded_value = Number(value.toFixed(4))
+            const labels_json = localStorage.getItem(`${serie_name}_x_axis_label`)
+            const labels_array = JSON.parse(labels_json);
+            const label = labels_array[rounded_value - 1];
+            if (label)
+                return `<span style="white-space: pre-wrap">${label}</span>`
+
+            return ''
+        }
+    };
+
+    config.clickCallback = function (e, x, points) {
+        // table_snmp_usage.value.search_value(x);
+        const rounded_value = Number(x.toFixed(4))
+        const metadata_json = localStorage.getItem(`${serie_name}_metadata`)
+        const metadata_array = JSON.parse(metadata_json);
+        const metadata = metadata_array[rounded_value - 1];
+        if (metadata) {
+            click_button_timeseries({ row: metadata });
+        }
+    }
+
     return config;
 }
 
@@ -230,3 +283,10 @@ onMounted(async () => {
 });
 
 </script>
+
+<style scoped>
+.dygraph-axis-label.dygraph-axis-label-x {
+    font-size: 12px;
+    transform: rotate(-90deg) translate(-20px, 0);
+}
+</style>

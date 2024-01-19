@@ -101,18 +101,15 @@ export default {
 				chart_options = await this.$props.get_custom_chart_options(url_request);
 			}
 			/* Set the date depending on the server date */
-			if (chart_options.customXFormatter == null) {
+			if (!chart_options?.axes?.x?.axisLabelFormatter) {
 				chart_options.axes.x.axisLabelFormatter = function (date) {
 					return ntopng_utility.from_utc_to_server_date_format(date, date_format);
 				};
+			}
+			if (!chart_options?.axes.x?.valueFormatter) {
 				chart_options.axes.x.valueFormatter = function (date) {
 					return ntopng_utility.from_utc_to_server_date_format(date, date_format);
 				};
-				chart_options.axes.x.axisLabelWidth = 90;
-    		chart_options.yRangePad = 1;
-			} else {
-				chart_options.axes.x.axisLabelFormatter = chart_options.customXFormatter;
-				chart_options.axes.x.valueFormatter = chart_options.customXFormatter;
 			}
 			/* Emit the chart_reloaded event */
 			this.$emit('chart_reloaded', chart_options);
@@ -159,4 +156,31 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+.dygraph-legend {
+  color: #111111;
+  background-color: #FFFFFF !important;
+  border-color: #a7a6a6;
+  border-style: solid;
+  border-width: thin;
+  z-index: 80 !important;
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+  border-radius: 0.375rem;
+  position: fixed;
+  width: auto;
+  word-wrap: break-word;
+  padding: 8px !important;
+}
+
+.dygraph-legend>span {
+  color: #111111;
+  padding-left: 5px;
+  padding-right: 2px;
+  margin-left: -5px;
+  background-color: #FFFFFF !important;
+}
+
+.dygraph-legend>span:first-child {
+  margin-top: 2px;
+}
+</style>

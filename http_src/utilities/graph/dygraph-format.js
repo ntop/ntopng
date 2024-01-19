@@ -382,7 +382,6 @@ function formatSimpleSerie(data, serie_name, chart_type, formatters, value_range
     tmp_serie.push([1, null]);
   }
 
-  localStorage.setItem(`${serie_name}_x_axis_label`, JSON.stringify(data.labels))
   const config = {
     serie: tmp_serie,
     formatters: formatters,
@@ -392,22 +391,6 @@ function formatSimpleSerie(data, serie_name, chart_type, formatters, value_range
     stacked: false,
     customBars: false,
     use_full_name: false,
-    custom_x_formatter: function (value, granularity, opts, dygraph) {
-      /* Sometimes happens that X values are approximated in DyGraph, e.g. 5 becomes 5.000001
-       * In this case no label is found even if it's present, su round the value before checking the label
-       */
-      if (value != null) {
-        const rounded_value = Number(value.toFixed(4))
-        const serie_name = dygraph.attributes_.labels_[0];
-        const labels_json = localStorage.getItem(`${serie_name}_x_axis_label`)
-        const labels_array = JSON.parse(labels_json);
-        const label = labels_array[rounded_value - 1];
-        if (label)
-          return `<span style="white-space: pre-wrap">${label}</span>`
-
-        return ''
-      }
-    },
     plotter: getPlotter(chart_type),
     value_range: value_range,
     disable_ts_list: true,

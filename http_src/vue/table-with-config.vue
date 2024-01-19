@@ -106,7 +106,11 @@ const get_rows_num = () => {
     return table.value.get_rows_num();
 }
 
-defineExpose({ refresh_table, get_columns_defs, get_rows_num });
+const search_value = (value) => {
+    table.value.search_value(value);
+}
+
+defineExpose({ refresh_table, get_columns_defs, get_rows_num, search_value });
 
 </script>
 

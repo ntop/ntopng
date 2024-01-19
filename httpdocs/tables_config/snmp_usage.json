@@ -82,6 +82,14 @@
 			]
 		},
 		{
+			"title_i18n": "page_stats.congestion_rate",
+			"data_field": "congestion_rate",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "page_stats.min",
 			"data_field": "min",
 			"sortable": true,
