@@ -75,7 +75,10 @@ function alert_snmp_interface_threshold_crossed.format(ifid, alert, alert_type_p
   if alert_type_params.metric_type == "Throughput" then
     value = bitsToSize(alert_type_params.value)
   end
-  
+  if (type(value) == "table") then
+    -- usage case
+    value = string.format("(%s/%s)", tostring(round(value.downlink,1)) .. '%', tostring(round(value.uplink, 1))..'%')
+  end
   return(i18n("alerts_dashboard.snmp_device_interface_threshold_crossed_alert_description", {
     device = alert_type_params.device,
     interface_name = alert_type_params.interface_name,

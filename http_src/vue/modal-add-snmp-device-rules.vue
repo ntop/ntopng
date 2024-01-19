@@ -4,19 +4,7 @@
   <template v-slot:title>{{title}}</template>
   <template v-slot:body>
     <!-- Target information, here an IP is put -->
-  <div class="form-group ms-2 me-2 mt-3 row">
-
-  <label class="col-form-label col-sm-2">
-    <b>{{ _i18n("if_stats_config.add_rules_type") }}</b>
-  </label>
-    <div class="col-sm-10">
-	  <div class="btn-group btn-group-toggle" data-bs-toggle="buttons">
-	    <label class="btn " :class="[rule_type == 'snmp'?'btn-primary active':'btn-secondary']">
-	      <input  class="btn-check" type="radio" name="rule_type" value="snmp" @click="set_rule_type('snmp')"> {{ _i18n("if_stats_config.add_rules_type_snmp") }}
-	    </label>
-	  </div>
-	</div>
-  </div>
+ 
 
     <div class="form-group ms-2 me-2 mt-3 row">
 	    <label class="col-form-label col-sm-2" >
@@ -129,7 +117,7 @@
         </template>
       </div>
     </div>
-      <template v-if="metric_type.id == 'percentage'">
+      <template v-if="selected_snmp_device_metric.id != 'usage' && metric_type.id == 'percentage'">
         <div class="message alert alert-warning mt-3">
           {{ _i18n("show_alerts.host_rules_percentage") }}
         </div>
@@ -137,13 +125,13 @@
   </template>
   <template v-slot:footer>
     <NoteList
-    :note_list="note_list">
+    :note_list="note_list" :add_sub_notes="true" :sub_note_list="sub_notes_list">
     </NoteList>
     <template v-if="is_edit_page == false">
-    <button type="button" @click="add_" class="btn btn-primary"  :disabled="disable_add && rule_type == 'Host'">{{_i18n('add')}}</button>
+    <button type="button" @click="add_" class="btn btn-primary"  >{{_i18n('add')}}</button>
     </template>
     <template v-else>
-    <button type="button" @click="edit_" class="btn btn-primary"  :disabled="disable_add && rule_type == 'Host'">{{_i18n('apply')}}</button>
+    <button type="button" @click="edit_" class="btn btn-primary" >{{_i18n('apply')}}</button>
     </template>
   </template>
 </modal>
@@ -196,9 +184,12 @@ const note_list = [
   _i18n('if_stats_config.note_snmp_device_rules.note_2'),
   _i18n('if_stats_config.note_snmp_device_rules.note_3'),
   _i18n('if_stats_config.note_3'),
-  _i18n('if_stats_config.note_4'),
-  _i18n('if_stats_config.note_5')
+  _i18n('if_stats_config.note_4')
 ]
+
+const sub_notes_list = [
+  _i18n('if_stats_config.note_5')
+];
 
 const metric_type_list = ref([
   { title: _i18n('volume'), label: _i18n('volume'), id: 'volume', active: true },
@@ -261,40 +252,38 @@ function reset_radio_selection(radio_array) {
  * Reset fields in modal form 
  */
 const reset_modal_form = async function() {
-  if (!is_edit_page.value) {
 
-    host.value = "";
-    selected_metric.value = snmp_metric_list.value[0];
-    selected_snmp_device.value = null;
-    selected_snmp_device.value = snmp_devices_list.value[0];
-    change_interfaces();
+  host.value = "";
+  selected_metric.value = snmp_metric_list.value[0];
+  selected_snmp_device.value = null;
+  selected_snmp_device.value = snmp_devices_list.value[0];
+  change_interfaces();
 
-    selected_snmp_device_metric.value = snmp_metric_list.value[0];
-    change_active_threshold()
-    
-    selected_frequency.value = frequency_list.value[0];
-    metric_type.value = metric_type_list.value[0];
+  selected_snmp_device_metric.value = snmp_metric_list.value[0];
+  change_active_threshold()
+  
+  selected_frequency.value = frequency_list.value[0];
+  metric_type.value = metric_type_list.value[0];
 
-    // reset metric_type_list
-    metric_type_list.value.forEach((t) => t.active = false);
-    metric_type_list.value[0].active = true;
-    
-    reset_radio_selection(volume_threshold_list.value);
-    reset_radio_selection(throughput_threshold_list.value);
-    reset_radio_selection(sign_threshold_list.value);
+  // reset metric_type_list
+  metric_type_list.value.forEach((t) => t.active = false);
+  metric_type_list.value[0].active = true;
+  
+  reset_radio_selection(volume_threshold_list.value);
+  reset_radio_selection(throughput_threshold_list.value);
+  reset_radio_selection(sign_threshold_list.value);
 
-    rule_type.value = "snmp";
+  rule_type.value = "snmp";
 
-    disable_add.value = true;
-    enable_interfaces.value = false;
+  disable_add.value = true;
+  enable_interfaces.value = false;
 
-    threshold.value.value = 1;
-  }
+  threshold.value.value = 1;
+  is_edit_page.value = false;
+  title = _i18n('if_stats_config.add_host_rules_title');
+
 }
 
-const set_rule_type = (type) => {
-    rule_type.value = type;
-}
 
 
 
@@ -303,7 +292,6 @@ const set_rule_type = (type) => {
  * Set row to edit 
  */
 const set_row_to_edit = (row) => {
-
   if(row != null) {
     is_edit_page.value = true;
     title = _i18n('if_stats_config.edit_host_rules_title');
@@ -358,7 +346,8 @@ const set_row_to_edit = (row) => {
     } else {
 
       //percentage case
-      threshold.value.value = row.threshold;
+      threshold.value.value = row.threshold * row.threshold_sign;
+
     }
     change_active_threshold();
     metric_type_active_list.value.forEach((item) => {
@@ -383,17 +372,15 @@ const set_row_to_edit = (row) => {
 
     change_interfaces(row.device_port);
   
-    
   }
 }
 
 const show = (row) => {
-  if(row != null)
+  if(row != null) {
     set_row_to_edit(row);
-  else
+  } else {
     reset_modal_form();
-
-  
+  }
   modal_id.value.show();
 };
 
@@ -466,7 +453,7 @@ async function change_interfaces(interface_id) {
 function change_active_threshold() {
   let list_metrics_active = [];
   let list_sign_active = []
-  if(selected_snmp_device_metric.value.id == 'packets' ) {
+  if(selected_snmp_device_metric.value.id == 'packets'  || selected_snmp_device_metric.value.id == 'usage') {
     metric_type_list.value.forEach((t) => {
       if(t.id != 'percentage')
         t.active = false;
@@ -508,8 +495,8 @@ function change_active_threshold() {
  */
 const add_ = (is_edit) => {
   let tmp_host = ''
-  if(rule_type.value == 'snmp')
-    tmp_host = host.value;
+  rule_type.value = 'snmp';
+  tmp_host = host.value;
 
   const tmp_frequency = selected_frequency.value.id;
   const tmp_metric = selected_snmp_device_metric.value.id;

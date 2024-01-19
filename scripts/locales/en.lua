@@ -7367,6 +7367,7 @@ local lang = {
       ["bytes"] = "Bytes (RX/TX)",
       ["errors"] = "Errors (Packets Errors + Discards)",
       ["packets"] = "Packets (RX/TX)",
+      ["usage"] = "Usage (RX/TX)"
     },
     ["validation"] = {
       ["abort_add_snmp_devices"] = "Abort add new SNMP Device?",

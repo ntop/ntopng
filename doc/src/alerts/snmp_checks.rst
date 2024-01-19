@@ -36,22 +36,6 @@ The alert is sent when an interface error is seen.
 *Enabled by Default*
 
 
-**Interface Avg Usage Threshold**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Checks if the threshold for port in or out traffic (avg) usage is being respected.
-
-Port exhaustion occurs when a node runs out of available ports. After an application stops using a specific port, it enters a "time-wait state" before becoming available for use by another application.
-
-When the average usage of in or out traffic exceeds the configured limit, it is dropped.
-
-The alert is triggered when the threshold is exceeded.
-
-*Category: SNMP*
-
-*Disabled by Default*
-
-
 **Interface Errors Exceeded**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
