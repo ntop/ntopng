@@ -1130,6 +1130,44 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     -- #####################
 
+    function printOTProtocols() 
+
+        print('<form method="post">')
+        print('<table class="table">')
+
+        -- ######################
+
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.ot_protocols") ..
+                  '</th></tr></thead>')
+        -- By default 1 hour of learning
+        prefsInputFieldPrefs(subpage_active.entries["iec60870_learning_period"].title,
+            subpage_active.entries["iec60870_learning_period"].description, "ntopng.prefs.", "iec60870_learning_period",
+            prefs.iec60870_learning_period or 3600, "number", nil, nil, nil, {
+                min = 21600,
+                tformat = "hd"
+            })
+
+        -- By default 6 hours of learning
+        prefsInputFieldPrefs(subpage_active.entries["modbus_learning_period"].title,
+            subpage_active.entries["modbus_learning_period"].description, "ntopng.prefs.", "modbus_learning_period",
+            prefs.modbus_learning_period or 21600, "number", is_behaviour_analysis_enabled, nil, nil, {
+                min = 3600,
+                tformat = "hd"
+            })
+
+        print(
+        '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+            i18n("save") .. '</button></th></tr>')
+
+        print('</table>')
+        print [[<input name="csrf" type="hidden" value="]]
+        print(ntop.getRandomCSRFValue())
+        print [[" />]]
+        print('</form>')
+    end
+
+    -- #####################
+
     function printNetworkBehaviour()
         local LEARNING_STATUS = { -- Keep it in sync with ntop_typedefs.h ServiceAcceptance
             ALLOWED = "0",
@@ -1142,7 +1180,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         -- ######################
 
-        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.traffic_behaviour") ..
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.service_map") ..
                   '</th></tr></thead>')
         -- Behavior analysis for asn, network and l7proto (iface)
 
@@ -1174,21 +1212,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             "ntopng.prefs.behaviour_analysis_learning_status_post_learning", false, {}, nil, nil,
             is_behaviour_analysis_enabled --[[show]] )
 
-        -- By default 1 hour of learning
-        prefsInputFieldPrefs(subpage_active.entries["iec60870_learning_period"].title,
-            subpage_active.entries["iec60870_learning_period"].description, "ntopng.prefs.", "iec60870_learning_period",
-            prefs.iec60870_learning_period or 3600, "number", nil, nil, nil, {
-                min = 21600,
-                tformat = "hd"
-            })
-
-        -- By default 6 hours of learning
-        prefsInputFieldPrefs(subpage_active.entries["modbus_learning_period"].title,
-            subpage_active.entries["modbus_learning_period"].description, "ntopng.prefs.", "modbus_learning_period",
-            prefs.modbus_learning_period or 21600, "number", is_behaviour_analysis_enabled, nil, nil, {
-                min = 3600,
-                tformat = "hd"
-            })
+        
 
         -- #####################
 
@@ -2127,6 +2151,10 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     if (tab == "traffic_behaviour") then
         printNetworkBehaviour()
+    end
+
+    if (tab == "ot_protocols") then
+        printOTProtocols()
     end
 
     if (tab == "misc") then

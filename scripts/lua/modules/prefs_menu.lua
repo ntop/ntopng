@@ -100,14 +100,7 @@ local menu_subpages = { {
             title = i18n("prefs.behaviour_analysis_status_post_learning_title"),
             description = i18n("prefs.behaviour_analysis_status_post_learning_description")
         },
-        iec60870_learning_period = {
-            title = i18n("prefs.iec60870_learning_period_title"),
-            description = i18n("prefs.iec60870_learning_period_description")
-        },
-        modbus_learning_period = {
-            title = i18n("prefs.modbus_learning_period_title"),
-            description = i18n("prefs.modbus_learning_period_description")
-        },
+        
         devices_learning_period = {
             title = i18n("prefs.devices_learning_period_title"),
             description = i18n("prefs.devices_learning_period_description")
@@ -377,6 +370,21 @@ local menu_subpages = { {
         toggle_dst_with_post_nat_dst = {
             title = i18n("prefs.toggle_dst_with_post_nat_dst_title"),
             description = i18n("prefs.toggle_dst_with_post_nat_dst_description")
+        }
+    }
+},{
+    id = "ot_protocols",
+    label = i18n("prefs.ot_protocols"),
+    advanced = true,
+    hidden = false,
+    entries = {
+        iec60870_learning_period = {
+            title = i18n("prefs.iec60870_learning_period_title"),
+            description = i18n("prefs.iec60870_learning_period_description")
+        },
+        modbus_learning_period = {
+            title = i18n("prefs.modbus_learning_period_title"),
+            description = i18n("prefs.modbus_learning_period_description")
         }
     }
 },{

@@ -49,7 +49,7 @@
           </TableWithConfig>
         </div>
       </div>
-      <div class="card-footer">
+      <div class="card-footer mt-3">
         <button type="button" @click="delete_all_confirm"  class="btn btn-danger me-1">
           <i class='fas fa-trash'></i> {{ _i18n("edit_check.delete_all_device_exclusions") }}
         </button>
@@ -57,8 +57,12 @@
           <i class='fas fa-edit'></i> {{ _i18n("edit_check.edit_all_devices_status") }}
         </button>
       </div>
-    </div>
+          
   </div>
+  <NoteList :note_list="notes_list" add_sub_notes="true" 
+                    :sub_note_list="sub_notes_list"> 
+          </NoteList>
+    </div>
 </div>
 </template>
 
@@ -67,6 +71,7 @@ import  TableWithConfig  from "./table-with-config.vue";
 import  ModalDeleteConfirm  from "./modal-delete-confirm.vue";
 import  ModalAddDeviceExclusion  from "./modal-add-device-exclusion.vue";
 import  ModalEditDeviceExclusion  from "./modal-edit-device-exclusion.vue";
+import { default as NoteList } from "./note-list.vue";
 import { ref, onMounted } from "vue";
 
 
@@ -109,6 +114,14 @@ const rest_params = {
   ifid: props.context.ifid
 };
 
+const notes_list = [
+  _i18n("edit_check.device_exclusion_page_notes.note_1")
+];
+
+const sub_notes_list = [
+  _i18n("edit_check.device_exclusion_page_notes.sub_note_1"),
+  _i18n("edit_check.device_exclusion_page_notes.sub_note_2")
+];
 
 /* ******************************************************************** */ 
 
@@ -363,10 +376,13 @@ const map_table_def_columns = async (columns) => {
     "status": (status, row) => {
       //<span class="badge bg-success" title="${label}">${label}</span>
       //<span class="badge bg-danger" title="${label}">${label}</span>
-      const label = _i18n(status);
+      //const label = _i18n(status);
+      let label = "";
       if (status == "allowed") {
+        label = _i18n("edit_check.authorized");
         return `<span class="badge bg-success" title="${label}">${label}</span>`
       } else {
+        label = _i18n("edit_check.unauthorized");
         return `<span class="badge bg-danger" title="${label}">${label}</span>`
       }
 
