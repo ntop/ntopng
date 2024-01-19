@@ -42,6 +42,8 @@
         <a v-bind:href="get_url" class="btn btn-primary" role="button" aria-disabled="true"  download="periodicity_map.json" target="_blank"><i class="fas fa-download"></i></a>
       </div>
     </div>
+    <NoteList :note_list="notes"> </NoteList>
+
   </div>
 </div>
 </template>
@@ -50,11 +52,13 @@
 import { default as Datatable } from "./datatable.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 import { ntopng_url_manager } from '../services/context/ntopng_globals_services';
+import NoteList from "./note-list.vue";
 
 export default {
   components: {	  
     'datatable': Datatable,
     'modal-delete-confirm': ModalDeleteConfirm,
+    NoteList
   },
   props: {
     page_csrf: String,
@@ -87,6 +91,7 @@ export default {
       body_delete: i18n('map_page.delete_services_message'),
       title_download: i18n('map_page.download'),
       body_download: i18n('map_page.download_message'),
+      notes: [i18n('map_page.table_note_periodicity_map')],
       get_url: null,
     };
   },

@@ -71,6 +71,8 @@
         <a v-bind:href="get_url" class="btn btn-primary" role="button" aria-disabled="true"  download="service_map.json" target="_blank"><i class="fas fa-download"></i></a>
       </div>
     </div>
+    <NoteList :note_list="notes"> </NoteList>
+
   </div>
 </div>
 </template>
@@ -81,6 +83,8 @@ import { default as TabList } from "./tab-list.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 import { ntopng_events_manager, ntopng_url_manager } from '../services/context/ntopng_globals_services';
 import { ntopng_map_manager } from '../utilities/map/ntopng_vis_network_utils';
+import NoteList from "./note-list.vue";
+
 const change_service_table_tab_event = "change_service_table_tab_event";
 
 export default {
@@ -88,6 +92,7 @@ export default {
     'datatable': Datatable,
     'modal-delete-confirm': ModalDeleteConfirm,
     'tab-list': TabList,
+    NoteList
   },
   props: {
     page_csrf: String,
@@ -133,6 +138,7 @@ export default {
       body_delete: i18n('map_page.delete_services_message'),
       get_url: null,
       service_table_tab: null,
+      notes: [i18n('map_page.table_note_service_map')],
       tab_list: [
         { 
           title: i18n('map_page.standard_view'),

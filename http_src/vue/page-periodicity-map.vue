@@ -54,6 +54,8 @@
             download="periodicity_map.json" target="_blank"><i class="fas fa-download"></i></a>
         </div>
       </div>
+      <NoteList :note_list="notes"> </NoteList>
+
     </div>
   </div>
 </template>
@@ -64,6 +66,8 @@ import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 import { default as ModalAutolayoutConfirm } from "./modal-autolayout-confirm.vue";
 import { default as SelectSearch } from "./select-search.vue"
 import { ntopng_events_manager } from '../services/context/ntopng_globals_services';
+import NoteList from "./note-list.vue";
+
 const change_filter_event = "change_filter_event";
 
 export default {
@@ -72,6 +76,7 @@ export default {
     'modal-delete-confirm': ModalDeleteConfirm,
     'modal-autolayout-confirm': ModalAutolayoutConfirm,
     'select-search': SelectSearch,
+    NoteList
   },
   props: {
     page_csrf: String,
@@ -149,7 +154,9 @@ export default {
       title_autolayout: i18n('map_page.autolayout_services'),
       body_autolayout: i18n('map_page.autolayout_services_message'),
       no_services_message: i18n('map_page.no_services'),
-      max_entry_title: i18n('max_entries_reached'),
+      max_entry_title: i18n('max_entries_reached'),      
+      notes: [i18n('map_page.graph_note_periodicity_map')]
+
     };
   },
   methods: {
