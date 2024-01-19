@@ -3,7 +3,7 @@
 	"data_url": "lua/pro/rest/v2/get/snmp/metric/usage.lua",
 	"use_current_page": false,
 	"enable_search": true,
-	"paging": false,
+	"paging": true,
 	"display_empty_rows": true,
 	"default_sort": {
 		"column_id": "device",
@@ -78,7 +78,8 @@
 			"data_field": "speed",
 			"sortable": true,
 			"class": [
-				"text-nowrap"
+				"text-nowrap",
+				"text-center"
 			]
 		},
 		{
@@ -86,7 +87,8 @@
 			"data_field": "congestion_rate",
 			"sortable": true,
 			"class": [
-				"text-nowrap"
+				"text-nowrap",
+				"text-end"
 			]
 		},
 		{
@@ -94,7 +96,8 @@
 			"data_field": "min",
 			"sortable": true,
 			"class": [
-				"text-nowrap"
+				"text-nowrap",
+				"text-end"
 			]
 		},
 		{
@@ -102,7 +105,8 @@
 			"data_field": "max",
 			"sortable": true,
 			"class": [
-				"text-nowrap"
+				"text-nowrap",
+				"text-end"
 			]
 		},
 		{
@@ -110,7 +114,8 @@
 			"data_field": "average",
 			"sortable": true,
 			"class": [
-				"text-nowrap"
+				"text-nowrap",
+				"text-end"
 			]
 		},
 		{
@@ -118,7 +123,8 @@
 			"data_field": "last_value",
 			"sortable": true,
 			"class": [
-				"text-nowrap"
+				"text-nowrap",
+				"text-end"
 			]
 		}
 	]

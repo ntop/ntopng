@@ -78,6 +78,14 @@ const note_list = [
 const map_table_def_columns = (columns) => {
     const formatter = formatterUtils.getFormatter("percentage");
     let map_columns = {
+        "ip": (value, row) => {
+            const url = `${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?ip=${value}`
+            return `<a href=${url}>${value}</a>`
+        },
+        "interface": (value, row) => {
+            const url = `${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${row.ip}&snmp_port_idx=${row.ifid}`
+            return `<a href=${url}>${value}</a>`
+        },
         "type": (type, row) => {
             if (type == 'uplink') {
                 return `${i18n('uplink_usage')} <i class="fa-solid fa-circle-arrow-up" style="color: #C6D9FD"></i>`
@@ -168,7 +176,7 @@ function columns_sorting(col, r0, r1) {
 
 async function epoch_change() {
     if (table_snmp_usage.value) {
-        table_snmp_usage.value.refresh_table();
+        table_snmp_usage.value.refresh_table(false);
     }
 
     if (chart.value) {
@@ -223,6 +231,7 @@ async function get_chart_options() {
         ifid: system_interface_id,
         epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
         epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
+        host: ntopng_url_manager.get_url_entry("host"),
     }
 
     result = await ntopng_utility.http_post_request(base_url, post_params);

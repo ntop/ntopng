@@ -44,7 +44,7 @@ const types = {
         id: "speed",
         um: ["bit", "Kbit", "Mbit", "Gbit", "Tbit", "Pbit"],
         step: 1000,
-        decimal: 2,
+        decimal: 0,
         scale_values: null,
         absolute_value: true,
     },

@@ -7210,7 +7210,7 @@ local lang = {
     ["cpuIdle"] = "CPU Idle",
     ["cpuSystem"] = "CPU System",
     ["cpuUser"] = "CPU User",
-    ["chart_congestion_rate_note"] = "The chart shows the congestion rate of the various Interfaces (In and Out separated). Calculated by dividing the number of points with usage higher than 74% and the number of total points",
+    ["chart_congestion_rate_note"] = "The chart shows the congestion rate of the various Interfaces (In and Out separated). Calculated by dividing the number of points with usage higher or equal than 75% and the number of total points",
     ["chart_congestion_link"] = "By clicking on a bar of the chart or by clicking on the Actions (table) -> Timeseries, a user can jump directly to the interested Timeseries",
     ["chart_congestion_configuration"] = "The usage of an Interface is based on the Traffic captured by SNMP and Interface Speed configured (by default the one seen by SNMP), to change the Interface Speed click on the Actions (table) -> Configuration",
     ["chart_congestion_rate_color"] = "Each bar in the chart can have 4 different colors: <br><div class='d-inline-flex justify-content' style='background-color: rgb(144, 238, 144); height: 8px; width: 8px;'></div>: Congestion rate between 0 and 24<br><div class='d-inline-flex justify-content' style='background-color: rgb(25, 135, 84); height: 8px; width: 8px;'></div>: Congestion rate between 25 and 49<br><div class='d-inline-flex justify-content' style='background-color: rgb(255, 193, 7); height: 8px; width: 8px;'></div>: Congestion rate between 50 and 74<br><div class='d-inline-flex justify-content' style='background-color: rgb(220, 53, 69); height: 8px; width: 8px;'></div>: Congestion rate between 75 and 100",
