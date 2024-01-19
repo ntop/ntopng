@@ -5178,20 +5178,26 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data,
 
     switch (retriever->sorter) {
     case column_client:
-      if (f->getInterface()->isViewed())
-	retriever->elems[retriever->actNumEntries++].ipValue =
-	  (IpAddress *)f->get_cli_ip_addr();
-      else
-	retriever->elems[retriever->actNumEntries++].hostValue =
-	  f->get_cli_host();
+      if (f->getInterface()->isViewed()) {
+        if(f->get_cli_ip_addr())
+	  retriever->elems[retriever->actNumEntries++].ipValue =
+	    (IpAddress *)f->get_cli_ip_addr();
+      } else {
+        if(f->get_cli_host())
+	  retriever->elems[retriever->actNumEntries++].hostValue =
+	    f->get_cli_host();
+      }
       break;
     case column_server:
-      if (f->getInterface()->isViewed())
-	retriever->elems[retriever->actNumEntries++].ipValue =
-	  (IpAddress *)f->get_srv_ip_addr();
-      else
-	retriever->elems[retriever->actNumEntries++].hostValue =
-	  f->get_srv_host();
+      if (f->getInterface()->isViewed()) {
+        if(f->get_srv_ip_addr())
+	  retriever->elems[retriever->actNumEntries++].ipValue =
+	    (IpAddress *)f->get_srv_ip_addr();
+      } else {
+        if(f->get_srv_host())
+	  retriever->elems[retriever->actNumEntries++].hostValue =
+	    f->get_srv_host();
+      }
       break;
     case column_vlan:
       retriever->elems[retriever->actNumEntries++].numericValue =
@@ -5991,8 +5997,8 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot, bool walk_all,
   walker(begin_slot, walk_all, walker_flows, flow_search_walker,
          (void *)retriever);
 
-  qsort(retriever->elems, retriever->actNumEntries,
-        sizeof(struct flowHostRetrieveList), sorter);
+  qsort(retriever->elems /* base */, retriever->actNumEntries /* num members */,
+        sizeof(struct flowHostRetrieveList) /* size */, sorter /* compare func */);
 
   return (retriever->actNumEntries);
 }
