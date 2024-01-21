@@ -63,8 +63,8 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
   const char *bpfFilter = "arp && arp[6:2] = 2";  
 
   if (pcap_compile(pd, &fcode, bpfFilter, 1, 0xFFFFFF00) == 0) {
-    pcap_setfilter(pd, &fcode);
-    throw("Unable to set ARP filter for Network Discovery");
+    if(pcap_setfilter(pd, &fcode) != 0)
+      throw("Unable to set ARP filter for Network Discovery");
   }
 
   /* Open UDP socket */
