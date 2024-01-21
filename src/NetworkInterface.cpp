@@ -418,7 +418,7 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   NDPI_BITMASK_SET_ALL(all);
   ndpi_set_protocol_detection_bitmask2(ndpi_s, &all);
 
-  rc = ndpi_set_config(ndpi_s, NULL, "flow.track_payload.enable", "1");
+  rc = ndpi_set_config(ndpi_s, NULL, "flow.track_payload", "enable");
   if (rc != NDPI_CFG_OK) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Error ndpi_set_config: %d", rc);
     exit(-1);
