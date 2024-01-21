@@ -245,7 +245,7 @@ static int ntop_shutdown(lua_State *vm) {
 
 static int ntop_is_shuttingdown(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-			      
+
   lua_pushboolean(vm, ntop->getGlobals()->isShutdownRequested());
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
@@ -304,7 +304,7 @@ static int ntop_setDomainMask(lua_State *vm) {
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  
+
   domain = lua_tostring(vm, 1);
 
   rc = ntop->getSystemInterface()->setDomainMask(domain, 0 /* mask all */);
@@ -322,7 +322,7 @@ static int ntop_addTrustedIssuerDN(lua_State *vm) {
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  
+
   dn = lua_tostring(vm, 1);
 
   rc = ntop->getSystemInterface()->addTrustedIssuerDN(dn);
@@ -1536,7 +1536,7 @@ static int ntop_zmq_connect(lua_State *vm) {
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  
+
 #ifdef HAVE_ZMQ
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
@@ -2377,7 +2377,7 @@ static int ntop_reset_user_password(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   ret = ntop->resetUserPassword(username, old_password, new_password);
-  
+
   lua_pushboolean(vm, ret);
   return CONST_LUA_OK;
 }
@@ -3026,14 +3026,14 @@ void lua_push_str_len_table_entry(lua_State *L, const char *key,
       memcpy(v, value, len);
       v[len] = 0;
     }
-    
+
     lua_pushstring(L, key);
     if(v != NULL) {
       lua_pushstring(L, v);
       free(v);
     } else
       lua_pushstring(L, value);
-    
+
     lua_settable(L, -3);
   }
 }
@@ -3551,10 +3551,10 @@ static int ntop_system_host_stat(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   lua_newtable(vm);
-  
+
   if (ntop->getCPULoad(&cpu_load))
     lua_push_float_table_entry(vm, "cpu_load", cpu_load);
-  
+
   Utils::luaMeminfo(vm);
 
   for (int i = -1; i < ntop->get_num_interfaces(); i++) {
@@ -3748,6 +3748,7 @@ static int ntop_get_info(lua_State *vm) {
 #ifndef FORCE_VALID_LICENSE
     time_t until_then;
     int days_left;
+
     if (ntop->getPro()->get_maintenance_expiration_time(&until_then,
                                                         &days_left)) {
       lua_push_uint64_table_entry(vm, "pro.license_ends_at",
@@ -3785,8 +3786,12 @@ static int ntop_get_info(lua_State *vm) {
     snprintf(rsp, sizeof(rsp), "%d.%d.%d", major, minor, patch);
     lua_push_str_table_entry(vm, "version.zmq", rsp);
 #endif
-#endif  
+#endif
   }
+
+#ifdef NTOPNG_PRO
+  ntop->getPro()->lua(vm);
+#endif
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
@@ -5231,13 +5236,13 @@ static int ntop_get_hash_redis(lua_State *vm) {
 
   if ((rsp = (char *)malloc(json_len)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
-  
+
   lua_pushfstring(vm, "%s",
 		  (redis->hashGet(key, member, rsp, json_len-1) == 0)
 		  ? rsp
 		  : (char *)"");
   free(rsp);
-  
+
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -6906,11 +6911,11 @@ static int ntop_recipient_register(lua_State *vm) {
   bool skip_alerts = false;
   Bitmap128 enabled_categories, enabled_host_pools, enabled_entities,
     enabled_flow_checks, enabled_host_checks;
-    
+
   /* All flow checks enabled by default */
   for (int i = 0; i < MAX_DEFINED_FLOW_ALERT_TYPE; i++)
     enabled_flow_checks.setBit(i);
-    
+
   /* All host checks enabled by default */
   for (int i = 0; i < NUM_DEFINED_HOST_CHECKS; i++)
     enabled_host_checks.setBit(i);
@@ -7028,7 +7033,7 @@ static int ntop_exec_cmd(lua_State *vm) {
   char *cmd;
   std::string out;
   bool rc;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
@@ -7040,7 +7045,7 @@ static int ntop_exec_cmd(lua_State *vm) {
 
   if(rc)
     lua_pushstring(vm, out.c_str());
-  
+
   return (ntop_lua_return_value(vm, __FUNCTION__, rc ? CONST_LUA_OK : CONST_LUA_ERROR));
 }
 
@@ -7051,7 +7056,7 @@ static int ntop_exec_cmd_async(lua_State *vm) {
   u_int32_t id;
   bool rc;
   JobQueue *jq = ntop->getJobsQueue();
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
@@ -7060,12 +7065,12 @@ static int ntop_exec_cmd_async(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
   rc = jq->queueJob(cmd, &id);
-  
+
   if(rc)
     lua_pushnumber(vm, (lua_Number)id);
   else
     lua_pushnil(vm);
-  
+
   return (ntop_lua_return_value(vm, __FUNCTION__, rc ? CONST_LUA_OK : CONST_LUA_ERROR));
 }
 
@@ -7076,7 +7081,7 @@ static int ntop_read_result_cmd_async(lua_State *vm) {
   bool rc;
   JobQueue *jq = ntop->getJobsQueue();
   std::string out;
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
@@ -7085,12 +7090,12 @@ static int ntop_read_result_cmd_async(lua_State *vm) {
     id = (u_int32_t)lua_tonumber(vm, 1);
 
   rc = jq->getJobResult(id, &out);
-  
+
   if(rc)
     lua_pushstring(vm, out.c_str());
   else
     lua_pushnil(vm);
-  
+
   return (ntop_lua_return_value(vm, __FUNCTION__, rc ? CONST_LUA_OK : CONST_LUA_ERROR));
 }
 
@@ -7381,12 +7386,12 @@ static luaL_Reg _ntop_reg[] = {
     {"setOnline", ntop_set_online},
     {"isShuttingDown", ntop_is_shutting_down},
     {"limitResourcesUsage", ntop_limit_resources_usage},
-    
+
     /* Execute commands */
     {"execCmd", ntop_exec_cmd},
     {"execCmdAsync", ntop_exec_cmd_async},
     {"readResultCmdAsync", ntop_read_result_cmd_async},
-    
+
     /* Redis */
     {"getCacheStatus", ntop_info_redis},
     {"getCache", ntop_get_redis},
@@ -7645,7 +7650,7 @@ static luaL_Reg _ntop_reg[] = {
     {"loadMaliciousJA3Signatures", ntop_loadMaliciousJA3Signatures},
     {"setDomainMask", ntop_setDomainMask},
     {"addTrustedIssuerDN", ntop_addTrustedIssuerDN},
-      
+
     /* Privileges */
     {"gainWriteCapabilities", ntop_gainWriteCapabilities},
     {"dropWriteCapabilities", ntop_dropWriteCapabilities},
@@ -7759,7 +7764,7 @@ static luaL_Reg _ntop_reg[] = {
     /* Blacklists */
     {"getBlacklistStats",   ntop_get_bl_stats},
     {"resetBlacklistStats", ntop_reset_bl_stats},
-    
+
     /* ClickHouse */
     {"isClickHouseEnabled", ntop_clickhouse_enabled},
     {"importClickHouseDumps", ntop_clickhouse_import_dumps},
