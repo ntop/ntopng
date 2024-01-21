@@ -403,12 +403,12 @@ u_int16_t NetworkInterface::getnDPIProtoByName(const char *name) {
 /* ********************** */
 
 struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
-  struct ndpi_detection_module_struct *ndpi_s =
-    ndpi_init_detection_module();
+  struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module();
   ndpi_port_range d_port[MAX_DEFAULT_PORTS];
   NDPI_PROTOCOL_BITMASK all;
   ndpi_cfg_error rc;
-
+  const char* ndpi_key = "flow.track_payload";
+  
   if (ndpi_s == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
     exit(-1);
@@ -418,10 +418,9 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   NDPI_BITMASK_SET_ALL(all);
   ndpi_set_protocol_detection_bitmask2(ndpi_s, &all);
 
-  rc = ndpi_set_config(ndpi_s, NULL, "flow.track_payload.enable", "1");
+  rc = ndpi_set_config(ndpi_s, NULL, ndpi_key, "1");
   if (rc != NDPI_CFG_OK) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error ndpi_set_config: %d", rc);
-    exit(-1);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error ndpi_set_config(%s): %d", ndpi_key, rc);
   }
 
   if (ntop->getCustomnDPIProtos() != NULL)
