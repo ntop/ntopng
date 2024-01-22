@@ -277,7 +277,7 @@ end
 
 function snmpDeviceUrl(snmp_device)
    if showSnmpUrl(snmp_device) then
-      return ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_device)
+      return string.format(getHttpHost() .. ntop.getHttpPrefix() .. "/lua/pro/enterprise/snmp_device_details.lua?host=%s", snmp_device)
    end
 
    return "#"
@@ -287,7 +287,7 @@ end
 
 function snmpIfaceUrl(snmp_device, interface_idx)
    if showSnmpUrl(snmp_device) then
-      return ntop.getHttpPrefix()..string.format("/lua/pro/enterprise/snmp_interface_details.lua?host=%s&snmp_port_idx=%d", snmp_device, interface_idx)
+      return string.format(getHttpHost() .. ntop.getHttpPrefix().."/lua/pro/enterprise/snmp_interface_details.lua?host=%s&snmp_port_idx=%d", snmp_device, interface_idx)
    end
 
    return "#"
