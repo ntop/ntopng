@@ -31,7 +31,7 @@ local resources_used = {
     cpu = {
       load = round(system_host_stats["cpu_load"], 2),
       states = {
-        iowait_percentage = formatValue(system_host_stats["cpu_states"]["iowait"])
+        iowait_percentage = formatValue(system_host_stats["cpu_states"]["iowait"]),
         active_percentage = round(formatValue(system_host_stats["cpu_states"]["user"] + system_host_stats["cpu_states"]["system"] + system_host_stats["cpu_states"]["nice"] + system_host_stats["cpu_states"]["irq"] + system_host_stats["cpu_states"]["softirq"] + system_host_stats["cpu_states"]["guest"] + system_host_stats["cpu_states"]["guest_nice"]), 2),
         idle_percentage = round(formatValue(system_host_stats["cpu_states"]["idle"] + system_host_stats["cpu_states"]["steal"]), 2),
       }
