@@ -643,6 +643,7 @@ int LuaEngine::load_script(char *script_path,
 int LuaEngine::run_loaded_script() {
   int rv = 0;
 
+  ntop->getTrace()->traceEvent(TRACE_INFO, "Running %s", loaded_script_path);
   if (!loaded_script_path) return (-1);
 
   /* Copy the lua_chunk to be able to possibly run it again next time */
@@ -652,8 +653,7 @@ int LuaEngine::run_loaded_script() {
     getLuaVMUservalue(L, capabilities) = (u_int64_t)-1; /* All set */
 
   /* Perform the actual call */
-  if (lua_pcall(L, 0, LUA_MULTRET /* Allow the script to be called multiple times */,
-                0) != 0) {
+  if (lua_pcall(L, 0, LUA_MULTRET /* Allow the script to be called multiple times */, 0) != 0) {
     if (lua_type(L, -1) == LUA_TSTRING) {
       const char *err = lua_tostring(L, -1);
 
@@ -666,7 +666,8 @@ int LuaEngine::run_loaded_script() {
     rv = -2;
   }
 
-  lua_pop(L, 1);
+ // lua_pop(L, 1);
+  lua_settop(L, 0);
 
   return (rv);
 }
@@ -1447,6 +1448,8 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
   else
 #endif
     rc = luaL_dofile(L, script_path);
+
+   lua_settop(L, 0);
 
   if (rc != 0) {
     const char *err = lua_tostring(L, -1);
