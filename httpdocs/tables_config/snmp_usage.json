@@ -90,42 +90,6 @@
 				"text-nowrap",
 				"text-end"
 			]
-		},
-		{
-			"title_i18n": "page_stats.min",
-			"data_field": "min",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
-		},
-		{
-			"title_i18n": "page_stats.max",
-			"data_field": "max",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
-		},
-		{
-			"title_i18n": "page_stats.average",
-			"data_field": "average",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
-		},
-		{
-			"title_i18n": "page_stats.last_value",
-			"data_field": "last_value",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
 		}
 	]
 }
