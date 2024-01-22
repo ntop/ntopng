@@ -5852,6 +5852,8 @@ int hostSorter(const void *_a, const void *_b) {
   struct flowHostRetrieveList *a = (struct flowHostRetrieveList *)_a;
   struct flowHostRetrieveList *b = (struct flowHostRetrieveList *)_b;
 
+  if (!a || !b) return (true);
+
   return (a->hostValue->compare(b->hostValue));
 }
 
@@ -5890,6 +5892,8 @@ int numericSorter(const void *_a, const void *_b) {
   struct flowHostRetrieveList *a = (struct flowHostRetrieveList *)_a;
   struct flowHostRetrieveList *b = (struct flowHostRetrieveList *)_b;
 
+  if (!a || !b) return (true);
+
   if (a->numericValue < b->numericValue)
     return (-1);
   else if (a->numericValue > b->numericValue)
@@ -5901,6 +5905,8 @@ int numericSorter(const void *_a, const void *_b) {
 int stringSorter(const void *_a, const void *_b) {
   struct flowHostRetrieveList *a = (struct flowHostRetrieveList *)_a;
   struct flowHostRetrieveList *b = (struct flowHostRetrieveList *)_b;
+  
+  if (!a || !b || !a->stringValue || !b->stringValue) return (true);
 
   return (strcasecmp(a->stringValue, b->stringValue));
 }
