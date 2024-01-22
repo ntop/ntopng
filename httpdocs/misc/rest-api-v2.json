@@ -12525,6 +12525,21 @@
         }
       }
     },
+    "/lua/rest/v2/get/system/status.lua" : {
+      "get":{
+        "tags": ["Health"],
+        "summary": "Get system status info",
+        "description": "Get license information and resources used data",
+        "operationId": "get_system_status",
+        "produces": ["application/json"],
+        "parameters": [],
+        "responses": {
+          "0" : {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/timeseries/ts.lua": {
       "get": {
         "tags": [
