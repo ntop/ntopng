@@ -21,6 +21,7 @@ These blog posts explain in detail how SNMP monitoring in ntopng works, and what
 
     configuration
     monitoring
+    usage
     similarity
     topology
     alerts
