@@ -65,6 +65,8 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
   if (pcap_compile(pd, &fcode, bpfFilter, 1, 0xFFFFFF00) == 0) {
     if(pcap_setfilter(pd, &fcode) != 0)
       throw("Unable to set ARP filter for Network Discovery");
+  } else {
+    throw("Failure compiling ARP filter for Network Discovery");
   }
 
   /* Open UDP socket */
