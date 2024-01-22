@@ -505,7 +505,10 @@ function ts_utils.timeseries_query_top(options)
         end
 
         -- Find the top items
-        top_items = driver:timeseries_top(options, top_tags)
+        local topk_heuristic = ntop.getPref("ntopng.prefs.topk_heuristic_precision")
+        if (topk_heuristic ~= 'disabled') then
+            top_items = driver:timeseries_top(options, top_tags)
+        end
     end
 
     return top_items
