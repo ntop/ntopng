@@ -1708,8 +1708,16 @@ void Host::offlineSetNetbiosName(const char *netbios_n) {
 /* *************************************** */
 
 void Host::offlineSetTLSName(const char *tls_n) {
-  if (!isValidHostName(tls_n)) return;
-
+  if((!isValidHostName(tls_n)) || isLocalHost()) {
+     /*
+       As in TLS we cannot check if the connection reported
+       some mismatches we do not set TLS names for local hosts
+       that are more subject to naming errors, and that whose
+       name could be set via other protocols
+     */    
+    return;
+  }
+  
   if (!names.tls && tls_n && (names.tls = Utils::toLowerResolvedNames(tls_n))) {
 #ifdef NTOPNG_PRO
     ntop->get_am()->setResolvedName(this, label_tls, names.tls);
