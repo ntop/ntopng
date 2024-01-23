@@ -49,6 +49,12 @@ page_utils.print_navbar(title, url,
 			      page_name = "internals",
 			      label = "<i class=\"fas fa-lg fa-wrench\"></i>",
 			   },
+			   {
+			      hidden = not info.ntopcloud,
+			      active = page == "ntopcloud",
+			      page_name = "ntopcloud",
+			      label = "<i class=\"fas fa-lg fa-cloud\"></i>",
+			   },
 			}
 )
 
@@ -185,6 +191,33 @@ elseif(page == "historical" and ts_creation) then
    graph_utils.drawNewGraphs({ ifid = interface.getId()})
 elseif page == "internals" then
    internals_utils.printInternals(getSystemInterfaceId(), false --[[ hash tables ]], true --[[ periodic activities ]], true --[[ checks]], true --[[ queues --]])
+elseif page == "ntopcloud" then
+   local cloud = info.ntopcloud
+
+   if(cloud ~= nil) then
+      local stats = cloud.stats
+      
+      print [[
+      <div class='table-responsive-lg table-responsive-md'>
+      <table class="table table-bordered table-striped">
+      ]]
+   
+      print("<tr><th>Account Id</th><td nowrap>".. cloud.account_id .."</td></tr>\n")
+      print("<tr><th>Instance Name</th><td nowrap>".. cloud.my_topic .."</td></tr>\n")
+      print("<tr><th>Cloud Node</th><td nowrap>".. cloud.ntopcloud.server .." [")
+      if(cloud.ntopcloud.use_tls) then print("TLS") else print("PlainText") end print("]</td></tr>\n")
+      print("<tr><th colspan=2>Connections</th></tr>\n")
+      print("<tr><th>First Connected</th><td nowrap>".. format_utils.formatEpoch(stats.first_connect) .."</td></tr>\n")
+      print("<tr><th>Last Connected</th><td nowrap>".. format_utils.formatEpoch(stats.last_connect) .."</td></tr>\n")
+      print("<tr><th colspan=2>Message Statistics</th></tr>\n")
+      print("<tr><th>Connect</th><td nowrap>".. format_utils.formatValue(stats.num_connect) .."</td></tr>\n")
+      print("<tr><th>Disconnect</th><td nowrap>".. format_utils.formatValue(stats.num_disconnect) .."</td></tr>\n")
+      print("<tr><th>Ping</th><td nowrap>".. format_utils.formatValue(stats.num_ping) .."</td></tr>\n")
+      print("<tr><th>Subscribe</th><td nowrap>".. format_utils.formatValue(stats.num_subscribe) .."</td></tr>\n")
+      print("<tr><th>Errors</th><td nowrap>".. format_utils.formatValue(stats.num_errors) .."</td></tr>\n")
+      
+      print("</table>\n")
+   end
 end
 
 -- #######################################################
