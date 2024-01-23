@@ -322,7 +322,7 @@ async function load_top_table_details(top, top_index) {
 async function load_top_table_array(action, top) {
     // top_table.value = [];
     const url_params = ntopng_url_manager.get_url_params();
-    const url = `${http_prefix}/lua/pro/rest/v2/get/${page}/alert/top.lua?${url_params}&action=${action}`;
+    const url = `${props.context.endpoint_cards}?${url_params}&action=${action}`;
     let res = await ntopng_utility.http_request(url);
     return res.map((t) => {
         return {
