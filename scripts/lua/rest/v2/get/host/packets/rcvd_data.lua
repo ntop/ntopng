@@ -11,9 +11,8 @@ local stats_utils = require "stats_utils"
 local graph_utils = require "graph_utils"
 
 -- Local variables
-local host_ip = _GET["host"]
-local vlan = _GET["vlan"]
-local host_stats = interface.getHostInfo(host_ip, vlan) or {}
+local host = hostkey2hostinfo(_GET["host"])
+local host_stats = interface.getHostInfo(host.host, host.vlan)
 local total = 0
 local rsp = {
     labels = {},

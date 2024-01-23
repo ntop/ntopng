@@ -14,10 +14,10 @@ local rest_utils = require "rest_utils"
 
 local ifid        = _GET["ifid"] or interface.getId()
 local host_ip     = _GET["host"]
-local host_vlan   = _GET["vlan"] or 0
+local host = hostkey2hostinfo(_GET["host"])
 interface.select(tostring(ifid))
 
-local host = interface.getHostInfo(host_ip, host_vlan)
+host = interface.getHostInfo(host.host, host.vlan)
 local total_bytes_rcvd = 0
 local total_bytes_sent = 0
 local colors = {}
