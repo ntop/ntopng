@@ -8,7 +8,7 @@
 	"default_sort": {
 		"column_id": "device",
 		"sort": 0
-		},
+	},
 	"columns": [
 		{
 			"id": "actions",
@@ -74,17 +74,44 @@
 			]
 		},
 		{
-			"title_i18n": "if_stats_config.interface_speed",
-			"data_field": "speed",
+			"title_i18n": "page_stats.congestion_rate",
+			"data_field": "congestion_rate",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
-				"text-center"
+				"text-end"
 			]
 		},
 		{
-			"title_i18n": "page_stats.congestion_rate",
-			"data_field": "congestion_rate",
+			"title_i18n": "page_stats.min",
+			"data_field": "min",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "page_stats.max",
+			"data_field": "max",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "page_stats.average",
+			"data_field": "average",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "page_stats.last_value",
+			"data_field": "last_value",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
