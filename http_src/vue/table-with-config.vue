@@ -94,7 +94,9 @@ function rows_loaded(res) {
 }
 
 const refresh_table = (disable_loading) => {
-    table.value.refresh_table(disable_loading);
+    if(table.value) {
+        table.value.refresh_table(disable_loading);
+    }
 }
 
 const get_columns_defs = () => {

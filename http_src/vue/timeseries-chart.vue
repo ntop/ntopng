@@ -123,7 +123,7 @@ export default {
 			this.timeseries_list = [];
 			let visibility = [];
 			let id = 0;
-			if(!chart_options.disableTsList) {
+			if (!chart_options.disableTsList) {
 				for (const key in chart_options.series) {
 					this.timeseries_list.push({ name: key, checked: true, id: id, color: chart_options.colors[id] + "!important" });
 					id = id + 1;
@@ -133,15 +133,21 @@ export default {
 			this.chart = new Dygraph(this.$refs["chart"], data, chart_options);
 		},
 		update_chart: async function (url_request) {
-			let chart_options = await this.get_chart_options(url_request);
-			this.chart.updateChart(chart_options);
+			if (this.chart) {
+				let chart_options = await this.get_chart_options(url_request);
+				this.chart.updateChart(chart_options);
+			}
 		},
 		update_chart_options: function (chart_options) {
-			this.chart.updateChart(chart_options);
+			if (this.chart) {
+				this.chart.updateChart(chart_options);
+			}
 		},
 		update_chart_series: function (series) {
 			if (series == null) { return; }
-			this.chart.updateOptions({ 'file': series });
+			if (this.chart) {
+				this.chart.updateOptions({ 'file': series });
+			}
 		},
 		on_zoomed: function (minDate, maxDate) {
 			this.from_zoom = true;
@@ -158,29 +164,29 @@ export default {
 
 <style>
 .dygraph-legend {
-  color: #111111;
-  background-color: #FFFFFF !important;
-  border-color: #a7a6a6;
-  border-style: solid;
-  border-width: thin;
-  z-index: 80 !important;
-  box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
-  border-radius: 0.375rem;
-  position: fixed;
-  width: auto;
-  word-wrap: break-word;
-  padding: 8px !important;
+	color: #111111;
+	background-color: #FFFFFF !important;
+	border-color: #a7a6a6;
+	border-style: solid;
+	border-width: thin;
+	z-index: 80 !important;
+	box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, .15);
+	border-radius: 0.375rem;
+	position: fixed;
+	width: auto;
+	word-wrap: break-word;
+	padding: 8px !important;
 }
 
 .dygraph-legend>span {
-  color: #111111;
-  padding-left: 5px;
-  padding-right: 2px;
-  margin-left: -5px;
-  background-color: #FFFFFF !important;
+	color: #111111;
+	padding-left: 5px;
+	padding-right: 2px;
+	margin-left: -5px;
+	background-color: #FFFFFF !important;
 }
 
 .dygraph-legend>span:first-child {
-  margin-top: 2px;
+	margin-top: 2px;
 }
 </style>
