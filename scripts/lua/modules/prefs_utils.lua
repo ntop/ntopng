@@ -170,7 +170,7 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
   else
     k = prekey.."."..key
   end
-
+ skip_redis = extra.skip_redis or false
  if not skip_redis then
   if(_POST[key] ~= nil) then
     v_s = _POST[key]

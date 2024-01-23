@@ -329,6 +329,21 @@ local menu_subpages = { {
             description = i18n("prefs.flow_table_probe_order_description")
         }
     }
+}, {   
+    id = "names",
+    label = i18n("prefs.names"),
+    advanced = false,
+    hidden = false,
+    entries = {
+        ntopng_host_address = {
+            title = i18n("prefs.ntopng_host_address_title"),
+            description = i18n("prefs.ntopng_host_address_description")
+        },
+        ntopng_instance_name = {
+            title = i18n("prefs.ntopng_instance_name_title"),
+            description = i18n("prefs.ntopng_instance_name_description")
+        }, 
+    }
 }, {
     id = "discovery",
     label = i18n("prefs.network_discovery"),
@@ -729,10 +744,6 @@ local menu_subpages = { {
     pro_only = false,
     hidden = false,
     entries = {
-        ntopng_host_address = {
-            title = i18n("prefs.ntopng_host_address_title"),
-            description = i18n("prefs.ntopng_host_address_description")
-        },
         toggle_date_type = {
             title = i18n("prefs.toggle_date_type_title"),
             description = i18n("prefs.toggle_date_type_description")

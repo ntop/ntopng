@@ -502,7 +502,6 @@ if auth.has_capability(auth.capabilities.preferences) then
     -- #####################
 
     function printGUI()
-        local ntopng_host_info = ntop.getHostInformation()
 
         print('<form method="post">')
         print('<table class="table">')
@@ -510,15 +509,6 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.web_user_interface") ..
                   '</th></tr></thead>')
 
-        prefsInputFieldPrefs(subpage_active.entries["ntopng_host_address"].title,
-            subpage_active.entries["ntopng_host_address"].description, "ntopng.prefs.", "ntopng_host_address",
-            ntopng_host_info.ip or "", -- default
-            false, true, nil, nil, {
-                attributes = {
-                    spellcheck = "false"
-                },
-                required = false
-            })
 
         if prefs.is_autologout_enabled == true then
             prefsToggleButton(subpage_active, {
@@ -2036,6 +2026,49 @@ if auth.has_capability(auth.capabilities.preferences) then
         print [[  </table>]]
     end
 
+    function printNames()
+        print('<form method="post">')
+        print('<table class="table">')
+
+        -- ######################
+
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.names") ..
+                  '</th></tr></thead>')
+        
+        local ntopng_host_info = ntop.getHostInformation()
+        prefsInputFieldPrefs(subpage_active.entries["ntopng_host_address"].title,
+            subpage_active.entries["ntopng_host_address"].description, "ntopng.prefs.", "ntopng_host_address",
+            ntopng_host_info.ip or "", -- default
+            false, true, nil, nil, {
+                attributes = {
+                    spellcheck = "false"
+                },
+                required = false
+            })
+
+        
+        prefsInputFieldPrefs(subpage_active.entries["ntopng_instance_name"].title,
+            subpage_active.entries["ntopng_instance_name"].description, "ntopng.prefs.", "ntopng_instance_name",
+            ntopng_host_info.instance_name or "", -- default
+            false, true, nil, nil, {
+                attributes = {
+                    spellcheck = "false"
+                },
+                required = false,
+                disabled = true,
+                skip_redis = true
+            })
+        print(
+            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+                i18n("save") .. '</button></th></tr>')
+
+        print('</table>')
+        print [[<input name="csrf" type="hidden" value="]]
+        print(ntop.getRandomCSRFValue())
+        print [[" />]]
+        print('</form>')
+    end
+
     function printReportsOptions()
         print('<form method="post">')
         print('<table class="table">')
@@ -2155,6 +2188,10 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     if (tab == "ot_protocols") then
         printOTProtocols()
+    end
+
+    if (tab == "names") then
+        printNames()
     end
 
     if (tab == "misc") then
