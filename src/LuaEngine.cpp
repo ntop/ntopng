@@ -658,7 +658,7 @@ int LuaEngine::run_loaded_script() {
       const char *err = lua_tostring(L, -1);
 
       if(err) {
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "%s", err);
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "%s [%s]", err, loaded_script_path);
         ntop->getRedis()->lpush(ALERT_TRACE_ERRORS, err, 0 /* No Trim */);   
       }
     }
