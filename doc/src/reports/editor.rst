@@ -4,6 +4,11 @@ Reports Editor
 The reports editor allows you to build custom reports by creating new templates.
 A collection of widgets is available, they can be combined to define a template.
 
+.. note::
+
+   The Reports Editor is only available in ntopng Enterprise XL.
+
+
 The Dashboard -> Traffic Report page includes a button in the toolbar to create
 a new template, as shown in the picture below.
 
