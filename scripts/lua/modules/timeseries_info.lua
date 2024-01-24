@@ -2858,51 +2858,51 @@ local function choose_traffic_serie(tags, timeseries)
         tot = tot + tonumber(value)
     end
 
-    -- if (tot > 0) then
-    timeseries[#timeseries + 1] = {
-        schema = "snmp_if:traffic_min",
-        id = timeseries_id.snmp_interface,
-        label = i18n("graphs.traffic_rxtx_snmp_min"),
-        priority = 2,
-        measure_unit = "bps",
-        scale = i18n("graphs.metric_labels.traffic"),
-        timeseries = {
-            bytes_sent = {
-                label = i18n('graphs.metric_labels.out_bytes'),
-                color = timeseries_info.get_timeseries_color('bytes_sent')
+    if (tot > 0) then
+        timeseries[#timeseries + 1] = {
+            schema = "snmp_if:traffic_min",
+            id = timeseries_id.snmp_interface,
+            label = i18n("graphs.traffic_rxtx"),
+            priority = 2,
+            measure_unit = "bps",
+            scale = i18n("graphs.metric_labels.traffic"),
+            timeseries = {
+                bytes_sent = {
+                    label = i18n('graphs.metric_labels.out_bytes'),
+                    color = timeseries_info.get_timeseries_color('bytes_sent')
+                },
+                bytes_rcvd = {
+                    invert_direction = true,
+                    label = i18n('graphs.metric_labels.in_bytes'),
+                    color = timeseries_info.get_timeseries_color('bytes_rcvd')
+                }
             },
-            bytes_rcvd = {
-                invert_direction = true,
-                label = i18n('graphs.metric_labels.in_bytes'),
-                color = timeseries_info.get_timeseries_color('bytes_rcvd')
-            }
-        },
-        always_visibile = true,
-        default_visible = true
-    }
-    -- else
-    timeseries[#timeseries + 1] = {
-        schema = "snmp_if:traffic",
-        id = timeseries_id.snmp_interface,
-        label = i18n("graphs.traffic_rxtx_snmp"), -- i18n("graphs.traffic_rxtx")
-        priority = 2,
-        measure_unit = "bps",
-        scale = i18n("graphs.metric_labels.traffic"),
-        timeseries = {
-            bytes_sent = {
-                label = i18n('graphs.metric_labels.out_bytes'),
-                color = timeseries_info.get_timeseries_color('bytes_sent')
+            always_visibile = true,
+            default_visible = true
+        }
+    else
+        timeseries[#timeseries + 1] = {
+            schema = "snmp_if:traffic",
+            id = timeseries_id.snmp_interface,
+            label = i18n("graphs.traffic_rxtx"),
+            priority = 2,
+            measure_unit = "bps",
+            scale = i18n("graphs.metric_labels.traffic"),
+            timeseries = {
+                bytes_sent = {
+                    label = i18n('graphs.metric_labels.out_bytes'),
+                    color = timeseries_info.get_timeseries_color('bytes_sent')
+                },
+                bytes_rcvd = {
+                    invert_direction = true,
+                    label = i18n('graphs.metric_labels.in_bytes'),
+                    color = timeseries_info.get_timeseries_color('bytes_rcvd')
+                }
             },
-            bytes_rcvd = {
-                invert_direction = true,
-                label = i18n('graphs.metric_labels.in_bytes'),
-                color = timeseries_info.get_timeseries_color('bytes_rcvd')
-            }
-        },
-        always_visibile = true,
-        default_visible = true
-    }
-    -- end
+            always_visibile = true,
+            default_visible = true
+        }
+    end
 
     return timeseries
 end
