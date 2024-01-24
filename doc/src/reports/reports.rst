@@ -147,7 +147,13 @@ Automatic Reports and Notifications
 -----------------------------------
 
 In addition to the manual Report generation, automatic reports can also be enabled in ntopng. This means that ntopng can build
-for instance daily reports every night, with traffic information for the last 24h. In order to enable this, a global setting is
+for instance daily reports every night, with traffic information for the last 24h.
+
+.. note::
+
+   Periodic Reports are only available in ntopng Enterprise L or above.
+
+In order to enable this, a global setting is
 available under Settings -> Preferences -> Reports -> Daily Reports Generation. 
 
 .. figure:: ../img/report-preferences-daily.png
