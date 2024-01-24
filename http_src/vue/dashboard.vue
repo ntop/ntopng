@@ -477,7 +477,7 @@ function reset_filters() {
 /* This function loads the filters */
 async function load_filters(filters_available, res) {
     const added_filters_list = [];
-    if (!res) {
+    if (!res && `${props.context.report_filters_endpoint}`) {
         res = await ntopng_utility.http_request(`${props.context.report_filters_endpoint}`);
     }
     filters_available.forEach(async (element) => {
@@ -529,7 +529,9 @@ async function load_components(epoch_interval, template_name) {
             return c_ext;
         });
     reset_filters();
-    filters_to_show.value = await load_filters(res.filters);
+    if(res.filters) {
+        filters_to_show.value = await load_filters(res.filters);
+    }
     await nextTick();
 }
 
