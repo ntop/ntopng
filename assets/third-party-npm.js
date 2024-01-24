@@ -12,7 +12,7 @@ import ApexCharts from 'apexcharts'
 window.moment = moment
 window.ApexCharts = ApexCharts
 
-import 'jquery-ui-bundle'
+import 'jquery-ui'
 import './scripts/vendors/jquery/jquery.resizableColumns.js';
 import './scripts/vendors/jquery/jquery-print.min.js';
 
@@ -27,15 +27,6 @@ import dt from 'datatables.net-dt'
 import 'datatables.net-buttons-dt'
 import 'datatables.net-responsive-dt'
 window.dt = dt
-
-/*
-NOTE: It seemes that bs5 datatable components are not correctly working on MacOS
-
-import 'datatables.net'
-import 'datatables.net-buttons-bs'
-import 'datatables.net-responsive-bs'
-import 'datatables.net-bs'
-*/
 
 import 'peity'
 import * as L from 'leaflet'

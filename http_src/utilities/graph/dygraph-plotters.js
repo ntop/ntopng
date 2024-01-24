@@ -4,6 +4,7 @@
 
 /* *********************************************** */
 
+const MAX_BAR_WIDTH = 90; /* 100 px */
 const FILL_COLORS = [
   'rgb(144, 238, 144)',
   'rgb(25, 135, 84)',
@@ -58,6 +59,11 @@ function barChartPlotter(e) {
     const sep = points[i].canvasx - points[i - 1].canvasx;
     if (sep < min_sep) min_sep = sep;
   }
+
+  if(min_sep > MAX_BAR_WIDTH) {
+    min_sep = MAX_BAR_WIDTH
+  }
+
   /* Keep just a little distance between the bars */
   const bar_width = Math.floor(0.95 * min_sep);
 

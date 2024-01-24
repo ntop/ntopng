@@ -64,7 +64,7 @@ function getAxisConfiguration(formatter) {
   return {
     axisLabelFormatter: formatter,
     valueFormatter: function (num_or_millis, opts, seriesName, dygraph, row, col) {
-      const serie_point = dygraph.rawData_[row][col];
+      const serie_point = dygraph?.rawData_?.[row][col];
       let data = '';
       if (typeof (serie_point) == "object") {
         /* This is the case for the serie with bounds */
