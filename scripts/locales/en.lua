@@ -707,6 +707,7 @@ local lang = {
   ["week"] = "Week",
   ["welcome"] = "Welcome",
   ["welcome_to"] = "Welcome to %{product}",
+  ["white"] = "White",
   ["wrong_date_range"] = "Invalid range date, please change it.",
   ["wrong_min_interval"] = "Invalid interval, range has to be less than: %time_interval",
   ["year"] = "Year",

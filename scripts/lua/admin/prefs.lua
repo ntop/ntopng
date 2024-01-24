@@ -520,8 +520,8 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         -- ######################
 
-        local t_labels = {i18n("default"), i18n("light"), i18n("dark")}
-        local t_values = {"default", "light", "dark"}
+        local t_labels = {i18n("default"), i18n("white"), i18n("dark")}
+        local t_values = {"default", "white", "dark"}
         local label = "toggle_theme"
 
         multipleTableButtonPrefs(subpage_active.entries[label].title, subpage_active.entries[label].description,
