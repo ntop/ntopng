@@ -2130,7 +2130,9 @@ static const struct {
   {".css", 4, "text/css"},
   {".eot", 4, "application/vnd.ms-fontobject"},
   {".js", 3, "application/javascript"},
-
+  {".css.map", 8, "text/css"},
+  {".js.map", 7, "application/javascript"},
+  
   {NULL,  0, NULL}
 };
 
