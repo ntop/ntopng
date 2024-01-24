@@ -5321,11 +5321,14 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
 
 /* *************************************** */
 
+/* FIXX this function is using buf only in a few cases */
 char *Flow::getFlowInfo(char *buf, u_int buf_len, bool isLuaRequest) {
   if (!isMaskedFlow()) {
+#if 0 /* FIXX temporarily disabled due to crashes in flow_search_walker */
     if (iec104) return (iec104->getFlowInfo(buf, buf_len));
 #ifdef NTOPNG_PRO
     if (modbus) return (modbus->getFlowInfo(buf, buf_len));
+#endif
 #endif
 
     if (isDNS() && protos.dns.last_query)
