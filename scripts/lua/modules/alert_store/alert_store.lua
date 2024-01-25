@@ -1750,14 +1750,14 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
 
     -- Add filters
     self:add_request_filters()
-
-    if self._status == alert_consts.alert_status.engaged.alert_status_id then -- Engaged
+    local is_engaged = self._status == alert_consts.alert_status.engaged.alert_status_id
+    if is_engaged then -- Engaged
         -- Add limits and sort criteria
         self:add_request_ranges()
 
         local alerts, total_rows = self:select_engaged(filter)
 
-        return alerts, total_rows, {}
+        return alerts, total_rows, {}, is_engaged
     else -- Historical
 
         -- Handle Custom Queries (query_preset)
@@ -1823,7 +1823,7 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
         local res, info =
             self:select_historical(filter, select_fields, download --[[ Available only with ClickHouse ]] )
 
-        return res, total_row, info
+        return res, total_row, info, is_engaged
     end
 end
 

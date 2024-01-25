@@ -30,6 +30,7 @@ class Alert {
   u_int8_t score;
   std::string subtype;
   std::string json;
+  std::string ip;
 };
 
 #endif

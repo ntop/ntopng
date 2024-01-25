@@ -326,10 +326,17 @@ function alerts_api.trigger(entity_info, type_info, when, cur_alerts)
     type_info.score = 0
   end
 
+  local device_ip, port
+  if (entity_info.alert_entity.entity_id == alert_consts.alertEntity("snmp_device")) then
+    local snmp_device_alert_store = require "snmp_device_alert_store".new()
+
+    device_ip, port = snmp_device_alert_store:_entity_val_to_ip_and_port(entity_info.entity_val)
+  end
+
   local params = {
     alert_key_name, granularity_id,
     type_info.score, type_info.alert_type.alert_key,
-    subtype, alert_json,
+    subtype, alert_json, device_ip
   }
 
   if(entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then

@@ -154,9 +154,9 @@ end
 -- ##############################################
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
-function snmp_device_alert_store:format_record(value, no_html)
-   if not value["ip"] then
+function snmp_device_alert_store:format_record(value, no_html, is_engaged)
       -- This is an in-memory engaged alert, let's extract the ip and the port from the entity_val
+   if (is_engaged) then
       value["ip"], value["port"] = self:_entity_val_to_ip_and_port(value["entity_val"])
    end
 

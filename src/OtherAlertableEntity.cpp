@@ -48,6 +48,7 @@ void OtherAlertableEntity::luaAlert(lua_State *vm, const Alert *alert,
   lua_push_int32_table_entry(vm, "granularity",
                              Utils::periodicityToSeconds((ScriptPeriodicity)p));
   lua_push_str_table_entry(vm, "json", alert->json.c_str());
+  lua_push_str_table_entry(vm, "ip", alert->ip.c_str());
 }
 
 /* ****************************************** */
@@ -58,7 +59,7 @@ void OtherAlertableEntity::luaAlert(lua_State *vm, const Alert *alert,
 bool OtherAlertableEntity::triggerAlert(lua_State *vm, std::string key,
                                         ScriptPeriodicity p, time_t now,
                                         u_int32_t score, AlertType alert_id,
-                                        const char *subtype, const char *json) {
+                                        const char *subtype, const char *json, const char *ip) {
   bool rv = false;
   std::map<std::string, Alert>::iterator it;
 
@@ -78,6 +79,7 @@ bool OtherAlertableEntity::triggerAlert(lua_State *vm, std::string key,
       alert.alert_id = alert_id;
       alert.subtype = subtype;
       alert.json = json;
+      alert.ip = ip ? ip : "";
 
       incNumAlertsEngaged(Utils::mapScoreToSeverity(score));
 

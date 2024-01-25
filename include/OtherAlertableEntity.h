@@ -69,7 +69,7 @@ class OtherAlertableEntity : public AlertableEntity {
 
   bool triggerAlert(lua_State *vm, std::string key, ScriptPeriodicity p,
                     time_t now, u_int32_t score, AlertType alert_id,
-                    const char *subtype, const char *json);
+                    const char *subtype, const char *json, const char *ip);
   bool releaseAlert(lua_State *vm, std::string key, ScriptPeriodicity p,
                     time_t now);
 
