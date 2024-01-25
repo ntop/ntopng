@@ -1333,10 +1333,10 @@ Flow *NetworkInterface::getFlow(int32_t if_index, Mac *src_mac, Mac *dst_mac, u_
     */
 
     ret = unswapped_flow;      /* 1 - Use the new flow */
-    ret->swap();               /* 2 - Swap flow keys   */
-    *src2dst_direction = true; /* Don't forget to reverse the direction ! */
+    ret->swap();               /* 2 - Swap flow keys   */    
+    *src2dst_direction = ((ntohs(src_port) == ret->get_cli_port()) && (ntohs(dst_port) == ret->get_srv_port()));
   }
-
+  
   if (ret == NULL) {
     if (!create_if_missing) return (NULL);
 
@@ -2780,11 +2780,15 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	    ip_offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr) +
 	      8 /* GTPv1 header len */;
 
-	    if (flags & 0x04) ip_offset += 1; /* next_ext_header is present */
+	    if (flags & 0x04)
+	      ip_offset += 1 + 3 /* pad */ + 4 /* next extension (TODO better decoding) */; /* next_ext_header is present */
+	    
 	    if (flags & 0x02)
 	      ip_offset += 4; /* sequence_number is present (it also includes
 				 next_ext_header and pdu_number) */
-	    if (flags & 0x01) ip_offset += 1; /* pdu_number is present */
+	    
+	    if (flags & 0x01)
+	      ip_offset += 1; /* pdu_number is present */
 
 	    iph = (struct ndpi_iphdr *)&packet[ip_offset];
 
