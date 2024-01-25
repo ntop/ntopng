@@ -653,7 +653,7 @@ int LuaEngine::run_loaded_script() {
     getLuaVMUservalue(L, capabilities) = (u_int64_t)-1; /* All set */
 
   /* Perform the actual call */
-  if (lua_pcall(L, 0, LUA_MULTRET /* Allow the script to be called multiple times */, 0) != 0) {
+  if (lua_pcall(L, 0, LUA_MULTRET /* Allow the script to be called multiple times (used with cusotm host/flow scrips) */, 0) != 0) {
     if (lua_type(L, -1) == LUA_TSTRING) {
       const char *err = lua_tostring(L, -1);
 
@@ -666,9 +666,13 @@ int LuaEngine::run_loaded_script() {
     rv = -2;
   }
 
- // lua_pop(L, 1);
-  lua_settop(L, 0);
+  lua_pop(L, 1);
 
+#ifdef WIN32
+  /* This will break custom scripts */
+  lua_settop(L, 0);
+#endif
+  
   return (rv);
 }
 
