@@ -25,11 +25,6 @@ if ! grep -q ntopng /etc/group; then
     /usr/sbin/groupadd -r ntopng
 fi
 
-# Enable nmap scan capabilities [https://secwiki.org/w/Running_nmap_as_an_unprivileged_user]
-if [ -x /usr/bin/nmap ]; then
-    setcap cap_net_raw,cap_net_admin,cap_net_bind_service+eip /usr/bin/nmap
-fi
-
 if ! /usr/bin/id -u ntopng > /dev/null 2>&1; then 
     echo "Creating ntopng user..."
     /usr/sbin/useradd -M -N -g ntopng -r -s /bin/false ntopng
@@ -85,8 +80,18 @@ echo "Rebuilding ld cache..."
 # Check if systemd is supported (not a container)
 CMDLINE=$(tr -d '\0' < /proc/1/cmdline)
 if [ ! -z "${CMDLINE##*system*}" ] && [ ! -z "${CMDLINE##*init*}" ]; then
-  exit 0
+  # We're in a container
+  exit 0  
 fi
+
+#
+# ONLY when we're not in a container
+# Enable nmap scan capabilities [https://secwiki.org/w/Running_nmap_as_an_unprivileged_user]
+#
+if [ -x /usr/bin/nmap ]; then
+    setcap cap_net_raw,cap_net_admin,cap_net_bind_service+eip /usr/bin/nmap
+fi
+
 
 # Start service after upgrade/install
 echo "(Re)Starting @APP@..."
