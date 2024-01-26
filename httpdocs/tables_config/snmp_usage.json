@@ -6,7 +6,7 @@
 	"paging": true,
 	"display_empty_rows": true,
 	"default_sort": {
-		"column_id": "device",
+		"column_id": "ip",
 		"sort": 0
 	},
 	"columns": [
@@ -71,6 +71,15 @@
 			"sortable": true,
 			"class": [
 				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "if_stats_config.interface_speed",
+			"data_field": "speed",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
 			]
 		},
 		{

@@ -94,7 +94,8 @@ const map_table_def_columns = (columns) => {
             }
         },
         "speed": (value, row) => {
-            return formatterUtils.getFormatter("speed")(value);
+            const formatted_speed = formatterUtils.getFormatter("speed")(value);
+            return `${formatted_speed} <a target="_blank" href='${create_config_url_link(row)}'><i class="fas fa-cog"></i></a>`
         },
         "min": (value, row) => {
             return formatter(value);
@@ -194,6 +195,12 @@ const get_extra_params_obj = () => {
 
 /* ************************************** */
 
+function create_config_url_link(row) {
+    return `${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${row.ip}&snmp_port_idx=${row.ifid}&page=config`
+}
+
+/* ************************************** */
+
 function click_button_timeseries(event) {
     const row = event.row;
     const epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
@@ -205,7 +212,7 @@ function click_button_timeseries(event) {
 
 function click_button_configuration(event) {
     const row = event.row;
-    window.open(`${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${row.ip}&snmp_port_idx=${row.ifid}&page=config`);
+    window.open(create_config_url_link(row));
 }
 
 /* ************************************** */

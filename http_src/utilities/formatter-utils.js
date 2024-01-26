@@ -124,7 +124,7 @@ const types = {
         id: "percentage",
         um: ["%"],
         step: 101,
-        decimal: 0,
+        decimal: 1,
         scale_values: null,        
         max_value: 100,
         absolute_value: true,
