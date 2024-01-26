@@ -3197,11 +3197,14 @@ void Ntop::refreshAllowedProtocolPresets(DeviceType device_type, bool client,
     switch (t) {
       case LUA_TNUMBER: {
         u_int value_action = lua_tointeger(L, -1);
+	
         if (value_action) {
+	  u_int32_t mapped_key_proto = ndpi_map_user_proto_id_to_ndpi_id(iface[0]->get_ndpi_struct(), key_proto);
+	  
           if (client)
-            NDPI_BITMASK_ADD(b->clientAllowed, key_proto);
+            NDPI_BITMASK_ADD(b->clientAllowed, mapped_key_proto);
           else
-            NDPI_BITMASK_ADD(b->serverAllowed, key_proto);
+            NDPI_BITMASK_ADD(b->serverAllowed, mapped_key_proto);
         }
       } break;
       default:
