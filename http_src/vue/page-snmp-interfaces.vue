@@ -104,8 +104,11 @@ const map_table_def_columns = (columns) => {
             return `${duplex_status[value] || ''}`
         },
         "num_macs": (value, row) => {
-            const url = `${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${row.device_ip}&snmp_port_idx=${row.interface_id}`
-            return `<a href=${url}>${value}</a>`
+            if (value > 0) {
+                const url = `${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${row.device_ip}&snmp_port_idx=${row.interface_id}&page=layer_2`
+                return `<a href=${url}>${value}</a>`
+            }
+            return ''
         },
         "in_bytes": (value, row) => {
             if (value > 0) {
