@@ -3160,10 +3160,15 @@ void Ntop::refreshAllowedProtocolPresets(DeviceType device_type, bool client,
       case LUA_TNUMBER: {
         u_int value_action = lua_tointeger(L, -1);
         if (value_action) {
-          if (client)
-            NDPI_BITMASK_ADD(b->clientAllowed, key_proto);
-          else
-            NDPI_BITMASK_ADD(b->serverAllowed, key_proto);
+	  if(key_proto >= NDPI_NUM_BITS) {
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Protocol %u out of range [0...%u]",
+					 key_proto, NDPI_NUM_BITS-1);
+	  } else {
+	    if (client)
+	      NDPI_BITMASK_ADD(b->clientAllowed, key_proto);
+	    else
+	      NDPI_BITMASK_ADD(b->serverAllowed, key_proto);
+	  }
         }
       } break;
       default:
