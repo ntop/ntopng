@@ -3975,9 +3975,8 @@ static int _setWriteCapabilities(int enable) {
                                    strerror(errno));
 
     if (cap_set_proc(caps) == -1)
-      ntop->getTrace()->traceEvent(
-          TRACE_WARNING, "Capabilities cap_set_proc error: %s [enable: %u]",
-          strerror(errno), enable);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_proc error: %s [enable: %u]",
+				   strerror(errno), enable);
     else {
 #ifdef TRACE_CEPABILITIES
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
