@@ -3157,24 +3157,32 @@ void Ntop::refreshAllowedProtocolPresets(DeviceType device_type, bool client,
     if ((int)key_proto < 0) continue;
 
     switch (t) {
-      case LUA_TNUMBER: {
-        u_int value_action = lua_tointeger(L, -1);
-        if (value_action) {
-	  if(key_proto >= NDPI_NUM_BITS) {
+    case LUA_TNUMBER:
+      {
+	u_int value_action = lua_tointeger(L, -1);
+      
+	if (value_action) {
+	  u_int32_t mapped_key_proto = ndpi_map_user_proto_id_to_ndpi_id(iface[0]->get_ndpi_struct(), key_proto);
+
+	  /* ntop->getTrace()->traceEvent(TRACE_INFO, "%u -> %u", key_proto, mapped_key_proto); */
+	  
+	  if(mapped_key_proto >= NDPI_NUM_BITS) {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Protocol %u out of range [0...%u]",
-					 key_proto, NDPI_NUM_BITS-1);
+					 mapped_key_proto, NDPI_NUM_BITS-1);
 	  } else {
 	    if (client)
-	      NDPI_BITMASK_ADD(b->clientAllowed, key_proto);
+	      NDPI_BITMASK_ADD(b->clientAllowed, mapped_key_proto);
 	    else
-	      NDPI_BITMASK_ADD(b->serverAllowed, key_proto);
+	      NDPI_BITMASK_ADD(b->serverAllowed, mapped_key_proto);
 	  }
-        }
-      } break;
-      default:
-        ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                     "Internal error: type %d not handled", t);
-        break;
+	}
+      }
+      break;
+      
+    default:
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Internal error: type %d not handled", t);
+      break;
     }
 
     lua_pop(L, 1);
