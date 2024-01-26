@@ -41,7 +41,7 @@ if ntop.isnEdge() or ntop.isAppliance() then
   end
 
   if sys_config.isFirstStart() then
-    print(ntop.httpRedirect(ntop.getHttpPrefix().."lua/system_setup_ui/"..first_start_page))
+    print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/system_setup_ui/"..first_start_page))
     return
   end
 end
