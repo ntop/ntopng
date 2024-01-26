@@ -28,9 +28,11 @@ class Alert {
   time_t last_update;
   AlertType alert_id;
   u_int8_t score;
+  u_int16_t port;
   std::string subtype;
   std::string json;
   std::string ip;
+  std::string name;
 };
 
 #endif

@@ -69,7 +69,11 @@ function snmp_device_alert_store:insert(alert)
       local snmp_json = json.decode(alert.json)
       if snmp_json then
          device_ip = snmp_json.device
+
          device_name = snmp_json.device_name
+         if (isEmptyString(device_name)) then
+            device_name = snmp_device_alert_store:get_snmp_device_sysname(device_ip)
+         end
          port = snmp_json.interface
          port_name = snmp_json.interface_name
       end
@@ -151,24 +155,41 @@ function snmp_device_alert_store:get_rnames()
    return RNAME
 end
 
+function snmp_device_alert_store:get_snmp_device_sysname(ip)
+   return snmp_utils.get_snmp_device_sysname(ip) or ""
+end
+
 -- ##############################################
 
 --@brief Convert an alert coming from the DB (value) to a record returned by the REST API
 function snmp_device_alert_store:format_record(value, no_html, is_engaged)
-      -- This is an in-memory engaged alert, let's extract the ip and the port from the entity_val
-   if (is_engaged) then
+   -- This is an in-memory engaged alert, let's extract the ip and the port from the entity_val
+   -- if are not present already in memory
+   value["port"] = tonumber(value["port"])
+   if (is_engaged and (isEmptyString(value["ip"]) or value["port"] == 0)) then
       value["ip"], value["port"] = self:_entity_val_to_ip_and_port(value["entity_val"])
    end
 
    -- Suppress zero ports
-   value["port"] = tonumber(value["port"])
    if value["port"] == 0 then
       value["port"] = ""
+      value["port_name"] = ""
+   else
+      -- get port name from json info
+      local json_info = json.decode(value["json"])
+      if (json_info) then
+         value["port_name"] = json_info.interface_name
+      end
    end
 
    -- If there's no port name stored, use the id
    if isEmptyString(value["port_name"]) then
       value["port_name"] = value["port"]
+   end
+
+   local device_name = value["name"]
+   if (isEmptyString(device_name)) then
+      device_name = snmp_device_alert_store:get_snmp_device_sysname(value["ip"])
    end
 
    local record = self:format_json_record_common(value, alert_entities.snmp_device.entity_id, no_html)
@@ -179,10 +200,10 @@ function snmp_device_alert_store:format_record(value, no_html, is_engaged)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
 
    record[RNAME.IP.name] = value["ip"]
-   record[RNAME.NAME.name] = snmp_utils.get_snmp_device_sysname(value["ip"]) or ""
+   record[RNAME.NAME.name] = device_name
    record[RNAME.PORT.name] = {
       value = value["port"],
-      label = value["port_name"] or value["port"]
+      label = value["port_name"]
    }
 
    record[RNAME.ALERT_NAME.name] = alert_name

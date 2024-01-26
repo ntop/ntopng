@@ -42,13 +42,18 @@ void OtherAlertableEntity::luaAlert(lua_State *vm, const Alert *alert,
   lua_push_int32_table_entry(vm, "score", alert->score);
   lua_push_int32_table_entry(vm, "severity",
                              Utils::mapScoreToSeverity(alert->score));
-  lua_push_str_table_entry(vm, "name", getEntityValue().c_str());
+  if (!(alert->name.empty()))
+    lua_push_str_table_entry(vm, "name", alert->name.c_str());
+  else // leave it for retrocompatibility
+    lua_push_str_table_entry(vm, "name", getEntityValue().c_str());
+
   lua_push_uint64_table_entry(vm, "tstamp", alert->tstamp);
   lua_push_uint64_table_entry(vm, "tstamp_end", time(NULL));
   lua_push_int32_table_entry(vm, "granularity",
                              Utils::periodicityToSeconds((ScriptPeriodicity)p));
   lua_push_str_table_entry(vm, "json", alert->json.c_str());
   lua_push_str_table_entry(vm, "ip", alert->ip.c_str());
+  lua_push_int32_table_entry(vm, "port", alert->port);
 }
 
 /* ****************************************** */
@@ -59,7 +64,9 @@ void OtherAlertableEntity::luaAlert(lua_State *vm, const Alert *alert,
 bool OtherAlertableEntity::triggerAlert(lua_State *vm, std::string key,
                                         ScriptPeriodicity p, time_t now,
                                         u_int32_t score, AlertType alert_id,
-                                        const char *subtype, const char *json, const char *ip) {
+                                        const char *subtype, const char *json, 
+                                        const char *ip, const char *name,
+                                        u_int16_t port) {
   bool rv = false;
   std::map<std::string, Alert>::iterator it;
 
@@ -80,6 +87,8 @@ bool OtherAlertableEntity::triggerAlert(lua_State *vm, std::string key,
       alert.subtype = subtype;
       alert.json = json;
       alert.ip = ip ? ip : "";
+      alert.name = name ? name : "";
+      alert.port = port;
 
       incNumAlertsEngaged(Utils::mapScoreToSeverity(score));
 

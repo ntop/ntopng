@@ -594,8 +594,17 @@ function alert_store:eval_alert_cond(alert, cond)
 
         -- Special case: snmp_interface
     elseif cond.field == 'snmp_interface' then
-        return tag_utils.eval_op(alert['input_snmp'], cond.op, cond.value) or
-                   tag_utils.eval_op(alert['output_snmp'], cond.op, cond.value)
+        local splitted_engaged_condition = string.split(cond.value,"_")
+        if (table.len(splitted_engaged_condition) > 1) then
+            -- in engaged snmp alerts case the cond.value is made by <device_ip>_<port>
+            local device_ip = splitted_engaged_condition[1]
+            local port = tonumber(splitted_engaged_condition[2])
+            return  tag_utils.eval_op(alert['port'], cond.op, port) and 
+                    tag_utils.eval_op(alert['ip'], cond.op, device_ip)
+        else
+            return  tag_utils.eval_op(alert['input_snmp'], cond.op, cond.value) or
+                    tag_utils.eval_op(alert['output_snmp'], cond.op, cond.value)
+        end
 
         -- Special case: role (host)
     elseif cond.field == 'host_role' then
@@ -979,7 +988,11 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
 
     -- [OPTIONAL] Add sort criteria
     if self._order_by then
-        order_by_clause = string.format("ORDER BY %s %s", self._order_by.sort_column, self._order_by.sort_order)
+        if (self._order_by.sort_column == 'name') then
+            order_by_clause = string.format("ORDER BY %s %s COLLATE 'en'", self._order_by.sort_column, self._order_by.sort_order)
+        else
+            order_by_clause = string.format("ORDER BY %s %s", self._order_by.sort_column, self._order_by.sort_order)
+        end
     end
 
     -- [OPTIONAL] Add limit for pagination
@@ -1117,7 +1130,7 @@ function alert_store:select_engaged(filter)
             sort_2_col[#sort_2_col + 1] = {
                 idx = idx,
                 val = tonumber(alert[self._order_by.sort_column]) or
-                    string.format("%s", alert[self._order_by.sort_column])
+                    string.format("%s", string.lower(alert[self._order_by.sort_column]))
             }
         else
             sort_2_col[#sort_2_col + 1] = {

@@ -2,7 +2,7 @@
     "id": "alert_snmp_device",
     "data_url": "lua/rest/v2/get/snmp/device/alert/list.lua",
     "use_current_page": false,
-    "enable_search": true,
+    "enable_search": false,
     "paging": true,
     "rsp_records_field": "records",
     "rsp_query_info_field": "stats",
@@ -62,7 +62,7 @@
 	{
 	    "title_i18n": "flow_devices.snmp_devname",
 	    "data_field": "name",
-	    "sortable": false,
+	    "sortable": true,
 	    "class": ["text-nowrap"]
 	},
 	{

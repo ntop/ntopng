@@ -517,7 +517,8 @@ int ntop_release_triggered_alert(lua_State *vm, OtherAlertableEntity *alertable,
 int ntop_store_triggered_alert(lua_State *vm, OtherAlertableEntity *alertable,
                                u_int idx) {
   struct ntopngLuaContext *c = getLuaVMContext(vm);
-  char *key, *alert_subtype, *alert_json, *ip = NULL;
+  char *key, *alert_subtype, *alert_json, *ip = NULL, *name = NULL;
+  u_int16_t port = 0;
   ScriptPeriodicity periodicity;
   u_int32_t score;
   AlertType alert_type;
@@ -556,10 +557,13 @@ int ntop_store_triggered_alert(lua_State *vm, OtherAlertableEntity *alertable,
   if ((alert_json = (char *)lua_tostring(vm, idx++)) == NULL)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
-  ip = (char*)lua_tostring(vm, idx++);
+  ip        = (char*)lua_tostring(vm, idx++);
+  name      = (char*)lua_tostring(vm, idx++);
+  port      = (u_int16_t)lua_tonumber(vm, idx++);
+
   /* triggered = */ alertable->triggerAlert(vm, std::string(key), periodicity,
                                             time(NULL), score, alert_type,
-                                            alert_subtype, alert_json, ip);
+                                            alert_subtype, alert_json, ip, name, port);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
