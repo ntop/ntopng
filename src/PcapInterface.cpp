@@ -118,12 +118,12 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
 
 	/* This is necessay as with multiple comma separated interfaces we need to take the max MTU */
 	ifMTU = ndpi_max(ifMTU, Utils::getIfMTU(pcap_ifaces[num_ifaces]));
-	
+
 	pcap_path = NULL;
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from %s [ifId: %d]",
 				     dev, ifIdx);
 	read_pkts_from_pcap_dump = false;
-	
+
 	Utils::readMac(dev, ifMac);
 
 #ifndef WIN32
@@ -199,7 +199,7 @@ static void *packetPollLoop(void *ptr) {
   PcapInterface *iface = (PcapInterface *)ptr;
   FILE *pcap_list = iface->get_pcap_list();
   int fds[MAX_NUM_PCAP_INTERFACES] = { -1 };
-  
+
   /* Wait until the initialization completes */
   while (iface->isStartingUp()) sleep(1);
 
@@ -285,7 +285,7 @@ static void *packetPollLoop(void *ptr) {
 #if defined(__APPLE__) || defined(__FreeBSD__)
       if(!iface->read_from_pcap_dump()) {
 	char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-	
+
 	if(pcap_setnonblock(pd, 1, pcap_error_buffer))
 	  ntop->getTrace()->traceEvent(TRACE_ERROR,
 				       "Unable to enable non blocking mode on %s: %s",
@@ -295,7 +295,7 @@ static void *packetPollLoop(void *ptr) {
 #endif
     }
 #endif
-    
+
   while (iface->isRunning() && (!ntop->getGlobals()->isShutdown())) {
       int max_fd = 0;
 #ifndef WIN32
@@ -310,7 +310,7 @@ static void *packetPollLoop(void *ptr) {
 
       for(u_int8_t i=0; i < iface->get_num_ifaces(); i++) {
 	FD_SET(fds[i], &rset);
-	
+
 	if(fds[i] > max_fd) max_fd = fds[i];
       }
 
@@ -346,7 +346,7 @@ static void *packetPollLoop(void *ptr) {
 					 iface->getPcapIfaceName(i), i);
 	    iface->reopen(i); /* Try to reopen the interface that disappeared */
 	  }
-	  
+
 	  iface->purgeIdle(time(NULL));
 	} /* for */
 
@@ -357,7 +357,7 @@ static void *packetPollLoop(void *ptr) {
 
       if(iface->idle())
 	continue;
-	
+
       for(u_int8_t i=0; i < iface->get_num_ifaces(); i++) {
 #if !(defined(__APPLE__) || defined(__FreeBSD__))
 	if(FD_ISSET(fds[i], &rset))
@@ -366,7 +366,7 @@ static void *packetPollLoop(void *ptr) {
 #ifdef DEBUG_POLLING
 	  ntop->getTrace()->traceEvent(TRACE_WARNING, "processNextPacket(%d)", i);
 #endif
-	  
+
 	  if(iface->processNextPacket(iface->get_pcap_handle(i),
 				      iface->get_ifindex(i),
 				      iface->get_ifdatalink(i)) == false) {
@@ -378,7 +378,7 @@ static void *packetPollLoop(void *ptr) {
 #endif
 	}
       }
-      
+
 #ifdef DEBUG_POLLING
       if(!found)
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "**** NO packet");
@@ -389,7 +389,7 @@ static void *packetPollLoop(void *ptr) {
       if(iface->processNextPacket(iface->get_pcap_handle(0),
                                    iface->get_ifindex(0),
                                    iface->get_ifdatalink(0)) == false)
-	break;      
+	break;
 #endif
   } /* while */
   } while (pcap_list != NULL);
@@ -505,19 +505,19 @@ static u_int64_t getCounterInc(u_int64_t old_v, u_int64_t new_v) {
  * statistics per direction. Make sure ethStats are not increased
  * by the packet processing function when this is in place. */
 void PcapInterface::updateDirectionStats() {
-  if(emulate_traffic_directions) {	
+  if(emulate_traffic_directions) {
     ProtoStats current_stats_in, current_stats_out;
     bool ret = true;
-    
+
     for(u_int8_t i=0; i < get_num_ifaces(); i++) {
       if (pcap_ifaces[i]) {
         ret &= Utils::readInterfaceStats(pcap_ifaces[i], &current_stats_in, &current_stats_out);
       }
     }
-    
+
     if(ret) {
       pcap_direction_t capture_dir = ntop->getPrefs()->getCaptureDirection();
-	
+
       /* grsec check, the new ntopng user may not able to read the stats anymore */
       if ((prev_stats_in.getPkts() || prev_stats_out.getPkts())
 	  && (!(current_stats_in.getPkts() || current_stats_out.getPkts()))) {
@@ -592,6 +592,8 @@ void PcapInterface::sendTermination() {
 
 /* **************************************************** */
 
+static u_int32_t num_pkts = 0;
+
 bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_datalink_type) {
   const u_char *pkt;
   struct pcap_pkthdr *hdr;
@@ -629,7 +631,7 @@ bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_dat
       hdr->ts = now;
     }
 
-    if ((pkt != NULL) && (hdr->caplen > 0)) {
+    if((pkt != NULL) && (hdr->caplen > 0)) {
       u_int16_t p;
       Host *srcHost = NULL, *dstHost = NULL;
       Flow *flow = NULL;
@@ -649,16 +651,16 @@ bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_dat
       hdr_copy.len = min(hdr->len, sizeof(pkt_copy) - 1);
       hdr_copy.caplen = min(hdr_copy.len, hdr_copy.caplen);
       memcpy(pkt_copy, pkt, hdr_copy.len);
-        dissectPacket(if_index,
-			   DUMMY_BRIDGE_INTERFACE_ID, pcap_datalink_type,
-			   true /* ingress - TODO: see if we pass the real
-				   packet direction */
-			   ,
-			   NULL, &hdr_copy, (const u_char *)pkt_copy, &p,
-			   &srcHost, &dstHost, &flow);
+      dissectPacket(if_index,
+		    DUMMY_BRIDGE_INTERFACE_ID, pcap_datalink_type,
+		    true /* ingress - TODO: see if we pass the real
+			    packet direction */
+		    ,
+		    NULL, &hdr_copy, (const u_char *)pkt_copy, &p,
+		    &srcHost, &dstHost, &flow);
 #else
       hdr->caplen = min_val(hdr->caplen, getMTU());
-      
+
       dissectPacket(if_index,
 		    DUMMY_BRIDGE_INTERFACE_ID, pcap_datalink_type,
 		    true /* ingress - TODO: see if we pass the real
@@ -666,6 +668,11 @@ bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_dat
 		    ,
 		    NULL, hdr, pkt, &p, &srcHost, &dstHost, &flow);
 #endif
+    } else {
+      incStats(true /* ingressPacket */, hdr->ts.tv_sec,
+	       0, NDPI_PROTOCOL_UNKNOWN,
+	       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
+	       0, hdr->len, 1);
     }
   } else if (rc < 0) {
     if (read_from_pcap_dump())
@@ -674,7 +681,10 @@ bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_dat
     /* No packet received before the timeout */
     purgeIdle(time(NULL));
   }
-   
+
+  if(++num_pkts != ethStats.getNumPackets())
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Received %u / processed %u", num_pkts,  ethStats.getNumPackets());
+
   return(true);
 }
 

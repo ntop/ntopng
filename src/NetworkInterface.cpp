@@ -408,7 +408,7 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   NDPI_PROTOCOL_BITMASK all;
   ndpi_cfg_error rc;
   const char* ndpi_key = "flow.track_payload";
-  
+
   if (ndpi_s == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
     exit(-1);
@@ -1333,10 +1333,10 @@ Flow *NetworkInterface::getFlow(int32_t if_index, Mac *src_mac, Mac *dst_mac, u_
     */
 
     ret = unswapped_flow;      /* 1 - Use the new flow */
-    ret->swap();               /* 2 - Swap flow keys   */    
+    ret->swap();               /* 2 - Swap flow keys   */
     *src2dst_direction = ((ntohs(src_port) == ret->get_cli_port()) && (ntohs(dst_port) == ret->get_srv_port()));
   }
-  
+
   if (ret == NULL) {
     if (!create_if_missing) return (NULL);
 
@@ -1747,7 +1747,11 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
       fragment_offset = ((ntohs(iph->frag_off) & 0x3fff) & 0x1FFF) * 8;
 
 #ifdef IMPLEMENT_SMART_FRAGMENTS
-      if (fragment_offset) return (pass_verdict);
+      if (fragment_offset) {
+	incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+		 NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
+	return (pass_verdict);
+      }
 #endif
     }
 
@@ -2138,22 +2142,22 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 		j = ndpi_min(len, sizeof(name) - 1);
 		strncpy((char *)name, (char *)&payload[i + 2], j);
 		name[j] = '\0';
-	      
+
 		client_mac = Utils::formatMac(&payload[28], buf, sizeof(buf));
 		ntop->getTrace()->traceEvent(TRACE_INFO, "[DHCP] %s = '%s'",
 					     client_mac, name);
-	      
+
 		snprintf(key, sizeof(key), DHCP_CACHE, get_id(), client_mac);
 		ntop->getRedis()->set(key, name, 86400 /* 1d duration */);
-	      
+
 		if ((payload_cli_mac = getMac(&payload[28], false /* Do not create if missing */,
 					      true /* Inline call */)))
 		  payload_cli_mac->inlineSetDHCPName(name);
-	      
+
 #ifdef DHCP_DEBUG
 		ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] %s = '%s'",
 					     client_mac, name);
-#endif	      
+#endif
 	      } else if ((id == 55 /* Parameters List (Fingerprint) */) && flow->get_ndpi_flow()) {
 		char fingerprint[64], buf[32];
 		u_int idx, offset = 0;
@@ -2177,7 +2181,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 		break; /* End of options */
 	    } else
 	      break; /* Invalid lenght */
-	    
+
 	    i += len + 2;
 	  }
 	}
@@ -2186,7 +2190,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
       if (*dstHost) {
         char host_name[64];
         Mac *dst_mac = (*dstHost)->getMac();
-	
+
         if (dst_mac && !(dst_mac->isBroadcast())) {
           flow->setDHCPHostName(dst_mac->getDHCPNameNotLowerCase(host_name, sizeof(host_name)));
         }
@@ -2486,7 +2490,9 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
     len_on_wire += sizeof(struct ndpi_ethhdr);
 
   if (h->len == 0) {
-    return (false);
+    incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+	     NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, 0, 1);
+    goto dissect_packet_end;
   } else if (h->len > ifMTU) {
     if (!mtuWarningShown) {
 #ifdef __linux__
@@ -2520,13 +2526,19 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 
  datalink_check:
   if (pcap_datalink_type == DLT_NULL) {
-    if (h->caplen < sizeof(u_int32_t))
-      return (false);
+    if (h->caplen < sizeof(u_int32_t)) {
+      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+	       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1);
+      goto dissect_packet_end;
+    }
 
     if((eth_offset + sizeof(u_int32_t)) <= h->caplen)
       memcpy(&null_type, &packet[eth_offset], sizeof(u_int32_t));
-    else
-      return (false);
+    else {
+      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+	       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1);
+      goto dissect_packet_end;
+    }
 
     switch (null_type) {
     case BSD_AF_INET:
@@ -2547,15 +2559,21 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
     if (sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ip_offset = 4 + eth_offset;
   } else if (pcap_datalink_type == DLT_EN10MB) {
-    if (h->caplen < sizeof(ndpi_ethhdr))
-      return (false);
+    if (h->caplen < sizeof(ndpi_ethhdr)) {
+      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+	       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1);
+      goto dissect_packet_end;
+    }
 
     ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
     ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
     eth_type = ntohs(ethernet->h_proto);
   } else if (pcap_datalink_type == 113 /* Linux Cooked Capture */) {
-    if (h->caplen < 16)
-      return (false);
+    if (h->caplen < 16) {
+      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+	       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1);
+      goto dissect_packet_end;
+    }
 
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     if (sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
@@ -2564,8 +2582,11 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 #ifdef DLT_RAW
   } else if (pcap_datalink_type == DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */
              || pcap_datalink_type == 14 /* raw IP DLT_RAW on OpenBSD captures */) {
-    if (h->caplen < sizeof(u_int32_t))
-      return (false);
+    if (h->caplen < sizeof(u_int32_t)) {
+      incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+	       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1);
+      goto dissect_packet_end;
+    }
 
     switch ((packet[eth_offset] & 0xf0) >> 4) {
     case 4:
@@ -2782,11 +2803,11 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 
 	    if (flags & 0x04)
 	      ip_offset += 1 + 3 /* pad */ + 4 /* next extension (TODO better decoding) */; /* next_ext_header is present */
-	    
+
 	    if (flags & 0x02)
 	      ip_offset += 4; /* sequence_number is present (it also includes
 				 next_ext_header and pdu_number) */
-	    
+
 	    if (flags & 0x01)
 	      ip_offset += 1; /* pdu_number is present */
 
@@ -3010,7 +3031,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 		   (l4_proto == IPPROTO_UDP)) {
 	  struct ndpi_udphdr *udp;
 	  u_int16_t sport, dport;
-	  
+
 	  if ((ip_offset + ipv6_shift + sizeof(struct ndpi_udphdr)) > h->caplen) {
 	    incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6,
 		     NDPI_PROTOCOL_UNKNOWN,
@@ -3055,11 +3076,11 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 		iph = (struct ndpi_iphdr *)&packet[ip_offset];
 		ip6 = NULL;
 		break;
-		
+
 	      case ETHERTYPE_IPV6:
 		ip6 = (struct ndpi_ipv6hdr *)&packet[ip_offset];
 		break;
-		
+
 	      default:
 		incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
 			 NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
@@ -3160,7 +3181,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
   /* Live packet dump to mongoose */
   if (num_live_captures > 0) deliverLiveCapture(h, packet, *flow);
 
-  return (pass_verdict);
+  return(pass_verdict);
 }
 
 /* **************************************************** */
@@ -5909,7 +5930,7 @@ int numericSorter(const void *_a, const void *_b) {
 int stringSorter(const void *_a, const void *_b) {
   struct flowHostRetrieveList *a = (struct flowHostRetrieveList *)_a;
   struct flowHostRetrieveList *b = (struct flowHostRetrieveList *)_b;
-  
+
   if (!a || !b || !a->stringValue || !b->stringValue) return (true);
 
   return (strcasecmp(a->stringValue, b->stringValue));
@@ -11691,7 +11712,7 @@ void NetworkInterface::getHostsPorts(lua_State *vm) {
   HostsPorts count;
   u_int8_t l4_protocol = 0;
   u_int16_t vlan_id = 0;
-  
+
   if (lua_type(vm, 1) == LUA_TNUMBER) {
     l4_protocol = (u_int8_t)lua_tonumber(vm, 1);
     count.set_protocol(l4_protocol);
@@ -11723,19 +11744,19 @@ bool NetworkInterface::get_host_ports(GenericHashEntry *node,
 					  bool *matched) {
   /* Retrieve HostsPorts instance */
   HostsPorts* hostsPorts = static_cast< HostsPorts *>(user_data);
-  if (!hostsPorts) 
-    return (false); /* false = keep on walking */ 
-  
+  if (!hostsPorts)
+    return (false); /* false = keep on walking */
+
   /* Retrieve flow instance */
   Flow* f = (Flow *)node;
   if (!f)
-    return (false); /* false = keep on walking */ 
+    return (false); /* false = keep on walking */
 
   /* Retrieve the server host instance */
   Host* server = f->get_srv_host();
   if (!server)
-    return (false); /* false = keep on walking */ 
-  
+    return (false); /* false = keep on walking */
+
   /* Filters */
   u_int16_t filter_vlan_id        = hostsPorts->get_vlan_id();
   u_int8_t filter_l4_proto        = hostsPorts->get_protocol();
@@ -11748,20 +11769,20 @@ bool NetworkInterface::get_host_ports(GenericHashEntry *node,
 
   /* Server Host attribute */
   u_int16_t srv_vlan_id           = server->get_vlan_id();
-  
+
   /* check l4_proto filter */
   if (flow_l4_proto != filter_l4_proto)
-    return (false); /* false = keep on walking */ 
+    return (false); /* false = keep on walking */
 
   /* check vlan filter */
   if (filter_vlan_id != 0) {
     /* check flow vlan */
     if (flow_vlan_id != filter_vlan_id)
-      return (false); /* false = keep on walking */ 
+      return (false); /* false = keep on walking */
     /* check server host vlan */
     if ((srv_vlan_id != 0) && (srv_vlan_id != filter_vlan_id))
-      return (false); /* false = keep on walking */ 
-  } 
+      return (false); /* false = keep on walking */
+  }
 
   /* <srv_port (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
   u_int64_t port_proto_key =
@@ -11771,7 +11792,7 @@ bool NetworkInterface::get_host_ports(GenericHashEntry *node,
 
   /* <srv_key (16 bit)><srv_vlan_id (16 bit)> */
   u_int64_t host_key =
-    (((u_int64_t)server->key()) << 16) + 
+    (((u_int64_t)server->key()) << 16) +
     ((u_int64_t)srv_vlan_id);
 
   /* Add the server port + the host on the hosts u_map*/
@@ -11813,7 +11834,7 @@ void NetworkInterface::lua_push_ports(lua_State *vm,
       snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
     else
       snprintf(proto, sizeof(proto), "%u.%u", detected_protocol.master_protocol, detected_protocol.app_protocol);
-    
+
     lua_push_str_table_entry(vm, "proto_id", proto);
     lua_push_str_table_entry(vm, "l7_proto_name",
             get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
@@ -11867,7 +11888,7 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
   /* Retrieve host_details hash */
   std::unordered_map<u_int64_t, HostDetails*> *host_details = hostsPortsAnalysis->get_hosts_details();
   std::unordered_map<u_int64_t, HostDetails *>::iterator it;
-  
+
   if (host_details) {
     /* Search the server host in hash */
     it = host_details->find(host_key);
@@ -11877,7 +11898,7 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
       char mac_buf[64];
       char ip_hex_buf[64];
       char name[64];
-      u_int32_t flows_count = 1; 
+      u_int32_t flows_count = 1;
       /* Build new host_info instance */
       HostDetails *host_info = new (std::nothrow) HostDetails(
                     h->get_ip()->print(ip_buf, sizeof(ip_buf)),
@@ -11898,7 +11919,7 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
       it->second->inc_stats(f->get_bytes_cli2srv() + f->get_bytes_srv2cli());
     }
   }
-  
+
   *matched = true;
   return (false);
 }
