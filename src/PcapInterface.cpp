@@ -592,7 +592,9 @@ void PcapInterface::sendTermination() {
 
 /* **************************************************** */
 
+#ifdef TRACE
 static u_int32_t num_pkts = 0;
+#endif
 
 bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_datalink_type) {
   const u_char *pkt;
@@ -682,9 +684,11 @@ bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_dat
     purgeIdle(time(NULL));
   }
 
+#ifdef TRACE
   if(++num_pkts != ethStats.getNumPackets())
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Received %u / processed %u", num_pkts,  ethStats.getNumPackets());
-
+#endif
+  
   return(true);
 }
 
