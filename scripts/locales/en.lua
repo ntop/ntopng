@@ -131,6 +131,8 @@ local lang = {
   ["configure"] = "Configure",
   ["confirm"] = "Confirm",
   ["confirm_delete_obs_point"] = "Are you sure to delete the selected Observation Point?",
+  ["connected"] = "Connected",
+  ["disconnected"] = "Disconnected",
   ["copied"] = "Copied",
   ["copy_button"] = "<button data-to-copy='%{full_name}' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button>  <span title='%{full_name}'>%{name}</span>",
   ["count"] = "Count",

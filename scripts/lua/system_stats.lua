@@ -205,10 +205,16 @@ elseif page == "ntopcloud" then
       print("<tr><th>Account Id</th><td nowrap>".. cloud.account_id .."</td></tr>\n")
       print("<tr><th>Instance Name</th><td nowrap>".. cloud.my_topic .."</td></tr>\n")
       print("<tr><th>Cloud Node</th><td nowrap>".. cloud.ntopcloud.server .." [")
-      if(cloud.ntopcloud.use_tls) then print("TLS") else print("PlainText") end print("]</td></tr>\n")
+      if(cloud.ntopcloud.use_tls) then print("TLS") else print("PlainText") end print("]")
+      if(cloud.ntopcloud.connected) then
+	 print(' <span class="badge text-bg-success">'..i18n("connected")..'</span>')
+      else
+	 print(' <span class="badge text-bg-warning">'..i18n("disconnected")..'</span>')
+      end
+      print("</td></tr>\n")
       print("<tr><th colspan=2>Connections</th></tr>\n")
       print("<tr><th>First Connected</th><td nowrap>".. format_utils.formatEpoch(stats.first_connect) .."</td></tr>\n")
-      print("<tr><th>Last Connected</th><td nowrap>".. format_utils.formatEpoch(stats.last_connect) .."</td></tr>\n")
+      print("<tr><th>Last Connected</th><td nowrap>".. format_utils.formatEpoch(stats.last_connect) .." [".. secondsToTime(os.time() - stats.last_connect).." "..i18n("details.ago").."]</td></tr>\n")
       print("<tr><th colspan=2>Message Statistics</th></tr>\n")
       print("<tr><th>Connect</th><td nowrap>".. format_utils.formatValue(stats.num_connect) .."</td></tr>\n")
       print("<tr><th>Disconnect</th><td nowrap>".. format_utils.formatValue(stats.num_disconnect) .."</td></tr>\n")
