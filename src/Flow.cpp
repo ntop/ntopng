@@ -8103,7 +8103,8 @@ void Flow::swap() {
     TCPSeqNum ts;
     InterarrivalStats *is = cli2srvPktTime;
     time_t now = time(NULL);
-
+    u_int32_t tmp32;
+    
 #if 0
     char buf[128];
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Swapping %s", print(buf, sizeof(buf)));
@@ -8164,6 +8165,10 @@ void Flow::swap() {
     Utils::swapfloat(&goodput_bytes_thpt_cli2srv, &goodput_bytes_thpt_srv2cli);
     Utils::swapfloat(&pkts_thpt_cli2srv, &pkts_thpt_srv2cli);
 
+    tmp32 = flow_device.in_index;
+    flow_device.in_index = flow_device.out_index;
+    flow_device.out_index = tmp32;
+    
     /*
       We do not swap L7 info as if it direction was wrong they were not computed
       Same applies with latency counters
