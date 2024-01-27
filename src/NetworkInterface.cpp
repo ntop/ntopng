@@ -1715,7 +1715,11 @@ bool NetworkInterface::processPacket(u_int32_t bridge_iface_idx, bool ingressPac
       fragment_offset = ((ntohs(iph->frag_off) & 0x3fff) & 0x1FFF) * 8;
 
 #ifdef IMPLEMENT_SMART_FRAGMENTS
-      if (fragment_offset) return (pass_verdict);
+      if (fragment_offset) {
+	incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+		 NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
+	return (pass_verdict);
+      }
 #endif
     }
 
