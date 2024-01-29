@@ -103,7 +103,7 @@ const check_validation = () => {
 }
 
 const check_application_name = () => {
-  return (/^[A-Za-z0-9]*$/.test(application_name.value));
+  return (/^[A-Za-z0-9_-]*$/.test(application_name.value));
 }
 
 const check_custom_rules = () => {
