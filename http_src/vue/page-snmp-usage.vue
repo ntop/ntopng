@@ -88,9 +88,9 @@ const map_table_def_columns = (columns) => {
         },
         "type": (type, row) => {
             if (type == 'uplink') {
-                return `${i18n('uplink_usage')} <i class="fa-solid fa-circle-arrow-up" style="color: #C6D9FD"></i>`
+                return `${i18n('out_usage')} <i class="fa-solid fa-circle-arrow-up" style="color: #C6D9FD"></i>`
             } else {
-                return `${i18n('downlink_usage')} <i class="fa-solid fa-circle-arrow-down" style="color: #90EE90"></i>`
+                return `${i18n('in_usage')} <i class="fa-solid fa-circle-arrow-down" style="color: #90EE90"></i>`
             }
         },
         "speed": (value, row) => {
