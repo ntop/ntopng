@@ -6,7 +6,7 @@ ntopng includes Geolocation support provided by the following companies
 
 ntopng geolocation is based on a database file stored locally with no cloud access whatsoever.
 
-You can choose to install the free (albeith not very accurate) GeoIP databases or the commercial ones.
+You can choose to install the free (albeit not very accurate) GeoIP databases or the commercial ones.
 By default the `ntopng-data` includes the DB-IP databases that are released under the Creative Commons Attribution License.
 
 Please install the `ntopng-data` package to enable geolocation in ntopng, this unless you already have geolocation databases installed.
