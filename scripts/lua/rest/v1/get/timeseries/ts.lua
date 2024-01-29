@@ -73,8 +73,6 @@ if _GET["tskey"] then
   tags.host = tskey
 end
 
-local driver = ts_utils.getQueryDriver()
-
 local options = {
   max_num_points = tonumber(_GET["limit"]) or 60,
   initial_point = toboolean(_GET["initial_point"]),
@@ -203,19 +201,6 @@ local extend_labels = true
 
 if extend_labels and graph_utils.extendLabels then
    graph_utils.extendLabels(res)
-end
-
--- Add layout information
-local layout = graph_utils.get_timeseries_layout(ts_schema)
-
-for _, serie in pairs(res.series) do
-
-  if not serie.type then
-    if layout[serie.label] then
-      serie.type = layout[serie.label]
-    end
-  end
-
 end
 
 if extended_times then
