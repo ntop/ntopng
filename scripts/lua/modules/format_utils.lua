@@ -255,6 +255,41 @@ function format_utils.formatEpochISO8601(epoch)
   return os.date("!%Y-%m-%dT%TZ", epoch)
 end
 
+-- format an epoch according to RFC 2822 format (email)
+-- E.g. "Tue, 3 Apr 2018 14:58:00 +0100"
+function format_utils.formatEpochRFC2822(epoch)
+  if epoch == nil then
+    epoch = os.time()
+  end
+
+  -- Compute local time diff
+  local now_ts = os.time()
+  local d1 = os.date("*t", now_ts)
+  local d2 = os.date("!*t", now_ts)
+  d1.isdst = false
+  local diff = -os.difftime(os.time(d1), os.time(d2))
+
+  -- Format zone offset E.g. "+0100"
+  local sign
+  local hours 
+  local minutes
+  if diff > 0 then
+    sign = '-'
+    hours = diff / (60*60)
+    minutes = diff % (60*60)
+  else
+    sign = '+'
+    hours = -diff / (60*60)
+    minutes = -diff % (60*60)
+  end
+
+  -- Format date
+  local d = os.date("%a, %d %b %Y %X", epoch) -- E.g. "Tue, 3 Apr 2018 14:58:00"
+
+  -- Format final date with zone offset
+  return string.format("%s %s%02d%02d", d, sign, hours, minutes) -- E.g. "Tue, 3 Apr 2018 14:58:00 +0100"
+end
+
 -- format an epoch
 function format_utils.formatEpoch(epoch, full_time)
   if epoch == nil then

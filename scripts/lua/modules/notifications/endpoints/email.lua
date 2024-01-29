@@ -70,14 +70,13 @@ end
 -- ##############################################
 
 local function buildMessageHeader(now_ts, from, to, cc, subject, body)
-  local now = os.date("%a, %d %b %Y %X", now_ts) -- E.g. "Tue, 3 Apr 2018 14:58:00"
   local msg_id = "<" .. now_ts .. "." .. os.clock() .. "@ntopng>"
 
   local lines = {
     "From: " .. from,
     "To: " .. to,
     "Subject: " .. subject,
-    "Date: " ..  now,
+    "Date: " .. format_utils.formatEpochRFC2822(now_ts),
     "Message-ID: " .. msg_id,
     "Content-Type: text/html; charset=UTF-8",
   }
