@@ -466,7 +466,7 @@ if test -r "../license/license.h"; then :
   PRO_LIBS="${PRO_LIBS} ${LICENSELIBS}"
   LICENSE_VERS=`${LICENSEDIR}/packages/version.sh --release`
   LICENSE_REV=`${LICENSEDIR}/packages/version.sh --revision`
-  LICENSE_DEP="ntop-license = ${LICENSE_VERS}-${LICENSE_REV}"
+  LICENSE_DEP="ntop-license = ${LICENSE_VERS}-${LICENSE_REV}, ndpi"
 fi
 else
   AC_MSG_RESULT(not found)
