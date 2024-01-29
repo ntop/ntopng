@@ -3254,7 +3254,9 @@ DeviceProtoStatus Ntop::getDeviceAllowedProtocolStatus(DeviceType dev_type,
    */
   DeviceProtocolBitmask *bitmask = getDeviceAllowedProtocols(dev_type);
   NDPI_PROTOCOL_BITMASK *direction_bitmask =
-      as_client ? (&bitmask->clientAllowed) : (&bitmask->serverAllowed);
+      as_client ? (&bitmask->clientAllowed) : (&bitmask->serverAllowed);  
+  u_int16_t master_proto = ndpi_map_user_proto_id_to_ndpi_id(iface[0]->get_ndpi_struct(), proto.master_protocol);
+  u_int16_t app_proto = ndpi_map_user_proto_id_to_ndpi_id(iface[0]->get_ndpi_struct(), proto.app_protocol);
 
 #ifdef HAVE_NEDGE
   /* On nEdge the concept of device protocol policies is only applied to
@@ -3263,14 +3265,14 @@ DeviceProtoStatus Ntop::getDeviceAllowedProtocolStatus(DeviceType dev_type,
 #endif
 
   /* Always allow network critical protocols */
-  if (Utils::isCriticalNetworkProtocol(proto.master_protocol) ||
-      Utils::isCriticalNetworkProtocol(proto.app_protocol))
+  if (Utils::isCriticalNetworkProtocol(master_proto) ||
+      Utils::isCriticalNetworkProtocol(app_proto))
     return device_proto_allowed;
 
-  if ((proto.master_protocol != NDPI_PROTOCOL_UNKNOWN) &&
-      (!NDPI_ISSET(direction_bitmask, proto.master_protocol))) {
+  if ((master_proto != NDPI_PROTOCOL_UNKNOWN) &&
+      (!NDPI_ISSET(direction_bitmask, master_proto))) {
     return device_proto_forbidden_master;
-  } else if ((!NDPI_ISSET(direction_bitmask, proto.app_protocol))) {
+  } else if ((!NDPI_ISSET(direction_bitmask, app_proto))) {
     /* We consider NDPI_PROTOCOL_UNKNOWN as a protocol to be allowed */
     return device_proto_forbidden_app;
   }
