@@ -3702,6 +3702,12 @@ void Flow::formatSyslogFlow(json_object *my_object) {
         Utils::jsonLabel(JA3C_HASH, "JA3C_HASH", jsonbuf, sizeof(jsonbuf)),
         json_object_new_string(protos.tls.ja3.client_hash));
 
+  if (isTLS() && protos.tls.ja3.server_hash)
+    json_object_object_add(
+        my_object,
+        Utils::jsonLabel(JA3S_HASH, "JA3S_HASH", jsonbuf, sizeof(jsonbuf)),
+        json_object_new_string(protos.tls.ja3.server_hash));
+
   if (isSSH() && protos.ssh.hassh.client_hash)
     json_object_object_add(
         my_object,
@@ -3873,6 +3879,12 @@ void Flow::formatGenericFlow(json_object *my_object) {
         my_object,
         Utils::jsonLabel(TCP_FLAGS, "OUT_LOST", jsonbuf, sizeof(jsonbuf)),
         json_object_new_int64(stats.get_srv2cli_tcp_lost()));
+    
+    json_object_object_add(
+        my_object,
+        Utils::jsonLabel(APPL_LATENCY_MS, "APPL_LATENCY_MS", jsonbuf, sizeof(jsonbuf)),
+        json_object_new_int64(applLatencyMsec));
+
   }
 
   json_object_object_add(
