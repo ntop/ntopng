@@ -475,7 +475,7 @@ Flow::~Flow() {
     if (protos.tls.subjectDN) free(protos.tls.subjectDN);
   } else if (isMining()) {
     if(protos.mining.currency) free(protos.mining.currency);
-  } else if(isSMTP()) {
+  } else if(isProto(NDPI_PROTOCOL_MAIL_SMTP)) {
     if(protos.smtp.mail_from) free(protos.smtp.mail_from);
     if(protos.smtp.rcpt_to) free(protos.smtp.rcpt_to);
   }
@@ -2931,7 +2931,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
     if (end_reason)
       lua_push_str_table_entry(vm, "flow_end_reason", getEndReason());
     
-    if (isSMTP()) {
+    if (isProto(NDPI_PROTOCOL_MAIL_SMTP)) {
       if (protos.smtp.mail_from) 
         lua_push_str_table_entry(vm, "smtp_mail_from", getSMTPMailFrom());
       if (protos.smtp.rcpt_to)
@@ -4821,7 +4821,8 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
     if (!rv)
       delete(notification);
 
-    if (iface->isSmartRecordingEnabled() && (instance_name = iface->getSmartRecordingInstance())) {
+    if (iface->isSmartRecordingEnabled()
+	&& (instance_name = iface->getSmartRecordingInstance())) {
       char key[256], ip_buf[64];
       int expiration = 30*60; /* 30 min */
 
