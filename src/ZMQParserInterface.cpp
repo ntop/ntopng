@@ -132,9 +132,12 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addMapping("CLIENT_NW_LATENCY_MS", CLIENT_NW_LATENCY_MS, NTOP_PEN);
   addMapping("SERVER_NW_LATENCY_MS", SERVER_NW_LATENCY_MS, NTOP_PEN);
   addMapping("L7_PROTO_RISK", L7_PROTO_RISK, NTOP_PEN);
+  addMapping("L7_PROTO_RISK_NAME", L7_PROTO_RISK_NAME, NTOP_PEN );
   addMapping("FLOW_VERDICT", FLOW_VERDICT, NTOP_PEN);
   addMapping("L7_RISK_INFO", L7_RISK_INFO, NTOP_PEN);
   addMapping("FLOW_SOURCE", FLOW_SOURCE, NTOP_PEN);
+  addMapping("SMTP_MAIL_FROM", SMTP_MAIL_FROM, NTOP_PEN);
+  addMapping("SMTP_RCPT_TO", SMTP_RCPT_TO, NTOP_PEN);
 
   /* eBPF / Process */
   addMapping("SRC_PROC_PID", SRC_PROC_PID, NTOP_PEN);
@@ -1002,6 +1005,10 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
   case L7_PROTO_RISK:
     flow->setRisk((ndpi_risk)value->int_num);
     break;
+  
+  case L7_PROTO_RISK_NAME: 
+    flow->setRiskName(value->string);
+    break;
 
   case FLOW_VERDICT:
     flow->setFlowVerdict(value->int_num);
@@ -1178,6 +1185,16 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
     if (value->string && value->string[0]) {
       flow->setParsedContainerInfo();
       flow->dst_container_info.id = strdup(value->string);
+    }
+    break;
+  case SMTP_RCPT_TO:
+    if(value->string && value->string[0]) {
+      flow->setSMTPRcptTo(value->string);
+    }
+    break;
+  case SMTP_MAIL_FROM:
+    if(value->string && value->string[0]) {
+      flow->setSMTPMailFrom(value->string);
     }
     break;
 
@@ -1439,6 +1456,18 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow *const flow,
 
     case NPROBE_IPV4_ADDRESS:
       return (flow->device_ip == ntohl(inet_addr(value->string)));
+
+    case SMTP_MAIL_FROM:
+      if (value->string && flow->getSMTPMailFrom())
+        return (strcmp(flow->getSMTPMailFrom(), value->string) == 0);
+      else
+        return false;
+    
+    case SMTP_RCPT_TO:
+      if (value->string && flow->getSMTPRcptTo())
+        return (strcmp(flow->getSMTPRcptTo(), value->string) == 0);
+      else
+        return false;
 
     default:
       break;

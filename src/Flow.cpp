@@ -94,6 +94,7 @@ Flow::Flow(NetworkInterface *_iface,
   next_call_periodic_update = 0;
 
   riskInfo = NULL, json_protocol_info = NULL, end_reason = NULL;
+  ndpiFlowRiskName = NULL;
   viewFlowStats = NULL, suspicious_dga_domain = NULL;
   flow_payload = NULL, flow_payload_len = 0;
 
@@ -478,7 +479,12 @@ Flow::~Flow() {
     if(protos.mining.currency) free(protos.mining.currency);
   } else if (isDHCP()) {
     if(protos.dhcp.name) free(protos.dhcp.name);
+  } else if(isSMTP()) {
+    if(protos.smtp.mail_from) free(protos.smtp.mail_from);
+    if(protos.smtp.rcpt_to) free(protos.smtp.rcpt_to);
   }
+
+  if (ndpiFlowRiskName) free(ndpiFlowRiskName);
 
   if (bt_hash) free(bt_hash);
 
@@ -2949,6 +2955,13 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
                               is_periodic_flow ? true : false);
     if (end_reason)
       lua_push_str_table_entry(vm, "flow_end_reason", getEndReason());
+    
+    if (isSMTP()) {
+      if (protos.smtp.mail_from) 
+        lua_push_str_table_entry(vm, "smtp_mail_from", getSMTPMailFrom());
+      if (protos.smtp.rcpt_to)
+        lua_push_str_table_entry(vm, "smtp_rcpt_to", getSMTPRcptTo());
+    }
 
     if (rtp_stream_type != ndpi_multimedia_unknown_flow) {
       switch (rtp_stream_type) {
@@ -3878,7 +3891,11 @@ void Flow::formatGenericFlow(json_object *my_object) {
       Utils::jsonLabel(L7_PROTO_RISK, "L7_PROTO_RISK", jsonbuf,
                        sizeof(jsonbuf)),
       json_object_new_int64((u_int64_t)ndpi_flow_risk_bitmap));
-
+  if (ndpiFlowRiskName) 
+    json_object_object_add(
+        my_object,
+        Utils::jsonLabel(L7_PROTO_RISK_NAME, "L7_PROTO_RISK_NAME", jsonbuf, sizeof(jsonbuf)),
+        json_object_new_string(ndpiFlowRiskName));
   if (end_reason)
     json_object_object_add(
         my_object,
@@ -4013,6 +4030,18 @@ void Flow::formatGenericFlow(json_object *my_object) {
                            json_object_new_string(iface->get_name()));
 #endif
 
+  if (isSMTP() && protos.smtp.mail_from) 
+    json_object_object_add(
+        my_object,
+        Utils::jsonLabel(SMTP_MAIL_FROM, "SMTP_MAIL_FROM", jsonbuf, sizeof(jsonbuf)),
+        json_object_new_string(protos.smtp.mail_from));
+
+  if (isSMTP() && protos.smtp.rcpt_to) 
+    json_object_object_add(
+        my_object,
+        Utils::jsonLabel(SMTP_RCPT_TO, "SMTP_RCPT_TO", jsonbuf, sizeof(jsonbuf)),
+        json_object_new_string(protos.smtp.rcpt_to));
+  
   if (isDNS() && protos.dns.last_query)
     json_object_object_add(
         my_object,
@@ -8154,6 +8183,53 @@ char *Flow::getEndReason() { return (end_reason); }
 
 /* *************************************** */
 
+void Flow::setSMTPMailFrom(char *r) {
+  if (!r) return;
+
+  if (protos.smtp.mail_from) free(protos.smtp.mail_from);
+
+  // ntop->getTrace()->traceEvent(TRACE_INFO, "[%s]", r);
+
+  protos.smtp.mail_from = strdup(r);
+}
+
+/* *************************************** */
+
+char *Flow::getSMTPMailFrom() { return (protos.smtp.mail_from); }
+
+/* *************************************** */
+
+void Flow::setSMTPRcptTo(char *r) {
+  if (!r) return;
+
+  if (protos.smtp.rcpt_to) free(protos.smtp.rcpt_to);
+
+  // ntop->getTrace()->traceEvent(TRACE_INFO, "[%s]", r);
+
+  protos.smtp.rcpt_to = strdup(r);
+}
+
+/* *************************************** */
+
+char *Flow::getSMTPRcptTo() { return (protos.smtp.rcpt_to); }
+
+/* *************************************** */
+
+void Flow::setFlowRiskName(char *r) {
+  if (!r) return;
+
+  if (ndpiFlowRiskName) free(ndpiFlowRiskName);
+
+  // ntop->getTrace()->traceEvent(TRACE_INFO, "[%s]", r);
+
+  ndpiFlowRiskName = strdup(r);
+}
+
+/* *************************************** */
+
+char *Flow::getFlowRiskName() { return (ndpiFlowRiskName); }
+
+/* *************************************** */
 /* The alert will be triggered by src/flow_checks/CustomFlowLuaScript.cpp */
 void Flow::triggerCustomFlowAlert(u_int8_t score, char *msg) {
   customFlowAlert.alertTriggered = true, customFlowAlert.score = score;

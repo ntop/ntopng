@@ -31,12 +31,14 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   http_url = http_site = http_user_agent = NULL;
   http_method = NDPI_HTTP_METHOD_UNKNOWN;
   dns_query = tls_server_name = end_reason = NULL;
+  smtp_mail_from = smtp_rcp_to = NULL;
   ja3c_hash = ja3s_hash = NULL;
   external_alert = NULL;
   flow_risk_info = NULL;
   tls_cipher = tls_unsafe_cipher = http_ret_code = 0;
   dns_query_type = dns_ret_code = 0;
   ndpi_flow_risk_bitmap = 0;
+  ndpi_flow_risk_name = NULL;
   flow_verdict = 0; /* Unknown */
   bittorrent_hash = NULL;
   l7_error_code = 0;
@@ -108,6 +110,19 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf)
     flow_risk_info = strdup(pf.flow_risk_info);
   else
     flow_risk_info = NULL;
+  if (pf.ndpi_flow_risk_name)
+    ndpi_flow_risk_name = strdup(pf.ndpi_flow_risk_name);
+  else
+    ndpi_flow_risk_name = NULL;
+  if (pf.smtp_mail_from)
+    smtp_mail_from = strdup(pf.smtp_mail_from);
+  else
+    smtp_mail_from = NULL;
+  if (pf.smtp_rcp_to)
+    smtp_rcp_to = strdup(pf.smtp_rcp_to);
+  else
+    smtp_rcp_to = NULL;
+  
 
   tls_cipher = pf.tls_cipher;
   tls_unsafe_cipher = pf.tls_unsafe_cipher;
@@ -256,18 +271,21 @@ void ParsedFlow::freeMemory() {
     additional_fields_tlv = NULL;
   }
 
-  if (l7_info)         { free(l7_info); l7_info = NULL; }
-  if (http_url)        { free(http_url); http_url = NULL; }
-  if (http_site)       { free(http_site); http_site = NULL; }
-  if (http_user_agent) { free(http_user_agent); http_user_agent = NULL; }
-  if (dns_query)       { free(dns_query); dns_query = NULL; }
-  if (end_reason)      { free(end_reason); end_reason = NULL; }
-  if (tls_server_name) { free(tls_server_name); tls_server_name = NULL; }
-  if (bittorrent_hash) { free(bittorrent_hash); bittorrent_hash = NULL; }
-  if (ja3c_hash)       { free(ja3c_hash); ja3c_hash = NULL; }
-  if (ja3s_hash)       { free(ja3s_hash); ja3s_hash = NULL; }
-  if (external_alert)  { free(external_alert); external_alert = NULL; }
-  if (flow_risk_info)  { free(flow_risk_info); flow_risk_info = NULL; }
+  if (l7_info)              { free(l7_info); l7_info = NULL; }
+  if (http_url)             { free(http_url); http_url = NULL; }
+  if (http_site)            { free(http_site); http_site = NULL; }
+  if (http_user_agent)      { free(http_user_agent); http_user_agent = NULL; }
+  if (dns_query)            { free(dns_query); dns_query = NULL; }
+  if (end_reason)           { free(end_reason); end_reason = NULL; }
+  if (tls_server_name)      { free(tls_server_name); tls_server_name = NULL; }
+  if (bittorrent_hash)      { free(bittorrent_hash); bittorrent_hash = NULL; }
+  if (ja3c_hash)            { free(ja3c_hash); ja3c_hash = NULL; }
+  if (ja3s_hash)            { free(ja3s_hash); ja3s_hash = NULL; }
+  if (external_alert)       { free(external_alert); external_alert = NULL; }
+  if (flow_risk_info)       { free(flow_risk_info); flow_risk_info = NULL; }
+  if (ndpi_flow_risk_name)  { free(ndpi_flow_risk_name); ndpi_flow_risk_name = NULL; }
+  if (smtp_rcp_to)          { free(smtp_rcp_to); smtp_rcp_to = NULL; }
+  if (smtp_mail_from)       { free(smtp_mail_from); smtp_mail_from = NULL; }
 }
     
 /* *************************************** */
