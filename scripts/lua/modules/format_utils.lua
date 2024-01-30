@@ -587,7 +587,16 @@ function format_utils.formatMessage(notification, options)
 end
 
 -- ######################################################
-   
+-- This function removes '>' and '<' from email list and
+-- adds a space after the commas
+function format_utils.formatEmailList(email_list)
+   local email_list_formatted = replace(email_list,"<","")
+    email_list_formatted = replace(email_list_formatted, ">", "")
+    email_list_formatted = replace(email_list_formatted, ",", ", ")
+    return email_list_formatted
+end
+
+-- ######################################################
 if(trace_script_duration ~= nil) then
    io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
 end

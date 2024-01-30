@@ -1835,9 +1835,22 @@ else
         end
 
         local num = 0
+        if (flow["smtp_mail_from"]) then
+            local smtp_mail_from = format_utils.formatEmailList(flow["smtp_mail_from"])
+            print("<tr><th width=30%>" .. getFlowKey('SMTP_MAIL_FROM') .. "</th>")
+            print("<td colspan=2>" .. smtp_mail_from .. "</td>")
+            print("</tr>\n")
+        end
+        if (flow["smtp_rcpt_to"]) then
+            local smtp_rcpt_to = format_utils.formatEmailList(flow["smtp_rcpt_to"])
+            print("<tr><th width=30%>" .. getFlowKey('SMTP_RCPT_TO') .. "</th>")
+            print("<td colspan=2>" .. smtp_rcpt_to .. "</td>")
+            print("</tr>\n")
+        end
+
         if (flow["flow_end_reason"]) then
             print("<tr><th width=30%>" .. getFlowKey('FLOW_END_REASON') .. "</th>")
-            print("<td colspan=1>" .. flow["flow_end_reason"] .. "</td>")
+            print("<td colspan=2>" .. flow["flow_end_reason"] .. "</td>")
 
             print("</tr>\n")
         end

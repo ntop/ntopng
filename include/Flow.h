@@ -106,6 +106,7 @@ class Flow : public GenericHashEntry {
 #endif
   char *ndpiAddressFamilyProtocol;
   ndpi_protocol ndpiDetectedProtocol;
+  char *ndpiFlowRiskName;
   custom_app_t custom_app;
 
   struct {
@@ -208,6 +209,11 @@ class Flow : public GenericHashEntry {
     struct {
       char * currency;
     } mining;
+
+    struct {
+      char * mail_from;
+      char * rcpt_to;
+    } smtp;
     
   } protos;
 
@@ -1297,6 +1303,12 @@ class Flow : public GenericHashEntry {
   char *getJSONRiskInfo();
   void setEndReason(char *r);
   char *getEndReason();
+  void setSMTPMailFrom(char *r);
+  char *getSMTPMailFrom();
+  void setSMTPRcptTo(char *r);
+  char *getSMTPRcptTo();
+  void setFlowRiskName(char *r);
+  char *getFlowRiskName();
   void getJSONRiskInfo(ndpi_serializer *serializer);
 
   inline FlowTrafficStats *getTrafficStats() { return (&stats); };

@@ -554,6 +554,15 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     if (flow->isDNS())  flow->updateDNS(zflow);
     if (flow->isHTTP()) flow->updateHTTP(zflow);
     if (flow->isTLS())  flow->updateTLS(zflow);
+    if (flow->isSMTP()) {
+      if (zflow->getSMTPMailFrom())
+        flow->setSMTPMailFrom(zflow->getSMTPMailFrom());
+      if (zflow->getSMTPRcptTo())
+        flow->setSMTPRcptTo(zflow->getSMTPRcptTo());
+    }
+
+    if (zflow->getRiskName())
+      flow->setFlowRiskName(zflow->getRiskName());
 
     if (zflow->getBittorrentHash())
       flow->setBTHash(zflow->getBittorrentHash(true));

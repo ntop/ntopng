@@ -37,6 +37,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   char *tls_server_name, *bittorrent_hash;
   char *ja3c_hash, *ja3s_hash, *flow_risk_info;
   char *external_alert;
+  char *smtp_rcp_to, *smtp_mail_from;
   u_int8_t tls_unsafe_cipher, flow_verdict;
   u_int16_t tls_cipher;
   u_int16_t http_ret_code;
@@ -45,7 +46,8 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   custom_app_t custom_app;
   ndpi_confidence_t confidence;
   ndpi_risk ndpi_flow_risk_bitmap;
-
+  char *ndpi_flow_risk_name;
+  
  public:
   ParsedFlow();
   
@@ -111,7 +113,9 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   void setConfidence(ndpi_confidence_t c) { confidence = c; }
   void setRisk(ndpi_risk r) { ndpi_flow_risk_bitmap = r; }
   inline void setEndReason(const char *str) { if(end_reason != NULL) free(end_reason);  if(str) { end_reason = strdup(str);} else end_reason = NULL; }
-
+  inline void setSMTPRcptTo(const char *str) { if(smtp_rcp_to != NULL) free(smtp_rcp_to);  if(str) { smtp_rcp_to = strdup(str);} else smtp_rcp_to = NULL; }
+  inline void setSMTPMailFrom(const char *str) { if(smtp_mail_from != NULL) free(smtp_mail_from);  if(str) { smtp_mail_from = strdup(str);} else smtp_mail_from = NULL; }
+  inline void setRiskName(const char *str) { if(ndpi_flow_risk_name != NULL) free(ndpi_flow_risk_name); if (str) { ndpi_flow_risk_name = strdup(str);} else ndpi_flow_risk_name = NULL; }
   /* ****** */
   inline char* getL7Info(bool setToNULL = false)  { char *r = l7_info; if(setToNULL) l7_info = NULL; return(r); }
   inline char* getHTTPurl(bool setToNULL = false) { char *r = http_url; if(setToNULL) http_url = NULL; return(r); }
@@ -126,6 +130,8 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline char* getRiskInfo(bool setToNULL = false) { char *r = flow_risk_info; if(setToNULL) flow_risk_info  = NULL; return(r); }
   inline char* getExternalAlert(bool setToNULL = false) { char *r = external_alert; if(setToNULL) external_alert = NULL; return(r); }
   inline char* getEndReason(bool setToNull = false) { char *r = end_reason; if(setToNull) end_reason = NULL; return(r); }
+  inline char* getSMTPRcptTo(bool setToNull = false) { char *r = smtp_rcp_to; if(setToNull) smtp_rcp_to = NULL; return(r); }
+  inline char* getSMTPMailFrom(bool setToNull = false) { char *r = smtp_mail_from; if(setToNull) smtp_mail_from = NULL; return(r); }
   inline u_int8_t getTLSUnsafeCipher() { return(tls_unsafe_cipher); }
   inline u_int16_t getTLSCipher() { return(tls_cipher); }
   inline u_int8_t getFlowVerdict() { return(flow_verdict); }
@@ -136,6 +142,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline custom_app_t getCustomApp() { return(custom_app ); }
   inline ndpi_confidence_t getConfidence() { return(confidence); }
   inline ndpi_risk getRisk() { return(ndpi_flow_risk_bitmap); }
+  inline char* getRiskName() { return(ndpi_flow_risk_name); }
 };
 
 #endif /* _PARSED_FLOW_H_ */
