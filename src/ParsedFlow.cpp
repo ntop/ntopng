@@ -30,7 +30,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   is_swapped = false;
   http_url = http_site = http_user_agent = NULL;
   http_method = NDPI_HTTP_METHOD_UNKNOWN;
-  dns_query = tls_server_name = NULL;
+  dns_query = tls_server_name = end_reason = NULL;
   ja3c_hash = ja3s_hash = NULL;
   external_alert = NULL;
   flow_risk_info = NULL;
@@ -80,6 +80,10 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf)
     dns_query = strdup(pf.dns_query);
   else
     dns_query = NULL;
+  if(pf.end_reason)
+    end_reason = strdup(pf.end_reason);
+  else
+    end_reason = NULL;
   if (pf.tls_server_name)
     tls_server_name = strdup(pf.tls_server_name);
   else
@@ -257,6 +261,7 @@ void ParsedFlow::freeMemory() {
   if (http_site)       { free(http_site); http_site = NULL; }
   if (http_user_agent) { free(http_user_agent); http_user_agent = NULL; }
   if (dns_query)       { free(dns_query); dns_query = NULL; }
+  if (end_reason)      { free(end_reason); end_reason = NULL; }
   if (tls_server_name) { free(tls_server_name); tls_server_name = NULL; }
   if (bittorrent_hash) { free(bittorrent_hash); bittorrent_hash = NULL; }
   if (ja3c_hash)       { free(ja3c_hash); ja3c_hash = NULL; }

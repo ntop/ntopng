@@ -33,6 +33,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   char *http_url, *http_site, *http_user_agent;
   ndpi_http_method http_method;
   char *dns_query;
+  char *end_reason;
   char *tls_server_name, *bittorrent_hash;
   char *ja3c_hash, *ja3s_hash, *flow_risk_info;
   char *external_alert;
@@ -111,6 +112,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline void setConfidence(ndpi_confidence_t c) { confidence = c; }
   inline void setRisk(ndpi_risk r) { ndpi_flow_risk_bitmap = r; }
   inline void setFlowSource(FlowSource n) { flow_source = n; }
+  inline void setEndReason(const char *str) { if(end_reason != NULL) free(end_reason);  if(str) { end_reason = strdup(str);} else end_reason = NULL; }
   
   /* ****** */
   inline char* getL7Info(bool setToNULL = false)  { char *r = l7_info; if(setToNULL) l7_info = NULL; return(r); }
@@ -125,6 +127,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline char* getJA3sHash(bool setToNULL = false) { char *r = ja3s_hash; if(setToNULL) ja3s_hash = NULL; return(r); }
   inline char* getRiskInfo(bool setToNULL = false) { char *r = flow_risk_info; if(setToNULL) flow_risk_info  = NULL; return(r); }
   inline char* getExternalAlert(bool setToNULL = false) { char *r = external_alert; if(setToNULL) external_alert = NULL; return(r); }
+  inline char* getEndReason(bool setToNull = false) { char *r = end_reason; if(setToNull) end_reason = NULL; return(r); }
   inline u_int8_t getTLSUnsafeCipher() { return(tls_unsafe_cipher); }
   inline u_int16_t getTLSCipher() { return(tls_cipher); }
   inline u_int8_t getFlowVerdict() { return(flow_verdict); }

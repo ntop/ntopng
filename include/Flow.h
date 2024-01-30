@@ -71,7 +71,7 @@ class Flow : public GenericHashEntry {
         is_srv_victim : 1, auto_acknowledge : 1;
   } predominant_alert_info;
 
-  char *json_protocol_info, *riskInfo;
+  char *json_protocol_info, *riskInfo, *end_reason;
 
   /* Calculate the entropy on the first MAX_ENTROPY_BYTES bytes */
   struct {
@@ -1301,6 +1301,8 @@ class Flow : public GenericHashEntry {
   u_char *getCommunityId(u_char *community_id, u_int community_id_len);
   void setJSONRiskInfo(char *r);
   char *getJSONRiskInfo();
+  void setEndReason(char *r);
+  char *getEndReason();
   void getJSONRiskInfo(ndpi_serializer *serializer);
 
   inline FlowTrafficStats *getTrafficStats() { return (&stats); };

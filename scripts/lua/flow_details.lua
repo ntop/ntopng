@@ -1859,6 +1859,12 @@ else
         end
 
         local num = 0
+        if (flow["flow_end_reason"]) then
+            print("<tr><th width=30%>" .. getFlowKey('FLOW_END_REASON') .. "</th>")
+            print("<td colspan=1>" .. flow["flow_end_reason"] .. "</td>")
+
+            print("</tr>\n")
+        end
         for key, value in pairsByKeys(info) do
             if tonumber(key) then
                 key = getFlowLabelFromId(key)
