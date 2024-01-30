@@ -3376,9 +3376,12 @@ ndpi_protocol_category_t Ntop::get_ndpi_proto_category(u_int protoid) {
 
 void Ntop::setnDPIProtocolCategory(u_int16_t protoId,
                                    ndpi_protocol_category_t protoCategory) {
-  for (u_int i = 0; i < get_num_interfaces(); i++)
-    if (getInterface(i))
-      getInterface(i)->setnDPIProtocolCategory(protoId, protoCategory);
+  for (u_int i = 0; i < get_num_interfaces(); i++) {
+    NetworkInterface *iface = getInterface(i);
+    
+    if(iface)
+      iface->setnDPIProtocolCategory(iface->get_ndpi_struct(), protoId, protoCategory);
+  }
 }
 
 /* *************************************** */

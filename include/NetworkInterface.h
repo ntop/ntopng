@@ -1270,7 +1270,8 @@ public:
     return (ndpi_get_proto_category(get_ndpi_struct(), proto));
   };
   ndpi_protocol_category_t get_ndpi_proto_category(u_int16_t protoid);
-  void setnDPIProtocolCategory(u_int16_t protoId,
+  void setnDPIProtocolCategory(struct ndpi_detection_module_struct *ndpi_str,
+			       u_int16_t protoId,
                                ndpi_protocol_category_t protoCategory);
   bool nDPILoadIPCategory(char *what, ndpi_protocol_category_t id,
                           char *list_name);
