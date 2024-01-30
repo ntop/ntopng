@@ -504,30 +504,22 @@ void NetworkInterface::finalizenDPIReload() {
 
 /* ******************************************* */
 
-void NetworkInterface::loadProtocolsAssociations(
-						 struct ndpi_detection_module_struct *ndpi_str) {
+void NetworkInterface::loadProtocolsAssociations(struct ndpi_detection_module_struct *ndpi_str) {
   char **keys, **values;
   Redis *redis = ntop->getRedis();
   int rc;
 
   if (!redis) return;
 
-  rc = redis->hashGetAll(CUSTOM_NDPI_PROTOCOLS_ASSOCIATIONS_HASH, &keys,
-                         &values);
+  rc = redis->hashGetAll(CUSTOM_NDPI_PROTOCOLS_ASSOCIATIONS_HASH, &keys, &values);
 
   if (rc > 0) {
     for (int i = 0; i < rc; i++) {
-      u_int16_t protoId;
-      ndpi_protocol_category_t protoCategory;
-
       if (keys[i] && values[i]) {
-        protoId = atoi(keys[i]);
-        protoCategory = (ndpi_protocol_category_t)atoi(values[i]);
+        u_int16_t protoId = atoi(keys[i]);
+        ndpi_protocol_category_t protoCategory = (ndpi_protocol_category_t)atoi(values[i]);
 
-        ntop->getTrace()->traceEvent(
-				     TRACE_INFO, "Loading protocol association: ID %d -> category %d",
-				     protoId, protoCategory);
-        ndpi_set_proto_category(ndpi_str, protoId, protoCategory);
+	setnDPIProtocolCategory(ndpi_str, protoId, protoCategory);
       }
 
       if (values[i]) free(values[i]);
@@ -598,10 +590,19 @@ ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int16_t pro
 
 /* *************************************** */
 
-void NetworkInterface::setnDPIProtocolCategory(u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
-  protoId = ndpi_map_user_proto_id_to_ndpi_id(get_ndpi_struct(), protoId);
+void NetworkInterface::setnDPIProtocolCategory(struct ndpi_detection_module_struct *ndpi_str,
+					       u_int16_t protoId, ndpi_protocol_category_t protoCategory) {
+  u_int16_t mappedProtoId = ndpi_map_user_proto_id_to_ndpi_id(ndpi_str, protoId);
 
-  ndpi_set_proto_category(get_ndpi_struct(), protoId, protoCategory);
+  if(mappedProtoId == 0)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: ID %d (mapped to %u)",
+				 protoId, mappedProtoId);
+  else {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Setting protocol association: ID %d (mapped to %u) -> category %d",
+				 protoId, mappedProtoId, protoCategory);
+    
+    ndpi_set_proto_category(ndpi_str, mappedProtoId, protoCategory);
+  }
 }
 
 /* **************************************************** */
