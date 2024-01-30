@@ -108,6 +108,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addMapping("DST_AS", DST_AS);
   addMapping("BGP_NEXT_ADJACENT_ASN", BGP_NEXT_ADJACENT_ASN);
   addMapping("BGP_PREV_ADJACENT_ASN", BGP_PREV_ADJACENT_ASN);
+  addMapping("FLOW_END_REASON", FLOW_END_REASON);
   addMapping("OOORDER_IN_PKTS", OOORDER_IN_PKTS, NTOP_PEN);
   addMapping("OOORDER_OUT_PKTS", OOORDER_OUT_PKTS, NTOP_PEN);
   addMapping("RETRANSMITTED_IN_PKTS", RETRANSMITTED_IN_PKTS, NTOP_PEN);
@@ -729,6 +730,10 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
       if (value->string != NULL && strlen(value->string) > 0)
         inet_pton(AF_INET6, value->string, &flow->device_ipv6);
       break;
+    case FLOW_END_REASON:
+      if (value->string)  
+        flow->setEndReason(value->string);
+      break;
     case TOTAL_FLOWS_EXP:
       /* Not used
          if(value->string != NULL)
@@ -1261,6 +1266,12 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow *const flow,
         return (flow->direction == atoi(value->string));
       else
         return (flow->direction == value->int_num);
+    
+    case FLOW_END_REASON:
+      if (value->string) {
+        if (flow->getEndReason())
+          return (!strcmp(value->string, flow->getEndReason()));
+      }
 
     case EXPORTER_IPV4_ADDRESS:
       return (flow->device_ip == ntohl(inet_addr(value->string)));

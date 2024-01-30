@@ -91,7 +91,7 @@ Flow::Flow(NetworkInterface *_iface, u_int16_t _vlanId,
   trigger_immediate_periodic_update = false;
   next_call_periodic_update = 0;
 
-  riskInfo = NULL, json_protocol_info = NULL;
+  riskInfo = NULL, json_protocol_info = NULL, end_reason = NULL;
   viewFlowStats = NULL, suspicious_dga_domain = NULL;
   flow_payload = NULL, flow_payload_len = 0;
 
@@ -407,6 +407,7 @@ Flow::~Flow() {
    */
 
   if (riskInfo) free(riskInfo);
+  if (end_reason) free(end_reason);
   if (viewFlowStats) delete (viewFlowStats);
   if (periodic_stats_update_partial) delete (periodic_stats_update_partial);
   if (last_db_dump.partial) delete (last_db_dump.partial);
@@ -2921,6 +2922,8 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
     lua_push_int32_table_entry(vm, "flow_verdict", flow_verdict);
     lua_push_bool_table_entry(vm, "periodic_flow",
                               is_periodic_flow ? true : false);
+    if (end_reason)
+      lua_push_str_table_entry(vm, "flow_end_reason", getEndReason());
 
     if (rtp_stream_type != ndpi_multimedia_unknown_flow) {
       switch (rtp_stream_type) {
@@ -3849,6 +3852,12 @@ void Flow::formatGenericFlow(json_object *my_object) {
                        sizeof(jsonbuf)),
       json_object_new_int64((u_int64_t)ndpi_flow_risk_bitmap));
 
+  if (end_reason)
+    json_object_object_add(
+        my_object,
+        Utils::jsonLabel(FLOW_END_REASON, "FLOW_END_REASON", jsonbuf,
+                        sizeof(jsonbuf)),
+        json_object_new_string(end_reason));
   if (protocol == IPPROTO_TCP) {
     json_object_object_add(
         my_object,
@@ -8084,6 +8093,22 @@ void Flow::setJSONRiskInfo(char *r) {
 /* *************************************** */
 
 char *Flow::getJSONRiskInfo() { return (riskInfo); }
+
+/* *************************************** */
+
+void Flow::setEndReason(char *r) {
+  if (!r) return;
+
+  if (end_reason) free(end_reason);
+
+  // ntop->getTrace()->traceEvent(TRACE_INFO, "[%s]", r);
+
+  end_reason = strdup(r);
+}
+
+/* *************************************** */
+
+char *Flow::getEndReason() { return (end_reason); }
 
 /* *************************************** */
 
