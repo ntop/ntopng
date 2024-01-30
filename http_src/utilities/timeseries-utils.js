@@ -145,10 +145,9 @@ function getMainSourceDefIndex(tsGroup) {
 
 }
 
-async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseriesGroups, isPro) {
+function getTsChartsDataUrl(httpPrefix, epochStatus, tsCompare, timeseriesGroups, isPro) {
 	let paramsEpochObj = { epoch_begin: epochStatus.epoch_begin, epoch_end: epochStatus.epoch_end };
-
-	let tsChartsOptions;
+	let url_and_body = {};
 	if (!isPro) {
 		let tsDataUrl = `${httpPrefix}/lua/rest/v2/get/timeseries/ts.lua`;
 		let paramsUrlRequest = `ts_compare=${tsCompare}&version=4&zoom=${tsCompare}&limit=180`;
@@ -164,9 +163,7 @@ async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseries
 			pObj.tskey = tsGroup.source_array[main_source_index].value;
 		}
 		let pUrlRequest = ntopng_url_manager.add_obj_to_url(pObj, paramsUrlRequest);
-		let url = `${tsDataUrl}?${pUrlRequest}`;
-		let tsChartOption = await ntopng_utility.http_request(url);
-		tsChartsOptions = [tsChartOption];
+		url_and_body.url = `${tsDataUrl}?${pUrlRequest}`;
 	} else {
 		let paramsChart = {
 			zoom: tsCompare,
@@ -186,13 +183,27 @@ async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseries
 				pObj.tskey = tsGroup.source_array[main_source_index].value;
 			}
 			return pObj;
-		});
-		let tsDataUrlMulti = `${httpPrefix}/lua/pro/rest/v2/get/timeseries/ts_multi.lua`;
-		let req = { ts_requests: tsRequests, ...paramsEpochObj, ...paramsChart };
+		});			
+		url_and_body.url = `${httpPrefix}/lua/pro/rest/v2/get/timeseries/ts_multi.lua`;
+		url_and_body.body = { ts_requests: tsRequests, ...paramsEpochObj, ...paramsChart };
+	}
+
+	return url_and_body;
+}
+
+async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseriesGroups, isPro) {
+
+	let tsChartsOptions;
+	const url_and_body = getTsChartsDataUrl(httpPrefix, epochStatus, tsCompare, timeseriesGroups, isPro)
+
+	if (!isPro) {
+		let tsChartOption = await ntopng_utility.http_request(url_and_body.url);
+		tsChartsOptions = [tsChartOption];
+	} else {
 		let headers = {
 			'Content-Type': 'application/json'
 		};
-		tsChartsOptions = await ntopng_utility.http_request(tsDataUrlMulti, { method: 'post', headers, body: JSON.stringify(req) });
+		tsChartsOptions = await ntopng_utility.http_request(url_and_body.url, { method: 'post', headers, body: JSON.stringify(url_and_body.body) });X
 	}
 	return tsChartsOptions;
 }
@@ -207,6 +218,7 @@ const timeseriesUtils = function () {
 		getSerieId,
 		getSerieName,
 		getTsChartsOptions,
+		getTsChartsDataUrl,
 		getTsQuery,
 		getMainSourceDefIndex,
 	};
