@@ -3743,16 +3743,16 @@ void Flow::formatGenericFlow(json_object *my_object) {
   if (cli_ip) {
     if (cli_ip->isIPv4()) {
       json_object_object_add(
-          my_object,
-          Utils::jsonLabel(IPV4_SRC_ADDR, "IPV4_SRC_ADDR", jsonbuf,
-                           sizeof(jsonbuf)),
-          json_object_new_string(cli_ip->print(buf, sizeof(buf))));
+			     my_object,
+			     Utils::jsonLabel(IPV4_SRC_ADDR, "IPV4_SRC_ADDR", jsonbuf,
+					      sizeof(jsonbuf)),
+			     json_object_new_string(cli_ip->print(buf, sizeof(buf))));
     } else if (cli_ip->isIPv6()) {
       json_object_object_add(
-          my_object,
-          Utils::jsonLabel(IPV6_SRC_ADDR, "IPV6_SRC_ADDR", jsonbuf,
-                           sizeof(jsonbuf)),
-          json_object_new_string(cli_ip->print(buf, sizeof(buf))));
+			     my_object,
+			     Utils::jsonLabel(IPV6_SRC_ADDR, "IPV6_SRC_ADDR", jsonbuf,
+					      sizeof(jsonbuf)),
+			     json_object_new_string(cli_ip->print(buf, sizeof(buf))));
     }
 
 #ifdef FULL_SERIALIZATION
@@ -3762,22 +3762,22 @@ void Flow::formatGenericFlow(json_object *my_object) {
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_boolean(cli_ip->isLocalHost()));
     json_object_object_add(
-        my_object,
-        Utils::jsonLabel(SRC_ADDR_BLACKLISTED, "SRC_ADDR_BLACKLISTED", jsonbuf,
-                         sizeof(jsonbuf)),
-        json_object_new_boolean(cli_ip->isBlacklistedAddress()));
+			   my_object,
+			   Utils::jsonLabel(SRC_ADDR_BLACKLISTED, "SRC_ADDR_BLACKLISTED", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_boolean(cli_ip->isBlacklistedAddress()));
 
     if (get_cli_host()) {
       json_object_object_add(
-          my_object,
-          Utils::jsonLabel(SRC_ADDR_SERVICES, "SRC_ADDR_SERVICES", jsonbuf,
-                           sizeof(jsonbuf)),
-          json_object_new_int(get_cli_host()->getServicesMap()));
+			     my_object,
+			     Utils::jsonLabel(SRC_ADDR_SERVICES, "SRC_ADDR_SERVICES", jsonbuf,
+					      sizeof(jsonbuf)),
+			     json_object_new_int(get_cli_host()->getServicesMap()));
       json_object_object_add(
-          my_object,
-          Utils::jsonLabel(SRC_NAME, "SRC_NAME", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_string(
-              get_cli_host()->get_visual_name(buf, sizeof(buf))));
+			     my_object,
+			     Utils::jsonLabel(SRC_NAME, "SRC_NAME", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(
+						    get_cli_host()->get_visual_name(buf, sizeof(buf))));
     }
 #endif
   }
@@ -3785,16 +3785,16 @@ void Flow::formatGenericFlow(json_object *my_object) {
   if (srv_ip) {
     if (srv_ip->isIPv4()) {
       json_object_object_add(
-          my_object,
-          Utils::jsonLabel(IPV4_DST_ADDR, "IPV4_DST_ADDR", jsonbuf,
-                           sizeof(jsonbuf)),
-          json_object_new_string(srv_ip->print(buf, sizeof(buf))));
+			     my_object,
+			     Utils::jsonLabel(IPV4_DST_ADDR, "IPV4_DST_ADDR", jsonbuf,
+					      sizeof(jsonbuf)),
+			     json_object_new_string(srv_ip->print(buf, sizeof(buf))));
     } else if (srv_ip->isIPv6()) {
       json_object_object_add(
-          my_object,
-          Utils::jsonLabel(IPV6_DST_ADDR, "IPV6_DST_ADDR", jsonbuf,
-                           sizeof(jsonbuf)),
-          json_object_new_string(srv_ip->print(buf, sizeof(buf))));
+			     my_object,
+			     Utils::jsonLabel(IPV6_DST_ADDR, "IPV6_DST_ADDR", jsonbuf,
+					      sizeof(jsonbuf)),
+			     json_object_new_string(srv_ip->print(buf, sizeof(buf))));
     }
 
 #ifdef FULL_SERIALIZATION
@@ -3804,82 +3804,82 @@ void Flow::formatGenericFlow(json_object *my_object) {
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_boolean(srv_ip->isLocalHost()));
     json_object_object_add(
-        my_object,
-        Utils::jsonLabel(DST_ADDR_BLACKLISTED, "DST_ADDR_BLACKLISTED", jsonbuf,
-                         sizeof(jsonbuf)),
-        json_object_new_boolean(srv_ip->isBlacklistedAddress()));
+			   my_object,
+			   Utils::jsonLabel(DST_ADDR_BLACKLISTED, "DST_ADDR_BLACKLISTED", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_boolean(srv_ip->isBlacklistedAddress()));
 
     if (get_srv_host()) {
       json_object_object_add(
-          my_object,
-          Utils::jsonLabel(DST_ADDR_SERVICES, "DST_ADDR_SERVICES", jsonbuf,
-                           sizeof(jsonbuf)),
-          json_object_new_int(get_srv_host()->getServicesMap()));
+			     my_object,
+			     Utils::jsonLabel(DST_ADDR_SERVICES, "DST_ADDR_SERVICES", jsonbuf,
+					      sizeof(jsonbuf)),
+			     json_object_new_int(get_srv_host()->getServicesMap()));
       json_object_object_add(
-          my_object,
-          Utils::jsonLabel(SRC_NAME, "DST_NAME", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_string(
-              get_srv_host()->get_visual_name(buf, sizeof(buf))));
+			     my_object,
+			     Utils::jsonLabel(SRC_NAME, "DST_NAME", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(
+						    get_srv_host()->get_visual_name(buf, sizeof(buf))));
     }
 #endif
   }
 
   json_object_object_add(
-      my_object, Utils::jsonLabel(SRC_TOS, "SRC_TOS", jsonbuf, sizeof(jsonbuf)),
-      json_object_new_int(getTOS(true)));
+			 my_object, Utils::jsonLabel(SRC_TOS, "SRC_TOS", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_int(getTOS(true)));
   json_object_object_add(
-      my_object, Utils::jsonLabel(DST_TOS, "DST_TOS", jsonbuf, sizeof(jsonbuf)),
-      json_object_new_int(getTOS(false)));
+			 my_object, Utils::jsonLabel(DST_TOS, "DST_TOS", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_int(getTOS(false)));
 
   json_object_object_add(
-      my_object,
-      Utils::jsonLabel(L4_SRC_PORT, "L4_SRC_PORT", jsonbuf, sizeof(jsonbuf)),
-      json_object_new_int(get_cli_port()));
+			 my_object,
+			 Utils::jsonLabel(L4_SRC_PORT, "L4_SRC_PORT", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_int(get_cli_port()));
   json_object_object_add(
-      my_object,
-      Utils::jsonLabel(L4_DST_PORT, "L4_DST_PORT", jsonbuf, sizeof(jsonbuf)),
-      json_object_new_int(get_srv_port()));
+			 my_object,
+			 Utils::jsonLabel(L4_DST_PORT, "L4_DST_PORT", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_int(get_srv_port()));
 
   json_object_object_add(
-      my_object,
-      Utils::jsonLabel(PROTOCOL, "PROTOCOL", jsonbuf, sizeof(jsonbuf)),
-      json_object_new_int(protocol));
+			 my_object,
+			 Utils::jsonLabel(PROTOCOL, "PROTOCOL", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_int(protocol));
 
   if (((get_packets_cli2srv() + get_packets_srv2cli()) >
        NDPI_MIN_NUM_PACKETS) ||
       (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)) {
     json_object_object_add(
-        my_object,
-        Utils::jsonLabel(L7_PROTO, "L7_PROTO", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_int(ndpiDetectedProtocol.app_protocol));
+			   my_object,
+			   Utils::jsonLabel(L7_PROTO, "L7_PROTO", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int(ndpiDetectedProtocol.app_protocol));
     json_object_object_add(
-        my_object,
-        Utils::jsonLabel(L7_PROTO_NAME, "L7_PROTO_NAME", jsonbuf,
-                         sizeof(jsonbuf)),
-        json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
+			   my_object,
+			   Utils::jsonLabel(L7_PROTO_NAME, "L7_PROTO_NAME", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
   }
 
   json_object_object_add(
-      my_object,
-      Utils::jsonLabel(L7_PROTO_RISK, "L7_PROTO_RISK", jsonbuf,
-                       sizeof(jsonbuf)),
-      json_object_new_int64((u_int64_t)ndpi_flow_risk_bitmap));
+			 my_object,
+			 Utils::jsonLabel(L7_PROTO_RISK, "L7_PROTO_RISK", jsonbuf,
+					  sizeof(jsonbuf)),
+			 json_object_new_int64((u_int64_t)ndpi_flow_risk_bitmap));
   if (ndpiFlowRiskName) 
     json_object_object_add(
-        my_object,
-        Utils::jsonLabel(L7_PROTO_RISK_NAME, "L7_PROTO_RISK_NAME", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_string(ndpiFlowRiskName));
+			   my_object,
+			   Utils::jsonLabel(L7_PROTO_RISK_NAME, "L7_PROTO_RISK_NAME", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_string(ndpiFlowRiskName));
   if (end_reason)
     json_object_object_add(
-        my_object,
-        Utils::jsonLabel(FLOW_END_REASON, "FLOW_END_REASON", jsonbuf,
-                        sizeof(jsonbuf)),
-        json_object_new_string(end_reason));
+			   my_object,
+			   Utils::jsonLabel(FLOW_END_REASON, "FLOW_END_REASON", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_string(end_reason));
   if (protocol == IPPROTO_TCP) {
     json_object_object_add(
-        my_object,
-        Utils::jsonLabel(TCP_FLAGS, "TCP_FLAGS", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
+			   my_object,
+			   Utils::jsonLabel(TCP_FLAGS, "TCP_FLAGS", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
 
     json_object_object_add(my_object,
                            Utils::jsonLabel(TCP_FLAGS, "IN_RETRASMISSIONS",
@@ -3898,37 +3898,37 @@ void Flow::formatGenericFlow(json_object *my_object) {
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_int64(stats.get_srv2cli_tcp_ooo()));
     json_object_object_add(
-        my_object,
-        Utils::jsonLabel(TCP_FLAGS, "IN_LOST", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_int64(stats.get_cli2srv_tcp_lost()));
+			   my_object,
+			   Utils::jsonLabel(TCP_FLAGS, "IN_LOST", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int64(stats.get_cli2srv_tcp_lost()));
     json_object_object_add(
-        my_object,
-        Utils::jsonLabel(TCP_FLAGS, "OUT_LOST", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_int64(stats.get_srv2cli_tcp_lost()));
+			   my_object,
+			   Utils::jsonLabel(TCP_FLAGS, "OUT_LOST", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int64(stats.get_srv2cli_tcp_lost()));
     
     json_object_object_add(
-        my_object,
-        Utils::jsonLabel(APPL_LATENCY_MS, "APPL_LATENCY_MS", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_int64(applLatencyMsec));
+			   my_object,
+			   Utils::jsonLabel(APPL_LATENCY_MS, "APPL_LATENCY_MS", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int64(applLatencyMsec));
 
   }
 
   json_object_object_add(
-      my_object, Utils::jsonLabel(IN_PKTS, "IN_PKTS", jsonbuf, sizeof(jsonbuf)),
-      json_object_new_int64(get_partial_packets_cli2srv()));
+			 my_object, Utils::jsonLabel(IN_PKTS, "IN_PKTS", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_int64(get_partial_packets_cli2srv()));
   json_object_object_add(
-      my_object,
-      Utils::jsonLabel(IN_BYTES, "IN_BYTES", jsonbuf, sizeof(jsonbuf)),
-      json_object_new_int64(get_partial_bytes_cli2srv()));
+			 my_object,
+			 Utils::jsonLabel(IN_BYTES, "IN_BYTES", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_int64(get_partial_bytes_cli2srv()));
 
   json_object_object_add(
-      my_object,
-      Utils::jsonLabel(OUT_PKTS, "OUT_PKTS", jsonbuf, sizeof(jsonbuf)),
-      json_object_new_int64(get_partial_packets_srv2cli()));
+			 my_object,
+			 Utils::jsonLabel(OUT_PKTS, "OUT_PKTS", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_int64(get_partial_packets_srv2cli()));
   json_object_object_add(
-      my_object,
-      Utils::jsonLabel(OUT_BYTES, "OUT_BYTES", jsonbuf, sizeof(jsonbuf)),
-      json_object_new_int64(get_partial_bytes_srv2cli()));
+			 my_object,
+			 Utils::jsonLabel(OUT_BYTES, "OUT_BYTES", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_int64(get_partial_bytes_srv2cli()));
 
   json_object_object_add(my_object,
                          Utils::jsonLabel(FIRST_SWITCHED, "FIRST_SWITCHED",
@@ -3994,10 +3994,10 @@ void Flow::formatGenericFlow(json_object *my_object) {
 #ifdef FULL_SERIALIZATION
   if (ntop->getPrefs() && ntop->getPrefs()->get_instance_name())
     json_object_object_add(
-        my_object,
-        Utils::jsonLabel(NTOPNG_INSTANCE_NAME, "NTOPNG_INSTANCE_NAME", jsonbuf,
-                         sizeof(jsonbuf)),
-        json_object_new_string(ntop->getPrefs()->get_instance_name()));
+			   my_object,
+			   Utils::jsonLabel(NTOPNG_INSTANCE_NAME, "NTOPNG_INSTANCE_NAME", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_string(ntop->getPrefs()->get_instance_name()));
 
   if (iface && iface->get_name())
     json_object_object_add(my_object,
@@ -4006,96 +4006,86 @@ void Flow::formatGenericFlow(json_object *my_object) {
                            json_object_new_string(iface->get_name()));
 #endif
 
-  if (isSMTP() && protos.smtp.mail_from) 
-    json_object_object_add(
-        my_object,
-        Utils::jsonLabel(SMTP_MAIL_FROM, "SMTP_MAIL_FROM", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_string(protos.smtp.mail_from));
-
-  if (isSMTP() && protos.smtp.rcpt_to) 
-    json_object_object_add(
-        my_object,
-        Utils::jsonLabel(SMTP_RCPT_TO, "SMTP_RCPT_TO", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_string(protos.smtp.rcpt_to));
-  
+  if (isProto(NDPI_PROTOCOL_MAIL_SMTP)) {
+    if (protos.smtp.mail_from) 
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(SMTP_MAIL_FROM, "SMTP_MAIL_FROM", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(protos.smtp.mail_from));
+      
+    if (protos.smtp.rcpt_to) 
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(SMTP_RCPT_TO, "SMTP_RCPT_TO", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(protos.smtp.rcpt_to));
+  }
+    
   if (isDNS() && protos.dns.last_query)
-    json_object_object_add(
-        my_object,
-        Utils::jsonLabel(DNS_QUERY, "DNS_QUERY", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_string(protos.dns.last_query));
-
-  json_object_object_add(
-      my_object,
-      Utils::jsonLabel(COMMUNITY_ID, "COMMUNITY_ID", jsonbuf, sizeof(jsonbuf)),
-      json_object_new_string(
-          (char *)getCommunityId(community_id, sizeof(community_id))));
-
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(DNS_QUERY, "DNS_QUERY", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_string(protos.dns.last_query));
+    
   json_object_object_add(my_object,
-                         Utils::jsonLabel(L7_RISK_SCORE, "L7_RISK_SCORE",
+			 Utils::jsonLabel(COMMUNITY_ID, "COMMUNITY_ID", jsonbuf, sizeof(jsonbuf)),
+			 json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
+    
+  json_object_object_add(my_object,
+			 Utils::jsonLabel(L7_RISK_SCORE, "L7_RISK_SCORE",
                                           jsonbuf, sizeof(jsonbuf)),
                          json_object_new_int(getScore()));
 
   if (isHTTP()) {
     if (host_server_name && host_server_name[0] != '\0')
-      json_object_object_add(
-          my_object,
-          Utils::jsonLabel(HTTP_HOST, "HTTP_HOST", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_string(host_server_name));
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(HTTP_HOST, "HTTP_HOST", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(host_server_name));
 
     if (protos.http.last_url && protos.http.last_url[0] != '\0')
-      json_object_object_add(
-          my_object,
-          Utils::jsonLabel(HTTP_URL, "HTTP_URL", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_string(protos.http.last_url));
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(HTTP_URL, "HTTP_URL", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(protos.http.last_url));
 
     if (protos.http.last_user_agent && protos.http.last_user_agent[0] != '\0')
-      json_object_object_add(
-          my_object,
-          Utils::jsonLabel(HTTP_USER_AGENT, "HTTP_USER_AGENT", jsonbuf,
-                           sizeof(jsonbuf)),
-          json_object_new_string(protos.http.last_user_agent));
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(HTTP_USER_AGENT, "HTTP_USER_AGENT", jsonbuf,
+					      sizeof(jsonbuf)),
+			     json_object_new_string(protos.http.last_user_agent));
 
     if (protos.http.last_server && protos.http.last_server[0] != '\0')
-      json_object_object_add(
-          my_object,
-          Utils::jsonLabel(HTTP_SITE, "HTTP_SITE", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_string(protos.http.last_server));
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(HTTP_SITE, "HTTP_SITE", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(protos.http.last_server));
 
     if (protos.http.last_method != NDPI_HTTP_METHOD_UNKNOWN)
       json_object_object_add(my_object,
                              Utils::jsonLabel(HTTP_METHOD, "HTTP_METHOD",
                                               jsonbuf, sizeof(jsonbuf)),
                              json_object_new_string(ndpi_http_method2str(
-                                 protos.http.last_method)));
+									 protos.http.last_method)));
 
     if (protos.http.last_return_code > 0)
-      json_object_object_add(
-          my_object,
-          Utils::jsonLabel(HTTP_RET_CODE, "HTTP_RET_CODE", jsonbuf,
-                           sizeof(jsonbuf)),
-          json_object_new_int((u_int32_t)protos.http.last_return_code));
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(HTTP_RET_CODE, "HTTP_RET_CODE", jsonbuf,
+					      sizeof(jsonbuf)),
+			     json_object_new_int((u_int32_t)protos.http.last_return_code));
   }
 
   if (protocol == IPPROTO_ICMP) {
-    json_object_object_add(
-        my_object,
-        Utils::jsonLabel(ICMP_IPV4_TYPE, "ICMP_IPV4_TYPE", jsonbuf,
-                         sizeof(jsonbuf)),
-        json_object_new_int((u_int32_t)protos.icmp.cli2srv.icmp_type));
-    json_object_object_add(
-        my_object,
-        Utils::jsonLabel(ICMP_IPV4_CODE, "ICMP_IPV4_CODE", jsonbuf,
-                         sizeof(jsonbuf)),
-        json_object_new_int((u_int32_t)protos.icmp.cli2srv.icmp_type));
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(ICMP_IPV4_TYPE, "ICMP_IPV4_TYPE", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_int((u_int32_t)protos.icmp.cli2srv.icmp_type));
+
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(ICMP_IPV4_CODE, "ICMP_IPV4_CODE", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_int((u_int32_t)protos.icmp.cli2srv.icmp_type));
   }
 
   if (flow_device.device_ip)
-    json_object_object_add(
-        my_object,
-        Utils::jsonLabel(EXPORTER_IPV4_ADDRESS, "EXPORTER_IPV4_ADDRESS",
-                         jsonbuf, sizeof(jsonbuf)),
-        json_object_new_string(
-            intoaV4(flow_device.device_ip, buf, sizeof(buf))));
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(EXPORTER_IPV4_ADDRESS, "EXPORTER_IPV4_ADDRESS",
+					    jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_string(
+						  intoaV4(flow_device.device_ip, buf, sizeof(buf))));
 
   if (bt_hash)
     json_object_object_add(my_object,
@@ -4105,23 +4095,20 @@ void Flow::formatGenericFlow(json_object *my_object) {
 
 #ifdef FULL_SERIALIZATION
   if (isTLS() && protos.tls.client_requested_server_name)
-    json_object_object_add(
-        my_object,
-        Utils::jsonLabel(TLS_SERVER_NAME, "TLS_SERVER_NAME", jsonbuf,
-                         sizeof(jsonbuf)),
-        json_object_new_string(protos.tls.client_requested_server_name));
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(TLS_SERVER_NAME, "TLS_SERVER_NAME", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_string(protos.tls.client_requested_server_name));
 #endif
 
 #ifdef HAVE_NEDGE
   if (iface && iface->is_bridge_interface())
-    json_object_object_add(
-        my_object, "verdict.pass", /* TODO: convert to Utils::jsonLabel(..) */
-        json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
+    json_object_object_add(my_object, "verdict.pass", /* TODO: convert to Utils::jsonLabel(..) */
+			   json_object_new_boolean(isPassVerdict() ? (json_bool)1 : (json_bool)0));
 #else
   if (!passVerdict)
-    json_object_object_add(
-        my_object, "verdict.pass", /* TODO: convert to Utils::jsonLabel(..) */
-        json_object_new_boolean((json_bool)0));
+    json_object_object_add(my_object, "verdict.pass", /* TODO: convert to Utils::jsonLabel(..) */
+			   json_object_new_boolean((json_bool)0));
 #endif
 
   if (ebpf) ebpf->getJSONObject(my_object);
@@ -4132,24 +4119,22 @@ void Flow::formatGenericFlow(json_object *my_object) {
     char buf[64];
 
     json_object_object_add(
-        my_object,
-        Utils::jsonLabel(FLOW_TIME, "FLOW_TIME", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_int(last_seen));
+			   my_object,
+			   Utils::jsonLabel(FLOW_TIME, "FLOW_TIME", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int(last_seen));
 #endif
 
     if (cli_ip) {
       if (cli_ip->isIPv4()) {
-        json_object_object_add(
-            my_object,
-            Utils::jsonLabel(IP_PROTOCOL_VERSION, "IP_PROTOCOL_VERSION",
-                             jsonbuf, sizeof(jsonbuf)),
-            json_object_new_int(4));
+        json_object_object_add(my_object,
+			       Utils::jsonLabel(IP_PROTOCOL_VERSION, "IP_PROTOCOL_VERSION",
+						jsonbuf, sizeof(jsonbuf)),
+			       json_object_new_int(4));
       } else if (cli_ip->isIPv6()) {
-        json_object_object_add(
-            my_object,
-            Utils::jsonLabel(IP_PROTOCOL_VERSION, "IP_PROTOCOL_VERSION",
-                             jsonbuf, sizeof(jsonbuf)),
-            json_object_new_int(6));
+        json_object_object_add(my_object,
+			       Utils::jsonLabel(IP_PROTOCOL_VERSION, "IP_PROTOCOL_VERSION",
+						jsonbuf, sizeof(jsonbuf)),
+			       json_object_new_int(6));
       }
     }
 
@@ -4157,18 +4142,16 @@ void Flow::formatGenericFlow(json_object *my_object) {
     info = getFlowInfo(buf, sizeof(buf), false);
 
     if (info)
-      json_object_object_add(
-          my_object,
-          Utils::jsonLabel(L7_INFO, "INFO", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_string(info));
+      json_object_object_add(my_object,
+			     Utils::jsonLabel(L7_INFO, "INFO", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(info));
 #endif
 
 #ifdef FULL_SERIALIZATION
 #if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-    json_object_object_add(
-        my_object,
-        Utils::jsonLabel(PROFILE, "PROFILE", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_string(get_profile_name()));
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(PROFILE, "PROFILE", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_string(get_profile_name()));
 #endif
 #endif
 
@@ -4179,8 +4162,8 @@ void Flow::formatGenericFlow(json_object *my_object) {
 
 #ifdef FULL_SERIALIZATION
     json_object_object_add(
-        my_object, Utils::jsonLabel(STATUS, "STATUS", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_int((u_int8_t)getPredominantAlert().id));
+			   my_object, Utils::jsonLabel(STATUS, "STATUS", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int((u_int8_t)getPredominantAlert().id));
 #endif
   }
 }
