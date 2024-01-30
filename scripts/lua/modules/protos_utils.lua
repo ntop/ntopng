@@ -212,8 +212,10 @@ end
 -- ##############################################
 
 function protos_utils.overwriteAppRules(app, rules)
+    local json = require "dkjson"
     local current_rules, defined_protos = protos_utils.parseProtosTxt()
     local found = false
+    local skip_rules = false
 
     if (current_rules == nil) or (type("app") ~= "string") then
         return false
@@ -221,10 +223,13 @@ function protos_utils.overwriteAppRules(app, rules)
 
     -- In case the name has different major or lower cases
     -- Replace with the new name
-    for app_name, _ in pairs(current_rules) do
+    for app_name, old_rules in pairs(current_rules) do
         if app:lower() == app_name:lower() then
             current_rules[app] = rules
             found = true
+            if json.encode(rules) == json.encode(old_rules) then
+                skip_rules = true
+            end
         end
     end
 
@@ -233,7 +238,9 @@ function protos_utils.overwriteAppRules(app, rules)
         current_rules[app] = rules
     end
 
-    return protos_utils.generateProtosTxt(current_rules, defined_protos)
+    if not skip_rules then
+        protos_utils.generateProtosTxt(current_rules, defined_protos)
+    end
 end
 
 -- ##############################################
@@ -316,8 +323,12 @@ function protos_utils.generateProtosTxt(rules, defined_protos)
             proto_name = proto
         end
 
-        local proto_id = ntop.getHashCache(proto_key, proto_name) or ''
+        local proto_id = interface.getnDPIProtoId(proto_name)
 
+        if isEmptyString(proto_id) then
+            proto_id = ntop.getHashCache(proto_key, proto_name) or ''    
+        end
+        
         if isEmptyString(proto_id) then
             proto_id = tonumber(ntop.getCache(proto_last_id)) or 0
             if proto_id == 0 then

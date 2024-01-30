@@ -53,7 +53,6 @@ end
 
 if l7_proto_id then
     l7_proto_id = tonumber(l7_proto_id)
-    local custom_categories = getCustomnDPIProtoCategories()
     local old_category = ntop.getnDPIProtoCategory(l7_proto_id)
 
     if old_category.id ~= l7_category then

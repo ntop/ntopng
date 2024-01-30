@@ -640,23 +640,6 @@ end
 
 -- ##############################################
 
-function getCustomnDPIProtoCategories()
-    local ndpi_protos = interface.getnDPIProtocols()
-    local key = getCustomnDPIProtoCategoriesKey()
-
-    local res = {}
-    for _, app_id in pairs(ndpi_protos) do
-        local custom_category = ntop.getHashCache(key, tostring(app_id))
-        if not isEmptyString(custom_category) then
-            res[tonumber(app_id)] = tonumber(custom_category)
-        end
-    end
-
-    return res
-end
-
--- ##############################################
-
 function setCustomnDPIProtoCategory(app_id, new_cat_id)
     ntop.setnDPIProtoCategory(app_id, new_cat_id)
 
