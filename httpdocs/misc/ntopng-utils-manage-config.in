@@ -20,6 +20,8 @@ if [ -d "${OLD_DEFAULT_DATADIR}" ]; then
     DEFAULT_DATADIR="${OLD_DEFAULT_DATADIR}"
 fi
 
+REDIS_DUMP_PATH="/var/lib/redis/dump.rdb"
+
 DATADIR="${DEFAULT_DATADIR}"
 DATADIR_SET=false
 
@@ -38,6 +40,8 @@ QUIET=true
 
 INTERFACE=""
 
+INCLUDE_REDIS_BACKUP=false
+
 NEDGE="@NEDGE@"
 
 function print_usage() {
@@ -45,7 +49,7 @@ function print_usage() {
     echo ""
     echo "Usage:"
     echo "`basename $0` -a restore [-d datadir] [-c archive.tar.gz]"
-    echo "`basename $0` -a backup  [-d datadir] [-c archive.tar.gz]"
+    echo "`basename $0` -a backup  [-d datadir] [-c archive.tar.gz] [-r]"
     echo "`basename $0` -a check-restore [-d datadir] [-c archive.tar.gz]"
     echo "`basename $0` -a install-n2disk-conf [-d datadir] -i interface"
     echo "`basename $0` -a install-n2n-conf [-d datadir]"
@@ -70,8 +74,9 @@ function print_usage() {
     echo "  The only compressed archives accepted are those created from the web interface or with this script."
     echo ""
     echo "[-a backup]"
-    echo "`basename $0` -a backup [-c archive.tar.gz] [-d datadir]"
+    echo "`basename $0` -a backup [-c archive.tar.gz] [-d datadir] [-r]"
     echo " Backup creates a compressed archive using files contained into the current system."
+    echo " Add -r to include also redis to the backup."
     echo ""
     echo "[-a check-restore]"
     echo "`basename $0` -a check-restore [-c archive.tar.gz] [-d datadir]"
@@ -126,6 +131,10 @@ case $key in
     ;;
     -v|--verbose)
     QUIET=false
+    shift
+    ;;
+    -r|--redis)
+    INCLUDE_REDIS_BACKUP=true
     shift
     ;;
     *)
@@ -276,6 +285,32 @@ function backup_to_staging_dir() {
 	copy_to_staging_dir "${DATADIR}/system.config" "__datadir"
     fi
 
+    if [ $INCLUDE_REDIS_BACKUP = true ]; then
+        NTOPNG_IS_ACTIVE=$(/bin/systemctl is-active ntopng 2>/dev/null)
+	if [ "${NTOPNG_IS_ACTIVE}" == "active" ]; then
+		echo "[i] Stopping service"
+		systemctl stop ntopng
+	fi
+
+	echo "[i] Saving configuration"
+	LASTSAVE=`/usr/bin/redis-cli LASTSAVE|cut -f2`
+	/usr/bin/redis-cli BGSAVE
+
+	sleep 2
+
+	echo "[i] Creating backup"
+	CURRSAVE=`/usr/bin/redis-cli LASTSAVE|cut -f2`
+
+	copy_to_staging_dir ${REDIS_DUMP_PATH} "__redis"
+
+	echo "[!] New redis backup saved [time=${CURRSAVE}]"
+
+	if [ "${NTOPNG_IS_ACTIVE}" == "active" ]; then
+		echo "[i] Restarting service"
+		systemctl restart ntopng
+	fi
+    fi
+
     manifest_to_staging_dir
 }
 
@@ -307,6 +342,12 @@ function sanitize_staging_dir() {
 	if ! `file "${FL}" | grep -qc "\(ASCII text\|JSON data\)";`; then
 	    if [ "${NEDGE}" == "1" ]; then
 		if `file "${FL}" | grep -qc "PNG image data";`; then
+		    continue
+		fi
+	    fi
+	    
+	    if [ $INCLUDE_REDIS_BACKUP = true ]; then
+		if `file "${FL}" | grep -qc "Redis RDB file";`; then
 		    continue
 		fi
 	    fi
