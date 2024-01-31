@@ -33,23 +33,75 @@ end
 
 -- ##############################################
 
+local function check_alert_params(alert)
+    local is_alert_okay = true
+    if isEmptyString(alert.alert_id) then
+        is_alert_okay = false
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert ID is empty"))
+        goto print_error
+    end
+    if isEmptyString(alert.alert_category) then
+        is_alert_okay = false
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert category is empty for host alert %u", alert.alert_id))
+        goto print_error
+    end
+    if isEmptyString(alert.ip) then
+        is_alert_okay = false
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert IP is empty for host alert %u", alert.alert_id))
+        goto print_error
+    end
+    if isEmptyString(alert.vlan_id) then
+        is_alert_okay = false
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert VLAN is empty for host alert %u", alert.alert_id))
+        goto print_error
+    end
+    if isEmptyString(alert.tstamp) then
+        is_alert_okay = false
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert Tstamp is empty for host alert %u", alert.alert_id))
+        goto print_error
+    end
+    if isEmptyString(alert.tstamp_end) then
+        is_alert_okay = false
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert TstampEnd is empty for host alert %u", alert.alert_id))
+        goto print_error
+    end
+    if isEmptyString(alert.score) then
+        is_alert_okay = false
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert Score is empty for host alert %u", alert.alert_id))
+        goto print_error
+    end
+    if isEmptyString(alert.granularity) then
+        is_alert_okay = false
+        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert Granularity is empty for host alert %u", alert.alert_id))
+        goto print_error
+    end
+
+::print_error::
+    if not is_alert_okay then
+        tprint(alert)
+        tprint(debug.traceback())
+    end
+
+    return is_alert_okay
+end
+
+-- ##############################################
+
 function host_alert_store:insert(alert)
     local is_attacker = ternary(alert.is_attacker, 1, 0)
     local is_victim = ternary(alert.is_victim, 1, 0)
     local is_client = ternary(alert.is_client, 1, 0)
     local is_server = ternary(alert.is_server, 1, 0)
     local ip_version = alert.ip_version
-    local ip = alert.ip
-    local vlan_id = alert.vlan_id
 
-    if not ip then -- Compatibility with Lua alerts
+    if not alert.ip then -- Compatibility with Lua alerts
         local host_info = hostkey2hostinfo(alert.entity_val)
-        ip = host_info.host
-        vlan_id = host_info.vlan
+        alert.ip = host_info.host
+        alert.vlan_id = host_info.vlan
     end
 
     if not ip_version then
-        if isIPv4(ip) then
+        if isIPv4(alert.ip) then
             ip_version = 4
         else
             ip_version = 6
@@ -63,10 +115,12 @@ function host_alert_store:insert(alert)
         extra_values = "generateUUIDv4(), "
     end
 
-    if alert.alert_category == nil then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("alert_category is not set for host alert_id %u", alert.alert_id))
+    -- In case of some parameter empty, do not insert the alert
+    if not check_alert_params(alert) then
+        return
     end
 
+    -- IMPORTANT: keep in sync with check_alert_params function, to be sure to not have issues with empty parameters
     local insert_stmt = string.format("INSERT INTO %s " ..
         "(%salert_id, alert_status, alert_category, interface_id, ip_version, ip, vlan_id, name, country, is_attacker, is_victim, " ..
         "is_client, is_server, tstamp, tstamp_end, severity, score, granularity, host_pool_id, network, json) " ..
@@ -77,7 +131,7 @@ function host_alert_store:insert(alert)
         ternary(alert.acknowledged, alert_consts.alert_status.acknowledged.alert_status_id, 0),
         alert.alert_category,
         self:_convert_ifid(interface.getId()),
-        ip_version, ip, vlan_id or 0, self:_escape(alert.name), alert.country_name, is_attacker, is_victim, is_client,
+        ip_version, alert.ip, alert.vlan_id or 0, self:_escape(alert.name), alert.country_name, is_attacker, is_victim, is_client,
         is_server, alert.tstamp, alert.tstamp_end, map_score_to_severity(alert.score), alert.score, alert.granularity,
         alert.host_pool_id or 0, alert.network or 0, self:_escape(alert.json or ""))
 
