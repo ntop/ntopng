@@ -3636,19 +3636,19 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
 			      : get_partial_bytes_srv2cli()));
     json_object_object_add(
 			   host_object,
-			   Utils::jsonLabel(TCP_FLAGS, "packtes_retrasmissions", jsonbuf,
+			   Utils::jsonLabel(TCP_FLAGS, "packets_retransmissions", jsonbuf,
 					    sizeof(jsonbuf)),
 			   json_object_new_int64(is_client ? stats.get_cli2srv_tcp_retr()
 						 : stats.get_srv2cli_tcp_retr()));
     json_object_object_add(
 			   host_object,
-			   Utils::jsonLabel(TCP_FLAGS, "packtes_out_of_order", jsonbuf,
+			   Utils::jsonLabel(TCP_FLAGS, "packets_out_of_order", jsonbuf,
 					    sizeof(jsonbuf)),
 			   json_object_new_int64(is_client ? stats.get_cli2srv_tcp_ooo()
 						 : stats.get_srv2cli_tcp_ooo()));
     json_object_object_add(
 			   host_object,
-			   Utils::jsonLabel(TCP_FLAGS, "packtes_lost", jsonbuf, sizeof(jsonbuf)),
+			   Utils::jsonLabel(TCP_FLAGS, "packets_lost", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int64(is_client ? stats.get_cli2srv_tcp_lost()
 						 : stats.get_srv2cli_tcp_lost()));
     
@@ -3906,11 +3906,11 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			   json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
 
     json_object_object_add(my_object,
-                           Utils::jsonLabel(TCP_FLAGS, "IN_RETRASMISSIONS",
+                           Utils::jsonLabel(TCP_FLAGS, "IN_RETRANSMISSIONS",
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_int64(stats.get_cli2srv_tcp_retr()));
     json_object_object_add(my_object,
-                           Utils::jsonLabel(TCP_FLAGS, "OUT_RETRASMISSIONS",
+                           Utils::jsonLabel(TCP_FLAGS, "OUT_RETRANSMISSIONS",
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_int64(stats.get_srv2cli_tcp_retr()));
     json_object_object_add(my_object,
@@ -6580,7 +6580,7 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   }
 
   /*
-    We need to set last_conntrack_update even with 0 packtes/bytes
+    We need to set last_conntrack_update even with 0 packets/bytes
     as this function has been called only within netfilter through
     the conntrack handler, and thus the flow is still alive.
   */
@@ -7148,7 +7148,7 @@ u_int32_t Flow::getSrvTcpIssues() {
 
 double Flow::getCliRetrPercentage() {
   if (get_packets_cli2srv() >
-      10 /* Do not compute retrasmissions with too few packets */)
+      10 /* Do not compute retransmissions with too few packets */)
     return ((double)stats.get_cli2srv_tcp_retr() /
             (double)get_packets_cli2srv());
   else
@@ -7157,7 +7157,7 @@ double Flow::getCliRetrPercentage() {
 
 double Flow::getSrvRetrPercentage() {
   if (get_packets_srv2cli() >
-      10 /* Do not compute retrasmissions with too few packets */)
+      10 /* Do not compute retransmissions with too few packets */)
     return ((double)stats.get_srv2cli_tcp_retr() /
             (double)get_packets_srv2cli());
   else
