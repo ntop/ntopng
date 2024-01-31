@@ -2168,6 +2168,7 @@ local known_parameters = {
    ["toggle_captive_portal"] = validateBool,
    ["toggle_mdns_repeater"] = validateBool,
    ["toggle_informative_captive_portal"] = validateBool,
+   ["toggle_external_auth_captive_portal"] = validateBool,
    ["toggle_autologout"] = validateBool,
    ["toggle_interface_name_only"] = validateBool,
    ["toggle_autoupdates"] = validateBool,
