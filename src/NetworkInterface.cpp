@@ -5284,12 +5284,6 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data,
     case column_key:
       retriever->elems[retriever->actNumEntries++].numericValue = f->get_hash_entry_id();
       break;
-    case column_info: {
-      char buf[64]; /* FIXX this buf is referenced and used out of this block */
-
-      flow_info = f->getFlowInfo(buf, sizeof(buf), false);
-      retriever->elems[retriever->actNumEntries++].stringValue = flow_info ? flow_info : (char *)"";
-    } break;
     case column_device_ip:
       retriever->elems[retriever->actNumEntries++].numericValue = f->getFlowDeviceIP();
       break;
