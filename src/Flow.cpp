@@ -2885,7 +2885,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
     if (!mask_flow) {
       char buf[64];
-      char *info = getFlowInfo(buf, sizeof(buf), true);
+      getFlowInfo(buf, sizeof(buf), true);
 
       if (host_server_name)
         lua_push_str_table_entry(vm, "host_server_name", host_server_name);
@@ -2893,7 +2893,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
         lua_push_str_table_entry(vm, "suspicious_dga_domain",
                                  suspicious_dga_domain);
       if (bt_hash) lua_push_str_table_entry(vm, "bittorrent_hash", bt_hash);
-      lua_push_str_table_entry(vm, "info", info ? info : (char *)"");
+      lua_push_str_table_entry(vm, "info", buf);
     }
 
     if (isDNS() && protos.dns.last_query) {
@@ -3445,7 +3445,6 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
   if ((network_object = json_object_new_object()) != NULL) {
     char buf[64], jsonbuf[64];
     u_char community_id[200];
-    const char *info;
 
     json_object_object_add(
         network_object,
@@ -3525,10 +3524,8 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
                              json_object_new_string(intoaV4(
                                  flow_device.device_ip, buf, sizeof(buf))));
 
-    info = getFlowInfo(buf, sizeof(buf), false);
-    if (info)
-      json_object_object_add(network_object, "info",
-                             json_object_new_string(info));
+    json_object_object_add(network_object, "info",
+                            json_object_new_string(getFlowInfo(buf, sizeof(buf), false)));
 
     json_object_object_add(my_object, "network", network_object);
   }
@@ -4163,12 +4160,9 @@ void Flow::formatGenericFlow(json_object *my_object) {
     }
 
 #ifdef FULL_SERIALIZATION
-    info = getFlowInfo(buf, sizeof(buf), false);
-
-    if (info)
       json_object_object_add(my_object,
 			     Utils::jsonLabel(L7_INFO, "INFO", jsonbuf, sizeof(jsonbuf)),
-			     json_object_new_string(info));
+			     json_object_new_string(getFlowInfo(buf, sizeof(buf), false)));
 #endif
 
 #ifdef FULL_SERIALIZATION
@@ -4258,7 +4252,6 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   char buf[64];
   u_char community_id[200];
   time_t now = time(NULL);
-  const char *info;
 
   /*
     If the interface is viewed, the id of the view interface is specified as
@@ -4388,8 +4381,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   if (getErrorCode() != 0)
     ndpi_serialize_string_uint32(s, "l7_error_code", getErrorCode());
 
-  info = getFlowInfo(buf, sizeof(buf), false);
-  ndpi_serialize_string_string(s, "info", (char *)(info ? info : ""));
+  ndpi_serialize_string_string(s, "info", (char *) getFlowInfo(buf, sizeof(buf), false));
 
   /* Serialize alert JSON */
 
@@ -5357,45 +5349,40 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
 
 /* FIXX this function is using buf only in a few cases */
 char *Flow::getFlowInfo(char *buf, u_int buf_len, bool isLuaRequest) {
+  char *info_field = NULL;
+
   if (!isMaskedFlow()) {
-#if 0 /* FIXX temporarily disabled due to crashes in flow_search_walker */
     if (iec104) return (iec104->getFlowInfo(buf, buf_len));
 #ifdef NTOPNG_PRO
     if (modbus) return (modbus->getFlowInfo(buf, buf_len));
 #endif
-#endif
 
-    if (isDNS() && protos.dns.last_query)
-      return protos.dns.last_query;
-
-    else if (isHTTP() && protos.http.last_url)
-      return protos.http.last_url;
-
-    else if (isTLS() && protos.tls.client_requested_server_name)
-      return protos.tls.client_requested_server_name;
-
-    else if (isBittorrent() && bt_hash)
-      return bt_hash;
-
-    else if (host_server_name)
-      return host_server_name;
-
-    else if (isSSH()) {
-      if (protos.ssh.server_signature)
-        return protos.ssh.server_signature;
-      else if (protos.ssh.client_signature)
-        return protos.ssh.client_signature;
-    }
-
-    else if (isLuaRequest && hasRisk(NDPI_DESKTOP_OR_FILE_SHARING_SESSION))
-      return ((char *)"<i class='fa fa-lg fa-binoculars'></i> Desktop Sharing");
-    else if (isMining()) {
-      if(protos.mining.currency)
-        return protos.mining.currency;
+    if (isDNS() && protos.dns.last_query) {
+      info_field = protos.dns.last_query;
+    } else if (isHTTP() && protos.http.last_url) {
+      info_field = protos.http.last_url;
+    } else if (isTLS() && protos.tls.client_requested_server_name) {
+      info_field = protos.tls.client_requested_server_name;
+    } else if (isBittorrent() && bt_hash) {
+      info_field = bt_hash;
+    } else if (host_server_name) {
+      info_field = host_server_name;
+    } else if (isSSH()) {
+      if (protos.ssh.server_signature){
+        info_field = protos.ssh.server_signature;
+      } else if (protos.ssh.client_signature) {
+        info_field = protos.ssh.client_signature;
+      }
+    } else if (isLuaRequest && hasRisk(NDPI_DESKTOP_OR_FILE_SHARING_SESSION)) {
+      info_field = ((char *)"<i class='fa fa-lg fa-binoculars'></i> Desktop Sharing");
+    } else if (isMining() && protos.mining.currency) {
+      info_field = protos.mining.currency;
     }
   }
 
-  return (char *)"";
+  snprintf(buf, buf_len, "%s", info_field ? info_field : "");
+
+  return buf;
 }
 
 /* *************************************** */
@@ -5899,9 +5886,12 @@ void Flow::updateHTTP(ParsedFlow *zflow) {
 
 void Flow::updateSuspiciousDGADomain() {
   if (hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && !suspicious_dga_domain) {
-    char *domain = getFlowInfo(NULL, 0, false);
+    char buf[64];
+    getFlowInfo(buf, sizeof(buf), false);
 
-    if (domain) suspicious_dga_domain = strdup(domain);
+    if (buf[0] != '\0') {
+      suspicious_dga_domain = strdup(buf);
+    }
   }
 }
 
@@ -7060,7 +7050,6 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
  */
 void Flow::lua_get_min_info(lua_State *vm) {
   char buf[64];
-  char *info = getFlowInfo(buf, sizeof(buf), true);
 
   lua_newtable(vm);
 
@@ -7094,7 +7083,7 @@ void Flow::lua_get_min_info(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "srv2cli.bytes", get_bytes_srv2cli());
   lua_push_uint64_table_entry(vm, "cli2srv.packets", get_packets_cli2srv());
   lua_push_uint64_table_entry(vm, "srv2cli.packets", get_packets_srv2cli());
-  if (info) lua_push_str_table_entry(vm, "info", info);
+  lua_push_str_table_entry(vm, "info", getFlowInfo(buf, sizeof(buf), true));
 }
 
 /* ***************************************************** */
@@ -7105,7 +7094,6 @@ void Flow::lua_get_min_info(lua_State *vm) {
  */
 void Flow::getInfo(ndpi_serializer *serializer) {
   char buf[64];
-  char *info = getFlowInfo(buf, sizeof(buf), true);
 
   ndpi_serialize_string_string(serializer, "cli.ip",
                                get_cli_ip_addr()->print(buf, sizeof(buf)));
@@ -7143,7 +7131,7 @@ void Flow::getInfo(ndpi_serializer *serializer) {
                                get_packets_cli2srv());
   ndpi_serialize_string_uint64(serializer, "srv2cli.packets",
                                get_packets_srv2cli());
-  if (info) ndpi_serialize_string_string(serializer, "info", info);
+  ndpi_serialize_string_string(serializer, "info", getFlowInfo(buf, sizeof(buf), true));
 }
 
 /* ***************************************************** */

@@ -371,8 +371,7 @@ void NetworkInterface::init(const char *interface_name) {
   last_ndpi_reload = 0;
   ndpiReloadInProgress = false;
   ndpi_struct_shadow = NULL;
-  ndpi_struct = initnDPIStruct();
-  ndpi_finalize_initialization(ndpi_struct);
+  ndpi_struct = NULL; /* Init by lua when ready */
 
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
   kafka = NULL;
@@ -5212,7 +5211,6 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data,
                                bool *matched) {
   struct flowHostRetriever *retriever = (struct flowHostRetriever *)user_data;
   Flow *f = (Flow *)h;
-  const char *flow_info;
   const TcpInfo *tcp_info;
 
   if (retriever->actNumEntries >= retriever->maxNumEntries)
