@@ -25,6 +25,7 @@ require("ts_second")
 
 -- Run this script for a minute before quitting (this reduces load on Lua VM infrastructure)
 local num_runs = 60
+local max_time = os.time() + 60 -- See SECOND_SCRIPT_DIR in PeriodicActivities.cpp
 
 for i=1,num_runs do
    if(ntop.isShuttingDown()) then break end
@@ -81,6 +82,8 @@ for i=1,num_runs do
          end
    end, true --[[ update direction stats ]])
 
+   if(ntop.isShuttingDown() or (os.time() > max_time)) then break end
+   
    if(num_runs > 1) then
       ntop.msleep(1000)
    end
