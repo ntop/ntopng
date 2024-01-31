@@ -203,7 +203,7 @@ async function getTsChartsOptions(httpPrefix, epochStatus, tsCompare, timeseries
 		let headers = {
 			'Content-Type': 'application/json'
 		};
-		tsChartsOptions = await ntopng_utility.http_request(url_and_body.url, { method: 'post', headers, body: JSON.stringify(url_and_body.body) });X
+		tsChartsOptions = await ntopng_utility.http_request(url_and_body.url, { method: 'post', headers, body: JSON.stringify(url_and_body.body) });
 	}
 	return tsChartsOptions;
 }
