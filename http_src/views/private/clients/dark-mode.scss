@@ -415,6 +415,10 @@ table.tablesorter tfoot tr th {
   background-color: #2C2C2C !important;
 }
 
+.table-borderless>:not(caption)>*>* {
+  background-color: #212529;
+}
+
 table.tablesorter tbody td {
   background-color: #121212 !important;
   color: #E2E2E2 !important;
