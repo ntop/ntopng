@@ -77,6 +77,7 @@ function protos_utils.parseProtosTxt()
     local f = io.open(path, "r")
     local defined_protos = {}
     local rules = {}
+    local app_id_mapping = {}
 
     local function addRule(proto, rule)
         if (rules[proto] == nil) then
@@ -107,6 +108,7 @@ function protos_utils.parseProtosTxt()
 
             if (tmp ~= nil) and (#tmp == 2) then
                 proto = tmp[1]
+                app_id_mapping[tmp[2]] = proto
             end
 
             for _, rule in ipairs(rules) do
@@ -153,7 +155,7 @@ function protos_utils.parseProtosTxt()
 
     f:close()
 
-    return rules, defined_protos
+    return rules, defined_protos, app_id_mapping
 end
 
 -- ##############################################
@@ -284,6 +286,28 @@ function protos_utils.deleteAppRules(app)
 
     current_rules[app] = nil
     return protos_utils.generateProtosTxt(current_rules, defined_protos)
+end
+
+-- ##############################################
+
+-- In order to have a clean startup, remove the old mappings 
+-- between protocols no more defined and categories
+function protos_utils.clearOldApplications()
+    local current_rules, defined_protos, app_id_mapping = protos_utils.parseProtosTxt()
+    local key = getCustomnDPIProtoCategoriesKey()
+    local app_cat_mapping = ntop.getHashAllCache(key) or {}
+    if app_id_mapping then
+        for application_id, category_id in pairs(app_cat_mapping) do
+            if not app_id_mapping[application_id] then
+                traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Removing Application - Category old mapping: %s %s", application_id, category_id))
+                ntop.delHashCache(key, application_id)
+            end
+        end
+    else
+        for application_id, category_id in pairs(app_cat_mapping) do
+            ntop.delHashCache(key, application_id)
+        end
+    end
 end
 
 -- ##############################################

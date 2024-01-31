@@ -634,7 +634,7 @@ end
 
 -- ##############################################
 
-local function getCustomnDPIProtoCategoriesKey()
+function getCustomnDPIProtoCategoriesKey()
     return "ntop.prefs.custom_nDPI_proto_categories"
 end
 
@@ -648,6 +648,16 @@ function setCustomnDPIProtoCategory(app_id, new_cat_id)
     -- NOTE: when the ndpi struct changes, the custom associations are
     -- reloaded by Ntop::loadProtocolsAssociations
     ntop.setHashCache(key, tostring(app_id), tostring(new_cat_id));
+end
+
+-- ##############################################
+
+function removeCustomnDPIProtoCategory(app_id)
+    local key = getCustomnDPIProtoCategoriesKey()
+
+    -- NOTE: when the ndpi struct changes, the custom associations are
+    -- reloaded by Ntop::loadProtocolsAssociations
+    ntop.delHashCache(key, tostring(app_id));
 end
 
 -- ##############################################

@@ -12,6 +12,7 @@ local json = require("dkjson")
 local alerts_api = require("alerts_api")
 local alert_consts = require "alert_consts"
 local file_utils = require "file_utils"
+local protos_utils = require "protos_utils"
 
 -- ##############################################
 
@@ -897,7 +898,7 @@ function lists_utils.startup()
    end
 
    traceError(TRACE_NORMAL, TRACE_CONSOLE, "Refreshing category lists...")
-
+   protos_utils.clearOldApplications()
    lists_utils.downloadLists()
    lists_utils.reloadLists()
    -- Need to do the actual reload also here as otherwise some
