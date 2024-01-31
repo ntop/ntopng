@@ -1,0 +1,21 @@
+Configuration Backup
+====================
+
+ntopng manages configuration backup/restore using the ntopng-utils-manage-config utility
+which is installed by the ntopng package.
+
+It is possible to run this utility manually to create a tarball containing the ntopng configuration with:
+
+.. code:: bash
+
+   ntopng-utils-manage-config -a backup -c archive.tar.gz -r
+
+Note that -r is used to also include the runtime ntopng configuration stored on redis.
+
+It is possible to run the same utility to manually restore the configuration starting from a targall
+previously created using the same utility with:
+
+.. code:: bash
+
+   ntopng-utils-manage-config -a restore -c archive.tar.gz -r
+
