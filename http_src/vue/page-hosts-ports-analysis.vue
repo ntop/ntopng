@@ -134,7 +134,9 @@ const criteria_list = function () {
 onMounted(async () => {
     let port = ntopng_url_manager.get_url_entry('port');
     let l4_proto = ntopng_url_manager.get_url_entry('protocol');
-    const l7_proto = ntopng_url_manager.get_url_entry('application');
+    const l7_proto = ntopng_url_manager.get_url_entry('application');  
+    ntopng_url_manager.set_key_to_url('ifid', props.ifid) /* Current interface */
+
 
     if (port != null && port.localeCompare("") != 0 &&
         l4_proto != null && l4_proto.localeCompare("") != 0 &&
@@ -286,7 +288,8 @@ function add_table_filter(opt, event) {
 /* Function to update dropdown menus */
 async function update_dropdown_menus(is_application_selected, app, port) {
     ntopng_url_manager.set_key_to_url("protocol", selected_criteria.value.value);
-    const url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=` + selected_criteria.value.value;
+    const vlan_id = ntopng_url_manager.get_url_entry("vlan_id") || "";
+    const url = `${http_prefix}/lua/pro/rest/v2/get/host/server_ports.lua?protocol=${selected_criteria.value.value}&ifid=${props.ifid}&vlan_id=${vlan_id}`;
     let res = await ntopng_utility.http_request(url, null, null, true);
     let ports = [];
     application_list.value = [];
