@@ -705,7 +705,7 @@
 #define CONST_PREFS_INFORM_URL \
   NTOPNG_PREFS_PREFIX ".informative_captive_portal_url"
 #define CONST_PREFS_EXTERNAL_AUTH \
-  NTOPNG_PREFS_PREFIX ".external_auth"
+  NTOPNG_PREFS_PREFIX ".external_auth_captive_portal"
 #define CONST_PREFS_DEFAULT_L7_POLICY NTOPNG_PREFS_PREFIX ".default_l7_policy"
 #define CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED \
   NTOPNG_PREFS_PREFIX ".global_dns_forging"
