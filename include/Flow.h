@@ -467,9 +467,14 @@ class Flow : public GenericHashEntry {
   inline bool isNetBIOS() const { return (isProto(NDPI_PROTOCOL_NETBIOS)); }
   inline bool isDHCP() const { return (isProto(NDPI_PROTOCOL_DHCP)); }
   inline bool isNTP() const { return (isProto(NDPI_PROTOCOL_NTP)); }
+  inline bool isSMTPorSMTPS() const {
+    return (isSMTP() || isSMTPS());
+  }
   inline bool isSMTP() const {
-    return (isProto(NDPI_PROTOCOL_MAIL_SMTP) ||
-            isProto(NDPI_PROTOCOL_MAIL_SMTPS));
+    return (isProto(NDPI_PROTOCOL_MAIL_SMTP));
+  }
+  inline bool isSMTPS() const {
+    return (isProto(NDPI_PROTOCOL_MAIL_SMTPS));
   }
   inline bool isHTTP() const { return (isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isHTTP_PROXY() const { return (isProto(NDPI_PROTOCOL_HTTP_PROXY)); }
