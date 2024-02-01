@@ -72,6 +72,7 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_captive_portal = false, mac_based_captive_portal = false,
     enable_arp_matrix_generation = false,
     enable_informative_captive_portal = false,
+    enable_external_auth_captive_portal = false,
     override_dst_with_post_nat_dst = false,
     override_src_with_post_nat_src = false;
   hostMask = no_host_mask, collect_blacklist_stats = false;
@@ -975,6 +976,8 @@ void Prefs::reloadPrefsFromRedis() {
     getDefaultBoolPrefsValue(CONST_PREFS_MAC_CAPTIVE_PORTAL, true),
     enable_informative_captive_portal =
     getDefaultBoolPrefsValue(CONST_PREFS_INFORM_CAPTIVE_PORTAL, false),
+    enable_external_auth_captive_portal =
+    getDefaultBoolPrefsValue(CONST_PREFS_EXTERNAL_AUTH, false),
     enable_vlan_trunk_bridge =
     getDefaultBoolPrefsValue(CONST_PREFS_VLAN_TRUNK_MODE_ENABLED, false),
     default_l7policy =
@@ -2805,6 +2808,8 @@ void Prefs::lua(lua_State *vm) {
                             enable_captive_portal);
   lua_push_bool_table_entry(vm, "is_informative_captive_portal_enabled",
                             enable_informative_captive_portal);
+  lua_push_bool_table_entry(vm, "is_external_auth_captive_portal_enabled",
+                            enable_external_auth_captive_portal);
 
   lua_push_uint64_table_entry(vm, "max_ui_strlen", max_ui_strlen);
 
@@ -3062,6 +3067,8 @@ void Prefs::validate() {
 
 /* *************************************** */
 
+#ifdef HAVE_NEDGE
+
 bool Prefs::isInformativeCaptivePortalEnabled() const {
   return (enable_informative_captive_portal &&
           !enable_vlan_trunk_bridge);
@@ -3069,7 +3076,6 @@ bool Prefs::isInformativeCaptivePortalEnabled() const {
 
 /* *************************************** */
 
-#ifdef HAVE_NEDGE
 const char *Prefs::getCaptivePortalUrl() {
   if (isInformativeCaptivePortalEnabled()) {
     return CAPTIVE_PORTAL_INFO_URL;
@@ -3077,6 +3083,13 @@ const char *Prefs::getCaptivePortalUrl() {
     return CAPTIVE_PORTAL_URL;
   }
 }
+
+/* *************************************** */
+
+bool Prefs::isExternalAuthCaptivePortalEnabled() const {
+  return (enable_external_auth_captive_portal);
+}
+
 #endif
 
 /* *************************************** */

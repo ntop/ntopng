@@ -89,7 +89,7 @@ class Prefs {
       enable_intranet_traffic_rrd_creation;
   bool enable_tiny_flows_export;
   bool enable_captive_portal, enable_informative_captive_portal,
-      mac_based_captive_portal;
+      mac_based_captive_portal, enable_external_auth_captive_portal;
   bool override_dst_with_post_nat_dst, override_src_with_post_nat_src;
   bool routing_mode_enabled, global_dns_forging_enabled;
   bool device_protocol_policies_enabled, enable_vlan_trunk_bridge;
@@ -575,16 +575,18 @@ class Prefs {
     return (enable_captive_portal && !enable_vlan_trunk_bridge);
   }
 
+  inline bool enableActivitiesDebug() const {
+    return (enable_activities_debug);
+  }
+
+#ifdef HAVE_NEDGE
   bool isInformativeCaptivePortalEnabled() const;
+  bool isExternalAuthCaptivePortalEnabled() const;
+  const char* getCaptivePortalUrl();
 
   inline bool isMacBasedCaptivePortal() const {
     return (mac_based_captive_portal);
   }
-  inline bool enableActivitiesDebug() const {
-    return (enable_activities_debug);
-  }
-#ifdef HAVE_NEDGE
-  const char* getCaptivePortalUrl();
 #endif
   const TsDriver getTimeseriesDriver() const { return (timeseries_driver); }
 
