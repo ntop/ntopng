@@ -402,7 +402,7 @@ u_int16_t NetworkInterface::getnDPIProtoByName(const char *name) {
 /* ********************** */
 
 struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
-  struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module();
+  struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module(NULL);
   ndpi_port_range d_port[MAX_DEFAULT_PORTS];
   NDPI_PROTOCOL_BITMASK all;
   ndpi_cfg_error rc;

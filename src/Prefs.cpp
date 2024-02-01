@@ -298,7 +298,7 @@ Prefs::~Prefs() {
 void nDPIusage() {
   NDPI_PROTOCOL_BITMASK all;
   struct ndpi_detection_module_struct *ndpi_struct =
-    ndpi_init_detection_module();
+    ndpi_init_detection_module(NULL);
 
   // enable all protocols
   NDPI_BITMASK_SET_ALL(all);
