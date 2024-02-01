@@ -135,7 +135,7 @@ onMounted(async () => {
     let port = ntopng_url_manager.get_url_entry('port');
     let l4_proto = ntopng_url_manager.get_url_entry('protocol');
     const l7_proto = ntopng_url_manager.get_url_entry('application');  
-    ntopng_url_manager.set_key_to_url('ifid', props.ifid) /* Current interface */
+    ntopng_url_manager.set_key_to_url('ifid', props.ifid); /* Current interface */
 
 
     if (port != null && port.localeCompare("") != 0 &&
