@@ -800,9 +800,9 @@ bool Prefs::getDefaultBoolPrefsValue(const char *pref_key,
   char rsp[8];
 
   if (ntop->getRedis()->get((char *)pref_key, rsp, sizeof(rsp)) == 0 &&
-      rsp[0] != '\0')
-    return ((rsp[0] == '1') ? true : false);
-  else {
+      rsp[0] != '\0') {
+    return ((rsp[0] == '1' || rsp[0] =='t' /* true */ ) ? true : false);
+  } else {
     snprintf(rsp, sizeof(rsp), "%c", default_value ? '1' : '0');
     ntop->getRedis()->set((char *)pref_key, rsp);
     return (default_value);
@@ -971,29 +971,29 @@ void Prefs::reloadPrefsFromRedis() {
                                             CONST_DEFAULT_EWMA_ALPHA_PERCENT);
 
   enable_captive_portal =
-    getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false),
-    mac_based_captive_portal =
-    getDefaultBoolPrefsValue(CONST_PREFS_MAC_CAPTIVE_PORTAL, true),
-    enable_informative_captive_portal =
-    getDefaultBoolPrefsValue(CONST_PREFS_INFORM_CAPTIVE_PORTAL, false),
-    enable_external_auth_captive_portal =
-    getDefaultBoolPrefsValue(CONST_PREFS_EXTERNAL_AUTH, false),
-    enable_vlan_trunk_bridge =
-    getDefaultBoolPrefsValue(CONST_PREFS_VLAN_TRUNK_MODE_ENABLED, false),
-    default_l7policy =
-    getDefaultPrefsValue(CONST_PREFS_DEFAULT_L7_POLICY, PASS_ALL_SHAPER_ID),
+    getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false);
+  mac_based_captive_portal =
+    getDefaultBoolPrefsValue(CONST_PREFS_MAC_CAPTIVE_PORTAL, true);
+  enable_informative_captive_portal =
+    getDefaultBoolPrefsValue(CONST_PREFS_INFORM_CAPTIVE_PORTAL, false);
+  enable_external_auth_captive_portal =
+    getDefaultBoolPrefsValue(CONST_PREFS_EXTERNAL_AUTH, false);
+  enable_vlan_trunk_bridge =
+    getDefaultBoolPrefsValue(CONST_PREFS_VLAN_TRUNK_MODE_ENABLED, false);
+  default_l7policy =
+    getDefaultPrefsValue(CONST_PREFS_DEFAULT_L7_POLICY, PASS_ALL_SHAPER_ID);
 
-    max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN,
-					 CONST_DEFAULT_MAX_UI_STRLEN),
-    hostMask = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK,
-					      no_host_mask),
-    flow_table_time =
-    (bool)getDefaultPrefsValue(CONST_FLOW_TABLE_TIME, flow_table_time),
-    flow_table_probe_order = (bool)getDefaultPrefsValue(
-							CONST_FLOW_TABLE_PROBE_ORDER, flow_table_probe_order),
-    auto_assigned_pool_id = (u_int16_t)getDefaultPrefsValue(
-							    CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID),
-    enable_broadcast_domain_too_large =
+  max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN,
+					 CONST_DEFAULT_MAX_UI_STRLEN);
+  hostMask = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK,
+					      no_host_mask);
+  flow_table_time =
+    (bool)getDefaultPrefsValue(CONST_FLOW_TABLE_TIME, flow_table_time);
+  flow_table_probe_order = (bool)getDefaultPrefsValue(
+							CONST_FLOW_TABLE_PROBE_ORDER, flow_table_probe_order);
+  auto_assigned_pool_id = (u_int16_t)getDefaultPrefsValue(
+							    CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID);
+  enable_broadcast_domain_too_large =
     getDefaultBoolPrefsValue(CONST_PREFS_BROADCAST_DOMAIN_TOO_LARGE, false);
 
   getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_TS_DRIVER, &aux,
