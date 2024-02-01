@@ -142,11 +142,8 @@ onMounted(async () => {
         
         port = Number(port);
         l4_proto = Number(l4_proto);
-        criteria_list_def.forEach((proto) => {
-            if (proto.value == l4_proto) {
-                selected_criteria.value = proto;
-            }
-        })
+        selected_criteria.value = criteria_list_def.find((proto) => (proto.value == l4_proto));
+        
 
         await update_dropdown_menus(false, l7_proto, port);
 
@@ -301,7 +298,7 @@ async function update_dropdown_menus(is_application_selected, app, port) {
     })
 
     ports.forEach((port) => {
-        let proto_id = Number(port.application_id.split('.')[0]);
+        let proto_id = port.application_id;
         if (! application_list.value.find(item => item.id == proto_id)) {
             application_list.value.push({ label: port.application, id: port.application_id, value: proto_id });
         }
@@ -338,11 +335,7 @@ async function update_dropdown_menus(is_application_selected, app, port) {
     })
 
     if (port != null) {
-        port_list.value.forEach((item) => {
-            if (item.id == port) {
-                selected_port.value = item;
-            }
-        })
+        selected_port.value = port_list.value.find((item) => (item.id == port));
     } else {
         selected_port.value = port_list.value[0];
     }
