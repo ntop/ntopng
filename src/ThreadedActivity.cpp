@@ -37,6 +37,7 @@ ThreadedActivity::ThreadedActivity(const char *_path, bool delayed_activity,
       _exclude_viewed_interfaces, _exclude_pcap_dump_interfaces, _pool);
   randomDelaySchedule = delayed_activity;
   setDeadlineApproachingSecs();
+  force_run = false;
   updateNextSchedule((u_int32_t)time(NULL));
 }
 
@@ -62,19 +63,17 @@ ThreadedActivity::~ThreadedActivity() {
 
 void ThreadedActivity::updateNextSchedule(u_int32_t now) {
   if (getPeriodicity()) {
-    next_schedule =
-        Utils::roundTime(now, getPeriodicity(),
-                         alignToLocalTime() ? ntop->get_time_offset() : 0);
+    next_schedule = Utils::roundTime(now, getPeriodicity(),
+				     alignToLocalTime() ? ntop->get_time_offset() : 0);
 
     if (randomDelaySchedule) {
-      u_int max_randomness =
-          ndpi_min(120 /* 2 mins */, 0.75 /* 75% */ * getPeriodicity());
+      u_int max_randomness = ndpi_min(120 /* 2 mins */, 0.75 /* 75% */ * getPeriodicity());
       u_int randomness = rand() % max_randomness;
       /*
-         Add some schedule randomness to avoid all scripts
-         to be executed at the same time
+	Add some schedule randomness to avoid all scripts
+	to be executed at the same time
       */
-
+      
       if (randomness < 5) randomness = 5; /* Add at least 5 sec */
       next_schedule += randomness;
     }
@@ -368,14 +367,18 @@ LuaEngine *ThreadedActivity::loadVM(char *script_name,
 /* ******************************************* */
 
 void ThreadedActivity::schedule(u_int32_t now) {
-  if (now >= next_schedule) {
-    u_int32_t next_deadline =
-        now + getMaxDuration(); /* deadline is max_duration_secs from now */
+  if(force_run || (now >= next_schedule)) {
+    u_int32_t next_deadline = now + getMaxDuration(); /* deadline is max_duration_secs from now */
 
+    if(force_run)
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Forcing activity schedule run");
+    
     updateNextSchedule(now);
 
     if (!skipExecution(activityPath()))
       schedulePeriodicActivity(getPool(), now, next_deadline);
+
+    force_run = false;/* Just in case */
   }
 
 #ifdef THREAD_DEBUG

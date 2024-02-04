@@ -793,6 +793,7 @@ class Ntop {
   inline BlacklistStats* getBlacklistStats() { return(&blStats); }
   inline void resetBlacklistStats()          { blStats.reset();  }
   inline JobQueue* getJobsQueue()            { return(&jobsQueue); }
+  inline PeriodicActivities* getPeriodicActivities() { return(pa); }
 };
 
 extern Ntop *ntop;

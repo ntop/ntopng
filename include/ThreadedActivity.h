@@ -30,6 +30,7 @@ class PeriodicScript;
 class ThreadedActivity {
  private:
   u_int32_t deadline_approaching_secs;
+  bool force_run;
   Mutex m;
   bool randomDelaySchedule;
   u_int32_t next_schedule;
@@ -87,6 +88,7 @@ class ThreadedActivity {
 
   void lua(NetworkInterface *iface, lua_State *vm);
   void schedule(u_int32_t now);
+  inline void force() { force_run = true; /* Force activity schedule */}
 };
 
 #endif /* _THREADED_ACTIVITY_H_ */

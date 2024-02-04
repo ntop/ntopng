@@ -26,7 +26,7 @@
 
 class PeriodicActivities {
  private:
-  ThreadedActivity *activities[CONST_MAX_NUM_THREADED_ACTIVITIES];
+  ThreadedActivity *activities[CONST_MAX_NUM_THREADED_ACTIVITIES], *daily;
   u_int16_t num_activities;
   ThreadPool *th_pool;
   pthread_t pthreadLoop;
@@ -45,6 +45,7 @@ class PeriodicActivities {
   void run();
 
   inline bool isRunning() { return (thread_running); }
+  void forceStartDailyActivity();
 };
 
 #endif /* _PERIODIC_ACTIVITIES_H_ */

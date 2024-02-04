@@ -7363,6 +7363,14 @@ static int ntop_pools_unlock(lua_State *vm) {
 
 /* **************************************************************** */
 
+static int ntop_force_run_daily_activities(lua_State *vm) {
+  ntop->getPeriodicActivities()->forceStartDailyActivity();
+  lua_pushboolean(vm, true);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));  
+}
+
+/* **************************************************************** */
+
 static luaL_Reg _ntop_reg[] = {
     {"getDirs", ntop_get_dirs},
     {"getInfo", ntop_get_info},
@@ -7791,6 +7799,9 @@ static luaL_Reg _ntop_reg[] = {
     {"sendKafkaMessage", ntop_send_kafka_message},
 #endif
 
+    /* Debug */
+    {"forceRunDailyActivities", ntop_force_run_daily_activities },
+    
     {NULL, NULL}
 };
 

@@ -49,6 +49,7 @@ PeriodicActivities::PeriodicActivities() {
 
   th_pool = new ThreadPool();
   thread_running = false;
+  daily = NULL;
 }
 
 /* ******************************************* */
@@ -68,7 +69,8 @@ PeriodicActivities::~PeriodicActivities() {
 /* ******************************************* */
 
 void PeriodicActivities::lua(NetworkInterface *iface, lua_State *vm) {
-  for (int i = 0; i < num_activities; i++) activities[i]->lua(iface, vm);
+  for (int i = 0; i < num_activities; i++)
+    activities[i]->lua(iface, vm);
 }
 
 /* **************************************************** */
@@ -85,11 +87,12 @@ static void *startActivity(void *ptr) {
 
 /* This is the main infinite loop */
 void PeriodicActivities::run() {
-  while (!(ntop->getGlobals()->isShutdownRequested() ||
-           ntop->getGlobals()->isShutdown())) {
+  while (!(ntop->getGlobals()->isShutdownRequested()
+	   || ntop->getGlobals()->isShutdown())) {
     u_int32_t now = (u_int32_t)time(NULL);
 
-    for (u_int16_t i = 0; i < num_activities; i++) activities[i]->schedule(now);
+    for (u_int16_t i = 0; i < num_activities; i++)
+      activities[i]->schedule(now);
 
     sleep(1);
   }
@@ -115,9 +118,8 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "The current user cannot access %s.",
                                  ntop->get_callbacks_dir());
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR,
-        "Please fix the directory right or add --dont-change-user to");
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Please fix the directory right or add --dont-change-user to");
     ntop->getTrace()->traceEvent(TRACE_ERROR, "the ntopng command line.");
     exit(0);
   }
@@ -142,12 +144,16 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
       continue;
     }
 
-    ta = new (std::nothrow) ThreadedActivity(
-        ad[i].path, false, /* Exact */
-        ad[i].periodicity, ad[i].max_duration_secs, ad[i].align_to_localtime,
-        ad[i].exclude_viewed_interfaces, ad[i].exclude_pcap_dump_interfaces,
-        th_pool);
-    if (ta) activities[num_activities++] = ta;
+    ta = new (std::nothrow) ThreadedActivity(ad[i].path, false, /* Exact */
+					     ad[i].periodicity, ad[i].max_duration_secs, ad[i].align_to_localtime,
+					     ad[i].exclude_viewed_interfaces, ad[i].exclude_pcap_dump_interfaces,
+					     th_pool);
+    if (ta) {
+      if(strcmp(ad[i].path, "daily") == 0)
+	daily = ta;
+      
+      activities[num_activities++] = ta;
+    }
 
     if (ad[i].periodicity >= 60 /* no delay for sub-minute scripts */) {
       char script_dir[64];
@@ -155,11 +161,10 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
       snprintf(script_dir, sizeof(script_dir), "%s%s", ad[i].path,
                DELAYED_TRAILER);
 
-      ta = new (std::nothrow) ThreadedActivity(
-          script_dir, true, /* Delayed */
-          ad[i].periodicity, ad[i].max_duration_secs, ad[i].align_to_localtime,
-          ad[i].exclude_viewed_interfaces, ad[i].exclude_pcap_dump_interfaces,
-          th_pool);
+      ta = new (std::nothrow) ThreadedActivity(script_dir, true, /* Delayed */
+					       ad[i].periodicity, ad[i].max_duration_secs, ad[i].align_to_localtime,
+					       ad[i].exclude_viewed_interfaces, ad[i].exclude_pcap_dump_interfaces,
+					       th_pool);
       if (ta) activities[num_activities++] = ta;
     }
   }
@@ -170,10 +175,14 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
   if (pthread_create(&pthreadLoop, NULL, startActivity, (void *)this) == 0) {
     thread_running = true;
 #ifdef __linux__
-    Utils::setThreadAffinityWithMask(
-        pthreadLoop, ntop->getPrefs()->get_other_cpu_affinity_mask());
+    Utils::setThreadAffinityWithMask(pthreadLoop, ntop->getPrefs()->get_other_cpu_affinity_mask());
 #endif
   }
 }
 
 /* ******************************************* */
+
+
+void PeriodicActivities::forceStartDailyActivity() {
+  if(daily) daily->force();
+}
