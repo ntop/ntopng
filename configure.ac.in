@@ -644,14 +644,9 @@ if test "${with_nedge+set}" != set; then
 fi
 
 if test "${with_nedge+set}" != set; then
- PFRING_GIT_RELEASE=""
- if test -d $HOME/PF_RING; then
-  PFRING_GIT_RELEASE=`$HOME/PF_RING/package/version.sh --revision`
- fi
-
- PFRING_VERSION=""
+ FRING_VERSION=""
  if test -f "$HOME/PF_RING/kernel/linux/pf_ring.h"; then
-  PFRING_VERSION=`$HOME/PF_RING/package/version.sh --release`
+  PFRING_VERSION=`$HOME/PF_RING/package/version.sh --version`
  fi
 fi
 
@@ -905,7 +900,6 @@ AC_SUBST(MYSQL_DEP)
 AC_SUBST(SNMP_INC)
 AC_SUBST(SNMP_LIB)
 AC_SUBST(NTOPCLOUD_LIB)
-AC_SUBST(PFRING_GIT_RELEASE)
 AC_SUBST(PFRING_VERSION)
 AC_SUBST(NEDGE)
 AC_SUBST(UGLIFYJS_MAJOR_VERSION)
