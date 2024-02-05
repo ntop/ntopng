@@ -153,15 +153,15 @@ rm -fr $RPM_BUILD_ROOT
 
 %pre
 
-if ! grep -q ntopng /etc/group; then
-  echo 'Creating ntopng group'
-  /usr/sbin/groupadd -r ntopng
+if ! grep -q ntop /etc/group; then
+    echo 'Creating ntop group'
+    /usr/sbin/groupadd -r ntop
 fi
-
 if ! /usr/bin/id -u ntopng > /dev/null 2>&1; then 
-  echo 'Creating ntopng user'
-  /usr/sbin/useradd -M -N -g ntopng -r -s /bin/false ntopng
+    echo "Creating ntopng user..."
+    /usr/sbin/useradd -M -N -g ntop -r -s /bin/false ntopng
 fi
+/usr/sbin/usermod -g ntop ntopng
 
 if [ $(getent group n2disk) ] && [ $(getent passwd ntopng) ]; then
     # this is necessary to allow ntopng to extract pcaps
