@@ -20,7 +20,7 @@ esac
 
 umask 022
 
-if ! grep -q ntop /etc/group; then
+if ! grep -q 'ntop:' /etc/group; then
     echo 'Creating ntop group'
     /usr/sbin/groupadd -r ntop
 fi
