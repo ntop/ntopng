@@ -1878,10 +1878,10 @@ GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[:space:]'`
 
 LICENSEDIR="`pwd`/../../../license"
 if test -d $LICENSEDIR; then
-  LICENSE_VERS=`$LICENSEDIR/packages/version.sh --release`
+  LICENSE_VERSION=`$LICENSEDIR/packages/version.sh --version`
   if test $MACHINE = "x86_64"; then
     # ntop-license not installed on raspberry
-    EXTRA_DEPS="$EXTRA_DEPS, ntop-license (=$LICENSE_VERS)"
+    EXTRA_DEPS="$EXTRA_DEPS, ntop-license (=$LICENSE_VERSION)"
   fi
 fi
 
