@@ -36,6 +36,33 @@ local product = ntop.getInfo().product
 local message_info = ""
 local message_severity = "alert-warning"
 
+-- ###########################################
+
+local function create_table(title)
+    print('<form method="post">')
+    print('<table class="table">')
+end
+
+local function add_section(title)
+    print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. title .. '</th></tr></thead>')
+end
+
+-- ###########################################
+
+local function end_table()
+    print(
+        '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+            i18n("save") .. '</button></th></tr>')
+
+    print [[<input name="csrf" type="hidden" value="]]
+    print(ntop.getRandomCSRFValue())
+    print [[" />]]
+    print [[  </form>]]
+    print [[  </table>]]
+end
+
+-- ###########################################
+
 -- NOTE: all the auth methods should be listed below
 local auth_toggles = {
     ["local"] = "toggle_local_auth",
@@ -508,7 +535,6 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.web_user_interface") ..
                   '</th></tr></thead>')
-
 
         if prefs.is_autologout_enabled == true then
             prefsToggleButton(subpage_active, {
@@ -1120,7 +1146,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     -- #####################
 
-    function printOTProtocols() 
+    function printOTProtocols()
 
         print('<form method="post">')
         print('<table class="table">')
@@ -1146,8 +1172,8 @@ if auth.has_capability(auth.capabilities.preferences) then
             })
 
         print(
-        '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-            i18n("save") .. '</button></th></tr>')
+            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+                i18n("save") .. '</button></th></tr>')
 
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
@@ -1201,8 +1227,6 @@ if auth.has_capability(auth.capabilities.preferences) then
             "primary", "behaviour_analysis_learning_status_post_learning",
             "ntopng.prefs.behaviour_analysis_learning_status_post_learning", false, {}, nil, nil,
             is_behaviour_analysis_enabled --[[show]] )
-
-        
 
         -- #####################
 
@@ -1606,8 +1630,8 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
 
         if ntop.isPro() then
-            print('<thead class="table-primary"><tr><th colspan=2 class="info">' ..
-                      i18n('prefs.exporter_timeseries') .. '</th></tr></thead>')
+            print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.exporter_timeseries') ..
+                      '</th></tr></thead>')
 
             prefsToggleButton(subpage_active, {
                 field = "toggle_flow_rrds",
@@ -2034,7 +2058,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.names") ..
                   '</th></tr></thead>')
-        
+
         local ntopng_host_info = ntop.getHostInformation()
         prefsInputFieldPrefs(subpage_active.entries["ntopng_host_address"].title,
             subpage_active.entries["ntopng_host_address"].description, "ntopng.prefs.", "ntopng_host_address",
@@ -2046,7 +2070,6 @@ if auth.has_capability(auth.capabilities.preferences) then
                 required = false
             })
 
-        
         prefsInputFieldPrefs(subpage_active.entries["ntopng_instance_name"].title,
             subpage_active.entries["ntopng_instance_name"].description, "ntopng.prefs.", "ntopng_instance_name",
             ntopng_host_info.instance_name or "", -- default
@@ -2067,6 +2090,67 @@ if auth.has_capability(auth.capabilities.preferences) then
         print(ntop.getRandomCSRFValue())
         print [[" />]]
         print('</form>')
+    end
+
+    function printMessageBroker()
+        local title = i18n("prefs.message_broker")
+        local current_brokers_pref = "ntopng.prefs.selected_message_broker"
+        local lint_preference = "message_broker"
+        local showElement = (ntop.getPref("ntopng.prefs.toggle_message_broker") == "1")
+        local brokers_list = {
+            names = {i18n('prefs.nats'), i18n('prefs.mqtt')},
+            ids = {'nats', 'mqtt'}
+        }
+        local elementsToSwitch = {"row_message_broker", "message_broker_username", "message_broker_password",
+                                  "message_broker_topics_list"}
+        if (_POST["toggle_message_broker"]) then
+            showElement = (_POST["toggle_message_broker"] == "1")
+        end
+
+        create_table()
+
+        add_section(title)
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_message_broker",
+            default = "0",
+            pref = "toggle_message_broker",
+            to_switch = elementsToSwitch
+        })
+
+        multipleTableButtonPrefs(subpage_active.entries["message_brokers_list"].title,
+            subpage_active.entries["message_brokers_list"].description, brokers_list.names, brokers_list.ids,
+            brokers_list.ids[1], "primary", lint_preference, "message_broker", {nil}, nil, nil, nil, showElement --[[show]] )
+
+        prefsInputFieldPrefs(subpage_active.entries["message_broker_username"].title,
+            subpage_active.entries["message_broker_username"].description, "ntopng.prefs.", "message_broker_username",
+            "", "text", showElement, nil, nil, {
+                attributes = {
+                    spellcheck = "false"
+                },
+                pattern = "[^\\s]+"
+            })
+
+        prefsInputFieldPrefs(subpage_active.entries["message_broker_password"].title,
+            subpage_active.entries["message_broker_password"].description, "ntopng.prefs.", "message_broker_password",
+            "", "text", showElement, nil, nil, {
+                attributes = {
+                    spellcheck = "false"
+                },
+                pattern = "[^\\s]+"
+            })
+
+        prefsInputFieldPrefs(subpage_active.entries["message_broker_topics_list"].title,
+            subpage_active.entries["message_broker_topics_list"].description, "ntopng.prefs.",
+            "message_broker_topics_list", "", "text", showElement, nil, nil, {
+                attributes = {
+                    spellcheck = "false"
+                },
+                pattern = "[^\\s]+",
+                minlength = 1
+            })
+
+        end_table()
     end
 
     function printReportsOptions()
@@ -2142,10 +2226,6 @@ if auth.has_capability(auth.capabilities.preferences) then
     print [[
         </td><td colspan=2>]]
 
-    if (tab == "reports") then
-        printReportsOptions()
-    end
-
     if (tab == "in_memory") then
         printInMemory()
     end
@@ -2194,6 +2274,10 @@ if auth.has_capability(auth.capabilities.preferences) then
         printNames()
     end
 
+    if (tab == "message_broker") then
+        printMessageBroker()
+    end
+
     if (tab == "misc") then
         printMisc()
     end
@@ -2217,6 +2301,10 @@ if auth.has_capability(auth.capabilities.preferences) then
     end
     if (tab == "snmp") then
         printSnmp()
+    end
+
+    if (tab == "reports") then
+        printReportsOptions()
     end
 
     if (tab == "vulnerability_scan") then

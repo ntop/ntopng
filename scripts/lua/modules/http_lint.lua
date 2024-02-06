@@ -2241,6 +2241,7 @@ local known_parameters = {
    ["toggle_menu_entry_developer"] = validateBool,
    ["toggle_flow_aggregated_alerted_flows"] = validateBool,
    ["toggle_slow_mode"] = validateBool,
+   ["toggle_message_broker"] = validateBool,
 
    -- Input fields
    ["companion_interface"] = validateEmptyOr(validateInterface),
@@ -2304,6 +2305,9 @@ local known_parameters = {
    ["influx_query_timeout"] = validateNumber,
    ["host_to_scan_max_num_scans"] = validateNumber,
    ["serial_key"] = validateSingleWord,
+   ["message_broker_username"] = validateEmptyOr(validateSingleWord),
+   ["message_broker_password"] = validateEmptyOr(validateSingleWord),
+   ["message_broker_topics_list"] = validateEmptyOr(validateUnquoted),
 
    -- Multiple Choice
    ["disaggregation_criterion"] = validateChoiceInline({"none", "vlan", "probe_ip", "iface_idx", "ingress_iface_idx",
@@ -2324,6 +2328,7 @@ local known_parameters = {
    ["toggle_host_mask"] = validateChoiceInline({"0", "1", "2"}),
    ["topk_heuristic_precision"] = validateChoiceInline({"disabled", "more_accurate", "accurate", "aggressive"}),
    ["timeseries_driver"] = validateChoiceInline({"rrd", "influxdb", "prometheus"}),
+   ["message_broker"] = validateChoiceInline({ "nats", "mqtt" }),
    ["edition"] = validateEmptyOr(validateChoiceInline(
 				    {"community", "pro", "enterprise", "enterprise_m", "enterprise_l"})),
    ["hosts_ts_creation"] = validateChoiceInline({"off", "light", "full"}),
