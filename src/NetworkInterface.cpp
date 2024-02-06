@@ -371,7 +371,8 @@ void NetworkInterface::init(const char *interface_name) {
   last_ndpi_reload = 0;
   ndpiReloadInProgress = false;
   ndpi_struct_shadow = NULL;
-  ndpi_struct = NULL;
+  ndpi_struct = initnDPIStruct();
+  ndpi_finalize_initialization(ndpi_struct);
 
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
   kafka = NULL;
@@ -622,7 +623,7 @@ void NetworkInterface::setnDPIProtocolCategory(struct ndpi_detection_module_stru
   u_int16_t mappedProtoId = ndpi_map_user_proto_id_to_ndpi_id(ndpi_str, protoId);
 
   if(mappedProtoId == 0)
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: ID %d (mapped to %u)",
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Internal error: ID %d (mapped to %u)",
 				 protoId, mappedProtoId);
   else {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Setting protocol association: ID %d (mapped to %u) -> category %d",
@@ -1460,8 +1461,6 @@ void NetworkInterface::setSubInterface(NetworkInterface *master_iface,
   dynamic_interface_criteria = criteria;
   dynamic_interface_master = master_iface;
   is_dynamic_interface = true;
-  ndpi_struct = initnDPIStruct();
-  ndpi_finalize_initialization(ndpi_struct);
 };
 
 /* **************************************************** */
