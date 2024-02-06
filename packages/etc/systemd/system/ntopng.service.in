@@ -8,6 +8,8 @@ PartOf=@SERVICE_WANTS@
 [Service]
 Type=simple
 
+Environment=UNIT_NAME=%N
+
 ExecStartPre=/bin/sh -c '/usr/bin/ntopng-utils-manage-config -a check-restore  && /usr/bin/ntopng-utils-manage-config -a restore || true'
 ExecStartPre=/bin/sh -c '/bin/cat /etc/ntopng/ntopng.conf > /run/ntopng.conf.raw'
 ExecStartPre=/bin/sh -c '/bin/cat /etc/ntopng/ntopng.conf.d/*.conf >> /run/ntopng.conf.raw 2>/dev/null || true'
