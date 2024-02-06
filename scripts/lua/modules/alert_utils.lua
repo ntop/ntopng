@@ -716,16 +716,7 @@ local function processStoreAlertFromQueue(alert)
     else
         traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown alert type " .. (alert.alert_id or ""))
     end
-    local category = alert_consts.categories.other
-    if (alert.alert_category ~= nil) then
-        for item_category in pairs(alert_consts.categories) do
-            if (alert_consts.categories[item_category].id == alert.alert_category) then
-                category = alert_consts.categories[item_category]
-                goto continue
-            end
-        end
-    end
-    ::continue::
+    local category = alert_consts.get_category_by_id(alert.alert_category or 0)
     type_info:set_category(category)
 
     return entity_info, type_info

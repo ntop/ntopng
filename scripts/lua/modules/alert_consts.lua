@@ -118,6 +118,23 @@ alert_consts.categories = {
     }
 }
 
+local function format_by_id()
+   local f_categories = {}
+   for cat, cat_v in pairs(alert_consts.categories) do
+      if (cat ~= 'other') then
+         f_categories[cat_v.id] = cat_v
+      end
+   end
+   return f_categories
+end
+
+alert_consts.categories_id = format_by_id()
+
+function alert_consts.get_category_by_id(id)
+   if (id == 0) then return alert_consts.categories.other end
+   return alert_consts.categories_id[id]
+end
+
 -- ##############################################
 
 alert_consts.alert_entities = alert_entities
