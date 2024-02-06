@@ -3401,6 +3401,19 @@ function timeseries_info.get_host_rules_schema(rule_type)
         }
         return metric_list
 
+    elseif rule_type == 'vlan' then
+        local metric_list = {}
+        for _, item in ipairs(community_timeseries) do
+            if (item.id == timeseries_id.vlan) then
+                if (item.schema == "vlan:score") then
+                    item.show_volume = false
+                else
+                    item.show_volume = true
+                end
+                metric_list[#metric_list + 1] = item
+            end
+        end
+        return metric_list
     end
 
 end

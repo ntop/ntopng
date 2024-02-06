@@ -1697,6 +1697,7 @@ local known_parameters = {
    ["ip_version"] = validateListOfTypeInline(validateFilters(validateIpVersion)), -- To specify an IPv4 or IPv6
    ["vlan"] = validateEmptyOr(validateNumber), -- A VLAN id
    ["vlan_id"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateNumber))), -- A VLAN id
+   ["vlan_label"] = validateEmptyOr(validateUnquoted),
    ["input_snmp"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateSingleWord))),
    ["output_snmp"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateSingleWord))),
    ["snmp_interface"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateSingleWord))),
