@@ -8,6 +8,7 @@ PartOf=@SERVICE_WANTS@
 [Service]
 Type=simple
 
+Environment=UNIT_NAME=%N
 Environment=INSTANCE_NAME=%i
 
 # Config restore only available for non instantiated-services
