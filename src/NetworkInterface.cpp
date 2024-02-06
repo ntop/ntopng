@@ -371,12 +371,7 @@ void NetworkInterface::init(const char *interface_name) {
   last_ndpi_reload = 0;
   ndpiReloadInProgress = false;
   ndpi_struct_shadow = NULL;
-  ndpi_struct = initnDPIStruct();
-  ndpi_finalize_initialization(ndpi_struct);
-  /* TODO: the init is already called by lua, however it crashes in case
-   * of dynamic disaggregation if it's not init here, however it would 
-   * be better to remove this init from here
-   */
+  ndpi_struct = NULL;
 
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
   kafka = NULL;
@@ -1465,6 +1460,8 @@ void NetworkInterface::setSubInterface(NetworkInterface *master_iface,
   dynamic_interface_criteria = criteria;
   dynamic_interface_master = master_iface;
   is_dynamic_interface = true;
+  ndpi_struct = initnDPIStruct();
+  ndpi_finalize_initialization(ndpi_struct);
 };
 
 /* **************************************************** */
