@@ -1885,7 +1885,15 @@ if test -d $LICENSEDIR; then
   fi
 fi
 
-EXTRA_DEPS="$EXTRA_DEPS, ndpi"
+NDPI_DEP="ndpi"
+if  test -d $HOME/nDPI ; then
+  NDPI_VERSION=`$HOME/nDPI/packages/version.sh --version`
+  if  ! test "x$NDPI_VERSION" = "x" ; then
+    NDPI_DEP="ndpi (=$NDPI_VERSION)"
+  fi
+fi
+
+EXTRA_DEPS="$EXTRA_DEPS, $NDPI_DEP"
 
 if test -f /usr/bin/debsigs; then
   SIGN_CMD="debsigs"
