@@ -464,9 +464,8 @@ if test -r "../license/license.h"; then :
   LICENSELIBS="-L${LICENSEDIR} -llicense"
   AC_DEFINE_UNQUOTED(NTOPNG_PRO_HAVE_LICENSE, 1, [ntopng has license])
   PRO_LIBS="${PRO_LIBS} ${LICENSELIBS}"
-  LICENSE_VERS=`${LICENSEDIR}/packages/version.sh --release`
-  LICENSE_REV=`${LICENSEDIR}/packages/version.sh --revision`
-  LICENSE_DEP="ntop-license = ${LICENSE_VERS}-${LICENSE_REV}, ndpi"
+  LICENSE_VERSION=`${LICENSEDIR}/packages/version.sh --version`
+  LICENSE_DEP="ntop-license = ${LICENSE_VERSION}, ndpi"
 fi
 else
   AC_MSG_RESULT(not found)
