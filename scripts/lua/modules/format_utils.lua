@@ -275,12 +275,12 @@ function format_utils.formatEpochRFC2822(epoch)
   local minutes
   if diff > 0 then
     sign = '-'
-    hours = diff / (60*60)
-    minutes = diff % (60*60)
+    hours = math.floor(diff / (60*60))
+    minutes = (diff % (60*60)) / 60
   else
     sign = '+'
-    hours = -diff / (60*60)
-    minutes = -diff % (60*60)
+    hours = math.floor(-diff / (60*60))
+    minutes = (-diff % (60*60)) / 60
   end
 
   -- Format date
