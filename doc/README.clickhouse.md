@@ -62,3 +62,10 @@ You can reduce the table TTL (i.e. how long data is kept in memory) of the syste
  
  should be enough to reduce disk usage for most setups.
  
+Finally, you need to reduce the disk space used by ClickHouse logs as follows
+- (as root) edit /etc/clickhouse-server/config.xml and under the <logger> section do
+- modify <level>trace</level> into <level>error</level>
+- modify <size>1000M</size> to <size>100M</size>
+- modify <count>10</count> to <count>3</count>
+- service clickhouse-server start
+
