@@ -60,13 +60,13 @@ fi
 DATA_DIR=/var/lib/ntopng
 if [ ! -d "$DATA_DIR" ]; then
     mkdir $DATA_DIR
-    /bin/chown ntopng:ntopng $DATA_DIR
+    /bin/chown ntopng:ntop $DATA_DIR
     /bin/chmod 700 $DATA_DIR
 fi
 
-/bin/chown ntopng:ntopng /usr/bin/ntopng-config
+/bin/chown ntopng:ntop /usr/bin/ntopng-config
 /bin/chmod gou+s /usr/bin/ntopng-config
-/bin/chown -R ntopng:ntopng /etc/ntopng
+/bin/chown -R ntopng:ntop /etc/ntopng
 
 LOGROTATE_CONF=/etc/logrotate.d/ntopng
 /bin/chmod 644 $LOGROTATE_CONF
