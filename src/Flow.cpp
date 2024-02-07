@@ -479,7 +479,7 @@ Flow::~Flow() {
     if(protos.mining.currency) free(protos.mining.currency);
   } else if (isDHCP()) {
     if(protos.dhcp.name) free(protos.dhcp.name);
-  } else if(isProto(NDPI_PROTOCOL_MAIL_SMTP)) {
+  } else if(isSMTP()) {
     if(protos.smtp.mail_from) free(protos.smtp.mail_from);
     if(protos.smtp.rcpt_to) free(protos.smtp.rcpt_to);
   }
@@ -2956,7 +2956,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
     if (end_reason)
       lua_push_str_table_entry(vm, "flow_end_reason", getEndReason());
     
-    if (isProto(NDPI_PROTOCOL_MAIL_SMTP)) {
+    if (isSMTP()) {
       if (protos.smtp.mail_from) 
         lua_push_str_table_entry(vm, "smtp_mail_from", getSMTPMailFrom());
       if (protos.smtp.rcpt_to)
@@ -4027,7 +4027,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
                            json_object_new_string(iface->get_name()));
 #endif
 
-  if (isProto(NDPI_PROTOCOL_MAIL_SMTP)) {
+  if (isSMTP()) {
     if (protos.smtp.mail_from) 
       json_object_object_add(my_object,
 			     Utils::jsonLabel(SMTP_MAIL_FROM, "SMTP_MAIL_FROM", jsonbuf, sizeof(jsonbuf)),
