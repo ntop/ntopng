@@ -38,15 +38,11 @@ if info["pro.systemid"] then
    print(info["pro.systemid"].." <A HREF=\"".. ntop.getHttpPrefix() .. "/lua/license.lua\"><i class=\"fas fa-cog\"></i></A></td></tr>\n")
 end
 
-local hw_model = info["model"]
-
-if(hw_model ~= nil) then
-   hw_model = " ["..hw_model.."]"
-else
-   hw_model = ""
+print("<tr><th nowrap>"..i18n("about.platform").."</th><td colspan=2>"..info["platform"].." - "..info["bits"] .." bit".."</td></tr>\n")
+if(info["hw_model"] ~= nil) then
+    print("<tr><th nowrap>"..i18n("about.hw_model").."</th><td colspan=2>"..info["hw_model"].."</td></tr>\n")
 end
 
-print("<tr><th nowrap>"..i18n("about.platform").."</th><td colspan=2>"..info["platform"].." - "..info["bits"] .." bit"..hw_model.."</td></tr>\n")
 print("<tr><th nowrap>"..i18n("about.startup_line").."</th><td colspan=2>".. info["product"] .." "..info["command_line"].."</td></tr>\n")
 print("<tr><th nowrap>"..i18n("about.timezone").."</th><td colspan=2>".. info.zoneinfo.."</td></tr>\n")
 --print("<tr><th colspan=2 align=center>&nbsp;</th></tr>\n")
