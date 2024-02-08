@@ -387,11 +387,13 @@ void NetworkInterface::init(const char *interface_name) {
 /* **************************************************** */
 
 void NetworkInterface::cleanShadownDPI() {
-  ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__,
-                               ndpi_struct_shadow);
-
-  ndpi_exit_detection_module(ndpi_struct_shadow);
-  ndpi_struct_shadow = NULL;
+  if(ndpi_struct_shadow != NULL) {
+    ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__,
+				 ndpi_struct_shadow);
+    
+    ndpi_exit_detection_module(ndpi_struct_shadow);
+    ndpi_struct_shadow = NULL;
+  }
 }
 
 /* ******************** */
@@ -456,8 +458,7 @@ bool NetworkInterface::initnDPIReload() {
       created on the fly and thus trigger this alert
     */
     if (!isSubInterface())
-      ntop->getTrace()->traceEvent(
-				   TRACE_ERROR, "Internal error: nested nDPI category reload");
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: nested nDPI category reload");
 
     return (false);
   }
@@ -941,10 +942,8 @@ void NetworkInterface::deleteDataStructures() {
 /* **************************************************** */
 
 NetworkInterface::~NetworkInterface() {
-  std::map<std::pair<AlertEntity, std::string>,
-           InterfaceMemberAlertableEntity *>::iterator it;
-  std::map<u_int16_t /* observationPointId */,
-           ObservationPointIdTrafficStats *>::iterator it_o;
+  std::map<std::pair<AlertEntity, std::string>,InterfaceMemberAlertableEntity *>::iterator it;
+  std::map<u_int16_t /* observationPointId */, ObservationPointIdTrafficStats *>::iterator it_o;
 
 #ifdef INTERFACE_PROFILING
   u_int64_t n = ethStats.getNumIngressPackets();
