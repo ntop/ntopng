@@ -1,0 +1,30 @@
+ntopng Sanitizer
+================
+
+ntopng can be compiled with the memory sanitizer support enabled by using
+the configure flags --with-sanitizer or --with-leak-sanitizer
+
+ ./configure --with-leak-sanitizer
+ make
+
+The memory sanitizer requires clang-10 or later (14 is recommended)
+
+Common Errors
+-------------
+
+ clang++ fatal error: 'fstream' file not found
+
+clang doesn't have its own header libraries for c++, so it is pointing 
+towards gcc's library folder to access header files.
+
+Run clang -v to get more information about the linked c++ version:
+
+ Ubuntu clang version 14.0.0-1ubuntu1
+ Found candidate GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/12
+ Selected GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/12
+
+As it can be seen it has selected gcc 12 which is not installed and thus 
+the error. The solution is to install g++ 12:
+
+sudo apt install libc++-dev g++-12
+
