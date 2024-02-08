@@ -684,9 +684,9 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
                host = parse_hosts_line(trimmed)
 	    elseif(list.format == "ip_csv") then
 	       host = parse_ip_csv_line(trimmed)
-       elseif(list.format == "ip_occurencies") then
-          host = parse_ip_occurencies_line(trimmed)
-       end
+	    elseif(list.format == "ip_occurencies") then
+	       host = parse_ip_occurencies_line(trimmed)
+	    end
 
             if host then
                local rv = loadListItem(host, list.category, user_custom_categories, list, num_line)
