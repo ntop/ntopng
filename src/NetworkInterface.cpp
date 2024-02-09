@@ -5354,7 +5354,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data,
       (r->location == location_public_only && h->isPrivateHost()) ||
       (r->location == location_public_only && h->isPrivateHost()) ||
       (r->location == location_broadcat_multicast_only && !h->isBroadcastHost() && !h->isMulticastHost()) ||
-      ((r->vlan_id != ((u_int16_t)-1)) && (r->vlan_id != h->get_vlan_id())) ||
+      ((r->vlan_id != (NO_VLAN)) && (r->vlan_id != h->get_vlan_id())) ||
       ((r->ndpi_proto != -1) &&
        (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0)) ||
       ((r->asnFilter != (u_int32_t)-1) && (r->asnFilter != h->get_asn())) ||
@@ -11018,7 +11018,7 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
       return(false);
   }
 
-  if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
+  if(stats->vlan_id != NO_VLAN /* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
   }
@@ -11077,7 +11077,7 @@ bool NetworkInterface::compute_client_flow_stats(GenericHashEntry *node,
       return(false);
   }
 
-  if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
+  if(stats->vlan_id != NO_VLAN /* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
   }
@@ -11129,7 +11129,7 @@ bool NetworkInterface::compute_server_flow_stats(GenericHashEntry *node,
       return(false);
   }
 
-  if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
+  if(stats->vlan_id != NO_VLAN/* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
   }
@@ -11171,7 +11171,7 @@ bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntr
       return(false);
   }
 
-  if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
+  if(stats->vlan_id != NO_VLAN /* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
   }
@@ -11627,7 +11627,7 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
   AnalysisCriteria filter_type = (AnalysisCriteria)lua_tonumber(vm, 1);
   char *host_ip = NULL;
   char *flow_device_ip = NULL;
-  u_int16_t vlan_id = (u_int16_t)-1 /* Any VLAN */;
+  u_int16_t vlan_id = NO_VLAN /* Any VLAN */;
 
   /* NOTE: parsing of additional Lua parameters in NetworkInterface::sort_and_filter_flow_stats() */
   if (lua_type(vm, 8) == LUA_TSTRING) host_ip = (char *)lua_tostring(vm, 8);
@@ -11767,7 +11767,7 @@ bool NetworkInterface::get_host_ports(GenericHashEntry *node,
     return (false); /* false = keep on walking */
 
   /* check vlan filter */
-  if (filter_vlan_id != (u_int16_t)-1) {
+  if (filter_vlan_id != NO_VLAN) {
     /* check flow vlan */
     if (flow_vlan_id != filter_vlan_id)
       return (false); /* false = keep on walking */
