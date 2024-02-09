@@ -1086,8 +1086,7 @@ local aggregated_flow_columns = {
 -- Extra columns (e.g. result of SQL functions)
 local additional_flow_columns = {
    ['bytes'] =                { tag = "bytes",        dt_func = dt_format_bytes },
-   ['packets'] =              { tag = "packets",      dt_func = dt_format_pkts },
-   ['DURATION'] =             { tag = "duration",     dt_func = dt_format_duration },   
+   ['packets'] =              { tag = "packets",      dt_func = dt_format_pkts }, 
    ['IPV4_ADDR'] =            { tag = "ip",           dt_func = dt_format_ip, select_func = "IPv4NumToString", where_func = "IPv4StringToNum", simple_dt_func = simple_format_ip },
    ['IPV6_ADDR'] =            { tag = "ip",           dt_func = dt_format_ip, select_func = "IPv6NumToString", where_func = "IPv6StringToNum", simple_dt_func = simple_format_ip },
    ['NETWORK_ID'] =           { tag = "network", dt_func = dt_format_network },
@@ -1164,7 +1163,7 @@ historical_flow_utils.extra_db_columns = {
 
 historical_flow_utils.ordering_special_columns = {
    ["srv_ip"]   = {[4] = "IPv4NumToString(IPV4_DST_ADDR)", [6] = "IPv6NumToString(IPV6_DST_ADDR)"},
-   ["cli_ip"]   = {[4] = "IPv4NumToString(IPV4_SRC_ADDR)", [6] = "IPv6NumToString(IPV6_SRC_ADDR)"},
+   ["cli_ip"]   = {[4] = "IPv4NumToString(IPV4_SRC_ADDR)", [6] = "IPv6NumToString(IPV6_SRC_ADDRc)"},
    ["l7proto"]  = "L7_PROTO_MASTER",
    ["throughput"] = "THROUGHPUT"
 }

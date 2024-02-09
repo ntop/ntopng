@@ -35,7 +35,7 @@
 	},
 	{
 		"title_i18n": "db_search.duration",
-	    "data_field": "duration",
+	    "data_field": "DURATION",
 	    "sortable": true,
 	    "class": ["no-wrap text-center"]
 	},
@@ -91,7 +91,7 @@
 	},
 	{
 	    "title_i18n": "db_search.throughput",
-	    "data_field": "throughput",
+	    "data_field": "THROUGHPUT",
 	    "sortable": true,
 	    "style": "text-align:right;",
 	    "class": ["no-wrap"]
