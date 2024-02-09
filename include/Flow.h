@@ -284,6 +284,24 @@ class Flow : public GenericHashEntry {
   float pkts_thpt_cli2srv, pkts_thpt_srv2cli;
   ValueTrend bytes_thpt_trend, goodput_bytes_thpt_trend, pkts_thpt_trend;
 
+  enum ConnectionStates {
+    NO_STATE = 0, /* Initial Flow State (just for constructor) */
+    S0,           /* Only SYN in src2dst_tcp_flags; no flags in dst2src_tcp_flags */
+    S1,           /* ... */
+    SF,
+    REJ,
+    S2,
+    S3,
+    RSTO,
+    RSTR,
+    RSTOS0,
+    RSTRH,
+    SH,
+    SHR,
+    OTH = 13
+  };
+  
+  ConnectionStates current_c_state; 
   /*
      IMPORTANT NOTE
 
@@ -900,6 +918,7 @@ class Flow : public GenericHashEntry {
   void lua_duration_info(lua_State *vm);
   void lua_snmp_info(lua_State *vm);
   void lua_device_protocol_allowed_info(lua_State *vm);
+  void lua_get_flow_connection_state(lua_State *vm);
   void lua_get_tcp_stats(lua_State *vm) const;
 
   void lua_get_unicast_info(lua_State *vm) const;
@@ -1386,6 +1405,11 @@ class Flow : public GenericHashEntry {
   inline int32_t getInterfaceIndex()      { return(iface_index); };
   inline void setFlowSource(FlowSource n) { flow_source = n;     }
   inline FlowSource getFlowSource()       { return(flow_source); }
+  inline ConnectionStates setCurrentConnectionState(u_int8_t new_state) { current_c_state = static_cast<ConnectionStates>(new_state); return(current_c_state); };
+  inline ConnectionStates getCurrentConnectionState() { return(current_c_state); };
+  bool checkS1ConnState();
+  inline ConnectionStates getConnectionStateName() { return(current_c_state); };
+  ConnectionStates calculateConnectionState();
 };
 
 #endif /* _FLOW_H_ */

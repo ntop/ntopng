@@ -1202,6 +1202,12 @@ else
         json_flags = json.decode(flow["moreinfo.json"])
         flags = json_flags["CLIENT_TCP_FLAGS"] or json_flags["SERVER_TCP_FLAGS"]
     end
+    
+    if (flow["conn_state"] ~= 0) then
+        print("<tr><th width=30%>" .. i18n("flow_fields_description.connection_state") .. "</th>")
+        print("<td colspan=2>" .. i18n(string.format("flow_fields_description.connection_states.%u",flow["conn_state"])) .. "</td>")
+        print("</tr>\n")
+    end
 
     if ((flags ~= nil) and (flags > 0)) then
         print("<tr><th width=30% rowspan=2>" .. i18n("tcp_flags") .. "</th><td nowrap>" .. i18n("client") ..

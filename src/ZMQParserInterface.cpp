@@ -138,6 +138,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addMapping("FLOW_SOURCE", FLOW_SOURCE, NTOP_PEN);
   addMapping("SMTP_MAIL_FROM", SMTP_MAIL_FROM, NTOP_PEN);
   addMapping("SMTP_RCPT_TO", SMTP_RCPT_TO, NTOP_PEN);
+  addMapping("CONNECTION_STATE", CONNECTION_STATE, NTOP_PEN);
 
   /* eBPF / Process */
   addMapping("SRC_PROC_PID", SRC_PROC_PID, NTOP_PEN);
@@ -1017,6 +1018,10 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
   case L7_RISK_INFO:
     if (value->string && value->string[0])
       flow->setRiskInfo(value->string);
+    break;
+  
+  case CONNECTION_STATE:
+    flow->setConnectionState(value->int_num);
     break;
 
   case FLOW_SOURCE:

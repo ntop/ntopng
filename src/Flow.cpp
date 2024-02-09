@@ -66,6 +66,7 @@ Flow::Flow(NetworkInterface *_iface,
   cli2srv_tos = srv2cli_tos = 0;
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
   swap_done = swap_requested = 0;
+  current_c_state = NO_STATE;
   
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
@@ -2845,6 +2846,8 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
     lua_get_dir_traffic(vm, true /* Client to Server */);
     lua_get_dir_traffic(vm, false /* Server to Client */);
 
+    lua_get_flow_connection_state(vm);
+
     luaScore(vm);
 
     if (isICMP()) {
@@ -4053,6 +4056,10 @@ void Flow::formatGenericFlow(json_object *my_object) {
                                           jsonbuf, sizeof(jsonbuf)),
                          json_object_new_int(getScore()));
 
+  json_object_object_add(my_object,
+      Utils::jsonLabel(CONNECTION_STATE, "CONNECTION_STATE",
+                                        jsonbuf, sizeof(jsonbuf)),
+                        json_object_new_int(calculateConnectionState()));
   if (isHTTP()) {
     if (host_server_name && host_server_name[0] != '\0')
       json_object_object_add(my_object,
@@ -8460,4 +8467,99 @@ bool Flow::matchFlowVLAN(u_int16_t vlan_id) {
 
 bool Flow::matchFlowDeviceIP(u_int32_t flow_device_ip) {
   return(getFlowDeviceIP() == flow_device_ip ? true : false);
+}
+
+/* **************************************************** */
+
+void Flow::lua_get_flow_connection_state(lua_State *vm) {
+  lua_push_uint64_table_entry(vm, "conn_state", calculateConnectionState());
+}
+
+/* **************************************************** */
+
+bool Flow::checkS1ConnState() {
+return((src2dst_tcp_flags & TCP_3WH_MASK) == (TCP_3WH_MASK) && 
+      (dst2src_tcp_flags & TCP_3WH_MASK) == (TCP_3WH_MASK) &&                            /* 3WH OK */
+      (src2dst_tcp_flags & (TH_FIN | TH_ACK)) != (TH_FIN | TH_ACK) &&                  /* NO FIN ACK in src2dst */
+      (src2dst_tcp_flags & TH_RST) != (TH_RST) && (dst2src_tcp_flags & TH_RST) != (TH_RST) /* NO RST */);
+}
+
+/* **************************************************** */
+
+Flow::ConnectionStates Flow::calculateConnectionState() {
+  
+  if(!isTCP())
+    return(setCurrentConnectionState(NO_STATE)); 
+
+  /* Check S0 or RSTOS0 or REJ or SH */
+  if ((src2dst_tcp_flags & TH_SYN) == (TH_SYN) && 
+      (dst2src_tcp_flags & TH_SYN) != (TH_SYN)) {
+    if ((dst2src_tcp_flags & TH_RST) != (TH_RST)) {
+      if ((src2dst_tcp_flags & TH_RST) == (TH_RST)) {
+        return(setCurrentConnectionState(RSTOS0));
+      } else {
+        if ((src2dst_tcp_flags & TH_FIN) == (TH_FIN)) {
+          return(setCurrentConnectionState(SH));
+        } else {
+          return(setCurrentConnectionState(S0));
+        }
+      }
+    } else {
+      return(setCurrentConnectionState(REJ));
+    }
+  }
+    
+  /* Check RSTRH */
+  if ((dst2src_tcp_flags & (TH_SYN | TH_ACK | TH_RST)) == (TH_SYN | TH_ACK | TH_RST) && 
+      (src2dst_tcp_flags & TH_SYN) != (TH_SYN)) 
+    return(setCurrentConnectionState(RSTRH));
+
+  /* Check SHR */
+  if (((dst2src_tcp_flags & (TH_SYN | TH_ACK | TH_FIN)) == (TH_SYN | TH_ACK | TH_FIN) && 
+      (src2dst_tcp_flags & TH_SYN) != (TH_SYN)) )
+    return(setCurrentConnectionState(SHR));
+  
+  /* Check OTH */
+  if ((src2dst_tcp_flags & TH_SYN) != (TH_SYN) && 
+      (dst2src_tcp_flags & TH_SYN) != (TH_SYN))
+    return(setCurrentConnectionState(OTH));
+
+  bool is_possible_s1 = checkS1ConnState();
+  /* Check SF */
+  if ((is_possible_s1) &&
+      (src2dst_tcp_flags & (TH_FIN | TH_ACK)) != (TH_FIN | TH_ACK) &&
+      (dst2src_tcp_flags & (TH_FIN | TH_ACK)) != (TH_FIN | TH_ACK))
+    return(setCurrentConnectionState(SF));
+
+  /* Check S2 */
+  if ((is_possible_s1) && 
+      (src2dst_tcp_flags & TH_FIN) == (TH_FIN) && 
+      (dst2src_tcp_flags & TH_FIN) != (TH_FIN))
+    return(setCurrentConnectionState(S2));
+  
+  /* Check S3 */
+  if ((is_possible_s1) && 
+      (dst2src_tcp_flags& TH_FIN) == (TH_FIN) && 
+      (src2dst_tcp_flags & TH_FIN) != (TH_FIN))
+    return(setCurrentConnectionState(S3));
+  
+  /* Check RSTO */
+  if ((is_possible_s1) && 
+      (src2dst_tcp_flags & TH_RST) == (TH_RST))
+    return(setCurrentConnectionState(RSTO));
+  
+  /* Check RSTR */
+  if ((is_possible_s1) &&
+      (dst2src_tcp_flags & TH_RST) == (TH_RST))
+    return(setCurrentConnectionState(RSTR));
+
+    /* Check S1 */
+  if (is_possible_s1)
+    return(setCurrentConnectionState(S1));
+
+  // FOR ZMQ PARSER TODO: MAYBE FIX? 
+  if (getCurrentConnectionState() != NO_STATE)
+    return(getCurrentConnectionState());
+
+  return(setCurrentConnectionState(NO_STATE));  
 }

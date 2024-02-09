@@ -11,6 +11,7 @@ local host_pools = require "host_pools"
 local dscp_consts = require "dscp_consts"
 local country_codes = require "country_codes"
 local checks = require "checks"
+local flow_consts = require "flow_consts"
 
 local snmp_filter_options_cache
 
@@ -500,6 +501,12 @@ tag_utils.defined_tags = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.srv_user_name'),
         operators = {'eq', 'neq'}
+    },
+    connection_state = {
+        type = tag_utils.input_types.select,
+        value_type = 'connection_state',
+        i18n_label = i18n("db_search.tags.connection_state"),
+        operators = {'eq', 'neq'}
     }
 }
 
@@ -858,7 +865,18 @@ function tag_utils.get_tag_info(id, entity)
                 label = label
             }
         end
-
+    elseif tag.value_type == "connection_state" then
+        filter.value_type = 'array'
+        filter.options = {}
+        for state, id in pairs(flow_consts.connection_states) do 
+            -- EXCLUDE NO_STATE
+            if (id ~= 0) then
+                filter.options[#filter.options+1] = {
+                    value = id,
+                    label = i18n(string.format("flow_fields_description.connection_states.%u",id))
+                }
+            end
+        end
     elseif tag.value_type == "traffic_direction" then
         filter.value_type = 'array'
         filter.options = {}

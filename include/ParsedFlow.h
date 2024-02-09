@@ -48,6 +48,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   ndpi_risk ndpi_flow_risk_bitmap;
   char *ndpi_flow_risk_name;
   FlowSource flow_source;
+  u_int8_t connection_state;
   
  public:
   ParsedFlow();
@@ -118,6 +119,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline void setSMTPRcptTo(const char *str) { if(smtp_rcp_to != NULL) free(smtp_rcp_to);  if(str) { smtp_rcp_to = strdup(str);} else smtp_rcp_to = NULL; }
   inline void setSMTPMailFrom(const char *str) { if(smtp_mail_from != NULL) free(smtp_mail_from);  if(str) { smtp_mail_from = strdup(str);} else smtp_mail_from = NULL; }
   inline void setRiskName(const char *str) { if(ndpi_flow_risk_name != NULL) free(ndpi_flow_risk_name); if (str) { ndpi_flow_risk_name = strdup(str);} else ndpi_flow_risk_name = NULL; }
+  inline void setConnectionState(u_int8_t c_state) { connection_state = c_state; }
   /* ****** */
   inline char* getL7Info(bool setToNULL = false)  { char *r = l7_info; if(setToNULL) l7_info = NULL; return(r); }
   inline char* getHTTPurl(bool setToNULL = false) { char *r = http_url; if(setToNULL) http_url = NULL; return(r); }
@@ -147,6 +149,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline char* getRiskName() { return(ndpi_flow_risk_name); }
   inline bool isSwapped() { return(is_swapped); }
   inline FlowSource getFlowSource() { return(flow_source); }
+  inline u_int8_t getConnectionState() { return(connection_state); }
 };
 
 #endif /* _PARSED_FLOW_H_ */

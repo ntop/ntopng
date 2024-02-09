@@ -558,6 +558,7 @@
 #define FLOW_TIME NTOP_BASE_ID + 532
 #define PROFILE NTOP_BASE_ID + 533
 #define STATUS NTOP_BASE_ID + 534
+#define CONNECTION_STATE NTOP_BASE_ID + 535
 
 /* sFlow Counter Fields */
 #define SFLOW_DEVICE_IP 0

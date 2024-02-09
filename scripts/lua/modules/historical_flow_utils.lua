@@ -639,6 +639,16 @@ local function dt_format_pool_id(id)
    return pool_tag
 end
 
+
+local function dt_format_connection_state(id) 
+   local name = ternary(tonumber(id) == 0, "", i18n(string.format("flow_fields_description.connection_states.%u",id)))
+   local conn_state_tag = {
+      value = id,
+      label = name,
+      title = name
+   }
+   return conn_state_tag
+end
 -- #####################################
 
 local function dt_format_country(id)
@@ -1034,6 +1044,7 @@ local flow_columns = {
    ['DST_PROC_NAME'] =        { tag = "srv_proc_name", db_type = "String", db_raw_type = "String" },
    ['SRC_PROC_USER_NAME'] =   { tag = "cli_user_name", db_type = "String", db_raw_type = "String" },
    ['DST_PROC_USER_NAME'] =   { tag = "srv_user_name", db_type = "String", db_raw_type = "String" },
+   ['CONNECTION_STATE'] =     { tag = "connection_state", dt_func = dt_format_connection_state, db_type = "Number", db_raw_type = "Uint8" },
 
    --[[ TODO: this column is for the aggregated_flow_columns but the parsing Function
               only parses these columns, so a new logic to parse only the aggregated_flow_columns
