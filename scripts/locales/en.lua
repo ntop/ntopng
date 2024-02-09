@@ -7272,6 +7272,7 @@ local lang = {
     ["in_bytes"] = "In Bytes",
     ["in_discards"] = "In Discards",
     ["in_errors"] = "In Errors",
+    ["interface_alias"] = "Interface Alias",
     ["interface_device"] = "Interface %{interface} [ %{device} ]",
     ["interface_device_2"] = "%{interface}",
     ["interfaces_with_discards"] = "Interfaces With Discards",
