@@ -11873,27 +11873,35 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
   if ((filter_l4_proto != f->get_protocol()) || (filter_srv_port != f->get_srv_port()))
     return(false);
 
+  /* Check L7 filters */
   ndpi_protocol detected_protocol = f->get_detected_protocol();
-  char proto[16];
-  char filter_proto[16];
+   
+  bool check_both = false;
+  if (l7_app_protocol != NDPI_PROTOCOL_UNKNOWN) 
+    check_both = true;
 
-  if (l7_app_protocol == 0) 
-    snprintf(filter_proto, sizeof(filter_proto), "%u", l7_master_protocol);
-  else
-    snprintf(filter_proto, sizeof(filter_proto), "%u.%u", l7_master_protocol, l7_app_protocol);
-
-  if (detected_protocol.master_protocol == detected_protocol.app_protocol)
-    snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
-  else if (detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
-    snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
-  else if (detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
-    snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
-  else
-    snprintf(proto, sizeof(proto), "%u.%u", detected_protocol.master_protocol, detected_protocol.app_protocol);
-
-
-  if (strcmp(filter_proto, proto) != 0) {
-    return(false);
+  if (detected_protocol.master_protocol == detected_protocol.app_protocol || 
+      detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN){
+    /* CASE master == app OR app == UNKNOWN */
+    if (check_both) return false; /* there's a specific app protocol filter */
+    else if (!check_both && l7_master_protocol != detected_protocol.master_protocol)
+      return false; 
+  } else if (detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN) {
+    /* CASE master == UNKNOWN */
+    if (check_both) return false; /* there's a specific app protocol filter */
+    else if (!check_both && l7_master_protocol != detected_protocol.app_protocol)
+      return false;
+  } else {
+    /* CASE BOTH protocols in Flow */
+    if (check_both) { /* there's a specific app protocol filter */
+      if (l7_master_protocol == detected_protocol.master_protocol && l7_app_protocol != detected_protocol.app_protocol) {
+        /* Same master protocols different app protocols */
+        return false;
+      }
+    } else {
+      /* Just MASTER protocol filter but Flow has both */
+      return false;
+    }
   }
 
   /* Retrieve server host VLAN and host_key */
