@@ -62,7 +62,7 @@ For more information, check the `ntopng database schema <https://github.com/ntop
 TLS Connection
 --------------
 
-To connect ntopng with ClickHouse using a secure TCP connection, first, create the server certificate with the following command:
+In order to connect ntopng with ClickHouse using a secure TCP connection, first, create the server certificate with the following command:
 
 .. code:: bash 
 
@@ -98,3 +98,8 @@ For example:
 .. code:: bash 
 
     ./ntopng -F="clickhouse;127.0.0.1@9440s;ntopng;default;default`
+
+ClickHouse Is Eating All My Disk/Memory !
+-----------------------------------------
+
+The defaut ClickHouse package configuration is not optimizes for reducing disk and memory usage. In order to avoid this problem please `refer to this guide <https://github.com/ntop/ntopng/blob/dev/doc/README.clickhouse.md>`_ that explain in detail how to optimize the fatabase configuration.
