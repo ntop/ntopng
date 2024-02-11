@@ -133,6 +133,8 @@ LuaEngine::~LuaEngine() {
   if (L) {
     struct ntopngLuaContext *ctx;
 
+    lua_settop(L, 0);
+
 #ifdef DUMP_STACK
     stackDump(L);
 #endif
@@ -166,7 +168,7 @@ LuaEngine::~LuaEngine() {
       free(ctx);
     }
 
-    lua_close(L);
+    lua_close(L); /* Free memory */
   }
 
   if (loaded_script_path) free(loaded_script_path);
@@ -668,11 +670,6 @@ int LuaEngine::run_loaded_script() {
 
   lua_pop(L, 1);
 
-#ifdef WIN32
-  /* This will break custom scripts */
-  lua_settop(L, 0);
-#endif
-  
   return (rv);
 }
 
