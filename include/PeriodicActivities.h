@@ -26,7 +26,7 @@
 
 class PeriodicActivities {
  private:
-  ThreadedActivity *activities[CONST_MAX_NUM_THREADED_ACTIVITIES], *daily;
+  ThreadedActivity *activities[CONST_MAX_NUM_THREADED_ACTIVITIES], *daily, *daily_delayed;
   u_int16_t num_activities;
   ThreadPool *th_pool;
   pthread_t pthreadLoop;

@@ -148,12 +148,14 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 					     ad[i].periodicity, ad[i].max_duration_secs, ad[i].align_to_localtime,
 					     ad[i].exclude_viewed_interfaces, ad[i].exclude_pcap_dump_interfaces,
 					     th_pool);
+
     if (ta) {
       if(strcmp(ad[i].path, "daily") == 0)
 	daily = ta;
-      
+
       activities[num_activities++] = ta;
     }
+
 
     if (ad[i].periodicity >= 60 /* no delay for sub-minute scripts */) {
       char script_dir[64];
@@ -165,7 +167,12 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 					       ad[i].periodicity, ad[i].max_duration_secs, ad[i].align_to_localtime,
 					       ad[i].exclude_viewed_interfaces, ad[i].exclude_pcap_dump_interfaces,
 					       th_pool);
-      if (ta) activities[num_activities++] = ta;
+      if (ta) {
+	if(strstr(ad[i].path, "daily"))
+	  daily_delayed = ta;
+
+	activities[num_activities++] = ta;
+      }
     }
   }
 
@@ -184,5 +191,6 @@ void PeriodicActivities::startPeriodicActivitiesLoop() {
 
 
 void PeriodicActivities::forceStartDailyActivity() {
-  if(daily) daily->force();
+  if(daily)         daily->force();
+  if(daily_delayed) daily_delayed->force();
 }
