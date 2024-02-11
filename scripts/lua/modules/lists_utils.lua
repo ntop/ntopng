@@ -831,6 +831,12 @@ end
 
 -- ##############################################
 
+function lists_utils.reloadListsNow()
+   reloadListsNow()
+end
+
+-- ##############################################
+
 -- This avoids waiting for lists reload
 function lists_utils.reloadLists()
    ntop.setCache("ntopng.cache.reload_lists_utils", "1")
