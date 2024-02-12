@@ -45,7 +45,8 @@ class LuaEngine {
   char *loaded_script_path;
   bool is_system_vm; /* Executed by callbacks */
   std::string cloud_string;
-
+  size_t mem_used;
+  
   void lua_register_classes(lua_State *L, LuaEngineMode mode);
 
  public:
@@ -123,6 +124,9 @@ class LuaEngine {
   void pushResultNumber(float f);
   const char* getCloudString() { return(cloud_string.c_str()); }
   inline lua_State* getState() { return(L);                    }
+
+  inline size_t getMemUsed()         { return(mem_used); }
+  inline void   incMemUsed(size_t v) { mem_used += v;    }
 };
 
 /**

@@ -51,7 +51,7 @@ extern luaL_Reg *ntop_cloud_reg;
 struct ntopngLuaContext *getUserdata(struct lua_State *vm) {
   if (vm) {
     struct ntopngLuaContext *userdata;
-
+    
     lua_getglobal(vm, "userdata");
     userdata = (struct ntopngLuaContext *)lua_touserdata(vm, lua_gettop(vm));
     lua_pop(vm, 1);  // undo the push done by lua_getglobal
@@ -98,18 +98,40 @@ static void stackDump(lua_State *L) {
 
 /* ******************************* */
 
+/* Custom memory allocator */
+static void *l_alloc(void *ud, void *ptr, size_t old_size, size_t new_size) {
+  LuaEngine *le = (LuaEngine*)ud;
+
+  le->incMemUsed(new_size - old_size);
+
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "New Size: %d / Old Size: %d / ptr %p / tot: %d",
+			       new_size, old_size, ptr, le->getMemUsed());
+#endif
+  
+  if(new_size == 0) {
+    free(ptr);
+    return(NULL);
+  } else {
+    return(realloc(ptr, new_size));
+  }
+}
+
+/* ******************************* */
+
 LuaEngine::LuaEngine(lua_State *vm) {
   std::bad_alloc bax;
   void *ctx;
 
   loaded_script_path = NULL;
   is_system_vm = false;
-
-  L = luaL_newstate();
+  mem_used = 0;
+  
+  L = lua_newstate(l_alloc, this);
 
   if (!L) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Unable to create a new Lua state.");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create a new Lua state.");
     throw bax;
   }
 
@@ -144,8 +166,7 @@ LuaEngine::~LuaEngine() {
     if (ctx) {
       if (ctx->snmpBatch) delete ctx->snmpBatch;
 
-      for (u_int8_t slot_id = 0; slot_id < MAX_NUM_ASYNC_SNMP_ENGINES;
-           slot_id++) {
+      for (u_int8_t slot_id = 0; slot_id < MAX_NUM_ASYNC_SNMP_ENGINES; slot_id++) {
         if (ctx->snmpAsyncEngine[slot_id] != NULL)
           delete ctx->snmpAsyncEngine[slot_id];
       }
@@ -168,6 +189,7 @@ LuaEngine::~LuaEngine() {
       free(ctx);
     }
 
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Used memory: %d", getMemUsed());
     lua_close(L); /* Free memory */
   }
 

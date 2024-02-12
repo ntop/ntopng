@@ -106,8 +106,7 @@ bool ThreadedActivity::isTerminating() {
 ThreadedActivityState ThreadedActivity::getThreadedActivityState(
     NetworkInterface *iface, char *script_name) {
   if (iface) {
-    ThreadedActivityStats *s =
-        getThreadedActivityStats(iface, script_name, false);
+    ThreadedActivityStats *s = getThreadedActivityStats(iface, script_name, false);
 
     if (s) return (s->getState());
   } else
@@ -194,15 +193,14 @@ bool ThreadedActivity::isDeadlineApproaching(time_t deadline) {
 
 /* ******************************************* */
 
-ThreadedActivityStats *ThreadedActivity::getThreadedActivityStats(
-    NetworkInterface *iface, char *script_name, bool allocate_if_missing) {
+ThreadedActivityStats *ThreadedActivity::getThreadedActivityStats(NetworkInterface *iface,
+								  char *script_name,
+								  bool allocate_if_missing) {
   ThreadedActivityStats *ta = NULL;
 
   if (!isTerminating() && iface) {
-    std::string key =
-        std::to_string(iface->get_id()) + "/" + std::string(script_name);
-    std::map<std::string, ThreadedActivityStats *>::iterator it =
-        threaded_activity_stats.find(key);
+    std::string key = std::to_string(iface->get_id()) + "/" + std::string(script_name);
+    std::map<std::string, ThreadedActivityStats *>::iterator it = threaded_activity_stats.find(key);
 
 #ifdef THREAD_DEBUG
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s() [%s]", __FUNCTION__,
@@ -294,15 +292,16 @@ void ThreadedActivity::runScript(time_t now, char *script_name,
     // activityPath());
 #endif
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Running %s (iface=%p)", script_name, iface);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running %s (iface=%p)", script_name, iface);
 
   l = loadVM(script_name, iface, now);
   if (!l) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to load the Lua vm [%s][vm: %s][script: %s]",
 				 iface->get_name(), activityPath(), script_name);
     return;
-  } else
-    l->setAsSystemVM(); /* Privileged VM used by the ntpng engine (no GUI) */
+  }
+  
+  l->setAsSystemVM(); /* Privileged VM used by the ntopng engine (no GUI) */
 
   /* Set the deadline and the threaded activity in the vm so they can be
    * accessed */
@@ -332,7 +331,7 @@ void ThreadedActivity::runScript(time_t now, char *script_name,
   if (thstats && isDeadlineApproaching(deadline))
     thstats->setSlowPeriodicActivity(true);
 
-  if (l) delete l;
+  delete l;
 }
 
 /* ******************************************* */
