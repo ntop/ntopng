@@ -59,6 +59,7 @@ class Ntop {
   NetworkInterface *old_iface_to_purge;
   u_int8_t num_defined_interfaces; /**< Number of defined interfaces. */
   u_int8_t num_dump_interfaces;
+  std::atomic<u_int16_t> num_active_lua_vms;
   HTTPserver *httpd;    /**< Pointer of httpd server. */
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus;       /**< Number of physical CPU cores. */
@@ -794,6 +795,10 @@ class Ntop {
   inline void resetBlacklistStats()          { blStats.reset();  }
   inline JobQueue* getJobsQueue()            { return(&jobsQueue); }
   inline PeriodicActivities* getPeriodicActivities() { return(pa); }
+
+  void incNumLuaVMs()                   { num_active_lua_vms++;       }
+  void decNumLuaVMs()                   { num_active_lua_vms--;       } 
+  inline u_int16_t getNumActiveLuaVMs() { return(num_active_lua_vms); }
 };
 
 extern Ntop *ntop;

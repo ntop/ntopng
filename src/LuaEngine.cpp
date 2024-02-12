@@ -123,7 +123,10 @@ static void *l_alloc(void *ud, void *ptr, size_t old_size, size_t new_size) {
 LuaEngine::LuaEngine(lua_State *vm) {
   std::bad_alloc bax;
   void *ctx;
-
+  
+  ntop->incNumLuaVMs();
+  start_epoch= (u_int32_t)time(NULL);
+  
   loaded_script_path = NULL;
   is_system_vm = false;
   mem_used = 0;
@@ -189,7 +192,16 @@ LuaEngine::~LuaEngine() {
       free(ctx);
     }
 
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Used memory: %d", getMemUsed());
+  ntop->decNumLuaVMs();
+
+#ifdef TRACE_VM_ENGINES
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated VM [# LuaVMs: %u][Duration: %u sec][Memory: %u][%s]",
+			       ntop->getNumActiveLuaVMs(),
+			       (u_int32_t)time(NULL)-start_epoch+1,
+			       getMemUsed(),
+			       loaded_script_path ? loaded_script_path : "");
+#endif
+
     lua_close(L); /* Free memory */
   }
 

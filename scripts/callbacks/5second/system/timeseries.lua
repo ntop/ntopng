@@ -19,7 +19,7 @@ require "ts_5sec"
 -- ########################################################
 
 -- Run this script for a minute before quitting (this reduces load on Lua VM infrastructure)
-local num_runs = 12
+local num_runs = 3
 
 for i=1,num_runs do
    if(ntop.isShuttingDown()) then break end

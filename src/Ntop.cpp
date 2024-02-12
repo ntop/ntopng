@@ -50,7 +50,7 @@ Ntop::Ntop(const char *appName) {
   ntop = this;
   globals = new (std::nothrow) NtopGlobals();
   extract = new (std::nothrow) TimelineExtract();
-
+  num_active_lua_vms = 0;
   offline = false;
   forced_offline = false;
   pa = NULL;

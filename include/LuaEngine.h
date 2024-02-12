@@ -46,6 +46,7 @@ class LuaEngine {
   bool is_system_vm; /* Executed by callbacks */
   std::string cloud_string;
   size_t mem_used;
+  u_int32_t start_epoch;
   
   void lua_register_classes(lua_State *L, LuaEngineMode mode);
 

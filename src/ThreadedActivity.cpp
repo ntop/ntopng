@@ -292,14 +292,17 @@ void ThreadedActivity::runScript(time_t now, char *script_name,
     // activityPath());
 #endif
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running %s (iface=%p)", script_name, iface);
-
   l = loadVM(script_name, iface, now);
   if (!l) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to load the Lua vm [%s][vm: %s][script: %s]",
 				 iface->get_name(), activityPath(), script_name);
     return;
   }
+
+#ifdef TRACE_VM_ENGINES
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running %s (iface=%p) [# LuaVMs: %u]",
+			       script_name, iface, ntop->getNumActiveLuaVMs());
+#endif
   
   l->setAsSystemVM(); /* Privileged VM used by the ntopng engine (no GUI) */
 

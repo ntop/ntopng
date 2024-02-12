@@ -24,8 +24,8 @@ local ts_utils = require("ts_utils_core")
 require("ts_second")
 
 -- Run this script for a minute before quitting (this reduces load on Lua VM infrastructure)
-local num_runs = 60
-local max_time = os.time() + 60 -- See SECOND_SCRIPT_DIR in PeriodicActivities.cpp
+local num_runs = 15
+local max_time = os.time() + 15 -- See SECOND_SCRIPT_DIR in PeriodicActivities.cpp
 
 for i=1,num_runs do
    if(ntop.isShuttingDown()) then break end

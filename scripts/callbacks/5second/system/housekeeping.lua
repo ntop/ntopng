@@ -14,9 +14,9 @@ local scripts_triggers = require "scripts_triggers"
 
 -- io.write("housekeeping.lua ["..os.time().."]\n")
 
--- Run this script for a minute before quitting (this reduces load on Lua VM infrastructure)
+-- Run this script for a while before quitting (this reduces load on Lua VM infrastructure)
 local periodicity = 3
-local num_runs = 60 / periodicity
+local num_runs = 15 / periodicity
 local sleep_duration = periodicity * 1000
 
 for i=1,num_runs do
