@@ -25,6 +25,14 @@ extern "C" {
 #include "rrd.h"
 };
 
+enum list_file_type {
+  list_type_hosts = 0,
+  list_type_ip_csv = 1,
+  list_type_ip_occurrencies = 2,
+  list_type_ip = 3,
+  list_type_max
+};
+
 static int live_extraction_num = 0;
 static Mutex live_extraction_num_lock;
 
@@ -773,6 +781,200 @@ static int ntop_loadCustomCategoryHost(lua_State *vm) {
   success = ntop->nDPILoadHostnameCategory(host, catid, listname);
 
   lua_pushboolean(vm, success);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static bool is_valid_host(char *host, enum list_file_type t) {
+  if(t == list_type_hosts) {
+    if(strcmp(host, "localhost"))
+      return(true);;
+  } else {
+    if(strcmp(host, "127.0.0.1")
+       && strcmp(host, "255.255.255.255")
+       && strncmp(host, "0.0.0.0", 8) /* Matches both 0.0.0.0 and 0.0.0.0/0 */
+       && (strchr(host, ':') == NULL) /* Ignore IPv6 */
+       && (strstr(host, "/0") == NULL)) {
+#if 0
+	char *slash = strchr(host, '/');
+
+      if(slash) {
+	int cidr = atoi(&slash[1]);
+
+	if(cidr < 12) {
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "CIDR too small %s [%d]", host, t);
+	  return(false);
+	}
+      }
+#endif
+
+      return(true);
+    }
+  }
+
+  return(false);
+}
+
+/* ****************************************** */
+
+static int ntop_loadCustomCategoryFile(lua_State *vm) {
+  char *path, *listname;
+  const char *format;
+  enum list_file_type list_type;
+  ndpi_protocol_category_t catid;
+  FILE *fd;
+  u_int32_t num_lines_loaded = 0;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK) {
+    lua_pushinteger(vm, (int)num_lines_loaded);
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
+  path = (char *)lua_tostring(vm, 1);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK) {
+    lua_pushinteger(vm, (int)num_lines_loaded);
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
+  list_type = (enum list_file_type)lua_tointeger(vm, 2);
+
+  if(list_type >= list_type_max) {
+    lua_pushinteger(vm, (int)num_lines_loaded);
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
+
+  if (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK) {
+    lua_pushinteger(vm, (int)num_lines_loaded);
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
+  catid = (ndpi_protocol_category_t)lua_tointeger(vm, 3);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TSTRING) != CONST_LUA_OK) {
+    lua_pushinteger(vm, (int)num_lines_loaded);
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
+  listname = (char *)lua_tostring(vm, 4);
+
+  if((fd = fopen(path, "r")) == NULL) {
+    lua_pushinteger(vm, (int)num_lines_loaded);
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
+
+  switch(list_type) {
+  case list_type_hosts:
+    format = "%s\t%s";
+    break;
+
+  case list_type_ip_csv:
+    format = "%[^,],%lf";
+    break;
+
+  case list_type_ip_occurrencies:
+    format = "%s\t%d";
+    break;
+
+  case list_type_ip:
+    format = "%s";
+    break;
+
+  default:
+    format = NULL;
+    break;
+  }
+
+  while(1) {
+    char buffer[256];
+    char *line = fgets(buffer, sizeof(buffer), fd);
+    int len;
+
+    if(line == NULL)
+      break;
+
+    len = strlen(line);
+
+    if((len <= 1) || (line[0] == '#'))
+      continue;
+
+    if((line[len - 1] == '\n') || (line[len - 1] == '\r'))
+      line[len - 1] = '\0';
+
+    switch(list_type) {
+    case list_type_hosts:
+    case list_type_ip_csv:
+    case list_type_ip:
+      {
+	/*o
+	  Format
+	  127.0.0.1       domainname
+	  127.0.0.1,domainname
+	*/
+	char host[256], ignore[64];
+	bool loaded = false, success;
+	float f;
+
+	if(list_type == list_type_ip)
+	  success = (sscanf(line, format, host) == 1) ? true : false;
+	else if(list_type == list_type_hosts)
+	  success = (sscanf(line, format, ignore, host) == 2) ? true : false;
+	else
+	  success = (sscanf(line, format, host, &f) == 2) ? true : false;
+
+	if(success) {
+	  if(is_valid_host(host, list_type)) {
+	    if(list_type == list_type_hosts)
+	      success = ntop->nDPILoadHostnameCategory(host, catid, listname);
+	    else
+	      success = ntop->nDPILoadIPCategory(host, catid, listname);
+
+	    if(success)
+	      num_lines_loaded++, loaded = true;
+	  }
+	}
+
+	if(!loaded) {
+	  if(strcmp(line, "ip,score")) /* Silence Stratosphere Lab.txt */
+	     ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid line format %s [%s]", line, path);
+	}
+      }
+      break;
+
+    case list_type_ip_occurrencies:
+      {
+	/*
+	  Format
+	  127.0.0.1       occurrencies
+	*/
+	char host[64];
+	int occurrencies;
+	bool loaded = false;
+
+	if(sscanf(line, format, host, &occurrencies) == 2) {
+	  if(is_valid_host(host, list_type)) {
+	    if(occurrencies >= 2) {
+	      if(ntop->nDPILoadIPCategory(host, catid, listname))
+		num_lines_loaded++, loaded = true;
+	    } else
+	      continue;
+	  }
+	}
+
+	if(!loaded)
+	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid line format %s [%s]", line, path);
+      }
+      break;
+
+    default:
+      /* Not reached */
+      break;
+    }
+  } /* while */
+
+  fclose(fd);
+
+  lua_pushinteger(vm, (int)num_lines_loaded);
+
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -3649,7 +3851,7 @@ static int ntop_get_info(lua_State *vm) {
   bool verbose = true;
   char *zoneinfo = ntop->getZoneInfo();
   FILE *fd = fopen("/proc/device-tree/model", "r");
-  
+
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (lua_type(vm, 1) == LUA_TBOOLEAN)
@@ -3704,7 +3906,7 @@ static int ntop_get_info(lua_State *vm) {
 
     fclose(fd);
   }
-  
+
   lua_push_uint64_table_entry(vm, "bits", (sizeof(void *) == 4) ? 32 : 64);
   lua_push_uint64_table_entry(vm, "uptime", ntop->getGlobals()->getUptime());
   lua_push_str_table_entry(vm, "command_line",
@@ -7376,7 +7578,7 @@ static int ntop_pools_unlock(lua_State *vm) {
 static int ntop_force_run_daily_activities(lua_State *vm) {
   ntop->getPeriodicActivities()->forceStartDailyActivity();
   lua_pushboolean(vm, true);
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));  
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
 /* **************************************************************** */
@@ -7670,6 +7872,7 @@ static luaL_Reg _ntop_reg[] = {
     {"finalizenDPIReload", ntop_finalizenDPIReload},
     {"loadCustomCategoryIp", ntop_loadCustomCategoryIp},
     {"loadCustomCategoryHost", ntop_loadCustomCategoryHost},
+    {"loadCustomCategoryFile", ntop_loadCustomCategoryFile},
     {"loadMaliciousJA3Signatures", ntop_loadMaliciousJA3Signatures},
     {"setDomainMask", ntop_setDomainMask},
     {"addTrustedIssuerDN", ntop_addTrustedIssuerDN},
@@ -7811,7 +8014,7 @@ static luaL_Reg _ntop_reg[] = {
 
     /* Debug */
     {"forceRunDailyActivities", ntop_force_run_daily_activities },
-    
+
     {NULL, NULL}
 };
 

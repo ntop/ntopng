@@ -481,76 +481,6 @@ end
 
 -- ##############################################
 
---@return nil on parse error, "domain" if the loaded item is an host, "ip" or "ip_csv" otherwise
-local function loadListItem(host, category, user_custom_categories, list, num_line)
-   category = tonumber(category)
-
-   -- Checking for "whitelisted hosts" (Format: !<host>)
-   if string.sub(host, 1, 1) == "!" then
-      return nil
-   end
-
-   if category ~= nil then
-      --traceError(TRACE_NORMAL, TRACE_CONSOLE, host .. " -> " .. category)
-
-      -- Checking for "whitelisted hosts"
-      if user_custom_categories[category] ~= nil then
-         local hosts_map = swapKeysValues(user_custom_categories[category])
-         if hosts_map["!"..host] ~= nil then
-            return nil
-         end
-      end
-
-      if isIPv4(host) or isIPv4Network(host) then
-         -- IPv4 address
-         if((not list) or (list.format ~= "domain")) then
-	    local h = split(host, ":") -- Handle hosts with ports
-
-	    host = h[1]
-            if((host == "0.0.0.0") or (host == "0.0.0.0/0") or (host == "255.255.255.255")) then
-               loadWarning(string.format("Bad IPv4 address '%s' in list '%s'", host, list.name))
-            else
-               if (list and list.name) then
-                  if not ntop.loadCustomCategoryIp(host, category, list.name) then
-                     loadWarning(string.format("Failure loading IP '%s' category '%s' in list '%s'", host, category, list.name))
-		  else
-		     if((category == CUSTOM_CATEGORY_MALWARE) and isLocal(host)) then
-			local alert = alert_consts.alert_types.alert_local_host_blacklisted.new(list.name, host)
-
-			alert:set_score_error()
-			alert:store(alerts_api.systemEntity(list.name, host))
-
-			-- loadWarning(string.format("Found local IP '%s' in malware list '%s'", host, list.name))
-		     end
-                  end
-               end
-
-               return "ip"
-            end
-         else
-            loadWarning(string.format("Invalid IPv4 address '%s' in list '%s'", host, list.name))
-         end
-      elseif isIPv6(host) then
-         -- IPv6 address
-         loadWarning(string.format("Unsupported IPv6 address '%s' found in list '%s'", host, list.name))
-      else
-         -- Domain
-         if(list and list.format ~= "ip") then
-            if not ntop.loadCustomCategoryHost(host, category, list.name) then
-              loadWarning(string.format("Failure loading host '%s' category '%s' in list '%s'",  host, category, list.name))
-            end
-            return "domain"
-         else
-           loadWarning(string.format("Invalid domain '%s' in list '%s'", host, list.name))
-         end
-      end
-   end
-
-   return nil
-end
-
--- ##############################################
-
 local function parse_hosts_line(line)
    local words = string.split(line, "%s+")
    local host = nil
@@ -632,6 +562,25 @@ end
 
 -- ##############################################
 
+-- TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+-- Re-implement the code below in loadFromListFile()
+-- Checking for "whitelisted hosts"
+-- if user_custom_categories[category] ~= nil then
+--    local hosts_map = swapKeysValues(user_custom_categories[category])
+--    
+--    if hosts_map["!"..host] ~= nil then
+--       return nil
+--    end
+-- end
+-- 
+-- if((category == CUSTOM_CATEGORY_MALWARE) and isLocal(host)) then
+--    local alert = alert_consts.alert_types.alert_local_host_blacklisted.new(list.name, host)
+--    
+--    alert:set_score_error()
+--    alert:store(alerts_api.systemEntity(list.name, host))
+-- end   
+
+
 -- Loads hosts from a list file on disk
 local function loadFromListFile(list_name, list, user_custom_categories, stats)
    local list_fname = getListCacheFile(list_name)
@@ -656,64 +605,28 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
 
          return(false)
       end
+   elseif list.format == "hosts" then
+      -- MAX_TOTAL_DOMAIN_RULES
+      num_rules = ntop.loadCustomCategoryFile(list_fname, 0, list.category, list.name)
+      stats.num_hosts = stats.num_hosts + num_rules
+   elseif list.format == "ip_csv" then
+      -- MAX_TOTAL_IP_RULES
+      num_rules = ntop.loadCustomCategoryFile(list_fname, 1, list.category, list.name)
+      stats.num_ips = stats.num_ips + num_rules
+   elseif list.format == "ip_occurencies" then
+      -- MAX_TOTAL_IP_RULES
+      num_rules = ntop.loadCustomCategoryFile(list_fname, 2, list.category, list.name)
+      stats.num_ips = stats.num_ips + num_rules
+   elseif list.format == "ip" then
+      -- MAX_TOTAL_IP_RULES
+      num_rules = ntop.loadCustomCategoryFile(list_fname, 3, list.category, list.name)
+      stats.num_ips = stats.num_ips + num_rules
    else
-      local f = io.open(list_fname, "r")
-      local num_line = 0
-
-      if f == nil then
-         if list.status.num_hosts > 0 then
-            -- Avoid generating warnings during first startup
-            traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Could not find '%s'...", list_fname))
-         end
-
-         return(false)
-      end
-
-      for line in f:lines() do
-	 num_line = num_line + 1
-
-	 if ntop.isShuttingDown() then
-            break
-         end
-         local trimmed = line:match("^%s*(.-)%s*$")
-
-         if((string.len(trimmed) > 0) and not(string.starts(trimmed, "#"))) then
-            local host = trimmed
-
-            if(list.format == "hosts") then
-               host = parse_hosts_line(trimmed)
-	    elseif(list.format == "ip_csv") then
-	       host = parse_ip_csv_line(trimmed)
-	    elseif(list.format == "ip_occurencies") then
-	       host = parse_ip_occurencies_line(trimmed)
-	    end
-
-            if host then
-               local rv = loadListItem(host, list.category, user_custom_categories, list, num_line)
-
-               if(rv == "domain") then
-                  stats.num_hosts = stats.num_hosts + 1
-                  num_rules = num_rules + 1
-               elseif(rv == "ip") then
-                  stats.num_ips = stats.num_ips + 1
-                  num_rules = num_rules + 1
-               end
-            end
-
-            if((stats.num_ips >= MAX_TOTAL_IP_RULES) or
-                  (stats.num_hosts >= MAX_TOTAL_DOMAIN_RULES) or
-                  (stats.num_ja3 >= MAX_TOTAL_JA3_RULES)) then
-               limit_exceeded = true
-               break
-            end
-         end
-      end
-
-      f:close()
+      traceError(TRACE_WARNING, TRACE_CONSOLE, "Unknown list format "..list.format)
    end
 
    list.status.num_hosts = num_rules
-
+   traceError(TRACE_NORMAL, TRACE_CONSOLE, "Loaded "..list.name..": "..num_rules.." rules\n")
    traceError(trace_level, TRACE_CONSOLE, string.format("\tRead '%d' rules", num_rules))
 
    if((num_rules == 0) and (not limit_exceeded) and (not ntop.isShuttingDown())) then

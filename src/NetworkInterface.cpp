@@ -549,8 +549,7 @@ bool NetworkInterface::nDPILoadIPCategory(char *what,
                                           char *list_name) {
   bool success = true;
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__,
-  // ndpi_struct_shadow, what);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%s][%s]", __FUNCTION__, what, list_name);
 
   if (what && ndpi_struct_shadow)
     success = (ndpi_load_ip_category(ndpi_struct_shadow, what, id,
