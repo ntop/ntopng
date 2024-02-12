@@ -353,7 +353,7 @@ function protos_utils.generateProtosTxt(rules, defined_protos)
             proto_id = ntop.getHashCache(proto_key, proto_name) or ''    
         end
         
-        if isEmptyString(proto_id) then
+        if isEmptyString(proto_id) or proto_id == 0 then
             proto_id = tonumber(ntop.getCache(proto_last_id)) or 0
             if proto_id == 0 then
                 proto_id = first_proto_id
