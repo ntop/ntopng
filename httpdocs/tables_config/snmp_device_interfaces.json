@@ -2,7 +2,7 @@
 	"id": "snmp_device_interfaces",
 	"data_url": "lua/pro/rest/v2/get/snmp/metric/interfaces.lua",
 	"use_current_page": false,
-	"enable_search": false,
+	"enable_search": true,
 	"paging": true,
 	"display_empty_rows": true,
 	"default_sort": {
