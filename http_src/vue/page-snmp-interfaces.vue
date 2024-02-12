@@ -47,8 +47,12 @@ const props = defineProps({
 
 /* ************************************** */
 
+/* The same exact page is used for both, the interfaces page for all SNMP devices
+ * and the interfaces page for a specific device. Having different columns, simply switch between 
+ * those two tables.
+ */
+const table_id = props.context?.inside_a_device ? ref('snmp_device_interfaces') : ref('snmp_interfaces');
 const table_snmp_interfaces = ref(null);
-const table_id = ref('snmp_interfaces');
 const csrf = props.context.csrf;
 const filter_table_array = ref([]);
 const filter_table_dropdown_array = ref([]);

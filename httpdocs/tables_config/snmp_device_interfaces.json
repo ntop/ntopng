@@ -1,0 +1,179 @@
+{
+	"id": "snmp_device_interfaces",
+	"data_url": "lua/pro/rest/v2/get/snmp/metric/interfaces.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": true,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "device",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "interface_configuration",
+					"icon": "fas fa-cog",
+					"title_i18n": "flow_checks.callback_config",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_configuration"
+				}
+			]
+		},
+		{
+			"title_i18n": "snmp.ifName",
+			"data_field": "interface_name",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "vlan",
+			"data_field": "vlan",
+			"sortable": true,
+			"class": [
+			    "text-nowrap",
+     		            "text-center"
+			]
+		},
+		{
+			"title_i18n": "admin_status_short",
+			"data_field": "admin_status",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "interface_status_short",
+			"data_field": "status",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "duplexstatus",
+			"data_field": "duplex_status",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "snmp.port_macs_short",
+			"data_field": "num_macs",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "snmp.in_bytes",
+			"data_field": "in_bytes",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "snmp.out_bytes",
+			"data_field": "out_bytes",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "snmp.in_discards",
+			"data_field": "in_discards",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "snmp.in_errors",
+			"data_field": "in_errors",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "throughput",
+			"data_field": "throughput",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "interface_uplink_speed",
+			"data_field": "uplink_speed",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "interface_downlink_speed",
+			"data_field": "downlink_speed",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "downlink_usage",
+			"data_field": "last_in_usage",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "uplink_usage",
+			"data_field": "last_out_usage",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "snmp.last_change",
+			"data_field": "last_change",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		}
+	]
+}
