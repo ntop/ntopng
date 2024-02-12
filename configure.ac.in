@@ -256,13 +256,15 @@ if [ test -f /usr/bin/lsb_release ]; then
   fi
 fi
 
-NTOPCLOUD_LIB=
-NTOPCLOUD_HOME="../ntopcloud"
-if test -d "${NTOPCLOUD_HOME}"; then
-  CFLAGS="${CFLAGS} -I${NTOPCLOUD_HOME}"
-  CXXFLAGS="${CXXFLAGS} -I${NTOPCLOUD_HOME}"
-  NTOPCLOUD_LIB="${NTOPCLOUD_HOME}/libcloud.a"
-  AC_DEFINE(HAVE_NTOP_CLOUD, 1, [ntop cloud detected])
+if test -d "pro/"; then
+  NTOPCLOUD_LIB=
+  NTOPCLOUD_HOME="../ntopcloud"
+  if test -d "${NTOPCLOUD_HOME}"; then
+    CFLAGS="${CFLAGS} -I${NTOPCLOUD_HOME}"
+    CXXFLAGS="${CXXFLAGS} -I${NTOPCLOUD_HOME}"
+    NTOPCLOUD_LIB="${NTOPCLOUD_HOME}/libcloud.a"
+    AC_DEFINE(HAVE_NTOP_CLOUD, 1, [ntop cloud detected])
+  fi
 fi
 
 SHORT_MACHINE=`uname -m | cut -b1-3`
