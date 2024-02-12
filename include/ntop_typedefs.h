@@ -1248,7 +1248,8 @@ typedef enum {
   client_server_criteria,
   app_client_server_criteria,
   info_criteria,
-  client_server_srv_port
+  client_server_srv_port,
+  client_server_srv_port_app_proto
 } AnalysisCriteria;
 
 

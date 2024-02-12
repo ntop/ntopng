@@ -1341,6 +1341,9 @@ public:
   static bool compute_client_server_srv_port_flow_stats(GenericHashEntry *node,
           void *user_data,
           bool *matched);
+  static bool compute_client_server_srv_port_app_proto_flow_stats(GenericHashEntry *node,
+          void *user_data,
+          bool *matched);
   static bool get_host_ports(GenericHashEntry *node,
 				 void *user_data,
 				 bool *matched);
