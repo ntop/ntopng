@@ -107,9 +107,6 @@ Ntop::Ntop(const char *appName) {
 #ifdef HAVE_NATS
   natsBroker = NULL;
 #endif /* HAVE_NATS */
-#ifdef HAVE_KAFKA
-  kafkaClient = NULL;
-#endif /* HAVE_KAFKA */
 
 #endif /* NTOPNG_PRO */
 #ifndef WIN32
@@ -348,6 +345,12 @@ Ntop::~Ntop() {
   if (pro) delete pro;
   if (alert_exclusions) delete alert_exclusions;
   if (alert_exclusions_shadow) delete alert_exclusions_shadow;
+#ifdef HAVE_NATS
+  if (natsBroker) {
+    delete natsBroker;
+    natsBroker = NULL;
+  } 
+#endif
 #endif
 
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
@@ -672,13 +675,6 @@ void Ntop::start() {
   }
 #endif
 
-#ifdef HAVE_KAFKA
-  try {
-    kafkaClient = new KafkaClient();
-  } catch(...) {
-    ;
-  }
-#endif
 #endif /* NTOPNG_PRO */
 
   for (int i = 0; i < num_defined_interfaces; i++)
