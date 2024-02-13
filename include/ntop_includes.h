@@ -177,6 +177,10 @@ https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.
 #include <sys/capability.h>
 #include <sys/prctl.h>
 #endif
+
+#if defined(HAVE_NATS)
+#include <nats/nats.h>
+#endif
 };
 
 #include <fstream>
@@ -459,6 +463,7 @@ using namespace std;
 #ifdef NTOPNG_PRO
 #include "AssetManagement.h"
 #include "ModbusStats.h"
+#include "NatsBroker.h"
 #endif
 #include "IEC104Stats.h"
 #include "Flow.h"
@@ -493,33 +498,6 @@ using namespace std;
 #include "Forwarder.h"
 #include "MulticastForwarder.h"
 #include "BroadcastForwarder.h"
-#endif
-#if defined(HAVE_NATS) && defined(NTOPNG_PRO)
-#include <nats/nats.h>
-
-// WITH EXTERN
-/*#ifdef __cplusplus
-extern "C" {
-#endif
-extern void natsConnection_Close(natsConnection *nc);
-extern natsStatus natsConnection_ConnectTo(natsConnection **nc, const char *urls);
-extern void natsConnection_Destroy(natsConnection *nc);
-extern natsStatus natsConnection_PublishString(natsConnection *nc, const char *subj,
-                             const char *str);
-extern natsStatus natsConnection_RequestString(natsMsg **replyMsg, natsConnection *nc,
-                             const char *subj, const char *str,
-                             int64_t timeout);                       
-extern void natsMsg_Destroy(natsMsg *msg);
-extern const char* natsMsg_GetData(const natsMsg *msg);
-extern int natsMsg_GetDataLength(const natsMsg *msg);
-extern natsStatus natsOptions_Create(natsOptions **newOpts);
-extern natsStatus natsOptions_SetSecure(natsOptions *opts, bool secure);
-extern natsStatus natsSubscription_Unsubscribe(natsSubscription *sub);
-extern const char* nats_GetLastError(natsStatus *status);
-#ifdef __cplusplus
-}
-#endif*/
-#include "NatsBroker.h"
 #endif
 
 #include "Radius.h"

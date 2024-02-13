@@ -206,7 +206,9 @@ AC_ARG_WITH(zmq-static,
 
 AC_CHECK_LIB([sodium], [sodium_init], LIBS="${LIBS} -lsodium")
 AC_CHECK_LIB([rdkafka], [rd_kafka_metadata], AC_DEFINE_UNQUOTED(HAVE_KAFKA, 1, [librdkafka is installed] LIBS="${LIBS} -lrdkafka") LIBS="${LIBS} -lrdkafka")
-   
+AC_CHECK_LIB([nats], [natsOptions_Create], AC_DEFINE_UNQUOTED(HAVE_NATS, 1, [nats is installed]  LIBS="${LIBS} -lnats") LIBS="${LIBS} -lnats")
+
+
 NEDGE=0
 if test "${with_nedge+set}" = set; then
   AC_DEFINE(HAVE_NEDGE, 1, [nedge support is present])
