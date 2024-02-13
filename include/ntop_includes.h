@@ -380,6 +380,7 @@ using namespace std;
 #include "FlowsHostInfo.h"
 #include "AggregatedFlowsStats.h"
 #include "NetworkInterface.h"
+#include "NtopLuaContext.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"
 #endif

@@ -24,6 +24,8 @@
 
 #include "ntop_includes.h"
 
+class Flow; /* Forward */
+
 /* *************************************** */
 
 class FlowStats {

@@ -77,11 +77,9 @@ class LuaEngine {
   void setThreadedActivityData(const ThreadedActivity *ta,
                                ThreadedActivityStats *tas, time_t deadline);
 
-  inline Host *getHost() { return (getLuaVMContext(L)->host); }
-  inline NetworkInterface *getNetworkInterface() {
-    return (getLuaVMContext(L)->iface);
-  }
-  NetworkStats *getNetwork() { return (getLuaVMContext(L)->network); }
+  Host *getHost();
+  NetworkInterface* getNetworkInterface();
+  NetworkStats*     getNetwork();
 
   int load_script(char *script_path, LuaEngineMode mode, NetworkInterface *iface);
   int run_loaded_script();

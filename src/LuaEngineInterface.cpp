@@ -591,7 +591,7 @@ AddressTree *get_allowed_nets(lua_State *vm) {
 
 static int ntop_interface_live_capture(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  struct ntopngLuaContext *c;
+  NtopngLuaContext *c;
   int capture_id, duration;
   char *host = NULL;
   char *bpf = NULL;
@@ -953,7 +953,7 @@ int ntop_get_alerts(lua_State *vm, AlertableEntity *entity) {
 /* ****************************************** */
 
 static int ntop_interface_get_alerts(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
 
   return ntop_get_alerts(vm, c->iface);
 }
@@ -985,7 +985,7 @@ static int ntop_interface_store_external_alert(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_interface_release_triggered_alert(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
 
   return (ntop_release_triggered_alert(vm, c->iface, 1));
 }
@@ -3146,7 +3146,7 @@ static int ntop_get_interface_find_flow_by_key_and_hash_id(lua_State *vm) {
     f->lua(vm, ptree, details_high, false);
 
     if (set_context) {
-      struct ntopngLuaContext *c = getLuaVMContext(vm);
+      NtopngLuaContext *c = getLuaVMContext(vm);
 
       c->flow = f, c->iface = f->getInterface();
     }
@@ -3667,7 +3667,7 @@ static int ntop_reload_host_prefs(lua_State *vm) {
 /* ****************************************** */
 
 static void *pcapDumpLoop(void *ptr) {
-  struct ntopngLuaContext *c = (struct ntopngLuaContext *)ptr;
+  NtopngLuaContext *c = (NtopngLuaContext *)ptr;
   Utils::setThreadName("ntopng-pcap");
 
   while (c->pkt_capture.captureInProgress) {
@@ -3710,7 +3710,7 @@ static int ntop_capture_to_pcap(lua_State *vm) {
   char *bpfFilter = NULL, ftemplate[64];
   char errbuf[PCAP_ERRBUF_SIZE];
   struct bpf_program fcode;
-  struct ntopngLuaContext *c;
+  NtopngLuaContext *c;
   int rc;
 
   if (!ntop->isUserAdministrator(vm))
@@ -3797,7 +3797,7 @@ static int ntop_capture_to_pcap(lua_State *vm) {
 
 static int ntop_is_capture_running(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  struct ntopngLuaContext *c;
+  NtopngLuaContext *c;
 
   if (!ntop->isUserAdministrator(vm))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -3818,7 +3818,7 @@ static int ntop_is_capture_running(lua_State *vm) {
 
 static int ntop_stop_running_capture(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-  struct ntopngLuaContext *c;
+  NtopngLuaContext *c;
 
   if (!ntop->isUserAdministrator(vm))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -3919,7 +3919,7 @@ static int ntop_get_batched_interface_local_hosts_ts(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_interface_store_triggered_alert(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
 
   return (ntop_store_triggered_alert(vm, c->iface, 1 /* 1st argument of vm */));
 }
@@ -4079,7 +4079,7 @@ static int ntop_get_interface_queues_stats(lua_State *vm) {
 
 static int ntop_set_interface_periodic_activity_progress(lua_State *vm) {
   int progress;
-  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+  NtopngLuaContext *ctx = getLuaVMContext(vm);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -4467,7 +4467,7 @@ static int ntop_reload_shapers(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_interface_get_cached_alert_value(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   char *key;
   std::string val;
   ScriptPeriodicity periodicity;
@@ -4497,7 +4497,7 @@ static int ntop_interface_get_cached_alert_value(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_interface_set_cached_alert_value(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   char *key, *value;
   ScriptPeriodicity periodicity;
 
@@ -4535,7 +4535,7 @@ static int ntop_interface_set_cached_alert_value(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_interface_check_context(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   char *entity_val;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);

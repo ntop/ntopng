@@ -48,12 +48,12 @@ extern luaL_Reg *ntop_cloud_reg;
 
 /* ******************************* */
 
-struct ntopngLuaContext *getUserdata(struct lua_State *vm) {
+NtopngLuaContext *getUserdata(struct lua_State *vm) {
   if (vm) {
-    struct ntopngLuaContext *userdata;
+    NtopngLuaContext *userdata;
     
     lua_getglobal(vm, "userdata");
-    userdata = (struct ntopngLuaContext *)lua_touserdata(vm, lua_gettop(vm));
+    userdata = (NtopngLuaContext *)lua_touserdata(vm, lua_gettop(vm));
     lua_pop(vm, 1);  // undo the push done by lua_getglobal
 
     return (userdata);
@@ -138,7 +138,7 @@ LuaEngine::LuaEngine(lua_State *vm) {
     throw bax;
   }
 
-  ctx = (void *)calloc(1, sizeof(struct ntopngLuaContext));
+  ctx = (void *)calloc(1, sizeof(NtopngLuaContext));
 
   if (!ctx) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create a context for the new Lua state.");
@@ -156,7 +156,7 @@ LuaEngine::LuaEngine(lua_State *vm) {
 
 LuaEngine::~LuaEngine() {
   if (L) {
-    struct ntopngLuaContext *ctx;
+    NtopngLuaContext *ctx;
 
     lua_settop(L, 0);
 
@@ -1503,7 +1503,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 /* ****************************************** */
 
 void LuaEngine::setHost(Host *h) {
-  struct ntopngLuaContext *c = getLuaVMContext(L);
+  NtopngLuaContext *c = getLuaVMContext(L);
 
   if (c) {
     c->host = h;
@@ -1515,7 +1515,7 @@ void LuaEngine::setHost(Host *h) {
 /* ****************************************** */
 
 void LuaEngine::setNetwork(NetworkStats *ns) {
-  struct ntopngLuaContext *c = getLuaVMContext(L);
+  NtopngLuaContext *c = getLuaVMContext(L);
 
   if (c) {
     c->network = ns;
@@ -1525,7 +1525,7 @@ void LuaEngine::setNetwork(NetworkStats *ns) {
 /* ****************************************** */
 
 void LuaEngine::setFlow(Flow *f) {
-  struct ntopngLuaContext *c = getLuaVMContext(L);
+  NtopngLuaContext *c = getLuaVMContext(L);
 
   if (c) {
     c->flow = f;
@@ -1536,7 +1536,7 @@ void LuaEngine::setFlow(Flow *f) {
 /* ****************************************** */
 
 void LuaEngine::setThreadedActivityData(lua_State *from) {
-  struct ntopngLuaContext *cur_ctx, *from_ctx;
+  NtopngLuaContext *cur_ctx, *from_ctx;
   lua_State *cur_state = getState();
 
   if (from && (cur_ctx = getLuaVMContext(cur_state)) &&
@@ -1552,7 +1552,7 @@ void LuaEngine::setThreadedActivityData(lua_State *from) {
 void LuaEngine::setThreadedActivityData(const ThreadedActivity *ta,
                                         ThreadedActivityStats *tas,
                                         time_t deadline) {
-  struct ntopngLuaContext *cur_ctx;
+  NtopngLuaContext *cur_ctx;
   lua_State *cur_state = getState();
 
   if ((cur_ctx = getLuaVMContext(cur_state))) {
@@ -1576,3 +1576,16 @@ void LuaEngine::pushResultNumber(float f) {
   snprintf(buf, sizeof(buf), "%f", f);
   cloud_string.append(buf);
 }
+
+/* ****************************************** */
+
+Host* LuaEngine::getHost() {
+  return (getLuaVMContext(L)->host);
+}
+
+/* ****************************************** */
+
+NetworkInterface* LuaEngine::getNetworkInterface() {
+  return (getLuaVMContext(L)->iface);
+}
+  

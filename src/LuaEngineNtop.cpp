@@ -491,7 +491,7 @@ static int ntop_alert_store_query(lua_State *vm) {
 
 int ntop_release_triggered_alert(lua_State *vm, OtherAlertableEntity *alertable,
                                  u_int idx) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   char *key;
   ScriptPeriodicity periodicity;
   time_t when;
@@ -524,7 +524,7 @@ int ntop_release_triggered_alert(lua_State *vm, OtherAlertableEntity *alertable,
 
 int ntop_store_triggered_alert(lua_State *vm, OtherAlertableEntity *alertable,
                                u_int idx) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   char *key, *alert_subtype, *alert_json, *ip = NULL, *name = NULL;
   u_int16_t port = 0;
   ScriptPeriodicity periodicity;
@@ -2086,7 +2086,7 @@ static int ntop_send_tcp_data(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_script_is_deadline_approaching(lua_State *vm) {
-  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+  NtopngLuaContext *ctx = getLuaVMContext(vm);
 
   if (ctx && ctx->deadline && ctx->threaded_activity) {
     ThreadedActivity *ta = (ThreadedActivity *)ctx->threaded_activity;
@@ -2101,7 +2101,7 @@ static int ntop_script_is_deadline_approaching(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_script_get_deadline(lua_State *vm) {
-  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+  NtopngLuaContext *ctx = getLuaVMContext(vm);
 
   lua_pushinteger(vm, ctx && ctx->deadline ? ctx->deadline : 0);
 
@@ -3557,7 +3557,7 @@ static int ntop_get_extraction_status(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_run_live_extraction(lua_State *vm) {
-  struct ntopngLuaContext *c;
+  NtopngLuaContext *c;
   NetworkInterface *iface;
   TimelineExtract timeline;
   int ifid;
@@ -6410,7 +6410,7 @@ static int ntop_rrd_create(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_rrd_update(lua_State *vm) {
-  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+  NtopngLuaContext *ctx = getLuaVMContext(vm);
   const char *filename, *when = NULL, *v1 = NULL, *v2 = NULL, *v3 = NULL,
                         *v4 = NULL;
   int status;
@@ -6564,7 +6564,7 @@ static int ntop_rrd_tune(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_rrd_inc_num_drops(lua_State *vm) {
-  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+  NtopngLuaContext *ctx = getLuaVMContext(vm);
   u_long num_drops = 1;
 
   if (lua_type(vm, 1) == LUA_TNUMBER) num_drops = lua_tonumber(vm, 1);
@@ -6993,7 +6993,7 @@ static int ntop_pop_internal_alerts(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_recipient_enqueue(lua_State *vm) {
-  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+  NtopngLuaContext *ctx = getLuaVMContext(vm);
   u_int16_t recipient_id;
   const char *alert;
   bool rv = false;
@@ -7509,7 +7509,7 @@ static int ntop_refresh_device_protocols_policies_pref(lua_State *vm) {
 
 static int ntop_add_bin(lua_State *vm) {
 #if defined(NTOPNG_PRO)
-  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+  NtopngLuaContext *ctx = getLuaVMContext(vm);
 
   if (ctx) {
     if (ctx->bin == NULL) ctx->bin = new (std::nothrow) BinAnalysis();
@@ -7526,7 +7526,7 @@ static int ntop_add_bin(lua_State *vm) {
 
 static int ntop_find_bin_similarities(lua_State *vm) {
 #if defined(NTOPNG_PRO)
-  struct ntopngLuaContext *ctx = getLuaVMContext(vm);
+  NtopngLuaContext *ctx = getLuaVMContext(vm);
 
   if (ctx && ctx->bin) {
     return (ctx->bin->findSimilarities(vm));

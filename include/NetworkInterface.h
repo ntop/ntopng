@@ -198,8 +198,8 @@ protected:
   /* Live Capture */
   Mutex active_captures_lock;
   u_int8_t num_live_captures;
-  struct ntopngLuaContext *live_captures[MAX_NUM_PCAP_CAPTURES];
-  static bool matchLiveCapture(struct ntopngLuaContext *const luactx,
+  NtopngLuaContext *live_captures[MAX_NUM_PCAP_CAPTURES];
+  static bool matchLiveCapture(NtopngLuaContext *const luactx,
                                const struct pcap_pkthdr *const h,
                                const u_char *const packet, Flow *const f);
   void deliverLiveCapture(const struct pcap_pkthdr *const h,
@@ -922,8 +922,8 @@ public:
     if (host_pools) host_pools->reloadPools();
   }
 
-  bool registerLiveCapture(struct ntopngLuaContext *const luactx, int *id);
-  bool deregisterLiveCapture(struct ntopngLuaContext *const luactx);
+  bool registerLiveCapture(NtopngLuaContext *const luactx, int *id);
+  bool deregisterLiveCapture(NtopngLuaContext *const luactx);
   void dumpLiveCaptures(lua_State *vm);
   bool stopLiveCapture(int capture_id);
 #ifdef NTOPNG_PRO

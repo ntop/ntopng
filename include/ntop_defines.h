@@ -1315,7 +1315,8 @@
 #define DROP_HOST_POOL_PRE_JAIL_POOL \
   NTOPNG_PREFS_PREFIX ".jail.pre_jail_pool.%s"
 
-extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
+class NtopngLuaContext; /* Forward */
+extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 #define getLuaVMContext(a) (a ? getUserdata(a) : NULL)
 #define getLuaVMUserdata(a, b) (a ? getUserdata(a)->b : NULL)
 #define getLuaVMUservalue(a, b) getUserdata(a)->b

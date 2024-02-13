@@ -9465,8 +9465,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 
 /* *************************************** */
 
-bool NetworkInterface::registerLiveCapture(
-					   struct ntopngLuaContext *const luactx, int *id) {
+bool NetworkInterface::registerLiveCapture(NtopngLuaContext *const luactx, int *id) {
   bool ret = false;
 
   *id = -1;
@@ -9490,14 +9489,14 @@ bool NetworkInterface::registerLiveCapture(
 /* *************************************** */
 
 bool NetworkInterface::deregisterLiveCapture(
-					     struct ntopngLuaContext *const luactx) {
+					     NtopngLuaContext *const luactx) {
   bool ret = false;
 
   active_captures_lock.lock(__FILE__, __LINE__);
 
   for (int i = 0; i < MAX_NUM_PCAP_CAPTURES; i++) {
     if (live_captures[i] == luactx) {
-      struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
+      NtopngLuaContext *c = (NtopngLuaContext *)live_captures[i];
 
       c->live_capture.stopped = true;
       live_captures[i] = NULL, num_live_captures--;
@@ -9513,7 +9512,7 @@ bool NetworkInterface::deregisterLiveCapture(
 
 /* *************************************** */
 
-bool NetworkInterface::matchLiveCapture(struct ntopngLuaContext *const luactx,
+bool NetworkInterface::matchLiveCapture(NtopngLuaContext *const luactx,
                                         const struct pcap_pkthdr *const h,
                                         const u_char *const packet,
                                         Flow *const f) {
@@ -9543,7 +9542,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr *const h,
   for (u_int i = 0, num_found = 0;
        (i < MAX_NUM_PCAP_CAPTURES) && (num_found < num_live_captures); i++) {
     if (live_captures[i] != NULL) {
-      struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
+      NtopngLuaContext *c = (NtopngLuaContext *)live_captures[i];
       bool http_client_disconnected = false;
       int disconnect_stage = 0;
 
@@ -9750,9 +9749,8 @@ bool NetworkInterface::stopLiveCapture(int capture_id) {
     active_captures_lock.lock(__FILE__, __LINE__);
 
     if (live_captures[capture_id] != NULL) {
-      struct ntopngLuaContext *c =
-	(struct ntopngLuaContext *)live_captures[capture_id];
-
+      NtopngLuaContext *c = (NtopngLuaContext *)live_captures[capture_id];
+      
       c->live_capture.stopped = true, rc = true;
       if (c->live_capture.bpfFilterSet) pcap_freecode(&c->live_capture.fcode);
       /* live_captures[capture_id] = NULL; */ /* <-- not necessary as mongoose
