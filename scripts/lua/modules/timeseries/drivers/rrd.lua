@@ -268,7 +268,7 @@ local function number_to_rrd_string(what, schema)
         err_msg = "Trying to convert NaN to integer"
     elseif (what == math.huge) then
         err_msg = "Trying to convert inf to integer"
-    elseif ((what >= math.maxinteger) or (what <= math.mininteger)) then
+    elseif (math.maxinteger and ((what >= math.maxinteger) or (what <= math.mininteger))) then
         err_msg = "Number out of integers range: " .. what
     elseif what == math.floor(what) then
         -- If the number has no decimal place, print it as a digit

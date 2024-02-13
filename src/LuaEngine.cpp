@@ -704,7 +704,9 @@ int LuaEngine::run_loaded_script() {
 
   lua_pop(L, 1);
 
+#ifndef HAS_LUAJIT
   lua_gc(L, LUA_GCCOLLECT); /* Run garbage collector */
+#endif
   
   return (rv);
 }

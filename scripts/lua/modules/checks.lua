@@ -7,7 +7,7 @@
 -- Hack to avoid include loops
 if (pragma_once_checks == true) then
     -- avoid multiple inclusions
-    return
+    return checks
 end
 
 pragma_once_checks = true
@@ -24,7 +24,6 @@ local script_manager = require("script_manager")
 local alert_consts = require "alert_consts"
 local http_lint = require("http_lint")
 local alert_exclusions = require "alert_exclusions"
-local alerts_api = require("alerts_api")
 local format_utils = require("format_utils")
 
 local checks = {}
@@ -2036,6 +2035,7 @@ end
 local function snmp_device_run_checks(cached_device, checks_var)
     local snmp_consts = require "snmp_consts"
     local snmp_utils = require "snmp_utils"
+    local alerts_api = require("alerts_api")
     local granularity = checks_var.cur_granularity
     local device_ip = cached_device["host_ip"]
     local snmp_device_entity = alerts_api.snmpDeviceEntity(device_ip)
@@ -2229,6 +2229,8 @@ end
 
 -- This function runs interfaces checks
 local function runInterfaceChecks(granularity, checks_var, do_trace)
+   local alerts_api = require("alerts_api")
+   
     if table.empty(checks_var.available_modules.hooks[granularity]) then
         if (do_trace) then
             print("interface:runScripts(" .. granularity .. "): no modules, skipping\n")
@@ -2274,6 +2276,7 @@ end
 
 -- The function below is called once per local network
 local function runLocalNetworkChecks(granularity, checks_var, do_trace)
+   local alerts_api = require("alerts_api")
     if table.empty(checks_var.available_modules.hooks[granularity]) then
         if (do_trace) then
             print("network:runScripts(" .. granularity .. "): no modules, skipping\n")
@@ -2322,6 +2325,8 @@ end
 -- #################################################################
 
 local function runSystemChecks(granularity, checks_var, do_trace)
+   local alerts_api = require("alerts_api")
+   
     if do_trace then
         print("system.lua:runScripts(" .. granularity .. ") called\n")
     end
@@ -2394,6 +2399,8 @@ end
 -- #################################################################
 
 local function runActiveMonitoringChecks(granularity, checks_var, do_trace)
+   local alerts_api = require("alerts_api")
+   
     if do_trace then
         print("active_monitoring.lua:runScripts(" .. granularity .. ") called\n")
     end

@@ -2,6 +2,13 @@
 -- (C) 2017-24 - ntop.org
 --
 
+if (pragma_once_recipients == true) then
+    -- avoid multiple inclusions
+    return recipients
+end
+
+pragma_once_recipients = true
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
