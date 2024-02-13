@@ -11855,9 +11855,11 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
 
   /* Retrieve the server host instance */
   Host* h = f->get_srv_host();
-  bool use_ip_addr = true;
-  if (h) 
-    use_ip_addr = false;
+  if (!h) 
+    h = f->getViewSharedServer();
+
+  if (!h)
+    return(false);
 
   /* Filters */
   u_int8_t filter_l4_proto  = hostsPortsAnalysis->get_l4_proto();
@@ -11906,7 +11908,7 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
 
   /* Retrieve server host VLAN and host_key */
   u_int64_t vlan_id = (u_int64_t) f->get_vlan_id();
-  u_int64_t host_key = use_ip_addr ? (((u_int64_t)f->get_srv_ip_addr()->key()) << 16) : (((u_int64_t)h->key()) << 16) ;
+  u_int64_t host_key = (((u_int64_t)h->key()) << 16) ;
   host_key += ((u_int64_t)vlan_id);
 
   /* Retrieve host_details hash */
@@ -11924,18 +11926,16 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
       char name[64];
       u_int32_t flows_count = 1;
       /* Build new host_info instance */
-      char *mac_addr         = (!use_ip_addr && h->getMac()) ? h->getMac()->print(mac_buf, sizeof(mac_buf)) : (char*)"";
-      char *mac_manufacturer = (!use_ip_addr && h->getMac()) ? (char*)h->getMac()->get_manufacturer() : (char*)"";
       HostDetails *host_info = new (std::nothrow) HostDetails(
                     f->get_srv_ip_addr()->print(ip_buf, sizeof(ip_buf)),
-                    mac_addr,
-                    mac_manufacturer,
+                    h->getMac() ? h->getMac()->print(mac_buf, sizeof(mac_buf)) : (char*)"",
+                    h->getMac() ? (char*)h->getMac()->get_manufacturer() : (char*)"",
                     f->get_bytes_cli2srv() + f->get_bytes_srv2cli(),
                     f->get_srv_ip_addr()->get_ip_hex(ip_hex_buf, sizeof(ip_hex_buf)),
                     vlan_id,
-                    (use_ip_addr) ? 0 : h->getScore(),
+                    h->getScore(),
                     flows_count,
-                    (use_ip_addr) ? (char*)"" : h->get_name(name, sizeof(name), false),
+                    h->get_name(name, sizeof(name), false),
                     host_key);
       if(host_info) {
         host_details->insert({host_key, host_info});
