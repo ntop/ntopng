@@ -114,7 +114,7 @@ class Ntop {
   KafkaClient kafkaClient;
 #endif
 #ifdef HAVE_NATS
-  NatsBroker natsBroker;
+  NatsBroker *natsBroker;
 #endif
 #endif
 #ifdef HAVE_NEDGE
