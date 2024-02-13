@@ -190,6 +190,7 @@ class Prefs {
   char* test_runtime_script_path;
   char* test_post_script_path;
 
+  char* message_broker_url;
 #ifdef NTOPNG_PRO
   bool print_maintenance, print_license;
 #endif
@@ -354,6 +355,9 @@ class Prefs {
   };
   inline const char* get_test_post_script_path() {
     return (test_post_script_path);
+  };
+  inline const char* get_message_broker_url() {
+    return(message_broker_url);
   };
   inline char* get_export_endpoint() { return (export_endpoint); };
   inline char* get_export_zmq_encryption_key() {

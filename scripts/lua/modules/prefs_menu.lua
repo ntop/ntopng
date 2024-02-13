@@ -304,6 +304,10 @@ local menu_subpages = {{
             title = i18n("prefs.message_brokers_title"),
             description = i18n("prefs.message_brokers_description")
         },
+        message_broker_url = {
+            title = i18n("prefs.message_broker_url_title"),
+            description = i18n("prefs.message_broker_url_description")
+        },
         message_broker_username = {
             title = i18n("login.username"),
             description = i18n("prefs.message_broker_username_description")

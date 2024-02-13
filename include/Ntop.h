@@ -113,6 +113,9 @@ class Ntop {
 #ifdef HAVE_KAFKA
   KafkaClient kafkaClient;
 #endif
+#ifdef HAVE_NATS
+  NatsBroker natsBroker;
+#endif
 #endif
 #ifdef HAVE_NEDGE
   std::vector<Forwarder*> multicastForwarders;

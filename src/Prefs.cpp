@@ -105,6 +105,7 @@ Prefs::Prefs(Ntop *_ntop) {
   pcap_dir = NULL;
   test_pre_script_path = test_post_script_path = test_runtime_script_path =
     NULL;
+  message_broker_url = NULL;
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
@@ -286,6 +287,7 @@ Prefs::~Prefs() {
   if (test_pre_script_path) free(test_pre_script_path);
   if (test_runtime_script_path) free(test_runtime_script_path);
   if (test_post_script_path) free(test_post_script_path);
+  if (message_broker_url) free(message_broker_url);
 #ifdef NTOPNG_PRO
   if(modbus_allowed_function_codes)
     ndpi_bitmap_free(modbus_allowed_function_codes);
@@ -1026,6 +1028,12 @@ void Prefs::reloadPrefsFromRedis() {
   getDefaultStringPrefsValue(CONST_SECONDARY_DNS, &aux, DEFAULT_GLOBAL_DNS);
   if (aux) {
     global_secondary_dns_ip = Utils::inet_addr(aux);
+    free(aux);
+  }
+
+  getDefaultStringPrefsValue(CONST_PREFS_MESSAGE_BROKER_URL, &aux, DEFAULT_MESSAGE_BROKER_URL);
+  if (aux) {
+    message_broker_url = strdup(aux);
     free(aux);
   }
 

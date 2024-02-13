@@ -2101,7 +2101,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             names = {i18n('prefs.nats'), i18n('prefs.mqtt')},
             ids = {'nats', 'mqtt'}
         }
-        local elementsToSwitch = {"row_message_broker", "message_broker_username", "message_broker_password",
+        local elementsToSwitch = {"row_message_broker", "message_broker_url", "message_broker_username", "message_broker_password",
                                   "message_broker_topics_list"}
         if (_POST["toggle_message_broker"]) then
             showElement = (_POST["toggle_message_broker"] == "1")
@@ -2121,6 +2121,15 @@ if auth.has_capability(auth.capabilities.preferences) then
         multipleTableButtonPrefs(subpage_active.entries["message_brokers_list"].title,
             subpage_active.entries["message_brokers_list"].description, brokers_list.names, brokers_list.ids,
             brokers_list.ids[1], "primary", lint_preference, "message_broker", {nil}, nil, nil, nil, showElement --[[show]] )
+        
+        prefsInputFieldPrefs(subpage_active.entries["message_broker_url"].title,
+            subpage_active.entries["message_broker_url"].description, "ntopng.prefs.", "message_broker_url",
+            "", "text", showElement, nil, nil, {
+                attributes = {
+                    spellcheck = "false"
+                },
+                pattern = "[^\\s]+"
+            })
 
         prefsInputFieldPrefs(subpage_active.entries["message_broker_username"].title,
             subpage_active.entries["message_broker_username"].description, "ntopng.prefs.", "message_broker_username",

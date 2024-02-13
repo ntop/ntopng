@@ -2308,6 +2308,7 @@ local known_parameters = {
    ["serial_key"] = validateSingleWord,
    ["message_broker_username"] = validateEmptyOr(validateSingleWord),
    ["message_broker_password"] = validateEmptyOr(validateSingleWord),
+   ["message_broker_url"] = validateEmptyOr(validateSingleWord),
    ["message_broker_topics_list"] = validateEmptyOr(validateUnquoted),
 
    -- Multiple Choice
