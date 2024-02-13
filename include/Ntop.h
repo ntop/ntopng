@@ -111,7 +111,7 @@ class Ntop {
 #ifdef NTOPNG_PRO
   AssetManagement am;
 #ifdef HAVE_KAFKA
-  KafkaClient kafkaClient;
+  KafkaClient *kafkaClient;
 #endif
 #ifdef HAVE_NATS
   NatsBroker *natsBroker;

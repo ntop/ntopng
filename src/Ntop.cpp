@@ -102,6 +102,16 @@ Ntop::Ntop(const char *appName) {
   cpu_load = 0;
   system_interface = NULL;
   interfacesShuttedDown = false;
+#ifdef NTOPNG_PRO
+
+#ifdef HAVE_NATS
+  natsBroker = NULL;
+#endif /* HAVE_NATS */
+#ifdef HAVE_KAFKA
+  kafkaClient = NULL;
+#endif /* HAVE_KAFKA */
+
+#endif /* NTOPNG_PRO */
 #ifndef WIN32
   cping = NULL, default_ping = NULL;
 #endif
@@ -653,6 +663,24 @@ void Ntop::start() {
   checkReloadFlowChecks();
   checkReloadHostChecks();
 
+  #ifdef NTOPNG_PRO
+#ifdef HAVE_NATS
+  try {
+    natsBroker = new NatsBroker();
+  } catch(...) {
+    ;
+  }
+#endif
+
+#ifdef HAVE_KAFKA
+  try {
+    kafkaClient = new KafkaClient();
+  } catch(...) {
+    ;
+  }
+#endif
+#endif /* NTOPNG_PRO */
+
   for (int i = 0; i < num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
 
@@ -692,7 +720,7 @@ void Ntop::start() {
 				   (float)usec_diff / 1e6);
 
     if (usec_diff < nap_usec) _usleep(nap_usec - usec_diff);
-  } 
+  }
 }
 
 /* ******************************************* */
