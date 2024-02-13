@@ -70,6 +70,8 @@ for i=1,num_runs do
    end, true --[[ update direction stats ]])
 
    if(ntop.isShuttingDown() or (os.time() > max_time)) then break end
+
+   collectgarbage("collect") -- run garbage collector
    
    if(num_runs > 1) then
       ntop.msleep(1000)
@@ -78,3 +80,4 @@ end
 
 -- Uncomment this to simulate slow downs
 --os.execute('perl -e "select(undef,undef,undef,0.8);"')
+

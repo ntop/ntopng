@@ -24,5 +24,6 @@ for i=1,num_runs do
    -- Do the actual processing
    recipients.process_notifications(now, now + periodicity --[[ deadline --]], periodicity)
 
+   collectgarbage("collect")
    ntop.msleep(sleep_duration)
 end

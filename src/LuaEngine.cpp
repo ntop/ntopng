@@ -704,6 +704,8 @@ int LuaEngine::run_loaded_script() {
 
   lua_pop(L, 1);
 
+  lua_gc(L, LUA_GCCOLLECT); /* Run garbage collector */
+  
   return (rv);
 }
 

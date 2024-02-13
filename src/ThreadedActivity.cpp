@@ -294,7 +294,8 @@ void ThreadedActivity::runScript(time_t now, char *script_name,
 
   l = loadVM(script_name, iface, now);
   if (!l) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to load the Lua vm [%s][vm: %s][script: %s]",
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Unable to load the Lua vm [%s][vm: %s][script: %s]",
 				 iface->get_name(), activityPath(), script_name);
     return;
   }

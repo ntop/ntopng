@@ -46,6 +46,7 @@ for i=1,num_runs do
    end
    
    -- ########################################################
-   
+
+   collectgarbage("collect")
    ntop.msleep(5000) -- 5 seconds frequency
 end

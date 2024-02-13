@@ -52,5 +52,6 @@ for i=1,num_runs do
       end
    end
 
+   collectgarbage("collect")
    ntop.msleep(sleep_duration)
 end
