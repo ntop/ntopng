@@ -64,7 +64,7 @@ cp $HOME/ntopng/packages/usr/bin/ntopctl $RPM_BUILD_ROOT/usr/bin/
 # nmap vulnerability scan - https://github.com/scipag/vulscan
 \mkdir -p $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan
 wget -O $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan/vulscan.nse https://raw.githubusercontent.com/scipag/vulscan/master/vulscan.nse
-wget -O $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan/cve.csv 	https://www.computec.ch/projekte/vulscan/download/cve.csv
+wget -O $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan/cve.csv 	https://raw.githubusercontent.com/scipag/vulscan/master/cve.csv
 #wget -O $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan/openvas.csv 	https://www.computec.ch/projekte/vulscan/download/openvas.csv
 
 # Make sure .mmdb files are not packaged by ntopng as they belong to ntopng-data
