@@ -12,7 +12,6 @@ Developing Plugins
     check_hooks
     check_gui
     localization
-    custom_pages
     timeseries_schemas
     examples
     distributing_scripts
