@@ -4,9 +4,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
 local discover_utils = require "discover_utils"
-local callback_utils = require "callback_utils"
 
 -- ########################################################
 
@@ -48,9 +46,9 @@ if discovery_enabled then
    end
 
    if now >= last_discovery + discovery_interval then
+      local callback_utils = require "callback_utils"
       ntop.setCache("ntopng.cache.network_discovery.last", tostring(now))
 
       callback_utils.foreachInterface(ifnames, periodic_discovery_condition, discover_utils.discovery_function)
    end
 end
-   

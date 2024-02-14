@@ -7,7 +7,7 @@ local driver = {}
 local ts_common = require("ts_common")
 local json = require("dkjson")
 local os_utils = require("os_utils")
-require("ntop_utils")
+require "lua_utils"
 
 --
 -- Sample query:

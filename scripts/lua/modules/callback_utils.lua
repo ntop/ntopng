@@ -5,7 +5,17 @@
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+-- Hack to avoid include loops
+if (pragma_once_callback_utils == true) then
+    tprint(debug.traceback())
+    -- avoid multiple inclusions
+    return
+end
+
+pragma_once_callback_utils = true
+
 local os_utils = require "os_utils"
+
 
 local callback_utils = {}
 

@@ -5,7 +5,8 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
-require "lua_utils"
+require "ntop_utils"
+
 -- ##############################################
 
 local radius_handler = {}
