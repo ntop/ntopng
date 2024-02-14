@@ -889,7 +889,7 @@ static int ntop_loadCustomCategoryFile(lua_State *vm) {
     char *line = fgets(buffer, sizeof(buffer), fd);
     int len;
 
-    if(line == NULL)
+    if(line == NULL || format == NULL)
       break;
 
     len = strlen(line);
@@ -912,7 +912,7 @@ static int ntop_loadCustomCategoryFile(lua_State *vm) {
 	*/
 	char host[256], ignore[64];
 	bool loaded = false, success;
-	float f;
+	double f;
 
 	if(list_type == list_type_ip)
 	  success = (sscanf(line, format, host) == 1) ? true : false;
