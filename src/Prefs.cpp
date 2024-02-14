@@ -788,8 +788,7 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer,
                                        const char *default_value) {
   char rsp[MAX_PATH];
 
-  if ((ntop->getRedis()->get((char *)pref_key, rsp, sizeof(rsp)) == 0) &&
-      (rsp[0] != '\0'))
+  if ((ntop->getRedis()->get((char *)pref_key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
     *buffer = strdup(rsp);
   else
     *buffer = strdup(default_value);
@@ -991,29 +990,23 @@ void Prefs::reloadPrefsFromRedis() {
 					      no_host_mask);
   flow_table_time =
     (bool)getDefaultPrefsValue(CONST_FLOW_TABLE_TIME, flow_table_time);
-  flow_table_probe_order = (bool)getDefaultPrefsValue(
-							CONST_FLOW_TABLE_PROBE_ORDER, flow_table_probe_order);
-  auto_assigned_pool_id = (u_int16_t)getDefaultPrefsValue(
-							    CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID);
-  enable_broadcast_domain_too_large =
-    getDefaultBoolPrefsValue(CONST_PREFS_BROADCAST_DOMAIN_TOO_LARGE, false);
+  flow_table_probe_order = (bool)getDefaultPrefsValue(CONST_FLOW_TABLE_PROBE_ORDER, flow_table_probe_order);
+  auto_assigned_pool_id = (u_int16_t)getDefaultPrefsValue(CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID);
+  enable_broadcast_domain_too_large = getDefaultBoolPrefsValue(CONST_PREFS_BROADCAST_DOMAIN_TOO_LARGE, false);
 
-  getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_TS_DRIVER, &aux,
-                             (char *)"rrd");
+  getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_TS_DRIVER, &aux, (char *)"rrd");
   if (aux) {
     timeseries_driver = str2TsDriver(aux);
     free(aux);
   }
 
-  getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS, &aux,
-                             (char *)"none");
+  getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS, &aux, (char *)"none");
   if (aux) {
     enable_mac_ndpi_stats = strncmp(aux, (char *)"none", 4);
     free(aux);
   }
 
-  getDefaultStringPrefsValue(CONST_SAFE_SEARCH_DNS, &aux,
-                             DEFAULT_SAFE_SEARCH_DNS);
+  getDefaultStringPrefsValue(CONST_SAFE_SEARCH_DNS, &aux, DEFAULT_SAFE_SEARCH_DNS);
   if (aux) {
     safe_search_dns_ip = Utils::inet_addr(aux);
     free(aux);
@@ -1032,10 +1025,8 @@ void Prefs::reloadPrefsFromRedis() {
   }
 
   getDefaultStringPrefsValue(CONST_PREFS_MESSAGE_BROKER_URL, &aux, DEFAULT_MESSAGE_BROKER_URL);
-  if (aux) {
-    message_broker_url = strdup(aux);
-    free(aux);
-  }
+  if(message_broker_url) free(message_broker_url);
+  message_broker_url = aux;
 
   global_dns_forging_enabled =
     getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, false);
