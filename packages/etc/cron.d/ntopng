@@ -5,4 +5,4 @@
 * * * * * root /usr/bin/ntopng-utils-manage-updates -a handle-on-demand-requests
 
 # Check for updates (every 24h at 5am)
-30 5 * * * root /usr/bin/ntopng-utils-manage-updates -a check-updates
+0 6 * * * root /usr/bin/ntopng-utils-manage-updates -a check-updates
