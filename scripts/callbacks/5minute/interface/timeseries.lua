@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 
 require "ntop_utils"
+require "check_redis_prefs"
 local ts_dump = require "ts_5min_dump_utils"
 
 -- ########################################################
@@ -16,7 +17,7 @@ local ts_dump = require "ts_5min_dump_utils"
 --        otherwise run this dump into the minute dump 
 
 if not hasHighResolutionTs() then
-  local config = ts_dump.getConfig()
+  local config = get5MinTSConfig()
   local when = os.time()
   local ifstats = interface.getStats()
   local _ifname = ifstats.name
