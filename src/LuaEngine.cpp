@@ -98,22 +98,45 @@ static void stackDump(lua_State *L) {
 
 /* ******************************* */
 
+static u_int32_t upper_power_of_two(u_int32_t n) {
+  n--;
+  n |= n >> 1;
+  n |= n >> 2;
+  n |= n >> 4;
+  n |= n >> 8;
+  n |= n >> 16;
+  n++;
+  
+  return n;
+}
+
 /* Custom memory allocator */
 static void *l_alloc(void *ud, void *ptr, size_t old_size, size_t new_size) {
   LuaEngine *le = (LuaEngine*)ud;
 
   le->incMemUsed(new_size - old_size);
 
-#if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "New Size: %d / Old Size: %d / ptr %p / tot: %d",
-			       new_size, old_size, ptr, le->getMemUsed());
-#endif
-  
   if(new_size == 0) {
+#if 0
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "[Lua free] old size: %d ptr %p / tot: %d",
+				 old_size, ptr, le->getMemUsed());
+#endif
+
     free(ptr);
     return(NULL);
   } else {
+    if(new_size < 32)
+      new_size = 32;
+    else
+      new_size = upper_power_of_two(new_size);
+    
+#if 0
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "[Lua realloc] new size: %d ptr %p / tot: %d",
+				 new_size, ptr, le->getMemUsed());
+#endif 
+
     return(realloc(ptr, new_size));
   }
 }
