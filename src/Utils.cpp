@@ -2386,23 +2386,20 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
     } else {
       if (vm)
         lua_push_str_table_entry(vm, "ERROR", curl_easy_strerror(curlcode));
+      
       ret = false;
     }
 
     if (vm) {
       readCurlStats(curl, stats, vm);
 
-      if (curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) ==
-          CURLE_OK)
+      if (curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
         lua_push_uint64_table_entry(vm, "RESPONSE_CODE", response_code);
 
-      if ((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) ==
-           CURLE_OK) &&
-          content_type)
+      if ((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) == CURLE_OK) && content_type)
         lua_push_str_table_entry(vm, "CONTENT_TYPE", content_type);
 
-      if (curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &redirection) ==
-          CURLE_OK)
+      if (curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &redirection) == CURLE_OK)
         lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);
 
       if (!form_data) {

@@ -672,11 +672,13 @@ void Ntop::start() {
 
   #ifdef NTOPNG_PRO
 #ifdef HAVE_NATS
+  /*
   try {
     natsBroker = new NatsBroker();
   } catch(...) {
     ;
   }
+  */
 #endif
 
 #endif /* NTOPNG_PRO */
