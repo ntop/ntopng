@@ -43,6 +43,8 @@ Flow::Flow(NetworkInterface *_iface,
            time_t _first_seen, time_t _last_seen, u_int8_t *_view_cli_mac,
            u_int8_t *_view_srv_mac)
     : GenericHashEntry(_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   iface_index = _iface_idx,
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port,
   srv_port = _srv_port, privateFlowId = _private_flow_id;
@@ -337,9 +339,9 @@ void Flow::freeDPIMemory() {
 Flow::~Flow() {
   bool is_oneway_tcp_udp_flow =
       (((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) && isOneWay())
-          ? true
-          : false;
+          ? true : false;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (getUses() != 0 && !ntop->getGlobals()->isShutdown())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Deleting flow [%u]",
                                  __FUNCTION__, getUses());

@@ -23,7 +23,10 @@
 
 /* *************************************** */
 
-EthStats::EthStats() { cleanup(); }
+EthStats::EthStats() {
+  // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  cleanup();
+}
 
 /* *************************************** */
 

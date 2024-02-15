@@ -31,6 +31,8 @@
 /* *************************************** */
 
 Geolocation::Geolocation() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
 #ifdef HAVE_MAXMINDDB
   char docs_path[MAX_PATH];
   const char *lookup_paths[] = {

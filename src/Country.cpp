@@ -28,6 +28,7 @@ Country::Country(NetworkInterface *_iface, const char *country)
       GenericTrafficElement(),
       Score(_iface),
       dirstats(_iface, 0) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   country_name = strdup(country);
 
 #ifdef COUNTRY_DEBUG
@@ -43,9 +44,9 @@ void Country::set_hash_entry_state_idle() { ; /* Nothing to do */ }
 /* *************************************** */
 
 Country::~Country() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 #ifdef COUNTRY_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Country %s",
-                               country_name);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted Country %s", country_name);
 #endif
 
   free(country_name);

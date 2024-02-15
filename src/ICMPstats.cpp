@@ -23,13 +23,18 @@
 
 /* *************************************** */
 
-ICMPstats::ICMPstats() { num_destination_unreachable.reset(); }
+ICMPstats::ICMPstats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  num_destination_unreachable.reset();
+}
 
 /* *************************************** */
 
 ICMPstats::~ICMPstats() {
   std::map<u_int16_t, ICMPstats_t>::const_iterator it;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   for (it = stats.begin(); it != stats.end(); ++it) {
     if (it->second.last_host_sent_peer) free(it->second.last_host_sent_peer);
     if (it->second.last_host_rcvd_peer) free(it->second.last_host_rcvd_peer);

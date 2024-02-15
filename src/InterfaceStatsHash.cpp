@@ -24,6 +24,8 @@
 /* ************************************ */
 
 InterfaceStatsHash::InterfaceStatsHash(u_int _max_hash_size) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   max_hash_size = _max_hash_size;
   buckets = (sFlowInterfaceStats **)calloc(sizeof(sFlowInterfaceStats *),
                                            max_hash_size);

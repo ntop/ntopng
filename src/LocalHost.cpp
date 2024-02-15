@@ -27,6 +27,8 @@ LocalHost::LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
 		     Mac *_mac, u_int16_t _vlanId,
                      u_int16_t _observation_point_id, IpAddress *_ip)
   : Host(_iface, _iface_idx, _mac, _vlanId, _observation_point_id, _ip) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
 #ifdef LOCALHOST_DEBUG
   char buf[48];
 
@@ -42,12 +44,14 @@ LocalHost::LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
 		     char *ipAddress, u_int16_t _vlanId,
 		     u_int16_t _observation_point_id)
   : Host(_iface, _iface_idx, ipAddress, _vlanId, _observation_point_id) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   initialize();
 }
 
 /* *************************************** */
 
 LocalHost::~LocalHost() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   addInactiveData();
   if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();

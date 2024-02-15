@@ -743,7 +743,7 @@ public:
   struct timeval periodicUpdateInitTime() const;
   virtual u_int32_t getFlowMaxIdle();
 
-  virtual void lua(lua_State *vm);
+  virtual void lua(lua_State *vm, bool fullStats);
   void luaScore(lua_State *vm);
   void luaAlertedFlows(lua_State *vm);
   void luaAnomalies(lua_State *vm);

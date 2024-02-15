@@ -24,6 +24,8 @@
 /* **************************************** */
 
 RoundTripStats::RoundTripStats() {
+  // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   stats_it = ROUND_TRIP_LENGTH - 1; /* Last Item */
   memset(stats, 0, sizeof(stats));
 }

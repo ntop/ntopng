@@ -24,6 +24,8 @@
 /* *************************************** */
 
 LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   top_sites = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
 
   dns = new (std::nothrow) DnsStats();

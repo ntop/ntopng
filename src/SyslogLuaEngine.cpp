@@ -24,6 +24,8 @@
 /* ****************************************** */
 
 SyslogLuaEngine::SyslogLuaEngine(NetworkInterface *iface) : LuaEngine(NULL) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   initialized = false;
 
   snprintf(script_path, sizeof(script_path), "%s/%s",

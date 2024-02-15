@@ -24,6 +24,8 @@
 /* *************************************** */
 
 ParsedFlowCore::ParsedFlowCore() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   src_ip.reset(), dst_ip.reset();
   memset(&src_mac, 0, sizeof(src_mac));
   memset(&dst_mac, 0, sizeof(dst_mac));

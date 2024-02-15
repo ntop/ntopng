@@ -24,6 +24,8 @@
 /* *************************************** */
 
 FlowTrafficStats::FlowTrafficStats() : PartializableFlowTrafficStats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   ndpi_init_data_analysis(&cli2srv_bytes_stats, 0),
       ndpi_init_data_analysis(&srv2cli_bytes_stats, 0);
 }
@@ -32,6 +34,8 @@ FlowTrafficStats::FlowTrafficStats() : PartializableFlowTrafficStats() {
 
 FlowTrafficStats::FlowTrafficStats(const FlowTrafficStats& fts)
     : PartializableFlowTrafficStats(fts) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   ndpi_init_data_analysis(&cli2srv_bytes_stats, 0),
       ndpi_init_data_analysis(&srv2cli_bytes_stats, 0);
 }
@@ -39,6 +43,8 @@ FlowTrafficStats::FlowTrafficStats(const FlowTrafficStats& fts)
 /* *************************************** */
 
 FlowTrafficStats::~FlowTrafficStats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   ndpi_free_data_analysis(&cli2srv_bytes_stats, 0),
       ndpi_free_data_analysis(&srv2cli_bytes_stats, 0);
 }

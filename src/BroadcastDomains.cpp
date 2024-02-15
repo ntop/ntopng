@@ -26,6 +26,7 @@
 /* *************************************** */
 
 BroadcastDomains::BroadcastDomains(NetworkInterface *_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   iface = _iface;
   inline_broadcast_domains = new (std::nothrow) AddressTree(false);
   broadcast_domains = broadcast_domains_shadow = NULL;
@@ -36,6 +37,8 @@ BroadcastDomains::BroadcastDomains(NetworkInterface *_iface) {
 /* *************************************** */
 
 BroadcastDomains::~BroadcastDomains() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   if (inline_broadcast_domains) {
     delete (inline_broadcast_domains);
     inline_broadcast_domains = NULL;

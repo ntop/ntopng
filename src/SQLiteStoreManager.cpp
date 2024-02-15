@@ -24,6 +24,8 @@
 /* **************************************************** */
 
 SQLiteStoreManager::SQLiteStoreManager(int interface_id) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   ifid = interface_id;
   iface = ntop->getInterfaceById(interface_id);
   db = NULL;

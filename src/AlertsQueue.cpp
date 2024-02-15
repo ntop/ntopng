@@ -23,7 +23,10 @@
 
 /* **************************************************** */
 
-AlertsQueue::AlertsQueue(NetworkInterface *_iface) { iface = _iface; }
+AlertsQueue::AlertsQueue(NetworkInterface *_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  iface = _iface;
+}
 
 /* **************************************************** */
 

@@ -29,6 +29,8 @@
 /* ******************************* */
 
 JobQueue::JobQueue() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   max_num_jobs = MAX_NUM_CONCURRENT_JOBS;
   job_id = 0;
 }

@@ -1788,6 +1788,8 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   bool good_ssl_cert = false;
   struct timeval tv;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   memset(ports, 0, sizeof(ports)),
       memset(access_log_path, 0, sizeof(access_log_path));
   use_http = true;
@@ -1952,6 +1954,8 @@ void HTTPserver::startHttpServer() {
 /* ****************************************** */
 
 HTTPserver::~HTTPserver() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   if (httpd_v4) mg_stop(httpd_v4);
 #ifdef HAVE_NEDGE
   if (httpd_captive_v4) mg_stop(httpd_captive_v4);

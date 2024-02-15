@@ -30,6 +30,7 @@
 SyslogParserInterface::SyslogParserInterface(const char *endpoint,
                                              const char *custom_interface_type)
     : ParserInterface(endpoint, custom_interface_type) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   le = NULL;
   producers_reload_requested = true;
 }
@@ -201,7 +202,9 @@ exit:
 
 /* **************************************************** */
 
-void SyslogParserInterface::lua(lua_State *vm) { NetworkInterface::lua(vm); }
+void SyslogParserInterface::lua(lua_State *vm, bool fullStats) {
+  NetworkInterface::lua(vm, fullStats);
+}
 
 /* **************************************************** */
 

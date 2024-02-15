@@ -33,6 +33,8 @@
 /* *************************************** */
 
 IEC104Stats::IEC104Stats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   memset(&pkt_lost, 0, sizeof(pkt_lost));
   last_type_i = 0;
   memset(&last_i_apdu, 0, sizeof(last_i_apdu));
@@ -46,7 +48,10 @@ IEC104Stats::IEC104Stats() {
 
 /* *************************************** */
 
-IEC104Stats::~IEC104Stats() { ndpi_free_data_analysis(i_s_apdu, 1); }
+IEC104Stats::~IEC104Stats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  ndpi_free_data_analysis(i_s_apdu, 1);
+}
 
 /* *************************************** */
 

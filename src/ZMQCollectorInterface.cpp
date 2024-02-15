@@ -34,6 +34,8 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
   char *tmp, *e, *t;
   const char **topics = Utils::getMessagingTopics();
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   num_subscribers = 0;
   server_secret_key[0] = '\0';
   server_public_key[0] = '\0';
@@ -661,8 +663,8 @@ bool ZMQCollectorInterface::set_packet_filter(char *filter) {
 
 /* **************************************************** */
 
-void ZMQCollectorInterface::lua(lua_State *vm) {
-  ZMQParserInterface::lua(vm);
+void ZMQCollectorInterface::lua(lua_State *vm, bool fullStats) {
+  ZMQParserInterface::lua(vm, fullStats);
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "flows", recvStats.num_flows);

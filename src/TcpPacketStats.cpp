@@ -24,6 +24,7 @@
 /* *************************************** */
 
 TcpPacketStats::TcpPacketStats() {
+  //if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   pktRetr = pktOOO = pktLost = pktKeepAlive = 0;
 }
 

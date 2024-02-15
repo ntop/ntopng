@@ -26,6 +26,8 @@
 /* *************************************** */
 
 RecipientQueue::RecipientQueue(u_int16_t _recipient_id) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   recipient_id = _recipient_id;
   queue = NULL, drops = 0, uses = 0;
   last_use = 0;

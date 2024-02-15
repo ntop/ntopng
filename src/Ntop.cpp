@@ -46,6 +46,8 @@ extern struct keyval string_to_replace[]; /* LuaEngine.cpp */
 /* ******************************************* */
 
 Ntop::Ntop(const char *appName) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   // WTF: it's weird why do you want a global instance of ntop.
   ntop = this;
   globals = new (std::nothrow) NtopGlobals();
@@ -287,6 +289,8 @@ void Ntop::initTimezone() {
 Ntop::~Ntop() {
   int num_local_networks = local_network_tree.getNumAddresses();
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   for (int i = 0; i < num_local_networks; i++) {
     if (local_network_names[i] != NULL) free(local_network_names[i]);
     if (local_network_aliases[i] != NULL) free(local_network_aliases[i]);

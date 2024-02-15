@@ -24,6 +24,8 @@
 /* ******************************************* */
 
 IpAddress::IpAddress() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   ip_key = 0;
   memset(&addr, 0, sizeof(addr));
   compute_key();

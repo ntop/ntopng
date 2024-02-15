@@ -24,6 +24,8 @@
 /* *************************************** */
 
 ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   additional_fields_json = NULL;
   additional_fields_tlv = NULL;
   l7_info = NULL;

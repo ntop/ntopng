@@ -26,6 +26,7 @@ ticks ThreadedActivityStats::tickspersec = Utils::gettickspersec();
 /* ******************************************* */
 
 ThreadedActivityStats::ThreadedActivityStats(const ThreadedActivity *ta) {
+  // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   memset(&ta_stats, 0, sizeof(ta_stats));
   last_start_time = in_progress_since = 0;
   last_queued_time = deadline = scheduled_time = 0;

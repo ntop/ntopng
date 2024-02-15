@@ -26,6 +26,8 @@
 /* *************************************** */
 
 HostPools::HostPools(NetworkInterface *_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   tree = tree_shadow = NULL;
   stats = stats_shadow = NULL;
 #ifdef NTOPNG_PRO

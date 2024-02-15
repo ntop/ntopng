@@ -32,9 +32,9 @@ ThreadedActivity::ThreadedActivity(const char *_path, bool delayed_activity,
                                    bool _exclude_viewed_interfaces,
                                    bool _exclude_pcap_dump_interfaces,
                                    ThreadPool *_pool) {
-  periodic_script = new (std::nothrow) PeriodicScript(
-      _path, _periodicity_seconds, _max_duration_seconds, _align_to_localtime,
-      _exclude_viewed_interfaces, _exclude_pcap_dump_interfaces, _pool);
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  periodic_script = new (std::nothrow) PeriodicScript(_path, _periodicity_seconds, _max_duration_seconds, _align_to_localtime,
+						      _exclude_viewed_interfaces, _exclude_pcap_dump_interfaces, _pool);
   randomDelaySchedule = delayed_activity;
   setDeadlineApproachingSecs();
   force_run = false;

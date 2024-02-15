@@ -41,6 +41,8 @@
 */
 InfluxDBTimeseriesExporter::InfluxDBTimeseriesExporter(NetworkInterface* _if)
     : TimeseriesExporter(_if) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   num_cached_entries = 0;
   cursize = num_exports = 0;
   fp = NULL;

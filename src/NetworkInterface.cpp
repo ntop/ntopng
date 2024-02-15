@@ -41,6 +41,7 @@ static bool help_printed = false;
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface()
   : NetworkInterfaceAlertableEntity(this, alert_entity_interface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   init(NULL);
 }
 
@@ -48,11 +49,13 @@ NetworkInterface::NetworkInterface()
 
 NetworkInterface::NetworkInterface(const char *name,
                                    const char *custom_interface_type)
-  : NetworkInterfaceAlertableEntity(this, alert_entity_interface) {
+  : NetworkInterfaceAlertableEntity(this, alert_entity_interface) {  
   char _ifname[MAX_INTERFACE_NAME_LEN], buf[MAX_INTERFACE_NAME_LEN];
   /* We need to do it as isView() is not yet initialized */
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   if (name == NULL) {
     if (!help_printed)
       ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -944,6 +947,8 @@ NetworkInterface::~NetworkInterface() {
   std::map<std::pair<AlertEntity, std::string>,InterfaceMemberAlertableEntity *>::iterator it;
   std::map<u_int16_t /* observationPointId */, ObservationPointIdTrafficStats *>::iterator it_o;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
 #ifdef INTERFACE_PROFILING
   u_int64_t n = ethStats.getNumIngressPackets();
   if (isPacketInterface() && n > 0) {
@@ -7287,7 +7292,7 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats
 
 /* *************************************** */
 
-void NetworkInterface::lua(lua_State *vm) {
+void NetworkInterface::lua(lua_State *vm, bool fullStats) {
   char buf[32];
   TcpFlowStats _tcpFlowStats;
   EthStats _ethStats;
@@ -7312,8 +7317,7 @@ void NetworkInterface::lua(lua_State *vm) {
     lua_push_str_table_entry(vm, "customIftype", (char *)customIftype);
   lua_push_bool_table_entry(vm, "isView", isView());     /* View interface */
   lua_push_bool_table_entry(vm, "isViewed", isViewed()); /* Viewed interface */
-  lua_push_bool_table_entry(
-			    vm, "isSampledTraffic",
+  lua_push_bool_table_entry(vm, "isSampledTraffic",
 			    isSampledTraffic()); /* Whether this interface has sampled traffic */
   if (isSubInterface()) luaSubInterface(vm);
 #ifdef NTOPNG_PRO
@@ -7338,28 +7342,32 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry( vm, "has_traffic_directions",
 			     (areTrafficDirectionsSupported() || (!Utils::isEmptyMac(ifMac)))
 			     && (!isLoopback()) /* && (!isTrafficMirrored() || isGwMacConfigured())*/);
-  lua_push_bool_table_entry(vm, "has_seen_pods", hasSeenPods());
-  lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
-  lua_push_bool_table_entry(vm, "has_seen_external_alerts",
-                            hasSeenExternalAlerts());
-  lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
 
-  luaNumEngagedAlerts(vm);
-  luaAlertedFlows(vm);
-  lua_push_uint64_table_entry(vm, "num_dropped_alerts",
-                              getNumDroppedAlertsSinceReset());
-
-  /* Those counters are absolute, i.e., they are not subject to reset */
-  lua_push_uint64_table_entry(vm, "num_host_dropped_alerts",
-                              num_host_dropped_alerts);
-  lua_push_uint64_table_entry(vm, "num_flow_dropped_alerts",
-                              num_flow_dropped_alerts);
-  lua_push_uint64_table_entry(vm, "num_other_dropped_alerts",
-                              num_other_dropped_alerts);
-
-  lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs",
-                              periodicStatsUpdateFrequency());
-
+  if(fullStats) {
+    lua_push_bool_table_entry(vm, "has_seen_pods", hasSeenPods());
+    lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
+    lua_push_bool_table_entry(vm, "has_seen_external_alerts",
+			      hasSeenExternalAlerts());
+    lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
+    
+    luaNumEngagedAlerts(vm);
+    luaAlertedFlows(vm);
+  
+    lua_push_uint64_table_entry(vm, "num_dropped_alerts",
+				getNumDroppedAlertsSinceReset());
+    
+    /* Those counters are absolute, i.e., they are not subject to reset */
+    lua_push_uint64_table_entry(vm, "num_host_dropped_alerts",
+				num_host_dropped_alerts);
+    lua_push_uint64_table_entry(vm, "num_flow_dropped_alerts",
+				num_flow_dropped_alerts);
+    lua_push_uint64_table_entry(vm, "num_other_dropped_alerts",
+				num_other_dropped_alerts);
+    
+    lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs",
+				periodicStatsUpdateFrequency());
+  }
+  
   /* .stats */
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "packets", getNumPackets());
@@ -7383,10 +7391,13 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "throughput_trend_pps", pkts_thpt.getTrend());
   l4Stats.luaStats(vm);
 
-  if (db) db->lua(vm, false /* Overall */);
 
-  usedPorts.lua(vm, this);
-
+  if(fullStats) {
+    if (db) db->lua(vm, false /* Overall */);
+    
+    usedPorts.lua(vm, this);
+  }
+  
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -7420,34 +7431,41 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "mtu", ifMTU);
   lua_push_str_table_entry(vm, "ip_addresses", (char *)getLocalIPAddresses());
 
-  bcast_domains->lua(vm);
+  if(fullStats) {
+    bcast_domains->lua(vm);
+    
+    if (top_sites && ntop->getPrefs()->are_top_talkers_enabled())
+      top_sites->lua(vm, (char *)"sites", (char *)"sites.old");
 
-  if (top_sites && ntop->getPrefs()->are_top_talkers_enabled())
-    top_sites->lua(vm, (char *)"sites", (char *)"sites.old");
-
-  luaAnomalies(vm);
-  luaScore(vm);
-
+    luaAnomalies(vm);
+    luaScore(vm);
+  }
+  
   sumStats(&_tcpFlowStats, &_ethStats, &_localStats, NULL, &_pktStats,
            &_tcpPacketStats, &_discardedProbingStats, &_dscpStats,
            &_syslogStats, &_downloadStats, &_uploadStats);
 
-  _downloadStats.luaRTStats(vm, "download_stats");
-  _uploadStats.luaRTStats(vm, "upload_stats");
-
+  if(fullStats) {
+    _downloadStats.luaRTStats(vm, "download_stats");
+    _uploadStats.luaRTStats(vm, "upload_stats");
+  }
+  
   _tcpFlowStats.lua(vm, "tcpFlowStats");
   _ethStats.lua(vm);
   _localStats.lua(vm);
   luaNdpiStats(vm);
 
-  _pktStats.lua(vm, "pktSizeDistribution");
-  _tcpPacketStats.lua(vm, "tcpPacketStats");
-  _dscpStats.lua(this, vm);
-  _syslogStats.lua(vm);
+  if(fullStats) {
+    _pktStats.lua(vm, "pktSizeDistribution");
+    _tcpPacketStats.lua(vm, "tcpPacketStats");
+    
+    _dscpStats.lua(this, vm);
+    _syslogStats.lua(vm);
 
-  if (discardProbingTraffic())
-    _discardedProbingStats.lua(vm, "discarded_probing_");
-
+    if (discardProbingTraffic())
+      _discardedProbingStats.lua(vm, "discarded_probing_");
+  }
+  
   if (!isView()) {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
@@ -7456,18 +7474,20 @@ void NetworkInterface::lua(lua_State *vm) {
 #endif
   }
 
-  if (host_pools) host_pools->lua(vm);
-
+  if(fullStats) {
+    if (host_pools) host_pools->lua(vm);
+    
 #ifdef NTOPNG_PRO
-  traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior");
-  traffic_tx_behavior->luaBehavior(vm, "traffic_tx_behavior");
-  score_behavior->luaBehavior(vm, "score_behavior");
-
-  if (custom_app_stats) custom_app_stats->lua(vm);
-
-  if (pMap) pMap->lua(vm, "periodicity_map");
-  if (sMap) sMap->lua(vm, "service_map");
+    traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior");
+    traffic_tx_behavior->luaBehavior(vm, "traffic_tx_behavior");
+    score_behavior->luaBehavior(vm, "score_behavior");
+    
+    if (custom_app_stats) custom_app_stats->lua(vm);
+    
+    if (pMap) pMap->lua(vm, "periodicity_map");
+    if (sMap) sMap->lua(vm, "service_map");
 #endif
+  }
 }
 
 /* *************************************** */

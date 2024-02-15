@@ -24,6 +24,8 @@
 /* ***************************************************** */
 
 Score::Score(NetworkInterface *_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   view_interface_score = _iface->isView();
   score = NULL;
 }

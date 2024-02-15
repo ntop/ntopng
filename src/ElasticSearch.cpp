@@ -38,6 +38,8 @@ static void *esLoop(void *ptr) {
 /* **************************************** */
 
 ElasticSearch::ElasticSearch(NetworkInterface *_iface) : DB(_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   snprintf(es_version, sizeof(es_version), "%c", '0');
   es_version_inited = false;
   num_queued_elems = 0;
@@ -64,6 +66,7 @@ ElasticSearch::ElasticSearch(NetworkInterface *_iface) : DB(_iface) {
 /* **************************************** */
 
 ElasticSearch::~ElasticSearch() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   shutdown();
   if (es_template_push_url) free(es_template_push_url);
   if (es_version_query_url) free(es_version_query_url);

@@ -24,6 +24,8 @@
 /* *************************************** */
 
 DnsStats::DnsStats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   memset(&sent_stats.breakdown, 0, sizeof(sent_stats.breakdown)),
       memset(&rcvd_stats.breakdown, 0, sizeof(rcvd_stats.breakdown));
   sent_stats.num_queries.reset(), sent_stats.num_replies_ok.reset(),

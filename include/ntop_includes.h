@@ -508,4 +508,6 @@ using namespace std;
 #include "ntoppro_defines.h"
 #endif
 
+extern bool trace_new_delete;
+
 #endif /* _NTOP_H_ */

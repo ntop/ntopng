@@ -36,6 +36,7 @@ static void *doRun(void *ptr) {
 /* **************************************************** */
 
 ThreadPool::ThreadPool(char *comma_separated_affinity_mask) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   m = new (std::nothrow) Mutex();
   pthread_cond_init(&condvar, NULL);
   terminating = false;

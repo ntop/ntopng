@@ -3928,13 +3928,17 @@ static int ntop_interface_store_triggered_alert(lua_State *vm) {
 
 static int ntop_get_interface_stats(lua_State *vm) {
   NetworkInterface *ntop_interface = getCurrentInterface(vm);
-
+  bool full_stats = true;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (!ntop_interface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
-  ntop_interface->lua(vm);
+  if (lua_type(vm, 1) == LUA_TBOOLEAN)
+    full_stats = lua_toboolean(vm, 1) ? true : false;
+
+  ntop_interface->lua(vm, full_stats);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }

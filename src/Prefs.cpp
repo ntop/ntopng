@@ -37,6 +37,8 @@ extern "C" {
 /* ******************************************* */
 
 Prefs::Prefs(Ntop *_ntop) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   num_deferred_interfaces_to_register = 0, cli = NULL;
   ntop = _ntop, pcap_file_purge_hosts_flows = false, ignore_vlans = false,
     simulate_vlans = false, simulate_macs = false, ignore_macs = false;

@@ -24,6 +24,8 @@
 /* *************************************** */
 
 Recipients::Recipients() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   memset(&recipient_queues, 0, sizeof(recipient_queues));
   default_recipient_minimum_severity = alert_level_none;
 }

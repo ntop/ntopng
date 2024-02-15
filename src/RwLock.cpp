@@ -31,6 +31,7 @@ RwLock::RwLock() {
 #else
   pthread_rwlock_init(&the_rwlock, NULL);
 #endif
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 }
 
 /* ******************************* */

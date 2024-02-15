@@ -123,6 +123,8 @@ static void *l_alloc(void *ud, void *ptr, size_t old_size, size_t new_size) {
 LuaEngine::LuaEngine(lua_State *vm) {
   std::bad_alloc bax;
   void *ctx;
+
+  // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   
   ntop->incNumLuaVMs();
   start_epoch= (u_int32_t)time(NULL);
@@ -155,6 +157,8 @@ LuaEngine::LuaEngine(lua_State *vm) {
 /* ******************************* */
 
 LuaEngine::~LuaEngine() {
+  // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   if (L) {
     NtopngLuaContext *ctx;
 

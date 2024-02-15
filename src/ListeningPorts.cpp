@@ -25,8 +25,7 @@
 
 /* ************************************************ */
 
-void ListeningPorts::parsePortInfo(
-    json_object *z, std::map<u_int16_t, ListeningPortInfo> *info) {
+void ListeningPorts::parsePortInfo(json_object *z, std::map<u_int16_t, ListeningPortInfo> *info) {
   json_object *p;
   ListeningPortInfo pinfo;
   u_int16_t port = 0;

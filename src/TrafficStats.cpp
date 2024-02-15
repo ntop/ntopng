@@ -23,7 +23,10 @@
 
 /* *************************************** */
 
-TrafficStats::TrafficStats() { numPkts.reset(), numBytes.reset(); }
+TrafficStats::TrafficStats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  numPkts.reset(), numBytes.reset();
+}
 
 /* *************************************** */
 

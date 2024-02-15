@@ -24,6 +24,8 @@
 /* **************************************** */
 
 NtopGlobals::NtopGlobals() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   start_time = time(NULL);
   file_id = 0;
   trace = new (std::nothrow) Trace();
@@ -33,6 +35,8 @@ NtopGlobals::NtopGlobals() {
 /* **************************************** */
 
 NtopGlobals::~NtopGlobals() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   if (trace) {
     delete trace;
     trace = NULL;

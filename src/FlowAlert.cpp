@@ -24,6 +24,7 @@
 /* **************************************************** */
 
 FlowAlert::FlowAlert(FlowCheck *c, Flow *f) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   flow = f;
   cli_attacker = srv_attacker = false;
   cli_victim = srv_victim = false;
@@ -32,7 +33,9 @@ FlowAlert::FlowAlert(FlowCheck *c, Flow *f) {
 
 /* **************************************************** */
 
-FlowAlert::~FlowAlert() {}
+FlowAlert::~FlowAlert() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+}
 
 /* ***************************************************** */
 

@@ -25,6 +25,7 @@
 
 VirtualHost::VirtualHost(HostHash *_h, char *_name)
     : GenericHashEntry(_h->getInterface()) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   h = _h, name = strdup(_name), last_num_requests = 0, last_diff = 0,
   trend = trend_stable;
   vhost_key = Utils::hashString(name);

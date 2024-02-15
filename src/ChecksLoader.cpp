@@ -25,6 +25,8 @@
 /* **************************************************** */
 
 ChecksLoader::ChecksLoader() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   /* Set the ntopng version matching the loaded checks */
   if (ntop->getPrefs()->is_enterprise_l_edition())
     checks_edition = ntopng_edition_enterprise_l;
@@ -38,4 +40,6 @@ ChecksLoader::ChecksLoader() {
 
 /* **************************************************** */
 
-ChecksLoader::~ChecksLoader() {}
+ChecksLoader::~ChecksLoader() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+}

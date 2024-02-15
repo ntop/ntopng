@@ -44,6 +44,8 @@ static activity_descr ad[] = {
 /* ******************************************* */
 
 PeriodicActivities::PeriodicActivities() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   num_activities = 0;
   memset(activities, 0, sizeof(activities));
 
@@ -55,6 +57,8 @@ PeriodicActivities::PeriodicActivities() {
 /* ******************************************* */
 
 PeriodicActivities::~PeriodicActivities() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   delete th_pool;
 
   /* Now it's safe to delete the activities as no other thread is executing

@@ -24,6 +24,7 @@
 /* **************************************** */
 
 VLANAddressTree::VLANAddressTree(ndpi_void_fn_t data_free_func) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   free_func = data_free_func;
   tree = new (std::nothrow) AddressTree *[MAX_NUM_VLAN];
   memset(tree, 0, sizeof(AddressTree *) * MAX_NUM_VLAN);

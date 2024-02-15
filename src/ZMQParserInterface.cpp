@@ -32,6 +32,8 @@
 ZMQParserInterface::ZMQParserInterface(const char *endpoint,
                                        const char *custom_interface_type)
     : ParserInterface(endpoint, custom_interface_type) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   zmq_initial_bytes = 0, zmq_initial_pkts = 0;
   zmq_remote_stats = zmq_remote_stats_shadow = NULL;
   memset(&last_zmq_remote_stats_update, 0,
@@ -3093,11 +3095,11 @@ bool ZMQParserInterface::getCustomAppDetails(u_int32_t remapped_app_id,
 
 /* **************************************************** */
 
-void ZMQParserInterface::lua(lua_State *vm) {
+void ZMQParserInterface::lua(lua_State *vm, bool fullStats) {
   ZMQ_RemoteStats *zrs = zmq_remote_stats;
   std::map<u_int32_t, ZMQ_RemoteStats *>::iterator it;
 
-  NetworkInterface::lua(vm);
+  NetworkInterface::lua(vm, fullStats);
 
   /* ************************************* */
 

@@ -26,7 +26,7 @@
 MacHash::MacHash(NetworkInterface *_iface, u_int _num_hashes,
                  u_int _max_hash_size)
     : GenericHash(_iface, _num_hashes, _max_hash_size, "MacHash") {
-  ;
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 }
 
 /* ************************************ */

@@ -27,7 +27,7 @@ function callback_utils.foreachInterface(ifnames, condition, callback, update_di
 	 interface.updateDirectionStats()
       end
 
-      local ifstats = interface.getStats()
+      local ifstats = interface.getStats(false) -- limited stats
 
       if condition == nil or condition(ifstats.id) then
 	 if((ifstats.type ~= "pcap dump") and (ifstats.type ~= "unknown")) then
