@@ -1,0 +1,95 @@
+{
+	"id": "topology",
+	"data_url": "lua/pro/enterprise/snmp_device_stats.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "port_name",
+		"sort": 1
+		},
+	"columns": [
+		{
+			"title_i18n": "snmp.ifindex",
+			"data_field": "port_id",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "snmp.ifName",
+			"data_field": "port_name",
+			"sortable": true,
+			"class": [
+				"text-left"
+			]
+		},
+		{
+			"title_i18n": "interface_uplink_speed",
+			"data_field": "uplink_speed",
+			"sortable": false,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "interface_downlink_speed",
+			"data_field": "downlink_speed",
+			"sortable": false,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "throughput",
+			"data_field": "port_thpt_value",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "status",
+			"data_field": "port_status",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+
+		{
+			"title_i18n": "snmp.lldpRemSysName",
+			"data_field": "port_lldpRemSysName",
+			"sortable": true,
+			"class": [
+				"text-right"
+			]
+		},
+		{
+			"title_i18n": "snmp.lldpRemPortId",
+			"data_field": "port_lldpRemPortId",
+			"sortable": true,
+			"class": [
+        "text-right"
+
+			]
+		},
+		{
+			"title_i18n": "snmp.lldpRemPortDesc",
+			"data_field": "port_lldpRemPortDesc",
+			"sortable": true,
+			
+			"class": [
+				"text-right"
+			]
+		},
+		{
+			"title_i18n": "snmp.lldpRemSysDesc",
+			"data_field": "port_lldpRemSysDesc",
+			"sortable": true,
+			"class": ["text-right"]
+		}
+	]
+}
