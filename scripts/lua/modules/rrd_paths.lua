@@ -26,6 +26,8 @@ end
 -- If asn, must be prefixed with 'asn:'
 -- If country, must be prefixed with 'country:'
 function getRRDName(ifid, host_or_network, rrdFile)
+   local dirs = ntop.getDirs()
+   
    if host_or_network ~= nil and string.starts(host_or_network, 'net:') then
       host_or_network = string.gsub(host_or_network, 'net:', '')
       rrdname = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/subnetstats/")
