@@ -105,11 +105,7 @@ Ntop::Ntop(const char *appName) {
   system_interface = NULL;
   interfacesShuttedDown = false;
 #ifdef NTOPNG_PRO
-
-#ifdef HAVE_NATS
-  natsBroker = NULL;
-#endif /* HAVE_NATS */
-
+  message_broker = NULL;
 #endif /* NTOPNG_PRO */
 #ifndef WIN32
   cping = NULL, default_ping = NULL;
@@ -349,12 +345,10 @@ Ntop::~Ntop() {
   if (pro) delete pro;
   if (alert_exclusions) delete alert_exclusions;
   if (alert_exclusions_shadow) delete alert_exclusions_shadow;
-#ifdef HAVE_NATS
-  if (natsBroker) {
-    delete natsBroker;
-    natsBroker = NULL;
-  } 
-#endif
+  if (message_broker) {
+    delete message_broker;
+    message_broker = NULL;
+  }
 #endif
 
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
@@ -670,17 +664,8 @@ void Ntop::start() {
   checkReloadFlowChecks();
   checkReloadHostChecks();
 
-  #ifdef NTOPNG_PRO
-#ifdef HAVE_NATS
-  /*
-  try {
-    natsBroker = new NatsBroker();
-  } catch(...) {
-    ;
-  }
-  */
-#endif
-
+#ifdef NTOPNG_PRO
+  connectMessageBroker();
 #endif /* NTOPNG_PRO */
 
   for (int i = 0; i < num_defined_interfaces; i++)
@@ -4009,5 +3994,29 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
 void Ntop::incBlacklisHits(std::string listname) {
   blStats.incHits(listname);
 }
+
+/* ******************************************* */
+
+#ifdef NTOPNG_PRO
+void Ntop::connectMessageBroker() {
+  const char *m_broker_id = prefs->get_message_broker();
+#ifdef HAVE_NATS
+  if (!strcmp(m_broker_id, CONST_NATS_M_BROKER_ID)) {
+    message_broker = new (std::nothrow) NatsBroker();
+  }
+#endif /* HAVE NATS */
+  // TODO: add MQTT
+}
+
+/* ******************************************* */
+
+void Ntop::reloadMessageBroker() {
+  if (message_broker) {
+    delete(message_broker);
+    message_broker = NULL;
+  }
+  connectMessageBroker();
+}
+#endif /* NTOPNG_PRO */
 
 /* ******************************************* */

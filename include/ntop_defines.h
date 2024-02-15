@@ -747,8 +747,6 @@
 #define CONST_PREFS_DEVICES_ANALYSIS_LEARNING_PERIOD \
   NTOPNG_PREFS_PREFIX ".devices_learning_period"
 
-#define CONST_PREFS_MESSAGE_BROKER_URL \
-  NTOPNG_PREFS_PREFIX ".message_broker_url"
 
 #define CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD \
   7200  // 2 hours by default
@@ -1069,7 +1067,25 @@
 #define STORE_MANAGER_MAX_QUERY 2048
 #define STORE_MANAGER_MAX_KEY 20
 #define DEFAULT_GLOBAL_DNS ""
+
+/* MESSAGE BROKER CONSTS */
+
+#define CONST_PREFS_MESSAGE_BROKER_URL \
+  NTOPNG_PREFS_PREFIX ".message_broker_url"
 #define DEFAULT_MESSAGE_BROKER_URL "0.0.0.0:4222"
+
+#define BROKER_RPC_CALL_DEFAULT_TIMEOUT_MS (u_int64_t)10000
+#define BROKER_RPC_CALL_MAX_RSP_LEN (u_int64_t)256
+
+/* IMPORTANT Keep in Sync with brokers_list of prefs.lua */
+#define CONST_NATS_M_BROKER_ID "nats"
+#define CONST_MQTT_M_BROKER_ID "mqtt"
+
+#define CONST_PREFS_MESSAGE_BROKER \
+  NTOPNG_PREFS_PREFIX ".message_broker"
+#define DEFAULT_MESSAGE_BROKER CONST_NATS_M_BROKER_ID
+
+/* ********************* */
 #define DEFAULT_DATE_TYPE "middle_endian"
 #define DEFAULT_SAFE_SEARCH_DNS "208.67.222.123" /* OpenDNS Family Shield */
 

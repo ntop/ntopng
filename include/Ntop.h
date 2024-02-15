@@ -113,9 +113,7 @@ class Ntop {
 #ifdef HAVE_KAFKA
   KafkaClient kafkaClient;
 #endif
-#ifdef HAVE_NATS
-  NatsBroker *natsBroker;
-#endif
+  MessageBroker *message_broker;
 #endif
 #ifdef HAVE_NEDGE
   std::vector<Forwarder*> multicastForwarders;
@@ -172,6 +170,10 @@ class Ntop {
   void checkReloadHostPools();
   void setZoneInfo();
   char *getPersistentCustomListName(char *name);
+#ifdef NTOPNG_PRO
+  void connectMessageBroker();
+  void reloadMessageBroker();
+#endif
 
  public:
   /**
@@ -768,7 +770,9 @@ class Ntop {
 
   void luaClickHouseStats(lua_State *vm) const;
   void speedtest(lua_State *vm);
-
+#if defined(NTOPNG_PRO)
+  MessageBroker* getMessageBroker() { return(message_broker); };
+#endif
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   inline u_int importClickHouseDumps(bool silence_warnings) {
     return (clickhouseImport ? clickhouseImport->importDumps(silence_warnings)

@@ -12,14 +12,18 @@ local hasClickHouse = hasClickHouseSupport()
 local hasLdap = ntop.hasLdapSupport()
 local max_nindex_retention = 0
 local flow_db_utils = nil
+local message_broker_api = nil
 
 if ntop.isPro() or ntop.isnEdgeEnterprise() then
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+    package.path = dirs.installdir .. "/scripts/lua/pro/enterprise/modules/?.lua;" .. package.path
 
     if hasClickHouse then
         flow_db_utils = require("flow_db_utils")
         _, max_nindex_retention = flow_db_utils.getRetention()
     end
+    message_broker_api = require "message_broker_api"
+
 end
 
 -- This table is used both to control access to the preferences and to filter preferences results
@@ -294,7 +298,7 @@ local menu_subpages = {{
     label = i18n("prefs.message_broker"),
     advanced = false,
     pro_only = false,
-    hidden = not (ntop.isEnterpriseM()) or true, -- TODO: correctly hide or show this preference
+    hidden = not (ntop.isEnterpriseM()) or not (message_broker_api and message_broker_api.checkStatus()),
     entries = {
         toggle_message_broker = {
             title = i18n("prefs.toggle_message_broker_title"),
