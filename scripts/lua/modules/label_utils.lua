@@ -7,6 +7,75 @@
 require "ntop_utils"
 
 -- ##############################################
+
+local function label2formattedlabel(alt_name, host_info, show_vlan, shorten_len)
+    if not isEmptyString(alt_name) then
+        local ip = host_info["ip"] or host_info["host"]
+        -- Make it shorter
+        local res = alt_name
+
+        -- Special shorting function for IP addresses
+        if res ~= ip then
+            if (not shorten_len) or (shorten_len == false) then
+                -- Don't touch the string, requested as-is without shortening
+            elseif tonumber(shorten_len) then
+                -- Shorten according to the specified length
+                res = shortenString(res, shorten_len)
+            else
+                -- Use the default system-wide setting for the shortening
+                res = shortenString(res)
+            end
+        end
+
+        -- Adding the vlan if requested
+        if show_vlan then
+            local vlan = tonumber(host_info["vlan"])
+
+            if vlan and vlan > 0 then
+                local full_vlan_name = getFullVlanName(vlan, true --[[ Compact --]] )
+
+                res = string.format("%s@%s", res, full_vlan_name)
+            end
+        end
+
+        return res
+    end
+
+    -- Fallback: just the IP and VLAN
+    return (hostinfo2hostkey(host_info, true))
+end
+
+-- ##############################################
+
+-- Attempt at retrieving an host label from an host_info, using local caches and DNS resolution.
+-- This can be more expensive if compared to only using information found inside host_info.
+local function hostinfo2label_resolved(host_info, show_vlan, shorten_len, skip_resolution)
+    local ip = host_info["ip"] or host_info["host"]
+    local res
+
+    -- If local broadcast domain host and DHCP, try to get the label associated
+    -- to the MAC address
+    if host_info["mac"] and (host_info["broadcast_domain_host"] or host_info["dhcpHost"]) then
+        res = getHostAltName(host_info["mac"])
+    end
+
+    -- In case no resolution is requested, directly skip this part
+    if (isEmptyString(res)) and (not skip_resolution) then
+        -- Try and get the resolved name
+        res = ntop.getResolvedName(ip)
+
+        if not isEmptyString(res) then
+            res = string.lower(res)
+        else
+            -- Nothing found, just fallback to the IP address
+            res = ip
+        end
+    end
+
+    return label2formattedlabel(res, host_info, show_vlan, shorten_len)
+end
+
+-- ##############################################
 -- Just a convenience function for hostinfo2label with only IP and VLAN
 function ip2label(ip, vlan, shorten_len)
     return hostinfo2label({
@@ -56,6 +125,7 @@ end
 -- In case host_info is not enough to label the host, then local caches and DNS resolution kick in
 -- to find a label (at the expense of extra time).
 function hostinfo2label(host_info, show_vlan, shorten_len, skip_resolution)
+    require "lua_utils"
     local alt_name = nil
     local ip = host_info["ip"] or host_info["host"]
 
@@ -78,75 +148,6 @@ function hostinfo2label(host_info, show_vlan, shorten_len, skip_resolution)
     end
 
     return label2formattedlabel(res, host_info, show_vlan, shorten_len)
-end
-
--- ##############################################
-
--- Attempt at retrieving an host label from an host_info, using local caches and DNS resolution.
--- This can be more expensive if compared to only using information found inside host_info.
-local function hostinfo2label_resolved(host_info, show_vlan, shorten_len, skip_resolution)
-    local ip = host_info["ip"] or host_info["host"]
-    local res
-
-    -- If local broadcast domain host and DHCP, try to get the label associated
-    -- to the MAC address
-    if host_info["mac"] and (host_info["broadcast_domain_host"] or host_info["dhcpHost"]) then
-        res = getHostAltName(host_info["mac"])
-    end
-
-    -- In case no resolution is requested, directly skip this part
-    if (isEmptyString(res)) and (not skip_resolution) then
-        -- Try and get the resolved name
-        res = ntop.getResolvedName(ip)
-
-        if not isEmptyString(res) then
-            res = string.lower(res)
-        else
-            -- Nothing found, just fallback to the IP address
-            res = ip
-        end
-    end
-
-    return label2formattedlabel(res, host_info, show_vlan, shorten_len)
-end
-
--- ##############################################
-
-local function label2formattedlabel(alt_name, host_info, show_vlan, shorten_len)
-    if not isEmptyString(alt_name) then
-        local ip = host_info["ip"] or host_info["host"]
-        -- Make it shorter
-        local res = alt_name
-
-        -- Special shorting function for IP addresses
-        if res ~= ip then
-            if (not shorten_len) or (shorten_len == false) then
-                -- Don't touch the string, requested as-is without shortening
-            elseif tonumber(shorten_len) then
-                -- Shorten according to the specified length
-                res = shortenString(res, shorten_len)
-            else
-                -- Use the default system-wide setting for the shortening
-                res = shortenString(res)
-            end
-        end
-
-        -- Adding the vlan if requested
-        if show_vlan then
-            local vlan = tonumber(host_info["vlan"])
-
-            if vlan and vlan > 0 then
-                local full_vlan_name = getFullVlanName(vlan, true --[[ Compact --]] )
-
-                res = string.format("%s@%s", res, full_vlan_name)
-            end
-        end
-
-        return res
-    end
-
-    -- Fallback: just the IP and VLAN
-    return (hostinfo2hostkey(host_info, true))
 end
 
 -- ##############################################
@@ -192,7 +193,6 @@ function hostinfo2hostkey(host_info, host_type, show_vlan)
       rsp = rsp..'@'..tostring(vlan_id)
    end
 
-   if(debug_host) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"HOST2URL => ".. rsp .. "\n") end
    return rsp
 end
 
