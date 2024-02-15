@@ -17,11 +17,10 @@ local ts_dump = require "ts_5min_dump_utils"
 --        otherwise run this dump into the minute dump 
 
 if not hasHighResolutionTs() then
-  local config = get5MinTSConfig()
   local when = os.time()
   local ifstats = interface.getStats()
   local _ifname = ifstats.name
   local verbose = ntop.verboseTrace()
 
-  ts_dump.run_5min_dump(_ifname, ifstats, config, when, verbose)
+  ts_dump.run_5min_dump(_ifname, ifstats, when, verbose)
 end
