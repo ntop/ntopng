@@ -4,6 +4,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
 
+require "ntop_utils"
 local os_utils = require "os_utils"
 
 -- ##############################################
