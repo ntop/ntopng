@@ -2,6 +2,7 @@
 -- (C) 2021 - ntop.org
 --
 
+local dirs = ntop.getDirs()
 -- NOTE: use the slim utils version here
 require("ntop_utils")
 

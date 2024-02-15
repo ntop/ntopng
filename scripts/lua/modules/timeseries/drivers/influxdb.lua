@@ -1864,6 +1864,7 @@ local function isCompatibleVersion(version)
 end
 
 function driver.init(dbname, url, days_retention, username, password, verbose)
+    require "lua_utils"
     local timeout = getInfluxDBQueryTimeout()
 
     -- Check version
