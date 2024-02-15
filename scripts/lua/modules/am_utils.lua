@@ -3,10 +3,12 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
 
 local checks = require("checks")
 local other_alert_keys = require "other_alert_keys"
 
+require "ts_hour"
 local am_utils = {}
 local ts_utils = require "ts_utils_core"
 local json = require("dkjson")
