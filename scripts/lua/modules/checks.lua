@@ -1,30 +1,20 @@
 --
 -- (C) 2019-24 - ntop.org
 --
--- Checks provide a scriptable way to interact with the ntopng
--- core. Users can provide their own modules to trigger custom alerts,
--- export data, or perform periodic tasks.
--- Hack to avoid include loops
-if (pragma_once_checks == true) then
-    -- avoid multiple inclusions
-    return checks
-end
-
-pragma_once_checks = true
-
-local clock_start = os.clock()
 
 local dirs = ntop.getDirs()
 
-require "lua_utils"
+-- Checks provide a scriptable way to interact with the ntopng
+-- core. Users can provide their own modules to trigger custom alerts,
+-- export data, or perform periodic tasks.
+
+local clock_start = os.clock()
 
 local os_utils = require("os_utils")
 local json = require("dkjson")
 local script_manager = require("script_manager")
 local alert_consts = require "alert_consts"
 local http_lint = require("http_lint")
-local alert_exclusions = require "alert_exclusions"
-local format_utils = require("format_utils")
 
 local checks = {}
 
@@ -434,46 +424,6 @@ local function benchmark_init(subdir, mod_k, hook, hook_fn)
         return benchmark_hook_fn(subdir, mod_k, hook, hook_fn)
     else
         return (hook_fn)
-    end
-end
-
--- ##############################################
-
--- ~ schema_prefix: "flow_check" or "elem_check"
-function checks.ts_dump(when, ifid, verbose, schema_prefix, all_scripts)
-    local ts_utils = require("ts_utils_core")
-
-    for subdir, script_type in pairs(all_scripts) do
-        local rv = checks.getAggregatedStats(ifid, script_type, subdir)
-        local total = {
-            tot_elapsed = 0,
-            tot_num_calls = 0
-        }
-
-        for modkey, stats in pairs(rv) do
-            ts_utils.append(schema_prefix .. ":duration", {
-                ifid = ifid,
-                check = modkey,
-                subdir = subdir,
-                num_ms = stats.tot_elapsed * 1000
-            }, when)
-            ts_utils.append(schema_prefix .. ":num_calls", {
-                ifid = ifid,
-                check = modkey,
-                subdir = subdir,
-                num_calls = stats.tot_num_calls
-            }, when)
-
-            total.tot_elapsed = total.tot_elapsed + stats.tot_elapsed
-            total.tot_num_calls = total.tot_num_calls + stats.tot_num_calls
-        end
-
-        ts_utils.append(schema_prefix .. ":total_stats", {
-            ifid = ifid,
-            subdir = subdir,
-            num_ms = total.tot_elapsed * 1000,
-            num_calls = total.tot_num_calls
-        }, when)
     end
 end
 
@@ -1906,6 +1856,8 @@ local function printUserScriptsTable()
             -- Execution stats
             if info.id == 'flow' and flow_checks_stats[name] and flow_checks_stats[name].stats and
                 flow_checks_stats[name].stats.execution_time then
+                -- Importing just when needed
+                local format_utils = require("format_utils")
                 tot_exec_time = format_utils.msToTime(flow_checks_stats[name].stats.execution_time / 1000000)
             end
 
@@ -2155,7 +2107,7 @@ end
 -- The function below ia called once (#pragma once)
 local function setupSystemChecks(str_granularity, checks_var, do_trace)
     if do_trace then
-        print("system.lua:setup(" .. str_granularity .. ") called\n")
+        traceError(TRACE_NORMAL, TRACE_CONSOLE, "system.lua:setup(%s) called", str_granularity)
     end
 
     interface.select(getSystemInterfaceId())
@@ -2164,7 +2116,7 @@ local function setupSystemChecks(str_granularity, checks_var, do_trace)
     checks_var.system_ts_enabled = areSystemTimeseriesEnabled()
 
     -- Load the threshold checking functions
-    checks_var.available_modules = checks.load(ifid, checks.script_types.system, "system", {
+    checks_var.available_modules = checks.load(checks_var.ifid, checks.script_types.system, "system", {
         hook_filter = str_granularity,
         do_benchmark = checks_var.do_benchmark
     })

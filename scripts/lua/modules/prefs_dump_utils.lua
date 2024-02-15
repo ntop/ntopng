@@ -5,15 +5,6 @@
 -- used to serialize ntopng runtime preferences to disk
 -- or restore them from disk
 
--- Hack to avoid include loops
-
-if(pragma_once_prefs_dump_utils == true) then
-   tprint(debug.traceback())
-   -- avoid multiple inclusions
-   return
-end
-
-pragma_once_prefs_dump_utils = true
 
 local dirs = ntop.getDirs()
 

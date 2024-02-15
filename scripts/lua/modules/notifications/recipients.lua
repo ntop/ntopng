@@ -14,7 +14,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 local json = require "dkjson"
 local alert_severities = require "alert_severities"
-local alert_consts = require "alert_consts"
 local alert_entities = require "alert_entities"
 local checks = require "checks"
 local endpoints = require("endpoints")
@@ -366,6 +365,7 @@ local function format_recipient_checks(checks_list)
       return nil
    end
 
+   local alert_consts = require "alert_consts"
    local list = checks_list:split(",") or { checks_list }
    local formatted_list = {}
    local num_alerts = 0

@@ -2,6 +2,9 @@
 -- (C) 2019-24 - ntop.org
 --
 
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
+
 local ts_utils = require "ts_utils_core"
 local schema
 

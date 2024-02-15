@@ -1,23 +1,17 @@
 --
 -- (C) 2019-24 - ntop.org
 --
+
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
+local profiling = require "profiling"
+
 -- ########################################################
-require "lua_utils"
-local alert_utils = require "alert_utils"
-local graph_utils = require "graph_utils"
 
-local os_utils = require "os_utils"
-local top_talkers_utils = require "top_talkers_utils"
+require "ntop_utils"
+require "ts_minute"
+require "check_redis_prefs"
 local ts_utils = require("ts_utils_core")
-local checks = require("checks")
-require("ts_minute")
-
-local ts_custom
-if ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_minute_custom.lua") then
-    package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
-    ts_custom = require "ts_minute_custom"
-end
-
 local ts_dump = {}
 
 -- ########################################################
@@ -294,8 +288,10 @@ function ts_dump.iface_update_general_stats(when, ifstats, verbose)
 end
 
 function ts_dump.iface_update_l4_stats(when, ifstats, verbose)
-    for id, _ in pairs(l4_keys) do
-        k = l4_keys[id][2]
+    local l4_protocol_list = require "l4_protocol_list"
+
+    for id, _ in pairs(l4_protocol_list.l4_keys) do
+        k = l4_protocol_list.l4_keys[id][2]
         if ((ifstats.stats[k .. ".bytes.sent"] ~= nil) and (ifstats.stats[k .. ".bytes.rcvd"] ~= nil)) then
             ts_utils.append("iface:l4protos", {
                 ifid = ifstats.id,
@@ -528,20 +524,8 @@ end
 
 -- ########################################################
 
-local function update_internals_checks_stats(when, ifid, verbose)
-    -- NOTE: flow scripts are monitored in 5sec.lua
-    local all_scripts = {
-        host = checks.script_types.traffic_element,
-        interface = checks.script_types.traffic_element,
-        network = checks.script_types.traffic_element
-    }
-
-    checks.ts_dump(when, ifid, verbose, "elem_check", all_scripts)
-end
-
--- ########################################################
-
 local function dumpTopTalkers(_ifname, ifstats, verbose)
+    local top_talkers_utils = require "top_talkers_utils"
     -- Dump topTalkers every minute
     local talkers = top_talkers_utils.makeTopJson(_ifname)
 
@@ -569,7 +553,8 @@ end
 
 -- ########################################################
 
-function ts_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
+function ts_dump.run_min_dump(_ifname, ifstats, when, verbose)
+    local config = getMinTSConfig()
     dumpTopTalkers(_ifname, ifstats, verbose)
 
     local iface_rrd_creation_enabled = areInterfaceTimeseriesEnabled(ifstats.id)
@@ -606,18 +591,10 @@ function ts_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
         ts_dump.iface_update_categories_rrds(when, _ifname, ifstats, verbose)
     end
 
-    -- create custom rrds
-    if ts_custom and ts_custom.iface_update_stats then
-        ts_custom.iface_update_stats(when, _ifname, ifstats, verbose)
-    end
-
     -- Only if the internal telemetry preference is enabled...
     if config.internals_rrd_creation then
         -- Save internal hash tables states every minute
         update_internals_hash_tables_stats(when, ifstats, verbose)
-
-        -- Save the traffic elements checks stats
-        update_internals_checks_stats(when, ifstats.id, verbose)
 
         -- Save duration of periodic activities
         ts_dump.update_internals_periodic_activities_stats(when, ifstats, verbose)
@@ -644,25 +621,6 @@ function ts_dump.run_min_dump(_ifname, ifstats, config, when, verbose)
             num_nfq_pct = st.queue_pct
         }, when)
     end
-end
-
--- ########################################################
-
-function ts_dump.getConfig()
-    local config = {}
-    local prefs = ntop.getPrefs() -- runtime ntopng preferences
-
-    config.interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
-    config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
-    config.internals_rrd_creation = ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1"
-    config.is_dump_flows_enabled = ntop.getPrefs()["is_dump_flows_enabled"]
-
-    -- Interface RRD creation is on, with per-protocol nDPI
-    if isEmptyString(config.interface_ndpi_timeseries_creation) then
-        config.interface_ndpi_timeseries_creation = "per_protocol"
-    end
-
-    return config
 end
 
 -- ########################################################

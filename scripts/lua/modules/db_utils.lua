@@ -7,126 +7,11 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "template"
 require "lua_utils"
+local network_utils = require "network_utils"
 
 local db_debug = false
 
 local db_utils = {}
-
--- ########################################################
-
-local function populate_l7_protocols()
-   -- Protocols table
-   local list = interface.getnDPIProtocols() or {}
-   local sql = "INSERT INTO ntopng.l7_protocols (*) Values"
-   for proto_name, proto_id in pairs(list) do
-      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding Protocol: " .. proto_name .. ", ID: " .. proto_id)
-      sql = string.format("%s (%u, '%s')", sql, tonumber(proto_id), proto_name)
-   end
-   interface.execSQLQuery(sql)
-end
-
--- ########################################################
-
-local function populate_l7_categories()
-   -- Categories table
-   list = interface.getnDPICategories() or {}
-   sql = string.format("INSERT INTO ntopng.l7_categories (*) Values")
-   for category_name, category_id in pairs(list) do
-      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding Category: " .. category_name .. ", ID: " .. category_id)
-      sql = string.format("%s (%u, '%s')", sql, tonumber(category_id), category_name)
-   end
-
-   interface.execSQLQuery(sql)
-end
-
--- ########################################################
-
-local function populate_l4_protocols()
-   -- L4 Protocols table
-   list = l4_proto_list()
-   sql = string.format("INSERT INTO ntopng.l4_protocols (*) Values")
-   for l4_proto_name, l4_proto_id in pairs(list) do
-      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding L4 Protocol: " .. l4_proto_name .. ", ID: " .. l4_proto_id)
-      sql = string.format("%s (%u, '%s')", sql, tonumber(l4_proto_id), l4_proto_name)
-   end
-
-   interface.execSQLQuery(sql)
-end
-
--- ########################################################
-
-local function populate_flow_risks()
-   -- Flow Risk table
-   list = ntop.getRiskList()
-   sql = string.format("INSERT INTO ntopng.flow_risks (*) Values")
-   for flow_risk_id, flow_risk_name in pairs(list) do
-      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding L4 Protocol: " .. l4_proto_name .. ", ID: " .. l4_proto_id)
-      sql = string.format("%s (%u, '%s')", sql, tonumber(flow_risk_id), flow_risk_name)
-   end
-
-   interface.execSQLQuery(sql)
-end
-
--- ########################################################
-
-local function populate_alert_severities()
-   -- Alert Severities table
-   list = require('alert_severities')
-   sql = string.format("INSERT INTO ntopng.alert_severities (*) Values")
-   for _, severity in pairs(list) do
-      -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Adding L4 Protocol: " .. l4_proto_name .. ", ID: " .. l4_proto_id)
-      if severity.severity_id and severity.i18n_title then
-         sql = string.format("%s (%u, '%s')", sql, tonumber(severity.severity_id), i18n(severity.i18n_title))
-      end
-   end
-
-   interface.execSQLQuery(sql)
-end
-
--- ########################################################
-
-local extra_tables = {
-   l7_protocols = {
-      populate_table = populate_l7_protocols,
-      flows_col_name = 'L7_PROTO_NAME',
-      flows_col = 'L7_PROTO',
-      alerts_col_name = 'l7_proto_name',
-      alerts_col = 'l7_proto',
-      alias = 'l7_protocols'
-   },
-   l7_categories = {
-      populate_table = populate_l7_categories,
-      flows_col_name = 'L7_CATEGORY_NAME',
-      flows_col = 'L7_CATEGORY',
-      alerts_col_name = 'l7_cat_name',
-      alerts_col = 'l7_cat',
-      alias = 'l7_categories'
-   },
-   l4_protocols = {
-      populate_table = populate_l4_protocols,
-      flows_col_name = 'PROTOCOL_NAME',
-      flows_col = 'PROTOCOL',
-      alerts_col_name = 'proto_name',
-      alerts_col = 'protocol',
-      alias = 'l4_protocols'
-   },
-   flow_risks = {
-      populate_table = populate_flow_risks,
-      flows_col_name = 'FLOW_RISK_NAME',
-      flows_col = 'FLOW_RISK',
-      alerts_col_name = 'flow_risk_name',
-      alerts_col = 'flow_risk',
-      alias = 'flow_risks'
-   },
-   alert_severities = {
-      populate_table = populate_alert_severities,
-      flows_col_name = 'SEVERITY_NAME',
-      flows_col = 'SEVERITY',
-      alerts_col_name = 'severity_name',
-      alerts_col = 'severity',
-      alias = 'alert_severities'
-   }
-}
 
 -- ########################################################
 
@@ -141,7 +26,7 @@ end
 -- ########################################################
 
 function expandIpV4Network(net)
-   local address, prefix = splitNetworkPrefix(net)
+   local address, prefix = network_utils.splitNetworkPrefix(net)
 
    if(prefix == nil or prefix > 32 or prefix < 0) then prefix = 32 end
 

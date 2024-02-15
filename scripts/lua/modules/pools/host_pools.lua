@@ -8,11 +8,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" ..
 
 local clock_start = os.clock()
 
-require "lua_utils"
+require "ntop_utils"
+require "label_utils"
+require "check_redis_prefs"
 local pools = require "pools"
-local checks = require "checks"
-local ts_utils = require "ts_utils_core"
-local json = require "dkjson"
 
 -- ##############################################
 
@@ -108,6 +107,8 @@ end
 
 -- @brief Given a member key, returns a table of member details such as member name.
 function host_pools:get_member_details(member)
+    local network_utils = require "network_utils"
+
     local res = {}
     local member_name
     local member_type
@@ -118,7 +119,7 @@ function host_pools:get_member_details(member)
         member_name = address
         member_type = "mac"
     else
-        local network, prefix = splitNetworkPrefix(address)
+        local network, prefix = network_utils.splitNetworkPrefix(address)
 
         if (((isIPv4(network)) and (prefix ~= 32)) or
             ((isIPv6(network)) and (prefix ~= 128))) then
@@ -289,6 +290,7 @@ function host_pools:delete_pool(pool_id)
         local cur_pool_details = self:get_pool(pool_id)
 
         if cur_pool_details then
+            local ts_utils = require "ts_utils_core"
             -- Remove the key with all the pool details (e.g., with members)
             ntop.delCache(self:_get_pool_details_key(pool_id))
 
@@ -415,8 +417,20 @@ end
 
 -- ##############################################
 
+-- Get from redis the throughput type bps or pps
+local function getThroughputType()
+  local throughput_type = ntop.getCache("ntopng.prefs.thpt_content")
+  if throughput_type == "" then throughput_type = "bps" end
+  
+  return throughput_type
+end
+
+-- ##############################################
+
 function host_pools:hostpool2record(ifid, pool_id, pool)
+    local format_utils = require "format_utils"
     local record = {}
+    local throughput_type = getThroughputType()
     record["key"] = tostring(pool_id)
 
     local pool_name = self:get_pool_name(pool_id)
@@ -425,8 +439,8 @@ function host_pools:hostpool2record(ifid, pool_id, pool)
                           pool_name .. "'>" .. pool_name .. '</A>'
     record["column_id"] = pool_link
 
-    record["column_hosts"] = format_high_num_value_for_tables(pool, "num_hosts")
-    record["column_since"] = secondsToTime(os.time() - pool["seen.first"] + 1)
+    record["column_hosts"] = format_utils.format_high_num_value_for_tables(pool, "num_hosts")
+    record["column_since"] = format_utils.secondsToTime(os.time() - pool["seen.first"] + 1)
     record["column_num_dropped_flows"] = (pool["flows.dropped"] or 0) .. ""
 
     local sent2rcvd = round((pool["bytes.sent"] * 100) /
@@ -438,12 +452,12 @@ function host_pools:hostpool2record(ifid, pool_id, pool)
             (100 - sent2rcvd) .. "%;'>Rcvd</div></div>"
 
     if (throughput_type == "pps") then
-        record["column_thpt"] = pktsToSize(pool["throughput_pps"])
+        record["column_thpt"] = format_utils.pktsToSize(pool["throughput_pps"])
     else
-        record["column_thpt"] = bitsToSize(8 * pool["throughput_bps"])
+        record["column_thpt"] = format_utils.bitsToSize(8 * pool["throughput_bps"])
     end
 
-    record["column_traffic"] = bytesToSize(
+    record["column_traffic"] = format_utils.bytesToSize(
                                    pool["bytes.sent"] + pool["bytes.rcvd"])
 
     record["column_chart"] = ""
@@ -459,7 +473,7 @@ end
 
 -- ##############################################
 
-function host_pools:updateRRDs(ifid, dump_ndpi, verbose)
+function host_pools:updateRRDs(ifid, dump_ndpi, verbose, when)
     local ts_utils = require "ts_utils"
     require "ts_5min"
 
@@ -513,9 +527,5 @@ function host_pools:updateRRDs(ifid, dump_ndpi, verbose)
 end
 
 -- ##############################################
-
-if(trace_script_duration ~= nil) then
-  io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
-end
 
 return host_pools

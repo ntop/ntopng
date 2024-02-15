@@ -9,12 +9,12 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_keys/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
+require("lua_utils")
 local alert_severities = require "alert_severities"
+local alert_granularities = require "alert_granularities"
 local alert_entities = require "alert_entities"
-local alert_consts = {}
 local os_utils = require("os_utils")
-local lua_path_utils = require "lua_path_utils"
-require("ntop_utils")
+local alert_consts = {}
 
 if(ntop.isPro()) then
   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
@@ -138,36 +138,7 @@ end
 -- ##############################################
 
 alert_consts.alert_entities = alert_entities
-
--- ##############################################
-
--- Keep in sync with C
-alert_consts.alerts_granularities = {
-   ["min"] = {
-      granularity_id = 1,
-      granularity_seconds = 60,
-      i18n_title = "show_alerts.minute",
-      i18n_description = "alerts_thresholds_config.every_minute",
-   },
-   ["5mins"] = {
-      granularity_id = 2,
-      granularity_seconds = 300,
-      i18n_title = "show_alerts.5_min",
-      i18n_description = "alerts_thresholds_config.every_5_minutes",
-   },
-   ["hour"] = {
-      granularity_id = 3,
-      granularity_seconds = 3600,
-      i18n_title = "show_alerts.hourly",
-      i18n_description = "alerts_thresholds_config.hourly",
-   },
-   ["day"] = {
-      granularity_id = 4,
-      granularity_seconds = 86400,
-      i18n_title = "show_alerts.daily",
-      i18n_description = "alerts_thresholds_config.daily",
-   }
-}
+alert_consts.alerts_granularities = alert_granularities
 
 -- ################################################################################
 
@@ -409,6 +380,8 @@ alert_consts.alert_types = {}
 local alerts_by_id = {} -- All available alerts keyed by entity_id and alert_id
 
 local function loadAlertsDefs()
+   local lua_path_utils = require "lua_path_utils"
+
    if(false) then
       if(string.find(debug.traceback(), "second.lua")) then
          traceError(TRACE_WARNING, TRACE_CONSOLE, "second.lua is loading alert_consts.lua. This will slow it down!")

@@ -1,6 +1,10 @@
 --
 -- (C) 2019-24 - ntop.org
 --
+
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
+
 local ts_utils = require "ts_utils_core"
 local schema
 
@@ -27,37 +31,6 @@ schema:addTag("ifid")
 schema:addTag("periodic_script")
 schema:addMetric("writes")
 schema:addMetric("drops")
-
--------------------------------------------------------
--- TRAFFIC ELEMENTS CHECKS SCHEMAS
--------------------------------------------------------
-
-schema = ts_utils.newSchema("elem_check:duration", {
-    step = 60,
-    metrics_type = ts_utils.metrics.gauge
-})
-schema:addTag("ifid")
-schema:addTag("check")
-schema:addTag("subdir")
-schema:addMetric("num_ms")
-
-schema = ts_utils.newSchema("elem_check:num_calls", {
-    step = 60,
-    metrics_type = ts_utils.metrics.gauge
-})
-schema:addTag("ifid")
-schema:addTag("check")
-schema:addTag("subdir")
-schema:addMetric("num_calls")
-
-schema = ts_utils.newSchema("elem_check:total_stats", {
-    step = 60,
-    metrics_type = ts_utils.metrics.gauge
-})
-schema:addTag("ifid")
-schema:addTag("subdir")
-schema:addMetric("num_ms")
-schema:addMetric("num_calls")
 
 -------------------------------------------------------
 -- HASH_TABLES SCHEMAS

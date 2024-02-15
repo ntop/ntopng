@@ -4,10 +4,10 @@
 local driver = {}
 
 -- NOTE: this script is required by second.lua, keep the imports minimal!
+require "ntop_utils"
 local ts_common = require("ts_common")
 local json = require("dkjson")
 local os_utils = require("os_utils")
-require "lua_utils"
 
 --
 -- Sample query:
@@ -63,6 +63,17 @@ local function setExportQueueFull(is_full)
     else
         ntop.delCache(INFLUX_QUEUE_FULL_FLAG)
     end
+end
+
+-- ##############################################
+
+local function urlencode(str)
+    str = string.gsub(str, "\r?\n", "\r\n")
+    str = string.gsub(str, "([^%w%-%.%_%~ ])", function(c)
+        return string.format("%%%02X", string.byte(c))
+    end)
+    str = string.gsub(str, " ", "+")
+    return str
 end
 
 -- ##############################################
@@ -1284,7 +1295,7 @@ end
 
 -- ##############################################
 
-function getWhereClause(tags, tstart, tend, unaligned_offset)
+local function getWhereClause(tags, tstart, tend, unaligned_offset)
     return where_tags(tags) .. ' time >= ' .. tstart .. '000000000 AND time <= ' .. (tend + unaligned_offset) ..
                "000000000"
 end

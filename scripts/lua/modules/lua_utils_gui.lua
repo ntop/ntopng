@@ -116,17 +116,6 @@ end
 
 -- ##############################################
 
-function urlencode(str)
-    str = string.gsub(str, "\r?\n", "\r\n")
-    str = string.gsub(str, "([^%w%-%.%_%~ ])", function(c)
-        return string.format("%%%02X", string.byte(c))
-    end)
-    str = string.gsub(str, " ", "+")
-    return str
-end
-
--- ##############################################
-
 function noHtml(s)
     if s == nil then
         return nil
@@ -1019,26 +1008,6 @@ function splitUrl(url)
     }
 end
 
--- ###########################################
-
-function visualTsKey(tskey)
-    if ends(tskey, "_v4") or ends(tskey, "_v6") then
-        local ver = string.sub(tskey, string.len(tskey) - 1, string.len(tskey))
-        local address = string.sub(tskey, 1, string.len(tskey) - 3)
-        local visual_addr
-
-        if ver == "v4" then
-            visual_addr = address
-        else
-            visual_addr = address .. " (" .. ver .. ")"
-        end
-
-        return visual_addr
-    end
-
-    return tskey
-end
-
 -- ##############################################
 
 --- Return an HTML `select` element with passed options.
@@ -1691,28 +1660,6 @@ function format_location_badge(location)
     end
 
     return loc
-end
-
--- ##############################################
-
-function format_name_value(name, value, shorten)
-    local formatted_name_value = value
-
-    if not isEmptyString(name) and name ~= value then
-        if (shorten) and (shorten == true) then
-            formatted_name_value = shortenString(name)
-        else
-            formatted_name_value = name
-        end
-    end
-
-    local idx = string.find(formatted_name_value, value)
-
-    if (idx == nil) then
-        formatted_name_value = formatted_name_value .. " [" .. value .. "]"
-    end
-
-    return formatted_name_value
 end
 
 -- ##############################################
