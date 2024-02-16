@@ -1,7 +1,8 @@
 --
 -- (C) 2020-24 - ntop.org
 --
-require("ntop_utils")
+require "lua_trace"
+require "ntop_utils"
 local json = require("dkjson")
 
 local MAX_POSTS = 3
