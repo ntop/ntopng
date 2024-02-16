@@ -1038,12 +1038,12 @@ void Flow::processPacket(const struct pcap_pkthdr *h, const u_char *ip_packet,
     processDNSPacket(ip_packet, ip_len, packet_time);
   else if (isIEC60870())
     processIEC60870Packet((htons(src_port) == 2404) ? true : false, payload,
-                          payload_len, (struct timeval *)&h->ts);
+                          payload_len, h);
 #ifdef NTOPNG_PRO
 #if 0
   else if (isModbus())
     processModbusPacket((htons(src_port) != 502) ? true : false, payload,
-			payload_len, (struct timeval *)&h->ts);
+			payload_len, h);
 #endif
 #endif
 
@@ -1159,21 +1159,34 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
 
 #ifdef NTOPNG_PRO
 void Flow::processModbusPacket(bool is_query, const u_char *payload,
-			       u_int16_t payload_len,
-			       struct timeval *packet_time) {
+			       u_int16_t payload_len, const struct pcap_pkthdr *h) {
 
   if(ntop->getPrefs()->is_enterprise_l_edition() && (ndpi_confidence == NDPI_CONFIDENCE_DPI)) {
     /*
      * Exits if the flow isn't Modbus/TCP or it the interface is not a
      * packet-interface
      */
+    u_int16_t len;
+    
     if (!isModbus() || (!getInterface()->isPacketInterface()) || (payload_len < 6))
       return;
 
+    /* Validate packet */
+    len = (payload[4] << 8) + payload[5];
+    
+    if((len == 0) || ((len+6) != payload_len)) {
+      ntop->getTrace()->traceEvent(TRACE_INFO,
+				   "Discarded ModBus/TCP [expected: %u][rcvd: %u][h.len: %u][%02X %02X %02X %02X %02X %02X]",
+				   (len+6), payload_len, h->len,
+				   payload[0], payload[1], payload[2],
+				   payload[3], payload[4], payload[5]);
+      return;
+    }
+    
     if (!modbus) modbus = new (std::nothrow) ModbusStats();
 
     if (modbus)
-      modbus->processPacket(this, is_query, payload, payload_len, packet_time);
+      modbus->processPacket(this, is_query, payload, payload_len, h);
   }
 }
 #endif
@@ -1183,7 +1196,7 @@ void Flow::processModbusPacket(bool is_query, const u_char *payload,
 /* Special handling of IEC60870 which is always performed. */
 void Flow::processIEC60870Packet(bool tx_direction, const u_char *payload,
                                  u_int16_t payload_len,
-                                 struct timeval *packet_time) {
+				 const struct pcap_pkthdr *h) {
   /* Exits if the flow isn't IEC60870 or it the interface is not a
    * packet-interface */
   if (!isIEC60870() || (!getInterface()->isPacketInterface()) ||
@@ -1193,8 +1206,7 @@ void Flow::processIEC60870Packet(bool tx_direction, const u_char *payload,
   if (!iec104) iec104 = new (std::nothrow) IEC104Stats();
 
   if (iec104)
-    iec104->processPacket(this, tx_direction, payload, payload_len,
-                          packet_time);
+    iec104->processPacket(this, tx_direction, payload, payload_len, h);
 }
 
 /* *************************************** */
@@ -1577,10 +1589,21 @@ char *Flow::printTCPState(char *const buf, u_int buf_len) const {
 
 /* *************************************** */
 
-char *Flow::print(char *buf, u_int buf_len) const {
+char *Flow::print(char *buf, u_int buf_len, bool full_report) const {
   char buf1[32], buf2[32], buf3[32], buf4[32], buf5[32], pbuf[32], tcp_buf[64];
-  buf[0] = '\0';
 
+  buf[0] = '\0';
+  
+  if(!full_report) {
+    snprintf(buf, buf_len, "%s %s:%u <-> %s:%u",
+	     get_protocol_name(),
+	     get_cli_ip_addr() ? get_cli_ip_addr()->print(buf1, sizeof(buf1)) : "",
+	     ntohs(cli_port),
+	     get_srv_ip_addr() ? get_srv_ip_addr()->print(buf2, sizeof(buf2)) : "",
+	     ntohs(srv_port));
+    return(buf);
+  }
+  
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
   char shapers[64];
 

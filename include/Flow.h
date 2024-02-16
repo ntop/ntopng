@@ -631,10 +631,12 @@ class Flow : public GenericHashEntry {
   void processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
                         u_int64_t packet_time);
   void processIEC60870Packet(bool tx_direction, const u_char *payload,
-                             u_int16_t payload_len, struct timeval *packet_time);
+                             u_int16_t payload_len,
+			     const struct pcap_pkthdr *h);
 #ifdef NTOPNG_PRO
   void processModbusPacket(bool is_query, const u_char *payload,
-			   u_int16_t payload_len, struct timeval *packet_time);
+			   u_int16_t payload_len,
+			   const struct pcap_pkthdr *h);
 #endif
   void endProtocolDissection();
   inline void setCustomApp(custom_app_t ca) {
@@ -889,7 +891,7 @@ class Flow : public GenericHashEntry {
   u_int32_t get_hash_entry_id() const;
 
   static char *printTCPflags(u_int8_t flags, char *const buf, u_int buf_len);
-  char *print(char *buf, u_int buf_len) const;
+  char *print(char *buf, u_int buf_len, bool full_report = true) const;
 
   u_int32_t key();
   static u_int32_t key(Host *cli, u_int16_t cli_port, Host *srv,

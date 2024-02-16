@@ -2265,8 +2265,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     case NDPI_PROTOCOL_IEC60870:
       if ((trusted_payload_len > 0) && payload) {
 	flow->processIEC60870Packet((htons(src_port) == 2404) ? true : false,
-				    payload, trusted_payload_len,
-				    (struct timeval *)&h->ts);
+				    payload, trusted_payload_len, h);
       }
       break;
 
@@ -2274,8 +2273,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     case NDPI_PROTOCOL_MODBUS:
       if ((trusted_payload_len > 0) && payload) {
 	flow->processModbusPacket((htons(dst_port) == 502) ? true : false,
-				  payload, trusted_payload_len,
-				  (struct timeval *)&h->ts);
+				  payload, trusted_payload_len, h);
       }
       break;
 #endif
