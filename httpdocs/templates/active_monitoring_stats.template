@@ -368,7 +368,7 @@ sorted_measurements.sort(function(a, b){
           const pool = $(`#select-add-pool`).val();
           let iface = $(`#am-add-form select[name='iface']`).val();
           if (iface == 'Default Interface') {
-            iface = null;
+            iface = "{* default_ifname *}";
           }
           $(`#add-invalid-feedback`).hide();
 

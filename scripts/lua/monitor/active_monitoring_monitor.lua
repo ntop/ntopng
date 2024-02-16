@@ -29,7 +29,12 @@ local host = _GET["am_host"]
 
 local page = _GET["page"] or 'overview'
 local measurement = _GET["measurement"]
-local ifid = getInterfaceId(ifname)
+local ifid = interface.getId()
+local ifStats = interface.getStats()
+local ifname = ""
+if (ifStats and not isEmptyString(ifStats.name)) then
+    ifname = ifStats.name
+end
 local base_url = script_manager.getMonitorUrl("active_monitoring_monitor.lua") .. "?ifid=" .. ifid
 local url = base_url
 local info = ntop.getInfo()
@@ -117,6 +122,7 @@ if (page == "overview") then
         script_manager = script_manager,
         generate_select = generate_select,
         ui_utils = ui_utils,
+        default_ifname = ifname,
         am_stats = {
             measurements_info = measurements_info,
             get_host = (_GET["am_host"] or ""),
