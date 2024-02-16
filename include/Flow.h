@@ -41,6 +41,7 @@ class Flow : public GenericHashEntry {
   Host *cli_host, *srv_host;
   IpAddress *cli_ip_addr, *srv_ip_addr;
   ICMPinfo *icmp_info;
+  ndpi_confidence_t ndpi_confidence;
   u_int32_t privateFlowId /* Used to store specific flow info such as DNS
                              TransactionId */
       ;

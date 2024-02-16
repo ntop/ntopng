@@ -59,6 +59,7 @@ Flow::Flow(NetworkInterface *_iface,
     predominant_alert_info.is_srv_victim = 0;
   predominant_alert_info.auto_acknowledge = 0;
   ndpiAddressFamilyProtocol = NULL;
+  ndpi_confidence = NDPI_CONFIDENCE_UNKNOWN;
   clearRisks();
   /* Note is_periodic_flow is updated by the updateFlowPeriodicity() call */
   detection_completed = 0, non_zero_payload_observed = 0, is_periodic_flow = 0,
@@ -329,6 +330,7 @@ void Flow::allocDPIMemory() {
 void Flow::freeDPIMemory() {
   if (ndpiFlow) {
     setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
+    ndpi_confidence = ndpiFlow->confidence;
     ndpi_free_flow(ndpiFlow);
     ndpiFlow = NULL;
   }
@@ -1157,9 +1159,10 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
 
 #ifdef NTOPNG_PRO
 void Flow::processModbusPacket(bool is_query, const u_char *payload,
-				  u_int16_t payload_len,
+			       u_int16_t payload_len,
 			       struct timeval *packet_time) {
-  if(ntop->getPrefs() ->is_enterprise_l_edition()) {
+
+  if(ntop->getPrefs()->is_enterprise_l_edition() && (ndpi_confidence == NDPI_CONFIDENCE_DPI)) {
     /*
      * Exits if the flow isn't Modbus/TCP or it the interface is not a
      * packet-interface
@@ -2829,9 +2832,8 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
     lua_tos(vm);
     lua_get_protocols(vm);
-    lua_push_str_table_entry(
-        vm, "community_id",
-        (char *)getCommunityId(community_id, sizeof(community_id)));
+    lua_push_str_table_entry(vm, "community_id",
+			     (char *)getCommunityId(community_id, sizeof(community_id)));
 
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
@@ -2869,12 +2871,12 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
     lua_push_int32_table_entry(vm, "cli.devtype",
                                (cli_host && cli_host->getMac())
-                                   ? cli_host->getMac()->getDeviceType()
-                                   : device_unknown);
+			       ? cli_host->getMac()->getDeviceType()
+			       : device_unknown);
     lua_push_int32_table_entry(vm, "srv.devtype",
                                (srv_host && srv_host->getMac())
-                                   ? srv_host->getMac()->getDeviceType()
-                                   : device_unknown);
+			       ? srv_host->getMac()->getDeviceType()
+			       : device_unknown);
 
 #ifdef HAVE_NEDGE
     if (iface->is_bridge_interface())
@@ -2911,25 +2913,25 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
     if (cli_host && srv_host) {
       /* Shapers */
       lua_push_uint64_table_entry(
-          vm, "shaper.cli2srv_ingress",
-          flowShaperIds.cli2srv.ingress
-              ? flowShaperIds.cli2srv.ingress->get_shaper_id()
-              : DEFAULT_SHAPER_ID);
+				  vm, "shaper.cli2srv_ingress",
+				  flowShaperIds.cli2srv.ingress
+				  ? flowShaperIds.cli2srv.ingress->get_shaper_id()
+				  : DEFAULT_SHAPER_ID);
       lua_push_uint64_table_entry(
-          vm, "shaper.cli2srv_egress",
-          flowShaperIds.cli2srv.egress
-              ? flowShaperIds.cli2srv.egress->get_shaper_id()
-              : DEFAULT_SHAPER_ID);
+				  vm, "shaper.cli2srv_egress",
+				  flowShaperIds.cli2srv.egress
+				  ? flowShaperIds.cli2srv.egress->get_shaper_id()
+				  : DEFAULT_SHAPER_ID);
       lua_push_uint64_table_entry(
-          vm, "shaper.srv2cli_ingress",
-          flowShaperIds.srv2cli.ingress
-              ? flowShaperIds.srv2cli.ingress->get_shaper_id()
-              : DEFAULT_SHAPER_ID);
+				  vm, "shaper.srv2cli_ingress",
+				  flowShaperIds.srv2cli.ingress
+				  ? flowShaperIds.srv2cli.ingress->get_shaper_id()
+				  : DEFAULT_SHAPER_ID);
       lua_push_uint64_table_entry(
-          vm, "shaper.srv2cli_egress",
-          flowShaperIds.srv2cli.egress
-              ? flowShaperIds.srv2cli.egress->get_shaper_id()
-              : DEFAULT_SHAPER_ID);
+				  vm, "shaper.srv2cli_egress",
+				  flowShaperIds.srv2cli.egress
+				  ? flowShaperIds.srv2cli.egress->get_shaper_id()
+				  : DEFAULT_SHAPER_ID);
 
       /* Quota */
       lua_push_str_table_entry(vm, "cli.quota_source",
@@ -2967,21 +2969,21 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
     if (rtp_stream_type != ndpi_multimedia_unknown_flow) {
       switch (rtp_stream_type) {
-        case ndpi_multimedia_audio_flow:
-          lua_push_str_table_entry(vm, "rtp_stream_type", "audio");
-          break;
+      case ndpi_multimedia_audio_flow:
+	lua_push_str_table_entry(vm, "rtp_stream_type", "audio");
+	break;
 
-        case ndpi_multimedia_video_flow:
-          lua_push_str_table_entry(vm, "rtp_stream_type", "video");
-          break;
+      case ndpi_multimedia_video_flow:
+	lua_push_str_table_entry(vm, "rtp_stream_type", "video");
+	break;
 
-        case ndpi_multimedia_screen_sharing_flow:
-          lua_push_str_table_entry(vm, "rtp_stream_type", "screen_share");
-          break;
+      case ndpi_multimedia_screen_sharing_flow:
+	lua_push_str_table_entry(vm, "rtp_stream_type", "screen_share");
+	break;
 
-        default:
-          /* Nothing to do */
-          break;
+      default:
+	/* Nothing to do */
+	break;
       }
     }
 
@@ -3059,9 +3061,12 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
   lua_push_str_table_entry(vm, "proto.ndpi",
                            detection_completed
-                               ? get_detected_protocol_name(buf, sizeof(buf))
-                               : (char *)CONST_TOO_EARLY);
+			   ? get_detected_protocol_name(buf, sizeof(buf))
+			   : (char *)CONST_TOO_EARLY);
 
+  lua_push_str_table_entry(vm, "proto.ndpi_confidence",
+			   ndpi_confidence_get_name(ndpi_confidence));
+  
   // this is used to dynamicall update entries in the GUI
   lua_push_uint64_table_entry(vm, "ntopng.key", key());  // Key
   lua_push_uint64_table_entry(vm, "hash_entry_id", get_hash_entry_id());
