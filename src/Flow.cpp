@@ -6518,7 +6518,8 @@ void Flow::recheckQuota(const struct tm *now) {
   bool above_quota = false;
 
   if (cli_host && srv_host) {
-    L7PolicySource_t cli_src, srv_src;
+    L7PolicySource_t cli_src = policy_source_default;
+    L7PolicySource_t srv_src = policy_source_default;
 
     if ((above_quota =
              cli_host->checkQuota(ndpiDetectedProtocol, &cli_src, now)))
