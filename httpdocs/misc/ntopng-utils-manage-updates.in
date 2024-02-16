@@ -239,6 +239,9 @@ function run_upgrade() {
 
 	clear_failure
 
+	# Check if the product is under maintenance
+	maintenance_check
+
 	if [ "${OS}" == "DEBIAN" ]; then
 		# Debian or Ubuntu
 
@@ -300,6 +303,9 @@ function check_updates() {
 	log Requested $ACTION
 
 	clear_failure
+
+	# Check if the product is under maintenance
+	maintenance_check
 
 	if [ "${OS}" == "DEBIAN" ]; then
 		# Debian or Ubuntu
@@ -379,9 +385,6 @@ function handle_upgrade_requests() {
 		run_upgrade
 	fi
 }
-
-# Check if the product is under maintenance
-maintenance_check
 
 # Check OEM mode
 OEM_MODE=$(${REDIS_CLI} ${REDIS_CLI_OPT} EXISTS ${REDIS_PRODUCT_NAME_KEY} 2>/dev/null | grep 1)
