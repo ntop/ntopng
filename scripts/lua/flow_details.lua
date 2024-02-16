@@ -580,8 +580,12 @@ else
         if (flow["proto.ndpi_address_family"] ~= nil) then
             print(" [" .. i18n("network") .. ": " .. flow["proto.ndpi_address_family"] .. "]")
         end
-
-        if (flow.confidence) and (not isEmptyString(flow.confidence)) then
+        
+        if ((flow["proto.ndpi_confidence"] ~= nil)) then
+            print(" [" .. i18n("ndpi_confidence") .. ": " .. "<span class=\"badge bg-success\" title=\"" .. flow["proto.ndpi_confidence"] .. "\">" ..
+                                flow["proto.ndpi_confidence"] .. "</span>" .. "]")
+        elseif ((flow.confidence) and (not isEmptyString(flow.confidence))) then
+            -- case Unknown is here
             print(" [" .. i18n("ndpi_confidence") .. ": " .. format_confidence_badge(flow.confidence) .. "]")
         end
 
