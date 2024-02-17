@@ -105,7 +105,7 @@ bool ThreadPool::spawn() {
     } else {
 #ifndef WIN32
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure spawning thread [%u thread(s)][rc: %d]",
-          num_threads, rc);
+				   num_threads, rc);
 #endif
     }
   }
@@ -126,43 +126,23 @@ void ThreadPool::run() {
 
 #ifdef THREAD_DEBUG
     ntop->getTrace()->traceEvent(
-        TRACE_NORMAL, "*** About to dequeue job [%u][terminating=%d]",
-        pthread_self(), isTerminating());
+				 TRACE_NORMAL, "*** About to dequeue job [%u][terminating=%d]",
+				 pthread_self(), isTerminating());
 #endif
 
     q = dequeueJob(true);
 
 #ifdef THREAD_DEBUG
     ntop->getTrace()->traceEvent(
-        TRACE_NORMAL, "*** Dequeued job [%u][terminating=%d][%s][%s]",
-        pthread_self(), isTerminating(), q->script_path, q->iface->get_name());
+				 TRACE_NORMAL, "*** Dequeued job [%u][terminating=%d][%s][%s]",
+				 pthread_self(), isTerminating(), q->script_path, q->iface->get_name());
 #endif
 
     if ((q == NULL) || isTerminating()) {
       if (q) delete q;
       break;
     } else {
-      char name[64], *slash = strrchr(q->script_path, '/');
-      char *label = slash ? &slash[1] : q->script_path;
-
-#ifdef TASK_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "(**) Started task [%s][%s]",
-                                   q->script_path, q->iface->get_name());
-#endif
-      if (q->iface->get_id() == -1)
-        snprintf(name, sizeof(name), "ntopng-S-%s", label);
-      else
-        snprintf(name, sizeof(name), "ntopng-%d-%s", q->iface->get_id(), label);
-      Utils::setThreadName(name);
-
-      q->j->set_state_running(q->iface, q->script_path);
-      q->j->runScript(time(NULL), q->script_path, q->iface, q->deadline);
-      q->j->set_state_sleeping(q->iface, q->script_path);
-#ifdef TASK_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "(**) Completed task [%s][%s]",
-                                   q->script_path, q->iface->get_name());
-#endif
-
+      q->run();
       delete q;
 
       Utils::setThreadName("ntopng-idle-thpool");
@@ -179,19 +159,19 @@ void ThreadPool::run() {
 
 bool ThreadPool::isQueueable(ThreadedActivityState cur_state) {
   switch (cur_state) {
-    case threaded_activity_state_sleeping:
-    case threaded_activity_state_unknown:
-      return (true);
-      break;
+  case threaded_activity_state_sleeping:
+  case threaded_activity_state_unknown:
+    return (true);
+    break;
 
-    default:
+  default:
 #ifdef THREAD_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL,
-                                   "ThreadedActivity::isQueueable(%s)",
-                                   Utils::get_state_label(cur_state));
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "ThreadedActivity::isQueueable(%s)",
+				 Utils::get_state_label(cur_state));
 #endif
-      return (false);
-      break;
+    return (false);
+    break;
   }
 
   return (false); /* NOTREACHED */
@@ -201,7 +181,8 @@ bool ThreadPool::isQueueable(ThreadedActivityState cur_state) {
 
 bool ThreadPool::queueJob(ThreadedActivity *ta, char *script_path,
                           NetworkInterface *iface, time_t scheduled_time,
-                          time_t deadline) {
+                          time_t deadline, PeriodicActivities *pa,
+			  bool hourly_daily_activity) {
   QueuedThreadData *q;
   ThreadedActivityStats *stats;
   ThreadedActivityState ta_state;
@@ -229,10 +210,9 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *script_path,
 
     strftime(deadline_buf, sizeof(deadline_buf), "%H:%M:%S",
              localtime_r(&stats_deadline, &deadline_tm));
-    ntop->getTrace()->traceEvent(
-        TRACE_WARNING, "Unable to schedule %s [running: %u][deadline: %d (%s)][now: %d][param-deadline: %d (%d)]",
-        script_path, ta_state == threaded_activity_state_running ? 1 : 0,
-        stats_deadline, deadline_buf, now, deadline, deadline-now);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to schedule %s [running: %u][deadline: %d (%s)][now: %d][param-deadline: %d (%d)]",
+				 script_path, ta_state == threaded_activity_state_running ? 1 : 0,
+				 stats_deadline, deadline_buf, now, deadline, deadline-now);
 #endif
 
     if (ta_state == threaded_activity_state_queued) {
@@ -242,27 +222,25 @@ bool ThreadPool::queueJob(ThreadedActivity *ta, char *script_path,
         thread, up to a maximum
       */
 #ifdef THREAD_DEBUG
-      ntop->getTrace()->traceEvent(
-          TRACE_WARNING,
-          "Waiting in queue for too long [len: %u/%u][num_interfaces: %u]",
-          threadsState.size(), CONST_MAX_NUM_THREADED_ACTIVITIES,
-          ntop->get_num_interfaces() + 1);
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Waiting in queue for too long [len: %u/%u][num_interfaces: %u]",
+				   threadsState.size(), CONST_MAX_NUM_THREADED_ACTIVITIES,
+				   ntop->get_num_interfaces() + 1);
 #endif
       stats->setNotExecutedActivity(true);
     } else if (ta_state == threaded_activity_state_running &&
                (stats->getDeadline() < scheduled_time))
       stats->setSlowPeriodicActivity(true);
 
-    return (
-        false); /* Task still running or already queued, don't re-queue it */
+    return (false); /* Task still running or already queued, don't re-queue it */
   }
 
 #ifdef THREAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Scheduling %s [now: %d][param-deadline: %d (%d)]",
-        script_path, now, deadline, deadline-now);
+			       script_path, now, deadline, deadline-now);
 #endif
 
-  q = new (std::nothrow) QueuedThreadData(ta, script_path, iface, deadline);
+  q = new (std::nothrow) QueuedThreadData(ta, script_path, iface, deadline, pa, hourly_daily_activity);
 
   if (!q) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create job");
@@ -304,7 +282,7 @@ QueuedThreadData *ThreadPool::dequeueJob(bool waitIfEmpty) {
     sleep(1);
 #else
     while (threads.empty() && (!isTerminating()))
-        m->cond_wait(&condvar);
+      m->cond_wait(&condvar);
 
 #endif
   }

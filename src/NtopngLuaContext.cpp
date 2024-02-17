@@ -24,13 +24,22 @@
 /* ******************************* */
 
 NtopngLuaContext::NtopngLuaContext() {
+  allowed_ifname = user = group = csrf = sqlite_hosts_filter = sqlite_flows_filter = NULL;
+  sqlite_filters_loaded = false;
+  zmq_context = zmq_subscriber = NULL;
+  conn = NULL;
+  allowedNets = NULL;
+  iface = NULL;
+  addr_tree = NULL;  
   snmpBatch = NULL;
   memset(snmpAsyncEngine, 0, sizeof(snmpAsyncEngine));
-  pkt_capture.end_capture = 0;
-  addr_tree = NULL;
-  sqlite_hosts_filter = NULL;
-  sqlite_flows_filter  = NULL;
-
+  host = NULL, network = NULL, flow = NULL;
+  localuser = false, observationPointId = 0, engine = NULL;
+  capabilities = 0;
+  memset(&pkt_capture, 0, sizeof(pkt_capture));
+  memset(&live_capture, 0, sizeof(live_capture));
+  next_reload = deadline = 0, threaded_activity = NULL;
+  
 #if defined(NTOPNG_PRO)
   bin = NULL;
 #endif  

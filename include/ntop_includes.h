@@ -351,7 +351,7 @@ using namespace std;
 #include "InfluxDBTimeseriesExporter.h"
 #include "L4Stats.h"
 #include "AlertsQueue.h"
-#include "NtopLuaContext.h"
+#include "NtopngLuaContext.h"
 #include "LuaEngineFunctions.h"
 #include "LuaEngine.h"
 #include "SPSCQueue.h"
@@ -381,7 +381,7 @@ using namespace std;
 #include "FlowsHostInfo.h"
 #include "AggregatedFlowsStats.h"
 #include "NetworkInterface.h"
-#include "NtopLuaContext.h"
+#include "NtopngLuaContext.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"
 #endif
@@ -478,6 +478,7 @@ using namespace std;
 #include "HostHash.h"
 #include "ThreadedActivityStats.h"
 #include "ThreadedActivity.h"
+#include "QueuedThreadData.h"
 #include "ThreadPool.h"
 #include "PeriodicScript.h"
 #include "PeriodicActivities.h"

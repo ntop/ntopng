@@ -28,7 +28,7 @@ class LuaEngine;
 class ThreadedActivity;
 
 class NtopngLuaContext {
- public:
+public:
   char *allowed_ifname, *user, *group, *csrf;
   char *sqlite_hosts_filter, *sqlite_flows_filter;
   bool sqlite_filters_loaded;
@@ -71,19 +71,19 @@ class NtopngLuaContext {
     /* Partial sends */
     char send_buffer[1600];
     u_int data_not_yet_sent_len; /*
-                                    Amount of data that was
-                                    not sent mostly due to
-                                    socket buffering
-                                 */
+				   Amount of data that was
+				   not sent mostly due to
+				   socket buffering
+				 */
   } live_capture;
 
   /*
-     Indicate the time when the vm will be reloaded.
-     This can be used so that Lua scripts running in an infinite-loop fashion,
-     e.g., notifications.lua, can know when to break so they can be reloaded
-     with new configurations. Useful when user scripts change or when recipient
-     configurations change.
-   */
+    Indicate the time when the vm will be reloaded.
+    This can be used so that Lua scripts running in an infinite-loop fashion,
+    e.g., notifications.lua, can know when to break so they can be reloaded
+    with new configurations. Useful when user scripts change or when recipient
+    configurations change.
+  */
   time_t next_reload;
   /* Periodic scripts (ThreadedActivity.cpp) */
   time_t deadline;
@@ -93,7 +93,7 @@ class NtopngLuaContext {
 #if defined(NTOPNG_PRO)
   BinAnalysis *bin;
 #endif
-
+  
   NtopngLuaContext();
   ~NtopngLuaContext();
 };

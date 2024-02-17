@@ -189,7 +189,12 @@ end
 local function isUserAccessAllowed(tags)
     local user = _SESSION and _SESSION["user"] or ""
 
-    if tags.ifid and not ntop.isnEdge() and not ntop.isAllowedInterface(tonumber(tags.ifid)) then
+    if(user == "admin") then
+       return true
+    end
+    
+    if tags.ifid and not ntop.isnEdge()
+       and not ntop.isAllowedInterface(tonumber(tags.ifid)) then
         traceError(TRACE_ERROR, TRACE_CONSOLE, "User: " .. user .. " is not allowed to access interface " .. tags.ifid)
         return false
     end
