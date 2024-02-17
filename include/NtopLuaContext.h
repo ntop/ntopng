@@ -24,6 +24,9 @@
 
 #include "ntop_includes.h"
 
+class LuaEngine;
+class ThreadedActivity;
+
 class NtopngLuaContext {
  public:
   char *allowed_ifname, *user, *group, *csrf;
@@ -90,6 +93,9 @@ class NtopngLuaContext {
 #if defined(NTOPNG_PRO)
   BinAnalysis *bin;
 #endif
+
+  NtopngLuaContext();
+  ~NtopngLuaContext();
 };
 
 #endif /* _NTOP_LUACONTEXT_H_ */

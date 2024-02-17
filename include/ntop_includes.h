@@ -351,6 +351,7 @@ using namespace std;
 #include "InfluxDBTimeseriesExporter.h"
 #include "L4Stats.h"
 #include "AlertsQueue.h"
+#include "NtopLuaContext.h"
 #include "LuaEngineFunctions.h"
 #include "LuaEngine.h"
 #include "SPSCQueue.h"

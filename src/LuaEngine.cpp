@@ -145,7 +145,6 @@ static void *l_alloc(void *ud, void *ptr, size_t old_size, size_t new_size) {
 
 LuaEngine::LuaEngine(lua_State *vm) {
   std::bad_alloc bax;
-  void *ctx;
 
   // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   
@@ -163,15 +162,15 @@ LuaEngine::LuaEngine(lua_State *vm) {
     throw bax;
   }
 
-  ctx = (void *)calloc(1, sizeof(NtopngLuaContext));
+  lua_context = new NtopngLuaContext;
 
-  if (!ctx) {
+  if (!lua_context) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create a context for the new Lua state.");
     lua_close(L);
     throw bax;
   }
 
-  lua_pushlightuserdata(L, ctx);
+  lua_pushlightuserdata(L, (void*)lua_context);
   lua_setglobal(L, "userdata");
 
   if (vm) setThreadedActivityData(vm);
@@ -183,50 +182,23 @@ LuaEngine::~LuaEngine() {
   // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   
   if (L) {
-    NtopngLuaContext *ctx;
-
     lua_settop(L, 0);
 
 #ifdef DUMP_STACK
     stackDump(L);
 #endif
-
-    ctx = getLuaVMContext(L);
-
-    if (ctx) {
-      if (ctx->snmpBatch) delete ctx->snmpBatch;
-
-      for (u_int8_t slot_id = 0; slot_id < MAX_NUM_ASYNC_SNMP_ENGINES; slot_id++) {
-        if (ctx->snmpAsyncEngine[slot_id] != NULL)
-          delete ctx->snmpAsyncEngine[slot_id];
-      }
-
-      if (ctx->pkt_capture.end_capture > 0) {
-        ctx->pkt_capture.end_capture = 0; /* Force stop */
-        pthread_join(ctx->pkt_capture.captureThreadLoop, NULL);
-      }
-
-      if ((ctx->iface != NULL) && ctx->live_capture.pcaphdr_sent)
-        ctx->iface->deregisterLiveCapture(ctx);
-
-      if (ctx->addr_tree != NULL)   delete ctx->addr_tree;
-      if (ctx->sqlite_hosts_filter) free(ctx->sqlite_hosts_filter);
-      if (ctx->sqlite_flows_filter) free(ctx->sqlite_flows_filter);
-
-#if defined(NTOPNG_PRO)
-      if (ctx->bin) delete ctx->bin;
-#endif
-      free(ctx);
-    }
-
-  ntop->decNumLuaVMs();
+    
+    if(lua_context)
+      delete lua_context;     
+    
+    ntop->decNumLuaVMs();
 
 #ifdef TRACE_VM_ENGINES
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated VM [# LuaVMs: %u][Duration: %u sec][Memory: %u][%s]",
-			       ntop->getNumActiveLuaVMs(),
-			       (u_int32_t)time(NULL)-start_epoch+1,
-			       getMemUsed(),
-			       loaded_script_path ? loaded_script_path : "");
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated VM [# LuaVMs: %u][Duration: %u sec][Memory: %u][%s]",
+				 ntop->getNumActiveLuaVMs(),
+				 (u_int32_t)time(NULL)-start_epoch+1,
+				 getMemUsed(),
+				 loaded_script_path ? loaded_script_path : "");
 #endif
 
     lua_close(L); /* Free memory */
@@ -1568,8 +1540,9 @@ void LuaEngine::setThreadedActivityData(lua_State *from) {
   NtopngLuaContext *cur_ctx, *from_ctx;
   lua_State *cur_state = getState();
 
-  if (from && (cur_ctx = getLuaVMContext(cur_state)) &&
-      (from_ctx = getLuaVMContext(from))) {
+  if (from
+      && (cur_ctx = getLuaVMContext(cur_state))
+      && (from_ctx = getLuaVMContext(from))) {
     cur_ctx->deadline = from_ctx->deadline;
     cur_ctx->threaded_activity = from_ctx->threaded_activity;
     cur_ctx->threaded_activity_stats = from_ctx->threaded_activity_stats;

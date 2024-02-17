@@ -47,6 +47,7 @@ class LuaEngine {
   std::string cloud_string;
   size_t mem_used;
   u_int32_t start_epoch;
+  NtopngLuaContext *lua_context;
   
   void lua_register_classes(lua_State *L, LuaEngineMode mode);
 
