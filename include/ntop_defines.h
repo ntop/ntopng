@@ -897,6 +897,7 @@
 #define CONST_LOOPBACK_ADDRESS "127.0.0.1"
 #define CONST_EPP_MAX_CMD_NUM 34
 #define CONST_DEFAULT_MAX_PACKET_SIZE 1522
+#define CONST_MAX_PACKET_SIZE         65535 /* https://wiki.wireshark.org/MTU */
 
 /* ARP matrix generation preferences */
 #define CONST_DEFAULT_ARP_MATRIX_GENERATION \
