@@ -43,8 +43,9 @@ extern luaL_Reg *ntop_host_reg;
 extern luaL_Reg *ntop_cloud_reg;
 #endif
 
-#define HTTP_MAX_UPLOAD_DATA_LEN \
-  25000000 /* ~25MB (see also upload_pcap.template) */
+#define HTTP_MAX_UPLOAD_DATA_LEN  25000000 /* ~25MB (see also upload_pcap.template) */
+
+/* #define TRACE_VM_ENGINES */
 
 /* ******************************* */
 
