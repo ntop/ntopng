@@ -10,6 +10,7 @@ local dirs = ntop.getDirs()
 
 local clock_start = os.clock()
 
+require "ntop_utils"
 local os_utils = require("os_utils")
 local json = require("dkjson")
 local script_manager = require("script_manager")

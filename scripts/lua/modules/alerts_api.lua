@@ -410,9 +410,9 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
 
     if (entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
         if (interface.checkContext(entity_info.entity_val) == false) then
-            alertErrorTraceback("Invalid interface context detected for entity id " ..
-                                    entity_info.alert_entity.entity_id)
-            tprint(entity_info)
+--            alertErrorTraceback("Invalid interface context detected for entity id " ..
+--                                    entity_info.alert_entity.entity_id)
+--            tprint(entity_info)
             return (false)
         else
             released = interface.releaseTriggeredAlert(table.unpack(params))
