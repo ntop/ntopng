@@ -4,6 +4,14 @@
 
 -- ###############################################
 
+if(pragma_once_lua_utils == true) then
+   -- io.write(debug.traceback().."\n")
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_lua_utils = true
+
 local clock_start = os.clock()
 
 dirs = ntop.getDirs()

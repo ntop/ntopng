@@ -1,12 +1,20 @@
 --
 -- (C) 2017-24 - ntop.org
 --
+
+if(pragma_once_http_lint == true) then
+   -- io.write(debug.traceback().."\n")
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_http_lint = true
+
 local clock_start = os.clock()
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local pragma_once = 1
 local http_lint = {}
 
 local json = require "dkjson"
