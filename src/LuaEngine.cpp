@@ -440,7 +440,7 @@ static int ntop_lua_require(lua_State *L) {
   if(engine->require(std::string(script_name))) {    
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Circular dependency found %s\n", script_name);
 
-    return(1); /* Already loaded */
+    // return(0); /* Already loaded */
   }
   
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s(%s)", __FUNCTION__, script_name);
@@ -1494,13 +1494,14 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 #endif
     rc = luaL_dofile(L, script_path);
 
-   lua_settop(L, 0);
+  //    lua_settop(L, 0);
 
   if (rc != 0) {
     const char *err = lua_tostring(L, -1);
 
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]",
-                                 script_path, err);
+                                 script_path, err ? err : "Unknown error");
+    
     return (redirect_to_error_page(conn, request_info, "internal_error",
                                    script_path, (char *)err));
   }

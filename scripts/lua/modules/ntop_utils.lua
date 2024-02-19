@@ -2,6 +2,18 @@
 -- (C) 2021-24 - ntop.org
 --
 -- This file contains a small set of utility functions
+
+-- ###############################################
+
+if(pragma_once_ntop_utils == true) then
+   -- io.write(debug.traceback().."\n")
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_ntop_utils = true
+
+
 local clock_start = os.clock()
 
 -- ##############################################

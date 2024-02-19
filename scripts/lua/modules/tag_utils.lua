@@ -1,10 +1,21 @@
 --
 -- (C) 2020-24 - ntop.org
 --
+
+if(pragma_once_tag_utils_gui == true) then
+   -- io.write(debug.traceback().."\n")
+   -- tprint("Circular dependency in tag_utils_gui.lua")
+   -- tprint(debug.traceback())
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_tag_utils_gui = true
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
+-- require "lua_utils"
 local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
 local host_pools = require "host_pools"

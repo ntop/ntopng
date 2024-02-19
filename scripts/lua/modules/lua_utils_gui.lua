@@ -19,7 +19,6 @@ pragma_once_lua_utils_gui = true
 local clock_start = os.clock()
 
 require "gui_utils"
-require "alert_severity_utils"
 
 local format_utils = require "format_utils"
 local dns_utils = require "dns_utils"

@@ -2,6 +2,7 @@
 -- (C) 2013-24 - ntop.org
 --
 -- This module should manage the alerts, like releasing alerts, triggering ecc.
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local alert_consts = require "alert_consts"

@@ -24,6 +24,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "ntop_utils"
+require "locales_utils"
 
 local auth = {}
 

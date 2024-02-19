@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require("dkjson")
-local http_lint = require("http_lint")
+-- local http_lint = require("http_lint")
 local datatable_utils = require("datatable_utils")
 
 ---Report an error message for the developer

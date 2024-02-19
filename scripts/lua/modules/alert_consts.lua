@@ -11,7 +11,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 
 require "ntop_utils"
 require "label_utils"
-require "alert_severity_utils"
 require "gui_utils"
 require "lua_trace"
 local alert_entities_utils = require "alert_entities_utils"
