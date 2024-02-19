@@ -6,8 +6,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "flow_utils"
 require "voip_utils"
-require "lua_utils_generic"
-require "label_utils"
 
 local shaper_utils
 

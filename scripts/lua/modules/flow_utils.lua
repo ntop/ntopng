@@ -7,9 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "template"
 require "voip_utils"
 require "lua_utils"
-
-require "lua_utils_generic"
-require "label_utils"
 local graph_utils = require "graph_utils"
 local tcp_flow_state_utils = require("tcp_flow_state_utils")
 local format_utils = require("format_utils")

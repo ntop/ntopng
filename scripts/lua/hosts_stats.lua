@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
 require "lua_utils_generic"
+require "check_redis_prefs"
 local vs_utils = require "vs_utils"
 
 local host_pools_nedge

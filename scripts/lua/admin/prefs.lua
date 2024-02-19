@@ -9,7 +9,6 @@ if ((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then
 end
 require "lua_utils"
 require "prefs_utils"
-require "lua_utils_generic"
 local template = require "template_utils"
 local recording_utils = require "recording_utils"
 local data_retention_utils = require "data_retention_utils"

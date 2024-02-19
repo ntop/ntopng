@@ -20,7 +20,6 @@ local json = require "dkjson"
 local pools = require "pools"
 local historical_flow_utils = require "historical_flow_utils"
 local flow_alert_keys = require "flow_alert_keys"
-require "lua_utils_generic"
 local href_icon = "<i class='fas fa-laptop'></i>"
 
 -- ##############################################

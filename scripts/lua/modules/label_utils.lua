@@ -52,7 +52,7 @@ end
 function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
     local name
     local orig_name
- 
+    require "check_redis_prefs"
     if (alerts_view and not hasClickHouseSupport()) or (add_hostname ~= nil and add_hostname == false) then
        -- do not return resolved name as it will hide the IP address
        return(flow_info[host_type..".ip"])

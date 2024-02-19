@@ -1,5 +1,4 @@
 require "lua_utils"
-require "lua_utils_generic"
 
 local recording_utils = require "recording_utils"
 

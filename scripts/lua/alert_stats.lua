@@ -6,6 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
 
 require "lua_utils_generic"
+require "check_redis_prefs"
 local page_utils = require "page_utils"
 local os_utils = require "os_utils"
 local ui_utils = require "ui_utils"
