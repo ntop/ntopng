@@ -90,6 +90,17 @@ end
 
 -- ##############################################
 
+function splitNetworkPrefix(net)
+   if not net then
+      tprint(debug.traceback())
+   end
+   local prefix = tonumber(net:match("/(.+)"))
+   local address = net:gsub("/.+","")
+   return address, prefix
+end
+
+-- ##############################################
+
 --
 -- Concatenates table keys to values with separators
 --
@@ -704,10 +715,8 @@ function isValidPoolMember(member)
         return false
     end
 
-    local network_utils = require "network_utils"
-
     -- prefix is mandatory here
-    local address, prefix = network_utils.splitNetworkPrefix(other)
+    local address, prefix = splitNetworkPrefix(other)
     if prefix == nil then
         return false
     end

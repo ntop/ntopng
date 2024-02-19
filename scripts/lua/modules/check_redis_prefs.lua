@@ -210,4 +210,12 @@ function getMinTSConfig()
   return config
 end
 
--- ###########################################
+-- ##############################################
+
+-- Get from redis the throughput type bps or pps
+function getThroughputType()
+  local throughput_type = ntop.getCache("ntopng.prefs.thpt_content")
+  if throughput_type == "" then throughput_type = "bps" end
+  
+  return throughput_type
+end

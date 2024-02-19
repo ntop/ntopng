@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "template"
 require "lua_utils"
-local network_utils = require "network_utils"
 
 local db_debug = false
 
@@ -26,7 +25,7 @@ end
 -- ########################################################
 
 function expandIpV4Network(net)
-   local address, prefix = network_utils.splitNetworkPrefix(net)
+   local address, prefix = splitNetworkPrefix(net)
 
    if(prefix == nil or prefix > 32 or prefix < 0) then prefix = 32 end
 

@@ -4,8 +4,9 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+
 require "lua_utils"
-local network_utils = require "network_utils"
+local network_formatter = require "network_formatter"
 local json = require("dkjson")
 
 sendHTTPContentTypeHeader('text/html')
@@ -14,11 +15,11 @@ sendHTTPContentTypeHeader('text/html')
 
 local network = tonumber(_GET["network"])
 
-local n = interface.getNetworkStats(network)
+local network_stats = interface.getNetworkStats(network) or {}
 local res = {}
 
-for k, v in pairs(n) do
-   res = network_utils.network2record(interface.getId(), v)
+for _, v in pairs(network_stats) do
+   res = network_formatter.network2record(interface.getId(), v)
    break
 end
 

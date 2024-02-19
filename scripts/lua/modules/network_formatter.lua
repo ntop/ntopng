@@ -2,37 +2,15 @@
 -- (C) 2013-24 - ntop.org
 --
 
-local clock_start = os.clock()
-
 require "check_redis_prefs"
+require "label_utils"
 local format_utils = require "format_utils"
 
-local network_utils = {}
+local network_formatter = {}
 
 -- ##############################################
 
--- Get from redis the throughput type bps or pps
-local function getThroughputType()
-  local throughput_type = ntop.getCache("ntopng.prefs.thpt_content")
-  if throughput_type == "" then throughput_type = "bps" end
-  
-  return throughput_type
-end
-
--- ##############################################
-
-function network_utils.splitNetworkPrefix(net)
-   if not net then
-      tprint(debug.traceback())
-   end
-   local prefix = tonumber(net:match("/(.+)"))
-   local address = net:gsub("/.+","")
-   return address, prefix
-end
-
--- ##############################################
-
-function network_utils.network2record(ifId, network)
+function network_formatter.network2record(ifId, network)
    local record = {}
    local throughput_type = getThroughputType()
    
@@ -69,4 +47,4 @@ function network_utils.network2record(ifId, network)
    return record
 end
 
-return network_utils
+return network_formatter

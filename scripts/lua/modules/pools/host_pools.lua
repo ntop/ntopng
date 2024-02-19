@@ -107,7 +107,6 @@ end
 
 -- @brief Given a member key, returns a table of member details such as member name.
 function host_pools:get_member_details(member)
-    local network_utils = require "network_utils"
 
     local res = {}
     local member_name
@@ -119,7 +118,7 @@ function host_pools:get_member_details(member)
         member_name = address
         member_type = "mac"
     else
-        local network, prefix = network_utils.splitNetworkPrefix(address)
+        local network, prefix = splitNetworkPrefix(address)
 
         if (((isIPv4(network)) and (prefix ~= 32)) or
             ((isIPv6(network)) and (prefix ~= 128))) then

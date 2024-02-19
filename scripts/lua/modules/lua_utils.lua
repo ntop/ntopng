@@ -27,8 +27,6 @@ require "lua_utils_generic"
 require "ntop_utils"
 require "locales_utils"
 local l4_protocol_list = require "l4_protocol_list"
-local network_utils = require "network_utils"
-local os_utils = require "os_utils"
 local format_utils = require "format_utils"
 
 -- TODO: replace those globals with locals everywhere
@@ -46,7 +44,6 @@ bitsToSizeMultiplier = format_utils.bitsToSizeMultiplier
 format_high_num_value_for_tables = format_utils.format_high_num_value_for_tables
 l4_keys         = l4_protocol_list.l4_keys
 format_name_value    = format_utils.format_name_value
-splitNetworkPrefix = network_utils.splitNetworkPrefix
 
 -- ##############################################
 
