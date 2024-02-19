@@ -173,8 +173,6 @@ LuaEngine::LuaEngine() {
 
   lua_pushlightuserdata(L, (void*)lua_context);
   lua_setglobal(L, "userdata");
-
-  // if (vm) setThreadedActivityData(vm);
 }
 
 /* ******************************* */
@@ -1539,21 +1537,6 @@ void LuaEngine::setFlow(Flow *f) {
   if (c) {
     c->flow = f;
     c->iface = f->getInterface();
-  }
-}
-
-/* ****************************************** */
-
-void LuaEngine::setThreadedActivityData(lua_State *from) {
-  NtopngLuaContext *cur_ctx, *from_ctx;
-  lua_State *cur_state = getState();
-
-  if (from
-      && (cur_ctx = getLuaVMContext(cur_state))
-      && (from_ctx = getLuaVMContext(from))) {
-    cur_ctx->deadline = from_ctx->deadline;
-    cur_ctx->threaded_activity = from_ctx->threaded_activity;
-    cur_ctx->threaded_activity_stats = from_ctx->threaded_activity_stats;
   }
 }
 

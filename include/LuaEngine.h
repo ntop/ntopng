@@ -72,10 +72,6 @@ class LuaEngine {
   void setNetwork(NetworkStats *ns);
   void setFlow(Flow *f);
 
-  /* Set the deadline into the Lua context from an existing vm */
-  void setThreadedActivityData(lua_State *from);
-  /* Set the deadline into the Lua context from a threaded activity and a
-   * deadline */
   void setThreadedActivityData(const ThreadedActivity *ta,
                                ThreadedActivityStats *tas, time_t deadline);
 
