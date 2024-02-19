@@ -531,6 +531,49 @@ end
 
 -- ##############################################
 
+function hasClickHouseSupport()
+   local auth = require "auth"
+
+   if not (ntop.isPro() or ntop.isnEdgeEnterprise())
+      or ntop.isWindows() then
+      return false
+   end
+
+   -- Don't allow nIndex for unauthorized users
+   if not auth.has_capability(auth.capabilities.historical_flows) then
+      return false
+   end
+
+   -- TODO optimize
+   if prefs == nil then
+      prefs = ntop.getPrefs()
+   end
+
+   if prefs.is_dump_flows_to_clickhouse_enabled then
+      return true
+   end
+
+   return false
+end
+
+-- ##############################################
+
+-- NOTE: global nindex support may be enabled but some disable on some interfaces
+function interfaceHasClickHouseSupport()
+   return(hasClickHouseSupport() and ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"])
+end
+
+-- ###########################################
+
+function swapKeysValues(tbl)
+   local new_tbl = {}
+   for k, v in pairs(tbl or {}) do
+      new_tbl[v] = k
+   end
+   return new_tbl
+end
+
 if(trace_script_duration ~= nil) then
    io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
 end
+

@@ -7,7 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 local json = require "dkjson"
-
+require "label_utils"
+require "lua_utils_gui"
 sendHTTPHeader('text/json')
 
 local flow_key = _GET["flow_key"]

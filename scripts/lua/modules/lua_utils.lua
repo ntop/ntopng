@@ -273,39 +273,8 @@ function hasAlertsDisabled()
       ((_POST["disable_alerts_generation"] == nil) and (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1"))
 end
 
--- ##############################################
 
-function hasClickHouseSupport()
-   local auth = require "auth"
 
-   if not (ntop.isPro() or ntop.isnEdgeEnterprise())
-      or ntop.isWindows() then
-      return false
-   end
-
-   -- Don't allow nIndex for unauthorized users
-   if not auth.has_capability(auth.capabilities.historical_flows) then
-      return false
-   end
-
-   -- TODO optimize
-   if prefs == nil then
-      prefs = ntop.getPrefs()
-   end
-
-   if prefs.is_dump_flows_to_clickhouse_enabled then
-      return true
-   end
-
-   return false
-end
-
--- ##############################################
-
--- NOTE: global nindex support may be enabled but some disable on some interfaces
-function interfaceHasClickHouseSupport()
-   return(hasClickHouseSupport() and ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"])
-end
 
 -- ##############################################
 
@@ -737,42 +706,7 @@ function isSpecialMac(mac)
   return false
 end
 
--- ##############################################
 
--- Flow Utils --
-
-function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
-   local name
-   local orig_name
-
-   if (alerts_view and not hasClickHouseSupport()) or (add_hostname ~= nil and add_hostname == false) then
-      -- do not return resolved name as it will hide the IP address
-      return(flow_info[host_type..".ip"])
-   end
-
-   if(flow_info == nil) then return("") end
-
-   if(host_type == "srv") then
-      if flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "" and flow_info["host_server_name"]:match("%w") and not isIPv4(flow_info["host_server_name"]) and not isIPv6(flow_info["host_server_name"]) then
-	 -- remove possible ports from the name
-	 return(flow_info["host_server_name"]:gsub(":%d+$", ""))
-      end
-      if(flow_info["protos.tls.certificate"] ~= nil and flow_info["protos.tls.certificate"] ~= "") then
-	 return(flow_info["protos.tls.certificate"])
-      end
-   end
-
-   local hostinfo = {
-      host = flow_info[host_type..".ip"],
-      label = flow_info[host_type..".host"],
-      mac = flow_info[host_type..".mac"],
-      dhcpHost = flow_info[host_type..".dhcpHost"],
-      broadcast_domain_host = flow_info[host_type..".broadcast_domain_host"],
-      vlan = flow_info["vlan"],
-   }
-
-   return(hostinfo2label(hostinfo, true, false, true))
-end
 
 -- ##############################################
 
@@ -1220,17 +1154,6 @@ function stripVlan(name)
   return(name)
 end
 
--- ###########################################
-
-function swapKeysValues(tbl)
-   local new_tbl = {}
-
-   for k, v in pairs(tbl or {}) do
-      new_tbl[v] = k
-   end
-
-   return new_tbl
-end
 
 -- ###########################################
 

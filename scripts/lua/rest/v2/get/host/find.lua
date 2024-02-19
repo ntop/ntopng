@@ -11,6 +11,8 @@ local tag_utils = require "tag_utils"
 local snmp_utils
 local snmp_location
 
+require "lua_utils_generic"
+
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
    snmp_utils = require "snmp_utils"

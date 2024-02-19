@@ -19,6 +19,8 @@ local format_utils = require "format_utils"
 local alerts_api = require "alerts_api"
 local icmp_utils = require "icmp_utils"
 local flow_risk_utils = require "flow_risk_utils"
+require "lua_utils_generic"
+
 
 local shaper_utils = nil
 

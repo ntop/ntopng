@@ -47,6 +47,43 @@ end
 
 -- ##############################################
 
+-- Flow Utils --
+
+function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
+    local name
+    local orig_name
+ 
+    if (alerts_view and not hasClickHouseSupport()) or (add_hostname ~= nil and add_hostname == false) then
+       -- do not return resolved name as it will hide the IP address
+       return(flow_info[host_type..".ip"])
+    end
+ 
+    if(flow_info == nil) then return("") end
+ 
+    if(host_type == "srv") then
+       if flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "" and flow_info["host_server_name"]:match("%w") and not isIPv4(flow_info["host_server_name"]) and not isIPv6(flow_info["host_server_name"]) then
+      -- remove possible ports from the name
+      return(flow_info["host_server_name"]:gsub(":%d+$", ""))
+       end
+       if(flow_info["protos.tls.certificate"] ~= nil and flow_info["protos.tls.certificate"] ~= "") then
+      return(flow_info["protos.tls.certificate"])
+       end
+    end
+ 
+    local hostinfo = {
+       host = flow_info[host_type..".ip"],
+       label = flow_info[host_type..".host"],
+       mac = flow_info[host_type..".mac"],
+       dhcpHost = flow_info[host_type..".dhcpHost"],
+       broadcast_domain_host = flow_info[host_type..".broadcast_domain_host"],
+       vlan = flow_info["vlan"],
+    }
+ 
+    return(hostinfo2label(hostinfo, true, false, true))
+ end
+
+-- ##############################################
+
 -- Attempt at retrieving an host label from an host_info, using local caches and DNS resolution.
 -- This can be more expensive if compared to only using information found inside host_info.
 local function hostinfo2label_resolved(host_info, show_vlan, shorten_len, skip_resolution)
