@@ -11,8 +11,6 @@ if ntop.isEnterpriseM() or ntop.isnEdgeEnterprise() then
     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 end
 
-require "lua_utils"
-
 local json = require("dkjson")
 local rrd_utils = require "rrd_utils"
 local recording_utils = require "recording_utils"

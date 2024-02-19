@@ -4,7 +4,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
 require "flow_utils"
 require "voip_utils"
 

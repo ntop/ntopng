@@ -2,10 +2,12 @@
 -- (C) 2022 - ntop.org
 --
 
-require "lua_utils"
 local locales_utils = require "locales_utils"
 local template_utils = require "template_utils"
 local recording_utils = require "recording_utils"
+require "lua_utils_generic"
+require "lua_utils_get"
+require "ntop_utils"
 
 local messages = {
   ntopng = ternary(ntop.isnEdge(), i18n("nedge.add_system_user"), i18n("login.add_web_user")),
