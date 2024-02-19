@@ -4,11 +4,8 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-require "profiling"
-profiling.get_current_memory("disk_monitor.lua")
 
 local storage_utils = require("storage_utils")
-profiling.get_current_memory("disk_monitor.lua")
 
 -- ##############################################
 
