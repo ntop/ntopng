@@ -45,6 +45,7 @@ class LuaEngine {
   char *loaded_script_path;
   bool is_system_vm; /* Executed by callbacks */
   std::string cloud_string;
+  std::set<std::string> requires;
   size_t mem_used;
   u_int32_t start_epoch;
   NtopngLuaContext *lua_context;
@@ -127,6 +128,7 @@ class LuaEngine {
 
   inline size_t getMemUsed()         { return(mem_used); }
   inline void   incMemUsed(size_t v) { mem_used += v;    }
+  bool require(std::string name);
 };
 
 /**

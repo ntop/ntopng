@@ -432,19 +432,27 @@ static int __ntop_lua_handlefile(lua_State *L, char *script_path, bool ex) {
 /* This function is called by Lua scripts when the call require(...) */
 static int ntop_lua_require(lua_State *L) {
   char *script_name;
+  LuaEngine *engine = getUserdata(L)->engine;
 
-  if (lua_type(L, 1) != LUA_TSTRING ||
-      (script_name = (char *)lua_tostring(L, 1)) == NULL)
+  if (lua_type(L, 1) != LUA_TSTRING
+      || (script_name = (char *)lua_tostring(L, 1)) == NULL)
     return 0;
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s(%s)", __FUNCTION__,
-                               script_name);
+  
+  if(engine->require(std::string(script_name))) {    
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Circular dependency found %s]\n", engine, script_name);
+
+    return(1); /* Already loaded */
+  }
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s(%s)", __FUNCTION__, script_name);
 
   lua_getglobal(L, "package");
   lua_getfield(L, -1, "path");
 
   string cur_path = lua_tostring(L, -1), parsed, script_path = "";
   stringstream input_stringstream(cur_path);
+
   while (getline(input_stringstream, parsed, ';')) {
     /* Example: package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;"
      * .. package.path */
@@ -1590,5 +1598,17 @@ Host* LuaEngine::getHost() {
 
 NetworkInterface* LuaEngine::getNetworkInterface() {
   return (getLuaVMContext(L)->iface);
+}
+  
+/* ****************************************** */
+
+bool LuaEngine::require(std::string name) {  
+  std::set<std::string>::iterator it = requires.find(name);
+
+  if(it != requires.end())
+    return(true);
+  
+  requires.insert(name);
+  return(false);
 }
   
