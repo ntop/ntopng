@@ -2942,14 +2942,13 @@ end
 
 -- #################################################################
 
-if (pragma_once) then
+if (pragma_once_http_lint) then
    if (ignore_post_payload_parse == nil) then
       parsePOSTpayload()
    end
 
    clearNotAllowedParams()
    lintParams()
-   pragma_once = 0
 end
 
 if (trace_script_duration ~= nil) then
