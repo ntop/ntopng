@@ -266,13 +266,13 @@ end
 -- ##############################################
 
 function getLocalNetworkAliasById(network)
-    local network_utils = require "network_utils"
+    local network_consts = require "network_consts"
 
-    local networks_stats = interface.getNetworksStats()
+    local networks_stats = interface.getNetworksStats() or {}
     local network_id = tonumber(network)
 
     -- If network is (u_int8_t)-1 then return an empty value
-    if network == nil or network == network_utils.UNKNOWN_NETWORK then
+    if network == nil or network == network_consts.UNKNOWN_NETWORK then
         return ' '
     end
 

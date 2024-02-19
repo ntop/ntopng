@@ -4,13 +4,10 @@
 
 local clock_start = os.clock()
 
-require "label_utils"
 require "check_redis_prefs"
 local format_utils = require "format_utils"
 
 local network_utils = {}
-
-network_utils.UNKNOWN_NETWORK = 65535 -- uint16 (-1)
 
 -- ##############################################
 
