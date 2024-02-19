@@ -10,13 +10,19 @@ local dirs = ntop.getDirs()
 
 local clock_start = os.clock()
 
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+
 require "ntop_utils"
 require "check_redis_prefs"
 local os_utils = require("os_utils")
 local json = require("dkjson")
 local script_manager = require("script_manager")
+local alert_management = require "alert_management"
 local alert_entities_utils = require "alert_entities_utils"
-local http_lint = require("http_lint")
+local http_lint = require "http_lint"
+local alert_entity_builders = require "alert_entity_builders"
+
 
 -- ##############################################
 -- structs
@@ -261,6 +267,15 @@ checks.script_types = {
 }
 
 -- ##############################################
+
+local current_script = nil
+local current_configset = nil
+
+local function invokeScriptHook(check, configset, hook_fn, p1, p2, p3)
+    current_script = check
+    current_configset = configset
+    return (hook_fn(p1, p2, p3))
+end
 
 -- ##############################################
 
@@ -1963,10 +1978,9 @@ end
 
 local function snmp_device_run_checks(cached_device, checks_var)
     local snmp_utils = require "snmp_utils"
-    local alerts_api = require("alerts_api")
     local granularity = checks_var.cur_granularity
     local device_ip = cached_device["host_ip"]
-    local snmp_device_entity = alerts_api.snmpDeviceEntity(device_ip)
+    local snmp_device_entity = alert_entity_builders.snmpDeviceEntity(device_ip)
     local all_modules = checks_var.available_modules.modules
     local now = os.time()
     now = now - now % 300
@@ -1988,7 +2002,7 @@ local function snmp_device_run_checks(cached_device, checks_var)
         local conf = checks.getTargetHookConfig(device_conf, script)
 
         if (conf.enabled) then
-            alerts_api.invokeScriptHook(script, checks_var.configset, hook_fn, device_ip, info, conf)
+            invokeScriptHook(script, checks_var.configset, hook_fn, device_ip, info, conf)
         end
     end
 
@@ -2004,13 +2018,13 @@ local function snmp_device_run_checks(cached_device, checks_var)
             end
 
             if (conf.enabled) then
-                local iface_entity = alerts_api.snmpInterfaceEntity(device_ip, snmp_interface_index)
+                local iface_entity = alert_entity_builders.snmpInterfaceEntity(device_ip, snmp_interface_index)
 
                 -- Augment data with counters and status
                 snmp_interface["if_counters"] = cached_device.if_counters[snmp_interface_index]
                 snmp_interface["bridge"] = cached_device.bridge[snmp_interface_index]
 
-                alerts_api.invokeScriptHook(script, checks_var.configset, hook_fn, device_ip, snmp_interface_index,
+                invokeScriptHook(script, checks_var.configset, hook_fn, device_ip, snmp_interface_index,
                     table.merge(snmp_interface, {
                         granularity = granularity,
                         alert_entity = iface_entity,
@@ -2157,8 +2171,6 @@ end
 
 -- This function runs interfaces checks
 local function runInterfaceChecks(granularity, checks_var, do_trace)
-   local alerts_api = require("alerts_api")
-   
     if table.empty(checks_var.available_modules.hooks[granularity]) then
         if (do_trace) then
             print("interface:runScripts(" .. granularity .. "): no modules, skipping\n")
@@ -2170,7 +2182,7 @@ local function runInterfaceChecks(granularity, checks_var, do_trace)
 
     local info = interface.getStats()
     local cur_alerts = interface.getAlerts(granularity_id)
-    local entity_info = alerts_api.interfaceAlertEntity(checks_var.ifid)
+    local entity_info = alert_entity_builders.interfaceAlertEntity(checks_var.ifid)
 
     if (do_trace) then
         print("checkInterfaceAlerts()\n")
@@ -2181,7 +2193,7 @@ local function runInterfaceChecks(granularity, checks_var, do_trace)
         local conf = checks.getTargetHookConfig(checks_var.iface_config, check, granularity)
 
         if (conf.enabled) then
-            alerts_api.invokeScriptHook(check, checks_var.configset, hook_fn, {
+            invokeScriptHook(check, checks_var.configset, hook_fn, {
                 granularity = granularity,
                 alert_entity = entity_info,
                 entity_info = info,
@@ -2196,7 +2208,7 @@ local function runInterfaceChecks(granularity, checks_var, do_trace)
     -- those alerts triggered but then disabled or unconfigured (e.g., when
     -- the user removes a threshold from the gui)
     if #cur_alerts > 0 then
-        alerts_api.releaseEntityAlerts(entity_info, cur_alerts)
+        alert_management.releaseEntityAlerts(entity_info, cur_alerts)
     end
 end
 
@@ -2204,7 +2216,6 @@ end
 
 -- The function below is called once per local network
 local function runLocalNetworkChecks(granularity, checks_var, do_trace)
-   local alerts_api = require("alerts_api")
     if table.empty(checks_var.available_modules.hooks[granularity]) then
         if (do_trace) then
             print("network:runScripts(" .. granularity .. "): no modules, skipping\n")
@@ -2221,7 +2232,7 @@ local function runLocalNetworkChecks(granularity, checks_var, do_trace)
     local granularity_id = alert_granularities[granularity].granularity_id
 
     local cur_alerts = network.getAlerts(granularity_id)
-    local entity_info = alerts_api.networkAlertEntity(network_key)
+    local entity_info = alert_entity_builders.networkAlertEntity(network_key)
 
     -- Retrieve the configuration
     local subnet_conf = checks.getConfig(checks_var.configset, "network")
@@ -2231,7 +2242,7 @@ local function runLocalNetworkChecks(granularity, checks_var, do_trace)
         local conf = checks.getTargetHookConfig(subnet_conf, check, granularity)
 
         if (conf.enabled) then
-            alerts_api.invokeScriptHook(check, checks_var.configset, hook_fn, {
+            invokeScriptHook(check, checks_var.configset, hook_fn, {
                 granularity = granularity,
                 alert_entity = entity_info,
                 entity_info = info,
@@ -2246,14 +2257,13 @@ local function runLocalNetworkChecks(granularity, checks_var, do_trace)
     -- those alerts triggered but then disabled or unconfigured (e.g., when
     -- the user removes a threshold from the gui)
     if #cur_alerts > 0 then
-        alerts_api.releaseEntityAlerts(entity_info, cur_alerts)
+        alert_management.releaseEntityAlerts(entity_info, cur_alerts)
     end
 end
 
 -- #################################################################
 
 local function runSystemChecks(granularity, checks_var, do_trace)
-   local alerts_api = require("alerts_api")
    
     if do_trace then
         print("system.lua:runScripts(" .. granularity .. ") called\n")
@@ -2278,9 +2288,9 @@ local function runSystemChecks(granularity, checks_var, do_trace)
         local conf = checks.getTargetHookConfig(checks_var.system_config, check, granularity)
 
         if (conf.enabled) then
-            alerts_api.invokeScriptHook(check, checks_var.configset, hook_fn, {
+            invokeScriptHook(check, checks_var.configset, hook_fn, {
                 granularity = granularity,
-                alert_entity = alerts_api.interfaceAlertEntity(getSystemInterfaceId()),
+                alert_entity = alert_entity_builders.interfaceAlertEntity(getSystemInterfaceId()),
                 check_config = conf.script_conf,
                 check = check,
                 when = when,
@@ -2326,9 +2336,7 @@ end
 
 -- #################################################################
 
-local function runActiveMonitoringChecks(granularity, checks_var, do_trace)
-   local alerts_api = require("alerts_api")
-   
+local function runActiveMonitoringChecks(granularity, checks_var, do_trace)   
     if do_trace then
         print("active_monitoring.lua:runScripts(" .. granularity .. ") called\n")
     end
@@ -2353,9 +2361,9 @@ local function runActiveMonitoringChecks(granularity, checks_var, do_trace)
         local conf = checks.getTargetHookConfig(active_monitoring_conf, check, granularity)
 
         if (conf.enabled) then
-            alerts_api.invokeScriptHook(check, checks_var.configset, hook_fn, {
+            invokeScriptHook(check, checks_var.configset, hook_fn, {
                 granularity = granularity,
-                alert_entity = alerts_api.interfaceAlertEntity(getSystemInterfaceId()),
+                alert_entity = alert_entity_builders.interfaceAlertEntity(getSystemInterfaceId()),
                 check_config = conf.script_conf,
                 check = check,
                 when = when,

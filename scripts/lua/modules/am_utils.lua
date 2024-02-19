@@ -15,6 +15,7 @@ local ts_utils = require "ts_utils_core"
 local json = require("dkjson")
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
+local alert_management = require "alert_management"
 
 local supported_granularities = {
     ["min"] = "alerts_thresholds_config.every_minute",
@@ -524,7 +525,7 @@ function am_utils.deleteHost(host, measurement)
     local am_host_entity = alerts_api.amThresholdCrossEntity(host_key)
 
     -- Release any engaged alerts of the host
-    alerts_api.releaseEntityAlerts(am_host_entity)
+    alert_management.releaseEntityAlerts(am_host_entity)
 
     am_utils.discardHostTimeseries(host, measurement)
 
@@ -896,7 +897,7 @@ function am_utils.editHost(host, iface, measurement, threshold, granularity, tok
             interface.select(getSystemInterfaceId())
 
             -- Release any engaged alerts of the host
-            alerts_api.releaseEntityAlerts(alerts_api.amThresholdCrossEntity(key))
+            alert_management.releaseEntityAlerts(alerts_api.amThresholdCrossEntity(key))
 
             interface.select(old_iface)
         end

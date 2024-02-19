@@ -13,19 +13,29 @@ require "ntop_utils"
 local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
 local recipients = require "recipients"
+local alert_entity_builders = require "alert_entity_builders"
+local alert_management = require "alert_management"
 local do_trace = false
 
 local alerts_api = {}
 
--- Just helpers
-local str_2_periodicity = {
-    ["min"] = 60,
-    ["5mins"] = 300,
-    ["hour"] = 3600,
-    ["day"] = 86400
-}
+-- #################################################
 
-local known_alerts = {}
+-- For backwards compatibility, redefine these alerts as part of alerts_api
+alerts_api.hostAlertEntity = alert_entity_builders.hostAlertEntity
+alerts_api.interfaceAlertEntity = alert_entity_builders.interfaceAlertEntity
+alerts_api.networkAlertEntity = alert_entity_builders.networkAlertEntity
+alerts_api.snmpInterfaceEntity = alert_entity_builders.snmpInterfaceEntity
+alerts_api.snmpDeviceEntity = alert_entity_builders.snmpDeviceEntity
+alerts_api.macEntity = alert_entity_builders.macEntity
+alerts_api.userEntity = alert_entity_builders.userEntity
+alerts_api.hostPoolEntity = alert_entity_builders.hostPoolEntity
+alerts_api.amThresholdCrossEntity = alert_entity_builders.amThresholdCrossEntity
+alerts_api.systemEntity = alert_entity_builders.systemEntity
+alerts_api.iec104Entity = alert_entity_builders.iec104Entity
+
+-- #################################################
+
 local current_script
 local current_configset -- The configset used for the generation of this alert
 
@@ -455,148 +465,7 @@ end
 
 function alerts_api.releaseAllAlerts()
     local alerts = interface.getEngagedAlerts()
-    alerts_api.releaseEntityAlerts(nil, alerts)
-end
-
--- ##############################################
-
--- Convenient method to release multiple alerts on an entity
-function alerts_api.releaseEntityAlerts(entity_info, alerts)
-    if (alerts == nil) then
-        alerts = interface.getEngagedAlerts(entity_info.alert_entity.entity_id, entity_info.entity_val)
-    end
-
-    for _, cur_alert in ipairs(alerts) do
-        -- NOTE: do not pass alerts here as a parameters as deleting items while
-        -- does not work in lua
-
-        local cur_alert_type = alert_consts.alert_types[alert_consts.getAlertType(cur_alert.alert_id)]
-        -- Instantiate the alert.
-        -- NOTE: No parameter is passed to :new() as parameters are NOT used when releasing alerts
-        -- This may change in the future.
-        local cur_alert_instance = cur_alert_type:new( --[[ empty, no parameters for the release --]] )
-
-        -- Set alert params.
-        cur_alert_instance:set_score(cur_alert.score)
-        cur_alert_instance:set_subtype(cur_alert.subtype)
-        cur_alert_instance:set_granularity(alert_consts.sec2granularity(cur_alert.granularity))
-        local entity = entity_info
-        if (entity_info == nil) then
-            entity = {
-                alert_entity = alert_consts.alertEntityById(cur_alert.entity_id),
-                entity_val = cur_alert.entity_val
-            }
-        end
-
-        cur_alert_instance:release(entity)
-    end
-end
-
--- ##############################################
--- entity_info building functions
--- ##############################################
-
-function alerts_api.hostAlertEntity(hostip, hostvlan)
-    return {
-        alert_entity = alert_consts.alert_entities.host,
-        -- NOTE: keep in sync with C (Alertable::setEntityValue)
-        entity_val = hostinfo2hostkey({
-            ip = hostip,
-            vlan = hostvlan
-        }, nil, true)
-    }
-end
-
--- ##############################################
-
-function alerts_api.interfaceAlertEntity(ifid)
-    return {
-        alert_entity = alert_consts.alert_entities.interface,
-        -- NOTE: keep in sync with C (Alertable::setEntityValue)
-        entity_val = string.format("%d", ifid)
-    }
-end
-
--- ##############################################
-
-function alerts_api.networkAlertEntity(network_cidr)
-    return {
-        alert_entity = alert_consts.alert_entities.network,
-        -- NOTE: keep in sync with C (Alertable::setEntityValue)
-        entity_val = network_cidr
-    }
-end
-
--- ##############################################
-
-function alerts_api.snmpInterfaceEntity(snmp_device, snmp_interface)
-    return {
-        alert_entity = alert_consts.alert_entities.snmp_device,
-        entity_val = string.format("%s_ifidx%s", snmp_device, "" .. snmp_interface)
-    }
-end
-
--- ##############################################
-
-function alerts_api.snmpDeviceEntity(snmp_device)
-    return {
-        alert_entity = alert_consts.alert_entities.snmp_device,
-        entity_val = snmp_device
-    }
-end
-
--- ##############################################
-
-function alerts_api.macEntity(mac)
-    return {
-        alert_entity = alert_consts.alert_entities.mac,
-        entity_val = mac
-    }
-end
-
--- ##############################################
-
-function alerts_api.userEntity(user)
-    return {
-        alert_entity = alert_consts.alert_entities.user,
-        entity_val = user
-    }
-end
-
--- ##############################################
-
-function alerts_api.hostPoolEntity(pool_id)
-    return {
-        alert_entity = alert_consts.alert_entities.host_pool,
-        entity_val = tostring(pool_id)
-    }
-end
-
--- ##############################################
-
-function alerts_api.amThresholdCrossEntity(host)
-    return {
-        alert_entity = alert_consts.alert_entities.am_host,
-        entity_val = host
-    }
-end
-
--- ##############################################
-
-function alerts_api.systemEntity(system_entity_name)
-    return {
-        alert_entity = alert_consts.alert_entities.system,
-        entity_val = system_entity_name or "system"
-    }
-end
-
--- ##############################################
-
-function alerts_api.iec104Entity(flow)
-    return {
-        alert_entity = alert_consts.alert_entities.flow,
-        entity_val = "flow"
-    }
+    alert_management.releaseEntityAlerts(nil, alerts)
 end
 
 -- ##############################################
@@ -743,15 +612,6 @@ function alerts_api.category_bytes(info, category_name)
     end
 
     return curr_val
-end
-
--- ##############################################
-
-function alerts_api.invokeScriptHook(check, configset, hook_fn, p1, p2, p3)
-    current_script = check
-    current_configset = configset
-
-    return (hook_fn(p1, p2, p3))
 end
 
 -- ##############################################
