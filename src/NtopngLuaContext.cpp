@@ -39,7 +39,7 @@ NtopngLuaContext::NtopngLuaContext() {
   memset(&pkt_capture, 0, sizeof(pkt_capture));
   memset(&live_capture, 0, sizeof(live_capture));
   next_reload = deadline = 0, threaded_activity = NULL;
-  
+  threaded_activity_stats = NULL;
 #if defined(NTOPNG_PRO)
   bin = NULL;
 #endif  
