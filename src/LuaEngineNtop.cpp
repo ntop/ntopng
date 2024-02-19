@@ -3888,6 +3888,10 @@ static int ntop_get_info(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "pid", getpid());
 #endif
 
+#ifdef HAVE_JEMALLOC
+  lua_push_bool_table_entry(vm, "jemalloc", true);
+#endif
+  
   snprintf(rsp, sizeof(rsp), "%s [%s]", PACKAGE_OS, PACKAGE_MACHINE);
   lua_push_str_table_entry(vm, "platform", rsp);
   lua_push_str_table_entry(vm, "OS",

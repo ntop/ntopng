@@ -272,6 +272,8 @@ fi
 JE=../jemalloc/lib/libjemalloc.a
 if ! test -f "${JE}"; then
  JE=
+else
+ AC_DEFINE(HAVE_JEMALLOC, 1, [ntopng has been compiled with jemalloc])
 fi
 
 SHORT_MACHINE=`uname -m | cut -b1-3`
