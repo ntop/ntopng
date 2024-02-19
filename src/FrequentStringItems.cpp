@@ -33,7 +33,6 @@ void FrequentStringItems::add(char *key, u_int32_t value) {
     it->second += value;
   else {
     if (q.size() > max_items_threshold) prune();
-
     q[std::string(key)] = value;
   }
 
@@ -51,8 +50,8 @@ static bool sortByVal(const pair<u_int32_t, std::string> &a,
 
 void FrequentStringItems::prune() {
   /* No lock here */
-  u_int32_t num = 0;
   std::vector<std::pair<u_int32_t, std::string>> vec;
+  u_int32_t prev_num = q.size();
 
   /*
     Sort the hash items by value and remove those who exceeded
@@ -64,17 +63,13 @@ void FrequentStringItems::prune() {
 
   std::sort(vec.begin(), vec.end(), sortByVal);
 
-  for (std::vector<std::pair<u_int32_t, std::string>>::iterator it2 =
-           vec.begin();
-       it2 != vec.end(); ++it2) {
-    if (++num < max_items) {
-      /*
-      u_int32_t id  = it2.first;
-      std::string k = it2->second;
+  for (u_int32_t i = 0; i < (prev_num - max_items); i++) {
+#if 0
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Erasing %s (%u)",
+        vec[i].second.c_str(), vec[i].first);
+#endif
+      std::string k = vec[i].second;
       q.erase(k);
-      */
-    } else
-      break;
   }
 }
 
