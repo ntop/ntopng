@@ -462,6 +462,10 @@ local menu_subpages = {{
             title = i18n("prefs.toggle_snmp_rrds_title"),
             description = i18n("prefs.toggle_snmp_rrds_description")
         },
+        toggle_snmp_polling = {
+            title = i18n("prefs.toggle_snmp_polling_title"),
+            description = i18n("prefs.toggle_snmp_polling_description")
+        },
         default_snmp_community = {
             title = i18n("prefs.default_snmp_community_title"),
             description = i18n("prefs.default_snmp_community_description")

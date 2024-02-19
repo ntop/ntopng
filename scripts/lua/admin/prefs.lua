@@ -1839,6 +1839,12 @@ if auth.has_capability(auth.capabilities.preferences) then
             disabled = disabled
         })
 
+        prefsToggleButton(subpage_active, {
+            field = "toggle_snmp_polling",
+            default = "0",
+            pref = "snmp_polling",
+        })
+
         local t_labels = {"v1", "v2c"}
         local t_values = {"0", "1"}
 
