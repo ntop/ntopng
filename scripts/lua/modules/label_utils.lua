@@ -125,8 +125,6 @@ end
 -- In case host_info is not enough to label the host, then local caches and DNS resolution kick in
 -- to find a label (at the expense of extra time).
 function hostinfo2label(host_info, show_vlan, shorten_len, skip_resolution)
-    require "lua_utils"
-    local alt_name = nil
     local ip = host_info["ip"] or host_info["host"]
 
     -- Take the label as found in the host structure
