@@ -884,7 +884,9 @@ function page_utils.generate_info_stats()
 
    download_stats = download_stats:sub(1, -2)
    upload_stats = upload_stats:sub(1, -2)
-
+   if (_ifstats.id == -1) then
+      return ""
+   end
    if _ifstats.has_traffic_directions then
       return ([[
          <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>
