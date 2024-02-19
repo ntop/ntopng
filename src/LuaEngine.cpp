@@ -438,7 +438,7 @@ static int ntop_lua_require(lua_State *L) {
 
   
   if(engine->require(std::string(script_name))) {    
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Circular dependency found %s]\n", engine, script_name);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Circular dependency found %s\n", script_name);
 
     return(1); /* Already loaded */
   }
