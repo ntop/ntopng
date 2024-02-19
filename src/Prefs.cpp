@@ -160,6 +160,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_runtime_flows_dump = true;
   enable_activities_debug = false;
   snmp_polling = false;
+  active_monitoring = false;
   vs_max_num_scans = 4;
   vs_slow_scan = false;
 #ifndef HAVE_NEDGE
@@ -952,6 +953,7 @@ void Prefs::reloadPrefsFromRedis() {
     enable_activities_debug =
     getDefaultBoolPrefsValue(CONST_ACTIVITIES_DEBUG_ENABLED, false),
     snmp_polling = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SNMP_POLLING, false);
+    active_monitoring = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACTIVE_MONITORING, false);
 
     enable_arp_matrix_generation =
     getDefaultBoolPrefsValue(CONST_DEFAULT_ARP_MATRIX_GENERATION, false),
@@ -2699,6 +2701,8 @@ void Prefs::lua(lua_State *vm) {
                             vs_slow_scan);
   lua_push_bool_table_entry(vm, "snmp_polling", 
                             snmp_polling);
+  lua_push_bool_table_entry(vm, "active_monitoring", 
+                            active_monitoring);
 
 #ifdef HAVE_NEDGE
   lua_push_bool_table_entry(vm, "is_mac_based_captive_portal",

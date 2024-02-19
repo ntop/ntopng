@@ -196,6 +196,7 @@ class Prefs {
 #endif
   bool print_version, print_version_json;
   bool snmp_polling;
+  bool active_monitoring;
 
   InterfacesSet lan_interfaces, wan_interfaces;
 
@@ -379,6 +380,7 @@ class Prefs {
   inline bool do_simulate_macs() { return (simulate_macs); };
   inline bool do_insecure_tls() { return (insecure_tls); };
   inline bool do_snmp_polling() { return (snmp_polling); };
+  inline bool do_active_monitoring(){ return (active_monitoring); };
   inline char* get_cpu_affinity() { return (cpu_affinity); };
   inline char* get_other_cpu_affinity() { return (other_cpu_affinity); };
 #ifdef __linux__

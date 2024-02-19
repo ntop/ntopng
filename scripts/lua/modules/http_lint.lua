@@ -2203,6 +2203,7 @@ local known_parameters = {
    ["toggle_log_to_file"] = validateBool,
    ["toggle_snmp_rrds"] = validateBool,
    ["toggle_snmp_polling"] = validateBool,
+   ["toggle_active_monitoring"] = validateBool,
    ["toggle_tiny_flows_export"] = validateBool,
    ["toggle_vlan_rrds"] = validateBool,
    ["toggle_asn_rrds"] = validateBool,

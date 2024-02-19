@@ -276,7 +276,28 @@ if auth.has_capability(auth.capabilities.preferences) then
     end
 
     -- ================================================================================
+    function printActiveMonitoring()
+        print('<form method="post">')
+        print('<table class="table">')
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("active_monitoring_stats.active_monitoring") ..
+        '</th></tr></thead>')
 
+        prefsToggleButton(subpage_active, {
+            field = "toggle_active_monitoring",
+            default = "0",
+            pref = "active_monitoring",
+        })
+
+        print(
+            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+                i18n("save") .. '</button></th></tr>')
+        print('</table>')
+        print [[<input name="csrf" type="hidden" value="]]
+        print(ntop.getRandomCSRFValue())
+        print [[" />
+        </form> ]]
+        
+    end
     function printAlerts()
         print('<form method="post">')
         print('<table class="table">')
@@ -2259,6 +2280,10 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     if (tab == "alerts") then
         printAlerts()
+    end
+
+    if (tab ==  "active_monitoring") then
+        printActiveMonitoring()
     end
 
     if (tab == "protocols") then
