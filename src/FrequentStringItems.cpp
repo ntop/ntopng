@@ -29,9 +29,9 @@ void FrequentStringItems::add(char *key, u_int32_t value) {
 
   it = q.find(std::string(key));
 
-  if (it != q.end())
+  if (it != q.end()) {
     it->second += value;
-  else {
+  } else {
     if (q.size() > max_items_threshold) prune();
 
     q[std::string(key)] = value;
@@ -47,6 +47,8 @@ static bool sortByVal(const pair<u_int32_t, std::string> &a,
   return (a.first < b.first);
 }
 
+/* ******************************************************** */
+
 void FrequentStringItems::prune() {
   /* No lock here */
   u_int32_t num = 0;
@@ -60,7 +62,7 @@ void FrequentStringItems::prune() {
        it1 != q.end(); ++it1)
     vec.push_back(std::make_pair(it1->second, it1->first));
 
-  sort(vec.begin(), vec.end(), sortByVal);
+  std::sort(vec.begin(), vec.end(), sortByVal);
 
   for (std::vector<std::pair<u_int32_t, std::string>>::iterator it2 =
            vec.begin();
