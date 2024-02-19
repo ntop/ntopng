@@ -1,6 +1,15 @@
 --
 -- (C) 2014-24 - ntop.org
 --
+
+if(pragma_once_lua_utils_get == true) then
+   -- io.write(debug.traceback().."\n")
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_lua_utils_get = true
+
 local clock_start = os.clock()
 
 -- ##############################################
