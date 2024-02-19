@@ -18,6 +18,9 @@ pragma_once_lua_utils_gui = true
 
 local clock_start = os.clock()
 
+require "gui_utils"
+require "alert_severity_utils"
+
 local format_utils = require "format_utils"
 local dns_utils = require "dns_utils"
 local http_utils = require "http_utils"
@@ -125,37 +128,6 @@ function sendHTTPContentTypeHeader(content_type, content_disposition, charset, e
     local mime = content_type .. "; charset=" .. charset
 
     sendHTTPHeader(mime, content_disposition, extra_headers, status_code)
-end
-
--- ##############################################
-
-function noHtml(s)
-    if s == nil then
-        return nil
-    end
-
-    local gsub, char = string.gsub, string.char
-    local entityMap = {
-        lt = "<",
-        gt = ">",
-        amp = "&",
-        quot = '"',
-        apos = "'"
-    }
-    local entitySwap = function(orig, n, s)
-        return (n == '' and entityMap[s]) or (n == "#" and tonumber(s)) and string.char(s) or
-                   (n == "#x" and tonumber(s, 16)) and string.char(tonumber(s, 16)) or orig
-    end
-
-    local function unescape(str)
-        return (gsub(str, '(&(#?x?)([%d%a]+);)', entitySwap))
-    end
-
-    local cleaned = s:gsub("<[aA] .->(.-)</[aA]>", "%1"):gsub("<abbr .->(.-)</abbr>", "%1"):gsub("<span .->(.-)</span>",
-        "%1"):gsub("<button .->(.-)</button>", "%1"):gsub("%s*<[iI].->(.-)</[iI]>", "%1"):gsub("<.->(.-)</.->", "%1") -- note: keep as last as this does not handle nested tags
-    :gsub("^%s*(.-)%s*$", "%1"):gsub('&nbsp;', " ")
-
-    return unescape(cleaned)
 end
 
 -- ##############################################
@@ -1681,16 +1653,6 @@ function format_utils.formatSNMPInterface(snmpdevice, interface_index)
     local interface_name = format_portidx_name(snmpdevice, interface_index)
 
     return string.format('%s (%s)', interface_index, (interface_name))
-end
-
--- ##############################################
-
-function map_score_to_severity(score)
-    if score ~= nil then
-        return ntop.mapScoreToSeverity(score)
-    end
-
-    return ntop.mapScoreToSeverity(0)
 end
 
 -- ##############################################

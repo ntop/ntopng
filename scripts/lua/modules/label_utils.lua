@@ -76,6 +76,32 @@ local function hostinfo2label_resolved(host_info, show_vlan, shorten_len, skip_r
 end
 
 -- ##############################################
+
+-- "Some Very Long String" -> "Some Ver...g String"
+function shortenCollapse(s, max_len)
+   local replacement = "..."
+   local r_len = string.len(replacement)
+   local s_len = string.len(s)
+
+   if max_len == nil then
+      max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
+      max_len = tonumber(max_len)
+      if(max_len == nil) then max_len = 24 end
+   end
+
+   if max_len <= r_len then
+      return replacement
+   end
+
+   if s_len > max_len then
+      local half = math.floor((max_len-r_len) / 2)
+      return string.sub(s, 1, half) .. replacement .. string.sub(s, s_len-half+1)
+   end
+
+   return s
+end
+
+-- ##############################################
 -- Just a convenience function for hostinfo2label with only IP and VLAN
 function ip2label(ip, vlan, shorten_len)
     return hostinfo2label({
@@ -371,4 +397,85 @@ function getFullVlanName(vlan_id, compact, return_untagged)
     end
 
     return vlan_id
+end
+
+-- #################################
+
+-- This function actively resolves an host if there is not information about it.
+-- NOTE: prefer the host2name on this function
+function resolveAddress(hostinfo, allow_empty, shorten_len)
+   local alt_name = ip2label(hostinfo["host"], hostinfo["vlan"], shorten_len)
+
+   if(not isEmptyString(alt_name) and (alt_name ~= hostinfo["host"])) then
+      -- The host label has priority
+      return(alt_name)
+   end
+
+   local hostname = ntop.resolveName(hostinfo["host"])
+   if isEmptyString(hostname) then
+      -- Not resolved
+      if allow_empty == true then
+         return hostname
+      else
+         -- this function will take care of formatting the IP
+         return hostinfo2label(hostinfo, true, shorten_len)
+      end
+   end
+   return hostinfo2label(hostinfo, true, shorten_len)
+end
+
+-- ##############################################
+
+-- See also getHumanReadableInterfaceName
+function getInterfaceName(interface_id, windows_skip_description)
+    if (interface_id == getSystemInterfaceId()) then
+        return (getSystemInterfaceName())
+    end
+
+    local ifnames = interface.getIfNames()
+    local iface = ifnames[tostring(interface_id)]
+
+    if iface ~= nil then
+        if (windows_skip_description ~= true and string.contains(iface, "{")) then -- Windows
+            local old_iface = interface.getId()
+
+            -- Use the interface description instead of the name
+            interface.select(tostring(iface))
+            iface = interface.getStats().description
+
+            interface.select(tostring(old_iface))
+        end
+
+        return (iface)
+    end
+
+    return ("")
+end
+
+-- ##############################################
+
+function getHumanReadableInterfaceName(interface_name)
+    local interface_id = nil
+
+    if (interface_name == "__system__") then
+        return (i18n("system"))
+    elseif tonumber(interface_name) ~= nil then
+        -- convert ID to name
+        interface_id = tonumber(interface_name)
+        interface_name = getInterfaceName(interface_name)
+    else
+        -- Parameter is a string, let's take it's id first
+        interface_id = getInterfaceId(interface_name)
+        -- and then get the name
+        interface_name = getInterfaceName(interface_id)
+    end
+
+    local key = 'ntopng.prefs.ifid_' .. tostring(interface_id) .. '.name'
+    local custom_name = ntop.getCache(key)
+
+    if not isEmptyString(custom_name) then
+        return (shortenCollapse(custom_name))
+    end
+
+    return interface_name
 end

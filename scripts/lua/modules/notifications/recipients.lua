@@ -17,6 +17,7 @@ local alert_severities = require "alert_severities"
 local alert_entities = require "alert_entities"
 local checks = require "checks"
 local endpoints = require("endpoints")
+require "check_redis_prefs"
 
 local last_error_notification = 0
 local MIN_ERROR_DELAY = 60 -- 1 minute

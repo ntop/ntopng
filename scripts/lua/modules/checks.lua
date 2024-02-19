@@ -11,22 +11,24 @@ local dirs = ntop.getDirs()
 local clock_start = os.clock()
 
 require "ntop_utils"
+require "check_redis_prefs"
 local os_utils = require("os_utils")
 local json = require("dkjson")
 local script_manager = require("script_manager")
-local alert_consts = require "alert_consts"
+local alert_entities_utils = require "alert_entities_utils"
 local http_lint = require("http_lint")
 
-local checks = {}
-
 -- ##############################################
-
-local filters_debug = false
-
--- ##############################################
-
+-- structs
+local alert_categories = require "alert_categories"
+local alert_granularities = require "alert_granularities"
+local alert_entities = require "alert_entities"
 -- Checks category consts
-checks.check_categories = alert_consts.categories
+
+-- ##############################################
+
+local checks = {}
+checks.check_categories = alert_categories
 
 -- ##############################################
 
@@ -111,7 +113,7 @@ local available_subdirs = {{
                 lint = http_lint.validateInterface, -- An interface id
                 match = function(context, val)
                     -- Do the comparison
-                    if not context or context.alert_entity ~= alert_consts.alertEntity("interface") then
+                    if not context or context.alert_entity ~= alert_entities_utils.alertEntity("interface") then
                         return false
                     end
 
@@ -121,7 +123,7 @@ local available_subdirs = {{
                 sqlite = function(val)
                     -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
                     return string.format("(alert_entity = %u AND alert_entity_val = '%s')",
-                        alert_consts.alertEntity("interface"), val)
+                        alert_entities_utils.alertEntity("interface"), val)
                 end,
                 find = function(alert, alert_json, filter, val)
                     return (alert[filter] and (alert[filter] == val))
@@ -139,7 +141,7 @@ local available_subdirs = {{
                 lint = http_lint.validateNetworkWithVLAN, -- A local network
                 match = function(context, val)
                     -- Do the comparison
-                    if not context or context.alert_entity ~= alert_consts.alertEntity("network") then
+                    if not context or context.alert_entity ~= alert_entities_utils.alertEntity("network") then
                         return false
                     end
 
@@ -149,7 +151,7 @@ local available_subdirs = {{
                 sqlite = function(val)
                     -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
                     return string.format("(alert_entity = %u AND alert_entity_val = '%s')",
-                        alert_consts.alertEntity("network"), val)
+                        alert_entities_utils.alertEntity("network"), val)
                 end,
                 find = function(alert, alert_json, filter, val)
                     return (alert[filter] and (alert[filter] == val))
@@ -167,7 +169,7 @@ local available_subdirs = {{
                 lint = http_lint.validateHost, -- The IP address of an SNMP device
                 match = function(context, val)
                     -- Do the comparison
-                    if not context or context.alert_entity ~= alert_consts.alertEntity("snmp_device") then
+                    if not context or context.alert_entity ~= alert_entities_utils.alertEntity("snmp_device") then
                         return false
                     end
 
@@ -177,7 +179,7 @@ local available_subdirs = {{
                 sqlite = function(val)
                     -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
                     return string.format("(alert_entity = %u AND alert_entity_val = '%s')",
-                        alert_consts.alertEntity("snmp_device"), val)
+                        alert_entities_utils.alertEntity("snmp_device"), val)
                 end,
                 find = function(alert, alert_json, filter, val)
                     return (alert[filter] and (alert[filter] == val))
@@ -344,7 +346,6 @@ local benchmarks = {}
 
 function checks.getSubdirectoryPath(script_type, subdir)
     local res = {}
-    local prefix = script_manager.getRuntimePath() .. "/callbacks"
     local path
 
     -- Checks definition path
@@ -1769,31 +1770,6 @@ end
 
 -- ##############################################
 
--- This function is used to return the list of enabled checks
-function checks.getEnabledChecksList()
-    local result = {}
-    local alert_entities = require "alert_entities"
-
-    for _, entity_info in pairs(alert_entities) do
-        local alert_list = {}
-        for _, alert_info in pairsByField(alert_consts.getAlertTypesInfo(entity_info.entity_id), "label", asc) do
-            alert_list[#alert_list + 1] = {
-                key = alert_info.alert_id,
-                entity_id = entity_info.entity_id,
-                title = alert_info.label,
-            }
-        end
-        result[#result + 1] = {
-            alert_list = alert_list,
-            entity_name = i18n(entity_info.i18n_label)
-        }
-    end
-
-    return result
-end
-
--- ##############################################
-
 local function printUserScriptsTable()
     local ifid = interface.getId()
     local flow_checks_stats = ntop.getFlowChecksStats() or {}
@@ -1986,7 +1962,6 @@ end
 -- #################################################################
 
 local function snmp_device_run_checks(cached_device, checks_var)
-    local snmp_consts = require "snmp_consts"
     local snmp_utils = require "snmp_utils"
     local alerts_api = require("alerts_api")
     local granularity = checks_var.cur_granularity
@@ -2088,7 +2063,7 @@ end
 
 -- The function below ia called once (#pragma once)
 local function setupLocalNetworkChecks(str_granularity, checks_var, do_trace)
-    checks_var.network_entity = alert_consts.alert_entities.network.entity_id
+    checks_var.network_entity = alert_entities.network.entity_id
     if do_trace then
         print("alert.lua:setup(" .. str_granularity .. ") called\n")
     end
@@ -2138,7 +2113,7 @@ local function setupSNMPChecks(str_granularity, checks_var, do_trace)
         print("alert.lua:setup(" .. str_granularity .. ") called\n")
     end
 
-    checks_var.snmp_device_entity = alert_consts.alert_entities.snmp_device.entity_id
+    checks_var.snmp_device_entity = alert_entities.snmp_device.entity_id
 
     interface.select(getSystemInterfaceId())
     checks_var.ifid = getSystemInterfaceId()
@@ -2164,7 +2139,7 @@ local function setupActiveMonitoringChecks(str_granularity, checks_var, do_trace
         print("alert.lua:setup(" .. str_granularity .. ") called\n")
     end
 
-    checks_var.snmp_device_entity = alert_consts.alert_entities.snmp_device.entity_id
+    checks_var.snmp_device_entity = alert_entities.snmp_device.entity_id
 
     interface.select(getSystemInterfaceId())
     checks_var.ifid = getSystemInterfaceId()
@@ -2191,7 +2166,7 @@ local function runInterfaceChecks(granularity, checks_var, do_trace)
         return
     end
 
-    local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
+    local granularity_id = alert_granularities[granularity].granularity_id
 
     local info = interface.getStats()
     local cur_alerts = interface.getAlerts(granularity_id)
@@ -2243,7 +2218,7 @@ local function runLocalNetworkChecks(granularity, checks_var, do_trace)
         return
     end
 
-    local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
+    local granularity_id = alert_granularities[granularity].granularity_id
 
     local cur_alerts = network.getAlerts(granularity_id)
     local entity_info = alerts_api.networkAlertEntity(network_key)

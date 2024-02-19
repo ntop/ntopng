@@ -10,35 +10,10 @@ end
 
 pragma_once_lua_utils_get = true
 
+require "ntop_utils"
+require "label_utils"
+
 local clock_start = os.clock()
-
--- ##############################################
-
--- See also getHumanReadableInterfaceName
-function getInterfaceName(interface_id, windows_skip_description)
-    if (interface_id == getSystemInterfaceId()) then
-        return (getSystemInterfaceName())
-    end
-
-    local ifnames = interface.getIfNames()
-    local iface = ifnames[tostring(interface_id)]
-
-    if iface ~= nil then
-        if (windows_skip_description ~= true and string.contains(iface, "{")) then -- Windows
-            local old_iface = interface.getId()
-
-            -- Use the interface description instead of the name
-            interface.select(tostring(iface))
-            iface = interface.getStats().description
-
-            interface.select(tostring(old_iface))
-        end
-
-        return (iface)
-    end
-
-    return ("")
-end
 
 -- ##############################################
 
@@ -506,34 +481,6 @@ function removeCustomnDPIProtoCategory(app_id)
     -- NOTE: when the ndpi struct changes, the custom associations are
     -- reloaded by Ntop::loadProtocolsAssociations
     ntop.delHashCache(key, tostring(app_id));
-end
-
--- ##############################################
-
-function getHumanReadableInterfaceName(interface_name)
-    local interface_id = nil
-
-    if (interface_name == "__system__") then
-        return (i18n("system"))
-    elseif tonumber(interface_name) ~= nil then
-        -- convert ID to name
-        interface_id = tonumber(interface_name)
-        interface_name = getInterfaceName(interface_name)
-    else
-        -- Parameter is a string, let's take it's id first
-        interface_id = getInterfaceId(interface_name)
-        -- and then get the name
-        interface_name = getInterfaceName(interface_id)
-    end
-
-    local key = 'ntopng.prefs.ifid_' .. tostring(interface_id) .. '.name'
-    local custom_name = ntop.getCache(key)
-
-    if not isEmptyString(custom_name) then
-        return (shortenCollapse(custom_name))
-    end
-
-    return interface_name
 end
 
 -- ##############################################
@@ -1043,43 +990,6 @@ function getHttpUrlPrefix()
     else
         return "http://"
     end
-end
-
--- ###########################################
-
-function getHttpHost()
-    local ntopng_info = ntop.getInfo()
-    local ntopng_host_info = ntop.getHostInformation()
-
-    -- Read configured ntopng host name or IP
-    local ntopng_host_ip = ntop.getPref("ntopng.prefs.ntopng_host_address")
-    if isEmptyString(ntopng_host_ip) then
-        -- fallback: managegemt IP
-        ntopng_host_ip = ntopng_host_info.ip
-    end
-    if isEmptyString(ntopng_host_ip) then
-        -- last resort: dummy IP
-        ntopng_host_ip = '127.0.0.1'
-    end
-
-    local http_host
-    if starts(ntopng_host_ip, 'http') then
-        http_host = ntopng_host_ip
-    else
-        -- Computing URL adding protocol and port
-        local ntopng_protocol = "http://"
-        local ntopng_port = ntopng_info.http_port
-
-        if not ntop.isnEdge()
-           and ntopng_info.https_port and tonumber(ntopng_info.https_port) ~= 0 then
-            ntopng_protocol = "https://"
-            ntopng_port = ntopng_info.https_port
-        end
-
-        http_host = ntopng_protocol .. ntopng_host_ip .. ":" .. ntopng_port
-    end
-
-    return http_host
 end
 
 -- ##############################################

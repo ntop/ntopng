@@ -11,7 +11,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" ..
 
 require "ntop_utils"
 local alert_entities = require "alert_entities"
-local alert_consts = require("alert_consts")
+local alert_consts = require "alert_consts"
 local recipients = require "recipients"
 local do_trace = false
 

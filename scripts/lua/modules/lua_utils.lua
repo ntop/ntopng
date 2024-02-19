@@ -579,31 +579,6 @@ function aggregatePie(values, values_sum, edge, min_col)
    return aggr
 end
 
--- #################################
-
--- This function actively resolves an host if there is not information about it.
--- NOTE: prefer the host2name on this function
-function resolveAddress(hostinfo, allow_empty, shorten_len)
-   local alt_name = ip2label(hostinfo["host"], hostinfo["vlan"], shorten_len)
-
-   if(not isEmptyString(alt_name) and (alt_name ~= hostinfo["host"])) then
-      -- The host label has priority
-      return(alt_name)
-   end
-
-   local hostname = ntop.resolveName(hostinfo["host"])
-   if isEmptyString(hostname) then
-      -- Not resolved
-      if allow_empty == true then
-         return hostname
-      else
-         -- this function will take care of formatting the IP
-         return hostinfo2label(hostinfo, true, shorten_len)
-      end
-   end
-   return hostinfo2label(hostinfo, true, shorten_len)
-end
-
 -- ###########################################
 
 function computeL7Stats(stats, show_breed, show_ndpi_category)
@@ -1023,32 +998,6 @@ function setInterfaceRegreshRate(ifid, refreshrate)
    else
       ntop.setCache(key, tostring(refreshrate))
    end
-end
-
--- ##############################################
-
--- "Some Very Long String" -> "Some Ver...g String"
-function shortenCollapse(s, max_len)
-   local replacement = "..."
-   local r_len = string.len(replacement)
-   local s_len = string.len(s)
-
-   if max_len == nil then
-      max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
-      max_len = tonumber(max_len)
-      if(max_len == nil) then max_len = 24 end
-   end
-
-   if max_len <= r_len then
-      return replacement
-   end
-
-   if s_len > max_len then
-      local half = math.floor((max_len-r_len) / 2)
-      return string.sub(s, 1, half) .. replacement .. string.sub(s, s_len-half+1)
-   end
-
-   return s
 end
 
 -- ###############################################

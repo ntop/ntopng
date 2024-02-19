@@ -6,6 +6,8 @@ local dirs = ntop.getDirs()
 local info = ntop.getInfo()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+require "label_utils"
+
 local script_manager = require("script_manager")
 local template_utils = require("template_utils")
 local recording_utils = require("recording_utils")

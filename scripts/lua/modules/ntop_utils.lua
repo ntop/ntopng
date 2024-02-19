@@ -754,3 +754,40 @@ end
 function clearbit(x, p)
   return hasbit(x, p) and x - p or x
 end
+
+-- ###########################################
+
+function getHttpHost()
+    local ntopng_info = ntop.getInfo()
+    local ntopng_host_info = ntop.getHostInformation() or {}
+
+    -- Read configured ntopng host name or IP
+    local ntopng_host_ip = ntop.getPref("ntopng.prefs.ntopng_host_address")
+    if isEmptyString(ntopng_host_ip) then
+        -- fallback: managegemt IP
+        ntopng_host_ip = ntopng_host_info.ip
+    end
+    if isEmptyString(ntopng_host_ip) then
+        -- last resort: dummy IP
+        ntopng_host_ip = '127.0.0.1'
+    end
+
+    local http_host
+    if starts(ntopng_host_ip, 'http') then
+        http_host = ntopng_host_ip
+    else
+        -- Computing URL adding protocol and port
+        local ntopng_protocol = "http://"
+        local ntopng_port = ntopng_info.http_port
+
+        if not ntop.isnEdge()
+           and ntopng_info.https_port and tonumber(ntopng_info.https_port) ~= 0 then
+            ntopng_protocol = "https://"
+            ntopng_port = ntopng_info.https_port
+        end
+
+        http_host = ntopng_protocol .. ntopng_host_ip .. ":" .. ntopng_port
+    end
+
+    return http_host
+end

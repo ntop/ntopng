@@ -10,8 +10,8 @@ local clock_start = os.clock()
 -- This file contains the description of all functions
 -- used to trigger host alerts
 local verbose = ntop.getCache("ntopng.prefs.alerts.debug") == "1"
+
 local json = require("dkjson")
-local host_pools = require "host_pools"
 local recovery_utils = require "recovery_utils"
 local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
