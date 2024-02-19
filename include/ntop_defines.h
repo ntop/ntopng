@@ -150,6 +150,7 @@
 #define NDPI_MIN_NUM_PACKETS 12
 #define GTP_U_V1_PORT 2152
 #define EOIP_PORT 16667 /* Ethernet over IP */
+#define L2TP_PORT 1701
 #define TZSP_PORT 37008
 #define VXLAN_PORT 4789
 #define CAPWAP_DATA_PORT 5247
