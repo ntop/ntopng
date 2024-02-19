@@ -59,7 +59,7 @@ class LuaEngine {
    *
    * @return A new instance of lua.
    */
-  LuaEngine(lua_State *vm);
+  LuaEngine();
 
   /**
    * @brief A Destructor.

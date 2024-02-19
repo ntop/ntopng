@@ -354,7 +354,7 @@ LuaEngine *ThreadedActivity::loadVM(char *script_name,
 
   try {
     /* NOTE: this needs to be deallocated by the caller */
-    l = new LuaEngine(NULL);
+    l = new LuaEngine();
 
     if (l->load_script(script_name, lua_engine_mode_callback, iface) != 0) {
       delete l;

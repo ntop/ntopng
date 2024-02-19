@@ -144,7 +144,7 @@ static void *l_alloc(void *ud, void *ptr, size_t old_size, size_t new_size) {
 
 /* ******************************* */
 
-LuaEngine::LuaEngine(lua_State *vm) {
+LuaEngine::LuaEngine() {
   std::bad_alloc bax;
 
   // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
@@ -174,7 +174,7 @@ LuaEngine::LuaEngine(lua_State *vm) {
   lua_pushlightuserdata(L, (void*)lua_context);
   lua_setglobal(L, "userdata");
 
-  if (vm) setThreadedActivityData(vm);
+  // if (vm) setThreadedActivityData(vm);
 }
 
 /* ******************************* */
@@ -1256,11 +1256,10 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
                                             _POST table with POST parameters */
         else {
           /* application/json */
-
           lua_newtable(L);
-          lua_push_str_table_entry(
-              L, "payload", post_data); /* This payload is NOT parsed, checked
-                                           or verified against attacks */
+
+	  /* This payload is NOT parsed, checked or verified against attacks */
+          lua_push_str_table_entry(L, "payload", post_data); 
           lua_setglobal(L, "_POST");
         }
 
