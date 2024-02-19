@@ -455,6 +455,7 @@ static int ntop_lua_require(lua_State *L) {
     /* Example: package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;"
      * .. package.path */
     unsigned found = parsed.find_last_of("?");
+    
     if (found) {
       string s = parsed.substr(0, found) + script_name + ".lua";
       size_t first_dot = s.find("."), last_dot = s.rfind(".");
