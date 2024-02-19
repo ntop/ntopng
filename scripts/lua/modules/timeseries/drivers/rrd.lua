@@ -5,8 +5,6 @@ local driver = {}
 
 local os_utils = require("os_utils")
 local ts_common = require("ts_common")
-local data_retention_utils = require "data_retention_utils"
-local ts_utils = require "ts_utils_core"
 
 require("rrd_paths")
 
@@ -470,6 +468,7 @@ local function touchRRD(rrdname)
         if isDebugEnabled() then
             traceError(TRACE_NORMAL, TRACE_CONSOLE,
                 string.format("touchRRD(%s, %u), last_update was %u", rrdname, tdiff, last))
+                tprint(debug.traceback())
         end
 
         if (ds_count == 1) then
@@ -1151,9 +1150,9 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
     if not rrdfile or not ntop.notEmptyFile(rrdfile) then
         return nil
     end
-
+    
     touchRRD(rrdfile)
-
+    
     local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema),
         tstart, tend)
     local totals = {}
@@ -1336,6 +1335,7 @@ end
 -- ##############################################
 
 function driver:deleteOldData(ifid)
+    local data_retention_utils = require "data_retention_utils"
     local paths = getRRDPaths()
     local dirs = ntop.getDirs()
     local retention_days = data_retention_utils.getTSAndStatsDataRetentionDays()
@@ -1437,7 +1437,7 @@ function driver:export()
 
     local ts_utils = require "ts_utils" -- required to get the schema from the schema name
 
-    local available_interfaces = interface.getIfNames()
+    local available_interfaces = interface.getIfNames() or {}
     -- Add the system interface to the available interfaces
     available_interfaces[getSystemInterfaceId()] = getSystemInterfaceName()
     local rrd_queue_max_dequeues_per_interface = 8192
