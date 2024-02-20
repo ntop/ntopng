@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. pa
 
 local ts_utils = require "ts_utils"
 require "lua_utils_generic"
+require "label_utils"
 
 local timeseries_info = {}
 

@@ -5,6 +5,7 @@ local driver = {}
 
 -- NOTE: this script is required by second.lua, keep the imports minimal!
 require "ntop_utils"
+require "locales_utils"
 require "lua_utils_generic"
 local ts_common = require("ts_common")
 local json = require("dkjson")
