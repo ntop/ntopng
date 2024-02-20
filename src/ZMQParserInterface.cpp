@@ -996,6 +996,11 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
       flow->setJA3sHash(value->string);
     break;
 
+  case JA4C_HASH:
+    if (value->string && value->string[0])
+      flow->setJA4cHash(value->string);
+    break;
+
   case TLS_CIPHER:
     flow->setTLSCipher(value->int_num);
     break;

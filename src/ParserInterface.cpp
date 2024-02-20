@@ -581,6 +581,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
     if (zflow->getJA3cHash()) flow->updateJA3C(zflow->getJA3cHash());
     if (zflow->getJA3sHash()) flow->updateJA3S(zflow->getJA3sHash());
+    if (zflow->getJA4cHash()) flow->updateJA4C(zflow->getJA4cHash());
 
     if (zflow->getRiskInfo()) {
       json_object *o, *obj;

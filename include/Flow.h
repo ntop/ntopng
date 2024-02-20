@@ -200,6 +200,10 @@ class Flow : public GenericHashEntry {
         u_int16_t server_cipher;
         ndpi_cipher_weakness server_unsafe_cipher;
       } ja3;
+
+      struct {
+        char *client_hash;
+      } ja4;
     } tls;
 
     struct {
@@ -317,6 +321,7 @@ class Flow : public GenericHashEntry {
    */
   void dumpCheck(time_t t, bool last_dump_before_free);
   void updateCliJA3();
+  void updateCliJA4();
   void updateSrvJA3();
   void updateHASSH(bool as_client);
   void processExtraDissectedInformation();
@@ -436,6 +441,7 @@ class Flow : public GenericHashEntry {
   void getProtocolJSONInfo(ndpi_serializer *serializer);
 
   inline char *getJa3CliHash() { return (protos.tls.ja3.client_hash); }
+  inline char *getJa4CliHash() { return (protos.tls.ja4.client_hash); }
 
   bool isBlacklistedFlow() const;
   bool isBlacklistedClient() const;
@@ -562,6 +568,12 @@ class Flow : public GenericHashEntry {
     if (j && (j[0] != '\0') && (protos.tls.ja3.server_hash == NULL))
       protos.tls.ja3.server_hash = strdup(j);
     updateSrvJA3();
+  }
+
+  inline void updateJA4C(char *j) {
+    if (j && (j[0] != '\0') && (protos.tls.ja4.client_hash == NULL))
+      protos.tls.ja4.client_hash = strdup(j);
+    updateCliJA4();
   }
 
   inline u_int8_t getTcpFlags() const {

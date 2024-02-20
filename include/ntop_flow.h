@@ -248,6 +248,7 @@
 #define FLOW_VERDICT NTOP_BASE_ID + 522
 #define L7_ERROR_CODE NTOP_BASE_ID + 554
 #define L7_RISK_INFO NTOP_BASE_ID + 555
+#define JA4C_HASH NTOP_BASE_ID + 576
 #define FLOW_SOURCE  NTOP_BASE_ID+579 /* 0 = packets, 1 = collected NetFlow/IPFIX, 2 = collected sFlow/nfLite */
 
 /* eBPF / Process */
