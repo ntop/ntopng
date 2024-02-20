@@ -2,14 +2,6 @@
 -- (C) 2017-24 - ntop.org
 --
 
-if(pragma_once_http_lint == true) then
-   -- io.write(debug.traceback().."\n")
-   -- avoid multiple inclusions
-   return
-end
-
-pragma_once_http_lint = true
-
 local clock_start = os.clock()
 
 local dirs = ntop.getDirs()
@@ -2945,13 +2937,14 @@ end
 
 -- #################################################################
 
-if (pragma_once_http_lint) then
+if (not pragma_once_http_lint) then
    if (ignore_post_payload_parse == nil) then
       parsePOSTpayload()
    end
 
    clearNotAllowedParams()
    lintParams()
+   pragma_once_http_lint = true
 end
 
 if (trace_script_duration ~= nil) then

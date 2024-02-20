@@ -2,26 +2,15 @@
 -- (C) 2020-24 - ntop.org
 --
 
-if(pragma_once_tag_utils_gui == true) then
-   -- io.write(debug.traceback().."\n")
-   -- tprint("Circular dependency in tag_utils_gui.lua")
-   -- tprint(debug.traceback())
-   -- avoid multiple inclusions
-   return
-end
-
-pragma_once_tag_utils_gui = true
-
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
--- require "lua_utils"
 local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
 local host_pools = require "host_pools"
 local dscp_consts = require "dscp_consts"
 local country_codes = require "country_codes"
-local checks = require "checks"
+local alert_category_utils = require "alert_category_utils"
 
 local snmp_filter_options_cache
 
@@ -762,7 +751,7 @@ tag_utils.formatters = {
         return alert_consts.alertTypeLabel(status, true, alert_entities.flow.entity_id)
     end,
     alert_category = function(category_id)
-        return checks.getCategoryById(category_id)
+        return alert_category_utils.getCategoryById(category_id)
     end,
     role = function(role)
         return (i18n(role))
@@ -823,7 +812,7 @@ function tag_utils.get_tag_info(id, entity)
 
         filter.value_type = 'array'
         filter.options = {}
-        local alert_categories = checks.check_categories
+        local alert_categories = require "alert_categories"
         for name, info in pairsByField(alert_categories, 'i18n_title', asc) do
             filter.options[#filter.options + 1] = {
                 value = info.id,

@@ -22,18 +22,18 @@ local alert_management = require "alert_management"
 local alert_entities_utils = require "alert_entities_utils"
 local http_lint = require "http_lint"
 local alert_entity_builders = require "alert_entity_builders"
-
+local alert_category_utils = require "alert_category_utils"
 
 -- ##############################################
 -- structs
 local alert_categories = require "alert_categories"
 local alert_granularities = require "alert_granularities"
 local alert_entities = require "alert_entities"
--- Checks category consts
 
 -- ##############################################
 
 local checks = {}
+-- Checks category consts
 checks.check_categories = alert_categories
 
 -- ##############################################
@@ -275,36 +275,6 @@ local function invokeScriptHook(check, configset, hook_fn, p1, p2, p3)
    current_script = check
    current_configset = configset
    return (hook_fn(p1, p2, p3))
-end
-
--- ##############################################
-
--- @brief Given a category found in a user script, this method checks whether the category is valid
--- and, if not valid, it assigns to the script a default category
-local function checkCategory(category)
-   if not category or not category["id"] then
-      return checks.check_categories.other
-   end
-
-   for cat_k, cat_v in pairs(checks.check_categories) do
-      if category["id"] == cat_v["id"] then
-	 return cat_v
-      end
-   end
-
-   return checks.check_categories.other
-end
-
--- ##############################################
-
-function checks.getCategoryById(id)
-   for cat_k, cat_v in pairs(checks.check_categories) do
-      if cat_v["id"] == id then
-	 return cat_v
-      end
-   end
-
-   return checks.check_categories.other
 end
 
 -- ##############################################
@@ -598,7 +568,7 @@ local function init_check(check, mod_fname, full_path, script, script_type, subd
    check.default_enabled = ternary(check.default_enabled == false, false, true --[[ a nil value means enabled ]] )
    check.script = script
    check.script_type = script_type
-   check.category = checkCategory(check.category)
+   check.category = alert_category_utils.checkCategory(check.category)
    -- A user script is assumed to be able to generate alerts if it has a flag or an alert id specified
    check.num_filtered = tonumber(ntop.getCache(string.format(NUM_FILTERED_KEY, subdir, mod_fname))) or 0 -- math.random(1000,2000)
 
@@ -716,7 +686,7 @@ local function loadAndCheckScript(mod_fname, full_path, script, script_type, sub
       else
 	 -- Add the necessary elements as found in C++
 	 check.alert_id = flow_risk_alert.alert_id
-	 check.category = checkCategory({
+	 check.category = alert_category_utils.checkCategory({
 	       id = flow_risk_alert.category
 	 })
 	 check.gui.i18n_title = flow_risk_alert.risk_name
