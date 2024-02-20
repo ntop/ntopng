@@ -169,7 +169,7 @@ function blog_utils.fetchLatestPosts()
     for i, post in ipairs(latest3Posts) do
         if (post ~= nil) then
 
-            local splittedLink = split(post.id, "?p=")
+            local splittedLink = string.split(post.id, "?p=")
             local postId = tonumber(splittedLink[2])
             local postTitle = post.title
             local postURL = post.url
