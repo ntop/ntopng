@@ -176,6 +176,7 @@ end
 
 -- If a point value exceeds this value, it should be discarded as invalid
 function ts_common.getMaxPointValue(schema, metric, tags)
+    require "lua_utils_get"
     if tags.ifid ~= nil then
         if string.contains(metric, "bytes") then
             local ifspeed = getInterfaceSpeed(tonumber(tags.ifid))

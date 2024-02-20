@@ -20,6 +20,7 @@ local http_lint = {}
 local json = require "dkjson"
 local tracker = require "tracker"
 local locales_utils = require "locales_utils"
+require "ntop_utils"
 
 -- #################################################################
 
@@ -93,7 +94,7 @@ local function validateListOfType(l, validate_callback, separator)
    local items = split(l, separator)
 
    for _, item in pairs(items) do
-      if item ~= "" then
+      if item and item ~= "" then
 	 if not validate_callback(item) then
 	    return false
 	 end

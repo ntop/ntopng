@@ -1662,6 +1662,7 @@ if ((ifname == nil) and (_GET ~= nil)) then
 
     if (ifname ~= nil) then
         if (ifname .. "" == tostring(tonumber(ifname)) .. "") then
+            require "label_utils"
             -- ifname does not contain the interface name but rather the interface id
             ifname = getInterfaceName(ifname, true)
             if (ifname == "") then
