@@ -370,16 +370,6 @@ end
 
 -- ##############################################
 
-function starts(String,Start)
-   if((String == nil) or (Start == nil)) then
-      return(false)
-   end
-
-  return string.sub(String,1,string.len(Start))==Start
-end
-
--- ##############################################
-
 function isBroadMulticast(ip)
    if(ip == "0.0.0.0") then
       return true

@@ -23,111 +23,13 @@ require "gui_utils"
 local format_utils = require "format_utils"
 local dns_utils = require "dns_utils"
 local http_utils = require "http_utils"
+local rest_utils = require "rest_utils"
 
-
--- ##############################################
-
-function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_headers, status_code)
-    local info = ntop.getInfo(false)
-    local http_status_code_map = {
-        [200] = "OK",
-        [400] = "Bad Request",
-        [401] = "Unauthorized",
-        [403] = "Forbidden",
-        [404] = "Not Found",
-        [405] = "Method Not Allowed",
-        [406] = "Not Acceptable",
-        [408] = "Request timeout",
-        [409] = "Conflict",
-        [410] = "Gone",
-        [412] = "Precondition Failed",
-        [415] = "Unsupported Media Type",
-        [423] = "Locked",
-        [428] = "Precondition Required",
-        [429] = "Too many requests",
-        [500] = "Internal Server Error",
-        [501] = "Not Implemented",
-        [503] = "Service Unavailable"
-    }
-    local tzname = info.tzname or ''
-    local cookie_attr = ntop.getCookieAttributes()
-    local lines = {'Cache-Control: max-age=0, no-cache, no-store',
-                   'Server: ntopng ' .. info["version"] .. ' [' .. info["platform"] .. ']',
-                   'Set-Cookie: tzname=' .. tzname .. '; path=/' .. cookie_attr, 'Pragma: no-cache',
-                   'X-Frame-Options: DENY', 'X-Content-Type-Options: nosniff', 'Content-Type: ' .. mime,
-                   'Last-Modified: ' .. os.date("!%a, %m %B %Y %X %Z")}
-
-    local uri = _SERVER.URI
-
-    if (starts(uri, "/lua/rest/")) then
-        --
-        -- Only for REST calls handle CORS (Cross-Origin Resource Sharing)
-        --
-        -- https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
-        -- https://web.dev/cross-origin-resource-sharing/
-        --
-        lines[#lines + 1] = 'Access-Control-Allow-Origin: *'
-        lines[#lines + 1] = 'Access-Control-Allow-Methods: GET, POST, HEAD'
-    end
-
-    if (_SESSION ~= nil) then
-        local key = "session_" .. info.http_port .. "_" .. info.https_port
-        lines[#lines + 1] = 'Set-Cookie: ' .. key .. '=' .. _SESSION["session"] .. '; max-age=' .. maxage ..
-                                '; path=/; ' .. cookie_attr
-    end
-
-    if (ifname ~= nil) then
-        lines[#lines + 1] = 'Set-Cookie: ifname=' .. ifname .. '; path=/' .. cookie_attr
-    end
-
-    if (info.timezone ~= nil) then
-        lines[#lines + 1] = 'Set-Cookie: timezone=' .. info.timezone .. '; path=/' .. cookie_attr
-    end
-
-    if (content_disposition ~= nil) then
-        lines[#lines + 1] = 'Content-Disposition: ' .. content_disposition
-    end
-
-    if type(extra_headers) == "table" then
-        for hname, hval in pairs(extra_headers) do
-            lines[#lines + 1] = hname .. ': ' .. hval
-        end
-    end
-
-    if not status_code then
-        status_code = 200
-    end
-
-    local status_descr = http_status_code_map[status_code]
-    if not status_descr then
-        status_descr = "Unknown"
-    end
-
-    -- Buffer the HTTP reply and write it in one "print" to avoid fragmenting
-    -- it into multiple packets, to ease HTTP debugging with wireshark.
-    print("HTTP/1.1 " .. status_code .. " " .. status_descr .. "\r\n" .. table.concat(lines, "\r\n") .. "\r\n\r\n")
-end
-
--- ##############################################
-
-function sendHTTPHeaderLogout(mime, content_disposition)
-    sendHTTPHeaderIfName(mime, nil, 0, content_disposition)
-end
-
--- ##############################################
-
-function sendHTTPHeader(mime, content_disposition, extra_headers, status_code)
-    sendHTTPHeaderIfName(mime, nil, 3600, content_disposition, extra_headers, status_code)
-end
-
--- ##############################################
-
-function sendHTTPContentTypeHeader(content_type, content_disposition, charset, extra_headers, status_code)
-    local charset = charset or "utf-8"
-    local mime = content_type .. "; charset=" .. charset
-
-    sendHTTPHeader(mime, content_disposition, extra_headers, status_code)
-end
+-- For backward compatibility override these functions
+sendHTTPContentTypeHeader = rest_utils.sendHTTPContentTypeHeader
+sendHTTPHeaderIfName = rest_utils.sendHTTPHeaderIfName
+sendHTTPHeaderLogout = rest_utils.sendHTTPHeaderLogout
+sendHTTPHeader = rest_utils.sendHTTPHeader
 
 -- ##############################################
 
