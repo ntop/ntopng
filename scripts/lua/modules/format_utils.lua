@@ -659,7 +659,7 @@ function format_utils.formatMessage(notification, options)
    
    -- In case it is an alert, format it by using the standard function
    local alert_utils = require "alert_utils"
-   local message =  alert_utils.formatAlertNotification(notification, options)
+   local message = alert_utils.formatAlertNotification(notification, options)
 
    return message
 end

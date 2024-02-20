@@ -18,6 +18,27 @@ local clock_start = os.clock()
 
 -- ##############################################
 
+-- split
+function split(s, delimiter)
+   result = {};
+   if(s ~= nil) then
+      if delimiter == nil then
+         -- No delimiter, split all characters
+         for match in s:gmatch"." do
+   	    table.insert(result, match);
+         end
+      else
+         -- Split by delimiter
+         for match in (s..delimiter):gmatch("(.-)"..delimiter) do
+   	    table.insert(result, match);
+         end
+      end
+   end
+   return result;
+end
+
+-- ##############################################
+
 function ends(String, End)
     return End == '' or string.sub(String, -string.len(End)) == End
 end
@@ -666,6 +687,7 @@ end
 -- @param skip_first if true, 0 will be returned when no cached value is present
 -- @return the difference between current and previous value
 function delta_val(reg, metric_name, granularity, curr_val, skip_first)
+    -- This require is okay, alert_granularities is just a struct
     local alert_granularities = require "alert_granularities"
 
     local granularity_num = alert_granularities[granularity] or 0

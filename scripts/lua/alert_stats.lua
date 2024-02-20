@@ -15,7 +15,6 @@ local json = require "dkjson"
 local template_utils = require "template_utils"
 local widget_gui_utils = require "widget_gui_utils"
 local tag_utils = require "tag_utils"
-local datatable_utils = require "datatable_utils"
 local alert_entities = require "alert_entities"
 local Datasource = widget_gui_utils.datasource
 local alert_store_utils = require "alert_store_utils"
