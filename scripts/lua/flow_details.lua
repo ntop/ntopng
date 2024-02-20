@@ -217,7 +217,7 @@ local function ja4url(what, safety, label)
     if (what == nil) then
         print("&nbsp;")
     else
-        print(format_external_link("sslbl.abuse.ch/ja3-fingerprints/" .. what .. "/", what, false, "https"))
+       print(what)
 
         if ((safety ~= nil) and (safety ~= "safe")) then
             print(
@@ -1178,7 +1178,7 @@ else
     end
 
     if ((flow["protos.tls.ja4.client_hash"] ~= nil)) then
-        print('<tr><th width=30%><A HREF="https://github.com/salesforce/ja3">JA4C</A></th><td>')
+        print('<tr><th width=30%><A HREF="https://github.com/FoxIO-LLC/ja4">JA4C</A></th><td>')
         if (flow["protos.tls.ja4.client_malicious"]) then
             print('<font color=red><i class="fas fa-ban" title="' ..
                       i18n("alerts_dashboard.malicious_signature_detected") .. '"></i></font> ')
