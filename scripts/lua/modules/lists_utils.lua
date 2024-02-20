@@ -677,6 +677,8 @@ function loadnDPIExceptions()
     end
 end
 
+-- TODO: create an host alert if a local host is inside a blacklist
+
 -- ##############################################
 
 -- NOTE: this must be executed in the same thread as checkListsUpdate
@@ -745,18 +747,6 @@ local function reloadListsNow()
 
     -- update lists state
     saveListsStatusToRedis(lists, "reloadListsNow")
-
-    -- Load user-customized categories
-    for category_id, hosts in pairs(user_custom_categories) do
-        for _, host in ipairs(hosts) do
-            if ntop.isShuttingDown() then
-                break
-            end
-            loadListItem(host, category_id, user_custom_categories, {
-                name = "__gui__"
-            } --[[ No list --]] , 0 --[[ No line number --]] )
-        end
-    end
 
     -- Reload into memory
     ntop.finalizenDPIReload()
