@@ -128,6 +128,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addMapping("SSL_UNSAFE_CIPHER", SSL_UNSAFE_CIPHER, NTOP_PEN);
   addMapping("JA3C_HASH", JA3C_HASH, NTOP_PEN);
   addMapping("JA3S_HASH", JA3S_HASH, NTOP_PEN);
+  addMapping("JA4C_HASH", JA4C_HASH, NTOP_PEN);
   addMapping("BITTORRENT_HASH", BITTORRENT_HASH, NTOP_PEN);
   addMapping("SRC_FRAGMENTS", SRC_FRAGMENTS, NTOP_PEN);
   addMapping("DST_FRAGMENTS", DST_FRAGMENTS, NTOP_PEN);
