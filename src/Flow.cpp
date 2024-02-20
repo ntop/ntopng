@@ -752,19 +752,15 @@ void Flow::processExtraDissectedInformation() {
 
         if ((protos.tls.ja4.client_hash == NULL) &&
             (ndpiFlow->protos.tls_quic.ja4_client[0] != '\0')) {
-          protos.tls.ja4.client_hash =
-              strdup(ndpiFlow->protos.tls_quic.ja4_client);
+          protos.tls.ja4.client_hash = strdup(ndpiFlow->protos.tls_quic.ja4_client);
           updateCliJA4();
         }
 
         if ((protos.tls.ja3.server_hash == NULL) &&
             (ndpiFlow->protos.tls_quic.ja3_server[0] != '\0')) {
-          protos.tls.ja3.server_hash =
-              strdup(ndpiFlow->protos.tls_quic.ja3_server);
-          protos.tls.ja3.server_unsafe_cipher =
-              ndpiFlow->protos.tls_quic.server_unsafe_cipher;
-          protos.tls.ja3.server_cipher =
-              ndpiFlow->protos.tls_quic.server_cipher;
+          protos.tls.ja3.server_hash = strdup(ndpiFlow->protos.tls_quic.ja3_server);
+          protos.tls.ja3.server_unsafe_cipher = ndpiFlow->protos.tls_quic.server_unsafe_cipher;
+          protos.tls.ja3.server_cipher = ndpiFlow->protos.tls_quic.server_cipher;
           updateSrvJA3();
         }
         break;
@@ -6710,19 +6706,19 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF *const _ebpf,
 
 void Flow::updateCliJA3() {
   if (cli_host && isTLS() && protos.tls.ja3.client_hash) {
-    cli_host->getJA3Fingerprint()->update(
-        protos.tls.ja3.client_hash,
-        ebpf ? ebpf->src_process_info.process_name : NULL,
-        has_malicious_cli_signature);
+    cli_host->getJA3Fingerprint()->update(protos.tls.ja3.client_hash,
+					  ebpf ? ebpf->src_process_info.process_name : NULL,
+					  has_malicious_cli_signature);
   }
 }
 
+/* ***************************************************** */
+
 void Flow::updateCliJA4() {
   if (cli_host && isTLS() && protos.tls.ja4.client_hash) {
-    cli_host->getJA4Fingerprint()->update(
-        protos.tls.ja4.client_hash,
-        ebpf ? ebpf->src_process_info.process_name : NULL,
-        has_malicious_cli_signature);
+    cli_host->getJA4Fingerprint()->update(protos.tls.ja4.client_hash,
+					  ebpf ? ebpf->src_process_info.process_name : NULL,
+					  has_malicious_cli_signature);
   }
 }
 
