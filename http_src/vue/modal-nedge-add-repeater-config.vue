@@ -27,7 +27,7 @@
 						<b>{{_i18n("nedge.page_repeater_config.ip")}}</b>
 					</label>
 					<div class="col-7">
-	      	<input v-model="ip"  @input="check_empty_host" class="form-control col-7" type="text" :placeholder="host_placeholder" required>
+	      	<input v-model="ip"  @focusout="check_empty_host" class="form-control col-7" type="text" :placeholder="host_placeholder" required>
 					</div>
 				</div>
 		</div>
@@ -44,7 +44,7 @@
 				</label>
 				<div class="col-7">
 
-	      <input v-model="port"  @input="check_empty_port" class="form-control" type="text" :placeholder="port_placeholder" required>
+	      <input v-model="port"  @focusout="check_empty_port" class="form-control" type="text" :placeholder="port_placeholder" required>
 				</div>
 
     	</div>
@@ -60,9 +60,8 @@
 					<b>{{_i18n("nedge.page_repeater_config.keep_src_address")}}</b>
 				</label>
 
-				<label class="switch col-3 ms-0 mt-3">
+				<label class="switch col-1 mt-3">
 					<input type="checkbox" v-model="keep_src_address">
-					<span class="slider round"></span>
 				</label>
 			</div>
 		</div>
@@ -90,7 +89,7 @@
 
   </template>
   <template v-slot:footer>
-    <button type="button" :disabled="invalid_iface_number || disable_add && repeater_type == 'custom'" @click="apply" class="btn btn-primary">{{button_text}}</button>
+    <button type="button" :disabled="disable_add" @click="apply" class="btn btn-primary">{{button_text}}</button>
   </template>
 </modal>
 </template>
@@ -118,18 +117,29 @@ const showed = () => {};
 
 const props = defineProps({});
 
+const disable_add = ref(true);
+const invalid_iface_number = ref(true);
+const not_valid_ip = ref(true);
+const not_valid_port = ref(true);
+
 const check_empty_host = () => {
   let regex = new RegExp(regexValidation.get_data_pattern('ip'));
-  disable_add.value = !(regex.test(ip.value) || ip.value === '*');
+  not_valid_ip.value = !(regex.test(ip.value) || ip.value === '*');
+	disable_add.value = update_disable_add();
 }
-
-
 
 const check_empty_port = () => {
-	disable_add.value = (port < 1 || port > 65535);
+	not_valid_port.value = (port.value < 1 || port.value > 65535);
+	disable_add.value = update_disable_add();
 }
 
-
+const update_disable_add = () => {
+	if (repeater_type.value.value == 'custom') {
+		return (invalid_iface_number.value || not_valid_ip.value || not_valid_port.value);
+	} else {
+		return (invalid_iface_number.value);
+	}
+}
 
 const title = ref("");
 
@@ -139,8 +149,6 @@ const repeater_type_array = [
 ];
 
 const repeater_id = ref(0);
-const disable_add = ref(true)
-const invalid_iface_number = ref(true)
 
 const selected_repeater_type = ref({});
 
@@ -156,6 +164,7 @@ const button_text = ref("");
 const all_criteria = (item) => {
 	selected_dest_interface.value = item;
 	invalid_iface_number.value = item.length < 2;
+	disable_add.value = update_disable_add();
 }
 
 const update_interfaces_selected = (items) => {
@@ -171,6 +180,9 @@ const reset_modal = () => {
 	ip.value = "";
 	port.value = "";
 	selected_interfaces.value = [];
+	not_valid_port.value = true;
+	not_valid_ip.value = true;
+	invalid_iface_number.value = true;
 }
 
 const show = (row ) => {
@@ -186,14 +198,14 @@ function init(row) {
 
     // check if we need open in edit
     if (is_open_in_add.value == false) {
+			not_valid_port.value = false;
+			not_valid_ip.value = false;
+			invalid_iface_number.value = false;
+			disable_add.value = false;
 			title.value = _i18n("nedge.page_rules_config.modal_rule_config.title_edit");
 			button_text.value = _i18n("edit");
 			repeater_id.value = row.repeater_id;
-			repeater_type_array.forEach((s) => {
-				if(s.label == row.type)
-					selected_repeater_type.value = s;
-			})
-
+			selected_repeater_type.value = repeater_type_array.find((s) => (s.label == row.type));
 			if (selected_repeater_type.value.value == 'custom') {
 				ip.value = row.ip;
 				port.value = row.port;
