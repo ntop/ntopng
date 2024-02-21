@@ -645,7 +645,7 @@ void Ntop::start() {
           if (token != NULL) {
             interfaces = token;
 
-            Forwarder *multicastForwarder;
+            PacketForwarder *multicastForwarder;
 
             if (ip.length() > 3 && strcmp(ip.c_str() + ip.length() - 3, "255") == 0)
               multicastForwarder = new (std::nothrow) BroadcastForwarder(ip, port, interfaces);
