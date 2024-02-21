@@ -11,13 +11,14 @@ local host_pools = require "host_pools"
 local dscp_consts = require "dscp_consts"
 local country_codes = require "country_codes"
 local alert_category_utils = require "alert_category_utils"
+local consts = require "consts"
 
 local snmp_filter_options_cache
 
 local tag_utils = {}
 
 -- Operator Separator in query strings
-tag_utils.SEPARATOR = alert_consts.SEPARATOR
+tag_utils.SEPARATOR = consts.SEPARATOR
 
 -- #####################################
 
