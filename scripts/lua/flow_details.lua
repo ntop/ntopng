@@ -595,7 +595,10 @@ else
         end
         
         if ((flow["proto.ndpi_confidence"] ~= nil)) then
-            print(" [" .. i18n("ndpi_confidence") .. ": " .. "<span class=\"badge bg-success\" title=\"" .. flow["proto.ndpi_confidence"] .. "\">" ..
+            local badge_type = 'success'
+            if flow.confidence and (flow.confidence == 0 or flow.confidence == -1) then badge_type = 'warning' end
+            print(" [" .. i18n("ndpi_confidence") .. ": " .. "<span class=\"badge bg-"..badge_type.."\" title=\"" 
+                                .. flow["proto.ndpi_confidence"] .. "\">" ..
                                 flow["proto.ndpi_confidence"] .. "</span>" .. "]")
         elseif ((flow.confidence) and (not isEmptyString(flow.confidence))) then
             -- case Unknown is here
