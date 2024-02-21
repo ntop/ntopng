@@ -23,7 +23,7 @@
 
 /* ****************************************** */
 
-SyslogLuaEngine::SyslogLuaEngine(NetworkInterface *iface) : LuaEngine(NULL) {
+SyslogLuaEngine::SyslogLuaEngine(NetworkInterface *iface) : LuaEngine() {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   
   initialized = false;

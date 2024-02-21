@@ -45,8 +45,10 @@ class LuaEngine {
   char *loaded_script_path;
   bool is_system_vm; /* Executed by callbacks */
   std::string cloud_string;
+  std::set<std::string> requires;
   size_t mem_used;
   u_int32_t start_epoch;
+  NtopngLuaContext *lua_context;
   
   void lua_register_classes(lua_State *L, LuaEngineMode mode);
 
@@ -57,7 +59,7 @@ class LuaEngine {
    *
    * @return A new instance of lua.
    */
-  LuaEngine(lua_State *vm);
+  LuaEngine();
 
   /**
    * @brief A Destructor.
@@ -70,10 +72,6 @@ class LuaEngine {
   void setNetwork(NetworkStats *ns);
   void setFlow(Flow *f);
 
-  /* Set the deadline into the Lua context from an existing vm */
-  void setThreadedActivityData(lua_State *from);
-  /* Set the deadline into the Lua context from a threaded activity and a
-   * deadline */
   void setThreadedActivityData(const ThreadedActivity *ta,
                                ThreadedActivityStats *tas, time_t deadline);
 
@@ -126,6 +124,7 @@ class LuaEngine {
 
   inline size_t getMemUsed()         { return(mem_used); }
   inline void   incMemUsed(size_t v) { mem_used += v;    }
+  bool require(std::string name);
 };
 
 /**

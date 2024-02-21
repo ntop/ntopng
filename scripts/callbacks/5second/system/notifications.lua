@@ -13,7 +13,7 @@ local periodicity = 3
 -- io.write("notifications.lua ["..os.time().."]["..periodicity.."]\n")
 
 -- Run this script for a minute before quitting (this reduces load on Lua VM infrastructure)
-local num_runs = 15 / periodicity
+local num_runs = 60 / periodicity
 local sleep_duration = periodicity * 1000
 
 for i=1,num_runs do
@@ -24,6 +24,5 @@ for i=1,num_runs do
    -- Do the actual processing
    recipients.process_notifications(now, now + periodicity --[[ deadline --]], periodicity)
 
-   collectgarbage("collect")
    ntop.msleep(sleep_duration)
 end

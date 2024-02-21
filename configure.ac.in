@@ -269,6 +269,13 @@ if test -d "pro/"; then
   fi
 fi
 
+JE=../jemalloc/lib/libjemalloc.a
+if ! test -f "${JE}"; then
+ JE=
+else
+ AC_DEFINE(HAVE_JEMALLOC, 1, [ntopng has been compiled with jemalloc])
+fi
+
 SHORT_MACHINE=`uname -m | cut -b1-3`
 
 GIT_RELEASE="@GIT_RELEASE@"
@@ -911,6 +918,7 @@ AC_SUBST(SERVICE_REQUIRES)
 AC_SUBST(SERVICE_WANTS)
 AC_SUBST(SERVICE_ALIAS)
 AC_SUBST(APP)
+AC_SUBST(JE)
 AC_SUBST(LIBPCAP)
 AC_SUBST(RPM_SIGN_CMD)
 AC_SUBST(LIBRRD_LD_FLAGS)

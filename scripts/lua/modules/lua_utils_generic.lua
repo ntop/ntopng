@@ -2,6 +2,14 @@
 -- (C) 2014-24 - ntop.org
 --
 
+if(pragma_once_lua_utils_generic == true) then
+   -- io.write(debug.traceback().."\n")
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_lua_utils_generic = true
+
 local clock_start = os.clock()
 
 -- GENERIC UTILS
@@ -521,8 +529,26 @@ function printInterfaceIndex(idx)
    end
 end
 
+
 -- ##############################################
+
+-- NOTE: global nindex support may be enabled but some disable on some interfaces
+function interfaceHasClickHouseSupport()
+   require "check_redis_prefs"
+   return(hasClickHouseSupport() and ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"])
+end
+
+-- ###########################################
+
+function swapKeysValues(tbl)
+   local new_tbl = {}
+   for k, v in pairs(tbl or {}) do
+      new_tbl[v] = k
+   end
+   return new_tbl
+end
 
 if(trace_script_duration ~= nil) then
    io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
 end
+

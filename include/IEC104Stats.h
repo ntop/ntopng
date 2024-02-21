@@ -60,7 +60,7 @@ class IEC104Stats {
   ~IEC104Stats();
 
   void processPacket(Flow *f, bool tx_direction, const u_char *payload,
-                     u_int16_t payload_len, struct timeval *packet_time);
+                     u_int16_t payload_len, const struct pcap_pkthdr *h);
 
   void lua(lua_State *vm);
   char *getFlowInfo(char *buf, u_int buf_len);

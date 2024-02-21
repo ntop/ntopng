@@ -150,6 +150,7 @@
 #define NDPI_MIN_NUM_PACKETS 12
 #define GTP_U_V1_PORT 2152
 #define EOIP_PORT 16667 /* Ethernet over IP */
+#define L2TP_PORT 1701
 #define TZSP_PORT 37008
 #define VXLAN_PORT 4789
 #define CAPWAP_DATA_PORT 5247
@@ -638,6 +639,10 @@
 #define CONST_DEFAULT_FLOWS_ONLY_INTERFACE false
 #define CONST_ALERT_DISABLED_PREFS \
   NTOPNG_PREFS_PREFIX ".disable_alerts_generation"
+#define CONST_PREFS_ENABLE_SNMP_POLLING \
+  NTOPNG_PREFS_PREFIX ".snmp_polling"
+#define CONST_PREFS_ENABLE_ACTIVE_MONITORING \
+  NTOPNG_PREFS_PREFIX ".active_monitoring"
 #define CONST_PREFS_ENABLE_ACCESS_LOG NTOPNG_PREFS_PREFIX ".enable_access_log"
 #define CONST_PREFS_ENABLE_SQL_LOG NTOPNG_PREFS_PREFIX ".enable_sql_log"
 #define CONST_TOP_TALKERS_ENABLED NTOPNG_PREFS_PREFIX ".host_top_sites_creation"
@@ -895,6 +900,7 @@
 #define CONST_LOOPBACK_ADDRESS "127.0.0.1"
 #define CONST_EPP_MAX_CMD_NUM 34
 #define CONST_DEFAULT_MAX_PACKET_SIZE 1522
+#define CONST_MAX_PACKET_SIZE         65535 /* https://wiki.wireshark.org/MTU */
 
 /* ARP matrix generation preferences */
 #define CONST_DEFAULT_ARP_MATRIX_GENERATION \

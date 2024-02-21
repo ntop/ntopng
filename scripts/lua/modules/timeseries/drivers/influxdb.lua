@@ -4,10 +4,12 @@
 local driver = {}
 
 -- NOTE: this script is required by second.lua, keep the imports minimal!
+require "ntop_utils"
+require "locales_utils"
+require "lua_utils_generic"
 local ts_common = require("ts_common")
 local json = require("dkjson")
 local os_utils = require("os_utils")
-require("ntop_utils")
 
 --
 -- Sample query:
@@ -63,6 +65,34 @@ local function setExportQueueFull(is_full)
     else
         ntop.delCache(INFLUX_QUEUE_FULL_FLAG)
     end
+end
+
+-- ##############################################
+
+local function where_tags(tags)
+    if not table.empty(tags) then
+        return ' WHERE ' .. table.tconcat(tags, "=", " AND ", nil, "'") .. " AND"
+    else
+        return " WHERE"
+    end
+end
+
+-- ##############################################
+
+local function getWhereClause(tags, tstart, tend, unaligned_offset)
+    return where_tags(tags) .. ' time >= ' .. tstart .. '000000000 AND time <= ' .. (tend + unaligned_offset) ..
+               "000000000"
+end
+
+-- ##############################################
+
+local function urlencode(str)
+    str = string.gsub(str, "\r?\n", "\r\n")
+    str = string.gsub(str, "([^%w%-%.%_%~ ])", function(c)
+        return string.format("%%%02X", string.byte(c))
+    end)
+    str = string.gsub(str, " ", "+")
+    return str
 end
 
 -- ##############################################
@@ -513,7 +543,6 @@ local function influx2Series(schema, tstart, tend, tags, options, data, time_ste
         next_t = next_t + time_step
     end
 
-
     -- In case just one point is found, report as no points are found
     for _, serie in pairs(series) do
         local num_not_nan_pts = 0
@@ -539,16 +568,6 @@ end
 
 -- Test only
 driver._influx2Series = influx2Series
-
--- ##############################################
-
-local function where_tags(tags)
-    if not table.empty(tags) then
-        return ' WHERE ' .. table.tconcat(tags, "=", " AND ", nil, "'") .. " AND"
-    else
-        return " WHERE"
-    end
-end
 
 -- ##############################################
 
@@ -796,6 +815,7 @@ function driver:query(schema, tstart, tend, tags, options)
             if stats.total ~= nil then
                 -- override total and average
                 -- NOTE: using -1 to avoid overflowing into the next hour
+
                 local stats_query = "(SELECT " .. table.concat(schema._metrics, " + ") .. ' AS value FROM ' ..
                                         query_schema .. ' ' .. getWhereClause(tags, tstart, tend, -1) .. ")"
                 if data_type == ts_common.metrics.counter then
@@ -951,7 +971,7 @@ function driver:timeseries_query(options)
         series, count, options.epoch_begin = influx2Series(options.schema_info, options.epoch_begin + time_step,
             options.epoch_end, options.tags, options, data.series[1], time_step, last_ts)
     end
-    
+
     -- The data received from influx is formatted as the following
     -- [
     --      [ epoch1, value1, value2 ], [ epoch2, value1, value2 ]
@@ -1284,11 +1304,6 @@ end
 
 -- ##############################################
 
-function getWhereClause(tags, tstart, tend, unaligned_offset)
-    return where_tags(tags) .. ' time >= ' .. tstart .. '000000000 AND time <= ' .. (tend + unaligned_offset) ..
-               "000000000"
-end
-
 function driver:topk(schema, tags, tstart, tend, options, top_tags)
     if #top_tags ~= 1 then
         traceError(TRACE_ERROR, TRACE_CONSOLE, "InfluxDB driver expects exactly one top tag, " .. #top_tags .. " found")
@@ -1391,7 +1406,7 @@ function driver:topk(schema, tags, tstart, tend, options, top_tags)
     end
 
     local time_step = ts_common.calculateSampledTimeStep(raw_step, tstart, tend, options)
-    local label = series and series[1].label
+    local label = data and data[1].label
     local total_serie = self:_makeTotalSerie(schema, query_schema, raw_step, tstart, tend, tags, options, url,
         time_step, label, unaligned_offset, data_type)
     local stats = nil
@@ -1521,7 +1536,7 @@ function driver:timeseries_top(options, top_tags)
     if ends(options.schema, "packets") then
         id = "packets"
     elseif ends(options.schema, "hits") then
-       id = "hits"
+        id = "hits"
     end
 
     for idx in pairsByValues(res, rev) do
@@ -1604,7 +1619,7 @@ end
 function driver:queryTotal(schema, tstart, tend, tags, options)
     local query_schema, raw_step, data_type = getQuerySchema(schema, tstart, tend, self.db, options)
     local query
-    
+
     if tags.epoch_begin then
         tags.epoch_begin = nil
     end
@@ -1853,6 +1868,7 @@ local function isCompatibleVersion(version)
 end
 
 function driver.init(dbname, url, days_retention, username, password, verbose)
+    require "lua_utils"
     local timeout = getInfluxDBQueryTimeout()
 
     -- Check version

@@ -4,7 +4,10 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
 
+require "ntop_utils"
+require "ts_5min"
 local ts_utils_core = require("ts_utils_core")
 
 local influxdb_export_api = {}

@@ -2,26 +2,15 @@
 -- (C) 2013-24 - ntop.org
 --
 
-local clock_start = os.clock()
-
-require "lua_utils"
+require "check_redis_prefs"
+require "label_utils"
 local format_utils = require "format_utils"
 
-local network_utils = {}
+local network_formatter = {}
 
-network_utils.UNKNOWN_NETWORK = 65535 -- uint16 (-1)
+-- ##############################################
 
--- Get from redis the throughput type bps or pps
-local function getThroughputType()
-  local throughput_type = ntop.getCache("ntopng.prefs.thpt_content")
-  if throughput_type == "" then throughput_type = "bps" end
-  
-  return throughput_type
-end
-
--- network_utils.throughput_type = getThroughputType()
-
-function network_utils.network2record(ifId, network)
+function network_formatter.network2record(ifId, network)
    local record = {}
    local throughput_type = getThroughputType()
    
@@ -32,22 +21,22 @@ function network_utils.network2record(ifId, network)
    network["host_score_ratio"] = ternary(network["num_hosts"] and network["num_hosts"]>0, math.floor((network["score"] or 0) / (network["num_hosts"] or 0)) , '')
 
    record["column_id"] = network_link
-   record["column_score"] = format_high_num_value_for_tables(network, "score") 
-   record["column_hosts"] = format_high_num_value_for_tables(network, "num_hosts")
-   record["column_alerted_flows"] = format_high_num_value_for_tables(network["alerted_flows"], "total")
-   record["column_host_score_ratio"] = format_high_num_value_for_tables(network, "host_score_ratio")
+   record["column_score"] = format_utils.format_high_num_value_for_tables(network, "score") 
+   record["column_hosts"] = format_utils.format_high_num_value_for_tables(network, "num_hosts")
+   record["column_alerted_flows"] = format_utils.format_high_num_value_for_tables(network["alerted_flows"], "total")
+   record["column_host_score_ratio"] = format_utils.format_high_num_value_for_tables(network, "host_score_ratio")
 
    local sent2rcvd = round((network["bytes.sent"] * 100) / (network["bytes.sent"] + network["bytes.rcvd"]), 0)
    record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
       .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
 
    if(throughput_type == "pps") then
-      record["column_thpt"] = pktsToSize(network["throughput_pps"])
+      record["column_thpt"] = format_utils.pktsToSize(network["throughput_pps"])
    else
-      record["column_thpt"] = bitsToSize(8*network["throughput_bps"])
+      record["column_thpt"] = format_utils.bitsToSize(8*network["throughput_bps"])
    end
 
-   record["column_traffic"] = bytesToSize(network["bytes.sent"] + network["bytes.rcvd"])
+   record["column_traffic"] = format_utils.bytesToSize(network["bytes.sent"] + network["bytes.rcvd"])
 
    if not areInterfaceTimeseriesEnabled(ifId) then
       record["column_chart"] = ""
@@ -58,8 +47,4 @@ function network_utils.network2record(ifId, network)
    return record
 end
 
-if(trace_script_duration ~= nil) then
-   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
-end
-
-return network_utils
+return network_formatter

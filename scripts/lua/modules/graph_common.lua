@@ -3,7 +3,6 @@
 --
 
 -- Module for sharred methods between community graph_utils.lua
--- and pro/enterprise nv_graph_utils.lua
 
 local ts_utils = require("ts_utils")
 local dscp_consts = require("dscp_consts")

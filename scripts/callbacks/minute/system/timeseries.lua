@@ -7,9 +7,10 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 
-local scripts_triggers = require "scripts_triggers"
 local prefs_dump_utils = require "prefs_dump_utils"
-local cpu_utils = require("cpu_utils")
+local cpu_utils = require "cpu_utils"
+
+local scripts_triggers = require "scripts_triggers"
 local ts_utils = require("ts_utils_core")
 
 local system_host_stats = cpu_utils.systemHostStats()

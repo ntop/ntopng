@@ -2,10 +2,6 @@
 -- (C) 2014-24 - ntop.org
 --
 
-local dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-
-
 local DEFAULT_DATA_RETENTION_DAYS = 30
 local DEFAULT_AGGREGATED_FLOWS_DATA_RETENTION_DAYS = 60
 local DEFAULT_DATA_RETENTION_DAYS_KEY = "ntopng.prefs.data_retention_days"

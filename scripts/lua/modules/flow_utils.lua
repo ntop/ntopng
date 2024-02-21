@@ -605,31 +605,6 @@ end
 
 -- #######################
 
-function getAlertTimeBounds(alert, engaged)
-    local epoch_begin
-    local epoch_end
-    local half_interval = 1800
-    local alert_tstamp = alert.alert_tstamp
-
-    if alert.first_switched and alert.last_switched then
-        -- Flow alert
-        epoch_begin = alert.first_switched - half_interval
-        epoch_end = alert.last_switched + half_interval
-    else
-        local tend = ternary(engaged, os.time(), alert.alert_tstamp_end) or alert_tstamp
-        -- tprint(debug.traceback())
-        half_interval = math.max(half_interval, (tend - alert_tstamp) / 2) -- at least 1 hour interval
-        local middle_time = (tend + alert_tstamp) / 2
-
-        epoch_begin = middle_time - half_interval
-        epoch_end = middle_time + half_interval
-    end
-
-    return math.floor(epoch_begin), math.floor(epoch_end)
-end
-
--- #######################
-
 local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suffix)
     local hyperlink_params
 

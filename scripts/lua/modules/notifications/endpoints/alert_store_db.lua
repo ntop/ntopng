@@ -99,7 +99,7 @@ function alert_store_db.dequeueRecipientAlerts(recipient, budget)
             -- Do not store alerts engaged - they're are handled only in-memory
 
             if(alert) then
-               interface.select(string.format("%d", alert.ifid))
+               interface.select(string.format("%d", alert.ifid or 0))
 
                local alert_store = get_alert_store(alert.entity_id)
 

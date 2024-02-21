@@ -2,7 +2,6 @@
 -- (C) 2013-24 - ntop.org
 --
 
-
 local tag_utils = require "tag_utils"
 local dscp_consts = require "dscp_consts"
 local alert_consts = require "alert_consts"

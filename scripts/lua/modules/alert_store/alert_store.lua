@@ -12,10 +12,9 @@ local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_severities = require "alert_severities"
-local alert_roles = require "alert_roles"
 local tag_utils = require "tag_utils"
 local alert_entities = require "alert_entities"
-local checks = require "checks"
+local alert_category_utils = require "alert_category_utils"
 local os_utils = require("os_utils")
 
 -- ##############################################
@@ -2072,7 +2071,7 @@ function alert_store:format_json_record_common(value, entity_id)
         label = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), false, entity_id)
     }
 
-    local category = checks.getCategoryById(tonumber(value["alert_category"]))
+    local category = alert_category_utils.getCategoryById(tonumber(value["alert_category"]))
     record[BASE_RNAME.ALERT_CATEGORY.name] = {
         value = value["alert_category"],
         label = i18n(category.i18n_title),

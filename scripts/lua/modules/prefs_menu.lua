@@ -28,6 +28,18 @@ end
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {{
+    id = "active_monitoring",
+    label = i18n("active_monitoring_stats.active_monitoring"),
+    advanced = false,
+    pro_only = false,
+    hidden = false,
+    entries = {
+        toggle_active_monitoring = {
+            title = i18n("prefs.toggle_active_monitoring_title"),
+            description = i18n("prefs.toggle_active_monitoring_description")
+        }
+    }
+},{
     id = "alerts",
     label = i18n("show_alerts.alerts"),
     advanced = false,
@@ -465,6 +477,10 @@ local menu_subpages = {{
         toggle_snmp_rrds = {
             title = i18n("prefs.toggle_snmp_rrds_title"),
             description = i18n("prefs.toggle_snmp_rrds_description")
+        },
+        toggle_snmp_polling = {
+            title = i18n("prefs.toggle_snmp_polling_title"),
+            description = i18n("prefs.toggle_snmp_polling_description")
         },
         default_snmp_community = {
             title = i18n("prefs.default_snmp_community_title"),

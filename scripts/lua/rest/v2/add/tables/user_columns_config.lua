@@ -4,7 +4,6 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-local json = require "dkjson"
 
 -- #####################################
 
@@ -18,6 +17,8 @@ local redis_base_key = "ntopng.columns_config.%s.%s"
 
 -- @brief Save columns configurations
 local function save_column_config()
+   require "lua_utils"
+   local json = require "dkjson"
    local payload = json.decode(_POST.payload)
    local visible_columns = payload.visible_columns_ids
    local table_id = payload.table_id
@@ -33,6 +34,9 @@ local function save_column_config()
   return(rest_utils.answer(rest_utils.consts.success.ok, visible_columns))
 end
 
-return(save_column_config())
-
+if(_POST.payload) then
+   return(save_column_config())
+else
+   return("")
+end
 

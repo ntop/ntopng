@@ -5,7 +5,7 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
-require "lua_utils"
+
 -- do NOT include lua_utils here, it's not necessary, keep it light!
 local callback_utils = require "callback_utils"
 -- Toggle debug
@@ -24,8 +24,8 @@ local ts_utils = require("ts_utils_core")
 require("ts_second")
 
 -- Run this script for a minute before quitting (this reduces load on Lua VM infrastructure)
-local num_runs = 15
-local max_time = os.time() + 15 -- See SECOND_SCRIPT_DIR in PeriodicActivities.cpp
+local num_runs = 60
+local max_time = os.time() + 60 -- See SECOND_SCRIPT_DIR in PeriodicActivities.cpp
 
 for i=1,num_runs do
    if(ntop.isShuttingDown()) then break end
@@ -70,13 +70,12 @@ for i=1,num_runs do
    end, true --[[ update direction stats ]])
 
    if(ntop.isShuttingDown() or (os.time() > max_time)) then break end
-
-   collectgarbage("collect") -- run garbage collector
    
    if(num_runs > 1) then
       ntop.msleep(1000)
    end
 end
+
 
 -- Uncomment this to simulate slow downs
 --os.execute('perl -e "select(undef,undef,undef,0.8);"')

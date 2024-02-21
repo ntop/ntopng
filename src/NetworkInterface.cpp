@@ -2265,8 +2265,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     case NDPI_PROTOCOL_IEC60870:
       if ((trusted_payload_len > 0) && payload) {
 	flow->processIEC60870Packet((htons(src_port) == 2404) ? true : false,
-				    payload, trusted_payload_len,
-				    (struct timeval *)&h->ts);
+				    payload, trusted_payload_len, h);
       }
       break;
 
@@ -2274,8 +2273,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     case NDPI_PROTOCOL_MODBUS:
       if ((trusted_payload_len > 0) && payload) {
 	flow->processModbusPacket((htons(dst_port) == 502) ? true : false,
-				  payload, trusted_payload_len,
-				  (struct timeval *)&h->ts);
+				  payload, trusted_payload_len, h);
       }
       break;
 #endif
@@ -2753,8 +2751,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	    ip_offset = eth_offset + sizeof(struct ndpi_ethhdr);
 	    eth_type = ntohs(ethernet->h_proto);
 	    goto decode_packet_eth;
-	  } else if (gre.proto ==
-		     ETH_P_ERSPAN2 /* ERSPAN version 2 (type III) */) {
+	  } else if (gre.proto == ETH_P_ERSPAN2 /* ERSPAN version 2 (type III) */) {
 	    if (h->caplen >= offset + sizeof(struct ndpi_ethhdr) + 20) {
 	      offset += 20;
 	      eth_offset = offset, encapsulation_overhead = offset;
@@ -2788,21 +2785,18 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	  goto dissect_packet_end;
         }
 
-	struct ndpi_udphdr *udp =
-	  (struct ndpi_udphdr *)&packet[ip_offset + ip_len];
+	struct ndpi_udphdr *udp = (struct ndpi_udphdr *)&packet[ip_offset + ip_len];
 	u_int16_t sport = ntohs(udp->source), dport = ntohs(udp->dest);
 
 	if ((sport == GTP_U_V1_PORT) || (dport == GTP_U_V1_PORT)) {
 	  /* Check if it's GTPv1 */
-	  u_int offset =
-	    (u_int)(ip_offset + ip_len + sizeof(struct ndpi_udphdr));
+	  u_int offset = (u_int)(ip_offset + ip_len + sizeof(struct ndpi_udphdr));
 	  u_int8_t flags = packet[offset];
 	  u_int8_t message_type = packet[offset + 1];
 
 	  if ((((flags & 0xE0) >> 5) == 1 /* GTPv1 */) &&
 	      (message_type == 0xFF /* T-PDU */)) {
-	    ip_offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr) +
-	      8 /* GTPv1 header len */;
+	    ip_offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr) +  8 /* GTPv1 header len */;
 
 	    if (flags & 0x04)
 	      ip_offset += 1 + 3 /* pad */ + 4 /* next extension (TODO better decoding) */; /* next_ext_header is present */
@@ -2829,6 +2823,44 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 
 	  eth_offset = offset;
 	  goto datalink_check;
+	} else if ((sport == L2TP_PORT) && (dport == L2TP_PORT)) {
+	  u_int offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr);	 
+	  struct l2tp_header *l2tp = (struct l2tp_header*)&packet[offset];
+	  u_int16_t proto, flags = ntohs(l2tp->flags);
+
+	  if((flags & 0x8002) == 0x02) {
+	    /* L2TP v2 Data packet */
+	    u_int8_t have_length_bit   = (flags & 0x4000) == 0x4000;
+	    u_int8_t have_sequence_bit = (flags & 0x0800) == 0x0800;
+	    u_int8_t have_offset_bit   = (flags & 0x0200) == 0x0200;
+
+	    offset += sizeof(struct l2tp_header);
+	    
+	    if(have_length_bit)   offset += sizeof(u_int16_t);
+	    if(have_sequence_bit) offset += 2;
+	    if(have_offset_bit)   offset += 2;
+	  }
+
+	  /* PPP */
+	  offset += 2;
+	  proto = (packet[offset] << 8) + packet[offset+1];
+	  offset += 2; /* Skip proto */
+
+	  if(proto == 0x0021) {
+	    /* IPv4 */
+	    eth_type = ETHERTYPE_IP;
+	    iph = (struct ndpi_iphdr *)&packet[offset];
+	  } else if(proto == 0x0057) {
+	    /* IPv6 */
+	    eth_type = ETHERTYPE_IPV6;
+	    ip6 = (struct ndpi_ipv6hdr *)&packet[offset];
+	  } else {
+	    incStats(ingressPacket, h->ts.tv_sec, 0,
+		     NDPI_PROTOCOL_UNKNOWN,
+		     NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire,
+		     1);
+	    goto dissect_packet_end;	  
+	  }	  
 	} else if ((sport == TZSP_PORT) || (dport == TZSP_PORT)) {
 	  /* https://en.wikipedia.org/wiki/TZSP */
 	  u_int offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr);

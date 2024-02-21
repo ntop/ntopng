@@ -364,6 +364,10 @@ typedef struct {
   u_int32_t remapped_app_id;
 } custom_app_t;
 
+PACK_ON struct l2tp_header {
+  u_int16_t flags, tunnel_id, session_id;
+} PACK_OFF;
+
 /* IMPORTANT: whenever the Parsed_FlowSerial is changed, nProbe must be updated
  * too */
 

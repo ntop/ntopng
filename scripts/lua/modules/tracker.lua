@@ -4,8 +4,6 @@
 
 local clock_start = os.clock()
 
-local json = require "dkjson"
-
 local tracker = {}
 
 
@@ -13,8 +11,7 @@ local tracker = {}
 --! @param f_name is the function name
 --! @param f_args is a table with the arguments
 function tracker.log(f_name, f_args)
-  local alert_utils = require("alert_utils")
-  local alerts_api = require("alerts_api")
+  local alert_entity_builders = require("alert_entity_builders")
   local alert_consts = require "alert_consts"
   local stats = interface.getStats()
 
@@ -50,7 +47,7 @@ function tracker.log(f_name, f_args)
   alert:set_score_notice()
   alert:set_subtype('function'.."/"..(f_name or '').."/"..(remote_addr or ''))
 
-  alert:store(alerts_api.userEntity(entity_value))
+  alert:store(alert_entity_builders.userEntity(entity_value))
 
   interface.select(tostring(old_iface))
 end

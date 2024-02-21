@@ -659,7 +659,7 @@ function format_utils.formatMessage(notification, options)
    
    -- In case it is an alert, format it by using the standard function
    local alert_utils = require "alert_utils"
-   local message =  alert_utils.formatAlertNotification(notification, options)
+   local message = alert_utils.formatAlertNotification(notification, options)
 
    return message
 end
@@ -674,9 +674,42 @@ function format_utils.formatEmailList(email_list)
     return email_list_formatted
 end
 
--- ######################################################
-if(trace_script_duration ~= nil) then
-   io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+-- ##############################################
+
+-- This function, given a record and a name return a  standard formatted value
+-- and if the value is 0, an empty string is returned
+-- e.g.   1000 -> 1,000    | 0 -> 
+function format_utils.format_high_num_value_for_tables(record, name)
+  local formatted_record = format_utils.formatValue(record[name] or 0)
+  if formatted_record == '0' then
+    formatted_record = ''
+  end
+
+  return formatted_record
 end
+
+-- ##############################################
+
+function format_utils.format_name_value(name, value, shorten)
+    local formatted_name_value = value
+
+    if not isEmptyString(name) and name ~= value then
+        if (shorten) and (shorten == true) then
+            formatted_name_value = shortenString(name)
+        else
+            formatted_name_value = name
+        end
+    end
+
+    local idx = string.find(formatted_name_value, value)
+
+    if (idx == nil) then
+        formatted_name_value = formatted_name_value .. " [" .. value .. "]"
+    end
+
+    return formatted_name_value
+end
+
+-- ######################################################
 
 return format_utils

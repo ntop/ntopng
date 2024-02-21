@@ -1,53 +1,19 @@
 --
 -- (C) 2014-24 - ntop.org
 --
+
+if(pragma_once_lua_utils_get == true) then
+   -- io.write(debug.traceback().."\n")
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_lua_utils_get = true
+
+require "ntop_utils"
+require "label_utils"
+
 local clock_start = os.clock()
-
--- ##############################################
-
--- See also getHumanReadableInterfaceName
-function getInterfaceName(interface_id, windows_skip_description)
-    if (interface_id == getSystemInterfaceId()) then
-        return (getSystemInterfaceName())
-    end
-
-    local ifnames = interface.getIfNames()
-    local iface = ifnames[tostring(interface_id)]
-
-    if iface ~= nil then
-        if (windows_skip_description ~= true and string.contains(iface, "{")) then -- Windows
-            local old_iface = interface.getId()
-
-            -- Use the interface description instead of the name
-            interface.select(tostring(iface))
-            iface = interface.getStats().description
-
-            interface.select(tostring(old_iface))
-        end
-
-        return (iface)
-    end
-
-    return ("")
-end
-
--- ##############################################
-
-function getInterfaceId(interface_name)
-    if (interface_name == getSystemInterfaceName()) then
-        return (getSystemInterfaceId())
-    end
-
-    local ifnames = interface.getIfNames()
-
-    for if_id, if_name in pairs(ifnames) do
-        if if_name == interface_name then
-            return tonumber(if_id)
-        end
-    end
-
-    return (-1)
-end
 
 -- ##############################################
 
@@ -69,6 +35,17 @@ function getFirstInterfaceId()
     end
 
     return -1, ""
+end
+
+-- ##############################################
+
+local function urlencode(str)
+    str = string.gsub(str, "\r?\n", "\r\n")
+    str = string.gsub(str, "([^%w%-%.%_%~ ])", function(c)
+        return string.format("%%%02X", string.byte(c))
+    end)
+    str = string.gsub(str, " ", "+")
+    return str
 end
 
 -- ##############################################
@@ -307,36 +284,6 @@ end
 
 -- ##############################################
 
-function getHostAltNamesKey(host_key)
-    if (host_key == nil) then
-        return (nil)
-    end
-    return "ntopng.cache.host_labels." .. host_key
-end
-
-function getHostAltName(host_info)
-    local host_key
-
-    -- Check if there is an alias for the host@vlan
-    -- Note: this is not used for backward compatibility (see setHostAltName)
-    --if type(host_info) == "table" and host_info["vlan"] then
-    --    host_key = hostinfo2hostkey(host_info)
-    --    alt_name = ntop.getCache(getHostAltNamesKey(host_key))
-    --    return alt_name
-    --end
-
-    -- Check if there is an alias for the host
-    if type(host_info) == "table" then
-        host_key = host_info["host"]
-    else
-        host_key = host_info
-    end
-
-    return ntop.getCache(getHostAltNamesKey(host_key))
-end
-
--- ##############################################
-
 function getHostNotesKey(host_key)
     if (host_key == nil) then
         return (nil)
@@ -417,130 +364,6 @@ function getDeviceName(device_mac, skip_manufacturer)
     end
 
     return name
-end
-
--- ##############################################
-
-function getLocalNetworkAliasKey()
-    return "ntopng.network_aliases"
-end
-
--- ##############################################
-
-function getInterfaceAliasKey(ifid)
-    return "ntopng.prefs.ifid_" .. ifid .. ".name"
-end
-
--- ##############################################
-
-function getLocalNetworkAliasById(network)
-    local network_utils = require "network_utils"
-
-    local networks_stats = interface.getNetworksStats()
-    local network_id = tonumber(network)
-
-    -- If network is (u_int8_t)-1 then return an empty value
-    if network == nil or network == network_utils.UNKNOWN_NETWORK then
-        return ' '
-    end
-
-    local label = ''
-    for n, ns in pairs(networks_stats) do
-        if ns.network_id == network_id then
-            label = getFullLocalNetworkName(ns.network_key)
-        end
-    end
-    return label
-end
-
--- ##############################################
-
-function getLocalNetworkAlias(network)
-    local alias = ntop.getLocalNetworkAlias(network) or nil
-
-    if not alias then
-        alias = ntop.getHashCache(getLocalNetworkAliasKey(), network)
-    end
-
-    if not isEmptyString(alias) then
-        return alias
-    end
-
-    return network
-end
-
--- ##############################################
-
-function getLocalNetworkLabel(network)
-    local alias = getLocalNetworkAlias(network)
-
-    if alias ~= network then
-        return string.format("%s  · %s", alias, network)
-    end
-
-    return network
-end
-
--- ##############################################
-
-function getFullLocalNetworkName(network)
-    local alias = getLocalNetworkAlias(network)
-
-    if tonumber(network) == 65535 then
-        return ""
-    end
-
-    if alias ~= network then
-        return string.format("%s [%s]", alias, network)
-    end
-
-    return network
-end
-
--- ##############################################
-
-function getVlanAliasKey()
-    return "ntopng.vlan_aliases"
-end
-
--- ##############################################
-
-function getVlanAlias(vlan_id)
-    local alias = ntop.getHashCache(getVlanAliasKey(), vlan_id)
-
-    if not isEmptyString(alias) then
-        return alias
-    end
-
-    return tostring(vlan_id)
-end
-
--- ##############################################
-
-function getFullVlanName(vlan_id, compact, return_untagged)
-    local alias = getVlanAlias(vlan_id)
-
-    -- In case of vlan 0, return empty string as name
-    -- fix for untagged vlan (#7998)
-    if tonumber(vlan_id) == 0 then
-        if (return_untagged) then
-            return i18n('no_vlan')
-        end
-        return ''
-    end
-
-    if not isEmptyString(alias) then
-        if not isEmptyString(alias) and alias ~= tostring(vlan_id) then
-            if compact then
-                alias = shortenString(alias)
-                return string.format("%s", alias)
-            else
-                return string.format("%u [%s]", vlan_id, alias)
-            end
-        end
-    end
-
-    return vlan_id
 end
 
 -- ############################################
@@ -658,34 +481,6 @@ function removeCustomnDPIProtoCategory(app_id)
     -- NOTE: when the ndpi struct changes, the custom associations are
     -- reloaded by Ntop::loadProtocolsAssociations
     ntop.delHashCache(key, tostring(app_id));
-end
-
--- ##############################################
-
-function getHumanReadableInterfaceName(interface_name)
-    local interface_id = nil
-
-    if (interface_name == "__system__") then
-        return (i18n("system"))
-    elseif tonumber(interface_name) ~= nil then
-        -- convert ID to name
-        interface_id = tonumber(interface_name)
-        interface_name = getInterfaceName(interface_name)
-    else
-        -- Parameter is a string, let's take it's id first
-        interface_id = getInterfaceId(interface_name)
-        -- and then get the name
-        interface_name = getInterfaceName(interface_id)
-    end
-
-    local key = 'ntopng.prefs.ifid_' .. tostring(interface_id) .. '.name'
-    local custom_name = ntop.getCache(key)
-
-    if not isEmptyString(custom_name) then
-        return (shortenCollapse(custom_name))
-    end
-
-    return interface_name
 end
 
 -- ##############################################
@@ -1124,8 +919,7 @@ end
 -- Returns the size of a folder (size is in bytes)
 -- ! @param path the path to compute the size for
 -- ! @param timeout the maxium time to compute the size. If nil, it defaults to 15 seconds.
-function getFolderSize(path, timeout)
-    local os_utils = require "os_utils"
+function getFolderSize(path, timeout, os_utils)
     local folder_size_key = "ntopng.cache.folder_size"
     local now = os.time()
     local expiration = 30 -- sec
@@ -1197,43 +991,6 @@ function getHttpUrlPrefix()
     end
 end
 
--- ###########################################
-
-function getHttpHost()
-    local ntopng_info = ntop.getInfo()
-    local ntopng_host_info = ntop.getHostInformation()
-
-    -- Read configured ntopng host name or IP
-    local ntopng_host_ip = ntop.getPref("ntopng.prefs.ntopng_host_address")
-    if isEmptyString(ntopng_host_ip) then
-        -- fallback: managegemt IP
-        ntopng_host_ip = ntopng_host_info.ip
-    end
-    if isEmptyString(ntopng_host_ip) then
-        -- last resort: dummy IP
-        ntopng_host_ip = '127.0.0.1'
-    end
-
-    local http_host
-    if starts(ntopng_host_ip, 'http') then
-        http_host = ntopng_host_ip
-    else
-        -- Computing URL adding protocol and port
-        local ntopng_protocol = "http://"
-        local ntopng_port = ntopng_info.http_port
-
-        if not ntop.isnEdge()
-           and ntopng_info.https_port and tonumber(ntopng_info.https_port) ~= 0 then
-            ntopng_protocol = "https://"
-            ntopng_port = ntopng_info.https_port
-        end
-
-        http_host = ntopng_protocol .. ntopng_host_ip .. ":" .. ntopng_port
-    end
-
-    return http_host
-end
-
 -- ##############################################
 
 function getPoolName(pool_id)
@@ -1264,80 +1021,6 @@ function get_version_update_msg(info, latest_version)
     end
 
     return ""
-end
-
--- ##############################################
-
-function getFlowDevInterfaceKey(ifid)
-    return "ntopng.flow_dev_interface.ifid_" .. ifid .. ".config"
-end
-
--- ##############################################
-
-function getFlowDevInterfaceConfig(device_ip, port_index, ifid)
-    local json = require "dkjson"
-    local key = string.format("%s_%s", device_ip, port_index)
-    local config = ntop.getHashCache(getFlowDevInterfaceKey(ifid), key)
-    local ret = {}
-    config = json.decode(config)
-    -- As priority get the configuration set up by the user, if no config is found,
-    -- create a default configuration based on SNMP or default values
-    if config then
-        ret = {
-            alias = config.alias,
-            uplink_speed = tonumber(config.uplink_speed),
-            downlink_speed = tonumber(config.downlink_speed),
-        }
-    else
-        -- Default values, get the snmp name and uplink and downlink at 1 Gbit
-        local interface_label = port_index
-        local uplink_speed = 1000000000 -- By default it's 1 Gbit link
-        local downlink_speed = 1000000000 -- By default it's 1 Gbit link
-        
-        if ntop.isPro() then
-            package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-            local snmp_utils = require "snmp_utils"
-            local current_config = snmp_utils.getSNMPInterfaceSpeedConfig(device_ip, port_index)
-            uplink_speed = current_config.uplink_speed
-            downlink_speed = current_config.downlink_speed
-        end
-
-        ret = {
-            alias = interface_label,
-            uplink_speed = uplink_speed,
-            downlink_speed = downlink_speed,
-        }
-    end
-
-    return ret
-end
-
--- ##############################################
-
-function setFlowDevInterfaceConfig(device_ip, port_index, ifid, config)
-    local json = require "dkjson"
-    local key = string.format("%s_%s", device_ip, port_index)
-    
-    -- Just to be sure in case some config param is missing, put default values
-    if not config or table.len(config) == 0 then
-        config = {
-            alias = port_index,
-            uplink_speed = 1000000000, -- By default it's 1 Gbit link
-            downlink_speed = 1000000000 -- By default it's 1 Gbit link
-        }
-    end
-    if not config.alias then
-        config.alias = port_index
-    end
-    if not config.uplink_speed then
-        config.uplink_speed = 1000000000
-    end
-    if not config.uplink_speed then
-        config.uplink_speed = 1000000000
-    end
-
-    config = json.encode(config)
-    ntop.setHashCache(getFlowDevInterfaceKey(ifid), key, config)
 end
 
 -- ##############################################

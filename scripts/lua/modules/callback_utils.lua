@@ -8,7 +8,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 local os_utils = require "os_utils"
 
 local callback_utils = {}
-
 local clock_start = os.clock()
 
 -- ########################################################
@@ -241,6 +240,7 @@ end
 -- Iterates each device on the ifname interface.
 -- Each device is passed to the callback with some more information.
 function callback_utils.foreachDevice(ifname, callback)
+   require "label_utils"
    interface.select(ifname)
 
    local devices_stats = callback_utils.getDevicesIterator()

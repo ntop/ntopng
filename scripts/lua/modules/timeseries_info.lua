@@ -3,8 +3,11 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 
 local ts_utils = require "ts_utils"
+require "lua_utils_generic"
+require "label_utils"
 
 local timeseries_info = {}
 
@@ -3069,18 +3072,6 @@ local function add_top_timeseries(tags, prefix, timeseries)
     return timeseries
 end
 
-local function check_total(schema, tags)
-    local tot = 0
-    local tot_serie = ts_utils.queryTotal(schema, tags.epoch_begin, tags.epoch_end, table.clone(tags))
-
-    -- Remove serie with no data
-    for _, value in pairs(tot_serie or {}) do
-        tot = tot + tonumber(value)
-    end
-
-    return tot
-end
-
 -- #################################
 
 function timeseries_info.retrieve_specific_timeseries(tags, prefix)
@@ -3099,23 +3090,6 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
         if (prefix ~= nil) then
             if info.id ~= prefix then
                 goto skip
-            end
-
-            if info.aggregate_schemas then
-                local tot = 0
-                for _, timeseries_data in pairs(info.aggregate_schemas) do
-                    tot = tot + check_total(timeseries_data.schema, tags)
-                end
-
-                if (tot == 0) then
-                    goto skip
-                end
-            elseif not (info.schema:find("top", 1, true)) and not info.always_visibile then
-                local tot = check_total(info.schema, tags)
-
-                if (tot == 0) then
-                    goto skip
-                end
             end
 
             -- Remove from nEdge the timeseries only for ntopng
