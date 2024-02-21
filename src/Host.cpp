@@ -837,13 +837,6 @@ void Host::lua_get_num_http_hosts(lua_State *vm) {
 
 /* ***************************************************** */
 
-void Host::lua_get_fingerprints(lua_State *vm) {
-  fingerprints.ja3.lua("ja3_fingerprint", vm);
-  fingerprints.hassh.lua("hassh_fingerprint", vm);
-}
-
-/* ***************************************************** */
-
 void Host::lua_unidirectional_tcp_udp_flows(lua_State *vm,
                                             bool as_subtable) const {
   lua_newtable(vm);

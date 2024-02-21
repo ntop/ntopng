@@ -35,12 +35,6 @@ class Host : public GenericHashEntry,
   Mac *mac;
   char *asname, *blacklist_name;
 
-  struct {
-    Fingerprint ja3;
-    Fingerprint ja4;
-    Fingerprint hassh;
-  } fingerprints;
-
   int32_t iface_index; /* Interface index on which this host has been first observed */
   u_int16_t host_pool_id, host_services_bitmap;
   u_int16_t vlan_id;
@@ -518,7 +512,7 @@ class Host : public GenericHashEntry,
   void lua_get_num_contacts(lua_State *vm);
   void lua_get_num_http_hosts(lua_State *vm);
   void lua_get_os(lua_State *vm);
-  void lua_get_fingerprints(lua_State *vm);
+  virtual void lua_get_fingerprints(lua_State *vm) { ; }
   void lua_get_geoloc(lua_State *vm);
   void lua_blacklisted_flows(lua_State *vm) const;
   void lua_unidirectional_tcp_udp_flows(lua_State *vm, bool as_subtable) const;
@@ -779,9 +773,9 @@ class Host : public GenericHashEntry,
   void offlineSetDHCPName(const char *n);
   void setServerName(const char *n);
   void setResolvedName(const char *resolved_name);
-  inline Fingerprint *getJA3Fingerprint()   { return (&fingerprints.ja3);   }
-  inline Fingerprint *getJA4Fingerprint()   { return (&fingerprints.ja4);   }
-  inline Fingerprint *getHASSHFingerprint() { return (&fingerprints.hassh); }
+  virtual Fingerprint *getJA3Fingerprint()   { return (NULL); }
+  virtual Fingerprint *getJA4Fingerprint()   { return (NULL); }
+  virtual Fingerprint *getHASSHFingerprint() { return (NULL); }
 
   void setPrefsChanged() { prefs_loaded = 0; }
   virtual void reloadPrefs() {}
