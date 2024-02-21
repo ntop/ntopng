@@ -66,19 +66,20 @@ void OtherAlertableEntity::luaAlert(lua_State *vm, const Alert *alert,
 bool OtherAlertableEntity::triggerAlert(lua_State *vm, std::string key,
                                         ScriptPeriodicity p, time_t now,
                                         u_int32_t score, AlertType alert_id,
-                                        const char *subtype, const char *json, 
+                                        const char *subtype, const char *json,
                                         const char *ip, const char *name,
                                         u_int16_t port) {
   bool rv = false;
-  std::map<std::string, Alert>::iterator it;
+  std::map<u_int32_t /* std::string */, Alert>::iterator it;
 
   if (getEntityValue().empty()) {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "setEntityValue() not called or empty entity_val");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "setEntityValue() not called or empty entity_val");
   } else {
+    u_int32_t num_key = ndpi_hash_string(key.c_str());
+    
     engaged_alerts_lock.wrlock(__FILE__, __LINE__);
 
-    it = engaged_alerts[(u_int)p].find(key);
+    it = engaged_alerts[(u_int)p].find(num_key);
 
     if (it == engaged_alerts[(u_int)p].end()) {
       Alert alert;
@@ -94,7 +95,16 @@ bool OtherAlertableEntity::triggerAlert(lua_State *vm, std::string key,
 
       incNumAlertsEngaged(Utils::mapScoreToSeverity(score));
 
-      engaged_alerts[(u_int)p][key] = alert;
+      engaged_alerts[(u_int)p][num_key] = alert;
+
+      {
+	int tot = 0;
+
+	for(u_int i=0; i<MAX_NUM_PERIODIC_SCRIPTS; i++)
+	  tot += alert_cache[i].size() + engaged_alerts[i].size();
+
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [size: %u]", __FUNCTION__, tot);
+      }
 
       lua_newtable(vm);
       luaAlert(vm, &alert, p);
@@ -114,13 +124,15 @@ bool OtherAlertableEntity::triggerAlert(lua_State *vm, std::string key,
 
 bool OtherAlertableEntity::releaseAlert(lua_State *vm, std::string key,
                                         ScriptPeriodicity p, time_t now) {
-  std::map<std::string, Alert>::iterator it;
+  std::map<u_int32_t /* std::string */, Alert>::iterator it;
   bool rv = false;
 
   if (!engaged_alerts[(u_int)p].empty()) {
+    u_int32_t num_key = ndpi_hash_string(key.c_str());
+    
     engaged_alerts_lock.wrlock(__FILE__, __LINE__);
 
-    it = engaged_alerts[(u_int)p].find(key);
+    it = engaged_alerts[(u_int)p].find(num_key);
 
     if (it != engaged_alerts[(u_int)p].end()) {
       /* Set the release time */
@@ -137,6 +149,15 @@ bool OtherAlertableEntity::releaseAlert(lua_State *vm, std::string key,
 
       engaged_alerts[(u_int)p].erase(it);
 
+      {
+	int tot= 0;
+
+	for(int i=0; i<MAX_NUM_PERIODIC_SCRIPTS; i++)
+	  tot += alert_cache[i].size() + engaged_alerts[i].size();
+
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [size: %u]", __FUNCTION__, tot);
+      }
+
       rv = true; /* Actually released */
     }
 
@@ -151,7 +172,7 @@ bool OtherAlertableEntity::releaseAlert(lua_State *vm, std::string key,
 /* ****************************************** */
 
 void OtherAlertableEntity::countAlerts(grouped_alerts_counters *counters) {
-  std::map<std::string, Alert>::const_iterator it;
+  std::map<u_int32_t /* std::string */, Alert>::const_iterator it;
 
   for (int i = 0; i < MAX_NUM_PERIODIC_SCRIPTS; i++) {
     ScriptPeriodicity p = (ScriptPeriodicity)i;
@@ -159,12 +180,10 @@ void OtherAlertableEntity::countAlerts(grouped_alerts_counters *counters) {
     if (!engaged_alerts[p].empty()) {
       engaged_alerts_lock.rdlock(__FILE__, __LINE__);
 
-      for (it = engaged_alerts[p].begin(); it != engaged_alerts[p].end();
-           ++it) {
+      for (it = engaged_alerts[p].begin(); it != engaged_alerts[p].end(); ++it) {
         const Alert *alert = &it->second;
 
-        counters->severities[std::make_pair(
-            getEntityType(), Utils::mapScoreToSeverity(alert->score))]++;
+        counters->severities[std::make_pair(getEntityType(), Utils::mapScoreToSeverity(alert->score))]++;
         counters->types[std::make_pair(getEntityType(), alert->alert_id)]++;
       }
 
@@ -178,7 +197,7 @@ void OtherAlertableEntity::countAlerts(grouped_alerts_counters *counters) {
 void OtherAlertableEntity::getPeriodicityAlerts(
     lua_State *vm, ScriptPeriodicity p, AlertType type_filter,
     AlertLevel severity_filter, AlertRole role_filter, u_int *idx) {
-  std::map<std::string, Alert>::const_iterator it;
+  std::map<u_int32_t /* std::string */, Alert>::const_iterator it;
 
   if (!engaged_alerts[p].empty()) {
     engaged_alerts_lock.rdlock(__FILE__, __LINE__);
