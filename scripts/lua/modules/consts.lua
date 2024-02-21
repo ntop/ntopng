@@ -5,3 +5,5 @@
 local consts = {}
 
 consts.SEPARATOR = ';'
+
+return consts
