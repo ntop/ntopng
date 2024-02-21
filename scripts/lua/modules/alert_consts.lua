@@ -25,6 +25,7 @@ local alert_granularities = require "alert_granularities"
 local alert_severities = require "alert_severities"
 local alert_categories = require "alert_categories"
 local alert_entities = require "alert_entities"
+local consts = require "consts"
 
 -- ##############################################
 
@@ -41,7 +42,7 @@ if (ntop.isPro()) then
    -- NOTE: import snmp_utils below to avoid import cycles
 end
 
-alert_consts.SEPARATOR = ';'
+alert_consts.SEPARATOR = consts.SEPARATOR
 -- NOTE: sqlite can handle about 10-50 alerts/sec
 alert_consts.MAX_NUM_QUEUED_ALERTS_PER_MODULE = 1024 -- should match ALERTS_MANAGER_MAX_ENTITY_ALERTS
 alert_consts.MAX_NUM_QUEUED_ALERTS_PER_RECIPIENT = 4096
@@ -328,7 +329,6 @@ local function loadAlertsDefs()
          traceError(TRACE_WARNING, TRACE_CONSOLE, "second.lua is loading alert_consts.lua. This will slow it down!")
       end
    end
-
    local defs_dirs = alert_consts.getDefinititionDirs()
 
    for _, defs_dir in pairs(defs_dirs) do
@@ -705,7 +705,6 @@ function alert_consts.sec2granularity(seconds)
    end
    return key
 end
-
 -- Load definitions now
 loadAlertsDefs()
 initMappings()

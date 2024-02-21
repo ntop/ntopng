@@ -12,6 +12,7 @@ pragma_once_lua_utils_get = true
 
 require "ntop_utils"
 require "label_utils"
+require "check_redis_prefs"
 
 local clock_start = os.clock()
 
@@ -387,16 +388,6 @@ function getRedisPrefix(str)
 end
 
 -----  End of Redis Utils  ------
-
--- ##############################################
-
-function getThroughputType()
-    local throughput_type = ntop.getCache("ntopng.prefs.thpt_content")
-    if throughput_type == "" then
-        throughput_type = "bps"
-    end
-    return throughput_type
-end
 
 -- ##############################################
 

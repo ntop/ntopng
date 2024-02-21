@@ -673,29 +673,6 @@ function mac2label(mac)
    return(mac)
 end
 
--- ##############################################
-
--- Mac Addresses --
-
-local specialMACs = {
-  "01:00:0C",
-  "01:80:C2",
-  "01:00:5E",
-  "01:0C:CD",
-  "01:1B:19",
-  "FF:FF",
-  "33:33"
-}
-function isSpecialMac(mac)
-  for _,key in pairs(specialMACs) do
-     if(string.contains(mac, key)) then
-        return true
-     end
-  end
-
-  return false
-end
-
 
 
 -- ##############################################
@@ -736,21 +713,6 @@ function setVlanAlias(vlan_id, alias)
    else
       ntop.delHashCache(getVlanAliasKey(), vlan_id)
    end
-end
-
--- ##############################################
-
-function flow2hostinfo(host_info, host_type)
-  local host_name
-  local res = interface.getHostMinInfo(host_info[host_type .. ".ip"])
-
-  if((res == nil) or (res["name"] == nil)) then
-      host_name = host_info[host_type .. ".ip"]
-  else
-      host_name = res["name"]
-  end
-
-  return({host = host_info[host_type .. ".ip"], vlan = host_info[host_type .. ".vlan"], name = host_name})
 end
 
 -- ##############################################
@@ -1176,17 +1138,6 @@ end
 
 function ip_address_rev(a, b)
    return(ntop.ipCmp(a, b) > 0)
-end
-
--- ###########################################
-
--- @brief Deletes all the cache/prefs keys matching the pattern
-function deleteCachePattern(pattern)
-   local keys = ntop.getKeysCache(pattern)
-
-   for key in pairs(keys or {}) do
-      ntop.delCache(key)
-   end
 end
 
 -- ###########################################

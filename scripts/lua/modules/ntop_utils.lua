@@ -13,6 +13,8 @@ end
 
 pragma_once_ntop_utils = true
 
+-- This is required because it simply adds the tracing functions, like traceError
+require "lua_trace"
 
 local clock_start = os.clock()
 

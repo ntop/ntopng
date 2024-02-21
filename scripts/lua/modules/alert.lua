@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- Import the classes library.
 local classes = require "classes"
 local alert_severities = require "alert_severities"
+local alert_granularities = require "alert_granularities"
 
 -- ##############################################
 
@@ -32,7 +33,6 @@ end
 --        Those information could be set using standard functions
 --        like set_score() or set_granularity
 function Alert:set_info(params)
-    local alert_consts = require "alert_consts"
     local script = params.check
     if (not self.score or self.score == 0) and (script) then
         self.score = ntop.mapSeverityToScore(script.severity.severity_id or 0 --[[ no score ]] )
@@ -46,7 +46,7 @@ function Alert:set_info(params)
         self.subtype = params.entity_info.name or ""
     end
 
-    self.granularity = alert_consts.alerts_granularities[params.granularity]
+    self.granularity = alert_granularities[params.granularity]
 end
 
 -- ##############################################
@@ -173,9 +173,7 @@ end
 -- ##############################################
 
 function Alert:set_granularity(granularity)
-    local alert_consts = require "alert_consts"
-
-    self.granularity = alert_consts.alerts_granularities[granularity]
+    self.granularity = alert_granularities[granularity]
     if (self.granularity == nil) then
         print("[ERROR] Unknown granularity\n")
         tprint(granularity)
