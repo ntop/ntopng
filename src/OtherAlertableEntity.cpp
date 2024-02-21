@@ -97,15 +97,6 @@ bool OtherAlertableEntity::triggerAlert(lua_State *vm, std::string key,
 
       engaged_alerts[(u_int)p][num_key] = alert;
 
-      {
-	int tot = 0;
-
-	for(u_int i=0; i<MAX_NUM_PERIODIC_SCRIPTS; i++)
-	  tot += alert_cache[i].size() + engaged_alerts[i].size();
-
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [size: %u]", __FUNCTION__, tot);
-      }
-
       lua_newtable(vm);
       luaAlert(vm, &alert, p);
 
