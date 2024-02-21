@@ -37,6 +37,7 @@ class Host : public GenericHashEntry,
 
   struct {
     Fingerprint ja3;
+    Fingerprint ja4;
     Fingerprint hassh;
   } fingerprints;
 
@@ -798,7 +799,8 @@ class Host : public GenericHashEntry,
   void offlineSetDHCPName(const char *n);
   void setServerName(const char *n);
   void setResolvedName(const char *resolved_name);
-  inline Fingerprint *getJA3Fingerprint() { return (&fingerprints.ja3); }
+  inline Fingerprint *getJA3Fingerprint()   { return (&fingerprints.ja3);   }
+  inline Fingerprint *getJA4Fingerprint()   { return (&fingerprints.ja4);   }
   inline Fingerprint *getHASSHFingerprint() { return (&fingerprints.hassh); }
 
   void setPrefsChanged() { prefs_loaded = 0; }

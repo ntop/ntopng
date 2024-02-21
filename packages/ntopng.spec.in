@@ -10,9 +10,9 @@ Packager: Luca Deri <deri@ntop.org>
 # Temporary location where the RPM will be built
 BuildRoot:  %{_tmppath}/%{name}-%{version}-root
 %if 0%{?centos_ver} <= 8
-Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, mysql-libs, ethtool, redhat-lsb-core, libcap, json-c, expat, libzstd, net-snmp-libs, newt, libatomic, libmaxminddb, tcp_wrappers-libs, librdkafka, nmap, @LICENSE_DEP@
+Requires: pfring = @PFRING_VERSION@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, mysql-libs, ethtool, redhat-lsb-core, libcap, json-c, expat, libzstd, net-snmp-libs, newt, libatomic, libmaxminddb, tcp_wrappers-libs, librdkafka, nmap, cronie, @LICENSE_DEP@
 %else
-Requires: pfring = @PFRING_VERSION@-@PFRING_GIT_RELEASE@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, mysql-libs, ethtool, libcap, json-c, expat, libzstd, net-snmp-libs, newt, libatomic, libmaxminddb, tcp_wrappers-libs, librdkafka, @LICENSE_DEP@
+Requires: pfring = @PFRING_VERSION@, redis >= 2.4.0, rrdtool >= 1.3.8, numactl, libcurl, ntopng-data, logrotate, zeromq >= 4.0.0, openldap, radcli, openssl, hiredis, mysql-libs, ethtool, libcap, json-c, expat, libzstd, net-snmp-libs, newt, libatomic, libmaxminddb, tcp_wrappers-libs, librdkafka, cronie, @LICENSE_DEP@
 %endif
 # Disable shared libs dependency check (needed by FPGA libs)
 AutoReqProv: no
@@ -64,7 +64,7 @@ cp $HOME/ntopng/packages/usr/bin/ntopctl $RPM_BUILD_ROOT/usr/bin/
 # nmap vulnerability scan - https://github.com/scipag/vulscan
 \mkdir -p $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan
 wget -O $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan/vulscan.nse https://raw.githubusercontent.com/scipag/vulscan/master/vulscan.nse
-wget -O $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan/cve.csv 	https://www.computec.ch/projekte/vulscan/download/cve.csv
+wget -O $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan/cve.csv 	https://raw.githubusercontent.com/scipag/vulscan/master/cve.csv
 #wget -O $RPM_BUILD_ROOT/usr/share/nmap/scripts/vulscan/openvas.csv 	https://www.computec.ch/projekte/vulscan/download/openvas.csv
 
 # Make sure .mmdb files are not packaged by ntopng as they belong to ntopng-data
@@ -153,15 +153,15 @@ rm -fr $RPM_BUILD_ROOT
 
 %pre
 
-if ! grep -q ntopng /etc/group; then
-  echo 'Creating ntopng group'
-  /usr/sbin/groupadd -r ntopng
+if ! grep -q 'ntop:' /etc/group; then
+    echo 'Creating ntop group'
+    /usr/sbin/groupadd -r ntop
 fi
-
 if ! /usr/bin/id -u ntopng > /dev/null 2>&1; then 
-  echo 'Creating ntopng user'
-  /usr/sbin/useradd -M -N -g ntopng -r -s /bin/false ntopng
+    echo "Creating ntopng user..."
+    /usr/sbin/useradd -M -N -g ntop -r -s /bin/false ntopng
 fi
+/usr/sbin/usermod -g ntop ntopng
 
 if [ $(getent group n2disk) ] && [ $(getent passwd ntopng) ]; then
     # this is necessary to allow ntopng to extract pcaps

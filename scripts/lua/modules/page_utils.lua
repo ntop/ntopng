@@ -6,6 +6,8 @@ local dirs = ntop.getDirs()
 local info = ntop.getInfo()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+require "label_utils"
+
 local script_manager = require("script_manager")
 local template_utils = require("template_utils")
 local recording_utils = require("recording_utils")
@@ -882,7 +884,9 @@ function page_utils.generate_info_stats()
 
    download_stats = download_stats:sub(1, -2)
    upload_stats = upload_stats:sub(1, -2)
-
+   if (_ifstats.id == -1) then
+      return ""
+   end
    if _ifstats.has_traffic_directions then
       return ([[
          <a href=']].. ntop.getHttpPrefix() ..[[/lua/if_stats.lua'>

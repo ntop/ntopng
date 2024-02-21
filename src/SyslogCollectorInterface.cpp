@@ -31,10 +31,11 @@ bool SyslogCollectorInterface::openSocket(syslog_socket *ss,
   struct sockaddr_in listen_addr;
   int reuse = 1;
 
-  ntop->getTrace()->traceEvent(
-      TRACE_NORMAL, "Starting %s syslog collector on %s:%d",
-      protocol == SOCK_DGRAM ? "UDP" : "TCP", server_address, server_port);
-
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Starting %s syslog collector on %s:%d",
+			       protocol == SOCK_DGRAM ? "UDP" : "TCP", server_address, server_port);
+  
   ss->sock =
       Utils::openSocket(AF_INET, protocol, 0, "SyslogCollectorInterface");
 
@@ -532,8 +533,8 @@ bool SyslogCollectorInterface::set_packet_filter(char *filter) {
 
 /* **************************************************** */
 
-void SyslogCollectorInterface::lua(lua_State *vm) {
-  SyslogParserInterface::lua(vm);
+void SyslogCollectorInterface::lua(lua_State *vm, bool fullStats) {
+  SyslogParserInterface::lua(vm, fullStats);
 
   lua_push_bool_table_entry(vm, "isSyslog", true);
 

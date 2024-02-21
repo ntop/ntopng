@@ -364,6 +364,10 @@ typedef struct {
   u_int32_t remapped_app_id;
 } custom_app_t;
 
+PACK_ON struct l2tp_header {
+  u_int16_t flags, tunnel_id, session_id;
+} PACK_OFF;
+
 /* IMPORTANT: whenever the Parsed_FlowSerial is changed, nProbe must be updated
  * too */
 
@@ -896,81 +900,6 @@ typedef struct {
   u_int8_t num_replies_ok, num_replies_error;
 } FlowDNSStats;
 
-/* Forward class declarations for the Lua context */
-class NetworkStats;
-class Host;
-class Flow;
-class ThreadedActivity;
-class ThreadedActivityStats;
-class LuaEngine;
-
-struct ntopngLuaContext {
-  char *allowed_ifname, *user, *group, *csrf;
-  char *sqlite_hosts_filter, *sqlite_flows_filter;
-  bool sqlite_filters_loaded;
-  void *zmq_context, *zmq_subscriber;
-  struct mg_connection *conn;
-  AddressTree *allowedNets;
-  NetworkInterface *iface;
-  AddressTree *addr_tree;
-  SNMP *snmpBatch, *snmpAsyncEngine[MAX_NUM_ASYNC_SNMP_ENGINES];
-  Host *host;
-  NetworkStats *network;
-  Flow *flow;
-  bool localuser;
-  u_int16_t observationPointId;
-  LuaEngine *engine;
-  
-  /* Capabilities bitmap */
-  u_int64_t capabilities;
-
-  /* Packet capture */
-  struct {
-    bool captureInProgress;
-    pthread_t captureThreadLoop;
-    pcap_t *pd;
-    pcap_dumper_t *dumper;
-    u_int32_t end_capture;
-  } pkt_capture;
-
-  /* Live capture written to mongoose socket */
-  struct {
-    u_int32_t capture_until, capture_max_pkts, num_captured_packets;
-    void *matching_host;
-    bool bpfFilterSet;
-    struct bpf_program fcode;
-
-    /* Status */
-    bool pcaphdr_sent;
-    bool stopped;
-
-    /* Partial sends */
-    char send_buffer[1600];
-    u_int data_not_yet_sent_len; /*
-                                    Amount of data that was
-                                    not sent mostly due to
-                                    socket buffering
-                                 */
-  } live_capture;
-
-  /*
-     Indicate the time when the vm will be reloaded.
-     This can be used so that Lua scripts running in an infinite-loop fashion,
-     e.g., notifications.lua, can know when to break so they can be reloaded
-     with new configurations. Useful when user scripts change or when recipient
-     configurations change.
-   */
-  time_t next_reload;
-  /* Periodic scripts (ThreadedActivity.cpp) */
-  time_t deadline;
-  const ThreadedActivity *threaded_activity;
-  ThreadedActivityStats *threaded_activity_stats;
-
-#if defined(NTOPNG_PRO)
-  BinAnalysis *bin;
-#endif
-};
-
 typedef enum {
   lan_interface = 1,
   wan_interface,
@@ -1248,7 +1177,8 @@ typedef enum {
   client_server_criteria,
   app_client_server_criteria,
   info_criteria,
-  client_server_srv_port
+  client_server_srv_port,
+  client_server_srv_port_app_proto
 } AnalysisCriteria;
 
 

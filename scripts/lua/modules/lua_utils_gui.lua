@@ -4,157 +4,32 @@
 --
 -- Container for GUI-related stuff that used to be part of lua_utils.lua
 --
+
+if(pragma_once_lua_utils_gui == true) then
+   -- io.write(debug.traceback().."\n")
+   -- tprint("Circular dependency in lua_utils_gui.lua")
+   -- tprint(debug.traceback())
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_lua_utils_gui = true
+
+
 local clock_start = os.clock()
+
+require "gui_utils"
 
 local format_utils = require "format_utils"
 local dns_utils = require "dns_utils"
 local http_utils = require "http_utils"
+local rest_utils = require "rest_utils"
 
--- ##############################################
-
-function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_headers, status_code)
-    local info = ntop.getInfo(false)
-    local http_status_code_map = {
-        [200] = "OK",
-        [400] = "Bad Request",
-        [401] = "Unauthorized",
-        [403] = "Forbidden",
-        [404] = "Not Found",
-        [405] = "Method Not Allowed",
-        [406] = "Not Acceptable",
-        [408] = "Request timeout",
-        [409] = "Conflict",
-        [410] = "Gone",
-        [412] = "Precondition Failed",
-        [415] = "Unsupported Media Type",
-        [423] = "Locked",
-        [428] = "Precondition Required",
-        [429] = "Too many requests",
-        [500] = "Internal Server Error",
-        [501] = "Not Implemented",
-        [503] = "Service Unavailable"
-    }
-    local tzname = info.tzname or ''
-    local cookie_attr = ntop.getCookieAttributes()
-    local lines = {'Cache-Control: max-age=0, no-cache, no-store',
-                   'Server: ntopng ' .. info["version"] .. ' [' .. info["platform"] .. ']',
-                   'Set-Cookie: tzname=' .. tzname .. '; path=/' .. cookie_attr, 'Pragma: no-cache',
-                   'X-Frame-Options: DENY', 'X-Content-Type-Options: nosniff', 'Content-Type: ' .. mime,
-                   'Last-Modified: ' .. os.date("!%a, %m %B %Y %X %Z")}
-
-    local uri = _SERVER.URI
-
-    if (starts(uri, "/lua/rest/")) then
-        --
-        -- Only for REST calls handle CORS (Cross-Origin Resource Sharing)
-        --
-        -- https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
-        -- https://web.dev/cross-origin-resource-sharing/
-        --
-        lines[#lines + 1] = 'Access-Control-Allow-Origin: *'
-        lines[#lines + 1] = 'Access-Control-Allow-Methods: GET, POST, HEAD'
-    end
-
-    if (_SESSION ~= nil) then
-        local key = "session_" .. info.http_port .. "_" .. info.https_port
-        lines[#lines + 1] = 'Set-Cookie: ' .. key .. '=' .. _SESSION["session"] .. '; max-age=' .. maxage ..
-                                '; path=/; ' .. cookie_attr
-    end
-
-    if (ifname ~= nil) then
-        lines[#lines + 1] = 'Set-Cookie: ifname=' .. ifname .. '; path=/' .. cookie_attr
-    end
-
-    if (info.timezone ~= nil) then
-        lines[#lines + 1] = 'Set-Cookie: timezone=' .. info.timezone .. '; path=/' .. cookie_attr
-    end
-
-    if (content_disposition ~= nil) then
-        lines[#lines + 1] = 'Content-Disposition: ' .. content_disposition
-    end
-
-    if type(extra_headers) == "table" then
-        for hname, hval in pairs(extra_headers) do
-            lines[#lines + 1] = hname .. ': ' .. hval
-        end
-    end
-
-    if not status_code then
-        status_code = 200
-    end
-
-    local status_descr = http_status_code_map[status_code]
-    if not status_descr then
-        status_descr = "Unknown"
-    end
-
-    -- Buffer the HTTP reply and write it in one "print" to avoid fragmenting
-    -- it into multiple packets, to ease HTTP debugging with wireshark.
-    print("HTTP/1.1 " .. status_code .. " " .. status_descr .. "\r\n" .. table.concat(lines, "\r\n") .. "\r\n\r\n")
-end
-
--- ##############################################
-
-function sendHTTPHeaderLogout(mime, content_disposition)
-    sendHTTPHeaderIfName(mime, nil, 0, content_disposition)
-end
-
--- ##############################################
-
-function sendHTTPHeader(mime, content_disposition, extra_headers, status_code)
-    sendHTTPHeaderIfName(mime, nil, 3600, content_disposition, extra_headers, status_code)
-end
-
--- ##############################################
-
-function sendHTTPContentTypeHeader(content_type, content_disposition, charset, extra_headers, status_code)
-    local charset = charset or "utf-8"
-    local mime = content_type .. "; charset=" .. charset
-
-    sendHTTPHeader(mime, content_disposition, extra_headers, status_code)
-end
-
--- ##############################################
-
-function urlencode(str)
-    str = string.gsub(str, "\r?\n", "\r\n")
-    str = string.gsub(str, "([^%w%-%.%_%~ ])", function(c)
-        return string.format("%%%02X", string.byte(c))
-    end)
-    str = string.gsub(str, " ", "+")
-    return str
-end
-
--- ##############################################
-
-function noHtml(s)
-    if s == nil then
-        return nil
-    end
-
-    local gsub, char = string.gsub, string.char
-    local entityMap = {
-        lt = "<",
-        gt = ">",
-        amp = "&",
-        quot = '"',
-        apos = "'"
-    }
-    local entitySwap = function(orig, n, s)
-        return (n == '' and entityMap[s]) or (n == "#" and tonumber(s)) and string.char(s) or
-                   (n == "#x" and tonumber(s, 16)) and string.char(tonumber(s, 16)) or orig
-    end
-
-    local function unescape(str)
-        return (gsub(str, '(&(#?x?)([%d%a]+);)', entitySwap))
-    end
-
-    local cleaned = s:gsub("<[aA] .->(.-)</[aA]>", "%1"):gsub("<abbr .->(.-)</abbr>", "%1"):gsub("<span .->(.-)</span>",
-        "%1"):gsub("<button .->(.-)</button>", "%1"):gsub("%s*<[iI].->(.-)</[iI]>", "%1"):gsub("<.->(.-)</.->", "%1") -- note: keep as last as this does not handle nested tags
-    :gsub("^%s*(.-)%s*$", "%1"):gsub('&nbsp;', " ")
-
-    return unescape(cleaned)
-end
+-- For backward compatibility override these functions
+sendHTTPContentTypeHeader = rest_utils.sendHTTPContentTypeHeader
+sendHTTPHeaderIfName = rest_utils.sendHTTPHeaderIfName
+sendHTTPHeaderLogout = rest_utils.sendHTTPHeaderLogout
+sendHTTPHeader = rest_utils.sendHTTPHeader
 
 -- ##############################################
 
@@ -1019,26 +894,6 @@ function splitUrl(url)
     }
 end
 
--- ###########################################
-
-function visualTsKey(tskey)
-    if ends(tskey, "_v4") or ends(tskey, "_v6") then
-        local ver = string.sub(tskey, string.len(tskey) - 1, string.len(tskey))
-        local address = string.sub(tskey, 1, string.len(tskey) - 3)
-        local visual_addr
-
-        if ver == "v4" then
-            visual_addr = address
-        else
-            visual_addr = address .. " (" .. ver .. ")"
-        end
-
-        return visual_addr
-    end
-
-    return tskey
-end
-
 -- ##############################################
 
 --- Return an HTML `select` element with passed options.
@@ -1695,42 +1550,10 @@ end
 
 -- ##############################################
 
-function format_name_value(name, value, shorten)
-    local formatted_name_value = value
-
-    if not isEmptyString(name) and name ~= value then
-        if (shorten) and (shorten == true) then
-            formatted_name_value = shortenString(name)
-        else
-            formatted_name_value = name
-        end
-    end
-
-    local idx = string.find(formatted_name_value, value)
-
-    if (idx == nil) then
-        formatted_name_value = formatted_name_value .. " [" .. value .. "]"
-    end
-
-    return formatted_name_value
-end
-
--- ##############################################
-
 function format_utils.formatSNMPInterface(snmpdevice, interface_index)
     local interface_name = format_portidx_name(snmpdevice, interface_index)
 
     return string.format('%s (%s)', interface_index, (interface_name))
-end
-
--- ##############################################
-
-function map_score_to_severity(score)
-    if score ~= nil then
-        return ntop.mapScoreToSeverity(score)
-    end
-
-    return ntop.mapScoreToSeverity(0)
 end
 
 -- ##############################################
@@ -1741,6 +1564,7 @@ if ((ifname == nil) and (_GET ~= nil)) then
 
     if (ifname ~= nil) then
         if (ifname .. "" == tostring(tonumber(ifname)) .. "") then
+            require "label_utils"
             -- ifname does not contain the interface name but rather the interface id
             ifname = getInterfaceName(ifname, true)
             if (ifname == "") then

@@ -2,12 +2,6 @@
 For more information about howto use ClickHouse in ntopng please see
 - https://www.ntop.org/guides/ntopng/clickhouse.html
 
-# Migration nIndex to ClickHouse
-See https://www.ntop.org/guides/ntopng/clickhouse.html#migration-from-nindex
-
-# ClickHouse tips
-- https://alex.dzyoba.com/kb/clickhouse/
-
 # Clickhouse Is Eating All My Disk/Memory
 You can instruct ntopng to limit disk space usage by setting data retention in preferences to a low value. By default we store 30 days but that can take a lot of disk soace on large networks In this case you can reduce it a bit (e.g. to 7 days).
 
@@ -62,3 +56,13 @@ You can reduce the table TTL (i.e. how long data is kept in memory) of the syste
  
  should be enough to reduce disk usage for most setups.
  
+Finally, you need to reduce the disk space used by ClickHouse logs as follows
+- (as root) edit /etc/clickhouse-server/config.xml and under the <logger> section do
+- modify <level>trace</level> into <level>error</level>
+- modify <size>1000M</size> to <size>100M</size>
+- modify <count>10</count> to <count>3</count>
+- service clickhouse-server start
+
+# ClickHouse tips
+- https://alex.dzyoba.com/kb/clickhouse/
+

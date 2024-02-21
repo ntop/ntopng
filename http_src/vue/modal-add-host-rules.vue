@@ -39,6 +39,11 @@
               <input @click="set_rule_type('CIDR')" class="btn-check" type="radio" name="rule_type" value="CIDR"> {{
                 _i18n("if_stats_config.add_rules_type_cidr") }}
             </label>
+            <label v-if="props.has_vlans == true" class="btn "
+              :class="[rule_type == 'vlan' ? 'btn-primary active' : 'btn-secondary']">
+              <input @click="set_rule_type('vlan')" class="btn-check" type="radio" name="rule_type" value="vlan"> {{
+                _i18n("if_stats_config.add_rules_type_vlans") }}
+            </label>
           </div>
         </div>
       </div>
@@ -109,6 +114,17 @@
       </template>
       </div>
 
+      <div v-if="rule_type == 'vlan'" class="form-group ms-2 me-2 mt-3 row">
+        <label class="col-form-label col-sm-2">
+          <b>{{ _i18n("if_stats_config.target_vlan") }}</b>
+        </label>
+        <div class="col-10">
+
+          <SelectSearch v-model:selected_option="selected_vlan" :options="vlan_list">
+          </SelectSearch>
+        </div>
+      </div>
+
 
       <!-- Metric information, here a metric is selected (e.g. DNS traffic) -->
       <div v-if="metrics_ready" class="form-group ms-2 me-2 mt-3 row">
@@ -148,6 +164,13 @@
           <div class="col-10">
             <SelectSearch v-model:selected_option="selected_network_metric" @select_option="change_metric_type_hp()"
               :options="network_metric_list">
+            </SelectSearch>
+          </div>
+        </template>
+        <template v-else-if="rule_type == 'vlan'">
+          <div class="col-10">
+            <SelectSearch v-model:selected_option="selected_vlan_metric" 
+              :options="vlan_metric_list" @select_option="change_vlan_threshold">
             </SelectSearch>
           </div>
         </template>
@@ -303,6 +326,10 @@ const selected_host_pool = ref({});
 const selected_network = ref({});
 const selected_network_metric = ref({});
 const network_metric_list = ref(null);
+const vlan_list = ref([]);
+const selected_vlan = ref({});
+const vlan_metric_list = ref(null);
+const selected_vlan_metric = ref({});
 let active_metric_type_list = ref([]);
 
 
@@ -374,6 +401,7 @@ const props = defineProps({
   interface_metric_list: Array,
   flow_device_metric_list: Array,
   frequency_list: Array,
+  has_vlans: Boolean,
   init_func: Function,
   page_csrf: String,
 });
@@ -442,6 +470,11 @@ const reset_modal_form = async function () {
     metric_type.vale = metric_type_list.value[0];
   } else {
     metric_type.value = active_metric_type_list.value[0];
+  }
+
+  if (has_vlans) {
+    selected_vlan.value = vlan_list.value[0];
+    selected_vlan_metric.value = vlan_metric_list.value[0];
   }
 
 }
@@ -685,6 +718,15 @@ const set_row_to_edit = (row) => {
         }
       })
 
+    } else if (rule_type.value == 'vlan') {
+      selected_vlan.value = vlan_list.value.find((item) => item.id == row.target);
+      
+      vlan_metric_list.value.forEach((item) => {
+        if(item.schema == row.metric) {
+          selected_vlan_metric.value = item;
+        }
+      });
+
     }
   }
 }
@@ -706,6 +748,10 @@ const change_threshold = () => {
 
 const change_interface_threshold = () => {
   (selected_interface_metric.value.show_volume == true) ? visible.value = true : visible.value = false
+}
+
+const change_vlan_threshold = () => {
+  (selected_vlan_metric.value.show_volume == true) ? visible.value = true : visible.value = false
 }
 
 const check_empty_host = () => {
@@ -756,23 +802,11 @@ const add_ = (is_edit) => {
   const tmp_frequency = selected_frequency.value.id;
   let tmp_metric = selected_metric.value.id;
   let tmp_metric_label = selected_metric.value.label;
-
-  if (rule_type.value == "interface") {
-    tmp_metric = selected_interface_metric.value.id
-    tmp_metric_label = selected_interface_metric.value.label;
-  } else if (rule_type.value == "host_pool") {
-    tmp_metric = selected_host_pool_metric.value.schema;
-    tmp_metric_label = selected_host_pool_metric.value.label;
-  } else if (rule_type.value == "CIDR") {
-    tmp_metric = selected_network_metric.value.schema;
-    tmp_metric_label = selected_network_metric.value.label;
-  }
-  const tmp_interface_metric = selected_interface_metric.value.id;
+ 
   const tmp_rule_type = rule_type.value;
-  const tmp_interface = selected_ifid.value.id;
-  const tmp_interface_name = selected_ifid.value.label;
+
   let tmp_metric_type = metric_type.value.id;
-  let tmp_extra_metric = (rule_type.value == 'Host') ? ((selected_metric.value.extra_metric) ? selected_metric.value.extra_metric : null) : ((selected_interface_metric.value.extra_metric) ? selected_interface_metric.value.extra_metric : null)
+  let tmp_extra_metric 
   let basic_value;
   let basic_sign_value;
   let tmp_threshold;
@@ -813,7 +847,10 @@ const add_ = (is_edit) => {
     emit_name = 'edit';
 
 
-  if (rule_type.value == 'Host')
+  if (rule_type.value == 'Host') {
+
+    tmp_extra_metric = (selected_metric.value.extra_metric) ? selected_metric.value.extra_metric : null;
+
     emit(emit_name, {
       host: tmp_host,
       frequency: tmp_frequency,
@@ -827,7 +864,12 @@ const add_ = (is_edit) => {
       rule_id: tmp_edit_row_id
 
     });
-  else if (rule_type.value == 'interface')
+  } else if (rule_type.value == 'interface') {
+    tmp_extra_metric = ((selected_interface_metric.value.extra_metric) ? selected_interface_metric.value.extra_metric : null)
+    tmp_metric = selected_interface_metric.value.id
+    tmp_metric_label = selected_interface_metric.value.label;
+    const tmp_interface_metric = selected_interface_metric.value.id;
+    const tmp_interface = selected_ifid.value.id;
     emit(emit_name, {
       frequency: tmp_frequency,
       metric: tmp_interface_metric,
@@ -841,7 +883,7 @@ const add_ = (is_edit) => {
       rule_id: tmp_edit_row_id
 
     });
-  else if (rule_type.value == "exporter") {
+  } else if (rule_type.value == "exporter") {
     let flow_device_ifindex = selected_exporter_device_ifid.value.id;
     const flow_device_ifindex_name = selected_exporter_device_ifid.value.label;
     const flow_device_ip = selected_exporter_device.value.id;
@@ -883,6 +925,9 @@ const add_ = (is_edit) => {
       
     });
   } else if (rule_type.value == "CIDR") {
+
+    tmp_metric = selected_network_metric.value.schema;
+    tmp_metric_label = selected_network_metric.value.label;
     tmp_host = selected_network.value.id;
     const network_id = selected_network.value.network_id;
     emit(emit_name, {
@@ -900,6 +945,9 @@ const add_ = (is_edit) => {
 
     });
   } else if (rule_type.value == "host_pool") {
+
+    tmp_metric = selected_host_pool_metric.value.schema;
+    tmp_metric_label = selected_host_pool_metric.value.label;
     const tmp_host_pool_id = selected_host_pool.value.id;
     const tmp_host_pool_label = selected_host_pool.value.label;
 
@@ -918,6 +966,27 @@ const add_ = (is_edit) => {
 
     });
 
+  } else if (rule_type.value == "vlan") {
+
+    tmp_metric = selected_vlan_metric.value.schema;
+    tmp_metric_label = selected_vlan_metric.value.label;
+    const tmp_vlan_id = selected_vlan.value.id;
+    const tmp_vlan_label = selected_vlan.value.label;
+
+    emit(emit_name, {
+      vlan_id: tmp_vlan_id,
+      vlan_label: tmp_vlan_label,
+      frequency: tmp_frequency,
+      metric: tmp_metric,
+      metric_label: tmp_metric_label,
+      threshold: tmp_threshold,
+      metric_type: tmp_metric_type,
+      extra_metric: tmp_extra_metric,
+      rule_type: tmp_rule_type,
+      rule_threshold_sign: tmp_sign_value,
+      rule_id: tmp_edit_row_id
+
+    });
   }
 
 };
@@ -960,7 +1029,7 @@ const format_ifid_list = function (data) {
   return _ifid_list
 }
 
-const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _flow_exporter_devices, _flow_exporter_devices_metric_list, page_csrf, _init_func, _delete_row, _host_pool_list, _network_list, _host_pool_metric_list, _network_metric_list) => {
+const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _flow_exporter_devices, _flow_exporter_devices_metric_list, page_csrf, _init_func, _delete_row, _host_pool_list, _network_list, _host_pool_metric_list, _network_metric_list, _vlan_list, _vlan_metric_list) => {
   metrics_ready.value = true;
   metric_list.value = _metric_list;
   interface_metric_list.value = _interface_metric_list;
@@ -997,6 +1066,12 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
   selected_exporter_device.value = flow_exporter_devices.value[1];
   if (selected_exporter_device.value != null) {
     update_exporter_interfaces()
+  }
+  if (props.has_vlans) {
+    vlan_list.value = format_vlan_list(_vlan_list);
+    selected_vlan.value = vlan_list.value[0];
+    vlan_metric_list.value = _vlan_metric_list;
+    selected_vlan_metric.value = vlan_metric_list.value[1];
   }
 }
 
@@ -1056,6 +1131,36 @@ const format_flow_exporter_device_list = function (data) {
     1 /* by default asc */
   ));
   return _f_exp_dev_list;
+}
+
+/**
+ * Function to format vlan list 
+ */
+const format_vlan_list = function(data) {
+  const f_vlan_list = [];
+  data.forEach((vlan) => {
+    if (vlan.key != 0) {
+      let vlan_label = vlan.key;
+      let tag_splitted = vlan.column_vlan.split(">")
+      let graphs_splitterd = tag_splitted[1].split("[");
+      if (graphs_splitterd.length > 1) {
+        vlan_label = tag_splitted[1].split("<")[0];
+      }
+      f_vlan_list.push({
+        id: vlan.key,
+        label: vlan_label,
+        value: vlan.key,
+      })
+    }
+    
+  });
+
+  f_vlan_list.sort((a, b) => sortingFunctions.sortByName(
+    a.label,
+    b.label,
+    1 /* by default asc */
+  ));
+  return f_vlan_list;
 }
 
 /* *************************************************** */

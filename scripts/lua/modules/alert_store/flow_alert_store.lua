@@ -15,12 +15,11 @@ local alert_consts = require "alert_consts"
 local alert_utils = require "alert_utils"
 local alert_entities = require "alert_entities"
 local tag_utils = require "tag_utils"
-local network_utils = require "network_utils"
+local network_consts = require "network_consts"
 local json = require "dkjson"
 local pools = require "pools"
 local historical_flow_utils = require "historical_flow_utils"
 local flow_alert_keys = require "flow_alert_keys"
-
 local href_icon = "<i class='fas fa-laptop'></i>"
 
 -- ##############################################
@@ -260,8 +259,8 @@ function flow_alert_store:insert(alert)
       alert.alerts_map,
       alert.cli_host_pool_id or pools.DEFAULT_POOL_ID,
       alert.srv_host_pool_id or pools.DEFAULT_POOL_ID,
-      alert.cli_network or network_utils.UNKNOWN_NETWORK,
-      alert.srv_network or network_utils.UNKNOWN_NETWORK,
+      alert.cli_network or network_consts.UNKNOWN_NETWORK,
+      alert.srv_network or network_consts.UNKNOWN_NETWORK,
       alert.probe_ip,
       alert.input_snmp,
       alert.output_snmp,

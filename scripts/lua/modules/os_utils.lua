@@ -2,17 +2,20 @@
 -- (C) 2014-24 - ntop.org
 --
 
-local dirs = ntop.getDirs()
+-- Hack to avoid include loops
 
+if(pragma_once_os_utils == true) then
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_os_utils = true
+
+local dirs = ntop.getDirs()
 local clock_start = os.clock()
-
 local tracker = require "tracker"
-
-local os_utils = {}
-
 local is_windows = ntop.isWindows()
-
-local dirs = ntop.getDirs()
+local os_utils = {}
 
 -- ########################################################
 

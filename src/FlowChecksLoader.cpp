@@ -29,6 +29,7 @@ FlowChecksLoader::FlowChecksLoader() : ChecksLoader() {
     Assuments all risks as unhanlded. Bits corresponding to risks handled by
     checks will be set to zero during checks registration.
    */
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   NDPI_BITMASK_SET_ALL(unhandled_ndpi_risks);
   NDPI_CLR_BIT(unhandled_ndpi_risks, NDPI_NO_RISK);
 }
@@ -36,6 +37,8 @@ FlowChecksLoader::FlowChecksLoader() : ChecksLoader() {
 /* **************************************************** */
 
 FlowChecksLoader::~FlowChecksLoader() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   for (std::map<std::string, FlowCheck *>::const_iterator it = cb_all.begin();
        it != cb_all.end(); ++it)
     delete it->second;

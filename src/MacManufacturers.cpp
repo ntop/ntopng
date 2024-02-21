@@ -31,6 +31,8 @@
 /* *************************************** */
 
 MacManufacturers::MacManufacturers(const char *home) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   snprintf(manufacturers_file, sizeof(manufacturers_file), "%s/other/%s",
            home ? home : "", "EtherOUI.txt");
   ntop->fixPath(manufacturers_file);
@@ -130,6 +132,8 @@ void MacManufacturers::init() {
 MacManufacturers::~MacManufacturers() {
   std::map<u_int32_t, mac_manufacturers_t>::const_iterator it;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   for (it = mac_manufacturers.begin(); it != mac_manufacturers.end(); ++it) {
     free(it->second.manufacturer_name);
     free(it->second.short_name);

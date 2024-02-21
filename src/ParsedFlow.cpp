@@ -24,6 +24,8 @@
 /* *************************************** */
 
 ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   additional_fields_json = NULL;
   additional_fields_tlv = NULL;
   l7_info = NULL;
@@ -32,7 +34,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   http_method = NDPI_HTTP_METHOD_UNKNOWN;
   dns_query = tls_server_name = end_reason = NULL;
   smtp_mail_from = smtp_rcp_to = NULL;
-  ja3c_hash = ja3s_hash = NULL;
+  ja3c_hash = ja3s_hash = ja4c_hash = NULL;
   external_alert = NULL;
   flow_risk_info = NULL;
   tls_cipher = tls_unsafe_cipher = http_ret_code = 0;
@@ -65,65 +67,84 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf)
     l7_info = strdup(pf.l7_info);
   else
     l7_info = NULL;
+
   if (pf.http_url)
     http_url = strdup(pf.http_url);
   else
     http_url = NULL;
+  
   if (pf.http_site)
     http_site = strdup(pf.http_site);
   else
     http_site = NULL;
+
   if (pf.http_user_agent)
     http_user_agent = strdup(pf.http_user_agent);
   else
     http_user_agent = NULL;
+
   http_method = pf.http_method;
+
   if (pf.dns_query)
     dns_query = strdup(pf.dns_query);
   else
     dns_query = NULL;
+
   if(pf.end_reason)
     end_reason = strdup(pf.end_reason);
   else
     end_reason = NULL;
+  
   if (pf.tls_server_name)
     tls_server_name = strdup(pf.tls_server_name);
   else
     tls_server_name = NULL;
+  
   if (pf.bittorrent_hash)
     bittorrent_hash = strdup(pf.bittorrent_hash);
   else
     bittorrent_hash = NULL;
+  
   if (pf.ja3c_hash)
     ja3c_hash = strdup(pf.ja3c_hash);
   else
     ja3c_hash = NULL;
+  
   if (pf.ja3s_hash)
     ja3s_hash = strdup(pf.ja3s_hash);
   else
     ja3s_hash = NULL;
+  
+  if (pf.ja4c_hash)
+    ja4c_hash = strdup(pf.ja4c_hash);
+  else
+    ja4c_hash = NULL;
+  
   if (pf.external_alert)
     external_alert = strdup(pf.external_alert);
   else
     external_alert = NULL;
+
   if (pf.flow_risk_info)
     flow_risk_info = strdup(pf.flow_risk_info);
   else
     flow_risk_info = NULL;
+
   if (pf.ndpi_flow_risk_name)
     ndpi_flow_risk_name = strdup(pf.ndpi_flow_risk_name);
   else
     ndpi_flow_risk_name = NULL;
+
   if (pf.smtp_mail_from)
     smtp_mail_from = strdup(pf.smtp_mail_from);
   else
     smtp_mail_from = NULL;
+
   if (pf.smtp_rcp_to)
     smtp_rcp_to = strdup(pf.smtp_rcp_to);
   else
     smtp_rcp_to = NULL;
   
-
   tls_cipher = pf.tls_cipher;
   tls_unsafe_cipher = pf.tls_unsafe_cipher;
   ndpi_flow_risk_bitmap = pf.ndpi_flow_risk_bitmap;
@@ -177,6 +198,9 @@ void ParsedFlow::fromLua(lua_State *L, int index) {
         } else if (!strcmp(key, "ja3s_hash")) {
           if (ja3s_hash) free(ja3s_hash);
           ja3s_hash = strdup(lua_tostring(L, -1));
+        } else if (!strcmp(key, "ja4c_hash")) {
+          if (ja4c_hash) free(ja4c_hash);
+          ja4c_hash = strdup(lua_tostring(L, -1));
         } else if (!strcmp(key, "external_alert")) {
           if (external_alert) free(external_alert);
           external_alert = strdup(lua_tostring(L, -1));
@@ -281,6 +305,7 @@ void ParsedFlow::freeMemory() {
   if (bittorrent_hash)      { free(bittorrent_hash); bittorrent_hash = NULL; }
   if (ja3c_hash)            { free(ja3c_hash); ja3c_hash = NULL; }
   if (ja3s_hash)            { free(ja3s_hash); ja3s_hash = NULL; }
+  if (ja4c_hash)            { free(ja4c_hash); ja4c_hash = NULL; }
   if (external_alert)       { free(external_alert); external_alert = NULL; }
   if (flow_risk_info)       { free(flow_risk_info); flow_risk_info = NULL; }
   if (ndpi_flow_risk_name)  { free(ndpi_flow_risk_name); ndpi_flow_risk_name = NULL; }

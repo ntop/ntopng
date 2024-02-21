@@ -38,7 +38,10 @@ Bloom::Bloom(u_int32_t _num_bloom_bits) {
 /**
  * Destructor.
  */
-Bloom::~Bloom() { delete bitmask; }
+Bloom::~Bloom() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  delete bitmask;
+}
 
 /* ******************************************************* */
 

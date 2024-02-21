@@ -36,7 +36,8 @@ ntopng-prep:
 	# nmap vulnerability scan - https://github.com/scipag/vulscan
 	\mkdir -p ${NTOPNG_BUILD}/usr/share/nmap/scripts/vulscan
 	wget -O ${NTOPNG_BUILD}/usr/share/nmap/scripts/vulscan/vulscan.nse https://raw.githubusercontent.com/scipag/vulscan/master/vulscan.nse
-	wget -O ${NTOPNG_BUILD}/usr/share/nmap/scripts/vulscan/cve.csv 	https://www.computec.ch/projekte/vulscan/download/cve.csv
+	wget -O ${NTOPNG_BUILD}/usr/share/nmap/scripts/vulscan/cve.csv 	   https://raw.githubusercontent.com/scipag/vulscan/master/cve.csv
+	#wget -O ${NTOPNG_BUILD}/usr/share/nmap/scripts/vulscan/cve.csv 	https://www.computec.ch/projekte/vulscan/download/cve.csv
 	# wget -O ${NTOPNG_BUILD}/usr/share/nmap/scripts/vulscan/openvas.csv 	https://www.computec.ch/projekte/vulscan/download/openvas.csv
 
 	rm -rf ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/

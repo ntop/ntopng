@@ -24,6 +24,8 @@
 /* **************************************** */
 
 AddressResolution::AddressResolution(int _num_resolvers) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   num_resolved_addresses = num_resolved_fails = 0;
   num_resolvers = _num_resolvers;
 
@@ -34,6 +36,8 @@ AddressResolution::AddressResolution(int _num_resolvers) {
 /* **************************************** */
 
 AddressResolution::~AddressResolution() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   if (ntop->getPrefs() && ntop->getPrefs()->is_dns_resolution_enabled()) {
     for (int i = 0; i < num_resolvers; i++) {
       if (resolveThreadLoop[i]) pthread_join(resolveThreadLoop[i], NULL);
@@ -119,10 +123,9 @@ void AddressResolution::resolveHostName(const char *_numeric_ip, char *symbolic,
         inet_pton(AF_INET6, numeric_ip, &in6.sin6_addr);
         len = sizeof(struct sockaddr_in6), sa = (struct sockaddr *)&in6;
       } else {
-        ntop->getTrace()->traceEvent(
-            TRACE_INFO,
-            "Invalid IPv6 address to resolve '%s': already symbolic?",
-            numeric_ip);
+        ntop->getTrace()->traceEvent(TRACE_INFO,
+				     "Invalid IPv6 address to resolve '%s': already symbolic?",
+				     numeric_ip);
         return; /* Invalid format */
       }
     } else {

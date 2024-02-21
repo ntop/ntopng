@@ -52,8 +52,7 @@ CustomHostLuaScript::~CustomHostLuaScript() {
 /* ***************************************************** */
 
 LuaEngine *CustomHostLuaScript::initVM() {
-  const char *script_path =
-      "scripts/callbacks/checks/hosts/custom_host_lua_script.lua";
+  const char *script_path = "scripts/callbacks/checks/hosts/custom_host_lua_script.lua";
   char where[512];
   struct stat s;
 
@@ -73,7 +72,7 @@ LuaEngine *CustomHostLuaScript::initVM() {
     LuaEngine *lua;
 
     try {
-      lua = new LuaEngine(NULL);
+      lua = new LuaEngine();
       lua->load_script((char *)where,
 		       lua_engine_mode_callback,
                        NULL /* NetworkInterface filled later below */);

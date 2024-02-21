@@ -23,11 +23,15 @@
 
 /* *********************************************** */
 
-CategoryCounter::CategoryCounter() { duration = 0, last_epoch_update = 0; }
+CategoryCounter::CategoryCounter() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  duration = 0, last_epoch_update = 0;
+}
 
 /* *********************************************** */
 
 CategoryCounter::CategoryCounter(const CategoryCounter &c) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   bytes = c.bytes, duration = c.duration,
   last_epoch_update = c.last_epoch_update;
 };

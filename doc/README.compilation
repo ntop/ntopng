@@ -47,14 +47,16 @@ If you plan to build ntopng dependencies you should also install:
 - apt install libzstd-dev cmake librdkafka-dev libbpfcc-dev libjson-c-dev
 
 
-MariaDB vs MySQL
-----------------
+MySQL (or MariaDB)
+------------------
 ntopng can be compiled with both MySQL and MariaDB client libraries. 
 
-Typically (on Ubuntu/debian) you do
-- [MariaDB] apt install libmariadbd-dev
-or
-- [MySQL] apt-get install libmysqlclient-dev
+Tipically, ntopng is compiled with the MySQL library,
+on Ubuntu/Debian:
+- apt-get install libmysqlclient-dev
+
+Optionally, MariaDB can also be used:
+- apt install libmariadbd-dev
 
 By default, MySQL programs attempt to connect using encryption if the server supports
 encrypted connections, falling back to an unencrypted connection if an encrypted
@@ -72,7 +74,7 @@ You can decide to use MariaDB (instead of MySQL) do "apt install libmariadb-clie
 On Ubuntu20
 ~~~~~~~~~~~~~~
 
-You also need to do "apt install libmariadbclient-dev libzmq3-dev"
+You also need to do "apt install libmysqlclient-dev libzmq3-dev"
 
 On Ubuntu22
 ~~~~~~~~~~~~~~

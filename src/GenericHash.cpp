@@ -25,6 +25,8 @@
 
 GenericHash::GenericHash(NetworkInterface *_iface, u_int _num_hashes,
                          u_int _max_hash_size, const char *_name) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   num_hashes = _num_hashes;
   current_size = 0;
   /* Allow the total number of entries (that is, active and those idle but still

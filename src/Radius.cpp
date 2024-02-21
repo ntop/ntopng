@@ -31,6 +31,8 @@ Radius::Radius(bool _use_chap) {
     https://it.wikipedia.org/wiki/Password_authentication_protocol
     https://en.wikipedia.org/wiki/Challenge-Handshake_Authentication_Protocol
   */
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   result = 0, use_chap = _use_chap; /* true = CHAP, false = PAP */
   radiusAuthServer = radiusAcctServer = radiusSecret = radiusAdminGroup =
     radiusUnprivCapabilitiesGroup = NULL;

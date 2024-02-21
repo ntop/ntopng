@@ -24,6 +24,7 @@
             </ModalDeleteConfirm>
             <ModalAddHostRules ref="modal_add_host_rule" :metric_list="metric_list"
               :interface_metric_list="interface_metric_list" :frequency_list="frequency_list" :init_func="init_edit"
+              :has_vlans="props.has_vlans"
               @add="add_host_rule" @edit="edit">
             </ModalAddHostRules>
 
@@ -52,72 +53,76 @@ import NtopUtils from "../utilities/ntop-utils";
 
 const props = defineProps({
   page_csrf: String,
+  has_vlans: Boolean,
   ifid: String,
-})
+});
 
-const table_host_rules = ref(null)
-const modal_delete_confirm = ref(null)
-const modal_add_host_rule = ref(null)
+const table_host_rules = ref(null);
+const modal_delete_confirm = ref(null);
+const modal_add_host_rule = ref(null);
 const _i18n = (t) => i18n(t);
-const row_to_delete = ref({})
-const row_to_edit = ref({})
+const row_to_delete = ref({});
+const row_to_edit = ref({});
 const invalid_add = ref(false);
 
 
-const metric_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=host`
-const metric_ifname_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=interface`
+const metric_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=host`;
+const metric_ifname_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=interface`;
 
-const metric_host_pool_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=host_pool`
-const metric_network_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=CIDR`
+const metric_host_pool_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=host_pool`;
+const metric_network_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=CIDR`;
+const metric_vlan_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=vlan`;
 
-
-const metric_flow_exp_device_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=exporter`
-const flow_devices_url = `${http_prefix}/lua/pro/rest/v2/get/flowdevices/stats.lua`
-const flow_devices_details_url = `${http_prefix}/lua/pro/enterprise/flowdevice_details.lua`
-const host_pool_url = `${http_prefix}/lua/rest/v2/get/host/pool/pools.lua`
-const network_list_url = `${http_prefix}/lua/rest/v2/get/network/networks.lua`
-const ifid_url = `${http_prefix}/lua/rest/v2/get/ntopng/interfaces.lua`
-const data_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_data.lua`
-const add_rule_url = `${http_prefix}/lua/pro/rest/v2/add/interface/host_rules/add_host_rule.lua`
-const remove_rule_url = `${http_prefix}/lua/pro/rest/v2/delete/interface/host_rules/delete_host_rule.lua`
+const metric_flow_exp_device_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=exporter`;
+const flow_devices_url = `${http_prefix}/lua/pro/rest/v2/get/flowdevices/stats.lua`;
+const flow_devices_details_url = `${http_prefix}/lua/pro/enterprise/flowdevice_details.lua`;
+const host_pool_url = `${http_prefix}/lua/rest/v2/get/host/pool/pools.lua`;
+const network_list_url = `${http_prefix}/lua/rest/v2/get/network/networks.lua`;
+const ifid_url = `${http_prefix}/lua/rest/v2/get/ntopng/interfaces.lua`;
+const vlans_url = `${http_prefix}/lua/get_vlans_data.lua`;
+const data_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_data.lua`;
+const add_rule_url = `${http_prefix}/lua/pro/rest/v2/add/interface/host_rules/add_host_rule.lua`;
+const remove_rule_url = `${http_prefix}/lua/pro/rest/v2/delete/interface/host_rules/delete_host_rule.lua`;
 
 const note_list = [
   _i18n('if_stats_config.generic_notes_1'),
   _i18n('if_stats_config.generic_notes_2'),
   _i18n('if_stats_config.generic_notes_3'),
-]
+];
 
 const rest_params = {
   ifid: props.ifid,
   csrf: props.page_csrf,
   gui: true // Some API requires this to return html content for backward compatibility
-}
+};
 
-let host_rules_table_config = {}
-let title_delete = _i18n('if_stats_config.delete_host_rules_title')
-let title_edit = _i18n('if_stats_config.edit_local_network_rules')
-let body_delete = _i18n('if_stats_config.delete_host_rules_description')
-let metric_list = []
-let interface_metric_list = []
-let host_pool_metric_list = []
-let ifid_list = []
-let flow_exporter_list = []
-let flow_exporter_metric_list = []
-let host_pool_list = []
-let network_list = []
-let network_metric_list = []
+let host_rules_table_config = {};
+let title_delete = _i18n('if_stats_config.delete_host_rules_title');
+let title_edit = _i18n('if_stats_config.edit_local_network_rules');
+let body_delete = _i18n('if_stats_config.delete_host_rules_description');
+let metric_list = [];
+let interface_metric_list = [];
+let host_pool_metric_list = [];
+let ifid_list = [];
+let flow_exporter_list = [];
+let flow_exporter_metric_list = [];
+let host_pool_list = [];
+let network_list = [];
+let network_metric_list = [];
+let vlan_list = [];
+let vlan_metric_list = [];
 
 
 const frequency_list = [
   { title: i18n('show_alerts.5_min'), label: i18n('show_alerts.5_min'), id: '5min', value: '5min' },
   { title: i18n('show_alerts.hourly'), label: i18n('show_alerts.hourly'), id: 'hour', value: 'hour' },
   { title: i18n('show_alerts.daily'), label: i18n('show_alerts.daily'), id: 'day', value: 'day' }
-]
+];
 
 const show_delete_dialog = function (row) {
   row_to_delete.value = row;
   modal_delete_confirm.value.show();
-}
+};
 
 const load_selected_field = function (row) {
   row_to_edit.value = row;
@@ -126,27 +131,27 @@ const load_selected_field = function (row) {
 
   modal_add_host_rule.value.show(row);
 
-}
+};
 
 async function edit(params) {
   //await delete_row();
 
   await add_host_rule(params);
-}
+};
 
 const init_edit = function () {
   const row = row_to_edit.value;
   row_to_edit.value = null;
   return row;
-}
+};
 
 const destroy_table = function () {
   table_host_rules.value.destroy_table();
-}
+};
 
 const reload_table = function () {
   table_host_rules.value.reload();
-}
+};
 
 const delete_row = async function () {
   const row = row_to_delete.value;
@@ -161,7 +166,7 @@ const delete_row = async function () {
   await $.post(url, function (rsp, status) {
     reload_table();
   });
-}
+};
 
 const add_host_rule = async function (params) {
 
@@ -178,7 +183,7 @@ const add_host_rule = async function (params) {
     modal_add_host_rule.value.invalidAdd();
   }
 
-}
+};
 
 
 const add_action_column = function (rowData) {
@@ -200,7 +205,7 @@ const add_action_column = function (rowData) {
     { class: `pointer`, handler: edit_handler, icon: 'fa-edit', title: i18n('edit') },
     { class: `pointer`, handler: delete_handler, icon: 'fa-trash', title: i18n('delete') },
   ]);
-}
+};
 
 const format_metric = function (data, rowData) {
   let metric_label = data
@@ -233,9 +238,8 @@ const format_metric = function (data, rowData) {
     }
   }
 
-
   return metric_label
-}
+};
 
 const format_frequency = function (data) {
   let frequency_title = ''
@@ -245,7 +249,7 @@ const format_frequency = function (data) {
   })
 
   return frequency_title
-}
+};
 
 const format_threshold = function (data, rowData) {
   let formatted_data = parseInt(data);
@@ -271,7 +275,7 @@ const format_threshold = function (data, rowData) {
   }
 
   return formatted_data
-}
+};
 
 const format_last_measurement = function (data, rowData) {
   let formatted_data = parseInt(data);
@@ -293,7 +297,8 @@ const format_last_measurement = function (data, rowData) {
   }
 
   return formatted_data
-}
+};
+
 const format_rule_type = function (data, rowData) {
   let formatted_data = '';
   if ((rowData.rule_type) && (rowData.rule_type == 'interface')) {
@@ -311,10 +316,13 @@ const format_rule_type = function (data, rowData) {
 
   } else if ((rowData.rule_type) && (rowData.rule_type == 'exporter') && rowData.metric.includes("flowdev_port")) {
     formatted_data = "<span class='badge bg-secondary'>" + _i18n("interface_flow_exporter_device") + " <i class='fas fa-ethernet'></i></span>"
+  } else if ((rowData.rule_type) && rowData.rule_type == 'vlan') {
+    formatted_data = "<span class='badge bg-secondary'>" + _i18n("vlan") + " <i class='fas fa-ethernet'></i></span>"
+
   }
 
   return formatted_data;
-}
+};
 
 const format_target = function (data, rowData) {
   let formatted_data = '';
@@ -324,6 +332,8 @@ const format_target = function (data, rowData) {
     formatted_data = rowData.target;
   } else if (rowData.rule_type == 'host_pool') {
     formatted_data = rowData.host_pool_label;
+  } else if (rowData.rule_type == 'vlan') {
+    formatted_data = rowData.vlan_label;
   } else if (rowData.rule_type && rowData.rule_type == 'exporter' && rowData.metric == "flowdev:traffic") {
     formatted_data = rowData.target;
   } else {
@@ -331,7 +341,7 @@ const format_target = function (data, rowData) {
     formatted_data = rowData.target + " " + _i18n("on_interface") + ": " + interface_label;
   }
   return formatted_data;
-}
+};
 
 const get_metric_list = async function () {
   const url = NtopUtils.buildURL(metric_url, rest_params)
@@ -339,7 +349,7 @@ const get_metric_list = async function () {
   await $.get(url, function (rsp, status) {
     metric_list = rsp.rsp;
   });
-}
+};
 
 
 const get_host_pool_list = async function () {
@@ -351,7 +361,7 @@ const get_host_pool_list = async function () {
 
   tmp_host_pool_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   host_pool_list = tmp_host_pool_list;
-}
+};
 
 const get_network_list = async function () {
   const url = NtopUtils.buildURL(network_list_url, rest_params)
@@ -364,7 +374,7 @@ const get_network_list = async function () {
   tmp_network_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   network_list = tmp_network_list;
 
-}
+};
 
 const get_interface_metric_list = async function () {
   const url = NtopUtils.buildURL(metric_ifname_url, rest_params)
@@ -373,7 +383,7 @@ const get_interface_metric_list = async function () {
     interface_metric_list = rsp.rsp;
   });
 
-}
+};
 
 const get_host_pool_metric_list = async function () {
   const url = NtopUtils.buildURL(metric_host_pool_url, rest_params)
@@ -385,7 +395,7 @@ const get_host_pool_metric_list = async function () {
 
   tmp_host_pool_metric_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   host_pool_metric_list = tmp_host_pool_metric_list;
-}
+};
 
 
 const get_network_metric_list = async function () {
@@ -399,7 +409,20 @@ const get_network_metric_list = async function () {
   tmp_network_metric_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
   network_metric_list = tmp_network_metric_list;
 
-}
+};
+
+const get_vlan_metric_list = async function () {
+  const url = NtopUtils.buildURL(metric_vlan_url, rest_params)
+
+  let tmp_vlan_metric_list;
+  await $.get(url, function (rsp, status) {
+    tmp_vlan_metric_list = rsp.rsp;
+  });
+
+  tmp_vlan_metric_list.sort((a, b) => (a.label > b.label) ? 1 : ((b.label > a.label) ? -1 : 0));
+  vlan_metric_list = tmp_vlan_metric_list;
+
+};
 
 const get_flow_exporter_devices_metric_list = async function () {
   const url = NtopUtils.buildURL(metric_flow_exp_device_url, {
@@ -410,7 +433,7 @@ const get_flow_exporter_devices_metric_list = async function () {
     flow_exporter_metric_list = rsp.rsp;
   });
 
-}
+};
 
 const get_flow_exporter_devices_list = async function () {
   const url = NtopUtils.buildURL(flow_devices_url, {
@@ -421,7 +444,7 @@ const get_flow_exporter_devices_list = async function () {
     flow_exporter_list = rsp.rsp;
   });
 
-}
+};
 
 const get_ifid_list = async function () {
   const url = NtopUtils.buildURL(ifid_url, rest_params)
@@ -429,7 +452,15 @@ const get_ifid_list = async function () {
   await $.get(url, function (rsp, status) {
     ifid_list = rsp.rsp;
   });
-}
+};
+
+const get_vlans = async function () {
+  const url = NtopUtils.buildURL(vlans_url, rest_params)
+
+  await $.get(url, function (rsp, status) {
+    vlan_list = JSON.parse(rsp).data;
+  });
+};
 
 const start_datatable = function () {
   const datatableButton = [];
@@ -475,7 +506,7 @@ const start_datatable = function () {
   };
 
   host_rules_table_config = hostRulesTableConfig;
-}
+};
 
 onBeforeMount(async () => {
   start_datatable();
@@ -488,12 +519,16 @@ onBeforeMount(async () => {
   await get_host_pool_metric_list();
   await get_network_list();
   await get_network_metric_list();
-  modal_add_host_rule.value.metricsLoaded(metric_list, ifid_list, interface_metric_list, flow_exporter_list, flow_exporter_metric_list, props.page_csrf, null, null, host_pool_list, network_list, host_pool_metric_list, network_metric_list);
-})
+  if (props.has_vlans) {
+    await get_vlans();
+    await get_vlan_metric_list();
+  }
+  modal_add_host_rule.value.metricsLoaded(metric_list, ifid_list, interface_metric_list, flow_exporter_list, flow_exporter_metric_list, props.page_csrf, null, null, host_pool_list, network_list, host_pool_metric_list, network_metric_list, vlan_list, vlan_metric_list);
+});
 
 onUnmounted(() => {
   destroy_table();
-})
+});
 </script>
 
 

@@ -24,6 +24,7 @@
 /* *************************************** */
 
 MostVisitedList::MostVisitedList(u_int32_t _max_num_items) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   top_data = new (std::nothrow) FrequentStringItems(_max_num_items);
   old_data = shadow_old_data = NULL;
   max_num_items = _max_num_items;
@@ -33,6 +34,7 @@ MostVisitedList::MostVisitedList(u_int32_t _max_num_items) {
 /* *************************************** */
 
 MostVisitedList::~MostVisitedList() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (top_data) delete (top_data);
   if (old_data) free(old_data);
   if (shadow_old_data) free(shadow_old_data);

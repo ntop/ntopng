@@ -37,6 +37,8 @@ extern "C" {
 /* ******************************************* */
 
 Prefs::Prefs(Ntop *_ntop) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   num_deferred_interfaces_to_register = 0, cli = NULL;
   ntop = _ntop, pcap_file_purge_hosts_flows = false, ignore_vlans = false,
     simulate_vlans = false, simulate_macs = false, ignore_macs = false;
@@ -105,6 +107,7 @@ Prefs::Prefs(Ntop *_ntop) {
   pcap_dir = NULL;
   test_pre_script_path = test_post_script_path = test_runtime_script_path =
     NULL;
+  message_broker_url = NULL;
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
@@ -156,6 +159,8 @@ Prefs::Prefs(Ntop *_ntop) {
 #endif
   enable_runtime_flows_dump = true;
   enable_activities_debug = false;
+  snmp_polling = false;
+  active_monitoring = false;
   vs_max_num_scans = 4;
   vs_slow_scan = false;
 #ifndef HAVE_NEDGE
@@ -286,6 +291,7 @@ Prefs::~Prefs() {
   if (test_pre_script_path) free(test_pre_script_path);
   if (test_runtime_script_path) free(test_runtime_script_path);
   if (test_post_script_path) free(test_post_script_path);
+  if (message_broker_url) free(message_broker_url);
 #ifdef NTOPNG_PRO
   if(modbus_allowed_function_codes)
     ndpi_bitmap_free(modbus_allowed_function_codes);
@@ -786,8 +792,7 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer,
                                        const char *default_value) {
   char rsp[MAX_PATH];
 
-  if ((ntop->getRedis()->get((char *)pref_key, rsp, sizeof(rsp)) == 0) &&
-      (rsp[0] != '\0'))
+  if ((ntop->getRedis()->get((char *)pref_key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
     *buffer = strdup(rsp);
   else
     *buffer = strdup(default_value);
@@ -947,6 +952,8 @@ void Prefs::reloadPrefsFromRedis() {
     disable_alerts = getDefaultBoolPrefsValue(CONST_ALERT_DISABLED_PREFS, false),
     enable_activities_debug =
     getDefaultBoolPrefsValue(CONST_ACTIVITIES_DEBUG_ENABLED, false),
+    snmp_polling = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SNMP_POLLING, false);
+    active_monitoring = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACTIVE_MONITORING, false);
 
     enable_arp_matrix_generation =
     getDefaultBoolPrefsValue(CONST_DEFAULT_ARP_MATRIX_GENERATION, false),
@@ -989,29 +996,23 @@ void Prefs::reloadPrefsFromRedis() {
 					      no_host_mask);
   flow_table_time =
     (bool)getDefaultPrefsValue(CONST_FLOW_TABLE_TIME, flow_table_time);
-  flow_table_probe_order = (bool)getDefaultPrefsValue(
-							CONST_FLOW_TABLE_PROBE_ORDER, flow_table_probe_order);
-  auto_assigned_pool_id = (u_int16_t)getDefaultPrefsValue(
-							    CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID);
-  enable_broadcast_domain_too_large =
-    getDefaultBoolPrefsValue(CONST_PREFS_BROADCAST_DOMAIN_TOO_LARGE, false);
+  flow_table_probe_order = (bool)getDefaultPrefsValue(CONST_FLOW_TABLE_PROBE_ORDER, flow_table_probe_order);
+  auto_assigned_pool_id = (u_int16_t)getDefaultPrefsValue(CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID);
+  enable_broadcast_domain_too_large = getDefaultBoolPrefsValue(CONST_PREFS_BROADCAST_DOMAIN_TOO_LARGE, false);
 
-  getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_TS_DRIVER, &aux,
-                             (char *)"rrd");
+  getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_TS_DRIVER, &aux, (char *)"rrd");
   if (aux) {
     timeseries_driver = str2TsDriver(aux);
     free(aux);
   }
 
-  getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS, &aux,
-                             (char *)"none");
+  getDefaultStringPrefsValue(CONST_RUNTIME_PREFS_ENABLE_MAC_NDPI_STATS, &aux, (char *)"none");
   if (aux) {
     enable_mac_ndpi_stats = strncmp(aux, (char *)"none", 4);
     free(aux);
   }
 
-  getDefaultStringPrefsValue(CONST_SAFE_SEARCH_DNS, &aux,
-                             DEFAULT_SAFE_SEARCH_DNS);
+  getDefaultStringPrefsValue(CONST_SAFE_SEARCH_DNS, &aux, DEFAULT_SAFE_SEARCH_DNS);
   if (aux) {
     safe_search_dns_ip = Utils::inet_addr(aux);
     free(aux);
@@ -1028,6 +1029,10 @@ void Prefs::reloadPrefsFromRedis() {
     global_secondary_dns_ip = Utils::inet_addr(aux);
     free(aux);
   }
+
+  getDefaultStringPrefsValue(CONST_PREFS_MESSAGE_BROKER_URL, &aux, DEFAULT_MESSAGE_BROKER_URL);
+  if(message_broker_url) free(message_broker_url);
+  message_broker_url = aux;
 
   global_dns_forging_enabled =
     getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, false);
@@ -2694,6 +2699,10 @@ void Prefs::lua(lua_State *vm) {
 			                      vs_max_num_scans);
   lua_push_bool_table_entry(vm, "vs_slow_scan",
                             vs_slow_scan);
+  lua_push_bool_table_entry(vm, "snmp_polling", 
+                            snmp_polling);
+  lua_push_bool_table_entry(vm, "active_monitoring", 
+                            active_monitoring);
 
 #ifdef HAVE_NEDGE
   lua_push_bool_table_entry(vm, "is_mac_based_captive_portal",

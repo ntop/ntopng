@@ -10,10 +10,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/import_export/?.lua;" ..
 
 -- ##############################################
 
-require "lua_utils"
-local all_import_export = require "all_import_export"
-local import_export_rest_utils = require "import_export_rest_utils"
-local rest_utils = require("rest_utils")
+require "ntop_utils"
 local json = require("dkjson")
 
 -- ##############################################
@@ -41,8 +38,15 @@ end
 
 -- @brief Save configurations backup.
 function backup_config.save_backup()
+    local all_import_export = require "all_import_export"
+    local import_export_rest_utils = require "import_export_rest_utils"
     local instances = {}
-    local to_ignore = { last_poll_time = true, last_poll_duration = true, num_interfaces_with_errors = true, delta_interfaces_with_errors = true }
+    local to_ignore = {
+        last_poll_time = true,
+        last_poll_duration = true,
+        num_interfaces_with_errors = true,
+        delta_interfaces_with_errors = true
+    }
 
     -- Retrieve the configuration
     instances["all"] = all_import_export:create()
@@ -70,15 +74,15 @@ function backup_config.save_backup()
             local last_config = json.decode(ntop.getHashCache(backup_hash_key, item)) or {}
             -- Check if the last configuration is equal to the current one
 
-	    if (not table.is_equal(last_config, backup, to_ignore)) then
-	       -- tprint("CONFIGURATION CHANGED ****")
-	       if debugger then
-		  traceError(TRACE_DEBUG, TRACE_CONSOLE, "Saving Backup: " .. backup .. "\nUsing Redis key: " .. key)
-	       end
+            if (not table.is_equal(last_config, backup, to_ignore)) then
+                -- tprint("CONFIGURATION CHANGED ****")
+                if debugger then
+                    traceError(TRACE_DEBUG, TRACE_CONSOLE, "Saving Backup: " .. backup .. "\nUsing Redis key: " .. key)
+                end
 
-	       ntop.setHashCache(backup_hash_key, key, json.encode(backup))
-	    else
-	       -- tprint("CONFIGURATION [ " .. item .."]= ****")
+                ntop.setHashCache(backup_hash_key, key, json.encode(backup))
+            else
+                -- tprint("CONFIGURATION [ " .. item .."]= ****")
             end
 
             break -- take the first one
@@ -100,7 +104,7 @@ function backup_config.list_backup(user, order)
     local saved_backups_keys = ntop.getHashKeysCache(backup_hash_key) or {}
     local epoch_list = {}
 
-    local date_format = ntop.getPref("ntopng.user."..user..".date_format")
+    local date_format = ntop.getPref("ntopng.user." .. user .. ".date_format")
 
     for epoch, _ in pairsByKeys(saved_backups_keys, rev) do
         epoch_list[#epoch_list + 1] = {
@@ -110,9 +114,13 @@ function backup_config.list_backup(user, order)
     end
 
     if order == "desc" then
-        table.sort(epoch_list, function(x,y) return x.epoch > y.epoch end)
+        table.sort(epoch_list, function(x, y)
+            return x.epoch > y.epoch
+        end)
     else
-        table.sort(epoch_list, function(x,y) return x.epoch < y.epoch end)
+        table.sort(epoch_list, function(x, y)
+            return x.epoch < y.epoch
+        end)
 
     end
 

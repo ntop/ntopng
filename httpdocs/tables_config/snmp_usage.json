@@ -66,6 +66,14 @@
 			]
 		},
 		{
+			"title_i18n": "snmp.interface_alias",
+			"data_field": "alias",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "page_stats.type",
 			"data_field": "type",
 			"sortable": true,

@@ -23,7 +23,10 @@
 
 /* **************************************************** */
 
-AlertsQueue::AlertsQueue(NetworkInterface *_iface) { iface = _iface; }
+AlertsQueue::AlertsQueue(NetworkInterface *_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  iface = _iface;
+}
 
 /* **************************************************** */
 
@@ -89,7 +92,7 @@ void AlertsQueue::pushOutsideDhcpRangeAlert(u_int8_t *cli_mac, Mac *sender_mac,
     sender_mac->getDHCPName(name, sizeof(name));
     ndpi_serialize_string_string(tlv, "device_name", name);
 
-    pushAlertJson(tlv, "misconfigured_dhcp_range");
+    pushAlertJson(tlv, "misconfigured_dhcp_range", NULL, alert_category_network);
   }
 }
 
@@ -128,7 +131,7 @@ void AlertsQueue::pushMacIpAssociationChangedAlert(u_int32_t ip,
     new_host_mac->getDHCPName(name, sizeof(name));
     ndpi_serialize_string_string(tlv, "device_name", name);
 
-    pushAlertJson(tlv, "mac_ip_association_change");
+    pushAlertJson(tlv, "mac_ip_association_change", NULL, alert_category_network);
   }
 }
 
@@ -161,7 +164,7 @@ void AlertsQueue::pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac,
     ndpi_serialize_string_string(tlv, "spa", spa_s);
     ndpi_serialize_string_string(tlv, "tpa", tpa_s);
 
-    pushAlertJson(tlv, "broadcast_domain_too_large");
+    pushAlertJson(tlv, "broadcast_domain_too_large", NULL, alert_category_network);
   }
 }
 

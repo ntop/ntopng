@@ -24,11 +24,15 @@
 
 /* **************************************************** */
 
-HostChecksLoader::HostChecksLoader() : ChecksLoader() {}
+HostChecksLoader::HostChecksLoader() : ChecksLoader() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+}
 
 /* **************************************************** */
 
 HostChecksLoader::~HostChecksLoader() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   for (std::map<std::string, HostCheck *>::const_iterator it = cb_all.begin();
        it != cb_all.end(); ++it)
     delete it->second;

@@ -25,6 +25,7 @@
 
 HostChecksExecutor::HostChecksExecutor(HostChecksLoader *fcl,
                                        NetworkInterface *_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   iface = _iface;
   memset(host_cb_arr, 0, sizeof(host_cb_arr));
   loadHostChecks(fcl);
@@ -33,6 +34,8 @@ HostChecksExecutor::HostChecksExecutor(HostChecksLoader *fcl,
 /* **************************************************** */
 
 HostChecksExecutor::~HostChecksExecutor() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   if (periodic_host_cb) delete periodic_host_cb;
 };
 

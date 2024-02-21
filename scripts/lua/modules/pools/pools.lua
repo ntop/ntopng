@@ -3,12 +3,7 @@
 --
 -- Module to keep things in common across pools of various type
 
-local dirs = ntop.getDirs()
-package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
-
-
-require "lua_utils"
-local checks = require "checks"
+require "ntop_utils"
 local json = require "dkjson"
 local ntop_info = ntop.getInfo()
 

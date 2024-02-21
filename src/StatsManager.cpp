@@ -30,6 +30,8 @@ StatsManager::StatsManager(int interface_id, const char *filename)
   char filePath[MAX_PATH + 16], fileFullPath[MAX_PATH + 162],
       fileName[MAX_PATH + 16];
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   MINUTE_CACHE_NAME = "MINUTE_STATS";
   HOUR_CACHE_NAME = "HOUR_STATS";
   DAY_CACHE_NAME = "DAY_STATS";

@@ -7,7 +7,6 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/notifications/?.lua;" .. package.path
 
 local os_utils = require("os_utils")
-local file_utils = require("file_utils")
 local template_utils = require("template_utils")
 local lua_path_utils = require("lua_path_utils")
 require "lua_trace"

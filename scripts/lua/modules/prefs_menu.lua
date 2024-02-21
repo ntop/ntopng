@@ -23,7 +23,19 @@ if ntop.isPro() or ntop.isnEdgeEnterprise() then
 end
 
 -- This table is used both to control access to the preferences and to filter preferences results
-local menu_subpages = { {
+local menu_subpages = {{
+    id = "active_monitoring",
+    label = i18n("active_monitoring_stats.active_monitoring"),
+    advanced = false,
+    pro_only = false,
+    hidden = false,
+    entries = {
+        toggle_active_monitoring = {
+            title = i18n("prefs.toggle_active_monitoring_title"),
+            description = i18n("prefs.toggle_active_monitoring_description")
+        }
+    }
+},{
     id = "alerts",
     label = i18n("show_alerts.alerts"),
     advanced = false,
@@ -64,7 +76,7 @@ local menu_subpages = { {
             description = i18n("prefs.alerts_page_refresh_rate_description")
         }
     }
-},{
+}, {
     id = "protocols",
     label = i18n("prefs.protocols"),
     advanced = false,
@@ -78,7 +90,7 @@ local menu_subpages = { {
             })
         }
     }
-},{
+}, {
     id = "traffic_behaviour",
     label = i18n("prefs.behaviour"),
     advanced = true,
@@ -100,7 +112,7 @@ local menu_subpages = { {
             title = i18n("prefs.behaviour_analysis_status_post_learning_title"),
             description = i18n("prefs.behaviour_analysis_status_post_learning_description")
         },
-        
+
         devices_learning_period = {
             title = i18n("prefs.devices_learning_period_title"),
             description = i18n("prefs.devices_learning_period_description")
@@ -258,7 +270,7 @@ local menu_subpages = { {
             description = i18n("prefs.geo_map.toggle_geo_map_custom_description")
         }
     }
-},  {
+}, {
     id = "logging",
     label = i18n("prefs.logging"),
     advanced = false,
@@ -288,6 +300,38 @@ local menu_subpages = { {
             })
         }
 
+    }
+}, {
+    id = "message_broker",
+    label = i18n("prefs.message_broker"),
+    advanced = false,
+    pro_only = false,
+    hidden = not (ntop.isEnterpriseM()) or true, -- TODO: correctly hide or show this preference
+    entries = {
+        toggle_message_broker = {
+            title = i18n("prefs.toggle_message_broker_title"),
+            description = i18n("prefs.toggle_message_broker_description")
+        },
+        message_brokers_list = {
+            title = i18n("prefs.message_brokers_title"),
+            description = i18n("prefs.message_brokers_description")
+        },
+        message_broker_url = {
+            title = i18n("prefs.message_broker_url_title"),
+            description = i18n("prefs.message_broker_url_description")
+        },
+        message_broker_username = {
+            title = i18n("login.username"),
+            description = i18n("prefs.message_broker_username_description")
+        },
+        message_broker_password = {
+            title = i18n("login.password"),
+            description = i18n("prefs.message_broker_password_description")
+        },
+        message_broker_topics_list = {
+            title = i18n("prefs.topics"),
+            description = i18n("prefs.message_broker_topics_list_description")
+        },
     }
 }, {
     id = "misc",
@@ -329,7 +373,7 @@ local menu_subpages = { {
             description = i18n("prefs.flow_table_probe_order_description")
         }
     }
-}, {   
+}, {
     id = "names",
     label = i18n("prefs.names"),
     advanced = false,
@@ -342,7 +386,7 @@ local menu_subpages = { {
         ntopng_instance_name = {
             title = i18n("prefs.ntopng_instance_name_title"),
             description = i18n("prefs.ntopng_instance_name_description")
-        }, 
+        }
     }
 }, {
     id = "discovery",
@@ -364,7 +408,7 @@ local menu_subpages = { {
             description = i18n("prefs.toggle_network_discovery_debug_description")
         }
     }
-},{
+}, {
     id = "ifaces",
     label = i18n("prefs.network_interfaces"),
     advanced = true,
@@ -387,7 +431,7 @@ local menu_subpages = { {
             description = i18n("prefs.toggle_dst_with_post_nat_dst_description")
         }
     }
-},{
+}, {
     id = "ot_protocols",
     label = i18n("prefs.ot_protocols"),
     advanced = true,
@@ -402,7 +446,23 @@ local menu_subpages = { {
             description = i18n("prefs.modbus_learning_period_description")
         }
     }
-},{
+}, {
+    id = "reports",
+    label = i18n("prefs.reports"),
+    advanced = false,
+    pro_only = true,
+    hidden = not (ntop.isEnterpriseL() or ntop.isnEdgeEnterprise()),
+    entries = {
+        toggle_enable_automatic_reports = {
+            title = i18n("prefs.toggle_enable_automatic_reports_title"),
+            description = i18n("prefs.toggle_enable_automatic_reports_descr")
+        },
+        reports_data_retention_time = {
+            title = i18n("prefs.reports_data_retention_time_title"),
+            description = i18n("prefs.reports_data_retention_time_descr")
+        }
+    }
+}, {
     id = "snmp",
     label = i18n("prefs.snmp"),
     advanced = true,
@@ -413,6 +473,10 @@ local menu_subpages = { {
         toggle_snmp_rrds = {
             title = i18n("prefs.toggle_snmp_rrds_title"),
             description = i18n("prefs.toggle_snmp_rrds_description")
+        },
+        toggle_snmp_polling = {
+            title = i18n("prefs.toggle_snmp_polling_title"),
+            description = i18n("prefs.toggle_snmp_polling_description")
         },
         default_snmp_community = {
             title = i18n("prefs.default_snmp_community_title"),
@@ -431,8 +495,7 @@ local menu_subpages = { {
             description = i18n("prefs.toggle_snmp_debug_description")
         }
     }
-},
-{
+}, {
     id = "on_disk_ts",
     label = i18n("prefs.timeseries"),
     advanced = false,
@@ -548,7 +611,7 @@ local menu_subpages = { {
             description = i18n("prefs.influxdb_query_timeout_description")
         }
     }
-},   {
+}, {
     id = "recording",
     label = i18n("prefs.recording"),
     advanced = false,
@@ -568,22 +631,6 @@ local menu_subpages = { {
         }
     }
 }, {
-    id = "reports",
-    label = i18n("prefs.reports"),
-    advanced = false,
-    pro_only = true,
-    hidden = not (ntop.isEnterpriseL() or ntop.isnEdgeEnterprise()),
-    entries = {
-        toggle_enable_automatic_reports = {
-            title = i18n("prefs.toggle_enable_automatic_reports_title"),
-            description = i18n("prefs.toggle_enable_automatic_reports_descr")
-        },
-        reports_data_retention_time = {
-            title = i18n("prefs.reports_data_retention_time_title"),
-            description = i18n("prefs.reports_data_retention_time_descr")
-        }
-    }
-},   {
     id = "updates",
     label = i18n("prefs.updates"),
     advanced = false,
@@ -597,7 +644,7 @@ local menu_subpages = { {
             })
         }
     }
-},{
+}, {
     id = "auth",
     label = i18n("prefs.user_authentication"),
     advanced = false,
@@ -736,8 +783,7 @@ local menu_subpages = { {
             })
         }
     }
-},
-{
+}, {
     id = "gui",
     label = i18n("prefs.gui"),
     advanced = false,
@@ -779,8 +825,7 @@ local menu_subpages = { {
             description = i18n("prefs.toggle_menu_entry_developer_description")
         }
     }
-},
-{
+}, {
     id = "vulnerability_scan",
     label = i18n("prefs.vulnerability_scan"),
     advanced = false,
@@ -790,13 +835,12 @@ local menu_subpages = { {
         vs_concurrently_scan_number = {
             title = i18n("prefs.vs_concurrently_scan_number_title"),
             description = i18n("prefs.vs_concurrently_scan_number_descr")
-        },        
+        },
         toggle_slow_mode = {
             title = i18n("prefs.vs_slow_mode_title"),
             description = i18n("prefs.vs_slow_mode_description")
         }
     }
-}
-}
+}}
 
 return menu_subpages

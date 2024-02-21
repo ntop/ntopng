@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # (C) 2013-21 - ntop.org
 # Author: Simone Mainardi <mainardi@ntop.org>

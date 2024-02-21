@@ -26,10 +26,12 @@
 
 class ThreadPool;
 class PeriodicScript;
+class PeriodicActivities;
 
 class ThreadedActivity {
  private:
   u_int32_t deadline_approaching_secs;
+  bool force_run;
   Mutex m;
   bool randomDelaySchedule;
   u_int32_t next_schedule;
@@ -39,7 +41,8 @@ class ThreadedActivity {
   void updateNextSchedule(u_int32_t now);
   void setDeadlineApproachingSecs();
   void schedulePeriodicActivity(ThreadPool *pool, time_t scheduled_time,
-                                time_t deadline);
+                                time_t deadline, PeriodicActivities *pa,
+				bool hourly_daily_activity);
   ThreadedActivityState getThreadedActivityState(NetworkInterface *iface,
                                                  char *script_name);
   void updateThreadedActivityStatsBegin(NetworkInterface *iface,
@@ -86,7 +89,8 @@ class ThreadedActivity {
                                                   bool allocate_if_missing);
 
   void lua(NetworkInterface *iface, lua_State *vm);
-  void schedule(u_int32_t now);
+  bool schedule(PeriodicActivities *pa, u_int32_t now, bool hourly_daily_activity);
+  inline void force() { force_run = true; /* Force activity schedule */}
 };
 
 #endif /* _THREADED_ACTIVITY_H_ */

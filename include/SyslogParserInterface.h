@@ -44,7 +44,7 @@ class SyslogParserInterface : public ParserInterface {
   u_int8_t parseLog(char *log_line, char *client_ip);
 
   u_int32_t getNumDroppedPackets() { return 0; };
-  virtual void lua(lua_State *vm);
+  virtual void lua(lua_State *vm, bool fullStats);
   virtual void startPacketPolling();
 };
 

@@ -24,6 +24,8 @@
 /* ***************************************** */
 
 GenericHashEntry::GenericHashEntry(NetworkInterface *_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   hash_next = NULL, iface = _iface, first_seen = last_seen = 0;
   num_uses = 0;
   hash_table = NULL;
@@ -38,7 +40,9 @@ GenericHashEntry::GenericHashEntry(NetworkInterface *_iface) {
 
 /* ***************************************** */
 
-GenericHashEntry::~GenericHashEntry() { ; }
+GenericHashEntry::~GenericHashEntry() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+}
 
 /* ***************************************** */
 

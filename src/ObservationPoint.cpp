@@ -29,6 +29,8 @@ ObservationPoint::ObservationPoint(NetworkInterface* _iface,
       GenericTrafficElement(),
       Score(_iface),
       dirstats(_iface, 0) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   obs_point = _obs_point;
   num_flows = 0;
   delete_requested = false;

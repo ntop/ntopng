@@ -46,11 +46,13 @@ extern struct keyval string_to_replace[]; /* LuaEngine.cpp */
 /* ******************************************* */
 
 Ntop::Ntop(const char *appName) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   // WTF: it's weird why do you want a global instance of ntop.
   ntop = this;
   globals = new (std::nothrow) NtopGlobals();
   extract = new (std::nothrow) TimelineExtract();
-
+  num_active_lua_vms = 0;
   offline = false;
   forced_offline = false;
   pa = NULL;
@@ -102,6 +104,13 @@ Ntop::Ntop(const char *appName) {
   cpu_load = 0;
   system_interface = NULL;
   interfacesShuttedDown = false;
+#ifdef NTOPNG_PRO
+
+#ifdef HAVE_NATS
+  natsBroker = NULL;
+#endif /* HAVE_NATS */
+
+#endif /* NTOPNG_PRO */
 #ifndef WIN32
   cping = NULL, default_ping = NULL;
 #endif
@@ -280,6 +289,8 @@ void Ntop::initTimezone() {
 Ntop::~Ntop() {
   int num_local_networks = local_network_tree.getNumAddresses();
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   for (int i = 0; i < num_local_networks; i++) {
     if (local_network_names[i] != NULL) free(local_network_names[i]);
     if (local_network_aliases[i] != NULL) free(local_network_aliases[i]);
@@ -338,6 +349,12 @@ Ntop::~Ntop() {
   if (pro) delete pro;
   if (alert_exclusions) delete alert_exclusions;
   if (alert_exclusions_shadow) delete alert_exclusions_shadow;
+#ifdef HAVE_NATS
+  if (natsBroker) {
+    delete natsBroker;
+    natsBroker = NULL;
+  } 
+#endif
 #endif
 
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
@@ -653,6 +670,19 @@ void Ntop::start() {
   checkReloadFlowChecks();
   checkReloadHostChecks();
 
+  #ifdef NTOPNG_PRO
+#ifdef HAVE_NATS
+  /*
+  try {
+    natsBroker = new NatsBroker();
+  } catch(...) {
+    ;
+  }
+  */
+#endif
+
+#endif /* NTOPNG_PRO */
+
   for (int i = 0; i < num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
 
@@ -692,7 +722,7 @@ void Ntop::start() {
 				   (float)usec_diff / 1e6);
 
     if (usec_diff < nap_usec) _usleep(nap_usec - usec_diff);
-  } 
+  }
 }
 
 /* ******************************************* */

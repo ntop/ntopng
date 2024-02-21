@@ -39,7 +39,7 @@ page_utils.print_navbar(title, url,
 			      label = "<i class=\"fas fa-home fa-lg\"></i>",
 			   },
 			   {
-			      hidden = not ts_creation,
+			      hidden = not ts_creation or not ntop.isLinux(),
 			      active = page == "historical",
 			      page_name = "historical",
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",

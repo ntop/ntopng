@@ -24,6 +24,8 @@
 /* ********************************************* */
 
 TimelineExtract::TimelineExtract() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   extraction.id = 0;
   status_code = 0;
   running = false;

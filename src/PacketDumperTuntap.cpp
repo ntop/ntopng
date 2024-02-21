@@ -30,9 +30,11 @@
 /* ********************************************* */
 
 PacketDumperTuntap::PacketDumperTuntap(NetworkInterface *i) {
-  char *name = i->get_name();
-
+  char *name = i->get_name();  
   int ret = openTap(NULL, DUMP_MTU);
+
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   if (ret < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Opening tap (%s) failed", name);
     init_ok = false;

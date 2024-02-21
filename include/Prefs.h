@@ -190,10 +190,13 @@ class Prefs {
   char* test_runtime_script_path;
   char* test_post_script_path;
 
+  char* message_broker_url;
 #ifdef NTOPNG_PRO
   bool print_maintenance, print_license;
 #endif
   bool print_version, print_version_json;
+  bool snmp_polling;
+  bool active_monitoring;
 
   InterfacesSet lan_interfaces, wan_interfaces;
 
@@ -355,6 +358,9 @@ class Prefs {
   inline const char* get_test_post_script_path() {
     return (test_post_script_path);
   };
+  inline const char* get_message_broker_url() {
+    return(message_broker_url);
+  };
   inline char* get_export_endpoint() { return (export_endpoint); };
   inline char* get_export_zmq_encryption_key() {
     return (export_zmq_encryption_key);
@@ -373,6 +379,8 @@ class Prefs {
   inline bool do_simulate_vlans() { return (simulate_vlans); };
   inline bool do_simulate_macs() { return (simulate_macs); };
   inline bool do_insecure_tls() { return (insecure_tls); };
+  inline bool do_snmp_polling() { return (snmp_polling); };
+  inline bool do_active_monitoring(){ return (active_monitoring); };
   inline char* get_cpu_affinity() { return (cpu_affinity); };
   inline char* get_other_cpu_affinity() { return (other_cpu_affinity); };
 #ifdef __linux__

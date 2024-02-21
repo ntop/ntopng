@@ -24,6 +24,8 @@
 /* **************************************************** */
 
 SQLiteStoreManager::SQLiteStoreManager(int interface_id) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   ifid = interface_id;
   iface = ntop->getInterfaceById(interface_id);
   db = NULL;
@@ -74,8 +76,7 @@ SQLiteStoreManager::~SQLiteStoreManager() {
  * @return Zero in case of success, nonzero in case of failure.
  */
 int SQLiteStoreManager::exec_query(const char *db_query,
-                                   int (*callback)(void *, int, char **,
-                                                   char **),
+                                   int (*callback)(void *, int, char **, char **),
                                    void *payload) {
   char *zErrMsg = 0;
 
@@ -161,6 +162,9 @@ int SQLiteStoreManager::optimizeStore() {
     if (step != SQLITE_ERROR) rc = true;
   }
 
+  sqlite3_reset(stmt);
+  sync();
+  
 out:
   if (stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);

@@ -4,13 +4,15 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
 local radius_handler = require "radius_handler"
-local host_pools = require "host_pools"
 
 -- #################################################################
 
 if radius_handler.isAccountingEnabled() then
+    -- Import only if radius is enabled, otherwise it's a waste of memory
+    require "lua_utils"
+    local host_pools = require "host_pools"
+    
     -- Instantiate host pools
     local pool = host_pools:create()
     local pools_list = {}

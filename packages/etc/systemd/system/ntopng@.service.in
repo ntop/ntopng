@@ -8,6 +8,9 @@ PartOf=@SERVICE_WANTS@
 [Service]
 Type=simple
 
+Environment=UNIT_NAME=%N
+Environment=INSTANCE_NAME=%i
+
 # Config restore only available for non instantiated-services
 # ExecStartPre=/bin/sh -c '/usr/bin/ntopng-utils-manage-config -a check-restore  && /usr/bin/ntopng-utils-manage-config -a restore || true'
 ExecStartPre=/bin/sh -c '/bin/sed "/^[ ]*-e.*$\\|^[ ]*-G.*\\|^[ ]*--daemon.*\\|^[ ]*--pid.*/s/^/#/" /etc/ntopng/ntopng-%i.conf > /run/ntopng-%i.conf'

@@ -28,6 +28,8 @@
 ParserInterface::ParserInterface(const char *endpoint,
                                  const char *custom_interface_type)
     : NetworkInterface(endpoint, custom_interface_type) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   num_companion_interfaces = 0;
   companion_interfaces =
       new (std::nothrow) NetworkInterface *[MAX_NUM_COMPANION_INTERFACES]();
@@ -553,6 +555,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
     flow->setErrorCode(zflow->getL7ErrorCode());
     flow->setConfidence(zflow->getConfidence());
+    flow->setNdpiConfidence(zflow->getConfidence());
 
     if (flow->isDNS())  flow->updateDNS(zflow);
     if (flow->isHTTP()) flow->updateHTTP(zflow);
@@ -579,6 +582,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
     if (zflow->getJA3cHash()) flow->updateJA3C(zflow->getJA3cHash());
     if (zflow->getJA3sHash()) flow->updateJA3S(zflow->getJA3sHash());
+    if (zflow->getJA4cHash()) flow->updateJA4C(zflow->getJA4cHash());
 
     if (zflow->getRiskInfo()) {
       json_object *o, *obj;

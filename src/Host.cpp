@@ -30,6 +30,7 @@ Host::Host(NetworkInterface *_iface, int32_t _iface_idx,
       HostAlertableEntity(_iface, alert_entity_host),
       Score(_iface),
       HostChecksStatus() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   ip.set(ipAddress);
   initialize(NULL, _iface_idx, _vlan_id, observation_point_id);
 }
@@ -43,6 +44,8 @@ Host::Host(NetworkInterface *_iface, int32_t _iface_idx,
       HostAlertableEntity(_iface, alert_entity_host),
       Score(_iface),
       HostChecksStatus() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   ip.set(_ip);
 
 #ifdef BROADCAST_DEBUG
@@ -59,6 +62,8 @@ Host::Host(NetworkInterface *_iface, int32_t _iface_idx,
 /* *************************************** */
 
 Host::~Host() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   if ((getUses() > 0)
       /* View hosts are not in sync with viewed flows so during shutdown it can
          be normal */

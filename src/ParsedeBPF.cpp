@@ -24,6 +24,8 @@
 /* *************************************** */
 
 ParsedeBPF::ParsedeBPF() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   ifname = NULL;
 
   event_type = ebpf_event_type_unknown;

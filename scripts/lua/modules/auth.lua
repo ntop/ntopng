@@ -23,7 +23,8 @@ local clock_start = os.clock()
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
+require "ntop_utils"
+require "locales_utils"
 
 local auth = {}
 

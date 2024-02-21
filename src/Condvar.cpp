@@ -23,7 +23,10 @@
 
 /* ************************************ */
 
-Condvar::Condvar() { init(); }
+Condvar::Condvar() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  init();
+}
 
 /* ************************************ */
 
@@ -36,6 +39,7 @@ void Condvar::init() {
 /* ************************************ */
 
 Condvar::~Condvar() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   pthread_mutex_destroy(&mutex);
   pthread_cond_destroy(&condvar);
 }

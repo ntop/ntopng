@@ -24,7 +24,7 @@ local script = {
 local function check_periodic_activity_not_executed(params)
    local scripts_stats = interface.getPeriodicActivitiesStats()
 
-   for ps_name, ps_stats in pairs(scripts_stats) do
+   for ps_name, ps_stats in pairs(scripts_stats or {}) do
       local delta = alerts_api.interface_delta_val(script.key..ps_name --[[ metric name --]], params.granularity, ps_stats["num_not_executed"] or 0)
 
       local alert = alert_consts.alert_types.alert_periodic_activity_not_executed.new(

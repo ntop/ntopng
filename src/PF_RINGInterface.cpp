@@ -130,10 +130,12 @@ pfring *PF_RINGInterface::pfringSocketInit(const char *name) {
 /* **************************************************** */
 
 PF_RINGInterface::PF_RINGInterface(const char *_name)
-    : NetworkInterface(_name) {
+  : NetworkInterface(_name) {
   char name[MAX_INTERFACE_NAME_LEN];
   int err;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   num_pfring_handles = 0;
   pcap_datalink_type = DLT_EN10MB;
   dropped_packets = 0;
@@ -184,6 +186,7 @@ PF_RINGInterface::PF_RINGInterface(const char *_name)
 PF_RINGInterface::~PF_RINGInterface() {
   int i;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   shutdown();
 
   for (i = 0; i < num_pfring_handles; i++) {

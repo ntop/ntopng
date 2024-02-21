@@ -28,6 +28,7 @@
 /* **************************************************** */
 
 ExportInterface::ExportInterface(const char *_endpoint, const char *_topic) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   topic = strdup(_topic), endpoint = strdup(_endpoint);
 
   if ((context = zmq_ctx_new()) == NULL) {
@@ -111,6 +112,7 @@ ExportInterface::ExportInterface(const char *_endpoint, const char *_topic) {
 /* **************************************************** */
 
 ExportInterface::~ExportInterface() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (topic) free(topic);
   if (endpoint) free(endpoint);
 

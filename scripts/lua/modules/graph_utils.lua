@@ -21,19 +21,11 @@ local graph_utils = {}
 
 -- ########################################################
 
-if (ntop.isPro()) then
-    -- if the version is pro, we include nv_graph_utils as part of this module
-    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
-    graph_utils = require "nv_graph_utils"
-end
-
--- ########################################################
-
-graph_utils.graph_colors = {'#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
-                            '#bcbd22', '#17becf', -- https://github.com/mbostock/d3/wiki/Ordinal-Scales
-                            '#ffbb78', '#1f77b4', '#aec7e8', '#2ca02c', '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b',
-                            '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f', '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf',
-                            '#9edae5'}
+graph_utils.graph_colors = { '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
+    '#bcbd22', '#17becf',                         -- https://github.com/mbostock/d3/wiki/Ordinal-Scales
+    '#ffbb78', '#1f77b4', '#aec7e8', '#2ca02c', '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5', '#8c564b',
+    '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f', '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf',
+    '#9edae5' }
 
 -- ########################################################
 
@@ -143,11 +135,10 @@ function graph_utils.breakdownBar(sent, sentLabel, rcvd, rcvdLabel, thresholdLow
         end
 
         print('<div class="progress"><div class="progress-bar bg-warning" aria-valuenow="' .. sent2rcvd ..
-                  '" aria-valuemin="0" aria-valuemax="100" style="width: ' .. sent2rcvd .. '%;">' .. sentLabel)
+            '" aria-valuemin="0" aria-valuemax="100" style="width: ' .. sent2rcvd .. '%;">' .. sentLabel)
         print('</div><div class="progress-bar bg-success" aria-valuenow="' .. (100 - sent2rcvd) ..
-                  '" aria-valuemin="0" aria-valuemax="100" style="width: ' .. (100 - sent2rcvd) .. '%;">' .. rcvdLabel ..
-                  '</div></div>')
-
+            '" aria-valuemin="0" aria-valuemax="100" style="width: ' .. (100 - sent2rcvd) .. '%;">' .. rcvdLabel ..
+            '</div></div>')
     else
         print('&nbsp;')
     end
@@ -160,7 +151,7 @@ function graph_utils.percentageBar(total, value, valueLabel)
     if ((total ~= nil) and (total > 0)) then
         pctg = round((value * 100) / total, 0)
         print('<div class="progress"><div class="progress-bar bg-warning" aria-valuenow="' .. pctg ..
-                  '" aria-valuemin="0" aria-valuemax="100" style="width: ' .. pctg .. '%;">' .. valueLabel)
+            '" aria-valuemin="0" aria-valuemax="100" style="width: ' .. pctg .. '%;">' .. valueLabel)
         print('</div></div>')
     else
         print('&nbsp;')
@@ -178,9 +169,9 @@ function graph_utils.makeProgressBar(percentage)
     local perc_int = round(percentage)
     return
         '<span style="width: 70%; float:left"><div class="progress"><div class="progress-bar bg-warning" aria-valuenow="' ..
-            perc_int .. '" aria-valuemin="0" aria-valuemax="100" style="width: ' .. perc_int ..
-            '%;"></div></div></span><span style="width: 30%; margin-left: 15px;">' .. round(percentage, 1) ..
-            ' %</span>'
+        perc_int .. '" aria-valuemin="0" aria-valuemax="100" style="width: ' .. perc_int ..
+        '%;"></div></div></span><span style="width: 30%; margin-left: 15px;">' .. round(percentage, 1) ..
+        ' %</span>'
 end
 
 -- ########################################################
@@ -229,11 +220,11 @@ function graph_utils.stackedProgressBars(total, bars, other_label, formatter, cs
         end
         if bar.link ~= nil then
             res[#res + 1] = [[<a href="]] .. bar.link .. [[" style="width:]] .. percentage .. [[%;]] .. bar.style ..
-                                [[" class="progress-bar bg-]] .. (bar.class) .. [[" role="progressbar"></a>]]
+                [[" class="progress-bar bg-]] .. (bar.class) .. [[" role="progressbar"></a>]]
         else
             res[#res + 1] = [[
             <div class="progress-bar bg-]] .. (bar.class) .. [[" role="progressbar" style="width:]] .. percentage ..
-                                [[%;]] .. bar.style .. [["></div></a>]]
+                [[%;]] .. bar.style .. [["></div></a>]]
         end
         if bar.link ~= nil then
             res[#res + 1] = [[</a>]]
@@ -261,7 +252,6 @@ function graph_utils.stackedProgressBars(total, bars, other_label, formatter, cs
 
     num = 0
     for _, bar in ipairs(legend_items) do
-
         if skip_zero_values and bar.value == 0 then
             goto continue
         end
@@ -284,7 +274,7 @@ function graph_utils.stackedProgressBars(total, bars, other_label, formatter, cs
     end
 
     res[#res + 1] = [[<span style="margin-left: 0"><span></span><span>&nbsp;&nbsp;-&nbsp;&nbsp;]] .. i18n("total") ..
-                        ": " .. formatter(total) .. "</span></span>"
+        ": " .. formatter(total) .. "</span></span>"
 
     return table.concat(res)
 end
@@ -351,12 +341,12 @@ function graph_utils.drawNewGraphs(source_value_object)
 
     -- Checking which top timeseries are available
     local interface_has_top_protocols = (interface_ts_enabled == "both" or interface_ts_enabled == "per_protocol" or
-                                            interface_ts_enabled == "full")
+        interface_ts_enabled == "full")
     local interface_has_top_categories = (interface_ts_enabled == "both" or interface_ts_enabled == "per_category" or
-                                             interface_ts_enabled == "full")
+        interface_ts_enabled == "full")
     local host_has_top_protocols = (host_ts_enabled == "both" or host_ts_enabled == "per_protocol")
     local host_has_top_categories = (host_ts_enabled == "both" or host_ts_enabled == "per_category")
-      
+
     local sources_types_enabled = {
         interface = true, -- always enabled
         host = host_ts_creation,
@@ -416,496 +406,6 @@ end
 
 -- #################################################
 
-function graph_utils.drawGraphs(ifid, schema, tags, zoomLevel, baseurl, selectedEpoch, options, show_graph,
-    render_new_chart)
-    local page_utils = require("page_utils") -- Do not require at the top as it could conflict with script_manager.getMenuEntries
-    local debug_rrd = false
-    local is_system_interface = page_utils.is_system_view()
-    options = options or {}
-
-    if ((selectedEpoch == nil) or (selectedEpoch == "")) then
-        -- Refresh the page every minute unless:
-        -- ** a specific epoch has been selected or
-        -- ** the user is browsing historical top talkers and protocols
-        print [[
-       <script>
-       setInterval(function() {
-            var talkers_loaded, protocols_loaded, flows_loaded;
-            if($('a[href="#historical-top-talkers"]').length){
-               talkers_loaded   = $('a[href="#historical-top-talkers"]').attr("loaded");
-            }
-            if($('a[href="#historical-top-apps"]').length){
-               protocols_loaded = $('a[href="#historical-top-apps"]').attr("loaded");
-            }
-            if($('a[href="#historical-flows"]').length){
-               flows_loaded = $('a[href="#historical-flows"]').attr("loaded");
-            }
-            if(typeof talkers_loaded == 'undefined'
-                     && typeof protocols_loaded == 'undefined'
-                     && typeof flows_loaded == 'undefined'){
-         ]]
-        if not ntop.isPro() then
-            print [[
-               window.location.reload(); /* do not reload, it's annoying */
-         ]]
-        end
-        print [[
-               }
-         }, 60*1000);
-         </script>]]
-    end
-
-    local min_zoom = getMinZoomResolution(schema)
-    local min_zoom_k = 1
-    if (zoomLevel == nil) then
-        zoomLevel = min_zoom
-    end
-
-    if graph_utils.drawProGraph then
-        local enable_new_timeseries = ntop.getPref("ntopng.enable_new_timeseries")
-        enable_new_timeseries = "1"
-        local recording_utils = require "recording_utils"
-        local traffic_extraction_permitted = recording_utils.isActive(ifid) or recording_utils.isExtractionActive(ifid)
-        if render_new_chart and render_new_chart == true and enable_new_timeseries == "1" then
-            local template_utils = require "template_utils"
-            template_utils.render("pages/components/historical_interface.template", {
-                traffic_extraction_permitted = traffic_extraction_permitted
-            })
-            return
-        end
-
-        graph_utils.drawProGraph(ifid, schema, tags, zoomLevel, baseurl, options, show_graph)
-        return
-    end
-
-    nextZoomLevel = zoomLevel;
-    epoch = tonumber(selectedEpoch);
-
-    for k, v in ipairs(graph_common.zoom_vals) do
-        if graph_common.zoom_vals[k][1] == min_zoom then
-            min_zoom_k = k
-        end
-
-        if (graph_common.zoom_vals[k][1] == zoomLevel) then
-            if (k > 1) then
-                nextZoomLevel = graph_common.zoom_vals[math.max(k - 1, min_zoom_k)][1]
-            end
-            if (epoch ~= nil) then
-                start_time = epoch - math.floor(graph_common.zoom_vals[k][3] / 2)
-                end_time = epoch + math.floor(graph_common.zoom_vals[k][3] / 2)
-            else
-                end_time = os.time()
-                start_time = end_time - graph_common.zoom_vals[k][3]
-            end
-        end
-    end
-
-    if options.tskey then
-        -- this can contain a MAC address for local broadcast domain hosts
-        -- table.clone needed to modify some parameters while keeping the original unchanged
-        tags = table.clone(tags)
-        tags.host = options.tskey
-    end
-
-    local data = ts_utils.query(schema, tags, start_time, end_time)
-
-    if (data) then
-        print [[
-
-      <style>
-         #chart_container {
-            display: inline-block;
-            font-family: Arial, Helvetica, sans-serif;
-         }
-         #chart {
-            float: left;
-         }
-         #legend {
-            float: left;
-            margin-left: 15px;
-            color: black;
-            background: white;
-         }
-         #y_axis {
-            float: left;
-            width: 40px;
-         }
-   </style>
-
-<div>
-
-   <div class='card'>
-      <div class='card-header'>
-         <ul class="nav nav-tabs card-header-tabs" role="tablist" id="historical-tabs-container">
-            <li class="nav-item active"> <a class="nav-link active" href="#historical-tab-chart" role="tab" data-bs-toggle="tab"> Chart </a> </li>
-]]
-
-        print [[
-</ul>
-</div>
-<div class='card-body'>
-  <div class="tab-content">
-    <div class="tab-pane active in" id="historical-tab-chart">
-<table border=0>
-<tr><td valign="top">
-]]
-
-        local page_params = {
-            ts_schema = schema,
-            zoom = zoomLevel or '',
-            epoch = selectedEpoch or '',
-            tskey = options.tskey
-        }
-
-        if (options.timeseries) then
-            print [[
-   <div class="dropdown d-inline">
-      <button class="btn btn-light btn-sm dropdown-toggle" data-bs-toggle="dropdown">Timeseries <span class="caret"></span></button>
-      <div class="dropdown-menu scrollable-dropdown">
-      ]]
-
-            graph_common.printSeries(options, tags, start_time, end_time, baseurl, page_params)
-            graph_common.printGraphMenuEntries(graph_common.printEntry, nil, start_time, end_time)
-
-            print [[
-      </div>
-   </div><!-- /btn-group -->
-      ]]
-        end -- options.timeseries
-
-        print('<span class="mx-1">Timeframe:</span><div class="btn-group" role="group" id="graph_zoom">\n')
-
-        for k, v in ipairs(graph_common.zoom_vals) do
-            -- display 1 minute button only for networks and interface stats
-            -- but exclude applications. Application statistics are gathered
-            -- every 5 minutes
-            if graph_common.zoom_vals[k][1] == '1m' and min_zoom ~= '1m' then
-                goto continue
-            elseif graph_common.zoom_vals[k][1] == '5m' and min_zoom ~= '1m' and min_zoom ~= '5m' then
-                goto continue
-            end
-
-            local params = table.merge(page_params, {
-                zoom = graph_common.zoom_vals[k][1]
-            })
-
-            -- Additional parameters
-            if tags.protocol ~= nil then
-                params["protocol"] = tags.protocol
-            end
-            if tags.category ~= nil then
-                params["category"] = tags.category
-            end
-
-            local url = getPageUrl(baseurl, params)
-            print('<input type="radio" class="btn-check" name="options" id="zoom_level_' .. k .. '" value="' .. url ..
-                      '">')
-
-            if (graph_common.zoom_vals[k][1] == zoomLevel) then
-                print([[<label class="btn bg-primary text-white" for='zoom_level_]] .. k .. [['>]] ..
-                          graph_common.zoom_vals[k][1] .. [[</label>]])
-            else
-                print([[<label class="btn btn-outline-secondary" for='zoom_level_]] .. k .. [['>]] ..
-                          graph_common.zoom_vals[k][1] .. [[</label>]])
-            end
-
-            ::continue::
-        end
-
-        print [[
-</div>
-</div>
-
-<script>
-   $('input:radio[id^=zoom_level_]').change( function() {
-   window.open(this.value,'_self',false);
-});
-</script>
-
-<div id="legend"></div>
-<div id="chart_legend"></div>
-<div id="chart"></div>
-</td>
-
-
-<td rowspan=2>
-<div id="y_axis"></div>
-
-<div style="margin-left: 1rem; display: table">
-<div id="chart_container" style="display: table-row">
-
-   ]]
-
-        local format_as_bps = true
-        local format_as_bytes = false
-        local formatter_fctn
-
-        local label = data.series[1].label
-
-        -- Attempt at reading the formatter from the options using the schema
-        local formatter
-        if options and options.timeseries then
-            for _, cur_ts in pairs(options.timeseries or {}) do
-                if cur_ts.schema == schema and cur_ts.value_formatter then
-                    formatter = cur_ts.value_formatter[1] or cur_ts.value_formatter
-                    break
-                end
-            end
-        end
-
-        if label == "load_percentage" then
-            formatter_fctn = "NtopUtils.ffloat"
-            format_as_bps = false
-        elseif label == "resident_bytes" then
-            formatter_fctn = "NtopUtils.bytesToSize"
-            format_as_bytes = true
-        elseif string.contains(label, "pct") then
-            formatter_fctn = "NtopUtils.fpercent"
-            format_as_bps = false
-            format_as_bytes = false
-        elseif schema == "process:num_alerts" then
-            formatter_fctn = "NtopUtils.falerts"
-            format_as_bps = false
-            format_as_bytes = false
-        elseif label:contains("millis") or label:contains("_ms") then
-            formatter_fctn = "NtopUtils.fmillis"
-            format_as_bytes = false
-            format_as_bps = false
-        elseif string.contains(label, "packets") or string.contains(label, "flows") or label:starts("num_") or
-            label:contains("alerts") or label:contains("score") then
-            formatter_fctn = "NtopUtils.fint"
-            format_as_bytes = false
-            format_as_bps = false
-        elseif formatter then
-            -- The formatter specified in the options
-            formatter_fctn = formatter
-            format_as_bytes = false
-            format_as_bps = false
-        else
-            formatter_fctn = (is_system_interface and "NtopUtils.fnone" or "NtopUtils.fbits")
-        end
-
-        print [[
-   <table class="table table-bordered table-striped" style="border: 1rem; margin-right: 1rem; display: table-cell">
-   ]]
-
-        print('   <tr><th>&nbsp;</th><th>Time</th><th>Value</th></tr>\n')
-
-        local stats = data.statistics
-
-        if (stats ~= nil) then
-            local minval_time = stats.min_val_idx and (data.start + data.step * stats.min_val_idx) or 0
-            local maxval_time = stats.max_val_idx and (data.start + data.step * stats.max_val_idx) or 0
-            local lastval_time = data.start + data.step * (data.count - 1)
-            local lastval = 0
-
-            for _, serie in pairs(data.series) do
-                lastval = lastval + (serie.data[data.count] or 0)
-            end
-
-            if format_as_bytes then
-                if (minval_time > 0) then
-                    print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' ..
-                              bytesToSize((stats.min_val * 8) or "") .. '</td></tr>\n')
-                end
-                if (maxval_time > 0) then
-                    print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' ..
-                              bytesToSize((stats.max_val * 8) or "") .. '</td></tr>\n')
-                end
-                print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' ..
-                          bytesToSize(lastval * 8) .. '</td></tr>\n')
-                print('   <tr><th>Average</th><td colspan=2>' .. bytesToSize(stats.average * 8) .. '</td></tr>\n')
-                print(
-                    '   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' ..
-                        bytesToSize(stats["95th_percentile"] * 8) .. '</td></tr>\n')
-            elseif (not format_as_bps) then
-                if (minval_time > 0) then
-                    print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' ..
-                              formatValue(stats.min_val or "") .. '</td></tr>\n')
-                end
-                if (maxval_time > 0) then
-                    print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' ..
-                              formatValue(stats.max_val or "") .. '</td></tr>\n')
-                end
-                print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' ..
-                          formatValue(round(lastval), 1) .. '</td></tr>\n')
-                print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(stats.average, 2)) .. '</td></tr>\n')
-                print(
-                    '   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' ..
-                        formatValue(round(stats["95th_percentile"], 2)) .. '</td></tr>\n')
-            elseif is_system_interface then
-                if (minval_time > 0) then
-                    print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' ..
-                              (formatValue(round(stats["min_val"], 2)) or "") .. '</td></tr>\n')
-                end
-                if (maxval_time > 0) then
-                    print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' ..
-                              (formatValue(round(stats["max_val"], 2)) or "") .. '</td></tr>\n')
-                end
-                print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' ..
-                          formatValue(round(lastval, 2)) .. '</td></tr>\n')
-                print('   <tr><th>Average</th><td colspan=2>' .. formatValue(round(stats["average"], 2)) ..
-                          '</td></tr>\n')
-                print(
-                    '   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' ..
-                        (formatValue(round(stats["95th_percentile"], 2)) or '') .. '</td></tr>\n')
-                print('   <tr><th>Total Traffic</th><td colspan=2>' .. (stats.total or '') .. '</td></tr>\n')
-            else
-                if (minval_time > 0) then
-                    print('   <tr><th>Min</th><td>' .. os.date("%x %X", minval_time) .. '</td><td>' ..
-                              bitsToSize((stats.min_val * 8) or "") .. '</td></tr>\n')
-                end
-                if (maxval_time > 0) then
-                    print('   <tr><th>Max</th><td>' .. os.date("%x %X", maxval_time) .. '</td><td>' ..
-                              bitsToSize((stats.max_val * 8) or "") .. '</td></tr>\n')
-                end
-                print('   <tr><th>Last</th><td>' .. os.date("%x %X", lastval_time) .. '</td><td>' ..
-                          bitsToSize(lastval * 8) .. '</td></tr>\n')
-                print('   <tr><th>Average</th><td colspan=2>' .. bitsToSize(stats.average * 8) .. '</td></tr>\n')
-                print(
-                    '   <tr><th>95th <A HREF=https://en.wikipedia.org/wiki/Percentile>Percentile</A></th><td colspan=2>' ..
-                        bitsToSize(stats["95th_percentile"] * 8) .. '</td></tr>\n')
-                print('   <tr><th>Total Traffic</th><td colspan=2>' .. bytesToSize(stats.total) .. '</td></tr>\n')
-            end
-        end
-
-        print('   <tr><th>Time</th><td colspan=2><div id=when></div></td></tr>\n')
-
-        -- hide Minute Interface Top Talker if we are in system interface
-        if top_talkers_utils.areTopEnabled(ifid) and not is_system_interface then
-            print('   <tr><th>Minute<br>Interface<br>Top Talkers</th><td colspan=2><div id=talkers></div></td></tr>\n')
-        end
-
-        print [[
-   </table>
-   ]]
-
-        print [[</div></td></tr></table>
-
-    </div> <!-- closes div id "historical-tab-chart "-->
-   ]]
-
-        print [[
-  </div> <!-- closes div class "tab-content" -->
-  </div>
-</div> <!-- closes div class "card" -->]]
-
-        local ui_utils = require("ui_utils")
-        print(ui_utils.render_notes(options.notes))
-
-        print [[
-<script>
-let colors = []
-let series = []
-let labels = []
-]]
-
-        local formatter = "value"
-        local colors = {}
-        local num_series = 0
-        -- Setting up data in timeframe
-        for _, serie in ipairs(data.series) do
-            num_series = num_series + 1
-            print [[ series.push({
-    data: [
-  ]]
-            local t = data.start
-            for i, val in ipairs(serie.data) do
-                print("[" .. t * 1000 .. ", ")
-                if (format_as_bps) then
-                    formatter = "bps"
-                    print((val * 8) .. "],")
-                else
-                    print(val .. "],")
-                end
-                t = t + data.step
-            end
-            print("],")
-            print("name: '" .. serie.label .. "'})\n")
-            print('colors.push("' .. graph_utils.get_html_color(num_series) .. '")\n')
-        end
-
-        if formatter == "value" then
-            print('const formatter = NtopUtils.formatValue\n')
-        else
-            print('const formatter = NtopUtils.bitsToSize\n')
-        end
-
-        print [[
-const options = {
-  series: series,
-  chart: {
-    id: 'area-datetime',
-    type: 'area',
-    height: 350,
-    width: 1000,
-    toolbar: {
-        show: false,
-    },
-    zoom: {
-      enabled: false
-    }
-  },
-  dataLabels: {
-    enabled: false
-  },
-  xaxis: {
-    tooltip: {
-      enabled: false
-    },
-    type: 'datetime',
-    tickAmount: 6,
-  },
-  yaxis: {
-    labels: {
-      formatter: function(data) {
-        return formatter(data)
-      }
-    }
-  },
-  tooltip: {
-    x: {
-      format: 'dd MMM yyyy hh:mm'
-    },
-    y: {
-      formatter: function(data) {
-        return formatter(data)
-      }
-    }
-  },
-}
-
-const graph = new ApexCharts(document.querySelector("#chart"), options).render();
-
-let chart_legend = document.querySelector('#chart_legend');
-]]
-        if zoomLevel ~= nextZoomLevel then
-            print [[
-  $("#chart").click(function() {
-    if(hover.selected_epoch)
-      window.location.href = ']]
-            print(baseurl .. '&ts_schema=' .. schema .. '&zoom=' .. nextZoomLevel)
-
-            if tags.protocol ~= nil then
-                print("&protocol=" .. tags.protocol)
-            elseif tags.category ~= nil then
-                print("&category=" .. tags.category)
-            end
-
-            print('&epoch=')
-            print [['+hover.selected_epoch;
-  });
-  ]]
-        end
-        print [[ </script> ]]
-    else
-        print(
-            "<div class=\"alert alert-danger\"><i class='fas fa-exclamation-triangle fa-lg fa-ntopng-warning'></i> No data found</div>")
-    end -- if(data)
-end
-
--- #################################################
-
 --
 -- proto table should contain the following information:
 --    string   traffic_quota
@@ -954,16 +454,16 @@ function graph_utils.printProtocolQuota(proto, ndpi_stats, category_stats, quota
 
         if show_td then
             output[#output + 1] = [[<td class='text-end']] .. ternary(bytes_exceeded, ' style=\'color:red;\'', '') ..
-                                      "><span>" .. lb_bytes .. ternary(hide_limit, "", " / " .. lb_bytes_quota) ..
-                                      "</span>"
+                "><span>" .. lb_bytes .. ternary(hide_limit, "", " / " .. lb_bytes_quota) ..
+                "</span>"
         end
 
         output[#output + 1] = [[
           <div class='progress' style=']] .. (quotas_to_show.traffic_style or "") .. [['>
             <div class='progress-bar bg-warning' aria-valuenow=']] .. traffic_quota_ratio ..
-                                  '\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: ' .. traffic_quota_ratio ..
-                                  '%;\'>' ..
-                                  ternary(traffic_quota_ratio == traffic_quota_ratio --[[nan check]] ,
+            '\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: ' .. traffic_quota_ratio ..
+            '%;\'>' ..
+            ternary(traffic_quota_ratio == traffic_quota_ratio --[[nan check]],
                 traffic_quota_ratio, 0) .. [[%
             </div>
           </div>]]
@@ -984,16 +484,16 @@ function graph_utils.printProtocolQuota(proto, ndpi_stats, category_stats, quota
 
         if show_td then
             output[#output + 1] = [[<td class='text-end']] .. ternary(time_exceeded, ' style=\'color:red;\'', '') ..
-                                      "><span>" .. lb_duration .. ternary(hide_limit, "", " / " .. lb_duration_quota) ..
-                                      "</span>"
+                "><span>" .. lb_duration .. ternary(hide_limit, "", " / " .. lb_duration_quota) ..
+                "</span>"
         end
 
         output[#output + 1] = ([[
           <div class='progress' style=']] .. (quotas_to_show.time_style or "") .. [['>
             <div class='progress-bar bg-warning' aria-valuenow=']] .. duration_quota_ratio ..
-                                  '\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: ' .. duration_quota_ratio ..
-                                  '%;\'>' ..
-                                  ternary(duration_quota_ratio == duration_quota_ratio --[[nan check]] ,
+            '\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: ' .. duration_quota_ratio ..
+            '%;\'>' ..
+            ternary(duration_quota_ratio == duration_quota_ratio --[[nan check]],
                 duration_quota_ratio, 0) .. [[%
             </div>
           </div>]])
@@ -1040,8 +540,8 @@ function graph_utils.poolDropdown(ifId, pool_id, exclude)
             end
 
             output[#output + 1] = '>' .. pool.name ..
-                                      ternary(limit_reached, " (" .. i18n("host_pools.members_limit_reached") .. ")", "") ..
-                                      '</option>'
+                ternary(limit_reached, " (" .. i18n("host_pools.members_limit_reached") .. ")", "") ..
+                '</option>'
         end
     end
 
@@ -1066,8 +566,8 @@ function graph_utils.printPoolChangeDropdown(ifId, pool_id, have_nedge)
     output[#output + 1] = [[
             </select>
         <a class='ms-1' href="]] .. ntop.getHttpPrefix() .. edit_pools_link ..
-                              [["><i class="fas fa-edit" aria-hidden="true" title="]] ..
-                              (have_nedge and i18n("edit") or '') .. [["></i></a>
+        [["><i class="fas fa-edit" aria-hidden="true" title="]] ..
+        (have_nedge and i18n("edit") or '') .. [["></i></a>
    </tr>]]
 
     print(table.concat(output, ''))
@@ -1076,7 +576,7 @@ end
 -- #################################################
 
 function graph_utils.printCategoryDropdownButton(by_id, cat_id_or_name, base_url, page_params, count_callback,
-    skip_unknown)
+                                                 skip_unknown)
     local function count_all(cat_id, cat_name)
         local cat_protos = interface.getnDPIProtocols(tonumber(cat_id))
         return table.len(cat_protos)
@@ -1087,15 +587,15 @@ function graph_utils.printCategoryDropdownButton(by_id, cat_id_or_name, base_url
 
     -- 'Category' button
     print('\'<div class="btn-group float-right"><div class="btn btn-link dropdown-toggle" data-bs-toggle="dropdown">' ..
-              i18n("category") .. ternary(not isEmptyString(cat_id_or_name), '<span class="fas fa-filter"></span>', '') ..
-              '<span class="caret"></span></div> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
+        i18n("category") .. ternary(not isEmptyString(cat_id_or_name), '<span class="fas fa-filter"></span>', '') ..
+        '<span class="caret"></span></div> <ul class="dropdown-menu scrollable-dropdown" role="menu" style="min-width: 90px;">')
 
     -- 'Category' dropdown menu
-    local entries = {{
+    local entries = { {
         text = i18n("all"),
         id = "",
         cat_id = ""
-    }}
+    } }
     entries[#entries + 1] = ""
     for cat_name, cat_id in pairsByKeys(interface.getnDPICategories()) do
         local cat_count = count_callback(cat_id, cat_name)
@@ -1121,8 +621,8 @@ function graph_utils.printCategoryDropdownButton(by_id, cat_id_or_name, base_url
             page_params["category"] = ternary(by_id, ternary(entry.cat_id ~= "", "cat_" .. entry.cat_id, ""), entry.id)
 
             print('<li><a class="dropdown-item ' ..
-                      ternary(cat_id_or_name == ternary(by_id, entry.cat_id, entry.id), 'active', '') .. '" href="' ..
-                      getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") .. entry.text .. '</a></li>')
+                ternary(cat_id_or_name == ternary(by_id, entry.cat_id, entry.id), 'active', '') .. '" href="' ..
+                getPageUrl(base_url, page_params) .. '">' .. (entry.icon or "") .. entry.text .. '</a></li>')
         end
     end
 
@@ -1139,44 +639,47 @@ end
 -- Output format:
 -- { labels = [ 'xxx', ...], series = [ yyy, ... ], colors = [ ... ], ... }
 function graph_utils.convert_pie_data(res, new_charts, js_formatter)
-   if not new_charts then
-      return res
-   end
+    if not new_charts then
+        return res
+    end
 
-   local labels = {}
-   local series = {}
-   local colors = {}
+    local labels = {}
+    local series = {}
+    local colors = {}
 
-   for _, v in ipairs(res) do
-      labels[#labels+1] = v.label
+    for _, v in ipairs(res) do
+        labels[#labels + 1] = v.label
 
-      local value = 0
-      if v.count then value = v.count
-      elseif v.value then value = v.value end
-      series[#series+1] = value
+        local value = 0
+        if v.count then
+            value = v.count
+        elseif v.value then
+            value = v.value
+        end
+        series[#series + 1] = value
 
-      colors[#colors + 1] = graph_utils.get_html_color(#colors)
-   end
+        colors[#colors + 1] = graph_utils.get_html_color(#colors)
+    end
 
-   res = {
-      labels = labels,
-      series = series,
-      colors = colors,
-      yaxis = {
-         show = false,
-         labels = {
-            formatter = js_formatter
-         }
-      },
-      tooltip = {
-         y = {
-            formatter = js_formatter
-         }
-      },
-      extra_x_tooltip_label = 'None'
-   }
+    res = {
+        labels = labels,
+        series = series,
+        colors = colors,
+        yaxis = {
+            show = false,
+            labels = {
+                formatter = js_formatter
+            }
+        },
+        tooltip = {
+            y = {
+                formatter = js_formatter
+            }
+        },
+        extra_x_tooltip_label = 'None'
+    }
 
-   return res
+    return res
 end
 
 -- #################################################

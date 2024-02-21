@@ -24,6 +24,8 @@
 /* ******************************************** */
 
 InterarrivalStats::InterarrivalStats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   memset(&lastTime, 0, sizeof(lastTime));
   ndpi_init_data_analysis(&delta_ms, 0);
 }

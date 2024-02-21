@@ -23,7 +23,10 @@
 
 /* *************************************** */
 
-ThroughputStats::ThroughputStats() { resetStats(); }
+ThroughputStats::ThroughputStats() {
+  // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  resetStats();
+}
 
 /* *************************************** */
 

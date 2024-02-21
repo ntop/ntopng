@@ -156,13 +156,22 @@ fi
 #logsetup $ACTION
 #log Requested $ACTION
 
+function clear_failure() {
+	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} >/dev/null 2>&1
+}
+
 function set_failure() {
+	CLEANUP_REQ=$2
+
 	STATUS=$1
 	# Report failure status
 	${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "${STATUS}" >/dev/null 2>&1
-	# Cleanup requests
-	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} >/dev/null 2>&1 
-	${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_RUN_UPGRADE_KEY} >/dev/null 2>&1
+
+	if [ "${CLEANUP_REQ}" = "1" ]; then
+		# Cleanup requests
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_CHECK_FOR_UPDATES_KEY} >/dev/null 2>&1 
+		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_RUN_UPGRADE_KEY} >/dev/null 2>&1
+	fi
 }
 
 function stall_check() {
@@ -188,18 +197,18 @@ function maintenance_check() {
 		if [ `${APP_BIN} --check-license | grep Empty | wc -l ` -eq 0 ]; then
 
 			# Expired or invalid license
-			set_failure "no-license"
+			set_failure "no-license" 1
 			exit 0
 		fi
 	elif echo "${EXPIRY_EPOCH}" | grep -q "^[0-9]\+$"; then
 		if [ "${EXPIRY_EPOCH}" -gt "0" ] && [ "${EXPIRY_EPOCH}" -lt "${NOW}" ]; then
 			# Expired maintenance
-			set_failure "expired-maintenance"
+			set_failure "expired-maintenance" 1
 			exit 0
 		fi
 	else
 		# Unable to read maintenance
-		set_failure "no-license"
+		set_failure "no-license" 1
 		exit 0
 	fi
 }
@@ -207,7 +216,7 @@ function maintenance_check() {
 function service_enabled_check() {
 	SERVICE_ENABLED=$(/bin/systemctl is-enabled ${PRODUCT} 2>/dev/null)
 	if [ ! "${SERVICE_ENABLED}" == "enabled" ]; then
-		set_failure "service-not-enabled"
+		set_failure "service-not-enabled" 1
 		exit 0
 	fi
 }
@@ -227,6 +236,11 @@ function run_upgrade() {
 
 	logsetup $ACTION
 	log Requested $ACTION
+
+	clear_failure
+
+	# Check if the product is under maintenance
+	maintenance_check
 
 	if [ "${OS}" == "DEBIAN" ]; then
 		# Debian or Ubuntu
@@ -263,13 +277,13 @@ function run_upgrade() {
 		[ $QUIET = false ] && echo "${PRODUCT} updated successfully"
 		# Cleanup new version available key
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} >/dev/null 2>&1 
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} >/dev/null 2>&1
+		clear_failure
 
 		# Restart the service if not running (e.g. old prerm was disabling it)
 		/bin/systemctl -q is-active ${PRODUCT} || /bin/systemctl restart ${PRODUCT}
 	else
 		[ $QUIET = false ] && echo "Unable to update"
-		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "upgrade-failure" >/dev/null 2>&1
+		set_failure "upgrade-failure" 0
 	fi
 
 	# Cleanup "in progress" flag
@@ -287,6 +301,11 @@ function check_updates() {
 
 	logsetup $ACTION
 	log Requested $ACTION
+
+	clear_failure
+
+	# Check if the product is under maintenance
+	maintenance_check
 
 	if [ "${OS}" == "DEBIAN" ]; then
 		# Debian or Ubuntu
@@ -307,7 +326,7 @@ function check_updates() {
 
 		if [ ! $? -eq 0 ]; then
 			# Something went wrong, unable to fix it
-			${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_UPDATE_FAILURE_KEY} "update-failure" >/dev/null 2>&1 
+			set_failure "update-failure" 0
 		else
 			# Check update and get version
 			#NTOPNG_VERSION=$(${APT_GET} --just-print --assume-yes --with-new-pkgs upgrade 2>&1 | grep "Inst ${PRODUCT} " | cut -d'(' -f2 | cut -d' ' -f1)
@@ -329,7 +348,7 @@ function check_updates() {
 		${REDIS_CLI} ${REDIS_CLI_OPT} SET ${REDIS_NEW_VERSION_AVAILABLE_KEY} ${NTOPNG_VERSION} EX 86400 >/dev/null 2>&1 
 
 		# Reset failure reason if any
-		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} >/dev/null 2>&1
+		clear_failure
 
 		# Check if this is run by cron (not a manual check)
 		if [ "${CRON_UPDATES}" = "1" ]; then
@@ -342,7 +361,7 @@ function check_updates() {
 	else
 		${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_NEW_VERSION_AVAILABLE_KEY} >/dev/null 2>&1 
 		if [ $RESULT -eq 0 ]; then
-			${REDIS_CLI} ${REDIS_CLI_OPT} DEL ${REDIS_UPDATE_FAILURE_KEY} >/dev/null 2>&1 
+			clear_failure
 		fi
 	fi
 }
@@ -366,9 +385,6 @@ function handle_upgrade_requests() {
 		run_upgrade
 	fi
 }
-
-# Check if the product is under maintenance
-maintenance_check
 
 # Check OEM mode
 OEM_MODE=$(${REDIS_CLI} ${REDIS_CLI_OPT} EXISTS ${REDIS_PRODUCT_NAME_KEY} 2>/dev/null | grep 1)

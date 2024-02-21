@@ -28,6 +28,8 @@
  * @param num_tot_elems The bitmask size in number of bit.
  */
 Bitmask::Bitmask(u_int32_t num_tot_elems) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   tot_elems = num_tot_elems;
   num_elems = tot_elems / 8;
 
@@ -53,6 +55,7 @@ Bitmask::Bitmask(u_int32_t num_tot_elems) {
  * Destructor.
  */
 Bitmask::~Bitmask() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (bits) free(bits);
 }
 

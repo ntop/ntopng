@@ -2,7 +2,7 @@
 -- (C) 2019-24 - ntop.org
 --
 
-local alerts_api = require("alerts_api")
+require "ntop_utils"
 local alert_consts = require("alert_consts")
 local checks = require("checks")
 

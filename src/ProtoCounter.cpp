@@ -25,6 +25,7 @@
 
 ProtoCounter::ProtoCounter(u_int16_t _proto_id, bool enable_throughput_stats,
                            bool enable_behavior_stats) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   proto_id = _proto_id;
   duration = last_epoch_update = total_flows = 0;
 

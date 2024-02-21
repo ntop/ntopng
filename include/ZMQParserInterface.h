@@ -139,7 +139,7 @@ class ZMQParserInterface : public ParserInterface {
   u_int32_t getNumDroppedPackets() {
     return zmq_remote_stats ? zmq_remote_stats->sflow_pkt_sample_drops : 0;
   };
-  virtual void lua(lua_State *vm);
+  virtual void lua(lua_State *vm, bool fullStats);
   inline u_int32_t getFlowMaxIdle() { return (returned_flow_max_idle); }
 };
 

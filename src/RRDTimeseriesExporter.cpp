@@ -24,7 +24,8 @@
 /* ******************************************************* */
 
 RRDTimeseriesExporter::RRDTimeseriesExporter(NetworkInterface* _if)
-    : TimeseriesExporter(_if) {
+  : TimeseriesExporter(_if) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   ts_queue = new (std::nothrow) StringFifoQueue(MAX_RRD_QUEUE_LEN);
 }
 

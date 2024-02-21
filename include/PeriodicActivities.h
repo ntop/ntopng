@@ -26,12 +26,14 @@
 
 class PeriodicActivities {
  private:
-  ThreadedActivity *activities[CONST_MAX_NUM_THREADED_ACTIVITIES];
-  u_int16_t num_activities;
+  ThreadedActivity *sec_min_activities[CONST_MAX_NUM_THREADED_ACTIVITIES];
+  ThreadedActivity *hour_day_activities[CONST_MAX_NUM_THREADED_ACTIVITIES];
+  u_int16_t num_sec_min_activities, num_hour_day_activities;
   ThreadPool *th_pool;
   pthread_t pthreadLoop;
   bool thread_running;
-
+  std::atomic<u_int16_t> num_running_sec_min_activities, num_running_hour_day_activities;
+  
   u_int8_t getNumThreadsPerPool(const char *path,
                                 std::vector<char *> *iface_scripts_list,
                                 std::vector<char *> *system_scripts_list);
@@ -45,6 +47,21 @@ class PeriodicActivities {
   void run();
 
   inline bool isRunning() { return (thread_running); }
+
+  inline void incRunningTasks(bool hourly_daily_activity) {
+    if(hourly_daily_activity)
+      num_running_hour_day_activities++;
+    else
+      num_running_sec_min_activities++;
+  }
+  
+  inline void decRunningTasks(bool hourly_daily_activity) {
+    if(hourly_daily_activity)
+      num_running_hour_day_activities--;
+    else
+      num_running_sec_min_activities--;
+  }
+  
 };
 
 #endif /* _PERIODIC_ACTIVITIES_H_ */

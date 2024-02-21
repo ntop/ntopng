@@ -40,6 +40,8 @@ NetworkInterface *iface;
 
 constexpr const char *PROG_NAME = "ntopng";
 
+bool trace_new_delete = false;
+
 static void cleanup() {
   if (iface) delete iface;
   if (ntop) delete ntop;

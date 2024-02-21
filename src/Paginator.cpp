@@ -24,6 +24,8 @@
 /* **************************************************** */
 
 Paginator::Paginator() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   /* char* */
   sort_column = strdup("column_thpt");
   country_filter = NULL;

@@ -68,22 +68,17 @@ if [ test -f /usr/bin/lsb_release ]; then
   EXTRA_DEPS=", debconf, libnuma1, $ZMQ_DEP, libnetfilter-queue1"
 
   if [ test $MACHINE = "x86_64" ] && [ test -d $HOME/PF_RING ]; then
-    PFRING_VERS=`$HOME/PF_RING/package/version.sh --release`
-    PFRING_RELEASE=`$HOME/PF_RING/package/version.sh --revision`
-    if test "x$PFRING_VERS" = "x"; then
+    PFRING_VERSION=`$HOME/PF_RING/package/version.sh --version`
+    if test "x$PFRING_VERSION" = "x"; then
       PFRING_DEP="pfring"
     else
-      PFRING_DEP="pfring (=$PFRING_VERS-$PFRING_RELEASE)"
+      PFRING_DEP="pfring (=$PFRING_VERSION)"
     fi
   else
-    PFRING_VERS=""
-    PFRING_RELEASE=""
     PFRING_DEP=""
   fi
 
   if test $IS_EXA8 = "1"; then
-    PFRING_VERS=""
-    PFRING_RELEASE=""
     PFRING_DEP=""
   fi
   
@@ -92,8 +87,6 @@ if [ test -f /usr/bin/lsb_release ]; then
 else
   # Looks like an embedded system
   EXTRA_DEPS=""
-  PFRING_VERS=""
-  PFRING_RELEASE=""
   PFRING_DEP=""
   UBUNTU_RELEASE="debian"
   SUDO="sudo"
@@ -141,14 +134,22 @@ GIT_COMMITS=`git rev-list --all |wc -l | tr -d '[[:space:]]'`
 
 LICENSEDIR="`pwd`/../../../license"
 if test -d $LICENSEDIR; then
-  LICENSE_VERS=`$LICENSEDIR/packages/version.sh --release`
+  LICENSE_VERSION=`$LICENSEDIR/packages/version.sh --version`
   if test $MACHINE = "x86_64"; then
     # ntop-license not installed on raspberry
-    EXTRA_DEPS="$EXTRA_DEPS, ntop-license (=$LICENSE_VERS)" 
+    EXTRA_DEPS="$EXTRA_DEPS, ntop-license (=$LICENSE_VERSION)" 
   fi
 fi
 
-EXTRA_DEPS="$EXTRA_DEPS, ndpi"
+NDPI_DEP="ndpi"
+if [ test -d $HOME/nDPI ]; then
+  NDPI_VERSION=`$HOME/nDPI/packages/version.sh --version`
+  if [ ! test "x$NDPI_VERSION" = "x" ]; then
+    NDPI_DEP="ndpi (=$NDPI_VERSION)"
+  fi
+fi
+
+EXTRA_DEPS="$EXTRA_DEPS, $NDPI_DEP"
 
 if test -f /usr/bin/debsigs; then
   SIGN_CMD="debsigs"
@@ -169,8 +170,6 @@ AC_SUBST(KERNEL)
 AC_SUBST(EXTRA_DEPS)
 AC_SUBST(GIT_RELEASE)
 AC_SUBST(GIT_COMMITS)
-AC_SUBST(PFRING_VERS)
-AC_SUBST(PFRING_RELEASE)
 AC_SUBST(PFRING_DEP)
 AC_SUBST(LIBRRD)
 AC_SUBST(SUDO)

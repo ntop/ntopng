@@ -28,6 +28,8 @@
 Redis::Redis(const char *_redis_host, const char *_redis_password,
              u_int16_t _redis_port, u_int8_t _redis_db_id,
              bool giveup_on_failure) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   redis_host = _redis_host ? strdup(_redis_host) : NULL;
   redis_password = _redis_password ? strdup(_redis_password) : NULL;
   redis_port = _redis_port, redis_db_id = _redis_db_id;

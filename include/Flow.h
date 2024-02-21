@@ -41,6 +41,7 @@ class Flow : public GenericHashEntry {
   Host *cli_host, *srv_host;
   IpAddress *cli_ip_addr, *srv_ip_addr;
   ICMPinfo *icmp_info;
+  ndpi_confidence_t ndpi_confidence;
   u_int32_t privateFlowId /* Used to store specific flow info such as DNS
                              TransactionId */
       ;
@@ -199,6 +200,10 @@ class Flow : public GenericHashEntry {
         u_int16_t server_cipher;
         ndpi_cipher_weakness server_unsafe_cipher;
       } ja3;
+
+      struct {
+        char *client_hash;
+      } ja4;
     } tls;
 
     struct {
@@ -316,6 +321,7 @@ class Flow : public GenericHashEntry {
    */
   void dumpCheck(time_t t, bool last_dump_before_free);
   void updateCliJA3();
+  void updateCliJA4();
   void updateSrvJA3();
   void updateHASSH(bool as_client);
   void processExtraDissectedInformation();
@@ -435,6 +441,7 @@ class Flow : public GenericHashEntry {
   void getProtocolJSONInfo(ndpi_serializer *serializer);
 
   inline char *getJa3CliHash() { return (protos.tls.ja3.client_hash); }
+  inline char *getJa4CliHash() { return (protos.tls.ja4.client_hash); }
 
   bool isBlacklistedFlow() const;
   bool isBlacklistedClient() const;
@@ -467,9 +474,14 @@ class Flow : public GenericHashEntry {
   inline bool isNetBIOS() const { return (isProto(NDPI_PROTOCOL_NETBIOS)); }
   inline bool isDHCP() const { return (isProto(NDPI_PROTOCOL_DHCP)); }
   inline bool isNTP() const { return (isProto(NDPI_PROTOCOL_NTP)); }
+  inline bool isSMTPorSMTPS() const {
+    return (isSMTP() || isSMTPS());
+  }
   inline bool isSMTP() const {
-    return (isProto(NDPI_PROTOCOL_MAIL_SMTP) ||
-            isProto(NDPI_PROTOCOL_MAIL_SMTPS));
+    return (isProto(NDPI_PROTOCOL_MAIL_SMTP));
+  }
+  inline bool isSMTPS() const {
+    return (isProto(NDPI_PROTOCOL_MAIL_SMTPS));
   }
   inline bool isHTTP() const { return (isProto(NDPI_PROTOCOL_HTTP)); }
   inline bool isHTTP_PROXY() const { return (isProto(NDPI_PROTOCOL_HTTP_PROXY)); }
@@ -558,6 +570,12 @@ class Flow : public GenericHashEntry {
     updateSrvJA3();
   }
 
+  inline void updateJA4C(char *j) {
+    if (j && (j[0] != '\0') && (protos.tls.ja4.client_hash == NULL))
+      protos.tls.ja4.client_hash = strdup(j);
+    updateCliJA4();
+  }
+
   inline u_int8_t getTcpFlags() const {
     return (src2dst_tcp_flags | dst2src_tcp_flags);
   };
@@ -625,10 +643,12 @@ class Flow : public GenericHashEntry {
   void processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
                         u_int64_t packet_time);
   void processIEC60870Packet(bool tx_direction, const u_char *payload,
-                             u_int16_t payload_len, struct timeval *packet_time);
+                             u_int16_t payload_len,
+			     const struct pcap_pkthdr *h);
 #ifdef NTOPNG_PRO
   void processModbusPacket(bool is_query, const u_char *payload,
-			   u_int16_t payload_len, struct timeval *packet_time);
+			   u_int16_t payload_len,
+			   const struct pcap_pkthdr *h);
 #endif
   void endProtocolDissection();
   inline void setCustomApp(custom_app_t ca) {
@@ -883,7 +903,7 @@ class Flow : public GenericHashEntry {
   u_int32_t get_hash_entry_id() const;
 
   static char *printTCPflags(u_int8_t flags, char *const buf, u_int buf_len);
-  char *print(char *buf, u_int buf_len) const;
+  char *print(char *buf, u_int buf_len, bool full_report = true) const;
 
   u_int32_t key();
   static u_int32_t key(Host *cli, u_int16_t cli_port, Host *srv,
@@ -1337,6 +1357,7 @@ class Flow : public GenericHashEntry {
 
   inline ndpi_confidence_t getConfidence() { return (confidence); }
   inline void setConfidence(ndpi_confidence_t rc) { confidence = rc; }
+  inline void setNdpiConfidence(ndpi_confidence_t rc) { ndpi_confidence = rc; }
 
   inline u_int8_t getCliLocation() {
     if ((cli_host && cli_host->isMulticastHost()) ||

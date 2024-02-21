@@ -25,6 +25,7 @@
 
 Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
     : GenericHashEntry(_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   memcpy(mac, _mac, 6);
 
   broadcast_mac = Utils::isBroadcastMac(mac);
@@ -74,6 +75,8 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 /* *************************************** */
 
 Mac::~Mac() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   /* Serialize Mac before shutdown */
   if((!broadcast_mac) && (!special_mac))
     dumpToRedis();

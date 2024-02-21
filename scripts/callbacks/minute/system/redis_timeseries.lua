@@ -5,11 +5,10 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
 
-local ts_dump = require "ts_min_dump_utils"
-local ts_utils = require("ts_utils_core")
-local checks = require("checks")
-local json = require("dkjson")
+-- Import ntop_utils instead of lua_utils, it's a lot lighter
+require "ntop_utils"
 local redis_api = require "redis_api"
 
 local ifid = getSystemInterfaceId()
@@ -20,6 +19,12 @@ local old_hits_stats = ntop.getCache(hits_key)
 -- ##############################################
 
 if redis_api.redisTimeseriesEnabled() then
+    require "ts_minute"
+    -- Include only here, otherwise it's a useless import
+    local json = require("dkjson")
+    local ts_utils = require("ts_utils_core")
+
+    local when = os.time()
     local stats = redis_api.getStats()
 
     if(not isEmptyString(old_hits_stats)) then
@@ -47,4 +52,3 @@ if redis_api.redisTimeseriesEnabled() then
 
     ntop.setCache(hits_key, json.encode(hits_stats))
 end
-

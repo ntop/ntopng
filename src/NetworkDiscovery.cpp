@@ -27,6 +27,8 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
   char errbuf[PCAP_ERRBUF_SIZE];
   const char *ifname;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   iface = _iface;
   ifname = iface->altDiscoverableName();
 
@@ -90,6 +92,8 @@ NetworkDiscovery::NetworkDiscovery(NetworkInterface *_iface) {
 /* ******************************* */
 
 NetworkDiscovery::~NetworkDiscovery() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   if (pd) pcap_close(pd);
 
   Utils::closeSocket(udp_sock);

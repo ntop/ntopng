@@ -27,6 +27,8 @@ RemoteHost::RemoteHost(NetworkInterface *_iface, int32_t _iface_idx, Mac *_mac,
                        u_int16_t _u_int16_t, u_int16_t _observation_point_id,
                        IpAddress *_ip)
   : Host(_iface, _iface_idx, _mac, _u_int16_t, _observation_point_id, _ip) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
 #ifdef REMOTEHOST_DEBUG
   char buf[48];
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Instantiating REMOTE host %s",

@@ -49,6 +49,7 @@ import { default as PageOpenPorts } from "./page-open-ports.vue";
 import { default as PageVulnerabilityScanReport } from "./page-vulnerability-scan-report.vue"
 import { default as PageSNMPUsage } from "./page-snmp-usage.vue"
 import { default as PageSNMPInterfaces } from "./page-snmp-interfaces.vue"
+import { default as PageTopology } from "./page-topology.vue"
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -124,7 +125,8 @@ let ntopVue = {
     PageVulnerabilityScanReport: PageVulnerabilityScanReport,
     PageSNMPUsage: PageSNMPUsage,
     PageSNMPInterfaces: PageSNMPInterfaces,
-    
+    PageTopology: PageTopology,
+
     PageEditApplications: PageEditApplications,
 
     PageVLANPortsFlowSankey: PageVLANPortsSankey,

@@ -28,6 +28,7 @@ FlowCheck::FlowCheck(NtopngEdition _edition, bool _packet_interface_only,
                      bool _has_protocol_detected, bool _has_periodic_update,
                      bool _has_flow_end, bool _has_flow_begin)
     : Check(_edition, _packet_interface_only, _nedge_exclude, _nedge_only) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   has_protocol_detected = _has_protocol_detected;
   has_periodic_update = _has_periodic_update;
   has_flow_end = _has_flow_end;
@@ -39,7 +40,9 @@ FlowCheck::FlowCheck(NtopngEdition _edition, bool _packet_interface_only,
 
 /* **************************************************** */
 
-FlowCheck::~FlowCheck(){};
+FlowCheck::~FlowCheck() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+};
 
 /* **************************************************** */
 

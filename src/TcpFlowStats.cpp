@@ -24,6 +24,7 @@
 /* *************************************** */
 
 TcpFlowStats::TcpFlowStats() {
+  // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   numSynFlows = numEstablishedFlows = numResetFlows = numFinFlows = 0;
 }
 

@@ -25,6 +25,7 @@
 
 AggregatedFlowsStats::AggregatedFlowsStats(const IpAddress* c, const IpAddress* s, u_int8_t _l4_proto,
 					   u_int64_t bytes_sent, u_int64_t bytes_rcvd, u_int32_t score) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   num_flows = tot_sent = tot_rcvd = tot_score =
   key = vlan_id = flow_device_ip = proto_key = 0;
   l4_proto = _l4_proto;
@@ -36,6 +37,7 @@ AggregatedFlowsStats::AggregatedFlowsStats(const IpAddress* c, const IpAddress* 
 /* *************************************** */
 
 AggregatedFlowsStats::~AggregatedFlowsStats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (proto_name) free(proto_name);
   if (info_key)   free(info_key);
   if (client)     delete client;

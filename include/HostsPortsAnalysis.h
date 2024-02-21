@@ -33,17 +33,20 @@ class HostsPortsAnalysis {
         int l7_app_protocol = 0;
         std::unordered_map<u_int64_t, HostDetails *> *hosts_details;
     
-    public:
-        HostsPortsAnalysis(){
-            hosts_details = new (std::nothrow) std::unordered_map<u_int64_t, HostDetails *>;
-        };
-        ~HostsPortsAnalysis() {
-            std::unordered_map<u_int64_t, HostDetails *>::iterator it;
-            for (it = hosts_details->begin(); it != hosts_details->end(); ++it) 
-                delete it->second;
-            if(hosts_details)
-                delete hosts_details;
-        };
+public:
+  HostsPortsAnalysis(){
+    hosts_details = new (std::nothrow) std::unordered_map<u_int64_t, HostDetails *>;
+  };
+  ~HostsPortsAnalysis() {
+    std::unordered_map<u_int64_t, HostDetails *>::iterator it;
+
+    if(hosts_details) {
+      for (it = hosts_details->begin(); it != hosts_details->end(); ++it) 
+	delete it->second;
+
+      delete hosts_details;
+    }
+  };
 
 
         /* Getters */

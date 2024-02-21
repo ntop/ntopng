@@ -25,6 +25,7 @@
 
 FlowChecksExecutor::FlowChecksExecutor(FlowChecksLoader *fcl,
                                        NetworkInterface *_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   iface = _iface;
   loadFlowChecks(fcl);
 };
@@ -32,6 +33,7 @@ FlowChecksExecutor::FlowChecksExecutor(FlowChecksLoader *fcl,
 /* **************************************************** */
 
 FlowChecksExecutor::~FlowChecksExecutor() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (protocol_detected) delete protocol_detected;
   if (periodic_update) delete periodic_update;
   if (flow_end) delete flow_end;

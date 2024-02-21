@@ -43,6 +43,7 @@ SNMPSession::~SNMPSession() {
 /* ******************************* */
 
 SNMP::SNMP() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   batch_mode = false;
 #ifdef HAVE_LIBSNMP
   init_snmp("ntopng");

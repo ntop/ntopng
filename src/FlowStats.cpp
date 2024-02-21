@@ -23,11 +23,15 @@
 
 /* *************************************** */
 
-FlowStats::FlowStats() { resetStats(); }
+FlowStats::FlowStats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  resetStats(); }
 
 /* *************************************** */
 
-FlowStats::~FlowStats() {}
+FlowStats::~FlowStats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+}
 
 /* *************************************** */
 

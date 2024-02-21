@@ -24,6 +24,7 @@
 /* ********************************************* */
 
 PacketDumper::PacketDumper(NetworkInterface *i, const char *path) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   init(i);
   out_path = strdup(path);
 }

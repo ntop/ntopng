@@ -456,6 +456,12 @@ const map_table_def_columns = async (columns) => {
             if (first_seen !== undefined)
                 return first_seen.time;
         },
+        "DURATION": (duration, row) => {
+            return NtopUtils.secondsToTime(duration)
+        },
+        "THROUGHPUT": (throughput, row) => {
+            return FormatterUtils.getFormatter("bps")(throughput);
+        },
         "l7proto": (proto, row) => {
             let confidence = "";
             if (proto.confidence !== undefined) {

@@ -25,7 +25,9 @@
 
 OtherAlertableEntity::OtherAlertableEntity(NetworkInterface *iface,
                                            AlertEntity entity)
-    : AlertableEntity(iface, entity) {}
+  : AlertableEntity(iface, entity) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+}
 
 /* ****************************************** */
 

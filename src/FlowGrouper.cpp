@@ -24,6 +24,8 @@
 /* *************************************** */
 
 FlowGrouper::FlowGrouper(sortField sf) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   sorter = sf;
   app_protocol = 0;
   table_index = 1;
@@ -33,7 +35,9 @@ FlowGrouper::FlowGrouper(sortField sf) {
 
 /* *************************************** */
 
-FlowGrouper::~FlowGrouper() {}
+FlowGrouper::~FlowGrouper() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+}
 
 /* *************************************** */
 

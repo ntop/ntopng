@@ -28,6 +28,9 @@ NetworkStats::NetworkStats(NetworkInterface *iface, u_int16_t _network_id)
       GenericTrafficElement(),
       Score(iface) {
   const char *netname;
+
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   network_id = _network_id;
   numHosts = 0, alerted_flows_as_client = alerted_flows_as_server = 0;
   syn_recvd_last_min = synack_sent_last_min = 0;
@@ -85,6 +88,8 @@ bool NetworkStats::match(AddressTree *tree) {
 }
 
 NetworkStats::~NetworkStats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
 #ifdef NTOPNG_PRO
   if (network_matrix) free(network_matrix);
 /*  if (score_behavior) delete (score_behavior);

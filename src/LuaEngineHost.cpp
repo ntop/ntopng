@@ -28,7 +28,7 @@
 /* **************************************************************** */
 
 static int ntop_host_get_ip(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h) {
@@ -44,7 +44,7 @@ static int ntop_host_get_ip(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_get_mac(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h) {
@@ -62,7 +62,7 @@ static int ntop_host_get_mac(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_get_name(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h) {
@@ -78,7 +78,7 @@ static int ntop_host_get_name(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_get_vlan_id(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h)
@@ -92,7 +92,7 @@ static int ntop_host_get_vlan_id(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_get_score(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h)
@@ -106,7 +106,7 @@ static int ntop_host_get_score(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_is_local(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   lua_pushboolean(vm, h ? h->isLocalHost() : false);
@@ -117,7 +117,7 @@ static int ntop_host_is_local(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_is_unicast(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
   IpAddress *ip = h ? h->get_ip() : NULL;
 
@@ -129,7 +129,7 @@ static int ntop_host_is_unicast(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_is_multicast(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
   IpAddress *ip = h ? h->get_ip() : NULL;
 
@@ -141,7 +141,7 @@ static int ntop_host_is_multicast(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_is_broadcast(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
   IpAddress *ip = h ? h->get_ip() : NULL;
 
@@ -153,7 +153,7 @@ static int ntop_host_is_broadcast(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_is_blacklisted(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   lua_pushboolean(vm, h ? h->isBlacklisted() : false);
@@ -164,7 +164,7 @@ static int ntop_host_is_blacklisted(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_is_rx_only(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   lua_pushboolean(vm, h ? h->isRxOnlyHost() : false);
@@ -175,7 +175,7 @@ static int ntop_host_is_rx_only(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_get_bytes_sent(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h)
@@ -189,7 +189,7 @@ static int ntop_host_get_bytes_sent(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_get_bytes_rcvd(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h)
@@ -203,7 +203,7 @@ static int ntop_host_get_bytes_rcvd(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_get_bytes_total(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h)
@@ -217,7 +217,7 @@ static int ntop_host_get_bytes_total(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_host_get_l7_stats(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h) {
@@ -237,7 +237,7 @@ static int ntop_host_get_l7_stats(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_skip_visited_host(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h) {
@@ -264,7 +264,7 @@ static int ntop_skip_visited_host(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_trigger_host_alert(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h) {
@@ -289,7 +289,7 @@ static int ntop_trigger_host_alert(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_get_num_contacted_peers_as_client_tcp_udp_notx(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h)
@@ -303,7 +303,7 @@ static int ntop_get_num_contacted_peers_as_client_tcp_udp_notx(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_get_unidirectional_tcp_udp_flows_stats(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h)
@@ -318,7 +318,7 @@ static int ntop_get_unidirectional_tcp_udp_flows_stats(lua_State *vm) {
 
 static int ntop_get_num_contacts_from_peers_as_server_tcp_udp_notx(
     lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h)
@@ -332,7 +332,7 @@ static int ntop_get_num_contacts_from_peers_as_server_tcp_udp_notx(
 /* **************************************************************** */
 
 static int ntop_get_num_contacted_tcp_udp_server_ports_notx(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h)
@@ -346,7 +346,7 @@ static int ntop_get_num_contacted_tcp_udp_server_ports_notx(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_reset_host_contacts(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   if (h) h->resetHostContacts();
@@ -359,7 +359,7 @@ static int ntop_reset_host_contacts(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_is_first_check_run(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Host *h = c ? c->host : NULL;
 
   lua_pushboolean(vm, h ? h->isCustomHostScriptFirstRun() : false);

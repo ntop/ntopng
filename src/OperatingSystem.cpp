@@ -26,7 +26,8 @@
 /* *************************************** */
 
 OperatingSystem::OperatingSystem(NetworkInterface* _iface, OSType _os_type)
-    : GenericHashEntry(_iface), GenericTrafficElement() {
+  : GenericHashEntry(_iface), GenericTrafficElement() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   os_type = _os_type;
 
 #ifdef AS_DEBUG

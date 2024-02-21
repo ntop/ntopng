@@ -20,15 +20,15 @@ esac
 
 umask 022
 
-if ! grep -q ntopng /etc/group; then
-    echo 'Creating ntopng group'
-    /usr/sbin/groupadd -r ntopng
+if ! grep -q 'ntop:' /etc/group; then
+    echo 'Creating ntop group'
+    /usr/sbin/groupadd -r ntop
 fi
-
 if ! /usr/bin/id -u ntopng > /dev/null 2>&1; then 
     echo "Creating ntopng user..."
-    /usr/sbin/useradd -M -N -g ntopng -r -s /bin/false ntopng
+    /usr/sbin/useradd -M -N -g ntop -r -s /bin/false ntopng
 fi
+/usr/sbin/usermod -g ntop ntopng
 
 if [ $(getent group n2disk) ] && [ $(getent passwd ntopng) ]; then
     # this is necessary to allow ntopng to extract pcaps
@@ -60,13 +60,13 @@ fi
 DATA_DIR=/var/lib/ntopng
 if [ ! -d "$DATA_DIR" ]; then
     mkdir $DATA_DIR
-    /bin/chown ntopng:ntopng $DATA_DIR
+    /bin/chown ntopng:ntop $DATA_DIR
     /bin/chmod 700 $DATA_DIR
 fi
 
-/bin/chown ntopng:ntopng /usr/bin/ntopng-config
+/bin/chown ntopng:ntop /usr/bin/ntopng-config
 /bin/chmod gou+s /usr/bin/ntopng-config
-/bin/chown -R ntopng:ntopng /etc/ntopng
+/bin/chown -R ntopng:ntop /etc/ntopng
 
 LOGROTATE_CONF=/etc/logrotate.d/ntopng
 /bin/chmod 644 $LOGROTATE_CONF

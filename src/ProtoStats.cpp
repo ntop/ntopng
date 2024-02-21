@@ -23,7 +23,10 @@
 
 /* *************************************** */
 
-ProtoStats::ProtoStats() { reset(); }
+ProtoStats::ProtoStats() {
+  // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  reset();
+}
 
 /* *************************************** */
 

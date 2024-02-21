@@ -27,6 +27,8 @@ extern char *rrd_strversion(void);
 
 AfterShutdownAction afterShutdownAction = after_shutdown_nop;
 
+bool trace_new_delete = false;
+
 /* ******************************** */
 
 void sighup(int sig) { ; }

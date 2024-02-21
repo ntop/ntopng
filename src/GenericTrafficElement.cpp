@@ -24,6 +24,8 @@
 /* *************************************** */
 
 GenericTrafficElement::GenericTrafficElement() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   /* NOTE NOTE NOTE: keep in sync with copy constructor below */
   ndpiStats = NULL;
 
