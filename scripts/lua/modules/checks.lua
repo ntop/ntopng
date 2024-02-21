@@ -648,9 +648,9 @@ local function loadAndCheckScript(mod_fname, full_path, script, script_type, sub
 
     traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Loading user script '%s'", mod_fname))
 
-    profiling.get_current_memory(full_path .. "?1")
+    --profiling.get_current_memory(full_path .. "?1")
     local check = dofile(full_path)
-    profiling.get_current_memory(full_path .. "?2")
+    --profiling.get_current_memory(full_path .. "?2")
 
     if (type(check) ~= "table") then
         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Loading '%s' failed", full_path))
