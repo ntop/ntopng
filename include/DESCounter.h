@@ -39,7 +39,7 @@ class DESCounter : public BehaviouralCounter {
   }
 
   DESCounter(struct ndpi_des_struct *_des) {
-    memcpy(&des, &_des, sizeof(struct ndpi_des_struct));
+    memcpy(&des, _des, sizeof(struct ndpi_des_struct));
   }
 
   bool addObservation(u_int64_t value) {
