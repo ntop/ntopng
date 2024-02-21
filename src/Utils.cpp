@@ -5664,7 +5664,8 @@ IpAddress* Utils::parseHostString(char *host_ip, u_int16_t *vlan_id /* out */) {
   char *ip = NULL, *vlan = NULL;
 
   if (host_ip != NULL && host_ip[0] != 0) {
-    char *token = strtok(host_ip, "@");
+    char *tmp = NULL;
+    char *token = strtok_r(host_ip, "@", &tmp);
     int h = 0;
 
     while (token != NULL)  {
@@ -5673,7 +5674,7 @@ IpAddress* Utils::parseHostString(char *host_ip, u_int16_t *vlan_id /* out */) {
       else if (h == 1)
 	vlan = token;
 
-      token = strtok(NULL, "@");
+      token = strtok_r(NULL, "@", &tmp);
       h++;
     }
   }

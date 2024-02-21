@@ -626,31 +626,35 @@ void Ntop::start() {
     memset(repeater, 0, sizeof(repeater));
     redis->get(key, repeater, sizeof(repeater));
 
-    char *token = strtok(repeater, "|");
-
     string ip;
     int port;
     string interfaces;
     string type;
+    bool keep_source = false;
+    char *tmp = NULL;
 
+    char *token = strtok_r(repeater, "|", &tmp);
     if (token != NULL) {
       type = token;
-      token = strtok(NULL, "|");
+      token = strtok_r(NULL, "|", &tmp);
       if (token != NULL) {
         ip = token;
-        token = strtok(NULL, "|");
+        token = strtok_r(NULL, "|", &tmp);
         if (token != NULL) {
           port = atoi(token);
-          token = strtok(NULL, "|");
+          token = strtok_r(NULL, "|", &tmp);
           if (token != NULL) {
             interfaces = token;
+            token = strtok_r(NULL, "|", &tmp);
+            if (token != NULL)
+              keep_source = (token[0] == '1');
 
             PacketForwarder *multicastForwarder;
 
             if (ip.length() > 3 && strcmp(ip.c_str() + ip.length() - 3, "255") == 0)
-              multicastForwarder = new (std::nothrow) BroadcastForwarder(ip, port, interfaces);
+              multicastForwarder = new (std::nothrow) BroadcastForwarder(ip, port, interfaces, keep_source);
             else
-              multicastForwarder = new (std::nothrow) MulticastForwarder(ip, port, interfaces);
+              multicastForwarder = new (std::nothrow) MulticastForwarder(ip, port, interfaces, keep_source);
 
             if (multicastForwarder) {
               multicastForwarder->start();
