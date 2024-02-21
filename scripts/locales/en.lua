@@ -5732,14 +5732,15 @@ local lang = {
       ["interface"] = "Network Interface",
       ["interfaces"] = "Network Interfaces",
       ["ip"] = "IP",
-      ["port"] = "Port",
-      ["repeater_id"] = "Repeater ID",
-      ["type"] = "Type",
+      ["keep_src_address"] = "Keep Source Address",
       ["modal_repeater_config"] = {
         ["custom"] = "Custom",
         ["mdns"] = "MDNS",
         ["repeater_type"] = "Repeater Type",
       },
+      ["port"] = "Port",
+      ["repeater_id"] = "Repeater ID",
+      ["type"] = "Type",
     },
     ["page_rules_config"] = {
       ["accept"] = "ACCEPT",

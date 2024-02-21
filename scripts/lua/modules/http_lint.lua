@@ -2603,6 +2603,7 @@ local known_parameters = {
    ["repeater_id"] = validateNumber,
    ["interfaces"] = validateSingleWord,
    ["interface_details"] = validateUnquoted,
+   ["keep_src_address"] = validateBool,
 
    -- Containers
    ["pod"] = validateSingleWord,
