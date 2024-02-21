@@ -27,9 +27,9 @@ Host::Host(NetworkInterface *_iface, int32_t _iface_idx,
 	   char *ipAddress, u_int16_t _vlan_id,
            u_int16_t observation_point_id)
     : GenericHashEntry(_iface),
-      HostAlertableEntity(_iface, alert_entity_host),
       Score(_iface),
-      HostChecksStatus() {
+      HostChecksStatus(),
+      HostAlertableEntity(_iface, alert_entity_host) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   ip.set(ipAddress);
   initialize(NULL, _iface_idx, _vlan_id, observation_point_id);
@@ -41,9 +41,9 @@ Host::Host(NetworkInterface *_iface, int32_t _iface_idx,
 	   Mac *_mac, u_int16_t _vlan_id,
            u_int16_t observation_point_id, IpAddress *_ip)
     : GenericHashEntry(_iface),
-      HostAlertableEntity(_iface, alert_entity_host),
       Score(_iface),
-      HostChecksStatus() {
+      HostChecksStatus(),
+      HostAlertableEntity(_iface, alert_entity_host) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   
   ip.set(_ip);
