@@ -555,6 +555,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
     flow->setErrorCode(zflow->getL7ErrorCode());
     flow->setConfidence(zflow->getConfidence());
+    flow->setNdpiConfidence(zflow->getConfidence());
 
     if (flow->isDNS())  flow->updateDNS(zflow);
     if (flow->isHTTP()) flow->updateHTTP(zflow);

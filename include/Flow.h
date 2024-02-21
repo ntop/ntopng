@@ -1357,6 +1357,7 @@ class Flow : public GenericHashEntry {
 
   inline ndpi_confidence_t getConfidence() { return (confidence); }
   inline void setConfidence(ndpi_confidence_t rc) { confidence = rc; }
+  inline void setNdpiConfidence(ndpi_confidence_t rc) { ndpi_confidence = rc; }
 
   inline u_int8_t getCliLocation() {
     if ((cli_host && cli_host->isMulticastHost()) ||
