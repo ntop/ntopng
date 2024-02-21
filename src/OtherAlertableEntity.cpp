@@ -139,16 +139,6 @@ bool OtherAlertableEntity::releaseAlert(lua_State *vm, std::string key,
       decNumAlertsEngaged(Utils::mapScoreToSeverity(it->second.score));
 
       engaged_alerts[(u_int)p].erase(it);
-
-      {
-	int tot= 0;
-
-	for(int i=0; i<MAX_NUM_PERIODIC_SCRIPTS; i++)
-	  tot += alert_cache[i].size() + engaged_alerts[i].size();
-
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [size: %u]", __FUNCTION__, tot);
-      }
-
       rv = true; /* Actually released */
     }
 
