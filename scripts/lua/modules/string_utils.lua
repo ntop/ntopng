@@ -57,7 +57,7 @@ function shortenString(name, max_len)
     if (string.len(name) < max_len + 1 --[[ The space taken by the ellipsis --]] ) then
         return (name)
     else
-        return (string.sub(name, 1, max_len) .. ellipsis)
+        return string.sub(name, 1, max_len) .. ellipsis
     end
 end
 
