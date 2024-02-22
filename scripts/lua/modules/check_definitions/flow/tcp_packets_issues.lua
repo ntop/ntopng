@@ -3,8 +3,6 @@
 --
 
 local checks = require ("checks")
-local alerts_api = require "alerts_api"
-local alert_consts = require("alert_consts")
 local flow_alert_keys = require "flow_alert_keys"
 
 -- #################################################################
@@ -25,7 +23,7 @@ local script = {
       field_max = 99, -- 99%
       field_operator = "gt";
       i18n_fields_unit = checks.field_units.percentage,
-      title = i18n('retransmission')
+      i18n_title = 'retransmission'
     },
     out_of_orders = {
       default_value = 15, -- 15%,
@@ -33,7 +31,7 @@ local script = {
       field_max = 99, -- 99%
       field_operator = "gt";
       i18n_fields_unit = checks.field_units.percentage,
-      title = i18n('out_of_order')
+      i18n_title = 'out_of_order'
     },
     packet_loss = {
       default_value = 15, -- 15%,
@@ -41,7 +39,7 @@ local script = {
       field_max = 99, -- 99%
       field_operator = "gt";
       i18n_fields_unit = checks.field_units.percentage,
-      title = i18n('packet_loss')
+      i18n_title = 'packet_loss'
     },
   },
 

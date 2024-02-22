@@ -357,7 +357,7 @@ end
 -- Read information about used disk space for an interface dump
 local function interfaceStorageUsed(ifid)
   local pcap_path = recording_utils.getPcapPath(ifid)
-  return getFolderSize(pcap_path, nil, os_utils) 
+  return getFolderSize(pcap_path, nil) 
 end
 
 --! @brief Read information about a volume, including storage size and available space
@@ -416,7 +416,7 @@ function recording_utils.storageInfo(ifid, timeout)
 
   -- PCAP Extraction storage info
   local extraction_path = getPcapExtractionPath(ifid)
-  storage_info.extraction_used = getFolderSize(extraction_path, timeout, os_utils)
+  storage_info.extraction_used = getFolderSize(extraction_path, timeout)
 
   return storage_info
 end

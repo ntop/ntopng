@@ -16,7 +16,7 @@
                 <div class="col-12 col-sm-8 description">
                     <b>{{ i18n("edit_check.description") }}</b>
                     <br>
-                    {{ (i18n(edit_check.script.gui.i18n_description) or edit_check.script.gui.i18n_description) }}
+                    {{ (i18n(edit_check.script.gui.i18n_description) or edit_check.script.gui.i18n_description) .. ternary(edit_check.script.gui.18n_url, "<a href='" .. i18n_url .. "'>here</a>", "") }}
                 </div>
                 <div class="col-12 col-sm-2 author">
                     <b>{{ i18n("edit_check.author") }}</b>

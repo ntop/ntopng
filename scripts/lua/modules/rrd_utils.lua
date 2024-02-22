@@ -293,7 +293,7 @@ function rrd_utils.storageInfo(ifid, timeout)
 
   for _, path in pairs(paths) do
     local absolute_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")
-    info[path] = getFolderSize(absolute_path, timeout, os_utils)
+    info[path] = getFolderSize(absolute_path, timeout)
     info["total"] = info["total"] + info[path]
   end
 

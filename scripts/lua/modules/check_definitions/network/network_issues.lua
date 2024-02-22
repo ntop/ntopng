@@ -2,13 +2,13 @@
 -- (C) 2019-24 - ntop.org
 --
 local alert_consts = require("alert_consts")
-local checks = require("checks")
 local format_utils = require "format_utils"
+local alert_categories = require "alert_categories"
+local field_units = require "field_units"
 
 local script = {
-
     -- Script category
-    category = checks.check_categories.network,
+    category = alert_categories.network,
     severity = alert_consts.get_printable_severities().error,
 
     anomaly_type_builder = alert_consts.alert_types.alert_network_issues.new,
@@ -22,24 +22,24 @@ local script = {
             field_min = 1, -- 1%
             field_max = 99, -- 99%
             field_operator = "gt",
-            i18n_fields_unit = checks.field_units.percentage,
-            title = i18n('retransmission')
+            i18n_fields_unit = field_units.percentage,
+            i18n_title = 'retransmission'
         },
         out_of_orders = {
             default_value = 15, -- 15%,
             field_min = 1, -- 1%
             field_max = 99, -- 99%
             field_operator = "gt",
-            i18n_fields_unit = checks.field_units.percentage,
-            title = i18n('out_of_order')
+            i18n_fields_unit = field_units.percentage,
+            i18n_title = 'out_of_order'
         },
         packet_loss = {
             default_value = 15, -- 15%,
             field_min = 1, -- 1%
             field_max = 99, -- 99%
             field_operator = "gt",
-            i18n_fields_unit = checks.field_units.percentage,
-            title = i18n('packet_loss')
+            i18n_fields_unit = field_units.percentage,
+            i18n_title = 'packet_loss'
         }
     },
 

@@ -28,6 +28,7 @@ local alert_category_utils = require "alert_category_utils"
 local alert_categories = require "alert_categories"
 local alert_granularities = require "alert_granularities"
 local alert_entities = require "alert_entities"
+local field_units = require "field_units"
 
 -- ##############################################
 
@@ -37,26 +38,7 @@ checks.check_categories = alert_categories
 
 -- ##############################################
 
-checks.field_units = {
-    seconds = "field_units.seconds",
-    bytes = "field_units.bytes",
-    flows = "field_units.flows",
-    packets = "field_units.packets",
-    mbits = "field_units.mbits",
-    hosts = "field_units.hosts",
-    syn_sec = "field_units.syn_sec",
-    flow_sec = "field_units.flow_sec",
-    icmp_flow_sec = "field_units.icmp_flow_sec",
-    percentage = "field_units.percentage",
-    syn_min = "field_units.syn_min",
-    fin_min = "field_units.fin_min",
-    rst_min = "field_units.rst_min",
-    contacts = "field_units.contacts",
-    score = "field_units.score",
-    per_host_score = "field_units.per_host_score",
-    macs = "field_units.macs",
-    exceptions = "field_units.exceptions"
-}
+checks.field_units = field_units
 
 -- ##############################################
 
@@ -318,27 +300,6 @@ end
 
 -- ##############################################
 
--- Table to keep per-subdir then per-module then per-hook benchmarks
---
--- The structure is the following
---
--- table
--- flow table
--- flow.mud table
--- flow.mud.protocolDetected table
--- flow.mud.protocolDetected.tot_elapsed number 0.00031600000000021
--- flow.mud.protocolDetected.tot_num_calls number 4
--- flow.score table
--- flow.score.protocolDetected table
--- flow.score.protocolDetected.tot_elapsed number 0.00013700000000005
--- flow.score.protocolDetected.tot_num_calls number 4
--- flow.score.statusChanged table
--- flow.score.statusChanged.tot_elapsed number 0
--- flow.score.statusChanged.tot_num_calls number 0
-local benchmarks = {}
-
--- ##############################################
-
 function checks.getSubdirectoryPath(script_type, subdir)
     local res = {}
     local path
@@ -355,143 +316,6 @@ function checks.getSubdirectoryPath(script_type, subdir)
     end
 
     return res
-end
-
--- ##############################################
-
--- @brief Wrap any hook function to compute its execution time which is then added
--- to the benchmarks table.
---
--- @param subdir the modules subdir
--- @param mod_k the key of the user script
--- @param hook the name of the hook in the user script
--- @param hook_fn the hook function in the user script
---
--- @return function(...) wrapper ready to be called for the execution of hook_fn
-local function benchmark_hook_fn(subdir, mod_k, hook, hook_fn)
-    return function(...)
-        local start = ntop.getticks()
-        local result = {hook_fn(...)}
-        local finish = ntop.getticks()
-        local elapsed = finish - start
-
-        -- Update benchmark results by addin a function call and the elapsed time of this call
-        benchmarks[subdir][mod_k][hook]["tot_num_calls"] = benchmarks[subdir][mod_k][hook]["tot_num_calls"] + 1
-        benchmarks[subdir][mod_k][hook]["tot_elapsed"] = benchmarks[subdir][mod_k][hook]["tot_elapsed"] + elapsed
-
-        -- traceError(TRACE_NORMAL,TRACE_CONSOLE, string.format("[%s][elapsed: %.2f][tot_elapsed: %.2f][tot_num_calls: %u]",
-        --							   hook, elapsed,
-        --							   benchmarks[subdir][mod_k][hook]["tot_elapsed"],
-        --							   benchmarks[subdir][mod_k][hook]["tot_num_calls"]))
-
-        return table.unpack(result)
-    end
-end
-
--- ##############################################
-
--- @brief Initializes benchmark facilities for any hook function
---
--- @param subdir the modules subdir
--- @param mod_k the key of the user script
--- @param hook the name of the hook in the user script
--- @param hook_fn the hook function in the user script
---
--- @return function(...) wrapper ready to be called for the execution of hook_fn
-local function benchmark_init(subdir, mod_k, hook, hook_fn)
-    -- NOTE: 5min/hour/day are not monitored. They would collide in the checks_benchmarks_key.
-    if ((hook ~= "5min") and (hook ~= "hour") and (hook ~= "day")) then
-        -- Prepare the benchmark table fo the hook_fn which is being benchmarked
-        if not benchmarks[subdir] then
-            benchmarks[subdir] = {}
-        end
-
-        if not benchmarks[subdir][mod_k] then
-            benchmarks[subdir][mod_k] = {}
-        end
-
-        if not benchmarks[subdir][mod_k][hook] then
-            benchmarks[subdir][mod_k][hook] = {
-                tot_num_calls = 0,
-                tot_elapsed = 0
-            }
-        end
-
-        -- Finally prepare and return the hook_fn wrapped with benchmark facilities
-        return benchmark_hook_fn(subdir, mod_k, hook, hook_fn)
-    else
-        return (hook_fn)
-    end
-end
-
--- ##############################################
-
-local function checks_benchmarks_key(ifid, subdir)
-    return string.format("ntopng.cache.ifid_%d.checks_benchmarks.subdir_%s", ifid, subdir)
-end
-
--- ##############################################
-
--- @brief Returns the benchmark stats, aggregating them by module
-function checks.getAggregatedStats(ifid, script_type, subdir)
-    local bencmark = ntop.getCache(checks_benchmarks_key(ifid, subdir))
-    local rv = {}
-
-    if (not isEmptyString(bencmark)) then
-        bencmark = json.decode(bencmark)
-
-        if (bencmark ~= nil) then
-            for scriptk, hooks in pairs(bencmark) do
-                local aggr_val = {
-                    tot_num_calls = 0,
-                    tot_elapsed = 0
-                }
-
-                for _, hook_benchmark in pairs(hooks) do
-                    aggr_val.tot_elapsed = aggr_val.tot_elapsed + hook_benchmark.tot_elapsed
-                    aggr_val.tot_num_calls = hook_benchmark.tot_num_calls + aggr_val.tot_num_calls
-                end
-
-                if (aggr_val.tot_num_calls > 0) then
-                    rv[scriptk] = aggr_val
-                end
-            end
-        end
-    end
-
-    return (rv)
-end
-
--- ##############################################
-
--- @brief Save benchmarks results and possibly print them to stdout
---
--- @param to_stdout dump results also to stdout
-function checks.benchmark_dump(ifid, to_stdout)
-    -- Convert ticks to seconds
-    for subdir, modules in pairs(benchmarks) do
-        local rv = {}
-
-        for mod_k, hooks in pairs(modules) do
-            for hook, hook_benchmark in pairs(hooks) do
-                if hook_benchmark["tot_num_calls"] > 0 then
-                    hook_benchmark["tot_elapsed"] = hook_benchmark["tot_elapsed"] / ntop.gettickspersec()
-
-                    rv[mod_k] = rv[mod_k] or {}
-                    rv[mod_k][hook] = hook_benchmark
-
-                    if to_stdout then
-                        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-                            string.format("[%s] %s() [script: %s][elapsed: %.4f][num: %u][speed: %.4f]\n", subdir, hook,
-                                mod_k, hook_benchmark["tot_elapsed"], hook_benchmark["tot_num_calls"],
-                                hook_benchmark["tot_elapsed"] / hook_benchmark["tot_num_calls"]))
-                    end
-                end
-            end
-        end
-
-        ntop.setCache(checks_benchmarks_key(ifid, subdir), json.encode(rv), 3600 --[[ 1 hour --]] )
-    end
 end
 
 -- ##############################################
@@ -514,20 +338,6 @@ function checks.listScripts(script_type, subdir)
     end
 
     return rv
-end
-
--- ##############################################
-
-function checks.getLastBenchmark(ifid, subdir)
-    local scripts_benchmarks = ntop.getCache(checks_benchmarks_key(ifid, subdir))
-
-    if (not isEmptyString(scripts_benchmarks)) then
-        scripts_benchmarks = json.decode(scripts_benchmarks)
-    else
-        scripts_benchmarks = {}
-    end
-
-    return (scripts_benchmarks)
 end
 
 -- ##############################################
@@ -602,10 +412,10 @@ local function init_check(check, mod_fname, full_path, script, script_type, subd
 
         -- Possibly localize the input title/description
         if check.gui.input_title then
-            check.gui.input_title = i18n(check.gui.input_title) or check.gui.input_title
+            check.gui.input_title = check.gui.input_title
         end
         if check.gui.input_description then
-            check.gui.input_description = i18n(check.gui.input_description) or check.gui.input_description
+            check.gui.input_description = check.gui.input_description
         end
     end
 
@@ -629,7 +439,6 @@ end
 
 local function loadAndCheckScript(mod_fname, full_path, script, script_type, subdir, return_all, scripts_filter,
     hook_filter)
-    local profiling = require "profiling"
     local setup_ok = true
 
     -- Recheck the edition as the demo mode may expire
@@ -647,10 +456,7 @@ local function loadAndCheckScript(mod_fname, full_path, script, script_type, sub
     end
 
     traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Loading user script '%s'", mod_fname))
-
-    --profiling.get_current_memory(full_path .. "?1")
     local check = dofile(full_path)
-    --profiling.get_current_memory(full_path .. "?2")
 
     if (type(check) ~= "table") then
         traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Loading '%s' failed", full_path))
@@ -833,7 +639,6 @@ end
 -- @param subdir the modules subdir. *NOTE* this must be unique as it is used as a key.
 -- @param options an optional table with the following supported options:
 --  - hook_filter: if non nil, only load the checks for the specified hook
---  - do_benchmark: if true, computes benchmarks for every hook
 --  - return_all: if true, returns all the scripts, even those with filters not matching the current configuration
 --    NOTE: this can only be applied if the script type has the "has_no_entity" flag set.
 --  - scripts_filter: a filter function(check) -> true, false. false will cause the script to be skipped.
@@ -852,7 +657,6 @@ function checks.load(ifid, script_type, subdir, options)
     script_manager.loadSchemas(options.hook_filter)
 
     local hook_filter = options.hook_filter
-    local do_benchmark = options.do_benchmark
     local return_all = options.return_all
     local scripts_filter = options.scripts_filter
 
@@ -888,17 +692,11 @@ function checks.load(ifid, script_type, subdir, options)
 
         -- Populate hooks fast lookup table
         for hook, hook_fn in pairs(check.hooks or {}) do
-            -- load previously computed benchmarks (if any)
-            -- benchmarks are loaded even if their computation is disabled with a do_benchmark ~= true
             if (rv.hooks[hook] == nil) then
                 traceError(TRACE_WARNING, TRACE_CONSOLE,
                     string.format("Unknown hook '%s' in module '%s'", hook, check.key))
             else
-                if do_benchmark then
-                    rv.hooks[hook][check.key] = benchmark_init(subdir, check.key, hook, hook_fn)
-                else
-                    rv.hooks[hook][check.key] = hook_fn
-                end
+                rv.hooks[hook][check.key] = hook_fn
             end
         end
 
@@ -947,16 +745,11 @@ end
 -- ##############################################
 
 -- @brief Teardown function, to be called at the end of the VM
-function checks.teardown(available_modules, do_benchmark, do_print_benchmark)
+function checks.teardown(available_modules)
     for _, script in pairs(available_modules.modules) do
         if script.teardown then
             script.teardown()
         end
-    end
-
-    if do_benchmark then
-        local ifid = interface.getId()
-        checks.benchmark_dump(ifid, do_print_benchmark)
     end
 end
 
@@ -2033,7 +1826,7 @@ local function teardownChecks(str_granularity, checks_var, do_trace)
         print("alert.lua:teardown(" .. str_granularity .. ") called\n")
     end
 
-    checks.teardown(checks_var.available_modules, checks_var.do_benchmark, checks_var.do_print_benchmark)
+    checks.teardown(checks_var.available_modules)
 end
 
 -- ##############################################
@@ -2047,8 +1840,7 @@ local function setupInterfaceChecks(str_granularity, checks_var, do_trace)
 
     -- Load the check modules
     checks_var.available_modules = checks.load(checks_var.ifid, checks.script_types.traffic_element, "interface", {
-        hook_filter = str_granularity,
-        do_benchmark = checks_var.do_benchmark
+        hook_filter = str_granularity
     })
 
     checks_var.configset = checks.getConfigset()
@@ -2068,8 +1860,7 @@ local function setupLocalNetworkChecks(str_granularity, checks_var, do_trace)
 
     -- Load the threshold checking functions
     checks_var.available_modules = checks.load(ifid, checks.script_types.traffic_element, "network", {
-        hook_filter = str_granularity,
-        do_benchmark = checks_var.do_benchmark
+        hook_filter = str_granularity
     })
 
     checks_var.configset = checks.getConfigset()
@@ -2090,8 +1881,7 @@ local function setupSystemChecks(str_granularity, checks_var, do_trace)
 
     -- Load the threshold checking functions
     checks_var.available_modules = checks.load(checks_var.ifid, checks.script_types.system, "system", {
-        hook_filter = str_granularity,
-        do_benchmark = checks_var.do_benchmark
+        hook_filter = str_granularity
     })
 
     checks_var.configset = checks.getConfigset()
@@ -2116,9 +1906,7 @@ local function setupSNMPChecks(str_granularity, checks_var, do_trace)
     checks_var.ifid = getSystemInterfaceId()
 
     -- Load the threshold checking functions
-    checks_var.available_modules = checks.load(ifid, checks.script_types.snmp_device, "snmp_device", {
-        do_benchmark = checks_var.do_benchmark
-    })
+    checks_var.available_modules = checks.load(ifid, checks.script_types.snmp_device, "snmp_device")
     checks_var.configset = checks.getConfigset()
 
     return true
@@ -2142,9 +1930,7 @@ local function setupActiveMonitoringChecks(str_granularity, checks_var, do_trace
     checks_var.ifid = getSystemInterfaceId()
 
     -- Load the threshold checking functions
-    checks_var.available_modules = checks.load(ifid, checks.script_types.active_monitoring, "active_monitoring", {
-        do_benchmark = checks_var.do_benchmark
-    })
+    checks_var.available_modules = checks.load(ifid, checks.script_types.active_monitoring, "active_monitoring")
     checks_var.configset = checks.getConfigset()
 
     return true

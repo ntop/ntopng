@@ -654,25 +654,6 @@ function setHostNotes(host_info, notes)
    ntop.setCache(getHostNotesKey(host_key), notes)
 end
 
--- ##############################################
-
-function mac2label(mac)
-   local alt_name = getHostAltName(mac)
-
-   if not isEmptyString(alt_name) and (alt_name ~= mac) then
-      return(alt_name)
-   end
-
-   alt_name = ntop.getCache(getDhcpNameKey(interface.getId(), mac))
-
-   if not isEmptyString(alt_name) and (alt_name ~= mac) then
-      return(alt_name)
-   end
-
-   -- Fallback: just the MAC
-   return(mac)
-end
-
 
 
 -- ##############################################

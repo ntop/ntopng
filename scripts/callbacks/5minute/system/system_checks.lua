@@ -19,8 +19,6 @@ local checks_var = {
    system_config = nil,
    available_modules = nil,
    configset = nil,
-   do_benchmark = false,
-   do_print_benchmark = false
 }
 
 local granularity = "5mins" -- See alert_consts.alerts_granularities

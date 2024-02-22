@@ -4,13 +4,16 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
-local json = require "dkjson"
-local endpoints = require "endpoints"
-local alert_consts = require "alert_consts"
-local alert_entity_builders = require "alert_entity_builders"
 require "check_redis_prefs"
 require "locales_utils"
+require "label_utils"
 
+local alert_consts = require "alert_consts"
+local json = require "dkjson"
+local alert_entity_builders = require "alert_entity_builders"
+
+
+-- #################################
 -- These are structs
 local alert_severities = require "alert_severities"
 local alert_entities = require "alert_entities"
@@ -43,24 +46,24 @@ recipients.FIRST_RECIPIENT_CREATED_CACHE_KEY = "ntopng.prefs.endpoint_hints.reci
 
 local default_builtin_minimum_severity = alert_severities.notice.severity_id -- minimum severity is notice (to avoid flooding) (*****)
 
-local notification_types = {
-    alerts = {
-        title = i18n('endpoint_notifications.alerts'),
-        icon = 'fas fa-lg fa-exclamation-triangle text-warning'
-    },
-    reports = {
-        title = i18n('report.reports'),
-        icon = 'fa-regular fa-newspaper'
-    },
-    vulnerability_scans = {
-        title = i18n('hosts_stats.page_scan_hosts.vulnerability_scan_reports'),
-        icon = 'fa-solid fa-clipboard'
-    }
-}
-
 -- ##############################################
 
 function recipients.get_notification_types()
+    local notification_types = {
+        alerts = {
+            title = i18n('endpoint_notifications.alerts'),
+            icon = 'fas fa-lg fa-exclamation-triangle text-warning'
+        },
+        reports = {
+            title = i18n('report.reports'),
+            icon = 'fa-regular fa-newspaper'
+        },
+        vulnerability_scans = {
+            title = i18n('hosts_stats.page_scan_hosts.vulnerability_scan_reports'),
+            icon = 'fa-solid fa-clipboard'
+        }
+    }
+
     return notification_types
 end
 
@@ -136,6 +139,7 @@ local function processStoreAlertFromQueue(alert)
     return entity_info, type_info
 end
 
+
 -- ##############################################
 
 -- @brief Process notifications arriving from the internal C queue
@@ -172,6 +176,7 @@ end
 
 -- @brief Performs Initialization operations performed during startup
 function recipients.initialize()
+    local endpoints = require "endpoints"
     -- Initialize builtin recipients, that is, recipients always existing an not editable from the UI
     -- For each builtin configuration type, a configuration and a recipient is created
 
@@ -383,6 +388,7 @@ end
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return false with a description of the error, or true, with a table containing sanitized configuration params.
 local function check_endpoint_recipient_params(endpoint_key, recipient_params)
+    local endpoints = require "endpoints"
     if not recipient_params or not type(recipient_params) == "table" then
         return false, {
             status = "failed",
@@ -501,6 +507,7 @@ end
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
 function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, check_entities,
     minimum_severity, host_pools_ids, am_hosts_ids, recipient_params)
+    local endpoints = require "endpoints"
     local locked = _lock()
     local res = {
         status = "failed",
@@ -609,6 +616,7 @@ end
 -- @return A table with a key status which is either "OK" or "failed". When "failed", the table contains another key "error" with an indication of the issue
 function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_categories, check_entities,
     minimum_severity, host_pools_ids, am_hosts_ids, recipient_params)
+    local endpoints = require "endpoints"
     local locked = _lock()
     local res = {
         status = "failed"
@@ -759,6 +767,7 @@ end
 -- #################################################################
 
 function recipients.test_recipient(endpoint_id, recipient_params)
+    local endpoints = require "endpoints"
     -- Get endpoint config
 
     local ec = endpoints.get_endpoint_config(endpoint_id)
@@ -832,6 +841,7 @@ end
 -- ##############################################
 
 function recipients.get_recipient(recipient_id, include_stats)
+    local endpoints = require "endpoints"
     local recipient_details
     local recipient_details_key = _get_recipient_details_key(recipient_id)
 
@@ -1345,6 +1355,7 @@ end
 -- @return nil
 local cached_recipients
 function recipients.process_notifications(now, deadline, periodic_frequency, force_export)
+    local endpoints = require "endpoints"
     if not areAlertsEnabled() then
         return
     end

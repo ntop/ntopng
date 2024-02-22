@@ -4,10 +4,9 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-require "lua_utils"
-require "flow_utils"
+
+require "ntop_utils"
 local json = require ("dkjson")
-local alert_severities = require "alert_severities"
 local checks = require("checks")
 
 local syslog_module = {

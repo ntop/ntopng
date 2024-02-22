@@ -697,6 +697,50 @@ end
 
 -- ################################################################################
 
+function alert_consts.formatBehaviorAlert(params, anomalies, stats, id, subtype, name)
+    local debug = false
+    -- Cycle throught the behavior stats
+    for anomaly_type, anomaly_table in pairs(anomalies) do
+        local lower_bound = stats[anomaly_type]["lower_bound"]
+        local upper_bound = stats[anomaly_type]["upper_bound"]
+        local value = stats[anomaly_type]["value"]
+
+        if debug then
+            local msg = string.format("Checking %s behavior for %s (lower bound | value | upper bound): %s | %s | %s",
+                subtype, name, lower_bound, value, upper_bound)
+            traceError(TRACE_NORMAL, TRACE_CONSOLE, msg)
+        end
+
+        if anomaly_table["cut_values"] then
+            value = tonumber(string.format("%.2f", tonumber(value * (anomaly_table["multiplier"] or 1))))
+            lower_bound = tonumber(string.format("%.2f", tonumber(lower_bound * (anomaly_table["multiplier"] or 1))))
+            upper_bound = tonumber(string.format("%.2f", tonumber(upper_bound * (anomaly_table["multiplier"] or 1))))
+        end
+
+        if anomaly_table["formatter"] then
+            value = anomaly_table["formatter"](value)
+            lower_bound = anomaly_table["formatter"](lower_bound)
+            upper_bound = anomaly_table["formatter"](upper_bound)
+        end
+
+        local alert = anomaly_table.alert.new(i18n(subtype .. "_id", {
+            id = name or id
+        }), anomaly_type, value, lower_bound, upper_bound, anomaly_table["entity_id"], id, anomaly_table["extra_params"])
+
+        alert:set_info(params)
+        alert:set_subtype(name)
+
+        -- Trigger an alert if an anomaly is found
+        if anomaly_table["anomaly"] == true then
+            alert:trigger(params.alert_entity, nil, params.cur_alerts)
+        else
+            alert:release(params.alert_entity, nil, params.cur_alerts)
+        end
+    end
+end
+
+-- ################################################################################
+
 function alert_consts.sec2granularity(seconds)
    seconds = tonumber(seconds)
    local key = alerts_granularities_seconds_to_key[seconds]
