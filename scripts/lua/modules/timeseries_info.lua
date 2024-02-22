@@ -511,6 +511,32 @@ local community_timeseries = {{
     },
     nedge_exclude = true
 }, {
+    label = i18n("graphs.zmq_msg_rcvd"),
+    id = timeseries_id.iface,
+    schema = "iface:zmq_rcvd_msgs",
+    priority = 0,
+    measure_unit = "number",
+    scale = i18n('graphs.metric_labels.rcvd_msgs'),
+    timeseries = {
+        msgs = {
+            label = i18n('graphs.metric_labels.rcvd_msgs'),
+            color = timeseries_info.get_timeseries_color('default')
+        }
+    }
+}, {
+    label = i18n("graphs.zmq_msg_dropped"),
+    id = timeseries_id.iface,
+    schema = "iface:zmq_msg_drops",
+    priority = 0,
+    measure_unit = "number",
+    scale = i18n('graphs.metric_labels.dropped_msgs'),
+    timeseries = {
+        msgs = {
+            label = i18n('graphs.metric_labels.dropped_msgs'),
+            color = timeseries_info.get_timeseries_color('default')
+        }
+    }
+}, {
     schema = "iface:tcp_rst",
     id = timeseries_id.iface,
     label = i18n("graphs.tcp_rst_packets"),
@@ -2849,20 +2875,6 @@ function timeseries_info.retrieve_specific_timeseries(tags, prefix)
         if (prefix ~= nil) then
             if info.id ~= prefix then
                 goto skip
-            end
-
-            if not (info.schema:find("top", 1, true)) and not info.alwais_visibile then
-                local tot = 0
-                local tot_serie = ts_utils.queryTotal(info.schema, tags.epoch_begin, tags.epoch_end, table.clone(tags))
-
-                -- Remove serie with no data
-                for _, value in pairs(tot_serie or {}) do
-                    tot = tot + tonumber(value)
-                end
-
-                if (tot == 0) then
-                    goto skip
-                end
             end
 
             -- Remove from nEdge the timeseries only for ntopng
