@@ -608,7 +608,10 @@ if page == 'active_hosts' then
         if ntop.isPro() then
             printHostsDeviceFilterDropdown(base_url, page_params)
         end
-
+        local alignment_c_info = 'center'
+        if (ntop.isnEdge()) then 
+            alignment_c_info = 'nowrap'
+        end
         print(' ],')
 
         print [[
@@ -625,7 +628,7 @@ if page == 'active_hosts' then
                field: "column_info",
                sortable: false,
                      css: {
-                  textAlign: 'center',
+                  textAlign: ']]print(alignment_c_info)print[[',
                      whiteSpace: 'nowrap'
 
                }
