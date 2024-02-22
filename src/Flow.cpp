@@ -7423,32 +7423,32 @@ void Flow::getTLSInfo(ndpi_serializer *serializer) const {
     }
 
     if (protos.tls.ja3.client_hash) {
-      ndpi_serialize_string_string(serializer, "ja3.client_hash",
+      ndpi_serialize_string_string(serializer, "ja3_client_hash",
                                    protos.tls.ja3.client_hash);
 
       if (has_malicious_cli_signature)
-        ndpi_serialize_string_boolean(serializer, "ja3.client_malicious", true);
+        ndpi_serialize_string_boolean(serializer, "ja3_client_malicious", true);
     }
 
     if (protos.tls.ja3.server_hash) {
-      ndpi_serialize_string_string(serializer, "ja3.server_hash",
+      ndpi_serialize_string_string(serializer, "ja3_server_hash",
                                    protos.tls.ja3.server_hash);
       ndpi_serialize_string_string(
-          serializer, "ja3.server_unsafe_cipher",
+          serializer, "ja3_server_unsafe_cipher",
           cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher));
-      ndpi_serialize_string_int32(serializer, "ja3.server_cipher",
+      ndpi_serialize_string_int32(serializer, "ja3_server_cipher",
                                   protos.tls.ja3.server_cipher);
 
       if (has_malicious_srv_signature)
-        ndpi_serialize_string_boolean(serializer, "ja3.server_malicious", true);
+        ndpi_serialize_string_boolean(serializer, "ja3_server_malicious", true);
     }
 
     if (protos.tls.ja4.client_hash) {
-      ndpi_serialize_string_string(serializer, "ja4.client_hash",
+      ndpi_serialize_string_string(serializer, "ja4_client_hash",
                                    protos.tls.ja4.client_hash);
 
       if (has_malicious_cli_signature)
-        ndpi_serialize_string_boolean(serializer, "ja4.client_malicious", true);
+        ndpi_serialize_string_boolean(serializer, "ja4_client_malicious", true);
     }
   }
 

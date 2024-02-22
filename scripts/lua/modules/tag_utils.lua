@@ -410,12 +410,17 @@ tag_utils.defined_tags = {
     },
     ja3_client = {
         value_type = 'text',
-        i18n_label = i18n('ja3.client_hash'),
+        i18n_label = i18n('ja3_client_hash'),
         operators = {'eq', 'neq', 'in', 'nin'}
     },
     ja3_server = {
         value_type = 'text',
-        i18n_label = i18n('ja3.server_hash'),
+        i18n_label = i18n('ja3_server_hash'),
+        operators = {'eq', 'neq', 'in', 'nin'}
+    },
+    ja4_client = {
+        value_type = 'text',
+        i18n_label = i18n('ja4_client_hash'),
         operators = {'eq', 'neq', 'in', 'nin'}
     },
     http_method = {

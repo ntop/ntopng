@@ -1959,6 +1959,7 @@ local known_parameters = {
    ["community_id"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- Community ID
    ["ja3_client"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["ja3_server"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
+   ["ja4_client"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["asn"] = validateNumber, -- An ASN number
    ["country_id"] = validateNumber, -- A Country Code
    ["module"] = validateTopModule, -- A top script module

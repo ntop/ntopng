@@ -551,6 +551,7 @@ function flow_alert_store:_add_additional_request_filters()
    local community_id = _GET["community_id"]
    local ja3_client = _GET["ja3_client"]
    local ja3_server = _GET["ja3_server"]
+   local ja4_client = _GET["ja4_client"]
    local alert_domain = _GET["alert_domain"]
    
    self:format_traffic_direction(_GET["traffic_direction"])
@@ -585,8 +586,9 @@ function flow_alert_store:_add_additional_request_filters()
    self:add_filter_condition_list('snmp_interface', snmp_interface)
    self:add_filter_condition_list('community_id', community_id)
 
-   self:add_filter_condition_list(self:format_query_json_value('proto.ja3.server_hash'), ja3_server, 'string')
-   self:add_filter_condition_list(self:format_query_json_value('proto.ja3.client_hash'), ja3_client, 'string')
+   self:add_filter_condition_list(self:format_query_json_value('proto.tls.ja3_server_hash'), ja3_server, 'string')
+   self:add_filter_condition_list(self:format_query_json_value('proto.tls.ja3_client_hash'), ja3_client, 'string')
+   self:add_filter_condition_list(self:format_query_json_value('proto.tls.ja4_client_hash'), ja4_client, 'string')
    self:add_filter_condition_list(self:format_query_json_value('proto.l7_error_code'), error_code, 'string')
    self:add_filter_condition_list(self:format_query_json_value('proto.confidence'), confidence, 'string')
    self:add_filter_condition_list(self:format_query_json_value('proto.tls.client_requested_server_name'), alert_domain, 'string')
@@ -624,6 +626,7 @@ function flow_alert_store:_get_additional_available_filters()
       community_id      = tag_utils.defined_tags.community_id,
       ja3_client        = tag_utils.defined_tags.ja3_client,
       ja3_server        = tag_utils.defined_tags.ja3_server,
+      ja4_client        = tag_utils.defined_tags.ja4_client,
       traffic_direction = tag_utils.defined_tags.traffic_direction,
       alert_domain      = tag_utils.defined_tags.alert_domain,
 
