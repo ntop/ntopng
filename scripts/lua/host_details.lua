@@ -2084,6 +2084,10 @@ setInterval(update_icmp_table, 5000);
                 print('perPage: ' .. preference .. ",\n")
             end
 
+            local alignment_c_info = 'center'
+            if (ntop.isnEdge()) then 
+                alignment_c_info = 'nowrap'
+            end
             print('sort: [ ["' .. getDefaultTableSort("flows") .. '","' .. getDefaultTableSortOrder("flows") ..
                       '"] ],\n')
 
@@ -2101,7 +2105,7 @@ setInterval(update_icmp_table, 5000);
             title: "",
             field: "column_key",
             css: {
-               textAlign: 'center'
+               textAlign: ']]print(alignment_c_info)print[['
             }
          }, {
             title: "]]
