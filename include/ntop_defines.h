@@ -758,6 +758,8 @@
 
 #define CONST_PREFS_USE_MAC_IN_FLOW_KEY \
   NTOPNG_PREFS_PREFIX ".use_mac_in_flow_key"
+#define CONST_PREFS_FINGERPRINT_STATS \
+  NTOPNG_PREFS_PREFIX ".fingerprint_stats"
 
 #define CONST_PREFS_NETWORK_DISCOVERY_DEBUG \
   NTOPNG_PREFS_PREFIX ".network_discovery_debug"

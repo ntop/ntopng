@@ -289,25 +289,21 @@ protected:
   ThroughputStats bytes_thpt, pkts_thpt;
   struct timeval last_periodic_stats_update;
 
-  MacHash
-  *gw_macs; /**< Hash used to identify traffic direction based on gw MAC. */
+  MacHash *gw_macs; /**< Hash used to identify traffic direction based on gw MAC. */
   bool gw_macs_reload_requested;
 
   /* Mac */
   MacHash *macs_hash; /**< Hash used to store MAC information. */
 
   /* Autonomous Systems */
-  AutonomousSystemHash
-  *ases_hash; /**< Hash used to store Autonomous Systems information. */
+  AutonomousSystemHash *ases_hash; /**< Hash used to store Autonomous Systems information. */
 
   /* Observation Point */
   u_int16_t last_obs_point_id;
-  ObservationPointHash
-  *obs_hash; /**< Hash used to store Observation Point information. */
+  ObservationPointHash *obs_hash; /**< Hash used to store Observation Point information. */
 
   /* Operating Systems */
-  OperatingSystemHash
-  *oses_hash; /**< Hash used to store Operating Systems information. */
+  OperatingSystemHash *oses_hash; /**< Hash used to store Operating Systems information. */
 
   /* Countries */
   CountriesHash *countries_hash;
@@ -329,7 +325,7 @@ protected:
     last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge, next_idle_other_purge;
   bool running, shutting_down, is_idle;
-  NetworkStats **networkStats;
+  NetworkStats **networkStats; /* One stats entry per network defined (-m) */
   InterfaceStatsHash *interfaceStats;
   dhcp_range *dhcp_ranges, *dhcp_ranges_shadow;
 

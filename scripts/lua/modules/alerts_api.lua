@@ -14,7 +14,6 @@ local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
 local recipients = require "recipients"
 local alert_entity_builders = require "alert_entity_builders"
-local alert_management = require "alert_management"
 local do_trace = false
 
 local alerts_api = {}
@@ -420,9 +419,9 @@ function alerts_api.release(entity_info, type_info, when, cur_alerts)
 
     if (entity_info.alert_entity.entity_id == alert_consts.alertEntity("interface")) then
         if (interface.checkContext(entity_info.entity_val) == false) then
---            alertErrorTraceback("Invalid interface context detected for entity id " ..
---                                    entity_info.alert_entity.entity_id)
---            tprint(entity_info)
+            --            alertErrorTraceback("Invalid interface context detected for entity id " ..
+            --                                    entity_info.alert_entity.entity_id)
+            --            tprint(entity_info)
             return (false)
         else
             released = interface.releaseTriggeredAlert(table.unpack(params))
@@ -464,6 +463,7 @@ end
 -- ##############################################
 
 function alerts_api.releaseAllAlerts()
+    local alert_management = require "alert_management"
     local alerts = interface.getEngagedAlerts()
     alert_management.releaseEntityAlerts(nil, alerts)
 end
@@ -621,9 +621,5 @@ function alerts_api.setCheck(check)
 end
 
 -- ##############################################
-
-if (trace_script_duration ~= nil) then
-    io.write(debug.getinfo(1, 'S').source .. " executed in " .. (os.clock() - clock_start) * 1000 .. " ms\n")
-end
 
 return (alerts_api)

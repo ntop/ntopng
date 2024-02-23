@@ -116,7 +116,7 @@ class Ntop {
   MessageBroker *message_broker;
 #endif
 #ifdef HAVE_NEDGE
-  std::vector<Forwarder*> multicastForwarders;
+  std::vector<PacketForwarder*> multicastForwarders;
 #endif
 
   /* Local network address list */

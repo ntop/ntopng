@@ -27,13 +27,16 @@
 class NetworkInterface;
 class HostAlert;
 
+
+typedef struct {
+  HostAlertBitmap engaged_alerts_map;
+  HostAlert *engaged_alerts[NUM_DEFINED_HOST_CHECKS]; /* List of engaged alerts for each check */
+} EngagedAlertsInfo;
+
 class HostAlertableEntity : public AlertableEntity {
  private:
-  HostAlertBitmap engaged_alerts_map;
-
-  HostAlert *engaged_alerts[NUM_DEFINED_HOST_CHECKS]; /* List of engaged alerts
-                                                         for each check */
-
+  EngagedAlertsInfo *alerts;
+  
   void clearEngagedAlerts();
   void luaAlert(lua_State *vm, HostAlert *alert);
 
@@ -44,12 +47,10 @@ class HostAlertableEntity : public AlertableEntity {
   bool addEngagedAlert(HostAlert *a);
   bool removeEngagedAlert(HostAlert *a);
   inline bool isEngagedAlert(HostAlertType alert_id) {
-    return engaged_alerts_map.isSetBit(alert_id.id);
+    return(alerts && alerts->engaged_alerts_map.isSetBit(alert_id.id));
   }
   bool hasCheckEngagedAlert(HostCheckID check_id);
-  inline HostAlert *getCheckEngagedAlert(HostCheckID t) {
-    return engaged_alerts[t];
-  }
+  HostAlert* getCheckEngagedAlert(HostCheckID t);
   HostAlert *findEngagedAlert(HostAlertType alert_id, HostCheckID check_id);
 
   void countAlerts(grouped_alerts_counters *counters);

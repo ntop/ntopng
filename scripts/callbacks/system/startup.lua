@@ -10,18 +10,14 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
-
-require "lua_utils"
-
 -- Important: load this before any other alert related module
-local script_manager = require "script_manager"
-script_manager.loadScripts()
+local checks = require "checks"
+checks.loadChecks()
 
 local recipients = require "recipients"
 recipients.initialize()
 
 local alert_utils = require "alert_utils"
-
 local discover_utils = require "discover_utils"
 local host_pools_nedge = require "host_pools_nedge"
 local os_utils = require "os_utils"

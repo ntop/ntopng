@@ -90,8 +90,19 @@ function start_datatable(DatatableVue) {
   /* Standard table configuration */  
 
   columns = [
-    { columnName: i18n("ja3_client_fingerprint"), name: 'ja3', data: 'ja3', className: 'text-nowrap', render: (data, type) => {
-        return `<a class="ntopng-external-link" href="https://sslbl.abuse.ch/ja3-fingerprints/${data}">${data} <i class="fas fa-external-link-alt"></i></a>`;
+    {
+      columnName: i18n("client_fingerprint_type"), name: 'type', data: 'type', className: 'text-nowrap', render: (data, type) => {
+        if (data == 'JA3')
+          return `<a class="ntopng-external-link" href="https://github.com/salesforce/ja3">${data} <i class="fas fa-external-link-alt"></i></a>`;
+        else
+          return `<a class="ntopng-external-link" href="https://github.com/FoxIO-LLC/ja4">${data} <i class="fas fa-external-link-alt"></i></a>`;
+
+      }, responsivePriority: 0, createdCell: DataTableRenders.applyCellStyle },
+    { columnName: i18n("client_fingerprint"), name: 'hash', data: 'hash', className: 'text-nowrap', render: (data, type, rowData) => {
+      if (rowData.type == 'JA3')
+        return `<a class="ntopng-external-link" style="max-width:315px" href="https://sslbl.abuse.ch/ja3-fingerprints/${data}">${data} <i class="fas fa-external-link-alt"></i></a>`;
+      else
+        return data;
       }, responsivePriority: 0, createdCell: DataTableRenders.applyCellStyle },
     { columnName: i18n("status"), name: 'is_malicious', data: 'is_malicious', className: 'text-nowrap text-center', responsivePriority: 0, render: (data, type) => {
         return (data ? `<i class="fa-solid fa-face-frown text-danger" title="${i18n('malicious')}"></i>` : `<i class="fa-solid fa-face-smile text-success" title="${i18n('ok')}"></i>`);

@@ -11,6 +11,7 @@
 local dirs = ntop.getDirs()
 
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 
 local rest_utils = require("rest_utils")
 local ts_data = require("ts_data")

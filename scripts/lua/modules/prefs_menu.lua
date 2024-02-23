@@ -356,6 +356,10 @@ local menu_subpages = {{
             title = i18n("prefs.toggle_host_mask_title"),
             description = i18n("prefs.toggle_host_mask_description")
         },
+        toggle_fingerprint_stats = {
+            title = i18n("prefs.toggle_fingerprint_stats_title"),
+            description = i18n("prefs.toggle_fingerprint_stats_description")
+        }, 
         toggle_use_mac_in_flow_key = {
             title = i18n("prefs.toggle_use_mac_in_flow_key_title"),
             description = i18n("prefs.toggle_use_mac_in_flow_key_description")

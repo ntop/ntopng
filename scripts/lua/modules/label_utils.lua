@@ -139,6 +139,31 @@ function shortenCollapse(s, max_len)
 end
 
 -- ##############################################
+
+function getDhcpNameKey(ifid, mac)
+    return string.format("ntopng.dhcp.%d.cache.%s", ifid, mac)
+end
+
+-- ##############################################
+
+function mac2label(mac)
+   local alt_name = getHostAltName(mac)
+
+   if not isEmptyString(alt_name) and (alt_name ~= mac) then
+      return(alt_name)
+   end
+
+   alt_name = ntop.getCache(getDhcpNameKey(interface.getId(), mac))
+
+   if not isEmptyString(alt_name) and (alt_name ~= mac) then
+      return(alt_name)
+   end
+
+   -- Fallback: just the MAC
+   return(mac)
+end
+
+-- ##############################################
 -- Just a convenience function for hostinfo2label with only IP and VLAN
 function ip2label(ip, vlan, shorten_len)
     return hostinfo2label({

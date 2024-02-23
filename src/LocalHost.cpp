@@ -158,6 +158,11 @@ void LocalHost::initialize() {
 #ifdef HAVE_NEDGE
   drop_all_host_traffic = 0;
 #endif
+
+  if (ntop->getPrefs()->enableFingerprintStats())
+    fingerprints = new (std::nothrow) HostFingerprints();
+  else
+    fingerprints = NULL;
 }
 
 /* *************************************** */
@@ -484,10 +489,12 @@ void LocalHost::freeLocalHostData() {
     os_detail = NULL;
   }
 
-  for (std::unordered_map<u_int32_t, DoHDoTStats *>::iterator it =
-           doh_dot_map.begin();
+  for (std::unordered_map<u_int32_t, DoHDoTStats *>::iterator it = doh_dot_map.begin();
        it != doh_dot_map.end(); ++it)
     delete it->second;
+
+  if(fingerprints)
+    delete fingerprints;
 }
 
 /* *************************************** */
@@ -623,3 +630,14 @@ void LocalHost::setRxOnlyHost(bool set_it) {
     }
   }
 }
+
+/* ***************************************************** */
+
+void LocalHost::lua_get_fingerprints(lua_State *vm) {
+  if(fingerprints) {
+    fingerprints->ja3.lua("ja3_fingerprint", vm);
+    fingerprints->ja4.lua("ja4_fingerprint", vm);
+    fingerprints->hassh.lua("hassh_fingerprint", vm);
+  }
+}
+

@@ -39,9 +39,14 @@ class OtherAlertableEntity : public AlertableEntity {
     cannot call it, engaged_alerts needs to be protected as
     - it can be called by the Lua GUI
     - it can be called by the alert engine
+
+    In order to save memory, the std::map key is a hash 32 bit and not the
+    original string. Considered the number of entries this is a good
+    tradeoff with no false positives considered the limited value
+    cardinality.
   */
-  std::map<std::string, std::string> alert_cache[MAX_NUM_PERIODIC_SCRIPTS];
-  std::map<std::string, Alert> engaged_alerts[MAX_NUM_PERIODIC_SCRIPTS];
+  std::map<u_int32_t /* std::string */, std::string> alert_cache[MAX_NUM_PERIODIC_SCRIPTS];
+  std::map<u_int32_t /* std::string */, Alert> engaged_alerts[MAX_NUM_PERIODIC_SCRIPTS];
 
   void getPeriodicityAlerts(lua_State *vm, ScriptPeriodicity p,
                             AlertType type_filter, AlertLevel severity_filter,
@@ -56,15 +61,14 @@ class OtherAlertableEntity : public AlertableEntity {
     invoked only by periodic scripts and are not accessed by the GUI lua methods
   */
   inline std::string getAlertCachedValue(std::string key, ScriptPeriodicity p) {
-    std::map<std::string, std::string>::iterator it =
-        alert_cache[(u_int)p].find(key);
+    std::map<u_int32_t /* std::string */, std::string>::iterator it = alert_cache[(u_int)p].find(ndpi_hash_string(key.c_str()));
 
     return ((it != alert_cache[(u_int)p].end()) ? it->second : std::string(""));
   }
 
   inline void setAlertCacheValue(std::string key, std::string value,
                                  ScriptPeriodicity p) {
-    alert_cache[(u_int)p][key] = value;
+    alert_cache[(u_int)p][ndpi_hash_string(key.c_str())] = value;
   }
 
   bool triggerAlert(lua_State *vm, std::string key, ScriptPeriodicity p,

@@ -34,8 +34,7 @@ class AlertableEntity {
   u_int num_engaged_alerts;
 
  protected:
-  RwLock
-      engaged_alerts_lock; /* Lock to handle concurrent access from the GUI */
+  RwLock engaged_alerts_lock; /* Lock to handle concurrent access from the GUI */
 
   void incNumAlertsEngaged(AlertLevel alert_severity);
   void decNumAlertsEngaged(AlertLevel alert_severity);

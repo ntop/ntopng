@@ -543,8 +543,7 @@ int ntop_store_triggered_alert(lua_State *vm, OtherAlertableEntity *alertable,
 
   if (ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  if ((periodicity = (ScriptPeriodicity)lua_tointeger(vm, idx++)) >=
-      MAX_NUM_PERIODIC_SCRIPTS)
+  if ((periodicity = (ScriptPeriodicity)lua_tointeger(vm, idx++)) >= MAX_NUM_PERIODIC_SCRIPTS)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
   if (ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK)

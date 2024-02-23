@@ -683,6 +683,13 @@ if auth.has_capability(auth.capabilities.preferences) then
                 default = "0",
                 pref = "use_mac_in_flow_key"
             })
+
+            prefsToggleButton(subpage_active, {
+                field = "toggle_fingerprint_stats",
+                default = "0",
+                pref = "fingerprint_stats"
+            })
+
         end
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.flow_table") ..

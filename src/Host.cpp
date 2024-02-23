@@ -27,9 +27,9 @@ Host::Host(NetworkInterface *_iface, int32_t _iface_idx,
 	   char *ipAddress, u_int16_t _vlan_id,
            u_int16_t observation_point_id)
     : GenericHashEntry(_iface),
-      HostAlertableEntity(_iface, alert_entity_host),
       Score(_iface),
-      HostChecksStatus() {
+      HostChecksStatus(),
+      HostAlertableEntity(_iface, alert_entity_host) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   ip.set(ipAddress);
   initialize(NULL, _iface_idx, _vlan_id, observation_point_id);
@@ -41,9 +41,9 @@ Host::Host(NetworkInterface *_iface, int32_t _iface_idx,
 	   Mac *_mac, u_int16_t _vlan_id,
            u_int16_t observation_point_id, IpAddress *_ip)
     : GenericHashEntry(_iface),
-      HostAlertableEntity(_iface, alert_entity_host),
       Score(_iface),
-      HostChecksStatus() {
+      HostChecksStatus(),
+      HostAlertableEntity(_iface, alert_entity_host) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   
   ip.set(_ip);
@@ -177,8 +177,7 @@ u_int16_t Host::decScoreValue(u_int16_t score_decr,
 /* *************************************** */
 
 void Host::updateSynAlertsCounter(time_t when, bool syn_sent) {
-  AlertCounter *counter =
-      syn_sent ? syn_flood.attacker_counter : syn_flood.victim_counter;
+  AlertCounter *counter = syn_sent ? syn_flood.attacker_counter : syn_flood.victim_counter;
 
   counter->inc(when, this);
 
@@ -197,8 +196,7 @@ void Host::updateFinAlertsCounter(time_t when, bool fin_sent) {
 /* *************************************** */
 
 void Host::updateRstAlertsCounter(time_t when, bool rst_sent) {
-  AlertCounter *counter =
-      rst_sent ? rst_scan.attacker_counter : rst_scan.victim_counter;
+  AlertCounter *counter = rst_sent ? rst_scan.attacker_counter : rst_scan.victim_counter;
 
   counter->inc(when, this);
 }
@@ -213,8 +211,7 @@ void Host::updateFinAckAlertsCounter(time_t when, bool finack_sent) {
 /* *************************************** */
 
 void Host::updateICMPAlertsCounter(time_t when, bool icmp_sent) {
-  AlertCounter *counter =
-      icmp_sent ? icmp_flood.attacker_counter : icmp_flood.victim_counter;
+  AlertCounter *counter = icmp_sent ? icmp_flood.attacker_counter : icmp_flood.victim_counter;
 
   counter->inc(when, this);
 }
@@ -222,8 +219,7 @@ void Host::updateICMPAlertsCounter(time_t when, bool icmp_sent) {
 /* *************************************** */
 
 void Host::updateDNSAlertsCounter(time_t when, bool dns_sent) {
-  AlertCounter *counter =
-      dns_sent ? dns_flood.attacker_counter : dns_flood.victim_counter;
+  AlertCounter *counter = dns_sent ? dns_flood.attacker_counter : dns_flood.victim_counter;
 
   counter->inc(when, this);
 }
@@ -231,8 +227,7 @@ void Host::updateDNSAlertsCounter(time_t when, bool dns_sent) {
 /* *************************************** */
 
 void Host::updateSNMPAlertsCounter(time_t when, bool snmp_sent) {
-  AlertCounter *counter =
-      snmp_sent ? snmp_flood.attacker_counter : snmp_flood.victim_counter;
+  AlertCounter *counter = snmp_sent ? snmp_flood.attacker_counter : snmp_flood.victim_counter;
 
   counter->inc(when, this);
 }
@@ -838,13 +833,6 @@ void Host::lua_get_num_contacts(lua_State *vm) {
 
 void Host::lua_get_num_http_hosts(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "active_http_hosts", getActiveHTTPHosts());
-}
-
-/* ***************************************************** */
-
-void Host::lua_get_fingerprints(lua_State *vm) {
-  fingerprints.ja3.lua("ja3_fingerprint", vm);
-  fingerprints.hassh.lua("hassh_fingerprint", vm);
 }
 
 /* ***************************************************** */
