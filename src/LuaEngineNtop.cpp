@@ -7641,14 +7641,6 @@ static int m_broker_rpc_call(lua_State  *vm) {
   }
 }
 
-static int m_broker_check_status(lua_State  *vm) {
-  MessageBroker *message_broker = ntop->getMessageBroker();
-  if (message_broker == NULL)
-    lua_pushboolean(vm, false);
-  else
-    lua_pushboolean(vm, message_broker->checkStatus());
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
 #endif /* defined(NTOPNG_PRO) */
 
 /* **************************************************************** */
@@ -8089,7 +8081,6 @@ static luaL_Reg _ntop_reg[] = {
     /* TODO: move to message_broker engine*/
     {"publish", m_broker_publish },
     {"rpcCall", m_broker_rpc_call },
-    {"checkStatus", m_broker_check_status },
 #endif
     {NULL, NULL}
 };

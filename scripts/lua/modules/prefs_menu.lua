@@ -22,8 +22,8 @@ if ntop.isPro() or ntop.isnEdgeEnterprise() then
         flow_db_utils = require("flow_db_utils")
         _, max_nindex_retention = flow_db_utils.getRetention()
     end
+    
     message_broker_api = require "message_broker_api"
-
 end
 
 -- This table is used both to control access to the preferences and to filter preferences results
@@ -309,8 +309,9 @@ local menu_subpages = {{
     id = "message_broker",
     label = i18n("prefs.message_broker"),
     advanced = false,
-    pro_only = false,
-    hidden = not (ntop.isEnterpriseM()) or not (message_broker_api and message_broker_api.checkStatus()),
+    pro_only = false,    
+    hidden = not (ntop.isEnterpriseM()) or not (message_broker_api -- and message_broker_api.checkStatus()
+					       ),
     entries = {
         toggle_message_broker = {
             title = i18n("prefs.toggle_message_broker_title"),
