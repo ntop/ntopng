@@ -315,7 +315,7 @@ static int ntop_setDomainMask(lua_State *vm) {
 
   domain = lua_tostring(vm, 1);
 
-  rc = ntop->getSystemInterface()->setDomainMask(domain, 0 /* mask all */);
+  rc = ntop->nDPISetDomainMask(domain, 0 /* mask all */);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, rc));
 }

@@ -3398,6 +3398,18 @@ int Ntop::nDPILoadMaliciousJA3Signatures(const char *file_path) {
 
 /* ******************************************* */
 
+int Ntop::nDPISetDomainMask(const char *domain, u_int64_t domain_mask) {
+  int rc = 0;
+
+  for (u_int i = 0; i < get_num_interfaces(); i++)
+    if (getInterface(i))
+      rc = getInterface(i)->setDomainMask(domain, domain_mask);
+
+  return (rc /* last one returned */);
+}
+
+/* ******************************************* */
+
 ndpi_protocol_category_t Ntop::get_ndpi_proto_category(u_int protoid) {
   for (u_int i = 0; i < get_num_interfaces(); i++)
     if (getInterface(i))

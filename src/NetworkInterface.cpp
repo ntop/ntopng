@@ -444,7 +444,7 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
 
 /* **************************************************** */
 
-/* Operations are performed in the followinf order:
+/* Operations are performed in the following order:
  *
  * 1. initnDPIReload()
  * 2. ... nDPILoadIPCategory/nDPILoadHostnameCategory() ...
@@ -509,6 +509,7 @@ void NetworkInterface::finalizenDPIReload() {
     ndpi_struct = ndpi_struct_shadow;
     ndpi_struct_shadow = old_struct;
 
+    /* Update hosts policies based on nDPi configuration */
     reloadHostsBlacklist();
 
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "nDPI reload completed");
@@ -566,12 +567,13 @@ bool NetworkInterface::nDPILoadIPCategory(char *what,
 bool NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, char *list_name /* NOT used */) {
   bool success = true;
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__,
-  // ndpi_struct_shadow, what);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
 
   if (what && ndpi_struct_shadow)
     success = (ndpi_load_hostname_category(ndpi_struct_shadow, what, id) == 0);
-
+  else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
+  
   return success;
 }
 
@@ -580,21 +582,26 @@ bool NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_catego
 int NetworkInterface::nDPILoadMaliciousJA3Signatures(const char *file_path) {
   int n = 0;
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__,
-  // ndpi_struct_shadow, what);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, file_path);
 
   if (file_path && ndpi_struct_shadow)
     n = ndpi_load_malicious_ja3_file(ndpi_struct_shadow, file_path);
-
+  else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
+  
   return n;
 }
 
 /* *************************************** */
 
 int NetworkInterface::setDomainMask(const char *domain, u_int64_t domain_mask) {
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, domain);
+  
   if(domain && ndpi_struct_shadow)
     return(ndpi_add_host_risk_mask(ndpi_struct_shadow, (char*)domain, domain_mask));
-
+  else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
+  
   return(-1);
 }
 
