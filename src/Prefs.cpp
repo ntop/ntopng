@@ -878,126 +878,86 @@ void Prefs::reloadPrefsFromRedis() {
     getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_NUM_FLOWS_ENABLED, false);
 #endif
   // alert preferences
-  enable_access_log =
-    getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
+  enable_access_log = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
   enable_sql_log = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SQL_LOG, false);
-  use_mac_in_flow_key =
-    getDefaultPrefsValue(CONST_PREFS_USE_MAC_IN_FLOW_KEY, false);
-  fingerprint_stats = 
-    getDefaultPrefsValue(CONST_PREFS_FINGERPRINT_STATS, false);
+  use_mac_in_flow_key = getDefaultPrefsValue(CONST_PREFS_USE_MAC_IN_FLOW_KEY, false);
+  fingerprint_stats = getDefaultPrefsValue(CONST_PREFS_FINGERPRINT_STATS, false);
   // vulnerability scan preferences
-  vs_max_num_scans =
-    getDefaultPrefsValue(CONST_VS_MAX_NUM_SCANS, 4);
-  vs_slow_scan =
-    getDefaultBoolPrefsValue(CONST_VS_SLOW_SCAN, false);
+  vs_max_num_scans = getDefaultPrefsValue(CONST_VS_MAX_NUM_SCANS, 4);
+  vs_slow_scan = getDefaultBoolPrefsValue(CONST_VS_SLOW_SCAN, false);
   // auth session preferences
-  auth_session_duration = getDefaultPrefsValue(
-					       CONST_AUTH_SESSION_DURATION_PREFS, HTTP_SESSION_DURATION),
-    auth_session_midnight_expiration = getDefaultBoolPrefsValue(
-								CONST_AUTH_SESSION_MIDNIGHT_EXP_PREFS, HTTP_SESSION_MIDNIGHT_EXPIRATION);
+  auth_session_duration = getDefaultPrefsValue(CONST_AUTH_SESSION_DURATION_PREFS,
+					       HTTP_SESSION_DURATION),
+    auth_session_midnight_expiration = getDefaultBoolPrefsValue(CONST_AUTH_SESSION_MIDNIGHT_EXP_PREFS,
+								HTTP_SESSION_MIDNIGHT_EXPIRATION);
 
   /* Runtime Preferences */
-  housekeeping_frequency = getDefaultPrefsValue(
-						CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQ, HOUSEKEEPING_FREQUENCY),
-    local_host_cache_duration = getDefaultPrefsValue(
-						     CONST_LOCAL_HOST_CACHE_DURATION_PREFS, LOCAL_HOSTS_CACHE_DURATION),
-    local_host_max_idle =
-    getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE),
-    non_local_host_max_idle =
-    getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE),
-    pkt_ifaces_flow_max_idle =
-    getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE),
-    active_local_hosts_cache_interval =
-    getDefaultPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL,
-			 CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL),
+  housekeeping_frequency = getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQ, HOUSEKEEPING_FREQUENCY),
+    local_host_cache_duration = getDefaultPrefsValue(CONST_LOCAL_HOST_CACHE_DURATION_PREFS, LOCAL_HOSTS_CACHE_DURATION),
+    local_host_max_idle = getDefaultPrefsValue(CONST_LOCAL_HOST_IDLE_PREFS, MAX_LOCAL_HOST_IDLE),
+    non_local_host_max_idle = getDefaultPrefsValue(CONST_REMOTE_HOST_IDLE_PREFS, MAX_REMOTE_HOST_IDLE),
+    pkt_ifaces_flow_max_idle = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE),
+    active_local_hosts_cache_interval = getDefaultPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL,
+							     CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL),
 
-    log_to_file =
-    getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_LOG_TO_FILE, false);
-  intf_rrd_raw_days =
-    getDefaultPrefsValue(CONST_INTF_RRD_RAW_DAYS, INTF_RRD_RAW_DAYS),
-    intf_rrd_1min_days =
-    getDefaultPrefsValue(CONST_INTF_RRD_1MIN_DAYS, INTF_RRD_1MIN_DAYS),
-    intf_rrd_1h_days =
-    getDefaultPrefsValue(CONST_INTF_RRD_1H_DAYS, INTF_RRD_1H_DAYS),
-    intf_rrd_1d_days =
-    getDefaultPrefsValue(CONST_INTF_RRD_1D_DAYS, INTF_RRD_1D_DAYS),
-    other_rrd_raw_days =
-    getDefaultPrefsValue(CONST_OTHER_RRD_RAW_DAYS, OTHER_RRD_RAW_DAYS),
-    other_rrd_1min_days =
-    getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS),
-    other_rrd_1h_days =
-    getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS),
-    other_rrd_1d_days =
-    getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS),
+    log_to_file = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_LOG_TO_FILE, false);
+  intf_rrd_raw_days = getDefaultPrefsValue(CONST_INTF_RRD_RAW_DAYS, INTF_RRD_RAW_DAYS),
+    intf_rrd_1min_days = getDefaultPrefsValue(CONST_INTF_RRD_1MIN_DAYS, INTF_RRD_1MIN_DAYS),
+    intf_rrd_1h_days = getDefaultPrefsValue(CONST_INTF_RRD_1H_DAYS, INTF_RRD_1H_DAYS),
+    intf_rrd_1d_days = getDefaultPrefsValue(CONST_INTF_RRD_1D_DAYS, INTF_RRD_1D_DAYS),
+    other_rrd_raw_days = getDefaultPrefsValue(CONST_OTHER_RRD_RAW_DAYS, OTHER_RRD_RAW_DAYS),
+    other_rrd_1min_days = getDefaultPrefsValue(CONST_OTHER_RRD_1MIN_DAYS, OTHER_RRD_1MIN_DAYS),
+    other_rrd_1h_days = getDefaultPrefsValue(CONST_OTHER_RRD_1H_DAYS, OTHER_RRD_1H_DAYS),
+    other_rrd_1d_days = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS),
 
-    enable_top_talkers = getDefaultBoolPrefsValue(
-						  CONST_TOP_TALKERS_ENABLED, CONST_DEFAULT_TOP_TALKERS_ENABLED),
-    enable_active_local_hosts_cache = getDefaultBoolPrefsValue(
-							       CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
+    enable_top_talkers = getDefaultBoolPrefsValue(CONST_TOP_TALKERS_ENABLED, CONST_DEFAULT_TOP_TALKERS_ENABLED),
+    enable_active_local_hosts_cache = getDefaultBoolPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
 							       CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED),
-    enable_tiny_flows_export =
-    getDefaultBoolPrefsValue(CONST_IS_TINY_FLOW_EXPORT_ENABLED,
-			     CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED),
-
+    enable_tiny_flows_export = getDefaultBoolPrefsValue(CONST_IS_TINY_FLOW_EXPORT_ENABLED,
+							CONST_DEFAULT_IS_TINY_FLOW_EXPORT_ENABLED),
+    
     max_entity_alerts = getDefaultPrefsValue(CONST_MAX_ENTITY_ALERTS,
 					     ALERTS_MANAGER_MAX_ENTITY_ALERTS),
-    max_num_secs_before_delete_alert = getDefaultPrefsValue(
-							    CONST_MAX_NUM_SECS_ALERTS_BEFORE_DEL, ALERTS_MAX_SECS_BEFORE_PURGE),
+    max_num_secs_before_delete_alert = getDefaultPrefsValue(CONST_MAX_NUM_SECS_ALERTS_BEFORE_DEL,
+							    ALERTS_MAX_SECS_BEFORE_PURGE),
     alert_page_refresh_rate = getDefaultPrefsValue(CONST_ALERT_PAGE_REFRESH_RATE,
 						   ALERTS_PAGE_REFRESH_RATE),
-    enable_observation_points_rrd_creation = getDefaultBoolPrefsValue(
-								      CONST_RUNTIME_PREFS_OBSERVATION_POINTS_RRD_CREATION, false),
-    enable_intranet_traffic_rrd_creation = getDefaultBoolPrefsValue(
-								    CONST_RUNTIME_PREFS_INTRANET_TRAFFIC_RRD_CREATION, false),
-    enable_flow_device_port_rrd_creation = getDefaultBoolPrefsValue(
-								    CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION, false),
+    enable_observation_points_rrd_creation = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_OBSERVATION_POINTS_RRD_CREATION, false),
+    enable_intranet_traffic_rrd_creation = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_INTRANET_TRAFFIC_RRD_CREATION, false),
+    enable_flow_device_port_rrd_creation = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION, false),
     disable_alerts = getDefaultBoolPrefsValue(CONST_ALERT_DISABLED_PREFS, false),
-    enable_activities_debug =
-    getDefaultBoolPrefsValue(CONST_ACTIVITIES_DEBUG_ENABLED, false),
+    enable_activities_debug = getDefaultBoolPrefsValue(CONST_ACTIVITIES_DEBUG_ENABLED, false),
     snmp_polling = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SNMP_POLLING, false);
-    active_monitoring = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACTIVE_MONITORING, false);
+  active_monitoring = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACTIVE_MONITORING, false);
 
-    enable_arp_matrix_generation =
+  enable_arp_matrix_generation =
     getDefaultBoolPrefsValue(CONST_DEFAULT_ARP_MATRIX_GENERATION, false),
 
-    override_dst_with_post_nat_dst =
-    getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT, false),
-    override_src_with_post_nat_src =
-    getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT, false),
+    override_dst_with_post_nat_dst = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_DST_WITH_POST_NAT, false),
+    override_src_with_post_nat_src = getDefaultBoolPrefsValue(CONST_DEFAULT_OVERRIDE_SRC_WITH_POST_NAT, false),
 
-    max_num_packets_per_tiny_flow =
-    getDefaultPrefsValue(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW,
-			 CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW),
-    dump_frequency =
-    getDefaultPrefsValue(CONST_DUMP_FREQUENCY, ES_BULK_MAX_DELAY),
-    max_num_bytes_per_tiny_flow =
-    getDefaultPrefsValue(CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
-			 CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW),
-    max_extracted_pcap_bytes = getDefaultPrefsValue(
-						    CONST_MAX_EXTR_PCAP_BYTES, CONST_DEFAULT_MAX_EXTR_PCAP_BYTES);
+    max_num_packets_per_tiny_flow =  getDefaultPrefsValue(CONST_MAX_NUM_PACKETS_PER_TINY_FLOW,
+							  CONST_DEFAULT_MAX_NUM_PACKETS_PER_TINY_FLOW),
+    dump_frequency = getDefaultPrefsValue(CONST_DUMP_FREQUENCY, ES_BULK_MAX_DELAY),
+    max_num_bytes_per_tiny_flow = getDefaultPrefsValue(CONST_MAX_NUM_BYTES_PER_TINY_FLOW,
+						       CONST_DEFAULT_MAX_NUM_BYTES_PER_TINY_FLOW),
+    max_extracted_pcap_bytes = getDefaultPrefsValue(CONST_MAX_EXTR_PCAP_BYTES, CONST_DEFAULT_MAX_EXTR_PCAP_BYTES);
 
   ewma_alpha_percent = getDefaultPrefsValue(CONST_EWMA_ALPHA_PERCENT,
-                                            CONST_DEFAULT_EWMA_ALPHA_PERCENT);
-
-  enable_captive_portal =
-    getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false);
-  mac_based_captive_portal =
-    getDefaultBoolPrefsValue(CONST_PREFS_MAC_CAPTIVE_PORTAL, true);
-  enable_informative_captive_portal =
-    getDefaultBoolPrefsValue(CONST_PREFS_INFORM_CAPTIVE_PORTAL, false);
-  enable_external_auth_captive_portal =
-    getDefaultBoolPrefsValue(CONST_PREFS_EXTERNAL_AUTH, false);
-  enable_vlan_trunk_bridge =
-    getDefaultBoolPrefsValue(CONST_PREFS_VLAN_TRUNK_MODE_ENABLED, false);
-  default_l7policy =
-    getDefaultPrefsValue(CONST_PREFS_DEFAULT_L7_POLICY, PASS_ALL_SHAPER_ID);
+					    CONST_DEFAULT_EWMA_ALPHA_PERCENT);
+    
+  enable_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_CAPTIVE_PORTAL, false);
+  mac_based_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_MAC_CAPTIVE_PORTAL, true);
+  enable_informative_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_INFORM_CAPTIVE_PORTAL, false);
+  enable_external_auth_captive_portal = getDefaultBoolPrefsValue(CONST_PREFS_EXTERNAL_AUTH, false);
+  enable_vlan_trunk_bridge = getDefaultBoolPrefsValue(CONST_PREFS_VLAN_TRUNK_MODE_ENABLED, false);
+  default_l7policy = getDefaultPrefsValue(CONST_PREFS_DEFAULT_L7_POLICY, PASS_ALL_SHAPER_ID);
 
   max_ui_strlen = getDefaultPrefsValue(CONST_RUNTIME_MAX_UI_STRLEN,
-					 CONST_DEFAULT_MAX_UI_STRLEN);
+				       CONST_DEFAULT_MAX_UI_STRLEN);
   hostMask = (HostMask)getDefaultPrefsValue(CONST_RUNTIME_PREFS_HOSTMASK,
-					      no_host_mask);
-  flow_table_time =
-    (bool)getDefaultPrefsValue(CONST_FLOW_TABLE_TIME, flow_table_time);
+					    no_host_mask);
+  flow_table_time = (bool)getDefaultPrefsValue(CONST_FLOW_TABLE_TIME, flow_table_time);
   flow_table_probe_order = (bool)getDefaultPrefsValue(CONST_FLOW_TABLE_PROBE_ORDER, flow_table_probe_order);
   auto_assigned_pool_id = (u_int16_t)getDefaultPrefsValue(CONST_RUNTIME_PREFS_AUTO_ASSIGNED_POOL_ID, NO_HOST_POOL_ID);
   enable_broadcast_domain_too_large = getDefaultBoolPrefsValue(CONST_PREFS_BROADCAST_DOMAIN_TOO_LARGE, false);
@@ -1084,38 +1044,28 @@ void Prefs::reloadPrefsFromRedis() {
 
 void Prefs::refreshBehaviourAnalysis() {
   enable_behaviour_analysis = is_enterprise_l_edition();
-  enable_asn_behaviour_analysis =
-    getDefaultBoolPrefsValue(CONST_PREFS_ASN_BEHAVIOR_ANALYSIS, false);
-  enable_network_behaviour_analysis =
-    getDefaultBoolPrefsValue(CONST_PREFS_NETWORK_BEHAVIOR_ANALYSIS, false);
-  enable_iface_l7_behaviour_analysis =
-    getDefaultBoolPrefsValue(CONST_PREFS_IFACE_L7_BEHAVIOR_ANALYSIS, false);
-  behaviour_analysis_learning_period =
-    getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD,
-			 CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD);
+  enable_asn_behaviour_analysis = getDefaultBoolPrefsValue(CONST_PREFS_ASN_BEHAVIOR_ANALYSIS, false);
+  enable_network_behaviour_analysis = getDefaultBoolPrefsValue(CONST_PREFS_NETWORK_BEHAVIOR_ANALYSIS, false);
+  enable_iface_l7_behaviour_analysis = getDefaultBoolPrefsValue(CONST_PREFS_IFACE_L7_BEHAVIOR_ANALYSIS, false);
+  behaviour_analysis_learning_period = getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD,
+							    CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD);
   behaviour_analysis_learning_status_during_learning =
-    (ServiceAcceptance)getDefaultPrefsValue(
-					    CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_DURING_LEARNING,
+    (ServiceAcceptance)getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_DURING_LEARNING,
 					    service_allowed);
   behaviour_analysis_learning_status_post_learning =
-    (ServiceAcceptance)getDefaultPrefsValue(
-					    CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_POST_LEARNING, service_allowed);
-  iec60870_learning_period =
-    getDefaultPrefsValue(CONST_PREFS_IEC60870_ANALYSIS_LEARNING_PERIOD,
-			 CONST_IEC104_LEARNING_TIME);
-  modbus_learning_period =
-    getDefaultPrefsValue(CONST_PREFS_MODBUS_ANALYSIS_LEARNING_PERIOD,
-			 CONST_MODBUS_LEARNING_TIME);
-  devices_learning_period =
-    getDefaultPrefsValue(CONST_PREFS_DEVICES_ANALYSIS_LEARNING_PERIOD,
-			 CONST_DEVICES_LEARNING_TIME);
+    (ServiceAcceptance)getDefaultPrefsValue(CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_POST_LEARNING, service_allowed);
+  iec60870_learning_period = getDefaultPrefsValue(CONST_PREFS_IEC60870_ANALYSIS_LEARNING_PERIOD,
+						  CONST_IEC104_LEARNING_TIME);
+  modbus_learning_period = getDefaultPrefsValue(CONST_PREFS_MODBUS_ANALYSIS_LEARNING_PERIOD,
+						CONST_MODBUS_LEARNING_TIME);
+  devices_learning_period = getDefaultPrefsValue(CONST_PREFS_DEVICES_ANALYSIS_LEARNING_PERIOD,
+						 CONST_DEVICES_LEARNING_TIME);
 }
 
 /* ******************************************* */
 
 void Prefs::loadInstanceNameDefaults() {
-  // Do not re-set the interface name if it has already been set via command
-  // line
+  // Do not re-set the interface name if it has already been set via command line
   if (instance_name || !ntop)
     return;
   else {
