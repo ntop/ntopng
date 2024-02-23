@@ -1183,7 +1183,7 @@ else
     end
 
     if ((flow["protos.tls.ja4.client_hash"] ~= nil)) then
-        print('<tr><th width=30%><A HREF="https://github.com/FoxIO-LLC/ja4">JA4C</A></th><td>')
+        print('<tr><th width=30%><A HREF="https://github.com/FoxIO-LLC/ja4">JA4</A></th><td>')
         if (flow["protos.tls.ja4.client_malicious"]) then
             print('<font color=red><i class="fas fa-ban" title="' ..
                       i18n("alerts_dashboard.malicious_signature_detected") .. '"></i></font> ')
