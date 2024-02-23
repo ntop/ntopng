@@ -3886,7 +3886,6 @@ static int ntop_get_info(lua_State *vm) {
 #ifndef WIN32
   lua_push_uint64_table_entry(vm, "pid", getpid());
 #endif
-
 #ifdef HAVE_JEMALLOC
   lua_push_bool_table_entry(vm, "jemalloc", true);
 #endif
@@ -7584,6 +7583,74 @@ static int ntop_toggle_new_delete_trace(lua_State *vm) {
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
+#if defined(NTOPNG_PRO)
+
+/* **************************************************************** */
+
+static int m_broker_publish(lua_State  *vm) {
+  char *topic, *message;
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  topic = (char *)lua_tostring(vm, 1);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  message = (char *)lua_tostring(vm, 2);
+
+  MessageBroker *message_broker = ntop->getMessageBroker();
+  if (!message_broker)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+  if (message_broker->publish(topic,message)) 
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+  else
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+}
+
+/* **************************************************************** */
+
+static int m_broker_rpc_call(lua_State  *vm) {
+  char *topic, *message, rsp[BROKER_RPC_CALL_MAX_RSP_LEN];
+  u_int64_t timeout_ms;
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  topic = (char *)lua_tostring(vm, 1);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  message = (char *)lua_tostring(vm, 2);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TNUMBER) != CONST_LUA_OK)
+    timeout_ms = BROKER_RPC_CALL_DEFAULT_TIMEOUT_MS;
+  else
+    timeout_ms = (u_int64_t)lua_tonumber(vm, 3);
+
+  MessageBroker *message_broker = ntop->getMessageBroker();
+
+  if (!message_broker)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  
+  if (message_broker->rpcCall(topic, message, timeout_ms,(char*) rsp, BROKER_RPC_CALL_MAX_RSP_LEN)) {
+    lua_newtable(vm);
+    lua_push_str_table_entry(vm, "broker_rsp", rsp);
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+  } else {
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  }
+}
+
+static int m_broker_check_status(lua_State  *vm) {
+  MessageBroker *message_broker = ntop->getMessageBroker();
+  if (message_broker == NULL)
+    lua_pushboolean(vm, false);
+  else
+    lua_pushboolean(vm, message_broker->checkStatus());
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+#endif /* defined(NTOPNG_PRO) */
+
 /* **************************************************************** */
 
 static luaL_Reg _ntop_reg[] = {
@@ -8018,6 +8085,12 @@ static luaL_Reg _ntop_reg[] = {
     /* Debug */
     {"toggleNewDeleteTrace", ntop_toggle_new_delete_trace },
 
+#if defined(NTOPNG_PRO)
+    /* TODO: move to message_broker engine*/
+    {"publish", m_broker_publish },
+    {"rpcCall", m_broker_rpc_call },
+    {"checkStatus", m_broker_check_status },
+#endif
     {NULL, NULL}
 };
 

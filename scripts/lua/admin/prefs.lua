@@ -2152,9 +2152,17 @@ if auth.has_capability(auth.capabilities.preferences) then
             to_switch = elementsToSwitch
         })
 
+        local m_broker_type = ntop.getPref("ntopng.prefs.message_broker")
+        local default_broker_id
+        if (not isEmptyString(m_broker_type)) then
+            default_broker_id = m_broker_type
+        else
+            default_broker_id = brokers_list.ids[1]
+        end
+
         multipleTableButtonPrefs(subpage_active.entries["message_brokers_list"].title,
             subpage_active.entries["message_brokers_list"].description, brokers_list.names, brokers_list.ids,
-            brokers_list.ids[1], "primary", lint_preference, "message_broker", {nil}, nil, nil, nil, showElement --[[show]] )
+            default_broker_id, "primary", lint_preference, "ntopng.prefs.message_broker", {nil}, nil, nil, nil, showElement,default_broker_id  --[[show]] )
         
         prefsInputFieldPrefs(subpage_active.entries["message_broker_url"].title,
             subpage_active.entries["message_broker_url"].description, "ntopng.prefs.", "message_broker_url",

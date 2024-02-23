@@ -465,6 +465,7 @@ using namespace std;
 #ifdef NTOPNG_PRO
 #include "AssetManagement.h"
 #include "ModbusStats.h"
+#include "MessageBroker.h"
 #include "NatsBroker.h"
 #endif
 #include "IEC104Stats.h"
