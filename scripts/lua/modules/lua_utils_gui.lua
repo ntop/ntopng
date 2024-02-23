@@ -1141,8 +1141,8 @@ function format_tls_info(tls_info)
 
     if tls_info["ja3_server_hash"] then
         tls_info["ja3_server_hash"] = i18n("copy_button", {
-            full_name = tls_info["ja3_client_hash"],
-            name = tls_info["ja3_client_hash"]
+            full_name = tls_info["ja3_server_hash"],
+            name = tls_info["ja3_server_hash"]
         })
     end
 
