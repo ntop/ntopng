@@ -1010,10 +1010,9 @@ bool LuaEngine::setParamsTable(lua_State *vm,
               !Utils::dir_exists(decoded_buf) &&
               strcmp(tok, "pid_name") /* This is the only exception */
           )
-            ntop->getTrace()->traceEvent(
-                TRACE_WARNING,
-                "Discarded '%s'='%s' as argument is a valid file path", tok,
-                decoded_buf);
+            ntop->getTrace()->traceEvent(TRACE_WARNING,
+					 "Discarded '%s'='%s' as argument is a valid file path", tok,
+					 decoded_buf);
           else
             lua_push_str_table_entry(vm, tok, decoded_buf);
 
