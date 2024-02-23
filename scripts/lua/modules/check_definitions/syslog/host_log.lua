@@ -4,10 +4,8 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-require "lua_utils"
 
 local checks = require("checks")
-local syslog_utils = require "syslog_utils"
 
 local syslog_module = {
   -- Script category
@@ -44,6 +42,7 @@ end
 
 -- The function below is called for each received alert
 function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
+   local syslog_utils = require "syslog_utils"
    local num_unhandled = 0
    local num_alerts = 0
 

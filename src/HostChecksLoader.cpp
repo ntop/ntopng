@@ -65,15 +65,11 @@ void HostChecksLoader::registerChecks() {
   if ((fcb = new DNSServerContacts())) registerCheck(fcb);
   if ((fcb = new SMTPServerContacts())) registerCheck(fcb);
   if ((fcb = new NTPServerContacts())) registerCheck(fcb);
-  if ((fcb = new NTPTraffic())) registerCheck(fcb);
-  if ((fcb = new P2PTraffic())) registerCheck(fcb);
-  if ((fcb = new DNSTraffic())) registerCheck(fcb);
   if ((fcb = new RemoteConnection())) registerCheck(fcb);
   if ((fcb = new DangerousHost())) registerCheck(fcb);
   if ((fcb = new DomainNamesContacts())) registerCheck(fcb);
   if ((fcb = new ScoreThreshold())) registerCheck(fcb);
   if ((fcb = new ICMPFlood())) registerCheck(fcb);
-  if ((fcb = new PktThreshold())) registerCheck(fcb);
   if ((fcb = new ScanDetection())) registerCheck(fcb);
 
 #ifdef NTOPNG_PRO

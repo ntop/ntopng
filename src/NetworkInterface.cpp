@@ -10525,6 +10525,8 @@ static void get_engaged_alerts_callback(AlertEntity alert_entity,
                        data->alert_severity, data->role_filter, &data->idx);
 }
 
+/* *************************************** */
+
 void NetworkInterface::getEngagedAlerts(lua_State *vm, AlertEntity alert_entity,
                                         const char *entity_value,
                                         AlertType alert_type,

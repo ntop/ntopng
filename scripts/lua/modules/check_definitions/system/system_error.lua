@@ -1,14 +1,14 @@
 --
 -- (C) 2019-24 - ntop.org
 --
-local checks = require("checks")
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
+local alert_categories = require "alert_categories"
 local ERROR_QUEUE = "ntopng.trace_error.alert_queue"
 
 local script = {
     -- Script category
-    category = checks.check_categories.internals,
+    category = alert_categories.internals,
     severity = alert_consts.get_printable_severities().emergency,
     default_enabled = true,
 

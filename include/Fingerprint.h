@@ -44,4 +44,8 @@ class Fingerprint {
   void lua(const char *key, lua_State *vm);
 };
 
+typedef struct {
+  Fingerprint ja3, ja4, hassh;
+} HostFingerprints;
+
 #endif /* _FINGERPRINT_H_ */

@@ -4,8 +4,8 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local checks = require("checks")
 local alert_consts = require "alert_consts"
+local alert_categories = require "alert_categories"
 
 -- #################################################################
 
@@ -19,7 +19,7 @@ end
 
 local script = {
    -- Script category
-   category = checks.check_categories.network,
+   category = alert_categories.network,
    severity = alert_consts.get_printable_severities().warning,
 
    -- Off by default

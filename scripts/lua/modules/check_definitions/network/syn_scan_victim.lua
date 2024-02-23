@@ -4,13 +4,14 @@
 
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
-local checks = require("checks")
+local alert_categories = require "alert_categories"
+local field_units = require "field_units"
 
 local script = {
   packet_interface_only = true,
 
   -- Script category
-  category = checks.check_categories.security,
+  category = alert_categories.security,
   severity = alert_consts.get_printable_severities().error,
 
   -- This module is disabled by default
@@ -34,7 +35,7 @@ local script = {
     input_builder = "threshold_cross",
 
     -- Specific parameters of this input builder
-    i18n_field_unit = checks.field_units.syn_min,
+    i18n_field_unit = field_units.syn_min,
     -- max allowed threshold value
     field_max = 65535,
     -- min allowed threshold value

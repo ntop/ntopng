@@ -1959,6 +1959,7 @@ local known_parameters = {
    ["community_id"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- Community ID
    ["ja3_client"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["ja3_server"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
+   ["ja4_client"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["asn"] = validateNumber, -- An ASN number
    ["country_id"] = validateNumber, -- A Country Code
    ["module"] = validateTopModule, -- A top script module
@@ -2207,6 +2208,7 @@ local known_parameters = {
    ["toggle_src_with_post_nat_src"] = validateBool,
    ["toggle_behaviour_analysis"] = validateBool,
    ["toggle_use_mac_in_flow_key"] = validateBool,
+   ["toggle_fingerprint_stats"] = validateBool,
    ["behaviour_analysis_learning_period"] = validateNumber,
    ["behaviour_analysis_learning_status_during_learning"] = validateNumber,
    ["behaviour_analysis_learning_status_post_learning"] = validateNumber,
@@ -2603,6 +2605,7 @@ local known_parameters = {
    ["repeater_id"] = validateNumber,
    ["interfaces"] = validateSingleWord,
    ["interface_details"] = validateUnquoted,
+   ["keep_src_address"] = validateBool,
 
    -- Containers
    ["pod"] = validateSingleWord,

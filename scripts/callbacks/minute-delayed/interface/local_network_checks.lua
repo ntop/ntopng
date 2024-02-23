@@ -18,8 +18,6 @@ local checks_var = {
    network_entity = nil, 
    configset = nil,
    available_modules = nil,
-   do_benchmark = false,
-   do_print_benchmark = false
 }
 
 local granularity = "min"

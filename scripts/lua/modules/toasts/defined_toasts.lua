@@ -278,6 +278,16 @@ local defined_toats = {
         excluded_pages = EMPTY_PAGES,
         excluded_subpages = EMPTY_PAGES
     },
+    {
+        id = 25,
+        dismissable = false,
+        has_priority = false,
+        predicate = predicates.service_map,
+        pages = {pages.analysis_map.key},
+        subpages = EMPTY_PAGES,
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
+    },
 }
 
 return defined_toats

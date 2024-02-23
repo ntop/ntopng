@@ -30,6 +30,7 @@ class LocalHost : public Host {
   time_t initialization_time;
   LocalHostStats *initial_ts_point;
   UsedPorts usedPorts;
+  HostFingerprints *fingerprints;
   std::unordered_map<u_int32_t, DoHDoTStats *> doh_dot_map;
   u_int8_t router_mac[6]; /* MAC address pf the first router used (no Mac* to
                              avoid purging race conditions) */
@@ -196,6 +197,11 @@ class LocalHost : public Host {
       bool isTCP) {
     return (usedPorts.getServerPorts(isTCP));
   };
+
+  inline Fingerprint *getJA3Fingerprint()   { return (fingerprints ? &fingerprints->ja3  : NULL); }
+  inline Fingerprint *getJA4Fingerprint()   { return (fingerprints ? &fingerprints->ja4  : NULL); }
+  inline Fingerprint *getHASSHFingerprint() { return (fingerprints ? &fingerprints->hassh: NULL); }
+  void lua_get_fingerprints(lua_State *vm);
 };
 
 #endif /* _LOCAL_HOST_H_ */

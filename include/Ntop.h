@@ -118,7 +118,7 @@ class Ntop {
 #endif
 #endif
 #ifdef HAVE_NEDGE
-  std::vector<Forwarder*> multicastForwarders;
+  std::vector<PacketForwarder*> multicastForwarders;
 #endif
 
   /* Local network address list */

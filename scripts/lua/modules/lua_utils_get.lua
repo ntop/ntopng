@@ -12,6 +12,7 @@ pragma_once_lua_utils_get = true
 
 require "ntop_utils"
 require "label_utils"
+require "check_redis_prefs"
 
 local clock_start = os.clock()
 
@@ -100,6 +101,7 @@ function getProbeName(exporter_ip, show_vlan, shorten_len)
 
     -- No alias set, let's try with the SNMP
     if ntop.isPro() then
+        package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
         snmp_cached_dev = require "snmp_cached_dev"
     end
 
@@ -317,10 +319,6 @@ function getHostNotes(host_info)
     return notes
 end
 
-function getDhcpNameKey(ifid, mac)
-    return string.format("ntopng.dhcp.%d.cache.%s", ifid, mac)
-end
-
 -- ##############################################
 
 -- A function to give a useful device name
@@ -387,16 +385,6 @@ function getRedisPrefix(str)
 end
 
 -----  End of Redis Utils  ------
-
--- ##############################################
-
-function getThroughputType()
-    local throughput_type = ntop.getCache("ntopng.prefs.thpt_content")
-    if throughput_type == "" then
-        throughput_type = "bps"
-    end
-    return throughput_type
-end
 
 -- ##############################################
 
@@ -919,7 +907,8 @@ end
 -- Returns the size of a folder (size is in bytes)
 -- ! @param path the path to compute the size for
 -- ! @param timeout the maxium time to compute the size. If nil, it defaults to 15 seconds.
-function getFolderSize(path, timeout, os_utils)
+function getFolderSize(path, timeout)
+    local os_utils = require "os_utils"
     local folder_size_key = "ntopng.cache.folder_size"
     local now = os.time()
     local expiration = 30 -- sec
