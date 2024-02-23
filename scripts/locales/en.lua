@@ -5312,7 +5312,7 @@ local lang = {
     ["info"] = "Info",
     ["l7proto"] = "Application",
     ["last_seen"] = "Last Seen",
-    ["learning"] = "The Service Map is <b>learning</b>...",
+    ["learning"] = "The Service Map is still <b>learning</b> <i class=\"fa-solid fa-marker\"></i>",
     ["learning_table"] = "The Service Map is <b>learning</b>, click on the reload table button to see new changes...",
     ["networks"] = "All Networks",
     ["no_services"] = "No services found.",
