@@ -7577,9 +7577,9 @@ static int ntop_pools_unlock(lua_State *vm) {
 
 /* **************************************************************** */
 
-static int ntop_force_run_daily_activities(lua_State *vm) {
-  ntop->getPeriodicActivities()->forceStartDailyActivity();
-  lua_pushboolean(vm, true);
+static int ntop_toggle_new_delete_trace(lua_State *vm) {
+  trace_new_delete = !trace_new_delete;
+  lua_pushboolean(vm, trace_new_delete);
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -7649,18 +7649,7 @@ static int m_broker_check_status(lua_State  *vm) {
     lua_pushboolean(vm, message_broker->checkStatus());
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
-
-/* **************************************************************** */
 #endif /* defined(NTOPNG_PRO) */
-
-
-/* **************************************************************** */
-
-static int ntop_toggle_new_delete_trace(lua_State *vm) {
-  trace_new_delete = !trace_new_delete;
-  lua_pushboolean(vm, trace_new_delete);
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
 
 /* **************************************************************** */
 
