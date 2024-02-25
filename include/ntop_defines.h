@@ -1339,11 +1339,13 @@
 #define DROP_HOST_POOL_PRE_JAIL_POOL \
   NTOPNG_PREFS_PREFIX ".jail.pre_jail_pool.%s"
 
+#ifdef __cplusplus
 class NtopngLuaContext; /* Forward */
 extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 #define getLuaVMContext(a) (a ? getUserdata(a) : NULL)
 #define getLuaVMUserdata(a, b) (a ? getUserdata(a)->b : NULL)
 #define getLuaVMUservalue(a, b) getUserdata(a)->b
+#endif
 
 /*
    We assume that a host with more than CONST_MAX_NUM_HOST_USES

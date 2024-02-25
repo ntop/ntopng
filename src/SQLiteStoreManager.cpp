@@ -163,8 +163,11 @@ int SQLiteStoreManager::optimizeStore() {
   }
 
   sqlite3_reset(stmt);
+
+  #ifndef WIN32
   sync();
-  
+  #endif
+
 out:
   if (stmt) sqlite3_finalize(stmt);
   m.unlock(__FILE__, __LINE__);
