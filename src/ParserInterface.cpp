@@ -572,8 +572,6 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     if (zflow->getRiskName())
       flow->setFlowRiskName(zflow->getRiskName());
 
-    flow->setCurrentConnectionState(zflow->getConnectionState());
-
     if (zflow->getBittorrentHash())
       flow->setBTHash(zflow->getBittorrentHash(true));
 

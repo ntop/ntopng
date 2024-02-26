@@ -47,7 +47,6 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   confidence = NDPI_CONFIDENCE_UNKNOWN;
   flow_source = packet_to_flow;
   memset(&custom_app, 0, sizeof(custom_app));
-  connection_state = 0;
 
   has_parsed_ebpf = false;
 }

@@ -4087,15 +4087,6 @@ void Flow::formatGenericFlow(json_object *my_object) {
                                           jsonbuf, sizeof(jsonbuf)),
                          json_object_new_int(getScore()));
   
-  json_object_object_add(my_object,
-        Utils::jsonLabel(MINOR_CONNECTION_STATE, "MINOR_CONNECTION_STATE",
-                                          jsonbuf, sizeof(jsonbuf)),
-                          json_object_new_int(getCurrentConnectionState()));
-
-  json_object_object_add(my_object,
-      Utils::jsonLabel(MAJOR_CONNECTION_STATE, "MAJOR_CONNECTION_STATE",
-                                        jsonbuf, sizeof(jsonbuf)),
-                        json_object_new_int(retrieveMajorConnState()));
   if (isHTTP()) {
     if (host_server_name && host_server_name[0] != '\0')
       json_object_object_add(my_object,
