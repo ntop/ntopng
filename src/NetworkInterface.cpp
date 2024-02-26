@@ -41,6 +41,7 @@ static bool help_printed = false;
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface()
   : NetworkInterfaceAlertableEntity(this, alert_entity_interface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   init(NULL);
 }
 
@@ -48,11 +49,13 @@ NetworkInterface::NetworkInterface()
 
 NetworkInterface::NetworkInterface(const char *name,
                                    const char *custom_interface_type)
-  : NetworkInterfaceAlertableEntity(this, alert_entity_interface) {
+  : NetworkInterfaceAlertableEntity(this, alert_entity_interface) {  
   char _ifname[MAX_INTERFACE_NAME_LEN], buf[MAX_INTERFACE_NAME_LEN];
   /* We need to do it as isView() is not yet initialized */
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   if (name == NULL) {
     if (!help_printed)
       ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -441,7 +444,7 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
 
 /* **************************************************** */
 
-/* Operations are performed in the followinf order:
+/* Operations are performed in the following order:
  *
  * 1. initnDPIReload()
  * 2. ... nDPILoadIPCategory/nDPILoadHostnameCategory() ...
@@ -506,6 +509,7 @@ void NetworkInterface::finalizenDPIReload() {
     ndpi_struct = ndpi_struct_shadow;
     ndpi_struct_shadow = old_struct;
 
+    /* Update hosts policies based on nDPi configuration */
     reloadHostsBlacklist();
 
     ntop->getTrace()->traceEvent(TRACE_DEBUG, "nDPI reload completed");
@@ -549,8 +553,7 @@ bool NetworkInterface::nDPILoadIPCategory(char *what,
                                           char *list_name) {
   bool success = true;
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__,
-  // ndpi_struct_shadow, what);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%s][%s]", __FUNCTION__, what, list_name);
 
   if (what && ndpi_struct_shadow)
     success = (ndpi_load_ip_category(ndpi_struct_shadow, what, id,
@@ -564,12 +567,13 @@ bool NetworkInterface::nDPILoadIPCategory(char *what,
 bool NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, char *list_name /* NOT used */) {
   bool success = true;
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__,
-  // ndpi_struct_shadow, what);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
 
   if (what && ndpi_struct_shadow)
     success = (ndpi_load_hostname_category(ndpi_struct_shadow, what, id) == 0);
-
+  else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
+  
   return success;
 }
 
@@ -578,21 +582,26 @@ bool NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_catego
 int NetworkInterface::nDPILoadMaliciousJA3Signatures(const char *file_path) {
   int n = 0;
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__,
-  // ndpi_struct_shadow, what);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, file_path);
 
   if (file_path && ndpi_struct_shadow)
     n = ndpi_load_malicious_ja3_file(ndpi_struct_shadow, file_path);
-
+  else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
+  
   return n;
 }
 
 /* *************************************** */
 
 int NetworkInterface::setDomainMask(const char *domain, u_int64_t domain_mask) {
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, domain);
+  
   if(domain && ndpi_struct_shadow)
     return(ndpi_add_host_risk_mask(ndpi_struct_shadow, (char*)domain, domain_mask));
-
+  else
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
+  
   return(-1);
 }
 
@@ -945,6 +954,8 @@ NetworkInterface::~NetworkInterface() {
   std::map<std::pair<AlertEntity, std::string>,InterfaceMemberAlertableEntity *>::iterator it;
   std::map<u_int16_t /* observationPointId */, ObservationPointIdTrafficStats *>::iterator it_o;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
 #ifdef INTERFACE_PROFILING
   u_int64_t n = ethStats.getNumIngressPackets();
   if (isPacketInterface() && n > 0) {
@@ -2261,8 +2272,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     case NDPI_PROTOCOL_IEC60870:
       if ((trusted_payload_len > 0) && payload) {
 	flow->processIEC60870Packet((htons(src_port) == 2404) ? true : false,
-				    payload, trusted_payload_len,
-				    (struct timeval *)&h->ts);
+				    payload, trusted_payload_len, h);
       }
       break;
 
@@ -2270,8 +2280,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     case NDPI_PROTOCOL_MODBUS:
       if ((trusted_payload_len > 0) && payload) {
 	flow->processModbusPacket((htons(dst_port) == 502) ? true : false,
-				  payload, trusted_payload_len,
-				  (struct timeval *)&h->ts);
+				  payload, trusted_payload_len, h);
       }
       break;
 #endif
@@ -2749,8 +2758,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	    ip_offset = eth_offset + sizeof(struct ndpi_ethhdr);
 	    eth_type = ntohs(ethernet->h_proto);
 	    goto decode_packet_eth;
-	  } else if (gre.proto ==
-		     ETH_P_ERSPAN2 /* ERSPAN version 2 (type III) */) {
+	  } else if (gre.proto == ETH_P_ERSPAN2 /* ERSPAN version 2 (type III) */) {
 	    if (h->caplen >= offset + sizeof(struct ndpi_ethhdr) + 20) {
 	      offset += 20;
 	      eth_offset = offset, encapsulation_overhead = offset;
@@ -2784,21 +2792,18 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	  goto dissect_packet_end;
         }
 
-	struct ndpi_udphdr *udp =
-	  (struct ndpi_udphdr *)&packet[ip_offset + ip_len];
+	struct ndpi_udphdr *udp = (struct ndpi_udphdr *)&packet[ip_offset + ip_len];
 	u_int16_t sport = ntohs(udp->source), dport = ntohs(udp->dest);
 
 	if ((sport == GTP_U_V1_PORT) || (dport == GTP_U_V1_PORT)) {
 	  /* Check if it's GTPv1 */
-	  u_int offset =
-	    (u_int)(ip_offset + ip_len + sizeof(struct ndpi_udphdr));
+	  u_int offset = (u_int)(ip_offset + ip_len + sizeof(struct ndpi_udphdr));
 	  u_int8_t flags = packet[offset];
 	  u_int8_t message_type = packet[offset + 1];
 
 	  if ((((flags & 0xE0) >> 5) == 1 /* GTPv1 */) &&
 	      (message_type == 0xFF /* T-PDU */)) {
-	    ip_offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr) +
-	      8 /* GTPv1 header len */;
+	    ip_offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr) +  8 /* GTPv1 header len */;
 
 	    if (flags & 0x04)
 	      ip_offset += 1 + 3 /* pad */ + 4 /* next extension (TODO better decoding) */; /* next_ext_header is present */
@@ -2825,6 +2830,44 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 
 	  eth_offset = offset;
 	  goto datalink_check;
+	} else if ((sport == L2TP_PORT) && (dport == L2TP_PORT)) {
+	  u_int offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr);	 
+	  struct l2tp_header *l2tp = (struct l2tp_header*)&packet[offset];
+	  u_int16_t proto, flags = ntohs(l2tp->flags);
+
+	  if((flags & 0x8002) == 0x02) {
+	    /* L2TP v2 Data packet */
+	    u_int8_t have_length_bit   = (flags & 0x4000) == 0x4000;
+	    u_int8_t have_sequence_bit = (flags & 0x0800) == 0x0800;
+	    u_int8_t have_offset_bit   = (flags & 0x0200) == 0x0200;
+
+	    offset += sizeof(struct l2tp_header);
+	    
+	    if(have_length_bit)   offset += sizeof(u_int16_t);
+	    if(have_sequence_bit) offset += 2;
+	    if(have_offset_bit)   offset += 2;
+	  }
+
+	  /* PPP */
+	  offset += 2;
+	  proto = (packet[offset] << 8) + packet[offset+1];
+	  offset += 2; /* Skip proto */
+
+	  if(proto == 0x0021) {
+	    /* IPv4 */
+	    eth_type = ETHERTYPE_IP;
+	    iph = (struct ndpi_iphdr *)&packet[offset];
+	  } else if(proto == 0x0057) {
+	    /* IPv6 */
+	    eth_type = ETHERTYPE_IPV6;
+	    ip6 = (struct ndpi_ipv6hdr *)&packet[offset];
+	  } else {
+	    incStats(ingressPacket, h->ts.tv_sec, 0,
+		     NDPI_PROTOCOL_UNKNOWN,
+		     NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire,
+		     1);
+	    goto dissect_packet_end;	  
+	  }	  
 	} else if ((sport == TZSP_PORT) || (dport == TZSP_PORT)) {
 	  /* https://en.wikipedia.org/wiki/TZSP */
 	  u_int offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr);
@@ -7288,7 +7331,7 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats
 
 /* *************************************** */
 
-void NetworkInterface::lua(lua_State *vm) {
+void NetworkInterface::lua(lua_State *vm, bool fullStats) {
   char buf[32];
   TcpFlowStats _tcpFlowStats;
   EthStats _ethStats;
@@ -7313,8 +7356,7 @@ void NetworkInterface::lua(lua_State *vm) {
     lua_push_str_table_entry(vm, "customIftype", (char *)customIftype);
   lua_push_bool_table_entry(vm, "isView", isView());     /* View interface */
   lua_push_bool_table_entry(vm, "isViewed", isViewed()); /* Viewed interface */
-  lua_push_bool_table_entry(
-			    vm, "isSampledTraffic",
+  lua_push_bool_table_entry(vm, "isSampledTraffic",
 			    isSampledTraffic()); /* Whether this interface has sampled traffic */
   if (isSubInterface()) luaSubInterface(vm);
 #ifdef NTOPNG_PRO
@@ -7339,28 +7381,32 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_bool_table_entry( vm, "has_traffic_directions",
 			     (areTrafficDirectionsSupported() || (!Utils::isEmptyMac(ifMac)))
 			     && (!isLoopback()) /* && (!isTrafficMirrored() || isGwMacConfigured())*/);
-  lua_push_bool_table_entry(vm, "has_seen_pods", hasSeenPods());
-  lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
-  lua_push_bool_table_entry(vm, "has_seen_external_alerts",
-                            hasSeenExternalAlerts());
-  lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
 
-  luaNumEngagedAlerts(vm);
-  luaAlertedFlows(vm);
-  lua_push_uint64_table_entry(vm, "num_dropped_alerts",
-                              getNumDroppedAlertsSinceReset());
-
-  /* Those counters are absolute, i.e., they are not subject to reset */
-  lua_push_uint64_table_entry(vm, "num_host_dropped_alerts",
-                              num_host_dropped_alerts);
-  lua_push_uint64_table_entry(vm, "num_flow_dropped_alerts",
-                              num_flow_dropped_alerts);
-  lua_push_uint64_table_entry(vm, "num_other_dropped_alerts",
-                              num_other_dropped_alerts);
-
-  lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs",
-                              periodicStatsUpdateFrequency());
-
+  if(fullStats) {
+    lua_push_bool_table_entry(vm, "has_seen_pods", hasSeenPods());
+    lua_push_bool_table_entry(vm, "has_seen_containers", hasSeenContainers());
+    lua_push_bool_table_entry(vm, "has_seen_external_alerts",
+			      hasSeenExternalAlerts());
+    lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
+    
+    luaNumEngagedAlerts(vm);
+    luaAlertedFlows(vm);
+  
+    lua_push_uint64_table_entry(vm, "num_dropped_alerts",
+				getNumDroppedAlertsSinceReset());
+    
+    /* Those counters are absolute, i.e., they are not subject to reset */
+    lua_push_uint64_table_entry(vm, "num_host_dropped_alerts",
+				num_host_dropped_alerts);
+    lua_push_uint64_table_entry(vm, "num_flow_dropped_alerts",
+				num_flow_dropped_alerts);
+    lua_push_uint64_table_entry(vm, "num_other_dropped_alerts",
+				num_other_dropped_alerts);
+    
+    lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs",
+				periodicStatsUpdateFrequency());
+  }
+  
   /* .stats */
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "packets", getNumPackets());
@@ -7384,10 +7430,13 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "throughput_trend_pps", pkts_thpt.getTrend());
   l4Stats.luaStats(vm);
 
-  if (db) db->lua(vm, false /* Overall */);
 
-  usedPorts.lua(vm, this);
-
+  if(fullStats) {
+    if (db) db->lua(vm, false /* Overall */);
+    
+    usedPorts.lua(vm, this);
+  }
+  
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -7421,34 +7470,41 @@ void NetworkInterface::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "mtu", ifMTU);
   lua_push_str_table_entry(vm, "ip_addresses", (char *)getLocalIPAddresses());
 
-  bcast_domains->lua(vm);
+  if(fullStats) {
+    bcast_domains->lua(vm);
+    
+    if (top_sites && ntop->getPrefs()->are_top_talkers_enabled())
+      top_sites->lua(vm, (char *)"sites", (char *)"sites.old");
 
-  if (top_sites && ntop->getPrefs()->are_top_talkers_enabled())
-    top_sites->lua(vm, (char *)"sites", (char *)"sites.old");
-
-  luaAnomalies(vm);
-  luaScore(vm);
-
+    luaAnomalies(vm);
+    luaScore(vm);
+  }
+  
   sumStats(&_tcpFlowStats, &_ethStats, &_localStats, NULL, &_pktStats,
            &_tcpPacketStats, &_discardedProbingStats, &_dscpStats,
            &_syslogStats, &_downloadStats, &_uploadStats);
 
-  _downloadStats.luaRTStats(vm, "download_stats");
-  _uploadStats.luaRTStats(vm, "upload_stats");
-
+  if(fullStats) {
+    _downloadStats.luaRTStats(vm, "download_stats");
+    _uploadStats.luaRTStats(vm, "upload_stats");
+  }
+  
   _tcpFlowStats.lua(vm, "tcpFlowStats");
   _ethStats.lua(vm);
   _localStats.lua(vm);
   luaNdpiStats(vm);
 
-  _pktStats.lua(vm, "pktSizeDistribution");
-  _tcpPacketStats.lua(vm, "tcpPacketStats");
-  _dscpStats.lua(this, vm);
-  _syslogStats.lua(vm);
+  if(fullStats) {
+    _pktStats.lua(vm, "pktSizeDistribution");
+    _tcpPacketStats.lua(vm, "tcpPacketStats");
+    
+    _dscpStats.lua(this, vm);
+    _syslogStats.lua(vm);
 
-  if (discardProbingTraffic())
-    _discardedProbingStats.lua(vm, "discarded_probing_");
-
+    if (discardProbingTraffic())
+      _discardedProbingStats.lua(vm, "discarded_probing_");
+  }
+  
   if (!isView()) {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
@@ -7457,18 +7513,20 @@ void NetworkInterface::lua(lua_State *vm) {
 #endif
   }
 
-  if (host_pools) host_pools->lua(vm);
-
+  if(fullStats) {
+    if (host_pools) host_pools->lua(vm);
+    
 #ifdef NTOPNG_PRO
-  traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior");
-  traffic_tx_behavior->luaBehavior(vm, "traffic_tx_behavior");
-  score_behavior->luaBehavior(vm, "score_behavior");
-
-  if (custom_app_stats) custom_app_stats->lua(vm);
-
-  if (pMap) pMap->lua(vm, "periodicity_map");
-  if (sMap) sMap->lua(vm, "service_map");
+    traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior");
+    traffic_tx_behavior->luaBehavior(vm, "traffic_tx_behavior");
+    score_behavior->luaBehavior(vm, "score_behavior");
+    
+    if (custom_app_stats) custom_app_stats->lua(vm);
+    
+    if (pMap) pMap->lua(vm, "periodicity_map");
+    if (sMap) sMap->lua(vm, "service_map");
 #endif
+  }
 }
 
 /* *************************************** */
@@ -9466,8 +9524,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
 
 /* *************************************** */
 
-bool NetworkInterface::registerLiveCapture(
-					   struct ntopngLuaContext *const luactx, int *id) {
+bool NetworkInterface::registerLiveCapture(NtopngLuaContext *const luactx, int *id) {
   bool ret = false;
 
   *id = -1;
@@ -9491,14 +9548,14 @@ bool NetworkInterface::registerLiveCapture(
 /* *************************************** */
 
 bool NetworkInterface::deregisterLiveCapture(
-					     struct ntopngLuaContext *const luactx) {
+					     NtopngLuaContext *const luactx) {
   bool ret = false;
 
   active_captures_lock.lock(__FILE__, __LINE__);
 
   for (int i = 0; i < MAX_NUM_PCAP_CAPTURES; i++) {
     if (live_captures[i] == luactx) {
-      struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
+      NtopngLuaContext *c = (NtopngLuaContext *)live_captures[i];
 
       c->live_capture.stopped = true;
       live_captures[i] = NULL, num_live_captures--;
@@ -9514,7 +9571,7 @@ bool NetworkInterface::deregisterLiveCapture(
 
 /* *************************************** */
 
-bool NetworkInterface::matchLiveCapture(struct ntopngLuaContext *const luactx,
+bool NetworkInterface::matchLiveCapture(NtopngLuaContext *const luactx,
                                         const struct pcap_pkthdr *const h,
                                         const u_char *const packet,
                                         Flow *const f) {
@@ -9544,7 +9601,7 @@ void NetworkInterface::deliverLiveCapture(const struct pcap_pkthdr *const h,
   for (u_int i = 0, num_found = 0;
        (i < MAX_NUM_PCAP_CAPTURES) && (num_found < num_live_captures); i++) {
     if (live_captures[i] != NULL) {
-      struct ntopngLuaContext *c = (struct ntopngLuaContext *)live_captures[i];
+      NtopngLuaContext *c = (NtopngLuaContext *)live_captures[i];
       bool http_client_disconnected = false;
       int disconnect_stage = 0;
 
@@ -9751,9 +9808,8 @@ bool NetworkInterface::stopLiveCapture(int capture_id) {
     active_captures_lock.lock(__FILE__, __LINE__);
 
     if (live_captures[capture_id] != NULL) {
-      struct ntopngLuaContext *c =
-	(struct ntopngLuaContext *)live_captures[capture_id];
-
+      NtopngLuaContext *c = (NtopngLuaContext *)live_captures[capture_id];
+      
       c->live_capture.stopped = true, rc = true;
       if (c->live_capture.bpfFilterSet) pcap_freecode(&c->live_capture.fcode);
       /* live_captures[capture_id] = NULL; */ /* <-- not necessary as mongoose
@@ -10475,6 +10531,8 @@ static void get_engaged_alerts_callback(AlertEntity alert_entity,
   alertable->getAlerts(data->vm, no_periodicity, data->alert_type,
                        data->alert_severity, data->role_filter, &data->idx);
 }
+
+/* *************************************** */
 
 void NetworkInterface::getEngagedAlerts(lua_State *vm, AlertEntity alert_entity,
                                         const char *entity_value,
@@ -11208,6 +11266,71 @@ bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntr
 
 /* **************************************************** */
 
+bool NetworkInterface::compute_client_server_srv_port_app_proto_flow_stats(GenericHashEntry *node,
+								 void *user_data, bool *matched) {
+  Flow *f = (Flow *)node;
+  struct aggregated_stats *stats = (struct aggregated_stats*)user_data;
+
+  if(stats->ip_addr != NULL) {
+    if(!f->matchFlowIP(stats->ip_addr, stats->vlan_id))
+      return(false);
+  }
+
+  if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
+    if(!f->matchFlowVLAN(stats->vlan_id))
+      return(false);
+  }
+
+  if (stats->flow_device_ip != (u_int32_t)-1 /* -1 == any Flow Device IP */) {
+    if(!f->matchFlowDeviceIP(stats->flow_device_ip))
+      return(false);
+  }
+
+  ndpi_protocol detected_protocol = f->get_detected_protocol();
+
+
+  u_int64_t vlan_id = f->get_vlan_id();
+  bool is_not_guessed = f->isDPIDetectedFlow();
+
+  std::unordered_map<u_int64_t, AggregatedFlowsStats *>::iterator it;
+  u_int64_t key = (((u_int64_t)f->get_cli_ip_addr()->key()) << 16) +
+    (((u_int64_t)f->get_srv_ip_addr()->key()) << 16) +
+    (((u_int64_t)f->get_srv_port()) << 32) +
+    ((u_int64_t)vlan_id << 32) + 
+    (((u_int64_t)detected_protocol.app_protocol) << 16) +
+    (u_int64_t)detected_protocol.master_protocol;
+
+  u_int64_t proto_key = ((u_int64_t)vlan_id << 32) + 
+                      (((u_int64_t)detected_protocol.app_protocol) << 16) +
+                      (u_int64_t)detected_protocol.master_protocol;
+
+  it = stats->count.find(key);
+
+  if (it == stats->count.end()) {
+    AggregatedFlowsStats *fs =
+      new (std::nothrow) AggregatedFlowsStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(), f->get_protocol(),
+					      f->get_bytes_cli2srv(), f->get_bytes_srv2cli(), f->getScore());
+
+    if (fs != NULL) {
+      fs->setFlowIPVLANDeviceIP(f);
+      fs->setSrvPort(f->get_srv_port());
+      fs->setKey(key);
+      fs->setProtoKey(proto_key);
+      fs->setIsNotGuessed(is_not_guessed);
+      stats->count[key] = fs;
+    }
+  } else
+    it->second->incFlowStats(f->get_cli_ip_addr(), f->get_srv_ip_addr(),
+			     f->get_bytes_cli2srv(), f->get_bytes_srv2cli(),
+			     f->getScore());
+
+  *matched = true;
+
+  return (false); /* false = keep on walking */
+}
+
+/* **************************************************** */
+
 /* Sort aggregated live flows compare functions */
 
 static bool asc_application_name_cmp(AggregatedFlowsStats *a, AggregatedFlowsStats *b) {
@@ -11373,6 +11496,10 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
       add_client = add_server = add_srv_port = true;
       break;
 
+    case 8:
+      add_client = add_server = add_srv_port = add_app_proto = true;
+      break;
+      
     default:
       add_client = true;
       break;
@@ -11652,11 +11779,15 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
 	   compute_server_flow_stats, &stats);
     break;
   case AnalysisCriteria::client_server_srv_port:
-    /* info criteria flows stats case */
+    /* client server server port criteria flows stats case */
     walker(&begin_slot, true /* walk_all */, walker_flows,
       compute_client_server_srv_port_flow_stats, &stats);
     break;
-
+  case AnalysisCriteria::client_server_srv_port_app_proto: 
+    /* client server server port app_proto criteria flows stats case */
+    walker(&begin_slot, true /* walk_all */, walker_flows,
+      compute_client_server_srv_port_app_proto_flow_stats, &stats);
+    break;
 #if defined(NTOPNG_PRO)
   case AnalysisCriteria::client_server_criteria:
     /* client server criteria flows stats case */

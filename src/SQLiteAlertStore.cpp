@@ -27,6 +27,7 @@ SQLiteAlertStore::SQLiteAlertStore(int interface_id, const char *filename)
     : SQLiteStoreManager(interface_id) {
   char filePath[MAX_PATH + 256];
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   /* Create the directories needed to keep the alerts database */
   snprintf(filePath, sizeof(filePath), "%s/%d/alerts/", ntop->get_working_dir(),
            ifid);

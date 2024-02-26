@@ -30,6 +30,8 @@
 /* **************************************** */
 
 SyslogDump::SyslogDump(NetworkInterface *_iface) : DB(_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   openlog(NULL /* If ident is NULL, the program name is used */,
           LOG_PID        /* Include PID with each message */
               | LOG_CONS /* Write directly to system console if there is an

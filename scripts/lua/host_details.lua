@@ -3,8 +3,10 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 
 local snmp_utils
 local snmp_location
@@ -408,7 +410,7 @@ else
     local periodicity_map_link = ntop.getHttpPrefix() ..
                                      "/lua/pro/enterprise/network_maps.lua?map=periodicity_map&ifid=" .. ifId ..
                                      "&host=" .. host_ip
-    local historical_flow_link = ntop.getHttpPrefix() .. "/lua/db_search.lua?ifid=" .. ifId .. ";eq&ip=" .. host_ip ..
+    local historical_flow_link = ntop.getHttpPrefix() .. "/lua/db_search.lua?ifid=" .. ifId .. "&ip=" .. host_ip ..
                                      ";eq"
 
     service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
@@ -2082,6 +2084,10 @@ setInterval(update_icmp_table, 5000);
                 print('perPage: ' .. preference .. ",\n")
             end
 
+            local alignment_c_info = 'center'
+            if (ntop.isnEdge()) then 
+                alignment_c_info = 'nowrap'
+            end
             print('sort: [ ["' .. getDefaultTableSort("flows") .. '","' .. getDefaultTableSortOrder("flows") ..
                       '"] ],\n')
 
@@ -2099,7 +2105,7 @@ setInterval(update_icmp_table, 5000);
             title: "",
             field: "column_key",
             css: {
-               textAlign: 'center'
+               textAlign: ']]print(alignment_c_info)print[['
             }
          }, {
             title: "]]

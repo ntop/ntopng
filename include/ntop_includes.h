@@ -177,6 +177,10 @@ https://translate.google.co.uk/translate?sl=auto&tl=en&u=http%3A%2F%2Fbugsfixed.
 #include <sys/capability.h>
 #include <sys/prctl.h>
 #endif
+
+#if defined(HAVE_NATS)
+#include <nats/nats.h>
+#endif
 };
 
 #include <fstream>
@@ -347,6 +351,7 @@ using namespace std;
 #include "InfluxDBTimeseriesExporter.h"
 #include "L4Stats.h"
 #include "AlertsQueue.h"
+#include "NtopngLuaContext.h"
 #include "LuaEngineFunctions.h"
 #include "LuaEngine.h"
 #include "SPSCQueue.h"
@@ -376,6 +381,7 @@ using namespace std;
 #include "FlowsHostInfo.h"
 #include "AggregatedFlowsStats.h"
 #include "NetworkInterface.h"
+#include "NtopngLuaContext.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"
 #endif
@@ -459,6 +465,8 @@ using namespace std;
 #ifdef NTOPNG_PRO
 #include "AssetManagement.h"
 #include "ModbusStats.h"
+#include "MessageBroker.h"
+#include "NatsBroker.h"
 #endif
 #include "IEC104Stats.h"
 #include "Flow.h"
@@ -471,6 +479,7 @@ using namespace std;
 #include "HostHash.h"
 #include "ThreadedActivityStats.h"
 #include "ThreadedActivity.h"
+#include "QueuedThreadData.h"
 #include "ThreadPool.h"
 #include "PeriodicScript.h"
 #include "PeriodicActivities.h"
@@ -490,15 +499,18 @@ using namespace std;
 #include "HostChecksLoader.h"
 #include "HostChecksExecutor.h"
 #ifdef HAVE_NEDGE
-#include "Forwarder.h"
+#include "PacketForwarder.h"
 #include "MulticastForwarder.h"
 #include "BroadcastForwarder.h"
 #endif
+
 #include "Radius.h"
 #include "Ntop.h"
 
 #ifdef NTOPNG_PRO
 #include "ntoppro_defines.h"
 #endif
+
+extern bool trace_new_delete;
 
 #endif /* _NTOP_H_ */

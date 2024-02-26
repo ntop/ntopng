@@ -41,18 +41,22 @@ void HostAlert::init(HostCheckID _check_id, std::string _check_name, Host *h,
 
 HostAlert::HostAlert(HostCheckID _check_id, std::string _check_name, Host *h,
                      risk_percentage _cli_pctg) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   init(_check_id, _check_name, h, _cli_pctg);
 }
 
 /* **************************************************** */
 
 HostAlert::HostAlert(HostCheck *c, Host *h, risk_percentage _cli_pctg) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   init(c->getID(), c->getName(), h, _cli_pctg);
 }
 
 /* **************************************************** */
 
-HostAlert::~HostAlert() {}
+HostAlert::~HostAlert() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+}
 
 /* ***************************************************** */
 

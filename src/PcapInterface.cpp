@@ -37,6 +37,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
   struct stat buf;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   delete_pcap_when_done = _delete_pcap_when_done;
   memset(pcap_handle, 0, sizeof(pcap_handle));
   memset(pcap_ifaces, 0, sizeof(pcap_ifaces));

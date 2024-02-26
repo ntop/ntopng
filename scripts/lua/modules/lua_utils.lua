@@ -2,17 +2,15 @@
 -- (C) 2014-24 - ntop.org
 --
 
--- Hack to avoid include loops
+-- ###############################################
 
 if(pragma_once_lua_utils == true) then
+   -- io.write(debug.traceback().."\n")
    -- avoid multiple inclusions
    return
 end
 
 pragma_once_lua_utils = true
-
-
--- ###############################################
 
 local clock_start = os.clock()
 
@@ -22,11 +20,13 @@ package.path = dirs.installdir .. "/scripts/lua/modules/i18n/?.lua;" .. package.
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
+require "label_utils"
+require "check_redis_prefs"
 require "lua_trace"
 require "lua_utils_generic"
 require "ntop_utils"
 require "locales_utils"
-local os_utils = require "os_utils"
+local l4_protocol_list = require "l4_protocol_list"
 local format_utils = require "format_utils"
 
 -- TODO: replace those globals with locals everywhere
@@ -41,6 +41,9 @@ pktsToSize      = format_utils.pktsToSize
 bitsToSize      = format_utils.bitsToSize
 round           = format_utils.round
 bitsToSizeMultiplier = format_utils.bitsToSizeMultiplier
+format_high_num_value_for_tables = format_utils.format_high_num_value_for_tables
+l4_keys         = l4_protocol_list.l4_keys
+format_name_value    = format_utils.format_name_value
 
 -- ##############################################
 
@@ -77,30 +80,6 @@ function hasSoftwareUpdatesSupport()
       and ntop.isPackage()
       and not ntop.isWindows())
 end
-
--- See Utils::l4proto2name()
-l4_keys = {
-   { "IP",        "ip",          0 },
-   { "ICMP",      "icmp",        1 },
-   { "IGMP",      "igmp",        2 },
-   { "TCP",       "tcp",         6 },
-   { "UDP",       "udp",        17 },
-   { "IPv6",      "ipv6",       41 },
-   { "RSVP",      "rsvp",       46 },
-   { "GRE",       "gre",        47 },
-   { "ESP",       "esp",        50 },
-   { "IPv6-ICMP", "ipv6icmp",   58 },
-   { "EIGRP",     "eigrp",      88 },
-   { "OSPF",      "ospf",       89 },
-   { "PIM",       "pim",       103 },
-   { "VRRP",      "vrrp",      112 },
-   { "L2TP",      "l2tp",      115 },
-   { "HIP",       "hip",       139 },
-   { "SCTP",      "sctp",      132 },
-   { "ICMPv6",    "icmpv6",     58 },
-   { "IGMP",      "igmp",        2 },
-   { "Other IP",  "other_ip",   -1 }
-}
 
 function __FILE__() return debug.getinfo(2,'S').source end
 function __LINE__() return debug.getinfo(2, 'l').currentline end
@@ -275,18 +254,6 @@ end
 
 -- ##############################################
 
-function areAlertsEnabled()
-   if(__alert_enabled == nil) then
-      -- Not too nice as changes will be read periodically as new VMs are reloaded
-      -- but at least we avoid breaking up the performance
-      __alert_enabled = (ntop.getPref("ntopng.prefs.disable_alerts_generation") ~= "1")
-   end
-
-   return (__alert_enabled)
-end
-
--- ##############################################
-
 function isScoreEnabled()
   return(ntop.isEnterpriseM() or ntop.isnEdgeEnterprise())
 end
@@ -306,39 +273,8 @@ function hasAlertsDisabled()
       ((_POST["disable_alerts_generation"] == nil) and (ntop.getPref("ntopng.prefs.disable_alerts_generation") == "1"))
 end
 
--- ##############################################
 
-function hasClickHouseSupport()
-   local auth = require "auth"
 
-   if not (ntop.isPro() or ntop.isnEdgeEnterprise())
-      or ntop.isWindows() then
-      return false
-   end
-
-   -- Don't allow nIndex for unauthorized users
-   if not auth.has_capability(auth.capabilities.historical_flows) then
-      return false
-   end
-
-   -- TODO optimize
-   if prefs == nil then
-      prefs = ntop.getPrefs()
-   end
-
-   if prefs.is_dump_flows_to_clickhouse_enabled then
-      return true
-   end
-
-   return false
-end
-
--- ##############################################
-
--- NOTE: global nindex support may be enabled but some disable on some interfaces
-function interfaceHasClickHouseSupport()
-   return(hasClickHouseSupport() and ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"])
-end
 
 -- ##############################################
 
@@ -434,47 +370,6 @@ end
 
 -- ##############################################
 
-function starts(String,Start)
-   if((String == nil) or (Start == nil)) then
-      return(false)
-   end
-
-  return string.sub(String,1,string.len(Start))==Start
-end
-
--- ##############################################
-
-function ends(String,End)
-   return End=='' or string.sub(String,-string.len(End))==End
-end
-
--- #################################################################
-
-function bit(p)
-  return 2 ^ (p - 1)  -- 1-based indexing
-end
-
--- ##############################################
-
--- Typical call:  if hasbit(x, bit(3)) then ...
-function hasbit(x, p)
-  return x % (p + p) >= p
-end
-
--- ##############################################
-
-function setbit(x, p)
-  return hasbit(x, p) and x or x + p
-end
-
--- ##############################################
-
-function clearbit(x, p)
-  return hasbit(x, p) and x - p or x
-end
-
--- ##############################################
-
 function isBroadMulticast(ip)
    if(ip == "0.0.0.0") then
       return true
@@ -554,51 +449,6 @@ function fixPoolMemberFormat(member)
   end
 
   return address .. '/' .. prefix .. '@' .. vlan_id
-end
-
-
--- ##############################################
-
---
--- Members supported format
--- 192.168.1.10/32@10
--- 00:11:22:33:44:55
---
-
-function isValidPoolMember(member)
-  if isEmptyString(member) then
-    return false
-  end
-
-  if isMacAddress(member) then
-    return true
-  end
-
-  -- vlan is mandatory here
-  local vlan_idx = string.find(member, "@")
-  if ((vlan_idx == nil) or (vlan_idx == 1)) then
-     return false
-  end
-
-  local other = string.sub(member, 1, vlan_idx-1)
-  local vlan = tonumber(string.sub(member, vlan_idx+1))
-  if (vlan == nil) or (vlan < 0) then
-    return false
-  end
-
-  -- prefix is mandatory here
-  local address, prefix = splitNetworkPrefix(other)
-  if prefix == nil then
-    return false
-  end
-
-  if isIPv4(address) and (tonumber(prefix) >= 0) and (tonumber(prefix) <= 32) then
-    return true
-  elseif isIPv6(address) and (tonumber(prefix) >= 0) and (tonumber(prefix) <= 128) then
-    return true
-  end
-
-  return false
 end
 
 -- ##############################################
@@ -688,31 +538,6 @@ function aggregatePie(values, values_sum, edge, min_col)
    return aggr
 end
 
--- #################################
-
--- This function actively resolves an host if there is not information about it.
--- NOTE: prefer the host2name on this function
-function resolveAddress(hostinfo, allow_empty, shorten_len)
-   local alt_name = ip2label(hostinfo["host"], hostinfo["vlan"], shorten_len)
-
-   if(not isEmptyString(alt_name) and (alt_name ~= hostinfo["host"])) then
-      -- The host label has priority
-      return(alt_name)
-   end
-
-   local hostname = ntop.resolveName(hostinfo["host"])
-   if isEmptyString(hostname) then
-      -- Not resolved
-      if allow_empty == true then
-         return hostname
-      else
-         -- this function will take care of formatting the IP
-         return hostinfo2label(hostinfo, true, shorten_len)
-      end
-   end
-   return hostinfo2label(hostinfo, true, shorten_len)
-end
-
 -- ###########################################
 
 function computeL7Stats(stats, show_breed, show_ndpi_category)
@@ -786,17 +611,6 @@ end
 
 -- ##############################################
 
-function splitNetworkPrefix(net)
-   if not net then
-      tprint(debug.traceback())
-   end
-   local prefix = tonumber(net:match("/(.+)"))
-   local address = net:gsub("/.+","")
-   return address, prefix
-end
-
--- ##############################################
-
 function splitNetworkWithVLANPrefix(net_mask_vlan)
    local vlan = tonumber(net_mask_vlan:match("@(.+)"))
    local net_mask = net_mask_vlan:gsub("@.+","")
@@ -825,29 +639,6 @@ end
 
 -- ##############################################
 
-function setHostAltName(host_info, alt_name)
-   local host_key
-
-   if type(host_info) == "table" then
-     -- Note: we are not using hostinfo2hostkey which includes the
-     -- vlan for backward compatibility, compatibility with
-     -- the backend, and compatibility with the vpn scripts
-     host_key = host_info["host"] -- hostinfo2hostkey(host_info)
-   else
-     host_key = host_info
-   end
-
-   local key = getHostAltNamesKey(host_key)
-
-   if isEmptyString(alt_name) then
-      ntop.delCache(key)
-   else
-      ntop.setCache(key, alt_name)
-   end
-end
-
--- ##############################################
-
 function setHostNotes(host_info, notes)
    local host_key
 
@@ -863,197 +654,7 @@ function setHostNotes(host_info, notes)
    ntop.setCache(getHostNotesKey(host_key), notes)
 end
 
--- ##############################################
 
-local function label2formattedlabel(alt_name, host_info, show_vlan, shorten_len)
-   if not isEmptyString(alt_name) then
-      local ip = host_info["ip"] or host_info["host"]
-      -- Make it shorter
-      local res = alt_name
-
-      -- Special shorting function for IP addresses
-      if res ~= ip then
-         if (not shorten_len) or (shorten_len == false) then
-            -- Don't touch the string, requested as-is without shortening
-         elseif tonumber(shorten_len) then
-            -- Shorten according to the specified length
-            res = shortenString(res, shorten_len)
-         else
-            -- Use the default system-wide setting for the shortening
-            res = shortenString(res)
-         end
-      end
-
-      -- Adding the vlan if requested
-      if show_vlan then
-	 local vlan = tonumber(host_info["vlan"])
-
-	 if vlan and vlan > 0 then
-	    local full_vlan_name = getFullVlanName(vlan, true --[[ Compact --]])
-
-	    res = string.format("%s@%s", res, full_vlan_name)
-	 end
-      end
-
-      return res
-   end
-
-   -- Fallback: just the IP and VLAN
-   return(hostinfo2hostkey(host_info, true))
-end
-
--- ##############################################
-
--- Attempt at retrieving an host label from an host_info, using local caches and DNS resolution.
--- This can be more expensive if compared to only using information found inside host_info.
-local function hostinfo2label_resolved(host_info, show_vlan, shorten_len, skip_resolution)
-   local ip = host_info["ip"] or host_info["host"]
-   local res
-
-   -- If local broadcast domain host and DHCP, try to get the label associated
-   -- to the MAC address
-   if host_info["mac"] and (host_info["broadcast_domain_host"] or host_info["dhcpHost"]) then
-      res = getHostAltName(host_info["mac"])
-   end
-
-   -- In case no resolution is requested, directly skip this part
-   if (isEmptyString(res)) and (not skip_resolution) then
-      -- Try and get the resolved name
-      res = ntop.getResolvedName(ip)
-
-      if not isEmptyString(res) then
-         res = string.lower(res)
-      else
-         -- Nothing found, just fallback to the IP address
-         res = ip
-      end
-   end
-
-   return label2formattedlabel(res, host_info, show_vlan, shorten_len)
-end
-
--- ##############################################
-
--- Retrieve an host label from an host_info. The minimum fields of
--- the host_info are "host" and "vlan", however a full JSON from Host::lua
--- is needed to provide an accurate result.
---
--- The following order is used to determine the label:
---    MAC label (LBD hosts only), IP label, MDNS/DHCP name from C, resolved IP
---
--- NOTE: The function attempt at labelling an host only using information found in host_info.
--- In case host_info is not enough to label the host, then local caches and DNS resolution kick in
--- to find a label (at the expense of extra time).
-function hostinfo2label(host_info, show_vlan, shorten_len, skip_resolution)
-   local alt_name = nil
-   local ip = host_info["ip"] or host_info["host"]
-
-   -- Take the label as found in the host structure
-   local res = host_info.label
-
-   if isEmptyString(res) then
-      -- Use any user-configured custom name
-      -- This goes first as a label set by the user MUST take precedance over any other possibly available label
-      res = getHostAltName(ip)
-
-      if isEmptyString(res) then
-	      -- Read what is found inside host `name`, e.g., name as found by dissected traffic such as DHCP
-	      res = host_info["name"]
-
-        if isEmptyString(res) then
-            return hostinfo2label_resolved(host_info, show_vlan, shorten_len, skip_resolution)
-        end
-      end
-   end
-
-   return label2formattedlabel(res, host_info, show_vlan, shorten_len)
-end
-
--- ##############################################
-
--- Just a convenience function for hostinfo2label with only IP and VLAN
-function ip2label(ip, vlan, shorten_len)
-   return hostinfo2label({host = ip, vlan = (vlan or 0)}, true, shorten_len)
-end
-
--- ##############################################
-
-function mac2label(mac)
-   local alt_name = getHostAltName(mac)
-
-   if not isEmptyString(alt_name) and (alt_name ~= mac) then
-      return(alt_name)
-   end
-
-   alt_name = ntop.getCache(getDhcpNameKey(interface.getId(), mac))
-
-   if not isEmptyString(alt_name) and (alt_name ~= mac) then
-      return(alt_name)
-   end
-
-   -- Fallback: just the MAC
-   return(mac)
-end
-
--- ##############################################
-
--- Mac Addresses --
-
-local specialMACs = {
-  "01:00:0C",
-  "01:80:C2",
-  "01:00:5E",
-  "01:0C:CD",
-  "01:1B:19",
-  "FF:FF",
-  "33:33"
-}
-function isSpecialMac(mac)
-  for _,key in pairs(specialMACs) do
-     if(string.contains(mac, key)) then
-        return true
-     end
-  end
-
-  return false
-end
-
--- ##############################################
-
--- Flow Utils --
-
-function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
-   local name
-   local orig_name
-
-   if (alerts_view and not hasClickHouseSupport()) or (add_hostname ~= nil and add_hostname == false) then
-      -- do not return resolved name as it will hide the IP address
-      return(flow_info[host_type..".ip"])
-   end
-
-   if(flow_info == nil) then return("") end
-
-   if(host_type == "srv") then
-      if flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "" and flow_info["host_server_name"]:match("%w") and not isIPv4(flow_info["host_server_name"]) and not isIPv6(flow_info["host_server_name"]) then
-	 -- remove possible ports from the name
-	 return(flow_info["host_server_name"]:gsub(":%d+$", ""))
-      end
-      if(flow_info["protos.tls.certificate"] ~= nil and flow_info["protos.tls.certificate"] ~= "") then
-	 return(flow_info["protos.tls.certificate"])
-      end
-   end
-
-   local hostinfo = {
-      host = flow_info[host_type..".ip"],
-      label = flow_info[host_type..".host"],
-      mac = flow_info[host_type..".mac"],
-      dhcpHost = flow_info[host_type..".dhcpHost"],
-      broadcast_domain_host = flow_info[host_type..".broadcast_domain_host"],
-      vlan = flow_info["vlan"],
-   }
-
-   return(hostinfo2label(hostinfo, true, false, true))
-end
 
 -- ##############################################
 
@@ -1097,49 +698,6 @@ end
 
 -- ##############################################
 
-function flow2hostinfo(host_info, host_type)
-  local host_name
-  local res = interface.getHostMinInfo(host_info[host_type .. ".ip"])
-
-  if((res == nil) or (res["name"] == nil)) then
-      host_name = host_info[host_type .. ".ip"]
-  else
-      host_name = res["name"]
-  end
-
-  return({host = host_info[host_type .. ".ip"], vlan = host_info[host_type .. ".vlan"], name = host_name})
-end
-
--- ##############################################
-
--- URL Util --
-
---
--- Split the host key (ip@vlan) creating a new lua table.
--- Example:
---    info = hostkey2hostinfo(key)
---    ip = info["host"]
---    vlan = info["vlan"]
---
-function hostkey2hostinfo(key)
-  local host = {}
-  local info = split(key,"@")
-
-  if(info[1] ~= nil) then
-    host["host"] = info[1]
-  end
-
-  if(info[2] ~= nil) then
-    host["vlan"] = tonumber(info[2])
-  else
-    host["vlan"] = 0
-  end
-
-  return host
-end
-
--- ##############################################
-
 function isHostKey(key)
   local info = split(key,"@")
   -- Check format
@@ -1156,53 +714,6 @@ function isHostKey(key)
   end
   -- Ok
   return true
-end
-
--- ##############################################
-
---
--- Analyze the host_info table and return the host key.
--- Example:
---    host_info = interface.getHostInfo("127.0.0.1",0)
---    key = hostinfo2hostkey(host_info)
---
-function hostinfo2hostkey(host_info, host_type, show_vlan)
-   local rsp = ""
-
-   if(host_type == "cli") then
-      local cli_ip = host_info["cli.ip"] or host_info["cli_ip"]
-
-      if cli_ip then
-	 rsp = rsp..cli_ip
-      end
-
-   elseif(host_type == "srv") then
-      local srv_ip = host_info["srv.ip"] or host_info["srv_ip"]
-
-      if srv_ip then
-	 rsp = rsp..srv_ip
-      end
-   else
-
-      if(host_info["ip"] ~= nil) then
-	 rsp = rsp..host_info["ip"]
-      elseif(host_info["mac"] ~= nil) then
-	 rsp = rsp..host_info["mac"]
-      elseif(host_info["host"] ~= nil) then
-	 rsp = rsp..host_info["host"]
-      elseif(host_info["name"] ~= nil) then
-	 rsp = rsp..host_info["name"]
-      end
-   end
-
-   local vlan_id = tonumber(host_info["vlan"] or host_info["vlan_id"] or 0)
-
-   if vlan_id ~= 0 or show_vlan then
-      rsp = rsp..'@'..tostring(vlan_id)
-   end
-
-   if(debug_host) then traceError(TRACE_DEBUG,TRACE_CONSOLE,"HOST2URL => ".. rsp .. "\n") end
-   return rsp
 end
 
 -- ##############################################
@@ -1353,72 +864,6 @@ function setInterfaceRegreshRate(ifid, refreshrate)
       ntop.delCache(key)
    else
       ntop.setCache(key, tostring(refreshrate))
-   end
-end
-
--- ##############################################
-
--- "Some Very Long String" -> "Some Ver...g String"
-function shortenCollapse(s, max_len)
-   local replacement = "..."
-   local r_len = string.len(replacement)
-   local s_len = string.len(s)
-
-   if max_len == nil then
-      max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
-      max_len = tonumber(max_len)
-      if(max_len == nil) then max_len = 24 end
-   end
-
-   if max_len <= r_len then
-      return replacement
-   end
-
-   if s_len > max_len then
-      local half = math.floor((max_len-r_len) / 2)
-      return string.sub(s, 1, half) .. replacement .. string.sub(s, s_len-half+1)
-   end
-
-   return s
-end
-
--- ##############################################
-
-function harvestUnusedDir(path, min_epoch)
-   local files = ntop.readdir(path)
-
-   -- print("Reading "..path.."<br>\n")
-
-   for k,v in pairs(files) do
-      if(v ~= nil) then
-	 local p = os_utils.fixPath(path .. "/" .. v)
-	 if(ntop.isdir(p)) then
-	    harvestUnusedDir(p, min_epoch)
-	 else
-	    local when = ntop.fileLastChange(path)
-
-	    if((when ~= -1) and (when < min_epoch)) then
-	       os.remove(p)
-	    end
-	 end
-      end
-   end
-end
-
- -- ##############################################
-
-function harvestJSONTopTalkers(days)
-   local when = os.time() - 86400 * days
-
-   ifnames = interface.getIfNames()
-   for _,ifname in pairs(ifnames) do
-      interface.select(ifname)
-      local _ifstats = interface.getStats()
-      local dirs = ntop.getDirs()
-      local basedir = os_utils.fixPath(dirs.workingdir .. "/" .. _ifstats.id)
-
-      harvestUnusedDir(os_utils.fixPath(basedir .. "/top_talkers"), when)
-      harvestUnusedDir(os_utils.fixPath(basedir .. "/flows"), when)
    end
 end
 
@@ -1642,17 +1087,6 @@ function stripVlan(name)
   return(name)
 end
 
--- ###########################################
-
-function swapKeysValues(tbl)
-   local new_tbl = {}
-
-   for k, v in pairs(tbl or {}) do
-      new_tbl[v] = k
-   end
-
-   return new_tbl
-end
 
 -- ###########################################
 
@@ -1685,106 +1119,6 @@ end
 
 function ip_address_rev(a, b)
    return(ntop.ipCmp(a, b) > 0)
-end
-
--- ###########################################
-
--- @brief Deletes all the cache/prefs keys matching the pattern
-function deleteCachePattern(pattern)
-   local keys = ntop.getKeysCache(pattern)
-
-   for key in pairs(keys or {}) do
-      ntop.delCache(key)
-   end
-end
-
--- ###########################################
-
--- NOTE: '~= "0"' is used for prefs which are enabled by default
-function areInterfaceTimeseriesEnabled(ifid)
-   return((ntop.getPref("ntopng.prefs.interface_rrd_creation") ~= "0"))
-end
-
-function areInterfaceL7TimeseriesEnabled(ifid)
-   return(areInterfaceTimeseriesEnabled(ifid) and
-      (ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation") ~= "per_category"))
-end
-
-function areInterfaceCategoriesTimeseriesEnabled(ifid)
-   local rv = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
-
-   -- note: categories are disabled by default
-   return(areInterfaceTimeseriesEnabled(ifid) and
-      ((rv == "per_category") or (rv == "both")))
-end
-
-function areHostTimeseriesEnabled(ifid)
-   local rv = ntop.getPref("ntopng.prefs.hosts_ts_creation")
-   if isEmptyString(rv) then rv = "light" end
-
-   return((rv == "light") or (rv == "full"))
-end
-
-function areHostL7TimeseriesEnabled(ifid)
-   local rv = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
-
-   -- note: host protocols are disabled by default
-   return((ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full") and
-      ((rv == "per_protocol") or (rv == "both")))
-end
-
-function areHostCategoriesTimeseriesEnabled(ifid)
-   local rv = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
-
-   -- note: host protocols are disabled by default
-   return((ntop.getPref("ntopng.prefs.hosts_ts_creation") == "full") and
-      ((rv == "per_category") or (rv == "both")))
-end
-
-function areSystemTimeseriesEnabled()
-   return(ntop.getPref("ntopng.prefs.system_probes_timeseries") ~= "0")
-end
-
-function areHostPoolsTimeseriesEnabled(ifid)
-   return(ntop.isPro() and (ntop.getPref("ntopng.prefs.host_pools_rrd_creation") == "1"))
-end
-
-function areASTimeseriesEnabled(ifid)
-   return(ntop.getPref("ntopng.prefs.asn_rrd_creation") == "1")
-end
-
-function areInternalTimeseriesEnabled(ifid)
-   -- NOTE: no separate preference so far
-   return(areSystemTimeseriesEnabled())
-end
-
-function areCountryTimeseriesEnabled(ifid)
-   return((ntop.getPref("ntopng.prefs.country_rrd_creation") == "1"))
-end
-
-function areOSTimeseriesEnabled(ifid)
-   return((ntop.getPref("ntopng.prefs.os_rrd_creation") == "1"))
-end
-
-function areVlanTimeseriesEnabled(ifid)
-   return(ntop.getPref("ntopng.prefs.vlan_rrd_creation") == "1")
-end
-
-function areMacsTimeseriesEnabled(ifid)
-   return(ntop.getPref("ntopng.prefs.l2_device_rrd_creation") == "1")
-end
-
-function areContainersTimeseriesEnabled(ifid)
-   -- NOTE: no separate preference so far
-   return(true)
-end
-
-function areSnmpTimeseriesEnabled(device, port_idx)
-   return(ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1")
-end
-
-function areFlowdevTimeseriesEnabled(ifid, device)
-   return(ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation") == "1")
 end
 
 -- ###########################################
@@ -2193,24 +1527,12 @@ end
 
 -- ##############################################
 
--- This function, given a record and a name return a  standard formatted value
--- and if the value is 0, an empty string is returned
--- e.g.   1000 -> 1,000    | 0 -> 
-function format_high_num_value_for_tables(record, name)
-  local formatted_record = format_utils.formatValue(record[name] or 0)
-  if formatted_record == '0' then
-    formatted_record = ''
-  end
-
-  return formatted_record
-end
-
--- ##############################################
-
 require "lua_utils_print"
 require "lua_utils_get"
 require "lua_utils_gui"
 
 if(trace_script_duration ~= nil) then
    io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
+   io.write(string.format("Lua memory: =  %s\n", collectgarbage("count")))
 end
+

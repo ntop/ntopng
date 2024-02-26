@@ -24,6 +24,8 @@
 /* ******************************* */
 
 Mutex::Mutex() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   pthread_mutex_init(&the_mutex, NULL);
   locked = false;
 #ifdef MUTEX_DEBUG

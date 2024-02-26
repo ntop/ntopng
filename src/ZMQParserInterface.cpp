@@ -32,6 +32,8 @@
 ZMQParserInterface::ZMQParserInterface(const char *endpoint,
                                        const char *custom_interface_type)
     : ParserInterface(endpoint, custom_interface_type) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   zmq_initial_bytes = 0, zmq_initial_pkts = 0;
   zmq_remote_stats = zmq_remote_stats_shadow = NULL;
   memset(&last_zmq_remote_stats_update, 0,
@@ -126,6 +128,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addMapping("SSL_UNSAFE_CIPHER", SSL_UNSAFE_CIPHER, NTOP_PEN);
   addMapping("JA3C_HASH", JA3C_HASH, NTOP_PEN);
   addMapping("JA3S_HASH", JA3S_HASH, NTOP_PEN);
+  addMapping("JA4C_HASH", JA4C_HASH, NTOP_PEN);
   addMapping("BITTORRENT_HASH", BITTORRENT_HASH, NTOP_PEN);
   addMapping("SRC_FRAGMENTS", SRC_FRAGMENTS, NTOP_PEN);
   addMapping("DST_FRAGMENTS", DST_FRAGMENTS, NTOP_PEN);
@@ -994,6 +997,11 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
   case JA3S_HASH:
     if (value->string && value->string[0])
       flow->setJA3sHash(value->string);
+    break;
+
+  case JA4C_HASH:
+    if (value->string && value->string[0])
+      flow->setJA4cHash(value->string);
     break;
 
   case TLS_CIPHER:
@@ -3099,11 +3107,11 @@ bool ZMQParserInterface::getCustomAppDetails(u_int32_t remapped_app_id,
 
 /* **************************************************** */
 
-void ZMQParserInterface::lua(lua_State *vm) {
+void ZMQParserInterface::lua(lua_State *vm, bool fullStats) {
   ZMQ_RemoteStats *zrs = zmq_remote_stats;
   std::map<u_int32_t, ZMQ_RemoteStats *>::iterator it;
 
-  NetworkInterface::lua(vm);
+  NetworkInterface::lua(vm, fullStats);
 
   /* ************************************* */
 

@@ -67,7 +67,10 @@ u_int8_t DSCPStats::ds2Precedence(u_int8_t ds_id) {
 
 /* *************************************** */
 
-DSCPStats::DSCPStats() { memset(counters, 0, sizeof(counters)); }
+DSCPStats::DSCPStats() {
+  //   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  memset(counters, 0, sizeof(counters));
+}
 
 /* *************************************** */
 

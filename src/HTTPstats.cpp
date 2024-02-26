@@ -33,6 +33,8 @@ struct http_walk_info {
 HTTPstats::HTTPstats(Host *_host) {
   struct timeval tv;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   host = _host;
   h = host->getInterface()->get_hosts_hash(), warning_shown = false;
   memset(&query, 0, sizeof(query));
@@ -55,6 +57,7 @@ HTTPstats::HTTPstats(Host *_host) {
 /* *************************************** */
 
 HTTPstats::~HTTPstats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (virtualHosts) delete (virtualHosts);
 }
 

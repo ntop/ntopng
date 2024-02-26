@@ -26,6 +26,7 @@
 /* *************************************** */
 
 AlertCounter::AlertCounter() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   trailing_window_max_since_hits_reset = 0;
   hits_reset_req = false;
   reset_window();

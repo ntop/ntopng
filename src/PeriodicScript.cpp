@@ -30,6 +30,7 @@ PeriodicScript::PeriodicScript(const char* _path,
                                bool _exclude_viewed_interfaces,
                                bool _exclude_pcap_dump_interfaces,
                                ThreadPool* _pool) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   path = strdup(_path);
   periodicity = _periodicity_seconds;
   max_duration_secs = _max_duration_seconds;
@@ -42,5 +43,6 @@ PeriodicScript::PeriodicScript(const char* _path,
 /* ******************************************* */
 
 PeriodicScript::~PeriodicScript() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (path) free((char*)path);
 }

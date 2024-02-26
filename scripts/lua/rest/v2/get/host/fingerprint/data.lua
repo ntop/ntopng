@@ -59,15 +59,25 @@ end
 
 stats = stats or {}
 
-if fingerprint_type == "ja3" then
-   stats = stats and stats.ja3_fingerprint or {}
-elseif fingerprint_type == "hassh" then
-   stats = stats and stats.hassh_fingerprint or {}
+local function add_to_res(res, fingerprint_type, stats)
+   for key, value in pairs(stats) do
+      res[#res + 1] = value
+      if (fingerprint_type ~= "hassh") then
+         res[#res]["hash"] = key
+         res[#res]["type"] = string.upper(fingerprint_type)
+      else
+         res[#res][fingerprint_type] = key
+      end
+   end
+   return res
 end
 
-for key, value in pairs(stats) do
-   res[#res + 1] = value
-   res[#res][fingerprint_type] = key
+if fingerprint_type == "ja3" then
+   -- If there are JA3 stats present, JA4 stats could also be present.
+   res = add_to_res(res, fingerprint_type, stats.ja3_fingerprint or {})
+   res = add_to_res(res, "ja4", stats.ja4_fingerprint or {})
+elseif fingerprint_type == "hassh" then
+   res = add_to_res(res, fingerprint_type, stats.hassh_fingerprint or {})
 end
 
 rc = rest_utils.consts.success.ok

@@ -52,7 +52,7 @@ LuaEngine *CustomFlowLuaScript::initVM(const char *script_path) {
     LuaEngine *lua;
 
     try {
-      lua = new LuaEngine(NULL);
+      lua = new LuaEngine();
       lua->load_script((char *)where,
 		       lua_engine_mode_callback,
 		       NULL /* NetworkInterface filled later via lua->setFlow(f); */);

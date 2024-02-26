@@ -24,6 +24,8 @@
 /* ****************************************** */
 
 AlertableEntity::AlertableEntity(NetworkInterface *iface, AlertEntity entity) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   alert_iface = iface;
   entity_type = entity;
   num_engaged_alerts = 0;
@@ -32,6 +34,7 @@ AlertableEntity::AlertableEntity(NetworkInterface *iface, AlertEntity entity) {
 /* ****************************************** */
 
 AlertableEntity::~AlertableEntity() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
 #if 0
   if(getNumEngagedAlerts() > 0) {
     /* Cannot destroy an alertable entity with currently engaged alerts,

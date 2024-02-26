@@ -198,8 +198,8 @@ protected:
   /* Live Capture */
   Mutex active_captures_lock;
   u_int8_t num_live_captures;
-  struct ntopngLuaContext *live_captures[MAX_NUM_PCAP_CAPTURES];
-  static bool matchLiveCapture(struct ntopngLuaContext *const luactx,
+  NtopngLuaContext *live_captures[MAX_NUM_PCAP_CAPTURES];
+  static bool matchLiveCapture(NtopngLuaContext *const luactx,
                                const struct pcap_pkthdr *const h,
                                const u_char *const packet, Flow *const f);
   void deliverLiveCapture(const struct pcap_pkthdr *const h,
@@ -289,25 +289,21 @@ protected:
   ThroughputStats bytes_thpt, pkts_thpt;
   struct timeval last_periodic_stats_update;
 
-  MacHash
-  *gw_macs; /**< Hash used to identify traffic direction based on gw MAC. */
+  MacHash *gw_macs; /**< Hash used to identify traffic direction based on gw MAC. */
   bool gw_macs_reload_requested;
 
   /* Mac */
   MacHash *macs_hash; /**< Hash used to store MAC information. */
 
   /* Autonomous Systems */
-  AutonomousSystemHash
-  *ases_hash; /**< Hash used to store Autonomous Systems information. */
+  AutonomousSystemHash *ases_hash; /**< Hash used to store Autonomous Systems information. */
 
   /* Observation Point */
   u_int16_t last_obs_point_id;
-  ObservationPointHash
-  *obs_hash; /**< Hash used to store Observation Point information. */
+  ObservationPointHash *obs_hash; /**< Hash used to store Observation Point information. */
 
   /* Operating Systems */
-  OperatingSystemHash
-  *oses_hash; /**< Hash used to store Operating Systems information. */
+  OperatingSystemHash *oses_hash; /**< Hash used to store Operating Systems information. */
 
   /* Countries */
   CountriesHash *countries_hash;
@@ -329,7 +325,7 @@ protected:
     last_pkt_rcvd_remote, /* Meaningful only for ZMQ interfaces */
     next_idle_flow_purge, next_idle_host_purge, next_idle_other_purge;
   bool running, shutting_down, is_idle;
-  NetworkStats **networkStats;
+  NetworkStats **networkStats; /* One stats entry per network defined (-m) */
   InterfaceStatsHash *interfaceStats;
   dhcp_range *dhcp_ranges, *dhcp_ranges_shadow;
 
@@ -743,7 +739,7 @@ public:
   struct timeval periodicUpdateInitTime() const;
   virtual u_int32_t getFlowMaxIdle();
 
-  virtual void lua(lua_State *vm);
+  virtual void lua(lua_State *vm, bool fullStats);
   void luaScore(lua_State *vm);
   void luaAlertedFlows(lua_State *vm);
   void luaAnomalies(lua_State *vm);
@@ -922,8 +918,8 @@ public:
     if (host_pools) host_pools->reloadPools();
   }
 
-  bool registerLiveCapture(struct ntopngLuaContext *const luactx, int *id);
-  bool deregisterLiveCapture(struct ntopngLuaContext *const luactx);
+  bool registerLiveCapture(NtopngLuaContext *const luactx, int *id);
+  bool deregisterLiveCapture(NtopngLuaContext *const luactx);
   void dumpLiveCaptures(lua_State *vm);
   bool stopLiveCapture(int capture_id);
 #ifdef NTOPNG_PRO
@@ -1339,6 +1335,9 @@ public:
   static bool compute_server_flow_stats(GenericHashEntry *node, void *user_data,
 					bool *matched);
   static bool compute_client_server_srv_port_flow_stats(GenericHashEntry *node,
+          void *user_data,
+          bool *matched);
+  static bool compute_client_server_srv_port_app_proto_flow_stats(GenericHashEntry *node,
           void *user_data,
           bool *matched);
   static bool get_host_ports(GenericHashEntry *node,

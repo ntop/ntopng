@@ -32,8 +32,9 @@ ZCCollectorInterface::ZCCollectorInterface(const char *name)
   char ifname[32];
   char *at;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   cluster_id = queue_id = 0;
-
   snprintf(ifname, sizeof(ifname), "%s", &name[7]);
 
   at = strchr(ifname, '@');

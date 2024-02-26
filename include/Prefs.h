@@ -60,7 +60,7 @@ class Prefs {
     enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
     dump_flows_on_clickhouse, use_mac_in_flow_key, do_reforge_timestamps,
     add_vlan_tags_to_cloud_exporters, collect_blacklist_stats,
-    fail_on_invalid_license, limited_resources_mode;
+    fail_on_invalid_license, limited_resources_mode, fingerprint_stats;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period, modbus_learning_period,
     devices_learning_period;
@@ -190,10 +190,14 @@ class Prefs {
   char* test_runtime_script_path;
   char* test_post_script_path;
 
+  char* message_broker_url;
+  char* message_broker;
 #ifdef NTOPNG_PRO
   bool print_maintenance, print_license;
 #endif
   bool print_version, print_version_json;
+  bool snmp_polling;
+  bool active_monitoring;
 
   InterfacesSet lan_interfaces, wan_interfaces;
 
@@ -355,6 +359,12 @@ class Prefs {
   inline const char* get_test_post_script_path() {
     return (test_post_script_path);
   };
+  inline const char* get_message_broker_url() {
+    return(message_broker_url);
+  };
+  inline const char* get_message_broker() {
+    return(message_broker);
+  };
   inline char* get_export_endpoint() { return (export_endpoint); };
   inline char* get_export_zmq_encryption_key() {
     return (export_zmq_encryption_key);
@@ -373,6 +383,8 @@ class Prefs {
   inline bool do_simulate_vlans() { return (simulate_vlans); };
   inline bool do_simulate_macs() { return (simulate_macs); };
   inline bool do_insecure_tls() { return (insecure_tls); };
+  inline bool do_snmp_polling() { return (snmp_polling); };
+  inline bool do_active_monitoring(){ return (active_monitoring); };
   inline char* get_cpu_affinity() { return (cpu_affinity); };
   inline char* get_other_cpu_affinity() { return (other_cpu_affinity); };
 #ifdef __linux__
@@ -699,6 +711,7 @@ class Prefs {
   char* getKafkaOptions() { return (kafka_options); }
 #endif
   inline bool useMacAddressInFlowKey()     { return (use_mac_in_flow_key);  }
+  inline bool enableFingerprintStats()     { return (fingerprint_stats);    }
   inline bool doReforgeTimestamps()        { return(do_reforge_timestamps); }
   inline void enableVLANCloudToExporters() { add_vlan_tags_to_cloud_exporters = true;  }
   inline bool addVLANCloudToExporters()    { return(add_vlan_tags_to_cloud_exporters); }

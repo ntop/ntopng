@@ -506,6 +506,7 @@ bool MySQLDB::createDBSchema() {
 /* ******************************************* */
 
 MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   mysqlEnqueuedFlows = 0;
   log_fd = NULL;
   open_log();
@@ -517,6 +518,8 @@ MySQLDB::MySQLDB(NetworkInterface *_iface) : DB(_iface) {
 /* ******************************************* */
 
 MySQLDB::~MySQLDB() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   shutdown();
   disconnectFromDB(&mysql);
 

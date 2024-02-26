@@ -25,6 +25,7 @@
 /* **************************************************** */
 
 FlowAlertsLoader::FlowAlertsLoader() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   memset(&alert_to_score, 0, sizeof(alert_to_score));
 
   /* Set all alerts to no risk, then initialize risk-based alerts */

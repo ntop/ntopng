@@ -2008,10 +2008,10 @@ bool Utils::sendMail(lua_State *vm, char *from, char *to, char *cc,
 
     curl_easy_setopt(curl, CURLOPT_MAIL_FROM, from);
     if(verbose) ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding from: %s", from);
-    
+
     recipients = curl_slist_append(recipients, to);
     if(verbose) ntop->getTrace()->traceEvent(TRACE_NORMAL, "Adding to: %s", to);
-    
+
     if (cc && cc[0]) {
       char *ccs = strdup(cc);
 
@@ -2386,23 +2386,20 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
     } else {
       if (vm)
         lua_push_str_table_entry(vm, "ERROR", curl_easy_strerror(curlcode));
+
       ret = false;
     }
 
     if (vm) {
       readCurlStats(curl, stats, vm);
 
-      if (curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) ==
-          CURLE_OK)
+      if (curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
         lua_push_uint64_table_entry(vm, "RESPONSE_CODE", response_code);
 
-      if ((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) ==
-           CURLE_OK) &&
-          content_type)
+      if ((curl_easy_getinfo(curl, CURLINFO_CONTENT_TYPE, &content_type) == CURLE_OK) && content_type)
         lua_push_str_table_entry(vm, "CONTENT_TYPE", content_type);
 
-      if (curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &redirection) ==
-          CURLE_OK)
+      if (curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &redirection) == CURLE_OK)
         lua_push_str_table_entry(vm, "EFFECTIVE_URL", redirection);
 
       if (!form_data) {
@@ -2807,13 +2804,13 @@ void Utils::readMac(const char *_ifname, dump_mac_t mac_addr) {
   char ebuf[PCAP_ERRBUF_SIZE];
   pcap_if_t *pdevs, *pdev;
   bool found = false;
-  
+
   memset(mac_addr, 0, 6);
-  
+
   if (pcap_findalldevs(&pdevs, ebuf) == 0) {
     pdev = pdevs;
     while (pdev != NULL) {
-      if (Utils::validInterface(pdev) && Utils::isInterfaceUp(pdev->name)) {        
+      if (Utils::validInterface(pdev) && Utils::isInterfaceUp(pdev->name)) {
 	if (strstr(pdev->name, _ifname) != NULL) {
 	  memcpy(mac_addr, pdev->addresses->addr->sa_data, 6);
 	  break;
@@ -2821,7 +2818,7 @@ void Utils::readMac(const char *_ifname, dump_mac_t mac_addr) {
       }
       pdev = pdev->next;
     }
-    
+
     pcap_freealldevs(pdevs);
   }
 #endif
@@ -2895,6 +2892,12 @@ bool Utils::readIPv6(char *ifname, struct in6_addr *sin) {
 /* **************************************** */
 
 u_int16_t Utils::getIfMTU(const char *ifname) {
+  struct stat buf;
+
+  /* Check if this is a pcap file */
+  if(stat(ifname, &buf) == 0)
+    return(CONST_MAX_PACKET_SIZE);
+  
 #ifdef WIN32
   return (CONST_DEFAULT_MAX_PACKET_SIZE);
 #else
@@ -2909,9 +2912,9 @@ u_int16_t Utils::getIfMTU(const char *ifname) {
   if ((fd = Utils::openSocket(AF_INET, SOCK_DGRAM, 0, "getIfMTU")) < 0) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket");
   } else {
-    if (ioctl(fd, SIOCGIFMTU, &ifr) == -1)
+    if (ioctl(fd, SIOCGIFMTU, &ifr) == -1) {
       ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to read MTU for device %s", ifname);
-    else {
+    } else {
       max_packet_size = ifr.ifr_mtu + sizeof(struct ndpi_ethhdr) + sizeof(Ether80211q);
 
       if (max_packet_size > ((u_int16_t)-1)) max_packet_size = ((u_int16_t)-1);
@@ -3803,7 +3806,7 @@ void Utils::luaMeminfo(lua_State *vm) {
       while ((read = getline(&line, &len, fp)) != -1) {
         if (!strncmp(line, "VmRSS", strlen("VmRSS")) && sscanf(line, "%*s %lu kB", &mem_resident))
           lua_push_uint64_table_entry(vm, "mem_ntopng_resident", mem_resident);
-	
+
         else if (!strncmp(line, "VmSize", strlen("VmSize")) && sscanf(line, "%*s %lu kB", &mem_virtual))
           lua_push_uint64_table_entry(vm, "mem_ntopng_virtual", mem_virtual);
       }
@@ -4078,22 +4081,22 @@ bool Utils::execCmd(char *cmd, std::string *out) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping command during shutdown (%s)", cmd);
     return(false);
   }
-  
+
   ntop->getTrace()->traceEvent(TRACE_INFO, "Executing %s", cmd);
 
   if ((fp = popen(cmd, "r")) != NULL) {
     char line[256], *l;
     int fd = fileno(fp);
-    
+
     while(!ntop->getGlobals()->isShutdownRequested()) {
       struct timeval ts;
       fd_set rset;
       int ret;
-      
+
       FD_ZERO(&rset);
       FD_SET(fd, &rset);
       ts.tv_sec = 1, ts.tv_usec = 0;
-      
+
       ret = select(fd + 1, &rset, NULL, NULL, &ts);
 
       if(ret < 0)
@@ -4105,9 +4108,9 @@ bool Utils::execCmd(char *cmd, std::string *out) {
 	} else
 	  break;
       }
-      
+
       ntop->getTrace()->traceEvent(TRACE_INFO, "Sleeping %s", cmd);
-      
+
       _usleep(100000);
     } /* while */
 
@@ -4631,7 +4634,7 @@ bool Utils::readInterfaceStats(const char *ifname, ProtoStats *in_stats,
   if (f) {
     char line[512];
     char to_find[IFNAMSIZ + 2];
-    
+
     snprintf(to_find, sizeof(to_find), "%s:", ifname);
 
     while (fgets(line, sizeof(line), f)) {
@@ -5661,7 +5664,8 @@ IpAddress* Utils::parseHostString(char *host_ip, u_int16_t *vlan_id /* out */) {
   char *ip = NULL, *vlan = NULL;
 
   if (host_ip != NULL && host_ip[0] != 0) {
-    char *token = strtok(host_ip, "@");
+    char *tmp = NULL;
+    char *token = strtok_r(host_ip, "@", &tmp);
     int h = 0;
 
     while (token != NULL)  {
@@ -5670,7 +5674,7 @@ IpAddress* Utils::parseHostString(char *host_ip, u_int16_t *vlan_id /* out */) {
       else if (h == 1)
 	vlan = token;
 
-      token = strtok(NULL, "@");
+      token = strtok_r(NULL, "@", &tmp);
       h++;
     }
   }
@@ -5706,13 +5710,13 @@ bool Utils::nwInterfaceExists(char *if_name) {
 
   if(!ifp)
     return(false);
-  
+
   while(ifp->if_index) {
     if(strcmp(ifp->if_name, if_name) == 0){
       found = true;
       break;
     }
-    
+
     ifp++;
   }
 

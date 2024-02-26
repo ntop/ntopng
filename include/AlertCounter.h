@@ -52,4 +52,9 @@ class AlertCounter {
   void reset_hits();
 };
 
+typedef struct {
+  AlertCounter *attacker_counter, *victim_counter;
+} AttackVictimCounter;
+
+
 #endif /* _ALERT_COUNTER_H_ */

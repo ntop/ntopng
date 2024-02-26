@@ -43,6 +43,8 @@ Flow::Flow(NetworkInterface *_iface,
            time_t _first_seen, time_t _last_seen, u_int8_t *_view_cli_mac,
            u_int8_t *_view_srv_mac)
     : GenericHashEntry(_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   iface_index = _iface_idx,
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port,
   srv_port = _srv_port, privateFlowId = _private_flow_id;
@@ -57,6 +59,7 @@ Flow::Flow(NetworkInterface *_iface,
     predominant_alert_info.is_srv_victim = 0;
   predominant_alert_info.auto_acknowledge = 0;
   ndpiAddressFamilyProtocol = NULL;
+  ndpi_confidence = NDPI_CONFIDENCE_UNKNOWN;
   clearRisks();
   /* Note is_periodic_flow is updated by the updateFlowPeriodicity() call */
   detection_completed = 0, non_zero_payload_observed = 0, is_periodic_flow = 0,
@@ -328,6 +331,7 @@ void Flow::allocDPIMemory() {
 void Flow::freeDPIMemory() {
   if (ndpiFlow) {
     setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
+    ndpi_confidence = ndpiFlow->confidence;
     ndpi_free_flow(ndpiFlow);
     ndpiFlow = NULL;
   }
@@ -338,9 +342,9 @@ void Flow::freeDPIMemory() {
 Flow::~Flow() {
   bool is_oneway_tcp_udp_flow =
       (((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) && isOneWay())
-          ? true
-          : false;
+          ? true : false;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (getUses() != 0 && !ntop->getGlobals()->isShutdown())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Deleting flow [%u]",
                                  __FUNCTION__, getUses());
@@ -470,6 +474,7 @@ Flow::~Flow() {
       free(protos.tls.client_requested_server_name);
     if (protos.tls.server_names) free(protos.tls.server_names);
     if (protos.tls.ja3.client_hash) free(protos.tls.ja3.client_hash);
+    if (protos.tls.ja4.client_hash) free(protos.tls.ja4.client_hash);
     if (protos.tls.ja3.server_hash) free(protos.tls.ja3.server_hash);
     if (protos.tls.client_alpn) free(protos.tls.client_alpn);
     if (protos.tls.client_tls_supported_versions)
@@ -741,19 +746,21 @@ void Flow::processExtraDissectedInformation() {
 
         if ((protos.tls.ja3.client_hash == NULL) &&
             (ndpiFlow->protos.tls_quic.ja3_client[0] != '\0')) {
-          protos.tls.ja3.client_hash =
-              strdup(ndpiFlow->protos.tls_quic.ja3_client);
+          protos.tls.ja3.client_hash = strdup(ndpiFlow->protos.tls_quic.ja3_client);
           updateCliJA3();
+        }
+
+        if ((protos.tls.ja4.client_hash == NULL) &&
+            (ndpiFlow->protos.tls_quic.ja4_client[0] != '\0')) {
+          protos.tls.ja4.client_hash = strdup(ndpiFlow->protos.tls_quic.ja4_client);
+          updateCliJA4();
         }
 
         if ((protos.tls.ja3.server_hash == NULL) &&
             (ndpiFlow->protos.tls_quic.ja3_server[0] != '\0')) {
-          protos.tls.ja3.server_hash =
-              strdup(ndpiFlow->protos.tls_quic.ja3_server);
-          protos.tls.ja3.server_unsafe_cipher =
-              ndpiFlow->protos.tls_quic.server_unsafe_cipher;
-          protos.tls.ja3.server_cipher =
-              ndpiFlow->protos.tls_quic.server_cipher;
+          protos.tls.ja3.server_hash = strdup(ndpiFlow->protos.tls_quic.ja3_server);
+          protos.tls.ja3.server_unsafe_cipher = ndpiFlow->protos.tls_quic.server_unsafe_cipher;
+          protos.tls.ja3.server_cipher = ndpiFlow->protos.tls_quic.server_cipher;
           updateSrvJA3();
         }
         break;
@@ -1035,12 +1042,12 @@ void Flow::processPacket(const struct pcap_pkthdr *h, const u_char *ip_packet,
     processDNSPacket(ip_packet, ip_len, packet_time);
   else if (isIEC60870())
     processIEC60870Packet((htons(src_port) == 2404) ? true : false, payload,
-                          payload_len, (struct timeval *)&h->ts);
+                          payload_len, h);
 #ifdef NTOPNG_PRO
 #if 0
   else if (isModbus())
     processModbusPacket((htons(src_port) != 502) ? true : false, payload,
-			payload_len, (struct timeval *)&h->ts);
+			payload_len, h);
 #endif
 #endif
 
@@ -1156,20 +1163,34 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
 
 #ifdef NTOPNG_PRO
 void Flow::processModbusPacket(bool is_query, const u_char *payload,
-				  u_int16_t payload_len,
-			       struct timeval *packet_time) {
-  if(ntop->getPrefs() ->is_enterprise_l_edition()) {
+			       u_int16_t payload_len, const struct pcap_pkthdr *h) {
+
+  if(ntop->getPrefs()->is_enterprise_l_edition() && (ndpi_confidence == NDPI_CONFIDENCE_DPI)) {
     /*
      * Exits if the flow isn't Modbus/TCP or it the interface is not a
      * packet-interface
      */
+    u_int16_t len;
+    
     if (!isModbus() || (!getInterface()->isPacketInterface()) || (payload_len < 6))
       return;
 
+    /* Validate packet */
+    len = (payload[4] << 8) + payload[5];
+    
+    if((len == 0) || ((len+6) != payload_len)) {
+      ntop->getTrace()->traceEvent(TRACE_INFO,
+				   "Discarded ModBus/TCP [expected: %u][rcvd: %u][h.len: %u][%02X %02X %02X %02X %02X %02X]",
+				   (len+6), payload_len, h->len,
+				   payload[0], payload[1], payload[2],
+				   payload[3], payload[4], payload[5]);
+      return;
+    }
+    
     if (!modbus) modbus = new (std::nothrow) ModbusStats();
 
     if (modbus)
-      modbus->processPacket(this, is_query, payload, payload_len, packet_time);
+      modbus->processPacket(this, is_query, payload, payload_len, h);
   }
 }
 #endif
@@ -1179,7 +1200,7 @@ void Flow::processModbusPacket(bool is_query, const u_char *payload,
 /* Special handling of IEC60870 which is always performed. */
 void Flow::processIEC60870Packet(bool tx_direction, const u_char *payload,
                                  u_int16_t payload_len,
-                                 struct timeval *packet_time) {
+				 const struct pcap_pkthdr *h) {
   /* Exits if the flow isn't IEC60870 or it the interface is not a
    * packet-interface */
   if (!isIEC60870() || (!getInterface()->isPacketInterface()) ||
@@ -1189,8 +1210,7 @@ void Flow::processIEC60870Packet(bool tx_direction, const u_char *payload,
   if (!iec104) iec104 = new (std::nothrow) IEC104Stats();
 
   if (iec104)
-    iec104->processPacket(this, tx_direction, payload, payload_len,
-                          packet_time);
+    iec104->processPacket(this, tx_direction, payload, payload_len, h);
 }
 
 /* *************************************** */
@@ -1573,10 +1593,21 @@ char *Flow::printTCPState(char *const buf, u_int buf_len) const {
 
 /* *************************************** */
 
-char *Flow::print(char *buf, u_int buf_len) const {
+char *Flow::print(char *buf, u_int buf_len, bool full_report) const {
   char buf1[32], buf2[32], buf3[32], buf4[32], buf5[32], pbuf[32], tcp_buf[64];
-  buf[0] = '\0';
 
+  buf[0] = '\0';
+  
+  if(!full_report) {
+    snprintf(buf, buf_len, "%s %s:%u <-> %s:%u",
+	     get_protocol_name(),
+	     get_cli_ip_addr() ? get_cli_ip_addr()->print(buf1, sizeof(buf1)) : "",
+	     ntohs(cli_port),
+	     get_srv_ip_addr() ? get_srv_ip_addr()->print(buf2, sizeof(buf2)) : "",
+	     ntohs(srv_port));
+    return(buf);
+  }
+  
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
   char shapers[64];
 
@@ -2828,9 +2859,8 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
     lua_tos(vm);
     lua_get_protocols(vm);
-    lua_push_str_table_entry(
-        vm, "community_id",
-        (char *)getCommunityId(community_id, sizeof(community_id)));
+    lua_push_str_table_entry(vm, "community_id",
+			     (char *)getCommunityId(community_id, sizeof(community_id)));
 
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
@@ -2870,12 +2900,12 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
     lua_push_int32_table_entry(vm, "cli.devtype",
                                (cli_host && cli_host->getMac())
-                                   ? cli_host->getMac()->getDeviceType()
-                                   : device_unknown);
+			       ? cli_host->getMac()->getDeviceType()
+			       : device_unknown);
     lua_push_int32_table_entry(vm, "srv.devtype",
                                (srv_host && srv_host->getMac())
-                                   ? srv_host->getMac()->getDeviceType()
-                                   : device_unknown);
+			       ? srv_host->getMac()->getDeviceType()
+			       : device_unknown);
 
 #ifdef HAVE_NEDGE
     if (iface->is_bridge_interface())
@@ -2912,25 +2942,25 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
     if (cli_host && srv_host) {
       /* Shapers */
       lua_push_uint64_table_entry(
-          vm, "shaper.cli2srv_ingress",
-          flowShaperIds.cli2srv.ingress
-              ? flowShaperIds.cli2srv.ingress->get_shaper_id()
-              : DEFAULT_SHAPER_ID);
+				  vm, "shaper.cli2srv_ingress",
+				  flowShaperIds.cli2srv.ingress
+				  ? flowShaperIds.cli2srv.ingress->get_shaper_id()
+				  : DEFAULT_SHAPER_ID);
       lua_push_uint64_table_entry(
-          vm, "shaper.cli2srv_egress",
-          flowShaperIds.cli2srv.egress
-              ? flowShaperIds.cli2srv.egress->get_shaper_id()
-              : DEFAULT_SHAPER_ID);
+				  vm, "shaper.cli2srv_egress",
+				  flowShaperIds.cli2srv.egress
+				  ? flowShaperIds.cli2srv.egress->get_shaper_id()
+				  : DEFAULT_SHAPER_ID);
       lua_push_uint64_table_entry(
-          vm, "shaper.srv2cli_ingress",
-          flowShaperIds.srv2cli.ingress
-              ? flowShaperIds.srv2cli.ingress->get_shaper_id()
-              : DEFAULT_SHAPER_ID);
+				  vm, "shaper.srv2cli_ingress",
+				  flowShaperIds.srv2cli.ingress
+				  ? flowShaperIds.srv2cli.ingress->get_shaper_id()
+				  : DEFAULT_SHAPER_ID);
       lua_push_uint64_table_entry(
-          vm, "shaper.srv2cli_egress",
-          flowShaperIds.srv2cli.egress
-              ? flowShaperIds.srv2cli.egress->get_shaper_id()
-              : DEFAULT_SHAPER_ID);
+				  vm, "shaper.srv2cli_egress",
+				  flowShaperIds.srv2cli.egress
+				  ? flowShaperIds.srv2cli.egress->get_shaper_id()
+				  : DEFAULT_SHAPER_ID);
 
       /* Quota */
       lua_push_str_table_entry(vm, "cli.quota_source",
@@ -2968,21 +2998,21 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
     if (rtp_stream_type != ndpi_multimedia_unknown_flow) {
       switch (rtp_stream_type) {
-        case ndpi_multimedia_audio_flow:
-          lua_push_str_table_entry(vm, "rtp_stream_type", "audio");
-          break;
+      case ndpi_multimedia_audio_flow:
+	lua_push_str_table_entry(vm, "rtp_stream_type", "audio");
+	break;
 
-        case ndpi_multimedia_video_flow:
-          lua_push_str_table_entry(vm, "rtp_stream_type", "video");
-          break;
+      case ndpi_multimedia_video_flow:
+	lua_push_str_table_entry(vm, "rtp_stream_type", "video");
+	break;
 
-        case ndpi_multimedia_screen_sharing_flow:
-          lua_push_str_table_entry(vm, "rtp_stream_type", "screen_share");
-          break;
+      case ndpi_multimedia_screen_sharing_flow:
+	lua_push_str_table_entry(vm, "rtp_stream_type", "screen_share");
+	break;
 
-        default:
-          /* Nothing to do */
-          break;
+      default:
+	/* Nothing to do */
+	break;
       }
     }
 
@@ -3060,9 +3090,12 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
   lua_push_str_table_entry(vm, "proto.ndpi",
                            detection_completed
-                               ? get_detected_protocol_name(buf, sizeof(buf))
-                               : (char *)CONST_TOO_EARLY);
+			   ? get_detected_protocol_name(buf, sizeof(buf))
+			   : (char *)CONST_TOO_EARLY);
 
+  lua_push_str_table_entry(vm, "proto.ndpi_confidence",
+			   ndpi_confidence_get_name(ndpi_confidence));
+  
   // this is used to dynamicall update entries in the GUI
   lua_push_uint64_table_entry(vm, "ntopng.key", key());  // Key
   lua_push_uint64_table_entry(vm, "hash_entry_id", get_hash_entry_id());
@@ -3457,42 +3490,38 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
     if (((get_packets_cli2srv() + get_packets_srv2cli()) >
          NDPI_MIN_NUM_PACKETS) ||
         (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN))
-      json_object_object_add(
-          network_object,
-          Utils::jsonLabel(L7_PROTO_NAME, "protocol", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
+      json_object_object_add(network_object,
+			     Utils::jsonLabel(L7_PROTO_NAME, "protocol", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
 
     if (protocol == IPPROTO_TCP)
-      json_object_object_add(
-          network_object,
-          Utils::jsonLabel(TCP_FLAGS, "tcp_flags", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
+      json_object_object_add(network_object,
+			     Utils::jsonLabel(TCP_FLAGS, "tcp_flags", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
 
     json_object_object_add(network_object,
                            Utils::jsonLabel(FIRST_SWITCHED, "first_seen",
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_int(get_partial_first_seen()));
-    json_object_object_add(
-        network_object,
-        Utils::jsonLabel(LAST_SWITCHED, "last_seen", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_int(get_partial_last_seen()));
 
+    json_object_object_add(network_object,
+			   Utils::jsonLabel(LAST_SWITCHED, "last_seen", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int(get_partial_last_seen()));
+    
     json_object *category_object;
     if ((category_object = json_object_new_object()) != NULL) {
-      json_object_object_add(
-          category_object,
-          Utils::jsonLabel(L7_CATEGORY, "name", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_string(get_protocol_category_name()));
-      json_object_object_add(
-          category_object,
-          Utils::jsonLabel(L7_CATEGORY_ID, "id", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_int((u_int32_t)get_protocol_category()));
+      json_object_object_add(category_object,
+			     Utils::jsonLabel(L7_CATEGORY, "name", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(get_protocol_category_name()));
+      json_object_object_add(category_object,
+			     Utils::jsonLabel(L7_CATEGORY_ID, "id", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_int((u_int32_t)get_protocol_category()));
       json_object_object_add(network_object, "category", category_object);
     }
 
     json_object_object_add(my_object, "community_id",
                            json_object_new_string((char *)getCommunityId(
-                               community_id, sizeof(community_id))));
+						    community_id, sizeof(community_id))));
 
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
@@ -3751,6 +3780,12 @@ void Flow::formatSyslogFlow(json_object *my_object) {
         Utils::jsonLabel(JA3S_HASH, "JA3S_HASH", jsonbuf, sizeof(jsonbuf)),
         json_object_new_string(protos.tls.ja3.server_hash));
 
+  if (isTLS() && protos.tls.ja4.client_hash)
+    json_object_object_add(
+        my_object,
+        Utils::jsonLabel(JA4C_HASH, "JA4C_HASH", jsonbuf, sizeof(jsonbuf)),
+        json_object_new_string(protos.tls.ja4.client_hash));
+
   if (isSSH() && protos.ssh.hassh.client_hash)
     json_object_object_add(
         my_object,
@@ -3872,39 +3907,35 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			 Utils::jsonLabel(PROTOCOL, "PROTOCOL", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int(protocol));
 
-  if (((get_packets_cli2srv() + get_packets_srv2cli()) >
-       NDPI_MIN_NUM_PACKETS) ||
-      (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)) {
-    json_object_object_add(
-			   my_object,
+  if (((get_packets_cli2srv() + get_packets_srv2cli()) > NDPI_MIN_NUM_PACKETS)
+      || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)) {
+    json_object_object_add(my_object,
 			   Utils::jsonLabel(L7_PROTO, "L7_PROTO", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(ndpiDetectedProtocol.app_protocol));
-    json_object_object_add(
-			   my_object,
+    json_object_object_add(my_object,
 			   Utils::jsonLabel(L7_PROTO_NAME, "L7_PROTO_NAME", jsonbuf,
 					    sizeof(jsonbuf)),
 			   json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
   }
 
-  json_object_object_add(
-			 my_object,
+  json_object_object_add(my_object,
 			 Utils::jsonLabel(L7_PROTO_RISK, "L7_PROTO_RISK", jsonbuf,
 					  sizeof(jsonbuf)),
 			 json_object_new_int64((u_int64_t)ndpi_flow_risk_bitmap));
+
   if (ndpiFlowRiskName) 
-    json_object_object_add(
-			   my_object,
+    json_object_object_add(my_object,
 			   Utils::jsonLabel(L7_PROTO_RISK_NAME, "L7_PROTO_RISK_NAME", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_string(ndpiFlowRiskName));
+
   if (end_reason)
-    json_object_object_add(
-			   my_object,
+    json_object_object_add(my_object,
 			   Utils::jsonLabel(FLOW_END_REASON, "FLOW_END_REASON", jsonbuf,
 					    sizeof(jsonbuf)),
 			   json_object_new_string(end_reason));
+  
   if (protocol == IPPROTO_TCP) {
-    json_object_object_add(
-			   my_object,
+    json_object_object_add(my_object,
 			   Utils::jsonLabel(TCP_FLAGS, "TCP_FLAGS", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
 
@@ -4389,6 +4420,10 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   if (protos.tls.ja3.server_hash)
     ndpi_serialize_string_string(s, "ja3_server_hash",
                                  protos.tls.ja3.server_hash);
+
+  if (protos.tls.ja4.client_hash)
+    ndpi_serialize_string_string(s, "ja4_client_hash",
+                                 protos.tls.ja4.client_hash);
 
   if (getErrorCode() != 0)
     ndpi_serialize_string_uint32(s, "l7_error_code", getErrorCode());
@@ -6530,7 +6565,8 @@ void Flow::recheckQuota(const struct tm *now) {
   bool above_quota = false;
 
   if (cli_host && srv_host) {
-    L7PolicySource_t cli_src, srv_src;
+    L7PolicySource_t cli_src = policy_source_default;
+    L7PolicySource_t srv_src = policy_source_default;
 
     if ((above_quota =
              cli_host->checkQuota(ndpiDetectedProtocol, &cli_src, now)))
@@ -6666,6 +6702,7 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF *const _ebpf,
 
   updateCliJA3();
   updateSrvJA3();
+  updateCliJA4();
   updateHASSH(true /* AS client */);
   updateHASSH(false /* AS server */);
 }
@@ -6674,10 +6711,25 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF *const _ebpf,
 
 void Flow::updateCliJA3() {
   if (cli_host && isTLS() && protos.tls.ja3.client_hash) {
-    cli_host->getJA3Fingerprint()->update(
-        protos.tls.ja3.client_hash,
-        ebpf ? ebpf->src_process_info.process_name : NULL,
-        has_malicious_cli_signature);
+    Fingerprint *f = cli_host->getJA3Fingerprint();
+
+    if(f)
+      f->update(protos.tls.ja3.client_hash,
+		ebpf ? ebpf->src_process_info.process_name : NULL,
+		has_malicious_cli_signature);
+  }
+}
+
+/* ***************************************************** */
+
+void Flow::updateCliJA4() {
+  if (cli_host && isTLS() && protos.tls.ja4.client_hash) {
+    Fingerprint *f = cli_host->getJA4Fingerprint();
+    
+    if(f)
+      f->update(protos.tls.ja4.client_hash,
+		ebpf ? ebpf->src_process_info.process_name : NULL,
+		has_malicious_cli_signature);
   }
 }
 
@@ -6685,9 +6737,11 @@ void Flow::updateCliJA3() {
 
 void Flow::updateSrvJA3() {
   if (srv_host && isTLS() && protos.tls.ja3.server_hash) {
-    srv_host->getJA3Fingerprint()->update(
-        protos.tls.ja3.server_hash,
-        ebpf ? ebpf->dst_process_info.process_name : NULL, false);
+    Fingerprint *f = srv_host->getJA3Fingerprint();
+
+    if(f)
+      f->update(protos.tls.ja3.server_hash,
+		ebpf ? ebpf->dst_process_info.process_name : NULL, false);
   }
 }
 
@@ -6697,17 +6751,21 @@ void Flow::updateHASSH(bool as_client) {
   if (!isSSH()) return;
 
   Host *h = as_client ? get_cli_host() : get_srv_host();
-  const char *hassh =
-      as_client ? protos.ssh.hassh.client_hash : protos.ssh.hassh.server_hash;
+  const char *hassh = as_client ? protos.ssh.hassh.client_hash : protos.ssh.hassh.server_hash;
   ProcessInfo *pinfo = NULL;
   Fingerprint *fp;
 
   if (ebpf)
     pinfo = as_client ? &ebpf->src_process_info : &ebpf->dst_process_info;
 
-  if (h && hassh && hassh[0] != '\0' && (fp = h->getHASSHFingerprint()))
-    fp->update(hassh, pinfo ? pinfo->process_name : NULL,
-               false /* We track client JA3 */);
+  if (h
+      && hassh
+      && (hassh[0] != '\0')
+      && (fp = h->getHASSHFingerprint())) {
+    if(fp)
+      fp->update(hassh, pinfo ? pinfo->process_name : NULL,
+		 false /* We track client JA3 */);
+  }
 }
 
 /* ***************************************************** */
@@ -7323,6 +7381,14 @@ void Flow::lua_get_tls_info(lua_State *vm) const {
       if (has_malicious_srv_signature)
         lua_push_bool_table_entry(vm, "protos.tls.ja3.server_malicious", true);
     }
+
+    if (protos.tls.ja4.client_hash) {
+      lua_push_str_table_entry(vm, "protos.tls.ja4.client_hash",
+                               protos.tls.ja4.client_hash);
+
+      if (has_malicious_cli_signature)
+        lua_push_bool_table_entry(vm, "protos.tls.ja4.client_malicious", true);
+    }
   }
 }
 
@@ -7363,26 +7429,37 @@ void Flow::getTLSInfo(ndpi_serializer *serializer) const {
     }
 
     if (protos.tls.ja3.client_hash) {
-      ndpi_serialize_string_string(serializer, "ja3.client_hash",
+      ndpi_serialize_string_string(serializer, "ja3_client_hash",
                                    protos.tls.ja3.client_hash);
 
       if (has_malicious_cli_signature)
-        ndpi_serialize_string_boolean(serializer, "ja3.client_malicious", true);
+        ndpi_serialize_string_boolean(serializer, "ja3_client_malicious", true);
     }
 
     if (protos.tls.ja3.server_hash) {
-      ndpi_serialize_string_string(serializer, "ja3.server_hash",
+      ndpi_serialize_string_string(serializer, "ja3_server_hash",
                                    protos.tls.ja3.server_hash);
       ndpi_serialize_string_string(
-          serializer, "ja3.server_unsafe_cipher",
+          serializer, "ja3_server_unsafe_cipher",
           cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher));
-      ndpi_serialize_string_int32(serializer, "ja3.server_cipher",
+      ndpi_serialize_string_int32(serializer, "ja3_server_cipher",
                                   protos.tls.ja3.server_cipher);
 
       if (has_malicious_srv_signature)
-        ndpi_serialize_string_boolean(serializer, "ja3.server_malicious", true);
+        ndpi_serialize_string_boolean(serializer, "ja3_server_malicious", true);
+    }
+
+    if (protos.tls.ja4.client_hash) {
+      ndpi_serialize_string_string(serializer, "ja4_client_hash",
+                                   protos.tls.ja4.client_hash);
+
+      if (has_malicious_cli_signature)
+        ndpi_serialize_string_boolean(serializer, "ja4_client_malicious", true);
     }
   }
+
+  
+
 }
 
 /* ***************************************************** */

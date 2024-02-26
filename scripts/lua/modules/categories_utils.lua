@@ -2,6 +2,8 @@
 -- (C) 2021 - ntop.org
 --
 
+require "ntop_utils"
+
 local categories_utils = {}
 
 -- NOTE: lists_utils.reloadLists() to apply changes

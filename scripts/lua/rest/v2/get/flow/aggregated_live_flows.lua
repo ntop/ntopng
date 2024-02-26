@@ -90,6 +90,8 @@ elseif criteria == "server" then
    criteria_type_id = 3
 elseif criteria == "client_server_srv_port" then
    criteria_type_id = 7
+elseif criteria == "client_server_srv_port_app_proto" then
+   criteria_type_id = 8
 elseif ntop.isEnterpriseM() then
    criteria_type_id = get_criteria_type_id(criteria)
 end
@@ -151,6 +153,17 @@ for _, data in pairs(aggregated_info or {}) do
       if(data.srv_port ~= nil) then
 	 add_server_port = true
       end
+   elseif (criteria_type_id == 8) then
+      if(data.server_ip ~= nil) then
+    add_server = true
+      end
+      if(data.client_ip ~= nil) then
+    add_client = true
+      end
+      if(data.srv_port ~= nil) then
+    add_server_port = true
+      end
+    add_app_proto = true
    elseif ntop.isEnterpriseM() then
       response = get_output_flags(criteria_type_id)
    end
@@ -261,7 +274,7 @@ for _, data in pairs(aggregated_info or {}) do
          label = getFullVlanName(data.vlan_id)
       }
    end
-   if criteria_type_id == 1 or criteria_type_id == 5 then 
+   if criteria_type_id == 1 or criteria_type_id == 5 or criteria_type_id == 8 then 
       item.app_proto_is_not_guessed = data.is_not_guessed
       item.confidence_name = get_confidence(ternary(application.id == "0", "-1", ternary(data.is_not_guessed, "1", "0")))
       item.confidence = ternary(data.is_not_guessed, 1, 0)

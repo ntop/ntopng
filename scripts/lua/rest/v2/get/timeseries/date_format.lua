@@ -14,6 +14,8 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local rest_utils = require("rest_utils")
+require "lua_utils_generic"
+
 local is_range_picker = toboolean(_GET["is_range_picker"]) or false
 
 

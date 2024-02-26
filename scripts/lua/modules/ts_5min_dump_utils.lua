@@ -3,29 +3,15 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
 
-require "lua_utils"
-local graph_utils = require "graph_utils"
-local alert_utils = require "alert_utils"
-local callback_utils = require "callback_utils"
-local ts_utils = require "ts_utils_core"
-local format_utils = require "format_utils"
-local checks = require "checks"
 require "ts_5min"
+require "ntop_utils"
+require "check_redis_prefs"
+local ts_utils = require "ts_utils_core"
 
 -- Set to true to debug host timeseries points timestamps
 local enable_debug = false
-local enable_behaviour_debug = false
-
-if (ntop.getPref("ntopng.prefs.enable_anomaly_debug") == "1") then
-    enable_behaviour_debug = true
-end
-
-local ts_custom
-if ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_5min_custom.lua") then
-    package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
-    ts_custom = require "ts_5min_custom"
-end
 
 local dirs = ntop.getDirs()
 local ts_dump = {}
@@ -333,61 +319,8 @@ end
 
 -- ########################################################
 
-function ts_dump.getConfig()
-    local config = {}
-
-    config.host_ts_creation = ntop.getPref("ntopng.prefs.hosts_ts_creation")
-    config.host_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.host_ndpi_timeseries_creation")
-    config.l2_device_rrd_creation = ntop.getPref("ntopng.prefs.l2_device_rrd_creation")
-    config.l2_device_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.l2_device_ndpi_timeseries_creation")
-    config.flow_devices_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
-    config.host_pools_rrd_creation = ntop.getPref("ntopng.prefs.host_pools_rrd_creation")
-    config.snmp_devices_rrd_creation = ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation")
-    config.asn_rrd_creation = ntop.getPref("ntopng.prefs.asn_rrd_creation")
-    config.obs_point_rrd_creation = ntop.getPref("ntopng.prefs.observation_points_rrd_creation")
-    config.country_rrd_creation = ntop.getPref("ntopng.prefs.country_rrd_creation")
-    config.os_rrd_creation = ntop.getPref("ntopng.prefs.os_rrd_creation")
-    config.vlan_rrd_creation = ntop.getPref("ntopng.prefs.vlan_rrd_creation")
-    config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
-    config.interface_ndpi_timeseries_creation = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
-
-    -- ########################################################
-    -- Populate some defaults
-    if (tostring(config.flow_devices_rrd_creation) == "1" and ntop.isEnterpriseM() == false) then
-        config.flow_devices_rrd_creation = "0"
-    end
-
-    if (tostring(config.snmp_devices_rrd_creation) == "1" and not (ntop.isEnterpriseM() or ntop.isnEdgeEnterprise())) then
-        config.snmp_devices_rrd_creation = "0"
-    end
-
-    -- Local hosts RRD creation is on, with no nDPI rrd creation
-    if isEmptyString(config.host_ts_creation) then
-        config.host_ts_creation = "light"
-    end
-    if isEmptyString(config.host_ndpi_timeseries_creation) then
-        config.host_ndpi_timeseries_creation = "none"
-    end
-
-    -- Devices RRD creation is OFF, as OFF is the nDPI rrd creation
-    if isEmptyString(config.l2_device_rrd_creation) then
-        config.l2_device_rrd_creation = "0"
-    end
-    if isEmptyString(config.l2_device_ndpi_timeseries_creation) then
-        config.l2_device_ndpi_timeseries_creation = "none"
-    end
-
-    -- Interface RRD creation is on, with per-protocol nDPI, Pref used by Observation Points
-    if isEmptyString(config.interface_ndpi_timeseries_creation) then
-        config.interface_ndpi_timeseries_creation = "per_protocol"
-    end
-
-    return config
-end
-
--- ########################################################
-
 function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
+    local l4_protocol_list = require "l4_protocol_list"
     -- Number of alerted flows
     ts_utils.append("host:alerted_flows", {
         ifid = ifstats.id,
@@ -540,48 +473,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
                 upper_bound = (host.contacted_hosts_behaviour.upper_bound or 0)
             }, when)
         end
-        --[[
-        if host["score_behaviour"] then
-            local h = host["score_behaviour"]
 
-            -- Score Behaviour
-            ts_utils.append("host:cli_score_behaviour", {
-                ifid = ifstats.id,
-                host = hostname,
-                value = h["as_client"]["value"],
-                lower_bound = h["as_client"]["lower_bound"],
-                upper_bound = h["as_client"]["upper_bound"]
-            }, when)
-            ts_utils.append("host:srv_score_behaviour", {
-                ifid = ifstats.id,
-                host = hostname,
-                value = h["as_server"]["value"],
-                lower_bound = h["as_server"]["lower_bound"],
-                upper_bound = h["as_server"]["upper_bound"]
-            }, when)
-
-            -- Score Anomalies
-            local cli_anomaly = 0
-            local srv_anomaly = 0
-            if h["as_client"]["anomaly"] == true then
-                cli_anomaly = 1
-            end
-            if h["as_server"]["anomaly"] == true then
-                srv_anomaly = 1
-            end
-
-            ts_utils.append("host:cli_score_anomalies", {
-                ifid = ifstats.id,
-                host = hostname,
-                anomaly = cli_anomaly
-            }, when)
-            ts_utils.append("host:srv_score_anomalies", {
-                ifid = ifstats.id,
-                host = hostname,
-                anomaly = srv_anomaly
-            }, when)
-        end
-]]
         -- Active Flows Behaviour
         if host["active_flows_behaviour"] then
             local h = host["active_flows_behaviour"]
@@ -627,8 +519,8 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
     end
 
     -- L4 Protocols
-    for id, _ in pairs(l4_keys) do
-        k = l4_keys[id][2]
+    for id, _ in pairs(l4_protocol_list.l4_keys) do
+        local k = l4_protocol_list.l4_keys[id][2]
         if ((host[k .. ".bytes.sent"] ~= nil) and (host[k .. ".bytes.rcvd"] ~= nil)) then
             ts_utils.append("host:l4protos", {
                 ifid = ifstats.id,
@@ -663,11 +555,6 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
         bytes_sent_unicast = host["udpBytesSent.unicast"],
         bytes_sent_non_uni = host["udpBytesSent.non_unicast"]
     }, when)
-
-    -- create custom rrds
-    if ts_custom and ts_custom.host_update_stats then
-        ts_custom.host_update_stats(when, hostname, host, ifstats, verbose)
-    end
 end
 
 function ts_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose, config)
@@ -797,21 +684,7 @@ function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
                 ts_dump.host_update_categories_rrds(when, hostname, host, ifstats, verbose)
             end
         end
-
-        ------------------------
-
-        ----- Custom Stats -----
-
-        ------------------------
-
-        -- tprint(host) -- ### LUCA ADD host stats here
     end
-end
-
--- ########################################################
-
-function ts_custom_host_function(when, ifstats, hostname, host_ts)
-    -- do nothing
 end
 
 local function read_file(path)
@@ -826,43 +699,21 @@ end
 
 -- ########################################################
 
-local function local_custom_timeseries_dump_callback()
-    local base_dir_file = dirs.installdir .. "/scripts/lua/modules/timeseries"
-    local custom_file = "ts_custom_function"
-    local lists_custom_file = base_dir_file .. "/" .. custom_file .. ".lua"
-
-    if ntop.exists(lists_custom_file) then
-        traceError(TRACE_INFO, TRACE_CONSOLE, "Loading " .. lists_custom_file)
-        local content = read_file(lists_custom_file)
-
-        -- tprint(content)
-
-        local rc = load(content)
-
-        rc("", "") -- needed to activate the function
-        -- lua.execute(open(lists_custom_file).read())
-    else
-        traceError(TRACE_INFO, TRACE_CONSOLE, "Missing file " .. lists_custom_file)
-    end
-end
-
--- ########################################################
-
 --
 -- NOTE: this is executed every minute if ts_utils.hasHighResolutionTs() is true
 --
 -- See scripts/callbacks/minute/interface/timeseries.lua
 --
 
-function ts_dump.run_5min_dump(_ifname, ifstats, config, when, verbose)
+function ts_dump.run_5min_dump(_ifname, ifstats, when, verbose)
+    local profiling = require "profiling"
+    local callback_utils = require "callback_utils"
+    local config = get5MinTSConfig()
     local num_processed_hosts = 0
     local min_instant = when - (when % 60) - 60
 
     local dump_tstart = os.time()
     local dumped_hosts = {}
-
-    -- load custom functions
-    local_custom_timeseries_dump_callback()
 
     -- Save hosts stats (if enabled from the preferences)
     if config.host_ts_creation ~= "off" then
@@ -889,8 +740,6 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, verbose)
                     -- mark the host as dumped
                     dumped_hosts[host_key] = true
                 end
-
-                ts_custom_host_function(min_instant, ifstats, hostname, host_ts)
 
                 if ((num_processed_hosts % 64) == 0) then
                     if not ntop.isDeadlineApproaching() then
@@ -970,7 +819,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, config, when, verbose)
         local host_pools = require "host_pools"
         local host_pools_instance = host_pools:create()
 
-        host_pools_instance:updateRRDs(ifstats.id, true --[[ also dump nDPI data ]] , verbose)
+        host_pools_instance:updateRRDs(ifstats.id, true --[[ also dump nDPI data ]] , verbose, when)
     end
 end
 

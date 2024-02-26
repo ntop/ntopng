@@ -119,6 +119,32 @@ for key, am_host in pairs(am_hosts) do
    }
 end
 
+
+
+-- ##############################################
+
+-- This function is used to return the list of enabled checks
+local function getEnabledChecksList()
+  local result = {}
+  
+  for _, entity_info in pairs(alert_entities) do
+      local alert_list = {}
+      for _, alert_info in pairsByField(alert_consts.getAlertTypesInfo(entity_info.entity_id), "label", asc) do
+          alert_list[#alert_list + 1] = {
+              key = alert_info.alert_id,
+              entity_id = entity_info.entity_id,
+              title = alert_info.label,
+          }
+      end
+      result[#result + 1] = {
+          alert_list = alert_list,
+          entity_name = i18n(entity_info.i18n_label)
+      }
+  end
+
+  return result
+end
+
 -- Prepare the response
 local context = {
   notifications = {
@@ -127,7 +153,7 @@ local context = {
     endpoint_list = endpoints.get_configs(true),
     can_create_recipient = can_create_recipient,
     check_categories = checks.check_categories,
-    checks = checks.getEnabledChecksList(),
+    checks = getEnabledChecksList(),
     check_entities = alert_entities,
     alert_severities = alert_consts.get_printable_severities(),
     endpoints = endpoint_list,

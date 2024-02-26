@@ -17,8 +17,6 @@ local checks_var = {
    available_modules = nil,
    iface_config = nil, 
    configset = nil,
-   do_benchmark = false,
-   do_print_benchmark = false
 }
 
 local granularity = "min"

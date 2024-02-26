@@ -4,157 +4,35 @@
 --
 -- Container for GUI-related stuff that used to be part of lua_utils.lua
 --
+
+if(pragma_once_lua_utils_gui == true) then
+   -- io.write(debug.traceback().."\n")
+   -- tprint("Circular dependency in lua_utils_gui.lua")
+   -- tprint(debug.traceback())
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_lua_utils_gui = true
+
+
 local clock_start = os.clock()
 
+require "gui_utils"
+local host_utils = require "host_utils"
 local format_utils = require "format_utils"
 local dns_utils = require "dns_utils"
 local http_utils = require "http_utils"
+local rest_utils = require "rest_utils"
 
--- ##############################################
-
-function sendHTTPHeaderIfName(mime, ifname, maxage, content_disposition, extra_headers, status_code)
-    local info = ntop.getInfo(false)
-    local http_status_code_map = {
-        [200] = "OK",
-        [400] = "Bad Request",
-        [401] = "Unauthorized",
-        [403] = "Forbidden",
-        [404] = "Not Found",
-        [405] = "Method Not Allowed",
-        [406] = "Not Acceptable",
-        [408] = "Request timeout",
-        [409] = "Conflict",
-        [410] = "Gone",
-        [412] = "Precondition Failed",
-        [415] = "Unsupported Media Type",
-        [423] = "Locked",
-        [428] = "Precondition Required",
-        [429] = "Too many requests",
-        [500] = "Internal Server Error",
-        [501] = "Not Implemented",
-        [503] = "Service Unavailable"
-    }
-    local tzname = info.tzname or ''
-    local cookie_attr = ntop.getCookieAttributes()
-    local lines = {'Cache-Control: max-age=0, no-cache, no-store',
-                   'Server: ntopng ' .. info["version"] .. ' [' .. info["platform"] .. ']',
-                   'Set-Cookie: tzname=' .. tzname .. '; path=/' .. cookie_attr, 'Pragma: no-cache',
-                   'X-Frame-Options: DENY', 'X-Content-Type-Options: nosniff', 'Content-Type: ' .. mime,
-                   'Last-Modified: ' .. os.date("!%a, %m %B %Y %X %Z")}
-
-    local uri = _SERVER.URI
-
-    if (starts(uri, "/lua/rest/")) then
-        --
-        -- Only for REST calls handle CORS (Cross-Origin Resource Sharing)
-        --
-        -- https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
-        -- https://web.dev/cross-origin-resource-sharing/
-        --
-        lines[#lines + 1] = 'Access-Control-Allow-Origin: *'
-        lines[#lines + 1] = 'Access-Control-Allow-Methods: GET, POST, HEAD'
-    end
-
-    if (_SESSION ~= nil) then
-        local key = "session_" .. info.http_port .. "_" .. info.https_port
-        lines[#lines + 1] = 'Set-Cookie: ' .. key .. '=' .. _SESSION["session"] .. '; max-age=' .. maxage ..
-                                '; path=/; ' .. cookie_attr
-    end
-
-    if (ifname ~= nil) then
-        lines[#lines + 1] = 'Set-Cookie: ifname=' .. ifname .. '; path=/' .. cookie_attr
-    end
-
-    if (info.timezone ~= nil) then
-        lines[#lines + 1] = 'Set-Cookie: timezone=' .. info.timezone .. '; path=/' .. cookie_attr
-    end
-
-    if (content_disposition ~= nil) then
-        lines[#lines + 1] = 'Content-Disposition: ' .. content_disposition
-    end
-
-    if type(extra_headers) == "table" then
-        for hname, hval in pairs(extra_headers) do
-            lines[#lines + 1] = hname .. ': ' .. hval
-        end
-    end
-
-    if not status_code then
-        status_code = 200
-    end
-
-    local status_descr = http_status_code_map[status_code]
-    if not status_descr then
-        status_descr = "Unknown"
-    end
-
-    -- Buffer the HTTP reply and write it in one "print" to avoid fragmenting
-    -- it into multiple packets, to ease HTTP debugging with wireshark.
-    print("HTTP/1.1 " .. status_code .. " " .. status_descr .. "\r\n" .. table.concat(lines, "\r\n") .. "\r\n\r\n")
-end
-
--- ##############################################
-
-function sendHTTPHeaderLogout(mime, content_disposition)
-    sendHTTPHeaderIfName(mime, nil, 0, content_disposition)
-end
-
--- ##############################################
-
-function sendHTTPHeader(mime, content_disposition, extra_headers, status_code)
-    sendHTTPHeaderIfName(mime, nil, 3600, content_disposition, extra_headers, status_code)
-end
-
--- ##############################################
-
-function sendHTTPContentTypeHeader(content_type, content_disposition, charset, extra_headers, status_code)
-    local charset = charset or "utf-8"
-    local mime = content_type .. "; charset=" .. charset
-
-    sendHTTPHeader(mime, content_disposition, extra_headers, status_code)
-end
-
--- ##############################################
-
-function urlencode(str)
-    str = string.gsub(str, "\r?\n", "\r\n")
-    str = string.gsub(str, "([^%w%-%.%_%~ ])", function(c)
-        return string.format("%%%02X", string.byte(c))
-    end)
-    str = string.gsub(str, " ", "+")
-    return str
-end
-
--- ##############################################
-
-function noHtml(s)
-    if s == nil then
-        return nil
-    end
-
-    local gsub, char = string.gsub, string.char
-    local entityMap = {
-        lt = "<",
-        gt = ">",
-        amp = "&",
-        quot = '"',
-        apos = "'"
-    }
-    local entitySwap = function(orig, n, s)
-        return (n == '' and entityMap[s]) or (n == "#" and tonumber(s)) and string.char(s) or
-                   (n == "#x" and tonumber(s, 16)) and string.char(tonumber(s, 16)) or orig
-    end
-
-    local function unescape(str)
-        return (gsub(str, '(&(#?x?)([%d%a]+);)', entitySwap))
-    end
-
-    local cleaned = s:gsub("<[aA] .->(.-)</[aA]>", "%1"):gsub("<abbr .->(.-)</abbr>", "%1"):gsub("<span .->(.-)</span>",
-        "%1"):gsub("<button .->(.-)</button>", "%1"):gsub("%s*<[iI].->(.-)</[iI]>", "%1"):gsub("<.->(.-)</.->", "%1") -- note: keep as last as this does not handle nested tags
-    :gsub("^%s*(.-)%s*$", "%1"):gsub('&nbsp;', " ")
-
-    return unescape(cleaned)
-end
+-- For backward compatibility override these functions
+sendHTTPContentTypeHeader = rest_utils.sendHTTPContentTypeHeader
+sendHTTPHeaderIfName = rest_utils.sendHTTPHeaderIfName
+sendHTTPHeaderLogout = rest_utils.sendHTTPHeaderLogout
+sendHTTPHeader = rest_utils.sendHTTPHeader
+flow2hostinfo = host_utils.flow2hostinfo
+hostinfo2url = host_utils.hostinfo2url
+hostinfo2detailsurl = host_utils.hostinfo2detailsurl
 
 -- ##############################################
 
@@ -297,90 +175,6 @@ function addGauge(name, url, maxValue, width, height)
     if (url ~= nil) then
         print('</A>\n')
     end
-end
-
--- ##############################################
-
--- @brief Implements the logic to decide whether to show or not the url for a given `host_info`
-local function hostdetails_exists(host_info, hostdetails_params)
-    if not hostdetails_params then
-        hostdetails_params = {}
-    end
-
-    if hostdetails_params["page"] ~= "historical" and not hostdetails_params["ts_schema"] then
-        -- If the requested host_details.lua page is not the "historical" page
-        -- and if no ts_schema has been requested
-        -- then we check for host existance in memory, to make sure the page host_details.lua
-        -- won't bring to an empty page.
-        if not host_info["ipkey"] then
-            -- host_info hasn't been generated with Host::lua so we can try and
-            -- see if the host is active
-            local active_host = interface.getHostInfo(hostinfo2hostkey(host_info))
-            if not active_host then
-                return false
-            end
-        end
-    else
-        -- If the requested page is the "historical" page, or if a ts_schema has been requested,
-        -- then we assume page host_details.lua
-        -- exists if the timeseries are enabled and if the requested timeseries exists for the host
-        if not hostdetails_params["ts_schema"] then
-            -- Default schema for hosts
-            hostdetails_params["ts_schema"] = "host:traffic"
-        end
-
-        -- A ts_schema has been requested, let's see if it exists
-        local ts_utils = require("ts_utils_core")
-        local tags = table.merge(host_info, hostdetails_params)
-        if not tags["ifid"] then
-            tags["ifid"] = interface.getId()
-        end
-
-        -- If nIndex support is enabled, then there's no need to check for existence of the
-        -- schema: nIndex flows must be visible from the historical page even when there's no timeseries
-        -- associated
-        if not interfaceHasClickHouseSupport() and not ts_utils.exists(hostdetails_params["ts_schema"], tags) then
-            -- If here, the requested schema, along with its hostdetails_params doesn't exist
-            return false
-        end
-    end
-    return true
-end
-
--- ##############################################
-
--- @brief Generates an host_details.lua url (if available)
--- @param host_info A lua table containing at least keys `host` and `vlan` or a full lua table generated with Host::lua
--- @param href_params A lua table containing params host_details.lua params, e.g., {page = "historical"}
--- @param href_check Performs existance checks on the link to avoid generating links to inactive hosts or hosts without timeseries
--- @return A string containing the url (if available) or an empty string when the url is not available
-function hostinfo2detailsurl(host_info, href_params, href_check)
-    local tag_utils = require "tag_utils"
-    local res = ''
-
-    if not href_check or hostdetails_exists(host_info, href_params) then
-        local auth = require "auth"
-        local url_params = table.tconcat(href_params or {}, "=", "&")
-
-        -- Alerts pages for the host are in alert_stats.lua (Alerts menu)
-        if href_params and href_params.page == "engaged-alerts" then
-            if auth.has_capability(auth.capabilities.alerts) then
-                res = string.format("%s/lua/alert_stats.lua?page=host&status=engaged&ip=%s%s%s", ntop.getHttpPrefix(),
-                    hostinfo2hostkey(host_info), tag_utils.SEPARATOR, "eq")
-            end
-        elseif href_params and href_params.page == "alerts" then
-            if auth.has_capability(auth.capabilities.alerts) then
-                res = string.format("%s/lua/alert_stats.lua?page=host&status=historical&ip=%s%s%s",
-                    ntop.getHttpPrefix(), hostinfo2hostkey(host_info), tag_utils.SEPARATOR, "eq")
-            end
-            -- All other pages are in host_details.lua
-        else
-            res = string.format("%s/lua/host_details.lua?%s%s%s", ntop.getHttpPrefix(), hostinfo2url(host_info),
-                isEmptyString(url_params) and '' or '&', url_params)
-        end
-    end
-
-    return res
 end
 
 -- ##############################################
@@ -565,66 +359,6 @@ function url2hostinfo(get_info)
     end
 
     return host
-end
-
--- ##############################################
-
---
--- Catch the main information about an host from the host_info table and return the corresponding url.
--- Example:
---          hostinfo2url(host_key), return an url based on the host_key
---          hostinfo2url(host[key]), return an url based on the host value
---          hostinfo2url(flow[key],"cli"), return an url based on the client host information in the flow table
---          hostinfo2url(flow[key],"srv"), return an url based on the server host information in the flow table
---
-
-function hostinfo2url(host_info, host_type, novlan)
-    local rsp = ''
-    -- local version = 0
-    local version = 1
-
-    if (host_type == "cli") then
-        if (host_info["cli.ip"] ~= nil) then
-            rsp = rsp .. 'host=' .. hostinfo2hostkey(flow2hostinfo(host_info, "cli"))
-        end
-
-    elseif (host_type == "srv") then
-        if (host_info["srv.ip"] ~= nil) then
-            rsp = rsp .. 'host=' .. hostinfo2hostkey(flow2hostinfo(host_info, "srv"))
-        end
-    else
-
-        if ((type(host_info) ~= "table")) then
-            host_info = hostkey2hostinfo(host_info)
-        end
-
-        if (host_info["host"] ~= nil) then
-            rsp = rsp .. 'host=' .. host_info["host"]
-        elseif (host_info["ip"] ~= nil) then
-            rsp = rsp .. 'host=' .. host_info["ip"]
-        elseif (host_info["mac"] ~= nil) then
-            rsp = rsp .. 'host=' .. host_info["mac"]
-            -- Note: the host'name' is not supported (not accepted by lint)
-            -- elseif(host_info["name"] ~= nil) then
-            --  rsp = rsp..'host='..host_info["name"]
-        end
-    end
-
-    if (novlan == nil) then
-        if ((host_info["vlan"] ~= nil) and (tonumber(host_info["vlan"]) ~= 0)) then
-            if (version == 0) then
-                rsp = rsp .. '&vlan=' .. tostring(host_info["vlan"])
-            elseif (version == 1) then
-                rsp = rsp .. '@' .. tostring(host_info["vlan"])
-            end
-        end
-    end
-
-    if (debug_host) then
-        traceError(TRACE_DEBUG, TRACE_CONSOLE, "HOST2URL => " .. rsp .. "\n")
-    end
-
-    return rsp
 end
 
 -- ##############################################
@@ -839,11 +573,11 @@ function makeResolutionButtons(fmt_to_data, ctrl_id, fmt, value, extra, max_val)
       var _resol_inputs = [];
 
       function resol_selector_get_input(a_button) {
-        return $("input", $(a_button).closest(".form-group.mb-3")).last();
+        return $("input", $(a_button).closest(".form-group")).last();
       }
 
       function resol_selector_get_buttons(an_input) {
-        return $(".btn-group", $(an_input).closest(".form-group.mb-3")).first().find("input");
+        return $(".btn-group", $(an_input).closest(".form-group")).first().find("input");
       }
 
       /* This function scales values wrt selected resolution */
@@ -1017,26 +751,6 @@ function splitUrl(url)
         url = url,
         params = params
     }
-end
-
--- ###########################################
-
-function visualTsKey(tskey)
-    if ends(tskey, "_v4") or ends(tskey, "_v6") then
-        local ver = string.sub(tskey, string.len(tskey) - 1, string.len(tskey))
-        local address = string.sub(tskey, 1, string.len(tskey) - 3)
-        local visual_addr
-
-        if ver == "v4" then
-            visual_addr = address
-        else
-            visual_addr = address .. " (" .. ver .. ")"
-        end
-
-        return visual_addr
-    end
-
-    return tskey
 end
 
 -- ##############################################
@@ -1415,27 +1129,34 @@ function format_tls_info(tls_info)
         end
     end
 
-    if tls_info["ja3.server_cipher"] then
-        tls_info["ja3.server_cipher"] = nil
+    if tls_info["ja3_server_cipher"] then
+        tls_info["ja3_server_cipher"] = nil
     end
 
-    if tls_info["ja3.server_unsafe_cipher"] then
-        local badge = get_badge(tls_info["ja3.server_unsafe_cipher"] == "safe")
-        tls_info["ja3.server_unsafe_cipher"] = string.format('<span class="badge bg-%s">%s</span>', badge,
-            tls_info["ja3.server_unsafe_cipher"])
+    if tls_info["ja3_server_unsafe_cipher"] then
+        local badge = get_badge(tls_info["ja3_server_unsafe_cipher"] == "safe")
+        tls_info["ja3_server_unsafe_cipher"] = string.format('<span class="badge bg-%s">%s</span>', badge,
+            tls_info["ja3_server_unsafe_cipher"])
     end
 
-    if tls_info["ja3.server_hash"] then
-        tls_info["ja3.server_hash"] = i18n("copy_button", {
-            full_name = tls_info["ja3.server_hash"],
-            name = tls_info["ja3.server_hash"]
+    if tls_info["ja3_server_hash"] then
+        tls_info["ja3_server_hash"] = i18n("copy_button", {
+            full_name = tls_info["ja3_server_hash"],
+            name = tls_info["ja3_server_hash"]
         })
     end
 
-    if tls_info["ja3.client_hash"] then
-        tls_info["ja3.client_hash"] = i18n("copy_button", {
-            full_name = tls_info["ja3.client_hash"],
-            name = tls_info["ja3.client_hash"]
+    if tls_info["ja3_client_hash"] then
+        tls_info["ja3_client_hash"] = i18n("copy_button", {
+            full_name = tls_info["ja3_client_hash"],
+            name = tls_info["ja3_client_hash"]
+        })
+    end
+
+    if tls_info["ja4_client_hash"] then
+        tls_info["ja4_client_hash"] = i18n("copy_button", {
+            full_name = tls_info["ja4_client_hash"],
+            name = tls_info["ja4_client_hash"]
         })
     end
 
@@ -1695,42 +1416,10 @@ end
 
 -- ##############################################
 
-function format_name_value(name, value, shorten)
-    local formatted_name_value = value
-
-    if not isEmptyString(name) and name ~= value then
-        if (shorten) and (shorten == true) then
-            formatted_name_value = shortenString(name)
-        else
-            formatted_name_value = name
-        end
-    end
-
-    local idx = string.find(formatted_name_value, value)
-
-    if (idx == nil) then
-        formatted_name_value = formatted_name_value .. " [" .. value .. "]"
-    end
-
-    return formatted_name_value
-end
-
--- ##############################################
-
 function format_utils.formatSNMPInterface(snmpdevice, interface_index)
     local interface_name = format_portidx_name(snmpdevice, interface_index)
 
     return string.format('%s (%s)', interface_index, (interface_name))
-end
-
--- ##############################################
-
-function map_score_to_severity(score)
-    if score ~= nil then
-        return ntop.mapScoreToSeverity(score)
-    end
-
-    return ntop.mapScoreToSeverity(0)
 end
 
 -- ##############################################
@@ -1741,6 +1430,7 @@ if ((ifname == nil) and (_GET ~= nil)) then
 
     if (ifname ~= nil) then
         if (ifname .. "" == tostring(tonumber(ifname)) .. "") then
+            require "label_utils"
             -- ifname does not contain the interface name but rather the interface id
             ifname = getInterfaceName(ifname, true)
             if (ifname == "") then

@@ -59,6 +59,7 @@ class Ntop {
   NetworkInterface *old_iface_to_purge;
   u_int8_t num_defined_interfaces; /**< Number of defined interfaces. */
   u_int8_t num_dump_interfaces;
+  std::atomic<u_int16_t> num_active_lua_vms;
   HTTPserver *httpd;    /**< Pointer of httpd server. */
   NtopGlobals *globals; /**< Pointer of Ntop globals info and variables. */
   u_int num_cpus;       /**< Number of physical CPU cores. */
@@ -112,9 +113,10 @@ class Ntop {
 #ifdef HAVE_KAFKA
   KafkaClient kafkaClient;
 #endif
+  MessageBroker *message_broker;
 #endif
 #ifdef HAVE_NEDGE
-  std::vector<Forwarder*> multicastForwarders;
+  std::vector<PacketForwarder*> multicastForwarders;
 #endif
 
   /* Local network address list */
@@ -168,6 +170,10 @@ class Ntop {
   void checkReloadHostPools();
   void setZoneInfo();
   char *getPersistentCustomListName(char *name);
+#ifdef NTOPNG_PRO
+  void connectMessageBroker();
+  void reloadMessageBroker();
+#endif
 
  public:
   /**
@@ -753,6 +759,7 @@ class Ntop {
   bool nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id,
                                 char *list_name);
   int nDPILoadMaliciousJA3Signatures(const char *file_path);
+  int nDPISetDomainMask(const char *domain, u_int64_t domain_mask);
   void setLastInterfacenDPIReload(time_t now);
   bool needsnDPICleanup();
   void setnDPICleanupNeeded(bool needed);
@@ -764,7 +771,9 @@ class Ntop {
 
   void luaClickHouseStats(lua_State *vm) const;
   void speedtest(lua_State *vm);
-
+#if defined(NTOPNG_PRO)
+  MessageBroker* getMessageBroker() { return(message_broker); };
+#endif
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
   inline u_int importClickHouseDumps(bool silence_warnings) {
     return (clickhouseImport ? clickhouseImport->importDumps(silence_warnings)
@@ -794,6 +803,10 @@ class Ntop {
   inline void resetBlacklistStats()          { blStats.reset();  }
   inline JobQueue* getJobsQueue()            { return(&jobsQueue); }
   inline PeriodicActivities* getPeriodicActivities() { return(pa); }
+
+  void incNumLuaVMs()                   { num_active_lua_vms++;       }
+  void decNumLuaVMs()                   { num_active_lua_vms--;       } 
+  inline u_int16_t getNumActiveLuaVMs() { return(num_active_lua_vms); }
 };
 
 extern Ntop *ntop;

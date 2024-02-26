@@ -27,6 +27,8 @@
 
 AutonomousSystem::AutonomousSystem(NetworkInterface *_iface, IpAddress *ipa)
     : GenericHashEntry(_iface), GenericTrafficElement(), Score(_iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   asname = NULL;
   round_trip_time = 0;
   alerted_flows_as_client = alerted_flows_as_server = 0;
@@ -64,6 +66,7 @@ void AutonomousSystem::set_hash_entry_state_idle() { ; /* Nothing to do */ }
 /* *************************************** */
 
 AutonomousSystem::~AutonomousSystem() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (asname) free(asname);
     /* TODO: decide if it is useful to dump AS stats to redis */
 /*

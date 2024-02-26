@@ -24,6 +24,7 @@
 /* *************************************** */
 
 ScoreStats::ScoreStats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   memset(&cli_score, 0, sizeof(cli_score)),
       memset(&srv_score, 0, sizeof(srv_score));
 }

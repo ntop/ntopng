@@ -2,7 +2,6 @@
 -- (C) 2021 - ntop.org
 --
 local os_utils = require("os_utils")
-local http_lint = require "http_lint"
 local protos_utils = {}
 
 local proto_key = "ntopng.preferences.protos_list_id"
@@ -167,6 +166,8 @@ end
 -- ##############################################
 
 function protos_utils.getProtosTxtRule(line)
+    local http_lint = require "http_lint"
+    
     line = trimString(line)
 
     if isIPv4(line) or http_lint.validateNetwork(line) then
@@ -353,7 +354,7 @@ function protos_utils.generateProtosTxt(rules, defined_protos)
             proto_id = ntop.getHashCache(proto_key, proto_name) or ''    
         end
         
-        if isEmptyString(proto_id) then
+        if isEmptyString(proto_id) or proto_id == 0 then
             proto_id = tonumber(ntop.getCache(proto_last_id)) or 0
             if proto_id == 0 then
                 proto_id = first_proto_id

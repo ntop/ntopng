@@ -30,6 +30,8 @@ static void free_ptree_data(void *data) {
 /* **************************************** */
 
 AddressTree::AddressTree(bool handleIPv6, ndpi_void_fn_t data_free_func) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   if (data_free_func)
     free_func = data_free_func;
   else
@@ -73,7 +75,10 @@ void AddressTree::init(bool handleIPv6) {
 
 /* **************************************** */
 
-AddressTree::~AddressTree() { cleanup(); }
+AddressTree::~AddressTree() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  cleanup();
+}
 
 /* ******************************************* */
 

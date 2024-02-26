@@ -24,6 +24,7 @@
 /* *************************************** */
 
 HostStats::HostStats(Host* _host) : GenericTrafficElement() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   host = _host;
 
   alerted_flows_as_client = alerted_flows_as_server = 0;

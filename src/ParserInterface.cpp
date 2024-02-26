@@ -28,6 +28,8 @@
 ParserInterface::ParserInterface(const char *endpoint,
                                  const char *custom_interface_type)
     : NetworkInterface(endpoint, custom_interface_type) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   num_companion_interfaces = 0;
   companion_interfaces =
       new (std::nothrow) NetworkInterface *[MAX_NUM_COMPANION_INTERFACES]();
@@ -69,9 +71,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   if (discardProbingTraffic()) {
     if (isProbingFlow(zflow)) {
-      discardedProbingStats.inc(
-          zflow->pkt_sampling_rate * (zflow->in_pkts + zflow->out_pkts),
-          zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
+      discardedProbingStats.inc(zflow->pkt_sampling_rate * (zflow->in_pkts + zflow->out_pkts),
+				zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
       return false;
     }
   }
@@ -444,6 +445,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 							   ntohs(zflow->dst_port)
 							   );
     }
+
+    guessed_protocol.app_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), guessed_protocol.app_protocol);
+    guessed_protocol.master_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), guessed_protocol.master_protocol);
     
 #ifdef NTOPNG_PRO
     if (zflow->device_ip) {
@@ -553,6 +557,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
     flow->setErrorCode(zflow->getL7ErrorCode());
     flow->setConfidence(zflow->getConfidence());
+    flow->setNdpiConfidence(zflow->getConfidence());
 
     if (flow->isDNS())  flow->updateDNS(zflow);
     if (flow->isHTTP()) flow->updateHTTP(zflow);
@@ -581,6 +586,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
     if (zflow->getJA3cHash()) flow->updateJA3C(zflow->getJA3cHash());
     if (zflow->getJA3sHash()) flow->updateJA3S(zflow->getJA3sHash());
+    if (zflow->getJA4cHash()) flow->updateJA4C(zflow->getJA4cHash());
 
     if (zflow->getRiskInfo()) {
       json_object *o, *obj;
@@ -634,12 +640,11 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
 #ifdef DEBUG
   char a[32], b[32];
-
-  ntop->getTrace()->traceEvent(
-      TRACE_WARNING, "Direction: %u [ntop: %s][%s -> %s]", zflow->direction,
-      flow->isLocalToRemote() ? "L->R" : "R->L",
-      flow->get_cli_ip_addr()->print(a, sizeof(a)),
-      flow->get_srv_ip_addr()->print(b, sizeof(b)));
+  
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Direction: %u [ntop: %s][%s -> %s]", zflow->direction,
+			       flow->isLocalToRemote() ? "L->R" : "R->L",
+			       flow->get_cli_ip_addr()->print(a, sizeof(a)),
+			       flow->get_srv_ip_addr()->print(b, sizeof(b)));
 #endif
 
   if (zflow->direction == UNKNOWN_FLOW_DIRECTION) {

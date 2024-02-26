@@ -38,7 +38,11 @@ if info["pro.systemid"] then
    print(info["pro.systemid"].." <A HREF=\"".. ntop.getHttpPrefix() .. "/lua/license.lua\"><i class=\"fas fa-cog\"></i></A></td></tr>\n")
 end
 
-print("<tr><th nowrap>"..i18n("about.platform").."</th><td colspan=2>"..info["platform"].." - "..info["bits"] .." bit".."</td></tr>\n")
+print("<tr><th nowrap>"..i18n("about.platform").."</th><td colspan=2>"..info["platform"].." - "..info["bits"] .." bit")
+
+if(info.jemalloc) then print(" (jemalloc)") end
+print("</td></tr>\n")
+
 if(info["hw_model"] ~= nil) then
     print("<tr><th nowrap>"..i18n("about.hw_model").."</th><td colspan=2>"..info["hw_model"].."</td></tr>\n")
 end

@@ -34,6 +34,8 @@ static void *resolverCheckFctn(void *ptr) {
 /* ******************************* */
 
 MDNS::MDNS(NetworkInterface *iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   if (((udp_sock = Utils::openSocket(AF_INET, SOCK_DGRAM, 0, "MDNS UDP")) ==
        -1) ||
       ((batch_udp_sock =
@@ -49,6 +51,7 @@ MDNS::MDNS(NetworkInterface *iface) {
 /* ******************************* */
 
 MDNS::~MDNS() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   Utils::closeSocket(udp_sock);
   Utils::closeSocket(batch_udp_sock);
 

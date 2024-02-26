@@ -5,7 +5,11 @@
 local clock_start = os.clock()
 
 local dirs = ntop.getDirs()
-require "lua_utils"
+require "lua_utils_get"
+require "lua_utils_generic"
+require "ntop_utils"
+require "lua_trace"
+
 local json = require("dkjson")
 local os_utils = require("os_utils")
 local scripts_triggers = require "scripts_triggers"
@@ -353,7 +357,7 @@ end
 -- Read information about used disk space for an interface dump
 local function interfaceStorageUsed(ifid)
   local pcap_path = recording_utils.getPcapPath(ifid)
-  return getFolderSize(pcap_path) 
+  return getFolderSize(pcap_path, nil) 
 end
 
 --! @brief Read information about a volume, including storage size and available space

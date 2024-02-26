@@ -44,7 +44,9 @@
 				"i18n_name" : "graphs.active_hosts",
 				"link" : {
 					"url" : "/lua/hosts_stats.lua",
-					"url_params" : {}
+					"url_params" : {
+						"mode" : "local"
+					}
 				},
 				"counter_path" : "num_local_hosts",
 				"counter_formatter" : "number"

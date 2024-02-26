@@ -27,6 +27,7 @@
 
 ViewInterface::ViewInterface(const char *_endpoint)
     : NetworkInterface(_endpoint) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   is_view = true; /* This is a view interface */
   is_packet_interface = true;
 

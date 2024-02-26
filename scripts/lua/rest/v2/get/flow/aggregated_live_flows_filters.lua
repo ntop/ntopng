@@ -129,7 +129,7 @@ local function build_response(criteria)
     for _, data in pairs(aggregated_info or {}) do
         add_new_filter_item_to_filters_array(data.vlan_id, formatted_vlan_filters,filter_types.vlan)
         if (not isEmptyString(data.device_ip)) then
-            tprint(data.device_ip)
+            -- tprint(data.device_ip)
             add_new_filter_item_to_filters_array(data.device_ip, formatted_device_filters,filter_types.flow_device)
         end
     end

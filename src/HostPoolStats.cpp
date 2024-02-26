@@ -23,8 +23,9 @@
 
 /* ***************************************** */
 
-HostPoolStats::HostPoolStats(NetworkInterface *iface)
-    : GenericTrafficElement() {
+HostPoolStats::HostPoolStats(NetworkInterface *iface) : GenericTrafficElement() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   ndpiStats = new (std::nothrow) nDPIStats();
   totalStats = new (std::nothrow) nDPIStats();
   mustReset = false;

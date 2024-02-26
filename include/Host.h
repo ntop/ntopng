@@ -27,18 +27,13 @@
 class HostAlert;
 
 class Host : public GenericHashEntry,
-             public HostAlertableEntity,
              public Score,
-             public HostChecksStatus {
+             public HostChecksStatus,
+	     public HostAlertableEntity /* Eventually move to LocalHost */ {
  protected:
   IpAddress ip;
   Mac *mac;
   char *asname, *blacklist_name;
-
-  struct {
-    Fingerprint ja3;
-    Fingerprint hassh;
-  } fingerprints;
 
   int32_t iface_index; /* Interface index on which this host has been first observed */
   u_int16_t host_pool_id, host_services_bitmap;
@@ -81,21 +76,7 @@ class Host : public GenericHashEntry,
   /* END Host data: */
 
   /* Counters used by host alerts */
-  struct {
-    AlertCounter *attacker_counter, *victim_counter;
-  } syn_flood;
-  struct {
-    AlertCounter *attacker_counter, *victim_counter;
-  } flow_flood;
-  struct {
-    AlertCounter *attacker_counter, *victim_counter;
-  } icmp_flood;
-  struct {
-    AlertCounter *attacker_counter, *victim_counter;
-  } dns_flood;
-  struct {
-    AlertCounter *attacker_counter, *victim_counter;
-  } snmp_flood;
+  AttackVictimCounter syn_flood, flow_flood, icmp_flood, dns_flood, snmp_flood, rst_scan;
 
   struct {
     u_int32_t syn_sent_last_min, synack_recvd_last_min; /* (attacker) */
@@ -107,13 +88,8 @@ class Host : public GenericHashEntry,
     u_int32_t fin_recvd_last_min, finack_sent_last_min; /* (victim) */
   } fin_scan;
 
-  struct {
-    AlertCounter *attacker_counter, *victim_counter;
-  } rst_scan;
-
-  std::atomic<u_int32_t> num_active_flows_as_client,
-      num_active_flows_as_server; /* Need atomic as inc/dec done on different
-                                     threads */
+  /* Need atomic as inc/dec done on different threads */
+  std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server;
   u_int32_t asn;
 
   struct {
@@ -155,7 +131,6 @@ class Host : public GenericHashEntry,
   u_int32_t mac_last_seen;
   u_int8_t num_resolve_attempts;
   time_t nextResolveAttempt;
-
   u_int32_t device_ip;
 
 #ifdef NTOPNG_PRO
@@ -537,7 +512,7 @@ class Host : public GenericHashEntry,
   void lua_get_num_contacts(lua_State *vm);
   void lua_get_num_http_hosts(lua_State *vm);
   void lua_get_os(lua_State *vm);
-  void lua_get_fingerprints(lua_State *vm);
+  virtual void lua_get_fingerprints(lua_State *vm) { ; }
   void lua_get_geoloc(lua_State *vm);
   void lua_blacklisted_flows(lua_State *vm) const;
   void lua_unidirectional_tcp_udp_flows(lua_State *vm, bool as_subtable) const;
@@ -798,8 +773,9 @@ class Host : public GenericHashEntry,
   void offlineSetDHCPName(const char *n);
   void setServerName(const char *n);
   void setResolvedName(const char *resolved_name);
-  inline Fingerprint *getJA3Fingerprint() { return (&fingerprints.ja3); }
-  inline Fingerprint *getHASSHFingerprint() { return (&fingerprints.hassh); }
+  virtual Fingerprint *getJA3Fingerprint()   { return (NULL); }
+  virtual Fingerprint *getJA4Fingerprint()   { return (NULL); }
+  virtual Fingerprint *getHASSHFingerprint() { return (NULL); }
 
   void setPrefsChanged() { prefs_loaded = 0; }
   virtual void reloadPrefs() {}

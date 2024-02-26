@@ -10,8 +10,8 @@ local clock_start = os.clock()
 -- This file contains the description of all functions
 -- used to trigger host alerts
 local verbose = ntop.getCache("ntopng.prefs.alerts.debug") == "1"
+
 local json = require("dkjson")
-local host_pools = require "host_pools"
 local recovery_utils = require "recovery_utils"
 local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
@@ -19,6 +19,7 @@ local format_utils = require "format_utils"
 local alerts_api = require "alerts_api"
 local icmp_utils = require "icmp_utils"
 local flow_risk_utils = require "flow_risk_utils"
+require "check_redis_prefs"
 
 local shaper_utils = nil
 
@@ -663,99 +664,6 @@ end
 
 -- ##############################################
 
--- Processes queued alerts and returns the information necessary to store them.
--- Alerts are only enqueued by AlertsQueue in C. From lua, the alerts_api
--- can be called directly as slow operations will be postponed
-local function processStoreAlertFromQueue(alert)
-    local entity_info = nil
-    local type_info = nil
-
-    interface.select(tostring(alert.ifid))
-
-    if (alert.alert_id == "misconfigured_dhcp_range") then
-        local router_info = {
-            host = alert.router_ip,
-            vlan = alert.vlan_id
-        }
-        entity_info = alerts_api.hostAlertEntity(alert.client_ip, alert.vlan_id)
-        type_info = alert_consts.alert_types.alert_ip_outsite_dhcp_range.new(router_info, alert.mac_address,
-            alert.client_mac, alert.sender_mac)
-        type_info:set_score_warning()
-        type_info:set_subtype(string.format("%s_%s_%s", hostinfo2hostkey(router_info), alert.client_mac,
-            alert.sender_mac))
-    elseif (alert.alert_id == "mac_ip_association_change") then
-        local name = getDeviceName(alert.new_mac)
-        entity_info = alerts_api.macEntity(alert.new_mac)
-        type_info = alert_consts.alert_types.alert_mac_ip_association_change.new(name, alert.ip, alert.old_mac,
-            alert.new_mac)
-
-        type_info:set_score(100)
-        type_info:set_subtype(string.format("%s_%s_%s", alert.ip, alert.old_mac, alert.new_mac))
-    elseif (alert.alert_id == "login_failed") then
-        entity_info = alerts_api.userEntity(alert.user)
-        type_info = alert_consts.alert_types.alert_login_failed.new()
-        type_info:set_score_warning()
-    elseif (alert.alert_id == "broadcast_domain_too_large") then
-        entity_info = alerts_api.macEntity(alert.src_mac)
-        type_info = alert_consts.alert_types.alert_broadcast_domain_too_large.new(alert.src_mac, alert.dst_mac,
-            alert.vlan_id, alert.spa, alert.tpa)
-        type_info:set_score_warning()
-        type_info:set_subtype(string.format("%u_%s_%s_%s_%s", alert.vlan_id, alert.src_mac, alert.spa, alert.dst_mac,
-            alert.tpa))
-    elseif ((alert.alert_id == "user_activity") and (alert.scope == "login")) then
-        entity_info = alerts_api.userEntity(alert.user)
-        type_info = alert_consts.alert_types.alert_user_activity.new("login", nil, nil, nil, "authorized")
-        type_info:set_score_notice()
-        type_info:set_subtype("login//")
-    elseif (alert.alert_id == "nfq_flushed") then
-        entity_info = alerts_api.interfaceAlertEntity(alert.ifid)
-        type_info = alert_consts.alert_types.alert_nfq_flushed.new(getInterfaceName(alert.ifid), alert.pct, alert.tot,
-            alert.dropped)
-
-        type_info:set_score_error()
-    else
-        traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown alert type " .. (alert.alert_id or ""))
-    end
-    local category = alert_consts.get_category_by_id(alert.alert_category or 0)
-    type_info:set_category(category)
-
-    return entity_info, type_info
-end
-
--- ##############################################
-
--- @brief Process notifications arriving from the internal C queue
---        Such notifications are transformed into stored alerts
-function alert_utils.process_notifications_from_c_queue()
-    local budget = 1024 -- maximum 1024 alerts per call
-    local budget_used = 0
-
-    -- Check for alerts pushed by the datapath to an internal queue (from C)
-    -- and store them (push them to the SQLite and Notification queues).
-    -- NOTE: this is executed in a system VM, with no interfaces references
-    while budget_used <= budget do
-        local alert = ntop.popInternalAlerts()
-
-        if alert == nil then
-            break
-        end
-
-        if (verbose) then
-            tprint(alert)
-        end
-
-        local entity_info, type_info = processStoreAlertFromQueue(alert)
-
-        if type_info and entity_info then
-            type_info:store(entity_info)
-        end
-
-        budget_used = budget_used + 1
-    end
-end
-
--- ##############################################
-
 local function notify_ntopng_status(started)
     local info = ntop.getInfo()
     local score = 10
@@ -812,50 +720,6 @@ end
 
 function alert_utils.notify_ntopng_stop()
     return (notify_ntopng_status(false))
-end
-
--- #####################################
-
-function alert_utils.formatBehaviorAlert(params, anomalies, stats, id, subtype, name)
-    local debug = false
-    -- Cycle throught the behavior stats
-    for anomaly_type, anomaly_table in pairs(anomalies) do
-        local lower_bound = stats[anomaly_type]["lower_bound"]
-        local upper_bound = stats[anomaly_type]["upper_bound"]
-        local value = stats[anomaly_type]["value"]
-
-        if debug then
-            local msg = string.format("Checking %s behavior for %s (lower bound | value | upper bound): %s | %s | %s",
-                subtype, name, lower_bound, value, upper_bound)
-            traceError(TRACE_NORMAL, TRACE_CONSOLE, msg)
-        end
-
-        if anomaly_table["cut_values"] then
-            value = tonumber(string.format("%.2f", tonumber(value * (anomaly_table["multiplier"] or 1))))
-            lower_bound = tonumber(string.format("%.2f", tonumber(lower_bound * (anomaly_table["multiplier"] or 1))))
-            upper_bound = tonumber(string.format("%.2f", tonumber(upper_bound * (anomaly_table["multiplier"] or 1))))
-        end
-
-        if anomaly_table["formatter"] then
-            value = anomaly_table["formatter"](value)
-            lower_bound = anomaly_table["formatter"](lower_bound)
-            upper_bound = anomaly_table["formatter"](upper_bound)
-        end
-
-        local alert = anomaly_table.alert.new(i18n(subtype .. "_id", {
-            id = name or id
-        }), anomaly_type, value, lower_bound, upper_bound, anomaly_table["entity_id"], id, anomaly_table["extra_params"])
-
-        alert:set_info(params)
-        alert:set_subtype(name)
-
-        -- Trigger an alert if an anomaly is found
-        if anomaly_table["anomaly"] == true then
-            alert:trigger(params.alert_entity, nil, params.cur_alerts)
-        else
-            alert:release(params.alert_entity, nil, params.cur_alerts)
-        end
-    end
 end
 
 -- ##############################################

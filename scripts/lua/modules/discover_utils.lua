@@ -3,6 +3,7 @@
 --
 local json = require "dkjson"
 local page_utils = require "page_utils"
+require "locales_utils"
 require "xmlSimple"
 
 local discover = {}

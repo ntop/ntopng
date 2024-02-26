@@ -24,25 +24,6 @@
 
 #include "ntop_includes.h"
 
-class QueuedThreadData {
- public:
-  ThreadedActivity *j;
-  char *script_path;
-  NetworkInterface *iface;
-  bool adaptive_pool_size;
-  time_t deadline;
-
-  QueuedThreadData(ThreadedActivity *_j, char *_path, NetworkInterface *_iface,
-                   time_t _deadline) {
-    j = _j, script_path = strdup(_path), iface = _iface;
-    deadline = _deadline;
-  }
-
-  ~QueuedThreadData() {
-    if (script_path) free(script_path);
-  }
-};
-
 class ThreadPool {
  private:
   u_int16_t num_threads;
@@ -58,9 +39,7 @@ class ThreadPool {
 
   QueuedThreadData *dequeueJob(bool waitIfEmpty);
 
-  /*
-    Creates and starts a new pool thread
-   */
+  /* Creates and starts a new pool thread */
   bool spawn();
   bool isQueueable(ThreadedActivityState cur_state);
 
@@ -73,7 +52,8 @@ class ThreadPool {
 
   void run();
   bool queueJob(ThreadedActivity *ta, char *path, NetworkInterface *iface,
-                time_t scheduled_time, time_t deadline);
+                time_t scheduled_time, time_t deadline, PeriodicActivities *pa,
+		bool hourly_daily_activity);
 };
 
 #endif /* _THREAD_POOL_H_ */

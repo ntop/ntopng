@@ -32,9 +32,9 @@ ThreadedActivity::ThreadedActivity(const char *_path, bool delayed_activity,
                                    bool _exclude_viewed_interfaces,
                                    bool _exclude_pcap_dump_interfaces,
                                    ThreadPool *_pool) {
-  periodic_script = new (std::nothrow) PeriodicScript(
-      _path, _periodicity_seconds, _max_duration_seconds, _align_to_localtime,
-      _exclude_viewed_interfaces, _exclude_pcap_dump_interfaces, _pool);
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  periodic_script = new (std::nothrow) PeriodicScript(_path, _periodicity_seconds, _max_duration_seconds, _align_to_localtime,
+						      _exclude_viewed_interfaces, _exclude_pcap_dump_interfaces, _pool);
   randomDelaySchedule = delayed_activity;
   setDeadlineApproachingSecs();
   force_run = false;
@@ -106,8 +106,7 @@ bool ThreadedActivity::isTerminating() {
 ThreadedActivityState ThreadedActivity::getThreadedActivityState(
     NetworkInterface *iface, char *script_name) {
   if (iface) {
-    ThreadedActivityStats *s =
-        getThreadedActivityStats(iface, script_name, false);
+    ThreadedActivityStats *s = getThreadedActivityStats(iface, script_name, false);
 
     if (s) return (s->getState());
   } else
@@ -194,15 +193,14 @@ bool ThreadedActivity::isDeadlineApproaching(time_t deadline) {
 
 /* ******************************************* */
 
-ThreadedActivityStats *ThreadedActivity::getThreadedActivityStats(
-    NetworkInterface *iface, char *script_name, bool allocate_if_missing) {
+ThreadedActivityStats *ThreadedActivity::getThreadedActivityStats(NetworkInterface *iface,
+								  char *script_name,
+								  bool allocate_if_missing) {
   ThreadedActivityStats *ta = NULL;
 
   if (!isTerminating() && iface) {
-    std::string key =
-        std::to_string(iface->get_id()) + "/" + std::string(script_name);
-    std::map<std::string, ThreadedActivityStats *>::iterator it =
-        threaded_activity_stats.find(key);
+    std::string key = std::to_string(iface->get_id()) + "/" + std::string(script_name);
+    std::map<std::string, ThreadedActivityStats *>::iterator it = threaded_activity_stats.find(key);
 
 #ifdef THREAD_DEBUG
     // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s() [%s]", __FUNCTION__,
@@ -294,15 +292,20 @@ void ThreadedActivity::runScript(time_t now, char *script_name,
     // activityPath());
 #endif
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Running %s (iface=%p)", script_name, iface);
-
   l = loadVM(script_name, iface, now);
   if (!l) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to load the Lua vm [%s][vm: %s][script: %s]",
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+				 "Unable to load the Lua vm [%s][vm: %s][script: %s]",
 				 iface->get_name(), activityPath(), script_name);
     return;
-  } else
-    l->setAsSystemVM(); /* Privileged VM used by the ntpng engine (no GUI) */
+  }
+
+#ifdef TRACE_VM_ENGINES
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running %s (iface=%p) [# LuaVMs: %u]",
+			       script_name, iface, ntop->getNumActiveLuaVMs());
+#endif
+  
+  l->setAsSystemVM(); /* Privileged VM used by the ntopng engine (no GUI) */
 
   /* Set the deadline and the threaded activity in the vm so they can be
    * accessed */
@@ -332,7 +335,7 @@ void ThreadedActivity::runScript(time_t now, char *script_name,
   if (thstats && isDeadlineApproaching(deadline))
     thstats->setSlowPeriodicActivity(true);
 
-  if (l) delete l;
+  delete l;
 }
 
 /* ******************************************* */
@@ -351,7 +354,7 @@ LuaEngine *ThreadedActivity::loadVM(char *script_name,
 
   try {
     /* NOTE: this needs to be deallocated by the caller */
-    l = new LuaEngine(NULL);
+    l = new LuaEngine();
 
     if (l->load_script(script_name, lua_engine_mode_callback, iface) != 0) {
       delete l;
@@ -366,19 +369,23 @@ LuaEngine *ThreadedActivity::loadVM(char *script_name,
 
 /* ******************************************* */
 
-void ThreadedActivity::schedule(u_int32_t now) {
+bool ThreadedActivity::schedule(PeriodicActivities *pa, u_int32_t now, bool hourly_daily_activity) {
+  bool scheduled = false;
+  
   if(force_run || (now >= next_schedule)) {
     u_int32_t next_deadline = now + getMaxDuration(); /* deadline is max_duration_secs from now */
-
+    
     if(force_run)
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Forcing activity schedule run");
     
     updateNextSchedule(now);
 
-    if (!skipExecution(activityPath()))
-      schedulePeriodicActivity(getPool(), now, next_deadline);
-
-    force_run = false;/* Just in case */
+    if (!skipExecution(activityPath())) {
+      schedulePeriodicActivity(getPool(), now, next_deadline, pa, hourly_daily_activity);
+      scheduled = true;
+    }
+    
+    force_run = false; /* Just in case */
   }
 
 #ifdef THREAD_DEBUG
@@ -389,6 +396,8 @@ void ThreadedActivity::schedule(u_int32_t now) {
                                  activityPath());
   }
 #endif
+
+  return(scheduled);
 }
 
 /* ******************************************* */
@@ -435,12 +444,12 @@ bool ThreadedActivity::isValidScript(char *dir, char *path) {
 
 /* This function enqueues the periodic activity job into the ThreadPool.
  * The ThreadPool, running into another thread, will dequeue the job and call
- * ThreadedActivity::runScript. The variables interfaceTasksRunning
- * are used to ensure that only a single instance of the job is running for a
- * given NetworkInterface. */
+ * ThreadedActivity::runScript. */
 void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool,
                                                 time_t scheduled_time,
-                                                time_t deadline) {
+                                                time_t deadline,
+						PeriodicActivities *pa,
+						bool hourly_daily_activity) {
   /* Schedule per system / interface */
   char dir_path[MAX_PATH];
   struct stat buf;
@@ -459,8 +468,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool,
     num_loops = 2;
 
     if (ntop->getPro()->demo_ends_at() != 0 /* demo mode */) {
-      int remaining_time =
-          ntop->getPro()->demo_ends_at() - (u_int32_t)time(NULL);
+      int remaining_time = ntop->getPro()->demo_ends_at() - (u_int32_t)time(NULL);
 
       if (remaining_time < 60 /* 1 min */)
         num_loops = 1; /* Demo is ending: stop running pro scripts */
@@ -487,8 +495,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool,
 
     if (stat(dir_path, &buf) == 0) {
 #ifdef THREAD_DEBUG
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running scripts in %s",
-                                   dir_path);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Running scripts in %s", dir_path);
 #endif
 
       /* Open the directory and run all the scripts inside it */
@@ -506,7 +513,7 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool,
 #endif
 
             if (pool->queueJob(this, script_path, ntop->getSystemInterface(),
-                               scheduled_time, deadline)) {
+                               scheduled_time, deadline, pa, hourly_daily_activity)) {
 #ifdef THREAD_DEBUG
               ntop->getTrace()->traceEvent(TRACE_NORMAL, "Queued system job %s",
                                            script_path);
@@ -550,16 +557,17 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool,
               NetworkInterface *iface = ntop->getInterface(ifId);
 
               /* Running the script for each interface if it's not a PCAP */
-              if (iface && (iface->getIfType() != interface_type_PCAP_DUMP ||
-                            !excludePcap())) {
+              if (iface && (iface->getIfType() != interface_type_PCAP_DUMP
+			    || (!excludePcap()))) {
                 char script_path[2 * MAX_PATH];
 
                 /* Schedule interface script, one for each interface */
                 snprintf(script_path, sizeof(script_path), "%s%s", dir_path,
                          ent->d_name);
 
-                if (pool->queueJob(this, script_path, iface, scheduled_time,
-                                   deadline)) {
+                if (pool->queueJob(this, script_path, iface,
+				   scheduled_time, deadline,
+				   pa, hourly_daily_activity)) {
 #ifdef THREAD_DEBUG
                   ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                                "Queued interface job %s [%s]",
@@ -581,8 +589,9 @@ void ThreadedActivity::schedulePeriodicActivity(ThreadPool *pool,
 
 void ThreadedActivity::lua(NetworkInterface *iface, lua_State *vm) {
   ThreadedActivityStats *ta;
-  std::map<std::string, ThreadedActivityStats *>::iterator it =
-      threaded_activity_stats.begin(); /* TO FIX */
+  std::map<std::string, ThreadedActivityStats *>::iterator it;
+  
+  it = threaded_activity_stats.begin();
 
   if (it != threaded_activity_stats.end())
     ta = it->second;

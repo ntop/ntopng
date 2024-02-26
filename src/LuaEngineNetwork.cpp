@@ -24,7 +24,7 @@
 /* ****************************************** */
 
 static int ntop_network_get_network_stats(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   NetworkStats *ns = c ? c->network : NULL;
 
   if (ns) {
@@ -63,7 +63,7 @@ static int ntop_select_local_network(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_network_get_alerts(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
 
   return ntop_get_alerts(vm, c->network);
 }
@@ -71,7 +71,7 @@ static int ntop_network_get_alerts(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_network_check_context(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   char *entity_val;
   bool ret = false;
 
@@ -104,7 +104,7 @@ static int ntop_network_check_context(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_network_get_cached_alert_value(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   NetworkStats *ns = c ? c->network : NULL;
   char *key;
   std::string val;
@@ -134,7 +134,7 @@ static int ntop_network_get_cached_alert_value(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_network_set_cached_alert_value(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   NetworkStats *ns = c ? c->network : NULL;
   char *key, *value;
   ScriptPeriodicity periodicity;
@@ -171,7 +171,7 @@ static int ntop_network_set_cached_alert_value(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_network_store_triggered_alert(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
 
   return (
       ntop_store_triggered_alert(vm, c->network, 1 /* 1st argument of vm */));
@@ -180,7 +180,7 @@ static int ntop_network_store_triggered_alert(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_network_release_triggered_alert(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
 
   return (ntop_release_triggered_alert(vm, c->network, 1));
 }
@@ -189,7 +189,7 @@ static int ntop_network_release_triggered_alert(lua_State *vm) {
 
 static int ntop_network_reset_traffic_between_nets(lua_State *vm) {
 #ifdef NTOPNG_PRO
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   NetworkStats *ns = c ? c->network : NULL;
 
   if (ns) ns->resetTrafficBetweenNets();

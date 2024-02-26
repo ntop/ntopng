@@ -61,7 +61,7 @@ class ZMQCollectorInterface : public ZMQParserInterface {
 
   void startPacketPolling();
   bool set_packet_filter(char *filter);
-  virtual void lua(lua_State *vm);
+  virtual void lua(lua_State *vm, bool fullStats);
   virtual bool areTrafficDirectionsSupported() { return (true); };
 };
 

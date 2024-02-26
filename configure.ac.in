@@ -206,7 +206,9 @@ AC_ARG_WITH(zmq-static,
 
 AC_CHECK_LIB([sodium], [sodium_init], LIBS="${LIBS} -lsodium")
 AC_CHECK_LIB([rdkafka], [rd_kafka_metadata], AC_DEFINE_UNQUOTED(HAVE_KAFKA, 1, [librdkafka is installed] LIBS="${LIBS} -lrdkafka") LIBS="${LIBS} -lrdkafka")
-   
+AC_CHECK_LIB([nats], [natsOptions_Create], AC_DEFINE_UNQUOTED(HAVE_NATS, 1, [nats is installed]  LIBS="${LIBS} -lnats") LIBS="${LIBS} -lnats")
+
+
 NEDGE=0
 if test "${with_nedge+set}" = set; then
   AC_DEFINE(HAVE_NEDGE, 1, [nedge support is present])
@@ -256,13 +258,22 @@ if [ test -f /usr/bin/lsb_release ]; then
   fi
 fi
 
-NTOPCLOUD_LIB=
-NTOPCLOUD_HOME="../ntopcloud"
-if test -d "${NTOPCLOUD_HOME}"; then
-  CFLAGS="${CFLAGS} -I${NTOPCLOUD_HOME}"
-  CXXFLAGS="${CXXFLAGS} -I${NTOPCLOUD_HOME}"
-  NTOPCLOUD_LIB="${NTOPCLOUD_HOME}/libcloud.a"
-  AC_DEFINE(HAVE_NTOP_CLOUD, 1, [ntop cloud detected])
+if test -d "pro/"; then
+  NTOPCLOUD_LIB=
+  NTOPCLOUD_HOME="../ntopcloud"
+  if test -d "${NTOPCLOUD_HOME}"; then
+    CFLAGS="${CFLAGS} -I${NTOPCLOUD_HOME}"
+    CXXFLAGS="${CXXFLAGS} -I${NTOPCLOUD_HOME}"
+    NTOPCLOUD_LIB="${NTOPCLOUD_HOME}/libcloud.a"
+    AC_DEFINE(HAVE_NTOP_CLOUD, 1, [ntop cloud detected])
+  fi
+fi
+
+JE=../jemalloc/lib/libjemalloc.a
+if ! test -f "${JE}"; then
+ JE=
+else
+ AC_DEFINE(HAVE_JEMALLOC, 1, [ntopng has been compiled with jemalloc])
 fi
 
 SHORT_MACHINE=`uname -m | cut -b1-3`
@@ -907,6 +918,7 @@ AC_SUBST(SERVICE_REQUIRES)
 AC_SUBST(SERVICE_WANTS)
 AC_SUBST(SERVICE_ALIAS)
 AC_SUBST(APP)
+AC_SUBST(JE)
 AC_SUBST(LIBPCAP)
 AC_SUBST(RPM_SIGN_CMD)
 AC_SUBST(LIBRRD_LD_FLAGS)

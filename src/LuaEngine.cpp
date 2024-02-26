@@ -43,17 +43,18 @@ extern luaL_Reg *ntop_host_reg;
 extern luaL_Reg *ntop_cloud_reg;
 #endif
 
-#define HTTP_MAX_UPLOAD_DATA_LEN \
-  25000000 /* ~25MB (see also upload_pcap.template) */
+#define HTTP_MAX_UPLOAD_DATA_LEN  25000000 /* ~25MB (see also upload_pcap.template) */
+
+/* #define TRACE_VM_ENGINES */
 
 /* ******************************* */
 
-struct ntopngLuaContext *getUserdata(struct lua_State *vm) {
+NtopngLuaContext *getUserdata(struct lua_State *vm) {
   if (vm) {
-    struct ntopngLuaContext *userdata;
-
+    NtopngLuaContext *userdata;
+    
     lua_getglobal(vm, "userdata");
-    userdata = (struct ntopngLuaContext *)lua_touserdata(vm, lua_gettop(vm));
+    userdata = (NtopngLuaContext *)lua_touserdata(vm, lua_gettop(vm));
     lua_pop(vm, 1);  // undo the push done by lua_getglobal
 
     return (userdata);
@@ -98,75 +99,108 @@ static void stackDump(lua_State *L) {
 
 /* ******************************* */
 
-LuaEngine::LuaEngine(lua_State *vm) {
-  std::bad_alloc bax;
-  void *ctx;
+static u_int32_t upper_power_of_two(u_int32_t n) {
+  n--;
+  n |= n >> 1;
+  n |= n >> 2;
+  n |= n >> 4;
+  n |= n >> 8;
+  n |= n >> 16;
+  n++;
+  
+  return n;
+}
 
+/* Custom memory allocator */
+static void *l_alloc(void *ud, void *ptr, size_t old_size, size_t new_size) {
+  LuaEngine *le = (LuaEngine*)ud;
+
+  le->incMemUsed(new_size - old_size);
+
+  if(new_size == 0) {
+#if 0
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "[Lua free] old size: %d ptr %p / tot: %d",
+				 old_size, ptr, le->getMemUsed());
+#endif
+
+    free(ptr);
+    return(NULL);
+  } else {
+    if(new_size < 32)
+      new_size = 32;
+    else
+      new_size = upper_power_of_two(new_size);
+    
+#if 0
+    ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				 "[Lua realloc] new size: %d ptr %p / tot: %d",
+				 new_size, ptr, le->getMemUsed());
+#endif 
+
+    return(realloc(ptr, new_size));
+  }
+}
+
+/* ******************************* */
+
+LuaEngine::LuaEngine() {
+  std::bad_alloc bax;
+
+  // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
+  ntop->incNumLuaVMs();
+  start_epoch= (u_int32_t)time(NULL);
+  
   loaded_script_path = NULL;
   is_system_vm = false;
-
-  L = luaL_newstate();
+  mem_used = 0;
+  
+  L = lua_newstate(l_alloc, this);
 
   if (!L) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Unable to create a new Lua state.");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create a new Lua state.");
     throw bax;
   }
 
-  ctx = (void *)calloc(1, sizeof(struct ntopngLuaContext));
+  lua_context = new NtopngLuaContext;
 
-  if (!ctx) {
+  if (!lua_context) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create a context for the new Lua state.");
     lua_close(L);
     throw bax;
   }
 
-  lua_pushlightuserdata(L, ctx);
+  lua_pushlightuserdata(L, (void*)lua_context);
   lua_setglobal(L, "userdata");
-
-  if (vm) setThreadedActivityData(vm);
 }
 
 /* ******************************* */
 
 LuaEngine::~LuaEngine() {
+  // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   if (L) {
-    struct ntopngLuaContext *ctx;
+    lua_settop(L, 0);
 
 #ifdef DUMP_STACK
     stackDump(L);
 #endif
+    
+    if(lua_context)
+      delete lua_context;     
+    
+    ntop->decNumLuaVMs();
 
-    ctx = getLuaVMContext(L);
-
-    if (ctx) {
-      if (ctx->snmpBatch) delete ctx->snmpBatch;
-
-      for (u_int8_t slot_id = 0; slot_id < MAX_NUM_ASYNC_SNMP_ENGINES;
-           slot_id++) {
-        if (ctx->snmpAsyncEngine[slot_id] != NULL)
-          delete ctx->snmpAsyncEngine[slot_id];
-      }
-
-      if (ctx->pkt_capture.end_capture > 0) {
-        ctx->pkt_capture.end_capture = 0; /* Force stop */
-        pthread_join(ctx->pkt_capture.captureThreadLoop, NULL);
-      }
-
-      if ((ctx->iface != NULL) && ctx->live_capture.pcaphdr_sent)
-        ctx->iface->deregisterLiveCapture(ctx);
-
-      if (ctx->addr_tree != NULL)   delete ctx->addr_tree;
-      if (ctx->sqlite_hosts_filter) free(ctx->sqlite_hosts_filter);
-      if (ctx->sqlite_flows_filter) free(ctx->sqlite_flows_filter);
-
-#if defined(NTOPNG_PRO)
-      if (ctx->bin) delete ctx->bin;
+#ifdef TRACE_VM_ENGINES
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated VM [# LuaVMs: %u][Duration: %u sec][Memory: %u][%s]",
+				 ntop->getNumActiveLuaVMs(),
+				 (u_int32_t)time(NULL)-start_epoch+1,
+				 getMemUsed(),
+				 loaded_script_path ? loaded_script_path : "");
 #endif
-      free(ctx);
-    }
 
-    lua_close(L);
+    lua_close(L); /* Free memory */
   }
 
   if (loaded_script_path) free(loaded_script_path);
@@ -396,23 +430,30 @@ static int __ntop_lua_handlefile(lua_State *L, char *script_path, bool ex) {
 /* This function is called by Lua scripts when the call require(...) */
 static int ntop_lua_require(lua_State *L) {
   char *script_name;
+  LuaEngine *engine = getUserdata(L)->engine;
 
-  if (lua_type(L, 1) != LUA_TSTRING ||
-      (script_name = (char *)lua_tostring(L, 1)) == NULL)
+  if (lua_type(L, 1) != LUA_TSTRING
+      || (script_name = (char *)lua_tostring(L, 1)) == NULL)
     return 0;
 
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s(%s)", __FUNCTION__,
-                               script_name);
+  if(engine->require(std::string(script_name))) {    
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Circular dependency found %s\n", script_name);
+    // return(0); /* Already loaded */
+  }
+  
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s(%s)", __FUNCTION__, script_name);
 
   lua_getglobal(L, "package");
   lua_getfield(L, -1, "path");
 
   string cur_path = lua_tostring(L, -1), parsed, script_path = "";
   stringstream input_stringstream(cur_path);
+
   while (getline(input_stringstream, parsed, ';')) {
     /* Example: package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;"
      * .. package.path */
     unsigned found = parsed.find_last_of("?");
+    
     if (found) {
       string s = parsed.substr(0, found) + script_name + ".lua";
       size_t first_dot = s.find("."), last_dot = s.rfind(".");
@@ -668,9 +709,8 @@ int LuaEngine::run_loaded_script() {
 
   lua_pop(L, 1);
 
-#ifdef WIN32
-  /* This will break custom scripts */
-  lua_settop(L, 0);
+#ifndef HAS_LUAJIT
+  lua_gc(L, LUA_GCCOLLECT); /* Run garbage collector */
 #endif
   
   return (rv);
@@ -970,10 +1010,9 @@ bool LuaEngine::setParamsTable(lua_State *vm,
               !Utils::dir_exists(decoded_buf) &&
               strcmp(tok, "pid_name") /* This is the only exception */
           )
-            ntop->getTrace()->traceEvent(
-                TRACE_WARNING,
-                "Discarded '%s'='%s' as argument is a valid file path", tok,
-                decoded_buf);
+            ntop->getTrace()->traceEvent(TRACE_WARNING,
+					 "Discarded '%s'='%s' as argument is a valid file path", tok,
+					 decoded_buf);
           else
             lua_push_str_table_entry(vm, tok, decoded_buf);
 
@@ -1213,11 +1252,10 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
                                             _POST table with POST parameters */
         else {
           /* application/json */
-
           lua_newtable(L);
-          lua_push_str_table_entry(
-              L, "payload", post_data); /* This payload is NOT parsed, checked
-                                           or verified against attacks */
+
+	  /* This payload is NOT parsed, checked or verified against attacks */
+          lua_push_str_table_entry(L, "payload", post_data); 
           lua_setglobal(L, "_POST");
         }
 
@@ -1453,13 +1491,14 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 #endif
     rc = luaL_dofile(L, script_path);
 
-   lua_settop(L, 0);
+  //    lua_settop(L, 0);
 
   if (rc != 0) {
     const char *err = lua_tostring(L, -1);
 
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure [%s][%s]",
-                                 script_path, err);
+                                 script_path, err ? err : "Unknown error");
+    
     return (redirect_to_error_page(conn, request_info, "internal_error",
                                    script_path, (char *)err));
   }
@@ -1470,7 +1509,7 @@ int LuaEngine::handle_script_request(struct mg_connection *conn,
 /* ****************************************** */
 
 void LuaEngine::setHost(Host *h) {
-  struct ntopngLuaContext *c = getLuaVMContext(L);
+  NtopngLuaContext *c = getLuaVMContext(L);
 
   if (c) {
     c->host = h;
@@ -1482,7 +1521,7 @@ void LuaEngine::setHost(Host *h) {
 /* ****************************************** */
 
 void LuaEngine::setNetwork(NetworkStats *ns) {
-  struct ntopngLuaContext *c = getLuaVMContext(L);
+  NtopngLuaContext *c = getLuaVMContext(L);
 
   if (c) {
     c->network = ns;
@@ -1492,7 +1531,7 @@ void LuaEngine::setNetwork(NetworkStats *ns) {
 /* ****************************************** */
 
 void LuaEngine::setFlow(Flow *f) {
-  struct ntopngLuaContext *c = getLuaVMContext(L);
+  NtopngLuaContext *c = getLuaVMContext(L);
 
   if (c) {
     c->flow = f;
@@ -1502,24 +1541,10 @@ void LuaEngine::setFlow(Flow *f) {
 
 /* ****************************************** */
 
-void LuaEngine::setThreadedActivityData(lua_State *from) {
-  struct ntopngLuaContext *cur_ctx, *from_ctx;
-  lua_State *cur_state = getState();
-
-  if (from && (cur_ctx = getLuaVMContext(cur_state)) &&
-      (from_ctx = getLuaVMContext(from))) {
-    cur_ctx->deadline = from_ctx->deadline;
-    cur_ctx->threaded_activity = from_ctx->threaded_activity;
-    cur_ctx->threaded_activity_stats = from_ctx->threaded_activity_stats;
-  }
-}
-
-/* ****************************************** */
-
 void LuaEngine::setThreadedActivityData(const ThreadedActivity *ta,
                                         ThreadedActivityStats *tas,
                                         time_t deadline) {
-  struct ntopngLuaContext *cur_ctx;
+  NtopngLuaContext *cur_ctx;
   lua_State *cur_state = getState();
 
   if ((cur_ctx = getLuaVMContext(cur_state))) {
@@ -1543,3 +1568,28 @@ void LuaEngine::pushResultNumber(float f) {
   snprintf(buf, sizeof(buf), "%f", f);
   cloud_string.append(buf);
 }
+
+/* ****************************************** */
+
+Host* LuaEngine::getHost() {
+  return (getLuaVMContext(L)->host);
+}
+
+/* ****************************************** */
+
+NetworkInterface* LuaEngine::getNetworkInterface() {
+  return (getLuaVMContext(L)->iface);
+}
+  
+/* ****************************************** */
+
+bool LuaEngine::require(std::string name) {  
+  std::set<std::string>::iterator it = requires.find(name);
+
+  if(it != requires.end())
+    return(true);
+  
+  requires.insert(name);
+  return(false);
+}
+  

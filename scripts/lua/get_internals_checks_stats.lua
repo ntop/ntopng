@@ -72,7 +72,7 @@ for _, iface in pairs(interface.getIfNames()) do
    end
 
    for _, subdir in ipairs(subdirs_list) do
-      local subdir_benchmarks = checks.getLastBenchmark(getInterfaceId(iface), subdir["id"])
+      local subdir_benchmarks = {}
 
       for mod_k, mod_benchmarks in pairs(subdir_benchmarks) do
 	 for hook_k, hook_benchmark in pairs(mod_benchmarks) do

@@ -1,17 +1,18 @@
 --
 -- (C) 2017-24 - ntop.org
 --
+
 local clock_start = os.clock()
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local pragma_once = 1
 local http_lint = {}
 
 local json = require "dkjson"
 local tracker = require "tracker"
 local locales_utils = require "locales_utils"
+require "ntop_utils"
 
 -- #################################################################
 
@@ -85,7 +86,7 @@ local function validateListOfType(l, validate_callback, separator)
    local items = split(l, separator)
 
    for _, item in pairs(items) do
-      if item ~= "" then
+      if item and item ~= "" then
 	 if not validate_callback(item) then
 	    return false
 	 end
@@ -1960,6 +1961,7 @@ local known_parameters = {
    ["community_id"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- Community ID
    ["ja3_client"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["ja3_server"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
+   ["ja4_client"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["asn"] = validateNumber, -- An ASN number
    ["country_id"] = validateNumber, -- A Country Code
    ["module"] = validateTopModule, -- A top script module
@@ -2196,6 +2198,8 @@ local known_parameters = {
    ["toggle_host_pools_log"] = validateBool,
    ["toggle_log_to_file"] = validateBool,
    ["toggle_snmp_rrds"] = validateBool,
+   ["toggle_snmp_polling"] = validateBool,
+   ["toggle_active_monitoring"] = validateBool,
    ["toggle_tiny_flows_export"] = validateBool,
    ["toggle_vlan_rrds"] = validateBool,
    ["toggle_asn_rrds"] = validateBool,
@@ -2206,6 +2210,7 @@ local known_parameters = {
    ["toggle_src_with_post_nat_src"] = validateBool,
    ["toggle_behaviour_analysis"] = validateBool,
    ["toggle_use_mac_in_flow_key"] = validateBool,
+   ["toggle_fingerprint_stats"] = validateBool,
    ["behaviour_analysis_learning_period"] = validateNumber,
    ["behaviour_analysis_learning_status_during_learning"] = validateNumber,
    ["behaviour_analysis_learning_status_post_learning"] = validateNumber,
@@ -2310,6 +2315,7 @@ local known_parameters = {
    ["serial_key"] = validateSingleWord,
    ["message_broker_username"] = validateEmptyOr(validateSingleWord),
    ["message_broker_password"] = validateEmptyOr(validateSingleWord),
+   ["message_broker_url"] = validateEmptyOr(validateSingleWord),
    ["message_broker_topics_list"] = validateEmptyOr(validateUnquoted),
 
    -- Multiple Choice
@@ -2601,6 +2607,7 @@ local known_parameters = {
    ["repeater_id"] = validateNumber,
    ["interfaces"] = validateSingleWord,
    ["interface_details"] = validateUnquoted,
+   ["keep_src_address"] = validateBool,
 
    -- Containers
    ["pod"] = validateSingleWord,
@@ -2809,16 +2816,6 @@ function http_lint.validationError(t, param, value, message)
 
    -- Remove the param which failed the validation
    t[param] = nil
-
-   -- Must use urlencode to print these values or an attacker could perform XSS.
-   -- Indeed, the web page returned by mongoose will show the error below and
-   -- one could place something like '><script>alert(1)</script> in the value
-   -- to close the html and execute a script
-
-   -- Print of errors has been disabled to avoid logs to be flooded. Lint validation must be handled
-   -- as part of HTTP responses, not printed in ntopng logs
-
-   -- error("[LINT] " .. s_id .. "[\"" .. urlencode(param) .. "\"] = \"" .. urlencode(value or 'nil') .. "\" parameter error: " .. message.."")
 end
 
 -- #################################################################
@@ -2945,14 +2942,14 @@ end
 
 -- #################################################################
 
-if (pragma_once) then
+if (not pragma_once_http_lint) then
    if (ignore_post_payload_parse == nil) then
       parsePOSTpayload()
    end
 
    clearNotAllowedParams()
    lintParams()
-   pragma_once = 0
+   pragma_once_http_lint = true
 end
 
 if (trace_script_duration ~= nil) then

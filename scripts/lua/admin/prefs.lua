@@ -276,7 +276,28 @@ if auth.has_capability(auth.capabilities.preferences) then
     end
 
     -- ================================================================================
+    function printActiveMonitoring()
+        print('<form method="post">')
+        print('<table class="table">')
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("active_monitoring_stats.active_monitoring") ..
+        '</th></tr></thead>')
 
+        prefsToggleButton(subpage_active, {
+            field = "toggle_active_monitoring",
+            default = "0",
+            pref = "active_monitoring",
+        })
+
+        print(
+            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+                i18n("save") .. '</button></th></tr>')
+        print('</table>')
+        print [[<input name="csrf" type="hidden" value="]]
+        print(ntop.getRandomCSRFValue())
+        print [[" />
+        </form> ]]
+        
+    end
     function printAlerts()
         print('<form method="post">')
         print('<table class="table">')
@@ -662,6 +683,13 @@ if auth.has_capability(auth.capabilities.preferences) then
                 default = "0",
                 pref = "use_mac_in_flow_key"
             })
+
+            prefsToggleButton(subpage_active, {
+                field = "toggle_fingerprint_stats",
+                default = "0",
+                pref = "fingerprint_stats"
+            })
+
         end
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.flow_table") ..
@@ -1839,6 +1867,12 @@ if auth.has_capability(auth.capabilities.preferences) then
             disabled = disabled
         })
 
+        prefsToggleButton(subpage_active, {
+            field = "toggle_snmp_polling",
+            default = "0",
+            pref = "snmp_polling",
+        })
+
         local t_labels = {"v1", "v2c"}
         local t_values = {"0", "1"}
 
@@ -2098,10 +2132,10 @@ if auth.has_capability(auth.capabilities.preferences) then
         local lint_preference = "message_broker"
         local showElement = (ntop.getPref("ntopng.prefs.toggle_message_broker") == "1")
         local brokers_list = {
-            names = {i18n('prefs.nats'), i18n('prefs.mqtt')},
-            ids = {'nats', 'mqtt'}
+            names = {i18n('prefs.nats')--[[, i18n('prefs.mqtt')]]},
+            ids = {'nats'--[[, 'mqtt']]}
         }
-        local elementsToSwitch = {"row_message_broker", "message_broker_username", "message_broker_password",
+        local elementsToSwitch = {"row_message_broker", "message_broker_url", "message_broker_username", "message_broker_password",
                                   "message_broker_topics_list"}
         if (_POST["toggle_message_broker"]) then
             showElement = (_POST["toggle_message_broker"] == "1")
@@ -2118,9 +2152,26 @@ if auth.has_capability(auth.capabilities.preferences) then
             to_switch = elementsToSwitch
         })
 
+        local m_broker_type = ntop.getPref("ntopng.prefs.message_broker")
+        local default_broker_id
+        if (not isEmptyString(m_broker_type)) then
+            default_broker_id = m_broker_type
+        else
+            default_broker_id = brokers_list.ids[1]
+        end
+
         multipleTableButtonPrefs(subpage_active.entries["message_brokers_list"].title,
             subpage_active.entries["message_brokers_list"].description, brokers_list.names, brokers_list.ids,
-            brokers_list.ids[1], "primary", lint_preference, "message_broker", {nil}, nil, nil, nil, showElement --[[show]] )
+            default_broker_id, "primary", lint_preference, "ntopng.prefs.message_broker", {nil}, nil, nil, nil, showElement,default_broker_id  --[[show]] )
+        
+        prefsInputFieldPrefs(subpage_active.entries["message_broker_url"].title,
+            subpage_active.entries["message_broker_url"].description, "ntopng.prefs.", "message_broker_url",
+            "", "text", showElement, nil, nil, {
+                attributes = {
+                    spellcheck = "false"
+                },
+                pattern = "[^\\s]+"
+            })
 
         prefsInputFieldPrefs(subpage_active.entries["message_broker_username"].title,
             subpage_active.entries["message_broker_username"].description, "ntopng.prefs.", "message_broker_username",
@@ -2140,15 +2191,6 @@ if auth.has_capability(auth.capabilities.preferences) then
                 pattern = "[^\\s]+"
             })
 
-        prefsInputFieldPrefs(subpage_active.entries["message_broker_topics_list"].title,
-            subpage_active.entries["message_broker_topics_list"].description, "ntopng.prefs.",
-            "message_broker_topics_list", "", "text", showElement, nil, nil, {
-                attributes = {
-                    spellcheck = "false"
-                },
-                pattern = "[^\\s]+",
-                minlength = 1
-            })
 
         end_table()
     end
@@ -2244,6 +2286,10 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     if (tab == "alerts") then
         printAlerts()
+    end
+
+    if (tab ==  "active_monitoring") then
+        printActiveMonitoring()
     end
 
     if (tab == "protocols") then

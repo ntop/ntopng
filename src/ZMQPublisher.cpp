@@ -20,7 +20,8 @@
  * @param endpoint The ZMQ endpoint.
  */
 ZMQPublisher::ZMQPublisher(char *endpoint) {
-
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   server_secret_key[0] = '\0';
   server_public_key[0] = '\0';
 

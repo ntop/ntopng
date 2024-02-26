@@ -6,7 +6,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
-require "lua_utils"
+require "lua_utils_generic"
+require "check_redis_prefs"
 local vs_utils = require "vs_utils"
 
 local host_pools_nedge
@@ -607,7 +608,10 @@ if page == 'active_hosts' then
         if ntop.isPro() then
             printHostsDeviceFilterDropdown(base_url, page_params)
         end
-
+        local alignment_c_info = 'center'
+        if (ntop.isnEdge()) then 
+            alignment_c_info = 'nowrap'
+        end
         print(' ],')
 
         print [[
@@ -624,7 +628,7 @@ if page == 'active_hosts' then
                field: "column_info",
                sortable: false,
                      css: {
-                  textAlign: 'center',
+                  textAlign: ']]print(alignment_c_info)print[[',
                      whiteSpace: 'nowrap'
 
                }

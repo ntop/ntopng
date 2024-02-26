@@ -33,6 +33,8 @@
 /* *************************************** */
 
 IEC104Stats::IEC104Stats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   memset(&pkt_lost, 0, sizeof(pkt_lost));
   last_type_i = 0;
   memset(&last_i_apdu, 0, sizeof(last_i_apdu));
@@ -46,13 +48,16 @@ IEC104Stats::IEC104Stats() {
 
 /* *************************************** */
 
-IEC104Stats::~IEC104Stats() { ndpi_free_data_analysis(i_s_apdu, 1); }
+IEC104Stats::~IEC104Stats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  ndpi_free_data_analysis(i_s_apdu, 1);
+}
 
 /* *************************************** */
 
 void IEC104Stats::processPacket(Flow *f, bool tx_direction,
                                 const u_char *payload, u_int16_t payload_len,
-                                struct timeval *packet_time) {
+				const struct pcap_pkthdr *h) {
   if ((payload_len >= 6) && (payload[0] == 0x68 /* IEC magic byte */)) {
     u_int offset = 1 /* Skip magic byte */;
     u_int64_t *allowedTypeIDs = ntop->getPrefs()->getIEC104AllowedTypeIDs();
@@ -140,7 +145,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 	      u_int16_t rx = ((((u_int16_t)payload[offset + 4]) << 8) + payload[offset + 3]) >> 1;
 
 	      if (last_i_apdu.tv_sec != 0) {
-		float ms = Utils::msTimevalDiff(packet_time, &last_i_apdu);
+		float ms = Utils::msTimevalDiff(&h->ts, &last_i_apdu);
 
 #ifdef IEC60870_TRACE
 		ntop->getTrace()->traceEvent(
@@ -173,7 +178,7 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
       }
 
       /* From now on, only Type I packets are processed */
-      memcpy(&last_i_apdu, packet_time, sizeof(struct timeval));
+      memcpy(&last_i_apdu, &h->ts, sizeof(struct timeval));
       stats.type_i++;
 
       if(((offset + 6) < payload_len) && (len >= 6 /* Ignore 4 bytes APDUs */)) {
@@ -281,7 +286,8 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
                 if ((!ntop->getRedis()->get(key, rsp, sizeof(rsp))) &&
                     ((rsp[0] != '\0') && (!strcmp(rsp, "1"))))
-                  alert = new IECInvalidTransitionAlert(NULL, f, packet_time,
+                  alert = new IECInvalidTransitionAlert(NULL, f,
+							(struct timeval*)&h->ts,
                                                         last_type_i, type_id);
 
                 if (alert) {
@@ -321,9 +327,9 @@ void IEC104Stats::processPacket(Flow *f, bool tx_direction,
 
               if ((!ntop->getRedis()->get(key, rsp, sizeof(rsp))) &&
                   ((rsp[0] != '\0') && (!strcmp(rsp, "1"))))
-                alert = new IECInvalidCommandTransitionAlert(
-                    NULL, f, packet_time, transitions.m_to_c,
-                    transitions.c_to_m, transitions.c_to_c);
+                alert = new IECInvalidCommandTransitionAlert(NULL, f,
+							     (struct timeval*)&h->ts, transitions.m_to_c,
+							     transitions.c_to_m, transitions.c_to_c);
 
               if (alert) {
                 f->setPredominantAlertInfo(alert);

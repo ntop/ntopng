@@ -24,12 +24,14 @@
 /* *************************************** */
 
 ICMPinfo::ICMPinfo() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   unreach = NULL;
   reset();
 }
 /* *************************************** */
 
 ICMPinfo::ICMPinfo(const ICMPinfo &_icmp_info) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   unreach = NULL;
   reset();
 
@@ -57,6 +59,7 @@ void ICMPinfo::reset() {
 /* *************************************** */
 
 ICMPinfo::~ICMPinfo() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (unreach) free(unreach);
 }
 

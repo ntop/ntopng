@@ -28,7 +28,7 @@
 /* ****************************************** */
 
 static int ntop_flow_get_bytes(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f)
@@ -42,7 +42,7 @@ static int ntop_flow_get_bytes(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_flow_get_cli2srv_bytes(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f)
@@ -56,7 +56,7 @@ static int ntop_flow_get_cli2srv_bytes(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_flow_get_srv2cli_bytes(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f)
@@ -70,7 +70,7 @@ static int ntop_flow_get_srv2cli_bytes(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_client(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f && f->get_cli_ip_addr()) {
@@ -86,7 +86,7 @@ static int ntop_flow_get_client(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_client_port(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f)
@@ -100,7 +100,7 @@ static int ntop_flow_get_client_port(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_server(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f && f->get_srv_ip_addr()) {
@@ -116,7 +116,7 @@ static int ntop_flow_get_server(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_server_port(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f)
@@ -130,7 +130,7 @@ static int ntop_flow_get_server_port(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_protocol(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f)
@@ -144,7 +144,7 @@ static int ntop_flow_get_protocol(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_vlan_id(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f)
@@ -158,7 +158,7 @@ static int ntop_flow_get_vlan_id(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_l7_master_proto(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f)
@@ -172,7 +172,7 @@ static int ntop_flow_get_l7_master_proto(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_l7_proto(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f)
@@ -186,7 +186,7 @@ static int ntop_flow_get_l7_proto(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_direction(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f) {
@@ -213,7 +213,7 @@ static int ntop_flow_get_direction(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_is_oneway(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   lua_pushboolean(vm, f ? f->isOneWay() : false);
@@ -224,7 +224,7 @@ static int ntop_flow_is_oneway(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_is_unicast(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   lua_pushboolean(vm, f ? f->isUnicast() : false);
@@ -235,7 +235,7 @@ static int ntop_flow_is_unicast(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_l7_proto_name(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f) {
@@ -251,7 +251,7 @@ static int ntop_flow_get_l7_proto_name(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_l7_proto_http(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f) {
@@ -266,7 +266,7 @@ static int ntop_flow_get_l7_proto_http(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_l7_proto_dns(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f) {
@@ -281,7 +281,7 @@ static int ntop_flow_get_l7_proto_dns(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_l7_proto_ssh(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f) {
@@ -296,7 +296,7 @@ static int ntop_flow_get_l7_proto_ssh(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_flow_get_l7_proto_tls_quic(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f) {
@@ -311,7 +311,7 @@ static int ntop_flow_get_l7_proto_tls_quic(lua_State *vm) {
 /* **************************************************************** */
 
 static int ntop_trigger_flow_alert(lua_State *vm) {
-  struct ntopngLuaContext *c = getLuaVMContext(vm);
+  NtopngLuaContext *c = getLuaVMContext(vm);
   Flow *f = c ? c->flow : NULL;
 
   if (f) {

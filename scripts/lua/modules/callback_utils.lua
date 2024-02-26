@@ -4,11 +4,11 @@
 
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 
 local os_utils = require "os_utils"
 
 local callback_utils = {}
-
 local clock_start = os.clock()
 
 -- ########################################################
@@ -27,7 +27,7 @@ function callback_utils.foreachInterface(ifnames, condition, callback, update_di
 	 interface.updateDirectionStats()
       end
 
-      local ifstats = interface.getStats()
+      local ifstats = interface.getStats(false) -- limited stats
 
       if condition == nil or condition(ifstats.id) then
 	 if((ifstats.type ~= "pcap dump") and (ifstats.type ~= "unknown")) then
@@ -241,6 +241,7 @@ end
 -- Iterates each device on the ifname interface.
 -- Each device is passed to the callback with some more information.
 function callback_utils.foreachDevice(ifname, callback)
+   require "label_utils"
    interface.select(ifname)
 
    local devices_stats = callback_utils.getDevicesIterator()

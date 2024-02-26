@@ -24,6 +24,7 @@
 /* *************************************** */
 
 LocalTrafficStats::LocalTrafficStats() {
+  // if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   memset(&packets, 0, sizeof(packets));
   memset(&bytes, 0, sizeof(bytes));
 }

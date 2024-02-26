@@ -53,7 +53,8 @@
 			"data_field": "vlan",
 			"sortable": true,
 			"class": [
-				"text-nowrap"
+			    "text-nowrap",
+     		            "text-center"
 			]
 		},
 		{

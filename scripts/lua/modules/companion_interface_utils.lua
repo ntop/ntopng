@@ -3,7 +3,7 @@
 --
 
 local dirs = ntop.getDirs()
-require "lua_utils"
+require "ntop_utils"
 
 local companion_interface_prefix = "ntopng.prefs.companion_interface."
 local companion_interface_key = string.format("%s%s", companion_interface_prefix, "ifid_%d.companion")

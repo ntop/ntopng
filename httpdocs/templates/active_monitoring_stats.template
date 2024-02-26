@@ -6,6 +6,11 @@
 
 <div class="row">
     <div class="col-md-12">
+        {% if not ntop.getPrefs().active_monitoring then %}
+            <div class="alert alert-warning alert-dismissable">
+                <span>{* i18n("enable_active_monitoring_warning", { base_prefix = ntop.getHttpPrefix() }) *} </span>
+            </div>
+        {% end %}
         <div class="card card-shadow">
             <div class="card-body">
                 <table class="table w-100 table-striped table-hover table-bordered" id="am-table">
@@ -366,8 +371,10 @@ sorted_measurements.sort(function(a, b){
           const granularity = $("#select-add-granularity").val();
           const threshold = $("#input-add-threshold").val();
           const pool = $(`#select-add-pool`).val();
-          const iface = $(`#am-add-form select[name='iface']`).val();
-
+          let iface = $(`#am-add-form select[name='iface']`).val();
+          if (iface == 'Default Interface') {
+            iface = "{* default_ifname *}";
+          }
           $(`#add-invalid-feedback`).hide();
 
           return {
@@ -448,6 +455,7 @@ sorted_measurements.sort(function(a, b){
           const granularity = $("#select-edit-granularity").val();
           const threshold = $("#input-edit-threshold").val();
           const pool = $(`#select-edit-pool`).val();
+          console.log($(`#am-edit-form select[name='iface']`));
           const iface = $(`#am-edit-form select[name='iface']`).val();
           $(`#am-edit-modal .invalid-feedback`).hide();
 

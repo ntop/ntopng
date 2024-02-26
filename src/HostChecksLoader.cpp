@@ -24,11 +24,15 @@
 
 /* **************************************************** */
 
-HostChecksLoader::HostChecksLoader() : ChecksLoader() {}
+HostChecksLoader::HostChecksLoader() : ChecksLoader() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+}
 
 /* **************************************************** */
 
 HostChecksLoader::~HostChecksLoader() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   for (std::map<std::string, HostCheck *>::const_iterator it = cb_all.begin();
        it != cb_all.end(); ++it)
     delete it->second;
@@ -61,15 +65,11 @@ void HostChecksLoader::registerChecks() {
   if ((fcb = new DNSServerContacts())) registerCheck(fcb);
   if ((fcb = new SMTPServerContacts())) registerCheck(fcb);
   if ((fcb = new NTPServerContacts())) registerCheck(fcb);
-  if ((fcb = new NTPTraffic())) registerCheck(fcb);
-  if ((fcb = new P2PTraffic())) registerCheck(fcb);
-  if ((fcb = new DNSTraffic())) registerCheck(fcb);
   if ((fcb = new RemoteConnection())) registerCheck(fcb);
   if ((fcb = new DangerousHost())) registerCheck(fcb);
   if ((fcb = new DomainNamesContacts())) registerCheck(fcb);
   if ((fcb = new ScoreThreshold())) registerCheck(fcb);
   if ((fcb = new ICMPFlood())) registerCheck(fcb);
-  if ((fcb = new PktThreshold())) registerCheck(fcb);
   if ((fcb = new ScanDetection())) registerCheck(fcb);
 
 #ifdef NTOPNG_PRO

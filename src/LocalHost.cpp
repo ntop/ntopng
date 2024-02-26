@@ -27,6 +27,8 @@ LocalHost::LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
 		     Mac *_mac, u_int16_t _vlanId,
                      u_int16_t _observation_point_id, IpAddress *_ip)
   : Host(_iface, _iface_idx, _mac, _vlanId, _observation_point_id, _ip) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
 #ifdef LOCALHOST_DEBUG
   char buf[48];
 
@@ -42,12 +44,14 @@ LocalHost::LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
 		     char *ipAddress, u_int16_t _vlanId,
 		     u_int16_t _observation_point_id)
   : Host(_iface, _iface_idx, ipAddress, _vlanId, _observation_point_id) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   initialize();
 }
 
 /* *************************************** */
 
 LocalHost::~LocalHost() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   addInactiveData();
   if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();
@@ -154,6 +158,11 @@ void LocalHost::initialize() {
 #ifdef HAVE_NEDGE
   drop_all_host_traffic = 0;
 #endif
+
+  if (ntop->getPrefs()->enableFingerprintStats())
+    fingerprints = new (std::nothrow) HostFingerprints();
+  else
+    fingerprints = NULL;
 }
 
 /* *************************************** */
@@ -480,10 +489,12 @@ void LocalHost::freeLocalHostData() {
     os_detail = NULL;
   }
 
-  for (std::unordered_map<u_int32_t, DoHDoTStats *>::iterator it =
-           doh_dot_map.begin();
+  for (std::unordered_map<u_int32_t, DoHDoTStats *>::iterator it = doh_dot_map.begin();
        it != doh_dot_map.end(); ++it)
     delete it->second;
+
+  if(fingerprints)
+    delete fingerprints;
 }
 
 /* *************************************** */
@@ -619,3 +630,14 @@ void LocalHost::setRxOnlyHost(bool set_it) {
     }
   }
 }
+
+/* ***************************************************** */
+
+void LocalHost::lua_get_fingerprints(lua_State *vm) {
+  if(fingerprints) {
+    fingerprints->ja3.lua("ja3_fingerprint", vm);
+    fingerprints->ja4.lua("ja4_fingerprint", vm);
+    fingerprints->hassh.lua("hassh_fingerprint", vm);
+  }
+}
+

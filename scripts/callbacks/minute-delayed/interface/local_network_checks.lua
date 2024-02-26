@@ -4,7 +4,6 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 local checks = require "checks"
 
@@ -19,8 +18,6 @@ local checks_var = {
    network_entity = nil, 
    configset = nil,
    available_modules = nil,
-   do_benchmark = false,
-   do_print_benchmark = false
 }
 
 local granularity = "min"

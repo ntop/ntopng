@@ -60,6 +60,7 @@ static void *pollerFctn(void *ptr) {
 ContinuousPing::ContinuousPing() {
   ntop_if_t *devpointer, *cur;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   started = false;
 
   /* Create default pinger */
@@ -111,6 +112,8 @@ ContinuousPing::ContinuousPing() {
 /* ***************************************** */
 
 ContinuousPing::~ContinuousPing() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   for (std::map<std::string, ContinuousPingStats *>::iterator it =
            v4_results.begin();
        it != v4_results.end(); ++it)

@@ -6,6 +6,19 @@ local redis_api = {}
 
 -- ##############################################
 
+local function is_rrd_enabled()
+    local driver = ntop.getPref("ntopng.prefs.timeseries_driver")
+    local is_rrd_enabled = false
+
+    if isEmptyString(driver) or driver == "rrd" then
+        is_rrd_enabled = true
+    end
+
+    return is_rrd_enabled
+end
+
+-- ##############################################
+
 local function getRedisStatus()
     local redis = ntop.getCacheStatus()
     local redis_info = redis["info"]
@@ -82,7 +95,7 @@ end
 -- ###############################################
 
 function redis_api.redisTimeseriesEnabled()
-    return(ntop.getPref("ntopng.prefs.system_probes_timeseries") ~= "0")
+    return(ntop.getPref("ntopng.prefs.system_probes_timeseries") ~= "0" and is_rrd_enabled())
 end
 
 -- ###############################################

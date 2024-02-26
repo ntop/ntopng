@@ -24,6 +24,8 @@
 /* *************************************** */
 
 MacStats::MacStats(NetworkInterface* _iface) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   iface = _iface;
   arp_stats.sent.requests.reset(), arp_stats.sent.replies.reset(),
       arp_stats.rcvd.requests.reset(), arp_stats.rcvd.replies.reset();

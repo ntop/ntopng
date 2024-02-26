@@ -150,6 +150,7 @@
 #define NDPI_MIN_NUM_PACKETS 12
 #define GTP_U_V1_PORT 2152
 #define EOIP_PORT 16667 /* Ethernet over IP */
+#define L2TP_PORT 1701
 #define TZSP_PORT 37008
 #define VXLAN_PORT 4789
 #define CAPWAP_DATA_PORT 5247
@@ -638,6 +639,10 @@
 #define CONST_DEFAULT_FLOWS_ONLY_INTERFACE false
 #define CONST_ALERT_DISABLED_PREFS \
   NTOPNG_PREFS_PREFIX ".disable_alerts_generation"
+#define CONST_PREFS_ENABLE_SNMP_POLLING \
+  NTOPNG_PREFS_PREFIX ".snmp_polling"
+#define CONST_PREFS_ENABLE_ACTIVE_MONITORING \
+  NTOPNG_PREFS_PREFIX ".active_monitoring"
 #define CONST_PREFS_ENABLE_ACCESS_LOG NTOPNG_PREFS_PREFIX ".enable_access_log"
 #define CONST_PREFS_ENABLE_SQL_LOG NTOPNG_PREFS_PREFIX ".enable_sql_log"
 #define CONST_TOP_TALKERS_ENABLED NTOPNG_PREFS_PREFIX ".host_top_sites_creation"
@@ -747,11 +752,14 @@
 #define CONST_PREFS_DEVICES_ANALYSIS_LEARNING_PERIOD \
   NTOPNG_PREFS_PREFIX ".devices_learning_period"
 
+
 #define CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD \
   7200  // 2 hours by default
 
 #define CONST_PREFS_USE_MAC_IN_FLOW_KEY \
   NTOPNG_PREFS_PREFIX ".use_mac_in_flow_key"
+#define CONST_PREFS_FINGERPRINT_STATS \
+  NTOPNG_PREFS_PREFIX ".fingerprint_stats"
 
 #define CONST_PREFS_NETWORK_DISCOVERY_DEBUG \
   NTOPNG_PREFS_PREFIX ".network_discovery_debug"
@@ -894,6 +902,7 @@
 #define CONST_LOOPBACK_ADDRESS "127.0.0.1"
 #define CONST_EPP_MAX_CMD_NUM 34
 #define CONST_DEFAULT_MAX_PACKET_SIZE 1522
+#define CONST_MAX_PACKET_SIZE         65535 /* https://wiki.wireshark.org/MTU */
 
 /* ARP matrix generation preferences */
 #define CONST_DEFAULT_ARP_MATRIX_GENERATION \
@@ -1066,6 +1075,25 @@
 #define STORE_MANAGER_MAX_QUERY 2048
 #define STORE_MANAGER_MAX_KEY 20
 #define DEFAULT_GLOBAL_DNS ""
+
+/* MESSAGE BROKER CONSTS */
+
+#define CONST_PREFS_MESSAGE_BROKER_URL \
+  NTOPNG_PREFS_PREFIX ".message_broker_url"
+#define DEFAULT_MESSAGE_BROKER_URL "0.0.0.0:4222"
+
+#define BROKER_RPC_CALL_DEFAULT_TIMEOUT_MS (u_int64_t)10000
+#define BROKER_RPC_CALL_MAX_RSP_LEN (u_int64_t)256
+
+/* IMPORTANT Keep in Sync with brokers_list of prefs.lua */
+#define CONST_NATS_M_BROKER_ID "nats"
+#define CONST_MQTT_M_BROKER_ID "mqtt"
+
+#define CONST_PREFS_MESSAGE_BROKER \
+  NTOPNG_PREFS_PREFIX ".message_broker"
+#define DEFAULT_MESSAGE_BROKER CONST_NATS_M_BROKER_ID
+
+/* ********************* */
 #define DEFAULT_DATE_TYPE "middle_endian"
 #define DEFAULT_SAFE_SEARCH_DNS "208.67.222.123" /* OpenDNS Family Shield */
 
@@ -1311,10 +1339,13 @@
 #define DROP_HOST_POOL_PRE_JAIL_POOL \
   NTOPNG_PREFS_PREFIX ".jail.pre_jail_pool.%s"
 
-extern struct ntopngLuaContext *getUserdata(struct lua_State *vm);
+#ifdef __cplusplus
+class NtopngLuaContext; /* Forward */
+extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 #define getLuaVMContext(a) (a ? getUserdata(a) : NULL)
 #define getLuaVMUserdata(a, b) (a ? getUserdata(a)->b : NULL)
 #define getLuaVMUservalue(a, b) getUserdata(a)->b
+#endif
 
 /*
    We assume that a host with more than CONST_MAX_NUM_HOST_USES

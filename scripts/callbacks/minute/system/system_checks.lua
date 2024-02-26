@@ -5,7 +5,6 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local ts_dump = require "ts_min_dump_utils"
 local checks = require "checks"
 
 -- #################################################################
@@ -29,8 +28,6 @@ local checks_var = {
    system_config = nil,
    available_modules = nil,
    configset = nil,
-   do_benchmark = false,
-   do_print_benchmark = false
 }
 
 local granularity = "min"

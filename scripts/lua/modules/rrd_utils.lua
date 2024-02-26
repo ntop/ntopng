@@ -1,5 +1,5 @@
-local os_utils = require "os_utils"
-require "lua_utils"
+require "lua_utils_get"
+require "ntop_utils"
 require "rrd_paths"
 
 SECONDS_IN_A_HOUR = 3600
@@ -289,6 +289,7 @@ function rrd_utils.storageInfo(ifid, timeout)
   local dirs = ntop.getDirs()
   local paths = getRRDPaths()
   local info = { total = 0 }
+  local os_utils = require "os_utils"
 
   for _, path in pairs(paths) do
     local absolute_path = os_utils.fixPath(dirs.workingdir .. "/" .. ifid .. "/".. path .."/")

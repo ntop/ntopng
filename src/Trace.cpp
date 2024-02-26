@@ -24,6 +24,7 @@
 /* ******************************* */
 
 Trace::Trace() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   traceLevel = TRACE_LEVEL_NORMAL;
   logFile = NULL;
   logFd = NULL;

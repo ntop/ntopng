@@ -57,6 +57,8 @@ void Ping::setOpts(int fd) {
 /* ****************************************** */
 
 Ping::Ping(char *_ifname) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   ping_id = rand(), cnt = 0;
   running = false;
 
@@ -148,6 +150,8 @@ Ping::Ping(char *_ifname) {
 /* ****************************************** */
 
 Ping::~Ping() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   if (running) {
     running = false;
     pthread_join(resultPoller, NULL);

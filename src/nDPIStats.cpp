@@ -26,6 +26,8 @@
 
 nDPIStats::nDPIStats(bool _enable_throughput_stats,
                      bool _enable_behavior_stats) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
 #ifdef NTOPNG_PRO
   nextMinPeriodicUpdate = 0;
 #endif
@@ -38,6 +40,8 @@ nDPIStats::nDPIStats(bool _enable_throughput_stats,
 nDPIStats::nDPIStats(nDPIStats &stats) {
   std::unordered_map<u_int16_t, ProtoCounter *>::iterator it;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
 #ifdef NTOPNG_PRO
   nextMinPeriodicUpdate = 0;
 #endif
@@ -74,6 +78,8 @@ nDPIStats::nDPIStats(nDPIStats &stats) {
 nDPIStats::~nDPIStats() {
   std::unordered_map<u_int16_t, ProtoCounter *>::iterator it;
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   for (it = counters.begin(); it != counters.end(); ++it) {
     ProtoCounter *c = it->second;
 

@@ -46,11 +46,13 @@ extern struct keyval string_to_replace[]; /* LuaEngine.cpp */
 /* ******************************************* */
 
 Ntop::Ntop(const char *appName) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   // WTF: it's weird why do you want a global instance of ntop.
   ntop = this;
   globals = new (std::nothrow) NtopGlobals();
   extract = new (std::nothrow) TimelineExtract();
-
+  num_active_lua_vms = 0;
   offline = false;
   forced_offline = false;
   pa = NULL;
@@ -102,6 +104,9 @@ Ntop::Ntop(const char *appName) {
   cpu_load = 0;
   system_interface = NULL;
   interfacesShuttedDown = false;
+#ifdef NTOPNG_PRO
+  message_broker = NULL;
+#endif /* NTOPNG_PRO */
 #ifndef WIN32
   cping = NULL, default_ping = NULL;
 #endif
@@ -280,6 +285,8 @@ void Ntop::initTimezone() {
 Ntop::~Ntop() {
   int num_local_networks = local_network_tree.getNumAddresses();
 
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  
   for (int i = 0; i < num_local_networks; i++) {
     if (local_network_names[i] != NULL) free(local_network_names[i]);
     if (local_network_aliases[i] != NULL) free(local_network_aliases[i]);
@@ -338,6 +345,10 @@ Ntop::~Ntop() {
   if (pro) delete pro;
   if (alert_exclusions) delete alert_exclusions;
   if (alert_exclusions_shadow) delete alert_exclusions_shadow;
+  if (message_broker) {
+    delete message_broker;
+    message_broker = NULL;
+  }
 #endif
 
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
@@ -609,31 +620,35 @@ void Ntop::start() {
     memset(repeater, 0, sizeof(repeater));
     redis->get(key, repeater, sizeof(repeater));
 
-    char *token = strtok(repeater, "|");
-
     string ip;
     int port;
     string interfaces;
     string type;
+    bool keep_source = false;
+    char *tmp = NULL;
 
+    char *token = strtok_r(repeater, "|", &tmp);
     if (token != NULL) {
       type = token;
-      token = strtok(NULL, "|");
+      token = strtok_r(NULL, "|", &tmp);
       if (token != NULL) {
         ip = token;
-        token = strtok(NULL, "|");
+        token = strtok_r(NULL, "|", &tmp);
         if (token != NULL) {
           port = atoi(token);
-          token = strtok(NULL, "|");
+          token = strtok_r(NULL, "|", &tmp);
           if (token != NULL) {
             interfaces = token;
+            token = strtok_r(NULL, "|", &tmp);
+            if (token != NULL)
+              keep_source = (token[0] == '1');
 
-            Forwarder *multicastForwarder;
+            PacketForwarder *multicastForwarder;
 
             if (ip.length() > 3 && strcmp(ip.c_str() + ip.length() - 3, "255") == 0)
-              multicastForwarder = new (std::nothrow) BroadcastForwarder(ip, port, interfaces);
+              multicastForwarder = new (std::nothrow) BroadcastForwarder(ip, port, interfaces, keep_source);
             else
-              multicastForwarder = new (std::nothrow) MulticastForwarder(ip, port, interfaces);
+              multicastForwarder = new (std::nothrow) MulticastForwarder(ip, port, interfaces, keep_source);
 
             if (multicastForwarder) {
               multicastForwarder->start();
@@ -652,6 +667,10 @@ void Ntop::start() {
   checkReloadHostPools();
   checkReloadFlowChecks();
   checkReloadHostChecks();
+
+#ifdef NTOPNG_PRO
+  connectMessageBroker();
+#endif /* NTOPNG_PRO */
 
   for (int i = 0; i < num_defined_interfaces; i++)
     iface[i]->startPacketPolling();
@@ -692,7 +711,7 @@ void Ntop::start() {
 				   (float)usec_diff / 1e6);
 
     if (usec_diff < nap_usec) _usleep(nap_usec - usec_diff);
-  } 
+  }
 }
 
 /* ******************************************* */
@@ -3364,6 +3383,18 @@ int Ntop::nDPILoadMaliciousJA3Signatures(const char *file_path) {
 
 /* ******************************************* */
 
+int Ntop::nDPISetDomainMask(const char *domain, u_int64_t domain_mask) {
+  int rc = 0;
+
+  for (u_int i = 0; i < get_num_interfaces(); i++)
+    if (getInterface(i))
+      rc = getInterface(i)->setDomainMask(domain, domain_mask);
+
+  return (rc /* last one returned */);
+}
+
+/* ******************************************* */
+
 ndpi_protocol_category_t Ntop::get_ndpi_proto_category(u_int protoid) {
   for (u_int i = 0; i < get_num_interfaces(); i++)
     if (getInterface(i))
@@ -3979,5 +4010,31 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
 void Ntop::incBlacklisHits(std::string listname) {
   blStats.incHits(listname);
 }
+
+/* ******************************************* */
+
+#ifdef NTOPNG_PRO
+void Ntop::connectMessageBroker() {
+#ifdef HAVE_NATS
+  const char *m_broker_id = prefs->get_message_broker();
+  
+  if (!strcmp(m_broker_id, CONST_NATS_M_BROKER_ID)) {
+    message_broker = new (std::nothrow) NatsBroker();
+  }
+#endif /* HAVE NATS */
+  // TODO: add MQTT
+}
+
+/* ******************************************* */
+
+void Ntop::reloadMessageBroker() {
+  if (message_broker) {
+    delete(message_broker);
+    message_broker = NULL;
+  }
+  
+  connectMessageBroker();
+}
+#endif /* NTOPNG_PRO */
 
 /* ******************************************* */

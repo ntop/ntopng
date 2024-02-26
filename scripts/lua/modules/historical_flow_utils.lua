@@ -2,7 +2,6 @@
 -- (C) 2013-24 - ntop.org
 --
 
-
 local tag_utils = require "tag_utils"
 local dscp_consts = require "dscp_consts"
 local alert_consts = require "alert_consts"
@@ -1339,6 +1338,7 @@ function historical_flow_utils.get_tags()
    flow_defined_tags["l7_error_id"] = tag_utils.defined_tags["l7_error_id"]
    flow_defined_tags["ja3_client"] = tag_utils.defined_tags["ja3_client"]
    flow_defined_tags["ja3_server"] = tag_utils.defined_tags["ja3_server"]
+   flow_defined_tags["ja4_client"] = tag_utils.defined_tags["ja4_client"]
    flow_defined_tags["http_method"] = tag_utils.defined_tags["http_method"]
    flow_defined_tags["http_url"] = tag_utils.defined_tags["http_url"]
    flow_defined_tags["http_return"] = tag_utils.defined_tags["http_return"]

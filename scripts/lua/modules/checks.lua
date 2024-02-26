@@ -1,65 +1,44 @@
 --
 -- (C) 2019-24 - ntop.org
 --
+local dirs = ntop.getDirs()
+
 -- Checks provide a scriptable way to interact with the ntopng
 -- core. Users can provide their own modules to trigger custom alerts,
 -- export data, or perform periodic tasks.
--- Hack to avoid include loops
-if (pragma_once_checks == true) then
-    -- avoid multiple inclusions
-    return
-end
-
-pragma_once_checks = true
 
 local clock_start = os.clock()
 
 local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
-
+require "lua_utils_generic"
+require "check_redis_prefs"
 local os_utils = require("os_utils")
 local json = require("dkjson")
 local script_manager = require("script_manager")
-local alert_consts = require "alert_consts"
-local http_lint = require("http_lint")
-local alert_exclusions = require "alert_exclusions"
-local alerts_api = require("alerts_api")
-local format_utils = require("format_utils")
+local alert_management = require "alert_management"
+local alert_entities_utils = require "alert_entities_utils"
+local http_lint = require "http_lint"
+local alert_entity_builders = require "alert_entity_builders"
+local alert_category_utils = require "alert_category_utils"
+
+-- ##############################################
+-- structs
+local alert_categories = require "alert_categories"
+local alert_granularities = require "alert_granularities"
+local alert_entities = require "alert_entities"
+local field_units = require "field_units"
+
+-- ##############################################
 
 local checks = {}
-
--- ##############################################
-
-local filters_debug = false
-
--- ##############################################
-
 -- Checks category consts
-checks.check_categories = alert_consts.categories
+checks.check_categories = alert_categories
 
 -- ##############################################
 
-checks.field_units = {
-    seconds = "field_units.seconds",
-    bytes = "field_units.bytes",
-    flows = "field_units.flows",
-    packets = "field_units.packets",
-    mbits = "field_units.mbits",
-    hosts = "field_units.hosts",
-    syn_sec = "field_units.syn_sec",
-    flow_sec = "field_units.flow_sec",
-    icmp_flow_sec = "field_units.icmp_flow_sec",
-    percentage = "field_units.percentage",
-    syn_min = "field_units.syn_min",
-    fin_min = "field_units.fin_min",
-    rst_min = "field_units.rst_min",
-    contacts = "field_units.contacts",
-    score = "field_units.score",
-    per_host_score = "field_units.per_host_score",
-    macs = "field_units.macs",
-    exceptions = "field_units.exceptions"
-}
+checks.field_units = field_units
 
 -- ##############################################
 
@@ -86,8 +65,8 @@ local NON_TRAFFIC_ELEMENT_CONF_KEY = "all"
 local NON_TRAFFIC_ELEMENT_ENTITY = "no_entity"
 local ALL_HOOKS_CONFIG_KEY = "all"
 local CONFIGSET_KEY = "ntopng.prefs.checks.configset_v1" -- Keep in sync with ntop_defines.h CHECKS_CONFIG
-checks.DEFAULT_CONFIGSET_ID = 0
 
+checks.DEFAULT_CONFIGSET_ID = 0
 checks.HOST_SUBDIR_NAME = "host"
 checks.FLOW_SUBDIR_NAME = "flow"
 checks.INTERFACE_SUBDIR_NAME = "interface"
@@ -121,7 +100,7 @@ local available_subdirs = {{
                 lint = http_lint.validateInterface, -- An interface id
                 match = function(context, val)
                     -- Do the comparison
-                    if not context or context.alert_entity ~= alert_consts.alertEntity("interface") then
+                    if not context or context.alert_entity ~= alert_entities_utils.alertEntity("interface") then
                         return false
                     end
 
@@ -131,7 +110,7 @@ local available_subdirs = {{
                 sqlite = function(val)
                     -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
                     return string.format("(alert_entity = %u AND alert_entity_val = '%s')",
-                        alert_consts.alertEntity("interface"), val)
+                        alert_entities_utils.alertEntity("interface"), val)
                 end,
                 find = function(alert, alert_json, filter, val)
                     return (alert[filter] and (alert[filter] == val))
@@ -149,7 +128,7 @@ local available_subdirs = {{
                 lint = http_lint.validateNetworkWithVLAN, -- A local network
                 match = function(context, val)
                     -- Do the comparison
-                    if not context or context.alert_entity ~= alert_consts.alertEntity("network") then
+                    if not context or context.alert_entity ~= alert_entities_utils.alertEntity("network") then
                         return false
                     end
 
@@ -159,7 +138,7 @@ local available_subdirs = {{
                 sqlite = function(val)
                     -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
                     return string.format("(alert_entity = %u AND alert_entity_val = '%s')",
-                        alert_consts.alertEntity("network"), val)
+                        alert_entities_utils.alertEntity("network"), val)
                 end,
                 find = function(alert, alert_json, filter, val)
                     return (alert[filter] and (alert[filter] == val))
@@ -177,7 +156,7 @@ local available_subdirs = {{
                 lint = http_lint.validateHost, -- The IP address of an SNMP device
                 match = function(context, val)
                     -- Do the comparison
-                    if not context or context.alert_entity ~= alert_consts.alertEntity("snmp_device") then
+                    if not context or context.alert_entity ~= alert_entities_utils.alertEntity("snmp_device") then
                         return false
                     end
 
@@ -187,7 +166,7 @@ local available_subdirs = {{
                 sqlite = function(val)
                     -- Keep in sync with SQLite database schema declared in AlertsManager.cpp
                     return string.format("(alert_entity = %u AND alert_entity_val = '%s')",
-                        alert_consts.alertEntity("snmp_device"), val)
+                        alert_entities_utils.alertEntity("snmp_device"), val)
                 end,
                 find = function(alert, alert_json, filter, val)
                     return (alert[filter] and (alert[filter] == val))
@@ -270,34 +249,24 @@ checks.script_types = {
 
 -- ##############################################
 
--- ##############################################
+local current_script = nil
+local current_configset = nil
 
--- @brief Given a category found in a user script, this method checks whether the category is valid
--- and, if not valid, it assigns to the script a default category
-local function checkCategory(category)
-    if not category or not category["id"] then
-        return checks.check_categories.other
-    end
-
-    for cat_k, cat_v in pairs(checks.check_categories) do
-        if category["id"] == cat_v["id"] then
-            return cat_v
-        end
-    end
-
-    return checks.check_categories.other
+local function invokeScriptHook(check, configset, hook_fn, p1, p2, p3)
+    current_script = check
+    current_configset = configset
+    return (hook_fn(p1, p2, p3))
 end
 
--- ##############################################
+-- ###########################################
 
-function checks.getCategoryById(id)
-    for cat_k, cat_v in pairs(checks.check_categories) do
-        if cat_v["id"] == id then
-            return cat_v
-        end
+-- @brief Deletes all the cache/prefs keys matching the pattern
+local function deleteCachePattern(pattern)
+    local keys = ntop.getKeysCache(pattern)
+
+    for key in pairs(keys or {}) do
+        ntop.delCache(key)
     end
-
-    return checks.check_categories.other
 end
 
 -- ##############################################
@@ -331,30 +300,8 @@ end
 
 -- ##############################################
 
--- Table to keep per-subdir then per-module then per-hook benchmarks
---
--- The structure is the following
---
--- table
--- flow table
--- flow.mud table
--- flow.mud.protocolDetected table
--- flow.mud.protocolDetected.tot_elapsed number 0.00031600000000021
--- flow.mud.protocolDetected.tot_num_calls number 4
--- flow.score table
--- flow.score.protocolDetected table
--- flow.score.protocolDetected.tot_elapsed number 0.00013700000000005
--- flow.score.protocolDetected.tot_num_calls number 4
--- flow.score.statusChanged table
--- flow.score.statusChanged.tot_elapsed number 0
--- flow.score.statusChanged.tot_num_calls number 0
-local benchmarks = {}
-
--- ##############################################
-
 function checks.getSubdirectoryPath(script_type, subdir)
     local res = {}
-    local prefix = script_manager.getRuntimePath() .. "/callbacks"
     local path
 
     -- Checks definition path
@@ -369,183 +316,6 @@ function checks.getSubdirectoryPath(script_type, subdir)
     end
 
     return res
-end
-
--- ##############################################
-
--- @brief Wrap any hook function to compute its execution time which is then added
--- to the benchmarks table.
---
--- @param subdir the modules subdir
--- @param mod_k the key of the user script
--- @param hook the name of the hook in the user script
--- @param hook_fn the hook function in the user script
---
--- @return function(...) wrapper ready to be called for the execution of hook_fn
-local function benchmark_hook_fn(subdir, mod_k, hook, hook_fn)
-    return function(...)
-        local start = ntop.getticks()
-        local result = {hook_fn(...)}
-        local finish = ntop.getticks()
-        local elapsed = finish - start
-
-        -- Update benchmark results by addin a function call and the elapsed time of this call
-        benchmarks[subdir][mod_k][hook]["tot_num_calls"] = benchmarks[subdir][mod_k][hook]["tot_num_calls"] + 1
-        benchmarks[subdir][mod_k][hook]["tot_elapsed"] = benchmarks[subdir][mod_k][hook]["tot_elapsed"] + elapsed
-
-        -- traceError(TRACE_NORMAL,TRACE_CONSOLE, string.format("[%s][elapsed: %.2f][tot_elapsed: %.2f][tot_num_calls: %u]",
-        --							   hook, elapsed,
-        --							   benchmarks[subdir][mod_k][hook]["tot_elapsed"],
-        --							   benchmarks[subdir][mod_k][hook]["tot_num_calls"]))
-
-        return table.unpack(result)
-    end
-end
-
--- ##############################################
-
--- @brief Initializes benchmark facilities for any hook function
---
--- @param subdir the modules subdir
--- @param mod_k the key of the user script
--- @param hook the name of the hook in the user script
--- @param hook_fn the hook function in the user script
---
--- @return function(...) wrapper ready to be called for the execution of hook_fn
-local function benchmark_init(subdir, mod_k, hook, hook_fn)
-    -- NOTE: 5min/hour/day are not monitored. They would collide in the checks_benchmarks_key.
-    if ((hook ~= "5min") and (hook ~= "hour") and (hook ~= "day")) then
-        -- Prepare the benchmark table fo the hook_fn which is being benchmarked
-        if not benchmarks[subdir] then
-            benchmarks[subdir] = {}
-        end
-
-        if not benchmarks[subdir][mod_k] then
-            benchmarks[subdir][mod_k] = {}
-        end
-
-        if not benchmarks[subdir][mod_k][hook] then
-            benchmarks[subdir][mod_k][hook] = {
-                tot_num_calls = 0,
-                tot_elapsed = 0
-            }
-        end
-
-        -- Finally prepare and return the hook_fn wrapped with benchmark facilities
-        return benchmark_hook_fn(subdir, mod_k, hook, hook_fn)
-    else
-        return (hook_fn)
-    end
-end
-
--- ##############################################
-
--- ~ schema_prefix: "flow_check" or "elem_check"
-function checks.ts_dump(when, ifid, verbose, schema_prefix, all_scripts)
-    local ts_utils = require("ts_utils_core")
-
-    for subdir, script_type in pairs(all_scripts) do
-        local rv = checks.getAggregatedStats(ifid, script_type, subdir)
-        local total = {
-            tot_elapsed = 0,
-            tot_num_calls = 0
-        }
-
-        for modkey, stats in pairs(rv) do
-            ts_utils.append(schema_prefix .. ":duration", {
-                ifid = ifid,
-                check = modkey,
-                subdir = subdir,
-                num_ms = stats.tot_elapsed * 1000
-            }, when)
-            ts_utils.append(schema_prefix .. ":num_calls", {
-                ifid = ifid,
-                check = modkey,
-                subdir = subdir,
-                num_calls = stats.tot_num_calls
-            }, when)
-
-            total.tot_elapsed = total.tot_elapsed + stats.tot_elapsed
-            total.tot_num_calls = total.tot_num_calls + stats.tot_num_calls
-        end
-
-        ts_utils.append(schema_prefix .. ":total_stats", {
-            ifid = ifid,
-            subdir = subdir,
-            num_ms = total.tot_elapsed * 1000,
-            num_calls = total.tot_num_calls
-        }, when)
-    end
-end
-
--- ##############################################
-
-local function checks_benchmarks_key(ifid, subdir)
-    return string.format("ntopng.cache.ifid_%d.checks_benchmarks.subdir_%s", ifid, subdir)
-end
-
--- ##############################################
-
--- @brief Returns the benchmark stats, aggregating them by module
-function checks.getAggregatedStats(ifid, script_type, subdir)
-    local bencmark = ntop.getCache(checks_benchmarks_key(ifid, subdir))
-    local rv = {}
-
-    if (not isEmptyString(bencmark)) then
-        bencmark = json.decode(bencmark)
-
-        if (bencmark ~= nil) then
-            for scriptk, hooks in pairs(bencmark) do
-                local aggr_val = {
-                    tot_num_calls = 0,
-                    tot_elapsed = 0
-                }
-
-                for _, hook_benchmark in pairs(hooks) do
-                    aggr_val.tot_elapsed = aggr_val.tot_elapsed + hook_benchmark.tot_elapsed
-                    aggr_val.tot_num_calls = hook_benchmark.tot_num_calls + aggr_val.tot_num_calls
-                end
-
-                if (aggr_val.tot_num_calls > 0) then
-                    rv[scriptk] = aggr_val
-                end
-            end
-        end
-    end
-
-    return (rv)
-end
-
--- ##############################################
-
--- @brief Save benchmarks results and possibly print them to stdout
---
--- @param to_stdout dump results also to stdout
-function checks.benchmark_dump(ifid, to_stdout)
-    -- Convert ticks to seconds
-    for subdir, modules in pairs(benchmarks) do
-        local rv = {}
-
-        for mod_k, hooks in pairs(modules) do
-            for hook, hook_benchmark in pairs(hooks) do
-                if hook_benchmark["tot_num_calls"] > 0 then
-                    hook_benchmark["tot_elapsed"] = hook_benchmark["tot_elapsed"] / ntop.gettickspersec()
-
-                    rv[mod_k] = rv[mod_k] or {}
-                    rv[mod_k][hook] = hook_benchmark
-
-                    if to_stdout then
-                        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-                            string.format("[%s] %s() [script: %s][elapsed: %.4f][num: %u][speed: %.4f]\n", subdir, hook,
-                                mod_k, hook_benchmark["tot_elapsed"], hook_benchmark["tot_num_calls"],
-                                hook_benchmark["tot_elapsed"] / hook_benchmark["tot_num_calls"]))
-                    end
-                end
-            end
-        end
-
-        ntop.setCache(checks_benchmarks_key(ifid, subdir), json.encode(rv), 3600 --[[ 1 hour --]] )
-    end
 end
 
 -- ##############################################
@@ -568,20 +338,6 @@ function checks.listScripts(script_type, subdir)
     end
 
     return rv
-end
-
--- ##############################################
-
-function checks.getLastBenchmark(ifid, subdir)
-    local scripts_benchmarks = ntop.getCache(checks_benchmarks_key(ifid, subdir))
-
-    if (not isEmptyString(scripts_benchmarks)) then
-        scripts_benchmarks = json.decode(scripts_benchmarks)
-    else
-        scripts_benchmarks = {}
-    end
-
-    return (scripts_benchmarks)
 end
 
 -- ##############################################
@@ -632,7 +388,7 @@ local function init_check(check, mod_fname, full_path, script, script_type, subd
     check.default_enabled = ternary(check.default_enabled == false, false, true --[[ a nil value means enabled ]] )
     check.script = script
     check.script_type = script_type
-    check.category = checkCategory(check.category)
+    check.category = alert_category_utils.checkCategory(check.category)
     -- A user script is assumed to be able to generate alerts if it has a flag or an alert id specified
     check.num_filtered = tonumber(ntop.getCache(string.format(NUM_FILTERED_KEY, subdir, mod_fname))) or 0 -- math.random(1000,2000)
 
@@ -656,10 +412,10 @@ local function init_check(check, mod_fname, full_path, script, script_type, subd
 
         -- Possibly localize the input title/description
         if check.gui.input_title then
-            check.gui.input_title = i18n(check.gui.input_title) or check.gui.input_title
+            check.gui.input_title = check.gui.input_title
         end
         if check.gui.input_description then
-            check.gui.input_description = i18n(check.gui.input_description) or check.gui.input_description
+            check.gui.input_description = check.gui.input_description
         end
     end
 
@@ -684,7 +440,7 @@ end
 local function loadAndCheckScript(mod_fname, full_path, script, script_type, subdir, return_all, scripts_filter,
     hook_filter)
     local setup_ok = true
-    
+
     -- Recheck the edition as the demo mode may expire
     if script then
         if (script.setup and script.setup() == false) then
@@ -700,7 +456,6 @@ local function loadAndCheckScript(mod_fname, full_path, script, script_type, sub
     end
 
     traceError(TRACE_DEBUG, TRACE_CONSOLE, string.format("Loading user script '%s'", mod_fname))
-
     local check = dofile(full_path)
 
     if (type(check) ~= "table") then
@@ -750,7 +505,7 @@ local function loadAndCheckScript(mod_fname, full_path, script, script_type, sub
         else
             -- Add the necessary elements as found in C++
             check.alert_id = flow_risk_alert.alert_id
-            check.category = checkCategory({
+            check.category = alert_category_utils.checkCategory({
                 id = flow_risk_alert.category
             })
             check.gui.i18n_title = flow_risk_alert.risk_name
@@ -884,7 +639,6 @@ end
 -- @param subdir the modules subdir. *NOTE* this must be unique as it is used as a key.
 -- @param options an optional table with the following supported options:
 --  - hook_filter: if non nil, only load the checks for the specified hook
---  - do_benchmark: if true, computes benchmarks for every hook
 --  - return_all: if true, returns all the scripts, even those with filters not matching the current configuration
 --    NOTE: this can only be applied if the script type has the "has_no_entity" flag set.
 --  - scripts_filter: a filter function(check) -> true, false. false will cause the script to be skipped.
@@ -903,7 +657,6 @@ function checks.load(ifid, script_type, subdir, options)
     script_manager.loadSchemas(options.hook_filter)
 
     local hook_filter = options.hook_filter
-    local do_benchmark = options.do_benchmark
     local return_all = options.return_all
     local scripts_filter = options.scripts_filter
 
@@ -939,17 +692,11 @@ function checks.load(ifid, script_type, subdir, options)
 
         -- Populate hooks fast lookup table
         for hook, hook_fn in pairs(check.hooks or {}) do
-            -- load previously computed benchmarks (if any)
-            -- benchmarks are loaded even if their computation is disabled with a do_benchmark ~= true
             if (rv.hooks[hook] == nil) then
                 traceError(TRACE_WARNING, TRACE_CONSOLE,
                     string.format("Unknown hook '%s' in module '%s'", hook, check.key))
             else
-                if do_benchmark then
-                    rv.hooks[hook][check.key] = benchmark_init(subdir, check.key, hook, hook_fn)
-                else
-                    rv.hooks[hook][check.key] = hook_fn
-                end
+                rv.hooks[hook][check.key] = hook_fn
             end
         end
 
@@ -998,16 +745,11 @@ end
 -- ##############################################
 
 -- @brief Teardown function, to be called at the end of the VM
-function checks.teardown(available_modules, do_benchmark, do_print_benchmark)
+function checks.teardown(available_modules)
     for _, script in pairs(available_modules.modules) do
         if script.teardown then
             script.teardown()
         end
-    end
-
-    if do_benchmark then
-        local ifid = interface.getId()
-        checks.benchmark_dump(ifid, do_print_benchmark)
     end
 end
 
@@ -1548,7 +1290,7 @@ local default_config = {
 function checks.getScriptConfig(configset, script, subdir)
     local script_key = script.key
     local config = configset.config[subdir]
-    
+
     if (config) and (config[script_key]) and (table.len(config[script_key]) > 0) then
         -- A configuration was found
         return (config[script_key])
@@ -1819,31 +1561,6 @@ end
 
 -- ##############################################
 
--- This function is used to return the list of enabled checks
-function checks.getEnabledChecksList()
-    local result = {}
-    local alert_entities = require "alert_entities"
-
-    for _, entity_info in pairs(alert_entities) do
-        local alert_list = {}
-        for _, alert_info in pairsByField(alert_consts.getAlertTypesInfo(entity_info.entity_id), "label", asc) do
-            alert_list[#alert_list + 1] = {
-                key = alert_info.alert_id,
-                entity_id = entity_info.entity_id,
-                title = alert_info.label,
-            }
-        end
-        result[#result + 1] = {
-            alert_list = alert_list,
-            entity_name = i18n(entity_info.i18n_label)
-        }
-    end
-
-    return result
-end
-
--- ##############################################
-
 local function printUserScriptsTable()
     local ifid = interface.getId()
     local flow_checks_stats = ntop.getFlowChecksStats() or {}
@@ -1907,6 +1624,8 @@ local function printUserScriptsTable()
             -- Execution stats
             if info.id == 'flow' and flow_checks_stats[name] and flow_checks_stats[name].stats and
                 flow_checks_stats[name].stats.execution_time then
+                -- Importing just when needed
+                local format_utils = require("format_utils")
                 tot_exec_time = format_utils.msToTime(flow_checks_stats[name].stats.execution_time / 1000000)
             end
 
@@ -2034,11 +1753,10 @@ end
 -- #################################################################
 
 local function snmp_device_run_checks(cached_device, checks_var)
-    local snmp_consts = require "snmp_consts"
     local snmp_utils = require "snmp_utils"
     local granularity = checks_var.cur_granularity
     local device_ip = cached_device["host_ip"]
-    local snmp_device_entity = alerts_api.snmpDeviceEntity(device_ip)
+    local snmp_device_entity = alert_entity_builders.snmpDeviceEntity(device_ip)
     local all_modules = checks_var.available_modules.modules
     local now = os.time()
     now = now - now % 300
@@ -2060,7 +1778,7 @@ local function snmp_device_run_checks(cached_device, checks_var)
         local conf = checks.getTargetHookConfig(device_conf, script)
 
         if (conf.enabled) then
-            alerts_api.invokeScriptHook(script, checks_var.configset, hook_fn, device_ip, info, conf)
+            invokeScriptHook(script, checks_var.configset, hook_fn, device_ip, info, conf)
         end
     end
 
@@ -2076,13 +1794,13 @@ local function snmp_device_run_checks(cached_device, checks_var)
             end
 
             if (conf.enabled) then
-                local iface_entity = alerts_api.snmpInterfaceEntity(device_ip, snmp_interface_index)
+                local iface_entity = alert_entity_builders.snmpInterfaceEntity(device_ip, snmp_interface_index)
 
                 -- Augment data with counters and status
                 snmp_interface["if_counters"] = cached_device.if_counters[snmp_interface_index]
                 snmp_interface["bridge"] = cached_device.bridge[snmp_interface_index]
 
-                alerts_api.invokeScriptHook(script, checks_var.configset, hook_fn, device_ip, snmp_interface_index,
+                invokeScriptHook(script, checks_var.configset, hook_fn, device_ip, snmp_interface_index,
                     table.merge(snmp_interface, {
                         granularity = granularity,
                         alert_entity = iface_entity,
@@ -2108,7 +1826,7 @@ local function teardownChecks(str_granularity, checks_var, do_trace)
         print("alert.lua:teardown(" .. str_granularity .. ") called\n")
     end
 
-    checks.teardown(checks_var.available_modules, checks_var.do_benchmark, checks_var.do_print_benchmark)
+    checks.teardown(checks_var.available_modules)
 end
 
 -- ##############################################
@@ -2121,9 +1839,8 @@ local function setupInterfaceChecks(str_granularity, checks_var, do_trace)
     checks_var.ifid = interface.getId()
 
     -- Load the check modules
-    checks_var.available_modules = checks.load(ifid, checks.script_types.traffic_element, "interface", {
-        hook_filter = str_granularity,
-        do_benchmark = checks_var.do_benchmark
+    checks_var.available_modules = checks.load(checks_var.ifid, checks.script_types.traffic_element, "interface", {
+        hook_filter = str_granularity
     })
 
     checks_var.configset = checks.getConfigset()
@@ -2135,7 +1852,7 @@ end
 
 -- The function below ia called once (#pragma once)
 local function setupLocalNetworkChecks(str_granularity, checks_var, do_trace)
-    checks_var.network_entity = alert_consts.alert_entities.network.entity_id
+    checks_var.network_entity = alert_entities.network.entity_id
     if do_trace then
         print("alert.lua:setup(" .. str_granularity .. ") called\n")
     end
@@ -2143,8 +1860,7 @@ local function setupLocalNetworkChecks(str_granularity, checks_var, do_trace)
 
     -- Load the threshold checking functions
     checks_var.available_modules = checks.load(ifid, checks.script_types.traffic_element, "network", {
-        hook_filter = str_granularity,
-        do_benchmark = checks_var.do_benchmark
+        hook_filter = str_granularity
     })
 
     checks_var.configset = checks.getConfigset()
@@ -2155,7 +1871,7 @@ end
 -- The function below ia called once (#pragma once)
 local function setupSystemChecks(str_granularity, checks_var, do_trace)
     if do_trace then
-        print("system.lua:setup(" .. str_granularity .. ") called\n")
+        traceError(TRACE_NORMAL, TRACE_CONSOLE, "system.lua:setup(%s) called", str_granularity)
     end
 
     interface.select(getSystemInterfaceId())
@@ -2164,9 +1880,8 @@ local function setupSystemChecks(str_granularity, checks_var, do_trace)
     checks_var.system_ts_enabled = areSystemTimeseriesEnabled()
 
     -- Load the threshold checking functions
-    checks_var.available_modules = checks.load(ifid, checks.script_types.system, "system", {
-        hook_filter = str_granularity,
-        do_benchmark = checks_var.do_benchmark
+    checks_var.available_modules = checks.load(checks_var.ifid, checks.script_types.system, "system", {
+        hook_filter = str_granularity
     })
 
     checks_var.configset = checks.getConfigset()
@@ -2185,15 +1900,13 @@ local function setupSNMPChecks(str_granularity, checks_var, do_trace)
         print("alert.lua:setup(" .. str_granularity .. ") called\n")
     end
 
-    checks_var.snmp_device_entity = alert_consts.alert_entities.snmp_device.entity_id
+    checks_var.snmp_device_entity = alert_entities.snmp_device.entity_id
 
     interface.select(getSystemInterfaceId())
     checks_var.ifid = getSystemInterfaceId()
 
     -- Load the threshold checking functions
-    checks_var.available_modules = checks.load(ifid, checks.script_types.snmp_device, "snmp_device", {
-        do_benchmark = checks_var.do_benchmark
-    })
+    checks_var.available_modules = checks.load(ifid, checks.script_types.snmp_device, "snmp_device")
     checks_var.configset = checks.getConfigset()
 
     return true
@@ -2211,15 +1924,13 @@ local function setupActiveMonitoringChecks(str_granularity, checks_var, do_trace
         print("alert.lua:setup(" .. str_granularity .. ") called\n")
     end
 
-    checks_var.snmp_device_entity = alert_consts.alert_entities.snmp_device.entity_id
+    checks_var.snmp_device_entity = alert_entities.snmp_device.entity_id
 
     interface.select(getSystemInterfaceId())
     checks_var.ifid = getSystemInterfaceId()
 
     -- Load the threshold checking functions
-    checks_var.available_modules = checks.load(ifid, checks.script_types.active_monitoring, "active_monitoring", {
-        do_benchmark = checks_var.do_benchmark
-    })
+    checks_var.available_modules = checks.load(ifid, checks.script_types.active_monitoring, "active_monitoring")
     checks_var.configset = checks.getConfigset()
 
     return true
@@ -2236,11 +1947,11 @@ local function runInterfaceChecks(granularity, checks_var, do_trace)
         return
     end
 
-    local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
+    local granularity_id = alert_granularities[granularity].granularity_id
 
     local info = interface.getStats()
     local cur_alerts = interface.getAlerts(granularity_id)
-    local entity_info = alerts_api.interfaceAlertEntity(checks_var.ifid)
+    local entity_info = alert_entity_builders.interfaceAlertEntity(checks_var.ifid)
 
     if (do_trace) then
         print("checkInterfaceAlerts()\n")
@@ -2251,7 +1962,7 @@ local function runInterfaceChecks(granularity, checks_var, do_trace)
         local conf = checks.getTargetHookConfig(checks_var.iface_config, check, granularity)
 
         if (conf.enabled) then
-            alerts_api.invokeScriptHook(check, checks_var.configset, hook_fn, {
+            invokeScriptHook(check, checks_var.configset, hook_fn, {
                 granularity = granularity,
                 alert_entity = entity_info,
                 entity_info = info,
@@ -2266,7 +1977,7 @@ local function runInterfaceChecks(granularity, checks_var, do_trace)
     -- those alerts triggered but then disabled or unconfigured (e.g., when
     -- the user removes a threshold from the gui)
     if #cur_alerts > 0 then
-        alerts_api.releaseEntityAlerts(entity_info, cur_alerts)
+        alert_management.releaseEntityAlerts(entity_info, cur_alerts)
     end
 end
 
@@ -2287,10 +1998,10 @@ local function runLocalNetworkChecks(granularity, checks_var, do_trace)
         return
     end
 
-    local granularity_id = alert_consts.alerts_granularities[granularity].granularity_id
+    local granularity_id = alert_granularities[granularity].granularity_id
 
     local cur_alerts = network.getAlerts(granularity_id)
-    local entity_info = alerts_api.networkAlertEntity(network_key)
+    local entity_info = alert_entity_builders.networkAlertEntity(network_key)
 
     -- Retrieve the configuration
     local subnet_conf = checks.getConfig(checks_var.configset, "network")
@@ -2300,7 +2011,7 @@ local function runLocalNetworkChecks(granularity, checks_var, do_trace)
         local conf = checks.getTargetHookConfig(subnet_conf, check, granularity)
 
         if (conf.enabled) then
-            alerts_api.invokeScriptHook(check, checks_var.configset, hook_fn, {
+            invokeScriptHook(check, checks_var.configset, hook_fn, {
                 granularity = granularity,
                 alert_entity = entity_info,
                 entity_info = info,
@@ -2315,13 +2026,14 @@ local function runLocalNetworkChecks(granularity, checks_var, do_trace)
     -- those alerts triggered but then disabled or unconfigured (e.g., when
     -- the user removes a threshold from the gui)
     if #cur_alerts > 0 then
-        alerts_api.releaseEntityAlerts(entity_info, cur_alerts)
+        alert_management.releaseEntityAlerts(entity_info, cur_alerts)
     end
 end
 
 -- #################################################################
 
 local function runSystemChecks(granularity, checks_var, do_trace)
+
     if do_trace then
         print("system.lua:runScripts(" .. granularity .. ") called\n")
     end
@@ -2345,9 +2057,9 @@ local function runSystemChecks(granularity, checks_var, do_trace)
         local conf = checks.getTargetHookConfig(checks_var.system_config, check, granularity)
 
         if (conf.enabled) then
-            alerts_api.invokeScriptHook(check, checks_var.configset, hook_fn, {
+            invokeScriptHook(check, checks_var.configset, hook_fn, {
                 granularity = granularity,
-                alert_entity = alerts_api.interfaceAlertEntity(getSystemInterfaceId()),
+                alert_entity = alert_entity_builders.interfaceAlertEntity(getSystemInterfaceId()),
                 check_config = conf.script_conf,
                 check = check,
                 when = when,
@@ -2357,8 +2069,10 @@ local function runSystemChecks(granularity, checks_var, do_trace)
 
             -- Safety check
             if interface.getId() ~= tonumber(getSystemInterfaceId()) then
-               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Script '%s' changed the interface from '%d' to '%d'. Resetting interface.", mod_key, tonumber(getSystemInterfaceId()), interface.getId()))
-               interface.select(getSystemInterfaceId())
+                traceError(TRACE_ERROR, TRACE_CONSOLE,
+                    string.format("Script '%s' changed the interface from '%d' to '%d'. Resetting interface.", mod_key,
+                        tonumber(getSystemInterfaceId()), interface.getId()))
+                interface.select(getSystemInterfaceId())
             end
         end
     end
@@ -2412,15 +2126,15 @@ local function runActiveMonitoringChecks(granularity, checks_var, do_trace)
     local info = interface.getStats()
     local when = os.time()
     local active_monitoring_conf = checks.getConfig(checks_var.configset, "active_monitoring")
-    
+
     for mod_key, hook_fn in pairs(checks_var.available_modules.hooks[granularity]) do
         local check = checks_var.available_modules.modules[mod_key]
         local conf = checks.getTargetHookConfig(active_monitoring_conf, check, granularity)
 
         if (conf.enabled) then
-            alerts_api.invokeScriptHook(check, checks_var.configset, hook_fn, {
+            invokeScriptHook(check, checks_var.configset, hook_fn, {
                 granularity = granularity,
-                alert_entity = alerts_api.interfaceAlertEntity(getSystemInterfaceId()),
+                alert_entity = alert_entity_builders.interfaceAlertEntity(getSystemInterfaceId()),
                 check_config = conf.script_conf,
                 check = check,
                 when = when,
@@ -2430,8 +2144,10 @@ local function runActiveMonitoringChecks(granularity, checks_var, do_trace)
 
             -- Safety check
             if interface.getId() ~= tonumber(getSystemInterfaceId()) then
-               traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Script '%s' changed the interface from '%d' to '%d'. Resetting interface.", mod_key, tonumber(getSystemInterfaceId()), interface.getId()))
-               interface.select(getSystemInterfaceId())
+                traceError(TRACE_ERROR, TRACE_CONSOLE,
+                    string.format("Script '%s' changed the interface from '%d' to '%d'. Resetting interface.", mod_key,
+                        tonumber(getSystemInterfaceId()), interface.getId()))
+                interface.select(getSystemInterfaceId())
             end
         end
     end
@@ -2497,8 +2213,32 @@ end
 
 -- #################################################################
 
+-- @brief Loads the ntopng scripts into a single directory.
+function checks.loadChecks()
+    for _, path in pairs(script_manager.getAllRuntimePaths()) do
+        ntop.mkdir(path)
+    end
+
+    -- Make sure to invalidate the (possibly) already required alert_consts which depends on alert definitions.
+    -- By invalidating the module, we make sure all the newly loaded alert definitions will be picked up by any
+    -- subsequent `require "alert_consts"`
+    package.loaded["alert_consts"] = nil
+
+    -- Remove the list of system scripts enabled, re-added from the checks.lua file
+    deleteCachePattern("ntonpng.cache.checks.available_system_modules.*")
+
+    -- Reload checks with their configurations
+    checks.initDefaultConfig()
+    checks.loadUnloadUserScripts(true --[[ load --]] )
+
+    return (true)
+end
+
+-- #################################################################
+
 if (trace_script_duration ~= nil) then
     io.write(debug.getinfo(1, 'S').source .. " executed in " .. (os.clock() - clock_start) * 1000 .. " ms\n")
 end
 
 return (checks)
+

@@ -24,6 +24,8 @@
 /* *************************************** */
 
 PartializableFlowTrafficStats::PartializableFlowTrafficStats() {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  
   ndpiDetectedProtocol = Flow::ndpiUnknownProtocol;
   cli2srv_packets = srv2cli_packets = 0;
   cli2srv_bytes = srv2cli_bytes = 0;

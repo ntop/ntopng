@@ -12,18 +12,34 @@ local hasClickHouse = hasClickHouseSupport()
 local hasLdap = ntop.hasLdapSupport()
 local max_nindex_retention = 0
 local flow_db_utils = nil
+local message_broker_api = nil
 
 if ntop.isPro() or ntop.isnEdgeEnterprise() then
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
+    package.path = dirs.installdir .. "/scripts/lua/pro/enterprise/modules/?.lua;" .. package.path
 
     if hasClickHouse then
         flow_db_utils = require("flow_db_utils")
         _, max_nindex_retention = flow_db_utils.getRetention()
     end
+    
+    message_broker_api = require "message_broker_api"
 end
 
 -- This table is used both to control access to the preferences and to filter preferences results
 local menu_subpages = {{
+    id = "active_monitoring",
+    label = i18n("active_monitoring_stats.active_monitoring"),
+    advanced = false,
+    pro_only = false,
+    hidden = false,
+    entries = {
+        toggle_active_monitoring = {
+            title = i18n("prefs.toggle_active_monitoring_title"),
+            description = i18n("prefs.toggle_active_monitoring_description")
+        }
+    }
+},{
     id = "alerts",
     label = i18n("show_alerts.alerts"),
     advanced = false,
@@ -293,8 +309,9 @@ local menu_subpages = {{
     id = "message_broker",
     label = i18n("prefs.message_broker"),
     advanced = false,
-    pro_only = false,
-    hidden = not (ntop.isEnterpriseM()) or true, -- TODO: correctly hide or show this preference
+    pro_only = false,    
+    hidden = not (ntop.isEnterpriseM()) or not (message_broker_api -- and message_broker_api.checkStatus()
+					       ),
     entries = {
         toggle_message_broker = {
             title = i18n("prefs.toggle_message_broker_title"),
@@ -304,6 +321,10 @@ local menu_subpages = {{
             title = i18n("prefs.message_brokers_title"),
             description = i18n("prefs.message_brokers_description")
         },
+        message_broker_url = {
+            title = i18n("prefs.message_broker_url_title"),
+            description = i18n("prefs.message_broker_url_description")
+        },
         message_broker_username = {
             title = i18n("login.username"),
             description = i18n("prefs.message_broker_username_description")
@@ -311,10 +332,6 @@ local menu_subpages = {{
         message_broker_password = {
             title = i18n("login.password"),
             description = i18n("prefs.message_broker_password_description")
-        },
-        message_broker_topics_list = {
-            title = i18n("prefs.topics"),
-            description = i18n("prefs.message_broker_topics_list_description")
         },
     }
 }, {
@@ -336,6 +353,10 @@ local menu_subpages = {{
             title = i18n("prefs.toggle_host_mask_title"),
             description = i18n("prefs.toggle_host_mask_description")
         },
+        toggle_fingerprint_stats = {
+            title = i18n("prefs.toggle_fingerprint_stats_title"),
+            description = i18n("prefs.toggle_fingerprint_stats_description")
+        }, 
         toggle_use_mac_in_flow_key = {
             title = i18n("prefs.toggle_use_mac_in_flow_key_title"),
             description = i18n("prefs.toggle_use_mac_in_flow_key_description")
@@ -457,6 +478,10 @@ local menu_subpages = {{
         toggle_snmp_rrds = {
             title = i18n("prefs.toggle_snmp_rrds_title"),
             description = i18n("prefs.toggle_snmp_rrds_description")
+        },
+        toggle_snmp_polling = {
+            title = i18n("prefs.toggle_snmp_polling_title"),
+            description = i18n("prefs.toggle_snmp_polling_description")
         },
         default_snmp_community = {
             title = i18n("prefs.default_snmp_community_title"),
