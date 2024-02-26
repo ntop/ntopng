@@ -2132,8 +2132,8 @@ if auth.has_capability(auth.capabilities.preferences) then
         local lint_preference = "message_broker"
         local showElement = (ntop.getPref("ntopng.prefs.toggle_message_broker") == "1")
         local brokers_list = {
-            names = {i18n('prefs.nats'), i18n('prefs.mqtt')},
-            ids = {'nats', 'mqtt'}
+            names = {i18n('prefs.nats')--[[, i18n('prefs.mqtt')]]},
+            ids = {'nats'--[[, 'mqtt']]}
         }
         local elementsToSwitch = {"row_message_broker", "message_broker_url", "message_broker_username", "message_broker_password",
                                   "message_broker_topics_list"}
@@ -2191,15 +2191,6 @@ if auth.has_capability(auth.capabilities.preferences) then
                 pattern = "[^\\s]+"
             })
 
-        prefsInputFieldPrefs(subpage_active.entries["message_broker_topics_list"].title,
-            subpage_active.entries["message_broker_topics_list"].description, "ntopng.prefs.",
-            "message_broker_topics_list", "", "text", showElement, nil, nil, {
-                attributes = {
-                    spellcheck = "false"
-                },
-                pattern = "[^\\s]+",
-                minlength = 1
-            })
 
         end_table()
     end

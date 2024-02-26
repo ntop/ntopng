@@ -333,10 +333,6 @@ local menu_subpages = {{
             title = i18n("login.password"),
             description = i18n("prefs.message_broker_password_description")
         },
-        message_broker_topics_list = {
-            title = i18n("prefs.topics"),
-            description = i18n("prefs.message_broker_topics_list_description")
-        },
     }
 }, {
     id = "misc",
