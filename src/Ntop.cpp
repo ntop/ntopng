@@ -4015,9 +4015,9 @@ void Ntop::incBlacklisHits(std::string listname) {
 
 #ifdef NTOPNG_PRO
 void Ntop::connectMessageBroker() {
+#ifdef HAVE_NATS
   const char *m_broker_id = prefs->get_message_broker();
   
-#ifdef HAVE_NATS
   if (!strcmp(m_broker_id, CONST_NATS_M_BROKER_ID)) {
     message_broker = new (std::nothrow) NatsBroker();
   }
