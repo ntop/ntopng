@@ -3487,42 +3487,38 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
     if (((get_packets_cli2srv() + get_packets_srv2cli()) >
          NDPI_MIN_NUM_PACKETS) ||
         (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN))
-      json_object_object_add(
-          network_object,
-          Utils::jsonLabel(L7_PROTO_NAME, "protocol", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
+      json_object_object_add(network_object,
+			     Utils::jsonLabel(L7_PROTO_NAME, "protocol", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
 
     if (protocol == IPPROTO_TCP)
-      json_object_object_add(
-          network_object,
-          Utils::jsonLabel(TCP_FLAGS, "tcp_flags", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
+      json_object_object_add(network_object,
+			     Utils::jsonLabel(TCP_FLAGS, "tcp_flags", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
 
     json_object_object_add(network_object,
                            Utils::jsonLabel(FIRST_SWITCHED, "first_seen",
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_int(get_partial_first_seen()));
-    json_object_object_add(
-        network_object,
-        Utils::jsonLabel(LAST_SWITCHED, "last_seen", jsonbuf, sizeof(jsonbuf)),
-        json_object_new_int(get_partial_last_seen()));
 
+    json_object_object_add(network_object,
+			   Utils::jsonLabel(LAST_SWITCHED, "last_seen", jsonbuf, sizeof(jsonbuf)),
+			   json_object_new_int(get_partial_last_seen()));
+    
     json_object *category_object;
     if ((category_object = json_object_new_object()) != NULL) {
-      json_object_object_add(
-          category_object,
-          Utils::jsonLabel(L7_CATEGORY, "name", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_string(get_protocol_category_name()));
-      json_object_object_add(
-          category_object,
-          Utils::jsonLabel(L7_CATEGORY_ID, "id", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_int((u_int32_t)get_protocol_category()));
+      json_object_object_add(category_object,
+			     Utils::jsonLabel(L7_CATEGORY, "name", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_string(get_protocol_category_name()));
+      json_object_object_add(category_object,
+			     Utils::jsonLabel(L7_CATEGORY_ID, "id", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_int((u_int32_t)get_protocol_category()));
       json_object_object_add(network_object, "category", category_object);
     }
 
     json_object_object_add(my_object, "community_id",
                            json_object_new_string((char *)getCommunityId(
-                               community_id, sizeof(community_id))));
+						    community_id, sizeof(community_id))));
 
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
@@ -3908,39 +3904,35 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			 Utils::jsonLabel(PROTOCOL, "PROTOCOL", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_int(protocol));
 
-  if (((get_packets_cli2srv() + get_packets_srv2cli()) >
-       NDPI_MIN_NUM_PACKETS) ||
-      (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)) {
-    json_object_object_add(
-			   my_object,
+  if (((get_packets_cli2srv() + get_packets_srv2cli()) > NDPI_MIN_NUM_PACKETS)
+      || (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN)) {
+    json_object_object_add(my_object,
 			   Utils::jsonLabel(L7_PROTO, "L7_PROTO", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(ndpiDetectedProtocol.app_protocol));
-    json_object_object_add(
-			   my_object,
+    json_object_object_add(my_object,
 			   Utils::jsonLabel(L7_PROTO_NAME, "L7_PROTO_NAME", jsonbuf,
 					    sizeof(jsonbuf)),
 			   json_object_new_string(get_detected_protocol_name(buf, sizeof(buf))));
   }
 
-  json_object_object_add(
-			 my_object,
+  json_object_object_add(my_object,
 			 Utils::jsonLabel(L7_PROTO_RISK, "L7_PROTO_RISK", jsonbuf,
 					  sizeof(jsonbuf)),
 			 json_object_new_int64((u_int64_t)ndpi_flow_risk_bitmap));
+
   if (ndpiFlowRiskName) 
-    json_object_object_add(
-			   my_object,
+    json_object_object_add(my_object,
 			   Utils::jsonLabel(L7_PROTO_RISK_NAME, "L7_PROTO_RISK_NAME", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_string(ndpiFlowRiskName));
+
   if (end_reason)
-    json_object_object_add(
-			   my_object,
+    json_object_object_add(my_object,
 			   Utils::jsonLabel(FLOW_END_REASON, "FLOW_END_REASON", jsonbuf,
 					    sizeof(jsonbuf)),
 			   json_object_new_string(end_reason));
+  
   if (protocol == IPPROTO_TCP) {
-    json_object_object_add(
-			   my_object,
+    json_object_object_add(my_object,
 			   Utils::jsonLabel(TCP_FLAGS, "TCP_FLAGS", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
 

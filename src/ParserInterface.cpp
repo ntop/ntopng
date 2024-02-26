@@ -71,9 +71,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   if (discardProbingTraffic()) {
     if (isProbingFlow(zflow)) {
-      discardedProbingStats.inc(
-          zflow->pkt_sampling_rate * (zflow->in_pkts + zflow->out_pkts),
-          zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
+      discardedProbingStats.inc(zflow->pkt_sampling_rate * (zflow->in_pkts + zflow->out_pkts),
+				zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
       return false;
     }
   }
@@ -446,6 +445,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 							   ntohs(zflow->dst_port)
 							   );
     }
+
+    guessed_protocol.app_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), guessed_protocol.app_protocol);
+    guessed_protocol.master_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), guessed_protocol.master_protocol);
     
 #ifdef NTOPNG_PRO
     if (zflow->device_ip) {
@@ -636,12 +638,11 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
 #ifdef DEBUG
   char a[32], b[32];
-
-  ntop->getTrace()->traceEvent(
-      TRACE_WARNING, "Direction: %u [ntop: %s][%s -> %s]", zflow->direction,
-      flow->isLocalToRemote() ? "L->R" : "R->L",
-      flow->get_cli_ip_addr()->print(a, sizeof(a)),
-      flow->get_srv_ip_addr()->print(b, sizeof(b)));
+  
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "Direction: %u [ntop: %s][%s -> %s]", zflow->direction,
+			       flow->isLocalToRemote() ? "L->R" : "R->L",
+			       flow->get_cli_ip_addr()->print(a, sizeof(a)),
+			       flow->get_srv_ip_addr()->print(b, sizeof(b)));
 #endif
 
   if (zflow->direction == UNKNOWN_FLOW_DIRECTION) {
