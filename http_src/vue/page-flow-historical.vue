@@ -487,7 +487,8 @@ const map_table_def_columns = async (columns) => {
         },
         "cli_nw_latency": (cli_nw_latency, row) => f_print_latency("cli_nw_latency", cli_nw_latency, row),
         "srv_nw_latency": (srv_nw_latency, row) => f_print_latency("srv_nw_latency", srv_nw_latency, row),
-        "connection_state": (connection_state, row) => {return `${connection_state.title}`},
+        "major_connection_state": (major_connection_state, row) => {return `${major_connection_state.title}`},
+        "minor_connection_state": (minor_connection_state, row) => {return `${minor_connection_state.title}`},
         "info": (info, row) => {
             if (info == null) { return ""; }
             return `<a class='tag-filter' data-tag-key='info' data-tag-value='${info.title}' title='${info.title}' href='javascript:void(0)'>${info.label}</a>`;

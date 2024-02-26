@@ -66,7 +66,7 @@ Flow::Flow(NetworkInterface *_iface,
   cli2srv_tos = srv2cli_tos = 0;
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
   swap_done = swap_requested = 0;
-  current_c_state = NO_STATE;
+  current_c_state = MINOR_NO_STATE;
   
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
@@ -4055,11 +4055,16 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			 Utils::jsonLabel(L7_RISK_SCORE, "L7_RISK_SCORE",
                                           jsonbuf, sizeof(jsonbuf)),
                          json_object_new_int(getScore()));
+  
+  json_object_object_add(my_object,
+        Utils::jsonLabel(MINOR_CONNECTION_STATE, "MINOR_CONNECTION_STATE",
+                                          jsonbuf, sizeof(jsonbuf)),
+                          json_object_new_int(getCurrentConnectionState()));
 
   json_object_object_add(my_object,
-      Utils::jsonLabel(CONNECTION_STATE, "CONNECTION_STATE",
+      Utils::jsonLabel(MAJOR_CONNECTION_STATE, "MAJOR_CONNECTION_STATE",
                                         jsonbuf, sizeof(jsonbuf)),
-                        json_object_new_int(calculateConnectionState()));
+                        json_object_new_int(retrieveMajorConnState()));
   if (isHTTP()) {
     if (host_server_name && host_server_name[0] != '\0')
       json_object_object_add(my_object,
@@ -5260,6 +5265,8 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
     src2dst_tcp_flags |= flags;
   else
     dst2src_tcp_flags |= flags;
+
+  calculateConnectionState();
 
   if (cumulative_flags) {
     if (!twh_over) {
@@ -8472,33 +8479,69 @@ bool Flow::matchFlowDeviceIP(u_int32_t flow_device_ip) {
 /* **************************************************** */
 
 void Flow::lua_get_flow_connection_state(lua_State *vm) {
-  lua_push_uint64_table_entry(vm, "conn_state", calculateConnectionState());
+  lua_push_uint64_table_entry(vm, "minor_conn_state", getCurrentConnectionState());
+  lua_push_uint64_table_entry(vm, "major_conn_state", retrieveMajorConnState());
+}
+
+/* **************************************************** */
+
+Flow::MajorConnectionStates Flow::retrieveMajorConnState() {
+  MajorConnectionStates major_conn_state = MAJOR_NO_STATE;
+  switch (getCurrentConnectionState()) {
+    case S0:
+    case REJ:
+    case RSTOS0:
+    case RSTRH:
+    case SH:
+    case SHR:
+    case OTH:
+      major_conn_state = ATTEMPTED;
+      /* code */
+      break;
+    case S1:
+      major_conn_state = ESTABLISHED;
+      break;
+    case SF:
+    case S2:
+    case S3:
+    case RSTO:
+    case RSTR:
+      major_conn_state = CLOSED;
+      break;
+
+    default:
+      major_conn_state = MAJOR_NO_STATE;
+      break;
+  }
+  return(major_conn_state);
 }
 
 /* **************************************************** */
 
 bool Flow::checkS1ConnState() {
-return((src2dst_tcp_flags & TCP_3WH_MASK) == (TCP_3WH_MASK) && 
-      (dst2src_tcp_flags & TCP_3WH_MASK) == (TCP_3WH_MASK) &&                            /* 3WH OK */
-      (src2dst_tcp_flags & (TH_FIN | TH_ACK)) != (TH_FIN | TH_ACK) &&                  /* NO FIN ACK in src2dst */
-      (src2dst_tcp_flags & TH_RST) != (TH_RST) && (dst2src_tcp_flags & TH_RST) != (TH_RST) /* NO RST */);
+
+return(current_c_state == S1 || ((src2dst_tcp_flags & TCP_3WH_MASK)&& 
+      (dst2src_tcp_flags & TCP_3WH_MASK) &&                                   /* 3WH OK */
+      !((src2dst_tcp_flags & TH_FIN) && (src2dst_tcp_flags & TH_ACK)) &&  /* NO FIN ACK in src2dst */
+      !(src2dst_tcp_flags & TH_RST) && !(dst2src_tcp_flags & TH_RST)      /* NO RST */
+      ));
 }
 
 /* **************************************************** */
 
-Flow::ConnectionStates Flow::calculateConnectionState() {
-  
+Flow::MinorConnectionStates Flow::calculateConnectionState() {
+
   if(!isTCP())
-    return(setCurrentConnectionState(NO_STATE)); 
+    return(setCurrentConnectionState(MINOR_NO_STATE)); 
 
   /* Check S0 or RSTOS0 or REJ or SH */
-  if ((src2dst_tcp_flags & TH_SYN) == (TH_SYN) && 
-      (dst2src_tcp_flags & TH_SYN) != (TH_SYN)) {
-    if ((dst2src_tcp_flags & TH_RST) != (TH_RST)) {
-      if ((src2dst_tcp_flags & TH_RST) == (TH_RST)) {
+  if ((src2dst_tcp_flags & TH_SYN) && 
+      !(dst2src_tcp_flags & TH_SYN)) {
+    if (!(dst2src_tcp_flags & TH_RST)) {
+      if ((src2dst_tcp_flags & TH_RST)) {
         return(setCurrentConnectionState(RSTOS0));
       } else {
-        if ((src2dst_tcp_flags & TH_FIN) == (TH_FIN)) {
+        if ((src2dst_tcp_flags & TH_FIN)) {
           return(setCurrentConnectionState(SH));
         } else {
           return(setCurrentConnectionState(S0));
@@ -8510,56 +8553,62 @@ Flow::ConnectionStates Flow::calculateConnectionState() {
   }
     
   /* Check RSTRH */
-  if ((dst2src_tcp_flags & (TH_SYN | TH_ACK | TH_RST)) == (TH_SYN | TH_ACK | TH_RST) && 
-      (src2dst_tcp_flags & TH_SYN) != (TH_SYN)) 
+  if ((dst2src_tcp_flags & TH_SYN) && 
+      (dst2src_tcp_flags & TH_ACK) &&
+      (dst2src_tcp_flags & TH_RST) && 
+      !(src2dst_tcp_flags & TH_SYN)) 
     return(setCurrentConnectionState(RSTRH));
 
   /* Check SHR */
-  if (((dst2src_tcp_flags & (TH_SYN | TH_ACK | TH_FIN)) == (TH_SYN | TH_ACK | TH_FIN) && 
-      (src2dst_tcp_flags & TH_SYN) != (TH_SYN)) )
+  if ((dst2src_tcp_flags & TH_SYN) && 
+      (dst2src_tcp_flags & TH_ACK) &&
+      (dst2src_tcp_flags & TH_FIN) && 
+      !(src2dst_tcp_flags & TH_SYN) )
     return(setCurrentConnectionState(SHR));
   
   /* Check OTH */
-  if ((src2dst_tcp_flags & TH_SYN) != (TH_SYN) && 
-      (dst2src_tcp_flags & TH_SYN) != (TH_SYN))
+  if (!(src2dst_tcp_flags & TH_SYN) && 
+      !(dst2src_tcp_flags & TH_SYN))
     return(setCurrentConnectionState(OTH));
 
-  bool is_possible_s1 = checkS1ConnState();
+  bool is_s1 = (current_c_state == S1);
+  bool is_s2 = (current_c_state == S2);
+  bool is_s3 = (current_c_state == S3);
+
   /* Check SF */
-  if ((is_possible_s1) &&
-      (src2dst_tcp_flags & (TH_FIN | TH_ACK)) != (TH_FIN | TH_ACK) &&
-      (dst2src_tcp_flags & (TH_FIN | TH_ACK)) != (TH_FIN | TH_ACK))
+  if (((is_s1) || (is_s2) || (is_s3)) &&
+      (src2dst_tcp_flags & TH_FIN) &&
+      (dst2src_tcp_flags & TH_FIN))
     return(setCurrentConnectionState(SF));
 
   /* Check S2 */
-  if ((is_possible_s1) && 
-      (src2dst_tcp_flags & TH_FIN) == (TH_FIN) && 
-      (dst2src_tcp_flags & TH_FIN) != (TH_FIN))
+  if ((is_s1) && 
+      (src2dst_tcp_flags & TH_FIN) && 
+      !(dst2src_tcp_flags & TH_FIN))
     return(setCurrentConnectionState(S2));
   
   /* Check S3 */
-  if ((is_possible_s1) && 
-      (dst2src_tcp_flags& TH_FIN) == (TH_FIN) && 
-      (src2dst_tcp_flags & TH_FIN) != (TH_FIN))
+  if ((is_s1) && 
+      !(src2dst_tcp_flags & TH_FIN) &&
+       (dst2src_tcp_flags & TH_FIN)) 
     return(setCurrentConnectionState(S3));
   
   /* Check RSTO */
-  if ((is_possible_s1) && 
-      (src2dst_tcp_flags & TH_RST) == (TH_RST))
+  if ((is_s1) && 
+      (src2dst_tcp_flags & TH_RST))
     return(setCurrentConnectionState(RSTO));
   
   /* Check RSTR */
-  if ((is_possible_s1) &&
-      (dst2src_tcp_flags & TH_RST) == (TH_RST))
+  if ((is_s1) &&
+      (dst2src_tcp_flags & TH_RST))
     return(setCurrentConnectionState(RSTR));
 
     /* Check S1 */
-  if (is_possible_s1)
+  if (checkS1ConnState())
     return(setCurrentConnectionState(S1));
 
-  // FOR ZMQ PARSER TODO: MAYBE FIX? 
-  if (getCurrentConnectionState() != NO_STATE)
+  if (getCurrentConnectionState() != MINOR_NO_STATE)
     return(getCurrentConnectionState());
 
-  return(setCurrentConnectionState(NO_STATE));  
+  return(setCurrentConnectionState(MINOR_NO_STATE));  
 }

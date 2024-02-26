@@ -1203,9 +1203,15 @@ else
         flags = json_flags["CLIENT_TCP_FLAGS"] or json_flags["SERVER_TCP_FLAGS"]
     end
     
-    if (flow["conn_state"] ~= 0) then
-        print("<tr><th width=30%>" .. i18n("flow_fields_description.connection_state") .. "</th>")
-        print("<td colspan=2>" .. i18n(string.format("flow_fields_description.connection_states.%u",flow["conn_state"])) .. "</td>")
+    if (flow["major_conn_state"] ~= 0) then
+        print("<tr><th width=30%>" .. i18n("flow_fields_description.major_connection_state") .. "</th>")
+        print("<td colspan=2>" .. i18n(string.format("flow_fields_description.major_connection_states.%u",flow["major_conn_state"])) .. "</td>")
+        print("</tr>\n")
+    end
+
+    if (flow["minor_conn_state"] ~= 0) then
+        print("<tr><th width=30%>" .. i18n("flow_fields_description.minor_connection_state") .. "</th>")
+        print("<td colspan=2>" .. i18n(string.format("flow_fields_description.minor_connection_states.%u",flow["minor_conn_state"])) .. "</td>")
         print("</tr>\n")
     end
 

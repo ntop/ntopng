@@ -280,8 +280,14 @@
 	    "class": ["no-wrap"]
 	}, 
 	{
-		"title_i18n": "db_search.tags.connection_state",
-		"data_field": "connection_state",
+		"title_i18n": "db_search.tags.major_connection_state",
+		"data_field": "major_connection_state",
+		"sortable": true,
+		"class": ["no-wrap"]
+	},
+	{
+		"title_i18n": "db_search.tags.minor_connection_state",
+		"data_field": "minor_connection_state",
 		"sortable": true,
 		"class": ["no-wrap"]
 	}

@@ -502,14 +502,19 @@ tag_utils.defined_tags = {
         i18n_label = i18n('db_search.tags.srv_user_name'),
         operators = {'eq', 'neq'}
     },
-    connection_state = {
+    major_connection_state = {
         type = tag_utils.input_types.select,
-        value_type = 'connection_state',
-        i18n_label = i18n("db_search.tags.connection_state"),
+        value_type = 'major_connection_state',
+        i18n_label = i18n("db_search.tags.major_connection_state"),
+        operators = {'eq', 'neq'}
+    },
+    minor_connection_state = {
+        type = tag_utils.input_types.select,
+        value_type = 'minor_connection_state',
+        i18n_label = i18n("db_search.tags.minor_connection_state"),
         operators = {'eq', 'neq'}
     }
 }
-
 -- #####################################
 
 tag_utils.traffic_direction = {{
@@ -865,15 +870,27 @@ function tag_utils.get_tag_info(id, entity)
                 label = label
             }
         end
-    elseif tag.value_type == "connection_state" then
+    elseif tag.value_type == "minor_connection_state" then
         filter.value_type = 'array'
         filter.options = {}
-        for state, id in pairs(flow_consts.connection_states) do 
+        for state, id in pairs(flow_consts.minor_connection_states) do 
             -- EXCLUDE NO_STATE
             if (id ~= 0) then
                 filter.options[#filter.options+1] = {
                     value = id,
-                    label = i18n(string.format("flow_fields_description.connection_states.%u",id))
+                    label = i18n(string.format("flow_fields_description.minor_connection_states.%u",id))
+                }
+            end
+        end
+    elseif tag.value_type == "major_connection_state" then
+        filter.value_type = 'array'
+        filter.options = {}
+        for state, id in pairs(flow_consts.major_connection_states) do 
+            -- EXCLUDE NO_STATE
+            if (id ~= 0) then
+                filter.options[#filter.options+1] = {
+                    value = id,
+                    label = i18n(string.format("flow_fields_description.major_connection_states.%u",id))
                 }
             end
         end

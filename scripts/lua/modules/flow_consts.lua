@@ -1012,7 +1012,7 @@ flow_consts.mobile_country_code = {
 
 -- IMPORTANT: keep it in sync with Flow::ConnectionStates
 
-flow_consts.connection_states = {
+flow_consts.minor_connection_states = {
    ["NO_STATE"] = 0,
    ["S0"] =       1,
    ["S1"] =       2,
@@ -1027,6 +1027,13 @@ flow_consts.connection_states = {
    ["SH"] =       11,
    ["SHR"] =      12,
    ["OTH"] =      13
+}
+
+flow_consts.major_connection_states = {
+   ["NO_STATE"]    = 0,
+   ["ATTEMPTED"]   = 1,
+   ["ESTABLISHED"] = 2,
+   ["CLOSED"]      = 3
 }
 
 return flow_consts

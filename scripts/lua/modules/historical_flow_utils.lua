@@ -639,9 +639,15 @@ local function dt_format_pool_id(id)
    return pool_tag
 end
 
+-- #####################################
 
-local function dt_format_connection_state(id) 
-   local name = ternary(tonumber(id) == 0, "", i18n(string.format("flow_fields_description.connection_states.%u",id)))
+local function dt_format_connection_state(id, major)
+   local i18n_conn_states = "flow_fields_description.minor_connection_states"
+   if (major) then
+      i18n_conn_states = "flow_fields_description.major_connection_states"
+   end
+   local name = ternary(tonumber(id) == 0, "", i18n(string.format("%s.%u",i18n_conn_states,id)))
+   
    local conn_state_tag = {
       value = id,
       label = name,
@@ -649,6 +655,15 @@ local function dt_format_connection_state(id)
    }
    return conn_state_tag
 end
+
+local function dt_format_major_connection_state(id)
+   return dt_format_connection_state(id, true --[[ major ]])
+end
+
+local function dt_format_minor_connection_state(id)
+   return dt_format_connection_state(id, false --[[ is minor ]])
+end
+
 -- #####################################
 
 local function dt_format_country(id)
@@ -1044,7 +1059,8 @@ local flow_columns = {
    ['DST_PROC_NAME'] =        { tag = "srv_proc_name", db_type = "String", db_raw_type = "String" },
    ['SRC_PROC_USER_NAME'] =   { tag = "cli_user_name", db_type = "String", db_raw_type = "String" },
    ['DST_PROC_USER_NAME'] =   { tag = "srv_user_name", db_type = "String", db_raw_type = "String" },
-   ['CONNECTION_STATE'] =     { tag = "connection_state", dt_func = dt_format_connection_state, db_type = "Number", db_raw_type = "Uint8" },
+   ['MAJOR_CONNECTION_STATE'] = { tag = "major_connection_state", dt_func = dt_format_major_connection_state, db_type = "Number", db_raw_type = "Uint8" },
+   ['MINOR_CONNECTION_STATE'] = { tag = "minor_connection_state", dt_func = dt_format_minor_connection_state, db_type = "Number", db_raw_type = "Uint8" },
 
    --[[ TODO: this column is for the aggregated_flow_columns but the parsing Function
               only parses these columns, so a new logic to parse only the aggregated_flow_columns
