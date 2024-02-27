@@ -167,6 +167,7 @@ function splitBoundSerie(series, timeserie_info) {
   let formatter = null;
   let serie_name = null;
   let properties = {};
+  let full_serie = [];
 
   /* A bound timeserie should be composed by 3 timeseries:
    *    - metric (main)
@@ -188,24 +189,23 @@ function splitBoundSerie(series, timeserie_info) {
       color = { color: metadata.color, palette: 0 };
       formatter = timeserie_info.metric.measure_unit;
     }
-
     for (let point = 0; point < serie.length; point++) {
-      let serie_point = (serie_point === null) ? NaN : serie[point];
-      if (serie[point] == null) {
-        serie[point] = [0, NaN, 0];
+      let serie_point = (serie[point] === null) ? NaN : serie[point];
+      if (full_serie[point] == null) {
+        full_serie[point] = [0, NaN, 0];
       }
 
       if (metadata.type == "lower_bound") {
-        serie[point][0] = serie_point * scalar;
+        full_serie[point][0] = serie_point * scalar;
       } else if (metadata.type == "metric") {
-        serie[point][1] = serie_point * scalar;
+        full_serie[point][1] = serie_point * scalar;
       } else if (metadata.type == "upper_bound") {
-        serie[point][2] = serie_point * scalar;
+        full_serie[point][2] = serie_point * scalar;
       }
     }
   })
 
-  return { serie: serie, color: color, formatter: formatter, serie_name: serie_name, properties: properties };
+  return { serie: full_serie, color: color, formatter: formatter, serie_name: serie_name, properties: properties };
 }
 
 /* *********************************************** */
