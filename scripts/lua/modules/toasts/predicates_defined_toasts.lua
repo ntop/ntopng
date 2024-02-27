@@ -598,7 +598,6 @@ end
 --- @param container table Is the table where to put the new toast ui
 function predicates.service_map(toast, container)
     local service_map_status = interface.serviceMapLearningStatus()
-    tprint(service_map_status)
     if ntop.isEnterprise() and service_map_status.service_map_learning_status == true then
         local body = i18n("map_page.learning")
         table.insert(container, toast_ui:new(toast.id, i18n("info"),body,
