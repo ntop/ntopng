@@ -267,12 +267,12 @@ print[[
 				let msg = `<div class='m-2'><div class='d-flex flex-wrap navbar-main-badges'>`;
 				
 				if(rsp.out_of_maintenance) {
-					msg += "<a href=\"https://www.ntop.org/support/faq/how-can-i-renew-maintenance-for-commercial-products/\" target=\"_blank\"><span class=\"badge bg-warning\">]] print(i18n("about.maintenance_expired", {product=info["product"]})) print[[ <i class=\"fas fa-external-link-alt\"></i></span></a> ";
+					msg += "<a href='https://www.ntop.org/support/faq/how-can-i-renew-maintenance-for-commercial-products/' target='_blank'><span class='badge bg-warning'>]] print(i18n("about.maintenance_expired", {product=info["product"]})) print[[ <i class=\"fas fa-external-link-alt\"></i></span></a> ";
 				}
 
 				if(rsp.degraded_performance) {
-				   	msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/system_interfaces_stats.lua?page=internals&tab=periodic_activities&periodic_script_issue=any_issue\">"
-					msg += "<span class=\"badge bg-warning\"><i class=\"fas fa-exclamation-triangle\" title=\"]] print(i18n("internals.degraded_performance")) print[[\"></i></span></a>";
+				   	msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/system_interfaces_stats.lua?page=internals&tab=periodic_activities&periodic_script_issue=any_issue'>"
+					msg += "<span class='badge bg-warning'><i class='fas fa-exclamation-triangle title=']] print(i18n("internals.degraded_performance")) print[['></i></span></a>";
 				}
 
 				if ((rsp.engaged_alerts > 0 || rsp.alerted_flows > 0) && ]] print(ternary(hasAllowedNetworksSet(), "false", "true")) print[[) {
@@ -285,17 +285,17 @@ print[[
                                                 if(rsp.engaged_alerts_error > 0) alerts_badge = "bg-danger";
                                                 else if(rsp.engaged_alerts_warning > 0) alerts_badge = "bg-warning";
 
-						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/alert_stats.lua?ifid=]] print(tostring(ifid)) print[[&status=engaged\">"
+						msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/alert_stats.lua?ifid=]] print(tostring(ifid)) print[[&status=engaged'>"
 						msg += "<span class=\"badge " + alerts_badge + "\"><i class=\"fas fa-exclamation-triangle\"></i> "+NtopUtils.formatValue(rsp.engaged_alerts, 1)+"</span></a>";
 					}
 
 					if(rsp.alerted_flows_warning > 0 && !(systemInterfaceEnabled)) {
-						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?alert_type_severity=warning\">"
+						msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?alert_type_severity=warning'>"
 						msg += "<span class=\"badge bg-warning\" title=']] print(i18n("flow_details.alerted_flows")) print[['>"+NtopUtils.formatValue(rsp.alerted_flows_warning, 1)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 					}
 
 					if(rsp.alerted_flows_error > 0 && !(systemInterfaceEnabled)) {
-						msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?alert_type_severity=error\">"
+						msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua?alert_type_severity=error'>"
 						msg += "<span class=\"badge bg-danger\" title=']] print(i18n("flow_details.dangerous_flows")) print[['>"+NtopUtils.formatValue(rsp.alerted_flows_error, 1)+ " <i class=\"fas fa-stream\"></i> ]] print[[ <i class=\"fas fa-exclamation-triangle\"></i></span></a>";
 					}
 
@@ -310,7 +310,7 @@ print[[
 				}
 
 				if(rsp.ts_alerts && rsp.ts_alerts.influxdb && (!systemInterfaceEnabled)) {
-					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/monitor/influxdb_monitor.lua?ifid=]] print(tostring(ifid)) print[[&page=alerts#tab-table-engaged-alerts\">"
+					msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/monitor/influxdb_monitor.lua?ifid=]] print(tostring(ifid)) print[[&page=alerts#tab-table-engaged-alerts'>"
 					msg += "<span class=\"badge bg-danger\"><i class=\"fas fa-database\"></i></span></a>";
 				}
 
@@ -319,7 +319,7 @@ print[[
 				var alert = 0;
 
 				if(rsp.num_local_hosts > 0 && (!systemInterfaceEnabled)) {
-					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=local\">";
+					msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=local'>";
 					msg += "<span title=\"]] print(i18n("local_hosts")) print[[\" class=\"badge bg-success\">";
 					msg += NtopUtils.formatValue(rsp.num_local_hosts, 1);
 					if(rsp.num_local_rcvd_only_hosts > 0) msg += " ("+NtopUtils.formatValue(rsp.num_local_rcvd_only_hosts, 1)+")";
@@ -328,7 +328,7 @@ print[[
 
 				const num_remote_hosts = rsp.num_hosts - rsp.num_local_hosts;
 				if(num_remote_hosts > 0 && (!systemInterfaceEnabled)) {
-					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=remote\">";
+					msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/hosts_stats.lua?mode=remote'>";
 					var remote_hosts_label = "]] print(i18n("remote_hosts")) print[[";
 
 					if (rsp.hosts_pctg < alarm_threshold_low && !systemInterfaceEnabled) {
@@ -348,7 +348,7 @@ print[[
 
 				if(rsp.num_devices > 0 && (!systemInterfaceEnabled)) {
 					var macs_label = "]] print(i18n("mac_stats.layer_2_source_devices", {device_type=""})) print[[";
-					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/macs_stats.lua?devices_mode=source_macs_only\">";
+					msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/macs_stats.lua?devices_mode=source_macs_only'>";
 
 					if (rsp.macs_pctg < alarm_threshold_low) {
 						msg += "<span title=\"" + macs_label +"\" class=\"badge bg-secondary\">";
@@ -364,7 +364,7 @@ print[[
 				}
 
 				if(rsp.num_flows > 0 && (!systemInterfaceEnabled)) {
-          msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua\">";
+          msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua'>";
           const flows_label = "]] print(i18n("live_flows")) print[["
 					if (rsp.flows_pctg < alarm_threshold_low) {
 						msg += "<span title=\"" + flows_label +"\" class=\"badge bg-secondary\">";
@@ -382,7 +382,7 @@ print[[
 						const export_pctg = rsp.flow_export_drops / (rsp.flow_export_count + rsp.flow_export_drops + 1);
 						if (export_pctg > ]] print(stats_utils.UPPER_BOUND_INFO_EXPORTS) print[[) {
 							const badge_class = (export_pctg <= ]] print(stats_utils.UPPER_BOUND_WARNING_EXPORTS) print[[) ? 'warning' : 'danger';
-							msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua\"><span class=\"badge bg-"+badge_class+"\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+NtopUtils.formatValue(rsp.flow_export_drops, 1)+" Export drop";
+							msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua'><span class=\"badge bg-"+badge_class+"\"><i class=\"fas fa-exclamation-triangle\" style=\"color: #FFFFFF;\"></i> "+NtopUtils.formatValue(rsp.flow_export_drops, 1)+" Export drop";
 							if(rsp.flow_export_drops > 1) msg += "s";
 							msg += "</span></a>";
 						}
@@ -391,7 +391,7 @@ print[[
 				}
 
 				if ((rsp.num_live_captures != undefined) && (rsp.num_live_captures > 0) && (!systemInterfaceEnabled)) {
-					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/live_capture_stats.lua\">";
+					msg += "<a href=']] print(ntop.getHttpPrefix()) print [[/lua/live_capture_stats.lua'>";
 					msg += "<span class=\"badge bg-primary\">";
 					msg += NtopUtils.addCommas(rsp.num_live_captures)+" <i class=\"fas fa-download fa-lg\"></i></span></a>";
 				}
@@ -406,7 +406,7 @@ print[[
 						status_title = "]] print(i18n("traffic_recording.failure")) print [[";
 					}
 
-					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=traffic_recording&tab=status\">";
+					msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=traffic_recording&tab=status'>";
 					msg += "<span class=\"badge bg-"+status_label+"\" title=\""+NtopUtils.addCommas(status_title)+"\">";
 					msg += "<i class=\"fas fa-hdd fa-lg\"></i></span></a>";
 				}
@@ -418,12 +418,12 @@ print[[
 
 					if (rsp.traffic_extraction == "ready") status_label="primary";
 
-					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=traffic_recording&tab=jobs\">";
+					msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/if_stats.lua?ifid=]] print(tostring(ifid)) print[[&page=traffic_recording&tab=jobs'>";
 					msg += "<span class=\"badge bg-"+status_label+"\" title=\""+NtopUtils.addCommas(status_title)+"\">";
 					msg += rsp.traffic_extraction_num_tasks+" <i class=\"fas fa-tasks fa-lg\"></i></span></a>";
 				}
 				if (rsp.vs_in_progress != undefined && rsp.vs_in_progress > 0 && (!systemInterfaceEnabled)) {
-					msg += "<a href=\"]] print (ntop.getHttpPrefix()) print [[/lua/vulnerability_scan.lua\">";
+					msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/vulnerability_scan.lua'>";
 					msg += "<span class=\"badge bg-primary\">";
 					msg += NtopUtils.addCommas(rsp.vs_in_progress) +" <i class=\"fas fa-satellite-dish\"></i></span></a>";
 				}
