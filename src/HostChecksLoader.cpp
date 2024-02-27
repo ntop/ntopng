@@ -207,7 +207,7 @@ void HostChecksLoader::loadConfiguration() {
           }
         } else {
           ntop->getTrace()->traceEvent(
-              TRACE_NORMAL, "Unable to find host check %s", check_key);
+              TRACE_DEBUG, "Unable to find host check %s", check_key);
         }
       }
     }
