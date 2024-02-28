@@ -2045,7 +2045,7 @@ local BASE_RNAME = {
 }
 
 -- @brief Convert an alert coming from the DB (value) to a record returned by the REST API
-function alert_store:format_json_record_common(value, entity_id)
+function alert_store:format_json_record_common(value, entity_id, no_html)
     local record = {}
 
     -- Note: this record is rendered by
@@ -2086,9 +2086,13 @@ function alert_store:format_json_record_common(value, entity_id)
 
     local severity_label = ""
     if severity then
-        severity_label =
+        if no_html then
+          severity_label = i18n(severity.i18n_title)
+        else
+          severity_label =
             "<i class='" .. severity.icon .. "' style='color: " .. severity.color .. "!important' title='" ..
                 i18n(severity.i18n_title) .. "'></i> "
+        end
     end
 
     record[BASE_RNAME.SEVERITY.name] = {

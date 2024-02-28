@@ -20,14 +20,26 @@ local rc = rest_utils.consts.success.ok
 local res = {}
 
 local ifid = _GET["ifid"]
-local format = _GET["format"] or "json"
+local format = _GET["format"]
 local epoch_begin = _GET["epoch_begin"]
 local epoch_end = _GET["epoch_end"]
-local no_html = (format == "txt")
+
+local no_html = false
 local download = false
 
-if ntop.isClickHouseEnabled() and no_html then
-    download = true
+if not format then
+   -- GUI request - return formatted json
+   format = "json"
+else
+   -- txt or (plain) json - return unformatted data
+   no_html = true
+   if format == "txt" then
+      if ntop.isClickHouseEnabled() then
+         download = true
+      end
+   else
+      format = "json"
+   end
 end
 
 if not auth.has_capability(auth.capabilities.alerts) then
@@ -59,7 +71,7 @@ if not download then
         res[#res + 1] = flow_alert_store:format_record(_value, no_html)
     end
 
-    if no_html then
+    if format == "txt" then
         res = flow_alert_store:to_csv(res)
         rest_utils.vanilla_payload_response(rc, res, "text/csv")
     else
