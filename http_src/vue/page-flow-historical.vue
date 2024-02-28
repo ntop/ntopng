@@ -460,7 +460,7 @@ const map_table_def_columns = async (columns) => {
             return NtopUtils.secondsToTime(duration)
         },
         "THROUGHPUT": (throughput, row) => {
-            return FormatterUtils.getFormatter("bps")(throughput);
+            return FormatterUtils.getFormatter("bps_no_scale")(throughput);
         },
         "l7proto": (proto, row) => {
             let confidence = "";

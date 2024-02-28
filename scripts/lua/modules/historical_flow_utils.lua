@@ -1263,6 +1263,20 @@ historical_flow_utils.builtin_presets = {
          },
    },
    {
+      id = "raw_flows_thpt",
+      i18n_name = "queries.raw_flows_thpt",
+      name = i18n("queries.raw_flows_thpt"),
+      chart =
+         {
+            {
+               unit_measure = "bps_no_scale",
+               params = {
+                  count = "THROUGHPUT"
+               }
+            }
+         },
+   },
+   {
       id = "raw_flows_score",
       i18n_name = "queries.raw_flows_score",
       name = i18n("queries.raw_flows_score"),

@@ -40,6 +40,14 @@ const types = {
         scale_values: 8,
         absolute_value: true,
     },
+    bps_no_scale: {
+        id: "bps_no_scale",
+        um: ["bps", "Kbps", "Mbps", "Gbps", "Tbps", "Pbps"],
+        step: 1000,
+        decimal: 2,
+        scale_values: null,
+        absolute_value: true,
+    },
     speed: {
         id: "speed",
         um: ["bit", "Kbit", "Mbit", "Gbit", "Tbit", "Pbit"],

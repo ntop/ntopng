@@ -6829,6 +6829,7 @@ local lang = {
     ["raw_flows_bytes"] = "Flows (Bytes Chart)",
     ["raw_flows_records"] = "Flows",
     ["raw_flows_score"] = "Flows (Score Chart)",
+    ["raw_flows_thpt"] = "Flows (Throughput Chart)",
   },
   ["queue"] = {
     ["activeFlowsToDump"] = "Active flows dump",
