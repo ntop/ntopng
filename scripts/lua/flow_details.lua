@@ -1236,18 +1236,6 @@ else
         flags = json_flags["CLIENT_TCP_FLAGS"] or json_flags["SERVER_TCP_FLAGS"]
     end
     
-    if (flow["major_conn_state"] ~= 0) then
-        print("<tr><th width=30%>" .. i18n("flow_fields_description.major_connection_state") .. "</th>")
-        print("<td colspan=2>" .. i18n(string.format("flow_fields_description.major_connection_states.%u",flow["major_conn_state"])) .. "</td>")
-        print("</tr>\n")
-    end
-
-    if (flow["minor_conn_state"] ~= 0) then
-        print("<tr><th width=30%>" .. i18n("flow_fields_description.minor_connection_state") .. "</th>")
-        print("<td colspan=2>" .. i18n(string.format("flow_fields_description.minor_connection_states.%u",flow["minor_conn_state"])) .. "</td>")
-        print("</tr>\n")
-    end
-
     if ((flags ~= nil) and (flags > 0)) then
         print("<tr><th width=30% rowspan=2>" .. i18n("tcp_flags") .. "</th><td nowrap>" .. i18n("client") ..
                   " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("server") .. ": ")
@@ -1264,7 +1252,8 @@ else
         else
             printTCPFlags(flow["srv2cli.tcp_flags"])
         end
-        print("</td></tr>\n")
+
+	print("</td></tr>\n")
 
         print("<tr><td colspan=2>")
 
@@ -1290,7 +1279,15 @@ else
         else
             flow_msg = flow_msg .. " " .. i18n("flow_details.flow_peer_roles_inaccurate_msg")
         end
-
+	
+	if(flow["major_conn_state"] ~= 0) then
+	   flow_msg = "Major State: "
+	      .. i18n(string.format("flow_fields_description.major_connection_states.%u",flow["major_conn_state"]))
+	      .. ".<br>Minor State: "
+	      .. i18n(string.format("flow_fields_description.minor_connection_states.%u",flow["minor_conn_state"]))
+	      .. ".<br>Info: ".. flow_msg
+	end
+	
         print(flow_msg)
         print("</td></tr>\n")
     end

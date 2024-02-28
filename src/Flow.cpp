@@ -8555,32 +8555,34 @@ void Flow::lua_get_flow_connection_state(lua_State *vm) {
 
 Flow::MajorConnectionStates Flow::retrieveMajorConnState() {
   MajorConnectionStates major_conn_state = MAJOR_NO_STATE;
+  
   switch (getCurrentConnectionState()) {
-    case S0:
-    case REJ:
-    case RSTOS0:
-    case RSTRH:
-    case SH:
-    case SHR:
-    case OTH:
-      major_conn_state = ATTEMPTED;
-      /* code */
-      break;
-    case S1:
-      major_conn_state = ESTABLISHED;
-      break;
-    case SF:
-    case S2:
-    case S3:
-    case RSTO:
-    case RSTR:
-      major_conn_state = CLOSED;
-      break;
+  case S0:
+  case REJ:
+  case RSTOS0:
+  case RSTRH:
+  case SH:
+  case SHR:
+    major_conn_state = ATTEMPTED;
+    /* code */
+    break;
+  case OTH:
+  case S1:
+    major_conn_state = ESTABLISHED;
+    break;
+  case SF:
+  case S2:
+  case S3:
+  case RSTO:
+  case RSTR:
+    major_conn_state = CLOSED;
+    break;
 
-    default:
-      major_conn_state = MAJOR_NO_STATE;
-      break;
+  default:
+    major_conn_state = MAJOR_NO_STATE;
+    break;
   }
+  
   return(major_conn_state);
 }
 
