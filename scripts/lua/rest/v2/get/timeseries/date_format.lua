@@ -31,21 +31,21 @@ if(key == "big_endian") then
     if (is_range_picker) then
         time = "Y/m/d H:i"
     else
-        time = "YYYY/MM/DD HH:mm"
+        time = "YYYY/MM/DD HH:mm:ss"
     end
 elseif( key == "middle_endian") then
 -- do NOT specify the ! to indicate UTC time; the time must be in Local Server Time
     if (is_range_picker) then
         time = "m/d/Y H:i"
     else
-        time = "MM/DD/YYYY HH:mm"
+        time = "MM/DD/YYYY HH:mm:ss"
     end
 else
 -- do NOT specify the ! to indicate UTC time; the time must be in Local Server Time
     if (is_range_picker) then
         time = "d/m/Y H:i"
     else    
-        time = "DD/MM/YYYY HH:mm"
+        time = "DD/MM/YYYY HH:mm:ss"
     end
 end
 

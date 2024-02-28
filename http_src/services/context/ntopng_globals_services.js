@@ -169,7 +169,7 @@ export const ntopng_utility = function() {
         return await ntopng_utility.http_request(url, rest_params);    
     },
 	from_utc_to_server_date_format: function(utc_ms, format) {
-	    if (format == null) { format = "DD/MMM/YYYY HH:mm"; }
+	    if (format == null) { format = "DD/MMM/YYYY HH:mm:ss"; }
 	    let m = moment.tz(utc_ms, ntop_zoneinfo);
 	    let tz_server = m.format(format);
 	    return tz_server;
