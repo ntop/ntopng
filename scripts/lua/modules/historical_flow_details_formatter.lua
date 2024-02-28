@@ -409,8 +409,8 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
     end
 
     if table.len(alert_json["proto"]) > 0 then
-
-      flow_details[#flow_details + 1] = format_historical_proto_info(alert_json["proto"])
+       flow_details[#flow_details + 1] = format_historical_proto_info(alert_json["proto"])
+       
       if (type(flow_details[#flow_details]['content']) == 'table') and
          (table.len(flow_details[#flow_details]['content']) == 0) then
         table.remove(flow_details, #flow_details)

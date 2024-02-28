@@ -1281,10 +1281,11 @@ else
         end
 	
 	if(flow["major_conn_state"] ~= 0) then
-	   flow_msg = "Major State: "
+	   flow_msg = i18n("flow_fields_description.major_connection_state")..": "
 	      .. i18n(string.format("flow_fields_description.major_connection_states.%u",flow["major_conn_state"]))
-	      .. ".<br>Minor State: "
+	      .. ".<br>"..i18n("flow_fields_description.minor_connection_state")..": "
 	      .. i18n(string.format("flow_fields_description.minor_connection_states.%u",flow["minor_conn_state"]))
+	      .. " ("..i18n(string.format("flow_fields_description.minor_connection_states_info.%u",flow["minor_conn_state"]))..")"
 	      .. ".<br>Info: ".. flow_msg
 	end
 	
