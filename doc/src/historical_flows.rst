@@ -113,6 +113,8 @@ available flows views:
   - Top Sender Countries: Displays the top countries with the most sent traffic
   - Top Sender Networks: Displays the top networks with the most sent traffic
   - Visited Sites: Shows the most visited domains
+  - Major Connection State: Displays TCP Major Connection State (ATTEMPTED, ESTABLISHED, CLOSED)
+  - Minor Connection State: Displays TCP :ref:`Minor Connection State`
 
 .. figure:: img/historical_flow_explorer_top_l7.png
   :align: center

@@ -1008,4 +1008,32 @@ flow_consts.mobile_country_code = {
    ["648"] = "Zimbabwe (Republic of)",
 }
 
+-- ################################################################################
+
+-- IMPORTANT: keep it in sync with Flow::ConnectionStates
+
+flow_consts.minor_connection_states = {
+   ["NO_STATE"] = 0,
+   ["S0"] =       1,
+   ["S1"] =       2,
+   ["SF"] =       3,
+   ["REJ"] =      4,
+   ["S2"] =       5,
+   ["S3"] =       6,
+   ["RSTO"] =     7,
+   ["RSTR"] =     8,
+   ["RSTOS0"] =   9,
+   ["RSTRH"] =    10,
+   ["SH"] =       11,
+   ["SHR"] =      12,
+   ["OTH"] =      13
+}
+
+flow_consts.major_connection_states = {
+   ["NO_STATE"]    = 0,
+   ["ATTEMPTED"]   = 1,
+   ["ESTABLISHED"] = 2,
+   ["CLOSED"]      = 3
+}
+
 return flow_consts

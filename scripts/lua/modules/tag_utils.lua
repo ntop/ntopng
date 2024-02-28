@@ -12,6 +12,7 @@ local dscp_consts = require "dscp_consts"
 local country_codes = require "country_codes"
 local alert_category_utils = require "alert_category_utils"
 local consts = require "consts"
+local flow_consts = require "flow_consts"
 
 local snmp_filter_options_cache
 
@@ -506,9 +507,20 @@ tag_utils.defined_tags = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.srv_user_name'),
         operators = {'eq', 'neq'}
+    },
+    major_connection_state = {
+        type = tag_utils.input_types.select,
+        value_type = 'major_connection_state',
+        i18n_label = i18n("db_search.tags.major_connection_state"),
+        operators = {'eq', 'neq'}
+    },
+    minor_connection_state = {
+        type = tag_utils.input_types.select,
+        value_type = 'minor_connection_state',
+        i18n_label = i18n("db_search.tags.minor_connection_state"),
+        operators = {'eq', 'neq'}
     }
 }
-
 -- #####################################
 
 tag_utils.traffic_direction = {{
@@ -864,7 +876,30 @@ function tag_utils.get_tag_info(id, entity)
                 label = label
             }
         end
-
+    elseif tag.value_type == "minor_connection_state" then
+        filter.value_type = 'array'
+        filter.options = {}
+        for state, id in pairs(flow_consts.minor_connection_states) do 
+            -- EXCLUDE NO_STATE
+            if (id ~= 0) then
+                filter.options[#filter.options+1] = {
+                    value = id,
+                    label = i18n(string.format("flow_fields_description.minor_connection_states.%u",id))
+                }
+            end
+        end
+    elseif tag.value_type == "major_connection_state" then
+        filter.value_type = 'array'
+        filter.options = {}
+        for state, id in pairs(flow_consts.major_connection_states) do 
+            -- EXCLUDE NO_STATE
+            if (id ~= 0) then
+                filter.options[#filter.options+1] = {
+                    value = id,
+                    label = i18n(string.format("flow_fields_description.major_connection_states.%u",id))
+                }
+            end
+        end
     elseif tag.value_type == "traffic_direction" then
         filter.value_type = 'array'
         filter.options = {}
