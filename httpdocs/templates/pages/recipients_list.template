@@ -305,7 +305,7 @@
                             endpoint_conf_name: recipient.endpoint_conf_name
                         });
 
-                        return (`<a href='${destPage}'>${endpointName}</a>`);
+                        return (`<a href="${destPage}">${endpointName}</a>`);
                     }
 
                     return endpointName;

@@ -58,7 +58,7 @@ if(page == "overview") then
     print(ternary(charts_available, "<A HREF='"..url.."&page=historical&ts_schema=influxdb:memory_size'><i class='fas fa-chart-area fa-lg'></i></A>", ""))
     print("</td><td><span id='throbber' class='spinner-border influxdb-info-load spinner-border-sm text-primary' role='status'><span class='sr-only'>Loading...</span></span> <span id=\"influxdb-info-memory\"></span></td></tr>\n")
 
-    if(influxdb_export_api.isInfluxdbChecksEnabled() == true) then
+    if(influxdb_export_api.isInfluxdbChecksEnabled() == true and influxdb_export_api.isInfluxdbEnabled()) then
        local stats = influxdb_export_api.getExportStats()
 
        print("<tr><td nowrap><b>".. i18n("system_stats.exports") .."</b><br><small>"..i18n("system_stats.short_desc_influxdb_exports").."</small></td>")

@@ -205,7 +205,7 @@
                     if (type == "display") {
                         if (recipients.length == 0) {
                             const destPage = NtopUtils.buildURL(`${http_prefix}/lua/admin/endpoint_notifications_list.lua?subdir=recipient`, {});
-                            return `<a href='${destPage}'>${i18n_ext.no_recipients}</a>`;
+                            return `<a href="${destPage}">${i18n_ext.no_recipients}</a>`;
                         } else {
                             return NtopUtils.arrayToListString(recipients.map(recipient => {
 
@@ -213,7 +213,7 @@
                                     recipient_id: recipient.recipient_id,
                                 });
 
-                                return `<a href='${destPage}'>${recipient.recipient_name}</a>`
+                                return `<a href="${destPage}">${recipient.recipient_name}</a>`
                             }), MAX_ENDPOINTS_COUNT);
                         }
                     }

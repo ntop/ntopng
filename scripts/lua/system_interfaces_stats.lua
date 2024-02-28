@@ -231,8 +231,6 @@ var resetInterfaceCounters = function(drops_only) {
 
 elseif(page == "internals") then
    internals_utils.printInternals(nil, true --[[ hash tables ]], true --[[ periodic activities ]], true --[[ checks]])
-   -- local base_url = ntop.getHttpPrefix() .. "/lua/system_interfaces_stats.lua?page=internals"
-   -- internals_utils.printHashTablesTable(base_url)
 end
 
 
