@@ -1514,7 +1514,7 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 #define MAX_NUM_CONCURRENT_JOBS  8
 #define MAX_NUM_QUEUED_JOBS      256
 
-#define SIMULATE_VLANS_MAX_VALUE 0x8 /* 8 in hexadecimal */
+#define SIMULATE_VLANS_MAX_VALUE 0xa /* 10 in hexadecimal */
 
 #define CHECKS_PROFILING
 #if defined(PROFILING) && defined(CHECKS_PROFILING)
