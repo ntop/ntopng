@@ -523,6 +523,7 @@ async function load_components(epoch_interval, template_name) {
         .map((c, index) => {
             let c_ext = {
                 filters: {},
+                component_id: `auto_${c.id}_${index}`,
                 ...c
             };
             update_component_epoch_interval(c_ext, epoch_interval);
@@ -891,17 +892,22 @@ function get_component_data_func(component) {
     const get_component_data = async (url, url_params, post_params) => {
         let info = {};
         if (data_from_backup) {
-            if (!components_info[component.id]) { /* Safety check */
-                console.error("No data for " + component.id);
+            // backward compatibility (component_id was not defined)
+            if (component.component_id == null) component.component_id = component.id;
+
+            if (!components_info[component.component_id]) { /* Safety check */
+                
+                console.error("No data for " + component.component_id);
                 info.data = {};
             } else {
-                info = components_info[component.id];
+                info = components_info[component.component_id];
             }
+            loading.value = false;
         } else {
 
             /* Check if there is already a promise for the same request */
-            if (components_info[component.id]) {
-                info = components_info[component.id];
+            if (components_info[component.component_id]) {
+                info = components_info[component.component_id];
                 if (info.data) {
                     await info.data; /* wait in case of previous pending requests */
                 }
@@ -919,7 +925,7 @@ function get_component_data_func(component) {
                 loading.value = false;
             });
 
-            components_info[component.id] = info;
+            components_info[component.component_id] = info;
         }
         return info.data;
     };
