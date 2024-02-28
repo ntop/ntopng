@@ -92,7 +92,6 @@ local print_page_body = function()
       field = "ntp_sync_enabled",
       default = ternary(date_time_config.ntp_sync.enabled, "1", "0"),
       to_switch = dateTimeElementsToSwitch,
-      pref = "",
       redis_prefix = "",
       reverse_switch = true,
    })
