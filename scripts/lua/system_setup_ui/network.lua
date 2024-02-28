@@ -39,7 +39,6 @@ if table.len(_POST) > 0 then
   
   -- Interface id to name mappings
   for k, v in pairs(_POST) do
-
     if starts(k, "iface_id_") then
       local if_id = split(k, "iface_id_")[2]
       local if_name = v
@@ -259,7 +258,7 @@ local function print_routing_page_body()
     local ifname_to_id = {}
     local ctr = 0
 
-    for if_name in pairs(all_interfaces) do
+    for if_name in pairsByKeys(all_interfaces, asc_insensitive) do
       ifname_to_id[if_name] = tostring(ctr)
       ctr = ctr + 1
     end
