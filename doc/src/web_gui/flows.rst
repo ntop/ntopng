@@ -187,7 +187,42 @@ All the issues of the flow are reported in the Detailed Flow Information page.
 .. _`abuse.ch database`: https://sslbl.abuse.ch/ja3-fingerprints
 .. _`RFC1035`: https://datatracker.ietf.org/doc/html/rfc1035
 
+.. _Minor Connection state:
 
+Major and Minor Connection State
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A flow using TCP as the L4 Protocol will have major and minor connection state. 
+
+The major connection states are:
+
+- **ATTEMPTED**
+- **ESTABLISHED**
+- **CLOSED**
+
+For each major connection states, there are many minor connection states. 
+
+When the major connection state is **ATTEMPTED**, the minor connection state could be one of the following states:
+
+- **S0**: Connection attempt seen, no reply.
+- **REJ**: Connection attempt rejected.
+- **RSTOS0**: The client sent a SYN followed by a RST, and we never saw a SYN-ACK from the server.
+- **RSTRH**: The server sent a SYN ACK followed by a RST, and we never saw a SYN from the (purported) client.
+- **SH**: The client sent a SYN followed by a FIN, and we never saw a SYN ACK from the server (hence the connection was “half” open).
+- **SHR**: The server sent a SYN ACK followed by a FIN, and we never saw a SYN from the client.
+- **OTH**: No SYN seen, just midstream traffic.
+
+If the major connection state is **ESTABLISHED** the minor connection state is
+
+- **S1**: Connection established, not terminated.
+ 
+Finally, if the major connection state is **CLOSED**, the minor connection state could be one of the following states:
+
+- **SF**: Normal establishment and termination.
+- **S2**: Connection established and close attempt by the client seen (but no reply from the server).
+- **S3**: Connection established and close attempt by the server seen (but no reply from the client).
+- **RSTO**: Connection established, the client aborted (sent a RST).
+- **RSTR**: The server sent a RST.
 
 Historical Flows Explorer
 -------------------------
