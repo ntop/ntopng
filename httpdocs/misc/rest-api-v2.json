@@ -5092,6 +5092,28 @@
         }
       }
     },
+    "/lua/pro/rest/v2/get/snmp/device/list.lua": {
+      "get": {
+        "tags": [
+          "SNMP"
+        ],
+        "summary": "Get all SNMP devices",
+        "description": "Retrieve all configured SNMP devices.",
+        "operationId": "get_snmp_devices_list",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
     "/lua/pro/rest/v2/get/snmp/device/system.lua": {
       "get": {
         "tags": [
