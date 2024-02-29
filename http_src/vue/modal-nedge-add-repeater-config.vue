@@ -157,12 +157,10 @@ const interface_list_url = `${http_prefix}/lua/rest/v2/get/nedge/interfaces.lua`
 let interface_list;
 const interface_array = ref([]);
 
-const selected_dest_interface = ref([]);
 
 const button_text = ref("");
 
 const all_criteria = (item) => {
-	selected_dest_interface.value = item;
 	invalid_iface_number.value = item.length < 2;
 	disable_add.value = update_disable_add();
 }
@@ -283,7 +281,7 @@ const apply = () => {
 	let interfaces = [];
 	let details = [];
 	
-	selected_dest_interface.value.forEach((i) => {
+	selected_interfaces.value.forEach((i) => {
 		interfaces.push(i.value);
 		
 		if(i.value != i.label && !i.label.includes(i.value)) {
