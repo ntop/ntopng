@@ -452,7 +452,6 @@ function graph_utils.printProtocolQuota(proto, ndpi_stats, category_stats, quota
             traffic_quota_ratio = 0
         end
 
-        traffic_quota_ratio = 0
         if show_td then
             output[#output + 1] = [[<td class='text-end']] .. ternary(bytes_exceeded, ' style=\'color:red;\'', '') ..
                 "><span>" .. lb_bytes .. ternary(hide_limit, "", " / " .. lb_bytes_quota) ..
