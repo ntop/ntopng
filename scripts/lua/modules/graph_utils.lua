@@ -452,21 +452,36 @@ function graph_utils.printProtocolQuota(proto, ndpi_stats, category_stats, quota
             traffic_quota_ratio = 0
         end
 
+        traffic_quota_ratio = 0
         if show_td then
             output[#output + 1] = [[<td class='text-end']] .. ternary(bytes_exceeded, ' style=\'color:red;\'', '') ..
                 "><span>" .. lb_bytes .. ternary(hide_limit, "", " / " .. lb_bytes_quota) ..
                 "</span>"
         end
 
-        output[#output + 1] = [[
-          <div class='progress' style=']] .. (quotas_to_show.traffic_style or "") .. [['>
+        local progress_bar_with_inside_value = [[<div class='progress' style=']] .. (quotas_to_show.traffic_style or "text-align: center;") .. [['>
             <div class='progress-bar bg-warning' aria-valuenow=']] .. traffic_quota_ratio ..
             '\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: ' .. traffic_quota_ratio ..
-            '%;\'>' ..
+            '%;color:black;\'>' ..
             ternary(traffic_quota_ratio == traffic_quota_ratio --[[nan check]],
                 traffic_quota_ratio, 0) .. [[%
             </div>
           </div>]]
+        
+        local progress_bar_with_outside_value = [[
+          <div class='progress' style=']] .. (quotas_to_show.traffic_style or "text-align: center;") .. [['>
+          
+            <div class='progress-bar bg-warning' aria-valuenow=']] .. traffic_quota_ratio ..
+            '\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: ' .. traffic_quota_ratio ..
+            '%;\'>' .. [[
+            </div>]] ..
+            ternary(traffic_quota_ratio == traffic_quota_ratio --[[nan check]],
+                traffic_quota_ratio, 0) .. [[%
+          </div>]]
+        
+        output[#output + 1] = ternary(  traffic_quota_ratio < 50, 
+                                        progress_bar_with_outside_value, 
+                                        progress_bar_with_inside_value)
         if show_td then
             output[#output + 1] = ("</td>")
         end
@@ -490,7 +505,7 @@ function graph_utils.printProtocolQuota(proto, ndpi_stats, category_stats, quota
 
         output[#output + 1] = ([[
           <div class='progress' style=']] .. (quotas_to_show.time_style or "") .. [['>
-            <div class='progress-bar bg-warning' aria-valuenow=']] .. duration_quota_ratio ..
+            <div class='progress-bar bg-warning align-items-center justify-content-center' aria-valuenow=']] .. duration_quota_ratio ..
             '\' aria-valuemin=\'0\' aria-valuemax=\'100\' style=\'width: ' .. duration_quota_ratio ..
             '%;\'>' ..
             ternary(duration_quota_ratio == duration_quota_ratio --[[nan check]],
@@ -501,7 +516,7 @@ function graph_utils.printProtocolQuota(proto, ndpi_stats, category_stats, quota
             output[#output + 1] = ("</td>")
         end
     end
-
+    tprint(output)
     return table.concat(output, '')
 end
 
