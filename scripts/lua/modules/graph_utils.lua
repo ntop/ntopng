@@ -515,7 +515,7 @@ function graph_utils.printProtocolQuota(proto, ndpi_stats, category_stats, quota
             output[#output + 1] = ("</td>")
         end
     end
-    tprint(output)
+
     return table.concat(output, '')
 end
 
