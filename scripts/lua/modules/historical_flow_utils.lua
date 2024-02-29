@@ -1237,6 +1237,20 @@ historical_flow_utils.topk_tags_v6 = {
 historical_flow_utils.builtin_presets = {
    {
       id = "",
+      i18n_name = "queries.raw_flows_thpt",
+      name = i18n("queries.raw_flows_thpt"),
+      chart =
+         {
+            {
+               unit_measure = "bps_no_scale",
+               params = {
+                  count = "THROUGHPUT"
+               }
+            }
+         },
+   },
+   {
+      id = "raw_flows_records",
       i18n_name = "queries.raw_flows_records",
       name = i18n("queries.raw_flows_records"),
       chart =
@@ -1258,20 +1272,6 @@ historical_flow_utils.builtin_presets = {
                unit_measure = "bytes",
                params = {
                   count = "TOTAL_BYTES"
-               }
-            }
-         },
-   },
-   {
-      id = "raw_flows_thpt",
-      i18n_name = "queries.raw_flows_thpt",
-      name = i18n("queries.raw_flows_thpt"),
-      chart =
-         {
-            {
-               unit_measure = "bps_no_scale",
-               params = {
-                  count = "THROUGHPUT"
                }
             }
          },

@@ -6827,7 +6827,7 @@ local lang = {
     ["queries"] = "Queries",
     ["raw_flows"] = "Flows",
     ["raw_flows_bytes"] = "Flows (Bytes Chart)",
-    ["raw_flows_records"] = "Flows",
+    ["raw_flows_records"] = "Flows (Num. Flows Chart)",
     ["raw_flows_score"] = "Flows (Score Chart)",
     ["raw_flows_thpt"] = "Flows (Throughput Chart)",
   },

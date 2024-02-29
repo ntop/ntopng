@@ -61,14 +61,10 @@
                     <div class="row">
                         <div v-if="context.show_chart" class="col-12 mb-2" id="chart-vue">
                             <div class="card overflow-hidden" :style="chart_style">
-                            <!-- <div class="card h-300 overflow-hidden"> -->
-                              <Chart ref="chart" id="chart_0"
-                                     :chart_type="chart_type"
-                                     :base_url_request="chart_data_url"
-                                     :map_chart_options="f_map_chart_options"
-                                     :register_on_status_change="false"
-                                     :min_time_interval_id="min_time_interval_id"
-                                     :round_time="round_time">
+                                <!-- <div class="card h-300 overflow-hidden"> -->
+                                <Chart ref="chart" id="chart_0" :chart_type="chart_type" :base_url_request="chart_data_url"
+                                    :map_chart_options="f_map_chart_options" :register_on_status_change="false"
+                                    :min_time_interval_id="min_time_interval_id" :round_time="round_time">
                                 </Chart>
                             </div>
                         </div>
@@ -238,7 +234,7 @@ function init_params() {
     page.value = ntopng_url_manager.get_url_entry("page");
     if (page.value == null) { page.value = "overview"; }
     chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
-    
+
     selected_query_preset.value = {
         value: ntopng_url_manager.get_url_entry("query_preset"),
     };
@@ -277,15 +273,15 @@ function init_url_params() {
             ntopng_url_manager.set_key_to_url("epoch_end", epoch_interval.epoch_end);
         }
     }
-    
+
     if (ntopng_url_manager.get_url_entry("page") == "flow"
         && ntopng_url_manager.get_url_entry("status") == "engaged") {
         ntopng_url_manager.set_key_to_url("status", "historical");
     }
     if (ntopng_url_manager.get_url_entry("aggregated") == null) {
-        ntopng_url_manager.set_key_to_url("aggregated","false");
+        ntopng_url_manager.set_key_to_url("aggregated", "false");
     }
-    
+
 }
 
 function get_chart_config_from_preset_const(preset_const) {
@@ -299,7 +295,7 @@ function get_chart_config_from_preset_const(preset_const) {
 async function set_query_presets() {
     let url_request = `${http_prefix}/lua/pro/rest/v2/get/db/preset/consts.lua?page=${page.value}&aggregated=${flows_aggregated.value}`;
     let res = await ntopng_utility.http_request(url_request);
-    
+
     query_presets.value = res[0].list.map((el) => {
         let chart_config = get_chart_config_from_preset_const(el);
         return {
@@ -422,7 +418,7 @@ async function register_components_on_status_update() {
         let url_params = ntopng_url_manager.get_url_params();
         table_flows.value.refresh_table();
         load_top_table_array_overview();
-	count_page_components_reloaded.value += 1;
+        count_page_components_reloaded.value += 1;
     }, false);
 }
 
@@ -470,7 +466,7 @@ const map_table_def_columns = async (columns) => {
             }
             return DataTableRenders.filterize('l7proto', proto.value, proto.label) + " " + `${confidence}`;
         },
-        "asn":     (asn, row)     => f_print_asn("asn",     asn,     row),
+        "asn": (asn, row) => f_print_asn("asn", asn, row),
         "cli_asn": (cli_asn, row) => f_print_asn("cli_asn", cli_asn, row),
         "srv_asn": (srv_asn, row) => f_print_asn("srv_asn", srv_asn, row),
         "flow_risk": (flow_risks, row) => {
@@ -487,8 +483,8 @@ const map_table_def_columns = async (columns) => {
         },
         "cli_nw_latency": (cli_nw_latency, row) => f_print_latency("cli_nw_latency", cli_nw_latency, row),
         "srv_nw_latency": (srv_nw_latency, row) => f_print_latency("srv_nw_latency", srv_nw_latency, row),
-        "major_connection_state": (major_connection_state, row) => {return `${major_connection_state.title}`},
-        "minor_connection_state": (minor_connection_state, row) => {return `${minor_connection_state.title}`},
+        "major_connection_state": (major_connection_state, row) => { return `${major_connection_state.title}` },
+        "minor_connection_state": (minor_connection_state, row) => { return `${minor_connection_state.title}` },
         "info": (info, row) => {
             if (info == null) { return ""; }
             return `<a class='tag-filter' data-tag-key='info' data-tag-value='${info.title}' title='${info.title}' href='javascript:void(0)'>${info.label}</a>`;
