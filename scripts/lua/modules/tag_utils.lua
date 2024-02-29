@@ -884,7 +884,7 @@ function tag_utils.get_tag_info(id, entity)
             if (id ~= 0) then
                 filter.options[#filter.options+1] = {
                     value = id,
-                    label = i18n(string.format("flow_fields_description.minor_connection_states.%u",id))
+                    label = i18n(string.format("db_search.tags.minor_connection_states.%u",id))
                 }
             end
         end

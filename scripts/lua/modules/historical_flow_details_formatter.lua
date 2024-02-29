@@ -173,6 +173,16 @@ end
 
 -- ###############################################
 
+local function format_tcp_connection_states(info)
+
+  local conn_states = {}
+  conn_states[#conn_states + 1] = string.format("%s: %s",i18n("flow_fields_description.major_connection_state"),i18n(string.format("flow_fields_description.major_connection_states.%s",info.major_connection_state.value)))
+  conn_states[#conn_states + 1] = string.format("%s: %s",i18n("flow_fields_description.minor_connection_state"),i18n(string.format("flow_fields_description.minor_connection_states.%s",info.minor_connection_state.value)))
+  return conn_states
+end
+
+-- ###############################################
+
 local function format_historical_other_issues(flow)
   local alert_utils = require "alert_utils"
   local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
@@ -331,7 +341,23 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
 
     if (info["l4proto"]) and (info["l4proto"]["label"] == 'TCP') then
       flow_details[#flow_details + 1] = format_historical_tcp_flags(flow, info)
+
+      if (info["major_connection_state"] ~= 0 and info["minor_connection_state"] ~= 0) then
+        local conn_states = format_tcp_connection_states(info)
+
+        for _, state in pairs(conn_states or {}) do
+          flow_details[#flow_details + 1] = {
+            label = '',   -- Empty label
+            content = state
+          }
+        end
+
+      end
+
+      
     end
+
+  
 
     if (info["cli_host_pool_id"]) and (info["cli_host_pool_id"]["value"] ~= '0') and (info["srv_host_pool_id"]["value"] ~= '0') then
       flow_details[#flow_details + 1] = format_historical_host_pool(flow, info)

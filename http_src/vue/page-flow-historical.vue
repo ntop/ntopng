@@ -447,6 +447,11 @@ const map_table_def_columns = async (columns) => {
         if (latency == null || latency == 0) { return ""; }
         return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${latency}' href='javascript:void(0)'>${NtopUtils.msecToTime(latency)}</a>`;
     };
+    const f_print_state = (key, state, row) => {
+        if (state == null || state == 0) { return ""; }
+        return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${state.value}' href='javascript:void(0)'>${state.title}</a>`;
+
+    }
     let map_columns = {
         "first_seen": (first_seen, row) => {
             if (first_seen !== undefined)
@@ -483,8 +488,8 @@ const map_table_def_columns = async (columns) => {
         },
         "cli_nw_latency": (cli_nw_latency, row) => f_print_latency("cli_nw_latency", cli_nw_latency, row),
         "srv_nw_latency": (srv_nw_latency, row) => f_print_latency("srv_nw_latency", srv_nw_latency, row),
-        "major_connection_state": (major_connection_state, row) => { return `${major_connection_state.title}` },
-        "minor_connection_state": (minor_connection_state, row) => { return `${minor_connection_state.title}` },
+        "major_connection_state": (major_connection_state, row) => f_print_state("major_connection_state", major_connection_state , row),
+        "minor_connection_state": (minor_connection_state, row) => f_print_state("minor_connection_state", minor_connection_state , row),
         "info": (info, row) => {
             if (info == null) { return ""; }
             return `<a class='tag-filter' data-tag-key='info' data-tag-value='${info.title}' title='${info.title}' href='javascript:void(0)'>${info.label}</a>`;
