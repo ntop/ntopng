@@ -75,7 +75,7 @@ local deviceIP = _GET["deviceIP"]
 local inIfIdx = _GET["inIfIdx"]
 local outIfIdx = _GET["outIfIdx"]
 
-local traffic_type = _GET["traffic_type"]
+local traffic_type = _GET["traffic_type"] or "unicast"
 local alert_type = _GET["alert_type"]
 local alert_type_severity = _GET["alert_type_severity"]
 local tcp_state = _GET["tcp_flow_state"]
@@ -107,6 +107,7 @@ local mini_title = i18n("flow_details.purge_time", {
 
 page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {{
     active = page == "flows" or page == nil,
+    url = base_url .. "?page=flows&traffic_type=unicast",
     page_name = "flows",
     label = "<i class=\"fas fa-lg fa-home\"></i>"
 }, {

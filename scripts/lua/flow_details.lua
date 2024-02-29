@@ -1000,7 +1000,7 @@ else
             if (not (c.is_private and s.is_private)) then
                 -- Inspired by https://gist.github.com/geraldcombs/d38ed62650b1730fb4e90e2462f16125
                 print(
-                    "<tr><th width=30%><A class='ntopng-external-link' href=\"https://en.wikipedia.org/wiki/Velocity_factor\">" ..
+                    "<tr><th width=30%><A class='ntopng-external-link' style='max-width:300px' href=\"https://en.wikipedia.org/wiki/Velocity_factor\">" ..
                         i18n("flow_details.rtt_distance") .. " <i class=\"fas fa-external-link-alt\"></i></A></th><td>")
                 local c_vacuum_km_s = 299792
                 local c_vacuum_mi_s = 186000
@@ -1207,7 +1207,7 @@ else
 
     if ((flow["tcp.max_thpt.cli2srv"] ~= nil) and (flow["tcp.max_thpt.cli2srv"] > 0)) then
         print("<tr><th width=30%>" ..
-                  '<a class="ntopng-external-link"  data-bs-toggle="tooltip" href="https://en.wikipedia.org/wiki/TCP_tuning">' ..
+                  '<a class="ntopng-external-link" style="max-width:300px"  data-bs-toggle="tooltip" href="https://en.wikipedia.org/wiki/TCP_tuning">' ..
                   i18n("flow_details.max_estimated_tcp_throughput") ..
                   " <i class=\"fas fa-external-link-alt\"></i></a><td nowrap> " .. i18n("client") ..
                   " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("server") .. ": ")
