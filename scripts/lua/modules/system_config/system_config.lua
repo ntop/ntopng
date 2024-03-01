@@ -553,28 +553,35 @@ end
 
 -- ##############################################
 
+-- Settings that do not require a reboot or self restart
+local runtime_sections = {
+    dhcp_server = 1,
+    shapers = 1,
+    gateways = 1,
+    routing = 1,
+    date_time = 1,
+    disabled_wans = 1,
+}
+
+-- Settings that require just a self restart
+local self_restart_sections = {
+    static_routes = 1,
+    captive_portal = 1,
+    policy = 1,
+    repeaters = 1,
+    port_forwarding = 1,
+}
+
 local function isRebootRequired(changed_sections)
    -- Always reboot on first start
    if system_config.isFirstStart() then
       return true
    end
 
-   -- Settings that do NOT require a reboot
-   local non_reboot_sections = {
-      dhcp_server = 1,
-      captive_portal = 1,
-      shapers = 1,
-      gateways = 1,
-      static_routes = 1,
-      routing = 1,
-      date_time = 1,
-      disabled_wans = 1,
-      port_forwarding = 1,
-   }
-
    for section in pairs(changed_sections) do
-      if not non_reboot_sections[section] then
-	 return true
+      if not runtime_sections[section] and
+         not self_restart_sections[section] then
+	 return true -- reboot required
       end
    end
 
@@ -591,14 +598,9 @@ end
 
 local function isSelfRestartRequired(changed_sections)
 
-   local self_restart_sections = {
-      static_routes = 1,
-      captive_portal = 1,
-   }
-
    for section in pairs(changed_sections) do
       if self_restart_sections[section] then
-	 return true
+	 return true -- self restart required
       end
    end
 
