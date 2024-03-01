@@ -3389,6 +3389,14 @@ function timeseries_info.get_host_rules_schema(rule_type)
             end
         end
         return metric_list
+    elseif rule_type == 'profiles' then
+        local metric_list = {}
+        for _, item in ipairs(community_timeseries) do
+            if (item.id == timeseries_id.profile) then
+                metric_list[#metric_list + 1] = item
+            end
+        end
+        return metric_list
     end
 
 end
