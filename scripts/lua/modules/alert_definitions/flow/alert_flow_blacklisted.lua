@@ -78,7 +78,8 @@ function alert_flow_blacklisted.format(ifid, alert, alert_type_params)
     end
     local res = i18n("flow_details.blacklisted_flow_detailed", {
         who = who_string,
-        blacklist = black_list_names
+        blacklist = black_list_names,
+        uid = ternary(alert_type_params["uid"] ~= nil, alert_type_params["uid"], "")
     })
 
     if #who == 0 and alert_type_params["cat_blacklisted"] then
