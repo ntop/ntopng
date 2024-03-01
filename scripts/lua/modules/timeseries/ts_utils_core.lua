@@ -754,12 +754,23 @@ function ts_utils.queryLastValues(schema_name, tstart, tend, tags, options)
         return nil
     end
 
-    local schema = ts_utils.getSchema(schema_name)
+    local options = ts_utils.getQueryOptions(options)
 
-    if not schema then
+    options.tags = tags
+    options.epoch_begin = tstart
+    options.epoch_end = tend
+    options.schema_info = ts_utils.getSchema(schema_name)
+
+    if not options.schema_info then
         if print_error then
             traceError(TRACE_ERROR, TRACE_CONSOLE, "Schema not found: " .. schema_name)
         end
+        return nil
+    end
+
+    local actual_tags = options.schema_info:verifyTags(options.tags)
+
+    if not actual_tags then
         return nil
     end
 
@@ -769,11 +780,9 @@ function ts_utils.queryLastValues(schema_name, tstart, tend, tags, options)
         return nil
     end
 
-    local query_options = ts_utils.getQueryOptions(options)
-
     ts_common.clearLastError()
 
-    return driver:queryLastValues(schema, tstart, tend, tags, query_options)
+    return driver:queryLastValues(options)
 end
 
 -- ##############################################

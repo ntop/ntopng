@@ -1,6 +1,9 @@
 --
 -- (C) 2021 - ntop.org
 --
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 local driver = {}
 
 -- NOTE: this script is required by second.lua, keep the imports minimal!
@@ -889,6 +892,28 @@ function driver:query(schema, tstart, tend, tags, options)
     }
 
     return rv
+end
+
+-- ##############################################
+
+function driver:queryLastValues(options)
+    local last_values = {}
+    local rsp = self:timeseries_query(options)
+    for _, data in pairs(rsp.series or {}) do
+        local values = {}
+        local max_val = ts_common.getMaxPointValue(options.schema_info, data.id, options.tags)
+        for i = (#data.data), 1, -1 do
+            if (#values == options.num_points) then
+                break
+            end
+            -- nan check
+            if data.data[i] == data.data[i] then
+                values[#values + 1] = ts_common.normalizeVal(data.data[i], max_val, options)
+            end
+        end
+        last_values[data.id] = values
+    end
+    return last_values
 end
 
 -- ##############################################

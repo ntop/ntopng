@@ -125,17 +125,17 @@ local function schema_get_path(schema, tags)
     if parts[1] == "snmp_if" then
         suffix = tags.if_index .. "/"
     elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
-       if(tags.port) then
-	  if(type(tags.port) == "table") then
-	     suffix = tags.port.ifindex .. "/"
-	  else
-	     suffix = tags.port .. "/"
-	  end
-       elseif(tags.ifid) then
-	  suffix = tags.ifid .. "/"
-       else
-	  suffix = tags.port.ifindex .. "/"
-       end
+        if (tags.port) then
+            if (type(tags.port) == "table") then
+                suffix = tags.port.ifindex .. "/"
+            else
+                suffix = tags.port .. "/"
+            end
+        elseif (tags.ifid) then
+            suffix = tags.ifid .. "/"
+        else
+            suffix = tags.port.ifindex .. "/"
+        end
     elseif parts[2] == "ndpi_categories" then
         suffix = "ndpi_categories/"
     elseif parts[2] == "ndpi_flows" then
@@ -468,7 +468,7 @@ local function touchRRD(rrdname)
         if isDebugEnabled() then
             traceError(TRACE_NORMAL, TRACE_CONSOLE,
                 string.format("touchRRD(%s, %u), last_update was %u", rrdname, tdiff, last))
-                tprint(debug.traceback())
+            tprint(debug.traceback())
         end
 
         if (ds_count == 1) then
@@ -521,13 +521,14 @@ function driver:timeseries_query(options)
     local sampled_fstep = fstep
     local serie_idx = 0
 
-    -- Process the series requested, adding statistics if requested (min, max, tot, ...)
-    -- and normalize the data if needed
-    local max_val = ts_common.getMaxPointValue(options.schema_info, name, options.tags)
-
     for name, _ in pairs(fdata) do
         serie_idx = serie_idx + 1 -- the first id is 1
         local name = options.schema_info._metrics[serie_idx]
+
+        -- Process the series requested, adding statistics if requested (min, max, tot, ...)
+        -- and normalize the data if needed
+        local max_val = ts_common.getMaxPointValue(options.schema_info, name, options.tags)
+
         local fdata_name = names[serie_idx]
         local serie = fdata[fdata_name]
         local modified_serie = {}
@@ -763,7 +764,7 @@ function driver:listSeries(schema, tags_filter, wildcard_tags, start_time, not_p
 
         return nil
     end
-    
+
     local wildcard_tag = wildcard_tags[1]
 
     if not wildcard_tag then
@@ -895,7 +896,7 @@ function driver:timeseries_top(options, top_tags)
         local stats = driver:timeseries_query(options_merged)
         local partials = {}
         local serie_idx = 0
-        
+
         if stats then
             local sum = 0
             step = stats.metadata.epoch_step
@@ -946,9 +947,8 @@ function driver:timeseries_top(options, top_tags)
     if ends(options.schema, "packets") then
         id = "packets"
     elseif ends(options.schema, "hits") then
-       id = "hits"
+        id = "hits"
     end
-    
 
     for top_item, value in pairsByValues(available_items, rev) do
         if value > 0 then
@@ -1150,9 +1150,9 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
     if not rrdfile or not ntop.notEmptyFile(rrdfile) then
         return nil
     end
-    
+
     touchRRD(rrdfile)
-    
+
     local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema),
         tstart, tend)
     local totals = {}
@@ -1185,11 +1185,10 @@ function driver:queryTotal(schema, tstart, tend, tags, options)
     return totals
 end
 
-
 -- ##############################################
 
-function driver:queryLastValues(schema, tstart, tend, tags, options)
-    local rrdfile = driver.schema_get_full_path(schema, tags)
+function driver:queryLastValues(options)
+    local rrdfile = driver.schema_get_full_path(options.schema_info, options.tagss)
     if not rrdfile or not ntop.notEmptyFile(rrdfile) then
         return nil
     end
@@ -1197,17 +1196,17 @@ function driver:queryLastValues(schema, tstart, tend, tags, options)
     touchRRD(rrdfile)
 
     local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema),
-        tstart, tend)
+        options.epoch_begin, options.epoch_end)
     local last_values = {}
 
     local serie_idx = 0
     for _, _ in pairs(fdata or {}) do
         serie_idx = serie_idx + 1 -- the first id is 1
-        local name = schema._metrics[serie_idx]
+        local name = options.schema_info._metrics[serie_idx]
         local fdata_name = names[serie_idx]
         local serie = fdata[fdata_name]
 
-        local max_val = ts_common.getMaxPointValue(schema, name, tags)
+        local max_val = ts_common.getMaxPointValue(options.schema_info, name, options.tags)
 
         -- Remove the last value: RRD seems to give an additional point
         serie[#serie] = nil
@@ -1219,7 +1218,7 @@ function driver:queryLastValues(schema, tstart, tend, tags, options)
                 break
             end
             -- nan check
-            if serie[i] == serie[i] then 
+            if serie[i] == serie[i] then
                 values[#values + 1] = ts_common.normalizeVal(serie[i], max_val, options)
             end
         end
