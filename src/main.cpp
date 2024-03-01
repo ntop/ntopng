@@ -489,7 +489,10 @@ int main(int argc, char *argv[])
 #ifdef __linux__
   switch (afterShutdownAction) {
     case after_shutdown_reboot:
-      Utils::deferredExec("systemctl start systemd-reboot");
+      /* Note: using "systemctl start systemd-reboot" causes the system to
+       * stop on "Stopped Network Service" during the shut down phase
+       * Utils::deferredExec("systemctl start systemd-reboot"); */
+      Utils::deferredExec("systemctl reboot");
       break;
     case after_shutdown_poweroff:
       Utils::deferredExec("systemctl start systemd-poweroff");
