@@ -34,6 +34,8 @@ ndpi_serializer* BlacklistedFlowAlert::getAlertJSON(
   ndpi_serialize_string_boolean(
       serializer, "cat_blacklisted",
       f->get_protocol_category() == CUSTOM_CATEGORY_MALWARE);
+  ndpi_serialize_string_uint32(serializer, "uid", 
+                                f->get_hash_entry_id());
 
   if (f->get_custom_category_file())
     ndpi_serialize_string_string(serializer, "custom_cat_file",
