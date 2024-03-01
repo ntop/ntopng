@@ -559,19 +559,21 @@ local function isRebootRequired(changed_sections)
       return true
    end
 
+   -- Settings that do NOT require a reboot
    local non_reboot_sections = {
       dhcp_server = 1,
-      date_time = 1,
+      captive_portal = 1,
+      shapers = 1,
       gateways = 1,
       static_routes = 1,
       routing = 1,
+      date_time = 1,
       disabled_wans = 1,
-      shapers = 1,
       port_forwarding = 1,
    }
 
    for section in pairs(changed_sections) do
-      if non_reboot_sections[section] == nil then
+      if not non_reboot_sections[section] then
 	 return true
       end
    end
@@ -588,8 +590,10 @@ end
 -- ##############################################
 
 local function isSelfRestartRequired(changed_sections)
+
    local self_restart_sections = {
       static_routes = 1,
+      captive_portal = 1,
    }
 
    for section in pairs(changed_sections) do
@@ -692,7 +696,7 @@ function system_config:applyChanges()
 
   if is_rebooting then
     self:writeSystemFiles()
-    --tprint("Reboot! (debug mode - reboot is disabled)")
+    -- tprint("Reboot! (debug mode - reboot is disabled)")
     sys_utils.rebootSystem()
   elseif is_self_restarting then
     sys_utils.restartSelf()
