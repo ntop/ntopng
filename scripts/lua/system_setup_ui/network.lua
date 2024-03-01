@@ -152,9 +152,9 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface, rout
       description = i18n("nedge.enable_interface_descr"),
       content = "",
       field = "iface_on_" .. if_id,
-      redis_prefix = "",
       default = ternary(not disabled_wans[if_name], "1", "0"),
       to_switch = nil,
+      local_store = true, -- do not store on redis
     })
   end
 
@@ -225,9 +225,9 @@ local function printWanLikeConfig(if_name, if_id, ifconf, bridge_interface, rout
         description = i18n("nedge.enable_nat_descr"),
         content = "",
         field = "iface_nat_" .. if_id,
-        redis_prefix = "",
         default = ternary(ifconf.masquerade, "1", "0"),
         to_switch = nil,
+        local_store = true, -- do not store on redis
       })
     end
   end

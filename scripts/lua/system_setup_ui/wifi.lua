@@ -50,9 +50,9 @@ local function print_wifi_page_body()
     description = i18n("appliance.enable_wifi_descr"),
     content = "",
     field = "wifi_enabled",
-    redis_prefix = "",
     default = ternary(wifi_config.enabled, "1", "0"),
     to_switch = elementToSwitch,
+    local_store = true, -- do not store on redis
   })
 
   prefsInputFieldPrefs(

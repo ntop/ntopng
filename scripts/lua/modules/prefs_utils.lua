@@ -490,12 +490,12 @@ local function printNestedToSwitchLogic(nested_to_switch, submit_field)
 end
 
 local function toggleTableButtonPrefs(label, comment, on_label, on_value, on_color , off_label, off_value, off_color, submit_field,
-                                redis_key, default_value, disabled, elementToSwitch, hideOn, showElement, nested_to_switch)
+                                redis_key, default_value, disabled, elementToSwitch, hideOn, showElement, nested_to_switch, local_store)
 
 
  local value
 
- if not skip_redis then
+ if not skip_redis and not local_store then
   value = ntop.getPref(redis_key)
   if(_POST[submit_field] ~= nil) then
     if ( (value == nil) or (value ~= _POST[submit_field])) then
@@ -618,6 +618,7 @@ function prefsToggleButton(subpage_active, params)
     off_class = "danger",       -- The css class when the button is off
     reverse_switch = false,     -- If true, elements are hidden when the item is enabled
     nested_to_switch = {},      -- Similar to "to_switch" but for nested items
+    local_store = false,        -- If true, do not store the field in redis
   }
 
   local options = table.merge(defaults, params)
@@ -633,7 +634,8 @@ function prefsToggleButton(subpage_active, params)
     options.on_text, options.on_value, options.on_class,
     options.off_text, options.off_value, options.off_class,
     options.field, redis_key,
-    options.default, options.disabled, options.to_switch, options.reverse_switch, not options.hidden, options.nested_to_switch)
+    options.default, options.disabled, options.to_switch, options.reverse_switch, not options.hidden,
+    options.nested_to_switch, options.local_store)
 end
 
 function multipleTableButtonPrefs(label, comment, array_labels, array_values, default_value, selected_color,
