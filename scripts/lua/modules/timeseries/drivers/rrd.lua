@@ -1200,14 +1200,14 @@ end
 -- ##############################################
 
 function driver:queryLastValues(options)
-    local rrdfile = driver.schema_get_full_path(options.schema_info, options.tagss)
+    local rrdfile = driver.schema_get_full_path(options.schema_info, options.tags)
     if not rrdfile or not ntop.notEmptyFile(rrdfile) then
         return nil
     end
 
     touchRRD(rrdfile)
 
-    local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(schema),
+    local fstart, fstep, fdata, fend, fcount, names = ntop.rrd_fetch_columns(rrdfile, getConsolidationFunction(options.schema_info),
         options.epoch_begin, options.epoch_end)
     local last_values = {}
 
