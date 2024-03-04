@@ -123,21 +123,23 @@ local function schema_get_path(schema, tags)
       end
    end
 
-   -- Some exceptions to avoid conflicts / keep compatibility
-   if parts[1] == "snmp_if" then
-      suffix = tags.if_index .. "/"
-   elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
-      suffix = tags.port .. "/"
-   elseif parts[2] == "ndpi_categories" then
-      suffix = "ndpi_categories/"
-   elseif parts[2] == "ndpi_flows" then
-      suffix = "ndpi_flows/"
-   elseif parts[2] == "l4protos" then
-      suffix = "l4protos/"
-   elseif parts[2] == "dscp" then
-      suffix = "dscp/"
-   elseif #schema._tags >= 3 then
-      local intermediate_tags = {}
+    -- Some exceptions to avoid conflicts / keep compatibility
+    if parts[1] == "snmp_if" then
+        suffix = tags.if_index .. "/"
+    elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
+        if (tags.port) then
+            if (type(tags.port) == "table") then
+                suffix = tags.port.ifindex .. "/"
+            else
+                suffix = tags.port .. "/"
+            end
+        elseif (tags.ifid) then
+            suffix = tags.ifid .. "/"
+        else
+            suffix = tags.port.ifindex .. "/"
+        end
+    elseif #schema._tags >= 3 then
+        local intermediate_tags = {}
 
       -- tag1:ifid
       -- tag2:already handled as host_or_network
@@ -152,11 +154,30 @@ local function schema_get_path(schema, tags)
 	 intermediate_tags[#intermediate_tags + 1] = tags[last_tag]
       end
 
-      if intermediate_tags[1] ~= nil then
-	 -- All the intermediate tags should be mapped in the path
-	 suffix = table.concat(intermediate_tags, "/") .. "/"
-      end
-   end
+        if intermediate_tags[1] ~= nil then
+            -- All the intermediate tags should be mapped in the path
+            suffix = table.concat(intermediate_tags, "/") .. "/"
+        end
+
+        if parts[2] == "ndpi_categories" then
+            suffix = suffix.."ndpi_categories/"
+        elseif parts[2] == "ndpi_flows" then
+            suffix = suffix.."ndpi_flows/"
+        elseif parts[2] == "l4protos" then
+            suffix = suffix.."l4protos/"
+        elseif parts[2] == "dscp" then
+            suffix = suffix.."dscp/"
+        end
+
+    elseif parts[2] == "ndpi_categories" then
+        suffix = "ndpi_categories/"
+    elseif parts[2] == "ndpi_flows" then
+        suffix = "ndpi_flows/"
+    elseif parts[2] == "l4protos" then
+        suffix = "l4protos/"
+    elseif parts[2] == "dscp" then
+        suffix = "dscp/"
+    end
 
    local path = getRRDName(ifid, host_or_network) .. suffix
    local rrd = get_fname_for_schema(schema, tags)
