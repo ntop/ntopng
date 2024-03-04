@@ -443,7 +443,7 @@ elif test "${with_nedge+set}" = "set"; then
   SERVICE_AFTER="network-online.target syslog.target ${REDIS_SERVICE}"
   SERVICE_REQUIRES="${SERVICE_REQUIRES} nedge_pinger.service"
   SERVICE_WANTS="network-online.target ${SERVICE_WANTS}"
-  SERVICE_PRE="ExecStartPre=sleep 2"
+  SERVICE_PRE="ExecStartPre=sleep 5"
   SERVICE_ALIAS="nedge.service"
 else
   SERVICE_AFTER="network.target syslog.target ${REDIS_SERVICE} pf_ring.service cluster.service mysql.service"
