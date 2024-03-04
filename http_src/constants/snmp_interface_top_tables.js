@@ -71,14 +71,14 @@ const top_snmp_interface = {
 	}, {
 		columnName: i18n("last_downlink_usage"), name: 'traffic_perc', className: 'text-center no-wrap', data: 'downlink_usage_percentage',
 		render: (data) => {
-			const percentage = data.toFixed(1);
+			let percentage = data.toFixed(1);
 			if (percentage > 100) percentage = 100;
 			return NtopUtils.createProgressBar(percentage)
 		}
 	}, {
 		columnName: i18n("last_uplink_usage"), name: 'traffic_perc', className: 'text-center no-wrap', data: 'uplink_usage_percentage',
 		render: (data) => {
-			const percentage = data.toFixed(1);
+			let percentage = data.toFixed(1);
 			if (percentage > 100) percentage = 100;
 			return NtopUtils.createProgressBar(percentage)
 		}
