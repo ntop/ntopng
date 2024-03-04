@@ -963,6 +963,7 @@ function driver:timeseries_top(options, top_tags)
 
     for top_item, value in pairsByValues(available_items, rev) do
         if value > 0 then
+            package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
             local snmp_utils = require "snmp_utils"
             local snmp_cached_dev = require "snmp_cached_dev"
             local cached_device = snmp_cached_dev:create(options.tags.device)
