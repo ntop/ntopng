@@ -43,10 +43,20 @@ function radius_handler.accountingStart(name, username, password)
     if not radius_handler.isAccountingEnabled() then
         return true
     end
+    
+    -- Check if the user is already saved on redis
+    local is_accounting_on = radius_handler.isAccountingRequested(name)
+
+    -- In case the info are already on redis, means that the  system is restarted
+    -- or the same request has been done twice, so just skip this
+    if is_accounting_on then
+        return true
+    end
+
+    local session_id = tostring(math.random(100000000000000000, 999999999999999999))
     local ip_address = get_first_ip(name)
     local current_time = os.time()
     math.randomseed(current_time)
-    local session_id = tostring(math.random(100000000000000000, 999999999999999999))
     local accounting_started = interface.radiusAccountingStart(username --[[ Username ]] , name --[[ MAC Address ]] ,
         session_id, ip_address --[[ First IP Address ]] , current_time)
 
