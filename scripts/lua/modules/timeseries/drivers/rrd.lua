@@ -136,14 +136,6 @@ local function schema_get_path(schema, tags)
         else
             suffix = tags.port.ifindex .. "/"
         end
-    elseif parts[2] == "ndpi_categories" then
-        suffix = "ndpi_categories/"
-    elseif parts[2] == "ndpi_flows" then
-        suffix = "ndpi_flows/"
-    elseif parts[2] == "l4protos" then
-        suffix = "l4protos/"
-    elseif parts[2] == "dscp" then
-        suffix = "dscp/"
     elseif #schema._tags >= 3 then
         local intermediate_tags = {}
 
@@ -164,6 +156,25 @@ local function schema_get_path(schema, tags)
             -- All the intermediate tags should be mapped in the path
             suffix = table.concat(intermediate_tags, "/") .. "/"
         end
+
+        if parts[2] == "ndpi_categories" then
+            suffix = suffix.."ndpi_categories/"
+        elseif parts[2] == "ndpi_flows" then
+            suffix = suffix.."ndpi_flows/"
+        elseif parts[2] == "l4protos" then
+            suffix = suffix.."l4protos/"
+        elseif parts[2] == "dscp" then
+            suffix = suffix.."dscp/"
+        end
+
+    elseif parts[2] == "ndpi_categories" then
+        suffix = "ndpi_categories/"
+    elseif parts[2] == "ndpi_flows" then
+        suffix = "ndpi_flows/"
+    elseif parts[2] == "l4protos" then
+        suffix = "l4protos/"
+    elseif parts[2] == "dscp" then
+        suffix = "dscp/"
     end
 
     local path = getRRDName(ifid, host_or_network) .. suffix

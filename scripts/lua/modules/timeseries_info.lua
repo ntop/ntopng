@@ -2559,7 +2559,7 @@ local function add_top_interface_timeseries(tags, timeseries)
             for _, serie in pairs(series or {}) do
                 local tot = 0
                 tmp_tags.l4proto = serie.l4proto
-                local tot_serie = ts_utils.queryTotal("host:l4protos", tags.epoch_begin, tags.epoch_end, tmp_tags)
+                local tot_serie = ts_utils.queryTotal("iface:l4protos", tags.epoch_begin, tags.epoch_end, tmp_tags)
                 -- Remove serie with no data
                 for _, value in pairs(tot_serie or {}) do
                     tot = tot + tonumber(value)
