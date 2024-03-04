@@ -49,19 +49,26 @@ const get_timeseries_groups_from_url = async (http_prefix, url_timeseries_groups
     return timeseries_groups;
 };
 
-const get_ts_group = (source_type, source_array, metric) => {
+const get_ts_group = (source_type, source_array, metric, customized_ts) => {
+    let ts_config = {
+        raw: true,
+        past: true, /* By default enable the past serie */
+        avg: false,
+        perc_95: false,
+    }
+
+    if(customized_ts && customized_ts.raw != null) ts_config.raw = customized_ts.raw;
+    if(customized_ts && customized_ts.past != null) ts_config.past = customized_ts.past;
+    if(customized_ts && customized_ts.avg != null) ts_config.avg = customized_ts.avg;
+    if(customized_ts && customized_ts.perc_95 != null) ts_config.perc_95 = customized_ts.perc_95;
+
     let id = get_ts_group_id(source_type, source_array, metric);
     let timeseries = [];
     for (let key in metric.timeseries) {
         let ts = metric.timeseries[key];
-        timeseries.push({
-            id: key,
-            label: ts.label,
-            raw: true,
-            past: false,
-            avg: false,
-            perc_95: false,
-        });
+        ts_config.id = key;
+        ts_config.label = ts.label;
+        timeseries.push(ts_config);
     }
     return {
         id, source_type, source_array, metric, timeseries,
