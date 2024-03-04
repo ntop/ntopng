@@ -131,9 +131,15 @@ function ts_data.get_timeseries(http_context)
                                                             ".serialize_local_broadcast_hosts_as_macs")) == "1"
     local tmp = split(options.schema, ":")
 
-    if (serialize_by_mac) and (options.tags.mac) then
+    if (serialize_by_mac) and (options.tags.mac) then        
+        local ts_utils = require("ts_utils")
         options.schema = "host:" .. tmp[2]
         options.tags.host = options.tags.mac .. "_v4"
+        -- In case of influxdb these info are not to be added, otherwise the query won't
+        if ts_utils.getDriverName() == "influxdb" then
+            options.tags.host_ip = nil
+            options.tags.mac = nil
+        end
     end
 
     res = performQuery(options) or {}
