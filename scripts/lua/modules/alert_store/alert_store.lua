@@ -2068,7 +2068,7 @@ function alert_store:format_json_record_common(value, entity_id, no_html)
 
     record[BASE_RNAME.ALERT_ID.name] = {
         value = value["alert_id"],
-        label = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), false, entity_id)
+        label = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), no_html, entity_id)
     }
 
     local category = alert_category_utils.getCategoryById(tonumber(value["alert_category"]))
