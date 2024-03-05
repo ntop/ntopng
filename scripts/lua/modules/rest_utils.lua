@@ -2,6 +2,15 @@
 -- (C) 2020-24 - ntop.org
 --
 --
+
+if(pragma_once_rest_utils == true) then
+   -- io.write(debug.traceback().."\n")
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_rest_utils = true
+
 local clock_start = os.clock()
 
 local dirs = ntop.getDirs()

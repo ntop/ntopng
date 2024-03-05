@@ -2,6 +2,14 @@
 -- (C) 2020-24 - ntop.org
 --
 
+if(pragma_once_tag_utils == true) then
+   -- io.write(debug.traceback().."\n")
+   -- avoid multiple inclusions
+   return
+end
+
+pragma_once_tag_utils = true
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
