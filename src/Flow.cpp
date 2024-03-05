@@ -8548,12 +8548,12 @@ bool Flow::matchFlowDeviceIP(u_int32_t flow_device_ip) {
 
 void Flow::lua_get_flow_connection_state(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "minor_conn_state", getCurrentConnectionState());
-  lua_push_uint64_table_entry(vm, "major_conn_state", retrieveMajorConnState());
+  lua_push_uint64_table_entry(vm, "major_conn_state", getMajorConnState());
 }
 
 /* **************************************************** */
 
-Flow::MajorConnectionStates Flow::retrieveMajorConnState() {
+MajorConnectionStates Flow::getMajorConnState() {
   MajorConnectionStates major_conn_state = MAJOR_NO_STATE;
   
   switch (getCurrentConnectionState()) {
@@ -8599,8 +8599,7 @@ return(current_c_state == S1 || ((src2dst_tcp_flags & TCP_3WH_MASK)&&
 
 /* **************************************************** */
 
-Flow::MinorConnectionStates Flow::calculateConnectionState() {
-
+MinorConnectionStates Flow::calculateConnectionState() {
   if(!isTCP())
     return(setCurrentConnectionState(MINOR_NO_STATE)); 
 

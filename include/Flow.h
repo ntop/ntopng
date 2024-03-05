@@ -136,8 +136,7 @@ class Flow : public GenericHashEntry {
     char *source;
     json_object *json;
   } external_alert;
-  bool
-      trigger_immediate_periodic_update; /* needed to process external alerts */
+  bool trigger_immediate_periodic_update; /* needed to process external alerts */
   time_t next_call_periodic_update; /* The time at which the periodic lua script
                                        on this flow shall be called */
 
@@ -289,30 +288,6 @@ class Flow : public GenericHashEntry {
   float pkts_thpt_cli2srv, pkts_thpt_srv2cli;
   ValueTrend bytes_thpt_trend, goodput_bytes_thpt_trend, pkts_thpt_trend;
 
-  enum MinorConnectionStates {
-    MINOR_NO_STATE = 0, /* Initial Flow State (just for constructor) */
-    S0,           /* Only SYN in src2dst_tcp_flags; no flags in dst2src_tcp_flags */
-    S1,           /* ... */
-    SF,
-    REJ,
-    S2,
-    S3,
-    RSTO,
-    RSTR,
-    RSTOS0,
-    RSTRH,
-    SH,
-    SHR,
-    OTH = 13
-  };
-
-  enum MajorConnectionStates {
-    MAJOR_NO_STATE = 0, 
-    ATTEMPTED,
-    ESTABLISHED,
-    CLOSED = 3
-  };
-  
   MinorConnectionStates current_c_state; 
   u_int counter = 0;
   /*
@@ -1433,7 +1408,7 @@ class Flow : public GenericHashEntry {
   inline MinorConnectionStates getCurrentConnectionState() { return(current_c_state); };
   bool checkS1ConnState();
   MinorConnectionStates calculateConnectionState();
-  MajorConnectionStates retrieveMajorConnState();
+  MajorConnectionStates getMajorConnState();
 };
 
 #endif /* _FLOW_H_ */

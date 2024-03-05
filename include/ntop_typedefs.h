@@ -1177,5 +1177,28 @@ typedef enum {
   client_server_srv_port_app_proto
 } AnalysisCriteria;
 
+typedef enum {
+  MINOR_NO_STATE = 0, /* Initial Flow State (just for constructor) */
+  S0,           /* Only SYN in src2dst_tcp_flags; no flags in dst2src_tcp_flags */
+  S1,           /* ... */
+  SF,
+  REJ,
+  S2,
+  S3,
+  RSTO,
+  RSTR,
+  RSTOS0,
+  RSTRH,
+  SH,
+  SHR,
+  OTH = 13
+} MinorConnectionStates;
 
+typedef enum {
+  MAJOR_NO_STATE = 0, 
+  ATTEMPTED,
+  ESTABLISHED,
+  CLOSED = 3
+} MajorConnectionStates;
+  
 #endif /* _NTOP_TYPEDEFS_H_ */
