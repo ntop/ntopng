@@ -13,14 +13,9 @@ pragma_once_tag_utils = true
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local alert_entities = require "alert_entities"
 local alert_consts = require "alert_consts"
 local host_pools = require "host_pools"
-local dscp_consts = require "dscp_consts"
-local country_codes = require "country_codes"
-local alert_category_utils = require "alert_category_utils"
 local consts = require "consts"
-local flow_consts = require "flow_consts"
 
 local snmp_filter_options_cache
 
@@ -774,9 +769,11 @@ tag_utils.formatters = {
         return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title))
     end,
     alert_id = function(status)
+        local alert_entities = require "alert_entities"
         return alert_consts.alertTypeLabel(status, true, alert_entities.flow.entity_id)
     end,
     alert_category = function(category_id)
+        local alert_category_utils = require "alert_category_utils"
         return alert_category_utils.getCategoryById(category_id)
     end,
     role = function(role)
@@ -847,6 +844,7 @@ function tag_utils.get_tag_info(id, entity)
         end
 
     elseif tag.value_type == "dscp_type" then
+        local dscp_consts = require "dscp_consts"
         filter.value_type = 'array'
         filter.options = {}
         local dscp_types = dscp_consts.dscp_class_list()
@@ -885,6 +883,7 @@ function tag_utils.get_tag_info(id, entity)
             }
         end
     elseif tag.value_type == "minor_connection_state" then
+        local flow_consts = require "flow_consts"
         filter.value_type = 'array'
         filter.options = {}
         for state, id in pairs(flow_consts.minor_connection_states) do 
@@ -897,6 +896,7 @@ function tag_utils.get_tag_info(id, entity)
             end
         end
     elseif tag.value_type == "major_connection_state" then
+        local flow_consts = require "flow_consts"
         filter.value_type = 'array'
         filter.options = {}
         for state, id in pairs(flow_consts.major_connection_states) do 
@@ -1020,6 +1020,7 @@ function tag_utils.get_tag_info(id, entity)
         end
 
     elseif tag.value_type == "country" then
+        local country_codes = require "country_codes"
         filter.value_type = 'array'
         filter.options = {}
         for code, label in pairsByValues(country_codes, asc) do

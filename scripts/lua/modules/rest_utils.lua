@@ -20,7 +20,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "ntop_utils"
 require "locales_utils"
 require "lua_utils_generic"
-require "http_lint"
 local json = require("dkjson")
 
 local rest_utils = {
