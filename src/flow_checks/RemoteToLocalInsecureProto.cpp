@@ -25,7 +25,10 @@
 /* ***************************************************** */
 
 void RemoteToLocalInsecureProto::protocolDetected(Flow *f) {
-  if (f->isRemoteToLocal()) {
+  if (f->isRemoteToLocal()
+      && f->isDPIDetectedFlow()
+      && ((!f->isTCP()) || (f->getMajorConnState() >= ESTABLISHED))
+      ) {
     risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
     /* Remote to local */
     bool unsafe;
@@ -65,10 +68,9 @@ void RemoteToLocalInsecureProto::protocolDetected(Flow *f) {
     }
 
     if (unsafe) {
-      FlowAlertType alert_type =
-          RemoteToLocalInsecureProtoAlert::getClassType();
+      FlowAlertType alert_type = RemoteToLocalInsecureProtoAlert::getClassType();
       u_int8_t c_score, s_score;
-
+      
       computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
 
       f->triggerAlertAsync(alert_type, c_score, s_score);
