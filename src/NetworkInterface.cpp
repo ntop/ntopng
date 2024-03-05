@@ -413,7 +413,13 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   NDPI_PROTOCOL_BITMASK all;
   ndpi_cfg_error rc;
   const char* ndpi_key = "flow.track_payload";
-
+  const char* dirs[] = {
+    "/usr/share/ndpi/public_suffix_list.dat",
+    "/usr/local/share/ndpi/public_suffix_list.dat",
+    "../nDPI/lists/public_suffix_list.dat",
+    NULL
+  };
+  
   if (ndpi_s == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
     exit(-1);
@@ -432,10 +438,18 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
     ndpi_load_protocols_file(ndpi_s, ntop->getCustomnDPIProtos());
 
   /* Load public domain suffixes (part of the ndpi package) */
-  if(ndpi_load_domain_suffixes(ndpi_s,
-			       (char*)"/usr/share/ndpi/public_suffix_list.dat") != 0)
-    ndpi_load_domain_suffixes(ndpi_s,
-			      (char*)"../nDPI/lists/public_suffix_list.dat"); /* Last resort */
+  for(int i=0; dirs[i] != NULL; i++) {
+    struct stat buf;
+    
+    if(stat(dirs[i], &buf) == 0) {
+      if(ndpi_load_domain_suffixes(ndpi_s, (char*)dirs[i]) == 0)
+	ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully loaded %s", dirs[i]);
+      else
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while loading %s", dirs[i]);
+      
+      break;
+    }
+  }
   
   memset(d_port, 0, sizeof(d_port));
   ndpi_set_proto_defaults(ndpi_s, 0, 0, NDPI_PROTOCOL_UNRATED,
