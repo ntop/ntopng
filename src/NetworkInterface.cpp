@@ -7617,7 +7617,9 @@ void NetworkInterface::lua_queues_stats(lua_State *vm) {
 
 /* **************************************************** */
 
-void NetworkInterface::runHousekeepingTasks() { periodicStatsUpdate(); }
+void NetworkInterface::runPeriodicHousekeepingTasks() {
+  periodicStatsUpdate();
+}
 
 /* **************************************************** */
 

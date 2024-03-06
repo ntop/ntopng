@@ -869,7 +869,7 @@ public:
       getCheckPointNumDiscardedProbingBytes();
   }
 
-  virtual void runHousekeepingTasks();
+  void runPeriodicHousekeepingTasks();
   void runShutdownTasks();
   VLAN *getVLAN(u_int16_t u_int16_t, bool create_if_not_present,
                 bool is_inline_call);

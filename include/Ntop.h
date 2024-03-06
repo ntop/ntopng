@@ -539,6 +539,7 @@ class Ntop {
   void shutdownInterfaces();
   void shutdownAll();
   void runHousekeepingTasks();
+  void runPeriodicHousekeepingTasks();
   void runShutdownTasks();
   void checkShutdownWhenDone();
   bool isLocalInterfaceAddress(int family, void *addr) {

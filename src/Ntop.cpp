@@ -689,11 +689,12 @@ void Ntop::start() {
   globals->setInitialized(); /* We're ready to go */
   
   while((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
-    const u_int32_t nap_usec = ntop->getPrefs()->get_housekeeping_frequency() * 1e6;
+    const u_int32_t nap_usec = ntop->getPrefs()->get_housekeeping_frequency() * 1e6; /* 5 sec */
 
     gettimeofday(&begin, NULL);
 
-    runHousekeepingTasks();
+    /* Run periodic tasks (note: this also runs runHousekeepingTasks) */
+    runPeriodicHousekeepingTasks();
 
     /*
       Check if it is time to signal the shutdown, depending on the
@@ -705,12 +706,24 @@ void Ntop::start() {
     gettimeofday(&end, NULL);
     usec_diff = Utils::usecTimevalDiff(&end, &begin);
 
-    if (usec_diff >= nap_usec)
+    if (usec_diff >= nap_usec) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Housekeeping activities (main loop) took %.3fs",
 				   (float)usec_diff / 1e6);
+    } else {
+      while (usec_diff < nap_usec) {
+        u_int32_t remaining_usec = nap_usec - usec_diff;
+        u_int32_t power_nap_usec = 100 * 1e3; /* 100 msec */
+       
+        _usleep(remaining_usec >= power_nap_usec ? power_nap_usec : remaining_usec);
 
-    if (usec_diff < nap_usec) _usleep(nap_usec - usec_diff);
+        /* Run high frequency tasks */
+        runHousekeepingTasks();
+
+        gettimeofday(&end, NULL);
+        usec_diff = Utils::usecTimevalDiff(&end, &begin);
+      }
+    }
   }
 }
 
@@ -2891,24 +2904,33 @@ void Ntop::checkReloadHostChecks() {
 
 /* ******************************************* */
 
-/* NOTE: the multiple isShutdown checks below are necessary to reduce the
- * shutdown time */
+/* Execute lightweigth tasks with high frequency */
 void Ntop::runHousekeepingTasks() {
   checkReloadHostPools();
+
+#ifdef NTOPNG_PRO
+  pro->runHousekeepingTasks();
+#endif
+}
+
+/* ******************************************* */
+
+/* Execute tasks periodically (5 sec freq)
+ * NOTE: the multiple isShutdown checks below are necessary to reduce the
+ * shutdown time */
+void Ntop::runPeriodicHousekeepingTasks() {
+  runHousekeepingTasks();
+
   checkReloadAlertExclusions();
   checkReloadFlowChecks();
   checkReloadHostChecks();
 
   for (int i = 0; i < get_num_interfaces(); i++) {
     if (!iface[i]->isStartingUp()) {
-      iface[i]->runHousekeepingTasks();
+      iface[i]->runPeriodicHousekeepingTasks();
       iface[i]->purgeQueuedIdleEntries();
     }
   }
-
-#ifdef NTOPNG_PRO
-  pro->runHousekeepingTasks();
-#endif
 
   jobsQueue.idleTask();
 }
@@ -2960,7 +2982,7 @@ void Ntop::checkShutdownWhenDone() {
 
     /* One extra housekeeping before executing tests (this assumes all flows
      * have been walked) */
-    runHousekeepingTasks();
+    runPeriodicHousekeepingTasks();
 
     runShutdownTasks();
 
