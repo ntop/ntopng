@@ -93,8 +93,7 @@ NetworkInterface::NetworkInterface(const char *name,
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
   flow_checks_executor = prev_flow_checks_executor = NULL;
   host_checks_executor = prev_host_checks_executor = NULL;
-  flows_dump_json = true; /* JSON dump enabled by default, possibly disabled in
-                             NetworkInterface::startFlowDumping */
+  flows_dump_json = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_syslog();
   flows_dump_json_use_labels =
     false; /* Dump of JSON labels disabled by default, possibly enabled in
 	      NetworkInterface::startFlowDumping */
@@ -3672,8 +3671,7 @@ void NetworkInterface::startFlowDumping() {
     */
     flows_dump_json_use_labels =
       ntop->getPrefs()->do_dump_flows_on_es() ||
-      ntop->getPrefs()->do_dump_flows_on_syslog() ||
-      ntop->getPrefs()->do_dump_flows_on_clickhouse();
+      ntop->getPrefs()->do_dump_flows_on_syslog();
   }
 
   if (!isViewed()) { /* Do not spawn the dumper thread for viewed interfaces -
@@ -5174,7 +5172,9 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data,
                                bool *matched) {
   struct flowHostRetriever *retriever = (struct flowHostRetriever *)user_data;
   Flow *f = (Flow *)h;
+#if 0
   const char *flow_info;
+#endif
   const TcpInfo *tcp_info;
 
   if (retriever->actNumEntries >= retriever->maxNumEntries)
