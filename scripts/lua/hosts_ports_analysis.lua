@@ -43,8 +43,7 @@ local base_url = ntop.getHttpPrefix() .. "/lua/hosts_ports_analysis.lua"
 page_utils.print_navbar(i18n('active_ports'), base_url .. "?", {{
     active = page == "live" or page == nil,
     page_name = "live",
-    label = i18n("jump_to_table"),
-    base_url .. "?page=live",
+    label = i18n("jump_to_table")
 
 },
 {

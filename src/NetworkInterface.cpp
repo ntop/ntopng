@@ -5412,7 +5412,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data,
       (r->location == location_public_only && h->isPrivateHost()) ||
       (r->location == location_public_only && h->isPrivateHost()) ||
       (r->location == location_broadcat_multicast_only && !h->isBroadcastHost() && !h->isMulticastHost()) ||
-      ((r->vlan_id != ((u_int16_t)-1)) && (r->vlan_id != h->get_vlan_id())) ||
+      ((r->vlan_id != (NO_VLAN)) && (r->vlan_id != h->get_vlan_id())) ||
       ((r->ndpi_proto != -1) &&
        (h->get_ndpi_stats()->getProtoBytes(r->ndpi_proto) == 0)) ||
       ((r->asnFilter != (u_int32_t)-1) && (r->asnFilter != h->get_asn())) ||
@@ -11093,7 +11093,7 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
       return(false);
   }
 
-  if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
+  if(stats->vlan_id != NO_VLAN /* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
   }
@@ -11152,7 +11152,7 @@ bool NetworkInterface::compute_client_flow_stats(GenericHashEntry *node,
       return(false);
   }
 
-  if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
+  if(stats->vlan_id != NO_VLAN /* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
   }
@@ -11204,7 +11204,7 @@ bool NetworkInterface::compute_server_flow_stats(GenericHashEntry *node,
       return(false);
   }
 
-  if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
+  if(stats->vlan_id != NO_VLAN/* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
   }
@@ -11246,7 +11246,7 @@ bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntr
       return(false);
   }
 
-  if(stats->vlan_id != (u_int16_t)-1 /* -1 == any VLAN */) {
+  if(stats->vlan_id != NO_VLAN /* -1 == any VLAN */) {
     if(!f->matchFlowVLAN(stats->vlan_id))
       return(false);
   }
@@ -11771,7 +11771,7 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
   AnalysisCriteria filter_type = (AnalysisCriteria)lua_tonumber(vm, 1);
   char *host_ip = NULL;
   char *flow_device_ip = NULL;
-  u_int16_t vlan_id = (u_int16_t)-1 /* Any VLAN */;
+  u_int16_t vlan_id = NO_VLAN /* Any VLAN */;
 
   /* NOTE: parsing of additional Lua parameters in NetworkInterface::sort_and_filter_flow_stats() */
   if (lua_type(vm, 8) == LUA_TSTRING) host_ip = (char *)lua_tostring(vm, 8);
@@ -11856,7 +11856,7 @@ void NetworkInterface::getHostsPorts(lua_State *vm) {
   u_int32_t begin_slot = 0;
   HostsPorts count;
   u_int8_t l4_protocol = 0;
-  u_int16_t vlan_id = 0;
+  u_int16_t vlan_id = /* ANY VLAN */(u_int16_t)-1;
 
   if (lua_type(vm, 1) == LUA_TNUMBER) {
     l4_protocol = (u_int8_t)lua_tonumber(vm, 1);
@@ -11898,9 +11898,7 @@ bool NetworkInterface::get_host_ports(GenericHashEntry *node,
     return (false); /* false = keep on walking */
 
   /* Retrieve the server host instance */
-  Host* server = f->get_srv_host();
-  if (!server)
-    return (false); /* false = keep on walking */
+  IpAddress* server = f->get_srv_ip_addr();
 
   /* Filters */
   u_int16_t filter_vlan_id        = hostsPorts->get_vlan_id();
@@ -11912,20 +11910,14 @@ bool NetworkInterface::get_host_ports(GenericHashEntry *node,
   u_int16_t srv_port              = f->get_srv_port();
   ndpi_protocol detected_protocol = f->get_detected_protocol();
 
-  /* Server Host attribute */
-  u_int16_t srv_vlan_id           = server->get_vlan_id();
-
   /* check l4_proto filter */
   if (flow_l4_proto != filter_l4_proto)
     return (false); /* false = keep on walking */
 
   /* check vlan filter */
-  if (filter_vlan_id != 0) {
+  if (filter_vlan_id != NO_VLAN) {
     /* check flow vlan */
     if (flow_vlan_id != filter_vlan_id)
-      return (false); /* false = keep on walking */
-    /* check server host vlan */
-    if ((srv_vlan_id != 0) && (srv_vlan_id != filter_vlan_id))
       return (false); /* false = keep on walking */
   }
 
@@ -11938,7 +11930,7 @@ bool NetworkInterface::get_host_ports(GenericHashEntry *node,
   /* <srv_key (16 bit)><srv_vlan_id (16 bit)> */
   u_int64_t host_key =
     (((u_int64_t)server->key()) << 16) +
-    ((u_int64_t)srv_vlan_id);
+    ((u_int64_t)flow_vlan_id);
 
   /* Add the server port + the host on the hosts u_map*/
   hostsPorts->add_srv_port(port_proto_key, host_key);
@@ -12011,12 +12003,17 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
 
   /* Retrieve the server host instance */
   Host* h = f->get_srv_host();
+  if (!h) 
+    h = f->getViewSharedServer();
+
   if (!h)
     return(false);
 
   /* Filters */
   u_int8_t filter_l4_proto  = hostsPortsAnalysis->get_l4_proto();
   u_int16_t filter_srv_port = hostsPortsAnalysis->get_port();
+  int l7_app_protocol       = hostsPortsAnalysis->get_l7_app_proto();
+  int l7_master_protocol    = hostsPortsAnalysis->get_l7_proto();
 
   /* Check filters values */
   if ((filter_l4_proto == 0) || (filter_srv_port == 0))
@@ -12026,9 +12023,41 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
   if ((filter_l4_proto != f->get_protocol()) || (filter_srv_port != f->get_srv_port()))
     return(false);
 
+  /* Check L7 filters */
+  ndpi_protocol detected_protocol = f->get_detected_protocol();
+   
+  bool check_both = false;
+  if (l7_app_protocol != NDPI_PROTOCOL_UNKNOWN) 
+    check_both = true;
+
+  if (detected_protocol.master_protocol == detected_protocol.app_protocol || 
+      detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN){
+    /* CASE master == app OR app == UNKNOWN */
+    if (check_both) return false; /* there's a specific app protocol filter */
+    else if (!check_both && l7_master_protocol != detected_protocol.master_protocol)
+      return false; 
+  } else if (detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN) {
+    /* CASE master == UNKNOWN */
+    if (check_both) return false; /* there's a specific app protocol filter */
+    else if (!check_both && l7_master_protocol != detected_protocol.app_protocol)
+      return false;
+  } else {
+    /* CASE BOTH protocols in Flow */
+    if (check_both) { /* there's a specific app protocol filter */
+      if (l7_master_protocol == detected_protocol.master_protocol && l7_app_protocol != detected_protocol.app_protocol) {
+        /* Same master protocols different app protocols */
+        return false;
+      }
+    } else {
+      /* Just MASTER protocol filter but Flow has both */
+      return false;
+    }
+  }
+
   /* Retrieve server host VLAN and host_key */
-  u_int64_t vlan_id = (u_int64_t) h->get_vlan_id();
-  u_int64_t host_key = (((u_int64_t)h->key()) << 16) + ((u_int64_t)vlan_id);
+  u_int64_t vlan_id = (u_int64_t) f->get_vlan_id();
+  u_int64_t host_key = (((u_int64_t)h->key()) << 16) ;
+  host_key += ((u_int64_t)vlan_id);
 
   /* Retrieve host_details hash */
   std::unordered_map<u_int64_t, HostDetails*> *host_details = hostsPortsAnalysis->get_hosts_details();
@@ -12046,12 +12075,12 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
       u_int32_t flows_count = 1;
       /* Build new host_info instance */
       HostDetails *host_info = new (std::nothrow) HostDetails(
-                    h->get_ip()->print(ip_buf, sizeof(ip_buf)),
+                    f->get_srv_ip_addr()->print(ip_buf, sizeof(ip_buf)),
                     h->getMac() ? h->getMac()->print(mac_buf, sizeof(mac_buf)) : (char*)"",
                     h->getMac() ? (char*)h->getMac()->get_manufacturer() : (char*)"",
                     f->get_bytes_cli2srv() + f->get_bytes_srv2cli(),
-                    h->get_ip()->get_ip_hex(ip_hex_buf, sizeof(ip_hex_buf)),
-                    h->get_vlan_id(),
+                    f->get_srv_ip_addr()->get_ip_hex(ip_hex_buf, sizeof(ip_hex_buf)),
+                    vlan_id,
                     h->getScore(),
                     flows_count,
                     h->get_name(name, sizeof(name), false),
@@ -12075,6 +12104,8 @@ void NetworkInterface::getHostsByPort(lua_State *vm) {
   u_int32_t begin_slot = 0;
   u_int8_t protocol = 0;
   u_int16_t port = 0;
+  int app_protocol = 0;
+  int master_protocol = 0;
   HostsPortsAnalysis count;
 
   if (lua_type(vm, 1) == LUA_TNUMBER)
@@ -12084,6 +12115,16 @@ void NetworkInterface::getHostsByPort(lua_State *vm) {
   if (lua_type(vm, 2) == LUA_TNUMBER) {
     port = (u_int16_t)lua_tonumber(vm, 2);
     count.set_port(port);
+  }
+
+  if (lua_type(vm, 3) == LUA_TNUMBER) {
+    app_protocol = lua_tonumber(vm, 3);
+    count.set_l7_app_proto(app_protocol);
+  }
+
+  if (lua_type(vm, 8) == LUA_TNUMBER) {
+    master_protocol = lua_tonumber(vm, 8);
+    count.set_l7_proto(master_protocol);
   }
 
   walker(&begin_slot, true , walker_flows,

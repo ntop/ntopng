@@ -26,11 +26,12 @@
 
 class HostsPortsAnalysis {
 
-private:
-  u_int16_t port = 0;
-  int l7_protocol_id = 0;
-  u_int8_t l4_protocol_id = 0;
-  std::unordered_map<u_int64_t, HostDetails *> *hosts_details;
+    private:
+        u_int16_t port = 0;
+        u_int8_t l4_protocol_id = 0;
+        int l7_master_protocol_id = 0;
+        int l7_app_protocol = 0;
+        std::unordered_map<u_int64_t, HostDetails *> *hosts_details;
     
 public:
   HostsPortsAnalysis(){
@@ -48,17 +49,19 @@ public:
   };
 
 
-  /* Getters */
-  inline u_int16_t get_port() { return(port); };
-  inline std::unordered_map<u_int64_t, HostDetails *>* get_hosts_details() { return(hosts_details); };
-  inline int get_l7_proto() { return(l7_protocol_id); };
-  inline u_int8_t get_l4_proto() { return(l4_protocol_id); };
+        /* Getters */
+        inline u_int16_t get_port() { return(port); };
+        inline std::unordered_map<u_int64_t, HostDetails *>* get_hosts_details() { return(hosts_details); };
+        inline int get_l7_proto() { return(l7_master_protocol_id); };
+        inline int get_l7_app_proto() { return(l7_app_protocol); };
+        inline u_int8_t get_l4_proto() { return(l4_protocol_id); };
         
-  /* Setters */
-  void add_host_details(HostDetails *host_details);
-  inline void set_port(u_int16_t _port) { port = _port; };
-  inline void set_l7_proto(int l7_proto) { l7_protocol_id = l7_proto; };
-  inline void set_l4_proto(u_int8_t l4_proto) { l4_protocol_id = l4_proto; };
+        /* Setters */
+        void add_host_details(HostDetails *host_details);
+        inline void set_port(u_int16_t _port) { port = _port; };
+        inline void set_l7_proto(int l7_proto) { l7_master_protocol_id = l7_proto; };
+        inline void set_l7_app_proto(int l7_proto) { l7_app_protocol = l7_proto; };
+        inline void set_l4_proto(u_int8_t l4_proto) { l4_protocol_id = l4_proto; };
 };
 
 #endif /* _HOSTS_PORTS_ANALYSIS_H_ */

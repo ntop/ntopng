@@ -29,7 +29,7 @@ class HostsPorts {
     /* <srv_port, app_proto, master_proto> -> (<srv_host, vlan_id> -> 1)*/
     std::unordered_map<u_int64_t, PortDetails*> srv_ports;
     u_int8_t protocol = 0;
-    u_int16_t vlan_id = 0;
+    u_int16_t vlan_id = (u_int16_t)-1;
   
   public:
     HostsPorts(){};
