@@ -624,19 +624,19 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
         end
     elseif list.format == "hosts" then
         -- MAX_TOTAL_DOMAIN_RULES
-        num_rules = ntop.loadCustomCategoryFile(list_fname, 0, list.category, list.name)
+        num_rules = ntop.loadCustomCategoryFile(list_fname, 0, list.category, list.name) or 0
         stats.num_hosts = stats.num_hosts + num_rules
     elseif list.format == "ip_csv" then
         -- MAX_TOTAL_IP_RULES
-        num_rules = ntop.loadCustomCategoryFile(list_fname, 1, list.category, list.name)
+        num_rules = ntop.loadCustomCategoryFile(list_fname, 1, list.category, list.name) or 0
         stats.num_ips = stats.num_ips + num_rules
     elseif list.format == "ip_occurencies" then
         -- MAX_TOTAL_IP_RULES
-        num_rules = ntop.loadCustomCategoryFile(list_fname, 2, list.category, list.name)
+        num_rules = ntop.loadCustomCategoryFile(list_fname, 2, list.category, list.name) or 0
         stats.num_ips = stats.num_ips + num_rules
     elseif list.format == "ip" then
         -- MAX_TOTAL_IP_RULES
-        num_rules = ntop.loadCustomCategoryFile(list_fname, 3, list.category, list.name)
+        num_rules = ntop.loadCustomCategoryFile(list_fname, 3, list.category, list.name) or 0
         stats.num_ips = stats.num_ips + num_rules
     else
         traceError(TRACE_WARNING, TRACE_CONSOLE, "Unknown list format " .. list.format)
