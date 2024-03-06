@@ -96,11 +96,7 @@ NetworkInterface::NetworkInterface(const char *name,
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
   flow_checks_executor = prev_flow_checks_executor = NULL;
   host_checks_executor = prev_host_checks_executor = NULL;
-  flows_dump_json = true; /* JSON dump enabled by default, possibly disabled in
-                             NetworkInterface::startFlowDumping */
-  flows_dump_json_use_labels =
-    false; /* Dump of JSON labels disabled by default, possibly enabled in
-	      NetworkInterface::startFlowDumping */
+  flows_dump_json = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_syslog();
   memset(ifMac, 0, sizeof(ifMac));
 
 #ifdef WIN32
@@ -3471,7 +3467,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget,
 
     /* Prepare the JSON - if requested */
     if (flows_dump_json) {
-      json = f->serialize(flows_dump_json_use_labels);
+      json = f->serialize(true /* Use JSON labels */);
 
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
     }
@@ -3521,7 +3517,7 @@ u_int64_t NetworkInterface::dequeueFlowsForDump(u_int idle_flows_budget,
 
       /* Prepare the JSON - if requested */
       if (flows_dump_json) {
-        json = f->serialize(flows_dump_json_use_labels);
+        json = f->serialize(true /* Use JSON labels */);
 
         // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
       }
@@ -3778,26 +3774,12 @@ static void *flowDumper(void *ptr) {
 /* **************************************************** */
 
 void NetworkInterface::startFlowDumping() {
-  idleFlowsToDump = new (std::nothrow)
-    SPSCQueue<Flow *>(MAX_IDLE_FLOW_QUEUE_LEN, "idleFlowsToDump");
-  activeFlowsToDump = new (std::nothrow)
-    SPSCQueue<Flow *>(MAX_ACTIVE_FLOW_QUEUE_LEN, "activeFlowsToDump");
+  idleFlowsToDump   = new (std::nothrow)SPSCQueue<Flow *>(MAX_IDLE_FLOW_QUEUE_LEN, "idleFlowsToDump");
+  activeFlowsToDump = new (std::nothrow)SPSCQueue<Flow *>(MAX_ACTIVE_FLOW_QUEUE_LEN, "activeFlowsToDump");
 
-  /*
-    Precalculate constants that won't change during the execution.
-  */
-  if (flows_dump_json) {
-    /*
-      Use labels for JSON fields when exporting to ElasticSearch or LogStash.
-    */
-    flows_dump_json_use_labels =
-      ntop->getPrefs()->do_dump_flows_on_es() ||
-      ntop->getPrefs()->do_dump_flows_on_syslog() ||
-      ntop->getPrefs()->do_dump_flows_on_clickhouse();
-  }
-
-  if (!isViewed()) { /* Do not spawn the dumper thread for viewed interfaces -
-                        it's the view interface that has the dumper thread */
+  if (!isViewed()) {
+    /* Do not spawn the dumper thread for viewed interfaces -
+       it's the view interface that has the dumper thread */
     if (idleFlowsToDump && activeFlowsToDump) {
       pthread_create(&flowDumpLoop, NULL, flowDumper, (void *)this);
       flowDumpLoopCreated = true;

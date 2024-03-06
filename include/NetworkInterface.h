@@ -152,12 +152,6 @@ protected:
     Flow JSON contain additional fields not placed inside database columns.
   */
   bool flows_dump_json;
-  /*
-    Flag to indicate whether JSON labels should be used for flow fields inside
-    the dumped flow JSON. If this flag is false, flow fields are keyed with
-    nProbe integer flow keys.
-  */
-  bool flows_dump_json_use_labels;
 
   /* External alerts contain alertable entities other than
    * host/interface/network which are dynamically allocated when an alert for

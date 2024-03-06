@@ -487,7 +487,7 @@ Flow::~Flow() {
     if(protos.dhcp.name) free(protos.dhcp.name);
   } else if(isSMTP()) {
     if(protos.smtp.mail_from) free(protos.smtp.mail_from);
-    if(protos.smtp.rcpt_to) free(protos.smtp.rcpt_to);
+    if(protos.smtp.rcpt_to)   free(protos.smtp.rcpt_to);
   }
 
   if (ndpiFlowRiskName) free(ndpiFlowRiskName);
@@ -2987,9 +2987,10 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
       lua_push_str_table_entry(vm, "flow_end_reason", getEndReason());
 
     if (isSMTP()) {
-      if (protos.smtp.mail_from)
+      if (getSMTPMailFrom())
         lua_push_str_table_entry(vm, "smtp_mail_from", getSMTPMailFrom());
-      if (protos.smtp.rcpt_to)
+
+      if (getSMTPRcptTo())
         lua_push_str_table_entry(vm, "smtp_rcpt_to", getSMTPRcptTo());
     }
 
@@ -4059,15 +4060,15 @@ void Flow::formatGenericFlow(json_object *my_object) {
 #endif
 
   if (isSMTP()) {
-    if (protos.smtp.mail_from)
+    if (getSMTPMailFrom())
       json_object_object_add(my_object,
 			     Utils::jsonLabel(SMTP_MAIL_FROM, "SMTP_MAIL_FROM", jsonbuf, sizeof(jsonbuf)),
-			     json_object_new_string(protos.smtp.mail_from));
+			     json_object_new_string(getSMTPMailFrom()));
 
-    if (protos.smtp.rcpt_to)
+    if (getSMTPRcptTo())
       json_object_object_add(my_object,
 			     Utils::jsonLabel(SMTP_RCPT_TO, "SMTP_RCPT_TO", jsonbuf, sizeof(jsonbuf)),
-			     json_object_new_string(protos.smtp.rcpt_to));
+			     json_object_new_string(getSMTPRcptTo()));
   }
 
   if (isDNS() && protos.dns.last_query)
