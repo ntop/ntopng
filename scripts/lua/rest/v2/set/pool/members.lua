@@ -44,6 +44,7 @@ sendHTTPContentTypeHeader('application/json')
 --]]
 
 local rc = rest_utils.consts.success.ok
+local host_pools_changed = false
 
 -- Instantiate host pools
 local s = host_pools:create()
@@ -84,6 +85,7 @@ for member, info in pairs(_POST["associations"] or {}) do
 
     if connectivity == "pass" then
         if s:bind_member(member, pool_id) == true then
+            host_pools_changed = true
             local current_interface = interface.getId() or -1 -- System Interface
             res["associations"][member]["status"] = "OK"
             interface.select(tostring(interface.getFirstInterfaceId()))
@@ -98,6 +100,7 @@ for member, info in pairs(_POST["associations"] or {}) do
         local terminate_cause = info["terminateCause"] or 3 -- Lost service
         local current_interface = interface.getId() or -1 -- System Interface
         s:bind_member(member, host_pools.DEFAULT_POOL_ID)
+        host_pools_changed = true
         res["associations"][member]["status"] = "OK"
         interface.select(tostring(interface.getFirstInterfaceId()))
         local mac_info = interface.getMacInfo(member)
@@ -109,6 +112,10 @@ for member, info in pairs(_POST["associations"] or {}) do
     end
 
     ::continue::
+end
+
+if host_pools_changed then
+   ntop.reloadHostPools()
 end
 
 rest_utils.answer(rc, res)
