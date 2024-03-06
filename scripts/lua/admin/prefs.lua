@@ -403,6 +403,14 @@ if auth.has_capability(auth.capabilities.preferences) then
             default = "0"
         })
 
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">TLS / QUIC</th></tr></thead>')
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_tls_quic_hostnaming",
+            pref = "tls_quic_hostnaming",
+            default = "0"
+        })
+
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
                 i18n("save") .. '</button></th></tr>')

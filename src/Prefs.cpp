@@ -165,6 +165,7 @@ Prefs::Prefs(Ntop *_ntop) {
   active_monitoring = false;
   vs_max_num_scans = 4;
   vs_slow_scan = false;
+  tls_quic_hostnaming = false;
 #ifndef HAVE_NEDGE
   appliance = false;
 #endif
@@ -1011,6 +1012,8 @@ void Prefs::reloadPrefsFromRedis() {
     getDefaultBoolPrefsValue(CONST_PREFS_EMIT_FLOW_ALERTS, true);
   emit_host_alerts =
     getDefaultBoolPrefsValue(CONST_PREFS_EMIT_HOST_ALERTS, true);
+  tls_quic_hostnaming = 
+    getDefaultBoolPrefsValue(CONST_PREFS_TLS_QUIC_HOSTNAMING, false);
 
   /* Used for stats */
   collect_blacklist_stats = getDefaultBoolPrefsValue(CONST_PREFS_COLLECT_BLACKLISTSTATS, false);
@@ -2662,6 +2665,8 @@ void Prefs::lua(lua_State *vm) {
                             snmp_polling);
   lua_push_bool_table_entry(vm, "active_monitoring", 
                             active_monitoring);
+  lua_push_bool_table_entry(vm, "tls_quic_hostnaming", 
+                            tls_quic_hostnaming);
 
 #ifdef HAVE_NEDGE
   lua_push_bool_table_entry(vm, "is_mac_based_captive_portal",

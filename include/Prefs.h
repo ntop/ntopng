@@ -60,7 +60,8 @@ class Prefs {
     enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
     dump_flows_on_clickhouse, use_mac_in_flow_key, do_reforge_timestamps,
     add_vlan_tags_to_cloud_exporters, collect_blacklist_stats,
-    fail_on_invalid_license, limited_resources_mode, fingerprint_stats;
+    fail_on_invalid_license, limited_resources_mode, fingerprint_stats,
+    tls_quic_hostnaming;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period, modbus_learning_period,
     devices_learning_period;
@@ -385,6 +386,7 @@ class Prefs {
   inline bool do_insecure_tls() { return (insecure_tls); };
   inline bool do_snmp_polling() { return (snmp_polling); };
   inline bool do_active_monitoring(){ return (active_monitoring); };
+  inline bool do_tls_quic_hostnaming() { return (tls_quic_hostnaming); };
   inline char* get_cpu_affinity() { return (cpu_affinity); };
   inline char* get_other_cpu_affinity() { return (other_cpu_affinity); };
 #ifdef __linux__
