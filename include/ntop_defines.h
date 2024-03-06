@@ -723,6 +723,7 @@
   NTOPNG_PREFS_PREFIX ".is_client_x509_auth_enabled"
 #define CONST_PREFS_EMIT_FLOW_ALERTS NTOPNG_PREFS_PREFIX ".emit_flow_alerts"
 #define CONST_PREFS_EMIT_HOST_ALERTS NTOPNG_PREFS_PREFIX ".emit_host_alerts"
+#define CONST_PREFS_TLS_QUIC_HOSTNAMING NTOPNG_PREFS_PREFIX ".tls_quic_hostnaming"
 
 #define CONST_PREFS_COLLECT_BLACKLISTSTATS NTOPNG_PREFS_PREFIX ".collect_blacklist_stats"
 #define CONST_BLACKLIST_DAILY_STATS        NTOPNG_CACHE_PREFIX ".bl_hosts.%s"

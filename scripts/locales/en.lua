@@ -6764,6 +6764,8 @@ local lang = {
     ["toggle_thpt_content_title"] = "Throughput Unit",
     ["toggle_tiny_flows_dump_description"] = "Toggle the dump of tiny flows, that are flows with few packets or bytes. Reduces flow cardinality in databases, speeds-up inserts and searches. Tuning tiny flows can help to limit flow cardinality while not reducing visibility on dumped information.",
     ["toggle_tiny_flows_dump_title"] = "Tiny Flows Dump",
+    ["toggle_tls_quic_hostnaming_description"] = "Enable or disable hostnaming for TLS and QUIC",
+    ["toggle_tls_quic_hostnaming_title"] = "TLS & QUIC hostnames",
     ["toggle_top_sites_description"] = "Toggle the creation of top visited web sites for local hosts. Top sites are created using an <a href=\"%{url}\">heuristic</a> that maintain no more than 20 sites per local host. The heuristic fully operates in memory and does not require any interaction with the disk. Top sites are cleared every 5 minutes. An historical archive of top visited web sites can be created, for each local host, by periodically polling the JSON <i class=\"fas fa-download fa-sm\"></i> download link accessible from host details page. The application protocols of these sites are: TLS, QUIC, HTTP and DNS",
     ["toggle_top_sites_title"] = "Top Visited Sites",
     ["toggle_traffic_rrd_creation_description"] = "Toggle the creation of bytes and packets timeseries.",

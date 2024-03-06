@@ -2250,6 +2250,7 @@ local known_parameters = {
    ["toggle_flow_aggregated_alerted_flows"] = validateBool,
    ["toggle_slow_mode"] = validateBool,
    ["toggle_message_broker"] = validateBool,
+   ["toggle_tls_quic_hostnaming"] = validateBool,
 
    -- Input fields
    ["companion_interface"] = validateEmptyOr(validateInterface),

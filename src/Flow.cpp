@@ -702,7 +702,8 @@ void Flow::processExtraDissectedInformation() {
         protos.tls.notBefore = ndpiFlow->protos.tls_quic.notBefore,
         protos.tls.notAfter = ndpiFlow->protos.tls_quic.notAfter;
 
-        if ((protos.tls.client_requested_server_name == NULL) &&
+        if ((ntop->getPrefs()->do_tls_quic_hostnaming()) &&
+            (protos.tls.client_requested_server_name == NULL) &&
             (ndpiFlow->host_server_name[0] != '\0')) {
           protos.tls.client_requested_server_name =
 	    strdup(ndpiFlow->host_server_name);
@@ -717,7 +718,8 @@ void Flow::processExtraDissectedInformation() {
             c[0] = '\0';
         }
 
-        if ((protos.tls.server_names == NULL) &&
+        if ((ntop->getPrefs()->do_tls_quic_hostnaming()) &&
+            (protos.tls.server_names == NULL) &&
             (ndpiFlow->protos.tls_quic.server_names != NULL))
           protos.tls.server_names =
 	    strdup(ndpiFlow->protos.tls_quic.server_names);
@@ -2243,29 +2245,31 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
 				 protos.tls.server_names ? protos.tls.server_names : "");
 #endif
 
-    if((protos.tls.server_names != NULL)
-       /* Ignore hostnames with wildcard or multiple comma-separated values */
-       && (strchr(protos.tls.server_names, '*') == NULL)
-       && (strchr(protos.tls.server_names, ',') == NULL))
-      srv_host->offlineSetTLSName(protos.tls.server_names);
-    else if((protos.tls.client_requested_server_name != NULL)
-	    && (!hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH)) /* Certificates (if present) do not mismatch */
-	    && (!Utils::isIPAddress(protos.tls.client_requested_server_name))
-	    && (get_packets() >= 16) /*
-				       Avoid micro-flows that might be an indication that
-				       the response page is too short and thus that
-				       it might be a denied page or similar
-				     */
-	    && (!srv_host->isLocalHost()
-		/*
-		  As in TLS we cannot check if the connection reported
-		  some mismatches we do not set TLS names for local hosts
-		  that are more subject to naming errors, and that whose
-		  name could be set via other protocols
-		*/
-		)
-	    )
-      srv_host->offlineSetTLSName(protos.tls.client_requested_server_name); /* (***) */
+    if (ntop->getPrefs()->do_tls_quic_hostnaming()) {
+      if((protos.tls.server_names != NULL)
+        /* Ignore hostnames with wildcard or multiple comma-separated values */
+        && (strchr(protos.tls.server_names, '*') == NULL)
+        && (strchr(protos.tls.server_names, ',') == NULL))
+          srv_host->offlineSetTLSName(protos.tls.server_names);
+      else if((protos.tls.client_requested_server_name != NULL)
+        && (!hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH)) /* Certificates (if present) do not mismatch */
+        && (!Utils::isIPAddress(protos.tls.client_requested_server_name))
+        && (get_packets() >= 16) /*
+                Avoid micro-flows that might be an indication that
+                the response page is too short and thus that
+                it might be a denied page or similar
+              */
+        && (!srv_host->isLocalHost()
+      /*
+        As in TLS we cannot check if the connection reported
+        some mismatches we do not set TLS names for local hosts
+        that are more subject to naming errors, and that whose
+        name could be set via other protocols
+      */
+        )
+        ) 
+          srv_host->offlineSetTLSName(protos.tls.client_requested_server_name); /* (***) */
+    }    
   }
 }
 
