@@ -44,7 +44,7 @@ Flow::Flow(NetworkInterface *_iface,
            u_int8_t *_view_srv_mac)
     : GenericHashEntry(_iface) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  
+
   iface_index = _iface_idx,
   vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port,
   srv_port = _srv_port, privateFlowId = _private_flow_id;
@@ -70,7 +70,7 @@ Flow::Flow(NetworkInterface *_iface,
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
   swap_done = swap_requested = 0;
   current_c_state = MINOR_NO_STATE;
-  
+
 #ifdef HAVE_NEDGE
   last_conntrack_update = 0;
   marker = MARKER_NO_ACTION;
@@ -148,7 +148,7 @@ Flow::Flow(NetworkInterface *_iface,
   } else {
     /*
       View Interface
-      Client host has not been allocated, let's keep the info in an IpAddress.      
+      Client host has not been allocated, let's keep the info in an IpAddress.
     */
     if ((cli_ip_addr = new (std::nothrow) IpAddress(*_cli_ip)))
       cli_ip_addr->reloadBlacklist(iface->get_ndpi_struct());
@@ -495,7 +495,7 @@ Flow::~Flow() {
   if (bt_hash) free(bt_hash);
 
   freeDPIMemory();
-  
+
   if (icmp_info) delete (icmp_info);
   if (json_protocol_info) free(json_protocol_info);
   if (external_alert.json) json_object_put(external_alert.json);
@@ -702,11 +702,8 @@ void Flow::processExtraDissectedInformation() {
         protos.tls.notBefore = ndpiFlow->protos.tls_quic.notBefore,
         protos.tls.notAfter = ndpiFlow->protos.tls_quic.notAfter;
 
-        if ((ntop->getPrefs()->do_tls_quic_hostnaming()) &&
-            (protos.tls.client_requested_server_name == NULL) &&
-            (ndpiFlow->host_server_name[0] != '\0')) {
-          protos.tls.client_requested_server_name =
-	    strdup(ndpiFlow->host_server_name);
+        if(protos.tls.client_requested_server_name == NULL)  {
+          protos.tls.client_requested_server_name = strdup(ndpiFlow->host_server_name);
 
           /* Now some minor cleanup */
           char *c;
@@ -721,22 +718,18 @@ void Flow::processExtraDissectedInformation() {
         if ((ntop->getPrefs()->do_tls_quic_hostnaming()) &&
             (protos.tls.server_names == NULL) &&
             (ndpiFlow->protos.tls_quic.server_names != NULL))
-          protos.tls.server_names =
-	    strdup(ndpiFlow->protos.tls_quic.server_names);
+          protos.tls.server_names = strdup(ndpiFlow->protos.tls_quic.server_names);
 
         if (protos.tls.client_alpn == NULL) {
           if (ndpiFlow->protos.tls_quic.negotiated_alpn != NULL)
-            protos.tls.client_alpn =
-                strdup(ndpiFlow->protos.tls_quic.negotiated_alpn);
+            protos.tls.client_alpn = strdup(ndpiFlow->protos.tls_quic.negotiated_alpn);
           else if (ndpiFlow->protos.tls_quic.advertised_alpns != NULL)
-            protos.tls.client_alpn =
-                strdup(ndpiFlow->protos.tls_quic.advertised_alpns);
+            protos.tls.client_alpn = strdup(ndpiFlow->protos.tls_quic.advertised_alpns);
         }
 
         if ((protos.tls.client_tls_supported_versions == NULL) &&
             (ndpiFlow->protos.tls_quic.tls_supported_versions != NULL))
-          protos.tls.client_tls_supported_versions =
-              strdup(ndpiFlow->protos.tls_quic.tls_supported_versions);
+          protos.tls.client_tls_supported_versions = strdup(ndpiFlow->protos.tls_quic.tls_supported_versions);
 
         if ((protos.tls.issuerDN == NULL) &&
             (ndpiFlow->protos.tls_quic.issuerDN != NULL))
@@ -843,7 +836,7 @@ void Flow::processExtraDissectedInformation() {
           }
         }
 	break;
-      
+
     case NDPI_PROTOCOL_MINING:
       if ((protos.mining.currency == NULL) && (ndpiFlow->protos.mining.currency[0] != '\0'))
         protos.mining.currency = strdup(ndpiFlow->protos.mining.currency);
@@ -890,7 +883,7 @@ void Flow::processExtraDissectedInformation() {
     }
 
     updateSuspiciousDGADomain();
-    // updateHostBlacklists();   
+    // updateHostBlacklists();
   }
 
 #if defined(NTOPNG_PRO)
@@ -1099,7 +1092,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
         }
 
 	setDNSQuery(ndpiFlow->host_server_name, true);
-	
+
         if (ndpiFlow->protos.dns.query_type != 0)
           protos.dns.last_query_type = ndpiFlow->protos.dns.query_type;
 
@@ -1173,13 +1166,13 @@ void Flow::processModbusPacket(bool is_query, const u_char *payload,
      * packet-interface
      */
     u_int16_t len;
-    
+
     if (!isModbus() || (!getInterface()->isPacketInterface()) || (payload_len < 6))
       return;
 
     /* Validate packet */
     len = (payload[4] << 8) + payload[5];
-    
+
     if((len == 0) || ((len+6) != payload_len)) {
       ntop->getTrace()->traceEvent(TRACE_INFO,
 				   "Discarded ModBus/TCP [expected: %u][rcvd: %u][h.len: %u][%02X %02X %02X %02X %02X %02X]",
@@ -1188,7 +1181,7 @@ void Flow::processModbusPacket(bool is_query, const u_char *payload,
 				   payload[3], payload[4], payload[5]);
       return;
     }
-    
+
     if (!modbus) modbus = new (std::nothrow) ModbusStats();
 
     if (modbus)
@@ -1272,10 +1265,10 @@ void Flow::setExtraDissectionCompleted() {
       updateHostBlacklists();
     }
   }
-  
+
   if (ndpiFlow) {
     setErrorCode(ndpi_get_flow_error_code(ndpiFlow));
-    
+
     if (ndpiDetectedProtocol.protocol_by_ip != NDPI_PROTOCOL_UNKNOWN) {
       char *p = ndpi_get_proto_name(iface->get_ndpi_struct(),
                                     ndpiDetectedProtocol.protocol_by_ip);
@@ -1300,7 +1293,7 @@ void Flow::setExtraDissectionCompleted() {
   extra_dissection_completed = 1;
 
   /* Free the nDPI memory */
-  freeDPIMemory();  
+  freeDPIMemory();
 }
 
 /* *************************************** */
@@ -1318,7 +1311,7 @@ void Flow::updateHostBlacklists() {
 
 	  Will be updated by ViewInterface::viewed_flows_walker
 	*/
-      }	
+      }
     } else if (isBlacklistedServer()) {
       if(srv_host)
 	srv_host->setBlacklistName(cat); /* Standard Interface */
@@ -1329,7 +1322,7 @@ void Flow::updateHostBlacklists() {
 	  Will be updated by ViewInterface::viewed_flows_walker
 	*/
       }
-    }      
+    }
   }
 }
 
@@ -1599,7 +1592,7 @@ char *Flow::print(char *buf, u_int buf_len, bool full_report) const {
   char buf1[32], buf2[32], buf3[32], buf4[32], buf5[32], pbuf[32], tcp_buf[64];
 
   buf[0] = '\0';
-  
+
   if(!full_report) {
     snprintf(buf, buf_len, "%s %s:%u <-> %s:%u",
 	     get_protocol_name(),
@@ -1609,7 +1602,7 @@ char *Flow::print(char *buf, u_int buf_len, bool full_report) const {
 	     ntohs(srv_port));
     return(buf);
   }
-  
+
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
   char shapers[64];
 
@@ -2136,7 +2129,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
           cli_host->offlineSetNetbiosName(protos.netbios.name);
       }
       break;
-    
+
     case NDPI_PROTOCOL_DHCP:
       if (cli_host) {
         if (protos.dhcp.name) {
@@ -2267,9 +2260,9 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
         name could be set via other protocols
       */
         )
-        ) 
+        )
           srv_host->offlineSetTLSName(protos.tls.client_requested_server_name); /* (***) */
-    }    
+    }
   }
 }
 
@@ -2328,7 +2321,7 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
 
 #if DEBUG_TREND
     u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
-    
+
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "[tdiff_msec: %.2f][diff_bytes: %lu][diff_sent_bytes: "
 				 "%lu][diff_rcvd_bytes: %lu][bytes_thpt: %.4f]",
@@ -2338,7 +2331,7 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
 
     if (top_bytes_thpt < get_bytes_thpt())
       top_bytes_thpt = get_bytes_thpt();
-    
+
     if (top_goodput_bytes_thpt < get_goodput_bytes_thpt())
       top_goodput_bytes_thpt = get_goodput_bytes_thpt();
 
@@ -2483,7 +2476,7 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 
     if (last_update_time.tv_sec > 0) {
       float tdiff_msec = Utils::msTimevalDiff(tv, &last_update_time);
-      
+
       updateThroughputStats(tdiff_msec, diff_sent_packets, diff_sent_bytes,
 			    diff_sent_goodput_bytes, diff_rcvd_packets,
 			    diff_rcvd_bytes, diff_rcvd_goodput_bytes);
@@ -2804,7 +2797,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
   if (details_level >= details_high) {
     if(swap_done) lua_push_bool_table_entry(vm, "flow_swapped", true);
-    lua_push_uint32_table_entry(vm, "flow_source", flow_source);   
+    lua_push_uint32_table_entry(vm, "flow_source", flow_source);
     lua_push_bool_table_entry(vm, "cli.allowed_host", src_match);
     lua_push_bool_table_entry(vm, "srv.allowed_host", dst_match);
 
@@ -2992,9 +2985,9 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
                               is_periodic_flow ? true : false);
     if (end_reason)
       lua_push_str_table_entry(vm, "flow_end_reason", getEndReason());
-    
+
     if (isSMTP()) {
-      if (protos.smtp.mail_from) 
+      if (protos.smtp.mail_from)
         lua_push_str_table_entry(vm, "smtp_mail_from", getSMTPMailFrom());
       if (protos.smtp.rcpt_to)
         lua_push_str_table_entry(vm, "smtp_rcpt_to", getSMTPRcptTo());
@@ -3081,7 +3074,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
                        true /* Country and City */);
       }
     }
-    
+
     lua_confidence(vm);
     lua_get_risk_info(vm);
     lua_entropy(vm);
@@ -3099,7 +3092,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
   lua_push_str_table_entry(vm, "proto.ndpi_confidence",
 			   ndpi_confidence_get_name(ndpi_confidence));
-  
+
   // this is used to dynamicall update entries in the GUI
   lua_push_uint64_table_entry(vm, "ntopng.key", key());  // Key
   lua_push_uint64_table_entry(vm, "hash_entry_id", get_hash_entry_id());
@@ -3511,7 +3504,7 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
     json_object_object_add(network_object,
 			   Utils::jsonLabel(LAST_SWITCHED, "last_seen", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(get_partial_last_seen()));
-    
+
     json_object *category_object;
     if ((category_object = json_object_new_object()) != NULL) {
       json_object_object_add(category_object,
@@ -3687,13 +3680,13 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
 			   Utils::jsonLabel(TCP_FLAGS, "packets_lost", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int64(is_client ? stats.get_cli2srv_tcp_lost()
 						 : stats.get_srv2cli_tcp_lost()));
-    
+
     if (vlanId > 0)
       json_object_object_add(host_object,
                              Utils::jsonLabel(is_client ? SRC_VLAN : DST_VLAN,
                                               "vlan", jsonbuf, sizeof(jsonbuf)),
                              json_object_new_int(vlanId));
-    
+
     if (protocol == IPPROTO_TCP)
       json_object_object_add(
           host_object,
@@ -3927,7 +3920,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
 					  sizeof(jsonbuf)),
 			 json_object_new_int64((u_int64_t)ndpi_flow_risk_bitmap));
 
-  if (ndpiFlowRiskName) 
+  if (ndpiFlowRiskName)
     json_object_object_add(my_object,
 			   Utils::jsonLabel(L7_PROTO_RISK_NAME, "L7_PROTO_RISK_NAME", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_string(ndpiFlowRiskName));
@@ -3937,7 +3930,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			   Utils::jsonLabel(FLOW_END_REASON, "FLOW_END_REASON", jsonbuf,
 					    sizeof(jsonbuf)),
 			   json_object_new_string(end_reason));
-  
+
   if (protocol == IPPROTO_TCP) {
     json_object_object_add(my_object,
 			   Utils::jsonLabel(TCP_FLAGS, "TCP_FLAGS", jsonbuf, sizeof(jsonbuf)),
@@ -3967,7 +3960,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			   my_object,
 			   Utils::jsonLabel(TCP_FLAGS, "OUT_LOST", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int64(stats.get_srv2cli_tcp_lost()));
-    
+
     json_object_object_add(
 			   my_object,
 			   Utils::jsonLabel(APPL_LATENCY_MS, "APPL_LATENCY_MS", jsonbuf, sizeof(jsonbuf)),
@@ -4008,7 +4001,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
     json_object_object_add(my_object,
 			   Utils::jsonLabel(SRC_VLAN, "SRC_VLAN", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(vlanId));
-  
+
   if (protocol == IPPROTO_TCP) {
     json_object_object_add(my_object,
 			   Utils::jsonLabel(CLIENT_NW_LATENCY_MS, "CLIENT_NW_LATENCY_MS", jsonbuf,
@@ -4066,31 +4059,31 @@ void Flow::formatGenericFlow(json_object *my_object) {
 #endif
 
   if (isSMTP()) {
-    if (protos.smtp.mail_from) 
+    if (protos.smtp.mail_from)
       json_object_object_add(my_object,
 			     Utils::jsonLabel(SMTP_MAIL_FROM, "SMTP_MAIL_FROM", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(protos.smtp.mail_from));
-      
-    if (protos.smtp.rcpt_to) 
+
+    if (protos.smtp.rcpt_to)
       json_object_object_add(my_object,
 			     Utils::jsonLabel(SMTP_RCPT_TO, "SMTP_RCPT_TO", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(protos.smtp.rcpt_to));
   }
-    
+
   if (isDNS() && protos.dns.last_query)
     json_object_object_add(my_object,
 			   Utils::jsonLabel(DNS_QUERY, "DNS_QUERY", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_string(protos.dns.last_query));
-    
+
   json_object_object_add(my_object,
 			 Utils::jsonLabel(COMMUNITY_ID, "COMMUNITY_ID", jsonbuf, sizeof(jsonbuf)),
 			 json_object_new_string((char *)getCommunityId(community_id, sizeof(community_id))));
-    
+
   json_object_object_add(my_object,
 			 Utils::jsonLabel(L7_RISK_SCORE, "L7_RISK_SCORE",
                                           jsonbuf, sizeof(jsonbuf)),
                          json_object_new_int(getScore()));
-  
+
   if (isHTTP()) {
     if (host_server_name && host_server_name[0] != '\0')
       json_object_object_add(my_object,
@@ -4500,11 +4493,11 @@ void Flow::decAllFlowScores() {
 
     if (cli_u && cli_score_val)
       cli_u->decScoreValue(cli_score_val, score_category, true /* as client */);
-    
+
     if (srv_u && srv_score_val)
       srv_u->decScoreValue(srv_score_val, score_category, false /* as server */);
   }
-  
+
   /*
   Perform other operations to decrease counters increased by flow user script
   hooks (we're in the same thread)
@@ -5137,7 +5130,7 @@ void Flow::addFlowStats(bool new_flow, bool cli2srv_direction, u_int in_pkts,
   //if (new_flow)
   {
     float tdiff_msec = (float)(ndpi_max(1, (last_seen-first_seen))) * 1000.;
-    
+
     if (cli2srv_direction)
       updateThroughputStats(tdiff_msec, in_pkts, in_bytes, 0, out_pkts, out_bytes, 0);
     else
@@ -5790,7 +5783,7 @@ void Flow::dissectBittorrent(char *payload, u_int16_t payload_len) {
 bool Flow::setDNSQuery(char *v, bool copy_memory) {
   if ((v != NULL) && isDNS()) {
     time_t last_pkt_rcvd = getInterface()->getTimeLastPktRcvd();
-    
+
     if (!protos.dns.last_query_shadow /* The first time the swap is done */
         ||
         protos.dns.last_query_update_time + 1 <
@@ -5799,11 +5792,11 @@ bool Flow::setDNSQuery(char *v, bool copy_memory) {
       protos.dns.last_query_shadow = protos.dns.last_query;
       protos.dns.last_query = copy_memory ? strdup(v) : v;
       protos.dns.last_query_update_time = last_pkt_rcvd;
-      
+
       return true; /* Swap successful */
     }
   }
-  
+
   /* Unable to set the DNS query. Too early or not a DNS flow. */
   return false;
 }
@@ -6232,7 +6225,7 @@ void Flow::dissectMDNS(u_int8_t *payload, u_int16_t payload_len) {
 
     if((i+sizeof(rsp)) >= payload_len)
       return; /* packet too short */
-    
+
     memcpy(&rsp, &payload[i], sizeof(rsp));
     data_len = ntohs(rsp.data_len), rsp_type = ntohs(rsp.rsp_type);
 
@@ -6513,9 +6506,9 @@ void Flow::updateFlowShapers(bool first_update) {
       false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
   new_verdict = (cli2srv_verdict && srv2cli_verdict);
 
-  if (ntop->getPrefs()->are_device_protocol_policies_enabled() && 
+  if (ntop->getPrefs()->are_device_protocol_policies_enabled() &&
       cli_host &&
-      srv_host && 
+      srv_host &&
       new_verdict) {
     /* NOTE: this must be handled differently to only consider actual peers
      * direction */
@@ -6720,7 +6713,7 @@ void Flow::updateCliJA3() {
 void Flow::updateCliJA4() {
   if (cli_host && isTLS() && protos.tls.ja4.client_hash) {
     Fingerprint *f = cli_host->getJA4Fingerprint();
-    
+
     if(f)
       f->update(protos.tls.ja4.client_hash,
 		ebpf ? ebpf->src_process_info.process_name : NULL,
@@ -6903,7 +6896,7 @@ void Flow::lua_get_throughput(lua_State *vm) const {
 			     (get_bytes_cli2srv() + get_bytes_srv2cli()) / get_duration());
   lua_push_float_table_entry(vm, "average_throughput_pps",
 			     (get_packets_cli2srv() + get_packets_srv2cli()) / get_duration());
-  
+
   // overall throughput stats
   lua_push_float_table_entry(vm, "top_throughput_bps", top_bytes_thpt);
   lua_push_float_table_entry(vm, "throughput_bps", get_bytes_thpt());
@@ -7453,7 +7446,7 @@ void Flow::getTLSInfo(ndpi_serializer *serializer) const {
     }
   }
 
-  
+
 
 }
 
@@ -8317,7 +8310,7 @@ void Flow::swap() {
     InterarrivalStats *is = cli2srvPktTime;
     time_t now = time(NULL);
     u_int32_t tmp32;
-    
+
 #if 0
     char buf[128];
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Swapping %s", print(buf, sizeof(buf)));
@@ -8381,7 +8374,7 @@ void Flow::swap() {
     tmp32 = flow_device.in_index;
     flow_device.in_index = flow_device.out_index;
     flow_device.out_index = tmp32;
-    
+
     /*
       We do not swap L7 info as if it direction was wrong they were not computed
       Same applies with latency counters
@@ -8438,7 +8431,7 @@ void Flow::updateTCPHostServices(Host *cli_h, Host *srv_h) {
 	   && (get_cli_port() < get_srv_port())))
       swap_requested = 1;
     break;
-    
+
     default:
       break;
   } /* switch */
@@ -8559,7 +8552,7 @@ void Flow::lua_get_flow_connection_state(lua_State *vm) {
 
 MajorConnectionStates Flow::getMajorConnState() {
   MajorConnectionStates major_conn_state = MAJOR_NO_STATE;
-  
+
   switch (getCurrentConnectionState()) {
   case S0:
   case REJ:
@@ -8586,7 +8579,7 @@ MajorConnectionStates Flow::getMajorConnState() {
     major_conn_state = MAJOR_NO_STATE;
     break;
   }
-  
+
   return(major_conn_state);
 }
 
@@ -8594,7 +8587,7 @@ MajorConnectionStates Flow::getMajorConnState() {
 
 bool Flow::checkS1ConnState() {
 
-return(current_c_state == S1 || ((src2dst_tcp_flags & TCP_3WH_MASK)&& 
+return(current_c_state == S1 || ((src2dst_tcp_flags & TCP_3WH_MASK)&&
       (dst2src_tcp_flags & TCP_3WH_MASK) &&                                   /* 3WH OK */
       !((src2dst_tcp_flags & TH_FIN) && (src2dst_tcp_flags & TH_ACK)) &&  /* NO FIN ACK in src2dst */
       !(src2dst_tcp_flags & TH_RST) && !(dst2src_tcp_flags & TH_RST)      /* NO RST */
@@ -8605,10 +8598,10 @@ return(current_c_state == S1 || ((src2dst_tcp_flags & TCP_3WH_MASK)&&
 
 MinorConnectionStates Flow::calculateConnectionState() {
   if(!isTCP())
-    return(setCurrentConnectionState(MINOR_NO_STATE)); 
+    return(setCurrentConnectionState(MINOR_NO_STATE));
 
   /* Check S0 or RSTOS0 or REJ or SH */
-  if ((src2dst_tcp_flags & TH_SYN) && 
+  if ((src2dst_tcp_flags & TH_SYN) &&
       !(dst2src_tcp_flags & TH_SYN)) {
     if (!(dst2src_tcp_flags & TH_RST)) {
       if ((src2dst_tcp_flags & TH_RST)) {
@@ -8624,23 +8617,23 @@ MinorConnectionStates Flow::calculateConnectionState() {
       return(setCurrentConnectionState(REJ));
     }
   }
-    
+
   /* Check RSTRH */
-  if ((dst2src_tcp_flags & TH_SYN) && 
+  if ((dst2src_tcp_flags & TH_SYN) &&
       (dst2src_tcp_flags & TH_ACK) &&
-      (dst2src_tcp_flags & TH_RST) && 
-      !(src2dst_tcp_flags & TH_SYN)) 
+      (dst2src_tcp_flags & TH_RST) &&
+      !(src2dst_tcp_flags & TH_SYN))
     return(setCurrentConnectionState(RSTRH));
 
   /* Check SHR */
-  if ((dst2src_tcp_flags & TH_SYN) && 
+  if ((dst2src_tcp_flags & TH_SYN) &&
       (dst2src_tcp_flags & TH_ACK) &&
-      (dst2src_tcp_flags & TH_FIN) && 
+      (dst2src_tcp_flags & TH_FIN) &&
       !(src2dst_tcp_flags & TH_SYN) )
     return(setCurrentConnectionState(SHR));
-  
+
   /* Check OTH */
-  if (!(src2dst_tcp_flags & TH_SYN) && 
+  if (!(src2dst_tcp_flags & TH_SYN) &&
       !(dst2src_tcp_flags & TH_SYN))
     return(setCurrentConnectionState(OTH));
 
@@ -8655,22 +8648,22 @@ MinorConnectionStates Flow::calculateConnectionState() {
     return(setCurrentConnectionState(SF));
 
   /* Check S2 */
-  if ((is_s1) && 
-      (src2dst_tcp_flags & TH_FIN) && 
+  if ((is_s1) &&
+      (src2dst_tcp_flags & TH_FIN) &&
       !(dst2src_tcp_flags & TH_FIN))
     return(setCurrentConnectionState(S2));
-  
+
   /* Check S3 */
-  if ((is_s1) && 
+  if ((is_s1) &&
       !(src2dst_tcp_flags & TH_FIN) &&
-       (dst2src_tcp_flags & TH_FIN)) 
+       (dst2src_tcp_flags & TH_FIN))
     return(setCurrentConnectionState(S3));
-  
+
   /* Check RSTO */
-  if ((is_s1) && 
+  if ((is_s1) &&
       (src2dst_tcp_flags & TH_RST))
     return(setCurrentConnectionState(RSTO));
-  
+
   /* Check RSTR */
   if ((is_s1) &&
       (dst2src_tcp_flags & TH_RST))
@@ -8683,5 +8676,5 @@ MinorConnectionStates Flow::calculateConnectionState() {
   if (getCurrentConnectionState() != MINOR_NO_STATE)
     return(getCurrentConnectionState());
 
-  return(setCurrentConnectionState(MINOR_NO_STATE));  
+  return(setCurrentConnectionState(MINOR_NO_STATE));
 }
