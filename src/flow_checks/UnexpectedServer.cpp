@@ -110,22 +110,24 @@ bool UnexpectedServer::loadConfiguration(json_object *config) {
         /* Domain name */
         char whitelisted_domain[255];
 
-        snprintf(whitelisted_domain, sizeof(whitelisted_domain), "%s",
-                 server_ptr);
+        snprintf(whitelisted_domain, sizeof(whitelisted_domain), "%s", server_ptr);
         Utils::stringtolower(whitelisted_domain);
 
         if (!whitelist_automa) whitelist_automa = ndpi_init_automa();
 
         if (whitelist_automa) {
           char *str = strdup(whitelisted_domain);
-          if (str) {
-            ndpi_add_string_to_automa(whitelist_automa, str);
-          }
+	  
+          if (str)
+            ndpi_add_string_to_automa(whitelist_automa, str);          
         }
       }
     }
   }
 
+  if(whitelist_automa)
+    ndpi_finalize_automa(whitelist_automa);
+  
   return (true);
 }
 
