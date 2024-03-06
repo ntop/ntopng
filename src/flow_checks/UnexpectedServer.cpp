@@ -126,6 +126,9 @@ bool UnexpectedServer::loadConfiguration(json_object *config) {
     }
   }
 
+  if(whitelist_automa)
+    ndpi_finalize_automa(whitelist_automa);
+  
   return (true);
 }
 
