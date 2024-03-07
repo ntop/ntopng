@@ -96,7 +96,7 @@ NetworkInterface::NetworkInterface(const char *name,
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
   flow_checks_executor = prev_flow_checks_executor = NULL;
   host_checks_executor = prev_host_checks_executor = NULL;
-  flows_dump_json = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_syslog();
+  flows_dump_json = true; /* Too early will be set by NetworkInterface::startFlowDumping() */
   memset(ifMac, 0, sizeof(ifMac));
 
 #ifdef WIN32
@@ -3777,6 +3777,8 @@ void NetworkInterface::startFlowDumping() {
   idleFlowsToDump   = new (std::nothrow)SPSCQueue<Flow *>(MAX_IDLE_FLOW_QUEUE_LEN, "idleFlowsToDump");
   activeFlowsToDump = new (std::nothrow)SPSCQueue<Flow *>(MAX_ACTIVE_FLOW_QUEUE_LEN, "activeFlowsToDump");
 
+  ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_syslog();
+  
   if (!isViewed()) {
     /* Do not spawn the dumper thread for viewed interfaces -
        it's the view interface that has the dumper thread */
