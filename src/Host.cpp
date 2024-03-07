@@ -1082,8 +1082,10 @@ char *Host::get_name(char *buf, u_int buf_len,
   getMDNSInfo(name_buf, sizeof(name_buf));
   if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
 
-  getTLSName(name_buf, sizeof(name_buf));
-  if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
+  if (ntop->getPrefs()->do_tls_quic_hostnaming()) {
+    getTLSName(name_buf, sizeof(name_buf));
+    if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
+  }
 
   getHTTPName(name_buf, sizeof(name_buf));
   if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
@@ -1754,7 +1756,8 @@ void Host::offlineSetTLSName(const char *tls_n) {
   
   if (!names.tls && tls_n && (names.tls = Utils::toLowerResolvedNames(tls_n))) {
 #ifdef NTOPNG_PRO
-    ntop->get_am()->setResolvedName(this, label_tls, names.tls);
+    if (ntop->getPrefs()->do_tls_quic_hostnaming())
+      ntop->get_am()->setResolvedName(this, label_tls, names.tls);
 #endif
   }
 }

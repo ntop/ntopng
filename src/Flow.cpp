@@ -715,8 +715,7 @@ void Flow::processExtraDissectedInformation() {
             c[0] = '\0';
         }
 
-        if ((ntop->getPrefs()->do_tls_quic_hostnaming()) &&
-            (protos.tls.server_names == NULL) &&
+        if ((protos.tls.server_names == NULL) &&
             (ndpiFlow->protos.tls_quic.server_names != NULL))
           protos.tls.server_names = strdup(ndpiFlow->protos.tls_quic.server_names);
 
@@ -2238,13 +2237,12 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
 				 protos.tls.server_names ? protos.tls.server_names : "");
 #endif
 
-    if (ntop->getPrefs()->do_tls_quic_hostnaming()) {
-      if((protos.tls.server_names != NULL)
+    if((protos.tls.server_names != NULL)
         /* Ignore hostnames with wildcard or multiple comma-separated values */
         && (strchr(protos.tls.server_names, '*') == NULL)
         && (strchr(protos.tls.server_names, ',') == NULL))
-          srv_host->offlineSetTLSName(protos.tls.server_names);
-      else if((protos.tls.client_requested_server_name != NULL)
+      srv_host->offlineSetTLSName(protos.tls.server_names);
+    else if((protos.tls.client_requested_server_name != NULL)
         && (!hasRisk(NDPI_TLS_CERTIFICATE_MISMATCH)) /* Certificates (if present) do not mismatch */
         && (!Utils::isIPAddress(protos.tls.client_requested_server_name))
         && (get_packets() >= 16) /*
@@ -2259,10 +2257,8 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
         that are more subject to naming errors, and that whose
         name could be set via other protocols
       */
-        )
-        )
-          srv_host->offlineSetTLSName(protos.tls.client_requested_server_name); /* (***) */
-    }
+        ))
+      srv_host->offlineSetTLSName(protos.tls.client_requested_server_name); /* (***) */
   }
 }
 
