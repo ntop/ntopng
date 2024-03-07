@@ -1242,14 +1242,14 @@ historical_flow_utils.builtin_presets = {
       chart =
          {
             {
-               unit_measure = "bps_no_scale",
+               unit_measure = "bps",
                params = {
                   count = "THROUGHPUT"
                }
             }
          },
    },
-   {
+--[[   {
       id = "raw_flows_records",
       i18n_name = "queries.raw_flows_records",
       name = i18n("queries.raw_flows_records"),
@@ -1258,10 +1258,11 @@ historical_flow_utils.builtin_presets = {
             {
                unit_measure = "number",
                params = {
+                  COUNT = "NUM_FLOWS"
                }
             }
          },
-   },
+   },]]
    {
       id = "raw_flows_bytes",
       i18n_name = "queries.raw_flows_bytes",
