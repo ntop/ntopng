@@ -1425,9 +1425,11 @@ bool Ntop::isPcapDownloadAllowed(lua_State *vm, const char *ifname) {
 char *Ntop::preparePcapDownloadFilter(lua_State *vm, char *filter) {
   char *username;
   char *restricted_filter = NULL;
-  char key[64], val[MAX_USER_NETS_VAL_LEN], val_cpy[MAX_USER_NETS_VAL_LEN];
+  char key[64], nets[MAX_USER_NETS_VAL_LEN], nets_cpy[MAX_USER_NETS_VAL_LEN];
   char *tmp, *net;
-  int filter_len, len = 0, off = 0, num_nets = 0;
+  int filter_len = 0, len = 0, off = 0, num_nets = 0;
+
+  /* check user */
 
   if (isUserAdministrator(vm)) /* keep the original filter */
     goto no_restriction;
@@ -1435,40 +1437,43 @@ char *Ntop::preparePcapDownloadFilter(lua_State *vm, char *filter) {
   username = getLuaVMUserdata(vm, user);
   if (username == NULL || username[0] == '\0') return (NULL);
 
+  /* read networks */
+
   snprintf(key, sizeof(key), CONST_STR_USER_NETS, username);
-
-  if (ntop->getRedis()->get(key, val, sizeof(val)) == -1)
+  if (ntop->getRedis()->get(key, nets, sizeof(nets)) < 0 || strlen(nets) == 0)
     goto no_restriction; /* no subnet configured for this user */
-
-  if (strlen(val) == 0)
-    goto no_restriction; /* no subnet configured for this user */
-
-  /* compute final filter length */
 
   if (filter != NULL)
     filter_len = strlen(filter);
-  else
-    filter_len = 0;
 
-  if (filter_len > 0) len = filter_len + strlen("() and ()");
-
+  num_nets = 0;
   tmp = NULL;
-  strcpy(val_cpy, val);
-  net = strtok_r(val_cpy, ",", &tmp);
+  strcpy(nets_cpy, nets);
+  net = strtok_r(nets_cpy, ",", &tmp);
   while (net != NULL) {
-    len += strlen(" or net ") + strlen(net);
+    if (strcmp(net, "0.0.0.0/0") != 0 && strcmp(net, "::/0") != 0)
+      num_nets++;
     net = strtok_r(NULL, ",", &tmp);
   }
 
+  if (num_nets == 0)
+    goto no_restriction;
+
   /* build final/restricted filter */
+
+  len = filter_len + strlen(nets) + num_nets * strlen(" or net ") + strlen("() and ()") + 1;
 
   restricted_filter = (char *)malloc(len + 1);
   if (restricted_filter == NULL) return (NULL);
+  restricted_filter[0] = '\0';
 
-  if (filter_len > 0) off += snprintf(&restricted_filter[off], len - off, "(");
+  if (filter_len > 0)
+    off += snprintf(&restricted_filter[off], len - off, "(");
 
+  num_nets = 0;
   tmp = NULL;
-  net = strtok_r(val, ",", &tmp);
+  strcpy(nets_cpy, nets);
+  net = strtok_r(nets_cpy, ",", &tmp);
   while (net != NULL) {
     if (strcmp(net, "0.0.0.0/0") != 0 && strcmp(net, "::/0") != 0) {
       if (num_nets > 0)

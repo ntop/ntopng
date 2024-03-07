@@ -207,7 +207,7 @@ bool TimelineExtract::extractLive(struct mg_connection *conn,
                                   const char *timeline_path) {
   bool completed = false;
 #ifdef HAVE_PF_RING
-  pfring *handle;
+  pfring *handle = NULL;
   u_char *packet = NULL;
   struct pfring_pkthdr h;
   struct pcap_file_header pcaphdr;
@@ -218,49 +218,51 @@ bool TimelineExtract::extractLive(struct mg_connection *conn,
   memset(&h, 0, sizeof(h));
   stats.packets = stats.bytes = 0;
 
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Running live extraction");
-
-  if (!timeline_path || timeline_path[0] == '\0')
+  if (!timeline_path || timeline_path[0] == '\0') {
+    ntop->getTrace()->traceEvent(TRACE_INFO,
+      "Running live extraction on iface %s interval %ld-%ld filter '%s'",
+      iface->get_name(), from, to, bpf_filter ? bpf_filter : "");
     handle = openTimelineFromInterface(iface, from, to, bpf_filter);
-  else
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_INFO,
+      "Running live extraction on timeline %s interval %ld-%ld filter '%s'",
+      timeline_path, from, to, bpf_filter ? bpf_filter : "");
     handle = openTimeline(timeline_path, from, to, bpf_filter);
-
-  if (handle == NULL) {
-    goto error;
   }
 
-  Utils::init_pcap_header(&pcaphdr, pfring_get_link_type(handle),
-                          pfring_get_caplen(handle));
+  if (handle != NULL) {
 
-  if (!Utils::mg_write_retry(conn, (u_char *)&pcaphdr, sizeof(pcaphdr)))
-    http_client_disconnected = true;
-
-  while (!http_client_disconnected && !ntop->getGlobals()->isShutdown() &&
-         (rc = pfring_recv(handle, &packet, 0, &h, 0)) > 0) {
-    pkthdr.ts.tv_sec = h.ts.tv_sec;
-    pkthdr.ts.tv_usec = h.ts.tv_usec, pkthdr.caplen = h.caplen;
-    pkthdr.len = h.len;
-
-    if (!Utils::mg_write_retry(conn, (u_char *)&pkthdr, sizeof(pkthdr)) ||
-        !Utils::mg_write_retry(conn, (u_char *)packet, h.caplen))
+    /* Write pcap header */
+    Utils::init_pcap_header(&pcaphdr, pfring_get_link_type(handle),
+                            pfring_get_caplen(handle));
+    if (!Utils::mg_write_retry(conn, (u_char *)&pcaphdr, sizeof(pcaphdr)))
       http_client_disconnected = true;
 
-    stats.packets++;
-    stats.bytes += sizeof(struct pcap_disk_pkthdr) + h.caplen;
+    /* Write packets */
+    while (!http_client_disconnected && !ntop->getGlobals()->isShutdown() &&
+           (rc = pfring_recv(handle, &packet, 0, &h, 0)) > 0) {
+      pkthdr.ts.tv_sec = h.ts.tv_sec;
+      pkthdr.ts.tv_usec = h.ts.tv_usec, pkthdr.caplen = h.caplen;
+      pkthdr.len = h.len;
+
+      if (!Utils::mg_write_retry(conn, (u_char *)&pkthdr, sizeof(pkthdr)) ||
+          !Utils::mg_write_retry(conn, (u_char *)packet, h.caplen))
+        http_client_disconnected = true;
+
+      stats.packets++;
+      stats.bytes += sizeof(struct pcap_disk_pkthdr) + h.caplen;
+    }
+
+    pfring_close(handle);
+
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Live extraction completed %s",
+        http_client_disconnected ? "(disconnected)" : "");
+
+    completed = true;
+
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Live extraction failed");
   }
-
-  completed = true;
-  pfring_close(handle);
-
-error:
-  if (completed)
-    ntop->getTrace()->traceEvent(
-        TRACE_INFO, "Live extraction %s %s", "completed",
-        http_client_disconnected ? "(disconnected)" : "");
-  else
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Live extraction %s %s", "failed",
-        http_client_disconnected ? "(disconnected)" : "");
 #endif
 
   return completed;
