@@ -93,7 +93,7 @@ NetworkInterface::NetworkInterface(const char *name,
   influxdb_ts_exporter = rrd_ts_exporter = NULL;
   flow_checks_executor = prev_flow_checks_executor = NULL;
   host_checks_executor = prev_host_checks_executor = NULL;
-  flows_dump_json = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_syslog();
+  flows_dump_json = true; /* Too early: will be set by  NetworkInterface::startFlowDumping */
   flows_dump_json_use_labels =
     false; /* Dump of JSON labels disabled by default, possibly enabled in
 	      NetworkInterface::startFlowDumping */
@@ -3662,6 +3662,8 @@ void NetworkInterface::startFlowDumping() {
   activeFlowsToDump = new (std::nothrow)
     SPSCQueue<Flow *>(MAX_ACTIVE_FLOW_QUEUE_LEN, "activeFlowsToDump");
 
+  flows_dump_json = ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_syslog();
+  
   /*
     Precalculate constants that won't change during the execution.
   */
