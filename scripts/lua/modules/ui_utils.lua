@@ -188,7 +188,7 @@ function ui_utils.draw_pcap_download_dialog(ifid)
      submit = i18n("traffic_recording.download"),
      form_method = "post",
      validator_options = "{ custom: { bpf: bpfValidator }, errors: { bpf: '"..i18n("traffic_recording.invalid_bpf").."' } }",
-     form_action = ntop.getHttpPrefix().."/lua/traffic_extraction.lua",
+     form_action = ntop.getHttpPrefix().."/lua/rest/v2/create/pcap/extraction/task.lua",
      form_onsubmit = "submitPcapDownload",
      advanced_class = "d-none",
      extract_now_class = "d-none", -- direct download only

@@ -113,10 +113,9 @@ export default defineComponent({
 		let url_request = `${http_prefix}/lua/rest/v2/get/pcap/live_extraction.lua?${url_request_params}`;
 		window.open(url_request, '_self', false);
 	    } else {
-		let url_request = `${http_prefix}/lua/traffic_extraction.lua?${url_request_params}`;
-		let resp = await ntopng_utility.http_request(url_request, null, false, true);
-		let job_id = resp.id;
-		//let job_id = 2;
+		let url_request = `${http_prefix}/lua/rest/v2/create/pcap/extraction/task.lua?${url_request_params}`;
+		let job_info = await ntopng_utility.http_request(url_request);
+		let job_id = job_info.id;
 		let alert_text_html = i18n('traffic_recording.extraction_scheduled');
 		let page_name = i18n('traffic_recording.traffic_extraction_jobs');
 		let ifid = ntopng_url_manager.get_url_entry("ifid");

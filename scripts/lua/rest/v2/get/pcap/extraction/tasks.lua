@@ -12,6 +12,13 @@ local json = require "dkjson"
 
 sendHTTPHeader('application/json')
 
+--
+-- Read scheduled pcap extraction tasks
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/get/pcap/extraction/tasks.lua
+--
+-- NOTE: in case of invalid login, no error is returned but redirected to login
+--
+
 if not recording_utils.isAvailable() then
   return
 end
@@ -19,6 +26,7 @@ end
 -- ################################################
 -- Table parameters
 
+local ifid = _GET["ifid"]
 local currentPage  = _GET["currentPage"]
 local perPage      = _GET["perPage"]
 local sortColumn   = _GET["sortColumn"]
@@ -62,7 +70,9 @@ if sortOrder == "desc" then sOrder = rev_insensitive else sOrder = asc_insensiti
 
 -- ################################################
 
-interface.select(ifname)
+if not isEmptyString(ifid) then
+   interface.select(ifid)
+end
 
 local ifstats = interface.getStats()
 
