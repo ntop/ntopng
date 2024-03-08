@@ -163,7 +163,7 @@ print[[
 
               for(var file_id=1; file_id<num_job_files; file_id++)
                 links = links + "<li><a href=\\']] print(ntop.getHttpPrefix())
-                print[[/lua/get_extracted_traffic.lua?job_id=" + job_id + "&file_id=" + file_id + "\\'>" + "]]
+                print[[/lua/rest/v2/get/pcap/extraction/data.lua?job_id=" + job_id + "&file_id=" + file_id + "\\'>" + "]]
                 print(i18n("traffic_recording.download_nth_pcap")) print[[".sformat(file_id) + "</a></li>";
 
               links = links + "</ul>";
@@ -172,7 +172,7 @@ print[[
                 "downloadJobFiles('" + links + "')", "]] print(i18n("download")) print[[");
             } else if (num_job_files == 1) {
               datatableAddLinkButtonCallback.bind(row)(actions_td_idx,
-                "]] print(ntop.getHttpPrefix()) print[[/lua/get_extracted_traffic.lua?job_id=" + job_id, "]] print(i18n("download")) print[[");
+                "]] print(ntop.getHttpPrefix()) print[[/lua/rest/v2/get/pcap/extraction/data.lua?job_id=" + job_id, "]] print(i18n("download")) print[[");
             }
 
             if(job_status === "processing") {
