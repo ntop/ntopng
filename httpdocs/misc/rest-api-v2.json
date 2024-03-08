@@ -12064,7 +12064,7 @@
         "tags": [
           "PCAP"
         ],
-        "summary": "Live PCAP traffic extraction",
+        "summary": "Extract (live download) PCAP data from the traffic recorded with the continuous recording (n2disk)",
         "description": "Raw PCAP data is returned",
         "operationId": "live_extraction",
         "produces": [
@@ -12090,7 +12090,7 @@
           {
             "name": "epoch_end",
             "in": "query",
-            "description": "Start time (epoch)",
+            "description": "End time (epoch)",
             "required": true,
             "type": "integer",
             "format": "int32"
@@ -12101,6 +12101,163 @@
             "description": "BPF filter",
             "required": false,
             "type": "string"
+          }
+        ],
+        "responses": {
+          "FILE": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          },
+          "-7": {
+            "description": "BAD_FORMAT"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/create/pcap/extraction/task.lua": {
+      "get": {
+        "tags": [
+          "PCAP"
+        ],
+        "summary": "Schedule PCAP data extraction from traffic recorded with the continuous recording (n2disk). A job ID is returned to check the extraction status (see /lua/rest/v2/get/pcap/extraction/tasks.lua)",
+        "description": "Job info is returned",
+        "operationId": "create_pcap_extraction_task",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_begin",
+            "in": "query",
+            "description": "Start time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "epoch_end",
+            "in": "query",
+            "description": "End time (epoch)",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "bpf_filter",
+            "in": "query",
+            "description": "BPF filter",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/pcap/extraction/tasks.lua": {
+      "get": {
+        "tags": [
+          "PCAP"
+        ],
+        "summary": "Read PCAP extraction jobs (scheduled with /lua/rest/v2/create/pcap/extraction/task.lua) information",
+        "description": "All jobs status is returned",
+        "operationId": "get_pcap_extraction_tasks",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/pcap/extraction/data.lua": {
+      "get": {
+        "tags": [
+          "PCAP"
+        ],
+        "summary": "Downlaod PCAP data extracted by a scheduled extraction task (scheduled with /lua/rest/v2/create/pcap/extraction/task.lua)",
+        "description": "Raw PCAP data is returned",
+        "operationId": "get_pcap_extraction_data",
+        "produces": [
+          "application/vnd.tcpdump.pcap"
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "query",
+            "description": "Job ID",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "file_id",
+            "in": "query",
+            "description": "File ID (default 1)",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
           }
         ],
         "responses": {

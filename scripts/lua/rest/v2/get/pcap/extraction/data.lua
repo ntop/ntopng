@@ -14,6 +14,14 @@ local recording_utils = require "recording_utils"
 -- Example: curl -u admin:admin http://localhost:3000/lua/rest/v2/get/pcap/extraction/data.lua?job_id=1&file_id=1
 --
 
+local ifid = _GET["ifid"]
+local job_id = _GET["job_id"]
+local file_id = _GET["file_id"] or "1"
+
+if not isEmptyString(ifid) then
+   interface.select(ifid)
+end
+
 local function send_error(error_type)
    local msg = ""
    if error_type == "not_found" then
@@ -28,15 +36,12 @@ end
 
 if not recording_utils.isAvailable() then
   send_error("not_granted")
-elseif isEmptyString(_GET["job_id"]) then
+elseif isEmptyString(job_id) then
   send_error("not_found")
 else
 
-  local job_id = tonumber(_GET["job_id"])
-  local file_id = 1
-  if _GET["file_id"] ~= nil then
-    file_id = tonumber(_GET["file_id"])
-  end
+  job_id = tonumber(job_id)
+  file_id = tonumber(file_id)
 
   local job_files = recording_utils.getJobFiles(job_id)
 
