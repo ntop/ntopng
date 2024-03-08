@@ -219,19 +219,19 @@ if (os_ ~= nil) then
     os_title = " " .. os_
 end
 
-if (country ~= nil) then
+if (country ~= nil and country ~= '') then
     country_title = " " .. i18n("hosts_stats.country_title", {
         country = country
     })
 end
 
-if (mac ~= nil) then
+if (mac ~= nil and mac ~= '') then
     mac_title = " " .. i18n("hosts_stats.mac_title", {
         mac = mac
     })
 end
 
-if (vlan ~= nil) then
+if (vlan ~= nil and vlan ~= '') then
 
     local link_service_map = generate_map_url(interface.serviceMap(nil, tonumber(vlan)), "service_map", "vlan=" .. vlan,
         "fas fa-concierge-bell")
@@ -261,7 +261,7 @@ if (vlan ~= nil) then
     end
 end
 
-if (pool ~= nil) then
+if (pool ~= nil and pool ~= '') then
     local link_service_map = ""
     local link_periodicity_map = ""
     local charts_available = areHostPoolsTimeseriesEnabled(ifstats.id)
@@ -309,12 +309,12 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
     active = page == "inactive_hosts" or page == nil,
     hidden = inactive_hosts_utils.getInactiveHostsNumber(ifstats.id) == 0,
     page_name = "inactive_hosts",
-    label = i18n('inactive_hosts') ..
+    label = i18n('inactive_hosts_navbar') ..
         '<span class="badge rounded-pill bg-dark" style="float: right; margin-top: -8px;">' ..
         inactive_hosts_utils.getInactiveHostsNumber(ifstats.id) .. '</span>'
 }})
 
-if page == 'active_hosts' then
+if page == 'active_hosts' and ntop.isnEdge() then
     page_utils.print_page_title(getPageTitle(protocol_name, traffic_type_title, device_ip_title, network_name, cidr,
         ipver_title, os_title, country_title, asninfo, mac_title, pool_title, vlan_title, vlan_alias))
 
@@ -890,6 +890,14 @@ if page == 'active_hosts' then
    ]]
         end -- if(asn ~= nil)
     end
+elseif page == "active_hosts" then
+    local json = require "dkjson" 
+    local vlans = interface.getVLANsList()
+    local json_context = json.encode({
+        ifid = ifstats.id,
+        has_vlans = (vlans ~= nil)
+    })
+    template_utils.render("pages/vue_page.template", { vue_page_name = "PageHostsList", page_context = json_context })
 elseif page == "inactive_hosts" then
     template_utils.render("pages/inactive_hosts.template", {
         ifid = ifstats.id,

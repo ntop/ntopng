@@ -1557,7 +1557,7 @@ static int ntop_get_batched_interface_hosts(lua_State *vm,
 					 traffic_type_filter, 0 /* probe ip */,
 					 tsLua /* host->tsLua | host->lua */, anomalousOnly, dhcpOnly,
 					 NULL /* cidr filter */, sortColumn, maxHits, toSkip,
-					 a2zSortOrder) < 0)
+					 a2zSortOrder, false) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -1586,14 +1586,15 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
   bool anomalousOnly = false;
   bool dhcpOnly = false, cidr_filter_enabled = false;
   AddressTree cidr_filter;
+  bool arrayFormat = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (lua_type(vm, 1) == LUA_TBOOLEAN)
     show_details = lua_toboolean(vm, 1) ? true : false;
   if (lua_type(vm, 2) == LUA_TSTRING) sortColumn = (char *)lua_tostring(vm, 2);
-  if (lua_type(vm, 3) == LUA_TNUMBER) maxHits = (u_int16_t)lua_tonumber(vm, 3);
-  if (lua_type(vm, 4) == LUA_TNUMBER) toSkip = (u_int16_t)lua_tonumber(vm, 4);
+  if (lua_type(vm, 3) == LUA_TNUMBER) maxHits = (u_int32_t)lua_tonumber(vm, 3);
+  if (lua_type(vm, 4) == LUA_TNUMBER) toSkip = (u_int32_t)lua_tonumber(vm, 4);
   if (lua_type(vm, 5) == LUA_TBOOLEAN)
     a2zSortOrder = lua_toboolean(vm, 5) ? true : false;
   if (lua_type(vm, 6) == LUA_TSTRING) country = (char *)lua_tostring(vm, 6);
@@ -1622,6 +1623,8 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
     cidr_filter.addAddress(lua_tostring(vm, 20)), cidr_filter_enabled = true;
   if (lua_type(vm, 21) == LUA_TSTRING)
     device_ip = ntohl(inet_addr(lua_tostring(vm, 21)));
+  if (lua_type(vm, 22) == LUA_TBOOLEAN)
+    arrayFormat = (lua_toboolean(vm, 22));
 
   if ((!curr_iface) ||
       curr_iface->getActiveHostsList(vm, &begin_slot, walk_all,
@@ -1631,7 +1634,7 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
 					 filtered_hosts, blacklisted_hosts, ipver_filter, proto_filter,
 					 traffic_type_filter, device_ip, false /* host->lua */, anomalousOnly,
 					 dhcpOnly, cidr_filter_enabled ? &cidr_filter : NULL, sortColumn,
-					 maxHits, toSkip, a2zSortOrder) < 0)
+					 maxHits, toSkip, a2zSortOrder, arrayFormat) < 0)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));

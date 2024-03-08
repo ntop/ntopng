@@ -136,7 +136,7 @@ function get_f_print_v_node_buttons(list_or_array) {
 	    if (class_array != null && class_array.length > 0) {
 		_class = class_array.join(" ");
 	    }
-	    if (list_or_array == false) {
+		 if (list_or_array == false) {
 		return vue_obj.h("button", { class: `btn btn-sm btn-secondary ${_class}`, style: "margin-right:0.2rem;", onClick: on_click(b_def.event_id), ...attributes }, [ vue_obj.h("span", { class: b_def.icon, style: "", title: _i18n(b_def.title_i18n)}), ]);
 	    }
 	    return vue_obj.h("a", { class: `${_class} btn-sm`, onClick: on_click(b_def.event_id), style: "display:block;", ...attributes }, [ vue_obj.h("span", { class: b_def.icon, style: "margin-right:0.2rem;cursor:pointer;" }), _i18n(b_def.title_i18n)]);

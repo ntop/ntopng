@@ -101,6 +101,7 @@ function getProbeName(exporter_ip, show_vlan, shorten_len)
 
     -- No alias set, let's try with the SNMP
     if ntop.isPro() then
+        local dirs = ntop.getDirs()
         package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
         snmp_cached_dev = require "snmp_cached_dev"
     end

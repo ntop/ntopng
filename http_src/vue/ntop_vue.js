@@ -48,6 +48,7 @@ import { default as PageHostVsResult } from "./page-host-vs-result.vue";
 import { default as PageOpenPorts } from "./page-open-ports.vue";
 import { default as PageVulnerabilityScanReport } from "./page-vulnerability-scan-report.vue"
 import { default as PageSNMPUsage } from "./page-snmp-usage.vue"
+import { default as PageHostsList } from "./page-hosts-list.vue"
 import { default as PageSNMPInterfaces } from "./page-snmp-interfaces.vue"
 import { default as PageTopology } from "./page-topology.vue"
 
@@ -143,6 +144,7 @@ let ntopVue = {
     PageHostDetailsPackets: PageHostDetailsPackets,
     PageHostDetailsFlowSankey: PageHostDetailsFlowSankey,
     PageHostDetailsPorts: PageHostDetailsPorts,
+    PageHostsList: PageHostsList,
 
     PageAggregatedLiveFlows: PageAggregatedLiveFlows,
 

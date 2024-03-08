@@ -1,0 +1,134 @@
+{
+	"id": "hosts_list_with_vlans",
+	"data_url": "lua/rest/v2/get/host/active_list.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": true,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "ip",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_array",
+			"button_def_array": [
+				{
+					"id": "live_flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "flows",
+					"class": [
+						"link-button",
+						"btn-info"
+					],
+					"event_id": "click_button_live_flows"
+				}
+			]
+		},
+		{
+			"title_i18n": "ip_address",
+			"data_field": "ip_address",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "name",
+			"data_field": "hostname",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "vlan",
+			"data_field": "vlan",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flows",
+			"data_field": "num_flows",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "capabilities.alerts",
+			"data_field": "alerts",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "score",
+			"data_field": "score",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "graphs.num_cve",
+			"data_field": "num_cves",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "seen_since",
+			"data_field": "first_seen",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "if_stats_overview.traffic_breakdown",
+			"data_field": "traffic_breakdown",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "throughput",
+			"data_field": "throughput",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "total_bytes",
+			"data_field": "bytes",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		}
+	]
+}
