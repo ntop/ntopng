@@ -9,6 +9,11 @@ require "lua_utils"
 local json = require "dkjson"
 local recording_utils = require "recording_utils"
 
+--
+-- Download data produced by an extraction by job ID
+-- Example: curl -u admin:admin http://localhost:3000/lua/rest/v2/get/pcap/extraction/data.lua?job_id=1&file_id=1
+--
+
 local function send_error(error_type)
    local msg = ""
    if error_type == "not_found" then
