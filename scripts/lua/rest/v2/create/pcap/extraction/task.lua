@@ -9,8 +9,6 @@ require "lua_utils"
 local rest_utils = require("rest_utils")
 local recording_utils = require "recording_utils"
 
-sendHTTPContentTypeHeader('application/json')
-
 --
 -- Schedule pcap extraction
 -- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1", "epoch_begin": 1709888000, "epoch_end": 1709888100, "bpf_filter": ""}' http://localhost:3000/lua/rest/v2/create/pcap/extraction/task.lua
