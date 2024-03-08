@@ -5,7 +5,8 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
-local json = require("dkjson")
+
+local rest_utils = require("rest_utils")
 local recording_utils = require "recording_utils"
 
 sendHTTPContentTypeHeader('application/json')
