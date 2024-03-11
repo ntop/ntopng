@@ -607,6 +607,14 @@ function pools:parse_members(members_string)
     -- Unfold the members csv
     members = members_string:split(",") or {members_string}
 
+    -- Add default @VLAN if missing
+    for _, member in ipairs(members) do
+      if not isMacAddress(member) and
+         string.find(member, "@") == nil then
+        members[_] = member .. "@0"
+      end
+    end
+
     return members
 end
 
