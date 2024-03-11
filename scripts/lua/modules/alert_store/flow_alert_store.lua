@@ -976,15 +976,17 @@ function flow_alert_store:format_record(value, no_html)
    record[RNAME.SRV_PORT.name] = flow_srv_port
    record[RNAME.VLAN_ID.name] = vlan
 
-   -- Used to render the flow column in raw alerts
-   record[RNAME.FLOW.name] = {
-      vlan = vlan,
-      cli_ip = flow_cli_ip,
-      srv_ip = flow_srv_ip,
-      cli_port = value["cli_port"],
-      srv_port = value["srv_port"],
-      active_url = active_url,
-   }
+   if not no_html then
+      -- Used to render the flow column in raw alerts
+      record[RNAME.FLOW.name] = {
+         vlan = vlan,
+         cli_ip = flow_cli_ip,
+         srv_ip = flow_srv_ip,
+         cli_port = value["cli_port"],
+         srv_port = value["srv_port"],
+         active_url = active_url,
+      }
+   end
 
    local l4_protocol
    if not isEmptyString(value["proto"]) then
