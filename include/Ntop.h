@@ -160,10 +160,13 @@ class Ntop {
 
   bool getUserPasswordHashLocal(const char *user, char *password_hash,
                                 u_int password_hash_len) const;
-  bool checkUserPasswordLocal(const char *user, const char *password,
-                              char *group) const;
+  bool checkLocalAuth(const char *user, const char *password, char *group) const;
+  bool checkHTTPAuth(const char *user, const char *password, char *group) const;
+  bool checkLDAPAuth(const char *user, const char *password, char *group) const;
+  bool checkRadiusAuth(const char *user, const char *password, char *group) const;
   bool checkUserPassword(const char *user, const char *password, char *group,
                          bool *localuser) const;
+
   void checkReloadFlowChecks();
   void checkReloadHostChecks();
   void checkReloadAlertExclusions();
