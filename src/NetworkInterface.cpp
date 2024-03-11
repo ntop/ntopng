@@ -6752,7 +6752,8 @@ int NetworkInterface::getActiveHostsList(lua_State *vm, u_int32_t *begin_slot, b
 					 bool blacklisted_hosts, u_int8_t ipver_filter, int proto_filter,
 					 TrafficType traffic_type_filter, u_int32_t device_ip, bool tsLua,
 					 bool anomalousOnly, bool dhcpOnly, const AddressTree *const cidr_filter,
-					 char *sortColumn, u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder, bool useArrayFormat) {
+					 char *sortColumn, u_int32_t maxHits, u_int32_t toSkip, bool a2zSortOrder,
+					 bool useArrayFormat) {
   struct flowHostRetriever retriever;
 
 #if DEBUG
