@@ -1604,7 +1604,7 @@ print [[
                           }
                         }
           });
-}, ]] print(interface.getStatsUpdateFreq(ifstats.id).."") print[[ * 1000);
+}, ]] print(math.min(interface.getStatsUpdateFreq(ifstats.id), 10) .."") print[[ * 1000);
 
    </script>
 ]]
