@@ -6738,6 +6738,8 @@ local lang = {
     ["toggle_radius_accounting_descr"] = "Toggle traffic accounting via RADIUS server.",
     ["toggle_radius_auth"] = "Toggle RADIUS Authentication",
     ["toggle_radius_auth_descr"] = "Toggle GUI authentication via RADIUS server.",
+    ["toggle_radius_external_auth_for_local_users"] = "Toggle RADIUS Authentication of Local Users",
+    ["toggle_radius_external_auth_for_local_users_descr"] = "Toggle authentication of local users via RADIUS (remote authentication, local authorization).",
     ["toggle_send_telemetry_data_description"] = "Contribute to the project by sending encrypted, <a href=\"%{url}\">anonymous telemetry data</a> to <a href=\"%{ntop_org}\">ntop.org</a>. Data only involves the status of %{product} (e.g., uptime, status, crash reports). Nothing regarding the monitored traffic will ever be sent.",
     ["toggle_send_telemetry_data_title"] = "Telemetry Data",
     ["toggle_shaping_directions_description"] = "Enable this option to be able to set different shaping policies for ingress and egress traffic.",

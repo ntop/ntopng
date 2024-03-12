@@ -1779,8 +1779,10 @@ bool Ntop::checkLDAPAuth(const char *user, const char *password, char *group) co
 /* ******************************************* */
 
 bool Ntop::checkRadiusAuth(const char *user, const char *password, char *group) const {
+  bool is_admin = false, has_unprivileged_capabilities = false;
+  bool external_auth_for_local_users = false;
   bool radius_ret = false;
-  char val[64];
+  char key[64], val[64];
 
 #ifdef HAVE_RADIUS
   /*
@@ -1797,8 +1799,6 @@ bool Ntop::checkRadiusAuth(const char *user, const char *password, char *group) 
      val[0] != '1')
     return false;
 
-  bool is_admin = false, has_unprivileged_capabilities = false;
-
   ntop->getTrace()->traceEvent(TRACE_INFO, "Checking RADIUS auth");
 
   if (!password || !password[0]) return false;
@@ -1807,28 +1807,41 @@ bool Ntop::checkRadiusAuth(const char *user, const char *password, char *group) 
 
   if (radiusAcc->authenticate(user, password, &has_unprivileged_capabilities,
 			      &is_admin)) {
-    /* Check permissions */
-    if (has_unprivileged_capabilities) {
-      changeUserPcapDownloadPermission(user, true, 86400 /* 1 day */);
-      changeUserHistoricalFlowPermission(user, true, 86400 /* 1 day */);
-      changeUserAlertsPermission(user, true, 86400 /* 1 day */);
-    } else {
-      char key[64];
 
-      snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, user);
-      ntop->getRedis()->del(key);
+    if(ntop->getRedis()->get((char *)PREF_RADIUS_EXT_AUTHE_LOCAL_AUTHO, val, sizeof(val)) >= 0 && val[0] == '1')
+      external_auth_for_local_users = true;
 
-      snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, user);
-      ntop->getRedis()->del(key);
+    if (external_auth_for_local_users) {
+      snprintf(key, sizeof(key), CONST_STR_USER_PASSWORD, user);
+      if (ntop->getRedis()->get(key, val, sizeof(val)) < 0)
+        return false; /* Local user with same name does not exist */
 
-      snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_ALERTS, user);
-      ntop->getRedis()->del(key);
+      getUserGroupLocal(user, group);
+
+    } else { 
+      /* Check permissions */
+      if (has_unprivileged_capabilities) {
+        changeUserPcapDownloadPermission(user, true, 86400 /* 1 day */);
+        changeUserHistoricalFlowPermission(user, true, 86400 /* 1 day */);
+        changeUserAlertsPermission(user, true, 86400 /* 1 day */);
+      } else {
+        char key[64];
+
+        snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_PCAP, user);
+        ntop->getRedis()->del(key);
+
+        snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_HISTORICAL_FLOW, user);
+        ntop->getRedis()->del(key);
+
+        snprintf(key, sizeof(key), CONST_STR_USER_ALLOW_ALERTS, user);
+        ntop->getRedis()->del(key);
+      }
+
+      strncpy(group,
+	      is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED,
+	      NTOP_GROUP_MAXLEN);
+      group[NTOP_GROUP_MAXLEN - 1] = '\0';
     }
-
-    strncpy(group,
-	    is_admin ? CONST_USER_GROUP_ADMIN : CONST_USER_GROUP_UNPRIVILEGED,
-	    NTOP_GROUP_MAXLEN);
-    group[NTOP_GROUP_MAXLEN - 1] = '\0';
 
     radius_ret = true;
   }

@@ -122,9 +122,9 @@ if auth.has_capability(auth.capabilities.preferences) then
             (_POST["radius_secret"] ~= ntop.getPref("ntopng.prefs.radius.radius_secret")) or
             (_POST["radius_admin_group"] ~= ntop.getPref("ntopng.prefs.radius.radius_admin_group")) or
             (_POST["radius_auth_proto"] ~= ntop.getPref("ntopng.prefs.radius.radius_auth_proto")) or
-            (_POST["radius_unpriv_capabilties_group"] ~=
-                ntop.getPref("ntopng.prefs.radius.radius_unpriv_capabilties_group")) or
-            (_POST["toggle_radius_accounting"] ~= ntop.getPref("ntopng.prefs.radius.accounting_enabled"))) then
+            (_POST["radius_unpriv_capabilties_group"] ~= ntop.getPref("ntopng.prefs.radius.radius_unpriv_capabilties_group")) or
+            (_POST["toggle_radius_accounting"] ~= ntop.getPref("ntopng.prefs.radius.accounting_enabled")) or
+            (_POST["toggle_radius_external_auth_for_local_users"] ~= ntop.getPref("ntopng.prefs.radius.external_auth_for_local_users_enabled"))) then
         -- In the minute callback there is a periodic script that in case 
         -- the auth changed, it's going to update the radius info
         ntop.setPref("ntopng.prefs.radius.radius_server_address", _POST["radius_server_address"])
@@ -134,6 +134,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         ntop.setPref("ntopng.prefs.radius.radius_admin_group", _POST["radius_admin_group"])
         ntop.setPref("ntopng.prefs.radius.radius_unpriv_capabilties_group", _POST["radius_unpriv_capabilties_group"])
         ntop.setPref("ntopng.prefs.radius.toggle_radius_accounting", _POST["toggle_radius_accounting"])
+        ntop.setPref("ntopng.prefs.radius.external_auth_for_local_users_enabled", _POST["toggle_radius_external_auth_for_local_users"])
         ntop.updateRadiusLoginInfo()
     end
 
@@ -919,7 +920,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         -- RADIUS GUI authentication
 
-        local elementToSwitch = {"row_toggle_radius_accounting", "radius_admin_group",
+        local elementToSwitch = {"row_toggle_radius_accounting", "row_toggle_radius_external_auth_for_local_users", "radius_admin_group",
                                  "radius_unpriv_capabilties_group", "radius_server_address",
                                  "radius_acct_server_address", "radius_secret", "row_radius_auth_proto"}
 
@@ -962,9 +963,21 @@ if auth.has_capability(auth.capabilities.preferences) then
             "pap", "primary", "radius_auth_proto", "ntopng.prefs.radius.radius_auth_proto", nil, nil, nil, nil,
             showElements)
 
+        local groupsElements = {"radius_admin_group", "radius_unpriv_capabilties_group"}
+        local showGroupsElements = (ntop.getPref("ntopng.prefs.radius.external_auth_for_local_users_enabled") ~= "1")
+        prefsToggleButton(subpage_active, {
+            field = "toggle_radius_external_auth_for_local_users",
+            pref = "radius.external_auth_for_local_users_enabled",
+            default = "0",
+            to_switch = groupsElements,
+            reverse_switch = true,
+            hidden = not showElements
+        })
+
         prefsInputFieldPrefs(subpage_active.entries["radius_admin_group"].title,
-            subpage_active.entries["radius_admin_group"].description, "ntopng.prefs.radius", "radius_admin_group", "",
-            nil, showElements, true, false, {
+            subpage_active.entries["radius_admin_group"].description, "ntopng.prefs.radius",
+            "radius_admin_group", "", nil, 
+            showElements and showGroupsElements, true, false, {
                 attributes = {
                     spellcheck = "false",
                     maxlength = 255,
@@ -974,7 +987,8 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         prefsInputFieldPrefs(subpage_active.entries["radius_unpriv_capabilties_group"].title,
             subpage_active.entries["radius_unpriv_capabilties_group"].description, "ntopng.prefs.radius",
-            "radius_unpriv_capabilties_group", "", nil, showElements, true, false, {
+            "radius_unpriv_capabilties_group", "", nil,
+            showElements and showGroupsElements, true, false, {
                 attributes = {
                     spellcheck = "false",
                     maxlength = 255,

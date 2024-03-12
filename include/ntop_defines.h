@@ -1217,6 +1217,7 @@
 #define PREF_RADIUS_ADMIN_GROUP NTOPNG_PREFS_PREFIX ".radius.radius_admin_group"
 #define PREF_RADIUS_UNPRIV_CAP_GROUP \
   NTOPNG_PREFS_PREFIX ".radius.radius_unpriv_capabilties_group"
+#define PREF_RADIUS_EXT_AUTHE_LOCAL_AUTHO NTOPNG_PREFS_PREFIX ".radius.external_auth_for_local_users_enabled"
 
 #ifdef HAVE_RADIUS
 #define MAX_RADIUS_LEN 256

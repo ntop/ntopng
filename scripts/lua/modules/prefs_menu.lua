@@ -685,6 +685,13 @@ local menu_subpages = {{
             }),
             hidden = (not hasRadius)
         },
+        toggle_radius_external_auth_for_local_users = {
+            title = i18n("prefs.toggle_radius_external_auth_for_local_users"),
+            description = i18n("prefs.toggle_radius_external_auth_for_local_users_descr", {
+                product = info.product
+            }),
+            hidden = (not hasRadius or not have_nedge)
+        },
         toggle_http_auth = {
             title = i18n("prefs.toggle_http_auth"),
             description = i18n("prefs.toggle_http_auth_descr"),
