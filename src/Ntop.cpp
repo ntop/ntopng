@@ -1688,9 +1688,9 @@ bool Ntop::checkHTTPAuth(const char *user, const char *password, char *group) co
 
 bool Ntop::checkLDAPAuth(const char *user, const char *password, char *group) const {
   bool ldap_ret = false;
+#if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
   char val[64];
 
-#if defined(NTOPNG_PRO) && defined(HAVE_LDAP)
   if(!ntop->getPro()->has_valid_license() ||
      ntop->getPrefs()->limitResourcesUsage())
     return false;
@@ -1779,12 +1779,12 @@ bool Ntop::checkLDAPAuth(const char *user, const char *password, char *group) co
 /* ******************************************* */
 
 bool Ntop::checkRadiusAuth(const char *user, const char *password, char *group) const {
+  bool radius_ret = false;
+#ifdef HAVE_RADIUS
   bool is_admin = false, has_unprivileged_capabilities = false;
   bool external_auth_for_local_users = false;
-  bool radius_ret = false;
   char key[64], val[64];
 
-#ifdef HAVE_RADIUS
   /*
      NOTE
 
