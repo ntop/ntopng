@@ -1359,13 +1359,18 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 
 /* Keep in sync with nProbe */
 #define MAX_ZMQ_FLOW_BUF 16384
-#define DEFAULT_ZMQ_TCP_KEEPALIVE 1       /* Keepalive ON */
-#define DEFAULT_ZMQ_TCP_KEEPALIVE_IDLE 30 /* Keepalive after 30 seconds */
-#define DEFAULT_ZMQ_TCP_KEEPALIVE_CNT 3   /* Keepalive send 3 probes */
-#define DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL \
-  3 /* Keepalive probes sent every 3 seconds */
+#define DEFAULT_ZMQ_TCP_KEEPALIVE        1 /* Keepalive ON */
+#define DEFAULT_ZMQ_TCP_KEEPALIVE_IDLE  30 /* Keepalive after 30 seconds */
+#define DEFAULT_ZMQ_TCP_KEEPALIVE_CNT    3 /* Keepalive send 3 probes */
+#define DEFAULT_ZMQ_TCP_KEEPALIVE_INTVL  3 /* Keepalive probes sent every 3 seconds */
 
-#define MAX_NUM_ASYNC_SNMP_ENGINES 64
+#define NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_M  16
+#define NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_L  32
+#define NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_XL 128
+
+#define MIN_NUM_ASYNC_SNMP_ENGINES         NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_M
+#define MAX_NUM_ASYNC_SNMP_ENGINES         NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_XL
+
 #define MIN_NUM_HASH_WALK_ELEMS 512
 
 #define COMPANION_QUEUE_LEN 4096
