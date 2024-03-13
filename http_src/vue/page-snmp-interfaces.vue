@@ -324,7 +324,7 @@ function click_button_timeseries(event) {
 
 function click_button_configuration(event) {
     const row = event.row;
-    window.open(create_config_url_link(row));
+    window.open(create_config_url_link(row, true));
 }
 
 /* ************************************** */
@@ -332,7 +332,7 @@ function click_button_configuration(event) {
 function on_table_custom_event(event) {
     let events_managed = {
         "click_button_timeseries": click_button_timeseries,
-        "clicfilter_table_array.valuek_button_configuration": click_button_configuration
+        "click_button_configuration": click_button_configuration
     };
     if (events_managed[event.event_id] == null) {
         return;
