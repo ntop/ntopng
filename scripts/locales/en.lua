@@ -6963,6 +6963,7 @@ local lang = {
     ["INVALID_ARGUMENTS"] = "Invalid arguments",
     ["INVALID_HOST"] = "Invalid host",
     ["INVALID_INTERFACE"] = "Invalid interface",
+    ["MAX_SNMP_DEVICES_NUM_REACHED"] = "Reached the maximum limit of configurable devices",
     ["NAME_RESOLUTION_FAILED"] = "Unable to resolve host name to an IP address",
     ["NOT_FOUND"] = "Not found",
     ["NOT_GRANTED"] = "Not authorized",

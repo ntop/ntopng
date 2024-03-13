@@ -335,6 +335,13 @@ local rest_utils = {
                 str = "DHCP_ACTIVE_LEASES_NOT_ROUTING_MODE"
             },
 
+            -- MAX_SNMP_DEVICES_NUM_REACHED 
+            snmp_device_max_devices_num_reached = {
+                http_code = 400,
+                rc = -57,
+                str = "MAX_SNMP_DEVICES_NUM_REACHED"
+            },
+
             -- Checks
             not_enabled = {http_code = 400, rc = -2, str = "NOT_ENABLED"}
         }
