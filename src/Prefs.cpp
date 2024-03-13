@@ -161,7 +161,7 @@ Prefs::Prefs(Ntop *_ntop) {
 #endif
   enable_runtime_flows_dump = true;
   enable_activities_debug = false;
-  snmp_polling = false;
+  snmp_polling = true;
   active_monitoring = false;
   vs_max_num_scans = 4;
   vs_slow_scan = false;
@@ -930,7 +930,7 @@ void Prefs::reloadPrefsFromRedis() {
     enable_flow_device_port_rrd_creation = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_FLOW_DEVICE_PORT_RRD_CREATION, false),
     disable_alerts = getDefaultBoolPrefsValue(CONST_ALERT_DISABLED_PREFS, false),
     enable_activities_debug = getDefaultBoolPrefsValue(CONST_ACTIVITIES_DEBUG_ENABLED, false),
-    snmp_polling = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SNMP_POLLING, false);
+    snmp_polling = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SNMP_POLLING, true);
   active_monitoring = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACTIVE_MONITORING, false);
 
   enable_arp_matrix_generation =
