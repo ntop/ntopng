@@ -68,6 +68,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
       is_traffic_mirrored = true;
       emulate_traffic_directions = true;
       read_from_stdin_pipe = true;
+      num_ifaces = 1;
     } else if ((pcap_handle[0] = pcap_open_offline(ifname, pcap_error_buffer)) != NULL) {
       char *slash = strrchr(ifname, '/');
 
@@ -344,7 +345,8 @@ static void *packetPollLoop(void *ptr) {
 #endif
 
 	  for(u_int8_t i=0; i < iface->get_num_ifaces(); i++) {
-	    if(!Utils::nwInterfaceExists(iface->getPcapIfaceName(i))) {
+	    if(!iface->read_from_stdin() &&
+               !Utils::nwInterfaceExists(iface->getPcapIfaceName(i))) {
 	      ntop->getTrace()->traceEvent(TRACE_WARNING,
 					   "Network Interface %s (id %d) disappeared (is it is down ?)",
 					   iface->getPcapIfaceName(i), i);
@@ -606,10 +608,7 @@ bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_dat
   struct pcap_pkthdr *hdr;
   int rc;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "READING PACKET");
-
   if ((rc = pcap_next_ex(pd, &hdr, &pkt)) > 0) {
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "GOT PACKET");
     if(ntop->getPrefs()->doReforgeTimestamps())
       gettimeofday(&hdr->ts, NULL);
 
