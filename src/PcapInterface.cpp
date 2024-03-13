@@ -60,6 +60,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
 
     if (strcmp(name, "-") == 0 || !strncmp(name, "stdin", 5)) {
       /* stdin */
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reading packets from stdin...");
       pcap_error_buffer[0] = '\0';
       pcap_handle[0] = pcap_fopen_offline(stdin, pcap_error_buffer);
       iface_datalink[0] = pcap_datalink(pcap_handle[0]);
