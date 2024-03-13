@@ -299,8 +299,6 @@ static void *packetPollLoop(void *ptr) {
     }
 #endif
 
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "STARTING LOOP");
-
     while (iface->isRunning() && (!ntop->getGlobals()->isShutdown())) {
 	int max_fd = 0;
 #ifndef WIN32
