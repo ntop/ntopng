@@ -1133,6 +1133,7 @@ public:
     return (memcmp(a, ifMac, sizeof(ifMac)) == 0);
   }
 
+  virtual bool read_from_stdin() const { return (false); };
   virtual bool read_from_pcap_dump() const { return (false); };
   virtual bool read_from_pcap_dump_done() const { return (false); };
   virtual void set_read_from_pcap_dump_done() { ; };

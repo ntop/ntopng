@@ -77,6 +77,7 @@ class PcapInterface : public NetworkInterface {
   inline FILE *get_pcap_list() { return (pcap_list); };
   void startPacketPolling();
   bool set_packet_filter(char *filter);
+  bool read_from_stdin() const { return (read_from_stdin_pipe); };
   bool read_from_pcap_dump() const { return (read_pkts_from_pcap_dump); };
   bool read_from_pcap_dump_done() const {
     return (read_pkts_from_pcap_dump_done);
