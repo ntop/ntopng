@@ -547,6 +547,7 @@ local lang = {
   ["reset_ifs_message"] = "Are you sure to reset all Interfaces stats?",
   ["reset_ifs_title"] = "Reset Interfaces Stats",
   ["restore"] = "Restore",
+  ["restore_checks"] = "Restore Checks Defaults",
   ["retransmission"] = "Retransmission",
   ["retransmissions"] = "Retransmissions",
   ["retry"] = "Retry",

@@ -42,8 +42,8 @@
             <i class='fas fa-toggle-off'></i> {{ i18n("checks.disable_all") }}</button>
 
   	  {% if script_list.check_subdir == "all" then %}
-	  <button id='btn-factory-reset' class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#factory-reset-modal">
-            <i class='fas fa-undo-alt'></i> {{ i18n("factory_reset") }}</button>
+	  <button id='btn-factory-reset' class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#factory-reset-modal">
+            <i class='fas fa-undo-alt'></i> {{ i18n("restore_checks") }}</button>
 	  {% end %}
 	</div>
         {% end %}
@@ -91,7 +91,7 @@
           title = i18n('checks.factory_reset_all_checks'),
           confirm = i18n("factory_reset"),
           custom_alert_class = 'alert alert-danger',
-          confirm_button = 'btn-danger',
+          confirm_button = 'btn-primary',
       },
   })
 *}
