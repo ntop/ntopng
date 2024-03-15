@@ -998,3 +998,7 @@ li.select2-selection__choice {
   white-space: nowrap;
   word-break: break-all;
 }
+
+.select2-dropdown {
+  display: inline-block !important;
+}
