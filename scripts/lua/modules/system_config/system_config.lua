@@ -1054,6 +1054,17 @@ end
 
 -- ##############################################
 
+function system_config:_enableDisableSmcrouteService(enable_smcroute)
+  local smcroute_service_utils = require "smcroute_service_utils"
+  if (enable_smcroute) then
+    smcroute_service_utils.startSmcrouteService()
+  else
+    smcroute_service_utils.stopSmcrouteService()
+  end
+end
+
+-- ##############################################
+
 function system_config.findDnsPreset(preset_name)
   require("prefs_utils")
 

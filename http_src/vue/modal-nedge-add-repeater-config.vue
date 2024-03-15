@@ -33,7 +33,7 @@
 		</div>
             
 						
-			<!-- Port -->
+			<!-- Port 
 	
 
 		<div v-if="selected_repeater_type.value == 'custom'" >
@@ -49,6 +49,7 @@
 
     	</div>
 		</div>
+		-->
 
 	<!-- Keep Source Address -->
 	
@@ -103,11 +104,11 @@ import regexValidation from "../utilities/regex-validation.js";
 
 const _i18n = (t) => i18n(t);
 const host_placeholder = i18n('if_stats_config.multicast_ip_placeholder')
-const port_placeholder = i18n('if_stats_config.port_placeholder')
+//const port_placeholder = i18n('if_stats_config.port_placeholder')
 const modal_id = ref(null);
 const selected_interfaces = ref([]);
 const ip = ref(null);
-const port = ref(null);
+//const port = ref(null);
 const repeater_type = ref({value: "mdns", label: "MDNS" });
 const emit = defineEmits(['edit', 'add'])
 const interfaces_search = ref(null);
@@ -120,7 +121,7 @@ const props = defineProps({});
 const disable_add = ref(true);
 const invalid_iface_number = ref(true);
 const not_valid_ip = ref(true);
-const not_valid_port = ref(true);
+//const not_valid_port = ref(true);
 
 const check_empty_host = () => {
   let regex = new RegExp(regexValidation.get_data_pattern('ip'));
@@ -128,14 +129,14 @@ const check_empty_host = () => {
 	disable_add.value = update_disable_add();
 }
 
-const check_empty_port = () => {
+/*const check_empty_port = () => {
 	not_valid_port.value = (port.value < 1 || port.value > 65535);
 	disable_add.value = update_disable_add();
-}
+}*/
 
 const update_disable_add = () => {
 	if (repeater_type.value.value == 'custom') {
-		return (invalid_iface_number.value || not_valid_ip.value || not_valid_port.value);
+		return (invalid_iface_number.value || not_valid_ip.value /*|| not_valid_port.value*/);
 	} else {
 		return (invalid_iface_number.value);
 	}
@@ -176,9 +177,9 @@ const remove_interfaces_selected = (item_to_delete) => {
 const reset_modal = () => {
 	selected_repeater_type.value = {};
 	ip.value = "";
-	port.value = "";
+	//port.value = "";
 	selected_interfaces.value = [];
-	not_valid_port.value = true;
+	//not_valid_port.value = true;
 	not_valid_ip.value = true;
 	invalid_iface_number.value = true;
 }
@@ -196,7 +197,7 @@ function init(row) {
 
     // check if we need open in edit
     if (is_open_in_add.value == false) {
-			not_valid_port.value = false;
+			//not_valid_port.value = false;
 			not_valid_ip.value = false;
 			invalid_iface_number.value = false;
 			disable_add.value = false;
@@ -206,7 +207,7 @@ function init(row) {
 			selected_repeater_type.value = repeater_type_array.find((s) => (s.label == row.type));
 			if (selected_repeater_type.value.value == 'custom') {
 				ip.value = row.ip;
-				port.value = row.port;
+				//port.value = row.port;
 			}
 			keep_src_address.value = row.keep_src_address;
 			change_repeater_type(row)
@@ -264,11 +265,11 @@ const apply = () => {
     };
 		if (repeater_type.value.value == "custom") {
 			let ip_t = ip.value;
-			let port_t = port.value;
+			//let port_t = port.value;
 			obj = {
 				repeater_type: repeater_t,
 				ip: ip_t,
-				port: port_t,
+				//port: port_t,
 				keep_src_address: keep_src_address_t
     	};
 		}
