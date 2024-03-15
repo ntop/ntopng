@@ -67,34 +67,15 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
     if (subscriber[num_subscribers].socket == NULL)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create ZMQ socket");
 
-    if (ntop->getPrefs()->is_zmq_encryption_enabled()
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-        || ntop->getPro()->enableCloudCollection()
-#endif
-       ) {
+    if (ntop->getPrefs()->is_zmq_encryption_enabled()) {
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
       const char *secret_key;
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-      if (ntop->getPro()->enableCloudCollection()) {
-        ntop->getPro()->generateCloudEncryptionKeys();
+      if (ntop->getPrefs()->get_zmq_encryption_priv_key() == NULL)
+        ZMQUtils::generateEncryptionKeys();
 
-        secret_key = ntop->getPro()->findCloudEncryptionKeys(server_public_key, server_secret_key,
-          sizeof(server_public_key), sizeof(server_secret_key)); 
-
-        if (secret_key == NULL || strlen(secret_key) == 0) {
-          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable ZMQ with encryption");
-          throw("Unable to collect flows");
-        }
-      } else
-#endif
-      {
-        if (ntop->getPrefs()->get_zmq_encryption_priv_key() == NULL)
-          ZMQUtils::generateEncryptionKeys();
-
-        secret_key = findInterfaceEncryptionKeys(server_public_key, server_secret_key,
-                                                 sizeof(server_public_key), sizeof(server_secret_key));
-      }
+      secret_key = findInterfaceEncryptionKeys(server_public_key, server_secret_key,
+                                               sizeof(server_public_key), sizeof(server_secret_key));
 
       if (secret_key != NULL) {
         if (ZMQUtils::setServerEncryptionKeys(subscriber[num_subscribers].socket, secret_key) != 0)
@@ -103,10 +84,6 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
 #else
       ntop->getTrace()->traceEvent(TRACE_ERROR,
           "Unable to enable ZMQ CURVE encryption, ZMQ >= 4.1 is required");
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-      if (ntop->getPro()->enableCloudCollection())
-        throw("Unable to collect flows");
-#endif
 #endif
     }
 
@@ -530,13 +507,6 @@ void ZMQCollectorInterface::collect_flows() {
                                          uncompressed, msg_id, h->url);
           }
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-          if (ntop->getPro()->handleProbeMessage(probe, h, uncompressed, uncompressed_len, source_id, msg_id)) {
-            /* Handled - nothing to do */
-            goto recv_next;
-          }
-#endif
-
           /* Allocate probe info if it's the first time we see it */
           if (probe == NULL) {
             probe = (zmq_probe *) calloc(1, sizeof(zmq_probe));
@@ -615,9 +585,6 @@ void ZMQCollectorInterface::collect_flows() {
           /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h->url,
            * uncompressed); */
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-         recv_next:
-#endif
 #ifdef HAVE_ZLIB
           if (compressed /* only if the traffic was actually compressed */)
             if (uncompressed) free(uncompressed);
@@ -698,20 +665,11 @@ void ZMQCollectorInterface::lua(lua_State *vm, bool fullStats) {
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
-  if ((ntop->getPrefs()->is_zmq_encryption_enabled() && strlen(server_public_key) > 0)
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-      || ntop->getPro()->enableCloudCollection()
-#endif
-     ) {
+  if ((ntop->getPrefs()->is_zmq_encryption_enabled() && strlen(server_public_key) > 0)) {
     char *probe_key;
     char hex_key[83];
 
-#if defined(NTOPNG_PRO) && !defined(HAVE_NEDGE)
-    if (ntop->getPro()->enableCloudCollection())
-      probe_key = ntop->getPro()->getCloudKey();
-    else
-#endif
-      probe_key = Utils::toHex(server_public_key, strlen(server_public_key), hex_key, sizeof(hex_key));
+    probe_key = Utils::toHex(server_public_key, strlen(server_public_key), hex_key, sizeof(hex_key));
 
     lua_newtable(vm);
     lua_push_str_table_entry(vm, "public_key", probe_key ? probe_key : "");

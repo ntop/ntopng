@@ -834,10 +834,6 @@ function getNtopngRelease(ntopng_info, verbose)
         release = "Community"
     end
 
-    if (ntopng_info["version.cloud_edition"]) then
-        release = release .. " (Cloud)"
-    end
-
     if not isEmptyString(release) and ntopng_info["version.embedded_edition"] then
         release = release .. " (Embedded)"
     end

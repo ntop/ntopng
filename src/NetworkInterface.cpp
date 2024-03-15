@@ -1348,10 +1348,6 @@ Flow *NetworkInterface::getFlow(int32_t if_index, Mac *src_mac, Mac *dst_mac, u_
                          true /* Inline call */, &unswapped_flow);
   INTERFACE_PROFILING_SECTION_EXIT(1);
 
-  if(ntop->getPrefs()->is_cloud_edition()) {
-    /* TODO: check that deviceIP matches ret */
-  }
-
   if ((ret == NULL) && (unswapped_flow != NULL)) {
     /*
       We have found this flow but with the wrong direction

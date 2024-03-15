@@ -197,7 +197,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addCounterMapping("ifOutErrors", SFLOW_IF_OUT_ERRORS);
   addCounterMapping("ifPromiscuousMode", SFLOW_IF_PROMISCUOUS_MODE);
 
-  if(ntop->getPrefs()->is_cloud_edition())
+  if(ntop->getPrefs()->is_edr_mode())
     loadVLANMappings();
 }
 
@@ -716,7 +716,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
         if (ip) {
 	  flow->device_ip = ip;
 	  
-	  if(ntop->getPrefs()->is_cloud_edition()) {
+	  if(ntop->getPrefs()->is_edr_mode()) {
 	    char buf[32], ipb[24];
 	    std::unordered_map<u_int32_t, bool>::iterator it = cloud_flow_exporters.find(ip);
 	    
@@ -863,7 +863,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
     break;
 
   case NPROBE_INSTANCE_NAME:
-    if(ntop->getPrefs()->is_cloud_edition()
+    if(ntop->getPrefs()->is_edr_mode()
        && ntop->getPrefs()->addVLANCloudToExporters()) {
       u_int16_t vlan_id = findVLANMapping((char*)value->string);
 
@@ -2794,7 +2794,7 @@ u_int8_t ZMQParserInterface::parseListeningPorts(const char *payload,
     ListeningPorts pinfo;
     u_int16_t vlan_id = 0;
     
-    if(ntop->getPrefs()->is_cloud_edition()
+    if(ntop->getPrefs()->is_edr_mode()
        && ntop->getPrefs()->addVLANCloudToExporters()) {
       if(json_object_object_get_ex(o, "instance-name", &z))
 	vlan_id = findVLANMapping(json_object_get_string(z));

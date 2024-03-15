@@ -746,7 +746,7 @@ bool Ntop::isLocalAddress(int family, void *addr, int16_t *network_id,
   if((*network_id != -1) && network_mask_bits)
     *network_mask_bits = nmask_bits;
   else {
-    if(getPrefs()->is_cloud_edition()) {
+    if(getPrefs()->is_edr_mode()) {
       *network_id = cloudNetworkLookup(family, addr, &nmask_bits);
     }
   }

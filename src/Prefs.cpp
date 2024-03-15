@@ -486,7 +486,6 @@ void usage() {
 	 "[--insecure]                        | Allow connections to TLS sites "
 	 "with invalid certificates \n"
 #if HAVE_ZMQ
-	 "[--cloud|-c] <port>                 | Run ntopng in cloud mode on <port>\n"
 	 "[--zmq-encryption]                  | Enable ZMQ encryption\n"
 	 "[--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption "
 	 "secret key (debug only) \n"
@@ -1092,9 +1091,6 @@ void Prefs::loadInstanceNameDefaults() {
 /* ******************************************* */
 
 static const struct option long_options[] = {
-#if HAVE_ZMQ
-  {"cloud", required_argument, NULL, 'c'},
-#endif
 #ifndef WIN32
   {"data-dir", required_argument, NULL, 'd'},
 #endif
@@ -1385,38 +1381,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     } else
       packet_filter = strdup(optarg);
     break;
-
-#if HAVE_ZMQ
-  case 'c':
-    {
-      u_int16_t port = atoi(optarg);
-      char buffer[64];
-
-      /*
-	Shortcut for
-	-i tcp://\*:<port>c --zmq-publish-events tcp://\*:5557
-      */
-
-      snprintf(buffer, sizeof(buffer), "tcp://*:%dc", port);
-
-      if(!addDeferredInterfaceToRegister(buffer))
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many interfaces specified: ignored %s", buffer);
-      else {
-	if(zmq_publish_events_url) free(zmq_publish_events_url);
-
-	snprintf(buffer, sizeof(buffer), "tcp://*:%d", port+1);
-	zmq_publish_events_url = strdup(buffer);
-
-#if 0
-	u_int32_t mgmt_ip = Utils::getHostManagementIPv4Address();
-
-	ntop->getTrace()->traceEvent(TRACE_ERROR, "Hint: nprobe -i <iface> --cloud tcp://%s:%d",
-				     Utils::intoaV4(ntohl(mgmt_ip), buffer, sizeof(buffer)), port);
-#endif
-      }
-    }
-    break;
-#endif
 
   case 'u':
     use_promiscuous_mode = false;
@@ -2947,18 +2911,6 @@ bool Prefs::is_enterprise_xl_edition() {
   return
 #ifdef NTOPNG_PRO
     ntop->getPro()->has_valid_enterprise_xl_license()
-#else
-    false
-#endif
-    ;
-}
-
-/* *************************************** */
-
-bool Prefs::is_cloud_edition() {
-  return
-#ifdef NTOPNG_PRO
-    ntop->getPro()->has_valid_cloud_license()
 #else
     false
 #endif
