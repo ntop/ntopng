@@ -22,13 +22,13 @@
                 </template>
             </DateTimeRangePicker>
             <!-- select metric -->
-            <div v-show="ts_menu_ready" class="form-group ms-1 me-1 mt-1">
-                <div class="inline select2-size me-2 mt-2">
+            <div v-show="ts_menu_ready" class="form-group ms-1 mt-2 d-flex align-items-center">
+                <div class="inline select2-size me-2">
                     <SelectSearch v-model:selected_option="selected_metric" :options="metrics"
                         @select_option="select_metric">
                     </SelectSearch>
                 </div>
-                <div class="inline select2-size me-2 mt-2">
+                <div class="inline select2-size me-2">
                     <SelectSearch v-model:selected_option="current_groups_options_mode" :options="groups_options_modes"
                         @select_option="change_groups_options_mode">
                     </SelectSearch>
