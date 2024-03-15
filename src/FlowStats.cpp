@@ -222,9 +222,25 @@ void FlowStats::lua(lua_State *vm) {
 
   lua_newtable(vm);
 
-  std::map<std::string, u_int16_t>::iterator it;
-  for (it = talking_hosts.begin(); it != talking_hosts.end(); it++)
-    lua_push_uint32_table_entry(vm, it->first.c_str(), it->second);
+  std::map<u_int16_t, PortValue>::iterator it;
+  for (it = ports.begin(); it != ports.end(); it++) {
+    lua_newtable(vm);
+    lua_push_uint32_table_entry(vm, "num_seen", it->second.num_seen);
+    lua_push_bool_table_entry(vm, "is_client", it->second.is_client);
+    lua_push_bool_table_entry(vm, "is_server", it->second.is_server);
+    lua_pushinteger(vm, it->first);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+  lua_pushstring(vm, "ports");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_newtable(vm);
+
+  std::map<std::string, u_int16_t>::iterator it2;
+  for (it2 = talking_hosts.begin(); it2 != talking_hosts.end(); it2++)
+    lua_push_uint32_table_entry(vm, it2->first.c_str(), it2->second);
 
   lua_pushstring(vm, "talking_with");
   lua_insert(vm, -2);
@@ -249,6 +265,25 @@ void FlowStats::updateTalkingHosts(Flow *f) {
 
 /* *************************************** */
 
+void FlowStats::updatePorts(Flow *f) {
+  if (f) {
+    PortValue tmp = {0};
+    std::pair<std::map<u_int16_t, PortValue>::iterator, bool> ret;
+    /* Add the client port */
+    ret = ports.insert(std::pair<u_int16_t, PortValue>(f->get_cli_port(), tmp));
+    ret.first->second.is_client = 1;
+    ret.first->second.num_seen++;
+
+    /* Now do the same with the server port */
+    ret = ports.insert(std::pair<u_int16_t, PortValue>(f->get_srv_port(), tmp));
+    ret.first->second.is_server = 1;
+    ret.first->second.num_seen++;
+
+  }
+}
+
+/* *************************************** */
+
 void FlowStats::resetStats() {
   memset(counters, 0, sizeof(counters));
   memset(protocols, 0, sizeof(protocols));
@@ -256,6 +291,7 @@ void FlowStats::resetStats() {
   memset(dscps, 0, sizeof(dscps));
   memset(host_pools, 0, sizeof(host_pools));
   talking_hosts.clear();
+  ports.clear();
 }
 
 /* *************************************** */

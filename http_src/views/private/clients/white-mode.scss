@@ -882,10 +882,6 @@ table.dataTable thead th.sorting_asc::after {
   margin-bottom: 8px;
 }
 
-.ntopng-dropdown-min-width {
-  min-width: 3rem;
-}
-
 .component-fade-enter-active,
 .component-fade-leave-active {
   transition: opacity .3s ease;
@@ -948,19 +944,22 @@ table.dataTable thead th.sorting_asc::after {
 }
 
 .filters-label {
-  color: rgb(108,117,125);
+  color: rgb(108, 117, 125);
+  font-size: 14px;
 }
 
 .wizard-card {
   margin-top: 10px;
   border-radius: 4px;
-  box-shadow: 0px 2px 3px 0 #AAA; /* Blue shadow */
+  box-shadow: 0px 2px 3px 0 #AAA;
+  /* Blue shadow */
 }
 
 /* .wizard-selected */
 .wizard-card:hover {
   background: #EBF5FB;
-  box-shadow: 0px 2px 3px 0 #2471A3; /* Blue shadow */
+  box-shadow: 0px 2px 3px 0 #2471A3;
+  /* Blue shadow */
 }
 
 .wizard-form-group {
@@ -971,3 +970,31 @@ table.dataTable thead th.sorting_asc::after {
   text-decoration: none;
 }
 
+.select2-selection {
+  overflow: hidden;
+  border-color: rgb(118, 118, 118) !important; /* example */
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+  border-color: rgb(118, 118, 118) transparent transparent;
+}
+
+.select2-selection__rendered {
+  color: var(--bs-body-color) !important;
+  white-space: normal;
+  word-break: break-all;
+}
+
+//select2: fixes word text wrap issues on long select values
+li.select2-selection__choice {
+  overflow: hidden;
+  text-overflow: ellipsis; //use this if you want to shorten
+}
+
+.select2-results__option {
+  overflow: hidden;
+  text-overflow: ellipsis; //use this if you want to shorten  
+  color: var(--bs-body-color) !important;
+  white-space: nowrap;
+  word-break: break-all;
+}

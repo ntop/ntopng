@@ -3,53 +3,51 @@
     <slot name="custom_header2"></slot>
     <div ref="table_container" :id="id">
         <Loading v-if="loading"></Loading>
-        <div class="button-group mb-2"> <!-- TableHeader -->
-            <div style="float:left;margin-top:0.5rem;">
-                <label>
-                    Show
-                    <select v-model="per_page" @change="change_per_page">
-                        <option v-for="pp in per_page_options" :value="pp">{{ pp }}</option>
-                    </select>
-                    Entries
-                </label>
-            </div>
-            <div style="text-align:right;" class="form-group ">
+        <div class="button-group mb-2 d-flex align-items-center"> <!-- TableHeader -->
+            <div class="form-group d-flex align-items-end" style="flex-wrap: wrap;">
+                <slot name="custom_header"></slot>       
             </div>
 
-            <div style="text-align:right;" class="form-group ">
-                <slot name="custom_header"></slot>
-
-                <div v-if="enable_search" class="d-inline">
-                    <label>{{ _i18n('search') }}:
-                        <input type="search" v-model="map_search" @input="on_change_map_search" class="">
-                    </label>
+            <div style="text-align:right;" class="form-group d-flex align-items-center ms-auto">
+                <div class="d-flex align-items-center">
+                    <div v-if="enable_search" class="d-inline me-2 ms-auto">
+                        <label>{{ _i18n('search') }}:
+                            <input type="search" v-model="map_search" @input="on_change_map_search" class="">
+                        </label>
+                    </div>
+                    <div class="me-2">
+                        <label>
+                            <select v-model="per_page" @change="change_per_page">
+                                <option v-for="pp in per_page_options" :value="pp">{{ pp }}</option>
+                            </select>
+                        </label>
+                    </div>
+                    
+                    <button class="btn btn-link" type="button" @click="reset_column_size">
+                        <i class="fas fa-columns"></i>
+                    </button>
+                    <button class="btn btn-link" type="button" @click="refresh_table()">
+                        <i class="fas fa-refresh"></i>
+                    </button>
+                    <div v-if="show_autorefresh > 0" class="d-inline-block">
+                        <Switch v-model:value="enable_autorefresh" class="me-2 mt-1" :title="autorefresh_title" style=""
+                            @change_value="update_autorefresh">
+                        </Switch>
+                    </div>
+                    <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
+                        <template v-slot:title>
+                            <i class="fas fa-eye"></i>
+                        </template>
+                        <template v-slot:menu>
+                            <div v-for="col in columns_wrap" class="form-check form-switch ms-1">
+                                <input class="form-check-input" style="cursor:pointer;" :checked="col.visible == true"
+                                    @click="change_columns_visibility(col)" type="checkbox" :id="get_col_id(col)">
+                                <label class="form-check-label" :for="get_col_id(col)" v-html="print_column_name(col.data)">
+                                </label>
+                            </div>
+                        </template>
+                    </Dropdown> <!-- Dropdown columns -->
                 </div>
-
-                <button class="btn btn-link me-1" type="button" @click="reset_column_size">
-                    <i class="fas fa-columns"></i>
-                </button>
-                <button class="btn btn-link me-1" type="button" @click="refresh_table()">
-                    <i class="fas fa-refresh"></i>
-                </button>
-                <div v-if="show_autorefresh > 0" class="d-inline-block">
-                    <Switch v-model:value="enable_autorefresh" class="me-2 mt-1" :title="autorefresh_title" style=""
-                        @change_value="update_autorefresh">
-                    </Switch>
-                </div>
-
-                <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
-                    <template v-slot:title>
-                        <i class="fas fa-eye"></i>
-                    </template>
-                    <template v-slot:menu>
-                        <div v-for="col in columns_wrap" class="form-check form-switch ms-1">
-                            <input class="form-check-input" style="cursor:pointer;" :checked="col.visible == true"
-                                @click="change_columns_visibility(col)" type="checkbox" :id="get_col_id(col)">
-                            <label class="form-check-label" :for="get_col_id(col)" v-html="print_column_name(col.data)">
-                            </label>
-                        </div>
-                    </template>
-                </Dropdown> <!-- Dropdown columns -->
             </div>
         </div> <!-- TableHeader -->
 
@@ -223,7 +221,6 @@ async function load_table() {
     await set_columns_wrap();
     await set_rows();
     set_columns_resizable();
-    await nextTick();
     dropdown.value.load_menu();
     emit("loaded");
 }
@@ -268,7 +265,7 @@ function set_columns_resizable() {
         // selector: table.value,
         // padding: 0,
         store: store,
-        minWidth: 32,
+        minWidth: 72,
         // padding: -50,
         // maxWidth: 150,
     };
@@ -458,6 +455,8 @@ async function set_rows() {
     rows = res.rows;
     set_active_rows();
     loading.value = false;
+    
+    await nextTick();
     emit('rows_loaded', res);
 }
 

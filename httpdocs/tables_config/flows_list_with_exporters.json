@@ -1,0 +1,157 @@
+{
+	"id": "flows_list_with_exporters",
+	"data_url": "lua/rest/v2/get/flow/active_list.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": true,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "ip",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_array",
+			"button_def_array": [
+				{
+					"id": "live_flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "flows",
+					"class": [
+						"link-button",
+						"btn-info"
+					],
+					"event_id": "click_button_live_flows"
+				}
+			]
+		},
+		{
+			"title_i18n": "proto",
+			"data_field": "l4_proto",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "application",
+			"data_field": "application",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "client",
+			"data_field": "client",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "server",
+			"data_field": "server",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "score",
+			"data_field": "score",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "first_seen",
+			"data_field": "first_seen",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "last_seen",
+			"data_field": "last_seen",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "breakdown",
+			"data_field": "traffic_breakdown",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "flows_page.actual_throughput",
+			"data_field": "throughput",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "flows_page.total_bytes",
+			"data_field": "bytes",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "info",
+			"data_field": "info",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flow_devices.exporter_ip",
+			"data_field": "flow_exporter",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flows_page.inIfIdx",
+			"data_field": "in_index",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flows_page.outIfIdx",
+			"data_field": "out_index",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

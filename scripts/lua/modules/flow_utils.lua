@@ -245,7 +245,11 @@ function getFlowsFilter()
             -- Example 5.26
             pageinfo["l7protoFilter"] = application
         else
-            pageinfo["l7protoFilter"] = interface.getnDPIProtoId(application)
+            if not tonumber(application) then
+                pageinfo["l7protoFilter"] = interface.getnDPIProtoId(application)
+            else
+                pageinfo["l7protoFilter"] = tonumber(application)
+            end
         end
     end
 
@@ -297,7 +301,7 @@ function getFlowsFilter()
         elseif alert_type == "filtered" then
             pageinfo["filteredFlows"] = true
         else
-            pageinfo["statusFilter"] = tonumber(alert_type)
+            pageinfo["statusFilter"] = tonumber(alert_type) or alert_type
         end
     end
 

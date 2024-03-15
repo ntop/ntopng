@@ -114,6 +114,8 @@ function getPlotter(chart_type) {
 
 function addNewSerie(serie_name, chart_type, color, config) {
   config.labels.push(serie_name);
+  if(config.properties == null) 
+    config.properties = {}
   config.properties[serie_name] = {}
   config.properties[serie_name] = dygraphConfig.formatSerieProperties(chart_type);
   config.colors.push(color);
@@ -387,7 +389,6 @@ function formatSimpleSerie(data, serie_name, chart_type, formatters, value_range
     formatters: formatters,
     labels: ["index"],
     colors: [],
-    properties: dygraphConfig.formatSerieProperties(chart_type),
     stacked: false,
     customBars: false,
     use_full_name: false,
@@ -396,8 +397,14 @@ function formatSimpleSerie(data, serie_name, chart_type, formatters, value_range
     disable_ts_list: true,
   };
 
-  addNewSerie(serie_name, chart_type, { color: constant_serie_colors["default_color"], palette: 0 }, config)
-  formatSerieColors(config.colors);
+  if (typeof(serie_name) === "string") {
+    addNewSerie(serie_name, chart_type, { color: constant_serie_colors["default_color"], palette: 0 }, config)
+  } else {
+    serie_name.forEach((el) => {
+      addNewSerie(el, chart_type, { color: constant_serie_colors["default_color"], palette: 0 }, config)
+    })
+  }
+  formatSerieColors(config.colors);  
   return dygraphConfig.buildChartOptions(config);
 }
 

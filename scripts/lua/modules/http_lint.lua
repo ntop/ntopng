@@ -602,6 +602,10 @@ local function validateAlertTypeSeverity(mode)
    return validateChoice(modes, mode)
 end
 
+local function validateAlertTypeAndSeverity(mode)
+   return validateAlertType(mode) or validateAlertTypeSeverity(mode)
+end
+
 local function validateTCPFlowState(mode)
    local modes = {"established", "connecting", "closed", "reset"}
 
@@ -1231,6 +1235,14 @@ local function validateProtocolOrCategory(p)
    return validateProtocolIdOrName(p) or validateCategory(p)
 end
 
+local function validateProtocolIdOrNameorCategory(p)
+   if string.starts(p, "cat_") then
+      local category = split(p, "cat_")
+      return validateCategory(category[2])
+   end
+   return validateProtocolIdOrName(p)
+end
+
 local function validateShapedElement(elem_id)
    local id
    if starts(elem_id, "cat_") then
@@ -1727,7 +1739,7 @@ local known_parameters = {
    ["is_range_picker"] = validateBool,
 
    -- NDPI
-   ["application"] = validateProtocolIdOrName, -- An nDPI application protocol name
+   ["application"] = validateProtocolIdOrNameorCategory, -- An nDPI application protocol name
    ["category"] = validateCategory, -- An nDPI protocol category name
    ["category_alias"] = validateUnquoted, -- An nDPI protocol category alias given by the user
    ["protocol_alias"] = validateUnquoted, -- An nDPI protocol category alias given by the user
@@ -2465,7 +2477,7 @@ local known_parameters = {
    ["delete_user"] = validateSingleWord,
    ["drop_flow_policy"] = validateBool, -- true if target flow should be dropped
    ["traffic_type"] = validateBroadcastUnicast, -- flows_stats.lua
-   ["alert_type"] = validateAlertType, -- flows_stats.lua
+   ["alert_type"] = validateAlertTypeAndSeverity, -- flows_stats.lua
    ["flow_status"] = validateAlertType, -- flows_stats.lua
    ["alert_type_severity"] = validateAlertTypeSeverity, -- flows_stats.lua
    ["alert_type_num"] = validateAlertTypeNumber, -- charts

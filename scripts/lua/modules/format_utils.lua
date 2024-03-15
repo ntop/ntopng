@@ -513,6 +513,40 @@ function format_utils.formatMainAddressCategory(host)
    return addr_category
 end
 
+-- ##############################################
+
+function format_utils.formatMainAddressCategoryNoHTML(host, host_info)
+   if isEmptyString(host_info) then
+      host_info = {}
+   end
+   if host["systemhost"] then
+      host_info.system_host = true
+   end
+   if host["country"] then
+      host_info.country = host["country"]
+   end
+   if host["is_blacklisted"] then
+      host_info.is_blacklisted = host["is_blacklisted"]
+   end
+   if host["crawlerBotScannerHost"] then
+      host_info.crawler_bot_scanner_host = host["crawlerBotScannerHost"]
+   end
+   if host["is_multicast"] then
+      host_info.is_multicast = true
+   elseif host["localhost"] then
+      host_info.localhost = true
+   else
+      host_info.remotehost = true
+   end
+   if host["is_blackhole"] then
+      host_info.is_blackhole = host["is_blackhole"]
+   end
+
+   return host_info
+end
+
+-- ##############################################
+
 function format_utils.formatHostNameAndAddress(hostname, address)
    local res = ""
 

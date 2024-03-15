@@ -118,7 +118,7 @@ page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {{
     label = i18n("analysis")
 }})
 
-if (page == "flows" or page == nil) then
+if ((page == "flows" or page == nil) and ntop.isnEdge()) then
     local active_msg = getFlowsTableTitle(ntop.getHttpPrefix())
     if (category ~= nil) then
         page_params["category"] = category
@@ -580,6 +580,20 @@ if (page == "flows" or page == nil) then
          </script>
       ]])
     end
+elseif (page == "flows" or page == nil) then
+    local has_exporters = false
+    if ntop.isPro() and interface.isPacketInterface() == false then
+        local flowdevs = interface.getFlowDevices() or {}
+        if table.len(flowdevs) > 0 then
+            has_exporters = true
+        end
+    end
+    local json = require "dkjson" 
+    local json_context = json.encode({
+        ifid = ifstats.id,
+        has_exporters = has_exporters
+    })
+    template.render("pages/vue_page.template", { vue_page_name = "PageFlowsList", page_context = json_context })
 else
     -- Analysis
 

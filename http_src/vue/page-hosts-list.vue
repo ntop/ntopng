@@ -3,36 +3,23 @@
     <div class="m-2 mb-3">
         <TableWithConfig ref="table_hosts_list" :table_id="table_id" :csrf="csrf" :f_map_columns="map_table_def_columns"
             :get_extra_params_obj="get_extra_params_obj" :f_sort_rows="columns_sorting"
-            @custom_event="on_table_custom_event">
+            @custom_event="on_table_custom_event" @rows_loaded="change_filter_labels">
             <template v-slot:custom_header>
-                <Dropdown v-for="(t, t_index) in filter_table_array"
-                    :f_on_open="get_open_filter_table_dropdown(t, t_index)"
-                    :ref="el => { filter_table_dropdown_array[t_index] = el }" :hidden="t.hidden">
-                    <!-- Dropdown columns -->
-                    <template v-slot:title>
-                        <Spinner :show="t.show_spinner" size="1rem" class="me-1"></Spinner>
-                        <a class="ntopng-truncate" :title="t.title">{{ t.label }}</a>
-                    </template>
-                    <template v-slot:menu>
-                        <a v-for="opt in t.options" style="cursor:pointer; display: block;"
-                            @click="add_table_filter(opt, $event)" class="ntopng-truncate tag-filter"
-                            :title="opt.value">
-
-                            <template v-if="opt.count == null">{{ opt.label }}</template>
-                            <template v-else>{{ opt.label + " (" + opt.count + ")" }}</template>
-                        </a>
-                    </template>
-                </Dropdown>
+                <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
+                    <span class="no-wrap d-flex align-items-center my-auto me-2 filters-label"><b>{{ item["basic_label"] }}</b></span>
+                    <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5"
+                        dropdown_size="small" :options="item['options']"
+                        @select_option="add_table_filter">
+                    </SelectSearch>
+                </div>
             </template> <!-- Dropdown filters -->
         </TableWithConfig>
     </div>
 </template>
-
 <script setup>
 import { ref, onMounted, nextTick } from "vue";
-import { default as Spinner } from "./spinner.vue";
-import { default as Dropdown } from "./dropdown.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
+import { default as SelectSearch } from "./select-search.vue";
 import { default as osUtils } from "../utilities/map/os-utils.js";
 import { default as dataUtils } from "../utilities/data-utils.js";
 import formatterUtils from "../utilities/formatter-utils";
@@ -215,25 +202,30 @@ const map_table_def_columns = (columns) => {
 
 function set_filter_array_label() {
     filter_table_array.value.forEach((el, index) => {
+        /* Setting the basic label */
         if (el.basic_label == null) {
             el.basic_label = el.label;
         }
 
+        /* Getting the currently selected filter */
         const url_entry = ntopng_url_manager.get_url_entry(el.id)
-        if (url_entry != null) {
-            el.options.forEach((option) => {
-                if (option.value.toString() === url_entry) {
-                    el.label = `${el.basic_label}: ${option.label || option.value}`
-                }
-            })
-        }
+        el.options.forEach((option) => {
+            if (option.value.toString() === url_entry) {
+                el.current_option = option;
+            }
+        })
     })
 }
 
 /* ************************************** */
 
-function add_table_filter(opt, event) {
-    event.stopPropagation();
+function change_filter_labels() {
+    set_filter_array_label()
+}
+
+/* ************************************** */
+
+function add_table_filter(opt) {
     ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
     set_filter_array_label();
     table_hosts_list.value.refresh_table();

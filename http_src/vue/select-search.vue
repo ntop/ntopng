@@ -1,6 +1,6 @@
 <template>
   <select class="select2 form-select" ref="select2" required name="filter_type" :multiple="multiple">
-    <option class="ntopng-dropdown-min-width no-wrap" v-for="(item, i) in options_2" :selected="is_selected(item)" :value="item.value" :disabled="item.disabled">
+    <option class="no-wrap  p-0" v-for="(item, i) in options_2" :selected="is_selected(item)" :value="item.value" :disabled="item.disabled">
       {{item.label}}
     </option>
     <optgroup v-for="(item, i) in groups_options_2" :label="item.group">
@@ -34,6 +34,8 @@ const props = defineProps({
     multiple: Boolean,
     add_tag: Boolean,
     disable_change: Boolean,
+    theme: String,
+    dropdown_size: String
 });
 
 let first_time_render = true;
@@ -106,15 +108,16 @@ const render = () => {
     if (!$(select2Div).hasClass("select2-hidden-accessible")) {
 	$(select2Div).select2({
 	    width: '100%',
-	    height: '500px',
-	    theme: 'bootstrap-5',
+	    theme: props.theme ? props.theme : 'bootstrap-5',
 	    dropdownParent: $(select2Div).parent(),
 	    dropdownAutoWidth : true,
-            tags: props.add_tag && !props.multiple,
+        tags: props.add_tag && !props.multiple,
+        selectionCssClass: props.dropdown_size == "small" ? 'select2--small' : '',
+        dropdownCssClass: props.dropdown_size == "small" ? 'select2--small' : ''
 	});
 	$(select2Div).on('select2:select', function (e) {
-	    let data = e.params.data;
-            if (data.element == null) {
+        let data = e.params.data;
+            if (data.element === null) {
                 //TODO: implement for multiselect
                 let option = { label: data.text, value: data.id };
 		emit('update:selected_option', option);
@@ -123,7 +126,7 @@ const render = () => {
             } 
 	    let value = data.element._value;
 	    let option = find_option_from_value(value);
-	    if (value != props.selected_option) {
+	    if (value !== props.selected_option) {
 		emit('update:selected_option', option);
 		emit('select_option', option);
             }
@@ -220,7 +223,7 @@ function find_options_from_values(values) {
 
 function find_option_from_value(value) {
     let option_2 = find_option_2_from_value(value);
-    let option = props.options.find((o) => o.label == option_2.label);
+    let option = props.options.find((o) => o.value === option_2.value);
     return option;
 }
 
@@ -229,11 +232,11 @@ function find_option_2_from_value(value) {
 	value = get_value_from_selected_option();
     }
     // let option = options_2.value.find((o) => o.value == value);
-    let option = options_2.value.find((o) => o.value == value);
+    let option = options_2.value.find((o) => o.value === value);
     if (option != null) { return option; }
     for (let i = 0; i < groups_options_2.value.length; i += 1) {
 	let g = groups_options_2.value[i];
-	option = g.options.find((o) => o.value == value);
+	option = g.options.find((o) => o.value === value);
 	if (option != null) {
 	    return option;
 	}
