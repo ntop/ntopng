@@ -204,7 +204,7 @@ function init(row) {
 			title.value = _i18n("nedge.page_rules_config.modal_rule_config.title_edit");
 			button_text.value = _i18n("edit");
 			repeater_id.value = row.repeater_id;
-			selected_repeater_type.value = repeater_type_array.find((s) => (s.label == row.type));
+			selected_repeater_type.value = repeater_type_array.find((s) => (s.value == row.type));
 			if (selected_repeater_type.value.value == 'custom') {
 				ip.value = row.ip;
 				//port.value = row.port;
@@ -258,7 +258,7 @@ async function set_interface_array() {
 
 
 const apply = () => {
-    let repeater_t = repeater_type.value.label;
+    let repeater_t = repeater_type.value.value;
 		let keep_src_address_t = keep_src_address.value;
     let obj = {
 			repeater_type: repeater_t,

@@ -106,7 +106,13 @@ function set_datatable_config() {
     
     let columns = [
 	 { 
-	    columnName: _i18n("nedge.page_repeater_config.type"), targets: 0, name: 'type', data: 'type', className: 'text-nowrap text-left', responsivePriority: 1
+	    columnName: _i18n("nedge.page_repeater_config.type"), targets: 0, name: 'type', data: 'type', className: 'text-nowrap text-left', responsivePriority: 1, render: function (data, _, rowData)  {
+            if (data == "custom") {
+                return _i18n("nedge.page_repeater_config.modal_repeater_config.custom");
+            } else {
+                return _i18n("nedge.page_repeater_config.modal_repeater_config.mdns");
+            }
+        }
 	},
      { 
 	    columnName: _i18n("nedge.page_repeater_config.ip"), targets: 0, name: 'ip', data: 'ip', className: 'text-nowrap text-left', responsivePriority: 1
