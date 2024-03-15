@@ -123,6 +123,32 @@ rsp[#rsp + 1] = {
     value = application_filters
 }
 
+if host then
+    local talking_with = {{
+        key = "talking_with",
+        value = "",
+        label = i18n("all")
+    }}
+
+    for talk_to_host, num_flows in pairs(flowstats["talking_with"] or {}) do
+        if talk_to_host ~= host then
+            local hinfo = hostkey2hostinfo(talk_to_host)
+            talking_with[#talking_with + 1] = {
+                key = "talking_with",
+                value = talk_to_host,
+                label = hostinfo2label(hinfo) .. '(' .. num_flows .. ')',
+            }
+        end
+    end
+
+    rsp[#rsp + 1] = {
+        action = "talking_with",
+        label = i18n("flows_page.talking_with"),
+        name = "talking_with",
+        value = talking_with
+    }
+end
+
 local port_filters = {{
     key = "port",
     value = "",
