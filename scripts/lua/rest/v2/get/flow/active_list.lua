@@ -11,14 +11,21 @@ local http_utils = require "http_utils"
 local rest_utils = require "rest_utils"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
-
 -- Trick to handle the application and the categories togheter
 local application = _GET["application"]
+local ip_version = _GET["flowhosts_type"]
 if not isEmptyString(application) then
     if string.starts(application, "cat_") then
         local category = split(application, "cat_")
         _GET["category"] = category[2]
         _GET["application"] = nil
+    end
+end
+if not isEmptyString(ip_version) then
+    if string.starts(ip_version, "ip_version_") then
+        local version = split(ip_version, "ip_version_")
+        _GET["version"] = version[2]
+        _GET["flowhosts_type"] = nil
     end
 end
 

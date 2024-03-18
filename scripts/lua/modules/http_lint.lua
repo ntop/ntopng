@@ -1243,6 +1243,14 @@ local function validateProtocolIdOrNameorCategory(p)
    return validateProtocolIdOrName(p)
 end
 
+local function validateFlowHostsTypeOrIpVersion(p)
+   if string.starts(p, "ip_version_") then
+      local version = split(p, "ip_version_")
+      return validateIpVersion(version[2])
+   end
+   return validateFlowHostsType(p)
+end
+
 local function validateShapedElement(elem_id)
    local id
    if starts(elem_id, "cat_") then
@@ -1933,7 +1941,7 @@ local known_parameters = {
    ["item"] = validateSingleWord, -- Used by the Import/Export page to select the item to import/export
    ["stats_type"] = validateStatsType, -- A mode for historical stats queries
    ["alertstats_type"] = validateAlertStatsType, -- A mode for alerts stats queries
-   ["flowhosts_type"] = validateFlowHostsType, -- A filter for local/remote hosts in each of the two directions
+   ["flowhosts_type"] = validateFlowHostsTypeOrIpVersion, -- A filter for local/remote hosts in each of the two directions
    ["hosts_type"] = validateFlowHostsType, -- A filter for local/remote hosts in each of the two directions
    ["talking_with"] = validateHost, -- A filter for hosts in each of the two directions
    ["status"] = validateUnquoted, -- An alert type to filter

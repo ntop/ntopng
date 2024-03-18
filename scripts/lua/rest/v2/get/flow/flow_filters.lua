@@ -22,6 +22,7 @@ local client = _GET["client"]
 local server = _GET["server"]
 local flow_info = _GET["flow_info"]
 local flowstats = interface.getActiveFlowsStats(host, nil, false, talking_with, client, server, flow_info)
+traceProfiling("scripts/lua/rest/v2/get/flow/active_list.lua", tmp, false)
 
 local rsp = {}
 local hosts_type_filters = {{
