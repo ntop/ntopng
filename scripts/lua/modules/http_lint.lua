@@ -2655,7 +2655,8 @@ local known_parameters = {
    ["length"] = validateNumber,
    ["draw"] = validateNumber,
    ["visible_columns"] = validateEmptyOr(validateListOfTypeInline(validateSingleWord)),
-   ["instance_name"] = validateSingleWord -- used in flow explorer
+   ["instance_name"] = validateSingleWord, -- used in flow explorer
+   ["hide_exporters_name"] = validateBool
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix

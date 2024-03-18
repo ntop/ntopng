@@ -231,8 +231,6 @@ import { default as SankeyComponent } from "./dashboard-sankey.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as dataUtils } from "../utilities/data-utils";
 
-import { default as Switch } from "./switch.vue";
-
 const _i18n = (t) => i18n(t);
 const timeframes_dict = ntopng_utility.get_timeframes_dict();
 
@@ -478,7 +476,7 @@ function reset_filters() {
 async function load_filters(filters_available, res) {
     const added_filters_list = [];
     if (!res && `${props.context.report_filters_endpoint}`) {
-        res = await ntopng_utility.http_request(`${props.context.report_filters_endpoint}`);
+        res = await ntopng_utility.http_request(`${props.context.report_filters_endpoint}?hide_exporters_name=true`);
     }
     filters_available.forEach(async (element) => {
         const id = element?.name || "";

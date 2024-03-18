@@ -791,7 +791,7 @@ tag_utils.formatters = {
 
 -- ######################################
 
-function tag_utils.get_tag_info(id, entity)
+function tag_utils.get_tag_info(id, entity, hide_exporters_name)
     local alert_utils = require "alert_utils"
     local tag = tag_utils.defined_tags[id]
 
@@ -1183,6 +1183,11 @@ function tag_utils.get_tag_info(id, entity)
                             end
 
                             local label = interface_name .. ' · ' .. probe_label
+                            tprint(hide_exporters_name)
+                            if hide_exporters_name then
+                                label = interface_name
+                            end
+                            tprint(label)
 
                             filter.options[#filter.options + 1] = {
                                 value = probe_ip .. "_" .. interface_id,
@@ -1200,7 +1205,10 @@ function tag_utils.get_tag_info(id, entity)
                     for probe_ip, info in pairs(device_list) do
                         local interfaces = interface.getFlowDeviceInfo(probe_ip)
                         for interface_id, interface_info in pairs(interfaces) do
-                            local label = probe_ip .. ' · ' .. format_portidx_name(probe_ip, interface_id, false, false)
+                            local label = format_portidx_name(probe_ip, interface_id, false, false)
+                            if not hide_exporters_name then
+                                label = probe_ip .. ' · ' .. label
+                            end
                             filter.options[#filter.options + 1] = {
                                 value = probe_ip .. "_" .. interface_id,
                                 label = label
