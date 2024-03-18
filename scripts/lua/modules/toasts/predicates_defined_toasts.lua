@@ -662,7 +662,7 @@ function predicates.exporters_SNMP_ratio_column(toast, container)
 
         body = message_timeseries
         action = {
-            url = '#',
+            url = ntop.getHttpPrefix() .. "/lua/admin/prefs.lua?tab=on_disk_ts",
             title = i18n("enable_them")
         }
     end
