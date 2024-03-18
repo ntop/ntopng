@@ -125,7 +125,7 @@ const render = () => {
                 return;
             } 
 	    let value = data.element._value;
-	    let option = find_option_from_value(value);
+	    let option = find_option_from_value_or_label(value);
 	    if (value !== props.selected_option) {
 		emit('update:selected_option', option);
 		emit('select_option', option);
@@ -146,7 +146,7 @@ const render = () => {
 		return;
 	    }
 	    selected_values.value = selected_values.value.filter((v) => v != value);
-	    let option = find_option_from_value(value);
+	    let option = find_option_from_value_or_label(value);
 	    let options = find_options_from_values(selected_values.value);
 	    emit('unselect_option', option);
 	    emit('update:selected_options', options);
@@ -217,13 +217,13 @@ function get_value_from_selected_option(selected_option) {
 }
 
 function find_options_from_values(values) {
-    let options = values.map((v) => find_option_from_value(v));
+    let options = values.map((v) => find_option_from_value_or_label(v));
     return options;
 }
 
-function find_option_from_value(value) {
+function find_option_from_value_or_label(value) {
     let option_2 = find_option_2_from_value(value);
-    let option = props.options.find((o) => o.value === option_2.value);
+    let option = props.options.find((o) => (o.value === option_2.value) || (o.label == option_2.label));
     return option;
 }
 
