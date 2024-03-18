@@ -54,7 +54,7 @@ function drop_host_pool_utils.check_pre_banned_hosts_to_add()
       local res, err = host_pool:bind_member(elem, jailed_pool.pool_id)
 
       if is_ids_ips_log_enabled then
-	 ntop.rpushCache(drop_host_pool_utils.ids_ips_jail_add_key, elem, drop_host_pool_utils.max_ids_ips_log_queue_len)
+         ntop.rpushCache(drop_host_pool_utils.ids_ips_jail_add_key, elem, drop_host_pool_utils.max_ids_ips_log_queue_len)
       end
 
       if not changed then
@@ -119,7 +119,7 @@ function drop_host_pool_utils.check_periodic_hosts_list()
 
 	 if ret then
 	    if is_ids_ips_log_enabled then
-	       ntop.rpushCache(drop_host_pool_utils.ids_ips_jail_remove_key, value, drop_host_pool_utils.max_ids_ips_log_queue_len)
+	       ntop.rpushCache(drop_host_pool_utils.ids_ips_jail_remove_key, member, drop_host_pool_utils.max_ids_ips_log_queue_len)
 	    end
 
 	    changed = true
