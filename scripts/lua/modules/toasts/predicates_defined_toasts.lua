@@ -259,7 +259,7 @@ function predicates.restart_required(toast, container)
         })))
     end
     if configuration_utils.restart_required() then
-        table.insert(container, create_restart_required_toast(toast, i18n("manage_configurations.after_reset_request", {
+        table.insert(container, create_restart_required_toast(toast, i18n("manage_configurations.restart_request", {
             product = ntop.getInfo()["product"]
         })))
     end

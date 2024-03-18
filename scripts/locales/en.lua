@@ -5267,6 +5267,7 @@ local lang = {
     ["manage_configurations_backup"] = "Nightly Backups",
     ["notifications"] = "Endpoints and Recipients",
     ["pool_endpoint_recipients"] = "Pools",
+    ["restart_request"] = "<b>Restart</b> %{product} to make the changes set effective.",
     ["snmp"] = "SNMP",
     ["factory_reset"] = {
       ["body"] = "Reset configuration to factory. All custom changes will be lost.",
