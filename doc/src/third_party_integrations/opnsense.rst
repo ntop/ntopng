@@ -30,10 +30,6 @@ And install the repository using the command provided at https://packages.ntop.o
 
    pkg add https://packages.ntop.org/FreeBSD/FreeBSD:13:amd64/latest/ntop-1.0.pkg
 
-.. note::
-
-   On older OPNsense versions the package prefix is .txz so the command will be  pkg add https://packages.ntop.org/FreeBSD/FreeBSD:12:amd64/latest/ntop-1.0.txz
-
 The output should look like the below.
 
 .. figure:: ../img/opnsense_repo_installation.png
@@ -168,15 +164,8 @@ remove the database files under /var/db/redis/*.rdb and restart the service
 Failure Adding the Repository
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Some users experienced issues adding the ntop repository in OPNsense as shown in
-the trace below. This seems to be due to an issue with the ACME plugin. Manually
-importing LE root and intermediate CA chain seems to fix this issue. Please read
-https://forum.opnsense.org/index.php?topic=25178.0 for more info.
-
-.. code:: bash
-
-   pkg add https://packages.ntop.org/FreeBSD/FreeBSD:12:amd64/latest/ntop-1.0.txz
-   Certificate verification failed for /O=Digital Signature Trust Co./CN=DST Root CA X3
-   2275989975040:error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed:/usr/src/crypto/openssl/ssl/statem/statem_clnt.c:1915:
-   pkg: https://packages.ntop.org/FreeBSD/FreeBSD:12:amd64/latest/ntop-1.0.txz: Authentication error
+Some users experienced issues adding the ntop repository in OPNsense with a
+"Certificate verification failed" message. This seems to be due to an issue with the ACME
+plugin. Manually importing LE root and intermediate CA chain seems to fix this issue.
+Please read https://forum.opnsense.org/index.php?topic=25178.0 for more info.
 
