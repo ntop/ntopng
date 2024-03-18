@@ -714,7 +714,7 @@ local function dt_format_snmp_interface(interface, flow)
   local value = interface
 
   if tostring(interface) ~= "0" and not isEmptyString(exporter) then
-    label = format_portidx_name(exporter, tostring(interface))
+    label = format_portidx_name(exporter, tostring(interface), false, false)
     value = exporter .. "_" .. tostring(interface)
   end
     

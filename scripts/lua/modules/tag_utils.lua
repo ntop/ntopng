@@ -1186,7 +1186,7 @@ function tag_utils.get_tag_info(id, entity)
 
                             filter.options[#filter.options + 1] = {
                                 value = probe_ip .. "_" .. interface_id,
-                                label = shortenString(label, 24),
+                                label = label,
                                 show_only_value = probe_ip
                             }
                         end
@@ -1200,7 +1200,7 @@ function tag_utils.get_tag_info(id, entity)
                     for probe_ip, info in pairs(device_list) do
                         local interfaces = interface.getFlowDeviceInfo(probe_ip)
                         for interface_id, interface_info in pairs(interfaces) do
-                            local label = probe_ip .. ' · ' .. format_portidx_name(probe_ip, interface_id, true, true)
+                            local label = probe_ip .. ' · ' .. format_portidx_name(probe_ip, interface_id, false, false)
                             filter.options[#filter.options + 1] = {
                                 value = probe_ip .. "_" .. interface_id,
                                 label = label
