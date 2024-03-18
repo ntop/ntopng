@@ -10,10 +10,11 @@ require "http_lint"
 require "lua_utils_get"
 require "flow_utils"
 local tcp_flow_state_utils = require("tcp_flow_state_utils")
-local format_utils = require "format_utils"
+local format_utils = require "format_utils" 
 local alert_consts = require "alert_consts"
 local rest_utils = require "rest_utils"
 
+local tmp = startProfiling("scripts/lua/rest/v2/get/flow/active_list.lua")
 local ifstats = interface.getStats()
 local host = _GET["host"]
 local talking_with = _GET["talkingWith"]
@@ -300,6 +301,7 @@ if vlans then
     }
 end
 
+traceProfiling("scripts/lua/rest/v2/get/flow/active_list.lua", tmp, false)
 -- Host pools
 if not interface.isView() then
     local host_pools = require "host_pools"
@@ -328,6 +330,7 @@ if not interface.isView() then
     end
 end
 
+traceProfiling("scripts/lua/rest/v2/get/flow/active_list.lua", tmp, false)
 local networks_stats = interface.getNetworksStats()
 if table.len(networks_stats) > 1 then
     local networks_filter = {{
@@ -431,6 +434,5 @@ if not isEmptyString(_GET["deviceIP"]) and ntop.isPro() and interface.isPacketIn
     }
 end
 
--- TODO: add talking with filter
-
+endProfiling("scripts/lua/rest/v2/get/flow/active_list.lua", tmp)
 rest_utils.answer(rest_utils.consts.success.ok, rsp)
