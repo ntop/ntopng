@@ -23,7 +23,7 @@
 			"button_def_array": [
 				{
 					"id": "live_flows",
-					"icon": "fas fa-stream",
+					"icon": "fa-solid fa-magnifying-glass-plus",
 					"title_i18n": "flows",
 					"class": [
 						"link-button",

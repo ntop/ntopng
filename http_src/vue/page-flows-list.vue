@@ -12,7 +12,7 @@
             @custom_event="on_table_custom_event" @rows_loaded="change_filter_labels">
             <template v-slot:custom_header>
                 <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
-                    <span class="no-wrap d-flex align-items-center pe-1">{{ item["basic_label"] + ": " }}</span>
+                    <span class="no-wrap d-flex align-items-center filters-label"><b>{{ item["basic_label"] }}</b></span>
                     <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5"
                         dropdown_size="small" :options="item['options']" @select_option="add_table_filter">
                     </SelectSearch>
@@ -263,6 +263,7 @@ const map_table_def_columns = (columns) => {
         "info": (value, row) => {
             let info = ''
             if (!dataUtils.isEmptyOrNull(value)) {
+                info = value
                 const periodic_map_url = `${http_prefix}/lua/pro/enterprise/network_maps.lua?map=periodicity_map&page=table`
                 if (row.periodic_flow) {
                     const address = row.client.mac ? row.client.mac : row.client.host
@@ -277,10 +278,10 @@ const map_table_def_columns = (columns) => {
                     if (row.application.return_code < 400) {
                         color_class = "badge bg-success"
                     }
-                    info = `<span class=badge bg-${span_mode}">${row.application.http_method}</span> <span class="${color_class}">${row.application.rsp_status_code}</span> ${info}`
+                    info = `<span class="badge bg-${span_mode}">${row.application.http_method}</span> <span class="${color_class}">${row.application.rsp_status_code}</span> ${info}`
                 }
             }
-            return ''
+            return info
         },
         "flow_exporter": (value) => {
             if (!dataUtils.isEmptyOrNull(value)) {
