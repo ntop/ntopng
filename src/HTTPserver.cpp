@@ -1076,6 +1076,15 @@ bool HTTPserver::create_api_token(const char *username, char *api_token,
   /* Note: we are not checking the user password as the admin
    * or the same (authenticated) user is generating the session */
   if (ntop->existsUserLocal(username)) {
+
+    /* 
+      Delete the old token before creating the new one.
+      */
+    char old_api_token[NTOP_SESSION_ID_LENGTH];
+    if (ntop->getUserAPIToken(username, old_api_token, sizeof(old_api_token))) {
+      ntop->getRedis()->hashDel(NTOPNG_API_TOKEN_PREFIX, old_api_token);
+    }
+
     /*
       Use the same random generator used for the sessions
      */
