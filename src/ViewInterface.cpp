@@ -827,9 +827,9 @@ void ViewInterface::getFlowDevices(lua_State *vm, bool add_table) {
 
 /* **************************************************** */
 
-void ViewInterface::getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+void ViewInterface::getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP, bool showAllStats) {
   for (int i = 0; i < num_viewed_interfaces; i++)
-    viewed_interfaces[i]->getFlowDeviceInfo(vm, deviceIP);
+    viewed_interfaces[i]->getFlowDeviceInfo(vm, deviceIP, showAllStats);
 }
 #endif
 
