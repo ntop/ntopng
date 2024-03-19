@@ -11,6 +11,7 @@ local http_utils = require "http_utils"
 local rest_utils = require "rest_utils"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
+local l4_protocol_list = require "l4_protocol_list"
 -- Trick to handle the application and the categories togheter
 local application = _GET["application"]
 local ip_version = _GET["flowhosts_type"]
@@ -191,7 +192,17 @@ for _, value in ipairs(flows_stats.flows) do
         }
     end
 
-    record["l4_proto"] = value["proto.l4"]
+    local proto_id = 0
+    for _, proto in pairs(l4_protocol_list.l4_keys) do
+        if proto[1] == value["proto.l4"] or proto[2] == value["proto.l4"] then
+            proto_id = (proto[3])
+            break
+        end
+    end
+    record["l4_proto"] = {
+        id = proto_id,
+        name = value["proto.l4"]
+    }
     record["first_seen"] = value["seen.first"]
     record["last_seen"] = value["seen.last"]
     record["key"] = string.format("%u", value["ntopng.key"])

@@ -138,31 +138,29 @@ rsp[#rsp + 1] = {
 }
 
 -- Host pools
-if not interface.isView() then
-   local host_pools = require "host_pools"
-   local host_pools_instance = host_pools:create()
-   local pools = host_pools_instance:get_all_pools()
-   if (table.len(pools) > 1) then
-      local pool_filters = {{ 
+local host_pools = require "host_pools"
+local host_pools_instance = host_pools:create()
+local pools = host_pools_instance:get_all_pools()
+if (table.len(pools) > 1) then
+   local pool_filters = {{ 
+      key = "pool",
+      value = "",
+      label = i18n("all")
+   }}
+   for _, pool in pairs(pools) do
+      pool_filters[#pool_filters + 1] = {
          key = "pool",
-         value = "",
-         label = i18n("all")
-      }}
-      for _, pool in pairs(pools) do
-         pool_filters[#pool_filters + 1] = {
-            key = "pool",
-            value = pool.pool_id,
-            label = pool.name
-         }
-      end
-
-      rsp[#rsp + 1] = {
-         action = "pool",
-         label = i18n("if_stats_config.add_rules_type_host_pool"),
-         name = "pool",
-         value = pool_filters
+         value = pool.pool_id,
+         label = pool.name
       }
    end
+
+   rsp[#rsp + 1] = {
+      action = "pool",
+      label = i18n("if_stats_config.add_rules_type_host_pool"),
+      name = "pool",
+      value = pool_filters
+   }
 end
 
 if ntop.isPro() then

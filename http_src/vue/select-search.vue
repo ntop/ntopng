@@ -1,5 +1,5 @@
 <template>
-  <select class="select2 form-select" ref="select2" required name="filter_type" :multiple="multiple">
+  <select class="select2 form-select" ref="select2" required name="filter_type" :multiple="multiple" :disabled="disabled">
     <option class="no-wrap  p-0" v-for="(item, i) in options_2" :selected="is_selected(item)" :value="item.value" :disabled="item.disabled">
       {{item.label}}
     </option>
@@ -35,7 +35,8 @@ const props = defineProps({
     add_tag: Boolean,
     disable_change: Boolean,
     theme: String,
-    dropdown_size: String
+    dropdown_size: String,
+    disabled: Boolean
 });
 
 let first_time_render = true;

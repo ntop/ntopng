@@ -5,9 +5,8 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-local if_stats = interface.getStats()
-
-if (if_stats.has_seen_pods or if_stats.has_seen_containers) then
+local ifstats = interface.getStats()
+if (ifstats.has_seen_pods or ifstats.has_seen_containers) then
     -- Use a different flows page
     dofile(dirs.installdir .. "/scripts/lua/inc/ebpf_flows_stats.lua")
     return
@@ -15,7 +14,6 @@ end
 
 require "lua_utils"
 require "flow_utils"
-
 local page_utils = require("page_utils")
 local template = require "template_utils"
 local have_nedge = ntop.isnEdge()
@@ -27,72 +25,16 @@ page_utils.print_header_and_set_active_menu_entry(ternary(have_nedge, page_utils
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
--- nDPI application and category
-local application = _GET["application"]
-
-if (application ~= nil) then
-    local application_split = string.split(application, "%.")
-
-    if application_split and #application_split == 2 then
-        -- 5.26
-    else
-        local _application = tonumber(application)
-
-        if (_application) then
-            application = interface.getnDPIProtoName(_application)
-        end
-    end
-end
-
-local category = _GET["category"]
-local hosts = _GET["hosts"]
-local host = _GET["host"]
-local talking_with = _GET["talkingWith"]
-local client = _GET["client"]
-local server = _GET["server"]
-local flow_info = _GET["flow_info"]
-local vhost = _GET["vhost"]
-local flowhosts_type = _GET["flowhosts_type"]
-local ipversion = _GET["version"]
-local l4proto = _GET["l4proto"]
-local vlan = _GET["vlan"]
-local icmp_type = _GET["icmp_type"]
-local icmp_code = _GET["icmp_cod"]
-local dscp_filter = _GET["dscp"]
-local host_pool = _GET["host_pool_id"]
-local traffic_profile = _GET["traffic_profile"]
-
-local aggregation_criteria = _GET["aggregation_criteria"] or "client_server_srv_port_app_proto"
-
 local draw = _GET["draw"] or 0
 local sort = _GET["sort"] or "flows"
 local order = _GET["order"] or "desc"
 local start = _GET["start"] or 0
 local length = _GET["length"] or 10
-
--- remote exporters address and interfaces
-local deviceIP = _GET["deviceIP"]
-local inIfIdx = _GET["inIfIdx"]
-local outIfIdx = _GET["outIfIdx"]
-
-local traffic_type = _GET["traffic_type"] or "unicast"
-local alert_type = _GET["alert_type"]
-local alert_type_severity = _GET["alert_type_severity"]
-local tcp_state = _GET["tcp_flow_state"]
-local port = _GET["port"]
-local network_id = _GET["network"]
 local page = _GET["page"]
-
-local prefs = ntop.getPrefs()
-local ifstats = interface.getStats()
-
-local duration_or_last_seen = prefs.flow_table_time
-local begin_epoch_set = (ntop.getPref("ntopng.prefs.first_seen_set") == "1")
-
-local flows_filter = getFlowsFilter()
-
-flows_filter.statusFilter = nil -- remove the filter, otherwise no menu entries will be shown
-local flowstats = interface.getActiveFlowsStats(host, flows_filter, false, talking_with, client, server, flow_info)
+local client = _GET["client"]
+local server = _GET["server"]
+local flow_info = _GET["flow_info"]
+local aggregation_criteria = _GET["aggregation_criteria"] or "client_server_srv_port_app_proto"
 local base_url = ntop.getHttpPrefix() .. "/lua/flows_stats.lua"
 local page_params = {
     ifid = interface.getId(),
@@ -100,10 +42,6 @@ local page_params = {
     server = server,
     flow_info = flow_info
 }
-local mini_title = i18n("flow_details.purge_time", {
-    purge_time = ntop.getPref("ntopng.prefs.flow_max_idle"),
-    prefs_url = ntop.getHttpPrefix() .. '/lua/admin/prefs.lua?tab=in_memory'
-})
 
 page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {{
     active = page == "flows" or page == nil,
@@ -119,7 +57,55 @@ page_utils.print_navbar(i18n('graphs.active_flows'), base_url .. "?", {{
 }})
 
 if ((page == "flows" or page == nil) and ntop.isnEdge()) then
+    -- nDPI application and category
+    local application = _GET["application"]
+    if (application ~= nil) then
+        local application_split = string.split(application, "%.")
+        if application_split and #application_split == 2 then
+            -- 5.26
+        else
+            local _application = tonumber(application)
+            if (_application) then
+                application = interface.getnDPIProtoName(_application)
+            end
+        end
+    end
+    local category = _GET["category"]
+    local hosts = _GET["hosts"]
+    local host = _GET["host"]
+    local talking_with = _GET["talkingWith"]
+    local vhost = _GET["vhost"]
+    local flowhosts_type = _GET["flowhosts_type"]
+    local ipversion = _GET["version"]
+    local l4proto = _GET["l4proto"]
+    local vlan = _GET["vlan"]
+    local icmp_type = _GET["icmp_type"]
+    local icmp_code = _GET["icmp_cod"]
+    local dscp_filter = _GET["dscp"]
+    local host_pool = _GET["host_pool_id"]
+    local traffic_profile = _GET["traffic_profile"]
+    -- remote exporters address and interfaces
+    local deviceIP = _GET["deviceIP"]
+    local inIfIdx = _GET["inIfIdx"]
+    local outIfIdx = _GET["outIfIdx"]
+    local traffic_type = _GET["traffic_type"] or "unicast"
+    local alert_type = _GET["alert_type"]
+    local alert_type_severity = _GET["alert_type_severity"]
+    local tcp_state = _GET["tcp_flow_state"]
+    local port = _GET["port"]
+    local network_id = _GET["network"]
+    
+    local prefs = ntop.getPrefs()
+    local duration_or_last_seen = prefs.flow_table_time
+    local begin_epoch_set = (ntop.getPref("ntopng.prefs.first_seen_set") == "1")
+    local flows_filter = getFlowsFilter()
+    flows_filter.statusFilter = nil -- remove the filter, otherwise no menu entries will be shown
+    local flowstats = interface.getActiveFlowsStats(host, flows_filter, false, talking_with, client, server, flow_info)
     local active_msg = getFlowsTableTitle(ntop.getHttpPrefix())
+    local mini_title = i18n("flow_details.purge_time", {
+        purge_time = ntop.getPref("ntopng.prefs.flow_max_idle"),
+        prefs_url = ntop.getHttpPrefix() .. '/lua/admin/prefs.lua?tab=in_memory'
+    })
     if (category ~= nil) then
         page_params["category"] = category
     end
@@ -591,7 +577,8 @@ elseif (page == "flows" or page == nil) then
     local json = require "dkjson" 
     local json_context = json.encode({
         ifid = ifstats.id,
-        has_exporters = has_exporters
+        has_exporters = has_exporters,
+        is_viewed = interface.isViewed()
     })
     template.render("pages/vue_page.template", { vue_page_name = "PageFlowsList", page_context = json_context })
 else

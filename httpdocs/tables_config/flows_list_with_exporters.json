@@ -34,49 +34,6 @@
 			]
 		},
 		{
-			"title_i18n": "proto",
-			"data_field": "l4_proto",
-			"sortable": true,
-			"class": [
-				"text-center",
-				"text-nowrap"
-			]
-		},
-		{
-			"title_i18n": "application",
-			"data_field": "application",
-			"sortable": true,
-			"class": [
-				"text-center",
-				"text-nowrap"
-			]
-		},
-		{
-			"title_i18n": "client",
-			"data_field": "client",
-			"sortable": true,
-			"class": [
-				"text-nowrap"
-			]
-		},
-		{
-			"title_i18n": "server",
-			"data_field": "server",
-			"sortable": true,
-			"class": [
-				"text-nowrap"
-			]
-		},
-		{
-			"title_i18n": "score",
-			"data_field": "score",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-center"
-			]
-		},
-		{
 			"title_i18n": "first_seen",
 			"data_field": "first_seen",
 			"sortable": true,
@@ -95,12 +52,29 @@
 			]
 		},
 		{
-			"title_i18n": "breakdown",
-			"data_field": "traffic_breakdown",
+			"title_i18n": "protocol",
+			"data_field": "protocol",
 			"sortable": false,
 			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "score",
+			"data_field": "score",
+			"sortable": true,
+			"class": [
 				"text-nowrap",
-				"text-end"
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "flow",
+			"data_field": "flow",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
 			]
 		},
 		{
@@ -116,6 +90,15 @@
 			"title_i18n": "flows_page.total_bytes",
 			"data_field": "bytes",
 			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "breakdown",
+			"data_field": "traffic_breakdown",
+			"sortable": false,
 			"class": [
 				"text-nowrap",
 				"text-end"

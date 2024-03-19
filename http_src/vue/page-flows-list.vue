@@ -12,15 +12,17 @@
             @custom_event="on_table_custom_event" @rows_loaded="change_filter_labels">
             <template v-slot:custom_header>
                 <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
-                    <span class="no-wrap d-flex align-items-center filters-label"><b>{{ item["basic_label"] }}</b></span>
+                    <span class="no-wrap d-flex align-items-center filters-label"><b>{{ item["basic_label"]
+                            }}</b></span>
                     <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5"
-                        dropdown_size="small" :options="item['options']" @select_option="add_table_filter">
+                        dropdown_size="small" :disabled="loading" :options="item['options']" @select_option="add_table_filter">
                     </SelectSearch>
                 </div>
-                <div class="d-inline-block">
-                    <div class="btn btn-sm btn-primary" type="button" @click="reset_filters">
+                <div class="d-flex justify-content-center align-items-center">
+                    <div class="btn btn-sm btn-primary me-3" type="button" @click="reset_filters">
                         {{ _i18n('reset') }}
                     </div>
+                    <Spinner :show="loading" size="1rem" class="me-1"></Spinner>
                 </div>
             </template> <!-- Dropdown filters -->
         </TableWithConfig>
@@ -34,6 +36,7 @@ import { default as PietyChart } from "../components/charts/piety-chart.vue";
 import { default as protocolUtils } from "../utilities/map/protocol-utils.js";
 import { default as alertSeverities } from "../utilities/map/alert-severities.js";
 import { default as dataUtils } from "../utilities/data-utils.js";
+import { default as Spinner } from "./spinner.vue";
 import formatterUtils from "../utilities/formatter-utils";
 import NtopUtils from "../utilities/ntop-utils.js";
 
@@ -51,6 +54,7 @@ const table_flows_list = ref(null);
 const csrf = props.context.csrf;
 const chart = ref(null);
 const filter_table_array = ref([]);
+const filters = ref([]);
 const refresh_rate = 10000;
 const application_thpt_url = `${http_prefix}/lua/rest/v2/get/flow/traffic_stats.lua`
 const piety_id = ref("throughput_piety");
@@ -70,145 +74,99 @@ const thpt_trend_icons = {
     2: "<i class='fas fa-arrow-down'></i>",
     3: "<i class='fas fa-minus'></i>",
 }
+const loading = ref(false);
 
 /* ************************************** */
 
+const format_host = function (value) {
+    let icons = ''
+    let port_name = ` : ${value.port}`
+    let process = ''
+    let container = ''
+    const url = `${http_prefix}/lua/host_details.lua?host=${value.ip}&vlan=${value.vlan}`
+
+    if (!dataUtils.isEmptyOrNull(value.system_host)) {
+        icons = `${icons} ${system_host_icon}`
+    }
+    if (!dataUtils.isEmptyOrNull(value.os)) {
+        const os_icon = osUtils.getOS(value.os);
+        icons = `${icons} ${os_icon.icon}`
+    }
+    if (!dataUtils.isEmptyOrNull(value.device_type)) {
+        icons = `${icons} ${osUtils.getAssetIcon(value.device_type) || ''}`
+    }
+    if (!dataUtils.isEmptyOrNull(value.hidden_from_top)) {
+        icons = `${icons} ${hidden_from_top_icon}`
+    }
+    if (!dataUtils.isEmptyOrNull(value.child_safe)) {
+        icons = `${icons} ${child_safe_icon}`
+    }
+    if (!dataUtils.isEmptyOrNull(value.dhcp_host)) {
+        icons = `${icons} ${dhcp_host_icon}`
+    }
+    if (!dataUtils.isEmptyOrNull(value.blocking_traffic_policy)) {
+        icons = `${icons} ${blocking_quota_icon}`
+    }
+    if (!dataUtils.isEmptyOrNull(value.country)) {
+        icons = `${icons} <a href='${http_prefix}/lua/hosts_stats.lua?country=${value.country}'><img src='${http_prefix}/dist/images/blank.gif' class='flag flag-${value.country.toLowerCase()}'></a>`
+    }
+    if (!dataUtils.isEmptyOrNull(value.is_blacklisted)) {
+        icons = `${icons} ${blacklisted_icon}`
+    }
+    if (!dataUtils.isEmptyOrNull(value.crawler_bot_scanner_host)) {
+        icons = `${icons} ${crawler_bot_scanner_host_icon}`
+    }
+    if (!dataUtils.isEmptyOrNull(value.is_multicast)) {
+        icons = `${icons} ${multicast_icon}`
+    }
+    if (!dataUtils.isEmptyOrNull(value.localhost)) {
+        icons = `${icons} ${localhost_icon}`
+    }
+    if (!dataUtils.isEmptyOrNull(value.remotehost)) {
+        icons = `${icons} ${remotehost_icon}`
+    }
+    if (!dataUtils.isEmptyOrNull(value.is_blackhole)) {
+        icons = `${icons} ${blackhole_icon}`
+    }
+    if (value.port !== 0) {
+        port_name = ` : <a href="#" class="tableFilter" tag-filter="port" tag-value="${value.port}">${value.service_port || value.port}</a>`
+    } else {
+        port_name = ''
+    }
+    if (!dataUtils.isEmptyOrNull(value.process.name)) {
+        process = ` <a href="${http_prefix}/lua/process_details.lua?host=${value.ip}&vlan=${value.vlan}&pid_name=${value.process.pid_name}&pid=${value.process.pid}"><i class='fas fa-terminal'></i> ${value.process.process_name}</a>`
+    }
+    if (!dataUtils.isEmptyOrNull(value.container.id)) {
+        container = ` <a href="${http_prefix}/lua/flows_stats.lua?container=${value.container.id}"><i class='fas fa-ship'></i> ${value.container.name}</a>`
+    }
+    if (props.context.is_viewed) {
+        return `${value.name} ${icons}${port_name}${process}${container}`
+    } else {
+        return `<a href=${url}>${value.name}</a> ${icons}${port_name}${process}${container}`
+    }
+}
+
 const map_table_def_columns = (columns) => {
     let map_columns = {
-        "client": (value, row) => {
-            let icons = ''
-            let port_name = ` : ${value.port}`
-            let process = ''
-            let container = ''
-            const url = `${http_prefix}/lua/host_details.lua?host=${value.ip}&vlan=${value.vlan}`
-
-            if (!dataUtils.isEmptyOrNull(value.system_host)) {
-                icons = `${icons} ${system_host_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.os)) {
-                const os_icon = osUtils.getOS(value.os);
-                icons = `${icons} ${os_icon.icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.device_type)) {
-                icons = `${icons} ${osUtils.getAssetIcon(value.device_type) || ''}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.hidden_from_top)) {
-                icons = `${icons} ${hidden_from_top_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.child_safe)) {
-                icons = `${icons} ${child_safe_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.dhcp_host)) {
-                icons = `${icons} ${dhcp_host_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.blocking_traffic_policy)) {
-                icons = `${icons} ${blocking_quota_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.country)) {
-                icons = `${icons} <a href='${http_prefix}/lua/hosts_stats.lua?country=${value.country}'><img src='${http_prefix}/dist/images/blank.gif' class='flag flag-${value.country.toLowerCase()}'></a>`
-            }
-            if (!dataUtils.isEmptyOrNull(value.is_blacklisted)) {
-                icons = `${icons} ${blacklisted_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.crawler_bot_scanner_host)) {
-                icons = `${icons} ${crawler_bot_scanner_host_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.is_multicast)) {
-                icons = `${icons} ${multicast_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.localhost)) {
-                icons = `${icons} ${localhost_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.remotehost)) {
-                icons = `${icons} ${remotehost_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.is_blackhole)) {
-                icons = `${icons} ${blackhole_icon}`
-            }
-            if (value.port !== 0 && !dataUtils.isEmptyOrNull(value.service_port)) {
-                port_name = ` : <a href="#" class="tableFilter" tag-filter="port" tag-value="${value.port}">${value.service_port}</a>`
-            }
-            if (value.port === 0) {
-                port_name = ''
-            }
-            if (!dataUtils.isEmptyOrNull(value.process.name)) {
-                process = ` <a href="${http_prefix}/lua/process_details.lua?host=${value.ip}&vlan=${value.vlan}&pid_name=${value.process.pid_name}&pid=${value.process.pid}"><i class='fas fa-terminal'></i> ${value.process.process_name}</a>`
-            }
-            if (!dataUtils.isEmptyOrNull(value.container.id)) {
-                container = ` <a href="${http_prefix}/lua/flows_stats.lua?container=${value.container.id}"><i class='fas fa-ship'></i> ${value.container.name}</a>`
-            }
-            return `<a href=${url}>${value.name}</a> ${icons}${port_name}${process}${container}`
+        "flow": (value, row) => {
+            const client = format_host(row.client)
+            const server = format_host(row.server)
+            return `${client} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${server}`
         },
-        "server": (value, row) => {
-            let icons = ''
-            let port_name = ` : ${value.port}`
-            let process = ''
-            let container = ''
-            const url = `${http_prefix}/lua/host_details.lua?host=${value.ip}&vlan=${value.vlan}`
-
-            if (!dataUtils.isEmptyOrNull(value.system_host)) {
-                icons = `${icons} ${system_host_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.os)) {
-                const os_icon = osUtils.getOS(value.os);
-                icons = `${icons} ${os_icon.icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.device_type)) {
-                icons = `${icons} ${osUtils.getAssetIcon(value.device_type) || ''}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.hidden_from_top)) {
-                icons = `${icons} ${hidden_from_top_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.child_safe)) {
-                icons = `${icons} ${child_safe_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.dhcp_host)) {
-                icons = `${icons} ${dhcp_host_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.blocking_traffic_policy)) {
-                icons = `${icons} ${blocking_quota_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.country)) {
-                icons = `${icons} <a href='${http_prefix}/lua/hosts_stats.lua?country=${value.country}'><img src='${http_prefix}/dist/images/blank.gif' class='flag flag-${value.country.toLowerCase()}'></a>`
-            }
-            if (!dataUtils.isEmptyOrNull(value.is_blacklisted)) {
-                icons = `${icons} ${blacklisted_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.crawler_bot_scanner_host)) {
-                icons = `${icons} ${crawler_bot_scanner_host_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.is_multicast)) {
-                icons = `${icons} ${multicast_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.localhost)) {
-                icons = `${icons} ${localhost_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.remotehost)) {
-                icons = `${icons} ${remotehost_icon}`
-            }
-            if (!dataUtils.isEmptyOrNull(value.is_blackhole)) {
-                icons = `${icons} ${blackhole_icon}`
-            }
-            if (value.port !== 0 && !dataUtils.isEmptyOrNull(value.service_port)) {
-                port_name = ` : <a href="#" class="tableFilter" tag-filter="port" tag-value="${value.port}">${value.service_port}</a>`
-            }
-            if (value.port === 0) {
-                port_name = ''
-            }
-            if (!dataUtils.isEmptyOrNull(value.process.name)) {
-                process = ` <a href="${http_prefix}/lua/process_details.lua?host=${value.ip}&vlan=${value.vlan}&pid_name=${value.process.pid_name}&pid=${value.process.pid}"><i class='fas fa-terminal'></i> ${value.process.process_name}</a>`
-            }
-            if (!dataUtils.isEmptyOrNull(value.container.id)) {
-                container = ` <a href="${http_prefix}/lua/flows_stats.lua?container=${value.container.id}"><i class='fas fa-ship'></i> ${value.container.name}</a>`
-            }
-            return `<a href=${url}>${value.name}</a> ${icons}${port_name}${process}${container}`
-        },
-        "application": (value, row) => {
+        "protocol": (value, row) => {
+            value = row.application
             const name = row.verdict ? ` <strike>${value.name}</strike>` : `${value.name}`
             const l7_proto_id = (dataUtils.isEmptyOrNull(value.master_id) || value.master_id === value.app_id) ? value.app_id : `${value.master_id}.${value.app_id}`
-            return `<a href="#" class="tableFilter" tag-filter="application" tag-value="${l7_proto_id}"">${name} ${protocolUtils.formatBreedIcon(value.breed, value.encrypted)}</a> ${protocolUtils.formatConfidence(value.confidence, value.confidence_id)}`
+            const application = `<a href="#" class="tableFilter" tag-filter="application" tag-value="${l7_proto_id}">${name} ${protocolUtils.formatBreedIcon(value.breed, value.encrypted)}</a> ${protocolUtils.formatConfidence(value.confidence, value.confidence_id)}`
+            value = row.l4_proto
+            let proto = ""
+            if (value && value.name) {
+                proto = row.verdict ? ` <strike>${value.name}</strike>` : `${value.name}`
+            }
+            proto = `<a href="#" class="tableFilter" tag-filter="l4proto" tag-value="${value.id}">${proto}</a>`
+            return `${proto}:${application}`
         },
-        "l4_proto": (value, row) => {
+        "proto": (value, row) => {
             if (value) {
                 const name = row.verdict ? ` <strike>${value}</strike>` : `${value}`
                 return name
@@ -336,6 +294,8 @@ function set_filter_array_label() {
     })
 }
 
+/* ************************************** */
+
 function add_filter_from_table_element(e) {
     const value = e.target.getAttribute("tag-value")
     const filter = e.target.getAttribute("tag-filter")
@@ -344,6 +304,8 @@ function add_filter_from_table_element(e) {
         value: value
     })
 }
+
+/* ************************************** */
 
 function add_filters_to_rows() {
     const filters = document.querySelectorAll('.tableFilter');
@@ -355,6 +317,7 @@ function add_filters_to_rows() {
 /* ************************************** */
 
 function change_filter_labels() {
+    set_filters_list();
     add_filters_to_rows()
     set_filter_array_label()
 }
@@ -364,46 +327,68 @@ function change_filter_labels() {
 async function add_table_filter(opt) {
     ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
     reset_piety();
-    filter_table_array.value = await load_table_filters_array();
-    set_filter_array_label();
     table_flows_list.value.refresh_table();
 }
 
 /* ************************************** */
 
+function set_filters_list(res) {
+    if(!res) {
+        filter_table_array.value = filters.value.filter((t) => {
+        if(t.show_with_key) {
+            const key = ntopng_url_manager.get_url_entry(t.show_with_key)
+            if(key !== t.show_with_value) {
+                return false
+            }
+        }
+        return true
+    })
+    } else {
+        filters.value = res.map((t) => {
+            const key_in_url = ntopng_url_manager.get_url_entry(t.name);
+            if (key_in_url === null) {
+                ntopng_url_manager.set_key_to_url(t.name, ``);
+            }
+            return {
+                id: t.name,
+                label: t.label,
+                title: t.tooltip,
+                options: t.value,
+                show_with_key: t.show_with_key,
+                show_with_value: t.show_with_value,
+            };
+        });
+        set_filters_list();
+        return;
+    }
+    set_filter_array_label();
+}
+
+/* ************************************** */
+
 async function load_table_filters_array() {
+    loading.value = true;
     let extra_params = get_extra_params_obj();
     let url_params = ntopng_url_manager.obj_to_url_params(extra_params);
     const url = `${http_prefix}/lua/rest/v2/get/flow/flow_filters.lua?${url_params}`;
     const res = await ntopng_utility.http_request(url);
-    return res.map((t) => {
-        const key_in_url = ntopng_url_manager.get_url_entry(t.name);
-        if (key_in_url === null) {
-            ntopng_url_manager.set_key_to_url(t.name, ``);
-        }
-        return {
-            id: t.name,
-            label: t.label,
-            title: t.tooltip,
-            options: t.value,
-            hidden: (t.value.length == 1)
-        };
-    });
+    set_filters_list(res)
+    loading.value = false;
 }
 
-const reset_piety = async function() {
+const reset_piety = async function () {
     await chart.value.reset();
     await chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
 }
 
-async function reset_filters() {
+/* ************************************** */
+
+function reset_filters() {
     filter_table_array.value.forEach((el, index) => {
         /* Getting the currently selected filter */
         ntopng_url_manager.set_key_to_url(el.id, ``);
     })
     reset_piety();
-    filter_table_array.value = await load_table_filters_array();
-    set_filter_array_label();
     table_flows_list.value.refresh_table();
 }
 
@@ -450,11 +435,10 @@ function refresh_table() {
 
 /* ************************************** */
 
-onMounted(async () => {
+onMounted(() => {
     setInterval(refresh_table, refresh_rate)
     chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
-    filter_table_array.value = await load_table_filters_array();
-    set_filter_array_label()
+    load_table_filters_array();
 });
 
 </script>../utilities/formatter-utils.js

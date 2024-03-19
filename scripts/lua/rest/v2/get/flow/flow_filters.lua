@@ -15,6 +15,7 @@ local alert_consts = require "alert_consts"
 local rest_utils = require "rest_utils"
 
 local tmp = startProfiling("scripts/lua/rest/v2/get/flow/active_list.lua")
+traceProfiling("scripts/lua/rest/v2/get/flow/active_list.lua", tmp, false)
 local ifstats = interface.getStats()
 local host = _GET["host"]
 local talking_with = _GET["talkingWith"]
@@ -304,31 +305,29 @@ end
 
 traceProfiling("scripts/lua/rest/v2/get/flow/active_list.lua", tmp, false)
 -- Host pools
-if not interface.isView() then
-    local host_pools = require "host_pools"
-    local host_pools_instance = host_pools:create()
-    local pools = host_pools_instance:get_all_pools()
-    if (table.len(pools) > 1) then
-        local pool_filters = {{
+local host_pools = require "host_pools"
+local host_pools_instance = host_pools:create()
+local pools = host_pools_instance:get_all_pools()
+if (table.len(pools) > 1) then
+    local pool_filters = {{
+        key = "host_pool_id",
+        value = "",
+        label = i18n("all")
+    }}
+    for _, pool in pairs(pools) do
+        pool_filters[#pool_filters + 1] = {
             key = "host_pool_id",
-            value = "",
-            label = i18n("all")
-        }}
-        for _, pool in pairs(pools) do
-            pool_filters[#pool_filters + 1] = {
-                key = "host_pool_id",
-                value = pool.pool_id,
-                label = pool.name
-            }
-        end
-
-        rsp[#rsp + 1] = {
-            action = "host_pool_id",
-            label = i18n("if_stats_config.add_rules_type_host_pool"),
-            name = "host_pool_id",
-            value = pool_filters
+            value = pool.pool_id,
+            label = pool.name
         }
     end
+
+    rsp[#rsp + 1] = {
+        action = "host_pool_id",
+        label = i18n("if_stats_config.add_rules_type_host_pool"),
+        name = "host_pool_id",
+        value = pool_filters
+    }
 end
 
 traceProfiling("scripts/lua/rest/v2/get/flow/active_list.lua", tmp, false)
@@ -360,12 +359,13 @@ if ntop.isPro() and interface.isPacketInterface() == false then
     local flowdevs = interface.getFlowDevices() or {}
     local devips = getProbesName(flowdevs)
     if table.len(devips) > 0 then
+        local in_out_rsp = {}
         local exporter_filters = {{
             key = "deviceIP",
             value = "",
             label = i18n("all")
         }}
-        for interface, device_list in pairs(devips or {}) do
+        for _, device_list in pairs(devips or {}) do
             for dev_ip, dev_resolved_name in pairsByValues(device_list, asc) do
                 local dev_name = dev_ip
                 if not isEmptyString(dev_resolved_name) and dev_resolved_name ~= dev_name then
@@ -376,6 +376,55 @@ if ntop.isPro() and interface.isPacketInterface() == false then
                     value = dev_ip,
                     label = dev_name
                 }
+                
+                -- Flow exporter requested
+                local in_ports = {{
+                    key = "inIfIdx",
+                    value = "",
+                    label = i18n("all")
+                }}
+                local ports = interface.getFlowDeviceInfo(dev_ip)
+                
+                for portidx, _ in pairsByKeys(ports, asc) do
+                    in_ports[#in_ports + 1] = {
+                        key = "inIfIdx",
+                        value = portidx,
+                        label = format_portidx_name(dev_ip, portidx)
+                    }
+                end
+
+                in_out_rsp[#in_out_rsp + 1] = {
+                    action = "inIfIdx",
+                    label = i18n("db_search.input_snmp"),
+                    name = "inIfIdx",
+                    value = in_ports,
+                    show_with_value = dev_ip,
+                    show_with_key = "deviceIP"
+                }
+
+                local out_ports = {{
+                    key = "outIfIdx",
+                    value = "",
+                    label = i18n("all")
+                }}
+                local ports = interface.getFlowDeviceInfo(dev_ip)
+                
+                for portidx, _ in pairsByKeys(ports, asc) do
+                    out_ports[#out_ports + 1] = {
+                        key = "outIfIdx",
+                        value = portidx,
+                        label = format_portidx_name(dev_ip, portidx)
+                    }
+                end
+            
+                in_out_rsp[#in_out_rsp + 1] = {
+                    action = "outIfIdx",
+                    label = i18n("db_search.output_snmp"),
+                    name = "outIfIdx",
+                    value = out_ports,  
+                    show_with_value = dev_ip,
+                    show_with_key = "deviceIP"
+                }
             end
         end
 
@@ -385,54 +434,9 @@ if ntop.isPro() and interface.isPacketInterface() == false then
             name = "deviceIP",
             value = exporter_filters
         }
+
+        rsp = table.merge(rsp, in_out_rsp)
     end
-end
-
-if not isEmptyString(_GET["deviceIP"]) and ntop.isPro() and interface.isPacketInterface() == false then
-    -- Flow exporter requested
-    local in_ports = {{
-        key = "inIfIdx",
-        value = "",
-        label = i18n("all")
-    }}
-    local ports = interface.getFlowDeviceInfo(_GET["deviceIP"])
-    
-    for portidx, _ in pairsByKeys(ports, asc) do
-        in_ports[#in_ports + 1] = {
-            key = "inIfIdx",
-            value = portidx,
-            label = format_portidx_name(_GET["deviceIP"], portidx)
-        }
-    end
-
-    rsp[#rsp + 1] = {
-        action = "inIfIdx",
-        label = i18n("db_search.input_snmp"),
-        name = "inIfIdx",
-        value = in_ports    
-    }
-
-    local out_ports = {{
-        key = "outIfIdx",
-        value = "",
-        label = i18n("all")
-    }}
-    local ports = interface.getFlowDeviceInfo(_GET["deviceIP"])
-    
-    for portidx, _ in pairsByKeys(ports, asc) do
-        out_ports[#out_ports + 1] = {
-            key = "outIfIdx",
-            value = portidx,
-            label = format_portidx_name(_GET["deviceIP"], portidx)
-        }
-    end
-
-    rsp[#rsp + 1] = {
-        action = "outIfIdx",
-        label = i18n("db_search.output_snmp"),
-        name = "outIfIdx",
-        value = out_ports    
-    }
 end
 
 endProfiling("scripts/lua/rest/v2/get/flow/active_list.lua", tmp)
