@@ -1,13 +1,13 @@
 <!-- (C) 2024 - ntop.org     -->
 <template>
     <div class="m-2 mb-3">
-        <div class="d-flex justify-content-center align-items-center">
+<!--    <div class="d-flex justify-content-center align-items-center">
             <div class="col-12">
                 <PietyChart ref="chart" :id="piety_id" :refresh_rate="refresh_rate">
                 </PietyChart>
             </div>
         </div>
-        <TableWithConfig ref="table_flows_list" :table_id="table_id" :csrf="csrf" :f_map_columns="map_table_def_columns"
+-->     <TableWithConfig ref="table_flows_list" :table_id="table_id" :csrf="csrf" :f_map_columns="map_table_def_columns"
             :get_extra_params_obj="get_extra_params_obj" :f_sort_rows="columns_sorting"
             @custom_event="on_table_custom_event" @rows_loaded="change_filter_labels">
             <template v-slot:custom_header>
@@ -32,7 +32,7 @@
 import { ref, onMounted } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as SelectSearch } from "./select-search.vue";
-import { default as PietyChart } from "../components/charts/piety-chart.vue";
+//import { default as PietyChart } from "../components/charts/piety-chart.vue";
 import { default as protocolUtils } from "../utilities/map/protocol-utils.js";
 import { default as alertSeverities } from "../utilities/map/alert-severities.js";
 import { default as dataUtils } from "../utilities/data-utils.js";
@@ -52,7 +52,7 @@ const props = defineProps({
 const table_id = props.context?.has_exporters ? ref('flows_list_with_exporters') : ref('flows_list');
 const table_flows_list = ref(null);
 const csrf = props.context.csrf;
-const chart = ref(null);
+//const chart = ref(null);
 const filter_table_array = ref([]);
 const filters = ref([]);
 const refresh_rate = 10000;
@@ -326,7 +326,7 @@ function change_filter_labels() {
 
 async function add_table_filter(opt) {
     ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
-    reset_piety();
+//    reset_piety();
     table_flows_list.value.refresh_table();
 }
 
@@ -376,10 +376,12 @@ async function load_table_filters_array() {
     loading.value = false;
 }
 
+/*
 const reset_piety = async function () {
     await chart.value.reset();
     await chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
 }
+*/
 
 /* ************************************** */
 
@@ -388,7 +390,7 @@ function reset_filters() {
         /* Getting the currently selected filter */
         ntopng_url_manager.set_key_to_url(el.id, ``);
     })
-    reset_piety();
+//    reset_piety();
     table_flows_list.value.refresh_table();
 }
 
@@ -429,7 +431,7 @@ function on_table_custom_event(event) {
 }
 
 function refresh_table() {
-    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
+//    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
     table_flows_list.value.refresh_table(true);
 }
 
@@ -437,7 +439,7 @@ function refresh_table() {
 
 onMounted(() => {
     setInterval(refresh_table, refresh_rate)
-    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
+//    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
     load_table_filters_array();
 });
 

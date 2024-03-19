@@ -56,7 +56,6 @@
 			"data_field": "protocol",
 			"sortable": false,
 			"class": [
-				"text-center",
 				"text-nowrap"
 			]
 		},
@@ -96,20 +95,20 @@
 			]
 		},
 		{
+			"title_i18n": "info",
+			"data_field": "info",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"title_i18n": "breakdown",
 			"data_field": "traffic_breakdown",
 			"sortable": false,
 			"class": [
 				"text-nowrap",
 				"text-end"
-			]
-		},
-		{
-			"title_i18n": "info",
-			"data_field": "info",
-			"sortable": false,
-			"class": [
-				"text-nowrap"
 			]
 		}
 	]
