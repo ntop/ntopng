@@ -515,19 +515,28 @@ const set_rule_type = (type) => {
   if (type == "host_pool" || type == "CIDR") {
     change_metric_type_hp();
 
-    if (type == "host_pool")
+    if (type == "host_pool") {
       metric_type.value = active_metric_type_list.value[1];
-    else
+    } else {
       metric_type.value = active_metric_type_list.value[0];
+    }
 
+    visible.value = true;
 
   } else {
     metric_type.value = metric_type_list.value[0];
 
+    if (type == "Host") {
+      change_threshold();
+    } else if (type == "interface") {
+      change_interface_threshold();
+    } else if (type == "vlan") {
+      change_vlan_threshold();
+    } else {
+      visible.value = true;
+    }
+    
   }
-
-
-
 }
 
 
