@@ -1183,12 +1183,10 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name)
                             end
 
                             local label = interface_name .. ' · ' .. probe_label
-                            tprint(hide_exporters_name)
                             if hide_exporters_name then
                                 label = interface_name
                             end
-                            tprint(label)
-
+                            
                             filter.options[#filter.options + 1] = {
                                 value = probe_ip .. "_" .. interface_id,
                                 label = label,
