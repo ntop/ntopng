@@ -53,9 +53,9 @@
                     </table>
             </div>
             <div class="card-footer">
-                <a class="btn btn-secondary" data-bs-toggle='modal' href="#import-modal">
+                <button class="btn btn-secondary" data-bs-toggle='modal' href="#import-modal">
                     <i class='fas fa-file-import'></i> {{ i18n("host_pools.import_hosts") }}
-                </a>
+                </button>
             </div>
         </div>
     </div>
@@ -263,6 +263,7 @@
 
     $(`[href='#import-modal']`).click(function() {
         $(`.member-name`).html(selectedPool.name);
+        $(`#import-modal`).modal("show")
     });
 
     $(`input#import-input`).on('change', function () {
