@@ -26,11 +26,6 @@
 
 class Flow; /* Forward */
 
-typedef struct {
-  u_int8_t is_client : 1, is_server : 1, unused : 6;
-  u_int32_t num_seen;
-} PortValue;
-
 /* *************************************** */
 
 class FlowStats {
@@ -41,7 +36,7 @@ class FlowStats {
   u_int32_t dscps[64];  // 64 values available for dscp
   u_int32_t host_pools[UNLIMITED_NUM_HOST_POOLS];
   std::map<std::string, u_int16_t> talking_hosts;
-  std::map<u_int16_t, PortValue> ports;
+  std::map<u_int16_t, u_int32_t> ports;
 
  public:
   FlowStats();

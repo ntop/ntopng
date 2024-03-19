@@ -15,7 +15,6 @@ local alert_consts = require "alert_consts"
 local rest_utils = require "rest_utils"
 
 local tmp = startProfiling("scripts/lua/rest/v2/get/flow/active_list.lua")
-traceProfiling("scripts/lua/rest/v2/get/flow/active_list.lua", tmp, false)
 local ifstats = interface.getStats()
 local host = _GET["host"]
 local talking_with = _GET["talkingWith"]
@@ -86,7 +85,6 @@ if flowstats["l4_protocols"] then
         }
     end
 end
-traceProfiling("l4 protocols", tmp, false)
 
 rsp[#rsp + 1] = {
     action = "l4proto",
@@ -128,7 +126,7 @@ rsp[#rsp + 1] = {
 }
 traceProfiling("applications", tmp, false)
 
-if host then
+if not isEmptyString(host) then
     local talking_with = {{
         key = "talking_with",
         value = "",
@@ -222,7 +220,6 @@ for status_key, status in pairs(flowstats["status"]) do
         }
     end
 end
-traceProfiling("status", tmp, false)
 
 rsp[#rsp + 1] = {
     action = "alert_type",
@@ -305,7 +302,6 @@ if vlans then
         name = "vlan",
         value = vlan_filters
     }
-    traceProfiling("vlans", tmp, false)
 end
 
 -- Host pools
@@ -334,7 +330,6 @@ if (table.len(pools) > 1) then
     }
 end
 
-traceProfiling("host pools", tmp, false)
 local networks_stats = interface.getNetworksStats()
 if table.len(networks_stats) > 1 then
     local networks_filter = {{
@@ -358,8 +353,6 @@ if table.len(networks_stats) > 1 then
         value = networks_filter
     }
 end
-
-traceProfiling("networks", tmp, false)
 
 if ntop.isPro() and interface.isPacketInterface() == false then
     local flowdevs = interface.getFlowDevices() or {}
@@ -389,7 +382,7 @@ if ntop.isPro() and interface.isPacketInterface() == false then
                     value = "",
                     label = i18n("all")
                 }}
-                local ports = interface.getFlowDeviceInfo(dev_ip)
+                local ports = interface.getFlowDeviceInfo(dev_ip, false --[[ Show minimal info ]])
                 
                 for portidx, _ in pairsByKeys(ports, asc) do
                     in_ports[#in_ports + 1] = {
@@ -444,7 +437,6 @@ if ntop.isPro() and interface.isPacketInterface() == false then
         rsp = table.merge(rsp, in_out_rsp)
     end
 end
-traceProfiling("exporters", tmp, false)
 
 endProfiling("scripts/lua/rest/v2/get/flow/active_list.lua", tmp)
 rest_utils.answer(rest_utils.consts.success.ok, rsp)

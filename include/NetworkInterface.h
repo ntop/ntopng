@@ -1006,9 +1006,9 @@ public:
   void updateBehaviorStats(const struct timeval *tv);
 
   virtual void getFlowDevices(lua_State *vm, bool add_table);
-  virtual void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
+  virtual void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP, bool showAllStats = true) {
     if (flow_interfaces_stats)
-      flow_interfaces_stats->luaDeviceInfo(vm, deviceIP, this);
+      flow_interfaces_stats->luaDeviceInfo(vm, deviceIP, this, showAllStats);
     else
       lua_newtable(vm);
   };

@@ -222,15 +222,11 @@ void FlowStats::lua(lua_State *vm) {
 
   lua_newtable(vm);
 
-  std::map<u_int16_t, PortValue>::iterator it;
+  std::map<u_int16_t, u_int32_t>::iterator it;
   for (it = ports.begin(); it != ports.end(); it++) {
-    lua_newtable(vm);
-    lua_push_uint32_table_entry(vm, "num_seen", it->second.num_seen);
-    lua_push_bool_table_entry(vm, "is_client", it->second.is_client);
-    lua_push_bool_table_entry(vm, "is_server", it->second.is_server);
-    lua_pushinteger(vm, it->first);
-    lua_insert(vm, -2);
-    lua_settable(vm, -3);
+    char tmp[64];
+    snprintf(tmp, sizeof(tmp), "%u", it->first);
+    lua_push_uint32_table_entry(vm, tmp, it->second);
   }
   lua_pushstring(vm, "ports");
   lua_insert(vm, -2);
@@ -267,18 +263,14 @@ void FlowStats::updateTalkingHosts(Flow *f) {
 
 void FlowStats::updatePorts(Flow *f) {
   if (f) {
-    PortValue tmp = {0};
-    std::pair<std::map<u_int16_t, PortValue>::iterator, bool> ret;
+    std::pair<std::map<u_int16_t, u_int32_t>::iterator, bool> ret;
     /* Add the client port */
-    ret = ports.insert(std::pair<u_int16_t, PortValue>(f->get_cli_port(), tmp));
-    ret.first->second.is_client = 1;
-    ret.first->second.num_seen++;
-
+    ret = ports.insert(std::pair<u_int16_t, u_int32_t>(f->get_cli_port(), 1));
+    if (!ret.second) ret.first->second++;
+    
     /* Now do the same with the server port */
-    ret = ports.insert(std::pair<u_int16_t, PortValue>(f->get_srv_port(), tmp));
-    ret.first->second.is_server = 1;
-    ret.first->second.num_seen++;
-
+    ret = ports.insert(std::pair<u_int16_t, u_int32_t>(f->get_srv_port(), 1));
+    if (!ret.second) ret.first->second++;
   }
 }
 

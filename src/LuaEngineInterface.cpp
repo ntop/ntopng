@@ -2860,19 +2860,22 @@ static int ntop_get_flow_devices(lua_State *vm) {
 static int ntop_get_flow_device_info(lua_State *vm) {
   NetworkInterface *curr_iface = getCurrentInterface(vm);
   char *device_ip;
+  bool showAllStats = true;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   device_ip = (char *)lua_tostring(vm, 1);
+  if (lua_type(vm, 2) == LUA_TBOOLEAN)
+    showAllStats = (bool)lua_toboolean(vm, 2);
 
   if (!curr_iface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   else {
     in_addr_t addr = inet_addr(device_ip);
 
-    curr_iface->getFlowDeviceInfo(vm, ntohl(addr));
+    curr_iface->getFlowDeviceInfo(vm, ntohl(addr), showAllStats);
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
   }
 }
