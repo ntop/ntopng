@@ -149,7 +149,7 @@ if [ test -d $HOME/nDPI ]; then
   fi
 fi
 
-EXTRA_DEPS="$EXTRA_DEPS, $NDPI_DEP"
+EXTRA_DEPS="$EXTRA_DEPS, $NDPI_DEP, libsodium23"
 
 if test -f /usr/bin/debsigs; then
   SIGN_CMD="debsigs"
