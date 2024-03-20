@@ -14,7 +14,7 @@ local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
 local rest_utils = require "rest_utils"
 
-local tmp = startProfiling("scripts/lua/rest/v2/get/flow/active_list.lua")
+-- local tmp = startProfiling("scripts/lua/rest/v2/get/flow/active_list.lua")
 local ifstats = interface.getStats()
 local host = _GET["host"]
 local talking_with = _GET["talkingWith"]
@@ -22,7 +22,7 @@ local client = _GET["client"]
 local server = _GET["server"]
 local flow_info = _GET["flow_info"]
 local flowstats = interface.getActiveFlowsStats(host, nil, false, talking_with, client, server, flow_info)
-traceProfiling("getActiveFlowsStats", tmp, false)
+-- traceProfiling("getActiveFlowsStats", tmp, false)
 
 local rsp = {}
 local hosts_type_filters = {{
@@ -124,7 +124,7 @@ rsp[#rsp + 1] = {
     name = "application",
     value = application_filters
 }
-traceProfiling("applications", tmp, false)
+--traceProfiling("applications", tmp, false)
 
 if not isEmptyString(host) then
     local talking_with = {{
@@ -170,7 +170,7 @@ for port, value in pairsByKeys(flowstats["ports"], asc) do
     }
 ::continue::
 end
-traceProfiling("ports", tmp, false)
+--traceProfiling("ports", tmp, false)
 
 rsp[#rsp + 1] = {
     action = "port",
@@ -438,5 +438,5 @@ if ntop.isPro() and interface.isPacketInterface() == false then
     end
 end
 
-endProfiling("scripts/lua/rest/v2/get/flow/active_list.lua", tmp)
+--endProfiling("scripts/lua/rest/v2/get/flow/active_list.lua", tmp)
 rest_utils.answer(rest_utils.consts.success.ok, rsp)
