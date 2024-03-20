@@ -101,15 +101,6 @@
 			"class": [
 				"text-nowrap"
 			]
-		},
-		{
-			"title_i18n": "breakdown",
-			"data_field": "traffic_breakdown",
-			"sortable": false,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
 		}
 	]
 }

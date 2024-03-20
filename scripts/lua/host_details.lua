@@ -2008,7 +2008,7 @@ setInterval(update_icmp_table, 5000);
         
             local json_context = json.encode(context)
             template.render("pages/vue_page.template", { vue_page_name = "PageAggregatedLiveFlows", page_context = json_context })
-        elseif (ntop.isnEdge) then
+        elseif (ntop.isnEdge()) then
             print [[
       <div id="table-flows"></div>
          <script>

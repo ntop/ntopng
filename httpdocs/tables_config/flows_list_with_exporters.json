@@ -103,15 +103,6 @@
 			]
 		},
 		{
-			"title_i18n": "breakdown",
-			"data_field": "traffic_breakdown",
-			"sortable": false,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
-		},
-		{
 			"title_i18n": "flow_devices.exporter_ip",
 			"data_field": "flow_exporter",
 			"sortable": true,

@@ -1126,7 +1126,7 @@ http_lint.validateNetwork = validateNetwork
 
 local function validateHost(p)
    local host = hostkey2hostinfo(p)
-
+   
    if (host.host ~= nil) and (host.vlan ~= nil) and (isIPv4(host.host) or isIPv6(host.host) or isMacAddress(host.host)) then
       return true
    else
@@ -1243,10 +1243,15 @@ local function validateProtocolIdOrNameorCategory(p)
    return validateProtocolIdOrName(p)
 end
 
-local function validateFlowHostsTypeOrIpVersion(p)
+local function validateFlowHostsTypeOrIpVersionOrIp(p)
    if string.starts(p, "ip_version_") then
       local version = split(p, "ip_version_")
       return validateIpVersion(version[2])
+   else
+      local host = hostkey2hostinfo(p)
+      if host then
+         return validateHost(p)
+      end
    end
    return validateFlowHostsType(p)
 end
@@ -1941,7 +1946,7 @@ local known_parameters = {
    ["item"] = validateSingleWord, -- Used by the Import/Export page to select the item to import/export
    ["stats_type"] = validateStatsType, -- A mode for historical stats queries
    ["alertstats_type"] = validateAlertStatsType, -- A mode for alerts stats queries
-   ["flowhosts_type"] = validateFlowHostsTypeOrIpVersion, -- A filter for local/remote hosts in each of the two directions
+   ["flowhosts_type"] = validateFlowHostsTypeOrIpVersionOrIp, -- A filter for local/remote hosts in each of the two directions
    ["hosts_type"] = validateFlowHostsType, -- A filter for local/remote hosts in each of the two directions
    ["talking_with"] = validateHost, -- A filter for hosts in each of the two directions
    ["status"] = validateUnquoted, -- An alert type to filter

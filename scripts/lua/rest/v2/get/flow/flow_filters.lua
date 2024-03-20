@@ -23,48 +23,65 @@ local flow_info = _GET["flow_info"]
 local flowstats = interface.getActiveFlowsStats(host, nil, false, talking_with, client, server, flow_info)
 
 local rsp = {}
-local hosts_type_filters = {{
-    key = "flowhosts_type",
-    value = "",
-    label = i18n("all")
-}, {
-    key = "flowhosts_type",
-    value = "ip_version_4",
-    label = i18n("flows_page.ipv4_only"),
-    group = i18n("flows_page.ip_version")
-}, {
-    key = "flowhosts_type",
-    value = "ip_version_6",
-    label = i18n("flows_page.ipv6_only"),
-    group = i18n("flows_page.ip_version")
-}, {
-    key = "flowhosts_type",
-    value = "local_only",
-    label = i18n("flows_page.local_only"),
-    group = i18n("db_search.traffic_direction")
-}, {
-    key = "flowhosts_type",
-    value = "remote_only",
-    label = i18n("flows_page.remote_only"),
-    group = i18n("db_search.traffic_direction")
-}, {
-    key = "flowhosts_type",
-    value = "local_origin_remote_target",
-    label = i18n("flows_page.local_cli_remote_srv"),
-    group = i18n("db_search.traffic_direction")
-}, {
-    key = "flowhosts_type",
-    value = "remote_origin_local_target",
-    label = i18n("flows_page.local_srv_remote_cli"),
-    group = i18n("db_search.traffic_direction")
-}}
+if not host then
+    local hosts_type_filters = {{
+        key = "flowhosts_type",
+        value = "",
+        label = i18n("all")
+    }}
+    local host = _GET["flowhosts_type"] or nil
+    if not isEmptyString(host) then
+        host = hostkey2hostinfo(host)
+        if host then
+            hosts_type_filters[#hosts_type_filters + 1] = {
+                key = "flowhosts_type",
+                value = _GET["flowhosts_type"],
+                label = hostinfo2label(host, true)
+            }
+        end
+    end
+    
+    local hosts_type_filters2 = {{
+        key = "flowhosts_type",
+        value = "ip_version_4",
+        label = i18n("flows_page.ipv4_only"),
+        group = i18n("flows_page.ip_version")
+    }, {
+        key = "flowhosts_type",
+        value = "ip_version_6",
+        label = i18n("flows_page.ipv6_only"),
+        group = i18n("flows_page.ip_version")
+    }, {
+        key = "flowhosts_type",
+        value = "local_only",
+        label = i18n("flows_page.local_only"),
+        group = i18n("db_search.traffic_direction")
+    }, {
+        key = "flowhosts_type",
+        value = "remote_only",
+        label = i18n("flows_page.remote_only"),
+        group = i18n("db_search.traffic_direction")
+    }, {
+        key = "flowhosts_type",
+        value = "local_origin_remote_target",
+        label = i18n("flows_page.local_cli_remote_srv"),
+        group = i18n("db_search.traffic_direction")
+    }, {
+        key = "flowhosts_type",
+        value = "remote_origin_local_target",
+        label = i18n("flows_page.local_srv_remote_cli"),
+        group = i18n("db_search.traffic_direction")
+    }}
 
-rsp[#rsp + 1] = {
-    action = "flowhosts_type",
-    label = i18n("hosts"),
-    name = "flowhosts_type",
-    value = hosts_type_filters
-}
+    hosts_type_filters = table.merge(hosts_type_filters, hosts_type_filters2)
+
+    rsp[#rsp + 1] = {
+        action = "flowhosts_type",
+        label = i18n("db_explorer.host_data"),
+        name = "flowhosts_type",
+        value = hosts_type_filters
+    }
+end
 
 local protocol_filters = {{
     key = "l4proto",
@@ -373,7 +390,7 @@ if ntop.isPro() and interface.isPacketInterface() == false then
                     value = "",
                     label = i18n("all")
                 }}
-                local ports = interface.getFlowDeviceInfo(dev_ip, false --[[ Show minimal info ]])
+                local ports = interface.getFlowDeviceInfo(dev_ip, true --[[ Show minimal info ]])
                 
                 for portidx, _ in pairsByKeys(ports, asc) do
                     in_ports[#in_ports + 1] = {
@@ -397,7 +414,7 @@ if ntop.isPro() and interface.isPacketInterface() == false then
                     value = "",
                     label = i18n("all")
                 }}
-                local ports = interface.getFlowDeviceInfo(dev_ip)
+                local ports = interface.getFlowDeviceInfo(dev_ip, false)
                 
                 for portidx, _ in pairsByKeys(ports, asc) do
                     out_ports[#out_ports + 1] = {

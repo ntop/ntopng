@@ -1,13 +1,14 @@
 <!-- (C) 2024 - ntop.org     -->
 <template>
     <div class="m-2 mb-3">
-<!--    <div class="d-flex justify-content-center align-items-center">
+        <!--    <div class="d-flex justify-content-center align-items-center">
             <div class="col-12">
                 <PietyChart ref="chart" :id="piety_id" :refresh_rate="refresh_rate">
                 </PietyChart>
             </div>
         </div>
--->     <TableWithConfig ref="table_flows_list" :table_id="table_id" :csrf="csrf" :f_map_columns="map_table_def_columns"
+-->
+        <TableWithConfig ref="table_flows_list" :table_id="table_id" :csrf="csrf" :f_map_columns="map_table_def_columns"
             :get_extra_params_obj="get_extra_params_obj" :f_sort_rows="columns_sorting"
             @custom_event="on_table_custom_event" @rows_loaded="change_filter_labels">
             <template v-slot:custom_header>
@@ -15,11 +16,12 @@
                     <span class="no-wrap d-flex align-items-center filters-label"><b>{{ item["basic_label"]
                             }}</b></span>
                     <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5"
-                        dropdown_size="small" :disabled="loading" :options="item['options']" @select_option="add_table_filter">
+                        dropdown_size="small" :disabled="loading" :options="item['options']"
+                        @select_option="add_table_filter">
                     </SelectSearch>
                 </div>
                 <div class="d-flex justify-content-center align-items-center">
-                    <div class="btn btn-sm btn-primary me-3" type="button" @click="reset_filters">
+                    <div class="btn btn-sm btn-primary mt-2 me-3" type="button" @click="reset_filters">
                         {{ _i18n('reset') }}
                     </div>
                     <Spinner :show="loading" size="1rem" class="me-1"></Spinner>
@@ -56,8 +58,10 @@ const csrf = props.context.csrf;
 const filter_table_array = ref([]);
 const filters = ref([]);
 const refresh_rate = 10000;
-const application_thpt_url = `${http_prefix}/lua/rest/v2/get/flow/traffic_stats.lua`
-const piety_id = ref("throughput_piety");
+const host_details_url = `${http_prefix}/lua/host_details.lua`
+const flow_exporter_url = `${http_prefix}/lua/pro/enterprise/flowdevice_details.lua`
+const flow_exporter_icon = "<i class='fas fa-file-export'></i>"
+const host_details_icon = "<i class='fas fa-laptop'></i>"
 const child_safe_icon = "<font color='#5cb85c'><i class='fas fa-lg fa-child' aria-hidden='true' title='" + i18n("host_pools.children_safe") + "'></i></font>"
 const system_host_icon = "<i class='fas fa-flag' title='" + i18n("system_host") + "'></i>"
 const hidden_from_top_icon = "<i class='fas fa-eye-slash' title='" + i18n("hidden_from_top_talkers") + "'></i>"
@@ -84,7 +88,7 @@ const format_host = function (value) {
     let port_name = ` : ${value.port}`
     let process = ''
     let container = ''
-    const url = `${http_prefix}/lua/host_details.lua?host=${value.ip}&vlan=${value.vlan}`
+    const url = `${host_details_url}?host=${value.ip}&vlan=${value.vlan || ''}`
 
     if (!dataUtils.isEmptyOrNull(value.system_host)) {
         icons = `${icons} ${system_host_icon}`
@@ -141,9 +145,9 @@ const format_host = function (value) {
         container = ` <a href="${http_prefix}/lua/flows_stats.lua?container=${value.container.id}"><i class='fas fa-ship'></i> ${value.container.name}</a>`
     }
     if (props.context.is_viewed) {
-        return `${value.name} ${icons}${port_name}${process}${container}`
+        return `<a href="#" class="tableFilter" tag-filter="flowhosts_type" tag-value="${value.ip}@${value.vlan || 0}">${value.name}</a> ${icons}${port_name}${process}${container}`
     } else {
-        return `<a href=${url}>${value.name}</a> ${icons}${port_name}${process}${container}`
+        return `<a href="#" class="tableFilter" tag-filter="flowhosts_type" tag-value="${value.ip}@${value.vlan || 0}">${value.name}</a> ${icons} <a href=${url}>${host_details_icon}</a>${port_name}${process}${container}`
     }
 }
 
@@ -244,7 +248,7 @@ const map_table_def_columns = (columns) => {
         },
         "flow_exporter": (value) => {
             if (!dataUtils.isEmptyOrNull(value)) {
-                return `<a href="${http_prefix}/lua/pro/enterprise/flowdevice_details.lua?ip=${value.device.ip}">${value.device.name}</a>`
+                return `<a href="${flow_exporter_url}?ip=${value.device.ip}">${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="deviceIP" tag-value="${value.device.ip}">${value.device.name}</a>`
             }
             return ''
         },
@@ -254,7 +258,7 @@ const map_table_def_columns = (columns) => {
                 if (name !== row.flow_exporter.in_port.index) {
                     name = `${name} [${row.flow_exporter.in_port.index}]`
                 }
-                return `<a href="${http_prefix}/lua/pro/enterprise/flowdevice_details.lua?ip=${row.flow_exporter.device.ip}&snmp_port_idx=${row.flow_exporter.in_port.index}">${name}</a>`
+                return `<a href="${flow_exporter_url}?ip=${row.flow_exporter.device.ip}&snmp_port_idx=${row.flow_exporter.in_port.index}">${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="inIfIdx" tag-filter2="deviceIP" tag-value="${row.flow_exporter.in_port.index}" tag-value2="${row.flow_exporter.device.ip}">${name}</a>`
             }
             return ''
         },
@@ -264,7 +268,7 @@ const map_table_def_columns = (columns) => {
                 if (name !== row.flow_exporter.out_port.index) {
                     name = `${name} [${row.flow_exporter.out_port.index}]`
                 }
-                return `<a href="${http_prefix}/lua/pro/enterprise/flowdevice_details.lua?ip=${row.flow_exporter.device.ip}&snmp_port_idx=${row.flow_exporter.out_port.index}">${name}</a>`
+                return `<a href="${flow_exporter_url}?ip=${row.flow_exporter.device.ip}&snmp_port_idx=${row.flow_exporter.out_port.index}">${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="outIfIdx" tag-filter2="deviceIP" tag-value="${row.flow_exporter.out_port.index}" tag-value2="${row.flow_exporter.device.ip}">${name}</a>`
             }
             return ''
         },
@@ -300,11 +304,15 @@ function set_filter_array_label() {
 function add_filter_from_table_element(e) {
     const value = e.target.getAttribute("tag-value")
     const filter = e.target.getAttribute("tag-filter")
+    const value2 = e.target.getAttribute("tag-value2")
+    const filter2 = e.target.getAttribute("tag-filter2")
     add_table_filter({
         key: filter,
         value: value
-    })
-    load_table_filters_array()
+    }, (filter2) ? {
+        key: filter2,
+        value: value2
+    } : null)
 }
 
 /* ************************************** */
@@ -324,25 +332,28 @@ function change_filter_labels() {
 
 /* ************************************** */
 
-function add_table_filter(opt) {
+function add_table_filter(opt, opt2) {
     ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
-//    reset_piety();
+    if (opt2) {
+        ntopng_url_manager.set_key_to_url(opt2.key, `${opt2.value}`);
+    }
     table_flows_list.value.refresh_table();
+    load_table_filters_array()
 }
 
 /* ************************************** */
 
 function set_filters_list(res) {
-    if(!res) {
+    if (!res) {
         filter_table_array.value = filters.value.filter((t) => {
-        if(t.show_with_key) {
-            const key = ntopng_url_manager.get_url_entry(t.show_with_key)
-            if(key !== t.show_with_value) {
-                return false
+            if (t.show_with_key) {
+                const key = ntopng_url_manager.get_url_entry(t.show_with_key)
+                if (key !== t.show_with_value) {
+                    return false
+                }
             }
-        }
-        return true
-    })
+            return true
+        })
     } else {
         filters.value = res.map((t) => {
             const key_in_url = ntopng_url_manager.get_url_entry(t.name);
@@ -395,9 +406,7 @@ function reset_filters() {
         /* Getting the currently selected filter */
         ntopng_url_manager.set_key_to_url(el.id, ``);
     })
-//    reset_piety();
     load_table_filters_array();
-    
     table_flows_list.value.refresh_table();
 }
 
@@ -440,7 +449,7 @@ function on_table_custom_event(event) {
 /* ************************************** */
 
 function refresh_table() {
-//    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
+    //    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
     table_flows_list.value.refresh_table(true);
 }
 
@@ -455,7 +464,7 @@ onBeforeMount(() => {
 onMounted(() => {
     clearInterval(interval_id.value);
     interval_id.value = setInterval(refresh_table, refresh_rate)
-//    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
+    //    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
 });
 
 </script>../utilities/formatter-utils.js
