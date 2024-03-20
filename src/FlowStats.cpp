@@ -222,18 +222,6 @@ void FlowStats::lua(lua_State *vm) {
 
   lua_newtable(vm);
 
-  std::map<u_int16_t, u_int32_t>::iterator it;
-  for (it = ports.begin(); it != ports.end(); it++) {
-    char tmp[64];
-    snprintf(tmp, sizeof(tmp), "%u", it->first);
-    lua_push_uint32_table_entry(vm, tmp, it->second);
-  }
-  lua_pushstring(vm, "ports");
-  lua_insert(vm, -2);
-  lua_settable(vm, -3);
-
-  lua_newtable(vm);
-
   std::map<std::string, u_int16_t>::iterator it2;
   for (it2 = talking_hosts.begin(); it2 != talking_hosts.end(); it2++)
     lua_push_uint32_table_entry(vm, it2->first.c_str(), it2->second);
@@ -261,21 +249,6 @@ void FlowStats::updateTalkingHosts(Flow *f) {
 
 /* *************************************** */
 
-void FlowStats::updatePorts(Flow *f) {
-  if (f) {
-    std::pair<std::map<u_int16_t, u_int32_t>::iterator, bool> ret;
-    /* Add the client port */
-    ret = ports.insert(std::pair<u_int16_t, u_int32_t>(f->get_cli_port(), 1));
-    if (!ret.second) ret.first->second++;
-    
-    /* Now do the same with the server port */
-    ret = ports.insert(std::pair<u_int16_t, u_int32_t>(f->get_srv_port(), 1));
-    if (!ret.second) ret.first->second++;
-  }
-}
-
-/* *************************************** */
-
 void FlowStats::resetStats() {
   memset(counters, 0, sizeof(counters));
   memset(protocols, 0, sizeof(protocols));
@@ -283,7 +256,6 @@ void FlowStats::resetStats() {
   memset(dscps, 0, sizeof(dscps));
   memset(host_pools, 0, sizeof(host_pools));
   talking_hosts.clear();
-  ports.clear();
 }
 
 /* *************************************** */

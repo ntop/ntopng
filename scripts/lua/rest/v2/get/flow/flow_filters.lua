@@ -124,7 +124,6 @@ rsp[#rsp + 1] = {
     name = "application",
     value = application_filters
 }
---traceProfiling("applications", tmp, false)
 
 if not isEmptyString(host) then
     local talking_with = {{
@@ -152,32 +151,27 @@ if not isEmptyString(host) then
     }
 end
 
-local port_filters = {{
-    key = "port",
-    value = "",
-    label = i18n("all")
-}}
-
-for port, value in pairsByKeys(flowstats["ports"], asc) do
-    if port == 0 then
-        goto continue
-    end
+if not isEmptyString(_GET["port"]) then
+    local port_filters = {{
+        key = "port",
+        value = "",
+        label = i18n("all")
+    }}
     port_filters[#port_filters + 1] = {
         key = "port",
-        value = port,
-        label = port,
-        group = i18n("client_server")
+        value = _GET["port"],
+        label = _GET["port"]
     }
-::continue::
-end
---traceProfiling("ports", tmp, false)
 
-rsp[#rsp + 1] = {
-    action = "port",
-    label = i18n("port"),
-    name = "port",
-    value = port_filters
-}
+    rsp[#rsp + 1] = {
+        action = "port",
+        label = i18n("port"),
+        name = "port",
+        value = port_filters
+    }
+    traceProfiling("ports", tmp, false)
+end
+
 
 local status_filters = {{
     key = "alert_type",

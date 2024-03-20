@@ -29,7 +29,7 @@
     </div>
 </template>
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, onBeforeMount } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as SelectSearch } from "./select-search.vue";
 //import { default as PietyChart } from "../components/charts/piety-chart.vue";
@@ -75,6 +75,7 @@ const thpt_trend_icons = {
     3: "<i class='fas fa-minus'></i>",
 }
 const loading = ref(false);
+const interval_id = ref(null);
 
 /* ************************************** */
 
@@ -303,6 +304,7 @@ function add_filter_from_table_element(e) {
         key: filter,
         value: value
     })
+    load_table_filters_array()
 }
 
 /* ************************************** */
@@ -317,16 +319,15 @@ function add_filters_to_rows() {
 /* ************************************** */
 
 function change_filter_labels() {
-    set_filters_list();
     add_filters_to_rows()
-    set_filter_array_label()
 }
 
 /* ************************************** */
 
-async function add_table_filter(opt) {
+function add_table_filter(opt) {
     ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
 //    reset_piety();
+console.log("Add filter")
     table_flows_list.value.refresh_table();
 }
 
@@ -367,6 +368,9 @@ function set_filters_list(res) {
 /* ************************************** */
 
 async function load_table_filters_array() {
+    /* Clear the interval 2 times just in case, being this function async, 
+        it could happen some strange behavior */
+    clearInterval(interval_id.value);
     loading.value = true;
     let extra_params = get_extra_params_obj();
     let url_params = ntopng_url_manager.obj_to_url_params(extra_params);
@@ -374,6 +378,8 @@ async function load_table_filters_array() {
     const res = await ntopng_utility.http_request(url);
     set_filters_list(res)
     loading.value = false;
+    clearInterval(interval_id.value);
+    interval_id.value = setInterval(refresh_table, refresh_rate)
 }
 
 /*
@@ -391,6 +397,9 @@ function reset_filters() {
         ntopng_url_manager.set_key_to_url(el.id, ``);
     })
 //    reset_piety();
+    load_table_filters_array();
+    console.log("Reset filters")
+
     table_flows_list.value.refresh_table();
 }
 
@@ -430,6 +439,8 @@ function on_table_custom_event(event) {
     events_managed[event.event_id](event);
 }
 
+/* ************************************** */
+
 function refresh_table() {
 //    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
     table_flows_list.value.refresh_table(true);
@@ -437,10 +448,16 @@ function refresh_table() {
 
 /* ************************************** */
 
-onMounted(() => {
-    setInterval(refresh_table, refresh_rate)
-//    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
+onBeforeMount(() => {
     load_table_filters_array();
+})
+
+/* ************************************** */
+
+onMounted(() => {
+    clearInterval(interval_id.value);
+    interval_id.value = setInterval(refresh_table, refresh_rate)
+//    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
 });
 
 </script>../utilities/formatter-utils.js

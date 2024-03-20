@@ -6081,8 +6081,10 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data,
   Flow *f = (Flow *)flow;
 
   if (flow_matches(f, retriever)) {
-    stats->updateTalkingHosts(f);
-    stats->updatePorts(f);
+    if(retriever->host) {
+      /* Add this info only in case some filter host is requested */
+      stats->updateTalkingHosts(f);
+    }
     retriever->totBytesSent += f->get_bytes_cli2srv();
     retriever->totBytesRcvd += f->get_bytes_srv2cli();
     retriever->totThpt += f->get_bytes_thpt();
