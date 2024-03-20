@@ -327,7 +327,6 @@ function change_filter_labels() {
 function add_table_filter(opt) {
     ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
 //    reset_piety();
-console.log("Add filter")
     table_flows_list.value.refresh_table();
 }
 
@@ -398,8 +397,7 @@ function reset_filters() {
     })
 //    reset_piety();
     load_table_filters_array();
-    console.log("Reset filters")
-
+    
     table_flows_list.value.refresh_table();
 }
 
