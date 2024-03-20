@@ -26,7 +26,17 @@ if not pool_id or not members_file_content then
 end
 
 local s = host_pools:create()
-local members = split(members_file_content, "\n")
+local lines = split(members_file_content, "\n")
+-- The host pool members are arriving formatted in a list 
+-- separated by "__" instead of "\n"
+
+local members = {}
+for _,line in ipairs(lines) do
+	local splitted_line = split(line,"__")
+	for _,member in ipairs(splitted_line) do
+		members[#members+1] = member
+	end
+end
 
 host_pools:start_transaction()
 
