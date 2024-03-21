@@ -1146,70 +1146,20 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name)
 
                 -- Active flow devices
                 local flow_devices = interface.getFlowDevices()
-
-                -- SNMP devices
-                local snmp_config = require "snmp_config"
-                local devices = snmp_config.get_all_configured_devices()
-
-                local snmp_cached_dev = require "snmp_cached_dev"
-
-                -- use pairsByKeys to impose order
-                for probe_ip, _ in pairsByKeys(devices) do
-
-                    for interface, device_list in pairs(flow_devices or {}) do
-                        if flow_devices[interface][probe_ip] then
-                            -- Use SNMP info, remove from flow devices list
-                            flow_devices[interface][probe_ip] = nil
-                        end
-                    end
-
-                    local cached_device = snmp_cached_dev:get_interface_names(probe_ip)
-
-                    local probe_label
-                    if not isEmptyString(probe_ip) then
-                        probe_label = getProbeName(probe_ip)
-                    end
-                    if isEmptyString(probe_label) then
-                        probe_label = probe_ip
-                    end
-
-                    if cached_device and cached_device["interfaces"] then
-                        local interfaces = cached_device["interfaces"]
-                        for interface_id, interface_info in pairs(interfaces) do
-                            local interface_name = interface_id
-                            if interface_info.name then
-                                -- interface_name = interface_info.name .. ' (' .. interface_id .. ')'
-                                interface_name = interface_info.name
-                            end
-
-                            local label = interface_name .. ' · ' .. probe_label
-                            if hide_exporters_name then
-                                label = interface_name
-                            end
-                            
-                            filter.options[#filter.options + 1] = {
-                                value = probe_ip .. "_" .. interface_id,
-                                label = label,
-                                show_only_value = probe_ip
-                            }
-                        end
-
-                    end
-                end
-
                 
                 for _, device_list in pairs(flow_devices or {}) do
                     -- Add interfaces for flow devices which are not polled by SNMP
                     for probe_ip, info in pairs(device_list) do
                         local interfaces = interface.getFlowDeviceInfo(probe_ip)
-                        for interface_id, interface_info in pairs(interfaces) do
+                        for interface_id, interface_info in pairsByKeys(interfaces) do
                             local label = format_portidx_name(probe_ip, interface_id, false, false)
                             if not hide_exporters_name then
                                 label = probe_ip .. ' · ' .. label
                             end
                             filter.options[#filter.options + 1] = {
                                 value = probe_ip .. "_" .. interface_id,
-                                label = label
+                                label = label,
+                                show_only_value = probe_ip
                             }
                         end
                     end

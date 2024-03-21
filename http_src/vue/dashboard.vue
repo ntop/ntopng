@@ -58,12 +58,14 @@
         </DateTimeRangePicker>
 
         <!-- Filters -->
-        <div class="btn-group me-auto mt-2 btn-group-sm flex-wrap d-flex">
+        <div class="btn-group me-auto mt-2 btn-group-sm flex-wrap d-flex" :class="[loading_filters ? 'justify-content-center align-items-center' : '']">
+            <Spinner :show="loading_filters" size="1rem" class="me-1"></Spinner>
             <template v-for="filter_id in filters_to_show">
                 <div class="me-2">
                     <label class="ms-1 my-auto me-2 filters-label"><b>{{ _i18n('db_search.' + filter_id) }}</b></label>
                     <SelectSearch v-model:selected_option="selected_filters[filter_id]"
                         :options="filtered_filters[filter_id]" :style="'width: 50%;'"
+                        theme="bootstrap-5" dropdown_size="small"
                         @select_option="select_filter(selected_filters[filter_id], filter_id)">
                     </SelectSearch>
                 </div>
@@ -219,6 +221,7 @@ import { default as ModalSelectComponent } from "./modal-select-component.vue";
 import { default as ModalEditComponent } from "./modal-edit-component.vue";
 import { default as ModalDeleteConfirm } from "./modal-delete-confirm.vue";
 import { default as Loading } from "./loading.vue";
+import { default as Spinner } from "./spinner.vue";
 
 import { default as Box } from "./dashboard-box.vue";
 
@@ -248,6 +251,7 @@ const components_dict = {
 }
 
 const loading = ref(true);
+const loading_filters = ref(false);
 const page_id = "page-dashboard";
 const show_loading = props.context.show_loading || false;
 const allow_edit = props.context.allow_edit || false;
@@ -474,10 +478,12 @@ function reset_filters() {
 
 /* This function loads the filters */
 async function load_filters(filters_available, res) {
+    loading_filters.value = true;
     const added_filters_list = [];
     if (!res && `${props.context.report_filters_endpoint}`) {
         res = await ntopng_utility.http_request(`${props.context.report_filters_endpoint}?hide_exporters_name=true`);
     }
+    loading_filters.value = false;
     filters_available.forEach(async (element) => {
         const id = element?.name || "";
         const filter_options = res.find((el) => el.id == id)?.options;
