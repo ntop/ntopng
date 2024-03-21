@@ -11,7 +11,7 @@ from ntopng.historical import Historical
 class Interface:
     """
     Interface provides information about a Network interface
-    
+
     :param ntopng_obj: The ntopng handle
     :param ifid: The interface ID
     """
@@ -19,39 +19,39 @@ class Interface:
     def __init__(self, ntopng_obj, ifid):
         """
         Construct a new Interface object
-        
+
         :param ntopng_obj: The ntopng handle
         :type ntopng_obj: Ntopng
         :param ifid: The interface ID
         :type ifid: int
-        """ 
+        """
         self.ntopng_obj = ntopng_obj
         self.ifid = ifid
         self.rest_v2_url = "/lua/rest/v2"
         self.rest_pro_v2_url = "/lua/pro/rest/v2"
-        
+
     def get_data(self):
         """
         Return information about a Network interface
-        
+
         :return: Information about the interface
         :rtype: object
         """
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/interface/data.lua", {"ifid": self.ifid}))
-    
+
     def get_broadcast_domains(self):
         """
         Return information about broadcast domains on an interface
-        
+
         :return: Information about broadcast domains
         :rtype: object
         """
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/interface/bcast_domains.lua", {"ifid": self.ifid}))
-    
+
     def get_address(self):
         """
         Return the interface IP address(es)
-        
+
         :return: The interface address(es)
         :rtype: array
         """
@@ -60,7 +60,7 @@ class Interface:
     def get_l7_stats(self, max_num_results):
         """
         Return statistics about Layer 7 protocols seen on an interface
-        
+
         :param max_num_results: The maximum number of results to limit the output
         :type max_num_results: int
         :return: Layer 7 protocol statistics
@@ -75,11 +75,11 @@ class Interface:
                                'max_values': max_num_results,
                                'collapse_stats': False
                                }))
-    
+
     def get_dscp_stats(self):
         """
         Return statistics about DSCP
-        
+
         :return: DSCP statistics
         :rtype: object
         """
@@ -88,7 +88,7 @@ class Interface:
     def get_host(self, ip, vlan=None):
         """
         Return an Host instance
-        
+
         :param ifid: The interface ID
         :type ifid: int
         :param ip: The host IP address
@@ -97,13 +97,13 @@ class Interface:
         :type vlan: int
         :return: The host instance
         :rtype: ntopng.Host
-        """ 
+        """
         return Host(self.ntopng_obj, self.ifid, ip, vlan)
 
     def get_active_hosts(self):
         """
         Retrieve the list of active hosts for the specified interface
-        
+
         :return: All active hosts
         :rtype: array
         """
@@ -116,7 +116,7 @@ class Interface:
     def get_top_local_talkers(self):
         """
         Return Top Local hosts generating more traffic
-        
+
         :return: The top local hosts
         :rtype: array
         """
@@ -125,7 +125,7 @@ class Interface:
     def get_top_remote_talkers(self):
         """
         Return Top Remote hosts generating more traffic
-        
+
         :return: The top remote hosts
         :rtype: array
         """
@@ -134,7 +134,7 @@ class Interface:
     def get_active_flows_paginated(self, currentPage, perPage):
         """
         Retrieve the (paginated) list of active flows for the specified interface
-        
+
         :param currentPage: The current page
         :type currentPage: int
         :param perPage: The number of results per page
@@ -147,7 +147,7 @@ class Interface:
     def get_active_l4_proto_flow_counters(self):
         """
         Return statistics about active flows per Layer 4 protocol on an interface
-        
+
         :return: Layer 4 protocol flows statistics
         :rtype: object
         """
@@ -156,7 +156,7 @@ class Interface:
     def get_active_l7_proto_flow_counters(self):
         """
         Return statistics about active flows per Layer 7 protocol on an interface
-        
+
         :return: Layer 7 protocol flows statistics
         :rtype: object
         """
@@ -165,11 +165,25 @@ class Interface:
     def get_historical(self):
         """
         Return an Historical handle for the interface
-        
+
         :return: The historical handle
         :rtype: ntopng.Historical
-        """ 
+        """
         return Historical(self.ntopng_obj, self.ifid)
+
+    def get_all_alerts(self, ifid, epoch_begin, epoch_end, ip=None):
+        """
+        Return alerts for specified interface and epoch_begin and epoch_end. By default it returns all alerts
+
+        :return: Flow alerts for the specified IP (if present)
+        :rtype: object
+        """
+        request_params = {"ifid": ifid, "epoch_begin": epoch_begin, "epoch_end": epoch_end, "format": "json"}
+
+        if (ip != None):
+            request_params["cli_ip"] = str(ip) + ";eq"
+
+        return self.ntopng_obj.request(self.rest_v2_url + "/get/flow/alert/list.lua", request_params)
 
     def self_test(self):
         print(self.get_data())
@@ -200,6 +214,3 @@ class Interface:
             print("----------------------------")
         except:
             raise ValueError("Invalid interface ID specified")
-
-        
-
