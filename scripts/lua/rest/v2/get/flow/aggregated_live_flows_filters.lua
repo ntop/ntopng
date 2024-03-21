@@ -168,6 +168,59 @@ local function build_response(criteria)
             value = formatted_device_filters
         }
     end
+
+    if ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then      
+        local dev_ip = _GET["deviceIP"]          
+        -- Flow exporter requested
+        local in_ports = {{
+            key = "inIfIdx",
+            value = "",
+            label = i18n("all")
+        }}
+        local ports = interface.getFlowDeviceInfo(dev_ip, true --[[ Show minimal info ]])
+        
+        for portidx, _ in pairsByKeys(ports, asc) do
+            in_ports[#in_ports + 1] = {
+                key = "inIfIdx",
+                value = portidx,
+                label = format_portidx_name(dev_ip, portidx)
+            }
+        end
+    
+        rsp[#rsp + 1] = {
+            action = "inIfIdx",
+            label = i18n("db_search.input_snmp"),
+            name = "inIfIdx",
+            value = in_ports,
+            show_with_value = dev_ip,
+            show_with_key = "deviceIP"
+        }
+    
+        local out_ports = {{
+            key = "outIfIdx",
+            value = "",
+            label = i18n("all")
+        }}
+        local ports = interface.getFlowDeviceInfo(dev_ip, false)
+        
+        for portidx, _ in pairsByKeys(ports, asc) do
+            out_ports[#out_ports + 1] = {
+                key = "outIfIdx",
+                value = portidx,
+                label = format_portidx_name(dev_ip, portidx)
+            }
+        end
+    
+        rsp[#rsp + 1] = {
+            action = "outIfIdx",
+            label = i18n("db_search.output_snmp"),
+            name = "outIfIdx",
+            value = out_ports,  
+            show_with_value = dev_ip,
+            show_with_key = "deviceIP"
+        }    
+    end
+    
     return rsp
 end
 
