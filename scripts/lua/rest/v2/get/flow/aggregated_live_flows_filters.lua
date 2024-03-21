@@ -154,7 +154,7 @@ local function build_response(criteria)
                 action = "vlan_id",
                 label = i18n("vlan"),
                 tooltip = i18n("vlan_filter"),
-                name = "vlan_filter",
+                name = "vlan_id",
                 value = formatted_vlan_filters
             }
     end
