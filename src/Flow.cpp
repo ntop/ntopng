@@ -8540,6 +8540,18 @@ bool Flow::matchFlowDeviceIP(u_int32_t flow_device_ip) {
 
 /* **************************************************** */
 
+bool Flow::matchInIfIdx(u_int32_t in_if_idx) {
+  return(getFlowDeviceInIndex() == in_if_idx ? true : false);
+}
+
+/* **************************************************** */
+
+bool Flow::matchOutIfIdx(u_int32_t out_if_idx) {
+  return(getFlowDeviceOutIndex() == out_if_idx ? true : false);
+}
+
+/* **************************************************** */
+
 void Flow::lua_get_flow_connection_state(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "minor_conn_state", getCurrentConnectionState());
   lua_push_uint64_table_entry(vm, "major_conn_state", getMajorConnState());
