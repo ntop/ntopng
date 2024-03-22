@@ -119,7 +119,6 @@ end
 
 local function build_response(criteria)
     local formatted_vlan_filters = {}
-    local formatted_device_filters = {}
 
     local criteria_type_id = retrieve_aggregation_criteria(criteria)
 
@@ -128,10 +127,6 @@ local function build_response(criteria)
 
     for _, data in pairs(aggregated_info or {}) do
         add_new_filter_item_to_filters_array(data.vlan_id, formatted_vlan_filters,filter_types.vlan)
-        if (not isEmptyString(data.device_ip)) then
-            -- tprint(data.device_ip)
-            add_new_filter_item_to_filters_array(data.device_ip, formatted_device_filters,filter_types.flow_device)
-        end
     end
 
     table.sort(formatted_vlan_filters, function(a,b) return a.value < b.value end)
@@ -141,13 +136,33 @@ local function build_response(criteria)
         value = ""
     })
 
-    table.sort(formatted_device_filters, function(a,b) return a.value < b.value end)
-    table.insert(formatted_device_filters, 1, {
-        key = "deviceIP",
-        label = i18n("flow_devices.all_flow_devices"),
-        value = ""
-    })
-
+    local formatted_device_filters = {}
+    if ntop.isPro() and interface.isPacketInterface() == false then
+        local flowdevs = interface.getFlowDevices() or {}
+        local devips = getProbesName(flowdevs)
+        if table.len(devips) > 0 then
+            local in_out_rsp = {}
+            formatted_device_filters = {{
+                key = "deviceIP",
+                value = "",
+                label = i18n("all")
+            }}
+            for _, device_list in pairs(devips or {}) do
+                for dev_ip, dev_resolved_name in pairsByValues(device_list, asc) do
+                    local dev_name = dev_ip
+                    if not isEmptyString(dev_resolved_name) and dev_resolved_name ~= dev_name then
+                        dev_name = dev_resolved_name
+                    end
+                    formatted_device_filters[#formatted_device_filters + 1] = {
+                        key = "deviceIP",
+                        value = dev_ip,
+                        label = dev_name
+                    }
+                end
+            end
+        end
+    end
+    
     local rsp = {}
     if (#formatted_vlan_filters > 2) then
         rsp[#rsp+1] = {
