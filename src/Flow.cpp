@@ -8021,13 +8021,28 @@ bool Flow::setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc,
     Check host filter and if such alert needs to be disabled
     due to alert exclusions
   */
-  if ((cli_h && cli_h->isFlowAlertDisabled(alert_type)) ||
-      (srv_h && srv_h->isFlowAlertDisabled(alert_type))) {
+  Mac *srcMac = NULL, *dstMac = NULL;
+  ViewInterface *viewedBy = getInterface()->viewedBy();
+  Host *cli_host, *srv_host;
+  if(viewedBy) {
+    viewedBy->findFlowHosts(getInterfaceIndex(),
+          get_vlan_id(), get_observation_point_id(),
+          getPrivateFlowId(), srcMac,
+          (IpAddress *)get_cli_ip_addr(), &cli_host, dstMac,
+          (IpAddress *)get_srv_ip_addr(), &srv_host);
+    if ((cli_host && cli_host->isFlowAlertDisabled(alert_type)) ||
+      (srv_host && srv_host->isFlowAlertDisabled(alert_type))) {
+      return false;
+    }
+  } else {
+    if ((cli_h && cli_h->isFlowAlertDisabled(alert_type)) ||
+        (srv_h && srv_h->isFlowAlertDisabled(alert_type))) {
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
-                                 "Discarding alert (host filter)");
+                                "Discarding alert (host filter)");
 #endif
-    return false;
+      return false;
+    }
   }
 
   if (!isFlowAlerted())
