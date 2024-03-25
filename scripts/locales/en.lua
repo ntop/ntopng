@@ -567,6 +567,7 @@ local lang = {
   ["scan_host_updated"] = "Host %{host} has been correctly updated!",
   ["scan_hosts"] = "Vulnerability Scan",
   ["scan_in_progress"] = "total scan(s) to complete, it may take a while...",
+  ["scan_net_not_found_hosts"] = "Scanning %{host}, not found any hosts to scan!",
   ["score"] = "Score",
   ["score_as_client"] = "Score As Client",
   ["score_as_server"] = "Score As Server",

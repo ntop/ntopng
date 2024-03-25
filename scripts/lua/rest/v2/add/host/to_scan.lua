@@ -17,10 +17,7 @@ local discovered_host_scan_type = _GET["discovered_host_scan_type"]
 local scan_frequency = _GET["scan_frequency"]
 local scan_id = _GET["scan_id"] or nil
 local is_edit = toboolean(_GET["is_edit"])
-
-
-
-local cidr = _GET["cidr"]
+local cidr = _GET["vs_cidr"]
 
 if isEmptyString(host) or isEmptyString(scan_type) then
     rest_utils.answer(rest_utils.consts.err.bad_content)
@@ -43,15 +40,17 @@ if scan_type ~= 'ipv4_netscan' then
         end
     else 
         local hosts_to_save = vs_utils.get_active_hosts(host, cidr)
-
-        for _,item in ipairs(hosts_to_save) do
-            if (not is_edit) then
-                result,id = vs_utils.add_host_pref(scan_type, item,scan_ports, scan_frequency, nil)
-                vs_utils.schedule_ondemand_single_host_scan(scan_type,item,scan_ports,id,false,false,false)
-            else
-                result,id = vs_utils.edit_host_pref(scan_type, item,scan_ports, scan_frequency)
-
+        if (next(hosts_to_save)) then
+            for _,item in ipairs(hosts_to_save) do
+                if (not is_edit) then
+                    result,id = vs_utils.add_host_pref(scan_type, item,scan_ports, scan_frequency, nil)
+                    vs_utils.schedule_ondemand_single_host_scan(scan_type,item,scan_ports,id,false,false,false)
+                else
+                    result,id = vs_utils.edit_host_pref(scan_type, item,scan_ports, scan_frequency)
+                end
             end
+        else
+            result = 3 -- not found hosts
         end
     end
 
@@ -69,11 +68,13 @@ end
 
 if result == 1 then
     -- ok
-    rest_utils.answer(rest_utils.consts.success.ok, {rsp= true})
+    rest_utils.answer(rest_utils.consts.success.ok, {rsp= 1})
 elseif result == 2 then
     --already inserted case
-    rest_utils.answer(rest_utils.consts.success.ok, {rsp= false})
-
+    rest_utils.answer(rest_utils.consts.success.ok, {rsp= 2})
+elseif result == 3 then
+    -- not found hosts with netscan case
+    rest_utils.answer(rest_utils.consts.success.ok, {rsp= 3})
 else
     rest_utils.answer(rest_utils.consts.err.internal_error)
 end

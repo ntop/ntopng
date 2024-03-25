@@ -155,6 +155,12 @@ const CIDR_32 = "32";
 const CIDR_128 = "128";
 const cidr_options_list = ref([
   { id: "24", label: "/24" },
+  { id: "25", label: "/25" },
+  { id: "26", label: "/26" },
+  { id: "27", label: "/27" },
+  { id: "28", label: "/28" },
+  { id: "29", label: "/29" },
+  { id: "30", label: "/30" },
   { id: "32", label: "/32" },
   { id: "128", label: "/128" },
 ]);
@@ -177,7 +183,7 @@ const reset_modal_form = function () {
   show_port_feedback.value = false;
   selected_scan_type.value = scan_type_list.value[0];
   selected_discovered_scan_types.value = [];
-  selected_cidr.value = cidr_options_list.value[1];
+  selected_cidr.value = cidr_options_list.value.find((item) => item.id == "32");
   row_to_edit_id.value = null;
   is_edit_page.value = false;
   is_data_not_ok.value = false;
@@ -452,7 +458,7 @@ const add_ = async (is_edit) => {
       host: new_host,
       scan_type: host_scan_type,
       scan_ports: host_ports,
-      cidr: selected_cidr.value.id,
+      vs_cidr: selected_cidr.value.id,
       scan_frequency: is_enterprise_l ? selected_scan_frequency.value.id : null,
       scan_id: row_id,
       discovered_host_scan_type : tmp_second_scan_types_formatted

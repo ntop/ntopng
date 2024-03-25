@@ -1469,6 +1469,10 @@ local function validateCIDR(m)
    return validateChoice({"24", "32", "128"}, m)
 end
 
+local function validateVsCIDR(m)
+   return validateChoice({"24", "25", "26", "27", "28", "29", "30", "32", "128"}, m)
+end
+
 local function validateOperatingMode(m)
    return validateChoice({"single_port_router", "routing", "bridging", "passive"}, m)
 end
@@ -2013,6 +2017,7 @@ local known_parameters = {
    ["snmp_version"] = validateSNMPversion, -- 0:v1 1:v2c 2:v3
    ["snmp_username"] = validateSingleWord, -- SNMP Username
    ["cidr"] = validateCIDR, -- /32 or /24
+   ["vs_cidr"] = validateVsCIDR, -- /24 /25 /26 /27 /28 /29 /30 /32 or /128
    ["snmp_port_idx"] = validateNumber, -- SNMP port index
    ["port_index"] = validateNumber, -- SNMP port index
    ["uplink_speed"] = validateFloat, -- Flow Exporter uplink speed
