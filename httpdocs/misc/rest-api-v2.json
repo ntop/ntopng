@@ -10547,7 +10547,7 @@
           {
             "name": "host",
             "in": "query",
-            "description": "Host address",
+            "description": "Host address (IP or IP@VLAN if traffic is tagged)",
             "required": true,
             "type": "string"
           }
