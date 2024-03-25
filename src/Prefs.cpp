@@ -3072,15 +3072,17 @@ void Prefs::setModbusAllowedFunctionCodes(const char *function_codes) {
     }
 
     if(modbus_allowed_function_codes) {
-      ndpi_bitmap_clear(modbus_allowed_function_codes);
-
-      p = strtok_r(buf, ",", &tmp);
-      while (p != NULL) {
-	int f_code = atoi(p);
-
-	ndpi_bitmap_set(modbus_allowed_function_codes, f_code);
-
-	p = strtok_r(NULL, ",", &tmp);
+      ndpi_bitmap_free(modbus_allowed_function_codes);
+      
+      if((modbus_allowed_function_codes = ndpi_bitmap_alloc()) != NULL) {
+	p = strtok_r(buf, ",", &tmp);
+	while (p != NULL) {
+	  int f_code = atoi(p);
+	  
+	  ndpi_bitmap_set(modbus_allowed_function_codes, f_code);
+	  
+	  p = strtok_r(NULL, ",", &tmp);
+	}
       }
     }
 

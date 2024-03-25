@@ -76,6 +76,9 @@ void ObservationPoint::updateStats(const struct timeval* tv) {
 
 void ObservationPoint::lua(lua_State* vm, DetailsLevel details_level,
                            bool asListElement) {
+  u_int32_t exporter_ip = 0;
+  u_int64_t value;
+    
   /* Security check done to prevent race conditions */
   if (remove_entry) {
     lua_pushnil(vm);
@@ -107,14 +110,15 @@ void ObservationPoint::lua(lua_State* vm, DetailsLevel details_level,
   Score::lua_get_score(vm);
   Score::lua_get_score_breakdown(vm);
 
-  u_int32_t exporter_ip = 0;
-
   lua_newtable(vm);
+
   ndpi_bitmap_iterator* iterator = ndpi_bitmap_iterator_alloc(exporter_list);
-  while (ndpi_bitmap_iterator_next(iterator, &exporter_ip)) {
+  while (ndpi_bitmap_iterator_next(iterator, &value)) {    
     char buf[32];
-    lua_push_uint32_table_entry(
-        vm, Utils::intoaV4(exporter_ip, buf, sizeof(buf)), 1);
+
+    exporter_ip = (u_int32_t)value;
+    
+    lua_push_uint32_table_entry(vm, Utils::intoaV4(exporter_ip, buf, sizeof(buf)), 1);
   }
   lua_pushstring(vm, "exporter_list");
   lua_insert(vm, -2);
