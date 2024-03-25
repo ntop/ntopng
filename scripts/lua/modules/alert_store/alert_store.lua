@@ -417,6 +417,9 @@ function alert_store:build_sql_cond(cond, is_write)
             sql_cond = string.format("%s = 1", self:get_column_name('is_server', is_write))
         end
 
+        -- Special case: description
+    elseif cond.field == "description" then
+        sql_cond = string.format("json LIKE %s",string.format("'%%%s%%'", cond.value))
         -- Number
     elseif cond.value_type == 'number' then
         if cond.op == 'in' then
@@ -1917,6 +1920,7 @@ function alert_store:add_request_filters(is_write)
     local tstamp = _GET["tstamp"]
     local status = _GET["status"]
     local info = _GET["info"]
+    local description = _GET["description"]
 
     -- Remember the score filter (see also alert_stats.lua)
     local alert_score_cached = string.format(ALERT_SCORE_FILTER_KEY, self:get_ifid())
@@ -1936,6 +1940,7 @@ function alert_store:add_request_filters(is_write)
     self:add_filter_condition_list('score', score, 'number')
     self:add_filter_condition_list('tstamp', tstamp, 'number')
     self:add_filter_condition_list('info', info, 'string')
+    self:add_filter_condition_list('description', description)
 
     if (ntop.isClickHouseEnabled()) then
         -- Clickhouse db has the column 'interface_id', filter by that per interface
@@ -1965,7 +1970,8 @@ function alert_store:get_available_filters()
         alert_id = tag_utils.defined_tags.alert_id,
         alert_category = tag_utils.defined_tags.alert_category,
         severity = tag_utils.defined_tags.severity,
-        score = tag_utils.defined_tags.score
+        score = tag_utils.defined_tags.score,
+        description = tag_utils.defined_tags.description
     }
 
     return table.merge(filters, additional_filters)

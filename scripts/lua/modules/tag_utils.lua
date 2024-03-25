@@ -522,6 +522,11 @@ tag_utils.defined_tags = {
         value_type = 'minor_connection_state',
         i18n_label = i18n("db_search.tags.minor_connection_state"),
         operators = {'eq', 'neq'}
+    }, 
+    description = {
+        value_type = 'text',
+        i18n_label = i18n('db_search.tags.alert_description'),
+        operators = {'in'}
     }
 }
 -- #####################################

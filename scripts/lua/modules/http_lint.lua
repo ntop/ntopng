@@ -1966,6 +1966,7 @@ local known_parameters = {
    ["delete_vlan"] = validateSingleWord, -- A Traffic Profile to delete
    ["alert_id"] = validateListOfTypeInline(validateFilters(validateNumber)), -- An alert type enum
    ["alert_category"] = validateListOfTypeInline(validateFilters(validateNumber)), -- An alert category enum
+   ["description"] = validateUnquoted,
    ["alert_l7_proto"] = validateNumber, -- An alert l7 protocol
    ["alert_subtype"] = validateSingleWord, -- An alert subtype string
    ["alert_severity"] = validateNumber, -- An alert severity enum

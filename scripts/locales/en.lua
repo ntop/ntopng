@@ -2056,6 +2056,7 @@ local lang = {
     ["tags"] = {
       ["acknowledged"] = "Acknowledged",
       ["alert_category"] = "Category",
+      ["alert_description"] = "Description",
       ["alert_id"] = "Alert Type",
       ["asn"] = "ASN",
       ["bytes"] = "Bytes",
