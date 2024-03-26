@@ -101,7 +101,6 @@ ntopng supports a large number of command line parameters. To see what they are,
 	[--shutdown-when-done]              | Terminate after reading the pcap (debug only)
 	[--offline]                         | Run in offline mode (avoid contacting remote sites, including blacklists) 
 	[--insecure]                        | Allow connections to TLS sites with invalid certificates 
-	[--cloud|-c] <port>                 | Run ntopng in cloud mode on <port>
 	[--zmq-encryption]                  | Enable ZMQ encryption
 	[--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption secret key (debug only) 
 	[--zmq-publish-events <URL>]        | Endpoint for publishing events (e.g. IPS)
