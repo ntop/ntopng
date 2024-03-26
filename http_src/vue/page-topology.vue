@@ -112,6 +112,7 @@ const map_table_def_columns = (columns) => {
       return NtopUtils.bitsToSize(data);
     },
     "port_thpt_value": (data, row) => {
+      if (data == null) data = 0;
       return NtopUtils.bitsToSize(data);
     }
   };
