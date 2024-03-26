@@ -437,6 +437,10 @@ const format_server_name = function (data, rowData) {
 const format_flows_icon = function (data, rowData) {
     let url = ``;
     let add_host = false;
+    const exporter = ntopng_url_manager.get_url_entry("deviceIP")
+    const in_interface = ntopng_url_manager.get_url_entry("inIfIdx")
+    const out_interface = ntopng_url_manager.get_url_entry("outIfIdx")
+    
     if (props.context.host != null && props.context.host != "")
         add_host = true;
     if (selected_criteria.value.value == 1) {
@@ -460,6 +464,16 @@ const format_flows_icon = function (data, rowData) {
     }
     else if (selected_criteria.value.value == 8) {
         url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}&client=${rowData.client.ip}&server=${rowData.server.ip}&vlan=${rowData.vlan_id.id}&srv_port=${rowData.srv_port.id}`;
+    }
+
+    if (!(exporter === "")) {
+        url = `${url}&deviceIP=${exporter}`
+    }
+    if (!(in_interface === "")) {
+        url = `${url}&inIfIdx=${in_interface}`
+    }
+    if (!(out_interface === "")) {
+        url = `${url}&outIfIdx=${out_interface}`
     }
 
     return `<a href=${url} class="btn btn-sm btn-info" ><i class= 'fas fa-stream'></i></a>`
