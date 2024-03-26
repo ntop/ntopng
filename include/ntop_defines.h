@@ -1565,6 +1565,8 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 #define MAX_NUM_PCAP_INTERFACES 8
 
 #define NO_VLAN (u_int16_t)-1
+#define NO_IN_IF_INDEX (u_int32_t)-1
+#define NO_OUT_IF_INDEX (u_int32_t)-1
 /******************************************************************************/
 
 #endif /* _NTOP_DEFINES_H_ */

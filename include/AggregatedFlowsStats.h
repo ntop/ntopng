@@ -128,6 +128,8 @@ struct aggregated_stats {
   IpAddress *ip_addr;
   u_int16_t vlan_id;
   u_int32_t flow_device_ip;
+  u_int32_t in_if_index;
+  u_int32_t out_if_index;
 };
 
 #endif /* _FLOWS_STATS_H_ */

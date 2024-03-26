@@ -220,6 +220,8 @@ function get_url_params() {
         ifid: ntopng_url_manager.get_url_entry("ifid") || props.context.ifid,
         vlan_id: ntopng_url_manager.get_url_entry("vlan_id")  /* No filter by default */,
         deviceIP: ntopng_url_manager.get_url_entry("deviceIP"),
+        inIfIdx: ntopng_url_manager.get_url_entry("inIfIdx"),
+        outIfIdx: ntopng_url_manager.get_url_entry("outIfIdx"),
         aggregation_criteria: ntopng_url_manager.get_url_entry("aggregation_criteria") || selected_criteria.value.param,
         host: ntopng_url_manager.get_url_entry("host") || props.context.host,
     };

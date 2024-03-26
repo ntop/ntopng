@@ -11107,6 +11107,16 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
       return(false);
   }
 
+  if (stats->in_if_index != NO_IN_IF_INDEX /* -1 == any Flow Device In Interface Index */) {
+    if (!f->matchInIfIdx(stats->in_if_index))
+      return(false);
+  }
+
+  if (stats->out_if_index != NO_OUT_IF_INDEX /* -1 == any Flow Device In Interface Index */) {
+    if (!f->matchOutIfIdx(stats->out_if_index))
+      return(false);
+  }
+
   /* <vlan_id (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
   key =
     ((u_int64_t)vlan_id << 32) +
@@ -11166,6 +11176,16 @@ bool NetworkInterface::compute_client_flow_stats(GenericHashEntry *node,
       return(false);
   }
 
+  if (stats->in_if_index != NO_IN_IF_INDEX /* -1 == any Flow Device In Interface Index */) {
+    if (!f->matchInIfIdx(stats->in_if_index))
+      return(false);
+  }
+
+  if (stats->out_if_index != NO_OUT_IF_INDEX /* -1 == any Flow Device In Interface Index */) {
+    if (!f->matchOutIfIdx(stats->out_if_index))
+      return(false);
+  }
+
   it = stats->count.find(key);
 
   if (it == stats->count.end()) {
@@ -11217,6 +11237,17 @@ bool NetworkInterface::compute_server_flow_stats(GenericHashEntry *node,
     if(!f->matchFlowDeviceIP(stats->flow_device_ip))
       return(false);
   }
+
+  if (stats->in_if_index != NO_IN_IF_INDEX /* -1 == any Flow Device In Interface Index */) {
+    if (!f->matchInIfIdx(stats->in_if_index))
+      return(false);
+  }
+
+  if (stats->out_if_index != NO_OUT_IF_INDEX /* -1 == any Flow Device In Interface Index */) {
+    if (!f->matchOutIfIdx(stats->out_if_index))
+      return(false);
+  }
+
   it = stats->count.find(key);
 
   if (it == stats->count.end()) {
@@ -11257,6 +11288,16 @@ bool NetworkInterface::compute_client_server_srv_port_flow_stats(GenericHashEntr
 
   if (stats->flow_device_ip != (u_int32_t)-1 /* -1 == any Flow Device IP */) {
     if(!f->matchFlowDeviceIP(stats->flow_device_ip))
+      return(false);
+  }
+
+  if (stats->in_if_index != NO_IN_IF_INDEX /* -1 == any Flow Device In Interface Index */) {
+    if (!f->matchInIfIdx(stats->in_if_index))
+      return(false);
+  }
+
+  if (stats->out_if_index != NO_OUT_IF_INDEX /* -1 == any Flow Device In Interface Index */) {
+    if (!f->matchOutIfIdx(stats->out_if_index))
       return(false);
   }
 
@@ -11309,6 +11350,16 @@ bool NetworkInterface::compute_client_server_srv_port_app_proto_flow_stats(Gener
 
   if (stats->flow_device_ip != (u_int32_t)-1 /* -1 == any Flow Device IP */) {
     if(!f->matchFlowDeviceIP(stats->flow_device_ip))
+      return(false);
+  }
+
+  if (stats->in_if_index != NO_IN_IF_INDEX /* -1 == any Flow Device In Interface Index */) {
+    if (!f->matchInIfIdx(stats->in_if_index))
+      return(false);
+  }
+
+  if (stats->out_if_index != NO_OUT_IF_INDEX /* -1 == any Flow Device In Interface Index */) {
+    if (!f->matchOutIfIdx(stats->out_if_index))
       return(false);
   }
 
@@ -11776,15 +11827,21 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
   char *host_ip = NULL;
   char *flow_device_ip = NULL;
   u_int16_t vlan_id = NO_VLAN /* Any VLAN */;
+  u_int32_t in_if_idx = NO_IN_IF_INDEX /* Any inIfIdx */;
+  u_int32_t out_if_idx = NO_OUT_IF_INDEX /* Any outIfIdx */;
 
   /* NOTE: parsing of additional Lua parameters in NetworkInterface::sort_and_filter_flow_stats() */
   if (lua_type(vm, 8) == LUA_TSTRING) host_ip = (char *)lua_tostring(vm, 8);
   if (lua_type(vm, 9) == LUA_TNUMBER) vlan_id = lua_tonumber(vm,9);
   if (lua_type(vm, 10) == LUA_TSTRING) flow_device_ip = (char*)lua_tostring(vm,10);
+  if (lua_type(vm, 11) == LUA_TNUMBER) in_if_idx = lua_tonumber(vm,11);
+  if (lua_type(vm, 12) == LUA_TNUMBER) out_if_idx = lua_tonumber(vm,12);
 
   stats.vlan_id = vlan_id;
   stats.ip_addr = host_ip ? Utils::parseHostString(host_ip, &stats.vlan_id) : NULL;
   stats.flow_device_ip = flow_device_ip ? ntohl(inet_addr(flow_device_ip)) : /* Any flow device */ (u_int32_t)-1;
+  stats.in_if_index = in_if_idx;
+  stats.out_if_index = out_if_idx;
 
   switch (filter_type) {
   case AnalysisCriteria::application_criteria:
