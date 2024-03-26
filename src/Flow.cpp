@@ -8617,7 +8617,6 @@ MinorConnectionStates Flow::calculateConnectionState(bool is_cumulative) {
   if(!isTCP())
     return(setCurrentConnectionState(MINOR_NO_STATE));
 
-  std::cout<<"in Flow::calculateConnectionState"<<endl;
   /* Check S0 or RSTOS0 or REJ or SH */
   if ((isTCPFlagSet(src2dst_tcp_flags,TH_SYN)) &&
       !(isTCPFlagSet(dst2src_tcp_flags,TH_SYN))) {
