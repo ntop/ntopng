@@ -1409,7 +1409,8 @@ class Flow : public GenericHashEntry {
   inline MinorConnectionStates setCurrentConnectionState(u_int8_t new_state) { current_c_state = static_cast<MinorConnectionStates>(new_state); return(current_c_state);  };
   inline MinorConnectionStates getCurrentConnectionState() { return(current_c_state); };
   bool checkS1ConnState();
-  MinorConnectionStates calculateConnectionState();
+  bool isTCPFlagSet(u_int8_t flags, int flag_to_check);
+  MinorConnectionStates calculateConnectionState(bool is_cumulative);
   MajorConnectionStates getMajorConnState();
 };
 

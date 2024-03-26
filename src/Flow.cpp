@@ -5286,7 +5286,8 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
   else
     dst2src_tcp_flags |= flags;
 
-  calculateConnectionState();
+  if (!cumulative_flags)
+    calculateConnectionState(false);
 
   if (cumulative_flags) {
     if (!twh_over) {
@@ -8594,29 +8595,37 @@ MajorConnectionStates Flow::getMajorConnState() {
 
 /* **************************************************** */
 
+
+bool Flow::isTCPFlagSet(u_int8_t tcp_flags, int flag_to_check) {
+  return((tcp_flags & flag_to_check) != 0);
+}
+
+/* **************************************************** */
+
 bool Flow::checkS1ConnState() {
 
-return(current_c_state == S1 || ((src2dst_tcp_flags & TCP_3WH_MASK)&&
-      (dst2src_tcp_flags & TCP_3WH_MASK) &&                                   /* 3WH OK */
-      !((src2dst_tcp_flags & TH_FIN) && (src2dst_tcp_flags & TH_ACK)) &&  /* NO FIN ACK in src2dst */
-      !(src2dst_tcp_flags & TH_RST) && !(dst2src_tcp_flags & TH_RST)      /* NO RST */
+return(current_c_state == S1 || ((isTCPFlagSet(src2dst_tcp_flags,TCP_3WH_MASK)) &&
+      (isTCPFlagSet(dst2src_tcp_flags,TCP_3WH_MASK))&&                                   /* 3WH OK */
+      !((isTCPFlagSet(src2dst_tcp_flags,TH_FIN)) && (isTCPFlagSet(src2dst_tcp_flags,TH_ACK))) &&  /* NO FIN ACK in src2dst */
+      !(isTCPFlagSet(src2dst_tcp_flags,TH_RST)) && !(isTCPFlagSet(dst2src_tcp_flags,TH_RST))     /* NO RST */
       ));
 }
 
 /* **************************************************** */
 
-MinorConnectionStates Flow::calculateConnectionState() {
+MinorConnectionStates Flow::calculateConnectionState(bool is_cumulative) {
   if(!isTCP())
     return(setCurrentConnectionState(MINOR_NO_STATE));
 
+  std::cout<<"in Flow::calculateConnectionState"<<endl;
   /* Check S0 or RSTOS0 or REJ or SH */
-  if ((src2dst_tcp_flags & TH_SYN) &&
-      !(dst2src_tcp_flags & TH_SYN)) {
-    if (!(dst2src_tcp_flags & TH_RST)) {
-      if ((src2dst_tcp_flags & TH_RST)) {
+  if ((isTCPFlagSet(src2dst_tcp_flags,TH_SYN)) &&
+      !(isTCPFlagSet(dst2src_tcp_flags,TH_SYN))) {
+    if (!(isTCPFlagSet(dst2src_tcp_flags,TH_RST))) {
+      if ((isTCPFlagSet(src2dst_tcp_flags,TH_RST))) {
         return(setCurrentConnectionState(RSTOS0));
       } else {
-        if ((src2dst_tcp_flags & TH_FIN)) {
+        if ((isTCPFlagSet(src2dst_tcp_flags,TH_FIN))) {
           return(setCurrentConnectionState(SH));
         } else {
           return(setCurrentConnectionState(S0));
@@ -8628,54 +8637,54 @@ MinorConnectionStates Flow::calculateConnectionState() {
   }
 
   /* Check RSTRH */
-  if ((dst2src_tcp_flags & TH_SYN) &&
-      (dst2src_tcp_flags & TH_ACK) &&
-      (dst2src_tcp_flags & TH_RST) &&
-      !(src2dst_tcp_flags & TH_SYN))
+  if ((isTCPFlagSet(dst2src_tcp_flags,TH_SYN)) &&
+      (isTCPFlagSet(dst2src_tcp_flags,TH_ACK)) &&
+      (isTCPFlagSet(dst2src_tcp_flags,TH_RST)) &&
+      !(isTCPFlagSet(src2dst_tcp_flags,TH_SYN)))
     return(setCurrentConnectionState(RSTRH));
 
   /* Check SHR */
-  if ((dst2src_tcp_flags & TH_SYN) &&
-      (dst2src_tcp_flags & TH_ACK) &&
-      (dst2src_tcp_flags & TH_FIN) &&
-      !(src2dst_tcp_flags & TH_SYN) )
+  if ((isTCPFlagSet(dst2src_tcp_flags,TH_SYN)) &&
+      (isTCPFlagSet(dst2src_tcp_flags,TH_ACK)) &&
+      (isTCPFlagSet(dst2src_tcp_flags,TH_FIN)) &&
+      !(isTCPFlagSet(src2dst_tcp_flags,TH_SYN)))
     return(setCurrentConnectionState(SHR));
 
   /* Check OTH */
-  if (!(src2dst_tcp_flags & TH_SYN) &&
-      !(dst2src_tcp_flags & TH_SYN))
+  if (!isTCPFlagSet(src2dst_tcp_flags,TH_SYN) &&
+      !isTCPFlagSet(dst2src_tcp_flags,TH_SYN))
     return(setCurrentConnectionState(OTH));
 
-  bool is_s1 = (current_c_state == S1);
+  bool is_s1 = (current_c_state == S1) || is_cumulative;
   bool is_s2 = (current_c_state == S2);
   bool is_s3 = (current_c_state == S3);
 
   /* Check SF */
   if (((is_s1) || (is_s2) || (is_s3)) &&
-      (src2dst_tcp_flags & TH_FIN) &&
-      (dst2src_tcp_flags & TH_FIN))
+      isTCPFlagSet(src2dst_tcp_flags,TH_FIN) &&
+      isTCPFlagSet(dst2src_tcp_flags,TH_FIN))
     return(setCurrentConnectionState(SF));
 
   /* Check S2 */
   if ((is_s1) &&
-      (src2dst_tcp_flags & TH_FIN) &&
-      !(dst2src_tcp_flags & TH_FIN))
+      isTCPFlagSet(src2dst_tcp_flags,TH_FIN) &&
+      !isTCPFlagSet(dst2src_tcp_flags,TH_FIN))
     return(setCurrentConnectionState(S2));
 
   /* Check S3 */
   if ((is_s1) &&
-      !(src2dst_tcp_flags & TH_FIN) &&
-       (dst2src_tcp_flags & TH_FIN))
+      !isTCPFlagSet(src2dst_tcp_flags,TH_FIN) &&
+       isTCPFlagSet(dst2src_tcp_flags,TH_FIN))
     return(setCurrentConnectionState(S3));
 
   /* Check RSTO */
   if ((is_s1) &&
-      (src2dst_tcp_flags & TH_RST))
+      isTCPFlagSet(src2dst_tcp_flags,TH_RST))
     return(setCurrentConnectionState(RSTO));
 
   /* Check RSTR */
   if ((is_s1) &&
-      (dst2src_tcp_flags & TH_RST))
+      isTCPFlagSet(dst2src_tcp_flags,TH_RST))
     return(setCurrentConnectionState(RSTR));
 
     /* Check S1 */

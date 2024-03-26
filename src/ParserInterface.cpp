@@ -391,6 +391,10 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       }
     }
 
+    if (zflow->tcp.client_tcp_flags!=0 && zflow->tcp.server_tcp_flags!=0) {
+      flow->calculateConnectionState(true);
+    }
+
     flow->updateTcpSeqIssues(zflow);
 
     Flow::incTcpBadStats(true, flow->get_cli_host(), flow->get_srv_host(), this,
