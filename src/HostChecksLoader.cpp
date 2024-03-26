@@ -77,6 +77,8 @@ void HostChecksLoader::registerChecks() {
   if ((fcb = new DNSFlood())) registerCheck(fcb);
   if ((fcb = new SNMPFlood())) registerCheck(fcb);
   if ((fcb = new FlowAnomaly())) registerCheck(fcb);
+  if ((fcb = new HostBlackHoleContacts())) registerCheck(fcb);
+  if ((fcb = new RXOnlyHostScan())) registerCheck(fcb);
 #endif
 
   // printChecks();
