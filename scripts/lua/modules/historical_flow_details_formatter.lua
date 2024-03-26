@@ -160,8 +160,12 @@ local function format_historical_issue_description(flow)
   if alert_store_instance then
     local alerts, _ = alert_store_instance:select_request(nil, "*")
     if #alerts >= 1 then
+      tprint(alerts)
       alert = alerts[1]
       details = alert_utils.formatFlowAlertMessage(interface.getId(), alert, alert_json, true, true)
+    else
+      tprint(debug.traceback())
+      tprint(alerts)
     end
   end
 
