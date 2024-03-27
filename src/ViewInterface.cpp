@@ -411,6 +411,50 @@ u_int64_t ViewInterface::getCheckPointNumDiscardedProbingBytes() const {
 
 /* **************************************************** */
 
+u_int64_t ViewInterface::getCheckPointNumTrafficSent() const {
+  u_int64_t tot = 0;
+
+  for (u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getCheckPointNumTrafficSent();
+
+  return (tot);
+}
+
+/* **************************************************** */
+
+u_int64_t ViewInterface::getCheckPointNumTrafficRcvd() const {
+  u_int64_t tot = 0;
+
+  for (u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getCheckPointNumTrafficRcvd();
+
+  return (tot);
+}
+
+/* **************************************************** */
+
+u_int64_t ViewInterface::getCheckPointNumPacketsSent() const {
+  u_int64_t tot = 0;
+
+  for (u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getCheckPointNumPacketsSent();
+
+  return (tot);
+}
+
+/* **************************************************** */
+
+u_int64_t ViewInterface::getCheckPointNumPacketsRcvd() const {
+  u_int64_t tot = 0;
+
+  for (u_int8_t s = 0; s < num_viewed_interfaces; s++)
+    tot += viewed_interfaces[s]->getCheckPointNumPacketsRcvd();
+
+  return (tot);
+}
+
+/* **************************************************** */
+
 void ViewInterface::checkPointCounters(bool drops_only) {
   for (u_int8_t s = 0; s < num_viewed_interfaces; s++)
     viewed_interfaces[s]->checkPointCounters(drops_only);

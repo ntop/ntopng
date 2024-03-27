@@ -265,7 +265,11 @@ protected:
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount,
     checkpointDroppedAlertsCount;
   u_int64_t checkpointDiscardedProbingPktCount,
-    checkpointDiscardedProbingBytesCount;
+    checkpointDiscardedProbingBytesCount,
+    checkpointTrafficSent, 
+    checkpointTrafficRcvd,
+    checkpointPacketsSent,
+    checkpointPacketsRcvd;
   u_int16_t ifMTU;
   int cpu_affinity; /**< Index of physical core where the network interface
                        works. */
@@ -604,6 +608,10 @@ public:
   virtual u_int32_t getCheckPointNumPacketDrops();
   virtual u_int64_t getCheckPointNumDiscardedProbingPackets() const;
   virtual u_int64_t getCheckPointNumDiscardedProbingBytes() const;
+  virtual u_int64_t getCheckPointNumTrafficSent() const;
+  virtual u_int64_t getCheckPointNumTrafficRcvd() const;
+  virtual u_int64_t getCheckPointNumPacketsSent() const;
+  virtual u_int64_t getCheckPointNumPacketsRcvd() const;
   inline void incFlagStats(u_int8_t flags, bool cumulative_flags) {
     pktStats.incFlagStats(flags, cumulative_flags);
   };

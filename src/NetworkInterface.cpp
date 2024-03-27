@@ -267,6 +267,8 @@ void NetworkInterface::init(const char *interface_name) {
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount =
     checkpointDroppedAlertsCount = 0,
     checkpointDiscardedProbingPktCount = checkpointDiscardedProbingBytesCount = 0,
+    checkpointTrafficSent = 0, checkpointTrafficRcvd = 0,
+    checkpointPacketsSent = 0, checkpointPacketsRcvd = 0,
     pollLoopCreated = false, bridge_interface = false, mdns = NULL,
     discovery = NULL, ifDescription = NULL, flowHashingMode = flowhashing_none;
   num_new_flows = 0;
@@ -7517,6 +7519,11 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
   _ethStats.lua(vm);
   _localStats.lua(vm);
   luaNdpiStats(vm);
+  lua_push_uint64_table_entry(vm, "traffic_sent_since_reset", _ethStats.getNumEgressBytes() - getCheckPointNumTrafficSent());
+  lua_push_uint64_table_entry(vm, "traffic_rcvd_since_reset", _ethStats.getNumIngressBytes() - getCheckPointNumTrafficRcvd());
+  lua_push_uint64_table_entry(vm, "packets_sent_since_reset", _ethStats.getNumEgressPackets() - getCheckPointNumPacketsSent());
+  lua_push_uint64_table_entry(vm, "packets_rcvd_since_reset", _ethStats.getNumIngressPackets() - getCheckPointNumPacketsRcvd());
+
 
   if(fullStats) {
     _pktStats.lua(vm, "pktSizeDistribution");
@@ -8562,6 +8569,10 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
   checkpointPktDropCount = getNumPacketDrops();
   checkpointDiscardedProbingPktCount = getNumDiscardedProbingPackets();
   checkpointDiscardedProbingBytesCount = getNumDiscardedProbingBytes();
+  checkpointTrafficSent = getStats() ? getStats()->getNumEgressBytes() : 0;
+  checkpointTrafficRcvd = getStats() ? getStats()->getNumIngressBytes() : 0;
+  checkpointPacketsSent = getStats() ? getStats()->getNumEgressPackets() : 0;
+  checkpointPacketsRcvd = getStats() ? getStats()->getNumIngressPackets() : 0;
 
   if (db) db->checkPointCounters(drops_only);
 }
@@ -8600,6 +8611,30 @@ u_int64_t NetworkInterface::getCheckPointNumDiscardedProbingPackets() const {
 
 u_int64_t NetworkInterface::getCheckPointNumDiscardedProbingBytes() const {
   return checkpointDiscardedProbingBytesCount;
+}
+
+/* **************************************************** */
+
+u_int64_t NetworkInterface::getCheckPointNumTrafficSent() const {
+  return checkpointTrafficSent;
+}
+
+/* **************************************************** */
+
+u_int64_t NetworkInterface::getCheckPointNumTrafficRcvd() const {
+  return checkpointTrafficRcvd;
+}
+
+/* **************************************************** */
+
+u_int64_t NetworkInterface::getCheckPointNumPacketsSent() const {
+  return checkpointPacketsSent;
+}
+
+/* **************************************************** */
+
+u_int64_t NetworkInterface::getCheckPointNumPacketsRcvd() const {
+  return checkpointPacketsRcvd;
 }
 
 /* **************************************** */

@@ -177,6 +177,10 @@ function dumpInterfaceStats(ifid)
       res["bytes_download"] = ifstats["eth"]["ingress"]["bytes"]
       res["packets_upload"] = ifstats["eth"]["egress"]["packets"]
       res["packets_download"] = ifstats["eth"]["ingress"]["packets"]
+      res["bytes_upload_since_reset"] = ifstats.traffic_sent_since_reset
+      res["bytes_download_since_reset"] = ifstats.traffic_rcvd_since_reset
+      res["packets_upload_since_reset"] = ifstats.packets_sent_since_reset
+      res["packets_download_since_reset"] = ifstats.packets_rcvd_since_reset
 
       res["num_local_hosts_anomalies"] = ifstats.anomalies.num_local_hosts_anomalies
       res["num_remote_hosts_anomalies"] = ifstats.anomalies.num_remote_hosts_anomalies

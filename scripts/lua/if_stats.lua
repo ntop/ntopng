@@ -880,12 +880,14 @@ if((page == "overview") or (page == nil)) then
    print("</tr>")
 
    if(ifstats.has_traffic_directions) then
-      local tx = ifstats.eth.egress.bytes
-      local rx = ifstats.eth.ingress.bytes
+      local tx = ifstats.traffic_sent_since_reset
+      local rx = ifstats.traffic_rcvd_since_reset
+      local tx_pkts = ifstats.packets_sent_since_reset
+      local rx_pkts = ifstats.packets_rcvd_since_reset
       local tot = rx+tx
       
-      print("<tr><th nowrap>"..i18n("http_page.traffic_sent")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_out_bytes>"..bytesToSize(tx).."</span> [<span id=if_out_pkts>".. formatValue(ifstats.eth.egress.packets) .. " ".. label .."</span>] <span id=pkts_out_trend></span></td>")
-      print("<th nowrap>"..i18n("http_page.traffic_received")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_in_bytes>"..bytesToSize(rx).."</span> [<span id=if_in_pkts>".. formatValue(ifstats.eth.ingress.packets) .. " ".. label .."</span>] <span id=pkts_in_trend></span></td>")
+      print("<tr><th nowrap>"..i18n("http_page.traffic_sent")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_out_bytes>"..bytesToSize(tx).."</span> [<span id=if_out_pkts>".. formatValue(tx_pkts) .. " ".. label .."</span>] <span id=pkts_out_trend></span></td>")
+      print("<th nowrap>"..i18n("http_page.traffic_received")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:traffic_rxtx'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_in_bytes>"..bytesToSize(rx).."</span> [<span id=if_in_pkts>".. formatValue(rx_pkts) .. " ".. label .."</span>] <span id=pkts_in_trend></span></td>")
 
 
       print('<td colspan=2><div class="progress"><div class="progress-bar bg-warning" style="width: ' .. (tx * 100 / tot) .. '%;">'.. i18n("sent") ..'</div>')
@@ -2467,10 +2469,10 @@ print [[/lua/rest/v2/get/interface/data.lua',
         const v = NtopUtils.bytesToVolume(rsp.bytes);
         $('#if_bytes').html(v);
 
-        $('#if_in_bytes').html(NtopUtils.bytesToVolume(rsp.bytes_download));
-        $('#if_out_bytes').html(NtopUtils.bytesToVolume(rsp.bytes_upload));
-        $('#if_in_pkts').html(NtopUtils.addCommas(rsp.packets_download) + " Pkts");
-        $('#if_out_pkts').html(NtopUtils.addCommas(rsp.packets_upload)  + " Pkts");
+        $('#if_in_bytes').html(NtopUtils.bytesToVolume(rsp.bytes_download_since_reset));
+        $('#if_out_bytes').html(NtopUtils.bytesToVolume(rsp.bytes_upload_since_reset));
+        $('#if_in_pkts').html(NtopUtils.addCommas(rsp.packets_download_since_reset) + " Pkts");
+        $('#if_out_pkts').html(NtopUtils.addCommas(rsp.packets_upload_since_reset)  + " Pkts");
         $('#pkts_in_trend').html(NtopUtils.get_trend(rsp.bytes_download, last_in_pkts));
         $('#pkts_out_trend').html(NtopUtils.get_trend(rsp.bytes_upload, last_out_pkts));
         last_in_pkts = rsp.bytes_download;
