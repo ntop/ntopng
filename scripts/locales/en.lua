@@ -4411,6 +4411,7 @@ local lang = {
       ["add_host"] = "Add Host/Network to Scan",
       ["add_to_scan_list"] = "Add Host to Vulnerability Scan List",
       ["automatic_scan"] = "Scan Frequency",
+      ["cidr_placeholder"] = "24",
       ["daily"] = "Nightly",
       ["delete_host_description"] = "Are you sure to delete the selected Host?",
       ["delete_host_title"] = "Delete Host",

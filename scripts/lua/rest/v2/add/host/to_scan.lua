@@ -32,7 +32,7 @@ if scan_type ~= 'ipv4_netscan' then
     if isEmptyString(cidr) then
 
         if (not is_edit) then
-            result,id = vs_utils.add_host_pref(scan_type, host,scan_ports, scan_frequency, nil)
+            result,id = vs_utils.add_host_pref(scan_type, host,scan_ports, scan_frequency, nil, cidr)
 
             vs_utils.schedule_ondemand_single_host_scan(scan_type,host,scan_ports,id,false,false,false)
         else 
@@ -43,7 +43,7 @@ if scan_type ~= 'ipv4_netscan' then
         if (next(hosts_to_save)) then
             for _,item in ipairs(hosts_to_save) do
                 if (not is_edit) then
-                    result,id = vs_utils.add_host_pref(scan_type, item,scan_ports, scan_frequency, nil)
+                    result,id = vs_utils.add_host_pref(scan_type, item,scan_ports, scan_frequency, nil, 32 --[[ on host discovered cidr is 32 ]])
                     vs_utils.schedule_ondemand_single_host_scan(scan_type,item,scan_ports,id,false,false,false)
                 else
                     result,id = vs_utils.edit_host_pref(scan_type, item,scan_ports, scan_frequency)
@@ -58,8 +58,8 @@ else
     -- ipv4_netscan -> case
 
     if (not is_edit) then
-        result,id = vs_utils.add_host_pref(scan_type, host,scan_ports, scan_frequency, discovered_host_scan_type)
-        vs_utils.schedule_ondemand_single_host_scan(scan_type,host,scan_ports,id,false,false,false)
+        result,id = vs_utils.add_host_pref(scan_type, host,scan_ports, scan_frequency, discovered_host_scan_type, cidr)
+        vs_utils.schedule_ondemand_single_host_scan(scan_type,host,scan_ports,id,false,false,false, cidr)
     else
         result,id = vs_utils.edit_host_pref(scan_type, host,scan_ports, scan_frequency, discovered_host_scan_type)
     end

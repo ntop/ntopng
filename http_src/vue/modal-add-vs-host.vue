@@ -8,16 +8,18 @@
         <label class="col-form-label col-sm-2">
           <b>{{ _i18n("hosts_stats.page_scan_hosts.host_or_network") }}</b>
         </label>
-        <div class="col-sm-8">
+        <div class="col-sm-4 pe-0">
           <input v-model="host" @input="check_host_regex" :disabled="is_edit_page" class="form-control" type="text"
             :placeholder="host_placeholder" required />
-        </div>
-        <div class="col-sm-2">
-          <SelectSearch v-model:selected_option="selected_cidr" :disabled="is_edit_page || is_ipv4_netscan" :options="cidr_options_list">
-          </SelectSearch>
-        </div>
-      </div>
-
+          </div>
+            <div class="col-1 ps-5 pe-0 mt-1">
+              <span>/</span> 
+            </div>
+            <div class="col-2 ps-0">
+            <input v-model="selected_cidr" @input="check_cidr" :disabled="is_edit_page" class="form-control" type="text"
+            :placeholder="cidr_placeholder" required />
+          </div>
+        </div>                    
       <div class="form-group ms-2 me-2 mt-3 row">
         <label class="col-form-label col-sm-2">
           <b>{{ _i18n("hosts_stats.page_scan_hosts.ports") }}</b>
@@ -111,6 +113,7 @@ const props = defineProps({
 const title = ref(i18n("hosts_stats.page_scan_hosts.add_host"));
 const no_host_feedback = ref(i18n("hosts_stats.page_scan_hosts.host_not_resolved"));
 const host_placeholder = i18n("hosts_stats.page_scan_hosts.host_placeholder");
+const cidr_placeholder = i18n("hosts_stats.page_scan_hosts.cidr_placeholder");
 const ports_placeholder = i18n("hosts_stats.page_scan_hosts.ports_placeholder");
 const note_list = [
   _i18n("hosts_stats.page_scan_hosts.notes.note_1"),
@@ -141,7 +144,7 @@ const ports = ref(null);
 const show_port_feedback = ref(false);
 const is_enterprise_l = ref(null);
 const is_port_correct = ref(true);
-const is_cidr_correct = ref(true);
+const is_cidr_correct = ref(false);
 const is_netscan_ok = ref(true); // bool to be sure that on netscan at least one discovered hosts scan type is selected
 const is_host_correct = ref(false);
 const is_ipv4_netscan = ref(false);
@@ -150,21 +153,13 @@ const scan_frequencies_list = ref([
   { id: "1day", label: i18n("hosts_stats.page_scan_hosts.every_night") },
   { id: "1week", label: i18n("hosts_stats.page_scan_hosts.every_week") },
 ]);
-const CIDR_24 = "24";
-const CIDR_32 = "32";
-const CIDR_128 = "128";
-const cidr_options_list = ref([
-  { id: "24", label: "/24" },
-  { id: "25", label: "/25" },
-  { id: "26", label: "/26" },
-  { id: "27", label: "/27" },
-  { id: "28", label: "/28" },
-  { id: "29", label: "/29" },
-  { id: "30", label: "/30" },
-  { id: "32", label: "/32" },
-  { id: "128", label: "/128" },
-]);
-const selected_cidr = ref(cidr_options_list.value[1]);
+
+const CIDR_24 = 24;
+const CIDR_30 = 30;
+const CIDR_32 = 32;
+const CIDR_128 = 128;
+
+const selected_cidr = ref(null);
 const selected_scan_frequency = ref(scan_frequencies_list.value[0]);
 const is_data_not_ok = ref(false);
 const refresh_select_search = ref(false);
@@ -176,14 +171,14 @@ const refresh_select_search = ref(false);
 const reset_modal_form = function () {
   host.value = "";
   ports.value = "";
+  selected_cidr.value = "";
   is_port_correct.value = true;
-  is_cidr_correct.value = true;
+  is_cidr_correct.value = false;
   is_host_correct.value = false;
   activate_add_spinner.value = false;
   show_port_feedback.value = false;
   selected_scan_type.value = scan_type_list.value[0];
   selected_discovered_scan_types.value = [];
-  selected_cidr.value = cidr_options_list.value.find((item) => item.id == "32");
   row_to_edit_id.value = null;
   is_edit_page.value = false;
   is_data_not_ok.value = false;
@@ -227,17 +222,13 @@ const set_row_to_edit = (row) => {
   /* CIDR */
   if (selected_scan_type.value.id == 'ipv4_netscan') {
     // ipv4_netscan scan type case
-    selected_cidr.value = cidr_options_list.value.find(
-      (item) => item.id == CIDR_24
-    );
-  } else if (regexValidation.validateIPv4(row.host)) {
-    selected_cidr.value = cidr_options_list.value.find(
-      (item) => item.id == CIDR_32
-    ); /* IPv4 */
+    selected_cidr.value = CIDR_24;
   } else {
-    selected_cidr.value = cidr_options_list.value.find(
-      (item) => item.id == CIDR_128
-    ); /* IPv6 */
+    if (check_is_network_address(host.value) || row.cidr == CIDR_128) {
+      selected_cidr.value = row.cidr;
+    } else {
+      selected_cidr.value = CIDR_32;
+    }
   }
   is_cidr_correct.value = true;
 
@@ -295,9 +286,7 @@ const remove_selected_discovered_scan_types = (item_to_delete) => {
 const set_is_ipv4_netscan = () => {
   if (selected_scan_type.value.id == 'ipv4_netscan') {
     // /24 
-    selected_cidr.value = cidr_options_list.value.find(
-      (item) => item.id == CIDR_24
-    ); 
+    selected_cidr.value = CIDR_24;
     // is_ipv4_netscan -> enable the discovered_hosts_scan_types multiselection
     is_ipv4_netscan.value = true;
     // is_netscan_ok -> disabled apply or add button because is necessary at least one discovered_hosts_scan_type
@@ -309,6 +298,14 @@ const set_is_ipv4_netscan = () => {
     is_netscan_ok.value = true;
   }
 
+}
+
+/* ****************************************************** */
+const check_is_network_address = (address) => {
+  const addr_parts = address.split(".");
+  if (addr_parts.length > 3) {
+    return addr_parts[3] == 0;
+  }
 }
 
 /* ****************************************************** */
@@ -335,34 +332,44 @@ const check_host_regex = () => {
 
     if (is_ipv4) {
       /* IPv4 */
-      is_host_correct.value = true;
-      if (!host.value.endsWith(0)) {
+      if (!check_is_network_address(host.value)) {
         /* In case the CIDR is wrong */
-        selected_cidr.value = cidr_options_list.value.find(
-          (item) => item.id == CIDR_32
-        ); /* IPv4 */
+        selected_cidr.value = CIDR_32;
+      } else {
+        selected_cidr.value = CIDR_24;
       }
+      is_host_correct.value = true;
+      is_cidr_correct.value = true;
     } else if (is_ipv6) {
       /* IPv6 */
-      selected_cidr.value = cidr_options_list.value[2];
       is_host_correct.value = true;
+      is_cidr_correct.value = true;
       /* In case the CIDR is wrong */
-      selected_cidr.value = cidr_options_list.value.find(
-        (item) => item.id == CIDR_128
-      ); /* IPv6 */
+      selected_cidr.value = CIDR_128
+      /* IPv6 */
+
     } else if (is_host_name) {
       /* Host Name */
       is_host_correct.value = true;
+      is_cidr_correct.value = true;
       /* In case the CIDR is wrong */
-      selected_cidr.value = cidr_options_list.value.find(
-        (item) => item.id == CIDR_32
-      );
+      selected_cidr.value = CIDR_32;
+      
     } else {
       is_host_correct.value = false;
     }
   }
-
 };
+
+const check_cidr = () => {
+  if (( selected_cidr.value >= CIDR_24 && selected_cidr.value <= CIDR_30) || 
+        selected_cidr.value == CIDR_32 || selected_cidr.value == CIDR_128) {
+    is_cidr_correct.value = true;
+    return true;
+  } 
+  is_cidr_correct.value = false;
+  return false;
+}
 
 /* ****************************************************** */
 
@@ -458,7 +465,7 @@ const add_ = async (is_edit) => {
       host: new_host,
       scan_type: host_scan_type,
       scan_ports: host_ports,
-      vs_cidr: selected_cidr.value.id,
+      vs_cidr: selected_cidr.value,
       scan_frequency: is_enterprise_l ? selected_scan_frequency.value.id : null,
       scan_id: row_id,
       discovered_host_scan_type : tmp_second_scan_types_formatted
