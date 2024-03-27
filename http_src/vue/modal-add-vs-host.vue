@@ -220,16 +220,12 @@ const set_row_to_edit = (row) => {
   }
 
   /* CIDR */
-  if (selected_scan_type.value.id == 'ipv4_netscan') {
-    // ipv4_netscan scan type case
-    selected_cidr.value = CIDR_24;
+  if (check_is_network_address(host.value) || row.cidr == CIDR_128) {
+    selected_cidr.value = row.cidr;
   } else {
-    if (check_is_network_address(host.value) || row.cidr == CIDR_128) {
-      selected_cidr.value = row.cidr;
-    } else {
-      selected_cidr.value = CIDR_32;
-    }
+    selected_cidr.value = CIDR_32;
   }
+
   is_cidr_correct.value = true;
 
   /* Scan Frequency */
