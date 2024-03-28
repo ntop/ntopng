@@ -248,27 +248,47 @@ const map_table_def_columns = (columns) => {
         },
         "flow_exporter": (value) => {
             if (!dataUtils.isEmptyOrNull(value)) {
-                return `<a href="${flow_exporter_url}?ip=${value.device.ip}">${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="deviceIP" tag-value="${value.device.ip}">${value.device.name}</a>`
+                let ifid = ''
+                let ifid_name = ''
+                let tag_filter2 = ''
+                if(value.seen_on_interface) {
+                    ifid = `&ifid=${value.seen_on_interface.id}`
+                    ifid_name = ` [${value.seen_on_interface.name}]`
+                    tag_filter2 = ` tag-filter2="interface_filter" tag-value2="${value.seen_on_interface.id}" `
+                }
+                return `<a href="${flow_exporter_url}?ip=${value.device.ip}${ifid}">${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="deviceIP" tag-value="${value.device.ip}" ${tag_filter2}>${value.device.name}${ifid_name}</a>`
             }
             return ''
         },
         "in_index": (value, row) => {
             if (!dataUtils.isEmptyOrNull(row.flow_exporter)) {
+                let ifid = ''
+                let tag_filter3 = ''
                 let name = row.flow_exporter.in_port.name
                 if (name !== row.flow_exporter.in_port.index) {
                     name = `${name} [${row.flow_exporter.in_port.index}]`
                 }
-                return `<a href="${flow_exporter_url}?ip=${row.flow_exporter.device.ip}&snmp_port_idx=${row.flow_exporter.in_port.index}">${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="inIfIdx" tag-filter2="deviceIP" tag-value="${row.flow_exporter.in_port.index}" tag-value2="${row.flow_exporter.device.ip}">${name}</a>`
+                if(row.flow_exporter.seen_on_interface) {
+                    ifid = `&ifid=${row.flow_exporter.seen_on_interface.id}`
+                    tag_filter3 = ` tag-filter3="interface_filter" tag-value3="${row.flow_exporter.seen_on_interface.id}" `
+                }
+                return `<a href="${flow_exporter_url}?ip=${row.flow_exporter.device.ip}&snmp_port_idx=${row.flow_exporter.in_port.index}"${ifid}>${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="inIfIdx" tag-filter2="deviceIP" tag-value="${row.flow_exporter.in_port.index}" tag-value2="${row.flow_exporter.device.ip}"${tag_filter3}>${name}</a>`
             }
             return ''
         },
         "out_index": (value, row) => {
             if (!dataUtils.isEmptyOrNull(row.flow_exporter)) {
+                let ifid = ''
+                let tag_filter3 = ''
                 let name = row.flow_exporter.out_port.name
                 if (name !== row.flow_exporter.out_port.index) {
                     name = `${name} [${row.flow_exporter.out_port.index}]`
                 }
-                return `<a href="${flow_exporter_url}?ip=${row.flow_exporter.device.ip}&snmp_port_idx=${row.flow_exporter.out_port.index}">${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="outIfIdx" tag-filter2="deviceIP" tag-value="${row.flow_exporter.out_port.index}" tag-value2="${row.flow_exporter.device.ip}">${name}</a>`
+                if(row.flow_exporter.seen_on_interface) {
+                    ifid = `&ifid=${row.flow_exporter.seen_on_interface.id}`
+                    tag_filter3 = ` tag-filter3="interface_filter" tag-value3="${row.flow_exporter.seen_on_interface.id}" `
+                }
+                return `<a href="${flow_exporter_url}?ip=${row.flow_exporter.device.ip}&snmp_port_idx=${row.flow_exporter.out_port.index}"${ifid}>${flow_exporter_icon}</a> <a href="#" class="tableFilter" tag-filter="outIfIdx" tag-filter2="deviceIP" tag-value="${row.flow_exporter.out_port.index}" tag-value2="${row.flow_exporter.device.ip}"${tag_filter3}>${name}</a>`
             }
             return ''
         },
@@ -306,12 +326,17 @@ function add_filter_from_table_element(e) {
     const filter = e.target.getAttribute("tag-filter")
     const value2 = e.target.getAttribute("tag-value2")
     const filter2 = e.target.getAttribute("tag-filter2")
+    const value3 = e.target.getAttribute("tag-value3")
+    const filter3 = e.target.getAttribute("tag-filter3")
     add_table_filter({
         key: filter,
         value: value
     }, (filter2) ? {
         key: filter2,
         value: value2
+    } : null, (filter3) ? {
+        key: filter3,
+        value: value3
     } : null)
 }
 
@@ -332,10 +357,13 @@ function change_filter_labels() {
 
 /* ************************************** */
 
-function add_table_filter(opt, opt2) {
+function add_table_filter(opt, opt2, opt3) {
     ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
     if (opt2) {
         ntopng_url_manager.set_key_to_url(opt2.key, `${opt2.value}`);
+    }
+    if (opt3) {
+        ntopng_url_manager.set_key_to_url(opt3.key, `${opt3.value}`);
     }
     table_flows_list.value.refresh_table();
     load_table_filters_array()
