@@ -796,7 +796,7 @@ tag_utils.formatters = {
 
 -- ######################################
 
-function tag_utils.get_tag_info(id, entity, hide_exporters_name)
+function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filters)
     local alert_utils = require "alert_utils"
     local tag = tag_utils.defined_tags[id]
 
@@ -1067,7 +1067,8 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name)
                     -- local label = format_name_value(probe_name, probe)
                     full_dev_list[probe] = {
                         value = probe,
-                        label = probe_name
+                        label = probe_name,
+                        display_more_filters = true
                     }
                 end
             end   
@@ -1080,13 +1081,14 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name)
                     -- local label = format_name_value(probe_name, probe)
                     full_dev_list[probe] = {
                         value = probe,
-                        label = probe_name
+                        label = probe_name,
+                        display_more_filters = true
                     }
                 end
             end   
         end
 
-        for _, device_info in pairs(full_dev_list) do
+        for _, device_info in pairsByKeys(full_dev_list, asc) do
             filter.options[#filter.options + 1] = device_info
         end
     elseif tag.value_type == "ip_version" then
@@ -1140,7 +1142,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name)
         end
 
     elseif tag.value_type == "snmp_interface" then
-
         if ntop.isPro() then
             filter.value_type = 'array'
 
@@ -1148,26 +1149,42 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name)
                 filter.options = snmp_filter_options_cache
             else
                 filter.options = {}
-
+                local flow_devices = {}
+                local interfaces_list = {}
                 -- Active flow devices
-                local flow_devices = interface.getFlowDevices()
+                if (restrict_filters and not isEmptyString(_GET["probe_ip"])) then
+                    local tmp = split(_GET["probe_ip"], ";")
+                    flow_devices = {
+                        {
+                            [tmp[1]] = true
+                        }
+                    }
+                else
+                    flow_devices = interface.getFlowDevices()
+                end 
                 
                 for _, device_list in pairs(flow_devices or {}) do
                     -- Add interfaces for flow devices which are not polled by SNMP
-                    for probe_ip, info in pairs(device_list) do
+                    for probe_ip, _ in pairs(device_list) do
                         local interfaces = interface.getFlowDeviceInfo(probe_ip)
-                        for interface_id, interface_info in pairsByKeys(interfaces) do
-                            local label = format_portidx_name(probe_ip, interface_id, false, false)
-                            if not hide_exporters_name then
-                                label = probe_ip .. ' · ' .. label
+                        for _, interfaces_table in pairs(interfaces) do
+                            for interface_id, interface_info in pairsByKeys(interfaces_table) do
+                                local label = format_portidx_name(probe_ip, interface_id, false, false)
+                                if not hide_exporters_name then
+                                    label = probe_ip .. ' · ' .. label
+                                end
+                                interfaces_list[label] = {
+                                    value = probe_ip .. "_" .. interface_id,
+                                    label = label,
+                                    show_only_value = probe_ip
+                                }
                             end
-                            filter.options[#filter.options + 1] = {
-                                value = probe_ip .. "_" .. interface_id,
-                                label = label,
-                                show_only_value = probe_ip
-                            }
                         end
                     end
+                end
+
+                for _, values in pairsByKeys(interfaces_list, asc) do
+                    filter.options[#filter.options + 1] = values
                 end
 
                 snmp_filter_options_cache = filter.options

@@ -192,14 +192,16 @@ local function build_response(criteria)
             value = "",
             label = i18n("all")
         }}
-        local ports = interface.getFlowDeviceInfo(dev_ip, true --[[ Show minimal info ]])
+        local ports_table = interface.getFlowDeviceInfo(dev_ip, true --[[ Show minimal info ]])
         
-        for portidx, _ in pairsByKeys(ports, asc) do
-            in_ports[#in_ports + 1] = {
-                key = "inIfIdx",
-                value = portidx,
-                label = format_portidx_name(dev_ip, portidx)
-            }
+        for _, ports in pairs(ports_table) do
+            for portidx, _ in pairsByKeys(ports, asc) do
+                in_ports[#in_ports + 1] = {
+                    key = "inIfIdx",
+                    value = portidx,
+                    label = format_portidx_name(dev_ip, portidx)
+                }
+            end
         end
     
         rsp[#rsp + 1] = {
@@ -216,14 +218,16 @@ local function build_response(criteria)
             value = "",
             label = i18n("all")
         }}
-        local ports = interface.getFlowDeviceInfo(dev_ip, false)
+        local ports_table = interface.getFlowDeviceInfo(dev_ip, false)
         
-        for portidx, _ in pairsByKeys(ports, asc) do
-            out_ports[#out_ports + 1] = {
-                key = "outIfIdx",
-                value = portidx,
-                label = format_portidx_name(dev_ip, portidx)
-            }
+        for _, ports in pairs(ports_table) do
+            for portidx, _ in pairsByKeys(ports, asc) do
+                out_ports[#out_ports + 1] = {
+                    key = "outIfIdx",
+                    value = portidx,
+                    label = format_portidx_name(dev_ip, portidx)
+                }
+            end
         end
     
         rsp[#rsp + 1] = {

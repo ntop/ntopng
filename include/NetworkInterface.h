@@ -1015,10 +1015,13 @@ public:
 
   virtual void getFlowDevices(lua_State *vm, bool add_table);
   virtual void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP, bool showAllStats = true) {
-    if (flow_interfaces_stats)
-      flow_interfaces_stats->luaDeviceInfo(vm, deviceIP, this, showAllStats);
-    else
+    if (flow_interfaces_stats) {
       lua_newtable(vm);
+      flow_interfaces_stats->luaDeviceInfo(vm, deviceIP, this, showAllStats);
+      lua_pushinteger(vm, get_id());
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
   };
 #endif
   virtual void getSFlowDevices(lua_State *vm, bool add_table);

@@ -1685,6 +1685,7 @@ local known_parameters = {
    -- HOST SPECIFICATION
    ["host"] = validateUnquoted, -- an IPv4 (optional @vlan), IPv6 (optional @vlan), or MAC address
    ["versus_host"] = validateHost, -- an host for comparison
+   ["filters_to_display"] = validateListOfTypeInline(validateSingleWord),
    ["mac"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))), -- a MAC address
    ["cli_mac"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))), -- a MAC address
    ["srv_mac"] = validateEmptyOr(validateListOfTypeInline(validateFilters(validateMac))), -- a MAC address

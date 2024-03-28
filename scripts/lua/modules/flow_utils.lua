@@ -1811,7 +1811,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 </div>']]
 
     if cur_dev ~= nil then -- also print dropddowns for input and output interface index
-        local ports = interface.getFlowDeviceInfo(cur_dev)
+        local ports_table = interface.getFlowDeviceInfo(cur_dev)
 
         for _, direction in pairs({"outIfIdx", "inIfIdx"}) do
             local cur_if = _GET[direction]
@@ -1840,24 +1840,26 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
             print(i18n("flows_page.all_" .. direction))
             print [[</a></li>\]]
 
-            for portidx, _ in pairsByKeys(ports, asc) do
-                if_params[direction] = portidx
-                local idx_name = format_portidx_name(cur_dev, portidx, true)
-                local label = idx_name
+            for _, ports in pairs(ports_table) do
+                for portidx, _ in pairsByKeys(ports, asc) do
+                    if_params[direction] = portidx
+                    local idx_name = format_portidx_name(cur_dev, portidx, true)
+                    local label = idx_name
 
-                if portidx == tonumber(idx_name) then
-                    label = i18n("flows_page." .. direction) .. " " .. idx_name
+                    if portidx == tonumber(idx_name) then
+                        label = i18n("flows_page." .. direction) .. " " .. idx_name
+                    end
+
+                    print [[
+        <li>\
+        <a class="dropdown-item ]]
+                    print(cur_if == tostring(portidx) and 'active' or '')
+                    print [[" href="]]
+                    print(getPageUrl(base_url, if_params))
+                    print [[">]]
+                    print(label)
+                    print [[</a></li>\]]
                 end
-
-                print [[
-	 <li>\
-	   <a class="dropdown-item ]]
-                print(cur_if == tostring(portidx) and 'active' or '')
-                print [[" href="]]
-                print(getPageUrl(base_url, if_params))
-                print [[">]]
-                print(label)
-                print [[</a></li>\]]
             end
             print [[
       </ul>\

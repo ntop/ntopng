@@ -45,26 +45,31 @@
                     :title="_i18n('upload')">
                     <i class="fa-solid fa-file-arrow-up"></i>
                 </button>
-                <button class="btn btn-link btn-sm" type="button" @click="print_report" :title="_i18n('dashboard.print')">
+                <button class="btn btn-link btn-sm" type="button" @click="print_report"
+                    :title="_i18n('dashboard.print')">
                     <i class="fas fa-print"></i>
                 </button>
-                <button v-if="allow_edit" class="btn btn-link btn-sm" type="button" @click="show_new_template_modal" :title="_i18n('dashboard.new_template')">
+                <button v-if="allow_edit" class="btn btn-link btn-sm" type="button" @click="show_new_template_modal"
+                    :title="_i18n('dashboard.new_template')">
                     <i class="fas fa-folder-plus"></i>
                 </button>
-                <button v-if="allow_edit && selected_report_template.allow_edit" class="btn btn-link btn-sm" :class="edit_mode ? 'text-warning' : ''" type="button" @click="toggle_edit_mode" :title="_i18n('dashboard.edit_mode')">
+                <button v-if="allow_edit && selected_report_template.allow_edit" class="btn btn-link btn-sm"
+                    :class="edit_mode ? 'text-warning' : ''" type="button" @click="toggle_edit_mode"
+                    :title="_i18n('dashboard.edit_mode')">
                     <i class="fas fa-pen-to-square"></i>
                 </button>
             </template>
         </DateTimeRangePicker>
 
         <!-- Filters -->
-        <div class="btn-group me-auto mt-2 btn-group-sm flex-wrap d-flex" :class="[loading_filters ? 'justify-content-center align-items-center' : '']">
+        <div class="form-group d-flex align-items-end"
+            :class="[loading_filters ? 'justify-content-center align-items-center' : '']">
             <Spinner :show="loading_filters" size="1rem" class="me-1"></Spinner>
             <template v-for="filter_id in filters_to_show">
-                <div class="me-2">
+                <div class="dropdown me-3 d-inline-block">
                     <label class="ms-1 my-auto me-2 filters-label"><b>{{ _i18n('db_search.' + filter_id) }}</b></label>
                     <SelectSearch v-model:selected_option="selected_filters[filter_id]"
-                        :options="filtered_filters[filter_id]" :style="'width: 50%;'"
+                        :options="filtered_filters[filter_id]" :disabled="second_load" :style="'width: 50%;'"
                         theme="bootstrap-5" dropdown_size="small"
                         @select_option="select_filter(selected_filters[filter_id], filter_id)">
                     </SelectSearch>
@@ -72,12 +77,16 @@
             </template>
 
             <template v-if="Object.keys(filters_to_show).length > 0">
-                <div class="d-flex align-items-center ms-2">
+                <div class="d-flex justify-content-center align-items-center">
                     <div class="me-2">
                         <div>
                             <label class="my-auto me-2"></label>
                         </div>
-                        <button type="button" class="btn btn-sm btn-primary" @click="reset_filters">{{ _i18n('reset') }}</button>
+                        <button type="button" class="btn btn-sm btn-primary" @click="reset_filters">{{ _i18n('reset')
+                            }}</button>
+                    </div>
+                    <div class="mt-4">
+                        <Spinner :show="second_load" size="1rem" class="me-1"></Spinner>
                     </div>
                 </div>
             </template>
@@ -85,13 +94,16 @@
 
         <!-- Template Editor Toolbox -->
         <div v-if="edit_mode" class="me-auto mt-2 flex-wrap d-flex">
-            <button class="btn btn-lg btn-link text-warning" type="button" @click="show_add_template_component_modal" :title="_i18n('dashboard.add_component')">
+            <button class="btn btn-lg btn-link text-warning" type="button" @click="show_add_template_component_modal"
+                :title="_i18n('dashboard.add_component')">
                 <i class="fas fa-square-plus"></i>
             </button>
-            <button class="btn btn-lg btn-link text-warning" type="button" @click="show_delete_template_modal" :title="_i18n('dashboard.del_template')">
+            <button class="btn btn-lg btn-link text-warning" type="button" @click="show_delete_template_modal"
+                :title="_i18n('dashboard.del_template')">
                 <i class="fas fa-trash-can"></i>
             </button>
-            <h2 class="text-warning" style="margin-top: 0.5rem; margin-left: 1rem">{{ _i18n('dashboard.edit_mode') }}</h2>
+            <h2 class="text-warning" style="margin-top: 0.5rem; margin-left: 1rem">{{ _i18n('dashboard.edit_mode') }}
+            </h2>
             <!--
             <div style="margin: auto"></div>
             <h4><span class="badge bg-warning">{{ _i18n('dashboard.edit_mode') }}</span></h4>
@@ -132,7 +144,8 @@
 
             <!-- Empty template message -->
             <div v-if="components_loaded && !components.length && !edit_mode" class="col-sm mt-1">
-                <div class="alert alert-secondary sm-1 text-center" style="width:40%; margin: auto; margin-top: 5vh; margin-bottom: 5vh">
+                <div class="alert alert-secondary sm-1 text-center"
+                    style="width:40%; margin: auto; margin-top: 5vh; margin-bottom: 5vh">
                     <h4 class="alert-heading">
                         {{ _i18n("dashboard.empty_template") }}
                     </h4>
@@ -144,19 +157,23 @@
 
             <!-- Rendered Components -->
             <template v-for="c in components">
-                <Box style="min-width:20rem;" :color="(c.active && c.color) || c.inactive_color" :width="c.width" :height="c.height" :id="c.id" class="drag-item">
+                <Box style="min-width:20rem;" :color="(c.active && c.color) || c.inactive_color" :width="c.width"
+                    :height="c.height" :id="c.id" class="drag-item">
                     <template v-slot:box_title>
                         <div v-if="c.i18n_name" class="dashboard-component-title modal-header">
                             <h4 class="modal-title">
-                                {{ c.custom_name ?  c.custom_name : _i18n(c.i18n_name) }}
+                                {{ c.custom_name ? c.custom_name : _i18n(c.i18n_name) }}
                                 <span style="color: gray">
-                                    {{ c.time_offset ? _i18n('dashboard.' + (is_live ? 'time_ago' : 'time_offset_list') + '.' + c.time_offset) : '' }}
+                                    {{ c.time_offset ? _i18n('dashboard.' + (is_live ? 'time_ago' : 'time_offset_list')
+            + '.' + c.time_offset) : '' }}
                                 </span>
                             </h4>
                             <div v-if="edit_mode" class="modal-close">
-                                <div class ='btn-group'>
-                                    <button  type="button" class="btn-close btn-edit me-1" :data-component-id="c.id" @click="show_edit_template_component"></button> 
-                                    <button type="button" class="btn-close" :data-component-id="c.id" @click="remove_template_component"></button>
+                                <div class='btn-group'>
+                                    <button type="button" class="btn-close btn-edit me-1" :data-component-id="c.id"
+                                        @click="show_edit_template_component"></button>
+                                    <button type="button" class="btn-close" :data-component-id="c.id"
+                                        @click="remove_template_component"></button>
                                 </div>
                             </div>
                         </div>
@@ -164,13 +181,13 @@
                     <template v-slot:box_content>
                         <Loading v-if="loading && show_loading" :styles="'margin-top: 2rem !important;'"></Loading>
                         <div :class="[(loading && show_loading) ? 'ntopng-gray-out' : '']">
-                            <component :is="components_dict[c.component]" :id="c.id"
-                                :style="component_custom_style(c)" :epoch_begin="c.epoch_begin" :epoch_end="c.epoch_end"
-                                :i18n_title="c.i18n_name" :ifid="c.ifid ? c.ifid.toString() : context.ifid.toString()" :max_width="c.width"
+                            <component :is="components_dict[c.component]" :id="c.id" :style="component_custom_style(c)"
+                                :epoch_begin="c.epoch_begin" :epoch_end="c.epoch_end" :i18n_title="c.i18n_name"
+                                :ifid="c.ifid ? c.ifid.toString() : context.ifid.toString()" :max_width="c.width"
                                 :max_height="c.height" :params="c.params"
                                 :get_component_data="get_component_data_func(c)"
-                                :set_component_attr="set_component_attr_func(c)"
-                                :csrf="context.csrf" :filters="c.filters">
+                                :set_component_attr="set_component_attr_func(c)" :csrf="context.csrf"
+                                :filters="c.filters">
                             </component>
                         </div>
                     </template>
@@ -195,15 +212,16 @@
     <ModalUpload ref="modal_upload_report" :upload_file="upload_report" :title="_i18n('upload')"
         :file_title="_i18n('report.file')">
     </ModalUpload>
-    <ModalSave ref="modal_new_template" :get_suggested_file_name="get_suggested_template_name" :store_file="new_template" :allow_spaces="true"
-        :csrf="context.csrf" :title="_i18n('dashboard.new_template')">
+    <ModalSave ref="modal_new_template" :get_suggested_file_name="get_suggested_template_name"
+        :store_file="new_template" :allow_spaces="true" :csrf="context.csrf" :title="_i18n('dashboard.new_template')">
     </ModalSave>
-    <ModalSelectComponent ref="modal_add_template_component" :list_components="list_template_components" :add_component="add_template_component"
-        :csrf="context.csrf" :title="_i18n('dashboard.add_component')">
+    <ModalSelectComponent ref="modal_add_template_component" :list_components="list_template_components"
+        :add_component="add_template_component" :csrf="context.csrf" :title="_i18n('dashboard.add_component')">
     </ModalSelectComponent>
     <ModalEditComponent ref="modal_edit_template_component" :csrf="context.csrf" @edit="edit_template_component">
     </ModalEditComponent>
-    <ModalDeleteConfirm ref="modal_delete_template" :title="_i18n('dashboard.del_template')" :body="_i18n('dashboard.del_template_confirm')" @delete="delete_template">
+    <ModalDeleteConfirm ref="modal_delete_template" :title="_i18n('dashboard.del_template')"
+        :body="_i18n('dashboard.del_template_confirm')" @delete="delete_template">
     </ModalDeleteConfirm>
 
 </template>
@@ -252,6 +270,7 @@ const components_dict = {
 
 const loading = ref(true);
 const loading_filters = ref(false);
+const second_load = ref(false);
 const page_id = "page-dashboard";
 const show_loading = props.context.show_loading || false;
 const allow_edit = props.context.allow_edit || false;
@@ -274,7 +293,7 @@ const selected_filters = ref({});
 const all_available_filters = ref({});
 const filtered_filters = ref({});
 const filters_to_show = ref([]);
-const nested_filters = ref([]);
+const template_filters = ref([]);
 
 const reports_templates = ref([]);
 const selected_report_template = ref({});
@@ -419,9 +438,9 @@ async function set_templates_list(report_template) {
 
     reports_templates.value = templates_list;
 
-    const report_template_value = report_template || 
-      ntopng_url_manager.get_url_entry("report_template") || 
-      props.context.template;
+    const report_template_value = report_template ||
+        ntopng_url_manager.get_url_entry("report_template") ||
+        props.context.template;
 
     props.context.template = report_template_value;
     selected_report_template.value = reports_templates.value.find((t) => t.value == report_template_value);
@@ -465,30 +484,48 @@ function set_components_epoch_interval(epoch_interval) {
 }
 
 /* This is used to reset the filters putting all of them to the ALL value */
-function reset_filters() {
+async function reset_filters() {
     /* Iterate all the filters available */
     for (const [filter, value] of Object.entries(all_available_filters.value)) {
         /* Set each filter to the ALL value (first value) */
         set_components_filter(filter, value[0].value);
         selected_filters.value[filter] = value[0];
         /* Hide all the needed filters */
-        hide_nested_filters(filter);
     }
+    filters_to_show.value = await load_filters(template_filters.value, null, true);
 }
 
 /* This function loads the filters */
-async function load_filters(filters_available, res) {
-    loading_filters.value = true;
+async function load_filters(filters_available, res, show_second_load) {
+    (!show_second_load) ? loading_filters.value = true : second_load.value = true;
     const added_filters_list = [];
     if (!res && `${props.context.report_filters_endpoint}`) {
-        res = await ntopng_utility.http_request(`${props.context.report_filters_endpoint}?hide_exporters_name=true`);
+        let retrieve_filters = ''
+        let extra_params = ''
+        let tmp = {}
+        filters_available.forEach((element) => {
+            if (element.show_only_if_selected) {
+                const selected = ntopng_url_manager.get_url_entry(element.show_only_if_selected)
+                if (selected !== '') {
+                    retrieve_filters = `${retrieve_filters}${element.name},`
+                    tmp[element.show_only_if_selected] = selected
+                }
+            } else {
+                retrieve_filters = `${retrieve_filters}${element.name},`
+            }
+        })
+        for (const [key, value] of Object.entries(tmp)) {
+            extra_params = `${key}=${value}&${extra_params}`
+        }
+        retrieve_filters = retrieve_filters.slice(0, -1);
+        res = await ntopng_utility.http_request(`${props.context.report_filters_endpoint}?hide_exporters_name=true&filters_to_display=${retrieve_filters}&${extra_params}`);
     }
-    loading_filters.value = false;
-    filters_available.forEach(async (element) => {
+    filters_available.forEach((element) => {
         const id = element?.name || "";
         const filter_options = res.find((el) => el.id == id)?.options;
         /* Check the filters available, if no filter or only 1 filter is provided, hide the dropdown */
         if (filter_options && filter_options.length > 1) {
+            const selected = ntopng_url_manager.get_url_entry(id)
             let all_label = i18n('db_search.all.' + id)
             if (dataUtils.isEmptyOrNull(all_label)) {
                 all_label = i18n('all') + " " + i18n('db_search.' + id);
@@ -497,23 +534,23 @@ async function load_filters(filters_available, res) {
             /* To be safe, add a default name */
             filter_options.unshift({
                 value: null,
-                label: all_label
+                label: all_label,
+                display_more_filters: filter_options[0].display_more_filters
             });
 
+            if (selected && selected !== '') {
+                const tmp_value = filter_options.find((el) => selected.startsWith(el.value))
+                selected_filters.value[id] = tmp_value
+            } else {
+                selected_filters.value[id] = filter_options[0];
+            }
+            
             all_available_filters.value[id] = filter_options;
-            selected_filters.value[id] = filter_options[0];
             filtered_filters.value[id] = filter_options
             added_filters_list.push(id);
-
-            const nested = element?.nested || [];
-            if (nested.length > 0) {
-                nested_filters.value[id] = await load_filters(nested, res /* Skip the request to the backend */)
-            }
-            /* Now check the nested filters, they appear ONLY 
-            * if the filter selected is not ALL (first entry) 
-            */
         }
     });
+    (!show_second_load) ? loading_filters.value = false : second_load.value = false;
     return added_filters_list;
 }
 
@@ -534,7 +571,8 @@ async function load_components(epoch_interval, template_name) {
             return c_ext;
         });
     reset_filters();
-    if(res.filters) {
+    if (res.filters) {
+        template_filters.value = res.filters
         filters_to_show.value = await load_filters(res.filters);
     }
     await nextTick();
@@ -557,72 +595,12 @@ function update_component_filters(c, filter_id, filter_value) {
 
 /* ********************************************* */
 
-/* This function hides the nested filters (the ones to not show) */
-function hide_nested_filters(filter) {
-    const to_hide_filters = nested_filters.value[filter];
-    to_hide_filters?.forEach((filter_to_remove) => {
-        /* For each filter check if currently it's displayed */
-        if (filters_to_show.value.includes(filter_to_remove)) {
-            /* If it's displayed, then remove it */
-            filters_to_show.value = filters_to_show.value.filter((element) => {
-                return element != filter_to_remove;
-            });
-            /* Reset its value to the default one */
-            const all_value = all_available_filters.value[filter_to_remove][0];
-            selected_filters.value[filter_to_remove] = all_value;
-            set_components_filter(filter_to_remove, all_value.value)
-        }
-    })
-}
-
-/* ********************************************* */
-
-/* This function shows the filters when clicking on a filter having a nested option */
-function show_nested_filters(filter_to_check, currently_selected_filter) {
-    /* Gets the nested filters of the filter to check */
-    const show_filters = nested_filters.value[filter_to_check];
-    show_filters?.forEach((filter_to_add) => {
-        /* Get all the available options for the nested option */
-        const all_filters = all_available_filters.value[filter_to_add];
-        const filters_to_enable = [];
-
-        /* Check if the currently selected filter is the filter to check for the nested filters */
-        if (currently_selected_filter == filter_to_check) {
-            /* If it is, reset its value to the default ones */
-            const all_value = all_available_filters.value[filter_to_add][0];
-            selected_filters.value[filter_to_add] = all_value;
-            set_components_filter(filter_to_add, all_value.value)
-        }
-
-        /* Filter out the values of the nested filter that have to be hide */
-        all_filters?.forEach((element) => {
-            if (element.show_only_value === selected_filters.value[filter_to_check].value || element.value == null)
-                filters_to_enable.push(element);
-        });
-
-        /* Add the remaining values to the array that shows the filters */
-        if (!filters_to_show.value.includes(filter_to_add)) {
-            const index_to_push = filters_to_show.value.indexOf(filter_to_check);
-            filters_to_show.value.splice(index_to_push + 1, 0, filter_to_add);
-        }
-        filters_to_enable.length > 0 ?
-            filtered_filters.value[filter_to_add] = filters_to_enable :
-            delete filtered_filters.value[filter_to_add]
-    })
-}
-
-/* ********************************************* */
-
 /* This function is called whenever a filter is clicked */
-function select_filter(option, filter_id) {
+async function select_filter(option, filter_id) {
     /* Set the filter, ready for the rest */
     set_components_filter(filter_id, option.value);
-    for (const [filter, _] of Object.entries(all_available_filters.value)) {
-        /* Iterate all the available filters and hide the ones to hide
-        * and show the ones to show
-        */
-        const filter_to_check = selected_filters.value[filter];
-        filter_to_check?.value ? show_nested_filters(filter, filter_id) : hide_nested_filters(filter);
+    if (option.display_more_filters) {
+        filters_to_show.value = await load_filters(template_filters.value, null, true);
     }
 }
 
@@ -900,7 +878,7 @@ function get_component_data_func(component) {
             if (component.component_id == null) component.component_id = component.id;
 
             if (!components_info[component.component_id]) { /* Safety check */
-                
+
                 console.error("No data for " + component.component_id);
                 info.data = {};
             } else {
