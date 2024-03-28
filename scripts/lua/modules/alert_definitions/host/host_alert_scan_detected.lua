@@ -31,8 +31,11 @@ host_alert_scan_detected.meta = {
 function host_alert_scan_detected:init(metric, value, operator, threshold)
    -- Call the parent constructor
    self.super:init()
-
-   self.alert_type_params = alert_creators.createThresholdCross(metric, value, operator, threshold)
+   
+   self.alert_type_params.value = value
+   self.alert_type_params.operator = operator
+   self.alert_type_params.threshold = threshold
+   self.alert_type_params.metric = metric
 end
 
 -- #######################################################
@@ -40,13 +43,28 @@ end
 function host_alert_scan_detected.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
-  local i18n_key
+  
+  if (alert_type_params.is_rx_only) then
+    return i18n("alert_messages.rx_scan_detected",{
+      entity = entity,
+      as_client = alert_type_params.as_client,
+      as_server = alert_type_params.as_server,
+      num_server_ports = alert_type_params.num_server_ports,
+    })
+  else
+    local i18n_key
+    local formatted_alert_type_params = alert_creators.createThresholdCross(
+                                      alert_type_params.metric, 
+                                      alert_type_params.value, 
+                                      alert_type_params.operator, 
+                                      alert_type_params.threshold)
 
-  return i18n("alert_messages.scan_detected", {
-    entity = entity,
-    value = string.format("%u", math.ceil(alert_type_params.value or 0)),
-    threshold = alert_type_params.threshold or 0,
-  })
+    return i18n("alert_messages.scan_detected", {
+      entity = entity,
+      value = string.format("%u", math.ceil(formatted_alert_type_params.value or 0)),
+      threshold = formatted_alert_type_params.threshold or 0,
+    })
+  end
 end
 
 -- #######################################################
