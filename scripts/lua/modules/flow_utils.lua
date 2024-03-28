@@ -180,6 +180,7 @@ function getFlowsFilter()
     local client = _GET["client"]
     local server = _GET["server"]
     local flow_info = _GET["flow_info"]
+    local iface_index = tonumber(_GET["interface_filter"] or -1)
 
     if sortColumn == nil or sortColumn == "column_" or sortColumn == "" then
         sortColumn = getDefaultTableSort("flows")
@@ -235,7 +236,8 @@ function getFlowsFilter()
         ["a2zSortOrder"] = a2z,
         ["hostFilter"] = host,
         ["portFilter"] = port,
-        ["LocalNetworkFilter"] = network_id
+        ["LocalNetworkFilter"] = network_id,
+        ["ifaceIndex"] = iface_index
     }
 
     if application ~= nil and application ~= "" then
@@ -254,7 +256,11 @@ function getFlowsFilter()
     end
 
     if category ~= nil and category ~= "" then
-        pageinfo["l7categoryFilter"] = interface.getnDPICategoryId(category)
+        if tonumber(category) then 
+            pageinfo["l7categoryFilter"] = tonumber(category)
+        else
+            pageinfo["l7categoryFilter"] = interface.getnDPICategoryId(category)
+        end
     end
 
     if traffic_profile ~= nil then

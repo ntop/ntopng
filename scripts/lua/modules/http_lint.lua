@@ -1784,7 +1784,8 @@ local known_parameters = {
    ["wifi_enabled"] = validateBool,
    ["wifi_ssid"] = validateSingleWord,
    ["wpa_passphrase"] = {passwordCleanup, validatePassword}, -- Wifi password
-
+   ["interface_filter"] = validateInterface,
+   
    -- Remote probe
    ["ifIdx"] = validateNumber, -- A generic switch/router port id
    ["inIfIdx"] = validateNumber, -- A switch/router INPUT port id (%INPUT_SNMP)

@@ -65,7 +65,7 @@ Paginator::Paginator() {
   mac_filter = NULL;
   alert_type_filter = ((u_int16_t)-1);
   alert_type_severity_filter = alert_level_group_none;
-
+  iface_index_filter = -1;
   deviceIP = 0;
   inIndex = outIndex = (u_int32_t)-1;
   asn_filter = (u_int32_t)-1;
@@ -230,6 +230,8 @@ void Paginator::readOptions(lua_State* L, int index) {
           icmp_code = lua_tointeger(L, -1);
         else if (!strcmp(key, "dscpFilter"))
           dscp_filter = lua_tointeger(L, -1);
+        else if (!strcmp(key, "ifaceIndex"))
+          iface_index_filter = lua_tointeger(L, -1);
         else if (!strcmp(key, "statusFilter"))
           alert_type_filter = lua_tointeger(L, -1);
         else if (!strcmp(key, "statusSeverityFilter"))

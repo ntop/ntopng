@@ -46,6 +46,7 @@ class Paginator {
   u_int32_t asn_filter;
   u_int32_t deviceIP;
   u_int32_t inIndex, outIndex;
+  int32_t iface_index_filter;
   u_int16_t pool_filter, alert_type_filter;
   AlertLevelGroup alert_type_severity_filter;
   u_int8_t *mac_filter, icmp_type, icmp_code, dscp_filter;
@@ -154,6 +155,14 @@ class Paginator {
   inline bool l7categoryFilter(int *f) const {
     if (l7category_filter >= 0) {
       (*f) = l7category_filter;
+      return true;
+    }
+    return false;
+  }
+
+  inline bool ifaceIndexFilter(int *f) const {
+    if (iface_index_filter >= 0) {
+      (*f) = iface_index_filter;
       return true;
     }
     return false;

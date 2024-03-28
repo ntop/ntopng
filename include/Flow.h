@@ -1403,7 +1403,7 @@ class Flow : public GenericHashEntry {
   void swap();
   bool isDPIDetectedFlow();
   void updateHostBlacklists();
-  inline int32_t getInterfaceIndex()      { return(iface_index); };
+  int32_t getInterfaceIndex()      { return(iface_index); };
   inline void setFlowSource(FlowSource n) { flow_source = n;     }
   inline FlowSource getFlowSource()       { return(flow_source); }
   inline MinorConnectionStates setCurrentConnectionState(u_int8_t new_state) { current_c_state = static_cast<MinorConnectionStates>(new_state); return(current_c_state);  };

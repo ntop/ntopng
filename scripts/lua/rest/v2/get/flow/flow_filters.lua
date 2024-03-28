@@ -23,6 +23,38 @@ local flow_info = _GET["flow_info"]
 local flowstats = interface.getActiveFlowsStats(host, nil, false, talking_with, client, server, flow_info)
 
 local rsp = {}
+
+
+if interface.isView() then
+    local interfaces_filter = {{
+        key = "interface_filter",
+        value = "",
+        label = i18n("all")
+    }}
+
+    local interfaces = interface.getIfNames()
+    if table.len(interfaces) > 1 then
+        for id, _ in pairsByValues(interfaces, asc) do
+            if tonumber(id) == interface.getId() then
+                goto continue
+            end
+            interfaces_filter[#interfaces_filter + 1] = {
+                key = "interface_filter",
+                value = id,
+                label = getInterfaceName(id)
+            }    
+        ::continue::
+        end
+    end
+
+    rsp[#rsp + 1] = {
+        action = "interface_filter",
+        label = i18n("if_stats_config.target_exporter_device_ifid"),
+        name = "interface_filter",
+        value = interfaces_filter
+    }
+end
+
 if not host then
     local hosts_type_filters = {{
         key = "flowhosts_type",

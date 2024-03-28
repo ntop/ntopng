@@ -4828,6 +4828,7 @@ struct flowHostRetriever {
   u_int16_t poolFilter;
   u_int8_t devtypeFilter;
   u_int8_t locationFilter;
+  int32_t iface_index;
 
   /* Return values */
   u_int32_t maxNumEntries, actNumEntries;
@@ -4868,6 +4869,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   char *username_filter;
   char *pidname_filter;
   u_int32_t deviceIP = 0;
+  int32_t iface_index = -1;
   u_int32_t inIndex, outIndex;
   u_int8_t icmp_type, icmp_code, dscp_filter;
 #ifdef NTOPNG_PRO
@@ -5088,6 +5090,13 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     }
 #endif
 #endif
+	  if (retriever->pag &&
+        retriever->pag->ifaceIndexFilter(&iface_index)) {
+          if (f->getInterface() && 
+            f->getInterface()->get_id() != iface_index) {
+        return (false);
+      }   
+    }
 
     if (retriever->pag && retriever->pag->asnFilter(&asn_filter) &&
         f->get_cli_host() && f->get_srv_host() &&
@@ -5990,6 +5999,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot, bool walk_all,
   retriever->client = client;
   retriever->flow_info = flow_info;
   retriever->ndpi_proto = -1;
+  retriever->iface_index = -1;
   retriever->actNumEntries = 0, retriever->maxNumEntries = getFlowsHashSize(),
     retriever->allowed_hosts = allowed_hosts;
 

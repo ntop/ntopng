@@ -2783,7 +2783,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
   lua_get_ip(vm, true /* Client */);
   lua_get_ip(vm, false /* Server */);
   lua_push_uint32_table_entry(vm, "vlan", get_vlan_id());
-  lua_push_int32_table_entry(vm, "iface_index", iface_index);
+  lua_push_int32_table_entry(vm, "iface_index", getInterface() ? getInterface()->get_id() : -1);
   lua_get_port(vm, true /* Client */);
   lua_get_port(vm, false /* Server */);
 

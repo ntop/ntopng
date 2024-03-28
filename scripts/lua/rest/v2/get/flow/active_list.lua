@@ -191,6 +191,13 @@ for _, value in ipairs(flows_stats.flows) do
                 name = format_portidx_name(device_ip, value["out_index"])
             }
         }
+
+        if interface.isView() then
+            record.flow_exporter.seen_on_interface = {
+                name = getInterfaceName(value["iface_index"], true),
+                id = value["iface_index"]
+            }
+        end
     end
 
     if value["predominant_alert"] then
