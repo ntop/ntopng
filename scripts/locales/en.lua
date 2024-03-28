@@ -2617,7 +2617,7 @@ local lang = {
     },
   },
   ["entity_thresholds"] = {
-    ["black_hole_contacts_description"] = "Trigger an alert when a host scanner is detected.",
+    ["black_hole_contacts_description"] = "Trigger an alert when a host contacts too many blackholed hosts.",
     ["black_hole_contacts_title"] = "Host Scanner Blackhole Contacts",
     ["dns_flood_description"] = "Trigger an alert when the number of sent/received DNS Flows/sec exceeds the threshold",
     ["dns_flood_title"] = "DNS Flood",
