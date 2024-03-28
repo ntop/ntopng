@@ -6590,13 +6590,14 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   u_int16_t eth_proto = ETHERTYPE_IP;
   bool nf_existing_flow;
 
-  /* netfilter (depending on configured timeouts) could expire a flow before
+  /* 
+     netfilter (depending on configured timeouts) could expire a flow before
      than ntopng. This heuristics attempt to detect such events.
-
+     
      Basically, if netfilter is sending counters for a new flow and ntopng
      already have an existing flow matching the same 5-tuple, we sum counters
      rather than overwriting them.
-
+     
      A complete solution would require the registration of a netfilter check
      and the detection of event NFCT_T_DESTROY.
   */
@@ -6604,10 +6605,14 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
       !(get_packets_cli2srv() > s2d_pkts || get_bytes_cli2srv() > s2d_bytes ||
         get_packets_srv2cli() > d2s_pkts || get_bytes_srv2cli() > d2s_bytes);
 
-  updateSeen();
+  if((get_packets_cli2srv() != s2d_pkts) || (get_packets_srv2cli() > d2s_pkts)) {
+    /* Update last seen only in case of packets changed (i.e. do not update the flow if the are steady) */
+    updateSeen();
+  }
 
   if (last_conntrack_update > 0) {
     float tdiff_msec = (now - last_conntrack_update) * 1000;
+    
     updateThroughputStats(tdiff_msec,
 			  nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
 			  nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes, 0,
