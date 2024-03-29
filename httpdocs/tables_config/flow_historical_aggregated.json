@@ -14,6 +14,7 @@
 	    "sortable": false,
 	    "sticky": false,
 	    "class": ["text-center"],
+		 "min-width" : "80px",
 	    "render_v_node_type": "button_list",
 	    "button_def_array": [
 		{ "id": "row_data", "icon": "fas fa-sm fa-stream", "title_i18n": "flows", "class":["link-button"], "event_id": "click_button_flows" }
@@ -23,17 +24,20 @@
 	    "title_i18n": "db_search.first_seen",
 	    "data_field": "first_seen",
 	    "sortable": true,
+		 "min-width" : "100px",
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.last_seen",
 	    "data_field": "last_seen",
+		 "min-width" : "100px",
 	    "sortable": true,
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.l4proto",
 	    "data_field": "l4proto",
+		 "min-width" : "95px",
 	    "sortable": true,
 	    "render_generic": "l4proto",
 	    "class": ["no-wrap"]
@@ -42,34 +46,39 @@
 	    "title_i18n": "db_search.l7proto",
 	    "data_field": "l7proto",
 	    "sortable": true,
+		 "min-width" : "100px",
 	    "class": ["no-wrap"]
-	},
-	{
-	    "title_i18n": "flow",
-	    "data_field": "flow",
-	    "render_type": "formatFlowTuple",
-	    "sortable": false,
-	    "class": ["text-nowrap"]
 	},
 	{
 	    "title_i18n": "score_average",
 	    "data_field": "score",
 	    "render_type": "formatValueLabel",
 	    "zero_is_null": true,
+		 "min-width" : "70px",
 	    "sortable": true,
 	    "class": ["text-center"]
 	},
-        {
-        "title_i18n": "db_explorer.total_flows",
-	    "data_field": "flows_number",
-	    "sortable": true,
-	    "class": ["text-nowrap text-end"]
-        },
+	{
+	    "title_i18n": "flow",
+	    "data_field": "flow",
+	    "render_type": "formatFlowTuple",
+	    "sortable": false,
+		 "min-width" : "300px",
+	    "class": ["text-nowrap"]
+	},
+	{
+	"title_i18n": "db_explorer.total_flows",
+	"data_field": "flows_number",
+	"sortable": true,
+	"min-width" : "80px",
+	"class": ["text-nowrap text-end"]
+	},
 	{
 	    "title_i18n": "db_search.vlan_id",
 	    "data_field": "vlan_id",
 	    "sortable": true,
 	    "render_generic": "vlan_id",
+		 "min-width" : "70px",
 	    "class": ["no-wrap"]
 	},
 	{
@@ -77,29 +86,34 @@
 	    "data_field": "packets",
 	    "render_type": "full_number",
 	    "sortable": true,
+		 "min-width" : "80px",
 	    "class": ["no-wrap text-end"]
 	},
 	{
 	    "title_i18n": "total_bytes",
 	    "data_field": "bytes",
 	    "sortable": true,
+		 "min-width" : "90px",
 	    "class": ["no-wrap text-end"]
 	},
 	{
 	    "title_i18n": "db_search.cli_asn",
 	    "data_field": "cli_asn",
 	    "sortable": true,
+		 "min-width" : "100px",
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.srv_asn",
 	    "data_field": "srv_asn",
 	    "sortable": true,
+		 "min-width" : "100px",
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.flow_risk",
 	    "data_field": "flow_risk",
+		 "min-width" : "150px",
 	    "sortable": true,
 	    "class": ["no-wrap"]
 	},
@@ -108,6 +122,7 @@
 	    "title_i18n": "db_search.probe_ip",
 	    "data_field": "probe_ip",
 	    "sortable": true,
+		 "min-width" : "150px",
 	    "render_type": "formatProbeIP",
 	    "class": ["text-nowrap"]
 	},
@@ -116,6 +131,7 @@
 	    "data_field": "cli_network",
 	    "sortable": true,
 	    "render_generic": "cli_network",
+		 "min-width" : "140px",
 	    "class": ["text-nowrap"]
 	},
 	{
@@ -123,6 +139,7 @@
 	    "data_field": "srv_network",
 	    "sortable": true,
 	    "render_generic": "srv_network",
+		 "min-width" : "140px",
 	    "class": ["text-nowrap"]
 	},
 	{
@@ -131,6 +148,7 @@
 	    "sortable": true,
 	    "zero_is_null": true,
 	    "render_generic": "input_snmp",
+		 "min-width" : "100px",
 	    "class": ["text-nowrap"]
 	},
 	{
@@ -139,6 +157,7 @@
 	    "sortable": true,
 	    "zero_is_null": true,
 	    "render_generic": "output_snmp",
+		 "min-width" : "100px",
 	    "class": ["text-nowrap"]
 	},
 	{
@@ -146,6 +165,7 @@
 	    "data_field": "cli_country",
 	    "sortable": true,
 	    "render_generic": "cli_country",
+		 "min-width" : "100px",
 	    "class": ["text-nowrap"]
 	},
 	{
@@ -153,24 +173,28 @@
 	    "data_field": "srv_country",
 	    "sortable": true,
 	    "render_generic": "srv_country",
+		 "min-width" : "100px",
 	    "class": ["text-nowrap"]
 	},
     {
         "title_i18n": "db_search.tags.cli_mac",
 	    "data_field": "cli_mac",
 	    "sortable": true,
+		 "min-width" : "150px",
 	    "class": ["text-nowrap"]
     },
     {
         "title_i18n": "db_search.tags.srv_mac",
 	    "data_field": "srv_mac",
 	    "sortable": true,
+		 "min-width" : "150px",
 	    "class": ["text-nowrap"]
     },
     {
         "title_i18n": "db_search.tags.instance_name",
 	    "data_field": "NTOPNG_INSTANCE_NAME",
 	    "sortable": true,
+		 "min-width" : "100px",
 	    "class": ["text-nowrap"]
     }
     ]

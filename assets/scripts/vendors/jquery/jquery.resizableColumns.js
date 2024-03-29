@@ -161,7 +161,18 @@ var ResizableColumns = (function () {
 
 		    this.$tableHeaders.each(function (_, el) {
 				var $el = $(el);
-				_this2.setWidth($el[0], $el.width() + _this2.options.padding);
+				let width = $el.width();
+				let min_width = $el.css('min-width');
+				if (min_width == '0px') {
+					min_width = $el.width();
+				} else {
+					/* I need a number */
+					min_width = parseFloat(min_width.split("px")[0])
+				}
+				if (width < min_width) {
+					width = min_width
+				}
+				_this2.setWidth($el[0], width + _this2.options.padding);
 			});
 		}
 
@@ -227,6 +238,16 @@ var ResizableColumns = (function () {
 
 				if (_this5.options.store && !$el.is(_constants.SELECTOR_UNRESIZABLE)) {
 					var width = _this5.options.store.get(_this5.generateColumnId($el));
+					let min_width = $el.css('min-width');
+					if (min_width == '0px') {
+						min_width = width;
+					} else {
+						/* I need a number */
+						min_width = parseFloat(min_width.split("px")[0])
+					}
+					if (width < min_width) {
+						width = min_width
+					}
 
 					if (width != null) {
 						_this5.setWidth(el, width);
@@ -319,15 +340,12 @@ var ResizableColumns = (function () {
 			var widthLeft = undefined,
 			    widthRight = undefined;
 
-			widthLeft = this.constrainWidth(op.widths.left + difference);
+			widthLeft = this.constrainWidth(op.widths.left + difference, leftColumn);
 			widthRight = this.constrainWidth(op.widths.right);
 
 			if (leftColumn) {
 				this.setWidth(leftColumn, widthLeft);
 			}
-		    if (rightColumn) {
-			// this.setWidth(rightColumn, widthRight);
-		    }
 
 			op.newWidths.left = widthLeft;
 			op.newWidths.right = widthRight;
@@ -506,13 +524,27 @@ var ResizableColumns = (function () {
   **/
 	}, {
 		key: 'constrainWidth',
-		value: function constrainWidth(width) {
+		value: function constrainWidth(width, el) {
 			if (this.options.minWidth != undefined) {
 				width = Math.max(this.options.minWidth, width);
 			}
 
 			if (this.options.maxWidth != undefined) {
 				width = Math.min(this.options.maxWidth, width);
+			}
+
+			if (el) {
+				const $el = $(el);
+				let min_width = $el.css('min-width');
+				if (min_width == '0px') {
+					min_width = width;
+				} else {
+					/* I need a number */
+					min_width = parseFloat(min_width.split("px")[0])
+				}
+				if (width < min_width) {
+					width = min_width
+				}	
 			}
 
 			return width;

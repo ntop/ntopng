@@ -13,6 +13,7 @@
 	    "title_i18n": "actions",
 	    "sortable": false,
 	    "sticky": true,
+		 "min-width" : "80px",
 	    "class": ["text-nowrap", "text-center"],
 	    "render_v_node_type": "button_list",
 	    "button_def_array": [
@@ -24,24 +25,28 @@
 	{
 	    "title_i18n": "db_search.first_seen",
 	    "data_field": "first_seen",
+		 "min-width" : "90px",
 	    "sortable": true,
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.last_seen",
 	    "data_field": "last_seen",
+		 "min-width" : "90px",
 	    "sortable": true,
 	    "class": ["no-wrap"]
 	},
 	{
 		"title_i18n": "db_search.duration",
 	    "data_field": "DURATION",
+		 "min-width" : "90px",
 	    "sortable": true,
 	    "class": ["no-wrap text-center"]
 	},
 	{
 	    "title_i18n": "db_search.l4proto",
 	    "data_field": "l4proto",
+		 "min-width" : "95px",
 	    "sortable": true,
 	    "render_generic": "l4proto",
 	    "class": ["no-wrap"]
@@ -49,6 +54,7 @@
 	{
 	    "title_i18n": "db_search.l7proto",
 	    "data_field": "l7proto",
+		 "min-width" : "100px",
 	    "sortable": true,
 	    "class": ["no-wrap"]
 	},
@@ -56,6 +62,7 @@
 	    "title_i18n": "score",
 	    "data_field": "score",
 	    "render_type": "formatScore",
+		 "min-width" : "70px",
 	    "sortable": true,
 	    "zero_is_null": true,
 	    "class": ["text-center"]
@@ -63,6 +70,7 @@
 	{
 	    "title_i18n": "flow",
 	    "data_field": "flow",
+		 "min-width" : "300px",
 	    "render_type": "formatFlowTuple",
 	    "sortable": false,
 	    "class": ["text-nowrap"]
@@ -71,13 +79,15 @@
 	    "title_i18n": "db_search.vlan_id",
 	    "data_field": "vlan_id",
 	    "sortable": true,
+		 "min-width" : "70px",
 	    "render_generic": "vlan_id",
-	    "class": ["no-wrap"]
+	    "class": ["no-wrap", "text-center"]
 	},
 	{
 	    "title_i18n": "db_search.packets",
 	    "data_field": "packets",
 	    "sortable": true,
+		 "min-width" : "80px",
 	    "render_type": "full_number",
 	    "style": "text-align:right;",
 	    "class": ["no-wrap"]
@@ -86,6 +96,7 @@
 	    "title_i18n": "db_search.bytes",
 	    "data_field": "bytes",
 	    "sortable": true,
+		 "min-width" : "90px",
 	    "style": "text-align:right;",
 	    "class": ["no-wrap"]
 	},
@@ -93,24 +104,28 @@
 	    "title_i18n": "db_search.throughput",
 	    "data_field": "THROUGHPUT",
 	    "sortable": true,
+		 "min-width" : "100px",
 	    "style": "text-align:right;",
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.cli_asn",
 	    "data_field": "cli_asn",
+		 "min-width" : "100px",
 	    "sortable": true,
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.srv_asn",
 	    "data_field": "srv_asn",
+		 "min-width" : "100px",
 	    "sortable": true,
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.l7cat",
 	    "data_field": "l7cat",
+		 "min-width" : "100px",
 	    "sortable": true,
 	    "render_generic": "l7cat",
 	    "class": ["no-wrap"]
@@ -118,6 +133,7 @@
 	{
 	    "title_i18n": "db_search.alert_id",
 	    "data_field": "alert_id",
+		 "min-width" : "150px",
 	    "sortable": true,
 	    "render_generic": "alert_id",
 	    "class": ["no-wrap"]
@@ -125,12 +141,14 @@
 	{
 	    "title_i18n": "db_search.flow_risk",
 	    "data_field": "flow_risk",
+		 "min-width" : "150px",
 	    "sortable": true,
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.src2dst_tcp_flags",
 	    "data_field": "src2dst_tcp_flags",
+		 "min-width" : "140px",
 	    "sortable": true,
 	    "render_generic": "src2dst_tcp_flags",
 	    "zero_is_null": true,
@@ -139,6 +157,7 @@
 	{
 	    "title_i18n": "db_search.dst2src_tcp_flags",
 	    "data_field": "dst2src_tcp_flags",
+		 "min-width" : "140px",
 	    "sortable": true,
 	    "render_generic": "dst2src_tcp_flags",
 	    "zero_is_null": true,
@@ -147,6 +166,7 @@
 	{
 	    "title_i18n": "db_search.src2dst_dscp",
 	    "data_field": "src2dst_dscp",
+		 "min-width" : "120px",
 	    "sortable": true,
 	    "render_generic": "src2dst_dscp",
 	    "class": ["no-wrap"]
@@ -154,6 +174,7 @@
 	{
 	    "title_i18n": "db_search.dst2src_dscp",
 	    "data_field": "dst2src_dscp",
+		 "min-width" : "120px",
 	    "sortable": true,
 	    "render_generic": "dst2src_dscp",
 	    "class": ["no-wrap"]
@@ -161,24 +182,28 @@
 	{
 	    "title_i18n": "db_search.cli_nw_latency",
 	    "data_field": "cli_nw_latency",
+		 "min-width" : "100px",
 	    "sortable": true,
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.srv_nw_latency",
 	    "data_field": "srv_nw_latency",
+		 "min-width" : "100px",
 	    "sortable": true,
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.info",
 	    "data_field": "info",
+		 "min-width" : "180px",
 	    "sortable": true,
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.observation_point_id",
 	    "data_field": "observation_point_id",
+		 "min-width" : "80px",
 	    "sortable": true,
 	    "render_generic": "observation_point_id",
 	    "class": ["no-wrap"]
@@ -187,6 +212,7 @@
 	    "title_i18n": "db_search.probe_ip",
 	    "data_field": "probe_ip",
 	    "sortable": true,
+		 "min-width" : "150px",
 	    "render_type": "formatProbeIP",
 	    "class": ["text-nowrap"]
 	},
@@ -194,6 +220,7 @@
 	    "title_i18n": "db_search.tags.cli_network",
 	    "data_field": "cli_network",
 	    "sortable": false,
+		 "min-width" : "140px",
 	    "render_generic": "cli_network",
 	    "class": ["text-nowrap"]
 	},
@@ -201,6 +228,7 @@
 	    "title_i18n": "db_search.tags.srv_network",
 	    "data_field": "srv_network",
 	    "sortable": true,
+		 "min-width" : "140px",
 	    "render_generic": "srv_network",
 	    "class": ["text-nowrap"]
 	},
@@ -208,6 +236,7 @@
 	    "title_i18n": "db_search.cli_host_pool_id",
 	    "data_field": "cli_host_pool_id",
 	    "sortable": true,
+		 "min-width" : "110px",
 	    "render_generic": "cli_host_pool_id",
 	    "class": ["text-nowrap"]
 	},
@@ -215,6 +244,7 @@
 	    "title_i18n": "db_search.srv_host_pool_id",
 	    "data_field": "srv_host_pool_id",
 	    "sortable": false,
+		 "min-width" : "110px",
 	    "render_generic": "srv_host_pool_id",
 	    "class": ["text-nowrap"]
 	},
@@ -222,6 +252,7 @@
 	    "title_i18n": "db_search.tags.input_snmp",
 	    "data_field": "input_snmp",
 	    "sortable": false,
+		 "min-width" : "100px",
 	    "zero_is_null": true,
 	    "render_generic": "input_snmp",
 	    "class": ["text-nowrap"]
@@ -230,6 +261,7 @@
 	    "title_i18n": "db_search.tags.output_snmp",
 	    "data_field": "output_snmp",
 	    "sortable": false,
+		 "min-width" : "100px",
 	    "zero_is_null": true,
 	    "render_generic": "output_snmp",
 	    "class": ["text-nowrap"]
@@ -238,6 +270,7 @@
 	    "title_i18n": "db_search.tags.cli_country",
 	    "data_field": "cli_country",
 	    "sortable": false,
+		 "min-width" : "100px",
 	    "render_generic": "cli_country",
 	    "class": ["text-nowrap"]
 	},
@@ -245,6 +278,7 @@
 	    "title_i18n": "db_search.tags.srv_country",
 	    "data_field": "srv_country",
 	    "sortable": false,
+		 "min-width" : "100px",
 	    "render_generic": "srv_country",
 	    "class": ["text-nowrap"]
 	},
@@ -252,6 +286,7 @@
 	    "title_i18n": "db_search.tags.community_id",
 	    "data_field": "community_id",
 	    "sortable": false,
+		 "min-width" : "100px",
 	    "render_generic": "community_id",
 	    "class": ["text-nowrap"]
 	},
@@ -259,17 +294,20 @@
 	    "title_i18n": "db_search.tags.cli_proc_name",
 	    "data_field": "cli_proc_name",
 	    "sortable": true,
+		 "min-width" : "100px",
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.tags.srv_proc_name",
 	    "data_field": "srv_proc_name",
 	    "sortable": true,
+		 "min-width" : "100px",
 	    "class": ["no-wrap"]
 	},
 	{
 	    "title_i18n": "db_search.tags.cli_user_name",
 	    "data_field": "cli_user_name",
+		 "min-width" : "100px",
 	    "sortable": true,
 	    "class": ["no-wrap"]
 	},
@@ -277,18 +315,21 @@
 	    "title_i18n": "db_search.tags.srv_user_name",
 	    "data_field": "srv_user_name",
 	    "sortable": true,
+		 "min-width" : "100px",
 	    "class": ["no-wrap"]
 	}, 
 	{
 		"title_i18n": "db_search.tags.major_connection_state",
 		"data_field": "major_connection_state",
 		"sortable": true,
+		"min-width" : "100px",
 		"class": ["no-wrap"]
 	},
 	{
 		"title_i18n": "db_search.tags.minor_connection_state",
 		"data_field": "minor_connection_state",
 		"sortable": true,
+		"min-width" : "100px",
 		"class": ["no-wrap"]
 	}
     ]

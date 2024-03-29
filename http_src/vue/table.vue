@@ -62,7 +62,7 @@
                     <tr>
                         <template v-for="(col, col_index) in columns_wrap">
                             <th v-if="col.visible" scope="col" :class="{ 'pointer': col.sortable, 'unset': !col.sortable, }"
-                                style="white-space: nowrap;" @click="change_column_sort(col, col_index)"
+                                style="white-space: nowrap;" :style="[( col.min_width ? 'min-width: ' + col.min_width + ';' : '' )]" @click="change_column_sort(col, col_index)"
                                 :data-resizable-column-id="get_column_id(col.data)">
                                 <div style="display:flex;">
                                     <span v-html="print_column_name(col.data)" class="wrap-column"></span>
@@ -154,6 +154,7 @@ const props = defineProps({
     print_html_row: Function,
     print_vue_node_row: Function,
     f_is_column_sortable: Function,
+    f_column_min_width: Function,
     f_sort_rows: Function,
     f_get_column_classes: Function,
     f_get_column_style: Function,
@@ -262,15 +263,10 @@ async function redraw_table() {
 
 function set_columns_resizable() {
     let options = {
-        // selector: table.value,
-        // padding: 0,
         store: store,
-        minWidth: 72,
-        // padding: -50,
-        // maxWidth: 150,
+        minWidth: 70,
     };
     $(table.value).resizableColumns(options);
-    // $(table.value).css('width', '100%');
 }
 
 async function get_columns_visibility_dict() {
@@ -331,6 +327,7 @@ async function set_columns_wrap() {
             visible: col_opt?.visible == null || col_opt?.visible == true,
             sort: sort,
             sortable: is_column_sortable(c),
+            min_width: column_min_width(c),
             order: col_opt?.order || i,
             classes,
             style,
@@ -463,6 +460,13 @@ async function set_rows() {
 function is_column_sortable(col) {
     if (props.f_is_column_sortable != null) {
         return props.f_is_column_sortable(col);
+    }
+    return true;
+}
+
+function column_min_width(col) {
+    if (props.f_column_min_width != null) {
+        return props.f_column_min_width(col);
     }
     return true;
 }

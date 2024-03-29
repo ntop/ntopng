@@ -19,6 +19,7 @@
 				"text-nowrap",
 				"text-center"
 			],
+			"min-width" : "80px",
 			"render_v_node_type": "button_array",
 			"button_def_array": [
 				{
@@ -37,6 +38,7 @@
 			"title_i18n": "ip_address",
 			"data_field": "ip_address",
 			"sortable": true,
+			"min-width" : "180px",
 			"class": [
 				"text-nowrap"
 			]
@@ -45,6 +47,7 @@
 			"title_i18n": "name",
 			"data_field": "hostname",
 			"sortable": true,
+			"min-width" : "120px",
 			"class": [
 				"text-nowrap"
 			]
@@ -52,6 +55,7 @@
 		{
 			"title_i18n": "vlan",
 			"data_field": "vlan",
+			"min-width" : "90px",
 			"sortable": true,
 			"class": [
 				"text-center",
@@ -61,6 +65,7 @@
 		{
 			"title_i18n": "flows",
 			"data_field": "num_flows",
+			"min-width" : "90px",
 			"sortable": true,
 			"class": [
 				"text-center",
@@ -71,6 +76,7 @@
 			"title_i18n": "capabilities.alerts",
 			"data_field": "alerts",
 			"sortable": true,
+			"min-width" : "90px",
 			"class": [
 				"text-center",
 				"text-nowrap"
@@ -79,6 +85,7 @@
 		{
 			"title_i18n": "score",
 			"data_field": "score",
+			"min-width" : "90px",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
@@ -88,6 +95,7 @@
 		{
 			"title_i18n": "graphs.num_cve",
 			"data_field": "num_cves",
+			"min-width" : "90px",
 			"sortable": true,
 			"class": [
 				"text-center",
@@ -98,6 +106,7 @@
 			"title_i18n": "seen_since",
 			"data_field": "first_seen",
 			"sortable": true,
+			"min-width" : "100px",
 			"class": [
 				"text-nowrap",
 				"text-center"
@@ -106,6 +115,7 @@
 		{
 			"title_i18n": "if_stats_overview.traffic_breakdown",
 			"data_field": "traffic_breakdown",
+			"min-width" : "250px",
 			"sortable": false,
 			"class": [
 				"text-nowrap",
@@ -116,6 +126,7 @@
 			"title_i18n": "throughput",
 			"data_field": "throughput",
 			"sortable": true,
+			"min-width" : "110px",
 			"class": [
 				"text-nowrap",
 				"text-end"
@@ -125,6 +136,7 @@
 			"title_i18n": "total_bytes",
 			"data_field": "bytes",
 			"sortable": true,
+			"min-width" : "110px",
 			"class": [
 				"text-nowrap",
 				"text-end"

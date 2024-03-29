@@ -9,6 +9,7 @@
 	 :print_html_row="table_config.print_html_row"
 	 :print_vue_node_row="table_config.print_vue_node_row"
 	 :f_is_column_sortable="table_config.f_is_column_sortable"
+	 :f_column_min_width="table_config.f_column_min_width"
 	 :f_get_column_classes="table_config.f_get_column_classes"
 	 :f_get_column_style="table_config.f_get_column_style"
 	 :display_empty_rows="table_config.display_empty_rows"
