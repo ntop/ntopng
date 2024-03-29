@@ -42,9 +42,7 @@ function host_alert_black_hole_contacts.format(ifid, alert, alert_type_params)
   
   return i18n("alert_messages.blackhole_contacts",{
     entity = entity,
-    as_client = alert_type_params.as_client,
-    as_server = alert_type_params.as_server,
-    num_server_ports = alert_type_params.num_server_ports,
+    as_client = alert_type_params.as_client
   })
   
 end

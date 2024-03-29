@@ -31,26 +31,21 @@ ScanDetectionAlert::ScanDetectionAlert(
   num_incomplete_flows_threshold = _num_incomplete_flows_threshold;
   is_rx_only = false;
   num_server_ports = 0;
-  as_client =  0;
   as_server =  0;
-  as_client_threshold = 0;
   as_server_threshold = 0;
 };
 
 ScanDetectionAlert::ScanDetectionAlert(
     HostCheck* c, Host* f, risk_percentage cli_pctg, 
     u_int16_t _num_server_ports,
-    u_int32_t _as_client,u_int32_t _as_server,
-    u_int32_t _as_client_threshold,
+    u_int32_t _as_server,
     u_int32_t _as_server_threshold)
     : HostAlert(c, f, cli_pctg) {
   num_incomplete_flows = 0,
   num_incomplete_flows_threshold = 0;
   is_rx_only = true;
   num_server_ports = _num_server_ports;
-  as_client =  _as_client;
   as_server =  _as_server;
-  as_client_threshold = _as_client_threshold;
   as_server_threshold = _as_server_threshold;
 }
 
@@ -61,9 +56,7 @@ ndpi_serializer* ScanDetectionAlert::getAlertJSON(ndpi_serializer* serializer) {
 
   if (is_rx_only) {
     ndpi_serialize_string_uint64(serializer, "num_server_ports", num_server_ports);
-    ndpi_serialize_string_uint64(serializer, "as_client", as_client);
     ndpi_serialize_string_uint64(serializer, "as_server", as_server);
-    ndpi_serialize_string_uint64(serializer, "as_client_threshold", as_client_threshold);
     ndpi_serialize_string_uint64(serializer, "as_server_threshold", as_server_threshold);
     ndpi_serialize_string_boolean(serializer, "is_rx_only", true);
   } else {

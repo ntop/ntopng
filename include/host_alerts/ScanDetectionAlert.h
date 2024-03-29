@@ -28,7 +28,7 @@ class ScanDetectionAlert : public HostAlert {
  private:
   u_int64_t num_incomplete_flows, num_incomplete_flows_threshold;
   u_int16_t num_server_ports;
-  u_int32_t as_client, as_server, as_client_threshold, as_server_threshold;
+  u_int32_t as_server, as_server_threshold;
   bool is_rx_only;
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
@@ -43,8 +43,7 @@ class ScanDetectionAlert : public HostAlert {
                      u_int32_t _num_incomplete_flows_threshold);
   ScanDetectionAlert(HostCheck* c, Host* f, risk_percentage cli_pctg, 
                     u_int16_t num_server_ports,
-                    u_int32_t as_client,u_int32_t as_server,
-                    u_int32_t as_client_threshold,
+                    u_int32_t as_server,
                     u_int32_t as_server_threshold);
   ~ScanDetectionAlert(){};
 

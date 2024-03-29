@@ -26,31 +26,21 @@
 
 class HostBlackHoleContactsAlert : public HostAlert {
  private:
-  u_int16_t num_server_ports;
-  u_int32_t as_client, as_server, as_client_threshold, as_server_threshold;
+  u_int32_t as_client, as_client_threshold;
 
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer) {
     if (serializer == NULL) return NULL;
-
-    ndpi_serialize_string_uint64(serializer, "num_server_ports", num_server_ports);
     ndpi_serialize_string_uint64(serializer, "as_client", as_client);
-    ndpi_serialize_string_uint64(serializer, "as_server", as_server);
     ndpi_serialize_string_uint64(serializer, "as_client_threshold", as_client_threshold);
-    ndpi_serialize_string_uint64(serializer, "as_server_threshold", as_server_threshold);
-
     return (serializer);
   }
 
  public:
-  HostBlackHoleContactsAlert(HostCheck* c, Host* h,risk_percentage cli_pctg, u_int16_t _num_server_ports,
-                    u_int32_t _as_client, u_int32_t _as_server, u_int32_t _as_client_threshold,
-                    u_int32_t _as_server_threshold)
+  HostBlackHoleContactsAlert(HostCheck* c, Host* h,risk_percentage cli_pctg,
+                    u_int32_t _as_client, u_int32_t _as_client_threshold)
       : HostAlert(c, h, cli_pctg) {
-    num_server_ports = _num_server_ports;
     as_client = _as_client;
     as_client_threshold = _as_client_threshold;
-    as_server = _as_server;
-    as_server_threshold = _as_server_threshold;
   }
   ~HostBlackHoleContactsAlert(){};
 

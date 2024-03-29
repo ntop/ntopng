@@ -47,7 +47,6 @@ function host_alert_scan_detected.format(ifid, alert, alert_type_params)
   if (alert_type_params.is_rx_only) then
     return i18n("alert_messages.rx_scan_detected",{
       entity = entity,
-      as_client = alert_type_params.as_client,
       as_server = alert_type_params.as_server,
       num_server_ports = alert_type_params.num_server_ports,
     })
