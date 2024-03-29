@@ -1106,6 +1106,7 @@ local lang = {
     ["attack_mitigation_snmp_title"] = "Attack Mitigation via SNMP",
     ["binary_application_transfer"] = "Binary App Transfer",
     ["binary_application_transfer_url"] = "%{type_icon} File Transfered: %{href}",
+    ["blackhole_contacts"] = "Host Scanner Blackhole Contacts",
     ["blacklisted_country"] = "Blacklisted Country",
     ["blacklisted_country_descr"] = "Trigger an alert when hosts contact or are contacted by the specified countries",
     ["blacklisted_flow"] = "Blacklisted Flow",

@@ -21,7 +21,7 @@ local host_alert_black_hole_contacts = classes.class(alert)
 
 host_alert_black_hole_contacts.meta = {
   alert_key = host_alert_keys.host_alert_black_hole_contacts, -- host_alert_keys.lua
-  i18n_title = "alerts_dashboard.scan_detected",
+  i18n_title = "alerts_dashboard.blackhole_contacts",
   icon = "fas fa-fw fa-life-ring",
   has_attacker = true,
 }
