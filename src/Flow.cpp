@@ -175,9 +175,8 @@ Flow::Flow(NetworkInterface *_iface,
       && get_cli_ip_addr()->isIPv4() &&
       get_srv_ip_addr()->isIPv4() /* IPv4 only */
       && !get_srv_ip_addr()->isBroadcastAddress() /* Avoid 255.255.255.255 */)
-    getInterface()->updateBroadcastDomains(
-        _vlanId, _cli_mac->get_mac(), _srv_mac->get_mac(),
-        ntohl(_cli_ip->get_ipv4()), ntohl(_srv_ip->get_ipv4()));
+    getInterface()->updateBroadcastDomains(_vlanId, _cli_mac->get_mac(), _srv_mac->get_mac(),
+					   ntohl(_cli_ip->get_ipv4()), ntohl(_srv_ip->get_ipv4()));
 
   memset(&custom_app, 0, sizeof(custom_app));
 
@@ -855,7 +854,10 @@ void Flow::processExtraDissectedInformation() {
           protos.http.last_server = strdup(ndpiFlow->http.server);
 
         if (ndpiFlow->http.response_status_code == 200) {
-          if (srv_host && ndpiFlow->host_server_name[0] != '\0')
+          if (srv_host
+	      && (ndpiFlow->host_server_name[0] != '\0')
+	      && (ndpiFlow->http.nat_ip == NULL) /* THis is not a proxy */
+	      )
             srv_host->setServerName(host_server_name);
 
           if (ndpiFlow->host_server_name[0] != '\0') {
