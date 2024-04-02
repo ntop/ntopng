@@ -133,8 +133,8 @@ void Recipients::register_recipient(u_int16_t recipient_id,
                                     Bitmap128 enabled_categories,
                                     Bitmap128 enabled_host_pools,
                                     Bitmap128 enabled_entities,
-                                    Bitmap128 enabled_flow_checks,
-                                    Bitmap128 enabled_host_checks,
+                                    Bitmap128 enabled_flow_alert_types,
+                                    Bitmap128 enabled_host_alert_types,
                                     bool skip_alerts) {
   if (recipient_id >= MAX_NUM_RECIPIENTS) return;
 
@@ -148,8 +148,8 @@ void Recipients::register_recipient(u_int16_t recipient_id,
     recipient_queues[recipient_id]->setEnabledCategories(enabled_categories);
     recipient_queues[recipient_id]->setEnabledEntities(enabled_entities);
     recipient_queues[recipient_id]->setEnabledHostPools(enabled_host_pools);
-    recipient_queues[recipient_id]->setEnabledFlowChecks(enabled_flow_checks);
-    recipient_queues[recipient_id]->setEnabledHostChecks(enabled_host_checks);
+    recipient_queues[recipient_id]->setEnabledFlowAlertTypes(enabled_flow_alert_types);
+    recipient_queues[recipient_id]->setEnabledHostAlertTypes(enabled_host_alert_types);
     recipient_queues[recipient_id]->setSkipAlerts(skip_alerts);
   }
 

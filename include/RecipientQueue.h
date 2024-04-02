@@ -56,11 +56,11 @@ class RecipientQueue {
   /* MUST be large enough to contain MAX_NUM_HOST_POOLS */
   Bitmap128 enabled_host_pools;
 
-  Bitmap128 enabled_flow_checks; /* MUST be large enough to contain
+  Bitmap128 enabled_flow_alert_types; /* MUST be large enough to contain
                                  FlowAlertTypeEnum */
 
-  Bitmap128 enabled_host_checks; /* MUST be large enough to contain
-                                 HostCheckID */
+  Bitmap128 enabled_host_alert_types; /* MUST be large enough to contain
+                                 HostAlertID */
 
  public:
   RecipientQueue(u_int16_t recipient_id);
@@ -127,28 +127,28 @@ class RecipientQueue {
   };
 
   /**
-   * @brief Sets enabled flow checks to use this recipient
-   * @param enabled_flow_checks
+   * @brief Sets enabled flow alert types to use this recipient
+   * @param enabled_flow_alert_types
    *
    * @return
    */
-  inline void setEnabledFlowChecks(Bitmap128 _enabled_flow_checks) {
-    enabled_flow_checks = _enabled_flow_checks;
+  inline void setEnabledFlowAlertTypes(Bitmap128 _enabled_flow_alert_types) {
+    enabled_flow_alert_types = _enabled_flow_alert_types;
   };
 
   /**
-   * @brief Sets enabled host checks to use this recipient
-   * @param enabled_host_checks
+   * @brief Sets enabled host alert types to use this recipient
+   * @param enabled_host_alert_types
    *
    * @return
    */
-  inline void setEnabledHostChecks(Bitmap128 _enabled_host_checks) {
-    enabled_host_checks = _enabled_host_checks;
+  inline void setEnabledHostAlertTypes(Bitmap128 _enabled_host_alert_types) {
+    enabled_host_alert_types = _enabled_host_alert_types;
   };
 
   /**
-   * @brief Sets enabled host checks to use this recipient
-   * @param enabled_host_checks
+   * @brief Sets alerts to be ignored
+   * @param skip_alerts
    *
    * @return
    */

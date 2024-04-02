@@ -44,13 +44,13 @@ RecipientQueue::RecipientQueue(u_int16_t _recipient_id) {
   for (int i = 0; i < ALERT_ENTITY_MAX_NUM_ENTITIES; i++)
     enabled_entities.setBit(i);
     
-  /* All flow checks enabled by default */
+  /* All flow alert types enabled by default */
   for (int i = 0; i < MAX_DEFINED_FLOW_ALERT_TYPE; i++)
-    enabled_flow_checks.setBit(i);
+    enabled_flow_alert_types.setBit(i);
     
-  /* All host checks enabled by default */
-  for (int i = 0; i < NUM_DEFINED_HOST_CHECKS; i++)
-    enabled_host_checks.setBit(i);
+  /* All host alert types enabled by default */
+  for (int i = 0; i < MAX_DEFINED_HOST_ALERT_TYPE; i++)
+    enabled_host_alert_types.setBit(i);
 }
 
 /* *************************************** */
@@ -109,9 +109,9 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
         || !(enabled_entities.isSetBit(
               alert_entity)) /* Entity not enabled for this recipient */
         ||
-        (alert_entity_flow == alert_entity && !enabled_flow_checks.isSetBit(notification->alert_id))
+        (alert_entity_flow == alert_entity && !enabled_flow_alert_types.isSetBit(notification->alert_id))
         ||
-        (alert_entity_host == alert_entity && !enabled_host_checks.isSetBit(notification->alert_id))
+        (alert_entity_host == alert_entity && !enabled_host_alert_types.isSetBit(notification->alert_id))
     ) {
 #ifdef DEBUG_RECIPIENT_QUEUE
       if (recipient_id == 0 && alert_entity == alert_entity_host)
@@ -121,7 +121,7 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
           notification->alert_severity < minimum_severity ? "Nok" : "Ok", notification->alert_severity, minimum_severity,
           !(enabled_categories.isSetBit(notification->alert_category)) ? "Nok" : "Ok", notification->alert_category,
           !(enabled_entities.isSetBit(alert_entity)) ? "Nok" : "Ok", alert_entity,
-          ((alert_entity_flow == alert_entity && !enabled_flow_checks.isSetBit(notification->alert_id)) || (alert_entity_host == alert_entity && !enabled_host_checks.isSetBit(notification->alert_id))) ? "Nok" : "Ok", notification->alert_id);
+          ((alert_entity_flow == alert_entity && !enabled_flow_alert_types.isSetBit(notification->alert_id)) || (alert_entity_host == alert_entity && !enabled_host_alert_types.isSetBit(notification->alert_id))) ? "Nok" : "Ok", notification->alert_id);
 #endif
       return true; /* Nothing to enqueue */
     }
