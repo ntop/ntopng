@@ -6873,18 +6873,18 @@ static int ntop_recipient_register(lua_State *vm) {
   u_int16_t recipient_id;
   AlertLevel minimum_severity = alert_level_none;
   char *str_categories, *str_host_pools, *str_entities,
-    *str_flow_checks, *str_host_checks;
+    *str_flow_alert_types, *str_host_alert_types;
   bool skip_alerts = false;
   Bitmap128 enabled_categories, enabled_host_pools, enabled_entities,
-    enabled_flow_checks, enabled_host_checks;
-    
-  /* All flow checks enabled by default */
+    enabled_flow_alert_types, enabled_host_alert_types;
+
+  /* All flow alert types enabled by default */
   for (int i = 0; i < MAX_DEFINED_FLOW_ALERT_TYPE; i++)
-    enabled_flow_checks.setBit(i);
-    
-  /* All host checks enabled by default */
-  for (int i = 0; i < NUM_DEFINED_HOST_CHECKS; i++)
-    enabled_host_checks.setBit(i);
+    enabled_flow_alert_types.setBit(i);
+
+  /* All host alert types enabled by default */
+  for (int i = 0; i < MAX_DEFINED_HOST_ALERT_TYPE; i++)
+    enabled_host_alert_types.setBit(i);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -6914,16 +6914,16 @@ static int ntop_recipient_register(lua_State *vm) {
 
   /* In case it's nil, all alerts are accepted */
   if ((lua_type(vm, 6) == LUA_TSTRING) &&
-    ((str_flow_checks = (char *)lua_tostring(vm, 6)) != NULL)) {
-      enabled_flow_checks.reset();
-      enabled_flow_checks.setBits(str_flow_checks);
+    ((str_flow_alert_types = (char *)lua_tostring(vm, 6)) != NULL)) {
+      enabled_flow_alert_types.reset();
+      enabled_flow_alert_types.setBits(str_flow_alert_types);
   }
 
   /* In case it's nil, all alerts are accepted */
   if ((lua_type(vm, 7) == LUA_TSTRING) &&
-    ((str_host_checks = (char *)lua_tostring(vm, 7)) != NULL)){
-      enabled_host_checks.reset();
-      enabled_host_checks.setBits(str_host_checks);
+    ((str_host_alert_types = (char *)lua_tostring(vm, 7)) != NULL)){
+      enabled_host_alert_types.reset();
+      enabled_host_alert_types.setBits(str_host_alert_types);
   }
 
   /* In case it's nil, all alerts are accepted */
@@ -6940,15 +6940,15 @@ static int ntop_recipient_register(lua_State *vm) {
   enabled_host_pools.toHexString(bitmap_buf, sizeof(bitmap_buf)));
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Entities bitmap: %s",
   enabled_entities.toHexString(bitmap_buf, sizeof(bitmap_buf)));
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow checks bitmap: %s",
-  enabled_flow_checks.toHexString(bitmap_buf, sizeof(bitmap_buf)));
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host checks bitmap: %s",
-  enabled_host_checks.toHexString(bitmap_buf, sizeof(bitmap_buf)));
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow alert types bitmap: %s",
+  enabled_flow_alert_types.toHexString(bitmap_buf, sizeof(bitmap_buf)));
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host alert types bitmap: %s",
+  enabled_host_alert_types.toHexString(bitmap_buf, sizeof(bitmap_buf)));
   */
 
   ntop->recipient_register(recipient_id, minimum_severity, enabled_categories,
-                           enabled_host_pools, enabled_entities, enabled_flow_checks,
-                           enabled_host_checks, skip_alerts);
+                           enabled_host_pools, enabled_entities, enabled_flow_alert_types,
+                           enabled_host_alert_types, skip_alerts);
 
   lua_pushnil(vm);
 
