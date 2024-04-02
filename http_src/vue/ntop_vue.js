@@ -52,6 +52,7 @@ import { default as PageHostsList } from "./page-hosts-list.vue"
 import { default as PageFlowsList } from "./page-flows-list.vue"
 import { default as PageSNMPInterfaces } from "./page-snmp-interfaces.vue"
 import { default as PageTopology } from "./page-topology.vue"
+import { default as PageSNMPDevices } from "./page-snmp-devices.vue"
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -96,6 +97,8 @@ import { default as ModalAddHostRules } from "./modal-add-host-rules.vue";
 import { default as ModalAddApplication } from "./modal-add-application.vue";
 import { default as ModalDeleteApplication } from "./modal-delete-application.vue";
 import { default as ModalEditReport } from "./modal-edit-vs-report.vue";
+import { default as ModalAddSNMPDevice } from "./modal-add-snmp-device.vue";
+import { default as ModalDeleteSNMPDevice } from "./modal-delete-snmp-device.vue";
 
 let ntopVue = {
     // pages
@@ -129,6 +132,7 @@ let ntopVue = {
     PageSNMPInterfaces: PageSNMPInterfaces,
     PageTopology: PageTopology,
     PageFlowsList: PageFlowsList,
+    PageSNMPDevices: PageSNMPDevices,
 
     PageEditApplications: PageEditApplications,
 
@@ -198,6 +202,8 @@ let ntopVue = {
     ModalAddApplication: ModalAddApplication,
     ModalDeleteApplication: ModalDeleteApplication,
     ModalEditReport: ModalEditReport,
+    ModalAddSNMPDevice: ModalAddSNMPDevice,
+    ModalDeleteSNMPDevice: ModalDeleteSNMPDevice,
 
     Vue: Vue,
 };

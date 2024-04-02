@@ -1914,6 +1914,7 @@ local known_parameters = {
    ["recipients"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
 
    -- OTHER
+   ["rsp_format"] = validateBool,
    ["interface"] = validateSingleWord,
    ["showjson"] = validateBool,
    ["hostinfotype"] = validateHostInfoType,

@@ -1,0 +1,117 @@
+{
+	"id": "snmp_interfaces",
+	"data_url": "lua/pro/enterprise/get_snmp_devices_list.lua",
+	"use_current_page": false,
+	"enable_search": true,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "device",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"min-width" : "80px",
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+				"id": "edit",
+				"icon": "fas fa-edit",
+				"title_i18n": "edit",
+				"class": [
+					"link-button"
+				],
+				"event_id": "click_button_edit"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa fa-trash",
+					"title_i18n": "delete",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_delete"
+				}
+			]
+		},
+		{
+			"title_i18n": "snmp.device_ip",
+			"data_field": "column_ip",
+			"min-width" : "160px",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "snmp.snmp_version",
+			"data_field": "column_version",
+			"min-width" : "100px",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "chart",
+			"data_field": "column_chart",
+			"min-width" : "80px",
+			"sortable": false,
+			"class": [  
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "unknown_devices.device_name",
+			"data_field": "column_name",
+			"min-width" : "80px",
+			"sortable": true,
+			"class": [
+			]
+		},
+		{
+			"title_i18n": "show_alerts.alert_description",
+			"data_field": "column_descr",
+			"min-width" : "80px",
+			"sortable": true,
+			"class": [
+			]
+		},
+		{
+			"title_i18n": "snmp.alerted_interfaces",
+			"data_field": "column_err_interfaces",
+			"min-width" : "180px",
+			"sortable": true,
+			"class": [
+				"text-right",
+				"pre-wrap"
+			]
+		},
+		{
+			"title_i18n": "snmp.snmp_device_last_poll",
+			"data_field": "column_last_update",
+			"min-width" : "80px",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "snmp.snmp_device_last_poll_duration",
+			"data_field": "column_last_poll_duration",
+			"min-width" : "80px",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		}
+	]
+}
