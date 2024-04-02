@@ -1096,7 +1096,7 @@ end
 
 -- @brief Selects engaged alerts from memory
 -- @return Selected engaged alerts, and the total number of engaged alerts
-function alert_store:select_engaged(filter)
+function alert_store:select_engaged(filter, debug)
     local entity_id_filter = tonumber(self._alert_entity and self._alert_entity.entity_id) -- Possibly set in subclasses constructor
     local entity_value_filter = filter
     -- The below filters are evaluated in Lua to support all operators
@@ -1121,11 +1121,21 @@ function alert_store:select_engaged(filter)
 
         -- Exclude alerts falling outside requested time ranges
         if self._epoch_end and tstamp > self._epoch_end then
+             if debug then
+                tprint("Skip alert (alert.tstamp > filter.epoch_end)")
+            end
             goto continue
         end
 
         if self._subtype and alert.subtype ~= self._subtype then
+            if debug then
+                tprint("Skip alert (alert.subtype ~= filter.subtype)")
+            end
             goto continue
+        end
+
+        if debug then
+           tprint(alert)
         end
 
         if self._order_by and self._order_by.sort_column and alert[self._order_by.sort_column] ~= nil then
@@ -1761,7 +1771,7 @@ end
 -- @param filter A filter on the entity value (no filter by default)
 -- @param select_fields The fields to be returned (all by default or in any case for engaged)
 -- @return Selected alerts, and the total number of alerts
-function alert_store:select_request(filter, select_fields, download --[[ Available only with ClickHouse ]] )
+function alert_store:select_request(filter, select_fields, download --[[ Available only with ClickHouse ]], debug)
 
     -- Add filters
     self:add_request_filters()
@@ -1770,7 +1780,7 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
         -- Add limits and sort criteria
         self:add_request_ranges()
 
-        local alerts, total_rows = self:select_engaged(filter)
+        local alerts, total_rows = self:select_engaged(filter, debug)
 
         return alerts, total_rows, {}, is_engaged
     else -- Historical

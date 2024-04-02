@@ -461,7 +461,7 @@ function host_alert_store:format_record(value, no_html)
 
    record['filter'].tag_filters = filters
 
-    return record
+   return record
 end
 
 -- ##############################################

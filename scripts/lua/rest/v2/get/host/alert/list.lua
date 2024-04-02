@@ -54,7 +54,9 @@ end
 interface.select(ifid)
 
 if not download then
-    local alerts, recordsFiltered, info = host_alert_store:select_request(nil, "*")
+    local debug = false
+
+    local alerts, recordsFiltered, info = host_alert_store:select_request(nil, "*", download, debug)
 
     for _, _value in ipairs(alerts or {}) do
         res[#res + 1] = host_alert_store:format_record(_value, no_html)
