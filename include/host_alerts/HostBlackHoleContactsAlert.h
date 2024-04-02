@@ -48,7 +48,7 @@ class HostBlackHoleContactsAlert : public HostAlert {
     return {host_alert_black_hole_contacts, alert_category_security};
   }
   HostAlertType getAlertType() const { return getClassType(); }
-  u_int8_t getAlertScore() const { return SCORE_LEVEL_CRITICAL; };
+  u_int8_t getAlertScore() const { return SCORE_LEVEL_ERROR; };
 };
 
 #endif /* _HOST_BLACK_HOLE_CONTACTS_H_ */
