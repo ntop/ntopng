@@ -2909,7 +2909,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
     if (get_protocol() == IPPROTO_TCP) lua_get_tcp_info(vm);
 
     if (!mask_flow) {
-      char buf[64];
+      char buf[128];
       getFlowInfo(buf, sizeof(buf), true);
 
       if (host_server_name)
@@ -3472,7 +3472,7 @@ void Flow::formatECSAppProto(json_object *my_object) {
 void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
   json_object *network_object;
   if ((network_object = json_object_new_object()) != NULL) {
-    char buf[64], jsonbuf[64];
+    char buf[128], jsonbuf[64];
     u_char community_id[200];
 
     json_object_object_add(
@@ -4164,7 +4164,7 @@ void Flow::formatGenericFlow(json_object *my_object) {
   if (ntop->getPrefs()->do_dump_extended_json()) {
 #ifdef FULL_SERIALIZATION
     const char *info;
-    char buf[64];
+    char buf[128];
 
     json_object_object_add(
 			   my_object,
@@ -4276,7 +4276,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serializer *alert_json_serializer = NULL;
   char *alert_json = NULL;
   u_int32_t alert_json_len;
-  char buf[64];
+  char buf[128];
   u_char community_id[200];
   time_t now = time(NULL);
 
@@ -5920,7 +5920,7 @@ void Flow::updateHTTP(ParsedFlow *zflow) {
 
 void Flow::updateSuspiciousDGADomain() {
   if (hasRisk(NDPI_SUSPICIOUS_DGA_DOMAIN) && !suspicious_dga_domain) {
-    char buf[64];
+    char buf[128];
     getFlowInfo(buf, sizeof(buf), false);
 
     if (buf[0] != '\0') {
@@ -7110,7 +7110,7 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
  * via flow.getInfo(). mask_host/allowed networks are not honored.
  */
 void Flow::lua_get_min_info(lua_State *vm) {
-  char buf[64];
+  char buf[128];
 
   lua_newtable(vm);
 
@@ -7154,7 +7154,7 @@ void Flow::lua_get_min_info(lua_State *vm) {
  * NOTE: this is intended to be called only from flow user scripts
  */
 void Flow::getInfo(ndpi_serializer *serializer) {
-  char buf[64];
+  char buf[128];
 
   ndpi_serialize_string_string(serializer, "cli.ip",
                                get_cli_ip_addr()->print(buf, sizeof(buf)));
