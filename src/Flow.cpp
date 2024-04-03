@@ -4458,13 +4458,18 @@ bool Flow::isNetfilterIdleFlow() const {
     if ((u_int32_t)(iface->getTimeLastPktRcvd()) >
         (last_conntrack_update + (3 * MIN_CONNTRACK_UPDATE)))
       return (true);
-
-    return (false);
-  } else {
-    /* if an conntrack update hasn't been seen for this flow
-       we use the standard idleness check */
-    return (is_active_entry_now_idle(iface->getFlowMaxIdle()));
   }
+  
+  /*
+    If an conntrack update hasn't been seen for this flow
+    we use the standard idleness check 
+
+    In case ntopng expires the flow before NetFilter, then
+    NetfilterInterface::updateFlowStats() will purge it later.
+
+    This guarantees that ntopng and NetFilter are always in sync.
+  */
+  return (is_active_entry_now_idle(iface->getFlowMaxIdle()));  
 }
 #endif
 
