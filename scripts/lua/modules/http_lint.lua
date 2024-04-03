@@ -2581,6 +2581,7 @@ local known_parameters = {
    ["action"] = validateSingleWord, -- generic
    ["table"] = validateSingleWord,
    ["columns"] = validateListOfTypeInline(validateNumber),
+   ["devices"] = {jsonCleanup, validateJSON},
    ["ts_schema"] = validateSingleWord,
    ["metric"] = validateSingleWord,
    ["ts_query"] = validateListOfTypeInline(validateUnquoted),

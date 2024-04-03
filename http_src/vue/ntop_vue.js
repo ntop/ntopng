@@ -99,6 +99,7 @@ import { default as ModalDeleteApplication } from "./modal-delete-application.vu
 import { default as ModalEditReport } from "./modal-edit-vs-report.vue";
 import { default as ModalAddSNMPDevice } from "./modal-add-snmp-device.vue";
 import { default as ModalDeleteSNMPDevice } from "./modal-delete-snmp-device.vue";
+import { default as ModalImportSNMPDevices } from "./modal-import-snmp-devices.vue";
 
 let ntopVue = {
     // pages
@@ -204,6 +205,7 @@ let ntopVue = {
     ModalEditReport: ModalEditReport,
     ModalAddSNMPDevice: ModalAddSNMPDevice,
     ModalDeleteSNMPDevice: ModalDeleteSNMPDevice,
+    ModalImportSNMPDevices: ModalImportSNMPDevices,
 
     Vue: Vue,
 };

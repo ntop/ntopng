@@ -4,6 +4,13 @@
       
       <div class="card card-shadow">
         <div class="card-body">
+          <div
+            v-if="import_with_success"
+            class="alert alert-success alert-dismissable"
+          >
+            <span class="text-success me-1"></span>
+            <span> {{ import_ok_text }}</span>
+          </div>
       <TableWithConfig ref="table_snmp_devices" :table_id="table_id" :csrf="csrf" :f_map_columns="map_table_def_columns"
           :get_extra_params_obj="get_extra_params_obj" :f_sort_rows="columns_sorting"
           @custom_event="on_table_custom_event" @rows_loaded="change_filter_labels">
@@ -22,6 +29,14 @@
                   @click="add_snmp_device"
                 >
                   <i class="fas fa-plus"></i>
+                </button>
+                <button
+                  class="btn btn-link"
+                  type="button"
+                  ref="import_snmp_devices"
+                  @click="import_snmp_devices"
+                >
+                  <i class="fa-solid fa-file-arrow-up"></i>
                 </button>
               <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
                   <span class="no-wrap d-flex align-items-center filters-label"><b>{{ item["basic_label"]
@@ -82,6 +97,13 @@
     @edit="edit"
   >
   </ModalAddSNMPDevice>
+
+  <ModalImportSNMPDevices
+    ref="modal_import_snmp_devices"
+    :context="context"
+    @add="import_snmp_devices_rest"
+    >
+  </ModalImportSNMPDevices>
 </template>
 <script setup>
 import { ref, onMounted, onBeforeMount } from "vue";
@@ -92,6 +114,7 @@ import NtopUtils from "../utilities/ntop-utils.js";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 import { default as ModalAddSNMPDevice } from "./modal-add-snmp-device.vue";
 import { default as ModalDeleteSNMPDevice } from "./modal-delete-snmp-device.vue";
+import { default as ModalImportSNMPDevices } from "./modal-import-snmp-devices.vue";
 
 
 /* ************************************** */
@@ -110,12 +133,16 @@ const csrf = props.context.csrf;
 const filter_table_array = ref([]);
 const filters = ref([]);
 const modal_add_snmp_device = ref();
+const modal_import_snmp_devices = ref(); 
+const import_with_success = ref(false);
+const import_ok_text = ref(null);
 const modal_delete_snmp_device = ref();
 const row_to_delete = ref();
 const total_rows = ref(0);
 
 const delete_snmp_device_url = `${http_prefix}/lua/pro/rest/v2/delete/snmp/device.lua`;
 const add_snmp_device_url = `${http_prefix}/lua/pro/rest/v2/add/snmp/device.lua`;
+const import_snmp_devices_url = `${http_prefix}/lua/pro/rest/v2/add/snmp/devices.lua`;
 const edit_snmp_device_url = `${http_prefix}/lua/pro/rest/v2/edit/snmp/device/device.lua`;
 const manage_config_url = `${http_prefix}/lua/admin/manage_configurations.lua?item=snmp`;
 const ping_all_devices_url = `${http_prefix}/lua/pro/rest/v2/check/snmp/ping_all_devices.lua`;
@@ -308,6 +335,35 @@ const get_extra_params_obj = () => {
   let extra_params = ntopng_url_manager.get_url_object();
   return extra_params;
 };
+
+/* ************************************** */
+
+function import_snmp_devices() {
+  modal_import_snmp_devices.value.show();
+}
+
+function refresh_feedback_messages() {
+  import_with_success.value = false;
+  import_ok_text.value = null;
+}
+
+const import_snmp_devices_rest = async function(params) {
+  const url = import_snmp_devices_url;
+  const result = await ntopng_utility.http_post_request(url, { ...rest_params, ...params},false,true);
+
+  if (result == null) { 
+    modal_import_snmp_devices.value.show_bad_feedback(_i18n("import_snmp_devices_error"));
+  } else if (result.rc < 0) {
+    modal_import_snmp_devices.value.show_bad_feedback(result.rsp.feedback);
+  } else {
+    import_with_success.value = true;
+    modal_import_snmp_devices.value.close();
+    import_ok_text.value = result.rsp.feedback;
+    setTimeout(refresh_feedback_messages, 10000);
+
+    table_snmp_devices.value.refresh_table();
+  }
+}
 
 /* ************************************** */
 /* Functions to handle the add of devices */
