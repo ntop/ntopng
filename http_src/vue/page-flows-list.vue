@@ -62,17 +62,17 @@ const host_details_url = `${http_prefix}/lua/host_details.lua`
 const flow_exporter_url = `${http_prefix}/lua/pro/enterprise/flowdevice_details.lua`
 const flow_exporter_icon = "<i class='fas fa-file-export'></i>"
 const host_details_icon = "<i class='fas fa-laptop'></i>"
-const child_safe_icon = "<font color='#5cb85c'><i class='fas fa-lg fa-child' aria-hidden='true' title='" + i18n("host_pools.children_safe") + "'></i></font>"
-const system_host_icon = "<i class='fas fa-flag' title='" + i18n("system_host") + "'></i>"
-const hidden_from_top_icon = "<i class='fas fa-eye-slash' title='" + i18n("hidden_from_top_talkers") + "'></i>"
-const dhcp_host_icon = '<i class="fa-solid fa-bolt" title="DHCP Host"></i>'
-const blacklisted_icon = "<i class='fas fa-ban fa-sm' title='" + i18n("hosts_stats.blacklisted") + "'></i>"
-const crawler_bot_scanner_host_icon = "<i class='fas fa-spider fa-sm' title='" + i18n("hosts_stats.crawler_bot_scanner") + "'></i>"
-const multicast_icon = "<abbr title='" + i18n("multicast") + "'><span class='badge bg-primary'>" + i18n("short_multicast") + "</span></abbr>"
-const localhost_icon = "<abbr title='" + i18n("details.label_local_host") + "'><span class='badge bg-success'>" + i18n("details.label_short_local_host") + "</span></abbr>"
-const remotehost_icon = "<abbr title='" + i18n("details.label_remote") + "'><span class='badge bg-secondary'>" + i18n("details.label_short_remote") + "</span></abbr>"
-const blackhole_icon = "<abbr title='" + i18n("details.label_blackhole") + "'><span class='badge bg-info'>" + i18n("details.label_short_blackhole") + "</span></abbr>"
-const blocking_quota_icon = "<i class='fas fa-hourglass' title='" + i18n("hosts_stats.blocking_traffic_policy_popup_msg") + "'></i>"
+const child_safe_icon = "<font color='#5cb85c'><i class='fas fa-lg fa-child' aria-hidden='true' data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("host_pools.children_safe") + "'></i></font>"
+const system_host_icon = "<i class='fas fa-flag' data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("system_host") + "'></i>"
+const hidden_from_top_icon = "<i class='fas fa-eye-slash' data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("hidden_from_top_talkers") + "'></i>"
+const dhcp_host_icon = '<i class="fa-solid fa-bolt" data-bs-toggle="tooltip" data-bs-placement="bottom" title="DHCP Host"></i>'
+const blacklisted_icon = "<i class='fas fa-ban fa-sm' data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("hosts_stats.blacklisted") + "'></i>"
+const crawler_bot_scanner_host_icon = "<i class='fas fa-spider fa-sm' data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("hosts_stats.crawler_bot_scanner") + "'></i>"
+const multicast_icon = "<abbr data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("multicast") + "'><span class='badge bg-primary'>" + i18n("short_multicast") + "</span></abbr>"
+const localhost_icon = "<abbr data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("details.label_local_host") + "'><span class='badge bg-success'>" + i18n("details.label_short_local_host") + "</span></abbr>"
+const remotehost_icon = "<abbr data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("details.label_remote") + "'><span class='badge bg-secondary'>" + i18n("details.label_short_remote") + "</span></abbr>"
+const blackhole_icon = "<abbr data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("details.label_blackhole") + "'><span class='badge bg-info'>" + i18n("details.label_short_blackhole") + "</span></abbr>"
+const blocking_quota_icon = "<i class='fas fa-hourglass' data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("hosts_stats.blocking_traffic_policy_popup_msg") + "'></i>"
 const thpt_trend_icons = {
     1: "<i class='fas fa-arrow-up'></i>",
     2: "<i class='fas fa-arrow-down'></i>",
@@ -193,9 +193,6 @@ const map_table_def_columns = (columns) => {
         "score": (value, row) => {
             if (value > 0) {
                 let danger_icon = ''
-                if (!dataUtils.isEmptyOrNull(row.predominant_alert)) {
-                    danger_icon = ` <i class="${alertSeverities.getSeverityIcon(row.predominant_alert.severity_id)}" title="${row.predominant_alert.name}"></i>`
-                }
                 return `${formatterUtils.getFormatter("full_number")(value)}${danger_icon}`
             }
             return ''
