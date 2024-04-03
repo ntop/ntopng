@@ -534,6 +534,7 @@ fi
 
 DATE=`date +"%Y-%m-%d"`
 
+AC_CHECK_LIB(resolv, inet_aton)
 HIREDIS_INC=
 HIREDIS_LIB=
 AS_VAR_IF(with_hiredis, yes, [
