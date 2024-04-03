@@ -2073,6 +2073,7 @@ local lang = {
       ["cli_ip_v4"] = "Client IPv4",
       ["cli_ip_v6"] = "Client IPv6",
       ["cli_location"] = "Client Location",
+      ["host_location"] = "Host Location",
       ["cli_mac"] = "Client MAC",
       ["cli_name"] = "Client Name",
       ["cli_network"] = "Client Network",

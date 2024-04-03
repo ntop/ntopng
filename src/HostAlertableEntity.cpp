@@ -169,6 +169,8 @@ void HostAlertableEntity::luaAlert(lua_State *vm, HostAlert *alert) {
   lua_push_bool_table_entry(vm, "is_victim", alert->isVictim());
   lua_push_bool_table_entry(vm, "is_client", alert->isClient());
   lua_push_bool_table_entry(vm, "is_server", alert->isServer());
+  lua_push_uint64_table_entry(vm, "is_local", alert->getHost()->isLocalHost() ? 1 : 0);
+  lua_push_uint64_table_entry(vm, "is_multicast", alert->getHost()->isMulticastHost() ? 1 : 0);
 
   HostCheck *cb = getAlertInterface()->getCheck(alert->getCheckType());
   lua_push_int32_table_entry(vm, "granularity", cb ? cb->getPeriod() : 0);

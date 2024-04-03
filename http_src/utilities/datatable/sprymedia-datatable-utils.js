@@ -7,10 +7,10 @@
 import NtopUtils from "../ntop-utils";
 
 
-const DataTableHandlers = function() {
+const DataTableHandlers = function () {
     let handlersIdDict = {};
     return {
-        addHandler: function(h) {
+        addHandler: function (h) {
             let handlers = handlersIdDict[h.handlerId];
             if (handlers == null) {
                 handlers = [];
@@ -21,18 +21,18 @@ const DataTableHandlers = function() {
             });
             return `window['_DataTableButtonsOnClick']('${h.handlerId}', '${handlers.length - 1}')`;
         },
-        getHandler: function(handlerId, rowId) {
+        getHandler: function (handlerId, rowId) {
             let handlers = handlersIdDict[handlerId];
             if (handlers == null) { return null; }
             return handlers[rowId];
         },
-        deleteHandlersById: function(handlerId) {
+        deleteHandlersById: function (handlerId) {
             handlersIdDict[handlerId] = null;
         },
     }
 }();
-    
-window["_DataTableButtonsOnClick"] = function(handlerId, rowId) {
+
+window["_DataTableButtonsOnClick"] = function (handlerId, rowId) {
     let onClick = DataTableHandlers.getHandler(handlerId, rowId);
     if (onClick != null) {
         onClick();
@@ -60,7 +60,7 @@ export class DataTableFiltersMenu {
         this.url = url;
         this.removeAllEntry = removeAllEntry;
         this.callbackFunction = callbackFunction;
-      }
+    }
 
     get selectedFilter() {
         return this.currentFilterSelected;
@@ -72,12 +72,12 @@ export class DataTableFiltersMenu {
 
         // when the datatable has been initialized render the dropdown
         this.$datatableWrapper.on('init.dt', function () {
-          self._render(self.rawFilters);
+            self._render(self.rawFilters);
         });
 
         // on ajax reload then update the datatable entries
         this.tableAPI.on('draw', function () {
-          self._update();
+            self._update();
         });
 
         return self;
@@ -97,25 +97,25 @@ export class DataTableFiltersMenu {
 
         const self = this;
         let $entry = $(`<li class='dropdown-item pointer'>${filter.label} </li>`);
-        
-        if(self.url) {
-          $entry = $(`<li class='dropdown-item pointer'><a href=# class='p-1 standard-color'>${filter.label} </li>`);
 
-          if(filter.currently_active == true) {
-            // set active filter title and key
-            if (self.$dropdown.title.parent().find(`i.fas`).length == 0) {
-              self.$dropdown.title.parent().prepend(`<i class='fas fa-filter'></i>`);
-            }
+        if (self.url) {
+            $entry = $(`<li class='dropdown-item pointer'><a href=# class='p-1 standard-color'>${filter.label} </li>`);
 
-            const newContent = $entry.html();
-            self.$dropdown.title.html(newContent);
-            // remove the active class from the li elements
-            self.$dropdown.container.find('li').removeClass(`active`);
-            // add active class to current entry
-            if(filter.key !== 'all') {
-              $entry.addClass(`active`);
+            if (filter.currently_active == true) {
+                // set active filter title and key
+                if (self.$dropdown.title.parent().find(`i.fas`).length == 0) {
+                    self.$dropdown.title.parent().prepend(`<i class='fas fa-filter'></i>`);
+                }
+
+                const newContent = $entry.html();
+                self.$dropdown.title.html(newContent);
+                // remove the active class from the li elements
+                self.$dropdown.container.find('li').removeClass(`active`);
+                // add active class to current entry
+                if (filter.key !== 'all') {
+                    $entry.addClass(`active`);
+                }
             }
-          }
         } else if (filter.regex !== undefined && (filter.countable === undefined || filter.countable)) {
             const data = this.tableAPI.columns(this.columnIndex).data()[0];
             const count = this._countEntries(filter.regex, data);
@@ -129,43 +129,43 @@ export class DataTableFiltersMenu {
         }
 
         $entry.on('click', function (e) {
-          // set active filter title and key
-          if (self.$dropdown.title.parent().find(`i.fas`).length == 0) {
-            self.$dropdown.title.parent().prepend(`<i class='fas fa-filter'></i>`);
-          }
+            // set active filter title and key
+            if (self.$dropdown.title.parent().find(`i.fas`).length == 0) {
+                self.$dropdown.title.parent().prepend(`<i class='fas fa-filter'></i>`);
+            }
 
-          const newContent = $entry.html();
-          self.$dropdown.title.html(newContent);
-          // remove the active class from the li elements
-          self.$dropdown.container.find('li').removeClass(`active`);
-          // add active class to current entry
-          if(filter.key !== 'all') {
-            $entry.addClass(`active`);
-          }
+            const newContent = $entry.html();
+            self.$dropdown.title.html(newContent);
+            // remove the active class from the li elements
+            self.$dropdown.container.find('li').removeClass(`active`);
+            // add active class to current entry
+            if (filter.key !== 'all') {
+                $entry.addClass(`active`);
+            }
 
-          if(self.callbackFunction) {
-            self.callbackFunction(self.tableAPI, filter);
-            if(filter.callback) filter.callback();
-            return;
-          }
+            if (self.callbackFunction) {
+                self.callbackFunction(self.tableAPI, filter);
+                if (filter.callback) filter.callback();
+                return;
+            }
 
-          if(!self.url) {
-            self.preventUpdate = true;
+            if (!self.url) {
+                self.preventUpdate = true;
 
-            // if the filter have a callback then call it
-            if (filter.callback) filter.callback();
-            // perform the table filtering
-            self.tableAPI.column(self.columnIndex).search(filter.regex, true, false).draw();
-            // set current filter
-            self.currentFilterSelected = filter;
-          } else {
-            self.urlParams = window.location.search
-            const newUrlParams = new URLSearchParams(self.urlParams)
-            newUrlParams.set(self.filterMenuKey, (typeof(filter.id) != "undefined") ? filter.id : '')
+                // if the filter have a callback then call it
+                if (filter.callback) filter.callback();
+                // perform the table filtering
+                self.tableAPI.column(self.columnIndex).search(filter.regex, true, false).draw();
+                // set current filter
+                self.currentFilterSelected = filter;
+            } else {
+                self.urlParams = window.location.search
+                const newUrlParams = new URLSearchParams(self.urlParams)
+                newUrlParams.set(self.filterMenuKey, (typeof (filter.id) != "undefined") ? filter.id : '')
 
-            window.history.pushState('', '', window.location.pathname + '?' + newUrlParams.toString())
-            location.reload()
-          }
+                window.history.pushState('', '', window.location.pathname + '?' + newUrlParams.toString())
+                location.reload()
+            }
         });
 
         return $entry;
@@ -187,41 +187,41 @@ export class DataTableFiltersMenu {
     }
 
     _render(filters) {
-      if(typeof this.columnIndex == 'undefined') {
-        $(`<span id="${this.id}" ${this.extraAttributes} title="${this.filterTitle}">${this.icon || this.filterTitle}</span>`).insertBefore(this.$datatableWrapper.find('.dataTables_filter').parent());
-      } else {
-        const $dropdownContainer = $(`<div id='${this.filterMenuKey}_dropdown' class='dropdown d-inline'></div>`);
-        const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-bs-toggle="dropdown" type='button'></button>`);
-        const $dropdownTitle = $(`<span class='filter-title'>${this.filterTitle}</span>`);
-        $dropdownButton.append($dropdownTitle);
+        if (typeof this.columnIndex == 'undefined') {
+            $(`<span id="${this.id}" ${this.extraAttributes} title="${this.filterTitle}">${this.icon || this.filterTitle}</span>`).insertBefore(this.$datatableWrapper.find('.dataTables_filter').parent());
+        } else {
+            const $dropdownContainer = $(`<div id='${this.filterMenuKey}_dropdown' class='dropdown d-inline'></div>`);
+            const $dropdownButton = $(`<button class='btn-link btn dropdown-toggle' data-bs-toggle="dropdown" type='button'></button>`);
+            const $dropdownTitle = $(`<span class='filter-title'>${this.filterTitle}</span>`);
+            $dropdownButton.append($dropdownTitle);
 
-        this.$dropdown = {
-          container: $dropdownContainer,
-          title: $dropdownTitle,
-          button: $dropdownButton
-        };
+            this.$dropdown = {
+                container: $dropdownContainer,
+                title: $dropdownTitle,
+                button: $dropdownButton
+            };
 
-        this.filters = this._createFilters(filters);
+            this.filters = this._createFilters(filters);
 
-        const $menuContainer = $(`<ul class='dropdown-menu dropdown-menu-lg-end scrollable-dropdown' id='${this.filterMenuKey}_dropdown_menu'></ul>`);
-        for (const [_, filter] of Object.entries(this.filters)) {
-            $menuContainer.append(filter.$node);
+            const $menuContainer = $(`<ul class='dropdown-menu dropdown-menu-lg-end scrollable-dropdown' id='${this.filterMenuKey}_dropdown_menu'></ul>`);
+            for (const [_, filter] of Object.entries(this.filters)) {
+                $menuContainer.append(filter.$node);
+            }
+
+            // the All entry is created by the object
+            if (!this.removeAllEntry) {
+                const allFilter = this._generateAllFilter();
+                $menuContainer.prepend(this._createMenuEntry(allFilter));
+            }
+
+            // append the created dropdown inside
+            $dropdownContainer.append($dropdownButton);
+            $dropdownContainer.append($menuContainer);
+            // append the dropdown menu inside the filter wrapper
+            $dropdownContainer.insertBefore(this.$datatableWrapper.find('.dataTables_filter').parent());
+
+            this._selectFilterFromState(this.filterMenuKey);
         }
-
-        // the All entry is created by the object
-        if(!this.removeAllEntry) {
-          const allFilter = this._generateAllFilter();
-          $menuContainer.prepend(this._createMenuEntry(allFilter));  
-        }
-        
-        // append the created dropdown inside
-        $dropdownContainer.append($dropdownButton);
-        $dropdownContainer.append($menuContainer);
-        // append the dropdown menu inside the filter wrapper
-        $dropdownContainer.insertBefore(this.$datatableWrapper.find('.dataTables_filter').parent());
-
-        this._selectFilterFromState(this.filterMenuKey);
-      }
     }
 
     _selectFilterFromState(filterKey) {
@@ -491,7 +491,7 @@ export class DataTableUtils {
         });
     }
 
-    static addToggleColumnsDropdown(tableAPI, toggleCallback = (col, visible) => {}) {
+    static addToggleColumnsDropdown(tableAPI, toggleCallback = (col, visible) => { }) {
 
         if (tableAPI === undefined) {
             throw 'The $table is undefined!';
@@ -540,11 +540,11 @@ export class DataTableUtils {
                 const column = columns[i];
 
                 // Prevents columns with no names to be selectively hidden (e.g., the entity under the all alerts page)
-                if(column.name == "")
+                if (column.name == "")
                     continue;
 
                 // create a checkbox and delegate a change event
-                const id = `toggle-${column.name.split().join('_')}`; 
+                const id = `toggle-${column.name.split().join('_')}`;
 
                 // check if the column id it's inside the savedColumns array
                 // if toggled is true then the column is not hidden
@@ -565,7 +565,7 @@ export class DataTableUtils {
 
                 $checkbox.on('change', function (e) {
                     $(`.overlay`).toggle(500);
-                    
+
                     // Get the column API object
                     const col = tableAPI.column(column.index);
                     // Toggle the visibility
@@ -575,15 +575,15 @@ export class DataTableUtils {
 
                     const hiddenColumns = [];
                     // insert inside the array only the hidden columns
-                    tableAPI.columns().every(function(i) {
+                    tableAPI.columns().every(function (i) {
                         if (tableAPI.column(i).visible() || ignoredColumns.indexOf(i) !== -1) return;
-                        hiddenColumns.push(i); 
+                        hiddenColumns.push(i);
                     });
 
                     // save the table view inside redis
                     $.post(`${http_prefix}/lua/datatable_columns.lua`, {
                         action: 'save', table: tableID, columns: hiddenColumns.join(','), csrf: window.__CSRF_DATATABLE__
-                    }).then(function(data) {
+                    }).then(function (data) {
                         if (data.success) return;
                         console.warn(data.message);
                     });
@@ -635,8 +635,8 @@ export class DataTableRenders {
 
     static filterize(key, value, label, tag_label, title, html, is_snmp_ip, ip) {
         let content = `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='javascript:void(0)'>${html || label || value}</a>`;
-        if(is_snmp_ip != null) {
-            if(is_snmp_ip) {
+        if (is_snmp_ip != null) {
+            if (is_snmp_ip) {
                 if (value) {
                     let url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?host=${value}`);
                     content += ` <a href='${url}'data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
@@ -682,7 +682,7 @@ export class DataTableRenders {
 
     static formatMessage(obj, type, row, zero_is_null) {
         if (type !== "display") return obj.value;
-           
+
         let cell = obj.descr;
         if (obj.shorten_descr)
             cell = `<span title="${obj.descr}">${obj.shorten_descr}</span>`;
@@ -692,7 +692,7 @@ export class DataTableRenders {
 
     static formatTraffic(obj, type, row, zero_is_null) {
         if (type !== "display") return obj.total_bytes;
-        
+
         const traffic = `${NtopUtils.formatPackets(obj.total_packets)} / ${NtopUtils.bytesToVolume(obj.total_bytes)}`
         return traffic;
     }
@@ -702,7 +702,7 @@ export class DataTableRenders {
 
         let label = DataTableRenders.filterize('subtype', obj, obj);
 
-        return label; 
+        return label;
     }
 
     static filterize_2(key, value, label, tag_label, title, html) {
@@ -710,11 +710,11 @@ export class DataTableRenders {
         return `<a class='tag-filter' data-tag-key='${key}' title='${title || value}' data-tag-value='${value}' data-tag-label='${tag_label || label || value}' href='javascript:void(0)'>${html || label || value}</a>`;
     }
 
-    static getFormatGenericField(field, zero_is_null) {        
-        return function(obj, type, row) {
+    static getFormatGenericField(field, zero_is_null) {
+        return function (obj, type, row) {
             if (type !== "display") return obj.value;
             if (zero_is_null == true && obj?.value == 0) { return ""; }
-                let html_ref = '';
+            let html_ref = '';
             if (obj.reference !== undefined)
                 html_ref = obj.reference
             let label = DataTableRenders.filterize_2(field, row[field].value, row[field].label, row[field].label, row[field].label);
@@ -724,7 +724,7 @@ export class DataTableRenders {
 
     static formatSNMPInterface(obj, type, row) {
         if (type !== "display") return obj.value;
-        let cell = DataTableRenders.filterize('snmp_interface', `${row.ip}_${obj.value}`, obj.label, obj.label, obj.label,null,false, row.ip);
+        let cell = DataTableRenders.filterize('snmp_interface', `${row.ip}_${obj.value}`, obj.label, obj.label, obj.label, null, false, row.ip);
         if (obj.color) cell = `<span class='font-weight-bold' style='color: ${obj.color}'>${cell}</span>`;
         return cell;
     }
@@ -744,14 +744,14 @@ export class DataTableRenders {
 
         let label = DataTableRenders.filterize('probe_ip', obj.value, obj.label, obj.label, obj.label_long);
 
-        return label; 
+        return label;
     }
-   
+
     static formatHost(obj, type, row, zero_is_null) {
         if (type !== "display") return obj;
-            let html_ref = '';
+        let html_ref = '';
         if (obj.reference !== undefined)
-           html_ref = obj.reference;
+            html_ref = obj.reference;
         let label = "";
 
         let hostKey, hostValue;
@@ -773,89 +773,97 @@ export class DataTableRenders {
         if (obj.country)
             label = label + DataTableRenders.filterize('country', obj.country, obj.country, obj.country, obj.country, ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + obj.country.toLowerCase() + '"></a> ');
 
+        if (obj.is_multicast) {
+            label = label + " <abbr data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("multicast") + "'><span class='badge bg-primary'>" + i18n("short_multicast") + "</span></abbr> "
+        } else if (obj.is_local) {
+            label = label + " <abbr data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("details.label_local_host") + "'><span class='badge bg-success'>" + i18n("details.label_short_local_host") + "</span></abbr> "
+        } else {
+            label = label + " <abbr data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("details.label_remote") + "'><span class='badge bg-secondary'>" + i18n("details.label_short_remote") + "</span></abbr> "
+        }
+
         if (row.role && row.role.value == 'attacker')
-          label = label + ' ' + DataTableRenders.filterize('role', row.role.value, 
-            '<i class="fas fa-skull" title="'+row.role.label+'"></i>', row.role.label);
+            label = label + ' ' + DataTableRenders.filterize('role', row.role.value,
+                '<i class="fas fa-skull" title="' + row.role.label + '"></i>', row.role.label);
         else if (row.role && row.role.value == 'victim')
-          label = label + ' ' + DataTableRenders.filterize('role', row.role.value,
-            '<i class="fas fa-sad-tear" title="'+row.role.label+'"></i>', row.role.label);
+            label = label + ' ' + DataTableRenders.filterize('role', row.role.value,
+                '<i class="fas fa-sad-tear" title="' + row.role.label + '"></i>', row.role.label);
 
         if (row.role_cli_srv && row.role_cli_srv.value == 'client')
-          label = label + ' ' + DataTableRenders.filterize('role_cli_srv', row.role_cli_srv.value, 
-            '<i class="fas fa-long-arrow-alt-right" title="'+row.role_cli_srv.label+'"></i>', row.role_cli_srv.label);
+            label = label + ' ' + DataTableRenders.filterize('role_cli_srv', row.role_cli_srv.value,
+                '<i class="fas fa-long-arrow-alt-right" title="' + row.role_cli_srv.label + '"></i>', row.role_cli_srv.label);
         else if (row.role_cli_srv && row.role_cli_srv.value == 'server')
-          label = label + ' ' + DataTableRenders.filterize('role_cli_srv', row.role_cli_srv.value,
-            '<i class="fas fa-long-arrow-alt-left" title="'+row.role_cli_srv.label+'"></i>', row.role_cli_srv.label);
+            label = label + ' ' + DataTableRenders.filterize('role_cli_srv', row.role_cli_srv.value,
+                '<i class="fas fa-long-arrow-alt-left" title="' + row.role_cli_srv.label + '"></i>', row.role_cli_srv.label);
 
-        return label + ' ' + html_ref; 
+        return label + ' ' + html_ref;
     }
 
     static filterizeVlan(flow, row, key, value, label, title) {
         let valueVlan = value;
-  let labelVlan = label;
+        let labelVlan = label;
         let titleVlan = title;
         if (flow.vlan && flow.vlan.value != 0) {
             valueVlan = `${value}@${flow.vlan.value}`;
             labelVlan = `${label}@${flow.vlan.label}`;
             titleVlan = `${title}@${flow.vlan.title}`;
         }
-      labelVlan = NtopUtils.shortenLabel(labelVlan, 16, ".")
-      return DataTableRenders.filterize(key, valueVlan, labelVlan, labelVlan, titleVlan); 
+        labelVlan = NtopUtils.shortenLabel(labelVlan, 16, ".")
+        return DataTableRenders.filterize(key, valueVlan, labelVlan, labelVlan, titleVlan);
     }
 
     static formatFlowTuple(flow, type, row, zero_is_null) {
-      let active_ref = (flow.active_url ? `<a href="${flow.active_url}"><i class="fas fa-stream"></i></a>` : "");
+        let active_ref = (flow.active_url ? `<a href="${flow.active_url}"><i class="fas fa-stream"></i></a>` : "");
         let cliLabel = "";
         if (flow.cli_ip.name) {
-          let title = "";
-            if(flow.cli_ip.label_long) title = flow.cli_ip.value + " [" + flow.cli_ip.label_long + "]";
-            cliLabel = DataTableRenders.filterizeVlan(flow, row, 'cli_name', flow.cli_ip.name, flow.cli_ip.label, title); 
+            let title = "";
+            if (flow.cli_ip.label_long) title = flow.cli_ip.value + " [" + flow.cli_ip.label_long + "]";
+            cliLabel = DataTableRenders.filterizeVlan(flow, row, 'cli_name', flow.cli_ip.name, flow.cli_ip.label, title);
         } else
-            cliLabel = DataTableRenders.filterizeVlan(flow, row, 'cli_ip', flow.cli_ip.value, flow.cli_ip.label, flow.cli_ip.label_long); 
+            cliLabel = DataTableRenders.filterizeVlan(flow, row, 'cli_ip', flow.cli_ip.value, flow.cli_ip.label, flow.cli_ip.label_long);
 
-        let cliFlagLabel= ''
+        let cliFlagLabel = ''
 
         if (flow.cli_ip.country && flow.cli_ip.country !== "nil")
             cliFlagLabel = DataTableRenders.filterize('cli_country', flow.cli_ip.country, flow.cli_ip.country, flow.cli_ip.country, flow.cli_ip.country, ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + flow.cli_ip.country.toLowerCase() + '"></a> ');
 
-        let cliPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":"+DataTableRenders.filterize('cli_port', flow.cli_port, flow.cli_port) : "");
+        let cliPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":" + DataTableRenders.filterize('cli_port', flow.cli_port, flow.cli_port) : "");
 
-        let cliBlacklisted =''
-        if(flow.cli_ip.blacklisted == true) 
-          cliBlacklisted = " <i class=\'fas fa-ban fa-sm\' title=\'" + i18n("hosts_stats.blacklisted") + "\'></i>"
+        let cliBlacklisted = ''
+        if (flow.cli_ip.blacklisted == true)
+            cliBlacklisted = " <i class=\'fas fa-ban fa-sm\' title=\'" + i18n("hosts_stats.blacklisted") + "\'></i>"
 
         let srvLabel = ""
         if (flow.srv_ip.name) {
-          let title = "";
-          if(flow.srv_ip.label_long) title = flow.srv_ip.value + " [" + flow.srv_ip.label_long + "]";
+            let title = "";
+            if (flow.srv_ip.label_long) title = flow.srv_ip.value + " [" + flow.srv_ip.label_long + "]";
             srvLabel = DataTableRenders.filterizeVlan(flow, row, 'srv_name', flow.srv_ip.name, flow.srv_ip.label, title);
         } else
             srvLabel = DataTableRenders.filterizeVlan(flow, row, 'srv_ip', flow.srv_ip.value, flow.srv_ip.label, flow.srv_ip.label_long);
-        let srvPortLabel = ((flow.srv_port && flow.srv_port > 0) ? ":"+DataTableRenders.filterize('srv_port', flow.srv_port, flow.srv_port) : "");
+        let srvPortLabel = ((flow.srv_port && flow.srv_port > 0) ? ":" + DataTableRenders.filterize('srv_port', flow.srv_port, flow.srv_port) : "");
 
-        let srvFlagLabel= ''
+        let srvFlagLabel = ''
 
         if (flow.srv_ip.country && flow.srv_ip.country !== "nil")
             srvFlagLabel = DataTableRenders.filterize('srv_country', flow.srv_ip.country, flow.srv_ip.country, flow.srv_ip.country, flow.srv_ip.country, ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + flow.srv_ip.country.toLowerCase() + '"></a> ');
 
-        let srvBlacklisted =''
-        if(flow.srv_ip.blacklisted == true) 
-          srvBlacklisted = " <i class=\'fas fa-ban fa-sm\' title=\'" + i18n("hosts_stats.blacklisted") + "\'></i>"
-    
+        let srvBlacklisted = ''
+        if (flow.srv_ip.blacklisted == true)
+            srvBlacklisted = " <i class=\'fas fa-ban fa-sm\' title=\'" + i18n("hosts_stats.blacklisted") + "\'></i>"
+
         let cliIcons = "";
         let srvIcons = "";
         if (row.cli_role) {
             if (row.cli_role.value == 'attacker')
-                cliIcons += DataTableRenders.filterize('role', 'attacker', '<i class="fas fa-skull" title="'+row.cli_role.label+'"></i>', row.cli_role.tag_label);
+                cliIcons += DataTableRenders.filterize('role', 'attacker', '<i class="fas fa-skull" title="' + row.cli_role.label + '"></i>', row.cli_role.tag_label);
             else if (row.cli_role.value == 'victim')
-                cliIcons += DataTableRenders.filterize('role', 'victim',  '<i class="fas fa-sad-tear" title="'+row.cli_role.label+'"></i>', row.cli_role.tag_label);
+                cliIcons += DataTableRenders.filterize('role', 'victim', '<i class="fas fa-sad-tear" title="' + row.cli_role.label + '"></i>', row.cli_role.tag_label);
         }
 
         if (row.srv_role) {
             if (row.srv_role.value == 'attacker')
-                srvIcons += DataTableRenders.filterize('role', 'attacker', '<i class="fas fa-skull" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
+                srvIcons += DataTableRenders.filterize('role', 'attacker', '<i class="fas fa-skull" title="' + row.srv_role.label + '"></i>', row.srv_role.tag_label);
             else if (row.srv_role.value == 'victim')
-                srvIcons += DataTableRenders.filterize('role', 'victim',  '<i class="fas fa-sad-tear" title="'+row.srv_role.label+'"></i>', row.srv_role.tag_label);
+                srvIcons += DataTableRenders.filterize('role', 'victim', '<i class="fas fa-sad-tear" title="' + row.srv_role.label + '"></i>', row.srv_role.tag_label);
         }
 
         return `${active_ref} ${cliLabel}${cliBlacklisted}${cliFlagLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvBlacklisted}${srvFlagLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
@@ -876,8 +884,8 @@ export class DataTableRenders {
     }
 
     static applyCellStyle(cell, cellData, rowData, rowIndex, colIndex) {
-      if (cellData.highlight) {
-         $(cell).css("border-left", "5px solid "+cellData.highlight);
-      }
-   }
+        if (cellData.highlight) {
+            $(cell).css("border-left", "5px solid " + cellData.highlight);
+        }
+    }
 }

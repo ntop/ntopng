@@ -491,6 +491,12 @@ tag_utils.defined_tags = {
         i18n_label = i18n('db_search.tags.srv_location'),
         operators = {'eq', 'neq'}
     },
+    host_location = {
+        type = tag_utils.input_types.select,
+        value_type = 'location',
+        i18n_label = i18n('db_search.tags.host_location'),
+        operators = {'eq', 'neq'}
+    },
     cli_proc_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.cli_proc_name'),

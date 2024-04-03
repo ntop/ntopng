@@ -42,7 +42,8 @@ local function check_alert_params(alert)
     end
     if isEmptyString(alert.alert_category) then
         is_alert_okay = false
-        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert category is empty for host alert %u", alert.alert_id))
+        traceError(TRACE_ERROR, TRACE_CONSOLE,
+            string.format("Alert category is empty for host alert %u", alert.alert_id))
         goto print_error
     end
     if isEmptyString(alert.ip) then
@@ -62,7 +63,8 @@ local function check_alert_params(alert)
     end
     if isEmptyString(alert.tstamp_end) then
         is_alert_okay = false
-        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert TstampEnd is empty for host alert %u", alert.alert_id))
+        traceError(TRACE_ERROR, TRACE_CONSOLE,
+            string.format("Alert TstampEnd is empty for host alert %u", alert.alert_id))
         goto print_error
     end
     if isEmptyString(alert.score) then
@@ -72,11 +74,12 @@ local function check_alert_params(alert)
     end
     if isEmptyString(alert.granularity) then
         is_alert_okay = false
-        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("Alert Granularity is empty for host alert %u", alert.alert_id))
+        traceError(TRACE_ERROR, TRACE_CONSOLE,
+            string.format("Alert Granularity is empty for host alert %u", alert.alert_id))
         goto print_error
     end
 
-::print_error::
+    ::print_error::
     if not is_alert_okay then
         tprint(alert)
         tprint(debug.traceback())
@@ -122,18 +125,15 @@ function host_alert_store:insert(alert)
 
     -- IMPORTANT: keep in sync with check_alert_params function, to be sure to not have issues with empty parameters
     local insert_stmt = string.format("INSERT INTO %s " ..
-        "(%salert_id, alert_status, alert_category, interface_id, ip_version, ip, vlan_id, name, country, is_attacker, is_victim, " ..
-        "is_client, is_server, tstamp, tstamp_end, severity, score, granularity, host_pool_id, network, json) " ..
-        "VALUES (%s%u, %u, %u, %d, %u, '%s', %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
-        self._table_name,
-        extra_columns, extra_values, 
-        alert.alert_id, 
-        ternary(alert.acknowledged, alert_consts.alert_status.acknowledged.alert_status_id, 0),
-        alert.alert_category,
-        self:_convert_ifid(interface.getId()),
-        ip_version, alert.ip, alert.vlan_id or 0, self:_escape(alert.name), alert.country_name, is_attacker, is_victim, is_client,
-        is_server, alert.tstamp, alert.tstamp_end, map_score_to_severity(alert.score), alert.score, alert.granularity,
-        alert.host_pool_id or 0, alert.network or 0, self:_escape(alert.json or ""))
+                                          "(%salert_id, alert_status, alert_category, interface_id, ip_version, ip, vlan_id, name, country, is_attacker, is_victim, " ..
+                                          "is_client, is_server, tstamp, tstamp_end, severity, score, granularity, host_pool_id, network, json) " ..
+                                          "VALUES (%s%u, %u, %u, %d, %u, '%s', %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
+        self._table_name, extra_columns, extra_values, alert.alert_id, ternary(alert.acknowledged,
+            alert_consts.alert_status.acknowledged.alert_status_id, 0), alert.alert_category,
+        self:_convert_ifid(interface.getId()), ip_version, alert.ip, alert.vlan_id or 0, self:_escape(alert.name),
+        alert.country_name, is_attacker, is_victim, is_client, is_server, alert.tstamp, alert.tstamp_end,
+        map_score_to_severity(alert.score), alert.score, alert.granularity, alert.host_pool_id or 0, alert.network or 0,
+        self:_escape(alert.json or ""))
 
     -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_stmt)
 
@@ -199,6 +199,29 @@ function host_alert_store:_add_additional_request_filters()
     local role_cli_srv = _GET["role_cli_srv"]
     local host_pool_id = _GET["host_pool_id"]
     local network = _GET["network"]
+    local location = _GET["host_location"]
+    local location_filter = 'json.alert_generation.host_info.localhost'
+    local is_engaged = self._status == alert_consts.alert_status.engaged.alert_status_id
+    if location then
+        local tmp_location = split(location, ";")
+        if is_engaged then
+            location_filter = 'is_local'
+        else
+            location_filter = 'json.alert_generation.host_info.is_multicast'
+        end
+        if tonumber(tmp_location[1]) == 0 then
+            location = "0;" .. tmp_location[2]
+        elseif tonumber(tmp_location[1]) == 2 then
+            location = "1;" .. tmp_location[2]
+            if is_engaged then
+                location_filter = 'is_multicast'
+            else
+                location_filter = 'json.alert_generation.host_info.is_multicast'
+            end
+        else
+            location = "1;" .. tmp_location[2]
+        end    
+    end
 
     self:add_filter_condition_list('vlan_id', vlan_id, 'number')
     self:add_filter_condition_list('ip_version', ip_version)
@@ -208,6 +231,11 @@ function host_alert_store:_add_additional_request_filters()
     self:add_filter_condition_list('role_cli_srv', role_cli_srv)
     self:add_filter_condition_list('host_pool_id', host_pool_id)
     self:add_filter_condition_list('network', network)
+    if is_engaged then
+        self:add_filter_condition_list(location_filter, location, "number")
+    else
+        self:add_filter_condition_list(self:format_query_json_value(location_filter, 'boolean'), location, 'number')
+    end
 end
 
 -- ##############################################
@@ -222,7 +250,8 @@ function host_alert_store:_get_additional_available_filters()
         role = tag_utils.defined_tags.role,
         role_cli_srv = tag_utils.defined_tags.role_cli_srv,
         host_pool_id = tag_utils.defined_tags.host_pool_id,
-        network = tag_utils.defined_tags.network
+        network = tag_utils.defined_tags.network,
+        host_location = tag_utils.defined_tags.host_location
     }
 
     return filters
@@ -323,7 +352,9 @@ function host_alert_store:format_record(value, no_html)
         label = host,
         shown_label = host,
         reference = reference_html,
-        country = interface.getHostCountry(host)
+        country = interface.getHostCountry(host),
+        is_local = alert_info.alert_generation.host_info.localhost,
+        is_multicast = alert_info.alert_generation.host_info.is_multicast
     }
 
     -- Long, unshortened label
@@ -442,26 +473,38 @@ function host_alert_store:format_record(value, no_html)
 
     record[RNAME.LINK_TO_PAST_FLOWS.name] = alert_utils.getLinkToPastFlows(ifid, value, alert_info)
 
-   -- Add Tag filters (e.g. to jump from custom queries to raw alerts)
+    -- Add Tag filters (e.g. to jump from custom queries to raw alerts)
 
-   record['filter'] = {}
+    record['filter'] = {}
 
-   local filters = {}
-   local op_suffix = 'eq'
+    local filters = {}
+    local op_suffix = 'eq'
 
-   if not isEmptyString(value["alert_id"]) and tonumber(value["alert_id"]) > 0 then
-      filters[#filters+1] = { id = "alert_id", value = value["alert_id"], op = op_suffix }
-   end
-   if not isEmptyString(value["vlan_id"]) and tonumber(value["vlan_id"]) > 0 then
-      filters[#filters+1] = { id = "vlan_id", value = value["vlan_id"], op = op_suffix }
-   end
-   if not isEmptyString(value["ip"]) then
-      filters[#filters+1] = { id = "ip", value = value["ip"], op = op_suffix }
-   end
+    if not isEmptyString(value["alert_id"]) and tonumber(value["alert_id"]) > 0 then
+        filters[#filters + 1] = {
+            id = "alert_id",
+            value = value["alert_id"],
+            op = op_suffix
+        }
+    end
+    if not isEmptyString(value["vlan_id"]) and tonumber(value["vlan_id"]) > 0 then
+        filters[#filters + 1] = {
+            id = "vlan_id",
+            value = value["vlan_id"],
+            op = op_suffix
+        }
+    end
+    if not isEmptyString(value["ip"]) then
+        filters[#filters + 1] = {
+            id = "ip",
+            value = value["ip"],
+            op = op_suffix
+        }
+    end
 
-   record['filter'].tag_filters = filters
+    record['filter'].tag_filters = filters
 
-   return record
+    return record
 end
 
 -- ##############################################

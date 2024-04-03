@@ -517,7 +517,6 @@ end
 
 -- @brief Filter (engaged) alerts in lua) evaluating self:_where conditions
 function alert_store:eval_alert_cond(alert, cond)
-
     -- Special case: l7proto
     if cond.field == 'l7proto' and cond.value ~= 0 then
         -- Search also in l7_master_proto, unless value is 0 (Unknown)
@@ -771,8 +770,11 @@ end
 
 -- ##############################################
 
-function alert_store:format_query_json_value(nested_field)
+function alert_store:format_query_json_value(nested_field, type)
     local field_to_search = self:get_column_name('json', false)
+    if type == "boolean" then
+        return string.format('JSONExtractInt(%s, \'$.%s\')', field_to_search, nested_field)
+    end
     return string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, nested_field)
 end
 
@@ -1111,7 +1113,7 @@ function alert_store:select_engaged(filter, debug)
 
     local total_rows = 0
     local sort_2_col = {}
-
+    
     -- Sort and filtering
     for idx, alert in pairs(alerts) do
         local tstamp = tonumber(alert.tstamp)

@@ -1739,6 +1739,7 @@ local known_parameters = {
    ["chart_id"] = validateUnquoted, -- Chart id
    ["cli_location"] = validateListOfTypeInline(validateFilters(validateNumber)),
    ["srv_location"] = validateListOfTypeInline(validateFilters(validateNumber)),
+   ["host_location"] = validateListOfTypeInline(validateFilters(validateNumber)),
    ["major_connection_state"] = validateFilters(validateNumber),
    ["minor_connection_state"] = validateFilters(validateNumber),
 
