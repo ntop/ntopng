@@ -785,34 +785,50 @@ static int ntop_loadCustomCategoryHost(lua_State *vm) {
 
 /* ****************************************** */
 
-static bool is_valid_host(char *host, enum list_file_type t) {
+static bool is_valid_host(char *_host, enum list_file_type t, bool ignorePrivateIPs) {
+  char host[256], *div, *slash;
+  int cidr = 128;
+  
+  snprintf(host, sizeof(host), "%s", _host);
+
+  if((div = strchr(host, '\t')) != NULL) div[0] = '\0';
+  if((div = strchr(host, ' '))  != NULL) div[0] = '\0';
+  if((slash = strchr(host, '/'))  != NULL) {
+    slash[0] = '\0';
+    cidr = atoi(&slash[1]);
+  }
+  
+  if(cidr < 12) {
+    /* ntop->getTrace()->traceEvent(TRACE_WARNING, "CIDR too small %s [%d]", host, t); */
+    return(false);
+  }
+      
   if(t == list_type_hosts) {
     if(strcmp(host, "localhost"))
-      return(true);;
-  } else {
-    if(strcmp(host, "127.0.0.1")
-       && strcmp(host, "255.255.255.255")
-       && strncmp(host, "0.0.0.0", 8) /* Matches both 0.0.0.0 and 0.0.0.0/0 */
-       && (strchr(host, ':') == NULL) /* Ignore IPv6 */
-       && (strstr(host, "/0") == NULL)) {
-#if 0
-	char *slash = strchr(host, '/');
-
-      if(slash) {
-	int cidr = atoi(&slash[1]);
-
-	if(cidr < 12) {
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "CIDR too small %s [%d]", host, t);
-	  return(false);
-	}
-      }
-#endif
-
       return(true);
+  } else {
+    if(ignorePrivateIPs) {
+      IpAddress ip;
+      
+      if((strcmp(host, "127.0.0.1") == 0)
+	 || (strcmp(host, "255.255.255.255") == 0) 
+	 || (strncmp(host, "0.0.0.0", 7) == 0) 
+	 || (strchr(host, ':') != NULL) /* Ignore IPv6 */
+	 ) {
+	/* ntop->getTrace()->traceEvent(TRACE_WARNING, "Discarding IP address %s", host); */
+	return(false);
+      }    
+
+      ip.set((const char*)host);
+      
+      if(ip.isPrivateAddress()) {
+	/* ntop->getTrace()->traceEvent(TRACE_INFO, "WARNING: xsIgnoring private IP address %s", host); */
+	return(false);
+      }
     }
   }
 
-  return(false);
+  return(true);
 }
 
 /* ****************************************** */
@@ -824,6 +840,7 @@ static int ntop_loadCustomCategoryFile(lua_State *vm) {
   ndpi_protocol_category_t catid;
   FILE *fd;
   u_int32_t num_lines_loaded = 0;
+  bool ignorePrivateIPs = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -855,6 +872,9 @@ static int ntop_loadCustomCategoryFile(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }
   listname = (char *)lua_tostring(vm, 4);
+
+  if(ntop_lua_check(vm, __FUNCTION__, 5, LUA_TBOOLEAN) == CONST_LUA_OK)
+    ignorePrivateIPs = (bool)lua_toboolean(vm, 5);
 
   if((fd = fopen(path, "r")) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to open %s", path);
@@ -922,7 +942,7 @@ static int ntop_loadCustomCategoryFile(lua_State *vm) {
 	  success = (sscanf(line, format, host, &f) == 2) ? true : false;
 
 	if(success) {
-	  if(is_valid_host(host, list_type)) {
+	  if(is_valid_host(host, list_type, ignorePrivateIPs)) {
 	    if(list_type == list_type_hosts)
 	      success = ntop->nDPILoadHostnameCategory(host, catid, listname);
 	    else
@@ -935,7 +955,9 @@ static int ntop_loadCustomCategoryFile(lua_State *vm) {
 
 	if(!loaded) {
 	  if(strcmp(line, "ip,score")) /* Silence Stratosphere Lab.txt */
-	     ntop->getTrace()->traceEvent(TRACE_ERROR, "Invalid line format %s [%s]", line, path);
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid line format %s%s [%s]",
+					 ignorePrivateIPs ? "or private IP " : "",
+					 line, path);
 	}
       }
       break;
@@ -951,7 +973,7 @@ static int ntop_loadCustomCategoryFile(lua_State *vm) {
 	bool loaded = false;
 
 	if(sscanf(line, format, host, &occurrencies) == 2) {
-	  if(is_valid_host(host, list_type)) {
+	  if(is_valid_host(host, list_type, ignorePrivateIPs)) {
 	    if(occurrencies >= 2) {
 	      if(ntop->nDPILoadIPCategory(host, catid, listname))
 		num_lines_loaded++, loaded = true;
@@ -3559,7 +3581,7 @@ static int ntop_run_live_extraction(lua_State *vm) {
   char *timeline_path = NULL;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-  
+
   c = getLuaVMContext(vm);
 
   if (!c) return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -3884,7 +3906,7 @@ static int ntop_get_info(lua_State *vm) {
 #ifdef HAVE_JEMALLOC
   lua_push_bool_table_entry(vm, "jemalloc", true);
 #endif
-  
+
   snprintf(rsp, sizeof(rsp), "%s [%s]", PACKAGE_OS, PACKAGE_MACHINE);
   lua_push_str_table_entry(vm, "platform", rsp);
   lua_push_str_table_entry(vm, "OS",
@@ -4246,7 +4268,7 @@ static int ntop_snmpsetavailable(lua_State *vm) {
 
 static int ntop_snmp_max_num_engines(lua_State *vm) {
   u_int16_t num = MIN_NUM_ASYNC_SNMP_ENGINES;
-  
+
 #ifdef NTOPNG_PRO
   if(ntop->getPro()->has_valid_enterprise_m_license())
     num = NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_M;
@@ -4257,7 +4279,7 @@ static int ntop_snmp_max_num_engines(lua_State *vm) {
 #endif
 
   lua_pushinteger(vm, num);
-  
+
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -7606,7 +7628,7 @@ static int m_broker_publish(lua_State  *vm) {
   if (!message_broker)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 
-  if (message_broker->publish(topic,message)) 
+  if (message_broker->publish(topic,message))
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
   else
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -7635,7 +7657,7 @@ static int m_broker_rpc_call(lua_State  *vm) {
 
   if (!message_broker)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  
+
   if (message_broker->rpcCall(topic, message, timeout_ms,(char*) rsp, BROKER_RPC_CALL_MAX_RSP_LEN)) {
     lua_newtable(vm);
     lua_push_str_table_entry(vm, "broker_rsp", rsp);

@@ -603,7 +603,8 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
     local list_fname = getListCacheFile(list_name)
     local num_rules = 0
     local limit_exceeded = false
-
+    local ignore_private_ips = true -- Ignore IPs that belong to local networks (eg. 10.0.0.0/8)
+    
     traceError(trace_level, TRACE_CONSOLE, string.format("Loading '%s' [%s]...", list_name, list.format))
 
     if list.format == "ja3_suricata_csv" then
@@ -624,19 +625,19 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
         end
     elseif list.format == "hosts" then
         -- MAX_TOTAL_DOMAIN_RULES
-        num_rules = ntop.loadCustomCategoryFile(list_fname, 0, list.category, list.name) or 0
+        num_rules = ntop.loadCustomCategoryFile(list_fname, 0, list.category, list.name, ignore_private_ips) or 0
         stats.num_hosts = stats.num_hosts + num_rules
     elseif list.format == "ip_csv" then
         -- MAX_TOTAL_IP_RULES
-        num_rules = ntop.loadCustomCategoryFile(list_fname, 1, list.category, list.name) or 0
+        num_rules = ntop.loadCustomCategoryFile(list_fname, 1, list.category, list.name, ignore_private_ips) or 0
         stats.num_ips = stats.num_ips + num_rules
     elseif list.format == "ip_occurencies" then
         -- MAX_TOTAL_IP_RULES
-        num_rules = ntop.loadCustomCategoryFile(list_fname, 2, list.category, list.name) or 0
+        num_rules = ntop.loadCustomCategoryFile(list_fname, 2, list.category, list.name, ignore_private_ips) or 0
         stats.num_ips = stats.num_ips + num_rules
     elseif list.format == "ip" then
         -- MAX_TOTAL_IP_RULES
-        num_rules = ntop.loadCustomCategoryFile(list_fname, 3, list.category, list.name) or 0
+        num_rules = ntop.loadCustomCategoryFile(list_fname, 3, list.category, list.name, ignore_private_ips) or 0
         stats.num_ips = stats.num_ips + num_rules
     else
         traceError(TRACE_WARNING, TRACE_CONSOLE, "Unknown list format " .. list.format)
