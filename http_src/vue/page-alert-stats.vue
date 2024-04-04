@@ -487,10 +487,6 @@ const get_extra_params_obj = () => {
 
 function click_navbar_item(item) {
     ntopng_url_manager.set_key_to_url('page', item.page_name);
-    let is_alert_stats_url = window.location.toString().match(/alert_stats.lua/) != null;
-    if (is_alert_stats_url) {
-        remove_filters_from_url();
-    }
     ntopng_url_manager.reload_url();
 }
 
