@@ -355,6 +355,7 @@ const import_snmp_devices_rest = async function(params) {
     modal_import_snmp_devices.value.show_bad_feedback(_i18n("import_snmp_devices_error"));
   } else if (result.rc < 0) {
     modal_import_snmp_devices.value.show_bad_feedback(result.rsp.feedback);
+    table_snmp_devices.value.refresh_table();
   } else {
     import_with_success.value = true;
     modal_import_snmp_devices.value.close();
@@ -378,6 +379,7 @@ const add_snmp_device_rest = async function (params) {
   const result = await ntopng_utility.http_post_request(url, { ...rest_params, ...params},false,true);
   if (result.rc < 0) {
     modal_add_snmp_device.value.show_bad_feedback(result.rc_str_hr);
+    table_snmp_devices.value.refresh_table();
   } else {
     modal_add_snmp_device.value.close();
     table_snmp_devices.value.refresh_table();
