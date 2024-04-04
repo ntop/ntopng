@@ -39,7 +39,7 @@
   const file_selected = ref(null);
   let title =  _i18n('snmp.import_devices');
   let message = "";
-  
+  const max_size = 131072;
   const json_file = ref(null);
   
   const showed = () => {};
@@ -77,7 +77,15 @@
 
   const handleFileUpload = (event) => {
     json_file.value = event.target.files[0];
-    is_not_empty_file.value = json_file.value != null;
+    const size = json_file.value.size;
+    is_not_empty_file.value = json_file.value != null && size < max_size; //128KB
+    if (size > max_size ) {
+      is_data_not_ok.value = true;
+      message = _i18n("file_to_large")
+    } else {
+      is_data_not_ok.value = false;
+      message = "";
+    }
   }
   
   /**

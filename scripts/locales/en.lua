@@ -240,6 +240,7 @@ local lang = {
   ["external_link_url"] = "<span><button data-to-copy='%{proto}://%{url}' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button>  <a class='ntopng-external-lin' style='width:260px' href='%{proto}://%{url}' target='_blank'><i class='fas fa-external-link-alt'></i> %{url_name}</a></span>",
   ["factory_reset"] = "Factory Reset",
   ["file"] = "File",
+  ["file_to_large"] = "File size exceeds the maximum limit of 128KB.",
   ["filter"] = "Exclude",
   ["filter_alerts_by"] = "Deliver Alerts based on",
   ["filter_by"] = "Filter by",
