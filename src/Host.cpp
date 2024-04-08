@@ -932,18 +932,14 @@ void Host::lua(lua_State *vm, AddressTree *ptree, bool host_details,
   lua_get_num_contacts(vm);
   lua_get_num_http_hosts(vm);
 
-  lua_push_float_table_entry(
-      vm, "bytes_ratio", ndpi_data_ratio(getNumBytesSent(), getNumBytesRcvd()));
-  lua_push_float_table_entry(
-      vm, "pkts_ratio", ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()));
+  lua_push_float_table_entry(vm, "bytes_ratio", ndpi_data_ratio(getNumBytesSent(), getNumBytesRcvd()));
+  lua_push_float_table_entry(vm, "pkts_ratio", ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()));
 
-  lua_push_int32_table_entry(
-      vm, "num_contacted_peers_with_tcp_udp_flows_no_response",
-      getNumContactedPeersAsClientTCPUDPNoTX());
-  lua_push_int32_table_entry(
-      vm, "num_incoming_peers_that_sent_tcp_udp_flows_no_response",
-      getNumContactsFromPeersAsServerTCPUDPNoTX());
-
+  lua_push_int32_table_entry(vm, "num_contacted_peers_with_tcp_udp_flows_no_response",
+			     getNumContactedPeersAsClientTCPUDPNoTX());
+  lua_push_int32_table_entry(vm, "num_incoming_peers_that_sent_tcp_udp_flows_no_response",
+			     getNumContactsFromPeersAsServerTCPUDPNoTX());
+  
   if (device_ip)
     lua_push_str_table_entry(vm, "device_ip",
                              Utils::intoaV4(device_ip, buf, sizeof(buf)));

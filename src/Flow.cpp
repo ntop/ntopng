@@ -340,8 +340,7 @@ void Flow::freeDPIMemory() {
 
 Flow::~Flow() {
   bool is_oneway_tcp_udp_flow =
-      (((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) && isOneWay())
-          ? true : false;
+    (((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) && isOneWay()) ? true : false;
 
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (getUses() != 0 && !ntop->getGlobals()->isShutdown())
@@ -411,7 +410,7 @@ Flow::~Flow() {
 
   /*
     Finish deleting other flow data structures
-   */
+  */
 
   if (riskInfo) free(riskInfo);
   if (end_reason) free(end_reason);
