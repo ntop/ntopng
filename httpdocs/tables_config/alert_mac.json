@@ -13,6 +13,7 @@
 	    "title_i18n": "actions",
 	    "sortable": false,
 	    "sticky": true,
+		 "min-width" : "80px",
 	    "class": ["text-nowrap", "text-center"],
 	    "render_v_node_type": "button_list",
 	    "button_def_array": [
@@ -28,6 +29,7 @@
 	    "title_i18n": "show_alerts.alert_datetime",
 	    "data_field": "tstamp",
 	    "sortable": true,
+		 "min-width" : "115px",
 	    "render_type": "formatValueLabel",
 	    "class": ["text-center", "text-nowrap"]
 	},
@@ -35,6 +37,7 @@
 	    "title_i18n": "score",
 	    "data_field": "score",
 	    "sortable": true,
+		 "min-width" : "80px",
 	    "render_type": "formatValueLabel",
 	    "class": ["text-center"]
 	},
@@ -42,6 +45,7 @@
 	    "title_i18n": "alerts_dashboard.alert",
 	    "data_field": "msg",
 	    "sortable": false,
+		 "min-width" : "155px",
 	    "render_type": "formatNameDescription",
 	    "class": ["text-nowrap"]
 	},
@@ -49,12 +53,14 @@
 	    "title_i18n": "mac_address",
 	    "data_field": "address",
 	    "sortable": true,
+		 "min-width" : "155px",
 	    "class": ["text-left", "text-nowrap"]
 	},
 	{
 	    "title_i18n": "details.device_type",
 	    "data_field": "device_type",
 	    "sortable": false,
+		 "min-width" : "155px",
 	    "render_type": "formatValueLabel",
 	    "class": ["text-nowrap"]
 	},
@@ -62,6 +68,7 @@
 	    "title_i18n": "name",
 	    "data_field": "name",
 	    "sortable": true,
+		 "min-width" : "155px",
 	    "class": ["text-left"]
 	},
 	{

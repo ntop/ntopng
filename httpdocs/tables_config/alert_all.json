@@ -11,18 +11,21 @@
 	{
 	    "data_field": "entity",
 	    "sortable": false,
+		 "min-width" : "100px",
 	    "class": ["text-nowrap"]
 	},
 	{
 	    "title_i18n": "severity_groups.group_notice_or_lower",
 	    "data_field": "count_group_notice_or_lower",
 	    "render_type": "hideIfZero",
+		 "min-width" : "150px",
 	    "class": ["text-right", "font-weight-bold"]
 	},
 	{
 	    "title_i18n": "severity_groups.group_warning",
 	    "data_field": "count_group_warning",
 	    "render_type": "hideIfZero",
+		 "min-width" : "150px",
 	    "class": ["text-right", "font-weight-bold"]
 	},
 
@@ -30,6 +33,7 @@
 	    "title_i18n": "severity_groups.group_error",
 	    "data_field": "count_group_error",
 	    "render_type": "hideIfZero",
+		 "min-width" : "150px",
 	    "class": ["text-right", "font-weight-bold"]
 	},
 
@@ -37,6 +41,7 @@
 	    "title_i18n": "severity_groups.group_critical",
 	    "data_field": "count_group_critical",
 	    "render_type": "hideIfZero",
+		 "min-width" : "150px",
 	    "class": ["text-right", "font-weight-bold"]
 	},
 
@@ -44,6 +49,7 @@
 	    "title_i18n": "severity_groups.group_emergency",
 	    "data_field": "count_group_emergency",
 	    "render_type": "hideIfZero",
+		 "min-width" : "150px",
 	    "class": ["text-right", "font-weight-bold"]
 	}
     ]

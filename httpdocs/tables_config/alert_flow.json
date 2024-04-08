@@ -15,6 +15,7 @@
 	    "sticky": true,
 	    "class": ["text-nowrap", "text-center"],
 	    "render_v_node_type": "button_list",
+		 "min-width" : "80px",
 	    "button_def_array": [
 		{ "id": "info", "icon": "fas fa fa-search-plus", "class":["link-button"], "title_i18n": "info", "event_id": "click_button_info" },
 		{ "id": "historical_data", "icon": "fas fa-stream", "title_i18n": "db_explorer.historical_data", "class":["link-button"], "event_id": "click_button_historical_flows" },
@@ -27,6 +28,7 @@
 	{
 	    "title_i18n": "show_alerts.alert_datetime",
 	    "data_field": "tstamp",
+		 "min-width" : "115px",
 	    "sortable": true,
 	    "render_type": "formatValueLabel",
 	    "class": ["text-center", "text-nowrap"]
@@ -35,6 +37,7 @@
 	    "title_i18n": "score",
 	    "data_field": "score",
 	    "sortable": true,
+		 "min-width" : "80px",
 	    "render_type": "formatValueLabel",
 	    "class": ["text-center"]
 	},
@@ -42,18 +45,21 @@
 	    "title_i18n": "db_search.alert_category",
 	    "data_field": "alert_category",
 	    "sortable": true,
+		 "min-width" : "103px",
 	    "render_type": "formatCategory",
 	    "class": ["text-center"]
 	},
 	{
 	    "title_i18n": "application",
 	    "data_field": "l7_proto",
+		 "min-width" : "125px",
 	    "sortable": true,
 	    "class": ["text-center"]
 	},
 	{
 	    "title_i18n": "alerts_dashboard.alert",
 	    "data_field": "msg",
+		 "min-width" : "155px",
 	    "sortable": false,
 	    "render_type": "formatNameDescription",
 	    "class": ["text-nowrap"]
@@ -61,6 +67,7 @@
 	{
 	    "title_i18n": "flow",
 	    "data_field": "flow",
+		 "min-width" : "200px",
 	    "sortable": false,
 	    "render_type": "formatFlowTuple",
 	    "class": ["text-nowrap"]
@@ -69,6 +76,7 @@
 	    "title_i18n": "description",
 	    "data_field": "description",
 	    "sortable": false,
+		 "min-width" : "200px",
 	    "render_type": "formatMessage",
 	    "class": ["text-nowrap"]
 	},
@@ -76,12 +84,14 @@
 	    "title_i18n": "db_search.tags.community_id",
 	    "data_field": "community_id",
 	    "sortable": false,
+		 "min-width" : "130px",
 	    "render_generic": "community_id",
 	    "class": ["text-nowrap"]
 	},
 	{
 	    "title_i18n": "datatable.fields.info",
 	    "data_field": "info",
+		 "min-width" : "100px",
 	    "sortable": true,
 	    "class": ["text-nowrap"]
 	},
@@ -89,6 +99,7 @@
 	    "title_i18n": "datatable.fields.traffic_exchanged",
 	    "data_field": "total_bytes",
 	    "sortable": true,
+		 "min-width" : "165px",
 	    "render_type": "formatTraffic",
 	    "class": ["text-nowrap"]
 	},
@@ -97,12 +108,14 @@
 	    "data_field": "cli_host_pool_id",
 	    "sortable": false,
 	    "render_generic": "cli_host_pool_id",
+		 "min-width" : "110px",
 	    "class": ["text-nowrap"]
 	},
 	{
 	    "title_i18n": "db_search.tags.srv_host_pool_id",
 	    "data_field": "srv_host_pool_id",
 	    "sortable": false,
+		 "min-width" : "110px",
 	    "render_generic": "srv_host_pool_id",
 	    "class": ["text-nowrap"]
 	},
@@ -110,12 +123,14 @@
 	    "title_i18n": "db_search.tags.cli_network",
 	    "data_field": "cli_network",
 	    "sortable": false,
+		 "min-width" : "145px",
 	    "render_generic": "cli_network",
 	    "class": ["text-nowrap"]
 	},
 	{
 	    "title_i18n": "db_search.tags.srv_network",
 	    "data_field": "srv_network",
+		 "min-width" : "145px",
 	    "sortable": false,
 	    "render_generic": "srv_network",
 	    "class": ["text-nowrap"]
@@ -123,6 +138,7 @@
 	{
 	    "title_i18n": "db_search.tags.probe_ip",
 	    "data_field": "probe_ip",
+		 "min-width" : "150px",
 	    "sortable": false,
 	    "render_type": "formatProbeIP",
 	    "class": ["text-nowrap"]

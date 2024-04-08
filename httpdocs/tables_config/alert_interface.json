@@ -15,6 +15,7 @@
 	    "sticky": true,
 	    "class": ["text-nowrap", "text-center"],
 	    "render_v_node_type": "button_list",
+		 "min-width" : "80px",
 	    "button_def_array": [
 		{ "id": "info", "icon": "fas fa fa-search-plus", "class":["link-button"], "title_i18n": "info", "event_id": "click_button_info" },
 		{ "id": "historical_data", "icon": "fas fa-stream", "title_i18n": "db_explorer.historical_data", "class":["link-button"], "event_id": "click_button_historical_flows" },
@@ -27,6 +28,7 @@
 	{
 	    "title_i18n": "show_alerts.alert_datetime",
 	    "data_field": "tstamp",
+		 "min-width" : "115px",
 	    "sortable": true,
 	    "render_type": "formatValueLabel",
 	    "class": ["text-center", "text-nowrap"]
@@ -34,13 +36,15 @@
 	{
 	    "title_i18n": "score",
 	    "data_field": "score",
+		 "min-width" : "80px",
 	    "sortable": true,
 	    "render_type": "formatValueLabel",
 	    "class": ["text-center"]
 	},
 	{
 	    "title_i18n": "duration",
-	    "data_field": "duration",	    
+	    "data_field": "duration",	  
+		 "min-width" : "95px",  
 	    "sortable": true,
 	    "render_type": "secondsToTime",
 	    "class": ["text-center", "text-nowrap"]
@@ -49,12 +53,14 @@
 	    "title_i18n": "alerts_dashboard.alert",
 	    "data_field": "msg",
 	    "sortable": false,
+		 "min-width" : "155px",
 	    "render_type": "formatNameDescription",
 	    "class": ["text-nowrap"]
 	},
 	{
 	    "title_i18n": "interface",
 	    "data_field": "subtype",
+		 "min-width" : "155px",
 	    "sortable": true,
 	    "render_type": "formatSubtypeValueLabel",
 	    "class": ["text-nowrap"]

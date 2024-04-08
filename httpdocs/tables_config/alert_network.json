@@ -13,6 +13,7 @@
 	    "title_i18n": "actions",
 	    "sortable": false,
 	    "sticky": true,
+		 "min-width" : "80px",
 	    "class": ["text-nowrap", "text-center"],
 	    "render_v_node_type": "button_list",
 	    "button_def_array": [
@@ -26,6 +27,7 @@
 	{
 	    "title_i18n": "show_alerts.alert_datetime",
 	    "data_field": "tstamp",
+		 "min-width" : "115px",
 	    "sortable": true,
 	    "render_type": "formatValueLabel",
 	    "class": ["text-center", "text-nowrap"]
@@ -34,6 +36,7 @@
 	    "title_i18n": "score",
 	    "data_field": "score",
 	    "sortable": true,
+		 "min-width" : "80px",
 	    "render_type": "formatValueLabel",
 	    "class": ["text-center"]
 	},
@@ -41,6 +44,7 @@
 	    "title_i18n": "duration",
 	    "data_field": "duration",	    
 	    "sortable": true,
+		 "min-width" : "95px",
 	    "render_type": "secondsToTime",
 	    "class": ["text-center", "text-nowrap"]
 	},
@@ -48,6 +52,7 @@
 	    "title_i18n": "alerts_dashboard.alert",
 	    "data_field": "msg",
 	    "sortable": false,
+		 "min-width" : "155px",
 	    "render_type": "formatNameDescription",
 	    "class": ["text-nowrap"]
 	},
@@ -55,6 +60,7 @@
 	    "title_i18n": "network",
 	    "data_field": "name",
 	    "sortable": true,
+		 "min-width" : "155px",
 	    "render_type": "formatNetwork",
 	    "class": ["text-nowrap"]
 	},

@@ -13,6 +13,7 @@
 	    "title_i18n": "actions",
 	    "sortable": false,
 	    "sticky": true,
+		 "min-width" : "80px",
 	    "class": ["text-nowrap", "text-center"],
 	    "render_v_node_type": "button_list",
 	    "button_def_array": [
@@ -27,6 +28,7 @@
 	{
 	    "title_i18n": "show_alerts.alert_datetime",
 	    "data_field": "tstamp",
+		 "min-width" : "115px",
 	    "sortable": true,
 	    "render_type": "formatValueLabel",
 	    "class": ["text-center", "text-nowrap"]
@@ -34,6 +36,7 @@
 	{
 	    "title_i18n": "score",
 	    "data_field": "score",
+		 "min-width" : "80px",
 	    "sortable": true,
 	    "render_type": "formatValueLabel",
 	    "class": ["text-center"]
@@ -42,6 +45,7 @@
 	    "title_i18n": "db_search.alert_category",
 	    "data_field": "alert_category",
 	    "sortable": true,
+		 "min-width" : "103px",
 	    "render_type": "formatCategory",
 	    "class": ["text-center"]
 	},
@@ -49,6 +53,7 @@
 	    "title_i18n": "alerts_dashboard.alert",
 	    "data_field": "msg",
 	    "sortable": false,
+		 "min-width" : "155px",
 	    "render_type": "formatNameDescription",
 	    "class": ["text-nowrap"]
 	},
@@ -56,6 +61,7 @@
 	    "title_i18n": "host_details.host",
 	    "data_field": "ip",
 	    "sortable": false,
+		 "min-width" : "155px",
 	    "render_type": "formatHost",
 	    "class": ["text-nowrap"]
 	},
@@ -63,6 +69,7 @@
 	    "title_i18n": "description",
 	    "data_field": "description",
 	    "sortable": false,
+		 "min-width" : "200px",
 	    "class": ["text-nowrap"]
 	},
 	{
@@ -70,6 +77,7 @@
 	    "data_field": "host_pool_id",
 	    "sortable": false,
 	    "render_generic": "host_pool_id",
+		 "min-width" : "110px",
 	    "class": ["none"]
 	},
 	{
@@ -77,6 +85,7 @@
 	    "data_field": "network",
 	    "sortable": false,
 	    "render_generic": "network",
+		 "min-width" : "155px",
 	    "class": ["none"]
 	}
     ]
