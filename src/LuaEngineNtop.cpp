@@ -877,7 +877,8 @@ static int ntop_loadCustomCategoryFile(lua_State *vm) {
     ignorePrivateIPs = (bool)lua_toboolean(vm, 5);
 
   if((fd = fopen(path, "r")) == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to open %s", path);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unable to open category list in %s",
+      path);
     lua_pushinteger(vm, (int)num_lines_loaded);
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }
