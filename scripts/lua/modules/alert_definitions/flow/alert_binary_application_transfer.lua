@@ -46,7 +46,6 @@ end
 -- @return A human-readable string
 function alert_binary_application_transfer.format(ifid, alert, alert_type_params)
    local res
-   alert_type_params.proto = nil
    
    if (alert_type_params) and (alert_type_params.proto) and (alert_type_params.proto.http) and (alert_type_params.proto.http.last_url) then
       local url = alert_type_params.proto.http.last_url

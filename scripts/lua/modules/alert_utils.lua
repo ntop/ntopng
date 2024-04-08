@@ -216,12 +216,12 @@ function alert_utils.formatRawFlow(alert, nohtml)
         ["srv.blacklisted"] = tostring(alert["srv_blacklisted"]) == "1",
         ["srv.localhost"] = tostring(alert["srv_localhost"]) == "1",
         ["srv.host"] = alert["srv_name"],
-        ["vlan"] = alert["vlan_id"],
+        ["vlan"] = alert["vlan_id"]
     }
 
     flow = "<i class=\"fas fa-stream\"></i> " .. (getFlowLabel(flow, false, add_links, time_bounds, {
         page = "alerts"
-    },nil,true,nohtml) or "")
+    }, nil, true, nohtml) or "")
 
     return flow
 end
@@ -281,13 +281,15 @@ function alert_utils.getConfigsetAlertLink(alert_json, alert --[[ optional --]] 
             if host then
                 local measurement = alert_json.host.measurement or alert_json.measurement
                 if measurement then
-                    return ' <a href="' .. ntop.getHttpPrefix() .. '/lua/monitor/active_monitoring_monitor.lua?am_host=' ..
-                           host .. '&measurement=' .. measurement ..
-                           '&page=overview"><i class="fas fa-cog" title="' .. i18n("edit_configuration") .. '"></i></a>'
+                    return
+                        ' <a href="' .. ntop.getHttpPrefix() .. '/lua/monitor/active_monitoring_monitor.lua?am_host=' ..
+                            host .. '&measurement=' .. measurement .. '&page=overview"><i class="fas fa-cog" title="' ..
+                            i18n("edit_configuration") .. '"></i></a>'
                 else
-                    return ' <a href="' .. ntop.getHttpPrefix() .. '/lua/monitor/active_monitoring_monitor.lua?am_host=' ..
-                           host ..
-                           '&page=overview"><i class="fas fa-cog" title="' .. i18n("edit_configuration") .. '"></i></a>'
+                    return
+                        ' <a href="' .. ntop.getHttpPrefix() .. '/lua/monitor/active_monitoring_monitor.lua?am_host=' ..
+                            host .. '&page=overview"><i class="fas fa-cog" title="' .. i18n("edit_configuration") ..
+                            '"></i></a>'
                 end
             else
                 return ' <a href="' .. ntop.getHttpPrefix() ..
@@ -386,7 +388,7 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, 
     local alert_risk
 
     if tonumber(alert.alert_id) then
-       alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
+        alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
     end
 
     if not alert_json then
@@ -403,6 +405,8 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, 
     end
 
     if isEmptyString(msg) then
+        tprint(alert_json)
+        tprint(alert_risk)
         if alert_json and alert_json.alert_generation and alert_risk and alert_risk > 0 then
             -- Flow risks most of the times already have a default description, use this in case of emtpy descr
             msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
@@ -417,11 +421,11 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, 
     end
 
     if add_score then
-       if tonumber(alert.alert_id) then 
-          local alert_score = ntop.getFlowAlertScore(tonumber(alert.alert_id))
-          msg = alert_utils.format_score(msg, alert_score)
-       end
-   end
+        if tonumber(alert.alert_id) then
+            local alert_score = ntop.getFlowAlertScore(tonumber(alert.alert_id))
+            msg = alert_utils.format_score(msg, alert_score)
+        end
+    end
 
     -- Add the link to the documentation
     if alert_risk and alert_risk > 0 then
@@ -543,7 +547,9 @@ function alert_utils.formatAlertNotification(notif, options)
     if (options.show_severity == false) then
         severity = ""
     else
-        severity = " [Severity: " .. alert_consts.alertSeverityLabel(notif.score, options.nohtml or options.nolabelhtml, options.emoji) .. "]"
+        severity = " [Severity: " ..
+                       alert_consts.alertSeverityLabel(notif.score, options.nohtml or options.nolabelhtml, options.emoji) ..
+                       "]"
     end
 
     if (options.nodate == true) then
@@ -566,17 +572,18 @@ function alert_utils.formatAlertNotification(notif, options)
 
     local entity_label = ""
     if notif.entity_id then
-       entity_label = alert_consts.alertEntityLabel(notif.entity_id) or ""
+        entity_label = alert_consts.alertEntityLabel(notif.entity_id) or ""
     end
 
     -- entity can be hidden for example when one is OK with just the message
     if options.show_entity and not isEmptyString(entity_label) then
-       msg = msg .. " [" .. entity_label .. "]"
+        msg = msg .. " [" .. entity_label .. "]"
     end
 
-    local alert_type_label = alert_consts.alertTypeLabel(notif.alert_id, options.nohtml or options.nolabelhtml, notif.entity_id, true)
+    local alert_type_label = alert_consts.alertTypeLabel(notif.alert_id, options.nohtml or options.nolabelhtml,
+        notif.entity_id, true)
     if alert_type_label then
-       msg = msg .. " [" .. alert_type_label .. "]"
+        msg = msg .. " [" .. alert_type_label .. "]"
     end
 
     -- entity can be hidden for example when one is OK with just the message
@@ -594,7 +601,7 @@ function alert_utils.formatAlertNotification(notif, options)
             -- show host only, hiding measurement id (e.g. vs@)
             local parts = split(notif.entity_val, "@")
             if #parts == 2 then
-               ev = parts[2]
+                ev = parts[2]
             end
 
         end
@@ -618,7 +625,7 @@ function alert_utils.formatAlertNotification(notif, options)
 
     local alert_title = ""
     if not isEmptyString(entity_label) then
-       alert_title = string.format("[%s]: ", entity_label)
+        alert_title = string.format("[%s]: ", entity_label)
     end
     alert_title = alert_title .. alert_consts.alertTypeLabel(notif.alert_id, options.nohtml, notif.entity_id)
 
@@ -772,7 +779,7 @@ end
 
 -- ##############################################
 
-function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_json, add_score)
+function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_json, add_score, no_html)
     -- Unpack all flow alerts, iterating the alerts_map. The alerts_map is stored as an HEX.
     local other_alerts_by_score = {} -- Table used to keep messages ordered by score
     local additional_alerts = {}
@@ -803,8 +810,10 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
 
                         local alert_risk = ntop.getFlowAlertRisk(alert_id)
                         if alert_risk > 0 then
-                            message =
-                                string.format("%s %s", message, flow_risk_utils.get_documentation_link(alert_risk))
+                            if not no_html then
+                                message = string.format("%s %s", message,
+                                    flow_risk_utils.get_documentation_link(alert_risk))
+                            end
                             local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
                             if not isEmptyString(info_msg) then
                                 message = string.format("%s [%s]", message, info_msg)
@@ -848,18 +857,18 @@ end
 
 -- ##############################################
 
-function alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_info, recipient_id) 
+function alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_info, recipient_id)
     local alert_key = ""
     local alert_key_fields = {}
     local not_set = true
     local silence_alerts = ntop.getCache("ntopng.prefs.silence_multiple_alerts." .. recipient_id) or "1"
-    
+
     -- In case the alerts have to be silenced for the endpoint then silence them, otherwise skip
     if silence_alerts == "1" then
-        if alert_consts.alert_types[alert_id].alert_retention_policy_key  then
+        if alert_consts.alert_types[alert_id].alert_retention_policy_key then
             alert_key_fields = alert_consts.alert_types[alert_id].alert_retention_policy_key(alert_info)
             for _, field in ipairs(alert_key_fields) do
-                alert_key = alert_key .. "."..alert_info[field]
+                alert_key = alert_key .. "." .. alert_info[field]
             end
         else
             if not alert_entities[entity_val] then
@@ -868,7 +877,7 @@ function alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_i
             alert_key_fields = alert_entities[entity_val].alert_key_fields
             if (alert_key_fields) then
                 for _, field in ipairs(alert_key_fields) do
-                    alert_key = alert_key .. "."..alert_info[field]
+                    alert_key = alert_key .. "." .. alert_info[field]
                 end
             else
                 return not_set
@@ -879,13 +888,14 @@ function alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_i
             return not_set
         end
 
-        local redis_key = string.format("ntopng.cache.alert.retention.%s.%s.%s%s",recipient_id, entity_id, alert_id, alert_key)
+        local redis_key = string.format("ntopng.cache.alert.retention.%s.%s.%s%s", recipient_id, entity_id, alert_id,
+            alert_key)
         not_set = isEmptyString(ntop.getCache(redis_key))
-        
+
         if not_set then
             -- Set key with expiration on redis to filter out the same alert for some time
             -- TODO: 3600 must be update with a user preference
-            ntop.setCache(redis_key,"1", 3600)
+            ntop.setCache(redis_key, "1", 3600)
         end
     end
 

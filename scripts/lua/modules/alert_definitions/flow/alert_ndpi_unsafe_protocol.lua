@@ -36,7 +36,7 @@ end
 -- #######################################################
 
 function alert_ndpi_unsafe_protocol.format(ifid, alert, alert_type_params)
-   return
+   return i18n('flow_risk.ndpi_unsafe_protocol_descr')
 end
 
 -- #######################################################

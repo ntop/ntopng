@@ -37,7 +37,7 @@ end
 -- #######################################################
 
 function alert_ndpi_http_suspicious_url.format(ifid, alert, alert_type_params)
-   return
+   return i18n('alerts_dashboard.ndpi_http_suspicious_url_descr')
 end
 
 -- #######################################################

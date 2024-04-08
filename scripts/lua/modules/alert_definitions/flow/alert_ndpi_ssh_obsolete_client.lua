@@ -35,7 +35,11 @@ end
 -- #######################################################
 
 function alert_ndpi_ssh_obsolete_client.format(ifid, alert, alert_type_params)
-   i18n("flow_risk.ndpi_ssh_obsolete_client_version_or_cipher")
+   if alert_type_params and alert_type_params.proto and alert_type_params.proto.ssh then   
+      local client_signature = alert_type_params.proto.ssh.client_signature
+      return i18n("flow_risk.ndpi_ssh_obsolete_client_version_or_cipher_signature", { signature = client_signature }) 
+   end
+   return i18n("flow_risk.ndpi_ssh_obsolete_client_version_or_cipher")
 end
 
 -- #######################################################

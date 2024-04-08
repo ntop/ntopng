@@ -40,10 +40,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_tcp_connection_no_answer.format(ifid, alert, alert_type_params)
-  local cli = format_alert_hostname(alert, "cli")
-  local srv = format_alert_hostname(alert, "srv")
-  
-  return i18n("flow_details.tcp_connection_no_answer_descr", { cli = cli, srv = srv })   
+  return i18n("flow_checks_config.tcp_connection_no_answer_descr")   
 end
 
 -- #######################################################

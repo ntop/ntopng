@@ -34,7 +34,7 @@ end
 -- #######################################################
 
 function alert_ndpi_malformed_packet.format(ifid, alert, alert_type_params)
-   return
+   return i18n('flow_risk.ndpi_malformed_packet_descr')
 end
 
 -- #######################################################

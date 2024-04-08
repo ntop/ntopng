@@ -34,5 +34,16 @@ end
 
 -- #######################################################
 
+-- @brief Format an alert into a human-readable string
+-- @param ifid The integer interface id of the generated alert
+-- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
+-- @param alert_type_params Table `alert_type_params` as built in the `:init` method
+-- @return A human-readable string
+function alert_ndpi_periodic_flow.format(ifid, alert, alert_type_params)
+  return i18n("flow_risk.ndpi_periodic_flow_descr")   
+end
+
+-- #######################################################
+
 return alert_ndpi_periodic_flow
 

@@ -43,7 +43,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_known_proto_on_non_std_port.format(ifid, alert, alert_type_params)
-   return
+   return i18n('flow_risk.ndpi_known_proto_on_non_stand_port_descr')
 end
 
 -- #######################################################
