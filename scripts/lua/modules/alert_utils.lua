@@ -403,8 +403,13 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, 
     end
 
     if isEmptyString(msg) then
-        msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]] ,
-            alert_entities.flow.entity_id)
+        if alert_json and alert_json.alert_generation and alert_risk and alert_risk > 0 then
+            -- Flow risks most of the times already have a default description, use this in case of emtpy descr
+            msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
+        else
+            -- Normal alerts
+            msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]] , alert.entity_id)
+        end
     end
 
     if not isEmptyString(alert["user_label"]) then

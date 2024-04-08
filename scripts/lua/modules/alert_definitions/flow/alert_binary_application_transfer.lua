@@ -45,8 +45,9 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_binary_application_transfer.format(ifid, alert, alert_type_params)
-   local res = i18n("alerts_dashboard.binary_application_transfer")
-
+   local res
+   alert_type_params.proto = nil
+   
    if (alert_type_params) and (alert_type_params.proto) and (alert_type_params.proto.http) and (alert_type_params.proto.http.last_url) then
       local url = alert_type_params.proto.http.last_url
       local href = format_external_link(url, url, false, interface.getnDPIProtoName(tonumber(alert["l7_master_proto"])))
