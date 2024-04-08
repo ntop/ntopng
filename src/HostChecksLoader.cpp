@@ -42,11 +42,19 @@ HostChecksLoader::~HostChecksLoader() {
 
 void HostChecksLoader::registerCheck(HostCheck *cb) {
   if (cb_all.find(cb->getName()) != cb_all.end()) {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Ignoring duplicate host check %s", cb->getName().c_str());
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Ignoring duplicate host check %s", cb->getName().c_str());
     delete cb;
-  } else
+  } else {
+    /*
+      The registered name has a companion lua scaript that can be found at:
+      
+      - /usr/share/ntopng/scripts/lua/modules/alert_definitions/host/<name>.lua
+      - /usr/share/ntopng/scripts/lua/modules/check_definitions/host/<name>.lua 
+    */
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Registering %s", cb->getName().c_str());
+    
     cb_all[cb->getName()] = cb;
+  }
 }
 
 /* **************************************************** */
