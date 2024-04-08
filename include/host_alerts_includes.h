@@ -45,7 +45,7 @@
 #include "host_alerts/DomainNamesContactsAlert.h"
 #include "host_alerts/ScanDetectionAlert.h"
 #include "host_alerts/TrafficVolumeAlert.h"
-#include "host_alerts/HostBlackHoleContactsAlert.h"
+#include "host_alerts/HostScannerAlert.h"
 
 /* Pro Alerts - do NOT use #ifdef as alerts must always be available */
 

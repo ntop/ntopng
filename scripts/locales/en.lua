@@ -936,7 +936,7 @@ local lang = {
     ["anomalous_tcp_flags"] = "%{entity} has %{sent_or_rcvd} too many TCP RST flags vs SYN [Ratio: %{ratio}%%]",
     ["attack_mitigation_via_snmp_failure"] = "Failure to set interface <a href=\"%{port_url}\">%{port}</a> admin status on SNMP device <a href=\"%{url}\">%{device}</a> to %{admin_down}: %{granularity} <b>%{metric}</b> crossed by %{entity} [%{value} %{op} %{threshold}]. Make sure the SNMP device has a (valid) write community configured.",
     ["attack_mitigation_via_snmp_success"] = "Interface <a href=\"%{port_url}\">%{port}</a> admin status on SNMP device <a href=\"%{url}\">%{device}</a> set to %{admin_down}: %{granularity} <b>%{metric}</b> crossed by %{entity} [%{value} %{op} %{threshold}]",
-    ["blackhole_contacts"] = "%{entity} scanner dected [TCP Blackhole Contacts : as client: %{as_client}]",
+    ["scanner_contacts"] = "%{entity} scanner contacted %{as_client} hosts",
     ["broadcast_domain_info"] = "It is unlikely to see ARP traffic between those IPs as they are seemingly belonging to different broadcast domains. Check for hosts and networks configurations.",
     ["broadcast_domain_too_large"] = "ARP traffic from <a href=\"%{src_mac_url}\">%{src_mac}</a>/<a href=\"%{spa_url}\">%{spa}</a> to <a href=\"%{dst_mac_url}\">%{dst_mac}</a>/<a href=\"%{tpa_url}\">%{tpa}</a> detected.",
     ["contacted_peers"] = "Too many Peers contacted by %{host} %{host_category}. As a client: [%{value_cli} > %{dyn_threshold_cli}]. As a server: [%{value_srv} > %{dyn_threshold_srv}].",

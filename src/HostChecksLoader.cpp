@@ -55,30 +55,30 @@ void HostChecksLoader::registerChecks() {
   /* TODO: implement dynamic loading */
   HostCheck *fcb;
 
-  if ((fcb = new CountriesContacts())) registerCheck(fcb);
+  if ((fcb = new CountriesContacts()))   registerCheck(fcb);
   if ((fcb = new CustomHostLuaScript())) registerCheck(fcb);
-  if ((fcb = new FlowFlood())) registerCheck(fcb);
-  if ((fcb = new SYNScan())) registerCheck(fcb);
-  if ((fcb = new SYNFlood())) registerCheck(fcb);
-  if ((fcb = new FINScan())) registerCheck(fcb);
-  if ((fcb = new RSTScan())) registerCheck(fcb);
-  if ((fcb = new DNSServerContacts())) registerCheck(fcb);
-  if ((fcb = new SMTPServerContacts())) registerCheck(fcb);
-  if ((fcb = new NTPServerContacts())) registerCheck(fcb);
-  if ((fcb = new RemoteConnection())) registerCheck(fcb);
-  if ((fcb = new DangerousHost())) registerCheck(fcb);
+  if ((fcb = new FlowFlood()))           registerCheck(fcb);
+  if ((fcb = new SYNScan()))             registerCheck(fcb);
+  if ((fcb = new SYNFlood()))            registerCheck(fcb);
+  if ((fcb = new FINScan()))             registerCheck(fcb);
+  if ((fcb = new RSTScan()))             registerCheck(fcb);
+  if ((fcb = new DNSServerContacts()))   registerCheck(fcb);
+  if ((fcb = new SMTPServerContacts()))  registerCheck(fcb);
+  if ((fcb = new NTPServerContacts()))   registerCheck(fcb);
+  if ((fcb = new RemoteConnection()))    registerCheck(fcb);
+  if ((fcb = new DangerousHost()))       registerCheck(fcb);
   if ((fcb = new DomainNamesContacts())) registerCheck(fcb);
-  if ((fcb = new ScoreThreshold())) registerCheck(fcb);
-  if ((fcb = new ICMPFlood())) registerCheck(fcb);
-  if ((fcb = new ScanDetection())) registerCheck(fcb);
+  if ((fcb = new ScoreThreshold()))      registerCheck(fcb);
+  if ((fcb = new ICMPFlood()))           registerCheck(fcb);
+  if ((fcb = new ScanDetection()))       registerCheck(fcb);
 
 #ifdef NTOPNG_PRO
-  if ((fcb = new ScoreAnomaly())) registerCheck(fcb);
-  if ((fcb = new DNSFlood())) registerCheck(fcb);
-  if ((fcb = new SNMPFlood())) registerCheck(fcb);
-  if ((fcb = new FlowAnomaly())) registerCheck(fcb);
-  if ((fcb = new HostBlackHoleContacts())) registerCheck(fcb);
-  if ((fcb = new RXOnlyHostScan())) registerCheck(fcb);
+  if ((fcb = new ScoreAnomaly()))        registerCheck(fcb);
+  if ((fcb = new DNSFlood()))            registerCheck(fcb);
+  if ((fcb = new SNMPFlood()))           registerCheck(fcb);
+  if ((fcb = new FlowAnomaly()))         registerCheck(fcb);
+  if ((fcb = new HostScanner()))         registerCheck(fcb);
+  if ((fcb = new RXOnlyHostScan()))      registerCheck(fcb);
 #endif
 
   // printChecks();

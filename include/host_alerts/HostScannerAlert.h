@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class HostBlackHoleContactsAlert : public HostAlert {
+class HostScannerAlert : public HostAlert {
  private:
   u_int32_t as_client, as_client_threshold;
 
@@ -36,19 +36,19 @@ class HostBlackHoleContactsAlert : public HostAlert {
   }
 
  public:
-  HostBlackHoleContactsAlert(HostCheck* c, Host* h,risk_percentage cli_pctg,
+  HostScannerAlert(HostCheck* c, Host* h,risk_percentage cli_pctg,
                     u_int32_t _as_client, u_int32_t _as_client_threshold)
       : HostAlert(c, h, cli_pctg) {
     as_client = _as_client;
     as_client_threshold = _as_client_threshold;
   }
-  ~HostBlackHoleContactsAlert(){};
+  ~HostScannerAlert(){};
 
   static HostAlertType getClassType() {
-    return {host_alert_black_hole_contacts, alert_category_security};
+    return { host_alert_host_scanner, alert_category_security};
   }
   HostAlertType getAlertType() const { return getClassType(); }
-  u_int8_t getAlertScore() const { return SCORE_LEVEL_ERROR; };
+  u_int8_t getAlertScore() const     { return SCORE_LEVEL_CRITICAL; };
 };
 
 #endif /* _HOST_BLACK_HOLE_CONTACTS_H_ */

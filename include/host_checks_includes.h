@@ -52,7 +52,7 @@
 #include "host_checks/SNMPFlood.h"
 #include "host_checks/ScoreAnomaly.h"
 #include "host_checks/FlowAnomaly.h"
-#include "host_checks/HostBlackHoleContacts.h"
+#include "host_checks/HostScanner.h"
 #include "host_checks/RXOnlyHostScan.h"
 #endif
 #endif /* _HOST_CHECKS_INCLUDES_H_ */
