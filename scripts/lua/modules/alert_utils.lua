@@ -405,8 +405,6 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, 
     end
 
     if isEmptyString(msg) then
-        tprint(alert_json)
-        tprint(alert_risk)
         if alert_json and alert_json.alert_generation and alert_risk and alert_risk > 0 then
             -- Flow risks most of the times already have a default description, use this in case of emtpy descr
             msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
