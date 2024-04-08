@@ -63,7 +63,7 @@ class IEC104Stats {
                      u_int16_t payload_len, const struct pcap_pkthdr *h);
 
   void lua(lua_State *vm);
-  char *getFlowInfo(char *buf, u_int buf_len);
+  std::string getFlowInfo();
 };
 
 #endif /* _IEC104_STATS_H_ */

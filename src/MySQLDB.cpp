@@ -611,7 +611,7 @@ char *MySQLDB::escapeAphostrophes(const char *unescaped) {
 
 int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf,
                                size_t values_buf_len) {
-  char cli_str[64], srv_str[64], *json_buf, *info_buf, buf[64];
+  char cli_str[64], srv_str[64], *json_buf, *info_buf;
   u_int32_t packets, first_seen, last_seen;
   u_int64_t bytes_cli2srv, bytes_srv2cli;
   size_t len;
@@ -620,7 +620,7 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf,
 
   json_buf = escapeAphostrophes((const char *)json);
   info_buf =
-      escapeAphostrophes((const char *)f->getFlowInfo(buf, sizeof(buf), false));
+      escapeAphostrophes((const char *)f->getFlowInfo(false).c_str());
 
   /* Prevents ERROR 1406 (22001): Data too long for column 'INFO' at row 1 */
   if (info_buf && strlen(info_buf) > 254) info_buf[255] = '\0';

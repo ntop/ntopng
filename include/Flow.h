@@ -600,7 +600,7 @@ class Flow : public GenericHashEntry {
   static double toMs(const struct timeval *t);
   void timeval_diff(struct timeval *begin, const struct timeval *end,
                     struct timeval *result, u_short divide_by_two);
-  char *getFlowInfo(char *buf, u_int buf_len, bool isLuaRequest);
+  std::string getFlowInfo(bool isLuaRequest);
   inline char *getFlowServerInfo() {
     return (isTLS() && protos.tls.client_requested_server_name)
                ? protos.tls.client_requested_server_name

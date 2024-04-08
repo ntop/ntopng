@@ -4936,8 +4936,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
     }
 
     if (retriever->flow_info) {
-      char buf[64];
-      if (strcmp(retriever->flow_info, f->getFlowInfo(buf, sizeof(buf), false)))
+      if (strcmp(retriever->flow_info, f->getFlowInfo(false).c_str()))
         return (false);
     }
 
