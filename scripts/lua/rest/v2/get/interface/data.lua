@@ -345,9 +345,14 @@ function dumpBriefInterfaceStats(ifid)
     res["localtime"]  = os.date("%H:%M:%S %z", res["epoch"])
     res["uptime"]     = secondsToTime(uptime)
     if ntop.isPro() then
-      local product_info = ntop.getInfo(true)
+       local product_info = ntop.getInfo(true)
+       
       if product_info["pro.out_of_maintenance"] then
         res["out_of_maintenance"] = true
+      end
+
+      if(product_info.ntopcloud) then
+	 res["ntopcloud"] = true
       end
     end
 

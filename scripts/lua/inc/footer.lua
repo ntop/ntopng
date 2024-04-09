@@ -362,7 +362,7 @@ print[[
 
 					msg += NtopUtils.formatValue(rsp.num_devices, 1)+" <i class=\"fas fa-ethernet\"></i></span></a>";
 				}
-
+                    
 				if(rsp.num_flows > 0 && (!systemInterfaceEnabled)) {
           msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/flows_stats.lua'>";
           const flows_label = "]] print(i18n("live_flows")) print[["
@@ -397,7 +397,6 @@ print[[
 				}
 
 				if (rsp.traffic_recording != undefined && (!systemInterfaceEnabled)) {
-
 					var status_label="primary";
 					var status_title="]] print(i18n("traffic_recording.recording")) print [[";
 
@@ -412,7 +411,6 @@ print[[
 				}
 
 				if (rsp.traffic_extraction != undefined && (!systemInterfaceEnabled)) {
-
 					var status_title="]] print(i18n("traffic_recording.traffic_extraction_jobs")) print [[";
 					var status_label = "secondary";
 
@@ -422,11 +420,20 @@ print[[
 					msg += "<span class=\"badge bg-"+status_label+"\" title=\""+NtopUtils.addCommas(status_title)+"\">";
 					msg += rsp.traffic_extraction_num_tasks+" <i class=\"fas fa-tasks fa-lg\"></i></span></a>";
 				}
+
 				if (rsp.vs_in_progress != undefined && rsp.vs_in_progress > 0 && (!systemInterfaceEnabled)) {
 					msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/vulnerability_scan.lua'>";
 					msg += "<span class=\"badge bg-primary\">";
 					msg += NtopUtils.addCommas(rsp.vs_in_progress) +" <i class=\"fas fa-satellite-dish\"></i></span></a>";
 				}
+
+                                if(rsp.ntopcloud == true) {
+                                       msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/system_stats.lua?ifid=-1&page=ntopcloud'>"; 
+                                       msg += "<blink><span class=\"badge bg-success\">ntop <i class=\"fas fa-cloud\"></i></span></blink></a>";
+                                } else  {
+                                       msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/system_stats.lua?ifid=-1&page=ntopcloud'>"; 
+                                       msg += "<span class=\"badge bg-danger\">ntop <i class=\"fas fa-cloud\"></i></span></a>";
+                                }
 ]]
 
 if ntop.isOffline() then
