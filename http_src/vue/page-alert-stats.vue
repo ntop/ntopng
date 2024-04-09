@@ -125,13 +125,10 @@
 <script setup>
 import { ref, onMounted, onBeforeMount,computed, nextTick } from "vue";
 import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_sync } from "../services/context/ntopng_globals_services";
-import NtopUtils from "../utilities/ntop-utils";
 import { ntopChartApex } from "../components/ntopChartApex.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
-import TableUtils from "../utilities/table-utils";
 import filtersManager from "../utilities/filters-manager.js";
 
-import { default as SelectSearch } from "./select-search.vue";
 import { default as Navbar } from "./page-navbar.vue";
 import { default as AlertInfo } from "./alert-info.vue";
 import { default as Chart } from "./chart.vue";
