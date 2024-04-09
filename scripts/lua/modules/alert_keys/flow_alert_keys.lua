@@ -105,6 +105,7 @@ local flow_alert_keys = {
    flow_alert_ndpi_fully_encrypted                 = 96,
    flow_alert_ndpi_tls_alpn_sni_mismatch           = 97,
    flow_alert_ndpi_malware_host_contacted          = 98,
+   flow_alert_ndpi_binary_data_transfer            = 99,
    
    -- NOTE: do not go beyond the size of the alert_map bitmal inside Flow.h (currently 128)
 }

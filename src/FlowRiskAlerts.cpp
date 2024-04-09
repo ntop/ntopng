@@ -247,6 +247,9 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
 
     /* NDPI_MALWARE_HOST_CONTACTED */
     {{flow_alert_ndpi_malware_host_contacted, alert_category_security}, "ndpi_malware_host_contacted"},
+
+    /* NDPI_BINARY_DATA_TRANSFER */
+    {{flow_alert_ndpi_binary_data_transfer, alert_category_security}, "ndpi_binary_data_transfer"},
 };
 
 /* **************************************************** */
