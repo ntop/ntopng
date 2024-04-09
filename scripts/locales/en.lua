@@ -1015,7 +1015,7 @@ local lang = {
     ["remote_to_remote"] = "Remote %{entity}%{host_category} contacted a remote host",
     ["rst_scan_attacker"] = "%{entity} is a RST scan attacker [%{value} &gt; %{threshold} RST sent]",
     ["rst_scan_victim"] = "%{entity} is under a RST scan [%{value} &gt; %{threshold} RST received]",
-    ["rx_scan_detected"] = "%{entity} RX-only under scan detected [TCP Blackhole Contacts : as server: %{as_server}] [Num Contacted Host Ports: %{num_server_ports}]",
+    ["rx_scan_detected"] = "%{entity} RX-only under scan detected [Remote Host Contacts: %{as_server}] [Contacted Ports: %{num_server_ports}]",
     ["scan_detected"] = "%{entity} is a scanner [%{value} &gt; %{threshold} scan attempts]",
     ["score_number_anomaly"] = "%{role} Score: %{score} [Expected Range: %{lower_bound} ... %{upper_bound} <i class='fas fa-question-circle' title='This Behaviour is automatically calculated by ntopng by analyzing the host behavior during time, find more at ntopng guide into `Basic Concept->Alerts->Behaviour Alerts` section'></i>][Cybersecurity Score: %{cat_sec}% | Network Score: %{cat_net}%][Flow Alerts: <a href='%{flow_params}'><i class='fas fa-search-plus fa-lg'></i></a>][Past Host Alerts: <a href='%{host_params_historical}'><i class='fas fa-search-plus fa-lg'></i></a>][Engaged Host Alerts: <a href='%{host_params_engaged}'><i class='fas fa-search-plus fa-lg'></i></a>]",
     ["score_number_anomaly_threshold"] = "%{metric} exceeded by %{entity} [%{value} > %{threshold}]",
