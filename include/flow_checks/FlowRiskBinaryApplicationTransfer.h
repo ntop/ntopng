@@ -39,12 +39,10 @@ class FlowRiskBinaryApplicationTransfer : public FlowRisk {
         new FlowRiskBinaryApplicationTransferAlert(this, f);
 
     /*
-      The client is considered an attacker as it can be an infected host now
-      part of a botnet which fetches a malware executable. The server is
-      considered an attacker as well as it can be a server providing malicious
-      files.
+      The server is considered an attacker it can be a server 
+      providing malicious files.
      */
-    alert->setCliAttacker(), alert->setSrvAttacker();
+    alert->setSrvAttacker();
 
     return alert;
   }
