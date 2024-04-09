@@ -27,6 +27,28 @@ local flow_alert_store = classes.class(alert_store)
 
 -- ##############################################
 
+function flow_alert_store:format_location()
+    local cli_location = _GET["cli_location"]
+    local srv_location = _GET["srv_location"]
+    local host_location = _GET["host_location"]
+    -- 0 is remote, 1 is local
+    if cli_location then
+        local list = split(cli_location, ',')
+        local value = self:strip_filter_operator(list[1])
+        self:add_filter_condition_list("cli_location", cli_location, "string", value)
+    end
+    if srv_location then
+        local list = split(srv_location, ',')
+        local value = self:strip_filter_operator(list[1])
+        self:add_filter_condition_list("srv_location", srv_location, "string", value)
+    end
+    if host_location then
+        self:add_filter_condition_list("location", srv_location)
+    end
+end
+
+-- ##############################################
+
 function flow_alert_store:format_traffic_direction(traffic_direction)
     if traffic_direction then
         local list = split(traffic_direction, ',')
@@ -550,6 +572,7 @@ function flow_alert_store:_add_additional_request_filters()
     local alert_domain = _GET["alert_domain"]
 
     self:format_traffic_direction(_GET["traffic_direction"])
+    self:format_location()
 
     -- Filter out flows with no alert
     -- Any reason we need this?
@@ -629,7 +652,10 @@ function flow_alert_store:_get_additional_available_filters()
         probe_ip = tag_utils.defined_tags.probe_ip,
         input_snmp = tag_utils.defined_tags.input_snmp,
         output_snmp = tag_utils.defined_tags.output_snmp,
-        snmp_interface = tag_utils.defined_tags.snmp_interface
+        snmp_interface = tag_utils.defined_tags.snmp_interface,
+        host_location = tag_utils.defined_tags.host_location,
+        cli_location = tag_utils.defined_tags.cli_location,
+        srv_location = tag_utils.defined_tags.srv_location
     }
 
     return filters
@@ -754,6 +780,19 @@ function flow_alert_store:_alert2hostinfo(value, as_client)
             ip = value["srv_ip"],
             name = value["srv_name"]
         }
+    end
+end
+
+-- ##############################################
+
+local function location(host_location)
+    if tonumber(host_location) == 0 then
+        -- Remote
+        return "remote"
+    elseif tonumber(host_location) == 1 then
+        return "local"
+    else
+        retunr "multicast"
     end
 end
 
@@ -956,7 +995,8 @@ function flow_alert_store:format_record(value, no_html)
         label = cli_ip or "",
         reference = reference_html,
         country = country,
-        blacklisted = value["cli_blacklisted"]
+        blacklisted = value["cli_blacklisted"],
+        location = location(value["cli_location"])
     }
 
     if not isEmptyString(value["cli_name"]) and value["cli_name"] ~= flow_cli_ip["value"] then
@@ -1003,7 +1043,8 @@ function flow_alert_store:format_record(value, no_html)
         label = srv_ip or "",
         reference = reference_html,
         country = country,
-        blacklisted = value["srv_blacklisted"]
+        blacklisted = value["srv_blacklisted"],
+        location = location(value["srv_location"])
     }
 
     if not isEmptyString(value["srv_name"]) and value["srv_name"] ~= flow_srv_ip["value"] then

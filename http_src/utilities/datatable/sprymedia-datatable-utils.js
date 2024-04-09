@@ -832,6 +832,15 @@ export class DataTableRenders {
         if (flow.cli_ip.blacklisted == true)
             cliBlacklisted = " <i class=\'fas fa-ban fa-sm\' title=\'" + i18n("hosts_stats.blacklisted") + "\'></i>"
 
+        let cliLocation = ''
+        if (flow.cli_ip.location == 'multicast') {
+            cliLocation = cliLocation + " <abbr data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("multicast") + "'><span class='badge bg-primary'>" + i18n("short_multicast") + "</span></abbr> "
+        } else if (flow.cli_ip.location == 'local') {
+            cliLocation = cliLocation + " <abbr data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("details.label_local_host") + "'><span class='badge bg-success'>" + i18n("details.label_short_local_host") + "</span></abbr> "
+        } else {
+            cliLocation = cliLocation + " <abbr data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("details.label_remote") + "'><span class='badge bg-secondary'>" + i18n("details.label_short_remote") + "</span></abbr> "
+        }
+
         let srvLabel = ""
         if (flow.srv_ip.name) {
             let title = "";
@@ -850,6 +859,15 @@ export class DataTableRenders {
         if (flow.srv_ip.blacklisted == true)
             srvBlacklisted = " <i class=\'fas fa-ban fa-sm\' title=\'" + i18n("hosts_stats.blacklisted") + "\'></i>"
 
+        let srvLocation = ''
+        if (flow.srv_ip.location == 'multicast') {
+            srvLocation = srvLocation + " <abbr data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("multicast") + "'><span class='badge bg-primary'>" + i18n("short_multicast") + "</span></abbr> "
+        } else if (flow.srv_ip.location == 'local') {
+            srvLocation = srvLocation + " <abbr data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("details.label_local_host") + "'><span class='badge bg-success'>" + i18n("details.label_short_local_host") + "</span></abbr> "
+        } else {
+            srvLocation = srvLocation + " <abbr data-bs-toggle='tooltip' data-bs-placement='bottom' title='" + i18n("details.label_remote") + "'><span class='badge bg-secondary'>" + i18n("details.label_short_remote") + "</span></abbr> "
+        }
+
         let cliIcons = "";
         let srvIcons = "";
         if (row.cli_role) {
@@ -866,7 +884,7 @@ export class DataTableRenders {
                 srvIcons += DataTableRenders.filterize('role', 'victim', '<i class="fas fa-sad-tear" title="' + row.srv_role.label + '"></i>', row.srv_role.tag_label);
         }
 
-        return `${active_ref} ${cliLabel}${cliBlacklisted}${cliFlagLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvBlacklisted}${srvFlagLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
+        return `${active_ref} ${cliLabel}${cliBlacklisted}${cliLocation}${cliFlagLabel}${cliPortLabel} ${cliIcons} ${flow.cli_ip.reference} <i class="fas fa-exchange-alt fa-lg" aria-hidden="true"></i> ${srvLabel}${srvBlacklisted}${srvLocation}${srvFlagLabel}${srvPortLabel} ${srvIcons} ${flow.srv_ip.reference}`;
     }
 
     static formatSubtypeValueLabel(obj, type, row, zero_is_null) {
