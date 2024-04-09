@@ -385,19 +385,7 @@ const map_table_def_columns = async (columns) => {
             return DataTableRenders.filterize('l7proto', proto.value, proto.label) + " " + `${confidence}`;
         },
         "info": (info, row) => {
-            let copy_button = ''
-            if(info.value) {
-                copy_button = `<button class="btn btn-light btn-sm border ms-1" data-placement="bottom" onclick="
-                    const textArea = document.createElement('textarea');
-                    textArea.value = '${info.value}';    
-                    textArea.style.position = 'absolute';
-                    textArea.style.left = '-999999px';    
-                    document.body.prepend(textArea);
-                    textArea.select();
-                    document.execCommand('copy');"
-                    ><i class="fas fa-copy"></i></button>`
-            }
-            return `${copy_button} ${DataTableRenders.filterize('info', info.value, info.label)}`;
+            return `${DataTableRenders.filterize('info', info.value, info.label)}`;
         },
     };
     let set_query_preset_columns = selected_query_preset.value.is_preset && columns.length > 0;

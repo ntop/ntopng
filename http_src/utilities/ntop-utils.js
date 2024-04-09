@@ -61,18 +61,18 @@ const REGEXES = {
 
 export default class NtopUtils {
 
-  /* Show an overlay to hide loading */
-  static toggleOverlays(time = 500) {
-    $(`.overlay`).toggle(time);
-  }
-  
-  static showOverlays(time = 500) {
-    $(`.overlay`).fadeIn(time);
-  }
-  
-  static hideOverlays(time = 500) {
-    $(`.overlay`).fadeOut(time);
-  }
+        /* Show an overlay to hide loading */
+        static toggleOverlays(time = 500) {
+                $(`.overlay`).toggle(time);
+        }
+
+        static showOverlays(time = 500) {
+                $(`.overlay`).fadeIn(time);
+        }
+
+        static hideOverlays(time = 500) {
+                $(`.overlay`).fadeOut(time);
+        }
 
         static get REGEXES() {
                 return REGEXES;
@@ -218,7 +218,7 @@ export default class NtopUtils {
 
                 if (i <= 1) {
                         return Math.round(bits / Math.pow(1000, i) * 100) / 100 + ' ' + sizes[i]
-                } 
+                }
                 else {
                         var ret = parseFloat(bits / Math.pow(1000, i)).toFixed(2)
                         if (ret % 1 == 0)
@@ -358,18 +358,18 @@ export default class NtopUtils {
                 return Math.round(value * 100) / 100 + " %";
         }
 
-    static percentage(value, total) {
-        if(total > 0) {
-            var pctg = Math.round((value * 10000) / total)
-            
-            if(pctg > 0) {
-                /* Two decimals */
-                return(" [ " + (pctg/100) + " % ] ")
-            }
+        static percentage(value, total) {
+                if (total > 0) {
+                        var pctg = Math.round((value * 10000) / total)
+
+                        if (pctg > 0) {
+                                /* Two decimals */
+                                return (" [ " + (pctg / 100) + " % ] ")
+                        }
+                }
+
+                return ("")
         }
-        
-        return("") 
-    }
 
         static fdate(when) {
                 var epoch = when * 1000;
@@ -417,11 +417,11 @@ export default class NtopUtils {
                 var terabyte = gigabyte * 1024;
 
                 if ((bytes >= 0) && (bytes < kilobyte))
-                        if(bytes != 0)        
+                        if (bytes != 0)
                                 return parseFloat(bytes.toFixed(precision)) + " Bytes";
                         else
                                 return parseFloat(bytes) + " Bytes";
-  
+
                 else if ((bytes >= kilobyte) && (bytes < megabyte))
                         return parseFloat((bytes / kilobyte).toFixed(precision)) + ' KB';
                 else if ((bytes >= megabyte) && (bytes < gigabyte))
@@ -542,7 +542,7 @@ export default class NtopUtils {
                 if ((bits > 0) && (bits < NTOPNG_MIN_VISUAL_VALUE)) return ('< ' + NTOPNG_MIN_VISUAL_VALUE + " bps");
                 var res = NtopUtils.scaleValue(bits, sizes, factor);
 
-                return res[0]+ " " + res[1];
+                return res[0] + " " + res[1];
         };
 
         static secondsToTime(seconds) {
@@ -593,7 +593,7 @@ export default class NtopUtils {
 
         static msecToTime(msec) {
                 if (msec >= 1000) {
-                        return NtopUtils.secondsToTime(msec/1000);
+                        return NtopUtils.secondsToTime(msec / 1000);
                 } else {
                         var x = Math.round(msec * 1000) / 1000.;
                         return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + " ms";
@@ -999,9 +999,9 @@ export default class NtopUtils {
                 const url = new URL(location, window.location);
 
                 for (const [name, value] of Object.entries(params)) {
-                    if (value || value === 0)
-                          url.searchParams.set(name, value);
-                    continue;
+                        if (value || value === 0)
+                                url.searchParams.set(name, value);
+                        continue;
                 }
 
                 if (hasReferer) {
@@ -1053,8 +1053,8 @@ export default class NtopUtils {
          * @param {object} $element 
          * @param {object} scale
          */
-        static saveElementScale($element, scale = {width: 0, height: 0}) {
-                
+        static saveElementScale($element, scale = { width: 0, height: 0 }) {
+
                 const key = NtopUtils.generateScaleElementKey($element);
                 localStorage.setItem(key, JSON.stringify(scale));
         }
@@ -1101,18 +1101,18 @@ export default class NtopUtils {
         }
 
         static copyToClipboard(text, item) {
-    const el = document.createElement('textarea');
-    el.value = text;
-    el.setAttribute('readonly', '');
-    el.style.position = 'absolute';
-    el.style.left = '-9999px';
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand('copy');
-    document.body.removeChild(el);
-    $(item).attr("title", "Copied!").tooltip("dispose").tooltip().tooltip("show");
-    $(item).removeAttr("data-bs-original-title")
-    $(item).attr("title", text)
+                const el = document.createElement('textarea');
+                el.value = text;
+                el.setAttribute('readonly', '');
+                el.style.position = 'absolute';
+                el.style.left = '-9999px';
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                $(item).attr("title", "Copied!").tooltip("dispose").tooltip().tooltip("show");
+                $(item).removeAttr("data-bs-original-title")
+                $(item).attr("title", text)
         }
 
         static stripTags(html) {
@@ -1121,278 +1121,278 @@ export default class NtopUtils {
                 return t.textContent || t.innerText || "";
         }
 
-  static shortenLabel(label, len, last_char) {
-    let shortened_label = label
-    if(label.length > len + 5) {
-      if(last_char) {
-        let last_index = label.lastIndexOf(last_char)
-        const requested_label = label.slice(last_index)
-        if(len > last_index) 
-          len = last_index
-        shortened_label = label.slice(0, len) + "... " + requested_label
-      } else {
-        shortened_label = label.slice(0, len) + "...";
-      }
-    }
+        static shortenLabel(label, len, last_char) {
+                let shortened_label = label
+                if (label.length > len + 5) {
+                        if (last_char) {
+                                let last_index = label.lastIndexOf(last_char)
+                                const requested_label = label.slice(last_index)
+                                if (len > last_index)
+                                        len = last_index
+                                shortened_label = label.slice(0, len) + "... " + requested_label
+                        } else {
+                                shortened_label = label.slice(0, len) + "...";
+                        }
+                }
 
-    return shortened_label
-  }
-        
-  static sortAlphabetically(a, b) {
-    const nameA = a.label?.toUpperCase(); // ignore upper and lowercase
-    const nameB = b.label?.toUpperCase(); // ignore upper and lowercase
-    if (nameA < nameB) { return -1; }
-    if (nameA > nameB) { return 1; }
-    return 0;
-  }
+                return shortened_label
+        }
 
-  /* This function, given a name and a value, return a string
-   * formatted in the following way:
-   * name [value]
-        * If max_name_len is different from 0, then it's going to cut the name string
-        * to max_name_len
-   */
-  static formatNameValue(name, value, max_name_len) {
+        static sortAlphabetically(a, b) {
+                const nameA = a.label?.toUpperCase(); // ignore upper and lowercase
+                const nameB = b.label?.toUpperCase(); // ignore upper and lowercase
+                if (nameA < nameB) { return -1; }
+                if (nameA > nameB) { return 1; }
+                return 0;
+        }
+
+        /* This function, given a name and a value, return a string
+         * formatted in the following way:
+         * name [value]
+              * If max_name_len is different from 0, then it's going to cut the name string
+              * to max_name_len
+         */
+        static formatNameValue(name, value, max_name_len) {
                 let label = name;
-                if(name != value) {
-                        if(max_name_len && typeof(max_name_len) == 'number')
+                if (name != value) {
+                        if (max_name_len && typeof (max_name_len) == 'number')
                                 label = this.shortenLabel(label, max_name_len, '.');
 
-                        label = `${label} [${value}]` 
+                        label = `${label} [${value}]`
                 }
                 return label
-  }
+        }
 
-  /* This function, remove from a string the VLAN 0
-   * name@0 -> name
-   */
-  static removeVlan(name) {
+        /* This function, remove from a string the VLAN 0
+         * name@0 -> name
+         */
+        static removeVlan(name) {
                 let label = name
                 const vlan_index = label.lastIndexOf('@');
-                if(vlan_index != -1) {
-                        const vlan =  label.slice(vlan_index + 1);
-                        if(vlan == 0) {
+                if (vlan_index != -1) {
+                        const vlan = label.slice(vlan_index + 1);
+                        if (vlan == 0) {
                                 label = label.slice(0, vlan_index);
                         }
                 }
 
                 return label
-  }
-
-  /* Format an object with label and value from a column row */
-  static formatGenericObj(obj, row) {
-    let label = obj.label ? obj.label : obj.value;
-    let key = obj.value;
-    return label;
-  }
-
-  /* Format a country from a column object */
-  static formatCountry(obj, row) {
-    let country_code = obj.value;
-    let label = obj.label ? obj.label : obj.value;
-    return `${label} <img src="/dist/images/blank.gif" class="flag flag-${country_code.toLowerCase()}">`;
-  }
-
-  /* Format an host from a column object */
-  static formatHost(obj, row, is_client) {
-    let label = "";
-
-    if (!obj) {
-      return label;
-    }
-
-    /* Link */
-    let host_key = obj.ip;
-    if (row.vlan_id && row.vlan_id.value)
-      host_key = host_key + '@' + row.vlan_id.value;
-
-    /* Label */
-    label = obj.label ? obj.label : obj.value;
-    if (row.vlan_id && row.vlan_id.label)
-      label += `@${row.vlan_id.label}`;
-
-    const url = NtopUtils.buildURL(`${http_prefix}/lua/host_details.lua`, { host: host_key});
-    label = `<a href="${url}">${label}</a>`;
-
-    /* Country */
-    let country_obj = is_client ? row.cli_country : row.srv_country;
-    if (!country_obj && row.country) country_obj = row.country;
-    if (country_obj && country_obj.value)
-      label += ` <img src="${http_prefix}/dist/images/blank.gif" class="flag flag-${country_obj.value.toLowerCase()}" title="${country_obj.title}"></a>`;
-
-    return label;
-  }
-
-  /* Format a network from a column object */
-  static formatNetwork(obj, row) {
-    let label = "";
-
-    if (!obj) {
-      return label;
-    }
-
-    /* Link */
-    let network_key = obj.value;
-
-    /* Label */
-    label = obj.label ? obj.label : obj.value;
-    if (row.vlan_id && row.vlan_id.label)
-      label += `@${row.vlan_id.label}`;
-
-    const url = NtopUtils.buildURL(`${http_prefix}/lua/hosts_stats.lua`, { network: network_key});
-    label = `<a href="${url}">${label}</a>`;
-
-    return label;
-  }
-
-  /* This function converts an ip to a number equale to the ip but without . or :: in case of ipv6
-   * this is needed in case of ordering
-   */
-  static convertIPAddress(a) {
-        var i, item;
-        var m, n, t;
-        var x, xa;
-
-        if (!a) {
-                return 0;
         }
 
-        a = a.replace(/<[\s\S]*?>/g, "");
-        //IPv4:Port
+        /* Format an object with label and value from a column row */
+        static formatGenericObj(obj, row) {
+                let label = obj.label ? obj.label : obj.value;
+                let key = obj.value;
+                return label;
+        }
+
+        /* Format a country from a column object */
+        static formatCountry(obj, row) {
+                let country_code = obj.value;
+                let label = obj.label ? obj.label : obj.value;
+                return `${label} <img src="/dist/images/blank.gif" class="flag flag-${country_code.toLowerCase()}">`;
+        }
+
+        /* Format an host from a column object */
+        static formatHost(obj, row, is_client) {
+                let label = "";
+
+                if (!obj) {
+                        return label;
+                }
+
+                /* Link */
+                let host_key = obj.ip;
+                if (row.vlan_id && row.vlan_id.value)
+                        host_key = host_key + '@' + row.vlan_id.value;
+
+                /* Label */
+                label = obj.label ? obj.label : obj.value;
+                if (row.vlan_id && row.vlan_id.label)
+                        label += `@${row.vlan_id.label}`;
+
+                const url = NtopUtils.buildURL(`${http_prefix}/lua/host_details.lua`, { host: host_key });
+                label = `<a href="${url}">${label}</a>`;
+
+                /* Country */
+                let country_obj = is_client ? row.cli_country : row.srv_country;
+                if (!country_obj && row.country) country_obj = row.country;
+                if (country_obj && country_obj.value)
+                        label += ` <img src="${http_prefix}/dist/images/blank.gif" class="flag flag-${country_obj.value.toLowerCase()}" title="${country_obj.title}"></a>`;
+
+                return label;
+        }
+
+        /* Format a network from a column object */
+        static formatNetwork(obj, row) {
+                let label = "";
+
+                if (!obj) {
+                        return label;
+                }
+
+                /* Link */
+                let network_key = obj.value;
+
+                /* Label */
+                label = obj.label ? obj.label : obj.value;
+                if (row.vlan_id && row.vlan_id.label)
+                        label += `@${row.vlan_id.label}`;
+
+                const url = NtopUtils.buildURL(`${http_prefix}/lua/hosts_stats.lua`, { network: network_key });
+                label = `<a href="${url}">${label}</a>`;
+
+                return label;
+        }
+
+        /* This function converts an ip to a number equale to the ip but without . or :: in case of ipv6
+         * this is needed in case of ordering
+         */
+        static convertIPAddress(a) {
+                var i, item;
+                var m, n, t;
+                var x, xa;
+
+                if (!a) {
+                        return 0;
+                }
+
+                a = a.replace(/<[\s\S]*?>/g, "");
+                //IPv4:Port
                 t = a.split(":");
-                if (t.length == 2){
+                if (t.length == 2) {
                         m = t[0].split(".");
                 }
                 else {
                         m = a.split(".");
                 }
-        n = a.split(":");
-        x = "";
-        xa = "";
+                n = a.split(":");
+                x = "";
+                xa = "";
 
-        if (m.length == 4) {
-                // IPV4
-                for(i = 0; i < m.length; i++) {
-                item = m[i];
+                if (m.length == 4) {
+                        // IPV4
+                        for (i = 0; i < m.length; i++) {
+                                item = m[i];
 
-                if(item.length == 1) {
-                        x += "00" + item;
-                }
-                else if(item.length == 2) {
-                        x += "0" + item;
-                }
-                else {
-                        x += item;
-                }
-                }
-        }
-        else if (n.length > 0) {
-                // IPV6
-                var count = 0;
-                for(i = 0; i < n.length; i++) {
-                item = n[i];
-
-                if (i > 0) {
-                        xa += ":";
-                }
-
-                if(item.length === 0) {
-                        count += 0;
-                }
-                else if(item.length == 1) {
-                        xa += "000" + item;
-                        count += 4;
-                }
-                else if(item.length == 2) {
-                        xa += "00" + item;
-                        count += 4;
-                }
-                else if(item.length == 3) {
-                        xa += "0" + item;
-                        count += 4;
-                }
-                else {
-                        xa += item;
-                        count += 4;
-                }
-                }
-
-                // Padding the ::
-                n = xa.split(":");
-                var paddDone = 0;
-
-                for (i = 0; i < n.length; i++) {
-                item = n[i];
-
-                if (item.length === 0 && paddDone === 0) {
-                        for (var padding = 0 ; padding < (32-count) ; padding++) {
-                        x += "0";
-                        paddDone = 1;
+                                if (item.length == 1) {
+                                        x += "00" + item;
+                                }
+                                else if (item.length == 2) {
+                                        x += "0" + item;
+                                }
+                                else {
+                                        x += item;
+                                }
                         }
                 }
-                else {
-                        x += item;
+                else if (n.length > 0) {
+                        // IPV6
+                        var count = 0;
+                        for (i = 0; i < n.length; i++) {
+                                item = n[i];
+
+                                if (i > 0) {
+                                        xa += ":";
+                                }
+
+                                if (item.length === 0) {
+                                        count += 0;
+                                }
+                                else if (item.length == 1) {
+                                        xa += "000" + item;
+                                        count += 4;
+                                }
+                                else if (item.length == 2) {
+                                        xa += "00" + item;
+                                        count += 4;
+                                }
+                                else if (item.length == 3) {
+                                        xa += "0" + item;
+                                        count += 4;
+                                }
+                                else {
+                                        xa += item;
+                                        count += 4;
+                                }
+                        }
+
+                        // Padding the ::
+                        n = xa.split(":");
+                        var paddDone = 0;
+
+                        for (i = 0; i < n.length; i++) {
+                                item = n[i];
+
+                                if (item.length === 0 && paddDone === 0) {
+                                        for (var padding = 0; padding < (32 - count); padding++) {
+                                                x += "0";
+                                                paddDone = 1;
+                                        }
+                                }
+                                else {
+                                        x += item;
+                                }
+                        }
                 }
-                }
+
+                return x;
         }
 
-        return x;
-  }
+        /* Format an AS from a column object */
+        static formatASN(obj, row) {
+                let label = "";
 
-  /* Format an AS from a column object */
-  static formatASN(obj, row) {
-    let label = "";
+                if (!obj) {
+                        return label;
+                }
 
-    if (!obj) {
-      return label;
-    }
+                /* Link */
+                let asn_key = obj.value;
 
-    /* Link */
-    let asn_key = obj.value;
+                /* Label */
+                label = obj.label ? obj.label : obj.value;
 
-    /* Label */
-    label = obj.label ? obj.label : obj.value;
+                const url = NtopUtils.buildURL(`${http_prefix}/lua/hosts_stats.lua`, { asn: asn_key });
+                label = `<a href="${url}">${label}</a>`;
 
-    const url = NtopUtils.buildURL(`${http_prefix}/lua/hosts_stats.lua`, { asn: asn_key});
-    label = `<a href="${url}">${label}</a>`;
+                return label;
+        }
 
-    return label;
-  }
-
-  static createProgressBar(percentage) {
-    return `<div class="d-flex flex-row align-items-center">
+        static createProgressBar(percentage) {
+                return `<div class="d-flex flex-row align-items-center">
               <div class="col-9 progress">
                 <div class="progress-bar bg-warning" aria-valuenow="${percentage}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage}%;">
                 </div>
               </div>
               <div class="col"> ${percentage} %</div>
             </div>`
-  }
+        }
 
-  static createBreakdown(percentage_1, percentage_2, label_1, label_2) {
-    return `<div class="d-flex flex-row align-items-center">
+        static createBreakdown(percentage_1, percentage_2, label_1, label_2) {
+                return `<div class="d-flex flex-row align-items-center">
               <div class="col-12 progress">
                 <div class="progress-bar bg-warning" aria-valuenow="${percentage_1}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage_1}%;">${label_1}</div>
                 <div class="progress-bar bg-success" aria-valuenow="${percentage_2}" aria-valuemin="0" aria-valuemax="100" style="width: ${percentage_2}%;">${label_2}</div>
               </div>
             </div>`
-  }
+        }
 
-  /* Return the number of rows available in a table */
-  static getNumTableRows() {
-    return [10, 20, 50, 100];
-  }
+        /* Return the number of rows available in a table */
+        static getNumTableRows() {
+                return [10, 20, 50, 100];
+        }
 
-  static formatApexChartLabelFromXandName({series, seriesIndex, dataPointIndex, w}) {
-    const serie = w.config.series[seriesIndex]["data"][dataPointIndex];
-    const name = serie["name"]
-    const y_value = serie["y"];
-    const host_name = serie["meta"]["label"];
+        static formatApexChartLabelFromXandName({ series, seriesIndex, dataPointIndex, w }) {
+                const serie = w.config.series[seriesIndex]["data"][dataPointIndex];
+                const name = serie["name"]
+                const y_value = serie["y"];
+                const host_name = serie["meta"]["label"];
 
-    const x_axis_title = w.config.xaxis.title.text;
-    const y_axis_title = w.config.yaxis[0].title.text;
+                const x_axis_title = w.config.xaxis.title.text;
+                const y_axis_title = w.config.yaxis[0].title.text;
 
-    return (`
+                return (`
     <div class='apexcharts-theme-light apexcharts-active' id='test'>
         <div class='apexcharts-tooltip-title' style='font-family: Helvetica, Arial, sans-serif; font-size: 12px;'>
             ${host_name}
@@ -1407,52 +1407,52 @@ export default class NtopUtils {
         </div>
     </div>
     `)
-  }
+        }
 
-  static apexChartJumpToAlerts(event, chartContext, config) {
-    const { seriesIndex, dataPointIndex } = config;
-    const { series } = config.config;
-    if (seriesIndex === -1) return;
-    if (series === undefined) return;
+        static apexChartJumpToAlerts(event, chartContext, config) {
+                const { seriesIndex, dataPointIndex } = config;
+                const { series } = config.config;
+                if (seriesIndex === -1) return;
+                if (series === undefined) return;
 
-    const serie = series[seriesIndex];
-    const base_url = serie.base_url || series[0]['base_url']
-    const default_url = serie.start_url || series[0]['start_url']
-    if (base_url != null && default_url != null) {
-      const search = serie.data[dataPointIndex].meta.url_query;
-      location.href = `${base_url}?${default_url}${search}`;
-    }
-  }
+                const serie = series[seriesIndex];
+                const base_url = serie.base_url || series[0]['base_url']
+                const default_url = serie.start_url || series[0]['start_url']
+                if (base_url != null && default_url != null) {
+                        const search = serie.data[dataPointIndex].meta.url_query;
+                        location.href = `${base_url}?${default_url}${search}`;
+                }
+        }
 
 
-  static apexChartJumpToHostDetails(event, chartContext, config) {
-    const { seriesIndex, dataPointIndex } = config;
-    const { series } = config.config;
-    if (seriesIndex === -1) return;
-    if (series === undefined) return;
+        static apexChartJumpToHostDetails(event, chartContext, config) {
+                const { seriesIndex, dataPointIndex } = config;
+                const { series } = config.config;
+                if (seriesIndex === -1) return;
+                if (series === undefined) return;
 
-    const serie = series[seriesIndex];
+                const serie = series[seriesIndex];
 
-    const base_url = serie.base_url || series[0]['base_url']
-    
-    if (base_url != null ) {
-      const url = `${base_url}?${serie.data[dataPointIndex].meta.url_query}`;
-      ntopng_url_manager.go_to_url(url);
-    }
-  }
+                const base_url = serie.base_url || series[0]['base_url']
 
-  
-  static formatApexChartLabelFromXandY({series, seriesIndex, dataPointIndex, w}) {
-    const serie = w.config.series[seriesIndex]["data"][dataPointIndex];
-    
-    const x_value = serie["x"];
-    const y_value = serie["y"];
-    const host_name = serie["meta"]["label"];
+                if (base_url != null) {
+                        const url = `${base_url}?${serie.data[dataPointIndex].meta.url_query}`;
+                        ntopng_url_manager.go_to_url(url);
+                }
+        }
 
-    const x_axis_title = w.config.xaxis.title.text;
-    const y_axis_title = w.config.yaxis[0].title.text;
 
-    return (`
+        static formatApexChartLabelFromXandY({ series, seriesIndex, dataPointIndex, w }) {
+                const serie = w.config.series[seriesIndex]["data"][dataPointIndex];
+
+                const x_value = serie["x"];
+                const y_value = serie["y"];
+                const host_name = serie["meta"]["label"];
+
+                const x_axis_title = w.config.xaxis.title.text;
+                const y_axis_title = w.config.yaxis[0].title.text;
+
+                return (`
       <div class='apexcharts-theme-light apexcharts-active' id='test'>
           <div class='apexcharts-tooltip-title' style='font-family: Helvetica, Arial, sans-serif; font-size: 12px;'>
               ${host_name}
@@ -1467,7 +1467,7 @@ export default class NtopUtils {
           </div>
       </div>
     `)
-  }
+        }
 }
 
 $(function () {
