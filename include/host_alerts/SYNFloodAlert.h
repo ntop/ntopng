@@ -37,6 +37,7 @@ class SYNFloodAlert : public FlowHitsAlert {
   ~SYNFloodAlert(){};
 
   HostAlertType getAlertType() const { return getClassType(); }
+  u_int8_t getAlertScore() const { return SCORE_LEVEL_EMERGENCY; };
 };
 
 #endif /* _SYN_FLOOD_ALERT_H_ */
