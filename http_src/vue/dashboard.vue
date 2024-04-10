@@ -499,7 +499,7 @@ async function reset_filters() {
 async function load_filters(filters_available, res, show_second_load) {
     (!show_second_load) ? loading_filters.value = true : second_load.value = true;
     const added_filters_list = [];
-    if (!res && `${props.context.report_filters_endpoint}`) {
+    if (!res && (props.context.report_filters_endpoint != null)) {
         let retrieve_filters = ''
         let extra_params = ''
         let tmp = {}
