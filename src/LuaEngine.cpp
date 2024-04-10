@@ -513,7 +513,7 @@ static int ntop_lua_xfile(lua_State *L, bool ex) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Script failure %s", msg);
     if(ntop->getRedis()) {
       /* Push the alert into this queue, used by the alert */
-      ntop->getRedis()->lpush(ALERT_TRACE_ERRORS, msg, 0 /* No Trim */);
+      ntop->getRedis()->lpush(ALERT_TRACE_ERRORS, msg, 50 /* No Trim */);
     }
   }
 
@@ -700,7 +700,7 @@ int LuaEngine::run_loaded_script() {
 
       if(err) {
         ntop->getTrace()->traceEvent(TRACE_WARNING, "%s [%s]", err, loaded_script_path);
-        ntop->getRedis()->lpush(ALERT_TRACE_ERRORS, err, 0 /* No Trim */);   
+        ntop->getRedis()->lpush(ALERT_TRACE_ERRORS, err, 50 /* No Trim */);   
       }
     }
 
