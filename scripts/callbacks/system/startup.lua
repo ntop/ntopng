@@ -102,6 +102,9 @@ cleanupIfname(getSystemInterfaceName(), getSystemInterfaceId())
 -- Also flush the export queue
 ntop.delCache("ntopng.influx_file_queue")
 
+-- Also flush the alert queue
+ntop.delCache("ntopng.trace_error.alert_queue")
+
 -- ##################################################################
 
 local recording_utils = require "recording_utils"
