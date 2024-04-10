@@ -37,7 +37,11 @@ end
 -- #######################################################
 
 function alert_ndpi_url_possible_sql_injection.format(ifid, alert, alert_type_params)
-   return
+   if alert_type_params and alert_type_params.proto and alert_type_params.proto.http then
+      return i18n('alerts_dashboard.ndpi_url_possible_sql_injection_descr', { url =  alert_type_params.proto.http.last_url})
+   else
+      return i18n('alerts_dashboard.ndpi_url_possible_sql_injection_descr_generic')
+   end
 end
 
 -- #######################################################
