@@ -5,14 +5,56 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
 
+local trace_alert_page = ntop.getCache("ntopng.trace.alerts_page")
+local trace_stats = {}
+
+require "ntop_utils"
+require "lua_trace"
+
+if not isEmptyString(trace_alert_page) then
+    trace_stats = startProfiling("scripts/lua/alert_stats.lua")
+end
 require "lua_utils_get"
+
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("lua_utils_get", trace_stats)
+end
+
 require "check_redis_prefs"
+
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("check_redis_prefs", trace_stats)
+end
 local page_utils = require "page_utils"
+
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("page_utils", trace_stats)
+end
 local json = require "dkjson"
+
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("dkjson", trace_stats)
+end
 local template_utils = require "template_utils"
+
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("template_utils", trace_stats)
+end
 local alert_entities = require "alert_entities"
+
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("alert_entities", trace_stats)
+end
 local alert_store_utils = require "alert_store_utils"
+
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("alert_store_utils", trace_stats)
+end
 local recording_utils = require "recording_utils"
+
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("recording_utils", trace_stats)
+end
 
 local ifid = interface.getId()
 local alert_store_instances = alert_store_utils.all_instances_factory()
@@ -218,6 +260,10 @@ if endpoint_list then
     endpoint_list = ntop.getHttpPrefix() .. endpoint_list
 end
 
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("page", trace_stats)
+end
+
 -- ##################################################
 
 page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.detected_alerts)
@@ -247,6 +293,10 @@ end
 if not status then
     -- Default to historical
     status = "historical"
+end
+
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("page", trace_stats)
 end
 
 -- ##################################################
@@ -286,6 +336,11 @@ local context = {
     csrf = ntop.getRandomCSRFValue(),
     is_va = _GET["is_va"] or false
 }
+
+
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("context", trace_stats)
+end
 
 local json_context = json.encode(context)
 template_utils.render("pages/vue_page.template", {
