@@ -1069,27 +1069,39 @@ end
 
 -- @brief Given a table of values, if available, it's going to format the values with the standard
 --        info and then return the same table formatted
-function format_dns_query_info(dns_info)
+function format_dns_query_info(dns_info, no_html)
     if dns_info.last_query_type then
-        dns_info.last_query_type = string.format('<span class="badge bg-info">%s</span>',
+        if no_html then
+            dns_info.last_query_type = dns_utils.getQueryType(dns_info.last_query_type) 
+        else
+            dns_info.last_query_type = string.format('<span class="badge bg-info">%s</span>',
             dns_utils.getQueryType(dns_info.last_query_type))
+        end
     end
 
     if dns_info.last_return_code then
-        local badge = get_badge(dns_info.last_return_code)
-        dns_info.last_return_code = string.format('<span class="badge bg-%s">%s</span>', badge,
-            dns_utils.getResponseStatusCode(dns_info.last_return_code))
+        if no_html then
+            dns_info.last_return_code = dns_utils.getResponseStatusCode(dns_info.last_return_code) 
+        else
+            local badge = get_badge(dns_info.last_return_code)
+            dns_info.last_return_code = string.format('<span class="badge bg-%s">%s</span>', badge,
+                dns_utils.getResponseStatusCode(dns_info.last_return_code))
+        end
     end
 
     if dns_info.last_query then
-        local url = dns_info["last_query"]
-        url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
-        if not string.find(url, '*') then
-            dns_info.last_query = i18n("external_link_url", {
-                proto = 'https',
-                url = url,
-                url_name = dns_info["last_query"]
-            })
+        if no_html then
+            dns_info["last_query"] = dns_info["last_query"]
+        else
+            local url = dns_info["last_query"]
+            url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
+            if not string.find(url, '*') then
+                dns_info.last_query = i18n("external_link_url", {
+                    proto = 'https',
+                    url = url,
+                    url_name = dns_info["last_query"]
+                })
+            end
         end
     end
 
@@ -1098,7 +1110,7 @@ end
 
 -- ##############################################
 
-function format_tls_info(tls_info)
+function format_tls_info(tls_info, no_html)
     if tls_info.notBefore then
         tls_info.notBefore = formatEpoch(tls_info.notBefore)
     end
@@ -1121,11 +1133,15 @@ function format_tls_info(tls_info)
         local url = tls_info["client_requested_server_name"]
         url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
         if not string.find(url, '*') then
-            tls_info["client_requested_server_name"] = i18n("external_link_url", {
-                proto = 'https',
-                url = url,
-                url_name = url
-            })
+            if no_html then
+                tls_info["client_requested_server_name"] = tls_info["client_requested_server_name"]
+            else
+                tls_info["client_requested_server_name"] = i18n("external_link_url", {
+                    proto = 'https',
+                    url = url,
+                    url_name = url
+                })
+            end
         end
     end
 
@@ -1134,37 +1150,57 @@ function format_tls_info(tls_info)
     end
 
     if tls_info["ja3_server_unsafe_cipher"] then
-        local badge = get_badge(tls_info["ja3_server_unsafe_cipher"] == "safe")
-        tls_info["ja3_server_unsafe_cipher"] = string.format('<span class="badge bg-%s">%s</span>', badge,
-            tls_info["ja3_server_unsafe_cipher"])
+        if no_html then
+            tls_info["ja3_server_unsafe_cipher"] = tls_info["ja3_server_unsafe_cipher"]
+        else
+            local badge = get_badge(tls_info["ja3_server_unsafe_cipher"] == "safe")
+            tls_info["ja3_server_unsafe_cipher"] = string.format('<span class="badge bg-%s">%s</span>', badge,
+                tls_info["ja3_server_unsafe_cipher"])    
+        end
     end
 
     if tls_info["ja3_server_hash"] then
-        tls_info["ja3_server_hash"] = i18n("copy_button", {
-            full_name = tls_info["ja3_server_hash"],
-            name = tls_info["ja3_server_hash"]
-        })
+        if no_html then
+            tls_info["ja3_server_hash"] = tls_info["ja3_server_hash"]
+        else
+            tls_info["ja3_server_hash"] = i18n("copy_button", {
+                full_name = tls_info["ja3_server_hash"],
+                name = tls_info["ja3_server_hash"]
+            })
+        end
     end
 
     if tls_info["ja3_client_hash"] then
-        tls_info["ja3_client_hash"] = i18n("copy_button", {
-            full_name = tls_info["ja3_client_hash"],
-            name = tls_info["ja3_client_hash"]
-        })
+        if no_html then
+            tls_info["ja3_client_hash"] = tls_info["ja3_client_hash"]
+        else
+            tls_info["ja3_client_hash"] = i18n("copy_button", {
+                full_name = tls_info["ja3_client_hash"],
+                name = tls_info["ja3_client_hash"]
+            })
+        end
     end
 
     if tls_info["ja4_client_hash"] then
-        tls_info["ja4_client_hash"] = i18n("copy_button", {
-            full_name = tls_info["ja4_client_hash"],
-            name = tls_info["ja4_client_hash"]
-        })
+        if no_html then
+            tls_info["ja4_client_hash"] = tls_info["ja4_client_hash"]
+        else
+            tls_info["ja4_client_hash"] = i18n("copy_button", {
+                full_name = tls_info["ja4_client_hash"],
+                name = tls_info["ja4_client_hash"]
+            })
+        end
     end
 
     if tls_info["server_names"] then
-        tls_info["server_names"] = i18n("copy_button", {
-            full_name = tls_info["server_names"],
-            name = shortenString(tls_info["server_names"], 128)
-        })
+        if no_html then
+            tls_info["server_names"] = tls_info["server_names"]
+        else
+            tls_info["server_names"] = i18n("copy_button", {
+                full_name = tls_info["server_names"],
+                name = tls_info["server_names"]
+            })
+        end
     end
 
     return tls_info
@@ -1188,18 +1224,26 @@ end
 
 -- ##############################################
 
-function format_http_info(http_info)
+function format_http_info(http_info, no_html)
     if http_info["last_return_code"] then
         if http_info["last_return_code"] ~= 0 then
-            local badge = get_badge(http_info.last_return_code < 400)
+            if no_html then
+                http_info["last_method"] = http_info["last_method"]
+            else
+                local badge = get_badge(http_info.last_return_code < 400)
 
-            http_info["last_return_code"] = string.format('<span class="badge bg-%s">%s</span>', badge,
-                http_utils.getResponseStatusCode(http_info["last_return_code"]))
+                http_info["last_return_code"] = string.format('<span class="badge bg-%s">%s</span>', badge,
+                    http_utils.getResponseStatusCode(http_info["last_return_code"]))
+            end
         end
     end
 
     if http_info["last_method"] then
-        http_info["last_method"] = string.format('<span class="badge bg-info">%s</span>', http_info["last_method"])
+        if no_html then
+            http_info["last_method"] = http_info["last_method"]
+        else
+            http_info["last_method"] = string.format('<span class="badge bg-info">%s</span>', http_info["last_method"])
+        end
     end
 
     if http_info["last_url"] then
@@ -1210,19 +1254,27 @@ function format_http_info(http_info)
         end
         url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
         if not string.find(url, '*') then
-            http_info["last_url"] = i18n("external_link_url", {
-                proto = 'http',
-                url = url,
-                url_name = url
-            })
+            if no_html then
+                http_info["last_url"] = url
+            else
+                http_info["last_url"] = i18n("external_link_url", {
+                    proto = 'http',
+                    url = url,
+                    url_name = url
+                })
+            end
         end
     end
 
     if http_info["server_name"] then
-        http_info["server_name"] = i18n("copy_button", {
-            full_name = http_info["server_name"],
-            name = shortenString(http_info["server_name"], 32)
-        })
+        if no_html then
+            http_info["server_name"] = http_info["server_name"]
+        else
+            http_info["server_name"] = i18n("copy_button", {
+                full_name = http_info["server_name"],
+                name = shortenString(http_info["server_name"], 32)
+            })
+        end
     end
 
     return http_info

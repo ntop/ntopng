@@ -817,7 +817,7 @@ function flow_alert_store:format_record(value, no_html)
     end
 
     -- Add link to active flow
-    local flow_related_info = addExtraFlowInfo(alert_json, value)
+    local flow_related_info = addExtraFlowInfo(alert_json, value, no_html --[[ Send these info in json format ]])
 
     local alert_risk
     if tonumber(value.alert_id) then
@@ -881,7 +881,6 @@ function flow_alert_store:format_record(value, no_html)
 
     if no_html then
         msg = noHtml(msg)
-        flow_related_info = noHtml(flow_related_info)
     else
         record[RNAME.DESCRIPTION.name] = {
             descr = msg,
