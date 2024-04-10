@@ -15,49 +15,24 @@ if not isEmptyString(trace_alert_page) then
     trace_stats = startProfiling("scripts/lua/alert_stats.lua")
 end
 require "lua_utils_get"
-
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("lua_utils_get", trace_stats)
-end
-
 require "check_redis_prefs"
-
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("check_redis_prefs", trace_stats)
-end
 local page_utils = require "page_utils"
-
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("page_utils", trace_stats)
-end
 local json = require "dkjson"
-
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("dkjson", trace_stats)
-end
 local template_utils = require "template_utils"
-
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("template_utils", trace_stats)
-end
 local alert_entities = require "alert_entities"
-
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("alert_entities", trace_stats)
-end
 local alert_store_utils = require "alert_store_utils"
-
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("alert_store_utils", trace_stats)
-end
 local recording_utils = require "recording_utils"
 
 if not isEmptyString(trace_alert_page) then
-    traceProfiling("recording_utils", trace_stats)
+    traceProfiling("Ended requires", trace_stats)
 end
 
 local ifid = interface.getId()
 local alert_store_instances = alert_store_utils.all_instances_factory()
+
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("All instances factory", trace_stats)
+end
 
 -- select the default page
 local page = _GET["page"]
@@ -92,6 +67,9 @@ local endpoint_delete = "/lua/rest/v2/delete/host/alerts.lua"
 local endpoint_acknowledge = "/lua/rest/v2/acknowledge/host/alerts.lua"
 local download_endpoint_list = endpoint_list
 local interface_stats = interface.getStats()
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("Various parameters", trace_stats)
+end
 
 -- ##################################################
 
@@ -113,6 +91,10 @@ if interface.getId() ~= tonumber(getSystemInterfaceId()) then
             num_alerts_engaged_by_entity[entity_id] = num
         end
     end
+end
+
+if not isEmptyString(trace_alert_page) then
+    traceProfiling("Engaged numbers", trace_stats)
 end
 
 -- ##################################################
@@ -261,7 +243,7 @@ if endpoint_list then
 end
 
 if not isEmptyString(trace_alert_page) then
-    traceProfiling("page", trace_stats)
+    traceProfiling("pages", trace_stats)
 end
 
 -- ##################################################
@@ -293,10 +275,6 @@ end
 if not status then
     -- Default to historical
     status = "historical"
-end
-
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("page", trace_stats)
 end
 
 -- ##################################################
@@ -336,11 +314,6 @@ local context = {
     csrf = ntop.getRandomCSRFValue(),
     is_va = _GET["is_va"] or false
 }
-
-
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("context", trace_stats)
-end
 
 local json_context = json.encode(context)
 template_utils.render("pages/vue_page.template", {
