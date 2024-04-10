@@ -2219,11 +2219,6 @@ function checks.loadChecks()
         ntop.mkdir(path)
     end
 
-    -- Make sure to invalidate the (possibly) already required alert_consts which depends on alert definitions.
-    -- By invalidating the module, we make sure all the newly loaded alert definitions will be picked up by any
-    -- subsequent `require "alert_consts"`
-    package.loaded["alert_consts"] = nil
-
     -- Remove the list of system scripts enabled, re-added from the checks.lua file
     deleteCachePattern("ntonpng.cache.checks.available_system_modules.*")
 
