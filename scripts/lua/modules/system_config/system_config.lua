@@ -298,6 +298,13 @@ function system_config:getUnusedInterfaces()
   end
 end
 
+-- Get the WAN interfaces, based on the current operating mode
+function system_config:getWanInterfaces()
+  local mode = self:getOperatingMode()
+
+  return self.config.globals.available_modes[mode].interfaces.wan
+end
+
 -- Get the LAN interfaces, based on the current operating mode
 function system_config:getLanInterfaces()
   local mode = self:getOperatingMode()
@@ -856,7 +863,10 @@ function system_config:writeSystemFiles()
   end
 
   self:_writeNetworkInterfaces()
-  system_config.setFirstStart(false)
+  
+  if system_config.isFirstStart() then
+    system_config.setFirstStart(false)
+  end
 end
 
 -- ##############################################

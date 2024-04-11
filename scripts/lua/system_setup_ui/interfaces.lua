@@ -26,7 +26,7 @@ end
 system_setup_ui_utils.process_apply_discard_config(sys_config)
 
 local mode = sys_config:getOperatingMode()
-
+    
 if (_POST["lan_interfaces"] ~= nil) and (_POST["wan_interfaces"] ~= nil) then
   sys_config:setLanWanIfaces(split(_POST["lan_interfaces"], ","), split(_POST["wan_interfaces"], ","))
 
@@ -36,6 +36,13 @@ if (_POST["lan_interfaces"] ~= nil) and (_POST["wan_interfaces"] ~= nil) then
     for _, lan_iface in ipairs(lan_ifaces) do
       sys_config:setInterfaceMode(lan_iface, "static")
     end
+
+    -- Add to the list of gateways if not already present
+    local wan_ifaces = sys_config:getWanInterfaces()
+    for _, wan_iface in ipairs(wan_ifaces) do
+      sys_config:addGateway(wan_iface)
+    end
+
   end
 
   sys_config:save()
