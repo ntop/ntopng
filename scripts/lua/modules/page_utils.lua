@@ -243,6 +243,7 @@ end
 -- NOTE: this function is called by the web pages in order to
 -- set the active entry and section and highlight it into the menu
 function page_utils.print_header_and_set_active_menu_entry(entry, i18n_params, alt_title)
+   require "locales_utils"
    entry = entry or page_utils.menu_entries.traffic_dashboard
 
    active_section = entry.section

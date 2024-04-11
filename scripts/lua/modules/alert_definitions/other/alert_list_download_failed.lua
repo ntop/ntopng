@@ -39,7 +39,7 @@ function alert_list_download_failed:init(list_name, last_error)
    self.alert_type_params = {
       name = list_name,
       err = last_error,
-      url = ntop.getHttpPrefix().."/lua/admin/edit_category_lists.lua"
+      url = ntop.getHttpPrefix().."/lua/admin/blacklists.lua?enabled_status=enabled"
    }
 end
 

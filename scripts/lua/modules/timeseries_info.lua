@@ -159,20 +159,21 @@ local community_timeseries = {{
     }
 }, {
     schema = "top:blacklist:hits",
+    chart_type = "line",
     id = timeseries_id.blacklist,
     label = i18n('graphs.metric_labels.top_blacklist_hits'),
-    priority = 0,
+    type = "top",
+    draw_stacked = true,
+    priority = 2,
     measure_unit = "hitss",
     scale = i18n('graphs.metric_labels.blacklist_hits'),
-    draw_stacked = true,
-    chart_type = "line",
     timeseries = {
         hits = {
             use_serie_name = true,
             label = i18n('graphs.metric_labels.blacklist_num_hits'),
-            color = timeseries_info.get_timeseries_color('')
         }
-    }
+    },
+    default_visible = true
 }, {
     schema = "iface:new_flows",
     id = timeseries_id.iface,
@@ -2111,17 +2112,8 @@ local function add_top_blacklist_hits_timeseries(tags, timeseries)
     end
     for _, serie in pairs(series or {}) do
         tmp_tags.blacklist_name = serie.blacklist_name
-        local tot = 0
-        local tot_serie = ts_utils.queryTotal("blacklist:hits", tags.epoch_begin, tags.epoch_end, tmp_tags)
-        for _, value in pairs(tot_serie or {}) do
-            tot = tot + tonumber(value)
-        end
-        -- Uncomment to return only timeseries with values
-        -- if tot <= 0 then
-        --     return
-        -- end
         timeseries[#timeseries + 1] = {
-            schema = "top:blacklist:hits",
+            schema = "blacklist:hits",
             id = timeseries_id.blacklist,
             group = i18n("graphs.metric_labels.blacklist_num_hits"),
             priority = 0,
@@ -2134,7 +2126,6 @@ local function add_top_blacklist_hits_timeseries(tags, timeseries)
                 hits = {
                     use_serie_name = true,
                     label = i18n('graphs.metric_labels.blacklist_num_hits'),
-                    color = timeseries_info.get_timeseries_color('')
                 }
             }
         }

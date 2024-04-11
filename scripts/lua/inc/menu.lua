@@ -663,7 +663,7 @@ page_utils.add_menubar_section({
            }, {
         entry = page_utils.menu_entries.category_lists,
         hidden = not is_admin,
-        url = '/lua/admin/edit_category_lists.lua'
+        url = '/lua/admin/blacklists.lua?enabled_status=enabled'
 }, {
         entry = page_utils.menu_entries.divider
     }, {

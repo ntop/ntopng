@@ -460,6 +460,7 @@ local lang = {
   ["notes"] = "NOTES",
   ["ntop_age_to"] = "24",
   ["num_different_ports"] = "%{num} ports. None doing %{threshold}%%+ of the traffic.",
+  ["num_entries"] = "Entries",
   ["num_uses"] = "Contacts",
   ["observation_point_alias"] = "Observation Point Alias",
   ["observation_point_id"] = "Obs. Point ID",

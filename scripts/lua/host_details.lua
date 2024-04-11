@@ -825,7 +825,7 @@ else
                           i18n("details.label_system_ip") .. '\"></i></span>')
             end
             if (host["is_blacklisted"] == true) then
-                print(" <a href='"..ntop.getHttpPrefix().."/lua/admin/edit_category_lists.lua'><span class='badge bg-danger'>" .. i18n("details.label_blacklisted_host"))
+                print(" <a href='"..ntop.getHttpPrefix().."/lua/admin/blacklists.lua?enabled_status=enabled'><span class='badge bg-danger'>" .. i18n("details.label_blacklisted_host"))
 
                 if (host.blacklist_name ~= nil) then
                     print(' (' .. host.blacklist_name .. ')')

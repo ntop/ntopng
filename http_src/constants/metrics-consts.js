@@ -99,7 +99,7 @@ const sources_types = [
 	},
 	{
 	    id: "blacklist", //unique id
-	    regex_page_url: "lua\/blacklists_stats", // regex to match url page
+	    regex_page_url: "lua\/admin\/blacklists", // regex to match url page
 	    label: i18n("page_stats.source_def.blacklist"),
 	    query: "blacklist",
             f_map_ts_options: (ts_options, ts_group) => {

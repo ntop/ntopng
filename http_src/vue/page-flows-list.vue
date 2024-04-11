@@ -492,4 +492,4 @@ onMounted(() => {
     //    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
 });
 
-</script>../utilities/formatter-utils.js
+</script>

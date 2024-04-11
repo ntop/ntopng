@@ -49,6 +49,11 @@ if _POST["action"] == "edit" then
 
   url = string.gsub(url, "http:__", "http://")
   url = string.gsub(url, "https:__", "https://")
+  tprint(list_name)
+  tprint(enabled)
+  tprint(category)
+  tprint(url)
+  tprint(list_update)
 
   lists_utils.editList(list_name, {
     enabled = enabled,
