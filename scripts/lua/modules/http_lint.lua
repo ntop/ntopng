@@ -2583,6 +2583,7 @@ local known_parameters = {
    ["table"] = validateSingleWord,
    ["columns"] = validateListOfTypeInline(validateNumber),
    ["devices"] = {jsonCleanup, validateJSON},
+   ["devices_csv"] = validateUnquoted,
    ["ts_schema"] = validateSingleWord,
    ["metric"] = validateSingleWord,
    ["ts_query"] = validateListOfTypeInline(validateUnquoted),

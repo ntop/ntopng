@@ -8,7 +8,7 @@
           <label class='form-label' for='import-input'>
               {{ _i18n("browse_snmp_devices", {}) }}
           </label>
-          <input required class="custom-file-input form-control" id="import-input" name="JSON" type="file" @change="handleFileUpload" accept=".json"/>
+          <input required class="custom-file-input form-control" id="import-input" name="CSV" type="file" @change="handleFileUpload" accept=".json,.csv"/>
           
       </div>
   
@@ -99,9 +99,18 @@
 
     fileReader.onload = () => {
       // Set file content to data property
-      emit('add', { 
-        devices: fileReader.result
-      });
+      const is_json = fileReader.result.contains('\"')
+
+      if (is_json) {
+        emit('add', { 
+          devices: fileReader.result
+        });
+      } else {
+        emit('add', {
+          devices_csv: fileReader.result
+        })
+      }
+      
 
     };
   };
