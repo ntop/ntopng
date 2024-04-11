@@ -1526,7 +1526,7 @@ end
 
 function addBytesInfoToAlertDescr(msg, value, json_format)
     if json_format then
-        if not msg then
+        if isEmptyString(msg) then
             msg = {}
         end
         msg["server_traffic"] = value["srv2cli_bytes"] or 0
