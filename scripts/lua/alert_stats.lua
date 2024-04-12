@@ -9,30 +9,16 @@ local trace_alert_page = ntop.getCache("ntopng.trace.alerts_page")
 local trace_stats = {}
 
 require "ntop_utils"
-require "lua_trace"
-
-if not isEmptyString(trace_alert_page) then
-    trace_stats = startProfiling("scripts/lua/alert_stats.lua")
-end
 require "lua_utils_get"
+require "lua_utils_gui"
 require "check_redis_prefs"
 local page_utils = require "page_utils"
 local json = require "dkjson"
 local template_utils = require "template_utils"
 local alert_entities = require "alert_entities"
-local alert_store_utils = require "alert_store_utils"
 local recording_utils = require "recording_utils"
 
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("Ended requires", trace_stats)
-end
-
 local ifid = interface.getId()
-local alert_store_instances = alert_store_utils.all_instances_factory()
-
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("All instances factory", trace_stats)
-end
 
 -- select the default page
 local page = _GET["page"]
@@ -66,36 +52,6 @@ local endpoint_ts = "/lua/rest/v2/get/host/alert/ts.lua"
 local endpoint_delete = "/lua/rest/v2/delete/host/alerts.lua"
 local endpoint_acknowledge = "/lua/rest/v2/acknowledge/host/alerts.lua"
 local download_endpoint_list = endpoint_list
-local interface_stats = interface.getStats()
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("Various parameters", trace_stats)
-end
-
--- ##################################################
-
--- Used to print badges next to navbar entries
-local num_alerts_engaged = interface_stats["num_alerts_engaged"]
-local num_alerts_engaged_by_entity = interface_stats["num_alerts_engaged_by_entity"]
-
--- Add system alerts to be displayed as badges in the interface page too
-if interface.getId() ~= tonumber(getSystemInterfaceId()) then
-    local system_interface_stats = ntop.getSystemAlertsStats()
-    local num_system_alerts_engaged_by_entity = system_interface_stats["num_alerts_engaged_by_entity"]
-
-    num_alerts_engaged = num_alerts_engaged + system_interface_stats["num_alerts_engaged"]
-
-    for entity_id, num in pairs(num_system_alerts_engaged_by_entity) do
-        if num_alerts_engaged_by_entity[entity_id] then
-            num_alerts_engaged_by_entity[entity_id] = num_alerts_engaged_by_entity[entity_id] + num
-        else
-            num_alerts_engaged_by_entity[entity_id] = num
-        end
-    end
-end
-
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("Engaged numbers", trace_stats)
-end
 
 -- ##################################################
 
@@ -108,7 +64,6 @@ local pages = {{
     url = getPageUrl(base_url, {
         page = "all"
     }),
-    badge_num = num_alerts_engaged
 }, {
     active = page == "host",
     page_name = "host",
@@ -121,7 +76,6 @@ local pages = {{
         page = "host"
     }),
     hidden = is_system_interface,
-    badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.host.entity_id)]
 }, {
     active = page == "interface",
     page_name = "interface",
@@ -133,7 +87,6 @@ local pages = {{
     url = getPageUrl(base_url, {
         page = "interface"
     }),
-    badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.interface.entity_id)]
 }, {
     active = page == "network",
     page_name = "network",
@@ -146,7 +99,6 @@ local pages = {{
         page = "network"
     }),
     hidden = is_system_interface,
-    badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.network.entity_id)]
 }, {
     active = page == "snmp_device",
     page_name = "snmp_device",
@@ -159,7 +111,6 @@ local pages = {{
         page = "snmp_device"
     }),
     hidden = not ntop.isPro(),
-    badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.snmp_device.entity_id)]
 }, {
     active = page == "flow",
     page_name = "flow",
@@ -172,7 +123,6 @@ local pages = {{
         page = "flow"
     }),
     hidden = is_system_interface,
-    badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.flow.entity_id)]
 }, {
     active = page == "mac",
     page_name = "mac",
@@ -185,7 +135,6 @@ local pages = {{
         page = "mac"
     }),
     hidden = is_system_interface,
-    badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.mac.entity_id)]
 }, {
     active = page == "system",
     page_name = "system",
@@ -197,7 +146,6 @@ local pages = {{
     url = getPageUrl(base_url_historical_only, {
         page = "system"
     }),
-    badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.system.entity_id)]
 }, {
     active = page == "am_host",
     page_name = "am_host",
@@ -209,7 +157,6 @@ local pages = {{
     url = getPageUrl(base_url, {
         page = "am_host"
     }),
-    badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.am_host.entity_id)]
 }, {
     active = page == "user",
     page_name = "user",
@@ -221,7 +168,6 @@ local pages = {{
     url = getPageUrl(base_url_historical_only, {
         page = "user"
     }),
-    badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.user.entity_id)]
 }}
 
 -- Iterate back to front to remove items if necessary
@@ -235,10 +181,6 @@ end
 
 if endpoint_list then
     endpoint_list = ntop.getHttpPrefix() .. endpoint_list
-end
-
-if not isEmptyString(trace_alert_page) then
-    traceProfiling("pages", trace_stats)
 end
 
 -- ##################################################
