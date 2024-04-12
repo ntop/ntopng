@@ -82,7 +82,7 @@ Flow::Flow(NetworkInterface *_iface,
   json_info = NULL, tlv_info = NULL, twh_over = twh_ok = 0,
   dissect_next_http_packet = 0;
   periodic_stats_update_partial = NULL;
-  bt_hash = NULL, ebpf = NULL, iec104 = NULL;
+  bt_hash = NULL, ebpf = NULL, iec104 = NULL, stun_mapped_address = NULL;
 
   flow_verdict = 0;
   operating_system = os_unknown;
@@ -491,7 +491,8 @@ Flow::~Flow() {
   if (ndpiFlowRiskName) free(ndpiFlowRiskName);
 
   if (bt_hash) free(bt_hash);
-
+  if(stun_mapped_address) free(stun_mapped_address);
+  
   freeDPIMemory();
 
   if (icmp_info) delete (icmp_info);
@@ -879,6 +880,22 @@ void Flow::processExtraDissectedInformation() {
           }
         }
         break;
+
+	    case NDPI_PROTOCOL_STUN:
+      if((!stun_mapped_address) && (ndpiFlow->stun.mapped_address.port != 0)) {
+	IpAddress ip;
+	char tmp[96], ipb[64];
+	
+	if(ndpiFlow->stun.mapped_address.is_ipv6)
+	  ip.set((struct in6_addr*)&ndpiFlow->stun.mapped_address.address);
+	else
+	  ip.set(ndpiFlow->stun.mapped_address.address.v4);
+
+	snprintf(tmp, sizeof(tmp),"%s:%u",
+		 ip.print(ipb, sizeof(ipb)), ndpiFlow->stun.mapped_address.port);
+	stun_mapped_address = strdup(tmp);
+      }
+      break;
     }
 
     updateSuspiciousDGADomain();
@@ -2917,6 +2934,9 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
       lua_push_str_table_entry(vm, "info", getFlowInfo(true).c_str());
     }
 
+    if(stun_mapped_address)
+      lua_push_str_table_entry(vm, "protos.stun.mapped_ip_address", stun_mapped_address);    
+    
     if (isDNS() && protos.dns.last_query) {
       lua_push_uint64_table_entry(vm, "protos.dns.last_query_type",
                                   protos.dns.last_query_type);
@@ -8502,8 +8522,8 @@ void Flow::updateUDPHostServices() {
     case NDPI_PROTOCOL_TOR:
     case NDPI_PROTOCOL_TLS:
     case NDPI_PROTOCOL_QUIC:
-      if (ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_DOH_DOT && cli_h &&
-          srv_h && cli_h->isLocalHost())
+      if((ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_DOH_DOT)
+	  && cli_h && srv_h && cli_h->isLocalHost())
         cli_h->incDohDoTUses(srv_h);
       break;
 

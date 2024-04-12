@@ -667,7 +667,7 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
         mac
 end
 
-local function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
+function formatFlowPort(flow, cli_or_srv, port, historical_bounds)
     if not historical_bounds then
         return "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/flows_stats.lua?port=" .. port .. "\">" .. port .. "</A>"
     end

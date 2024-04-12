@@ -120,7 +120,7 @@ class Flow : public GenericHashEntry {
   json_object *json_info;
   ndpi_serializer *tlv_info;
   ndpi_confidence_t confidence;
-  char *host_server_name, *bt_hash;
+  char *host_server_name, *bt_hash, *stun_mapped_address;
   IEC104Stats *iec104;
 #ifdef NTOPNG_PRO
   ModbusStats *modbus;

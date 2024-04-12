@@ -6,6 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "flow_utils"
 require "voip_utils"
+require "flow_utils"
 
 local shaper_utils
 
@@ -38,6 +39,16 @@ if ntop.isPro() then
     end
 end
 
+function formatIPPort(ip, port)
+   local hinfo = hostkey2hostinfo(ip)
+   local name = hostinfo2label(hinfo)
+   
+   ip = '<A HREF="' .. ntop.getHttpPrefix() .. '/lua/host_details.lua?host=' .. ip.. '">' .. name .. '</A>'
+   port = formatFlowPort(nil, nil, port, false)
+
+   return ip,port
+end
+   
 function formatASN(v, ip)
    local asn
 
@@ -1537,6 +1548,17 @@ else
         print("</td></tr>\n")
     end
 
+    if (flow["protos.stun.mapped_ip_address"] ~= nil) then
+       local elems = split(flow["protos.stun.mapped_ip_address"], ":")
+       local ip   = elems[1]
+       local port = elems[2]
+       local hinfo = hostkey2hostinfo(ip)
+       local name = hostinfo2label(hinfo)
+       
+       ip,port = formatIPPort(ip, port)
+       print("<tr><th width=30%>STUN Mapped Address</th><td>"..ip..":"..port.."</td></tr>\n")
+    end
+    
     if ((flow["protos.http.last_url"] ~= nil) and (flow.l7_error_code ~= 0)) then
         print("<tr><th width=30%>" .. i18n("l7_error_code") .. "</th>")
         print("<td colspan=2><span class=\"badge ")
