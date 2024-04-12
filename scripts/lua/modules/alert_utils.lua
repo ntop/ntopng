@@ -777,7 +777,7 @@ end
 
 -- ##############################################
 
-function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_json, add_score, no_html)
+function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_json, add_score, no_html, json_format)
     -- Unpack all flow alerts, iterating the alerts_map. The alerts_map is stored as an HEX.
     local other_alerts_by_score = {} -- Table used to keep messages ordered by score
     local additional_alerts = {}
@@ -823,7 +823,15 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
                         end
 
                         other_alerts_by_score[alert_score][#other_alerts_by_score[alert_score] + 1] = message
-                        additional_alerts[#additional_alerts + 1] = message
+                        if json_format then
+                            additional_alerts[#additional_alerts + 1] = {
+                                msg = message,
+                                score = alert_score,
+                                alert_id = alert_id
+                            }                            
+                        else
+                            additional_alerts[#additional_alerts + 1] = message
+                        end
                     end
                 end
             end

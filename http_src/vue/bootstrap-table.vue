@@ -24,8 +24,9 @@
   <table v-else class="table table-striped table-bordered">
     <tbody>
       <tr v-for="row in rows ">
-        <th class="col 5" v-html="print_html_title(row.name)"></th>
-        <td :colspan="[(row.values.length <= 1) ? 2 : 1]" v-for="value in row.values" v-html="print_html_row(value)">
+        <th class="col-2" v-html="print_html_title(row.name)"></th>
+        <td :colspan="[(row.values.length <= 1) ? 2 : 1]" v-for="value in row.values" v-html="print_html_row(value)" style="max-width: 500px;"
+        :style="[(row.values.length > 1) ? 'word-wrap: break-word;' : '']">
         </td>
       </tr>
     </tbody>

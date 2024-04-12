@@ -8,24 +8,11 @@ local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
 local flow_risk_utils = require "flow_risk_utils"
 local country_codes = require "country_codes"
-local historical_flow_details_formatter = require "historical_flow_details_formatter"
 
 local historical_flow_utils = {}
 
 ------------------------------------------------------------------------
 -- Utility Functions
-
--- #####################################
-
-function historical_flow_utils.formatHistoricalFlowDetails(flow)
-  local flow_details = {}
-
-  if flow then
-    flow_details = historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
-  end
-
-  return flow_details
-end
 
 -- #####################################
 

@@ -1298,7 +1298,7 @@ end
 
 -- ##############################################
 
-function format_proto_info(proto_info)
+function format_proto_info(flow_details, proto_info)
     local proto_details = {}
 
     for key, value in pairs(proto_info) do
@@ -1321,7 +1321,25 @@ function format_proto_info(proto_info)
         break
     end
 
-    return proto_details
+    for protocol, protocol_info in pairs(proto_details) do
+        local rsp = {
+            name = i18n('alerts_dashboard.flow_related_info_composed', { proto = i18n(protocol) }),
+            values = { "" }
+        }
+        flow_details[#flow_details + 1] = rsp
+        for info_name, info_value in pairs(protocol_info) do
+            rsp = {
+                name = "",
+                values = {
+                    "<b>" .. i18n(info_name) .. "</b>",
+                    info_value
+                }
+            }
+            flow_details[#flow_details + 1] = rsp
+        end
+    end
+
+    return flow_details
 end
 
 -- ##############################################
