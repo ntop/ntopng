@@ -120,7 +120,7 @@ local pages = {{
     url = getPageUrl(base_url, {
         page = "host"
     }),
-    hidden = is_system_interface or not alert_store_instances["host"]:has_alerts(),
+    hidden = is_system_interface,
     badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.host.entity_id)]
 }, {
     active = page == "interface",
@@ -133,7 +133,6 @@ local pages = {{
     url = getPageUrl(base_url, {
         page = "interface"
     }),
-    hidden = not alert_store_instances["interface"]:has_alerts(),
     badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.interface.entity_id)]
 }, {
     active = page == "network",
@@ -146,7 +145,7 @@ local pages = {{
     url = getPageUrl(base_url, {
         page = "network"
     }),
-    hidden = is_system_interface or not alert_store_instances["network"]:has_alerts(),
+    hidden = is_system_interface,
     badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.network.entity_id)]
 }, {
     active = page == "snmp_device",
@@ -159,8 +158,7 @@ local pages = {{
     url = getPageUrl(base_url_historical_only, {
         page = "snmp_device"
     }),
-    hidden = --[[ not is_system_interface or --]] not ntop.isPro() or
-        not alert_store_instances["snmp_device"]:has_alerts(),
+    hidden = not ntop.isPro(),
     badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.snmp_device.entity_id)]
 }, {
     active = page == "flow",
@@ -173,7 +171,7 @@ local pages = {{
     url = getPageUrl(base_url_historical_only, {
         page = "flow"
     }),
-    hidden = is_system_interface or not alert_store_instances["flow"]:has_alerts(),
+    hidden = is_system_interface,
     badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.flow.entity_id)]
 }, {
     active = page == "mac",
@@ -199,7 +197,6 @@ local pages = {{
     url = getPageUrl(base_url_historical_only, {
         page = "system"
     }),
-    hidden = --[[ not is_system_interface or --]] not alert_store_instances["system"]:has_alerts(),
     badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.system.entity_id)]
 }, {
     active = page == "am_host",
@@ -212,7 +209,6 @@ local pages = {{
     url = getPageUrl(base_url, {
         page = "am_host"
     }),
-    hidden = --[[ not is_system_interface or --]] not alert_store_instances["am"]:has_alerts(),
     badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.am_host.entity_id)]
 }, {
     active = page == "user",
@@ -225,7 +221,6 @@ local pages = {{
     url = getPageUrl(base_url_historical_only, {
         page = "user"
     }),
-    hidden = --[[ not is_system_interface or --]] not alert_store_instances["user"]:has_alerts(),
     badge_num = num_alerts_engaged_by_entity[tostring(alert_entities.user.entity_id)]
 }}
 
