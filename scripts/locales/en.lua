@@ -139,7 +139,7 @@ local lang = {
   ["connected"] = "Connected",
   ["connection_states"] = "Connection State [ Major / Minor ]",
   ["copied"] = "Copied",
-  ["copy_button"] = "<button data-to-copy='%{full_name}' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button>  <span title='%{full_name}'>%{name}</span>",
+  ["copy_button"] = "<button onclick='const textArea = document.createElement(`textarea`);textArea.value=`%{full_name}`;textArea.style.position=`absolute`;textArea.style.left=`-999999px`;document.body.prepend(textArea);textArea.select();document.execCommand(`copy`);' class='btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button> <span title='%{full_name}'>%{name}</span>",
   ["count"] = "Count",
   ["countries"] = "Countries",
   ["country"] = "Country",
