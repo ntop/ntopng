@@ -59,7 +59,11 @@ if table.len(_POST) > 0 then
       }
 
       if _POST[fields.ip] ~= nil then config.network.ip = _POST[fields.ip] end
-      if _POST[fields.gw] ~= nil then config.network.gateway = _POST[fields.gw] end
+      if _POST[fields.gw] ~= nil then 
+        config.network.gateway = _POST[fields.gw]
+        -- Add to the list of gateways if not already present
+        sys_config:addGateway(if_name, if_name, config.network.gateway)
+      end
       if _POST[fields.netmask] ~= nil then config.network.netmask = _POST[fields.netmask] end
       if _POST[fields.mode] ~= nil then config.network.mode = _POST[fields.mode] end
       if is_nedge then

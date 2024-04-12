@@ -40,7 +40,7 @@ if (_POST["lan_interfaces"] ~= nil) and (_POST["wan_interfaces"] ~= nil) then
     -- Add to the list of gateways if not already present
     local wan_ifaces = sys_config:getWanInterfaces()
     for _, wan_iface in ipairs(wan_ifaces) do
-      sys_config:addGateway(wan_iface)
+      sys_config:addGateway(wan_iface, wan_iface)
     end
 
   end

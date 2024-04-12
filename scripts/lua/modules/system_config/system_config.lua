@@ -705,7 +705,7 @@ function system_config:applyChanges()
 
   if is_rebooting then
     self:writeSystemFiles()
-    -- tprint("Reboot! (debug mode - reboot is disabled)")
+    --tprint("Reboot! (debug mode - reboot is disabled)")
     sys_utils.rebootSystem()
   elseif is_self_restarting then
     sys_utils.restartSelf()
@@ -927,6 +927,14 @@ end
 
 -- Returns true if the interface is currently up and running
 local function isInterfaceLinkUp(ifname)
+
+  -- Check if vlan
+  local devnamevlan = string.split(ifname, "%.")
+  if devnamevlan and devnamevlan[1] then
+     ifname = devnamevlan[1]
+     -- vlan = devnamevlan[2] 
+  end
+
   local opstatus = sys_utils.execShellCmd("cat /sys/class/net/" .. ifname .. "/operstate 2>/dev/null")
   return starts(opstatus, "up")
 end
