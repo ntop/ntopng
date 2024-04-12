@@ -34,7 +34,7 @@ end
 -- #######################################################
 
 function alert_ndpi_dns_invalid_characters.format(ifid, alert, alert_type_params)
-   return ""
+   return i18n("flow_risk.ndpi_invalid_characters_alert_descr")
 end
 
 -- #######################################################
