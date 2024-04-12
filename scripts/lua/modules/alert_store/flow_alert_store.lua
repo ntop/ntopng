@@ -863,7 +863,7 @@ function flow_alert_store:format_record(value, no_html)
                 if not no_html then
                     cur_msg = cur_additional_alert and "<br>"
                 else
-                    cur_msg = cur_additional_alert and "\n"
+                    cur_msg = cur_additional_alert and " - "
                 end
             end
             cur_additional_alert = cur_additional_alert + 1
@@ -897,13 +897,13 @@ function flow_alert_store:format_record(value, no_html)
     end
 
     record[RNAME.INFO.name] = {
-        label = value["info"],
-        value = value["info"],
+        label = value["info"] or "",
+        value = value["info"] or "",
         issuerdn = flow_tls_issuerdn -- IssuerDN used for alert exclusion
     }
 
     record[RNAME.FLOW_RELATED_INFO.name] = {
-        descr = flow_related_info
+        descr = flow_related_info or {}
     }
 
     record[RNAME.ALERT_NAME.name] = alert_name
@@ -1075,10 +1075,10 @@ function flow_alert_store:format_record(value, no_html)
     end
 
     local flow_cli_port = {
-        value = value["cli_port"]
+        value = value["cli_port"] or ""
     }
     local flow_srv_port = {
-        value = value["srv_port"]
+        value = value["srv_port"] or ""
     }
 
     -- Used to render custom queries (compatible with historical flows columns definition)
@@ -1152,7 +1152,7 @@ function flow_alert_store:format_record(value, no_html)
     end
 
     record[RNAME.L7_PROTO.name] = {
-        value = ternary(tonumber(value["l7_proto"]) ~= 0, value["l7_proto"], value["l7_master_proto"]),
+        value = ternary(tonumber(value["l7_proto"]) ~= 0, value["l7_proto"], value["l7_master_proto"]) or "",
         l4_label = l4_protocol or "",
         l7_label = l7_protocol or "",
         label = proto_label or "",
