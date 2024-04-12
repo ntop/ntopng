@@ -4,17 +4,15 @@
 --
 -- Container for GUI-related stuff that used to be part of lua_utils.lua
 --
-
-if(pragma_once_lua_utils_gui == true) then
-   -- io.write(debug.traceback().."\n")
-   -- tprint("Circular dependency in lua_utils_gui.lua")
-   -- tprint(debug.traceback())
-   -- avoid multiple inclusions
-   return
+if (pragma_once_lua_utils_gui == true) then
+    -- io.write(debug.traceback().."\n")
+    -- tprint("Circular dependency in lua_utils_gui.lua")
+    -- tprint(debug.traceback())
+    -- avoid multiple inclusions
+    return
 end
 
 pragma_once_lua_utils_gui = true
-
 
 local clock_start = os.clock()
 
@@ -1072,16 +1070,16 @@ end
 function format_dns_query_info(dns_info, no_html)
     if dns_info.last_query_type then
         if no_html then
-            dns_info.last_query_type = dns_utils.getQueryType(dns_info.last_query_type) 
+            dns_info.last_query_type = dns_utils.getQueryType(dns_info.last_query_type)
         else
             dns_info.last_query_type = string.format('<span class="badge bg-info">%s</span>',
-            dns_utils.getQueryType(dns_info.last_query_type))
+                dns_utils.getQueryType(dns_info.last_query_type))
         end
     end
 
     if dns_info.last_return_code then
         if no_html then
-            dns_info.last_return_code = dns_utils.getResponseStatusCode(dns_info.last_return_code) 
+            dns_info.last_return_code = dns_utils.getResponseStatusCode(dns_info.last_return_code)
         else
             local badge = get_badge(dns_info.last_return_code)
             dns_info.last_return_code = string.format('<span class="badge bg-%s">%s</span>', badge,
@@ -1136,11 +1134,13 @@ function format_tls_info(tls_info, no_html)
             if no_html then
                 tls_info["client_requested_server_name"] = tls_info["client_requested_server_name"]
             else
-                tls_info["client_requested_server_name"] = i18n("external_link_url", {
-                    proto = 'https',
-                    url = url,
-                    url_name = url
-                })
+                if not isEmptyString(url) then
+                    tls_info["client_requested_server_name"] = i18n("external_link_url", {
+                        proto = 'https',
+                        url = url,
+                        url_name = url
+                    })
+                end
             end
         end
     end
@@ -1155,7 +1155,7 @@ function format_tls_info(tls_info, no_html)
         else
             local badge = get_badge(tls_info["ja3_server_unsafe_cipher"] == "safe")
             tls_info["ja3_server_unsafe_cipher"] = string.format('<span class="badge bg-%s">%s</span>', badge,
-                tls_info["ja3_server_unsafe_cipher"])    
+                tls_info["ja3_server_unsafe_cipher"])
         end
     end
 
@@ -1266,17 +1266,6 @@ function format_http_info(http_info, no_html)
         end
     end
 
-    if http_info["server_name"] then
-        if no_html then
-            http_info["server_name"] = http_info["server_name"]
-        else
-            http_info["server_name"] = i18n("copy_button", {
-                full_name = http_info["server_name"],
-                name = shortenString(http_info["server_name"], 32)
-            })
-        end
-    end
-
     return http_info
 end
 
@@ -1310,30 +1299,31 @@ function format_proto_info(flow_details, proto_info)
     for proto, info in pairs(proto_info or {}) do
         if proto == "tls" then
             proto_details[proto] = format_tls_info(info)
+            break
         elseif proto == "dns" then
             proto_details[proto] = format_dns_query_info(info)
+            break
         elseif proto == "http" then
             proto_details[proto] = format_http_info(info)
+            break
         elseif proto == "icmp" then
             proto_details[proto] = format_icmp_info(info)
+            break
         end
-
-        break
     end
 
     for protocol, protocol_info in pairs(proto_details) do
         local rsp = {
-            name = i18n('alerts_dashboard.flow_related_info_composed', { proto = i18n(protocol) }),
-            values = { "" }
+            name = i18n('alerts_dashboard.flow_related_info_composed', {
+                proto = i18n(protocol)
+            }),
+            values = {""}
         }
         flow_details[#flow_details + 1] = rsp
-        for info_name, info_value in pairs(protocol_info) do
+        for info_name, info_value in pairsByKeys(protocol_info) do
             rsp = {
                 name = "",
-                values = {
-                    "<b>" .. i18n(info_name) .. "</b>",
-                    info_value
-                }
+                values = {"<b>" .. i18n(info_name) .. "</b>", info_value}
             }
             flow_details[#flow_details + 1] = rsp
         end

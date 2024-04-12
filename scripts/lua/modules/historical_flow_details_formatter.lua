@@ -180,9 +180,8 @@ local function format_historical_issue_description(flow_details, flow)
 
     flow_details[#flow_details + 1] = {
         name = i18n("issues_score"),
-        values = {alert_label,
-                  '<span style="color:' .. severity.color .. '">' ..
-            format_utils.formatValue(ntop.getFlowAlertScore(tonumber(alert_id))) .. '</span>'}
+        values = {'<span style="color:' .. severity.color .. '">' ..
+            format_utils.formatValue(ntop.getFlowAlertScore(tonumber(alert_id))) .. '</span>', alert_label}
     }
     local alert_utils = require "alert_utils"
     local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
@@ -194,15 +193,14 @@ local function format_historical_issue_description(flow_details, flow)
             local severity = alert_consts.alertSeverityById(severity_id)
             flow_details[#flow_details + 1] = {
                 name = '', -- Empty label
-                values = {issues.msg, '<span style="color:' .. severity.color .. '">' .. issues.score .. '</span>'}
+                values = {'<span style="color:' .. severity.color .. '">' .. issues.score .. '</span>', issues.msg}
             }
         end
     end
     flow_details[#flow_details + 1] = {
-        name = '', -- Empty label
-        values = {'<b>' .. i18n('total_flow_score') .. '</b>',
-                  '<span style="color:' .. severity.color .. '">' .. format_utils.formatValue(tonumber(flow["SCORE"])) ..
-            '</span>'}
+        name = i18n('total_flow_score'), -- Empty label
+        values = {'<span style="color:' .. severity.color .. '">' .. format_utils.formatValue(tonumber(flow["SCORE"])) ..
+            '</span>', ''}
     }
 
     return flow_details
@@ -233,10 +231,38 @@ end
 
 -- ###############################################
 
+local function add_info_field(flow)
+    local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
+    local proto_details = {}
+    local add_info = true
+    if table.len(alert_json) >= 1 then
+        for proto, info in pairs(alert_json["proto"] or {}) do
+            if proto == "tls" then
+                add_info = isEmptyString(info.client_requested_server_name)
+                break
+            elseif proto == "dns" then
+                add_info = isEmptyString(info.last_query)
+                break
+            elseif proto == "http" then
+                add_info = isEmptyString(info.last_url)
+                break
+            elseif proto == "icmp" then
+                -- Alwais add for icmp
+                break
+            end
+        end
+    end
+
+    return add_info
+end
+
+-- ###############################################
+
 local function format_historical_info(flow)
     local historical_flow_utils = require "historical_flow_utils"
     local info_field = historical_flow_utils.get_historical_url(flow["INFO"], "info", flow["INFO"], true, flow["INFO"],
         true)
+    
 
     return {
         name = i18n("db_explorer.info"),
@@ -408,7 +434,9 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
         end
 
         if (info['info']) and (not isEmptyString(info['info']["title"])) then
-            flow_details[#flow_details + 1] = format_historical_info(flow)
+            if add_info_field(flow) then
+                flow_details[#flow_details + 1] = format_historical_info(flow)
+            end
         end
 
         if (flow["PROBE_IP"] and not isEmptyString(flow['PROBE_IP']) and (flow['PROBE_IP'] ~= '0.0.0.0')) then
