@@ -11,12 +11,13 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="row in rows" class="">	
+      <tr v-for="row in rows" class="">
         <td v-if="wrap_columns == true" v-for="col in columns" scope="col" style="height:2.5rem;" :class="col.class">
-	  <div class="wrap-column" :style="col.style" v-html="print_html_row(col, row)"></div>
-	</td>
-        <td v-else v-for="col in columns" scope="col" :class="col.class" class="wrap_column" :style="col.style" v-html="print_html_row(col, row)">
-	</td>
+          <div class="wrap-column" :style="col.style" v-html="print_html_row(col, row)"></div>
+        </td>
+        <td v-else v-for="col in columns" scope="col" :class="col.class" class="wrap_column" :style="col.style"
+          v-html="print_html_row(col, row)">
+        </td>
       </tr>
     </tbody>
   </table>
@@ -25,8 +26,7 @@
     <tbody>
       <tr v-for="row in rows ">
         <th class="col-2" v-html="print_html_title(row.name)"></th>
-        <td :colspan="[(row.values.length <= 1) ? 2 : 1]" v-for="value in row.values" v-html="print_html_row(value)" style="max-width: 500px;"
-        :style="[(row.values.length > 1) ? 'word-wrap: break-word;' : '']">
+        <td style="overflow-wrap:anywhere !important; max-width: 500px;" :colspan="[(row.values.length <= 1) ? 2 : 1]" v-for="value in row.values" v-html="print_html_row(value)">
         </td>
       </tr>
     </tbody>
@@ -53,6 +53,6 @@ const props = defineProps({
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  max-width:100%;
+  max-width: 100%;
 }
 </style>
