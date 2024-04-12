@@ -1462,6 +1462,12 @@ function addTLSInfoToAlertDescr(msg, alert_json, json_format)
         (table.len(alert_json["proto"]["tls"] or {}) > 0)) then
 
         local tls_info = format_tls_info({
+            ja3_client_hash = alert_json["proto"]["tls"]["ja3_client_hash"],
+            issuerDN = alert_json["proto"]["tls"]["issuerDN"],
+            ja4_client_hash = alert_json["proto"]["tls"]["ja4_client_hash"],
+            tls_version = alert_json["proto"]["tls"]["tls_version"],
+            ja3_server_hash = alert_json["proto"]["tls"]["ja3_server_hash"],
+            ja3_server_cipher = alert_json["proto"]["tls"]["ja3_server_cipher"],
             notBefore = alert_json["proto"]["tls"]["notBefore"],
             notAfter = alert_json["proto"]["tls"]["notAfter"],
             client_requested_server_name = alert_json["proto"]["tls"]["client_requested_server_name"],
