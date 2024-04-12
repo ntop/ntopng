@@ -179,9 +179,15 @@ local function format_historical_issue_description(flow_details, flow)
     end
 
     flow_details[#flow_details + 1] = {
+        name = i18n('total_flow_score'), -- Empty label
+        values = {'<span style="color:' .. severity.color .. '">' .. format_utils.formatValue(tonumber(flow["SCORE"])) ..
+            '</span>', ''}
+    }
+
+    flow_details[#flow_details + 1] = {
         name = i18n("issues_score"),
-        values = {'<span style="color:' .. severity.color .. '">' ..
-            format_utils.formatValue(ntop.getFlowAlertScore(tonumber(alert_id))) .. '</span>', alert_label}
+        values = {i18n('score') .. ': <span style="color:' .. severity.color .. '">' ..
+            format_utils.formatValue(ntop.getFlowAlertScore(tonumber(alert_id))) .. '</span> - ' .. alert_label}
     }
     local alert_utils = require "alert_utils"
     local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
@@ -193,15 +199,10 @@ local function format_historical_issue_description(flow_details, flow)
             local severity = alert_consts.alertSeverityById(severity_id)
             flow_details[#flow_details + 1] = {
                 name = '', -- Empty label
-                values = {'<span style="color:' .. severity.color .. '">' .. issues.score .. '</span>', issues.msg}
+                values = {i18n('score') .. ': <span style="color:' .. severity.color .. '">' .. issues.score .. '</span> - ' .. issues.msg}
             }
         end
     end
-    flow_details[#flow_details + 1] = {
-        name = i18n('total_flow_score'), -- Empty label
-        values = {'<span style="color:' .. severity.color .. '">' .. format_utils.formatValue(tonumber(flow["SCORE"])) ..
-            '</span>', ''}
-    }
 
     return flow_details
 end
