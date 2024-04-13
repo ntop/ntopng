@@ -792,7 +792,7 @@ local function location(host_location)
     elseif tonumber(host_location) == 1 then
         return "local"
     else
-        retunr "multicast"
+        return "multicast"
     end
 end
 
