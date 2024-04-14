@@ -11,4 +11,4 @@ package.path = dirs.installdir .. "/scripts/lua/modules/system_config/?.lua;" ..
 
 local backup_config = require("backup_config")
 
-backup_config.save_backup()
+backup_config.exec_backup()

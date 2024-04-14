@@ -16,7 +16,14 @@ local json = require("dkjson")
 -- ##############################################
 
 local action = nil -- _GET["action"]
-local backup_hash_key = "ntopng.cache.config_save_backup"
+local backup_hash_key            = "ntopng.cache.config_save_backup"
+local backup_fs_path             = '/configurations'
+local windows_baackup_fs_path    = '\\configurations'
+local ls_file_command            = 'ls'
+local windows_ls_file_command    = 'dir'
+local dir_path_separator         = '/'
+local windows_dir_path_separator = '\\'
+
 local backup_config = {}
 
 local debugger = false
@@ -36,8 +43,8 @@ end
 
 -- ##############################################
 
--- @brief Save configurations backup.
-function backup_config.save_backup()
+-- @brief Retrieve configurations backup.
+function backup_config.exec_backup()
     local all_import_export = require "all_import_export"
     local import_export_rest_utils = require "import_export_rest_utils"
     local instances = {}
@@ -51,13 +58,113 @@ function backup_config.save_backup()
     -- Retrieve the configuration
     instances["all"] = all_import_export:create()
     local backup = import_export_rest_utils.export(instances, false, true)
+    
+    local new_backup_key = tostring(os.time())
 
+    backup_config.fs_save_backup(new_backup_key, backup, to_ignore)
+    backup_config.save_backup(new_backup_key, backup, to_ignore)
+end
+
+-- #################################################
+
+-- @brief Save configurations backup on File System.
+function backup_config.fs_save_backup(backup_time_key, backup, to_ignore)
+    
     if debugger then
-        traceError(TRACE_DEBUG, TRACE_CONSOLE, "START BACKUP SAVING")
+        traceError(TRACE_DEBUG, TRACE_CONSOLE, "START BACKUP SAVING ON FS")
+    end
+
+    local key = backup_time_key
+
+    local ls_files_command      = ls_file_command
+    local backup_config_dir     = backup_fs_path
+    local path_separator        = dir_path_separator
+    
+    if ntop.isWindows() then
+        ls_files_command        = windows_ls_file_command
+        backup_config_dir       = windows_baackup_fs_path
+        path_separator          = windows_dir_path_separator
+    end
+
+    local base_dir              = dirs.workingdir..backup_config_dir
+
+    ntop.mkdir(base_dir)
+    local backup_files = {}
+
+    local last_b_name = "" -- backup more recent
+    local first_b_name = "" -- backup older
+
+    local num_backups = 0
+
+    for dir in io.popen(ls_files_command..[[ ]]..base_dir):lines() do
+        if (not isEmptyString(dir)) then
+            num_backups = num_backups + 1
+            backup_files[dir] = dir
+            if (isEmptyString(last_b_name)) then 
+                last_b_name = dir 
+            elseif (dir > last_b_name) then
+                last_b_name = dir
+            end
+            if (isEmptyString(first_b_name)) then 
+                first_b_name = dir 
+            elseif (dir < first_b_name) then
+                first_b_name = dir
+            end
+        end
+    end
+
+    -- get last backup
+    local handle = io.open(base_dir..path_separator..last_b_name, "r")
+    local backup_string = handle:read("*a")
+    handle:close()
+
+    if (num_backups >= 7) then
+        -- remove here the first_b_name
+        os.remove(base_dir..path_separator..first_b_name)
+    end
+
+    local last_config = {}
+    if (backup_string) then
+        last_config = json.decode(backup_string) or {}
+    end
+
+    local save_backup = false
+    if (num_backups >= 1) then
+        if (not table.is_equal(last_config, backup, to_ignore)) then
+            -- New backup is different from the last one case
+            save_backup = true
+        else
+            -- do nothing
+        end
+    else 
+        -- First Backup case
+        save_backup = true
+    end
+
+    if (save_backup) then
+        local backup_j_string = json.encode(backup)
+        local writer = io.open(base_dir..path_separator..key.."_config.json","w")
+
+        if debugger then
+            traceError(TRACE_DEBUG, TRACE_CONSOLE, "SAVING BACKUP: "..base_dir..path_separator..key.."_config.json")
+        end
+        writer:write(backup_j_string)
+        writer:close()
+    end
+    
+end
+
+-- ##############################################
+
+-- @brief Save configurations backup on Redis.
+function backup_config.save_backup(backup_time_key, backup, to_ignore)
+    
+    if debugger then
+        traceError(TRACE_DEBUG, TRACE_CONSOLE, "START BACKUP SAVING ON REDIS")
     end
 
     -- Get all the keys
-    local key = tostring(os.time())
+    local key = backup_time_key
     local saved_backups_keys = ntop.getHashKeysCache(backup_hash_key) or {}
     local num_saved_backups = table.len(saved_backups_keys) or 0
 
