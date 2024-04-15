@@ -39,6 +39,7 @@ if not isEmptyString(host) then
 end
 
 local throughput_type = getThroughputType()
+local ifid = interface.getId()
 local flows_filter = getFlowsFilter()
 
 local mapping_column_lua_c = {
@@ -237,6 +238,7 @@ for _, value in ipairs(flows_stats.flows) do
     record["periodic_flow"] = value.periodic_flow
     record["client"] = client
     record["server"] = server
+    record["ifid"] = ifid
     if value.score then
         record["score"] = value.score.flow_score
     end

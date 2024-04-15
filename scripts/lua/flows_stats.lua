@@ -578,7 +578,8 @@ elseif (page == "flows" or page == nil) then
     local json_context = json.encode({
         ifid = ifstats.id,
         has_exporters = has_exporters,
-        is_viewed = interface.isViewed()
+        is_viewed = interface.isViewed(),
+        is_clickhouse_enabled = hasClickHouseSupport()
     })
     template.render("pages/vue_page.template", { vue_page_name = "PageFlowsList", page_context = json_context })
 else

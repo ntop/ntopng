@@ -248,7 +248,7 @@ const map_table_def_columns = (columns) => {
                 let ifid = ''
                 let ifid_name = ''
                 let tag_filter2 = ''
-                if(value.seen_on_interface) {
+                if (value.seen_on_interface) {
                     ifid = `&ifid=${value.seen_on_interface.id}`
                     ifid_name = ` [${value.seen_on_interface.name}]`
                     tag_filter2 = ` tag-filter2="interface_filter" tag-value2="${value.seen_on_interface.id}" `
@@ -265,7 +265,7 @@ const map_table_def_columns = (columns) => {
                 if (name !== row.flow_exporter.in_port.index) {
                     name = `${name} [${row.flow_exporter.in_port.index}]`
                 }
-                if(row.flow_exporter.seen_on_interface) {
+                if (row.flow_exporter.seen_on_interface) {
                     ifid = `&ifid=${row.flow_exporter.seen_on_interface.id}`
                     tag_filter3 = ` tag-filter3="interface_filter" tag-value3="${row.flow_exporter.seen_on_interface.id}" `
                 }
@@ -281,7 +281,7 @@ const map_table_def_columns = (columns) => {
                 if (name !== row.flow_exporter.out_port.index) {
                     name = `${name} [${row.flow_exporter.out_port.index}]`
                 }
-                if(row.flow_exporter.seen_on_interface) {
+                if (row.flow_exporter.seen_on_interface) {
                     ifid = `&ifid=${row.flow_exporter.seen_on_interface.id}`
                     tag_filter3 = ` tag-filter3="interface_filter" tag-value3="${row.flow_exporter.seen_on_interface.id}" `
                 }
@@ -290,8 +290,21 @@ const map_table_def_columns = (columns) => {
             return ''
         },
     };
+
     columns.forEach((c) => {
         c.render_func = map_columns[c.data_field];
+
+        if (c.id == "actions") {
+            const visible_dict = {
+                historical_chart: props.context.is_clickhouse_enabled,
+            };
+            c.button_def_array.forEach((b) => {
+                // if is not defined is enabled
+                if (visible_dict[b.id] != null && visible_dict[b.id] == false) {
+                    b.class.push("d-none");
+                }
+            });
+        }
     });
 
     return columns;
@@ -461,9 +474,17 @@ function click_button_live_flows(event) {
 
 /* ************************************** */
 
+function click_button_historical_data(event) {
+    const row = event.row;
+    window.open(`${http_prefix}/lua/pro/db_search.lua?ifid=${row.ifid}&epoch_begin=${row.first_seen}&epoch_end=${row.last_seen}&l7proto=${row.application.app_id};eq&cli_ip=${row.client.ip};eq&srv_ip=${row.server.ip};eq&cli_port=${row.client.port};eq&srv_port=${row.server.port};eq&aggregated=false&query_preset=&count=THROUGHPUT`);
+}
+
+/* ************************************** */
+
 function on_table_custom_event(event) {
     let events_managed = {
         "click_button_live_flows": click_button_live_flows,
+        "click_button_historical_data": click_button_historical_data,
     };
     if (events_managed[event.event_id] == null) {
         return;
