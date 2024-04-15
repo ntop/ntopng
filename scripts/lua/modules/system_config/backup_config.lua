@@ -19,8 +19,6 @@ local action = nil -- _GET["action"]
 local backup_hash_key            = "ntopng.cache.config_save_backup"
 local backup_fs_path             = '/configurations'
 local windows_baackup_fs_path    = '\\configurations'
-local ls_file_command            = 'ls'
-local windows_ls_file_command    = 'dir'
 local dir_path_separator         = '/'
 local windows_dir_path_separator = '\\'
 
@@ -76,12 +74,10 @@ function backup_config.fs_save_backup(backup_time_key, backup, to_ignore)
 
     local key = backup_time_key
 
-    local ls_files_command      = ls_file_command
     local backup_config_dir     = backup_fs_path
     local path_separator        = dir_path_separator
     
     if ntop.isWindows() then
-        ls_files_command        = windows_ls_file_command
         backup_config_dir       = windows_baackup_fs_path
         path_separator          = windows_dir_path_separator
     end
@@ -96,7 +92,7 @@ function backup_config.fs_save_backup(backup_time_key, backup, to_ignore)
 
     local num_backups = 0
 
-    for dir in io.popen(ls_files_command..[[ ]]..base_dir):lines() do
+    for dir,_ in pairs(ntop.readdir(base_dir)) do
         if (not isEmptyString(dir)) then
             num_backups = num_backups + 1
             backup_files[dir] = dir
