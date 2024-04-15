@@ -10,6 +10,7 @@ require "http_lint"
 require "lua_utils_get"
 local rest_utils = require "rest_utils"
 local rsp = {}
+
 local ip_version_filters = {{
    key = "version",
    value = "",
@@ -30,6 +31,30 @@ rsp[#rsp + 1] = {
    name = "version",
    value = ip_version_filters
 }
+
+local networks_stats = interface.getNetworksStats() or {}
+if table.len(networks_stats) > 1 then
+   local network_filters = {{
+      key = "network",
+      value = "",
+      label = i18n("all")
+   }}
+   for n, local_network in pairs(networks_stats) do
+      local network_name = getFullLocalNetworkName(local_network["network_key"])
+      network_filters[#network_filters + 1] = {
+         key = "network",
+         value = local_network["network_id"],
+         label = network_name
+      }
+   end   
+
+   rsp[#rsp + 1] = {
+      action = "network",
+      label = i18n("pools.pool_name.local_network"),
+      name = "network",
+      value = network_filters
+   }   
+end
 
 local vlans = interface.getVLANsList()
 if vlans then
