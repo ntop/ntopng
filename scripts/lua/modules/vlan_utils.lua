@@ -12,6 +12,7 @@ function vlan2record(ifId, vlan)
    record["key"] = tostring(vlan["vlan_id"])
 
    local vlan_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?vlan='..vlan["vlan_id"].."' title='VLAN "..vlan["vlan_id"].."'>"..getFullVlanName(vlan["vlan_id"],false,true)..'</A>'
+   vlan_link = vlan_link .. " <A HREF='" .. ntop.getHttpPrefix() .. "/lua/vlan_details.lua?vlan=" .. vlan["vlan_id"] .. "&page=config" .. "'><i class='fas fa-cog fa-sm'></i></A>"
    record["column_vlan"] = vlan_link
 
    record["column_score"] = vlan["score"] > 0 and format_utils.formatValue(vlan["score"]) or ''

@@ -17,7 +17,7 @@ function network_formatter.network2record(ifId, network)
    record["key"] = tostring(network["network_id"])
 
    local network_link = "<A HREF='"..ntop.getHttpPrefix()..'/lua/hosts_stats.lua?network='..network["network_id"].."' title='"..network["network_key"].."'>"..getFullLocalNetworkName(network["network_key"])..'</A>'
-   
+   network_link = network_link .. ' <A HREF="' .. ntop.getHttpPrefix() .. '/lua/network_details.lua?network=' .. network["network_id"] .. '&page=config' .. '"><i class="fas fa-cog fa-sm"></i></A>'
    network["host_score_ratio"] = ternary(network["num_hosts"] and network["num_hosts"]>0, math.floor((network["score"] or 0) / (network["num_hosts"] or 0)) , '')
 
    record["column_id"] = network_link
