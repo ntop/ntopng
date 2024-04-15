@@ -577,7 +577,7 @@ const close = () => {
 
 const format_snmp_devices_list = function(_snmp_devices_list) {
   let devices_list = [];
-  _snmp_devices_list.data.forEach(item => {
+  _snmp_devices_list.forEach(item => {
     if(item.column_name != null && item.column_name != "" && item.column_name != "all")
       devices_list.push({label : item.column_name + " ("+item.column_key+")" , label_to_insert: item.column_key});
     else {

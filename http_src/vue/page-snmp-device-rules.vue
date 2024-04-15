@@ -253,7 +253,7 @@ const get_snmp_devices_list = async function() {
   await $.get(url, function(rsp, status){
     snmp_devices_list = rsp.rsp;
   });
-  snmp_devices_list.data.push({column_key: "*",column_name: "all" })
+  snmp_devices_list.push({column_key: "*",column_name: "all" })
 }
 
 const start_datatable = function() {
