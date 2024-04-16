@@ -21,10 +21,14 @@ When selecting packets or errors as the metric. The threshold can be specified a
 On the other hand, if bytes is chosen as the metric, the threshold can also be expressed in terms of volume (KB, MB, GB).
 These checks are performed at frequencies of every 5 minutes, every hour, and every day.
 
-these checks are useful for spotting misbehaving interfaces that instead would not have been noticed otherwise.
+These checks are useful for spotting misbehaving interfaces that instead would not have been noticed otherwise.
 
 .. figure:: ../img/add_snmp_device_rule.png
   :align: center
   :alt: Add SNMP Device Rule
 
   Add SNMP Device Rule
+
+When selecting the 'Percentage Change' threshold type, ntopng will check if the percentage change calculated between the last two frequency checks has crossed the specified threshold (e.g., <1% with a frequency of 5 minutes; if the difference between the preceding frequency and the last 5-minute check is lower than 1%, trigger an alert).
+
+When selecting the 'Absolute Percentage' threshold type, ntopng will check if the percentage usage (uplink or downlink) of an interface on a device during the last period of time has crossed the specified threshold.
