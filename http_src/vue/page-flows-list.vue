@@ -299,9 +299,15 @@ const map_table_def_columns = (columns) => {
                 historical_chart: props.context.is_clickhouse_enabled,
             };
             c.button_def_array.forEach((b) => {
-                // if is not defined is enabled
-                if (visible_dict[b.id] != null && visible_dict[b.id] == false) {
-                    b.class.push("d-none");
+                b.f_map_class = (current_class, row) => {
+                    // if is not defined is enabled
+                    if (visible_dict[b.id] != null && visible_dict[b.id] == false) {
+                        current_class.push("d-none");
+                    } else if (row.last_seen - row.first_seen < 120 /* 2 minutes */ &&
+                        visible_dict[b.id] != null && visible_dict[b.id] == true) {
+                        current_class.push("link-disabled");
+                    }
+                    return current_class;
                 }
             });
         }
