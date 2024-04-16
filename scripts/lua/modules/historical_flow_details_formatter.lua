@@ -151,7 +151,8 @@ local function format_historical_issue_description(flow_details, flow)
     local alert_store_instances = alert_store_utils.all_instances_factory()
     local alert_utils = require "alert_utils"
     local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
-    local details, alert
+    local details = ""
+    local alert
 
     local alert_store_instance = alert_store_instances[alert_entities["flow"].alert_store_name]
 
@@ -160,9 +161,6 @@ local function format_historical_issue_description(flow_details, flow)
         if #alerts >= 1 then
             alert = alerts[1]
             details = alert_utils.formatFlowAlertMessage(interface.getId(), alert, alert_json, false, true)
-        else
-            tprint(debug.traceback())
-            tprint(alerts)
         end
     end
 
@@ -172,10 +170,12 @@ local function format_historical_issue_description(flow_details, flow)
     local severity_id = map_score_to_severity(ntop.getFlowAlertScore(tonumber(alert_id)))
     local severity = alert_consts.alertSeverityById(severity_id)
 
-    -- No status setted
+    -- No status set
     if (alert_id ~= 0) then
         alert_label = alert_consts.alertTypeLabel(alert_id, true)
-        alert_label = alert_label .. " [" .. details .. "]"
+        if not isEmptyString(details) then
+            alert_label = alert_label .. " [" .. details .. "]"
+        end
     end
 
     flow_details[#flow_details + 1] = {
@@ -273,7 +273,7 @@ end
 
 -- ###############################################
 
-local function format_historical_probe(flow, info)
+local function format_historical_probe(flow_details, flow, info)
     local historical_flow_utils = require "historical_flow_utils"
     local format_utils = require "format_utils"
 
@@ -303,10 +303,20 @@ local function format_historical_probe(flow, info)
             info["output_snmp"]["value"], true, info["output_snmp"]["title"])
     end
 
-    return {
-        name = i18n("details.flow_snmp_localization"),
-        values = {info_field}
-    }
+    if table.len(info_field) > 1 then
+        flow_details[#flow_details + 1] = {
+            name = i18n("details.flow_snmp_localization"),
+            values = { "" }
+        }
+        for field, value in pairs(info_field) do
+            flow_details[#flow_details + 1] = {
+                name = "",
+                values = { i18n(field), value }
+            }
+        end
+    end
+
+    return flow_details
 end
 
 -- ###############################################
@@ -441,7 +451,7 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
         end
 
         if (flow["PROBE_IP"] and not isEmptyString(flow['PROBE_IP']) and (flow['PROBE_IP'] ~= '0.0.0.0')) then
-            flow_details[#flow_details + 1] = format_historical_probe(flow, info)
+            flow_details = format_historical_probe(flow_details, flow, info)
         end
 
         if tonumber(flow["CLIENT_NW_LATENCY_US"]) ~= 0 then
