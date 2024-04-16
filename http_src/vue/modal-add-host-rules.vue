@@ -1185,7 +1185,7 @@ const format_flow_exporter_device_list = function (data) {
   ];
 
   data.forEach((dev) => {
-    const ip = dev.probe_ip;
+    const ip = dev.probe_ip.split(" ")[0];
     _f_exp_dev_list.push({
       id: ip,
       label: ip,
