@@ -344,6 +344,7 @@ function on_table_custom_event(event) {
 
 onMounted(async () => {
     filter_table_array.value = await load_table_filters_array();
+    set_filter_array_label();
 });
 
 </script>
