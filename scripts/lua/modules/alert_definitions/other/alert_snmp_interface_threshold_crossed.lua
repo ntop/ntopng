@@ -67,8 +67,9 @@ end
 function alert_snmp_interface_threshold_crossed.format(ifid, alert, alert_type_params)
   
   local value = alert_type_params.value
-  
-  if alert_type_params.metric_type == "Volume" then
+
+  local is_absolute_percentage = alert_type_params.metric_type == 'Absolute Percentage'
+  if alert_type_params.metric_type == "Volume" or is_absolute_percentage then
     value = bytesToSize(alert_type_params.value)
   end
 
@@ -79,15 +80,27 @@ function alert_snmp_interface_threshold_crossed.format(ifid, alert, alert_type_p
     -- usage case
     value = string.format("(%s/%s)", tostring(round(value.downlink,1)) .. '%', tostring(round(value.uplink, 1))..'%')
   end
-  return(i18n("alerts_dashboard.snmp_device_interface_threshold_crossed_alert_description", {
-    device = alert_type_params.device,
-    interface_name = alert_type_params.interface_name,
-    value = value,
-    threshold = alert_type_params.threshold,
-    threshold_sign = alert_type_params.threshold_sign,
-    metric = alert_type_params.metric,
-    measure_unit = alert_type_params.metric_type
-  }))
+  if (is_absolute_percentage) then
+    return(i18n("alerts_dashboard.snmp_device_interface_threshold_crossed_alert_description_percentile", {
+      device = alert_type_params.device,
+      interface_name = alert_type_params.interface_name,
+      value = value,
+      threshold = alert_type_params.threshold,
+      threshold_sign = alert_type_params.threshold_sign,
+      metric = alert_type_params.metric,
+      measure_unit = alert_type_params.metric_type
+    }))
+  else
+    return(i18n("alerts_dashboard.snmp_device_interface_threshold_crossed_alert_description", {
+      device = alert_type_params.device,
+      interface_name = alert_type_params.interface_name,
+      value = value,
+      threshold = alert_type_params.threshold,
+      threshold_sign = alert_type_params.threshold_sign,
+      metric = alert_type_params.metric,
+      measure_unit = alert_type_params.metric_type
+    }))
+  end
 
   
 end
