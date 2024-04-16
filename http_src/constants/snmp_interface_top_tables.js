@@ -6,6 +6,7 @@ import NtopUtils from "../utilities/ntop-utils";
 const bytesToSizeFormatter = formatterUtils.getFormatter(formatterUtils.types.bytes.id);
 const bpsFormatter = formatterUtils.getFormatter(formatterUtils.types.bps.id);
 const handlerIdAddLink = "page-stats-action-link";
+const handlerIdJumpToDetails = "page-stats-details"
 
 const top_snmp_interface = {
 	table_value: "snmp",
@@ -31,6 +32,24 @@ const top_snmp_interface = {
 	default: true,
 
 	columns: [{
+		columnName: i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, handlerId: handlerIdJumpToDetails,
+		render_if: function (context) { return context.is_history_enabled },
+		render: function (data, type, service) {
+			let context = this;
+			const jump_to_interface_page = {
+				handlerId: handlerIdJumpToDetails,
+				onClick: function () {
+					const interface_id = ntopng_url_manager.serialize_param("snmp_port_idx", `${service.tags.if_index}`);
+					const device_ip = ntopng_url_manager.serialize_param("host", `${service.tags.device}`);
+					const interface_details_page = `${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?${interface_id}&${device_ip}`;
+					window.open(interface_details_page);
+				}
+			};
+			return DataTableUtils.createActionButtons([
+				{ class: 'dropdown-item', icon: 'fas fa-laptop', href: '#', title: i18n('page_stats.interface_details'), handler: jump_to_interface_page },
+			]);
+		}
+	}, {
 		columnName: i18n("interface_name"), name: 'interface', data: 'interface', handlerId: handlerIdAddLink,
 		render: function (data, type, service) {
 			let context = this;

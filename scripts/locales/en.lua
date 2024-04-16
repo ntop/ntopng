@@ -6088,6 +6088,7 @@ local lang = {
     ["custom_metrics"] = "Custom Metrics",
     ["download_image_disabled"] = "Button currently disabled on Safari",
     ["historical_flows"] = "Jump to Historical Flows",
+    ["interface_details"] = "SNMP Interface Details",
     ["last_value"] = "Last Value",
     ["layout_1_per_1"] = "One Chart per Metric",
     ["layout_1_per_all"] = "Single Chart",
