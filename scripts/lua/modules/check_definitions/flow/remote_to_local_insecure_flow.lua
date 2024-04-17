@@ -19,8 +19,8 @@ local script = {
    },
 
    gui = {
-      i18n_title = "flow_checks_config.remote_to_local_insecure_proto_title",
-      i18n_description = "flow_checks_config.remote_to_local_insecure_proto_description",
+      i18n_title = "flow_checks_config.remote_to_local_insecure_flow_title",
+      i18n_description = "flow_checks_config.remote_to_local_insecure_flow_description",
    }
 }
 

@@ -21,7 +21,7 @@
 
 #include "flow_alerts_includes.h"
 
-ndpi_serializer* RemoteToLocalInsecureProtoAlert::getAlertJSON(
+ndpi_serializer* RemoteToLocalInsecureFlowAlert::getAlertJSON(
     ndpi_serializer* serializer) {
   Flow* f = getFlow();
 

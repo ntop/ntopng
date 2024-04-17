@@ -116,7 +116,7 @@ void FlowChecksLoader::registerChecks() {
   if ((fcb = new NotPurged())) registerCheck(fcb);
   if ((fcb = new RemoteAccess())) registerCheck(fcb);
   if ((fcb = new RareDestination())) registerCheck(fcb);
-  if ((fcb = new RemoteToLocalInsecureProto())) registerCheck(fcb);
+  if ((fcb = new RemoteToLocalInsecureFlow())) registerCheck(fcb);
   if ((fcb = new RemoteToRemote())) registerCheck(fcb);
   if ((fcb = new TCPZeroWindow())) registerCheck(fcb);
   if ((fcb = new TCPNoDataExchanged())) registerCheck(fcb);
