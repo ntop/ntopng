@@ -94,7 +94,7 @@ const top_flow_interface = {
 			};
 
 			const dropdown = [
-				{ class: 'dropdown-item', icon: 'fas fa-stream', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },				
+				{ class: 'dropdown-item', icon: 'fas fa-search-plus', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },				
 				{ class: 'dropdown-item', icon: 'fas fa-stream', href: '#', title: i18n('flows_page.live_flows'), handler: jump_to_live },
 				{ class: 'dropdown-item', icon: 'fas fa-laptop', href: '#', title: i18n('db_explorer.host_data'), handler: jump_to_host }
 			]

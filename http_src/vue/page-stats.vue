@@ -18,7 +18,7 @@
                         :title="image_button_title"><i
                             class="fas fa-lg fa-file-image"></i></button>
                     <button v-if="is_history_enabled" class="btn btn-link btn-sm" @click="jump_to_historical_flows"
-                        :title="_i18n('page_stats.historical_flows')"><i class="fas fa-stream"></i></button>
+                        :title="_i18n('page_stats.historical_flows')"><i class="fas fa-search-plus"></i></button>
                 </template>
             </DateTimeRangePicker>
             <!-- select metric -->
@@ -100,6 +100,7 @@ import { default as ModalTimeseries } from "./modal-timeseries.vue";
 import { default as ModalTrafficExtraction } from "./modal-traffic-extraction.vue";
 import { default as ModalDownloadFile } from "./modal-download-file.vue";
 import { default as AlertInfo } from "./alert-info.vue";
+import { default as dataUtils } from "../utilities/data-utils.js";
 
 import { default as SelectSearch } from "./select-search.vue";
 import { default as Datatable } from "./datatable.vue";
@@ -715,6 +716,52 @@ function print_stats_row(col, row) {
 function jump_to_historical_flows() {
     let status = ntopng_status_manager.get_status();
     let params = { epoch_begin: status.epoch_begin, epoch_end: status.epoch_end };
+    debugger;
+    /* Add the source elements to the redirect, like host, snmp, ecc. */
+    if (last_timeseries_groups_loaded && last_timeseries_groups_loaded.length > 0) {
+        /* Use the first element */
+        const source_array = last_timeseries_groups_loaded[0].source_array
+        const source_def = last_timeseries_groups_loaded[0].source_type.source_def_array
+        if (source_array) {
+            source_array.forEach((elem, i) => {
+                if (!dataUtils.isEmptyOrNull(elem.label) && source_def[i]) {
+                    const value = source_def[i].value
+                    switch (value) {
+                        case 'device':
+                            params["probe_ip"] = `${elem.value};eq` 
+                            break;
+                        case 'if_index':
+                        case 'port':
+                            params["snmp_interface"] = `${elem.value};eq` 
+                            break;
+                        case 'host':
+                            params["ip"] = `${elem.value};eq` 
+                            break;
+                        case 'mac':
+                            params["mac"] = `${elem.value};eq` 
+                            break;
+                        case 'subnet':
+                            params["network"] = `${elem.value};eq` 
+                            break;
+                        case 'asn':
+                            params["asn"] = `${elem.value};eq` 
+                            break;
+                        case 'country':
+                            params["country"] = `${elem.value};eq` 
+                            break;
+                        case 'vlan':
+                            params["vlan_id"] = `${elem.value};eq` 
+                            break;
+                        case 'pool':
+                            params["host_pool_id"] = `${elem.value};eq` 
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            })
+        }
+    }
     let url_params = ntopng_url_manager.obj_to_url_params(params);
     const historical_url = `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
     ntopng_url_manager.go_to_url(historical_url);

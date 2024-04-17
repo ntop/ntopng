@@ -68,7 +68,7 @@ const top_application = {
 				}
 			};
 			return DataTableUtils.createActionButtons([
-				{ class: 'dropdown-item', icon: 'fas fa-stream', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
+				{ class: 'dropdown-item', icon: 'fas fa-search-plus', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
 				{ class: 'dropdown-item', icon: 'fas fa-stream', href: '#', title: i18n('flows_page.live_flows'), handler: jump_to_live },
 			]);
 		}
@@ -162,7 +162,7 @@ const top_categories = {
 				}
 			};
 			return DataTableUtils.createActionButtons([
-				{ class: 'dropdown-item', icon: 'fas fa-stream', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
+				{ class: 'dropdown-item', icon: 'fas fa-search-plus', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
 				{ class: 'dropdown-item', icon: 'fas fa-stream', href: '#', title: i18n('flows_page.live_flows'), handler: jump_to_live },
 			]);
 		}
@@ -267,7 +267,7 @@ const top_senders = {
 				};
 				const is_host_available = (service && service.host) ? service.host.is_available : false; 
 				const dropdown = [
-					{ class: 'dropdown-item', icon: 'fas fa-stream', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
+					{ class: 'dropdown-item', icon: 'fas fa-search-plus', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },
 					{ class: is_host_available ? 'dropdown-item' : 'dropdown-item disabled', icon: 'fas fa-stream', href: '#', title: i18n('flows_page.live_flows'), handler: jump_to_live },
 				]
 				if (context.sources_types_enabled["host"] && host_ts_available) {
@@ -378,7 +378,7 @@ const top_receivers = {
 	
 				const is_host_available = (service && service.host) ? service.host.is_available : false; 
 				const dropdown = [
-					{ class: 'dropdown-item', icon: 'fas fa-stream', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },				
+					{ class: 'dropdown-item', icon: 'fas fa-search-plus', href: '#', title: i18n('db_explorer.historical_data'), handler: jump_to_historical },				
 					{ class: is_host_available ? 'dropdown-item' : 'dropdown-item disabled', icon: 'fas fa-stream', href: '#', title: i18n('flows_page.live_flows'), handler: jump_to_live },
 				]
 				if (context.sources_types_enabled["host"] && host_ts_available) {
