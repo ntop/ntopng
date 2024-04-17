@@ -18,7 +18,7 @@
                         :title="image_button_title"><i
                             class="fas fa-lg fa-file-image"></i></button>
                     <button v-if="is_history_enabled" class="btn btn-link btn-sm" @click="jump_to_historical_flows"
-                        :title="_i18n('page_stats.historical_flows')"><i class="fas fa-lg fa-table"></i></button>
+                        :title="_i18n('page_stats.historical_flows')"><i class="fas fa-stream"></i></button>
                 </template>
             </DateTimeRangePicker>
             <!-- select metric -->
