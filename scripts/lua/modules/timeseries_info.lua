@@ -173,7 +173,8 @@ local community_timeseries = {{
             label = i18n('graphs.metric_labels.blacklist_num_hits'),
         }
     },
-    default_visible = true
+    default_visible = true,
+    always_visibile = true,
 }, {
     schema = "iface:new_flows",
     id = timeseries_id.iface,
@@ -2107,9 +2108,9 @@ local function add_top_blacklist_hits_timeseries(tags, timeseries)
     local series = ts_utils.listSeries("blacklist:hits", table.clone(tags), tags.epoch_begin) or {}
     local tmp_tags = table.clone(tags)
 
-    if table.empty(series) then
-        return;
-    end
+--    if table.empty(series) then
+--        return;
+--    end
     for _, serie in pairs(series or {}) do
         tmp_tags.blacklist_name = serie.blacklist_name
         timeseries[#timeseries + 1] = {
