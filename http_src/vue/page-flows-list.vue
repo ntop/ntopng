@@ -34,9 +34,7 @@
 import { ref, onMounted, onBeforeMount } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as SelectSearch } from "./select-search.vue";
-//import { default as PietyChart } from "../components/charts/piety-chart.vue";
 import { default as protocolUtils } from "../utilities/map/protocol-utils.js";
-import { default as alertSeverities } from "../utilities/map/alert-severities.js";
 import { default as dataUtils } from "../utilities/data-utils.js";
 import { default as Spinner } from "./spinner.vue";
 import formatterUtils from "../utilities/formatter-utils";
@@ -303,7 +301,7 @@ const map_table_def_columns = (columns) => {
                     // if is not defined is enabled
                     if (visible_dict[b.id] != null && visible_dict[b.id] == false) {
                         current_class.push("d-none");
-                    } else if (row.last_seen - row.first_seen < 120 /* 2 minutes */ &&
+                    } else if (row.last_seen - row.first_seen < 310 /* 5 minutes and 10 seconds */ &&
                         visible_dict[b.id] != null && visible_dict[b.id] == true) {
                         current_class.push("link-disabled");
                     }
@@ -436,13 +434,6 @@ async function load_table_filters_array() {
     interval_id.value = setInterval(refresh_table, refresh_rate)
 }
 
-/*
-const reset_piety = async function () {
-    await chart.value.reset();
-    await chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
-}
-*/
-
 /* ************************************** */
 
 function reset_filters() {
@@ -482,7 +473,16 @@ function click_button_live_flows(event) {
 
 function click_button_historical_data(event) {
     const row = event.row;
-    window.open(`${http_prefix}/lua/pro/db_search.lua?ifid=${row.ifid}&epoch_begin=${row.first_seen}&epoch_end=${row.last_seen}&l7proto=${row.application.app_id};eq&cli_ip=${row.client.ip};eq&srv_ip=${row.server.ip};eq&cli_port=${row.client.port};eq&srv_port=${row.server.port};eq&aggregated=false&query_preset=&count=THROUGHPUT`);
+    let cli_port = "";
+    let srv_port = "";
+    if (!dataUtils.isEmptyOrNull(row.client.port)) {
+        cli_port = `cli_port=${row.client.port};eq`
+    }
+    if (!dataUtils.isEmptyOrNull(row.server.port)) {
+        srv_port = `srv_port=${row.server.port};eq`
+    }
+    /* Use 30 seconds more and 30 less */
+    window.open(`${http_prefix}/lua/pro/db_search.lua?ifid=${row.ifid}&epoch_begin=${row.first_seen - 30}&epoch_end=${row.last_seen + 30}&l7proto=${row.application.app_id};eq&cli_ip=${row.client.ip};eq&srv_ip=${row.server.ip};eq&${cli_port}&${srv_port}&aggregated=false&query_preset=&count=THROUGHPUT`);
 }
 
 /* ************************************** */
