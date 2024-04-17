@@ -2256,6 +2256,7 @@ local lang = {
     ["label_short_blackhole"] = "H",
     ["label_short_local_host"] = "L",
     ["label_short_local_host_badge"] = "<abbr title=\"Local\"><span class='badge bg-success'>L</span></abbr>",
+    ["label_short_multicast_host_badge"] = "<abbr title=\"Multicast\"><span class='badge bg-primary'>M</span></abbr>",
     ["label_short_private_ip"] = "P",
     ["label_short_remote"] = "R",
     ["label_short_remote_host_badge"] = "<abbr title=\"Remote\"><span class='badge bg-secondary'>R</span></abbr>",

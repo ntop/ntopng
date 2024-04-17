@@ -1465,10 +1465,12 @@ end
 function format_location_badge(location)
     local loc = string.lower(location) or ""
 
-    if loc == "l" then
+    if loc == "local" then
         loc = i18n("details.label_short_local_host_badge")
-    elseif loc == "r" then
+    elseif loc == "remote" then
         loc = i18n("details.label_short_remote_host_badge")
+    elseif loc == 'multicast' then
+        loc = i18n('details.label_short_multicast_host_badge')
     end
 
     return loc

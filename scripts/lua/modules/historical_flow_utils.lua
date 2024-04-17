@@ -234,25 +234,17 @@ end
 -- #####################################
 
 local function dt_format_location(location)
-   local location_tag = {
-      label = '',
-   }
-
-   if not location then
-      return location_tag
-   end
+   local location_tag_value = ''
 
    if(location == "0") then -- Remote 
-      location_tag["label"] = i18n("details.label_short_remote")
+      location_tag_value = 'remote'
    elseif(location == "1") then -- Local
-      location_tag["label"] = i18n("details.label_short_local_host")
+      location_tag_value = 'local'
    elseif(location == "2") then -- Multicast
-      location_tag["label"] = i18n("short_multicast")
+      location_tag_value = 'multicast'
    end
-
-   location_tag["value"] = location
-
-   return location_tag
+   
+   return location_tag_value
 end
 
 -- #####################################
@@ -1624,8 +1616,8 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
     label = label .. ' <img src="' .. ntop.getHttpPrefix() .. '/dist/images/blank.gif" class="flag flag-' .. string.lower(info.cli_country.value) .. '">'
    end
 
-   if add_hyperlinks and info.cli_location and not isEmptyString(info.cli_location.label) then
-      label = label .. " " .. format_location_badge(info.cli_location.label)
+   if add_hyperlinks and info.cli_location and not isEmptyString(info.cli_location) then
+      label = label .. " " .. format_location_badge(info.cli_location)
    end
 
    if info.cli_port and not isEmptyString(info.cli_port.label) then
@@ -1668,8 +1660,8 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
     label = label .. ' <img src="' .. ntop.getHttpPrefix() .. '/dist/images/blank.gif" class="flag flag-' .. string.lower(info.srv_country.value) .. '">'
    end
 
-   if add_hyperlinks and info.srv_location and not isEmptyString(info.srv_location.label) then
-      label = label .. " " .. format_location_badge(info.srv_location.label)
+   if add_hyperlinks and info.srv_location and not isEmptyString(info.srv_location) then
+      label = label .. " " .. format_location_badge(info.srv_location)
    end
 
    if info.srv_port and not isEmptyString(info.srv_port.label) then
