@@ -431,7 +431,7 @@ print[[
                                        msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/system_stats.lua?ifid=-1&page=ntopcloud'>"; 
                                        msg += "<blink><span class=\"badge bg-success\">ntop <i class=\"fas fa-cloud\"></i></span></blink></a>";
                                 } else  {
-                                       msg += "<a href=']] print (ntop.getHttpPrefix()) print [[/lua/system_stats.lua?ifid=-1&page=ntopcloud'>"; 
+                                       msg += "<a href=\"https://cloud.ntop.org\">"; 
                                        msg += "<span class=\"badge bg-danger\">ntop <i class=\"fas fa-cloud\"></i></span></a>";
                                 }
 ]]
