@@ -992,7 +992,7 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
 
     -- [OPTIONAL] Add sort criteria
     if self._order_by then
-        if (self._order_by.sort_column == 'name') then
+        if (self._order_by.sort_column == 'name' and ntop.isClickHouseEnabled()) then
             order_by_clause = string.format("ORDER BY %s %s COLLATE 'en'", self._order_by.sort_column, self._order_by.sort_order)
         else
             order_by_clause = string.format("ORDER BY %s %s", self._order_by.sort_column, self._order_by.sort_order)
