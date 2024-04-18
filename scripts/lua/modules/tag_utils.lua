@@ -444,9 +444,19 @@ tag_utils.defined_tags = {
         i18n_label = i18n('db_search.tags.http_url'),
         operators = {'eq', 'neq', 'in', 'nin'}
     },
+    issuer_dn = {
+        value_type = 'text',
+        i18n_label = i18n('db_search.tags.issuer_dn'),
+        operators = {'eq', 'neq', 'in', 'nin'}
+    },
     user_agent = {
         value_type = 'user_agent',
         i18n_label = i18n('db_search.tags.user_agent'),
+        operators = {'eq', 'neq', 'in', 'nin'}
+    },
+    last_server = {
+        value_type = 'text',
+        i18n_label = i18n('db_search.tags.last_server'),
         operators = {'eq', 'neq', 'in', 'nin'}
     },
     netbios_name = {

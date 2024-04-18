@@ -655,7 +655,9 @@ function flow_alert_store:_get_additional_available_filters()
         snmp_interface = tag_utils.defined_tags.snmp_interface,
         host_location = tag_utils.defined_tags.host_location,
         cli_location = tag_utils.defined_tags.cli_location,
-        srv_location = tag_utils.defined_tags.srv_location
+        srv_location = tag_utils.defined_tags.srv_location,
+        last_server = tag_utils.defined_tags.last_server,
+        issuer_dn = tag_utils.defined_tags.issuer_dn
     }
 
     return filters
