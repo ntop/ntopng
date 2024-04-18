@@ -24,7 +24,7 @@
 
 /* ***************************************************** */
 
-void RemoteToLocalInsecureProto::protocolDetected(Flow *f) {
+void RemoteToLocalInsecureFlow::protocolDetected(Flow *f) {
   if (f->isRemoteToLocal()
       && f->isDPIDetectedFlow()
       && ((!f->isTCP()) || (f->getMajorConnState() >= ESTABLISHED))
@@ -68,7 +68,7 @@ void RemoteToLocalInsecureProto::protocolDetected(Flow *f) {
     }
 
     if (unsafe) {
-      FlowAlertType alert_type = RemoteToLocalInsecureProtoAlert::getClassType();
+      FlowAlertType alert_type = RemoteToLocalInsecureFlowAlert::getClassType();
       u_int8_t c_score, s_score;
       
       computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
@@ -80,9 +80,9 @@ void RemoteToLocalInsecureProto::protocolDetected(Flow *f) {
 
 /* ***************************************************** */
 
-FlowAlert *RemoteToLocalInsecureProto::buildAlert(Flow *f) {
-  RemoteToLocalInsecureProtoAlert *alert =
-      new (std::nothrow) RemoteToLocalInsecureProtoAlert(this, f);
+FlowAlert *RemoteToLocalInsecureFlow::buildAlert(Flow *f) {
+  RemoteToLocalInsecureFlowAlert *alert =
+      new (std::nothrow) RemoteToLocalInsecureFlowAlert(this, f);
 
   if (alert) {
     /* The remote client is considered the attacker. The victim is the local

@@ -15,13 +15,13 @@ local alert = require "alert"
 
 -- ##############################################
 
-local alert_remote_to_local_insecure_proto = classes.class(alert)
+local alert_remote_to_local_insecure_flow = classes.class(alert)
 
 -- ##############################################
 
-alert_remote_to_local_insecure_proto.meta = {
+alert_remote_to_local_insecure_flow.meta = {
    alert_key = flow_alert_keys.flow_alert_remote_to_local_insecure_proto,
-   i18n_title = "flow_checks_config.remote_to_local_insecure_proto_title",
+   i18n_title = "flow_checks_config.remote_to_local_insecure_flow_title",
    icon = "fas fa-fw fa-exclamation",
 
    has_victim = true,
@@ -34,16 +34,16 @@ alert_remote_to_local_insecure_proto.meta = {
 -- @param one_flow_param The first alert param
 -- @param another_flow_param The second alert param
 -- @return A table with the alert built
-function alert_remote_to_local_insecure_proto:init()
+function alert_remote_to_local_insecure_flow:init()
    -- Call the parent constructor
    self.super:init()
 end
 
 -- #######################################################
 
-function alert_remote_to_local_insecure_proto.format(ifid, alert, alert_type_params)
+function alert_remote_to_local_insecure_flow.format(ifid, alert, alert_type_params)
    
-   local alert_message = i18n("alert_messages.remote_to_local_insecure_proto")
+   local alert_message = i18n("alert_messages.remote_to_local_insecure_flow")
    local ndpi_breed = formatBreed(alert_type_params.ndpi_breed_name)
    local ndpi_cateogory = alert_type_params.ndpi_category_name;
 
@@ -65,4 +65,4 @@ end
 
 -- #######################################################
 
-return alert_remote_to_local_insecure_proto
+return alert_remote_to_local_insecure_flow

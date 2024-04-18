@@ -19,12 +19,12 @@
  *
  */
 
-#ifndef _REMOTE_TO_LOCAL_INSECURE_PROTO_ALERT_H_
-#define _REMOTE_TO_LOCAL_INSECURE_PROTO_ALERT_H_
+#ifndef _REMOTE_TO_LOCAL_INSECURE_FLOW_ALERT_H_
+#define _REMOTE_TO_LOCAL_INSECURE_FLOW_ALERT_H_
 
 #include "ntop_includes.h"
 
-class RemoteToLocalInsecureProtoAlert : public FlowAlert {
+class RemoteToLocalInsecureFlowAlert : public FlowAlert {
  private:
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
@@ -34,8 +34,8 @@ class RemoteToLocalInsecureProtoAlert : public FlowAlert {
   }
   static u_int8_t getDefaultScore() { return SCORE_LEVEL_ERROR; };
 
-  RemoteToLocalInsecureProtoAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f){};
-  ~RemoteToLocalInsecureProtoAlert(){};
+  RemoteToLocalInsecureFlowAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f){};
+  ~RemoteToLocalInsecureFlowAlert(){};
 
   bool autoAck() const { return false; };
 

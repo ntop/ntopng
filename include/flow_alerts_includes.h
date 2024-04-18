@@ -33,7 +33,7 @@
 #include "flow_alerts/NotPurgedAlert.h"
 #include "flow_alerts/RareDestinationAlert.h"
 #include "flow_alerts/RemoteAccessAlert.h"
-#include "flow_alerts/RemoteToLocalInsecureProtoAlert.h"
+#include "flow_alerts/RemoteToLocalInsecureFlowAlert.h"
 #include "flow_alerts/RemoteToRemoteAlert.h"
 #include "flow_alerts/TCPNoDataExchangedAlert.h"
 #include "flow_alerts/TCPZeroWindowAlert.h"

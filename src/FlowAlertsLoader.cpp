@@ -89,8 +89,8 @@ FlowAlertsLoader::FlowAlertsLoader() {
                 RareDestinationAlert::getDefaultScore());
   registerAlert(RemoteAccessAlert::getClassType(),
                 RemoteAccessAlert::getDefaultScore());
-  registerAlert(RemoteToLocalInsecureProtoAlert::getClassType(),
-                RemoteToLocalInsecureProtoAlert::getDefaultScore());
+  registerAlert(RemoteToLocalInsecureFlowAlert::getClassType(),
+                RemoteToLocalInsecureFlowAlert::getDefaultScore());
   registerAlert(RemoteToRemoteAlert::getClassType(),
                 RemoteToRemoteAlert::getDefaultScore());
   registerAlert(TCPConnectionNoAnswerAlert::getClassType(),

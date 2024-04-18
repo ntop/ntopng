@@ -19,28 +19,28 @@
  *
  */
 
-#ifndef _REMOTE_TO_LOCAL_INSECURE_PROTO_H_
-#define _REMOTE_TO_LOCAL_INSECURE_PROTO_H_
+#ifndef _REMOTE_TO_LOCAL_INSECURE_FLOW_H_
+#define _REMOTE_TO_LOCAL_INSECURE_FLOW_H_
 
 #include "ntop_includes.h"
 
-class RemoteToLocalInsecureProto : public FlowCheck {
+class RemoteToLocalInsecureFlow : public FlowCheck {
  private:
  public:
-  RemoteToLocalInsecureProto()
+  RemoteToLocalInsecureFlow()
       : FlowCheck(ntopng_edition_community, false /* All interfaces */,
                   false /* Don't exclude for nEdge */,
                   false /* NOT only for nEdge */,
                   true /* has_protocol_detected */,
                   false /* has_periodic_update */, false /* has_flow_end */){};
-  ~RemoteToLocalInsecureProto(){};
+  ~RemoteToLocalInsecureFlow(){};
 
   void protocolDetected(Flow *f);
   FlowAlert *buildAlert(Flow *f);
 
   std::string getName() const {
-    return (std::string("remote_to_local_insecure_proto"));
+    return (std::string("remote_to_local_insecure_flow"));
   }
 };
 
-#endif /* _REMOTE_TO_LOCAL_INSECURE_PROTO_H_ */
+#endif /* _REMOTE_TO_LOCAL_INSECURE_FLOW_H_ */
