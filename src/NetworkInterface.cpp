@@ -567,14 +567,14 @@ void NetworkInterface::loadProtocolsAssociations(struct ndpi_detection_module_st
 /* *************************************** */
 
 bool NetworkInterface::nDPILoadIPCategory(char *what,
-                                          ndpi_protocol_category_t id,
+                                          u_int16_t id,
                                           char *list_name) {
   bool success = true;
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%s][%s]", __FUNCTION__, what, list_name);
 
   if (what && ndpi_struct_shadow)
-    success = (ndpi_load_ip_category(ndpi_struct_shadow, what, id,
+    success = (ndpi_load_ip_category(ndpi_struct_shadow, what, (ndpi_protocol_category_t)id,
                                      (void *)list_name) == 0);
 
   return success;
@@ -582,13 +582,13 @@ bool NetworkInterface::nDPILoadIPCategory(char *what,
 
 /* *************************************** */
 
-bool NetworkInterface::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id, char *list_name /* NOT used */) {
+bool NetworkInterface::nDPILoadHostnameCategory(char *what, u_int16_t id, char *list_name) {
   bool success = true;
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, what);
 
   if (what && ndpi_struct_shadow)
-    success = (ndpi_load_hostname_category(ndpi_struct_shadow, what, id) == 0);
+    success = (ndpi_load_hostname_category(ndpi_struct_shadow, what, (ndpi_protocol_category_t)id) == 0);
   else
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
   

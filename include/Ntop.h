@@ -65,7 +65,7 @@ class Ntop {
   u_int num_cpus;       /**< Number of physical CPU cores. */
   Redis *redis;         /**< Pointer to the Redis server. */
   Mutex m, users_m, speedtest_m, pools_lock;
-  std::map<std::string, bool> cachedCustomLists; /* Cache of lists filenames */
+  std::map<std::string, u_int8_t> cachedCustomLists; /* Cache of lists filenames */
   u_int32_t current_time; /* Upated by current_time */
 #ifndef HAVE_NEDGE
   ElasticSearch *elastic_search; /**< Pointer of Elastic Search. */
@@ -172,7 +172,7 @@ class Ntop {
   void checkReloadAlertExclusions();
   void checkReloadHostPools();
   void setZoneInfo();
-  char *getPersistentCustomListName(char *name);
+  char* getPersistentCustomListName(char *name, u_int8_t *list_id /* out */);
 #ifdef NTOPNG_PRO
   void connectMessageBroker();
   void reloadMessageBroker();
@@ -811,6 +811,7 @@ class Ntop {
   void incNumLuaVMs()                   { num_active_lua_vms++;       }
   void decNumLuaVMs()                   { num_active_lua_vms--;       } 
   inline u_int16_t getNumActiveLuaVMs() { return(num_active_lua_vms); }
+  const char* getPersistentCustomListNameById(u_int8_t list_id);
 };
 
 extern Ntop *ntop;

@@ -3413,10 +3413,12 @@ void Ntop::finalizenDPIReload() {
 
 /* ******************************************* */
 
-bool Ntop::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id,
+bool Ntop::nDPILoadIPCategory(char *what, ndpi_protocol_category_t cat_id,
                               char *list_name) {
-  char *persistent_name = getPersistentCustomListName(list_name);
+  u_int8_t list_id;
+  char *persistent_name = getPersistentCustomListName(list_name, &list_id);
   bool success = true;
+  u_int16_t id = (((u_int16_t)list_id) << 8) + (u_int8_t)cat_id;
 
   for (u_int i = 0; i < get_num_interfaces(); i++) {
     if (getInterface(i)) {
@@ -3430,13 +3432,15 @@ bool Ntop::nDPILoadIPCategory(char *what, ndpi_protocol_category_t id,
 
 /* ******************************************* */
 
-bool Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id,
+bool Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t cat_id,
                                     char *list_name) {
-  char *persistent_name = getPersistentCustomListName(list_name);
+  u_int8_t list_id;
+  char *persistent_name = getPersistentCustomListName(list_name, &list_id);
   bool success = true;
+  u_int16_t id = (((u_int16_t)list_id) << 8) + (u_int8_t)cat_id;
 
   for (u_int i = 0; i < get_num_interfaces(); i++) {
-    if (getInterface(i)) {
+    if (getInterface(i)) {    
       if (!getInterface(i)->nDPILoadHostnameCategory(what, id, persistent_name))
         success = false;
     }
@@ -3871,19 +3875,34 @@ void Ntop::collectContinuousResponses(lua_State *vm) {
   This method is needed to have a string that is not deallocated
   after a call, but that is persistent inside nDPI
 */
-char *Ntop::getPersistentCustomListName(char *list_name) {
+char *Ntop::getPersistentCustomListName(char *list_name /* in */, u_int8_t *list_id /* out */) {
   std::string key(list_name);
-  std::map<std::string, bool>::iterator it = cachedCustomLists.find(key);
+  std::map<std::string, u_int8_t>::iterator it = cachedCustomLists.find(key);
 
   if (it == cachedCustomLists.end()) {
     /* Not found */
-    cachedCustomLists[key] = true;
+    *list_id = cachedCustomLists.size();
+    cachedCustomLists[key] = *list_id;
     it = cachedCustomLists.find(key);
   }
 
+  *list_id = it->second;
   return ((char *)it->first.c_str());
 }
 
+/* ******************************************* */
+
+const char* Ntop::getPersistentCustomListNameById(u_int8_t list_id) {
+  std::map<std::string, u_int8_t>::iterator it;
+
+  for (it = cachedCustomLists.begin(); it != cachedCustomLists.end(); it++) {
+    if(it->second == list_id)
+      return(it->first.c_str());
+  }
+  
+  return(NULL);
+}
+  
 /* ******************************************* */
 
 void Ntop::setZoneInfo() {

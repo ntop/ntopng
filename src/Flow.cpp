@@ -32,6 +32,8 @@ const ndpi_protocol Flow::ndpiUnknownProtocol = {
 // #define DEBUG_UA
 // #define DEBUG_SCORE
 
+/* #define BLACKLISTED_FLOWS_DEBUG */
+
 /* *************************************** */
 
 Flow::Flow(NetworkInterface *_iface,
@@ -1269,14 +1271,28 @@ void Flow::setExtraDissectionCompleted() {
     /* nDPI is not allocated for non-TCP non-UDP flows so, in order to
        make sure custom cateories are properly populated, function
        ndpi_fill_ip_protocol_category must be called explicitly. */
-    if (ndpiFlow
-	&& get_cli_ip_addr()->get_ipv4()
-	&& get_srv_ip_addr()->get_ipv4() /* Only IPv4 is supported */) {
-      ndpi_fill_ip_protocol_category(iface->get_ndpi_struct(),
-				     ndpiFlow,
-				     get_cli_ip_addr()->get_ipv4(),
-				     get_srv_ip_addr()->get_ipv4(),
-				     &ndpiDetectedProtocol);
+    if (ndpiFlow) {      
+      if(get_cli_ip_addr()->get_ipv4() /* && get_srv_ip_addr()->get_ipv4() */)
+	ndpi_fill_ip_protocol_category(iface->get_ndpi_struct(),
+				       ndpiFlow,
+				       get_cli_ip_addr()->get_ipv4(),
+				       get_srv_ip_addr()->get_ipv4(),
+				       &ndpiDetectedProtocol);
+      else if(get_cli_ip_addr()->get_ipv6()) /* IPv6 */
+	ndpi_fill_ipv6_protocol_category(iface->get_ndpi_struct(),
+					 ndpiFlow,
+					 (struct in6_addr *)get_cli_ip_addr()->get_ipv6(),
+					 (struct in6_addr *)get_srv_ip_addr()->get_ipv6(),
+					 &ndpiDetectedProtocol);
+      
+      /* We have used the trick to save in the protocolId both the list name and the protocol */
+      if(ndpiDetectedProtocol.custom_category_userdata == NULL) {
+	u_int8_t list_id = (ndpiDetectedProtocol.category & 0xFF00) >> 8;
+
+	ndpiDetectedProtocol.category = (ndpi_protocol_category_t)(ndpiDetectedProtocol.category & 0xFF);
+	ndpiDetectedProtocol.custom_category_userdata = (void*)ntop->getPersistentCustomListNameById(list_id);
+      }
+      
       stats.setDetectedProtocol(&ndpiDetectedProtocol);
       updateHostBlacklists();
     }
@@ -1410,9 +1426,11 @@ void Flow::setProtocolDetectionCompleted(u_int8_t *payload,
     print(buf, sizeof(buf));
     snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf),
              "Malware category detected. [cli_blacklisted: "
-             "%u][srv_blacklisted: %u][category: %s]",
+             "%u][srv_blacklisted: xo%u][category: %s][blacklist: %s]",
              isBlacklistedClient(), isBlacklistedServer(),
-             get_protocol_category_name());
+             get_protocol_category_name(),
+	     get_custom_category_file() ? get_custom_category_file() : "");
+    
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
   }
 #endif
@@ -3602,30 +3620,25 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
 
       /* Custom information elements, Local, Blacklisted, Has Services and
        * domain name */
-      json_object_object_add(
-          host_object,
-          Utils::jsonLabel(is_client ? SRC_ADDR_LOCAL : DST_ADDR_LOCAL,
-                           "is_local", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_boolean(addr->isLocalHost()));
-      json_object_object_add(
-          host_object,
-          Utils::jsonLabel(
-              is_client ? SRC_ADDR_BLACKLISTED : DST_ADDR_BLACKLISTED,
-              "is_blacklisted", jsonbuf, sizeof(jsonbuf)),
-          json_object_new_boolean(addr->isBlacklistedAddress()));
-
+      json_object_object_add(host_object,
+			     Utils::jsonLabel(is_client ? SRC_ADDR_LOCAL : DST_ADDR_LOCAL,
+					      "is_local", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_boolean(addr->isLocalHost()));
+      json_object_object_add(host_object,
+			     Utils::jsonLabel(
+					      is_client ? SRC_ADDR_BLACKLISTED : DST_ADDR_BLACKLISTED,
+					      "is_blacklisted", jsonbuf, sizeof(jsonbuf)),
+			     json_object_new_boolean(addr->isBlacklistedAddress()));
+      
       if (get_cli_host()) {
-        json_object_object_add(
-            host_object,
-            Utils::jsonLabel(is_client ? SRC_ADDR_SERVICES : DST_ADDR_SERVICES,
-                             "has_services", jsonbuf, sizeof(jsonbuf)),
-            json_object_new_int(get_cli_host()->getServicesMap()));
-        json_object_object_add(
-            host_object,
-            Utils::jsonLabel(is_client ? SRC_NAME : DST_NAME, "domain", jsonbuf,
-                             sizeof(jsonbuf)),
-            json_object_new_string(
-                get_cli_host()->get_visual_name(buf, sizeof(buf))));
+        json_object_object_add(host_object,
+			       Utils::jsonLabel(is_client ? SRC_ADDR_SERVICES : DST_ADDR_SERVICES,
+						"has_services", jsonbuf, sizeof(jsonbuf)),
+			       json_object_new_int(get_cli_host()->getServicesMap()));
+        json_object_object_add(host_object,
+			       Utils::jsonLabel(is_client ? SRC_NAME : DST_NAME, "domain", jsonbuf,
+						sizeof(jsonbuf)),
+			       json_object_new_string(get_cli_host()->get_visual_name(buf, sizeof(buf))));
       }
     }
 
@@ -3832,20 +3845,17 @@ void Flow::formatGenericFlow(json_object *my_object) {
                            Utils::jsonLabel(SRC_ADDR_LOCAL, "SRC_ADDR_LOCAL",
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_boolean(cli_ip->isLocalHost()));
-    json_object_object_add(
-			   my_object,
+    json_object_object_add(my_object,
 			   Utils::jsonLabel(SRC_ADDR_BLACKLISTED, "SRC_ADDR_BLACKLISTED", jsonbuf,
 					    sizeof(jsonbuf)),
 			   json_object_new_boolean(cli_ip->isBlacklistedAddress()));
 
     if (get_cli_host()) {
-      json_object_object_add(
-			     my_object,
+      json_object_object_add(my_object,
 			     Utils::jsonLabel(SRC_ADDR_SERVICES, "SRC_ADDR_SERVICES", jsonbuf,
 					      sizeof(jsonbuf)),
 			     json_object_new_int(get_cli_host()->getServicesMap()));
-      json_object_object_add(
-			     my_object,
+      json_object_object_add(my_object,
 			     Utils::jsonLabel(SRC_NAME, "SRC_NAME", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(
 						    get_cli_host()->get_visual_name(buf, sizeof(buf))));
@@ -3874,20 +3884,17 @@ void Flow::formatGenericFlow(json_object *my_object) {
                            Utils::jsonLabel(DST_ADDR_LOCAL, "DST_ADDR_LOCAL",
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_boolean(srv_ip->isLocalHost()));
-    json_object_object_add(
-			   my_object,
+    json_object_object_add(my_object,
 			   Utils::jsonLabel(DST_ADDR_BLACKLISTED, "DST_ADDR_BLACKLISTED", jsonbuf,
 					    sizeof(jsonbuf)),
 			   json_object_new_boolean(srv_ip->isBlacklistedAddress()));
 
     if (get_srv_host()) {
-      json_object_object_add(
-			     my_object,
+      json_object_object_add(my_object,
 			     Utils::jsonLabel(DST_ADDR_SERVICES, "DST_ADDR_SERVICES", jsonbuf,
 					      sizeof(jsonbuf)),
 			     json_object_new_int(get_srv_host()->getServicesMap()));
-      json_object_object_add(
-			     my_object,
+      json_object_object_add(my_object,
 			     Utils::jsonLabel(SRC_NAME, "DST_NAME", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(
 						    get_srv_host()->get_visual_name(buf, sizeof(buf))));
@@ -4784,11 +4791,13 @@ bool Flow::isBlacklistedFlow() const {
 #ifdef BLACKLISTED_FLOWS_DEBUG
   if (res) {
     char buf[512];
+    
     print(buf, sizeof(buf));
     snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf),
-             "[cli_blacklisted: %u][srv_blacklisted: %u][category: %s]",
+             "[cli_blacklisted: %u][srv_blacklisted: %u][category: %s][blacklist: %s]",
              isBlacklistedClient(), isBlacklistedServer(),
-             get_protocol_category_name());
+             get_protocol_category_name(),
+	     get_custom_category_file() ? get_custom_category_file() : "");
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
   }
 #endif
@@ -7083,15 +7092,12 @@ void Flow::lua_get_info(lua_State *vm, bool client) const {
 
       lua_push_bool_table_entry(vm, client ? "cli.localhost" : "srv.localhost",
                                 h->isLocalHost());
-      lua_push_bool_table_entry(
-          vm, client ? "cli.systemhost" : "srv.systemhost", h->isSystemHost());
-      lua_push_bool_table_entry(
-          vm, client ? "cli.blacklisted" : "srv.blacklisted",
-          client ? isBlacklistedClient() : isBlacklistedServer());
-      lua_push_bool_table_entry(
-          vm,
-          client ? "cli.broadcast_domain_host" : "srv.broadcast_domain_host",
-          h->isBroadcastDomainHost());
+      lua_push_bool_table_entry(vm, client ? "cli.systemhost" : "srv.systemhost", h->isSystemHost());
+      lua_push_bool_table_entry(vm, client ? "cli.blacklisted" : "srv.blacklisted",
+				client ? isBlacklistedClient() : isBlacklistedServer());
+      lua_push_bool_table_entry(vm,
+				client ? "cli.broadcast_domain_host" : "srv.broadcast_domain_host",
+				h->isBroadcastDomainHost());
       lua_push_bool_table_entry(vm, client ? "cli.dhcpHost" : "srv.dhcpHost",
                                 h->isDHCPHost());
       lua_push_int32_table_entry(vm,

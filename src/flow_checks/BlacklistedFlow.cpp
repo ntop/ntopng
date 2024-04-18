@@ -22,6 +22,8 @@
 #include "ntop_includes.h"
 #include "flow_checks_includes.h"
 
+/* ***************************************************** */
+
 void BlacklistedFlow::protocolDetected(Flow *f) {
   if (f->isBlacklistedFlow()) {
     FlowAlertType alert_type = BlacklistedFlowAlert::getClassType();
@@ -44,8 +46,7 @@ void BlacklistedFlow::protocolDetected(Flow *f) {
 FlowAlert *BlacklistedFlow::buildAlert(Flow *f) {
   bool is_server_bl = f->isBlacklistedServer();
   bool is_client_bl = f->isBlacklistedClient();
-  BlacklistedFlowAlert *alert =
-      new (std::nothrow) BlacklistedFlowAlert(this, f);
+  BlacklistedFlowAlert *alert = new (std::nothrow) BlacklistedFlowAlert(this, f);
 
   if (alert) {
     /*
