@@ -643,6 +643,10 @@ export class DataTableRenders {
                 }
             } else {
                 if (ip && value) {
+
+                    if (value.includes(ip)) {
+                        value = value.split("_")[1];
+                    }
                     let url = NtopUtils.buildURL(`${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${ip}&snmp_port_idx=${value}`);
                     content += ` <a href='${url}'data-bs-toggle='tooltip' title=''><i class='fas fa-laptop'></i></a>`;
                 }

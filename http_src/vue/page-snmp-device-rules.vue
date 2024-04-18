@@ -5,6 +5,12 @@
 <template>
 <div class="row">
   <div class="col-md-12 col-lg-12">
+    <div v-if="!props.is_check_enabled" class="alert alert-warning alert-dismissable">
+            <span
+              class="text-warning me-1"
+            ></span>
+            <span> {{ active_alert_text }}</span>
+          </div>
     <div class="card">
       <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
         <div class="text-center">
@@ -60,6 +66,7 @@ import NtopUtils from "../utilities/ntop-utils";
 const props = defineProps({
   page_csrf: String,
   ifid: String,
+  is_check_enabled: Boolean
 })
 
 const table_host_rules = ref(null)
@@ -85,13 +92,14 @@ const note_list = [
 
 const rest_params = {
   ifid: props.ifid,
-  csrf: props.page_csrf
+  csrf: props.page_csrf,
 }
 
 let host_rules_table_config = {}
 let title_delete = _i18n('if_stats_config.delete_host_rules_title')
 let title_edit = _i18n('if_stats_config.edit_local_network_rules')
 let body_delete = _i18n('if_stats_config.delete_host_rules_description')
+const active_alert_text = _i18n('snmp.snmp_devices_rules_active_alert_warning')
 let snmp_metric_list = []
 let snmp_interfaces_list = []
 let snmp_devices_list = []
@@ -302,6 +310,8 @@ const start_datatable = function() {
 }
 
 onBeforeMount(async () => {
+
+  console.log(props.is_check_enabled)
   start_datatable();
   await get_snmp_metric_list();
   await get_snmp_devices_list();

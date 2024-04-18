@@ -7241,7 +7241,7 @@ local lang = {
     ["host_delete_config_confirm"] = "Do you really want to delete the %{granularity} configuration for host",
     ["host_pool_rule_threshold_cross"] = "Threshold Crossed",
     ["host_rules_percentage"] = "Symbol '>' means a positive percentage threshold, otherwise '<' means a negative percentage threshold.",
-    ["host_rules_percentage_absolute"] = "The threshold value must be: 0 < threshold < 100.",
+    ["host_rules_percentage_absolute"] = "The threshold value must be: 0 <= threshold <= 100.",
     ["hourly"] = "Hourly",
     ["ids_ips_log"] = "Intrusion Detection and Prevention Log",
     ["ids_ips_log_descr"] = "Logs intrusion detection and prevention events, such as when an host has been added to (or removed from) the jailed hosts pool. Logged events are stored as alerts under system interface alerts.",
@@ -7533,6 +7533,7 @@ local lang = {
       ["version"] = "SNMP protocol version",
       ["write_community"] = "SNMP v1/v2c write community",
     },
+    ["snmp_devices_rules_active_alert_warning"] = "The SNMP Threshold Crossed alert must be enabled to receive alerts on rules not respected.",
     ["snmp_devices_rules_metrics"] = {
       ["bytes"] = "Bytes (RX + TX)",
       ["errors"] = "Errors (Packets Errors + Discards)",
