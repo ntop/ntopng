@@ -1041,8 +1041,8 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
 
     -- tprint(q)
 
-    --res = interface.alert_store_query(q, true, true --[[ limit rows --]])
-    res = interface.alert_store_query(q, true)
+    -- res = interface.alert_store_query(q, true)
+    res = interface.alert_store_query(q, true, true) -- Limit results to the max set in the backend
 
     if ntop.isClickHouseEnabled() then
         -- convert DATETIME to epoch
