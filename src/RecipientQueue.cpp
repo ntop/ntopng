@@ -21,8 +21,8 @@
 
 #include "ntop_includes.h"
 
-#define DEBUG_RECIPIENT_QUEUE
-#define DEBUG_DB_QUEUE
+// #define DEBUG_RECIPIENT_QUEUE
+// #define DEBUG_DB_QUEUE
 
 /* *************************************** */
 
