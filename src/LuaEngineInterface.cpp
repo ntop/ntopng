@@ -1095,6 +1095,7 @@ static int ntop_interface_inc_syslog_stats(lua_State *vm) {
 static int ntop_interface_alert_store_query(lua_State *vm) {
   NetworkInterface *iface = getCurrentInterface(vm);
   char *query = NULL;
+  bool limit_rows = false;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
@@ -1108,7 +1109,11 @@ static int ntop_interface_alert_store_query(lua_State *vm) {
     iface = ntop->getInterfaceById(ifid);
   }
 
-  if (!iface || !query || !iface->alert_store_query(vm, query)) {
+  /* Optional: limit rows  */
+  if (lua_type(vm, 3) == LUA_TBOOLEAN)
+    limit_rows = lua_toboolean(vm, 3) ? true : false;
+
+  if (!iface || !query || !iface->alert_store_query(vm, query, limit_rows)) {
     lua_pushnil(vm);
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }

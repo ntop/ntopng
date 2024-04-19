@@ -1038,8 +1038,11 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
         interface.clickhouseExecCSVQuery(q)
         return ""
     end
+
     -- tprint(q)
-    res = interface.alert_store_query(q)
+
+    --res = interface.alert_store_query(q, true, true --[[ limit rows --]])
+    res = interface.alert_store_query(q, true)
 
     if ntop.isClickHouseEnabled() then
         -- convert DATETIME to epoch

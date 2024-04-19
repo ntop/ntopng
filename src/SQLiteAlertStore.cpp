@@ -142,7 +142,7 @@ static int getAlertsCallback(void *data, int argc, char **argv,
 
 /* **************************************************** */
 
-bool SQLiteAlertStore::query(lua_State *vm, const char *query) {
+bool SQLiteAlertStore::query(lua_State *vm, const char *query, bool limit_rows) {
   int rc = SQLITE_ERROR;
 
   if (!ntop->getPrefs()->are_alerts_disabled()) {

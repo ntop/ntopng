@@ -8280,10 +8280,10 @@ static bool virtual_http_hosts_walker(GenericHashEntry *node, void *data,
 
 /* **************************************** */
 
-bool NetworkInterface::alert_store_query(lua_State *vm, const char *sql) {
+bool NetworkInterface::alert_store_query(lua_State *vm, const char *sql, bool limit_rows) {
   if (!alertStore) return false;
 
-  return alertStore->query(vm, sql);
+  return alertStore->query(vm, sql, limit_rows);
 }
 
 /* **************************************** */

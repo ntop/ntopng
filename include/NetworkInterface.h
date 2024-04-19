@@ -903,7 +903,7 @@ public:
   inline void setIdleState(bool new_state) { is_idle = new_state; };
   inline StatsManager *getStatsManager() { return statsManager; };
   AlertsQueue *getAlertsQueue() const;
-  bool alert_store_query(lua_State *vm, const char *sql);
+  bool alert_store_query(lua_State *vm, const char *sql, bool limit_rows);
 
   void listHTTPHosts(lua_State *vm, char *key);
 #ifdef NTOPNG_PRO
