@@ -3,7 +3,7 @@
   <modal ref="modal_id">
     <template v-slot:title>{{ title }}</template>
     <template v-slot:body>
-
+      <form>
       <!-- Host -->
       <template v-if="!is_edit_page">
         <div class="form-group ms-2 me-2 mt-3 row">
@@ -67,71 +67,75 @@
             <b>{{ _i18n("snmp.snmp_level") }}</b>
           </label>
           <div class="col-sm-5">
-            <SelectSearch v-model:selected_option="selected_snmp_level" :options="snmp_levels">
+            <SelectSearch v-model:selected_option="selected_snmp_level" :options="snmp_levels" @select_option="update_levels">
             </SelectSearch>
             <small class="text-muted">{{ _i18n("snmp.descriptions.level") }}</small>
           </div>
         </div>
 
         <!-- SNMP Username -->
-        <div class="form-group ms-2 me-2 mt-3 row">
-          <label class="col-form-label col-sm-4">
-            <b>{{ _i18n("snmp.snmp_username") }}</b>
-          </label>
-          <div class="col-sm-5">
-            <input v-model="snmp_username"  class="form-control" type="text" @input="check_username" required/>
-              <small class="text-muted">{{ _i18n("snmp.descriptions.username") }}</small>
+        <template v-if="with_auth">
+          <div class="form-group ms-2 me-2 mt-3 row">
+            <label class="col-form-label col-sm-4">
+              <b>{{ _i18n("snmp.snmp_username") }}</b>
+            </label>
+            <div class="col-sm-5">
+              <input v-model="snmp_username"  class="form-control" type="text" autocomplete="current-username" @input="check_username" required/>
+                <small class="text-muted">{{ _i18n("snmp.descriptions.username") }}</small>
+            </div>
           </div>
-        </div>
-        
-        <!-- SNMP Auth Protocol -->
-        <div class="form-group ms-2 me-2 mt-3 row">
-          <label class="col-form-label col-sm-4">
-            <b>{{ _i18n("snmp.authentication_protocol") }}</b>
-          </label>
-          <div class="col-sm-5">
-            <SelectSearch v-model:selected_option="selected_auth_protocol" :options="snmp_auth_protocols">
-            </SelectSearch>
-            <small class="text-muted">{{ _i18n("snmp.descriptions.authentication_protocol") }}</small>
+          
+          <!-- SNMP Auth Protocol -->
+          <div class="form-group ms-2 me-2 mt-3 row">
+            <label class="col-form-label col-sm-4">
+              <b>{{ _i18n("snmp.authentication_protocol") }}</b>
+            </label>
+            <div class="col-sm-5">
+              <SelectSearch v-model:selected_option="selected_auth_protocol" :options="snmp_auth_protocols">
+              </SelectSearch>
+              <small class="text-muted">{{ _i18n("snmp.descriptions.authentication_protocol") }}</small>
+            </div>
           </div>
-        </div>
 
-        <!-- SNMP Auth PassaPhrase -->
-        <div class="form-group ms-2 me-2 mt-3 row">
-          <label class="col-form-label col-sm-4">
-            <b>{{ _i18n("snmp.authentication_passphrase") }}</b>
-          </label>
-          <div class="col-sm-5">
-            <input v-model="snmp_auth_passphrase"  class="form-control" type="text" required @input="check_passphrase"/>
-              <small class="text-muted">{{ _i18n("snmp.descriptions.authentication_passphrase") }}</small>
+          <!-- SNMP Auth PassaPhrase -->
+          <div class="form-group ms-2 me-2 mt-3 row">
+            <label class="col-form-label col-sm-4">
+              <b>{{ _i18n("snmp.authentication_passphrase") }}</b>
+            </label>
+            <div class="col-sm-5">
+              <input v-model="snmp_auth_passphrase"  class="form-control"  type = "password" autocomplete="current-password" required @input="check_snmp_auth_passphrase"/>
+                <small class="text-muted">{{ _i18n("snmp.descriptions.authentication_passphrase") }}</small>
+            </div>
           </div>
-        </div>
+        </template>
 
         <!-- SNMP Privacy Protocol -->
-        <!--
-        <div class="form-group ms-2 me-2 mt-3 row">
-          <label class="col-form-label col-sm-4">
-            <b>{{ _i18n("snmp.privacy_protocol") }}</b>
-          </label>
-          <div class="col-sm-5">
-            <SelectSearch v-model:selected_option="selected_privacy_protocol" :options="snmp_privacy_protocols">
-            </SelectSearch>
-            <small class="text-muted">{{ _i18n("snmp.descriptions.privacy_protocol") }}</small>
+        
+        <template v-if="with_privacy">
+          <div class="form-group ms-2 me-2 mt-3 row">
+            <label class="col-form-label col-sm-4">
+              <b>{{ _i18n("snmp.privacy_protocol") }}</b>
+            </label>
+            <div class="col-sm-5">
+              <SelectSearch v-model:selected_option="selected_privacy_protocol" :options="snmp_privacy_protocols">
+              </SelectSearch>
+              <small class="text-muted">{{ _i18n("snmp.descriptions.privacy_protocol") }}</small>
+            </div>
           </div>
-        </div>-->
 
-        <!-- SNMP Privacy PassaPhrase 
-        <div class="form-group ms-2 me-2 mt-3 row">
-          <label class="col-form-label col-sm-4">
-            <b>{{ _i18n("snmp.privacy_passphrase") }}</b>
-          </label>
-          <div class="col-sm-5">
-            <input v-model="snmp_privacy_passphrase"  class="form-control" type="text"/>
-            <small class="text-muted">{{ _i18n("snmp.descriptions.privacy_passphrase") }}</small>
+          <!-- SNMP Privacy PassaPhrase -->
+          <div class="form-group ms-2 me-2 mt-3 row">
+            <label class="col-form-label col-sm-4">
+              <b>{{ _i18n("snmp.privacy_passphrase") }}</b>
+            </label>
+            <div class="col-sm-5">
+              <input v-model="snmp_privacy_passphrase"  class="form-control" autocomplete="current-password" type = "password" required @input="check_snmp_privacy_passphrase"/>
+              <small class="text-muted">{{ _i18n("snmp.descriptions.privacy_passphrase") }}</small>
+            </div>
           </div>
-        </div>-->
+        </template>
       </template>
-      
+    </form>
     </template>
 
     <template v-slot:footer>
@@ -141,11 +145,11 @@
       <div>
         <Spinner :show="activate_add_spinner" size="1rem" class="me-2"></Spinner>
         <button v-if="is_edit_page == false" type="button" @click="add_" class="btn btn-primary"
-        :disabled="!(is_cidr_correct && is_host_correct && is_username_valid && is_passphrase_valid && is_community_correct)">
+        :disabled="!(is_cidr_correct && is_host_correct && is_username_valid && is_snmp_auth_passphrase_valid && is_snmp_privacy_passphrase_valid && is_community_correct)">
           {{ _i18n("add") }}
         </button>
         <button v-else type="button" @click="edit_" class="btn btn-primary"
-          :disabled="!( is_cidr_correct && is_host_correct && is_username_valid && is_passphrase_valid && is_community_correct)">
+          :disabled="!( is_cidr_correct && is_host_correct && is_username_valid && is_snmp_auth_passphrase_valid && is_snmp_privacy_passphrase_valid && is_community_correct)">
           {{ _i18n("apply") }}
         </button>
       </div>
@@ -190,10 +194,12 @@ const is_enterprise_l = ref(null);
 const is_cidr_correct = ref(false);
 const is_host_correct = ref(false);
 const is_community_correct = ref(false);
-const is_passphrase_valid = ref(true);
+const is_snmp_auth_passphrase_valid = ref(true);
+const is_snmp_privacy_passphrase_valid = ref(true);
 const is_username_valid = ref(true);
 const no_host_feedback = ref("");
-
+const with_privacy = ref(false);
+const with_auth = ref(false);
 const enable_v3_options = ref(false);
 
 const selected_version = ref(null);
@@ -250,6 +256,7 @@ const reset_modal_form = function () {
   no_host_feedback.value = "";
   snmp_auth_passphrase.value = "";
   snmp_username.value = "";
+  selected_snmp_level.value = snmp_levels.value[2];
   selected_auth_protocol.value = snmp_auth_protocols.value[0];
   selected_privacy_protocol.value = snmp_privacy_protocols.value[0];
   snmp_privacy_passphrase.value = "";
@@ -262,7 +269,8 @@ const reset_modal_form = function () {
   is_data_not_ok.value = false;
   selected_version.value = snmp_versions.value[0];
   enable_v3_options.value = false;
-  is_passphrase_valid.value = true;
+  is_snmp_auth_passphrase_valid.value = true;
+  is_snmp_privacy_passphrase_valid.value = true;
   is_username_valid.value = true;
 };
 
@@ -318,18 +326,46 @@ const show = (row, _host) => {
   modal_id.value.show();
 };
 
+const update_levels = () =>  {
+
+  is_community_correct.value = true;
+  switch (selected_snmp_level.value.id) {
+    case "authNoPriv" : {
+      with_privacy.value = false;
+      with_auth.value = true;    
+      is_snmp_auth_passphrase_valid.value = false;
+      is_snmp_privacy_passphrase_valid.value = true;
+
+      snmp_auth_passphrase.value = "";
+      snmp_privacy_passphrase.value = "";
+    }break;
+    case "authPriv" : {
+      with_privacy.value = true;
+      with_auth.value = true;
+      is_snmp_auth_passphrase_valid.value = false;
+      is_snmp_privacy_passphrase_valid.value = false;
+
+      snmp_auth_passphrase.value = "";
+      snmp_privacy_passphrase.value = "";
+    }break;
+    case "noAuthNoPriv" : {
+      with_privacy.value = false;
+      with_auth.value = false;
+      is_snmp_auth_passphrase_valid.value = true;
+      is_snmp_privacy_passphrase_valid.value = true;
+      snmp_auth_passphrase.value = "";
+      snmp_privacy_passphrase.value = "";
+    }break;
+  } 
+}
 
 const update_v3_fields = () => {
 
   if (selected_version.value.id == "2" && props.context.snmp_v3_available) {
     enable_v3_options.value = true;
-    is_username_valid.value = false;
-    is_passphrase_valid.value = false;
     is_community_correct.value = true;
   } else {
     enable_v3_options.value = false;
-    is_username_valid.value = true;
-    is_passphrase_valid.value = true;
     is_community_correct.value = false;
 
   }
@@ -386,11 +422,19 @@ const check_username = () => {
   }
 }
 
-const check_passphrase = () => {
+const check_snmp_auth_passphrase = () => {
   if (snmp_auth_passphrase.value != null && snmp_auth_passphrase.value.length > 8) {
-    is_passphrase_valid.value = true;
+    is_snmp_auth_passphrase_valid.value = true;
   } else {
-    is_passphrase_valid.value = false;
+    is_snmp_auth_passphrase_valid.value = false;
+  }
+}
+
+const check_snmp_privacy_passphrase = () => {
+  if (snmp_privacy_passphrase.value != null && snmp_privacy_passphrase.value.length > 8) {
+    is_snmp_privacy_passphrase_valid.value = true;
+  } else {
+    is_snmp_privacy_passphrase_valid.value = false;
   }
 }
 
@@ -468,12 +512,14 @@ const add_ = async (is_edit) => {
     if (selected_version.value.id == '2') {
       let tmp_selected_auth_protocol = selected_auth_protocol.value != null ? selected_auth_protocol.value.id : snmp_auth_protocols.value[0].id;
       let tmp_selected_snmp_level = selected_snmp_level.value != null ? selected_snmp_level.value.id : snmp_levels.value[0].id;
+      let tmp_selected_privacy_protocol = selected_privacy_protocol.value != null ? selected_privacy_protocol.value.id : snmp_privacy_protocols.value[0].id;
+      
       snmp_entry = {
         ...snmp_entry,...{
           snmp_auth_passphrase: snmp_auth_passphrase.value,
           snmp_auth_protocol: tmp_selected_auth_protocol,
           snmp_level: tmp_selected_snmp_level,
-          snmp_privacy_protocol: snmp_privacy_protocols.value[0].id,
+          snmp_privacy_protocol: tmp_selected_privacy_protocol,
           snmp_privacy_passphrase: snmp_privacy_passphrase.value,
           snmp_username: snmp_username.value,
           snmp_write_community: snmp_write_community.value
