@@ -21,7 +21,8 @@
 
 #include "ntop_includes.h"
 
-// #define DEBUG_RECIPIENT_QUEUE
+#define DEBUG_RECIPIENT_QUEUE
+#define DEBUG_DB_QUEUE
 
 /* *************************************** */
 
@@ -85,7 +86,11 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
   bool res = false;
 
 #ifdef DEBUG_RECIPIENT_QUEUE
+#ifdef DEBUG_DB_QUEUE
   if (recipient_id == 0 && alert_entity == alert_entity_host)
+#else
+  if (recipient_id != 0)
+#endif
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enqueueing alert to recipient %d", recipient_id);
 #endif
 
@@ -95,7 +100,11 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
   else if(!skip_alerts) {
     /* In case alerts have not to be skipped, check the filters */
 #ifdef DEBUG_RECIPIENT_QUEUE
+#ifdef DEBUG_DB_QUEUE
     if (recipient_id == 0 && alert_entity == alert_entity_host)
+#else
+  if (recipient_id != 0)
+#endif
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checking alert (entity %d) for recipient %d", alert_entity, recipient_id);
 #endif
    
@@ -114,7 +123,11 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
         (alert_entity_host == alert_entity && !enabled_host_alert_types.isSetBit(notification->alert_id))
     ) {
 #ifdef DEBUG_RECIPIENT_QUEUE
+#ifdef DEBUG_DB_QUEUE
       if (recipient_id == 0 && alert_entity == alert_entity_host)
+#else
+      if (recipient_id != 0)
+#endif
         ntop->getTrace()->traceEvent(TRACE_NORMAL, "Alert filtered out due to filtering policy for recipient %d "
           "[severity %s (%d vs %d)][category %s (%d)][entity %s (%d)][check %s (%d)]",
           recipient_id,
@@ -134,7 +147,7 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
       /* But still increment the number of uses */
       uses++;
 #ifdef DEBUG_RECIPIENT_QUEUE
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow alert (no enqueue - clickhouse uses: %u)", uses);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow alert (no enqueue - clickhouse uses: %u)", uses);
 #endif
       return true;
     }
@@ -152,7 +165,11 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification,
       } else if (alert_entity == alert_entity_host) {
         if (!enabled_host_pools.isSetBit(notification->host.host_pool)) {
 #ifdef DEBUG_RECIPIENT_QUEUE
+#ifdef DEBUG_DB_QUEUE
           if (recipient_id == 0 && alert_entity == alert_entity_host)
+#else
+          if (recipient_id != 0)
+#endif
             ntop->getTrace()->traceEvent(TRACE_NORMAL, "Alert filtered out due to host pool filtering");
 #endif
           return true;
