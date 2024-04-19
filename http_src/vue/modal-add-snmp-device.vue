@@ -282,20 +282,21 @@ const set_row_to_edit = (row) => {
   is_cidr_correct.value = true;
   is_community_correct.value = true;
 
+  is_username_valid.value = true;
+  is_passphrase_valid.value = true;
+
   selected_version.value = snmp_versions.value.find((item) => item.label == row.column_version);
-  snmp_write_community.value = row.column_write_community;
   if (selected_version.value.id != '2') {
-    is_passphrase_valid.value = true;
-    is_username_valid.value = true;
-
     snmp_read_community.value = row.column_community;
+    snmp_write_community.value = row.column_write_community;
   } else {
-
-    snmp_auth_passphrase.value = "";
-    selected_auth_protocol.value = snmp_auth_protocols.value.find((item) => item.id == row.snmp_auth_protocol);
-    selected_snmp_level.value = snmp_levels.value.find((item) => item.id == row.snmp_level);
-    selected_privacy_protocol.value = snmp_privacy_protocols.value[0].id;
-    snmp_username.value = "";
+    enable_v3_options.value = true;
+    snmp_auth_passphrase.value = row.column_auth_passphrase;
+    selected_auth_protocol.value = snmp_auth_protocols.value.find((item) => item.id == row.column_auth_protocol);
+    selected_snmp_level.value = snmp_levels.value.find((item) => item.id == row.column_level);
+    selected_privacy_protocol.value = snmp_privacy_protocols.value.find((item) => item.id == row.column_privacy_protocol);
+    snmp_privacy_passphrase.value = row.column_privacy_passphrase;
+    snmp_username.value = row.column_username;
   }
 
 };
