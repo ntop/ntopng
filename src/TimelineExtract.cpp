@@ -87,14 +87,15 @@ pfring *TimelineExtract::openTimeline(const char *timeline_path, time_t from,
 
   rc = pfring_set_bpf_filter(handle, filter);
 
-  free(filter);
-
   if (rc != 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to set filter '%s' (%d)",
                                  filter, rc);
+    free(filter);
     status_code = 5; /* Unable to set filter */
     goto close_pfring;
   }
+
+  free(filter);
 
   if (pfring_enable_ring(handle) != 0) {
     ntop->getTrace()->traceEvent(
