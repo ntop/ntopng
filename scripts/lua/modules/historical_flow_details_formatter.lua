@@ -348,23 +348,23 @@ end
 local function format_historical_flow_traffic_stats(rowspan, cli2srv_retr, srv2cli_retr, cli2srv_ooo, srv2cli_ooo,
     cli2srv_lost, srv2cli_lost)
     local values = {"<tr><th width=30% rowspan=" .. rowspan .. ">" .. i18n("flow_details.tcp_packet_analysis") ..
-        "</th><th></th><th>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\" ></i> " .. i18n("server") ..
+        "</th><th></th><th>: " .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\" ></i> " .. i18n("server") ..
         " / " .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " .. i18n("server") .. "</th></tr>\n"}
 
     if ((cli2srv_retr and (tonumber(cli2srv_retr) > 0)) or (srv2cli_retr and (tonumber(srv2cli_retr) > 0))) then
-        values[#values + 1] = "<tr><th>" .. i18n("details.retransmissions") .. "</th><td><span id=c2sretr>" ..
+        values[#values + 1] = "<tr><th>" .. i18n("details.retransmissions") .. "</th><td><span id=c2sretr>: " ..
                                   formatPackets(cli2srv_retr) .. "</span> / <span id=s2cretr>" ..
                                   formatPackets(srv2cli_retr) .. "</span></td></tr>\n"
     end
 
     if ((cli2srv_ooo and (tonumber(cli2srv_ooo) > 0)) or (srv2cli_ooo and (tonumber(srv2cli_ooo) > 0))) then
-        values[#values + 1] = "<tr><th>" .. i18n("details.out_of_order") .. "</th><td><span id=c2sOOO>" ..
+        values[#values + 1] = "<tr><th>" .. i18n("details.out_of_order") .. "</th><td><span id=c2sOOO>: " ..
                                   formatPackets(cli2srv_ooo) .. "</span> / <span id=s2cOOO>" ..
                                   formatPackets(srv2cli_ooo) .. "</span></td></tr>\n"
     end
 
     if ((cli2srv_lost and (tonumber(cli2srv_lost) > 0)) or (srv2cli_lost and (tonumber(srv2cli_lost) > 0))) then
-        values[#values + 1] = "<tr><th>" .. i18n("details.lost") .. "</th><td><span id=c2slost>" ..
+        values[#values + 1] = "<tr><th>" .. i18n("details.lost") .. "</th><td><span id=c2slost>: " ..
                                   formatPackets(cli2srv_lost) .. "</span> / <span id=s2clost>" ..
                                   formatPackets(srv2cli_lost) .. "</span></td></tr>\n"
     end
