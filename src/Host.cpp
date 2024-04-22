@@ -2264,9 +2264,9 @@ bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
     notification->alert_category = alert->getAlertType().category;
     notification->alert_id = alert->getAlertType().id;
     notification->host.host_pool = get_host_pool();
+    notification->alert_entity = alert_entity_host;
 
-    rv = ntop->recipients_enqueue(notification,
-                                  alert_entity_host /* Host recipients */);
+    rv = ntop->recipients_enqueue(notification);
 
     if (!rv)
       delete notification;

@@ -73,8 +73,7 @@ bool Recipients::enqueue(u_int16_t recipient_id,
      Perform the actual enqueue
    */
   if (recipient_queues[recipient_id]) {
-    res = recipient_queues[recipient_id]->enqueue(
-        notification, alert_entity_other /* TODO */);
+    res = recipient_queues[recipient_id]->enqueue(notification);
     
   }
 
@@ -91,8 +90,7 @@ bool Recipients::enqueue(u_int16_t recipient_id,
 
 /* *************************************** */
 
-bool Recipients::enqueue(const AlertFifoItem* const notification,
-                         AlertEntity alert_entity) {
+bool Recipients::enqueue(const AlertFifoItem* const notification) {
   bool res = true; /* Initialized to true so that if no recipient is responsible
                       for the notification, true will be returned. */
 
@@ -109,7 +107,7 @@ bool Recipients::enqueue(const AlertFifoItem* const notification,
       bool success;
 
       success =
-          recipient_queues[recipient_id]->enqueue(notification, alert_entity);
+          recipient_queues[recipient_id]->enqueue(notification);
 
       res &= success;
     }

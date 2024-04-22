@@ -7032,8 +7032,10 @@ static int ntop_recipient_enqueue(lua_State *vm) {
   const char *alert;
   bool rv = false;
   AlertFifoItem *notification;
-  u_int32_t score;
+  u_int16_t alert_id = 0;
+  u_int32_t score = 0;
   AlertCategory alert_category = alert_category_other;
+  AlertEntity alert_entity = alert_entity_other;
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -7048,7 +7050,13 @@ static int ntop_recipient_enqueue(lua_State *vm) {
   score = lua_tonumber(vm, 3);
 
   if (lua_type(vm, 4) == LUA_TNUMBER)
-    alert_category = (AlertCategory)lua_tonumber(vm, 4);
+    alert_id = lua_tonumber(vm, 4);
+
+  if (lua_type(vm, 5) == LUA_TNUMBER)
+    alert_entity = (AlertEntity)lua_tonumber(vm, 5);
+
+  if (lua_type(vm, 6) == LUA_TNUMBER)
+    alert_category = (AlertCategory)lua_tonumber(vm, 6);
 
   notification = new AlertFifoItem();
 
@@ -7056,11 +7064,10 @@ static int ntop_recipient_enqueue(lua_State *vm) {
     notification->alert = alert;
     notification->score = score;
     notification->alert_severity = Utils::mapScoreToSeverity(score);
+    notification->alert_id = alert_id;
+    notification->alert_entity = alert_entity;
     notification->alert_category = alert_category;
-    /* TODO: add the alert_id to the AlertFifoItem instance */
-/*
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enqueing alert: %s", alert);
-*/
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enqueing alert: %s", alert);
     rv = ntop->recipient_enqueue(recipient_id, notification);
   }
 

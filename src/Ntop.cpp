@@ -1109,9 +1109,8 @@ bool Ntop::recipients_are_empty() { return recipients.empty(); }
 
 /* ******************************************* */
 
-bool Ntop::recipients_enqueue(AlertFifoItem *notification,
-                              AlertEntity alert_entity) {
-  return recipients.enqueue(notification, alert_entity);
+bool Ntop::recipients_enqueue(AlertFifoItem *notification) {
+  return recipients.enqueue(notification);
 }
 
 /* ******************************************* */

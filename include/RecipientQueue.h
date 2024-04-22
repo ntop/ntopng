@@ -80,8 +80,7 @@ class RecipientQueue {
    *
    * @return True if the enqueue succeeded, false otherwise
    */
-  bool enqueue(const AlertFifoItem* const notification,
-               AlertEntity alert_entity);
+  bool enqueue(const AlertFifoItem* const notification);
 
   /**
    * @brief Sets the minimum severity for notifications to use this recipient

@@ -4888,9 +4888,9 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
       cli_host ? cli_host->get_host_pool() : 0;
     notification->flow.srv_host_pool =
       srv_host ? srv_host->get_host_pool() : 0;
+    notification->alert_entity = alert_entity_flow;
 
-    rv = ntop->recipients_enqueue(notification,
-                                  alert_entity_flow /* Flow recipients */);
+    rv = ntop->recipients_enqueue(notification);
 
     if (!rv)
       delete(notification);
