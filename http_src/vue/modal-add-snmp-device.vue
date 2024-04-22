@@ -291,7 +291,6 @@ const set_row_to_edit = (row) => {
   is_community_correct.value = true;
 
   is_username_valid.value = true;
-  is_passphrase_valid.value = true;
 
   selected_version.value = snmp_versions.value.find((item) => item.label == row.column_version);
   if (selected_version.value.id != '2') {
