@@ -7165,10 +7165,10 @@ static int ntop_recipient_register(lua_State *vm) {
   u_int16_t recipient_id;
   AlertLevel minimum_severity = alert_level_none;
   char *str_categories, *str_host_pools, *str_entities,
-    *str_flow_alert_types, *str_host_alert_types;
+    *str_flow_alert_types, *str_host_alert_types, *str_other_alert_types;
   bool skip_alerts = false;
   Bitmap128 enabled_categories, enabled_host_pools, enabled_entities,
-    enabled_flow_alert_types, enabled_host_alert_types;
+    enabled_flow_alert_types, enabled_host_alert_types, enabled_other_alert_types;
 
   /* All flow alert types enabled by default */
   for (int i = 0; i < MAX_DEFINED_FLOW_ALERT_TYPE; i++)
@@ -7177,6 +7177,10 @@ static int ntop_recipient_register(lua_State *vm) {
   /* All host alert types enabled by default */
   for (int i = 0; i < MAX_DEFINED_HOST_ALERT_TYPE; i++)
     enabled_host_alert_types.setBit(i);
+
+  /* All other alert types enabled by default */
+  for (int i = 0; i < MAX_DEFINED_OTHER_ALERT_TYPE; i++)
+    enabled_other_alert_types.setBit(i);
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -7219,8 +7223,15 @@ static int ntop_recipient_register(lua_State *vm) {
   }
 
   /* In case it's nil, all alerts are accepted */
-  if (lua_type(vm, 8) == LUA_TBOOLEAN)
-    skip_alerts = (bool)lua_toboolean(vm, 8);
+  if ((lua_type(vm, 8) == LUA_TSTRING) &&
+    ((str_other_alert_types = (char *)lua_tostring(vm, 8)) != NULL)){
+      enabled_other_alert_types.reset();
+      enabled_other_alert_types.setBits(str_other_alert_types);
+  }
+
+  /* In case it's nil, all alerts are accepted */
+  if (lua_type(vm, 9) == LUA_TBOOLEAN)
+    skip_alerts = (bool)lua_toboolean(vm, 9);
 
   /*
   char bitmap_buf[64];
@@ -7236,11 +7247,13 @@ static int ntop_recipient_register(lua_State *vm) {
   enabled_flow_alert_types.toHexString(bitmap_buf, sizeof(bitmap_buf)));
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host alert types bitmap: %s",
   enabled_host_alert_types.toHexString(bitmap_buf, sizeof(bitmap_buf)));
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Other alert types bitmap: %s",
+  enabled_other_alert_types.toHexString(bitmap_buf, sizeof(bitmap_buf)));
   */
 
   ntop->recipient_register(recipient_id, minimum_severity, enabled_categories,
                            enabled_host_pools, enabled_entities, enabled_flow_alert_types,
-                           enabled_host_alert_types, skip_alerts);
+                           enabled_host_alert_types, enabled_other_alert_types, skip_alerts);
 
   lua_pushnil(vm);
 

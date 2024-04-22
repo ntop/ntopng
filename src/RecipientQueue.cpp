@@ -52,6 +52,10 @@ RecipientQueue::RecipientQueue(u_int16_t _recipient_id) {
   /* All host alert types enabled by default */
   for (int i = 0; i < MAX_DEFINED_HOST_ALERT_TYPE; i++)
     enabled_host_alert_types.setBit(i);
+
+  /* All other alert types enabled by default */
+  for (int i = 0; i < MAX_DEFINED_OTHER_ALERT_TYPE; i++)
+    enabled_other_alert_types.setBit(i);
 }
 
 /* *************************************** */
@@ -82,7 +86,7 @@ AlertFifoItem *RecipientQueue::dequeue() {
  * (similar to what recipients.dispatch_notification does in Lua)
  */
 bool RecipientQueue::enqueue(const AlertFifoItem* const notification) {
-  bool res = false;
+  bool alert_id_match, res;
 
 #ifdef DEBUG_RECIPIENT_QUEUE
 #ifdef DEBUG_DB_QUEUE
@@ -103,6 +107,7 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification) {
     return true; /* Skipping alerts */
   else if(!skip_alerts) {
     /* In case alerts have not to be skipped, check the filters */
+
 #ifdef DEBUG_RECIPIENT_QUEUE
 #ifdef DEBUG_DB_QUEUE
     if (recipient_id == 0 && notification->alert_entity == alert_entity_host)
@@ -113,20 +118,29 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification) {
         notification->alert_entity, recipient_id);
 #endif
    
-    if (!notification ||
-        notification->alert_severity <
-            minimum_severity /* Severity too low for this recipient     */
-        ||
-        !(enabled_categories.isSetBit(
-            notification
-                ->alert_category)) /* Category not enabled for this recipient */
-        || !(enabled_entities.isSetBit(
-              notification->alert_entity)) /* Entity not enabled for this recipient */
-        ||
-        (alert_entity_flow == notification->alert_entity && !enabled_flow_alert_types.isSetBit(notification->alert_id))
-        ||
-        (alert_entity_host == notification->alert_entity && !enabled_host_alert_types.isSetBit(notification->alert_id))
-    ) {
+    if (!notification)
+      return true; /* Nothing to enqueue */
+
+
+    /* Check by Alert Type (higher priority) */
+    alert_id_match = false;
+    if (alert_entity_flow == notification->alert_entity) {
+      if (enabled_flow_alert_types.isSetBit(notification->alert_id))
+        alert_id_match = true;
+    } else if (alert_entity_host == notification->alert_entity) {
+      if (enabled_host_alert_types.isSetBit(notification->alert_id))
+        alert_id_match = true;
+    } else { /* Other */
+      if (enabled_other_alert_types.isSetBit(notification->alert_id - OTHER_BASE_KEY)) 
+        alert_id_match = true;
+    }
+
+    /* Check by Severity, Category, Entity */
+    if (!alert_id_match && (
+        notification->alert_severity < minimum_severity /* Severity too low for this recipient     */
+        || !(enabled_categories.isSetBit(notification->alert_category)) /* Category not enabled for this recipient */
+        || !(enabled_entities.isSetBit(notification->alert_entity)) /* Entity not enabled for this recipient */
+    )) {
 #ifdef DEBUG_RECIPIENT_QUEUE
 #ifdef DEBUG_DB_QUEUE
       if (recipient_id == 0 && notification->alert_entity == alert_entity_host)
@@ -139,7 +153,7 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification) {
           notification->alert_severity < minimum_severity ? "Nok" : "Ok", notification->alert_severity, minimum_severity,
           !(enabled_categories.isSetBit(notification->alert_category)) ? "Nok" : "Ok", notification->alert_category,
           !(enabled_entities.isSetBit(notification->alert_entity)) ? "Nok" : "Ok", notification->alert_entity,
-          ((alert_entity_flow == notification->alert_entity && !enabled_flow_alert_types.isSetBit(notification->alert_id)) || (alert_entity_host == notification->alert_entity && !enabled_host_alert_types.isSetBit(notification->alert_id))) ? "Nok" : "Ok", notification->alert_id);
+          !alert_id_match ? "Nok" : "Ok", notification->alert_id);
 #endif
       return true; /* Nothing to enqueue */
     }
@@ -163,8 +177,7 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification) {
     } else {
       /* Other recipients (notifications) */
       if (notification->alert_entity == alert_entity_flow) {
-        if (!enabled_host_pools.isSetBit(
-                notification->flow.cli_host_pool) &&
+        if (!enabled_host_pools.isSetBit(notification->flow.cli_host_pool) &&
             !enabled_host_pools.isSetBit(notification->flow.srv_host_pool))
           return true;
       } else if (notification->alert_entity == alert_entity_host) {
@@ -192,6 +205,8 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification) {
 
   /* Enqueue the notification (allocate memory for the alert string) */
   AlertFifoItem *new_item = new AlertFifoItem(notification);
+
+  res = false;
 
   if (new_item) {
     res = queue->enqueue(new_item);

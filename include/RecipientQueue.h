@@ -62,6 +62,9 @@ class RecipientQueue {
   Bitmap128 enabled_host_alert_types; /* MUST be large enough to contain
                                  HostAlertID */
 
+  Bitmap128 enabled_other_alert_types; /* MUST be large enough to contain
+                                 Other alert IDs defined in other_alert_keys.lua */
+
  public:
   RecipientQueue(u_int16_t recipient_id);
   ~RecipientQueue();
@@ -143,6 +146,16 @@ class RecipientQueue {
    */
   inline void setEnabledHostAlertTypes(Bitmap128 _enabled_host_alert_types) {
     enabled_host_alert_types = _enabled_host_alert_types;
+  };
+
+  /**
+   * @brief Sets enabled other alert types to use this recipient
+   * @param enabled_other_alert_types
+   *
+   * @return
+   */
+  inline void setEnabledOtherAlertTypes(Bitmap128 _enabled_other_alert_types) {
+    enabled_other_alert_types = _enabled_other_alert_types;
   };
 
   /**

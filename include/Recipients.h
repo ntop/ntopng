@@ -84,6 +84,7 @@ class Recipients {
                           Bitmap128 enabled_entities,
                           Bitmap128 enabled_flow_alert_types,
                           Bitmap128 enabled_host_alert_types,
+                          Bitmap128 enabled_other_alert_types,
                           bool skip_alerts);
 
   /**
