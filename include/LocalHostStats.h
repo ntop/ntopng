@@ -33,6 +33,7 @@ class LocalHostStats : public HostStats {
   /* nextPeriodicUpdate done every 5 min */
   time_t nextPeriodicUpdate;
   u_int32_t num_contacts_as_cli, num_contacts_as_srv;
+  u_int32_t num_reset_flow;
 
   DESCounter contacted_hosts;
 
@@ -91,6 +92,7 @@ class LocalHostStats : public HostStats {
   virtual void luaHostBehaviour(lua_State *vm);
   virtual bool hasAnomalies(time_t when);
   virtual void luaAnomalies(lua_State *vm, time_t when);
+  virtual void incResetFlow() { num_reset_flow++; };
   virtual HTTPstats *getHTTPstats() { return (http); };
   virtual DnsStats *getDNSstats() { return (dns); };
   virtual ICMPstats *getICMPstats() { return (icmp); };
@@ -101,6 +103,7 @@ class LocalHostStats : public HostStats {
     return (num_contacts_as_srv);
   }
 
+  virtual u_int32_t getResetFlow() { return(num_reset_flow); };
   virtual bool getSlidingWinStatus() { return (peers->getSlidingWinStatus()); };
 
   virtual u_int32_t getSlidingAvgCliContactedPeers() {

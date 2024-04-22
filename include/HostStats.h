@@ -90,7 +90,8 @@ class HostStats : public GenericTrafficElement {
   };
 
   virtual void computeAnomalyIndex(time_t when){};
-
+  virtual u_int32_t getResetFlow() { return(0); };
+  virtual void incResetFlow() {};
   inline Host *getHost() const { return (host); }
   inline void incNumAlertedFlows(bool as_client) {
     if (as_client)

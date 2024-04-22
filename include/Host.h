@@ -189,6 +189,7 @@ class Host : public GenericHashEntry,
   virtual ~Host();
 
   virtual bool isLocalHost() const { return (false); };
+  virtual void incResetFlow() const {};
   virtual bool isLocalUnicastHost() const { return (false); };
   virtual bool isSystemHost() const { return (false); };
   inline bool isBroadcastDomainHost() const {
