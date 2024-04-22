@@ -11090,19 +11090,19 @@ void NetworkInterface::checkDHCPStorm(time_t when, u_int32_t num_pkts) {
 /* *************************************** */
 
 void NetworkInterface::incNumHosts(bool local, bool rxOnlyHost) {
-  if (local) numLocalHosts++;
-  if (local && rxOnlyHost) numLocalRxOnlyHosts++;
-  if (rxOnlyHost) numTotalRxOnlyHosts++;
-  totalNumHosts++;
+  if (local && numLocalHosts < UINT32_MAX) numLocalHosts++;
+  if (local && rxOnlyHost && numLocalRxOnlyHosts < UINT32_MAX) numLocalRxOnlyHosts++;
+  if (rxOnlyHost && numTotalRxOnlyHosts < UINT32_MAX) numTotalRxOnlyHosts++;
+  if (totalNumHosts < UINT32_MAX) totalNumHosts++;
 };
 
 /* *************************************** */
 
 void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
-  if (local) numLocalHosts--;
-  if (local && rxOnlyHost) numLocalRxOnlyHosts--;
-  if (rxOnlyHost) numTotalRxOnlyHosts--;
-  totalNumHosts--;
+  if (local && numLocalHosts > 0) numLocalHosts--;
+  if (local && rxOnlyHost && numLocalRxOnlyHosts > 0) numLocalRxOnlyHosts--;
+  if (rxOnlyHost && numTotalRxOnlyHosts >0) numTotalRxOnlyHosts--;
+  if (totalNumHosts > 0) totalNumHosts--;
 };
 
 /* **************************************************** */
