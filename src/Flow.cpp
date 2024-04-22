@@ -1386,6 +1386,8 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
    */
   if (ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
     ndpiDetectedProtocol.category = proto_id.category;
+  if ((ndpiDetectedProtocol.category - 1024) == CUSTOM_CATEGORY_MALWARE)
+    ndpiDetectedProtocol.category = CUSTOM_CATEGORY_MALWARE;
 }
 
 /* *************************************** */
