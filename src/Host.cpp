@@ -2830,7 +2830,7 @@ void Host::setRxOnlyHost(bool set_it) {
   if(is_rx_only == set_it)
     return; /* Nothing to do */
     
-  if((stats != NULL) && (stats->getNumPktsRcvd() || stats->getNumPktsSent())) {
+  if((stats != NULL) /* && (stats->getNumPktsRcvd() || stats->getNumPktsSent()) */) {
     if(is_rx_only && (set_it == false)) {
       /* It used to be rx-only ... */
       iface->decNumHosts(isLocalHost(), true /* rx-only */);

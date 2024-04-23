@@ -7446,8 +7446,7 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
   lua_push_uint64_table_entry(vm, "hosts", getNumHosts());
   lua_push_uint64_table_entry(vm, "hosts_rcvd_only", getNumRxOnlyHosts());
   lua_push_uint64_table_entry(vm, "local_hosts", getNumLocalHosts());
-  lua_push_uint64_table_entry(vm, "local_rcvd_only_hosts",
-                              getNumLocalRxOnlyHosts());
+  lua_push_uint64_table_entry(vm, "local_rcvd_only_hosts", getNumLocalRxOnlyHosts());
   lua_push_uint64_table_entry(vm, "http_hosts", getNumHTTPHosts());
   lua_push_uint64_table_entry(vm, "drops", getNumPacketDrops());
   lua_push_uint64_table_entry(vm, "new_flows", getNumNewFlows());
