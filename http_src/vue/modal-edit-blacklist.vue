@@ -14,7 +14,7 @@
       <div class="row form-group mb-3 has-feedback">
         <div class="col col-md-12">
           <label class="form-label">{{ _i18n("flow_details.url") }}</label>
-          <input ref="url" class="form-control" type="text" disabled="disabled" readonly />
+          <input ref="url" class="form-control" type="text" />
         </div>
       </div>
 

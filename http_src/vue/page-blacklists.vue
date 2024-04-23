@@ -133,7 +133,7 @@ const map_table_def_columns = (columns) => {
                     current_class = current_class.filter((class_item) => class_item != "link-disabled");
                     if ((row.status != "enabled" || row.hits == 0) && b.id == "chart_blacklist") {
                         current_class.push("link-disabled");
-                    } else if(row.status != "enabled" && b.id == "refresh_blacklist") {
+                    } else if((row.status != "error" && row.status !=  "enabled") && b.id == "refresh_blacklist") {
                         current_class.push("link-disabled");
                     }
                     return current_class;
