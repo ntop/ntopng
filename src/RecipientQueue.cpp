@@ -32,6 +32,7 @@ RecipientQueue::RecipientQueue(u_int16_t _recipient_id) {
   recipient_id = _recipient_id;
   queue = NULL, drops = 0, uses = 0;
   last_use = 0;
+  match_alert_id = false;
   skip_alerts = false;
 
   /* No minimum severity */
@@ -44,18 +45,6 @@ RecipientQueue::RecipientQueue(u_int16_t _recipient_id) {
   /* All entities enabled by default */
   for (int i = 0; i < ALERT_ENTITY_MAX_NUM_ENTITIES; i++)
     enabled_entities.setBit(i);
-    
-  /* All flow alert types enabled by default */
-  for (int i = 0; i < MAX_DEFINED_FLOW_ALERT_TYPE; i++)
-    enabled_flow_alert_types.setBit(i);
-    
-  /* All host alert types enabled by default */
-  for (int i = 0; i < MAX_DEFINED_HOST_ALERT_TYPE; i++)
-    enabled_host_alert_types.setBit(i);
-
-  /* All other alert types enabled by default */
-  for (int i = 0; i < MAX_DEFINED_OTHER_ALERT_TYPE; i++)
-    enabled_other_alert_types.setBit(i);
 }
 
 /* *************************************** */
@@ -86,7 +75,7 @@ AlertFifoItem *RecipientQueue::dequeue() {
  * (similar to what recipients.dispatch_notification does in Lua)
  */
 bool RecipientQueue::enqueue(const AlertFifoItem* const notification) {
-  bool alert_id_match, res;
+  bool res;
 
 #ifdef DEBUG_RECIPIENT_QUEUE
 #ifdef DEBUG_DB_QUEUE
@@ -112,7 +101,7 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification) {
 #ifdef DEBUG_DB_QUEUE
     if (recipient_id == 0 && notification->alert_entity == alert_entity_host)
 #else
-  if (recipient_id != 0)
+    if (recipient_id != 0)
 #endif
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Checking alert (entity %d) for recipient %d",
         notification->alert_entity, recipient_id);
@@ -121,41 +110,39 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification) {
     if (!notification)
       return true; /* Nothing to enqueue */
 
+    if (match_alert_id) { /* Check by Alert Type */
 
-    /* Check by Alert Type (higher priority) */
-    alert_id_match = false;
-    if (alert_entity_flow == notification->alert_entity) {
-      if (enabled_flow_alert_types.isSetBit(notification->alert_id))
-        alert_id_match = true;
-    } else if (alert_entity_host == notification->alert_entity) {
-      if (enabled_host_alert_types.isSetBit(notification->alert_id))
-        alert_id_match = true;
-    } else { /* Other */
-      if (enabled_other_alert_types.isSetBit(notification->alert_id - OTHER_BASE_KEY)) 
-        alert_id_match = true;
-    }
+      if (alert_entity_flow == notification->alert_entity) {
+        if (!enabled_flow_alert_types.isSetBit(notification->alert_id))
+          return true; /* Nothing to enqueue */
+      } else if (alert_entity_host == notification->alert_entity) {
+        if (!enabled_host_alert_types.isSetBit(notification->alert_id))
+          return true; /* Nothing to enqueue */
+      } else { /* Other */
+        if (!enabled_other_alert_types.isSetBit(notification->alert_id - OTHER_BASE_KEY)) 
+          return true; /* Nothing to enqueue */
+      }
 
-    /* Check by Severity, Category, Entity */
-    if (!alert_id_match && (
-        notification->alert_severity < minimum_severity /* Severity too low for this recipient     */
-        || !(enabled_categories.isSetBit(notification->alert_category)) /* Category not enabled for this recipient */
-        || !(enabled_entities.isSetBit(notification->alert_entity)) /* Entity not enabled for this recipient */
-    )) {
+    } else { /* Check by Severity, Category, Entity */
+
+      if (notification->alert_severity < minimum_severity /* Severity too low for this recipient     */
+          || !(enabled_categories.isSetBit(notification->alert_category)) /* Category not enabled for this recipient */
+          || !(enabled_entities.isSetBit(notification->alert_entity)) /* Entity not enabled for this recipient */) {
 #ifdef DEBUG_RECIPIENT_QUEUE
 #ifdef DEBUG_DB_QUEUE
-      if (recipient_id == 0 && notification->alert_entity == alert_entity_host)
+        if (recipient_id == 0 && notification->alert_entity == alert_entity_host)
 #else
-      if (recipient_id != 0)
+        if (recipient_id != 0)
 #endif
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Alert filtered out due to filtering policy for recipient %d "
-          "[severity %s (%d vs %d)][category %s (%d)][entity %s (%d)][alert-id %s (%d)]",
-          recipient_id,
-          notification->alert_severity < minimum_severity ? "Nok" : "Ok", notification->alert_severity, minimum_severity,
-          !(enabled_categories.isSetBit(notification->alert_category)) ? "Nok" : "Ok", notification->alert_category,
-          !(enabled_entities.isSetBit(notification->alert_entity)) ? "Nok" : "Ok", notification->alert_entity,
-          !alert_id_match ? "Nok" : "Ok", notification->alert_id);
+          ntop->getTrace()->traceEvent(TRACE_NORMAL, "Alert filtered out due to filtering policy for recipient %d "
+            "[severity %s (%d vs %d)][category %s (%d)][entity %s (%d)]",
+            recipient_id,
+            notification->alert_severity < minimum_severity ? "Nok" : "Ok", notification->alert_severity, minimum_severity,
+            !(enabled_categories.isSetBit(notification->alert_category)) ? "Nok" : "Ok", notification->alert_category,
+            !(enabled_entities.isSetBit(notification->alert_entity)) ? "Nok" : "Ok", notification->alert_entity);
 #endif
-      return true; /* Nothing to enqueue */
+        return true; /* Nothing to enqueue */
+      }
     }
 
     if (recipient_id == 0 && /* Default recipient (DB) */

@@ -251,9 +251,6 @@ function recipients.initialize()
         local notifications_type = recipient.notifications_type or "alerts"
 
         if recipient.checks and table.len(recipient.checks) > 0 then
-            flow_alert_types = ""
-            host_alert_types = ""
-            other_alert_types = ""
             for family, alerts in pairs(recipient.checks) do
                 if #alerts > 0 then
                     if family == "flow" then
@@ -261,8 +258,11 @@ function recipients.initialize()
                     elseif family == "host" then
                         host_alert_types = table.concat(alert, ",")
                     else -- other
-                        if not isEmptyString(other_alert_types) then other_alert_types = other_alert_types .. "," end
-                        other_alert_types =  other_alert_types .. table.concat(alerts, ",")
+                        if not isEmptyString(other_alert_types) then
+                            other_alert_types = other_alert_types .. "," .. table.concat(alerts, ",")
+                        else
+                            other_alert_types = table.concat(alerts, ",")
+                        end
                     end
                 end
             end
@@ -554,9 +554,6 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                     local other_alert_types = nil
 
                     if checks and table.len(checks) > 0 then
-                        flow_alert_types = ""
-                        host_alert_types = ""
-                        other_alert_types = ""
                         for family, alerts in pairs(checks) do
                             if #alerts > 0 then
                                 if family == "flow" then
@@ -564,8 +561,11 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                                 elseif family == "host" then
                                     host_alert_types = table.concat(alert, ",")
                                 else -- other
-                                    if not isEmptyString(other_alert_types) then other_alert_types = other_alert_types .. "," end
-                                    other_alert_types =  other_alert_types .. table.concat(alerts, ",")
+                                    if not isEmptyString(other_alert_types) then
+                                        other_alert_types = other_alert_types .. "," .. table.concat(alerts, ",")
+                                    else
+                                        other_alert_types = table.concat(alerts, ",")
+                                    end
                                 end
                             end
                         end
@@ -674,9 +674,6 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                     local other_alert_types = nil
 
                     if checks and table.len(checks) > 0 then
-                        flow_alert_types = ""
-                        host_alert_types = ""
-                        other_alert_types = ""
                         for family, alerts in pairs(checks) do
                             if #alerts > 0 then
                                 if family == "flow" then
@@ -684,8 +681,11 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                                 elseif family == "host" then
                                     host_alert_types = table.concat(alert, ",")
                                 else -- other
-                                    if not isEmptyString(other_alert_types) then other_alert_types = other_alert_types .. "," end
-                                    other_alert_types =  other_alert_types .. table.concat(alerts, ",")
+                                    if not isEmptyString(other_alert_types) then
+                                        other_alert_types = other_alert_types .. "," .. table.concat(alerts, ",")
+                                    else
+                                        other_alert_types = table.concat(alerts, ",")
+                                    end
                                 end
                             end
                         end

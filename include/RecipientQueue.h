@@ -28,6 +28,7 @@ class RecipientQueue {
  private:
   u_int16_t recipient_id;
   bool skip_alerts;
+  bool match_alert_id;
 
   AlertFifoQueue *queue;
 
@@ -166,6 +167,16 @@ class RecipientQueue {
    */
   inline void setSkipAlerts(bool _skip_alerts) {
     skip_alerts = _skip_alerts;
+  };
+
+  /**
+   * @brief Toggle match on alert_id only (ignore severity, category, etc)
+   * @param match_alert_id
+   *
+   * @return
+   */
+  inline void toggleAlertIDMatch(bool _match_alert_id) {
+    match_alert_id = _match_alert_id;
   };
 
   /**
