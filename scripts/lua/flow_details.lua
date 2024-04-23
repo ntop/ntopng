@@ -564,7 +564,27 @@ else
         print(" <span class='badge bg-warning text-dark'>" .. i18n("periodic_flow") .. "</span>")
     end
 
-    printInterfaceIndex(flow.iface_index)
+    if interface.isView() then
+        interface.select(flow.iface_index)
+        local _ifstats = interface.getStats()
+        local is_pcap = false
+        local is_packet = false
+        local is_zmq = false
+        local icon = ""
+        if interface.isPcapDumpInterface() then
+            icon = "<i class='fas fa-file'></i>"
+            is_pcap = true
+        elseif (interface.isPacketInterface()) then
+            icon = "<i class='fas fa-ethernet'></i>"
+            is_packet = true
+        elseif (interface.isZMQInterface()) then
+            icon = "<i class='fas fa-bezier-curve'></i>"
+            is_zmq = true
+        end
+        local if_name = getInterfaceName(flow.iface_index, true)
+        print("[ " .. icon .. " " .. if_name .. "]")
+    end
+
     if(flow.flow_swapped == true) then
        print(' <abbr title="'..  i18n("swapped_flow") ..'"><i class="fa-solid fa-repeat"></i></abbr>')
     end
