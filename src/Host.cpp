@@ -269,10 +269,10 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
 
   vlan_id = _vlanId & 0xFFF; /* Cleanup any possible junk */
   iface_index = _iface_idx;
-  
+ 
   /* stats = NULL; useless initi, it will be instantiated by specialized classes
    */
-  stats_shadow = NULL;
+  stats = stats_shadow = NULL;
 #ifndef HAVE_NEDGE
   listening_ports = listening_ports_shadow = NULL;
 #endif
@@ -286,7 +286,7 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
   active_alerted_flows = 0;
 
   is_dhcp_host = 0, is_crawler_bot_scanner = 0, is_in_broadcast_domain = 0,
-  more_then_one_device = 0, device_ip = 0;
+    more_then_one_device = 0, device_ip = 0, is_rx_only = 0;
 
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be
                                                    changed by deserialize */
@@ -2823,3 +2823,25 @@ u_int32_t Host::getNumContactedPeersAsClientTCPUDPNoTX() {
 u_int32_t Host::getNumContactsFromPeersAsServerTCPUDPNoTX() {
   return (!ntop->getPrefs()->limitResourcesUsage() ? (u_int32_t)ndpi_hll_count(&incoming_hosts_tcp_udp_port_with_no_tx_hll) : 0);
 };
+
+/* *************************************** */
+
+void Host::setRxOnlyHost(bool set_it) {
+  if(is_rx_only == set_it)
+    return; /* Nothing to do */
+    
+  if((stats != NULL) && (stats->getNumPktsRcvd() || stats->getNumPktsSent())) {
+    if(is_rx_only && (set_it == false)) {
+      /* It used to be rx-only ... */
+      iface->decNumHosts(isLocalHost(), true /* rx-only */);
+      
+      /* .. and it is not anymore */
+      iface->incNumHosts(isLocalHost(), false);
+    } else if((is_rx_only == false) && (set_it == true)) {
+      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invelid transition"); */
+      /* The above issue is not reported as usually this branch is used during initialization */
+    }
+  }
+  
+  is_rx_only = set_it;
+}

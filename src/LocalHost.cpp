@@ -134,14 +134,14 @@ void LocalHost::initialize() {
     }
   }
 
-  INTERFACE_PROFILING_SUB_SECTION_ENTER(
-      iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
+  INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
   updateHostTrafficPolicy(host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 18);
 
   /* Only increase the number of host if it's a unicast host */
   if(isLocalUnicastHost()) {
     iface->incNumHosts(true /* Local Host */, isRxOnlyHost());
+    
     if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
       ns->incNumHosts();
   }
@@ -611,8 +611,8 @@ void LocalHost::setRouterMac(Mac *gw) {
 /* *************************************** */
 
 void LocalHost::setRxOnlyHost(bool set_it) {
-  is_rx_only = set_it;
-
+  Host::setRxOnlyHost(set_it);
+  
   if (isLocalUnicastHost()) {
     char hostbuf[64], *member;
 
