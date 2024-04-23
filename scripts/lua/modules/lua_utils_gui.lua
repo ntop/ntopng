@@ -397,7 +397,9 @@ function isAdministratorOrPrintErr(isJsonResponse)
         sendHTTPContentTypeHeader('application/json')
         print(json.encode({}))
     else
-        local page_utils = require("page_utils")
+       local page_utils = require("page_utils")
+       local dirs = ntop.getDirs()
+
         page_utils.print_header()
         dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
         print(
@@ -986,6 +988,7 @@ function format_portidx_name(device_ip, portidx, short_version, shorten_string)
             local port_info = cached_dev["interfaces"][tostring(portidx)]
 
             if port_info then
+	       local dirs = ntop.getDirs()
                 package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
                 snmp_location = require "snmp_location"
 
