@@ -580,24 +580,6 @@ end
 
 -- ##############################################
 
--- TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
--- Re-implement the code below in loadFromListFile()
--- Checking for "whitelisted hosts"
--- if user_custom_categories[category] ~= nil then
---    local hosts_map = swapKeysValues(user_custom_categories[category])
---    
---    if hosts_map["!"..host] ~= nil then
---       return nil
---    end
--- end
--- 
--- if((category == CUSTOM_CATEGORY_MALWARE) and isLocal(host)) then
---    local alert = alert_consts.alert_types.alert_local_host_blacklisted.new(list.name, host)
---    
---    alert:set_score_error()
---    alert:store(alerts_api.systemEntity(list.name, host))
--- end   
-
 -- Loads hosts from a list file on disk
 local function loadFromListFile(list_name, list, user_custom_categories, stats)
     local list_fname = getListCacheFile(list_name)

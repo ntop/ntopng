@@ -79,11 +79,14 @@ void IpAddress::reloadBlacklist(ndpi_detection_module_struct *ndpi_struct) {
   char *ip_str = print(ipbuf, sizeof(ipbuf));
   ndpi_protocol_category_t category;
   
-  if ((ndpi_get_custom_category_match(ndpi_struct,
-				      ip_str, strlen(ip_str),
-				      &category) == 0)
-      && ((category - 1024) == CUSTOM_CATEGORY_MALWARE))
-    addr.blacklistedIP = true;
+  if(ndpi_get_custom_category_match(ndpi_struct,
+				    ip_str, strlen(ip_str),
+				    &category) == 0) {
+    category = (ndpi_protocol_category_t)(category & 0xFF); /* See Ntop::nDPILoadHostnameCategory */
+    
+    if(category == CUSTOM_CATEGORY_MALWARE)
+      addr.blacklistedIP = true;
+  }
 }
 
 /* ******************************************* */

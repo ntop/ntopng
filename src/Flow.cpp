@@ -1284,10 +1284,12 @@ void Flow::setExtraDissectionCompleted() {
 					 (struct in6_addr *)get_cli_ip_addr()->get_ipv6(),
 					 (struct in6_addr *)get_srv_ip_addr()->get_ipv6(),
 					 &ndpiDetectedProtocol);
+
+      ndpiDetectedProtocol.category = (ndpi_protocol_category_t)(ndpiDetectedProtocol.category & 0xFF); /* See Ntop::nDPILoadHostnameCategory */
       
       /* We have used the trick to save in the protocolId both the list name and the protocol */
       if(ndpiDetectedProtocol.custom_category_userdata == NULL) {
-	u_int8_t list_id = (ndpiDetectedProtocol.category & 0xFF00) >> 8;
+	u_int8_t list_id = (ndpiDetectedProtocol.category & 0xFF00) >> 8; /* See Ntop::nDPILoadHostnameCategory */
 
 	ndpiDetectedProtocol.category = (ndpi_protocol_category_t)(ndpiDetectedProtocol.category & 0xFF);
 	ndpiDetectedProtocol.custom_category_userdata = (void*)ntop->getPersistentCustomListNameById(list_id);
