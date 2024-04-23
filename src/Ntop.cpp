@@ -3878,18 +3878,18 @@ void Ntop::collectContinuousResponses(lua_State *vm) {
   This method is needed to have a string that is not deallocated
   after a call, but that is persistent inside nDPI
 */
-char *Ntop::getPersistentCustomListName(char *list_name /* in */, u_int8_t *list_id /* out */) {
+char* Ntop::getPersistentCustomListName(char *list_name /* in */, u_int8_t *list_id /* out */) {
   std::string key(list_name);
   std::map<std::string, u_int8_t>::iterator it = cachedCustomLists.find(key);
 
   if (it == cachedCustomLists.end()) {
     /* Not found */
-    *list_id = cachedCustomLists.size();
+    *list_id = cachedCustomLists.size() + 1; /* Avoid 0 (= not found) as identifier */
     cachedCustomLists[key] = *list_id;
     it = cachedCustomLists.find(key);
-  }
-
-  *list_id = it->second;
+  } else
+    *list_id = it->second;
+  
   return ((char *)it->first.c_str());
 }
 
@@ -3898,9 +3898,11 @@ char *Ntop::getPersistentCustomListName(char *list_name /* in */, u_int8_t *list
 const char* Ntop::getPersistentCustomListNameById(u_int8_t list_id) {
   std::map<std::string, u_int8_t>::iterator it;
 
-  for (it = cachedCustomLists.begin(); it != cachedCustomLists.end(); it++) {
-    if(it->second == list_id)
-      return(it->first.c_str());
+  if(list_id > 0) {
+    for (it = cachedCustomLists.begin(); it != cachedCustomLists.end(); it++) {
+      if(it->second == list_id)
+	return(it->first.c_str());
+    }
   }
   
   return(NULL);
