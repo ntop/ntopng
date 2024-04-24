@@ -84,6 +84,8 @@
 #include "flow_checks/UnexpectedSMTPServer.h"
 #include "flow_checks/WebMining.h"
 #include "flow_checks/VLANBidirectionalTraffic.h"
+#include "flow_checks/BlacklistClientContact.h"
+#include "flow_checks/BlacklistServerContact.h"
 
 #ifdef NTOPNG_PRO
 #include "flow_checks/DataExfiltration.h"

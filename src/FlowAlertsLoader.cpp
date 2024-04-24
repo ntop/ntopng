@@ -121,6 +121,10 @@ FlowAlertsLoader::FlowAlertsLoader() {
                 ModbusTooManyExceptionsAlert::getDefaultScore());
   registerAlert(ModbusInvalidTransitionAlert::getClassType(),
                 ModbusInvalidTransitionAlert::getDefaultScore());
+  registerAlert(BlacklistClientContactAlert::getClassType(),
+                BlacklistClientContactAlert::getDefaultScore());
+  registerAlert(BlacklistServerContactAlert::getClassType(),
+                BlacklistServerContactAlert::getDefaultScore());
 }
 
 /* **************************************************** */

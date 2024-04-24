@@ -24,25 +24,45 @@
 
 /* ***************************************************** */
 
-void BlacklistedFlow::protocolDetected(Flow *f) {
-  if ((f->get_protocol_category() == CUSTOM_CATEGORY_MALWARE) &&
-      !(f->isBlacklistedServer()) &&
-      !(f->isBlacklistedClient())) {
-    FlowAlertType alert_type = BlacklistedFlowAlert::getClassType();
-    u_int8_t c_score, s_score;
-    risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
+void BlacklistClientContact::protocolDetected(Flow *f) {
+  Host* cli = f->get_cli_host();
+  Host* srv = f->get_srv_host();
 
-    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+  if (cli && srv) {
+    if ((f->isBlacklistedClient()) && !(cli->isLocalHost()) && (srv->isLocalHost())) {
+      FlowAlertType alert_type = BlacklistClientContactAlert::getClassType();
+      u_int8_t c_score, s_score;
+      risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
 
-    f->triggerAlertAsync(alert_type, c_score, s_score);
-  }
+      computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+
+      f->triggerAlertAsync(alert_type, c_score, s_score);
+    }
+  } 
 }
 
 /* ***************************************************** */
 
-FlowAlert *BlacklistedFlow::buildAlert(Flow *f) {
-  BlacklistedFlowAlert *alert = new (std::nothrow) BlacklistedFlowAlert(this, f);
-  
+FlowAlert *BlacklistClientContact::buildAlert(Flow *f) {
+  bool is_server_bl = f->isBlacklistedServer();
+  bool is_client_bl = f->isBlacklistedClient();
+  BlacklistClientContactAlert *alert = new (std::nothrow) BlacklistClientContactAlert(this, f);
+
+  if (alert) {
+    /*
+      When a BLACKLISTED client contacts a normal host, the client is assumed to
+      be the attacker and the server the victim When a normal client contacts a
+      BLACKLISTED server, both peers are considered to be attackers When both
+      peers are blacklisted, both are considered attackers
+    */
+    if (is_client_bl && !is_server_bl)
+      alert->setCliAttacker(), alert->setSrvVictim();
+    else if (!is_client_bl && is_server_bl)
+      alert->setCliAttacker(), alert->setSrvAttacker();
+    else if (is_client_bl && is_server_bl)
+      alert->setCliAttacker(), alert->setSrvAttacker();
+  }
+
   return alert;
 }
 
@@ -61,7 +81,7 @@ FlowAlert *BlacklistedFlow::buildAlert(Flow *f) {
   }
 */
 
-bool BlacklistedFlow::loadConfiguration(json_object *config) {
+bool BlacklistClientContact::loadConfiguration(json_object *config) {
   FlowCheck::loadConfiguration(config); /* Parse parameters in common */
 
   /* Parse additional parameters */
