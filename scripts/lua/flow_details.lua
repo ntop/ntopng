@@ -583,6 +583,7 @@ else
         end
         local if_name = getInterfaceName(flow.iface_index, true)
         print("[ " .. icon .. " " .. if_name .. "]")
+        interface.select(ifid)
     end
 
     if(flow.flow_swapped == true) then
