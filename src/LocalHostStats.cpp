@@ -63,7 +63,7 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   http = NULL;
   icmp = NULL;
   nextPeriodicUpdate = 0;
-  num_contacts_as_cli = num_contacts_as_srv = 0;
+  num_contacts_as_cli = num_contacts_as_srv = num_reset_flow = 0;
 
   num_contacted_hosts_as_client.init(8);    /* 128 bytes */
   num_host_contacts_as_server.init(8);      /* 128 bytes */

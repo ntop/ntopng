@@ -540,6 +540,7 @@ typedef enum {
   flow_alert_ndpi_tls_alpn_sni_mismatch = 97,
   flow_alert_ndpi_malware_host_contacted = 98,
   flow_alert_ndpi_binary_data_transfer = 99,
+  flow_alert_tcp_flow_reset = 100,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

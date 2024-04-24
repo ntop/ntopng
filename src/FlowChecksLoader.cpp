@@ -129,7 +129,7 @@ void FlowChecksLoader::registerChecks() {
   if ((fcb = new VLANBidirectionalTraffic())) registerCheck(fcb);
   if ((fcb = new BlacklistedClientContact())) registerCheck(fcb);
   if ((fcb = new BlacklistedServerContact())) registerCheck(fcb);
-
+  if ((fcb = new TCPFlowReset())) registerCheck(fcb);
 
 #ifdef NTOPNG_PRO
   if ((fcb = new DataExfiltration())) registerCheck(fcb);

@@ -323,6 +323,9 @@ void HostStats::luaStats(lua_State* vm, NetworkInterface* iface,
   lua_push_uint64_table_entry(vm, "total_flows.as_server",
                               total_num_flows_as_server);
 
+  if (getResetFlow() > 0) {
+    lua_push_uint64_table_entry(vm, "num_reset_flows", getResetFlow());
+  }
   host->lua_get_score(vm);
 
   if (verbose) {
