@@ -68,7 +68,6 @@ const sources_url_el_to_source = {
 const sources_types_tables = {
 	interface: interfaceTopTables,
 	host: hostTopTables,
-	snmp_interface: snmpInterfaceTopTables,
 	snmp_device: snmpInterfaceTopTables,
 	flow_device: flowDeviceTopTables,
 	flow_interface: flowDeviceTopTables,

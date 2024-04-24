@@ -8,6 +8,7 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
 -- Important: load this before any other alert related module
@@ -28,6 +29,7 @@ local ts_utils = require "ts_utils"
 local presets_utils = require "presets_utils"
 local blog_utils = require("blog_utils")
 local vs_utils = require "vs_utils"
+local drop_host_pool_utils = require "drop_host_pool_utils"
 
 -- ##################################################################
 
@@ -207,6 +209,8 @@ if(ntop.isPro()) then
       traceError(TRACE_NORMAL, TRACE_CONSOLE, "Importing ClickHouse dumps...")
       ntop.importClickHouseDumps(silence_import_warnings)
    end
+   -- In case of the alert enabled, clean the list of all the elements
+   drop_host_pool_utils.clean_list()
 end
 
 -- Fetch latest ntop blog posts

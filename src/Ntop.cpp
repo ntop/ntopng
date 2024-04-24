@@ -47,7 +47,7 @@ extern struct keyval string_to_replace[]; /* LuaEngine.cpp */
 
 Ntop::Ntop(const char *appName) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  
+
   // WTF: it's weird why do you want a global instance of ntop.
   ntop = this;
   globals = new (std::nothrow) NtopGlobals();
@@ -124,7 +124,7 @@ Ntop::Ntop(const char *appName) {
 #endif
 
   internal_alerts_queue = new (std::nothrow) FifoSerializerQueue(INTERNAL_ALERTS_QUEUE_SIZE);
-  
+
   resolvedHostsBloom = new (std::nothrow) Bloom(NUM_HOSTS_RESOLVED_BITS);
 
 #ifdef WIN32
@@ -197,9 +197,9 @@ Ntop::Ntop(const char *appName) {
 #else
   pro = NULL;
 #endif
-  
+
   address = NULL;
-    
+
 #ifndef HAVE_NEDGE
   refresh_ips_rules = false;
 #endif
@@ -286,7 +286,7 @@ Ntop::~Ntop() {
   int num_local_networks = local_network_tree.getNumAddresses();
 
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
-  
+
   for (int i = 0; i < num_local_networks; i++) {
     if (local_network_names[i] != NULL) free(local_network_names[i]);
     if (local_network_aliases[i] != NULL) free(local_network_aliases[i]);
@@ -362,12 +362,12 @@ Ntop::~Ntop() {
     delete redis;
     redis = NULL;
   }
-  
+
   if (prefs) {
     delete prefs;
     prefs = NULL;
   }
-  
+
   if (globals) {
     delete globals;
     globals = NULL;
@@ -463,7 +463,7 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
     num_resolvers = 1;
 #endif
   address = new (std::nothrow) AddressResolution(num_resolvers);
-  
+
   system_interface = new (std::nothrow)
       NetworkInterface(SYSTEM_INTERFACE_NAME, SYSTEM_INTERFACE_NAME);
 
@@ -687,7 +687,7 @@ void Ntop::start() {
   Utils::setThreadName("ntopng-main");
 
   globals->setInitialized(); /* We're ready to go */
-  
+
   while((!globals->isShutdown()) && (!globals->isShutdownRequested())) {
     const u_int32_t nap_usec = ntop->getPrefs()->get_housekeeping_frequency() * 1e6; /* 5 sec */
 
@@ -714,7 +714,7 @@ void Ntop::start() {
       while (usec_diff < nap_usec) {
         u_int32_t remaining_usec = nap_usec - usec_diff;
         u_int32_t power_nap_usec = 100 * 1e3; /* 100 msec */
-       
+
         _usleep(remaining_usec >= power_nap_usec ? power_nap_usec : remaining_usec);
 
         /* Run high frequency tasks */
@@ -1109,9 +1109,8 @@ bool Ntop::recipients_are_empty() { return recipients.empty(); }
 
 /* ******************************************* */
 
-bool Ntop::recipients_enqueue(AlertFifoItem *notification,
-                              AlertEntity alert_entity) {
-  return recipients.enqueue(notification, alert_entity);
+bool Ntop::recipients_enqueue(AlertFifoItem *notification) {
+  return recipients.enqueue(notification);
 }
 
 /* ******************************************* */
@@ -1154,11 +1153,15 @@ void Ntop::recipient_register(u_int16_t recipient_id,
                               Bitmap128 enabled_entities,
                               Bitmap128 enabled_flow_alert_types,
                               Bitmap128 enabled_host_alert_types,
+                              Bitmap128 enabled_other_alert_types,
+                              bool match_alert_id,
                               bool skip_alerts) {
   recipients.register_recipient(recipient_id, minimum_severity,
                                 enabled_categories, enabled_host_pools,
                                 enabled_entities, enabled_flow_alert_types,
-                                enabled_host_alert_types, skip_alerts);
+                                enabled_host_alert_types, enabled_other_alert_types,
+                                match_alert_id,
+                                skip_alerts);
 }
 
 /* ******************************************* */
@@ -1594,7 +1597,7 @@ bool Ntop::checkHTTPAuth(const char *user, const char *password, char *group) co
   HTTPAuthenticator auth;
   char val[64];
 
-  if (ntop->getRedis()->get((char *)PREF_NTOP_HTTP_AUTH, val, sizeof(val)) < 0 || 
+  if (ntop->getRedis()->get((char *)PREF_NTOP_HTTP_AUTH, val, sizeof(val)) < 0 ||
       val[0] != '1')
     return false;
 
@@ -1818,7 +1821,7 @@ bool Ntop::checkRadiusAuth(const char *user, const char *password, char *group) 
 
       getUserGroupLocal(user, group);
 
-    } else { 
+    } else {
       /* Check permissions */
       if (has_unprivileged_capabilities) {
         changeUserPcapDownloadPermission(user, true, 86400 /* 1 day */);
@@ -3255,12 +3258,12 @@ void Ntop::refreshAllowedProtocolPresets(DeviceType device_type, bool client,
     case LUA_TNUMBER:
       {
 	u_int value_action = lua_tointeger(L, -1);
-      
+
 	if (value_action) {
 	  u_int32_t mapped_key_proto = ndpi_map_user_proto_id_to_ndpi_id(iface[0]->get_ndpi_struct(), key_proto);
 
 	  /* ntop->getTrace()->traceEvent(TRACE_INFO, "%u -> %u", key_proto, mapped_key_proto); */
-	  
+
 	  if(mapped_key_proto >= NDPI_NUM_BITS) {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Protocol %u out of range [0...%u]",
 					 mapped_key_proto, NDPI_NUM_BITS-1);
@@ -3273,7 +3276,7 @@ void Ntop::refreshAllowedProtocolPresets(DeviceType device_type, bool client,
 	}
       }
       break;
-      
+
     default:
       ntop->getTrace()->traceEvent(TRACE_ERROR,
 				   "Internal error: type %d not handled", t);
@@ -3437,10 +3440,10 @@ bool Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t cat_id,
   u_int8_t list_id;
   char *persistent_name = getPersistentCustomListName(list_name, &list_id);
   bool success = true;
-  u_int16_t id = (((u_int16_t)list_id) << 8) + (u_int8_t)cat_id;
+  u_int16_t id = (((u_int16_t)list_id) << 8) + (u_int8_t)cat_id; /* Merge list_id and cat_id on a u_int16_t */
 
   for (u_int i = 0; i < get_num_interfaces(); i++) {
-    if (getInterface(i)) {    
+    if (getInterface(i)) {
       if (!getInterface(i)->nDPILoadHostnameCategory(what, id, persistent_name))
         success = false;
     }
@@ -3489,7 +3492,7 @@ void Ntop::setnDPIProtocolCategory(u_int16_t protoId,
                                    ndpi_protocol_category_t protoCategory) {
   for (u_int i = 0; i < get_num_interfaces(); i++) {
     NetworkInterface *iface = getInterface(i);
-    
+
     if(iface)
       iface->setnDPIProtocolCategory(iface->get_ndpi_struct(), protoId, protoCategory);
   }
@@ -3603,7 +3606,7 @@ bool Ntop::addLocalNetwork(char *_net) {
     if (strcmp(local_network_names[i], net) == 0) {
       /* Already present */
       free(net);
-      return (false); 
+      return (false);
     }
   }
 
@@ -3734,7 +3737,7 @@ bool Ntop::broadcastIPSMessage(char *msg) {
   bool rc = false;
 
   if (!msg) return (false);
- 
+
 #ifdef HAVE_ZMQ
   /* Jeopardized users_m lock :-) */
   users_m.lock(__FILE__, __LINE__);
@@ -3758,7 +3761,7 @@ bool Ntop::broadcastControlMessage(char *msg) {
   bool rc = false;
 
   if (!msg) return (false);
-  
+
 #ifdef HAVE_ZMQ
   /* Jeopardized users_m lock :-) */
   users_m.lock(__FILE__, __LINE__);
@@ -3875,18 +3878,18 @@ void Ntop::collectContinuousResponses(lua_State *vm) {
   This method is needed to have a string that is not deallocated
   after a call, but that is persistent inside nDPI
 */
-char *Ntop::getPersistentCustomListName(char *list_name /* in */, u_int8_t *list_id /* out */) {
+char* Ntop::getPersistentCustomListName(char *list_name /* in */, u_int8_t *list_id /* out */) {
   std::string key(list_name);
   std::map<std::string, u_int8_t>::iterator it = cachedCustomLists.find(key);
 
   if (it == cachedCustomLists.end()) {
     /* Not found */
-    *list_id = cachedCustomLists.size();
+    *list_id = cachedCustomLists.size() + 1; /* Avoid 0 (= not found) as identifier */
     cachedCustomLists[key] = *list_id;
     it = cachedCustomLists.find(key);
-  }
+  } else
+    *list_id = it->second;
 
-  *list_id = it->second;
   return ((char *)it->first.c_str());
 }
 
@@ -3895,14 +3898,16 @@ char *Ntop::getPersistentCustomListName(char *list_name /* in */, u_int8_t *list
 const char* Ntop::getPersistentCustomListNameById(u_int8_t list_id) {
   std::map<std::string, u_int8_t>::iterator it;
 
-  for (it = cachedCustomLists.begin(); it != cachedCustomLists.end(); it++) {
-    if(it->second == list_id)
-      return(it->first.c_str());
+  if(list_id > 0) {
+    for (it = cachedCustomLists.begin(); it != cachedCustomLists.end(); it++) {
+      if(it->second == list_id)
+	return(it->first.c_str());
+    }
   }
-  
+
   return(NULL);
 }
-  
+
 /* ******************************************* */
 
 void Ntop::setZoneInfo() {
@@ -4112,7 +4117,7 @@ void Ntop::incBlacklisHits(std::string listname) {
 void Ntop::connectMessageBroker() {
 #ifdef HAVE_NATS
   const char *m_broker_id = prefs->get_message_broker();
-  
+
   if (!strcmp(m_broker_id, CONST_NATS_M_BROKER_ID)) {
     message_broker = new (std::nothrow) NatsBroker();
   }
@@ -4127,7 +4132,7 @@ void Ntop::reloadMessageBroker() {
     delete(message_broker);
     message_broker = NULL;
   }
-  
+
   connectMessageBroker();
 }
 #endif /* NTOPNG_PRO */

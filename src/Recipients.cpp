@@ -73,8 +73,7 @@ bool Recipients::enqueue(u_int16_t recipient_id,
      Perform the actual enqueue
    */
   if (recipient_queues[recipient_id]) {
-    res = recipient_queues[recipient_id]->enqueue(
-        notification, alert_entity_other /* TODO */);
+    res = recipient_queues[recipient_id]->enqueue(notification);
     
   }
 
@@ -91,8 +90,7 @@ bool Recipients::enqueue(u_int16_t recipient_id,
 
 /* *************************************** */
 
-bool Recipients::enqueue(const AlertFifoItem* const notification,
-                         AlertEntity alert_entity) {
+bool Recipients::enqueue(const AlertFifoItem* const notification) {
   bool res = true; /* Initialized to true so that if no recipient is responsible
                       for the notification, true will be returned. */
 
@@ -109,7 +107,7 @@ bool Recipients::enqueue(const AlertFifoItem* const notification,
       bool success;
 
       success =
-          recipient_queues[recipient_id]->enqueue(notification, alert_entity);
+          recipient_queues[recipient_id]->enqueue(notification);
 
       res &= success;
     }
@@ -135,6 +133,8 @@ void Recipients::register_recipient(u_int16_t recipient_id,
                                     Bitmap128 enabled_entities,
                                     Bitmap128 enabled_flow_alert_types,
                                     Bitmap128 enabled_host_alert_types,
+                                    Bitmap128 enabled_other_alert_types,
+                                    bool match_alert_id,
                                     bool skip_alerts) {
   if (recipient_id >= MAX_NUM_RECIPIENTS) return;
 
@@ -150,6 +150,8 @@ void Recipients::register_recipient(u_int16_t recipient_id,
     recipient_queues[recipient_id]->setEnabledHostPools(enabled_host_pools);
     recipient_queues[recipient_id]->setEnabledFlowAlertTypes(enabled_flow_alert_types);
     recipient_queues[recipient_id]->setEnabledHostAlertTypes(enabled_host_alert_types);
+    recipient_queues[recipient_id]->setEnabledOtherAlertTypes(enabled_other_alert_types);
+    recipient_queues[recipient_id]->toggleAlertIDMatch(match_alert_id);
     recipient_queues[recipient_id]->setSkipAlerts(skip_alerts);
   }
 

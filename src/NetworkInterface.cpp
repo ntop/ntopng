@@ -571,7 +571,7 @@ bool NetworkInterface::nDPILoadIPCategory(char *what,
                                           char *list_name) {
   bool success = true;
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%s][%s]", __FUNCTION__, what, list_name);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%s][%s][id: %u]", __FUNCTION__, what, list_name, id);
 
   if (what && ndpi_struct_shadow)
     success = (ndpi_load_ip_category(ndpi_struct_shadow, what, (ndpi_protocol_category_t)id,
@@ -3912,13 +3912,11 @@ void NetworkInterface::findFlowHosts(int32_t iface_idx, u_int16_t vlan_id,
 
     if (_src_ip &&
         (_src_ip->isLocalHost() || _src_ip->isLocalInterfaceAddress())) {
-      INTERFACE_PROFILING_SECTION_ENTER(
-					"NetworkInterface::findFlowHosts: new LocalHost", 4);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new LocalHost", 4);
       (*src) = new (std::nothrow)LocalHost(this, iface_idx, src_mac, vlan_id, observation_domain_id, _src_ip);
       INTERFACE_PROFILING_SECTION_EXIT(4);
     } else {
-      INTERFACE_PROFILING_SECTION_ENTER(
-					"NetworkInterface::findFlowHosts: new RemoteHost", 5);
+      INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: new RemoteHost", 5);
       (*src) = new (std::nothrow)RemoteHost(this, iface_idx, src_mac, vlan_id, observation_domain_id, _src_ip);
       INTERFACE_PROFILING_SECTION_EXIT(5);
     }
@@ -3944,8 +3942,7 @@ void NetworkInterface::findFlowHosts(int32_t iface_idx, u_int16_t vlan_id,
   /* ***************************** */
 
   INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::findFlowHosts: hosts_hash->get", 3);
-  (*dst) = hosts_hash->get(vlan_id, _dst_ip, dst_mac, true /* Inline call */,
-                           observation_domain_id);
+  (*dst) = hosts_hash->get(vlan_id, _dst_ip, dst_mac, true /* Inline call */, observation_domain_id);
   INTERFACE_PROFILING_SECTION_EXIT(3);
 
   if ((*dst) == NULL) {
@@ -7449,8 +7446,7 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
   lua_push_uint64_table_entry(vm, "hosts", getNumHosts());
   lua_push_uint64_table_entry(vm, "hosts_rcvd_only", getNumRxOnlyHosts());
   lua_push_uint64_table_entry(vm, "local_hosts", getNumLocalHosts());
-  lua_push_uint64_table_entry(vm, "local_rcvd_only_hosts",
-                              getNumLocalRxOnlyHosts());
+  lua_push_uint64_table_entry(vm, "local_rcvd_only_hosts", getNumLocalRxOnlyHosts());
   lua_push_uint64_table_entry(vm, "http_hosts", getNumHTTPHosts());
   lua_push_uint64_table_entry(vm, "drops", getNumPacketDrops());
   lua_push_uint64_table_entry(vm, "new_flows", getNumNewFlows());
@@ -11091,18 +11087,43 @@ void NetworkInterface::checkDHCPStorm(time_t when, u_int32_t num_pkts) {
 
 void NetworkInterface::incNumHosts(bool local, bool rxOnlyHost) {
   if (local) numLocalHosts++;
-  if (local && rxOnlyHost) numLocalRxOnlyHosts++;
-  if (rxOnlyHost) numTotalRxOnlyHosts++;
+  
+  if(rxOnlyHost) {
+    if (local) numLocalRxOnlyHosts++;
+    numTotalRxOnlyHosts++;
+  }
+
   totalNumHosts++;
 };
 
 /* *************************************** */
 
 void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
-  if (local) numLocalHosts--;
-  if (local && rxOnlyHost) numLocalRxOnlyHosts--;
-  if (rxOnlyHost) numTotalRxOnlyHosts--;
-  totalNumHosts--;
+  if (local) {
+    if(numLocalHosts == 0)
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 1);
+    else
+      numLocalHosts--;
+  }
+
+  if(rxOnlyHost) {
+    if(local) {
+      if(numLocalRxOnlyHosts == 0)
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 2);
+      else
+	numLocalRxOnlyHosts--;
+    }
+  
+    if(numTotalRxOnlyHosts == 0)
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 3);
+    else
+      numTotalRxOnlyHosts--;
+  }
+
+  if(totalNumHosts == 0)
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 4);
+  else
+    totalNumHosts--;
 };
 
 /* **************************************************** */

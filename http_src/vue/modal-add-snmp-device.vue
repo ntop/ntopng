@@ -304,6 +304,20 @@ const set_row_to_edit = (row) => {
     selected_privacy_protocol.value = snmp_privacy_protocols.value.find((item) => item.id == row.column_privacy_protocol);
     snmp_privacy_passphrase.value = row.column_privacy_passphrase;
     snmp_username.value = row.column_username;
+    switch(selected_snmp_level.value.id) {
+      case "authNoPriv" : {
+        with_privacy.value = false;
+        with_auth.value = true;   
+      }break;
+      case "authPriv" :{
+        with_privacy.value = true;
+        with_auth.value = true;
+      }break;
+      case "noAuthNoPriv" : {
+        with_privacy.value = false;
+        with_auth.value = false;
+      }
+    }
   }
 
 };

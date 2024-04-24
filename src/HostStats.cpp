@@ -416,7 +416,6 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
       that used to be rcvdOnly and that has now sent traffic
     */
 
-    host->getInterface()->decNumSentRcvdHosts(host->isLocalHost());
     host->setRxOnlyHost(false /* no longer RX-only */);
   }
 

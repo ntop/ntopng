@@ -28,6 +28,7 @@ class RecipientQueue {
  private:
   u_int16_t recipient_id;
   bool skip_alerts;
+  bool match_alert_id;
 
   AlertFifoQueue *queue;
 
@@ -62,6 +63,9 @@ class RecipientQueue {
   Bitmap128 enabled_host_alert_types; /* MUST be large enough to contain
                                  HostAlertID */
 
+  Bitmap128 enabled_other_alert_types; /* MUST be large enough to contain
+                                 Other alert IDs defined in other_alert_keys.lua */
+
  public:
   RecipientQueue(u_int16_t recipient_id);
   ~RecipientQueue();
@@ -80,8 +84,7 @@ class RecipientQueue {
    *
    * @return True if the enqueue succeeded, false otherwise
    */
-  bool enqueue(const AlertFifoItem* const notification,
-               AlertEntity alert_entity);
+  bool enqueue(const AlertFifoItem* const notification);
 
   /**
    * @brief Sets the minimum severity for notifications to use this recipient
@@ -147,6 +150,16 @@ class RecipientQueue {
   };
 
   /**
+   * @brief Sets enabled other alert types to use this recipient
+   * @param enabled_other_alert_types
+   *
+   * @return
+   */
+  inline void setEnabledOtherAlertTypes(Bitmap128 _enabled_other_alert_types) {
+    enabled_other_alert_types = _enabled_other_alert_types;
+  };
+
+  /**
    * @brief Sets alerts to be ignored
    * @param skip_alerts
    *
@@ -154,6 +167,16 @@ class RecipientQueue {
    */
   inline void setSkipAlerts(bool _skip_alerts) {
     skip_alerts = _skip_alerts;
+  };
+
+  /**
+   * @brief Toggle match on alert_id only (ignore severity, category, etc)
+   * @param match_alert_id
+   *
+   * @return
+   */
+  inline void toggleAlertIDMatch(bool _match_alert_id) {
+    match_alert_id = _match_alert_id;
   };
 
   /**

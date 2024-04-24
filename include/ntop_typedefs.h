@@ -597,6 +597,12 @@ typedef enum {
   MAX_HOST_ALERT_TYPE = 32     /* Constrained by HostAlertBitmap */
 } HostAlertTypeEnum;
 
+/* Note: "other" alerts (other than flow, host) are defined in Lua */
+/* keep the below in sync with other_alert_keys.lua */
+#define MAX_OTHER_ALERT_TYPE 127
+#define OTHER_BASE_KEY 4096
+#define MAX_DEFINED_OTHER_ALERT_TYPE (MAX_OTHER_ALERT_TYPE+1)
+
 typedef struct {
   HostAlertTypeEnum id;
   AlertCategory category;

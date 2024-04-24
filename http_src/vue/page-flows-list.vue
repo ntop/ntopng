@@ -294,7 +294,7 @@ const map_table_def_columns = (columns) => {
 
         if (c.id == "actions") {
             const visible_dict = {
-                historical_chart: props.context.is_clickhouse_enabled,
+                historical_chart: props.context.is_clickhouse_enabled && !props.context.is_pcap,
             };
             c.button_def_array.forEach((b) => {
                 b.f_map_class = (current_class, row) => {

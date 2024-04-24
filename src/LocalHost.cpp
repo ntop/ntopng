@@ -114,8 +114,7 @@ void LocalHost::initialize() {
   /* Clone the initial point. It will be written to the timeseries DB to
    * address the first point problem
    * (https://github.com/ntop/ntopng/issues/2184). */
-  initial_ts_point =
-      new (std::nothrow) LocalHostStats(*(LocalHostStats *)stats);
+  initial_ts_point = new (std::nothrow) LocalHostStats(*(LocalHostStats *)stats);
   initialization_time = time(NULL);
 
   char *strIP = ip.print(buf, sizeof(buf));
@@ -134,14 +133,14 @@ void LocalHost::initialize() {
     }
   }
 
-  INTERFACE_PROFILING_SUB_SECTION_ENTER(
-      iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
+  INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
   updateHostTrafficPolicy(host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 18);
 
   /* Only increase the number of host if it's a unicast host */
   if(isLocalUnicastHost()) {
     iface->incNumHosts(true /* Local Host */, isRxOnlyHost());
+    
     if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
       ns->incNumHosts();
   }
@@ -153,7 +152,6 @@ void LocalHost::initialize() {
 #endif
 
   router_mac_set = 0, memset(router_mac, 0, sizeof(router_mac));
-  setRxOnlyHost(true);
 
 #ifdef HAVE_NEDGE
   drop_all_host_traffic = 0;
@@ -611,8 +609,8 @@ void LocalHost::setRouterMac(Mac *gw) {
 /* *************************************** */
 
 void LocalHost::setRxOnlyHost(bool set_it) {
-  is_rx_only = set_it;
-
+  Host::setRxOnlyHost(set_it);
+  
   if (isLocalUnicastHost()) {
     char hostbuf[64], *member;
 

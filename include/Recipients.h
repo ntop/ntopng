@@ -59,13 +59,10 @@ class Recipients {
   /**
    * @brief Enqueues a notification to all available recipients
    * @param notification The notification to be enqueued
-   * @param alert_entity Indicates to enqueue the alert only to recipients
-   * responsible for `alert_entity` alerts
    *
    * @return True if the enqueue succeeded, false otherwise
    */
-  bool enqueue(const AlertFifoItem* const notification,
-               AlertEntity alert_entity);
+  bool enqueue(const AlertFifoItem* const notification);
 
   /**
    * @brief Registers a recipient identified with `recipient_id` so its
@@ -87,6 +84,8 @@ class Recipients {
                           Bitmap128 enabled_entities,
                           Bitmap128 enabled_flow_alert_types,
                           Bitmap128 enabled_host_alert_types,
+                          Bitmap128 enabled_other_alert_types,
+                          bool match_alert_id,
                           bool skip_alerts);
 
   /**

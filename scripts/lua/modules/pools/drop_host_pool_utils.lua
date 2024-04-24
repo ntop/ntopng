@@ -20,7 +20,7 @@ local drop_host_pool_utils = {}
 drop_host_pool_utils.ids_ips_jail_add_key = "ntopng.cache.ids_ips_jail_add"
 drop_host_pool_utils.ids_ips_jail_remove_key = "ntopng.cache.ids_ips_jail_remove"
 
-drop_host_pool_utils.max_ids_ips_log_queue_len = 1024
+drop_host_pool_utils.max_ids_ips_log_queue_len = 256
 
 -- ############################################
 
@@ -138,6 +138,21 @@ function drop_host_pool_utils.check_periodic_hosts_list()
 	 if(rsp ~= nil) then
 	    ntop.broadcastIPSMessage(rsp)
 	 end
+      end
+   end
+end
+
+-- ############################################
+
+function drop_host_pool_utils.clean_list()
+   if is_ids_ips_log_enabled then
+      local alert = ntop.lpopCache(drop_host_pool_utils.ids_ips_jail_add_key)
+      while(alert) do
+         alert = ntop.lpopCache(drop_host_pool_utils.ids_ips_jail_add_key)
+      end   
+      alert = ntop.lpopCache(drop_host_pool_utils.ids_ips_jail_remove_key)
+      while(alert) do
+         alert = ntop.lpopCache(drop_host_pool_utils.ids_ips_jail_remove_key)
       end
    end
 end

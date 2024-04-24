@@ -245,25 +245,33 @@ function recipients.initialize()
         alert_store_db_recipient.recipient_id = 0 -- setting it to the default value
     end
     for _, recipient in pairs(recipients.get_all_recipients()) do
-        local flow_checks = nil
-        local host_checks = nil
+        local flow_alert_types = nil
+        local host_alert_types = nil
+        local other_alert_types = nil
         local notifications_type = recipient.notifications_type or "alerts"
 
         if recipient.checks and table.len(recipient.checks) > 0 then
-            flow_checks = ""
-            host_checks = ""
-            if (recipient.checks["flow"]) then
-                flow_checks = table.concat(recipient.checks["flow"], ",")
-            end
-            if (recipient.checks["host"]) then
-                host_checks = table.concat(recipient.checks["host"], ",")
+            for family, alerts in pairs(recipient.checks) do
+                if #alerts > 0 then
+                    if family == "flow" then
+                        flow_alert_types = table.concat(alerts, ",")
+                    elseif family == "host" then
+                        host_alert_types = table.concat(alert, ",")
+                    else -- other
+                        if not isEmptyString(other_alert_types) then
+                            other_alert_types = other_alert_types .. "," .. table.concat(alerts, ",")
+                        else
+                            other_alert_types = table.concat(alerts, ",")
+                        end
+                    end
+                end
             end
         end
 
         ntop.recipient_register(recipient.recipient_id, recipient.minimum_severity,
             table.concat(recipient.check_categories, ','), table.concat(recipient.host_pools, ','),
-            table.concat(recipient.check_entities, ','), flow_checks, host_checks, ternary(
-                (notifications_type ~= "alerts"), true --[[skip alerts]] , false --[[dont skip alerts]] ))
+            table.concat(recipient.check_entities, ','), flow_alert_types, host_alert_types, other_alert_types,
+                ternary((notifications_type ~= "alerts"), true --[[skip alerts]] , false --[[dont skip alerts]] ))
     end
 end
 
@@ -541,18 +549,28 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                     local checks = format_recipient_checks(recipient_params["recipient_checks"] or "")
                     local silence_alerts = recipient_params["recipient_silence_multiple_alerts"]
                     local notifications_type = recipient_params["recipient_notifications_type"] or "alerts"
-                    local flow_checks = nil
-                    local host_checks = nil
+                    local flow_alert_types = nil
+                    local host_alert_types = nil
+                    local other_alert_types = nil
+
                     if checks and table.len(checks) > 0 then
-                        flow_checks = ""
-                        host_checks = ""
-                        if (checks["flow"]) then
-                            flow_checks = table.concat(checks["flow"], ",")
-                        end
-                        if (checks["host"]) then
-                            host_checks = table.concat(checks["host"], ",")
+                        for family, alerts in pairs(checks) do
+                            if #alerts > 0 then
+                                if family == "flow" then
+                                    flow_alert_types = table.concat(alerts, ",")
+                                elseif family == "host" then
+                                    host_alert_types = table.concat(alert, ",")
+                                else -- other
+                                    if not isEmptyString(other_alert_types) then
+                                        other_alert_types = other_alert_types .. "," .. table.concat(alerts, ",")
+                                    else
+                                        other_alert_types = table.concat(alerts, ",")
+                                    end
+                                end
+                            end
                         end
                     end
+
                     -- Assign the recipient id
                     local recipient_id = _assign_recipient_id()
                     -- Persist the configuration
@@ -572,8 +590,10 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
 
                     -- Finally, register the recipient in C so we can start enqueuing/dequeuing notifications
                     ntop.recipient_register(recipient_id, minimum_severity, table.concat(check_categories, ','),
-                        table.concat(host_pools_ids, ','), table.concat(check_entities, ','), flow_checks, -- Flow Alerts bitmap
-                        host_checks, -- Host Alerts bitmap
+                        table.concat(host_pools_ids, ','), table.concat(check_entities, ','),
+                        flow_alert_types, -- Flow Alerts bitmap
+                        host_alert_types, -- Host Alerts bitmap
+                        other_alert_types, -- Other Alerts bitmap
                         ternary((notifications_type ~= "alerts"), true --[[skip alerts]] , false --[[dont skip alerts]] ))
 
                     -- Set a flag to indicate that a recipient has been created
@@ -649,16 +669,25 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                     local checks = format_recipient_checks(recipient_params["recipient_checks"] or "")
                     local silence_alerts = recipient_params["recipient_silence_multiple_alerts"]
                     local notifications_type = recipient_params["recipient_notifications_type"] or "alerts"
-                    local flow_checks = nil
-                    local host_checks = nil
+                    local flow_alert_types = nil
+                    local host_alert_types = nil
+                    local other_alert_types = nil
+
                     if checks and table.len(checks) > 0 then
-                        flow_checks = ""
-                        host_checks = ""
-                        if (checks["flow"]) then
-                            flow_checks = table.concat(checks["flow"], ",")
-                        end
-                        if (checks["host"]) then
-                            host_checks = table.concat(checks["host"], ",")
+                        for family, alerts in pairs(checks) do
+                            if #alerts > 0 then
+                                if family == "flow" then
+                                    flow_alert_types = table.concat(alerts, ",")
+                                elseif family == "host" then
+                                    host_alert_types = table.concat(alert, ",")
+                                else -- other
+                                    if not isEmptyString(other_alert_types) then
+                                        other_alert_types = other_alert_types .. "," .. table.concat(alerts, ",")
+                                    else
+                                        other_alert_types = table.concat(alerts, ",")
+                                    end
+                                end
+                            end
                         end
                     end
 
@@ -680,8 +709,8 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                     -- and periodic scripts can be reloaded
                     ntop.recipient_register(tonumber(recipient_id), minimum_severity,
                         table.concat(check_categories, ','), table.concat(host_pools_ids, ','),
-                        table.concat(check_entities, ','), flow_checks, host_checks, ternary(
-                            (notifications_type ~= "alerts"), true --[[skip alerts]] , false --[[dont skip alerts]] ))
+                        table.concat(check_entities, ','), flow_alert_types, host_alert_types, other_alert_types,
+                            ternary((notifications_type ~= "alerts"), true --[[skip alerts]] , false --[[dont skip alerts]] ))
 
                     res = {
                         status = "OK"
@@ -1059,12 +1088,14 @@ end
 -- @param current_script The user script which has triggered this notification - can be nil if the script is unknown or not available
 -- @return nil
 function recipients.dispatch_notification(notification, current_script, notification_type, recipient_id)
+    local is_vs = (notification_type == 'vulnerability_scans')
+
     if not notification then
         -- traceError(TRACE_ERROR, TRACE_CONSOLE, "Internal error. Empty notification")
         -- tprint(debug.traceback())
     end
 
-    if debug_vs and notification_type == 'vulnerability_scans' then
+    if debug_vs and is_vs then
         traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: dispatching notification")
     end
 
@@ -1093,7 +1124,7 @@ function recipients.dispatch_notification(notification, current_script, notifica
         for _, recipient in ipairs(recipients) do
             local recipient_ok = true
 
-            if debug_vs and notification_type == 'vulnerability_scans' then
+            if debug_vs and is_vs then
                 traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: evaluating recipient")
                 tprint(recipient)
             end
@@ -1112,7 +1143,7 @@ function recipients.dispatch_notification(notification, current_script, notifica
             if recipient_ok and notification_type and notification_type ~= "alerts" then
                 if recipient.notifications_type and recipient.notifications_type ~= "alerts" then
                     if notification_type == recipient.notifications_type then
-                        if debug_vs and notification_type == 'vulnerability_scans' then
+                        if debug_vs and is_vs then
                             traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: recipient match!")
                         end
                         goto skip_filters
@@ -1239,11 +1270,15 @@ function recipients.dispatch_notification(notification, current_script, notifica
             if recipient_ok then
                 -- Enqueue alert
                 -- debug_print(" ===> Delivering alert for entity id " .. notification.entity_id .. " to recipient " .. recipient.recipient_name)
-                if debug_vs and notification_type == 'vulnerability_scans' then
+                if debug_vs and is_vs then
                     traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: enqueueing notification to recipient")
                 end
 
-                ntop.recipient_enqueue(recipient.recipient_id, json_notification --[[ alert --]] , notification.score,
+                ntop.recipient_enqueue(recipient.recipient_id,
+                    json_notification --[[ alert --]] , 
+                    notification.score,
+                    notification.alert_id,
+                    notification.entity_id,
                     notification_category)
             end
         end

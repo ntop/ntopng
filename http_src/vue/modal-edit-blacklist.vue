@@ -14,7 +14,7 @@
       <div class="row form-group mb-3 has-feedback">
         <div class="col col-md-12">
           <label class="form-label">{{ _i18n("flow_details.url") }}</label>
-          <input ref="url" class="form-control" type="text" disabled="disabled" readonly />
+          <input ref="url" class="form-control" type="text" @input="validate_url"/>
         </div>
       </div>
 
@@ -45,7 +45,7 @@
       </div>
     </template>
     <template v-slot:footer>
-      <button type="button" @click="edit_blacklist_" class="btn btn-primary btn-block">{{
+      <button type="button" @click="edit_blacklist_" :disabled="!valid_url" class="btn btn-primary btn-block">{{
     _i18n('category_lists.edit_list') }}</button>
     </template>
   </modal>
@@ -54,6 +54,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { default as modal } from "./modal.vue";
+import regexValidation from "../utilities/regex-validation.js";
 
 let title_delete = ref(i18n('category_lists.edit_list'));
 const modal_id = ref(null);
@@ -66,6 +67,7 @@ const list_update = ref(null);
 const enable_blacklist = ref(null);
 const category_name = ref(null);
 const emit = defineEmits(['edit_blacklist']);
+const valid_url = ref(true);
 
 const props = defineProps({});
 
@@ -93,6 +95,10 @@ const show = (blacklist) => {
 
   modal_id.value.show();
 };
+
+const validate_url = function() {
+  valid_url.value = regexValidation.validateURL(url.value.value);
+}
 
 const change_checkbox = function() {
   let checked = enable_blacklist.value.value

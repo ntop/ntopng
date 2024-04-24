@@ -1284,10 +1284,12 @@ void Flow::setExtraDissectionCompleted() {
 					 (struct in6_addr *)get_cli_ip_addr()->get_ipv6(),
 					 (struct in6_addr *)get_srv_ip_addr()->get_ipv6(),
 					 &ndpiDetectedProtocol);
+
+      ndpiDetectedProtocol.category = (ndpi_protocol_category_t)(ndpiDetectedProtocol.category & 0xFF); /* See Ntop::nDPILoadHostnameCategory */
       
       /* We have used the trick to save in the protocolId both the list name and the protocol */
       if(ndpiDetectedProtocol.custom_category_userdata == NULL) {
-	u_int8_t list_id = (ndpiDetectedProtocol.category & 0xFF00) >> 8;
+	u_int8_t list_id = (ndpiDetectedProtocol.category & 0xFF00) >> 8; /* See Ntop::nDPILoadHostnameCategory */
 
 	ndpiDetectedProtocol.category = (ndpi_protocol_category_t)(ndpiDetectedProtocol.category & 0xFF);
 	ndpiDetectedProtocol.custom_category_userdata = (void*)ntop->getPersistentCustomListNameById(list_id);
@@ -1386,6 +1388,8 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
    */
   if (ndpiDetectedProtocol.category == NDPI_PROTOCOL_CATEGORY_UNSPECIFIED)
     ndpiDetectedProtocol.category = proto_id.category;
+  if ((ndpiDetectedProtocol.category - 1024) == CUSTOM_CATEGORY_MALWARE)
+    ndpiDetectedProtocol.category = CUSTOM_CATEGORY_MALWARE;
 }
 
 /* *************************************** */
@@ -4888,9 +4892,9 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
       cli_host ? cli_host->get_host_pool() : 0;
     notification->flow.srv_host_pool =
       srv_host ? srv_host->get_host_pool() : 0;
+    notification->alert_entity = alert_entity_flow;
 
-    rv = ntop->recipients_enqueue(notification,
-                                  alert_entity_flow /* Flow recipients */);
+    rv = ntop->recipients_enqueue(notification);
 
     if (!rv)
       delete(notification);

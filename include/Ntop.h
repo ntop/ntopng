@@ -620,8 +620,7 @@ class Ntop {
   }
   void lua_alert_queues_stats(lua_State *vm);
   bool recipients_are_empty();
-  bool recipients_enqueue(AlertFifoItem *notification,
-                          AlertEntity alert_entity);
+  bool recipients_enqueue(AlertFifoItem *notification);
   AlertLevel get_default_recipient_minimum_severity();
   bool recipient_enqueue(u_int16_t recipient_id,
                          const AlertFifoItem *const notification);
@@ -635,6 +634,8 @@ class Ntop {
                           Bitmap128 enabled_entities,
                           Bitmap128 enabled_flow_alert_types,
                           Bitmap128 enabled_host_alert_types,
+                          Bitmap128 enabled_other_alert_types,
+                          bool match_alert_id,
                           bool skip_alerts);
 
   void sendNetworkInterfacesTermination();

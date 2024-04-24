@@ -342,7 +342,8 @@ print[[
 					}
 
 					msg += NtopUtils.formatValue(num_remote_hosts, 1);
-					if(rsp.num_rcvd_only_hosts > 0) msg += " ("+NtopUtils.formatValue(rsp.num_rcvd_only_hosts, 1)+")";
+                                        num_remote_rcvd_only_hosts = rsp.num_rcvd_only_hosts - rsp.num_local_rcvd_only_hosts;
+					if(num_remote_rcvd_only_hosts > 0) msg += " ("+NtopUtils.formatValue(num_remote_rcvd_only_hosts, 1)+")";
 					msg += " <i class=\"fas fa-laptop\" aria-hidden=\"true\"></i></span></a>";
 				}
 

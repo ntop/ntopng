@@ -1039,9 +1039,11 @@ static int ntop_match_custom_category(lua_State *vm) {
       (ndpi_get_custom_category_match(iface->get_ndpi_struct(), host_to_match,
                                       strlen(host_to_match), &match) != 0))
     lua_pushnil(vm);
-  else
-    lua_pushinteger(vm, (int)match);
-
+  else {
+    /* Remember to unshift `match` (see Ntop::nDPILoadHostnameCategory) */
+    lua_pushinteger(vm, ((int)match) & 0xFF);
+  }
+  
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -7032,8 +7034,10 @@ static int ntop_recipient_enqueue(lua_State *vm) {
   const char *alert;
   bool rv = false;
   AlertFifoItem *notification;
-  u_int32_t score;
+  u_int16_t alert_id = 0;
+  u_int32_t score = 0;
   AlertCategory alert_category = alert_category_other;
+  AlertEntity alert_entity = alert_entity_other;
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -7048,7 +7052,13 @@ static int ntop_recipient_enqueue(lua_State *vm) {
   score = lua_tonumber(vm, 3);
 
   if (lua_type(vm, 4) == LUA_TNUMBER)
-    alert_category = (AlertCategory)lua_tonumber(vm, 4);
+    alert_id = lua_tonumber(vm, 4);
+
+  if (lua_type(vm, 5) == LUA_TNUMBER)
+    alert_entity = (AlertEntity)lua_tonumber(vm, 5);
+
+  if (lua_type(vm, 6) == LUA_TNUMBER)
+    alert_category = (AlertCategory)lua_tonumber(vm, 6);
 
   notification = new AlertFifoItem();
 
@@ -7056,11 +7066,10 @@ static int ntop_recipient_enqueue(lua_State *vm) {
     notification->alert = alert;
     notification->score = score;
     notification->alert_severity = Utils::mapScoreToSeverity(score);
+    notification->alert_id = alert_id;
+    notification->alert_entity = alert_entity;
     notification->alert_category = alert_category;
-    /* TODO: add the alert_id to the AlertFifoItem instance */
-/*
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enqueing alert: %s", alert);
-*/
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Enqueing alert: %s", alert);
     rv = ntop->recipient_enqueue(recipient_id, notification);
   }
 
@@ -7158,18 +7167,10 @@ static int ntop_recipient_register(lua_State *vm) {
   u_int16_t recipient_id;
   AlertLevel minimum_severity = alert_level_none;
   char *str_categories, *str_host_pools, *str_entities,
-    *str_flow_alert_types, *str_host_alert_types;
-  bool skip_alerts = false;
+    *str_flow_alert_types, *str_host_alert_types, *str_other_alert_types;
+  bool match_alert_id = false, skip_alerts = false;
   Bitmap128 enabled_categories, enabled_host_pools, enabled_entities,
-    enabled_flow_alert_types, enabled_host_alert_types;
-
-  /* All flow alert types enabled by default */
-  for (int i = 0; i < MAX_DEFINED_FLOW_ALERT_TYPE; i++)
-    enabled_flow_alert_types.setBit(i);
-
-  /* All host alert types enabled by default */
-  for (int i = 0; i < MAX_DEFINED_HOST_ALERT_TYPE; i++)
-    enabled_host_alert_types.setBit(i);
+    enabled_flow_alert_types, enabled_host_alert_types, enabled_other_alert_types;
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -7197,23 +7198,29 @@ static int ntop_recipient_register(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
   enabled_entities.setBits(str_entities);
 
-  /* In case it's nil, all alerts are accepted */
   if ((lua_type(vm, 6) == LUA_TSTRING) &&
     ((str_flow_alert_types = (char *)lua_tostring(vm, 6)) != NULL)) {
       enabled_flow_alert_types.reset();
       enabled_flow_alert_types.setBits(str_flow_alert_types);
+      match_alert_id = true; /* Match by ID (ignore severity, category, etc) */
   }
 
-  /* In case it's nil, all alerts are accepted */
   if ((lua_type(vm, 7) == LUA_TSTRING) &&
     ((str_host_alert_types = (char *)lua_tostring(vm, 7)) != NULL)){
       enabled_host_alert_types.reset();
       enabled_host_alert_types.setBits(str_host_alert_types);
+      match_alert_id = true; /* Match by ID (ignore severity, category, etc) */
   }
 
-  /* In case it's nil, all alerts are accepted */
-  if (lua_type(vm, 8) == LUA_TBOOLEAN)
-    skip_alerts = (bool)lua_toboolean(vm, 8);
+  if ((lua_type(vm, 8) == LUA_TSTRING) &&
+    ((str_other_alert_types = (char *)lua_tostring(vm, 8)) != NULL)){
+      enabled_other_alert_types.reset();
+      enabled_other_alert_types.setBits(str_other_alert_types);
+      match_alert_id = true; /* Match by ID (ignore severity, category, etc) */
+  }
+
+  if (lua_type(vm, 9) == LUA_TBOOLEAN)
+    skip_alerts = (bool)lua_toboolean(vm, 9);
 
   /*
   char bitmap_buf[64];
@@ -7229,11 +7236,13 @@ static int ntop_recipient_register(lua_State *vm) {
   enabled_flow_alert_types.toHexString(bitmap_buf, sizeof(bitmap_buf)));
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Host alert types bitmap: %s",
   enabled_host_alert_types.toHexString(bitmap_buf, sizeof(bitmap_buf)));
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Other alert types bitmap: %s",
+  enabled_other_alert_types.toHexString(bitmap_buf, sizeof(bitmap_buf)));
   */
 
   ntop->recipient_register(recipient_id, minimum_severity, enabled_categories,
                            enabled_host_pools, enabled_entities, enabled_flow_alert_types,
-                           enabled_host_alert_types, skip_alerts);
+                           enabled_host_alert_types, enabled_other_alert_types, match_alert_id, skip_alerts);
 
   lua_pushnil(vm);
 
