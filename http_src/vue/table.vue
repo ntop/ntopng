@@ -176,6 +176,10 @@ const props = defineProps({
     message_to_display: String,
 });
 
+const get_num_pages = function() {
+    return Number(localStorage.getItem("ntopng.tables.rowPerPage")) || 10;
+}
+
 const _i18n = (t) => i18n(t);
 
 const show_table = ref(true);
@@ -189,7 +193,7 @@ const columns_wrap = ref([]);
 const active_rows = ref([]);
 const total_rows = ref(0);
 const per_page_options = [10, 20, 40, 50, 80, 100];
-const per_page = ref(10);
+const per_page = ref(get_num_pages());
 const store = window.store;
 const map_search = ref("");
 
@@ -354,8 +358,13 @@ async function reset_column_size() {
 }
 
 function change_per_page() {
+    save_num_pages()
     redraw_select_pages();
     change_active_page(0);
+}
+
+const save_num_pages = function() {
+    localStorage.setItem("ntopng.tables.rowPerPage", per_page.value);
 }
 
 const select_pages_key = ref(0);
