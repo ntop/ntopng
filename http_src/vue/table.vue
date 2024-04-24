@@ -5,16 +5,11 @@
         <Loading v-if="loading"></Loading>
         <div class="button-group mb-2 d-flex align-items-center"> <!-- TableHeader -->
             <div class="form-group d-flex align-items-end" style="flex-wrap: wrap;">
-                <slot name="custom_header"></slot>       
+                <slot name="custom_header"></slot>
             </div>
 
             <div style="text-align:right;" class="form-group d-flex align-items-center ms-auto">
                 <div class="d-flex align-items-center">
-                    <div v-if="enable_search" class="d-inline me-2 ms-auto">
-                        <label>{{ _i18n('search') }}:
-                            <input type="search" v-model="map_search" @input="on_change_map_search" class="">
-                        </label>
-                    </div>
                     <div class="me-2">
                         <label>
                             <select v-model="per_page" @change="change_per_page">
@@ -22,7 +17,8 @@
                             </select>
                         </label>
                     </div>
-                    
+
+                    <slot name="custom_buttons"></slot>
                     <button class="btn btn-link" type="button" @click="reset_column_size">
                         <i class="fas fa-columns"></i>
                     </button>
@@ -34,6 +30,7 @@
                             @change_value="update_autorefresh">
                         </Switch>
                     </div>
+
                     <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
                         <template v-slot:title>
                             <i class="fas fa-eye"></i>
@@ -42,11 +39,18 @@
                             <div v-for="col in columns_wrap" class="form-check form-switch ms-1">
                                 <input class="form-check-input" style="cursor:pointer;" :checked="col.visible == true"
                                     @click="change_columns_visibility(col)" type="checkbox" :id="get_col_id(col)">
-                                <label class="form-check-label" :for="get_col_id(col)" v-html="print_column_name(col.data)">
+                                <label class="form-check-label" :for="get_col_id(col)"
+                                    v-html="print_column_name(col.data)">
                                 </label>
                             </div>
                         </template>
                     </Dropdown> <!-- Dropdown columns -->
+
+                    <div v-if="enable_search" class="d-inline me-2 ms-auto">
+                        <label>{{ _i18n('search') }}:
+                            <input type="search" v-model="map_search" @input="on_change_map_search" class="">
+                        </label>
+                    </div>
                 </div>
             </div>
         </div> <!-- TableHeader -->
@@ -61,8 +65,11 @@
                 <thead>
                     <tr>
                         <template v-for="(col, col_index) in columns_wrap">
-                            <th v-if="col.visible" scope="col" :class="{ 'pointer': col.sortable, 'unset': !col.sortable, }"
-                                style="white-space: nowrap;" :style="[( col.min_width ? 'min-width: ' + col.min_width + ';' : '' )]" @click="change_column_sort(col, col_index)"
+                            <th v-if="col.visible" scope="col"
+                                :class="{ 'pointer': col.sortable, 'unset': !col.sortable, }"
+                                style="white-space: nowrap;"
+                                :style="[(col.min_width ? 'min-width: ' + col.min_width + ';' : '')]"
+                                @click="change_column_sort(col, col_index)"
                                 :data-resizable-column-id="get_column_id(col.data)">
                                 <div style="display:flex;">
                                     <span v-html="print_column_name(col.data)" class="wrap-column"></span>
@@ -104,19 +111,20 @@
         </div> <!-- Table div-->
 
         <div>
-            <SelectTablePage ref="select_table_page" :key="select_pages_key" :total_rows="total_rows" :per_page="per_page"
-                @change_active_page="change_active_page">
+            <SelectTablePage ref="select_table_page" :key="select_pages_key" :total_rows="total_rows"
+                :per_page="per_page" @change_active_page="change_active_page">
             </SelectTablePage>
         </div>
 
         <div v-if="query_info != null" class="mt-2">
             <div class="text-end">
                 <small style="" class="query text-end"><span class="records">{{ query_info.num_records_processed
-                }}</span>.</small>
+                        }}</span>.</small>
             </div>
             <div class="text-start">
                 <small id="historical_flows_table-query-time" style="" class="query">Query performed in <span
-                        class="seconds">{{ (query_info.query_duration_msec / 1000).toFixed(3) }}</span> seconds. <span
+                        class="seconds">{{
+        (query_info.query_duration_msec / 1000).toFixed(3) }}</span> seconds. <span
                         id="historical_flows_table-query" style="cursor: pointer;" class="badge bg-secondary"
                         :title=query_info.query @click="copy_query_into_clipboard"
                         ref="query_info_sql_button">SQL</span></small>
@@ -168,6 +176,10 @@ const props = defineProps({
     message_to_display: String,
 });
 
+const get_num_pages = function() {
+    return Number(localStorage.getItem("ntopng.tables.rowPerPage")) || 10;
+}
+
 const _i18n = (t) => i18n(t);
 
 const show_table = ref(true);
@@ -181,7 +193,7 @@ const columns_wrap = ref([]);
 const active_rows = ref([]);
 const total_rows = ref(0);
 const per_page_options = [10, 20, 40, 50, 80, 100];
-const per_page = ref(10);
+const per_page = ref(get_num_pages());
 const store = window.store;
 const map_search = ref("");
 
@@ -212,7 +224,7 @@ watch(() => [props.id, props.columns], (cur_value, old_value) => {
 }, { flush: 'pre' });
 
 function get_col_id(col) {
-    if(col != null && col.id != null) {
+    if (col != null && col.id != null) {
         return col.id;
     } else {
         return "toggle-Begin";
@@ -346,8 +358,13 @@ async function reset_column_size() {
 }
 
 function change_per_page() {
+    save_num_pages()
     redraw_select_pages();
     change_active_page(0);
+}
+
+const save_num_pages = function() {
+    localStorage.setItem("ntopng.tables.rowPerPage", per_page.value);
 }
 
 const select_pages_key = ref(0);
@@ -419,7 +436,7 @@ async function refresh_table(disable_loading) {
     force_refresh = true;
     force_disable_loading = disable_loading || false;
 
-    if(force_disable_loading) {
+    if (force_disable_loading) {
         /* In case of disabled loading, reload the same page */
         select_table_page.value.change_active_page();
     } else {
@@ -452,7 +469,7 @@ async function set_rows() {
     rows = res.rows;
     set_active_rows();
     loading.value = false;
-    
+
     await nextTick();
     emit('rows_loaded', res);
 }
