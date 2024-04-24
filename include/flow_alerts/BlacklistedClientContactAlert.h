@@ -37,7 +37,7 @@ class BlacklistedClientContactAlert : public FlowAlert {
   BlacklistedClientContactAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f) {};
   ~BlacklistedClientContactAlert(){};
 
-  bool autoAck() const { return false; };
+  bool autoAck() const { return true; };
 
   FlowAlertType getAlertType() const { return getClassType(); }
 };
