@@ -83,6 +83,7 @@ class LocalHost : public Host {
   };
   virtual HostStats *allocateStats() { return (new LocalHostStats(this)); };
 
+  virtual void incResetFlow() const { stats->incResetFlow(); };
   virtual bool dropAllTraffic() const { return (drop_all_host_traffic); };
   virtual void inlineSetOSDetail(const char *_os_detail);
   virtual const char *getOSDetail(char *const buf, ssize_t buf_len);

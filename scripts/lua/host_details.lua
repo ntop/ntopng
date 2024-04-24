@@ -960,6 +960,12 @@ else
                       " <span id=flow_alerts_trend></span></td></tr>\n")
         end
 
+        if (host["num_reset_flows"] > 0) then
+            print("<tr><th>" .. i18n("host_details.attempted_reset_flows") .. "</th><td colspan=2></li>" ..
+            "<span id=num_reset_flows>" .. formatValue(host["num_reset_flows"]) .. "</span>" ..
+                    " <span id=flow_alerts_trend></span></td></tr>\n")
+        end
+
         if (host.score_behaviour.tot_num_anomalies > 0) then
             -- TODO: Add JSON update
             print("<tr><th>" .. i18n("host_details.behavioural_anomalies") ..
