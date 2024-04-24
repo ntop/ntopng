@@ -32,7 +32,7 @@ class BlacklistedFlowAlert : public FlowAlert {
   static FlowAlertType getClassType() {
     return {flow_alert_blacklisted, alert_category_security};
   }
-  static u_int8_t getDefaultScore() { return SCORE_LEVEL_ERROR; };
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_CRITICAL; };
 
   BlacklistedFlowAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f) {};
   ~BlacklistedFlowAlert(){};
