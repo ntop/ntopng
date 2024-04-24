@@ -19,27 +19,27 @@
  *
  */
 
-#ifndef _BLACKLIST_CLIENT_CONTACT_H_
-#define _BLACKLIST_CLIENT_CONTACT_H_
+#ifndef _BLACKLIST_CLIENT_CONTACT_ALERT_H_
+#define _BLACKLIST_CLIENT_CONTACT_ALERT_H_
 
 #include "ntop_includes.h"
 
-class BlacklistClientContact : public FlowCheck {
+class BlacklistedClientContactAlert : public FlowAlert {
  private:
+  ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
+
  public:
-  BlacklistClientContact()
-      : FlowCheck(ntopng_edition_community, false /* All interfaces */,
-                  false /* Don't exclude for nEdge */,
-                  false /* NOT only for nEdge */,
-                  true /* has_protocol_detected */,
-                  false /* has_periodic_update */, false /* has_flow_end */){};
-  ~BlacklistClientContact(){};
+  static FlowAlertType getClassType() {
+    return {flow_alert_blacklisted_client_contact, alert_category_security};
+  }
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
-  bool loadConfiguration(json_object *config);
-  void protocolDetected(Flow *f);
-  FlowAlert *buildAlert(Flow *f);
+  BlacklistedClientContactAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f) {};
+  ~BlacklistedClientContactAlert(){};
 
-  std::string getName() const { return (std::string("blacklist_client_contact")); }
+  bool autoAck() const { return false; };
+
+  FlowAlertType getAlertType() const { return getClassType(); }
 };
 
-#endif /* _BLACKLIST_CLIENT_CONTACT_H_ */
+#endif /* _BLACKLIST_CLIENT_CONTACT_ALERT_H_ */

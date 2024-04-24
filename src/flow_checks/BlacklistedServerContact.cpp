@@ -24,13 +24,13 @@
 
 /* ***************************************************** */
 
-void BlacklistServerContact::protocolDetected(Flow *f) {
+void BlacklistedServerContact::protocolDetected(Flow *f) {
   Host* cli = f->get_cli_host();
   Host* srv = f->get_srv_host();
 
   if (cli && srv) {
     if ((f->isBlacklistedServer()) && (cli->isLocalHost()) && !(srv->isLocalHost())) {
-      FlowAlertType alert_type = BlacklistServerContactAlert::getClassType();
+      FlowAlertType alert_type = BlacklistedServerContactAlert::getClassType();
       u_int8_t c_score, s_score;
       risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
 
@@ -43,10 +43,10 @@ void BlacklistServerContact::protocolDetected(Flow *f) {
 
 /* ***************************************************** */
 
-FlowAlert *BlacklistServerContact::buildAlert(Flow *f) {
+FlowAlert *BlacklistedServerContact::buildAlert(Flow *f) {
   bool is_server_bl = f->isBlacklistedServer();
   bool is_client_bl = f->isBlacklistedClient();
-  BlacklistServerContactAlert *alert = new (std::nothrow) BlacklistServerContactAlert(this, f);
+  BlacklistedServerContactAlert *alert = new (std::nothrow) BlacklistedServerContactAlert(this, f);
 
   if (alert) {
     /*
@@ -81,7 +81,7 @@ FlowAlert *BlacklistServerContact::buildAlert(Flow *f) {
   }
 */
 
-bool BlacklistServerContact::loadConfiguration(json_object *config) {
+bool BlacklistedServerContact::loadConfiguration(json_object *config) {
   FlowCheck::loadConfiguration(config); /* Parse parameters in common */
 
   /* Parse additional parameters */

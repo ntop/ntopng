@@ -14,11 +14,11 @@ local script = {
    category = checks.check_categories.security, 
    default_enabled = true,
 
-   alert_id = flow_alert_keys.flow_alert_blacklist_server_contact,
+   alert_id = flow_alert_keys.flow_alert_blacklisted_client_contact,
 
    gui = {
-      i18n_title = "flow_checks_config.blacklist_server_contact",
-      i18n_description = "flow_checks_config.blacklist_server_contact_description",
+      i18n_title = "flow_checks_config.blacklist_client_contact",
+      i18n_description = "flow_checks_config.blacklist_client_contact_description",
    }
 }
 

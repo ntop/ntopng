@@ -24,18 +24,18 @@
 
 #include "ntop_includes.h"
 
-class BlacklistServerContactAlert : public FlowAlert {
+class BlacklistedServerContactAlert : public FlowAlert {
  private:
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
  public:
   static FlowAlertType getClassType() {
-    return {flow_alert_blacklist_server_contact, alert_category_security};
+    return {flow_alert_blacklisted_server_contact, alert_category_security};
   }
   static u_int8_t getDefaultScore() { return SCORE_LEVEL_CRITICAL; };
 
-  BlacklistServerContactAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f) {};
-  ~BlacklistServerContactAlert(){};
+  BlacklistedServerContactAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f) {};
+  ~BlacklistedServerContactAlert(){};
 
   bool autoAck() const { return false; };
 

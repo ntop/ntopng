@@ -127,8 +127,8 @@ void FlowChecksLoader::registerChecks() {
   if ((fcb = new UnexpectedSMTPServer())) registerCheck(fcb);
   if ((fcb = new WebMining())) registerCheck(fcb);
   if ((fcb = new VLANBidirectionalTraffic())) registerCheck(fcb);
-  if ((fcb = new BlacklistClientContact())) registerCheck(fcb);
-  if ((fcb = new BlacklistServerContact())) registerCheck(fcb);
+  if ((fcb = new BlacklistedClientContact())) registerCheck(fcb);
+  if ((fcb = new BlacklistedServerContact())) registerCheck(fcb);
 
 
 #ifdef NTOPNG_PRO

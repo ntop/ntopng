@@ -83,8 +83,8 @@
 #include "flow_alerts/IECInvalidTransitionAlert.h"
 #include "flow_alerts/IECInvalidCommandTransitionAlert.h"
 #include "flow_alerts/IECUnexpectedTypeIdAlert.h"
-#include "flow_alerts/BlacklistClientContactAlert.h"
-#include "flow_alerts/BlacklistServerContactAlert.h"
+#include "flow_alerts/BlacklistedClientContactAlert.h"
+#include "flow_alerts/BlacklistedServerContactAlert.h"
 
 /* Pro Alerts - do NOT use #ifdef as alerts must always be available */
 #include "flow_alerts/FlowRiskTLSUnsafeCiphersAlert.h"

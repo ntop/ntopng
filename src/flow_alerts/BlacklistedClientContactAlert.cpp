@@ -21,7 +21,7 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* BlacklistServerContactAlert::getAlertJSON(ndpi_serializer* serializer) {
+ndpi_serializer* BlacklistedClientContactAlert::getAlertJSON(ndpi_serializer* serializer) {
   Flow* f = getFlow();
 
   if (serializer == NULL) return NULL;

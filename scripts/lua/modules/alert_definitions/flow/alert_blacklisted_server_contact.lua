@@ -12,13 +12,13 @@ local blacklist_debug = 'ntopng.debug.alerts.blacklisted_flow'
 
 -- ##############################################
 
-local alert_blacklist_client_contact = classes.class(alert)
+local alert_blacklisted_server_contact = classes.class(alert)
 
 -- ##############################################
 
-alert_blacklist_client_contact.meta = {
-    alert_key = flow_alert_keys.flow_alert_blacklist_client_contact,
-    i18n_title = "flow_checks_config.blacklist_client_contact",
+alert_blacklisted_server_contact.meta = {
+    alert_key = flow_alert_keys.flow_alert_blacklisted_server_contact,
+    i18n_title = "flow_checks_config.blacklist_server_contact",
     icon = "fas fa-fw fa-exclamation",
 
     has_victim = true,
@@ -30,7 +30,7 @@ alert_blacklist_client_contact.meta = {
 -- @brief Prepare an alert table used to generate the alert
 -- @param info A flow info table fetched with `flow.getBlacklistedInfo()`
 -- @return A table with the alert built
-function alert_blacklist_client_contact:init()
+function alert_blacklisted_server_contact:init()
     -- Call the parent constructor
     self.super:init()
 end
@@ -42,7 +42,7 @@ end
 -- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
-function alert_blacklist_client_contact.format(ifid, alert, alert_type_params)
+function alert_blacklisted_server_contact.format(ifid, alert, alert_type_params)
     local who = {}
 
     if alert_type_params["cli_blacklisted"] and alert_type_params["cli_blacklisted"] ~= "0" then
@@ -104,4 +104,4 @@ end
 
 -- #######################################################
 
-return alert_blacklist_client_contact
+return alert_blacklisted_server_contact
