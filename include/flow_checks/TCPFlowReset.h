@@ -38,7 +38,7 @@ class TCPFlowReset : public FlowCheck {
   FlowAlert *buildAlert(Flow *f);
 
   std::string getName() const {
-    return (std::string("flow_reset"));
+    return (std::string("tcp_flow_reset"));
   }
 };
 
