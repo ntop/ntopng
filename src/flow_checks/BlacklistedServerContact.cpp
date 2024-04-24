@@ -25,25 +25,20 @@
 /* ***************************************************** */
 
 void BlacklistedServerContact::protocolDetected(Flow *f) {
-  Host* cli = f->get_cli_host();
-  Host* srv = f->get_srv_host();
-
-  if (cli && srv) {
-    if ((f->isBlacklistedServer()) && (cli->isLocalHost()) && !(srv->isLocalHost())) {
-      FlowAlertType alert_type = BlacklistedServerContactAlert::getClassType();
-      u_int8_t c_score, s_score;
-      risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
-
-      computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
-
-      f->triggerAlertAsync(alert_type, c_score, s_score);
-    }
-  } 
+  if (f->isBlacklistedServer() && f->isLocalToRemote()) {
+    FlowAlertType alert_type = BlacklistedServerContactAlert::getClassType();
+    u_int8_t c_score, s_score;
+    risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
+    
+    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+    
+    f->triggerAlertAsync(alert_type, c_score, s_score);
+  }
 }
 
 /* ***************************************************** */
 
-FlowAlert *BlacklistedServerContact::buildAlert(Flow *f) {
+FlowAlert* BlacklistedServerContact::buildAlert(Flow *f) {
   bool is_server_bl = f->isBlacklistedServer();
   bool is_client_bl = f->isBlacklistedClient();
   BlacklistedServerContactAlert *alert = new (std::nothrow) BlacklistedServerContactAlert(this, f);
