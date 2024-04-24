@@ -27,6 +27,9 @@
     <template v-slot:custom_header>
       <slot name="custom_header"></slot>
     </template>
+    <template v-slot:custom_buttons>
+      <slot name="custom_buttons"></slot>
+    </template>
   </Table>
 </template>
 
