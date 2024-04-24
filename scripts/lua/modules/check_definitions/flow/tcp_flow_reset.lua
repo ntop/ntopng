@@ -19,7 +19,7 @@ local script = {
    default_enabled = false,
 
    -- This script is only for alerts generation
-   alert_id = flow_alert_keys.flow_alert_flow_reset,
+   alert_id = flow_alert_keys.flow_alert_tcp_flow_reset,
 
    default_value = {
    },

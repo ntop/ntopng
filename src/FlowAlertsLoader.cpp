@@ -121,8 +121,8 @@ FlowAlertsLoader::FlowAlertsLoader() {
                 ModbusTooManyExceptionsAlert::getDefaultScore());
   registerAlert(ModbusInvalidTransitionAlert::getClassType(),
                 ModbusInvalidTransitionAlert::getDefaultScore());
-  registerAlert(FlowResetAlert::getClassType(), 
-                FlowResetAlert::getDefaultScore());
+  registerAlert(TCPFlowResetAlert::getClassType(), 
+                TCPFlowResetAlert::getDefaultScore());
 }
 
 /* **************************************************** */

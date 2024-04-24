@@ -19,22 +19,27 @@
  *
  */
 
-#ifndef _FLOW_RESET_ALERT_H_
-#define _FLOW_RESET_ALERT_H_ 
+#ifndef _FLOW_RESET_H
+#define _FLOW_RESET_H
 
 #include "ntop_includes.h"
 
-class FlowResetAlert : public FlowAlert {
+class TCPFlowReset : public FlowCheck {
+ private:
+  void checkFlowReset(Flow *f);
  public:
-  static FlowAlertType getClassType() {
-    return {flow_alert_flow_reset, alert_category_network};
-  }
-  static u_int8_t getDefaultScore() { return SCORE_LEVEL_NOTICE; };
+  TCPFlowReset() : FlowCheck(ntopng_edition_community, true /* Packet Interfaces only */,
+                true /* Exclude for nEdge */, false /* NOT only for nEdge */,
+                false /* has_protocol_detected */,
+                false /* has_periodic_update */, true /* has_flow_end */){};  
+  ~TCPFlowReset(){};
 
-  FlowResetAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f){};
-  ~FlowResetAlert(){};
-  
-  FlowAlertType getAlertType() const { return getClassType(); }
+  void flowEnd(Flow *f);
+  FlowAlert *buildAlert(Flow *f);
+
+  std::string getName() const {
+    return (std::string("flow_reset"));
+  }
 };
 
-#endif /* _FLOW_RESET_ALERT_H_ */
+#endif /* _FLOW_RESET_H */

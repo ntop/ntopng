@@ -14,12 +14,12 @@ local format_utils = require "format_utils"
 
 -- ##############################################
 
-local alert_flow_reset = classes.class(alert)
+local alert_tcp_flow_reset = classes.class(alert)
 
 -- ##############################################
 
-alert_flow_reset.meta = {
-   alert_key = flow_alert_keys.flow_alert_flow_reset,
+alert_tcp_flow_reset.meta = {
+   alert_key = flow_alert_keys.flow_alert_tcp_flow_reset,
    i18n_title = "flow_checks_config.flow_reset_title",
    icon = "fas fa-fw fa-exclamation",
 }
@@ -30,18 +30,18 @@ alert_flow_reset.meta = {
 -- @param one_flow_param The first alert param
 -- @param another_flow_param The second alert param
 -- @return A table with the alert built
-function alert_flow_reset:init()
+function alert_tcp_flow_reset:init()
    -- Call the parent constructor
    self.super:init()
 end
 
 -- #######################################################
 
-function alert_flow_reset.format(ifid, alert, alert_type_params)
+function alert_tcp_flow_reset.format(ifid, alert, alert_type_params)
    return i18n("alert_messages.flow_reset")
 
 end
 
 -- #######################################################
 
-return alert_flow_reset
+return alert_tcp_flow_reset

@@ -24,7 +24,7 @@
 
 /* ***************************************************** */
 
-void FlowReset::checkFlowReset(Flow *f) {
+void TCPFlowReset::checkFlowReset(Flow *f) {
   MinorConnectionStates current_state = f->getCurrentConnectionState();
   if ((f->isTCP()) && 
       ((current_state == RSTR)  || 
@@ -44,7 +44,7 @@ void FlowReset::checkFlowReset(Flow *f) {
       srv_host->incResetFlow();
     }
 
-    FlowAlertType alert_type = FlowResetAlert::getClassType();
+    FlowAlertType alert_type = TCPFlowResetAlert::getClassType();
     u_int8_t c_score, s_score;
 
     risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
@@ -57,14 +57,14 @@ void FlowReset::checkFlowReset(Flow *f) {
 
 /* ***************************************************** */
 
-void FlowReset::flowEnd(Flow *f) {
+void TCPFlowReset::flowEnd(Flow *f) {
   checkFlowReset(f);
 }
 
 /* ***************************************************** */
 
-FlowAlert *FlowReset::buildAlert(Flow *f) {
-  return new FlowResetAlert(this, f);
+FlowAlert *TCPFlowReset::buildAlert(Flow *f) {
+  return new TCPFlowResetAlert(this, f);
 }
 
 /* ***************************************************** */
