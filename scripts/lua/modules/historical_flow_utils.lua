@@ -1353,6 +1353,10 @@ function historical_flow_utils.get_tags()
    flow_defined_tags["cli_network_cidr"] = tag_utils.defined_tags["cli_network_cidr"]
    flow_defined_tags["duration"] = tag_utils.defined_tags["duration"]
    flow_defined_tags["network"] = tag_utils.defined_tags["network"]
+   flow_defined_tags["retransmissions"] = tag_utils.defined_tags["retransmissions"]
+   flow_defined_tags["out_of_order"] = tag_utils.defined_tags["out_of_order"]
+   flow_defined_tags["lost"] = tag_utils.defined_tags["lost"]
+
 
    return flow_defined_tags
 end

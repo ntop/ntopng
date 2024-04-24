@@ -351,6 +351,21 @@ tag_utils.defined_tags = {
         i18n_label = i18n('db_search.tags.number'),
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
     },
+    out_of_order = {
+        value_type = 'number',
+        i18n_label = i18n('db_search.tags.out_of_order'),
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+    }, 
+    lost = {
+        value_type = 'number',
+        i18n_label = i18n('db_search.tags.lost'),
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+    },
+    retransmissions = {
+        value_type = 'number',
+        i18n_label = i18n('db_search.tags.retransmissions'),
+        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+    },
     flows_number = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.flows_number'),

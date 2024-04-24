@@ -617,7 +617,7 @@ else
         print("(<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/")
         print("flows_stats.lua?category=" .. flow["proto.ndpi_cat"] .. "\">")
         print(getCategoryLabel(flow["proto.ndpi_cat"], interface.getnDPICategoryId(flow["proto.ndpi_cat"])) .. "</A>")
-        if (flow["proto.ndpi_cat_file"]) then
+        if (not isEmptyString(flow["proto.ndpi_cat_file"])) then
             print(" @ " .. flow["proto.ndpi_cat_file"])
         end
         print(") " .. formatBreed(flow["proto.ndpi_breed"], flow["proto.is_encrypted"]))

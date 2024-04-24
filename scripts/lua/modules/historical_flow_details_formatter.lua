@@ -347,31 +347,38 @@ end
 
 local function format_historical_flow_traffic_stats(rowspan, cli2srv_retr, srv2cli_retr, cli2srv_ooo, srv2cli_ooo,
     cli2srv_lost, srv2cli_lost)
-    local values = {"<tr><th width=30% rowspan=" .. rowspan .. ">" .. i18n("flow_details.tcp_packet_analysis") ..
-        "</th><th></th><th>: " .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\" ></i> " .. i18n("server") ..
-        " / " .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " .. i18n("server") .. "</th></tr>\n"}
 
-    if ((cli2srv_retr and (tonumber(cli2srv_retr) > 0)) or (srv2cli_retr and (tonumber(srv2cli_retr) > 0))) then
-        values[#values + 1] = "<tr><th>" .. i18n("details.retransmissions") .. "</th><td><span id=c2sretr>: " ..
-                                  formatPackets(cli2srv_retr) .. "</span> / <span id=s2cretr>" ..
-                                  formatPackets(srv2cli_retr) .. "</span></td></tr>\n"
+    local flow_details = {}
+
+    if rowspan > 0 then
+        flow_details[#flow_details + 1] = {
+            name = i18n("flow_details.tcp_packet_analysis"),
+            values = { "",i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\" ></i> " .. i18n("server") ..
+            " / " .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " .. i18n("server") }
+        }
+
+        if ((cli2srv_retr and (tonumber(cli2srv_retr) > 0)) or (srv2cli_retr and (tonumber(srv2cli_retr) > 0))) then
+            flow_details[#flow_details + 1] = {
+                name = "",
+                values = { i18n("details.retransmissions"), formatPackets(cli2srv_retr) .." / " ..formatPackets(srv2cli_retr) }
+            }
+        end
+        if ((cli2srv_ooo and (tonumber(cli2srv_ooo) > 0)) or (srv2cli_ooo and (tonumber(srv2cli_ooo) > 0))) then
+
+            flow_details[#flow_details + 1] = {
+                name = "",
+                values = { i18n("details.out_of_order"), formatPackets(cli2srv_ooo) .." / " ..formatPackets(srv2cli_ooo) }
+            }
+        end
+        if ((cli2srv_ooo and (tonumber(cli2srv_ooo) > 0)) or (srv2cli_ooo and (tonumber(srv2cli_ooo) > 0))) then
+            flow_details[#flow_details + 1] = {
+                name = "",
+                values = { i18n("details.lost"), formatPackets(cli2srv_lost) .." / " ..formatPackets(srv2cli_lost) }
+            }
+        end
     end
 
-    if ((cli2srv_ooo and (tonumber(cli2srv_ooo) > 0)) or (srv2cli_ooo and (tonumber(srv2cli_ooo) > 0))) then
-        values[#values + 1] = "<tr><th>" .. i18n("details.out_of_order") .. "</th><td><span id=c2sOOO>: " ..
-                                  formatPackets(cli2srv_ooo) .. "</span> / <span id=s2cOOO>" ..
-                                  formatPackets(srv2cli_ooo) .. "</span></td></tr>\n"
-    end
-
-    if ((cli2srv_lost and (tonumber(cli2srv_lost) > 0)) or (srv2cli_lost and (tonumber(srv2cli_lost) > 0))) then
-        values[#values + 1] = "<tr><th>" .. i18n("details.lost") .. "</th><td><span id=c2slost>: " ..
-                                  formatPackets(cli2srv_lost) .. "</span> / <span id=s2clost>" ..
-                                  formatPackets(srv2cli_lost) .. "</span></td></tr>\n"
-    end
-
-    return {
-        values = values
-    }
+    return flow_details
 end
 
 local function format_historical_flow_rtt(client_nw_latency, server_nw_latency)
@@ -466,26 +473,25 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
         if (alert_json["traffic_stats"] and table.len(alert_json["traffic_stats"]) > 0) then
             local rowspan = 1;
 
-            if (alert_json["traffic_stats"]["cli2srv.retransmissions"] ~= 0 or
-                alert_json["traffic_stats"]["srv2cli.retransmissions"] ~= 0) then
+            if (alert_json["traffic_stats"]["cli2srv_retransmissions"] ~= 0 or
+                alert_json["traffic_stats"]["srv2cli_retransmissions"] ~= 0) then
                 rowspan = rowspan + 1
             end
 
-            if (alert_json["traffic_stats"]["cli2srv.out_of_order"] ~= 0 or
-                alert_json["traffic_stats"]["srv2cli.out_of_order"] ~= 0) then
+            if (alert_json["traffic_stats"]["cli2srv_out_of_order"] ~= 0 or
+                alert_json["traffic_stats"]["srv2cli_out_of_order"] ~= 0) then
                 rowspan = rowspan + 1
             end
 
-            if (alert_json["traffic_stats"]["cli2srv.lost"] ~= 0 or alert_json["traffic_stats"]["srv2cli.lost"] ~= 0) then
+            if (alert_json["traffic_stats"]["cli2srv_lost"] ~= 0 or alert_json["traffic_stats"]["srv2cli_lost"] ~= 0) then
                 rowspan = rowspan + 1
             end
-
-            flow_details[#flow_details + 1] = format_historical_flow_traffic_stats(rowspan,
-                alert_json["traffic_stats"]["cli2srv.retransmissions"],
-                alert_json["traffic_stats"]["srv2cli.retransmissions"],
-                alert_json["traffic_stats"]["cli2srv.out_of_order"],
-                alert_json["traffic_stats"]["srv2cli.out_of_order"], alert_json["traffic_stats"]["cli2srv.lost"],
-                alert_json["traffic_stats"]["srv2cli.lost"])
+            flow_details = table.merge(flow_details,format_historical_flow_traffic_stats(rowspan,
+                alert_json["traffic_stats"]["cli2srv_retransmissions"],
+                alert_json["traffic_stats"]["srv2cli_retransmissions"],
+                alert_json["traffic_stats"]["cli2srv_out_of_order"],
+                alert_json["traffic_stats"]["srv2cli_out_of_order"], alert_json["traffic_stats"]["cli2srv_lost"],
+                alert_json["traffic_stats"]["srv2cli_lost"]))
         end
 
         if tonumber(flow["OBSERVATION_POINT_ID"]) ~= 0 then

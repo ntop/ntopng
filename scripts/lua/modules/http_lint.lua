@@ -1998,6 +1998,10 @@ local known_parameters = {
    ["ja4_client"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["issuer_dn"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["last_server"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
+   ["retransmissions"] = validateListOfTypeInline(validateFilters(validateNumber)),
+   ["out_of_order"] = validateListOfTypeInline(validateFilters(validateNumber)),
+   ["lost"] = validateListOfTypeInline(validateFilters(validateNumber)),
+
    ["asn"] = validateNumber, -- An ASN number
    ["country_id"] = validateNumber, -- A Country Code
    ["module"] = validateTopModule, -- A top script module
