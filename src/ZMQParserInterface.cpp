@@ -1733,7 +1733,7 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 	  if(flow->l4_proto == IPPROTO_TCP) {
 	    /*
 	      Don't swap if the client has sent a SYN. Unfortunately as TCP flags
-	      are in OR we cannot see if this is a initetor or a responder so
+	      are in OR we cannot see if this is a initiator or a responder so
 	      better to be conservative rather than swapping wrongly
 	  
 	      See also https://github.com/ntop/ntopng/issues/1978
@@ -1742,8 +1742,12 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 	    if((flow->tcp.client_tcp_flags & TH_SYN) == TH_SYN)
 	      do_swap = false;
 	  } else  if(flow->l4_proto == IPPROTO_UDP) {
+#if 1
+	    /* We disable UDP swap that might be wrong in particular for probing attempts */
+#else
 	    if((cli_port > 32768) && (srv_port > 32768))
 	      do_swap = false; /* Don't do anything: this might be RTP or similar */
+#endif
 	  }
 	
 	  if(do_swap)

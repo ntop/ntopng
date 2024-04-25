@@ -8235,9 +8235,10 @@ void Flow::check_swap()
       // && get_cli_port() < 1024 /* Relax this constraint and also apply to
       // non-well-known ports such as 8080 */
       && (get_cli_port() < get_srv_port())) {
-    if ((protocol == IPPROTO_UDP) && (get_cli_port() > 32768) && (get_srv_port() > 32768))
+    if (protocol == IPPROTO_UDP) /* && (get_cli_port() > 32768) && (get_srv_port() > 32768) */ {
+      /* We disable UDP swap that might be wrong in particular for probing attempts */
       ; /* Don't do anything: this might be RTP or similar */
-    else
+    } else
       swap_requested = 1; /* This flow will be swapped */
   }
 }
