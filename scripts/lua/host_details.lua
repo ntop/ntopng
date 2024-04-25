@@ -960,9 +960,9 @@ else
                       " <span id=flow_alerts_trend></span></td></tr>\n")
         end
 
-        if (host["num_reset_flows"] > 0) then
+        if((host.num_reset_flows ~= nil) and (host.num_reset_flows > 0)) then
             print("<tr><th>" .. i18n("host_details.attempted_reset_flows") .. "</th><td colspan=2></li>" ..
-            "<span id=num_reset_flows>" .. formatValue(host["num_reset_flows"]) .. "</span>" ..
+            "<span id=num_reset_flows>" .. formatValue(host.num_reset_flows) .. "</span>" ..
                     " <span id=flow_alerts_trend></span></td></tr>\n")
         end
 
