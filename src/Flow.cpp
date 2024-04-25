@@ -8222,11 +8222,10 @@ void Flow::lua_entropy(lua_State *vm) {
 
 /* *************************************** */
 
-void Flow::check_swap() {
-  if (((protocol == IPPROTO_TCP) &&
-       ((src2dst_tcp_flags & TH_SYN) ==
-        TH_SYN) /* Ignore in case we have seen a SYN */) ||
-      (get_cli_port() == 0) || (get_srv_port() == 0))
+void Flow::check_swap()
+  /* NOTE: keep in sync with  ZMQParserInterface::preprocessFlow() */{
+  if (((protocol == IPPROTO_TCP) && ((src2dst_tcp_flags & TH_SYN) == TH_SYN) /* Ignore in case we have seen a SYN */)
+      || (get_cli_port() == 0) || (get_srv_port() == 0))
     return;
 
   if (!(get_cli_ip_addr()->isNonEmptyUnicastAddress() &&

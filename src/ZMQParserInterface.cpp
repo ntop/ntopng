@@ -1702,10 +1702,9 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
       else {
         invalid_flow = true;
 	
-        ntop->getTrace()->traceEvent(
-            TRACE_WARNING,
-            "IP version mismatch: client:%d server:%d - flow will be ignored",
-            flow->src_ip.getVersion(), flow->dst_ip.getVersion());
+        ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "IP version mismatch: client:%d server:%d - flow will be ignored",
+				     flow->src_ip.getVersion(), flow->dst_ip.getVersion());
       }
     }
   }
@@ -1721,34 +1720,38 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 	 && ntohs(flow->src_port) < ntohs(flow->dst_port))
 	flow->swap();
 #endif
-    } else if (/* ntohs(flow->src_port) < 1024 && Relaxes this condition to also
-                  include non-well-known ports (e.g., MySQL 3306) */
-               ntohs(flow->src_port) < ntohs(flow->dst_port)
-               // && flow->in_pkts && flow->out_pkts /* Flows can be
-               // mono-directional, so can't use this condition */
-               &&
-               (flow->l4_proto != IPPROTO_TCP /* Not TCP or TCP but without SYN (See
-						 https://github.com/ntop/ntopng/issues/5058)
-					      */
-                /*
-                  No SYN (cumulative flow->tcp.tcp_flags are NOT checked as
-                  they can contain a SYN but the direction is unknown), do
-                  the swap as it is assumed the beginning of the TCP flow has
-                  not been seen.
+    } else {
+      /* NOTE: keep in sync with Flow::check_swap() */
 
-                  Swap check is performed for TCP flows for all cases other
-                  than when a SYN is seen from client to server and no other
-                  flag is seen from server to client. Indded, in this case,
-                  the swap should not be performed as the direction is
-                  accurate according to the seen flags.
-                */
-                || !(flow->tcp.client_tcp_flags == TH_SYN &&
-                     flow->tcp.server_tcp_flags == 0)))
-      /* Attempt to determine flow client and server using port numbers
-         useful when exported flows are mono-directional
-         https://github.com/ntop/ntopng/issues/1978 */
-      flow->swap();
+      if(flow->src_ip.isBroadMulticastAddress() || flow->dst_ip.isBroadMulticastAddress())
+	; /* Ignore non-unicast IP addresses */
+      else {
+	u_int16_t cli_port = ntohs(flow->src_port), srv_port =  ntohs(flow->dst_port);
+	bool do_swap = (cli_port < srv_port) ? true : false;
 
+	if(do_swap) {
+	  if(flow->l4_proto == IPPROTO_TCP) {
+	    /*
+	      Don't swap if the client has sent a SYN. Unfortunately as TCP flags
+	      are in OR we cannot see if this is a initetor or a responder so
+	      better to be conservative rather than swapping wrongly
+	  
+	      See also https://github.com/ntop/ntopng/issues/1978
+	    */
+
+	    if((flow->tcp.client_tcp_flags & TH_SYN) == TH_SYN)
+	      do_swap = false;
+	  } else  if(flow->l4_proto == IPPROTO_UDP) {
+	    if((cli_port > 32768) && (srv_port > 32768))
+	      do_swap = false; /* Don't do anything: this might be RTP or similar */
+	  }
+	
+	  if(do_swap)
+	    flow->swap();
+	}
+      }
+    }
+    
     if (flow->pkt_sampling_rate == 0) flow->pkt_sampling_rate = 1;
 
     /* Process Flow */
