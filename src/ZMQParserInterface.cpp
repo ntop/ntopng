@@ -1741,9 +1741,10 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
 
 	    if((flow->tcp.client_tcp_flags & TH_SYN) == TH_SYN)
 	      do_swap = false;
-	  } else  if(flow->l4_proto == IPPROTO_UDP) {
+	  } else if(flow->l4_proto == IPPROTO_UDP) {
 #if 1
 	    /* We disable UDP swap that might be wrong in particular for probing attempts */
+	    do_swap = false;
 #else
 	    if((cli_port > 32768) && (srv_port > 32768))
 	      do_swap = false; /* Don't do anything: this might be RTP or similar */
