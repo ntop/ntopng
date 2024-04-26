@@ -38,6 +38,18 @@ If you prefer to handle updates manually, you may skip `ntopng-data` installatio
 
 Since the `geoipupdate` package is not available on Raspberry Pi, the MaxMind database should be downloaded and installed manually on this platform. Please check the next section for further instructions.
 
+## How to use MaxMind instead of DB-IP ?
+
+The simplest solution is not to install `ntopng-data`. However if this is not possible please do (as root):
+- sudo su
+- cd /usr/share/ntopng/httpdocs/geoip/
+- mkdir backup
+- mv *mmdb backup
+- ln -s /var/lib/GeoIP/GeoLite2-City.mmdb .
+- ln -s /var/lib/GeoIP/GeoLite2-ASN.mmdb .
+- service ntopng restart
+
+
 ## Using geolocation when `ntopng-data` is not available
 
 In case package `ntopng-data` or `geoipupdate` is not available on your platform:
