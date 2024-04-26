@@ -4,13 +4,13 @@
     <template v-slot:title>{{ title }}{{device}}</template>
 
     <template v-slot:body>      
-      <div v-if="modal_type == 1" class="alert alert-danger">
+      <div v-if="modal_type == 1" class="alert alert-danger text-start">
           {{ body }}{{device}}
       </div>
-      <div v-if="modal_type == 2" class="alert alert-warning">
+      <div v-if="modal_type == 2" class="alert alert-warning text-start">
           {{ body }}
       </div>
-      <div v-if="modal_type == 3" class="alert alert-danger">
+      <div v-if="modal_type == 3" class="alert alert-danger text-start">
           {{ body }}
       </div>
       <span class="invalid-feedback" id="delete-modal-feedback"></span>
