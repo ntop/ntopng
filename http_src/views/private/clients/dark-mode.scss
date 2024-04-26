@@ -870,3 +870,7 @@ table.dataTable thead th.sorting::after {
   color: var(--bs-dropdown-link-hover-color)!important;
   background-color: #79787C!important;
 }
+
+.select2-results__option {
+  color: rgb(209, 209, 209) !important;
+}
