@@ -13,28 +13,6 @@ local historical_flow_details_formatter = {}
 
 -- ###############################################
 
-local function format_historical_main_issue(flow)
-    local alert_consts = require "alert_consts"
-    local alert_label = i18n("flow_details.normal")
-    local alert_id = tonumber(flow["STATUS"] or 0)
-
-    -- No status setted
-    if (alert_id ~= 0) then
-        alert_label = alert_consts.alertTypeLabel(alert_id, true)
-    end
-
-    local alert_href = "<a href=\"" .. ntop.getHttpPrefix() ..
-                           "/lua/alert_stats.lua?status=historical&page=flow&alert_id=" .. alert_id .. ";eq\">" ..
-                           alert_label .. "</a>"
-
-    return {
-        name = i18n("alerts_dashboard.alert"),
-        values = {alert_href}
-    }
-end
-
--- ###############################################
-
 local function format_historical_flow_label(flow)
     local historical_flow_utils = require "historical_flow_utils"
 
@@ -164,10 +142,17 @@ local function format_historical_issue_description(flow_details, flow)
         end
     end
 
+    local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
+    local alert_score = alert_json.alert_score
     local alert_consts = require "alert_consts"
     local alert_label = i18n("flow_details.normal")
     local alert_id = tonumber(flow["STATUS"] or 0)
-    local severity_id = map_score_to_severity(ntop.getFlowAlertScore(tonumber(alert_id)))
+    local main_alert_score = ntop.getFlowAlertScore(tonumber(alert_id))
+    -- Check if there is a custom score
+    if alert_score and alert_score[tostring(alert_id)] then
+        main_alert_score = alert_score[tostring(alert_id)]
+    end
+    local severity_id = map_score_to_severity(main_alert_score)
     local severity = alert_consts.alertSeverityById(severity_id)
 
     -- No status set
@@ -187,13 +172,11 @@ local function format_historical_issue_description(flow_details, flow)
     flow_details[#flow_details + 1] = {
         name = i18n("issues_score"),
         values = {i18n('score') .. ': <span style="color:' .. severity.color .. '">' ..
-            format_utils.formatValue(ntop.getFlowAlertScore(tonumber(alert_id))) .. '</span> - ' .. alert_label}
+            format_utils.formatValue(main_alert_score) .. '</span> - ' .. alert_label}
     }
     local alert_utils = require "alert_utils"
-    local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
     local _, other_issues = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'], alert_json, false, nil,
         true)
-    local alert_score = alert_json.alert_score
     if table.len(other_issues) > 0 then
         for _, issues in pairs(other_issues or {}) do
             local alert_id = tostring(issues.alert_id)
