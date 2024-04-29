@@ -193,13 +193,19 @@ local function format_historical_issue_description(flow_details, flow)
     local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
     local _, other_issues = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'], alert_json, false, nil,
         true)
+    local alert_score = alert_json.alert_score
     if table.len(other_issues) > 0 then
         for _, issues in pairs(other_issues or {}) do
-            local severity_id = map_score_to_severity(tonumber(issues.score))
+            local alert_id = tostring(issues.alert_id)
+            local score = tonumber(issues.score)
+            if alert_score and alert_score[alert_id] then
+                score = alert_score[alert_id]
+            end
+            local severity_id = map_score_to_severity(score)
             local severity = alert_consts.alertSeverityById(severity_id)
             flow_details[#flow_details + 1] = {
                 name = '', -- Empty label
-                values = {i18n('score') .. ': <span style="color:' .. severity.color .. '">' .. issues.score .. '</span> - ' .. issues.msg}
+                values = {i18n('score') .. ': <span style="color:' .. severity.color .. '">' .. score .. '</span> - ' .. issues.msg}
             }
         end
     end
