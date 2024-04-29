@@ -181,7 +181,6 @@ function vs_db_utils.save_report_info(report_info)
     local sql = string.format("%s ('%s', %s, '%s', %u, %u, %u, %u);",sql, report_name, report_date, json_info, num_scanned_host, num_cves, num_tcp_ports, num_udp_ports)
 
     return(interface.execSQLQuery(sql))
-
 end
 
 -- ####################################################################################

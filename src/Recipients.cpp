@@ -106,8 +106,7 @@ bool Recipients::enqueue(const AlertFifoItem* const notification) {
     if (recipient_queues[recipient_id]) {
       bool success;
 
-      success =
-          recipient_queues[recipient_id]->enqueue(notification);
+      success = recipient_queues[recipient_id]->enqueue(notification);
 
       res &= success;
     }

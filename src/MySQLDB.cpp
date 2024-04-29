@@ -471,6 +471,7 @@ bool MySQLDB::createDBSchema() {
       }
     }
   }
+
   for (u_int16_t i = 0; i < sizeof(ipvers) / sizeof(u_int16_t); i++) {
     snprintf(sql, sizeof(sql),
              "SELECT 1 "
@@ -1087,8 +1088,8 @@ int MySQLDB::exec_sql_query(lua_State *vm, char *sql, bool limitRows,
   if (!ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
     if (wait_for_db_created &&
         (!db_created /* Make sure the db exists before doing queries */)) {
-      ntop->getTrace()->traceEvent(
-          TRACE_NORMAL, "Unable to perform query: database being created");
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "Unable to perform query: database being created");
       return (-2);
     }
   }
@@ -1250,9 +1251,8 @@ int MySQLDB::exec_quick_sql_query(char *sql, char *out, u_int out_len) {
 
   if (enable_db_traces) {
     gettimeofday(&end, NULL);
-    ntop->getTrace()->traceEvent(
-        TRACE_NORMAL, "Query completed in %.3f sec",
-        Utils::usecTimevalDiff(&end, &begin) / 1000000.);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Query completed in %.3f sec",
+				 Utils::usecTimevalDiff(&end, &begin) / 1000000.);
   }
 
   if ((result == NULL) || (mysql_field_count(&mysql) == 0)) {

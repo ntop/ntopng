@@ -111,7 +111,6 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification) {
       return true; /* Nothing to enqueue */
 
     if (match_alert_id) { /* Check by Alert Type */
-
       if (alert_entity_flow == notification->alert_entity) {
         if (!enabled_flow_alert_types.isSetBit(notification->alert_id))
           return true; /* Nothing to enqueue */
@@ -122,7 +121,6 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification) {
         if (!enabled_other_alert_types.isSetBit(notification->alert_id - OTHER_BASE_KEY)) 
           return true; /* Nothing to enqueue */
       }
-
     } else { /* Check by Severity, Category, Entity */
 
       if (notification->alert_severity < minimum_severity /* Severity too low for this recipient     */
@@ -145,12 +143,13 @@ bool RecipientQueue::enqueue(const AlertFifoItem* const notification) {
       }
     }
 
-    if (recipient_id == 0 && /* Default recipient (DB) */
-        notification->alert_entity == alert_entity_flow &&
-        ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
-      /* Do not store flow alerts on ClickHouse as they are retrieved using a view
-      * on historical flows) */
-      /* But still increment the number of uses */
+    if((recipient_id == 0) /* Default recipient (DB) */
+       && (notification->alert_entity == alert_entity_flow)
+       && ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
+      /*
+	Do not store flow alerts on ClickHouse as they are retrieved using a view on historical flows
+	(i.e. flow alerts are not stored but read from flows) But still increment the number of uses 
+      */
       uses++;
 #ifdef DEBUG_RECIPIENT_QUEUE
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow alert (no enqueue - clickhouse uses: %u)", uses);
