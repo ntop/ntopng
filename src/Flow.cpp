@@ -494,7 +494,7 @@ Flow::~Flow() {
 
   if (bt_hash) free(bt_hash);
   if(stun_mapped_address) free(stun_mapped_address);
-  
+
   freeDPIMemory();
 
   if (icmp_info) delete (icmp_info);
@@ -887,7 +887,7 @@ void Flow::processExtraDissectedInformation() {
       if((!stun_mapped_address) && (ndpiFlow->stun.mapped_address.port != 0)) {
 	IpAddress ip;
 	char tmp[96], ipb[64];
-	
+
 	if(ndpiFlow->stun.mapped_address.is_ipv6)
 	  ip.set((struct in6_addr*)&ndpiFlow->stun.mapped_address.address);
 	else
@@ -1271,7 +1271,7 @@ void Flow::setExtraDissectionCompleted() {
     /* nDPI is not allocated for non-TCP non-UDP flows so, in order to
        make sure custom cateories are properly populated, function
        ndpi_fill_ip_protocol_category must be called explicitly. */
-    if (ndpiFlow) {      
+    if (ndpiFlow) {
       if(get_cli_ip_addr()->get_ipv4() /* && get_srv_ip_addr()->get_ipv4() */)
 	ndpi_fill_ip_protocol_category(iface->get_ndpi_struct(),
 				       ndpiFlow,
@@ -1286,7 +1286,7 @@ void Flow::setExtraDissectionCompleted() {
 					 &ndpiDetectedProtocol);
 
       ndpiDetectedProtocol.category = (ndpi_protocol_category_t)(ndpiDetectedProtocol.category & 0xFF); /* See Ntop::nDPILoadHostnameCategory */
-      
+
       /* We have used the trick to save in the protocolId both the list name and the protocol */
       if(ndpiDetectedProtocol.custom_category_userdata == NULL) {
 	u_int8_t list_id = (ndpiDetectedProtocol.category & 0xFF00) >> 8; /* See Ntop::nDPILoadHostnameCategory */
@@ -1294,7 +1294,7 @@ void Flow::setExtraDissectionCompleted() {
 	ndpiDetectedProtocol.category = (ndpi_protocol_category_t)(ndpiDetectedProtocol.category & 0xFF);
 	ndpiDetectedProtocol.custom_category_userdata = (void*)ntop->getPersistentCustomListNameById(list_id);
       }
-      
+
       stats.setDetectedProtocol(&ndpiDetectedProtocol);
       updateHostBlacklists();
     }
@@ -1434,7 +1434,7 @@ void Flow::setProtocolDetectionCompleted(u_int8_t *payload,
              isBlacklistedClient(), isBlacklistedServer(),
              get_protocol_category_name(),
 	     get_custom_category_file() ? get_custom_category_file() : "");
-    
+
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", buf);
   }
 #endif
@@ -2783,7 +2783,7 @@ void Flow::luaScore(lua_State *vm) {
   tot = 0;
   for (u_int i = 0; i < MAX_NUM_SCORE_CATEGORIES; i++) {
     ScoreCategory score_category = (ScoreCategory)i;
-    
+
     tot += stats.get_srv_score(score_category);
   }
   lua_push_int32_table_entry(vm, "server_score", tot);
@@ -2797,20 +2797,20 @@ void Flow::luaScore(lua_State *vm) {
   /* Individual alerts score */
 
   lua_newtable(vm);
-  for (std::unordered_map<FlowAlertTypeEnum,u_int16_t>::iterator it = alert_score.begin(); it != alert_score.end(); it++) {
+  for (std::map<FlowAlertTypeEnum,u_int16_t>::iterator it = alert_score.begin(); it != alert_score.end(); it++) {
     char tmp[8];
 
     snprintf(tmp, sizeof(tmp), "%u", it->first);
-    
+
     lua_push_int32_table_entry(vm, tmp, it->second);
-  }  
+  }
 
   lua_pushstring(vm, "alert_score");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
   /* ***************************************** */
-  
+
   lua_pushstring(vm, "score");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -2974,8 +2974,8 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
     }
 
     if(stun_mapped_address)
-      lua_push_str_table_entry(vm, "protos.stun.mapped_ip_address", stun_mapped_address);    
-    
+      lua_push_str_table_entry(vm, "protos.stun.mapped_ip_address", stun_mapped_address);
+
     if (isDNS() && protos.dns.last_query) {
       lua_push_uint64_table_entry(vm, "protos.dns.last_query_type",
                                   protos.dns.last_query_type);
@@ -3649,7 +3649,7 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
 					      is_client ? SRC_ADDR_BLACKLISTED : DST_ADDR_BLACKLISTED,
 					      "is_blacklisted", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_boolean(addr->isBlacklistedAddress()));
-      
+
       if (get_cli_host()) {
         json_object_object_add(host_object,
 			       Utils::jsonLabel(is_client ? SRC_ADDR_SERVICES : DST_ADDR_SERVICES,
@@ -4362,7 +4362,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_int32(s, "l7_proto",
 			      detection_completed ? ndpiDetectedProtocol.app_protocol : -1);
   ndpi_serialize_string_int32(s, "l7_cat", get_protocol_category());
-  
+
   if (isDNS()) ndpi_serialize_string_string(s, "dns_last_query", getDNSQuery());
 
   ndpi_serialize_string_int64(s, "cli2srv_bytes", get_bytes_cli2srv());
@@ -4484,17 +4484,17 @@ bool Flow::isNetfilterIdleFlow() const {
         (last_conntrack_update + (3 * MIN_CONNTRACK_UPDATE)))
       return (true);
   }
-  
+
   /*
     If an conntrack update hasn't been seen for this flow
-    we use the standard idleness check 
+    we use the standard idleness check
 
     In case ntopng expires the flow before NetFilter, then
     NetfilterInterface::updateFlowStats() will purge it later.
 
     This guarantees that ntopng and NetFilter are always in sync.
   */
-  return (is_active_entry_now_idle(iface->getFlowMaxIdle()));  
+  return (is_active_entry_now_idle(iface->getFlowMaxIdle()));
 }
 #endif
 
@@ -4793,7 +4793,7 @@ bool Flow::isBlacklistedFlow() const {
 #ifdef BLACKLISTED_FLOWS_DEBUG
   if (res) {
     char buf[512];
-    
+
     print(buf, sizeof(buf));
     snprintf(&buf[strlen(buf)], sizeof(buf) - strlen(buf),
              "[cli_blacklisted: %u][srv_blacklisted: %u][category: %s][blacklist: %s]",
@@ -6617,14 +6617,14 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   u_int16_t eth_proto = ETHERTYPE_IP;
   bool nf_existing_flow;
 
-  /* 
+  /*
      netfilter (depending on configured timeouts) could expire a flow before
      than ntopng. This heuristics attempt to detect such events.
-     
+
      Basically, if netfilter is sending counters for a new flow and ntopng
      already have an existing flow matching the same 5-tuple, we sum counters
      rather than overwriting them.
-     
+
      A complete solution would require the registration of a netfilter check
      and the detection of event NFCT_T_DESTROY.
   */
@@ -6639,7 +6639,7 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 
   if (last_conntrack_update > 0) {
     float tdiff_msec = (now - last_conntrack_update) * 1000;
-    
+
     updateThroughputStats(tdiff_msec,
 			  nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
 			  nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes, 0,
@@ -7948,12 +7948,12 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
 
   if(alert_score.size() > 0) {
     ndpi_serialize_start_of_block(serializer, "alert_score");
-    
-    for (std::unordered_map<FlowAlertTypeEnum,u_int16_t>::iterator it = alert_score.begin(); it != alert_score.end(); it++)
+
+    for (std::map<FlowAlertTypeEnum,u_int16_t>::iterator it = alert_score.begin(); it != alert_score.end(); it++)
       ndpi_serialize_uint32_uint32(serializer, it->first, it->second);
 
     ndpi_serialize_end_of_block(serializer);
-  }  
+  }
 }
 
 /* ***************************************************** */
@@ -8163,7 +8163,7 @@ void Flow::setExternalAlert(json_object *a) {
 
     if (json_object_object_get_ex(a, "source", &val))
       external_alert.source = strdup(json_object_get_string(val));
-    
+
     external_alert.json = a;
 
     /* Manually trigger a periodic update to process the alert */

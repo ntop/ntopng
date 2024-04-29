@@ -63,7 +63,7 @@ class Flow : public GenericHashEntry {
      predominant of a flow, which is written into `predominant_alert`.
   */
   Bitmap128 alerts_map;
-  std::unordered_map<FlowAlertTypeEnum,u_int16_t /* score */> alert_score;
+  std::map<FlowAlertTypeEnum, u_int16_t /* score */> alert_score;
   FlowAlertType predominant_alert;   /* This is the predominant alert */
   u_int16_t predominant_alert_score; /* The score associated to the predominant alert */
   FlowSource flow_source;
