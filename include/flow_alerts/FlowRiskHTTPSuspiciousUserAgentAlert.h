@@ -37,12 +37,11 @@ class FlowRiskHTTPSuspiciousUserAgentAlert : public FlowRiskAlert {
   }
 
   FlowRiskHTTPSuspiciousUserAgentAlert(FlowCheck *c, Flow *f)
-      : FlowRiskAlert(c, f){};
+    : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskHTTPSuspiciousUserAgentAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_HTTP_SUSPICIOUS_USER_AGENT_ALERT_H_ */

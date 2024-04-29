@@ -34,12 +34,11 @@ class FlowRiskRiskyDomainAlert : public FlowRiskAlert {
     return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
   }
 
-  FlowRiskRiskyDomainAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){};
+  FlowRiskRiskyDomainAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskRiskyDomainAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_TLS_MISSING_SNI_ALERT_H_ */

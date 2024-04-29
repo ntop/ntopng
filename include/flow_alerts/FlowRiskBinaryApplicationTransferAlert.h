@@ -40,12 +40,11 @@ class FlowRiskBinaryApplicationTransferAlert : public FlowRiskAlert {
   }
 
   FlowRiskBinaryApplicationTransferAlert(FlowCheck *c, Flow *f)
-      : FlowRiskAlert(c, f){};
+    : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore()); };
   ~FlowRiskBinaryApplicationTransferAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 
   bool autoAck() const { return false; };
 };

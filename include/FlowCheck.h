@@ -55,7 +55,7 @@ class FlowCheck : public Check {
 
   virtual std::string getName() const = 0;
 
-  static void computeCliSrvScore(FlowAlertType alert_type,
+  static void computeCliSrvScore(u_int8_t alert_score,
                                  risk_percentage cli_pctg, u_int8_t *cli_score,
                                  u_int8_t *srv_score);
 

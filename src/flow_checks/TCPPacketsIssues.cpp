@@ -65,7 +65,7 @@ void TCPPacketsIssues::checkTCPPacketsIssues(Flow *f) {
                                  lost_pctg, lost_threshold);
 #endif /* DEBUG_PACKETS_ISSUES */
 
-    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+    computeCliSrvScore(ntop->getFlowAlertScore(alert_type.id), cli_score_pctg, &c_score, &s_score);
 
     f->triggerAlertAsync(alert_type, c_score, s_score);
   }

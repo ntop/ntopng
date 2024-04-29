@@ -71,7 +71,7 @@ void RemoteToLocalInsecureFlow::protocolDetected(Flow *f) {
       FlowAlertType alert_type = RemoteToLocalInsecureFlowAlert::getClassType();
       u_int8_t c_score, s_score;
       
-      computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+      computeCliSrvScore(ntop->getFlowAlertScore(alert_type.id), cli_score_pctg, &c_score, &s_score);
 
       f->triggerAlertAsync(alert_type, c_score, s_score);
     }

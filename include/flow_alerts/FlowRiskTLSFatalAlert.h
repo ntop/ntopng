@@ -37,12 +37,11 @@ class FlowRiskTLSFatalAlert : public FlowRiskAlert {
     return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
   }
 
-  FlowRiskTLSFatalAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){};
+  FlowRiskTLSFatalAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskTLSFatalAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_TLS_FATAL_ALERT_H_ */

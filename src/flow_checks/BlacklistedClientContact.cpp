@@ -30,7 +30,7 @@ void BlacklistedClientContact::protocolDetected(Flow *f) {
     u_int8_t c_score, s_score;
     risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
     
-    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+    computeCliSrvScore(ntop->getFlowAlertScore(alert_type.id), cli_score_pctg, &c_score, &s_score);
     
     f->triggerAlertAsync(alert_type, c_score, s_score);
   }
@@ -56,6 +56,18 @@ FlowAlert* BlacklistedClientContact::buildAlert(Flow *f) {
       alert->setCliAttacker(), alert->setSrvAttacker();
     else if (is_client_bl && is_server_bl)
       alert->setCliAttacker(), alert->setSrvAttacker();
+
+    if(f->get_packets_srv2cli() == 0) {
+      /*
+	Nothing serious: the server did not reply (server port or traffic filtered)
+       */
+      alert->setAlertScore(SCORE_LEVEL_NOTICE);
+    } else {
+      /*
+	Bad: the server port is open and it has replied
+      */
+      alert->setAlertScore(SCORE_LEVEL_WARNING);
+    }
   }
 
   return alert;

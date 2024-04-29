@@ -38,12 +38,11 @@ class FlowRiskTLSOldProtocolVersionAlert : public FlowRiskAlert {
   }
 
   FlowRiskTLSOldProtocolVersionAlert(FlowCheck *c, Flow *f)
-      : FlowRiskAlert(c, f){};
+    : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskTLSOldProtocolVersionAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_TLS_OLD_PROTOCOL_VERSION_ALERT_H_ */

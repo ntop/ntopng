@@ -32,7 +32,7 @@ class BlacklistedClientContactAlert : public FlowAlert {
   static FlowAlertType getClassType() {
     return {flow_alert_blacklisted_client_contact, alert_category_security};
   }
-  static u_int8_t getDefaultScore() { return SCORE_LEVEL_NOTICE; };
+  static u_int8_t getDefaultScore() { return SCORE_LEVEL_WARNING; };
 
   BlacklistedClientContactAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f) {};
   ~BlacklistedClientContactAlert(){};

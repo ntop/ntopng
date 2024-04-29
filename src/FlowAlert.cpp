@@ -29,6 +29,7 @@ FlowAlert::FlowAlert(FlowCheck *c, Flow *f) {
   cli_attacker = srv_attacker = false;
   cli_victim = srv_victim = false;
   if (c) check_name = c->getName();
+  alert_score = SCORE_LEVEL_INFO;
 }
 
 /* **************************************************** */
@@ -39,7 +40,7 @@ FlowAlert::~FlowAlert() {
 
 /* ***************************************************** */
 
-ndpi_serializer *FlowAlert::getSerializedAlert() {
+ndpi_serializer* FlowAlert::getSerializedAlert() {
   ndpi_serializer *serializer;
 
   serializer = (ndpi_serializer *)malloc(sizeof(ndpi_serializer));
@@ -60,8 +61,7 @@ ndpi_serializer *FlowAlert::getSerializedAlert() {
 
   /* Add information relative to this check */
   ndpi_serialize_start_of_block(serializer, "alert_generation");
-  ndpi_serialize_string_string(serializer, "script_key",
-                               getCheckName().c_str());
+  ndpi_serialize_string_string(serializer, "script_key", getCheckName().c_str());
   ndpi_serialize_string_string(serializer, "subdir", "flow");
   flow->getJSONRiskInfo(serializer);
   ndpi_serialize_end_of_block(serializer);

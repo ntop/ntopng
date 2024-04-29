@@ -28,7 +28,8 @@ class ScoreThresholdAlert : public HostAlert {
  private:
   bool is_client_alert;
   u_int32_t value, threshold;
-
+  u_int8_t alert_score;
+  
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer) {
     if (serializer == NULL) return NULL;
 
@@ -49,6 +50,7 @@ class ScoreThresholdAlert : public HostAlert {
     is_client_alert = cli_pctg != CLIENT_NO_RISK_PERCENTAGE;
     value = _value;
     threshold = _threshold;
+    alert_score = SCORE_LEVEL_SEVERE;
   }
   ~ScoreThresholdAlert(){};
 
@@ -56,7 +58,8 @@ class ScoreThresholdAlert : public HostAlert {
     return {host_alert_score_threshold, alert_category_security};
   }
   HostAlertType getAlertType() const { return getClassType(); }
-  u_int8_t getAlertScore() const { return SCORE_LEVEL_SEVERE; };
+  u_int8_t getAlertScore() const { return alert_score; };
+  void setAlertScore(u_int8_t value) { alert_score = value; };
 };
 
 #endif /* _SCORE_THRESHOLD_ALERT_H_ */

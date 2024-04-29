@@ -38,12 +38,11 @@ class FlowRiskTLSSuspiciousExtensionAlert : public FlowRiskAlert {
   }
 
   FlowRiskTLSSuspiciousExtensionAlert(FlowCheck *c, Flow *f)
-      : FlowRiskAlert(c, f){};
+    : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskTLSSuspiciousExtensionAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_TLS_SUSPICIOUS_EXTENSION_ALERT_H_ */

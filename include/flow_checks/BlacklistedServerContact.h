@@ -26,6 +26,8 @@
 
 class BlacklistedServerContact : public FlowCheck {
  private:
+  u_int8_t score;
+  
  public:
   BlacklistedServerContact()
       : FlowCheck(ntopng_edition_community, false /* All interfaces */,

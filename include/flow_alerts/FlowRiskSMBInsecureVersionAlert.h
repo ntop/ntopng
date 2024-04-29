@@ -35,12 +35,11 @@ class FlowRiskSMBInsecureVersionAlert : public FlowRiskAlert {
   }
 
   FlowRiskSMBInsecureVersionAlert(FlowCheck *c, Flow *f)
-      : FlowRiskAlert(c, f){};
+    : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskSMBInsecureVersionAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_SMB_INSECURE_VERSION_ALERT_H_ */

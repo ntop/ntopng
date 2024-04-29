@@ -1391,7 +1391,7 @@ else
         local is_predominant = id == flow["predominant_alert"]
         local alert_label = alert_consts.alertTypeLabel(id, true, alert_entities.flow.entity_id)
         local message = alert_label
-        local alert_score = ntop.getFlowAlertScore(id)
+        local alert_score = flow.score.alert_score[tostring(id)] -- ntop.getFlowAlertScore(id)
         local alert_risk = ntop.getFlowAlertRisk(id)
 
         if alert_score > 0 then

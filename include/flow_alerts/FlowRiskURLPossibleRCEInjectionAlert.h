@@ -37,12 +37,11 @@ class FlowRiskURLPossibleRCEInjectionAlert : public FlowRiskAlert {
   }
 
   FlowRiskURLPossibleRCEInjectionAlert(FlowCheck *c, Flow *f)
-      : FlowRiskAlert(c, f){};
+    : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskURLPossibleRCEInjectionAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_URL_POSSIBLE_RCE_INJ_ALERT_H_ */

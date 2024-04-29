@@ -29,8 +29,17 @@ void BlacklistedServerContact::protocolDetected(Flow *f) {
     FlowAlertType alert_type = BlacklistedServerContactAlert::getClassType();
     u_int8_t c_score, s_score;
     risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
+
+    if(f->get_protocol() == IPPROTO_ICMP) {
+      /*
+	ICMP is not really relevant and it can be an indication of
+	a previous communication (e.g. ICMP port unreacheable)
+      */
+      score = SCORE_LEVEL_NOTICE;
+    } else
+      score = ntop->getFlowAlertScore(alert_type.id);
     
-    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+    computeCliSrvScore(score, cli_score_pctg, &c_score, &s_score);
     
     f->triggerAlertAsync(alert_type, c_score, s_score);
   }
@@ -56,6 +65,8 @@ FlowAlert* BlacklistedServerContact::buildAlert(Flow *f) {
       alert->setCliAttacker(), alert->setSrvAttacker();
     else if (is_client_bl && is_server_bl)
       alert->setCliAttacker(), alert->setSrvAttacker();
+
+    alert->setAlertScore(score); /* Set custom score */
   }
 
   return alert;

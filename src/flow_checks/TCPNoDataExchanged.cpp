@@ -29,7 +29,7 @@ void TCPNoDataExchanged::checkTCPNoDataExchanged(Flow *f) {
     u_int8_t c_score, s_score;
     risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
 
-    computeCliSrvScore(alert_type, cli_score_pctg, &c_score, &s_score);
+    computeCliSrvScore(ntop->getFlowAlertScore(alert_type.id), cli_score_pctg, &c_score, &s_score);
 
     f->triggerAlertAsync(alert_type, c_score, s_score);
   }

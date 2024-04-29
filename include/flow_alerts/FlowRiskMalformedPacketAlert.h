@@ -34,12 +34,11 @@ class FlowRiskMalformedPacketAlert : public FlowRiskAlert {
     return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
   }
 
-  FlowRiskMalformedPacketAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){};
+  FlowRiskMalformedPacketAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskMalformedPacketAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_MALFORMED_PACKET_ALERT_H_ */

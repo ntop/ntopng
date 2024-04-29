@@ -35,14 +35,13 @@ class FlowRiskDNSSuspiciousTrafficAlert : public FlowRiskAlert {
   }
 
   FlowRiskDNSSuspiciousTrafficAlert(FlowCheck *c, Flow *f)
-      : FlowRiskAlert(c, f){};
+    : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskDNSSuspiciousTrafficAlert(){};
 
   bool autoAck() const { return false; };
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_DNS_SUSPICIOUS_TRAFFIC_ALERT_H_ */

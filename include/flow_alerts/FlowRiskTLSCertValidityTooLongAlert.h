@@ -37,12 +37,11 @@ class FlowRiskTLSCertValidityTooLongAlert : public FlowRiskAlert {
   }
 
   FlowRiskTLSCertValidityTooLongAlert(FlowCheck *c, Flow *f)
-      : FlowRiskAlert(c, f){};
+    : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskTLSCertValidityTooLongAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_TLS_CERT_VALIDITY_TOO_LONG_ALERT_H_ */

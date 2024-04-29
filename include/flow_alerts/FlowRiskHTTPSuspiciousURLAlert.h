@@ -34,12 +34,11 @@ class FlowRiskHTTPSuspiciousURLAlert : public FlowRiskAlert {
     return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
   }
 
-  FlowRiskHTTPSuspiciousURLAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){};
+  FlowRiskHTTPSuspiciousURLAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){  setAlertScore(getDefaultScore());};
   ~FlowRiskHTTPSuspiciousURLAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_HTTP_SUSPICIOUS_URL_ALERT_H_ */

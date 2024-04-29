@@ -26,7 +26,6 @@
 
 class CustomFlowLuaScriptAlert : public FlowAlert {
  private:
-  u_int8_t score;
   std::string msg;
   ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
 
@@ -35,14 +34,12 @@ class CustomFlowLuaScriptAlert : public FlowAlert {
     return {flow_alert_custom_lua_script, alert_category_security};
   }
   static u_int8_t getDefaultScore() { return SCORE_LEVEL_ERROR; };
-
-  CustomFlowLuaScriptAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f){};
+  
+  CustomFlowLuaScriptAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f){ setAlertScore(SCORE_LEVEL_ERROR); };
   ~CustomFlowLuaScriptAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); };
   void setAlertMessage(std::string m) { msg = m; };
-  void setAlertScore(u_int8_t v) { score = v; };
-  virtual u_int8_t getAlertScore() const { return (score); };
   bool autoAck() const { return false; };
 };
 

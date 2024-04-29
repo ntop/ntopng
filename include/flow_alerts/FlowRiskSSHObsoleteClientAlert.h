@@ -39,12 +39,11 @@ class FlowRiskSSHObsoleteClientAlert : public FlowRiskAlert {
     return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
   }
 
-  FlowRiskSSHObsoleteClientAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){};
+  FlowRiskSSHObsoleteClientAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskSSHObsoleteClientAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_SSH_OBSOLETE_CLIENT_ALERT_H_ */

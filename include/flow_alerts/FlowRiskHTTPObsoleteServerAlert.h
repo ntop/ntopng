@@ -35,12 +35,11 @@ class FlowRiskHTTPObsoleteServerAlert : public FlowRiskAlert {
   }
 
   FlowRiskHTTPObsoleteServerAlert(FlowCheck *c, Flow *f)
-      : FlowRiskAlert(c, f){};
+    : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskHTTPObsoleteServerAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_HTTP_OBSOLETE_SERVER_ALERT_H_ */

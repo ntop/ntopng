@@ -36,12 +36,11 @@ class FlowRiskUnidirectionalTrafficAlert : public FlowRiskAlert {
   }
 
   FlowRiskUnidirectionalTrafficAlert(FlowCheck *c, Flow *f)
-      : FlowRiskAlert(c, f){};
+    : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskUnidirectionalTrafficAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_UNIDIRECTIONAL_TRAFFIC_ALERT_H_ */

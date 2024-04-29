@@ -34,6 +34,7 @@ class FlowRiskGenericAlert : public FlowRiskAlert {
   FlowRiskGenericAlert(FlowCheck *c, Flow *f, ndpi_risk_enum _risk)
       : FlowRiskAlert(c, f) {
     risk = _risk;
+    setAlertScore(FlowRiskAlerts::getFlowRiskScore(risk));
   };
   ~FlowRiskGenericAlert(){};
 
@@ -41,9 +42,6 @@ class FlowRiskGenericAlert : public FlowRiskAlert {
     return FlowRiskAlerts::getFlowRiskAlertType(risk);
   }
   ndpi_risk_enum getAlertRisk() const { return risk; }
-  u_int8_t getAlertScore() const {
-    return FlowRiskAlerts::getFlowRiskScore(risk);
-  }
 };
 
 #endif /* _FR_SIMPLE_ALERT_H_ */

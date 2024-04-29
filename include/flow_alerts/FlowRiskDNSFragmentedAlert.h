@@ -35,12 +35,11 @@ class FlowRiskDNSFragmentedAlert : public FlowRiskAlert {
     return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
   }
 
-  FlowRiskDNSFragmentedAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){};
+  FlowRiskDNSFragmentedAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskDNSFragmentedAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_DNS_FRAGMENTED_ALERT_H_ */

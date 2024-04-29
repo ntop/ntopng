@@ -34,12 +34,11 @@ class FlowRiskNumericIPHostAlert : public FlowRiskAlert {
     return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
   }
 
-  FlowRiskNumericIPHostAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){};
+  FlowRiskNumericIPHostAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskNumericIPHostAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_NUMERIC_IP_HOST_ALERT_H_ */

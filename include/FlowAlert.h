@@ -30,7 +30,8 @@ class FlowAlert {
   std::string check_name;
   bool cli_attacker, srv_attacker;
   bool cli_victim, srv_victim;
-
+  u_int8_t alert_score;
+  
   /*
      Adds to the passed `serializer` (generated with `getAlertSerializer`)
      information specific to this alert
@@ -55,8 +56,9 @@ class FlowAlert {
   inline bool isSrvVictim() { return srv_victim; }
 
   virtual FlowAlertType getAlertType() const = 0;
-  virtual u_int8_t getAlertScore() const { return SCORE_LEVEL_INFO; };
-
+  u_int8_t getAlertScore() const { return alert_score; };
+  void setAlertScore(u_int8_t value)     { alert_score = value;     };
+  
   /* false = alert that requires attention, true = not important (auto ack) */
   virtual bool autoAck() const { return true; };
 

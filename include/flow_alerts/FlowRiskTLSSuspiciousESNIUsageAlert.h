@@ -37,12 +37,11 @@ class FlowRiskTLSSuspiciousESNIUsageAlert : public FlowRiskAlert {
   }
 
   FlowRiskTLSSuspiciousESNIUsageAlert(FlowCheck *c, Flow *f)
-      : FlowRiskAlert(c, f){};
+    : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskTLSSuspiciousESNIUsageAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_TLS_SUSPICIOUS_ESNI_USAGE_ALERT_H_ */

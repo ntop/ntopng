@@ -40,12 +40,11 @@ class FlowRiskTLSCertificateSelfSignedAlert : public FlowRiskAlert {
   }
 
   FlowRiskTLSCertificateSelfSignedAlert(FlowCheck *c, Flow *f)
-      : FlowRiskAlert(c, f){};
+    : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskTLSCertificateSelfSignedAlert(){};
 
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-  u_int8_t getAlertScore() const { return getDefaultScore(); }
 };
 
 #endif /* _FR_TLS_CERTIFICATE_SELFSIGNED_ALERT_H_ */

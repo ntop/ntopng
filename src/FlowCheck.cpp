@@ -102,12 +102,11 @@ bool FlowCheck::loadConfiguration(json_object *config) {
 
 /* **************************************************** */
 
-void FlowCheck::computeCliSrvScore(FlowAlertType alert_type,
+void FlowCheck::computeCliSrvScore(u_int8_t alert_score,
                                    risk_percentage cli_pctg,
                                    u_int8_t *cli_score, u_int8_t *srv_score) {
-  u_int8_t score = ntop->getFlowAlertScore(alert_type.id);
-  *cli_score = (score * cli_pctg) / 100;
-  *srv_score = score - (*cli_score);
+  *cli_score = (alert_score * cli_pctg) / 100;
+  *srv_score = alert_score - (*cli_score);
 }
 
 /* **************************************************** */
