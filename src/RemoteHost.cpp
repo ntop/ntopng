@@ -48,13 +48,13 @@ RemoteHost::RemoteHost(NetworkInterface *_iface, int32_t _iface_idx,
 
 /* *************************************** */
 
-RemoteHost::~RemoteHost() {}
+RemoteHost::~RemoteHost() {
+  iface->decNumHosts(false /* A remote host */, isRxOnlyHost());
+}
 
 /* *************************************** */
 
 void RemoteHost::set_hash_entry_state_idle() {
-  iface->decNumHosts(false /* A remote host */, isRxOnlyHost());
-
   GenericHashEntry::set_hash_entry_state_idle();
 }
 

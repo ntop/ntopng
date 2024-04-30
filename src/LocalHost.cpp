@@ -51,6 +51,9 @@ LocalHost::LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
 /* *************************************** */
 
 LocalHost::~LocalHost() {
+  if(isLocalUnicastHost()) 
+    iface->decNumHosts(true /* A local host */, isRxOnlyHost());
+  
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   addInactiveData();
   if (initial_ts_point) delete (initial_ts_point);
@@ -85,8 +88,6 @@ void LocalHost::set_hash_entry_state_idle() {
 
   /* Only increase the number of host if it's a unicast host */
   if(isLocalUnicastHost()) {
-    iface->decNumHosts(true /* A local host */, isRxOnlyHost());
-
     if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
       ns->decNumHosts();
   }
