@@ -961,7 +961,7 @@ static int ntop_loadCustomCategoryFile(lua_State *vm) {
 
 	if(!loaded) {
 	  if(strcmp(line, "ip,score")) /* Silence Stratosphere Lab.txt */
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Invalid line format %s%s [%s]",
+	    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Invalid line format %s%s [%s]",
 					 ignorePrivateIPs ? "or private IP " : "",
 					 line, path);
 	}
