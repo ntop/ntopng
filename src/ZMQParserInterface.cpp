@@ -1941,8 +1941,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
     bool add_to_additional_fields = false;
     bool key_is_string = false, value_is_string = false;
 
-    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TLV key type = %u value type
-    // = %u", kt, et);
+    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TLV key type = %u value type = %u", kt, et);
 
     if (et == ndpi_serialization_end_of_record) {
       ndpi_deserialize_next(deserializer);
@@ -1960,11 +1959,9 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
         key_is_string = true;
         break;
       default:
-        ntop->getTrace()->traceEvent(
-            TRACE_WARNING,
-            "Unsupported TLV key type %u: please update both ntopng and the "
-            "probe to the same version",
-            kt);
+        ntop->getTrace()->traceEvent(TRACE_WARNING,
+				     "Unsupported TLV key type %u: please update both ntopng and "
+				     "nprobe to the same version", kt);
         ret = -1;
         goto error;
     }
@@ -2002,8 +1999,7 @@ int ZMQParserInterface::parseSingleTLVFlow(ndpi_deserializer *deserializer,
         break;
 
       default:
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported TLV type %u\n",
-                                     et);
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Unsupported TLV type %u\n", et);
         ret = -1;
         goto error;
     }
