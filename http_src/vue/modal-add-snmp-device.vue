@@ -11,9 +11,9 @@
             <b>{{ _i18n("snmp.snmp_host") }}</b>
           </label>
           <div class="col-sm-5 pe-0">
-            <input v-model="snmp_host"  @input="check_host_regex" class="form-control" type="text"
+            <input v-model="snmp_host"  @input="check_host_regex" class="form-control" :class="{'invalid': !is_host_correct}" type="text"
               :placeholder="host_placeholder" required />
-              <small class="text-muted">{{ _i18n("snmp.descriptions.host") }}</small>
+            <small class="text-muted">{{ _i18n("snmp.descriptions.host") }}</small>
             </div>
             <div class="col-1 ps-5 pe-0 mt-1">
               <span>/</span> 
@@ -43,7 +43,7 @@
           <b>{{ _i18n("snmp.snmp_read_community") }}</b>
         </label>
         <div class="col-sm-5">
-          <input v-model="snmp_read_community"  class="form-control" type="text"
+          <input v-model="snmp_read_community"  class="form-control" type="text" :class="{'invalid': !is_community_correct}"
             :placeholder="community_place_holder" @input="check_community" required />
             <small class="text-muted">{{ _i18n("snmp.descriptions.read_community") }}</small>
         </div>
@@ -80,7 +80,7 @@
               <b>{{ _i18n("snmp.snmp_username") }}</b>
             </label>
             <div class="col-sm-5">
-              <input v-model="snmp_username"  class="form-control" type="text" autocomplete="current-username" @input="check_username" required/>
+              <input v-model="snmp_username"  class="form-control" type="text" autocomplete="current-username" @input="check_username" required :class="{'invalid': !is_username_valid}"/>
                 <small class="text-muted">{{ _i18n("snmp.descriptions.username") }}</small>
             </div>
           </div>
@@ -103,7 +103,7 @@
               <b>{{ _i18n("snmp.authentication_passphrase") }}</b>
             </label>
             <div class="col-sm-5">
-              <input v-model="snmp_auth_passphrase"  class="form-control"  type = "password" autocomplete="current-password" required @input="check_snmp_auth_passphrase"/>
+              <input v-model="snmp_auth_passphrase"  class="form-control"  type = "password" autocomplete="current-password" required @input="check_snmp_auth_passphrase" :class="{'invalid': !is_snmp_auth_passphrase_valid}" />
                 <small class="text-muted">{{ _i18n("snmp.descriptions.authentication_passphrase") }}</small>
             </div>
           </div>
@@ -129,7 +129,7 @@
               <b>{{ _i18n("snmp.privacy_passphrase") }}</b>
             </label>
             <div class="col-sm-5">
-              <input v-model="snmp_privacy_passphrase"  class="form-control" autocomplete="current-password" type = "password" required @input="check_snmp_privacy_passphrase"/>
+              <input v-model="snmp_privacy_passphrase"  class="form-control" autocomplete="current-password" type = "password" required @input="check_snmp_privacy_passphrase" :class="{'invalid': !is_snmp_privacy_passphrase_valid}" />
               <small class="text-muted">{{ _i18n("snmp.descriptions.privacy_passphrase") }}</small>
             </div>
           </div>
@@ -349,6 +349,7 @@ const update_levels = () =>  {
       is_snmp_auth_passphrase_valid.value = false;
       is_snmp_privacy_passphrase_valid.value = true;
 
+      is_username_valid.value = false;
       snmp_auth_passphrase.value = "";
       snmp_privacy_passphrase.value = "";
     }break;
@@ -358,6 +359,7 @@ const update_levels = () =>  {
       is_snmp_auth_passphrase_valid.value = false;
       is_snmp_privacy_passphrase_valid.value = false;
 
+      is_username_valid.value = false;
       snmp_auth_passphrase.value = "";
       snmp_privacy_passphrase.value = "";
     }break;
@@ -366,6 +368,7 @@ const update_levels = () =>  {
       with_auth.value = false;
       is_snmp_auth_passphrase_valid.value = true;
       is_snmp_privacy_passphrase_valid.value = true;
+      is_username_valid.value = true;
       snmp_auth_passphrase.value = "";
       snmp_privacy_passphrase.value = "";
     }break;
@@ -397,9 +400,13 @@ const check_host_regex = () => {
   if (is_ipv4) {
     /* IPv4 */
     is_host_correct.value = true;
+    selected_cidr.value = CIDR_32;
+    is_cidr_correct.value = true;
   } else if (is_ipv6) {
     /* IPv6 */
     is_host_correct.value = true;
+    selected_cidr.value = CIDR_128;
+    is_cidr_correct.value = true;
   } else if (is_host_name) {
     /* Host Name */
     is_host_correct.value = true;
