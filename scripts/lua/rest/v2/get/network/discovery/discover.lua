@@ -17,18 +17,6 @@ local manuf_filter = _GET["manufacturer"]
 
 -- ################################################
 
-local doa_ox_fd = nil
-local doa_ox = nil
-
-local enable_doa_ox = false
-
-if(enable_doa_ox) then
-   local doa_ox = require "doa_ox"
-   doa_ox_fd = doa_ox.init("/tmp/doa_ox.update")
-end
-
--- ################################################
-
 if isEmptyString(ifid) then
   ifid = interface.getId()
 end
@@ -40,10 +28,6 @@ local res = {}
 local discovered = discover.discover2table(ifname)
 
 -- ################################################
-
-if(enable_doa_ox) then
-  doa_ox.header(doa_ox_fd)
-end
 
 discovered["devices"] = discovered["devices"] or {}
 
@@ -97,14 +81,6 @@ for _, el in pairs(discovered["devices"]) do
   end
   el.info = devinfo
 
-  if(enable_doa_ox) then
-    if el.os then
-      el.operatingSystem = discover.getOsName(el.os)
-    end
-
-    doa_ox.device2OX(doa_ox_fd, el)
-  end
-
   -- Filter
   if (os_filter ~= nil) and (el.os_type ~= os_filter) then
     goto continue
@@ -133,10 +109,6 @@ for _, el in pairs(discovered["devices"]) do
   res[#res + 1] = rec
 
 ::continue::
-end
-
-if(enable_doa_ox) then
-  doa_ox.term(doa_ox_fd)
 end
 
 -- ################################################
