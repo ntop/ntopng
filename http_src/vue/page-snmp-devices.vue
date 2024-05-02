@@ -1,16 +1,18 @@
 <!-- (C) 2024 - ntop.org     -->
 <template>
   <div class="m-2 mb-3">
-
+    <div v-if="!props.context.is_polling_enabled" class="alert alert-warning alert-dismissable">
+      <span v-html="active_alert_text"></span>
+    </div>
     <div class="card card-shadow">
       <div class="card-body">
         <div v-if="import_with_success" class="alert alert-success alert-dismissable">
           <span class="text-success me-1"></span>
           <span> {{ import_ok_text }}</span>
         </div>
-        <TableWithConfig ref="table_snmp_devices" :table_id="table_id" :csrf="csrf"
-          :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
-          :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event" @rows_loaded="change_filter_labels">
+        <TableWithConfig ref="table_snmp_devices" :table_id="table_id" :csrf="csrf" :f_map_columns="map_table_def_columns"
+          :get_extra_params_obj="get_extra_params_obj" :f_sort_rows="columns_sorting"
+          @custom_event="on_table_custom_event" @rows_loaded="change_filter_labels">
           <template v-slot:custom_buttons>
             <ModalDeleteSNMPDevice ref="modal_delete_snmp_device" @delete="delete_row" @ping_all="exec_ping_all"
               @prune="delete_unresponsive">
@@ -25,7 +27,7 @@
           <template v-slot:custom_header>
             <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
               <span class="no-wrap d-flex align-items-center filters-label"><b>{{ item["basic_label"]
-                  }}</b></span>
+              }}</b></span>
               <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5" dropdown_size="small"
                 :disabled="loading" :options="item['options']" @select_option="add_table_filter">
               </SelectSearch>
@@ -112,6 +114,7 @@ const edit_snmp_device_url = `${http_prefix}/lua/pro/rest/v2/edit/snmp/device/de
 const manage_config_url = `${http_prefix}/lua/admin/manage_configurations.lua?item=snmp`;
 const ping_all_devices_url = `${http_prefix}/lua/pro/rest/v2/check/snmp/ping_all_devices.lua`;
 const delete_snmp_unresponsive_devices_url = `${http_prefix}/lua/pro/rest/v2/delete/snmp/unresponsive_devices.lua`;
+const active_alert_text = _i18n('enable_snmp_polling_warning').replace("%{base_prefix}", `${http_prefix}`);
 
 const loading = ref(false);
 
