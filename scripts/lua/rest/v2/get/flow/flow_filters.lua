@@ -10,7 +10,7 @@ require "http_lint"
 require "lua_utils_get"
 require "flow_utils"
 local tcp_flow_state_utils = require("tcp_flow_state_utils")
-local format_utils = require "format_utils" 
+local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
 local rest_utils = require "rest_utils"
 
@@ -23,7 +23,6 @@ local flow_info = _GET["flow_info"]
 local flowstats = interface.getActiveFlowsStats(host, nil, false, talking_with, client, server, flow_info)
 
 local rsp = {}
-
 
 if interface.isView() then
     local interfaces_filter = {{
@@ -42,8 +41,8 @@ if interface.isView() then
                 key = "interface_filter",
                 value = id,
                 label = getInterfaceName(id)
-            }    
-        ::continue::
+            }
+            ::continue::
         end
     end
 
@@ -72,7 +71,7 @@ if not host then
             }
         end
     end
-    
+
     local hosts_type_filters2 = {{
         key = "flowhosts_type",
         value = "ip_version_4",
@@ -122,14 +121,20 @@ local protocol_filters = {{
 }}
 
 if flowstats["l4_protocols"] then
-    for key, value in pairsByKeys(flowstats["l4_protocols"], asc) do
+    local tmp_list = {}
+    for key, value in pairs(flowstats["l4_protocols"], asc) do
         local num_proto = tonumber(key)
+        local proto_name = l4_proto_to_string(key)
 
-        protocol_filters[#protocol_filters + 1] = {
+        tmp_list[proto_name] = {
             key = "l4proto",
             value = num_proto,
-            label = l4_proto_to_string(key)
+            label = proto_name
         }
+    end
+
+    for _, value in pairsByKeys(tmp_list, asc) do
+        protocol_filters[#protocol_filters + 1] = value
     end
 end
 
@@ -147,15 +152,21 @@ local application_filters = {{
 }}
 
 local ndpicatstats = ifstats["ndpi_categories"]
-for key, value in pairsByKeys(ndpicatstats, asc) do
-    application_filters[#application_filters + 1] = {
+local tmp_list = {}
+for key, value in pairs(ndpicatstats) do
+    local name = getCategoryLabel(key, value.category)
+    tmp_list[name] = {
         key = "application",
         value = "cat_" .. value.category,
-        label = getCategoryLabel(key, value.category),
+        label = name,
         group = i18n("category")
     }
 end
-    
+
+for _, value in pairsByKeys(tmp_list, asc) do
+    application_filters[#application_filters + 1] = value
+end
+
 for key, value in pairsByKeys(flowstats["ndpi"], asc) do
     application_filters[#application_filters + 1] = {
         key = "application",
@@ -178,16 +189,21 @@ if not isEmptyString(host) then
         value = "",
         label = i18n("all")
     }}
-
+    tmp_list = {}
     for talk_to_host, num_flows in pairs(flowstats["talking_with"] or {}) do
         if talk_to_host ~= host then
             local hinfo = hostkey2hostinfo(talk_to_host)
-            talking_with[#talking_with + 1] = {
+            local name = hostinfo2label(hinfo)
+            tmp_list[name] = {
                 key = "talking_with",
                 value = talk_to_host,
-                label = hostinfo2label(hinfo) .. '(' .. num_flows .. ')',
+                label = name
             }
         end
+    end
+
+    for _, value in pairsByKeys(tmp_list, asc) do
+        talking_with[#talking_with + 1] = value
     end
 
     rsp[#rsp + 1] = {
@@ -217,7 +233,6 @@ if not isEmptyString(_GET["port"]) then
         value = port_filters
     }
 end
-
 
 local status_filters = {{
     key = "alert_type",
@@ -249,16 +264,22 @@ for s, severity_details in pairsByField(alert_consts.severity_groups, "severity_
         }
     end
 end
+
+tmp_list = {}
 for status_key, status in pairs(flowstats["status"]) do
     if status.count > 0 then
-        status_filters[#status_filters + 1] = {
+        local name = alert_consts.alertTypeLabel(status_key, true --[[ no html --]] )
+        tmp_list[name] = {
             group = i18n('flow_details.alerted_flows'),
             key = "alert_type",
             value = status_key,
-            label = (alert_consts.alertTypeLabel(status_key, true --[[ no html --]] )) .. " (" ..
-                format_utils.formatValue(status.count) .. ")"
+            label = name .. " (" .. format_utils.formatValue(status.count) .. ")"
         }
     end
+end
+
+for _, value in pairsByKeys(tmp_list, asc) do
+    status_filters[#status_filters + 1] = value
 end
 
 rsp[#rsp + 1] = {
@@ -273,7 +294,7 @@ local tcp_state_filters = {{
     value = "",
     label = i18n("all")
 }}
-for _, entry in pairs({"established", "connecting", "closed", "reset"}) do
+for _, entry in pairs({"connecting", "closed", "established", "reset"}) do
     tcp_state_filters[#tcp_state_filters + 1] = {
         key = "tcp_flow_state",
         value = entry,
@@ -349,17 +370,22 @@ local host_pools = require "host_pools"
 local host_pools_instance = host_pools:create()
 local pools = host_pools_instance:get_all_pools()
 if (table.len(pools) > 1) then
+    tmp_list = {}
     local pool_filters = {{
         key = "host_pool_id",
         value = "",
         label = i18n("all")
     }}
     for _, pool in pairs(pools) do
-        pool_filters[#pool_filters + 1] = {
+        tmp_list[pool.name] = {
             key = "host_pool_id",
             value = pool.pool_id,
             label = pool.name
         }
+    end
+
+    for _, value in pairsByKeys(tmp_list, asc) do
+        pool_filters[#pool_filters + 1] = value
     end
 
     rsp[#rsp + 1] = {
@@ -378,12 +404,18 @@ if table.len(networks_stats) > 1 then
         label = i18n("all")
     }}
 
+    tmp_list = {}
     for n, local_network in pairs(networks_stats) do
-        networks_filter[#networks_filter + 1] = {
+        local name = getFullLocalNetworkName(local_network["network_key"])
+        tmp_list[name] = {
             key = "network",
             value = local_network["network_id"],
-            label = getFullLocalNetworkName(local_network["network_key"])
+            label = name
         }
+    end
+
+    for _, value in pairsByKeys(tmp_list, asc) do
+        networks_filter[#networks_filter + 1] = value
     end
 
     rsp[#rsp + 1] = {
@@ -404,18 +436,23 @@ if ntop.isPro() and interface.isPacketInterface() == false then
             value = "",
             label = i18n("all")
         }}
+        tmp_list = {}
         for _, device_list in pairs(devips or {}) do
             for dev_ip, dev_resolved_name in pairsByValues(device_list, asc) do
                 local dev_name = dev_ip
                 if not isEmptyString(dev_resolved_name) and dev_resolved_name ~= dev_name then
                     dev_name = dev_resolved_name
                 end
-                exporter_filters[#exporter_filters + 1] = {
+                tmp_list[dev_name] = {
                     key = "deviceIP",
                     value = dev_ip,
                     label = dev_name
                 }
             end
+        end
+
+        for _, value in pairsByKeys(tmp_list, asc) do
+            exporter_filters[#exporter_filters + 1] = value
         end
 
         rsp[#rsp + 1] = {
@@ -427,24 +464,30 @@ if ntop.isPro() and interface.isPacketInterface() == false then
     end
 end
 
-if ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then      
-    local dev_ip = _GET["deviceIP"]          
+if ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then
+    local dev_ip = _GET["deviceIP"]
     -- Flow exporter requested
     local in_ports = {{
         key = "inIfIdx",
         value = "",
         label = i18n("all")
     }}
-    local ports_table = interface.getFlowDeviceInfo(dev_ip, true --[[ Show minimal info ]])
+    local ports_table = interface.getFlowDeviceInfo(dev_ip, true --[[ Show minimal info ]] )
     
+    tmp_list = {}
     for _, ports in pairs(ports_table) do
         for portidx, _ in pairsByKeys(ports, asc) do
-            in_ports[#in_ports + 1] = {
+            local name = format_portidx_name(dev_ip, portidx)
+            tmp_list[name] = {
                 key = "inIfIdx",
                 value = portidx,
-                label = format_portidx_name(dev_ip, portidx)
+                label = name
             }
         end
+    end
+
+    for _, value in pairsByKeys(tmp_list, asc) do
+        in_ports[#in_ports + 1] = value
     end
 
     rsp[#rsp + 1] = {
@@ -462,25 +505,31 @@ if ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then
         label = i18n("all")
     }}
     local ports_table = interface.getFlowDeviceInfo(dev_ip, false)
-    
+
+    tmp_list = {}
     for _, ports in pairs(ports_table) do
         for portidx, _ in pairsByKeys(ports, asc) do
-            out_ports[#out_ports + 1] = {
+            local name = format_portidx_name(dev_ip, portidx)
+            tmp_list[name] = {
                 key = "outIfIdx",
                 value = portidx,
-                label = format_portidx_name(dev_ip, portidx)
+                label = name
             }
         end
+    end
+
+    for _, value in pairsByKeys(tmp_list, asc) do
+        out_ports[#out_ports + 1] = value
     end
 
     rsp[#rsp + 1] = {
         action = "outIfIdx",
         label = i18n("db_search.output_snmp"),
         name = "outIfIdx",
-        value = out_ports,  
+        value = out_ports,
         show_with_value = dev_ip,
         show_with_key = "deviceIP"
-    }    
+    }
 end
 
 rest_utils.answer(rest_utils.consts.success.ok, rsp)

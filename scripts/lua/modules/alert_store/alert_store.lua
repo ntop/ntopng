@@ -1566,13 +1566,13 @@ function alert_store:top_alert_id_historical_by_count()
     local limit = 10
 
     local q = string.format(
-        "SELECT alert_id, sum(score) count FROM %s WHERE %s GROUP BY alert_id ORDER BY count DESC LIMIT %u", table_name,
+        "SELECT alert_id, sum(score), count(*) as count  FROM %s WHERE %s GROUP BY alert_id ORDER BY count DESC LIMIT %u", table_name,
         where_clause, limit)
 
     if not self._alert_entity then
         -- For the all view alert_entity is read from the database
         q = string.format(
-            "SELECT entity_id, alert_id, sum(score) count FROM %s WHERE %s GROUP BY entity_id, alert_id ORDER BY count DESC LIMIT %u",
+            "SELECT entity_id, alert_id, sum(score), count(*) as count  FROM %s WHERE %s GROUP BY entity_id, alert_id ORDER BY count DESC LIMIT %u",
             table_name, where_clause, limit)
     end
 
@@ -1659,7 +1659,7 @@ function alert_store:format_top_alerts(stats, count)
         }
 
         if value.count and count then
-            alert_info.count = (tonumber(value.count) * 100) / count
+            alert_info.count = math.floor((tonumber(value.count) * 100) / count)
         end
         if value.severity then
             alert_info.severity = value.severity

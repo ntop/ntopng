@@ -316,7 +316,7 @@ function flow_alert_store:top_l7_proto_historical()
     local where_clause = self:build_where_clause()
 
     local q = string.format(
-        "SELECT l7_proto, sum(score) count FROM %s WHERE %s GROUP BY l7_proto ORDER BY count DESC LIMIT %u",
+        "SELECT l7_proto, sum(score) , count(*) as count  FROM %s WHERE %s GROUP BY l7_proto ORDER BY count DESC LIMIT %u",
         self:get_table_name(), where_clause, self._top_limit)
     local q_res = interface.alert_store_query(q) or {}
 
@@ -335,7 +335,7 @@ function flow_alert_store:top_vlan_historical()
     local where_clause = self:build_where_clause()
 
     local q = string.format(
-        "SELECT vlan_id, sum(score) count FROM %s WHERE %s AND vlan_id != 0 GROUP BY vlan_id ORDER BY count DESC LIMIT %u",
+        "SELECT vlan_id, sum(score) , count(*) as count  FROM %s WHERE %s AND vlan_id != 0 GROUP BY vlan_id ORDER BY count DESC LIMIT %u",
         self:get_table_name(), where_clause, self._top_limit)
     local q_res = interface.alert_store_query(q) or {}
 
@@ -352,11 +352,11 @@ function flow_alert_store:top_cli_ip_historical()
     local q
     if ntop.isClickHouseEnabled() then
         q = string.format(
-            "SELECT cli_ip, vlan_id, cli_name, sum(score) count FROM %s WHERE %s GROUP BY cli_ip, vlan_id, cli_name ORDER BY count DESC LIMIT %u",
+            "SELECT cli_ip, vlan_id, cli_name, sum(score), count(*) as count FROM %s WHERE %s GROUP BY cli_ip, vlan_id, cli_name ORDER BY count DESC LIMIT %u",
             self:get_table_name(), where_clause, self._top_limit)
     else
         q = string.format(
-            "SELECT cli_ip, vlan_id, cli_name, sum(score) count FROM %s WHERE %s GROUP BY cli_ip ORDER BY count DESC LIMIT %u",
+            "SELECT cli_ip, vlan_id, cli_name, sum(score), count(*) as count FROM %s WHERE %s GROUP BY cli_ip ORDER BY count DESC LIMIT %u",
             self:get_table_name(), where_clause, self._top_limit)
     end
 
@@ -375,11 +375,11 @@ function flow_alert_store:top_srv_ip_historical()
     local q
     if ntop.isClickHouseEnabled() then
         q = string.format(
-            "SELECT srv_ip, vlan_id, srv_name, sum(score) count FROM %s WHERE %s GROUP BY srv_ip, vlan_id, srv_name ORDER BY count DESC LIMIT %u",
+            "SELECT srv_ip, vlan_id, srv_name, sum(score) , count(*) as count  FROM %s WHERE %s GROUP BY srv_ip, vlan_id, srv_name ORDER BY count DESC LIMIT %u",
             self:get_table_name(), where_clause, self._top_limit)
     else
         q = string.format(
-            "SELECT srv_ip, vlan_id, srv_name, sum(score) count FROM %s WHERE %s GROUP BY srv_ip ORDER BY count DESC LIMIT %u",
+            "SELECT srv_ip, vlan_id, srv_name, sum(score) , count(*) as count  FROM %s WHERE %s GROUP BY srv_ip ORDER BY count DESC LIMIT %u",
             self:get_table_name(), where_clause, self._top_limit)
     end
 
@@ -405,7 +405,7 @@ function flow_alert_store:top_srv_ip_domain()
                               "),-2,2),'.') as domain_name_trunc_dot, vlan_id, '*.' || arrayStringConcat(arraySlice(splitByString('.'," ..
                               string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search,
                 "proto.tls.client_requested_server_name") ..
-                              "),-2,2),'.') as domain_name_trunc_star, sum(score) count FROM %s WHERE %s GROUP BY vlan_id, '*.' || arrayStringConcat(arraySlice(splitByString('.'," ..
+                              "),-2,2),'.') as domain_name_trunc_star, sum(score) , count(*) as count  FROM %s WHERE %s GROUP BY vlan_id, '*.' || arrayStringConcat(arraySlice(splitByString('.'," ..
                               string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search,
                 "proto.tls.client_requested_server_name") ..
                               "),-2,2),'.'), '.' || arrayStringConcat(arraySlice(splitByString('.'," ..
@@ -471,11 +471,11 @@ function flow_alert_store:top_cli_network_historical()
     local q
     if ntop.isClickHouseEnabled() then
         q = string.format(
-            "SELECT cli_network, sum(score) count FROM %s WHERE %s GROUP BY cli_network ORDER BY count DESC LIMIT %u",
+            "SELECT cli_network, sum(score) , count(*) as count  FROM %s WHERE %s GROUP BY cli_network ORDER BY count DESC LIMIT %u",
             self:get_table_name(), where_clause, self._top_limit)
     else
         q = string.format(
-            "SELECT cli_network, sum(score) count FROM %s WHERE %s GROUP BY cli_network ORDER BY count DESC LIMIT %u",
+            "SELECT cli_network, sum(score) , count(*) as count  FROM %s WHERE %s GROUP BY cli_network ORDER BY count DESC LIMIT %u",
             self:get_table_name(), where_clause, self._top_limit)
     end
 
@@ -494,11 +494,11 @@ function flow_alert_store:top_srv_network_historical()
     local q
     if ntop.isClickHouseEnabled() then
         q = string.format(
-            "SELECT srv_network, sum(score) count FROM %s WHERE %s GROUP BY srv_network ORDER BY count DESC LIMIT %u",
+            "SELECT srv_network, sum(score) , count(*) as count  FROM %s WHERE %s GROUP BY srv_network ORDER BY count DESC LIMIT %u",
             self:get_table_name(), where_clause, self._top_limit)
     else
         q = string.format(
-            "SELECT srv_network, sum(score) count FROM %s WHERE %s GROUP BY srv_network ORDER BY count DESC LIMIT %u",
+            "SELECT srv_network, sum(score) , count(*) as count  FROM %s WHERE %s GROUP BY srv_network ORDER BY count DESC LIMIT %u",
             self:get_table_name(), where_clause, self._top_limit)
     end
 
