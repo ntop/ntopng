@@ -792,6 +792,9 @@ tag_utils.formatters = {
     l4proto = function(proto)
         return l4_proto_to_string(proto)
     end,
+    l4_proto = function(proto)
+        return l4_proto_to_string(proto)
+    end,
     l7_proto = function(proto)
         return interface.getnDPIProtoName(tonumber(proto))
     end,
@@ -997,8 +1000,20 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
     elseif tag.value_type == "l4_proto" then
         filter.value_type = 'array'
         filter.options = {}
-        local l4_protocols = l4_proto_list()
-        for name, id in pairsByKeys(l4_protocols, asc) do
+        local l4_protocol_list = require "l4_protocol_list"
+
+        local l4_protocols = l4_protocol_list.l4_keys
+        
+        local list = {}
+
+        for _, proto in pairs(l4_protocols) do
+            -- add L4 proto only
+            if proto[2] ~= 'ip' and proto[2] ~= 'ipv6' then
+                list[proto[1]] = proto[3]
+            end
+        end
+
+        for name, id in pairsByKeys(list, asc) do
             filter.options[#filter.options + 1] = {
                 value = id,
                 label = name

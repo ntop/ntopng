@@ -610,6 +610,7 @@ function flow_alert_store:_add_additional_request_filters()
     local ja3_server = _GET["ja3_server"]
     local ja4_client = _GET["ja4_client"]
     local alert_domain = _GET["alert_domain"]
+    local l4_proto = _GET["l4proto"]
 
     self:format_traffic_direction(_GET["traffic_direction"])
     self:format_location()
@@ -632,6 +633,7 @@ function flow_alert_store:_add_additional_request_filters()
     self:add_filter_condition_list('flow_role', role)
     self:add_filter_condition_list('l7proto', l7proto, 'number')
     self:add_filter_condition_list('flow_risk', flow_risk, 'number')
+    self:add_filter_condition_list('proto', l4_proto)
 
     self:add_filter_condition_list('cli_host_pool_id', cli_host_pool_id, 'number')
     self:add_filter_condition_list('srv_host_pool_id', srv_host_pool_id, 'number')
@@ -697,7 +699,8 @@ function flow_alert_store:_get_additional_available_filters()
         cli_location = tag_utils.defined_tags.cli_location,
         srv_location = tag_utils.defined_tags.srv_location,
         last_server = tag_utils.defined_tags.last_server,
-        issuer_dn = tag_utils.defined_tags.issuer_dn
+        issuer_dn = tag_utils.defined_tags.issuer_dn,
+        l4proto = tag_utils.defined_tags.l4proto,
     }
 
     return filters

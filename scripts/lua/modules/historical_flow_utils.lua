@@ -1356,6 +1356,7 @@ function historical_flow_utils.get_tags()
    flow_defined_tags["retransmissions"] = tag_utils.defined_tags["retransmissions"]
    flow_defined_tags["out_of_order"] = tag_utils.defined_tags["out_of_order"]
    flow_defined_tags["lost"] = tag_utils.defined_tags["lost"]
+   flow_defined_tags["l4proto"] = tag_utils.defined_tags["l4proto"]
 
 
    return flow_defined_tags
