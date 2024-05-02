@@ -150,11 +150,11 @@ function host_alert_store:top_ip_historical()
     local q
     if ntop.isClickHouseEnabled() then
         q = string.format(
-            "SELECT ip, name, vlan_id, sum(score) count FROM %s WHERE %s GROUP BY ip, vlan_id, name ORDER BY count DESC LIMIT %u",
+            "SELECT ip, name, vlan_id, sum(score), count(*) as count FROM %s WHERE %s GROUP BY ip, vlan_id, name ORDER BY count DESC LIMIT %u",
             self._table_name, where_clause, self._top_limit)
     else
         q = string.format(
-            "SELECT ip, name, vlan_id, sum(score) count FROM %s WHERE %s GROUP BY ip ORDER BY count DESC LIMIT %u",
+            "SELECT ip, name, vlan_id, sum(score), count(*) as count FROM %s WHERE %s GROUP BY ip ORDER BY count DESC LIMIT %u",
             self._table_name, where_clause, self._top_limit)
     end
 
