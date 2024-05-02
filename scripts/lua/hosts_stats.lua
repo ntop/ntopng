@@ -185,9 +185,8 @@ if not isEmptyString(device_ip) then
     })
 end
 
-if (network ~= nil) then
-    local network_key = ntop.getNetworkNameById(tonumber(network))
-    network_name = getLocalNetworkAlias(network_key)
+if (tonumber(network) ~= nil) then
+    network_name = getLocalNetworkAlias(tonumber(network))
 
     if isEmptyString(network_name) then
         network_name = i18n("hosts_stats.remote")
