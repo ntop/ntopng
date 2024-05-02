@@ -87,7 +87,7 @@ function newParser()
                     error("XmlParser: nothing to close with " .. label)
                 end
                 if toclose:name() ~= label then
-                    error("XmlParser: trying to close " .. toclose.name .. " with " .. label)
+                    error("XmlParser: trying to close " .. toclose:name() .. " with " .. label)
                 end
                 top:addChild(toclose)
             end
