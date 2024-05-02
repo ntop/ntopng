@@ -57,9 +57,9 @@ function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
        -- do not return resolved name as it will hide the IP address
        return(flow_info[host_type..".ip"])
     end
- 
+
     if(flow_info == nil) then return("") end
- 
+
     if(host_type == "srv") then
        if flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "" and flow_info["host_server_name"]:match("%w") and not isIPv4(flow_info["host_server_name"]) and not isIPv6(flow_info["host_server_name"]) then
       -- remove possible ports from the name
@@ -69,7 +69,7 @@ function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
       return(flow_info["protos.tls.certificate"])
        end
     end
- 
+
     local hostinfo = {
        host = flow_info[host_type..".ip"],
        label = flow_info[host_type..".host"],
@@ -78,7 +78,7 @@ function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
        broadcast_domain_host = flow_info[host_type..".broadcast_domain_host"],
        vlan = flow_info["vlan"],
     }
- 
+
     return(hostinfo2label(hostinfo, true, false, true))
  end
 
@@ -166,10 +166,7 @@ end
 -- ##############################################
 -- Just a convenience function for hostinfo2label with only IP and VLAN
 function ip2label(ip, vlan, shorten_len)
-    return hostinfo2label({
-        host = ip,
-        vlan = (vlan or 0)
-    }, true, shorten_len)
+    return hostinfo2label({ host = ip, vlan = (vlan or 0) }, true, shorten_len)
 end
 
 -- ##############################################

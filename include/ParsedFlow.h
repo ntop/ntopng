@@ -30,7 +30,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   json_object *additional_fields_json;
   ndpi_serializer *additional_fields_tlv;
   char *l7_info;
-  char *http_url, *http_site, *http_user_agent;
+  char *http_url, *http_site, *http_user_agent, *dhcp_client_name;
   ndpi_http_method http_method;
   char *dns_query;
   char *end_reason;
@@ -120,6 +120,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline void setSMTPRcptTo(const char *str) { if(smtp_rcp_to != NULL) free(smtp_rcp_to);  if(str) { smtp_rcp_to = strdup(str);} else smtp_rcp_to = NULL; }
   inline void setSMTPMailFrom(const char *str) { if(smtp_mail_from != NULL) free(smtp_mail_from);  if(str) { smtp_mail_from = strdup(str);} else smtp_mail_from = NULL; }
   inline void setRiskName(const char *str) { if(ndpi_flow_risk_name != NULL) free(ndpi_flow_risk_name); if (str) { ndpi_flow_risk_name = strdup(str);} else ndpi_flow_risk_name = NULL; }
+  inline void setDHCPClientName(const char *str) { if(dhcp_client_name != NULL) free(dhcp_client_name);  if(str) { dhcp_client_name = strdup(str);} else dhcp_client_name = NULL; }
   /* ****** */
   inline char* getL7Info(bool setToNULL = false)  { char *r = l7_info; if(setToNULL) l7_info = NULL; return(r); }
   inline char* getHTTPurl(bool setToNULL = false) { char *r = http_url; if(setToNULL) http_url = NULL; return(r); }
@@ -137,6 +138,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline char* getEndReason(bool setToNull = false) { char *r = end_reason; if(setToNull) end_reason = NULL; return(r); }
   inline char* getSMTPRcptTo(bool setToNull = false) { char *r = smtp_rcp_to; if(setToNull) smtp_rcp_to = NULL; return(r); }
   inline char* getSMTPMailFrom(bool setToNull = false) { char *r = smtp_mail_from; if(setToNull) smtp_mail_from = NULL; return(r); }
+  inline char* getDHCPClientName(bool setToNull = false) { char *r = dhcp_client_name; if(setToNull) dhcp_client_name = NULL; return(r); }
   inline u_int8_t getTLSUnsafeCipher() { return(tls_unsafe_cipher); }
   inline u_int16_t getTLSCipher() { return(tls_cipher); }
   inline u_int8_t getFlowVerdict() { return(flow_verdict); }

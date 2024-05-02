@@ -1050,13 +1050,13 @@ char *Host::get_name(char *buf, u_int buf_len,
 
   num_resolve_attempts++;
 
-  getResolvedName(name_buf, sizeof(name_buf));
-  if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
-
   getServerName(name_buf, sizeof(name_buf));
   if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
 
   getDHCPName(name_buf, sizeof(name_buf));
+  if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
+
+  getResolvedName(name_buf, sizeof(name_buf));
   if (name_buf[0] && !Utils::isIPAddress(name_buf)) goto out;
 
   /* Most relevant names goes first */
@@ -1411,7 +1411,7 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
 
 /* *************************************** */
 
-char *Host::get_visual_name(char *buf, u_int buf_len) {
+char* Host::get_visual_name(char *buf, u_int buf_len) {
   bool mask_host = Utils::maskHost(isLocalHost());
   char buf2[64];
   char *sym_name;

@@ -1,7 +1,9 @@
 --
 -- (C) 2013-24 - ntop.org
 --
+
 local dirs = ntop.getDirs()
+
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
@@ -410,8 +412,7 @@ else
     local periodicity_map_link = ntop.getHttpPrefix() ..
                                      "/lua/pro/enterprise/network_maps.lua?map=periodicity_map&ifid=" .. ifId ..
                                      "&host=" .. host_ip
-    local historical_flow_link = ntop.getHttpPrefix() .. "/lua/db_search.lua?ifid=" .. ifId .. "&ip=" .. host_ip ..
-                                     ";eq"
+    local historical_flow_link = ntop.getHttpPrefix() .. "/lua/db_search.lua?ifid=" .. ifId .. "&ip=" .. host_ip .. ";eq"
 
     service_map_available, periodicity_map_available = behavior_utils.mapsAvailable()
 
@@ -438,6 +439,7 @@ else
                 total_packets_data = total_packets_data + value
             end
         end
+
         if host["pktStats.recv"] then
             for _, value in pairs(host["pktStats.sent"]["tcp_flags"] or {}) do
                 total_packets_data = total_packets_data + value
@@ -1028,19 +1030,19 @@ else
 
             if host_vulnerabilities ~= nil and host_vulnerabilities.num_vulnerabilities_found and host_vulnerabilities.num_vulnerabilities_found > 0 then
                 if(host_vulnerabilities.last_scan.time == nil) then
-                    host_vulnerabilities.last_scan.time = format_utils.formatPastEpochShort(host_vulnerabilities.last_scan.epoch)     
+                    host_vulnerabilities.last_scan.time = format_utils.formatPastEpochShort(host_vulnerabilities.last_scan.epoch)
                 end
-                
+
                 print('<tr><th><a href="' .. ntop.getHttpPrefix() ..'/lua/vulnerability_scan.lua?page=show_result&scan_date='..host_vulnerabilities.last_scan.time..'&host='..host_vulnerabilities.host..'&scan_type='..host_vulnerabilities.scan_type..'">'.. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. '</a></th>')
                 print("<td colspan=2>")
                 cve_utils.getFirst5(host_vulnerabilities.cve,host_vulnerabilities.scan_type, true)
-                
+
 
             elseif (host_vulnerabilities ~= nil and (host_vulnerabilities.num_vulnerabilities_found == nil or host_vulnerabilities.num_vulnerabilities_found == 0)) then
                 print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. "</th>")
                 print("<td colspan=2>")
                 print(i18n("hosts_stats.page_scan_hosts.no_cves_detected"))
-                
+
             elseif (host_vulnerabilities == nil) then
                 print("<tr><th>" .. i18n("hosts_stats.page_scan_hosts.title_hosts_page") .. "</th>")
                 print("<td colspan=2>")
@@ -1347,7 +1349,7 @@ else
                     host["ssdp"] .. "'>" .. host["ssdp"] .. "<A></td></tr>\n")
         end
 
-        
+
 
         print("<tr><th colspan=4></th></tr>\n")
 
@@ -1637,7 +1639,7 @@ setInterval(update_icmp_table, 5000);
     elseif ((page == "ndpi")) then
         local tot_cat_series = ts_utils.listSeries("host:ndpi_categories", {host= host_ip, ifid= ifId}, os.time())
         local tot_l7_series = ts_utils.listSeries("host:ndpi", {host= host_ip, ifid= ifId}, os.time())
-        
+
         local is_l7_series_present = tot_l7_series ~= nil and (not table.empty(tot_l7_series))
         local is_cat_series_present = tot_cat_series ~= nil and (not table.empty(tot_cat_series))
 
@@ -2011,7 +2013,7 @@ setInterval(update_icmp_table, 5000);
                 length = 10,
                 csrf = ntop.getRandomCSRFValue()
             }
-        
+
             local json_context = json.encode(context)
             template.render("pages/vue_page.template", { vue_page_name = "PageAggregatedLiveFlows", page_context = json_context })
         elseif (ntop.isnEdge()) then
@@ -2085,7 +2087,7 @@ setInterval(update_icmp_table, 5000);
             end
 
             local alignment_c_info = 'center'
-            if (ntop.isnEdge()) then 
+            if (ntop.isnEdge()) then
                 alignment_c_info = 'nowrap'
             end
             print('sort: [ ["' .. getDefaultTableSort("flows") .. '","' .. getDefaultTableSortOrder("flows") ..
@@ -2262,7 +2264,7 @@ setInterval(update_icmp_table, 5000);
             end
 
             print [[
-            
+
           </script>
       ]]
         else
@@ -2273,7 +2275,7 @@ setInterval(update_icmp_table, 5000);
                     has_exporters = true
                 end
             end
-            local json = require "dkjson" 
+            local json = require "dkjson"
             local json_context = json.encode({
                 ifid = ifstats.id,
                 has_exporters = has_exporters,
@@ -2283,8 +2285,8 @@ setInterval(update_icmp_table, 5000);
             })
             template.render("pages/vue_page.template", { vue_page_name = "PageFlowsList", page_context = json_context })
         end
-        
-        print [[ 
+
+        print [[
             </div>
 
    </div>]]

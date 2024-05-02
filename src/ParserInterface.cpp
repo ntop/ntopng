@@ -29,7 +29,7 @@ ParserInterface::ParserInterface(const char *endpoint,
                                  const char *custom_interface_type)
     : NetworkInterface(endpoint, custom_interface_type) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  
+
   num_companion_interfaces = 0;
   companion_interfaces =
       new (std::nothrow) NetworkInterface *[MAX_NUM_COMPANION_INTERFACES]();
@@ -310,7 +310,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if(zflow->isSwapped()) flow->set_swap_done();
 
   flow->setFlowSource(zflow->getFlowSource());
-  
+
   if (src2dst_direction && (zflow->tcp.applLatencyMsec != 0))
     flow->setFlowApplLatency(zflow->tcp.applLatencyMsec);
 
@@ -412,7 +412,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if (!flow->isDetectionCompleted()) {
     ndpi_protocol p = Flow::ndpiUnknownProtocol;
     ndpi_protocol guessed_protocol = Flow::ndpiUnknownProtocol;
-    
+
     p.app_protocol = zflow->l7_proto.app_protocol;
     p.master_protocol = zflow->l7_proto.master_protocol;
     p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
@@ -433,7 +433,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 							   );
     } else {
       /* IPv6: use protcol guess only based on ports/protocol */
-      
+
       guessed_protocol = ndpi_guess_undetected_protocol_v4(get_ndpi_struct(),
 							   flow->get_ndpi_flow(),
 							   flow->get_protocol(),
@@ -446,7 +446,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
     guessed_protocol.app_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), guessed_protocol.app_protocol);
     guessed_protocol.master_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), guessed_protocol.master_protocol);
-    
+
 #ifdef NTOPNG_PRO
     if (zflow->device_ip) {
       // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() &&
@@ -465,7 +465,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 	   interface). For this reason it is important to check the outIndex and
 	   increase its counters only if it is different from inIndex to avoid
 	   double counting. */
-	
+
         if (zflow->outIndex != zflow->inIndex)
           flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->outIndex, flow->getStatsProtocol(),
 					  zflow->pkt_sampling_rate * zflow->in_pkts,
@@ -537,7 +537,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
         (guessed_protocol.app_protocol >= NDPI_MAX_SUPPORTED_PROTOCOLS)) {
       p = guessed_protocol;
     }
-    
+
     if (zflow->hasParsedeBPF()) {
       /* nProbe Agent does not perform nDPI detection*/
       p.master_protocol = guessed_protocol.master_protocol;
@@ -560,11 +560,18 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     if (flow->isDNS())  flow->updateDNS(zflow);
     if (flow->isHTTP()) flow->updateHTTP(zflow);
     if (flow->isTLS())  flow->updateTLS(zflow);
+
     if (flow->isSMTP()) {
       if (zflow->getSMTPMailFrom())
         flow->setSMTPMailFrom(zflow->getSMTPMailFrom());
       if (zflow->getSMTPRcptTo())
         flow->setSMTPRcptTo(zflow->getSMTPRcptTo());
+    }
+
+    if (flow->isDHCP()) {
+      if(zflow->getDHCPClientName()) {
+	flow->setDHCPHostName(zflow->getDHCPClientName());
+      }
     }
 
     if (zflow->getRiskName())
@@ -636,7 +643,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
 #ifdef DEBUG
   char a[32], b[32];
-  
+
   ntop->getTrace()->traceEvent(TRACE_WARNING, "Direction: %u [ntop: %s][%s -> %s]", zflow->direction,
 			       flow->isLocalToRemote() ? "L->R" : "R->L",
 			       flow->get_cli_ip_addr()->print(a, sizeof(a)),

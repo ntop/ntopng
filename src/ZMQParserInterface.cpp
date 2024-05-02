@@ -50,10 +50,12 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   memset(&recvStats, 0, sizeof(recvStats));
   memset(&recvStatsCheckpoint, 0, sizeof(recvStatsCheckpoint));
 
-  /* Populate defaults for @NTOPNG@ nProbe templates. No need to populate
-     all the fields as nProbe will sent them periodically.
-
-     This minimum set is required for backward compatibility. */
+  /*
+    Populate defaults for @NTOPNG@ nProbe templates. No need to populate
+    all the fields as nProbe will sent them periodically.
+    
+    This minimum set is required for backward compatibility.
+  */
   addMapping("IN_SRC_MAC", IN_SRC_MAC);
   addMapping("OUT_SRC_MAC", OUT_SRC_MAC);
   addMapping("IN_DST_MAC", IN_DST_MAC);
@@ -836,6 +838,8 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
    * (CLIENT_NW_LATENCY_MS) instead of field = 57595 (NTOP_BASE_ID + 123) */
   if (field < NTOP_BASE_ID) field += NTOP_BASE_ID;
 
+  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[field %d][%s]", field, value->string ? value->string : ""); */
+  
   switch (field) {
   case L7_PROTO:
     if (value->string) {
@@ -845,10 +849,8 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
       } else {
 	char *proto_dot;
 
-	flow->l7_proto.master_protocol =
-	  (u_int16_t)strtoll(value->string, &proto_dot, 10);
-	flow->l7_proto.app_protocol =
-	  (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
+	flow->l7_proto.master_protocol = (u_int16_t)strtoll(value->string, &proto_dot, 10);
+	flow->l7_proto.app_protocol    = (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
       }
     } else {
       flow->l7_proto.app_protocol = value->int_num;
@@ -1190,22 +1192,26 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
     break;
 
   case DST_PROC_CONTAINER_ID:
-    if (value->string && value->string[0]) {
+    if (value->string && value->string[0])
       flow->setParsedContainerInfo();
-      flow->dst_container_info.id = strdup(value->string);
-    }
+      flow->dst_container_info.id = strdup(value->string);    
     break;
+    
   case SMTP_RCPT_TO:
-    if(value->string && value->string[0]) {
-      flow->setSMTPRcptTo(value->string);
-    }
+    if(value->string && value->string[0])
+      flow->setSMTPRcptTo(value->string);    
     break;
+    
   case SMTP_MAIL_FROM:
-    if(value->string && value->string[0]) {
-      flow->setSMTPMailFrom(value->string);
-    }
+    if(value->string && value->string[0])
+      flow->setSMTPMailFrom(value->string);    
     break;
 
+  case DHCP_CLIENT_NAME:
+    if(value->string && value->string[0])
+      flow->setDHCPClientName(value->string);    
+    break;
+    
   default:
     return false;
   }
