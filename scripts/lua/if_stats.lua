@@ -805,7 +805,7 @@ if((page == "overview") or (page == nil)) then
 
       print("<tr>")
       print("<th nowrap>"..i18n("if_stats_overview.collected_flows")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:zmq_recv_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td width=20%><span id=if_zmq_flows>"..formatValue(ifstats.zmqRecvStats.flows).."</span></td>")
-      print("<th nowrap> <i class='fas fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.unhandled_flows").."</th><td width=20%><span id=if_zmq_dropped_flows>"..formatValue(ifstats.zmqRecvStats.dropped_flows).."</span></td>")
+      print("<th nowrap> <i class='fas fa-tint' aria-hidden='true'></i> "..i18n("if_stats_overview.discarded_flows").."</th><td width=20%><span id=if_zmq_dropped_flows>"..formatValue(ifstats.zmqRecvStats.dropped_flows).."</span></td>")
       print("<td colspan=2></td>")
       print("</tr>")
 
@@ -1005,12 +1005,6 @@ if((page == "overview") or (page == nil)) then
       end
 
       print("</tr>")
-   end
-
-   if ifstats.stats.discarded_probing_packets then
-      print("<tr><td colspan=2></td><th nowrap> <i class='fas fa-trash' aria-hidden='true'></i> "..i18n("if_stats_overview.discarded_probing_traffic")..ternary(charts_available, " <A HREF='"..url.."&page=historical&ts_schema=iface:disc_prob_pkts'><i class='fas fa-chart-area fa-sm'></i></A>", "").."</th><td colspan=4width=20%><span id=if_discarded_probing_bytes>"..bytesToSize(ifstats.stats.discarded_probing_bytes).."</span> [<span id=if_discarded_probing_pkts>".. formatPackets(ifstats.stats.discarded_probing_packets) .."</span>] ")
-
-      print("<span id=if_discarded_probing_trend></span></td></tr>\n")
    end
 
    local an = ifstats.anomalies.tot_num_anomalies or {}
@@ -1938,37 +1932,6 @@ function toggle_mirrored_traffic_function_off(){
         </small>
            </td>
         </tr>]])
-   end
-
-   -- Discard Probing Traffic
-   if not ntop.isnEdge() and not is_packet_interface then
-      local discard_probing_traffic = false
-      local discard_probing_traffic_pref = string.format("ntopng.prefs.ifid_%d.discard_probing_traffic", interface.getId())
-
-      if _SERVER["REQUEST_METHOD"] == "POST" then
-         if _POST["discard_probing_traffic"] == "1" then
-            discard_probing_traffic = true
-         end
-
-         ntop.setPref(discard_probing_traffic_pref,
-                      ternary(discard_probing_traffic == true, '1', '0'))
-         interface.updateDiscardProbingTraffic()
-      else
-         discard_probing_traffic = ternary(ntop.getPref(discard_probing_traffic_pref) == '1', true, false)
-      end
-
-      print [[<tr>
-         <th>]] print(i18n("if_stats_config.discard_probing_traffic")) print[[</th>
-    <td>]]
-
-    print(template.gen("on_off_switch.html", {
-         id = "discard_probing_traffic",
-         checked = discard_probing_traffic,
-    }))
-
-    print[[
-         </td>
-      </tr>]]
    end
 
    -- per-interface Network Discovery

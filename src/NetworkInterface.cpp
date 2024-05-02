@@ -234,7 +234,6 @@ NetworkInterface::NetworkInterface(const char *name,
   updateDynIfaceTrafficPolicy();
   updateFlowDumpDisabled();
   updateLbdIdentifier();
-  updateDiscardProbingTraffic();
   updateFlowsOnlyInterface();
   updatePushFiltersSettings();
 }
@@ -252,7 +251,6 @@ void NetworkInterface::init(const char *interface_name) {
     is_loopback = is_traffic_mirrored = false, lbd_serialize_by_mac = false,
     is_smart_recording_enabled = false;
   smart_recording_instance_name = NULL;
-  discard_probing_traffic = false;
   flows_only_interface = false;
   numSubInterfaces = 0;
   ip_reassignment_alerts_enabled = false;
@@ -266,7 +264,6 @@ void NetworkInterface::init(const char *interface_name) {
     arp_requests = arp_replies = 0, has_mac_addresses = false,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount =
     checkpointDroppedAlertsCount = 0,
-    checkpointDiscardedProbingPktCount = checkpointDiscardedProbingBytesCount = 0,
     checkpointTrafficSent = 0, checkpointTrafficRcvd = 0,
     checkpointPacketsSent = 0, checkpointPacketsRcvd = 0,
     pollLoopCreated = false, bridge_interface = false, mdns = NULL,
@@ -873,13 +870,6 @@ void NetworkInterface::updateFlowDumpDisabled() {
 void NetworkInterface::updateLbdIdentifier() {
   lbd_serialize_by_mac = getInterfaceBooleanPref(
 						 CONST_LBD_SERIALIZATION_PREFS, CONST_DEFAULT_LBD_SERIALIZE_AS_MAC);
-}
-
-/* **************************************** */
-
-void NetworkInterface::updateDiscardProbingTraffic() {
-  discard_probing_traffic = getInterfaceBooleanPref(
-						    CONST_DISCARD_PROBING_TRAFFIC, CONST_DEFAULT_DISCARD_PROBING_TRAFFIC);
 }
 
 /* **************************************** */
@@ -7125,18 +7115,6 @@ u_int64_t NetworkInterface::getNumNewFlows() { return (num_new_flows); };
 
 /* **************************************************** */
 
-u_int64_t NetworkInterface::getNumDiscardedProbingPackets() const {
-  return discardedProbingStats.getPkts();
-}
-
-/* **************************************************** */
-
-u_int64_t NetworkInterface::getNumDiscardedProbingBytes() const {
-  return discardedProbingStats.getBytes();
-}
-
-/* **************************************************** */
-
 u_int NetworkInterface::getNumFlows() {
   return (flows_hash ? flows_hash->getNumEntries() : 0);
 };
@@ -7342,13 +7320,12 @@ void NetworkInterface::getnDPIFlowsCount(lua_State *vm) {
 void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
 				LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
 				PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
-				ProtoStats *_discardedProbingStats, DSCPStats *_dscpStats,
+				DSCPStats *_dscpStats,
 				SyslogStats *_syslogStats, RoundTripStats *_downloadStats,
 				RoundTripStats *_uploadStats) const {
   tcpFlowStats.sum(_tcpFlowStats), ethStats.sum(_ethStats),
     localStats.sum(_localStats), pktStats.sum(_pktStats),
     tcpPacketStats.sum(_tcpPacketStats),
-    discardedProbingStats.sum(_discardedProbingStats),
     syslogStats.sum(_syslogStats);
 
   if (ndpiStats && _ndpiStats) ndpiStats->sum(_ndpiStats);
@@ -7371,7 +7348,6 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
   LocalTrafficStats _localStats;
   PacketStats _pktStats;
   TcpPacketStats _tcpPacketStats;
-  ProtoStats _discardedProbingStats;
   DSCPStats _dscpStats;
   SyslogStats _syslogStats;
 
@@ -7478,13 +7454,6 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
 
   if (db) db->lua(vm, true /* Since last checkpoint */);
 
-  if (discardProbingTraffic()) {
-    lua_push_uint64_table_entry(vm, "discarded_probing_packets",
-                                getNumDiscProbingPktsSinceReset());
-    lua_push_uint64_table_entry(vm, "discarded_probing_bytes",
-                                getNumDiscProbingBytesSinceReset());
-  }
-
   lua_pushstring(vm, "stats_since_reset");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -7511,7 +7480,7 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
   }
   
   sumStats(&_tcpFlowStats, &_ethStats, &_localStats, NULL, &_pktStats,
-           &_tcpPacketStats, &_discardedProbingStats, &_dscpStats,
+           &_tcpPacketStats, &_dscpStats,
            &_syslogStats, &_downloadStats, &_uploadStats);
 
   if(fullStats) {
@@ -7535,9 +7504,6 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
     
     _dscpStats.lua(this, vm);
     _syslogStats.lua(vm);
-
-    if (discardProbingTraffic())
-      _discardedProbingStats.lua(vm, "discarded_probing_");
   }
   
   if (!isView()) {
@@ -8571,8 +8537,7 @@ void NetworkInterface::checkPointCounters(bool drops_only) {
   }
   checkpointDroppedAlertsCount = getNumDroppedAlerts();
   checkpointPktDropCount = getNumPacketDrops();
-  checkpointDiscardedProbingPktCount = getNumDiscardedProbingPackets();
-  checkpointDiscardedProbingBytesCount = getNumDiscardedProbingBytes();
+
   checkpointTrafficSent = getStats() ? getStats()->getNumEgressBytes() : 0;
   checkpointTrafficRcvd = getStats() ? getStats()->getNumIngressBytes() : 0;
   checkpointPacketsSent = getStats() ? getStats()->getNumEgressPackets() : 0;
@@ -8604,18 +8569,6 @@ u_int64_t NetworkInterface::getCheckPointNumBytes() {
 u_int32_t NetworkInterface::getCheckPointNumPacketDrops() {
   return (checkpointPktDropCount);
 };
-
-/* **************************************************** */
-
-u_int64_t NetworkInterface::getCheckPointNumDiscardedProbingPackets() const {
-  return checkpointDiscardedProbingPktCount;
-}
-
-/* **************************************************** */
-
-u_int64_t NetworkInterface::getCheckPointNumDiscardedProbingBytes() const {
-  return checkpointDiscardedProbingBytesCount;
-}
 
 /* **************************************************** */
 

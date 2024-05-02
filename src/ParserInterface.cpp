@@ -69,14 +69,6 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if ((zflow->vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
     zflow->vlan_id = rand() % SIMULATE_VLANS_MAX_VALUE;
 
-  if (discardProbingTraffic()) {
-    if (isProbingFlow(zflow)) {
-      discardedProbingStats.inc(zflow->pkt_sampling_rate * (zflow->in_pkts + zflow->out_pkts),
-				zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
-      return false;
-    }
-  }
-
   if (!isSubInterface()) {
     bool processed = false;
 
@@ -196,7 +188,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
         processed = true;
       }
 
-      if (processed && (!showDynamicInterfaceTraffic())) return true;
+      if (processed && (!showDynamicInterfaceTraffic()))
+	return true;
     }
   }
 
@@ -223,7 +216,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   INTERFACE_PROFILING_SECTION_EXIT(0);
 
-  if (flow == NULL) return false;
+  if (flow == NULL)
+    return(false);
 
   if (zflow->absolute_packet_octet_counters) {
     /* Ajdust bytes and packets counters if the zflow update contains absolute
@@ -698,11 +692,12 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->last_switched);
 
-  return true;
+  return(true);
 }
 
 /* **************************************************** */
 
+#if 0
 bool ParserInterface::isProbingFlow(const ParsedFlow *zflow) {
   switch (zflow->l4_proto) {
     case IPPROTO_TCP: {
@@ -758,6 +753,7 @@ bool ParserInterface::isProbingFlow(const ParsedFlow *zflow) {
 
   return false;
 }
+#endif
 
 /* **************************************************** */
 

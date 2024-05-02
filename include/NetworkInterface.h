@@ -215,12 +215,10 @@ protected:
   NetworkInterface *dynamic_interface_master; /* Main interface */
 
   bool is_traffic_mirrored, is_loopback;
-  bool discard_probing_traffic;
   bool flows_only_interface; /* Only allocates flows for the interface (e.g., no
                                 hosts, ases, etc) */
   bool is_smart_recording_enabled;
   char *smart_recording_instance_name;
-  ProtoStats discardedProbingStats;
 #ifdef NTOPNG_PRO
   L7Policer *policer;
 
@@ -264,8 +262,7 @@ protected:
   /* Those will hold counters at checkpoints */
   u_int64_t checkpointPktCount, checkpointBytesCount, checkpointPktDropCount,
     checkpointDroppedAlertsCount;
-  u_int64_t checkpointDiscardedProbingPktCount,
-    checkpointDiscardedProbingBytesCount,
+  u_int64_t 
     checkpointTrafficSent, 
     checkpointTrafficRcvd,
     checkpointPacketsSent,
@@ -605,8 +602,6 @@ public:
   virtual u_int64_t getCheckPointDroppedAlerts();
   virtual u_int64_t getCheckPointNumBytes();
   virtual u_int32_t getCheckPointNumPacketDrops();
-  virtual u_int64_t getCheckPointNumDiscardedProbingPackets() const;
-  virtual u_int64_t getCheckPointNumDiscardedProbingBytes() const;
   virtual u_int64_t getCheckPointNumTrafficSent() const;
   virtual u_int64_t getCheckPointNumTrafficRcvd() const;
   virtual u_int64_t getCheckPointNumPacketsSent() const;
@@ -666,7 +661,6 @@ public:
   virtual void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
                         LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
                         PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
-                        ProtoStats *_discardedProbingStats,
                         DSCPStats *_dscpStats, SyslogStats *_syslogStats,
                         RoundTripStats *_downloadStats,
                         RoundTripStats *_uploadStats) const;
@@ -684,7 +678,6 @@ public:
     return show_dynamic_interface_traffic;
   };
   inline bool pushHostFilters() const { return push_host_filters; };
-  inline bool discardProbingTraffic() const { return discard_probing_traffic; };
   inline bool flowsOnlyInterface() const { return flows_only_interface; };
   void updateTrafficMirrored();
   void updateSmartRecording();
@@ -692,7 +685,6 @@ public:
   void updatePushFiltersSettings();
   void updateFlowDumpDisabled();
   void updateLbdIdentifier();
-  void updateDiscardProbingTraffic();
   void updateFlowsOnlyInterface();
   u_int printAvailableInterfaces(bool printHelp, int idx, char *ifname,
                                  u_int ifname_len);
@@ -837,8 +829,6 @@ public:
   virtual u_int32_t getNumDroppedPackets() { return 0; };
   virtual u_int getNumPacketDrops();
   virtual u_int64_t getNumNewFlows();
-  virtual u_int64_t getNumDiscardedProbingPackets() const;
-  virtual u_int64_t getNumDiscardedProbingBytes() const;
   virtual u_int getNumFlows();
   inline u_int getNumL2Devices() { return (numL2Devices); };
   inline u_int getNumHosts() { return (totalNumHosts); };
@@ -860,14 +850,6 @@ public:
   }
   inline u_int64_t getNumDroppedAlertsSinceReset() {
     return getNumDroppedAlerts() - getCheckPointDroppedAlerts();
-  }
-  inline u_int64_t getNumDiscProbingPktsSinceReset() const {
-    return getNumDiscardedProbingPackets() -
-      getCheckPointNumDiscardedProbingPackets();
-  };
-  inline u_int64_t getNumDiscProbingBytesSinceReset() const {
-    return getNumDiscardedProbingBytes() -
-      getCheckPointNumDiscardedProbingBytes();
   }
 
   void runPeriodicHousekeepingTasks();

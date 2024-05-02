@@ -663,8 +663,6 @@
   NTOPNG_PREFS_PREFIX ".ifid_%d.is_flow_dump_disabled"
 #define CONST_LBD_SERIALIZATION_PREFS \
   NTOPNG_PREFS_PREFIX ".ifid_%d.serialize_local_broadcast_hosts_as_macs"
-#define CONST_DISCARD_PROBING_TRAFFIC \
-  NTOPNG_PREFS_PREFIX ".ifid_%d.discard_probing_traffic"
 #define CONST_FLOWS_ONLY_INTERFACE \
   NTOPNG_PREFS_PREFIX ".ifid_%d.debug.flows_only_interface"
 #define CONST_NBOX_USER NTOPNG_PREFS_PREFIX ".nbox_user"

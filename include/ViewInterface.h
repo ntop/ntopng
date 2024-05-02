@@ -34,7 +34,6 @@ class ViewInterface : public NetworkInterface {
   virtual void sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
                         LocalTrafficStats *_localStats, nDPIStats *_ndpiStats,
                         PacketStats *_pktStats, TcpPacketStats *_tcpPacketStats,
-                        ProtoStats *_discardedProbingStats,
                         DSCPStats *_dscpStats, SyslogStats *_syslogStats,
                         RoundTripStats *_downloadStats,
                         RoundTripStats *_uploadStats) const;
@@ -74,8 +73,6 @@ class ViewInterface : public NetworkInterface {
   virtual u_int64_t getNumDroppedAlerts();
   virtual u_int64_t getNumBytes();
   virtual u_int getNumPacketDrops();
-  virtual u_int64_t getNumDiscardedProbingPackets() const;
-  virtual u_int64_t getNumDiscardedProbingBytes() const;
   virtual u_int64_t getNumNewFlows();
   virtual u_int getNumFlows();
   virtual u_int64_t getNumActiveAlertedFlows() const;
@@ -86,8 +83,6 @@ class ViewInterface : public NetworkInterface {
   virtual u_int64_t getCheckPointDroppedAlerts();
   virtual u_int64_t getCheckPointNumBytes();
   virtual u_int32_t getCheckPointNumPacketDrops();
-  virtual u_int64_t getCheckPointNumDiscardedProbingPackets() const;
-  virtual u_int64_t getCheckPointNumDiscardedProbingBytes() const;
   virtual u_int64_t getCheckPointNumTrafficSent() const;
   virtual u_int64_t getCheckPointNumTrafficRcvd() const;
   virtual u_int64_t getCheckPointNumPacketsSent() const;
