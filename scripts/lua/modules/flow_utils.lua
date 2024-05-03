@@ -1357,17 +1357,6 @@ function getRTPTableRows(info)
                                sip_call_id_var .. "</div></td></tr>\n"
         end
 
-        if isEmptyString(getFlowValue(info, "RTP_CALL_STATE")) then
-            string_table = string_table .. "<tr id=\"rtp_call_state_tr\" style=\"display: none;\"><th width=33%> " ..
-                               i18n("flow_details.call_state") ..
-                               " </th><td colspan=2><div id=call_state></div></td></tr>\n"
-        else
-            string_table =
-                string_table .. "<tr id=\"rtp_call_state_tr\" style=\"display: table-row;\"><th width=33%> " ..
-                    i18n("flow_details.call_state") .. " </th><td colspan=2><div id=call_state>" ..
-                    mapCallState(getFlowValue(info, "RTP_CALL_STATE")) .. "</div></td></tr>\n"
-        end
-
         -- TWO-WAY CALL-QUALITY INDICATORS
         string_table = string_table .. "<tr><th>" .. i18n("flow_details.call_quality_indicators") .. "</th><th>" ..
                            i18n("flow_details.forward") .. "</th><th>" .. i18n("flow_details.reverse") .. "</th></tr>"
