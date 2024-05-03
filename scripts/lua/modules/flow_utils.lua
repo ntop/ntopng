@@ -1104,6 +1104,17 @@ function getSIPTableRows(info)
                                "</th><td colspan=2><div id=call_id>" .. call_id .. "</div></td></tr>\n"
         end
 
+        if ((getFlowValue(info, "SIP_CALL_STATE") == nil) or (getFlowValue(info, "SIP_CALL_STATE") == "")) then
+            string_table = string_table .. "<tr id=\"sip_call_state_tr\" style=\"display: none;\"><th width=33%> " ..
+                               i18n("flow_details.call_state") ..
+                               " </th><td colspan=2><div id=call_state></div></td></tr>\n"
+        else
+            string_table =
+                string_table .. "<tr id=\"sip_call_state_tr\" style=\"display: table-row;\"><th width=33%> " ..
+                    i18n("flow_details.call_state") .. " </th><td colspan=2><div id=call_state>" ..
+                    mapCallState(getFlowValue(info, "SIP_CALL_STATE")) .. "</div></td></tr>\n"
+        end
+
         called_party = getFlowValue(info, "SIP_CALLED_PARTY")
         calling_party = getFlowValue(info, "SIP_CALLING_PARTY")
         called_party = string.gsub(called_party, "\\\"", "\"")
@@ -1242,17 +1253,6 @@ function getSIPTableRows(info)
                                i18n("flow_details.c_ip_addresses") .. " </th><td colspan=2><div id=c_ip>" ..
                                getFlowValue(info, "SIP_C_IP") .. "</div></td></tr>\n"
         end
-
-        if ((getFlowValue(info, "SIP_CALL_STATE") == nil) or (getFlowValue(info, "SIP_CALL_STATE") == "")) then
-            string_table = string_table .. "<tr id=\"sip_call_state_tr\" style=\"display: none;\"><th width=33%> " ..
-                               i18n("flow_details.call_state") ..
-                               " </th><td colspan=2><div id=call_state></div></td></tr>\n"
-        else
-            string_table =
-                string_table .. "<tr id=\"sip_call_state_tr\" style=\"display: table-row;\"><th width=33%> " ..
-                    i18n("flow_details.call_state") .. " </th><td colspan=2><div id=call_state>" ..
-                    mapCallState(getFlowValue(info, "SIP_CALL_STATE")) .. "</div></td></tr>\n"
-        end
     end
     return string_table
 end
@@ -1355,6 +1355,17 @@ function getRTPTableRows(info)
                                i18n("flow_details.sip_call_id") ..
                                " <i class='fas fa-phone fa-sm' aria-hidden='true' title='SIP Call-ID'></i>&nbsp;</th><td colspan=2><div id=rtp_sip_call_id>" ..
                                sip_call_id_var .. "</div></td></tr>\n"
+        end
+
+        if isEmptyString(getFlowValue(info, "RTP_CALL_STATE")) then
+            string_table = string_table .. "<tr id=\"rtp_call_state_tr\" style=\"display: none;\"><th width=33%> " ..
+                               i18n("flow_details.call_state") ..
+                               " </th><td colspan=2><div id=call_state></div></td></tr>\n"
+        else
+            string_table =
+                string_table .. "<tr id=\"rtp_call_state_tr\" style=\"display: table-row;\"><th width=33%> " ..
+                    i18n("flow_details.call_state") .. " </th><td colspan=2><div id=call_state>" ..
+                    mapCallState(getFlowValue(info, "RTP_CALL_STATE")) .. "</div></td></tr>\n"
         end
 
         -- TWO-WAY CALL-QUALITY INDICATORS
