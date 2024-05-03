@@ -967,17 +967,17 @@ end
 function mapCallState(call_state)
     --  return call_state
     if (call_state == "CALL_STARTED") then
-        return (i18n("flow_details.call_started"))
+        return ("<span class=\"badge bg-secondary\">" .. (i18n("flow_details.call_started")) .. "</span>")
     elseif (call_state == "CALL_IN_PROGRESS") then
-        return (i18n("flow_details.ongoing_call"))
+        return ("<span class=\"badge bg-info\"><i class=\"fas fa-phone\"></i> " .. i18n("flow_details.ongoing_call") .. "</span>")
     elseif (call_state == "CALL_COMPLETED") then
-        return ("<font color=green>" .. i18n("flow_details.call_completed") .. "</font>")
+        return ("<span class=\"badge bg-success\">" .. i18n("flow_details.call_completed") .. "</span>")
     elseif (call_state == "CALL_ERROR") then
-        return ("<font color=red>" .. i18n("flow_details.call_error") .. "</font>")
+        return ("<span class=\"badge bg-danger\">" .. i18n("flow_details.call_error") .. "</span>")
     elseif (call_state == "CALL_CANCELED") then
-        return ("<font color=orange>" .. i18n("flow_details.call_canceled") .. "</font>")
+        return ("<span class=\"badge bg-warning\">" .. i18n("flow_details.call_canceled") .. "</span>")
     else
-        return (call_state)
+        return ("<span class=\"badge bg-secondary\">" .. call_state .. "</span>")
     end
 end
 
