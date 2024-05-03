@@ -1564,6 +1564,7 @@ local lang = {
     ["loading_stats"] = "Last reload (at %{when}): loaded %{num_hosts} domains, %{num_ips} IP addresses, %{num_ja3} JA3 signatures in %{duration} .",
     ["local_host_blacklisted"] = "Local host %{host} found in blacklist '%{name}'",
     ["ready_for_update"] = "Ready for Update",
+    ["reset_list"] = "Reset Category List",
     ["server_returned_error"] = "The server returned an error",
     ["too_many_hosts_loaded"] = "Domain names limit reached (%{limit} domains)",
     ["too_many_ips_loaded"] = "IP addresses limit reached (%{limit} addresses)",

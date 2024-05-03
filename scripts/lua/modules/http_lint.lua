@@ -2637,6 +2637,7 @@ local known_parameters = {
    ["new_charts"] = validateBool,
    ["sankey_version"] = validateNumber,
    ["blacklist_name"] = validateUnquoted,
+   ["reset_url"] = validateBool,
 
    -- nEdge policy
    ["default_policy"] = validatePolicy, -- users, nedge policies

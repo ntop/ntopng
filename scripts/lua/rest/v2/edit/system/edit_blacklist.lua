@@ -13,6 +13,7 @@ local enabled = _POST["list_enabled"]
 local list_name = _POST["list_name"]
 local category = tonumber(_POST["category"])
 local url = _POST["url"]
+local reset_url = _POST["reset_url"] or false
 local list_update = tonumber(_POST["list_update"])
 
 if enabled == "on" then
@@ -20,20 +21,25 @@ if enabled == "on" then
 else
     enabled = false
 end
-if isEmptyString(enabled) or isEmptyString(list_name) or isEmptyString(category) or isEmptyString(url) or
+if isEmptyString(enabled) or isEmptyString(list_name) or isEmptyString(category) or (isEmptyString(url) and not reset_url) or
     isEmptyString(list_update) then
     rest_utils.answer(rest_utils.consts.err.bad_content)
     return
 end
 
-url = string.gsub(url, "http:__", "http://")
-url = string.gsub(url, "https:__", "https://")
 
-lists_utils.editList(list_name, {
-    enabled = enabled,
-    category = nil,
-    url = url,
-    update_interval = list_update
-})
+if (reset_url) then
+    lists_utils.reset_blacklist_url(list_name, enabled)
+else
+    url = string.gsub(url, "http:__", "http://")
+    url = string.gsub(url, "https:__", "https://")
+
+    lists_utils.editList(list_name, {
+        enabled = enabled,
+        category = nil,
+        url = url,
+        update_interval = list_update
+    })
+end
 
 rest_utils.answer(rest_utils.consts.success.ok)

@@ -17,7 +17,7 @@
         </TableWithConfig>
     </div>
 
-    <ModalEditBlacklist @edit_blacklist="edit_blacklist" ref="modal_edit_blacklist">
+    <ModalEditBlacklist @edit_blacklist="edit_blacklist" @reset_blacklist="reset_blacklist" ref="modal_edit_blacklist">
     </ModalEditBlacklist>
 </template>
 <script setup>
@@ -253,6 +253,21 @@ async function click_button_charts(event) {
 
 async function edit_blacklist(params) {
     params.csrf = props.context.csrf;
+    let url = `${http_prefix}/lua/rest/v2/edit/system/edit_blacklist.lua`;
+    try {
+        let headers = {
+            'Content-Type': 'application/json'
+        };
+        await ntopng_utility.http_request(url, { method: 'post', headers, body: JSON.stringify(params) });
+    } catch (err) {
+        console.error(err);
+    }
+    setTimeout(() => { table_blacklists.value.refresh_table() }, 2000 /* resfresh after 5 seconds */)
+}
+
+async function reset_blacklist(params) {
+    params.csrf = props.context.csrf;
+    params.reset_url = true;
     let url = `${http_prefix}/lua/rest/v2/edit/system/edit_blacklist.lua`;
     try {
         let headers = {

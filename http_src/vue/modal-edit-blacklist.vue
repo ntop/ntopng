@@ -45,6 +45,8 @@
       </div>
     </template>
     <template v-slot:footer>
+      <button type="button" @click="load_default_blacklist" :disabled="!valid_url" class="btn btn-secondary btn-block">{{
+    _i18n('category_lists.reset_list') }}</button>
       <button type="button" @click="edit_blacklist_" :disabled="!valid_url" class="btn btn-primary btn-block">{{
     _i18n('category_lists.edit_list') }}</button>
     </template>
@@ -66,7 +68,7 @@ const url = ref(null);
 const list_update = ref(null);
 const enable_blacklist = ref(null);
 const category_name = ref(null);
-const emit = defineEmits(['edit_blacklist']);
+const emit = defineEmits(['edit_blacklist','reset_blacklist']);
 const valid_url = ref(true);
 
 const props = defineProps({});
@@ -129,6 +131,27 @@ const edit_blacklist_ = () => {
 
   close();
 };
+
+
+const load_default_blacklist = () => {
+  let checked = enable_blacklist.value.value
+  if (checked == "true") {
+    checked = 'on'
+  } else {
+    checked = 'off'
+  }
+
+  const params = {
+    list_name: list_name.value.value,
+    category: category_name.value.value,
+    list_enabled: checked,
+    list_update: list_update.value[list_update.value.selectedIndex].value
+  }
+
+  emit('reset_blacklist', params);
+
+  close();
+}
 
 const close = () => {
   modal_id.value.close();
