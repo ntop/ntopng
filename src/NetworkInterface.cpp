@@ -2711,8 +2711,8 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
       u_short ip_len = ((u_short)iph->ihl * 4);
       struct ndpi_ipv6hdr *ip6 = NULL;
 
-      if (iph->version != 4) {
-	/* This is not IPv4 */
+      if((ip_len == 0) /* Invalid lenght */
+	 || (iph->version != 4) /* This is not IPv4 */) {
 	incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IP,
 		 NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
 		 len_on_wire, 1);
@@ -2868,8 +2868,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	  } else {
 	    incStats(ingressPacket, h->ts.tv_sec, 0,
 		     NDPI_PROTOCOL_UNKNOWN,
-		     NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire,
-		     1);
+		     NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
 	    goto dissect_packet_end;	  
 	  }	  
 	} else if ((sport == TZSP_PORT) || (dport == TZSP_PORT)) {
@@ -2905,8 +2904,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	      if (offset >= h->caplen) {
 		incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IPV6,
 			 NDPI_PROTOCOL_UNKNOWN,
-			 NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire,
-			 1);
+			 NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
 		goto dissect_packet_end;
 	      } else {
 		eth_offset = offset;
@@ -2965,9 +2963,11 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 
 	ip_offset += ip_len, eth_type = ETHERTYPE_IP;
 
-	if (ip_offset > h->caplen)
+	if((ip_len == 0) || (ip_offset > h->caplen)) {
+	  incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
+		   NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
 	  goto dissect_packet_end;
-	else
+	} else
 	  goto decode_packet_eth;
       }
 
