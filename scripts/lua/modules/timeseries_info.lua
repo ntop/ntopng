@@ -2709,7 +2709,6 @@ local function add_flowdev_interfaces_timeseries(tags, timeseries)
     local snmp_utils = require "snmp_utils"
     require "lua_utils_gui"
 
-    tprint(tags)
     if ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1" then
         local tmp_tags = table.clone(tags)
         tmp_tags.ifid = getSystemInterfaceId()
