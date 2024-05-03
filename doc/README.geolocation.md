@@ -40,7 +40,7 @@ Since the `geoipupdate` package is not available on Raspberry Pi, the MaxMind da
 
 ## How to use MaxMind instead of DB-IP ?
 
-The simplest solution is not to install `ntopng-data`. However if this is not possible please do (as root):
+The simplest solution is to install `ntopng-data`. However if this is not possible please do (as root):
 - sudo su
 - cd /usr/share/ntopng/httpdocs/geoip/
 - mkdir backup
