@@ -2004,7 +2004,7 @@ else
         end
 
         print(
-            "<tr><th width=30%>Payload</th><td colspan=2 style='max-width: 200px; white-space: pre-wrap; word-break: keep-all; font-family: \"courier new\", courier, monospace;font-size: 13px;'>" ..
+            "<tr><th width=30%>Payload</th><td colspan=2 style='overflow-wrap: anywhere !important; max-width: 200px; white-space: pre-wrap; word-break: keep-all; font-family: \"courier new\", courier, monospace;font-size: 13px;'>" ..
                 payload .. "</td></tr>\n")
     end
 
