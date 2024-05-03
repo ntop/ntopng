@@ -2709,6 +2709,33 @@ local function add_flowdev_interfaces_timeseries(tags, timeseries)
     local snmp_utils = require "snmp_utils"
     require "lua_utils_gui"
 
+    tprint(tags)
+    if ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1" then
+        local tmp_tags = table.clone(tags)
+        tmp_tags.ifid = getSystemInterfaceId()
+        tmp_tags.port = nil
+        tmp_tags.protocol = nil
+        -- Add this unique serie if snmp timeseries are enabled
+        timeseries[#timeseries + 1] = {
+            schema = "top:snmp_if:traffic_min",
+            id = timeseries_id.flow_dev,
+            label = i18n("page_stats.top.top_traffic_snmp"),
+            type = "top",
+            draw_stacked = true,
+            priority = 2,
+            measure_unit = "bps",
+            scale = i18n("graphs.metric_labels.traffic"),
+            timeseries = {
+                bytes = {
+                    label = i18n('graphs.metric_labels.traffic'),
+                    draw_type = "line",
+                    color = timeseries_info.get_timeseries_color('bytes')
+                }
+            },
+            always_visibile = true
+        }
+    end
+    
     local ports_table = interface.getFlowDeviceInfo(tags.device) or {}
     for _, ports in pairs(ports_table) do
         for port_idx, _ in pairs(ports) do
