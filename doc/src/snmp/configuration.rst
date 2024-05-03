@@ -7,7 +7,7 @@ You can configure a single device or discover devices on a subnet by clicking on
   :align: center
   :alt: Add SNMP Device
 
-Alternatively, you can import a JSON file containing the configuration of the devices by clicking on the import icon (|import|).
+Alternatively, you can import a JSON or a CSV file containing the configuration of the devices by clicking on the import icon (|import|).
 
 .. |import| image:: ../img/SNMP_ImportIcon.png
   :height: 25px
@@ -32,7 +32,8 @@ Devices are polled automatically every 5 minutes and timeseries are created if e
 SNMP Import file
 ~~~~~~~~~~~~~~~~
 
-The file to import for SNMP device configuration must be a JSON array, with each object containing the 'ip_address' key corresponding to the IP address of the SNMP devices, with or without the CIDR (by default set to /32). 
+The file to import for SNMP device configuration must be either a JSON array or a CSV. 
+In the JSON array, each object must contain the 'ip_address' key corresponding to the IP address of the SNMP devices, with or without the CIDR (by default set to /32).
 It is also possible to specify the community (default is 'public') and the SNMP version (default is '2c').
 
 .. code:: json
@@ -50,4 +51,7 @@ It is also possible to specify the community (default is 'public') and the SNMP 
     }
   ]
 
+.. code:: CSV
 
+  192.168.2.38,2c,public
+  192.168.2.0/24,2c,public
