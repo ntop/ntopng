@@ -34,7 +34,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   http_method = NDPI_HTTP_METHOD_UNKNOWN;
   dns_query = tls_server_name = end_reason = NULL;
   smtp_mail_from = smtp_rcp_to = NULL;
-  dhcp_client_name = NULL;
+  dhcp_client_name = NULL, sip_call_id = NULL;
   ja3c_hash = ja3s_hash = ja4c_hash = NULL;
   external_alert = NULL;
   flow_risk_info = NULL;
@@ -54,8 +54,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
 
 /* *************************************** */
 
-ParsedFlow::ParsedFlow(const ParsedFlow &pf)
-    : ParsedFlowCore(pf), ParsedeBPF(pf) {
+ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf) {
   /* Currently we avoid TLV additional fields in the copy constructor */
   additional_fields_tlv = NULL;
 
@@ -145,6 +144,11 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf)
     dhcp_client_name = strdup(pf.dhcp_client_name);
   else
     dhcp_client_name = NULL;
+
+  if (pf.sip_call_id)
+    sip_call_id = strdup(pf.sip_call_id);
+  else
+    sip_call_id = NULL;
 
   tls_cipher = pf.tls_cipher;
   tls_unsafe_cipher = pf.tls_unsafe_cipher;
@@ -312,6 +316,7 @@ void ParsedFlow::freeMemory() {
   if (ndpi_flow_risk_name)  { free(ndpi_flow_risk_name); ndpi_flow_risk_name = NULL; }
   if (smtp_rcp_to)          { free(smtp_rcp_to); smtp_rcp_to = NULL; }
   if (dhcp_client_name)     { free(dhcp_client_name); dhcp_client_name = NULL; }
+  if (sip_call_id)          { free(sip_call_id); sip_call_id = NULL; }
   if (smtp_mail_from)       { free(smtp_mail_from); smtp_mail_from = NULL; }
 }
 
@@ -320,5 +325,6 @@ void ParsedFlow::freeMemory() {
 void ParsedFlow::swap() {
   ParsedFlowCore::swap();
   ParsedeBPF::swap();
+  
   is_swapped = true;
 }

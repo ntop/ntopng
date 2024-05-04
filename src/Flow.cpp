@@ -464,6 +464,8 @@ Flow::~Flow() {
     if (protos.ssdp.location) free(protos.ssdp.location);
   } else if (isNetBIOS()) {
     if (protos.netbios.name) free(protos.netbios.name);
+  } else if (isSIP()) {
+    if (protos.sip.call_id) free(protos.sip.call_id);
   } else if (isSSH()) {
     if (protos.ssh.client_signature) free(protos.ssh.client_signature);
     if (protos.ssh.server_signature) free(protos.ssh.server_signature);
@@ -485,6 +487,8 @@ Flow::~Flow() {
     if(protos.mining.currency) free(protos.mining.currency);
   } else if (isDHCP()) {
     if(protos.dhcp.name) free(protos.dhcp.name);
+  } else if (isSIP()) {
+    if(protos.sip.call_id) free(protos.sip.call_id);
   } else if(isSMTP()) {
     if(protos.smtp.mail_from) free(protos.smtp.mail_from);
     if(protos.smtp.rcpt_to)   free(protos.smtp.rcpt_to);
@@ -2174,7 +2178,8 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
 	cli_host->offlineSetDHCPName(protos.dhcp.name);
       }
     }
-
+    break;
+    
   case NDPI_PROTOCOL_NTP:
     if (cli_host && srv_host) {
       if (cli_host->incNTPContactCardinality(srv_host)) {
@@ -3019,12 +3024,10 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
 
     if (!mask_flow) {
       if (isHTTP()) lua_get_http_info(vm);
-
       if (isDNS()) lua_get_dns_info(vm);
-
       if (isSSH()) lua_get_ssh_info(vm);
-
       if (isTLS()) lua_get_tls_info(vm);
+      if (isSIP()) lua_get_sip_info(vm);
     }
 
     if (!getInterface()->isPacketInterface()) lua_snmp_info(vm);
@@ -5416,6 +5419,7 @@ void Flow::timeval_diff(struct timeval *begin, const struct timeval *end,
 /* FIXX this function is using buf only in a few cases */
 std::string Flow::getFlowInfo(bool isLuaRequest) {
   std::string info_field = std::string("");
+
   if (!isMaskedFlow()) {
     if (iec104) return (iec104->getFlowInfo());
 #ifdef NTOPNG_PRO
@@ -5442,6 +5446,9 @@ std::string Flow::getFlowInfo(bool isLuaRequest) {
       info_field = std::string("<i class='fa fa-lg fa-binoculars'></i> Desktop Sharing");
     } else if (isMining() && protos.mining.currency) {
       info_field = std::string(protos.mining.currency);
+    } else if (isSIP()) {
+      if(protos.sip.call_id)
+	info_field = std::string(protos.sip.call_id);
     }
   }
 
@@ -5465,6 +5472,12 @@ u_int32_t Flow::getNextTcpSeq(u_int8_t tcpFlags, u_int32_t tcpSeqNum,
 
 void Flow::setDHCPHostName(const char* name) {
   if ((name && name[0]) && (protos.dhcp.name == NULL)) protos.dhcp.name = strdup(name);
+}
+
+/* *************************************** */
+
+void Flow::setSIPCallId(const char* name) {
+  if ((name && name[0]) && (protos.sip.call_id == NULL)) protos.sip.call_id = strdup(name);
 }
 
 /* *************************************** */
@@ -7340,6 +7353,15 @@ void Flow::lua_get_unicast_info(lua_State *vm) const {
 
 /* ***************************************************** */
 
+void Flow::lua_get_sip_info(lua_State *vm) const {
+  if (isSIP()) {
+    lua_push_str_table_entry(vm, "protos.sip_call_id",
+			     protos.sip.call_id);
+  }
+}
+
+/* ***************************************************** */
+
 void Flow::lua_get_tls_info(lua_State *vm) const {
   if (isTLS()) {
     lua_push_int32_table_entry(vm, "protos.tls_version",
@@ -7637,6 +7659,14 @@ void Flow::getNetBiosInfo(ndpi_serializer *serializer) const {
 
 /* ***************************************************** */
 
+void Flow::getSIPInfo(ndpi_serializer *serializer) const {
+  if (protos.sip.call_id) {
+    ndpi_serialize_string_string(serializer, "call_id", protos.sip.call_id);
+  }
+}
+
+/* ***************************************************** */
+
 void Flow::lua_get_tcp_info(lua_State *vm) const {
   if (get_protocol() == IPPROTO_TCP) {
     lua_push_bool_table_entry(
@@ -7870,6 +7900,12 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
   case NDPI_PROTOCOL_NETBIOS:
     ndpi_serialize_start_of_block(serializer, "netbios");
     getNetBiosInfo(serializer);
+    ndpi_serialize_end_of_block(serializer);
+    break;
+
+  case NDPI_PROTOCOL_SIP:
+    ndpi_serialize_start_of_block(serializer, "sip");
+    getSIPInfo(serializer);
     ndpi_serialize_end_of_block(serializer);
     break;
 

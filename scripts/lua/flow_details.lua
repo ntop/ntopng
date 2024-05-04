@@ -1872,14 +1872,15 @@ else
         
         -- get SIP rows
         if (ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
-            local sip_table_rows = getSIPTableRows(info)
-            print(sip_table_rows)
-
-            isThereSIP = isThereProtocol("SIP", info)
-            if (isThereSIP == 1) then
-                isThereSIP = isThereSIPCall(info)
-            end
+	   local sip_table_rows = getSIPTableRows(flow, info)
+	   print(sip_table_rows)
+	   
+	   isThereSIP = isThereProtocol("SIP", info)
+	   if (isThereSIP == 1) then
+	      isThereSIP = isThereSIPCall(info)
+	   end
         end
+	
         info = removeProtocolFields("SIP", info)
 
         -- get RTP rows

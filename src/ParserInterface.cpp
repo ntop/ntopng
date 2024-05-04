@@ -50,6 +50,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   bpf_timeval now_tv = {0};
   Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress srcIP, dstIP;
+  u_int32_t private_flow_id;
+  
   now = time(NULL);
   now_tv.tv_sec = now;
 
@@ -204,10 +206,17 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::processFlow: getFlow", 0);
 
+  if(zflow->getSIPCallId()) {
+    size_t len = strlen(zflow->getSIPCallId());
+
+    private_flow_id = ndpi_quick_hash((const unsigned char*)zflow->getSIPCallId(), len);
+  } else
+    private_flow_id = 0;
+  
   /* Updating Flow */
   flow = getFlow(UNKNOWN_PKT_IFACE_IDX,
 		 srcMac, dstMac, zflow->vlan_id, zflow->observationPointId,
-                 0 /* private_flow_id */, zflow->device_ip, zflow->inIndex,
+                 private_flow_id, zflow->device_ip, zflow->inIndex,
                  zflow->outIndex, NULL /* ICMPinfo */, &srcIP, &dstIP,
                  zflow->src_port, zflow->dst_port, zflow->l4_proto,
                  &src2dst_direction, zflow->first_switched,
@@ -307,6 +316,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   flow->setTOS(zflow->src_tos, true), flow->setTOS(zflow->dst_tos, false);
   flow->setRtt();
 
+  if(zflow->getSIPCallId())
+    flow->setSIPCallId(zflow->getSIPCallId());
+  
   if(zflow->isSwapped()) flow->set_swap_done();
 
   flow->setFlowSource(zflow->getFlowSource());

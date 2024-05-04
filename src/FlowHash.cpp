@@ -39,10 +39,9 @@ Flow *FlowHash::find(Mac *src_mac, Mac *dst_mac, IpAddress *src_ip,
                      u_int32_t private_flow_id, u_int8_t protocol,
                      const ICMPinfo *const icmp_info, bool *src2dst_direction,
                      bool is_inline_call, Flow **unswapped_flow) {
-  u_int32_t hash =
-      ((src_ip->key() + dst_ip->key() + (icmp_info ? icmp_info->key() : 0) +
-        private_flow_id + src_port + dst_port + vlanId + protocol) %
-       num_hashes);
+  u_int32_t hash = ((src_ip->key() + dst_ip->key() + (icmp_info ? icmp_info->key() : 0) +
+		     private_flow_id + src_port + dst_port + vlanId + protocol) %
+		    num_hashes);
   Flow *head = (Flow *)table[hash];
   u_int16_t num_loops = 0;
 

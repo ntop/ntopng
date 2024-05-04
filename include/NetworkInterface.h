@@ -330,7 +330,7 @@ protected:
   void deleteDataStructures();
 
   NetworkInterface *getDynInterface(u_int64_t criteria, bool parser_interface);
-  Flow *getFlow(int32_t if_index, Mac *srcMac, Mac *dstMac, u_int16_t vlan_id,
+  Flow* getFlow(int32_t if_index, Mac *srcMac, Mac *dstMac, u_int16_t vlan_id,
                 u_int16_t observation_domain_id, u_int32_t private_flow_id,
                 u_int32_t deviceIP, u_int32_t inIndex, u_int32_t outIndex,
                 const ICMPinfo *const icmp_info, IpAddress *src_ip,

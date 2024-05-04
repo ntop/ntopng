@@ -1046,7 +1046,7 @@ function getRTPInfo(infoPar)
     local returnString = ""
     local infoFlow, posFlow, errFlow = json.decode(infoPar["moreinfo.json"], 1, nil)
 
-    if infoFlow ~= nil then
+    if infoFlow ~= nil then       
         call_id = getFlowValue(infoFlow, "RTP_SIP_CALL_ID")
 
         if tostring(call_id) ~= "" then
@@ -1074,9 +1074,9 @@ end
 
 -- #######################
 
-function getSIPTableRows(info)
+function getSIPTableRows(flow, info)
     local string_table = ""
-    local call_id = ""
+    local call_id
     local call_id_ico = "<i class='fas fa-phone' aria-hidden='true'></i>&nbsp;"
     local called_party = ""
     local calling_party = ""
@@ -1087,13 +1087,17 @@ function getSIPTableRows(info)
     local print_second_2 = 0
     -- check if there is a SIP field
     local sip_found = isThereProtocol("SIP", info)
+
     if (sip_found == 1) then
         sip_found = isThereSIPCall(info)
     end
+    
     if (sip_found == 1) then
         string_table = string_table .. "<tr><th colspan=3 >" .. i18n("flow_details.sip_protocol_information") ..
                            "</th></tr>\n"
-        call_id = getFlowValue(info, "SIP_CALL_ID")
+
+	call_id = flow["protos.sip_call_id"] or getFlowValue(info, "SIP_CALL_ID")
+	
         if ((call_id == nil) or (call_id == "")) then
             string_table = string_table .. "<tr id=\"call_id_tr\" style=\"display: none;\"><th width=33%> " ..
                                i18n("flow_details.call_id") .. " " .. call_id_ico ..

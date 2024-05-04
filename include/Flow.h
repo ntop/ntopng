@@ -42,9 +42,7 @@ class Flow : public GenericHashEntry {
   IpAddress *cli_ip_addr, *srv_ip_addr;
   ICMPinfo *icmp_info;
   ndpi_confidence_t ndpi_confidence;
-  u_int32_t privateFlowId /* Used to store specific flow info such as DNS
-                             TransactionId */
-      ;
+  u_int32_t privateFlowId; /* Used to store specific flow info such as DNS TransactionId or SIP CallId */
   u_int8_t cli2srv_tos, srv2cli_tos; /* RFC 2474, 3168 */
   u_int16_t cli_port, srv_port;
   u_int16_t vlanId;
@@ -177,6 +175,10 @@ class Flow : public GenericHashEntry {
     struct {
       char *name;
     } dhcp;
+
+    struct {
+      char *call_id;
+    } sip;
 
     struct {
       char *client_signature, *server_signature;
@@ -463,36 +465,29 @@ class Flow : public GenericHashEntry {
     return (ndpi_is_encrypted_proto(iface->get_ndpi_struct(),
                                     ndpiDetectedProtocol));
   }
-  inline bool isSSH() const { return (isProto(NDPI_PROTOCOL_SSH)); }
-  inline bool isMining() const { return (isProto(NDPI_PROTOCOL_MINING));}
-  inline bool isDNS() const { return (isProto(NDPI_PROTOCOL_DNS)); }
+  inline bool isSSH() const     { return (isProto(NDPI_PROTOCOL_SSH)); }
+  inline bool isMining() const  { return (isProto(NDPI_PROTOCOL_MINING));}
+  inline bool isDNS() const     { return (isProto(NDPI_PROTOCOL_DNS)); }
   inline bool isZoomRTP() const {
     return (isProto(NDPI_PROTOCOL_ZOOM) && (isProto(NDPI_PROTOCOL_RTP) || isProto(NDPI_PROTOCOL_SRTP)) );
   }
   inline bool isIEC60870() const { return (isProto(NDPI_PROTOCOL_IEC60870)); }
   inline bool isModbus()   const { return (isProto(NDPI_PROTOCOL_MODBUS));   }
-  inline bool isMDNS() const { return (isProto(NDPI_PROTOCOL_MDNS)); }
-  inline bool isSSDP() const { return (isProto(NDPI_PROTOCOL_SSDP)); }
-  inline bool isNetBIOS() const { return (isProto(NDPI_PROTOCOL_NETBIOS)); }
-  inline bool isDHCP() const { return (isProto(NDPI_PROTOCOL_DHCP)); }
-  inline bool isNTP() const { return (isProto(NDPI_PROTOCOL_NTP)); }
-  inline bool isSMTPorSMTPS() const {
-    return (isSMTP() || isSMTPS());
-  }
-  inline bool isSMTP() const {
-    return (isProto(NDPI_PROTOCOL_MAIL_SMTP));
-  }
-  inline bool isSMTPS() const {
-    return (isProto(NDPI_PROTOCOL_MAIL_SMTPS));
-  }
-  inline bool isHTTP() const { return (isProto(NDPI_PROTOCOL_HTTP)); }
-  inline bool isHTTP_PROXY() const { return (isProto(NDPI_PROTOCOL_HTTP_PROXY)); }
+  inline bool isMDNS() const     { return (isProto(NDPI_PROTOCOL_MDNS));     }
+  inline bool isSSDP() const     { return (isProto(NDPI_PROTOCOL_SSDP));     }
+  inline bool isNetBIOS() const  { return (isProto(NDPI_PROTOCOL_NETBIOS));  }
+  inline bool isSIP() const      { return (isProto(NDPI_PROTOCOL_SIP));      }
+  inline bool isDHCP() const     { return (isProto(NDPI_PROTOCOL_DHCP));     }
+  inline bool isNTP() const      { return (isProto(NDPI_PROTOCOL_NTP));      }
+  inline bool isSMTPorSMTPS() const { return (isSMTP() || isSMTPS());        }
+  inline bool isSMTP() const        { return (isProto(NDPI_PROTOCOL_MAIL_SMTP));  }
+  inline bool isSMTPS() const       { return (isProto(NDPI_PROTOCOL_MAIL_SMTPS)); }
+  inline bool isHTTP() const        { return (isProto(NDPI_PROTOCOL_HTTP));       }
+  inline bool isHTTP_PROXY() const  { return (isProto(NDPI_PROTOCOL_HTTP_PROXY)); }
   inline bool isICMP() const {
     return (isProto(NDPI_PROTOCOL_IP_ICMP) || isProto(NDPI_PROTOCOL_IP_ICMPV6));
   }
-  inline bool isBittorrent() const {
-    return (isProto(NDPI_PROTOCOL_BITTORRENT));
-  }
+  inline bool isBittorrent() const { return (isProto(NDPI_PROTOCOL_BITTORRENT)); }
 
 #if defined(NTOPNG_PRO)
   inline bool isLateralMovement() const { return (lateral_movement); }
@@ -504,41 +499,35 @@ class Flow : public GenericHashEntry {
 #endif
 
   inline bool isCliDeviceAllowedProtocol() const {
-    return !cli_host ||
-           cli_host->getDeviceAllowedProtocolStatus(
-               get_detected_protocol(), true) == device_proto_allowed;
+    return !cli_host
+      || cli_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), true) == device_proto_allowed;
   }
   inline bool isSrvDeviceAllowedProtocol() const {
     return !srv_host ||
-           get_bytes_srv2cli() ==
-               0 /* Server must respond to be considered NOT allowed */
-           || srv_host->getDeviceAllowedProtocolStatus(
-                  get_detected_protocol(), false) == device_proto_allowed;
+           get_bytes_srv2cli() == 0 /* Server must respond to be considered NOT allowed */
+           || srv_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), false) == device_proto_allowed;
   }
   inline bool isDeviceAllowedProtocol() const {
     return isCliDeviceAllowedProtocol() && isSrvDeviceAllowedProtocol();
   }
   inline u_int16_t getCliDeviceDisallowedProtocol() const {
-    DeviceProtoStatus cli_ps =
-        cli_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), true);
-    return (cli_ps == device_proto_forbidden_app)
-               ? ndpiDetectedProtocol.app_protocol
+    DeviceProtoStatus cli_ps = cli_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), true);
+    
+    return (cli_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol
                : ndpiDetectedProtocol.master_protocol;
   }
   inline u_int16_t getSrvDeviceDisallowedProtocol() const {
-    DeviceProtoStatus srv_ps = srv_host->getDeviceAllowedProtocolStatus(
-        get_detected_protocol(), false);
-    return (srv_ps == device_proto_forbidden_app)
-               ? ndpiDetectedProtocol.app_protocol
+    DeviceProtoStatus srv_ps = srv_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), false);
+    
+    return (srv_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol
                : ndpiDetectedProtocol.master_protocol;
   }
   inline bool isMaskedFlow() const {
-    return (Utils::maskHost(get_cli_ip_addr()->isLocalHost()) ||
-            Utils::maskHost(get_srv_ip_addr()->isLocalHost()));
+    return (Utils::maskHost(get_cli_ip_addr()->isLocalHost())
+            || Utils::maskHost(get_srv_ip_addr()->isLocalHost()));
   };
   inline const char *getServerCipherClass() const {
-    return (isTLS() ? cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher)
-                    : NULL);
+    return (isTLS() ? cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher) : NULL);
   }
   char *serialize(bool use_labels = false);
   /* Prepares an alert JSON and puts int in the resulting `serializer`. */
@@ -931,6 +920,7 @@ class Flow : public GenericHashEntry {
   void lua_get_ip(lua_State *vm, bool client) const;
   void lua_get_mac(lua_State *vm, bool client) const;
   void lua_get_info(lua_State *vm, bool client) const;
+  void lua_get_sip_info(lua_State *vm) const;
   void lua_get_tls_info(lua_State *vm) const;
   void lua_get_ssh_info(lua_State *vm) const;
   void lua_get_http_info(lua_State *vm) const;
@@ -948,6 +938,7 @@ class Flow : public GenericHashEntry {
   void getTLSInfo(ndpi_serializer *serializer) const;
   void getMDNSInfo(ndpi_serializer *serializer) const;
   void getNetBiosInfo(ndpi_serializer *serializer) const;
+  void getSIPInfo(ndpi_serializer *serializer) const;
   void getSSHInfo(ndpi_serializer *serializer) const;
 
   bool equal(const Mac *src_mac, const Mac *dst_mac, const IpAddress *_cli_ip,
@@ -974,6 +965,7 @@ class Flow : public GenericHashEntry {
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void fillZMQFlowCategory(ndpi_protocol *res);
   void setDHCPHostName(const char* name);
+  void setSIPCallId(const char* name);
   inline void setICMP(bool src2dst_direction, u_int8_t icmp_type,
                       u_int8_t icmp_code, u_int8_t *icmpdata) {
     if (isICMP()) {
