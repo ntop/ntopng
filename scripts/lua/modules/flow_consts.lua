@@ -462,7 +462,9 @@ flow_consts.flow_fields_description = {
    ["SIP_REASON_CAUSE"] = i18n("flow_fields_description.sip_reason_cause"),
    ["SIP_C_IP"] = i18n("flow_fields_description.sip_c_ip"),
    ["SIP_CALL_STATE"] = i18n("flow_fields_description.sip_call_state"),
-
+   ["SIP_UAC"] = i18n("flow_fields_description.sip_uac"),
+   ["SIP_UAS"] = i18n("flow_fields_description.sip_uas"),
+   
    -- SMTP Protocol
    ["SMTP_MAIL_FROM"] = i18n("flow_fields_description.smtp_mail_from"),
    ["SMTP_RCPT_TO"] = i18n("flow_fields_description.smtp_rcpt_to"),
