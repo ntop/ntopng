@@ -67,9 +67,9 @@ if not isEmptyString(_GET["sort"]) then
     flows_filter.sortColumn = mapping_column_lua_c[_GET["sort"]]
     local order = _GET["order"]
     if order == "asc" then
-        flows_filter.a2zSortOrder = false
-    else
         flows_filter.a2zSortOrder = true
+    else
+        flows_filter.a2zSortOrder = false
     end
 end
 
