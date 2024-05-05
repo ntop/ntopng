@@ -5449,6 +5449,24 @@ std::string Flow::getFlowInfo(bool isLuaRequest) {
     } else if (isSIP()) {
       if(protos.sip.call_id)
 	info_field = std::string(protos.sip.call_id);
+    } else if(isProto(NDPI_PROTOCOL_SKYPE_TEAMS_CALL)
+	      || isProto(NDPI_PROTOCOL_ZOOM)) {
+      switch(rtp_stream_type) {
+      case ndpi_multimedia_unknown_flow:
+	break;
+	
+      case ndpi_multimedia_audio_flow:
+	info_field = std::string("<i class='fa fa-lg fa-volume-up'></i> Audio");
+	break;
+	
+      case ndpi_multimedia_video_flow:
+	info_field = std::string("<i class='fa fa-lg fa-video'></i> Video");
+	break;
+	
+      case ndpi_multimedia_screen_sharing_flow:
+	info_field = std::string("<i class='fa fa-lg fa-binoculars'></i> Desktop Sharing");
+	break;
+      }
     }
   }
 
