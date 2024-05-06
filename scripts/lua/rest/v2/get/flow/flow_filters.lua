@@ -60,17 +60,6 @@ if not host then
         value = "",
         label = i18n("all")
     }}
-    local host = _GET["flowhosts_type"] or nil
-    if not isEmptyString(host) then
-        host = hostkey2hostinfo(host)
-        if host then
-            hosts_type_filters[#hosts_type_filters + 1] = {
-                key = "flowhosts_type",
-                value = _GET["flowhosts_type"],
-                label = hostinfo2label(host, true)
-            }
-        end
-    end
 
     local hosts_type_filters2 = {{
         key = "flowhosts_type",

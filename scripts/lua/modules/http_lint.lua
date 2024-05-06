@@ -1248,12 +1248,14 @@ local function validateFlowHostsTypeOrIpVersionOrIp(p)
       local version = split(p, "ip_version_")
       return validateIpVersion(version[2])
    else
+      local is_host_type = validateFlowHostsType(p)
       local host = hostkey2hostinfo(p)
-      if host then
+      if host and not is_host_type then
          return validateHost(p)
+      else
+         return is_host_type
       end
    end
-   return validateFlowHostsType(p)
 end
 
 local function validateShapedElement(elem_id)

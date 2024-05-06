@@ -29,14 +29,6 @@ if not isEmptyString(ip_version) then
         _GET["flowhosts_type"] = nil
     end
 end
-local host = _GET["flowhosts_type"] or nil
-if not isEmptyString(host) then
-    host = hostkey2hostinfo(host)
-    if host then
-        _GET["host"] = _GET["flowhosts_type"]
-        _GET["flowhosts_type"] = nil
-    end
-end
 
 local throughput_type = getThroughputType()
 local ifid = interface.getId()
