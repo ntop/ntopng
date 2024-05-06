@@ -2075,7 +2075,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             })
         prefsInputFieldPrefs(subpage_active.entries["toggle_flow_aggregated_limit"].title,
             subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
-            "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound or 1000, "number",
+            "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound or 10000, "number",
             showAggregateFlowsPrefs, false, nil, {
                 min = 10000,
                 max = 10000000

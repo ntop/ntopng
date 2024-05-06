@@ -153,7 +153,7 @@ Prefs::Prefs(Ntop *_ntop) {
   global_dns_forging_enabled = false;
 #ifdef NTOPNG_PRO
   dump_flows_direct = false;
-  max_aggregated_flows_upperbound = 1000, max_aggregated_flows_traffic_upperbound = 1;
+  max_aggregated_flows_upperbound = 10000, max_aggregated_flows_traffic_upperbound = 1;
   is_geo_map_score_enabled = is_geo_map_asname_enabled =
     is_geo_map_alerted_flows_enabled = false;
   is_geo_map_blacklisted_flows_enabled = is_geo_map_host_name_enabled = false;
@@ -865,7 +865,7 @@ void Prefs::reloadPrefsFromRedis() {
   is_geo_map_asname_enabled =
     getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_ASNAME_ENABLED, false);
   max_aggregated_flows_upperbound =
-    getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_UPPERBOUND, 1000);
+    getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_UPPERBOUND, 10000);
   max_aggregated_flows_traffic_upperbound =
     getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_TRAFFIC_UPPERBOUND, 1);
   is_geo_map_alerted_flows_enabled = getDefaultPrefsValue(
