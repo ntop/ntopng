@@ -151,6 +151,8 @@ void IpAddress::checkIP() {
       addr.multicastIP = true;
     else if ((a == 0xFFFFFFFF) || (a == 0))
       addr.broadcastIP = true;
+    else if ((a == 0x7F000001))
+      addr.localIP = true;
     else if (ntop->isLocalAddress(AF_INET, &addr.ipType.ipv4, &local_network_id,
                                   &nmask_bits)) {
       addr.localIP = true;
@@ -217,6 +219,8 @@ int IpAddress::compare(const IpAddress *const ip) const {
 
 bool IpAddress::isLocalInterfaceAddress() {
   bool systemHost;
+  int16_t local_network_id;
+  u_int8_t nmask_bits;
 
   if (addr.ipVersion == 4) {
     systemHost = ntop->isLocalInterfaceAddress(AF_INET, &addr.ipType.ipv4);
