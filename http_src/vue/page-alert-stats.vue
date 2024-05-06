@@ -188,7 +188,7 @@ const href_download_records = computed(() => {
     }
     // add impossible if on ref variable to reload this expression every time count_page_components_reloaded.value change
     if (count_page_components_reloaded.value < 0) { throw "never run"; }
-    const download_endpoint = props.context.download.endpoint;
+    const download_endpoint = props.context.download.endpoint.replace('PAGE', page);
     let params = ntopng_url_manager.get_url_object();
     let columns = table_alerts.value.get_columns_defs();
     let visible_columns = columns.filter((c) => c.visible).map((c) => c.id).join(",");
