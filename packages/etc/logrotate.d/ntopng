@@ -1,8 +1,7 @@
 /var/log/ntopng.log {
+	maxsize 100M
 	daily
 	missingok
 	rotate 4
 	copytruncate
 }
-
-
