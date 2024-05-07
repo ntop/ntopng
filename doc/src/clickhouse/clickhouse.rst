@@ -99,6 +99,22 @@ For example:
 
     ./ntopng -F="clickhouse;127.0.0.1@9440s;ntopng;default;default`
 
+Securing the Connection in ClickHouse Cloud
+===========================================
+
+To secure the connection in ClickHouse Cloud, instead, the only thing to configure is adding the `s` character in the `-F` option after the ports list, when starting ntopng (or in the configuration file),
+without needing to configure anything else.
+For example:
+
+.. code:: bash 
+
+    ./ntopng -F="clickhouse-cloud;127.0.0.1@9440,3306s;ntopng;default,default;default`
+
+.. note::
+
+   Securing the connection when using ClickHouse Cloud is highly recommended,
+   moreover ClickHouse Cloud by default only accepts secured connections
+
 ClickHouse Is Eating All My Disk/Memory !
 -----------------------------------------
 

@@ -618,7 +618,7 @@ void usage() {
 	 "ClickHouse Cloud (Enterprise M/L/XL)\n"
 	 "                                    |   Format:\n"
 	 "                                    |   clickhouse-cloud;<host[@[<tcp-"
-	 "port>,]<mysql-port]|socket>;<dbname>;<clickhouse-user><mysql-user>;<pw>;\n"
+	 "port>,]<mysql-port]|socket>;<dbname>;<clickhouse-user>,<mysql-user>;<pw>;\n"
 	 "                                    |   Example:\n"
 	 "                                    |   "
 	 "clickhouse-cloud;europe-east15.clickhouse.cloud@9440,3306s;ntopng;default,mysql-user;mych-password\n"

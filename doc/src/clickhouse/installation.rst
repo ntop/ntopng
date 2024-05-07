@@ -25,3 +25,24 @@ Cluster Configuration
 
 For large deployments or data replication, a cluster is a better option with respect to a stand-alone database deployment. At `this page <https://github.com/ntop/ntopng/tree/dev/clickhouse>`_ we share simple configuration notes for deploying a ClickHouse cluster in minutes.
 
+ClickHouse Cloud
+================
+
+In case instead of ClickHouse Cloud, the configuration is quite simple; after creating the service on ClickHouse Cloud, enable the MySQL Connection from the `Connect` section.
+Then add to the ntopng configuration file the `-F` option correctly configured:
+
+.. code:: bash
+	  
+    clickhouse-cloud;<host[@port]|socket>;<dbname>;<clickhouse-user>,<mysql-user>;<pw>;<cluster name>
+
+For example:
+
+.. code:: bash
+
+    ./ntopng -F="clickhouse-cloud;my-cloud-host.clickhouse.org@9440,3306s;ntopng;ch-user,mysql-user;ch-password"
+
+.. note::
+  The `s` after the ports, means to use a secured connection, see for more info.
+
+.. note::
+  Even when using ClickHouse Cloud, clickhouse-client is needed in the local machine.

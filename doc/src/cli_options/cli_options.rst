@@ -155,18 +155,19 @@ ntopng supports a large number of command line parameters. To see what they are,
 	                                    |   clickhouse-cluster;127.0.0.1;ntopng;default;ntop_cluster
 	                                    |   You can also use just -F clickhouse-cluster as alias of:
 	                                    |   -F "clickhouse-cluster;127.0.0.1@9000,9004;ntopng;default;ntop_cluster"
-										|
-										| clickhouse-cloud    Dump in ClickHouse Cloud (Enterprise M/L/XL)
-										|   Format:
-										|   clickhouse-cloud;<host[@[<tcp-port>,]<mysql-port]|socket>;<dbname>;<clickhouse-user><mysql-user>;<pw>;
-										|   Example:
-										|   -F "clickhouse-cloud;europe-east15.clickhouse.cloud@9440,3306s;ntopng;default,mysql-user;mych-password"
-										| NOTE:
-										| 	- 's' after the ports stands for secure, using TLS to encrypt the communication
-										| 	- clickhouse-user used by clickhouse-client
-										| 	- mysql-user used for queries
-										| 	- tcp-port used by clickhouse-client
-										| 	- mysql-port used for queries
+	                                    |
+	                                    | clickhouse-cloud    Dump in ClickHouse Cloud (Enterprise M/L/XL)
+	                                    |   Format:
+	                                    |   clickhouse-cloud;<host[@[<tcp-port>,]<mysql-port]|socket>;<dbname>;<clickhouse-user>,<mysql-user>;<pw>
+	                                    |   Example:
+	                                    |   -F "clickhouse-cloud;europe-east15.clickhouse.cloud@9440,3306s;ntopng;default,mysql-user;mych-password"
+	                                    | NOTE:
+	                                    |   - 's' after the ports stands for secure, using TLS to encrypt the communication
+	                                    |   - clickhouse-user used by clickhouse-client
+	                                    |   - mysql-user used for queries
+	                                    |   - clickhouse-user and mysql-user are separated by a ','
+	                                    |   - tcp-port used by clickhouse-client
+	                                    |   - mysql-port used for queries
 	                                    |
 	                                    | kafka   Dump to Kafka (Enterprise M/L/XL)
 	                                    |   Format:
