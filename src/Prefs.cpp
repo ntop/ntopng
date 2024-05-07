@@ -285,7 +285,9 @@ Prefs::~Prefs() {
   if (mysql_host) free(mysql_host);
   if (mysql_dbname) free(mysql_dbname);
   if (mysql_user) free(mysql_user);
+#if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO) && defined(HAVE_MYSQL)
   if (ch_user) free(ch_user);
+#endif
   if (mysql_pw) free(mysql_pw);
   if (ls_host) free(ls_host);
   if (ls_port) free(ls_port);
@@ -1931,7 +1933,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 	    }
 	  }
 
-    if (use_clickhouse_cloud) {
+    if (use_clickhouse_cloud) {      
+#if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO) && defined(HAVE_MYSQL)
       char *comma;
       if ((comma = strchr(mysql_user, ','))) {
 		    ch_user = mysql_user;
@@ -1950,6 +1953,7 @@ int Prefs::setOption(int optkey, char *optarg) {
         mysql_pw = strdup((char *)"");
         ch_user = NULL; /* No CH user by default */
       }
+#endif
     }
 
 	  if (use_clickhouse_cluster &&
