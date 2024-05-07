@@ -171,6 +171,10 @@ class Prefs {
   bool json_labels_string_format;
   char *es_type, *es_index, *es_url, *es_user, *es_pwd, *es_host;
   char *mysql_host, *mysql_dbname, *mysql_user, *mysql_pw;
+#if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO) && defined(HAVE_MYSQL)
+  char *ch_user; /* In case of ch cloud, 2 users are needed, 
+                    one for mysql and one for ch */
+#endif
 #if !defined(WIN32) && !defined(__APPLE__)
   int flows_syslog_facility;
 #endif
@@ -487,6 +491,10 @@ class Prefs {
   inline char* get_mysql_dbname() { return (mysql_dbname); };
   inline char* get_mysql_tablename() { return ((char*)"flows"); };
   inline char* get_mysql_user() { return (mysql_user); };
+#if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO) && defined(HAVE_MYSQL)
+  /* If this is not NULL, it means that the user is using CH Cloud */
+  inline char* get_ch_user() { return (ch_user); };
+#endif
   inline char* get_mysql_pw() { return (mysql_pw); };
 #if !defined(WIN32) && !defined(__APPLE__)
   inline int get_flows_syslog_facility() { return (flows_syslog_facility); };

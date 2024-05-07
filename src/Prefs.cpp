@@ -201,6 +201,9 @@ Prefs::Prefs(Ntop *_ntop) {
     es_host = strdup((char *)"");
 
   mysql_host = mysql_dbname = mysql_user = mysql_pw = NULL;
+#if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO) && defined(HAVE_MYSQL)
+  ch_user = NULL;
+#endif
   mysql_port = CONST_DEFAULT_MYSQL_PORT;
   clickhouse_tcp_port = CONST_DEFAULT_CLICKHOUSE_TCP_PORT;
   mysql_port_secure = clickhouse_tcp_port_secure = false; /* No TLS */
@@ -282,6 +285,7 @@ Prefs::~Prefs() {
   if (mysql_host) free(mysql_host);
   if (mysql_dbname) free(mysql_dbname);
   if (mysql_user) free(mysql_user);
+  if (ch_user) free(ch_user);
   if (mysql_pw) free(mysql_pw);
   if (ls_host) free(ls_host);
   if (ls_port) free(ls_port);
@@ -606,7 +610,22 @@ void usage() {
 	 "                                    | NOTE:\n"
 	 "                                    | - tcp-port used by clickhouse-client\n"
 	 "                                    | - mysql-port used for queries\n"
+	 "                                    |\n"
 #endif
+	 "                                    | clickhouse-cloud    Dump in "
+	 "ClickHouse Cloud (Enterprise M/L/XL)\n"
+	 "                                    |   Format:\n"
+	 "                                    |   clickhouse-cloud;<host[@[<tcp-"
+	 "port>,]<mysql-port]|socket>;<dbname>;<clickhouse-user><mysql-user>;<pw>;\n"
+	 "                                    |   Example:\n"
+	 "                                    |   "
+	 "clickhouse-cloud;europe-east15.clickhouse.cloud@9440,3306s;ntopng;default,mysql-user;mych-password\n"
+	 "                                    | NOTE:\n"
+	 "                                    | - clickhouse-user used by clickhouse-client\n"
+	 "                                    | - mysql-user used for queries\n"
+	 "                                    | - tcp-port used by clickhouse-client\n"
+	 "                                    | - mysql-port used for queries\n"
+	 "                                    |\n"
 	 ,
 	 CONST_DEFAULT_CLICKHOUSE_TCP_PORT, CONST_DEFAULT_CLICKHOUSE_MYSQL_PORT
 #ifndef HAVE_NEDGE
@@ -1844,7 +1863,8 @@ int Prefs::setOption(int optkey, char *optarg) {
 
     else if ((!strncmp(optarg, "mysql", 5)) ||
 	     (!strncmp(optarg, "clickhouse", 10)) ||
-	     (!strncmp(optarg, "clickhouse-cluster", 18))) {
+	     (!strncmp(optarg, "clickhouse-cluster", 18)) ||
+       (!strncmp(optarg, "clickhouse-cloud", 16))) {
 #ifdef HAVE_MYSQL
       char *sep = strchr(optarg, ';');
 
@@ -1853,9 +1873,11 @@ int Prefs::setOption(int optkey, char *optarg) {
       } else {
 	bool all_good = true;
 	bool use_clickhouse_cluster;
+	bool use_clickhouse_cloud;
 
 	dump_flows_on_clickhouse = (optarg[0] == 'c') ? true : false;
 	use_clickhouse_cluster   = (strncmp(optarg, "clickhouse-cluster", 18) == 0) ? true : false;
+	use_clickhouse_cloud   = (strncmp(optarg, "clickhouse-cloud", 16) == 0) ? true : false;
 
 	if (dump_flows_on_clickhouse) {
 	  /* Check if CLICKHOUSE_CLIENT is present */
@@ -1908,6 +1930,27 @@ int Prefs::setOption(int optkey, char *optarg) {
 	      if (optarg) clickhouse_cluster_name = strdup(optarg);
 	    }
 	  }
+
+    if (use_clickhouse_cloud) {
+      char *comma;
+      if ((comma = strchr(mysql_user, ','))) {
+		    ch_user = mysql_user;
+        *(comma++) = '\0';
+        mysql_user = comma;
+      }
+      if (!ch_user || !mysql_user) {
+        /* Falling back to default values */
+        ntop->getTrace()->traceEvent(TRACE_WARNING,
+                  "Invalid MySQL or ClickHouse user, falling back to local ClickHouse [ClickHouse user: %s, MySQL user: %s]",
+                  ch_user ? ch_user : "", mysql_user ? mysql_user : "");
+                  
+        mysql_host = strdup((char *)"127.0.0.1");
+        mysql_dbname = strdup((char *)"ntopng");
+        mysql_user = strdup((char *)"default");
+        mysql_pw = strdup((char *)"");
+        ch_user = NULL; /* No CH user by default */
+      }
+    }
 
 	  if (use_clickhouse_cluster &&
 	      ((clickhouse_cluster_name == NULL) ||
