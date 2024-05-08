@@ -54,7 +54,7 @@ import { default as PageSNMPInterfaces } from "./page-snmp-interfaces.vue"
 import { default as PageTopology } from "./page-topology.vue"
 import { default as PageSNMPDevices } from "./page-snmp-devices.vue"
 import { default as PageBlacklists } from "./page-blacklists.vue"
-import { default as PageHistoricalFlow } from "./page-historical-flow.vue"
+import { default as PageHistoricalFlow } from "./page-historical-flow-details.vue"
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
