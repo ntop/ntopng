@@ -140,7 +140,7 @@ void LocalHost::initialize() {
 
   /* Only increase the number of host if it's a unicast host */
   if(isLocalUnicastHost()) {
-    iface->incNumHosts(true /* Local Host */, isRxOnlyHost());
+    iface->incNumHosts(true /* Local Host */, true /* Init the host, so bytes are 0 */);
     
     if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
       ns->incNumHosts();
