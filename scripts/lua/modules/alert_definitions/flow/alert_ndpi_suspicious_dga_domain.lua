@@ -39,37 +39,7 @@ end
 -- #######################################################
 
 function alert_ndpi_suspicious_dga_domain.format(ifid, alert, alert_type_params)
-    local domain = alert_type_params.dga_domain
-    local href = ''
-    local info = ''
-
-    if not isEmptyString(domain) then
-        -- URL check
-        local url = alert_type_params.dga_domain
-        if string.find(url, 'https') then
-            url = url:gsub('://', '')
-            url = url:gsub('https', '')
-        end
-
-        local proto = string.lower(interface.getnDPIProtoName(tonumber(alert["l7_master_proto"])))
-        proto = ternary(((proto) and (proto == 'http')), 'http', 'https')
-        href = url
-    end
-
-    if alert_type_params.proto and alert_type_params.proto.http then
-        return i18n("alert_messages.suspicious_dga_domain_http", {
-            domain = domain,
-            href = href,
-            info = info
-        })
-    else
-        return i18n("alert_messages.suspicious_dga_domain_other", {
-            domain = domain,
-            href = href,
-            info = info
-        })
-    end
-
+    return
 end
 
 -- #######################################################
