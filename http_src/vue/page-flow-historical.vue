@@ -223,7 +223,7 @@ onBeforeMount(async () => {
     init_params();
     init_url_params();
     await set_query_presets();
-    ntopng_events_manager.on_event_change('range_picker', ntopng_events.EPOCH_CHANGE, (new_status) => {debugger; update_show_download_pcap(new_status);}, true);
+    ntopng_events_manager.on_event_change('range_picker', ntopng_events.EPOCH_CHANGE, (new_status) => {update_show_download_pcap(new_status);}, true);
     mount_range_picker.value = true;
 });
 
@@ -525,11 +525,14 @@ const map_table_def_columns = async (columns) => {
                 row_data: props.context.is_enterprise_xl && flows_aggregated.value,
             };
             c.button_def_array.forEach((b) => {
-                // if is not defined is enabled
-                if (visible_dict[b.id] != null && visible_dict[b.id] == false) {
-                    b.class.push("link-disabled");
-                } else if (b.id == 'pcap_download' && !show_pcap_download.value) {
-                    b.class.push("link-disabled");
+                b.f_map_class = (current_class) => {
+                    // if is not defined is enabled
+                    if (b.id == 'pcap_download' && show_pcap_download.value === false) {
+                        current_class.push("link-disabled");
+                    } else if (visible_dict[b.id] != null && visible_dict[b.id] == false) {
+                        current_class.push("link-disabled");
+                    }
+                    return current_class;
                 }
             });
         }
