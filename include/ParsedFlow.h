@@ -30,7 +30,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   json_object *additional_fields_json;
   ndpi_serializer *additional_fields_tlv;
   char *l7_info;
-  char *http_url, *http_site, *http_user_agent;
+  char *http_url, *http_site, *http_user_agent, *sip_call_id;
   ndpi_http_method http_method;
   char *dns_query;
   char *end_reason;
@@ -95,6 +95,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   void setHTTPsite(const char *str) { if(http_site != NULL) free(http_site);  if(str) { http_site = strdup(str);} else http_site = NULL; }
   void setHTTPuserAgent(const char *str) { if(http_user_agent != NULL) free(http_user_agent);  if(str) { http_user_agent = strdup(str);} else http_user_agent = NULL; }
   void setHTTPMethod(ndpi_http_method m) { http_method = m; }
+  void setSIPCallId(const char *str) { if(sip_call_id != NULL) free(sip_call_id); if(str) { sip_call_id = strdup(str);} else sip_call_id = NULL; }
   void setDNSQuery(const char *str) { if(dns_query != NULL) free(dns_query);  if(str) { dns_query = strdup(str);} else dns_query = NULL; }
   void setTLSserverName(const char *str) { if(tls_server_name != NULL) free(tls_server_name);  if(str) { tls_server_name = strdup(str);} else tls_server_name = NULL; }
   void setBittorrentHash(const char *str) { if(bittorrent_hash != NULL) free(bittorrent_hash);  if(str) { bittorrent_hash = strdup(str);} else bittorrent_hash = NULL; }
@@ -121,6 +122,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline char* getHTTPurl(bool setToNULL = false) { char *r = http_url; if(setToNULL) http_url = NULL; return(r); }
   inline char* getHTTPsite(bool setToNULL = false) { char *r = http_site; if(setToNULL) http_site = NULL; return(r); }
   inline char* getHTTPuserAgent(bool setToNULL = false) { char *r = http_user_agent; if(setToNULL) http_user_agent = NULL; return(r); }
+  inline char* getSIPCallId(bool setToNull = false) { char *r = sip_call_id; if(setToNull) sip_call_id = NULL; return(r); }
   inline ndpi_http_method getHTTPMethod() { return(http_method); }
   inline char* getDNSQuery(bool setToNULL = false) { char *r = dns_query; if(setToNULL) dns_query = NULL; return(r); }
   inline char* getTLSserverName(bool setToNULL = false) { char *r = tls_server_name; if(setToNULL) tls_server_name = NULL; return(r); }

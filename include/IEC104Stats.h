@@ -63,7 +63,7 @@ class IEC104Stats {
                      u_int16_t payload_len, struct timeval *packet_time);
 
   void lua(lua_State *vm);
-  char *getFlowInfo(char *buf, u_int buf_len);
+  std::string getFlowInfo();
 };
 
 #endif /* _IEC104_STATS_H_ */

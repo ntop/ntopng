@@ -982,17 +982,17 @@ end
 function mapCallState(call_state)
     --  return call_state
     if (call_state == "CALL_STARTED") then
-        return (i18n("flow_details.call_started"))
+        return ("<span class=\"badge bg-secondary\">" .. (i18n("flow_details.call_started")) .. "</span>")
     elseif (call_state == "CALL_IN_PROGRESS") then
-        return (i18n("flow_details.ongoing_call"))
+        return ("<span class=\"badge bg-info\"><i class=\"fas fa-phone\"></i> " .. i18n("flow_details.ongoing_call") .. "</span>")
     elseif (call_state == "CALL_COMPLETED") then
-        return ("<font color=green>" .. i18n("flow_details.call_completed") .. "</font>")
+        return ("<span class=\"badge bg-success\">" .. i18n("flow_details.call_completed") .. "</span>")
     elseif (call_state == "CALL_ERROR") then
-        return ("<font color=red>" .. i18n("flow_details.call_error") .. "</font>")
+        return ("<span class=\"badge bg-danger\">" .. i18n("flow_details.call_error") .. "</span>")
     elseif (call_state == "CALL_CANCELED") then
-        return ("<font color=orange>" .. i18n("flow_details.call_canceled") .. "</font>")
+        return ("<span class=\"badge bg-warning\">" .. i18n("flow_details.call_canceled") .. "</span>")
     else
-        return (call_state)
+        return ("<span class=\"badge bg-secondary\">" .. call_state .. "</span>")
     end
 end
 
@@ -1089,7 +1089,7 @@ end
 
 -- #######################
 
-function getSIPTableRows(info)
+function getSIPTableRows(flow, info)
     local string_table = ""
     local call_id = ""
     local call_id_ico = "<i class='fas fa-phone' aria-hidden='true'></i>&nbsp;"
@@ -1101,7 +1101,7 @@ function getSIPTableRows(info)
     local print_second = 0
     local print_second_2 = 0
     -- check if there is a SIP field
-    sip_found = isThereProtocol("SIP", info)
+    local sip_found = isThereProtocol("SIP", info)
 
     if (sip_found == 1) then
         sip_found = isThereSIPCall(info)
@@ -1109,7 +1109,11 @@ function getSIPTableRows(info)
     if (sip_found == 1) then
         string_table = string_table .. "<tr><th colspan=3 >" .. i18n("flow_details.sip_protocol_information") ..
                            "</th></tr>\n"
-        call_id = getFlowValue(info, "SIP_CALL_ID")
+        if (isEmptyString(flow["info"])) then
+            call_id = getFlowValue(info, "SIP_CALL_ID")
+        else
+            call_id = flow["info"]
+        end
         if ((call_id == nil) or (call_id == "")) then
             string_table = string_table .. "<tr id=\"call_id_tr\" style=\"display: none;\"><th width=33%> " ..
                                i18n("flow_details.call_id") .. " " .. call_id_ico ..
@@ -1156,6 +1160,7 @@ function getSIPTableRows(info)
         local string_table_4 = ""
         local string_table_5 = ""
         local show_rtp_stream = 0
+        
         if ((getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR") ~= nil) and (getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR") ~= "")) then
             sip_rtp_src_addr = 1
             string_table_1 = getFlowValue(info, "SIP_RTP_IPV4_SRC_ADDR")
@@ -1240,8 +1245,8 @@ function getSIPTableRows(info)
         end
         string_table = string_table .. "</div></td></tr>\n"
 
-        val, val_original = getFlowValue(info, "SIP_REASON_CAUSE")
-        if (val_original ~= "0") then
+        val, val_original = getFlowValue(info, "SIP_REASON_CAUSE")       
+        if (tostring(val_original) ~= "0") then
             string_table = string_table ..
                                "<tr id=\"cbf_reason_cause_tr\" style=\"display: table-row;\"><th width=33%> " ..
                                i18n("flow_details.cancel_bye_failure_reason_cause") ..
@@ -1387,7 +1392,7 @@ function getRTPTableRows(info)
                 rtp_out_jitter_hide = "style=\"display: table-row;\""
             end
             string_table = string_table .. "<tr id=\"jitter_id_tr\" " .. rtp_out_jitter_hide ..
-                               "><th style=\"text-align:right\">" .. i18n("flow_details.jitter") ..
+                               "><th>" .. i18n("flow_details.jitter") ..
                                "</th><td><span id=jitter_in>"
 
             if ((rtp_in_jitter ~= nil) and (rtp_in_jitter ~= "")) then
@@ -1412,7 +1417,7 @@ function getRTPTableRows(info)
                 rtp_packet_loss_hide = "style=\"display: table-row;\""
             end
             string_table = string_table .. "<tr id=\"rtp_packet_loss_id_tr\" " .. rtp_packet_loss_hide ..
-                               "><th style=\"text-align:right\">" .. i18n("flow_details.lost_packets") ..
+                               "><th>" .. i18n("flow_details.lost_packets") ..
                                "</th><td><span id=packet_lost_in>"
 
             if ((rtp_in_pkt_lost ~= nil) and (rtp_in_pkt_lost ~= "")) then
@@ -1438,7 +1443,7 @@ function getRTPTableRows(info)
                 rtp_pkt_drop_hide = "style=\"display: table-row;\""
             end
             string_table = string_table .. "<tr id=\"packet_drop_id_tr\" " .. rtp_pkt_drop_hide ..
-                               "><th style=\"text-align:right\">" .. i18n("flow_details.dropped_packets") ..
+                               "><th>" .. i18n("flow_details.dropped_packets") ..
                                "</th><td><span id=packet_drop_in>"
             if ((rtp_in_pkt_drop ~= nil) and (rtp_in_pkt_drop ~= "")) then
                 string_table = string_table .. formatPackets(rtp_in_pkt_drop)
@@ -1463,7 +1468,7 @@ function getRTPTableRows(info)
                 rtp_max_delta_hide = "style=\"display: table-row;\""
             end
             string_table = string_table .. "<tr id=\"delta_time_id_tr\" " .. rtp_max_delta_hide ..
-                               "><th style=\"text-align:right\">" .. i18n("flow_details.max_packet_interarrival_time") ..
+                               "><th>" .. i18n("flow_details.max_packet_interarrival_time") ..
                                "</th><td><span id=max_delta_time_in>"
             if ((rtp_in_max_delta ~= nil) and (rtp_in_max_delta ~= "")) then
                 string_table = string_table .. rtp_in_max_delta .. " ms "
@@ -1487,7 +1492,7 @@ function getRTPTableRows(info)
                 rtp_payload_hide = "style=\"display: table-row;\""
             end
             string_table = string_table .. "<tr id=\"payload_id_tr\" " .. rtp_payload_hide ..
-                               "><th style=\"text-align:right\">" .. i18n("flow_details.payload_type") ..
+                               "><th>" .. i18n("flow_details.payload_type") ..
                                "</th><td><div id=payload_type_in>" .. rtp_payload_in_var ..
                                "</div></td><td><div id=payload_type_out>" .. rtp_payload_out_var .. "</div></td></tr>\n"
         end
@@ -1504,7 +1509,7 @@ function getRTPTableRows(info)
             end
 
             string_table = string_table .. "<tr id=\"quality_mos_id_tr\" " .. quality_mos_hide .. ">" ..
-                               "<th style=\"text-align:right\">" .. i18n("flow_details.pseudo_mos") .. "</th>" ..
+                               "<th>" .. i18n("flow_details.pseudo_mos") .. "</th>" ..
                                "<td><span id=mos_in_signal></span><span id=mos_in>"
 
             if ((rtp_in_mos ~= nil) and (rtp_in_mos ~= "")) then
@@ -1533,7 +1538,7 @@ function getRTPTableRows(info)
                 quality_r_factor_hide = "style=\"display: table-row;\""
             end
             string_table = string_table .. "<tr id=\"quality_r_factor_id_tr\" " .. quality_r_factor_hide ..
-                               "><th style=\"text-align:right\">" .. i18n("flow_details.r_factor") ..
+                               "><th>" .. i18n("flow_details.r_factor") ..
                                "</th><td><span id=r_factor_in_signal></span><span id=r_factor_in>"
             if ((rtp_in_r_factor ~= nil) and (rtp_in_r_factor ~= "")) then
                 string_table = string_table .. RFactorPercentageBar(rtp_in_r_factor)

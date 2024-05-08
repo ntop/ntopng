@@ -27,6 +27,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   additional_fields_json = NULL;
   additional_fields_tlv = NULL;
   l7_info = NULL;
+  sip_call_id = NULL;
   http_url = http_site = http_user_agent = NULL;
   http_method = NDPI_HTTP_METHOD_UNKNOWN;
   dns_query = tls_server_name = end_reason = NULL;
@@ -121,6 +122,10 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf)
   else
     smtp_rcp_to = NULL;
   
+  if (pf.sip_call_id)
+    sip_call_id = strdup(pf.sip_call_id);
+  else
+    sip_call_id = NULL;
 
   tls_cipher = pf.tls_cipher;
   tls_unsafe_cipher = pf.tls_unsafe_cipher;
@@ -284,6 +289,7 @@ void ParsedFlow::freeMemory() {
   if (ndpi_flow_risk_name)  { free(ndpi_flow_risk_name); ndpi_flow_risk_name = NULL; }
   if (smtp_rcp_to)          { free(smtp_rcp_to); smtp_rcp_to = NULL; }
   if (smtp_mail_from)       { free(smtp_mail_from); smtp_mail_from = NULL; }
+  if (sip_call_id)          { free(sip_call_id); sip_call_id = NULL; }
 }
     
 /* *************************************** */

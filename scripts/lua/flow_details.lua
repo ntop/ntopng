@@ -1748,14 +1748,8 @@ else
         for key, value in pairs(info) do
             key, value = flow_field_value_maps.map_field_value(ifid, key, value)
 
-            local k = rtemplate[tonumber(key)]
-
-            if (k == nil) then
-                k = flow_consts.flow_fields_description[tostring(key)]
-            end
-
-            if (k ~= nil) then
-                syminfo[k] = value
+            if (key ~= nil) then
+                syminfo[key] = value
             else
                 local nprobe_description = interface.getZMQFlowFieldDescr(key)
 
@@ -1770,7 +1764,7 @@ else
 
         -- get SIP rows
         if (ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
-            local sip_table_rows = getSIPTableRows(info)
+            local sip_table_rows = getSIPTableRows(flow, info)
             print(sip_table_rows)
 
             isThereSIP = isThereProtocol("SIP", info)

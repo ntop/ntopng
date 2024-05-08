@@ -211,6 +211,10 @@ class Flow : public GenericHashEntry {
     } mining;
 
     struct {
+      char *call_id;
+    } sip;
+
+    struct {
       char * mail_from;
       char * rcpt_to;
     } smtp;
@@ -456,7 +460,8 @@ class Flow : public GenericHashEntry {
   inline bool isIEC60870() const { return (isProto(NDPI_PROTOCOL_IEC60870)); }
   inline bool isModbus()   const { return (isProto(NDPI_PROTOCOL_MODBUS));   }
   inline bool isMDNS() const { return (isProto(NDPI_PROTOCOL_MDNS)); }
-  inline bool isSSDP() const { return (isProto(NDPI_PROTOCOL_SSDP)); }
+  inline bool isSSDP() const { return (isProto(NDPI_PROTOCOL_SSDP)); }  
+  inline bool isSIP() const      { return (isProto(NDPI_PROTOCOL_SIP));      }
   inline bool isNetBIOS() const { return (isProto(NDPI_PROTOCOL_NETBIOS)); }
   inline bool isDHCP() const { return (isProto(NDPI_PROTOCOL_DHCP)); }
   inline bool isNTP() const { return (isProto(NDPI_PROTOCOL_NTP)); }
@@ -574,7 +579,7 @@ class Flow : public GenericHashEntry {
   static double toMs(const struct timeval *t);
   void timeval_diff(struct timeval *begin, const struct timeval *end,
                     struct timeval *result, u_short divide_by_two);
-  char *getFlowInfo(char *buf, u_int buf_len, bool isLuaRequest);
+  std::string getFlowInfo(bool isLuaRequest);
   inline char *getFlowServerInfo() {
     return (isTLS() && protos.tls.client_requested_server_name)
                ? protos.tls.client_requested_server_name
@@ -907,6 +912,7 @@ class Flow : public GenericHashEntry {
   void lua_get_info(lua_State *vm, bool client) const;
   void lua_get_tls_info(lua_State *vm) const;
   void lua_get_ssh_info(lua_State *vm) const;
+  void lua_get_sip_info(lua_State *vm) const;
   void lua_get_http_info(lua_State *vm) const;
   void lua_get_dns_info(lua_State *vm) const;
   void lua_get_tcp_info(lua_State *vm) const;
@@ -921,6 +927,7 @@ class Flow : public GenericHashEntry {
   void getICMPInfo(ndpi_serializer *serializer) const;
   void getTLSInfo(ndpi_serializer *serializer) const;
   void getMDNSInfo(ndpi_serializer *serializer) const;
+  void getSIPInfo(ndpi_serializer *serializer) const;
   void getNetBiosInfo(ndpi_serializer *serializer) const;
   void getSSHInfo(ndpi_serializer *serializer) const;
 
@@ -944,6 +951,7 @@ class Flow : public GenericHashEntry {
   void dissectNetBIOS(u_int8_t *payload, u_int16_t payload_len);
   void dissectBittorrent(char *payload, u_int16_t payload_len);
   void fillZMQFlowCategory(ndpi_protocol *res);
+  void setSIPCallId(const char* name);
   inline void setICMP(bool src2dst_direction, u_int8_t icmp_type,
                       u_int8_t icmp_code, u_int8_t *icmpdata) {
     if (isICMP()) {

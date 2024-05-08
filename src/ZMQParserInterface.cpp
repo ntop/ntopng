@@ -1183,6 +1183,10 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
       flow->setSMTPMailFrom(value->string);
     }
     break;
+  case SIP_CALL_ID:
+    if(value->string && value->string[0])
+      flow->setSIPCallId(value->string);
+    break;
 
   default:
     return false;
