@@ -219,8 +219,6 @@ int IpAddress::compare(const IpAddress *const ip) const {
 
 bool IpAddress::isLocalInterfaceAddress() {
   bool systemHost;
-  int16_t local_network_id;
-  u_int8_t nmask_bits;
 
   if (addr.ipVersion == 4) {
     systemHost = ntop->isLocalInterfaceAddress(AF_INET, &addr.ipType.ipv4);

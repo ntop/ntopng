@@ -1192,9 +1192,10 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
     break;
 
   case DST_PROC_CONTAINER_ID:
-    if (value->string && value->string[0])
+    if (value->string && value->string[0]) {
       flow->setParsedContainerInfo();
       flow->dst_container_info.id = strdup(value->string);
+    }
     break;
 
   case SMTP_RCPT_TO:
