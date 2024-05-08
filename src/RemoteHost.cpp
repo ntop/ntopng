@@ -77,5 +77,5 @@ void RemoteHost::initialize() {
     ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true);
   }
 
-  iface->incNumHosts(false /* Remote Host */, isRxOnlyHost());
+  iface->incNumHosts(false /* Remote Host */, true /* Init the host, so bytes are 0 */);
 }
