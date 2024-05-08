@@ -35,7 +35,7 @@ void RemoteAccess::protocolDetected(Flow *f) {
     case NDPI_PROTOCOL_CATEGORY_REMOTE_ACCESS:
     case NDPI_PROTOCOL_CATEGORY_VPN:
     case NDPI_PROTOCOL_CATEGORY_FILE_SHARING:
-      if (!f->isLocalToLocal() && (f->getTcpFlags() & TH_SYN)) {
+      if (!f->isLocalToLocal()) {
   #ifdef DEBUG_REMOTE_ACCESS
         ntop->getTrace()->traceEvent(
             TRACE_WARNING, "SYN Flag %s for flow %p; flags: %u",
