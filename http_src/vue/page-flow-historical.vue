@@ -39,7 +39,7 @@
                                     <a v-if="context.show_download" class="btn btn-link btn-sm"
                                         :title="_i18n('graphs.download_records')" :href="href_download_records"><i
                                             class="fas fa-lg fa-file"></i></a>
-                                    <button v-if="context.show_pcap_download" class="btn btn-link btn-sm"
+                                    <button v-if="context.show_pcap_download || show_pcap_download" class="btn btn-link btn-sm"
                                         @click="show_modal_traffic_extraction"
                                         :title="_i18n('traffic_recording.pcap_download')"><i
                                             class="fas fa-lg fa-download"></i></button>
@@ -123,7 +123,7 @@
 
 <script setup>
 import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
-import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_sync } from "../services/context/ntopng_globals_services";
+import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_sync, ntopng_events_manager } from "../services/context/ntopng_globals_services";
 import NtopUtils from "../utilities/ntop-utils";
 import { ntopChartApex } from "../components/ntopChartApex.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
@@ -163,6 +163,7 @@ const permanent_link_button = ref(null);
 const modal_alerts_filter = ref(null);
 const modal_acknowledge = ref(null);
 const modal_delete = ref(null);
+const show_pcap_download = ref(false);
 
 const current_alert = ref(null);
 const default_ifid = props.context.ifid;
@@ -222,6 +223,7 @@ onBeforeMount(async () => {
     init_params();
     init_url_params();
     await set_query_presets();
+    ntopng_events_manager.on_event_change('range_picker', ntopng_events.EPOCH_CHANGE, (new_status) => {debugger; update_show_download_pcap(new_status);}, true);
     mount_range_picker.value = true;
 });
 
@@ -407,6 +409,16 @@ const get_open_top_table_dropdown = (top, top_index) => {
         load_top_table_details(top, top_index);
     };
 };
+function update_show_download_pcap(new_status) {
+   const tmp_begin_epoch = new_status.epoch_begin;
+   const tmp_end_epoch = new_status.epoch_end;
+   const w_first_epoch = props.context.window_first_epoch;
+   const w_last_epoch = props.context.window_last_epoch;
+   show_pcap_download.value = tmp_begin_epoch >= w_first_epoch && 
+                              tmp_begin_epoch <= w_last_epoch && 
+                              tmp_end_epoch >= w_first_epoch && 
+                              tmp_end_epoch <= w_last_epoch;
+}
 
 async function register_components_on_status_update() {
     await ntopng_sync.on_ready("range_picker");
@@ -515,6 +527,8 @@ const map_table_def_columns = async (columns) => {
             c.button_def_array.forEach((b) => {
                 // if is not defined is enabled
                 if (visible_dict[b.id] != null && visible_dict[b.id] == false) {
+                    b.class.push("link-disabled");
+                } else if (b.id == 'pcap_download' && !show_pcap_download.value) {
                     b.class.push("link-disabled");
                 }
             });
