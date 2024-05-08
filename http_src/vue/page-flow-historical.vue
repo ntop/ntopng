@@ -412,8 +412,8 @@ const get_open_top_table_dropdown = (top, top_index) => {
 function update_show_download_pcap(new_status) {
    const tmp_begin_epoch = new_status.epoch_begin;
    const tmp_end_epoch = new_status.epoch_end;
-   const w_first_epoch = props.context.window_first_epoch;
-   const w_last_epoch = props.context.window_last_epoch;
+   const w_first_epoch = props.context.n2disk_window_first_epoch;
+   const w_last_epoch = props.context.n2disk_window_last_epoch;
    show_pcap_download.value = tmp_begin_epoch >= w_first_epoch && 
                               tmp_begin_epoch <= w_last_epoch && 
                               tmp_end_epoch >= w_first_epoch && 
