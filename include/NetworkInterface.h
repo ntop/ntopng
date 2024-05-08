@@ -1267,10 +1267,6 @@ public:
     ndpi_cleanup_needed = needed;
   }
   u_int16_t getnDPIProtoByName(const char *name);
-  inline void decNumSentRcvdHosts(bool isLocal) {
-    if (isLocal) numLocalRxOnlyHosts--;
-    numTotalRxOnlyHosts--;
-  }
   inline u_int32_t getNewFlowSerial() { return (flow_serial++); }
   bool resetHostTopSites(AddressTree *allowed_hosts, char *host_ip,
                          u_int16_t vlan_id, u_int16_t observationPointId);
