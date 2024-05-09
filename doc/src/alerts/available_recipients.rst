@@ -446,7 +446,7 @@ WeChat
 
 WeChat can be used to deliver alert information to a WeChat HTTP endpoint by configuring the URL in ntopng. 
 
-To obtain a valid WebHook URL of WeChat the user must be signed up on `WeChat <https://www.wechat.com/>`. After that, it is necessary to create a group chat and add a group robot there in order to obtain the WebHook URL of the group robot. For more information, check `here <https://open.work.weixin.qq.com/help2/pc/14206?person_id=undefined>`.
+To obtain a valid WebHook URL of WeChat the user must be signed up on `WeChat <https://www.wechat.com/>`_. After that, it is necessary to create a group chat and add a group robot there in order to obtain the WebHook URL of the group robot. For more information, check `here <https://open.work.weixin.qq.com/help2/pc/14206?person_id=undefined>`_.
 
 Alert information are provided to the webhook in JSON format by means of POST requests.
 
