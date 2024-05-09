@@ -446,6 +446,8 @@ WeChat
 
 WeChat can be used to deliver alert information to a WeChat HTTP endpoint by configuring the URL in ntopng. Alert information are provided to the webhook in JSON format by means of POST requests.
 
+.. figure:: ../img/wechat_endpoint.png
+
 
 TheHive
 ------
