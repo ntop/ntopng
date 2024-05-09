@@ -382,8 +382,6 @@ const update_v3_fields = () => {
     is_community_correct.value = true;
   } else {
     enable_v3_options.value = false;
-    is_community_correct.value = false;
-
   }
 }
 
