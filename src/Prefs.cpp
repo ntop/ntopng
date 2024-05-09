@@ -1936,10 +1936,14 @@ int Prefs::setOption(int optkey, char *optarg) {
     if (use_clickhouse_cloud) {      
 #if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO) && defined(HAVE_MYSQL)
       char *comma;
-      if ((comma = strchr(mysql_user, ','))) {
-		    ch_user = mysql_user;
+      char *tmp = mysql_user;
+      mysql_user = NULL;
+      if (tmp && (comma = strchr(tmp, ','))) {
+		    //ch_user = mysql_user;
         *(comma++) = '\0';
-        mysql_user = comma;
+        mysql_user = strdup(comma);
+        ch_user = strdup(tmp);
+        free(tmp);
       }
       if (!ch_user || !mysql_user) {
         /* Falling back to default values */
