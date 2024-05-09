@@ -151,7 +151,7 @@ void IpAddress::checkIP() {
       addr.multicastIP = true;
     else if ((a == 0xFFFFFFFF) || (a == 0))
       addr.broadcastIP = true;
-    else if ((a == 0x7F000001))
+    else if ((a & 0xFF000000) == 0x7F000000)
       addr.localIP = true;
     else if (ntop->isLocalAddress(AF_INET, &addr.ipType.ipv4, &local_network_id,
                                   &nmask_bits)) {
