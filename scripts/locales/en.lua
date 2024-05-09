@@ -5936,6 +5936,15 @@ local lang = {
         ["invalid_username"] = "Invalid Discord username.",
       },
     },
+    ["wechat"] = {
+      ["wechat_send_error"] = "Error sending message to WeChat.",
+      ["url"] = "WebHook URL",
+      ["webhook_description"] = "<ul><li>Specify a URL to reach the WeChat to use for indexing alerts. Example: https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=693axxx6-7aoc-4bc4-97a0-0ec2sifa5aaa</li></ul>",
+      ["validation"] = {
+        ["empty_url"] = "WeChat Webook URL cannot be empty.",
+        ["invalid_url"] = "Invalid WeChat Webhook URL.",
+      },
+    },
     ["elasticsearch"] = {
       ["description"] = "<ul><li>Specify a URL (including the port) to reach the Elasticsearch instance to use for indexing alerts. Example: http://localhost:9200/.</li><li>Specify a username and password if URL requires authentication.</li></ul>",
       ["index"] = "Index",

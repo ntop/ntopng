@@ -32,6 +32,8 @@ Currently available Endpoints/Recipients and license required are:
 +----------------+-----------+-----+--------------+--------------+
 | Webhook        | x         | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
+| WeChat         |           |     |              | x            |
++----------------+-----------+-----+--------------+--------------+
 | TheHive        |           | x   | x            | x            |
 +----------------+-----------+-----+--------------+--------------+
 
@@ -438,6 +440,11 @@ Webhooks can be used to deliver alert information to a HTTP endpoint by configur
 A Shared Secret can be configured in ntopng, which is an arbitrary string included in all JSON messages.
 
 A Username and Password can also be used to use HTTP Basic authentication.
+
+WeChat
+-------
+
+WeChat can be used to deliver alert information to a WeChat HTTP endpoint by configuring the URL in ntopng. Alert information are provided to the webhook in JSON format by means of POST requests.
 
 
 TheHive

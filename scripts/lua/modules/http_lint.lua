@@ -1912,6 +1912,9 @@ local known_parameters = {
    ["elasticsearch_password"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
    ["elasticsearch_index"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
 
+   ["wechat_url"] = {http_lint.webhookCleanup, http_lint.validateUnquoted},
+   ["wechat_index"] = http_lint.validateEmptyOr(http_lint.validateSingleWord),
+
    -- POOLS
    ["pool_members"] = validateEmptyOr(validateListOfTypeInline(validateSingleWord)),
    ["recipients"] = validateEmptyOr(validateListOfTypeInline(validateNumber)),
