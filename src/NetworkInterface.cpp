@@ -11039,7 +11039,10 @@ void NetworkInterface::checkDHCPStorm(time_t when, u_int32_t num_pkts) {
 /* *************************************** */
 
 void NetworkInterface::incNumHosts(bool local, bool rxOnlyHost) {
-  //ntop->getTrace()->traceEvent(TRACE_WARNING, "Increasing num. hosts");
+  /* Do not increase nor decrease hosts in case ntopng is shutting down, it's useless */
+  if (isShuttingDown())
+    return;
+
   if (local) numLocalHosts++;
   
   if(rxOnlyHost) {
@@ -11053,7 +11056,10 @@ void NetworkInterface::incNumHosts(bool local, bool rxOnlyHost) {
 /* *************************************** */
 
 void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
-  //ntop->getTrace()->traceEvent(TRACE_WARNING, "Decreasing num. hosts");
+  /* Do not increase nor decrease hosts in case ntopng is shutting down, it's useless */
+  if (isShuttingDown())
+    return;
+
   if (local) {
     if(numLocalHosts == 0)
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 1);
