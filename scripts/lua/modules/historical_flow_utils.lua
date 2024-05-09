@@ -621,10 +621,14 @@ end
 
 local function dt_format_connection_state(id, major)
    local i18n_conn_states = "flow_fields_description.minor_connection_states"
+   local name = ""
    if (major) then
       i18n_conn_states = "flow_fields_description.major_connection_states"
+      name = ternary(tonumber(id) == 0, "", i18n(string.format("%s.%u",i18n_conn_states,id)))
+   else 
+      name = ternary(tonumber(id) == 0, "", i18n(string.format("%s.%u",i18n_conn_states,id)) .. " - " .. i18n(string.format("%s.%u","flow_fields_description.minor_connection_states_info",id))) 
    end
-   local name = ternary(tonumber(id) == 0, "", i18n(string.format("%s.%u",i18n_conn_states,id)))
+    
    
    local conn_state_tag = {
       value = id,
