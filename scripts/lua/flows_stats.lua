@@ -580,7 +580,8 @@ elseif (page == "flows" or page == nil) then
         has_exporters = has_exporters,
         is_viewed = interface.isViewed(),
         is_clickhouse_enabled = hasClickHouseSupport(),
-        is_pcap = interface.isPcapDumpInterface()
+        is_pcap = interface.isPcapDumpInterface(),
+        csrf = ntop.getRandomCSRFValue()
     })
     template.render("pages/vue_page.template", { vue_page_name = "PageFlowsList", page_context = json_context })
 else

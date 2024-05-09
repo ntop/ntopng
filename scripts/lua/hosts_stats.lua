@@ -894,7 +894,8 @@ elseif page == "active_hosts" then
     local vlans = interface.getVLANsList()
     local json_context = json.encode({
         ifid = ifstats.id,
-        has_vlans = (vlans ~= nil)
+        has_vlans = (vlans ~= nil),
+        csrf = ntop.getRandomCSRFValue()
     })
     template_utils.render("pages/vue_page.template", { vue_page_name = "PageHostsList", page_context = json_context })
 elseif page == "inactive_hosts" then
