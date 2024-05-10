@@ -57,7 +57,7 @@
 			"min-width" : "100px",
 			"sortable": true,
 			"class": [
-				"text-nowrap"
+				"text-center"
 			]
 		},
 		{

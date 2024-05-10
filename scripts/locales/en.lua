@@ -7530,7 +7530,7 @@ local lang = {
     ["snmp_timeseries_descr"] = "SNMP devices timeseries can be enabled from the <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferences</a>. Few minutes are necessary to see the first data points",
     ["snmp_topology"] = "Topology",
     ["snmp_username"] = "Username",
-    ["snmp_version"] = "SNMP Version",
+    ["snmp_version"] = "Version",
     ["snmp_write_community"] = "Write Community",
     ["stats_since"] = "Stats Since",
     ["status_dormant"] = "Dormant",
