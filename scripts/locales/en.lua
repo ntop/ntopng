@@ -783,6 +783,7 @@ local lang = {
     ["licence_expires_in"] = "License expires in %{time}",
     ["licence_generation"] = "Click on the above URL to generate your ntopng license, or purchase a license at <a class='ntopng-external-link' href=\"%{purchase_url}\"> ntop shop  <i class=\"fas fa-external-link-alt\"></i></a>.<br>If you are no-profit, research or an education institution please read <a class='ntopng-external-link' href=\"%{universities_url}\">this page  <i class=\"fas fa-external-link-alt\"></i></a>.",
     ["licence_save_path"] = "Please generate your license and save it on /etc/ntopng.license (or /usr/local/etc on BSD-based platforms) and restart ntopng.",
+    ["licence_limits"] = "License Limits",
     ["licence_status"] = "License",
     ["maintenance"] = "Maintenance",
     ["maintenance_expired"] = "%{product} maintenance expired",

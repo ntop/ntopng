@@ -382,20 +382,17 @@ void HostPools::reloadPool(u_int16_t _pool_id, VLANAddressTree *new_tree, HostPo
   if ((num_members = redis->smembers(kname, &pool_members)) > 0) {
     // NOTE: the auto-assigned host_pool must not be limited as it receives
     // devices assigments automatically
-    actual_num_members =
-	min_val((u_int32_t)num_members,
-		((_pool_id == ntop->getPrefs()->get_auto_assigned_pool_id())
-		     ? MAX_NUM_INTERFACE_HOSTS
-		     : MAX_NUM_POOL_MEMBERS));
+    actual_num_members = min_val((u_int32_t)num_members,
+				 ((_pool_id == ntop->getPrefs()->get_auto_assigned_pool_id())
+				  ? MAX_NUM_INTERFACE_HOSTS : MAX_NUM_POOL_MEMBERS));
 
     if (actual_num_members < num_members) {
-      ntop->getTrace()->traceEvent(
-	  TRACE_WARNING,
-	  "Too many members [pool id: %2d][pool members: %d]. "
-	  "Maximum number of pool members for this license is %u, so %u pool "
-	  "members will be ignored.",
-	  _pool_id, num_members, actual_num_members,
-	  num_members - actual_num_members, actual_num_members);
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "Too many members [pool id: %2d][pool members: %d]. "
+				   "Maximum number of pool members for this license is %u, so %u pool "
+				   "members will be ignored.",
+				   _pool_id, num_members, actual_num_members,
+				   num_members - actual_num_members, actual_num_members);
     }
 
     for (int k = 0; k < actual_num_members; k++) {
