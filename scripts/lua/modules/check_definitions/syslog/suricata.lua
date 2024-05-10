@@ -152,22 +152,24 @@ end
 -- #################################################################
 
 local function parseStats(event_stats)
-   local external_stats = {}
-
-   external_stats.capture_packets = (event_stats.capture.kernel_packets - event_stats.capture.kernel_drops)
-   external_stats.capture_drops = event_stats.capture.kernel_drops
-
-   external_stats.signatures_loaded = 0
-   external_stats.signatures_failed = 0
-   for _, engine in ipairs(event_stats.detect.engines) do
-     external_stats.signatures_loaded = external_stats.signatures_loaded + engine.rules_loaded
-     external_stats.signatures_failed = external_stats.signatures_failed + engine.rules_failed
+   if((event_stats.capture.kernel_packets ~= nil) and (event_stats.capture.kernel_drops ~= nil)) then
+      local external_stats = {}
+      
+      external_stats.capture_packets = (event_stats.capture.kernel_packets - event_stats.capture.kernel_drops)
+      external_stats.capture_drops = event_stats.capture.kernel_drops
+      
+      external_stats.signatures_loaded = 0
+      external_stats.signatures_failed = 0
+      for _, engine in ipairs(event_stats.detect.engines) do
+	 external_stats.signatures_loaded = external_stats.signatures_loaded + engine.rules_loaded
+	 external_stats.signatures_failed = external_stats.signatures_failed + engine.rules_failed
+      end
+      
+      external_stats.i18n_title = "suricata_collector.statistics"
+      
+      local external_json_stats = json.encode(external_stats)
+      ntop.setCache(external_stats_key, external_json_stats)
    end
-
-   external_stats.i18n_title = "suricata_collector.statistics"
-
-   local external_json_stats = json.encode(external_stats)
-   ntop.setCache(external_stats_key, external_json_stats)
 end
 
 -- #################################################################
@@ -236,7 +238,6 @@ function syslog_module.hooks.handleEvent(syslog_conf, message, host, priority)
    elseif event.event_type == "stats" and event.stats ~= nil then
       parseStats(event.stats)
       flow = nil
-
    else
       -- traceError(TRACE_NORMAL, TRACE_CONSOLE, "Unsupported Suricata event '"..event.event_type.."'")
       num_unhandled = num_unhandled + 1
