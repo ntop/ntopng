@@ -554,6 +554,26 @@ tag_utils.defined_tags = {
         i18n_label = i18n("db_search.tags.minor_connection_state"),
         operators = {'eq', 'neq'}
     }, 
+    pre_nat_ipv4_src_addr = {
+        value_type = 'ip',
+        i18n_label = i18n("db_search.tags.pre_nat_ipv4_src_addr"),
+        operators = {'eq', 'neq'}
+    }, 
+    pre_nat_ipv4_dst_addr = {
+        value_type = 'ip',
+        i18n_label = i18n("db_search.tags.pre_nat_ipv4_dst_addr"),
+        operators = {'eq', 'neq'}
+    },
+    post_nat_ipv4_src_addr = {
+        value_type = 'ip',
+        i18n_label = i18n("db_search.tags.post_nat_ipv4_src_addr"),
+        operators = {'eq', 'neq'}
+    },  
+    post_nat_ipv4_dst_addr = {
+        value_type = 'ip',
+        i18n_label = i18n("db_search.tags.post_nat_ipv4_dst_addr"),
+        operators = {'eq', 'neq'}
+    },  
     description = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.alert_description'),

@@ -13,6 +13,54 @@ local historical_flow_details_formatter = {}
 
 -- ###############################################
 
+-- This function format info regarding pre/post nat ips and ports
+local function format_pre_post_nat_info(flow, info)
+    local tmp = {}
+
+    if not isEmptyString(info["PRE_NAT_IPV4_SRC_ADDR"]) and not isEmptyString(info["POST_NAT_IPV4_DST_ADDR"]) then
+        tmp[#tmp + 1] = {
+            name = '',
+            values = { '<b>' .. i18n('db_explorer.pre_post_nat_ipv4_src_addr') .. '</b>', info["PRE_NAT_IPV4_SRC_ADDR"] .. " <b>-</b> "  .. info["POST_NAT_IPV4_SRC_ADDR"] }
+        }
+    end
+
+    if not isEmptyString(info["PRE_NAT_SRC_PORT"]) and not isEmptyString(info["POST_NAT_DST_PORT"]) then
+        tmp[#tmp + 1] = {
+            name = '',
+            values = { '<b>' .. i18n('db_explorer.pre_post_nat_src_port') .. '</b>', info["PRE_NAT_SRC_PORT"] .. " <b>-</b> "  .. info["POST_NAT_DST_PORT"] }
+        }
+    end
+
+    if not isEmptyString(info["PRE_NAT_IPV4_DST_ADDR"]) and not isEmptyString(info["POST_NAT_IPV4_DST_ADDR"]) then
+        tmp[#tmp + 1] = {
+            name = '',
+            values = { '<b>' .. i18n('db_explorer.pre_post_nat_ipv4_dst_addr') .. '</b>', info["PRE_NAT_IPV4_DST_ADDR"] .. " <b>-</b> "  .. info["POST_NAT_IPV4_DST_ADDR"] }
+        }
+    end
+
+    if not isEmptyString(info["PRE_NAT_DST_PORT"]) and not isEmptyString(info["POST_NAT_DST_PORT"]) then
+        tmp[#tmp + 1] = {
+            name = '',
+            values = { '<b>' .. i18n('db_explorer.pre_post_nat_dst_port') .. '</b>', info["PRE_NAT_DST_PORT"] .. " <b>-</b> "  .. info["POST_NAT_DST_PORT"] }
+        }
+    end
+
+    if table.len(tmp) > 1 then
+        flow[#flow + 1] = {
+            name = i18n('db_explorer.pre_post_nat_info'),
+            values = {}
+        }
+        for _, values in pairs(tmp) do
+            flow[#flow + 1] = values
+        end
+    end
+
+
+    return flow
+end
+
+-- ###############################################
+
 local function format_historical_flow_label(flow)
     local historical_flow_utils = require "historical_flow_utils"
 
@@ -445,6 +493,8 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
                 flow_details[#flow_details + 1] = format_historical_info(flow)
             end
         end
+
+        flow_details = format_pre_post_nat_info(flow_details, flow, info)
 
         if (flow["PROBE_IP"] and not isEmptyString(flow['PROBE_IP']) and (flow['PROBE_IP'] ~= '0.0.0.0')) then
             flow_details = format_historical_probe(flow_details, flow, info)

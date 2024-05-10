@@ -43,10 +43,14 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   ndpi_flow_risk_bitmap = 0;
   ndpi_flow_risk_name = NULL;
   flow_verdict = 0; /* Unknown */
+  src_port_pre_nat = dst_port_pre_nat =
+    src_port_post_nat = dst_port_post_nat = 0;
   bittorrent_hash = NULL;
   l7_error_code = 0;
   confidence = NDPI_CONFIDENCE_UNKNOWN;
   flow_source = packet_to_flow;
+  src_ip_addr_pre_nat = dst_ip_addr_pre_nat =
+    src_ip_addr_post_nat = dst_ip_addr_post_nat = 0;
   memset(&custom_app, 0, sizeof(custom_app));
 
   has_parsed_ebpf = false;
@@ -156,6 +160,18 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
   http_ret_code = pf.http_ret_code;
   dns_query_type = pf.dns_query_type;
   dns_ret_code = pf.dns_ret_code;
+  
+  /* Only IPv4 supported, in case the ipv4 is 0 it's already handled inside IpAddress class */
+  src_ip_addr_pre_nat = pf.src_ip_addr_pre_nat;
+  dst_ip_addr_pre_nat = pf.dst_ip_addr_pre_nat;
+  src_ip_addr_post_nat = pf.src_ip_addr_post_nat;
+  dst_ip_addr_post_nat = pf.dst_ip_addr_post_nat;
+  
+  /* 0 by default */
+  src_port_pre_nat = pf.src_port_pre_nat;
+  dst_port_pre_nat = pf.dst_port_pre_nat;
+  src_port_post_nat = pf.src_port_post_nat;
+  dst_port_post_nat = pf.dst_port_post_nat;
 
   memcpy(&custom_app, &pf.custom_app, sizeof(custom_app));
   has_parsed_ebpf = pf.has_parsed_ebpf;

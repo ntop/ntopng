@@ -39,11 +39,15 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   char *flow_risk_info;
   char *external_alert;
   char *smtp_rcp_to, *smtp_mail_from;
+  u_int32_t src_ip_addr_pre_nat, dst_ip_addr_pre_nat,
+              src_ip_addr_post_nat, dst_ip_addr_post_nat;
   u_int8_t tls_unsafe_cipher, flow_verdict;
   u_int16_t tls_cipher;
   u_int16_t http_ret_code;
   u_int16_t dns_query_type, dns_ret_code;
   u_int32_t l7_error_code;
+  u_int16_t src_port_pre_nat, dst_port_pre_nat,
+            src_port_post_nat, dst_port_post_nat;
   custom_app_t custom_app;
   ndpi_confidence_t confidence;
   ndpi_risk ndpi_flow_risk_bitmap;
@@ -122,6 +126,14 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline void setRiskName(const char *str) { if(ndpi_flow_risk_name != NULL) free(ndpi_flow_risk_name); if (str) { ndpi_flow_risk_name = strdup(str);} else ndpi_flow_risk_name = NULL; }
   inline void setDHCPClientName(const char *str) { if(dhcp_client_name != NULL) free(dhcp_client_name);  if(str) { dhcp_client_name = strdup(str);} else dhcp_client_name = NULL; }
   inline void setSIPCallId(const char *str) { if(sip_call_id != NULL) free(sip_call_id);  if(str) { sip_call_id = strdup(str);} else sip_call_id = NULL; }
+  inline void setPreNATSrcIp(u_int32_t v) { src_ip_addr_pre_nat = v; };
+  inline void setPreNATDstIp(u_int32_t v) { dst_ip_addr_pre_nat = v; };
+  inline void setPostNATSrcIp(u_int32_t v) { src_ip_addr_post_nat = v; };
+  inline void setPostNATDstIp(u_int32_t v) { dst_ip_addr_post_nat = v; };
+  inline void setPreNATSrcPort(u_int16_t v) { src_port_pre_nat = v; };
+  inline void setPreNATDstPort(u_int16_t v) { dst_port_pre_nat = v; };
+  inline void setPostNATSrcPort(u_int16_t v) { src_port_post_nat = v; };
+  inline void setPostNATDstPort(u_int16_t v) { dst_port_post_nat = v; };
   /* ****** */
   inline char* getL7Info(bool setToNULL = false)  { char *r = l7_info; if(setToNULL) l7_info = NULL; return(r); }
   inline char* getHTTPurl(bool setToNULL = false) { char *r = http_url; if(setToNULL) http_url = NULL; return(r); }
@@ -141,6 +153,14 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline char* getSMTPMailFrom(bool setToNull = false) { char *r = smtp_mail_from; if(setToNull) smtp_mail_from = NULL; return(r); }
   inline char* getDHCPClientName(bool setToNull = false) { char *r = dhcp_client_name; if(setToNull) dhcp_client_name = NULL; return(r); }
   inline char* getSIPCallId(bool setToNull = false) { char *r = sip_call_id; if(setToNull) sip_call_id = NULL; return(r); }
+  inline u_int32_t getPreNATSrcIp() { return src_ip_addr_pre_nat; };
+  inline u_int32_t getPreNATDstIp() { return dst_ip_addr_pre_nat; };
+  inline u_int32_t getPostNATSrcIp() { return src_ip_addr_post_nat; };
+  inline u_int32_t getPostNATDstIp() { return dst_ip_addr_post_nat; };
+  inline u_int16_t getPreNATSrcPort() { return src_port_pre_nat; };
+  inline u_int16_t getPreNATDstPort() { return dst_port_pre_nat; };
+  inline u_int16_t getPostNATSrcPort() { return src_port_post_nat; };
+  inline u_int16_t getPostNATDstPort() { return dst_port_post_nat; };
   inline u_int8_t getTLSUnsafeCipher() { return(tls_unsafe_cipher); }
   inline u_int16_t getTLSCipher() { return(tls_cipher); }
   inline u_int8_t getFlowVerdict() { return(flow_verdict); }

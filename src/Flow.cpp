@@ -115,7 +115,12 @@ Flow::Flow(NetworkInterface *_iface,
 
   cli_ip_addr = srv_ip_addr = NULL;
   cli_host = srv_host = NULL;
+  src_ip_addr_pre_nat = dst_ip_addr_pre_nat = 
+    src_ip_addr_post_nat = dst_ip_addr_post_nat = 0;
 
+  src_port_pre_nat = dst_port_pre_nat =
+    src_port_post_nat = dst_port_post_nat = 0;
+    
   INTERFACE_PROFILING_SUB_SECTION_ENTER(iface,
                                         "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_iface_idx, _vlanId, _observation_point_id, _private_flow_id,
@@ -8795,4 +8800,28 @@ MinorConnectionStates Flow::calculateConnectionState(bool is_cumulative) {
     return(getCurrentConnectionState());
 
   return(setCurrentConnectionState(MINOR_NO_STATE));
+}
+
+/* **************************************************** */
+
+void Flow::addPrePostNATIPv4(u_int32_t _src_ip_addr_pre_nat, 
+                        u_int32_t _dst_ip_addr_pre_nat,
+                        u_int32_t _src_ip_addr_post_nat, 
+                        u_int32_t _dst_ip_addr_post_nat) {
+  src_ip_addr_pre_nat = _src_ip_addr_pre_nat;
+  dst_ip_addr_pre_nat = _dst_ip_addr_pre_nat;
+  src_ip_addr_post_nat = _src_ip_addr_post_nat;
+  dst_ip_addr_post_nat = _dst_ip_addr_post_nat;
+}
+
+/* **************************************************** */
+
+void Flow::addPrePostNATPort(u_int32_t _src_port_pre_nat, 
+                          u_int32_t _dst_port_pre_nat,
+                          u_int32_t _src_port_post_nat, 
+                          u_int32_t _dst_port_post_nat) {
+  src_port_pre_nat = _src_port_pre_nat;
+  dst_port_pre_nat = _dst_port_pre_nat;
+  src_port_post_nat = _src_port_post_nat;
+  dst_port_post_nat = _dst_port_post_nat;
 }

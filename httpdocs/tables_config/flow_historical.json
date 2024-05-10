@@ -442,6 +442,78 @@
 			"class": [
 				"no-wrap"
 			]
+		},
+		{
+			"title_i18n": "db_search.tags.pre_nat_ipv4_src_addr",
+			"data_field": "pre_nat_ipv4_src_addr",
+			"min-width": "150px",
+			"sortable": true,
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
+			"title_i18n": "db_search.tags.pre_nat_src_port",
+			"data_field": "pre_nat_src_port",
+			"min-width": "100px",
+			"sortable": true,
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
+			"title_i18n": "db_search.tags.pre_nat_ipv4_dst_addr",
+			"data_field": "pre_nat_ipv4_dst_addr",
+			"min-width": "150px",
+			"sortable": true,
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
+			"title_i18n": "db_search.tags.pre_nat_dst_port",
+			"data_field": "pre_nat_dst_port",
+			"min-width": "100px",
+			"sortable": true,
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
+			"title_i18n": "db_search.tags.post_nat_ipv4_src_addr",
+			"data_field": "post_nat_ipv4_src_addr",
+			"min-width": "150px",
+			"sortable": true,
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
+			"title_i18n": "db_search.tags.post_nat_src_port",
+			"data_field": "post_nat_src_port",
+			"min-width": "100px",
+			"sortable": true,
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
+			"title_i18n": "db_search.tags.post_nat_ipv4_dst_addr",
+			"data_field": "post_nat_ipv4_dst_addr",
+			"min-width": "150px",
+			"sortable": true,
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
+			"title_i18n": "db_search.tags.post_nat_dst_port",
+			"data_field": "post_nat_dst_port",
+			"min-width": "100px",
+			"sortable": true,
+			"class": [
+				"no-wrap"
+			]
 		}
 	]
 }

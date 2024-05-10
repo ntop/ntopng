@@ -502,6 +502,14 @@ const map_table_def_columns = async (columns) => {
         "srv_nw_latency": (srv_nw_latency, row) => f_print_latency("srv_nw_latency", srv_nw_latency, row),
         "major_connection_state": (major_connection_state, row) => f_print_state("major_connection_state", major_connection_state , row),
         "minor_connection_state": (minor_connection_state, row) => f_print_state("minor_connection_state", minor_connection_state , row),
+        "pre_nat_ipv4_src_addr": (value, row) => { return DataTableRenders.filterize('pre_nat_ipv4_src_addr', value.value, value.label) },
+        "pre_nat_src_port": (value, row) => { return DataTableRenders.filterize('pre_nat_src_port', value.value, value.label) },
+        "pre_nat_ipv4_dst_addr": (value, row) => { return DataTableRenders.filterize('pre_nat_ipv4_dst_addr', value.value, value.label) },
+        "pre_nat_dst_port": (value, row) => { return DataTableRenders.filterize('pre_nat_dst_port', value.value, value.label) },
+        "post_nat_ipv4_src_addr": (value, row) => { return DataTableRenders.filterize('post_nat_ipv4_src_addr', value.value, value.label) },
+        "post_nat_src_port": (value, row) => { return DataTableRenders.filterize('post_nat_src_port', value.value, value.label) },
+        "post_nat_ipv4_dst_addr": (value, row) => { return DataTableRenders.filterize('post_nat_ipv4_dst_addr', value.value, value.label) },
+        "post_nat_dst_port": (value, row) => { return DataTableRenders.filterize('post_nat_dst_port', value.value, value.label) },
         "info": (info, row) => {
             if (info == null) { return ""; }
             return `<a class='tag-filter' data-tag-key='info' data-tag-value='${info.title}' title='${info.title}' href='javascript:void(0)'>${info.label}</a>`;

@@ -1742,8 +1742,17 @@ local known_parameters = {
    ["cli_location"] = validateListOfTypeInline(validateFilters(validateNumber)),
    ["srv_location"] = validateListOfTypeInline(validateFilters(validateNumber)),
    ["host_location"] = validateListOfTypeInline(validateFilters(validateNumber)),
-   ["major_connection_state"] = validateFilters(validateNumber),
-   ["minor_connection_state"] = validateFilters(validateNumber),
+   ["major_connection_state"] = validateListOfTypeInline(validateFilters(validateNumber)),
+   ["minor_connection_state"] = validateListOfTypeInline(validateFilters(validateNumber)),
+   ["pre_nat_ipv4_src_addr"] = validateListOfTypeInline(validateFilters(validateHost)),
+   ["pre_nat_ipv4_dst_addr"] = validateListOfTypeInline(validateFilters(validateHost)),
+   ["post_nat_ipv4_src_addr"] = validateListOfTypeInline(validateFilters(validateHost)),
+   ["post_nat_ipv4_dst_addr"] = validateListOfTypeInline(validateFilters(validateHost)),
+   ["pre_nat_src_port"] = validateListOfTypeInline(validateFilters(validatePort)),
+   ["pre_nat_dst_port"] = validateListOfTypeInline(validateFilters(validatePort)),
+   ["post_nat_src_port"] = validateListOfTypeInline(validateFilters(validatePort)),
+   ["post_nat_dst_port"] = validateListOfTypeInline(validateFilters(validatePort)),
+
 
    -- AUTHENTICATION
    ["username"] = validateUsername, -- A ntopng user name, new or existing

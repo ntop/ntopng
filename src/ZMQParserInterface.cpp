@@ -101,8 +101,8 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addMapping("DIRECTION", DIRECTION);
   addMapping("POST_NAT_SRC_IPV4_ADDR", POST_NAT_SRC_IPV4_ADDR);
   addMapping("POST_NAT_DST_IPV4_ADDR", POST_NAT_DST_IPV4_ADDR);
-  addMapping("POST_NAPT_SRC_TRANSPORT_PORT", POST_NAPT_SRC_TRANSPORT_PORT);
-  addMapping("POST_NAPT_DST_TRANSPORT_PORT", POST_NAPT_DST_TRANSPORT_PORT);
+  addMapping("POST_NAT_SRC_TRANSPORT_PORT", POST_NAT_SRC_TRANSPORT_PORT);
+  addMapping("POST_NAT_DST_TRANSPORT_PORT", POST_NAT_DST_TRANSPORT_PORT);
   addMapping("OBSERVATION_POINT_ID", OBSERVATION_POINT_ID);
   addMapping("INGRESS_VRFID", INGRESS_VRFID);
   addMapping("IPV4_SRC_MASK", IPV4_SRC_MASK);
@@ -589,6 +589,10 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
               "Attempt to set source ip multiple times. "
               "Check exported fields");
       }
+      /* Pre-Post nat IPs are only supported for IPv4 */
+      if (flow->src_ip.isIPv4()) {
+        flow->setPreNATSrcIp(flow->src_ip.get_ipv4());
+      }
       break;
     case IP_PROTOCOL_VERSION:
       flow->version = value->int_num;
@@ -610,6 +614,10 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
 				       "Attempt to set destination ip multiple times. "
 				       "Check exported fields");
       }
+      /* Pre-Post nat IPs are only supported for IPv4 */
+      if (flow->dst_ip.isIPv4()) {
+        flow->setPreNATDstIp(flow->dst_ip.get_ipv4());
+      }
       break;
     case L4_SRC_PORT:
       if (!flow->src_port) {
@@ -617,6 +625,8 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
           flow->src_port = atoi(value->string);
         else
           flow->src_port = ntohs((u_int32_t)value->int_num);
+        
+        flow->setPreNATSrcPort(flow->src_port);
       }
       break;
     case L4_DST_PORT:
@@ -625,6 +635,8 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
           flow->dst_port = atoi(value->string);
         else
           flow->dst_port = ntohs((u_int32_t)value->int_num);
+        
+        flow->setPreNATDstPort(flow->dst_port);
       }
       break;
     case SRC_VLAN:
@@ -761,42 +773,58 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
       flow->observationPointId = value->int_num;
       break;
     case POST_NAT_SRC_IPV4_ADDR:
-      if (ntop->getPrefs()->do_override_src_with_post_nat_src()) {
-        if (value->string) {
-          IpAddress tmp;
-          tmp.set(value->string);
+      /* Alwais set src_ip_addr_post_nat, however switch the src_ip only if preference is set*/
+      if (value->string) {
+        IpAddress tmp;
+        tmp.set(value->string);
+        if (!tmp.isEmpty()) {
+          flow->setPostNATSrcIp(tmp.get_ipv4());
+        }
+        if (ntop->getPrefs()->do_override_src_with_post_nat_src()) {
           if (!tmp.isEmpty()) {
             flow->src_ip.set((char *)value->string);
-          }
-        } else if (value->int_num) {
+          }      
+        }
+      } else if (value->int_num) {
+        if (ntop->getPrefs()->do_override_src_with_post_nat_src()) {
           flow->src_ip.set(ntohl(value->int_num));
         }
+        flow->setPostNATSrcIp(ntohl(value->int_num));
       }
       break;
     case POST_NAT_DST_IPV4_ADDR:
-      if (ntop->getPrefs()->do_override_dst_with_post_nat_dst()) {
-        if (value->string) {
-          IpAddress tmp;
-
-          tmp.set(value->string);
-
+      /* Alwais set dst_ip_addr_post_nat, however switch the dst_ip only if preference is set*/
+      if (value->string) {
+        IpAddress tmp;
+        tmp.set(value->string);
+        if (!tmp.isEmpty()) {
+          flow->setPostNATDstIp(tmp.get_ipv4());
+        }
+        if (ntop->getPrefs()->do_override_dst_with_post_nat_dst()) {
           if (!tmp.isEmpty()) {
             flow->dst_ip.set((char *)value->string);
-          }
-        } else if (value->int_num) {
+          }      
+        }
+      } else if (value->int_num) {
+        if (ntop->getPrefs()->do_override_dst_with_post_nat_dst()) {
           flow->dst_ip.set(ntohl(value->int_num));
         }
+        flow->setPostNATDstIp(ntohl(value->int_num));
       }
       break;
-    case POST_NAPT_SRC_TRANSPORT_PORT:
+    case POST_NAT_SRC_TRANSPORT_PORT:
       if (ntop->getPrefs()->do_override_src_with_post_nat_src() &&
           (value->int_num != 0))
         flow->src_port = htons((u_int16_t)value->int_num);
+      if (value->int_num != 0)
+        flow->setPostNATSrcPort(htons((u_int16_t)value->int_num));
       break;
-    case POST_NAPT_DST_TRANSPORT_PORT:
+    case POST_NAT_DST_TRANSPORT_PORT:
       if (ntop->getPrefs()->do_override_dst_with_post_nat_dst() &&
           (value->int_num != 0))
         flow->dst_port = htons((u_int16_t)value->int_num);
+      if (value->int_num != 0)
+        flow->setPostNATDstPort(htons((u_int16_t)value->int_num));
       break;
     case INGRESS_VRFID:
       flow->vrfId = value->int_num;

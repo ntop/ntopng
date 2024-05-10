@@ -420,6 +420,18 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
                      zflow->pkt_sampling_rate * zflow->in_fragments,
                      zflow->pkt_sampling_rate * zflow->out_fragments,
                      zflow->first_switched, zflow->last_switched);
+    
+  /* Add Pre-Post NAT src/dst IPv4 */
+  flow->addPrePostNATIPv4(zflow->getPreNATSrcIp(),
+                          zflow->getPreNATDstIp(),
+                          zflow->getPostNATSrcIp(),
+                          zflow->getPostNATDstIp());
+
+  /* Add Pre-Post NAT src/dst Ports */
+  flow->addPrePostNATPort(zflow->getPreNATSrcPort(),
+                          zflow->getPreNATDstPort(),
+                          zflow->getPostNATSrcPort(),
+                          zflow->getPostNATDstPort());
 
   if (!flow->isDetectionCompleted()) {
     ndpi_protocol p = Flow::ndpiUnknownProtocol;
