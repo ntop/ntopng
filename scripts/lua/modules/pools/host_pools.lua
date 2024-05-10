@@ -57,6 +57,7 @@ function host_pools:create(args)
 	  if ntop.isPro() and not ntop.isnEdge() then
 	     -- Add the default drop policy to the pool
 	     package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
+	     package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
 	     local policy_utils = require "policy_utils"
 
 	     -- Add the default drop policy to the pool
