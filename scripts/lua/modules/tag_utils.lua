@@ -574,6 +574,26 @@ tag_utils.defined_tags = {
         i18n_label = i18n("db_search.tags.post_nat_ipv4_dst_addr"),
         operators = {'eq', 'neq'}
     },  
+    pre_nat_src_port = {
+        value_type = 'port',
+        i18n_label = i18n("db_search.tags.pre_nat_src_port"),
+        operators = {'eq', 'neq'}
+    }, 
+    pre_nat_dst_port = {
+        value_type = 'port',
+        i18n_label = i18n("db_search.tags.pre_nat_dst_port"),
+        operators = {'eq', 'neq'}
+    },
+    post_nat_src_port = {
+        value_type = 'port',
+        i18n_label = i18n("db_search.tags.post_nat_src_port"),
+        operators = {'eq', 'neq'}
+    },  
+    post_nat_dst_port = {
+        value_type = 'port',
+        i18n_label = i18n("db_search.tags.post_nat_dst_port"),
+        operators = {'eq', 'neq'}
+    },  
     description = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.alert_description'),
