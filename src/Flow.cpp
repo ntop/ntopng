@@ -3623,9 +3623,11 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
 void Flow::formatECSHost(json_object *my_object, bool is_client,
                          const IpAddress *addr, Host *host) {
   json_object *host_object;
+  bool use_nat = false; 
 
   if ((host_object = json_object_new_object()) != NULL) {
     char buf[64], jsonbuf[64], *c;
+    IpAddress tmp_ip;
 
     /* Adding MAC */
     if (host && host->getMac() && !host->getMac()->isNull())
@@ -3638,13 +3640,18 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
 
     /* Adding IP */
     if (addr) {
+      if (is_client && (getPreNATSrcIp() != getPostNATSrcIp())) 
+        use_nat = true;
+
+      /* With NAT they are IPv4 */
+      tmp_ip.set(getPreNATSrcIp());
       json_object_object_add(
 			     host_object,
 			     Utils::jsonLabel(
 					      is_client ? (addr->isIPv4() ? IPV4_SRC_ADDR : IPV6_SRC_ADDR)
 					      : (addr->isIPv4() ? IPV4_DST_ADDR : IPV6_DST_ADDR),
 					      "ip", jsonbuf, sizeof(jsonbuf)),
-			     json_object_new_string(addr->print(buf, sizeof(buf))));
+			     json_object_new_string(tmp_ip.print(buf, sizeof(buf))));
 
       /* Custom information elements, Local, Blacklisted, Has Services and
        * domain name */
@@ -3668,6 +3675,25 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
 						sizeof(jsonbuf)),
 			       json_object_new_string(get_cli_host()->get_visual_name(buf, sizeof(buf))));
       }
+      tmp_ip.reset();
+    }
+
+    if (use_nat) {
+      json_object *nat = json_object_new_object();
+      u_int16_t port = 0;
+      if(is_client) {
+        tmp_ip.set(getPostNATSrcIp());
+        port = getPostNATSrcPort();
+      } else {
+        tmp_ip.set(getPostNATDstIp());
+        port = getPostNATDstPort();
+      }
+        
+      json_object_object_add(nat, "ip",
+                              json_object_new_string(tmp_ip.print(buf, sizeof(buf))));
+      json_object_object_add(nat, "port",
+                              json_object_new_int(port));
+      json_object_object_add(host_object, "nat", nat);
     }
 
     /* Geolocation info */
@@ -3694,6 +3720,12 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
       }
     }
 
+    u_int16_t port = 0;
+    if (use_nat)
+      port = is_client ? getPreNATSrcPort() : getPreNATDstPort();
+    else
+      port = is_client ? get_cli_port() : get_srv_port();
+
     /* Type of Service */
     json_object_object_add(host_object,
                            Utils::jsonLabel(is_client ? SRC_TOS : DST_TOS,
@@ -3702,8 +3734,7 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
     json_object_object_add(
 			   host_object,
 			   Utils::jsonLabel(is_client ? L4_SRC_PORT : L4_DST_PORT, "port", jsonbuf,
-					    sizeof(jsonbuf)),
-			   json_object_new_int(is_client ? get_cli_port() : get_srv_port()));
+					    sizeof(jsonbuf)), json_object_new_int(port));
     json_object_object_add(
 			   host_object,
 			   Utils::jsonLabel(is_client ? IN_PKTS : OUT_PKTS, "packets", jsonbuf,
