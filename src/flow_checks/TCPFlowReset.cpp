@@ -25,14 +25,8 @@
 /* ***************************************************** */
 
 void TCPFlowReset::checkFlowReset(Flow *f) {
-  MinorConnectionStates current_state = f->getCurrentConnectionState();
-  if ((f->isTCP()) && 
-      ((current_state == RSTR)  || 
-      (current_state == RSTO)   ||
-      (current_state == REJ)    ||
-      (current_state == RSTOS0) ||
-      (current_state == RSTRH))) {
-        
+  
+  if ((f->isTCP()) && f->isTCPReset()) {
     Host *cli_host = f->get_cli_host();
     Host *srv_host = f->get_srv_host();
 
