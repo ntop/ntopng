@@ -203,7 +203,7 @@ local function format_tcp_connection_states(info)
     local conn_states = {}
     conn_states[#conn_states + 1] = string.format("%s: %s (%s)", i18n("flow_fields_description.major_connection_state"),
         i18n(string.format("flow_fields_description.major_connection_states.%s", info.major_connection_state.value)),
-        i18n(string.format("flow_fields_description.major_connection_states_info.%u", info.major_connection_state.value)))
+        i18n(string.format("flow_fields_description.minor_connection_states_info.%u", info.minor_connection_state.value)))
     conn_states[#conn_states + 1] = string.format("%s: %s (%s)", i18n("flow_fields_description.minor_connection_state"),
         i18n(string.format("flow_fields_description.minor_connection_states.%s", info.minor_connection_state.value)),
         i18n(string.format("flow_fields_description.minor_connection_states_info.%u", info.minor_connection_state.value)))
