@@ -647,18 +647,26 @@ local function dt_format_minor_connection_state(id)
 end
 
 local function dt_format_port(value)
+   local label = value
+   if value == '0' then
+      label = ''
+   end
    return {
-      value = value,
-      label = value,
-      title = value
+      value = label,
+      label = label,
+      title = label
    }
 end
 
 local function dt_format_ip(value)
+   local label = value
+   if value == '0.0.0.0' then
+      label = ''
+   end
    return {
-      value = value,
-      label = value,
-      title = value
+      value = label,
+      label = label,
+      title = label
    }
 end
 
