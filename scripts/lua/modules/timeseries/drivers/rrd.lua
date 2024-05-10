@@ -654,8 +654,10 @@ function driver:query(schema, tstart, tend, tags, options)
 
         -- unify the format
         for i, v in pairs(serie) do
-            local value = ts_common.normalizeVal(v, max_val, options)
-            if options.keep_nan == true and tostring(v) == '-nan' then
+	   local value = ts_common.normalizeVal(v, max_val, options)
+	   local val_is_nan = (v ~= v)
+	   
+            if options.keep_nan == true and val_is_nan then
                 value = v
             end
 
@@ -928,7 +930,9 @@ function driver:timeseries_top(options, top_tags)
                 partials[name] = 0
 
                 for i, serie_point in pairs(serie.data) do
-                    if tostring(serie_point) ~= '-nan' then
+		   local val_is_nan = (serie_point ~= serie_point)
+		   
+                    if not val_is_nan then
                         sum = sum + tonumber(serie_point)
                     end
 
