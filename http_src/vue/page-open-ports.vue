@@ -36,6 +36,7 @@ import { ref, onBeforeMount, onMounted } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { ntopng_utility } from '../services/context/ntopng_globals_services';
+import dataUtils from '../utilities/data-utils';
 
 /* ******************************************************************** */ 
 
@@ -188,12 +189,9 @@ function columns_sorting(col, r0, r1) {
   
 }
 
-
-
-
 function format_cve_num(num) {
   let value = 0;
-  if (num === "" || num === null || num === NaN || num === undefined) {
+  if (dataUtils.isEmptyOrNull(num) || isNaN(value)) {
     value = 0;
   } else {
     num = num.split(',').join("");
@@ -203,19 +201,8 @@ function format_cve_num(num) {
   return value;
 }
 
-function format_num_for_sort(num) {
-  if (num === "" || num === null || num === NaN || num === undefined) {
-    num = 0;
-  } else {
-    num = num.split(',').join("")
-    num = parseInt(num);
-  }
-
-  return num;
-}
-
 function format_num_ports_for_sort(num) {
-  if (num == "" || num == null || num == NaN || num == undefined) 
+  if (dataUtils.isEmptyOrNull(num) || isNaN(value)) 
     num = 0;
 
   num = parseInt(num);;
