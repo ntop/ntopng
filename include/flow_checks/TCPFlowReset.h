@@ -28,7 +28,7 @@ class TCPFlowReset : public FlowCheck {
  private:
   void checkFlowReset(Flow *f);
  public:
-  TCPFlowReset() : FlowCheck(ntopng_edition_community, true /* Packet Interfaces only */,
+  TCPFlowReset() : FlowCheck(ntopng_edition_community, false /* Packet Interfaces only */,
                 true /* Exclude for nEdge */, false /* NOT only for nEdge */,
                 false /* has_protocol_detected */,
                 false /* has_periodic_update */, true /* has_flow_end */){};  
