@@ -211,7 +211,12 @@ function mac2record(mac)
 
     record["column_traffic"] = bytesToSize(mac["bytes.sent"] + mac["bytes.rcvd"])
 
-    record["column_name"] = getDeviceName(mac["mac"], true)
+    local name = getDeviceName(mac["mac"], true)
+
+    if (isEmptyString(name)) then
+        name = printMacHosts(mac.mac)
+    end
+    record["column_name"] = name
 
     return record
 end
