@@ -41,7 +41,7 @@ import { default as modal } from "./modal.vue";
 /* ****************************************************** */
 
 const _i18n = (t) => i18n(t);
-const emit = defineEmits(["delete"]);
+const emit = defineEmits(["delete", "ping_all", "prune"]);
 
 
 /* Consts */
@@ -91,7 +91,7 @@ const ping_ = () => {
 } 
 
 const delete_all_unresponsive = () => {
-  emit('delete_unresponsive');
+  emit('prune');
   close();
 } 
 
