@@ -45,8 +45,6 @@ class NetworkStats : public InterfaceMemberAlertableEntity,
 #if defined(NTOPNG_PRO)
   InOutTraffic *network_matrix;
   time_t nextMinPeriodicUpdate;
-  /* Behavioural analysis regarding the interface */
-  BehaviorAnalysis *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
 #endif
 
   static inline void incTcp(TcpPacketStats *tps, u_int32_t ooo_pkts,

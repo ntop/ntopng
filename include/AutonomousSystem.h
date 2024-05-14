@@ -37,9 +37,6 @@ class AutonomousSystem : public GenericHashEntry,
 
 #if defined(NTOPNG_PRO)
   time_t nextMinPeriodicUpdate;
-
-  /* Traffic behavior analysis */
-  // BehaviorAnalysis *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
 #endif
 
   inline void incSentStats(time_t t, u_int64_t num_pkts, u_int64_t num_bytes) {
