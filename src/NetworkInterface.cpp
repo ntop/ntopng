@@ -7323,17 +7323,15 @@ void NetworkInterface::sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats
 				DSCPStats *_dscpStats,
 				SyslogStats *_syslogStats, RoundTripStats *_downloadStats,
 				RoundTripStats *_uploadStats) const {
-  tcpFlowStats.sum(_tcpFlowStats), ethStats.sum(_ethStats),
-    localStats.sum(_localStats), pktStats.sum(_pktStats),
-    tcpPacketStats.sum(_tcpPacketStats),
-    syslogStats.sum(_syslogStats);
-
+  if (_tcpFlowStats) tcpFlowStats.sum(_tcpFlowStats);
+  if (_ethStats) ethStats.sum(_ethStats);
+  if (_localStats) localStats.sum(_localStats);
+  if (_pktStats) pktStats.sum(_pktStats);
+  if (_tcpPacketStats) tcpPacketStats.sum(_tcpPacketStats);
+  if (_syslogStats) syslogStats.sum(_syslogStats);
   if (ndpiStats && _ndpiStats) ndpiStats->sum(_ndpiStats);
-
   if (dscpStats && _dscpStats) dscpStats->sum(_dscpStats);
-
   if (download_stats && _downloadStats) download_stats->sum(_downloadStats);
-
   if (upload_stats && _uploadStats) upload_stats->sum(_uploadStats);
 }
 
