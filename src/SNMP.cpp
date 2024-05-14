@@ -310,8 +310,7 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
       pdu_type = SNMP_MSG_GETNEXT;
       break;
     case snmp_get_bulk_pdu:
-      pdu_type =
-          (version == 0 /* SNMPv1 */) ? SNMP_MSG_GETNEXT : SNMP_MSG_GETBULK;
+      pdu_type = (version == 0 /* SNMPv1 */) ? SNMP_MSG_GETNEXT : SNMP_MSG_GETBULK;
       break;
     case snmp_set_pdu:
       pdu_type = SNMP_MSG_SET;
@@ -333,8 +332,9 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
       size_t name_length = MAX_OID_LEN;
       oid name[MAX_OID_LEN];
 
-      if (snmp_parse_oid(_oid[i], name, &name_length))
+      if (snmp_parse_oid(_oid[i], name, &name_length)) {
         snmp_add_null_var(pdu, name, name_length);
+      }
     } else
       break;
   }
@@ -818,16 +818,14 @@ void SNMP::snmp_fetch_responses(lua_State *vm, u_int sec_timeout) {
     char *sender_host, *oid_str, *value_str = NULL;
     int sender_port, len;
 
-    len =
-        receive_udp_datagram(buf, BUFLEN, udp_sock, &sender_host, &sender_port);
+    len = receive_udp_datagram(buf, BUFLEN, udp_sock, &sender_host, &sender_port);
 
     if ((message = snmp_parse_message(buf, len))) {
       bool table_added = false;
 
       i = 0;
 
-      while (
-          snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
+      while(snmp_get_varbind_as_string(message, i, &oid_str, NULL, &value_str)) {
         if (value_str /* && (value_str[0] != '\0') */) {
           if (!table_added) lua_newtable(vm), table_added = true;
 
