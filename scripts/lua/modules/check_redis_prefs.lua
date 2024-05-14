@@ -253,3 +253,9 @@ function interfaceHasClickHouseSupport()
     require "check_redis_prefs"
     return (hasClickHouseSupport() and ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"])
 end
+
+-- ##############################################
+
+function isAllowedSystemInterface()
+    return ntop.isAllowedInterface(tonumber(getSystemInterfaceId()))
+end

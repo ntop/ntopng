@@ -1,9 +1,7 @@
 --
 -- (C) 2014-24 - ntop.org
 --
-
 -- This file contains a small set of utility functions for managing labels, e.g. aliases
-
 require "ntop_utils"
 
 -- ##############################################
@@ -54,33 +52,37 @@ function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
     local orig_name
     require "check_redis_prefs"
     if (alerts_view and not hasClickHouseSupport()) or (add_hostname ~= nil and add_hostname == false) then
-       -- do not return resolved name as it will hide the IP address
-       return(flow_info[host_type..".ip"])
+        -- do not return resolved name as it will hide the IP address
+        return (flow_info[host_type .. ".ip"])
     end
 
-    if(flow_info == nil) then return("") end
+    if (flow_info == nil) then
+        return ("")
+    end
 
-    if(host_type == "srv") then
-       if flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "" and flow_info["host_server_name"]:match("%w") and not isIPv4(flow_info["host_server_name"]) and not isIPv6(flow_info["host_server_name"]) then
-      -- remove possible ports from the name
-      return(flow_info["host_server_name"]:gsub(":%d+$", ""))
-       end
-       if(flow_info["protos.tls.certificate"] ~= nil and flow_info["protos.tls.certificate"] ~= "") then
-      return(flow_info["protos.tls.certificate"])
-       end
+    if (host_type == "srv") then
+        if flow_info["host_server_name"] ~= nil and flow_info["host_server_name"] ~= "" and
+            flow_info["host_server_name"]:match("%w") and not isIPv4(flow_info["host_server_name"]) and
+            not isIPv6(flow_info["host_server_name"]) then
+            -- remove possible ports from the name
+            return (flow_info["host_server_name"]:gsub(":%d+$", ""))
+        end
+        if (flow_info["protos.tls.certificate"] ~= nil and flow_info["protos.tls.certificate"] ~= "") then
+            return (flow_info["protos.tls.certificate"])
+        end
     end
 
     local hostinfo = {
-       host = flow_info[host_type..".ip"],
-       label = flow_info[host_type..".host"],
-       mac = flow_info[host_type..".mac"],
-       dhcpHost = flow_info[host_type..".dhcpHost"],
-       broadcast_domain_host = flow_info[host_type..".broadcast_domain_host"],
-       vlan = flow_info["vlan"],
+        host = flow_info[host_type .. ".ip"],
+        label = flow_info[host_type .. ".host"],
+        mac = flow_info[host_type .. ".mac"],
+        dhcpHost = flow_info[host_type .. ".dhcpHost"],
+        broadcast_domain_host = flow_info[host_type .. ".broadcast_domain_host"],
+        vlan = flow_info["vlan"]
     }
 
-    return(hostinfo2label(hostinfo, true, false, true))
- end
+    return (hostinfo2label(hostinfo, true, false, true))
+end
 
 -- ##############################################
 
@@ -116,26 +118,28 @@ end
 
 -- "Some Very Long String" -> "Some Ver...g String"
 function shortenCollapse(s, max_len)
-   local replacement = "..."
-   local r_len = string.len(replacement)
-   local s_len = string.len(s)
+    local replacement = "..."
+    local r_len = string.len(replacement)
+    local s_len = string.len(s)
 
-   if max_len == nil then
-      max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
-      max_len = tonumber(max_len)
-      if(max_len == nil) then max_len = 24 end
-   end
+    if max_len == nil then
+        max_len = ntop.getPref("ntopng.prefs.max_ui_strlen")
+        max_len = tonumber(max_len)
+        if (max_len == nil) then
+            max_len = 24
+        end
+    end
 
-   if max_len <= r_len then
-      return replacement
-   end
+    if max_len <= r_len then
+        return replacement
+    end
 
-   if s_len > max_len then
-      local half = math.floor((max_len-r_len) / 2)
-      return string.sub(s, 1, half) .. replacement .. string.sub(s, s_len-half+1)
-   end
+    if s_len > max_len then
+        local half = math.floor((max_len - r_len) / 2)
+        return string.sub(s, 1, half) .. replacement .. string.sub(s, s_len - half + 1)
+    end
 
-   return s
+    return s
 end
 
 -- ##############################################
@@ -147,26 +151,29 @@ end
 -- ##############################################
 
 function mac2label(mac)
-   local alt_name = getHostAltName(mac)
+    local alt_name = getHostAltName(mac)
 
-   if not isEmptyString(alt_name) and (alt_name ~= mac) then
-      return(alt_name)
-   end
+    if not isEmptyString(alt_name) and (alt_name ~= mac) then
+        return (alt_name)
+    end
 
-   alt_name = ntop.getCache(getDhcpNameKey(interface.getId(), mac))
+    alt_name = ntop.getCache(getDhcpNameKey(interface.getId(), mac))
 
-   if not isEmptyString(alt_name) and (alt_name ~= mac) then
-      return(alt_name)
-   end
+    if not isEmptyString(alt_name) and (alt_name ~= mac) then
+        return (alt_name)
+    end
 
-   -- Fallback: just the MAC
-   return(mac)
+    -- Fallback: just the MAC
+    return (mac)
 end
 
 -- ##############################################
 -- Just a convenience function for hostinfo2label with only IP and VLAN
 function ip2label(ip, vlan, shorten_len)
-    return hostinfo2label({ host = ip, vlan = (vlan or 0) }, true, shorten_len)
+    return hostinfo2label({
+        host = ip,
+        vlan = (vlan or 0)
+    }, true, shorten_len)
 end
 
 -- ##############################################
@@ -181,20 +188,25 @@ end
 --    vlan = info["vlan"]
 --
 function hostkey2hostinfo(key)
-  local host = {}
-  local info = split(key,"@")
+    local host = {}
+    local info = split(key, "@")
+    
+    -- No @
+    if table.len(info) == 0 and not isEmptyString(key) then
+        host["host"] = key
+    end
 
-  if(info and info[1] ~= nil) then
-    host["host"] = info[1]
-  end
+    if (info and info[1] ~= nil) then
+        host["host"] = info[1]
+    end
 
-  if(info and info[2] ~= nil) then
-    host["vlan"] = tonumber(info[2])
-  else
-    host["vlan"] = 0
-  end
+    if (info and info[2] ~= nil) then
+        host["vlan"] = tonumber(info[2])
+    else
+        host["vlan"] = 0
+    end
 
-  return host
+    return host
 end
 
 -- ##############################################
@@ -242,41 +254,41 @@ end
 --    key = hostinfo2hostkey(host_info)
 --
 function hostinfo2hostkey(host_info, host_type, show_vlan)
-   local rsp = ""
+    local rsp = ""
 
-   if(host_type == "cli") then
-      local cli_ip = host_info["cli.ip"] or host_info["cli_ip"]
+    if (host_type == "cli") then
+        local cli_ip = host_info["cli.ip"] or host_info["cli_ip"]
 
-      if cli_ip then
-	 rsp = rsp..cli_ip
-      end
+        if cli_ip then
+            rsp = rsp .. cli_ip
+        end
 
-   elseif(host_type == "srv") then
-      local srv_ip = host_info["srv.ip"] or host_info["srv_ip"]
+    elseif (host_type == "srv") then
+        local srv_ip = host_info["srv.ip"] or host_info["srv_ip"]
 
-      if srv_ip then
-	 rsp = rsp..srv_ip
-      end
-   else
+        if srv_ip then
+            rsp = rsp .. srv_ip
+        end
+    else
 
-      if(host_info["ip"] ~= nil) then
-	 rsp = rsp..host_info["ip"]
-      elseif(host_info["mac"] ~= nil) then
-	 rsp = rsp..host_info["mac"]
-      elseif(host_info["host"] ~= nil) then
-	 rsp = rsp..host_info["host"]
-      elseif(host_info["name"] ~= nil) then
-	 rsp = rsp..host_info["name"]
-      end
-   end
+        if (host_info["ip"] ~= nil) then
+            rsp = rsp .. host_info["ip"]
+        elseif (host_info["mac"] ~= nil) then
+            rsp = rsp .. host_info["mac"]
+        elseif (host_info["host"] ~= nil) then
+            rsp = rsp .. host_info["host"]
+        elseif (host_info["name"] ~= nil) then
+            rsp = rsp .. host_info["name"]
+        end
+    end
 
-   local vlan_id = tonumber(host_info["vlan"] or host_info["vlan_id"] or 0)
+    local vlan_id = tonumber(host_info["vlan"] or host_info["vlan_id"] or 0)
 
-   if vlan_id ~= 0 or show_vlan then
-      rsp = rsp..'@'..tostring(vlan_id)
-   end
+    if vlan_id ~= 0 or show_vlan then
+        rsp = rsp .. '@' .. tostring(vlan_id)
+    end
 
-   return rsp
+    return rsp
 end
 
 -- ##############################################
@@ -463,24 +475,24 @@ end
 -- This function actively resolves an host if there is not information about it.
 -- NOTE: prefer the host2name on this function
 function resolveAddress(hostinfo, allow_empty, shorten_len)
-   local alt_name = ip2label(hostinfo["host"], hostinfo["vlan"], shorten_len)
+    local alt_name = ip2label(hostinfo["host"], hostinfo["vlan"], shorten_len)
 
-   if(not isEmptyString(alt_name) and (alt_name ~= hostinfo["host"])) then
-      -- The host label has priority
-      return(alt_name)
-   end
+    if (not isEmptyString(alt_name) and (alt_name ~= hostinfo["host"])) then
+        -- The host label has priority
+        return (alt_name)
+    end
 
-   local hostname = ntop.resolveName(hostinfo["host"])
-   if isEmptyString(hostname) then
-      -- Not resolved
-      if allow_empty == true then
-         return hostname
-      else
-         -- this function will take care of formatting the IP
-         return hostinfo2label(hostinfo, true, shorten_len)
-      end
-   end
-   return hostinfo2label(hostinfo, true, shorten_len)
+    local hostname = ntop.resolveName(hostinfo["host"])
+    if isEmptyString(hostname) then
+        -- Not resolved
+        if allow_empty == true then
+            return hostname
+        else
+            -- this function will take care of formatting the IP
+            return hostinfo2label(hostinfo, true, shorten_len)
+        end
+    end
+    return hostinfo2label(hostinfo, true, shorten_len)
 end
 
 -- ##############################################

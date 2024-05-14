@@ -45,12 +45,6 @@ format_name_value = format_utils.format_name_value
 
 -- ##############################################
 
-function isAllowedSystemInterface()
-    return ntop.isAllowedInterface(tonumber(getSystemInterfaceId()))
-end
-
--- ##############################################
-
 local cached_allowed_networks_set = nil
 
 function hasAllowedNetworksSet()

@@ -1,5 +1,5 @@
 {
-	"id": "topology",
+	"id": "snmp_topology",
 	"data_url": "lua/pro/enterprise/snmp_device_stats.lua",
 	"use_current_page": false,
 	"enable_search": false,

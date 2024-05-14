@@ -1,0 +1,70 @@
+{
+	"id": "snmp_topology",
+	"data_url": "lua/pro/rest/v2/get/snmp/device/similarity.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "similarity",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"title_i18n": "snmp.snmp_device",
+			"data_field": "device_a",
+			"sortable": true,
+			"class": [
+				"text-left"
+			]
+		},
+		{
+			"title_i18n": "snmp.ifindex",
+			"data_field": "port_a",
+			"sortable": true,
+			"class": [
+				"text-left"
+			]
+		},
+		{
+			"title_i18n": "snmp.snmp_avg_traffic",
+			"data_field": "average_traffic_a",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "snmp.snmp_device",
+			"data_field": "device_b",
+			"sortable": true,
+			"class": [
+				"text-left"
+			]
+		},
+		{
+			"title_i18n": "snmp.ifindex",
+			"data_field": "port_b",
+			"sortable": true,
+			"class": [
+				"text-left"
+			]
+		},
+		{
+			"title_i18n": "snmp.snmp_avg_traffic",
+			"data_field": "average_traffic_b",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "snmp.similarity",
+			"data_field": "similarity",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		}
+	]
+}

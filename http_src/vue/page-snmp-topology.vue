@@ -3,29 +3,17 @@
 -->
 
 <template>
-  <div class="row">
-    <div class="col-md-12 col-lg-12">
-      <div class="card card-shadow">
-        <div class="card-body">
-            <TableWithConfig
-              ref="table_topology"
-              :table_id="table_id"
-              :csrf="context.csrf"
-              :f_map_columns="map_table_def_columns"
-              :get_extra_params_obj="get_extra_params_obj"
-              :f_sort_rows="columns_sorting"
-              @rows_loaded="on_table_loaded"
-            >
-            </TableWithConfig>
-        </div>
-        <div class="card-footer">
-          <NoteList :note_list="note_list"> </NoteList>
-        </div>
-      </div>
+  <div class="m-2 mb-3">
+    <TableWithConfig ref="table_topology" :table_id="table_id" :csrf="context.csrf"
+      :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj" :f_sort_rows="columns_sorting"
+      @rows_loaded="on_table_loaded">
+    </TableWithConfig>
+    <div class="card-footer">
+      <NoteList :note_list="note_list"> </NoteList>
     </div>
   </div>
 </template>
-  
+
 <script setup>
 /* Imports */
 import { ref } from "vue";
@@ -47,7 +35,7 @@ const note_list = [
   _i18n("snmp.snmp_lldp_cdp_descr")
 ]
 
-const table_id = ref("topology");
+const table_id = ref("snmp_topology");
 const table_topology = ref();
 const total_rows = ref(0);
 
@@ -83,12 +71,12 @@ function columns_sorting(col, r0, r1) {
     let r0_col = column_data(col, r0);
     let r1_col = column_data(col, r1);
 
-    
+
     if (col.id == "port_id") {
       return sortingFunctions.sortByNumber(r0_col, r1_col, col.sort);
     } else if (col.id == "port_thpt_value") {
       return sortingFunctions.sortByNumber(r0_col, r1_col, col.sort);
-    } else {  
+    } else {
       return sortingFunctions.sortByName(r0_col, r1_col, col.sort);
     }
   }
@@ -119,9 +107,8 @@ const map_table_def_columns = (columns) => {
   columns.forEach((c) => {
     c.render_func = map_columns[c.data_field];
   });
-  
+
   return columns;
 };
 
 </script>
-  
