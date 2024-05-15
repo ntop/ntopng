@@ -1157,6 +1157,9 @@ class Flow : public GenericHashEntry {
     return (!isTCPClosed() &&
             ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST)));
   };
+  inline bool isOnlyTCPReset() const {
+    return ((src2dst_tcp_flags & TH_RST) || (dst2src_tcp_flags & TH_RST));
+  }
   inline bool isTCPRefused() const {
     return (!isThreeWayHandshakeOK() && (dst2src_tcp_flags & TH_RST) == TH_RST);
   };

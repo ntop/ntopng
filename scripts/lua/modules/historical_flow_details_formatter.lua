@@ -184,7 +184,7 @@ local function format_historical_issue_description(flow_details, flow)
 
     if alert_store_instance then
         local alerts, _ = alert_store_instance:select_request(nil, "*")
-        if #alerts >= 1 then
+        if alerts and #alerts >= 1 then
             alert = alerts[1]
             details = alert_utils.formatFlowAlertMessage(interface.getId(), alert, alert_json, false, true)
         end

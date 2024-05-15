@@ -25,8 +25,15 @@
 /* ***************************************************** */
 
 void TCPFlowReset::checkFlowReset(Flow *f) {
+  MinorConnectionStates current_connection_state = f->getCurrentConnectionState();
   
-  if ((f->isTCP()) && f->isTCPReset()) {
+  bool to_trigger = f->isOnlyTCPReset() ||
+      current_connection_state == REJ ||
+      current_connection_state == RSTO ||
+      current_connection_state == RSTR ||
+      current_connection_state == RSTOS0 ||
+      current_connection_state == RSTRH;
+  if ((f->isTCP()) && (to_trigger)) {
     Host *cli_host = f->get_cli_host();
     Host *srv_host = f->get_srv_host();
 
@@ -44,7 +51,6 @@ void TCPFlowReset::checkFlowReset(Flow *f) {
     risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
 
     computeCliSrvScore(ntop->getFlowAlertScore(alert_type.id), cli_score_pctg, &c_score, &s_score);
-
     f->triggerAlertAsync(alert_type, c_score, s_score);
   }
 }
