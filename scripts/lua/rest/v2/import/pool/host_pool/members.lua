@@ -32,7 +32,7 @@ local lines = split(members_file_content, "\n")
 
 local members = {}
 for _,line in ipairs(lines) do
-	local splitted_line = split(line,"__")
+	local splitted_line = split(line,"_")
 	for _,member in ipairs(splitted_line) do
 		members[#members+1] = member
 	end
