@@ -3579,8 +3579,7 @@ bool Ntop::addLocalNetwork(char *_net) {
   int i, pos = 0;
 
   if (id >= CONST_MAX_NUM_NETWORKS) {
-    ntop->getTrace()->traceEvent(
-        TRACE_ERROR, "Too many networks defined (%d): ignored %s", id, _net);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined (%d): ignored %s", id, _net);
     return (false);
   }
 
@@ -3656,7 +3655,11 @@ void Ntop::addLocalNetworkList(const char *rule) {
   char *tmp, *net = strtok_r((char *)rule, ",", &tmp);
 
   while (net != NULL) {
-    if (!addLocalNetwork(net)) return;
+    if (!addLocalNetwork(net))
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to parse network %s or already defined: skipping it", net);
+    else
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Added network %s", net);
+    
     net = strtok_r(NULL, ",", &tmp);
   }
 }
