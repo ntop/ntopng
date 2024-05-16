@@ -43,8 +43,7 @@ const topology_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/topology_map.lua`
 const snmp_device_url = `${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?ip=%ip`
 
 const click_device = function(item) {
-  const node = item.nodes[0].split("|")
-  ntopng_url_manager.go_to_url(snmp_device_url.replace('%ip', node[0]));
+  ntopng_url_manager.go_to_url(snmp_device_url.replace('%ip', item.nodes[0]));
 }
 
 const event_listeners = {
