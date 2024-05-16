@@ -436,6 +436,8 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, 
       end--]]
     end
 
+    msg = string.format("%s %s",msg, flow_risk_utils.get_remediation_documentation_link(alert.alert_id))
+
     return msg or ""
 end
 
