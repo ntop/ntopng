@@ -759,18 +759,14 @@ function lists_utils.reset_blacklist_url(list_name, enabled)
     local saved_lists = lists_utils.getCategoryLists()
     local lists = get_lists() -- original lists
     local list = lists[list_name]
-    local was_triggered = (list.enabled ~= enabled)
-    saved_lists[list_name] = list
-
-    saveListsMetadataToRedis(lists)
-
-    -- Trigger a reload, for example for disabled lists
-    lists_utils.downloadLists()
-
-    if (was_triggered) then
-        -- Must reload the lists as a list was enabled/disabaled
-        lists_utils.reloadLists()
+    local default_url = list.url
+    local lists_metadata = ntop.getPref(METADATA_KEY)
+    local current_lists = {}
+    if not isEmptyString(lists_metadata) then
+        current_lists = json.decode(lists_metadata)
     end
+    current_lists[list_name].url = default_url
+    ntop.setPref(METADATA_KEY, json.encode(current_lists))
 end
 
 -- ##############################################
