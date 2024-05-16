@@ -7529,7 +7529,7 @@ local lang = {
     ["snmp_level"] = "Security Level",
     ["snmp_lldp_cdp_descr"] = "Device topology information is available when the <A HREF=\"https://en.wikipedia.org/wiki/Link_Layer_Discovery_Protocol\">LLDP</A> / <A HREF=\"https://en.wikipedia.org/wiki/Cisco_Discovery_Protocol\">CDP</A> MIB is present on the monitored device.",
     ["snmp_lldp_cdp_no_node"] = "The selected node has not been polled via SNMP",
-    ["snmp_lldp_cdp_node_color"] = "The node color represents the device model.",
+    ["snmp_lldp_cdp_node_color"] = "The node color represents the status of the interface.<br><ul><li><span style='color:green'>Up</span></li><li><span style='color:red'>Down</span></li><li><span style='color:blue'>Up in use</span></li><li><span style='color:#495057'>Unknown</span></li>",
     ["snmp_lldp_cdp_zoom_descr"] = "Click on a node to explore the device, use the mouse wheel to zoom, drag clicking on an empty area.",
     ["snmp_monitor_disable_confirm"] = "Do you really want to disable port status monitoring on SNMP device %{device}?",
     ["snmp_monitor_enable_confirm"] = "Do you really want to enable port status monitoring on SNMP device %{device}? Alerts will be generated whenever a port changes state.",

@@ -52,6 +52,7 @@ import { default as PageHostsList } from "./page-hosts-list.vue"
 import { default as PageFlowsList } from "./page-flows-list.vue"
 import { default as PageSNMPInterfaces } from "./page-snmp-interfaces.vue"
 import { default as PageSNMPTopology } from "./page-snmp-topology.vue"
+import { default as PageSNMPTopologyMap } from "./page-snmp-topology-map.vue"
 import { default as PageSNMPSimilarity } from "./page-snmp-similarity.vue"
 import { default as PageSNMPDevices } from "./page-snmp-devices.vue"
 import { default as PageBlacklists } from "./page-blacklists.vue"
@@ -136,6 +137,7 @@ let ntopVue = {
     PageSNMPUsage: PageSNMPUsage,
     PageSNMPInterfaces: PageSNMPInterfaces,
     PageSNMPTopology: PageSNMPTopology,
+    PageSNMPTopologyMap: PageSNMPTopologyMap,
     PageSNMPSimilarity: PageSNMPSimilarity,
     PageFlowsList: PageFlowsList,
     PageSNMPDevices: PageSNMPDevices,
