@@ -1,10 +1,11 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
-<div v-if="empty_map" class="alert alert-info">
-  {{ empty_message }}
-</div>
-<div class="d-flex justify-content-center align-items-center resizable-y-container" style="width: 100%; height: 60vh;" :id=map_id>
-</div>
+  <div v-if="empty_map" class="alert alert-info">
+    {{ empty_message }}
+  </div>
+  <div class="d-flex justify-content-center align-items-center resizable-y-container" style="width: 100%; height: 60vh;"
+    :id=map_id>
+  </div>
 </template>
 
 <script setup>
@@ -21,9 +22,9 @@ const props = defineProps({
   map_id: String,
 });
 
-const dataRequest = { 
-  ifid: props.url_params.ifid, 
-  action: 'load_graph', 
+const dataRequest = {
+  ifid: props.url_params.ifid,
+  action: 'load_graph',
   map: props.url_params.map_id
 };
 
@@ -49,8 +50,8 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  if (is_destroyed.value == true) { 
-    return; 
+  if (is_destroyed.value == true) {
+    return;
   }
   destroy();
 });
@@ -64,11 +65,11 @@ const generate_html_tooltip = (x) => {
 }
 
 /* This function is used to perform the request */
-const request_info = async() => {
+const request_info = async () => {
   /* if an host has been defined inside the URL query then add it to the request */
   url_params.value = props.url_params;
-  const url = NtopUtils.buildURL(props.url, url_params.value); 
-  await $.get(url, dataRequest, async function(response) {
+  const url = NtopUtils.buildURL(props.url, url_params.value);
+  await $.get(url, dataRequest, async function (response) {
     const { nodes, edges, max_entry_reached } = response.rsp;
     max_entries_reached.value = max_entry_reached;
     /* Adding tooltip to each node */
@@ -78,12 +79,12 @@ const request_info = async() => {
     }));
     edges_dataset = new vis.DataSet(edges);
     datasets.value = {
-      nodes: nodes_dataset, 
+      nodes: nodes_dataset,
       edges: edges_dataset
     };
     all_nodes.value = nodes_dataset.get({ returnType: "Object" });
     empty_network();
-	});
+  });
 };
 
 /* Add the host to the url and jump to the host */
@@ -99,7 +100,7 @@ const jump_to_host = async (params) => {
 
 /* In case of empty network enable the "Empty Network" message */
 const empty_network = () => {
-  if(datasets.value?.nodes.length == 0 
+  if (datasets.value?.nodes.length == 0
     && datasets.value?.edges.length == 0) {
     empty_map.value = true;
   } else {
@@ -111,19 +112,19 @@ const empty_network = () => {
 const load_scale = () => {
   const oldScale = NtopUtils.loadElementScale($(`.resizable-y-container`))
 
-  if(oldScale == null) {
-    const scale = {width: $(`.resizable-y-container`).width(), height: $(`.resizable-y-container`).height()};
+  if (oldScale == null) {
+    const scale = { width: $(`.resizable-y-container`).width(), height: $(`.resizable-y-container`).height() };
     NtopUtils.saveElementScale($(this), scale);
     return;
   }
 
   $(`.resizable-y-container`).width(oldScale.width);
   $(`.resizable-y-container`).height(oldScale.height);
-  $(`.resizable-y-container`).on('mouseup', function() {
-    const scale = {width: $(`.resizable-y-container`).width(), height: $(`.resizable-y-container`).height()};
+  $(`.resizable-y-container`).on('mouseup', function () {
+    const scale = { width: $(`.resizable-y-container`).width(), height: $(`.resizable-y-container`).height() };
     NtopUtils.saveElementScale($(this), scale);
   });
-}    
+}
 
 function neighbourhoodHighlight(params) {
   // if something is selected:
@@ -135,12 +136,12 @@ function neighbourhoodHighlight(params) {
 
     // mark all nodes as hard to read.
     for (var nodeId in all_nodes.value) {
-      if(!all_nodes.value[nodeId].old_color) {
-        all_nodes.value[nodeId].old_color = 
+      if (!all_nodes.value[nodeId].old_color) {
+        all_nodes.value[nodeId].old_color =
           all_nodes.value[nodeId].color;
       }
-      if(!all_nodes.value[nodeId].old_icon_color) {
-        all_nodes.value[nodeId].old_icon_color = 
+      if (!all_nodes.value[nodeId].old_icon_color) {
+        all_nodes.value[nodeId].old_icon_color =
           all_nodes.value[nodeId].icon;
       }
       all_nodes.value[nodeId].color = "#c8c8c8";
@@ -166,9 +167,9 @@ function neighbourhoodHighlight(params) {
 
     // all first degree nodes get their own color and their label back
     for (i = 0; i < connectedNodes.length; i++) {
-      all_nodes.value[connectedNodes[i]].color = 
+      all_nodes.value[connectedNodes[i]].color =
         all_nodes.value[connectedNodes[i]].old_color;
-      all_nodes.value[connectedNodes[i]].icon = 
+      all_nodes.value[connectedNodes[i]].icon =
         all_nodes.value[connectedNodes[i]].old_icon_color;
       if (all_nodes.value[connectedNodes[i]].hiddenLabel !== undefined) {
         all_nodes.value[connectedNodes[i]].label =
@@ -178,9 +179,9 @@ function neighbourhoodHighlight(params) {
     }
 
     // the main node gets its own color and its label back.
-    all_nodes.value[selectedNode].color = 
+    all_nodes.value[selectedNode].color =
       all_nodes.value[selectedNode].old_color;
-    all_nodes.value[selectedNode].icon = 
+    all_nodes.value[selectedNode].icon =
       all_nodes.value[selectedNode].old_icon_color;
     if (all_nodes.value[selectedNode].hiddenLabel !== undefined) {
       all_nodes.value[selectedNode].label = all_nodes.value[selectedNode].hiddenLabel;
@@ -189,9 +190,9 @@ function neighbourhoodHighlight(params) {
   } else if (highlightActive === true) {
     // reset all nodes
     for (var nodeId in all_nodes.value) {
-      all_nodes.value[nodeId].color = 
+      all_nodes.value[nodeId].color =
         all_nodes.value[nodeId].old_color;
-      all_nodes.value[nodeId].icon = 
+      all_nodes.value[nodeId].icon =
         all_nodes.value[nodeId].old_icon_color;
       if (all_nodes.value[nodeId].hiddenLabel !== undefined) {
         all_nodes.value[nodeId].label = all_nodes.value[nodeId].hiddenLabel;
@@ -214,20 +215,31 @@ function neighbourhoodHighlight(params) {
 
 /* Set the event lister used for callbacks */
 const set_event_listener = () => {
-  network.on("stabilizationIterationsDone", function() {
-    network.setOptions( { physics: false } );
-  })
-  network.on("click", function(node) {
-    neighbourhoodHighlight(node);
-  });
 
-  network.on("doubleClick", function (params) {
-    jump_to_host(nodes_dataset.get(params.nodes[0]));
-  });
+  if (!props.event_listeners || !props.event_listeners["stabilizationIterationsDone"]) {
+    network.on("stabilizationIterationsDone", function () {
+      network.setOptions({ physics: false });
+    })
+  }
 
-  network.on("afterDrawing", function(e) {
-    ntopng_events_manager.emit_custom_event(ntopng_custom_events.VIS_DATA_LOADED);
-  })
+  if (!props.event_listeners || !props.event_listeners["click"]) {
+    network.on("click", function (node) {
+      neighbourhoodHighlight(node);
+    });
+  }
+
+  if (!props.event_listeners || !props.event_listeners["doubleClick"]) {
+    network.on("doubleClick", function (params) {
+      jump_to_host(nodes_dataset.get(params.nodes[0]));
+    });
+  }
+
+
+  if (!props.event_listeners || !props.event_listeners["afterDrawing"]) {
+    network.on("afterDrawing", function (e) {
+      ntopng_events_manager.emit_custom_event(ntopng_custom_events.VIS_DATA_LOADED);
+    })
+  }
 
   /* Given event listeners */
   for (const item in (props.event_listeners || {})) {
@@ -252,7 +264,7 @@ const autolayout = () => {
 
 /* Destroy the network if it's not null */
 const destroy = () => {
-  if(network != null)
+  if (network != null)
     network.destroy(true);
 
   is_destroyed.value = true
@@ -271,7 +283,7 @@ const update_url_params = (new_url_params) => {
 /* Function used to reload the map */
 const reload = async () => {
   await request_info();
-  if(network != null) {
+  if (network != null) {
     /* Reload of the physics is done due to a possible bug,
      * with many nodes, the physics could stuck infinitely 
      */
