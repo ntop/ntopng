@@ -1,5 +1,5 @@
 {#
-   (C) 2021 - ntop.org    
+   (C) 2021-24 - ntop.org
    Template for alert details.
 #}
 
@@ -7,12 +7,12 @@
    <div class="alert alert-danger">
       <i class="fas fa-exclamation-triangle fa-lg"></i> {{ i18n("alert_details.cannot_be_found_message") }} </div>
 {% else %}
-   
+
 <table class="table table-bordered table-striped">
-{% for _, row in ipairs(details) do 
-   local is_content_table = (type(row.content) == 'table') 
+{% for _, row in ipairs(details) do
+   local is_content_table = (type(row.content) == 'table')
    local rowspan = ""
-   
+
    -- If the content is a table then use a rowspan
    if is_content_table then
       rowspan = table.len(row.content) + 1
@@ -21,17 +21,17 @@
    <tr><th class="no-wrap" rowspan="{{ rowspan }}">{{ row.label }}</th>
 {%   if not is_content_table then %}
      <td colspan="2">{* row.content *}</td>
-{%   else 
-      for data, info in pairsByKeys(row.content, asc) do 
+{%   else
+      for data, info in pairsByKeys(row.content, asc) do
         if not isEmptyString(info) then %}
           <tr>
             <th class="no-wrap">{{ i18n(data) or data }}</th>
             <td style="width: 100%">{* info *}</td>
-          </tr> 
+          </tr>
 {%      end
-      end    
+      end
     end %}
-   </tr> 
+   </tr>
 {% end %}
 </table>
 
@@ -44,4 +44,3 @@ $(document).ready(function(){
 </script>
 
 {% end %}
-
