@@ -17,7 +17,7 @@ end
 
 function flow_risk_utils.get_remediation_documentation_link(risk_id)
    local url = string.format("https://www.ntop.org/guides/ntopng/remediations/flow_risks.html#risk-%.3u", risk_id)
-   local link = string.format('<a href="%s" target="_blank"><i class="fa-solid fa-lightbulb"></i></a>', url)
+   local link = string.format('<a href="%s" target="_blank"><i class="fa-solid fa-lg fa-briefcase-medical"></i></a>', url)
 
    return link 
 end
