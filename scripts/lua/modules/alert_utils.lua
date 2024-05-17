@@ -425,6 +425,8 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, 
         end
     end
 
+    msg = string.format("%s %s",msg, flow_risk_utils.get_remediation_documentation_link(alert.alert_id))
+
     -- Add the link to the documentation
     if alert_risk and alert_risk > 0 then
         msg = string.format("%s %s", msg, flow_risk_utils.get_documentation_link(alert_risk))
@@ -435,8 +437,6 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, 
          msg = string.format("%s", msg, info_msg)
       end--]]
     end
-
-    msg = string.format("%s %s",msg, flow_risk_utils.get_remediation_documentation_link(alert.alert_id))
 
     return msg or ""
 end
