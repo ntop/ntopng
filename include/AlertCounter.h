@@ -37,10 +37,8 @@
 class AlertCounter {
  private:
   time_t time_last_hit;
-  u_int16_t trailing_window[ALERT_COUNTER_WINDOW_SECS];
-  u_int16_t trailing_window_min;
-  u_int16_t trailing_window_max_since_hits_reset;
-  u_int8_t trailing_index;
+  u_int16_t current_hits;
+  u_int16_t max_since_hits_reset;
   bool hits_reset_req;
 
   void reset_window(time_t when = 0);
