@@ -466,7 +466,7 @@ function alert_consts.alertTypeLabel(alert_id, nohtml, alert_entity_id, nil_on_n
          return title
       else
          -- return(string.format('<i class="%s"></i> %s', type_info.icon or type_info.meta.icon, shortenString(title)))
-         return string.format('<i class="%s"></i> %s', type_info.icon or type_info.meta.icon, title)
+         return string.format('%s', title)
       end
    elseif nil_on_not_found then
       return nil
