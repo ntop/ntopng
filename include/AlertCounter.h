@@ -38,7 +38,7 @@ class AlertCounter {
  private:
   time_t time_last_hit;
   u_int16_t current_hits;
-  u_int16_t max_since_hits_reset;
+  u_int16_t max_hits_since_reset;
   bool hits_reset_req;
 
   void reset_window(time_t when = 0);
