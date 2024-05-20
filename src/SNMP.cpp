@@ -324,7 +324,7 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
 
   if (pdu_type == SNMP_MSG_GETBULK) {
     pdu->non_repeaters = 0;    /* GET      */
-    pdu->max_repetitions = 10; /* GET-NEXT */
+    pdu->max_repetitions = 25; /* GET-NEXT */
   }
 
   for (u_int i = 0; i < SNMP_MAX_NUM_OIDS; i++) {
