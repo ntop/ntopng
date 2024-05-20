@@ -32,8 +32,6 @@
  *
  */
 
-#define ALERT_COUNTER_WINDOW_SECS 3
-
 class AlertCounter {
  private:
   time_t time_last_hit;
