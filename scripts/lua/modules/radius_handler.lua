@@ -68,7 +68,8 @@ function radius_handler.accountingStart(name, username, password)
             username = username,
             password = password,
             session_id = session_id,
-            start_session_time = current_time
+            start_session_time = current_time,
+            ip_address = ip_address
         }
 
         ntop.setCache(key, json.encode(user_data))
@@ -126,7 +127,20 @@ function radius_handler.accountingUpdate(name, info)
     local res = true
 
     if is_accounting_on then
-        local ip_address = get_first_ip(name)
+        local ip_address
+        if user_data and not isEmptyString(user_data.ip_address) then
+            ip_address = user_data.ip_address
+        else
+            ip_address = get_first_ip(name)
+            if not isEmptyString(ip_address) then
+                -- Update the info with the ip_address if it's not empty
+                local json = require("dkjson")
+                local key = string.format(redis_accounting_key, name)
+                user_data.ip_address = ip_address
+    
+                ntop.setCache(key, json.encode(user_data))                    
+            end
+        end
         local bytes_sent = info["bytes.sent"]
         local bytes_rcvd = info["bytes.rcvd"]
         local packets_sent = info["packets.sent"]
