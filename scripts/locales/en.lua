@@ -6679,6 +6679,7 @@ local lang = {
     ["slack_webhook_title"] = "Notification Webhook",
     ["snmp"] = "SNMP",
     ["snmp_alerts"] = "SNMP Alerts",
+    ["snmp_device_config"] = "Device Configuration",
     ["snmp_port_avg_usage_threshold_description"] = "Set a threshold to trigger alerts when the port percentage usage (in or out traffic) exceeds the specified limit (on a 5-min average).",
     ["snmp_port_avg_usage_threshold_title"] = "Interface Avg Usage Threshold",
     ["snmp_port_load_threshold_description"] = "Set a threshold (as percentage of the port speed) to trigger alerts when the port load exceeds the specified limit (on a 5-min average).",
