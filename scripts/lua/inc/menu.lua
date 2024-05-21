@@ -236,8 +236,8 @@ else
             -- Pro or Enterprise with clickhouse disabled
             entry = page_utils.menu_entries.traffic_report,
             hidden = not (
-              (ntop.isPro() and not ntop.isEnterprise()) or 
-              (ntop.isEnterprise() and not prefs.is_dump_flows_to_clickhouse_enabled)
+              (ntop.isPro() and not ntop.isEnterprise() and not ntop.isnEdgeEnterprise()) or 
+              ((ntop.isEnterprise() or ntop.isnEdgeEnterprise()) and not prefs.is_dump_flows_to_clickhouse_enabled)
             ),
             url = "/lua/pro/report.lua"
         }, {
