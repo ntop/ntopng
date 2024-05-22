@@ -250,6 +250,9 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
 
     /* NDPI_BINARY_DATA_TRANSFER */
     {{flow_alert_ndpi_binary_data_transfer, alert_category_security}, "ndpi_binary_data_transfer"},
+
+    /* NDPI_PROBING_ATTEMPT */
+    {{flow_alert_ndpi_probing_attempt, alert_category_security}, "ndpi_probing_attempt"},
 };
 
 /* **************************************************** */
