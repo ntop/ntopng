@@ -32,7 +32,7 @@
       <div class="mt-3"  :class="[(loading_chart) ? 'ntopng-gray-out' : '']">
         <TimeseriesChart ref="all_qos_chart" :id="all_qos_id" :chart_type="chart_type" :base_url_request="base_url"
           :get_custom_chart_options="get_chart_options" :register_on_status_change="false"
-          :disable_pointer_events="false">
+          :disable_pointer_events="false" :key="all_qos_id">
         </TimeseriesChart>
       </div>
 
@@ -78,7 +78,7 @@ const props = defineProps({
 const id_date_time_picker = "date_time_picker";
 const chart_type = ntopChartApex.typeChart.TS_LINE;
 const min_time_interval_id = "10_min";
-const all_qos_id = "chart_qos_all";
+const all_qos_id = ref("chart_qos_all");
 const basic_source_type = "snmp_qos";
 const group_option_mode = timeseriesUtils.getGroupOptionMode('1_chart_x_metric');
 const filter_table_array = ref([]);
@@ -189,14 +189,17 @@ function print_stats_row(col, row) {
 /* *************************************************** */
 
 function search_timeseries() {
-  refresh_chart();
+  /* This is a trick to reload the entire timeseries component
+   * if not reloaded there could be some issues with parameters
+   */
+  all_qos_id.value = ntopng_url_manager.get_url_entry("qos_class_id");
 }
 
 /* *************************************************** */
 
 async function add_filter(opt) {
   ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
-  await load_table_filters_array();
+  await load_table_filters_array(opt);
 }
 
 /* ************************************** */
@@ -227,13 +230,18 @@ function set_filter_array_label() {
 
 /* ************************************** */
 
-function set_filters_list(res) {
+function set_filters_list(res, opt) {
   if (!res) {
     filter_table_array.value = filters.value.filter((t) => {
       if (t.show_with_key) {
         const key = ntopng_url_manager.get_url_entry(t.show_with_key)
         if (key !== t.show_with_value) {
           return false
+        }
+        const first_option = t.options[0];
+        if (opt && opt.key !== first_option.key) {
+          /* Changing the dropdown, changing the option too */
+          ntopng_url_manager.set_key_to_url(first_option.key, first_option.value);
         }
       }
       return true
@@ -253,7 +261,7 @@ function set_filters_list(res) {
         show_with_value: t.show_with_value,
       };
     });
-    set_filters_list();
+    set_filters_list(null, opt);
     return;
   }
   set_filter_array_label();
@@ -287,13 +295,13 @@ function substitute_params(params) {
 
 /* ************************************** */
 
-async function load_table_filters_array() {
+async function load_table_filters_array(opt) {
   loading.value = true;
   let extra_params = get_extra_params_obj();
   let url_params = ntopng_url_manager.obj_to_url_params(extra_params);
   const url = `${http_prefix}/lua/pro/rest/v2/get/snmp/device/qos_filters.lua?${url_params}`;
   const res = await ntopng_utility.http_request(url);
-  set_filters_list(res)
+  set_filters_list(res, opt)
   loading.value = false;
 }
 
