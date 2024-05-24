@@ -123,7 +123,11 @@ local function schema_get_path(schema, tags)
 
    -- Some exceptions to avoid conflicts / keep compatibility
    if parts[1] == "snmp_if" then
-      suffix = tags.if_index .. "/"
+      if tags.qos_class_id then
+         suffix = tags.if_index .. "/" .. tags.qos_class_id .. "/"       
+      else
+         suffix = tags.if_index .. "/"
+      end
    elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
       if (tags.port) then
 	 if (type(tags.port) == "table") then

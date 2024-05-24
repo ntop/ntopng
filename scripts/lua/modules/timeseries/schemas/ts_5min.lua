@@ -475,6 +475,21 @@ schema:addTag("if_index")
 schema:addMetric("uplink")
 schema:addMetric("downlink")
 
+schema = ts_utils.newSchema("snmp_if:qos", {
+    step = 300,
+    rrd_heartbeat = 3000,
+    rrd_fname = "qos",
+    is_system_schema = true,
+    metrics_type = ts_utils.metrics.gauge,
+})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addTag("if_index")
+schema:addTag("qos_class_id")
+schema:addMetric("pre")
+schema:addMetric("drop")
+schema:addMetric("post")
+
 schema = ts_utils.newSchema("snmp_if:errors", {
     step = 300,
     rrd_heartbeat = 3000,

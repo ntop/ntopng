@@ -692,7 +692,6 @@ function set_stats_rows(ts_charts_options, timeseries_groups, status) {
             let total_formatter = formatterUtils.getFormatter(total_formatter_type);
             let row = {
                 metric: name,
-                // total: total_formatter(total),
                 total: total_formatter(ts_stats.total),
                 perc_95: formatter(ts_stats["95th_percentile"]),
                 avg: formatter(ts_stats.average),

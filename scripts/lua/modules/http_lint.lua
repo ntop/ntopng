@@ -2507,6 +2507,7 @@ local known_parameters = {
    ["allowed_interface"] = validateEmptyOr(validateInterface), -- the interface an user is allowed to configure
    ["allowed_networks"] = validateNetworksList, -- a list of networks the user is allowed to monitor
    ["switch_interface"] = validateInterface, -- a new active ntopng interface
+   ["qos_class_id"] = validateNumber,
    ["edit_members"] = validateEmpty, -- set if we are editing pool members
    ["trigger_alerts"] = validateBool, -- true if alerts should be active for this entity
    ["show_advanced_prefs"] = validateBool, -- true if advanced preferences should be shown

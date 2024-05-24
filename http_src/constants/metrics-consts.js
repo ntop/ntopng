@@ -12,57 +12,57 @@ const ui_types = {
 };
 
 const sources_url_el_to_source = {
-    ifid: (s) => {
-	let label = s.ifname;
-	if (s.name != null) {
-	    label = s.name;
-	}
-	return {
-	    label,
-	    value: s.ifid,
-	};
-    },
-    pool: (p) => {
-	let label = p.pool_id;
-	if (p.name != null) { label = p.name; }
-	return {
-	    label,
-	    value: p.pool_id,
-	};
-    },
-    am_host: (am) => {
-	let label = `${am.label} ${am.measurement}`;
-	let value = `${am.host},metric:${am.measurement_key}`;
-	return {
-	    label,
-	    value,
-	};
-    },
-    blacklist: (b) => {
-        let label = `${b.column_name}`;
-        let value = label;
-        return {
-            label,
-            value,
-        };
-    },
-    device: (device) => {
-	let label = `${device.name}`;
-	let value = `${device.ip}`;
-	return {
-	    label,
-	    value,
-	};
-    },
-    if_index: (index) => {
-	return '';
-	/*	let label = `${index.name}`;
-		let value = `${index.ip}`;
+	ifid: (s) => {
+		let label = s.ifname;
+		if (s.name != null) {
+			label = s.name;
+		}
 		return {
-		label,
-		value,
-		};*/
-    }
+			label,
+			value: s.ifid,
+		};
+	},
+	pool: (p) => {
+		let label = p.pool_id;
+		if (p.name != null) { label = p.name; }
+		return {
+			label,
+			value: p.pool_id,
+		};
+	},
+	am_host: (am) => {
+		let label = `${am.label} ${am.measurement}`;
+		let value = `${am.host},metric:${am.measurement_key}`;
+		return {
+			label,
+			value,
+		};
+	},
+	blacklist: (b) => {
+		let label = `${b.column_name}`;
+		let value = label;
+		return {
+			label,
+			value,
+		};
+	},
+	device: (device) => {
+		let label = `${device.name}`;
+		let value = `${device.ip}`;
+		return {
+			label,
+			value,
+		};
+	},
+	if_index: (index) => {
+		return '';
+		/*	let label = `${index.name}`;
+			let value = `${index.ip}`;
+			return {
+			label,
+			value,
+			};*/
+	}
 };
 
 const sources_types_tables = {
@@ -75,53 +75,53 @@ const sources_types_tables = {
 
 const sources_types = [
 	{
-	    id: "interface", //unique id
-	    regex_page_url: "lua\/if_stats", // regex to match url page
-	    label: i18n("page_stats.source_def.interface"),
-	    query: "iface",
-            f_map_ts_options: null, // convert rest result
-	    source_def_array: [{
-		main_source_def: true,
+		id: "interface", //unique id
+		regex_page_url: "lua\/if_stats", // regex to match url page
 		label: i18n("page_stats.source_def.interface"),
-		regex_type: null,
-                refresh_on_sources_change: false, // if true sources list are realoaded every time some selected sources changed 
-		sources_url: "lua/rest/v2/get/ntopng/interfaces.lua", // url to get sources list
-		sources_function: null, // custom function that return sources_list, overwrite sources_url
-		value: "ifid", // used in tsQuery parameter, to get init and set value in url
-		value_url: null, // overwrite value to get and set value in url
-		value_map_sources_res: null,
-		disable_tskey: null,
-		f_get_value_url: null, // overwrite value and value_url to get start value from url
-		f_set_value_url: null, // overwrite value and value_url to set start value in url
-		ui_type: ui_types.select,
-	    }],
+		query: "iface",
+		f_map_ts_options: null, // convert rest result
+		source_def_array: [{
+			main_source_def: true,
+			label: i18n("page_stats.source_def.interface"),
+			regex_type: null,
+			refresh_on_sources_change: false, // if true sources list are realoaded every time some selected sources changed 
+			sources_url: "lua/rest/v2/get/ntopng/interfaces.lua", // url to get sources list
+			sources_function: null, // custom function that return sources_list, overwrite sources_url
+			value: "ifid", // used in tsQuery parameter, to get init and set value in url
+			value_url: null, // overwrite value to get and set value in url
+			value_map_sources_res: null,
+			disable_tskey: null,
+			f_get_value_url: null, // overwrite value and value_url to get start value from url
+			f_set_value_url: null, // overwrite value and value_url to set start value in url
+			ui_type: ui_types.select,
+		}],
 	},
 	{
-	    id: "blacklist", //unique id
-	    regex_page_url: "lua\/admin\/blacklists", // regex to match url page
-	    label: i18n("page_stats.source_def.blacklist"),
-	    query: "blacklist",
-            f_map_ts_options: (ts_options, ts_group) => {
-                if (ts_options.series == null) {                    
-                    return ts_options;
-                }
-                ts_options.series.forEach((s) => {
-                    if (ts_group.metric.query != null) {
-                        s.name = ts_group.metric.label;
-                    } else {
-                        s.name = s.name.replaceAll("_", " ");
-                        s.type = undefined;
-                    }
-                });
-                return ts_options;
-            },
-            // display_full_name: true,
-	    source_def_array: [{
-		label: i18n("page_stats.source_def.interface"),
-		sources_function: () => { return [{ label: "System", value: -1 }] },
-		value: "ifid",
-		ui_type: ui_types.hide,
-	    },]
+		id: "blacklist", //unique id
+		regex_page_url: "lua\/admin\/blacklists", // regex to match url page
+		label: i18n("page_stats.source_def.blacklist"),
+		query: "blacklist",
+		f_map_ts_options: (ts_options, ts_group) => {
+			if (ts_options.series == null) {
+				return ts_options;
+			}
+			ts_options.series.forEach((s) => {
+				if (ts_group.metric.query != null) {
+					s.name = ts_group.metric.label;
+				} else {
+					s.name = s.name.replaceAll("_", " ");
+					s.type = undefined;
+				}
+			});
+			return ts_options;
+		},
+		// display_full_name: true,
+		source_def_array: [{
+			label: i18n("page_stats.source_def.interface"),
+			sources_function: () => { return [{ label: "System", value: -1 }] },
+			value: "ifid",
+			ui_type: ui_types.hide,
+		},]
 	},
 	{
 		id: "vulnerability_scan", //unique id
@@ -134,7 +134,7 @@ const sources_types = [
 			value: "ifid",
 			ui_type: ui_types.hide,
 		}]
-		
+
 	},
 	{
 		id: "host",
@@ -357,43 +357,43 @@ const sources_types = [
 		}],
 	},
 	{
-	    id: "snmp_interface",
-	    id_group: "snmp",
-	    // disable_stats: true,
-	    regex_page_url: "lua\/pro\/enterprise\/snmp_interface_details",
-	    label: i18n("page_stats.source_def.snmp_interface"),
-	    query: "snmp_interface",
-            f_map_ts_options: (ts_options, ts_group) => {
-                return ts_options;
-            },
-            source_def_array: [{
-		label: i18n("page_stats.source_def.interface"),
-		sources_function: () => { return [{ label: "", value: -1 }] },
-		value: "ifid",
-		ui_type: ui_types.hide,
-	    }, {
-		label: i18n("page_stats.source_def.device"),
-		regex_type: "ip",
-		sources_url: "lua/pro/rest/v2/get/snmp/device/list.lua", // url to get sources list
-		value: "device",
-		value_url: "host",
-                // refresh_i18n: 'modal_timeseries.snmp_confirm_device',
-		// ui_type: ui_types.input_confirm,
-                ui_type: ui_types.select,
-	    }, {
-		main_source_def: true,
+		id: "snmp_interface",
+		id_group: "snmp",
+		// disable_stats: true,
+		regex_page_url: "lua\/pro\/enterprise\/snmp_interface_details",
 		label: i18n("page_stats.source_def.snmp_interface"),
-		regex_type: "text",
-                refresh_on_sources_change: true,
-		sources_function: async (selected_source_value_array) => {
-                    const device_host = selected_source_value_array[1];
-                    let snmp_interfaces = await proxySnmp.available_interfaces(device_host);
-                    return snmp_interfaces.map((iface) => { return { label: iface.name, value: iface.id }; });
-                },
-		value: "if_index",
-		value_url: "snmp_port_idx",
-		ui_type: ui_types.select,
-	    }],
+		query: "snmp_interface",
+		f_map_ts_options: (ts_options, ts_group) => {
+			return ts_options;
+		},
+		source_def_array: [{
+			label: i18n("page_stats.source_def.interface"),
+			sources_function: () => { return [{ label: "", value: -1 }] },
+			value: "ifid",
+			ui_type: ui_types.hide,
+		}, {
+			label: i18n("page_stats.source_def.device"),
+			regex_type: "ip",
+			sources_url: "lua/pro/rest/v2/get/snmp/device/list.lua", // url to get sources list
+			value: "device",
+			value_url: "host",
+			// refresh_i18n: 'modal_timeseries.snmp_confirm_device',
+			// ui_type: ui_types.input_confirm,
+			ui_type: ui_types.select,
+		}, {
+			main_source_def: true,
+			label: i18n("page_stats.source_def.snmp_interface"),
+			regex_type: "text",
+			refresh_on_sources_change: true,
+			sources_function: async (selected_source_value_array) => {
+				const device_host = selected_source_value_array[1];
+				let snmp_interfaces = await proxySnmp.available_interfaces(device_host);
+				return snmp_interfaces.map((iface) => { return { label: iface.name, value: iface.id }; });
+			},
+			value: "if_index",
+			value_url: "snmp_port_idx",
+			ui_type: ui_types.select,
+		}],
 	},
 	{
 		id: "snmp_device",
@@ -415,6 +415,49 @@ const sources_types = [
 			value: "device",
 			value_url: "host",
 			ui_type: ui_types.input,
+		}],
+	},
+	{
+		id: "snmp_qos",
+		id_group: "snmp",
+		regex_page_url: "",
+		label: i18n("page_stats.source_def.snmp_interface"),
+		query: "snmp_interface",
+		f_map_ts_options: (ts_options, ts_group) => {
+			return ts_options;
+		},
+		source_def_array: [{
+			label: i18n("page_stats.source_def.interface"),
+			sources_function: () => { return [{ label: "", value: -1 }] },
+			value: "ifid",
+			ui_type: ui_types.hide,
+		}, {
+			label: i18n("page_stats.source_def.device"),
+			regex_type: "ip",
+			sources_url: "lua/pro/rest/v2/get/snmp/device/list.lua", // url to get sources list
+			value: "device",
+			value_url: "host",
+			ui_type: ui_types.select,
+		}, {
+			main_source_def: true,
+			label: i18n("page_stats.source_def.snmp_interface"),
+			regex_type: "text",
+			refresh_on_sources_change: true,
+			sources_function: async (selected_source_value_array) => {
+				const device_host = selected_source_value_array[1];
+				let snmp_interfaces = await proxySnmp.available_interfaces(device_host);
+				return snmp_interfaces.map((iface) => { return { label: iface.name, value: iface.id }; });
+			},
+			value: "if_index",
+			value_url: "snmp_port_idx",
+			ui_type: ui_types.select,
+		}, {
+			label: i18n("snmp.qos"),
+			regex_type: "text",
+			sources_url: "", 
+			value: "qos_class_id",
+			value_url: "qos_class_id",
+			ui_type: ui_types.hide,
 		}],
 	},
 	{
