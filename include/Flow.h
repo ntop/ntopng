@@ -339,7 +339,7 @@ class Flow : public GenericHashEntry {
   void processDetectedProtocolData(); /* nDPI detected protocol data (e.g.,
                                          ndpiFlow->host_server_name) */
   void setExtraDissectionCompleted();
-  void setProtocolDetectionCompleted(u_int8_t *payload, u_int16_t payload_len);
+  void setProtocolDetectionCompleted(u_int8_t *payload, u_int16_t payload_len, time_t when_seen);
   void updateProtocol(ndpi_protocol proto_id);
   const char *cipher_weakness2str(ndpi_cipher_weakness w) const;
   bool get_partial_traffic_stats(PartializableFlowTrafficStats **dst,
@@ -368,7 +368,7 @@ class Flow : public GenericHashEntry {
   /* Decreases scores on both client and server hosts when the flow is being
    * destructed */
   void decAllFlowScores();
-  void updateServerPortsStats(Host *server_host, ndpi_protocol *proto);
+  void updateServerPortsStats(Host *server_host, ndpi_protocol *proto, time_t when_seen);
   void updateClientContactedPorts(Host *client, ndpi_protocol *proto);
   void updateTCPHostServices(Host *cli_h, Host *srv_h);
   void updateUDPHostServices();

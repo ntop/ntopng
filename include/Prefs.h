@@ -39,6 +39,7 @@ typedef std::set<std::string> InterfacesSet;
 
 class Prefs {
  private:
+  u_int32_t contacted_server_port_learning_period;
   u_int8_t num_deferred_interfaces_to_register;
   pcap_direction_t captureDirection;
   char **deferred_interfaces_to_register, *cli;
@@ -338,7 +339,9 @@ class Prefs {
   inline bool is_flows_dump_enabled() {
     return (do_dump_flows() && is_runtime_flows_dump_enabled());
   };
-
+  inline u_int32_t get_contacted_server_port_learning_period() {
+    return contacted_server_port_learning_period;
+  };
   int32_t getDefaultPrefsValue(const char* pref_key, int32_t default_value);
   void getDefaultStringPrefsValue(const char* pref_key, char** buffer,
                                   const char* default_value);

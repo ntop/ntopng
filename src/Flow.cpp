@@ -988,7 +988,6 @@ void Flow::processPacket(const struct pcap_pkthdr *h, const u_char *ip_packet,
                          u_int16_t src_port) {
   bool detected;
   ndpi_protocol proto_id;
-
   /* Note: do not call endProtocolDissection before
    * ndpi_detection_process_packet. In case of early giveup (e.g. sampled
    * traffic), nDPI should process at least one packet in order to be able to
@@ -1051,7 +1050,7 @@ void Flow::processPacket(const struct pcap_pkthdr *h, const u_char *ip_packet,
     }
 
     updateProtocol(proto_id);
-    setProtocolDetectionCompleted(payload, payload_len);
+    setProtocolDetectionCompleted(payload, payload_len, h->ts.tv_sec);
   }
 
   /*
@@ -1246,7 +1245,7 @@ void Flow::endProtocolDissection() {
     updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), ndpiFlow,
                                          &proto_guessed));
     setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
-    setProtocolDetectionCompleted(NULL, 0);
+    setProtocolDetectionCompleted(NULL, 0, 0);
   }
 
   if (!extra_dissection_completed) setExtraDissectionCompleted();
@@ -1257,7 +1256,7 @@ void Flow::endProtocolDissection() {
 /* Manually set a protocol on the flow and terminate the dissection. */
 void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
   updateProtocol(proto_id);
-  setProtocolDetectionCompleted(NULL, 0);
+  setProtocolDetectionCompleted(NULL, 0, 0);
 
   endProtocolDissection();
 }
@@ -1408,7 +1407,8 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
  * the protocol_detected state.
  */
 void Flow::setProtocolDetectionCompleted(u_int8_t *payload,
-                                         u_int16_t payload_len) {
+                                         u_int16_t payload_len, time_t when_seen) {
+
   if (detection_completed) return;
 
   stats.setDetectedProtocol(&ndpiDetectedProtocol);
@@ -1428,7 +1428,7 @@ void Flow::setProtocolDetectionCompleted(u_int8_t *payload,
       Hosts are NULL for view interfaces and thus they are updated
       in Flow::hosts_periodic_stats_update()
     */
-    updateServerPortsStats(srv_host, &ndpiDetectedProtocol);
+    updateServerPortsStats(srv_host, &ndpiDetectedProtocol, when_seen);
     updateClientContactedPorts(cli_host, &ndpiDetectedProtocol);
   }
 
@@ -1862,7 +1862,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
 			     is chosen to increase stats */
     NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
 
-    updateServerPortsStats(srv_host, &ndpiDetectedProtocol);
+    updateServerPortsStats(srv_host, &ndpiDetectedProtocol, tv->tv_sec);
     updateClientContactedPorts(cli_host, &ndpiDetectedProtocol);
 
     if (cli_network_id >= 0 && (cli_network_id == srv_network_id))
@@ -4965,7 +4965,7 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
 /* Update server -> client in case no traffic was already observed on the server
  * side */
 
-void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto) {
+void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto, time_t when_seen) {
   /*
     NOTE use the method parameter 'server' instead of
     srv_host as with view interfaces it can be invalid
