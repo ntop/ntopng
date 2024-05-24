@@ -1,1 +1,1 @@
-{"name":"Ellio","format":"ip","enabled":false,"update_interval":86400,"url":"https://cdn.ellio.tech/community-feed","category":"malware"}
+{"name":"ELLIO: Community Feed (for non-commercial use)","format":"ip","enabled":true,"update_interval":86400,"url":"https://cdn.ellio.tech/community-feed","category":"malware"}
