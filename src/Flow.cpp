@@ -4989,7 +4989,7 @@ void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto) {
 	  if (vlan_hash)
 	    vlan_hash->setServerPort(true, ntohs(srv_port), proto);
 	}
-	server->setServerPort(true, ntohs(srv_port), proto);
+	server->setServerPort(true, ntohs(srv_port), proto, first_seen);
       }
       break;
 
@@ -5006,7 +5006,7 @@ void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto) {
 	  if (vlan_hash) vlan_hash->setServerPort(false, s_port, proto);
 	}
 
-	server->setServerPort(false, s_port, proto);
+	server->setServerPort(false, s_port, proto, first_seen);
       }
       break;
     }

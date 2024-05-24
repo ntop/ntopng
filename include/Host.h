@@ -924,7 +924,7 @@ class Host : public GenericHashEntry,
     unidirectionalTCPUDPFlows.numEgressFlows++;
   }
 
-  virtual void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) {
+  virtual void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto, time_t when) {
     ;
   };
   virtual void setContactedPort(bool isTCP, u_int16_t port,
