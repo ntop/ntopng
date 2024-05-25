@@ -7550,6 +7550,7 @@ local lang = {
     ["snmp_note_periodic_interfaces_polling"] = "Periodic SNMP walks are performed to update interfaces at regular 5-minute intervals.",
     ["snmp_note_thpt_calc"] = "The throughput accounts for the total traffic (in + out) over the two most recent consecutive SNMP walks.",
     ["snmp_note_thpt_span"] = "The two most recent consecutive SNMP walks were perfrormed at %{last} and %{prev}.",
+    ["snmp_qos_info_not_polled"] = "QoS MIBs not polled yet",
     ["snmp_pool"] = "Pool",
     ["snmp_port_monitor"] = "SNMP Port Monitor",
     ["snmp_printer"] = "Printer",

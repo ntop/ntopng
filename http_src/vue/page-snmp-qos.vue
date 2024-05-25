@@ -4,7 +4,7 @@
 
 <template>
   <div class="col-12 mb-2 mt-2">
-    <div class="button-group mb-2 d-flex align-items-center"> <!-- TableHeader -->
+    <div v-if="show_filters" class="button-group mb-2 d-flex align-items-center"> <!-- TableHeader -->
       <div class="form-group d-flex align-items-end" style="flex-wrap: wrap;">
         <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
           <span class="no-wrap d-flex align-items-center filters-label fs-6"><b>{{ item["basic_label"]
@@ -21,6 +21,9 @@
         </div>
       </div>
     </div>
+    <div v-else class="col-12 alert alert-info alert-dismissable">
+      <span> {{ qos_not_polled_yet }}</span>
+    </div>
 
     <div class="card h-100 overflow-hidden">
       <Loading v-if="loading_chart"></Loading>
@@ -29,7 +32,7 @@
         :custom_time_interval_list="time_preset_list">
       </DateTimeRangePicker>
 
-      <div class="mt-3"  :class="[(loading_chart) ? 'ntopng-gray-out' : '']">
+      <div class="mt-3" :class="[(loading_chart) ? 'ntopng-gray-out' : '']">
         <TimeseriesChart ref="all_qos_chart" :id="all_qos_id" :chart_type="chart_type" :base_url_request="base_url"
           :get_custom_chart_options="get_chart_options" :register_on_status_change="false"
           :disable_pointer_events="false" :key="all_qos_id">
@@ -85,6 +88,8 @@ const filter_table_array = ref([]);
 const loading = ref(false);
 const loading_chart = ref(false);
 const filters = ref([]);
+const show_filters = ref(true);
+const qos_not_polled_yet = _i18n('snmp.snmp_qos_info_not_polled')
 const note_list = [
   _i18n("snmp.snmp_note_periodic_interfaces_polling"),
   _i18n("snmp.snmp_note_thpt_calc"),
@@ -247,9 +252,13 @@ function set_filters_list(res, opt) {
       return true
     })
   } else {
-    filters.value = res.map((t) => {
+    filters.value = res.filter(t => t.value.length > 0).map((t) => {
+      /* Do not add filters if no values are found */
+      if (t.value.length == 0)
+        return;
+
       const key_in_url = ntopng_url_manager.get_url_entry(t.name);
-      if (key_in_url === null || key_in_url === '') {
+      if ((key_in_url === null || key_in_url === '') && t.value[0]) {
         ntopng_url_manager.set_key_to_url(t.name, t.value[0].value);
       }
       return {
@@ -261,7 +270,12 @@ function set_filters_list(res, opt) {
         show_with_value: t.show_with_value,
       };
     });
-    set_filters_list(null, opt);
+    if (filters.value.length > 0) {
+      show_filters.value = true;
+      set_filters_list(null, opt);
+    } else {
+      show_filters.value = false;
+    }
     return;
   }
   set_filter_array_label();
@@ -272,8 +286,8 @@ function set_filters_list(res, opt) {
 function substitute_params(params) {
   let res = {}
   const host = ntopng_url_manager.get_url_entry("host");
-  const interface_id = ntopng_url_manager.get_url_entry("snmp_port_idx");
-  const qos_class = ntopng_url_manager.get_url_entry("qos_class_id");
+  const interface_id = ntopng_url_manager.get_url_entry("snmp_port_idx") || "0"; /* Default value */
+  const qos_class = ntopng_url_manager.get_url_entry("qos_class_id") || "0"; /* Default value */
   if (!(host && interface_id)) {
     /* Safe check */
     return params
@@ -377,17 +391,20 @@ async function get_chart_options() {
   loading_chart.value = true;
   await check_params();
   const tmp = await retrieve_basic_info();
-  remove_extra_params(tmp);
-  const url = base_url.value;
-  const post_params = {
-    csrf: props.context.csrf,
-    ifid: props.context.ifid,
-    epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
-    epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
-    ts_requests: tmp
+  let result = [];
+  if (tmp) {
+    remove_extra_params(tmp);
+    const url = base_url.value;
+    const post_params = {
+      csrf: props.context.csrf,
+      ifid: props.context.ifid,
+      epoch_begin: ntopng_url_manager.get_url_entry("epoch_begin"),
+      epoch_end: ntopng_url_manager.get_url_entry("epoch_end"),
+      ts_requests: tmp
+    }
+    /* Have to be used this get_component_data, in order to create report too */
+    result = await get_component_data(url, '', post_params);
   }
-  /* Have to be used this get_component_data, in order to create report too */
-  let result = await get_component_data(url, '', post_params);
   set_stats_rows(result)
   /* Format the result in the format needed by Dygraph */
   result = timeseriesUtils.tsArrayToOptionsArray(result, timeseries_groups.value, group_option_mode, '');
