@@ -8126,10 +8126,11 @@ static luaL_Reg _ntop_reg[] = {
     {"toggleNewDeleteTrace", ntop_toggle_new_delete_trace },
 
 #if defined(NTOPNG_PRO)
-    /* TODO: move to message_broker engine*/
+    /* TODO: move to message_broker engine */
     {"publish", m_broker_publish },
     {"rpcCall", m_broker_rpc_call },
 #endif
+    
     {NULL, NULL}
 };
 
