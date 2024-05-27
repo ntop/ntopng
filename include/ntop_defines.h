@@ -215,7 +215,7 @@
 #define MAX_NUM_QUEUED_ADDRS \
   500 /* Maximum number of queued address for resolution */
 #define MAX_NUM_QUEUED_CONTACTS 25000
-#define NTOP_COPYRIGHT "(C) 1998-23 ntop.org"
+#define NTOP_COPYRIGHT "(C) 1998-24 ntop.org"
 #define DEFAULT_PID_PATH "/var/run/ntopng.pid"
 #define SYSTEM_INTERFACE_NAME "__system__"
 #define SYSTEM_INTERFACE_ID -1

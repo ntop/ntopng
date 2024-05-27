@@ -1862,7 +1862,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
 			     is chosen to increase stats */
     NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
 
-    updateServerPortsStats(srv_host, &ndpiDetectedProtocol, tv->tv_sec);
+    updateServerPortsStats(srv_host, &ndpiDetectedProtocol, get_first_seen());
     updateClientContactedPorts(cli_host, &ndpiDetectedProtocol);
 
     if (cli_network_id >= 0 && (cli_network_id == srv_network_id))
