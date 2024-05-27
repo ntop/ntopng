@@ -122,9 +122,11 @@ if auth.has_capability(auth.capabilities.preferences) then
             (_POST["radius_secret"] ~= ntop.getPref("ntopng.prefs.radius.radius_secret")) or
             (_POST["radius_admin_group"] ~= ntop.getPref("ntopng.prefs.radius.radius_admin_group")) or
             (_POST["radius_auth_proto"] ~= ntop.getPref("ntopng.prefs.radius.radius_auth_proto")) or
-            (_POST["radius_unpriv_capabilties_group"] ~= ntop.getPref("ntopng.prefs.radius.radius_unpriv_capabilties_group")) or
+            (_POST["radius_unpriv_capabilties_group"] ~=
+                ntop.getPref("ntopng.prefs.radius.radius_unpriv_capabilties_group")) or
             (_POST["toggle_radius_accounting"] ~= ntop.getPref("ntopng.prefs.radius.accounting_enabled")) or
-            (_POST["toggle_radius_external_auth_for_local_users"] ~= ntop.getPref("ntopng.prefs.radius.external_auth_for_local_users_enabled"))) then
+            (_POST["toggle_radius_external_auth_for_local_users"] ~=
+                ntop.getPref("ntopng.prefs.radius.external_auth_for_local_users_enabled"))) then
         -- In the minute callback there is a periodic script that in case 
         -- the auth changed, it's going to update the radius info
         ntop.setPref("ntopng.prefs.radius.radius_server_address", _POST["radius_server_address"])
@@ -134,7 +136,8 @@ if auth.has_capability(auth.capabilities.preferences) then
         ntop.setPref("ntopng.prefs.radius.radius_admin_group", _POST["radius_admin_group"])
         ntop.setPref("ntopng.prefs.radius.radius_unpriv_capabilties_group", _POST["radius_unpriv_capabilties_group"])
         ntop.setPref("ntopng.prefs.radius.toggle_radius_accounting", _POST["toggle_radius_accounting"])
-        ntop.setPref("ntopng.prefs.radius.external_auth_for_local_users_enabled", _POST["toggle_radius_external_auth_for_local_users"])
+        ntop.setPref("ntopng.prefs.radius.external_auth_for_local_users_enabled",
+            _POST["toggle_radius_external_auth_for_local_users"])
         ntop.updateRadiusLoginInfo()
     end
 
@@ -280,13 +283,13 @@ if auth.has_capability(auth.capabilities.preferences) then
     function printActiveMonitoring()
         print('<form method="post">')
         print('<table class="table">')
-        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("active_monitoring_stats.active_monitoring") ..
-        '</th></tr></thead>')
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' ..
+                  i18n("active_monitoring_stats.active_monitoring") .. '</th></tr></thead>')
 
         prefsToggleButton(subpage_active, {
             field = "toggle_active_monitoring",
             default = "0",
-            pref = "active_monitoring",
+            pref = "active_monitoring"
         })
 
         print(
@@ -297,7 +300,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         print(ntop.getRandomCSRFValue())
         print [[" />
         </form> ]]
-        
+
     end
     function printAlerts()
         print('<form method="post">')
@@ -920,8 +923,8 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         -- RADIUS GUI authentication
 
-        local elementToSwitch = {"row_toggle_radius_accounting", "row_toggle_radius_external_auth_for_local_users", "radius_admin_group",
-                                 "radius_unpriv_capabilties_group", "radius_server_address",
+        local elementToSwitch = {"row_toggle_radius_accounting", "row_toggle_radius_external_auth_for_local_users",
+                                 "radius_admin_group", "radius_unpriv_capabilties_group", "radius_server_address",
                                  "radius_acct_server_address", "radius_secret", "row_radius_auth_proto"}
 
         prefsToggleButton(subpage_active, {
@@ -975,9 +978,8 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
 
         prefsInputFieldPrefs(subpage_active.entries["radius_admin_group"].title,
-            subpage_active.entries["radius_admin_group"].description, "ntopng.prefs.radius",
-            "radius_admin_group", "", nil, 
-            showElements and showGroupsElements, true, false, {
+            subpage_active.entries["radius_admin_group"].description, "ntopng.prefs.radius", "radius_admin_group", "",
+            nil, showElements and showGroupsElements, true, false, {
                 attributes = {
                     spellcheck = "false",
                     maxlength = 255,
@@ -987,8 +989,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         prefsInputFieldPrefs(subpage_active.entries["radius_unpriv_capabilties_group"].title,
             subpage_active.entries["radius_unpriv_capabilties_group"].description, "ntopng.prefs.radius",
-            "radius_unpriv_capabilties_group", "", nil,
-            showElements and showGroupsElements, true, false, {
+            "radius_unpriv_capabilties_group", "", nil, showElements and showGroupsElements, true, false, {
                 attributes = {
                     spellcheck = "false",
                     maxlength = 255,
@@ -1311,6 +1312,19 @@ if auth.has_capability(auth.capabilities.preferences) then
                 "primary", "devices_status_post_learning", "ntopng.prefs.devices_status_post_learning", false, {}, nil,
                 nil, is_device_connection_disconnection_analysis_enabled --[[show]] )
         end
+
+        -- #####################
+
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.host_analysis") ..
+                  '</th></tr></thead>')
+
+        prefsInputFieldPrefs(subpage_active.entries["host_port_learning_period"].title,
+            subpage_active.entries["host_port_learning_period"].description, "ntopng.prefs.", "host_port_learning_period",
+            prefs.host_port_learning_period, "number", ntop.isEnterpriseM(), nil, nil, {
+                min = 7200,
+                tformat = "hd"
+            })
+
         -- #####################
 
         print(
@@ -1892,7 +1906,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         prefsToggleButton(subpage_active, {
             field = "toggle_snmp_polling",
             default = "0",
-            pref = "snmp_polling",
+            pref = "snmp_polling"
         })
 
         local t_labels = {"v1", "v2c"}
@@ -2154,11 +2168,11 @@ if auth.has_capability(auth.capabilities.preferences) then
         local lint_preference = "message_broker"
         local showElement = (ntop.getPref("ntopng.prefs.toggle_message_broker") == "1")
         local brokers_list = {
-            names = {i18n('prefs.nats')--[[, i18n('prefs.mqtt')]]},
-            ids = {'nats'--[[, 'mqtt']]}
+            names = {i18n('prefs.nats') --[[, i18n('prefs.mqtt')]] },
+            ids = {'nats' --[[, 'mqtt']] }
         }
-        local elementsToSwitch = {"row_message_broker", "message_broker_url", "message_broker_username", "message_broker_password",
-                                  "message_broker_topics_list"}
+        local elementsToSwitch = {"row_message_broker", "message_broker_url", "message_broker_username",
+                                  "message_broker_password", "message_broker_topics_list"}
         if (_POST["toggle_message_broker"]) then
             showElement = (_POST["toggle_message_broker"] == "1")
         end
@@ -2184,11 +2198,12 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         multipleTableButtonPrefs(subpage_active.entries["message_brokers_list"].title,
             subpage_active.entries["message_brokers_list"].description, brokers_list.names, brokers_list.ids,
-            default_broker_id, "primary", lint_preference, "ntopng.prefs.message_broker", {nil}, nil, nil, nil, showElement,default_broker_id  --[[show]] )
-        
+            default_broker_id, "primary", lint_preference, "ntopng.prefs.message_broker", {nil}, nil, nil, nil,
+            showElement, default_broker_id --[[show]] )
+
         prefsInputFieldPrefs(subpage_active.entries["message_broker_url"].title,
-            subpage_active.entries["message_broker_url"].description, "ntopng.prefs.", "message_broker_url",
-            "", "text", showElement, nil, nil, {
+            subpage_active.entries["message_broker_url"].description, "ntopng.prefs.", "message_broker_url", "", "text",
+            showElement, nil, nil, {
                 attributes = {
                     spellcheck = "false"
                 },
@@ -2212,7 +2227,6 @@ if auth.has_capability(auth.capabilities.preferences) then
                 },
                 pattern = "[^\\s]+"
             })
-
 
         end_table()
     end
@@ -2310,7 +2324,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         printAlerts()
     end
 
-    if (tab ==  "active_monitoring") then
+    if (tab == "active_monitoring") then
         printActiveMonitoring()
     end
 

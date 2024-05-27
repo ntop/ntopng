@@ -96,6 +96,7 @@ Prefs::Prefs(Ntop *_ntop) {
   iec60870_learning_period = CONST_IEC104_LEARNING_TIME;
   modbus_learning_period = CONST_MODBUS_LEARNING_TIME;
   devices_learning_period = CONST_DEVICES_LEARNING_TIME;
+  host_port_learning_period = CONST_HOST_PORT_LEARNING_TIME;
   auth_session_duration = HTTP_SESSION_DURATION;
   auth_session_midnight_expiration = HTTP_SESSION_MIDNIGHT_EXPIRATION;
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
@@ -1091,6 +1092,8 @@ void Prefs::refreshBehaviourAnalysis() {
 						CONST_MODBUS_LEARNING_TIME);
   devices_learning_period = getDefaultPrefsValue(CONST_PREFS_DEVICES_ANALYSIS_LEARNING_PERIOD,
 						 CONST_DEVICES_LEARNING_TIME);
+  host_port_learning_period = getDefaultPrefsValue(CONST_PREFS_HOST_PORT_LEARNING_PERIOD,
+						 CONST_HOST_PORT_LEARNING_TIME);
 }
 
 /* ******************************************* */
@@ -2777,6 +2780,8 @@ void Prefs::lua(lua_State *vm) {
                               modbus_learning_period);
   lua_push_uint64_table_entry(vm, "devices_learning_period",
                               devices_learning_period);
+  lua_push_uint64_table_entry(vm, "host_port_learning_period",
+                              host_port_learning_period);
 
   lua_push_str_table_entry(
 			   vm, "safe_search_dns",
