@@ -183,9 +183,7 @@ class LocalHost : public Host {
 
   void setRouterMac(Mac *gw);
 
-  inline void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto) {
-    usedPorts.setServerPort(isTCP, port, proto);
-  };
+  void setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto, time_t when);
   inline void setContactedPort(bool isTCP, u_int16_t port,
                                ndpi_protocol *proto) {
     usedPorts.setContactedPort(isTCP, port, proto);

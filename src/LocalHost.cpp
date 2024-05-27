@@ -632,6 +632,18 @@ void LocalHost::setRxOnlyHost(bool set_it) {
 
 /* ***************************************************** */
 
+void LocalHost::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto, time_t when) {
+  bool set_port_status = usedPorts.setServerPort(isTCP, port, proto);
+  
+  if (set_port_status) {
+    u_int32_t learning_period = ntop->getPrefs()->get_contacted_server_port_learning_period();
+    if (when - get_first_seen() > learning_period)
+      fprintf(stderr, " # # # new server port seen %d # # # \n", port);
+  }
+}
+
+/* ***************************************************** */
+
 void LocalHost::lua_get_fingerprints(lua_State *vm) {
   if(fingerprints) {
     fingerprints->ja3.lua("ja3_fingerprint", vm);

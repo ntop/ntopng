@@ -94,16 +94,23 @@ void UsedPorts::lua(lua_State *vm, NetworkInterface *iface) {
 
 /* *************************************** */
 
-void UsedPorts::setServerPort(bool isTCP, u_int16_t port,
+/*Return false if not new server port are detected after the learning period, true otherwise*/
+bool UsedPorts::setServerPort(bool isTCP, u_int16_t port,
                               ndpi_protocol *proto) {
+  bool set_new_port = false;
   if (isTCP) {
     if((proto->master_protocol == NDPI_PROTOCOL_FTP_DATA)
        || (proto->app_protocol == NDPI_PROTOCOL_FTP_DATA))
       ;
-    else
+    else {
+      if (tcp_server_ports.count(port) == 0) set_new_port = true;
       tcp_server_ports[port] = *proto;
-  } else
+    }
+  } else {
+    if (udp_server_ports.count(port) == 0) set_new_port = true;
     udp_server_ports[port] = *proto;
+  }
+  return set_new_port;
 }
 
 /* *************************************** */
