@@ -1245,7 +1245,7 @@ void Flow::endProtocolDissection() {
     updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), ndpiFlow,
                                          &proto_guessed));
     setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
-    setProtocolDetectionCompleted(NULL, 0, 0);
+    setProtocolDetectionCompleted(NULL, 0, iface->getTimeLastPktRcvd());
   }
 
   if (!extra_dissection_completed) setExtraDissectionCompleted();
@@ -1256,7 +1256,7 @@ void Flow::endProtocolDissection() {
 /* Manually set a protocol on the flow and terminate the dissection. */
 void Flow::setDetectedProtocol(ndpi_protocol proto_id) {
   updateProtocol(proto_id);
-  setProtocolDetectionCompleted(NULL, 0, 0);
+  setProtocolDetectionCompleted(NULL, 0, iface->getTimeLastPktRcvd());
 
   endProtocolDissection();
 }

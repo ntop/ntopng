@@ -39,7 +39,7 @@ extern "C" {
 Prefs::Prefs(Ntop *_ntop) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   
-  contacted_server_port_learning_period = 300;
+  contacted_server_port_learning_period = CONST_DEFAULT_CONNECTED_SERVER_PORT_LEARNING_PERIOD;
   num_deferred_interfaces_to_register = 0, cli = NULL;
   ntop = _ntop, pcap_file_purge_hosts_flows = false, ignore_vlans = false,
     simulate_vlans = false, simulate_macs = false, ignore_macs = false;
