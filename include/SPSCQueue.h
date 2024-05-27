@@ -31,9 +31,9 @@
 
 template <typename T>
 class SPSCQueue {
- private:
-  char *name;
-  u_int64_t num_failed_enqueues; /* Counts the number of times the enqueue has
+private:
+  std::string name;
+  u_int32_t num_failed_enqueues; /* Counts the number of times the enqueue has
                                     failed (queue full) */
   u_int64_t shadow_head;
   volatile u_int64_t head;
@@ -54,14 +54,7 @@ class SPSCQueue {
     tail = shadow_tail = queue_size - 1;
     head = shadow_head = 0;
     num_failed_enqueues = 0;
-    name = strdup(_name ? _name : "");
-  }
-
-  /**
-   * Destructor
-   */
-  ~SPSCQueue() {
-    if (name) free(name);
+    name.assign(_name ? _name : "");
   }
 
   /**
@@ -69,6 +62,7 @@ class SPSCQueue {
    */
   inline bool isNotEmpty() {
     u_int32_t next_tail = (shadow_tail + 1) & (queue_size - 1);
+
     return next_tail != head;
   }
 
@@ -77,6 +71,7 @@ class SPSCQueue {
    */
   inline bool isFull() {
     u_int32_t next_head = (shadow_head + 1) & (queue_size - 1);
+
     return tail == next_head;
   }
 
@@ -96,7 +91,7 @@ class SPSCQueue {
     T item = queue[next_tail];
     shadow_tail = next_tail;
 
-    if ((shadow_tail & QUEUE_WATERMARK_MASK) == 0) tail = shadow_tail;
+    if((shadow_tail & QUEUE_WATERMARK_MASK) == 0) tail = shadow_tail;
 
     return item;
   }
@@ -128,13 +123,14 @@ class SPSCQueue {
     }
 
     num_failed_enqueues++;
+
     return false; /* no room */
   }
 
   /**
    * Return the number of failed enqueue attempts
    */
-  inline u_int64_t get_num_failed_enqueues() const {
+  inline u_int32_t get_num_failed_enqueues() const {
     return num_failed_enqueues;
   };
 
@@ -144,9 +140,9 @@ class SPSCQueue {
   inline void lua(lua_State *vm) const {
     if (vm) {
       lua_newtable(vm);
-      lua_push_uint64_table_entry(vm, "num_failed_enqueues",
+      lua_push_uint32_table_entry(vm, "num_failed_enqueues",
                                   num_failed_enqueues);
-      lua_pushstring(vm, name ? name : "");
+      lua_pushstring(vm, name.c_str());
       lua_insert(vm, -2);
       lua_settable(vm, -3);
     }
