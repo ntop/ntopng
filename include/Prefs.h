@@ -66,6 +66,7 @@ class Prefs {
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period, modbus_learning_period,
     devices_learning_period;
+  u_int32_t host_port_learning_period;
 #ifdef NTOPNG_PRO
   ndpi_bitmap* modbus_allowed_function_codes;
   u_int modbus_too_many_exceptions;
@@ -698,6 +699,7 @@ class Prefs {
   inline u_int        getModbusTooManyExceptionsThreshold()        { return(modbus_too_many_exceptions); }
 #endif
   inline u_int32_t devicesLearingPeriod() { return (devices_learning_period); };
+  inline u_int32_t hostPortLearningPeriod() { return (host_port_learning_period); };
   inline bool are_alerts_disabled() { return (disable_alerts); };
   inline bool dontEmitFlowAlerts() {
     return (disable_alerts || !emit_flow_alerts);

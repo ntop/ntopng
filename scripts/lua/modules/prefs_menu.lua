@@ -118,7 +118,6 @@ local menu_subpages = {{
             title = i18n("prefs.behaviour_analysis_status_post_learning_title"),
             description = i18n("prefs.behaviour_analysis_status_post_learning_description")
         },
-
         devices_learning_period = {
             title = i18n("prefs.devices_learning_period_title"),
             description = i18n("prefs.devices_learning_period_description")
@@ -130,7 +129,11 @@ local menu_subpages = {{
         devices_status_post_learning = {
             title = i18n("prefs.devices_status_post_learning_title"),
             description = i18n("prefs.devices_status_post_learning_description")
-        }
+        },
+        host_port_learning_period = {
+            title = i18n("prefs.host_port_learning_period_title"),
+            description = i18n("prefs.host_port_learning_period_description")
+        },
     }
 }, {
     id = "in_memory",
