@@ -13,48 +13,89 @@ local historical_flow_details_formatter = {}
 
 -- ###############################################
 
+local function empty_port(port)
+    return port == '0'
+end
+
+-- ###############################################
+
+local function empty_ip(ip)
+    return ip == '0.0.0.0'
+end
+
+-- ###############################################
+
 -- This function format info regarding pre/post nat ips and ports
 local function format_pre_post_nat_info(flow, info)
     local tmp = {}
+    local nat_values = {}
 
-    if not isEmptyString(info["PRE_NAT_IPV4_SRC_ADDR"]) and not isEmptyString(info["POST_NAT_IPV4_DST_ADDR"]) then
-        tmp[#tmp + 1] = {
-            name = '',
-            values = { '<b>' .. i18n('db_explorer.pre_post_nat_ipv4_src_addr') .. '</b>', info["PRE_NAT_IPV4_SRC_ADDR"] .. " <b>-</b> "  .. info["POST_NAT_IPV4_SRC_ADDR"] }
-        }
+    -- Checking empty values
+    -- Checking IPs
+    if (not isEmptyString(info["PRE_NAT_IPV4_SRC_ADDR"]) and not empty_ip(info["PRE_NAT_IPV4_SRC_ADDR"])) then
+        nat_values.pre_nat_src_ip = info["PRE_NAT_IPV4_SRC_ADDR"]
+    end
+    if (not isEmptyString(info["POST_NAT_IPV4_SRC_ADDR"]) and not empty_ip(info["POST_NAT_IPV4_SRC_ADDR"])) then
+        nat_values.post_nat_src_ip = info["POST_NAT_IPV4_SRC_ADDR"]
+    end
+    if (not isEmptyString(info["PRE_NAT_IPV4_DST_ADDR"]) and not empty_ip(info["PRE_NAT_IPV4_DST_ADDR"])) then
+        nat_values.pre_nat_dst_ip = info["PRE_NAT_IPV4_DST_ADDR"]
+    end
+    if (not isEmptyString(info["POST_NAT_IPV4_DST_ADDR"]) and not empty_ip(info["POST_NAT_IPV4_DST_ADDR"])) then
+        nat_values.post_nat_dst_ip = info["POST_NAT_IPV4_DST_ADDR"]
+    end
+    -- Checking ports
+    if (not isEmptyString(info["PRE_NAT_SRC_PORT"]) and not empty_port(info["PRE_NAT_SRC_PORT"])) then
+        nat_values.pre_nat_src_port = info["PRE_NAT_SRC_PORT"]
+    end
+    if (not isEmptyString(info["POST_NAT_SRC_PORT"]) and not empty_port(info["POST_NAT_SRC_PORT"])) then
+        nat_values.post_nat_src_port = info["POST_NAT_SRC_PORT"]
+    end
+    if (not isEmptyString(info["PRE_NAT_DST_PORT"]) and not empty_port(info["PRE_NAT_DST_PORT"])) then
+        nat_values.pre_nat_dst_port = info["PRE_NAT_DST_PORT"]
+    end
+    if (not isEmptyString(info["POST_NAT_DST_PORT"]) and not empty_port(info["POST_NAT_DST_PORT"])) then
+        nat_values.post_nat_dst_port = info["POST_NAT_DST_PORT"]
+    end
+    
+    -- No Post-NAT values
+    if not nat_values.post_nat_dst_port and
+        not nat_values.post_nat_src_port and
+        not nat_values.post_nat_dst_ip and
+        not nat_values.post_nat_src_ip then
+        return flow
     end
 
-    if not isEmptyString(info["PRE_NAT_SRC_PORT"]) and not isEmptyString(info["POST_NAT_DST_PORT"]) then
-        tmp[#tmp + 1] = {
-            name = '',
-            values = { '<b>' .. i18n('db_explorer.pre_post_nat_src_port') .. '</b>', info["PRE_NAT_SRC_PORT"] .. " <b>-</b> "  .. info["POST_NAT_DST_PORT"] }
-        }
+    -- Substituting empty values
+    if not nat_values.post_nat_src_ip then
+        nat_values.post_nat_src_ip = nat_values.pre_nat_src_ip
     end
 
-    if not isEmptyString(info["PRE_NAT_IPV4_DST_ADDR"]) and not isEmptyString(info["POST_NAT_IPV4_DST_ADDR"]) then
-        tmp[#tmp + 1] = {
-            name = '',
-            values = { '<b>' .. i18n('db_explorer.pre_post_nat_ipv4_dst_addr') .. '</b>', info["PRE_NAT_IPV4_DST_ADDR"] .. " <b>-</b> "  .. info["POST_NAT_IPV4_DST_ADDR"] }
-        }
+    if not nat_values.post_nat_dst_ip then
+        nat_values.post_nat_dst_ip = nat_values.pre_nat_dst_ip
     end
 
-    if not isEmptyString(info["PRE_NAT_DST_PORT"]) and not isEmptyString(info["POST_NAT_DST_PORT"]) then
-        tmp[#tmp + 1] = {
-            name = '',
-            values = { '<b>' .. i18n('db_explorer.pre_post_nat_dst_port') .. '</b>', info["PRE_NAT_DST_PORT"] .. " <b>-</b> "  .. info["POST_NAT_DST_PORT"] }
-        }
+    if not nat_values.post_nat_src_port then
+        nat_values.post_nat_src_port = nat_values.pre_nat_src_port
     end
 
-    if table.len(tmp) > 1 then
-        flow[#flow + 1] = {
-            name = i18n('db_explorer.pre_post_nat_info'),
-            values = {}
-        }
-        for _, values in pairs(tmp) do
-            flow[#flow + 1] = values
-        end
+    if not nat_values.post_nat_dst_port then
+        nat_values.post_nat_dst_port = nat_values.pre_nat_dst_port
     end
 
+    -- Format all info
+    local pre_nat_flow = nat_values.pre_nat_src_ip .. ":" .. nat_values.pre_nat_src_port ..
+        ' <i class="fas fa-exchange-alt fa-lg"></i> ' .. nat_values.post_nat_src_ip .. ":" .. nat_values.post_nat_src_port
+    local post_nat_flow = nat_values.post_nat_src_ip .. ":" .. nat_values.post_nat_src_port ..
+        ' <i class="fas fa-exchange-alt fa-lg"></i> ' .. nat_values.post_nat_dst_ip .. ":" .. nat_values.post_nat_dst_port
+    flow[#flow + 1] = {
+        name = i18n('db_explorer.pre_nat_info'),
+        values = {pre_nat_flow}
+    }    
+    flow[#flow + 1] = {
+        name = i18n('db_explorer.post_nat_info'),
+        values = {post_nat_flow}
+    }
 
     return flow
 end
