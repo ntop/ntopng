@@ -17,6 +17,8 @@ The folder `http_src/` contains all the webpages scripts.
 - `http_src/vue` contains single vue components that are imported in desired pages
 - `http_src/utilities` contains all utility functions 
 - `http_src/ntopng.js` contains all global imports that will be visible inside single components
+- `pages/` is found in `httpdocs/templates/pages/`
+- `httpdocs` is the folder for GUI data, dist folder is present inside it
 
 ## Webpage structure
 
