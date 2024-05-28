@@ -18,7 +18,8 @@ The folder `http_src/` contains all the webpages scripts.
 - `http_src/utilities` contains all utility functions 
 - `http_src/ntopng.js` contains all global imports that will be visible inside single components
 - `pages/` is found in `httpdocs/templates/pages/`
-- `httpdocs` is the folder for GUI data, dist folder is present inside it
+- `httpdocs/` is the folder for GUI data, dist folder is present inside it
+- `template.render("pages/vue_page.template", { vue_page_name = "PageSNMPDevices", page_context = json_context })` some .lua pages render vue components. The name of the component is the value of `vue_page_name`, in this case the component is `PageSNMPDevices`. This is the name of the component importend in the script `http_src/vue/ntop_vue.js`. This is the import: `import { default as PageSNMPDevices } from "./page-snmp-devices.vue"` where PageSNMPDevices is the name of the vue component imported and displayed on the webpage and the component is found in the file page-snmp-devices.vue
 
 ## Webpage structure
 
