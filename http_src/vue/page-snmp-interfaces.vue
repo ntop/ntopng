@@ -88,6 +88,7 @@ const map_table_def_columns = (columns) => {
             return `<a href=${url}>${value}</a>`
         },
         "interface_name": (value, row) => {
+            value = value.replace(/</g, "&lt;").replace(/>/g, "&gt;");
             const url = `${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${row.device_ip}&snmp_port_idx=${row.interface_id}`
             return `<a href=${url}>${value}</a>`
         },
