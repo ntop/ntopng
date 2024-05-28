@@ -32,10 +32,10 @@ class LocalHost : public Host {
   UsedPorts usedPorts;
   HostFingerprints *fingerprints;
   std::unordered_map<u_int32_t, DoHDoTStats *> doh_dot_map;
+  SPSCQueue<std::pair<u_int16_t, u_int16_t>> contacted_server_ports;
   u_int8_t router_mac[6]; /* MAC address pf the first router used (no Mac* to
                              avoid purging race conditions) */
   u_int8_t router_mac_set : 1, drop_all_host_traffic : 1, systemHost : 1, _notused : 5;
-
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail;
   /* END Host data: */
@@ -201,6 +201,9 @@ class LocalHost : public Host {
   inline Fingerprint *getJA4Fingerprint()   { return (fingerprints ? &fingerprints->ja4  : NULL); }
   inline Fingerprint *getHASSHFingerprint() { return (fingerprints ? &fingerprints->hassh: NULL); }
   void lua_get_fingerprints(lua_State *vm);
+
+  SPSCQueue<std::pair<u_int16_t, u_int16_t>> *getContactedServerPorts() { return (&contacted_server_ports);};
+
 };
 
 #endif /* _LOCAL_HOST_H_ */

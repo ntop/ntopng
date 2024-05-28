@@ -758,9 +758,6 @@
 #define CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD \
   7200  // 2 hours by default
 
-#define CONST_DEFAULT_CONNECTED_SERVER_PORT_LEARNING_PERIOD \
-  3600   /* 1 hour */
-
 #define CONST_PREFS_USE_MAC_IN_FLOW_KEY \
   NTOPNG_PREFS_PREFIX ".use_mac_in_flow_key"
 #define CONST_PREFS_FINGERPRINT_STATS \
@@ -1524,6 +1521,7 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 
 #define MAX_NUM_CONCURRENT_JOBS  8
 #define MAX_NUM_QUEUED_JOBS      256
+#define CONST_MAX_NUM_QUEUED_PORTS 3
 
 #define SIMULATE_VLANS_MAX_VALUE 0xa /* 10 in hexadecimal */
 
