@@ -48,12 +48,12 @@ end
 function host_alert_server_ports_contacts.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
-  local value = alert_type_params.value or 0
+  local value = alert_type_params.port or 0
   
   return i18n("alert_messages.host_alert_server_ports_contacts", {
     entity = entity,
     value = value,
-    threshold = alert_type_params.threshold or 0,
+    threshold = alert_type_params.app_protocol or 0,
   })
 end
 

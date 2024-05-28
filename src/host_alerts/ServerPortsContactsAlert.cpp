@@ -16,8 +16,8 @@ ndpi_serializer* ServerPortsContactsAlert::getAlertJSON(
     ndpi_serializer* serializer) {
   if (serializer == NULL) return NULL;
 
-  ndpi_serialize_string_uint64(serializer, "value", server_port);
-  ndpi_serialize_string_uint64(serializer, "threshold",
+  ndpi_serialize_string_uint64(serializer, "port", server_port);
+  ndpi_serialize_string_uint64(serializer, "app_protocol",
                                app_proto);
 
   return serializer;
