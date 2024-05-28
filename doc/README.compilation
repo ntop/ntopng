@@ -65,8 +65,8 @@ connection cannot be established (see Configuring MySQL to Use Encrypted Connect
 [https://dev.mysql.com/doc/c-api/8.2/en/c-api-encrypted-connections.html]
 
 
-On Ubuntu16/18
-~~~~~~~~~~~~~~
+On Ubuntu 16/18
+~~~~~~~~~~~~~~~
 
 You also need to do "apt install libtool-bin"
 You can decide to use MariaDB (instead of MySQL) do "apt install libmariadb-client-lgpl-dev" instead.
@@ -76,8 +76,8 @@ On Ubuntu20
 
 You also need to do "apt install libmysqlclient-dev libzmq3-dev"
 
-On Ubuntu22
-~~~~~~~~~~~~~~
+On Ubuntu 22/24
+~~~~~~~~~~~~~~~
 
 You need to do "apt install libmariadb-dev"
 
