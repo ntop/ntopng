@@ -461,4 +461,4 @@ onBeforeMount(() => {
       }, tableRefreshRate);
 })
 
-</script>../utilities/formatter-utils.js
+</script>

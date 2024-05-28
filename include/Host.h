@@ -975,6 +975,8 @@ class Host : public GenericHashEntry,
 
   void resetHostContacts();
   inline int32_t getInterfaceIndex()            { return(iface_index); };
+
+  virtual SPSCQueue<std::pair<u_int16_t, u_int16_t>> *getContactedServerPorts() { return (NULL);};
 };
 
 #endif /* _HOST_H_ */

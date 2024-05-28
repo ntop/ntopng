@@ -39,7 +39,6 @@ typedef std::set<std::string> InterfacesSet;
 
 class Prefs {
  private:
-  u_int32_t contacted_server_port_learning_period;
   u_int8_t num_deferred_interfaces_to_register;
   pcap_direction_t captureDirection;
   char **deferred_interfaces_to_register, *cli;
@@ -66,6 +65,7 @@ class Prefs {
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period, modbus_learning_period,
     devices_learning_period;
+  u_int32_t host_port_learning_period;
 #ifdef NTOPNG_PRO
   ndpi_bitmap* modbus_allowed_function_codes;
   u_int modbus_too_many_exceptions;
@@ -338,9 +338,6 @@ class Prefs {
   };
   inline bool is_flows_dump_enabled() {
     return (do_dump_flows() && is_runtime_flows_dump_enabled());
-  };
-  inline u_int32_t get_contacted_server_port_learning_period() {
-    return contacted_server_port_learning_period;
   };
   int32_t getDefaultPrefsValue(const char* pref_key, int32_t default_value);
   void getDefaultStringPrefsValue(const char* pref_key, char** buffer,
@@ -698,6 +695,7 @@ class Prefs {
   inline u_int        getModbusTooManyExceptionsThreshold()        { return(modbus_too_many_exceptions); }
 #endif
   inline u_int32_t devicesLearingPeriod() { return (devices_learning_period); };
+  inline u_int32_t hostPortLearningPeriod() { return (host_port_learning_period); };
   inline bool are_alerts_disabled() { return (disable_alerts); };
   inline bool dontEmitFlowAlerts() {
     return (disable_alerts || !emit_flow_alerts);

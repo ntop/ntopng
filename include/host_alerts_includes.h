@@ -34,6 +34,7 @@
 #include "host_alerts/DNSServerContactsAlert.h"
 #include "host_alerts/SMTPServerContactsAlert.h"
 #include "host_alerts/NTPServerContactsAlert.h"
+#include "host_alerts/ServerPortsContactsAlert.h"
 #include "host_alerts/ScoreThresholdAlert.h"
 #include "host_alerts/ICMPFloodAlert.h"
 #include "host_alerts/DNSFloodAlert.h"

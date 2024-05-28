@@ -4249,7 +4249,7 @@ static int ntop_resolve_host(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_snmpv3available(lua_State *vm) {
+static int ntop_is_libsnmp_available(lua_State *vm) {
   lua_pushboolean(vm,
 #ifdef HAVE_LIBSNMP
                   true
@@ -4261,17 +4261,7 @@ static int ntop_snmpv3available(lua_State *vm) {
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
-static int ntop_snmpsetavailable(lua_State *vm) {
-  lua_pushboolean(vm,
-#ifdef HAVE_LIBSNMP
-                  true
-#else
-                  false
-#endif
-  );
-
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
+/* ****************************************** */
 
 static int ntop_snmp_max_num_engines(lua_State *vm) {
   u_int16_t num = MIN_NUM_ASYNC_SNMP_ENGINES;
@@ -4290,21 +4280,36 @@ static int ntop_snmp_max_num_engines(lua_State *vm) {
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
+/* ****************************************** */
+
 /* Synchronous calls */
 static int ntop_snmpget(lua_State *vm) {
   SNMP s;
+  
   return(s.get(vm, false));
 }
+
+/* ****************************************** */
+
 static int ntop_snmpgetnext(lua_State *vm) {
   SNMP s;
+  
   return(s.getnext(vm, false));
 }
+
+/* ****************************************** */
+
 static int ntop_snmpgetnextbulk(lua_State *vm) {
   SNMP s;
+  
   return(s.getnextbulk(vm, false));
 }
+
+/* ****************************************** */
+
 static int ntop_snmpset(lua_State *vm) {
   SNMP s;
+  
   return(s.set(vm, false));
 }
 
@@ -7940,9 +7945,10 @@ static luaL_Reg _ntop_reg[] = {
     {"verboseTrace", ntop_verbose_trace},
 
     /* SNMP */
-    {"snmpv3available", ntop_snmpv3available},
-    {"snmpsetavailable", ntop_snmpsetavailable},
-    {"snmpMaxNumEngines", ntop_snmp_max_num_engines},
+    {"snmpv3available",      ntop_is_libsnmp_available },
+    {"snmpsetavailable",     ntop_is_libsnmp_available },
+    {"snmpgetbulkavailable", ntop_is_libsnmp_available },
+    {"snmpMaxNumEngines",    ntop_snmp_max_num_engines },
 
     /* Synchronous */
     {"snmpget", ntop_snmpget},

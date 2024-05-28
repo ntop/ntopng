@@ -360,8 +360,8 @@ void NetworkInterface::init(const char *interface_name) {
   idleFlowsToDump = activeFlowsToDump = NULL;
   flowAlertsQueue = new (std::nothrow)
     SPSCQueue<FlowAlert *>(MAX_FLOW_CHECKS_QUEUE_LEN, "flowAlertsQueue");
-  hostAlertsQueue = new (std::nothrow) SPSCQueue<HostAlertReleasedPair>(
-									MAX_HOST_CHECKS_QUEUE_LEN, "hostAlertsQueue");
+  hostAlertsQueue = new (std::nothrow) SPSCQueue<HostAlertReleasedPair>(MAX_HOST_CHECKS_QUEUE_LEN,
+									"hostAlertsQueue");
   flow_serial = 0;
 
   /* nDPI handling */

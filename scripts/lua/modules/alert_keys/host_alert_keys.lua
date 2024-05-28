@@ -35,6 +35,7 @@ local host_alert_keys = {
   host_alert_traffic_volume              = 26,
   host_alert_external_script             = 27,
   host_alert_host_scanner                = 28,
+  host_alert_server_ports_contacts       = 29,
   
   -- NOTE: Keep in sync with HostAlertTypeEnum in ntop_typedefs.h
 }

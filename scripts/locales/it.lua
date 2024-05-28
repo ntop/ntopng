@@ -6106,11 +6106,11 @@ local lang = {
     ["type"] = "Tipo",
   },
   ["severity_groups"] = {
-    ["group_critical"] = "Critical",
-    ["group_emergency"] = "Emergency",
-    ["group_error"] = "Errore o Più",
+    ["group_critical"] = "Critico",
+    ["group_emergency"] = "Emergenza",
+    ["group_error"] = "Errore",
     ["group_none"] = "Nessuno",
-    ["group_notice_or_lower"] = "Notizia o Meno",
+    ["group_notice_or_lower"] = "Avviso",
     ["group_warning"] = "Attenzione",
   },
   ["sflows_stats"] = {

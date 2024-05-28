@@ -39,7 +39,6 @@ extern "C" {
 Prefs::Prefs(Ntop *_ntop) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   
-  contacted_server_port_learning_period = CONST_DEFAULT_CONNECTED_SERVER_PORT_LEARNING_PERIOD;
   num_deferred_interfaces_to_register = 0, cli = NULL;
   ntop = _ntop, pcap_file_purge_hosts_flows = false, ignore_vlans = false,
     simulate_vlans = false, simulate_macs = false, ignore_macs = false;
@@ -96,6 +95,7 @@ Prefs::Prefs(Ntop *_ntop) {
   iec60870_learning_period = CONST_IEC104_LEARNING_TIME;
   modbus_learning_period = CONST_MODBUS_LEARNING_TIME;
   devices_learning_period = CONST_DEVICES_LEARNING_TIME;
+  host_port_learning_period = CONST_HOST_PORT_LEARNING_TIME;
   auth_session_duration = HTTP_SESSION_DURATION;
   auth_session_midnight_expiration = HTTP_SESSION_MIDNIGHT_EXPIRATION;
   install_dir = NULL, captureDirection = PCAP_D_INOUT;
@@ -1091,6 +1091,8 @@ void Prefs::refreshBehaviourAnalysis() {
 						CONST_MODBUS_LEARNING_TIME);
   devices_learning_period = getDefaultPrefsValue(CONST_PREFS_DEVICES_ANALYSIS_LEARNING_PERIOD,
 						 CONST_DEVICES_LEARNING_TIME);
+  host_port_learning_period = getDefaultPrefsValue(CONST_PREFS_HOST_PORT_LEARNING_PERIOD,
+						 CONST_HOST_PORT_LEARNING_TIME);
 }
 
 /* ******************************************* */
@@ -2699,8 +2701,6 @@ void Prefs::lua(lua_State *vm) {
   strncat(HTTP_stats_base_dir, "/httpstats/", MAX_PATH);
   lua_push_str_table_entry(vm, "http_stats_base_dir", HTTP_stats_base_dir);
 #endif
-  lua_push_uint64_table_entry(vm, "contacted_server_port_learning_period",
-                              get_contacted_server_port_learning_period());
   lua_push_uint64_table_entry(vm, "auth_session_duration",
                               get_auth_session_duration());
   lua_push_bool_table_entry(vm, "auth_session_midnight_expiration",
@@ -2777,6 +2777,8 @@ void Prefs::lua(lua_State *vm) {
                               modbus_learning_period);
   lua_push_uint64_table_entry(vm, "devices_learning_period",
                               devices_learning_period);
+  lua_push_uint64_table_entry(vm, "host_port_learning_period",
+                              host_port_learning_period);
 
   lua_push_str_table_entry(
 			   vm, "safe_search_dns",

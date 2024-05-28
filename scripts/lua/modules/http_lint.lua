@@ -1449,7 +1449,7 @@ local function validateSNMPversion(m)
    -- 0 = SNMP v1
    -- 1 = SNMP v2c
    -- 2 - SNMP v3
-   return validateChoice({"0", "1", "2"}, m)
+   return validateChoice({"0", "1", "2", "3"}, m)
 end
 http_lint.validateSNMPversion = validateSNMPversion
 
@@ -2272,6 +2272,7 @@ local known_parameters = {
    ["iec60870_learning_period"] = validateNumber,
    ["modbus_learning_period"] = validateNumber,
    ["devices_learning_period"] = validateNumber,
+   ["host_port_learning_period"] = validateNumber,
    ["toggle_src_and_dst_using_ports"] = validateBool,
    ["toggle_device_activation_alert"] = validateBool,
    ["toggle_device_first_seen_alert"] = validateBool,
