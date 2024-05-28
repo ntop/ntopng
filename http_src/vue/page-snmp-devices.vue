@@ -15,9 +15,9 @@
           <span> {{ import_ok_text }}</span>
         </div>
 
-        <TableWithConfig ref="table_snmp_devices" :table_id="table_id" :csrf="csrf" :f_map_columns="map_table_def_columns"
-          :get_extra_params_obj="get_extra_params_obj" :f_sort_rows="columns_sorting"
-          @custom_event="on_table_custom_event" @rows_loaded="change_filter_labels">
+        <TableWithConfig ref="table_snmp_devices" :table_id="table_id" :csrf="csrf"
+          :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
+          :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event" @rows_loaded="change_filter_labels">
           <template v-slot:custom_buttons>
             <ModalDeleteSNMPDevice ref="modal_delete_snmp_device" @delete="delete_row" @ping_all="exec_ping_all"
               @prune="delete_unresponsive">
@@ -32,7 +32,7 @@
           <template v-slot:custom_header>
             <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
               <span class="no-wrap d-flex align-items-center filters-label"><b>{{ item["basic_label"]
-              }}</b></span>
+                  }}</b></span>
               <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5" dropdown_size="small"
                 :disabled="loading" :options="item['options']" @select_option="add_table_filter">
               </SelectSearch>
@@ -124,6 +124,8 @@ const max_num_reached_alert_text = _i18n('snmp_max_num_devices_configured').repl
 
 const loading = ref(false);
 
+const timeoutId = ref(null);
+const tableRefreshRate = 10000;
 
 const rest_params = {
   csrf: props.context.csrf,
@@ -436,12 +438,27 @@ const delete_unresponsive = async function () {
   table_snmp_devices.value.refresh_table();
 
 }
+
+// function to periodically refresh table content
+const refreshTableContent = function () {
+  table_snmp_devices.value.refresh_table();
+
+  // set next refresh timeout
+  timeoutId.value = setTimeout(() => {
+        refreshTableContent();
+      }, tableRefreshRate);
+}
+
 /* ************************************** */
 
 onBeforeMount(() => {
   ntopng_url_manager.set_key_to_url("verbose", true);
   load_table_filters_array();
-})
 
+  // start table refresh
+  timeoutId.value = setTimeout(() => {
+        refreshTableContent();
+      }, tableRefreshRate);
+})
 
 </script>
