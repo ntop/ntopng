@@ -41,6 +41,7 @@ SNMPSession::~SNMPSession() {
 }
 
 /* ******************************* */
+/* ******************************* */
 
 SNMP::SNMP() {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
@@ -48,6 +49,8 @@ SNMP::SNMP() {
 #ifdef HAVE_LIBSNMP
   init_snmp("ntopng");
 #endif
+
+  getbulk_max_num_repetitions = 25;
 }
 
 /* ******************************* */
@@ -290,8 +293,7 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
     snmpSession->session.peername = agent_host;
 
     /* set the SNMP version number */
-    snmpSession->session.version =
-        (version == 0) ? SNMP_VERSION_1 : SNMP_VERSION_2c;
+    snmpSession->session.version = (version == 0) ? SNMP_VERSION_1 : SNMP_VERSION_2c;
 
     /* set the SNMP community name used for authentication */
     snmpSession->session.community = (u_char *)community;
@@ -324,9 +326,9 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
     return;
   }
 
-  if (pdu_type == SNMP_MSG_GETBULK) {
-    pdu->non_repeaters = 0;    /* GET      */
-    pdu->max_repetitions = 25; /* GET-NEXT */
+  if (pdu_type == SNMP_MSG_GETBULK) {    
+    pdu->non_repeaters   = 0;  /* GET      */
+    pdu->max_repetitions = getbulk_max_num_repetitions; /* GET-NEXT */
   }
 
   for (u_int i = 0; i < SNMP_MAX_NUM_OIDS; i++) {
@@ -522,8 +524,7 @@ void SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
       pdu_type = SNMP_MSG_GETNEXT;
       break;
     case snmp_get_bulk_pdu:
-      pdu_type =
-          (version == 0 /* SNMPv1 */) ? SNMP_MSG_GETNEXT : SNMP_MSG_GETBULK;
+      pdu_type = (version == 0 /* SNMPv1 */) ? SNMP_MSG_GETNEXT : SNMP_MSG_GETBULK;
       break;
     case snmp_set_pdu:
       pdu_type = SNMP_MSG_SET;
@@ -545,8 +546,8 @@ void SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
   }
 
   if (pdu_type == SNMP_MSG_GETBULK) {
-    pdu->non_repeaters = 0;    /* GET      */
-    pdu->max_repetitions = 10; /* GET-NEXT */
+    pdu->non_repeaters   = 0;  /* GET      */
+    pdu->max_repetitions = getbulk_max_num_repetitions; /* GET-NEXT */
   }
 
   for (u_int i = 0; i < SNMP_MAX_NUM_OIDS; i++) {
@@ -657,9 +658,6 @@ void SNMP::send_snmp_set_request(char *agent_host, char *community,
 void SNMP::snmp_fetch_responses(lua_State *_vm, u_int timeout) {
   bool add_nil = true;
 
-  // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(%u)", __FUNCTION__,
-  // batch_mode ? 1 : 0);
-
   for (unsigned int i = 0; i < sessions.size(); i++) {
     int numfds;
     fd_set fdset;
@@ -671,8 +669,7 @@ void SNMP::snmp_fetch_responses(lua_State *_vm, u_int timeout) {
     FD_ZERO(&fdset);
     tvp.tv_sec = timeout, tvp.tv_usec = 0;
 
-    snmp_sess_select_info(snmpSession->session_ptr, &numfds, &fdset, &tvp,
-                          &block);
+    snmp_sess_select_info(snmpSession->session_ptr, &numfds, &fdset, &tvp, &block);
 
     /*
       Experiments run have shown that:
@@ -688,14 +685,17 @@ void SNMP::snmp_fetch_responses(lua_State *_vm, u_int timeout) {
       https://www.itcodet.com/cpp/cpp-snmp_sess_read-function-examples.html
     */
 
+    /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%s() [timeout: %u][block: %u]", __FUNCTION__, timeout, block); */
+    
     if(timeout > 0 /* The caller is willing to wait up to a timeout */
        || block == 0 /* The caller doesn't want to wait so the select is only performed when it doesn't block */) {
       count = select(numfds, &fdset, NULL, NULL, &tvp);
 
+      // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(timeout: %u)[count: %u]", __FUNCTION__, timeout, count);
+      
       if (count > 0) {
         vm = _vm;
-        snmp_sess_read(snmpSession->session_ptr,
-                       &fdset); /* Will trigger asynch_response() */
+        snmp_sess_read(snmpSession->session_ptr, &fdset); /* Will trigger asynch_response() */
 
         /* Add a nil in case no response was pushed in the stack */
         if (lua_gettop(vm) > 0) add_nil = false;
@@ -745,8 +745,7 @@ int SNMP::snmp_read_response(lua_State *vm, u_int timeout) {
     int sender_port, added = 0, len;
 
     /* This receive doesn't block */
-    len =
-        receive_udp_datagram(buf, BUFLEN, udp_sock, &sender_host, &sender_port);
+    len = receive_udp_datagram(buf, BUFLEN, udp_sock, &sender_host, &sender_port);
     message = snmp_parse_message(buf, len);
 
     i = 0;
@@ -836,8 +835,7 @@ void SNMP::snmp_fetch_responses(lua_State *vm, u_int sec_timeout) {
               The key is the IP address as this is used when contacting multiple
               hosts so we need to know who has sent back the response
             */
-            lua_push_str_table_entry(vm, sender_host /* Sender IP */,
-                                     value_str);
+            lua_push_str_table_entry(vm, sender_host /* Sender IP */, value_str);
           } else
             lua_push_str_table_entry(vm, oid_str, value_str);
 
@@ -901,6 +899,10 @@ int SNMP::getnext(lua_State *vm, bool skip_first_param) {
 /* ******************************************* */
 
 int SNMP::getnextbulk(lua_State *vm, bool skip_first_param) {
+  NtopngLuaContext *c = getLuaVMContext(vm);
+
+  set_snmpbulk_max_repetitions(c->getbulkMaxNumRepetitions);
+
   return (snmp_get_fctn(vm,
 #ifdef HAVE_LIBSNMP
                         snmp_get_bulk_pdu /* GET-BULK (next only) */,
@@ -1017,8 +1019,7 @@ int SNMP::snmp_get_fctn(lua_State *vm, snmp_pdu_primitive pduType,
 #endif
   {
     char *agent_host, *community;
-    u_int timeout = 5, version = snmp_version, oid_idx = 0,
-          idx = skip_first_param ? 2 : 1;
+    u_int timeout = 5, version = snmp_version, oid_idx = 0, idx = skip_first_param ? 2 : 1;
     char *oid[SNMP_MAX_NUM_OIDS] = {NULL};
 #ifdef HAVE_LIBSNMP
     char value_types[SNMP_MAX_NUM_OIDS] = {'\0'},
@@ -1035,7 +1036,9 @@ int SNMP::snmp_get_fctn(lua_State *vm, snmp_pdu_primitive pduType,
 
     if (ntop_lua_check(vm, __FUNCTION__, idx, LUA_TNUMBER) != CONST_LUA_OK)
       return (CONST_LUA_ERROR);
+    
     timeout = min(timeout, (u_int)lua_tointeger(vm, idx));
+    
     idx++;  // Do not out idx++ above as min is a #define and on some platforms
             // it will increase idx twice
 
@@ -1067,6 +1070,7 @@ int SNMP::snmp_get_fctn(lua_State *vm, snmp_pdu_primitive pduType,
 
         oid_idx += 3, idx += 3;
       } else {
+	/* GET */
         oid[oid_idx++] = (char *)lua_tostring(vm, idx);
         idx++;
       }
@@ -1086,8 +1090,7 @@ int SNMP::snmp_get_fctn(lua_State *vm, snmp_pdu_primitive pduType,
       return (CONST_LUA_ERROR); /* not supported */
 #endif
     } else {
-      send_snmpv1v2c_request(agent_host, community, pduType, version, oid,
-                             _batch_mode);
+      send_snmpv1v2c_request(agent_host, community, pduType, version, oid, _batch_mode);
     }
 
     if (skip_first_param)

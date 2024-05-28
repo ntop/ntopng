@@ -42,7 +42,7 @@ public:
   NetworkStats *network;
   Flow *flow;
   bool localuser;
-  u_int16_t observationPointId;
+  u_int16_t observationPointId, getbulkMaxNumRepetitions;
   LuaEngine *engine;
   
   /* Capabilities bitmap */

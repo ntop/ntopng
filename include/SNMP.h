@@ -63,7 +63,8 @@ class SNMP {
   int udp_sock;
   u_int32_t request_id;
 #endif
-
+  u_int8_t getbulk_max_num_repetitions;
+  
   void send_snmp_request(char *agent_host, u_int version, char *community,
                          char *level, char *username, char *auth_protocol,
                          char *auth_passphrase, char *privacy_protocol,
@@ -104,6 +105,9 @@ class SNMP {
                               char *oid[SNMP_MAX_NUM_OIDS], bool _batch_mode);
   void snmp_fetch_responses(lua_State *vm, u_int timeout);
 
+  void     set_snmpbulk_max_repetitions(u_int8_t n) { getbulk_max_num_repetitions = n;     };
+  u_int8_t get_snmpbulk_max_repetitions()           { return(getbulk_max_num_repetitions); };
+  
   int get(lua_State *vm, bool skip_first_param);
   int getnext(lua_State *vm, bool skip_first_param);
   int getnextbulk(lua_State *vm, bool skip_first_param);
