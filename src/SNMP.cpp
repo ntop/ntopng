@@ -122,8 +122,7 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
         break;
 
       case ASN_COUNTER64: {
-        u_int64_t v =
-            ((u_int64_t)vp->val.counter64->high << 32) + vp->val.counter64->low;
+        u_int64_t v = ((u_int64_t)vp->val.counter64->high << 32) + vp->val.counter64->low;
 
 #ifdef NATIVE_TYPE
         lua_push_uint32_table_entry(vm, rsp_oid, v);
@@ -141,7 +140,10 @@ void SNMP::handle_async_response(struct snmp_pdu *pdu, const char *agent_ip) {
         u_int i, len = min(sizeof(buf) - 1, vp->val_len);
 
         for (i = 0; i < len; i++) {
-          if ((!isprint(vp->val.string[i])) && (!isspace(vp->val.string[i]))) {
+          if ((!isprint(vp->val.string[i]))
+	      && (!isspace(vp->val.string[i]))
+	      && (vp->val.string[i] < 191) /* Windows-1252 */
+	      ) {
             is_printable = false;
           }
         }
