@@ -1449,7 +1449,7 @@ local function validateSNMPversion(m)
    -- 0 = SNMP v1
    -- 1 = SNMP v2c
    -- 2 - SNMP v3
-   return validateChoice({"0", "1", "2"}, m)
+   return validateChoice({"0", "1", "2", "3"}, m)
 end
 http_lint.validateSNMPversion = validateSNMPversion
 
