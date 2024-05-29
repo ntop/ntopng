@@ -475,7 +475,7 @@ schema:addTag("if_index")
 schema:addMetric("uplink")
 schema:addMetric("downlink")
 
-schema = ts_utils.newSchema("snmp_if:qos", {
+schema = ts_utils.newSchema("snmp_if:cbqos", {
     step = 300,
     rrd_heartbeat = 3000,
     rrd_fname = "qos",
@@ -487,7 +487,7 @@ schema:addTag("device")
 schema:addTag("if_index")
 schema:addTag("qos_class_id")
 schema:addMetric("pre")
-schema:addMetric("drop")
+schema:addMetric("drops")
 schema:addMetric("post")
 
 schema = ts_utils.newSchema("snmp_if:errors", {

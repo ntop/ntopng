@@ -860,7 +860,7 @@ function ts_utils.getPossiblyChangedSchemas()
     "mac:arp_rqst_sent_rcvd_rpls", -- Active Monitoring
     "am_host:http_stats_min", "am_host:https_stats_min", "am_host:val_min", "am_host:http_stats_5mins",
     "am_host:https_stats_5mins", "am_host:val_5mins", "am_host:http_stats_hour", "am_host:https_stats_hour",
-    "am_host:val_hour"}
+    "am_host:val_hour", "snmp_if:cbqos" }
 end
 
 -- ##############################################

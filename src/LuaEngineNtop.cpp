@@ -4282,6 +4282,19 @@ static int ntop_snmp_max_num_engines(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_snmp_set_bulk_max_repetitions(lua_State *vm) {
+  NtopngLuaContext *c = getLuaVMContext(vm);
+  
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  c->getbulkMaxNumRepetitions = (u_int8_t)lua_tointeger(vm, 1);
+
+  lua_pushnil(vm);
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 /* Synchronous calls */
 static int ntop_snmpget(lua_State *vm) {
   SNMP s;
@@ -4410,8 +4423,7 @@ static int ntop_snmpgetnextbulkasync(lua_State *vm) {
     return(ntop_lua_return_value(vm, __FUNCTION__,
                                   CONST_LUA_ERROR)); /* Invalid slot selected */
 
-  return(
-      snmpAsyncEngine[slot_id]->getnextbulk(vm, true /* Skip first param */));
+  return(snmpAsyncEngine[slot_id]->getnextbulk(vm, true /* Skip first param */));
 }
 
 /* ****************************************** */
@@ -4419,7 +4431,8 @@ static int ntop_snmpgetnextbulkasync(lua_State *vm) {
 static int ntop_snmpreadasyncrsp(lua_State *vm) {
   SNMP **snmpAsyncEngine = getLuaVMUserdata(vm, snmpAsyncEngine);
   u_int8_t slot_id;
-
+  u_int timeout = 0; /* Don't wait */
+  
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   slot_id = (u_int8_t)lua_tonumber(vm, 1);
@@ -4429,7 +4442,10 @@ static int ntop_snmpreadasyncrsp(lua_State *vm) {
     return(ntop_lua_return_value(vm, __FUNCTION__,
                                   CONST_LUA_ERROR)); /* Invalid slot selected */
 
-  snmpAsyncEngine[slot_id]->snmp_fetch_responses(vm, 0 /* Don't wait */);
+  if (lua_type(vm, 2) == LUA_TNUMBER)
+    timeout = (u_int8_t)lua_tonumber(vm, 2);
+
+  snmpAsyncEngine[slot_id]->snmp_fetch_responses(vm, timeout);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
@@ -7949,6 +7965,7 @@ static luaL_Reg _ntop_reg[] = {
     {"snmpsetavailable",     ntop_is_libsnmp_available },
     {"snmpgetbulkavailable", ntop_is_libsnmp_available },
     {"snmpMaxNumEngines",    ntop_snmp_max_num_engines },
+    {"snmpSetBulkMaxNumRepetitions", ntop_snmp_set_bulk_max_repetitions },
 
     /* Synchronous */
     {"snmpget", ntop_snmpget},
@@ -7957,14 +7974,8 @@ static luaL_Reg _ntop_reg[] = {
     {"snmpset", ntop_snmpset},
 
     /* Asynchronous */
-    {
-        "snmpallocasnyncengine",
-        ntop_allocasnyncengine,
-    },
-    {
-        "snmpfreeasnycengine",
-        ntop_freeasnyncengine,
-    },
+    {"snmpallocasnyncengine", ntop_allocasnyncengine },
+    {"snmpfreeasnycengine",   ntop_freeasnyncengine  },
     {"snmpgetasync", ntop_snmpgetasync},
     {"snmpgetnextasync", ntop_snmpgetnextasync},
     {"snmpgetnextbulkasync", ntop_snmpgetnextbulkasync},

@@ -15,9 +15,9 @@
           <span> {{ import_ok_text }}</span>
         </div>
 
-        <TableWithConfig ref="table_snmp_devices" :table_id="table_id" :csrf="csrf" :f_map_columns="map_table_def_columns"
-          :get_extra_params_obj="get_extra_params_obj" :f_sort_rows="columns_sorting"
-          @custom_event="on_table_custom_event" @rows_loaded="change_filter_labels">
+        <TableWithConfig ref="table_snmp_devices" :table_id="table_id" :csrf="csrf"
+          :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
+          :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event" @rows_loaded="change_filter_labels">
           <template v-slot:custom_buttons>
             <ModalDeleteSNMPDevice ref="modal_delete_snmp_device" @delete="delete_row" @ping_all="exec_ping_all"
               @prune="delete_unresponsive">
@@ -25,14 +25,19 @@
             <button class="btn btn-link" type="button" ref="add_snmp_device" @click="add_snmp_device">
               <i class="fas fa-plus"></i>
             </button>
-            <button class="btn btn-link" type="button" ref="import_snmp_devices" @click="import_snmp_devices">
-              <i class="fa-solid fa-file-arrow-up"></i>
+            <button class="btn btn-link" type="button" @click="import_snmp_devices">
+              <i class="fa-solid fa-file-arrow-up" data-bs-toggle="tooltip" data-bs-placement="top"
+                :title="_i18n('snmp.import_devices')"></i>
             </button>
+            <a class="btn btn-link" download="snmp_config.json" :href="config_export_url">
+              <i class="fa-solid fa-file-arrow-down" data-bs-toggle="tooltip" data-bs-placement="top"
+              :title="_i18n('snmp.export_devices')"></i>
+            </a>
           </template>
           <template v-slot:custom_header>
             <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
               <span class="no-wrap d-flex align-items-center filters-label"><b>{{ item["basic_label"]
-              }}</b></span>
+                  }}</b></span>
               <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5" dropdown_size="small"
                 :disabled="loading" :options="item['options']" @select_option="add_table_filter">
               </SelectSearch>
@@ -111,10 +116,10 @@ const import_ok_text = ref(null);
 const modal_delete_snmp_device = ref();
 const row_to_delete = ref();
 const total_rows = ref(0);
-
+const config_export_url = `${http_prefix}/lua/rest/v2/export/snmp/config.lua?download=1`;
 const delete_snmp_device_url = `${http_prefix}/lua/pro/rest/v2/delete/snmp/device.lua`;
 const add_snmp_device_url = `${http_prefix}/lua/pro/rest/v2/add/snmp/device.lua`;
-const import_snmp_devices_url = `${http_prefix}/lua/pro/rest/v2/add/snmp/devices.lua`;
+const import_snmp_devices_url = `${http_prefix}/lua/pro/rest/v2/add/snmp/import_devices.lua`;
 const edit_snmp_device_url = `${http_prefix}/lua/pro/rest/v2/edit/snmp/device/device.lua`;
 const manage_config_url = `${http_prefix}/lua/admin/manage_configurations.lua?item=snmp`;
 const ping_all_devices_url = `${http_prefix}/lua/pro/rest/v2/check/snmp/ping_all_devices.lua`;
@@ -124,6 +129,8 @@ const max_num_reached_alert_text = _i18n('snmp_max_num_devices_configured').repl
 
 const loading = ref(false);
 
+const timeoutId = ref(null);
+const tableRefreshRate = 10000;
 
 const rest_params = {
   csrf: props.context.csrf,
@@ -312,6 +319,10 @@ const get_extra_params_obj = () => {
 
 /* ************************************** */
 
+function export_snmp_devices() { }
+
+/* ************************************** */
+
 function import_snmp_devices() {
   modal_import_snmp_devices.value.show();
 }
@@ -436,12 +447,27 @@ const delete_unresponsive = async function () {
   table_snmp_devices.value.refresh_table();
 
 }
+
+// function to periodically refresh table content
+const refreshTableContent = function () {
+  table_snmp_devices.value.refresh_table();
+
+  // set next refresh timeout
+  timeoutId.value = setTimeout(() => {
+        refreshTableContent();
+      }, tableRefreshRate);
+}
+
 /* ************************************** */
 
 onBeforeMount(() => {
   ntopng_url_manager.set_key_to_url("verbose", true);
   load_table_filters_array();
-})
 
+  // start table refresh
+  timeoutId.value = setTimeout(() => {
+        refreshTableContent();
+      }, tableRefreshRate);
+})
 
 </script>

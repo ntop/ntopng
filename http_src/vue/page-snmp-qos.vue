@@ -134,7 +134,7 @@ const all_qos_chart = ref(null);
 const timeseries_groups = ref([]);
 const ts_request = ref([{
   ts_query: "ifid:-1,device:%host,if_index:%interface_id,qos_class_id:%qos_class",
-  ts_schema: "snmp_if:qos",
+  ts_schema: "snmp_if:cbqos",
   tskey: "%interface_id",
   source_def: [
     "-1", /* System Interface */
