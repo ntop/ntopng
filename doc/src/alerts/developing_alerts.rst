@@ -176,6 +176,7 @@ Alert Definition
 Let's begin by creating al the files of the alert.
  
 Under :code:`scripts/lua/modules/alert_definitions/host/` create a new file, in this case :code:`host_alert_http_contacts`
+
 .. code:: Lua
 	local host_alert_keys = require "host_alert_keys"
 
@@ -227,6 +228,7 @@ This example contains all the information needed in order to show the alert on t
 As seen before, we need to specify an unique alert key both in Lua and C++ files,
 
 Next thing to do is to define the alert key of the new alert, inside :code:`scripts/lua/modules/alert_key/host_alert_keys.lua`
+
 .. code:: Lua 
 	local host_alert_keys = {
 	[...]
@@ -244,6 +246,7 @@ Same for :code:`HostAlertTypeEnum` inside :code:`include/ntop_typedefs.h`.
 
 
 Now it's time to declare the corresponding C++ class. Under :code:`include/host_alerts/` create the header file :code:`HTTPContactsAlert.h`
+
 .. code:: C++
 	#ifndef _HTTP_CONTACTS_ALERT_H_
 	#define _HTTP_CONTACTS_ALERT_H_
@@ -273,11 +276,13 @@ Now it's time to declare the corresponding C++ class. Under :code:`include/host_
 	#endif /* _HTTP_CONTACTS_ALERT_H_ */
 
 We need to reference this file inside include/host_alerts_includes.h in order to be linked with the rest of files.
+
 .. code:: C++
 	[...]
 	#include "host_alerts/HTTPContactsAlert.h"
 
 We can now define the effective C++ class, under :code:`src/host_alerts/` create a new file :code:`HTTPContactsAlert.cpp`
+
 .. code:: C++
 	#include "host_alerts_includes.h"
 
@@ -307,6 +312,7 @@ Check Definition
 Once the alert definition is completed, it's time to move on the check definition, the core part that is responsible for triggering the alarm.
 
 As we have seen for the alert, first of all we need to create the relative Lua script. This time under :code:`scripts/lua/modules/check_definitions/host/` create a new file, :code:`http_contacts.lua`
+
 .. code:: Lua
 	local checks = require("checks")
 	local host_alert_keys = require "host_alert_keys"
@@ -337,9 +343,11 @@ As we have seen for the alert, first of all we need to create the relative Lua s
 	}
 
 	return http_contacts
+
 The default_value section as well as all the field variables, are responsible to get the number that we want to give to this alert. For the alerts that don't need such parameter, that part can be omitted.
 
 For the C++ part, create the header file in :code:`include/host_checks/` :code:`HTTPContacts.h`
+
 .. code:: C++
 	#ifndef _HTTP_CONTACTS_H_
 	#define _HTTP_CONTACTS_H_
@@ -370,6 +378,7 @@ For the C++ part, create the header file in :code:`include/host_checks/` :code:`
 	#endif
 
 Add the reference to that file inside :code:`include/host_checks_includes.h`
+
 .. code:: C++
 	#ifndef _HOST_CHECKS_INCLUDES_H_
 	#define _HOST_CHECKS_INCLUDES_H_
@@ -379,6 +388,7 @@ Add the reference to that file inside :code:`include/host_checks_includes.h`
 
 
 In the same file of HostAlertTypeEnum, :code:`include/ntop_typedefs.h`, modify the HostCheckID Enum
+
 .. code:: C++
 	typedef enum {
 	host_check_http_replies_requests_ratio = 0,
@@ -389,6 +399,7 @@ In the same file of HostAlertTypeEnum, :code:`include/ntop_typedefs.h`, modify t
 	} HostCheckID;
 
 Now, inside :code:`src/host_checks/`, create :code:`HTTPContacts.cpp`
+
 .. code:: C++
 	#include "ntop_includes.h"
 	#include "host_checks_includes.h"
@@ -430,6 +441,7 @@ Now, inside :code:`src/host_checks/`, create :code:`HTTPContacts.cpp`
 	}
 
 We need to tell to ntopng to instantiate the check class, to do so we need to modify :code:`src/HostChecksLoader.cpp`
+
 .. code:: C++
 	void HostChecksLoader::registerChecks() {
 	HostCheck *fcb;
@@ -445,6 +457,7 @@ What we can add now is a variable to be avaiable during the periodic update that
 To do so we can modify the Host class adding a variable and a getter.  
 
 In :code:`/inlcude/Host.h` add the variable as well as a function to get it and ones to reset it.
+
 .. code:: C++
 	class Host : public GenericHashEntry,
 				public Score,
@@ -462,6 +475,7 @@ In :code:`/inlcude/Host.h` add the variable as well as a function to get it and 
 
 
 Now we need to update the variable every time a new http connection has been seen. To do so modify :code:`/src/Host.cpp`
+
 .. code:: C++
 	void Host::initialize(Mac *_mac, int32_t _iface_idx,
 				u_int16_t _vlanId,
@@ -488,6 +502,7 @@ Formatting the output
 One last thing we can do is to modify the locales in order to visualize both the check enable section and the alert launched in a readable format. 
 
 Inside scripts/locales/en.lua we need to search for the `alerts_dashboard` section and add 
+
 .. code:: Lua
 	[...]
 	["alerts_dashboard"] = {
