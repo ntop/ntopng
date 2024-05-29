@@ -7460,6 +7460,7 @@ local lang = {
     ["ifindex"] = "Interface Index",
     ["interface"] = "Interface",
     ["import_devices"] = "Import SNMP Device(s)",
+    ["export_devices"] = "Export SNMP Device(s)",
     ["in_bytes"] = "In Bytes",
     ["in_discards"] = "In Discards",
     ["in_errors"] = "In Errors",
