@@ -46,7 +46,7 @@ Checks execution for flows consists in ntopng calling for every flow:
 Every flow check, when subclassing :code:`FlowCheck`, must override one or more of the methods above to implement the desired check behavior.
 
 Check Configuration
-----------------------
+-------------------
 
 Checks are configured from the ntopng Web UI. Configuration involves the ability to:
 
@@ -165,13 +165,13 @@ Indeed, The actual alert creation is triggered from the host check with the call
 Is it even possible to use another method, :code:`storeAlert`, that once triggered is immediately emitted.
 
 Symple Host Alert example
-======
+=========================
 
 In this section we will guide you through the implementation of a new host alert that trigger when an host see more than a specified number of flow with http protocol.
 The purpouse of this guide is to show which passages are needed in order to add an alert, for an host. Indeed the Flow alert implementation need the add of similar files inside the corresponding flow subdirectory, as specified in the above sections. 
 
 Alert Definition
---------------------
+----------------
 
 Let's begin by creating al the files of the alert.
  
@@ -230,7 +230,7 @@ As seen before, we need to specify an unique alert key both in Lua and C++ files
 
 Next thing to do is to define the alert key of the new alert, inside :code:`scripts/lua/modules/alert_key/host_alert_keys.lua`
 
-.. code:: ua
+.. code:: lua
 
 	local host_alert_keys = {
 	[...]
@@ -239,7 +239,7 @@ Next thing to do is to define the alert key of the new alert, inside :code:`scri
 
 Same for :code:`HostAlertTypeEnum` inside :code:`include/ntop_typedefs.h`.
 
-.. code:: C++
+.. code:: C
 
 	typedef enum {
 	[...]
@@ -250,7 +250,7 @@ Same for :code:`HostAlertTypeEnum` inside :code:`include/ntop_typedefs.h`.
 
 Now it's time to declare the corresponding C++ class. Under :code:`include/host_alerts/` create the header file :code:`HTTPContactsAlert.h`
 
-.. code:: C++
+.. code:: C
 
 	#ifndef _HTTP_CONTACTS_ALERT_H_
 	#define _HTTP_CONTACTS_ALERT_H_
@@ -281,14 +281,14 @@ Now it's time to declare the corresponding C++ class. Under :code:`include/host_
 
 We need to reference this file inside include/host_alerts_includes.h in order to be linked with the rest of files.
 
-.. code:: C++
+.. code:: C
 
 	[...]
 	#include "host_alerts/HTTPContactsAlert.h"
 
 We can now define the effective C++ class, under :code:`src/host_alerts/` create a new file :code:`HTTPContactsAlert.cpp`
 
-.. code:: C++
+.. code:: C
 
 	#include "host_alerts_includes.h"
 
@@ -355,7 +355,7 @@ The default_value section as well as all the field variables, are responsible to
 
 For the C++ part, create the header file in :code:`include/host_checks/` :code:`HTTPContacts.h`
 
-.. code:: C++
+.. code:: C
 
 	#ifndef _HTTP_CONTACTS_H_
 	#define _HTTP_CONTACTS_H_
@@ -387,7 +387,7 @@ For the C++ part, create the header file in :code:`include/host_checks/` :code:`
 
 Add the reference to that file inside :code:`include/host_checks_includes.h`
 
-.. code:: C++
+.. code:: C
 
 	#ifndef _HOST_CHECKS_INCLUDES_H_
 	#define _HOST_CHECKS_INCLUDES_H_
@@ -396,21 +396,17 @@ Add the reference to that file inside :code:`include/host_checks_includes.h`
 	[...]
 
 
-In the same file of HostAlertTypeEnum, :code:`include/ntop_typedefs.h`, modify the HostCheckID Enum
+In the same file of :code:`HostAlertTypeEnum`, :code:`include/ntop_typedefs.h`, modify the HostCheckID Enum:
 
-.. code:: C++
+.. code:: C
 
 	typedef enum {
-	host_check_http_replies_requests_ratio = 0,
-	[...]
 	host_check_http_contacts,
-	[...]
-
 	} HostCheckID;
 
 Now, inside :code:`src/host_checks/`, create :code:`HTTPContacts.cpp`
 
-.. code:: C++
+.. code:: C
 
 	#include "ntop_includes.h"
 	#include "host_checks_includes.h"
@@ -449,7 +445,7 @@ Now, inside :code:`src/host_checks/`, create :code:`HTTPContacts.cpp`
 
 We need to tell to ntopng to instantiate the check class, to do so we need to modify :code:`src/HostChecksLoader.cpp`
 
-.. code:: C++
+.. code:: C
 
 	void HostChecksLoader::registerChecks() {
 	HostCheck *fcb;
@@ -466,7 +462,7 @@ To do so we can modify the Host class adding a variable and a getter.
 
 In :code:`/inlcude/Host.h` add the variable as well as a function to get it and ones to reset it.
 
-.. code:: C++
+.. code:: C
 
 	class Host : public GenericHashEntry,
 				public Score,
@@ -484,7 +480,7 @@ In :code:`/inlcude/Host.h` add the variable as well as a function to get it and 
 
 Now we need to update the variable every time a new http connection has been seen. To do so modify :code:`/src/Host.cpp`
 
-.. code:: C++
+.. code:: C
 
 	void Host::initialize(Mac *_mac, int32_t _iface_idx,
 				u_int16_t _vlanId,
@@ -506,7 +502,7 @@ Now we need to update the variable every time a new http connection has been see
 	}
 
 Formatting the output
---------------------
+----------------------
 
 One last thing we can do is to modify the locales in order to visualize both the check enable section and the alert launched in a readable format. 
 Inside scripts/locales/en.lua we need to search for the `alerts_dashboard` section and add 
