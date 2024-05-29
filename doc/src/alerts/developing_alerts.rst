@@ -177,7 +177,8 @@ Let's begin by creating al the files of the alert.
  
 Under :code:`scripts/lua/modules/alert_definitions/host/` create a new file, in this case :code:`host_alert_http_contacts`
 
-.. code:: Lua
+.. code:: lua
+
 	local host_alert_keys = require "host_alert_keys"
 
 	local json = require("dkjson")
@@ -229,7 +230,8 @@ As seen before, we need to specify an unique alert key both in Lua and C++ files
 
 Next thing to do is to define the alert key of the new alert, inside :code:`scripts/lua/modules/alert_key/host_alert_keys.lua`
 
-.. code:: Lua 
+.. code:: ua
+
 	local host_alert_keys = {
 	[...]
 	host_alert_http_contacts               = 30,
@@ -238,6 +240,7 @@ Next thing to do is to define the alert key of the new alert, inside :code:`scri
 Same for :code:`HostAlertTypeEnum` inside :code:`include/ntop_typedefs.h`.
 
 .. code:: C++
+
 	typedef enum {
 	[...]
 	host_alert_http_counts = 30
@@ -248,6 +251,7 @@ Same for :code:`HostAlertTypeEnum` inside :code:`include/ntop_typedefs.h`.
 Now it's time to declare the corresponding C++ class. Under :code:`include/host_alerts/` create the header file :code:`HTTPContactsAlert.h`
 
 .. code:: C++
+
 	#ifndef _HTTP_CONTACTS_ALERT_H_
 	#define _HTTP_CONTACTS_ALERT_H_
 
@@ -278,12 +282,14 @@ Now it's time to declare the corresponding C++ class. Under :code:`include/host_
 We need to reference this file inside include/host_alerts_includes.h in order to be linked with the rest of files.
 
 .. code:: C++
+
 	[...]
 	#include "host_alerts/HTTPContactsAlert.h"
 
 We can now define the effective C++ class, under :code:`src/host_alerts/` create a new file :code:`HTTPContactsAlert.cpp`
 
 .. code:: C++
+
 	#include "host_alerts_includes.h"
 
 	HTTPContactsAlert::HTTPContactsAlert(HostCheck* c, Host* f,
@@ -313,7 +319,8 @@ Once the alert definition is completed, it's time to move on the check definitio
 
 As we have seen for the alert, first of all we need to create the relative Lua script. This time under :code:`scripts/lua/modules/check_definitions/host/` create a new file, :code:`http_contacts.lua`
 
-.. code:: Lua
+.. code:: lua
+
 	local checks = require("checks")
 	local host_alert_keys = require "host_alert_keys"
 	local alert_consts = require("alert_consts")
@@ -349,6 +356,7 @@ The default_value section as well as all the field variables, are responsible to
 For the C++ part, create the header file in :code:`include/host_checks/` :code:`HTTPContacts.h`
 
 .. code:: C++
+
 	#ifndef _HTTP_CONTACTS_H_
 	#define _HTTP_CONTACTS_H_
 
@@ -380,6 +388,7 @@ For the C++ part, create the header file in :code:`include/host_checks/` :code:`
 Add the reference to that file inside :code:`include/host_checks_includes.h`
 
 .. code:: C++
+
 	#ifndef _HOST_CHECKS_INCLUDES_H_
 	#define _HOST_CHECKS_INCLUDES_H_
 	[...]
@@ -390,6 +399,7 @@ Add the reference to that file inside :code:`include/host_checks_includes.h`
 In the same file of HostAlertTypeEnum, :code:`include/ntop_typedefs.h`, modify the HostCheckID Enum
 
 .. code:: C++
+
 	typedef enum {
 	host_check_http_replies_requests_ratio = 0,
 	[...]
@@ -401,17 +411,14 @@ In the same file of HostAlertTypeEnum, :code:`include/ntop_typedefs.h`, modify t
 Now, inside :code:`src/host_checks/`, create :code:`HTTPContacts.cpp`
 
 .. code:: C++
+
 	#include "ntop_includes.h"
 	#include "host_checks_includes.h"
-
-	/* ***************************************************** */
 
 	HTTPContacts::HTTPContacts()
 		: HostCheck(ntopng_edition_community, false /* All interfaces */,
 					false /* Don't exclude for nEdge */,
 					false /* NOT only for nEdge */){};
-
-	/* ***************************************************** */
 
 	void HTTPContacts::periodicUpdate(Host *h, HostAlert *engaged_alert) {
 	HostAlert *alert = engaged_alert;
@@ -433,7 +440,7 @@ Now, inside :code:`src/host_checks/`, create :code:`HTTPContacts.cpp`
 	bool HTTPContacts::loadConfiguration(json_object *config) {
 	json_object *json_threshold;
 
-	HostCheck::loadConfiguration(config); /* Parse parameters in common */
+	HostCheck::loadConfiguration(config);
 
 	if (json_object_object_get_ex(config, "threshold", &json_threshold))
 		threshold = json_object_get_int64(json_threshold);
@@ -443,6 +450,7 @@ Now, inside :code:`src/host_checks/`, create :code:`HTTPContacts.cpp`
 We need to tell to ntopng to instantiate the check class, to do so we need to modify :code:`src/HostChecksLoader.cpp`
 
 .. code:: C++
+
 	void HostChecksLoader::registerChecks() {
 	HostCheck *fcb;
 
@@ -459,10 +467,11 @@ To do so we can modify the Host class adding a variable and a getter.
 In :code:`/inlcude/Host.h` add the variable as well as a function to get it and ones to reset it.
 
 .. code:: C++
+
 	class Host : public GenericHashEntry,
 				public Score,
 				public HostChecksStatus,
-			public HostAlertableEntity /* Eventually move to LocalHost */ {
+			public HostAlertableEntity {
 	protected:
 	[...]
 	u_int32_t num_http_flows;
@@ -473,10 +482,10 @@ In :code:`/inlcude/Host.h` add the variable as well as a function to get it and 
 	inline void resetNumHttpFlows() { num_http_flows = 0; };
 	}
 
-
 Now we need to update the variable every time a new http connection has been seen. To do so modify :code:`/src/Host.cpp`
 
 .. code:: C++
+
 	void Host::initialize(Mac *_mac, int32_t _iface_idx,
 				u_int16_t _vlanId,
 						u_int16_t observation_point_id) {
@@ -500,10 +509,10 @@ Formatting the output
 --------------------
 
 One last thing we can do is to modify the locales in order to visualize both the check enable section and the alert launched in a readable format. 
-
 Inside scripts/locales/en.lua we need to search for the `alerts_dashboard` section and add 
 
-.. code:: Lua
+.. code:: lua
+
 	[...]
 	["alerts_dashboard"] = {
 		...
