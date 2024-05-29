@@ -44,11 +44,6 @@ if not ntop.isnEdge() then
             }),
             order = 0
         },
-        snmp = {
-            key = "snmp",
-            label = i18n("manage_configurations.snmp"),
-            order = 1
-        },
         active_monitoring = {
             key = "active_monitoring",
             label = i18n("manage_configurations.active_monitoring_vs"),

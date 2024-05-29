@@ -5361,6 +5361,7 @@ local lang = {
     ["pool_endpoint_recipients"] = "Pools",
     ["restart_request"] = "<b>Restart</b> %{product} to make the changes set effective.",
     ["snmp"] = "SNMP",
+    ["snmp_config_moved"] = "SNMP Configuration import/export can be found in the SNMP Page",
     ["factory_reset"] = {
       ["body"] = "Reset configuration to factory. All custom changes will be lost.",
       ["title"] = "Reset <span class='selected-item'>%{reset_element}</span> Configuration",
@@ -7540,9 +7541,7 @@ local lang = {
     ["snmp_devices_rules"] = "Rules",
     ["snmp_error_unable_to_set_interface_admin_status"] = "Unable to toggle the admin status. Make sure the SNMP device has a (valid) write community configured.",
     ["snmp_host"] = "Host",
-    ["snmp_import_devices_csv"] = "When importing devices from a CSV, the order of data imported for v.2c or v.1 devices:<br>DEVICE_IP,READ_COMMUNITY,WRITE_COMMUNITY,VERSION",
-    ["snmp_import_devices_csv2"] = "When importing devices from a CSV, the order of data imported for v.3 devices:<br>DEVICE_IP,READ_COMMUNITY,WRITE_COMMUNITY,VERSION,LEVEL,USERNAME,AUTH_PROTOCOL,AUTH_PASSPHRASE,PRIVACY_PROTOCOL,PRIVACY_PASSPHRASE",
-    ["snmp_import_devices_json"] = "For the format of JSON File, please follow the same format of the JSON obtained when exporting SNMP devices.",
+    ["snmp_import_devices"] = "Check the <a href='https://www.ntop.org/guides/ntopng/snmp/configuration.html#snmp-import-file'>documentation</a> regarding the CSV / JSON format ",
     ["snmp_import_devices_issues"] = "In case the format is not respected, unknown issue could arise",
     ["snmp_interface"] = "SNMP Interface",
     ["snmp_interface_type"] = "Interface Type",
