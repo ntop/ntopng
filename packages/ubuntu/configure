@@ -1804,7 +1804,7 @@ if  test -f /usr/bin/lsb_release ; then
     fi
   fi
 
-  if test "$UBUNTU_RELEASE" = "16.04" || test "$UBUNTU_RELEASE" = "18.04" || test "$UBUNTU_RELEASE" = "20.04"  || test "$UBUNTU_RELEASE" = "22.04" || test "$UBUNTU_RELEASE" = "debian9" || test "$UBUNTU_RELEASE" = "debian10" || test "$UBUNTU_RELEASE" = "11" || test "$UBUNTU_RELEASE" = "12"; then
+  if test "$UBUNTU_RELEASE" = "16.04" || test "$UBUNTU_RELEASE" = "18.04" || test "$UBUNTU_RELEASE" = "20.04"  || test "$UBUNTU_RELEASE" = "22.04" || test "$UBUNTU_RELEASE" = "24.04" || test "$UBUNTU_RELEASE" = "debian9" || test "$UBUNTU_RELEASE" = "debian10" || test "$UBUNTU_RELEASE" = "11" || test "$UBUNTU_RELEASE" = "12"; then
     ZMQ_DEP="libzmq5"
   else
     ZMQ_DEP="libzmq3"
@@ -1893,7 +1893,7 @@ if  test -d $HOME/nDPI ; then
   fi
 fi
 
-EXTRA_DEPS="$EXTRA_DEPS, $NDPI_DEP"
+EXTRA_DEPS="$EXTRA_DEPS, $NDPI_DEP, libsodium23"
 
 if test -f /usr/bin/debsigs; then
   SIGN_CMD="debsigs"
