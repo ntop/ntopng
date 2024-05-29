@@ -153,7 +153,7 @@ Alert classes are instantiated inside :code:`buildAlert`, a method that must be 
 
 Checks use :code:`triggerAlertAsync` or :code:`triggerAlertSync` to tell ntopng to create an asyncronous alert. The first method is an asyncronous call, faster, but can cause the alert JSON to be generated after the call. The FlowCheck should implement the buildAlert() method which is called in the predominant check to actually build the FlowAlert object.
 The second method is a syncrhonous call, more expensive, but causes the alert (FlowAlert) to be immediately enqueued to all recipients.
-This call is faster  a syncronous call but  . Indeed, The actual alert creation is triggered from the flow check with the call :code:`f->triggerAlertAsync` or :code:`f->triggerAlertSync`. This call tells ntopng to create an alert identified with :code:`BlacklistedFlowAlert::getClassType()` on the flow instance pointed by :code:`f`.
+Indeed, the actual alert creation is triggered from the flow check with the call :code:`f->triggerAlertAsync` or :code:`f->triggerAlertSync`. This call tells ntopng to create an alert identified with :code:`BlacklistedFlowAlert::getClassType()` on the flow instance pointed by :code:`f`.
 
 Creating Host Alerts
 --------------------
@@ -161,7 +161,7 @@ Creating Host Alerts
 Alert classes are instantiated inside host checks.
 
 Checks use :code:`triggerAlert` to tell ntopng to create an alert with an engaged status, and need to be released. 
-Indeed, The actual alert creation is triggered from the host check with the call :code:`h->triggerAlert` that wants a pointer to the host alert instance as parameter. This call tells ntopng to create an alert on the host instance pointed by :code:`h`.
+Indeed, the actual alert creation is triggered from the host check with the call :code:`h->triggerAlert` that wants a pointer to the host alert instance as parameter. This call tells ntopng to create an alert on the host instance pointed by :code:`h`.
 Is it even possible to use another method, :code:`storeAlert`, that once triggered is immediately emitted.
 
 Symple Host Alert example
