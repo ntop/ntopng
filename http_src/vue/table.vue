@@ -20,10 +20,12 @@
 
                     <slot name="custom_buttons"></slot>
                     <button class="btn btn-link" type="button" @click="reset_column_size">
-                        <i class="fas fa-columns"></i>
+                        <i class="fas fa-columns" data-bs-toggle="tooltip" data-bs-placement="top"
+                            :title="_i18n('reset_column')"></i>
                     </button>
                     <button class="btn btn-link" type="button" @click="refresh_table()">
-                        <i class="fas fa-refresh"></i>
+                        <i class="fas fa-refresh" data-bs-toggle="tooltip" data-bs-placement="top"
+                            :title="_i18n('refresh')"></i>
                     </button>
                     <div v-if="show_autorefresh > 0" class="d-inline-block">
                         <Switch v-model:value="enable_autorefresh" class="me-2 mt-1" :title="autorefresh_title" style=""
@@ -33,7 +35,8 @@
 
                     <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
                         <template v-slot:title>
-                            <i class="fas fa-eye"></i>
+                            <i class="fas fa-eye" data-bs-toggle="tooltip" data-bs-placement="top"
+                                :title="_i18n('enable_auto_refresh')"></i>
                         </template>
                         <template v-slot:menu>
                             <div v-for="col in columns_wrap" class="form-check form-switch ms-1">
@@ -176,7 +179,7 @@ const props = defineProps({
     message_to_display: String,
 });
 
-const get_num_pages = function() {
+const get_num_pages = function () {
     return Number(localStorage.getItem("ntopng.tables.rowPerPage")) || 10;
 }
 
@@ -236,6 +239,10 @@ async function load_table() {
     set_columns_resizable();
     dropdown.value.load_menu();
     emit("loaded");
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
 }
 
 let autorefresh_interval;
@@ -363,7 +370,7 @@ function change_per_page() {
     change_active_page(0);
 }
 
-const save_num_pages = function() {
+const save_num_pages = function () {
     localStorage.setItem("ntopng.tables.rowPerPage", per_page.value);
 }
 

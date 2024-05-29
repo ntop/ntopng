@@ -25,9 +25,14 @@
             <button class="btn btn-link" type="button" ref="add_snmp_device" @click="add_snmp_device">
               <i class="fas fa-plus"></i>
             </button>
-            <button class="btn btn-link" type="button" ref="import_snmp_devices" @click="import_snmp_devices">
-              <i class="fa-solid fa-file-arrow-up"></i>
+            <button class="btn btn-link" type="button" @click="import_snmp_devices">
+              <i class="fa-solid fa-file-arrow-up" data-bs-toggle="tooltip" data-bs-placement="top"
+                :title="_i18n('snmp.import_devices')"></i>
             </button>
+            <a class="btn btn-link" download="snmp_config.json" :href="config_export_url">
+              <i class="fa-solid fa-file-arrow-down" data-bs-toggle="tooltip" data-bs-placement="top"
+              :title="_i18n('snmp.export_devices')"></i>
+            </a>
           </template>
           <template v-slot:custom_header>
             <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
@@ -111,10 +116,10 @@ const import_ok_text = ref(null);
 const modal_delete_snmp_device = ref();
 const row_to_delete = ref();
 const total_rows = ref(0);
-
+const config_export_url = `${http_prefix}/lua/rest/v2/export/snmp/config.lua?download=1`;
 const delete_snmp_device_url = `${http_prefix}/lua/pro/rest/v2/delete/snmp/device.lua`;
 const add_snmp_device_url = `${http_prefix}/lua/pro/rest/v2/add/snmp/device.lua`;
-const import_snmp_devices_url = `${http_prefix}/lua/pro/rest/v2/add/snmp/devices.lua`;
+const import_snmp_devices_url = `${http_prefix}/lua/pro/rest/v2/add/snmp/import_devices.lua`;
 const edit_snmp_device_url = `${http_prefix}/lua/pro/rest/v2/edit/snmp/device/device.lua`;
 const manage_config_url = `${http_prefix}/lua/admin/manage_configurations.lua?item=snmp`;
 const ping_all_devices_url = `${http_prefix}/lua/pro/rest/v2/check/snmp/ping_all_devices.lua`;
@@ -311,6 +316,10 @@ const get_extra_params_obj = () => {
   let extra_params = ntopng_url_manager.get_url_object();
   return extra_params;
 };
+
+/* ************************************** */
+
+function export_snmp_devices() { }
 
 /* ************************************** */
 

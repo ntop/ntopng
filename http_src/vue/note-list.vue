@@ -1,7 +1,7 @@
 <!-- (C) 2022-23 - ntop.org     -->
 
 <template>
-  <div id="script-description" class="notes bg-light border" role="alert">
+  <div id="script-description" class="notes bg-light border" role="alert" style="overflow-wrap: anywhere !important;">
     <b>{{ _i18n('notes') }}</b>
     <ul>
       <template v-for="note in props.note_list">
