@@ -115,12 +115,12 @@ Flow::Flow(NetworkInterface *_iface,
 
   cli_ip_addr = srv_ip_addr = NULL;
   cli_host = srv_host = NULL;
-  src_ip_addr_pre_nat = dst_ip_addr_pre_nat = 
+  src_ip_addr_pre_nat = dst_ip_addr_pre_nat =
     src_ip_addr_post_nat = dst_ip_addr_post_nat = 0;
 
   src_port_pre_nat = dst_port_pre_nat =
     src_port_post_nat = dst_port_post_nat = 0;
-    
+
   INTERFACE_PROFILING_SUB_SECTION_ENTER(iface,
                                         "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_iface_idx, _vlanId, _observation_point_id, _private_flow_id,
@@ -993,8 +993,7 @@ void Flow::processPacket(const struct pcap_pkthdr *h, const u_char *ip_packet,
    * traffic), nDPI should process at least one packet in order to be able to
    * guess the protocol. */
 
-  proto_id = ndpi_detection_process_packet(
-					   iface->get_ndpi_struct(), ndpiFlow, ip_packet, ip_len, packet_time, NULL);
+  proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow, ip_packet, ip_len, packet_time, NULL);
 
   if ((ndpi_flow_risk_bitmap != 0) && (ndpiFlow->risk == 0)) {
     /*
@@ -1272,6 +1271,12 @@ void Flow::setExtraDissectionCompleted() {
 				 "Bad internal status: setExtraDissectionCompleted called before "
 				 "setDetectedProtocol");
     return;
+  } else if(needsExtraDissection()) {
+    u_int8_t proto_guessed;
+
+    updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), ndpiFlow,
+                                         &proto_guessed));
+    setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
   }
 
   if ((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP) ||
@@ -2184,7 +2189,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
       }
     }
     break;
-    
+
   case NDPI_PROTOCOL_NTP:
     if (cli_host && srv_host) {
       if (cli_host->incNTPContactCardinality(srv_host)) {
@@ -3623,7 +3628,7 @@ void Flow::formatECSNetwork(json_object *my_object, const IpAddress *addr) {
 void Flow::formatECSHost(json_object *my_object, bool is_client,
                          const IpAddress *addr, Host *host) {
   json_object *host_object;
-  bool use_nat = false; 
+  bool use_nat = false;
 
   if ((host_object = json_object_new_object()) != NULL) {
     char buf[64], jsonbuf[64], *c;
@@ -3640,7 +3645,7 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
 
     /* Adding IP */
     if (addr) {
-      if (is_client && (getPreNATSrcIp() != getPostNATSrcIp())) 
+      if (is_client && (getPreNATSrcIp() != getPostNATSrcIp()))
         use_nat = true;
 
       /* With NAT they are IPv4 */
@@ -3688,7 +3693,7 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
         tmp_ip.set(getPostNATDstIp());
         port = getPostNATDstPort();
       }
-        
+
       json_object_object_add(nat, "ip",
                               json_object_new_string(tmp_ip.print(buf, sizeof(buf))));
       json_object_object_add(nat, "port",
@@ -5490,15 +5495,15 @@ std::string Flow::getFlowInfo(bool isLuaRequest) {
       switch(rtp_stream_type) {
       case ndpi_multimedia_unknown_flow:
 	break;
-	
+
       case ndpi_multimedia_audio_flow:
 	info_field = std::string("<i class='fa fa-lg fa-volume-up'></i> Audio");
 	break;
-	
+
       case ndpi_multimedia_video_flow:
 	info_field = std::string("<i class='fa fa-lg fa-video'></i> Video");
 	break;
-	
+
       case ndpi_multimedia_screen_sharing_flow:
 	info_field = std::string("<i class='fa fa-lg fa-binoculars'></i> Desktop Sharing");
 	break;
@@ -8835,9 +8840,9 @@ MinorConnectionStates Flow::calculateConnectionState(bool is_cumulative) {
 
 /* **************************************************** */
 
-void Flow::addPrePostNATIPv4(u_int32_t _src_ip_addr_pre_nat, 
+void Flow::addPrePostNATIPv4(u_int32_t _src_ip_addr_pre_nat,
                         u_int32_t _dst_ip_addr_pre_nat,
-                        u_int32_t _src_ip_addr_post_nat, 
+                        u_int32_t _src_ip_addr_post_nat,
                         u_int32_t _dst_ip_addr_post_nat) {
   src_ip_addr_pre_nat = _src_ip_addr_pre_nat;
   dst_ip_addr_pre_nat = _dst_ip_addr_pre_nat;
@@ -8847,9 +8852,9 @@ void Flow::addPrePostNATIPv4(u_int32_t _src_ip_addr_pre_nat,
 
 /* **************************************************** */
 
-void Flow::addPrePostNATPort(u_int32_t _src_port_pre_nat, 
+void Flow::addPrePostNATPort(u_int32_t _src_port_pre_nat,
                           u_int32_t _dst_port_pre_nat,
-                          u_int32_t _src_port_post_nat, 
+                          u_int32_t _src_port_post_nat,
                           u_int32_t _dst_port_post_nat) {
   src_port_pre_nat = _src_port_pre_nat;
   dst_port_pre_nat = _dst_port_pre_nat;
