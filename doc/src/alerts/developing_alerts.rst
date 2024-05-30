@@ -27,7 +27,6 @@ Classes are implemented with two files, namely a :code:`.h` file with the class 
   - Host check declarations (:code:`.h` files) are under :code:`include/host_checks`. Host check definitions (:code:`.cpp`) files are under :code:`src/host_checks`.
   - Flow check declarations (:code:`.h` files) are under :code:`include/flow_checks`. Flow check definitions (:code:`.cpp`) files are under :code:`src/host_checks`.
 
-
 Check Execution
 ------------------
 
@@ -46,9 +45,8 @@ Checks execution for flows consists in ntopng calling for every flow:
 
 Every flow check, when subclassing :code:`FlowCheck`, must override one or more of the methods above to implement the desired check behavior.
 
-
 Check Configuration
-----------------------
+-------------------
 
 Checks are configured from the ntopng Web UI. Configuration involves the ability to:
 
@@ -74,32 +72,6 @@ ntopng use names to link check configuration with its C++ class instance. A comm
 
 - The name of the Lua file under :code:`scripts/lua/modules/check_definitions`, e.g., :code:`<name>.lua`
 - The string returned by method :code:`getName` in the C++ class file, e.g., :code:`std::string getName() const { return(std::string("<name>")); }`.
-
-
-Example
--------
-
-The following figure shows the interplay between the various components of a flow check. :code:`BlacklistedFlow` is used for reference. Full-screen is recommended to properly visualize the figure.
-
-.. figure:: ../img/developing_alerts_check_structure.png
-  :align: center
-  :alt: BlacklistedFlow Flow Check
-
-  BlacklistedFlow Flow Check
-
-
-File :code:`BlacklistedFlow.h` *(1)* contains the declaration of class `BlacklistedFlow`, a subclass of :code:`FlowCheck`. The class is defined in :code:`BlacklistedFlow.cpp` *(2)* that contains class methods implementation.
-
-To have :code:`BlacklistedFlow` compiled, an :code:`#include` directive must be added in file :code:`include/flow_checks_includes.h` *(3)*. The directive must contain the path to the class declaration file :code:`BlacklistedFlow.h`.
-
-To have the check loaded and executed at runtime, :code:`BlacklistedFlow` must be instantiated and added to the ntopng checks in file :code:`src/FlowChecksLoader.cpp` *(4)*.
-
-Method :code:`protocolDetected` is overridden and implemented in :code:`BlacklistedFlow.cpp` *(5)* so that ntopng will call it for every flow as soon as the Layer-7 application protocol is detected.
-
-Check configuration UI is populated according to the contents of :code:`scripts/lua/modules/check_definitions/flow/blacklisted.lua` *(6)*. ntopng is able to link the check configuration with its C++ class thanks to the name :code:`blacklisted` as highlighted with the arrow starting at *(6)*. Indeed, to have the C++ and the Lua properly linked, the same name is used for:
-
-- The name of the Lua file
-- The string returned by method :code:`getName` in the C++ class file
 
 
 Alerts
@@ -179,107 +151,394 @@ Creating Flow Alerts
 
 Alert classes are instantiated inside :code:`buildAlert`, a method that must be implemented by each flow check. This method is called by ntopng to create the alert, when it has been told to do so from a flow check.
 
-Checks use :code:`triggerAlertAsync` to tell ntopng to create an alert. Indeed, The actual alert creation is triggered from the flow check with the call :code:`f->triggerAlertAsync`. This call tells ntopng to create an alert identified with :code:`BlacklistedFlowAlert::getClassType()` on the flow instance pointed by :code:`f`.
-
+Checks use :code:`triggerAlertAsync` or :code:`triggerAlertSync` to tell ntopng to create an asyncronous alert. The first method is an asyncronous call, faster, but can cause the alert JSON to be generated after the call. The FlowCheck should implement the buildAlert() method which is called in the predominant check to actually build the FlowAlert object.
+The second method is a syncrhonous call, more expensive, but causes the alert (FlowAlert) to be immediately enqueued to all recipients.
+Indeed, the actual alert creation is triggered from the flow check with the call :code:`f->triggerAlertAsync` or :code:`f->triggerAlertSync`. This call tells ntopng to create an alert identified with :code:`BlacklistedFlowAlert::getClassType()` on the flow instance pointed by :code:`f`.
 
 Creating Host Alerts
 --------------------
 
 Alert classes are instantiated inside host checks.
 
-Checks use :code:`triggerAlert` to tell ntopng to create an alert. Indeed, The actual alert creation is triggered from the host check with the call :code:`h->triggerAlert` that wants a pointer to the host alert instance as parameter. This call tells ntopng to create an alert on the host instance pointed by :code:`h`.
+Checks use :code:`triggerAlert` to tell ntopng to create an alert with an engaged status, and need to be released. 
+Indeed, the actual alert creation is triggered from the host check with the call :code:`h->triggerAlert` that wants a pointer to the host alert instance as parameter. This call tells ntopng to create an alert on the host instance pointed by :code:`h`.
+Is it even possible to use another method, :code:`storeAlert`, that once triggered is immediately emitted.
+
+Simple Host Alert Example
+=========================
+
+In this section we will guide you through the implementation of a new host alert that trigger when an host see more than a specified number of flow with http protocol, we will call it :code:`HTTPContactsAlert`.
+The purpouse of this guide is to show which passages are needed in order to add an alert, for an host. Indeed the Flow alert implementation need the add of similar files inside the corresponding flow subdirectory, as specified in the above sections. 
+
+Alert Definition
+----------------
+
+Let's begin by creating all the files of the alert. To have an idea, what we have to do is the following:
+
+- create new files in the specified directory:
+
+	- place :code:`host_alert_http_contacts.lua` under :code:`scripts/lua/modules/alert_definitions/host/` this file is responsable for the representation of the alert on the GUI.
+	- place the class declaration file :code:`HTTPContactsAlert.h` under :code:`include/host_alerts/`
+	- place the class definition file :code:`HTTPContactsAlert.cpp` under :code:`src/host_alerts/`
+
+- edit some existing files:
+
+	- :code:`scripts/lua/modules/alert_key/host_alert_keys.lua` and :code:`include/ntop_typedefs.h`, we have to place the unique alert key in both of that file. The number must be unused before and the same in the two files.
+	- The directive for including the new alert must be placed inside :code:`include/host_alerts_includes.h`
+ 
+Under :code:`scripts/lua/modules/alert_definitions/host/` create a new file, in this case :code:`host_alert_http_contacts.lua`
+
+.. code:: lua
+
+	local host_alert_keys = require "host_alert_keys"
+
+	local json = require("dkjson")
+	local alert_creators = require "alert_creators"
+
+	local classes = require "classes"
+	local alert = require "alert"
+
+	local host_alert_http_contacts = classes.class(alert)
+
+	host_alert_http_contacts.meta = {
+	alert_key = host_alert_keys.host_alert_http_contacts,
+	i18n_title = "alerts_dashboard.http_contacts_title",
+	icon = "fas fa-fw fa-life-ring",
+	}
+
+	-- @brief Prepare an alert table used to generate the alert
+	-- @param one_param The first alert param
+	-- @param another_param The second alert param
+	-- @return A table with the alert built
+	function host_alert_http_contacts:init(metric, value, operator, threshold)
+	-- Call the parent constructor
+	self.super:init()
+
+	self.alert_type_params = alert_creators.createThresholdCross(metric, value, operator, threshold)
+	end
+
+	-- @brief Format an alert into a human-readable string
+	-- @param ifid The integer interface id of the generated alert
+	-- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
+	-- @param alert_type_params Table `alert_type_params` as built in the `:init` method
+	-- @return A human-readable string
+	function host_alert_http_contacts.format(ifid, alert, alert_type_params)
+	local alert_consts = require("alert_consts")
+	local entity = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
+	local value = string.format("%u", math.ceil(alert_type_params.num_flows or 0))
+	
+	return i18n("alerts_dashboard.http_contacts_message", {
+		entity = entity,
+		value = value,
+		threshold = alert_type_params.threshold or 0,
+	})
+	end
+
+	return host_alert_http_contacts
+This example contains all the information needed in order to show the alert on the corresponding page of the ntopng GUI. Function :code:`host_alert_http_contacts.format` takes care of creating the respective message that will be displayed.
+
+As seen before, we need to specify an unique alert key both in Lua and C++ files,
+
+Next thing to do is to define the alert key of the new alert, inside :code:`scripts/lua/modules/alert_key/host_alert_keys.lua`
+
+.. code:: lua
+
+	local host_alert_keys = {
+	[...]
+	host_alert_http_contacts               = 30,
+	}
+
+Same for :code:`HostAlertTypeEnum` inside :code:`include/ntop_typedefs.h`.
+
+.. code:: C
+
+	typedef enum {
+	[...]
+	host_alert_http_counts = 30
+	[...]
+	} HostAlertTypeEnum; 
 
 
-Example
--------
+Now it's time to declare the corresponding C++ class. Under :code:`include/host_alerts/` create the header file :code:`HTTPContactsAlert.h`
 
-The following figure shows the interplay between the various components necessary to create a flow alert. :code:`BlacklistedFlow` is used for reference. Full-screen is recommended to properly visualize the figure.
+.. code:: C
 
-.. figure:: ../img/developing_alerts_alert_structure.png
-  :align: center
-  :alt: BlacklistedFlowAlert Flow Alert
+	#ifndef _HTTP_CONTACTS_ALERT_H_
+	#define _HTTP_CONTACTS_ALERT_H_
 
-  BlacklistedFlowAlert Flow Alert
+	#include "ntop_includes.h"
+
+	class HTTPContactsAlert : public HostAlert {
+	private:
+	u_int16_t num_http_flows;
+	u_int64_t threshold;
+
+	ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
+
+	public:
+	static HostAlertType getClassType() {
+		return {host_alert_http_contacts, alert_category_network};
+	}
+
+	HTTPContactsAlert(HostCheck* c, Host* f, risk_percentage cli_pctg,
+							u_int16_t _num_http_flows, u_int64_t _threshold);
+	~HTTPContactsAlert(){};
+
+	HostAlertType getAlertType() const { return getClassType(); }
+	u_int8_t getAlertScore() const { return SCORE_LEVEL_WARNING; };
+	};
+
+	#endif /* _HTTP_CONTACTS_ALERT_H_ */
+
+We need to reference this file inside :code:`include/host_alerts_includes.h` in order to be linked with the rest of files.
+
+.. code:: C
+
+	[...]
+	#include "host_alerts/HTTPContactsAlert.h"
+
+We can now define the effective C++ class, under :code:`src/host_alerts/` create a new file :code:`HTTPContactsAlert.cpp`
+
+.. code:: C
+
+	#include "host_alerts_includes.h"
+
+	HTTPContactsAlert::HTTPContactsAlert(HostCheck* c, Host* f,
+												risk_percentage cli_pctg,
+												u_int16_t _num_http_flows, u_int64_t _threshold)
+		: HostAlert(c, f, cli_pctg) {
+	num_http_flows = _num_http_flows;
+	threshold = _threshold;
+	};
+
+	ndpi_serializer* HTTPContactsAlert::getAlertJSON(
+		ndpi_serializer* serializer) {
+	if (serializer == NULL) return NULL;
+
+	ndpi_serialize_string_uint32(serializer, "num_flows", num_http_flows);
+	ndpi_serialize_string_uint64(serializer, "threshold", threshold);
+
+	return serializer;
+	}
+
+The :code:`getAlertJSON()` method is used to store the information that will be displayed, in our case the number of http flows seen by an host and the given number that the host must not exceed.
+
+Check Definition
+--------------------
+
+Once the alert definition is completed, it's time to move on the check definition, the core part that is responsible for triggering the alarm.
+
+Let's give a brief introduction of what we are going to do:
+
+- add the following files:
+
+	- place :code:`http_contacts.lua` under :code:`scripts/lua/modules/check_definitions/host/`, this file is responsable for the visualization of the check enabler on the GUI.
+	- place the class declaration file :code:`HTTPContacts.h` under :code:`include/host_checks/
+	- place the class definition file :code:`HTTPContacts.cpp` under :code:`src/host_checks/`
+
+- the following files need to be modified as well:
+
+	- :code:`include/host_checks_includes.h` to include the new check.
+	- :code:`include/ntop_typedefs.h`, in this file we have to specify the identifier of the new check.
+	- specify the constructor of the new check class inside :code:`src/HostChecksLoader.cpp` 
+
+As we have seen for the alert, first of all we need to create the relative Lua script. This time under :code:`scripts/lua/modules/check_definitions/host/` create a new file, :code:`http_contacts.lua`
+
+.. code:: lua
+
+	local checks = require("checks")
+	local host_alert_keys = require "host_alert_keys"
+	local alert_consts = require("alert_consts")
+
+	local http_contacts = {
+	-- Script category
+	category = checks.check_categories.network,
+	severity = alert_consts.get_printable_severities().warning,
+
+	default_enabled = false,
+	alert_id = host_alert_keys.host_alert_http_contacts,
+
+	default_value = {
+		operator = "gt",
+		threashold = 128,
+	},
+	
+	gui = {
+		i18n_title = "alerts_dashboard.http_contacts_title",
+		i18n_description = "alerts_dashboard.http_contacts_description",
+		i18n_field_unit = checks.field_units.http_flow,
+		input_builder = "threshold_cross",
+		field_max = 65535,
+		field_min = 1,
+		field_operator = "gt";
+	}
+	}
+
+	return http_contacts
+
+The default_value section as well as all the field variables, are responsible to get the number that we want to give to this alert. For the alerts that don't need such parameter, that part can be omitted.
+
+For the C++ part, create the header file in :code:`include/host_checks/` :code:`HTTPContacts.h`
+
+.. code:: C
+
+	#ifndef _HTTP_CONTACTS_H_
+	#define _HTTP_CONTACTS_H_
+
+	#include "ntop_includes.h"
+
+	class HTTPContacts : public HostCheck {
+	protected:
+	u_int64_t threshold;
+
+	public:
+	HTTPContacts();
+	~HTTPContacts(){};
+
+	HTTPContactsAlert *allocAlert(HostCheck *c, Host *h,
+										risk_percentage cli_pctg,
+										u_int16_t num_http_flows, u_int64_t threshold) {
+		return new HTTPContactsAlert(c, h, cli_pctg, num_http_flows, threshold);
+	};
+
+	bool loadConfiguration(json_object *config);
+	void periodicUpdate(Host *h, HostAlert *engaged_alert);
+
+	HostCheckID getID() const { return host_check_http_cpmtacts; }
+	std::string getName() const { return (std::string("http_contacts")); }
+	};
+
+	#endif
+
+Add the reference to that file inside :code:`include/host_checks_includes.h`
+
+.. code:: C
+
+	#ifndef _HOST_CHECKS_INCLUDES_H_
+	#define _HOST_CHECKS_INCLUDES_H_
+	[...]
+	#include "host_checks/HTTPContacts.h"
+	[...]
 
 
-File :code:`BlacklistedFlowAlert.h` *(1)* contains the declaration of class `BlacklistedFlowAlert`, a subclass of :code:`FlowAlert`. The class is defined in :code:`BlacklistedFlowAlert.cpp` *(2)* that contains class methods implementation.
+In the same file of :code:`HostAlertTypeEnum`, :code:`include/ntop_typedefs.h`, modify the HostCheckID Enum:
 
-To have :code:`BlacklistedFlowAlert` compiled, an :code:`#include` directive must be added in file :code:`include/flow_alerts_includes.h` *(3)*. The directive must contain the path to the class declaration file :code:`BlacklistedFlowAlert.h`.
+.. code:: C
 
-Class :code:`BlacklistedFlowAlert` is instantiated inside :code:`buildAlert` *(4)*, a method of flow check :code:`BlacklistedFlow`. Indeed, as seen in the previous section, alerts are created from checks. This method is called by ntopng to create the alert, when it has been told to do so from a check.
+	typedef enum {
+	host_check_http_contacts,
+	} HostCheckID;
 
-The actual alert creation is triggered from the flow check with the call :code:`f->triggerAlertAsync` *(5)*. This call tells ntopng to create an alert identified with :code:`BlacklistedFlowAlert::getClassType()` on the flow instance pointed by :code:`f`.
+Now, inside :code:`src/host_checks/`, create :code:`HTTPContacts.cpp`
 
-Method :code:`getClassType()` returns an alert key *(6)* that is enumerated inside file :code:`ntop_typedefs.h`, as part of the :code:`FlowAlertTypeEnum` enumeration - follow the arrow starting at *(6)*. The same key is also enumerated in :code:`flow_alert_keys.lua` *(7)*, with the same enumeration name and number.
+.. code:: C
 
-The alert key enumerated in Lua is specified as part of the :code:`meta` data of file :code:`alert_flow_blacklisted.lua` *(8)*. This file tells ntopng how to format the alert and its parameters. In particular, :code:`format` is used for the formatting. The third parameter of the function is a Lua table that contains the fields populated in C++. Indeed, method :code:`getAlertJSON` implemented in :code:`BlacklistedFlowAlert.cpp` *(2)* populates fields that are then propagated to the lua :code:`format` with the same names *(9)*. For example, a boolean :code:`cli_blacklisted` is added in C++ and read in Lua to properly format the blacklisted alert.
+	#include "ntop_includes.h"
+	#include "host_checks_includes.h"
 
-Finally it's mandatory for flow alerts to add a :code:`registerAlert(BlacklistedFlowAlert::getClassType(),BlacklistedFlowAlert::getDefaultScore());` in :code:`src/FlowAlertsLoader.cpp`.
+	HTTPContacts::HTTPContacts()
+		: HostCheck(ntopng_edition_community, false /* All interfaces */,
+					false /* Don't exclude for nEdge */,
+					false /* NOT only for nEdge */){};
 
-Checklists
-==========
+	void HTTPContacts::periodicUpdate(Host *h, HostAlert *engaged_alert) {
+	HostAlert *alert = engaged_alert;
+	u_int8_t num_http_flows = 0;
 
-Flows
------
+	num_http_flows = h->getNumHttpFlows();
 
-To create a flow alert, say :code:`BadFlowAlert`, check the following items:
+	if (num_http_flows > threshold) {
+		if (!alert)
+		alert =
+			allocAlert(this, h, CLIENT_FAIR_RISK_PERCENTAGE, num_http_flows, threshold);
+		if (alert) {
+		h->triggerAlert(alert);
+		h->resetNumHttpFlows();
+		} 
+	}
+	}
 
-- Implement a flow check :code:`BadFlow` that inherits from :code:`FlowCheck`
+	bool HTTPContacts::loadConfiguration(json_object *config) {
+	json_object *json_threshold;
 
-    - Place the class declaration file :code:`BadFlow.h` inside :code:`include/flow_checks/BadFlow.h` 
-    - Place the class definition file :code:`BadFlow.cpp` inside :code:`src/flow_checks/BadFlow.cpp`
-    - Add an :code:`#include "flow_checks/BadFlow.h"` directive in :code:`include/flow_checks_includes.h`
-    - Add a :code:`new BadFlow()` constructor in :code:`src/FlowChecksLoader.cpp`
+	HostCheck::loadConfiguration(config);
 
-- Implement a Lua file :code:`bad_flow.lua` for the check configuration
+	if (json_object_object_get_ex(config, "threshold", &json_threshold))
+		threshold = json_object_get_int64(json_threshold);
+	return (true);
+	}
 
-    - Place :code:`bad_flow.lua` inside :code:`scripts/lua/modules/check_definitions/flow/`
-    - Edit method :code:`getName` in :code:`BadFlow.h` to return string :code:`bad_flow`
+We need to tell to ntopng to instantiate the check class, to do so we need to modify :code:`src/HostChecksLoader.cpp`
 
-- Implement a flow alert :code:`BadFlowAlert` that inherits from :code:`FlowAlert`
+.. code:: C
 
-    - Place the class declaration file :code:`BadFlowAlert.h` inside :code:`include/flow_alerts/BadFlowAlert.h` 
-    - Place the class definition file :code:`BadFlowAlert.cpp` inside :code:`src/flow_alerts/BadFlowAlert.cpp`
-    - Add an :code:`#include "flow_alerts/BadFlowAlert.h"` directive in :code:`include/flow_alerts_includes.h`
-    - Add a :code:`registerAlert(BadFlowAlert::getClassType(),BadFlowAlert::getDefaultScore());` in :code:`src/FlowAlertsLoader.cpp`
+	void HostChecksLoader::registerChecks() {
+	HostCheck *fcb;
 
-- Add a unique alert key
+	if ((fcb = new CountriesContacts()))   registerCheck(fcb);
+	[...]
+	if ((fcb = new HTTPContacts()))        registerCheck(fcb);
+	[...]
+	}
 
-    - Add an enumeration value :code:`flow_alert_bad_flow = <NUM>` in :code:`FlowAlertTypeEnum` inside file :code:`ntop_typedefs.h` and make sure :code:`<NUM>` is unique and not already used
-    - Edit method :code:`getClassType` in :code:`BadFlowAlert.h` to return enumeration value :code:`flow_alert_bad_flow`
-    - Add an enumeration value :code:`flow_alert_bad_flow = <NUM>` inside :code:`scripts/lua/modules/alert_keys/flow_alert_keys.lua` making sure :code:`<NUM>` is the very same number used also in :code:`FlowAlertTypeEnum`
+These are the basic steps needed and must be replicated every time we want to add a new alert, both for host or flow.
+What we can add now is a variable to be avaiable during the periodic update that store how many http flows an host have seen until that time.
+To do so we can modify the Host class adding a variable and a getter.  
 
+In :code:`/inlcude/Host.h` add the variable as well as a function to get it and ones to reset it.
 
-Hosts
------
+.. code:: C
 
-To create an host alert, say :code:`BadHostAlert`, check the following items:
+	class Host : public GenericHashEntry,
+				public Score,
+				public HostChecksStatus,
+			public HostAlertableEntity {
+	protected:
+	[...]
+	u_int32_t num_http_flows;
+	[...]
+	puiblic:
+	[...]
+	inline u_int32_t getNumHttpFlows() { return (num_http_flows); };
+	inline void resetNumHttpFlows() { num_http_flows = 0; };
+	}
 
-- Implement an host check :code:`BadHost` that inherits from :code:`HostCheck`
+Now we need to update the variable every time a new http connection has been seen. To do so modify :code:`/src/Host.cpp`
 
-    - Place the class declaration file :code:`BadHost.h` inside :code:`include/host_checks/BadHost.h` 
-    - Place the class definition file :code:`BadHost.cpp` inside :code:`src/host_checks/BadHost.cpp`
-    - Add an :code:`#include "host_checks/BadHost.h"` directive in :code:`include/host_checks_includes.h`
-    - Add a :code:`new BadHost()` constructor in :code:`src/HostChecksLoader.cpp`
+.. code:: C
 
-- Implement a Lua file :code:`bad_host.lua` for the check configuration
+	void Host::initialize(Mac *_mac, int32_t _iface_idx,
+				u_int16_t _vlanId,
+						u_int16_t observation_point_id) {
+	if (_vlanId == (u_int16_t)-1) _vlanId = 0;
+	num_http_flows = 0;
+	[...]
+	}
+	[...]
+	void Host::incStats(u_int32_t when, u_int8_t l4_proto, u_int ndpi_proto,
+						ndpi_protocol_category_t ndpi_category,
+						custom_app_t custom_app, u_int64_t sent_packets,
+						u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
+						u_int64_t rcvd_packets, u_int64_t rcvd_bytes,
+						u_int64_t rcvd_goodput_bytes, bool peer_is_unicast) {
+	// http has the protocol id equal to 7
+	if(ndpi_proto == 7) num_http_flows++;
+	[...]
+	}
 
-    - Place :code:`bad_host.lua` inside :code:`scripts/lua/modules/check_definitions/host/`
-    - Edit method :code:`getName` in :code:`BadHost.h` to return string :code:`bad_host`
+Formatting the output
+----------------------
 
-- Implement an host alert :code:`BadHostAlert` that inherits from :code:`HostAlert`
+One last thing we can do is to modify the locales in order to visualize both the check enable section and the alert launched in a readable format. 
+Inside scripts/locales/en.lua we need to search for the `alerts_dashboard` section and add 
 
-    - Place the class declaration file :code:`BadHostAlert.h` inside :code:`include/host_alerts/BadHostAlert.h` 
-    - Place the class definition file :code:`BadHostAlert.cpp` inside :code:`src/host_alerts/BadHostAlert.cpp`
-    - Add an :code:`#include "host_alerts/BadHostAlert.h"` directive in :code:`include/host_alerts_includes.h`
+.. code:: lua
 
-- Add a unique alert key
-
-    - Add an enumeration value :code:`host_alert_bad_host = <NUM>` in :code:`HostAlertTypeEnum` inside file :code:`ntop_typedefs.h` and make sure :code:`<NUM>` is unique and not already used
-    - Edit method :code:`getClassType` in :code:`BadFlowAlert.h` to return enumeration value :code:`host_alert_bad_host`
-    - Add an enumeration value :code:`host_alert_bad_host = <NUM>` inside :code:`scripts/lua/modules/alert_keys/host_alert_keys.lua` making sure :code:`<NUM>` is the very same number used also in :code:`HostAlertTypeEnum`
-
-
-
-
-
+	[...]
+	["alerts_dashboard"] = {
+		...
+		["http_contacts_description"] = "DESIRED CHECK DESCRIPTION",
+		["http_contacts_title"] = "DESIRED ALERT TITLES",
+		["http_contacts_message"] = "DESIRED MESSAGE TO DISPLAY",
+	},
+	[...]
