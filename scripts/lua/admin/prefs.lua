@@ -1,4 +1,4 @@
---
+    --
 -- (C) 2013-24 - ntop.org
 --
 local dirs = ntop.getDirs()
@@ -2091,7 +2091,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             subpage_active.entries["toggle_flow_aggregated_limit"].description, "ntopng.prefs.",
             "max_aggregated_flows_upperbound", prefs.max_aggregated_flows_upperbound or 10000, "number",
             showAggregateFlowsPrefs, false, nil, {
-                min = 10000,
+                min = 1000,
                 max = 10000000
             })
 
