@@ -164,7 +164,7 @@ Checks use :code:`triggerAlert` to tell ntopng to create an alert with an engage
 Indeed, the actual alert creation is triggered from the host check with the call :code:`h->triggerAlert` that wants a pointer to the host alert instance as parameter. This call tells ntopng to create an alert on the host instance pointed by :code:`h`.
 Is it even possible to use another method, :code:`storeAlert`, that once triggered is immediately emitted.
 
-Symple Host Alert example
+Simple Host Alert Example
 =========================
 
 In this section we will guide you through the implementation of a new host alert that trigger when an host see more than a specified number of flow with http protocol.
