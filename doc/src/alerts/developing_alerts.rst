@@ -173,19 +173,21 @@ The purpouse of this guide is to show which passages are needed in order to add 
 Alert Definition
 ----------------
 
-Let's begin by creating all the files of the alert. To have an idea, what we have to do is the following:
+In order to create the alert, we need to create and modify a few files, they include:
 
-- create new files in the specified directory:
+- New files to be created:
 
-	- place :code:`host_alert_http_contacts.lua` under :code:`scripts/lua/modules/alert_definitions/host/` this file is responsable for the representation of the alert on the GUI.
-	- place the class declaration file :code:`HTTPContactsAlert.h` under :code:`include/host_alerts/`
-	- place the class definition file :code:`HTTPContactsAlert.cpp` under :code:`src/host_alerts/`
+	- :code:`host_alert_http_contacts.lua` under :code:`scripts/lua/modules/alert_definitions/host/`, this file is responsable of rendering the alert in the GUI
+	- :code:`HTTPContactsAlert.h` under :code:`include/host_alerts/`, this is the header for the class representing the alert 
+	- :code:`HTTPContactsAlert.cpp` under :code:`src/host_alerts/`, this is the implementation of the class representing the alert 
 
-- edit some existing files:
+- Existing files to be modified:
 
-	- :code:`scripts/lua/modules/alert_key/host_alert_keys.lua` and :code:`include/ntop_typedefs.h`, we have to place the unique alert key in both of that file. The number must be unused before and the same in the two files.
-	- The directive for including the new alert must be placed inside :code:`include/host_alerts_includes.h`
+	- :code:`scripts/lua/modules/alert_key/host_alert_keys.lua` and :code:`include/ntop_typedefs.h`, we have to place the unique alert key in both files. The number representing the alert identifier must be unused before and the same in the two files.
+	- :code:`include/host_alerts_includes.h`, where we need to add the include for the new alert's header file
  
+Let's see what is the content of each file, step by step.
+
 Under :code:`scripts/lua/modules/alert_definitions/host/` create a new file, in this case :code:`host_alert_http_contacts.lua`
 
 .. code:: lua
@@ -235,9 +237,10 @@ Under :code:`scripts/lua/modules/alert_definitions/host/` create a new file, in 
 	end
 
 	return host_alert_http_contacts
+
 This example contains all the information needed in order to show the alert on the corresponding page of the ntopng GUI. Function :code:`host_alert_http_contacts.format` takes care of creating the respective message that will be displayed.
 
-As seen before, we need to specify an unique alert key both in Lua and C++ files,
+As seen before, we need to specify an unique alert key both in Lua and C++ files.
 
 Next thing to do is to define the alert key of the new alert, inside :code:`scripts/lua/modules/alert_key/host_alert_keys.lua`
 
@@ -257,7 +260,6 @@ Same for :code:`HostAlertTypeEnum` inside :code:`include/ntop_typedefs.h`.
 	host_alert_http_counts = 30
 	[...]
 	} HostAlertTypeEnum; 
-
 
 Now it's time to declare the corresponding C++ class. Under :code:`include/host_alerts/` create the header file :code:`HTTPContactsAlert.h`
 
@@ -304,8 +306,7 @@ We can now define the effective C++ class, under :code:`src/host_alerts/` create
 	#include "host_alerts_includes.h"
 
 	HTTPContactsAlert::HTTPContactsAlert(HostCheck* c, Host* f,
-												risk_percentage cli_pctg,
-												u_int16_t _num_http_flows, u_int64_t _threshold)
+		risk_percentage cli_pctg, u_int16_t _num_http_flows, u_int64_t _threshold)
 		: HostAlert(c, f, cli_pctg) {
 	num_http_flows = _num_http_flows;
 	threshold = _threshold;
@@ -330,13 +331,13 @@ Once the alert definition is completed, it's time to move on the check definitio
 
 Let's give a brief introduction of what we are going to do:
 
-- add the following files:
+- New files to be created:
 
-	- place :code:`http_contacts.lua` under :code:`scripts/lua/modules/check_definitions/host/`, this file is responsable for the visualization of the check enabler on the GUI.
-	- place the class declaration file :code:`HTTPContacts.h` under :code:`include/host_checks/
-	- place the class definition file :code:`HTTPContacts.cpp` under :code:`src/host_checks/`
+	- :code:`http_contacts.lua` under :code:`scripts/lua/modules/check_definitions/host/`, this file is responsable for the visualization of the check enabler on the GUI.
+	- :code:`HTTPContacts.h` under :code:`include/host_checks/, this is the header for the class representing the check 
+	- :code:`HTTPContacts.cpp` under :code:`src/host_checks/`, this is the implementation of the class representing the check 
 
-- the following files need to be modified as well:
+- Existing files to be modified:
 
 	- :code:`include/host_checks_includes.h` to include the new check.
 	- :code:`include/ntop_typedefs.h`, in this file we have to specify the identifier of the new check.
@@ -530,7 +531,7 @@ Formatting the output
 ----------------------
 
 One last thing we can do is to modify the locales in order to visualize both the check enable section and the alert launched in a readable format. 
-Inside scripts/locales/en.lua we need to search for the `alerts_dashboard` section and add 
+Inside scripts/locales/en.lua we need to search for the `alerts_dashboard` section, then the localization strings we dedined in the alert and check definitions, and add the localized strings.
 
 .. code:: lua
 
