@@ -167,15 +167,26 @@ Is it even possible to use another method, :code:`storeAlert`, that once trigger
 Simple Host Alert Example
 =========================
 
-In this section we will guide you through the implementation of a new host alert that trigger when an host see more than a specified number of flow with http protocol.
+In this section we will guide you through the implementation of a new host alert that trigger when an host see more than a specified number of flow with http protocol, we will call it :code:`HTTPContactsAlert`.
 The purpouse of this guide is to show which passages are needed in order to add an alert, for an host. Indeed the Flow alert implementation need the add of similar files inside the corresponding flow subdirectory, as specified in the above sections. 
 
 Alert Definition
 ----------------
 
-Let's begin by creating al the files of the alert.
+Let's begin by creating all the files of the alert. To have an idea, what we have to do is the following:
+
+- create new files in the specified directory:
+
+	- place :code:`host_alert_http_contacts.lua` under :code:`scripts/lua/modules/alert_definitions/host/` this file is responsable for the representation of the alert on the GUI.
+	- place the class declaration file :code:`HTTPContactsAlert.h` under :code:`include/host_alerts/`
+	- place the class definition file :code:`HTTPContactsAlert.cpp` under :code:`src/host_alerts/`
+
+- edit some existing files:
+
+	- :code:`scripts/lua/modules/alert_key/host_alert_keys.lua` and :code:`include/ntop_typedefs.h`, we have to place the unique alert key in both of that file. The number must be unused before and the same in the two files.
+	- The directive for including the new alert must be placed inside :code:`include/host_alerts_includes.h`
  
-Under :code:`scripts/lua/modules/alert_definitions/host/` create a new file, in this case :code:`host_alert_http_contacts`
+Under :code:`scripts/lua/modules/alert_definitions/host/` create a new file, in this case :code:`host_alert_http_contacts.lua`
 
 .. code:: lua
 
@@ -279,7 +290,7 @@ Now it's time to declare the corresponding C++ class. Under :code:`include/host_
 
 	#endif /* _HTTP_CONTACTS_ALERT_H_ */
 
-We need to reference this file inside include/host_alerts_includes.h in order to be linked with the rest of files.
+We need to reference this file inside :code:`include/host_alerts_includes.h` in order to be linked with the rest of files.
 
 .. code:: C
 
@@ -316,6 +327,20 @@ Check Definition
 --------------------
 
 Once the alert definition is completed, it's time to move on the check definition, the core part that is responsible for triggering the alarm.
+
+Let's give a brief introduction of what we are going to do:
+
+- add the following files:
+
+	- place :code:`http_contacts.lua` under :code:`scripts/lua/modules/check_definitions/host/`, this file is responsable for the visualization of the check enabler on the GUI.
+	- place the class declaration file :code:`HTTPContacts.h` under :code:`include/host_checks/
+	- place the class definition file :code:`HTTPContacts.cpp` under :code:`src/host_checks/`
+
+- the following files need to be modified as well:
+
+	- :code:`include/host_checks_includes.h` to include the new check.
+	- :code:`include/ntop_typedefs.h`, in this file we have to specify the identifier of the new check.
+	- specify the constructor of the new check class inside :code:`src/HostChecksLoader.cpp` 
 
 As we have seen for the alert, first of all we need to create the relative Lua script. This time under :code:`scripts/lua/modules/check_definitions/host/` create a new file, :code:`http_contacts.lua`
 
@@ -456,7 +481,7 @@ We need to tell to ntopng to instantiate the check class, to do so we need to mo
 	[...]
 	}
 
-These are the basic steps needed and must be replicated for all host, but even flow, to define a new host alert.
+These are the basic steps needed and must be replicated every time we want to add a new alert, both for host or flow.
 What we can add now is a variable to be avaiable during the periodic update that store how many http flows an host have seen until that time.
 To do so we can modify the Host class adding a variable and a getter.  
 
