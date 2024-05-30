@@ -16,14 +16,18 @@
     </template>
 
     <template v-slot:footer>
-      <NoteList :note_list="note_list"> </NoteList>
+      <div class="w-100">
+        <NoteList :note_list="note_list"> </NoteList>
+      </div>
       <div v-if="is_data_not_ok" class="me-auto text-danger d-inline">
         {{ message }}
       </div>
-      <Spinner :show="activate_import_spinner" size="1rem" class="me-2"></Spinner>
+      <div>
+        <Spinner :show="activate_import_spinner" size="1rem" class="me-2"></Spinner>
 
-      <button type="button" :disabled="!is_not_empty_file" @click="_import"
-        class="btn btn-primary">{{ _i18n('import') }}</button>
+        <button type="button" :disabled="!is_not_empty_file" @click="_import" class="btn btn-primary">{{ _i18n('import')
+          }}</button>
+      </div>
     </template>
   </modal>
 </template>
@@ -47,9 +51,7 @@ const json_file = ref(null);
 const import_input = ref(null);
 
 const note_list = [
-  i18n("snmp.snmp_import_devices_json"),
-  i18n("snmp.snmp_import_devices_csv"),
-  i18n("snmp.snmp_import_devices_csv2"),
+  i18n("snmp.snmp_import_devices"),
   i18n("snmp.snmp_import_devices_issues")
 ];
 
