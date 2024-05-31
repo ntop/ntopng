@@ -67,7 +67,7 @@
 		{
 			"title_i18n": "protocol",
 			"data_field": "protocol",
-			"sortable": false,
+			"sortable": true,
 			"min-width" : "160px",
 			"class": [
 				"text-nowrap"

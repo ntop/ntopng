@@ -5289,6 +5289,9 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data,
     case column_ndpi:
       retriever->elems[retriever->actNumEntries++].numericValue = f->get_detected_protocol().app_protocol;
       break;
+    case column_protocol:
+      retriever->actNumEntries++;
+      break;
     case column_duration:
       retriever->elems[retriever->actNumEntries++].numericValue = f->get_duration();
       break;
@@ -5962,11 +5965,35 @@ int numericSorter(const void *_a, const void *_b) {
 int stringSorter(const void *_a, const void *_b) {
   struct flowHostRetrieveList *a = (struct flowHostRetrieveList *)_a;
   struct flowHostRetrieveList *b = (struct flowHostRetrieveList *)_b;
-
   if (!a || !b || !a->stringValue || !b->stringValue) return (true);
 
   return (strcasecmp(a->stringValue, b->stringValue));
 }
+
+int protocolSorter(const void *_a, const void *_b) {
+  struct flowHostRetrieveList *a = (struct flowHostRetrieveList *)_a;
+  struct flowHostRetrieveList *b = (struct flowHostRetrieveList *)_b;
+
+  if (!a || !b || !a->flow || !b->flow) return (true);
+
+  char* a_l4_protocol = Utils::l4proto2name(a->flow->get_protocol());
+  char* b_l4_protocol = Utils::l4proto2name(b->flow->get_protocol());
+  
+  if (a_l4_protocol != b_l4_protocol) 
+    return (strcasecmp(a_l4_protocol, b_l4_protocol));
+  else {
+    char buf_a[64];
+    char buf_b[64];
+    char* a_protocol = a->flow->get_detected_protocol_name(buf_a, sizeof(buf_a));
+    char* b_protocol = b->flow->get_detected_protocol_name(buf_b, sizeof(buf_b));
+#if 0
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Comparison between [%s]:[%s] and [%s]:[%s]",
+                                               a_l4_protocol, a_protocol,
+                                               b_l4_protocol, b_protocol);
+#endif
+    return (strcasecmp(a_protocol, b_protocol));
+  }
+} 
 
 /* **************************************************** */
 
@@ -6005,10 +6032,12 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot, bool walk_all,
   else if (!strcmp(sortColumn, "column_server"))
     retriever->sorter = column_server,
       sorter = (isViewed() || isView()) ? ipSorter : hostSorter;
-  else if (!strcmp(sortColumn, "column_proto_l4"))
+  else if (!strcmp(sortColumn, "column_proto_l4")) 
     retriever->sorter = column_proto_l4, sorter = numericSorter;
-  else if (!strcmp(sortColumn, "column_ndpi"))
+  else if (!strcmp(sortColumn, "column_ndpi")) 
     retriever->sorter = column_ndpi, sorter = numericSorter;
+  else if (!strcmp(sortColumn, "column_protocol"))
+    retriever->sorter = column_protocol, sorter = protocolSorter;
   else if (!strcmp(sortColumn, "column_duration"))
     retriever->sorter = column_duration, sorter = numericSorter;
   else if (!strcmp(sortColumn, "column_score"))

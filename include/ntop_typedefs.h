@@ -688,6 +688,7 @@ typedef enum {
   column_vlan,
   column_proto_l4,
   column_ndpi,
+  column_protocol,
   column_duration,
   column_thpt,
   column_bytes,

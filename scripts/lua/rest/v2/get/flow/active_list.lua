@@ -39,6 +39,7 @@ local mapping_column_lua_c = {
     client = "column_client",
     l4_proto = "column_proto_l4",
     application = "column_ndpi",
+    protocol = "column_protocol",
     score = "column_score",
     first_seen = "column_first_seen",
     last_seen = "column_last_seen",
@@ -55,6 +56,7 @@ if _GET["start"] and _GET["length"] then
     flows_filter.maxHits = tonumber(_GET["length"])
     flows_filter.toSkip = tonumber(_GET["start"])
 end
+
 if not isEmptyString(_GET["sort"]) then
     flows_filter.sortColumn = mapping_column_lua_c[_GET["sort"]]
     local order = _GET["order"]
