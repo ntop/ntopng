@@ -5976,24 +5976,25 @@ int protocolSorter(const void *_a, const void *_b) {
 
   if (!a || !b || !a->flow || !b->flow) return (true);
 
-  char* a_l4_protocol = Utils::l4proto2name(a->flow->get_protocol());
-  char* b_l4_protocol = Utils::l4proto2name(b->flow->get_protocol());
-  
-  if (a_l4_protocol != b_l4_protocol) 
-    return (strcasecmp(a_l4_protocol, b_l4_protocol));
+  char buf_a[64];
+  char buf_b[64];
+  char* a_protocol = a->flow->get_detected_protocol_name(buf_a, sizeof(buf_a));
+  char* b_protocol = b->flow->get_detected_protocol_name(buf_b, sizeof(buf_b));
+
+  int result = strcasecmp(a_protocol, b_protocol);
+  if (result!=0)
+    return (result);
   else {
-    char buf_a[64];
-    char buf_b[64];
-    char* a_protocol = a->flow->get_detected_protocol_name(buf_a, sizeof(buf_a));
-    char* b_protocol = b->flow->get_detected_protocol_name(buf_b, sizeof(buf_b));
+    char* a_l4_protocol = Utils::l4proto2name(a->flow->get_protocol());
+    char* b_l4_protocol = Utils::l4proto2name(b->flow->get_protocol());
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Comparison between [%s]:[%s] and [%s]:[%s]",
                                                a_l4_protocol, a_protocol,
                                                b_l4_protocol, b_protocol);
 #endif
-    return (strcasecmp(a_protocol, b_protocol));
+    return (strcasecmp(a_l4_protocol, b_l4_protocol));
   }
-} 
+}
 
 /* **************************************************** */
 
