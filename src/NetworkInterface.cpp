@@ -847,15 +847,13 @@ bool NetworkInterface::isSmartRecordingEnabled() const {
 /* **************************************************** */
 
 void NetworkInterface::updateDynIfaceTrafficPolicy() {
-  show_dynamic_interface_traffic = getInterfaceBooleanPref(
-							   CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS, CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC);
+  show_dynamic_interface_traffic = getInterfaceBooleanPref(CONST_SHOW_DYN_IFACE_TRAFFIC_PREFS, CONST_DEFAULT_SHOW_DYN_IFACE_TRAFFIC);
 }
 
 /* **************************************************** */
 
 void NetworkInterface::updatePushFiltersSettings() {
-  push_host_filters = getInterfaceBooleanPref(
-					      CONST_PUSH_HOST_FILTERS_PREFS, CONST_DEFAULT_PUSH_HOST_FILTERS);
+  push_host_filters = getInterfaceBooleanPref(CONST_PUSH_HOST_FILTERS_PREFS, CONST_DEFAULT_PUSH_HOST_FILTERS);
 }
 
 /* **************************************************** */
@@ -868,15 +866,13 @@ void NetworkInterface::updateFlowDumpDisabled() {
 /* **************************************** */
 
 void NetworkInterface::updateLbdIdentifier() {
-  lbd_serialize_by_mac = getInterfaceBooleanPref(
-						 CONST_LBD_SERIALIZATION_PREFS, CONST_DEFAULT_LBD_SERIALIZE_AS_MAC);
+  lbd_serialize_by_mac = getInterfaceBooleanPref(CONST_LBD_SERIALIZATION_PREFS, CONST_DEFAULT_LBD_SERIALIZE_AS_MAC);
 }
 
 /* **************************************** */
 
 void NetworkInterface::updateFlowsOnlyInterface() {
-  flows_only_interface = getInterfaceBooleanPref(
-						 CONST_FLOWS_ONLY_INTERFACE, CONST_DEFAULT_FLOWS_ONLY_INTERFACE);
+  flows_only_interface = getInterfaceBooleanPref(CONST_FLOWS_ONLY_INTERFACE, CONST_DEFAULT_FLOWS_ONLY_INTERFACE);
 }
 
 /* **************************************************** */
@@ -1915,21 +1911,16 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     static bool showMsg = false;
 
     if (!showMsg) {
-      ntop->getTrace()->traceEvent(
-				   TRACE_NORMAL,
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "-----------------------------------------------------------");
-      ntop->getTrace()->traceEvent(
-				   TRACE_NORMAL,
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "WARNING: this demo application is a limited ntopng version able to");
-      ntop->getTrace()->traceEvent(
-				   TRACE_NORMAL, "capture up to %d packets. If you are interested",
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "capture up to %d packets. If you are interested",
 				   MAX_NUM_PACKETS);
-      ntop->getTrace()->traceEvent(
-				   TRACE_NORMAL, "in the full version please have a look at the ntop");
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "in the full version please have a look at the ntop");
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                    "home page http://www.ntop.org/.");
-      ntop->getTrace()->traceEvent(
-				   TRACE_NORMAL,
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "-----------------------------------------------------------");
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "");
       showMsg = true;
@@ -1958,8 +1949,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     }
   }
 
-  INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::processPacket: getFlow",
-                                    0);
+  INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::processPacket: getFlow", 0);
 
  pre_get_flow:
   /* Updating Flow */
@@ -2209,7 +2199,6 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
           flow->setDHCPHostName(dst_mac->getDHCPNameNotLowerCase(host_name, sizeof(host_name)));
         }
       }
-
       break;
 
     case NDPI_PROTOCOL_DHCPV6:
@@ -3145,8 +3134,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	if (vlan_id && ntop->getPrefs()->do_ignore_vlans()) vlan_id = 0;
 	if ((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
 	  vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] +
-		     ip6->ip6_dst.u6_addr.u6_addr8[15]
-		     : iph->saddr + iph->daddr) %
+		     ip6->ip6_dst.u6_addr.u6_addr8[15] : iph->saddr + iph->daddr) %
 	    SIMULATE_VLANS_MAX_VALUE;
 
 	if (ntop->getPrefs()->do_ignore_macs()) ethernet = &dummy_ethernet;
@@ -3711,8 +3699,7 @@ void NetworkInterface::dumpFlowLoop() {
       high-priority and thus we want to keep processing them if they're in the
       queue.
     */
-    u_int64_t n = dequeueFlowsForDump(
-				      0 /* Unlimited budget for idle flows */,
+    u_int64_t n = dequeueFlowsForDump(0 /* Unlimited budget for idle flows */,
 				      MAX_ACTIVE_FLOW_QUEUE_LEN /* Limited budged for active flows */);
 
     if (n == 0) {
@@ -7058,8 +7045,7 @@ void NetworkInterface::reloadFlowChecks(FlowChecksLoader *fcbl) {
   FlowChecksExecutor *fce = new (std::nothrow) FlowChecksExecutor(fcbl, this);
 
   if (fce == NULL) {
-    ntop->getTrace()->traceEvent(
-				 TRACE_ERROR, "Unable to reload checks on interface %s", ifname);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to reload checks on interface %s", ifname);
     return;
   }
 
@@ -7076,8 +7062,7 @@ void NetworkInterface::reloadHostChecks(HostChecksLoader *hcbl) {
   HostChecksExecutor *hce = new (std::nothrow) HostChecksExecutor(hcbl, this);
 
   if (hce == NULL) {
-    ntop->getTrace()->traceEvent(
-				 TRACE_ERROR, "Unable to reload checks on interface %s", ifname);
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to reload checks on interface %s", ifname);
     return;
   }
 
@@ -10767,8 +10752,7 @@ void NetworkInterface::updateSitesStats() {
     std::string additional_key_info = "";
 
     if (top_sites)
-      top_sites->saveOldData(
-			     get_id(), (char *)additional_key_info.c_str(),
+      top_sites->saveOldData(get_id(), (char *)additional_key_info.c_str(),
 			     (char *)HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED);
 
     if (top_os) {
