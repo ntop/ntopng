@@ -24,6 +24,8 @@ end
 
 -- ################################################
 
+tprint(_POST)
+
 local modules = import_export_rest_utils.unpack(_POST["JSON"])
 
 if not modules or not modules["all"] then

@@ -47,12 +47,15 @@ end
 function pool_import_export:import(conf)
    local res = {}
 
+   local MAX_POOLS_NUMBER = host_pools:get_max_num_pools()
    for pool_name, pool_list in pairs(conf) do
       if pool_instances[pool_name] ~= nil then
          local pool_instance = pool_instances[pool_name]
 
-         for _, pool_conf in ipairs(pool_list) do
-
+         for i, pool_conf in ipairs(pool_list) do
+            if i > MAX_POOLS_NUMBER + 30 --[[ 30 is a threshold just to print some error ]] then
+               break
+            end
             -- Add Pool
             local new_pool_id = pool_instance:add_pool(
                pool_conf.name,

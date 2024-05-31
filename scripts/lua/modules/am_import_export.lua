@@ -51,7 +51,7 @@ function am_import_export:import(config)
 
    local old_hosts = am_utils.getHosts(true --[[ config only ]])
 
-   for host_key, host_conf in pairs(conf) do
+   for host_key, host_conf in pairs(conf or {}) do
       local host = am_utils.key2host(host_key)
 
       if not host.is_infrastructure then -- Infrastructure is handled separately on another import_export
@@ -64,7 +64,7 @@ function am_import_export:import(config)
    end
 
 
-   vs_utils.restore_config_backup(vs_conf)
+--   vs_utils.restore_config_backup(vs_conf)
 
    if not res.err then 
       res.success = true

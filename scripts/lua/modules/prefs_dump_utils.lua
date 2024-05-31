@@ -81,6 +81,7 @@ end
 function prefs_dump_utils.import_prefs_to_disk(prefs_dump_table)
     -- Do the actual dump
     local where = import_prefs_file_path
+    tprint(prefs_dump_table)
     return prefs_dump_utils.write_prefs_dump_table_to_file(prefs_dump_table, where)
 end
 

@@ -42,7 +42,7 @@ function checks_import_export:import(conf)
    local res = {}
 
    if table.empty(conf) then
-      res.err = rest_utils.consts.err.bad_format
+      res.success = true
       return res
    end
 
