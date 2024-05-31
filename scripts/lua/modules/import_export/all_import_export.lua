@@ -41,8 +41,7 @@ function all_import_export:import(conf)
 
     -- local success = all_config.restore(conf)
     local success = prefs_dump_utils.import_prefs_to_disk(conf)
-    tprint(success)
-
+    
     if not success then
         res.err = rest_utils.consts.err.internal_error
     else
