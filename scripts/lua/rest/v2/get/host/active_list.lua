@@ -166,6 +166,11 @@ for key, value in pairs(hosts_stats["hosts"]) do
         record.hostname.alt_name = alt_name
     end
 
+    column_ip["mac"] = {
+        address = value["mac"],
+        name = getDeviceName(value["mac"])
+    }
+
     column_ip["vlan"] = {
         name = '',
         id = 0
