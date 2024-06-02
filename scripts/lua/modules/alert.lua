@@ -38,8 +38,8 @@ function Alert:set_info(params)
         self.score = ntop.mapSeverityToScore(script.severity.severity_id or 0 --[[ no score ]] )
     elseif (script == nil) then
         self.score = ntop.mapSeverityToScore(0 --[[ no score ]])
---        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("No script detected for entity %s, granularity: %s", params.entity_info.name, params.granularity))
---        tprint(debug.traceback())
+	--        traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("No script detected for entity %s, granularity: %s", params.entity_info.name, params.granularity))
+	--        tprint(debug.traceback())
     end
 
     if params.entity_info then
