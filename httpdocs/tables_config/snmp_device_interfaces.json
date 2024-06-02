@@ -45,7 +45,7 @@
 		{
 			"title_i18n": "snmp.interface_alias",
 			"data_field": "alias",
-			"min-width" : "150px",
+			"min-width" : "100px",
 			"sortable": true,
 			"class": [
 				"text-nowrap"
@@ -94,7 +94,7 @@
 		{
 			"title_i18n": "admin_status_short",
 			"data_field": "admin_status",
-			"min-width" : "145px",
+			"min-width" : "100px",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
@@ -104,7 +104,7 @@
 		{
 			"title_i18n": "interface_status_short",
 			"data_field": "status",
-			"min-width" : "125px",
+			"min-width" : "100px",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
