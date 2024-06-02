@@ -52,6 +52,36 @@
 			]
 		},
 		{
+			"title_i18n": "snmp.in_bytes",
+			"data_field": "in_bytes",
+			"min-width" : "100px",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "snmp.out_bytes",
+			"data_field": "out_bytes",
+			"min-width" : "110px",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "throughput",
+			"data_field": "throughput",
+			"min-width" : "125px",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
 			"title_i18n": "vlan",
 			"data_field": "vlan",
 			"min-width" : "80px",
@@ -102,26 +132,6 @@
 			]
 		},
 		{
-			"title_i18n": "snmp.in_bytes",
-			"data_field": "in_bytes",
-			"min-width" : "100px",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
-		},
-		{
-			"title_i18n": "snmp.out_bytes",
-			"data_field": "out_bytes",
-			"min-width" : "110px",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
-		},
-		{
 			"title_i18n": "snmp.in_discards",
 			"data_field": "in_discards",
 			"min-width" : "120px",
@@ -135,16 +145,6 @@
 			"title_i18n": "snmp.in_errors",
 			"data_field": "in_errors",
 			"min-width" : "100px",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
-		},
-		{
-			"title_i18n": "throughput",
-			"data_field": "throughput",
-			"min-width" : "125px",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
