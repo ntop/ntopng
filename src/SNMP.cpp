@@ -695,12 +695,15 @@ void SNMP::snmp_fetch_responses(lua_State *_vm, u_int timeout) {
     */
 
     /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%s() [timeout: %u][block: %u]", __FUNCTION__, timeout, block); */
+    
+    if((timeout > 0 /* The caller is willing to wait up to a timeout */)
+       || (block == 0 /* The caller doesn't want to wait so the select is only performed when it doesn't block */)) {
+      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(timeout: %u)[count: %u]", __FUNCTION__, tvp.tv_sec, count); */
 
-    if(timeout > 0 /* The caller is willing to wait up to a timeout */
-       || block == 0 /* The caller doesn't want to wait so the select is only performed when it doesn't block */) {
+      if((timeout > 0) && (tvp.tv_sec == 0))
+	tvp.tv_sec = 1; /* Set a minimum timeout in case it has been cleared by snmp_sess_select_info */
+      
       count = select(numfds, &fdset, NULL, NULL, &tvp);
-
-      // ntop->getTrace()->traceEvent(TRACE_WARNING, "%s(timeout: %u)[count: %u]", __FUNCTION__, timeout, count);
 
       if(count > 0) {
         vm = _vm;
