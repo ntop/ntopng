@@ -50,7 +50,7 @@ SNMP::SNMP() {
   init_snmp("ntopng");
 #endif
 
-  getbulk_max_num_repetitions = 25;
+  getbulk_max_num_repetitions = 10;
 }
 
 /* ******************************* */
