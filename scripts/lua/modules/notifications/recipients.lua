@@ -1268,8 +1268,10 @@ function recipients.dispatch_notification(notification, current_script, notifica
             ::skip_filters::
 
             if recipient_ok then
+
                 -- Enqueue alert
-                -- debug_print(" ===> Delivering alert for entity id " .. notification.entity_id .. " to recipient " .. recipient.recipient_name)
+                --debug_print("Delivering alert for entity id " .. notification.entity_id .. " to recipient " .. recipient.recipient_name)
+
                 if debug_vs and is_vs then
                     traceError(TRACE_NORMAL, TRACE_CONSOLE, "VS: enqueueing notification to recipient")
                 end
