@@ -2286,7 +2286,7 @@ u_int8_t ZMQParserInterface::parseJSONCounter(const char *payload,
   enum json_tokener_error jerr = json_tokener_success;
   sFlowInterfaceStats stats;
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
 
   memset(&stats, 0, sizeof(stats));
   o = json_tokener_parse_verbose(payload, &jerr);
