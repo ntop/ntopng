@@ -136,6 +136,14 @@ end
 
 -- ##############################################
 
+-- Get the system ifid
+function alert_store:get_system_ifid()
+    -- The System Interface has the id -1 and in u_int16_t is 65535
+    return 65535
+end
+
+-- ##############################################
+
 -- @brief ifid
 function alert_store:get_ifid()
     local ifid = _GET["ifid"] or interface.getId()
@@ -144,7 +152,7 @@ function alert_store:get_ifid()
 
     -- The System Interface has the id -1 and in u_int16_t is 65535
     if ifid == -1 then
-        ifid = 65535
+        ifid = self:get_system_ifid()
     end
 
     return ifid
@@ -1917,7 +1925,9 @@ function alert_store:add_request_filters(is_write)
 
     if (ntop.isClickHouseEnabled()) then
         -- Clickhouse db has the column 'interface_id', filter by that per interface
-        self:add_filter_condition_list('interface_id', ifid, 'number')
+        if ifid ~= self:get_system_ifid() then
+           self:add_filter_condition_list('interface_id', ifid, 'number')
+        end
         self:add_filter_condition_list('rowid', rowid, 'string')
     else
         self:add_filter_condition_list('rowid', rowid, 'number')

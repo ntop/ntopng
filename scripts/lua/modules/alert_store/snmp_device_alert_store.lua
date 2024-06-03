@@ -35,8 +35,7 @@ end
 
 --@brief ifid
 function snmp_device_alert_store:get_ifid()
-   -- The System Interface has the id -1 and in u_int16_t is 65535 
-   return 65535
+   return self:get_system_ifid()
 end
 
 -- ##############################################
