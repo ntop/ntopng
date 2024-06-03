@@ -4267,12 +4267,12 @@ static int ntop_snmp_max_num_engines(lua_State *vm) {
   u_int16_t num = MIN_NUM_ASYNC_SNMP_ENGINES;
 
 #ifdef NTOPNG_PRO
-  if(ntop->getPro()->has_valid_enterprise_m_license())
-    num = NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_M;
+  if(ntop->getPro()->has_valid_enterprise_xl_license())
+    num = NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_XL;
   else if(ntop->getPro()->has_valid_enterprise_l_license())
     num = NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_L;
-  else if(ntop->getPro()->has_valid_enterprise_xl_license())
-    num = NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_XL;
+  else if(ntop->getPro()->has_valid_enterprise_m_license())
+    num = NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_M;
 #endif
 
   lua_pushinteger(vm, num);

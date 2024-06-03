@@ -19,7 +19,7 @@ function snmp_consts.snmp_ifstatus(id)
       ["3"] = i18n("snmp.testing"),
       ["4"] = i18n("snmp.status_unknown"),
       ["5"] = i18n("snmp.status_dormant"),
-      ["6"] = i18n("status_notpresent"),
+      ["6"] = i18n("snmp.status_notpresent"),
       ["7"] = "<font color=red>" .. i18n("snmp.status_lowerlayerdown") .. "</font>",
    }
 

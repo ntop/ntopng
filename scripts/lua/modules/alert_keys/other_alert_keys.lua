@@ -105,7 +105,8 @@ local other_alert_keys = {
    alert_port_avg_usages_threshold_crossed = OTHER_BASE_KEY + 92, -- No longer used
    alert_vlan_rule_threshold_crossed    = OTHER_BASE_KEY + 93, 
    alert_profile_rule_threshold_crossed = OTHER_BASE_KEY + 94,
-
+   alert_snmp_device_polling_error      = OTHER_BASE_KEY + 95,
+   
    MAX_OTHER_ALERT_TYPE = OTHER_BASE_KEY + 127 -- see ntop_typedefs.h
 }
 

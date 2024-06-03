@@ -45,10 +45,40 @@
 		{
 			"title_i18n": "snmp.interface_alias",
 			"data_field": "alias",
-			"min-width" : "150px",
+			"min-width" : "100px",
 			"sortable": true,
 			"class": [
 				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "snmp.in_bytes",
+			"data_field": "in_bytes",
+			"min-width" : "100px",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "snmp.out_bytes",
+			"data_field": "out_bytes",
+			"min-width" : "110px",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
+			]
+		},
+		{
+			"title_i18n": "throughput",
+			"data_field": "throughput",
+			"min-width" : "125px",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-end"
 			]
 		},
 		{
@@ -64,7 +94,7 @@
 		{
 			"title_i18n": "admin_status_short",
 			"data_field": "admin_status",
-			"min-width" : "145px",
+			"min-width" : "100px",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
@@ -74,7 +104,7 @@
 		{
 			"title_i18n": "interface_status_short",
 			"data_field": "status",
-			"min-width" : "125px",
+			"min-width" : "100px",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
@@ -102,26 +132,6 @@
 			]
 		},
 		{
-			"title_i18n": "snmp.in_bytes",
-			"data_field": "in_bytes",
-			"min-width" : "100px",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
-		},
-		{
-			"title_i18n": "snmp.out_bytes",
-			"data_field": "out_bytes",
-			"min-width" : "110px",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
-		},
-		{
 			"title_i18n": "snmp.in_discards",
 			"data_field": "in_discards",
 			"min-width" : "120px",
@@ -135,16 +145,6 @@
 			"title_i18n": "snmp.in_errors",
 			"data_field": "in_errors",
 			"min-width" : "100px",
-			"sortable": true,
-			"class": [
-				"text-nowrap",
-				"text-end"
-			]
-		},
-		{
-			"title_i18n": "throughput",
-			"data_field": "throughput",
-			"min-width" : "125px",
 			"sortable": true,
 			"class": [
 				"text-nowrap",
