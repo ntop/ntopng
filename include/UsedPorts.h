@@ -32,10 +32,14 @@ class UsedPorts {
   std::unordered_map<u_int16_t, ndpi_protocol> udp_client_contacted_ports,
       tcp_client_contacted_ports;
 
+  ServerPortsBitmap bitmap_server_ports;
+  Host* localhost;
+
   void setLuaArray(lua_State *vm, NetworkInterface *iface, bool isTCP,
                    std::unordered_map<u_int16_t, ndpi_protocol> *ports);
 
  public:
+  UsedPorts(Host* h);
   UsedPorts();
   ~UsedPorts();
 

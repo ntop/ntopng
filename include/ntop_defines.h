@@ -249,6 +249,7 @@
 #define TRAFFIC_FILTERING_CACHE_DURATION 43200 /* 12 h */
 #define DNS_CACHE_DURATION            3600     /*  1 h */
 #define LOCAL_HOSTS_CACHE_DURATION    3600     /*  1 h */
+#define LOCALHOST_SERVER_PORT_BITMAP "ntopng.cache.localhost_srv_port_bitmap.%d%s" 
 #define HOST_LABEL_NAMES_KEY          "ntopng.cache.host_labels.%s"
 #define IFACE_DHCP_RANGE_KEY          "ntopng.prefs.ifid_%u.dhcp_ranges"
 #define HOST_SERIALIZED_KEY           "ntopng.serialized_hosts.ifid_%u_%s@%d"

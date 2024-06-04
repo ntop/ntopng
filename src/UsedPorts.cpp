@@ -23,6 +23,25 @@
 
 /* *************************************** */
 
+UsedPorts::UsedPorts(Host* h) : localhost(h) {
+  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  char redis_key[128];
+  static char buf[64];
+
+  snprintf(redis_key, sizeof(redis_key), LOCALHOST_SERVER_PORT_BITMAP, 
+           localhost->getInterface()->get_id(), localhost->getSerializationKey(buf, sizeof(buf)));
+  u_int actual_len = ntop->getRedis()->len(redis_key);
+
+  char* json_str = (char *)malloc(actual_len + 1);
+  if ((ntop->getRedis()->get(redis_key, json_str, actual_len + 1)) == 0) {
+    bitmap_server_ports.deserializer((const char*) json_str);
+  }
+  
+  free(json_str);
+}
+
+/* *************************************** */
+
 UsedPorts::UsedPorts() {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 }
@@ -105,11 +124,14 @@ bool UsedPorts::setServerPort(bool isTCP, u_int16_t port,
     else {
       if (tcp_server_ports.count(port) == 0) set_new_port = true;
       tcp_server_ports[port] = *proto;
+      bitmap_server_ports.addPort(true, port);
     }
   } else {
     if (udp_server_ports.count(port) == 0) set_new_port = true;
     udp_server_ports[port] = *proto;
+    bitmap_server_ports.addPort(false, port);
   }
+
   return set_new_port;
 }
 

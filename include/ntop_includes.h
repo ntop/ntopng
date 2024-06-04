@@ -346,6 +346,7 @@ using namespace std;
 #include <radcli/radcli.h>
 #endif
 
+#include "ServerPortsBitmap.h"
 #include "Condvar.h"
 #include "TimeseriesExporter.h"
 #include "InfluxDBTimeseriesExporter.h"
