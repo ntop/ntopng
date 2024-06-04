@@ -12,7 +12,7 @@ if radius_handler.isAccountingEnabled() then
     -- Import only if radius is enabled, otherwise it's a waste of memory
     require "lua_utils"
     local host_pools = require "host_pools"
-    
+
     -- Instantiate host pools
     local pool = host_pools:create()
     local pools_list = {}
@@ -27,7 +27,7 @@ if radius_handler.isAccountingEnabled() then
     interface.select(tostring(interface.getFirstInterfaceId()))
 
     for _, pool_info in pairs(pools_list) do
-        if pool_info.id ~= host_pools.DEFAULT_POOL_ID then
+        if pool_info.id ~= host_pools.DEFAULT_POOL_ID and pool_info.id ~= host_pools.DROP_HOST_POOL_ID then
             local members = pool_info.members
 
             for _, member in pairs(members) do
