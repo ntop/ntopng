@@ -176,7 +176,7 @@ function sys_utils.loadConntrack()
   local info = ntop.getInfo(false)
   local os = info.OS
 
-  if not string.find(os, "Ubuntu 20%.") then
+  if string.find(os, "Ubuntu 18%.") then
     sys_utils.execCmd("modprobe nf_conntrack_ipv4")
   end
 end
