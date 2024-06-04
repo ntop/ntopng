@@ -2041,10 +2041,11 @@ if auth.has_capability(auth.capabilities.preferences) then
             default = "1",
             pref = "tiny_flows_export_enabled",
             to_switch = {"max_num_packets_per_tiny_flow", "max_num_bytes_per_tiny_flow"},
+            reverse_switch = true,
             hidden = not showAllElements
         })
 
-        local showTinyElements = showAllElements and ntop.getPref("ntopng.prefs.tiny_flows_export_enabled") ~= "0"
+        local showTinyElements = showAllElements and ntop.getPref("ntopng.prefs.tiny_flows_export_enabled") ~= "1"
 
         prefsInputFieldPrefs(subpage_active.entries["max_num_packets_per_tiny_flow"].title,
             subpage_active.entries["max_num_packets_per_tiny_flow"].description, "ntopng.prefs.",
