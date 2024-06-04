@@ -1,4 +1,4 @@
-## GUI utilization guide
+## GUI quickstart guide
 
 This guide is a quickstart to get up and running for GUI development
 
