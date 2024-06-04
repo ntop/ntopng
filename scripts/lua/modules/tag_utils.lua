@@ -1,11 +1,10 @@
 --
 -- (C) 2020-24 - ntop.org
 --
-
-if(pragma_once_tag_utils == true) then
-   -- io.write(debug.traceback().."\n")
-   -- avoid multiple inclusions
-   return
+if (pragma_once_tag_utils == true) then
+    -- io.write(debug.traceback().."\n")
+    -- avoid multiple inclusions
+    return
 end
 
 pragma_once_tag_utils = true
@@ -355,7 +354,7 @@ tag_utils.defined_tags = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.out_of_order'),
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
-    }, 
+    },
     lost = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.lost'),
@@ -553,12 +552,12 @@ tag_utils.defined_tags = {
         value_type = 'minor_connection_state',
         i18n_label = i18n("db_search.tags.minor_connection_state"),
         operators = {'eq', 'neq'}
-    }, 
+    },
     pre_nat_ipv4_src_addr = {
         value_type = 'ip',
         i18n_label = i18n("db_search.tags.pre_nat_ipv4_src_addr"),
         operators = {'eq', 'neq'}
-    }, 
+    },
     pre_nat_ipv4_dst_addr = {
         value_type = 'ip',
         i18n_label = i18n("db_search.tags.pre_nat_ipv4_dst_addr"),
@@ -568,17 +567,17 @@ tag_utils.defined_tags = {
         value_type = 'ip',
         i18n_label = i18n("db_search.tags.post_nat_ipv4_src_addr"),
         operators = {'eq', 'neq'}
-    },  
+    },
     post_nat_ipv4_dst_addr = {
         value_type = 'ip',
         i18n_label = i18n("db_search.tags.post_nat_ipv4_dst_addr"),
         operators = {'eq', 'neq'}
-    },  
+    },
     pre_nat_src_port = {
         value_type = 'port',
         i18n_label = i18n("db_search.tags.pre_nat_src_port"),
         operators = {'eq', 'neq'}
-    }, 
+    },
     pre_nat_dst_port = {
         value_type = 'port',
         i18n_label = i18n("db_search.tags.pre_nat_dst_port"),
@@ -588,12 +587,12 @@ tag_utils.defined_tags = {
         value_type = 'port',
         i18n_label = i18n("db_search.tags.post_nat_src_port"),
         operators = {'eq', 'neq'}
-    },  
+    },
     post_nat_dst_port = {
         value_type = 'port',
         i18n_label = i18n("db_search.tags.post_nat_dst_port"),
         operators = {'eq', 'neq'}
-    },  
+    },
     description = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.alert_description'),
@@ -632,91 +631,91 @@ tag_utils.confidence = {{
 -- #####################################
 
 tag_utils.http_return = {{
-   label = i18n("http_info.return_codes.200"),
-   id = 200
+    label = i18n("http_info.return_codes.200"),
+    id = 200
 }, {
-  label = i18n("http_info.return_codes.400"),
-  id = 400
-},{
-  label = i18n("http_info.return_codes.401"),
-  id = 401
-},{
-  label = i18n("http_info.return_codes.403"),
-  id = 403
-},{
-  label = i18n("http_info.return_codes.404"),
-  id = 404
-},{
-  label = i18n("http_info.return_codes.405"),
-  id = 405
-},{
-  label = i18n("http_info.return_codes.406"),
-  id = 406
-},{
-  label = i18n("http_info.return_codes.408"),
-  id = 408
-},{
-  label = i18n("http_info.return_codes.409"),
-  id = 409
-},{
-   label = i18n("http_info.return_codes.410"),
-   id = 410
+    label = i18n("http_info.return_codes.400"),
+    id = 400
 }, {
-  label = i18n("http_info.return_codes.412"),
-  id = 412
-},{
-  label = i18n("http_info.return_codes.415"),
-  id = 415
-},{
-  label = i18n("http_info.return_codes.423"),
-  id = 423
-},{
-  label = i18n("http_info.return_codes.428"),
-  id = 428
-},{
-  label = i18n("http_info.return_codes.429"),
-  id = 429
-},{
-  label = i18n("http_info.return_codes.500"),
-  id = 500
-},{
-  label = i18n("http_info.return_codes.501"),
-  id = 501
-},{
-  label = i18n("http_info.return_codes.503"),
-  id = 503
-},}
+    label = i18n("http_info.return_codes.401"),
+    id = 401
+}, {
+    label = i18n("http_info.return_codes.403"),
+    id = 403
+}, {
+    label = i18n("http_info.return_codes.404"),
+    id = 404
+}, {
+    label = i18n("http_info.return_codes.405"),
+    id = 405
+}, {
+    label = i18n("http_info.return_codes.406"),
+    id = 406
+}, {
+    label = i18n("http_info.return_codes.408"),
+    id = 408
+}, {
+    label = i18n("http_info.return_codes.409"),
+    id = 409
+}, {
+    label = i18n("http_info.return_codes.410"),
+    id = 410
+}, {
+    label = i18n("http_info.return_codes.412"),
+    id = 412
+}, {
+    label = i18n("http_info.return_codes.415"),
+    id = 415
+}, {
+    label = i18n("http_info.return_codes.423"),
+    id = 423
+}, {
+    label = i18n("http_info.return_codes.428"),
+    id = 428
+}, {
+    label = i18n("http_info.return_codes.429"),
+    id = 429
+}, {
+    label = i18n("http_info.return_codes.500"),
+    id = 500
+}, {
+    label = i18n("http_info.return_codes.501"),
+    id = 501
+}, {
+    label = i18n("http_info.return_codes.503"),
+    id = 503
+}}
 
 -- #####################################
 
 tag_utils.http_method = {{
     label = i18n("http_info.methods.get"),
     id = 'GET'
-},{
-   label = i18n("http_info.methods.head"),
-   id = 'HEAD'
-},{
-   label = i18n("http_info.methods.post"),
-   id = 'POST'
-},{
-   label = i18n("http_info.methods.put"),
-   id = 'PUT'
-},{
-   label = i18n("http_info.methods.delete"),
-   id = 'DELETE'
-},{
-   label = i18n("http_info.methods.connect"),
-   id = 'CONNECT'
-},{
-   label = i18n("http_info.methods.options"),
-   id = 'OPTIONS'
-},{
-   label = i18n("http_info.methods.trace"),
-   id = 'TRACE'
-},{
-   label = i18n("http_info.methods.patch"),
-   id = 'PATCH'
-},}
+}, {
+    label = i18n("http_info.methods.head"),
+    id = 'HEAD'
+}, {
+    label = i18n("http_info.methods.post"),
+    id = 'POST'
+}, {
+    label = i18n("http_info.methods.put"),
+    id = 'PUT'
+}, {
+    label = i18n("http_info.methods.delete"),
+    id = 'DELETE'
+}, {
+    label = i18n("http_info.methods.connect"),
+    id = 'CONNECT'
+}, {
+    label = i18n("http_info.methods.options"),
+    id = 'OPTIONS'
+}, {
+    label = i18n("http_info.methods.trace"),
+    id = 'TRACE'
+}, {
+    label = i18n("http_info.methods.patch"),
+    id = 'PATCH'
+}}
 
 -- #####################################
 
@@ -965,12 +964,12 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
         local flow_consts = require "flow_consts"
         filter.value_type = 'array'
         filter.options = {}
-        for state, id in pairs(flow_consts.minor_connection_states) do 
+        for state, id in pairs(flow_consts.minor_connection_states) do
             -- EXCLUDE NO_STATE
             if (id ~= 0) then
-                filter.options[#filter.options+1] = {
+                filter.options[#filter.options + 1] = {
                     value = id,
-                    label = i18n(string.format("db_search.tags.minor_connection_states.%u",id))
+                    label = i18n(string.format("db_search.tags.minor_connection_states.%u", id))
                 }
             end
         end
@@ -978,12 +977,12 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
         local flow_consts = require "flow_consts"
         filter.value_type = 'array'
         filter.options = {}
-        for state, id in pairs(flow_consts.major_connection_states) do 
+        for state, id in pairs(flow_consts.major_connection_states) do
             -- EXCLUDE NO_STATE
             if (id ~= 0) then
-                filter.options[#filter.options+1] = {
+                filter.options[#filter.options + 1] = {
                     value = id,
-                    label = i18n(string.format("flow_fields_description.major_connection_states.%u",id))
+                    label = i18n(string.format("flow_fields_description.major_connection_states.%u", id))
                 }
             end
         end
@@ -1043,7 +1042,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
         local l4_protocol_list = require "l4_protocol_list"
 
         local l4_protocols = l4_protocol_list.l4_keys
-        
+
         local list = {}
 
         for _, proto in pairs(l4_protocols) do
@@ -1128,13 +1127,17 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
     elseif tag.value_type == "vlan_id" then
         filter.options = {}
         local vlans = interface.getVLANsList()
-     
-        if vlans == nil then vlans = {VLANs={}} end
+
+        if vlans == nil then
+            vlans = {
+                VLANs = {}
+            }
+        end
         vlans = vlans["VLANs"]
         for _, vlan in pairs(vlans) do
             local vlan_name = getFullVlanName(vlan["vlan_id"])
             if isEmptyString(vlan_name) then
-               vlan_name = i18n('no_vlan')
+                vlan_name = i18n('no_vlan')
             end
             filter.options[#filter.options + 1] = {
                 value = vlan["vlan_id"],
@@ -1145,6 +1148,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
     elseif tag.value_type == "probe_ip" then
         filter.options = {}
         local full_dev_list = {}
+
         -- Add both Flow devices
         if interface.getFlowDevices then -- Pro Only
             for interface, device_list in pairs(interface.getFlowDevices() or {}) do
@@ -1157,7 +1161,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                         display_more_filters = true
                     }
                 end
-            end   
+            end
         end
         -- And sFlow devices
         if interface.getSFlowDevices then -- Pro Only
@@ -1171,7 +1175,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                         display_more_filters = true
                     }
                 end
-            end   
+            end
         end
 
         for _, device_info in pairsByKeys(full_dev_list, asc) do
@@ -1240,15 +1244,51 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 -- Active flow devices
                 if (restrict_filters and not isEmptyString(_GET["probe_ip"])) then
                     local tmp = split(_GET["probe_ip"], ";")
-                    flow_devices = {
-                        {
-                            [tmp[1]] = true
-                        }
-                    }
+                    flow_devices = {{
+                        [tmp[1]] = true
+                    }}
                 else
                     flow_devices = interface.getFlowDevices()
-                end 
-                
+                end
+                -- SNMP devices
+                local snmp_config = require "snmp_config"
+                local devices = snmp_config.get_all_configured_devices()
+                local snmp_cached_dev = require "snmp_cached_dev"
+                -- use pairsByKeys to impose order
+                for probe_ip, _ in pairsByKeys(devices) do
+                    if flow_devices[probe_ip] then
+                        -- Use SNMP info, remove from flow devices list
+                        flow_devices[probe_ip] = nil
+                    end
+                    local cached_interfaces = snmp_cached_dev:get_interfaces(probe_ip)
+                    local probe_label
+                    if not isEmptyString(probe_ip) then
+                        probe_label = getProbeName(probe_ip)
+                    end
+                    if isEmptyString(probe_label) then
+                        probe_label = probe_ip
+                    end
+                    if cached_interfaces and cached_interfaces["interfaces"] then
+                        local interfaces = cached_interfaces["interfaces"]
+                        for interface_id, interface_info in pairs(interfaces) do
+                            local interface_name = interface_id
+                            if interface_info.name then
+                                interface_name = interface_info.name
+                            end
+                            local label = interface_name .. ' · ' .. probe_label
+                            if hide_exporters_name then
+                                label = interface_name
+                            end
+
+                            interfaces_list[label] = {
+                                value = probe_ip .. "_" .. interface_id,
+                                label = label,
+                                show_only_value = probe_ip
+                            }
+                        end
+                    end
+                end
+
                 for _, device_list in pairs(flow_devices or {}) do
                     -- Add interfaces for flow devices which are not polled by SNMP
                     for probe_ip, _ in pairs(device_list) do

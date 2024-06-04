@@ -1992,12 +1992,16 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.flows_dump") ..
                   '</th></tr></thead>')
 
+        local elements_to_switch = {"row_toggle_tiny_flows_dump", "max_num_packets_per_tiny_flow", "max_num_bytes_per_tiny_flow"}
+        if prefs.is_dump_flows_to_es_enabled then
+            elements_to_switch[#elements_to_switch+1] = "dump_frequency"
+        end
+
         prefsToggleButton(subpage_active, {
             field = "toggle_enable_runtime_flows_dump",
             default = "1",
             pref = "enable_runtime_flows_dump",
-            to_switch = {"dump_frequency", "row_toggle_tiny_flows_dump", "max_num_packets_per_tiny_flow",
-                         "max_num_bytes_per_tiny_flow"},
+            to_switch = elements_to_switch,
             -- Similar to "to_switch" but for nested items (e.g. "local hosts cache" only
             -- enabled when both "host cache" and "cache" are enabled).
             -- The following inputs will be shown/hidden when this preference changes.
@@ -2022,7 +2026,11 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         prefsInputFieldPrefs(subpage_active.entries["dump_frequency"].title,
             subpage_active.entries["dump_frequency"].description, "ntopng.prefs.", "dump_frequency",
-            prefs.dump_frequency, "number", showAllElements and prefs.is_dump_flows_to_es_enabled, false, nil, {
+            prefs.dump_frequency, "number",
+            showAllElements and prefs.is_dump_flows_to_es_enabled, 
+            false, 
+            nil, 
+            {
                 min = 1,
                 max = 2 ^ 32 - 1,
                 tformat = "sm"
@@ -2033,10 +2041,11 @@ if auth.has_capability(auth.capabilities.preferences) then
             default = "1",
             pref = "tiny_flows_export_enabled",
             to_switch = {"max_num_packets_per_tiny_flow", "max_num_bytes_per_tiny_flow"},
+            reverse_switch = true,
             hidden = not showAllElements
         })
 
-        local showTinyElements = showAllElements and ntop.getPref("ntopng.prefs.tiny_flows_export_enabled") ~= "0"
+        local showTinyElements = showAllElements and ntop.getPref("ntopng.prefs.tiny_flows_export_enabled") ~= "1"
 
         prefsInputFieldPrefs(subpage_active.entries["max_num_packets_per_tiny_flow"].title,
             subpage_active.entries["max_num_packets_per_tiny_flow"].description, "ntopng.prefs.",
