@@ -975,8 +975,9 @@ bool Flow::needsExtraDissection() {
 
   /* NOTE: do not check hasDissectedTooManyPackets() here, otherwise
    * ndpi_detection_giveup won't be called. */
-  return ((ndpif = get_ndpi_flow()) && (!extra_dissection_completed) &&
-          (ndpi_extra_dissection_possible(iface->get_ndpi_struct(), ndpif)));
+  return ((ndpif = get_ndpi_flow())
+	  && (!extra_dissection_completed)
+	  && (ndpi_extra_dissection_possible(iface->get_ndpi_struct(), ndpif)));
 }
 
 /* *************************************** */
@@ -1413,7 +1414,6 @@ void Flow::updateProtocol(ndpi_protocol proto_id) {
  */
 void Flow::setProtocolDetectionCompleted(u_int8_t *payload,
                                          u_int16_t payload_len, time_t when_seen) {
-
   if (detection_completed) return;
 
   stats.setDetectedProtocol(&ndpiDetectedProtocol);
@@ -1422,8 +1422,7 @@ void Flow::setProtocolDetectionCompleted(u_int8_t *payload,
    * non-packet interfaces */
   processDetectedProtocol(payload, payload_len);
 
-  /* Process detected protocol data and needs ndpiFlow only allocated for packet
-   * interfaces */
+  /* Process detected protocol data and needs ndpiFlow only allocated for packet interfaces */
   processDetectedProtocolData();
 
   detection_completed = 1;
@@ -6726,14 +6725,12 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   */
   last_conntrack_update = now;
 
-  static_cast<NetfilterInterface *>(iface)->incStatsConntrack(
-							      isIngress2EgressDirection(), now, eth_proto, getStatsProtocol(),
+  static_cast<NetfilterInterface *>(iface)->incStatsConntrack(isIngress2EgressDirection(), now, eth_proto, getStatsProtocol(),
 							      get_protocol_category(), protocol,
 							      nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
 							      nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts);
 
-  static_cast<NetfilterInterface *>(iface)->incStatsConntrack(
-							      !isIngress2EgressDirection(), now, eth_proto, getStatsProtocol(),
+  static_cast<NetfilterInterface *>(iface)->incStatsConntrack(!isIngress2EgressDirection(), now, eth_proto, getStatsProtocol(),
 							      get_protocol_category(), protocol,
 							      nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes,
 							      nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts);
@@ -6744,6 +6741,15 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   } else {
     stats.incStats(true, s2d_pkts, s2d_bytes, 0);
     stats.incStats(false, d2s_pkts, d2s_bytes, 0);
+  }
+
+  if((!detection_completed) && (get_packets() > (2*NDPI_MIN_NUM_PACKETS))) {
+    /*
+       Final resort for a flow that is offloaded
+       and that whose counters are updated by conntrack
+    */
+
+    endProtocolDissection();
   }
 }
 #endif

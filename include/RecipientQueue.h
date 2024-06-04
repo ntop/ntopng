@@ -66,6 +66,8 @@ class RecipientQueue {
   Bitmap128 enabled_other_alert_types; /* MUST be large enough to contain
                                  Other alert IDs defined in other_alert_keys.lua */
 
+  bool doDebug(const AlertFifoItem* const notification);
+
  public:
   RecipientQueue(u_int16_t recipient_id);
   ~RecipientQueue();

@@ -302,9 +302,9 @@ function all_alert_store:select_request(filter, select_fields)
     self:add_request_filters()
 
     if ntop.isClickHouseEnabled() and not is_system_interface then
-        -- Add the system interface (-1 = 65535) to show alerts both on the selected
+        -- Add the system interface to show alerts both on the selected
         -- interface and non-interface related.
-        self:add_filter_condition_list('interface_id', 65535, 'number')
+        self:add_filter_condition_list('interface_id', self:get_system_ifid(), 'number')
     end
 
     -- Add limits and sort criteria

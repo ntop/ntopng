@@ -2093,8 +2093,6 @@ static int ntop_radius_accounting_start(lua_State *vm) {
   traffic_data.nas_port_name = curr_iface->get_name();
   traffic_data.nas_port_id = curr_iface->get_id();
 
-  /* First reset the stats then start the accounting */
-  curr_iface->resetMacStats(vm, traffic_data.mac, false);
   res = ntop->radiusAccountingStart(&traffic_data);
 #endif
 
@@ -2152,6 +2150,8 @@ static int ntop_radius_accounting_stop(lua_State *vm) {
   traffic_data.nas_port_name = curr_iface->get_name();
   traffic_data.nas_port_id = curr_iface->get_id();
 
+  /* First reset the stats then start the accounting */
+  curr_iface->resetMacStats(vm, traffic_data.mac, false);
   res = ntop->radiusAccountingStop(&traffic_data);
 
 #endif

@@ -128,7 +128,7 @@ function Alert:store(entity_info)
     local alerts_api = require "alerts_api"
 
     if not self._check_alert_data() then
-        return
+        return false
     end
 
     return alerts_api.store(entity_info, self:_build_type_info())
