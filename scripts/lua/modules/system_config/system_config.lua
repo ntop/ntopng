@@ -163,11 +163,10 @@ function system_config:getConfHandler()
 
   local info = ntop.getInfo(false)
   local os = info.OS
-  local config_target = "network_ifaces"
+  local config_target = "netplan"
 
-  if string.find(os, "Ubuntu 18%.") ~= nil or 
-     string.find(os, "Ubuntu 20%.") ~= nil then
-    config_target = "netplan"
+  if string.find(os, "Ubuntu 16%.") then
+    config_target = "network_ifaces"
   end
 
   return require(config_target)
