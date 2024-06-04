@@ -82,13 +82,7 @@ function os_utils.execWithOutput(c, ret_code_success)
    
    if(debug) then tprint(c) end
 
-   if(is_freebsd) then
-      f_name = os.tmpname()
-      os.execute(c.." > "..f_name)
-      f = io.open(f_name, 'r')
-   else
-      f = io.popen(c, 'r')
-   end  
+   f = io.popen(c, 'r')
 
    if f == nil then
       return nil, -1
