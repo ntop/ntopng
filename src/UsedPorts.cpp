@@ -137,7 +137,7 @@ void UsedPorts::lua(lua_State *vm, NetworkInterface *iface) {
 
 /* *************************************** */
 
-/*Return false if not new server port are detected after the learning period, true otherwise*/
+/*Return false if not new server port are detected after the learning period, true otherwise */
 bool UsedPorts::setServerPort(bool isTCP, u_int16_t port,
                               ndpi_protocol *proto) {
   bool set_new_port = false;
