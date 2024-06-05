@@ -1887,23 +1887,23 @@ int Prefs::setOption(int optkey, char *optarg) {
 	if (dump_flows_on_clickhouse) {
 	  /* Check if CLICKHOUSE_CLIENT is present */
 	  struct stat buf;
-	  bool client_found =((stat(CLICKHOUSE_CLIENT, &buf) == 0)
+	  bool client_found =((stat(CONST_BIN_DIR "/" CLICKHOUSE_CLIENT, &buf) == 0)
 			      && (S_ISREG(buf.st_mode))) ? true : false;
 
 	  if (!client_found) {
-	    client_found = ((stat(CLICKHOUSE_ALT_CLIENT, &buf) == 0) &&
+	    client_found = ((stat(CONST_BIN_DIR "/" CLICKHOUSE_ALT_CLIENT, &buf) == 0) &&
 			    (S_ISREG(buf.st_mode))) ? true : false;
-	    if (client_found) clickhouse_client = CLICKHOUSE_ALT_CLIENT;
+	    if (client_found) clickhouse_client = CONST_BIN_DIR "/" CLICKHOUSE_ALT_CLIENT_CMD;
 	  } else
-	    clickhouse_client = CLICKHOUSE_CLIENT;
+	    clickhouse_client = CONST_BIN_DIR "/" CLICKHOUSE_CLIENT;
 
 	  if (!client_found) {
 	    ntop->getTrace()->traceEvent(TRACE_WARNING,
 					 "-F clickhouse is not available "
 					 "(ClickHouse client not found)");
 	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Expected %s or %s",
-					 CLICKHOUSE_CLIENT,
-					 CLICKHOUSE_ALT_CLIENT);
+					 CONST_BIN_DIR "/" CLICKHOUSE_CLIENT,
+					 CONST_BIN_DIR "/" CLICKHOUSE_ALT_CLIENT);
 	    all_good = dump_flows_on_clickhouse = false;
 	  }
 	}
