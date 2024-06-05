@@ -335,14 +335,16 @@ tag_utils.defined_tags = {
         i18n_label = i18n('db_search.tags.bytes'),
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
     },
-    src2dst_bytes = {
-        value_type = 'bytes',
-        i18n_label = i18n('db_search.tags.sum_src2dst_bytes'),
+    cli2srv_bytes = {
+        type = tag_utils.input_types.input,
+        value_type = 'number',
+        i18n_label = i18n('traffic_labels.cli2srv_bytes'),
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
     },
-    dst2src_bytes = {
-        value_type = 'bytes',
-        i18n_label = i18n('db_search.tags.sum_dst2src_bytes'),
+    srv2cli_bytes = {
+        type = tag_utils.input_types.input,
+        value_type = 'number',
+        i18n_label = i18n('traffic_labels.srv2cli_bytes'),
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
     },
     number = {
@@ -872,7 +874,6 @@ tag_utils.formatters = {
 function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filters)
     local alert_utils = require "alert_utils"
     local tag = tag_utils.defined_tags[id]
-
     if tag == nil then
         -- traceError(TRACE_WARNING, TRACE_CONSOLE, "Tag " .. id .. " not found")
         return nil
@@ -895,6 +896,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
     end
 
     -- select (array of values)
+    -- tprint(tag.value_type)
 
     if (tag.value_type == "alert_id" or tag.value_type == "alert_type" --[[ alert_id should be used --]] ) and entity ~=
         nil then

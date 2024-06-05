@@ -96,13 +96,28 @@
 	    "class": ["text-nowrap"]
 	},
 	{
-	    "title_i18n": "datatable.fields.traffic_exchanged",
-	    "data_field": "total_bytes",
+        "title_i18n": "datatable.fields.traffic_exchanged",
+        "data_field": "total_bytes",
+        "sortable": true,
+         "min-width" : "165px",
+        "render_type": "formatTraffic",
+        "class": ["text-nowrap"]
+    },
+	{
+	    "title_i18n": "client_traffic",
+	    "data_field": "cli2srv_bytes",
+		 "min-width" : "100px",
 	    "sortable": true,
-		 "min-width" : "165px",
-	    "render_type": "formatTraffic",
 	    "class": ["text-nowrap"]
 	},
+	{
+	    "title_i18n": "server_traffic",
+	    "data_field": "srv2cli_bytes",
+		 "min-width" : "100px",
+	    "sortable": true,
+	    "class": ["text-nowrap"]
+	},
+	
 	{
 	    "title_i18n": "db_search.tags.cli_host_pool_id",
 	    "data_field": "cli_host_pool_id",

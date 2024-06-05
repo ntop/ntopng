@@ -128,6 +128,7 @@ import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng
 import { ntopChartApex } from "../components/ntopChartApex.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
 import filtersManager from "../utilities/filters-manager.js";
+import formatterUtils from "../utilities/formatter-utils";
 
 import { default as Navbar } from "./page-navbar.vue";
 import { default as AlertInfo } from "./alert-info.vue";
@@ -357,8 +358,10 @@ function on_table_loaded() {
 }
 
 function register_table_alerts_events() {
+    
     let jquery_table_alerts = $(`#${table_id.value}`);
     jquery_table_alerts.on('click', `a.tag-filter`, async function (e) {
+        
         add_table_row_filter(e, $(this));
     });
 }
@@ -379,11 +382,19 @@ const map_table_def_columns = async (columns) => {
                 const title = proto.confidence;
                 (title == "DPI") ? confidence = `<span class="badge bg-success" title="${title}">${title}</span>` : confidence = `<span class="badge bg-warning" title="${title}">${title}</span>`
             }
-            return DataTableRenders.filterize('l4proto', row.proto.value, row.proto.label) +":" +DataTableRenders.filterize('l7proto', proto.value, proto.label.split(":")[1]) + " " + `${confidence}`;
+            return DataTableRenders.filterize('l4proto', row.proto.value, row.proto.label) + ":" + DataTableRenders.filterize('l7proto', proto.value, proto.label.split(":")[1]) + " " + `${confidence}`;
         },
         "info": (info, row) => {
             return `${DataTableRenders.filterize('info', info.value, info.label)}`;
         },
+        "cli2srv_bytes": (info, row) => {
+
+            return `${DataTableRenders.filterize('cli2srv_bytes', row.total_bytes.bytes_sent, formatterUtils.getFormatter("bytes")(row.total_bytes.bytes_sent))}`;
+        },
+        "srv2cli_bytes": (info, row) => {
+            return `${DataTableRenders.filterize('srv2cli_bytes', row.total_bytes.bytes_rcvd, formatterUtils.getFormatter("bytes")(row.total_bytes.bytes_rcvd))}`;
+        },
+
     };
     let set_query_preset_columns = selected_query_preset.value.is_preset && columns.length > 0;
     if (set_query_preset_columns) {

@@ -7874,6 +7874,8 @@ local lang = {
     ["breakdown"] = "Breakdown",
     ["bytes_rcvd"] = "Bytes Received",
     ["bytes_sent"] = "Bytes Sent",
+    ["cli2srv_bytes"] = "Cli to Srv Bytes",
+    ["srv2cli_bytes"] = "Srv to Cli Bytes",
     ["total_bytes"] = "Total (Bytes)",
     ["total_percentage"] = "Total (%)",
   },
