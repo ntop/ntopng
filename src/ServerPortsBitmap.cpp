@@ -76,7 +76,7 @@ const char* ServerPortsBitmap::serializer() {
 
   u_int32_t buflen;
   const char *ser = ndpi_serializer_get_buffer(&serializer, &buflen);
-  ndpi_term_serializer(&serializer);
+  //ndpi_term_serializer(&serializer);
 
   free((void*)bitmap_str_tcp);
   free((void*)bitmap_str_udp);
