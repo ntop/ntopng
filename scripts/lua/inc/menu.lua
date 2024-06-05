@@ -254,11 +254,12 @@ else
     -- The Monitoring entry are used to go to the System interface pages
     -- without using the Interface dropdown. The section is hidden
     -- in system interface.
+    -- Interface is not system
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.monitoring,
         hidden = is_system_interface or not is_admin,
         entries = {{
-            entry = page_utils.menu_entries.snmp,
+            entry = page_utils.menu_entries.snmp_monitoring,
             hidden = (not ntop.isEnterpriseM() and not ntop.isnEdgeEnterprise()),
             url = "/lua/pro/enterprise/snmpdevices_stats.lua"
         }, {
@@ -492,6 +493,7 @@ page_utils.add_menubar_section({
 -- ##############################################
 
 -- Pollers (e.g., SNMP, active monitoring)
+-- System interface menu
 
 local poller_entries = {{
     entry = page_utils.menu_entries.infrastructure_dashboard,
