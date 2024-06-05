@@ -33,7 +33,8 @@ UsedPorts::UsedPorts(Host* h) : localhost(h) {
 
   char* json_str = (char *)malloc(actual_len + 1);
   if ((ntop->getRedis()->get(redis_key, json_str, actual_len + 1)) == 0) {
-    bitmap_server_ports.deserializer((const char*) json_str);
+    if (!(bitmap_server_ports.deserializer((const char*) json_str)))
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Bitmap deserialization went wrong");
   }
   free(redis_key);
   free(json_str);
@@ -51,6 +52,8 @@ UsedPorts::~UsedPorts() {
   if(localhost) {
     char *redis_key = (char*) malloc(128*sizeof(char*));
     getRedisKey(redis_key, 128);
+
+    ntop->getRedis()->set(redis_key, bitmap_server_ports.serializer());
     free(redis_key);
   }
 }
