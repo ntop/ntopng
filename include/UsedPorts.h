@@ -37,7 +37,7 @@ class UsedPorts {
 
   void setLuaArray(lua_State *vm, NetworkInterface *iface, bool isTCP,
                    std::unordered_map<u_int16_t, ndpi_protocol> *ports);
-
+  char* getRedisKey(char *redis_key, size_t key_len);
  public:
   UsedPorts(Host* h);
   UsedPorts();

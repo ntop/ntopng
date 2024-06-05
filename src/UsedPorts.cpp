@@ -25,30 +25,35 @@
 
 UsedPorts::UsedPorts(Host* h) : localhost(h) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  char redis_key[128];
-  static char buf[64];
 
-  snprintf(redis_key, sizeof(redis_key), LOCALHOST_SERVER_PORT_BITMAP, 
-           localhost->getInterface()->get_id(), localhost->getSerializationKey(buf, sizeof(buf)));
+  char *redis_key = (char*) malloc(128*sizeof(char*));
+  getRedisKey(redis_key, 128);
+
   u_int actual_len = ntop->getRedis()->len(redis_key);
 
   char* json_str = (char *)malloc(actual_len + 1);
   if ((ntop->getRedis()->get(redis_key, json_str, actual_len + 1)) == 0) {
     bitmap_server_ports.deserializer((const char*) json_str);
   }
-  
+  free(redis_key);
   free(json_str);
 }
 
 /* *************************************** */
 
-UsedPorts::UsedPorts() {
+UsedPorts::UsedPorts() : localhost(nullptr) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 }
 
 /* *************************************** */
 
-UsedPorts::~UsedPorts() { ; }
+UsedPorts::~UsedPorts() { 
+  if(localhost) {
+    char *redis_key = (char*) malloc(128*sizeof(char*));
+    getRedisKey(redis_key, 128);
+    free(redis_key);
+  }
+}
 
 /* *************************************** */
 
@@ -143,4 +148,14 @@ void UsedPorts::setContactedPort(bool isTCP, u_int16_t port,
     tcp_client_contacted_ports[port] = *proto;
   else
     udp_client_contacted_ports[port] = *proto;
+}
+
+/* *************************************** */
+
+char* UsedPorts::getRedisKey(char *redis_key, size_t key_len) {
+  static char buf[64];
+
+  snprintf(redis_key, key_len, LOCALHOST_SERVER_PORT_BITMAP, 
+        localhost->getInterface()->get_id(), localhost->getSerializationKey(buf, sizeof(buf)));
+  return redis_key;
 }
