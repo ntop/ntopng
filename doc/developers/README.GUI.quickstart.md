@@ -23,6 +23,9 @@ The folder `http_src/` contains all the webpages scripts.
 
 - The navbar that is present at the left of each page is rendered with lua function: `page_utils.print_header_and_set_active_menu_entry(page_utils.VALUE)` where VALUE is the name of the entry that is found inside `page_utils.lua` (scripts/lua/modules/page_utils.lua). Please refer to Lua Navbar section later in this document for more info.
 
+## General info
+
+- System interface has id = -1
 
 ## Webpage structure
 
@@ -49,4 +52,19 @@ The structure of `page_utils.menu_sections` follows a key-value pair format, whe
 
 
 - `page_utils.menu_entries` is a Lua table used within our application to store the bindings between different entries in navbar sections. This table organizes these entries into sections, making it easier to manage and navigate through the various sections of the application. `Entries` are the available options that pop up when hovering on a section. The same description as page_utils.menu_section is available with only difference that the **Values** table contains a new option: `section` which is used to link a menu entry to the parent section of the navbar.
+
+## Lua files
+
+- `consts.lua` contains a list of available filters that are returned to the GUI (VueJS). Only these filters can be used as they are cross checked before doing table column filtering
+- `menu.lua` contains a list of entries that are used inside the menu navbar
+- `tag_utils.lua`  contains a list of available filters that can be used in frontend
+- `flow_alert_store:_get_additional_available_filters()` contains available filters to filter columns inside a table. Entry name is used inside the JSON to configure the desired table in the key `data_field`. 
+- `self:add_filter_condition_list('srv_ip', srv_ip)` -> is used to add a filter on a specific field, so that this filter is available to use frontend and backend side
+
+## Vue 
+
+- `map_table_def_columns = async (columns)` is a function used to manipulate table columns and apply some kind of filters. For example filterize can be applied
+- `filterize` function adds filtering function to table columns if a value is clicked. Double check in front end and back end is executed to check if selected filter is available. 
+- `formatterUtils.getFormatter(DATA-TYPE)(VALUE)` is a utility function that formats values to a specific unit of measure. Formatter utils can be found in `utilities/formatter-utils.js`. To format a value chose DATA-TYPE:String (possible values can be found inside types variable inside formatter utils) and pass a VALUE to format
+
 
