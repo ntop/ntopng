@@ -16,6 +16,7 @@ local json = require("dkjson")
 local alerts_api = require("alerts_api")
 local alert_consts = require("alert_consts")
 local alert_management = require "alert_management"
+local format_utils = require "format_utils"
 
 local supported_granularities = {
     ["min"] = "alerts_thresholds_config.every_minute",
@@ -961,7 +962,7 @@ function am_utils.run_am_check(when, all_hosts, granularity)
     -- Parse the results
     for key, info in pairs(hosts_am) do
         local host = all_hosts[key]
-        local host_value = round(info.value, 2)
+        local host_value = format_utils.round(info.value, 2)
         local resolved_host = info.resolved_addr or host.host
         local threshold = host.threshold
         local operator = info.measurement.operator
@@ -978,10 +979,10 @@ function am_utils.run_am_check(when, all_hosts, granularity)
         end
 
         if jitter then
-            jitter = round(jitter, 2)
+            jitter = format_utils.round(jitter, 2)
         end
         if mean then
-            mean = round(mean, 2)
+            mean = format_utils.round(mean, 2)
         end
 
         if areSystemTimeseriesEnabled() then
