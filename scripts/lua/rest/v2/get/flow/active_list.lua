@@ -226,7 +226,7 @@ for _, value in ipairs(flows_stats.flows) do
     record["last_seen"] = value["seen.last"]
     record["key"] = string.format("%u", value["ntopng.key"])
     record["hash_id"] = string.format("%u", value["hash_entry_id"])
-    record["verdict"] = value["verdict.pass"]
+    record["verdict"] = not (value["verdict.pass"] ~= nil and value["verdict.pass"] == false)
     record["duration"] = value["duration"]
     record["info"] = value["info"]
     record["periodic_flow"] = value.periodic_flow

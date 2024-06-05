@@ -158,20 +158,20 @@ const map_table_def_columns = (columns) => {
         },
         "protocol": (value, row) => {
             value = row.application
-            const name = row.verdict ? ` <strike>${value.name}</strike>` : `${value.name}`
+            const name = !row.verdict ? ` <strike>${value.name}</strike>` : `${value.name}`
             const l7_proto_id = (dataUtils.isEmptyOrNull(value.master_id) || value.master_id === value.app_id) ? value.app_id : `${value.master_id}.${value.app_id}`
             const application = `<a href="#" class="tableFilter" tag-filter="application" tag-value="${l7_proto_id}">${name} ${protocolUtils.formatBreedIcon(value.breed, value.encrypted)}</a> ${protocolUtils.formatConfidence(value.confidence, value.confidence_id)}`
             value = row.l4_proto
             let proto = ""
             if (value && value.name) {
-                proto = row.verdict ? ` <strike>${value.name}</strike>` : `${value.name}`
+                proto = !row.verdict ? ` <strike>${value.name}</strike>` : `${value.name}`
             }
             proto = `<a href="#" class="tableFilter" tag-filter="l4proto" tag-value="${value.id}">${proto}</a>`
             return `${proto}:${application}`
         },
         "proto": (value, row) => {
             if (value) {
-                const name = row.verdict ? ` <strike>${value}</strike>` : `${value}`
+                const name = !row.verdict ? ` <strike>${value}</strike>` : `${value}`
                 return name
             }
             return ""
