@@ -636,10 +636,14 @@ void LocalHost::setRxOnlyHost(bool set_it) {
 void LocalHost::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto, time_t when) {
   bool set_port_status = usedPorts.setServerPort(isTCP, port, proto);
   
-  if (set_port_status) {
+  if (set_port_status
+      && ntop->getPrefs()->is_enterprise_l_edition()) {
+    /* If the port is set for the first time set_port_status == true */
     u_int32_t learning_period = ntop->getPrefs()->hostPortLearningPeriod();
+      
     if (when - get_first_seen() > learning_period) {
       if (!contacted_server_ports.isFull()) {
+	/* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** port %u ***", port); */
         contacted_server_ports.enqueue({port, proto->app_protocol}, true);
       } else {
         ntop->getTrace()->traceEvent(TRACE_WARNING, 

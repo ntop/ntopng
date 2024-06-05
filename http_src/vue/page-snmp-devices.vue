@@ -130,7 +130,7 @@ const max_num_reached_alert_text = _i18n('snmp_max_num_devices_configured').repl
 const loading = ref(false);
 
 const timeoutId = ref(null);
-const tableRefreshRate = 10000;
+const tableRefreshRate = 60000;
 
 const rest_params = {
   csrf: props.context.csrf,

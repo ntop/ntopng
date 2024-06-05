@@ -114,6 +114,7 @@ page_utils.menu_entries = {
 
     -- Pollers
     snmp                  = {key = "snmp", i18n_title = "prefs.snmp", section = "pollers"},
+    snmp_monitoring        = {key = "snmp_monitoring", i18n_title = "prefs.snmp", section = "monitoring"},
     infrastructure_dashboard = {key = "infrastructure_dashboard", i18n_title = "infrastructure_dashboard.infrastructure_dashboard", section = "pollers"},
 
     -- Status (Health)
