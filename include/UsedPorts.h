@@ -26,14 +26,12 @@
 
 class UsedPorts {
  private:
+  Host* h;
   /* Used for both TCP and UDP */
-  std::unordered_map<u_int16_t, ndpi_protocol> udp_server_ports,
-      tcp_server_ports;
-  std::unordered_map<u_int16_t, ndpi_protocol> udp_client_contacted_ports,
-      tcp_client_contacted_ports;
+  std::unordered_map<u_int16_t, ndpi_protocol> udp_server_ports, tcp_server_ports;
+  std::unordered_map<u_int16_t, ndpi_protocol> udp_client_contacted_ports, tcp_client_contacted_ports;
 
   ServerPortsBitmap bitmap_server_ports;
-  Host* localhost;
 
   void setLuaArray(lua_State *vm, NetworkInterface *iface, bool isTCP,
                    std::unordered_map<u_int16_t, ndpi_protocol> *ports);

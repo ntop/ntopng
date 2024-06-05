@@ -23,33 +23,38 @@
 
 /* *************************************** */
 
-UsedPorts::UsedPorts(Host* h) : localhost(h) {
+UsedPorts::UsedPorts(Host* _h) {
+  char redis_key[128];
+  
+  h = _h;
+
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
-  char *redis_key = (char*) malloc(128*sizeof(char*));
-  getRedisKey(redis_key, 128);
+  getRedisKey(redis_key, sizeof(redis_key));
 
   u_int actual_len = ntop->getRedis()->len(redis_key);
-
   char* json_str = (char *)malloc(actual_len + 1);
-  if ((ntop->getRedis()->get(redis_key, json_str, actual_len + 1)) == 0) {
-    if (!(bitmap_server_ports.deserializer((const char*) json_str)))
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Bitmap deserialization went wrong");
+
+  if(json_str != NULL) {
+    if ((ntop->getRedis()->get(redis_key, json_str, actual_len + 1)) == 0) {
+      if (!(bitmap_server_ports.deserializer((const char*) json_str)))
+	ntop->getTrace()->traceEvent(TRACE_WARNING, "Bitmap deserialization went wrong");
+    }
+
+    free(json_str);
   }
-  free(redis_key);
-  free(json_str);
 }
 
 /* *************************************** */
 
-UsedPorts::UsedPorts() : localhost(nullptr) {
+UsedPorts::UsedPorts() {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 }
 
 /* *************************************** */
 
 UsedPorts::~UsedPorts() { 
-  if(localhost) {
+  if(h) {
     char *redis_key = (char*) malloc(128*sizeof(char*));
     getRedisKey(redis_key, 128);
 
@@ -159,6 +164,6 @@ char* UsedPorts::getRedisKey(char *redis_key, size_t key_len) {
   static char buf[64];
 
   snprintf(redis_key, key_len, LOCALHOST_SERVER_PORT_BITMAP, 
-        localhost->getInterface()->get_id(), localhost->getSerializationKey(buf, sizeof(buf)));
+        h->getInterface()->get_id(), h->getSerializationKey(buf, sizeof(buf)));
   return redis_key;
 }
