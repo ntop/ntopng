@@ -2836,7 +2836,7 @@ local function validateParameter(k, v)
       if ret then
 	 return true, "OK", v
       else
-	 if (trace_failures) then
+	 if (trace_failures and k ~= 'ifid') then
       io.write("[LINT] validateParameter failed for parameter [" .. k .. "][".. type(f) .."]\n")
 	    tprint(v)
 	 end
