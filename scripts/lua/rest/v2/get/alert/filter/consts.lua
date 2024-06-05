@@ -40,7 +40,7 @@ for id, v in pairs(tags) do
    if id == "l7_proto" then id = "l7proto" end
 
    local filter = tag_utils.get_tag_info(id, alert_entities[page])
-
+   
    res[#res+1] = filter
 end
 
