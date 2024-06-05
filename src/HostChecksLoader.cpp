@@ -87,6 +87,7 @@ void HostChecksLoader::registerChecks() {
   if ((fcb = new FlowAnomaly()))         registerCheck(fcb);
   if ((fcb = new HostScanner()))         registerCheck(fcb);
   if ((fcb = new RXOnlyHostScan()))      registerCheck(fcb);
+  if ((fcb = new ServerPortsContacts())) registerCheck(fcb);
 #endif
 
   // printChecks();
