@@ -57,25 +57,24 @@ function radius_handler.accountingStart(name, username, password)
     local ip_address = get_first_ip(name)
     local current_time = os.time()
     math.randomseed(current_time)
-    local accounting_started = interface.radiusAccountingStart(username --[[ Username ]] , name --[[ MAC Address ]] ,
-        session_id, ip_address --[[ First IP Address ]] , current_time)
+--   local accounting_started = interface.radiusAccountingStart(username --[[ Username ]] , name --[[ MAC Address ]] ,
+--        session_id, ip_address --[[ First IP Address ]] , current_time)
+--    if accounting_started then
+    local json = require("dkjson")
+    local key = string.format(redis_accounting_key, name)
+    local user_data = {
+        name = name,
+        username = username,
+        password = password,
+        session_id = session_id,
+        start_session_time = current_time,
+        ip_address = ip_address
+    }
 
-    if accounting_started then
-        local json = require("dkjson")
-        local key = string.format(redis_accounting_key, name)
-        local user_data = {
-            name = name,
-            username = username,
-            password = password,
-            session_id = session_id,
-            start_session_time = current_time,
-            ip_address = ip_address
-        }
+    ntop.setCache(key, json.encode(user_data))
+--    end
 
-        ntop.setCache(key, json.encode(user_data))
-    end
-
-    return accounting_started
+    return true
 end
 
 -- ##############################################

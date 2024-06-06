@@ -732,6 +732,7 @@ local lang = {
   ["via"] = "Via",
   ["victim"] = "Is Victim",
   ["views"] = "Views",
+  ["visible_columns"] = "Visible Columns",
   ["vlan"] = "VLAN",
   ["vlan_filter"] = "VLAN Filter",
   ["vlan_id"] = "VLAN",
