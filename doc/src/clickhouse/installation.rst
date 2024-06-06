@@ -5,7 +5,7 @@ In order to install ClickHouse refer to the official guide_ by useing the follow
 
 - Debian/Ubuntu: https://clickhouse.com/docs/en/install/#install-from-deb-packages
 - RedHat/RockyLinux: https://clickhouse.com/docs/en/install/#from-rpm-packages
-
+- FreeBSD/Other: https://clickhouse.com/docs/en/install#quick-install
 
 
 .. _guide: https://clickhouse.com/docs/en/getting-started/quick-start/
