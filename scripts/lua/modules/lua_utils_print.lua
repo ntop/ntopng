@@ -27,7 +27,7 @@ end
 function printASN(asn, asname)
   asname = asname:gsub('"','')
   if(asn > 0) then
-   return("<A class='ntopng-external-link' href='https://stat.ripe.net/AS"..asn..".html'>"..asname.." <i class='fas fa-external-link-alt fa-lg'></i></A>")
+   return("<A class='ntopng-external-link' href='https://stat.ripe.net/app/launchpad/S1_"..asn.."_C13C31C4C34C9C22C28C20C6C7C26C29C30C14C17C2C21C33C16C10'>"..asname.." <i class='fas fa-external-link-alt fa-lg'></i></A>")
   else
     return(asname)
   end

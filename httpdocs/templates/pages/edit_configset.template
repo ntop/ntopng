@@ -22,8 +22,9 @@
           <table id="scripts-config" class="table w-100 table-striped table-hover table-bordered mt-3">
             <thead>
               <tr>
-              <th></th>
+              
 	            <th>{{ i18n("name", {}) }}</th>
+	            <th>{{ i18n("if_stats_overview.family", {}) }}</th>
               <th>{{ i18n("interface", {}) }}</th>
               <th>{{ i18n("category", {}) }}</th>
               <th>{{ i18n("severity", {}) }}</th>
@@ -2127,17 +2128,20 @@ const $script_table = $("#scripts-config").DataTable({
    },
    columns: [
       {
-         data: 'subdir_title',
-         visible: false,
+         data: 'title',
          render: function (data, type, row) {
-            if (type == 'display') return `${data}`;
+            if (type == 'display') return `<b>${data}</b>`;
             return data;
          },
       },
       {
-         data: 'title',
+         data: 'subdir_title',
+         visible: true,
+         sortable: true,
+         searchable: false,
+         className: 'text-center',
          render: function (data, type, row) {
-            if (type == 'display') return `<b>${data}</b>`;
+            console.log(data, type, row)
             return data;
          },
       },
