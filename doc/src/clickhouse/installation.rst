@@ -5,7 +5,7 @@ In order to install ClickHouse refer to the official guide_ by useing the follow
 
 - Debian/Ubuntu: https://clickhouse.com/docs/en/install/#install-from-deb-packages
 - RedHat/RockyLinux: https://clickhouse.com/docs/en/install/#from-rpm-packages
-- FreeBSD/Other: https://clickhouse.com/docs/en/install#quick-install
+- FreeBSD/Other: https://clickhouse.com/docs/en/install#quick-install (read the notes below)
 
 
 .. _guide: https://clickhouse.com/docs/en/getting-started/quick-start/
@@ -19,7 +19,17 @@ In order to install ClickHouse refer to the official guide_ by useing the follow
 
    The ClickHouse database can be executed anywhere, both locally on the machine running ntopng or on a remote machine. However, :code:`clickhouse-client` must always be installed locally as it is used by ntopng to connect to ClickHouse. This installation guide_ explains how to install it.
    For non-Linux platforms as **FreeBSD** the client is installed as follows: :code:`./clickhouse install`
-   
+
+FreeBSD
+=======
+
+On FreeBSD the clickhouse binary, downloaded following the instructions available on the official guide_, should be moved under /usr/local/bin in order to be detected by ntopng. Example:
+
+.. code:: bash
+
+   curl https://clickhouse.com/ | sh
+   mv clickhouse /usr/local/bin/
+
 Cluster Configuration
 =====================
 
