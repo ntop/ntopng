@@ -612,6 +612,9 @@ function flow_alert_store:_add_additional_request_filters()
     local alert_domain = _GET["alert_domain"]
     local l4_proto = _GET["l4proto"]
 
+    local srv2cli_bytes = _GET["srv2cli_bytes"]
+    local cli2srv_bytes = _GET["cli2srv_bytes"]
+
     self:format_traffic_direction(_GET["traffic_direction"])
     self:format_location()
 
@@ -645,6 +648,9 @@ function flow_alert_store:_add_additional_request_filters()
     self:add_filter_condition_list('output_snmp', output_snmp)
     self:add_filter_condition_list('snmp_interface', snmp_interface)
     self:add_filter_condition_list('community_id', community_id)
+    
+    self:add_filter_condition_list('cli2srv_bytes', cli2srv_bytes)
+    self:add_filter_condition_list('srv2cli_bytes', srv2cli_bytes)
 
     self:add_filter_condition_list(self:format_query_json_value('proto.tls.ja3_server_hash'), ja3_server, 'string')
     self:add_filter_condition_list(self:format_query_json_value('proto.tls.ja3_client_hash'), ja3_client, 'string')
@@ -701,6 +707,9 @@ function flow_alert_store:_get_additional_available_filters()
         last_server = tag_utils.defined_tags.last_server,
         issuer_dn = tag_utils.defined_tags.issuer_dn,
         l4proto = tag_utils.defined_tags.l4proto,
+
+        cli2srv_bytes = tag_utils.defined_tags.cli2srv_bytes,
+        srv2cli_bytes = tag_utils.defined_tags.srv2cli_bytes
     }
 
     return filters
@@ -1205,12 +1214,10 @@ function flow_alert_store:format_record(value, no_html)
     }
 
     local traffic_stats = {}
-    if value["cli2srv_bytes"] then
-        traffic_stats.bytes_sent = tonumber(value["cli2srv_bytes"])
-    end
-    if value["srv2cli_bytes"] then
-        traffic_stats.bytes_rcvd = tonumber(value["srv2cli_bytes"])
-    end
+
+    traffic_stats.bytes_sent = tonumber(value["cli2srv_bytes"] or 0)
+    traffic_stats.bytes_rcvd = tonumber(value["srv2cli_bytes"] or 0)
+
     if value["total_bytes"] then
         traffic_stats.total_bytes = tonumber(value["total_bytes"])
     end

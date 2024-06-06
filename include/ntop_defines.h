@@ -1442,8 +1442,9 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
   Also on FreeBSD the tool is installed on /usr/bin and not /usr/local/bin
   when installed as specified on https://clickhouse.com/#quick-start
 */
-#define CLICKHOUSE_CLIENT "/usr/bin/clickhouse-client"
-#define CLICKHOUSE_ALT_CLIENT "/usr/local/bin/clickhouse-client"
+#define CLICKHOUSE_CLIENT "clickhouse-client"
+#define CLICKHOUSE_ALT_CLIENT "clickhouse"
+#define CLICKHOUSE_ALT_CLIENT_CMD "clickhouse client"
 
 #define CLICKHOUSE_DUMP_PERF_MAX_RECORDS 1000
 #define CLICKHOUSE_DUMP_PERF_NUM_LOOPS 500000
