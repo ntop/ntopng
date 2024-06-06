@@ -14,16 +14,17 @@ In order to install ClickHouse refer to the official guide_ by useing the follow
 
    - Make sure that ClickHouse **version 22 or newer** is installed. Older versions are not supported as they lack important features such as the MySQL compatibiity layer.
    - In case multiple ntopng instances write to the **same** ClickHouse database they must have different instance names. By default ntopng uses the hostname as instance name, but in case such names are **not unique**, please consider using the :code:`--instance-name` command line option to set the custom instance name to an unique value for all the ntopng instances writing to the same database.
-     
-     .. note::
 
-   The ClickHouse database can be executed anywhere, both locally on the machine running ntopng or on a remote machine. However, :code:`clickhouse-client` must always be installed locally as it is used by ntopng to connect to ClickHouse. This installation guide_ explains how to install it.
-   For non-Linux platforms as **FreeBSD** the client is installed as follows: :code:`./clickhouse install`
+.. note::
 
-FreeBSD
-=======
+   The ClickHouse database (server) can run anywhere, both locally on the machine running ntopng, or on a remote machine. However, the clickhouse client (:code:`clickhouse` or :code:`clickhouse-client`) must always be installed locally as it is used by ntopng to connect to the ClickHouse server.
 
-On FreeBSD the clickhouse binary, downloaded following the instructions available on the official guide_, should be moved under /usr/local/bin in order to be detected by ntopng. Example:
+FreeBSD Notes
+=============
+
+On FreeBSD please make sure that the clickhouse binary is placed under /usr/local/bin in order to be detected by ntopng. 
+
+It is possible to download the binary following the instructions available on the official guide_, and install it with :code:`./clickhouse install` or manually as follows:
 
 .. code:: bash
 
