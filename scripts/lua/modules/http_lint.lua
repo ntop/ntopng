@@ -2805,7 +2805,7 @@ local function validateParameter(k, v)
 	    -- Stop, if any of the table value fails the validation against
 	    -- the expected table key
 	    if not success then
-	       if (trace_failures) then
+	       if (trace_failures and table_key ~= 'ifid') then
 		  io.write("[LINT] validateParameter failed for table entry [" .. table_key .. "][".. table_value .."]\n")
 	       end
 
@@ -2838,7 +2838,7 @@ local function validateParameter(k, v)
       if ret then
 	 return true, "OK", v
       else
-	 if (trace_failures) then
+	 if (trace_failures and k ~= 'ifid') then
       io.write("[LINT] validateParameter failed for parameter [" .. k .. "][".. type(f) .."]\n")
 	    tprint(v)
 	 end

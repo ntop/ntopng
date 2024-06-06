@@ -4990,9 +4990,11 @@ void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto, time_t whe
 	  iface->setServerPort(true, ntohs(srv_port), proto);
 	else { /* Otherwise set this port to the right VLAN */
 	  VLAN *vlan_hash = iface->getVLAN(vlanId, false, false);
+	  
 	  if (vlan_hash)
 	    vlan_hash->setServerPort(true, ntohs(srv_port), proto);
 	}
+	
 	server->setServerPort(true, ntohs(srv_port), proto, first_seen);
       }
       break;
@@ -5007,11 +5009,13 @@ void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto, time_t whe
 	  iface->setServerPort(false, s_port, proto);
 	else { /* Otherwise set this port to the right VLAN */
 	  VLAN *vlan_hash = iface->getVLAN(vlanId, false, false);
+	  
 	  if (vlan_hash) vlan_hash->setServerPort(false, s_port, proto);
 	}
 
 	server->setServerPort(false, s_port, proto, first_seen);
       }
+      
       break;
     }
     }

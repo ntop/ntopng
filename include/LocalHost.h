@@ -29,10 +29,11 @@ class LocalHost : public Host {
   int16_t local_network_id;
   time_t initialization_time;
   LocalHostStats *initial_ts_point;
+  /* contacted_server_ports it's a buffer used by the "Server Port Detected" check */
+  SPSCQueue<std::pair<u_int16_t, u_int16_t>> contacted_server_ports;
   UsedPorts usedPorts;
   HostFingerprints *fingerprints;
   std::unordered_map<u_int32_t, DoHDoTStats *> doh_dot_map;
-  SPSCQueue<std::pair<u_int16_t, u_int16_t>> contacted_server_ports;
   u_int8_t router_mac[6]; /* MAC address pf the first router used (no Mac* to
                              avoid purging race conditions) */
   u_int8_t router_mac_set : 1, drop_all_host_traffic : 1, systemHost : 1, _notused : 5;
