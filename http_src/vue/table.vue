@@ -36,7 +36,7 @@
                     <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
                         <template v-slot:title>
                             <i class="fas fa-eye" data-bs-toggle="tooltip" data-bs-placement="top"
-                                :title="_i18n('enable_auto_refresh')"></i>
+                                :title="_i18n('visible_columns')"></i>
                         </template>
                         <template v-slot:menu>
                             <div v-for="col in columns_wrap" class="form-check form-switch ms-1">
