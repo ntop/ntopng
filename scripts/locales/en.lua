@@ -2044,6 +2044,7 @@ local lang = {
     ["first_seen"] = "Begin",
     ["flow_risk"] = "Flow Risk",
     ["host"] = "Host",
+    ["host_pool"] = "Host Pool",
     ["info"] = "Info",
     ["input_snmp"] = "Input Interface",
     ["l4proto"] = "Protocol",
@@ -2094,6 +2095,7 @@ local lang = {
       ["output_snmp"] = "All Interfaces",
       ["probe_ip"] = "All Exporters",
       ["vlan_id"] = "All VLANs",
+      ["host_pool"] = "All Host Pools",
     },
     ["tags"] = {
       ["acknowledged"] = "Acknowledged",

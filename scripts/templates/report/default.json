@@ -27,6 +27,9 @@
 		},
 		{
 			"name" : "l7proto"
+		},
+		{
+			"name" : "host_pool"
 		}
 	],
 	"components" : [

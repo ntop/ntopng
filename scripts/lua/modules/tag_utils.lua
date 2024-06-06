@@ -377,9 +377,9 @@ tag_utils.defined_tags = {
         i18n_label = i18n('db_search.tags.packets'),
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
     },
-    host_pool_id = {
+    host_pool = {
         type = tag_utils.input_types.select,
-        value_type = 'host_pool_id',
+        value_type = 'host_pool',
         i18n_label = i18n('db_search.tags.host_pool_id'),
         operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
     },
@@ -949,7 +949,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
             }
         end
 
-    elseif tag.value_type == "host_pool_id" then
+    elseif tag.value_type == "host_pool_id" or tag.value_type == "host_pool" then
         filter.value_type = 'array'
         filter.options = {}
         local host_pools_instance = host_pools:create()
