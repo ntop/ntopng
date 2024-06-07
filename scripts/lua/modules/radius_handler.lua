@@ -43,7 +43,7 @@ function radius_handler.accountingStart(name, username, password)
     if not radius_handler.isAccountingEnabled() then
         return true
     end
-    
+
     -- Check if the user is already saved on redis
     local is_accounting_on = radius_handler.isAccountingRequested(name)
 
@@ -57,25 +57,27 @@ function radius_handler.accountingStart(name, username, password)
     local ip_address = get_first_ip(name)
     local current_time = os.time()
     math.randomseed(current_time)
-    local accounting_started = interface.radiusAccountingStart(username --[[ Username ]] , name --[[ MAC Address ]] ,
-        session_id, ip_address --[[ First IP Address ]] , current_time)
+    --   local accounting_started = interface.radiusAccountingStart(username --[[ Username ]] , name --[[ MAC Address ]] ,
+    --        session_id, ip_address --[[ First IP Address ]] , current_time)
+    --    if accounting_started then
+    local json = require("dkjson")
+    local key = string.format(redis_accounting_key, name)
+    local user_data = {
+        name = name,
+        username = username,
+        password = password,
+        session_id = session_id,
+        start_session_time = current_time,
+        ip_address = ip_address
+    }
 
-    if accounting_started then
-        local json = require("dkjson")
-        local key = string.format(redis_accounting_key, name)
-        local user_data = {
-            name = name,
-            username = username,
-            password = password,
-            session_id = session_id,
-            start_session_time = current_time,
-            ip_address = ip_address
-        }
+    ntop.setCache(key, json.encode(user_data))
 
-        ntop.setCache(key, json.encode(user_data))
-    end
+    interface.radiusAccountingUpdate(name, user_data.session_id, user_data.username, user_data.password, ip_address, 0,
+        0, 0, 0, current_time - user_data.start_session_time)
+    --    end
 
-    return accounting_started
+    return true
 end
 
 -- ##############################################
@@ -137,8 +139,8 @@ function radius_handler.accountingUpdate(name, info)
                 local json = require("dkjson")
                 local key = string.format(redis_accounting_key, name)
                 user_data.ip_address = ip_address
-    
-                ntop.setCache(key, json.encode(user_data))                    
+
+                ntop.setCache(key, json.encode(user_data))
             end
         end
         local bytes_sent = info["bytes.sent"]

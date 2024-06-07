@@ -2137,6 +2137,7 @@ local known_parameters = {
    ["bytes"] = validateListOfTypeInline(validateFilters(validateNumber)),
    ["packets"] = validateListOfTypeInline(validateFilters(validateNumber)),
 
+   ["host_pool"] = validateListOfTypeInline(validateFilters(validateNumber)),
    ["cli_host_pool_id"] = validateListOfTypeInline(validateFilters(validateNumber)),
    ["srv_host_pool_id"] = validateListOfTypeInline(validateFilters(validateNumber)),
 
