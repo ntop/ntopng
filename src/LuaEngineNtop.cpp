@@ -21,6 +21,8 @@
 
 #include "ntop_includes.h"
 
+#include <type_traits>
+
 extern "C" {
 #include "rrd.h"
 };
@@ -6296,7 +6298,7 @@ static int ntop_rrd_tune(lua_State *vm) {
   filename = argv[1];
 
   reset_rrd_state();
-  status = rrd_tune(argc, (char **)argv);
+  status = rrd_tune(argc, (std::conditional<std::is_same<decltype(rrd_tune), int(int, const char **)>::value, const char **, char **>::type)argv);
 
   if (status != 0) {
     char *err = rrd_get_error();
