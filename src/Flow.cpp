@@ -1089,8 +1089,9 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
 
   /* Exits if the flow isn't DNS or it the interface is not a packet-interface
    */
-  if ((!isDNS()) || (!getInterface()->isPacketInterface()) ||
-      (ndpiFlow == NULL))
+  if ((!isDNS())
+      || (!getInterface()->isPacketInterface())
+      || (ndpiFlow == NULL))
     return;
 
   /* Instruct nDPI to continue the dissection
@@ -1099,8 +1100,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
   */
   ndpiFlow->max_extra_packets_to_check = 10;
 
-  proto_id = ndpi_detection_process_packet(
-					   iface->get_ndpi_struct(), ndpiFlow, ip_packet, ip_len, packet_time, NULL);
+  proto_id = ndpi_detection_process_packet(iface->get_ndpi_struct(), ndpiFlow, ip_packet, ip_len, packet_time, NULL);
 
   /*
     A DNS flow won't change to a non-DNS flow. However, this check is
