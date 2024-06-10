@@ -87,7 +87,7 @@ class PcapInterface : public NetworkInterface {
   bool reproducePcapOriginalSpeed() const;
   virtual void updateDirectionStats();
   inline u_int8_t get_num_ifaces() { return(num_ifaces); }
-  bool processNextPacket(pcap_t *pd, int32_t if_index, int pcap_datalink_type);
+  bool processNextPacket(pcap_t *pd, int32_t if_index, int datalink_type);
   bool reopen(u_int8_t iface_id);  
   unsigned int get_ifindex(int i) { return(ifname_indexes[i]); }
   int get_ifdatalink(int i)       { return(iface_datalink[i]); }

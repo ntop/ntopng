@@ -50,6 +50,7 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
 
   firstPktTS.tv_sec = 0;
   pcap_path = NULL;
+  iface_datalink[0] = DLT_EN10MB; /* default */
 
   if ((stat(name, &buf) == 0) || (name[0] == '-') ||
       !strncmp(name, "stdin", 5)) {
@@ -146,6 +147,8 @@ PcapInterface::PcapInterface(const char *name, u_int8_t ifIdx,
       dev = strtok(NULL, ",");
     } /* while */
   }
+
+  set_datalink(iface_datalink[0]);
 
   if (read_pkts_from_pcap_dump) {
     /* Used to cleanup data during next ntopng startup */
@@ -601,7 +604,7 @@ void PcapInterface::sendTermination() {
 static u_int32_t num_pkts = 0;
 #endif
 
-bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_datalink_type) {
+bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int datalink_type) {
   const u_char *pkt;
   struct pcap_pkthdr *hdr;
   int rc;
@@ -659,7 +662,7 @@ bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_dat
       hdr_copy.caplen = min(hdr_copy.len, hdr_copy.caplen);
       memcpy(pkt_copy, pkt, hdr_copy.len);
       dissectPacket(if_index,
-		    DUMMY_BRIDGE_INTERFACE_ID, pcap_datalink_type,
+		    DUMMY_BRIDGE_INTERFACE_ID, datalink_type,
 		    true /* ingress - TODO: see if we pass the real
 			    packet direction */
 		    ,
@@ -669,7 +672,7 @@ bool PcapInterface::processNextPacket(pcap_t *pd, int32_t if_index, int pcap_dat
       hdr->caplen = min_val(hdr->caplen, getMTU());
 
       dissectPacket(if_index,
-		    DUMMY_BRIDGE_INTERFACE_ID, pcap_datalink_type,
+		    DUMMY_BRIDGE_INTERFACE_ID, datalink_type,
 		    true /* ingress - TODO: see if we pass the real
 			    packet direction */
 		    ,
