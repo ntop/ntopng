@@ -2369,23 +2369,30 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
 
     if (vm) lua_newtable(vm);
 
-    if ((curlcode = curl_easy_perform(curl)) == CURLE_OK) {
-      if (return_content && vm) {
-        lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
-        lua_push_uint64_table_entry(vm, "CONTENT_LEN", state->num_bytes);
-      }
+    curlcode = curl_easy_perform(curl);
 
+    /* Workaround for curl 7.81.0 which fails in case of unexpected EOF
+     * with OpenSSL 3.0.x (https://github.com/ntop/ntopng/issues/8434) */
+    if (curlcode == CURLE_RECV_ERROR && state && state->num_bytes > 0)
+      curlcode = CURLE_OK;
+
+    if (curlcode == CURLE_OK) {
       if (vm) {
-        char *ip = NULL;
+        if (return_content && state) {
+          lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
+          lua_push_uint64_table_entry(vm, "CONTENT_LEN", state->num_bytes);
+        }
 
+        char *ip = NULL;
         if (!curl_easy_getinfo(curl, CURLINFO_PRIMARY_IP, &ip) && ip)
           lua_push_str_table_entry(vm, "RESOLVED_IP", ip);
       }
 
       ret = true;
     } else {
-      if (vm)
+      if (vm) {
         lua_push_str_table_entry(vm, "ERROR", curl_easy_strerror(curlcode));
+      }
 
       ret = false;
     }
