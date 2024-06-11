@@ -2221,6 +2221,8 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
   char tokenBuffer[64];
   bool used_tokenBuffer = false;
 
+  tokenBuffer[0] = '\0';
+
   if (curl) {
     DownloadState *state = NULL;
     ProgressState progressState;
@@ -2239,8 +2241,6 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
       snprintf(tokenBuffer, sizeof(tokenBuffer), "Authorization: Token %s",
                user_header_token);
     } else {
-      tokenBuffer[0] = '\0';
-
       if (username || password) {
         char auth[64];
 
@@ -2264,10 +2264,12 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
 #ifdef CURLOPT_SSL_ENABLE_ALPN
+      /* Note: this option is enabled by default */
       curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_ALPN, 1L); /* Enable ALPN */
 #endif
 
 #ifdef CURLOPT_SSL_ENABLE_NPN
+      /* Note: this options is deprecated since 7.86.0 */
       curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_NPN,
                        1L); /* Negotiate HTTP/2 if available */
 #endif
@@ -2290,8 +2292,6 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
     }
 
     if ((tokenBuffer[0] != '\0') && (!used_tokenBuffer)) {
-      snprintf(tokenBuffer, sizeof(tokenBuffer), "Authorization: Token %s",
-               user_header_token);
       headers = curl_slist_append(headers, tokenBuffer);
       used_tokenBuffer = true;
     }
@@ -2369,23 +2369,30 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
 
     if (vm) lua_newtable(vm);
 
-    if ((curlcode = curl_easy_perform(curl)) == CURLE_OK) {
-      if (return_content && vm) {
-        lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
-        lua_push_uint64_table_entry(vm, "CONTENT_LEN", state->num_bytes);
-      }
+    curlcode = curl_easy_perform(curl);
 
+    /* Workaround for curl 7.81.0 which fails in case of unexpected EOF
+     * with OpenSSL 3.0.x (https://github.com/ntop/ntopng/issues/8434) */
+    if (curlcode == CURLE_RECV_ERROR && state && state->num_bytes > 0)
+      curlcode = CURLE_OK;
+
+    if (curlcode == CURLE_OK) {
       if (vm) {
-        char *ip = NULL;
+        if (return_content && state) {
+          lua_push_str_table_entry(vm, "CONTENT", state->outbuf);
+          lua_push_uint64_table_entry(vm, "CONTENT_LEN", state->num_bytes);
+        }
 
+        char *ip = NULL;
         if (!curl_easy_getinfo(curl, CURLINFO_PRIMARY_IP, &ip) && ip)
           lua_push_str_table_entry(vm, "RESOLVED_IP", ip);
       }
 
       ret = true;
     } else {
-      if (vm)
+      if (vm) {
         lua_push_str_table_entry(vm, "ERROR", curl_easy_strerror(curlcode));
+      }
 
       ret = false;
     }
