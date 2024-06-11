@@ -2221,6 +2221,8 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
   char tokenBuffer[64];
   bool used_tokenBuffer = false;
 
+  tokenBuffer[0] = '\0';
+
   if (curl) {
     DownloadState *state = NULL;
     ProgressState progressState;
@@ -2239,8 +2241,6 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
       snprintf(tokenBuffer, sizeof(tokenBuffer), "Authorization: Token %s",
                user_header_token);
     } else {
-      tokenBuffer[0] = '\0';
-
       if (username || password) {
         char auth[64];
 
@@ -2264,10 +2264,12 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
       curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
 
 #ifdef CURLOPT_SSL_ENABLE_ALPN
+      /* Note: this option is enabled by default */
       curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_ALPN, 1L); /* Enable ALPN */
 #endif
 
 #ifdef CURLOPT_SSL_ENABLE_NPN
+      /* Note: this options is deprecated since 7.86.0 */
       curl_easy_setopt(curl, CURLOPT_SSL_ENABLE_NPN,
                        1L); /* Negotiate HTTP/2 if available */
 #endif
@@ -2290,8 +2292,6 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
     }
 
     if ((tokenBuffer[0] != '\0') && (!used_tokenBuffer)) {
-      snprintf(tokenBuffer, sizeof(tokenBuffer), "Authorization: Token %s",
-               user_header_token);
       headers = curl_slist_append(headers, tokenBuffer);
       used_tokenBuffer = true;
     }
