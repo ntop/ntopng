@@ -20,6 +20,11 @@ alert_ndpi_anonymous_subscriber.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_anonymous_subscriber,
    i18n_title = "flow_risk.ndpi_anonymous_subscriber",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.indicator_removal",
+   mitre_tecnique = "mitre.tecnique.data_from_conf_repo",
+   mitre_ID = "T1070",
 }
 
 -- ##############################################

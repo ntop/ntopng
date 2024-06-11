@@ -21,6 +21,11 @@ alert_ndpi_numeric_ip_host.meta = {
    i18n_title = "flow_risk.ndpi_http_numeric_ip_host",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.defense_evasion",
+   mitre_tecnique = "mitre.tecnique.indicator_removal",
+   mitre_ID = "T1070",
+
    has_victim = true,
    has_attacker = true,
 }

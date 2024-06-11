@@ -25,6 +25,12 @@ alert_dhcp_storm.meta = {
   entities = {
      alert_entities.interface,
   },
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.credential_access",
+   mitre_tecnique = "mitre.tecnique.adversary_in_the_middle",
+   mitre_sub_tecnique = "mitre.sub_tecnique.dhcp_spoofing",
+   mitre_ID = "T1557.003",
 }
 
 -- ##############################################

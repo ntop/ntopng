@@ -24,6 +24,12 @@ alert_elephant_flow.meta = {
    alert_key = flow_alert_keys.flow_alert_elephant_flow,
    i18n_title = "flow_details.elephant_flow",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.collection",
+   mitre_tecnique = "mitre.tecnique.data_from_conf_repo",
+   mitre_sub_tecnique = "mitre.sub_tecnique.network_device_conf_dump",
+   mitre_ID = "T1602.002",
 }
 
 -- #######################################################

@@ -20,6 +20,11 @@ alert_rare_destination.meta = {
    alert_key  = flow_alert_keys.flow_alert_rare_destination,
    i18n_title = "flow_checks_config.rare_destination",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.c_and_c",
+   mitre_tecnique = "mitre.tecnique.dynamic_resolution",
+   mitre_ID = "T1568",
 }
 
 -- ##############################################

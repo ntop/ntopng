@@ -22,6 +22,11 @@ alert_tcp_flow_reset.meta = {
    alert_key = flow_alert_keys.flow_alert_tcp_flow_reset,
    i18n_title = "flow_checks_config.flow_reset_title",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.impact",
+   mitre_tecnique = "mitre.tecnique.endpoint_ddos",
+   mitre_ID = "T1499",
 }
 
 -- ##############################################

@@ -20,6 +20,11 @@ alert_ndpi_tls_missing_sni.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_tls_missing_sni,
    i18n_title = "flow_risk.ndpi_tls_missing_sni",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.c_and_c",
+   mitre_tecnique = "mitre.tecnique.proxy",
+   mitre_ID = "T1090",
 }
 
 -- ##############################################

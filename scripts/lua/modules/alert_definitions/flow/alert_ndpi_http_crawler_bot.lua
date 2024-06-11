@@ -20,6 +20,12 @@ alert_ndpi_http_crawler_bot.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_http_crawler_bot,
    i18n_title = "flow_risk.ndpi_http_crawler_bot",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.reconnaissance",
+   mitre_tecnique = "mitre.tecnique.search_open_tech_db",
+   mitre_sub_tecnique = "mitre.sub_tecnique.worldlist_scanning",
+   mitre_ID = "T1595.003",
 }
 
 -- ##############################################

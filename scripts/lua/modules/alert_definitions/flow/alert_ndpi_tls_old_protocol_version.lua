@@ -20,6 +20,11 @@ alert_ndpi_tls_old_protocol_version.meta = {
    alert_key = flow_alert_keys.flow_alert_ndpi_tls_old_protocol_version,
    i18n_title = "flow_details.tls_old_protocol_version",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.execution",
+   mitre_tecnique = "mitre.tecnique.exploitation_client_exec",
+   mitre_ID = "T1203",
 }
 
 -- ##############################################

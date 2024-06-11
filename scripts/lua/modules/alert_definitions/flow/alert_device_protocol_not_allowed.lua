@@ -22,6 +22,11 @@ alert_device_protocol_not_allowed.meta = {
    i18n_title = "alerts_dashboard.suspicious_device_protocol",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.c_and_c",
+   mitre_tecnique = "mitre.tecnique.app_layer_proto",
+   mitre_ID = "T1071",
+   
    has_attacker = true,
 }
 

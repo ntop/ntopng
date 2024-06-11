@@ -23,6 +23,12 @@ host_alert_countries_contacts.meta = {
   alert_key = host_alert_keys.host_alert_countries_contacts,
   i18n_title = "alerts_dashboard.host_alert_countries_contacts",
   icon = "fas fa-fw fa-life-ring",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.c_and_c",
+   mitre_tecnique = "mitre.tecnique.web_service",
+   mitre_ID = "T1102",
+
   has_victim = true,
 }
 

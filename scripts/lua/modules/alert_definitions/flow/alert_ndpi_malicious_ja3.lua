@@ -21,6 +21,11 @@ alert_ndpi_malicious_ja3.meta = {
   alert_key = flow_alert_keys.flow_alert_ndpi_malicious_ja3,
   i18n_title = "flow_checks_config.malicious_ja3",
   icon = "fas fa-fw fa-info-circle",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.initial_access",
+   mitre_tecnique = "mitre.tecnique.content_injection",
+   mitre_ID = "T1659",
 }
 
 -- ##############################################

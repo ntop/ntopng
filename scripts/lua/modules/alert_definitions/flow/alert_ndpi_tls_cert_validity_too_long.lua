@@ -20,6 +20,11 @@ alert_ndpi_tls_cert_validity_too_long.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_tls_cert_validity_too_long,
    i18n_title = "alerts_dashboard.ndpi_tls_cert_validity_too_long_title",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.defense_evasion",
+   mitre_tecnique = "mitre.tecnique.impair_defenses",
+   mitre_ID = "T1562",
 }
 
 -- ##############################################

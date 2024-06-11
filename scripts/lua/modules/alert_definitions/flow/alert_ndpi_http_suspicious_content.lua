@@ -20,6 +20,11 @@ alert_http_suspicious_content.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_http_suspicious_content,
    i18n_title = "flow_risk.ndpi_http_suspicious_content",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.defense_evasion",
+   mitre_tecnique = "mitre.tecnique.obfuscated_files_info",
+   mitre_ID = "T1027",
 }
 
 -- ##############################################

@@ -21,6 +21,11 @@ alert_unexpected_dhcp_server.meta = {
    i18n_title = "flow_alerts_explorer.alert_unexpected_dhcp_title",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.defense_evasion",
+   mitre_tecnique = "mitre.tecnique.rogue_domain_controller",
+   mitre_ID = "T1207",
+
    has_attacker = true,
 }
 

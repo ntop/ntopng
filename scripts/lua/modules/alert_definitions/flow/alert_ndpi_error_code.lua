@@ -20,6 +20,11 @@ alert_ndpi_error_code_detected.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_error_code_detected,
    i18n_title = "flow_risk.ndpi_error_code_detected",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.impact",
+   mitre_tecnique = "mitre.tecnique.endpoint_ddos",
+   mitre_ID = "T1499",
 }
 
 -- ##############################################

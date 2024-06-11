@@ -21,6 +21,11 @@ alert_ndpi_dns_suspicious_traffic.meta = {
    i18n_title = "alerts_dashboard.ndpi_dns_suspicious_traffic_title",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.impact",
+   mitre_tecnique = "mitre.tecnique.resource_hijacking",
+   mitre_ID = "T1496.001",
+
    has_victim = true,
    has_attacker = true,
 }

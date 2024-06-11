@@ -21,6 +21,11 @@ alert_ndpi_url_possible_sql_injection.meta = {
    i18n_title = "alerts_dashboard.ndpi_url_possible_sql_injection_title",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.initial_access",
+   mitre_tecnique = "mitre.tecnique.exploit_pub_facing_app",
+   mitre_ID = "T1190",
+
    has_victim = true,
    has_attacker = true,
 }

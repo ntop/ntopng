@@ -21,6 +21,11 @@ alert_periodicity_changed.meta = {
    alert_key = flow_alert_keys.flow_alert_periodicity_changed,
    i18n_title = "alerts_dashboard.alert_periodicity_update",
    icon = "fas fa-fw fa-arrows-alt-h",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.exfiltration",
+   mitre_tecnique = "mitre.tecnique.scheduled_tranfer",
+   mitre_ID = "T1029",
 }
 
 -- ##############################################

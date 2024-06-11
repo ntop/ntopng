@@ -21,6 +21,12 @@ alert_dns_invalid_query.meta = {
    i18n_title = "flow_details.dns_invalid_query",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.c_and_c",
+   mitre_tecnique = "mitre.tecnique.dynamic_resolution",
+   mitre_sub_tecnique = "mitre.sub_tecnique.dns_calculation",
+   mitre_ID = "T1568.003",
+   
    has_attacker = true,
 }
 

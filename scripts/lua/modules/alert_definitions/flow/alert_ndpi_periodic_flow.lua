@@ -21,6 +21,11 @@ alert_ndpi_periodic_flow.meta = {
   alert_key = flow_alert_keys.flow_alert_ndpi_periodic_flow,
   i18n_title = "flow_checks_config.ndpi_periodic_flow",
   icon = "fas fa-fw fa-info-circle",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.exfiltration",
+   mitre_tecnique = "mitre.tecnique.exfiltration_over_c2_channel",
+   mitre_ID = "T1029",
 }
 
 -- ##############################################

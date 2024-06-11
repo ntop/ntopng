@@ -23,6 +23,12 @@ alert_remote_to_remote.meta = {
    alert_key = flow_alert_keys.flow_alert_remote_to_remote,
    i18n_title = "flow_checks_config.remote_to_remote",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.lateral_movement",
+   mitre_tecnique = "mitre.tecnique.session_hijacking",
+   mitre_sub_tecnique = "mitre.sub_tecnique.rdp_hijacking",
+   mitre_ID = "T1563.002",
 }
 
 -- ##############################################

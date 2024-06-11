@@ -20,6 +20,11 @@ alert_tls_certificate_expired.meta = {
    alert_key = flow_alert_keys.flow_alert_tls_certificate_expired,
    i18n_title = "flow_details.tls_certificate_expired",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.initial_access",
+   mitre_tecnique = "mitre.tecnique.valid_accounts",
+   mitre_ID = "T1078",
 }
 
 -- ##############################################

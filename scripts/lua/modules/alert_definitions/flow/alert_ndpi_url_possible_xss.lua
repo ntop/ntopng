@@ -21,6 +21,11 @@ alert_ndpi_url_possible_xss.meta = {
    i18n_title = "alerts_dashboard.ndpi_url_possible_xss_title",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.credential_access",
+   mitre_tecnique = "mitre.tecnique.steal_web_session_cookie",
+   mitre_ID = "T1539",
+
    has_victim = true,
    has_attacker = true,
 }

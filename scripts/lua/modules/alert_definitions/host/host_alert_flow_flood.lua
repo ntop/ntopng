@@ -25,6 +25,11 @@ host_alert_flow_flood.meta = {
   i18n_title = "alerts_dashboard.flow_flood",
   icon = "fas fa-fw fa-life-ring",
   has_attacker = true,
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.impact",
+   mitre_tecnique = "mitre.tecnique.network_ddos",
+   mitre_ID = "T1498",
 }
 
 -- ##############################################

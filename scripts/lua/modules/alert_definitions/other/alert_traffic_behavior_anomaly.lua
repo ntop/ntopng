@@ -23,6 +23,11 @@ alert_traffic_behavior_anomaly.meta = {
    entities = {
       alert_entities.interface,
    },
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.credential_access",
+   mitre_tecnique = "mitre.tecnique.network_sniffing",
+   mitre_ID = "T1040",
 }
 
 -- ##############################################

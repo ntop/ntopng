@@ -20,6 +20,11 @@ alert_ndpi_dns_invalid_characters.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_invalid_characters,
    i18n_title = "flow_risk.ndpi_invalid_characters",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.credential_access",
+   mitre_tecnique = "mitre.tecnique.adversary_in_the_middle",
+   mitre_ID = "T1557",
 }
 
 -- ##############################################

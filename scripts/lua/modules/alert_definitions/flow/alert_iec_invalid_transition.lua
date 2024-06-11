@@ -23,6 +23,11 @@ alert_iec_invalid_transition.meta = {
    alert_key = flow_alert_keys.flow_alert_iec_invalid_transition,
    i18n_title = "flow_checks.iec104_title",
    icon = "fas fa-fw fa-subway",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.impact",
+   mitre_tecnique = "mitre.tecnique.data_manipulation",
+   mitre_ID = "T1565",
 }
 
 -- ##############################################

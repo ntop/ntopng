@@ -20,7 +20,13 @@ alert_ndpi_http_suspicious_user_agent.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_http_suspicious_user_agent,
    i18n_title = "flow_risk.ndpi_http_suspicious_user_agent",
    icon = "fas fa-fw fa-exclamation",
-   
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.c_and_c",
+   mitre_tecnique = "mitre.tecnique.app_layer_proto",
+   mitre_sub_tecnique = "mitre.sub_tecnique.web_proto",
+   mitre_ID = "T1071.001",
+
    has_victim = true,
    has_attacker = true,
 }

@@ -21,6 +21,11 @@ alert_ndpi_unsafe_protocol.meta = {
    i18n_title = "alerts_dashboard.ndpi_unsafe_protocol_title",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.credential_access",
+   mitre_tecnique = "mitre.tecnique.forced_authentication",
+   mitre_ID = "T1187",
+
    has_attacker = true,
 }
 

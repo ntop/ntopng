@@ -25,6 +25,11 @@ alert_broadcast_non_udp_traffic.meta = {
 
    has_attacker = true,
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.discovery",
+   mitre_tecnique = "mitre.tecnique.network_service_discovery",
+   mitre_ID = "T1046",
+
    -- Default values
    default = {
       -- Fitlters to be applied on the alert, e.g., cli_port=23

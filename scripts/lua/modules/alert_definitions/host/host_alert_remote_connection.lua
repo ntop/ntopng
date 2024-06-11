@@ -22,6 +22,11 @@ host_alert_remote_connection.meta = {
   alert_key = host_alert_keys.host_alert_remote_connection,
   i18n_title = "alerts_dashboard.remote_connection_title",
   icon = "fas fa-fw fa-info",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.persistence",
+   mitre_tecnique = "mitre.tecnique.ext_remote_services",
+   mitre_ID = "T1133",
 }
 
 -- ##############################################

@@ -20,6 +20,11 @@ alert_tcp_connection_refused.meta = {
    alert_key = flow_alert_keys.flow_alert_tcp_connection_refused,
    i18n_title = "flow_checks_config.tcp_connection_refused",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.discovery",
+   mitre_tecnique = "mitre.tecnique.network_service_discovery",
+   mitre_ID = "T1046",
 }
 
 -- ##############################################

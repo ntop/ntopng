@@ -21,6 +21,10 @@ alert_ndpi_url_possible_rce_injection.meta = {
    i18n_title = "alerts_dashboard.ndpi_url_possible_rce_injection_title",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.execution",
+   mitre_ID = "TA0002",
+   
    has_victim = true,
    has_attacker = true,
 }

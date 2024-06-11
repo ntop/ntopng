@@ -20,6 +20,11 @@ alert_zero_tcp_window.meta = {
    alert_key = flow_alert_keys.flow_alert_zero_tcp_window,
    i18n_title = "flow_alerts_explorer.alert_zero_tcp_window_title",
    icon = "fas fa-fw fa-arrow-circle-up",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.impact",
+   mitre_tecnique = "mitre.tecnique.endpoint_ddos",
+   mitre_ID = "T1499",
 }
 
 -- ##############################################

@@ -21,6 +21,11 @@ alert_ndpi_http_suspicious_url.meta = {
    i18n_title = "flow_risk.ndpi_http_suspicious_url",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.initial_access",
+   mitre_tecnique = "mitre.tecnique.drive_by_compr",
+   mitre_ID = "T1189",
+
    has_victim = true,
    has_attacker = true,
 }

@@ -20,6 +20,11 @@ alert_tls_certificate_selfsigned.meta = {
    alert_key = flow_alert_keys.flow_alert_tls_certificate_selfsigned,
    i18n_title = "flow_details.tls_certificate_selfsigned",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.credential_access",
+   mitre_tecnique = "mitre.tecnique.adversary_in_the_middle",
+   mitre_ID = "T1557",
 }
 
 -- ##############################################

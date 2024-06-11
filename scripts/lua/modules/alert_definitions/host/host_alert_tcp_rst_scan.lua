@@ -23,6 +23,11 @@ host_alert_tcp_rst_scan.meta = {
   i18n_title = "alerts_dashboard.tcp_rst_scan",
   icon = "fas fa-fw fa-life-ring",
   has_attacker = true,
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.reconnaissance",
+   mitre_tecnique = "mitre.tecnique.active_scanning",
+   mitre_ID = "T1595",
 }
 
 -- ##############################################

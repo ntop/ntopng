@@ -27,6 +27,11 @@ alert_slow_periodic_activity.meta = {
   entities = {
     alert_entities.system
   },
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.exfiltration",
+   mitre_tecnique = "mitre.tecnique.exfiltration_over_c2_channel",
+   mitre_ID = "T1041",
 }
 
 -- ##############################################

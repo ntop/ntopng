@@ -21,6 +21,11 @@ alert_ndpi_http_obsolete_server.meta = {
   alert_key = flow_alert_keys.flow_alert_ndpi_http_obsolete_server,
   i18n_title = "flow_checks_config.http_obsolete_server",
   icon = "fas fa-fw fa-info-circle",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.initial_access",
+   mitre_tecnique = "mitre.tecnique.content_injection",
+   mitre_ID = "T1659",
 }
 
 -- ##############################################

@@ -21,6 +21,11 @@ alert_ndpi_http_suspicious_header.meta = {
    i18n_title = "flow_risk.ndpi_http_suspicious_header",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.persistence",
+   mitre_tecnique = "mitre.tecnique.server_software_component",
+   mitre_ID = "T1505",
+
    has_victim = true,
    has_attacker = true,
 }

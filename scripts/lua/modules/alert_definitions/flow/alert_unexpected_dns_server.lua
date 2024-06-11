@@ -21,6 +21,12 @@ alert_unexpected_dns_server.meta = {
    i18n_title = "flow_alerts_explorer.alert_unexpected_dns_title",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.c_and_c",
+   mitre_tecnique = "mitre.tecnique.app_layer_proto",
+   mitre_sub_tecnique = "mitre.sub_tecnique.dns",
+   mitre_ID = "T1071.004",
+
    has_attacker = true,
 }
 

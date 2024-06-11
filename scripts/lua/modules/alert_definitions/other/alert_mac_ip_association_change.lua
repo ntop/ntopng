@@ -24,6 +24,12 @@ alert_mac_ip_association_change.meta = {
   entities = {
     alert_entities.mac
   },
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.credential_access",
+   mitre_tecnique = "mitre.tecnique.adversary_in_the_middle",
+   mitre_sub_tecnique = "mitre.sub_tecnique.arp_cache_poisoning",
+   mitre_ID = "T1557.002",
 }
 
 -- ##############################################

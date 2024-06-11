@@ -21,6 +21,12 @@ alert_unexpected_ntp_server.meta = {
    i18n_title = "flow_alerts_explorer.alert_unexpected_ntp_title",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.impact",
+   mitre_tecnique = "mitre.tecnique.network_ddos",
+   mitre_sub_tecnique = "mitre.sub_tecnique.reflection_amplification",
+   mitre_ID = "T1498.002",
+
    has_attacker = true,
 }
 

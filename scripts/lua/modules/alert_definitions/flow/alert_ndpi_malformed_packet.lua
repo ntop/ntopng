@@ -20,6 +20,11 @@ alert_ndpi_malformed_packet.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_malformed_packet,
    i18n_title = "flow_risk.ndpi_malformed_packet",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.persistence",
+   mitre_tecnique = "mitre.tecnique.traffic_signaling",
+   mitre_ID = "T1205",
 }
 
 -- ##############################################

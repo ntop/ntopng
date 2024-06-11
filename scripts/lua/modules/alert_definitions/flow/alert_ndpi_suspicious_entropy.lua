@@ -21,6 +21,11 @@ alert_ndpi_suspicious_entropy.meta = {
    i18n_title = "flow_risk.ndpi_suspicious_entropy",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.defense_evasion",
+   mitre_tecnique = "mitre.tecnique.obfuscated_files_info",
+   mitre_ID = "T1027",
+
    has_victim = true,
    has_attacker = true,
 }

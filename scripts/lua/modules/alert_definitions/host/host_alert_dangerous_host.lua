@@ -23,6 +23,11 @@ host_alert_dangerous_host.meta = {
   alert_key = host_alert_keys.host_alert_dangerous_host,
   i18n_title = "alerts_dashboard.dangerous_host_title",
   icon = "fas fa-exclamation-triangle",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.exfiltration",
+   mitre_tecnique = "mitre.tecnique.exfiltration_over_c2_channel",
+   mitre_ID = "T1041",
 }
 
 -- ##############################################

@@ -21,6 +21,11 @@ alert_ndpi_desktop_or_file_sharing_session.meta = {
   alert_key = flow_alert_keys.flow_alert_ndpi_desktop_or_file_sharing_session,
   i18n_title = "flow_checks_config.desktop_or_file_sharing_session",
   icon = "fas fa-fw fa-info-circle",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.lateral_movement",
+   mitre_tecnique = "mitre.tecnique.lateral_tool_transfer",
+   mitre_ID = "T1570",
 }
 
 -- ##############################################

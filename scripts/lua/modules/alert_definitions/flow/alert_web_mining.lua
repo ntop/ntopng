@@ -20,6 +20,11 @@ alert_web_mining.meta = {
    alert_key = flow_alert_keys.flow_alert_web_mining,
    i18n_title = "alerts_dashboard.web_mining",
    icon = "fab fa-bitcoin",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.impact",
+   mitre_tecnique = "mitre.tecnique.resource_hijacking",
+   mitre_ID = "T1496",
 }
 
 -- ##############################################

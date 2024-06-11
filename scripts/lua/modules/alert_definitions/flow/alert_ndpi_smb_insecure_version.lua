@@ -20,6 +20,12 @@ alert_ndpi_smb_insecure_version.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_smb_insecure_version,
    i18n_title = "flow_risk.ndpi_smb_insecure_version",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.lateral_movement",
+   mitre_tecnique = "mitre.tecnique.remote_services",
+   mitre_sub_tecnique = "mitre.sub_tecnique.smb_windows_admin_share",
+   mitre_ID = "T1021.002",
 }
 
 -- ##############################################

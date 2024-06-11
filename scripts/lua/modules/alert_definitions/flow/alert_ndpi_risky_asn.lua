@@ -21,6 +21,11 @@ alert_ndpi_risky_asn.meta = {
   alert_key = flow_alert_keys.flow_alert_ndpi_risky_asn,
   i18n_title = "flow_checks_config.risky_asn",
   icon = "fas fa-fw fa-info-circle",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.discovery",
+   mitre_tecnique = "mitre.tecnique.network_service_discovery",
+   mitre_ID = "T1018",
 }
 
 -- ##############################################

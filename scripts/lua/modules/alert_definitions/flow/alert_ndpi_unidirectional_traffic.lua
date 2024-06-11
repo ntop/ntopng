@@ -21,6 +21,12 @@ alert_unidirectional_traffic.meta = {
   alert_key = flow_alert_keys.flow_alert_ndpi_unidirectional_traffic,
   i18n_title = "flow_details.unidirectional_traffic",
   icon = "fas fa-fw fa-info-circle",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.c_and_c",
+   mitre_tecnique = "mitre.tecnique.web_service",
+   mitre_sub_tecnique = "mitre.sub_tecnique.one_way_communication",
+   mitre_ID = "T1102.003",
 }
 
 -- ##############################################

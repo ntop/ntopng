@@ -22,6 +22,11 @@ alert_known_proto_on_non_std_port.meta = {
    i18n_title = "alerts_dashboard.known_proto_on_non_std_port",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.c_and_c",
+   mitre_tecnique = "mitre.tecnique.nont_std_port",
+   mitre_ID = "T1571",
+
    has_attacker = true,
 }
 

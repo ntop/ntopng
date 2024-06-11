@@ -22,6 +22,11 @@ alert_flow_low_goodput.meta = {
    alert_key = flow_alert_keys.flow_alert_low_goodput,
    i18n_title = "alerts_dashboard.flow_low_goodput",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.impact",
+   mitre_tecnique = "mitre.tecnique.endpoint_ddos",
+   mitre_ID = "T1499",
 }
 
 -- ##############################################

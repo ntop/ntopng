@@ -23,6 +23,11 @@ alert_modbus_unexpected_function_code.meta = {
    alert_key = flow_alert_keys.flow_alert_modbus_unexpected_function_code,
    i18n_title = "flow_checks.modbus_invalid_function_code",
    icon = "fas fa-fw fa-subway",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.impact",
+   mitre_tecnique = "mitre.tecnique.data_manipulation",
+   mitre_ID = "T1565",
 }
 
 -- ##############################################

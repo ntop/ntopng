@@ -21,6 +21,12 @@ alert_unexpected_smtp_server.meta = {
    i18n_title = "flow_alerts_explorer.alert_unexpected_smtp_title",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.c_and_c",
+   mitre_tecnique = "mitre.tecnique.app_layer_proto",
+   mitre_sub_tecnique = "mitre.sub_tecnique.mail_protocol",
+   mitre_ID = "T1071.003",
+
    has_attacker = true,
 }
 

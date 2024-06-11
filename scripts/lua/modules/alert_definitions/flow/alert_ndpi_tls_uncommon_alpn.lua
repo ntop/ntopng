@@ -21,6 +21,11 @@ alert_ndpi_tls_uncommon_alpn.meta = {
   alert_key = flow_alert_keys.flow_alert_ndpi_tls_uncommon_alpn,
   i18n_title = "flow_checks_config.tls_uncommon_alpn",
   icon = "fas fa-fw fa-info-circle",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.discovery",
+   mitre_tecnique = "mitre.tecnique.remote_system_discovery",
+   mitre_ID = "T1018",
 }
 
 -- ##############################################

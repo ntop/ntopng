@@ -24,6 +24,13 @@ host_alert_dns_server_contacts.meta = {
   i18n_title = "alerts_thresholds_config.dns_traffic",
   icon = "fas fa-fw fa-life-ring",
   has_victim = true,
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.c_and_c",
+   mitre_tecnique = "mitre.tecnique.app_layer_proto",
+   mitre_sub_tecnique = "mitre.sub_tecnique.dns",
+   mitre_ID = "T1071.004",
+
 }
 
 -- ##############################################

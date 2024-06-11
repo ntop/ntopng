@@ -22,6 +22,11 @@ alert_remote_access.meta = {
    alert_key  = flow_alert_keys.flow_alert_remote_access,
    i18n_title = "alerts_dashboard.remote_access_title",
    icon = "fas fa-fw fa-info",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.initial_access",
+   mitre_tecnique = "mitre.tecnique.ext_remote_services",
+   mitre_ID = "T1133",
 }
 
 -- ##############################################

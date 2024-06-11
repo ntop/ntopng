@@ -20,6 +20,11 @@ alert_ndpi_tls_certificate_about_to_expire.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_tls_certificate_about_to_expire,
    i18n_title = "flow_risk.ndpi_tls_certificate_about_to_expire",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.initial_access",
+   mitre_tecnique = "mitre.tecnique.valid_account",
+   mitre_ID = "T1078",
 }
 
 -- ##############################################

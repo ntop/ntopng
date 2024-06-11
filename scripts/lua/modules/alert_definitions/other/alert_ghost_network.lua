@@ -26,6 +26,11 @@ alert_ghost_network.meta = {
      alert_entities.interface,
      alert_entities.network
   },
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.c_and_c",
+   mitre_tecnique = "mitre.tecnique.hide_infrastructure",
+   mitre_ID = "T1665",
 }
 
 -- ##############################################

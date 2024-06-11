@@ -20,6 +20,12 @@ alert_ndpi_punicody_idn.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_punicody_idn,
    i18n_title = "flow_risk.ndpi_punicody_idn",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.initial_access",
+   mitre_tecnique = "mitre.tecnique.phishing",
+   mitre_sub_tecnique = "mitre.sub_tecnique.spearphishing_link",
+   mitre_ID = "T1566.002",
 }
 
 -- ##############################################

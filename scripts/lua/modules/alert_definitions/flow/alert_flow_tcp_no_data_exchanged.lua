@@ -20,6 +20,12 @@ alert_tcp_no_data_exchanged.meta = {
    alert_key = flow_alert_keys.flow_alert_tcp_no_data_exchanged,
    i18n_title = "flow_alerts_explorer.alert_tcp_no_data_exchanged_title",
    icon = "fas fa-fw fa-arrow-circle-up",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.discovery",
+   mitre_tecnique = "mitre.tecnique.network_service_discovery",
+   mitre_ID = "T1046",
+
 }
 
 -- ##############################################

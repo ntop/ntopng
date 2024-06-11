@@ -25,6 +25,11 @@ alert_periodic_activity_not_executed.meta = {
   entities = {
     alert_entities.system
   },
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.defense_evasion",
+   mitre_tecnique = "mitre.tecnique.impair_defenses",
+   mitre_ID = "T1562",
 }
 
 -- ##############################################

@@ -21,6 +21,12 @@ alert_dns_data_exfiltration.meta = {
    i18n_title = "flow_details.dns_data_exfiltration",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.exfiltration",
+   mitre_tecnique = "mitre.tecnique.exfiltration_over_alt_proto",
+   mitre_ID = "T1048",
+
+
    has_attacker = true,
 }
 

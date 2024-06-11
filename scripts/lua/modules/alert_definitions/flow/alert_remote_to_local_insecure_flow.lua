@@ -24,6 +24,12 @@ alert_remote_to_local_insecure_flow.meta = {
    i18n_title = "flow_checks_config.remote_to_local_insecure_flow_title",
    icon = "fas fa-fw fa-exclamation",
 
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.lateral_movement",
+   mitre_tecnique = "mitre.tecnique.remote_services",
+   mitre_sub_tecnique = "mitre.sub_tecnique.remote_desktop_proto",
+   mitre_ID = "T1021.001",
+
    has_victim = true,
    has_attacker = true,
 }

@@ -20,6 +20,11 @@ alert_tls_certificate_mismatch.meta = {
    alert_key = flow_alert_keys.flow_alert_tls_certificate_mismatch,
    i18n_title = "flow_details.tls_certificate_mismatch",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.defense_evasion",
+   mitre_tecnique = "mitre.tecnique.indicator_removal",
+   mitre_ID = "T1070",
 }
 
 -- ##############################################

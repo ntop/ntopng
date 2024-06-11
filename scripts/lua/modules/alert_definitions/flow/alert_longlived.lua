@@ -21,6 +21,11 @@ alert_longlived.meta = {
    alert_key = flow_alert_keys.flow_alert_longlived,
    i18n_title = "flow_details.longlived_flow",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.collection",
+   mitre_tecnique = "mitre.tecnique.data_from_net_shared_driver",
+   mitre_ID = "T1039",
 }
 
 -- ##############################################

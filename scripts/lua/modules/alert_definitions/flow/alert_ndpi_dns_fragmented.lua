@@ -20,6 +20,12 @@ alert_ndpi_dns_fragmented.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_dns_fragmented,
    i18n_title = "flow_risk.ndpi_dns_fragmented",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.reconnaissance",
+   mitre_tecnique = "mitre.tecnique.search_open_tech_db",
+   mitre_sub_tecnique = "mitre.sub_tecnique.dns_passive_dns",
+   mitre_ID = "T1596.001",
 }
 
 -- ##############################################

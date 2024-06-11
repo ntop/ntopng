@@ -21,6 +21,12 @@ alert_ndpi_tls_suspicious_extension.meta = {
   alert_key = flow_alert_keys.flow_alert_ndpi_tls_suspicious_extension,
   i18n_title = "flow_checks_config.tls_suspicious_extension",
   icon = "fas fa-fw fa-info-circle",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.c_and_c",
+   mitre_tecnique = "mitre.tecnique.data_obfuscation",
+   mitre_sub_tecnique = "mitre.sub_tecnique.protocol_impersonation",
+   mitre_ID = "T1001.003",
 }
 
 -- ##############################################

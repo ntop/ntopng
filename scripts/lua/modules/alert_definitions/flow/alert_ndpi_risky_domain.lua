@@ -21,6 +21,11 @@ alert_ndpi_risky_domain.meta = {
   alert_key = flow_alert_keys.flow_alert_ndpi_risky_domain,
   i18n_title = "flow_checks_config.risky_domain",
   icon = "fas fa-fw fa-info-circle",
+
+   -- Mitre Att&ck Matrix values
+   mitre_tactic = "mitre.tactic.initial_access",
+   mitre_tecnique = "mitre.tecnique.phishing",
+   mitre_ID = "T1566",
 }
 
 -- ##############################################

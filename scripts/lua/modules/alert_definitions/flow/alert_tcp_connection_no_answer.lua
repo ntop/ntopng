@@ -20,6 +20,12 @@ alert_tcp_connection_no_answer.meta = {
    alert_key = flow_alert_keys.flow_alert_connection_failed,
    i18n_title = "flow_checks_config.tcp_connection_no_answer_title",
    icon = "fas fa-fw fa-exclamation",
+
+    -- Mitre Att&ck Matrix values
+    mitre_tactic = "mitre.tactic.persistence",
+    mitre_tecnique = "mitre.tecnique.traffic_signaling",
+    mitre_sub_tecnique = "mitre.sub_tecnique.port_knocking",
+    mitre_ID = "T1205.001",
 }
 
 -- ##############################################
