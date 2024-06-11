@@ -57,25 +57,22 @@ function radius_handler.accountingStart(name, username, password)
     local ip_address = get_first_ip(name)
     local current_time = os.time()
     math.randomseed(current_time)
-    --   local accounting_started = interface.radiusAccountingStart(username --[[ Username ]] , name --[[ MAC Address ]] ,
-    --        session_id, ip_address --[[ First IP Address ]] , current_time)
-    --    if accounting_started then
-    local json = require("dkjson")
-    local key = string.format(redis_accounting_key, name)
-    local user_data = {
-        name = name,
-        username = username,
-        password = password,
-        session_id = session_id,
-        start_session_time = current_time,
-        ip_address = ip_address
-    }
+    local accounting_started = interface.radiusAccountingStart(username --[[ Username ]] , name --[[ MAC Address ]] ,
+        session_id, ip_address --[[ First IP Address ]] , current_time)
+    if accounting_started then
+        local json = require("dkjson")
+        local key = string.format(redis_accounting_key, name)
+        local user_data = {
+            name = name,
+            username = username,
+            password = password,
+            session_id = session_id,
+            start_session_time = current_time,
+            ip_address = ip_address
+        }
 
-    ntop.setCache(key, json.encode(user_data))
-
-    interface.radiusAccountingUpdate(name, user_data.session_id, user_data.username, user_data.password, ip_address, 0,
-        0, 0, 0, current_time - user_data.start_session_time)
-    --    end
+        ntop.setCache(key, json.encode(user_data))
+    end
 
     return true
 end
@@ -91,15 +88,25 @@ function radius_handler.accountingStop(name, terminate_cause, info)
     end
 
     local is_accounting_on, user_data = radius_handler.isAccountingRequested(name)
+    -- Removing the entry from redis
+    ntop.delCache(string.format(redis_accounting_key, name))
 
     -- Check in case no user_data is found
     if user_data then
-        local ip_address = get_first_ip(name)
         local bytes_sent = 0
         local bytes_rcvd = 0
         local packets_sent = 0
         local packets_rcvd = 0
         local current_time = os.time()
+        local ip_address = ""
+        if user_data and not isEmptyString(user_data.ip_address) then
+            ip_address = user_data.ip_address
+        else
+            ip_address = get_first_ip(name)
+            if not isEmptyString(ip_address) then
+                user_data.ip_address = ip_address
+            end
+        end
 
         if info then
             bytes_sent = info["bytes.sent"]
@@ -111,7 +118,6 @@ function radius_handler.accountingStop(name, terminate_cause, info)
         interface.radiusAccountingStop(user_data.username --[[ Username ]] , user_data.session_id, name --[[ MAC Address]] ,
             ip_address, bytes_sent, bytes_rcvd, packets_sent, packets_rcvd, terminate_cause,
             current_time - user_data.start_session_time)
-        ntop.delCache(string.format(redis_accounting_key, name))
     end
 end
 
@@ -128,7 +134,7 @@ function radius_handler.accountingUpdate(name, info)
     local is_accounting_on, user_data = radius_handler.isAccountingRequested(name)
     local res = true
 
-    if is_accounting_on then
+    if is_accounting_on and user_data then
         local ip_address
         if user_data and not isEmptyString(user_data.ip_address) then
             ip_address = user_data.ip_address

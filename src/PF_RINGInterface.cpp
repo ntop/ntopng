@@ -137,11 +137,12 @@ PF_RINGInterface::PF_RINGInterface(const char *_name)
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   
   num_pfring_handles = 0;
-  pcap_datalink_type = DLT_EN10MB;
   dropped_packets = 0;
   merged_interfaces = strchr(_name, ',') ? true : false;
   strncpy(name, ifname, sizeof(name));
   name[sizeof(name) - 1] = '\0';
+
+  set_datalink(DLT_EN10MB);
 
   if (strchr(name, ':') && strchr(name, ',')) {
     char *item_name, *tmp;
@@ -213,7 +214,7 @@ void PF_RINGInterface::singlePacketPollLoop() {
 
         if (hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
         dissectPacket(merged_interfaces ? hdr.extended_hdr.if_index : UNKNOWN_PKT_IFACE_IDX,
-		      DUMMY_BRIDGE_INTERFACE_ID, pcap_datalink_type,
+		      DUMMY_BRIDGE_INTERFACE_ID, get_datalink(),
                       (hdr.extended_hdr.rx_direction == 1) ? true /* ingress */
                                                            : false /* egress */,
                       NULL, (const struct pcap_pkthdr *)&hdr, buffer, &p,
@@ -263,7 +264,7 @@ void PF_RINGInterface::multiPacketPollLoop() {
 
         if (hdr.ts.tv_sec == 0) gettimeofday(&hdr.ts, NULL);
 	dissectPacket(merged_interfaces ? hdr.extended_hdr.if_index : UNKNOWN_PKT_IFACE_IDX,
-		      DUMMY_BRIDGE_INTERFACE_ID, pcap_datalink_type,
+		      DUMMY_BRIDGE_INTERFACE_ID, get_datalink(),
                       (idx == 0) /* Assuming 0 ingress, 1 egress (TAP) */, NULL,
                       (const struct pcap_pkthdr *)&hdr, buffer, &p, &srcHost,
                       &dstHost, &flow);
