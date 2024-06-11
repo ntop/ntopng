@@ -11,64 +11,65 @@ Below you can find instructions on how to run ntopng with either a self signed o
 
 ## SELFSIGNED CERTIFICATE
 
-1	To create the self-signed certificate you need to:
+To create the self-signed certificate you need to install OpenSSL
 
-1.1	Install OpenSSL
+On Debian/Ubuntu: sudo apt-get install openssl
+OnRedHat/CentOS: sudo yum install openssl
+On OSX do: brew install openssl
 
-	On Debian/Ubuntu: sudo apt-get install openssl
-	OnRedHat/CentOS: sudo yum install openssl
+### From Source Code
 
-  	On OSX do: brew install openssl
+If you are running from source code, you can create your SSL certificate inside the ntopng folder executing the command below:
 
-1.2 Create your SSL certificate
+```
+make cert
+```
 
-		inside the ntopng folder execute the command: make cert
-		and follow the instruction
+Edit the /etc/ntopng/ntopng.conf file to enable https, adding:
 
-1.3	Edit ntop.conf to enable https
-		Edit the /etc/ntopng/ntopng.conf file to include the text --https-port=3001
-		You may choose ports other than 3001 but it must be a different port to the http port which is port 3000 by default
-		Alternatively you can disable insecure http altogether by replacing the line -w=3000 with --http-port=0
-		(-w and --http-port are interchangeable)
+```
+--https-port=3001
+```
+
+You may choose ports other than 3001 but it must be a different port to the http port which is port 3000 by default
+Alternatively you can disable insecure http altogether by replacing the line -w=3000 with --http-port=0
+(-w and --http-port are interchangeable)
    
+Then start ntopng.
 
-1.5	Start ntopng
+### From Packages
 
-1.6 OPTIONAL
-  	"make cert" will create the certificate but you can see below the
-  	exact steps if you want to generate the certificate manually.
-  
-		You now need to locate your ntopng `share` directory. It is usually located at `/usr/share/ntopng` or at `/usr/local/share/ntopng`.
-		The next instructions assume it's located at `/usr/local/share/ntopng`.
+Please find below the steps to generate a certificate manually.
+The certificate should be installed under the ntopng `share` directory, usually located at `/usr/share/ntopng` or at `/usr/local/share/ntopng`.
+The next instructions assume it's located at `/usr/local/share/ntopng`.
 
-		== Ubuntu and Centos packages ==
+#### Ubuntu and Centos
 
-		cd /tmp/
-		openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out cert.pem
-		cat privkey.pem cert.pem > /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
-		/bin/rm -f privkey.pem cert.pem
-		cd /usr/local/bin/
-		ln -s /usr/lib/x86_64-linux-gnu/libssl.so .
-		ntopng
+```
+   cd /tmp/
+   openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out cert.pem
+   cat privkey.pem cert.pem > /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
+   /bin/rm -f privkey.pem cert.pem
+   systemctl restart ntopng
+```
 
-		== HomeBrew Formula ==
+#### HomeBrew Formula
 
-		cd /tmp/
-		openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out cert.pem
-		mkdir /usr/share/ntopng/httpdocs/ssl/
-		cat privkey.pem cert.pem > /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
-		/bin/rm -f privkey.pem cert.pem
-		cd /usr/local/bin/
-		ln -s /opt/local/lib/libssl.dylib /opt/local/lib/libcrypto.dylib .
-		ntopng
-
-
+```
+   cd /tmp/
+   openssl req -new -x509 -sha256 -extensions v3_ca -nodes -days 365 -out cert.pem
+   mkdir /usr/share/ntopng/httpdocs/ssl/
+   cat privkey.pem cert.pem > /usr/share/ntopng/httpdocs/ssl/ntopng-cert.pem
+   /bin/rm -f privkey.pem cert.pem
+   cd /usr/local/bin/
+   ln -s /opt/local/lib/libssl.dylib /opt/local/lib/libcrypto.dylib .
+   ntopng
+```
 
 ## CA CERTIFICATE [ Let's Encrypt ]
 
 Please read https://www.ntop.org/ntopng/securing-ntopng-with-ssl-and-lets-encrypt/ for
 a complete tutorial on using Let's Encrypt to secure ntopng.
-
 
 ## HTTPS Client Authentication
 
@@ -87,24 +88,27 @@ to take effect.
 Using openssl you may easily activate the feature and create client certificates 
 with the following instructions.
 
-1. Create your own CA:
+Create your own CA:
 
-	- openssl genrsa -des3 -out ca.key 2048				# create key
-	- openssl req -new -x509 -days 365 -key ca.key -out ca.crt 	# create CA self-signed cert
+```
+   openssl genrsa -des3 -out ca.key 2048			# create key
+   openssl req -new -x509 -days 365 -key ca.key -out ca.crt 	# create CA self-signed cert
+   cat ca.crt >> ntopng/httpdocs/ssl/ntopng-ca.crt		# add cert to trusted CAs
+```	
 
-	- cat ca.crt >> ntopng/httpdocs/ssl/ntopng-ca.crt			# add cert to trusted CAs
+Create one or more Client Certificates:
+
+```
+   openssl genrsa -des3 -out client.key 2048			# create key
+   openssl req -new -key client.key -out client.csr		# create client cert request
+   openssl x509 -req -days 365 -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt																# create client cert signed by CA
+```
 	
+Export Client to preferred browser format (usually pkcs12):
 
-2. Create one or more Client Certificates:
-
-	- openssl genrsa -des3 -out client.key 2048			# create key
-	- openssl req -new -key client.key -out client.csr		# create client cert request
-	- openssl x509 -req -days 365 -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt														# create client cert signed by CA
-	
-3. Export Client to preferred browser format (usually pkcs12):
-
-	- openssl pkcs12 -export -clcerts -in client.crt -inkey client.key -out client.p12
+```
+   openssl pkcs12 -export -clcerts -in client.crt -inkey client.key -out client.p12
+```
 
 Then import client certificate in the browser and restart ntopng. 
 Remember first to enable HTTPS Client Authentication in the Preferences->User Authetication.
-

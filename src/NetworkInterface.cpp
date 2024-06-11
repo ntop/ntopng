@@ -254,9 +254,11 @@ void NetworkInterface::init(const char *interface_name) {
   flows_only_interface = false;
   numSubInterfaces = 0;
   ip_reassignment_alerts_enabled = false;
-  pcap_datalink_type = 0, mtuWarningShown = false,
-    purge_idle_flows_hosts = true, id = (u_int8_t)-1, last_remote_pps = 0,
-    last_remote_bps = 0, has_vlan_packets = false,
+  pcap_datalink_type = DLT_EN10MB; /* default */
+  mtuWarningShown = false;
+  purge_idle_flows_hosts = true;
+  id = (u_int8_t)-1;
+  last_remote_pps = 0,last_remote_bps = 0, has_vlan_packets = false,
     cpu_affinity = -1 /* no affinity */,
     interfaceStats = NULL, has_too_many_hosts = has_too_many_flows = false,
     flow_dump_disabled = false, numL2Devices = 0,
@@ -290,8 +292,9 @@ void NetworkInterface::init(const char *interface_name) {
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
 
-  ip_addresses = "", networkStats = NULL, pcap_datalink_type = 0,
-    cpu_affinity = -1;
+  ip_addresses = "";
+  networkStats = NULL;
+  cpu_affinity = -1;
 
   gettimeofday(&last_periodic_stats_update, NULL);
   num_live_captures = 0;
@@ -1608,7 +1611,7 @@ NetworkInterface *NetworkInterface::getDynInterface(u_int64_t criteria,
 /* **************************************************** */
 
 bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_idx,
-				     int pcap_datalink_type, bool ingressPacket,
+				     int datalink_type, bool ingressPacket,
 				     const struct bpf_timeval *when, const u_int64_t packet_time,
 				     struct ndpi_ethhdr *eth, u_int16_t vlan_id, struct ndpi_iphdr *iph,
 				     struct ndpi_ipv6hdr *ip6, u_int16_t ip_offset,
@@ -1651,7 +1654,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     /* Custom disaggregation */
     if (sub_interfaces && (sub_interfaces->getNumSubInterfaces() > 0)) {
       processed = sub_interfaces->processPacket(if_index, bridge_iface_idx,
-						pcap_datalink_type, ingressPacket,
+						datalink_type, ingressPacket,
 						when, packet_time, eth, vlan_id, iph,
 						ip6, ip_offset, encapsulation_overhead, len_on_wire, h, packet,
 						ndpiProtocol, srcHost, dstHost, hostFlow);
@@ -1667,7 +1670,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
         if ((vIface = getDynInterface((u_int32_t)vlan_id, false)) != NULL) {
           vIface->setTimeLastPktRcvd(h->ts.tv_sec);
           pass_verdict = vIface->processPacket(if_index, bridge_iface_idx,
-					       pcap_datalink_type, ingressPacket, when, packet_time, eth, vlan_id,
+					       datalink_type, ingressPacket, when, packet_time, eth, vlan_id,
 					       iph, ip6, ip_offset, encapsulation_overhead, len_on_wire, h,
 					       packet, ndpiProtocol, srcHost, dstHost, hostFlow);
           processed = true;
@@ -2464,7 +2467,7 @@ u_int16_t NetworkInterface::guessEthType(const u_char *p, u_int len,
 
 bool NetworkInterface::dissectPacket(int32_t if_index,
 				     u_int32_t bridge_iface_idx,
-				     int pcap_datalink_type,
+				     int datalink_type,
                                      bool ingressPacket, u_int8_t *sender_mac,
                                      const struct pcap_pkthdr *h,
                                      const u_char *packet,
@@ -2526,7 +2529,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
   time = ((uint64_t)h->ts.tv_sec) * 1000 + h->ts.tv_usec / 1000;
 
  datalink_check:
-  if (pcap_datalink_type == DLT_NULL) {
+  if (datalink_type == DLT_NULL) {
     if (h->caplen < sizeof(u_int32_t)) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
 	       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1);
@@ -2559,7 +2562,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     if (sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ip_offset = 4 + eth_offset;
-  } else if (pcap_datalink_type == DLT_EN10MB) {
+  } else if (datalink_type == DLT_EN10MB) {
     if (h->caplen < sizeof(ndpi_ethhdr)) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
 	       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1);
@@ -2569,7 +2572,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
     ethernet = (struct ndpi_ethhdr *)&packet[eth_offset];
     ip_offset = sizeof(struct ndpi_ethhdr) + eth_offset;
     eth_type = ntohs(ethernet->h_proto);
-  } else if (pcap_datalink_type == 113 /* Linux Cooked Capture */) {
+  } else if (datalink_type == 113 /* Linux Cooked Capture */) {
     if (h->caplen < 16) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
 	       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1);
@@ -2581,8 +2584,8 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
     eth_type = (packet[eth_offset + 14] << 8) + packet[eth_offset + 15];
     ip_offset = 16 + eth_offset;
 #ifdef DLT_RAW
-  } else if (pcap_datalink_type == DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */
-             || pcap_datalink_type == 14 /* raw IP DLT_RAW on OpenBSD captures */) {
+  } else if (datalink_type == DLT_RAW /* Linux TUN/TAP device in TUN mode; Raw IP capture */
+             || datalink_type == 14 /* raw IP DLT_RAW on OpenBSD captures */) {
     if (h->caplen < sizeof(u_int32_t)) {
       incStats(ingressPacket, h->ts.tv_sec, 0, NDPI_PROTOCOL_UNKNOWN,
 	       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, h->len, 1);
@@ -2606,14 +2609,14 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
     ip_offset = eth_offset;
 #endif /* DLT_RAW */
-  } else if (pcap_datalink_type == DLT_ENC) {
+  } else if (datalink_type == DLT_ENC) {
     if (packet[0] == 2 /* IPv4 */) {
       eth_type = ETHERTYPE_IP;
       ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
       ip_offset = 12;
     }
     /* TODO support IPv6 encapsulation one day */
-  } else if (pcap_datalink_type == DLT_IPV4) {
+  } else if (datalink_type == DLT_IPV4) {
     eth_type = ETHERTYPE_IP;
     if (sender_mac) memcpy(&dummy_ethernet.h_source, sender_mac, 6);
     ethernet = (struct ndpi_ethhdr *)&dummy_ethernet;
@@ -2983,7 +2986,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 
       try {
 	pass_verdict = processPacket(if_index, bridge_iface_idx,
-				     pcap_datalink_type, ingressPacket, &h->ts, time, ethernet, vlan_id,
+				     datalink_type, ingressPacket, &h->ts, time, ethernet, vlan_id,
 				     iph, ip6, ip_offset, encapsulation_overhead, len_on_wire, h,
 				     packet, ndpiProtocol, srcHost, dstHost, flow);
       } catch (std::bad_alloc &ba) {
@@ -3140,7 +3143,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	if (ntop->getPrefs()->do_ignore_macs()) ethernet = &dummy_ethernet;
 
 	try {
-	  pass_verdict = processPacket(if_index, bridge_iface_idx, pcap_datalink_type,
+	  pass_verdict = processPacket(if_index, bridge_iface_idx, datalink_type,
 				       ingressPacket, &h->ts, time, ethernet,
 				       vlan_id, iph, ip6, ip_offset, encapsulation_overhead,
 				       len_on_wire, h, packet, ndpiProtocol, srcHost, dstHost, flow);

@@ -707,12 +707,12 @@ public:
   Host *findHostByMac(u_int8_t *mac);
 
   bool dissectPacket(int32_t iface_index, u_int32_t bridge_iface_idx,
-		     int pcap_datalink_type, bool ingressPacket,
+		     int datalink_type, bool ingressPacket,
 		     u_int8_t *sender_mac, /* Non NULL only for NFQUEUE interfaces */
 		     const struct pcap_pkthdr *h, const u_char *packet,
 		     u_int16_t *ndpiProtocol, Host **srcHost, Host **dstHost, Flow **flow);
   bool processPacket(int32_t if_index, u_int32_t bridge_iface_idx,
-		     int pcap_datalink_type, bool ingressPacket,
+		     int datalink_type, bool ingressPacket,
                      const struct bpf_timeval *when, const u_int64_t time,
                      struct ndpi_ethhdr *eth, u_int16_t vlan_id,
                      struct ndpi_iphdr *iph, struct ndpi_ipv6hdr *ip6,
