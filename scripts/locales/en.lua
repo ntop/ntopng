@@ -198,6 +198,7 @@ local lang = {
   ["downlink"] = "In Usage",
   ["downlink_usage"] = "Last In Usage",
   ["download"] = "Download",
+  ["export_snmp_device_data"] = "Download Debug Data",
   ["download_days"] = "Download last %{days} day(s)",
   ["download_format"] = "Please select the format of the data to download:",
   ["download_icon"] = "<i class='fas fa-arrow-down'></i>",
