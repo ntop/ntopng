@@ -10,6 +10,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -23,10 +25,12 @@ alert_ndpi_ssh_obsolete_client.meta = {
    icon = "fas fa-fw fa-exclamation",
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.lateral_movement",
-   mitre_tecnique = "mitre.tecnique.remote_services",
-   mitre_sub_tecnique = "mitre.sub_tecnique.ssh",
-   mitre_ID = "T1021.004",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.lateral_movement,
+      mitre_tecnique = mitre.tecnique.remote_services,
+      mitre_sub_tecnique = mitre.sub_tecnique.ssh,
+      mitre_id = "T1021.004"
+   },
 }
 
 -- ##############################################

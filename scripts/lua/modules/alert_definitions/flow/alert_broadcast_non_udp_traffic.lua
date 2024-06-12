@@ -11,6 +11,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -26,9 +28,11 @@ alert_broadcast_non_udp_traffic.meta = {
    has_attacker = true,
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.discovery",
-   mitre_tecnique = "mitre.tecnique.network_service_discovery",
-   mitre_ID = "T1046",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.discovery,
+      mitre_tecnique = mitre.tecnique.network_service_discovery,
+      mitre_id = "T1046"
+   },
 
    -- Default values
    default = {

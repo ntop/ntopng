@@ -10,6 +10,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -23,9 +25,11 @@ alert_ndpi_desktop_or_file_sharing_session.meta = {
   icon = "fas fa-fw fa-info-circle",
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.lateral_movement",
-   mitre_tecnique = "mitre.tecnique.lateral_tool_transfer",
-   mitre_ID = "T1570",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.lateral_movement,
+      mitre_tecnique = mitre.tecnique.lateral_tool_transfer,
+      mitre_id = "T1570"
+   },
 }
 
 -- ##############################################

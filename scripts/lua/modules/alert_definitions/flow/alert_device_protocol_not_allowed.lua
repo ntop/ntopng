@@ -10,6 +10,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -23,9 +25,11 @@ alert_device_protocol_not_allowed.meta = {
    icon = "fas fa-fw fa-exclamation",
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.c_and_c",
-   mitre_tecnique = "mitre.tecnique.app_layer_proto",
-   mitre_ID = "T1071",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.c_and_c,
+      mitre_tecnique = mitre.tecnique.app_layer_proto,
+      mitre_id = "T1071"
+   },
    
    has_attacker = true,
 }

@@ -9,6 +9,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -22,9 +24,11 @@ alert_ndpi_numeric_ip_host.meta = {
    icon = "fas fa-fw fa-exclamation",
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.defense_evasion",
-   mitre_tecnique = "mitre.tecnique.indicator_removal",
-   mitre_ID = "T1070",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.defense_evasion,
+      mitre_tecnique = mitre.tecnique.indicator_removal,
+      mitre_id = "T1070"
+   },
 
    has_victim = true,
    has_attacker = true,

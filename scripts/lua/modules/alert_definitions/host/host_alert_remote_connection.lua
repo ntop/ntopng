@@ -11,6 +11,8 @@ local alert_creators = require "alert_creators"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -24,9 +26,11 @@ host_alert_remote_connection.meta = {
   icon = "fas fa-fw fa-info",
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.persistence",
-   mitre_tecnique = "mitre.tecnique.ext_remote_services",
-   mitre_ID = "T1133",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.persistence,
+      mitre_tecnique = mitre.tecnique.ext_remote_services,
+      mitre_id = "T1133"
+   },
 }
 
 -- ##############################################

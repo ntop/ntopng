@@ -11,6 +11,8 @@ local format_utils = require("format_utils")
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -24,9 +26,11 @@ alert_flow_low_goodput.meta = {
    icon = "fas fa-fw fa-exclamation",
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.impact",
-   mitre_tecnique = "mitre.tecnique.endpoint_ddos",
-   mitre_ID = "T1499",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.impact,
+      mitre_tecnique = mitre.tecnique.endpoint_ddos,
+      mitre_id = "T1499"
+   },
 }
 
 -- ##############################################

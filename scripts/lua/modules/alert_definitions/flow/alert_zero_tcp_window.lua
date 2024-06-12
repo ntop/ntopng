@@ -9,6 +9,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -22,9 +24,11 @@ alert_zero_tcp_window.meta = {
    icon = "fas fa-fw fa-arrow-circle-up",
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.impact",
-   mitre_tecnique = "mitre.tecnique.endpoint_ddos",
-   mitre_ID = "T1499",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.impact,
+      mitre_tecnique = mitre.tecnique.endpoint_ddos,
+      mitre_id = "T1499"
+   },
 }
 
 -- ##############################################

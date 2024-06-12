@@ -13,6 +13,8 @@ local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
 local json = require "dkjson"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -26,10 +28,12 @@ alert_elephant_flow.meta = {
    icon = "fas fa-fw fa-exclamation",
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.collection",
-   mitre_tecnique = "mitre.tecnique.data_from_conf_repo",
-   mitre_sub_tecnique = "mitre.sub_tecnique.network_device_conf_dump",
-   mitre_ID = "T1602.002",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.collection,
+      mitre_tecnique = mitre.tecnique.data_from_conf_repo,
+      mitre_sub_tecnique = mitre.sub_tecnique.network_device_conf_dump,
+      mitre_ID = "T1602.002"
+   },
 }
 
 -- #######################################################

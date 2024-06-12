@@ -11,6 +11,8 @@ local alert_creators = require "alert_creators"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -24,10 +26,12 @@ host_alert_tcp_rst_scan.meta = {
   icon = "fas fa-fw fa-life-ring",
   has_attacker = true,
 
-   -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.reconnaissance",
-   mitre_tecnique = "mitre.tecnique.active_scanning",
-   mitre_ID = "T1595",
+  -- Mitre Att&ck Matrix values
+  mitre_values = {
+    mitre_tactic = mitre.tactic.reconnaissance,
+    mitre_tecnique = mitre.tecnique.active_scanning,
+    mitre_id = "T1595"
+  },
 }
 
 -- ##############################################

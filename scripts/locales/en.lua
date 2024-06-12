@@ -5628,7 +5628,7 @@ local lang = {
       ["spearphishing_service"] = "Spearphishing Service",
       ["ssh"] = "SSH",
       ["web_protocol"] = "Web Protocol",
-      ["worldlist_scanning"] = "Worldlist Scanning",
+      ["wordlist_scanning"] = "Wordlist Scanning",
     },
   },
   ["modal_download_file"] = {

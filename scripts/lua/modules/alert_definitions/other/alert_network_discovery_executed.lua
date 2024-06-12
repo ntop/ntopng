@@ -10,6 +10,8 @@ local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
 local alert_entities = require "alert_entities"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -26,10 +28,12 @@ alert_network_discovery_executed.meta = {
    },
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.reconnaissance",
-   mitre_tecnique = "mitre.tecnique.gather_victim_net_info",
-   mitre_sub_tecnique = "mitre.sub_tecnique.network_topology",
-   mitre_ID = "T1590.004",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.reconnaissance,
+      mitre_tecnique = mitre.tecnique.gather_victim_net_info,
+      mitre_sub_tecnique = mitre.sub_tecnique.network_topology,
+      mitre_ID = "T1590.004"
+   },
 }
 
 -- ##############################################

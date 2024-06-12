@@ -11,6 +11,8 @@ local classes = require "classes"
 local alert = require "alert"
 local alert_entities = require "alert_entities"
 local format_utils = require "format_utils"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -27,9 +29,11 @@ alert_periodic_activity_not_executed.meta = {
   },
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.defense_evasion",
-   mitre_tecnique = "mitre.tecnique.impair_defenses",
-   mitre_ID = "T1562",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.defense_evasion,
+      mitre_tecnique = mitre.tecnique.impair_defenses,
+      mitre_id = "T1562"
+   },
 }
 
 -- ##############################################

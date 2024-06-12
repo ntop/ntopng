@@ -9,6 +9,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -22,10 +24,12 @@ alert_dns_invalid_query.meta = {
    icon = "fas fa-fw fa-exclamation",
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.c_and_c",
-   mitre_tecnique = "mitre.tecnique.dynamic_resolution",
-   mitre_sub_tecnique = "mitre.sub_tecnique.dns_calculation",
-   mitre_ID = "T1568.003",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.c_and_c,
+      mitre_tecnique = mitre.tecnique.dynamic_resolution,
+      mitre_sub_tecnique = mitre.sub_tecnique.dns_calculation,
+      mitre_id = "T1568.003"
+   },
    
    has_attacker = true,
 }

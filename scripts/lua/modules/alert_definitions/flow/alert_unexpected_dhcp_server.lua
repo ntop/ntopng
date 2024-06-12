@@ -9,6 +9,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -22,9 +24,11 @@ alert_unexpected_dhcp_server.meta = {
    icon = "fas fa-fw fa-exclamation",
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.defense_evasion",
-   mitre_tecnique = "mitre.tecnique.rogue_domain_controller",
-   mitre_ID = "T1207",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.defense_evasion,
+      mitre_tecnique = mitre.tecnique.rogue_domain_controller,
+      mitre_id = "T1207"
+   },
 
    has_attacker = true,
 }

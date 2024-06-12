@@ -10,6 +10,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -23,10 +25,12 @@ alert_unidirectional_traffic.meta = {
   icon = "fas fa-fw fa-info-circle",
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.c_and_c",
-   mitre_tecnique = "mitre.tecnique.web_service",
-   mitre_sub_tecnique = "mitre.sub_tecnique.one_way_communication",
-   mitre_ID = "T1102.003",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.c_and_c,
+      mitre_tecnique = mitre.tecnique.web_service,
+      mitre_sub_tecnique = mitre.sub_tecnique.one_way_communication,
+      mitre_id = "T1102.003"
+   },
 }
 
 -- ##############################################

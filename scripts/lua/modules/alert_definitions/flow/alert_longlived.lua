@@ -10,6 +10,8 @@ local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
 local json = require "dkjson"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -23,9 +25,11 @@ alert_longlived.meta = {
    icon = "fas fa-fw fa-exclamation",
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.collection",
-   mitre_tecnique = "mitre.tecnique.data_from_net_shared_driver",
-   mitre_ID = "T1039",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.collection,
+      mitre_tecnique = mitre.tecnique.data_from_net_shared_driver,
+      mitre_id = "T1039"
+   },
 }
 
 -- ##############################################

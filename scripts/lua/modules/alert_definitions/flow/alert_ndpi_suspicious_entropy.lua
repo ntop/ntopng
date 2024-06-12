@@ -9,6 +9,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -22,9 +24,11 @@ alert_ndpi_suspicious_entropy.meta = {
    icon = "fas fa-fw fa-exclamation",
 
    -- Mitre Att&ck Matrix values
-   mitre_tactic = "mitre.tactic.defense_evasion",
-   mitre_tecnique = "mitre.tecnique.obfuscated_files_info",
-   mitre_ID = "T1027",
+   mitre_values = {
+      mitre_tactic = mitre.tactic.defense_evasion,
+      mitre_tecnique = mitre.tecnique.obfuscated_files_info,
+      mitre_id = "T1027"
+   },
 
    has_victim = true,
    has_attacker = true,
