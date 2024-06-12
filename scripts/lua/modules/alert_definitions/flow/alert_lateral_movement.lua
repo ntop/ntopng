@@ -10,6 +10,8 @@ local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
 local json = require "dkjson"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -21,6 +23,13 @@ alert_lateral_movement.meta = {
    alert_key = flow_alert_keys.flow_alert_lateral_movement,
    i18n_title = "alerts_dashboard.lateral_movement",
    icon = "fas fa-fw fa-arrows-alt-h",
+
+   -- Mitre Att&ck Matrix values
+   mitre_values = {
+      mitre_tactic = mitre.tactic.lateral_movement,
+      mitre_id = "TA0008"
+   },
+
 }
 
 -- ##############################################

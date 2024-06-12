@@ -12,6 +12,8 @@ local alert_creators = require "alert_creators"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -23,6 +25,13 @@ host_alert_dangerous_host.meta = {
   alert_key = host_alert_keys.host_alert_dangerous_host,
   i18n_title = "alerts_dashboard.dangerous_host_title",
   icon = "fas fa-exclamation-triangle",
+
+   -- Mitre Att&ck Matrix values
+  mitre_values = {
+    mitre_tactic = mitre.tactic.exfiltration,
+    mitre_tecnique = mitre.tecnique.exfiltration_over_c2_channel,
+    mitre_id = "T1041"
+  },
 }
 
 -- ##############################################

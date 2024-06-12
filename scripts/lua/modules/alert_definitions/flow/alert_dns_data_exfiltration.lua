@@ -9,6 +9,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -20,6 +22,13 @@ alert_dns_data_exfiltration.meta = {
    alert_key = flow_alert_keys.flow_alert_dns_data_exfiltration,
    i18n_title = "flow_details.dns_data_exfiltration",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_values = {
+      mitre_tactic = mitre.tactic.exfiltration,
+      mitre_tecnique = mitre.tecnique.exfiltration_over_alt_proto,
+      mitre_id = "T1048"
+   },
 
    has_attacker = true,
 }

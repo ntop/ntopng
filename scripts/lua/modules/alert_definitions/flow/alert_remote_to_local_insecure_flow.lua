@@ -12,6 +12,8 @@ local json = require("dkjson")
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -23,6 +25,14 @@ alert_remote_to_local_insecure_flow.meta = {
    alert_key = flow_alert_keys.flow_alert_remote_to_local_insecure_proto,
    i18n_title = "flow_checks_config.remote_to_local_insecure_flow_title",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_values = {
+      mitre_tactic = mitre.tactic.lateral_movement,
+      mitre_tecnique = mitre.tecnique.remote_services,
+      mitre_sub_tecnique = mitre.sub_tecnique.remote_desktop_proto,
+      mitre_id = "T1021.001"
+   },
 
    has_victim = true,
    has_attacker = true,

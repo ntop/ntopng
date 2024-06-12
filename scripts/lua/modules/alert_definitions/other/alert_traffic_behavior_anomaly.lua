@@ -9,6 +9,8 @@ local classes = require "classes"
 local alert = require "alert"
 local alert_entities = require("alert_entities")
 local behavior_utils = require("behavior_utils")
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -22,6 +24,13 @@ alert_traffic_behavior_anomaly.meta = {
    icon = "fas fa-fw fa-exclamation",
    entities = {
       alert_entities.interface,
+   },
+
+   -- Mitre Att&ck Matrix values
+   mitre_values = {
+      mitre_tactic = mitre.tactic.credential_access,
+      mitre_tecnique = mitre.tecnique.network_sniffing,
+      mitre_id = "T1040"
    },
 }
 

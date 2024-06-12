@@ -9,6 +9,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -20,6 +22,13 @@ alert_ndpi_url_possible_xss.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_url_possible_xss,
    i18n_title = "alerts_dashboard.ndpi_url_possible_xss_title",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_values = {
+      mitre_tactic = mitre.tactic.credential_access,
+      mitre_tecnique = mitre.tecnique.steal_web_session_cookie,
+      mitre_id = "T1539"
+   },
 
    has_victim = true,
    has_attacker = true,
