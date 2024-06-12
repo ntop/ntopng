@@ -16,17 +16,7 @@
         {% 
             end 
         %}
-        {%
-            for key, dir in pairs(ntop.readdir(dirs.installdir.."/scripts/shell")) do 
-                if(key:match('^(.*).[sh|py]$')) then   
-        %}
-                    <option value='{{ key }}'>{{ dir }}</option>
-            {%  
-                end  
-            %}
-        {% 
-            end 
-        %}
+        
     </select>
     </div>
 </div>
