@@ -223,7 +223,13 @@ function getFormatter(type, absoluteValue, scaleFactorIndex) {
             value = value / Math.pow(10, decimal);
             value = value.toFixed(decimal);
         } else {
-            value = Math.round(value);
+            if (i > 0) {
+                /* Has a decimal number due to the step */
+                value = Number(value.toFixed(1));
+            } else {
+                /* Has a decimal number */
+                value = Math.round(value);
+            }
         }
         
         if (negativeValue && !absoluteValue) { value *= -1; }

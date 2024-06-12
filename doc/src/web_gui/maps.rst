@@ -91,7 +91,10 @@ Asset Map
 
   Asset Map
 
-The Asset Map contains the asset available in a network and flows flowing towards them; the current Assets available are:
+The Asset Map is a map containing information about services active in a network (e.g. hosts acting as DNS servers).
+
+The services currently supported are:
+
   - DNS Server
   - SMTP Server
   - NTP Server

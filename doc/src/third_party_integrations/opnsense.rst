@@ -169,3 +169,15 @@ Some users experienced issues adding the ntop repository in OPNsense with a
 plugin. Manually importing LE root and intermediate CA chain seems to fix this issue.
 Please read https://forum.opnsense.org/index.php?topic=25178.0 for more info.
 
+libsodium.so.23 not found
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ntopng on FreeBSD depends on libsodium.so.23, however OPNsense 24.x provides
+libsodium.so.26, this leads to a failure when trying to run ntopng:
+
+"Shared object libsodium.so.23 not found, required by ntopng"
+
+As a workaround until the library version is aligned, this can be fixed by 
+manually creating a symlink:
+
+ln -s /usr/local/lib/libsodium.so.26 /usr/local/lib/libsodium.so.23
