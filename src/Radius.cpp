@@ -171,7 +171,6 @@ bool Radius::addBasicConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
     }
   }
 
-/*
   if(info->session_id) {
     if (rc_avpair_add(rh, send, PW_ACCT_SESSION_ID, info->session_id, -1, 0) == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -179,7 +178,7 @@ bool Radius::addBasicConfigurationAcct(rc_handle *rh, VALUE_PAIR **send,
       return false;
     }
   }
-*/
+
   if(info->last_ip) {
     u_int32_t addr = ntohl(inet_addr(info->last_ip));
     if (rc_avpair_add(rh, send, PW_FRAMED_IP_ADDRESS, &(addr), -1, 0) == NULL) {
