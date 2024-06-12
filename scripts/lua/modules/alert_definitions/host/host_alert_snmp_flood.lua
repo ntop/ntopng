@@ -13,6 +13,8 @@ local alert_creators = require "alert_creators"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -25,6 +27,14 @@ host_alert_snmp_flood.meta = {
   i18n_title = "alerts_dashboard.snmp_flood",
   icon = "fas fa-fw fa-life-ring",
   has_attacker = true,
+
+  -- Mitre Att&ck Matrix values
+  mitre_values = {
+    mitre_tactic = mitre.tactic.impact,
+    mitre_tecnique = mitre.tecnique.network_ddos,
+    mitre_sub_tecnique = mitre.sub_tecnique.direct_network_flood,
+    mitre_id = "T1498.001"
+  },
 }
 
 -- ##############################################

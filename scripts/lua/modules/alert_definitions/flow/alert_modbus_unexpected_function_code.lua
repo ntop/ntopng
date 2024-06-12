@@ -11,7 +11,8 @@ local format_utils = require "format_utils"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
-
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -23,6 +24,13 @@ alert_modbus_unexpected_function_code.meta = {
    alert_key = flow_alert_keys.flow_alert_modbus_unexpected_function_code,
    i18n_title = "flow_checks.modbus_invalid_function_code",
    icon = "fas fa-fw fa-subway",
+
+   -- Mitre Att&ck Matrix values
+   mitre_values = {
+      mitre_tactic = mitre.tactic.impact,
+      mitre_tecnique = mitre.tecnique.data_manipulation,
+      mitre_id = "T1565"
+   },
 }
 
 -- ##############################################

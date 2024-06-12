@@ -12,6 +12,8 @@ local json = require("dkjson")
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -24,6 +26,14 @@ host_alert_ntp_server_contacts.meta = {
   i18n_title = "alerts_dashboard.host_alert_ntp_server_contacts",
   icon = "fas fa-fw fa-life-ring",
   has_victim = true,
+
+  -- Mitre Att&ck Matrix values
+  mitre_values = {
+    mitre_tactic = mitre.tactic.impact,
+    mitre_tecnique = mitre.tecnique.network_ddos,
+    mitre_sub_tecnique = mitre.sub_tecnique.reflection_amplification,
+    mitre_id = "T1498.002"
+  },
 }
 
 -- ##############################################

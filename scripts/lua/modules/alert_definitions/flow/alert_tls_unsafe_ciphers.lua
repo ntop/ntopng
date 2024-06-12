@@ -9,6 +9,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -20,6 +22,13 @@ alert_tls_unsafe_ciphers.meta = {
    alert_key = flow_alert_keys.flow_alert_tls_unsafe_ciphers,
    i18n_title = "flow_details.tls_unsafe_ciphers",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_values = {
+      mitre_tactic = mitre.tactic.c_and_c,
+      mitre_tecnique = mitre.tecnique.encrypted_channel,
+      mitre_id = "T1573"
+   },
 }
 
 -- ##############################################

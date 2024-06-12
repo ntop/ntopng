@@ -9,6 +9,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- require "lua_utils"
 
@@ -22,6 +24,13 @@ alert_remote_access.meta = {
    alert_key  = flow_alert_keys.flow_alert_remote_access,
    i18n_title = "alerts_dashboard.remote_access_title",
    icon = "fas fa-fw fa-info",
+
+   -- Mitre Att&ck Matrix values
+   mitre_values = {
+      mitre_tactic = mitre.tactic.initial_access,
+      mitre_tecnique = mitre.tecnique.ext_remote_services,
+      mitre_id = "T1133"
+   },
 }
 
 -- ##############################################

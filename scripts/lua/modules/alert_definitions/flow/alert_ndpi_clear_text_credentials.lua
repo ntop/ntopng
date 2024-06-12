@@ -9,6 +9,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -20,6 +22,12 @@ alert_clear_text_credentials.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_clear_text_credentials,
    i18n_title = "flow_risk.ndpi_clear_text_credentials",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_values = {
+      mitre_tactic = mitre.tactic.os_credential_dump,
+      mitre_tecnique = mitre.tecnique.data_from_conf_repo,
+      mitre_id = "T1003"},
 }
 
 -- ##############################################

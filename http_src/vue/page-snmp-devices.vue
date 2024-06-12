@@ -402,6 +402,11 @@ const delete_row = async function () {
   table_snmp_devices.value.refresh_table();
 };
 
+function click_button_export_snmp_device_data(event) {
+
+  console.log("Clicked download data button")
+};
+
 function click_button_edit(event) {
   const row_to_edit = event.row;
   modal_add_snmp_device.value.show(row_to_edit);
@@ -412,7 +417,8 @@ function click_button_edit(event) {
 function on_table_custom_event(event) {
   let events_managed = {
     "click_button_edit": click_button_edit,
-    "click_button_delete": click_button_delete
+    "click_button_delete": click_button_delete,
+    "click_button_export_snmp_device_data": click_button_export_snmp_device_data
   };
   if (events_managed[event.event_id] == null) {
     return;

@@ -11,6 +11,8 @@ local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
 local alert_entities = require "alert_entities"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -25,6 +27,14 @@ alert_dhcp_storm.meta = {
   entities = {
      alert_entities.interface,
   },
+
+   -- Mitre Att&ck Matrix values
+   mitre_values = {
+      mitre_tactic = mitre.tactic.credential_access,
+      mitre_tecnique = mitre.tecnique.adversary_in_the_middle,
+      mitre_sub_tecnique = mitre.sub_tecnique.dhcp_spoofing,
+      mitre_id = "T1557.003"
+   },
 }
 
 -- ##############################################

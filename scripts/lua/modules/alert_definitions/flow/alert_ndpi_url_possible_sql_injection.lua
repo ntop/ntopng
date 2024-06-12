@@ -9,6 +9,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -20,6 +22,13 @@ alert_ndpi_url_possible_sql_injection.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_url_possible_sql_injection,
    i18n_title = "alerts_dashboard.ndpi_url_possible_sql_injection_title",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_values = {
+      mitre_tactic = mitre.tactic.initial_access,
+      mitre_tecnique = mitre.tecnique.exploit_pub_facing_app,
+      mitre_id = "T1190"
+   },
 
    has_victim = true,
    has_attacker = true,

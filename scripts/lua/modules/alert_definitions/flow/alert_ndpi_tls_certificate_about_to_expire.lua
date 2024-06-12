@@ -9,6 +9,8 @@ local flow_alert_keys = require "flow_alert_keys"
 local classes = require "classes"
 -- Make sure to import the Superclass!
 local alert = require "alert"
+-- Import Mitre Att&ck utils
+local mitre = require "mitre_utils"
 
 -- ##############################################
 
@@ -20,6 +22,13 @@ alert_ndpi_tls_certificate_about_to_expire.meta = {
    alert_key  = flow_alert_keys.flow_alert_ndpi_tls_certificate_about_to_expire,
    i18n_title = "flow_risk.ndpi_tls_certificate_about_to_expire",
    icon = "fas fa-fw fa-exclamation",
+
+   -- Mitre Att&ck Matrix values
+   mitre_values = {
+      mitre_tactic = mitre.tactic.initial_access,
+      mitre_tecnique = mitre.tecnique.valid_account,
+      mitre_id = "T1078"
+   },
 }
 
 -- ##############################################
