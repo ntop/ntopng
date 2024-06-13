@@ -118,6 +118,7 @@ const row_to_delete = ref();
 const total_rows = ref(0);
 const config_export_url = `${http_prefix}/lua/rest/v2/export/snmp/config.lua?download=1`;
 const delete_snmp_device_url = `${http_prefix}/lua/pro/rest/v2/delete/snmp/device.lua`;
+const download_snmp_device_log_url = `${http_prefix}/lua/pro/rest/v2/get/snmp/log.lua`;
 const add_snmp_device_url = `${http_prefix}/lua/pro/rest/v2/add/snmp/device.lua`;
 const import_snmp_devices_url = `${http_prefix}/lua/pro/rest/v2/add/snmp/import_devices.lua`;
 const edit_snmp_device_url = `${http_prefix}/lua/pro/rest/v2/edit/snmp/device/device.lua`;
@@ -403,8 +404,11 @@ const delete_row = async function () {
 };
 
 function click_button_export_snmp_device_data(event) {
-
-  console.log("Clicked download data button")
+  const row = event.row;
+  const params = {
+    host: row.ip
+  }
+  ntopng_utility.http_request(download_snmp_device_log_url, params);
 };
 
 function click_button_edit(event) {
