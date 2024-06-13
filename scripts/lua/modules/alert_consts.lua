@@ -496,6 +496,24 @@ end
 
 -- ##############################################
 
+function alert_consts.getAlertMitreInfo(v)
+   if (alert_consts.alert_types[v] == nil) then
+      tprint(debug.traceback())
+   end
+
+   local res = nil
+   local key = alert_consts.alert_types[v]
+
+   if key and key.meta then
+      -- TODO AM: attempt at looking inside new implementation `meta`
+      res = key.meta.mitre_values
+   end
+
+   return res
+end
+
+-- ##############################################
+
 function alert_consts.alertType(v)
    if (alert_consts.alert_types[v] == nil) then
       tprint(debug.traceback())
