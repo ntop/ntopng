@@ -1,5 +1,7 @@
 local lang = {
   ["abort"] = "Abort",
+  ["num_alerts"] = "Alerts Count",
+  ["city"] = "City",
   ["acknowledge"] = "Acknowledge",
   ["acknowledge_alerts"] = "Acknowledge Alerts",
   ["acknowledged_all"] = "All",
