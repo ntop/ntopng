@@ -67,8 +67,7 @@ ContinuousPing::ContinuousPing() {
   try {
     default_pinger = new Ping(NULL);
   } catch (...) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR,
-                                 "Unable to create continuous pinger");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create continuous pinger");
     default_pinger = NULL;
   }
 
@@ -81,25 +80,26 @@ ContinuousPing::ContinuousPing() {
 
         /* Check if already created */
         it = if_pinger.find(key);
+	
         if (it == if_pinger.end()) {
+	  /* Pinger not found */
           struct sockaddr_in6 sin6;
 
           /* Check if there is an IP for the interface */
-          if (Utils::readIPv4(cur->name) != 0 ||
-              Utils::readIPv6(cur->name, &sin6.sin6_addr)) {
+          if (Utils::readIPv4(cur->name)
+	      || Utils::readIPv6(cur->name, &sin6.sin6_addr)) {
             Ping *pinger;
 
             /* Create pinger for the interface */
             try {
-              pinger = new Ping(NULL);
+              pinger = new Ping(cur->name);
             } catch (...) {
-              ntop->getTrace()->traceEvent(
-                  TRACE_ERROR, "Unable to create continuous pinger for %s",
-                  cur->name);
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create continuous pinger for %s", cur->name);
               pinger = NULL;
             }
-
-            if (pinger) if_pinger[key] = pinger;
+	    
+            if (pinger)
+	      if_pinger[key] = pinger;
           }
         }
       }
@@ -149,7 +149,7 @@ void ContinuousPing::start() {
 void ContinuousPing::ping(char *_addr, bool use_v6, char *ifname) {
   std::string key = std::string(_addr);
   std::map<std::string, ContinuousPingStats *>::iterator it;
-  Ping *pinger = default_pinger;
+  Ping *pinger = NULL;
 
   /* Get the pinger for the interface, if exists */
   if (ifname) {
@@ -158,12 +158,17 @@ void ContinuousPing::ping(char *_addr, bool use_v6, char *ifname) {
 
     it = if_pinger.find(key);
     if (it != if_pinger.end()) {
-      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Using pinger for %s",
-      // ifname);
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Using pinger for %s", ifname);
       pinger = it->second;
     }
-  }
 
+    if(pinger == NULL) {
+      /* No pinger found */
+      return;
+    }
+  } else
+    pinger = default_pinger;
+  
   m.lock(__FILE__, __LINE__);
 
   if (!use_v6) {
