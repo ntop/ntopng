@@ -3807,15 +3807,29 @@ Ping *Ntop::getPing(char *ifname) {
   if ((ifname == NULL) || (ifname[0] == '\0'))
     return (default_ping);
   else {
-    std::map<std::string /* ifname */, Ping *>::iterator it = ping.find(ifname);
-
+    std::map<std::string /* ifname */, Ping *>::iterator it = ping.find(std::string(ifname));
     if (it == ping.end()) {
-      ntop->getTrace()->traceEvent(
-          TRACE_WARNING, "Unable to find ping for interface %s", ifname);
-      return (default_ping);
-    } else
-      return (it->second);
-  }
+      /* Pinger not found */
+      struct sockaddr_in6 sin6;
+      Ping *pinger = NULL;
+      if (Utils::readIPv4(ifname)
+        || Utils::readIPv6(ifname, &sin6.sin6_addr)) {
+        
+        /* Create pinger for the interface */
+        try {
+          pinger = new Ping(ifname);
+        } catch (...) {
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to create continuous pinger for %s", ifname);
+          pinger = NULL;
+        }
+
+        if(pinger)
+          ping[std::string(ifname)] = pinger;
+    } 
+    return (pinger);
+  } else
+    return (it->second);
+}
 }
 
 /* ******************************************* */
