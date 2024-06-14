@@ -72,17 +72,18 @@ The table shows, for each gateway, what's the network interface it will use to
 route the traffic along with its current status. A broken chain icon next to the
 interface name indicates that the interface link is currently down.
 
-The gateway status can be one:
+The gateway status can be one of the below:
 
-  - **Up**, the gateway is currently up and it can correctly route the packets
+  - **Up**: the gateway is currently up and it can correctly route the packets
     to the configured *monitor address*.
 
-  - **Down**, the gateway is currently down or it cannot correctly route the packets
+  - **Down**: the gateway is currently down or it cannot correctly route the packets
     to the configured *monitor address*.
 
-  - **Unreachable**, if there is currently no way for nEdge to reach the
+  - **Unreachable**: there is currently no way for nEdge to reach the
     gateway IP address. This can be caused by an interface link down or by a
-    misconfigured gateway/interface network.
+    misconfigured gateway/interface network. Usually a static IP has not been
+    configured or the DHCP is not assigning an IP address.
 
 Statistics for individual physical interfaces are available as well. To
 see them, click on the interface name from the above gateways status view. This opens a page with interface details.
@@ -106,14 +107,11 @@ Available timeseries are:
   - **Traffic** shown in both directions, i.e., sent (TX) and received (RX)
   - **Traffic Total/Userspace** to show the fraction of the total traffic that has been offloaded to the kernel.
 
-
 .. figure:: img/gateways_physical_interface_timeseries.png
   :align: center
   :alt: Physical Interface Timeseries
 
   Physical Interface Timeseries
-
-
 
 Routing Policies
 ----------------
@@ -200,8 +198,6 @@ To see all active DHCP leases, including the static ones, visit page "DHCP Activ
   :alt: DHCP active leases
 
   DHCP active leases
-
-
 
 Port Forwarding
 ---------------
