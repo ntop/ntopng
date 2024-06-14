@@ -83,10 +83,10 @@ Ping::Ping(char *_ifname) {
 #endif
 
   if ((sd == -1) && (errno != 0)) {
-    if (errno !=
-        EPROTONOSUPPORT /* Avoid flooding logs when IPv4 is not supported */)
-      ntop->getTrace()->traceEvent(
-          TRACE_ERROR, "Ping IPv4 socket creation error: %s", strerror(errno));
+    if (errno != EPROTONOSUPPORT /* Avoid flooding logs when IPv4 is not supported */) {
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Ping IPv4 socket creation error: %s", strerror(errno));
+      throw "Unable to create ping socket";
+    }
   } else {
     setOpts(sd);
 
@@ -97,11 +97,10 @@ Ping::Ping(char *_ifname) {
       sin.sin_addr.s_addr = Utils::readIPv4(_ifname);
 
       if (sin.sin_addr.s_addr != 0) {
-        if (::bind(sd, (struct sockaddr *)&sin, sizeof(struct sockaddr_in)) ==
-            -1)
-          ntop->getTrace()->traceEvent(
-              TRACE_ERROR, "Unable to bind socket to IPv4 Address, error: %s",
-              strerror(errno));
+        if (::bind(sd, (struct sockaddr *)&sin, sizeof(struct sockaddr_in)) == -1) {
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to IPv4 Address, error: %s", strerror(errno));
+	  throw "Unable to create ping on the specified interface";
+	}
       }
     }
   }
@@ -121,10 +120,9 @@ Ping::Ping(char *_ifname) {
 
   if ((sd6 < 0) && (errno != 0)) {
     if (errno != EPROTONOSUPPORT &&
-        errno !=
-            EAFNOSUPPORT) /* Avoid flooding logs when IPv6 is not supported */
-      ntop->getTrace()->traceEvent(
-          TRACE_ERROR, "Ping IPv6 socket creation error: %s", strerror(errno));
+        errno != EAFNOSUPPORT) /* Avoid flooding logs when IPv6 is not supported */{
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Ping IPv6 socket creation error: %s", strerror(errno));
+    }
   } else {
     setOpts(sd6);
 
@@ -135,16 +133,17 @@ Ping::Ping(char *_ifname) {
       sin.sin6_family = AF_INET6;
 
       if (Utils::readIPv6(_ifname, &sin.sin6_addr)) {
-        if (::bind(sd6, (struct sockaddr *)&sin, sizeof(struct sockaddr_in6)) ==
-            -1)
-          ntop->getTrace()->traceEvent(
-              TRACE_ERROR, "Unable to bind socket to IPv6 Address, error %s",
+        if (::bind(sd6, (struct sockaddr *)&sin, sizeof(struct sockaddr_in6)) == -1) {
+          ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to bind socket to IPv6 Address, error %s",
               strerror(errno));
+	  throw "Unable to create ping on the specified IPv6 address";
+	}
       }
     }
   }
 
-  if ((sd < 0) && (sd6 < 0)) throw "Socket creation error";
+  if ((sd < 0) && (sd6 < 0))
+    throw "Socket creation error";
 }
 
 /* ****************************************** */
