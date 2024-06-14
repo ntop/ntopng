@@ -2456,6 +2456,7 @@ local known_parameters = {
    --
 
    -- PAGE SPECIFIC
+   ["hosts_category"] = validateNumber,
    ["hour"] = validateEmptyOr(validateSingleWord),
    ["unicast_only"] = validateBool,
    ["iflocalstat_mode"] = validateIfaceLocalStatsMode, -- A mode for iface_local_stats.lua

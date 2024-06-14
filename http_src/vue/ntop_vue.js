@@ -59,6 +59,7 @@ import { default as PageBlacklists } from "./page-blacklists.vue"
 import { default as PageHistoricalFlow } from "./page-historical-flow-details.vue"
 import { default as PageSNMPQoS } from "./page-snmp-qos.vue"
 import { default as PageSNMPConfig } from "./page-snmp-config.vue"
+import { default as PageGeoMap } from "./hosts-geomap.vue"
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -166,6 +167,7 @@ let ntopVue = {
     PageHostDetailsFlowSankey: PageHostDetailsFlowSankey,
     PageHostDetailsPorts: PageHostDetailsPorts,
     PageHostsList: PageHostsList,
+    PageGeoMap: PageGeoMap,
 
     PageAggregatedLiveFlows: PageAggregatedLiveFlows,
 

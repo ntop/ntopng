@@ -21,7 +21,9 @@ interface.select(ifid)
 
 
 local response = {}
-local host_key = _GET["host"] or ""
+local host_key = _GET["host"] 
+local hosts_category = _GET["hosts_category"] or ""
+
 local host_info = url2hostinfo(_GET)
 
 local MAX_HOSTS = 512
@@ -34,12 +36,12 @@ local bytes_rcvd = "bytes.rcvd"
 -- Extra info, enabled by the preferences (Settings->Preferences->Geo Map),
 -- that are going to add more info to the host detailed view into the Geo Map
 local extra_info = {
-	score  						= { pref = ntop.getPref(pref_prefix .. "is_geo_map_score_enabled") },
-	asname					   = { pref = ntop.getPref(pref_prefix .. "is_geo_map_asname_enabled") },
+	score  					= { pref = ntop.getPref(pref_prefix .. "is_geo_map_score_enabled") },
+	asname					= { pref = ntop.getPref(pref_prefix .. "is_geo_map_asname_enabled") },
 	active_alerted_flows 	= { pref = ntop.getPref(pref_prefix .. "is_geo_map_alerted_flows_enabled") },
 	num_blacklisted_flows	= { pref = ntop.getPref(pref_prefix .. "is_geo_map_blacklisted_flows_enabled"), values = { "tot_as_server", "tot_as_client" } },
-	name 							= { pref = ntop.getPref(pref_prefix .. "is_geo_map_host_name_enabled") },
-	total_flows 				= { pref = ntop.getPref(pref_prefix .. "is_geo_map_num_flows_enabled"), values = { "as_client", "as_server" } },
+	name 					= { pref = ntop.getPref(pref_prefix .. "is_geo_map_host_name_enabled") },
+	total_flows 			= { pref = ntop.getPref(pref_prefix .. "is_geo_map_num_flows_enabled"), values = { "as_client", "as_server" } },
 }
 
 -- Adding bytes here because they have the '.' inside the name and cannot added therefore above
@@ -91,95 +93,99 @@ end
 
 -- ############################################################
 
-local function handlePeer(prefix, host_key, value)
-   if((value[prefix..".latitude"] ~= 0) or (value[prefix..".longitude"] ~= 0)) then
-      -- set up the host informations
-      local host = {
-	 lat = value[prefix..".latitude"],
-	 lng = value[prefix..".longitude"],
-	 -- isDrawable = not(value[prefix..".private"]),
-	 isRoot = (value[prefix..".ip"] == host_key),
-	 html = getFlag(value[prefix..".country"]),
-	 ip = hostinfo2hostkey(value, prefix)
-      }
+local function handlePeer(host_key)
+	local host_data = interface.getHostInfo(host_key)
 
-      host = add_extra_info(value, host)
-
-      if not isEmptyString(value[prefix..".city"]) then
-	 host["city"] = value[prefix..".city"]
-      end
-
-      return(host)
-   end
-
-   return(nil)
+    return host_data
 end
 
 -- ##############
 
-local function show_hosts(hosts_count, host_key)
-   local hosts = {}
-   local num_hosts = 0
+-- Function to get hosts data based on hosts category filter -> numerical value as describe in the if below
+local function show_hosts(hosts_count, host_key, hosts_category)
+    local hosts = {}
+    local num_hosts = 0
+	local data = {}
+	
+	-- Get single host data (host_key is the requested IP)
+	if (host_key) then
+		-- From req create a table
+		local host_info = url2hostinfo(_GET)
+		local flows = getTopFlowPeers(hostinfo2hostkey(host_info), MAX_HOSTS - hosts_count, nil, { detailsLevel = "max" })
+		
+		data.hosts = {}
 
-   if((host_key == nil) or (host_key == "")) then
-      callback_utils.foreachHost(
-	 tostring(interface.getId()),
-	 function(address, value)
-	    if value["latitude"] ~= 0 or value["longitude"] ~= 0 then
-	       -- set up the host informations
-	       local host = {
-		  lat = value["latitude"],
-		  lng = value["longitude"],
-		  isRoot = false,
-		  html = getFlag(value["country"]),
-		  ip = address,
-		  isAlert = value["num_alerts"] + value["active_alerted_flows"] > 0
-	       }
+		for key, value in pairs(flows) do
+			
+			-- create table for client IP
+			local h = handlePeer(value["cli.ip"])
+			if h ~= nil then
+				data.hosts[value["cli.ip"]] = h
+			end
 
-	       if not isEmptyString(value["city"]) then
-		  host["city"] = value["city"]
-	       end
+			-- create table for server IP
+			local h = handlePeer(value["srv.ip"])
+			if h ~= nil then
+				data.hosts[value["srv.ip"]] = h
+			end
 
-        	 host = add_extra_info(value, host)
+		end
+		
+	-- Active hosts or Alerted hosts
+	elseif ((hosts_category == 0) or (hosts_category == 1)) then
+        data = interface.getHostsInfo()
+	
+	-- Local hosts
+	elseif hosts_category == 2 then
+		data = interface.getLocalHostsInfo()
 
-	       table.insert(hosts, host)
-	       num_hosts = num_hosts + 1
+	-- Remote hosts
+	elseif (hosts_category == 3) then
+        data = interface.getRemoteHostsInfo()
 
-	       if num_hosts >= MAX_HOSTS then
-		  -- Stop the iteration
-		  return false
-	       end
-	    end
+	-- Invalid category selected
+    else
+        return hosts 
+    end
 
-	    -- Still room, continue the iteration
-	    return true
-	 end
-      )
+	if (data ~= nil) and (data["hosts"]) then
+		for address, value in pairs(data["hosts"]) do
 
-   else
-      local what = getTopFlowPeers(hostinfo2hostkey(host_info), MAX_HOSTS - hosts_count, nil, {detailsLevel="max"})
-      local keys = {}
+			if value["latitude"] ~= 0 or value["longitude"] ~= 0 then
 
-      for key, value in pairs(what) do
-	 if(keys[value["cli.ip"]] == nil) then
-	    local h = handlePeer("cli", host_key, value)
+				local host = {
+					lat = value["latitude"],
+					lng = value["longitude"],
+					isRoot = false,
+					country = value["country"],
+					ip = address,
+					scoreClient = value["score.as_client"],
+					scoreServer = value["score.as_server"],
+					numAlerts = value["num_alerts"],
+					isAlert = value["num_alerts"] + value["active_alerted_flows"] > 0
+				}
 
-	    keys[value["cli.ip"]] = true
-	    if(h ~= nil) then table.insert(hosts, h) end
-	 end
+				if not isEmptyString(value["city"]) then
+					host["city"] = value["city"]
+				end
 
-	 if(keys[value["srv.ip"]] == nil) then
-	    local h = handlePeer("srv", host_key, value)
+				host = add_extra_info(value, host)
 
-	    keys[value["srv.ip"]] = true
-	    if(h ~= nil) then table.insert(hosts, h) end
-	 end
-      end
-   end
+				table.insert(hosts, host)
+				num_hosts = num_hosts + 1
 
-   return(hosts)
+				if num_hosts >= MAX_HOSTS then
+					return hosts
+				end
+			end
+		end
+	
+	end
+
+	return hosts
 end
 
-local rsp = show_hosts(table.len(response["hosts"]), host_key)
+
+local rsp = show_hosts(table.len(response["hosts"]), host_key, tonumber(hosts_category))
 
 rest_utils.answer(rest_utils.consts.success.ok, rsp)
