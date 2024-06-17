@@ -1631,6 +1631,7 @@ local known_parameters = {
    ["old_name"] = validateUnchecked, -- Old custom interface/host name
    ["custom_notes"] = validateUnchecked, -- Host custom notes
    ["pool_name"] = validateUnchecked,
+   ["pool_name_only"] = validateBool,
    ["query"] = validateUnchecked, -- This field should be used to perform partial queries.
    -- It up to the script to implement proper validation.
    -- In NO case query should be executed directly without validation.
