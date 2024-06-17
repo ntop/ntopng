@@ -558,7 +558,7 @@ bool Radius::stopSession(RadiusTraffic *info) {
     }
   }
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Radius: performing accounting stop for: %s", info->username);
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "Radius: performing accounting stop for: %s", info->username);
 
   /* ****************************** */
 

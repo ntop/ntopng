@@ -37,9 +37,7 @@ if radius_handler.isAccountingEnabled() then
                     local mac_info = interface.getMacInfo(member)
                     if mac_info then
                         -- In case the update fails, move the member into the default pool
-                        if not radius_handler.accountingUpdate(member, mac_info) then
-                            pool:bind_member(member, host_pools.DEFAULT_POOL_ID)
-                        end
+                        radius_handler.accountingUpdate(member, mac_info)
                     end
                 end
             end

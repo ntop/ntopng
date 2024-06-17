@@ -53,6 +53,8 @@ function radius_handler.accountingStart(name, username, password)
         return true
     end
 
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Accounting start requested for MAC [%s] with username [%s]", name, username))
+    
     local session_id = tostring(math.random(100000000000000000, 999999999999999999))
     local ip_address = get_first_ip(name)
     local current_time = os.time()
@@ -87,9 +89,11 @@ function radius_handler.accountingStop(name, terminate_cause, info)
         return true
     end
 
-    local is_accounting_on, user_data = radius_handler.isAccountingRequested(name)
+    local _, user_data = radius_handler.isAccountingRequested(name)
     -- Removing the entry from redis
     ntop.delCache(string.format(redis_accounting_key, name))
+
+    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Accounting stop requested for MAC [%s]", name))
 
     -- Check in case no user_data is found
     if user_data then
