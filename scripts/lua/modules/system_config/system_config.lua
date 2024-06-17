@@ -70,67 +70,67 @@ end
 -- Migrate an old configuration format with a single lan item 
 -- for routing mode to a generic array compatible with bridge mode
 function system_config:_migrate_config(config)
-  for mode_name, mode_conf in pairs(config.globals.available_modes) do
-    if mode_conf["interfaces"] then
-      if mode_conf["interfaces"]["lan"] and
-         type(mode_conf["interfaces"]["lan"]) == "string" then
-        config.globals.available_modes[mode_name]["interfaces"]["lan"] = { 
-          config.globals.available_modes[mode_name]["interfaces"]["lan"]
-        }
+   for mode_name, mode_conf in pairs(config.globals.available_modes) do
+      if mode_conf["interfaces"] then
+         if mode_conf["interfaces"]["lan"] and
+            type(mode_conf["interfaces"]["lan"]) == "string" then
+            config.globals.available_modes[mode_name]["interfaces"]["lan"] = { 
+               config.globals.available_modes[mode_name]["interfaces"]["lan"]
+            }
+         end
+         if mode_conf["interfaces"]["wan"] and
+            type(mode_conf["interfaces"]["wan"]) == "string" then
+            config.globals.available_modes[mode_name]["interfaces"]["wan"] = { 
+               config.globals.available_modes[mode_name]["interfaces"]["wan"]
+            }
+         end
       end
-      if mode_conf["interfaces"]["wan"] and
-         type(mode_conf["interfaces"]["wan"]) == "string" then
-        config.globals.available_modes[mode_name]["interfaces"]["wan"] = { 
-          config.globals.available_modes[mode_name]["interfaces"]["wan"]
-        }
-      end
-    end
-  end
+   end
 
-  return config
+   return config
 end
 
 -- ##############################################
 
 -- Loads temporary configuration
 function system_config:_load_config(fname, guess)
-  local dirs = ntop.getDirs()
-  local config
+   local dirs = ntop.getDirs()
+   local config
 
-  local f = io.open(fname, "r")
+   local f = io.open(fname, "r")
 
-  if f ~= nil then
-    config = json.decode((f:read "*a"))
+   if f ~= nil then
+      config = json.decode((f:read "*a"))
 
-    if not config then
-       traceError(TRACE_ERROR,
-		  TRACE_CONSOLE,
-		  "Error while parsing configuration file " .. fname)
-    end
-    f:close()
-  elseif guess then
-    -- Load stock configuration if it exists
-    if ntop.exists(STOCK_CONF_FILE) then
-      traceError(TRACE_WARNING, TRACE_CONSOLE, "Installing stock configuration file " .. STOCK_CONF_FILE)
-      sys_utils.execShellCmd("mkdir -p " .. dirs.workingdir)
-      sys_utils.execShellCmd("cp " .. STOCK_CONF_FILE .. " " .. CONF_FILE)
-
-      return self:_load_config(fname, false)
-    else
-      config = self:_guess_config()
-
-      if dumpConfig(CONF_FILE, config) then
-        traceError(TRACE_NORMAL, TRACE_CONSOLE,
-                "Cannot open system configuration file " .. fname .. ", populating with defaults")
+      if not config then
+         traceError(TRACE_ERROR,
+                    TRACE_CONSOLE,
+                    "Error while parsing configuration file " .. fname)
       end
-    end
-  end
+      f:close()
+   elseif guess then
+      -- Load stock configuration if it exists
+      if ntop.exists(STOCK_CONF_FILE) then
+         traceError(TRACE_WARNING, TRACE_CONSOLE, "Installing stock configuration file " .. STOCK_CONF_FILE)
+         sys_utils.execShellCmd("mkdir -p " .. dirs.workingdir)
+         sys_utils.execShellCmd("cp " .. STOCK_CONF_FILE .. " " .. CONF_FILE)
 
-  sys_utils.setRealExec(config.globals and not config.globals.fake_exec)
+         return self:_load_config(fname, false)
+      else
+         config = self:_guess_config()
 
-  config = self:_migrate_config(config)
+         if dumpConfig(CONF_FILE, config) then
+            traceError(TRACE_NORMAL, TRACE_CONSOLE,
+                       "Cannot open system configuration file " .. fname .. ", populating with defaults")
+         end
+      end
+   end
 
-  return config
+   sys_utils.setRealExec(config.globals and not config.globals.fake_exec)
+
+   config = self:_migrate_config(config)
+
+   return config
 end
 
 -- ##############################################
@@ -159,17 +159,17 @@ end
 -- ##############################################
 
 function system_config:getConfHandler()
-  package.path = dirs.installdir .. "/scripts/lua/modules/conf_handlers/?.lua;" .. package.path
+   package.path = dirs.installdir .. "/scripts/lua/modules/conf_handlers/?.lua;" .. package.path
 
-  local info = ntop.getInfo(false)
-  local os = info.OS
-  local config_target = "netplan"
+   local info = ntop.getInfo(false)
+   local os = info.OS
+   local config_target = "netplan"
 
-  if string.find(os, "Ubuntu 16%.") then
-    config_target = "network_ifaces"
-  end
+   if string.find(os, "Ubuntu 16%.") then
+      config_target = "network_ifaces"
+   end
 
-  return require(config_target)
+   return require(config_target)
 end
 
 -- ##############################################
@@ -222,7 +222,7 @@ end
 
 -- Returns the available modes
 function system_config:getAvailableModes()
-  return self.config.globals.available_modes
+   return self.config.globals.available_modes
 end
 
 -- ##############################################
@@ -230,14 +230,14 @@ end
 -- Returns the current operating mode
 -- nf_config and appliance_config override this
 function system_config:getOperatingMode()
-  return self.config.globals.operating_mode
+   return self.config.globals.operating_mode
 end
 
 -- ##############################################
 
 -- NOTE: do not use this, use the getOperatingMode instead
 function system_config:_getConfiguredOperatingMode()
-  return self.config.globals.operating_mode
+   return self.config.globals.operating_mode
 end
 
 -- ##############################################
@@ -264,14 +264,14 @@ end
 -- ##############################################
 
 function system_config.isFirstStart()
-  return ntop.exists(CONF_FILE_RELOAD) or ntop.getPref("ntopng.prefs.nedge_start") ~= "1"
+   return ntop.exists(CONF_FILE_RELOAD) or ntop.getPref("ntopng.prefs.nedge_start") ~= "1"
 end
 
 function system_config.setFirstStart(first_start)
-  ntop.setPref("ntopng.prefs.nedge_start", ternary(first_start, "0", "1"))
-  if not first_start and ntop.exists(CONF_FILE_RELOAD) then
-    os.remove(CONF_FILE_RELOAD)
-  end
+   ntop.setPref("ntopng.prefs.nedge_start", ternary(first_start, "0", "1"))
+   if not first_start and ntop.exists(CONF_FILE_RELOAD) then
+      os.remove(CONF_FILE_RELOAD)
+   end
 end
 
 -- ##############################################
@@ -289,43 +289,43 @@ end
 -- ##############################################
 
 function system_config:getUnusedInterfaces()
-  local mode = self:getOperatingMode()
-  if mode then
-    return self.config.globals.available_modes[mode].interfaces.unused or {}
-  else
-    return {}
-  end
+   local mode = self:getOperatingMode()
+   if mode then
+      return self.config.globals.available_modes[mode].interfaces.unused or {}
+   else
+      return {}
+   end
 end
 
 -- Get the WAN interfaces, based on the current operating mode
 function system_config:getWanInterfaces()
-  local mode = self:getOperatingMode()
+   local mode = self:getOperatingMode()
 
-  return self.config.globals.available_modes[mode].interfaces.wan
+   return self.config.globals.available_modes[mode].interfaces.wan
 end
 
 -- Get the LAN interfaces, based on the current operating mode
 function system_config:getLanInterfaces()
-  local mode = self:getOperatingMode()
+   local mode = self:getOperatingMode()
 
-  if mode == "bridging" then
-    return {self.config.globals.available_modes.bridging.name}
-  else
-    return self.config.globals.available_modes[mode].interfaces.lan
-  end
+   if mode == "bridging" then
+      return {self.config.globals.available_modes.bridging.name}
+   else
+      return self.config.globals.available_modes[mode].interfaces.lan
+   end
 end
 
 -- Get the first (if many) LAN interface, based on the current operating mode
 function system_config:getFirstLanInterface()
-  local lan_interfaces = self:getLanInterfaces()
-  return lan_interfaces[1]
+   local lan_interfaces = self:getLanInterfaces()
+   return lan_interfaces[1]
 end
 
 -- Get the LAN interface, based on the current operating mode
 -- TODO when multiple LAN interfaces will be fully supported, this function will be removed
 function system_config:getLanInterface()
-  local lan_interfaces = self:getLanInterfaces()
-  return lan_interfaces[1]
+   local lan_interfaces = self:getLanInterfaces()
+   return lan_interfaces[1]
 end
 
 -- Get all the interfaces, along with their roles
@@ -587,7 +587,7 @@ local function isRebootRequired(changed_sections)
    for section in pairs(changed_sections) do
       if not runtime_sections[section] and
          not self_restart_sections[section] then
-	 return true -- reboot required
+         return true -- reboot required
       end
    end
 
@@ -606,7 +606,7 @@ local function isSelfRestartRequired(changed_sections)
 
    for section in pairs(changed_sections) do
       if self_restart_sections[section] then
-	 return true -- self restart required
+         return true -- self restart required
       end
    end
 
@@ -656,35 +656,35 @@ function system_config:_handleChangedCommonSections(changed_sections, is_rebooti
      -- drift calculation must go before timezone/ntp changes as they will change the time making it invalid
      local drift
      if self.config.date_time.custom_date_set_req then
-	drift = os.time(os.date("!*t", os.time())) - (self.config.date_time.custom_date_set_req or 0)
-	self.config.date_time.custom_date_set_req = nil
+        drift = os.time(os.date("!*t", os.time())) - (self.config.date_time.custom_date_set_req or 0)
+        self.config.date_time.custom_date_set_req = nil
      end
 
      if self.config.date_time.timezone then
-	local system_timezone = tz_utils.TimeZone()
-	if self.config.date_time.timezone ~= system_timezone then
-	   sys_utils.execCmd("timedatectl set-timezone "..self.config.date_time.timezone)
-	   ntop.tzset()
-	end
+        local system_timezone = tz_utils.TimeZone()
+        if self.config.date_time.timezone ~= system_timezone then
+           sys_utils.execCmd("timedatectl set-timezone "..self.config.date_time.timezone)
+           ntop.tzset()
+        end
      end
      if self.config.date_time.ntp_sync.enabled then
-	sys_utils.execCmd("timedatectl set-ntp yes")
+        sys_utils.execCmd("timedatectl set-ntp yes")
      else
-	sys_utils.execCmd("timedatectl set-ntp no")
+        sys_utils.execCmd("timedatectl set-ntp no")
 
-	if self.config.date_time.custom_date then
-	   -- do not specify any timezone here as it is safe to take the one set for the system
-	   local custom_epoch = makeTimeStamp(self.config.date_time.custom_date)
-	   if drift then
-	      custom_epoch = custom_epoch + drift
-	   end
-	   -- use a format that timedatectl likes
-	   local timedatectl_fmt = os.date("%y-%m-%d %X", tonumber(custom_epoch))
-	   if timedatectl_fmt then
-	      sys_utils.execCmd('timedatectl set-time "'..timedatectl_fmt..'"')
-	   end
-	end
-	self.config.date_time.custom_date = nil
+        if self.config.date_time.custom_date then
+           -- do not specify any timezone here as it is safe to take the one set for the system
+           local custom_epoch = makeTimeStamp(self.config.date_time.custom_date)
+           if drift then
+              custom_epoch = custom_epoch + drift
+           end
+           -- use a format that timedatectl likes
+           local timedatectl_fmt = os.date("%y-%m-%d %X", tonumber(custom_epoch))
+           if timedatectl_fmt then
+              sys_utils.execCmd('timedatectl set-time "'..timedatectl_fmt..'"')
+           end
+        end
+        self.config.date_time.custom_date = nil
      end
   end
 end
@@ -704,7 +704,7 @@ function system_config:applyChanges()
 
   if is_rebooting then
     self:writeSystemFiles()
-    --tprint("Reboot! (debug mode - reboot is disabled)")
+    -- tprint("Reboot! (debug mode - reboot is disabled)")
     sys_utils.rebootSystem()
   elseif is_self_restarting then
     sys_utils.restartSelf()
@@ -876,7 +876,7 @@ function system_config:isBridgeOverVLANTrunkEnabled()
   if mode == "bridging" then
      local bridge = self.config.globals.available_modes.bridging.name
      if self:getInterfaceMode(bridge) == "vlan_trunk" then
-	return true
+        return true
      end
   end
 
@@ -1188,10 +1188,10 @@ function system_config._split_dev_names(c, delimiter)
       local devs = split(cmd, "\n")
 
       if(delimiter == nil) then
-	 local rv = {}
+         local rv = {}
          for idx, dev in pairs(devs) do
-	   if not isEmptyString(dev) and allowedDevName(dev) then
-	      rv[#rv + 1] = dev
+           if not isEmptyString(dev) and allowedDevName(dev) then
+              rv[#rv + 1] = dev
            end
          end
 
@@ -1199,21 +1199,21 @@ function system_config._split_dev_names(c, delimiter)
       end
 
       for _,a in pairs(devs) do
-	 local p = split(a, delimiter)
+         local p = split(a, delimiter)
 
-	 if(p ~= nil) then
-	    local name = p[1]
-	    local addr = p[2]
+         if(p ~= nil) then
+            local name = p[1]
+            local addr = p[2]
 
-	    if(addr and name) then
-	       name = trimSpace(name)
-	       addr = trimSpace(addr)
+            if(addr and name) then
+               name = trimSpace(name)
+               addr = trimSpace(addr)
 
-	       if allowedDevName(name) then
-		  ret[name] = addr:gsub("%s+", "")
-	       end
-	    end
-	 end
+               if allowedDevName(name) then
+                  ret[name] = addr:gsub("%s+", "")
+               end
+            end
+         end
       end
    end
 
