@@ -409,7 +409,7 @@ function click_button_export_snmp_device_data(event) {
   const params = {
     host: row.ip
   }
-  ntopng_url_manager.go_to_url(download_snmp_device_log_url, params);
+  ntopng_url_manager.go_to_url(`${download_snmp_device_log_url}?host=${row.ip}`, params);
 };
 
 function click_button_edit(event) {
