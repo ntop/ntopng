@@ -907,7 +907,7 @@ local function validateMemberRelaxed(m)
 end
 
 local function validateMember(m)
-   if isValidPoolMember(m) then
+   if isValidPoolMember(m, true) then
       return true
    else
       return false
