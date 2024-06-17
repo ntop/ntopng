@@ -523,11 +523,17 @@ end
 function pools:get_pool_by_member(member)
     local assigned_members = self:get_assigned_members()
 
-    if assigned_members[member] then
-        return self:get_pool(assigned_members[member]["pool_id"])
+    -- lookup (check lower/upper due to MAC addresses strings)
+    local m = string.lower(member)
+    if not assigned_members[m] then
+        m = string.upper(member)
+        if not assigned_members[m] then
+            return nil
+        end
     end
 
-    return nil
+    -- found
+    return self:get_pool(assigned_members[m]["pool_id"])
 end
 
 -- ##############################################

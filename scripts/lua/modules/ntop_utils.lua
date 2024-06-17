@@ -730,40 +730,82 @@ end
 
 -- ##############################################
 
-function isValidPoolMember(member)
+-- Check if this is a valid pool member (MAC or CIDR@VLAN)
+-- @param fix_relaxed Fix relaxed notation (IP without net mask or vlan)
+function checkPoolMember(member, fix_relaxed)
     if isEmptyString(member) then
-        return false
+        return nil
     end
 
     if isMacAddress(member) then
-        return true
+        return member
     end
 
-    -- vlan is mandatory here
+    -- VLAN
+    local vlan_id
     local vlan_idx = string.find(member, "@")
-    if ((vlan_idx == nil) or (vlan_idx == 1)) then
-        return false
-    end
-
-    local other = string.sub(member, 1, vlan_idx - 1)
-    local vlan = tonumber(string.sub(member, vlan_idx + 1))
-    if (vlan == nil) or (vlan < 0) then
-        return false
+    if vlan_idx == nil then
+        if fix_relaxed then
+            vlan_id = 0 -- default vlan: 0
+        else
+            return nil -- no vlan
+        end
+    elseif vlan_idx == 1 then
+        return nil -- bad format
+    else
+        local other = string.sub(member, 1, vlan_idx - 1)
+        vlan_id = tonumber(string.sub(member, vlan_idx + 1))
+        if vlan_id == nil or vlan_id < 0 then
+            return nil
+        end
+        member = other
     end
 
     -- prefix is mandatory here
-    local address, prefix = splitNetworkPrefix(other)
-    if prefix == nil then
-        return false
+    local address, prefix = splitNetworkPrefix(member)
+    if address == nil then
+        return nil -- bad format
+    elseif prefix == nil then
+        if fix_relaxed then
+            if isIPv4(address) then
+                prefix = '32' -- default mask: 32
+            elseif isIPv6(address) then
+                prefix = '128' -- default mask: 128
+            else
+                return nil -- bad format
+            end
+        else
+            return nil -- no mask
+        end
     end
 
     if isIPv4(address) and (tonumber(prefix) >= 0) and (tonumber(prefix) <= 32) then
-        return true
+        -- ok
     elseif isIPv6(address) and (tonumber(prefix) >= 0) and (tonumber(prefix) <= 128) then
-        return true
+        -- ok
+    else
+        return nil -- bad format
     end
 
-    return false
+    return address .. '/' .. prefix .. '@' .. vlan_id
+end
+
+-- ##############################################
+
+-- Check if this is a valid pool member (MAC or CIDR@VLAN)
+-- @param relaxed Allow relaxed notation (IP without net mask or vlan)
+function isValidPoolMember(member, relaxed)
+   if checkPoolMember(member, relaxed) then
+      return true
+   else
+      return false
+   end
+end
+
+-- ##############################################
+
+function fixPoolMemberFormat(member)
+   return checkPoolMember(member, true)
 end
 
 -- #################################################################

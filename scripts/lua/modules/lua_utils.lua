@@ -408,57 +408,6 @@ end
 
 -- ##############################################
 
---
--- Fix member format (IP address to /32 CIDR and VLAN to default 0)
--- E.g. 192.168.1.10 -> 192.168.1.10/32@0
---
-
-function fixPoolMemberFormat(member)
-    if isEmptyString(member) then
-        return nil
-    end
-
-    if isMacAddress(member) then
-        return member
-    end
-
-    -- VLAN
-    local vlan_id
-    local vlan_idx = string.find(member, "@")
-    if vlan_idx == nil then
-        vlan_id = 0
-    elseif vlan_idx == 1 then
-        return nil
-    else
-        local other = string.sub(member, 1, vlan_idx - 1)
-        vlan_id = tonumber(string.sub(member, vlan_idx + 1))
-        if vlan_id == nil or vlan_id < 0 then
-            return nil
-        end
-        member = other
-    end
-
-    -- prefix is mandatory here
-    local address, prefix = splitNetworkPrefix(member)
-    if address == nil then
-        return nil
-    elseif prefix == nil then
-        prefix = '32'
-    end
-
-    if isIPv4(address) and (tonumber(prefix) >= 0) and (tonumber(prefix) <= 32) then
-        -- ok
-    elseif isIPv6(address) and (tonumber(prefix) >= 0) and (tonumber(prefix) <= 128) then
-        -- ok
-    else
-        return nil
-    end
-
-    return address .. '/' .. prefix .. '@' .. vlan_id
-end
-
--- ##############################################
-
 function host2member(ip, vlan, prefix)
     if prefix == nil then
         if isIPv4(ip) then

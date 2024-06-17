@@ -529,7 +529,9 @@ function graph_utils.poolDropdown(ifId, pool_id, exclude)
     local output = {}
     exclude = exclude or {}
 
-    for _, pool in ipairs(host_pools_instance:get_all_pools()) do
+    local pools_list = host_pools_instance:get_all_pools()
+
+    for _, pool in pairsByField(pools_list, 'name', asc) do
         pool.pool_id = tostring(pool.pool_id)
 
         if (not exclude[pool.pool_id]) or (pool.pool_id == pool_id) then

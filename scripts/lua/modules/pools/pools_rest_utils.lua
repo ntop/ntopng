@@ -165,7 +165,7 @@ end
 function pools_rest_utils.bind_member(pools)
    local old_pool_name = _GET["pool_name"]
    local pool_id = _GET["pool"]
-   local member = _POST["member"]
+   local member = fixPoolMemberFormat(_POST["member"])
    local action = _POST["action"]
    local old_member = _POST["old_member"]
 
@@ -327,7 +327,8 @@ end
 
 -- @brief Get one or all pools
 function pools_rest_utils.get_pool_by_member(pools)
-   local member = _POST["member"]
+   local member = fixPoolMemberFormat(_POST["member"])
+   local pool_name_only = toboolean(_POST["pool_name_only"])
 
    if not member then
       rest_utils.answer(rest_utils.consts.err.invalid_args)
@@ -340,7 +341,14 @@ function pools_rest_utils.get_pool_by_member(pools)
    local s = pools:create()
    local cur_pool = s:get_pool_by_member(member)
    if cur_pool then
-      res = cur_pool
+      if pool_name_only then
+         res = {
+            pool_id = cur_pool.pool_id,
+            name = cur_pool.name,
+         }
+      else
+         res = cur_pool
+      end
    end
 
    local rc = rest_utils.consts.success.ok
