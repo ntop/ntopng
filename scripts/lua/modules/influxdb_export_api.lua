@@ -73,11 +73,19 @@ end
 -- ##############################################
 
 function influxdb_export_api.exportStorageSize(when, influxdb)
-   local disk_bytes = influxdb:getDiskUsage()
-   local ifid = getSystemInterfaceId()
+   local skip = ntop.getCache(influxdb:getSkipRetentionAndCreationKey())
+   if isEmptyString(skip) then
+      skip = false
+   else   
+      skip = toboolean(skip) or false
+   end
 
-   if(disk_bytes ~= nil) then
-      ts_utils_core.append("influxdb:storage_size", { ifid = ifid, disk_bytes = disk_bytes }, when)
+   if (not skip) then
+      local disk_bytes = influxdb:getDiskUsage()
+      local ifid = getSystemInterfaceId()
+      if(disk_bytes ~= nil) then
+         ts_utils_core.append("influxdb:storage_size", { ifid = ifid, disk_bytes = disk_bytes }, when)
+      end
    end
 end
 
