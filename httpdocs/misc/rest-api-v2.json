@@ -10942,6 +10942,13 @@
             "description": "IP/MAC/Network CIDR",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "pool_name_only",
+            "in": "query",
+            "description": "Return only the pool name (do not return pool details including members)",
+            "required": false,
+            "type": "boolean"
           }
         ],
         "responses": {
