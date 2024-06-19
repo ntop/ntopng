@@ -258,22 +258,6 @@ local host_pool_id = nil
 
 if (host ~= nil) then
     charts_available = charts_available and host["localhost"] and not host["is_multicast"]
-
-    if (isAdministrator() and (_POST["pool"] ~= nil)) then
-        host_pool_id = _POST["pool"]
-        local prev_pool = tostring(host["host_pool_id"])
-
-        if host_pool_id ~= prev_pool then
-            local key = host2member(host["ip"], host["vlan"])
-            if host_pools_instance:bind_member(key, tonumber(host_pool_id)) then
-                ntop.reloadHostPools()
-            else
-                host_pool_id = nil
-            end
-        end
-
-    end
-
     if (host_pool_id == nil) then
         host_pool_id = tostring(host["host_pool_id"])
     end
@@ -365,14 +349,6 @@ else
     if host == nil then
         -- only_historical = true here
         host = hostkey2hostinfo(host_info["host"] .. "@" .. host_vlan)
-    end
-
-    if (_POST["custom_name"] ~= nil) and isAdministrator() then
-        setHostAltName(host_info, _POST["custom_name"])
-    end
-
-    if (_POST["custom_notes"] ~= nil) and isAdministrator() then
-        setHostNotes(host_info, _POST["custom_notes"])
     end
 
     host_label = hostinfo2label(host, false, false)
@@ -2716,110 +2692,15 @@ setInterval(update_icmp_table, 5000);
         dofile(dirs.installdir .. "/scripts/lua/inc/periodicity_map.lua")
 
     elseif (page == "config") then
-        if (not isAdministrator()) then
-            return
-        end
-
-        local host_key = hostinfo2hostkey(host_info, nil, true --[[show vlan]] )
-
-        if _SERVER["REQUEST_METHOD"] == "POST" then
-            if (ifstats.inline and (host.localhost or host.systemhost)) then
-                local drop_host_traffic = _POST["drop_host_traffic"]
-                local host_key = hostinfo2hostkey(host_info)
-
-                if (drop_host_traffic ~= "1") then
-                    ntop.delHashCache("ntopng.prefs.drop_host_traffic", host_key)
-                else
-                    ntop.setHashCache("ntopng.prefs.drop_host_traffic", host_key, "true")
-                end
-
-                interface.updateHostTrafficPolicy(host_info["host"], host_vlan)
-            end
-
-        end
-
-        -- NOTE: this only configures the alias associated to the IP address, not to the MAC
-        local ip_alias = getHostAltName(host_info)
-        local ip_notes = getHostNotes(host_info)
-
-        print [[
-   <form id="host_config" class="form-inline" method="post">
-   <input name="csrf" type="hidden" value="]]
-        print(ntop.getRandomCSRFValue())
-        print [[" />
-   <table class="table table-bordered table-striped">
-      <tr>
-         <th>]]
-        print(i18n("host_config.host_alias"))
-        print [[</th>
-         <td>
-               <input type="text" name="custom_name" class="form-control" placeholder="Custom Name" style="width: 280px;" value="]]
-        print(ip_alias)
-        print [["></input> ]]
-
-        print [[
-         </td>
-      </tr>]]
-
-        print [[<tr>
-                           <th>]]
-        print(i18n("host_notes"))
-        print [[
-                           </th>
-                    <td>
-                    <input type="text" name="custom_notes" class="form-control" placeholder="Custom Notes" style="width: 280px;" value="]]
-
-        print(ip_notes)
-        print [["></input> ]]
-
-        print [[</td>
-                    </tr>]]
-
-        if host_pool_id ~= nil then
-            graph_utils.printPoolChangeDropdown(ifId, host_pool_id .. "", have_nedge)
-        end
-
-        if (ifstats.inline and (host.localhost or host.systemhost)) then
-            -- Traffic policy
-            print("<tr><th>" .. i18n("host_config.host_traffic_policy") .. "</th><td>")
-
-            if (host["localhost"] == true) then
-                local host_key = hostinfo2hostkey(host_info)
-                drop_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
-
-                if (drop_traffic == "true") then
-                    drop_traffic_checked = 'checked="checked"'
-                    drop_traffic_value = "false" -- Opposite
-                else
-                    drop_traffic_checked = ""
-                    drop_traffic_value = "true" -- Opposite
-                end
-
-                print(template.gen("on_off_switch.html", {
-                    id = "drop_host_traffic",
-                    label = i18n("host_config.drop_all_host_traffic"),
-                    checked = drop_traffic == "true"
-                }))
-            end
-
-            print('</td></tr>')
-
-            print('</form>')
-            print('</td></tr>')
-        end
-
-        print [[
-   </table>
-
-   <button class="btn btn-primary" style="float:right; margin-right:1em; margin-left: auto" disabled="disabled" type="submit">]]
-        print(i18n("save_settings"))
-        print [[</button><br><br>
-
-   </form>
-   <script>
-      aysHandleForm("#host_config");
-   </script>]]
-
+        local context = {
+            ifid = tonumber(getSystemInterfaceId()),
+            csrf = ntop.getRandomCSRFValue()
+        }
+        local json_context = json.encode(context)
+        template.render("pages/vue_page.template", {
+            vue_page_name = "PageHostConfig",
+            page_context = json_context
+        })
     elseif (page == "historical") then
         local source_value_object = {
             ifid = interface.getId()

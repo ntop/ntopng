@@ -58,8 +58,11 @@ import { default as PageSNMPDevices } from "./page-snmp-devices.vue"
 import { default as PageBlacklists } from "./page-blacklists.vue"
 import { default as PageHistoricalFlow } from "./page-historical-flow-details.vue"
 import { default as PageSNMPQoS } from "./page-snmp-qos.vue"
-import { default as PageSNMPConfig } from "./page-snmp-config.vue"
 import { default as PageGeoMap } from "./hosts-geomap.vue"
+
+/* Config pages */
+import { default as PageSNMPConfig } from "./page-snmp-config.vue"
+import { default as PageHostConfig } from "./page-host-config.vue"
 
 // components
 import { default as AlertInfo } from "./alert-info.vue";
@@ -168,6 +171,7 @@ let ntopVue = {
     PageHostDetailsPorts: PageHostDetailsPorts,
     PageHostsList: PageHostsList,
     PageGeoMap: PageGeoMap,
+    PageHostConfig: PageHostConfig,
 
     PageAggregatedLiveFlows: PageAggregatedLiveFlows,
 

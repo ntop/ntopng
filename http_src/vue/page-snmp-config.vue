@@ -6,7 +6,7 @@
   <div class="m-3">
     <h5>{{ _i18n('prefs.snmp_device_config') }}</h5>
     <hr>
-    <div class="mt-4 card card-shadow">
+    <div class="m-4 card card-shadow">
       <div class="card-body">
         <div class="table table-striped table-bordered col-sm-12">
           <tbody class="table_length">
