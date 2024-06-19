@@ -153,7 +153,7 @@ Common Issues
 =============
 
 Failure Running ntopng
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 A common issue on FreeBSD which is preventing ntopng from running and even 
 showing Version and License information under *Settings* > *License*, is a
@@ -162,7 +162,7 @@ remove the database files under /var/db/redis/*.rdb and restart the service
 (or reboot the machine).
 
 Failure Adding the Repository
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------
 
 Some users experienced issues adding the ntop repository in OPNsense with a
 "Certificate verification failed" message. This seems to be due to an issue with the ACME
@@ -170,7 +170,7 @@ plugin. Manually importing LE root and intermediate CA chain seems to fix this i
 Please read https://forum.opnsense.org/index.php?topic=25178.0 for more info.
 
 libsodium.so.23 not found
-~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------
 
 ntopng on FreeBSD depends on libsodium.so.23, however OPNsense 24.x provides
 libsodium.so.26, this leads to a failure when trying to run ntopng:
