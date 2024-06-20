@@ -1528,7 +1528,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             }}
 
             multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
-                subpage_active.entries["multiple_timeseries_database"].description, {"RRD", "InfluxDB 1.x"},
+                subpage_active.entries["multiple_timeseries_database"].description, {"RRD", "InfluxDB 1.x/2.x"},
                 {"rrd", "influxdb"}, "rrd", "primary", "timeseries_driver", "ntopng.prefs.timeseries_driver", nil,
                 elementToSwitch, showElementArray, nested_to_switch, true --[[show]] )
 

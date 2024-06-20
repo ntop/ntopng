@@ -35,7 +35,7 @@ alert_snmp_device_polling_error.meta = {
 function alert_snmp_device_polling_error:init(device_ip, device_name, reason)
    -- Call the parent constructor
    self.super:init()
-
+      
    self.alert_type_params = {
       device = device_ip,
       device_name = device_name,
