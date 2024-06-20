@@ -2252,6 +2252,7 @@ local lang = {
     ["restart_product_toast"] = "Restart %{product} to make the deletion of active interface effective.",
   },
   ["details"] = {
+    ["is_dhcp_broadcast"] = "DHCP broadcast",
     ["additional_mac_address"] = "Additional MAC Address",
     ["address_resolution_protocol"] = "Address Resolution Protocol",
     ["ago"] = "ago",
