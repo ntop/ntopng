@@ -138,7 +138,9 @@ if ntop.isEnterpriseXL() then
   smart_disk_space = tostring(math.floor(tonumber(smart_disk_space)/1024))
 else
   -- Compute recommended values for storage only
-  disk_space = max_space
+  if isEmptyString(disk_space) then
+    disk_space = max_space
+  end
 end
 disk_space = tostring(math.floor(tonumber(disk_space)/1024))
 
