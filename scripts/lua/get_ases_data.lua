@@ -16,6 +16,7 @@ local currentPage  = _GET["currentPage"]
 local perPage      = _GET["perPage"]
 local sortColumn   = _GET["sortColumn"]
 local sortOrder    = _GET["sortOrder"]
+local asn          = _GET["asn"]
 
 local sortPrefs = "asn"
 
@@ -56,9 +57,23 @@ to_skip = (currentPage-1) * perPage
 
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
-local ases_stats = interface.getASesInfo({sortColumn = sortColumn,
+local ases_stats
+
+if asn then
+   ases_stats = {
+     ASes = {},
+     numASes = 0
+   }
+   local info = interface.getASInfo(tonumber(asn))
+   if info then
+      ases_stats.ASes[#ases_stats.ASes+1] = info
+      ases_stats.numASes = #ases_stats.ASes
+   end
+else
+   ases_stats = interface.getASesInfo({sortColumn = sortColumn,
 					  maxHits = perPage, toSkip = to_skip,
 					  a2zSortOrder = sOrder, detailsLevel = "high"})
+end
 
 local total_rows = 0
 

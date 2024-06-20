@@ -131,6 +131,17 @@ local function add_historical_flows_link(links, key --[[ ip, mac, name --]], val
    end
 end
 
+local function add_as_info_link(links, asn)
+   -- AS Info
+   local as_info_icon = 'circle-info'
+   local as_info_url = ntop.getHttpPrefix() .. '/lua/as_stats.lua?ifid=' .. ifid .. '&asn=' .. asn
+   links[#links + 1] = {
+      icon = as_info_icon,
+      title = i18n('as_info'),
+      url = as_info_url,
+   }
+end
+
 local function add_icon_link(links, icon, title, url)
    -- table.insert(links, 1, link)
    links[#links + 1] = {
@@ -224,6 +235,7 @@ if not is_system_interface and not hosts_only then
       local links = {}
       local badges = {}
       add_asn_link(links)
+      add_as_info_link(links, as.asn)
 
       if string.containsIgnoreCase(as_name, query) then
          add_badge(badges, asn)
