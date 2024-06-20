@@ -505,9 +505,6 @@ function format_utils.formatMainAddressCategory(host)
          addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_remote") ..'\"><span class="badge bg-secondary">'..i18n("details.label_short_remote")..'</span></abbr>'
       end
 
-      if (host.dhcpHost == true) then 
-         addr_category = addr_category .. " <i class=\'fa-solid fa-bolt\' title=\'"..i18n("details.is_dhcp_broadcast").."\'></i>"
-      end
       if(host.is_blackhole == true) then
 	 addr_category = addr_category .. ' <abbr title=\"'.. i18n("details.label_blackhole") ..'\"><span class="badge bg-info">'..i18n("details.label_short_blackhole")..'</span></abbr>'
       end
