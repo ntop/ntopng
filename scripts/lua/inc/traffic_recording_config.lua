@@ -23,6 +23,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   local disk_space
   local smart_disk_space
 
+  -- Toggle traffic recording
   if not isEmptyString(_POST["record_traffic"]) then
     record_traffic = true
     ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.enabled', "1")
@@ -30,12 +31,14 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
     ntop.delCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.enabled')
   end
  
+  -- Set BPF filter
   local bpf_filter = ''
   if not isEmptyString(_POST["bpf_filter"]) then
     bpf_filter = _POST["bpf_filter"]
   end
   ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.bpf_filter', bpf_filter)
 
+  -- Set disk space
   disk_space = recording_utils.default_disk_space
   if not isEmptyString(_POST["disk_space"]) then
     disk_space = tonumber(_POST["disk_space"])*1024
@@ -43,6 +46,8 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.disk_space', tostring(disk_space))
 
   if ntop.isEnterpriseXL() then
+  
+    -- Toggle smart recording
     if not isEmptyString(_POST["smart_record_traffic"]) then
       smart_record_traffic = true
       ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.instance', recording_utils.getN2diskInstanceName(master_ifid))
@@ -53,6 +58,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
     end
     interface.updateSmartRecording()
 
+    -- Set smart disk space
     smart_disk_space = recording_utils.default_disk_space
     if not isEmptyString(_POST["smart_disk_space"]) then
       smart_disk_space = tonumber(_POST["smart_disk_space"])*1024
@@ -83,7 +89,8 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
     end
 
   end
-  
+ 
+  -- Configure/start or stop the recording service
   if record_traffic then
     local config = {}
     config.max_disk_space = disk_space
@@ -138,8 +145,12 @@ if ntop.isEnterpriseXL() then
   smart_disk_space = tostring(math.floor(tonumber(smart_disk_space)/1024))
 else
   -- Compute recommended values for storage only
-  disk_space = max_space
+  if isEmptyString(disk_space) then
+    disk_space = max_space
+  end
 end
+
+-- Convert disk space to GUI unit
 disk_space = tostring(math.floor(tonumber(disk_space)/1024))
 
 print("<h2>"..i18n("traffic_recording.traffic_recording_settings").."</h2><br>")
