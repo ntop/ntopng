@@ -7,6 +7,8 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "lua_utils"
 
+local asn = _GET["asn"]
+
 local page_utils = require("page_utils")
 
 sendHTTPContentTypeHeader('text/html')
@@ -18,14 +20,16 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 page_utils.print_page_title(i18n("as_stats.autonomous_systems"))
 
+local url = ntop.getHttpPrefix() .. "/lua/get_ases_data.lua?"
+if not isEmptyString(asn) then
+   url = url .. "asn=" .. asn
+end
+
 print [[
 	  <div id="table-as"></div>
 	 <script>
-	 var url_update = "]]
-print (ntop.getHttpPrefix())
-print [[/lua/get_ases_data.lua]]
+	 var url_update = "]] print (url) print [[";]]
 
-print ('";')
 ntop.dumpFile(dirs.installdir .. "/httpdocs/inc/as_stats_id.inc")
 
 print [[

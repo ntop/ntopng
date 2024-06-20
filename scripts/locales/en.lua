@@ -55,6 +55,7 @@ local lang = {
   ["arp_type"] = "ARP Type",
   ["as"] = "AS",
   ["as_client"] = "as Client",
+  ["as_info"] = "AS info",
   ["as_number"] = "AS number",
   ["as_server"] = "as Server",
   ["asn"] = "ASN",
