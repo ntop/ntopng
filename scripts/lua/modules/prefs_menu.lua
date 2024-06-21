@@ -101,11 +101,11 @@ local menu_subpages = {{
     label = i18n("prefs.assets_inventory"),
     advanced = false,
     pro_only = false,
-    hidden = false,
+    hidden = not ntop.isEnterpriseXL(),
     entries = {
-        toggle_assets_inventory = {
-            title = i18n("prefs.toggle_assets_inventory_title"),
-            description = i18n("prefs.toggle_assets_inventory_description")
+        toggle_netbox = {
+            title = i18n("prefs.toggle_netbox_title"),
+            description = i18n("prefs.toggle_netbox_description")
         },
         netbox_activation_url = {
             title = i18n("prefs.netbox_activation_url_title"),

@@ -759,11 +759,10 @@
 #define CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD \
   7200  // 2 hours by default
 
-#define CONST_PREFS_NETBOX_ACTIVATION_URL \
-  NTOPNG_PREFS_PREFIX ".netbox_activation_url"
-
-#define CONST_PREFS_NETBOX_PERSONAL_ACCESS_TOKEN \
-  NTOPNG_PREFS_PREFIX ".netbox_personal_access_token"
+#define CONST_PREFS_NETBOX_ENABLED \
+  NTOPNG_PREFS_PREFIX ".toggle_netbox"
+#define CONST_DEFAULT_NETBOX_ENABLED \
+  0  // disabled by default
 
 #define CONST_PREFS_USE_MAC_IN_FLOW_KEY \
   NTOPNG_PREFS_PREFIX ".use_mac_in_flow_key"

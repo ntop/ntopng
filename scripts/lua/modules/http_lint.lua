@@ -2164,9 +2164,9 @@ local known_parameters = {
    ["stats"] = validateBool,
    ["rtt_threshold"] = validateNumber,
    ["bandwidth_threshold"] = validateNumber,
-   ["toggle_assets_inventory"] = validateBool,
+   ["toggle_netbox"] = validateBool,
    ["netbox_activation_url"] = validateSingleWord,
-   ["netbox_personal_access_token"] = validateToken,
+   ["netbox_personal_access_token"] = validateSingleWord,
 
    -- Service Map
    ["service_id"] = validateNumber,

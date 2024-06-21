@@ -827,3 +827,24 @@ end
 function prefsSkipRedis(skip)
   skip_redis = skip
 end
+
+function isNetBoxEnabled()
+  if not ntop.isEnterpriseXL() then
+    return false
+  end
+  return (ntop.getPref("ntopng.prefs.toggle_netbox") == "1")
+end
+
+function getNetBoxURL()
+  if not ntop.isEnterpriseXL() or not ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
+    return ""
+  end
+  return ntop.getPref("ntopng.prefs.netbox_activation_url")
+end
+
+function getNetBoxToken()
+  if not ntop.isEnterpriseXL() or not ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
+    return ""
+  end
+  return ntop.getPref("ntopng.prefs.netbox_personal_access_token")
+end

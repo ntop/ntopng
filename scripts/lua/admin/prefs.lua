@@ -2255,36 +2255,36 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         local elementToSwitch = {"netbox_activation_url", "netbox_personal_access_token"}
 
-        if ntop.getPref("ntopng.prefs.toggle_assets_inventory") == "1" then
+        if ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
             showNetboxConfiguration = true
         else
             showNetboxConfiguration = false
         end
 
         prefsToggleButton(subpage_active, {
-            field = "toggle_assets_inventory",
+            field = "toggle_netbox",
             default = "0",
-            pref = "toggle_assets_inventory_title",
+            pref = "toggle_netbox",
             to_switch = elementToSwitch,
             disabled = disabled
         })
+
         --(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs, extra)
         prefsInputFieldPrefs(subpage_active.entries["netbox_activation_url"].title,
-        subpage_active.entries["netbox_activation_url"].description, "ntopng.prefs.netbox_activation_url", "netbox_activation_url",
-        "", false, nil, nil, nil, {
+        subpage_active.entries["netbox_activation_url"].description, "ntopng.prefs.", "netbox_activation_url",
+        "", false, showNetboxConfiguration, nil, nil, {
             attributes = {
                 spellcheck = "false",
             },
-            hidden = not showNetboxConfiguration,
+            required = true,
             disabled = disabled
         })
         
         prefsInputFieldPrefs(subpage_active.entries["netbox_personal_access_token"].title,
-        subpage_active.entries["netbox_personal_access_token"].description, "ntopng.prefs.netbox_personal_access_token", "netbox_personal_access_token", "",
-        "", nil, nil, nil, {
-            hidden = showNetboxConfiguration,
+        subpage_active.entries["netbox_personal_access_token"].description, "ntopng.prefs.", "netbox_personal_access_token", "",
+        "", showNetboxConfiguration, nil, nil, {
+            required = true
         })
-            
             
         if (disabled) then
             prefsInformativeField(i18n("notes"), i18n("enterpriseOnly"))
