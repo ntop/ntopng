@@ -49,8 +49,12 @@ class Mac : public GenericHashEntry {
 #ifdef NTOPNG_PRO
   time_t captive_portal_notified;
 #endif
+
   /* END Mac data: */
 
+#ifdef NTOPNG_PRO
+  void dumpAssetsInformations();
+#endif
   void checkDeviceTypeFromManufacturer();
   void readDHCPCache();
   void freeMacData();
@@ -58,7 +62,7 @@ class Mac : public GenericHashEntry {
   bool statsResetRequested();
   void checkStatsReset();
   void dumpToRedis();
-  
+
  public:
   Mac(NetworkInterface *_iface, u_int8_t _mac[6]);
   ~Mac();
