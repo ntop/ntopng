@@ -46,6 +46,7 @@ class AlertsQueue {
                                         u_int32_t tpa, u_int16_t vlan_id);
   void pushLoginTrace(const char *user, bool authorized);
   void pushNfqFlushedAlert(int queue_len, int queue_len_pct, int queue_dropped);
+  void pushCloudDisconnectionAlert();
 };
 
 #endif

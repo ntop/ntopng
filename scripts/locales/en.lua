@@ -1664,6 +1664,11 @@ local lang = {
       ["title"] = "Unexpected Servers",
     },
   },
+  ["cloud"] = {
+    ["cloud"] = "Cloud",
+    ["disconnected"] = "Lost connection with the Cloud",
+    ["disconnection"] = "Cloud Disconnection",
+  },
   ["conf_backup"] = {
     ["conf_backup"] = "Backup Configuration",
     ["conf_restore"] = "Restore Configuration",
