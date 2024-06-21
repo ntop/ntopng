@@ -99,7 +99,6 @@ function prefsGetActiveSubpage(show_advanced_prefs, tab)
 end
 
 function printMenuSubpages(tab)
-
   for _, subpage in ipairs(menu_subpages) do
     if not subpage.hidden then
       local url = ternary(subpage.disabled, "#", ntop.getHttpPrefix() .. [[/lua/admin/prefs.lua?tab=]] .. (subpage.id))

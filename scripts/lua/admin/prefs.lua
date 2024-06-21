@@ -2240,6 +2240,67 @@ if auth.has_capability(auth.capabilities.preferences) then
         end_table()
     end
 
+    function printAssetsInventory()
+        if not ntop.isPro() then
+            return
+        end
+
+        print('<form method="post">')
+        print('<table class="table">')
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">Assets Inventory</th></tr></thead>')
+        local disabled = not info["version.enterprise_edition"]
+
+        -- show or not show table entries for netbox configuration
+        local showNetboxConfiguration = true
+
+        local elementToSwitch = {"netbox_activation_url", "netbox_personal_access_token"}
+
+        if ntop.getPref("ntopng.prefs.toggle_assets_inventory") == "1" then
+            showNetboxConfiguration = true
+        else
+            showNetboxConfiguration = false
+        end
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_assets_inventory",
+            default = "0",
+            pref = "toggle_assets_inventory_title",
+            to_switch = elementToSwitch,
+            disabled = disabled
+        })
+        --(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs, extra)
+        prefsInputFieldPrefs(subpage_active.entries["netbox_activation_url"].title,
+        subpage_active.entries["netbox_activation_url"].description, "ntopng.prefs.netbox_activation_url", "netbox_activation_url",
+        "", false, nil, nil, nil, {
+            attributes = {
+                spellcheck = "false",
+            },
+            hidden = not showNetboxConfiguration,
+            disabled = disabled
+        })
+        
+        prefsInputFieldPrefs(subpage_active.entries["netbox_personal_access_token"].title,
+        subpage_active.entries["netbox_personal_access_token"].description, "ntopng.prefs.netbox_personal_access_token", "netbox_personal_access_token", "",
+        "", nil, nil, nil, {
+            hidden = showNetboxConfiguration,
+        })
+            
+            
+        if (disabled) then
+            prefsInformativeField(i18n("notes"), i18n("enterpriseOnly"))
+        end
+
+        print(
+            '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
+                i18n("save") .. '</button></th></tr>')
+
+        print [[<input name="csrf" type="hidden" value="]]
+        print(ntop.getRandomCSRFValue())
+        print [[" />
+  </form>
+  </table>]]
+    end
+
     function printReportsOptions()
         print('<form method="post">')
         print('<table class="table">')
@@ -2285,7 +2346,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     print [[
            <div class="list-group">]]
-
+    --tprint(tab)
     printMenuSubpages(tab)
 
     local simple_view_class = (show_advanced_prefs and 'btn-secondary' or 'btn-primary active')
@@ -2400,6 +2461,10 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     if (tab == "vulnerability_scan") then
         printVulnerabilityScan()
+    end
+    
+    if (tab == "assets_inventory") then
+        printAssetsInventory()
     end
 
     print [[
