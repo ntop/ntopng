@@ -2346,7 +2346,6 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     print [[
            <div class="list-group">]]
-    --tprint(tab)
     printMenuSubpages(tab)
 
     local simple_view_class = (show_advanced_prefs and 'btn-secondary' or 'btn-primary active')
