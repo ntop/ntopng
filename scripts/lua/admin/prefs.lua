@@ -2276,12 +2276,15 @@ if auth.has_capability(auth.capabilities.preferences) then
             attributes = {
                 spellcheck = "false",
             },
+            required = true,
             disabled = disabled
         })
         
         prefsInputFieldPrefs(subpage_active.entries["netbox_personal_access_token"].title,
         subpage_active.entries["netbox_personal_access_token"].description, "ntopng.prefs.", "netbox_personal_access_token", "",
-        "", showNetboxConfiguration, nil, nil, {})
+        "", showNetboxConfiguration, nil, nil, {
+            required = true
+        })
             
         if (disabled) then
             prefsInformativeField(i18n("notes"), i18n("enterpriseOnly"))
