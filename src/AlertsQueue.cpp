@@ -224,3 +224,20 @@ void AlertsQueue::pushCloudDisconnectionAlert() {
   }
 }
 
+/* **************************************************** */
+
+void AlertsQueue::pushCloudReconnectionAlert() {
+  ndpi_serializer *tlv;
+
+  if (ntop->getPrefs()->are_alerts_disabled()) return;
+
+  tlv = (ndpi_serializer *)calloc(1, sizeof(ndpi_serializer));
+
+  if (tlv) {
+    ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
+
+    pushAlertJson(tlv, "cloud_reconnected", NULL, alert_category_system);
+  }
+}
+
+/* **************************************************** */

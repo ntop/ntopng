@@ -47,6 +47,7 @@ class AlertsQueue {
   void pushLoginTrace(const char *user, bool authorized);
   void pushNfqFlushedAlert(int queue_len, int queue_len_pct, int queue_dropped);
   void pushCloudDisconnectionAlert();
+  void pushCloudReconnectionAlert();
 };
 
 #endif

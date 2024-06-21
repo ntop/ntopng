@@ -1668,6 +1668,8 @@ local lang = {
     ["cloud"] = "Cloud",
     ["disconnected"] = "Lost connection with the Cloud",
     ["disconnection"] = "Cloud Disconnection",
+    ["reconnected"] = "Restored connection with the Cloud",
+    ["reconnection"] = "Cloud Reconnected",
   },
   ["conf_backup"] = {
     ["conf_backup"] = "Backup Configuration",
