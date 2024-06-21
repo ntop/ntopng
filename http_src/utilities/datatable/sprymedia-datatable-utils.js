@@ -728,6 +728,8 @@ export class DataTableRenders {
 
     static formatSNMPInterface(obj, type, row) {
         if (type !== "display") return obj.value;
+        if (obj.value === undefined)
+            return ''; /* interface not defined - probably a device-level alert */
         let cell = DataTableRenders.filterize('snmp_interface', `${row.ip}_${obj.value}`, obj.label, obj.label, obj.label, null, false, row.ip);
         if (obj.color) cell = `<span class='font-weight-bold' style='color: ${obj.color}'>${cell}</span>`;
         return cell;
