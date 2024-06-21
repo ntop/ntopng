@@ -7655,7 +7655,7 @@ local lang = {
     ["snmp_avg_traffic"] = "Average Traffic",
     ["snmp_community"] = "Community",
     ["snmp_device"] = "SNMP Device",
-    ["snmp_device_does_not_respond"] = "The SNMP device does not respond.",
+    ["snmp_device_does_not_respond"] = "The SNMP device is unresponsivex.",
     ["snmp_device_last_poll"] = "Time Since Last Poll",
     ["snmp_device_last_poll_duration"] = "Last Poll Duration",
     ["snmp_device_polling_disabled"] = "Periodic device polling is disabled. Information shown may be missing or outdated. Polling can be enabled from the <a href=\"%{url}\"><i class=\"fas fa-flask\"></i> Preferences</a>.",
