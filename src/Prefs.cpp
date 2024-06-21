@@ -104,6 +104,7 @@ Prefs::Prefs(Ntop *_ntop) {
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
 #ifdef NTOPNG_PRO
+  netbox_enabled = CONST_DEFAULT_NETBOX_ENABLED;
   pro_callbacks_dir = strdup(CONST_DEFAULT_PRO_CALLBACKS_DIR);
   create_labels_logfile = false;
 #endif
@@ -1045,6 +1046,11 @@ void Prefs::reloadPrefsFromRedis() {
   refreshDeviceProtocolsPolicyPref();
   refreshDbDumpPrefs();
   refreshBehaviourAnalysis();
+
+#ifdef NTOPNG_PRO
+  netbox_enabled = getDefaultPrefsValue(CONST_PREFS_NETBOX_ENABLED,
+							    CONST_DEFAULT_NETBOX_ENABLED);
+#endif
 
 #ifdef PREFS_RELOAD_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -2780,7 +2786,6 @@ void Prefs::lua(lua_State *vm) {
                               devices_learning_period);
   lua_push_uint64_table_entry(vm, "host_port_learning_period",
                               host_port_learning_period);
-
   lua_push_str_table_entry(
 			   vm, "safe_search_dns",
 			   Utils::intoaV4(ntohl(safe_search_dns_ip), buf, sizeof(buf)));
