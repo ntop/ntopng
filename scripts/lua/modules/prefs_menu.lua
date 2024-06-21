@@ -97,6 +97,27 @@ local menu_subpages = {{
         }
     }
 }, {
+    id = "assets_inventory",
+    label = i18n("prefs.assets_inventory"),
+    advanced = false,
+    pro_only = false,
+    hidden = false,
+    entries = {
+        toggle_assets_inventory = {
+            title = i18n("prefs.toggle_assets_inventory_title"),
+            description = i18n("prefs.toggle_assets_inventory_description")
+        },
+        netbox_activation_url = {
+            title = i18n("prefs.netbox_activation_url_title"),
+            description = i18n("prefs.netbox_activation_url_description")
+        },
+        netbox_personal_access_token = {
+            title = i18n("prefs.netbox_personal_access_token_title"),
+            description = i18n("prefs.netbox_personal_access_token_description")
+        }
+    }
+},
+{
     id = "traffic_behaviour",
     label = i18n("prefs.behaviour"),
     advanced = true,
