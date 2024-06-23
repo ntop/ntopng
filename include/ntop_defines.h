@@ -1528,9 +1528,9 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 #define INTERFACE_PROFILING_SUB_SECTION_EXIT(f, i)
 #endif
 
-#define MAX_NUM_CONCURRENT_JOBS  8
-#define MAX_NUM_QUEUED_JOBS      256
-#define CONST_MAX_NUM_QUEUED_PORTS 3
+#define MAX_NUM_CONCURRENT_JOBS    8
+#define MAX_NUM_QUEUED_JOBS        256
+#define CONST_MAX_NUM_QUEUED_PORTS 8
 
 #define SIMULATE_VLANS_MAX_VALUE 0xa /* 10 in hexadecimal */
 
