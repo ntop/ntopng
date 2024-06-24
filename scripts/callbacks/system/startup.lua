@@ -32,9 +32,6 @@ local blog_utils = require("blog_utils")
 local vs_utils = require "vs_utils"
 local drop_host_pool_utils = require "drop_host_pool_utils"
 
-if ntop.isPro() and isNetBoxEnabled() then 
-   local netbox_api = require("netbox_manager")
-end
 -- ##################################################################
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Processing startup.lua: please hold on...")
@@ -250,7 +247,10 @@ vs_utils.restore_host_to_scan()
 ntop.reloadAlertExclusions()
 
 if ntop.isPro() and isNetBoxEnabled() then
-   netbox_api.initialization_device_roles()
+   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+   local netbox_manager = require("netbox_manager")
+
+   netbox_manager.initialization_device_roles()
 end
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")

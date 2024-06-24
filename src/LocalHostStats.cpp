@@ -31,26 +31,9 @@ LocalHostStats::LocalHostStats(Host *_host) : HostStats(_host) {
   dns = new (std::nothrow) DnsStats();
   http = new (std::nothrow) HTTPstats(_host);
   icmp = new (std::nothrow) ICMPstats();
-  peers = new (std::nothrow)
-      PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */);
+  peers = new (std::nothrow) PeerStats(MAX_DYNAMIC_STATS_VALUES /* 10 as default */);
 
-  nextPeriodicUpdate = 0;
-  num_contacts_as_cli = num_contacts_as_srv = 0;
-
-  num_contacted_hosts_as_client.init(8);    /* 128 bytes */
-  num_host_contacts_as_server.init(8);      /* 128 bytes */
-  num_contacted_services_as_client.init(8); /* 128 bytes */
-  num_contacted_hosts.init(4);              /* 16 bytes  */
-  num_contacted_countries.init(4);          /* 16 bytes  */
-  contacts_as_cli.init(4);                  /* 16 bytes  */
-  contacts_as_srv.init(4);                  /* 16 bytes  */
-
-  num_dns_servers.init(5);
-  num_smtp_servers.init(5);
-  num_ntp_servers.init(5);
-  num_imap_servers.init(5);
-  num_pop_servers.init(5);
-  num_contacted_domain_names.init(4);
+  init();
 }
 
 /* *************************************** */
@@ -62,6 +45,23 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   dns = s.getDNSstats() ? new (std::nothrow) DnsStats(*s.getDNSstats()) : NULL;
   http = NULL;
   icmp = NULL;
+
+  init();
+}
+
+/* *************************************** */
+
+LocalHostStats::~LocalHostStats() {
+  if (top_sites) delete top_sites;
+  if (dns) delete dns;
+  if (http) delete http;
+  if (icmp) delete icmp;
+  if (peers) delete (peers);
+}
+
+/* *************************************** */
+
+void LocalHostStats::init() {
   nextPeriodicUpdate = 0;
   num_contacts_as_cli = num_contacts_as_srv = num_reset_flow = 0;
 
@@ -79,16 +79,6 @@ LocalHostStats::LocalHostStats(LocalHostStats &s) : HostStats(s) {
   num_imap_servers.init(5);
   num_pop_servers.init(5);
   num_contacted_domain_names.init(4);
-}
-
-/* *************************************** */
-
-LocalHostStats::~LocalHostStats() {
-  if (top_sites) delete top_sites;
-  if (dns) delete dns;
-  if (http) delete http;
-  if (icmp) delete icmp;
-  if (peers) delete (peers);
 }
 
 /* *************************************** */
