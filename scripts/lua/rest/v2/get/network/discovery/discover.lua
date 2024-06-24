@@ -31,80 +31,80 @@ local discovered = discover.discover2table(ifname)
 
 discovered["devices"] = discovered["devices"] or {}
 
-for _, el in pairs(discovered["devices"]) do
+for _, value in pairs(discovered["devices"]) do
   -- Manufacturer
   local manufacturer = ""
-  if el["manufacturer"] then
-    manufacturer = el["manufacturer"]
+  if value["manufacturer"] then
+    manufacturer = value["manufacturer"]
   else
-    manufacturer = get_manufacturer_mac(el["mac"])
+    manufacturer = get_manufacturer_mac(value["mac"])
   end
 
   local actual_manuf = manufacturer
 
-  if(el["modelName"] and (el["modelName"] ~= "")) then
-    manufacturer = manufacturer .. " ["..el["modelName"].."]"
+  if(value["modelName"] and (value["modelName"] ~= "")) then
+    manufacturer = manufacturer .. " ["..value["modelName"].."]"
   end
-  el.manufacturer = manufacturer
+  value.manufacturer = manufacturer
 
   -- Name
   local name = ""
-  if el["sym"] then name = name .. el["sym"] end
+  if value["sym"] then name = name .. value["sym"] end
 
-  if el["symIP"] then
-    if el["sym"] then
-      name = name .. " ["..el["symIP"].."]"
+  if value["symIP"] then
+    if value["sym"] then
+      name = name .. " ["..value["symIP"].."]"
     else
-      name = el["symIP"]
+      name = value["symIP"]
     end
   end
-  el.name = name
+  value.name = name
 
   -- Retrieve information from L3 host
-  local host = interface.getHostInfo(el["ip"])
+  local host = interface.getHostInfo(value["ip"])
 
   if(host ~= nil) then
-    el.os_type = host.os
+    value.os_type = host.os
   end
 
-  el.os = discover.getOsIcon(el.os_type)
+  value.os = discover.getOsIcon(value.os_type)
 
   -- Device info
   local devinfo = ""
-  if el["information"] then devinfo = devinfo .. table.concat(el["information"], "<br>") end
-  if el["url"] then
-    if el["information"] then
-      devinfo = devinfo .. "<br>"..el["url"]
+  if value["information"] then devinfo = devinfo .. table.concat(value["information"], "<br>") end
+  if value["url"] then
+    if value["information"] then
+      devinfo = devinfo .. "<br>"..value["url"]
     else
-      devinfo = devinfo .. el["url"]
+      devinfo = devinfo .. value["url"]
     end
   end
-  el.info = devinfo
+  value.info = devinfo
 
   -- Filter
-  if (os_filter ~= nil) and (el.os_type ~= os_filter) then
+  if (os_filter ~= nil) and (value.os_type ~= os_filter) then
     goto continue
   end
   if (manuf_filter ~= nil) and (actual_manuf ~= manuf_filter) then
     goto continue
   end
 
-  if (devtype_filter ~= nil) and (discover.devtype2id(el.device_type) ~= devtype_filter) then
+  if (devtype_filter ~= nil) and (discover.devtype2id(value.device_type) ~= devtype_filter) then
     goto continue
   end
 
   local rec = {}
   
-  rec.ip = ip2detailshref(el["ip"], nil, nil, el["ip"])
-    ..ternary(el["icon"], "&nbsp;" ..(el["icon"] or "").. "&nbsp;", "")
-    ..ternary(el["ghost"], " <font color=red>" ..(discover.ghost_icon or "").. "</font>", "")
+  rec.ip = ip2detailshref(value["ip"], nil, nil, value["ip"])
+    ..ternary(value["icon"], "&nbsp;" ..(value["icon"] or "").. "&nbsp;", "")
+    ..ternary(value["ghost"], " <font color=red>" ..(discover.ghost_icon or "").. "</font>", "")
 
-  rec.mac_address = [[<a href="]] ..ntop.getHttpPrefix().. [[/lua/mac_details.lua?host=]] ..el["mac"].. [[">]] ..get_symbolic_mac(el["mac"], true).. [[</a>]]
-  rec.name = el.name
-  rec.info = el.info
-  rec.device = el["device_label"]
-  rec.manufacturer = el.manufacturer
-  rec.os = el.os
+  rec.mac_address = [[<a href="]] ..ntop.getHttpPrefix().. [[/lua/mac_details.lua?host=]] ..value["mac"].. [[">]] ..get_symbolic_mac(value["mac"], true).. [[</a>]]
+  rec.name = value.name
+  rec.info = value.info
+  rec.device = value["device_label"]
+  rec.manufacturer = value.manufacturer
+  rec.os = value.os
 
   res[#res + 1] = rec
 
