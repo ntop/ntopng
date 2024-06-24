@@ -12,6 +12,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package
 package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
 -- Important: load this before any other alert related module
+require "prefs_utils"
 local checks = require "checks"
 checks.loadChecks()
 
@@ -244,5 +245,12 @@ vs_utils.restore_host_to_scan()
 
 -- Reload Alert Exclusions
 ntop.reloadAlertExclusions()
+
+if ntop.isPro() and isNetBoxEnabled() then
+   package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+   local netbox_manager = require("netbox_manager")
+
+   netbox_manager.initialization_device_roles()
+end
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")

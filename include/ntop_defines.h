@@ -227,6 +227,8 @@
 #define DHCP_CACHE "ntopng.dhcp.%d.cache.%s"
 #define DHCP_STORM_QUEUE_NAME "ntopng.dhcp.storm.%d"
 #define ASSET_SERVICE_KEY "ntopng.asset.%d.%s" /* ifId.host */
+#define ASSET_LIST_INSERTION_KEY "ntopng.asset.insertion.%d" /* take in sync with lua code */
+#define ASSET_HASH_CACHE_KEY "ntopng.asset.hash.cache.%d" /* take in sync with lua code */
 #define DHCP_STORM_PPS_THSHOLD 2048
 #define NTOPNG_TRACE "ntopng.trace"
 #define ALERT_TRACE_ERRORS "ntopng.trace_error.alert_queue"
@@ -1526,9 +1528,9 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 #define INTERFACE_PROFILING_SUB_SECTION_EXIT(f, i)
 #endif
 
-#define MAX_NUM_CONCURRENT_JOBS  8
-#define MAX_NUM_QUEUED_JOBS      256
-#define CONST_MAX_NUM_QUEUED_PORTS 3
+#define MAX_NUM_CONCURRENT_JOBS    8
+#define MAX_NUM_QUEUED_JOBS        256
+#define CONST_MAX_NUM_QUEUED_PORTS 8
 
 #define SIMULATE_VLANS_MAX_VALUE 0xa /* 10 in hexadecimal */
 

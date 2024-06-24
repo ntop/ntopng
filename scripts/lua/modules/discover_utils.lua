@@ -1165,6 +1165,12 @@ local function findDevice(ip, mac, manufacturer, _mdns, ssdp_str, ssdp_entries, 
     return 'unknown', "", nil
 end
 
+
+local function remove_xml_comments(xml)
+    -- Remove comments using gsub with pattern matching
+    return xml:gsub("<!%-%-.-%-%->", "")
+end
+	
 -- #############################################################################
 
 local function analyzeSSDP(ssdp)
@@ -1201,7 +1207,7 @@ local function analyzeSSDP(ssdp)
 
         if (hresp ~= nil) and (hresp["CONTENT"] ~= nil) then
             local xml = newParser()
-            local r = xml:ParseXmlText(hresp["CONTENT"])
+            local r = xml:ParseXmlText(remove_xml_comments(hresp["CONTENT"]))
 
             if (r.root ~= nil) then
                 if (r.root.device ~= nil) then
