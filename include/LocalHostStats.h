@@ -58,7 +58,8 @@ class LocalHostStats : public HostStats {
 #if defined(NTOPNG_PRO)
   void resetTrafficStats();
 #endif
-
+  void init();
+  
  public:
   LocalHostStats(Host *_host);
   LocalHostStats(LocalHostStats &s);

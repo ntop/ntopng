@@ -646,9 +646,11 @@ void LocalHost::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto, 
 	/* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** port %u ***", port); */
         contacted_server_ports.enqueue({port, proto->app_protocol}, true);
       } else {
-        ntop->getTrace()->traceEvent(TRACE_WARNING, 
-                      "Server port %d contacted but not reported. Exceeded max number",
-                      port);
+	char ip_buf[64];
+	
+        ntop->getTrace()->traceEvent(TRACE_INFO, 
+				     "Server port %s:%d contacted but not reported: exceeded max number",
+				     printMask(ip_buf, sizeof(ip_buf)), port);
       }
 
     }
