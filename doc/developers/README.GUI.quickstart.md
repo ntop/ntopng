@@ -120,18 +120,3 @@ In the example below is exported the function `getId()` which is mapped to the C
   ```
   in this way from vue it is possible to access the ifid passed. To access other parameters do `const newParameter = props.context.newParameter`
 - `ntopng_utility` is a class used please refer to the specific documentation file for the usage of this class: [Read more details](README.GUI.ntopng_utility_js.md)
-
-
-## C++
-
-
-Get pref chiama redis, cerca se c’e’ chiave che ho messo
-
-ntop_defines.h stessa chiave che in prefs.lua
-VALORE DI DEFAULT VA SCELTO CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD
-
-Prefs.h ci devo mettere la variabile con il getter per cpp
-
-Prefs.cpp va inizializzato che ho definito in pref
-
-lua_push_uint64_table_entry -> da lua ti ritorna questa preferenza 
