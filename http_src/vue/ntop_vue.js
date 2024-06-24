@@ -59,6 +59,7 @@ import { default as PageBlacklists } from "./page-blacklists.vue"
 import { default as PageHistoricalFlow } from "./page-historical-flow-details.vue"
 import { default as PageSNMPQoS } from "./page-snmp-qos.vue"
 import { default as PageGeoMap } from "./hosts-geomap.vue"
+import { default as PageCountryStats } from "./page-country-stats.vue"
 
 /* Config pages */
 import { default as PageSNMPConfig } from "./page-snmp-config.vue"
@@ -172,7 +173,8 @@ let ntopVue = {
     PageHostsList: PageHostsList,
     PageGeoMap: PageGeoMap,
     PageHostConfig: PageHostConfig,
-
+    PageCountryStats: PageCountryStats,
+    
     PageAggregatedLiveFlows: PageAggregatedLiveFlows,
 
     PageNetworkDiscovery: PageNetworkDiscovery,
