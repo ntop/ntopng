@@ -1,0 +1,84 @@
+{
+	"id": "network_discovery",
+	"data_url": "lua/rest/v2/get/network/discovery/discover.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "name",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"id": "ip",
+			"title_i18n": "ip_address",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"min-width": "80px"
+		},
+		{
+			"title_i18n": "name",
+			"data_field": "name",
+			"sortable": true,
+			"min-width": "155px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "mac_stats.manufacturer",
+			"data_field": "manufacturer",
+			"sortable": true,
+			"min-width": "100px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "mac_address",
+			"data_field": "mac_address",
+			"sortable": true,
+			"min-width": "100px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "os",
+			"data_field": "os",
+			"sortable": true,
+			"min-width": "100px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+        {
+			"title_i18n": "info",
+			"data_field": "info",
+			"sortable": true,
+			"min-width": "100px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+        {
+			"title_i18n": "device",
+			"data_field": "device",
+			"sortable": true,
+			"min-width": "100px",
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		}
+	]
+}

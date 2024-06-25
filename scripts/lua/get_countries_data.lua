@@ -4,12 +4,15 @@
 
 dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-require "lua_utils"
 
+local callback_utils = require "callback_utils"
+local rest_utils = require("rest_utils")
 local json = require("dkjson")
 
+require "label_utils"
+require "ntop_utils"
+require "http_lint"
 require("country_utils")
-sendHTTPContentTypeHeader('text/html')
 
 -- Table parameters
 local currentPage  = _GET["currentPage"]
@@ -56,6 +59,7 @@ to_skip = (currentPage-1) * perPage
 
 if(sortOrder == "desc") then sOrder = false else sOrder = true end
 
+-- stats table for each country
 local country_stats = interface.getCountriesInfo({sortColumn = sortColumn,
 					  maxHits = perPage, toSkip = to_skip,
 					  a2zSortOrder = sOrder, detailsLevel = "higher"})
@@ -67,12 +71,40 @@ if(country_stats ~= nil) then
    country_stats = country_stats["Countries"]
 end
 
-local res_formatted = {}
-local now = os.time()
-local ifId = getInterfaceId(ifname)
+-- checks if country timeseries is enabled for the current interface
+local charts_enabled = areCountryTimeseriesEnabled(interface.getId())
 
-for _, country in ipairs(country_stats) do
-   res_formatted[#res_formatted + 1] = country2record(ifId, country)
+if (charts_enabled == true) then
+   charts_enabled = 1
+else
+   charts_enabled = 0
+end
+
+local rsp = {}
+
+for key, value in pairs(country_stats) do
+   local record = {} 
+   
+   local bytes_sent = value["bytes.sent"]
+   local bytes_rcvd = value["bytes.rcvd"]
+
+   record["name"] = value["country"]
+   record["hosts"] = value["num_hosts"]
+   record["seen_since"] = value["seen.first"]
+   record["score"] = value["score"]
+   
+   record["breakdown"] = { 
+      bytes_sent = bytes_sent, 
+      bytes_rcvd = bytes_rcvd 
+   }
+
+   record["throughput"] = value["throughput_bps"]
+   record["traffic"] = bytes_sent + bytes_rcvd
+   record["charts_enabled"] = charts_enabled
+   
+   -- add record to response
+   table.insert(rsp, record)
+
 end
 
 local result = {}
@@ -82,4 +114,4 @@ result["totalRows"] = total_rows
 result["data"] = res_formatted
 result["sort"] = {{sortColumn, sortOrder}}
 
-print(json.encode(result, nil))
+rest_utils.answer(rest_utils.consts.success.ok, rsp)

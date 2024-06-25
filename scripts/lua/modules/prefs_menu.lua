@@ -111,6 +111,10 @@ local menu_subpages = {{
             title = i18n("prefs.netbox_activation_url_title"),
             description = i18n("prefs.netbox_activation_url_description")
         },
+        netbox_default_site = {
+            title = i18n("prefs.netbox_default_site"),
+            description = i18n("prefs.netbox_default_site_description")
+        },
         netbox_personal_access_token = {
             title = i18n("prefs.netbox_personal_access_token_title"),
             description = i18n("prefs.netbox_personal_access_token_description")

@@ -2253,7 +2253,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- show or not show table entries for netbox configuration
         local showNetboxConfiguration = true
 
-        local elementToSwitch = {"netbox_activation_url", "netbox_personal_access_token"}
+        local elementToSwitch = {"netbox_activation_url", "netbox_default_site", "netbox_personal_access_token"}
 
         if ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
             showNetboxConfiguration = true
@@ -2270,6 +2270,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
 
         --(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs, extra)
+        -- Netbox Activation URL
         prefsInputFieldPrefs(subpage_active.entries["netbox_activation_url"].title,
         subpage_active.entries["netbox_activation_url"].description, "ntopng.prefs.", "netbox_activation_url",
         "", false, showNetboxConfiguration, nil, nil, {
@@ -2279,11 +2280,24 @@ if auth.has_capability(auth.capabilities.preferences) then
             required = true,
             disabled = disabled
         })
+       
+        -- Netbox Asset default Site
+        prefsInputFieldPrefs(subpage_active.entries["netbox_default_site"].title,
+        subpage_active.entries["netbox_default_site"].description, "ntopng.prefs.", "netbox_default_site",
+        "", false, showNetboxConfiguration, nil, nil, {
+            attributes = {
+                spellcheck = "false",
+            },
+            required = true,
+            disabled = disabled
+        })
         
+        -- Netbox Personal Access token
         prefsInputFieldPrefs(subpage_active.entries["netbox_personal_access_token"].title,
         subpage_active.entries["netbox_personal_access_token"].description, "ntopng.prefs.", "netbox_personal_access_token", "",
         "", showNetboxConfiguration, nil, nil, {
-            required = true
+            required = true,
+            inputBoxWidth = "40em"
         })
             
         if (disabled) then

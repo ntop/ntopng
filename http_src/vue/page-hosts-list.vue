@@ -7,7 +7,8 @@
             <template v-slot:custom_header>
                 <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
                     <span class="no-wrap d-flex align-items-center my-auto me-2 filters-label"><b>{{ item["basic_label"] }}</b></span>
-                    <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5"
+                    <!-- :key="host_filters_key" -->
+                    <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5" 
                         dropdown_size="small" :options="item['options']"
                         @select_option="add_table_filter">
                     </SelectSearch>
@@ -24,6 +25,7 @@ import { default as osUtils } from "../utilities/map/os-utils.js";
 import { default as dataUtils } from "../utilities/data-utils.js";
 import formatterUtils from "../utilities/formatter-utils";
 import NtopUtils from "../utilities/ntop-utils.js";
+import { filter } from "d3-array";
 
 /* ************************************** */
 
@@ -33,6 +35,7 @@ const props = defineProps({
 
 /* ************************************** */
 
+const host_filters_key = ref(0);
 const table_id = props.context?.has_vlans ? ref('hosts_list_with_vlans') : ref('hosts_list');
 const table_hosts_list = ref(null);
 const csrf = props.context.csrf;
@@ -225,10 +228,11 @@ function change_filter_labels() {
 
 /* ************************************** */
 
-function add_table_filter(opt) {
+async function add_table_filter(opt) {
     ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
     set_filter_array_label();
     table_hosts_list.value.refresh_table();
+    filter_table_array.value = await load_table_filters_array()
 }
 
 /* ************************************** */
@@ -258,6 +262,7 @@ async function load_table_filters_array() {
     let url_params = ntopng_url_manager.obj_to_url_params(extra_params);
     const url = `${http_prefix}/lua/rest/v2/get/host/host_filters.lua?${url_params}`;
     let res = await ntopng_utility.http_request(url);
+    host_filters_key.value = host_filters_key.value + 1
     return res.map((t) => {
         const key_in_url = ntopng_url_manager.get_url_entry(t.name);
         if(dataUtils.isEmptyOrNull(key_in_url)) {

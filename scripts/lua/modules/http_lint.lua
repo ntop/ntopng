@@ -2166,6 +2166,7 @@ local known_parameters = {
    ["bandwidth_threshold"] = validateNumber,
    ["toggle_netbox"] = validateBool,
    ["netbox_activation_url"] = validateSingleWord,
+   ["netbox_default_site"] = validateSingleWord,
    ["netbox_personal_access_token"] = validateSingleWord,
 
    -- Service Map
