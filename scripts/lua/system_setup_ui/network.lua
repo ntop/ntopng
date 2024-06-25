@@ -64,7 +64,7 @@ if table.len(_POST) > 0 then
         -- Static gw
         config.network.gateway = _POST[fields.gw]
         -- Add to the list of gateways if not already present
-        sys_config:addGateway(if_name, if_name, config.network.gateway)
+        sys_config:updateGateway(if_name, if_name, config.network.gateway)
       end
       if _POST[fields.mode] and _POST[fields.mode] == 'dhcp' then
         -- dhcp: reset static gw ip
