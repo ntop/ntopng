@@ -877,8 +877,7 @@ static int ntop_interface_exec_sql_query(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
   }
 
-  if (curr_iface->exec_sql_query(vm, sql, limit_rows, wait_for_db_created) <
-      0)
+  if (curr_iface->exec_sql_query(vm, sql, limit_rows, wait_for_db_created) < 0)
     lua_pushnil(vm);
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));

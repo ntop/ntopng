@@ -250,7 +250,12 @@ if ntop.isPro() and isNetBoxEnabled() then
    package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
    local netbox_manager = require("netbox_manager")
 
-   netbox_manager.initialization_device_roles()
+   traceError(TRACE_NORMAL, TRACE_CONSOLE, "[NetBox] Initializing...\n")
+   if(netbox_manager.initialization_device_roles() == true) then
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "[NetBox] Initialization completed")
+   else
+      traceError(TRACE_NORMAL, TRACE_CONSOLE, "[NetBox] Initialization failed")
+   end
 end
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")

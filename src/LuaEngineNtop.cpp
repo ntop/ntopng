@@ -2961,7 +2961,6 @@ static int ntop_http_post_auth_token(lua_State *vm) {
                      form_data, NULL, true, 0);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-
 }
 
 /* ****************************************** */
