@@ -163,7 +163,6 @@ end
 
 function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs, extra)
   extra = extra or {}
-
   if(string.ends(prekey, ".")) then
     k = prekey..key
   else
@@ -295,6 +294,8 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
       if extra.width == nil then
         if _input_type == "number" then
           style["width"] = "8em"
+        elseif (extra["inputBoxWidth"] ~= nil) then
+          style["width"] = extra["inputBoxWidth"] -- use em i.e. 20em
         else
           style["width"] = "20em"
         end
@@ -840,6 +841,13 @@ function getNetBoxURL()
     return ""
   end
   return ntop.getPref("ntopng.prefs.netbox_activation_url")
+end
+
+function getNetBoxDefaultSite()
+  if not ntop.isEnterpriseXL() or not ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
+    return ""
+  end
+  return ntop.getPref("ntopng.prefs.netbox_default_site")
 end
 
 function getNetBoxToken()

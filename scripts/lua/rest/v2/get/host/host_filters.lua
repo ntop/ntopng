@@ -11,6 +11,8 @@ require "http_lint"
 require "lua_utils_get"
 local rest_utils = require "rest_utils"
 local rsp = {}
+local country = _GET["country"]
+
 local ip_version_filters = {{
     key = "version",
     value = "",
@@ -300,6 +302,26 @@ if ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then
         value = out_ports,
         show_with_value = dev_ip,
         show_with_key = "deviceIP"
+    }
+end
+
+local country_filter = {{
+    key = "country",
+    value = "",
+    label = i18n("all")
+}, {
+    key = "country",
+    value = country,
+
+    label = country -- .. " <img src='/dist/images/blank.gif' class='flag flag-" .. string.lower(country) .. "'>"
+}}
+
+if (not isEmptyString(country)) then 
+    rsp[#rsp + 1] = {
+        action = "country",
+        label = i18n("country"),
+        name = "country",
+        value = country_filter
     }
 end
 

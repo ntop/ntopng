@@ -1,0 +1,85 @@
+{
+	"id": "device_exclusions",
+	"data_url": "lua/get_countries_data.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"columns": [
+		{
+			"id": "name",
+			"title_i18n": "name",
+			"data_field": "name",
+			"sortable": true,
+			"sticky": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "chart",
+			"data_field": "charts_enabled",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "hosts",
+			"data_field": "hosts",
+			"sortable": true,
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "seen_since",
+			"data_field": "seen_since",
+			"sortable": true,
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "score",
+			"data_field": "score",
+			"sortable": true,
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "breakdown",
+			"data_field": "breakdown",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+
+		{
+			"title_i18n": "throughput",
+			"data_field": "throughput",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "traffic",
+			"data_field": "traffic",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		}
+	]
+}

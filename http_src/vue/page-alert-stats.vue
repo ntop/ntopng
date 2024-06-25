@@ -403,20 +403,20 @@ const map_table_def_columns = async (columns) => {
     }
     columns.forEach((c) => {
         c.render_func = map_columns[c.data_field];
-	
+        
         if (c.id == "actions") {
-	    if (set_query_preset_columns == true) {
-		c.button_def_array = [
-		    {
-			"id": "expand",
-			"icon": "fas fa fa-search-plus",
-			"class":["link-button"],
-			"title_i18n": "db_search.expand_button",
-			"event_id": "click_button_expand"
-		    },
-		];
-		return;
-	    }
+            if (set_query_preset_columns == true) {
+                c.button_def_array = [
+                    {
+                        "id": "expand",
+                        "icon": "fas fa fa-search-plus",
+                        "class":["link-button"],
+                        "title_i18n": "db_search.expand_button",
+                        "event_id": "click_button_expand"
+                    },
+                ];
+                return;
+            }
             const visible_dict = {
                 snmp_info: props.context.actions.show_snmp_info,
                 info: props.context.actions.show_info,
@@ -426,11 +426,11 @@ const map_table_def_columns = async (columns) => {
                 settings: props.context.actions.show_settings,
                 remove: props.context.actions.show_delete,
             };
-            c.button_def_array.forEach((b) => {
-                if (!visible_dict[b.id]) {
-                    b.class.push("link-disabled");
-                }
-            });
+        c.button_def_array.forEach((b) => {
+            if (!visible_dict[b.id]) {
+                b.class.push("link-disabled");
+            }
+        });
         }
     });
     return columns;
