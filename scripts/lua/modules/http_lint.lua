@@ -2664,6 +2664,7 @@ local known_parameters = {
    ["sankey_version"] = validateNumber,
    ["blacklist_name"] = validateUnquoted,
    ["reset_url"] = validateBool,
+   ["as"] = validateNumber,
 
    -- nEdge policy
    ["default_policy"] = validatePolicy, -- users, nedge policies

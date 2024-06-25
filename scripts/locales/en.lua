@@ -1,5 +1,6 @@
 local lang = {
   ["abort"] = "Abort",
+  ["avg_host_score"] = "Average Host Score",
   ["num_alerts"] = "Alerts Count",
   ["city"] = "City",
   ["acknowledge"] = "Acknowledge",

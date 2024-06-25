@@ -60,6 +60,7 @@ import { default as PageHistoricalFlow } from "./page-historical-flow-details.vu
 import { default as PageSNMPQoS } from "./page-snmp-qos.vue"
 import { default as PageGeoMap } from "./hosts-geomap.vue"
 import { default as PageCountryStats } from "./page-country-stats.vue"
+import { default as PageAsStats } from "./page-as-stats.vue"
 
 /* Config pages */
 import { default as PageSNMPConfig } from "./page-snmp-config.vue"
@@ -142,7 +143,8 @@ let ntopVue = {
     PageOpenPorts: PageOpenPorts,
     PageVulnerabilityScanReport: PageVulnerabilityScanReport,
     PageFlowsList: PageFlowsList,
-
+    PageAsStats: PageAsStats,
+    
     /* SNMP */
     PageSNMPDevices: PageSNMPDevices,
     PageSNMPQoS: PageSNMPQoS,
