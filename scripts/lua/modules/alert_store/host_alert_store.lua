@@ -205,27 +205,41 @@ function host_alert_store:_add_additional_request_filters()
     local host_pool_id = _GET["host_pool_id"]
     local network = _GET["network"]
     local location = _GET["host_location"]
-    local location_filter = 'json.alert_generation.host_info.localhost'
+    local location_filter = 'alert_generation.host_info.localhost'
     local is_engaged = self._status == alert_consts.alert_status.engaged.alert_status_id
     if location then
         local tmp_location = split(location, ";")
         if is_engaged then
+            -- Engaged
             location_filter = 'is_local'
-        else
-            location_filter = 'json.alert_generation.host_info.is_multicast'
-        end
-        if tonumber(tmp_location[1]) == 0 then
-            location = "0;" .. tmp_location[2]
-        elseif tonumber(tmp_location[1]) == 2 then
-            location = "1;" .. tmp_location[2]
-            if is_engaged then
+            location = tmp_location[1] .. ';' .. tmp_location[2]
+            if tonumber(tmp_location[1]) == 2 then
                 location_filter = 'is_multicast'
-            else
-                location_filter = 'json.alert_generation.host_info.is_multicast'
             end
         else
-            location = "1;" .. tmp_location[2]
-        end    
+            -- Historical
+            if ntop.isClickHouseEnabled() then
+                -- Clickhouse
+                if tonumber(tmp_location[1]) == 0 then
+                    location = 'false;' .. tmp_location[2]
+                elseif tonumber(tmp_location[1]) == 1 then
+                    location = 'true;' .. tmp_location[2]
+                else
+                    location = 'true;' .. tmp_location[2]
+                    location_filter = 'alert_generation.host_info.multicast'
+                end
+            else
+                -- SQLite
+                if tonumber(tmp_location[1]) == 0 then
+                    location = '0;' .. tmp_location[2]
+                elseif tonumber(tmp_location[1]) == 1 then
+                    location = '1;' .. tmp_location[2]
+                else
+                    location = '1;' .. tmp_location[2]
+                    location_filter = 'alert_generation.host_info.multicast'
+                end
+            end
+        end
     end
 
     self:add_filter_condition_list('vlan_id', vlan_id, 'number')
@@ -239,7 +253,7 @@ function host_alert_store:_add_additional_request_filters()
     if is_engaged then
         self:add_filter_condition_list(location_filter, location, "number")
     else
-        self:add_filter_condition_list(self:format_query_json_value(location_filter, 'boolean'), location, 'number')
+        self:add_filter_condition_list(self:format_query_json_value(location_filter), location, 'boolean')
     end
 end
 

@@ -179,12 +179,10 @@ function alert_store:_build_alert_status_condition(status, is_write)
     field = self:get_column_name(field, is_write)
 
     if status == "any" then
-        return string.format(" ((%s = %u) OR (%s = %u)) ", 
-            field, alert_consts.alert_status.historical.alert_status_id,
+        return string.format(" ((%s = %u) OR (%s = %u)) ", field, alert_consts.alert_status.historical.alert_status_id,
             field, alert_consts.alert_status.acknowledged.alert_status_id)
     else
-        return string.format(" %s = %u ",
-            field, alert_consts.alert_status[status].alert_status_id)
+        return string.format(" %s = %u ", field, alert_consts.alert_status[status].alert_status_id)
     end
 end
 
@@ -196,7 +194,7 @@ end
 function alert_store:add_status_filter(status, is_write)
     if not self._status then
         if not status then
-           status = "historical"
+            status = "historical"
         end
 
         if alert_consts.alert_status[status] then
@@ -287,8 +285,9 @@ function alert_store:build_sql_cond(cond, is_write)
             local alert_id_bit = "bitShiftLeft(toUInt128('1'), " .. cond.value .. ")"
             local and_cond = 'neq'
             sql_cond = string.format(" (%s %s %u %s (bitAnd(%s,reinterpretAsUInt128(reverse(unhex(%s)))) %s %s) ) ",
-                self:get_column_name('alert_id', is_write), sql_op, cond.value, ternary(cond.op == and_cond, 'AND', 'OR'),
-                alert_id_bit, self:get_column_name('alerts_map', is_write), sql_op, alert_id_bit)
+                self:get_column_name('alert_id', is_write), sql_op, cond.value,
+                ternary(cond.op == and_cond, 'AND', 'OR'), alert_id_bit, self:get_column_name('alerts_map', is_write),
+                sql_op, alert_id_bit)
         else
             -- TODO implement alerts_map match with sqlite
             sql_cond = string.format(" (%s %s %u) ", self:get_column_name('alert_id', is_write), sql_op, cond.value)
@@ -363,12 +362,12 @@ function alert_store:build_sql_cond(cond, is_write)
         end
 
         if self._alert_entity == alert_entities.snmp_device then -- snmp entity
-            
+
             sql_cond = self:get_column_name('port', is_write) .. sql_op .. sql_val
 
             if probe_ip then
                 sql_cond = " (" .. sql_cond .. ")" .. ternary(cond.op == 'neq', 'OR', 'AND') .. " " ..
-                    self:get_column_name('ip', is_write) .. sql_op .. string.format("('%s')", probe_ip)
+                               self:get_column_name('ip', is_write) .. sql_op .. string.format("('%s')", probe_ip)
             end
 
         else -- flow or other entities
@@ -427,7 +426,7 @@ function alert_store:build_sql_cond(cond, is_write)
 
         -- Special case: description
     elseif cond.field == "description" then
-        sql_cond = string.format("json LIKE %s",string.format("'%%%s%%'", cond.value))
+        sql_cond = string.format("json LIKE %s", string.format("'%%%s%%'", cond.value))
         -- Number
     elseif cond.value_type == 'number' then
         if cond.op == 'in' then
@@ -603,16 +602,16 @@ function alert_store:eval_alert_cond(alert, cond)
 
         -- Special case: snmp_interface
     elseif cond.field == 'snmp_interface' then
-        local splitted_engaged_condition = string.split(cond.value,"_")
+        local splitted_engaged_condition = string.split(cond.value, "_")
         if (table.len(splitted_engaged_condition) > 1) then
             -- in engaged snmp alerts case the cond.value is made by <device_ip>_<port>
             local device_ip = splitted_engaged_condition[1]
             local port = tonumber(splitted_engaged_condition[2])
-            return  tag_utils.eval_op(alert['port'], cond.op, port) and 
-                    tag_utils.eval_op(alert['ip'], cond.op, device_ip)
+            return tag_utils.eval_op(alert['port'], cond.op, port) and
+                       tag_utils.eval_op(alert['ip'], cond.op, device_ip)
         else
-            return  tag_utils.eval_op(alert['input_snmp'], cond.op, cond.value) or
-                    tag_utils.eval_op(alert['output_snmp'], cond.op, cond.value)
+            return tag_utils.eval_op(alert['input_snmp'], cond.op, cond.value) or
+                       tag_utils.eval_op(alert['output_snmp'], cond.op, cond.value)
         end
 
         -- Special case: role (host)
@@ -778,12 +777,26 @@ end
 
 -- ##############################################
 
-function alert_store:format_query_json_value(nested_field, type)
+function alert_store:format_query_json_value(nested_field, field)
     local field_to_search = self:get_column_name('json', false)
-    if type == "boolean" then
-        return string.format('JSONExtractInt(%s, \'$.%s\')', field_to_search, nested_field)
+    local json_formatted = "json"
+    local dot_split = split(nested_field, '%.')
+    for _, field in pairs(dot_split) do
+        if string.ends(field, '%') then
+            field = field:sub(1, -2)
+        end
+        if ntop.isClickHouseEnabled() then
+            json_formatted = string.format("JSONExtractString(%s, '%s')", json_formatted, field)
+        else
+            json_formatted = string.format("json_extract(%s, '$.%s')", json_formatted, field)
+        end
     end
-    return string.format('JSON_VALUE(%s, \'$.%s\')', field_to_search, nested_field)
+    
+    if not ntop.isClickHouseEnabled() then
+        json_formatted = string.format("cast(%s as text)", json_formatted)
+    end
+
+    return json_formatted
 end
 
 -- ##############################################
@@ -878,7 +891,7 @@ function alert_store:add_order_by(sort_column, sort_order)
     -- Creating the order by if not defined and valid
     if not self._order_by and sort_column and self:_valid_fields(sort_column) and
         (sort_order == "asc" or sort_order == "desc") then
-        self:set_order_by(sort_column, sort_order)        
+        self:set_order_by(sort_column, sort_order)
         return true
     end
 
@@ -1001,7 +1014,8 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
     -- [OPTIONAL] Add sort criteria
     if self._order_by then
         if (self._order_by.sort_column == 'name' and ntop.isClickHouseEnabled()) then
-            order_by_clause = string.format("ORDER BY %s %s COLLATE 'en'", self._order_by.sort_column, self._order_by.sort_order)
+            order_by_clause = string.format("ORDER BY %s %s COLLATE 'en'", self._order_by.sort_column,
+                self._order_by.sort_order)
         else
             order_by_clause = string.format("ORDER BY %s %s", self._order_by.sort_column, self._order_by.sort_order)
         end
@@ -1124,7 +1138,7 @@ function alert_store:select_engaged(filter, debug)
 
     local total_rows = 0
     local sort_2_col = {}
-    
+
     -- Sort and filtering
     for idx, alert in pairs(alerts) do
         local tstamp = tonumber(alert.tstamp)
@@ -1134,7 +1148,7 @@ function alert_store:select_engaged(filter, debug)
 
         -- Exclude alerts falling outside requested time ranges
         if self._epoch_end and tstamp > self._epoch_end then
-             if debug then
+            if debug then
                 tprint("Skip alert (alert.tstamp > filter.epoch_end)")
             end
             goto continue
@@ -1148,7 +1162,7 @@ function alert_store:select_engaged(filter, debug)
         end
 
         if debug then
-           tprint(alert)
+            tprint(alert)
         end
 
         if self._order_by and self._order_by.sort_column and alert[self._order_by.sort_column] ~= nil then
@@ -1206,8 +1220,8 @@ function alert_store:count()
     if isEmptyString(self._group_by) then
         q = string.format("SELECT count(*) as count FROM `%s` WHERE %s", table_name, where_clause)
     else
-        q = string.format("SELECT count(*) as count FROM (SELECT 1 FROM `%s` WHERE %s GROUP BY  %s) g", 
-            table_name, where_clause, self._group_by)
+        q = string.format("SELECT count(*) as count FROM (SELECT 1 FROM `%s` WHERE %s GROUP BY  %s) g", table_name,
+            where_clause, self._group_by)
     end
 
     local count_query = interface.alert_store_query(q)
@@ -1574,8 +1588,8 @@ function alert_store:top_alert_id_historical_by_count()
     local limit = 10
 
     local q = string.format(
-        "SELECT alert_id, sum(score), count(*) as count  FROM %s WHERE %s GROUP BY alert_id ORDER BY count DESC LIMIT %u", table_name,
-        where_clause, limit)
+        "SELECT alert_id, sum(score), count(*) as count  FROM %s WHERE %s GROUP BY alert_id ORDER BY count DESC LIMIT %u",
+        table_name, where_clause, limit)
 
     if not self._alert_entity then
         -- For the all view alert_entity is read from the database
@@ -1742,7 +1756,7 @@ end
 -- @param filter A filter on the entity value (no filter by default)
 -- @param select_fields The fields to be returned (all by default or in any case for engaged)
 -- @return Selected alerts, and the total number of alerts
-function alert_store:select_request(filter, select_fields, download --[[ Available only with ClickHouse ]], debug)
+function alert_store:select_request(filter, select_fields, download --[[ Available only with ClickHouse ]] , debug)
 
     -- Add filters
     self:add_request_filters()
@@ -1759,29 +1773,28 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
         -- Handle Custom Queries (query_preset)
         local p = _GET["query_preset"] -- Example: &query_preset=contacts
         if not isEmptyString(p) and ntop.isEnterpriseL() then
-            package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path 
+            package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
             local db_query_presets = require "db_query_presets"
 
             local query_presets = db_query_presets.get_presets(
-                os_utils.fixPath(dirs.installdir .. "/scripts/historical/alerts/" .. self._alert_entity.alert_store_name)
-            )
+                os_utils.fixPath(dirs.installdir .. "/scripts/historical/alerts/" .. self._alert_entity.alert_store_name))
 
             if query_presets[p] then
                 local preset = query_presets[p]
 
                 -- Select fields
                 if not isEmptyString(preset.select.sql) then
-                   select_fields = preset.select.sql
+                    select_fields = preset.select.sql
                 end
 
-		-- Filters
-		if preset.filters and not isEmptyString(preset.filters.sql) then
-		   filter = preset.filters.sql -- append to where
-		end
+                -- Filters
+                if preset.filters and not isEmptyString(preset.filters.sql) then
+                    filter = preset.filters.sql -- append to where
+                end
 
                 -- Group by fields
                 if not isEmptyString(preset.groupby.sql) then
-                   self:group_by(preset.groupby.sql)
+                    self:group_by(preset.groupby.sql)
                 end
 
                 -- Sort by field
@@ -1792,20 +1805,15 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
 
                 -- Check if the selected sort column is valid, use the preset default otherwise
                 if #preset.sortby.items > 0 then
-                   if not self._order_by or 
-                      not self._order_by.sort_column or
-                      (not table.contains(preset.groupby.items, 
-                             self._order_by.sort_column, 
-                             (function(n) return n.name == self._order_by.sort_column end))
-                       and not table.contains(preset.select.items, 
-                             self._order_by.sort_column, 
-                             (function(n) return n.func and n.name == self._order_by.sort_column end))) then
+                    if not self._order_by or not self._order_by.sort_column or
+                        (not table.contains(preset.groupby.items, self._order_by.sort_column, (function(n)
+                            return n.name == self._order_by.sort_column
+                        end)) and not table.contains(preset.select.items, self._order_by.sort_column, (function(n)
+                            return n.func and n.name == self._order_by.sort_column
+                        end))) then
                         -- No order by column or invalid column, using default from preset
-                        self:set_order_by(
-                            preset.sortby.items[1].name,
-                            preset.sortby.items[1].order
-                        )
-                   end
+                        self:set_order_by(preset.sortby.items[1].name, preset.sortby.items[1].order)
+                    end
                 end
             end
         end
@@ -1926,7 +1934,7 @@ function alert_store:add_request_filters(is_write)
     if (ntop.isClickHouseEnabled()) then
         -- Clickhouse db has the column 'interface_id', filter by that per interface
         if ifid ~= self:get_system_ifid() then
-           self:add_filter_condition_list('interface_id', ifid, 'number')
+            self:add_filter_condition_list('interface_id', ifid, 'number')
         end
         self:add_filter_condition_list('rowid', rowid, 'string')
     else
@@ -2076,11 +2084,10 @@ function alert_store:format_json_record_common(value, entity_id, no_html)
     local severity_label = ""
     if severity then
         if no_html then
-          severity_label = i18n(severity.i18n_title)
+            severity_label = i18n(severity.i18n_title)
         else
-          severity_label =
-            "<i class='" .. severity.icon .. "' style='color: " .. severity.color .. "!important' title='" ..
-                i18n(severity.i18n_title) .. "'></i> "
+            severity_label = "<i class='" .. severity.icon .. "' style='color: " .. severity.color ..
+                                 "!important' title='" .. i18n(severity.i18n_title) .. "'></i> "
         end
     end
 
