@@ -60,19 +60,20 @@ if table.len(_POST) > 0 then
 
       if _POST[fields.ip] ~= nil then config.network.ip = _POST[fields.ip] end
 
+      if _POST[fields.mode] ~= nil then config.network.mode = _POST[fields.mode] end
+
       if _POST[fields.gw] ~= nil then 
         -- Static gw
         config.network.gateway = _POST[fields.gw]
         -- Add to the list of gateways if not already present
         sys_config:updateGateway(if_name, if_name, config.network.gateway)
       end
-      if _POST[fields.mode] and _POST[fields.mode] == 'dhcp' then
+      if config.network.mode == 'dhcp' then
         -- dhcp: reset static gw ip
         sys_config:updateGateway(if_name, if_name, "0.0.0.0") 
       end
 
       if _POST[fields.netmask] ~= nil then config.network.netmask = _POST[fields.netmask] end
-      if _POST[fields.mode] ~= nil then config.network.mode = _POST[fields.mode] end
       if is_nedge then
          if _POST[fields.upload] ~= nil then config.speed.upload = tonumber(_POST[fields.upload]) end
          if _POST[fields.download] ~= nil then config.speed.download = tonumber(_POST[fields.download]) end
