@@ -4,7 +4,7 @@
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": false,
-	"display_empty_rows": false,
+	"display_empty_rows": true,
 	"columns": [
 		{
 			"id": "name",
