@@ -420,7 +420,7 @@ const sources_types = [
 	{
 		id: "snmp_qos",
 		id_group: "snmp",
-		regex_page_url: "",
+		regex_page_url: "lua\/pro\/enterprise\/snmp_device_details",
 		label: i18n("page_stats.source_def.snmp_interface"),
 		query: "snmp_interface",
 		f_map_ts_options: (ts_options, ts_group) => {

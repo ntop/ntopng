@@ -308,14 +308,14 @@ async function set_sources_array() {
     let source_def_array = selected_source_type.value.source_def_array;
     let sources_array_temp = [];
     let default_source_array = await metricsManager.get_default_source_array(http_prefix, selected_source_type.value);
-    let default_soruce_value_array = default_source_array.map((s) => s.value);
+    let default_source_value_array = default_source_array.map((s) => s.value);
     for (let i = 0; i < source_def_array.length; i += 1) {
-	let sources = await metricsManager.get_sources(http_prefix, selected_source_type.value.id, source_def_array[i], default_soruce_value_array);
+	let sources = await metricsManager.get_sources(http_prefix, selected_source_type.value.id, source_def_array[i], default_source_value_array);
 	sources_array_temp.push(sources);
     }
     selected_source_array.value = default_source_array;
     sources_array.value = sources_array_temp;
-    selected_source_text_array.value = default_soruce_value_array;
+    selected_source_text_array.value = default_source_value_array;
     set_selected_sources_union_label();
 }
 
