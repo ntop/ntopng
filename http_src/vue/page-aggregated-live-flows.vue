@@ -398,6 +398,7 @@ const map_table_def_columns = async (columns) => {
     return columns;
 }
 
+/* FUNCTIONS TO FORMAT */
 const format_client_name = function (data, rowData) {
     let alert_label = ''
     if (data.is_alerted) {
