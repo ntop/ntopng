@@ -163,7 +163,6 @@ end
 
 function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs, extra)
   extra = extra or {}
-  tprint(extra)
   if(string.ends(prekey, ".")) then
     k = prekey..key
   else
