@@ -2244,6 +2244,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         if not ntop.isPro() then
             return
         end
+        local disabled = not info["version.enterprise_edition"]
 
         print('<form id="assetsInventory" method="post">')
         print('<table class="table">')
@@ -2278,7 +2279,8 @@ if auth.has_capability(auth.capabilities.preferences) then
             attributes = {
                 spellcheck = "false",
             },
-            required = true
+            required = true,
+            disabled = disabled
         })
 
         -- Render the NetBox Default Site input field
@@ -2288,7 +2290,8 @@ if auth.has_capability(auth.capabilities.preferences) then
             attributes = {
                 spellcheck = "false",
             },
-            required = true
+            required = true,
+            disabled = disabled
         })
         
         -- Netbox Personal Access token
