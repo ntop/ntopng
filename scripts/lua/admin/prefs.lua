@@ -2275,7 +2275,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- Render the NetBox Activation URL input field
         prefsInputFieldPrefs(subpage_active.entries["netbox_activation_url"].title,
         subpage_active.entries["netbox_activation_url"].description, "ntopng.prefs.", "netbox_activation_url",
-        prefs.netbox_activation_url, false, showNetboxConfiguration, nil, nil, {
+        ntop.getPref("ntopng.prefs.netbox_activation_url") or "", false, showNetboxConfiguration, nil, nil, {
             attributes = {
                 spellcheck = "false",
             },
