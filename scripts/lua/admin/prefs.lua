@@ -2248,37 +2248,33 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<form method="post">')
         print('<table class="table">')
         print('<thead class="table-primary"><tr><th colspan=2 class="info">Assets Inventory</th></tr></thead>')
-        local disabled = not info["version.enterprise_edition"]
 
         -- show or not show table entries for netbox configuration
-        local showNetboxConfiguration = true
-
-        local elementToSwitch = {"netbox_activation_url", "netbox_default_site", "netbox_personal_access_token"}
-
+        local showNetboxConfiguration = false
+        
         if ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
             showNetboxConfiguration = true
-        else
-            showNetboxConfiguration = false
+        end
+        if (_POST["toggle_netbox"]) then
+            showNetboxConfiguration = (_POST["toggle_netbox"] == "1")
         end
 
         prefsToggleButton(subpage_active, {
             field = "toggle_netbox",
             default = "0",
             pref = "toggle_netbox",
-            to_switch = elementToSwitch,
-            disabled = disabled
+            to_switch = {"netbox_activation_url", "netbox_default_site", "netbox_personal_access_token"},
         })
 
         --(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs, extra)
         -- Netbox Activation URL
         prefsInputFieldPrefs(subpage_active.entries["netbox_activation_url"].title,
         subpage_active.entries["netbox_activation_url"].description, "ntopng.prefs.", "netbox_activation_url",
-        "", false, showNetboxConfiguration, nil, nil, {
+        prefs.netbox_activation_url, false, showNetboxConfiguration, nil, nil, {
             attributes = {
                 spellcheck = "false",
             },
-            required = true,
-            disabled = disabled
+            required = true
         })
        
         -- Netbox Asset default Site
@@ -2288,8 +2284,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             attributes = {
                 spellcheck = "false",
             },
-            required = true,
-            disabled = disabled
+            required = true
         })
         
         -- Netbox Personal Access token
