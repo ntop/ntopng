@@ -43,7 +43,8 @@ const map_table_def_columns = (columns) => {
         },
         "seen_since": (value, row) => {
             // `seen_since` might require formatting, e.g., date formatting.
-            const formattedDate = new Date(value*1000).toLocaleDateString(); // Example date formatting
+            console.log(value)
+            const formattedDate = ntopng_utility.from_utc_to_server_date_format(value * 1000); // Example date formatting
             return formattedDate;
         },
         "score": (value, row) => {
