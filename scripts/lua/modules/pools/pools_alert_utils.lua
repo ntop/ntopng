@@ -29,8 +29,9 @@ function pools_alert_utils.get_host_pool_id(entity_info)
 
    -- Active Monitoring alert to Host
    -- or Host alert triggered in Lua
-   if alert_entity == alert_entities.am_host or
-      alert_entity == alert_entities.host then
+   -- Removed am_host case, because the am alert should not have a pool!
+   --if alert_entity == alert_entities.am_host or
+   if alert_entity == alert_entities.host then
       local host_info = split(pool_member, "@")
       if #host_info == 2 then
          pool_member = host_info[2]
