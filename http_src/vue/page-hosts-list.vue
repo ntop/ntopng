@@ -25,7 +25,6 @@ import { default as osUtils } from "../utilities/map/os-utils.js";
 import { default as dataUtils } from "../utilities/data-utils.js";
 import formatterUtils from "../utilities/formatter-utils";
 import NtopUtils from "../utilities/ntop-utils.js";
-import { filter } from "d3-array";
 
 /* ************************************** */
 
