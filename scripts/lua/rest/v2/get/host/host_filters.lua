@@ -12,6 +12,7 @@ require "lua_utils_get"
 local rest_utils = require "rest_utils"
 local rsp = {}
 local country = _GET["country"]
+local asn = _GET["asn"]
 
 local ip_version_filters = {{
     key = "version",
@@ -322,6 +323,25 @@ if (not isEmptyString(country)) then
         label = i18n("country"),
         name = "country",
         value = country_filter
+    }
+end
+
+local as_filter = {{
+    key = "asn",
+    value = "",
+    label = i18n("all")
+}, {
+    key = "asn",
+    value = asn,
+    label = asn
+}}
+
+if (not isEmptyString(asn)) then 
+    rsp[#rsp + 1] = {
+        action = "asn",
+        label = i18n("as"),
+        name = "asn",
+        value = as_filter
     }
 end
 

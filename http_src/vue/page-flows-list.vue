@@ -323,10 +323,11 @@ function set_filter_array_label() {
             el.basic_label = el.label;
         }
 
-        /* Getting the currently selected filter */
-        const url_entry = ntopng_url_manager.get_url_entry(el.id)
+        /* Getting currently selected filter */
+        let url_entry = ntopng_url_manager.get_url_entry(el.id)
+
         el.options.forEach((option) => {
-            if (option.value.toString() === url_entry) {
+            if ('value' in option && option.value.toString() === url_entry) {
                 el.current_option = option;
             }
         })
@@ -453,6 +454,11 @@ function columns_sorting(col, r0, r1) { }
 
 const get_extra_params_obj = () => {
     let extra_params = ntopng_url_manager.get_url_object();
+
+    if (extra_params.flowhosts_type !== undefined) {
+        extra_params.flowhosts_type = extra_params.flowhosts_type.slice(0, -2);
+    }
+
     return extra_params;
 };
 

@@ -21,6 +21,7 @@ local client = _GET["client"]
 local server = _GET["server"]
 local flow_info = _GET["flow_info"]
 local flowstats = interface.getActiveFlowsStats(host, nil, false, talking_with, client, server, flow_info)
+local selected_ip = _GET["flowhosts_type"]
 
 local rsp = {}
 
@@ -34,15 +35,13 @@ if interface.isView() then
     local interfaces = interface.getIfNames()
     if table.len(interfaces) > 1 then
         for id, _ in pairsByValues(interfaces, asc) do
-            if tonumber(id) == interface.getId() then
-                goto continue
+            if tonumber(id) ~= interface.getId() then
+                interfaces_filter[#interfaces_filter + 1] = {
+                    key = "interface_filter",
+                    value = id,
+                    label = getInterfaceName(id)
+                }
             end
-            interfaces_filter[#interfaces_filter + 1] = {
-                key = "interface_filter",
-                value = id,
-                label = getInterfaceName(id)
-            }
-            ::continue::
         end
     end
 
@@ -54,12 +53,42 @@ if interface.isView() then
     }
 end
 
+if selected_ip then
+    local hosts_type_filters = {{
+        key = "flowhosts_type",
+        value = selected_ip,
+        label = selected_ip
+    }}
+    
+    rsp[#rsp + 1] = {
+        action = "flowhosts_type",
+        label = i18n("db_explorer.host_data"),
+        name = "flowhosts_type",
+        value = hosts_type_filters
+    }
+
+end
+
 if not host then
     local hosts_type_filters = {{
         key = "flowhosts_type",
         value = "",
         label = i18n("all")
     }}
+
+    if not isEmptyString(selected_ip) then
+        local newFilter = {{
+            key = "flowhosts_type",
+            value = "",
+            label = i18n("all")
+        },{
+            key = "flowhosts_type",
+            value = selected_ip,
+            label = selected_ip
+        }}
+
+        table.insert(hosts_type_filters, newFilter)
+    end
 
     local hosts_type_filters2 = {{
         key = "flowhosts_type",

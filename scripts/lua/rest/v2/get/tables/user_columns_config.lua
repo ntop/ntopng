@@ -29,7 +29,6 @@ local function get_column_config()
    
    local redis_key = string.format(redis_base_key, table_id, user_id)   
    local visible_columns = ntop.getCache(redis_key) or {}
-   
    if visible_columns == nil or visible_columns == "" then
       visible_columns = {}
    else

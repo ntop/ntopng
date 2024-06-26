@@ -1,0 +1,110 @@
+{
+	"id": "as_stats",
+	"data_url": "lua/rest/v2/get/asn/get_as_data.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"columns": [
+		{
+            "id": "as_number",
+			"title_i18n": "as_number",
+			"data_field": "asn",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+        {
+            "id": "num_hosts",
+            "title_i18n": "hosts",
+            "data_field": "num_hosts",
+            "sortable": true,
+            "class": [
+                "text-center",
+                "text-nowrap"
+            ]
+        },
+		{
+            "id": "score",
+			"title_i18n": "score",
+			"data_field": "score",
+			"sortable": true,
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		},
+		{
+            "id": "avg_host_score",
+			"title_i18n": "avg_host_score",
+			"data_field": "avg_host_score",
+			"sortable": true,
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		},
+		{
+            "id": "name",
+            "title_i18n": "name",
+            "data_field": "asname",
+			"sortable": false,
+			"class": [
+                "text-left",
+				"text-nowrap"
+			]
+		},
+		{
+            "id": "seen_since",
+			"title_i18n": "seen_since",
+			"data_field": "seen_since",
+			"sortable": true,
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		},
+		{
+            "id": "alerted_flows",
+			"title_i18n": "flow_details.alerted_flows",
+			"data_field": "alerted_flows",
+			"sortable": true,
+			"class": [
+                "text-nowrap",
+				"text-center"
+			]
+		},
+		{
+            "id": "breakdown",
+            "title_i18n": "breakdown",
+            "data_field": "breakdown",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+        },
+		{
+            "id": "throughput",
+			"title_i18n": "throughput",
+			"data_field": "throughput",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-right"
+			]
+		},
+		{
+            "id": "traffic",
+			"title_i18n": "traffic",
+			"data_field": "traffic",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-right"
+			]
+		}
+	]
+}

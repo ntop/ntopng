@@ -35,6 +35,7 @@ const props = defineProps({
 /* ************************************** */
 
 const host_filters_key = ref(0);
+const as_filters_key = ref(0);
 const table_id = props.context?.has_vlans ? ref('hosts_list_with_vlans') : ref('hosts_list');
 const table_hosts_list = ref(null);
 const csrf = props.context.csrf;
@@ -262,6 +263,8 @@ async function load_table_filters_array() {
     const url = `${http_prefix}/lua/rest/v2/get/host/host_filters.lua?${url_params}`;
     let res = await ntopng_utility.http_request(url);
     host_filters_key.value = host_filters_key.value + 1
+    as_filters_key.value = as_filters_key.value + 1
+
     return res.map((t) => {
         const key_in_url = ntopng_url_manager.get_url_entry(t.name);
         if(dataUtils.isEmptyOrNull(key_in_url)) {
