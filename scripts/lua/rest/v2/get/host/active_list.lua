@@ -87,10 +87,6 @@ if isEmptyString(device_ip) then
     device_ip = nil
 end
 
-local filtered_hosts = false
-local blacklisted = false
-local anomalous = false
-local dhcp_hosts = false
 local rsp = {}
 
 local mapping_column_lua_c = {
