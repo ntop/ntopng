@@ -68,6 +68,7 @@ if not download then
     local alerts, recordsFiltered, info = flow_alert_store:select_request(nil, "*")
 
     for _, _value in ipairs(alerts or {}) do
+        -- tprint(_value)
         res[#res + 1] = flow_alert_store:format_record(_value, no_html)
     end
 

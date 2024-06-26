@@ -12,9 +12,11 @@ local rest_utils = require "rest_utils"
 local alert_consts = require "alert_consts"
 local format_utils = require "format_utils"
 local l4_protocol_list = require "l4_protocol_list"
+
 -- Trick to handle the application and the categories togheter
 local application = _GET["application"]
-local ip_version = _GET["flowhosts_type"]
+local ip_version_or_host = _GET["flowhosts_type"]
+
 if not isEmptyString(application) then
     if string.starts(application, "cat_") then
         local category = split(application, "cat_")
@@ -22,11 +24,18 @@ if not isEmptyString(application) then
         _GET["application"] = nil
     end
 end
-if not isEmptyString(ip_version) then
-    if string.starts(ip_version, "ip_version_") then
-        local version = split(ip_version, "ip_version_")
+
+if not isEmptyString(ip_version_or_host) then
+    if string.starts(ip_version_or_host, "ip_version_") then
+        local version = split(ip_version_or_host, "ip_version_")
         _GET["version"] = version[2]
         _GET["flowhosts_type"] = nil
+    else
+        local host = hostkey2hostinfo(p)
+        if host then
+            _GET["host"] = ip_version_or_host
+            _GET["flowhosts_type"] = nil
+        end
     end
 end
 

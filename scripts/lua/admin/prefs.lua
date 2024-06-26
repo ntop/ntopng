@@ -2245,7 +2245,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             return
         end
 
-        print('<form method="post">')
+        print('<form id="assetsInventory" method="post">')
         print('<table class="table">')
         print('<thead class="table-primary"><tr><th colspan=2 class="info">Assets Inventory</th></tr></thead>')
 
@@ -2259,6 +2259,8 @@ if auth.has_capability(auth.capabilities.preferences) then
             showNetboxConfiguration = (_POST["toggle_netbox"] == "1")
         end
 
+        -- tprint(ntop.getPref("ntopng.prefs.toggle_netbox") .. " " .. tostring(showNetboxConfiguration))
+
         prefsToggleButton(subpage_active, {
             field = "toggle_netbox",
             default = "0",
@@ -2268,6 +2270,8 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         --(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs, extra)
         -- Netbox Activation URL
+        -- tprint(prefs)
+        -- Render the NetBox Activation URL input field
         prefsInputFieldPrefs(subpage_active.entries["netbox_activation_url"].title,
         subpage_active.entries["netbox_activation_url"].description, "ntopng.prefs.", "netbox_activation_url",
         prefs.netbox_activation_url, false, showNetboxConfiguration, nil, nil, {
@@ -2276,8 +2280,8 @@ if auth.has_capability(auth.capabilities.preferences) then
             },
             required = true
         })
-       
-        -- Netbox Asset default Site
+
+        -- Render the NetBox Default Site input field
         prefsInputFieldPrefs(subpage_active.entries["netbox_default_site"].title,
         subpage_active.entries["netbox_default_site"].description, "ntopng.prefs.", "netbox_default_site",
         "", false, showNetboxConfiguration, nil, nil, {
@@ -2289,11 +2293,12 @@ if auth.has_capability(auth.capabilities.preferences) then
         
         -- Netbox Personal Access token
         prefsInputFieldPrefs(subpage_active.entries["netbox_personal_access_token"].title,
-        subpage_active.entries["netbox_personal_access_token"].description, "ntopng.prefs.", "netbox_personal_access_token", "",
-        "", showNetboxConfiguration, nil, nil, {
+        subpage_active.entries["netbox_personal_access_token"].description, "ntopng.prefs.", "netbox_personal_access_token",
+        ntop.getPref("ntopng.prefs.netbox_personal_access_token") or "", "text", showNetboxConfiguration, nil, nil, {
             required = true,
-            inputBoxWidth = "40em"
-        })
+            inputBoxWidth = "40em",
+            disabled = disabled
+    })
             
         if (disabled) then
             prefsInformativeField(i18n("notes"), i18n("enterpriseOnly"))
