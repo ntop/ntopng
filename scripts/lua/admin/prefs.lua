@@ -127,7 +127,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             (_POST["toggle_radius_accounting"] ~= ntop.getPref("ntopng.prefs.radius.accounting_enabled")) or
             (_POST["toggle_radius_external_auth_for_local_users"] ~=
                 ntop.getPref("ntopng.prefs.radius.external_auth_for_local_users_enabled"))) then
-        -- In the minute callback there is a periodic script that in case 
+        -- In the minute callback there is a periodic script that in case
         -- the auth changed, it's going to update the radius info
         ntop.setPref("ntopng.prefs.radius.radius_server_address", _POST["radius_server_address"])
         ntop.setPref("ntopng.prefs.radius.radius_acct_server_address", _POST["radius_acct_server_address"])
@@ -361,7 +361,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             field = "alert_page_refresh_rate_enabled",
             default = "0",
             to_switch = {"alert_page_refresh_rate"},
-            on_value = "1", -- Refresh rate set 
+            on_value = "1", -- Refresh rate set
             off_value = "0", -- Refresh rate not set
             hidden = not showElements
         })
@@ -2027,9 +2027,9 @@ if auth.has_capability(auth.capabilities.preferences) then
         prefsInputFieldPrefs(subpage_active.entries["dump_frequency"].title,
             subpage_active.entries["dump_frequency"].description, "ntopng.prefs.", "dump_frequency",
             prefs.dump_frequency, "number",
-            showAllElements and prefs.is_dump_flows_to_es_enabled, 
-            false, 
-            nil, 
+            showAllElements and prefs.is_dump_flows_to_es_enabled,
+            false,
+            nil,
             {
                 min = 1,
                 max = 2 ^ 32 - 1,
@@ -2247,9 +2247,10 @@ if auth.has_capability(auth.capabilities.preferences) then
         local disabled = not info["version.enterprise_edition"]
         local netbox_activation_url = ntop.getPref("ntopng.prefs.netbox_activation_url")
         local netbox_default_site = ntop.getPref("ntopng.prefs.netbox_default_site")
+
         if isEmptyString(netbox_activation_url) then
             netbox_activation_url = "http://localhost:8000"
-        end        
+        end
         if isEmptyString(netbox_default_site) then
             netbox_default_site = "Default"
         end
@@ -2260,7 +2261,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         -- show or not show table entries for netbox configuration
         local showNetboxConfiguration = false
-        
+
         if ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
             showNetboxConfiguration = true
         end
@@ -2276,7 +2277,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 		 traceError(TRACE_NORMAL, TRACE_CONSOLE, "[NetBox] Initialization completed")
 	      else
 		 traceError(TRACE_NORMAL, TRACE_CONSOLE, "[NetBox] Initialization failed")
-	      end	      
+	      end
 	   end
         end
 
@@ -2288,8 +2289,8 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "toggle_netbox",
             to_switch = {"netbox_activation_url", "netbox_default_site", "netbox_personal_access_token"},
         })
-        
-        
+
+
         --(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs, extra)
         -- Netbox Activation URL
         -- tprint(prefs)
@@ -2314,7 +2315,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             required = true,
             disabled = disabled
         })
-        
+
         -- Netbox Personal Access token
         prefsInputFieldPrefs(subpage_active.entries["netbox_personal_access_token"].title,
         subpage_active.entries["netbox_personal_access_token"].description, "ntopng.prefs.", "netbox_personal_access_token",
@@ -2323,7 +2324,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             inputBoxWidth = "40em",
             disabled = disabled
     })
-            
+
         if (disabled) then
             prefsInformativeField(i18n("notes"), i18n("enterpriseOnly"))
         end
@@ -2499,7 +2500,7 @@ if auth.has_capability(auth.capabilities.preferences) then
     if (tab == "vulnerability_scan") then
         printVulnerabilityScan()
     end
-    
+
     if (tab == "assets_inventory") then
         printAssetsInventory()
     end
