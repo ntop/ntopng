@@ -2245,6 +2245,14 @@ if auth.has_capability(auth.capabilities.preferences) then
             return
         end
         local disabled = not info["version.enterprise_edition"]
+        local netbox_activation_url = ntop.getPref("ntopng.prefs.netbox_activation_url")
+        local netbox_default_site = ntop.getPref("ntopng.prefs.netbox_default_site")
+        if isEmptyString(netbox_activation_url) then
+            netbox_activation_url = "http://localhost:8000"
+        end        
+        if isEmptyString(netbox_default_site) then
+            netbox_default_site = "Default"
+        end
 
         print('<form id="assetsInventory" method="post">')
         print('<table class="table">')
@@ -2257,7 +2265,19 @@ if auth.has_capability(auth.capabilities.preferences) then
             showNetboxConfiguration = true
         end
         if (_POST["toggle_netbox"]) then
-            showNetboxConfiguration = (_POST["toggle_netbox"] == "1")
+	   showNetboxConfiguration = (_POST["toggle_netbox"] == "1")
+
+	   if(showNetboxConfiguration == true) then
+	      package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+	      local netbox_manager = require("netbox_manager")
+	      
+	      traceError(TRACE_NORMAL, TRACE_CONSOLE, "[NetBox] Initializing...\n")
+	      if(netbox_manager.initialization_device_roles() == true) then
+		 traceError(TRACE_NORMAL, TRACE_CONSOLE, "[NetBox] Initialization completed")
+	      else
+		 traceError(TRACE_NORMAL, TRACE_CONSOLE, "[NetBox] Initialization failed")
+	      end	      
+	   end
         end
 
         -- tprint(ntop.getPref("ntopng.prefs.toggle_netbox") .. " " .. tostring(showNetboxConfiguration))
@@ -2268,14 +2288,15 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "toggle_netbox",
             to_switch = {"netbox_activation_url", "netbox_default_site", "netbox_personal_access_token"},
         })
-
+        
+        
         --(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs, extra)
         -- Netbox Activation URL
         -- tprint(prefs)
         -- Render the NetBox Activation URL input field
         prefsInputFieldPrefs(subpage_active.entries["netbox_activation_url"].title,
         subpage_active.entries["netbox_activation_url"].description, "ntopng.prefs.", "netbox_activation_url",
-        prefs.netbox_activation_url, false, showNetboxConfiguration, nil, nil, {
+        netbox_activation_url, false, showNetboxConfiguration, nil, nil, {
             attributes = {
                 spellcheck = "false",
             },
@@ -2286,7 +2307,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- Render the NetBox Default Site input field
         prefsInputFieldPrefs(subpage_active.entries["netbox_default_site"].title,
         subpage_active.entries["netbox_default_site"].description, "ntopng.prefs.", "netbox_default_site",
-        "", false, showNetboxConfiguration, nil, nil, {
+        netbox_default_site, false, showNetboxConfiguration, nil, nil, {
             attributes = {
                 spellcheck = "false",
             },
