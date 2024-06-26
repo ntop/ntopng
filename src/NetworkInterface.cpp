@@ -4968,7 +4968,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
         ndpi_proto_app_proto, ndpi_proto_master_proto,
         f->get_detected_protocol().app_protocol,
         f->get_detected_protocol().master_protocol);
-*/    /* We need a specific filter in case both protos are unknown */
+*/      /* Case where both protocols are unknown */
       if(ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN &&
           ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN) {
         if(
@@ -4977,7 +4977,19 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
           )
           /* We're good */
           is_ok = true;
+      } else if(ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN || 
+                ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN) {
+      /* Case where one is unknown, the other can match both master and app of the flow */
+        if((ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN &&
+              (ndpi_proto_app_proto == f->get_detected_protocol().app_protocol ||
+              ndpi_proto_app_proto == f->get_detected_protocol().master_protocol)) ||
+            (ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN &&
+              (ndpi_proto_master_proto == f->get_detected_protocol().app_protocol ||
+              ndpi_proto_master_proto == f->get_detected_protocol().master_protocol)))
+          /* We're good */
+          is_ok = true;
       } else {
+      /* Case where both are not unknown */
         if (((ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN) ||
               (ndpi_proto_master_proto == f->get_detected_protocol().master_protocol)) &&
             ((ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN) ||
