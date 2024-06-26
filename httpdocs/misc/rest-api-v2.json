@@ -3772,7 +3772,7 @@
       }
     },
     "/lua/pro/rest/v2/get/host/flows/data.lua": {
-      "post": {
+      "get": {
         "tags": [
           "Host"
         ],
