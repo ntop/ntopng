@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="m-2 mb-3">
         <TableWithConfig ref="table_countries_stats" :table_id="table_id" :csrf="csrf"
             :f_map_columns="map_table_def_columns" 
         :f_sort_rows="columns_sorting">

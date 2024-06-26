@@ -23,7 +23,7 @@
             <TableWithConfig ref="network_discovery_table" :table_id="table_id" :csrf="csrf"
               :f_map_columns="map_table_def_columns" :f_sort_rows="columns_sorting">
               <template v-slot:custom_header>
-                <button v-for="(button, index) in datatableButtons" :key="index" :class="button.className"
+                <button v-for="(button, index) in tableButtons" :key="index" :class="button.className"
                   @click="button.action">
                   <span v-html="button.text"></span>
                 </button>
@@ -31,13 +31,6 @@
             </TableWithConfig>
           </div>
 
-          <!-- 
-              <Datatable ref="network_discovery_table" :table_id="table_id" :table_buttons="config_network_discovery.table_buttons"
-              :columns_config="config_network_discovery.columns_config" :data_url="config_network_discovery.data_url"
-              :enable_search="config_network_discovery.enable_search"
-              :table_config="config_network_discovery.table_config">
-            </Datatable>
-            -->
           <NoteList v-bind:note_list="note_list">
           </NoteList>
           <!-- Adding Extra Message -->
@@ -49,12 +42,10 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount, onUnmounted, onMounted, defineProps } from "vue";
-import { default as Datatable } from "./datatable.vue";
+import { ref, onUnmounted, onMounted } from "vue";
 import { default as Loading } from "./loading.vue";
 import { default as NoteList } from "./note-list.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
-import { ntopng_url_manager } from "../services/context/ntopng_globals_services";
 const props = defineProps({
   context: Object,
 });
@@ -90,7 +81,7 @@ function columns_sorting(col, r0, r1) { }
 const table_id = ref("network_discovery");
 const csrf = props.context.csrf;
 
-const datatableButtons = ref([
+const tableButtons = ref([
   {
     text: `${i18n('discover.start_discovery')} <i class="fa-solid fa-play"></i>`,
     className: 'btn btn-link',
@@ -188,10 +179,6 @@ const checkDiscovery = async () => {
 
 const destroy = () => {
   network_discovery_table.value.destroy_table();
-};
-
-const reload_table = () => {
-  network_discovery_table.value.reload();
 };
 
 onMounted(() => {
