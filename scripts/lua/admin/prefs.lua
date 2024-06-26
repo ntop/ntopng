@@ -2261,7 +2261,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             showNetboxConfiguration = false
         end
 
-        tprint(ntop.getPref("ntopng.prefs.toggle_netbox") .. " " .. tostring(showNetboxConfiguration))
+        -- tprint(ntop.getPref("ntopng.prefs.toggle_netbox") .. " " .. tostring(showNetboxConfiguration))
 
         prefsToggleButton(subpage_active, {
             field = "toggle_netbox",
@@ -2273,7 +2273,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         --(label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs, extra)
         -- Netbox Activation URL
-        tprint(prefs)
+        -- tprint(prefs)
         -- Render the NetBox Activation URL input field
         prefsInputFieldPrefs(subpage_active.entries["netbox_activation_url"].title,
             subpage_active.entries["netbox_activation_url"].description, "ntopng.prefs.", "netbox_activation_url",
