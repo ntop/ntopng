@@ -61,6 +61,18 @@ const sortByIP = function(val_1, val_2, sort) {
 
 /* ******************************************************************** */ 
 
+/* Sort by MAC Addresses */
+const sortByMacAddress = function(val_1, val_2, sort) {
+  val_1 = NtopUtils.convertMACAddress(val_1);
+  val_2 = NtopUtils.convertMACAddress(val_2);
+  if (sort == 1) {
+    return val_1.localeCompare(val_2);
+  }
+  return val_2.localeCompare(val_1);
+}
+
+/* ******************************************************************** */ 
+
 /* Sort by Number */
 const sortByNumber = function(val_1, val_2, sort) {
   /* It's an array */
@@ -90,6 +102,7 @@ const sortingFunctions = function () {
     sortByIP,
     sortByName,
     sortByNumber,
+    sortByMacAddress,
     sortByNumberWithNormalizationValue,
   };
 }();

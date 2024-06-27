@@ -28,7 +28,7 @@ local discovery_enabled = (ntop.getPref("ntopng.prefs.is_periodic_network_discov
 -- Run this script for a minute before quitting (this reduces load on Lua VM infrastructure)
 local num_runs = 12
 
-if discovery_enabled then  
+if discovery_enabled then 
    local now = os.time()
 
    local last_discovery = ntop.getCache("ntopng.cache.network_discovery.last")

@@ -19,7 +19,16 @@
               <span v-html="progress_message"></span>
             </div>
           </template>
-          <div :class="[(discovery_requested) ? 'ntopng-gray-out' : '']">
+          <!-- Show message that discovery is not enabled in preferences -->
+          <template v-if="!networkDiscoveryPrefEnabled">
+            <div class="alert alert-danger alert-dismissable">
+              {{ _i18n("network_discovery_disabled") }}
+              <button class="btn btn-small" @click="redirectToPreferencesPage">
+                <i class="fa-solid fa-gear"></i>
+              </button>
+            </div>
+          </template>
+          <div :class="[(discovery_requested || !networkDiscoveryPrefEnabled) ? 'ntopng-gray-out' : '']">
             <TableWithConfig ref="network_discovery_table" :table_id="table_id" :csrf="csrf"
               :f_map_columns="map_table_def_columns" :f_sort_rows="columns_sorting">
               <template v-slot:custom_header>
@@ -42,10 +51,17 @@
 </template>
 
 <script setup>
+
 import { ref, onUnmounted, onMounted } from "vue";
 import { default as Loading } from "./loading.vue";
 import { default as NoteList } from "./note-list.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
+import { default as sortingFunctions } from "../utilities/sorting-utils.js";
+import osUtils from "../utilities/map/os-utils";
+import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
+
+const _i18n = (t) => i18n(t);
+
 const props = defineProps({
   context: Object,
 });
@@ -60,12 +76,13 @@ const progress_message = ref(null);
 const last_network_discovery = ref('');
 const discovery_requested_message = i18n('discover.network_discovery_not_enabled');
 const loading = ref(false);
+const networkDiscoveryPrefEnabled = ref(false);
 
 const ghost_message = i18n("discover.ghost_icon_descr");
 const too_many_devices_message = i18n("discover.too_many_devices_descr");
 const ghost_message_added = ref(false);
 
-let timeout_id;
+const timeout_id = ref(null);
 
 const note_list = [
   i18n("discover.discovery_running"),
@@ -76,7 +93,6 @@ const run_network_discovery = `${http_prefix}/lua/rest/v2/get/network/discovery/
 const discovery_url = `${http_prefix}/lua/get_discover_progress.lua`;
 
 /********** NEW ADDITION **********/
-function columns_sorting(col, r0, r1) { }
 
 const table_id = ref("network_discovery");
 const csrf = props.context.csrf;
@@ -91,7 +107,7 @@ const tableButtons = ref([
       const url = run_network_discovery + `?ifid=${ifid}`
       await ntopng_utility.http_request(url);
 
-      timeout_id = setInterval(checkDiscovery, 1000);
+      timeout_id.value = setInterval(checkDiscovery, 1000);
     }
   }
 ]);
@@ -111,13 +127,13 @@ const map_table_def_columns = (columns) => {
       return value;
     },
     "os": (value, row) => {
-      return value;
+      return osUtils.getOS(value)["icon"];
     },
     "info": (value, row) => {
       return value;
     },
-    "device": (value, row) => {
-      return value;
+    "device_type": (value, row) => {
+      return osUtils.getAssetIcon(value);
     }
   };
 
@@ -170,23 +186,59 @@ const checkDiscovery = async () => {
     discovery_requested.value = true;
     progress_message.value = rsp.progress !== "" ? rsp.progress : "";
   } else {
+    network_discovery_table.value.refresh_table()
     discovery_requested.value = false;
     progress_message.value = '';
-    clearInterval(timeout_id);
+    clearInterval(timeout_id.value);
   }
+
   add_notes(rsp);
 };
+
+// Function to redirect to a url
+function redirectToPreferencesPage() {
+  const url = `${http_prefix}/lua/admin/prefs.lua`
+  ntopng_url_manager.go_to_url(url)
+}
+
+// Function to get if network discovery is enabled in preferences
+async function checkNetworkDiscoveryEnabled() {
+  const url = `${http_prefix}/lua/rest/v2/get/ntopng/get_preferences.lua`
+  const rsp = await ntopng_utility.http_request(url);
+
+  networkDiscoveryPrefEnabled.value = rsp.active_monitoring
+}
 
 const destroy = () => {
   network_discovery_table.value.destroy_table();
 };
 
-onMounted(() => {
-  timeout_id = setInterval(checkDiscovery, 3000);
-});
+onMounted(async () => {
+  await checkNetworkDiscoveryEnabled()
+})
 
 onUnmounted(async () => {
   destroy();
 });
+
+function columns_sorting(col, r0, r1) {
+  if (col != null) {
+    if (col.id == "name") {
+      return sortingFunctions.sortByName(r0.name, r1.name, col.sort);
+    } else if (col.id == "ip") {
+      return sortingFunctions.sortByIP(r0.ip, r1.ip, col.sort);
+    } else if (col.id == "manufacturer") {
+      return sortingFunctions.sortByName(r0.manufacturer, r1.manufacturer, col.sort);
+    } else if (col.id == "mac_address") {
+      return sortingFunctions.sortByMacAddress(r0.mac_address, r1.mac_address, col.sort);
+    } else if (col.id == "os") {
+      return sortingFunctions.sortByNumber(r0.os, r1.os, col.sort);
+    } else if (col.id == "device") {
+      debugger
+      return sortingFunctions.sortByNumber(r0.device, r1.device, col.sort);
+    } 
+  }
+ 
+}
 
 </script>
