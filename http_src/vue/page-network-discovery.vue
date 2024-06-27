@@ -76,7 +76,7 @@ const progress_message = ref(null);
 const last_network_discovery = ref('');
 const discovery_requested_message = i18n('discover.network_discovery_not_enabled');
 const loading = ref(false);
-const networkDiscoveryPrefEnabled = ref(false);
+const networkDiscoveryPrefEnabled = ref(true);
 
 const ghost_message = i18n("discover.ghost_icon_descr");
 const too_many_devices_message = i18n("discover.too_many_devices_descr");
