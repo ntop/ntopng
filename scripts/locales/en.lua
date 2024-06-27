@@ -6744,7 +6744,7 @@ local lang = {
     ["mqtt"] = "MQTT",
     ["multiple_ldap_account_type_description"] = "Choose your account type",
     ["multiple_ldap_account_type_title"] = "LDAP Accounts Type",
-    ["multiple_timeseries_database_description"] = "The driver used for storing and retrieving timeseries data.<br><b>Note:</b> It's possible to use InfluxDB v.2 with a compatible v.1 bucket, however the Retention and the Buckets have to be managed by the InfluxDB GUI.",
+    ["multiple_timeseries_database_description"] = "The driver used for storing and retrieving timeseries data.<br><b>Note:</b> It's possible to use InfluxDB v.2 with a compatible v.1 bucket, however the Retention and the Buckets have to be managed by the InfluxDB GUI.<br>Minimum InfluxDB version supported: <b>1.5.1</b>",
     ["multiple_timeseries_database_title"] = "Timeseries Driver",
     ["mysql"] = "MySQL",
     ["n2disk_license_description"] = "Continuous traffic recording requires a n2disk license, purchase one at <a href=\"%{purchase_url}\">e-shop</a>. If you are no-profit, research or an education institution please read <a href=\"%{universities_url}\">this</a>. ",
