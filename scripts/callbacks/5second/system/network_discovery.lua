@@ -2,13 +2,15 @@
 -- (C) 2013-24 - ntop.org
 --
 
+local dirs = ntop.getDirs()
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+require "lua_utils"
+
 if(ntop.limitResourcesUsage()) then return end
 
 local prefs = ntop.getPrefs()
 
 if(prefs.active_monitoring == true) then
-   local dirs = ntop.getDirs()
-   package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
    
    local discover_utils = require "discover_utils"
    local callback_utils = require "callback_utils"

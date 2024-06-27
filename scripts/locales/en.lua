@@ -1,6 +1,7 @@
 local lang = {
   ["abort"] = "Abort",
   ["avg_host_score"] = "Average Host Score",
+  ["network_discovery_disabled"] = "Network Discovery is Disabled, Please Enable it in Preferences",
   ["num_alerts"] = "Alerts Count",
   ["city"] = "City",
   ["acknowledge"] = "Acknowledge",

@@ -13,7 +13,8 @@
 		{
 			"id": "ip",
 			"title_i18n": "ip_address",
-			"sortable": false,
+			"data_field": "ip",
+			"sortable": true,
 			"sticky": true,
 			"class": [
 				"text-nowrap",
@@ -63,7 +64,7 @@
         {
 			"title_i18n": "info",
 			"data_field": "info",
-			"sortable": true,
+			"sortable": false,
 			"min-width": "100px",
 			"class": [
 				"text-nowrap",
@@ -72,7 +73,7 @@
 		},
         {
 			"title_i18n": "device",
-			"data_field": "device",
+			"data_field": "device_type",
 			"sortable": true,
 			"min-width": "100px",
 			"class": [

@@ -1245,6 +1245,10 @@ export default class NtopUtils {
                 return label;
         }
 
+        /* This function converts a mac address to a string*/
+        static convertMACAddress(a) {
+                return a.toLowerCase().replace(/[^a-f0-9]/g, '');
+        }
         /* This function converts an ip to a number equale to the ip but without . or :: in case of ipv6
          * this is needed in case of ordering
          */
