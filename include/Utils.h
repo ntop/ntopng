@@ -322,6 +322,10 @@ class Utils {
   static char* createRandomString(char *buf, size_t buf_len);
   static IpAddress* parseHostString(char *host_ip, u_int16_t *vlan_id /* out */);
   static bool nwInterfaceExists(char *if_name);
+  static bool readModbusDeviceInfo(char *ip_address, u_int8_t timeout_sec,
+				   char *vendor_name, u_int vendor_name_len,
+				   char *product_code, u_int product_code_len,
+				   char *product_revision, u_int product_revision_len);
 };
 
 #endif /* _UTILS_H_ */

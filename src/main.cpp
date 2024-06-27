@@ -98,17 +98,17 @@ int main(int argc, char *argv[])
   initWinsock32();
 #else
   sqlite3_shutdown();
+
   /* Multi-thread.
      In this mode, SQLite can be safely used by multiple threads
      provided that no single database connection is used simultaneously
      in two or more threads.
   */
   if (sqlite3_config(SQLITE_CONFIG_MULTITHREAD) != SQLITE_OK) {
-    ntop->getTrace()->traceEvent(
-        TRACE_WARNING,
-        "Unable to set SQLITE_CONFIG_MULTITHREAD for sqlite, exiting.");
+    printf("Unable to set SQLITE_CONFIG_MULTITHREAD for sqlite, exiting.");
     exit(1);
   }
+  
   sqlite3_initialize();
 #endif
 
