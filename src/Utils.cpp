@@ -2904,7 +2904,7 @@ u_int16_t Utils::getIfMTU(const char *ifname) {
   /* Check if this is a pcap file */
   if(stat(ifname, &buf) == 0)
     return(CONST_MAX_PACKET_SIZE);
-  
+
 #ifdef WIN32
   return (CONST_DEFAULT_MAX_PACKET_SIZE);
 #else
@@ -5732,4 +5732,140 @@ bool Utils::nwInterfaceExists(char *if_name) {
   return(found);
 #endif
 #endif
+}
+
+/* ******************************************* */
+
+bool Utils::readModbusDeviceInfo(char *device_ip, u_int8_t timeout_sec,
+				 char *vendor_name, u_int vendor_name_len,
+				 char *product_code, u_int product_code_len,
+				 char *product_revision, u_int product_revision_len) {
+  struct hostent *server = NULL;
+  struct sockaddr_in serv_addr;
+  int sockfd = -1;
+  int retval;
+  bool rc = false;
+  struct timeval tv_timeout;
+  char response[512], modbus_query[] = {
+    0x0, 0x0, /* Trsnsaction Id */
+    0x0, 0x0, /* Protocol Id    */
+    0x0, 0x5, /* Lenght         */
+    0x1,      /* Unit Id        */
+    0x2b,     /* Function code  */
+    0x0e,     /* MEI type (Read Device Identification) */
+    0x01,     /* Read Device Id */
+    0x0       /* Vendor Name    */
+  };
+
+  vendor_name[0] = '\0';
+  product_code[0] = '\0';
+  product_revision[0] = '\0';
+
+  server = gethostbyname(device_ip);
+  if(server == NULL) return(false);
+
+  memset((char *)&serv_addr, 0, sizeof(serv_addr));
+  serv_addr.sin_family = AF_INET;
+  memcpy((char *)&serv_addr.sin_addr.s_addr, (char *)server->h_addr,
+         server->h_length);
+  serv_addr.sin_port = htons(502 /* Modbus */);
+
+  sockfd = Utils::openSocket(AF_INET, SOCK_STREAM, 0, "readModbusDeviceInfo");
+
+  if(sockfd < 0) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to create socket");
+    return(false);
+  }
+
+#ifndef WIN32
+  if(timeout_sec == 0) {
+    retval = fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL, 0) | O_NONBLOCK);
+
+    if(retval == -1) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Error setting NONBLOCK flag");
+      Utils::closeSocket(sockfd);
+      return(false);
+    }
+  } else {
+    tv_timeout.tv_sec = timeout_sec, tv_timeout.tv_usec = 0;
+    retval = setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &tv_timeout,
+                        sizeof(tv_timeout));
+    if(retval == -1) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Error setting send timeout: %s",
+				   strerror(errno));
+      Utils::closeSocket(sockfd);
+      return(false);
+    }
+  }
+#endif
+
+  if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0 &&
+      (errno == ECONNREFUSED || errno == EALREADY || errno == EAGAIN ||
+       errno == ENETUNREACH || errno == ETIMEDOUT)) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Could not connect to remote party");
+    Utils::closeSocket(sockfd);
+    return(false);
+  }
+
+  rc = true;
+  retval = send(sockfd, modbus_query, sizeof(modbus_query), 0);
+
+  if(retval <= 0)
+    rc = false;
+  else {
+    fd_set rset;
+    int ret;
+
+    tv_timeout.tv_sec = timeout_sec, tv_timeout.tv_usec = 0;
+
+    FD_ZERO(&rset);
+    FD_SET(sockfd, &rset);
+    ret = select(sockfd + 1, &rset, NULL, NULL, &tv_timeout);
+
+    if(ret > 0) {
+      int len = read(sockfd, response, sizeof(response));
+
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Read %u bytes", len);
+      
+      if(len > 7 /* Modbus/TCP Len */) {
+	u_int response_len = ntohs(*((u_int16_t*)&response[4]));
+
+	if((response_len + 7) <= len) {
+	  u_int16_t offset = 13;
+	  u_int8_t num_objects = response[offset++];
+
+	  while(num_objects > 0) {
+	    u_int8_t object_id     = response[offset++];
+	    u_int8_t l, object_len = response[offset++];
+
+	    if((object_len+offset) < len) {
+	      switch(object_id) {
+	      case 0:		
+		strncpy(vendor_name, &response[offset], l = ndpi_min(vendor_name_len-1, object_len));
+		vendor_name[l] = '\0';
+		break;
+		
+	      case 1:
+		strncpy(product_code, &response[offset], l = ndpi_min(product_code_len-1, object_len));
+		product_code[l] = '\0';
+		break;
+		  
+	      case 2:
+		strncpy(product_revision, &response[offset], l = ndpi_min(product_revision_len-1, object_len));
+		product_revision[l] = '\0';
+		break;
+	      }
+	    }
+
+	    offset += object_len, num_objects--;
+	  } /* while */
+	}       
+      }
+    } else
+      rc = false;
+  }
+
+  Utils::closeSocket(sockfd);
+
+  return(rc);
 }

@@ -7757,439 +7757,478 @@ static int m_broker_rpc_call(lua_State  *vm) {
 
 /* **************************************************************** */
 
+static int read_modbus_device_info(lua_State *vm) {
+  char *device_ip;
+  char vendor_name[128], product_code[128], product_revision[128];
+  int timeout  = 5;
+  bool rc;
+  
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  else
+    device_ip = (char *)lua_tostring(vm, 1);
+  
+  if (lua_type(vm, 2) == LUA_TNUMBER) timeout = (u_int16_t)lua_tonumber(vm, 2);
+  
+  rc = Utils::readModbusDeviceInfo(device_ip, timeout,
+				   vendor_name, sizeof(vendor_name),
+				   product_code, sizeof(product_code),
+				   product_revision, sizeof(product_revision));
+
+  if(rc == false) {
+    lua_pushnil(vm);
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s][%s]",
+				 vendor_name, product_code, product_revision);
+    
+    lua_newtable(vm);
+    lua_push_str_table_entry(vm, "vendor_name", vendor_name);
+    lua_push_str_table_entry(vm, "product_code", product_code);
+    lua_push_str_table_entry(vm, "product_revision", product_revision);
+
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+  }
+}
+
+/* **************************************************************** */
+
 static luaL_Reg _ntop_reg[] = {
-    {"getDirs", ntop_get_dirs},
-    {"getInfo", ntop_get_info},
-    {"getUptime", ntop_get_uptime},
-    {"dumpFile", ntop_dump_file},
-    {"dumpBinaryFile", ntop_dump_binary_file},
-    {"checkLicense", ntop_check_license},
-    {"systemHostStat", ntop_system_host_stat},
-    {"getSystemAlertsStats", ntop_get_system_alerts_stats},
-    {"refreshCPULoad", ntop_refresh_cpu_load},
-    {"getCookieAttributes", ntop_get_cookie_attributes},
-    {"isAllowedInterface", ntop_is_allowed_interface},
-    {"isAllowedNetwork", ntop_is_allowed_network},
-    {"isLocalInterfaceAddress", ntop_is_local_interface_address},
-    {"isLocalAddress", ntop_is_local_address},
-    {"md5", ntop_md5},
-    {"hasRadiusSupport", ntop_has_radius_support},
-    {"hasLdapSupport", ntop_has_ldap_support},
-    {"execSingleSQLQuery", ntop_exec_single_sql_query},
-    {"resetStats", ntop_reset_stats},
-    {"getCurrentScriptsDir", ntop_get_current_scripts_dir},
-    {"getDropPoolInfo", ntop_get_drop_pool_info},
-    {"isOffline", ntop_is_offline},
-    {"isForcedOffline", ntop_is_forced_offline},
-    {"setOffline", ntop_set_offline},
-    {"setOnline", ntop_set_online},
-    {"isShuttingDown", ntop_is_shutting_down},
-    {"limitResourcesUsage", ntop_limit_resources_usage},
+    { "getDirs", ntop_get_dirs},
+    { "getInfo", ntop_get_info},
+    { "getUptime", ntop_get_uptime},
+    { "dumpFile", ntop_dump_file},
+    { "dumpBinaryFile", ntop_dump_binary_file},
+    { "checkLicense", ntop_check_license},
+    { "systemHostStat", ntop_system_host_stat},
+    { "getSystemAlertsStats", ntop_get_system_alerts_stats},
+    { "refreshCPULoad", ntop_refresh_cpu_load},
+    { "getCookieAttributes", ntop_get_cookie_attributes},
+    { "isAllowedInterface", ntop_is_allowed_interface},
+    { "isAllowedNetwork", ntop_is_allowed_network},
+    { "isLocalInterfaceAddress", ntop_is_local_interface_address},
+    { "isLocalAddress", ntop_is_local_address},
+    { "md5", ntop_md5},
+    { "hasRadiusSupport", ntop_has_radius_support},
+    { "hasLdapSupport", ntop_has_ldap_support},
+    { "execSingleSQLQuery", ntop_exec_single_sql_query},
+    { "resetStats", ntop_reset_stats},
+    { "getCurrentScriptsDir", ntop_get_current_scripts_dir},
+    { "getDropPoolInfo", ntop_get_drop_pool_info},
+    { "isOffline", ntop_is_offline},
+    { "isForcedOffline", ntop_is_forced_offline},
+    { "setOffline", ntop_set_offline},
+    { "setOnline", ntop_set_online},
+    { "isShuttingDown", ntop_is_shutting_down},
+    { "limitResourcesUsage", ntop_limit_resources_usage},
 
     /* Execute commands */
-    {"execCmd", ntop_exec_cmd},
-    {"execCmdAsync", ntop_exec_cmd_async},
-    {"readResultCmdAsync", ntop_read_result_cmd_async},
+    { "execCmd", ntop_exec_cmd},
+    { "execCmdAsync", ntop_exec_cmd_async},
+    { "readResultCmdAsync", ntop_read_result_cmd_async},
 
     /* Redis */
-    {"getCacheStatus", ntop_info_redis},
-    {"getCache", ntop_get_redis},
-    {"setCache", ntop_set_redis},
-    {"setnxCache", ntop_setnx_redis},
-    {"incrCache", ntop_incr_redis},
-    {"getCacheStats", ntop_get_redis_stats},
-    {"delCache", ntop_delete_redis_key},
-    {"flushCache", ntop_flush_redis},
-    {"listIndexCache", ntop_list_index_redis},
-    {"lpushCache", ntop_lpush_redis},
-    {"rpushCache", ntop_rpush_redis},
-    {"lpopCache", ntop_lpop_redis},
-    {"rpopCache", ntop_rpop_redis},
-    {"lremCache", ntop_lrem_redis},
-    {"ltrimCache", ntop_ltrim_redis},
-    {"lrangeCache", ntop_lrange_redis},
-    {"llenCache", ntop_llen_redis},
-    {"setMembersCache", ntop_add_set_member_redis},
-    {"delMembersCache", ntop_del_set_member_redis},
-    {"getMembersCache", ntop_get_set_members_redis},
-    {"getHashCache", ntop_get_hash_redis},
-    {"setHashCache", ntop_set_hash_redis},
-    {"delHashCache", ntop_delete_hash_redis_key},
-    {"getHashKeysCache", ntop_get_hash_keys_redis},
-    {"getHashAllCache", ntop_get_hash_all_redis},
-    {"getKeysCache", ntop_get_keys_redis},
-    {"hasDumpCache", ntop_redis_has_dump},
-    {"dumpCache", ntop_redis_dump},
-    {"restoreCache", ntop_redis_restore},
-    {"addLocalNetwork", ntop_add_local_network},
-    {"setResolvedAddress", ntop_set_resolved_address},
+    { "getCacheStatus", ntop_info_redis},
+    { "getCache", ntop_get_redis},
+    { "setCache", ntop_set_redis},
+    { "setnxCache", ntop_setnx_redis},
+    { "incrCache", ntop_incr_redis},
+    { "getCacheStats", ntop_get_redis_stats},
+    { "delCache", ntop_delete_redis_key},
+    { "flushCache", ntop_flush_redis},
+    { "listIndexCache", ntop_list_index_redis},
+    { "lpushCache", ntop_lpush_redis},
+    { "rpushCache", ntop_rpush_redis},
+    { "lpopCache", ntop_lpop_redis},
+    { "rpopCache", ntop_rpop_redis},
+    { "lremCache", ntop_lrem_redis},
+    { "ltrimCache", ntop_ltrim_redis},
+    { "lrangeCache", ntop_lrange_redis},
+    { "llenCache", ntop_llen_redis},
+    { "setMembersCache", ntop_add_set_member_redis},
+    { "delMembersCache", ntop_del_set_member_redis},
+    { "getMembersCache", ntop_get_set_members_redis},
+    { "getHashCache", ntop_get_hash_redis},
+    { "setHashCache", ntop_set_hash_redis},
+    { "delHashCache", ntop_delete_hash_redis_key},
+    { "getHashKeysCache", ntop_get_hash_keys_redis},
+    { "getHashAllCache", ntop_get_hash_all_redis},
+    { "getKeysCache", ntop_get_keys_redis},
+    { "hasDumpCache", ntop_redis_has_dump},
+    { "dumpCache", ntop_redis_dump},
+    { "restoreCache", ntop_redis_restore},
+    { "addLocalNetwork", ntop_add_local_network},
+    { "setResolvedAddress", ntop_set_resolved_address},
 
     /* Redis Preferences */
-    {"setPref", ntop_set_preference},
-    {"getPref", ntop_get_redis},
+    { "setPref", ntop_set_preference},
+    { "getPref", ntop_get_redis},
 
-    {"isdir", ntop_is_dir},
-    {"mkdir", ntop_mkdir_tree},
-    {"notEmptyFile", ntop_is_not_empty_file},
-    {"exists", ntop_get_file_dir_exists},
-    {"listReports", ntop_list_reports},
-    {"fileLastChange", ntop_get_file_last_change},
-    {"readdir", ntop_list_dir_files},
-    {"rmdir", ntop_remove_dir_recursively},
-    {"unlink", ntop_unlink_file},
+    { "isdir", ntop_is_dir},
+    { "mkdir", ntop_mkdir_tree},
+    { "notEmptyFile", ntop_is_not_empty_file},
+    { "exists", ntop_get_file_dir_exists},
+    { "listReports", ntop_list_reports},
+    { "fileLastChange", ntop_get_file_last_change},
+    { "readdir", ntop_list_dir_files},
+    { "rmdir", ntop_remove_dir_recursively},
+    { "unlink", ntop_unlink_file},
 
-    {"isNProbeIPSConfigured", ntop_check_nprobe_ips_configured},
+    { "isNProbeIPSConfigured", ntop_check_nprobe_ips_configured},
 
 #ifndef HAVE_NEDGE
 #ifdef HAVE_ZMQ
-    {"zmq_connect", ntop_zmq_connect},
-    {"zmq_disconnect", ntop_zmq_disconnect},
-    {"zmq_receive", ntop_zmq_receive},
+    { "zmq_connect", ntop_zmq_connect},
+    { "zmq_disconnect", ntop_zmq_disconnect},
+    { "zmq_receive", ntop_zmq_receive},
 #endif
 
     /* IPS */
-    {"broadcastIPSMessage", ntop_brodcast_ips_message},
-    {"timeToRefreshIPSRules", ntop_time_to_refresh_ips_rules},
-    {"askToRefreshIPSRules", ntop_ask_to_refresh_ips_rules},
+    { "broadcastIPSMessage", ntop_brodcast_ips_message},
+    { "timeToRefreshIPSRules", ntop_time_to_refresh_ips_rules},
+    { "askToRefreshIPSRules", ntop_ask_to_refresh_ips_rules},
 #endif
 
-    {"reloadPreferences", ntop_reload_preferences},
-    {"setDefaultFilePermissions", ntop_set_default_file_permissions},
+    { "reloadPreferences", ntop_reload_preferences},
+    { "setDefaultFilePermissions", ntop_set_default_file_permissions},
 
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
-    {"checkSubInterfaceSyntax", ntop_check_sub_interface_syntax},
-    {"checkFilterSyntax", ntop_check_filter_syntax},
-    {"reloadProfiles", ntop_reload_traffic_profiles},
+    { "checkSubInterfaceSyntax", ntop_check_sub_interface_syntax},
+    { "checkFilterSyntax", ntop_check_filter_syntax},
+    { "reloadProfiles", ntop_reload_traffic_profiles},
 #endif
 #endif
 
-    {"isForcedCommunity", ntop_is_forced_community},
-    {"isPro", ntop_is_pro},
-    {"isEnterprise", ntop_is_enterprise_m},
-    {"isEnterpriseM", ntop_is_enterprise_m},
-    {"isEnterpriseL", ntop_is_enterprise_l},
-    {"isEnterpriseXL", ntop_is_enterprise_xl},
-    {"isnEdge", ntop_is_nedge},
-    {"isnEdgeEnterprise", ntop_is_nedge_enterprise},
-    {"isPackage", ntop_is_package},
-    {"isAppliance", ntop_is_appliance},
-    {"isIoTBridge", ntop_is_iot_bridge},
+    { "isForcedCommunity", ntop_is_forced_community},
+    { "isPro", ntop_is_pro},
+    { "isEnterprise", ntop_is_enterprise_m},
+    { "isEnterpriseM", ntop_is_enterprise_m},
+    { "isEnterpriseL", ntop_is_enterprise_l},
+    { "isEnterpriseXL", ntop_is_enterprise_xl},
+    { "isnEdge", ntop_is_nedge},
+    { "isnEdgeEnterprise", ntop_is_nedge_enterprise},
+    { "isPackage", ntop_is_package},
+    { "isAppliance", ntop_is_appliance},
+    { "isIoTBridge", ntop_is_iot_bridge},
 
     /* Historical database */
-    {"insertMinuteSampling", ntop_stats_insert_minute_sampling},
-    {"insertHourSampling", ntop_stats_insert_hour_sampling},
-    {"insertDaySampling", ntop_stats_insert_day_sampling},
-    {"getMinuteSampling", ntop_stats_get_minute_sampling},
-    {"deleteMinuteStatsOlderThan", ntop_stats_delete_minute_older_than},
-    {"deleteHourStatsOlderThan", ntop_stats_delete_hour_older_than},
-    {"deleteDayStatsOlderThan", ntop_stats_delete_day_older_than},
-    {"getMinuteSamplingsFromEpoch",
+    { "insertMinuteSampling", ntop_stats_insert_minute_sampling},
+    { "insertHourSampling", ntop_stats_insert_hour_sampling},
+    { "insertDaySampling", ntop_stats_insert_day_sampling},
+    { "getMinuteSampling", ntop_stats_get_minute_sampling},
+    { "deleteMinuteStatsOlderThan", ntop_stats_delete_minute_older_than},
+    { "deleteHourStatsOlderThan", ntop_stats_delete_hour_older_than},
+    { "deleteDayStatsOlderThan", ntop_stats_delete_day_older_than},
+    { "getMinuteSamplingsFromEpoch",
      ntop_stats_get_samplings_of_minutes_from_epoch},
-    {"getHourSamplingsFromEpoch", ntop_stats_get_samplings_of_hours_from_epoch},
-    {"getDaySamplingsFromEpoch", ntop_stats_get_samplings_of_days_from_epoch},
-    {"getMinuteSamplingsInterval", ntop_stats_get_minute_samplings_interval},
+    { "getHourSamplingsFromEpoch", ntop_stats_get_samplings_of_hours_from_epoch},
+    { "getDaySamplingsFromEpoch", ntop_stats_get_samplings_of_days_from_epoch},
+    { "getMinuteSamplingsInterval", ntop_stats_get_minute_samplings_interval},
 
-    {"deleteOldRRDs", ntop_delete_old_rrd_files},
+    { "deleteOldRRDs", ntop_delete_old_rrd_files},
 
     /* Time */
-    {"gettimemsec", ntop_gettimemsec},
-    {"tzset", ntop_tzset},
-    {"roundTime", ntop_round_time},
+    { "gettimemsec", ntop_gettimemsec},
+    { "tzset", ntop_tzset},
+    { "roundTime", ntop_round_time},
 
     /* Ticks */
-    {"getticks", ntop_getticks},
-    {"gettickspersec", ntop_gettickspersec},
+    { "getticks", ntop_getticks},
+    { "gettickspersec", ntop_gettickspersec},
 
     /* UDP */
-    {"send_udp_data", ntop_send_udp_data},
+    { "send_udp_data", ntop_send_udp_data},
 
     /* TCP */
-    {"send_tcp_data", ntop_send_tcp_data},
+    { "send_tcp_data", ntop_send_tcp_data},
 
     /* IP */
-    {"inet_ntoa", ntop_inet_ntoa},
-    {"networkPrefix", ntop_network_prefix},
+    { "inet_ntoa", ntop_inet_ntoa},
+    { "networkPrefix", ntop_network_prefix},
 
     /* RRD */
-    {"rrd_create", ntop_rrd_create},
-    {"rrd_update", ntop_rrd_update},
-    {"rrd_fetch", ntop_rrd_fetch},
-    {"rrd_fetch_columns", ntop_rrd_fetch_columns},
-    {"rrd_lastupdate", ntop_rrd_lastupdate},
-    {"rrd_tune", ntop_rrd_tune},
-    {"rrd_inc_num_drops", ntop_rrd_inc_num_drops},
+    { "rrd_create", ntop_rrd_create},
+    { "rrd_update", ntop_rrd_update},
+    { "rrd_fetch", ntop_rrd_fetch},
+    { "rrd_fetch_columns", ntop_rrd_fetch_columns},
+    { "rrd_lastupdate", ntop_rrd_lastupdate},
+    { "rrd_tune", ntop_rrd_tune},
+    { "rrd_inc_num_drops", ntop_rrd_inc_num_drops},
 
     /* Prefs */
-    {"getPrefs", ntop_get_prefs},
+    { "getPrefs", ntop_get_prefs},
 
     /* Ping */
-    {"isPingAvailable", ntop_is_ping_available},
-    {"isPingIfaceAvailable", ntop_is_ping_iface_available},
-    {"pingHost", ntop_ping_host},
-    {"collectPingResults", ntop_collect_ping_results},
+    { "isPingAvailable", ntop_is_ping_available},
+    { "isPingIfaceAvailable", ntop_is_ping_iface_available},
+    { "pingHost", ntop_ping_host},
+    { "collectPingResults", ntop_collect_ping_results},
 
     /* HTTP utils */
-    {"httpRedirect", ntop_http_redirect},
-    {"getHttpPrefix", ntop_http_get_prefix},
-    {"getStartupEpoch", ntop_http_get_startup_epoch},
-    {"getStaticFileEpoch", ntop_http_get_static_file_epoch},
-    {"httpPurifyParam", ntop_http_purify_param},
+    { "httpRedirect", ntop_http_redirect},
+    { "getHttpPrefix", ntop_http_get_prefix},
+    { "getStartupEpoch", ntop_http_get_startup_epoch},
+    { "getStaticFileEpoch", ntop_http_get_static_file_epoch},
+    { "httpPurifyParam", ntop_http_purify_param},
 
     /* Admin */
-    {"getNologinUser", ntop_get_nologin_username},
-    {"getUsers", ntop_get_users},
-    {"isAdministrator", ntop_is_administrator},
-    {"isPcapDownloadAllowed", ntop_is_pcap_download_allowed},
-    {"getAllowedNetworks", ntop_get_allowed_networks},
-    {"resetUserPassword", ntop_reset_user_password},
-    {"changeUserRole", ntop_change_user_role},
-    {"changeAllowedNets", ntop_change_allowed_nets},
-    {"changeAllowedIfname", ntop_change_allowed_ifname},
-    {"changeUserHostPool", ntop_change_user_host_pool},
-    {"changeUserFullName", ntop_change_user_full_name},
-    {"changeUserLanguage", ntop_change_user_language},
-    {"changePcapDownloadPermission", ntop_change_user_pcap_download_permission},
-    {"changeHistoricalFlowPermission",
+    { "getNologinUser", ntop_get_nologin_username},
+    { "getUsers", ntop_get_users},
+    { "isAdministrator", ntop_is_administrator},
+    { "isPcapDownloadAllowed", ntop_is_pcap_download_allowed},
+    { "getAllowedNetworks", ntop_get_allowed_networks},
+    { "resetUserPassword", ntop_reset_user_password},
+    { "changeUserRole", ntop_change_user_role},
+    { "changeAllowedNets", ntop_change_allowed_nets},
+    { "changeAllowedIfname", ntop_change_allowed_ifname},
+    { "changeUserHostPool", ntop_change_user_host_pool},
+    { "changeUserFullName", ntop_change_user_full_name},
+    { "changeUserLanguage", ntop_change_user_language},
+    { "changePcapDownloadPermission", ntop_change_user_pcap_download_permission},
+    { "changeHistoricalFlowPermission",
      ntop_change_user_historical_flow_permission},
-    {"changeAlertsPermission", ntop_change_user_alerts_permission},
-    {"addUser", ntop_add_user},
-    {"deleteUser", ntop_delete_user},
-    {"createUserSession", ntop_create_user_session},
-    {"createUserAPIToken", ntop_create_user_api_token},
-    {"getUserAPIToken", ntop_get_user_api_token},
-    {"isLoginDisabled", ntop_is_login_disabled},
-    {"isLoginBlacklisted", ntop_is_login_blacklisted},
-    {"getNetworkNameById", ntop_network_name_by_id},
-    {"getNetworkIdByName", ntop_network_id_by_name},
-    {"getNetworks", ntop_get_networks},
-    {"getAddressNetwork", ntop_get_address_network},
-    {"isGuiAccessRestricted", ntop_is_gui_access_restricted},
-    {"serviceRestart", ntop_service_restart},
-    {"getUserObservationPointId", ntop_get_user_observation_point_id},
-    {"updateRadiusLoginInfo", ntop_update_radius_login_info},
+    { "changeAlertsPermission", ntop_change_user_alerts_permission},
+    { "addUser", ntop_add_user},
+    { "deleteUser", ntop_delete_user},
+    { "createUserSession", ntop_create_user_session},
+    { "createUserAPIToken", ntop_create_user_api_token},
+    { "getUserAPIToken", ntop_get_user_api_token},
+    { "isLoginDisabled", ntop_is_login_disabled},
+    { "isLoginBlacklisted", ntop_is_login_blacklisted},
+    { "getNetworkNameById", ntop_network_name_by_id},
+    { "getNetworkIdByName", ntop_network_id_by_name},
+    { "getNetworks", ntop_get_networks},
+    { "getAddressNetwork", ntop_get_address_network},
+    { "isGuiAccessRestricted", ntop_is_gui_access_restricted},
+    { "serviceRestart", ntop_service_restart},
+    { "getUserObservationPointId", ntop_get_user_observation_point_id},
+    { "updateRadiusLoginInfo", ntop_update_radius_login_info},
 
     /* Security */
-    {"getRandomCSRFValue", ntop_get_csrf_value},
+    { "getRandomCSRFValue", ntop_get_csrf_value},
 
     /* HTTP */
-    {"httpGet", ntop_http_get},
-    {"httpGetAuthToken", ntop_http_get_auth_token},
-    {"httpPost", ntop_http_post},
-    {"httpPostAuthToken", ntop_http_post_auth_token},
-    {"httpFetch", ntop_http_fetch},
-    {"postHTTPJsonData", ntop_post_http_json_data},
-    {"postHTTPTextFile", ntop_post_http_text_file},
+    { "httpGet", ntop_http_get},
+    { "httpGetAuthToken", ntop_http_get_auth_token},
+    { "httpPost", ntop_http_post},
+    { "httpPostAuthToken", ntop_http_post_auth_token},
+    { "httpFetch", ntop_http_fetch},
+    { "postHTTPJsonData", ntop_post_http_json_data},
+    { "postHTTPTextFile", ntop_post_http_text_file},
 
 #ifdef HAVE_CURL_SMTP
     /* SMTP */
-    {"sendMail", ntop_send_mail},
+    { "sendMail", ntop_send_mail},
 #endif
 
     /* Address Resolution */
-    {"resolveName",
+    { "resolveName",
      ntop_resolve_address}, /* Note: you should use resolveAddress() to call
                                from Lua */
-    {"getResolvedName",
+    { "getResolvedName",
      ntop_get_resolved_address}, /* Note: you should use getResolvedAddress() to
                                     call from Lua */
-    {"resolveHost", ntop_resolve_host},
+    { "resolveHost", ntop_resolve_host},
 
 /* Logging */
 #ifndef WIN32
-    {"syslog", ntop_syslog},
+    { "syslog", ntop_syslog},
 #endif
-    {"setLoggingLevel", ntop_set_logging_level},
-    {"traceEvent", ntop_trace_event},
-    {"verboseTrace", ntop_verbose_trace},
+    { "setLoggingLevel", ntop_set_logging_level},
+    { "traceEvent", ntop_trace_event},
+    { "verboseTrace", ntop_verbose_trace},
 
     /* SNMP */
-    {"snmpv3available",      ntop_is_libsnmp_available },
-    {"snmpsetavailable",     ntop_is_libsnmp_available },
-    {"snmpgetbulkavailable", ntop_is_libsnmp_available },
-    {"snmpMaxNumEngines",    ntop_snmp_max_num_engines },
-    {"snmpSetBulkMaxNumRepetitions", ntop_snmp_set_bulk_max_repetitions },
+    { "snmpv3available",      ntop_is_libsnmp_available },
+    { "snmpsetavailable",     ntop_is_libsnmp_available },
+    { "snmpgetbulkavailable", ntop_is_libsnmp_available },
+    { "snmpMaxNumEngines",    ntop_snmp_max_num_engines },
+    { "snmpSetBulkMaxNumRepetitions", ntop_snmp_set_bulk_max_repetitions },
 
     /* Synchronous */
-    {"snmpget", ntop_snmpget},
-    {"snmpgetnext", ntop_snmpgetnext},
-    {"snmpgetnextbulk", ntop_snmpgetnextbulk},
-    {"snmpset", ntop_snmpset},
+    { "snmpget", ntop_snmpget},
+    { "snmpgetnext", ntop_snmpgetnext},
+    { "snmpgetnextbulk", ntop_snmpgetnextbulk},
+    { "snmpset", ntop_snmpset},
 
     /* Asynchronous */
-    {"snmpallocasnyncengine", ntop_allocasnyncengine },
-    {"snmpfreeasnycengine",   ntop_freeasnyncengine  },
-    {"snmpgetasync", ntop_snmpgetasync},
-    {"snmpgetnextasync", ntop_snmpgetnextasync},
-    {"snmpgetnextbulkasync", ntop_snmpgetnextbulkasync},
-    {"snmpreadasyncrsp", ntop_snmpreadasyncrsp},
+    { "snmpallocasnyncengine", ntop_allocasnyncengine },
+    { "snmpfreeasnycengine",   ntop_freeasnyncengine  },
+    { "snmpgetasync", ntop_snmpgetasync},
+    { "snmpgetnextasync", ntop_snmpgetnextasync},
+    { "snmpgetnextbulkasync", ntop_snmpgetnextbulkasync},
+    { "snmpreadasyncrsp", ntop_snmpreadasyncrsp},
 
     /* Batch */
-    {"snmpGetBatch", ntop_snmp_batch_get}, /* v1/v2c/v3 */
-    {"snmpReadResponses", ntop_snmp_read_responses},
+    { "snmpGetBatch", ntop_snmp_batch_get}, /* v1/v2c/v3 */
+    { "snmpReadResponses", ntop_snmp_read_responses},
 
     /* Runtime */
-    {"hasGeoIP",  ntop_has_geoip},
-    {"isWindows", ntop_is_windows},
-    {"isFreeBSD", ntop_is_freebsd},
-    {"isLinux",   ntop_is_linux},
-    {"elasticsearchConnection", ntop_elasticsearch_connection},
-    {"getInstanceName", ntop_get_instance_name},
+    { "hasGeoIP",  ntop_has_geoip},
+    { "isWindows", ntop_is_windows},
+    { "isFreeBSD", ntop_is_freebsd},
+    { "isLinux",   ntop_is_linux},
+    { "elasticsearchConnection", ntop_elasticsearch_connection},
+    { "getInstanceName", ntop_get_instance_name},
 
     /* Custom Categories, Malicious JA3 signatures
      * Note: only inteded to be called from housekeeping.lua */
-    {"initnDPIReload", ntop_initnDPIReload},
-    {"finalizenDPIReload", ntop_finalizenDPIReload},
-    {"loadCustomCategoryIp", ntop_loadCustomCategoryIp},
-    {"loadCustomCategoryHost", ntop_loadCustomCategoryHost},
-    {"loadCustomCategoryFile", ntop_loadCustomCategoryFile},
-    {"loadMaliciousJA3Signatures", ntop_loadMaliciousJA3Signatures},
-    {"setDomainMask", ntop_setDomainMask},
-    {"addTrustedIssuerDN", ntop_addTrustedIssuerDN},
+    { "initnDPIReload", ntop_initnDPIReload},
+    { "finalizenDPIReload", ntop_finalizenDPIReload},
+    { "loadCustomCategoryIp", ntop_loadCustomCategoryIp},
+    { "loadCustomCategoryHost", ntop_loadCustomCategoryHost},
+    { "loadCustomCategoryFile", ntop_loadCustomCategoryFile},
+    { "loadMaliciousJA3Signatures", ntop_loadMaliciousJA3Signatures},
+    { "setDomainMask", ntop_setDomainMask},
+    { "addTrustedIssuerDN", ntop_addTrustedIssuerDN},
 
     /* Privileges */
-    {"gainWriteCapabilities", ntop_gainWriteCapabilities},
-    {"dropWriteCapabilities", ntop_dropWriteCapabilities},
+    { "gainWriteCapabilities", ntop_gainWriteCapabilities},
+    { "dropWriteCapabilities", ntop_dropWriteCapabilities},
 
     /* Misc */
-    {"getservbyport", ntop_getservbyport},
-    {"msleep", ntop_msleep},
-    {"tcpProbe", ntop_tcp_probe},
-    {"getMacManufacturer", ntop_get_mac_manufacturer},
-    {"getHostInformation", ntop_get_host_information},
-    {"isShuttingDown", ntop_is_shuttingdown},
-    {"listInterfaces", ntop_list_interfaces},
-    {"ipCmp", ntop_ip_cmp},
-    {"matchCustomCategory", ntop_match_custom_category},
-    {"getTLSVersionName", ntop_get_tls_version_name},
-    {"isIPv6", ntop_is_ipv6},
-    {"getMac64", ntop_get_mac_64},
-    {"reloadFlowChecks", ntop_reload_flow_checks},
-    {"reloadHostChecks", ntop_reload_host_checks},
-    {"reloadAlertExclusions", ntop_reload_alert_exclusions},
-    {"getFlowChecksStats", ntop_get_flow_checks_stats},
-    {"getFlowAlertScore", ntop_get_flow_alert_score},
-    {"getFlowAlertRisk", ntop_get_flow_alert_risk},
-    {"getFlowRiskAlerts", ntop_get_flow_risk_alerts},
-    {"getFlowCheckInfo", ntop_get_flow_check_info},
-    {"getHostCheckInfo", ntop_get_host_check_info},
-    {"shouldResolveHost", ntop_should_resolve_host},
-    {"setIEC104AllowedTypeIDs", ntop_set_iec104_allowed_typeids},
+    { "getservbyport", ntop_getservbyport},
+    { "msleep", ntop_msleep},
+    { "tcpProbe", ntop_tcp_probe},
+    { "getMacManufacturer", ntop_get_mac_manufacturer},
+    { "getHostInformation", ntop_get_host_information},
+    { "isShuttingDown", ntop_is_shuttingdown},
+    { "listInterfaces", ntop_list_interfaces},
+    { "ipCmp", ntop_ip_cmp},
+    { "matchCustomCategory", ntop_match_custom_category},
+    { "getTLSVersionName", ntop_get_tls_version_name},
+    { "isIPv6", ntop_is_ipv6},
+    { "getMac64", ntop_get_mac_64},
+    { "reloadFlowChecks", ntop_reload_flow_checks},
+    { "reloadHostChecks", ntop_reload_host_checks},
+    { "reloadAlertExclusions", ntop_reload_alert_exclusions},
+    { "getFlowChecksStats", ntop_get_flow_checks_stats},
+    { "getFlowAlertScore", ntop_get_flow_alert_score},
+    { "getFlowAlertRisk", ntop_get_flow_alert_risk},
+    { "getFlowRiskAlerts", ntop_get_flow_risk_alerts},
+    { "getFlowCheckInfo", ntop_get_flow_check_info},
+    { "getHostCheckInfo", ntop_get_host_check_info},
+    { "shouldResolveHost", ntop_should_resolve_host},
+    { "setIEC104AllowedTypeIDs", ntop_set_iec104_allowed_typeids},
 #ifdef NTOPNG_PRO
-    {"setModbusAllowedFunctionCodes", ntop_set_modbus_allowed_function_codes},
+    { "setModbusAllowedFunctionCodes", ntop_set_modbus_allowed_function_codes},
 #endif
-    {"getLocalNetworkAlias", ntop_check_local_network_alias},
-    {"getLocalNetworkID", ntop_get_local_network_id},
-    {"getRiskStr", ntop_get_risk_str},
-    {"getRiskList", ntop_get_risk_list},
+    { "getLocalNetworkAlias", ntop_check_local_network_alias},
+    { "getLocalNetworkID", ntop_get_local_network_id},
+    { "getRiskStr", ntop_get_risk_str},
+    { "getRiskList", ntop_get_risk_list},
 
     /* ASN */
-    {"getASName", ntop_get_asn_name},
-    {"getHostGeolocation", ntop_get_host_geolocation},
+    { "getASName", ntop_get_asn_name},
+    { "getHostGeolocation", ntop_get_host_geolocation},
 
     /* Mac */
-    {"setMacDeviceType", ntop_set_mac_device_type},
+    { "setMacDeviceType", ntop_set_mac_device_type},
 
     /* Host pools */
-    {"reloadHostPools", ntop_reload_host_pools},
+    { "reloadHostPools", ntop_reload_host_pools},
 
     /* Device Protocols */
-    {"reloadDeviceProtocols", ntop_reload_device_protocols},
+    { "reloadDeviceProtocols", ntop_reload_device_protocols},
 
     /* Traffic Recording/Extraction */
-    {"runExtraction", ntop_run_extraction},
-    {"stopExtraction", ntop_stop_extraction},
-    {"isExtractionRunning", ntop_is_extraction_running},
-    {"getExtractionStatus", ntop_get_extraction_status},
-    {"runLiveExtraction", ntop_run_live_extraction},
+    { "runExtraction", ntop_run_extraction},
+    { "stopExtraction", ntop_stop_extraction},
+    { "isExtractionRunning", ntop_is_extraction_running},
+    { "getExtractionStatus", ntop_get_extraction_status},
+    { "runLiveExtraction", ntop_run_live_extraction},
 
     /* Bitmap functions */
-    {"bitmapIsSet", ntop_bitmap_is_set},
-    {"bitmapSet", ntop_bitmap_set},
-    {"bitmapClear", ntop_bitmap_clear},
+    { "bitmapIsSet", ntop_bitmap_is_set},
+    { "bitmapSet", ntop_bitmap_set},
+    { "bitmapClear", ntop_bitmap_clear},
 
     /* Score */
-    {"mapScoreToSeverity", ntop_map_score_to_severity},
-    {"mapSeverityToScore", ntop_map_severity_to_score},
+    { "mapScoreToSeverity", ntop_map_score_to_severity},
+    { "mapSeverityToScore", ntop_map_severity_to_score},
 
     /* Alerts */
-    {"alert_store_query", ntop_alert_store_query},
+    { "alert_store_query", ntop_alert_store_query},
 
     /* Alerts queues */
-    {"popInternalAlerts", ntop_pop_internal_alerts},
+    { "popInternalAlerts", ntop_pop_internal_alerts},
 
     /* Recipient queues */
-    {"recipient_enqueue", ntop_recipient_enqueue},
-    {"recipient_dequeue", ntop_recipient_dequeue},
-    {"recipient_stats", ntop_recipient_stats},
-    {"recipient_last_use", ntop_recipient_last_use},
-    {"recipient_delete", ntop_recipient_delete},
-    {"recipient_register", ntop_recipient_register},
+    { "recipient_enqueue", ntop_recipient_enqueue},
+    { "recipient_dequeue", ntop_recipient_dequeue},
+    { "recipient_stats", ntop_recipient_stats},
+    { "recipient_last_use", ntop_recipient_last_use},
+    { "recipient_delete", ntop_recipient_delete},
+    { "recipient_register", ntop_recipient_register},
 
     /* nDPI */
-    {"getnDPIProtoCategory", ntop_get_ndpi_protocol_category},
-    {"setnDPIProtoCategory", ntop_set_ndpi_protocol_category},
-    {"isCustomApplication", ndpi_is_custom_application},
+    { "getnDPIProtoCategory", ntop_get_ndpi_protocol_category},
+    { "setnDPIProtoCategory", ntop_set_ndpi_protocol_category},
+    { "isCustomApplication", ndpi_is_custom_application},
 
 /* nEdge */
 #ifdef HAVE_NEDGE
-    {"setHTTPBindAddr", ntop_set_http_bind_addr},
-    {"setHTTPSBindAddr", ntop_set_https_bind_addr},
-    {"setRoutingMode", ntop_set_routing_mode},
-    {"isRoutingMode", ntop_is_routing_mode},
-    {"addLanInterface", ntop_add_lan_interface},
-    {"addWanInterface", ntop_add_wan_interface},
-    {"refreshDeviceProtocolsPoliciesConf",
+    { "setHTTPBindAddr", ntop_set_http_bind_addr},
+    { "setHTTPSBindAddr", ntop_set_https_bind_addr},
+    { "setRoutingMode", ntop_set_routing_mode},
+    { "isRoutingMode", ntop_is_routing_mode},
+    { "addLanInterface", ntop_add_lan_interface},
+    { "addWanInterface", ntop_add_wan_interface},
+    { "refreshDeviceProtocolsPoliciesConf",
      ntop_refresh_device_protocols_policies_pref},
 #endif
 
     /* Appliance */
-    {"overrideInterface", ntop_override_interface},
+    { "overrideInterface", ntop_override_interface},
 
     /* nEdge and Appliance */
-    {"shutdown", ntop_shutdown},
+    { "shutdown", ntop_shutdown},
 
     /* Periodic scripts (ThreadedActivity.cpp) */
-    {"isDeadlineApproaching", ntop_script_is_deadline_approaching},
-    {"getDeadline", ntop_script_get_deadline},
+    { "isDeadlineApproaching", ntop_script_is_deadline_approaching},
+    { "getDeadline", ntop_script_get_deadline},
 
     /* Speedtest */
-    {"hasSpeedtestSupport", ntop_has_speedtest_support},
-    {"speedtest", ntop_speedtest},
+    { "hasSpeedtestSupport", ntop_has_speedtest_support},
+    { "speedtest", ntop_speedtest},
 
     /* Blacklists */
-    {"getBlacklistStats",   ntop_get_bl_stats},
-    {"resetBlacklistStats", ntop_reset_bl_stats},
+    { "getBlacklistStats",   ntop_get_bl_stats},
+    { "resetBlacklistStats", ntop_reset_bl_stats},
 
     /* ClickHouse */
-    {"isClickHouseEnabled", ntop_clickhouse_enabled},
-    {"importClickHouseDumps", ntop_clickhouse_import_dumps},
-    {"getClickHouseStats", ntop_get_clickhouse_stats},
+    { "isClickHouseEnabled", ntop_clickhouse_enabled},
+    { "importClickHouseDumps", ntop_clickhouse_import_dumps},
+    { "getClickHouseStats", ntop_get_clickhouse_stats},
 
     /* Data Binning */
-    {"addBin", ntop_add_bin},
-    {"findSimilarities", ntop_find_bin_similarities},
+    { "addBin", ntop_add_bin},
+    { "findSimilarities", ntop_find_bin_similarities},
 
     /* Pools Lock/Unlock */
-    {"poolsLock", ntop_pools_lock},
-    {"poolsUnlock", ntop_pools_unlock},
+    { "poolsLock", ntop_pools_lock},
+    { "poolsUnlock", ntop_pools_unlock},
 
     /* Register pcap Interface */
-    {"registerPcapInterface", ntop_register_pcap_interface},
+    { "registerPcapInterface", ntop_register_pcap_interface},
 
 #if defined(NTOPNG_PRO) && defined(HAVE_KAFKA)
     /* Kafka */
-    {"sendKafkaMessage", ntop_send_kafka_message},
+    { "sendKafkaMessage", ntop_send_kafka_message},
 #endif
 
     /* Debug */
-    {"toggleNewDeleteTrace", ntop_toggle_new_delete_trace },
+    { "toggleNewDeleteTrace", ntop_toggle_new_delete_trace },
 
 #if defined(NTOPNG_PRO)
     /* TODO: move to message_broker engine */
-    {"publish", m_broker_publish },
-    {"rpcCall", m_broker_rpc_call },
+    { "publish", m_broker_publish },
+    { "rpcCall", m_broker_rpc_call },
 #endif
+
+    /* Modbus */
+    { "readModbusDeviceInfo", read_modbus_device_info },
     
     {NULL, NULL}
 };
