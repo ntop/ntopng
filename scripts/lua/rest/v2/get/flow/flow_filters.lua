@@ -61,7 +61,7 @@ if not host then
     }}
 
     local host = hostkey2hostinfo(selected_ip)
-    if not isEmptyString(host) and (isIPv4(host.host) or isIPv6(host.host)) then
+    if((not isEmptyString(host)) and (not isEmptyString(host.host)) and (isIPv4(host.host) or isIPv6(host.host))) then
         local newFilter = {
             key = "flowhosts_type",
             value = selected_ip,

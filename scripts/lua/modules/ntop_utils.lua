@@ -219,6 +219,10 @@ end
 -- ##############################################
 
 function isIPv4(address)
+    if(address == nil) then
+       return false
+    end
+    
     -- Reuse the for loop to check the address validity
     local checkAddress = (function(chunks)
         for _, v in pairs(chunks) do
