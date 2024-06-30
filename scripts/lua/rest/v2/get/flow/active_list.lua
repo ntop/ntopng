@@ -31,8 +31,8 @@ if not isEmptyString(ip_version_or_host) then
         _GET["version"] = version[2]
         _GET["flowhosts_type"] = nil
     else
-        local host = hostkey2hostinfo(p)
-        if host then
+        local host = hostkey2hostinfo(ip_version_or_host)
+        if isIPv4(host.host) or isIPv6(host.host) then
             _GET["host"] = ip_version_or_host
             _GET["flowhosts_type"] = nil
         end

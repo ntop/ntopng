@@ -1050,7 +1050,7 @@ local lang = {
     ["user_name"] = "User Name",
   },
   ["flows_page"] = {
-    ["active_flows"] = "aktive %{filter} Flows",
+    ["active_flows"] = "Aktive %{filter} Flows",
     ["actual_throughput"] = "aktuelle Thpt",
     ["alerted"] = "gewarnt",
     ["all_ases"] = "Alle ASes",
@@ -1111,10 +1111,10 @@ local lang = {
     ["using_default_location"] = "Default Standort verwenden.",
   },
   ["graphs"] = {
-    ["active_devices"] = "aktive Geräte",
-    ["active_flows"] = "aktive Flows",
-    ["active_hosts"] = "aktive Hosts",
-    ["active_http_servers"] = "aktive HTTP Servers",
+    ["active_devices"] = "Aktive Geräte",
+    ["active_flows"] = "Aktive Flows",
+    ["active_hosts"] = "Aktive Hosts",
+    ["active_http_servers"] = "Aktive HTTP Servers",
     ["arp_replies"] = "ARP Antwort",
     ["arp_requests"] = "ARP Anfrage",
     ["average"] = "Durchschnitt",

@@ -5306,6 +5306,8 @@ local lang = {
     ["it"] = "Italian",
     ["jp"] = "Japanese",
     ["pt"] = "Portuguese",
+    ["ko"] = "Korean",
+    ["fr"] = "French",
   },
   ["login"] = {
     ["add_captive_portal_user"] = "Add Captive Portal User",

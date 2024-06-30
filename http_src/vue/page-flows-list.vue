@@ -455,10 +455,6 @@ function columns_sorting(col, r0, r1) { }
 const get_extra_params_obj = () => {
     let extra_params = ntopng_url_manager.get_url_object();
 
-    if (extra_params.flowhosts_type !== undefined) {
-        extra_params.flowhosts_type = extra_params.flowhosts_type.slice(0, -2);
-    }
-
     return extra_params;
 };
 
