@@ -3,8 +3,11 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
-package.path = dirs.installdir .. "/scripts/lua/pro/modules/flow_db/?.lua;" .. package.path
+
+if ntop.isPro() then
+    package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+    package.path = dirs.installdir .. "/scripts/lua/pro/modules/flow_db/?.lua;" .. package.path
+end
 
 -- Import the classes library.
 local classes = require "classes"
@@ -928,7 +931,7 @@ function flow_alert_store:format_record(value, no_html, verbose)
     end
 
     -- add additional flow related info
-    if (verbose == "true") then
+    if (verbose) then
         
         -- get alert details page info
         local flow = db_search_manager.get_flow(value["rowid"], value["tstamp_epoch"], "")

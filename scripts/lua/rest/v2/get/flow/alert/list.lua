@@ -70,7 +70,7 @@ if not download then
 
     for _, _value in ipairs(alerts or {}) do
         -- tprint(_value)
-        res[#res + 1] = flow_alert_store:format_record(_value, no_html, verbose)
+        res[#res + 1] = flow_alert_store:format_record(_value, no_html, toboolean(verbose))
     end
 
     if format == "txt" then
