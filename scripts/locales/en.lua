@@ -616,6 +616,7 @@ local lang = {
   ["service_acceptance"] = "Service Status",
   ["service_map"] = "Service Map",
   ["service_table"] = "Service Table",
+  ["service_tag"] = "Service Tag",
   ["set"] = "Set",
   ["settings"] = "Settings",
   ["severity"] = "Severity",
