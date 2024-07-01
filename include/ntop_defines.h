@@ -765,6 +765,11 @@
   NTOPNG_PREFS_PREFIX ".toggle_netbox"
 #define CONST_DEFAULT_NETBOX_ENABLED \
   0  // disabled by default
+  
+#define CONST_PREFS_SNMP_TRAP_ENABLED \
+  NTOPNG_PREFS_PREFIX ".toggle_snmp_trap" // same name as lua prefs.lua
+#define CONST_DEFAULT_SNMP_TRAP_ENABLED \
+  0  // disabled by default
 
 #define CONST_PREFS_USE_MAC_IN_FLOW_KEY \
   NTOPNG_PREFS_PREFIX ".use_mac_in_flow_key"
