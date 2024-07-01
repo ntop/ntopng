@@ -23,6 +23,7 @@ local ifid = _GET["ifid"]
 local format = _GET["format"]
 local epoch_begin = _GET["epoch_begin"]
 local epoch_end = _GET["epoch_end"]
+local verbose = _GET["verbose"]
 
 local no_html = false
 local download = false
@@ -69,7 +70,7 @@ if not download then
 
     for _, _value in ipairs(alerts or {}) do
         -- tprint(_value)
-        res[#res + 1] = flow_alert_store:format_record(_value, no_html)
+        res[#res + 1] = flow_alert_store:format_record(_value, no_html, verbose)
     end
 
     if format == "txt" then
