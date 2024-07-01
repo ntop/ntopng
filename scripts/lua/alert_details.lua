@@ -36,10 +36,10 @@ local url = ntop.getHttpPrefix() .. "/lua/alert_stats.lua?"
 
 local pages = {
    {
-      active = true,
-      page_name = "overview",
-      label = i18n("overview"),
-   }
+      active = page == "flow" or page == nil,
+      page_name = "flow",
+      label = "<i class=\"fas fa-lg fa-home\"></i>"
+  }
 }
 
 -- #######################################
@@ -57,7 +57,6 @@ if page and row_id and tstamp and alert_entities[page] then
          alert = alerts[1]
          -- formatted_alert = alert_store_instance:format_record(alert, false)
          details = alert_store_instance:get_alert_details(alert)
-         label = label .. ": " .. alert_store_instance:get_alert_label(alert)
       end
    end
 end
