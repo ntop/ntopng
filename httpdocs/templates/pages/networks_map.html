@@ -21,10 +21,11 @@ var url = `{* url *}`;
                 type: 'treemap',
 		events: {
 		    click: function(event, chartContext, config) {
-			let obj = config.config.series[config.seriesIndex].data[config.dataPointIndex]
-			let location = '{* prefix *}/lua/host_details.lua?host='+obj.host;
-			window.location.href = location;
-			
+				let obj = config.config.series[config.seriesIndex]?.data[config.dataPointIndex]
+				if(obj) {
+					let location = '{* prefix *}/lua/host_details.lua?host='+obj.host;
+					window.location.href = location;
+				}			
 		    }
 		}
             },
