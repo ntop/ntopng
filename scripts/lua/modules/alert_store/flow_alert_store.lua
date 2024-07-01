@@ -265,28 +265,71 @@ function flow_alert_store:insert(alert)
                     "VALUES (%s%u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', " ..
                     "'%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', %u, %u, '%s', '%s'); "
 
-    local insert_stmt = string.format(fmt, self:get_write_table_name(), extra_columns, extra_values, alert.alert_id,
-        ternary(alert.acknowledged, alert_consts.alert_status.acknowledged.alert_status_id, 0), alert.alert_category,
-        self:_convert_ifid(interface.getId()), alert.first_seen, alert.tstamp, -- 10
-        map_score_to_severity(alert.score), alert.ip_version, alert.cli_ip, alert.srv_ip, alert.cli_port,
-        alert.srv_port, alert.vlan_id, ternary(alert.is_cli_attacker, 1, 0), ternary(alert.is_cli_victim, 1, 0),
-        ternary(alert.is_srv_attacker, 1, 0), -- 20
-        ternary(alert.is_srv_victim, 1, 0), alert.proto, alert.l7_proto, alert.l7_master_proto, alert.l7_cat,
-        self:_escape(alert.cli_name), self:_escape(alert.srv_name), alert.cli_country_name, alert.srv_country_name,
-        ternary(alert.cli_blacklisted, 1, 0), -- 30
-        ternary(alert.srv_blacklisted, 1, 0), alert.cli_location or 0, alert.srv_location or 0, alert.cli2srv_bytes,
-        alert.srv2cli_bytes, alert.cli2srv_packets, alert.srv2cli_packets, alert.first_seen, alert.community_id,
-        alert.score, alert.flow_risk_bitmap or 0, -- 40
-        hex_prefix, alert.alerts_map, tonumber(alert.cli_host_pool_id or pools.DEFAULT_POOL_ID),
-        tonumber(alert.srv_host_pool_id or pools.DEFAULT_POOL_ID),
-        tonumber(alert.cli_network or network_consts.UNKNOWN_NETWORK),
-        tonumber(alert.srv_network or network_consts.UNKNOWN_NETWORK), alert.probe_ip, alert.input_snmp,
-        alert.output_snmp, self:_escape(alert.json), -- 50
-        self:_escape(alert.info or ''))
+                    local fmt = "INSERT INTO %s " ..
+                    "(%salert_id, alert_status, alert_category, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, " ..
+                    "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, " ..
+                    "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, cli_location, srv_location, " ..
+                    "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, " ..
+                    "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, probe_ip, input_snmp, output_snmp, " ..
+                    "json, info) " ..
+                    "VALUES (%s%u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', " ..
+                    "'%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', %u, %u, '%s', '%s'); "
 
-    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_stmt)
+                    local insert_stmt = string.format(fmt,
+                    self:get_write_table_name(),
+                    extra_columns,
+                    extra_values,
+                    alert.alert_id,
+                    ternary(alert.acknowledged, alert_consts.alert_status.acknowledged.alert_status_id, 0),
+                    alert.alert_category,
+                    self:_convert_ifid(interface.getId()),
+                    alert.first_seen,
+                    alert.tstamp, -- 10
+                    map_score_to_severity(alert.score),
+                    alert.ip_version,
+                    alert.cli_ip,
+                    alert.srv_ip,
+                    alert.cli_port,
+                    alert.srv_port,
+                    alert.vlan_id,
+                    ternary(alert.is_cli_attacker, 1, 0),
+                    ternary(alert.is_cli_victim, 1, 0),
+                    ternary(alert.is_srv_attacker, 1, 0), -- 20
+                    ternary(alert.is_srv_victim, 1, 0),
+                    alert.proto,
+                    alert.l7_proto,
+                    alert.l7_master_proto,
+                    alert.l7_cat,
+                    self:_escape(alert.cli_name),
+                    self:_escape(alert.srv_name),
+                    alert.cli_country_name,
+                    alert.srv_country_name,
+                    ternary(alert.cli_blacklisted, 1, 0), -- 30
+                    ternary(alert.srv_blacklisted, 1, 0),
+                    alert.cli_location or 0,
+                    alert.srv_location or 0,
+                    alert.cli2srv_bytes,
+                    alert.srv2cli_bytes,
+                    alert.cli2srv_packets, alert.srv2cli_packets,
+                    alert.first_seen,
+                    alert.community_id,
+                    alert.score,
+                    alert.flow_risk_bitmap or 0, -- 40
+                    hex_prefix,
+                    alert.alerts_map,
+                    tonumber(alert.cli_host_pool_id or pools.DEFAULT_POOL_ID),
+                    tonumber(alert.srv_host_pool_id or pools.DEFAULT_POOL_ID),
+                    tonumber(alert.cli_network or network_consts.UNKNOWN_NETWORK),
+                    tonumber(alert.srv_network or network_consts.UNKNOWN_NETWORK),
+                    alert.probe_ip,
+                    alert.input_snmp,
+                    alert.output_snmp,
+                    self:_escape(alert.json), -- 50
+                    self:_escape(alert.info or ''))
+  
+  -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_stmt)
 
-    return interface.alert_store_query(insert_stmt)
+  return interface.alert_store_query(insert_stmt)
 end
 
 -- ##############################################
