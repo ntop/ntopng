@@ -1932,13 +1932,15 @@ if auth.has_capability(auth.capabilities.preferences) then
                 min = 1,
                 max = 10
             })
-        
-        prefsToggleButton(subpage_active, {
-            field = "toggle_snmp_trap",
-            default = "0",
-            pref = "toggle_snmp_trap"
-        })
 
+	if(ntop.isEnterpriseXL()) then
+	   prefsToggleButton(subpage_active, {
+				field = "toggle_snmp_trap",
+				default = "0",
+				pref = "toggle_snmp_trap"
+	   })
+	end
+	
         prefsToggleButton(subpage_active, {
             field = "toggle_snmp_debug",
             default = "0",
