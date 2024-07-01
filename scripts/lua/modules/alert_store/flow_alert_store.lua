@@ -7,6 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 if ntop.isEnterprise() then
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/flow_db/?.lua;" .. package.path
+    local db_search_manager = require "db_search_manager"
 end
 
 -- Import the classes library.
@@ -27,7 +28,6 @@ local flow_alert_keys = require "flow_alert_keys"
 local href_icon = "<i class='fas fa-laptop'></i>"
 local rest_utils = require "rest_utils"
 local historical_flow_details_formatter = require "historical_flow_details_formatter"
-local db_search_manager = require "db_search_manager"
 
 -- ##############################################
 
