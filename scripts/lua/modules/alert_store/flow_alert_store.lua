@@ -3,6 +3,12 @@
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+
+if ntop.isEnterprise() then
+    package.path = dirs.installdir .. "/scripts/lua/pro/modules/flow_db/?.lua;" .. package.path
+    local db_search_manager = require "db_search_manager"
+end
 
 -- Import the classes library.
 local classes = require "classes"
@@ -20,6 +26,8 @@ local pools = require "pools"
 local historical_flow_utils = require "historical_flow_utils"
 local flow_alert_keys = require "flow_alert_keys"
 local href_icon = "<i class='fas fa-laptop'></i>"
+local rest_utils = require "rest_utils"
+local historical_flow_details_formatter = require "historical_flow_details_formatter"
 
 -- ##############################################
 
@@ -230,7 +238,7 @@ function flow_alert_store:insert(alert)
     else
         hex_prefix = "X"
     end
-    --tprint(alert)
+    -- tprint(alert)
     local alert_key = alert_consts.getAlertType(alert.alert_id, alert.entity_id)
     local mitre_info = alert_consts.getAlertMitreInfo(alert_key)
     local alert_json = json.decode(alert.json)
@@ -248,70 +256,80 @@ function flow_alert_store:insert(alert)
     -- io.write("---------------------------\n") tprint(debug.traceback()) tprint(alert.flow_risk_bitmap) io.write("---------------------------\n")
 
     local fmt = "INSERT INTO %s " ..
-       "(%salert_id, alert_status, alert_category, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, " ..
-       "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, " ..
-       "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, cli_location, srv_location, " ..
-       "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, " ..
-       "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, probe_ip, input_snmp, output_snmp, " ..
-       "json, info) " ..
-       "VALUES (%s%u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', " ..
-       "'%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', %u, %u, '%s', '%s'); "
-    
-    local insert_stmt = string.format(fmt,
-				      self:get_write_table_name(),
-				      extra_columns,
-				      extra_values,
-				      alert.alert_id,
-				      ternary(alert.acknowledged, alert_consts.alert_status.acknowledged.alert_status_id, 0),
-				      alert.alert_category,
-				      self:_convert_ifid(interface.getId()),
-				      alert.first_seen,
-				      alert.tstamp, -- 10
-				      map_score_to_severity(alert.score),
-				      alert.ip_version,
-				      alert.cli_ip,
-				      alert.srv_ip,
-				      alert.cli_port,
-				      alert.srv_port,
-				      alert.vlan_id,
-				      ternary(alert.is_cli_attacker, 1, 0),
-				      ternary(alert.is_cli_victim, 1, 0),
-				      ternary(alert.is_srv_attacker, 1, 0), -- 20
-				      ternary(alert.is_srv_victim, 1, 0),
-				      alert.proto,
-				      alert.l7_proto,
-				      alert.l7_master_proto,
-				      alert.l7_cat,
-				      self:_escape(alert.cli_name),
-				      self:_escape(alert.srv_name),
-				      alert.cli_country_name,
-				      alert.srv_country_name,
-				      ternary(alert.cli_blacklisted, 1, 0), -- 30
-				      ternary(alert.srv_blacklisted, 1, 0),
-				      alert.cli_location or 0,
-				      alert.srv_location or 0,
-				      alert.cli2srv_bytes,
-				      alert.srv2cli_bytes,
-				      alert.cli2srv_packets, alert.srv2cli_packets,
-				      alert.first_seen,
-				      alert.community_id,
-				      alert.score,
-				      alert.flow_risk_bitmap or 0, -- 40
-				      hex_prefix,
-				      alert.alerts_map,
-				      tonumber(alert.cli_host_pool_id or pools.DEFAULT_POOL_ID),
-				      tonumber(alert.srv_host_pool_id or pools.DEFAULT_POOL_ID),
-				      tonumber(alert.cli_network or network_consts.UNKNOWN_NETWORK),
-				      tonumber(alert.srv_network or network_consts.UNKNOWN_NETWORK),
-				      alert.probe_ip,
-				      alert.input_snmp,
-				      alert.output_snmp,
-				      self:_escape(alert.json), -- 50
-				      self:_escape(alert.info or ''))
-    
-    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_stmt)
+                    "(%salert_id, alert_status, alert_category, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, " ..
+                    "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, " ..
+                    "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, cli_location, srv_location, " ..
+                    "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, " ..
+                    "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, probe_ip, input_snmp, output_snmp, " ..
+                    "json, info) " ..
+                    "VALUES (%s%u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', " ..
+                    "'%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', %u, %u, '%s', '%s'); "
 
-    return interface.alert_store_query(insert_stmt)
+                    local fmt = "INSERT INTO %s " ..
+                    "(%salert_id, alert_status, alert_category, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, " ..
+                    "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, " ..
+                    "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, cli_location, srv_location, " ..
+                    "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, " ..
+                    "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, probe_ip, input_snmp, output_snmp, " ..
+                    "json, info) " ..
+                    "VALUES (%s%u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', " ..
+                    "'%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', %u, %u, '%s', '%s'); "
+
+                    local insert_stmt = string.format(fmt,
+                    self:get_write_table_name(),
+                    extra_columns,
+                    extra_values,
+                    alert.alert_id,
+                    ternary(alert.acknowledged, alert_consts.alert_status.acknowledged.alert_status_id, 0),
+                    alert.alert_category,
+                    self:_convert_ifid(interface.getId()),
+                    alert.first_seen,
+                    alert.tstamp, -- 10
+                    map_score_to_severity(alert.score),
+                    alert.ip_version,
+                    alert.cli_ip,
+                    alert.srv_ip,
+                    alert.cli_port,
+                    alert.srv_port,
+                    alert.vlan_id,
+                    ternary(alert.is_cli_attacker, 1, 0),
+                    ternary(alert.is_cli_victim, 1, 0),
+                    ternary(alert.is_srv_attacker, 1, 0), -- 20
+                    ternary(alert.is_srv_victim, 1, 0),
+                    alert.proto,
+                    alert.l7_proto,
+                    alert.l7_master_proto,
+                    alert.l7_cat,
+                    self:_escape(alert.cli_name),
+                    self:_escape(alert.srv_name),
+                    alert.cli_country_name,
+                    alert.srv_country_name,
+                    ternary(alert.cli_blacklisted, 1, 0), -- 30
+                    ternary(alert.srv_blacklisted, 1, 0),
+                    alert.cli_location or 0,
+                    alert.srv_location or 0,
+                    alert.cli2srv_bytes,
+                    alert.srv2cli_bytes,
+                    alert.cli2srv_packets, alert.srv2cli_packets,
+                    alert.first_seen,
+                    alert.community_id,
+                    alert.score,
+                    alert.flow_risk_bitmap or 0, -- 40
+                    hex_prefix,
+                    alert.alerts_map,
+                    tonumber(alert.cli_host_pool_id or pools.DEFAULT_POOL_ID),
+                    tonumber(alert.srv_host_pool_id or pools.DEFAULT_POOL_ID),
+                    tonumber(alert.cli_network or network_consts.UNKNOWN_NETWORK),
+                    tonumber(alert.srv_network or network_consts.UNKNOWN_NETWORK),
+                    alert.probe_ip,
+                    alert.input_snmp,
+                    alert.output_snmp,
+                    self:_escape(alert.json), -- 50
+                    self:_escape(alert.info or ''))
+  
+  -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_stmt)
+
+  return interface.alert_store_query(insert_stmt)
 end
 
 -- ##############################################
@@ -654,7 +672,7 @@ function flow_alert_store:_add_additional_request_filters()
     self:add_filter_condition_list('output_snmp', output_snmp)
     self:add_filter_condition_list('snmp_interface', snmp_interface)
     self:add_filter_condition_list('community_id', community_id)
-    
+
     self:add_filter_condition_list('cli2srv_bytes', cli2srv_bytes)
     self:add_filter_condition_list('srv2cli_bytes', srv2cli_bytes)
 
@@ -815,7 +833,23 @@ local RNAME = {
     INFO = {
         name = "info",
         export = true
+    },
+
+    HIST_FLOW_CLI_INFO = {
+        name = "hist_flow_cli_info",
+        export = true
+    },
+
+    HIST_FLOW_SRV_INFO = {
+        name = "hist_flow_srv_info",
+        export = true
+    },
+
+    HIST_FLOW_INFO = {
+        name = "hist_flow_info",
+        export = true
     }
+
 }
 
 -- ##############################################
@@ -859,7 +893,8 @@ end
 -- ##############################################
 
 -- @brief Convert an alert coming from the DB (value) to a record returned by the REST API
-function flow_alert_store:format_record(value, no_html)
+-- if verbose == true returns historical flow data info
+function flow_alert_store:format_record(value, no_html, verbose)
     local record = self:format_json_record_common(value, alert_entities.flow.entity_id, no_html)
     local alert_info = alert_utils.getAlertInfo(value)
     local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), true --[[ no_html --]] ,
@@ -877,7 +912,7 @@ function flow_alert_store:format_record(value, no_html)
     end
 
     -- Add link to active flow
-    local flow_related_info = addExtraFlowInfo(alert_json, value, no_html --[[ Send these info in json format ]])
+    local flow_related_info = addExtraFlowInfo(alert_json, value, no_html --[[ Send these info in json format ]] )
 
     local alert_risk
     if tonumber(value.alert_id) then
@@ -902,6 +937,47 @@ function flow_alert_store:format_record(value, no_html)
                 active_flow["ntopng.key"], active_flow["hash_entry_id"])
             active_url = href
         end
+    end
+
+    -- add additional flow related info
+    if (verbose and ntop.isEnterprise()) then
+
+        -- get alert details page info
+        local flow = db_search_manager.get_flow(value["rowid"], value["tstamp_epoch"], "")
+
+        -- format cli flow info
+        local flow_cli_info = {
+            isVictim = tonumber(flow["IS_CLI_VICTIM"] or ""),
+            isAttacker = tonumber(flow["IS_CLI_ATTACKER"] or "")
+        }
+
+        -- format srv flow info
+        local flow_srv_ip = {
+            isVictim = tonumber(flow["IS_SRV_VICTIM"] or ""),
+            isAttacker = tonumber(flow["IS_SRV_ATTACKER"] or "")
+        }
+
+        -- detailed flow info -> /lua/pro/db_flow_details.lua page
+        local detailed_flow_info = {
+            alert_name = alert_name,
+            -- dst2src_bytes = tonumber(flow["DST2SRC_BYTES"] or 0),
+            -- src2dst_bytes = tonumber(flow["SRC2DST_BYTES"] or 0),
+            status = tonumber(flow["STATUS"] or ""),
+            alert_status = tonumber(flow["ALERT_STATUS"] or ""),
+            packets = tonumber(flow["PACKETS"] or ""),
+            major_connection_state = tonumber(flow["MAJOR_CONNECTION_STATE"] or ""),
+            dst2src_tcp_flags = tonumber(flow["DST2SRC_TCP_FLAGS"] or ""),
+            src2dst_tcp_flags = tonumber(flow["SRC2DST_TCP_FLAGS"] or ""),
+            latency_to_srv_us = tonumber(flow["SERVER_NW_LATENCY_US"] or ""),
+            latency_to_cli_us = tonumber(flow["CLIENT_NW_LATENCY_US"] or ""),
+            -- protocol = tonumber(flow["PROTOCOL"] or ""),
+            flow_risk = tonumber(flow["FLOW_RISK"] or "")
+        }
+
+        -- add extracted data to JSON response
+        record[RNAME.HIST_FLOW_CLI_INFO.name] = flow_cli_info
+        record[RNAME.HIST_FLOW_SRV_INFO.name] = flow_cli_info
+        record[RNAME.HIST_FLOW_INFO.name] = detailed_flow_info
     end
 
     local other_alerts_by_score = {} -- Table used to keep messages ordered by score
@@ -1553,7 +1629,5 @@ function flow_alert_store:get_alert_details(value)
 
     return details
 end
-
--- ##############################################
 
 return flow_alert_store
