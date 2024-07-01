@@ -2149,7 +2149,7 @@ local known_parameters = {
 
    -- Topology SNMP Devices
    ["topology_host"] = validateIPV4,
-   ["toggle_snmp_trap"] = validateBoolcripts,
+   ["toggle_snmp_trap"] = validateBool,
 
    -- Active monitoring
    ["am_host"] = {http_lint.webhookCleanup, http_lint.validateUnquoted},
