@@ -6,6 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 require "ntop_utils"
+local json = require("dkjson")
 
 -- ##############################################
 
@@ -53,8 +54,9 @@ function radius_handler.accountingStart(name, username, password)
         return true
     end
 
-    traceError(TRACE_NORMAL, TRACE_CONSOLE, string.format("Accounting start requested for MAC [%s] with username [%s]", name, username))
-    
+    traceError(TRACE_NORMAL, TRACE_CONSOLE,
+        string.format("Accounting start requested for MAC [%s] with username [%s]", name, username))
+
     local session_id = tostring(math.random(100000000000000000, 999999999999999999))
     local ip_address = get_first_ip(name)
     local current_time = os.time()
@@ -62,7 +64,6 @@ function radius_handler.accountingStart(name, username, password)
     local accounting_started = interface.radiusAccountingStart(username --[[ Username ]] , name --[[ MAC Address ]] ,
         session_id, ip_address --[[ First IP Address ]] , current_time)
     if accounting_started then
-        local json = require("dkjson")
         local key = string.format(redis_accounting_key, name)
         local user_data = {
             name = name,
@@ -70,7 +71,11 @@ function radius_handler.accountingStart(name, username, password)
             password = password,
             session_id = session_id,
             start_session_time = current_time,
-            ip_address = ip_address
+            ip_address = ip_address,
+            bytes_sent = 0,
+            bytes_rcvd = 0,
+            packets_sent = 0,
+            packets_rcvd = 0
         }
 
         ntop.setCache(key, json.encode(user_data))
@@ -113,10 +118,15 @@ function radius_handler.accountingStop(name, terminate_cause, info)
         end
 
         if info then
-            bytes_sent = info["bytes.sent"]
-            bytes_rcvd = info["bytes.rcvd"]
-            packets_sent = info["packets.sent"]
-            packets_rcvd = info["packets.rcvd"]
+            bytes_sent = info["bytes.sent"] or user_data.bytes_sent
+            bytes_rcvd = info["bytes.rcvd"] or user_data.bytes_rcvd
+            packets_sent = info["packets.sent"] or user_data.packets_sent
+            packets_rcvd = info["packets.rcvd"] or user_data.packets_rcvd
+        else
+            bytes_sent = user_data.bytes_sent
+            bytes_rcvd = user_data.bytes_rcvd
+            packets_sent = user_data.packets_sent
+            packets_rcvd = user_data.packets_rcvd
         end
 
         interface.radiusAccountingStop(user_data.username --[[ Username ]] , user_data.session_id, name --[[ MAC Address]] ,
@@ -139,6 +149,7 @@ function radius_handler.accountingUpdate(name, info)
     local res = true
 
     if is_accounting_on and user_data then
+        local key = string.format(redis_accounting_key, name)
         local ip_address
         if user_data and not isEmptyString(user_data.ip_address) then
             ip_address = user_data.ip_address
@@ -146,11 +157,7 @@ function radius_handler.accountingUpdate(name, info)
             ip_address = get_first_ip(name)
             if not isEmptyString(ip_address) then
                 -- Update the info with the ip_address if it's not empty
-                local json = require("dkjson")
-                local key = string.format(redis_accounting_key, name)
                 user_data.ip_address = ip_address
-
-                ntop.setCache(key, json.encode(user_data))
             end
         end
         local bytes_sent = info["bytes.sent"]
@@ -158,6 +165,13 @@ function radius_handler.accountingUpdate(name, info)
         local packets_sent = info["packets.sent"]
         local packets_rcvd = info["packets.rcvd"]
         local current_time = os.time()
+
+        user_data.bytes_sent = bytes_sent
+        user_data.bytes_rcvd = bytes_rcvd
+        user_data.packets_sent = packets_sent
+        user_data.packets_rcvd = packets_rcvd
+
+        ntop.setCache(key, json.encode(user_data))
 
         interface.radiusAccountingUpdate(name, user_data.session_id, user_data.username, user_data.password, ip_address,
             bytes_sent, bytes_rcvd, packets_sent, packets_rcvd, current_time - user_data.start_session_time)
@@ -177,8 +191,6 @@ function radius_handler.isAccountingRequested(name)
     local user_data = ntop.getCache(key)
 
     if not isEmptyString(user_data) then
-        local json = require("dkjson")
-
         return true, json.decode(user_data)
     end
 
@@ -194,6 +206,26 @@ function radius_handler.isAccountingEnabled()
     end
 
     return true
+end
+
+-- ##############################################
+
+function radius_handler.getAllKeys()
+    local keys = ntop.getKeysCache("ntopng.radius.accounting.*")
+    if keys then
+        require "lua_utils"
+        local prefix_to_remove = "ntopng.radius.accounting."
+        local characters_to_remove = string.len(prefix_to_remove)
+        local new_keys = {}
+        for member, _ in pairs(keys) do
+            local mac_address = member:gsub(prefix_to_remove, "")
+            if isMacAddress(mac_address) then
+                new_keys[#new_keys + 1] = mac_address
+            end
+        end
+        keys = new_keys
+    end
+    return keys or {}
 end
 
 -- ##############################################
