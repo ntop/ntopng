@@ -7759,6 +7759,30 @@ static int m_broker_rpc_call(lua_State  *vm) {
 
 static int read_modbus_device_info(lua_State *vm) {
   char *device_ip;
+  int timeout  = 5;
+  bool rc;
+  
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  else
+    device_ip = (char *)lua_tostring(vm, 1);
+  
+  if (lua_type(vm, 2) == LUA_TNUMBER) timeout = (u_int16_t)lua_tonumber(vm, 2);
+  
+  rc = Utils::readModbusDeviceInfo(device_ip, timeout, vm);
+
+  if(rc == false) {
+    lua_pushnil(vm);
+    
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  } else
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
+static int read_ether_ip_device_info(lua_State *vm) {
+  char *device_ip;
   char vendor_name[128], product_code[128], product_revision[128];
   int timeout  = 5;
   bool rc;
@@ -7770,25 +7794,14 @@ static int read_modbus_device_info(lua_State *vm) {
   
   if (lua_type(vm, 2) == LUA_TNUMBER) timeout = (u_int16_t)lua_tonumber(vm, 2);
   
-  rc = Utils::readModbusDeviceInfo(device_ip, timeout,
-				   vendor_name, sizeof(vendor_name),
-				   product_code, sizeof(product_code),
-				   product_revision, sizeof(product_revision));
+  rc = Utils::readEthernetIPDeviceInfo(device_ip, timeout, vm);
 
   if(rc == false) {
     lua_pushnil(vm);
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  } else {
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s][%s][%s]",
-				 vendor_name, product_code, product_revision);
     
-    lua_newtable(vm);
-    lua_push_str_table_entry(vm, "vendor_name", vendor_name);
-    lua_push_str_table_entry(vm, "product_code", product_code);
-    lua_push_str_table_entry(vm, "product_revision", product_revision);
-
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  } else
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-  }
 }
 
 /* **************************************************************** */
@@ -8229,6 +8242,7 @@ static luaL_Reg _ntop_reg[] = {
 
     /* Modbus */
     { "readModbusDeviceInfo", read_modbus_device_info },
+    { "readEthernetIPDeviceInfo", read_ether_ip_device_info },
     
     {NULL, NULL}
 };
