@@ -4,53 +4,56 @@
 
 <template>
   <div class="col-12 mb-2 mt-2">
-    <div v-if="show_filters" class="button-group mb-2 d-flex align-items-center"> <!-- TableHeader -->
-      <div class="form-group d-flex align-items-end" style="flex-wrap: wrap;">
-        <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
-          <span class="no-wrap d-flex align-items-center filters-label fs-6"><b>{{ item["basic_label"]
-              }}</b></span>
-          <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5" dropdown_size="medium"
-            :disabled="loading" :options="item['options']" @select_option="add_filter">
-          </SelectSearch>
-        </div>
-        <div class="d-flex justify-content-center align-items-center">
-          <div class="btn btn-sm btn-primary mb-1 me-3" type="button" @click="search_timeseries">
-            {{ _i18n('search') }}
+    <div v-if="is_qos_polled">
+      <div class="button-group mb-2 d-flex align-items-center"> <!-- TableHeader -->
+        <div class="form-group d-flex align-items-end" style="flex-wrap: wrap;">
+          <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
+            <span class="no-wrap d-flex align-items-center filters-label fs-6"><b>{{ item["basic_label"]
+                }}</b></span>
+            <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5" dropdown_size="medium"
+              :disabled="loading" :options="item['options']" @select_option="add_filter">
+            </SelectSearch>
           </div>
-          <Spinner :show="loading" size="1rem" class="me-1"></Spinner>
+          <div class="d-flex justify-content-center align-items-center">
+            <div class="btn btn-sm btn-primary mb-1 me-3" type="button" @click="search_timeseries">
+              {{ _i18n('search') }}
+            </div>
+            <Spinner :show="loading" size="1rem" class="me-1"></Spinner>
+          </div>
         </div>
+      </div>
+
+      <div class="card h-100 overflow-hidden">
+        <Loading v-if="loading_chart"></Loading>
+        <DateTimeRangePicker style="margin-top:0.5rem;" class="ms-1" :id="id_date_time_picker" :enable_refresh="true"
+          ref="date_time_picker" @epoch_change="epoch_change" :min_time_interval_id="min_time_interval_id"
+          :custom_time_interval_list="time_preset_list">
+        </DateTimeRangePicker>
+
+        <div class="mt-3" :class="[(loading_chart) ? 'ntopng-gray-out' : '']">
+          <TimeseriesChart ref="all_qos_chart" :id="all_qos_id" :chart_type="chart_type" :base_url_request="base_url"
+            :get_custom_chart_options="get_chart_options" :register_on_status_change="false"
+            :disable_pointer_events="false" :key="all_qos_id">
+          </TimeseriesChart>
+        </div>
+
+        <div class="m-3 card card-shadow" :class="[(loading_chart) ? 'ntopng-gray-out' : '']">
+          <div class="card-body">
+            <BootstrapTable id="page_stats_bootstrap_table" :columns="stats_columns" :rows="stats_rows"
+              :print_html_column="(col) => print_stats_column(col)"
+              :print_html_row="(col, row) => print_stats_row(col, row)">
+            </BootstrapTable>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <NoteList :note_list="note_list"> </NoteList>
       </div>
     </div>
     <div v-else class="col-12 alert alert-info alert-dismissable">
-      <span> {{ qos_not_polled_yet }}</span>
-    </div>
-
-    <div class="card h-100 overflow-hidden">
-      <Loading v-if="loading_chart"></Loading>
-      <DateTimeRangePicker style="margin-top:0.5rem;" class="ms-1" :id="id_date_time_picker" :enable_refresh="true"
-        ref="date_time_picker" @epoch_change="epoch_change" :min_time_interval_id="min_time_interval_id"
-        :custom_time_interval_list="time_preset_list">
-      </DateTimeRangePicker>
-
-      <div class="mt-3" :class="[(loading_chart) ? 'ntopng-gray-out' : '']">
-        <TimeseriesChart ref="all_qos_chart" :id="all_qos_id" :chart_type="chart_type" :base_url_request="base_url"
-          :get_custom_chart_options="get_chart_options" :register_on_status_change="false"
-          :disable_pointer_events="false" :key="all_qos_id">
-        </TimeseriesChart>
-      </div>
-
-      <div class="m-3 card card-shadow" :class="[(loading_chart) ? 'ntopng-gray-out' : '']">
-        <div class="card-body">
-          <BootstrapTable id="page_stats_bootstrap_table" :columns="stats_columns" :rows="stats_rows"
-            :print_html_column="(col) => print_stats_column(col)"
-            :print_html_row="(col, row) => print_stats_row(col, row)">
-          </BootstrapTable>
-        </div>
-      </div>
-    </div>
-
-    <div class="card-footer">
-      <NoteList :note_list="note_list"> </NoteList>
+      <span> {{ qos_not_polled_yet }} </span>
+      <span class="ms-2 spinner-border spinner-border-sm" role="status"></span>
     </div>
   </div>
 </template>
@@ -88,7 +91,7 @@ const filter_table_array = ref([]);
 const loading = ref(false);
 const loading_chart = ref(false);
 const filters = ref([]);
-const show_filters = ref(true);
+const is_qos_polled = ref(false);
 const qos_not_polled_yet = _i18n('snmp.snmp_qos_info_not_polled')
 const note_list = [
   _i18n("snmp.snmp_note_periodic_interfaces_polling"),
@@ -271,10 +274,11 @@ function set_filters_list(res, opt) {
       };
     });
     if (filters.value.length > 0) {
-      show_filters.value = true;
+      is_qos_polled.value = true;
       set_filters_list(null, opt);
     } else {
-      show_filters.value = false;
+      is_qos_polled.value = false;
+      setTimeout(load_table_filters_array, 10000)
     }
     return;
   }
