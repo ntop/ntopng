@@ -94,7 +94,7 @@ async function reload_page() {
   const headers = {
     'Content-Type': 'application/json'
   };
-  ntopng_utility.http_request(`${post_url}`, { method: 'post', headers, body: JSON.stringify(params) })
+  ntopng_utility.http_request(`${post_url}`, { method: 'post', headers: headers, body: JSON.stringify(params) })
   ntopng_url_manager.reload_url();
 }
 </script>

@@ -105,6 +105,7 @@ Prefs::Prefs(Ntop *_ntop) {
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
 #ifdef NTOPNG_PRO
   netbox_enabled = CONST_DEFAULT_NETBOX_ENABLED;
+  snmp_trap_enabled = CONST_DEFAULT_SNMP_TRAP_ENABLED;
   pro_callbacks_dir = strdup(CONST_DEFAULT_PRO_CALLBACKS_DIR);
   create_labels_logfile = false;
 #endif
@@ -1048,8 +1049,11 @@ void Prefs::reloadPrefsFromRedis() {
   refreshBehaviourAnalysis();
 
 #ifdef NTOPNG_PRO
+  // reset value
   netbox_enabled = getDefaultPrefsValue(CONST_PREFS_NETBOX_ENABLED,
 							    CONST_DEFAULT_NETBOX_ENABLED);
+  snmp_trap_enabled = getDefaultPrefsValue(CONST_PREFS_SNMP_TRAP_ENABLED,
+							    CONST_DEFAULT_SNMP_TRAP_ENABLED);
 #endif
 
 #ifdef PREFS_RELOAD_DEBUG

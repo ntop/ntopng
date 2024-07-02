@@ -84,6 +84,8 @@ class SNMP {
   SNMP();
   ~SNMP();
 
+  void collectTraps();
+  
 #ifdef HAVE_LIBSNMP
   void handle_async_response(struct snmp_pdu *pdu, const char *agent_ip);
   void send_snmp_set_request(char *agent_host, char *community,

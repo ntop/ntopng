@@ -1121,3 +1121,9 @@ int SNMP::snmp_get_fctn(lua_State *vm, snmp_pdu_primitive pduType,
 	return (snmp_read_response(vm, timeout));
     }
 }
+
+/* ******************************************* */
+
+void SNMP::collectTraps() {
+  /* TODO */
+}
