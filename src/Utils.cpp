@@ -5828,7 +5828,7 @@ bool Utils::readModbusDeviceInfo(char *device_ip, u_int8_t timeout_sec,
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "Read %u bytes", len);
       
       if(len > 7 /* Modbus/TCP Len */) {
-	u_int response_len = ntohs(*((u_int16_t*)&response[4]));
+	int response_len = ntohs(*((u_int16_t*)&response[4]));
 
 	if((response_len + 7) <= len) {
 	  u_int16_t offset = 13;
