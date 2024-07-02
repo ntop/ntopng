@@ -40,7 +40,13 @@ For you convenience, ntop periodically builds pip packages. You can install the 
 Developing the Python API
 -------------------------
 
-We encourage our users to extend this API. For your convenience we are sharing a [Makefile](Makefile) that you can use as skeleton for installing the package locally or creating test packages.
+We encourage our users to extend this API. For your convenience we are sharing a [Makefile](Makefile)
+that you can use as skeleton for installing the package locally or creating test packages.
+
+The [Makefile](Makefile) can be also used to update the upstream library. The build and twine modules
+are required.
+- `pip install build twine`
+- `make upload`
 
 Documentation
 -------------
