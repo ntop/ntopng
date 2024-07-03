@@ -799,24 +799,10 @@
   NTOPNG_PREFS_PREFIX ".is_autologon_enabled"
 #define CONST_RUNTIME_IS_INTERFACE_NAME_ONLY \
   NTOPNG_PREFS_PREFIX ".is_interface_name_only"
-#define CONST_RUNTIME_IS_GEO_MAP_SCORE_ENABLED \
-  NTOPNG_PREFS_PREFIX ".is_geo_map_score_enabled"
 #define CONST_MAX_AGGREGATED_FLOWS_UPPERBOUND \
   NTOPNG_PREFS_PREFIX ".max_aggregated_flows_upperbound"
 #define CONST_MAX_AGGREGATED_FLOWS_TRAFFIC_UPPERBOUND \
   NTOPNG_PREFS_PREFIX ".max_aggregated_flows_traffic_upperbound"
-#define CONST_RUNTIME_IS_GEO_MAP_ASNAME_ENABLED \
-  NTOPNG_PREFS_PREFIX ".is_geo_map_asname_enabled"
-#define CONST_RUNTIME_IS_GEO_MAP_ALERTED_FLOWS_ENABLED \
-  NTOPNG_PREFS_PREFIX ".is_geo_map_alerted_flows_enabled"
-#define CONST_RUNTIME_IS_GEO_MAP_BLACKLISTED_FLOWS_ENABLED \
-  NTOPNG_PREFS_PREFIX ".is_geo_map_blacklisted_flows_enabled"
-#define CONST_RUNTIME_IS_GEO_MAP_HOST_NAME_ENABLED \
-  NTOPNG_PREFS_PREFIX ".is_geo_map_host_name_enabled"
-#define CONST_RUNTIME_IS_GEO_MAP_RXTX_DATA_ENABLED \
-  NTOPNG_PREFS_PREFIX ".is_geo_map_rxtx_data_enabled"
-#define CONST_RUNTIME_IS_GEO_MAP_NUM_FLOWS_ENABLED \
-  NTOPNG_PREFS_PREFIX ".is_geo_map_num_flows_enabled"
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED \
   NTOPNG_PREFS_PREFIX ".is_active_local_host_cache_enabled"
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL \
