@@ -9,6 +9,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- #                Requirements                #
 -- ##############################################
 
+require "lua_utils"
 local rest_utils = require("rest_utils")
 
 -- ##############################################
