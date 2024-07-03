@@ -1000,7 +1000,11 @@ function format_portidx_name(device_ip, portidx, short_version, shorten_string)
                 if short_version then
                     local name = port_info["name"]
                     if shorten_string then
-                        name = shortenString(name)
+                        if type(shorten_string) == "number" then
+                            name = shortenString(name, shorten_string)
+                        else
+                            name = shortenString(name)
+                        end
                     end
                     idx_name = string.format('%s', name);
                 else
