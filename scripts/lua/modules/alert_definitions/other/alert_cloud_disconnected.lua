@@ -30,11 +30,13 @@ alert_cloud_disconnected.meta = {
 
 -- @brief Prepare an alert table used to generate the alert
 -- @return A table with the alert built
-function alert_cloud_disconnected:init()
+function alert_cloud_disconnected:init(description)
    -- Call the parent constructor
    self.super:init()
 
-   self.alert_type_params = {}
+   self.alert_type_params = {
+      description = description
+   }
 end
 
 -- #######################################################
@@ -45,7 +47,10 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_cloud_disconnected.format(ifid, alert, alert_type_params)
-  return(i18n("cloud.disconnected"))
+   local message = i18n("cloud.disconnected")
+   if not isEmptyString(alert_type_params.description) then
+      message = message .. " (" .. alert_type_params.description .. ")"
+   end
 end
 
 -- #######################################################
