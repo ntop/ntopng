@@ -52,3 +52,7 @@ integrated as explained below.
 ```
 tools/localization/localize.sh extend de path_to_localized_strings.txt
 ```
+
+## Translate Automatically Languages
+
+See the tool ``translation.py``

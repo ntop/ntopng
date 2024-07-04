@@ -457,7 +457,7 @@ const map_table_def_columns = async (columns) => {
     };
     const f_print_latency = (key, latency, row) => {
         if (latency == null || latency == 0) { return ""; }
-        return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${latency}' href='javascript:void(0)'>${NtopUtils.msecToTime(latency)}</a>`;
+        return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${latency}' href='javascript:void(0)'>${latency} ms</a>`;
     };
     const f_print_state = (key, state, row) => {
         if (state == null || state == 0) { return ""; }
