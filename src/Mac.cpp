@@ -69,7 +69,9 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 #endif
 
 #ifdef NTOPNG_PRO
-  if (!special_mac && ntop->getPrefs()->is_enterprise_xl_edition() 
+  if ((!special_mac)
+      && (!broadcast_mac)
+      && ntop->getPrefs()->is_enterprise_xl_edition() 
       && ntop->getPrefs()->isNetBoxEnabled())
     dumpAssetsInformations();
 #endif
@@ -519,6 +521,7 @@ void Mac::dumpAssetsInformations() {
   ndpi_serialize_string_string(&device_json, "mac", mac_ptr);
   ndpi_serialize_string_string(&device_json, "source", "traffic");
   ndpi_serialize_string_uint32(&device_json, "first_seen", first_seen);
+  ndpi_serialize_string_uint32(&device_json, "last_seen", last_seen);  
   ndpi_serialize_string_string(&device_json, "manufacturer", manuf ? manuf : "n/a");
   ndpi_serialize_string_uint32(&device_json, "role", device_type);
 
@@ -533,3 +536,4 @@ void Mac::dumpAssetsInformations() {
   ndpi_term_serializer(&device_json);
 }
 #endif
+
