@@ -51,6 +51,7 @@ function alert_cloud_reconnected.format(ifid, alert, alert_type_params)
    if not isEmptyString(alert_type_params.description) then
       message = message .. " (" .. alert_type_params.description .. ")"
    end
+   return message
 end
 
 -- #######################################################
