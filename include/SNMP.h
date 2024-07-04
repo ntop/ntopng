@@ -51,6 +51,9 @@ class SNMPSession {
 };
 #endif
 
+int read_snmp_trap(int operation, struct snmp_session *sp, int reqid,
+                    struct snmp_pdu *pdu, void *magic);
+
 class SNMP {
  private:
   u_int snmp_version;

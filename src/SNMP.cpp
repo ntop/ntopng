@@ -48,8 +48,33 @@ SNMP::SNMP() {
   batch_mode = false;
 #ifdef HAVE_LIBSNMP
   init_snmp("ntopng");
+  //trap management
+  //instantiate necessary resources. Perhaps, this snippet can be place better.
+  const char* port = "upd:162";
+  const char* application = "ntopng snmp trap";
+  netsnmp_transport *snmpTransport = netsnmp_transport_open_server(application,port);
+  if(snmpTransport == NULL){
+    snmp_perror("netsnmp_transport_open_server ");
+    return;
+  }
+  //trap session
+  SNMPSession* trap_session = new SNMPSession;
+  //TODO: check if other fields need to be populated
+  snmp_sess_init(&trap_session->session);
+  trap_session->session.callback = read_snmp_trap;
+  trap_session->session.callback_magic = (void *) snmpTransport;
+  trap_session->session.authenticator = NULL;
+  netsnmp_session* rc = snmp_add(&trap_session->session,snmpTransport, NULL, NULL);
+  if (rc == NULL) {
+      snmp_perror("FAILURE: ");
+      netsnmp_transport_free(snmpTransport);
+  }
+  trap_session->session_ptr = snmp_sess_open(&trap_session->session);
+  //add session
+  this->sessions.push_back(trap_session);
+  printf("TRAP SESSION OK "); //debug
+  
 #endif
-
   getbulk_max_num_repetitions = 10;
 }
 
@@ -280,10 +305,11 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
       return;
     }
   } else {
-    if(sessions.size() == 0) {
+    //because of adding the snmptrap session inside the constructor  
+    if((sessions.size() - 1) == 0) {
       goto create_snmp_session;
     } else {
-      snmpSession = sessions.at(0);
+      snmpSession = sessions.at(1); //the first session is going to be the trap session
     }
   }
 
@@ -1120,4 +1146,19 @@ int SNMP::snmp_get_fctn(lua_State *vm, snmp_pdu_primitive pduType,
       else
 	return (snmp_read_response(vm, timeout));
     }
+}
+//call back printing trap
+int read_snmp_trap(int operation, struct snmp_session *sp, int reqid,
+                    struct snmp_pdu *pdu, void *magic){
+  switch (operation){
+    case SNMP_MSG_TRAP:
+    case SNMP_MSG_TRAP2:
+      printf("trap type %l specific type %l",pdu->trap_type,pdu->specific_type);
+
+    break;
+  default:
+    printf("Invalid operation %d",operation);
+    break;
+  }
+  return 1;
 }
