@@ -301,7 +301,7 @@ char *Mac::getDHCPName(char *const buf, ssize_t buf_size) {
     snprintf(buf, buf_size, "%s", names.dhcp ? names.dhcp : "");
     m.unlock(__FILE__, __LINE__);
   }
-
+  
   return Utils::stringtolower(buf);
 }
 
@@ -512,14 +512,15 @@ void Mac::dumpAssetsInformations() {
   char buf[32], *json_str = NULL;
   ndpi_serializer device_json;
   u_int32_t json_str_len = 0;
+  char *mac_ptr = Utils::formatMac(get_mac(), buf, sizeof(buf));
 
   ndpi_init_serializer(&device_json, ndpi_serialization_format_json);
 
-  ndpi_serialize_string_string(&device_json, "device", Utils::formatMac(get_mac(), buf, sizeof(buf)));
+  ndpi_serialize_string_string(&device_json, "mac", mac_ptr);
   ndpi_serialize_string_string(&device_json, "source", "traffic");
-  ndpi_serialize_string_uint32(&device_json, "when", first_seen);
-  ndpi_serialize_string_string(&device_json, "manufacturer", manuf ? manuf : "N/A");
-  ndpi_serialize_string_uint32(&device_json, "devtype", device_type);
+  ndpi_serialize_string_uint32(&device_json, "first_seen", first_seen);
+  ndpi_serialize_string_string(&device_json, "manufacturer", manuf ? manuf : "n/a");
+  ndpi_serialize_string_uint32(&device_json, "role", device_type);
 
   json_str = ndpi_serializer_get_buffer(&device_json, &json_str_len);
 
