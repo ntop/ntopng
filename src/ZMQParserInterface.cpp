@@ -756,12 +756,14 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
         flow->setEndReason(value->string);
       break;
     case TOTAL_FLOWS_EXP:
-      /* Not used
-         if(value->string != NULL)
-         total_flows_exp = atol(value->string);
-         else
-         total_flows_exp = value->int_num;
-      */
+/*
+      if(value->string != NULL)
+        total_flows_exp = atol(value->string);
+      else
+        total_flows_exp = value->int_num;
+      ntop->getTrace()->traceEvent(TRACE_INFO,
+                                   "Total Exported Flows %u", total_flows_exp);
+*/
       break;
     case INPUT_SNMP:
       flow->inIndex = value->int_num;
@@ -3181,6 +3183,17 @@ void ZMQParserInterface::lua(lua_State *vm, bool fullStats) {
                              zrs->remote_probe_edition);
     lua_push_str_table_entry(vm, "probe.probe_maintenance",
                              zrs->remote_probe_maintenance);
+    lua_push_uint64_table_entry(vm, "drops.export_queue_full", zrs->export_queue_full);
+    lua_push_uint64_table_entry(vm, "drops.too_many_flows", zrs->too_many_flows);
+    lua_push_uint64_table_entry(vm, "drops.elk_flow_drops", zrs->elk_flow_drops);
+    lua_push_uint64_table_entry(vm, "drops.sflow_pkt_sample_drops", zrs->sflow_pkt_sample_drops);
+    lua_push_uint64_table_entry(vm, "drops.flow_collection_drops", zrs->flow_collection_drops);
+    lua_push_uint64_table_entry(vm, "drops.flow_collection_udp_socket_drops", zrs->flow_collection_udp_socket_drops);
+    lua_push_uint64_table_entry(vm, "flow_collection.nf_ipfix_flows", zrs->flow_collection.nf_ipfix_flows);
+    lua_push_uint64_table_entry(vm, "flow_collection.sflow_samples", zrs->flow_collection.sflow_samples);
+    lua_push_uint64_table_entry(vm, "zmq.num_flow_exports", zrs->num_flow_exports);
+    lua_push_uint64_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);
+
 
     lua_pushstring(vm, std::to_string(it->first).c_str() /* The source_id as string (can't use integers or Lua will think it's an array ) */);
     lua_insert(vm, -2);

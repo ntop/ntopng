@@ -1,7 +1,6 @@
 --
 -- (C) 2019-24 - ntop.org
 --
-
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 
@@ -387,6 +386,26 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("flowdev:drops", {
+    step = 300,
+    rrd_fname = "drops"
+})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addMetric("drops")
+
+-- ##############################################
+
+schema = ts_utils.newSchema("flowdev:flows", {
+    step = 300,
+    rrd_fname = "flows"
+})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addMetric("flows")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("flowdev_port:traffic", {
     step = 300,
     rrd_fname = "bytes"
@@ -480,7 +499,7 @@ schema = ts_utils.newSchema("snmp_if:cbqos", {
     rrd_heartbeat = 3000,
     rrd_fname = "qos",
     is_system_schema = true,
-    metrics_type = ts_utils.metrics.gauge,
+    metrics_type = ts_utils.metrics.gauge
 })
 schema:addTag("ifid")
 schema:addTag("device")
