@@ -517,11 +517,9 @@ void Mac::dumpAssetsInformations() {
   ndpi_init_serializer(&device_json, ndpi_serialization_format_json);
 
   ndpi_serialize_string_string(&device_json, "mac", mac_ptr);
-  ndpi_serialize_string_string(&device_json, "name", mac_ptr);
   ndpi_serialize_string_string(&device_json, "source", "traffic");
   ndpi_serialize_string_uint32(&device_json, "first_seen", first_seen);
   ndpi_serialize_string_string(&device_json, "manufacturer", manuf ? manuf : "n/a");
-  ndpi_serialize_string_string(&device_json, "model", "Default");
   ndpi_serialize_string_uint32(&device_json, "role", device_type);
 
   json_str = ndpi_serializer_get_buffer(&device_json, &json_str_len);
