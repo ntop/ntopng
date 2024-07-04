@@ -49,9 +49,11 @@ SNMP::SNMP() {
 #ifdef HAVE_LIBSNMP
   init_snmp("ntopng");
   //trap management
-  //instantiate necessary resources. Perhaps, this snippet can be place better.
+  //instantiate necessary resources. Perhaps, this snippet can be placed better.
   const char* port = "upd:162";
   const char* application = "ntopng snmp trap";
+  //this needs to be called so that the snmp library can initialize the supported transports list
+  netsnmp_tdomain_init();
   netsnmp_transport *snmpTransport = netsnmp_transport_open_server(application,port);
   if(snmpTransport == NULL){
     snmp_perror("netsnmp_transport_open_server ");
@@ -72,7 +74,7 @@ SNMP::SNMP() {
   trap_session->session_ptr = snmp_sess_open(&trap_session->session);
   //add session
   this->sessions.push_back(trap_session);
-  printf("TRAP SESSION OK "); //debug
+  ntop->getTrace()->traceEvent(TRACE_DEBUGGING,__FILE__,__LINE__,"SNMP TRAP SESSION OK");
   
 #endif
   getbulk_max_num_repetitions = 10;
@@ -1147,17 +1149,16 @@ int SNMP::snmp_get_fctn(lua_State *vm, snmp_pdu_primitive pduType,
 	return (snmp_read_response(vm, timeout));
     }
 }
-//call back printing trap
+//callback printing trap
 int read_snmp_trap(int operation, struct snmp_session *sp, int reqid,
                     struct snmp_pdu *pdu, void *magic){
   switch (operation){
     case SNMP_MSG_TRAP:
     case SNMP_MSG_TRAP2:
-      printf("trap type %l specific type %l",pdu->trap_type,pdu->specific_type);
-
+      ntop->getTrace()->traceEvent(TRACE_DEBUGGING, __FILE__,__LINE__,"trap type %ld specific type %ld", pdu->trap_type, pdu->specific_type);
     break;
-  default:
-    printf("Invalid operation %d",operation);
+    default:
+      ntop->getTrace()->traceEvent(TRACE_DEBUGGING,__FILE__,__LINE__,"Invalid operation %d",operation);
     break;
   }
   return 1;
