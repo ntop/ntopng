@@ -124,7 +124,7 @@ class Utils {
                           bool return_content, bool use_cookie_authentication,
                           HTTPTranferStats *stats, const char *form_data,
                           char *write_fname, bool follow_redirects,
-                          int ip_version);
+                          int ip_version, bool use_put_method = false);
   static long httpGet(const char *url, const char *username,
                       const char *password, const char *user_header_token,
                       int timeout, char *const resp, const u_int resp_len);

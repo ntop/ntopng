@@ -2215,7 +2215,8 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
                         int timeout, bool return_content,
                         bool use_cookie_authentication, HTTPTranferStats *stats,
                         const char *form_data, char *write_fname,
-                        bool follow_redirects, int ip_version) {
+                        bool follow_redirects, int ip_version,
+			bool use_put_method) {
   CURL *curl = curl_easy_init();
   FILE *out_f = NULL;
   bool ret = true;
@@ -2299,6 +2300,11 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
 
     if (headers != NULL) curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
+    if(use_put_method) {
+      /* enable uploading (implies PUT over HTTP) */
+      curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+    }
+    
     if (write_fname) {
       ntop->fixPath(write_fname);
       out_f = fopen(write_fname, "wb");
