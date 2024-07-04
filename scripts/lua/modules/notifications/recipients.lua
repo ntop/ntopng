@@ -132,11 +132,11 @@ local function processStoreAlertFromQueue(alert)
         type_info:set_score_error()
     elseif (alert.alert_id == "cloud_disconnected") then
         entity_info = alert_entity_builders.systemEntity("cloud")
-        type_info = alert_consts.alert_types.alert_cloud_disconnected.new()
+        type_info = alert_consts.alert_types.alert_cloud_disconnected.new(alert.description)
         type_info:set_score_warning()
     elseif (alert.alert_id == "cloud_reconnected") then
         entity_info = alert_entity_builders.systemEntity("cloud")
-        type_info = alert_consts.alert_types.alert_cloud_reconnected.new()
+        type_info = alert_consts.alert_types.alert_cloud_reconnected.new(alert.description)
         type_info:set_score_notice()
     else
         traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown alert type " .. (alert.alert_id or ""))
