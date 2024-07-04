@@ -7166,7 +7166,7 @@ bool Utils::readEthernetIPDeviceInfo(char *device_ip, u_int8_t timeout_sec, lua_
 
       lua_newtable(vm);
 
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Read %u bytes", len);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Read %u bytes", len);
 
       if(len > 24 /* EtherIP/TCP Len */) {
 	u_int16_t response_id  = /* ntohs */(*((u_int16_t*)&response[0]));
