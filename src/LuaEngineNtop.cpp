@@ -6519,7 +6519,7 @@ static int ntop_rrd_create(lua_State *vm) {
 static int ntop_rrd_update(lua_State *vm) {
   NtopngLuaContext *ctx = getLuaVMContext(vm);
   const char *filename, *when = NULL, *v1 = NULL, *v2 = NULL, *v3 = NULL,
-                        *v4 = NULL;
+                        *v4 = NULL, *v5 = NULL, *v6 = NULL;
   int status;
   ticks ticks_duration;
   struct stat s;
@@ -6561,15 +6561,18 @@ static int ntop_rrd_update(lua_State *vm) {
   if (lua_type(vm, 4) == LUA_TSTRING) v2 = (const char *)lua_tostring(vm, 4);
   if (lua_type(vm, 5) == LUA_TSTRING) v3 = (const char *)lua_tostring(vm, 5);
   if (lua_type(vm, 6) == LUA_TSTRING) v4 = (const char *)lua_tostring(vm, 6);
+  if (lua_type(vm, 6) == LUA_TSTRING) v5 = (const char *)lua_tostring(vm, 7);
+  if (lua_type(vm, 6) == LUA_TSTRING) v6 = (const char *)lua_tostring(vm, 8);
 
   /* Apparently RRD does not like static buffers, so we need to malloc */
   u_int buf_len = 64;
   char *buf = (char *)malloc(buf_len);
 
   if (buf) {
-    snprintf(buf, buf_len, "%s:%s%s%s%s%s%s%s", when ? when : "N", v1,
+    snprintf(buf, buf_len, "%s:%s%s%s%s%s%s%s%s%s%s%s", when ? when : "N", v1,
              v2 ? ":" : "", v2 ? v2 : "", v3 ? ":" : "", v3 ? v3 : "",
-             v4 ? ":" : "", v4 ? v4 : "");
+             v4 ? ":" : "", v4 ? v4 : "", v5 ? ":" : "", v5 ? v5 : "",
+             v6 ? ":" : "", v6 ? v6 : "");
 
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%s) %s", __FUNCTION__,
     // filename, buf);
@@ -7783,7 +7786,6 @@ static int read_modbus_device_info(lua_State *vm) {
 
 static int read_ether_ip_device_info(lua_State *vm) {
   char *device_ip;
-  char vendor_name[128], product_code[128], product_revision[128];
   int timeout  = 5;
   bool rc;
   
