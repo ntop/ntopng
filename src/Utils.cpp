@@ -2302,7 +2302,7 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
 
     if(use_put_method) {
       /* enable uploading (implies PUT over HTTP) */
-      curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+      curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
     }
     
     if (write_fname) {
