@@ -83,7 +83,7 @@
                                     <template v-slot:menu>
                                         <a v-for="opt in t.options" style="cursor:pointer; display: block;"
                                             @click="add_top_table_filter(opt, $event)" class="ntopng-truncate tag-filter "
-                                            :title="opt.value">{{ opt.label }}</a>
+                                            :title="opt.value">{{ opt.label + " (" + opt.count + "%)" }}</a>
                                     </template>
                                 </Dropdown> <!-- Dropdown columns -->
                             </template> <!-- custom_header -->

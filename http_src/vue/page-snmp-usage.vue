@@ -4,7 +4,7 @@
         <DateTimeRangePicker style="margin-top:0.5rem;" class="ms-1" :id="id_date_time_picker" :enable_refresh="false"
             ref="date_time_picker" @epoch_change="epoch_change" :custom_time_interval_list="time_preset_list">
         </DateTimeRangePicker>
-        <div class="m-2 mt-0" style="margin-bottom: ;">
+        <div class="m-2 mt-0">
             <TimeseriesChart ref="chart" :id="chart_id" :chart_type="chart_type" :base_url_request="base_url"
                 :get_custom_chart_options="get_chart_options" :register_on_status_change="false"
                 :disable_pointer_events="false">

@@ -2100,6 +2100,7 @@ local lang = {
     ["top_l7proto"] = "Top Applications",
     ["top_protocols"] = "Top Protocols",
     ["top_servers"] = "Top Servers",
+    ["top_exporter_interfaces"] = "Top Exporter Interfaces",
     ["traffic_direction"] = "Traffic Direction",
     ["vlan_id"] = "VLAN",
     ["where_note"] = "Use &lt;field&gt; &lt;operator&gt; &lt;value&gt; conditions, where &lt;operator&gt; could be &lt;, &gt;, =, !=. AND/OR operators are also allowed to combine conditions. Please use quotes for string fields (e.g. INFO='www.ntop.org')",

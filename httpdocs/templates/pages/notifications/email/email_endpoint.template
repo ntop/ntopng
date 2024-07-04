@@ -4,37 +4,27 @@
         <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#email"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-5">
-        <div class="form-control-with-spinner">
-            <input
-                data-validation-message="{{ i18n('notification_endpoint.email.validation.invalid_SMTP_server') }}"
-                data-validation-empty-message="{{ i18n('notification_endpoint.email.validation.empty_SMTP_server') }}"
-                data-pattern="ipv4|ipv6|domainName|emailUrl" data-validation-resolveDNS="true" name="smtp_server" type="text" class="form-control" required />
-            <div class="spinner-border spinner-border-sm" role="status" style="display: none;">
-                <span class="sr-only">Loading...</span>
-            </div>
-        </div>
+        <input
+            data-validation-message="{{ i18n('notification_endpoint.email.validation.invalid_SMTP_server') }}"
+            data-validation-empty-message="{{ i18n('notification_endpoint.email.validation.empty_SMTP_server') }}"
+            data-pattern="ipv4|ipv6|domainName|emailUrl" data-validation-resolveDNS="true" name="smtp_server" type="text" class="form-control" required />
     </div>
 </div>
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
-        <b>{{ i18n("notification_endpoint.email.smtp_port") }}</b>
+        {{ i18n("notification_endpoint.email.smtp_port") }}
         <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#email"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
-        <div class="form-control-with-spinner">
-            <input
-                data-validation-message="{{ i18n('notification_endpoint.email.validation.invalid_SMTP_port') }}"
-                data-validation-empty-message="{{ i18n('notification_endpoint.email.validation.empty_SMTP_port') }}"
-                name="smtp_port" type="number" class="form-control"/>
-            <div class="spinner-border spinner-border-sm" role="status" style="display: none;">
-                <span class="sr-only">Loading...</span>
-            </div>
-        </div>
+        <input
+            data-validation-message="{{ i18n('notification_endpoint.email.validation.invalid_SMTP_port') }}"
+            data-validation-empty-message="{{ i18n('notification_endpoint.email.validation.empty_SMTP_port') }}"
+            data-pattern="port" name="smtp_port" max="65535" type="number" class="form-control" />
     </div>
 </div>
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
-        <b>{{ i18n("notification_endpoint.email.use_proxy") }}</b>
+        {{ i18n("notification_endpoint.email.use_proxy") }}
         <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#email"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
@@ -51,7 +41,7 @@
         <input
             data-validation-message="{{ i18n('notification_endpoint.email.validation.invalid_email') }}"
             data-validation-empty-message="{{ i18n('notification_endpoint.email.validation.empty_email') }}"
-            name="email_sender" data-pattern="email" class="form-control" required />
+            name="email_sender" type="email" class="form-control" required />
     </div>
 </div>
 <div class="mb-3 row">

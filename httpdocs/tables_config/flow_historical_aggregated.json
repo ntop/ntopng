@@ -117,15 +117,6 @@
 	    "sortable": true,
 	    "class": ["no-wrap"]
 	},
-	
-	{
-	    "title_i18n": "db_search.probe_ip",
-	    "data_field": "probe_ip",
-	    "sortable": true,
-		 "min-width" : "150px",
-	    "render_type": "formatProbeIP",
-	    "class": ["text-nowrap"]
-	},
 	{
 	    "title_i18n": "db_search.tags.cli_network",
 	    "data_field": "cli_network",
@@ -140,6 +131,14 @@
 	    "sortable": true,
 	    "render_generic": "srv_network",
 		 "min-width" : "140px",
+	    "class": ["text-nowrap"]
+	},
+	{
+	    "title_i18n": "db_search.probe_ip",
+	    "data_field": "probe_ip",
+	    "sortable": true,
+		 "min-width" : "150px",
+	    "render_type": "formatProbeIP",
 	    "class": ["text-nowrap"]
 	},
 	{

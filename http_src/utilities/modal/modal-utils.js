@@ -229,7 +229,6 @@ class ModalHandler {
             }
 
             const validInput = async (validation) => {
-
                 // if the input require to validate host name then perform a DNS resolve
                 if (validation.data.resolveDNS && $input.val().match(NtopUtils.REGEXES.domainName)) {
                     return await validHostname();
@@ -256,13 +255,17 @@ class ModalHandler {
                     return [false, validation.data.rangeUnderflowMessage || i18n_ext.invalid_field];
                 }
 
+                if (input.validity.typeMismatch) {
+                    input.setCustomValidity("Pattern mismatch.");
+                    return [false, validation.data.validationMessage || i18n_ext.invalid_field];
+                }
+
                 // set validation to true
                 input.setCustomValidity("");
                 return [true, "Success"];
             }
 
             const checkValidation = async () => {
-
                 const validation = {
                     data: {
                         validationMessage: $input.data('validationMessage'),

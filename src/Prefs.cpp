@@ -158,10 +158,6 @@ Prefs::Prefs(Ntop *_ntop) {
 #ifdef NTOPNG_PRO
   dump_flows_direct = false;
   max_aggregated_flows_upperbound = 10000, max_aggregated_flows_traffic_upperbound = 1;
-  is_geo_map_score_enabled = is_geo_map_asname_enabled =
-    is_geo_map_alerted_flows_enabled = false;
-  is_geo_map_blacklisted_flows_enabled = is_geo_map_host_name_enabled = false;
-  is_geo_map_rxtx_data_enabled = is_geo_map_num_flows_enabled = false;
 #endif
   enable_runtime_flows_dump = true;
   enable_activities_debug = false;
@@ -885,24 +881,10 @@ void Prefs::reloadPrefsFromRedis() {
     getDefaultPrefsValue(CONST_RUNTIME_IS_INTERFACE_NAME_ONLY, false);
 
 #ifdef NTOPNG_PRO
-  is_geo_map_score_enabled =
-    getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_SCORE_ENABLED, false);
-  is_geo_map_asname_enabled =
-    getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_ASNAME_ENABLED, false);
   max_aggregated_flows_upperbound =
     getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_UPPERBOUND, 10000);
   max_aggregated_flows_traffic_upperbound =
     getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_TRAFFIC_UPPERBOUND, 1);
-  is_geo_map_alerted_flows_enabled = getDefaultPrefsValue(
-							  CONST_RUNTIME_IS_GEO_MAP_ALERTED_FLOWS_ENABLED, false);
-  is_geo_map_blacklisted_flows_enabled = getDefaultPrefsValue(
-							      CONST_RUNTIME_IS_GEO_MAP_BLACKLISTED_FLOWS_ENABLED, false);
-  is_geo_map_host_name_enabled =
-    getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_HOST_NAME_ENABLED, false);
-  is_geo_map_rxtx_data_enabled =
-    getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_RXTX_DATA_ENABLED, false);
-  is_geo_map_num_flows_enabled =
-    getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_NUM_FLOWS_ENABLED, false);
 #endif
   // alert preferences
   enable_access_log = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
@@ -2661,20 +2643,6 @@ void Prefs::lua(lua_State *vm) {
 			     max_aggregated_flows_upperbound);
   lua_push_int32_table_entry(vm, "max_aggregated_flows_traffic_upperbound",
 			     max_aggregated_flows_traffic_upperbound);
-  lua_push_bool_table_entry(vm, "is_geo_map_score_enabled",
-                            is_geo_map_score_enabled);
-  lua_push_bool_table_entry(vm, "is_geo_map_asname_enabled",
-                            is_geo_map_asname_enabled);
-  lua_push_bool_table_entry(vm, "is_geo_map_alerted_flows_enabled",
-                            is_geo_map_alerted_flows_enabled);
-  lua_push_bool_table_entry(vm, "is_geo_map_blacklisted_flows_enabled",
-                            is_geo_map_blacklisted_flows_enabled);
-  lua_push_bool_table_entry(vm, "is_geo_map_host_name_enabled",
-                            is_geo_map_host_name_enabled);
-  lua_push_bool_table_entry(vm, "is_geo_map_rxtx_data_enabled",
-                            is_geo_map_rxtx_data_enabled);
-  lua_push_bool_table_entry(vm, "is_geo_map_num_flows_enabled",
-                            is_geo_map_num_flows_enabled);
 #endif
 
   lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled",
