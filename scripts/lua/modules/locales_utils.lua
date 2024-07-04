@@ -39,7 +39,8 @@ local supported_locales = {
    {code = "pt"},
    {code = "cz"},
    {code = "fr"},
-   {code = "ko"}
+   {code = "ko"},
+   {code = "fr"}
 }
 
 local nedge_supported_locales = {
