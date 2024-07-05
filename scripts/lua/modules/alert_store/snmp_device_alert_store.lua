@@ -89,6 +89,7 @@ function snmp_device_alert_store:insert(alert)
       extra_columns = "rowid, "
       extra_values = "generateUUIDv4(), "
    end
+   alert = self:add_mitre_info(alert)
 
    local insert_stmt = string.format("INSERT INTO %s "..
       "(%salert_id, interface_id, tstamp, tstamp_end, severity, score, ip, name, port, port_name, json) "..
