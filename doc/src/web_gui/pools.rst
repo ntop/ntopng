@@ -3,8 +3,8 @@
 Host Pools
 ##########
 
-Host pools are logical groups of hosts. Pools can be created or managed from the *System* interface, 
-*Pools* menu. It is possible to add new pools using the “plus” button in the same page.
+Host pools are logical groups of hosts. Pools can be created or managed from any ntopng interface (except System), 
+*Hosts* > *Host/Network/MAC Pools* menu entry. It is possible to add new pools using the "gear" button in the same page which will redirect to a new page to manage pools.
 
 .. figure:: ../img/web_gui_interfaces_edit_pools.png
   :align: center
@@ -13,7 +13,7 @@ Host pools are logical groups of hosts. Pools can be created or managed from the
   The Pools Page
 
 Once an Host Pool is created, it is possible to add members to it. Host Pool members can be added 
-from the *Pools* > *Host Pool Members* page, using the “plus” button.
+from the *Hosts* > *Host/Network/MAC Pools* page, clicking the gear icon which will redirect to a new page with a table. To add a new host click the “plus” button.
 
 .. figure:: ../img/web_gui_interfaces_edit_host_pool.png
   :align: center
