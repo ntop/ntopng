@@ -330,6 +330,7 @@
 #define CONST_INTERFACE_TYPE_DUMMY "dummy"
 #define CONST_INTERFACE_TYPE_ZC_FLOW "ZC-flow"
 #define CONST_INTERFACE_TYPE_CUSTOM "custom"
+#define CONST_INTERFACE_TYPE_DB "db"
 #define CONST_INTERFACE_TYPE_UNKNOWN "unknown"
 
 #define CONST_DEMO_MODE_DURATION 600          /* 10 min */

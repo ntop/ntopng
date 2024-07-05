@@ -73,7 +73,7 @@ void *MySQLDB::queryLoop() {
 
     if (rc == 0) {
       queue_not_empty = true;
-      try_exec_sql_query(&mysql, sql);
+      try_exec_sql_query(sql);
     } else {
       queue_not_empty = false;
       _usleep(10000);
@@ -100,7 +100,7 @@ bool MySQLDB::createDBSchema() {
     /* 1 - Create database if missing */
     snprintf(sql, sizeof(sql), "CREATE DATABASE IF NOT EXISTS `%s`",
              ntop->getPrefs()->get_mysql_dbname());
-    rc = exec_sql_query(&mysql, sql, true);
+    rc = exec_sql_query(sql, true);
     if (rc < 0) {
       printFailure(sql, rc);
       return (false);
@@ -150,7 +150,7 @@ bool MySQLDB::createDBSchema() {
         "PARTITIONS 32 */",
         ntop->getPrefs()->get_mysql_tablename());
 
-    rc = exec_sql_query(&mysql, sql, true);
+    rc = exec_sql_query(sql, true);
     if (rc < 0) {
       printFailure(sql, rc);
       return (false);
@@ -193,7 +193,7 @@ bool MySQLDB::createDBSchema() {
         "PARTITIONS 32 */",
         ntop->getPrefs()->get_mysql_tablename());
 
-    rc = exec_sql_query(&mysql, sql, true);
+    rc = exec_sql_query(sql, true);
     if (rc < 0) {
       printFailure(sql, rc);
       return (false);
@@ -206,11 +206,11 @@ bool MySQLDB::createDBSchema() {
     /* Add fields if not present */
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4_%u` ADD `INFO` varchar(255)",
              ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(&mysql, sql, true, true);
+    exec_sql_query(sql, true, true);
 
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6_%u` ADD `INFO` varchar(255)",
              ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(&mysql, sql, true, true);
+    exec_sql_query(sql, true, true);
 
 #ifdef NTOPNG_PRO
     snprintf(sql, sizeof(sql),
@@ -219,14 +219,14 @@ bool MySQLDB::createDBSchema() {
              "ADD INDEX `ix_%sv4_%u_profile` (PROFILE)",
              ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
              ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(&mysql, sql, true, true);
+    exec_sql_query(sql, true, true);
     snprintf(sql, sizeof(sql),
              "ALTER TABLE `%sv6_%u` "
              "ADD `PROFILE` varchar(255) DEFAULT NULL,"
              "ADD INDEX `ix_%sv6_%u_profile` (PROFILE)",
              ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
              ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(&mysql, sql, true, true);
+    exec_sql_query(sql, true, true);
 #endif
     snprintf(
         sql, sizeof(sql),
@@ -235,7 +235,7 @@ bool MySQLDB::createDBSchema() {
         "ADD INDEX `ix_%sv4_%u_ntopng_instance_name` (NTOPNG_INSTANCE_NAME)",
         ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
         ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(&mysql, sql, true, true);
+    exec_sql_query(sql, true, true);
     snprintf(
         sql, sizeof(sql),
         "ALTER TABLE `%sv6_%u` "
@@ -243,21 +243,21 @@ bool MySQLDB::createDBSchema() {
         "ADD INDEX `ix_%sv6_%u_ntopng_instance_name` (NTOPNG_INSTANCE_NAME)",
         ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
         ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(&mysql, sql, true, true);
+    exec_sql_query(sql, true, true);
     snprintf(sql, sizeof(sql),
              "ALTER TABLE `%sv4_%u` "
              "ADD `INTERFACE` varchar(64) DEFAULT NULL,"
              "ADD INDEX `ix_%sv4_%u_ntopng_interface` (INTERFACE)",
              ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
              ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(&mysql, sql, true, true);
+    exec_sql_query(sql, true, true);
     snprintf(sql, sizeof(sql),
              "ALTER TABLE `%sv6_%u` "
              "ADD `INTERFACE` varchar(64) DEFAULT NULL,"
              "ADD INDEX `ix_%sv6_%u_ntopng_interface` (INTERFACE)",
              ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
              ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(&mysql, sql, true, true);
+    exec_sql_query(sql, true, true);
 
     // We transfer old table contents into the new schema
     snprintf(sql, sizeof(sql),
@@ -265,22 +265,22 @@ bool MySQLDB::createDBSchema() {
              "SELECT * FROM `%sv4_%u`",
              ntop->getPrefs()->get_mysql_tablename(),
              ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(&mysql, sql, true, true);
+    exec_sql_query(sql, true, true);
     snprintf(sql, sizeof(sql),
              "INSERT IGNORE INTO `%sv6` "
              "SELECT * FROM `%sv6_%u`",
              ntop->getPrefs()->get_mysql_tablename(),
              ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-    exec_sql_query(&mysql, sql, true, true);
+    exec_sql_query(sql, true, true);
     // Drop old tables (their contents have been transferred)
   }
 
   snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS  `%sv4_%u` ",
            ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-  exec_sql_query(&mysql, sql, true, true);
+  exec_sql_query(sql, true, true);
   snprintf(sql, sizeof(sql), "DROP TABLE IF EXISTS `%sv6_%u` ",
            ntop->getPrefs()->get_mysql_tablename(), iface->get_id());
-  exec_sql_query(&mysql, sql, true, true);
+  exec_sql_query(sql, true, true);
 
   // Add extra indices to speedup queries
   snprintf(sql, sizeof(sql),
@@ -289,27 +289,27 @@ bool MySQLDB::createDBSchema() {
            "IP_SRC_ADDR, IP_DST_ADDR)",
            ntop->getPrefs()->get_mysql_tablename(),
            ntop->getPrefs()->get_mysql_tablename());
-  exec_sql_query(&mysql, sql, true, true);
+  exec_sql_query(sql, true, true);
   snprintf(sql, sizeof(sql),
            "ALTER TABLE `%sv6` "
            "ADD INDEX `ix_%sv6_ntopng_first_src_dst` (FIRST_SWITCHED, "
            "IP_SRC_ADDR, IP_DST_ADDR)",
            ntop->getPrefs()->get_mysql_tablename(),
            ntop->getPrefs()->get_mysql_tablename());
-  exec_sql_query(&mysql, sql, true, true);
+  exec_sql_query(sql, true, true);
 
   // Add an extra column with the interface id to speed up certain query
   snprintf(
       sql, sizeof(sql),
       "ALTER TABLE `%sv4` ADD COLUMN INTERFACE_ID SMALLINT(5) DEFAULT NULL",
       ntop->getPrefs()->get_mysql_tablename());
-  exec_sql_query(&mysql, sql, true, true);
+  exec_sql_query(sql, true, true);
 
   snprintf(
       sql, sizeof(sql),
       "ALTER TABLE `%sv6` ADD COLUMN INTERFACE_ID SMALLINT(5) DEFAULT NULL",
       ntop->getPrefs()->get_mysql_tablename());
-  exec_sql_query(&mysql, sql, true, true);
+  exec_sql_query(sql, true, true);
 
   // Populate the brand new column INTERFACE_ID with the ids of interfaces
   // and set to NULL the column INTERFACE
@@ -317,7 +317,7 @@ bool MySQLDB::createDBSchema() {
            "UPDATE `%sv4` SET INTERFACE_ID = %u WHERE INTERFACE ='%s'",
            ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
            iface->get_name());
-  if (exec_sql_query(&mysql, sql, true, true) == 0) {
+  if (exec_sql_query(sql, true, true) == 0) {
     // change succeeded, we have to flush possibly existing mysql queues
     // that may have different format
     ntop->getRedis()->del((char *)CONST_SQL_QUEUE);
@@ -327,32 +327,32 @@ bool MySQLDB::createDBSchema() {
            "UPDATE `%sv6` SET INTERFACE_ID = %u WHERE INTERFACE ='%s'",
            ntop->getPrefs()->get_mysql_tablename(), iface->get_id(),
            iface->get_name());
-  exec_sql_query(&mysql, sql, true, true);
+  exec_sql_query(sql, true, true);
   snprintf(sql, sizeof(sql),
            "UPDATE `%sv4` SET INTERFACE = NULL WHERE INTERFACE ='%s'",
            ntop->getPrefs()->get_mysql_tablename(), iface->get_name());
-  exec_sql_query(&mysql, sql, true, true);
+  exec_sql_query(sql, true, true);
   snprintf(sql, sizeof(sql),
            "UPDATE `%sv6` SET INTERFACE = NULL WHERE INTERFACE ='%s'",
            ntop->getPrefs()->get_mysql_tablename(), iface->get_name());
-  exec_sql_query(&mysql, sql, true, true);
+  exec_sql_query(sql, true, true);
 
   // Check if the INTERFACE column can be dropped
   snprintf(sql, sizeof(sql),
            "SELECT 1 FROM `%sv4` WHERE INTERFACE IS NOT NULL LIMIT 1",
            ntop->getPrefs()->get_mysql_tablename());
-  if (exec_sql_query(&mysql, sql, true, true) == 0) {
+  if (exec_sql_query(sql, true, true) == 0) {
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv4` DROP COLUMN INTERFACE",
              ntop->getPrefs()->get_mysql_tablename());
-    exec_sql_query(&mysql, sql, true, true);
+    exec_sql_query(sql, true, true);
   }
   snprintf(sql, sizeof(sql),
            "SELECT 1 FROM `%sv6` WHERE INTERFACE IS NOT NULL LIMIT 1",
            ntop->getPrefs()->get_mysql_tablename());
-  if (exec_sql_query(&mysql, sql, true, true) == 0) {
+  if (exec_sql_query(sql, true, true) == 0) {
     snprintf(sql, sizeof(sql), "ALTER TABLE `%sv6` DROP COLUMN INTERFACE",
              ntop->getPrefs()->get_mysql_tablename());
-    exec_sql_query(&mysql, sql, true, true);
+    exec_sql_query(sql, true, true);
   }
 
   // Move column BYTES to BYTES_IN and add BYTES_OUT
@@ -368,7 +368,7 @@ bool MySQLDB::createDBSchema() {
              "AND COLUMN_NAME='BYTES' ",
              ntop->getPrefs()->get_mysql_dbname(),
              ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
-    if (exec_sql_query(&mysql, sql, true, true) > 0) {
+    if (exec_sql_query(sql, true, true) > 0) {
       // if here, the column BYTES exists so we want to alter the table
       ntop->getTrace()->traceEvent(
           TRACE_NORMAL,
@@ -381,7 +381,7 @@ bool MySQLDB::createDBSchema() {
                "CHANGE BYTES IN_BYTES BIGINT DEFAULT 0, "
                "ADD OUT_BYTES BIGINT DEFAULT 0 AFTER IN_BYTES",
                ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
-      exec_sql_query(&mysql, sql, true, true);
+      exec_sql_query(sql, true, true);
     }
   }
 
@@ -396,7 +396,7 @@ bool MySQLDB::createDBSchema() {
              "AND ENGINE='InnoDB' ",
              ntop->getPrefs()->get_mysql_dbname(),
              ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
-    if (exec_sql_query(&mysql, sql, true, true) > 0) {
+    if (exec_sql_query(sql, true, true) > 0) {
       // if here, the table has engine InnoDB so we want to modify that to
       // MyISAM
       ntop->getTrace()->traceEvent(TRACE_INFO, "%s", sql);
@@ -408,7 +408,7 @@ bool MySQLDB::createDBSchema() {
 
       snprintf(sql, sizeof(sql), "ALTER TABLE `%sv%hu` ENGINE='MyISAM'",
                ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
-      exec_sql_query(&mysql, sql, true, true);
+      exec_sql_query(sql, true, true);
     }
   }
 
@@ -422,7 +422,7 @@ bool MySQLDB::createDBSchema() {
              "GROUP BY TABLE_NAME HAVING COUNT(*) = 32 ",
              ntop->getPrefs()->get_mysql_dbname(),
              ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
-    if (exec_sql_query(&mysql, sql, true, true) > 0) {
+    if (exec_sql_query(sql, true, true) > 0) {
       // if here, the table has 32 partitions and we want to convert them to 8
       ntop->getTrace()->traceEvent(TRACE_INFO, "%s", sql);
       ntop->getTrace()->traceEvent(
@@ -436,7 +436,7 @@ bool MySQLDB::createDBSchema() {
           "ALTER TABLE `%sv%hu` PARTITION BY HASH(FIRST_SWITCHED) PARTITIONS 8",
           ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
       ntop->getTrace()->traceEvent(TRACE_INFO, "%s", sql);
-      exec_sql_query(&mysql, sql, true, true);
+      exec_sql_query(sql, true, true);
     }
   }
 
@@ -454,7 +454,7 @@ bool MySQLDB::createDBSchema() {
                ntop->getPrefs()->get_mysql_dbname(),
                ntop->getPrefs()->get_mysql_tablename(), ipvers[i],
                counter_fields[j]);
-      if (exec_sql_query(&mysql, sql, true, true) > 0) {
+      if (exec_sql_query(sql, true, true) > 0) {
         // if here we have to convert the type to unsigned
         ntop->getTrace()->traceEvent(
             TRACE_NORMAL,
@@ -467,7 +467,7 @@ bool MySQLDB::createDBSchema() {
                  "ALTER TABLE `%sv%hu` MODIFY COLUMN `%s` int(10) unsigned",
                  ntop->getPrefs()->get_mysql_tablename(), ipvers[i],
                  counter_fields[j]);
-        exec_sql_query(&mysql, sql, true, true);
+        exec_sql_query(sql, true, true);
       }
     }
   }
@@ -483,7 +483,7 @@ bool MySQLDB::createDBSchema() {
              "'auto_increment') ",
              ntop->getPrefs()->get_mysql_dbname(),
              ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
-    if (exec_sql_query(&mysql, sql, true, true) > 0) {
+    if (exec_sql_query(sql, true, true) > 0) {
       // if here we have to convert the type to unsigned
       ntop->getTrace()->traceEvent(
           TRACE_NORMAL,
@@ -495,7 +495,7 @@ bool MySQLDB::createDBSchema() {
                "ALTER TABLE `%sv%hu` MODIFY COLUMN `idx` bigint NOT NULL "
                "AUTO_INCREMENT",
                ntop->getPrefs()->get_mysql_tablename(), ipvers[i]);
-      exec_sql_query(&mysql, sql, true, true);
+      exec_sql_query(sql, true, true);
     }
   }
 
@@ -672,7 +672,8 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf,
 
 /* ******************************************* */
 
-void MySQLDB::try_exec_sql_query(MYSQL *conn, char *sql) {
+void MySQLDB::try_exec_sql_query(char *sql) {
+  MYSQL *conn = &mysql;
   int rc;
 
   if (!db_operational) {
@@ -686,7 +687,7 @@ void MySQLDB::try_exec_sql_query(MYSQL *conn, char *sql) {
     ntop->getTrace()->traceEvent(
         TRACE_WARNING, "Tried to execute a query longer than %u. Skipping.",
         CONST_MAX_SQL_QUERY_LEN - 2);
-  } else if ((rc = exec_sql_query(conn, sql, true /* Attempt to reconnect */,
+  } else if ((rc = exec_sql_query(sql, true /* Attempt to reconnect */,
                                   true /* Don't print errors */, false)) < 0) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "MySQL error: %s [rc=%d]",
                                  get_last_db_error(conn), rc);
@@ -727,7 +728,7 @@ bool MySQLDB::dumpFlow(time_t when, Flow *f, char *json) {
      is not an issue and also avoids flows drops due to the redis queue
      maximum length
     */
-    try_exec_sql_query(&mysql, sql);
+    try_exec_sql_query(sql);
   } else {
     if (ntop->getRedis()->llen(CONST_SQL_QUEUE) < CONST_MAX_MYSQL_QUEUE_LEN) {
       /*
@@ -1005,11 +1006,13 @@ int MySQLDB::exec_single_query(lua_State *vm, char *sql) {
   Locking is necessary when multiple queries are executed
   simultaneously (e.g. via Lua)
 */
-int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect,
-                            bool ignoreErrors, bool doLock) {
-  int rc;
+int MySQLDB::exec_sql_query(const char *sql, bool doReconnect,
+                            bool ignoreErrors, bool doLock,
+                            db_result_row_callback *cb, void *cb_user_data) {
+  MYSQL *conn = &mysql;
   MYSQL_RES *result;
   struct timeval begin, end;
+  int rc;
 
   if (enable_db_traces) {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", sql);
@@ -1038,7 +1041,7 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect,
 
           connectToDB(conn, true);
 
-          return (exec_sql_query(conn, sql, false));
+          return (exec_sql_query(sql, false));
         } else
           ntop->getTrace()->traceEvent(TRACE_INFO, "[%s][%s]",
                                        get_last_db_error(conn), sql);
@@ -1061,6 +1064,33 @@ int MySQLDB::exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect,
       rc = mysql_num_rows(result);
       ntop->getTrace()->traceEvent(
           TRACE_INFO, "Current result set has %lu rows", (unsigned long)rc);
+
+      /* Callback - passing data row by row */
+      if (cb) {
+        MYSQL_ROW row;
+        int num_fields = mysql_field_count(&mysql);
+        char *fields[MYSQL_MAX_NUM_FIELDS] = { NULL };
+        int num = 0;
+        int ret;
+
+        if (num_fields > MYSQL_MAX_NUM_FIELDS)
+          num_fields = MYSQL_MAX_NUM_FIELDS;
+
+        while ((row = mysql_fetch_row(result))) {
+          if (num == 0) {
+            for (int i = 0; i < num_fields; i++) {
+              MYSQL_FIELD *field = mysql_fetch_field(result);
+              fields[i] = field->name;
+            }
+          }
+
+          ret = cb(row, fields, num_fields, cb_user_data);
+          if (ret != 0) break;
+
+          num++;
+        }
+      }
+
       mysql_free_result(result);
     }
   }
