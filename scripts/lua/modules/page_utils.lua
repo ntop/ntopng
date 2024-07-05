@@ -40,7 +40,7 @@ end
 -- #################################
 
 page_utils.menu_sections = {
-   monitoring     = {key = "monitoring", i18n_title = "monitoring", icon = "fas fa-satellite-dish"},
+   monitoring        = {key = "monitoring", i18n_title = "monitoring", icon = "fas fa-satellite-dish"},
    dashboard     = {key = "dashboard", i18n_title = "index_page.dashboard", icon = "fas fa-tachometer-alt"},
    alerts        = {key = "alerts", i18n_title = "details.alerts", icon = "fas fa-exclamation-triangle"},
    flows         = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},
@@ -50,8 +50,7 @@ page_utils.menu_sections = {
    if_stats      = {key = "if_stats", i18n_title = "interface", icon = "fas fa-ethernet"},
    system_stats  = {key = "system_stats", i18n_title = "system", icon = "fas fa-desktop"},
    admin         = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},
-   alert_exclusions = {key = "alert_exclusions", i18n_title = "edit_check.exclusion_list", icon = "fas fa-bell-slash"},
-   device_exclusions = {key = "device_exclusions", i18n_title = "edit_check.device_exclusions", icon = "fas fa-bell-slash"},
+   alert_exclusions  = {key = "alert_exclusions", i18n_title = "edit_check.exclusion_list", icon = "fas fa-bell-slash"},
    dev           = {key = "dev", i18n_title = "developer", icon = "fas fa-code"},
    about         = {key = "about", i18n_title = "help", icon = "fas fa-life-ring"},
    chatbot       = {key = "chatbot", i18n_title = "chatbot", icon = "fa-solid fa-headset"},
@@ -153,8 +152,8 @@ page_utils.menu_entries = {
    scripts_config_system  = {key = "scripts_config", subkey="system", i18n_title = alert_entities.system.i18n_label, section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_syslog  = {key = "scripts_config", subkey="syslog", i18n_title = "syslog.syslog", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_active_monitoring  = {key = "scripts_config", subkey="active_monitoring", i18n_title = "active_monitoring", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
-   device_exclusions      = {key = "device_exclusions", i18n_title = "edit_check.device_exclusion", section = "device_exclusions"},
-   alert_exclusions       = {key = "alert_exclusions", i18n_title = "edit_check.exclusion_list", section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
+   device_exclusions      = {key = "device_exclusions", i18n_title = "edit_check.device_exclusion", section = "hosts"},
+   alert_exclusions       = {key = "alert_exclusions", i18n_title = "edit_check.exclusion_list", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    alert_exclusions_hosts = {key = "alert_exclusions", subkey="hosts", i18n_title = alert_entities.host.i18n_label, section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    alert_exclusions_flows = {key = "alert_exclusions", subkey="flows", i18n_title = alert_entities.flow.i18n_label, section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    alert_exclusions_domains = {key = "alert_exclusions", subkey="domains", i18n_title = alert_entities.domain.i18n_label, section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
