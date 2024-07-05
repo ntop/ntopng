@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 
-# EXAMPLE USAGE
-# First install deep-translator library
+#
+# PURPOSE
+# This tool translates automatically i18n languages
+#
+# PREREQUISITES
 # pip install deep-translator
-# python3 translation.py --input_file en.lua --output_file de.lua --input_language en --output_language de
-
+#
+ USAGE
+# python3 translation.py --input_file ../../scripts/locales/en.lua --output_file ../../scripts/locales/es.lua --input_language en --output_language es
+#
 from deep_translator import GoogleTranslator
 import argparse
 import re

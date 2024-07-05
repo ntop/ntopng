@@ -210,7 +210,7 @@ void AlertsQueue::pushNfqFlushedAlert(int queue_len, int queue_len_pct,
 
 /* **************************************************** */
 
-void AlertsQueue::pushCloudDisconnectionAlert() {
+void AlertsQueue::pushCloudDisconnectionAlert(const char *descr) {
   ndpi_serializer *tlv;
 
   if (ntop->getPrefs()->are_alerts_disabled()) return;
@@ -219,6 +219,9 @@ void AlertsQueue::pushCloudDisconnectionAlert() {
 
   if (tlv) {
     ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
+
+    if (descr)
+      ndpi_serialize_string_string(tlv, "description", descr);
 
     pushAlertJson(tlv, "cloud_disconnected", NULL, alert_category_system);
   }
@@ -226,7 +229,7 @@ void AlertsQueue::pushCloudDisconnectionAlert() {
 
 /* **************************************************** */
 
-void AlertsQueue::pushCloudReconnectionAlert() {
+void AlertsQueue::pushCloudReconnectionAlert(const char *descr) {
   ndpi_serializer *tlv;
 
   if (ntop->getPrefs()->are_alerts_disabled()) return;
@@ -235,6 +238,9 @@ void AlertsQueue::pushCloudReconnectionAlert() {
 
   if (tlv) {
     ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
+
+    if (descr)
+      ndpi_serialize_string_string(tlv, "description", descr);
 
     pushAlertJson(tlv, "cloud_reconnected", NULL, alert_category_system);
   }

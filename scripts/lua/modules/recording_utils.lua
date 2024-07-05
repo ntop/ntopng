@@ -746,7 +746,7 @@ local function isSmartRecordingEnabled(ifid)
   if cur_provider == "ntopng" then
     return isSmartRecordingEnabledInCache(ifid)
   else
-    return true
+    return false -- TODO detect if smart recording is enabled for the external provider
   end
 end 
 
