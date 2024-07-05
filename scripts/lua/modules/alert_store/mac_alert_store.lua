@@ -40,6 +40,7 @@ function mac_alert_store:insert(alert)
       extra_columns = "rowid, "
       extra_values = "generateUUIDv4(), "
    end
+   alert = self:add_mitre_info(alert)
 
    local insert_stmt = string.format("INSERT INTO %s "..
       "(%salert_id, interface_id, tstamp, tstamp_end, severity, score, address, device_type, name, "..

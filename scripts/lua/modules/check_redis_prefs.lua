@@ -119,7 +119,7 @@ end
 
 -- ###########################################
 
-function areFlowdevTimeseriesEnabled(ifid, device)
+function areFlowdevTimeseriesEnabled()
     return (ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation") == "1")
 end
 
