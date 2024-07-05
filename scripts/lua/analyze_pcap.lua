@@ -25,9 +25,9 @@ else
 end
 
 if(_POST.uploaded_file ~= nil) then
-   local iface_id = ntop.registerPcapInterface(_POST.uploaded_file, create_new_iface)
+   local iface_id = ntop.registerRuntimeInterface('pcap:' .. _POST.uploaded_file, create_new_iface)
 
-   if(iface_id > 0) then
+   if iface_id and iface_id > 0 then
       print(template.gen("analyze_pcap.template", { iface_id = toint(iface_id) }))
    else
       print(i18n("analyze_pcap_error"))
