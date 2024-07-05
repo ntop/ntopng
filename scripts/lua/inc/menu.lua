@@ -312,6 +312,17 @@ else
     })
 
     -- ##############################################
+    --[[
+        page_utils.add_menubar_section({
+            section = page_utils.menu_sections.chatbot,
+            hidden = is_system_interface or is_viewed,
+            entries = {{
+                entry = page_utils.menu_entries.chatbot,
+                url = '/lua/chatbot.lua'
+            }}})
+    ]]--
+
+    -- ##############################################
     local checks = require "checks"
     local interface_config = checks.getConfigset()["config"]["interface"]
     local devices_exclusion_enabled = false

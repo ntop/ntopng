@@ -54,6 +54,7 @@ page_utils.menu_sections = {
    device_exclusions = {key = "device_exclusions", i18n_title = "edit_check.device_exclusions", icon = "fas fa-bell-slash"},
    dev           = {key = "dev", i18n_title = "developer", icon = "fas fa-code"},
    about         = {key = "about", i18n_title = "help", icon = "fas fa-life-ring"},
+   chatbot       = {key = "chatbot", i18n_title = "chatbot", icon = "fa-solid fa-headset"},
    health        = {key = "health", i18n_title = "health", icon = "fas fa-laptop-medical"},
    pollers       = {key = "pollers", i18n_title = "pollers", icon = "fas fa-heartbeat"},
    tools         = {key = "tools", i18n_title = "tools", icon = "fas fa-cogs"},
@@ -108,6 +109,8 @@ page_utils.menu_entries = {
     pods                  = {key = "pods", i18n_title = "containers_stats.pods", section = "hosts"},
     host_rules            = {key = "host_rules", i18n_title = "if_stats_config.traffic_rules", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/host_rules.html"},
 
+    -- Chatbot 
+    chatbot             = {key = "chatbot", i18n_title = "chatbot", section = "chatbot"},
     -- Interface
     interface             = {key = "interface", i18n_title = "interface_details", section = "if_stats"},
     ports_analysis        = {key = "ports_analysis", i18n_title = "ports_analysis.server_ports", section = "if_stats"},
