@@ -1152,7 +1152,7 @@ int SNMP::snmp_get_fctn(lua_State *vm, snmp_pdu_primitive pduType,
 //callback printing trap
 int read_snmp_trap(int operation, struct snmp_session *sp, int reqid,
                     struct snmp_pdu *pdu, void *magic){
-  switch (operation){
+  switch (pdu->command){
     case SNMP_MSG_TRAP:
     case SNMP_MSG_TRAP2:
       ntop->getTrace()->traceEvent(TRACE_DEBUGGING, __FILE__,__LINE__,"trap type %ld specific type %ld", pdu->trap_type, pdu->specific_type);
