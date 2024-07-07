@@ -57,6 +57,8 @@ LocalHost::~LocalHost() {
   addInactiveData();
   if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();
+  /* Decrease number of active hosts */
+  iface->decNumHosts(isLocalHost(), isRxOnlyHost());
 }
 
 /* *************************************** */
@@ -158,6 +160,8 @@ void LocalHost::initialize() {
     fingerprints = new (std::nothrow) HostFingerprints();
   else
     fingerprints = NULL;
+
+  iface->incNumHosts(isLocalHost(), true /* Init the host, so bytes are 0, considered RX only */);
 }
 
 /* *************************************** */

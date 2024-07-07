@@ -11070,6 +11070,8 @@ void NetworkInterface::incNumHosts(bool local, bool rxOnlyHost) {
   if (isShuttingDown())
     return;
 
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of %s %s hosts", local ? "Local" : "Remote", rxOnlyHost ? "RX Only" : "Bidirectional");
+
   totalNumHosts++;
   if (local) {
     numLocalHosts++;
@@ -11088,6 +11090,7 @@ void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
   /* Do not increase nor decrease hosts in case ntopng is shutting down, it's useless */
   if (isShuttingDown())
     return;
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Decreasing number of %s %s hosts", local ? "Local" : "Remote", rxOnlyHost ? "RX Only" : "Bidirectional");
 
   /* Decrease total number of hosts */
   if (!totalNumHosts) {
