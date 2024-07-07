@@ -120,6 +120,8 @@ Host::~Host() {
     consistency (no thread outside the datapath will change the last pool id)
   */
   iface->decPoolNumHosts(get_host_pool(), false /* Host is deleted offline */);
+  /* Decrease number of active hosts */
+  iface->decNumHosts(isLocalHost(), isRxOnlyHost());
   if (customHostAlert.msg) free(customHostAlert.msg);
 
   if(!ntop->getPrefs()->limitResourcesUsage()) {
@@ -367,7 +369,9 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
                                         true /* Inline call */)) != NULL)
       obs_point->incUses();
   }
-
+    
+  /* Increase the number of active hosts */
+  iface->incNumHosts(isLocalHost(), true /* Init the host, so bytes are 0, considered RX only */);
   reloadHostBlacklist();
 }
 

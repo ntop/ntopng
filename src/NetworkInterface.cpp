@@ -11070,14 +11070,16 @@ void NetworkInterface::incNumHosts(bool local, bool rxOnlyHost) {
   if (isShuttingDown())
     return;
 
-  if (local) numLocalHosts++;
-  
-  if(rxOnlyHost) {
-    if (local) numLocalRxOnlyHosts++;
-    numTotalRxOnlyHosts++;
-  }
-
   totalNumHosts++;
+  if (local) {
+    numLocalHosts++;
+  }
+  if(rxOnlyHost) {
+    numTotalRxOnlyHosts++;
+    if (local) {
+      numLocalRxOnlyHosts++;
+    }
+  }
 };
 
 /* *************************************** */
@@ -11087,31 +11089,39 @@ void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
   if (isShuttingDown())
     return;
 
+  /* Decrease total number of hosts */
+  if (!totalNumHosts) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 4);
+  } else {
+    totalNumHosts--;
+  }
+
+  /* Decrease total number of local hosts */
   if (local) {
-    if(numLocalHosts == 0)
+    if (!numLocalHosts) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 1);
-    else
+    } else {
       numLocalHosts--;
+    }
   }
 
   if(rxOnlyHost) {
-    if(local) {
-      if(numLocalRxOnlyHosts == 0)
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 2);
-      else
-	numLocalRxOnlyHosts--;
-    }
-  
-    if(numTotalRxOnlyHosts == 0)
+    /* Decrease total number of RX only hosts */
+    if (!numTotalRxOnlyHosts) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 3);
-    else
+    } else {
       numTotalRxOnlyHosts--;
-  }
+    }
 
-  if(totalNumHosts == 0)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 4);
-  else
-    totalNumHosts--;
+    /* Decrease total number of RX only local hosts */
+    if(local) {
+      if (!numLocalRxOnlyHosts) {
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 2);
+      } else {
+        numLocalRxOnlyHosts--;
+      }
+    }
+  }
 };
 
 /* **************************************************** */
