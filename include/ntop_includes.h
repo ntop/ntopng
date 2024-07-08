@@ -410,7 +410,6 @@ using namespace std;
 #include "ClickHouseImport.h"
 #include "ClickHouseFlowDB.h"
 #include "ClickHouseAlertStore.h"
-#include "ClickHouseInterface.h"
 #endif
 #ifdef NTOPNG_PRO
 #include "NtopCloud.h"
@@ -439,6 +438,9 @@ using namespace std;
 #include "ZCCollectorInterface.h"
 #include "DummyInterface.h"
 #include "ExportInterface.h"
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE)
+#include "ClickHouseInterface.h"
+#endif
 #endif
 
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
