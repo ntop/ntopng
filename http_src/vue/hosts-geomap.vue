@@ -73,7 +73,7 @@ let markers = null;
 const default_coords = [41.9, 12.4833333];
 const zoom_level = 4;
 
-let endpoint = `${http_prefix}/lua/rest/v2/get/geo_map/hosts.lua?`;
+let endpoint = `/lua/rest/v2/get/geo_map/hosts.lua?`;
 let baseEndpoint = "";
 
 onMounted(() => {
@@ -207,6 +207,7 @@ async function redraw_hosts() {
 
     // get data
     const url = `${http_prefix}${endpoint}${ntopng_url_manager.get_url_params()}`
+    console.log(url)
     const rsp = await ntopng_utility.http_request(url);
     ntopng_url_manager.get_url_entry('host') ? 
         is_host_details.value = true :
