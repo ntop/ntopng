@@ -373,7 +373,7 @@ PACK_ON struct l2tp_header {
 
 typedef struct zmq_remote_stats {
   char remote_ifname[32], remote_ifaddress[64];
-  char remote_probe_address[64], remote_probe_public_address[64];
+  char remote_probe_address[64], remote_probe_public_address[64], uuid[36];
   char remote_probe_version[64], remote_probe_os[64];
   char remote_probe_license[64], remote_probe_edition[64];
   char remote_probe_maintenance[64];

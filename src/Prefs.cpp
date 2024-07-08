@@ -366,7 +366,7 @@ void usage() {
 	 "                                    | zmq://<IP address>         [ZMQ "
 	 "flow collection]\n"
 	 "                                    | tcp://<IP address>         "
-	 "[DEPRECATED ZMQ flow collection]\n"
+	 "[Deprecated - use zmq://]\n"
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
 	 "                                    | kafka://<brokers list>     [Kafka "
 	 "flow collection]\n"

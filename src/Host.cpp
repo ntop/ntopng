@@ -367,7 +367,8 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
                                         true /* Inline call */)) != NULL)
       obs_point->incUses();
   }
-
+    
+  /* Increase the number of active hosts */
   reloadHostBlacklist();
 }
 

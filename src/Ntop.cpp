@@ -4041,13 +4041,11 @@ void Ntop::speedtest(lua_State *vm) {
 
 /* ******************************************* */
 
-bool Ntop::createPcapInterface(const char *path, int *iface_id) {
+bool Ntop::createRuntimeInterface(char *path, int *iface_id) {
+  bool ret = false;
 #ifndef HAVE_NEDGE
   NetworkInterface *new_iface, *old_iface = NULL;
-#endif
-  bool ret;
-#ifndef HAVE_NEDGE
-  u_int slot_id;
+  int slot_id = -1;
 
   if (old_iface_to_purge != NULL) {
     delete old_iface_to_purge;
@@ -4063,63 +4061,83 @@ bool Ntop::createPcapInterface(const char *path, int *iface_id) {
     }
   }
 
-  try {
-    errno = 0;
-    new_iface = new PcapInterface((const char *)path,
-                                  (u_int8_t)ntop->get_num_interfaces(),
-                                  true /* delete pcap when done */);
+  if (strncmp(path, "pcap:", 5) == 0) {
+    path = &path[5];
 
-    if (old_iface == NULL) {
-      /* Allocate new interface */
+    ntop->fixPath(path);
 
-      if (registerInterface(new_iface)) {
-        initInterface(new_iface);
-        new_iface->reloadFlowChecks(flow_checks_loader);
-        new_iface->reloadHostChecks(host_checks_loader);
-        new_iface->allocateStructures();
-        new_iface->startPacketPolling();
-        *iface_id = new_iface->get_id();
+    try {
+      errno = 0;
+      new_iface = new PcapInterface((const char *)path,
+                                    (u_int8_t)ntop->get_num_interfaces(),
+                                    true /* delete pcap when done */);
+    } catch (int err) {
+      getTrace()->traceEvent(TRACE_ERROR,
+                             "Unable to open interface %s with pcap [%d]: %s",
+                             path, err, strerror(err));
+      return false;
+    }
+  
+  } else if (strncmp(path, "db:", 3) == 0) {
+    path = &path[3];
+
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+    if (ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
+      try {
+        new_iface = new ClickHouseInterface((const char *)path);
+      } catch (int err) {
+        getTrace()->traceEvent(TRACE_ERROR,
+                               "Unable to open database on '%s'",
+                               path);
+        return false;
       }
-    } else {
-      NetworkInterface *old = iface[slot_id];
-
-      initInterface(new_iface);
-      new_iface->reloadFlowChecks(flow_checks_loader);
-      new_iface->reloadHostChecks(host_checks_loader);
-      new_iface->allocateStructures();
-      new_iface->startPacketPolling();
-
-      m.lock(__FILE__, __LINE__);
-
-      iface[slot_id] = new_iface; /* Swap interfaces */
-
-      old->shutdown();
-
-      /* Wait until the interface is shutdown */
-      while (old->isRunning()) sleep(1);
-
-      /* Trick to avoid crashing while using the same interface we want to free
-       */
-      old_iface_to_purge = old;
-
-      *iface_id = new_iface->get_id();
-      m.unlock(__FILE__, __LINE__);
+    } else 
+#endif
+    {
+      getTrace()->traceEvent(TRACE_WARNING, "Unable to create runtime interface on database (database support not enabled)");
+      return false;
     }
 
-    ret = true;
-
-  } catch (int err) {
-    getTrace()->traceEvent(TRACE_ERROR,
-                           "Unable to open interface %s with pcap [%d]: %s",
-                           path, err, strerror(err));
-
-    ret = false;
+  } else {
+    getTrace()->traceEvent(TRACE_WARNING, "Unrecognized runtime interface type '%s'", path);
+    return false;
   }
-#else
-  ret = false;
+
+  if (old_iface == NULL) {
+    /* Register new interface */
+    if (!registerInterface(new_iface))
+      return false;
+  }
+
+  initInterface(new_iface);
+  new_iface->reloadFlowChecks(flow_checks_loader);
+  new_iface->reloadHostChecks(host_checks_loader);
+  new_iface->allocateStructures();
+  new_iface->startPacketPolling();
+
+  if (old_iface != NULL) { 
+    m.lock(__FILE__, __LINE__);
+
+    iface[slot_id] = new_iface; /* Swap interfaces */
+
+    old_iface->shutdown();
+
+    /* Wait until the interface is shutdown */
+    while (old_iface->isRunning()) sleep(1);
+
+    /* Trick to avoid crashing while using the same interface we want to free */
+    old_iface_to_purge = old_iface;
+
+    m.unlock(__FILE__, __LINE__);
+  }
+
+  *iface_id = new_iface->get_id();
+
+  ret = true;
+
 #endif
 
-  return (ret);
+  return(ret);
 }
 
 /* ******************************************* */

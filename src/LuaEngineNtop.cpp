@@ -1580,7 +1580,7 @@ static int ntop_unlink_file(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_register_pcap_interface(lua_State *vm) {
+static int ntop_register_runtime_interface(lua_State *vm) {
   char *path = NULL;
   int if_id = -99;
   bool create_new_interface;
@@ -1594,22 +1594,20 @@ static int ntop_register_pcap_interface(lua_State *vm) {
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   create_new_interface = (bool)lua_toboolean(vm, 2);
 
-  ntop->fixPath(path);
-
   if (create_new_interface) {
     if ((!ntop->isUserAdministrator(vm)) || (path == NULL) ||
         (ntop->get_num_interfaces() >= MAX_NUM_DEFINED_INTERFACES)) {
       ; /* No way */
     } else {
       int id = -1; /* -1 = allocate new interface */
-      bool rc = ntop->createPcapInterface((const char *)path, &id);
+      bool rc = ntop->createRuntimeInterface(path, &id);
 
       if (rc) if_id = id;
     }
   } else {
     /* Upload pcap on this interface */
     int id = iface->get_id();
-    bool rc = ntop->createPcapInterface((const char *)path, &id);
+    bool rc = ntop->createRuntimeInterface(path, &id);
 
     if (rc) if_id = id;
   }
@@ -2959,6 +2957,48 @@ static int ntop_http_post_auth_token(lua_State *vm) {
   Utils::httpGetPost(vm, url, NULL /* username */, NULL /* pwd */, auth_token,
                      timeout, return_content, use_cookie_authentication, &stats,
                      form_data, NULL, true, 0);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
+static int ntop_http_put_auth_token(lua_State *vm) {
+  char *url, *auth_token = NULL, *form_data;
+  int timeout = 30;
+  bool return_content = false;
+  bool use_cookie_authentication = false;
+  HTTPTranferStats stats;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  if ((url = (char *)lua_tostring(vm, 1)) == NULL)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+
+  if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  if ((auth_token = (char *)lua_tostring(vm, 2)) == NULL)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+
+  if (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TSTRING) != CONST_LUA_OK)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  if ((form_data = (char *)lua_tostring(vm, 3)) == NULL)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+
+  if (lua_type(vm, 4) == LUA_TNUMBER) /* Optional */
+    timeout = lua_tonumber(vm, 4);
+
+  if (lua_type(vm, 5) == LUA_TBOOLEAN) /* Optional */
+    return_content = lua_toboolean(vm, 5) ? true : false;
+
+  if (lua_type(vm, 6) == LUA_TBOOLEAN) /* Optional */
+    use_cookie_authentication = lua_toboolean(vm, 6) ? true : false;
+
+  Utils::httpGetPost(vm, url, NULL /* username */, NULL /* pwd */, auth_token,
+                     timeout, return_content, use_cookie_authentication, &stats,
+                     form_data, NULL, true, 0, true);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
@@ -8028,6 +8068,7 @@ static luaL_Reg _ntop_reg[] = {
     { "httpGetAuthToken", ntop_http_get_auth_token},
     { "httpPost", ntop_http_post},
     { "httpPostAuthToken", ntop_http_post_auth_token},
+    { "httpPutAuthToken", ntop_http_put_auth_token},
     { "httpFetch", ntop_http_fetch},
     { "postHTTPJsonData", ntop_post_http_json_data},
     { "postHTTPTextFile", ntop_post_http_text_file},
@@ -8225,8 +8266,8 @@ static luaL_Reg _ntop_reg[] = {
     { "poolsLock", ntop_pools_lock},
     { "poolsUnlock", ntop_pools_unlock},
 
-    /* Register pcap Interface */
-    { "registerPcapInterface", ntop_register_pcap_interface},
+    /* Register Runtime Interface (PCAP or DB) */
+    { "registerRuntimeInterface", ntop_register_runtime_interface},
 
 #if defined(NTOPNG_PRO) && defined(HAVE_KAFKA)
     /* Kafka */

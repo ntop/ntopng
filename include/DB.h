@@ -24,6 +24,8 @@
 
 #include "ntop_includes.h"
 
+typedef int db_result_row_callback(char *row[], char *fields[], int num_fields, void *user_data);
+
 class DB {
  private:
   struct timeval lastUpdateTime;
@@ -59,6 +61,13 @@ class DB {
   /* Pure Virtual Functions of a DB flow exporter */
   virtual bool dumpFlow(time_t when, Flow *f, char *json) = 0;
   virtual bool startQueryLoop() { return (false); }
+
+  virtual int exec_sql_query(const char *sql, bool doReconnect = true,
+                     bool ignoreErrors = false, bool doLock = true,
+                     db_result_row_callback *cb = NULL,
+                     void *cb_user_data = NULL) {
+    return (-1);
+  }
 
   virtual int exec_sql_query(lua_State *vm, char *sql, bool limitRows,
                              bool wait_for_db_created) {

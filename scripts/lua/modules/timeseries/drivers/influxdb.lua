@@ -2125,7 +2125,12 @@ local function getCqQuery(dbname, tags, schema, source, dest, step, dest_step, r
 end
 
 function driver:setup(ts_utils)
+    local version, err = getInfluxdbVersion(self.url, self.username, self.password)
+    if version then
+        isCompatibleVersion(version)
+    end
     local skip = ntop.getCache(INFLUXDB_KEY_SKIP_RETENTION_AND_CREATION)
+
     if isEmptyString(skip) then
         skip = false
     else   
