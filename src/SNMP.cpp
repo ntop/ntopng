@@ -64,7 +64,7 @@ SNMP::SNMP() {
   //TODO: check if other fields need to be populated
   snmp_sess_init(&trap_session->session);
   trap_session->session.callback = read_snmp_trap;
-  trap_session->session.callback_magic = (void *) snmpTransport;
+  trap_session->session.callback_magic = (void *) this;
   trap_session->session.authenticator = NULL;
   netsnmp_session* rc = snmp_add(&trap_session->session,snmpTransport, NULL, NULL);
   if (rc == NULL) {
@@ -1149,13 +1149,35 @@ int SNMP::snmp_get_fctn(lua_State *vm, snmp_pdu_primitive pduType,
 	return (snmp_read_response(vm, timeout));
     }
 }
+
+void SNMP::handle_trap(struct snmp_pdu*pdu){
+  netsnmp_variable_list *variable;
+  char oid[MAX_OID_LEN] = {'\0'};
+  tree *mib;
+  variable = pdu->variables;
+  while (variable) {
+    // fill oid with an human readable oid
+    if(snprint_objid(oid, sizeof(oid), variable->name_loc, variable->name_length))
+        printf("oid: %s\n", oid);
+    //now let's figure out the mib
+    mib = get_tree(variable->name_loc, variable->name_length, get_tree_head());
+    while(mib && mib->next_peer)
+        mib = mib->next_peer;
+    
+    printf("mib %s\n",mib->label);
+    variable = variable->next_variable;
+  }
+      
+}
 //callback printing trap
 int read_snmp_trap(int operation, struct snmp_session *sp, int reqid,
                     struct snmp_pdu *pdu, void *magic){
+  SNMP *s = (SNMP *)magic;
   switch (pdu->command){
     case SNMP_MSG_TRAP:
     case SNMP_MSG_TRAP2:
       ntop->getTrace()->traceEvent(TRACE_DEBUGGING, __FILE__,__LINE__,"trap type %ld specific type %ld", pdu->trap_type, pdu->specific_type);
+      s->handle_trap(pdu);
     break;
     default:
       ntop->getTrace()->traceEvent(TRACE_DEBUGGING,__FILE__,__LINE__,"Invalid operation %d",operation);

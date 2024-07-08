@@ -115,6 +115,7 @@ class SNMP {
   int getnext(lua_State *vm, bool skip_first_param);
   int getnextbulk(lua_State *vm, bool skip_first_param);
   int set(lua_State *vm, bool skip_first_param);
+  void handle_trap(struct snmp_pdu*pdu);
 };
 
 #endif /* _SNMP_H_ */
