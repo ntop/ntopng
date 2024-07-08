@@ -4077,6 +4077,26 @@ bool Ntop::createRuntimeInterface(char *path, int *iface_id) {
                              path, err, strerror(err));
       return false;
     }
+  
+  } else if (strncmp(path, "db:", 3) == 0) {
+    path = &path[3];
+
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
+    if (ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
+      try {
+        new_iface = new ClickHouseInterface((const char *)path);
+      } catch (int err) {
+        getTrace()->traceEvent(TRACE_ERROR,
+                               "Unable to open database on '%s'",
+                               path);
+        return false;
+      }
+    } else 
+#endif
+    {
+      getTrace()->traceEvent(TRACE_WARNING, "Unable to create runtime interface on database (database support not enabled)");
+      return false;
+    }
 
   } else {
     getTrace()->traceEvent(TRACE_WARNING, "Unrecognized runtime interface type '%s'", path);

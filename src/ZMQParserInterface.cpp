@@ -364,6 +364,9 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
         snprintf(zrs.remote_probe_public_address,
                  sizeof(zrs.remote_probe_public_address), "%s",
                  json_object_get_string(z));
+      if (json_object_object_get_ex(w, "uuid", &z))
+        snprintf(zrs.uuid, sizeof(zrs.uuid),
+                 "%s", json_object_get_string(z));
       if (json_object_object_get_ex(w, "ip", &z))
         snprintf(zrs.remote_probe_address, sizeof(zrs.remote_probe_address),
                  "%s", json_object_get_string(z));

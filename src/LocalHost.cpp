@@ -52,14 +52,13 @@ LocalHost::LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
 
 /* *************************************** */
 
-LocalHost::~LocalHost() {
-  if(isLocalUnicastHost()) 
-    iface->decNumHosts(true /* A local host */, isRxOnlyHost());
-  
+LocalHost::~LocalHost() {  
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   addInactiveData();
   if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();
+  /* Decrease number of active hosts */
+  iface->decNumHosts(isLocalHost(), isRxOnlyHost());
 }
 
 /* *************************************** */
@@ -140,9 +139,7 @@ void LocalHost::initialize() {
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 18);
 
   /* Only increase the number of host if it's a unicast host */
-  if(isLocalUnicastHost()) {
-    iface->incNumHosts(true /* Local Host */, true /* Init the host, so bytes are 0 */);
-    
+  if(isLocalUnicastHost()) {    
     if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
       ns->incNumHosts();
   }
@@ -163,6 +160,8 @@ void LocalHost::initialize() {
     fingerprints = new (std::nothrow) HostFingerprints();
   else
     fingerprints = NULL;
+
+  iface->incNumHosts(isLocalHost(), true /* Init the host, so bytes are 0, considered RX only */);
 }
 
 /* *************************************** */

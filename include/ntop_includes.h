@@ -410,6 +410,7 @@ using namespace std;
 #include "ClickHouseImport.h"
 #include "ClickHouseFlowDB.h"
 #include "ClickHouseAlertStore.h"
+#include "ClickHouseInterface.h"
 #endif
 #ifdef NTOPNG_PRO
 #include "NtopCloud.h"
