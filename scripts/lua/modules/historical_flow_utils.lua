@@ -119,6 +119,30 @@ function historical_flow_utils.parse_l7_cat(l7_cat)
    return l7_cat
 end
 
+-- #####################################
+
+function historical_flow_utils.get_selected_filters(ifid)
+   local selected_filters = tag_utils.get_tag_filters_from_request()
+
+   if ifid == nil then
+      ifid = interface.getId()
+   end
+   selected_filters['ifid'] = ifid
+
+   -- Exception parsing
+   if not isEmptyString(selected_filters['cli_asn']) then
+      selected_filters['cli_asn'] = historical_flow_utils.parse_asn(selected_filters["cli_asn"])
+   end
+   if not isEmptyString(selected_filters['srv_asn']) then
+      selected_filters['srv_asn'] = historical_flow_utils.parse_asn(selected_filters["srv_asn"])
+   end
+   if not isEmptyString(selected_filters['l7cat']) then
+      selected_filters['l7cat'] = historical_flow_utils.parse_l7_cat(selected_filters["l7cat"])
+   end
+
+   return selected_filters
+end
+
 ------------------------------------------------------------------------
 -- Functions to convert DB columns in the format used by the JS DataTable
 
