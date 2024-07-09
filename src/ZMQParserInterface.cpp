@@ -3175,6 +3175,8 @@ void ZMQParserInterface::lua(lua_State *vm, bool fullStats) {
     lua_push_str_table_entry(vm, "remote.if_addr", zrs->remote_ifaddress);
     lua_push_uint64_table_entry(vm, "remote.ifspeed", zrs->remote_ifspeed);
     lua_push_str_table_entry(vm, "probe.ip", zrs->remote_probe_address);
+    lua_push_str_table_entry(vm, "probe.uuid",
+                             zrs->uuid);
     lua_push_str_table_entry(vm, "probe.public_ip",
                              zrs->remote_probe_public_address);
     lua_push_str_table_entry(vm, "probe.probe_version",
