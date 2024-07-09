@@ -1581,38 +1581,48 @@ static int ntop_unlink_file(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_register_runtime_interface(lua_State *vm) {
-  char *path = NULL;
-  int if_id = -99;
+  char *source = NULL, *name = NULL;
+  int if_id = -1, new_if_id = -99;
   bool create_new_interface;
   NetworkInterface *iface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if (lua_type(vm, 1) == LUA_TSTRING) path = (char *)lua_tostring(vm, 1);
+  if (lua_type(vm, 1) == LUA_TSTRING) source = (char *)lua_tostring(vm, 1);
 
-  if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TBOOLEAN) != CONST_LUA_OK)
+  if (lua_type(vm, 2) == LUA_TSTRING) name = (char *)lua_tostring(vm, 2);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 3, LUA_TBOOLEAN) != CONST_LUA_OK)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  create_new_interface = (bool)lua_toboolean(vm, 2);
+  create_new_interface = (bool)lua_toboolean(vm, 3);
+
+  if (lua_type(vm, 4) == LUA_TNUMBER) {
+    if_id = (u_int32_t)lua_tonumber(vm, 4);
+    create_new_interface = false;
+  }
 
   if (create_new_interface) {
-    if ((!ntop->isUserAdministrator(vm)) || (path == NULL) ||
+    if ((!ntop->isUserAdministrator(vm)) || (source == NULL) ||
         (ntop->get_num_interfaces() >= MAX_NUM_DEFINED_INTERFACES)) {
       ; /* No way */
     } else {
-      int id = -1; /* -1 = allocate new interface */
-      bool rc = ntop->createRuntimeInterface(path, &id);
+      if_id = -1; /* -1 = allocate new interface */
+      bool rc = ntop->createRuntimeInterface(name, source, &if_id);
 
-      if (rc) if_id = id;
+      if (rc) new_if_id = if_id;
     }
   } else {
     /* Upload pcap on this interface */
-    int id = iface->get_id();
-    bool rc = ntop->createRuntimeInterface(path, &id);
 
-    if (rc) if_id = id;
+    if (if_id == -1)
+      if_id = iface->get_id();
+
+    bool rc = ntop->createRuntimeInterface(name, source, &if_id);
+
+    if (rc) new_if_id = if_id;
   }
 
-  lua_pushinteger(vm, if_id);
+  lua_pushinteger(vm, new_if_id);
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
