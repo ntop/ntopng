@@ -2212,7 +2212,7 @@ if auth.has_capability(auth.capabilities.preferences) then
                 local netbox_manager = require("netbox_manager")
 
                 traceError(TRACE_NORMAL, TRACE_CONSOLE, "[NetBox] Initializing...\n")
-                if (netbox_manager.initialization_device_roles() == true) then
+                if (netbox_manager.netbox_initialization() == true) then
                     traceError(TRACE_NORMAL, TRACE_CONSOLE, "[NetBox] Initialization completed")
                 else
                     traceError(TRACE_NORMAL, TRACE_CONSOLE, "[NetBox] Initialization failed")
