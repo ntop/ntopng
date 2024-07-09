@@ -73,7 +73,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
       && (!broadcast_mac)
       && ntop->getPrefs()->is_enterprise_xl_edition() 
       && ntop->getPrefs()->isNetBoxEnabled())
-    dumpAssetsInformations();
+    dumpAssetInfo();
 #endif
 
   updateHostPool(true /* inline with packet processing */,
@@ -510,7 +510,7 @@ void Mac::dumpToRedis() {
 /* *************************************** */
 
 #ifdef NTOPNG_PRO
-void Mac::dumpAssetsInformations() {
+void Mac::dumpAssetInfo() {
   char buf[32], *json_str = NULL;
   ndpi_serializer device_json;
   u_int32_t json_str_len = 0;
@@ -518,6 +518,7 @@ void Mac::dumpAssetsInformations() {
 
   ndpi_init_serializer(&device_json, ndpi_serialization_format_json);
 
+  ndpi_serialize_string_string(&device_json, "key", mac_ptr);
   ndpi_serialize_string_string(&device_json, "mac", mac_ptr);
   ndpi_serialize_string_string(&device_json, "source", "traffic");
   ndpi_serialize_string_uint32(&device_json, "first_seen", first_seen);

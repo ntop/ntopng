@@ -162,6 +162,14 @@ void LocalHost::initialize() {
     fingerprints = NULL;
 
   iface->incNumHosts(isLocalHost(), true /* Init the host, so bytes are 0, considered RX only */);
+
+#ifdef NTOPNG_PRO
+  if ((!(isBroadcastHost() || isMulticastHost()))
+      && ntop->getPrefs()->is_enterprise_xl_edition() 
+      && ntop->getPrefs()->isNetBoxEnabled())
+    dumpAssetInfo();
+#endif
+
 }
 
 /* *************************************** */
@@ -666,3 +674,46 @@ void LocalHost::lua_get_fingerprints(lua_State *vm) {
   }
 }
 
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+void LocalHost::dumpAssetInfo() {
+  char buf[64], mac_buf[32], *json_str = NULL, *ip = printMask(buf, sizeof(buf));
+  ndpi_serializer device_json;
+  u_int32_t json_str_len = 0;
+  
+  ndpi_init_serializer(&device_json, ndpi_serialization_format_json);
+
+  if (getMac() && serializeByMac()) {
+    ndpi_serialize_string_string(&device_json, "key",
+				 Utils::formatMac(getMac()->get_mac(), mac_buf, sizeof(mac_buf)));
+
+    if(mac->get_manufacturer())
+      ndpi_serialize_string_string(&device_json, "manufacturer", mac->get_manufacturer());
+
+    ndpi_serialize_string_uint32(&device_json, "role", mac->getDeviceType());
+  } else {
+    ndpi_serialize_string_string(&device_json, "key", ip);
+    ndpi_serialize_string_uint32(&device_json, "role", getDeviceType());
+  }
+
+  if(isIPv6())
+    ndpi_serialize_string_string(&device_json, "ipv6", ip);
+  else
+    ndpi_serialize_string_string(&device_json, "ipv4", ip);
+  
+  ndpi_serialize_string_string(&device_json, "source", "traffic");
+  ndpi_serialize_string_uint32(&device_json, "first_seen", first_seen);
+  ndpi_serialize_string_uint32(&device_json, "last_seen", last_seen);  
+
+  json_str = ndpi_serializer_get_buffer(&device_json, &json_str_len);
+
+  if((json_str != NULL) && (json_str_len > 0)) {
+    char key[64];
+    snprintf(key, sizeof(key), ASSET_LIST_INSERTION_KEY, iface->get_id());
+    ntop->getRedis()->rpush(key, json_str, 1024);
+  }
+
+  ndpi_term_serializer(&device_json);
+}
+#endif

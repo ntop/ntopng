@@ -961,7 +961,7 @@ public:
                      struct mg_connection *conn);
 
   NetworkStats *getNetworkStats(u_int16_t networkId) const;
-  void allocateStructures();
+  void allocateStructures(bool disable_dump = false);
   void getsDPIStats(lua_State *vm);
   inline bool isDbCreated() { return (db ? db->isDbCreated() : true); };
 #ifdef NTOPNG_PRO
