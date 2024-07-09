@@ -73,7 +73,7 @@ let markers = null;
 const default_coords = [41.9, 12.4833333];
 const zoom_level = 4;
 
-let endpoint = `/lua/rest/v2/get/geo_map/hosts.lua?`;
+let endpoint = `${http_prefix}/lua/rest/v2/get/geo_map/hosts.lua?`;
 let baseEndpoint = "";
 
 onMounted(() => {
