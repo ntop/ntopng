@@ -1598,7 +1598,6 @@ static int ntop_register_runtime_interface(lua_State *vm) {
 
   if (lua_type(vm, 4) == LUA_TNUMBER) {
     if_id = (u_int32_t)lua_tonumber(vm, 4);
-ntop->getTrace()->traceEvent(TRACE_NORMAL, "Passed ifid %d", if_id);
     create_new_interface = false;
   }
 
@@ -1608,7 +1607,6 @@ ntop->getTrace()->traceEvent(TRACE_NORMAL, "Passed ifid %d", if_id);
       ; /* No way */
     } else {
       if_id = -1; /* -1 = allocate new interface */
-ntop->getTrace()->traceEvent(TRACE_NORMAL, "Creating new interface");
       bool rc = ntop->createRuntimeInterface(name, source, &if_id);
 
       if (rc) new_if_id = if_id;
@@ -1619,7 +1617,6 @@ ntop->getTrace()->traceEvent(TRACE_NORMAL, "Creating new interface");
     if (if_id == -1)
       if_id = iface->get_id();
 
-ntop->getTrace()->traceEvent(TRACE_NORMAL, "Reusing ifid %d", if_id);
     bool rc = ntop->createRuntimeInterface(name, source, &if_id);
 
     if (rc) new_if_id = if_id;
