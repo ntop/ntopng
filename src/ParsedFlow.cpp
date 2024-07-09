@@ -350,3 +350,21 @@ void ParsedFlow::swap() {
   
   is_swapped = true;
 }
+
+/* *************************************** */
+
+void ParsedFlow::print() {
+  char buf1[32], buf2[32];
+
+  src_ip.print(buf1, sizeof(buf1));
+  dst_ip.print(buf2, sizeof(buf2));
+
+  ntop->getTrace()->traceEvent(
+      TRACE_NORMAL, "[src-ip: %s][src-port: %u][dst-ip: %s][dst-port: %u][first: %u][last: %u]",
+      src_ip.print(buf1, sizeof(buf1)),
+      ntohs(src_port), 
+      dst_ip.print(buf2, sizeof(buf2)),
+      ntohs(dst_port),
+      first_switched,
+      last_switched);
+}
