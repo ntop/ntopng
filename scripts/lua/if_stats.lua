@@ -451,17 +451,27 @@ if ((page == "overview") or (page == nil)) then
 
     if interface.isView() then
         local zmq_stats = {}
+        local exporters_stats = {}
         for interface_name, _ in pairsByKeys(interface.getIfNames() or {}) do
             interface.select(interface_name)
             local tmp = interface.getStats()
             for k, v in pairs(tmp.probes or {}) do
                 probes_stats[k] = v
             end
+            for k, v in pairs(tmp.exporters or {}) do
+                if not exporters_stats[k] then
+                    exporters_stats[k] = {}
+                end
+                for key_stat, value_stat in pairs(v) do
+                    exporters_stats[k][key_stat] = value_stat + (exporters_stats[k][key_stat] or 0)
+                end
+            end
             for k, v in pairs(tmp.zmqRecvStats or {}) do
                 zmq_stats[k] = (zmq_stats[k] or 0) + v
             end
         end
         ifstats.zmqRecvStats = zmq_stats
+        ifstats.exporters = exporters_stats
         interface.select(ifstats.id)
     end
 
@@ -976,13 +986,18 @@ if ((page == "overview") or (page == nil)) then
 
     if not is_sub_interface then
         print("<th width=20%><span id='if_packet_drops_drop'><i class='fas fa-tint' aria-hidden='true'></i></span> ")
+        local drops = 0
 
         if not ifstats.zmqRecvStats then
+            drops = ifstats.stats.drops
             print(i18n("if_stats_overview.dropped_packets") .. ternary(charts_available, " <A HREF='" .. url ..
                 "&page=historical&ts_schema=iface:packets_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "") ..
                       "</th>")
         else
             print(i18n("if_stats_overview.dropped_flows") .. "" .. "</th>")
+            for _, v in pairs(ifstats.exporters or {}) do
+                drops = drops + v["num_drops"]
+            end
         end
 
         print("<td width=20% colspan=3><span id=if_drops>")
@@ -991,7 +1006,7 @@ if ((page == "overview") or (page == nil)) then
             print('<span class="badge bg-danger">')
         end
 
-        print(formatValue(ifstats.stats.drops) .. " " .. ternary(ifstats.zmqRecvStats, i18n('flows'), label))
+        print(formatValue(drops) .. " " .. ternary(ifstats.zmqRecvStats, i18n('flows'), label))
 
         if ((ifstats.stats.packets + ifstats.stats.drops) > 0) then
             local pctg = round((ifstats.stats.drops * 100) / (ifstats.stats.packets + ifstats.stats.drops), 2)

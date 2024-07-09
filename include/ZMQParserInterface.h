@@ -30,6 +30,7 @@ class ZMQParserInterface : public ParserInterface {
   typedef std::map<string, pen_value_t> labels_map_t;
   typedef std::map<pen_value_t, string> descriptions_map_t;
   typedef std::map<string, u_int32_t> counters_map_t;
+  std::unordered_map<u_int32_t, ExporterStats> exporters_stats;
   std::unordered_map<u_int32_t, bool> cloud_flow_exporters;
   u_int16_t top_vlan_id;
   std::unordered_map<std::string, u_int16_t> name_to_vlan;
@@ -53,6 +54,7 @@ class ZMQParserInterface : public ParserInterface {
   CustomAppMaps *custom_app_maps;
 #endif
 
+  void exporterLuaStats(lua_State *vm);
   void loadVLANMappings();
   u_int16_t findVLANMapping(std::string name);
   
