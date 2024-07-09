@@ -82,10 +82,13 @@ function discord.sendMessage(message_body, settings)
 
    while retry_attempts > 0 do
       local message = {
-         username = username,
          content  = message_body,
       }
 
+      if(username ~= "") then
+	 message.username = username
+      end
+	 
       local msg = json.encode(message)
       local post_rc = ntop.httpPost(settings.url, msg)
 

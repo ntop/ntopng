@@ -8424,7 +8424,7 @@ void NetworkInterface::FillObsHash() {
 
 /* **************************************** */
 
-void NetworkInterface::allocateStructures() {
+void NetworkInterface::allocateStructures(bool disable_dump) {
   u_int16_t numNetworks = ntop->getNumLocalNetworks();
   char buf[16];
 
@@ -8469,7 +8469,7 @@ void NetworkInterface::allocateStructures() {
     top_sites = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
     top_os = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
 
-    if (db == NULL) {
+    if (db == NULL && !disable_dump) {
       if (ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
 #ifdef NTOPNG_PRO
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)

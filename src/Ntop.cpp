@@ -4112,7 +4112,7 @@ bool Ntop::createRuntimeInterface(char *name, char *source, int *iface_id) {
   initInterface(new_iface);
   new_iface->reloadFlowChecks(flow_checks_loader);
   new_iface->reloadHostChecks(host_checks_loader);
-  new_iface->allocateStructures();
+  new_iface->allocateStructures(true /* disable flow dump to db */);
   new_iface->startPacketPolling();
 
   if (old_iface != NULL) { 

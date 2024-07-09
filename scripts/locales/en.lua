@@ -7178,6 +7178,7 @@ local lang = {
     ["report_for_subject"] = "Report - %{num_min} - for %{subject} starting %{dt}",
     ["report_name"] = "Report Name",
     ["reports"] = "Traffic Reports",
+    ["reports_deprecated"] = "A new report page is available in ntopng Enterprise with ClickHouse enabled. This report page is deprecated and it will be no longer available in future releases.",
     ["reports_professional_only"] = "Reports are only available in the Professional version",
     ["score_distribution"] = "Score Distribution",
     ["senders"] = "Senders",

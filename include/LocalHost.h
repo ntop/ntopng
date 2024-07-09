@@ -52,6 +52,9 @@ class LocalHost : public Host {
                                     char *mac_key);
   char *getIpBasedSerializationKey(char *redis_key, size_t size);
   void luaDoHDot(lua_State *vm);
+#ifdef NTOPNG_PRO
+  void dumpAssetInfo();
+#endif
 
  public:
   LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
