@@ -796,7 +796,7 @@ class Ntop {
   inline Mutex *get_pools_lock()      { return (&pools_lock); };
   inline u_int32_t get_current_time() { return(current_time); };
 
-  bool createRuntimeInterface(char *path, int *iface_id);
+  bool createRuntimeInterface(char *name, char *source, int *iface_id);
 
   void incBlacklisHits(std::string listname);
 #if defined(NTOPNG_PRO) && defined(HAVE_KAFKA)

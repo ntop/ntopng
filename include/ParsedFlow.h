@@ -174,6 +174,8 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline char* getRiskName() { return(ndpi_flow_risk_name); }
   inline bool isSwapped() { return(is_swapped); }
   inline FlowSource getFlowSource() { return(flow_source); }
+
+  void print();
 };
 
 #endif /* _PARSED_FLOW_H_ */

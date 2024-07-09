@@ -4041,7 +4041,7 @@ void Ntop::speedtest(lua_State *vm) {
 
 /* ******************************************* */
 
-bool Ntop::createRuntimeInterface(char *path, int *iface_id) {
+bool Ntop::createRuntimeInterface(char *name, char *source, int *iface_id) {
   bool ret = false;
 #ifndef HAVE_NEDGE
   NetworkInterface *new_iface, *old_iface = NULL;
@@ -4061,34 +4061,34 @@ bool Ntop::createRuntimeInterface(char *path, int *iface_id) {
     }
   }
 
-  if (strncmp(path, "pcap:", 5) == 0) {
-    path = &path[5];
+  if (strncmp(source, "pcap:", 5) == 0) {
+    source = &source[5];
 
-    ntop->fixPath(path);
+    ntop->fixPath(source);
 
     try {
       errno = 0;
-      new_iface = new PcapInterface((const char *)path,
+      new_iface = new PcapInterface((const char *) source,
                                     (u_int8_t)ntop->get_num_interfaces(),
                                     true /* delete pcap when done */);
     } catch (int err) {
       getTrace()->traceEvent(TRACE_ERROR,
                              "Unable to open interface %s with pcap [%d]: %s",
-                             path, err, strerror(err));
+                             source, err, strerror(err));
       return false;
     }
   
-  } else if (strncmp(path, "db:", 3) == 0) {
-    path = &path[3];
+  } else if (strncmp(source, "db:", 3) == 0) {
+    source = &source[3];
 
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
     if (ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
       try {
-        new_iface = new ClickHouseInterface((const char *)path);
+        new_iface = new ClickHouseInterface((const char *) source, (const char *) name);
       } catch (int err) {
         getTrace()->traceEvent(TRACE_ERROR,
                                "Unable to open database on '%s'",
-                               path);
+                               source);
         return false;
       }
     } else 
@@ -4099,7 +4099,7 @@ bool Ntop::createRuntimeInterface(char *path, int *iface_id) {
     }
 
   } else {
-    getTrace()->traceEvent(TRACE_WARNING, "Unrecognized runtime interface type '%s'", path);
+    getTrace()->traceEvent(TRACE_WARNING, "Unrecognized runtime interface type '%s'", source);
     return false;
   }
 
@@ -4112,7 +4112,7 @@ bool Ntop::createRuntimeInterface(char *path, int *iface_id) {
   initInterface(new_iface);
   new_iface->reloadFlowChecks(flow_checks_loader);
   new_iface->reloadHostChecks(host_checks_loader);
-  new_iface->allocateStructures();
+  new_iface->allocateStructures(true /* disable flow dump to db */);
   new_iface->startPacketPolling();
 
   if (old_iface != NULL) { 

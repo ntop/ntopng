@@ -59,8 +59,6 @@ class ParsedFlowCore {
   ParsedFlowCore(const ParsedFlowCore &pfc);
   virtual ~ParsedFlowCore();
   void swap();
-
-  void print();
 };
 
 #endif /* _PARSED_FLOW_CORE_H_ */

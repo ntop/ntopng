@@ -243,7 +243,7 @@ else
         }, {
             -- Enterprise with clickhouse enabled
             entry = page_utils.menu_entries.traffic_report,
-            hidden = not (ntop.isEnterprise() and prefs.is_dump_flows_to_clickhouse_enabled),
+            hidden = not (ntop.isEnterprise() and prefs.is_dump_flows_to_clickhouse_enabled) or ifs['type'] == 'db',
             url = "/lua/pro/reportng.lua"
         }}
     })
@@ -306,7 +306,8 @@ else
         }, {
             entry = page_utils.menu_entries.db_explorer,
             hidden = (not ntop.isEnterprise()) or (not prefs.is_dump_flows_to_clickhouse_enabled) or ifs.isViewed or
-                not auth.has_capability(auth.capabilities.historical_flows),
+                not auth.has_capability(auth.capabilities.historical_flows) or
+                ifs['type'] == 'db',
             url = "/lua/pro/db_search.lua"
         }}
     })
