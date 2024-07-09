@@ -369,7 +369,7 @@ class Ntop {
    *
    * @param i Network interface.
    */
-  void initInterface(NetworkInterface *i);
+  void initInterface(NetworkInterface *i, bool disable_dump = false);
 
   /**
    * @brief Get the number of defined network interfaces.

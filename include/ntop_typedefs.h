@@ -1215,5 +1215,12 @@ typedef enum {
   ESTABLISHED,
   CLOSED = 3
 } MajorConnectionStates;
+
+typedef struct {
+  time_t time_last_used;
+  u_int32_t num_sflow_flows;
+  u_int32_t num_netflow_flows;
+  u_int32_t num_drops;
+} ExporterStats;
   
 #endif /* _NTOP_TYPEDEFS_H_ */

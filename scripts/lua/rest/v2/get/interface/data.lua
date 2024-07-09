@@ -75,6 +75,7 @@ function dumpInterfaceStats(ifid)
     interface.select(ifid .. '')
 
     local ifstats = interface.getStats()
+    local drops = 0
 
     if interface.isView() then
         local zmq_stats = {}
@@ -84,9 +85,14 @@ function dumpInterfaceStats(ifid)
             for k, v in pairs(tmp.zmqRecvStats or {}) do
                 zmq_stats[k] = (zmq_stats[k] or 0) + v
             end
+            for k, v in pairs(tmp.exporters or {}) do
+                drops = v["num_drops"] + drops
+            end
         end
         ifstats.zmqRecvStats = zmq_stats
         interface.select(ifstats.id)
+    elseif (ifstats) then
+        drops = ifstats.stats_since_reset.drops
     end
 
     local res = {}
@@ -107,7 +113,7 @@ function dumpInterfaceStats(ifid)
         -- so we must return statistics since the latest (possible) reset
         res["packets"] = ifstats.stats_since_reset.packets
         res["bytes"] = ifstats.stats_since_reset.bytes
-        res["drops"] = ifstats.stats_since_reset.drops
+        res["drops"] = drops
 
         if ifstats.stats_since_reset.discarded_probing_packets then
             res["discarded_probing_packets"] = ifstats.stats_since_reset.discarded_probing_packets
