@@ -2185,7 +2185,15 @@ static int ntop_reset_bl_stats(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_clickhouse_enabled(lua_State *vm) {
-  lua_pushboolean(vm, ntop->getPrefs()->do_dump_flows_on_clickhouse());
+  NetworkInterface *curr_iface = getCurrentInterface(vm);
+  bool enabled = ntop->getPrefs()->do_dump_flows_on_clickhouse();
+
+  /* Make sure database is enabled - e.g. not enabled on 'database'
+   * runtime interfaces */
+  if (curr_iface->getDB() == NULL)
+    enabled = false;
+
+  lua_pushboolean(vm, enabled);
 
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }

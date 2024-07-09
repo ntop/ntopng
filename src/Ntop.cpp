@@ -2800,15 +2800,15 @@ out:
 
 /* ******************************************* */
 
-void Ntop::initInterface(NetworkInterface *_if) {
+void Ntop::initInterface(NetworkInterface *_if, bool disable_dump) {
   /* Initialization related to flow-dump */
-  if (ntop->getPrefs()->do_dump_flows()
+  if ((ntop->getPrefs()->do_dump_flows()
 #ifdef HAVE_ZMQ
 #ifndef HAVE_NEDGE
       || ntop->get_export_interface()
 #endif
       #endif
-  ) {
+  ) && !disable_dump) {
     if (_if->initFlowDump(num_dump_interfaces)) num_dump_interfaces++;
     _if->startDBLoop();
   }
@@ -4109,7 +4109,7 @@ bool Ntop::createRuntimeInterface(char *name, char *source, int *iface_id) {
       return false;
   }
 
-  initInterface(new_iface);
+  initInterface(new_iface, true /* disable flow dump to db */);
   new_iface->reloadFlowChecks(flow_checks_loader);
   new_iface->reloadHostChecks(host_checks_loader);
   new_iface->allocateStructures(true /* disable flow dump to db */);
