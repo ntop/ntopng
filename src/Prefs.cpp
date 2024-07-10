@@ -2652,8 +2652,6 @@ void Prefs::lua(lua_State *vm) {
                             dump_flows_on_es);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_syslog_enabled",
                             dump_flows_on_syslog);
-  lua_push_bool_table_entry(vm, "is_dump_flows_to_clickhouse_enabled",
-                            dump_flows_on_clickhouse);
   lua_push_int32_table_entry(vm, "host_to_scan_max_num_scans",
 			                      vs_max_num_scans);
   lua_push_bool_table_entry(vm, "vs_slow_scan", vs_slow_scan);

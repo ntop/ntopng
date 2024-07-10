@@ -207,6 +207,7 @@ interface.select(ifname)
 local ifs = interface.getStats()
 local is_pcap_dump = interface.isPcapDumpInterface()
 local is_packet_interface = interface.isPacketInterface()
+local is_db_view_interface = interface.isDatabaseViewInterface()
 local is_viewed = ifs.isViewed
 local is_influxdb_enabled = ntop.getPref("ntopng.prefs.timeseries_driver") == "influxdb"
 local is_clickhouse_enabled = ntop.isClickHouseEnabled()
@@ -278,7 +279,7 @@ else
     -- Alerts
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.alerts,
-        hidden = not prefs.are_alerts_enabled or not auth.has_capability(auth.capabilities.alerts),
+        hidden = not prefs.are_alerts_enabled or not auth.has_capability(auth.capabilities.alerts) or is_pcap_dump or is_db_view_interface,
         entries = {{
             entry = page_utils.menu_entries.alerts_list,
             url = "/lua/alert_stats.lua"
@@ -405,6 +406,9 @@ else
         section = page_utils.menu_sections.collection,
         hidden = not has_exporters or not ntop.isEnterpriseM() or is_system_interface,
         entries = {{
+            entry = page_utils.menu_entries.probes,
+            url = '/lua/pro/enterprise/probes.lua'
+        }, {
             entry = page_utils.menu_entries.sflow_exporters,
             hidden = table.len(interface.getSFlowDevices() or {}) == 0,
             url = '/lua/pro/enterprise/sflowdevices_stats.lua'
@@ -413,11 +417,10 @@ else
             url = '/lua/pro/enterprise/flowdevices_stats.lua'
         }, {
             entry = page_utils.menu_entries.observation_points,
-            hidden = table.len(interface.getObsPointsInfo() or {}) == 0,
+            hidden = (interface.getObsPointsInfo().numObsPoints or 0) == 0,
             url = '/lua/pro/enterprise/observation_points.lua'
         }}
     })
-
 end
 
 -- ##############################################

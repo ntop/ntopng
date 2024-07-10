@@ -573,7 +573,7 @@ else
         label = "<i class=\"fas fa-lg fa-concierge-bell\" title='" .. i18n("service_map") .. "'\"></i>",
         url = service_map_link
     }, {
-        hidden = not prefs.is_dump_flows_to_clickhouse_enabled or page == "historical",
+        hidden = not ntop.isClickHouseEnabled() or page == "historical",
         active = page == "db_search",
         page_name = "db_search",
         label = "<i class=\"fas fa-search-plus\" title='" .. i18n("db_explorer.historical_data_explorer") .. "'\"></i>",

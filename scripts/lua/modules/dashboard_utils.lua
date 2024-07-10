@@ -21,7 +21,7 @@ local dashboard_utils = {}
 -- ##############################################
 
 local function is_clickhouse_available()
-   return prefs.is_dump_flows_to_clickhouse_enabled
+   return ntop.isClickHouseEnabled()
 end
 
 dashboard_utils.module_available = {
