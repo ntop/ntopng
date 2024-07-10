@@ -207,8 +207,10 @@ interface.select(ifname)
 local ifs = interface.getStats()
 local is_pcap_dump = interface.isPcapDumpInterface()
 local is_packet_interface = interface.isPacketInterface()
+local is_db_view_interface = interface.isDatabaseViewInterface()
 local is_viewed = ifs.isViewed
 local is_influxdb_enabled = ntop.getPref("ntopng.prefs.timeseries_driver") == "influxdb"
+local is_clickhouse_enabled = ntop.isClickHouseEnabled()
 ifId = ifs.id
 
 -- NOTE: see sidebar.js for the client logic
@@ -237,13 +239,13 @@ else
             entry = page_utils.menu_entries.traffic_report,
             hidden = not (
               (ntop.isPro() and not ntop.isEnterprise() and not ntop.isnEdgeEnterprise()) or 
-              ((ntop.isEnterprise() or ntop.isnEdgeEnterprise()) and not prefs.is_dump_flows_to_clickhouse_enabled)
+              ((ntop.isEnterprise() or ntop.isnEdgeEnterprise()) and not is_clickhouse_enabled)
             ),
             url = "/lua/pro/report.lua"
         }, {
             -- Enterprise with clickhouse enabled
             entry = page_utils.menu_entries.traffic_report,
-            hidden = not (ntop.isEnterprise() and prefs.is_dump_flows_to_clickhouse_enabled) or ifs['type'] == 'db',
+            hidden = not (ntop.isEnterprise() and is_clickhouse_enabled),
             url = "/lua/pro/reportng.lua"
         }}
     })
@@ -277,7 +279,7 @@ else
     -- Alerts
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.alerts,
-        hidden = not prefs.are_alerts_enabled or not auth.has_capability(auth.capabilities.alerts),
+        hidden = not prefs.are_alerts_enabled or not auth.has_capability(auth.capabilities.alerts) or is_pcap_dump or is_db_view_interface,
         entries = {{
             entry = page_utils.menu_entries.alerts_list,
             url = "/lua/alert_stats.lua"
@@ -305,7 +307,7 @@ else
             url = "/lua/flows_stats.lua"
         }, {
             entry = page_utils.menu_entries.db_explorer,
-            hidden = (not ntop.isEnterprise()) or (not prefs.is_dump_flows_to_clickhouse_enabled) or ifs.isViewed or
+            hidden = (not ntop.isEnterprise()) or (not is_clickhouse_enabled) or ifs.isViewed or
                 not auth.has_capability(auth.capabilities.historical_flows) or
                 ifs['type'] == 'db',
             url = "/lua/pro/db_search.lua"
@@ -404,6 +406,9 @@ else
         section = page_utils.menu_sections.collection,
         hidden = not has_exporters or not ntop.isEnterpriseM() or is_system_interface,
         entries = {{
+            entry = page_utils.menu_entries.probes,
+            url = '/lua/pro/enterprise/probes.lua'
+        }, {
             entry = page_utils.menu_entries.sflow_exporters,
             hidden = table.len(interface.getSFlowDevices() or {}) == 0,
             url = '/lua/pro/enterprise/sflowdevices_stats.lua'
@@ -412,11 +417,10 @@ else
             url = '/lua/pro/enterprise/flowdevices_stats.lua'
         }, {
             entry = page_utils.menu_entries.observation_points,
-            hidden = table.len(interface.getObsPointsInfo() or {}) == 0,
+            hidden = (interface.getObsPointsInfo().numObsPoints or 0) == 0,
             url = '/lua/pro/enterprise/observation_points.lua'
         }}
     })
-
 end
 
 -- ##############################################
@@ -482,7 +486,7 @@ local health_entries = {{
 }, {
     entry = page_utils.menu_entries.clickhouse_status,
     url = '/lua/enterprise/monitor/clickhouse_monitor.lua',
-    hidden = not prefs.is_dump_flows_to_clickhouse_enabled
+    hidden = not is_clickhouse_enabled
 }}
 
 -- Add script entries relative to system health (e.g., redis) ...

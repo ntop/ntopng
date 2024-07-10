@@ -929,7 +929,7 @@ function formatAlertAHref(key, value, label)
 end
 
 function add_historical_flow_explorer_button_ref(extra_params, no_href)
-    if (ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"]) == false then
+    if not ntop.isClickHouseEnabled() then
         return ''
     end
 

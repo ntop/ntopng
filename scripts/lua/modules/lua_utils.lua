@@ -926,8 +926,7 @@ function historicalProtoHostHref(ifId, host, l4_proto, ndpi_proto_id, info, vlan
         local now = os.time()
         local ago1h = now - 3600
 
-        local prefs = ntop.getPrefs()
-        if prefs.is_dump_flows_to_clickhouse_enabled then
+        if ntop.isClickHouseEnabled() then
             local hist_url = ntop.getHttpPrefix() .. "/lua/pro/db_search.lua?"
             local params = {
                 epoch_end = now,

@@ -937,7 +937,8 @@ typedef enum {
   interface_type_DIVERT,
   interface_type_DUMMY,
   interface_type_ZC_FLOW,
-  interface_type_SYSLOG
+  interface_type_SYSLOG,
+  interface_type_DB_VIEW
 } InterfaceType;
 
 /* Update Flow::dissectHTTP when extending the type below */

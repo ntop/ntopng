@@ -61,6 +61,7 @@ import { default as PageSNMPQoS } from "./page-snmp-qos.vue"
 import { default as PageGeoMap } from "./hosts-geomap.vue"
 import { default as PageCountryStats } from "./page-country-stats.vue"
 import { default as PageAsStats } from "./page-as-stats.vue"
+import { default as PageProbes } from "./page-probes.vue"
 //import { default as PageChatbot } from "./page-chatbot.vue"
 
 /* Config pages */
@@ -145,6 +146,7 @@ let ntopVue = {
     PageVulnerabilityScanReport: PageVulnerabilityScanReport,
     PageFlowsList: PageFlowsList,
     PageAsStats: PageAsStats,
+    PageProbes: PageProbes,
     
     /* SNMP */
     PageSNMPDevices: PageSNMPDevices,
