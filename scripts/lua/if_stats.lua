@@ -1105,7 +1105,7 @@ if ((page == "overview") or (page == nil)) then
     if prefs.is_dump_flows_enabled and not ifstats.isViewed then
         local dump_to = ""
 
-        if prefs.is_dump_flows_to_clickhouse_enabled then
+        if ntop.isClickHouseEnabled() then
             dump_to = "ClickHouse"
         elseif prefs.is_dump_flows_to_mysql_enabled then
             dump_to = "MySQL"
