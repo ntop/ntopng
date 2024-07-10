@@ -2260,7 +2260,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             "netbox_personal_access_token", ntop.getPref("ntopng.prefs.netbox_personal_access_token") or "", "text",
             showNetboxConfiguration, nil, nil, {
                 required = true,
-                inputBoxWidth = "40em",
+                inputBoxWidth = "24em",
                 disabled = disabled
             })
 
