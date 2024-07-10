@@ -836,6 +836,13 @@ function isNetBoxEnabled()
   return (ntop.getPref("ntopng.prefs.toggle_netbox") == "1")
 end
 
+function isNtopngAssetsInventoryEnabled()
+  if not ntop.isEnterpriseXL() then
+    return false
+  end
+  return (ntop.getPref("ntopng.prefs.toggle_ntopng_assets_inventory") == "1")
+end
+
 function getNetBoxURL()
   if not ntop.isEnterpriseXL() or not ntop.getPref("ntopng.prefs.toggle_netbox") == "1" then
     return ""

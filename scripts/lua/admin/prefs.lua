@@ -2220,8 +2220,15 @@ if auth.has_capability(auth.capabilities.preferences) then
             end
         end
 
-        -- tprint(ntop.getPref("ntopng.prefs.toggle_netbox") .. " " .. tostring(showNetboxConfiguration))
+        -- ntop asset inventory
+        prefsToggleButton(subpage_active, {
+            field = "toggle_ntopng_assets_inventory",
+            default = "0",
+            pref = "toggle_ntopng_assets_inventory",
+            to_switch = {}
+        })
 
+        -- Netbox toggle
         prefsToggleButton(subpage_active, {
             field = "toggle_netbox",
             default = "0",

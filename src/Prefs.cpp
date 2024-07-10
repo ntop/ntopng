@@ -204,6 +204,7 @@ Prefs::Prefs(Ntop *_ntop) {
   mysql_host = mysql_dbname = mysql_user = mysql_pw = NULL;
 #if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO) && defined(HAVE_MYSQL)
   ch_user = NULL;
+  ntopng_assets_inventory_enabled = true;
 #endif
   mysql_port = CONST_DEFAULT_MYSQL_PORT;
   clickhouse_tcp_port = CONST_DEFAULT_CLICKHOUSE_TCP_PORT;
@@ -1039,6 +1040,10 @@ void Prefs::reloadPrefsFromRedis() {
 						 CONST_DEFAULT_ASSET_INVENTORY_ENABLED);
   snmp_trap_enabled = getDefaultPrefsValue(CONST_PREFS_SNMP_TRAP_ENABLED,
 					   CONST_DEFAULT_SNMP_TRAP_ENABLED);
+#endif
+#if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO) && defined(HAVE_MYSQL)
+  ntopng_assets_inventory_enabled = getDefaultPrefsValue(CONST_PREFS_NTOPNG_ASSETS_INVENTORY_ENABLED,
+							    CONST_DEFAULT_NTOPNG_ASSETS_INVENTORY_ENABLED);
 #endif
 
 #ifdef PREFS_RELOAD_DEBUG

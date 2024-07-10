@@ -172,6 +172,7 @@ class Prefs {
 #if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO) && defined(HAVE_MYSQL)
   char *ch_user; /* In case of ch cloud, 2 users are needed, 
                     one for mysql and one for ch */
+  bool ntopng_assets_inventory_enabled;
 #endif
 #if !defined(WIN32) && !defined(__APPLE__)
   int flows_syslog_facility;
