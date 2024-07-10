@@ -479,102 +479,21 @@ if ((page == "overview") or (page == nil)) then
     local max_num_nprobes = 4
     local cur_num_nprobes = 0
 
-    for k, v in pairsByKeys(probes_stats or {}, asc) do
-        cur_num_nprobes = cur_num_nprobes + 1
-        if cur_num_nprobes > max_num_nprobes then
-            break
-        end
-
-        local cur_interface = i18n("if_stats_overview.remote_probe_collector_mode")
-
-        if v["remote.name"] ~= "none" then
-            cur_interface = string.format("%s [%s]", v["remote.name"], bitsToSize(v["remote.ifspeed"] * 1000000))
-        end
-        nprobe_interface[#nprobe_interface + 1] = cur_interface
-
-        local cur_version = v["probe.probe_version"]
-
-        if not isEmptyString(v["probe.probe_os"]) then
-            cur_version = string.format("%s (%s)", cur_version, v["probe.probe_os"])
-        end
-        nprobe_version[#nprobe_version + 1] = cur_version
-
-        local cur_probe_ip = ip2detailshref(v["probe.ip"], 0, nil, v["probe.ip"], nil, true)
-        if not isEmptyString(v["probe.public_ip"]) then
-            cur_probe_ip = string.format("%s (%s)", cur_probe_ip,
-                ip2detailshref(v["probe.public_ip"], 0, nil, v["probe.public_ip"], nil, true))
-        end
-        nprobe_probe_ip[#nprobe_probe_ip + 1] = cur_probe_ip .. " [ " .. v["probe.uuid"] .. " ]"
-
-        nprobe_edition[#nprobe_edition + 1] = v["probe.probe_edition"]
-        nprobe_license[#nprobe_license + 1] = v["probe.probe_license"] or i18n("if_stats_overview.no_license")
-        nprobe_maintenance[#nprobe_maintenance + 1] = v["probe.probe_maintenance"] or
-                                                          i18n("if_stats_overview.expired_maintenance")
-    end
-
-    if tot_num_nprobes > max_num_nprobes then
-        local other_probes = tot_num_nprobes - max_num_nprobes
-        local other_probes_message = "... (" .. i18n("if_stats_overview.other_probes", {
-            num = other_probes
-        }) .. ")"
-        nprobe_interface[#nprobe_interface + 1] = other_probes_message
-        nprobe_version[#nprobe_version + 1] = other_probes_message
-        nprobe_probe_ip[#nprobe_probe_ip + 1] = other_probes_message
-        nprobe_probe_public_ip[#nprobe_probe_public_ip + 1] = other_probes_message
-        nprobe_edition[#nprobe_edition + 1] = other_probes_message
-        nprobe_license[#nprobe_license + 1] = other_probes_message
-        nprobe_maintenance[#nprobe_maintenance + 1] = other_probes_message
-    end
-
-    if cur_num_nprobes > 0 then
+    if tot_num_nprobes > 0 then
         print("<tr><th nowrap>" .. i18n("if_stats_overview.remote_probe") .. "</th>")
-        local msg = i18n("if_stats_overview.remote_probe_collecting_from_x_devices", {
-            num = tot_num_nprobes,
-            url = url
-        })
-        if interface.isView() then
+        local msg = ""
+        if ntop.isEnterpriseM() then
+            msg = i18n("if_stats_overview.remote_probe_collecting_from_x_devices", {
+                num = tot_num_nprobes,
+                url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/probes.lua"
+            })
+        else
             msg = i18n("if_stats_overview.remote_probe_collecting_from_x_devices_no_link", {
-                num = tot_num_nprobes
+                num = tot_num_nprobes,
             })
         end
 
-        if max_num_nprobes < tot_num_nprobes then
-            msg = string.format("%s %s", msg, i18n("if_stats_overview.remote_probe_showing_first_x_devices", {
-                num = max_num_nprobes
-            }))
-        end
-
         print("<td colspan=6 nowrap>" .. msg .. "</td>")
-
-        print("</tr><tr>")
-
-        print("<th nowrap>" .. i18n("if_stats_overview.interface_name") .. "</th><td nowrap><ol><li>")
-        print(table.concat(nprobe_interface, "</li><li>"))
-        print("</li></ol></td>\n")
-
-        print("<th nowrap>" .. i18n("if_stats_overview.remote_probe") .. "</th><td nowrap><ol><li>")
-        print(table.concat(nprobe_version, "</li><li>"))
-        print("</li></ol></td>\n")
-
-        print("<th nowrap>" .. i18n("if_stats_overview.remote_probe_edition") .. "</th><td nowrap colspan=2><ol><li>")
-        print(table.concat(nprobe_edition, "</li><li>"))
-        print("</li></ol></td>\n")
-
-        print("</tr><tr>")
-
-        print("<th nowrap>" .. i18n("if_stats_overview.remote_probe_license") .. "</th><td nowrap><ol><li>")
-        print(table.concat(nprobe_license, "</li><li>"))
-        print("</li></ol></td>\n")
-
-        print("<th nowrap>" .. i18n("if_stats_overview.probe_ip") .. "</th><td nowrap><ol><li>")
-        print(table.concat(nprobe_probe_ip, "</li><li>"))
-        print("</li></ol></td>\n")
-
-        print("<th nowrap>" .. i18n("if_stats_overview.remote_probe_maintenance") ..
-                  "</th><td nowrap colspan=2><ol><li>")
-        print(table.concat(nprobe_maintenance, "</li><li>"))
-        print("</li></ol></td>\n")
-
         print("</tr>")
     end
 
@@ -1358,10 +1277,6 @@ if ((page == "overview") or (page == nil)) then
 
     print("</table>\n")
     print("</div>") -- close of table responsive
-
-elseif page == "nprobe" and not is_packet_interface and not interface.isView() then
-    local context = {}
-    print(template.gen("pages/interface_nprobes.template", context))
 elseif page == "networks" and is_packet_interface then
 
     print("<table class=\"table table-striped table-bordered\">")
