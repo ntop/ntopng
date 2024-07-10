@@ -47,7 +47,7 @@ const REGEXES = {
         username: String.raw`^[a-zA-Z0-9._@!-?]{3,30}$`,
         singleword: String.raw`^(?=[a-zA-Z0-9._:\-]{3,253}$)(?!.*[_.:\-]{2})[^_.:\-].*[^_.:\-]$`,
         multiword: String.raw`^([a-zA-Z0-9._:\-\s]{3,253})$`,
-        email: String.raw`^([a-zA-Z0-9.!#$%&'*+\-\/=?^_\`\|~]+@[a-zA-Z0-9\-]+(?:\.[a-zA-Z0-9\-]+)*)$|^[a-zA-Z\d.!#$%&'*+\-\/=?^_\`\|~]{1,128}$`,
+        email: String.raw`^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[a-zA-Z]{2,})$`,
         emailCommaList: String.raw`^((?:[a-zA-Z0-9.!#$%&'*+\-\/=?^_\`\|~]+@[a-zA-Z0-9\-]+(?:\.[a-zA-Z0-9\-]+)*)|([a-zA-Z\d.!#$%&'*+\-\/=?^_\`\|~]{1,128}))(?:,((?:[a-zA-Z0-9.!#$%&'*+\-\/=?^_\`\|~]+@[a-zA-Z0-9\-]+(?:\.[a-zA-Z0-9\-]+)*)|([a-zA-Z\d.!#$%&'*+\-\/=?^_\`\|~]{1,128})))*$`,
         https: String.raw`^https?:\/\/.+$`,
         token: String.raw`^[0-9a-f]{32}`,
@@ -1245,6 +1245,10 @@ export default class NtopUtils {
                 return label;
         }
 
+        /* This function converts a mac address to a string*/
+        static convertMACAddress(a) {
+                return a.toLowerCase().replace(/[^a-f0-9]/g, '');
+        }
         /* This function converts an ip to a number equale to the ip but without . or :: in case of ipv6
          * this is needed in case of ordering
          */

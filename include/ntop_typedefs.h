@@ -373,7 +373,7 @@ PACK_ON struct l2tp_header {
 
 typedef struct zmq_remote_stats {
   char remote_ifname[32], remote_ifaddress[64];
-  char remote_probe_address[64], remote_probe_public_address[64];
+  char remote_probe_address[64], remote_probe_public_address[64], uuid[36];
   char remote_probe_version[64], remote_probe_os[64];
   char remote_probe_license[64], remote_probe_edition[64];
   char remote_probe_maintenance[64];
@@ -937,7 +937,8 @@ typedef enum {
   interface_type_DIVERT,
   interface_type_DUMMY,
   interface_type_ZC_FLOW,
-  interface_type_SYSLOG
+  interface_type_SYSLOG,
+  interface_type_DB_VIEW
 } InterfaceType;
 
 /* Update Flow::dissectHTTP when extending the type below */
@@ -1215,5 +1216,12 @@ typedef enum {
   ESTABLISHED,
   CLOSED = 3
 } MajorConnectionStates;
+
+typedef struct {
+  time_t time_last_used;
+  u_int32_t num_sflow_flows;
+  u_int32_t num_netflow_flows;
+  u_int32_t num_drops;
+} ExporterStats;
   
 #endif /* _NTOP_TYPEDEFS_H_ */

@@ -124,7 +124,7 @@ class Utils {
                           bool return_content, bool use_cookie_authentication,
                           HTTPTranferStats *stats, const char *form_data,
                           char *write_fname, bool follow_redirects,
-                          int ip_version);
+                          int ip_version, bool use_put_method = false);
   static long httpGet(const char *url, const char *username,
                       const char *password, const char *user_header_token,
                       int timeout, char *const resp, const u_int resp_len);
@@ -322,6 +322,8 @@ class Utils {
   static char* createRandomString(char *buf, size_t buf_len);
   static IpAddress* parseHostString(char *host_ip, u_int16_t *vlan_id /* out */);
   static bool nwInterfaceExists(char *if_name);
+  static bool readModbusDeviceInfo(char *ip_address, u_int8_t timeout_sec, lua_State *vm);
+  static bool readEthernetIPDeviceInfo(char *ip_address, u_int8_t timeout_sec, lua_State *vm);
 };
 
 #endif /* _UTILS_H_ */

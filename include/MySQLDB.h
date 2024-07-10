@@ -40,9 +40,7 @@ class MySQLDB : public DB {
   bool connectToDB(MYSQL *conn, bool select_db);
   void open_log();
   char *get_last_db_error(MYSQL *conn) { return ((char *)mysql_error(conn)); }
-  int exec_sql_query(MYSQL *conn, const char *sql, bool doReconnect = true,
-                     bool ignoreErrors = false, bool doLock = true);
-  void try_exec_sql_query(MYSQL *conn, char *sql);
+  void try_exec_sql_query(char *sql);
   virtual bool createDBSchema();
   bool createNprobeDBView();
   MYSQL *mysql_try_connect(MYSQL *conn, const char *dbname);
@@ -64,6 +62,10 @@ class MySQLDB : public DB {
   char *escapeAphostrophes(const char *unescaped);
   int flow2InsertValues(Flow *f, char *json, char *values_buf,
                         size_t values_buf_len);
+  int exec_sql_query(const char *sql, bool doReconnect = true,
+                     bool ignoreErrors = false, bool doLock = true,
+                     db_result_row_callback *cb = NULL,
+                     void *cb_user_data = NULL);
   int exec_sql_query(lua_State *vm, char *sql, bool limitRows,
                      bool wait_for_db_created);
   virtual bool startQueryLoop();

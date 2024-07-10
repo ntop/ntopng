@@ -14,6 +14,7 @@ local os_utils = require("os_utils")
 
 -- interface.select(ifname)
 local ifid = interface.getId()
+local ifstats = interface.getStats()
 
 -- ######################################
 

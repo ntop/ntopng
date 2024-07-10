@@ -61,6 +61,10 @@ import { default as PageSNMPQoS } from "./page-snmp-qos.vue"
 import { default as PageGeoMap } from "./hosts-geomap.vue"
 import { default as PageCountryStats } from "./page-country-stats.vue"
 import { default as PageAsStats } from "./page-as-stats.vue"
+import { default as PageProbes } from "./page-probes.vue"
+import { default as PageExporters } from "./page-exporters.vue"
+import { default as PageSankeyTest } from "./sankey-test.vue"
+//import { default as PageChatbot } from "./page-chatbot.vue"
 
 /* Config pages */
 import { default as PageSNMPConfig } from "./page-snmp-config.vue"
@@ -144,6 +148,7 @@ let ntopVue = {
     PageVulnerabilityScanReport: PageVulnerabilityScanReport,
     PageFlowsList: PageFlowsList,
     PageAsStats: PageAsStats,
+    PageProbes: PageProbes,
     
     /* SNMP */
     PageSNMPDevices: PageSNMPDevices,
@@ -165,7 +170,7 @@ let ntopVue = {
     NedgeRepeatersConfig: NedgeRepeatersConfig,
 
     PageBlacklists: PageBlacklists,
-
+    //PageChatbot: PageChatbot,
     // Host details pages
     PageHostDetailsApplications: PageHostDetailsApplications,
     PageHostDetailsTraffic: PageHostDetailsTraffic,
@@ -176,14 +181,13 @@ let ntopVue = {
     PageGeoMap: PageGeoMap,
     PageHostConfig: PageHostConfig,
     PageCountryStats: PageCountryStats,
-    
+    PageExporters: PageExporters,
     PageAggregatedLiveFlows: PageAggregatedLiveFlows,
-
     PageNetworkDiscovery: PageNetworkDiscovery,
-
     PageFlowDeviceDetails: PageFlowDeviceDetails,
     PageFlowDeviceInterfaceDetails: PageFlowDeviceInterfaceDetails,
     PageHistoricalFlow: PageHistoricalFlow,
+    PageSankeyTest: PageSankeyTest,
 
     // components
     AlertInfo: AlertInfo,

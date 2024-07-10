@@ -69,7 +69,7 @@ class Prefs {
 #ifdef NTOPNG_PRO
   ndpi_bitmap* modbus_allowed_function_codes;
   u_int modbus_too_many_exceptions;
-  bool netbox_enabled;
+  bool netbox_enabled, snmp_trap_enabled;
 #endif
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
       behaviour_analysis_learning_status_post_learning;
@@ -127,10 +127,6 @@ class Prefs {
 #ifdef NTOPNG_PRO
   bool dump_flows_direct;
   u_int32_t max_aggregated_flows_upperbound, max_aggregated_flows_traffic_upperbound;
-  bool is_geo_map_score_enabled, is_geo_map_asname_enabled,
-      is_geo_map_alerted_flows_enabled, is_geo_map_blacklisted_flows_enabled,
-      is_geo_map_host_name_enabled, is_geo_map_rxtx_data_enabled,
-      is_geo_map_num_flows_enabled;
 #endif
   bool enable_runtime_flows_dump; /**< runtime preference to enable/disable
                                      flows dump from the UI */
@@ -692,6 +688,7 @@ class Prefs {
   inline u_int32_t getModbusLearingPeriod()   { return (modbus_learning_period); };
 #ifdef NTOPNG_PRO
   inline bool isNetBoxEnabled() { return netbox_enabled; };
+  inline bool isSNMPTrapEnabled() { return snmp_trap_enabled; };
   inline ndpi_bitmap* getModbusAllowedFunctionCodes() { return (modbus_allowed_function_codes);  };
   inline void         setModbusTooManyExceptionsThreshold(u_int v) { modbus_too_many_exceptions = v;     }
   inline u_int        getModbusTooManyExceptionsThreshold()        { return(modbus_too_many_exceptions); }

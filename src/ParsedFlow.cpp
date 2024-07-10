@@ -33,7 +33,6 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   http_url = http_site = http_user_agent = NULL;
   http_method = NDPI_HTTP_METHOD_UNKNOWN;
   dns_query = tls_server_name = end_reason = NULL;
-  smtp_mail_from = smtp_rcp_to = NULL;
   dhcp_client_name = NULL, sip_call_id = NULL;
   ja3c_hash = ja3s_hash = ja4c_hash = NULL;
   external_alert = NULL;
@@ -42,6 +41,8 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   dns_query_type = dns_ret_code = 0;
   ndpi_flow_risk_bitmap = 0;
   ndpi_flow_risk_name = NULL;
+  smtp_rcp_to = NULL;
+  smtp_mail_from = NULL;
   flow_verdict = 0; /* Unknown */
   src_port_pre_nat = dst_port_pre_nat =
     src_port_post_nat = dst_port_post_nat = 0;
@@ -138,6 +139,11 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
     ndpi_flow_risk_name = strdup(pf.ndpi_flow_risk_name);
   else
     ndpi_flow_risk_name = NULL;
+
+  if (pf.smtp_rcp_to)
+    smtp_rcp_to = strdup(pf.smtp_rcp_to);
+  else
+    smtp_rcp_to = NULL;
 
   if (pf.smtp_mail_from)
     smtp_mail_from = strdup(pf.smtp_mail_from);
@@ -331,9 +337,9 @@ void ParsedFlow::freeMemory() {
   if (flow_risk_info)       { free(flow_risk_info); flow_risk_info = NULL; }
   if (ndpi_flow_risk_name)  { free(ndpi_flow_risk_name); ndpi_flow_risk_name = NULL; }
   if (smtp_rcp_to)          { free(smtp_rcp_to); smtp_rcp_to = NULL; }
+  if (smtp_mail_from)       { free(smtp_mail_from); smtp_mail_from = NULL; }
   if (dhcp_client_name)     { free(dhcp_client_name); dhcp_client_name = NULL; }
   if (sip_call_id)          { free(sip_call_id); sip_call_id = NULL; }
-  if (smtp_mail_from)       { free(smtp_mail_from); smtp_mail_from = NULL; }
 }
 
 /* *************************************** */
@@ -343,4 +349,22 @@ void ParsedFlow::swap() {
   ParsedeBPF::swap();
   
   is_swapped = true;
+}
+
+/* *************************************** */
+
+void ParsedFlow::print() {
+  char buf1[32], buf2[32];
+
+  src_ip.print(buf1, sizeof(buf1));
+  dst_ip.print(buf2, sizeof(buf2));
+
+  ntop->getTrace()->traceEvent(
+      TRACE_NORMAL, "[src-ip: %s][src-port: %u][dst-ip: %s][dst-port: %u][first: %u][last: %u]",
+      src_ip.print(buf1, sizeof(buf1)),
+      ntohs(src_port), 
+      dst_ip.print(buf2, sizeof(buf2)),
+      ntohs(dst_port),
+      first_switched,
+      last_switched);
 }

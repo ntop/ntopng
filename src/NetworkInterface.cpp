@@ -8424,7 +8424,7 @@ void NetworkInterface::FillObsHash() {
 
 /* **************************************** */
 
-void NetworkInterface::allocateStructures() {
+void NetworkInterface::allocateStructures(bool disable_dump) {
   u_int16_t numNetworks = ntop->getNumLocalNetworks();
   char buf[16];
 
@@ -8469,7 +8469,7 @@ void NetworkInterface::allocateStructures() {
     top_sites = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
     top_os = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
 
-    if (db == NULL) {
+    if (db == NULL && !disable_dump) {
       if (ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
 #ifdef NTOPNG_PRO
 #if defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
@@ -11070,14 +11070,18 @@ void NetworkInterface::incNumHosts(bool local, bool rxOnlyHost) {
   if (isShuttingDown())
     return;
 
-  if (local) numLocalHosts++;
-  
-  if(rxOnlyHost) {
-    if (local) numLocalRxOnlyHosts++;
-    numTotalRxOnlyHosts++;
-  }
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of %s %s hosts", local ? "Local" : "Remote", rxOnlyHost ? "RX Only" : "Bidirectional");
 
   totalNumHosts++;
+  if (local) {
+    numLocalHosts++;
+  }
+  if(rxOnlyHost) {
+    numTotalRxOnlyHosts++;
+    if (local) {
+      numLocalRxOnlyHosts++;
+    }
+  }
 };
 
 /* *************************************** */
@@ -11086,32 +11090,41 @@ void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
   /* Do not increase nor decrease hosts in case ntopng is shutting down, it's useless */
   if (isShuttingDown())
     return;
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Decreasing number of %s %s hosts", local ? "Local" : "Remote", rxOnlyHost ? "RX Only" : "Bidirectional");
 
+  /* Decrease total number of hosts */
+  if (!totalNumHosts) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 4);
+  } else {
+    totalNumHosts--;
+  }
+
+  /* Decrease total number of local hosts */
   if (local) {
-    if(numLocalHosts == 0)
+    if (!numLocalHosts) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 1);
-    else
+    } else {
       numLocalHosts--;
+    }
   }
 
   if(rxOnlyHost) {
-    if(local) {
-      if(numLocalRxOnlyHosts == 0)
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 2);
-      else
-	numLocalRxOnlyHosts--;
-    }
-  
-    if(numTotalRxOnlyHosts == 0)
+    /* Decrease total number of RX only hosts */
+    if (!numTotalRxOnlyHosts) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 3);
-    else
+    } else {
       numTotalRxOnlyHosts--;
-  }
+    }
 
-  if(totalNumHosts == 0)
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 4);
-  else
-    totalNumHosts--;
+    /* Decrease total number of RX only local hosts */
+    if(local) {
+      if (!numLocalRxOnlyHosts) {
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 2);
+      } else {
+        numLocalRxOnlyHosts--;
+      }
+    }
+  }
 };
 
 /* **************************************************** */

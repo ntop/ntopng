@@ -187,9 +187,14 @@ print[[
         <span class="input-group-text"><i class="fas fa-language" aria-hidden="true"></i></span>
       <select name="user_language" id="user_language" class="form-select">]]
 
-for _, lang in ipairs(locales_utils.getAvailableLocales()) do
-   print('<option value="'..lang["code"]..'">'..i18n("locales." .. lang["code"])..'</option>')
-end
+      local codes = {}
+      for _, lang in ipairs(locales_utils.getAvailableLocales()) do
+	 codes[lang["code"]] = true
+      end
+
+      for lang,_ in pairsByKeys(codes, desc) do
+       print('<option value="'..lang..'">'..i18n("locales." .. lang)..'</option>')
+     end
 print[[
         </select>
     </div>

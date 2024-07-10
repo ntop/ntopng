@@ -119,7 +119,7 @@ end
 
 -- ###########################################
 
-function areFlowdevTimeseriesEnabled(ifid, device)
+function areFlowdevTimeseriesEnabled()
     return (ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation") == "1")
 end
 
@@ -223,27 +223,22 @@ end
 -- ##############################################
 
 function hasClickHouseSupport()
+    if not ntop.isClickHouseEnabled() then
+        return false
+    end
+
     local auth = require "auth"
 
     if not (ntop.isPro() or ntop.isnEdgeEnterprise()) or ntop.isWindows() then
         return false
     end
 
-    -- Don't allow nIndex for unauthorized users
+    -- Don't allow historical flows for unauthorized users
     if not auth.has_capability(auth.capabilities.historical_flows) then
         return false
     end
 
-    -- TODO optimize
-    if prefs == nil then
-        prefs = ntop.getPrefs()
-    end
-
-    if prefs.is_dump_flows_to_clickhouse_enabled then
-        return true
-    end
-
-    return false
+    return true
 end
 
 -- ##############################################
@@ -251,7 +246,7 @@ end
 -- NOTE: global nindex support may be enabled but some disable on some interfaces
 function interfaceHasClickHouseSupport()
     require "check_redis_prefs"
-    return (hasClickHouseSupport() and ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"])
+    return hasClickHouseSupport()
 end
 
 -- ##############################################

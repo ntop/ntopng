@@ -1150,6 +1150,12 @@ int SNMP::snmp_get_fctn(lua_State *vm, snmp_pdu_primitive pduType,
     }
 }
 
+/* ******************************************* */
+
+void SNMP::collectTraps() {
+  /* TODO */
+}
+
 void SNMP::handle_trap(struct snmp_pdu*pdu){
   netsnmp_variable_list *variable;
   char oid[MAX_OID_LEN] = {'\0'};

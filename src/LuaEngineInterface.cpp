@@ -442,6 +442,21 @@ static int ntop_interface_is_pcap_dump_interface(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_interface_is_database_view_interface(lua_State *vm) {
+  NetworkInterface *curr_iface = getCurrentInterface(vm);
+  bool rv = false;
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (curr_iface && curr_iface->getIfType() == interface_type_DB_VIEW)
+    rv = true;
+
+  lua_pushboolean(vm, rv);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_interface_is_zmq_interface(lua_State *vm) {
   NetworkInterface *curr_iface = getCurrentInterface(vm);
   bool rv = false;
@@ -5398,6 +5413,7 @@ static luaL_Reg _ntop_interface_reg[] = {
     {"isDiscoverableInterface", ntop_interface_is_discoverable_interface},
     {"isBridgeInterface", ntop_interface_is_bridge_interface},
     {"isPcapDumpInterface", ntop_interface_is_pcap_dump_interface},
+    {"isDatabaseViewInterface", ntop_interface_is_database_view_interface},
     {"isZMQInterface", ntop_interface_is_zmq_interface},
     {"isView", ntop_interface_is_view},
     {"isViewed", ntop_interface_is_viewed},

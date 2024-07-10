@@ -16,7 +16,7 @@ page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.autono
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-page_utils.print_navbar(i18n("as_stats.autonomous_systems"), ntop.getHttpPrefix() .. "lua/as_stats.lua", {{
+page_utils.print_navbar(i18n("as_stats.autonomous_systems"), ntop.getHttpPrefix() .. "/lua/as_stats.lua", {{
     active = page == "overview" or not page,
     page_name = "overview",
     label = "<i class=\"fas fa-lg fa-home\"  data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"" ..

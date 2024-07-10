@@ -1,0 +1,8 @@
+<H3> {{ i18n("analyze_db_ok") }} </H3>
+<p>{{i18n("analyze_db_ok_descr")}}</p>
+
+	 <form method='POST' action="{{ ntop.getHttpPrefix() }}/lua/flows_stats.lua?ifid={{ iface_id }}">
+	   <input hidden name='switch_interface' value='1' />
+	   <input hidden name='csrf' value='{{ ntop.getRandomCSRFValue() }}' />
+           <input class="btn btn-primary" type="submit" value="{{ i18n("switch_new_db_interface") }}">  
+         </form>

@@ -100,7 +100,8 @@ In the example below is exported the function `getId()` which is mapped to the C
   ```javascript
   local ifid = interface.getId()
   ```
-
+- To add a new language for utility functions i18n, a file for the new language must be created, utilizing the same formatting as en.lua (scripts/locales/en.lua). For example create a file xyz.lua in the same folder as en.lua and translate the right hand side of each entry in the target language: `["KEY_USED_IN_I18N"] = "TRANSLATED_VALUE"`. Then update the variable: `supported_locales` in `scripts/lua/modules/locales_utils.lua` with the new target language file. You can choose the language from the user icon of the ntopng interface (top right of each ntopng page), and select the new language.
+- To translate en.lua to a new language, please see script: `tools/translation.py`. Inside of this script is present an example on how to use this script. This script will translate en.lua to a target language. Before using the new translated language please check the format of the generated file given that sometimes there could be errors in formatting.
 ## Vue 
 
 - `map_table_def_columns = async (columns)` is a function used to manipulate table columns and apply some kind of filters. For example filterize can be applied

@@ -369,7 +369,7 @@ class Ntop {
    *
    * @param i Network interface.
    */
-  void initInterface(NetworkInterface *i);
+  void initInterface(NetworkInterface *i, bool disable_dump = false);
 
   /**
    * @brief Get the number of defined network interfaces.
@@ -795,7 +795,9 @@ class Ntop {
 #endif
   inline Mutex *get_pools_lock()      { return (&pools_lock); };
   inline u_int32_t get_current_time() { return(current_time); };
-  bool createPcapInterface(const char *path, int *iface_id);
+
+  bool createRuntimeInterface(char *name, char *source, int *iface_id);
+
   void incBlacklisHits(std::string listname);
 #if defined(NTOPNG_PRO) && defined(HAVE_KAFKA)
   inline bool sendKafkaMessage(char *kafka_broker_info, char *msg,

@@ -1,0 +1,107 @@
+{
+	"id": "probes",
+	"data_url": "lua/rest/v2/get/interface/nprobes/data.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "probe_ip",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "probe_ip",
+			"title_i18n": "if_stats_overview.probe_ip",
+			"data_field": "probe_ip",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "probe_public_ip",
+			"title_i18n": "if_stats_overview.probe_public_ip",
+			"data_field": "probe_public_ip",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "probe_uuid",
+			"title_i18n": "if_stats_overview.probe_uuid",
+			"data_field": "probe_uuid",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "probe_interface",
+			"title_i18n": "if_stats_overview.interface_name",
+			"data_field": "probe_interface",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "flow_exporters",
+			"title_i18n": "if_stats_overview.flow_exporters_num",
+			"data_field": "flow_exporters",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "dropped_flows",
+			"title_i18n": "graphs.metric_labels.dropped_flows",
+			"data_field": "dropped_flows",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "exported_flows",
+			"title_i18n": "graphs.metric_labels.exported_flows",
+			"data_field": "exported_flows",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "probe_edition",
+			"title_i18n": "if_stats_overview.remote_probe_edition",
+			"data_field": "probe_edition",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "probe_license",
+			"title_i18n": "if_stats_overview.remote_probe_license",
+			"data_field": "probe_license",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "probe_maintenance",
+			"title_i18n": "if_stats_overview.remote_probe_maintenance",
+			"data_field": "probe_maintenance",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

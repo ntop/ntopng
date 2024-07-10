@@ -333,8 +333,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
 
   memset(&zrs, 0, sizeof(zrs));
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msg_id: %u] %s", msg_id,
-  // payload);
+   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msg_id: %u] %s", msg_id,
+   //payload);
 
   o = json_tokener_parse_verbose(payload, &jerr);
 
@@ -364,6 +364,9 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
         snprintf(zrs.remote_probe_public_address,
                  sizeof(zrs.remote_probe_public_address), "%s",
                  json_object_get_string(z));
+      if (json_object_object_get_ex(w, "uuid", &z))
+        snprintf(zrs.uuid, sizeof(zrs.uuid),
+                 "%s", json_object_get_string(z));
       if (json_object_object_get_ex(w, "ip", &z))
         snprintf(zrs.remote_probe_address, sizeof(zrs.remote_probe_address),
                  "%s", json_object_get_string(z));
@@ -470,6 +473,26 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
 
       if (json_object_object_get_ex(w, "sflow_samples", &z))
         zrs.flow_collection.sflow_samples = (u_int64_t)json_object_get_int64(z);
+      
+      if (json_object_object_get_ex(w, "exporters", &z)) {
+        json_object_object_foreach(z, key, val) {
+          //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Exporter: %s", key);
+          u_int32_t ip = ntohl(inet_addr(key));
+          ExporterStats exp_stats = { 0 };
+          json_object *x;
+
+          if (json_object_object_get_ex(val, "time_last_used", &x))
+            exp_stats.time_last_used = (u_int32_t)json_object_get_int64(x);
+          if (json_object_object_get_ex(val, "num_sflow_flows", &x))
+            exp_stats.num_sflow_flows = (u_int32_t)json_object_get_int64(x);
+          if (json_object_object_get_ex(val, "num_netflow_ipfix_flows", &x))
+            exp_stats.num_netflow_flows = (u_int32_t)json_object_get_int64(x);
+          if (json_object_object_get_ex(val, "num_drops", &x))
+            exp_stats.num_drops = (u_int32_t)json_object_get_int64(x);
+
+          exporters_stats[ip] = exp_stats;
+        }
+      }
     }
 
     if (json_object_object_get_ex(o, "zmq", &w)) {
@@ -756,12 +779,14 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
         flow->setEndReason(value->string);
       break;
     case TOTAL_FLOWS_EXP:
-      /* Not used
-         if(value->string != NULL)
-         total_flows_exp = atol(value->string);
-         else
-         total_flows_exp = value->int_num;
-      */
+/*
+      if(value->string != NULL)
+        total_flows_exp = atol(value->string);
+      else
+        total_flows_exp = value->int_num;
+      ntop->getTrace()->traceEvent(TRACE_INFO,
+                                   "Total Exported Flows %u", total_flows_exp);
+*/
       break;
     case INPUT_SNMP:
       flow->inIndex = value->int_num;
@@ -3170,6 +3195,8 @@ void ZMQParserInterface::lua(lua_State *vm, bool fullStats) {
     lua_push_str_table_entry(vm, "remote.if_addr", zrs->remote_ifaddress);
     lua_push_uint64_table_entry(vm, "remote.ifspeed", zrs->remote_ifspeed);
     lua_push_str_table_entry(vm, "probe.ip", zrs->remote_probe_address);
+    lua_push_str_table_entry(vm, "probe.uuid",
+                             zrs->uuid);
     lua_push_str_table_entry(vm, "probe.public_ip",
                              zrs->remote_probe_public_address);
     lua_push_str_table_entry(vm, "probe.probe_version",
@@ -3181,6 +3208,16 @@ void ZMQParserInterface::lua(lua_State *vm, bool fullStats) {
                              zrs->remote_probe_edition);
     lua_push_str_table_entry(vm, "probe.probe_maintenance",
                              zrs->remote_probe_maintenance);
+    lua_push_uint64_table_entry(vm, "drops.export_queue_full", zrs->export_queue_full);
+    lua_push_uint64_table_entry(vm, "drops.too_many_flows", zrs->too_many_flows);
+    lua_push_uint64_table_entry(vm, "drops.elk_flow_drops", zrs->elk_flow_drops);
+    lua_push_uint64_table_entry(vm, "drops.sflow_pkt_sample_drops", zrs->sflow_pkt_sample_drops);
+    lua_push_uint64_table_entry(vm, "drops.flow_collection_drops", zrs->flow_collection_drops);
+    lua_push_uint64_table_entry(vm, "drops.flow_collection_udp_socket_drops", zrs->flow_collection_udp_socket_drops);
+    lua_push_uint64_table_entry(vm, "flow_collection.nf_ipfix_flows", zrs->flow_collection.nf_ipfix_flows);
+    lua_push_uint64_table_entry(vm, "flow_collection.sflow_samples", zrs->flow_collection.sflow_samples);
+    lua_push_uint64_table_entry(vm, "zmq.num_flow_exports", zrs->num_flow_exports);
+    lua_push_uint64_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);
 
     lua_pushstring(vm, std::to_string(it->first).c_str() /* The source_id as string (can't use integers or Lua will think it's an array ) */);
     lua_insert(vm, -2);
@@ -3221,7 +3258,37 @@ void ZMQParserInterface::lua(lua_State *vm, bool fullStats) {
     lua_push_uint64_table_entry(vm, "timeout.collected_lifetime",
                                 zrs->remote_collected_lifetime_timeout);
     lua_push_uint64_table_entry(vm, "timeout.idle", zrs->remote_idle_timeout);
+    exporterLuaStats(vm);
   }
+}
+
+/* **************************************************** */
+
+void ZMQParserInterface::exporterLuaStats(lua_State *vm) {
+  std::unordered_map<u_int32_t, ExporterStats>::iterator it;
+  lua_newtable(vm);
+  lock.rdlock(__FILE__, __LINE__);
+
+  for (it = exporters_stats.begin();
+       it != exporters_stats.end(); ++it) {
+    lua_newtable(vm);
+    char buf[32], ipb[24];
+    snprintf(buf, sizeof(buf), "%s", Utils::intoaV4(it->first, ipb, sizeof(ipb)));
+
+    lua_push_uint64_table_entry(vm, "time_last_used", it->second.time_last_used);
+    lua_push_uint64_table_entry(vm, "num_netflow_flows", it->second.num_netflow_flows);
+    lua_push_uint64_table_entry(vm, "num_sflow_flows", it->second.num_sflow_flows);
+    lua_push_uint64_table_entry(vm, "num_drops", it->second.num_drops);
+
+    lua_pushstring(vm, buf);
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+
+  lock.unlock(__FILE__, __LINE__);
+  lua_pushstring(vm, "exporters");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* **************************************************** */

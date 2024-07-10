@@ -438,6 +438,9 @@ using namespace std;
 #include "ZCCollectorInterface.h"
 #include "DummyInterface.h"
 #include "ExportInterface.h"
+#if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE)
+#include "ClickHouseInterface.h"
+#endif
 #endif
 
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)

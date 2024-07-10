@@ -2289,4 +2289,17 @@ end
 
 -- ##############################################
 
+-- This function adds the mitre info that can be found in the META data of the alert,
+-- inside the json
+function alert_store:add_mitre_info(alert)
+    local alert_key = alert_consts.getAlertType(alert.alert_id, alert.entity_id)
+    local mitre_info = alert_consts.getAlertMitreInfoIDs(alert_key)
+    local alert_json = json.decode(alert.json)
+    alert_json.mitre_info = mitre_info
+    alert.json = json.encode(alert_json)
+    return alert
+end
+
+-- ##############################################
+
 return alert_store

@@ -269,42 +269,6 @@ local menu_subpages = {{
         }
     }
 }, {
-    id = "geo_map",
-    label = i18n("prefs.geo_map.geo_map"),
-    advanced = true,
-    pro_only = true,
-    hidden = interface.isLoopback() or not ntop.hasGeoIP(),
-    entries = {
-        toggle_geo_map_score = {
-            title = i18n("prefs.geo_map.toggle_geo_map_score_title"),
-            description = i18n("prefs.geo_map.toggle_geo_map_custom_description")
-        },
-        toggle_geo_map_asname = {
-            title = i18n("prefs.geo_map.toggle_geo_map_asname_title"),
-            description = i18n("prefs.geo_map.toggle_geo_map_custom_description")
-        },
-        toggle_geo_map_alerted_flows = {
-            title = i18n("prefs.geo_map.toggle_geo_map_alerted_flows_title"),
-            description = i18n("prefs.geo_map.toggle_geo_map_custom_description")
-        },
-        toggle_geo_map_blacklisted_flows = {
-            title = i18n("prefs.geo_map.toggle_geo_map_blacklisted_flows_title"),
-            description = i18n("prefs.geo_map.toggle_geo_map_custom_description")
-        },
-        toggle_geo_map_host_name = {
-            title = i18n("prefs.geo_map.toggle_geo_map_host_name_title"),
-            description = i18n("prefs.geo_map.toggle_geo_map_custom_description")
-        },
-        toggle_geo_map_rxtx_data = {
-            title = i18n("prefs.geo_map.toggle_geo_map_rxtx_data_title"),
-            description = i18n("prefs.geo_map.toggle_geo_map_custom_description")
-        },
-        toggle_geo_map_num_flows = {
-            title = i18n("prefs.geo_map.toggle_geo_map_num_flows_title"),
-            description = i18n("prefs.geo_map.toggle_geo_map_custom_description")
-        }
-    }
-}, {
     id = "logging",
     label = i18n("prefs.logging"),
     advanced = false,
@@ -527,6 +491,10 @@ local menu_subpages = {{
         toggle_snmp_debug = {
             title = i18n("prefs.toggle_snmp_debug_title"),
             description = i18n("prefs.toggle_snmp_debug_description")
+        },
+        toggle_snmp_trap = {
+            title = i18n("prefs.toggle_snmp_trap_title"),
+            description = i18n("prefs.toggle_snmp_trap_description")
         }
     }
 }, {

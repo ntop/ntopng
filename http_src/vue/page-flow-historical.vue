@@ -39,6 +39,9 @@
                                     <a v-if="context.show_download" class="btn btn-link btn-sm"
                                         :title="_i18n('graphs.download_records')" :href="href_download_records"><i
                                             class="fas fa-lg fa-file"></i></a>
+                                    <a v-if="context.show_analyse_records" class="btn btn-link btn-sm"
+                                        :title="_i18n('graphs.analyse_records')" :href="href_analyse_records"><i
+                                            class="fas fa-lg fa-play"></i></a>
                                     <button v-if="context.show_pcap_download || show_pcap_download" class="btn btn-link btn-sm"
                                         @click="show_modal_traffic_extraction"
                                         :title="_i18n('traffic_recording.pcap_download')"><i
@@ -83,7 +86,7 @@
                                     <template v-slot:menu>
                                         <a v-for="opt in t.options" style="cursor:pointer; display: block;"
                                             @click="add_top_table_filter(opt, $event)" class="ntopng-truncate tag-filter "
-                                            :title="opt.value">{{ opt.label }}</a>
+                                            :title="opt.value">{{ opt.label + " (" + opt.count + "%)" }}</a>
                                     </template>
                                 </Dropdown> <!-- Dropdown columns -->
                             </template> <!-- custom_header -->
@@ -186,6 +189,14 @@ const href_download_records = computed(() => {
     params.visible_columns = visible_columns;
     const url_params = ntopng_url_manager.obj_to_url_params(params);
     return `${location.origin}/${download_endpoint}?${url_params}`;
+});
+
+const href_analyse_records = computed(() => {
+    if (count_page_components_reloaded.value < 0) { throw "never run"; }
+    const analyse_endpoint = props.context.analyse.endpoint;
+    let params = ntopng_url_manager.get_url_object();
+    const url_params = ntopng_url_manager.obj_to_url_params(params);
+    return `${location.origin}/${analyse_endpoint}?${url_params}`;
 });
 
 let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
@@ -457,7 +468,7 @@ const map_table_def_columns = async (columns) => {
     };
     const f_print_latency = (key, latency, row) => {
         if (latency == null || latency == 0) { return ""; }
-        return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${latency}' href='javascript:void(0)'>${NtopUtils.msecToTime(latency)}</a>`;
+        return `<a class='tag-filter' data-tag-key='${key}' data-tag-value='${latency}' href='javascript:void(0)'>${latency} ms</a>`;
     };
     const f_print_state = (key, state, row) => {
         if (state == null || state == 0) { return ""; }

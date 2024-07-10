@@ -40,7 +40,7 @@ end
 -- #################################
 
 page_utils.menu_sections = {
-   monitoring     = {key = "monitoring", i18n_title = "monitoring", icon = "fas fa-satellite-dish"},
+   monitoring        = {key = "monitoring", i18n_title = "monitoring", icon = "fas fa-satellite-dish"},
    dashboard     = {key = "dashboard", i18n_title = "index_page.dashboard", icon = "fas fa-tachometer-alt"},
    alerts        = {key = "alerts", i18n_title = "details.alerts", icon = "fas fa-exclamation-triangle"},
    flows         = {key = "flows", i18n_title = "flows", icon = "fas fa-stream"},
@@ -50,10 +50,10 @@ page_utils.menu_sections = {
    if_stats      = {key = "if_stats", i18n_title = "interface", icon = "fas fa-ethernet"},
    system_stats  = {key = "system_stats", i18n_title = "system", icon = "fas fa-desktop"},
    admin         = {key = "admin", i18n_title = "settings", icon = "fas fa-cog"},
-   alert_exclusions = {key = "alert_exclusions", i18n_title = "edit_check.exclusion_list", icon = "fas fa-bell-slash"},
-   device_exclusions = {key = "device_exclusions", i18n_title = "edit_check.device_exclusions", icon = "fas fa-bell-slash"},
+   alert_exclusions  = {key = "alert_exclusions", i18n_title = "edit_check.exclusion_list", icon = "fas fa-bell-slash"},
    dev           = {key = "dev", i18n_title = "developer", icon = "fas fa-code"},
    about         = {key = "about", i18n_title = "help", icon = "fas fa-life-ring"},
+   chatbot       = {key = "chatbot", i18n_title = "chatbot", icon = "fa-solid fa-headset"},
    health        = {key = "health", i18n_title = "health", icon = "fas fa-laptop-medical"},
    pollers       = {key = "pollers", i18n_title = "pollers", icon = "fas fa-heartbeat"},
    tools         = {key = "tools", i18n_title = "tools", icon = "fas fa-cogs"},
@@ -108,6 +108,8 @@ page_utils.menu_entries = {
     pods                  = {key = "pods", i18n_title = "containers_stats.pods", section = "hosts"},
     host_rules            = {key = "host_rules", i18n_title = "if_stats_config.traffic_rules", section = "hosts", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/host_rules.html"},
 
+    -- Chatbot 
+    chatbot             = {key = "chatbot", i18n_title = "chatbot", section = "chatbot"},
     -- Interface
     interface             = {key = "interface", i18n_title = "interface_details", section = "if_stats"},
     ports_analysis        = {key = "ports_analysis", i18n_title = "ports_analysis.server_ports", section = "if_stats"},
@@ -129,6 +131,7 @@ page_utils.menu_entries = {
     event_exporters       = {key = "event_exporters", i18n_title = "event_exporters.event_exporters", section = "collection"},
     sflow_exporters       = {key = "sflow_exporters", i18n_title = "flows_page.sflow_devices", section = "collection"},
     exporters             = {key = "exporters", i18n_title = "flow_devices.flow_exporters", section = "collection", help_link = "https://www.ntop.org"},
+    nprobe               = {key = "nprobe", i18n_title = "flow_devices.nprobe_instances", section = "collection"},
     observation_points    = {key = "observation_points", i18n_title = "flow_devices.observation_points", section = "collection", help_link = "https://www.ntop.org"},
 
    -- Map
@@ -150,8 +153,8 @@ page_utils.menu_entries = {
    scripts_config_system  = {key = "scripts_config", subkey="system", i18n_title = alert_entities.system.i18n_label, section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_syslog  = {key = "scripts_config", subkey="syslog", i18n_title = "syslog.syslog", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_active_monitoring  = {key = "scripts_config", subkey="active_monitoring", i18n_title = "active_monitoring", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
-   device_exclusions      = {key = "device_exclusions", i18n_title = "edit_check.device_exclusion", section = "device_exclusions"},
-   alert_exclusions       = {key = "alert_exclusions", i18n_title = "edit_check.exclusion_list", section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
+   device_exclusions      = {key = "device_exclusions", i18n_title = "edit_check.device_exclusion", section = "hosts"},
+   alert_exclusions       = {key = "alert_exclusions", i18n_title = "edit_check.exclusion_list", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    alert_exclusions_hosts = {key = "alert_exclusions", subkey="hosts", i18n_title = alert_entities.host.i18n_label, section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    alert_exclusions_flows = {key = "alert_exclusions", subkey="flows", i18n_title = alert_entities.flow.i18n_label, section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    alert_exclusions_domains = {key = "alert_exclusions", subkey="domains", i18n_title = alert_entities.domain.i18n_label, section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
@@ -182,6 +185,7 @@ page_utils.menu_entries = {
    -- Developer
    directories            = {key = "directories", i18n_title = "about.directories", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/scripts/distributing_scripts.html"},
    checks_dev             = {key = "checks_dev", i18n_title = "about.checks", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/scripts/checks.html"},
+   analyze_db            = {key = "analyze_db", i18n_title = "about.analyze_db", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/index.html"},
    analyze_pcap           = {key = "analyze_pcap", i18n_title = "about.analyze_pcap", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/index.html"},
    alert_definitions      = {key = "alert_definitions", i18n_title = "about.alert_defines", section = "dev", help_link = "https://www.ntop.org/guides/ntopng/scripts/alert_definitions.html"},
    api                    = {key = "api", i18n_title = "lua_c_api", section = "dev"},

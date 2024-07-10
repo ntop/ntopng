@@ -144,7 +144,7 @@ page_utils.print_navbar(title, url,
 			      label = "<i class='fas fa-lg fa-chart-area'></i>",
 			   },
             {
-               hidden = not prefs.is_dump_flows_to_clickhouse_enabled or page == "historical",
+               hidden = not ntop.isClickHouseEnabled() or page == "historical",
                active = page == "db_search",
                page_name = "db_search",
                label = "<i class=\"fas fa-search-plus\" title='" .. i18n("db_explorer.historical_data_explorer") .. "'\"></i>",

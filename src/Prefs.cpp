@@ -105,6 +105,7 @@ Prefs::Prefs(Ntop *_ntop) {
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
 #ifdef NTOPNG_PRO
   netbox_enabled = CONST_DEFAULT_NETBOX_ENABLED;
+  snmp_trap_enabled = CONST_DEFAULT_SNMP_TRAP_ENABLED;
   pro_callbacks_dir = strdup(CONST_DEFAULT_PRO_CALLBACKS_DIR);
   create_labels_logfile = false;
 #endif
@@ -157,10 +158,6 @@ Prefs::Prefs(Ntop *_ntop) {
 #ifdef NTOPNG_PRO
   dump_flows_direct = false;
   max_aggregated_flows_upperbound = 10000, max_aggregated_flows_traffic_upperbound = 1;
-  is_geo_map_score_enabled = is_geo_map_asname_enabled =
-    is_geo_map_alerted_flows_enabled = false;
-  is_geo_map_blacklisted_flows_enabled = is_geo_map_host_name_enabled = false;
-  is_geo_map_rxtx_data_enabled = is_geo_map_num_flows_enabled = false;
 #endif
   enable_runtime_flows_dump = true;
   enable_activities_debug = false;
@@ -369,7 +366,7 @@ void usage() {
 	 "                                    | zmq://<IP address>         [ZMQ "
 	 "flow collection]\n"
 	 "                                    | tcp://<IP address>         "
-	 "[DEPRECATED ZMQ flow collection]\n"
+	 "[Deprecated - use zmq://]\n"
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
 	 "                                    | kafka://<brokers list>     [Kafka "
 	 "flow collection]\n"
@@ -884,24 +881,10 @@ void Prefs::reloadPrefsFromRedis() {
     getDefaultPrefsValue(CONST_RUNTIME_IS_INTERFACE_NAME_ONLY, false);
 
 #ifdef NTOPNG_PRO
-  is_geo_map_score_enabled =
-    getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_SCORE_ENABLED, false);
-  is_geo_map_asname_enabled =
-    getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_ASNAME_ENABLED, false);
   max_aggregated_flows_upperbound =
     getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_UPPERBOUND, 10000);
   max_aggregated_flows_traffic_upperbound =
     getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_TRAFFIC_UPPERBOUND, 1);
-  is_geo_map_alerted_flows_enabled = getDefaultPrefsValue(
-							  CONST_RUNTIME_IS_GEO_MAP_ALERTED_FLOWS_ENABLED, false);
-  is_geo_map_blacklisted_flows_enabled = getDefaultPrefsValue(
-							      CONST_RUNTIME_IS_GEO_MAP_BLACKLISTED_FLOWS_ENABLED, false);
-  is_geo_map_host_name_enabled =
-    getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_HOST_NAME_ENABLED, false);
-  is_geo_map_rxtx_data_enabled =
-    getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_RXTX_DATA_ENABLED, false);
-  is_geo_map_num_flows_enabled =
-    getDefaultPrefsValue(CONST_RUNTIME_IS_GEO_MAP_NUM_FLOWS_ENABLED, false);
 #endif
   // alert preferences
   enable_access_log = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
@@ -1048,8 +1031,11 @@ void Prefs::reloadPrefsFromRedis() {
   refreshBehaviourAnalysis();
 
 #ifdef NTOPNG_PRO
+  // reset value
   netbox_enabled = getDefaultPrefsValue(CONST_PREFS_NETBOX_ENABLED,
 							    CONST_DEFAULT_NETBOX_ENABLED);
+  snmp_trap_enabled = getDefaultPrefsValue(CONST_PREFS_SNMP_TRAP_ENABLED,
+							    CONST_DEFAULT_SNMP_TRAP_ENABLED);
 #endif
 
 #ifdef PREFS_RELOAD_DEBUG
@@ -2657,20 +2643,6 @@ void Prefs::lua(lua_State *vm) {
 			     max_aggregated_flows_upperbound);
   lua_push_int32_table_entry(vm, "max_aggregated_flows_traffic_upperbound",
 			     max_aggregated_flows_traffic_upperbound);
-  lua_push_bool_table_entry(vm, "is_geo_map_score_enabled",
-                            is_geo_map_score_enabled);
-  lua_push_bool_table_entry(vm, "is_geo_map_asname_enabled",
-                            is_geo_map_asname_enabled);
-  lua_push_bool_table_entry(vm, "is_geo_map_alerted_flows_enabled",
-                            is_geo_map_alerted_flows_enabled);
-  lua_push_bool_table_entry(vm, "is_geo_map_blacklisted_flows_enabled",
-                            is_geo_map_blacklisted_flows_enabled);
-  lua_push_bool_table_entry(vm, "is_geo_map_host_name_enabled",
-                            is_geo_map_host_name_enabled);
-  lua_push_bool_table_entry(vm, "is_geo_map_rxtx_data_enabled",
-                            is_geo_map_rxtx_data_enabled);
-  lua_push_bool_table_entry(vm, "is_geo_map_num_flows_enabled",
-                            is_geo_map_num_flows_enabled);
 #endif
 
   lua_push_bool_table_entry(vm, "is_dump_flows_to_mysql_enabled",
@@ -2680,8 +2652,6 @@ void Prefs::lua(lua_State *vm) {
                             dump_flows_on_es);
   lua_push_bool_table_entry(vm, "is_dump_flows_to_syslog_enabled",
                             dump_flows_on_syslog);
-  lua_push_bool_table_entry(vm, "is_dump_flows_to_clickhouse_enabled",
-                            dump_flows_on_clickhouse);
   lua_push_int32_table_entry(vm, "host_to_scan_max_num_scans",
 			                      vs_max_num_scans);
   lua_push_bool_table_entry(vm, "vs_slow_scan", vs_slow_scan);

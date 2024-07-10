@@ -24,7 +24,7 @@
                                         aria-label="Close"></button>
                                 </div>
                             </template>
-                            <div class="d-flex justify-content-center align-items-center" style="height: 80vh;"
+                            <div class="d-flex justify-content-center align-items-center" :style="[(is_host_details) ? 'height: 65vh;' : 'height: 75vh']"
                                 id="map-canvas">
                             </div>
                         </div>
@@ -38,8 +38,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount, } from "vue";
-import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_sync } from "../services/context/ntopng_globals_services";
+import { ref, onMounted } from "vue";
+import { ntopng_url_manager, ntopng_utility } from "../services/context/ntopng_globals_services";
 
 import { default as SelectSearch } from "./select-search.vue"
 
@@ -49,6 +49,7 @@ const props = defineProps({
     context: Object,
 });
 
+const is_host_details = ref(false);
 const ifid = props.context.ifid;
 
 // select search
@@ -72,7 +73,7 @@ let markers = null;
 const default_coords = [41.9, 12.4833333];
 const zoom_level = 4;
 
-let endpoint = `${http_prefix}/lua/rest/v2/get/geo_map/hosts.lua?`;
+let endpoint = `/lua/rest/v2/get/geo_map/hosts.lua?`;
 let baseEndpoint = "";
 
 onMounted(() => {
@@ -207,6 +208,9 @@ async function redraw_hosts() {
     // get data
     const url = `${http_prefix}${endpoint}${ntopng_url_manager.get_url_params()}`
     const rsp = await ntopng_utility.http_request(url);
+    ntopng_url_manager.get_url_entry('host') ? 
+        is_host_details.value = true :
+        is_host_details.value = false;
 
     // draw map markers
     draw_markers(rsp, markers, map);
@@ -237,8 +241,8 @@ async function show_positions(current_user_position) {
 
     // these are two map providers provided by: https://leaflet-extras.github.io/leaflet-providers/preview/
     const layers = {
-        //light: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        light: "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
+        light: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        //light: "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png",
         //light: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
         //dark: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png"
     };

@@ -55,7 +55,7 @@ The simplest solution is to install `ntopng-data`. However if this is not possib
 In case package `ntopng-data` or `geoipupdate` is not available on your platform:
 
 0. Manually download database files
-   - DB-IP: `dbip-city-lite`, `dbip-asn-lite`, and `dbip-country-lite` (https://db-ip.com/db/) databases
+   - DB-IP: `dbip-city-lite`, `dbip-asn-lite`, and `dbip-country-lite` (https://db-ip.com/db/) databases in MMDB format
    - MaxMind: `GeoLite2-ASN.mmdb` and `GeoLite2-City.mmdb` from the "GeoIP2 / GeoLite2" > "Download Files" section of your MaxMind account page
    
 1. Then place the downloaded files under a specifiy folder which depends on the platform:

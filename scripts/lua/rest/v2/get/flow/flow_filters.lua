@@ -53,22 +53,6 @@ if interface.isView() then
     }
 end
 
-if selected_ip then
-    local hosts_type_filters = {{
-        key = "flowhosts_type",
-        value = selected_ip,
-        label = selected_ip
-    }}
-    
-    rsp[#rsp + 1] = {
-        action = "flowhosts_type",
-        label = i18n("db_explorer.host_data"),
-        name = "flowhosts_type",
-        value = hosts_type_filters
-    }
-
-end
-
 if not host then
     local hosts_type_filters = {{
         key = "flowhosts_type",
@@ -76,16 +60,13 @@ if not host then
         label = i18n("all")
     }}
 
-    if not isEmptyString(selected_ip) then
-        local newFilter = {{
-            key = "flowhosts_type",
-            value = "",
-            label = i18n("all")
-        },{
+    local host = hostkey2hostinfo(selected_ip)
+    if((not isEmptyString(host)) and (not isEmptyString(host.host)) and (isIPv4(host.host) or isIPv6(host.host))) then
+        local newFilter = {
             key = "flowhosts_type",
             value = selected_ip,
             label = selected_ip
-        }}
+        }
 
         table.insert(hosts_type_filters, newFilter)
     end

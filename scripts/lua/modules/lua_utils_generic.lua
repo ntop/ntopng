@@ -428,9 +428,9 @@ end
 function printInterfaceIndex(idx)
    local ifaces
    local basedir = "/sys/class/net"
-   
+
    if((idx == nil) or (idx == "")) then return end
-   
+
    idx = tostring(idx)
    if(idx == "0") then return end
 
@@ -467,3 +467,8 @@ if(trace_script_duration ~= nil) then
    io.write(debug.getinfo(1,'S').source .." executed in ".. (os.clock()-clock_start)*1000 .. " ms\n")
 end
 
+-- ###########################################
+
+function isInteger(str)
+   return not (str == "" or str:find("%D"))  -- str:match("%D") also works
+end

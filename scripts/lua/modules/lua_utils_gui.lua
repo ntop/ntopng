@@ -929,7 +929,7 @@ function formatAlertAHref(key, value, label)
 end
 
 function add_historical_flow_explorer_button_ref(extra_params, no_href)
-    if (ntop.getPrefs()["is_dump_flows_to_clickhouse_enabled"]) == false then
+    if not ntop.isClickHouseEnabled() then
         return ''
     end
 
@@ -1000,7 +1000,11 @@ function format_portidx_name(device_ip, portidx, short_version, shorten_string)
                 if short_version then
                     local name = port_info["name"]
                     if shorten_string then
-                        name = shortenString(name)
+                        if type(shorten_string) == "number" then
+                            name = shortenString(name, shorten_string)
+                        else
+                            name = shortenString(name)
+                        end
                     end
                     idx_name = string.format('%s', name);
                 else
@@ -1068,6 +1072,11 @@ end
 
 -- ##############################################
 
+-- function to format dns query to an HTML copy button and query value
+function format_dns_query_copy_btn(dns_query) 
+    return "<button onclick='const textArea = document.createElement(`textarea`);textArea.value=`" .. dns_query .. "`;textArea.style.position=`absolute`;textArea.style.left=`-999999px`;document.body.prepend(textArea);textArea.select();document.execCommand(`copy`);'class='btn btn-light btn-sm border ms-1'style='cursor: pointer;'><i class='fas fa-copy'></i></button><span style='margin-left: 8px;'>" .. dns_query .. "</span>"
+end
+
 -- @brief Given a table of values, if available, it's going to format the values with the standard
 --        info and then return the same table formatted
 function format_dns_query_info(dns_info, no_html)
@@ -1097,11 +1106,7 @@ function format_dns_query_info(dns_info, no_html)
             local url = dns_info["last_query"]
             url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
             if not string.find(url, '*') then
-                dns_info.last_query = i18n("external_link_url", {
-                    proto = 'https',
-                    url = url,
-                    url_name = dns_info["last_query"]
-                })
+                dns_info.last_query = format_dns_query_copy_btn(dns_info["last_query"])
             end
         end
     end
@@ -1298,7 +1303,7 @@ function format_proto_info(flow_details, proto_info)
             proto_info[key] = nil
         end
     end
-
+    
     for proto, info in pairs(proto_info or {}) do
         if proto == "tls" then
             proto_details[proto] = format_tls_info(info)
