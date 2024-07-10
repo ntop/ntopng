@@ -207,6 +207,7 @@ interface.select(ifname)
 local ifs = interface.getStats()
 local is_pcap_dump = interface.isPcapDumpInterface()
 local is_packet_interface = interface.isPacketInterface()
+local is_db_view_interface = interface.isDatabaseViewInterface()
 local is_viewed = ifs.isViewed
 local is_influxdb_enabled = ntop.getPref("ntopng.prefs.timeseries_driver") == "influxdb"
 local is_clickhouse_enabled = ntop.isClickHouseEnabled()
@@ -278,7 +279,7 @@ else
     -- Alerts
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.alerts,
-        hidden = not prefs.are_alerts_enabled or not auth.has_capability(auth.capabilities.alerts),
+        hidden = not prefs.are_alerts_enabled or not auth.has_capability(auth.capabilities.alerts) or is_pcap_dump or is_db_view_interface,
         entries = {{
             entry = page_utils.menu_entries.alerts_list,
             url = "/lua/alert_stats.lua"
