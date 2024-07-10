@@ -1,0 +1,50 @@
+{
+	"id": "exporters",
+	"data_url": "lua/pro/rest/v2/get/exporters/data.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"default_sort": {
+		"column_id": "exported_flows",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "ip",
+			"title_i18n": "flow_devices.probe_ip",
+			"data_field": "ip",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "name",
+			"title_i18n": "name",
+			"data_field": "name",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "exported_flows",
+			"title_i18n": "graphs.metric_labels.exported_flows",
+			"data_field": "exported_flows",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "dropped_flows",
+			"title_i18n": "graphs.metric_labels.dropped_flows",
+			"data_field": "dropped_flows",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		}
+    ]
+}

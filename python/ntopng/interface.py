@@ -161,7 +161,89 @@ class Interface:
         :rtype: object
         """
         return(self.ntopng_obj.request(self.rest_v2_url + "/get/flow/l7/counters.lua", {"ifid": self.ifid }))
+    
+    def get_alert_types_enum(self):
+        """
+        Return the enum for all the alert types
 
+        :return: Alert types enum
+        :rtype: object
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/type/consts.lua", {}))
+    
+    def get_alert_severities_enum(self):
+        """
+        Return the enum for all the alert severities
+
+        :return: Alert severity enum
+        :rtype: object
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/severity/consts.lua", {}))
+    
+    def get_alerts_counter_per_type(self, ifid_num):
+        """
+        Return the number of alerts for each alert type
+
+        :return: Number of alerts for each alert type
+        :rtype: object
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/type/counters.lua", {"ifid": ifid_num }))
+    
+    def get_alerts_counter_per_severity(self, ifid_num):
+        """
+        Return the number of alerts for each severity value
+
+        :return: Number of alerts for each severity value
+        :rtype: object
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/alert/severity/counters.lua", {"ifid": ifid_num }))
+    
+    def get_l7_application_proto_enum(self):
+        """
+        Return the enum for L7 application enum
+
+        :return: Enum for L7 application enum
+        :rtype: object
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/l7/application/consts.lua", {}))
+
+    def get_l7_application_category_enum(self):
+        """
+        Return the enum for L7 application category enum
+
+        :return: Enum for L7 application category enum
+        :rtype: object
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/l7/category/consts.lua", {}))
+    
+    def get_l4_protocols_enum(self):
+        """
+        Return the enum for L4 protocols
+
+        :return: Enum for L4 protocols
+        :rtype: object
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/l4/protocol/consts.lua", {}))
+    
+    def get_active_hosts(self, ifid_num):
+        """
+        Return all active hosts on the selected interface
+
+        :return: Active hosts on the selected interface
+        :rtype: object
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/active.lua", {"ifid": ifid_num }))
+    
+    def get_host_data(self, ifid_num, host_ip):
+        """
+        Return all host data for the selected interface and IP
+
+        :return: Host data for the specified interface and IP address
+        :rtype: object
+        """
+        return(self.ntopng_obj.request(self.rest_v2_url + "/get/host/data.lua", {"ifid": ifid_num, "host": str(host_ip) }))
+    
+    
     def get_historical(self):
         """
         Return an Historical handle for the interface

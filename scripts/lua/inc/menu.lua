@@ -406,8 +406,8 @@ else
         section = page_utils.menu_sections.collection,
         hidden = not has_exporters or not ntop.isEnterpriseM() or is_system_interface,
         entries = {{
-            entry = page_utils.menu_entries.probes,
-            url = '/lua/pro/enterprise/probes.lua'
+            entry = page_utils.menu_entries.nprobe,
+            url = '/lua/pro/enterprise/nprobe.lua'
         }, {
             entry = page_utils.menu_entries.sflow_exporters,
             hidden = table.len(interface.getSFlowDevices() or {}) == 0,
