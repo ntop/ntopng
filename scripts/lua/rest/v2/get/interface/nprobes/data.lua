@@ -30,7 +30,14 @@ interface.select(ifid)
 local ifstats = interface.getStats()
 local probes_stats = ifstats.probes or {}
 local timeseries_enabled = areFlowdevTimeseriesEnabled()
-
+if table.len(probes_stats) > 0 then
+    for k, v in pairs(ifstats.probes or {}) do
+        v.exporters = ifstats.exporters or {}
+        v.ifid = ifid
+        probes_stats[k] = v
+    end
+    ifstats.probes = probes_stats
+end
 if interface.isView() then
     local zmq_stats = {}
     local exporters_stats = {}
@@ -53,13 +60,21 @@ for k, v in pairs(ifstats.probes or {}) do
     local flow_drops = 0
     local exported_flows = 0
     local probe_active = false
+    local flow_exporters_num = table.len(v.exporters or {})
     if interface.getHostInfo(v["probe.ip"]) then
         probe_active = true
     end
-
-    for _, values in pairs(v.exporters or ifstats.exporters or {}) do
-        flow_drops = flow_drops + values.num_drops
-        exported_flows = exported_flows + values.num_netflow_flows + values.num_sflow_flows
+    if table.len(v.exporters) == 0 then
+        flow_exporters_num = 1
+        flow_drops = v["drops.elk_flow_drops"] + v["drops.flow_collection_udp_socket_drops"] +
+                         v["drops.export_queue_full"] + v["drops.too_many_flows"] + v["drops.flow_collection_drops"] +
+                         v["drops.sflow_pkt_sample_drops"] + v["drops.elk_flow_drops"]
+        exported_flows = v["zmq.num_flow_exports"]
+    else
+        for _, values in pairs(v.exporters) do
+            flow_drops = flow_drops + values.num_drops
+            exported_flows = exported_flows + values.num_netflow_flows + values.num_sflow_flows
+        end
     end
 
     res[#res + 1] = {
@@ -72,7 +87,7 @@ for k, v in pairs(ifstats.probes or {}) do
         probe_edition = v["probe.probe_edition"],
         probe_license = v["probe.probe_license"] or i18n("if_stats_overview.no_license"),
         probe_maintenance = v["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance"),
-        flow_exporters = table.len(v.exporters or ifstats.exporters or {} or {}),
+        flow_exporters = flow_exporters_num,
         dropped_flows = flow_drops,
         exported_flows = exported_flows,
         timeseries_enabled = timeseries_enabled,
