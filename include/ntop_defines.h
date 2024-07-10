@@ -766,6 +766,11 @@
   NTOPNG_PREFS_PREFIX ".toggle_netbox"
 #define CONST_DEFAULT_NETBOX_ENABLED \
   0  // disabled by default
+
+#define CONST_PREFS_NTOPNG_ASSETS_INVENTORY_ENABLED \
+  NTOPNG_PREFS_PREFIX ".toggle_ntopng_assets_inventory"
+#define CONST_DEFAULT_NTOPNG_ASSETS_INVENTORY_ENABLED \
+  0  // disabled by default
   
 #define CONST_PREFS_SNMP_TRAP_ENABLED \
   NTOPNG_PREFS_PREFIX ".toggle_snmp_trap" // same name as lua prefs.lua
