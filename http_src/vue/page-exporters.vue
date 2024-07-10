@@ -73,10 +73,14 @@ const map_table_def_columns = (columns) => {
             return value
         },
         "exported_flows": (value, row) => {
+            if (!value)
+                return '';
             return formatterUtils.getFormatter("number")(value);
         },
-        "interface_name": (value, row) => {
-            return value
+        "dropped_flows": (value, row) => {
+            if (!value)
+                return '';
+            return formatterUtils.getFormatter("number")(value);
         },
         "flow_exporters": (value, row) => {
             if (!value) {

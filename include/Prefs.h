@@ -69,7 +69,7 @@ class Prefs {
 #ifdef NTOPNG_PRO
   ndpi_bitmap* modbus_allowed_function_codes;
   u_int modbus_too_many_exceptions;
-  bool netbox_enabled, snmp_trap_enabled;
+  bool netbox_enabled, asset_inventory_enabled, snmp_trap_enabled;
 #endif
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
       behaviour_analysis_learning_status_post_learning;
@@ -688,6 +688,7 @@ class Prefs {
   inline u_int32_t getModbusLearingPeriod()   { return (modbus_learning_period); };
 #ifdef NTOPNG_PRO
   inline bool isNetBoxEnabled() { return netbox_enabled; };
+  inline bool isAssetInventoryEnabled() { return asset_inventory_enabled; };
   inline bool isSNMPTrapEnabled() { return snmp_trap_enabled; };
   inline ndpi_bitmap* getModbusAllowedFunctionCodes() { return (modbus_allowed_function_codes);  };
   inline void         setModbusTooManyExceptionsThreshold(u_int v) { modbus_too_many_exceptions = v;     }

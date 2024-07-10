@@ -71,8 +71,8 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 #ifdef NTOPNG_PRO
   if ((!special_mac)
       && (!broadcast_mac)
-      && ntop->getPrefs()->is_enterprise_xl_edition() 
-      && ntop->getPrefs()->isNetBoxEnabled())
+      && ntop->getPrefs()->is_enterprise_xl_edition()
+      && (ntop->getPrefs()->isAssetInventoryEnabled() || ntop->getPrefs()->isNetBoxEnabled()))
     dumpAssetInfo();
 #endif
 
@@ -84,11 +84,11 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 
 Mac::~Mac() {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
-  
+
   /* Serialize Mac before shutdown */
   if((!broadcast_mac) && (!special_mac))
     dumpToRedis();
-  
+
   if (!special_mac && ntop->getRedis() && ntop->getPrefs()->is_pro_edition()) {
     char mac_addr[64], mac_disconnection_key[128];
     snprintf(mac_disconnection_key, sizeof(mac_disconnection_key),
@@ -303,7 +303,7 @@ char *Mac::getDHCPName(char *const buf, ssize_t buf_size) {
     snprintf(buf, buf_size, "%s", names.dhcp ? names.dhcp : "");
     m.unlock(__FILE__, __LINE__);
   }
-  
+
   return Utils::stringtolower(buf);
 }
 
@@ -476,7 +476,7 @@ u_int64_t Mac::get_mac64() { return Mac::to64(mac); }
 
 void Mac::dumpToRedis() {
   char buf[32], *json_str = NULL;
-  ndpi_serializer mac_json; 
+  ndpi_serializer mac_json;
   u_int32_t json_str_len = 0;
 
   ndpi_init_serializer(&mac_json, ndpi_serialization_format_json);
@@ -486,7 +486,7 @@ void Mac::dumpToRedis() {
   ndpi_serialize_string_uint32(&mac_json, "first", first_seen);
   ndpi_serialize_string_uint32(&mac_json, "last",  last_seen);
   ndpi_serialize_end_of_block(&mac_json);
-  
+
   ndpi_serialize_string_uint32(&mac_json, "devtype", device_type);
   if(model) ndpi_serialize_string_string(&mac_json, "model", model);
   if(ssid) ndpi_serialize_string_string(&mac_json, "ssid", ssid);
@@ -494,12 +494,12 @@ void Mac::dumpToRedis() {
 
   if(stats)
     ((GenericTrafficElement*)stats)->serialize(&mac_json);
-  
+
   json_str = ndpi_serializer_get_buffer(&mac_json, &json_str_len);
   if ((json_str != NULL) && (json_str_len > 0)) {
     u_int expire_secs = 30 * 86400; /* 1 month */
     char key[64];
-    
+
     ntop->getTrace()->traceEvent(TRACE_INFO, "%s", json_str);
     ntop->getRedis()->set(getSerializationKey(key, sizeof(key)), json_str, expire_secs);
   }
@@ -522,7 +522,7 @@ void Mac::dumpAssetInfo() {
   ndpi_serialize_string_string(&device_json, "mac", mac_ptr);
   ndpi_serialize_string_string(&device_json, "source", "traffic");
   ndpi_serialize_string_uint32(&device_json, "first_seen", first_seen);
-  ndpi_serialize_string_uint32(&device_json, "last_seen", last_seen);  
+  ndpi_serialize_string_uint32(&device_json, "last_seen", last_seen);
   ndpi_serialize_string_string(&device_json, "manufacturer", manuf ? manuf : "n/a");
   ndpi_serialize_string_uint32(&device_json, "role", device_type);
 
@@ -537,4 +537,3 @@ void Mac::dumpAssetInfo() {
   ndpi_term_serializer(&device_json);
 }
 #endif
-

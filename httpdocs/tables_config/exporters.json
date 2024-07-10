@@ -4,7 +4,7 @@
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": false,
-	"display_empty_rows": false,
+	"display_empty_rows": true,
 	"default_sort": {
 		"column_id": "exported_flows",
 		"sort": 1
@@ -12,7 +12,7 @@
 	"columns": [
 		{
 			"id": "ip",
-			"title_i18n": "flow_devices.probe_ip",
+			"title_i18n": "flow_devices.flow_exporter_ip",
 			"data_field": "ip",
 			"sortable": true,
 			"class": [
@@ -29,11 +29,21 @@
 			]
 		},
 		{
+			"id": "export_type",
+			"title_i18n": "flow_devices.exporter_type",
+			"data_field": "export_type",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"id": "exported_flows",
 			"title_i18n": "graphs.metric_labels.exported_flows",
 			"data_field": "exported_flows",
 			"sortable": true,
 			"class": [
+				"text-center",
 				"text-nowrap"
 			]
 		},
@@ -41,6 +51,25 @@
 			"id": "dropped_flows",
 			"title_i18n": "graphs.metric_labels.dropped_flows",
 			"data_field": "dropped_flows",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "description",
+			"title_i18n": "flow_devices.snmp_description",
+			"data_field": "description",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "location",
+			"title_i18n": "flow_devices.snmp_location",
+			"data_field": "location",
 			"sortable": true,
 			"class": [
 				"text-nowrap"
