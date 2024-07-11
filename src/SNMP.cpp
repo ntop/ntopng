@@ -47,35 +47,8 @@ SNMP::SNMP() {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   batch_mode = false;
 #ifdef HAVE_LIBSNMP
-  init_snmp("ntopng");
-  //trap management
-  //instantiate necessary resources. Perhaps, this snippet can be placed better.
-  const char* port = "upd:162";
-  const char* application = "ntopng snmp trap";
-  //this needs to be called so that the snmp library can initialize the supported transports list
-  netsnmp_tdomain_init();
-  netsnmp_transport *snmpTransport = netsnmp_transport_open_server(application,port);
-  if(snmpTransport == NULL){
-    snmp_perror("netsnmp_transport_open_server ");
-    return;
-  }
-  //trap session
-  SNMPSession* trap_session = new SNMPSession;
-  //TODO: check if other fields need to be populated
-  snmp_sess_init(&trap_session->session);
-  trap_session->session.callback = read_snmp_trap;
-  trap_session->session.callback_magic = (void *) this;
-  trap_session->session.authenticator = NULL;
-  netsnmp_session* rc = snmp_add(&trap_session->session,snmpTransport, NULL, NULL);
-  if (rc == NULL) {
-      snmp_perror("FAILURE: ");
-      netsnmp_transport_free(snmpTransport);
-  }
-  trap_session->session_ptr = snmp_sess_open(&trap_session->session);
-  //add session
-  this->sessions.push_back(trap_session);
-  ntop->getTrace()->traceEvent(TRACE_DEBUGGING,__FILE__,__LINE__,"SNMP TRAP SESSION OK");
-  
+  init_snmp("ntopng");  
+  printf("********************************************************************************************************");
 #endif
   getbulk_max_num_repetitions = 10;
 }
@@ -84,6 +57,9 @@ SNMP::SNMP() {
 
 SNMP::~SNMP() {
   for (unsigned int i = 0; i < sessions.size(); i++) delete sessions.at(i);
+  if(trap_session) delete trap_session;
+  if(snmpTransport)  free(snmpTransport);
+  if(rc)  free(rc);
 }
 
 /* ******************************* */
@@ -307,11 +283,10 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
       return;
     }
   } else {
-    //because of adding the snmptrap session inside the constructor  
-    if((sessions.size() - 1) == 0) {
+    if((sessions.size()) == 0) {
       goto create_snmp_session;
     } else {
-      snmpSession = sessions.at(1); //the first session is going to be the trap session
+      snmpSession = sessions.at(0);
     }
   }
 
@@ -1152,8 +1127,42 @@ int SNMP::snmp_get_fctn(lua_State *vm, snmp_pdu_primitive pduType,
 
 /* ******************************************* */
 
-void SNMP::collectTraps() {
-  /* TODO */
+void SNMP::collectTraps(struct timeval timeout) {
+  //this needs to be called so that the snmp library can initialize the supported transports list
+  netsnmp_tdomain_init();
+  ntop->getTrace()->traceEvent(TRACE_INFO, __FILE__,__LINE__,"********************AOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO\n");
+  this->snmpTransport = netsnmp_transport_open_server(APPLICATION,TRAP_PORT);
+  if(this->snmpTransport == NULL){
+    snmp_perror("netsnmp_transport_open_server ");
+    perror("trap: ");
+    return;
+  }
+  //trap session
+  this->trap_session = new SNMPSession;
+  snmp_sess_init(&this->trap_session->session);
+  this->trap_session->session.callback = read_snmp_trap;
+  this->trap_session->session.callback_magic = (void *) this;
+  this->trap_session->session.authenticator = NULL;
+  this->rc = snmp_add(&trap_session->session,this->snmpTransport, NULL, NULL);
+  if (this->rc == NULL) {
+      snmp_perror("FAILURE: ");
+      netsnmp_transport_free(snmpTransport);
+  }
+  //trap_session->session_ptr = snmp_sess_open(&trap_session->session);
+  int numfds;
+  fd_set fdset;
+  struct timeval tvp;
+  int count, block = 1;
+  this->cease_collecting_trap = false;
+  numfds = 0;
+  FD_ZERO(&fdset);
+  tvp.tv_sec = timeout.tv_sec, tvp.tv_usec = 0;
+  snmp_select_info(&numfds,&fdset,&tvp,&block);
+  count = select(numfds, &fdset, NULL, NULL, &tvp);
+  printf("count %d\n", count);
+    if (count > 0) 
+      snmp_read(&fdset);
+    
 }
 
 void SNMP::handle_trap(struct snmp_pdu*pdu){
@@ -1169,8 +1178,44 @@ void SNMP::handle_trap(struct snmp_pdu*pdu){
     mib = get_tree(variable->name_loc, variable->name_length, get_tree_head());
     while(mib && mib->next_peer)
         mib = mib->next_peer;
-    
     printf("mib %s\n",mib->label);
+   switch (variable->type) {
+        case ASN_INTEGER:
+            printf("INTEGER: %ld\n", *variable->val.integer);
+            break;
+        case ASN_OCTET_STR:
+            printf("STRING: %.*s\n", (int)variable->val_len, variable->val.string);
+            break;
+        case ASN_OBJECT_ID:
+            printf("OID: ");
+            for (size_t i = 0; i < variable->val_len / sizeof(oid); i++) {
+                printf("%s%lu", i ? "." : "", variable->val.objid[i]);
+            }
+            printf("\n");
+            break;
+        case ASN_BIT_STR:
+            printf("BIT STRING: ");
+            for (size_t i = 0; i < variable->val_len; i++) {
+                printf("%02x ", variable->val.bitstring[i]);
+            }
+            printf("\n");
+            break;
+        case ASN_COUNTER64:
+            printf("COUNTER64 high: %lu\n", variable->val.counter64->high);
+            printf("COUNTER64 low: %lu\n", variable->val.counter64->low);
+            break;
+#ifdef NETSNMP_WITH_OPAQUE_SPECIAL_TYPES
+        case ASN_OPAQUE_FLOAT:
+            printf("FLOAT: %f\n", *variable->val.floatVal);
+            break;
+        case ASN_OPAQUE_DOUBLE:
+            printf("DOUBLE: %f\n", *variable->val.doubleVal);
+            break;
+#endif
+        default:
+            printf("Unknown or unhandled ASN type: %u\n", variable->type);
+            break;
+    }
     variable = variable->next_variable;
   }
       

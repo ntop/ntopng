@@ -49,6 +49,10 @@ class SNMPSession {
   SNMPSession();
   ~SNMPSession();
 };
+
+#define TRAP_PORT  "udp:162"
+#define APPLICATION "ntopng snmp trap"
+
 #endif
 
 int read_snmp_trap(int operation, struct snmp_session *sp, int reqid,
@@ -62,6 +66,10 @@ class SNMP {
   std::vector<SNMPSession *> sessions;
   /* Variables below are used for the async check */
   lua_State *vm;
+  SNMPSession *trap_session;
+  netsnmp_transport *snmpTransport;
+  netsnmp_session* rc;
+  bool cease_collecting_trap;
 #else
   int udp_sock;
   u_int32_t request_id;
@@ -87,7 +95,7 @@ class SNMP {
   SNMP();
   ~SNMP();
 
-  void collectTraps();
+  void collectTraps(struct timeval timeout);
   
 #ifdef HAVE_LIBSNMP
   void handle_async_response(struct snmp_pdu *pdu, const char *agent_ip);
