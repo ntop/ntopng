@@ -224,7 +224,7 @@ else
     -- Dashboard
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.dashboard,
-        hidden = is_pcap_dump or is_system_interface,
+        hidden = is_pcap_dump or is_system_interface or is_db_view_interface,
         entries = {{
             entry = page_utils.menu_entries.traffic_dashboard,
             url = '/lua/index.lua'
