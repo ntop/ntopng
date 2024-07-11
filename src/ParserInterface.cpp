@@ -511,26 +511,6 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
                                   zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
   */
 
-    /*
-      Parse flow info into the corresponding element (without overriding
-      plugin-generated data:
-      - When nProbe has plugins enabled, plugin data is taken
-      - When nProbe has no plugins enabled, then nDPI data is taken
-    */
-    if (zflow->getL7Info() && zflow->getL7Info()[0]) {
-      if (flow->isDNS() && !zflow->getDNSQuery())
-        zflow->setDNSQuery(zflow->getL7Info());
-      else if (flow->isHTTP() && !zflow->getHTTPsite()) {
-        zflow->setHTTPsite(zflow->getL7Info());
-        if (flow->get_cli_host())
-          flow->get_cli_host()->incrVisitedWebSite(zflow->getHTTPsite());
-      } else if (flow->isTLS() && !zflow->getTLSserverName()) {
-        zflow->setTLSserverName(zflow->getL7Info());
-        if (flow->get_cli_host())
-          flow->get_cli_host()->incrVisitedWebSite(zflow->getTLSserverName());
-      }
-    }
-
 #ifdef NTOPNG_PRO
     if (zflow->getCustomApp().pen) {
       flow->setCustomApp(zflow->getCustomApp());
@@ -576,6 +556,26 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     /* Here everything is setup and it is possible to set the actual protocol to
      * the flow */
     flow->setDetectedProtocol(p);
+
+    /*
+      Parse flow info into the corresponding element (without overriding
+      plugin-generated data:
+      - When nProbe has plugins enabled, plugin data is taken
+      - When nProbe has no plugins enabled, then nDPI data is taken
+    */
+    if (zflow->getL7Info() && zflow->getL7Info()[0]) {
+      if (flow->isDNS() && !zflow->getDNSQuery()) {
+        zflow->setDNSQuery(zflow->getL7Info());
+      } else if (flow->isHTTP() && !zflow->getHTTPsite()) {
+        zflow->setHTTPsite(zflow->getL7Info());
+        if (flow->get_cli_host())
+          flow->get_cli_host()->incrVisitedWebSite(zflow->getHTTPsite());
+      } else if (flow->isTLS() && !zflow->getTLSserverName()) {
+        zflow->setTLSserverName(zflow->getL7Info());
+        if (flow->get_cli_host())
+          flow->get_cli_host()->incrVisitedWebSite(zflow->getTLSserverName());
+      }
+    }
 
     flow->setErrorCode(zflow->getL7ErrorCode());
     flow->setConfidence(zflow->getConfidence());
