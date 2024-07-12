@@ -28,6 +28,7 @@ local rsp = {
     alias = getHostAltName(host_info),
     notes = getHostNotes(host_info),
     host_pool_id = host["host_pool_id"],
+    host_pool_match = host["host_pool_match"],
     has_traffic_policies = ifstats.inline and (host.localhost or host.systemhost),
     drop_traffic = ntop.getHashCache("ntopng.prefs.drop_host_traffic", host_key)
 }

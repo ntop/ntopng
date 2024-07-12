@@ -916,8 +916,8 @@ public:
     if (host_pools) host_pools->luaStats(vm);
   };
   void refreshHostPools();
-  inline u_int16_t getHostPool(Host *h) {
-    if (h && host_pools) return host_pools->getPool(h);
+  inline u_int16_t getHostPool(Host *h, bool *mac_match) {
+    if (h && host_pools) return host_pools->getPool(h, mac_match);
     return NO_HOST_POOL_ID;
   };
   inline u_int16_t getHostPool(Mac *m) {

@@ -269,7 +269,7 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
 
   vlan_id = _vlanId & 0xFFF; /* Cleanup any possible junk */
   iface_index = _iface_idx;
- 
+  host_pool_id_is_from_mac = false; 
   /* stats = NULL; useless initi, it will be instantiated by specialized classes
    */
   stats = stats_shadow = NULL;
@@ -420,10 +420,13 @@ char *Host::get_hostkey(char *buf, u_int buf_len, bool force_vlan) {
 /* *************************************** */
 
 void Host::updateHostPool(bool isInlineCall, bool firstUpdate) {
+  bool mac_match = false;
+
   if (!iface) return;
 
   if (!firstUpdate) iface->decPoolNumHosts(get_host_pool(), isInlineCall);
-  host_pool_id = iface->getHostPool(this);
+  host_pool_id = iface->getHostPool(this, &mac_match);
+  host_pool_id_is_from_mac = mac_match;
   iface->incPoolNumHosts(get_host_pool(), isInlineCall);
 
 #ifdef NTOPNG_PRO
@@ -625,7 +628,8 @@ void Host::lua_get_as(lua_State *vm) const {
 /* ***************************************************** */
 
 void Host::lua_get_host_pool(lua_State *vm) const {
-  lua_push_uint64_table_entry(vm, "host_pool_id", get_host_pool());
+  lua_push_uint64_table_entry(vm, "host_pool_id", host_pool_id);
+  lua_push_str_table_entry(vm, "host_pool_match", host_pool_id_is_from_mac ? "mac" : "ip");
 }
 /* ***************************************************** */
 

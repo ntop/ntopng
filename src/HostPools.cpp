@@ -567,13 +567,18 @@ bool HostPools::findIpPool(IpAddress *ip, u_int16_t vlan_id,
 
 /* *************************************** */
 
-u_int16_t HostPools::getPool(Host *h) {
+u_int16_t HostPools::getPool(Host *h, bool *mac_match) {
   u_int16_t pool_id;
   ndpi_patricia_node_t *node;
   bool found = false;
 
+  if (mac_match != NULL) *mac_match = false;
+
   if (h) {
-    if (h->getMac()) found = findMacPool(h->getMac(), &pool_id);
+    if (h->getMac()) {
+      found = findMacPool(h->getMac(), &pool_id);
+      if (mac_match != NULL) *mac_match = true;
+    }
 
     if (!found && h->get_ip()) {
       found = findIpPool(h->get_ip(), h->get_vlan_id(), &pool_id, &node);
