@@ -541,7 +541,8 @@ AS_VAR_IF(with_hiredis, yes, [
     pkg-config --exists hiredis
     if test "$?" -ne 1; then
     HIREDIS_INC="`pkg-config --cflags hiredis` -I/usr/include/hiredis"
-    if test $SYSTEM = "FreeBSD"; then
+    if test $SYSTEM = "FreeBSD" && $FREEBSD_VERSION != "15"; then
+	dnl> Note: on freebsd 15 .a is not installed
         HIREDIS_LIB="/usr/local/lib/libhiredis.a"
     else
         HIREDIS_LIB="`pkg-config --libs hiredis`"
