@@ -577,7 +577,7 @@ u_int16_t HostPools::getPool(Host *h, bool *mac_match) {
   if (h) {
     if (h->getMac()) {
       found = findMacPool(h->getMac(), &pool_id);
-      if (mac_match != NULL) *mac_match = true;
+      if (found && mac_match != NULL) *mac_match = true;
     }
 
     if (!found && h->get_ip()) {
