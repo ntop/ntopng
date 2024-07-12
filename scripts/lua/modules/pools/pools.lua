@@ -247,6 +247,14 @@ end
 
 -- ##############################################
 
+-- Normalize member (e.g. convert to lower as MAC addresses can be lower or upper case)
+function pools:normalize_member(member)
+    local m = string.upper(member)
+    return m
+end
+
+-- ##############################################
+
 -- Create a new pool (unless it already exists)
 function pools:add_pool(name, members, policy)
     local pool_id
@@ -269,9 +277,12 @@ function pools:add_pool(name, members, policy)
             end
 
             -- Check if members do not belong to any other pool
+            local normalized_members = {}
             if checks_ok then
                 for _, member in pairs(members) do
-                    local cur_pool = self:get_pool_by_member(member)
+                    local m = self:normalize_member(member)
+                    normalized_members[_] = m;
+                    local cur_pool = self:get_pool_by_member(m)
 
                     if cur_pool then
                         -- Member already existing in another pool
@@ -285,7 +296,7 @@ function pools:add_pool(name, members, policy)
                 -- All the checks have succeeded
                 -- Now that everything is ok, the id can be assigned and the pool can be persisted with the assigned id
                 pool_id = self:_assign_pool_id()
-                self:_persist(pool_id, name, members, policy)
+                self:_persist(pool_id, name, normalized_members, policy)
             end
         end
 
@@ -523,10 +534,11 @@ end
 function pools:get_pool_by_member(member)
     local assigned_members = self:get_assigned_members()
 
-    -- lookup (check lower/upper due to MAC addresses strings)
-    local m = string.lower(member)
+    -- lookup - check normalized (upper) first
+    local m = self:normalize_member(member)
     if not assigned_members[m] then
-        m = string.upper(member)
+        -- fallback: also check lower case
+        m = string.lower(member)
         if not assigned_members[m] then
             return nil
         end
@@ -548,7 +560,8 @@ function pools:get_assigned_members()
 
         if pool_details and pool_details["members"] then
             for _, member in pairs(pool_details["members"]) do
-                res[member] = {
+                local m = self:normalize_member(member)
+                res[m] = {
                     pool_id = tonumber(pool_id),
                     name = pool_details["name"]
                 }
@@ -633,7 +646,8 @@ function pools:get_available_members()
 
     local res = {}
     for member, member_details in pairs(all_members) do
-        if not assigned_members[member] then res[member] = member_details end
+        local m = self:normalize_member(member)
+        if not assigned_members[m] then res[m] = member_details end
     end
 
     return res
@@ -690,8 +704,9 @@ function pools:bind_member(member, pool_id)
     if locked then
         -- REMOVE the member if assigned to another pool
         local assigned_members = self:get_assigned_members()
-        if assigned_members[member] then
-	   local cur_pool = self:get_pool(assigned_members[member]["pool_id"])
+        local m = self:normalize_member(member)
+        if assigned_members[m] then
+	   local cur_pool = self:get_pool(assigned_members[m]["pool_id"])
 
 	   if cur_pool["pool_id"] == pool_id then
                 -- If the current pool id equals the new pool id, there's nothing to do and it is just safe to return
@@ -700,7 +715,7 @@ function pools:bind_member(member, pool_id)
 	      -- New members are all pool members except for the member which is being removed
 	      local new_members = {}
 	      for _, cur_member in pairs(cur_pool["members"]) do
-		 if cur_member ~= member then
+		 if cur_member ~= m then
 		    new_members[#new_members + 1] = cur_member
 		 end
 	      end
@@ -711,7 +726,7 @@ function pools:bind_member(member, pool_id)
             end
         end
 
-        if not ret then ret, err = self:_bind_member(member, pool_id) end
+        if not ret then ret, err = self:_bind_member(m, pool_id) end
 
         self:_unlock()
     end
@@ -737,9 +752,10 @@ function pools:bind_member_if_not_already_bound(member, pool_id, already_locked)
 
     if locked then
         local assigned_members = self:get_assigned_members()
-        if assigned_members[member] then
+        local m = self:normalize_member(member)
+        if assigned_members[m] then
             -- Member already existing
-            if assigned_members[member]["pool_id"] == pool_id then
+            if assigned_members[m]["pool_id"] == pool_id then
                 -- Member is bound to the same pool as the parameter `pool_id`
 	       ret, err = true, pools.ERRORS.NO_ERROR
             else
@@ -748,7 +764,7 @@ function pools:bind_member_if_not_already_bound(member, pool_id, already_locked)
             end
         else
             -- Member isn't bound to any pool, safe to add it
-            ret, err = self:_bind_member(member, pool_id)
+            ret, err = self:_bind_member(m, pool_id)
         end
 
 	if not already_locked then
@@ -769,9 +785,11 @@ function pools:get_pool_id(member)
         self.assigned_pool_members = self:get_assigned_members()
     end
 
-    if self.assigned_pool_members[member] and
-        self.assigned_pool_members[member]["pool_id"] then
-        return self.assigned_pool_members[member]["pool_id"]
+    local m = self:normalize_member(member)
+
+    if self.assigned_pool_members[m] and
+        self.assigned_pool_members[m]["pool_id"] then
+        return self.assigned_pool_members[m]["pool_id"]
     end
 
     return pools.DEFAULT_POOL_ID
