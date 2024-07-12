@@ -70,11 +70,13 @@ for member, info in pairs(_POST["associations"] or {}) do
         goto continue
     end
 
+    local m = string.upper(member)
+
     local pool = info["group"]
 
     if pools_list[pool] == nil then
-        res["associations"][member]["status"] = "ERROR"
-        res["associations"][member]["status_msg"] = "Unable to find a group with the specified name"
+        res["associations"][m]["status"] = "ERROR"
+        res["associations"][m]["status_msg"] = "Unable to find a group with the specified name"
         goto continue
     end
 
@@ -84,31 +86,31 @@ for member, info in pairs(_POST["associations"] or {}) do
     local password = info["password"]
 
     if connectivity == "pass" then
-        if s:bind_member(member, pool_id) == true then
+        if s:bind_member(m, pool_id) == true then
             host_pools_changed = true
             local current_interface = interface.getId() or -1 -- System Interface
-            res["associations"][member]["status"] = "OK"
+            res["associations"][m]["status"] = "OK"
             interface.select(tostring(interface.getFirstInterfaceId()))
-            radius_handler.accountingStart(member, username, password)
+            radius_handler.accountingStart(m, username, password)
             interface.select(current_interface) 
         else
-            res["associations"][member]["status"] = "ERROR"
-            res["associations"][member]["status_msg"] = "Failure adding member, maybe bad member MAC or IP"
+            res["associations"][m]["status"] = "ERROR"
+            res["associations"][m]["status_msg"] = "Failure adding member, maybe bad member MAC or IP"
         end
     elseif info["connectivity"] == "reject" then
         -- To check radius termination cause see https://datatracker.ietf.org/doc/html/rfc2866#section-5.10
         local terminate_cause = info["terminateCause"] or 3 -- Lost service
         local current_interface = interface.getId() or -1 -- System Interface
-        s:bind_member(member, host_pools.DEFAULT_POOL_ID)
+        s:bind_member(m, host_pools.DEFAULT_POOL_ID)
         host_pools_changed = true
-        res["associations"][member]["status"] = "OK"
+        res["associations"][m]["status"] = "OK"
         interface.select(tostring(interface.getFirstInterfaceId()))
-        local mac_info = interface.getMacInfo(member)
-        radius_handler.accountingStop(member, terminate_cause, mac_info)
+        local mac_info = interface.getMacInfo(m)
+        radius_handler.accountingStop(m, terminate_cause, mac_info)
         interface.select(current_interface) 
     else
-        res["associations"][member]["status"] = "ERROR"
-        res["associations"][member]["status_msg"] = "Unknown association: allowed associations are 'pass' and 'reject'"
+        res["associations"][m]["status"] = "ERROR"
+        res["associations"][m]["status_msg"] = "Unknown association: allowed associations are 'pass' and 'reject'"
     end
 
     ::continue::
