@@ -510,8 +510,8 @@ function predicates.remote_probe_clock_drift(toast, container)
     end
 end
 
---- Create an instance for the nIndex alert toast
---- if nIndex is not able to start/run/dump
+--- Create an instance for the flow dump alert toast
+--- if flow dump is not able to start/run/dump
 --- @param toast table The toast is the logic model defined in defined_toasts
 --- @param container table Is the table where to put the new toast ui
 function predicates.flow_dump(toast, container)
