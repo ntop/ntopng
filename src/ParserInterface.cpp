@@ -31,6 +31,7 @@ ParserInterface::ParserInterface(const char *endpoint,
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
   num_companion_interfaces = 0;
+  limit_exceeded = false;
   companion_interfaces =
       new (std::nothrow) NetworkInterface *[MAX_NUM_COMPANION_INTERFACES]();
 }
@@ -80,7 +81,11 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
     are_limits_okay = flow_interfaces_stats->checkExporters(zflow->device_ip, zflow->inIndex);
     if (!are_limits_okay) {
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dropped due to limits to the license. Exporters limit: %d | Interfaces limit: %d", get_max_num_flow_exporters(), get_max_num_flow_exporters_interfaces());
+      if (!limit_exceeded) {
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flows dropped on Interface %d due to limits to the license. Exporters limit: %d | Exporters Interfaces limit: %d", this->get_id(), get_max_num_flow_exporters(), get_max_num_flow_exporters_interfaces());
+        ntop->getRedis()->set(EXPORTERS_EXCEEDED_LIMITS_KEY, "1");
+        limit_exceeded = true;
+      }
       return false;
     }
   }
