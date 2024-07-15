@@ -11,8 +11,6 @@ local json = require "dkjson"
 local rest_utils = require("rest_utils")
 local radius_handler = require "radius_handler"
 
-sendHTTPContentTypeHeader('application/json')
-
 --[[ 
    Request example:
    curl -u admin:admin -H "Content-Type: application/json" -d '{"associations" : {"DE:AD:BE:EE:FF:FF" : {"group" : "staff", "connectivity" : "pass", "username" : "gio", "password" : "XXX"},"AB:AB:AB:AB:AB:AB" : {"group" : "guest", "connectivity" : "reject", "username" : "john", "password" : "XXX"},"192.168.2.221/32@0" : {"group" : "staff", "connectivity" : "pass", "username" : "joseph", "password" : "XXX"}}}' http://192.168.1.1:3000/lua/rest/v2/set/pool/members.lua 
