@@ -44,7 +44,14 @@ if host_pool_id ~= tostring(host["host_pool_id"]) then
     local host_pools = require "host_pools"
 
     local host_pools_instance = host_pools:create()
-    local key = host2member(host_info["host"], host_info["vlan"])
+    local key = ""
+
+    if host["host_pool_match"] == "mac" then
+        key = host["mac"]
+    else
+        key = host2member(host_info["host"], host_info["vlan"])
+    end
+    
     if host_pools_instance:bind_member(key, tonumber(host_pool_id)) then
         ntop.reloadHostPools()
     else

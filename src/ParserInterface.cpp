@@ -70,6 +70,31 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   if ((zflow->vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
     zflow->vlan_id = rand() % SIMULATE_VLANS_MAX_VALUE;
+#ifdef NTOPNG_PRO
+  if (zflow->device_ip) {
+    bool are_limits_okay = true;
+    /* First of all check the device IP, because if the max number is reached,
+      * the flow is going to be dropped
+      */
+    if (!flow_interfaces_stats)
+      flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
+    are_limits_okay = flow_interfaces_stats->checkExporters(zflow->device_ip, zflow->inIndex);
+
+    if (!are_limits_okay) {
+      static bool shown = false;
+
+      if(!shown) {
+        ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                  "Flow dropped due to limits to the license. Exporters limit: %d | Exporters Interfaces limit: %d",
+                  get_max_num_flow_exporters(), get_max_num_flow_exporters_interfaces());
+        ntop->getRedis()->set(EXPORTERS_EXCEEDED_LIMITS_KEY, "1");
+	      shown = true;
+      }
+      
+      return false;
+    }
+  }
+#endif
 
   if (!isSubInterface()) {
     bool processed = false;
@@ -212,7 +237,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     private_flow_id = ndpi_quick_hash((const unsigned char*)zflow->getSIPCallId(), len);
   } else
     private_flow_id = 0;
-  
+    
   /* Updating Flow */
   flow = getFlow(UNKNOWN_PKT_IFACE_IDX,
 		 srcMac, dstMac, zflow->vlan_id, zflow->observationPointId,
@@ -472,32 +497,30 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     guessed_protocol.master_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), guessed_protocol.master_protocol);
 
 #ifdef NTOPNG_PRO
-    if (zflow->device_ip) {
-      // if(ntop->getPrefs()->is_flow_device_port_rrd_creation_enabled() &&
-      // ntop->getPro()->has_valid_license()) {
+  if (zflow->device_ip) {
       if (!flow_interfaces_stats)
         flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
 
-      if (flow_interfaces_stats) {
-        flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->inIndex, flow->getStatsProtocol(),
-					zflow->pkt_sampling_rate * zflow->out_pkts,
-					zflow->pkt_sampling_rate * zflow->out_bytes,
-					zflow->pkt_sampling_rate * zflow->in_pkts,
-					zflow->pkt_sampling_rate * zflow->in_bytes);
-	/* If the SNMP device is actually an host with an SNMP agent, then traffic
-	   can enter and leave it from the same interface (think to a management
-	   interface). For this reason it is important to check the outIndex and
-	   increase its counters only if it is different from inIndex to avoid
-	   double counting. */
+    if (flow_interfaces_stats) {
+      flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->inIndex, flow->getStatsProtocol(),
+        zflow->pkt_sampling_rate * zflow->out_pkts,
+        zflow->pkt_sampling_rate * zflow->out_bytes,
+        zflow->pkt_sampling_rate * zflow->in_pkts,
+        zflow->pkt_sampling_rate * zflow->in_bytes);
+/* If the SNMP device is actually an host with an SNMP agent, then traffic
+    can enter and leave it from the same interface (think to a management
+    interface). For this reason it is important to check the outIndex and
+    increase its counters only if it is different from inIndex to avoid
+    double counting. */
 
-        if (zflow->outIndex != zflow->inIndex)
-          flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->outIndex, flow->getStatsProtocol(),
-					  zflow->pkt_sampling_rate * zflow->in_pkts,
-					  zflow->pkt_sampling_rate * zflow->in_bytes,
-					  zflow->pkt_sampling_rate * zflow->out_pkts,
-					  zflow->pkt_sampling_rate * zflow->out_bytes);
-      }
+    if (zflow->outIndex != zflow->inIndex)
+      flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->outIndex, flow->getStatsProtocol(),
+        zflow->pkt_sampling_rate * zflow->in_pkts,
+        zflow->pkt_sampling_rate * zflow->in_bytes,
+        zflow->pkt_sampling_rate * zflow->out_pkts,
+        zflow->pkt_sampling_rate * zflow->out_bytes);
     }
+  }
 #endif
 
     flow->setFlowVerdict(zflow->getFlowVerdict());
@@ -510,26 +533,6 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
                                   zflow->pkt_sampling_rate*(zflow->in_pkts+zflow->out_pkts),
                                   zflow->pkt_sampling_rate*(zflow->in_bytes+zflow->out_bytes));
   */
-
-    /*
-      Parse flow info into the corresponding element (without overriding
-      plugin-generated data:
-      - When nProbe has plugins enabled, plugin data is taken
-      - When nProbe has no plugins enabled, then nDPI data is taken
-    */
-    if (zflow->getL7Info() && zflow->getL7Info()[0]) {
-      if (flow->isDNS() && !zflow->getDNSQuery())
-        zflow->setDNSQuery(zflow->getL7Info());
-      else if (flow->isHTTP() && !zflow->getHTTPsite()) {
-        zflow->setHTTPsite(zflow->getL7Info());
-        if (flow->get_cli_host())
-          flow->get_cli_host()->incrVisitedWebSite(zflow->getHTTPsite());
-      } else if (flow->isTLS() && !zflow->getTLSserverName()) {
-        zflow->setTLSserverName(zflow->getL7Info());
-        if (flow->get_cli_host())
-          flow->get_cli_host()->incrVisitedWebSite(zflow->getTLSserverName());
-      }
-    }
 
 #ifdef NTOPNG_PRO
     if (zflow->getCustomApp().pen) {
@@ -576,6 +579,26 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     /* Here everything is setup and it is possible to set the actual protocol to
      * the flow */
     flow->setDetectedProtocol(p);
+
+    /*
+      Parse flow info into the corresponding element (without overriding
+      plugin-generated data:
+      - When nProbe has plugins enabled, plugin data is taken
+      - When nProbe has no plugins enabled, then nDPI data is taken
+    */
+    if (zflow->getL7Info() && zflow->getL7Info()[0]) {
+      if (flow->isDNS() && !zflow->getDNSQuery()) {
+        zflow->setDNSQuery(zflow->getL7Info());
+      } else if (flow->isHTTP() && !zflow->getHTTPsite()) {
+        zflow->setHTTPsite(zflow->getL7Info());
+        if (flow->get_cli_host())
+          flow->get_cli_host()->incrVisitedWebSite(zflow->getHTTPsite());
+      } else if (flow->isTLS() && !zflow->getTLSserverName()) {
+        zflow->setTLSserverName(zflow->getL7Info());
+        if (flow->get_cli_host())
+          flow->get_cli_host()->incrVisitedWebSite(zflow->getTLSserverName());
+      }
+    }
 
     flow->setErrorCode(zflow->getL7ErrorCode());
     flow->setConfidence(zflow->getConfidence());

@@ -69,7 +69,7 @@ class HostPools {
 
   void reloadPools();
   void reloadPool(u_int16_t _pool_id, VLANAddressTree *new_tree, HostPoolStats **new_stats);
-  u_int16_t getPool(Host *h);
+  u_int16_t getPool(Host *h, bool *mac_match = NULL);
   u_int16_t getPool(Mac *m);
   u_int16_t getPoolByName(const char *pool_name);
 

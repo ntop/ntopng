@@ -261,7 +261,8 @@ void NetworkInterface::init(const char *interface_name) {
   last_remote_pps = 0,last_remote_bps = 0, has_vlan_packets = false,
     cpu_affinity = -1 /* no affinity */,
     interfaceStats = NULL, has_too_many_hosts = has_too_many_flows = false,
-    flow_dump_disabled = false, numL2Devices = 0,
+    flow_dump_disabled_by_user = false, flow_dump_disabled_by_backend = false,
+    numL2Devices = 0,
     totalNumHosts = numTotalRxOnlyHosts = numLocalHosts = numLocalRxOnlyHosts = 0,
     arp_requests = arp_replies = 0, has_mac_addresses = false,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount =
@@ -862,7 +863,7 @@ void NetworkInterface::updatePushFiltersSettings() {
 /* **************************************************** */
 
 void NetworkInterface::updateFlowDumpDisabled() {
-  flow_dump_disabled =
+  flow_dump_disabled_by_user =
     getInterfaceBooleanPref(CONST_DISABLED_FLOW_DUMP_PREFS, false);
 }
 
@@ -8469,6 +8470,8 @@ void NetworkInterface::allocateStructures(bool disable_dump) {
     top_sites = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
     top_os = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
 
+    if (disable_dump) flow_dump_disabled_by_backend = true;
+
     if (db == NULL && !disable_dump) {
       if (ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
 #ifdef NTOPNG_PRO
@@ -8488,7 +8491,7 @@ void NetworkInterface::allocateStructures(bool disable_dump) {
       }
     }
 
-    if (!isViewed()) {
+    if (!isViewed() && !disable_dump) {
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
       if (ntop->getPrefs()->do_dump_alerts_on_clickhouse())
         alertStore = new ClickHouseAlertStore(this);
@@ -9367,8 +9370,9 @@ void NetworkInterface::checkMacIPAssociation(bool triggerEvent, u_char *_mac,
           u_char tmp[16];
           Utils::int2mac(it->second, tmp);
 
-          getAlertsQueue()->pushMacIpAssociationChangedAlert(ntohl(ipv4), tmp,
-                                                             _mac, host_mac);
+          AlertsQueue *q = getAlertsQueue();
+          if (q) q->pushMacIpAssociationChangedAlert(ntohl(ipv4), tmp,
+                                                           _mac, host_mac);
 
           ip_mac[ipv4] = mac;
         }
@@ -9393,9 +9397,10 @@ void NetworkInterface::checkDhcpIPRange(Mac *sender_mac,
     IpAddress ip;
     ip.set(ipv4);
 
-    if (!isInDhcpRange(&ip))
-      getAlertsQueue()->pushOutsideDhcpRangeAlert(
-						  _mac, sender_mac, ntohl(ipv4), ntohl(dhcp_reply->siaddr), vlan_id);
+    if (!isInDhcpRange(&ip)) {
+      AlertsQueue *q = getAlertsQueue();
+      if (q) q->pushOutsideDhcpRangeAlert(_mac, sender_mac, ntohl(ipv4), ntohl(dhcp_reply->siaddr), vlan_id);
+    }
   }
 }
 
@@ -9480,9 +9485,10 @@ void NetworkInterface::updateBroadcastDomains(u_int16_t vlan_id,
                                        cur_cidr);
 #endif
         } else {
-          if (ntop->getPrefs()->isBroadcastDomainTooLargeEnabled())
-            getAlertsQueue()->pushBroadcastDomainTooLargeAlert(
-							       src_mac, dst_mac, src, dst, vlan_id);
+          if (ntop->getPrefs()->isBroadcastDomainTooLargeEnabled()) {
+            AlertsQueue *q = getAlertsQueue();
+            if (q) q->pushBroadcastDomainTooLargeAlert(src_mac, dst_mac, src, dst, vlan_id);
+          }
         }
         break;
       }

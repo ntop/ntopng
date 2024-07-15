@@ -22,7 +22,7 @@ prefix:      /
 EOF
 
 echo "deps: {" >> ${STAGEDIR}/+MANIFEST
-for i in "json-c" "libmaxminddb" "libzmq4" "rrdtool" "lua53" "libsodium" "sqlite3" "redis" "librdkafka" "zstd" "nmap"
+for i in "json-c" "libmaxminddb" "libzmq4" "rrdtool" "lua53" "libsodium" "sqlite3" "hiredis" "redis" "librdkafka" "zstd" "nmap"
 do
     pkg query "  %n: { version: \"%v\", origin: %o }" "$i" >> ${STAGEDIR}/+MANIFEST
 done
@@ -86,6 +86,18 @@ cd $HERE
 # Build +POST_INSTALL
 
 cat >> ${STAGEDIR}/+POST_INSTALL <<EOF
+
+# Add missing libraries symlinks due to invalid shlib verion
+
+RES=\`ldd /usr/local/bin/ntopng | grep "not found" | cut -d '=' -f 1 | sed 's/[[:blank:]]//g'\`
+
+for LIB in \$RES; do
+    BASELIB=\`echo \$LIB|cut -d '.' -f 1\`
+    CMD=\`ln -s /usr/local/lib/\$BASELIB.so /usr/local/lib/\$LIB\`
+done
+
+####################
+
 if ! id "ntopng" >/dev/null 2>&1; then
   pw useradd ntopng -s /sbin/nologin -d /nonexistent -c "ntopng user" -w no
 fi

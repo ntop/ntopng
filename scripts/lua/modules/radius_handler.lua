@@ -44,6 +44,7 @@ function radius_handler.accountingStart(name, username, password)
     if not radius_handler.isAccountingEnabled() then
         return true
     end
+    name = string.upper(name)
 
     -- Check if the user is already saved on redis
     local is_accounting_on = radius_handler.isAccountingRequested(name)
@@ -93,6 +94,7 @@ function radius_handler.accountingStop(name, terminate_cause, info)
     if not radius_handler.isAccountingEnabled() then
         return true
     end
+    name = string.upper(name)
 
     local _, user_data = radius_handler.isAccountingRequested(name)
     -- Removing the entry from redis
@@ -144,6 +146,7 @@ function radius_handler.accountingUpdate(name, info)
     if not radius_handler.isAccountingEnabled() then
         return true
     end
+    name = string.upper(name)
 
     local is_accounting_on, user_data = radius_handler.isAccountingRequested(name)
     local res = true
@@ -187,6 +190,7 @@ end
 ---@return boolean, in case the accounting is up or not
 ---@return table, containing the user data in case an accounting is up
 function radius_handler.isAccountingRequested(name)
+    name = string.upper(name)
     local key = string.format(redis_accounting_key, name)
     local user_data = ntop.getCache(key)
 

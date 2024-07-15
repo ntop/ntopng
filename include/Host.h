@@ -36,9 +36,11 @@ class Host : public GenericHashEntry,
   char *asname, *blacklist_name;
 
   int32_t iface_index; /* Interface index on which this host has been first observed */
-  u_int16_t host_pool_id, host_services_bitmap;
+  u_int16_t host_services_bitmap;
   u_int16_t vlan_id;
   u_int16_t observationPointId;
+  u_int16_t host_pool_id;
+  u_int8_t host_pool_id_is_from_mac; /* pool id comes from a MAC match (bool) */
   u_int8_t num_remote_access;
   HostStats *stats, *stats_shadow;
   time_t last_stats_reset;

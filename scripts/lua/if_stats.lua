@@ -884,6 +884,23 @@ if ((page == "overview") or (page == nil)) then
         print("</tr>")
     end
 
+    if (ifstats.dbStats ~= nil) then
+        print("<tr><th colspan=7 nowrap>" .. i18n("if_stats_overview.db_statistics") .. "</th></tr>\n")
+        local tot_flows = ifstats.dbStats.flows + ifstats.dbStats.dropped_flows
+        local pctg_dropped_flows = ((ifstats.dbStats.dropped_flows * 100) / (tot_flows or 1)) or 0
+
+        print("<tr>")
+        print("<th nowrap>" .. i18n("if_stats_overview.processed_records") ..
+                  "</th><td width=20%><span id=if_zmq_flows>" .. formatValue(ifstats.dbStats.flows) ..
+                  "</span></td>")
+        print(
+            "<th nowrap> <i class='fas fa-tint' aria-hidden='true'></i> " .. i18n("if_stats_overview.discarded_records") ..
+                "</th><td width=20%><span id=if_zmq_dropped_flows>" .. formatValue(ifstats.dbStats.dropped_flows) ..
+                " [ " .. pctg_dropped_flows .. " % ] " .. "</span></td>")
+        print("<td colspan=2></td>")
+        print("</tr>")
+    end
+
     print("<tr><th colspan=7 nowrap>" .. i18n("if_stats_overview.traffic_statistics") .. "</th></tr>\n")
 
     print("<tr><th nowrap>" .. i18n("report.traffic_anomalies") .. ternary(charts_available, " <A HREF='" .. url ..

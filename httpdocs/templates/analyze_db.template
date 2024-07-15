@@ -1,5 +1,9 @@
 <H3> {{ i18n("analyze_db_ok") }} </H3>
-<p>{{i18n("analyze_db_ok_descr")}}</p>
+<p>
+{{i18n("analyze_db_ok_descr")}}
+<br>
+<small>{{i18n("analyze_db_ok_note", {size=max_num_flows})}}</small>
+</p>
 
 	 <form method='POST' action="{{ ntop.getHttpPrefix() }}/lua/flows_stats.lua?ifid={{ iface_id }}">
 	   <input hidden name='switch_interface' value='1' />

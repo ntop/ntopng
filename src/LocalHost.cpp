@@ -26,10 +26,10 @@
 LocalHost::LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
 		     Mac *_mac, u_int16_t _vlanId,
                      u_int16_t _observation_point_id, IpAddress *_ip)
-  : Host(_iface, _iface_idx, _mac, _vlanId, _observation_point_id, _ip), 
+  : Host(_iface, _iface_idx, _mac, _vlanId, _observation_point_id, _ip),
     contacted_server_ports(CONST_MAX_NUM_QUEUED_PORTS, "localhost-serverportsproto"), usedPorts(this) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  
+
 #ifdef LOCALHOST_DEBUG
   char buf[48];
 
@@ -44,7 +44,7 @@ LocalHost::LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
 LocalHost::LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
 		     char *ipAddress, u_int16_t _vlanId,
 		     u_int16_t _observation_point_id)
-  : Host(_iface, _iface_idx, ipAddress, _vlanId, _observation_point_id), 
+  : Host(_iface, _iface_idx, ipAddress, _vlanId, _observation_point_id),
   contacted_server_ports(CONST_MAX_NUM_QUEUED_PORTS, "localhost-serverportsproto"), usedPorts(this) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   initialize();
@@ -52,7 +52,7 @@ LocalHost::LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
 
 /* *************************************** */
 
-LocalHost::~LocalHost() {  
+LocalHost::~LocalHost() {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   addInactiveData();
   if (initial_ts_point) delete (initial_ts_point);
@@ -139,7 +139,7 @@ void LocalHost::initialize() {
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 18);
 
   /* Only increase the number of host if it's a unicast host */
-  if(isLocalUnicastHost()) {    
+  if(isLocalUnicastHost()) {
     if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
       ns->incNumHosts();
   }
@@ -165,8 +165,8 @@ void LocalHost::initialize() {
 
 #ifdef NTOPNG_PRO
   if ((!(isBroadcastHost() || isMulticastHost()))
-      && ntop->getPrefs()->is_enterprise_xl_edition() 
-      && ntop->getPrefs()->isNetBoxEnabled())
+      && ntop->getPrefs()->is_enterprise_xl_edition()
+      && (ntop->getPrefs()->isAssetInventoryEnabled() || ntop->getPrefs()->isNetBoxEnabled()))
     dumpAssetInfo();
 #endif
 
@@ -202,13 +202,13 @@ void LocalHost::addInactiveData() {
     return;
 
 #if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, 
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
     "Adding Host %s to inactive hosts Interace %d, with MAC: %s",
     ip.print(buf, sizeof(buf)),
     iface->get_id(),
     cur_mac->print(buf, sizeof(buf)));
-#endif                               
- 
+#endif
+
   ndpi_init_serializer(&host_json, ndpi_serialization_format_json);
   ndpi_serialize_string_string(&host_json, "ip", ip.print(buf, sizeof(buf)));
 
@@ -223,9 +223,9 @@ void LocalHost::addInactiveData() {
   ndpi_serialize_string_uint32(&host_json, "vlan", (u_int16_t) get_vlan_id());
   ndpi_serialize_string_uint32(&host_json, "network", (u_int16_t) get_local_network_id());
   ndpi_serialize_string_string(&host_json, "name", get_name(buf, sizeof(buf), false));
-  
 
-  
+
+
   json_str = ndpi_serializer_get_buffer(&host_json, &json_str_len);
   if ((json_str != NULL) && (json_str_len > 0)) {
     char key[128], redis_key[64];
@@ -240,7 +240,7 @@ void LocalHost::addInactiveData() {
 
 void LocalHost::removeInactiveData() {
   char key[128], redis_key[64];
-  
+
   /* Remove the key from the hash, used to get the offline hosts */
   if(!ntop->getRedis() || !isLocalUnicastHost())
     return;
@@ -619,7 +619,7 @@ void LocalHost::setRouterMac(Mac *gw) {
 
 void LocalHost::setRxOnlyHost(bool set_it) {
   Host::setRxOnlyHost(set_it);
-  
+
   if (isLocalUnicastHost()) {
     char hostbuf[64], *member;
 
@@ -642,20 +642,20 @@ void LocalHost::setRxOnlyHost(bool set_it) {
 
 void LocalHost::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto, time_t when) {
   bool set_port_status = usedPorts.setServerPort(isTCP, port, proto);
-  
+
   if (set_port_status
       && ntop->getPrefs()->is_enterprise_l_edition()) {
     /* If the port is set for the first time set_port_status == true */
     u_int32_t learning_period = ntop->getPrefs()->hostPortLearningPeriod();
-      
+
     if (when - get_first_seen() > learning_period) {
       if (!contacted_server_ports.isFull()) {
 	/* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** port %u ***", port); */
         contacted_server_ports.enqueue({port, proto->app_protocol}, true);
       } else {
 	char ip_buf[64];
-	
-        ntop->getTrace()->traceEvent(TRACE_INFO, 
+
+        ntop->getTrace()->traceEvent(TRACE_INFO,
 				     "Server port %s:%d contacted but not reported: exceeded max number",
 				     printMask(ip_buf, sizeof(ip_buf)), port);
       }
@@ -681,7 +681,7 @@ void LocalHost::dumpAssetInfo() {
   char buf[64], mac_buf[32], *json_str = NULL, *ip = printMask(buf, sizeof(buf));
   ndpi_serializer device_json;
   u_int32_t json_str_len = 0;
-  
+
   ndpi_init_serializer(&device_json, ndpi_serialization_format_json);
 
   if (getMac() && serializeByMac()) {
@@ -701,10 +701,10 @@ void LocalHost::dumpAssetInfo() {
     ndpi_serialize_string_string(&device_json, "ipv6", ip);
   else
     ndpi_serialize_string_string(&device_json, "ipv4", ip);
-  
+
   ndpi_serialize_string_string(&device_json, "source", "traffic");
   ndpi_serialize_string_uint32(&device_json, "first_seen", first_seen);
-  ndpi_serialize_string_uint32(&device_json, "last_seen", last_seen);  
+  ndpi_serialize_string_uint32(&device_json, "last_seen", last_seen);
 
   json_str = ndpi_serializer_get_buffer(&device_json, &json_str_len);
 

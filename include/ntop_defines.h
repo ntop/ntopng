@@ -227,7 +227,7 @@
 #define DHCP_CACHE "ntopng.dhcp.%d.cache.%s"
 #define DHCP_STORM_QUEUE_NAME "ntopng.dhcp.storm.%d"
 #define ASSET_SERVICE_KEY "ntopng.asset.%d.%s" /* ifId.host */
-#define ASSET_LIST_INSERTION_KEY "ntopng.asset.insertion.%d" /* take in sync with lua code */
+#define ASSET_LIST_INSERTION_KEY "ntopng.asset.device_queue.%d" /* take in sync with lua code */
 #define ASSET_HASH_CACHE_KEY "ntopng.asset.hash.cache.%d" /* take in sync with lua code */
 #define DHCP_STORM_PPS_THSHOLD 2048
 #define NTOPNG_TRACE "ntopng.trace"
@@ -766,13 +766,28 @@
   NTOPNG_PREFS_PREFIX ".toggle_netbox"
 #define CONST_DEFAULT_NETBOX_ENABLED \
   0  // disabled by default
+
+#define CONST_PREFS_NTOPNG_ASSETS_INVENTORY_ENABLED \
+  NTOPNG_PREFS_PREFIX ".toggle_ntopng_assets_inventory"
+#define CONST_DEFAULT_NTOPNG_ASSETS_INVENTORY_ENABLED \
+  0  // disabled by default
   
+#define CONST_PREFS_NETBOX_ENABLED \
+  NTOPNG_PREFS_PREFIX ".toggle_netbox"
+#define CONST_DEFAULT_NETBOX_ENABLED \
+  0  // disabled by default
+  
+#define CONST_PREFS_ASSET_INVENTORY_ENABLED \
+  NTOPNG_PREFS_PREFIX ".toggle_asset_inventory" // same name as lua prefs.lua
+#define CONST_DEFAULT_ASSET_INVENTORY_ENABLED \
+  0  // disabled by default
+
 #define CONST_PREFS_SNMP_TRAP_ENABLED \
   NTOPNG_PREFS_PREFIX ".toggle_snmp_trap" // same name as lua prefs.lua
 #define CONST_DEFAULT_SNMP_TRAP_ENABLED \
   0  // disabled by default
 
-#define CONST_PREFS_USE_MAC_IN_FLOW_KEY \
+#define CONST_PREFS_USE_MAC_IN_FLOW_KEY		\
   NTOPNG_PREFS_PREFIX ".use_mac_in_flow_key"
 #define CONST_PREFS_FINGERPRINT_STATS \
   NTOPNG_PREFS_PREFIX ".fingerprint_stats"
@@ -1566,6 +1581,7 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
   "scripts/callbacks/checks/flows/custom_flow_end_script.lua"
 
 #define OFFLINE_LOCAL_HOSTS_KEY "ntopng.hosts.offline.ifid_%d"
+#define EXPORTERS_EXCEEDED_LIMITS_KEY "ntopng.limits.exporters"
 
 #define MAX_NUM_PCAP_INTERFACES 8
 

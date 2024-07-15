@@ -104,6 +104,7 @@ Prefs::Prefs(Ntop *_ntop) {
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
 #ifdef NTOPNG_PRO
+  asset_inventory_enabled = CONST_DEFAULT_ASSET_INVENTORY_ENABLED;
   netbox_enabled = CONST_DEFAULT_NETBOX_ENABLED;
   snmp_trap_enabled = CONST_DEFAULT_SNMP_TRAP_ENABLED;
   pro_callbacks_dir = strdup(CONST_DEFAULT_PRO_CALLBACKS_DIR);
@@ -203,6 +204,7 @@ Prefs::Prefs(Ntop *_ntop) {
   mysql_host = mysql_dbname = mysql_user = mysql_pw = NULL;
 #if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO) && defined(HAVE_MYSQL)
   ch_user = NULL;
+  ntopng_assets_inventory_enabled = true;
 #endif
   mysql_port = CONST_DEFAULT_MYSQL_PORT;
   clickhouse_tcp_port = CONST_DEFAULT_CLICKHOUSE_TCP_PORT;
@@ -1033,9 +1035,15 @@ void Prefs::reloadPrefsFromRedis() {
 #ifdef NTOPNG_PRO
   // reset value
   netbox_enabled = getDefaultPrefsValue(CONST_PREFS_NETBOX_ENABLED,
-							    CONST_DEFAULT_NETBOX_ENABLED);
+					CONST_DEFAULT_NETBOX_ENABLED);
+  asset_inventory_enabled = getDefaultPrefsValue(CONST_PREFS_ASSET_INVENTORY_ENABLED,
+						 CONST_DEFAULT_ASSET_INVENTORY_ENABLED);
   snmp_trap_enabled = getDefaultPrefsValue(CONST_PREFS_SNMP_TRAP_ENABLED,
-							    CONST_DEFAULT_SNMP_TRAP_ENABLED);
+					   CONST_DEFAULT_SNMP_TRAP_ENABLED);
+#endif
+#if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO) && defined(HAVE_MYSQL)
+  ntopng_assets_inventory_enabled = getDefaultPrefsValue(CONST_PREFS_NTOPNG_ASSETS_INVENTORY_ENABLED,
+							    CONST_DEFAULT_NTOPNG_ASSETS_INVENTORY_ENABLED);
 #endif
 
 #ifdef PREFS_RELOAD_DEBUG

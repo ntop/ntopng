@@ -259,7 +259,8 @@ function host_pools:_persist(pool_id, name, members, policy)
     local pool_members_key = self:_get_pool_members_key(pool_id)
     ntop.delCache(pool_members_key)
     for _, member in pairs(members) do
-        ntop.setMembersCache(pool_members_key, member)
+        local m = self:normalize_member(member)
+        ntop.setMembersCache(pool_members_key, m)
     end
 
     -- Policy
