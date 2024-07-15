@@ -80,12 +80,18 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     if (!flow_interfaces_stats)
       flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
     are_limits_okay = flow_interfaces_stats->checkExporters(zflow->device_ip, zflow->inIndex);
+
     if (!are_limits_okay) {
-      if (!limit_exceeded) {
-        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flows dropped on Interface %d due to limits to the license. Exporters limit: %d | Exporters Interfaces limit: %d", this->get_id(), get_max_num_flow_exporters(), get_max_num_flow_exporters_interfaces());
+      static bool shown = false;
+
+      if(!shown) {
+        ntop->getTrace()->traceEvent(TRACE_NORMAL,
+                  "Flow dropped due to limits to the license. Exporters limit: %d | Exporters Interfaces limit: %d",
+                  get_max_num_flow_exporters(), get_max_num_flow_exporters_interfaces());
         ntop->getRedis()->set(EXPORTERS_EXCEEDED_LIMITS_KEY, "1");
-        limit_exceeded = true;
+	      shown = true;
       }
+      
       return false;
     }
   }

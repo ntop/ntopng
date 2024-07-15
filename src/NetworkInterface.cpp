@@ -261,7 +261,8 @@ void NetworkInterface::init(const char *interface_name) {
   last_remote_pps = 0,last_remote_bps = 0, has_vlan_packets = false,
     cpu_affinity = -1 /* no affinity */,
     interfaceStats = NULL, has_too_many_hosts = has_too_many_flows = false,
-    flow_dump_disabled = false, numL2Devices = 0,
+    flow_dump_disabled_by_user = false, flow_dump_disabled_by_backend = false,
+    numL2Devices = 0,
     totalNumHosts = numTotalRxOnlyHosts = numLocalHosts = numLocalRxOnlyHosts = 0,
     arp_requests = arp_replies = 0, has_mac_addresses = false,
     checkpointPktCount = checkpointBytesCount = checkpointPktDropCount =
@@ -862,7 +863,7 @@ void NetworkInterface::updatePushFiltersSettings() {
 /* **************************************************** */
 
 void NetworkInterface::updateFlowDumpDisabled() {
-  flow_dump_disabled =
+  flow_dump_disabled_by_user =
     getInterfaceBooleanPref(CONST_DISABLED_FLOW_DUMP_PREFS, false);
 }
 
@@ -8468,6 +8469,8 @@ void NetworkInterface::allocateStructures(bool disable_dump) {
 
     top_sites = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
     top_os = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
+
+    if (disable_dump) flow_dump_disabled_by_backend = true;
 
     if (db == NULL && !disable_dump) {
       if (ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
