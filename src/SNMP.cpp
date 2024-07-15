@@ -48,7 +48,6 @@ SNMP::SNMP() {
   batch_mode = false;
 #ifdef HAVE_LIBSNMP
   init_snmp("ntopng");  
-  printf("********************************************************************************************************");
 #endif
   getbulk_max_num_repetitions = 10;
 }
@@ -283,7 +282,7 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
       return;
     }
   } else {
-    if((sessions.size()) == 0) {
+    if(sessions.size() == 0) {
       goto create_snmp_session;
     } else {
       snmpSession = sessions.at(0);
