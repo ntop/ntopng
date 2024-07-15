@@ -4190,11 +4190,14 @@ bool Ntop::incNumFlowExporters() {
 
 bool Ntop::incNumFlowExportersInterfaces() {
   bool ok = true;
+  
   m.lock(__FILE__, __LINE__);
+
   if (num_flow_intefaces < get_max_num_flow_exporters_interfaces())
     num_flow_intefaces++;
   else
     ok = false;
+  
   m.unlock(__FILE__, __LINE__);
 
   return ok;
