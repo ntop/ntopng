@@ -31,7 +31,6 @@ ParserInterface::ParserInterface(const char *endpoint,
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
   num_companion_interfaces = 0;
-  limit_exceeded = false;
   companion_interfaces =
       new (std::nothrow) NetworkInterface *[MAX_NUM_COMPANION_INTERFACES]();
 }

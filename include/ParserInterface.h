@@ -29,7 +29,6 @@ class ParserInterface : public NetworkInterface {
   Mutex companions_lock;
   u_int8_t num_companion_interfaces;
   NetworkInterface **companion_interfaces;
-  bool limit_exceeded;
 
   virtual void reloadCompanions();
 
