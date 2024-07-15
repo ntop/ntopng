@@ -108,6 +108,8 @@ class Ntop {
 #endif
   FifoSerializerQueue *internal_alerts_queue;
   Recipients recipients; /* Handle notification recipients */
+  u_int8_t num_flow_exporters;
+  u_int16_t num_flow_intefaces;
 #ifdef NTOPNG_PRO
   AssetManagement am;
 #ifdef HAVE_KAFKA
@@ -572,6 +574,10 @@ class Ntop {
 #ifdef NTOPNG_PRO
   inline AlertExclusions *getAlertExclusions() { return alert_exclusions; }
 #endif
+  u_int8_t getNumFlowExporters() { return num_flow_exporters; }
+  u_int16_t getNumFlowExportersInterfaces() { return num_flow_intefaces; }
+  bool incNumFlowExporters();
+  bool incNumFlowExportersInterfaces();
 
   inline u_int getNumCPUs() { return (num_cpus); }
   inline void setNumCPUs(u_int num) { num_cpus = num; }
