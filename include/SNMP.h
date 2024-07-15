@@ -66,10 +66,11 @@ class SNMP {
   std::vector<SNMPSession *> sessions;
   /* Variables below are used for the async check */
   lua_State *vm;
+  //trap variables
   SNMPSession *trap_session;
   netsnmp_transport *snmpTransport;
   netsnmp_session* rc;
-  bool cease_collecting_trap;
+  volatile bool cease_collecting_trap;
 #else
   int udp_sock;
   u_int32_t request_id;
@@ -95,7 +96,7 @@ class SNMP {
   SNMP();
   ~SNMP();
 
-  void collectTraps(struct timeval timeout);
+
   
 #ifdef HAVE_LIBSNMP
   void handle_async_response(struct snmp_pdu *pdu, const char *agent_ip);
@@ -126,6 +127,10 @@ class SNMP {
   int getnextbulk(lua_State *vm, bool skip_first_param);
   int set(lua_State *vm, bool skip_first_param);
   void handle_trap(struct snmp_pdu*pdu);
+  //call to commence trap collection
+  void collectTraps(int timeout);
+  //call to cease trap collection
+  void cease_trap_collection();
 };
 
 #endif /* _SNMP_H_ */
