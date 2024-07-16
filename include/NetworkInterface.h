@@ -249,7 +249,7 @@ protected:
   bool pollLoopCreated, flowDumpLoopCreated, flowAlertsDequeueLoopCreated,
     hostAlertsDequeueLoopCreated;
   bool has_too_many_hosts, has_too_many_flows, mtuWarningShown;
-  bool flow_dump_disabled;
+  bool flow_dump_disabled_by_user, flow_dump_disabled_by_backend;
   u_int32_t ifSpeed, numL2Devices, totalNumHosts,
     numTotalRxOnlyHosts /* subset of numTotalRxOnlyHosts that have received
 			   but never sent any traffic */
@@ -1143,7 +1143,8 @@ public:
   inline bool hasConfiguredDhcpRanges() {
     return (dhcp_ranges && !dhcp_ranges->last_ip.isEmpty());
   };
-  inline bool isFlowDumpDisabled() { return (flow_dump_disabled); }
+  inline bool isFlowDumpDisabled() { return (flow_dump_disabled_by_user || 
+    flow_dump_disabled_by_backend); }
   bool isInDhcpRange(IpAddress *ip);
   void getPodsStats(lua_State *vm);
   void getContainersStats(lua_State *vm, const char *pod_filter);

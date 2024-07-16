@@ -1581,6 +1581,7 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
   "scripts/callbacks/checks/flows/custom_flow_end_script.lua"
 
 #define OFFLINE_LOCAL_HOSTS_KEY "ntopng.hosts.offline.ifid_%d"
+#define EXPORTERS_EXCEEDED_LIMITS_KEY "ntopng.limits.exporters"
 
 #define MAX_NUM_PCAP_INTERFACES 8
 
