@@ -5,37 +5,39 @@ Available Recipients
 
 Currently available Endpoints/Recipients and license required are: 
 
-+----------------+-----------+-----+--------------+--------------+
-|                | Community | Pro | Enterprise M | Enterprise L |
-+================+===========+=====+==============+==============+
-| Discord        | x         | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
-| Elasticsearch  |           | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
-| e-mail         | x         | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
-| Fail2Ban       |           | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
-| Mattermost     | x         | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
-| MS Teams       |           |     |              | x            |
-+----------------+-----------+-----+--------------+--------------+
-| PagerDuty      |           |     |              | x            |
-+----------------+-----------+-----+--------------+--------------+
-| Shell Script   | x         | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
-| Slack          | x         | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
-| Syslog         | x         | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
-| Telegram       | x         | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
-| Webhook        | x         | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
-| WeChat         |           |     |              | x            |
-+----------------+-----------+-----+--------------+--------------+
-| TheHive        |           | x   | x            | x            |
-+----------------+-----------+-----+--------------+--------------+
++---------------+-----------+-----+--------------+--------------+
+|               | Community | Pro | Enterprise M | Enterprise L |
++===============+===========+=====+==============+==============+
+| Discord       | x         | x   | x            | x            |
++---------------+-----------+-----+--------------+--------------+
+| Elasticsearch |           | x   | x            | x            |
++---------------+-----------+-----+--------------+--------------+
+| e-mail        | x         | x   | x            | x            |
++---------------+-----------+-----+--------------+--------------+
+| Fail2Ban      |           | x   | x            | x            |
++---------------+-----------+-----+--------------+--------------+
+| Mattermost    | x         | x   | x            | x            |
++---------------+-----------+-----+--------------+--------------+
+| MS Teams      |           |     |              | x            |
++---------------+-----------+-----+--------------+--------------+
+| PagerDuty     |           |     |              | x            |
++---------------+-----------+-----+--------------+--------------+
+| Shell Script  | x         | x   | x            | x            |
++---------------+-----------+-----+--------------+--------------+
+| Slack         | x         | x   | x            | x            |
++---------------+-----------+-----+--------------+--------------+
+| Syslog        | x         | x   | x            | x            |
++---------------+-----------+-----+--------------+--------------+
+| Syslog checkmk|           |     | x            | x            |
++---------------+-----------+-----+--------------+--------------+
+| Telegram      | x         | x   | x            | x            |
++---------------+-----------+-----+--------------+--------------+
+| Webhook       | x         | x   | x            | x            |
++---------------+-----------+-----+--------------+--------------+
+| WeChat        |           |     |              | x            |
++---------------+-----------+-----+--------------+--------------+
+| TheHive       |           | x   | x            | x            |
++---------------+-----------+-----+--------------+--------------+
 
 Below a guide on how to configure each Endpoint/Recipient.
 
@@ -392,6 +394,34 @@ Examples of JSON alerts sent to syslog are
 
    develv ntopng: {"entity_value":"ntopng","ifid":1,"action":"store","tstamp":1536245738,"type":"process_notification","entity_type":"host","message":"[<tstamp>]][Process] Stopped ntopng v.3.7.180906 (CentOS Linux release 7.5.1804 (Core) ) [pid: 4783][options: --interface \"eno1\" --interface \"lo\" --dump-flows \"[hidden]\" --https-port \"4433\" --dont-change-user ]","severity":"info"}
    devel ntopng: {"message":"[<tstamp>][Threshold Cross][Engaged] Minute traffic crossed by interface eno1 [891.58 KB > 1 Byte]","entity_value":"iface_0","ifid":0,"alert_key":"min_bytes","tstamp":1536247320,"type":"threshold_cross","action":"engage","severity":"error","entity_type":"interface"}
+
+**Checkmk**
+
+This format is used to track ntopng events within checkmk.
+
+Checkmk messages have the following format:
+
+.. code:: bash
+   [Checkmk@18662 sl="family_id" comment="(Interface) (Severity) (Type) (Entity) (Entity Value) (Action)" severity="severity"] ... and a plain text message...
+
+Fields have the following meanings:
+
+- :code: `sl`: an identifier of the event, used, for example, to perform searches.
+- :code: `comment`: contain the information described in the Plaintext section, except for timestamp, which is assigned by checkmk to the event.
+- :severity: `severity`: the severity of the alert.
+
+An example of Checkmk alert sent to syslog is
+
+.. code:: bash
+
+   devel ntopng: [Checkmk@18662 sl="4" comment=" (Interface: enp0s3) (Severity: Warning) (Flow) (Binary file/data transfer (attempt)) (vbox:43972 -> it.archive.ubuntu.com:80)  Binary file/data transfer (attempt)" severity="Warning"] Binary file/data transfer (attempt)
+
+
+The value for service level have to be manualy mapped inside Checkmk under `Global settings > Notifications > Service Levels`.
+
+The final result should look like the one showed in the image below.
+
+.. figure:: ../img/checkmk_service_level_association.png
 
 Telegram
 --------

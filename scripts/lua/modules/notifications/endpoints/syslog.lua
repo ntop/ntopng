@@ -102,6 +102,14 @@ function syslog.sendMessage(settings, notif, severity)
      else
         return false
      end
+   elseif syslog_format and syslog_format == "checkmk" then
+      if ntop.isEnterpriseM() then
+         package.path = dirs.installdir .. "/pro/scripts/lua/modules/?.lua;" .. package.path
+         local checkmk_format = require "checkmk_format"
+         msg = checkmk_format.format(json.decode(notif))
+      else 
+         return false
+      end
    else -- syslog_format == "plaintext" or "plaintextrfc"
       -- prepare a plain text message
       msg = format_utils.formatMessage(json.decode(notif), {
@@ -125,14 +133,18 @@ function syslog.sendMessage(settings, notif, severity)
       local info = ntop.getInfo()
       local pid = info.pid
 
-      if syslog_format and syslog_format == "plaintextrfc" then
+      if syslog_format and (syslog_format == "plaintextrfc" or syslog_format == "checkmk") then
          local iso_time = format_utils.formatEpochISO8601() -- "2020-11-19T18:31:21.003Z" (UTC)
 
          -- RFC5424 Format:
          -- <PRIO>VERSION ISOTIMESTAMP HOSTNAME APPLICATION PID MESSAGEID MSG
          -- Example:
          -- <113>1 2020-11-19T18:31:21.003Z 192.168.1.1 ntopng 21365 ID1 -
-         msg = "<"..prio..">1 "..iso_time.." "..host.." "..tag.." "..pid.." - - "..msg
+         if syslog_format == "plaintextrfc" then 
+            msg = "<"..prio..">1 "..iso_time.." "..host.." "..tag.." "..pid.." - - "..msg
+         else
+            msg = "<"..prio..">1 "..iso_time.." "..host.." "..tag.." "..pid.." - "..msg
+         end
       else
          local log_time = os.date("%b %d %X") -- "Feb 25 09:58:12" (localtime)
          --local log_time = os.date("!%b %d %X") -- "Feb 25 09:58:12" (UTC)
