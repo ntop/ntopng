@@ -79,6 +79,10 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     if (!flow_interfaces_stats)
       flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
     are_limits_okay = flow_interfaces_stats->checkExporters(zflow->device_ip, zflow->inIndex);
+    
+    if (are_limits_okay && (zflow->outIndex != zflow->inIndex))
+      are_limits_okay = flow_interfaces_stats->checkExporters(zflow->device_ip, zflow->outIndex);
+
 
     if (!are_limits_okay) {
       static bool shown = false;
