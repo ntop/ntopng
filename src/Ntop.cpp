@@ -91,7 +91,7 @@ Ntop::Ntop(const char *appName) {
 
   /* Flow alerts exclusions */
 #ifdef NTOPNG_PRO
-  num_flow_exporters = num_flow_intefaces = 0;
+  num_flow_exporters = num_flow_interfaces = 0;
   alertExclusionsReloadInProgress = true;
   alert_exclusions = alert_exclusions_shadow = NULL;
 #endif
@@ -4175,31 +4175,16 @@ void Ntop::reloadMessageBroker() {
 /* ******************************************* */
 
 bool Ntop::incNumFlowExporters() {
-  bool ok = true;
-  m.lock(__FILE__, __LINE__);
-  if (num_flow_exporters < get_max_num_flow_exporters())
-    num_flow_exporters++;
-  else
-    ok = false;
-  m.unlock(__FILE__, __LINE__);
-
+  bool ok = (num_flow_exporters < get_max_num_flow_exporters());
+  if (ok) num_flow_exporters++;
   return ok;
 }
 
 /* ******************************************* */
 
 bool Ntop::incNumFlowExportersInterfaces() {
-  bool ok = true;
-  
-  m.lock(__FILE__, __LINE__);
-
-  if (num_flow_intefaces < get_max_num_flow_exporters_interfaces())
-    num_flow_intefaces++;
-  else
-    ok = false;
-  
-  m.unlock(__FILE__, __LINE__);
-
+  bool ok = (num_flow_interfaces < get_max_num_flow_exporters_interfaces());
+  if (ok) num_flow_interfaces++;
   return ok;
 }
 #endif /* NTOPNG_PRO */

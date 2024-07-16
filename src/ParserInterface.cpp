@@ -72,19 +72,16 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     zflow->vlan_id = rand() % SIMULATE_VLANS_MAX_VALUE;
 #ifdef NTOPNG_PRO
   if (zflow->device_ip) {
-    bool are_limits_okay = true;
-    /* First of all check the device IP, because if the max number is reached,
-      * the flow is going to be dropped
-      */
-    if (!flow_interfaces_stats)
+
+    if (!flow_interfaces_stats) {
       flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
-    are_limits_okay = flow_interfaces_stats->checkExporters(zflow->device_ip, zflow->inIndex, zflow->probe_ip);
-    
-    if (are_limits_okay && (zflow->outIndex != zflow->inIndex))
-      are_limits_okay = flow_interfaces_stats->checkExporters(zflow->device_ip, zflow->outIndex, zflow->probe_ip);
+      if (!flow_interfaces_stats) {
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Memory allocation failure");
+        return false;
+      }
+    }
 
-
-    if (!are_limits_okay) {
+    if (!flow_interfaces_stats->checkExporters(zflow->device_ip, zflow->inIndex, zflow->outIndex, zflow->probe_ip)) {
       static bool shown = false;
 
       if(!shown) {
@@ -511,20 +508,21 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
         zflow->pkt_sampling_rate * zflow->out_bytes,
         zflow->pkt_sampling_rate * zflow->in_pkts,
         zflow->pkt_sampling_rate * zflow->in_bytes);
+
 /* If the SNMP device is actually an host with an SNMP agent, then traffic
     can enter and leave it from the same interface (think to a management
     interface). For this reason it is important to check the outIndex and
     increase its counters only if it is different from inIndex to avoid
     double counting. */
 
-    if (zflow->outIndex != zflow->inIndex)
-      flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->outIndex, flow->getStatsProtocol(),
+      if (zflow->outIndex != zflow->inIndex)
+        flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->outIndex, flow->getStatsProtocol(),
         zflow->pkt_sampling_rate * zflow->in_pkts,
         zflow->pkt_sampling_rate * zflow->in_bytes,
         zflow->pkt_sampling_rate * zflow->out_pkts,
         zflow->pkt_sampling_rate * zflow->out_bytes);
+      }
     }
-  }
 #endif
 
     flow->setFlowVerdict(zflow->getFlowVerdict());
