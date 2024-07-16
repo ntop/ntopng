@@ -1101,10 +1101,11 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
     break;
 
   case NPROBE_IPV4_ADDRESS:
-    /* Do not override EXPORTER_IPV4_ADDRESS */
-    if (value->string && flow->device_ip == 0 &&
-	(flow->device_ip = ntohl(inet_addr(value->string))))
-      return false;
+    if (value->string) {
+      flow->probe_ip = ntohl(inet_addr(value->string));
+      if(flow->device_ip == 0 && (flow->device_ip = ntohl(inet_addr(value->string))))
+        return false;
+    } 
     break;
 
   case SRC_FRAGMENTS:
@@ -1528,7 +1529,7 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow *const flow,
         return false;
 
     case NPROBE_IPV4_ADDRESS:
-      return (flow->device_ip == ntohl(inet_addr(value->string)));
+      return (flow->probe_ip == ntohl(inet_addr(value->string)));
 
     case SMTP_MAIL_FROM:
       if (value->string && flow->getSMTPMailFrom())
