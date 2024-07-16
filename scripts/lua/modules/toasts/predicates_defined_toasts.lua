@@ -136,12 +136,16 @@ end
 
 -- ###############################################################
 
-local function create_too_many_flows_toast(toast, level)
+local function create_too_many_flows_toast(toast, level, is_db_view)
     local info = ntop.getInfo()
     local title = i18n("too_many_flows")
-    local desc = i18n("about.you_have_too_many_flows", {
-        product = info["product"]
-    })
+
+    local desc
+    if is_db_view then
+        desc = i18n("about.flows_limit_reached", { product = info["product"] })
+    else
+        desc = i18n("about.you_have_too_many_flows", { product = info["product"] })
+    end
 
     local action = {
         url = "#",
@@ -464,17 +468,28 @@ function predicates.too_many_flows(toast, container)
     end
 
     local level = nil
+    local is_db_view = false
     local flows = interface.getNumFlows()
-    local flows_pctg = math.floor(1 + ((flows * 100) / prefs.max_num_flows))
+    local max_flows = prefs.max_num_flows
 
-    if (flows_pctg >= ALARM_THRESHOLD_LOW and flows_pctg <= ALARM_THRESHOLD_HIGH) then
-        level = ToastLevel.WARNING
-    elseif (flows_pctg > ALARM_THRESHOLD_HIGH) then
-        level = ToastLevel.DANGER
+    local ifstats = interface.getStats()
+    if ifstats['type'] == 'db' then
+        is_db_view = true
+        if flows >= max_flows then
+            level = ToastLevel.WARNING
+        end
+    else
+        local flows_pctg = math.floor(1 + ((flows * 100) / prefs.max_num_flows))
+
+        if (flows_pctg >= ALARM_THRESHOLD_LOW and flows_pctg <= ALARM_THRESHOLD_HIGH) then
+            level = ToastLevel.WARNING
+        elseif (flows_pctg > ALARM_THRESHOLD_HIGH) then
+            level = ToastLevel.DANGER
+        end
     end
 
     if (level ~= nil) then
-        table.insert(container, create_too_many_flows_toast(toast, level))
+        table.insert(container, create_too_many_flows_toast(toast, level, is_db_view))
     end
 end
 

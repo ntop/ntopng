@@ -793,6 +793,7 @@ local lang = {
     ["directories"] = "Directories",
     ["dropped_store_queries_alerts"] = "Queries/Stored/Dropped Alerts",
     ["flow_checks_directory"] = "Flow",
+    ["flows_limit_reached"] = "The maximum number of active flows has been reached thus not all records have been processed. This can be tuned with -X, or by clicking on the button below to double the current number. A %{product} restart is required to apply the changes.",
     ["forced_community_notification"] = "Community edition forced with <code>--community</code> with a ntop license installed. Please remove this option to enable the installed license.",
     ["forced_community_notification_short"] = "Community edition forced with --community",
     ["host_checks_directory"] = "Host",
