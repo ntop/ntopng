@@ -419,6 +419,8 @@ function dumpBriefInterfaceStats(ifid)
         -- Adding a preference if active discovery is enabled
         res["active_discovery_active"] = ntop.getPref("ntopng.prefs.is_periodic_network_discovery_running.ifid_" ..
                                                           interface.getId()) == "1"
+
+        res["is_loading"] = ifstats.isLoading
     end
 
     return res
