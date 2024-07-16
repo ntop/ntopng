@@ -92,7 +92,7 @@ void ZCCollectorInterface::collect_flows() {
       u_char *json = pfring_zc_pkt_buff_data(buffer, zq);
       const char *master = "{ \"if.name\"";
 
-      ntop->getTrace()->traceEvent(TRACE_INFO, "%s", json);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", json);
       // fprintf(stdout, "+"); fflush(stdout);
 
       if (strncmp((char *)json, master, strlen(master)) == 0) {
