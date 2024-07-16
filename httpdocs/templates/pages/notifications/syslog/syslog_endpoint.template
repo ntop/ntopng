@@ -7,11 +7,12 @@
         <select name="syslog_alert_format" class="form-select" required>
             <option value="plaintext">{{ i18n("notification_endpoint.syslog.text") }}</option>
             <option value="plaintextrfc">{{ i18n("notification_endpoint.syslog.text") }} (RFC 5424)</option>
-            <option value="json">Raw JSON</option>
+            <option value="json">Raw JSON2</option>
 {%
   if ntop.isEnterpriseM() then
 %}
             <option value="ecs">ECS</option>
+            <option value="checkmk">Checkmk</option>
 {%
   end
 %}
