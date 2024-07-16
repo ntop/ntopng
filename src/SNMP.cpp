@@ -57,8 +57,8 @@ SNMP::SNMP() {
 SNMP::~SNMP() {
   for (unsigned int i = 0; i < sessions.size(); i++) delete sessions.at(i);
   if(trap_session) delete trap_session;
-  if(snmpTransport)  free(snmpTransport);
-  if(rc)  free(rc);
+  if(snmpTransport)  netsnmp_transport_free(snmpTransport);
+  if(rc)  netsnmp_free(rc);
 }
 
 /* ******************************* */
@@ -1134,7 +1134,11 @@ void SNMP::collectTraps(int timeout) {
     return;
   }
   //trap session
-  this->trap_session = new SNMPSession;
+  this->trap_session = new  (std::nothrow)  SNMPSession;
+  if(this->trap_session == NULL){
+    ntop->getTrace()->traceEvent(TRACE_ERROR,__FILE__,__LINE__,"new trap session failed\n");
+    netsnmp_transport_free(this->snmpTransport);
+  }
   snmp_sess_init(&this->trap_session->session);
   this->trap_session->session.callback = read_snmp_trap;
   this->trap_session->session.callback_magic = (void *) this;
@@ -1143,8 +1147,8 @@ void SNMP::collectTraps(int timeout) {
   if (this->rc == NULL) {
       ntop->getTrace()->traceEvent(TRACE_ERROR,__FILE__,__LINE__,"adding snmp trap session failed\n");
       snmp_perror("FAILURE: ");
-      netsnmp_transport_free(snmpTransport);
-    
+      netsnmp_transport_free(this->snmpTransport);
+      delete this->trap_session;
       return;
   }
   int numfds;

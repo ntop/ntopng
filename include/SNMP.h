@@ -67,7 +67,7 @@ class SNMP {
   /* Variables below are used for the async check */
   lua_State *vm;
   //trap variables
-  SNMPSession *trap_session;
+  SNMPSession *trap_session; 
   netsnmp_transport *snmpTransport;
   netsnmp_session* rc;
   volatile bool cease_collecting_trap;
