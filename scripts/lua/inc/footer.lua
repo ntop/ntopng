@@ -435,6 +435,10 @@ print[[
                                        msg += "<a href=\"https://cloud.ntop.org\">"; 
                                        msg += "<span class=\"badge bg-danger\">ntop <i class=\"fas fa-cloud\"></i></span></a>";
                                 }
+
+                                if(rsp.is_loading == true) {
+                                       msg += "<blink><span class=\"badge bg-primary\"><i class=\"fas fa-spinner\"></i> ]] print (i18n("loading")) print [[</span></blink>";
+                                }
 ]]
 
 if ntop.isOffline() then

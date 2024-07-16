@@ -7394,6 +7394,7 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
   lua_push_bool_table_entry(vm, "isViewed", isViewed()); /* Viewed interface */
   lua_push_bool_table_entry(vm, "isSampledTraffic",
 			    isSampledTraffic()); /* Whether this interface has sampled traffic */
+  lua_push_bool_table_entry(vm, "isLoading", isLoading());
   if (isSubInterface()) luaSubInterface(vm);
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
