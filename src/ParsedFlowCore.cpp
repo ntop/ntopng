@@ -34,6 +34,7 @@ ParsedFlowCore::ParsedFlowCore() {
   version = 0;
   device_ip = 0;
   probe_ip = 0;
+  unique_source_id = 0;
   src_port = dst_port = 0;
   inIndex = outIndex = 0;
   observationPointId = 0;
@@ -60,6 +61,7 @@ ParsedFlowCore::ParsedFlowCore(const ParsedFlowCore &pfc) {
   version = pfc.version;
   device_ip = pfc.device_ip;
   probe_ip = pfc.probe_ip;
+  unique_source_id = pfc.unique_source_id;
   src_port = pfc.src_port, dst_port = pfc.dst_port;
   inIndex = pfc.inIndex, outIndex = pfc.outIndex;
   observationPointId = pfc.observationPointId;

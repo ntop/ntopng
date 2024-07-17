@@ -143,6 +143,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addMapping("FLOW_SOURCE", FLOW_SOURCE, NTOP_PEN);
   addMapping("SMTP_MAIL_FROM", SMTP_MAIL_FROM, NTOP_PEN);
   addMapping("SMTP_RCPT_TO", SMTP_RCPT_TO, NTOP_PEN);
+  addMapping("UNIQUE_SOURCE_ID", UNIQUE_SOURCE_ID, NTOP_PEN);
 
   /* eBPF / Process */
   addMapping("SRC_PROC_PID", SRC_PROC_PID, NTOP_PEN);
@@ -1108,6 +1109,10 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
     } 
     break;
 
+  case UNIQUE_SOURCE_ID:
+    flow->unique_source_id = value->int_num;
+    break;
+
   case SRC_FRAGMENTS:
     flow->in_fragments = value->int_num;
     break;
@@ -1530,6 +1535,9 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow *const flow,
 
     case NPROBE_IPV4_ADDRESS:
       return (flow->probe_ip == ntohl(inet_addr(value->string)));
+
+    case UNIQUE_SOURCE_ID:
+      return (flow->unique_source_id == value->int_num);
 
     case SMTP_MAIL_FROM:
       if (value->string && flow->getSMTPMailFrom())
