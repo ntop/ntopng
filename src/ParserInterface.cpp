@@ -71,7 +71,12 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if ((zflow->vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
     zflow->vlan_id = rand() % SIMULATE_VLANS_MAX_VALUE;
 #ifdef NTOPNG_PRO
-  if (zflow->device_ip) {
+
+  u_int32_t device_id = zflow->unique_source_id;
+  if (!device_id)
+    device_id = zflow->probe_ip + zflow->device_ip;
+
+  if (device_id) {
 
     if (!flow_interfaces_stats) {
       flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
@@ -81,7 +86,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       }
     }
 
-    if (!flow_interfaces_stats->checkExporters(zflow->device_ip, zflow->inIndex, zflow->outIndex, zflow->probe_ip)) {
+    if (!flow_interfaces_stats->checkExporters(device_id,
+           zflow->inIndex, zflow->outIndex,
+           zflow->device_ip, zflow->probe_ip)) {
       static bool shown = false;
 
       if(!shown) {
@@ -498,12 +505,12 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     guessed_protocol.master_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), guessed_protocol.master_protocol);
 
 #ifdef NTOPNG_PRO
-  if (zflow->device_ip) {
+  if (device_id) {
       if (!flow_interfaces_stats)
         flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
 
     if (flow_interfaces_stats) {
-      flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->inIndex, flow->getStatsProtocol(),
+      flow_interfaces_stats->incStats(now, device_id, zflow->inIndex, flow->getStatsProtocol(),
         zflow->pkt_sampling_rate * zflow->out_pkts,
         zflow->pkt_sampling_rate * zflow->out_bytes,
         zflow->pkt_sampling_rate * zflow->in_pkts,
@@ -516,7 +523,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     double counting. */
 
       if (zflow->outIndex != zflow->inIndex)
-        flow_interfaces_stats->incStats(now, zflow->device_ip, zflow->outIndex, flow->getStatsProtocol(),
+        flow_interfaces_stats->incStats(now, device_id, zflow->outIndex, flow->getStatsProtocol(),
         zflow->pkt_sampling_rate * zflow->in_pkts,
         zflow->pkt_sampling_rate * zflow->in_bytes,
         zflow->pkt_sampling_rate * zflow->out_pkts,
