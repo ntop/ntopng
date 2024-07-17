@@ -342,9 +342,10 @@ ntopng alert severities are mapped to standard syslog severities as follow:
 - *Warning* becomes syslog :code:`LOG_WARNING` equal to the integer 4
 - *Error* becomes syslog :code:`LOG_ERR` equal to the integer 3
 
-Two formats are available when sending alerts to syslog, namely plaintext and JSON. The format defaults to plaintext and can be toggled from the ntopng preferences page.
+A few formats are available when sending alerts to syslog: Text (plaintext), JSON (Raw), ECS, Checkmk.
+The default format is Text and can be changed from the ntopng preferences page.
 
-**Plaintext**
+**Text**
 
 Plaintext alerts have the following format:
 
@@ -397,9 +398,9 @@ Examples of JSON alerts sent to syslog are
 
 **Checkmk**
 
-This format is used to track ntopng events within checkmk.
+This format is used to track ntopng events within checkmk. In order to export alerts to Checkmk, the Checkmk host, port and protocol should be configured in the syslog endpoint configuration in ntopng. Please check the *Setting up the Event Console* section of the Checkmk documentation to configure syslog ingestion in Checkmk. 
 
-Checkmk messages have the following format:
+Alerts exported using the Checkmk format have the following format:
 
 .. code:: bash
    [Checkmk@18662 sl="family_id" comment="(Interface) (Severity) (Type) (Entity) (Entity Value) (Action)" severity="severity"] ... and a plain text message...
@@ -416,12 +417,13 @@ Example of alert sent to syslog with the Checkmk format:
 
    devel ntopng: [Checkmk@18662 sl="4" comment=" (Interface: enp0s3) (Severity: Warning) (Flow) (Binary file/data transfer (attempt)) (vbox:43972 -> it.archive.ubuntu.com:80)  Binary file/data transfer (attempt)" severity="Warning"] Binary file/data transfer (attempt)
 
-
-The service level values have to be manualy mapped inside Checkmk under `Global settings > Notifications > Service Levels`.
+The service level values have to be manualy mapped inside Checkmk under `Setup -> Global settings > Notifications > Service Levels`.
 
 The final result should look like the one showed in the image below.
 
 .. figure:: ../img/checkmk_service_level_association.png
+
+After that, alerts exported by ntopng should be visible under `Monitor -> Events` in Checkmk.
 
 Telegram
 --------
