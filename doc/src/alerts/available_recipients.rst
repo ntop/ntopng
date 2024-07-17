@@ -410,14 +410,14 @@ Fields have the following meanings:
 - :code:`comment`: contain the information described in the Plaintext section, except for timestamp, which is assigned by checkmk to the event.
 - :code:`severity`: the severity of the alert.
 
-An example of Checkmk alert sent to syslog is
+Example of alert sent to syslog with the Checkmk format:
 
 .. code:: bash
 
    devel ntopng: [Checkmk@18662 sl="4" comment=" (Interface: enp0s3) (Severity: Warning) (Flow) (Binary file/data transfer (attempt)) (vbox:43972 -> it.archive.ubuntu.com:80)  Binary file/data transfer (attempt)" severity="Warning"] Binary file/data transfer (attempt)
 
 
-The value for service level have to be manualy mapped inside Checkmk under `Global settings > Notifications > Service Levels`.
+The service level values have to be manualy mapped inside Checkmk under `Global settings > Notifications > Service Levels`.
 
 The final result should look like the one showed in the image below.
 
