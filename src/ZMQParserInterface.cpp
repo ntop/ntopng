@@ -367,7 +367,9 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
                  json_object_get_string(z));
       if (json_object_object_get_ex(w, "uuid", &z))
         snprintf(zrs.uuid, sizeof(zrs.uuid),
-                 "%s", json_object_get_string(z));
+                 "%s", json_object_get_string(z));           
+      if (json_object_object_get_ex(w, "uuid_num", &z))
+        zrs.uuid_num = (u_int32_t)json_object_get_int64(w);
       if (json_object_object_get_ex(w, "ip", &z))
         snprintf(zrs.remote_probe_address, sizeof(zrs.remote_probe_address),
                  "%s", json_object_get_string(z));
@@ -490,6 +492,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
             exp_stats.num_netflow_flows = (u_int32_t)json_object_get_int64(x);
           if (json_object_object_get_ex(val, "num_drops", &x))
             exp_stats.num_drops = (u_int32_t)json_object_get_int64(x);
+          if (json_object_object_get_ex(val, "unique_source_id", &x))
+            exp_stats.unique_source_id = (u_int32_t)json_object_get_int64(x);
 
           exporters_stats[ip] = exp_stats;
         }
@@ -3206,6 +3210,8 @@ void ZMQParserInterface::lua(lua_State *vm, bool fullStats) {
     lua_push_str_table_entry(vm, "probe.ip", zrs->remote_probe_address);
     lua_push_str_table_entry(vm, "probe.uuid",
                              zrs->uuid);
+    lua_push_uint64_table_entry(vm, "probe.uuid_num",
+                             zrs->uuid_num);
     lua_push_str_table_entry(vm, "probe.public_ip",
                              zrs->remote_probe_public_address);
     lua_push_str_table_entry(vm, "probe.probe_version",
@@ -3288,6 +3294,7 @@ void ZMQParserInterface::exporterLuaStats(lua_State *vm) {
     lua_push_uint64_table_entry(vm, "num_netflow_flows", it->second.num_netflow_flows);
     lua_push_uint64_table_entry(vm, "num_sflow_flows", it->second.num_sflow_flows);
     lua_push_uint64_table_entry(vm, "num_drops", it->second.num_drops);
+    lua_push_uint64_table_entry(vm, "unique_source_id", it->second.unique_source_id);
 
     lua_pushstring(vm, buf);
     lua_insert(vm, -2);
