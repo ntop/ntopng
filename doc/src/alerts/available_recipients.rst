@@ -398,7 +398,13 @@ Examples of JSON alerts sent to syslog are
 
 **Checkmk**
 
-This format is used to track ntopng events within checkmk. In order to export alerts to Checkmk, the Checkmk host, port and protocol should be configured in the syslog endpoint configuration in ntopng. Please check the *Setting up the Event Console* section of the Checkmk documentation to configure syslog ingestion in Checkmk. 
+This format is used to track ntopng events within checkmk.
+
+In order to export alerts to Checkmk, the Checkmk host, port and protocol should be configured in the syslog endpoint configuration in ntopng.
+
+Please check the *Setting up the Event Console* section of the Checkmk documentation to configure syslog ingestion in Checkmk. This usually requires enabling the syslog addon by using the omd tool, and adding a filter for the ntopng alerts under `Setup -> Event Console`.
+
+After that, alerts exported by ntopng should be visible under `Monitor -> Events` in Checkmk.
 
 Alerts exported using the Checkmk format have the following format:
 
@@ -422,8 +428,6 @@ The service level values have to be manualy mapped inside Checkmk under `Setup -
 The final result should look like the one showed in the image below.
 
 .. figure:: ../img/checkmk_service_level_association.png
-
-After that, alerts exported by ntopng should be visible under `Monitor -> Events` in Checkmk.
 
 Telegram
 --------
