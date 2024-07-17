@@ -406,9 +406,9 @@ Checkmk messages have the following format:
 
 Fields have the following meanings:
 
-- :code: `sl`: an identifier of the event, used, for example, to perform searches.
-- :code: `comment`: contain the information described in the Plaintext section, except for timestamp, which is assigned by checkmk to the event.
-- :severity: `severity`: the severity of the alert.
+- :code:`sl`: an identifier of the event, used, for example, to perform searches.
+- :code:`comment`: contain the information described in the Plaintext section, except for timestamp, which is assigned by checkmk to the event.
+- :code:`severity`: the severity of the alert.
 
 An example of Checkmk alert sent to syslog is
 
