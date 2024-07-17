@@ -4,8 +4,20 @@ Asset Inventory
 NetBox
 ######
 
+`NetBox <https://netboxlabs.com>`_ is an open-source IP address management (IPAM) and data center infrastructure management (DCIM) tool. 
+It is designed to help manage and document networks, including IP addresses, devices, racks, and connections.
+
+For the installation, follow the `Official documentation <https://netboxlabs.com/docs/netbox/en/stable/installation/>`_.
+The bare minimum to make it work are the firts three sections:
+
+- `PostgressSQL <https://netboxlabs.com/docs/netbox/en/stable/installation/1-postgresql/>`_
+
+- `Redis <https://netboxlabs.com/docs/netbox/en/stable/installation/2-redis/>`_
+
+- `Netbox <https://netboxlabs.com/docs/netbox/en/stable/installation/3-netbox/>`_.
+
 ntopng can be configured to send information collected from network regarding
-active hosts to `NetBox <https://netboxlabs.com>`_.
+active hosts to NetBox.
 
 Enabling NetBox
 ---------------
@@ -14,7 +26,8 @@ The use of NetBox can be enabled in the ntopng settings as shown in the figure b
 To configure the integration correctly, the following information is required: 
 
   - NetBox Activation URL: The URL of the running NetBox instance, for example, 
-    `http://netbox.example.com`
+    `http://netbox.example.com`. This is specified during installation, within
+    :code:`netbox/netbox/netbox/configuration.py` in the :code:`ALLOWED_HOSTS` parameter.
 
   - NetBox Default Site: The physical location, genrally a building, where the 
     devices to be inserted are located.
