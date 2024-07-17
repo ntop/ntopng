@@ -342,9 +342,10 @@ ntopng alert severities are mapped to standard syslog severities as follow:
 - *Warning* becomes syslog :code:`LOG_WARNING` equal to the integer 4
 - *Error* becomes syslog :code:`LOG_ERR` equal to the integer 3
 
-Two formats are available when sending alerts to syslog, namely plaintext and JSON. The format defaults to plaintext and can be toggled from the ntopng preferences page.
+A few formats are available when sending alerts to syslog: Text (plaintext), JSON (Raw), ECS, Checkmk.
+The default format is Text and can be changed from the ntopng preferences page.
 
-**Plaintext**
+**Text**
 
 Plaintext alerts have the following format:
 
@@ -399,25 +400,30 @@ Examples of JSON alerts sent to syslog are
 
 This format is used to track ntopng events within checkmk.
 
-Checkmk messages have the following format:
+In order to export alerts to Checkmk, the Checkmk host, port and protocol should be configured in the syslog endpoint configuration in ntopng.
+
+Please check the *Setting up the Event Console* section of the Checkmk documentation to configure syslog ingestion in Checkmk. This usually requires enabling the syslog addon by using the omd tool, and adding a filter for the ntopng alerts under `Setup -> Event Console`.
+
+After that, alerts exported by ntopng should be visible under `Monitor -> Events` in Checkmk.
+
+Alerts exported using the Checkmk format have the following format:
 
 .. code:: bash
    [Checkmk@18662 sl="family_id" comment="(Interface) (Severity) (Type) (Entity) (Entity Value) (Action)" severity="severity"] ... and a plain text message...
 
 Fields have the following meanings:
 
-- :code: `sl`: an identifier of the event, used, for example, to perform searches.
-- :code: `comment`: contain the information described in the Plaintext section, except for timestamp, which is assigned by checkmk to the event.
-- :severity: `severity`: the severity of the alert.
+- :code:`sl`: an identifier of the event, used, for example, to perform searches.
+- :code:`comment`: contain the information described in the Plaintext section, except for timestamp, which is assigned by checkmk to the event.
+- :code:`severity`: the severity of the alert.
 
-An example of Checkmk alert sent to syslog is
+Example of alert sent to syslog with the Checkmk format:
 
 .. code:: bash
 
    devel ntopng: [Checkmk@18662 sl="4" comment=" (Interface: enp0s3) (Severity: Warning) (Flow) (Binary file/data transfer (attempt)) (vbox:43972 -> it.archive.ubuntu.com:80)  Binary file/data transfer (attempt)" severity="Warning"] Binary file/data transfer (attempt)
 
-
-The value for service level have to be manualy mapped inside Checkmk under `Global settings > Notifications > Service Levels`.
+The service level values have to be manualy mapped inside Checkmk under `Setup -> Global settings > Notifications > Service Levels`.
 
 The final result should look like the one showed in the image below.
 

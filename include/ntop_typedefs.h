@@ -377,7 +377,7 @@ typedef struct zmq_remote_stats {
   char remote_probe_version[64], remote_probe_os[64];
   char remote_probe_license[64], remote_probe_edition[64];
   char remote_probe_maintenance[64];
-  u_int32_t source_id, num_exporters;
+  u_int32_t source_id, uuid_num, num_exporters;
   u_int64_t remote_bytes, remote_pkts, num_flow_exports;
   u_int32_t remote_ifspeed, remote_time, local_time, avg_bps, avg_pps;
   u_int32_t remote_lifetime_timeout, remote_idle_timeout,
@@ -1222,6 +1222,7 @@ typedef struct {
   u_int32_t num_sflow_flows;
   u_int32_t num_netflow_flows;
   u_int32_t num_drops;
+  u_int32_t unique_source_id;
 } ExporterStats;
   
 #endif /* _NTOP_TYPEDEFS_H_ */
