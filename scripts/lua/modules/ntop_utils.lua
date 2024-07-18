@@ -923,3 +923,36 @@ function getNetFlowExportersUnifiedStats()
 
     return unified_exporters
 end
+
+-- ##############################################
+
+function getExporterInfo(unique_source_id) -- Exporter unique_source_id
+    local ifstats = interface.getStats()
+    local exporter = {}
+    local found = false
+    if ifstats.probes then
+        for interface_id, probe_list in pairs(ifstats.probes or {}) do
+            for probe_id, probe_info in pairsByValues(probe_list or {}, asc) do
+                if probe_info.exporters and table.len(probe_info.exporters) > 0 then -- Sflow or NetFlow/IPFIX
+                    for exporter_ip, exporter_info in pairsByValues(probe_info.exporters or {}, asc) do
+                        if exporter_info.unique_source_id == unique_source_id then
+                            return {
+                                exporter_ip = exporter_ip,
+                                probe_ip = probe_info["probe.ip"],
+                                ifid = interface_id
+                            }
+                        end
+                    end
+                elseif probe_info["probe.uuid_num"] == unique_source_id then
+                    return {
+                        exporter_ip = probe_info["remote.if_addr"],
+                        probe_ip = probe_info["probe.ip"],
+                        ifid = interface_id
+                    }
+                end
+            end
+        end            
+    end
+
+    return exporter
+end
