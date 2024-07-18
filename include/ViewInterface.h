@@ -92,11 +92,12 @@ class ViewInterface : public NetworkInterface {
   virtual bool hasSeenVLANTaggedPackets() const;
 
 #ifdef NTOPNG_PRO
-  virtual void getFlowDevices(lua_State *vm, bool add_table);
+  virtual void getFlowDevices(lua_State *vm);
   virtual void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP, bool showAllStats);
 #endif
   virtual void getSFlowDevices(lua_State *vm, bool add_table);
   virtual void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP);
+  virtual void lua(lua_State *vm, bool fullStats);
 
   virtual u_int32_t getFlowsHashSize();
   virtual Flow *findFlowByKeyAndHashId(u_int32_t key, u_int hash_id,
