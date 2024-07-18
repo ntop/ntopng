@@ -817,11 +817,9 @@ void ViewInterface::lua_queues_stats(lua_State *vm) {
 /* **************************************************** */
 
 #ifdef NTOPNG_PRO
-void ViewInterface::getFlowDevices(lua_State *vm, bool add_table) {
-  if(add_table) lua_newtable(vm);
-  
+void ViewInterface::getFlowDevices(lua_State *vm) {  
   for (int i = 0; i < num_viewed_interfaces; i++)
-    viewed_interfaces[i]->getFlowDevices(vm, false);
+    viewed_interfaces[i]->getFlowDevices(vm);
 }
 
 /* **************************************************** */
@@ -846,6 +844,18 @@ void ViewInterface::getSFlowDevices(lua_State *vm, bool add_table) {
 void ViewInterface::getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP) {
   for (int i = 0; i < num_viewed_interfaces; i++)
     viewed_interfaces[i]->getSFlowDeviceInfo(vm, deviceIP);
+}
+
+/* **************************************************** */
+
+void ViewInterface::lua(lua_State *vm, bool fullStats) {
+  NetworkInterface::lua(vm, fullStats);
+  lua_newtable(vm);
+  for (int i = 0; i < num_viewed_interfaces; i++)
+    viewed_interfaces[i]->probeLuaStats(vm);
+  lua_pushstring(vm, "probes");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* **************************************************** */
