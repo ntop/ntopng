@@ -9,7 +9,7 @@ section.
     :numbered:
 
     authentication
-    icinga2
+    asset_inventory
     sflow_collection
     view_interfaces
     dynamic_interfaces_disaggregation
