@@ -734,6 +734,7 @@ public:
   virtual u_int32_t getFlowMaxIdle();
 
   virtual void lua(lua_State *vm, bool fullStats);
+  virtual void probeLuaStats(lua_State *vm) { };
   void luaScore(lua_State *vm);
   void luaAlertedFlows(lua_State *vm);
   void luaAnomalies(lua_State *vm);
@@ -995,7 +996,7 @@ public:
 #ifdef NTOPNG_PRO
   void updateBehaviorStats(const struct timeval *tv);
 
-  virtual void getFlowDevices(lua_State *vm, bool add_table);
+  virtual void getFlowDevices(lua_State *vm);
   virtual void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP, bool showAllStats = true) {
     if (flow_interfaces_stats) {
       lua_newtable(vm);

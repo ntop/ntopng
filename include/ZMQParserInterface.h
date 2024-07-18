@@ -30,7 +30,6 @@ class ZMQParserInterface : public ParserInterface {
   typedef std::map<string, pen_value_t> labels_map_t;
   typedef std::map<pen_value_t, string> descriptions_map_t;
   typedef std::map<string, u_int32_t> counters_map_t;
-  std::unordered_map<u_int32_t, ExporterStats> exporters_stats;
   std::unordered_map<u_int32_t, bool> cloud_flow_exporters;
   u_int16_t top_vlan_id;
   std::unordered_map<std::string, u_int16_t> name_to_vlan;
@@ -45,8 +44,8 @@ class ZMQParserInterface : public ParserInterface {
   u_int32_t flow_max_idle, returned_flow_max_idle;
   u_int64_t zmq_initial_bytes, zmq_initial_pkts,
       zmq_remote_initial_exported_flows;
-  std::map<u_int32_t, ZMQ_RemoteStats *> source_id_last_zmq_remote_stats;
-  ZMQ_RemoteStats *zmq_remote_stats, *zmq_remote_stats_shadow;
+  std::map<u_int32_t, nProbeStats *> source_id_last_zmq_remote_stats;
+  nProbeStats *zmq_remote_stats, *zmq_remote_stats_shadow;
   u_int32_t remote_lifetime_timeout, remote_idle_timeout;
   struct timeval last_zmq_remote_stats_update;
   RwLock lock;
@@ -54,7 +53,7 @@ class ZMQParserInterface : public ParserInterface {
   CustomAppMaps *custom_app_maps;
 #endif
 
-  void exporterLuaStats(lua_State *vm);
+  void exporterLuaStats(lua_State *vm, nProbeStats *zrs);
   void loadVLANMappings();
   u_int16_t findVLANMapping(std::string name);
   
@@ -131,7 +130,7 @@ class ZMQParserInterface : public ParserInterface {
                               u_int32_t source_id, u_int32_t msg_id, void *data);
 
   u_int32_t periodicStatsUpdateFrequency() const;
-  virtual void setRemoteStats(ZMQ_RemoteStats *zrs);
+  virtual void setRemoteStats(nProbeStats *zrs);
 #ifdef NTOPNG_PRO
   virtual bool getCustomAppDetails(u_int32_t remapped_app_id,
                                    u_int32_t *const pen,
@@ -142,6 +141,7 @@ class ZMQParserInterface : public ParserInterface {
     return zmq_remote_stats ? zmq_remote_stats->sflow_pkt_sample_drops : 0;
   };
   virtual void lua(lua_State *vm, bool fullStats);
+  virtual void probeLuaStats(lua_State *vm);
   inline u_int32_t getFlowMaxIdle() { return (returned_flow_max_idle); }
 };
 

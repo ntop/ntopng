@@ -30,70 +30,47 @@ interface.select(ifid)
 local ifstats = interface.getStats()
 local probes_stats = ifstats.probes or {}
 local timeseries_enabled = areFlowdevTimeseriesEnabled()
-if table.len(probes_stats) > 0 then
-    for k, v in pairs(ifstats.probes or {}) do
-        v.exporters = ifstats.exporters or {}
-        v.ifid = ifid
-        probes_stats[k] = v
-    end
-    ifstats.probes = probes_stats
-end
-if interface.isView() then
-    local zmq_stats = {}
-    local exporters_stats = {}
-    for interface_id, _ in pairsByKeys(interface.getIfNames() or {}) do
-        interface.select(interface_id)
-        if interface.isViewed() then
-            local tmp = interface.getStats()
-            for k, v in pairs(tmp.probes or {}) do
-                v.exporters = tmp.exporters or {}
-                v.ifid = interface_id
-                probes_stats[k] = v
+
+for interface_id, probes_list in pairs(ifstats.probes or {}) do
+    for source_id, probe_info in pairs(probes_list or {}) do
+        local flow_drops = 0
+        local exported_flows = 0
+        local probe_active = false
+        local flow_exporters_num = table.len(probe_info.exporters)
+        if interface.getHostInfo(probe_info["probe.ip"]) then
+            probe_active = true
+        end
+        if table.len(probe_info.exporters) == 0 then
+            flow_exporters_num = 1 -- Packet exporter
+            flow_drops = probe_info["drops.elk_flow_drops"] + probe_info["drops.flow_collection_udp_socket_drops"] +
+                            probe_info["drops.export_queue_full"] + probe_info["drops.too_many_flows"] + probe_info["drops.flow_collection_drops"] +
+                            probe_info["drops.sflow_pkt_sample_drops"] + probe_info["drops.elk_flow_drops"]
+            exported_flows = probe_info["zmq.num_flow_exports"]
+        else
+            for _, values in pairs(probe_info.exporters) do
+                flow_drops = flow_drops + values.num_drops
+                exported_flows = exported_flows + values.num_netflow_flows + values.num_sflow_flows
             end
         end
-    end
-    ifstats.probes = probes_stats
-    interface.select(ifstats.id)
-end
 
-for k, v in pairs(ifstats.probes or {}) do
-    local flow_drops = 0
-    local exported_flows = 0
-    local probe_active = false
-    local flow_exporters_num = table.len(v.exporters or {})
-    if interface.getHostInfo(v["probe.ip"]) then
-        probe_active = true
+        res[#res + 1] = {
+            probe_interface = ternary((probe_info["remote.name"] ~= "none"), probe_info["remote.name"],
+                i18n("if_stats_overview.remote_probe_collector_mode")),
+            probe_version = probe_info["probe.probe_version"],
+            probe_ip = probe_info["probe.ip"],
+            probe_uuid = probe_info["probe.uuid"],
+            probe_public_ip = probe_info["probe.public_ip"],
+            probe_edition = probe_info["probe.probe_edition"],
+            probe_license = probe_info["probe.probe_license"] or i18n("if_stats_overview.no_license"),
+            probe_maintenance = probe_info["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance"),
+            flow_exporters = flow_exporters_num,
+            dropped_flows = flow_drops,
+            exported_flows = exported_flows,
+            timeseries_enabled = timeseries_enabled,
+            ifid = interface_id,
+            is_probe_active = probe_active
+        }
     end
-    if table.len(v.exporters) == 0 then
-        flow_exporters_num = 1
-        flow_drops = v["drops.elk_flow_drops"] + v["drops.flow_collection_udp_socket_drops"] +
-                         v["drops.export_queue_full"] + v["drops.too_many_flows"] + v["drops.flow_collection_drops"] +
-                         v["drops.sflow_pkt_sample_drops"] + v["drops.elk_flow_drops"]
-        exported_flows = v["zmq.num_flow_exports"]
-    else
-        for _, values in pairs(v.exporters) do
-            flow_drops = flow_drops + values.num_drops
-            exported_flows = exported_flows + values.num_netflow_flows + values.num_sflow_flows
-        end
-    end
-
-    res[#res + 1] = {
-        probe_interface = ternary((v["remote.name"] ~= "none"), v["remote.name"],
-            i18n("if_stats_overview.remote_probe_collector_mode")),
-        probe_version = v["probe.probe_version"],
-        probe_ip = v["probe.ip"],
-        probe_uuid = v["probe.uuid"],
-        probe_public_ip = v["probe.public_ip"],
-        probe_edition = v["probe.probe_edition"],
-        probe_license = v["probe.probe_license"] or i18n("if_stats_overview.no_license"),
-        probe_maintenance = v["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance"),
-        flow_exporters = flow_exporters_num,
-        dropped_flows = flow_drops,
-        exported_flows = exported_flows,
-        timeseries_enabled = timeseries_enabled,
-        ifid = v.ifid,
-        is_probe_active = probe_active
-    }
 end
 
 rest_utils.answer(rc, res)

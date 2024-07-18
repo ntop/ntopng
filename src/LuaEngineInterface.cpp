@@ -2865,7 +2865,7 @@ static int ntop_get_flow_devices(lua_State *vm) {
   if (!curr_iface)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   else {
-    curr_iface->getFlowDevices(vm, false);
+    curr_iface->getFlowDevices(vm);
 
   /* Return a table with key, the interface id and as value,
    * a table with the IPs of the interface

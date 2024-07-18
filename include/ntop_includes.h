@@ -225,6 +225,7 @@ using namespace std;
 #include "Cardinality.h"
 #include "PeerStats.h"
 #include "IpAddress.h"
+#include "nProbeStats.h"
 #include "Ping.h"
 #include "JobQueue.h"
 #include "ContinuousPingStats.h"
