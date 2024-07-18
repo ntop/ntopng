@@ -24,6 +24,11 @@ local script = {
 -- #################################################################
 
 local function check_interface_activity(params)
+
+   if interface.isPcapDumpInterface() or interface.isDatabaseViewInterface() then
+      return -- Not a live interface, skip this check
+   end
+
    -- Get total number of packets, flows and interface id
    local num_packets = params.entity_info.eth.packets
    local num_flows = params.entity_info.stats.new_flows -- .new_flows keep the cumulative total, .flows is just a gauge

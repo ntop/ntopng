@@ -2965,11 +2965,12 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
       }
 
       if (vlan_id && ntop->getPrefs()->do_ignore_vlans()) vlan_id = 0;
-      if ((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
+      if ((vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans()) {
 	vlan_id = (ip6 ? ip6->ip6_src.u6_addr.u6_addr8[15] +
 		   ip6->ip6_dst.u6_addr.u6_addr8[15]
-		   : iph->saddr + iph->daddr) &
+		   : iph->saddr + iph->daddr) %
 	  SIMULATE_VLANS_MAX_VALUE;
+      }
 
       if (ntop->getPrefs()->do_ignore_macs())
 	ethernet = &dummy_ethernet;

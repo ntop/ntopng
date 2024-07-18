@@ -94,6 +94,7 @@ class ViewInterface : public NetworkInterface {
 #ifdef NTOPNG_PRO
   virtual void getFlowDevices(lua_State *vm);
   virtual void getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP, bool showAllStats);
+  virtual void getFlowDeviceInfoByIP(lua_State *vm, u_int32_t deviceIP, bool showAllStats);
 #endif
   virtual void getSFlowDevices(lua_State *vm, bool add_table);
   virtual void getSFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP);

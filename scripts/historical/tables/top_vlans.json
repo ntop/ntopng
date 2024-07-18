@@ -1,0 +1,54 @@
+{
+	"name" : "Top VLAN",
+	"i18n_name" : "top_vlan",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"visualization_type" : "table",
+	"hourly": true,
+	"sql" : "SELECT VLAN_ID, SUM(SRC2DST_BYTES) AS total_src2dst_bytes, SUM(DST2SRC_BYTES) AS total_dst2src_bytes, SUM(TOTAL_BYTES) AS total_bytes $FROM$ $WHERE$ $GROUPBY$ $ORDERBY$ $LIMIT$",
+	"select" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID",
+				"func" : "",
+				"value_type" : "vlan_id"
+			},
+			{
+				"name" : "total_dst2src_bytes",
+				"func" : "",
+				"value_type" : "bytes"
+			},
+			{
+				"name" : "total_src2dst_bytes",
+				"func" : "",
+				"value_type" : "bytes"
+			},
+			{
+				"name" : "total_bytes",
+				"func" : "",
+				"value_type" : "bytes"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "total_bytes",
+				"order" : "DESC"
+			}
+		]
+	}
+}
