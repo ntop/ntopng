@@ -10,6 +10,12 @@ require "ntop_utils"
 require "check_redis_prefs"
 local ts_utils = require "ts_utils_core"
 
+local ts_custom
+if ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_5min_custom.lua") then
+    package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
+    ts_custom = require "ts_5min_custom"
+end
+
 -- Set to true to debug host timeseries points timestamps
 local enable_debug = false
 
@@ -555,6 +561,11 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
         bytes_sent_unicast = host["udpBytesSent.unicast"],
         bytes_sent_non_uni = host["udpBytesSent.non_unicast"]
     }, when)
+
+    -- create custom rrds
+    if ts_custom and ts_custom.host_update_stats then
+        ts_custom.host_update_stats(when, hostname, host, ifstats, verbose)
+    end
 end
 
 function ts_dump.host_update_ndpi_rrds(when, hostname, host, ifstats, verbose, config)
