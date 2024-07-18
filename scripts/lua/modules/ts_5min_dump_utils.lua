@@ -1,6 +1,7 @@
 --
 -- (C) 2019-24 - ntop.org
 --
+
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
@@ -11,9 +12,11 @@ require "check_redis_prefs"
 local ts_utils = require "ts_utils_core"
 
 local ts_custom
+
 if ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_5min_custom.lua") then
-    package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
-    ts_custom = require "ts_5min_custom"
+   package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
+
+   ts_custom = require "ts_5min_custom"
 end
 
 -- Set to true to debug host timeseries points timestamps
@@ -351,7 +354,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
         flows_as_client = host["host_unreachable_flows.as_client"]
     }, when)
 
-    -- Number of host TCP unidirectional flows  
+    -- Number of host TCP unidirectional flows
     if (host.num_unidirectional_tcp_flows ~= nil) then
         ts_utils.append("host:host_tcp_unidirectional_flows", {
             ifid = ifstats.id,
@@ -405,7 +408,7 @@ function ts_dump.host_update_stats_rrds(when, hostname, host, ifstats, verbose)
         packets_rcvd = host["udp.packets.rcvd"]
     }, when)
 
-    -- Tcp RX Stats 
+    -- Tcp RX Stats
     ts_utils.append("host:tcp_rx_stats", {
         ifid = ifstats.id,
         host = hostname,
@@ -698,6 +701,14 @@ function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
     end
 end
 
+-- ########################################################
+
+function ts_custom_host_function(when, ifstats, hostname, host_ts)
+   -- do nothing
+end
+
+-- ########################################################
+
 local function read_file(path)
     local file = io.open(path, "rb") -- r read mode and b binary mode
     if not file then
@@ -706,6 +717,28 @@ local function read_file(path)
     local content = file:read "*a" -- *a or *all reads the whole file
     file:close()
     return content
+end
+
+-- ########################################################
+
+local function local_custom_timeseries_dump_callback()
+   local base_dir_file     = dirs.installdir .. "/scripts/lua/modules/timeseries"
+   local custom_file       = "ts_custom_function"
+   local lists_custom_file = base_dir_file.."/"..custom_file ..".lua"
+
+   if ntop.exists(lists_custom_file) then
+      traceError(TRACE_INFO, TRACE_CONSOLE, "Loading "..lists_custom_file)
+      local content = read_file(lists_custom_file)
+
+      -- tprint(content)
+
+      local rc = load(content)
+
+      rc("", "") -- needed to activate the function
+      -- lua.execute(open(lists_custom_file).read())
+   else
+      traceError(TRACE_INFO, TRACE_CONSOLE, "Missing file "..lists_custom_file)
+   end
 end
 
 -- ########################################################
@@ -722,9 +755,11 @@ function ts_dump.run_5min_dump(_ifname, ifstats, when, verbose)
     local config = get5MinTSConfig()
     local num_processed_hosts = 0
     local min_instant = when - (when % 60) - 60
-
     local dump_tstart = os.time()
     local dumped_hosts = {}
+
+    -- load custom functions
+    local_custom_timeseries_dump_callback()
 
     -- Save hosts stats (if enabled from the preferences)
     if config.host_ts_creation ~= "off" then
@@ -743,7 +778,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, when, verbose)
                         end
 
                         ts_dump.host_update_rrd(host_ts.initial_point_time, host_key, host_ts.initial_point, ifstats,
-                            verbose, config)
+						verbose, config)
                     end
 
                     ts_dump.host_update_rrd(when, host_key, host_ts.ts_point, ifstats, verbose, config)
@@ -751,6 +786,8 @@ function ts_dump.run_5min_dump(_ifname, ifstats, when, verbose)
                     -- mark the host as dumped
                     dumped_hosts[host_key] = true
                 end
+
+		ts_custom_host_function(min_instant, ifstats, hostname, host_ts)
 
                 if ((num_processed_hosts % 64) == 0) then
                     if not ntop.isDeadlineApproaching() then
