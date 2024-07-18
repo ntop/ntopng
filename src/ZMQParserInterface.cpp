@@ -366,9 +366,9 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
       if (json_object_object_get_ex(w, "uuid", &z))
         snprintf(zrs.uuid, sizeof(zrs.uuid),
                  "%s", json_object_get_string(z));           
-      if (json_object_object_get_ex(w, "uuid_num", &z))
-        zrs.uuid_num = (u_int32_t)json_object_get_int64(w);
-      if (json_object_object_get_ex(w, "ip", &z))
+      if (json_object_object_get_ex(w, "uuid_num", &z)) {
+        zrs.uuid_num = (u_int32_t)json_object_get_int64(z);
+      } if (json_object_object_get_ex(w, "ip", &z))
         snprintf(zrs.remote_probe_address, sizeof(zrs.remote_probe_address),
                  "%s", json_object_get_string(z));
       if (json_object_object_get_ex(w, "version", &z))
