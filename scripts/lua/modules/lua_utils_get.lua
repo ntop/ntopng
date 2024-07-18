@@ -77,8 +77,8 @@ function getProbesName(flowdevs, show_vlan, shorten_len)
     for interface, devices in pairs(flowdevs or {}) do
         local device_list = {} 
         if table.len(devices or {}) > 0 then
-            for ip, _ in pairsByValues(devices or {}, asc) do
-                device_list[ip] = getProbeName(ip, show_vlan, shorten_len)
+            for id, device_info in pairsByValues(devices or {}, asc) do
+                device_list[device_info.exporter_ip] = getProbeName(device_info.exporter_ip, show_vlan, shorten_len)
             end
             probes_list[interface] = device_list
         end
@@ -1222,6 +1222,22 @@ function mapServiceName(port, protocol)
    return(services[key])
 end
 
+-- ##############################################
+
+function getExporterList()
+    local flowdevs = interface.getFlowDevices()
+    local unified_exporters = {}
+    for interface_id, device_list in pairs(flowdevs or {}) do
+        for device_id, exporter_info in pairs(device_list, asc) do
+            local exporter_ip = exporter_info.exporter_ip
+            if not unified_exporters[exporter_ip] then
+                unified_exporters[exporter_ip] = exporter_info
+            end
+        end
+    end
+
+    return unified_exporters
+end
 
 -- ##############################################
 

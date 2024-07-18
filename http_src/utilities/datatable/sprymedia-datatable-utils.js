@@ -813,7 +813,6 @@ export class DataTableRenders {
             labelVlan = `${label}@${flow.vlan.label}`;
             titleVlan = `${title}@${flow.vlan.title}`;
         }
-        labelVlan = NtopUtils.shortenLabel(labelVlan, 16, ".")
         return DataTableRenders.filterize(key, valueVlan, labelVlan, labelVlan, titleVlan);
     }
 

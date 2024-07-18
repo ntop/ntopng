@@ -603,10 +603,6 @@ if page == 'active_hosts' and ntop.isnEdge() then
         end
 
         print('</ul></div>\'')
-
-        if ntop.isPro() then
-            printHostsDeviceFilterDropdown(base_url, page_params)
-        end
         local alignment_c_info = 'center'
         if (ntop.isnEdge()) then 
             alignment_c_info = 'nowrap'

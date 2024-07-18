@@ -1153,16 +1153,13 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
 
         -- Add both Flow devices
         if interface.getFlowDevices then -- Pro Only
-            for interface, device_list in pairs(interface.getFlowDevices() or {}) do
-                for probe, _ in pairsByValues(device_list or {}, asc) do
-                    local probe_name = getProbeName(probe)
-                    -- local label = format_name_value(probe_name, probe)
-                    full_dev_list[probe] = {
-                        value = probe,
-                        label = probe_name,
-                        display_more_filters = true
-                    }
-                end
+            for exporter_ip, _ in pairs(getExporterList()) do
+                local probe_name = getProbeName(exporter_ip)
+                full_dev_list[exporter_ip] = {
+                    value = exporter_ip,
+                    label = probe_name,
+                    display_more_filters = true
+                }                
             end
         end
         -- And sFlow devices
@@ -1250,7 +1247,12 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                         [tmp[1]] = true
                     }}
                 else
-                    flow_devices = interface.getFlowDevices()
+                    local tmp = interface.getFlowDevices() 
+                    for _, dev_list in pairs(tmp) do
+                        for _, exporter_info in pairs(dev_list) do
+                            flow_devices[exporter_info.exporter_ip] = 1
+                        end
+                    end
                 end
                 -- SNMP devices
                 local snmp_config = require "snmp_config"

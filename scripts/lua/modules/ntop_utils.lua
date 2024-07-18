@@ -881,3 +881,45 @@ function starts(String, Start)
 
     return string.sub(String, 1, string.len(Start)) == Start
 end
+
+-- ##############################################
+
+function getNetFlowExportersUnifiedStats()
+    local flowdevs = interface.getFlowDevices()
+    local unified_exporters = {}
+    for interface_id, device_list in pairs(flowdevs or {}) do
+        for device_id, exporter_info in pairs(device_list, asc) do
+            local exporter_ip = exporter_info.exporter_ip
+            if not unified_exporters[exporter_ip] then
+                unified_exporters[exporter_ip] = {}
+            end
+            local ports_table = interface.getFlowDeviceInfo(exporter_ip)
+            for _, ports in pairs(ports_table) do
+                for port_idx, port_info in pairs(ports) do
+                    if not unified_exporters[exporter_ip][port_idx] then
+                        unified_exporters[exporter_ip][port_idx] = port_info
+                    else
+                        local tmp = unified_exporters[exporter_ip][port_idx]
+                        tmp["throughput"] = port_info["throughput"] + (tmp["throughput"] or 0)
+                        tmp["bytes.in_bytes"] = port_info["bytes.in_bytes"] + (tmp["bytes.in_bytes"] or 0)
+                        tmp["bytes.out_bytes"] = port_info["bytes.out_bytes"] + (tmp["bytes.out_bytes"] or 0)
+                        if not tmp.ndpi then
+                            tmp["ndpi"] = {}
+                        end
+                        for proto, proto_info in pairs(port_info.ndpi or {}) do
+                            if not tmp["ndpi"][proto] then
+                                tmp["ndpi"][proto] = {}
+                            end
+                            for field, value in pairs(proto_info or {}) do
+                                tmp["ndpi"][proto][field] = value + (tmp["ndpi"][proto][field] or 0)
+                            end
+                        end
+                        unified_exporters[exporter_ip][port_idx] = tmp
+                    end
+                end
+            end
+        end
+    end
+
+    return unified_exporters
+end
