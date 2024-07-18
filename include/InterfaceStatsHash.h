@@ -37,7 +37,7 @@ class InterfaceStatsHash {
   bool set(const sFlowInterfaceStats *const stats);
 
   void luaDeviceList(lua_State *vm);
-  void luaDeviceInfo(lua_State *vm, u_int32_t deviceIP);
+  void luaDeviceInfo(lua_State *vm, u_int32_t deviceID);
 };
 
 #endif /* _INTERFACE_STATS_HASH_H_ */

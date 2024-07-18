@@ -828,6 +828,13 @@ void ViewInterface::getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP, bool sh
   for (int i = 0; i < num_viewed_interfaces; i++)
     viewed_interfaces[i]->getFlowDeviceInfo(vm, deviceIP, showAllStats);
 }
+
+/* **************************************************** */
+
+void ViewInterface::getFlowDeviceInfoByIP(lua_State *vm, u_int32_t deviceIP, bool showAllStats) {
+  for (int i = 0; i < num_viewed_interfaces; i++)
+    viewed_interfaces[i]->getFlowDeviceInfoByIP(vm, deviceIP, showAllStats);
+}
 #endif
 
 /* **************************************************** */
