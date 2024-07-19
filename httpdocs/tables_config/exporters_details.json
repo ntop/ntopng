@@ -1,6 +1,6 @@
 {
 	"id": "exporters_details",
-	"data_url": "lua/pro/rest/v2/get/flowdevice/stats.lua?ifid=1&ip=192.168.2.73",
+	"data_url": "lua/pro/rest/v2/get/flowdevice/stats.lua",
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": false,

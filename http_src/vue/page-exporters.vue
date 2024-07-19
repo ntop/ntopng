@@ -54,20 +54,19 @@ const map_table_def_columns = (columns) => {
             let returnValue = value;
 
             // Add interface name if defined
-            if (dataUtils.isEmptyOrNull(row['interface_name'])) {
-                returnValue = `${returnValue} ${row['interface_name']}`
+            if (!dataUtils.isEmptyOrNull(row['interface_name'])) {
+            returnValue = `${returnValue} ${row['interface_name']}`;
             }
 
             // Add timeseries icon if timeseries are enabled
             if (row['timeseries_enabled']) {
-
-                let timeseriesUrl = `${chart_url}ip=${value}&page=historical&ifid=${row['ifid']}`
-                returnValue += `&nbsp;<a href=${timeseriesUrl}><i class="fas fa-chart-area fa-lg"></i></a>`
+                let timeseriesUrl = `${chart_url}ip=${value}&page=historical&ifid=${row['ifid']}`;
+                returnValue += `&nbsp;<a href="${timeseriesUrl}"><i class="fas fa-chart-area fa-lg"></i></a>`;
             }
-            
-            //return `<a href="${host_url}ip=${value}&exporter_uuid=${row['']}">${returnValue} </a>` 
-            return `<a href="${host_url}ip=${value}>${returnValue} </a>` 
+
+            return `<a href="${host_url}ip=${value}">${returnValue}</a>`;
         },
+
         "name": (value, row) => {
             return value
         },
