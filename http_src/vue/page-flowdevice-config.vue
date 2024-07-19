@@ -64,15 +64,15 @@ async function getFlowDevAlias() {
 
 const updateFlowDevAlias = async function () {
   const params = {
-    csrf: props.csrf,
-    ip: props.ip,
+    csrf: props.context.csrf,
+    ip: ntopng_url_manager.get_url_entry('ip'),
     alias: custom_name.value.value,
-    ifid: props.ifid
+    ifid: props.context.ifid
   };
   let headers = {
     'Content-Type': 'application/json'
   };
-  await ntopng_utility.http_request(update_flowdev_alias_url, { method: 'post', headers, body: JSON.stringify(params) });
+  await ntopng_utility.http_request(update_flowdev_alias_url, { method: 'post', headers: headers, body: JSON.stringify(params) });
   disabled.value = true;
 }
 

@@ -8,7 +8,7 @@
 
 
 <script setup>
-import { ref, onBeforeMount } from "vue";
+import { ref, onMounted } from "vue";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import formatterUtils from "../utilities/formatter-utils";
@@ -21,11 +21,17 @@ const table_id = ref('probes');
 const table_probes = ref(null);
 const csrf = props.context.csrf;
 
+const first_open = ref(true);
 const chart_url = `${http_prefix}/lua/pro/enterprise/exporters.lua?page=historical`
 const exporter_url = `${http_prefix}/lua/pro/enterprise/exporters.lua?`
 const host_url = `${http_prefix}/lua/host_details.lua?`
 
-onBeforeMount(() => {})
+onMounted(() => {
+    setInterval(() => {
+        first_open.value = false;
+        table_probes.value.refresh_table()
+    }, 10000 /* 10 sec refresh */)    
+})
 
 const get_extra_params_obj = () => {
     let extra_params = ntopng_url_manager.get_url_object();
@@ -58,17 +64,49 @@ const map_table_def_columns = (columns) => {
             }
         },
         "dropped_flows": (value, row) => {
+            let diff_value = value
+            if(!first_open.value) {
+                const old_value = localStorage.getItem("probe_dropped_flows." + row.probe_uuid_num)
+                diff_value = (value - Number(old_value)) / 10
+            }
+            localStorage.setItem("probe_dropped_flows." + row.probe_uuid_num, value)
             if (!value) {
                 return '';
             } else {
-                return formatterUtils.getFormatter("number")(value)
+                let formatted_value = formatterUtils.getFormatter("number")(value)
+                if(!first_open.value) {
+                    let updated_counter = ''
+                    if(diff_value > 0 ) {
+                        updated_counter = '<i class="fas fa-arrow-up"></i>'
+                    } else {
+                        updated_counter = "<i class='fas fa-minus'></i>"
+                    }
+                    formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("drops")(diff_value)} ] ${updated_counter}`
+                }
+                return formatted_value
             }
         },
         "exported_flows": (value, row) => {
+            let diff_value = value
+            if(!first_open.value) {
+                const old_value = localStorage.getItem("probe_exported_flows." + row.probe_uuid_num)
+                diff_value = (value - Number(old_value)) / 10
+            }
+            localStorage.setItem("probe_exported_flows." + row.probe_uuid_num, value)
             if (!value) {
                 return '';
             } else {
-                return formatterUtils.getFormatter("number")(value)
+                let formatted_value = formatterUtils.getFormatter("number")(value)
+                if(!first_open.value) {
+                    let updated_counter = ''
+                    if(diff_value > 0 ) {
+                        updated_counter = '<i class="fas fa-arrow-up"></i>'
+                    } else {
+                        updated_counter = "<i class='fas fa-minus'></i>"
+                    }
+                    formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("fps_short")(diff_value)} ] ${updated_counter}`
+                }
+                return formatted_value
             }
         },
         "probe_edition": (value, row) => {

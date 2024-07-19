@@ -72,6 +72,14 @@ const types = {
         scale_values: null,        
         absolute_value: true,
     },
+    fps_short: {
+        id: "fps_short",
+        um: ["fps", "Kfps", "Mfps", "Gfps"],
+        step: 1000,
+        decimal: 2,
+        scale_values: null,        
+        absolute_value: true,
+    },
     alerts: {
         id: "alerts",
         um: ["alerts", "Kalerts", "Malerts", "Galerts"],
@@ -123,6 +131,14 @@ const types = {
     ms: {
         id: "ms",
         um: ["ms", "s"],
+        step: 1000,
+        decimal: 2,
+        scale_values: null,        
+        absolute_value: true,
+    },
+    drops: {
+        id: "drops",
+        um: ["dps", "Kdps", "Mdps", "Gdps", "Tdps"],
         step: 1000,
         decimal: 2,
         scale_values: null,        

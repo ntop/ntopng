@@ -10,7 +10,7 @@
 
 
 <script setup>
-import { ref, onBeforeMount } from "vue";
+import { ref, onMounted } from "vue";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as NoteList } from "./note-list.vue";
@@ -33,6 +33,7 @@ const note_list = [
   
 ]
 
+const first_open = ref(true);
 const table_id = ref('exporters');
 const table_probes = ref(null);
 const csrf = props.context.csrf;
@@ -41,7 +42,12 @@ const chart_url = `${http_prefix}/lua/pro/enterprise/exporters.lua?`
 const exporter_url = `${http_prefix}/lua/pro/enterprise/exporters.lua?`
 const host_url = `${http_prefix}/lua/pro/enterprise/exporter_details.lua?`
 
-onBeforeMount(() => {})
+onMounted(() => {
+    setInterval(() => {
+        first_open.value = false;
+        table_probes.value.refresh_table()
+    }, 10000 /* 10 sec refresh */)    
+})
 
 const get_extra_params_obj = () => {
     let extra_params = ntopng_url_manager.get_url_object();
@@ -64,21 +70,53 @@ const map_table_def_columns = (columns) => {
                 returnValue += `&nbsp;<a href="${timeseriesUrl}"><i class="fas fa-chart-area fa-lg"></i></a>`;
             }
 
-            return `<a href="${host_url}ip=${value}">${returnValue}</a>`;
+            return `<a href="${host_url}ip=${value}&probe_uuid=${row.probe_uuid}">${returnValue}</a>`;
         },
 
         "name": (value, row) => {
             return value
         },
         "exported_flows": (value, row) => {
+            let diff_value = value
+            if(!first_open.value) {
+                const old_value = localStorage.getItem("exporter_exported_flows." + row.exporter_uuid + row.ip)
+                diff_value = (value - Number(old_value)) / 10
+            }
+            localStorage.setItem("exporter_exported_flows." + row.exporter_uuid + row.ip, value)
             if (!value)
                 return '';
-            return formatterUtils.getFormatter("number")(value);
+            let formatted_value = formatterUtils.getFormatter("number")(value)
+            if(!first_open.value) {
+                let updated_counter = ''
+                if(diff_value > 0 ) {
+                    updated_counter = '<i class="fas fa-arrow-up"></i>'
+                } else {
+                    updated_counter = "<i class='fas fa-minus'></i>"
+                }
+                formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("fps_short")(diff_value)} ] ${updated_counter}`
+            }
+            return formatted_value
         },
         "dropped_flows": (value, row) => {
+            let diff_value = value
+            if(!first_open.value) {
+                const old_value = localStorage.getItem("exporter_dropped_flows." + row.exporter_uuid + row.ip)
+                diff_value = (value - Number(old_value)) / 10
+            }
+            localStorage.setItem("exporter_dropped_flows." + row.exporter_uuid + row.ip, value)
             if (!value)
                 return '';
-            return formatterUtils.getFormatter("number")(value);
+            let formatted_value = formatterUtils.getFormatter("number")(value)
+            if(!first_open.value) {
+                let updated_counter = ''
+                if(diff_value > 0 ) {
+                    updated_counter = '<i class="fas fa-arrow-up"></i>'
+                } else {
+                    updated_counter = "<i class='fas fa-minus'></i>"
+                }
+                formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("drops")(diff_value)} ] ${updated_counter}`
+            }
+            return formatted_value
         },
         "flow_exporters": (value, row) => {
             if (!value) {
