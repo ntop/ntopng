@@ -85,8 +85,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     zflow->vlan_id = rand() % SIMULATE_VLANS_MAX_VALUE;
 
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[unique_source_id: %u];device_ip: %u][probe_ip: %u][iface: %u->%u]",
-			       unique_source_id, zflow->exporter_device_ip, zflow->nprobe_ip, zflow->inIndex, zflow->outIndex);
+//  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[unique_source_id: %u];device_ip: %u][probe_ip: %u][iface: %u->%u]",
+//			       unique_source_id, zflow->exporter_device_ip, zflow->nprobe_ip, zflow->inIndex, zflow->outIndex);
 #ifdef NTOPNG_PRO
   if(unique_source_id != 0) {
     if (!flow_interfaces_stats->checkExporters(unique_source_id,
