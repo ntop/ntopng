@@ -635,15 +635,17 @@ void ZMQCollectorInterface::lua(lua_State *vm, bool fullStats) {
 
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "flows", recvStats.num_flows);
-  lua_push_uint64_table_entry(vm, "dropped_flows", recvStats.num_dropped_flows);
-  lua_push_uint64_table_entry(vm, "events", recvStats.num_events);
-  lua_push_uint64_table_entry(vm, "counters", recvStats.num_counters);
-  lua_push_uint64_table_entry(vm, "zmq_msg_rcvd", recvStats.zmq_msg_rcvd);
-  lua_push_uint64_table_entry(vm, "zmq_msg_drops", recvStats.zmq_msg_drops);
+  lua_push_uint64_table_entry(vm, "dropped_flows", recvStats.num_dropped_flows); /* Dropped Flows (due to licenses restrictions, our of memory...) */
+  lua_push_uint64_table_entry(vm, "events", recvStats.num_events);               /* Interface Updates */
+  // lua_push_uint64_table_entry(vm, "counters", recvStats.num_counters);       /* Unused */
+  lua_push_uint64_table_entry(vm, "zmq_msg_rcvd", recvStats.zmq_msg_rcvd);   /* Collected ZMQ Messages */
+  lua_push_uint64_table_entry(vm, "zmq_msg_drops", recvStats.zmq_msg_drops); /* Dropped ZMQ Messages */
   lua_pushstring(vm, "zmqRecvStats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
 
+  /* ****************** */
+  
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "flows", recvStats.num_flows - recvStatsCheckpoint.num_flows);
   lua_push_uint64_table_entry(vm, "dropped_flows",
