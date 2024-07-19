@@ -56,7 +56,7 @@ const map_table_def_columns = (columns) => {
     let map_columns = {
         "ifindex": (value, row) => {
             get_notes(value)
-            var snmp_interface_url = `${snmp_interface_details_url}ip=${get_ip_from_url()}&page=config&snmp_port_idx=${row["snmp_ifidx"]}&ifid=${props.context.ifid}`
+            var snmp_interface_url = `${snmp_interface_details_url}ip=${get_ip_from_url()}&page=config&snmp_port_idx=${value}&ifid=${props.context.ifid}`
             return `<a href=${snmp_interface_url}>${value}</i></a>`
         },
         "snmp_ifname": (value, row) => {
@@ -65,11 +65,11 @@ const map_table_def_columns = (columns) => {
 
             // Add timeseries icon if timeseries are enabled
             if (row['timeseries_enabled']) {
-                let timeseriesUrl = `${flowdevice_interface_url}ip=${get_ip_from_url()}&ts_schema=flowdev_port:traffic&page=historical&snmp_port_idx=${value}&ifid=${props.context.ifid}`
+                let timeseriesUrl = `${flowdevice_interface_url}ip=${get_ip_from_url()}&ts_schema=flowdev_port:traffic&page=historical&snmp_port_idx=${row.ifindex}&ifid=${props.context.ifid}`
                 returnValue += `&nbsp;<a href=${timeseriesUrl}><i class="fas fa-chart-area fa-lg"></i></a>&nbsp;`
             }
 
-            let snmp_config = `${snmp_interface_config_url}ip=${get_ip_from_url()}&page=config&snmp_port_idx=${value}&ifid=${props.context.ifid}`
+            let snmp_config = `${snmp_interface_config_url}ip=${get_ip_from_url()}&page=config&snmp_port_idx=${row.ifindex}&ifid=${props.context.ifid}`
             returnValue += `<a href=${snmp_config}><i class="fas fa-cog"></i></a>`
             
             return returnValue
