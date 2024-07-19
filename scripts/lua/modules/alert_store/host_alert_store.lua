@@ -122,7 +122,6 @@ function host_alert_store:insert(alert)
     if not check_alert_params(alert) then
         return
     end
-    alert = self:add_mitre_info(alert)
 
     -- IMPORTANT: keep in sync with check_alert_params function, to be sure to not have issues with empty parameters
     local insert_stmt = string.format("INSERT INTO %s " ..
