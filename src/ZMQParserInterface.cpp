@@ -332,8 +332,10 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
 
   if (polling_start_time == 0) polling_start_time = (u_int32_t)time(NULL);
 
-//  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msg_id: %u] %s", msg_id, payload);
-
+#ifdef TRACE_EXPORTERS
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msg_id: %u] %s", msg_id, payload);
+#endif
+  
   o = json_tokener_parse_verbose(payload, &jerr);
 
   if (o) {

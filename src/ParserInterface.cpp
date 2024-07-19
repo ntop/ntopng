@@ -33,13 +33,11 @@ ParserInterface::ParserInterface(const char *endpoint,
   num_companion_interfaces = 0;
   companion_interfaces  = new (std::nothrow) NetworkInterface *[MAX_NUM_COMPANION_INTERFACES]();
 
-#ifdef NTOPNG_PRO
   flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
 
   if (!flow_interfaces_stats) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Memory allocation failure");
   }
-#endif
 }
 
 /* **************************************************** */
@@ -59,9 +57,11 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   IpAddress srcIP, dstIP;
   u_int32_t private_flow_id, unique_source_id = zflow->unique_source_id;
 
+#ifdef NTOPNG_PRO
   if(!flow_interfaces_stats)
     return false;
-
+#endif
+  
   if(unique_source_id == 0)
     unique_source_id = zflow->nprobe_ip + zflow->exporter_device_ip;
 
@@ -84,9 +84,13 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if ((zflow->vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
     zflow->vlan_id = rand() % SIMULATE_VLANS_MAX_VALUE;
 
-
-//  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[unique_source_id: %u];device_ip: %u][probe_ip: %u][iface: %u->%u]",
-//			       unique_source_id, zflow->exporter_device_ip, zflow->nprobe_ip, zflow->inIndex, zflow->outIndex);
+#ifdef TRACE_EXPORTERS
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "[unique_source_id: %u];device_ip: %u][probe_ip: %u][iface: %u->%u]",
+			       unique_source_id, zflow->exporter_device_ip,
+			       zflow->nprobe_ip, zflow->inIndex, zflow->outIndex);
+#endif
+  
 #ifdef NTOPNG_PRO
   if(unique_source_id != 0) {
     if (!flow_interfaces_stats->checkExporters(unique_source_id,
@@ -365,9 +369,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   /* Update process and container info */
   if (zflow->hasParsedeBPF()) {
     bool swap_direction = ((ntohs(zflow->src_port) == flow->get_cli_port()) &&
-                           (ntohs(zflow->dst_port) == flow->get_srv_port()))
-                              ? false
-                              : true;
+                           (ntohs(zflow->dst_port) == flow->get_srv_port())) ? false : true;
 
     flow->setParsedeBPFInfo(zflow, swap_direction);
 
