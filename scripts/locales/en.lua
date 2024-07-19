@@ -3220,7 +3220,7 @@ local lang = {
     ["exporters"] = "Flow Exp.",
     ["flow_device_x"] = "<a href=\"%{url}\">Flow Exporter</a>: %{device}",
     ["flow_device_x_interface_y"] = "Flow Exporter %{device} / %{interface}",
-    ["flow_exporters"] = "Exporters",
+    ["flow_exporters"] = "Flow Exporters",
     ["flow_ratio_snmp_instructions"] = "To enable the Flow/SNMP ratio, this flow probe must support SNMP and must be <a href='%{href}'>added</a> to the SNMP devices.",
     ["flow_ratio_timeseries_instructions"] = "To enable the Flow/SNMP ratio, <b>SNMP and Flow Probe timeseries</b> must be enabled.",
     ["full_duplex"] = "Full-Duplex",
