@@ -335,7 +335,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
 #ifdef TRACE_EXPORTERS
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msg_id: %u] %s", msg_id, payload);
 #endif
-  
+
   o = json_tokener_parse_verbose(payload, &jerr);
 
   if (o) {
@@ -366,7 +366,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
                  json_object_get_string(z));
       if (json_object_object_get_ex(w, "uuid", &z))
         snprintf(zrs.uuid, sizeof(zrs.uuid),
-                 "%s", json_object_get_string(z));           
+                 "%s", json_object_get_string(z));
 
       if (json_object_object_get_ex(w, "uuid_num", &z) /* uuid_num (old) == unique_source_id (new) */
 	  || json_object_object_get_ex(w, "unique_source_id", &z)) {
@@ -477,22 +477,28 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
 
       if (json_object_object_get_ex(w, "sflow_samples", &z))
         zrs.flow_collection.sflow_samples = (u_int64_t)json_object_get_int64(z);
-      
+
       if (json_object_object_get_ex(w, "exporters", &z)) {
         json_object_object_foreach(z, key, val) {
           //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Exporter: %s", key);
           u_int32_t ip = ntohl(inet_addr(key));
-          ExporterStats exp_stats = { 0 };
+          ExporterStats exp_stats;
           json_object *x;
+
+	  memset(&exp_stats, 0, sizeof(exp_stats));
 
           if (json_object_object_get_ex(val, "time_last_used", &x))
             exp_stats.time_last_used = (u_int32_t)json_object_get_int64(x);
-          if (json_object_object_get_ex(val, "num_sflow_flows", &x))
+
+	  if (json_object_object_get_ex(val, "num_sflow_flows", &x))
             exp_stats.num_sflow_flows = (u_int32_t)json_object_get_int64(x);
-          if (json_object_object_get_ex(val, "num_netflow_ipfix_flows", &x))
+
+	  if (json_object_object_get_ex(val, "num_netflow_ipfix_flows", &x))
             exp_stats.num_netflow_flows = (u_int32_t)json_object_get_int64(x);
-          if (json_object_object_get_ex(val, "num_drops", &x))
+
+	  if (json_object_object_get_ex(val, "num_drops", &x))
             exp_stats.num_drops = (u_int32_t)json_object_get_int64(x);
+
           if (json_object_object_get_ex(val, "unique_source_id", &x))
             exp_stats.unique_source_id = (u_int32_t)json_object_get_int64(x);
 
@@ -653,7 +659,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
           flow->src_port = atoi(value->string);
         else
           flow->src_port = ntohs((u_int32_t)value->int_num);
-        
+
         flow->setPreNATSrcPort(flow->src_port);
       }
       break;
@@ -663,7 +669,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
           flow->dst_port = atoi(value->string);
         else
           flow->dst_port = ntohs((u_int32_t)value->int_num);
-        
+
         flow->setPreNATDstPort(flow->dst_port);
       }
       break;
@@ -813,7 +819,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
         if (ntop->getPrefs()->do_override_src_with_post_nat_src()) {
           if (!tmp.isEmpty()) {
             flow->src_ip.set((char *)value->string);
-          }      
+          }
         }
       } else if (value->int_num) {
         if (ntop->getPrefs()->do_override_src_with_post_nat_src()) {
@@ -833,7 +839,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
         if (ntop->getPrefs()->do_override_dst_with_post_nat_dst()) {
           if (!tmp.isEmpty()) {
             flow->dst_ip.set((char *)value->string);
-          }      
+          }
         }
       } else if (value->int_num) {
         if (ntop->getPrefs()->do_override_dst_with_post_nat_dst()) {
@@ -1110,7 +1116,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
       flow->nprobe_ip = ntohl(inet_addr(value->string));
       if(flow->exporter_device_ip == 0 && (flow->exporter_device_ip = ntohl(inet_addr(value->string))))
         return false;
-    } 
+    }
     break;
 
   case UNIQUE_SOURCE_ID:
@@ -3235,11 +3241,11 @@ void ZMQParserInterface::probeLuaStats(lua_State *vm) {
           zrs->remote_time); /* remote time when last event has been sent */
       lua_push_uint64_table_entry(vm, "probe.local_time",
           zrs->local_time); /* local time when last event has been received */
-      
+
       lua_push_uint64_table_entry(vm, "zmq.num_flow_exports",
           zrs->num_flow_exports - zmq_remote_initial_exported_flows);
       lua_push_uint64_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);
-      
+
       if (zrs->export_queue_full > 0)
         lua_push_uint64_table_entry(vm, "zmq.drops.export_queue_full",
                                     zrs->export_queue_full);
@@ -3263,7 +3269,7 @@ void ZMQParserInterface::probeLuaStats(lua_State *vm) {
     lua_settable(vm, -3);
   }
   lua_rawseti(vm, -2, get_id());
-  /* Here the Interface ID is added because in case of View Interfaces 
+  /* Here the Interface ID is added because in case of View Interfaces
    * this field could be the same for different interfaces
    */
 
