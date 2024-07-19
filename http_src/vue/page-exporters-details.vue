@@ -71,7 +71,7 @@ const map_table_def_columns = (columns) => {
 
             let snmp_config = `${snmp_interface_config_url}ip=${get_ip_from_url()}&page=config&snmp_port_idx=${value}&ifid=${props.context.ifid}`
             returnValue += `<a href=${snmp_config}><i class="fas fa-cog"></i></a>`
-            //"/lua/pro/enterprise/flowdevice_interface_details.lua?ip=192.168.2.73&page=config&snmp_port_idx=2&ifid=1"
+            
             return returnValue
         },
         "in_bytes": (value, row) => {
