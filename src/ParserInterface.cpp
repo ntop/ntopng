@@ -33,11 +33,13 @@ ParserInterface::ParserInterface(const char *endpoint,
   num_companion_interfaces = 0;
   companion_interfaces  = new (std::nothrow) NetworkInterface *[MAX_NUM_COMPANION_INTERFACES]();
 
+#ifdef NTOPNG_PRO
   flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
 
   if (!flow_interfaces_stats) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Memory allocation failure");
   }
+#endif
 }
 
 /* **************************************************** */
