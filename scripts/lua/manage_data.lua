@@ -128,12 +128,6 @@ local menu = {
         hidden = not is_admin or is_system_interface,
      },
     {
-        key = 'purge',
-        title = i18n("manage_data.purge_asset_inventory"),
-        url = "?page=purge",
-        hidden = true,--not is_admin or ntop.getPref("ntopng.prefs.toggle_ntopng_assets_inventory") == "0",
-     },
-    {
         key = 'system_interface_data',
         title = i18n("manage_data.system_interface_data"),
         url = "?page=system_interface_data",
