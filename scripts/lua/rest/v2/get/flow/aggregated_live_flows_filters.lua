@@ -192,7 +192,7 @@ local function build_response(criteria)
             value = "",
             label = i18n("all")
         }}
-        local ports_table = interface.getFlowDeviceInfo(dev_ip, true --[[ Show minimal info ]])
+        local ports_table = interface.getFlowDeviceInfoByIP(dev_ip, true --[[ Show minimal info ]])
         
         for _, ports in pairs(ports_table) do
             for portidx, _ in pairsByKeys(ports, asc) do
@@ -218,7 +218,7 @@ local function build_response(criteria)
             value = "",
             label = i18n("all")
         }}
-        local ports_table = interface.getFlowDeviceInfo(dev_ip, false)
+        local ports_table = interface.getFlowDeviceInfoByIP(dev_ip, false)
         
         for _, ports in pairs(ports_table) do
             for portidx, _ in pairsByKeys(ports, asc) do
