@@ -12,6 +12,13 @@ require "ntop_utils"
 require "ts_minute"
 require "check_redis_prefs"
 local ts_utils = require("ts_utils_core")
+
+local ts_custom
+if ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_5min_custom.lua") then
+    package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
+    ts_custom = require "ts_5min_custom"
+end
+
 local ts_dump = {}
 
 -- ########################################################
@@ -584,6 +591,11 @@ function ts_dump.run_min_dump(_ifname, ifstats, when, verbose)
     if config.interface_ndpi_timeseries_creation == "per_protocol" or config.interface_ndpi_timeseries_creation ==
         "both" then
         ts_dump.iface_update_ndpi_rrds(when, _ifname, ifstats, verbose, config)
+    end
+
+    -- create custom rrds
+    if ts_custom and ts_custom.iface_update_stats then
+        ts_custom.iface_update_stats(when, _ifname, ifstats, verbose)
     end
 
     if config.interface_ndpi_timeseries_creation == "per_category" or config.interface_ndpi_timeseries_creation ==

@@ -13,4 +13,5 @@ This section includes instructions for integrating ntopng with third-party tools
     suricata
     kibana
     grafana
+    netbox
 
