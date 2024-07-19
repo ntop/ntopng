@@ -113,7 +113,7 @@ function protos_utils.parseProtosTxt()
             for _, rule in ipairs(rules) do
                 parts = string.split(rule, ":")
 
-                if ((parts ~= nil) and (#parts == 2 or #parts == 3)) then
+                if ((parts ~= nil) and (#parts >= 2)) then
                     local filter = parts[1]
                     local value = rule:gsub(filter .. ":", "")
 
@@ -137,6 +137,11 @@ function protos_utils.parseProtosTxt()
                     elseif (filter == "ip") then
                         addRule(proto, {
                             match = "ip",
+                            value = value
+                        })
+                    elseif (filter == "ipv6") then
+                        addRule(proto, {
+                            match = "ipv6",
                             value = value
                         })
                     else
@@ -167,7 +172,7 @@ end
 
 function protos_utils.getProtosTxtRule(line)
     local http_lint = require "http_lint"
-    
+
     line = trimString(line)
 
     if isIPv4(line) or http_lint.validateNetwork(line) then
@@ -177,7 +182,7 @@ function protos_utils.getProtosTxtRule(line)
         }
     else
         local parts = string.split(line, ":")
-
+        
         if ((parts ~= nil) and (#parts >= 2)) then
             local filter = parts[1]
             local value = parts[2]
@@ -190,6 +195,14 @@ function protos_utils.getProtosTxtRule(line)
                 end
                 return {
                     match = "ip",
+                    value = value
+                }
+            elseif filter == 'ipv6' then
+                -- Add each value after 'ipv6:', so accept both cases, [ipv6] and [ipv6]:port :
+                -- e.g. ipv6:[1:1:1:1:1:1:1:1] and ipv6:[1:1:1:1:1:1:1:1]:5466
+                value = line:gsub(filter .. ":", "")
+                return {
+                    match = "ipv6",
                     value = value
                 }
             elseif filter == 'host' then
@@ -374,6 +387,8 @@ function protos_utils.generateProtosTxt(rules, defined_protos)
                     writeRule(string.format("host:\"%s\"@%s=%s", rule.value, proto_name, proto_id))
                 elseif rule.match == "ip" then
                     writeRule(string.format("ip:%s@%s=%s", rule.value, proto_name, proto_id))
+                elseif rule.match == "ipv6" then
+                    writeRule(string.format("ipv6:%s@%s=%s", rule.value, proto_name, proto_id))
                 end
             end
 
