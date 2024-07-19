@@ -4176,6 +4176,7 @@ void Ntop::reloadMessageBroker() {
 
 bool Ntop::incNumFlowExporters() {
   bool ok = (num_flow_exporters < get_max_num_flow_exporters());
+  
   if (ok) num_flow_exporters++;
   return ok;
 }
