@@ -21,8 +21,8 @@ const table_id = ref('probes');
 const table_probes = ref(null);
 const csrf = props.context.csrf;
 
-const chart_url = `${http_prefix}/lua/pro/enterprise/flowdevices_stats.lua?page=historical`
-const exporter_url = `${http_prefix}/lua/pro/enterprise/flowdevices_stats.lua?`
+const chart_url = `${http_prefix}/lua/pro/enterprise/exporters.lua?page=historical`
+const exporter_url = `${http_prefix}/lua/pro/enterprise/exporters.lua?`
 const host_url = `${http_prefix}/lua/host_details.lua?`
 
 onBeforeMount(() => {})
@@ -38,7 +38,7 @@ const map_table_def_columns = (columns) => {
             if (!row.is_probe_active) {
                 return value                
             } else {
-                return `<a href="${host_url}?ip=${value}">${value} <i class="fas fa-laptop"></i></a>` 
+                return `<a href=${exporter_url}host=${value}>${value}</a><a href=${host_url}host=${value}><i class="fas fa-laptop"></i></a>`
             }
         },
         "probe_public_ip": (value, row) => {

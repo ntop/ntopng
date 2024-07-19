@@ -462,7 +462,7 @@ const sources_types = [
 	},
 	{
 		id: "flow_device",
-		regex_page_url: "lua\/pro\/enterprise\/flowdevices_stats",
+		regex_page_url: "lua\/pro\/enterprise\/exporters",
 		label: i18n("page_stats.source_def.flow_device"),
 		query: "flowdev",
 		source_def_array: [{
@@ -507,7 +507,7 @@ const sources_types = [
 	},
 	{
 		id: "sflow_device",
-		regex_page_url: "lua\/pro\/enterprise\/sflowdevices_stats",
+		regex_page_url: "lua\/pro\/enterprise\/exporters",
 		label: i18n("page_stats.source_def.sflow_device"),
 		query: "sflowdev",
 		source_def_array: [{
