@@ -32,14 +32,14 @@
                     </div>
                 </div>
                 <div class="mb-3 col-auto">
-                    <label for="export_host">Insert Host IP or Mac Address or /24</label>
+                    <label for="export_host"> {{ i18n("manage_data.specify_ip_mac") }}</label>
                     <input type="text" id="export_host" data-host="host" name="host"
                         placeholder="{{ i18n("manage_data.ip_or_mac_address")}}" class="form-control" size="24" disabled
                         required />
                 </div>
                 <div class="mb-3 col-auto">
-                    <label for="export_vlan">Insert VLAN Host</label>
-                    <input type="number" min="1" max="65535" placeholder="{{ i18n(" vlan") }}" id="export_vlan"
+                    <label for="export_vlan">{{ i18n("manage_data.specify_vlan")}}</label>
+                    <input type="number" min="1" max="65535" placeholder="{{ i18n("manage_data.ip_or_mac_address") }}" id="export_vlan"
                         name="vlan" class="form-control" value="" disabled />
                 </div>
             </div>
