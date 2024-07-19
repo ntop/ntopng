@@ -38,7 +38,7 @@ const map_table_def_columns = (columns) => {
             if (!row.is_probe_active) {
                 return value                
             } else {
-                return `<a href=${exporter_url}host=${value}>${value}</a><a href=${host_url}host=${value}><i class="fas fa-laptop"></i></a>`
+                return `<a href=${exporter_url}host=${value}>${value}</a><a href=${host_url}host=${value}> <i class="fas fa-laptop"></i></a>`
             }
         },
         "probe_public_ip": (value, row) => {
@@ -54,21 +54,21 @@ const map_table_def_columns = (columns) => {
             if (!value) {
                 return '';
             } else {
-                return `<a href="${exporter_url}&ifid=${row.ifid}&ip=${row.probe_ip}"><i class="fas fa-file-export"></i> ${formatterUtils.getFormatter("number")(value)}</a>` 
+                return formatterUtils.getFormatter("number")(value)
             }
         },
         "dropped_flows": (value, row) => {
             if (!value) {
                 return '';
             } else {
-                return `<a href="${exporter_url}&ifid=${row.ifid}&ip=${row.probe_ip}"><i class="fas fa-file-export"></i> ${formatterUtils.getFormatter("number")(value)}</a>` 
+                return formatterUtils.getFormatter("number")(value)
             }
         },
         "exported_flows": (value, row) => {
             if (!value) {
                 return '';
             } else {
-                return `<a href="${exporter_url}&ifid=${row.ifid}&ip=${row.probe_ip}"><i class="fas fa-file-export"></i> ${formatterUtils.getFormatter("number")(value)}</a>` 
+                return formatterUtils.getFormatter("number")(value)
             }
         },
         "probe_edition": (value, row) => {
