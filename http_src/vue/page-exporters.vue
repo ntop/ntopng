@@ -5,7 +5,6 @@
         </TableWithConfig>
         
         <NoteList :note_list="note_list"> </NoteList>
-
     </div>
 </template>
 
@@ -15,8 +14,8 @@ import { ref, onBeforeMount } from "vue";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as NoteList } from "./note-list.vue";
-import formatterUtils from "../utilities/formatter-utils";
-import dataUtils from "../utilities/data-utils.js";
+import { default as formatterUtils} from "../utilities/formatter-utils";
+import { default as dataUtils} from "../utilities/data-utils.js";
 
 const props = defineProps({
     context: Object,
@@ -38,10 +37,9 @@ const table_id = ref('exporters');
 const table_probes = ref(null);
 const csrf = props.context.csrf;
 
-
-const chart_url = `${http_prefix}/lua/pro/enterprise/flowdevices_stats.lua?`
-const exporter_url = `${http_prefix}/lua/pro/enterprise/flowdevices_stats.lua?`
-const host_url = `${http_prefix}/lua/pro/enterprise/flowdevice_details.lua?`
+const chart_url = `${http_prefix}/lua/pro/enterprise/exporters.lua?`
+const exporter_url = `${http_prefix}/lua/pro/enterprise/exporters.lua?`
+const host_url = `${http_prefix}/lua/pro/enterprise/exporter_details.lua?`
 
 onBeforeMount(() => {})
 
@@ -56,19 +54,19 @@ const map_table_def_columns = (columns) => {
             let returnValue = value;
 
             // Add interface name if defined
-            if (dataUtils.isEmptyOrNull(row['interface_name'])) {
-                returnValue = `${returnValue} ${row['interface_name']}`
+            if (!dataUtils.isEmptyOrNull(row['interface_name'])) {
+            returnValue = `${returnValue} ${row['interface_name']}`;
             }
 
             // Add timeseries icon if timeseries are enabled
             if (row['timeseries_enabled']) {
-
-                let timeseriesUrl = `${chart_url}ip=${value}&page=historical&ifid=${row['ifid']}`
-                returnValue += `&nbsp;<a href=${timeseriesUrl}><i class="fas fa-chart-area fa-lg"></i></a>`
+                let timeseriesUrl = `${chart_url}ip=${value}&page=historical&ifid=${row['ifid']}`;
+                returnValue += `&nbsp;<a href="${timeseriesUrl}"><i class="fas fa-chart-area fa-lg"></i></a>`;
             }
-            
-            return `<a href="${host_url}ip=${value}">${returnValue} </a>` 
+
+            return `<a href="${host_url}ip=${value}">${returnValue}</a>`;
         },
+
         "name": (value, row) => {
             return value
         },

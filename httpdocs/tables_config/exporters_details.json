@@ -1,0 +1,73 @@
+{
+	"id": "exporters_details",
+	"data_url": "lua/pro/rest/v2/get/flowdevice/stats.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": false,
+	"columns": [
+		{
+			"id": "snmp_index",
+			"title_i18n": "flow_devices.snmp_ifindex",
+			"data_field": "ifindex",
+			"sortable": true,
+			"min-width": "30px",
+			"sticky": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flow_devices.snmp_ifname",
+			"data_field": "snmp_ifname",
+			"sortable": false,
+			"sticky": true,
+			"min-width": "30px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "snmp.in_bytes",
+			"data_field": "in_bytes",
+			"sortable": true,
+			"min-width": "40px",
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "snmp.out_bytes",
+			"data_field": "out_bytes",
+			"sortable": true,
+			"min-width": "40px",
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "throughput",
+			"data_field": "throughput",
+			"sortable": true,
+			"min-width": "80px",
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "flow_devices.exporter_ratio",
+			"data_field": "ratio",
+			"sortable": true,
+			"min-width": "40px",
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		}
+	]
+}
+
+
