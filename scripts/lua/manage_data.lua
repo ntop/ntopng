@@ -117,13 +117,13 @@ local menu = {
   entries = {
     {
         key = 'export',
-        title = i18n("manage_data.export_tab"),
+        title = i18n("manage_data.export"),
         url = "?page=export",
         hidden = is_system_interface
     },
     {
         key = 'delete',
-        title = i18n("manage_data.delete_tab"),
+        title = i18n("manage_data.delete"),
         url = "?page=delete",
         hidden = not is_admin or is_system_interface,
      },

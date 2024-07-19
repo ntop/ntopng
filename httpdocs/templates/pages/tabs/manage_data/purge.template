@@ -1,0 +1,11 @@
+<div class="card-body">
+    <div id="search_card">
+        <form class="host_data_form" id="host_data_form_delete" method="POST">
+            <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
+            <button form="host_data_form_delete" class="btn btn-danger" type="submit" onclick="return delete_data_show_modal();">
+                <i class="fas fa-trash" aria-hidden="true" title="{{ i18n("manage_data.purge_asset_inventory_button") }}"></i>
+                {{ i18n("manage_data.purge_asset_inventory_button") }}
+            </button>
+        </form>
+    </div>
+</div>
