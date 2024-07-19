@@ -38,7 +38,7 @@ const map_table_def_columns = (columns) => {
             if (!row.is_probe_active) {
                 return value                
             } else {
-                return `<a href=${exporter_url}host=${value}>${value}</a><a href=${host_url}host=${value}> <i class="fas fa-laptop"></i></a>`
+                return `<a href=${exporter_url}probe_uuid=${row.probe_uuid_num}>${value}</a><a href=${host_url}host=${value}> <i class="fas fa-laptop"></i></a>`
             }
         },
         "probe_public_ip": (value, row) => {

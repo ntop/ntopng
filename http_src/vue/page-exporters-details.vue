@@ -55,12 +55,12 @@ function get_ip_from_url() {
 const map_table_def_columns = (columns) => {
     let map_columns = {
         "ifindex": (value, row) => {
+            get_notes(value)
             var snmp_interface_url = `${snmp_interface_details_url}ip=${get_ip_from_url()}&page=config&snmp_port_idx=${row["snmp_ifidx"]}&ifid=${props.context.ifid}`
             return `<a href=${snmp_interface_url}>${value}</i></a>`
         },
         "snmp_ifname": (value, row) => {
             // get table footer notes
-            get_notes(value)
             var returnValue = value;
 
             // Add timeseries icon if timeseries are enabled

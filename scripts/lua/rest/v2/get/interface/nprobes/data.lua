@@ -59,6 +59,7 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
             probe_version = probe_info["probe.probe_version"],
             probe_ip = probe_info["probe.ip"],
             probe_uuid = probe_info["probe.uuid"],
+            probe_uuid_num = probe_info["probe.uuid_num"],
             probe_public_ip = probe_info["probe.public_ip"],
             probe_edition = probe_info["probe.probe_edition"],
             probe_license = probe_info["probe.probe_license"] or i18n("if_stats_overview.no_license"),
