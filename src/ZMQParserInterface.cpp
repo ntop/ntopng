@@ -754,7 +754,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
         u_int32_t ip = ntohl(inet_addr(value->string));
 
         if (ip) {
-	  flow->device_ip = ip;
+	  flow->exporter_device_ip = ip;
 
 	  if(ntop->getPrefs()->is_edr_mode()) {
 	    char buf[32], ipb[24];
@@ -775,7 +775,7 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
       break;
     case EXPORTER_IPV6_ADDRESS:
       if (value->string != NULL && strlen(value->string) > 0)
-        inet_pton(AF_INET6, value->string, &flow->device_ipv6);
+        inet_pton(AF_INET6, value->string, &flow->exporter_device_ipv6);
       break;
     case FLOW_END_REASON:
       if (value->string)
@@ -1105,8 +1105,8 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
 
   case NPROBE_IPV4_ADDRESS:
     if (value->string) {
-      flow->probe_ip = ntohl(inet_addr(value->string));
-      if(flow->device_ip == 0 && (flow->device_ip = ntohl(inet_addr(value->string))))
+      flow->nprobe_ip = ntohl(inet_addr(value->string));
+      if(flow->exporter_device_ip == 0 && (flow->exporter_device_ip = ntohl(inet_addr(value->string))))
         return false;
     } 
     break;
@@ -1386,14 +1386,14 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow *const flow,
       }
 
     case EXPORTER_IPV4_ADDRESS:
-      return (flow->device_ip == ntohl(inet_addr(value->string)));
+      return (flow->exporter_device_ip == ntohl(inet_addr(value->string)));
 
     case EXPORTER_IPV6_ADDRESS:
       if (value->string != NULL && strlen(value->string) > 0) {
         struct ndpi_in6_addr ipv6;
 
         if (inet_pton(AF_INET6, value->string, &ipv6) <= 0) return false;
-        return (memcmp(&flow->device_ipv6, &ipv6, sizeof(flow->device_ipv6)) == 0);
+        return (memcmp(&flow->exporter_device_ipv6, &ipv6, sizeof(flow->exporter_device_ipv6)) == 0);
       }
 
     case INPUT_SNMP:
@@ -1536,7 +1536,7 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow *const flow,
         return false;
 
     case NPROBE_IPV4_ADDRESS:
-      return (flow->probe_ip == ntohl(inet_addr(value->string)));
+      return (flow->nprobe_ip == ntohl(inet_addr(value->string)));
 
     case UNIQUE_SOURCE_ID:
       return (flow->unique_source_id == value->int_num);
