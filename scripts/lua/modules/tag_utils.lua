@@ -1296,7 +1296,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 for _, device_list in pairs(flow_devices or {}) do
                     -- Add interfaces for flow devices which are not polled by SNMP
                     for probe_ip, _ in pairs(device_list) do
-                        local interfaces = interface.getFlowDeviceInfo(probe_ip)
+                        local interfaces = interface.getFlowDeviceInfoByIP(probe_ip)
                         for _, interfaces_table in pairs(interfaces) do
                             for interface_id, interface_info in pairsByKeys(interfaces_table) do
                                 local label = format_portidx_name(probe_ip, interface_id, false, false)

@@ -61,7 +61,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     return false;
 
   if(unique_source_id == 0)
-    unique_source_id = zflow->probe_ip + zflow->device_ip;
+    unique_source_id = zflow->nprobe_ip + zflow->exporter_device_ip;
 
   now = time(NULL);
   now_tv.tv_sec = now;
@@ -84,12 +84,12 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[unique_source_id: %u];device_ip: %u][probe_ip: %u][iface: %u->%u]",
-			       unique_source_id, zflow->device_ip, zflow->probe_ip, zflow->inIndex, zflow->outIndex);
+			       unique_source_id, zflow->exporter_device_ip, zflow->nprobe_ip, zflow->inIndex, zflow->outIndex);
 #ifdef NTOPNG_PRO
   if(unique_source_id != 0) {
     if (!flow_interfaces_stats->checkExporters(unique_source_id,
 					       zflow->inIndex, zflow->outIndex,
-					       zflow->device_ip, zflow->probe_ip)) {
+					       zflow->exporter_device_ip, zflow->nprobe_ip)) {
       static bool shown = false;
 
       if(!shown) {
@@ -136,7 +136,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
         switch (flowHashingMode) {
           case flowhashing_probe_ip:
-            virtual_observation_point_id = zflow->device_ip & 0xFFF /* 4096 */;
+            virtual_observation_point_id = zflow->exporter_device_ip & 0xFFF /* 4096 */;
             break;
 
           case flowhashing_iface_idx:
@@ -151,7 +151,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
           case flowhashing_probe_ip_and_ingress_iface_idx:
             virtual_observation_point_id =
-                ((((u_int64_t)zflow->device_ip) << 32) + zflow->inIndex) &
+                ((((u_int64_t)zflow->exporter_device_ip) << 32) + zflow->inIndex) &
                 0xFFF /* 4096 */;
             break;
 
@@ -173,7 +173,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
         switch (flowHashingMode) {
           case flowhashing_probe_ip:
-            vIface = getDynInterface((u_int64_t)zflow->device_ip, true);
+            vIface = getDynInterface((u_int64_t)zflow->exporter_device_ip, true);
             break;
 
           case flowhashing_iface_idx:
@@ -191,9 +191,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
           case flowhashing_probe_ip_and_ingress_iface_idx:
             // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[IP: %u][inIndex:
-            // %u]", zflow->device_ip, zflow->inIndex);
+            // %u]", zflow->exporter_device_ip, zflow->inIndex);
             vIface = getDynInterface(
-                (((u_int64_t)zflow->device_ip) << 32) + zflow->inIndex, true);
+                (((u_int64_t)zflow->exporter_device_ip) << 32) + zflow->inIndex, true);
             break;
 
           case flowhashing_vrfid:
@@ -250,7 +250,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   /* Updating Flow */
   flow = getFlow(UNKNOWN_PKT_IFACE_IDX,
 		 srcMac, dstMac, zflow->vlan_id, zflow->observationPointId,
-                 private_flow_id, zflow->device_ip, zflow->inIndex,
+                 private_flow_id, zflow->exporter_device_ip, zflow->inIndex,
                  zflow->outIndex, NULL /* ICMPinfo */, &srcIP, &dstIP,
                  zflow->src_port, zflow->dst_port, zflow->l4_proto,
                  &src2dst_direction, zflow->first_switched,
@@ -374,7 +374,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     flow->updateSeen();
   }
 
-  flow->setFlowDevice(zflow->device_ip, zflow->observationPointId,
+  flow->setFlowDevice(zflow->exporter_device_ip, zflow->observationPointId,
                       src2dst_direction ? zflow->inIndex : zflow->outIndex,
                       src2dst_direction ? zflow->outIndex : zflow->inIndex);
 

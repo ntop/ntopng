@@ -2735,7 +2735,7 @@ local function add_flowdev_interfaces_timeseries(tags, timeseries)
         }
     end
     
-    local ports_table = interface.getFlowDeviceInfo(tags.device) or {}
+    local ports_table = interface.getFlowDeviceInfoByIP(tags.device) or {}
     for _, ports in pairs(ports_table) do
         for port_idx, _ in pairs(ports) do
             local ifname = format_portidx_name(tags.device, port_idx, true, true)
