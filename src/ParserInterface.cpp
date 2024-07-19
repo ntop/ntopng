@@ -56,7 +56,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   Mac *srcMac = NULL, *dstMac = NULL;
   IpAddress srcIP, dstIP;
   u_int32_t private_flow_id, unique_source_id = zflow->unique_source_id;
-
+  u_int32_t in_pkts, in_bytes, out_pkts, out_bytes;
+  
 #ifdef NTOPNG_PRO
   if(!flow_interfaces_stats)
     return false;
@@ -391,29 +392,26 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 			       (src2dst_direction) ? 1 : 0);
 #endif
 
+  in_pkts   = zflow->pkt_sampling_rate * zflow->in_pkts,
+    in_bytes  = zflow->pkt_sampling_rate * zflow->in_bytes,
+    out_pkts  = zflow->pkt_sampling_rate * zflow->out_pkts,
+    out_bytes = zflow->pkt_sampling_rate * zflow->out_bytes;
+    
   /* Update MAC stats
      Note: do not use src2dst_direction to inc the stats as
      in_bytes/in_pkts and out_bytes/out_pkts are already relative to the current
      source mac (srcMac) and destination mac (dstMac)
   */
   if (likely(srcMac != NULL)) {
-    srcMac->incSentStats(getTimeLastPktRcvd(),
-                         zflow->pkt_sampling_rate * zflow->in_pkts,
-                         zflow->pkt_sampling_rate * zflow->in_bytes);
-    srcMac->incRcvdStats(getTimeLastPktRcvd(),
-                         zflow->pkt_sampling_rate * zflow->out_pkts,
-                         zflow->pkt_sampling_rate * zflow->out_bytes);
+    srcMac->incSentStats(getTimeLastPktRcvd(), in_pkts, in_bytes);
+    srcMac->incRcvdStats(getTimeLastPktRcvd(),  out_pkts, out_bytes);
 
     srcMac->setSourceMac();
   }
 
   if (likely(dstMac != NULL)) {
-    dstMac->incSentStats(getTimeLastPktRcvd(),
-                         zflow->pkt_sampling_rate * zflow->out_pkts,
-                         zflow->pkt_sampling_rate * zflow->out_bytes);
-    dstMac->incRcvdStats(getTimeLastPktRcvd(),
-                         zflow->pkt_sampling_rate * zflow->in_pkts,
-                         zflow->pkt_sampling_rate * zflow->in_bytes);
+    dstMac->incSentStats(getTimeLastPktRcvd(), out_pkts, out_bytes);
+    dstMac->incRcvdStats(getTimeLastPktRcvd(), in_pkts, in_bytes);
   }
 
   if (zflow->l4_proto == IPPROTO_TCP) {
@@ -450,26 +448,26 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   }
 
   flow->addFlowStats(new_flow, src2dst_direction,
-                     zflow->pkt_sampling_rate * zflow->in_pkts,
-                     zflow->pkt_sampling_rate * zflow->in_bytes, 0,
-                     zflow->pkt_sampling_rate * zflow->out_pkts,
-                     zflow->pkt_sampling_rate * zflow->out_bytes, 0,
+                     in_pkts, in_bytes, 0,
+                     out_pkts, out_bytes, 0,
                      zflow->pkt_sampling_rate * zflow->in_fragments,
                      zflow->pkt_sampling_rate * zflow->out_fragments,
                      zflow->first_switched, zflow->last_switched);
 
-  /* Add Pre-Post NAT src/dst IPv4 */
-  flow->addPrePostNATIPv4(zflow->getPreNATSrcIp(),
-                          zflow->getPreNATDstIp(),
-                          zflow->getPostNATSrcIp(),
-                          zflow->getPostNATDstIp());
-
-  /* Add Pre-Post NAT src/dst Ports */
-  flow->addPrePostNATPort(zflow->getPreNATSrcPort(),
-                          zflow->getPreNATDstPort(),
-                          zflow->getPostNATSrcPort(),
-                          zflow->getPostNATDstPort());
-
+  if(zflow->getPreNATSrcIp()) {
+    /* Add Pre-Post NAT src/dst IPv4 */
+    flow->addPrePostNATIPv4(zflow->getPreNATSrcIp(),
+			    zflow->getPreNATDstIp(),
+			    zflow->getPostNATSrcIp(),
+			    zflow->getPostNATDstIp());
+    
+    /* Add Pre-Post NAT src/dst Ports */
+    flow->addPrePostNATPort(zflow->getPreNATSrcPort(),
+			    zflow->getPreNATDstPort(),
+			    zflow->getPostNATSrcPort(),
+			    zflow->getPostNATDstPort());
+  }
+  
   if (!flow->isDetectionCompleted()) {
     ndpi_protocol p = Flow::ndpiUnknownProtocol;
     ndpi_protocol guessed_protocol = Flow::ndpiUnknownProtocol;
@@ -490,24 +488,22 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 							   ntohl(zflow->src_ip.get_ipv4()),
 							   ntohs(zflow->src_port),
 							   ntohl(zflow->dst_ip.get_ipv4()),
-							   ntohs(zflow->dst_port)
-							   );
+							   ntohs(zflow->dst_port));
     } else {
       /* IPv6: use protcol guess only based on ports/protocol */
 
       guessed_protocol = ndpi_guess_undetected_protocol_v4(get_ndpi_struct(),
 							   flow->get_ndpi_flow(),
 							   flow->get_protocol(),
-							   0,
-							   ntohs(zflow->src_port),
-							   0,
-							   ntohs(zflow->dst_port)
-							   );
+							   0, ntohs(zflow->src_port),
+							   0, ntohs(zflow->dst_port));
     }
 
-    guessed_protocol.app_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), guessed_protocol.app_protocol);
-    guessed_protocol.master_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), guessed_protocol.master_protocol);
-
+    guessed_protocol.app_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(),
+								      guessed_protocol.app_protocol);
+    guessed_protocol.master_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(),
+									 guessed_protocol.master_protocol);
+    
 #ifdef NTOPNG_PRO
   if (unique_source_id) {
       if (!flow_interfaces_stats)
@@ -515,10 +511,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
       if (flow_interfaces_stats) {
 	flow_interfaces_stats->incStats(now, unique_source_id, zflow->inIndex, flow->getStatsProtocol(),
-					zflow->pkt_sampling_rate * zflow->out_pkts,
-					zflow->pkt_sampling_rate * zflow->out_bytes,
-					zflow->pkt_sampling_rate * zflow->in_pkts,
-					zflow->pkt_sampling_rate * zflow->in_bytes);
+					out_pkts, out_bytes, in_pkts, in_bytes);
 
 	/* If the SNMP device is actually an host with an SNMP agent, then traffic
 	   can enter and leave it from the same interface (think to a management
@@ -527,11 +520,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 	   double counting. */
 
 	if (zflow->outIndex != zflow->inIndex)
-	  flow_interfaces_stats->incStats(now, unique_source_id, zflow->outIndex, flow->getStatsProtocol(),
-					  zflow->pkt_sampling_rate * zflow->in_pkts,
-					  zflow->pkt_sampling_rate * zflow->in_bytes,
-					  zflow->pkt_sampling_rate * zflow->out_pkts,
-					  zflow->pkt_sampling_rate * zflow->out_bytes);
+	  flow_interfaces_stats->incStats(now, unique_source_id, zflow->outIndex,
+					  flow->getStatsProtocol(),
+					  in_pkts, in_bytes, out_pkts, out_bytes);
       }
   }
 #endif
@@ -721,24 +712,20 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     if (zflow->in_pkts)
       incStats(true /* Ingress */, now, eth_type, flow->getStatsProtocol(),
                flow->get_protocol_category(), zflow->l4_proto,
-               zflow->pkt_sampling_rate * zflow->in_bytes,
-               zflow->pkt_sampling_rate * zflow->in_pkts);
+               in_bytes, in_pkts);
     if (zflow->out_pkts)
       incStats(false /* Egress */, now, eth_type, flow->getStatsProtocol(),
                flow->get_protocol_category(), zflow->l4_proto,
-               zflow->pkt_sampling_rate * zflow->out_bytes,
-               zflow->pkt_sampling_rate * zflow->out_pkts);
+               out_bytes, out_pkts);
   } else { /* TX */
     if (zflow->out_bytes)
       incStats(true /* Ingress */, now, eth_type, flow->getStatsProtocol(),
                flow->get_protocol_category(), zflow->l4_proto,
-               zflow->pkt_sampling_rate * zflow->out_bytes,
-               zflow->pkt_sampling_rate * zflow->out_pkts);
+               out_bytes, out_pkts);
     if (zflow->in_pkts)
       incStats(false /* Egress */, now, eth_type, flow->getStatsProtocol(),
                flow->get_protocol_category(), zflow->l4_proto,
-               zflow->pkt_sampling_rate * zflow->in_bytes,
-               zflow->pkt_sampling_rate * zflow->in_pkts);
+               in_bytes, in_pkts);
   }
 
 #ifdef NTOPNG_PRO
@@ -750,7 +737,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
        || ntop->get_export_interface()
 #endif
 #endif
-           )) {
+       )) {
     /* Dump flow */
     flow->dump(zflow->last_switched, true /* last dump before free */);
   }

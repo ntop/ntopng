@@ -4191,3 +4191,9 @@ bool Ntop::incNumFlowExportersInterfaces() {
 #endif /* NTOPNG_PRO */
 
 /* ******************************************* */
+
+u_int32_t Ntop::getMaxNumFlowExporters()           { return get_max_num_flow_exporters();          }
+
+/* ******************************************* */
+
+u_int32_t Ntop::getMaxNumFlowExportersInterfaces() { return get_max_num_flow_exporters_interfaces(); }
