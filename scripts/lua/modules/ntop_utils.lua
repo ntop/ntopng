@@ -910,7 +910,10 @@ function getNetFlowExportersUnifiedStats()
                                 tmp["ndpi"][proto] = {}
                             end
                             for field, value in pairs(proto_info or {}) do
-                                tmp["ndpi"][proto][field] = value + (tmp["ndpi"][proto][field] or 0)
+			       if(type(value) == number) then
+				  -- skip non numeric fields such as "breed"
+				  tmp["ndpi"][proto][field] = value + (tmp["ndpi"][proto][field] or 0)
+			       end
                             end
                         end
                         unified_exporters[exporter_ip][port_idx] = tmp
