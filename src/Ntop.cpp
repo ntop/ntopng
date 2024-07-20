@@ -4188,12 +4188,17 @@ bool Ntop::incNumFlowExportersInterfaces() {
   if (ok) num_flow_interfaces++;
   return ok;
 }
+
+/* ******************************************* */
+
+u_int32_t Ntop::getMaxNumFlowExporters() {
+  return get_max_num_flow_exporters();
+}
+
+/* ******************************************* */
+
+u_int32_t Ntop::getMaxNumFlowExportersInterfaces() {
+  return get_max_num_flow_exporters_interfaces();
+}
+
 #endif /* NTOPNG_PRO */
-
-/* ******************************************* */
-
-u_int32_t Ntop::getMaxNumFlowExporters()           { return get_max_num_flow_exporters();          }
-
-/* ******************************************* */
-
-u_int32_t Ntop::getMaxNumFlowExportersInterfaces() { return get_max_num_flow_exporters_interfaces(); }

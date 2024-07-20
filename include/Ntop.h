@@ -573,11 +573,11 @@ class Ntop {
   inline int getUdpSock() { return (udp_socket); }
 #ifdef NTOPNG_PRO
   inline AlertExclusions *getAlertExclusions() { return alert_exclusions; }
+  u_int32_t getMaxNumFlowExporters();
+  u_int32_t getMaxNumFlowExportersInterfaces();
 #endif
   u_int32_t getNumFlowExporters()              { return num_flow_exporters;  }
   u_int32_t getNumFlowExportersInterfaces()    { return num_flow_interfaces; }
-  u_int32_t getMaxNumFlowExporters();
-  u_int32_t getMaxNumFlowExportersInterfaces();
   bool incNumFlowExporters();
   bool incNumFlowExportersInterfaces();
 
