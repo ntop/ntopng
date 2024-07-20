@@ -900,7 +900,6 @@ function getNetFlowExportersUnifiedStats()
                         unified_exporters[exporter_ip][port_idx] = port_info
                     else
                         local tmp = unified_exporters[exporter_ip][port_idx]
-                        tmp["throughput"] = port_info["throughput"] + (tmp["throughput"] or 0)
                         tmp["bytes.in_bytes"] = port_info["bytes.in_bytes"] + (tmp["bytes.in_bytes"] or 0)
                         tmp["bytes.out_bytes"] = port_info["bytes.out_bytes"] + (tmp["bytes.out_bytes"] or 0)
                         if not tmp.ndpi then
