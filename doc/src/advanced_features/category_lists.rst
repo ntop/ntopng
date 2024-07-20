@@ -41,7 +41,7 @@ to disable the list.
 
 When a list is disabled, it will not be updated anymore.
 
-.. _`protocol category`: ../web_gui/categories.html
+.. _`protocol category`: ../web_gui/settings.html#category
 .. _`Custom Category Hosts docs`: ../web_gui/categories.html#custom-category-hosts
 .. _`alerts`: ../web_gui/alerts.html
 
