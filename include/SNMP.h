@@ -50,13 +50,13 @@ class SNMPSession {
   ~SNMPSession();
 };
 
+//constant for trap collection
 #define TRAP_PORT  "udp:162"
 #define APPLICATION "ntopng snmp trap"
-
-#endif
-
+//callback
 int read_snmp_trap(int operation, struct snmp_session *sp, int reqid,
                     struct snmp_pdu *pdu, void *magic);
+#endif
 
 class SNMP {
  private:
@@ -113,6 +113,12 @@ class SNMP {
                            char *oid[SNMP_MAX_NUM_OIDS],
                            char value_types[SNMP_MAX_NUM_OIDS],
                            char *values[SNMP_MAX_NUM_OIDS], bool _batch_mode);
+  //
+  void handle_trap(struct snmp_pdu*pdu);
+  //call to commence trap collection
+  void collectTraps(int timeout);
+  //call to cease trap collection
+  void cease_trap_collection();
 #endif
   void send_snmpv1v2c_request(char *agent_host, char *community,
                               snmp_pdu_primitive pduType, u_int version,
@@ -126,11 +132,6 @@ class SNMP {
   int getnext(lua_State *vm, bool skip_first_param);
   int getnextbulk(lua_State *vm, bool skip_first_param);
   int set(lua_State *vm, bool skip_first_param);
-  void handle_trap(struct snmp_pdu*pdu);
-  //call to commence trap collection
-  void collectTraps(int timeout);
-  //call to cease trap collection
-  void cease_trap_collection();
 };
 
 #endif /* _SNMP_H_ */
