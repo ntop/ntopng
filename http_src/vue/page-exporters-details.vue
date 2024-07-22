@@ -90,9 +90,9 @@ const map_table_def_columns = (columns) => {
             return formatterUtils.getFormatter("bps")(value);
         },
         "ratio": (value, row) => {
-            if (!value)
+            if (!value.value || value.value == -1)
                 return '';
-            return value;
+            return formatterUtils.getFormatter("ratio")(value.value);
         }
     };
 

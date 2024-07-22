@@ -58,7 +58,7 @@
 			]
 		},
 		{
-			"title_i18n": "flow_devices.exporter_ratio",
+			"title_i18n": "flow_devices.flow_snmp_ratio",
 			"data_field": "ratio",
 			"sortable": true,
 			"min-width": "40px",
