@@ -220,6 +220,10 @@ Ntop::Ntop(const char *appName) {
 
   startupLockFile = -1;
 #endif
+
+#ifdef HAVE_SNMP_TRAP
+  trap_collector = new (std::nothrow) SNMPTrap();
+#endif
 }
 
 /* ******************************************* */
@@ -385,6 +389,9 @@ Ntop::~Ntop() {
   if (radiusAcc) delete radiusAcc;
 #endif
 
+#ifdef HAVE_SNMP_TRAP
+  if (trap_collector) delete trap_collector;
+#endif
 }
 
 /* ******************************************* */
@@ -1058,6 +1065,31 @@ void Ntop::loadMacManufacturers(char *dir) {
   if ((mac_manufacturers = new (std::nothrow) MacManufacturers(dir)) == NULL)
     throw "Not enough memory";
 }
+
+/* ******************************************* */
+
+#ifdef HAVE_SNMP_TRAP
+/* Note: the collector is already allocated in the constructor
+ * as the socket should be created before changing user */
+void Ntop::initSNMPTrapCollector() {
+  if (!trap_collector) return;
+
+  if (ntop->getPrefs()->isSNMPTrapEnabled())
+    trap_collector->startTrapCollection();
+}
+
+/* ******************************************* */
+
+void Ntop::toggleSNMPTrapCollector(bool enable) {
+  if (!trap_collector) return;
+
+  if (enable) {
+    trap_collector->startTrapCollection();
+  } else {
+    trap_collector->stopTrapCollection();
+  }
+}
+#endif
 
 /* ******************************************* */
 

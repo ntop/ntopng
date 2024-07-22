@@ -26,11 +26,6 @@
 
 #define SNMP_MAX_NUM_OIDS 10
 
-#ifdef HAVE_LIBSNMP
-#include <net-snmp/net-snmp-config.h>
-#include <net-snmp/net-snmp-includes.h>
-#endif
-
 /* ******************************* */
 
 typedef enum {
@@ -39,17 +34,6 @@ typedef enum {
   snmp_get_bulk_pdu,
   snmp_set_pdu,
 } snmp_pdu_primitive;
-
-#ifdef HAVE_LIBSNMP
-class SNMPSession {
- public:
-  struct snmp_session session;
-  void *session_ptr;
-
-  SNMPSession();
-  ~SNMPSession();
-};
-#endif
 
 class SNMP {
  private:
@@ -83,8 +67,6 @@ class SNMP {
  public:
   SNMP();
   ~SNMP();
-
-  void collectTraps();
   
 #ifdef HAVE_LIBSNMP
   void handle_async_response(struct snmp_pdu *pdu, const char *agent_ip);
@@ -102,6 +84,7 @@ class SNMP {
                            char value_types[SNMP_MAX_NUM_OIDS],
                            char *values[SNMP_MAX_NUM_OIDS], bool _batch_mode);
 #endif
+
   void send_snmpv1v2c_request(char *agent_host, char *community,
                               snmp_pdu_primitive pduType, u_int version,
                               char *oid[SNMP_MAX_NUM_OIDS], bool _batch_mode);

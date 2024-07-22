@@ -1387,6 +1387,10 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 #define MIN_NUM_ASYNC_SNMP_ENGINES         NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_M
 #define MAX_NUM_ASYNC_SNMP_ENGINES         NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_XL
 
+#if defined(NTOPNG_PRO) && defined(HAVE_LIBSNMP)
+#define HAVE_SNMP_TRAP
+#endif
+
 #define MIN_NUM_HASH_WALK_ELEMS 512
 
 #define COMPANION_QUEUE_LEN 4096

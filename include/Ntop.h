@@ -120,6 +120,9 @@ class Ntop {
 #ifdef HAVE_NEDGE
   std::vector<PacketForwarder*> multicastForwarders;
 #endif
+#ifdef HAVE_SNMP_TRAP
+  SNMPTrap *trap_collector;
+#endif
 
   /* Local network address list */
   char *local_network_names[CONST_MAX_NUM_NETWORKS];
@@ -823,6 +826,10 @@ class Ntop {
   void decNumLuaVMs()                   { num_active_lua_vms--;       } 
   inline u_int16_t getNumActiveLuaVMs() { return(num_active_lua_vms); }
   const char* getPersistentCustomListNameById(u_int8_t list_id);
+#ifdef HAVE_SNMP_TRAP
+  void initSNMPTrapCollector();
+  void toggleSNMPTrapCollector(bool enable);
+#endif
 };
 
 extern Ntop *ntop;

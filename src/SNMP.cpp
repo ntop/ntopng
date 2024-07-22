@@ -32,24 +32,12 @@ extern "C" {
 
 /* ******************************* */
 
-SNMPSession::SNMPSession() { session_ptr = NULL; }
-
-/* ******************************* */
-
-SNMPSession::~SNMPSession() {
-  if(session_ptr) snmp_sess_close(session_ptr);
-}
-
-/* ******************************* */
-/* ******************************* */
-
 SNMP::SNMP() {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   batch_mode = false;
 #ifdef HAVE_LIBSNMP
   init_snmp("ntopng");
 #endif
-
   getbulk_max_num_repetitions = 10;
 }
 
@@ -1124,6 +1112,3 @@ int SNMP::snmp_get_fctn(lua_State *vm, snmp_pdu_primitive pduType,
 
 /* ******************************************* */
 
-void SNMP::collectTraps() {
-  /* TODO */
-}
