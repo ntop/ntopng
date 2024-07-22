@@ -47,9 +47,8 @@ SNMP::SNMP() {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   batch_mode = false;
 #ifdef HAVE_LIBSNMP
-  init_snmp("ntopng");
+  init_snmp("ntopng");  
 #endif
-
   getbulk_max_num_repetitions = 10;
 }
 
@@ -57,6 +56,9 @@ SNMP::SNMP() {
 
 SNMP::~SNMP() {
   for (unsigned int i = 0; i < sessions.size(); i++) delete sessions.at(i);
+  if(trap_session) delete trap_session;
+  if(snmpTransport)  netsnmp_transport_free(snmpTransport);
+  if(rc)  netsnmp_free(rc);
 }
 
 /* ******************************* */
@@ -1123,7 +1125,131 @@ int SNMP::snmp_get_fctn(lua_State *vm, snmp_pdu_primitive pduType,
 }
 
 /* ******************************************* */
+#ifdef HAVE_LIBSNMP
 
-void SNMP::collectTraps() {
-  /* TODO */
-}
+  void SNMP::collectTraps(int timeout) {
+    this->snmpTransport = netsnmp_transport_open_server(APPLICATION,TRAP_PORT);
+    if(this->snmpTransport == NULL){
+      ntop->getTrace()->traceEvent(TRACE_ERROR,__FILE__,__LINE__,"opening snmp transport failed\n");
+      snmp_perror("netsnmp_transport_open_server ");
+      return;
+    }
+    //trap session
+    this->trap_session = new  (std::nothrow)  SNMPSession;
+    if(this->trap_session == NULL){
+      ntop->getTrace()->traceEvent(TRACE_ERROR,__FILE__,__LINE__,"new trap session failed\n");
+      netsnmp_transport_free(this->snmpTransport);
+    }
+    snmp_sess_init(&this->trap_session->session);
+    this->trap_session->session.callback = read_snmp_trap;
+    this->trap_session->session.callback_magic = (void *) this;
+    this->trap_session->session.authenticator = NULL;
+    this->rc = snmp_add(&trap_session->session,this->snmpTransport, NULL, NULL);
+    if (this->rc == NULL) {
+        ntop->getTrace()->traceEvent(TRACE_ERROR,__FILE__,__LINE__,"adding snmp trap session failed\n");
+        snmp_perror("FAILURE: ");
+        netsnmp_transport_free(this->snmpTransport);
+        delete this->trap_session;
+        return;
+    }
+    int numfds;
+    fd_set fdset;
+    struct timeval tvp;
+    int count, block = 1;
+    this->cease_collecting_trap = false;
+    numfds = 0;
+    tvp.tv_sec = timeout; tvp.tv_usec = 0;
+    while(!this->cease_collecting_trap){
+      FD_ZERO(&fdset);
+      snmp_select_info(&numfds,&fdset,&tvp,&block);
+      count = select(numfds, &fdset, NULL, NULL, &tvp);
+      printf("count %d\n", count);
+      if (count > 0) 
+          snmp_read(&fdset); //cause callback execution
+      if(tvp.tv_sec == 0)
+          tvp.tv_sec = timeout;
+    }
+      
+  }
+
+  void SNMP::handle_trap(struct snmp_pdu*pdu){
+    netsnmp_variable_list *variable;
+    char oid[MAX_OID_LEN] = {'\0'};
+    tree *mib;
+    variable = pdu->variables;
+    while (variable) {
+      // fill oid with an human readable oid
+      if(snprint_objid(oid, sizeof(oid), variable->name_loc, variable->name_length))
+          printf("oid: %s\n", oid);
+      //now let's figure out the mib
+      mib = get_tree(variable->name_loc, variable->name_length, get_tree_head());
+      while(mib && mib->next_peer)
+          mib = mib->next_peer;
+      printf("mib %s\n",mib->label);
+      //managed types being in netsnmp_vardata
+    switch (variable->type) {
+          case ASN_INTEGER:
+              printf("integer: %ld\n", *variable->val.integer);
+              break;
+          case ASN_OCTET_STR:
+              printf("string: %.*s\n", (int)variable->val_len, variable->val.string);
+              break;
+          case ASN_OBJECT_ID:
+              printf("oid: ");
+              for (size_t i = 0; i < variable->val_len / sizeof(oid); i++) {
+                  printf("%s%lu", i ? "." : "", variable->val.objid[i]);
+              }
+              printf("\n");
+              break;
+          case ASN_BIT_STR:
+              printf("bit string: ");
+              for (size_t i = 0; i < variable->val_len; i++) {
+                  printf("%02x ", variable->val.bitstring[i]);
+              }
+              printf("\n");
+              break;
+          case ASN_COUNTER64:
+              printf("counter64 high: %lu\n", variable->val.counter64->high);
+              printf("counter64 low: %lu\n", variable->val.counter64->low);
+              break;
+  #ifdef NETSNMP_WITH_OPAQUE_SPECIAL_TYPES
+          case ASN_OPAQUE_FLOAT:
+              printf("float: %f\n", *variable->val.floatVal);
+              break;
+          case ASN_OPAQUE_DOUBLE:
+              printf("double: %f\n", *variable->val.doubleVal);
+              break;
+  #endif
+          default:
+              printf("Unmanaged ASN type: %u\n", variable->type);
+              break;
+      }
+      //go to next variable
+      variable = variable->next_variable;
+    }
+        
+  }
+
+  void SNMP::cease_trap_collection(){
+    this->cease_collecting_trap = true;
+  }
+  //callback printing trap
+  int read_snmp_trap(int operation, struct snmp_session *sp, int reqid,
+                      struct snmp_pdu *pdu, void *magic){
+    SNMP *s = (SNMP *)magic;
+    int ret = 0;
+    switch (pdu->command){
+      case SNMP_MSG_TRAP:
+      case SNMP_MSG_TRAP2:
+        ntop->getTrace()->traceEvent(TRACE_DEBUGGING, __FILE__,__LINE__,"trap type %ld specific type %ld", pdu->trap_type, pdu->specific_type);
+        //call SNMP method to have reference to lua state
+        s->handle_trap(pdu);
+      break;
+      default:
+        ntop->getTrace()->traceEvent(TRACE_DEBUGGING,__FILE__,__LINE__,"Invalid operation %d",operation);
+        ret = 1; 
+      break;
+    }
+    return ret;
+  }
+#endif
