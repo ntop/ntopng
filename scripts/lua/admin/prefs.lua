@@ -187,6 +187,10 @@ if auth.has_capability(auth.capabilities.preferences) then
         ts_utils.setupAgain()
     end
 
+    if _POST["toggle_snmp_trap"] then
+        ntop.snmpToggleTrapCollection(toboolean(_POST["toggle_snmp_trap"]))
+    end
+
     page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.preferences)
 
     dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")

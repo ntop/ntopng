@@ -26,27 +26,33 @@
 SNMPTrap::SNMPTrap() {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
-  init_snmp("ntopng");
+  init_snmp("ntopng-snmp-trap");
 
   trap_transport = NULL;
   trap_session = NULL;
   trap_session_internal = NULL;
   trap_collection_running = false;
 
-#if 0 // Test
-  startTrapCollection();
-#endif
+  initSession();
 }
 
 /* ******************************* */
 
 SNMPTrap::~SNMPTrap() {
-  releaseTrapSession();
+  stopTrapCollection();
+  releaseSession();
 }
 
 /* ******************************* */
 
 void SNMPTrap::handleTrap(struct snmp_pdu*pdu) {
+#if 1
+  for (netsnmp_variable_list *vars = pdu->variables; vars; vars = vars->next_variable) {
+    char buf[1024];
+    snprint_variable(buf, sizeof(buf), vars->name, vars->name_length, vars);
+    printf("%s\n", buf);
+  }
+#else
   netsnmp_variable_list *variable;
   char oid[MAX_OID_LEN] = {'\0'};
   tree *mib;
@@ -105,6 +111,7 @@ void SNMPTrap::handleTrap(struct snmp_pdu*pdu) {
     // Move to the next variable
     variable = variable->next_variable;
   }
+#endif
 }
 
 /* ******************************************* */
@@ -138,39 +145,16 @@ void SNMPTrap::trapCollection() {
   struct timeval tvp;
   int count, block = 1;
 
-  trap_transport = netsnmp_transport_open_server("ntopng-snmp-trap", "udp:162");
-  if(trap_transport == NULL){
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure opening snmp transport for traps\n");
-    goto exit;
-  }
-
-  // Trap session
-  trap_session = new (std::nothrow) SNMPSession;
-  if(trap_session == NULL){
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure creating trap session\n");
-    goto exit;
-  }
-
-  snmp_sess_init(&trap_session->session);
-  trap_session->session.callback = read_snmp_trap;
-  trap_session->session.callback_magic = (void *) this;
-  trap_session->session.authenticator = NULL;
-
-  trap_session_internal = snmp_add(&trap_session->session, trap_transport, NULL, NULL);
-  if (trap_session_internal == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "adding snmp trap session failed\n");
-    goto exit;
-  }
-
   numfds = 0;
-  tvp.tv_sec = timeout; tvp.tv_usec = 0;
+  tvp.tv_sec = timeout;
+  tvp.tv_usec = 0;
 
-  while(isTrapCollectionRunning()){
+  while(isTrapCollectionRunning()) {
     FD_ZERO(&fdset);
     snmp_select_info(&numfds, &fdset, &tvp, &block);
     count = select(numfds, &fdset, NULL, NULL, &tvp);
 
-    //ntop->getTrace()->traceEvent(TRACE_DEBUG, "SNMP trap select count %d", count);
+    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP trap select count %d on %d fds", count, numfds);
 
     if(count > 0) 
       snmp_read(&fdset); // Cause read_snmp_trap callback execution
@@ -179,8 +163,6 @@ void SNMPTrap::trapCollection() {
       tvp.tv_sec = timeout;
   }
 
- exit:
-  releaseTrapSession();
   trap_collection_running = false;
 }
 
@@ -212,7 +194,13 @@ void SNMPTrap::startTrapCollection() {
 /* ******************************************* */
 
 void SNMPTrap::stopTrapCollection(){
-  trap_collection_running = false;
+  void *res;
+
+  if (trap_collection_running) {
+    trap_collection_running = false;
+
+    pthread_join(trap_loop, &res);
+  }
 }
 
 /* ******************************************* */
@@ -225,7 +213,43 @@ bool SNMPTrap::isTrapCollectionRunning() {
 
 /* ******************************* */
 
-void SNMPTrap::releaseTrapSession() {
+bool SNMPTrap::initSession() {
+  trap_transport = netsnmp_transport_open_server("ntopng-snmp-trap", "udp:162");
+  if(trap_transport == NULL){
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure opening snmp transport for traps\n");
+    goto error;
+  }
+
+  // Trap session
+  trap_session = new (std::nothrow) SNMPSession;
+  if(trap_session == NULL){
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure creating trap session\n");
+    goto error;
+  }
+
+  snmp_sess_init(&trap_session->session);
+  trap_session->session.callback = read_snmp_trap;
+  trap_session->session.callback_magic = (void *) this;
+  trap_session->session.authenticator = NULL;
+
+  trap_session_internal = snmp_add(&trap_session->session, trap_transport, NULL, NULL);
+  if (trap_session_internal == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "adding snmp trap session failed\n");
+    goto error;
+  }
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP trap collector initialized");
+
+  return true;
+
+ error:
+  releaseSession();
+  return false;
+}
+
+/* ******************************* */
+
+void SNMPTrap::releaseSession() {
   if(trap_session_internal) {
     netsnmp_free(trap_session_internal);
     trap_session_internal = NULL;

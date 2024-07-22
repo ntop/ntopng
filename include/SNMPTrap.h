@@ -55,8 +55,11 @@ class SNMPTrap {
   // Handle traps
   void handleTrap(struct snmp_pdu *pdu);
 
+  // Init trap session
+  bool initSession();
+
   // Release trap session data structures
-  void releaseTrapSession();
+  void releaseSession();
 };
 
 #endif
