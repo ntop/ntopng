@@ -207,9 +207,7 @@ function maintenance_check() {
 			exit 0
 		fi
 	else
-		# Unable to read maintenance
-		set_failure "no-license" 1
-		exit 0
+		# Unable to read maintenance (Cloud license or app not found, ignore maintenance check)
 	fi
 }
 
