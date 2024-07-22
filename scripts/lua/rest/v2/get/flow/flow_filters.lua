@@ -471,7 +471,7 @@ if ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then
         value = "",
         label = i18n("all")
     }}
-    local ports_table = interface.getFlowDeviceInfo(dev_ip, true --[[ Show minimal info ]] )
+    local ports_table = interface.getFlowDeviceInfoByIP(dev_ip, true --[[ Show minimal info ]] )
     
     tmp_list = {}
     for _, ports in pairs(ports_table) do
@@ -503,7 +503,7 @@ if ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then
         value = "",
         label = i18n("all")
     }}
-    local ports_table = interface.getFlowDeviceInfo(dev_ip, false)
+    local ports_table = interface.getFlowDeviceInfoByIP(dev_ip, false)
 
     tmp_list = {}
     for _, ports in pairs(ports_table) do

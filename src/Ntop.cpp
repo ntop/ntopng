@@ -4176,6 +4176,7 @@ void Ntop::reloadMessageBroker() {
 
 bool Ntop::incNumFlowExporters() {
   bool ok = (num_flow_exporters < get_max_num_flow_exporters());
+  
   if (ok) num_flow_exporters++;
   return ok;
 }
@@ -4187,6 +4188,17 @@ bool Ntop::incNumFlowExportersInterfaces() {
   if (ok) num_flow_interfaces++;
   return ok;
 }
-#endif /* NTOPNG_PRO */
 
 /* ******************************************* */
+
+u_int32_t Ntop::getMaxNumFlowExporters() {
+  return get_max_num_flow_exporters();
+}
+
+/* ******************************************* */
+
+u_int32_t Ntop::getMaxNumFlowExportersInterfaces() {
+  return get_max_num_flow_exporters_interfaces();
+}
+
+#endif /* NTOPNG_PRO */

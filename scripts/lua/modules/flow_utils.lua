@@ -1831,7 +1831,7 @@ local function printFlowDevicesFilterDropdown(base_url, page_params)
 </div>']]
 
     if cur_dev ~= nil then -- also print dropddowns for input and output interface index
-        local ports_table = interface.getFlowDeviceInfo(cur_dev)
+        local ports_table = interface.getFlowDeviceInfoByIP(cur_dev)
 
         for _, direction in pairs({"outIfIdx", "inIfIdx"}) do
             local cur_if = _GET[direction]

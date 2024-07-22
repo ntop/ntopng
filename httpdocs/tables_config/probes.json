@@ -15,6 +15,7 @@
 			"title_i18n": "if_stats_overview.probe_ip",
 			"data_field": "probe_ip",
 			"sortable": true,
+			"max-width": "20px",
 			"class": [
 				"text-nowrap"
 			]
@@ -23,15 +24,6 @@
 			"id": "probe_public_ip",
 			"title_i18n": "if_stats_overview.probe_public_ip",
 			"data_field": "probe_public_ip",
-			"sortable": true,
-			"class": [
-				"text-nowrap"
-			]
-		},
-		{
-			"id": "probe_uuid",
-			"title_i18n": "if_stats_overview.probe_uuid",
-			"data_field": "probe_uuid",
 			"sortable": true,
 			"class": [
 				"text-nowrap"
@@ -57,6 +49,16 @@
 			]
 		},
 		{
+			"id": "exported_flows",
+			"title_i18n": "graphs.metric_labels.exported_flows",
+			"data_field": "exported_flows",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
 			"id": "dropped_flows",
 			"title_i18n": "graphs.metric_labels.dropped_flows",
 			"data_field": "dropped_flows",
@@ -67,12 +69,11 @@
 			]
 		},
 		{
-			"id": "exported_flows",
-			"title_i18n": "graphs.metric_labels.exported_flows",
-			"data_field": "exported_flows",
+			"id": "probe_uuid",
+			"title_i18n": "if_stats_overview.probe_uuid",
+			"data_field": "probe_uuid",
 			"sortable": true,
 			"class": [
-				"text-center",
 				"text-nowrap"
 			]
 		},

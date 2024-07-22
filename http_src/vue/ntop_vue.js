@@ -20,6 +20,7 @@ import { default as PageHostTLS } from "./page-host-tls.vue";
 import { default as PageHostSSH } from "./page-host-ssh.vue";
 import { default as PageHomeMap } from "./page-home-map.vue";
 import { default as PageSankey } from "./page-sankey.vue";
+//import { default as PageSankeyTest } from "./sankey-test.vue";
 import { default as PageHostDetailsApplications } from "./page-host-details-applications.vue";
 import { default as PageHostDetailsTraffic } from "./page-host-details-traffic.vue";
 import { default as PageHostDetailsPackets } from "./page-host-details-packets.vue";
@@ -41,7 +42,7 @@ import { default as PageHostsPortsAnalysis } from "./page-hosts-ports-analysis.v
 import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue";
 import { default as PageInactiveHosts } from "./page-inactive-hosts.vue";
 import { default as PageInactiveHostDetails } from "./page-inactive-host-details.vue";
-import { default as PageFlowDeviceDetails } from "./page-flowdevice-config.vue";
+import { default as PageExportersConfig } from "./page-flowdevice-config.vue";
 import { default as PageFlowDeviceInterfaceDetails } from "./page-flowdevice-interface-config.vue";
 import { default as PageVulnerabilityScan } from "./page-vulnerability-scan.vue";
 import { default as PageHostVsResult } from "./page-host-vs-result.vue";
@@ -63,6 +64,7 @@ import { default as PageCountryStats } from "./page-country-stats.vue"
 import { default as PageAsStats } from "./page-as-stats.vue"
 import { default as PageProbes } from "./page-probes.vue"
 import { default as PageExporters } from "./page-exporters.vue"
+import { default as PageExportersDetails } from "./page-exporters-details.vue"
 
 /* Config pages */
 import { default as PageSNMPConfig } from "./page-snmp-config.vue"
@@ -147,6 +149,7 @@ let ntopVue = {
     PageFlowsList: PageFlowsList,
     PageAsStats: PageAsStats,
     PageProbes: PageProbes,
+    PageExportersDetails: PageExportersDetails,
     
     /* SNMP */
     PageSNMPDevices: PageSNMPDevices,
@@ -182,10 +185,11 @@ let ntopVue = {
     PageExporters: PageExporters,
     PageAggregatedLiveFlows: PageAggregatedLiveFlows,
     PageNetworkDiscovery: PageNetworkDiscovery,
-    PageFlowDeviceDetails: PageFlowDeviceDetails,
+    PageExportersConfig: PageExportersConfig,
     PageFlowDeviceInterfaceDetails: PageFlowDeviceInterfaceDetails,
     PageHistoricalFlow: PageHistoricalFlow,
-
+    //PageSankeyTest: PageSankeyTest,
+    
     // components
     AlertInfo: AlertInfo,
     Chart: Chart,

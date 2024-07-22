@@ -319,9 +319,11 @@ static int ntop_interface_get_snmp_stats(lua_State *vm) {
 
   if (curr_iface && curr_iface->getFlowInterfacesStats()) {
     curr_iface->getFlowInterfacesStats()->lua(vm, curr_iface);
+    
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
   } else {
     lua_pushnil(vm);
+    
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   }
 }

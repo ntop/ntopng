@@ -893,14 +893,13 @@ function getNetFlowExportersUnifiedStats()
             if not unified_exporters[exporter_ip] then
                 unified_exporters[exporter_ip] = {}
             end
-            local ports_table = interface.getFlowDeviceInfo(exporter_ip)
+            local ports_table = interface.getFlowDeviceInfoByIP(exporter_ip)
             for _, ports in pairs(ports_table) do
                 for port_idx, port_info in pairs(ports) do
                     if not unified_exporters[exporter_ip][port_idx] then
                         unified_exporters[exporter_ip][port_idx] = port_info
                     else
                         local tmp = unified_exporters[exporter_ip][port_idx]
-                        tmp["throughput"] = port_info["throughput"] + (tmp["throughput"] or 0)
                         tmp["bytes.in_bytes"] = port_info["bytes.in_bytes"] + (tmp["bytes.in_bytes"] or 0)
                         tmp["bytes.out_bytes"] = port_info["bytes.out_bytes"] + (tmp["bytes.out_bytes"] or 0)
                         if not tmp.ndpi then
@@ -911,7 +910,10 @@ function getNetFlowExportersUnifiedStats()
                                 tmp["ndpi"][proto] = {}
                             end
                             for field, value in pairs(proto_info or {}) do
-                                tmp["ndpi"][proto][field] = value + (tmp["ndpi"][proto][field] or 0)
+			       if(type(value) == number) then
+				  -- skip non numeric fields such as "breed"
+				  tmp["ndpi"][proto][field] = value + (tmp["ndpi"][proto][field] or 0)
+			       end
                             end
                         end
                         unified_exporters[exporter_ip][port_idx] = tmp
@@ -932,9 +934,9 @@ function getExporterInfo(unique_source_id) -- Exporter unique_source_id
     local found = false
     if ifstats.probes then
         for interface_id, probe_list in pairs(ifstats.probes or {}) do
-            for probe_id, probe_info in pairsByValues(probe_list or {}, asc) do
+            for probe_id, probe_info in pairs(probe_list or {}) do
                 if probe_info.exporters and table.len(probe_info.exporters) > 0 then -- Sflow or NetFlow/IPFIX
-                    for exporter_ip, exporter_info in pairsByValues(probe_info.exporters or {}, asc) do
+                    for exporter_ip, exporter_info in pairs(probe_info.exporters or {}) do
                         if exporter_info.unique_source_id == unique_source_id then
                             return {
                                 exporter_ip = exporter_ip,
@@ -955,4 +957,24 @@ function getExporterInfo(unique_source_id) -- Exporter unique_source_id
     end
 
     return exporter
+end
+
+-- ##############################################
+
+function getProbeFromUUID(nprobe_uuid)
+    nprobe_uuid = tonumber(nprobe_uuid)
+    local ifstats = interface.getStats()
+    local exporter = {}
+    local found = false
+    if ifstats.probes then
+        for interface_id, probe_list in pairs(ifstats.probes or {}) do
+            for probe_id, probe_info in pairs(probe_list or {}) do
+                if nprobe_uuid == probe_info["probe.uuid_num"] then
+                    return probe_info
+                end
+            end
+        end
+    end
+
+    return nil
 end

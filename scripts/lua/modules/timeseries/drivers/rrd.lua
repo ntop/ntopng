@@ -295,7 +295,9 @@ local function number_to_rrd_string(what, schema)
     -- Log the error with the schema name
     traceError(TRACE_ERROR, TRACE_CONSOLE, string.format("%s [%s]", err_msg, schema_name))
     traceError(TRACE_ERROR, TRACE_CONSOLE, debug.traceback())
-
+    tprint(what)
+    tprint(schema)
+    
     return ("0")
 end
 
@@ -1480,6 +1482,7 @@ function driver:export()
             local tags = parsed_ts_point["tags"]
             local metrics = parsed_ts_point["metrics"]
             local base, rrd = schema_get_path(schema, tags)
+
             if rrd then
                 local rrdfile = os_utils.fixPath(base .. "/" .. rrd .. ".rrd")
 

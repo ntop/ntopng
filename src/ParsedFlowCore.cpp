@@ -29,11 +29,11 @@ ParsedFlowCore::ParsedFlowCore() {
   src_ip.reset(), dst_ip.reset();
   memset(&src_mac, 0, sizeof(src_mac));
   memset(&dst_mac, 0, sizeof(dst_mac));
-  memset(&device_ipv6, 0, sizeof(device_ipv6));
+  memset(&exporter_device_ipv6, 0, sizeof(exporter_device_ipv6));
   src_tos = dst_tos = 0;
   version = 0;
-  device_ip = 0;
-  probe_ip = 0;
+  exporter_device_ip = 0;
+  nprobe_ip = 0;
   unique_source_id = 0;
   src_port = dst_port = 0;
   inIndex = outIndex = 0;
@@ -57,10 +57,10 @@ ParsedFlowCore::ParsedFlowCore(const ParsedFlowCore &pfc) {
   src_ip.set(&pfc.src_ip), dst_ip.set(&pfc.dst_ip);
   memcpy(&src_mac, &pfc.src_mac, sizeof(src_mac));
   memcpy(&dst_mac, &pfc.dst_mac, sizeof(dst_mac));
-  memcpy(&device_ipv6, &pfc.device_ipv6, sizeof(device_ipv6));
+  memcpy(&exporter_device_ipv6, &pfc.exporter_device_ipv6, sizeof(exporter_device_ipv6));
   version = pfc.version;
-  device_ip = pfc.device_ip;
-  probe_ip = pfc.probe_ip;
+  exporter_device_ip = pfc.exporter_device_ip;
+  nprobe_ip = pfc.nprobe_ip;
   unique_source_id = pfc.unique_source_id;
   src_port = pfc.src_port, dst_port = pfc.dst_port;
   inIndex = pfc.inIndex, outIndex = pfc.outIndex;
