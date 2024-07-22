@@ -58,7 +58,7 @@ LocalHost::~LocalHost() {
   if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();
   /* Decrease number of active hosts */
-  iface->decNumHosts(isLocalHost(), isRxOnlyHost());
+  iface->decNumHosts(isLocalHost(), is_rx_only);
 }
 
 /* *************************************** */
