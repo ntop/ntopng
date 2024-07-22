@@ -26,11 +26,6 @@
 
 #define SNMP_MAX_NUM_OIDS 10
 
-#ifdef HAVE_LIBSNMP
-#include <net-snmp/net-snmp-config.h>
-#include <net-snmp/net-snmp-includes.h>
-#endif
-
 /* ******************************* */
 
 typedef enum {
@@ -40,17 +35,6 @@ typedef enum {
   snmp_set_pdu,
 } snmp_pdu_primitive;
 
-#ifdef HAVE_LIBSNMP
-class SNMPSession {
- public:
-  struct snmp_session session;
-  void *session_ptr;
-
-  SNMPSession();
-  ~SNMPSession();
-};
-#endif
-
 class SNMP {
  private:
   u_int snmp_version;
@@ -59,12 +43,6 @@ class SNMP {
   std::vector<SNMPSession *> sessions;
   /* Variables below are used for the async check */
   lua_State *vm;
-  //trap variables
-  netsnmp_transport *trap_transport;
-  SNMPSession *trap_session; 
-  netsnmp_session *trap_session_internal;
-  pthread_t trap_loop;
-  bool trap_collection_running;
 #else
   int udp_sock;
   u_int32_t request_id;
@@ -105,19 +83,6 @@ class SNMP {
                            char *oid[SNMP_MAX_NUM_OIDS],
                            char value_types[SNMP_MAX_NUM_OIDS],
                            char *values[SNMP_MAX_NUM_OIDS], bool _batch_mode);
-
-  // Call to commence trap collection
-  void startTrapCollection();
-  // Call to cease trap collection
-  void stopTrapCollection();
-  // Call to check if trap collection is active
-  bool isTrapCollectionRunning();
-  // Trap collection loop
-  void trapCollection();
-  // Handle traps
-  void handleTrap(struct snmp_pdu *pdu);
-  // Release trap session data structures
-  void releaseTrapSession();
 #endif
 
   void send_snmpv1v2c_request(char *agent_host, char *community,
