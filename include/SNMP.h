@@ -59,6 +59,12 @@ class SNMP {
   std::vector<SNMPSession *> sessions;
   /* Variables below are used for the async check */
   lua_State *vm;
+  //trap variables
+  netsnmp_transport *trap_transport;
+  SNMPSession *trap_session; 
+  netsnmp_session *trap_session_internal;
+  pthread_t trap_loop;
+  bool trap_collection_running;
 #else
   int udp_sock;
   u_int32_t request_id;
@@ -83,8 +89,6 @@ class SNMP {
  public:
   SNMP();
   ~SNMP();
-
-  void collectTraps();
   
 #ifdef HAVE_LIBSNMP
   void handle_async_response(struct snmp_pdu *pdu, const char *agent_ip);
@@ -101,7 +105,21 @@ class SNMP {
                            char *oid[SNMP_MAX_NUM_OIDS],
                            char value_types[SNMP_MAX_NUM_OIDS],
                            char *values[SNMP_MAX_NUM_OIDS], bool _batch_mode);
+
+  // Call to commence trap collection
+  void startTrapCollection();
+  // Call to cease trap collection
+  void stopTrapCollection();
+  // Call to check if trap collection is active
+  bool isTrapCollectionRunning();
+  // Trap collection loop
+  void trapCollection();
+  // Handle traps
+  void handleTrap(struct snmp_pdu *pdu);
+  // Release trap session data structures
+  void releaseTrapSession();
 #endif
+
   void send_snmpv1v2c_request(char *agent_host, char *community,
                               snmp_pdu_primitive pduType, u_int version,
                               char *oid[SNMP_MAX_NUM_OIDS], bool _batch_mode);
