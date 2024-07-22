@@ -38,7 +38,8 @@ SNMPTrap::SNMPTrap() {
   trap_session_internal = NULL;
   trap_collection_running = false;
 
-  initSession();
+  if (initSession() == false)
+    throw "Unable to listen for SNMP traps";
 }
 
 /* ******************************* */
@@ -221,7 +222,7 @@ bool SNMPTrap::isTrapCollectionRunning() {
 bool SNMPTrap::initSession() {
   trap_transport = netsnmp_transport_open_server("ntopng-snmp-trap", "udp:162");
   if(trap_transport == NULL){
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Failure opening snmp transport for traps\n");
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Failure opening snmp transport for traps\n");
     goto error;
   }
 
@@ -243,7 +244,7 @@ bool SNMPTrap::initSession() {
     goto error;
   }
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP trap collector initialized");
+  ntop->getTrace()->traceEvent(TRACE_INFO, "SNMP trap collector initialized");
 
   return true;
 
