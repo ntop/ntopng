@@ -70,7 +70,7 @@ const map_table_def_columns = (columns) => {
                 returnValue += `&nbsp;<a href="${timeseriesUrl}"><i class="fas fa-chart-area fa-lg"></i></a>`;
             }
 
-            return `<a href="${host_url}ip=${value}&probe_uuid=${row.probe_uuid}">${returnValue}</a>`;
+            return `<a href="${host_url}ip=${value}&exporter_uuid=${row.exporter_uuid}&probe_uuid=${row.probe_uuid}">${returnValue}</a>`;
         },
 
         "name": (value, row) => {

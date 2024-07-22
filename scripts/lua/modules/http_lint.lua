@@ -2667,6 +2667,7 @@ local known_parameters = {
    ["blacklist_name"] = validateUnquoted,
    ["reset_url"] = validateBool,
    ["as"] = validateNumber,
+   ["exporter_uuid"] = validateNumber,
    ["probe_uuid"] = validateNumber,
 
    -- nEdge policy
