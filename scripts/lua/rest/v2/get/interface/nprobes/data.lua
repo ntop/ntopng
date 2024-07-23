@@ -35,11 +35,7 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
     for source_id, probe_info in pairs(probes_list or {}) do
         local flow_drops = 0
         local exported_flows = 0
-        local probe_active = false
         local flow_exporters_num = table.len(probe_info.exporters)
-        if interface.getHostInfo(probe_info["probe.ip"]) then
-            probe_active = true
-        end
         if table.len(probe_info.exporters) == 0 then
             flow_exporters_num = 1 -- Packet exporter
             flow_drops = probe_info["drops.elk_flow_drops"] + probe_info["drops.flow_collection_udp_socket_drops"] +
@@ -68,8 +64,7 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
             dropped_flows = flow_drops,
             exported_flows = exported_flows,
             timeseries_enabled = timeseries_enabled,
-            ifid = interface_id,
-            is_probe_active = probe_active
+            ifid = interface_id
         }
     end
 end
