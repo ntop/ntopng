@@ -1761,7 +1761,7 @@ end
 -- @param filter A filter on the entity value (no filter by default)
 -- @param select_fields The fields to be returned (all by default or in any case for engaged)
 -- @return Selected alerts, and the total number of alerts
-function alert_store:select_request(filter, select_fields, download --[[ Available only with ClickHouse ]] , noLimit, debug)
+function alert_store:select_request(filter, select_fields, download --[[ Available only with ClickHouse ]] , debug, noLimit)
 
     -- Add filters
     self:add_request_filters()

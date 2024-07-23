@@ -70,7 +70,7 @@ end
 if not download then
 
     -- telemetry == true retrieves all the alerts in the selected temporal range
-    local alerts, recordsFiltered, info = flow_alert_store:select_request(nil, "*", download, telemetry)
+    local alerts, recordsFiltered, info = flow_alert_store:select_request(nil, "*", download, false, telemetry)
 
     
     if (telemetry == false) then
