@@ -27,10 +27,7 @@ let note_snmp_device_url = note_snmp_i18n.replace("%{url}", `${http_prefix}/lua/
 
 
 const note_list = [
-    i18n("flow_devices.note_zmq_fields1"),
-    i18n("flow_devices.note_zmq_fields2"),
     note_snmp_device_url
-  
 ]
 
 const first_open = ref(true);
@@ -72,8 +69,13 @@ const map_table_def_columns = (columns) => {
 
             return `<a href="${host_url}ip=${value}&exporter_uuid=${row.exporter_uuid}&probe_uuid=${row.probe_uuid}">${returnValue}</a>`;
         },
-
+        "probe_ip": (value, row) => {
+            return value;
+        },
         "name": (value, row) => {
+            return value
+        },
+        "ntopng_interface": (value, row) => {
             return value
         },
         "exported_flows": (value, row) => {
@@ -118,6 +120,27 @@ const map_table_def_columns = (columns) => {
             }
             return formatted_value
         },
+        "dropped_flows_last_24_h": (value, row) => {
+            let diff_value = value
+            if(!first_open.value) {
+                const old_value = localStorage.getItem("exporter_dropped_flows_last_24_h." + row.exporter_uuid + row.ip)
+                diff_value = (value - Number(old_value)) / 10
+            }
+            localStorage.setItem("exporter_dropped_flows_last_24_h." + row.exporter_uuid + row.ip, value)
+            if (!value)
+                return '';
+            let formatted_value = formatterUtils.getFormatter("number")(value)
+            if(!first_open.value) {
+                let updated_counter = ''
+                if(diff_value > 0 ) {
+                    updated_counter = '<i class="fas fa-arrow-up"></i>'
+                } else {
+                    updated_counter = "<i class='fas fa-minus'></i>"
+                }
+                formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("drops")(diff_value)} ] ${updated_counter}`
+            }
+            return formatted_value
+        },
         "flow_exporters": (value, row) => {
             if (!value) {
                 return '';
@@ -139,6 +162,8 @@ function columns_sorting(col, r0, r1) {
         if (col.id == "ip") {
             return sortingFunctions.sortByIP(r0.probe_ip, r1.probe_ip, col.sort);
         } else if (col.id == "name") {
+            return sortingFunctions.sortByName(r0.probe_public_ip, r1.probe_public_ip, col.sort);
+        } else if (col.id == "ntopng_interface") {
             return sortingFunctions.sortByName(r0.probe_public_ip, r1.probe_public_ip, col.sort);
         } else if (col.id == "exported_flows") {
             return sortingFunctions.sortByNumber(r0.probe_uuid, r1.probe_uuid, col.sort);

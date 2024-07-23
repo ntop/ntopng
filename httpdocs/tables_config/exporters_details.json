@@ -8,7 +8,7 @@
 	"columns": [
 		{
 			"id": "snmp_index",
-			"title_i18n": "flow_devices.snmp_ifindex",
+			"title_i18n": "flow_devices.interface_index",
 			"data_field": "ifindex",
 			"sortable": true,
 			"min-width": "30px",
@@ -18,7 +18,7 @@
 			]
 		},
 		{
-			"title_i18n": "flow_devices.snmp_ifname",
+			"title_i18n": "flow_devices.interface_name",
 			"data_field": "snmp_ifname",
 			"sortable": false,
 			"sticky": true,

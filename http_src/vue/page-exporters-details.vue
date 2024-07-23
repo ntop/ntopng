@@ -56,8 +56,11 @@ const map_table_def_columns = (columns) => {
     let map_columns = {
         "ifindex": (value, row) => {
             get_notes(value)
-            var snmp_interface_url = `${snmp_interface_details_url}ip=${get_ip_from_url()}&page=config&snmp_port_idx=${value}&ifid=${props.context.ifid}`
-            return `<a href=${snmp_interface_url}>${value}</i></a>`
+            const snmp_interface_url = `${snmp_interface_details_url}ip=${get_ip_from_url()}&page=config&snmp_port_idx=${value}&ifid=${props.context.ifid}`
+            if (row.snmp_interface_available)
+                return `<a href=${snmp_interface_url}>${value}</i></a>`
+            else
+                return value
         },
         "snmp_ifname": (value, row) => {
             // get table footer notes

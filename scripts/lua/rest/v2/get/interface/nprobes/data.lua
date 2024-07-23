@@ -27,6 +27,7 @@ if isEmptyString(ifid) then
 end
 
 interface.select(ifid)
+local if_names = interface.getIfNames()
 local ifstats = interface.getStats()
 local probes_stats = ifstats.probes or {}
 local timeseries_enabled = areFlowdevTimeseriesEnabled()
@@ -63,6 +64,7 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
             flow_exporters = flow_exporters_num,
             dropped_flows = flow_drops,
             exported_flows = exported_flows,
+            ntopng_interface = if_names[tostring(interface_id)],
             timeseries_enabled = timeseries_enabled,
             ifid = interface_id
         }

@@ -52,6 +52,9 @@ const map_table_def_columns = (columns) => {
         "probe_interface": (value, row) => {
             return value
         },
+        "ntopng_interface": (value, row) => {
+            return value
+        },
         "flow_exporters": (value, row) => {
             if (!value) {
                 return '';
@@ -134,6 +137,8 @@ function columns_sorting(col, r0, r1) {
             return sortingFunctions.sortByName(r0.probe_uuid, r1.probe_uuid, col.sort);
         } else if (col.id == "probe_interface") {
             return sortingFunctions.sortByName(r0.probe_interface, r1.probe_interface, col.sort);
+        } else if (col.id == "ntopng_interface") {
+            return sortingFunctions.sortByName(r0.ntopng_interface, r1.ntopng_interface, col.sort);
         } else if (col.id == "flow_exporters") {
             return sortingFunctions.sortByNumber(r0.flow_exporters, r1.flow_exporters, col.sort);
         } else if (col.id == "dropped_flows") {
