@@ -2669,6 +2669,7 @@ local known_parameters = {
    ["as"] = validateNumber,
    ["exporter_uuid"] = validateNumber,
    ["probe_uuid"] = validateNumber,
+   ["telemetry"] = validateBool,
 
    -- nEdge policy
    ["default_policy"] = validatePolicy, -- users, nedge policies

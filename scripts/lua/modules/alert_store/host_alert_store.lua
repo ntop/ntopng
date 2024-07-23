@@ -521,6 +521,63 @@ function host_alert_store:format_record(value, no_html)
     return record
 end
 
+
+function host_alert_store:format_record_telemetry(value)
+    local record = {}
+    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), true --[[ no_html --]] , alert_entities.host.entity_id)
+    -- Convert alert info to JSON
+    local alert_json = json.decode(value["json"])
+    local hostTotalScore = tonumber(alert_json["value"])
+    local isLocalHost = alert_json["alert_generation"]["host_info"]["localhost"]
+
+    local hostSide = ""
+    local hostRole = ""
+    local ipVersion = ""
+    local hostType = ""
+
+    if (value["ip_version"] == "4") then
+        ipVersion = "IPv4"
+    else
+        ipVersion = "IPv6"
+    end
+
+    if (value["is_client"] == "1") then
+        hostSide = "Host is Client"
+    else
+        hostSide = "Host is Server"
+    end
+
+    if (value["is_victim"] == "1") then
+        hostRole = "Host is Victim"
+    else
+        hostRole = "Host is Attacker"
+    end
+
+    if (isLocalHost) then
+        hostType = "Localhost"
+    else
+        hostType = "Remote"
+    end
+
+    -- Prepare response
+    record["timestamp"] = format_utils.formatPastEpochShort(value["tstamp"])
+    record['interfaceId'] = tonumber(value["interface_id"])
+    record['hostIP'] = value["ip"]
+    record["hostTotalScore"] = hostTotalScore
+    record["alertName"] = alert_name
+    record["hostRole"] = hostRole
+    record["hostType"] = hostSide
+    record["ipVersion"] = ipVersion
+    record['rowId'] = value["rowid"]
+    record['hostLocation'] = hostType
+    
+    if (not isEmptyString(value["country"])) then
+        record["hostCountry"] = value["country"]
+    end
+
+
+    return record
+end
 -- ##############################################
 
 return host_alert_store
