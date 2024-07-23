@@ -31,7 +31,7 @@ To load a custom CSS, place it under
 
 .. code:: bash
 
-  /etc/ntopng/custom_theme.css
+  /etc/ntopng/custom-theme.css
 
 Automatic updates are disabled in OEM mode, unless a custom repository is configured.
 The sources file for the repository should be placed under
