@@ -374,7 +374,7 @@ function page_utils.print_header(title, addLoginJS)
       print[[<script type="application/javascript" src="]] print(http_prefix) print[[/dist/login.js?]] print(static_file_epoch) print[["></script>]]
     end
 
-    if(ntop.isPro() and ntop.exists(dirs.installdir.."/css/custom-theme.css")) then
+    if(ntop.isPro() and ntop.exists(dirs.installdir.."/httpdocs/css/custom-theme.css")) then
       print [[
         <link href="]] print(http_prefix) print[[/css/custom-theme.css?]] print(static_file_epoch) print[[" rel="stylesheet">
       ]]

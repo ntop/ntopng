@@ -900,6 +900,7 @@ function getNetFlowExportersUnifiedStats()
                         unified_exporters[exporter_ip][port_idx] = port_info
                     else
                         local tmp = unified_exporters[exporter_ip][port_idx]
+                        tmp["ifid"] = interface_id
                         tmp["bytes.in_bytes"] = port_info["bytes.in_bytes"] + (tmp["bytes.in_bytes"] or 0)
                         tmp["bytes.out_bytes"] = port_info["bytes.out_bytes"] + (tmp["bytes.out_bytes"] or 0)
                         if not tmp.ndpi then
@@ -910,10 +911,10 @@ function getNetFlowExportersUnifiedStats()
                                 tmp["ndpi"][proto] = {}
                             end
                             for field, value in pairs(proto_info or {}) do
-			       if(type(value) == number) then
-				  -- skip non numeric fields such as "breed"
-				  tmp["ndpi"][proto][field] = value + (tmp["ndpi"][proto][field] or 0)
-			       end
+                                if (type(value) == number) then
+                                    -- skip non numeric fields such as "breed"
+                                    tmp["ndpi"][proto][field] = value + (tmp["ndpi"][proto][field] or 0)
+                                end
                             end
                         end
                         unified_exporters[exporter_ip][port_idx] = tmp
@@ -953,7 +954,7 @@ function getExporterInfo(unique_source_id) -- Exporter unique_source_id
                     }
                 end
             end
-        end            
+        end
     end
 
     return exporter
