@@ -72,7 +72,17 @@ const map_table_def_columns = (columns) => {
             if (!value) {
                 return '';
             } else {
-                return `<a href="${exporter_url}&ifid=${row.ifid}&ip=${row.probe_ip}"><i class="fas fa-file-export"></i> ${formatterUtils.getFormatter("number")(value)}</a>` 
+                let formatted_value = formatterUtils.getFormatter("number")(value)
+                if(!first_open.value) {
+                    let updated_counter = ''
+                    if(diff_value > 0 ) {
+                        updated_counter = '<i class="fas fa-arrow-up"></i>'
+                    } else {
+                        updated_counter = "<i class='fas fa-minus'></i>"
+                    }
+                    formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("drops")(diff_value)} ] ${updated_counter}`
+                }
+                return formatted_value
             }
         },
         "exported_flows": (value, row) => {
@@ -85,7 +95,17 @@ const map_table_def_columns = (columns) => {
             if (!value) {
                 return '';
             } else {
-                return `<a href="${exporter_url}&ifid=${row.ifid}&ip=${row.probe_ip}"><i class="fas fa-file-export"></i> ${formatterUtils.getFormatter("number")(value)}</a>` 
+                let formatted_value = formatterUtils.getFormatter("number")(value)
+                if(!first_open.value) {
+                    let updated_counter = ''
+                    if(diff_value > 0 ) {
+                        updated_counter = '<i class="fas fa-arrow-up"></i>'
+                    } else {
+                        updated_counter = "<i class='fas fa-minus'></i>"
+                    }
+                    formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("fps_short")(diff_value)} ] ${updated_counter}`
+                }
+                return formatted_value
             }
         },
         "probe_edition": (value, row) => {
