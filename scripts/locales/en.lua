@@ -184,6 +184,7 @@ local lang = {
   ["delete_since"] = "Are you sure to remove ALL Inactive Hosts older than:",
   ["delete_vs_host"] = "Are you sure to remove the selected host to scan? This action cannot be undone.",
   ["delete_vs_host_title"] = "Delete Host to Scan",
+  ["add_vs_host"] = "Add Host to Scan",
   ["denied"] = "Denied",
   ["description"] = "Description",
   ["destination"] = "Destination",
