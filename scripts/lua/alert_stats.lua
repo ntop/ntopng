@@ -151,6 +151,89 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- ##################################################
 
+-- Query Presets (Custom Queries)
+
+local dt_columns_def
+
+local query_preset = _GET["query_preset"] -- Example: &query_preset=contacts
+
+if ntop.isEnterpriseL() then
+   package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path 
+   local db_query_presets = require "db_query_presets"
+   local os_utils = require "os_utils"
+   local datatable_utils = require "datatable_utils"
+
+   local query_presets = db_query_presets.get_presets(
+      os_utils.fixPath(dirs.installdir .. "/scripts/historical/alerts/" .. page)
+   )
+
+   if isEmptyString(query_preset) or not query_presets[query_preset] then
+      query_preset = ""
+   else
+      local preset = query_presets[query_preset]
+
+      -- Table columns
+      if preset.select and #preset.select.items > 0 then
+
+         -- New columns definition (used to build a JSON definition)
+         dt_columns_def = {}
+
+         for _, item in ipairs(preset.select.items) do
+            local i18n_label = item.name
+            local column_def = nil
+
+            -- Hide columns which are already rendered in other columns (e.g. cli_name -> cli_ip)
+            if item.name == 'name' or
+               item.name == 'cli_name' or
+               item.name == 'srv_name' then
+               goto continue
+            end
+
+            if item.tag then
+               column_def = datatable_utils.get_datatable_column_def_by_tag(item.tag)
+               i18n_label = column_def.title_i18n
+            else
+
+               local def_builder = nil
+               if item.value_type then
+                  def_builder = datatable_utils.datatable_column_def_builder_by_type[item.value_type]
+               end
+               if not def_builder then
+                  def_builder = datatable_utils.datatable_column_def_builder_by_type['default']
+               end
+
+               if i18n(item.name) then
+                  i18n_label = item.name
+               elseif i18n("db_search." .. item.name) then
+                  i18n_label = "db_search." .. item.name
+               elseif i18n("db_search.tags." .. item.name) then
+                  i18n_label = "db_search.tags." .. item.name
+               end
+
+               -- if the localized title is not available, set title to the label from the preset
+               local title
+               if i18n_label and isEmptyString(i18n(i18n_label)) then
+                  title = i18n_label
+                  i18n_label = nil
+               end
+
+               column_def = def_builder(item.name, i18n_label)
+
+               if title then
+                  column_def.title = title
+               end
+            end
+
+            dt_columns_def[#dt_columns_def + 1] = column_def
+
+            ::continue::
+         end
+      end
+   end
+end
+
+-- ##################################################
+
 if traffic_extraction_available then
     local ui_utils = require "ui_utils"
     -- PCAP modal for alert traffic extraction
@@ -187,6 +270,7 @@ local context = {
     show_acknowledge_all = (page ~= 'all') and (status == "historical"),
     show_delete_all = (page ~= 'all') and (status ~= "engaged"),
     show_actions = (page ~= 'all'),
+    columns_def = dt_columns_def, -- custom columns definition (custom queries)
     download = {
         endpoint = download_endpoint_list
     },
