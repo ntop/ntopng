@@ -528,15 +528,20 @@ function alert_consts.getAlertMitreInfoIDs(v)
          local values = key.meta.mitre_values
          local tactic = nil
          local tecnique = nil
+         local sub_tecnique = nil
          if values.mitre_tactic then
             tactic = values.mitre_tactic.id or nil
          end
          if values.mitre_tecnique then
             tecnique = values.mitre_tecnique.id or nil
          end
+         if values.mitre_sub_tecnique then
+            sub_tecnique = values.mitre_sub_tecnique.id or nil
+         end
          res = {
             mitre_tactic_id = tactic,
             mitre_tecnique_id = tecnique,
+            mitre_sub_tecnique_id = sub_tecnique,
             mitre_id = values.mitre_id
          }
       end

@@ -246,4 +246,8 @@ vs_utils.restore_host_to_scan()
 -- Reload Alert Exclusions
 ntop.reloadAlertExclusions()
 
+-- initialization of mitre attack matrix informations
+local mitre_utils = require "mitre_utils"
+local mitre_table = mitre_utils.insertDBMitreInfo() 
+
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")

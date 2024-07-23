@@ -955,6 +955,7 @@ local lang = {
     ["interface"] = "Interface",
     ["l7"] = "L7 Proto",
     ["mac"] = "MAC Address",
+    ["mitre"] = "Mitre Attack Matrix",
     ["network"] = "Local Networks",
     ["other"] = "Other",
     ["snmp_device"] = "SNMP",

@@ -297,6 +297,19 @@ CREATE INDEX IF NOT EXISTS `system_alerts_i_severity` ON `system_alerts`(severit
 CREATE INDEX IF NOT EXISTS `system_alerts_i_tstamp` ON `system_alerts`(tstamp);
 CREATE INDEX IF NOT EXISTS `system_alerts_i_alert_status` ON `system_alerts`(alert_status);
 
+-- -----------------------------------------------------
+-- Table `mitre_table_info`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `mitre_table_info` (
+  `alert_id` INTEGER,
+  `entity_id` INTEGER,
+  `tactic` INTEGER NULL,
+  `tecnique` INTEGER NULL,
+  `sub_tecnique` INTEGER NULL,
+  `mitre_id` TEXT NULL,
+  PRIMARY KEY (`alert_id`, `entity_id`)
+);
+
 /* NOTE: add new ALTER TABLE statements before any pre existing ALTER TABLE statement,
  * this because SQLite does not support IF NOT EXISTS on ALTER TABLE, thus they will fail
  * on the second execution, preventing any subsequent statement to be executed.  */
@@ -310,6 +323,7 @@ ALTER TABLE `network_alerts` ADD `alert_category` INTEGER NULL;
 ALTER TABLE `interface_alerts` ADD `alert_category` INTEGER NULL;
 ALTER TABLE `user_alerts` ADD `alert_category` INTEGER NULL;
 ALTER TABLE `system_alerts` ADD `alert_category` INTEGER NULL;
+ALTER TABLE `mitre_table_info` ADD `alert_category` INTEGER NULL;
 
 ALTER TABLE `flow_alerts` ADD `output_snmp` INTEGER NULL;
 ALTER TABLE `flow_alerts` ADD `input_snmp` INTEGER NULL;
@@ -336,4 +350,4 @@ ALTER TABLE `network_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `interface_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `user_alerts` ADD `interface_id` INTEGER NULL;
 ALTER TABLE `system_alerts` ADD `interface_id` INTEGER NULL;
-
+ALTER TABLE `mitre_table_info` ADD `interface_id` INTEGER NULL;
