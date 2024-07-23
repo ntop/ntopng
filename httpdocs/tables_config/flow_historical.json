@@ -110,6 +110,16 @@
 			]
 		},
 		{
+			"title_i18n": "db_search.alert_id",
+			"data_field": "alert_id",
+			"min-width": "80px",
+			"sortable": true,
+			"render_generic": "alert_id",
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
 			"title_i18n": "flow",
 			"data_field": "flow",
 			"min-width": "300px",
@@ -117,6 +127,15 @@
 			"sortable": false,
 			"class": [
 				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "db_search.info",
+			"data_field": "info",
+			"min-width": "30px",
+			"sortable": true,
+			"class": [
+				"no-wrap"
 			]
 		},
 		{
@@ -190,16 +209,6 @@
 			]
 		},
 		{
-			"title_i18n": "db_search.alert_id",
-			"data_field": "alert_id",
-			"min-width": "150px",
-			"sortable": true,
-			"render_generic": "alert_id",
-			"class": [
-				"no-wrap"
-			]
-		},
-		{
 			"title_i18n": "db_search.flow_risk",
 			"data_field": "flow_risk",
 			"min-width": "150px",
@@ -263,15 +272,6 @@
 			"title_i18n": "db_search.srv_nw_latency",
 			"data_field": "srv_nw_latency",
 			"min-width": "100px",
-			"sortable": true,
-			"class": [
-				"no-wrap"
-			]
-		},
-		{
-			"title_i18n": "db_search.info",
-			"data_field": "info",
-			"min-width": "180px",
 			"sortable": true,
 			"class": [
 				"no-wrap"
