@@ -77,7 +77,7 @@ function getProbesName(flowdevs, show_vlan, shorten_len)
     for interface, devices in pairs(flowdevs or {}) do
         local device_list = {} 
         if table.len(devices or {}) > 0 then
-            for id, device_info in pairsByValues(devices or {}, asc) do
+            for id, device_info in pairsByKeys(devices or {}, asc) do
                 device_list[device_info.exporter_ip] = getProbeName(device_info.exporter_ip, show_vlan, shorten_len)
             end
             probes_list[interface] = device_list

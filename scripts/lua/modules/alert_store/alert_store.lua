@@ -962,6 +962,7 @@ end
 -- ##############################################
 
 -- NOTE parameter 'filter' is ignored
+
 -- NOTE noLimit should be used only with small deltas between epoch_end - epoch_begin to not overload the db
 function alert_store:select_historical(filter, fields, download --[[ Available only with ClickHouse ]], noLimit)
     local table_name = self:get_table_name()
