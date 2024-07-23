@@ -5,9 +5,10 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+local db_search_manager
 if ntop.isEnterprise() then
     package.path = dirs.installdir .. "/scripts/lua/pro/modules/flow_db/?.lua;" .. package.path
-    local db_search_manager = require "db_search_manager"
+    db_search_manager = require "db_search_manager"
 end
 
 -- Import the classes library.
@@ -1624,5 +1625,106 @@ function flow_alert_store:get_alert_details(value)
 
     return details
 end
+
+
+
+function flow_alert_store:format_record_telemetry(value)
+    local record = {}
+
+    -- Get alert info
+    local alert_info = alert_utils.getAlertInfo(value)
+    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), true, alert_entities.flow.entity_id)
+    -- local msg = alert_utils.formatFlowAlertMessage(interface.getId(), value, alert_info, false, local_explorer)
+
+    -- Flow related info
+    local alert_json = not isEmptyString(value.json) and (json.decode(value.json) or {}) or {}
+    local flow_related_info = addExtraFlowInfo(alert_json, value, true)
+    -- addExtraFlowInfo ->  addHTTPInfoToAlertDescr, addDNSInfoToAlertDescr, addTLSInfoToAlertDescr, addICMPInfoToAlertDescr, addBytesInfoToAlertDescr
+
+    -- TLS IssuerDN
+    local flow_tls_issuerdn = nil
+    if tonumber(value.alert_id) == flow_alert_keys.flow_alert_tls_certificate_selfsigned then
+        flow_tls_issuerdn = alert_utils.get_flow_risk_info(ntop.getFlowAlertRisk(tonumber(value.alert_id)), alert_info)
+        flow_tls_issuerdn = flow_tls_issuerdn or getExtraFlowInfoTLSIssuerDN(alert_json)
+    end
+
+    -- get alert details page info
+    local flow = db_search_manager.get_flow(value["rowid"], value["tstamp_epoch"], "")
+    
+    -- client info
+    local cli_ip = value["cli_ip"]
+    local cli_country = value["cli_country"] or (cli_ip and interface.getHostMinInfo(cli_ip)["country"]) or ""
+
+    local flow_cli_ip = {
+        sourceAddress = cli_ip or "",
+        sourcePort = value["cli_port"],
+        sourceCountry = cli_country
+    }
+
+    local cli_blacklisted = value["cli_blacklisted"] or ""
+    
+    if cli_blacklisted == "1" then
+        cli_blacklisted = true
+    else
+        cli_blacklisted = false
+    end
+    
+    flow_cli_ip.sourceIsBlacklisted = cli_blacklisted
+
+    -- server info
+    local srv_ip = value["srv_ip"]
+    local srv_country = value["srv_country"] or (srv_ip and interface.getHostMinInfo(srv_ip)["country"])
+    
+    local flow_srv_ip = {
+        destinationAddress = srv_ip or "",
+        destinationPort = value["srv_port"],
+        destinationCountry = srv_country
+    }
+
+    local srv_blacklisted = value["srv_blacklisted"] or ""
+    
+    if srv_blacklisted == "1" then
+        srv_blacklisted = true
+    else
+        srv_blacklisted = false
+    end
+    
+    flow_srv_ip.destinationIsBlacklisted = srv_blacklisted
+
+    local l4_protocol = not isEmptyString(value["proto"]) and l4_proto_to_string(value["proto"])
+    local l7_protocol = tonumber(value["l7_master_proto"]) and tonumber(value["l7_proto"]) and
+                            interface.getnDPIFullProtoName(tonumber(value["l7_master_proto"]),
+            tonumber(value["l7_proto"])) or ""
+
+    -- Prepare response
+    record.event = {
+        eventId = value["rowid"],
+        timestamp = tonumber(value["tstamp"] or ""),
+        eventTypeCode = tonumber(value["alert_id"]),
+        eventTypeName = alert_name,
+        eventScore = tonumber(value["score"] or ""),
+        eventContent = value["info"],
+        eventDetail = flow_related_info
+    }
+
+    record.flow = {
+        flowProtocolL4 = l4_proto,
+        flowApplicationL7 = l7_protocol,
+        numBytesDestinationToSource = tonumber(flow["DST2SRC_BYTES"] or 0),
+        numBytesSourceToDestination = tonumber(flow["SRC2DST_BYTES"] or 0),
+        -- packetsExchanged = tonumber(flow["PACKETS"] or "")
+    }
+
+    record.source = flow_cli_ip
+    record.destination = flow_srv_ip
+     
+    -- record.community_id = value["community_id"]
+    -- record.dst2src_tcp_flags = tonumber(flow["DST2SRC_TCP_FLAGS"] or "")
+    -- record.src2dst_tcp_flags = tonumber(flow["SRC2DST_TCP_FLAGS"] or "")
+    
+    return record
+end
+
+
 
 return flow_alert_store

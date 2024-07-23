@@ -897,7 +897,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
 
     -- select (array of values)
     -- tprint(tag.value_type)
-
     if (tag.value_type == "alert_id" or tag.value_type == "alert_type" --[[ alert_id should be used --]] ) and entity ~=
         nil then
 
@@ -1233,7 +1232,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
     elseif tag.value_type == "snmp_interface" then
         if ntop.isPro() then
             filter.value_type = 'array'
-
+            
             if snmp_filter_options_cache then
                 filter.options = snmp_filter_options_cache
             else
@@ -1293,22 +1292,22 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                     end
                 end
 
-                for _, device_list in pairs(flow_devices or {}) do
+                for exporter_ip, _ in pairs(flow_devices or {}) do
                     -- Add interfaces for flow devices which are not polled by SNMP
-                    for probe_ip, _ in pairs(device_list) do
-                        local interfaces = interface.getFlowDeviceInfoByIP(probe_ip)
-                        for _, interfaces_table in pairs(interfaces) do
-                            for interface_id, interface_info in pairsByKeys(interfaces_table) do
-                                local label = format_portidx_name(probe_ip, interface_id, false, false)
-                                if not hide_exporters_name then
-                                    label = probe_ip .. ' · ' .. label
-                                end
-                                interfaces_list[label] = {
-                                    value = probe_ip .. "_" .. interface_id,
-                                    label = label,
-                                    show_only_value = probe_ip
-                                }
+                    local interfaces = interface.getFlowDeviceInfoByIP(exporter_ip)
+                    
+                    for _, interfaces_table in pairs(interfaces) do
+                        for interface_id, interface_info in pairsByKeys(interfaces_table) do
+
+                            local label = format_portidx_name(exporter_ip, interface_id, false, false)
+                            if not hide_exporters_name then
+                                label = exporter_ip .. ' · ' .. label
                             end
+                            interfaces_list[label] = {
+                                value = exporter_ip .. "_" .. interface_id,
+                                label = label,
+                                show_only_value = exporter_ip
+                            }
                         end
                     end
                 end

@@ -962,7 +962,8 @@ end
 -- ##############################################
 
 -- NOTE parameter 'filter' is ignored
-function alert_store:select_historical(filter, fields, download --[[ Available only with ClickHouse ]] )
+-- NOTE noLimit should be used only with small deltas between epoch_end - epoch_begin to not overload the db
+function alert_store:select_historical(filter, fields, download --[[ Available only with ClickHouse ]], noLimit)
     local table_name = self:get_table_name()
     local res = {}
     local where_clause = ''
@@ -1026,6 +1027,10 @@ function alert_store:select_historical(filter, fields, download --[[ Available o
         limit_clause = string.format("LIMIT %u", self._limit)
     end
 
+    -- Do not limit the query, to be used with telemetry and small difference between epoch_end - epoch_begin
+    if (noLimit == true) then
+        limit_clause = ""
+    end
     -- [OPTIONAL] Add offset for pagination
     if self._offset then
         offset_clause = string.format("OFFSET %u", self._offset)
@@ -1756,7 +1761,7 @@ end
 -- @param filter A filter on the entity value (no filter by default)
 -- @param select_fields The fields to be returned (all by default or in any case for engaged)
 -- @return Selected alerts, and the total number of alerts
-function alert_store:select_request(filter, select_fields, download --[[ Available only with ClickHouse ]] , debug)
+function alert_store:select_request(filter, select_fields, download --[[ Available only with ClickHouse ]] , debug, noLimit)
 
     -- Add filters
     self:add_request_filters()
@@ -1781,7 +1786,6 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
 
             if query_presets[p] then
                 local preset = query_presets[p]
-
                 -- Select fields
                 if not isEmptyString(preset.select.sql) then
                     select_fields = preset.select.sql
@@ -1825,7 +1829,7 @@ function alert_store:select_request(filter, select_fields, download --[[ Availab
         self:add_request_ranges()
 
         local res, info =
-            self:select_historical(filter, select_fields, download --[[ Available only with ClickHouse ]] )
+            self:select_historical(filter, select_fields, download --[[ Available only with ClickHouse ]], noLimit )
 
         return res, total_row, info, is_engaged
     end

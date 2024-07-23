@@ -23,7 +23,7 @@ local ifid = _GET["ifid"]
 local format = _GET["format"]
 local epoch_begin = _GET["epoch_begin"]
 local epoch_end = _GET["epoch_end"]
-local verbose = _GET["verbose"]
+local telemetry = toboolean(_GET["telemetry"])
 
 local no_html = false
 local download = false
@@ -65,12 +65,22 @@ if ((epoch_begin ~= nil) and (epoch_end ~= nil)) then
     end
 end
 
-if not download then
-    local alerts, recordsFiltered, info = flow_alert_store:select_request(nil, "*")
 
-    for _, _value in ipairs(alerts or {}) do
-        -- tprint(_value)
-        res[#res + 1] = flow_alert_store:format_record(_value, no_html, toboolean(verbose))
+
+if not download then
+
+    -- telemetry == true retrieves all the alerts in the selected temporal range
+    local alerts, recordsFiltered, info = flow_alert_store:select_request(nil, "*", download, false, telemetry)
+
+    
+    if (telemetry == false) then
+        for _, _value in ipairs(alerts or {}) do
+            res[#res + 1] = flow_alert_store:format_record(_value, no_html)
+        end
+    else
+        for _, _value in ipairs(alerts or {}) do
+            res[#res + 1] = flow_alert_store:format_record_telemetry(_value)
+        end
     end
 
     if format == "txt" then
