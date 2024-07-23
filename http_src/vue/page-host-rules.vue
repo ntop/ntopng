@@ -76,7 +76,7 @@ const metric_vlan_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules
 const metric_profiles_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=profiles`;
 
 const metric_flow_exp_device_url = `${http_prefix}/lua/pro/rest/v2/get/interface/host_rules/host_rules_metric.lua?rule_type=exporter`;
-const flow_devices_url = `${http_prefix}/lua/pro/rest/v2/get/flowdevices/stats.lua`;
+const flow_devices_url = `${http_prefix}/lua/pro/rest/v2/get/flowdevices/list.lua`;
 const flow_devices_details_url = `${http_prefix}/lua/pro/enterprise/flowdevice_details.lua`;
 const host_pool_url = `${http_prefix}/lua/rest/v2/get/host/pool/pools.lua`;
 const network_list_url = `${http_prefix}/lua/rest/v2/get/network/networks.lua`;
@@ -458,7 +458,7 @@ const get_flow_exporter_devices_list = async function () {
   const url = NtopUtils.buildURL(flow_devices_url, {
     ...rest_params
   })
-
+  
   await $.get(url, function (rsp, status) {
     flow_exporter_list = rsp.rsp;
   });
