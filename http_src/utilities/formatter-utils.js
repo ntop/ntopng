@@ -153,6 +153,15 @@ const types = {
         max_value: 100,
         absolute_value: true,
     },
+    ratio: {
+        id: "ratio",
+        um: [""],
+        step: 101,
+        decimal: 2,
+        scale_values: null,        
+        max_value: 100,
+        absolute_value: true,
+    },
 };
 
 function getUnitMeasureLen(type) {

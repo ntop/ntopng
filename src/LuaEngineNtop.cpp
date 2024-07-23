@@ -4676,6 +4676,23 @@ static int ntop_snmp_read_responses(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_snmp_toggle_trap_collection(lua_State *vm) {
+  bool enable = false;
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK)
+    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  enable = (bool)lua_toboolean(vm, 1);
+
+#ifdef HAVE_SNMP_TRAP
+  ntop->toggleSNMPTrapCollector(enable);
+#endif
+
+  lua_pushnil(vm);
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 #ifndef WIN32
 static int ntop_syslog(lua_State *vm) {
   char *msg;
@@ -8119,6 +8136,7 @@ static luaL_Reg _ntop_reg[] = {
     { "snmpgetbulkavailable", ntop_is_libsnmp_available },
     { "snmpMaxNumEngines",    ntop_snmp_max_num_engines },
     { "snmpSetBulkMaxNumRepetitions", ntop_snmp_set_bulk_max_repetitions },
+    { "snmpToggleTrapCollection", ntop_snmp_toggle_trap_collection },
 
     /* Synchronous */
     { "snmpget", ntop_snmpget},

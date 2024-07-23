@@ -390,6 +390,9 @@ int main(int argc, char *argv[])
   ntop->loadGeolocation();
   ntop->loadMacManufacturers(prefs->get_docs_dir());
   ntop->loadTrackers();
+#ifdef HAVE_SNMP_TRAP
+  ntop->initSNMPTrapCollector();
+#endif
 
   /* Register the HTTP server before dropping the privileges. This is required
    * in order to possibly bind the HTTP server to privileged ports (< 1024) */
