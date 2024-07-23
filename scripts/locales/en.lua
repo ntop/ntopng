@@ -3240,6 +3240,7 @@ local lang = {
     ["nprobe_instances"] = "nProbe Instances",
     ["ntopng_interface"] = "ntopng Interface",
     ["probes_overview"] = "Probes Overview",
+    ["exporters_menu_entry"] = "Probes",
     ["observation_point"] = "Observation Point",
     ["observation_point_x"] = "Observation Point %{observation_point}",
     ["observation_points"] = "Observation Points",
