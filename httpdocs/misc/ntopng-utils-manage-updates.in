@@ -206,7 +206,7 @@ function maintenance_check() {
 			set_failure "expired-maintenance" 1
 			exit 0
 		fi
-	else
+	# else
 		# Unable to read maintenance (Cloud license or app not found, ignore maintenance check)
 	fi
 }
