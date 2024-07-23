@@ -35,7 +35,7 @@
             </button>
 
             <button v-show="modal_data && modal_data.length > 0" data-bs-toggle="tooltip" data-placement="bottom"
-                title="{{ i18n('show_alerts.remove_filters') }}" @click="remove_filters"
+                :title="i18n('show_alerts.remove_filters')" @click="remove_filters"
                 class="btn ms-1 my-auto btn-sm btn-remove-tags">
                 <i class="fas fa-times"></i>
             </button>
