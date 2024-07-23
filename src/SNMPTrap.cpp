@@ -55,8 +55,9 @@ void SNMPTrap::handleTrap(struct snmp_pdu*pdu) {
 #if 1
   for (netsnmp_variable_list *vars = pdu->variables; vars; vars = vars->next_variable) {
     char buf[1024];
+
     snprint_variable(buf, sizeof(buf), vars->name, vars->name_length, vars);
-    printf("%s\n", buf);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s\n", buf);
   }
 #else
   netsnmp_variable_list *variable;
@@ -67,56 +68,64 @@ void SNMPTrap::handleTrap(struct snmp_pdu*pdu) {
   while (variable) {
     // Fill oid with an human readable oid
     if(snprint_objid(oid, sizeof(oid), variable->name_loc, variable->name_length))
-        printf("oid: %s\n", oid);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "oid: %s\n", oid);
 
     // Now let's figure out the mib
     mib = get_tree(variable->name_loc, variable->name_length, get_tree_head());
     while(mib && mib->next_peer)
       mib = mib->next_peer;
-    printf("mib %s\n",mib->label);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "mib %s\n",mib->label);
 
     // Managed types being in netsnmp_vardata
     switch (variable->type) {
-      case ASN_INTEGER:
-        printf("integer: %ld\n", *variable->val.integer);
-        break;
-      case ASN_OCTET_STR:
-        printf("string: %.*s\n", (int)variable->val_len, variable->val.string);
-        break;
-      case ASN_OBJECT_ID:
-        printf("oid: ");
-        for (size_t i = 0; i < variable->val_len / sizeof(oid); i++) {
-          printf("%s%lu", i ? "." : "", variable->val.objid[i]);
-        }
-        printf("\n");
-        break;
-      case ASN_BIT_STR:
-        printf("bit string: ");
-        for (size_t i = 0; i < variable->val_len; i++) {
-          printf("%02x ", variable->val.bitstring[i]);
-        }
-        printf("\n");
-        break;
-      case ASN_COUNTER64:
-        printf("counter64 high: %lu\n", variable->val.counter64->high);
-        printf("counter64 low: %lu\n", variable->val.counter64->low);
-        break;
-  #ifdef NETSNMP_WITH_OPAQUE_SPECIAL_TYPES
-      case ASN_OPAQUE_FLOAT:
-        printf("float: %f\n", *variable->val.floatVal);
-        break;
-      case ASN_OPAQUE_DOUBLE:
-        printf("double: %f\n", *variable->val.doubleVal);
-        break;
-  #endif
-      default:
-        printf("Unmanaged ASN type: %u\n", variable->type);
-        break;
+    case ASN_INTEGER:
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "integer: %ld\n", *variable->val.integer);
+      break;
+
+    case ASN_OCTET_STR:
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "string: %.*s\n", (int)variable->val_len, variable->val.string);
+      break;
+
+    case ASN_OBJECT_ID:
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "oid: ");
+      for (size_t i = 0; i < variable->val_len / sizeof(oid); i++) {
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s%lu", i ? "." : "", variable->val.objid[i]);
+      }
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "\n");
+      break;
+
+    case ASN_BIT_STR:
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "bit string: ");
+      for (size_t i = 0; i < variable->val_len; i++) {
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%02x ", variable->val.bitstring[i]);
+      }
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "\n");
+      break;
+
+    case ASN_COUNTER64:
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "counter64 high: %lu\n", variable->val.counter64->high);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "counter64 low: %lu\n", variable->val.counter64->low);
+      break;
+
+#ifdef NETSNMP_WITH_OPAQUE_SPECIAL_TYPES
+    case ASN_OPAQUE_FLOAT:
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "float: %f\n", *variable->val.floatVal);
+      break;
+
+    case ASN_OPAQUE_DOUBLE:
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "double: %f\n", *variable->val.doubleVal);
+      break;
+#endif
+
+    default:
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unmanaged ASN type: %u\n", variable->type);
+      break;
     }
 
     // Move to the next variable
     variable = variable->next_variable;
   }
+
 #endif
 }
 
@@ -127,18 +136,21 @@ int read_snmp_trap(int operation, struct snmp_session *sp, int reqid,
                    struct snmp_pdu *pdu, void *magic){
   SNMPTrap *s = (SNMPTrap *) magic;
   int ret = 0;
-  switch (pdu->command){
-    case SNMP_MSG_TRAP:
-    case SNMP_MSG_TRAP2:
-      ntop->getTrace()->traceEvent(TRACE_DEBUG,  "trap type %ld specific type %ld", pdu->trap_type, pdu->specific_type);
-      //call SNMPTrap method to have reference to lua state
-      s->handleTrap(pdu);
+
+  switch (pdu->command) {
+  case SNMP_MSG_TRAP:
+  case SNMP_MSG_TRAP2:
+    ntop->getTrace()->traceEvent(TRACE_DEBUG,  "trap type %ld specific type %ld", pdu->trap_type, pdu->specific_type);
+    //call SNMPTrap method to have reference to lua state
+    s->handleTrap(pdu);
     break;
-    default:
-      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Invalid operation %d",operation);
-      ret = 1; 
+
+  default:
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Invalid operation %d",operation);
+    ret = 1;
     break;
   }
+
   return ret;
 }
 
@@ -162,7 +174,7 @@ void SNMPTrap::trapCollection() {
 
     //ntop->getTrace()->traceEvent(TRACE_NORMAL, "SNMP trap select count %d on %d fds", count, numfds);
 
-    if(count > 0) 
+    if(count > 0)
       snmp_read(&fdset); // Cause read_snmp_trap callback execution
 
     if(tvp.tv_sec == 0)
@@ -178,14 +190,14 @@ static void *trapLoop(void *ptr) {
   SNMPTrap *snmp = (SNMPTrap *) ptr;
 
   snmp->trapCollection();
-  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminated SNMP trap collection");
 
   return(NULL);
 }
 
 /* ******************************************* */
-      
+
 void SNMPTrap::startTrapCollection() {
   if (trap_collection_running)
     return; /* already running */
@@ -200,9 +212,9 @@ void SNMPTrap::startTrapCollection() {
 /* ******************************************* */
 
 void SNMPTrap::stopTrapCollection(){
-  void *res;
-
   if (trap_collection_running) {
+    void *res;
+
     trap_collection_running = false;
 
     pthread_join(trap_loop, &res);
@@ -212,7 +224,7 @@ void SNMPTrap::stopTrapCollection(){
 /* ******************************************* */
 
 bool SNMPTrap::isTrapCollectionRunning() {
-  return trap_collection_running && 
+  return trap_collection_running &&
     !ntop->getGlobals()->isShutdownRequested() &&
     !ntop->getGlobals()->isShutdown();
 }
@@ -260,10 +272,12 @@ void SNMPTrap::releaseSession() {
     netsnmp_free(trap_session_internal);
     trap_session_internal = NULL;
   }
+
   if(trap_session) {
     delete trap_session;
     trap_session = NULL;
   }
+
   if(trap_transport) {
     netsnmp_transport_free(trap_transport);
     trap_transport = NULL;
