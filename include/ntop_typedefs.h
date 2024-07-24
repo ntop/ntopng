@@ -240,6 +240,7 @@ typedef enum {
   alert_entity_test = 10,
   alert_entity_asn = 11,
   alert_entity_l7 = 12,
+  alert_entity_mitre_table_info = 13,
 
   /* Add new entities above ^ and do not exceed alert_entity_other */
   alert_entity_other = 15,
