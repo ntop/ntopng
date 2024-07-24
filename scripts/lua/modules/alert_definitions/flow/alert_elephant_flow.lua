@@ -32,7 +32,7 @@ alert_elephant_flow.meta = {
       mitre_tactic = mitre.tactic.collection,
       mitre_tecnique = mitre.tecnique.data_from_conf_repo,
       mitre_sub_tecnique = mitre.sub_tecnique.network_device_conf_dump,
-      mitre_ID = "T1602.002"
+      mitre_id = "T1602.002"
    },
 }
 
