@@ -382,7 +382,11 @@ const map_table_def_columns = async (columns) => {
                 const title = proto.confidence;
                 (title == "DPI") ? confidence = `<span class="badge bg-success" title="${title}">${title}</span>` : confidence = `<span class="badge bg-warning" title="${title}">${title}</span>`
             }
-            return DataTableRenders.filterize('l4proto', row.proto.value, row.proto.label) + ":" + DataTableRenders.filterize('l7proto', proto.value, proto.label.split(":")[1]) + " " + `${confidence}`;
+
+            if (row.proto.label !== proto.label) {
+                return DataTableRenders.filterize('l4proto', row.proto.value, row.proto.label) + ":" + DataTableRenders.filterize('l7proto', proto.value, proto.label.split(":")[1]) + " " + `${confidence}`;
+            }            
+            return DataTableRenders.filterize('l4proto', row.proto.value, row.proto.label) + " " + `${confidence}`;
         },
         "info": (info, row) => {
             return `${DataTableRenders.filterize('info', info.value, info.label)}`;
