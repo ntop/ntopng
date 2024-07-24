@@ -79,7 +79,7 @@ end
 
 -- @brief Prepare a table containing a set of filters useful to query historical flows that contributed to the generation of this alert
 -- @param ifid The integer interface id of the generated alert
--- @param alert The alert description table, luding alert data such as the generating entity, timestamp, granularity, type
+-- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function host_alert_scan_detected.filter_to_past_flows(ifid, alert, alert_type_params)
