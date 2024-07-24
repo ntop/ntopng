@@ -678,24 +678,28 @@ void LocalHost::lua_get_fingerprints(lua_State *vm) {
 
 #ifdef NTOPNG_PRO
 void LocalHost::dumpAssetInfo() {
-  char buf[64], mac_buf[32], *json_str = NULL, *ip = printMask(buf, sizeof(buf));
+  char buf[64], mac_buf[32], *json_str = NULL, *ip = printMask(buf, sizeof(buf)), *mac_ptr;
   ndpi_serializer device_json;
   u_int32_t json_str_len = 0;
 
   ndpi_init_serializer(&device_json, ndpi_serialization_format_json);
 
-  if (getMac() && serializeByMac()) {
-    ndpi_serialize_string_string(&device_json, "key",
-				 Utils::formatMac(getMac()->get_mac(), mac_buf, sizeof(mac_buf)));
+  mac_ptr = Utils::formatMac(getMac()->get_mac(), mac_buf, sizeof(mac_buf));
 
-    if(mac->get_manufacturer())
-      ndpi_serialize_string_string(&device_json, "manufacturer", mac->get_manufacturer());
+  if (getMac() && serializeByMac()) {
+    /* DHCP */
+    ndpi_serialize_string_string(&device_json, "key", mac_ptr);
 
     ndpi_serialize_string_uint32(&device_json, "role", mac->getDeviceType());
   } else {
+    /* IP */
     ndpi_serialize_string_string(&device_json, "key", ip);
     ndpi_serialize_string_uint32(&device_json, "role", getDeviceType());
   }
+
+  ndpi_serialize_string_string(&device_json, "mac", mac_ptr);
+  if(mac->get_manufacturer())
+    ndpi_serialize_string_string(&device_json, "manufacturer", mac->get_manufacturer());
 
   if(isIPv6())
     ndpi_serialize_string_string(&device_json, "ipv6", ip);
