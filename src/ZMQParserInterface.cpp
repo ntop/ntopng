@@ -3242,6 +3242,9 @@ void ZMQParserInterface::probeLuaStats(lua_State *vm) {
       lua_push_uint64_table_entry(vm, "probe.local_time",
           zrs->local_time); /* local time when last event has been received */
 
+      if(zrs->num_flow_exports < zmq_remote_initial_exported_flows)
+	zmq_remote_initial_exported_flows = zrs->num_flow_exports; /* nProbe has been reset */
+      
       lua_push_uint64_table_entry(vm, "zmq.num_flow_exports",
           zrs->num_flow_exports - zmq_remote_initial_exported_flows);
       lua_push_uint64_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);
