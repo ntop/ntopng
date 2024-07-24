@@ -222,7 +222,11 @@ Ntop::Ntop(const char *appName) {
 #endif
 
 #ifdef HAVE_SNMP_TRAP
-  trap_collector = new (std::nothrow) SNMPTrap();
+  try {
+    trap_collector = new SNMPTrap();
+  } catch(...) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to collect SNMP traps");
+  }
 #endif
 }
 
