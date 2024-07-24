@@ -1282,7 +1282,6 @@ function flow_alert_store:format_record(value, no_html, verbose)
     if l4_protocol and l7_protocol and l4_protocol ~= l7_protocol then
         proto_label = l4_protocol .. ":" .. l7_protocol
     end
-
     record[RNAME.L7_PROTO.name] = {
         value = ternary(tonumber(value["l7_proto"]) ~= 0, value["l7_proto"], value["l7_master_proto"]) or "",
         l4_label = l4_protocol or "",
