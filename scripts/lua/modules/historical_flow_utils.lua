@@ -166,7 +166,7 @@ local function dt_format_l4_proto(proto)
    local title = l4_proto_to_string(tonumber(proto))
    local l4_proto = {
       title = title,
-      label = shortenString(title, 12),
+      label = title,
       value = tonumber(proto),
    }
 
@@ -358,7 +358,7 @@ local function dt_format_dscp(dscp_id)
 
    return ({
       title = title,
-      label = shortenString(title, 20) or "",
+      label = title or "",
       value = tonumber(dscp_id),
    })
 end
@@ -380,7 +380,7 @@ local function dt_format_l7_proto(l7_proto, record)
       l7_proto = {
          confidence = confidence,
          title = title,
-         label = shortenString(title, 12),
+         label = title,
          value = tonumber(l7_proto),
       } 
   end
@@ -553,7 +553,7 @@ local function dt_format_flow_alert_id(flow_status)
       end
 
       record_status["title"] = stats_str
-      record_status["label"] = shortenString(stats_str, 32)
+      record_status["label"] = stats_str
       record_status["value"] = flow_status
    end
 
@@ -592,7 +592,7 @@ local function dt_format_l7_category(l7_category)
       local title = getCategoryLabel(interface.getnDPICategoryName(tonumber(l7_category)), tonumber(l7_category))
       
       formatted_cat["title"] = title
-      formatted_cat["label"] = shortenString(title, 12)
+      formatted_cat["label"] = title
       formatted_cat["value"] = tonumber(l7_category)
    end
 
@@ -781,7 +781,7 @@ end
 
 local function simple_format_ip(value, record)
    if not isEmptyString(record["HOST_LABEL"]) then
-      record["label"] = shortenString(record["HOST_LABEL"], 12)
+      record["label"] = record["HOST_LABEL"]
    end
 end
 
@@ -789,7 +789,7 @@ end
 
 local function simple_format_src_ip(value, record)
    if not isEmptyString(record["SRC_LABEL"]) then
-      record["label"] = shortenString(record["SRC_LABEL"], 12)
+      record["label"] = record["SRC_LABEL"]
    end
 end
 
@@ -797,7 +797,7 @@ end
 
 local function simple_format_dst_ip(value, record)
    if not isEmptyString(record["DST_LABEL"]) then
-      record["label"] = shortenString(record["DST_LABEL"], 12)
+      record["label"] = record["DST_LABEL"]
    end
 end
 
@@ -810,7 +810,7 @@ local function simple_format_asn(value, record)
       if tonumber(value) == 0 then 
          record["label"] = "No ASN"
       else
-         record["label"] = shortenString(ntop.getASName(ip), 12)
+         record["label"] = ntop.getASName(ip)
       end
    end
 end
@@ -824,7 +824,7 @@ local function simple_format_src_asn(value, record)
       if tonumber(value) == 0 then 
          record["label"] = "No ASN"
       else
-         record["label"] = shortenString(ntop.getASName(ip), 12)
+         record["label"] = ntop.getASName(ip)
       end
    end
 end
@@ -838,7 +838,7 @@ local function simple_format_dst_asn(value, record)
       if tonumber(value) == 0 then 
          record["label"] = "No ASN"
       else
-         record["label"] = shortenString(ntop.getASName(ip), 12)
+         record["label"] = ntop.getASName(ip)
       end
    end
 end
