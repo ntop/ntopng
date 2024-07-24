@@ -483,7 +483,8 @@ local function mitreTableInfo()
 
 function mitre_table_utils.insertDBMitreInfo()
   local value_to_add = ""
-  local table_name_with_values = "mitre_table_info (alert_id, entity_id, tactic, tecnique, sub_tecnique, mitre_id)"
+  local table_name = "mitre_table_info"
+  local table_name_with_values = string.format("%s (alert_id, entity_id, tactic, tecnique, sub_tecnique, mitre_id)", table_name)
   local mitre_table = mitreTableInfo()
 
   for mitre_id, value in pairs(mitre_table) do
@@ -506,9 +507,18 @@ function mitre_table_utils.insertDBMitreInfo()
 
   -- replace the last ',' character with ';' in order to push all value in one into the DB 
   value_to_add = value_to_add:sub(1, -2)..";"
-
-  local sql = "INSERT OR REPLACE INTO "..table_name_with_values.." VALUES "..value_to_add
+  local sql
+  if hasClickHouseSupport() then
+    table_name_with_values = "mitre_table_info (ALERT_ID, ENTITY_ID, TACTIC, TECNIQUE, SUB_TECNIQUE, MITRE_ID)"
+    sql = "INSERT INTO "..table_name_with_values.." VALUES "..value_to_add
+  else
+    sql = "INSERT OR REPLACE INTO "..table_name_with_values.." VALUES "..value_to_add
+  end
   interface.alert_store_query(sql)
+  
+  if hasClickHouseSupport() then
+    interface.alert_store_query("OPTIMIZE TABLE ".. table_name .. " FINAL;")
+  end
 end
 
 -- ##############################################

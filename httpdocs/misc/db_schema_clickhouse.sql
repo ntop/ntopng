@@ -604,4 +604,6 @@ CREATE TABLE IF NOT EXISTS `mitre_table_info` (
   `TECNIQUE` UInt16,
   `SUB_TECNIQUE` UInt16,
   `MITRE_ID` String
-) ENGINE = ReplacingMergeTree() ORDER BY (ALERT_ID, ENTITY_ID);
+) ENGINE = ReplacingMergeTree() PRIMARY KEY (ALERT_ID, ENTITY_ID) ORDER BY (ALERT_ID, ENTITY_ID);
+
+@
