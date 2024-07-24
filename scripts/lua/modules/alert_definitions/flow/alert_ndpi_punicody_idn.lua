@@ -26,8 +26,8 @@ alert_ndpi_punicody_idn.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.initial_access,
-      mitre_tecnique = mitre.tecnique.phishing,
-      mitre_sub_tecnique = mitre.sub_tecnique.spearphishing_link,
+      mitre_technique = mitre.technique.phishing,
+      mitre_sub_technique = mitre.sub_technique.spearphishing_link,
       mitre_id = "T1566.002"
    },
 }

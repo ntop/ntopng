@@ -26,7 +26,7 @@ alert_ndpi_malformed_packet.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.persistence,
-      mitre_tecnique = mitre.tecnique.traffic_signaling,
+      mitre_technique = mitre.technique.traffic_signaling,
       mitre_id = "T1205"
    },
 }

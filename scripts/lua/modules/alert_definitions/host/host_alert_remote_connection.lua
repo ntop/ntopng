@@ -28,7 +28,7 @@ host_alert_remote_connection.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.persistence,
-      mitre_tecnique = mitre.tecnique.ext_remote_services,
+      mitre_technique = mitre.technique.ext_remote_services,
       mitre_id = "T1133"
    },
 }

@@ -27,7 +27,7 @@ alert_ndpi_tls_uncommon_alpn.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.discovery,
-      mitre_tecnique = mitre.tecnique.remote_system_discovery,
+      mitre_technique = mitre.technique.remote_system_discovery,
       mitre_id = "T1018"
    },
 }

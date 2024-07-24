@@ -26,7 +26,7 @@ alert_clear_text_credentials.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.os_credential_dump,
-      mitre_tecnique = mitre.tecnique.data_from_conf_repo,
+      mitre_technique = mitre.technique.data_from_conf_repo,
       mitre_id = "T1003"},
 }
 

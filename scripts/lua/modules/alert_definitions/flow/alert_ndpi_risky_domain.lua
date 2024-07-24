@@ -27,7 +27,7 @@ alert_ndpi_risky_domain.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.initial_access,
-      mitre_tecnique = mitre.tecnique.phishing,
+      mitre_technique = mitre.technique.phishing,
       mitre_id = "T1566"
    },
 }

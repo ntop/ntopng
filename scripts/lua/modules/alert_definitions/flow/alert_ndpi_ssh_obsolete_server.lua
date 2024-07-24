@@ -27,7 +27,7 @@ alert_ndpi_ssh_obsolete_server.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.execution,
-      mitre_tecnique = mitre.tecnique.exploitation_client_exec,
+      mitre_technique = mitre.technique.exploitation_client_exec,
       mitre_id = "T1203"
    },
 }

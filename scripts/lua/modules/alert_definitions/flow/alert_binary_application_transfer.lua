@@ -27,8 +27,8 @@ alert_binary_application_transfer.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.execution,
-      mitre_tecnique = mitre.tecnique.user_execution,
-      mitre_sub_tecnique = mitre.sub_tecnique.malicious_link,
+      mitre_technique = mitre.technique.user_execution,
+      mitre_sub_technique = mitre.sub_technique.malicious_link,
       mitre_id = "T1204.001"
    },
  

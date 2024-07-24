@@ -30,8 +30,8 @@ host_alert_ntp_server_contacts.meta = {
   -- Mitre Att&ck Matrix values
   mitre_values = {
     mitre_tactic = mitre.tactic.impact,
-    mitre_tecnique = mitre.tecnique.network_ddos,
-    mitre_sub_tecnique = mitre.sub_tecnique.reflection_amplification,
+    mitre_technique = mitre.technique.network_ddos,
+    mitre_sub_technique = mitre.sub_technique.reflection_amplification,
     mitre_id = "T1498.002"
   },
 }

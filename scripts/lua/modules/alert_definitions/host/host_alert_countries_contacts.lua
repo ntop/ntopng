@@ -29,7 +29,7 @@ host_alert_countries_contacts.meta = {
   -- Mitre Att&ck Matrix values
   mitre_values = {
     mitre_tactic = mitre.tactic.c_and_c,
-    mitre_tecnique = mitre.tecnique.web_service,
+    mitre_technique = mitre.technique.web_service,
     mitre_id = "T1102"
   },
 

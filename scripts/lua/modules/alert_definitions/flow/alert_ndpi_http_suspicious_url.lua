@@ -26,7 +26,7 @@ alert_ndpi_http_suspicious_url.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.initial_access,
-      mitre_tecnique = mitre.tecnique.drive_by_compr,
+      mitre_technique = mitre.technique.drive_by_compr,
       mitre_id = "T1189"
    },
 

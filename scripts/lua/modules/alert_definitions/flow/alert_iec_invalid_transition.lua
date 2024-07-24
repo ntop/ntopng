@@ -30,7 +30,7 @@ alert_iec_invalid_transition.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.impact,
-      mitre_tecnique = mitre.tecnique.data_manipulation,
+      mitre_technique = mitre.technique.data_manipulation,
       mitre_id = "T1565"
    },
 }

@@ -26,7 +26,7 @@ alert_http_suspicious_content.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.defense_evasion,
-      mitre_tecnique = mitre.tecnique.obfuscated_files_info,
+      mitre_technique = mitre.technique.obfuscated_files_info,
       mitre_id = "T1027"
    },
 }

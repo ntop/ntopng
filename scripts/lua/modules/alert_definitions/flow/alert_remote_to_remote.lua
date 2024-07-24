@@ -29,8 +29,8 @@ alert_remote_to_remote.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.lateral_movement,
-      mitre_tecnique = mitre.tecnique.session_hijacking,
-      mitre_sub_tecnique = mitre.sub_tecnique.rdp_hijacking,
+      mitre_technique = mitre.technique.session_hijacking,
+      mitre_sub_technique = mitre.sub_technique.rdp_hijacking,
       mitre_id = "T1563.002"
    },
 }

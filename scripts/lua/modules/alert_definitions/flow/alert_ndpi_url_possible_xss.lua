@@ -26,7 +26,7 @@ alert_ndpi_url_possible_xss.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.credential_access,
-      mitre_tecnique = mitre.tecnique.steal_web_session_cookie,
+      mitre_technique = mitre.technique.steal_web_session_cookie,
       mitre_id = "T1539"
    },
 

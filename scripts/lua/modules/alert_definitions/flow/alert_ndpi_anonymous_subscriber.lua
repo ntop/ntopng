@@ -26,7 +26,7 @@ alert_ndpi_anonymous_subscriber.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.indicator_removal,
-      mitre_tecnique = mitre.tecnique.data_from_conf_repo,
+      mitre_technique = mitre.technique.data_from_conf_repo,
       mitre_id = "T1070"
    },
 }

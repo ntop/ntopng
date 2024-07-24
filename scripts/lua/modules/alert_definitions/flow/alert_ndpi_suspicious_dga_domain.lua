@@ -24,8 +24,8 @@ alert_ndpi_suspicious_dga_domain.meta = {
     -- Mitre Att&ck Matrix values
     mitre_values = {
         mitre_tactic = mitre.tactic.c_and_c,
-        mitre_tecnique = mitre.tecnique.dynamic_resolution,
-        mitre_sub_tecnique = mitre.sub_tecnique.domain_generation_algorithms,
+        mitre_technique = mitre.technique.dynamic_resolution,
+        mitre_sub_technique = mitre.sub_technique.domain_generation_algorithms,
         mitre_id = "T1568.002"
     },
 

@@ -27,7 +27,7 @@ alert_longlived.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.collection,
-      mitre_tecnique = mitre.tecnique.data_from_net_shared_driver,
+      mitre_technique = mitre.technique.data_from_net_shared_driver,
       mitre_id = "T1039"
    },
 }

@@ -26,7 +26,7 @@ alert_ndpi_tls_cert_validity_too_long.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.defense_evasion,
-      mitre_tecnique = mitre.tecnique.impair_defenses,
+      mitre_technique = mitre.technique.impair_defenses,
       mitre_id = "T1562"
    },
 }

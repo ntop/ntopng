@@ -26,8 +26,8 @@ alert_ndpi_dns_fragmented.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.reconnaissance,
-      mitre_tecnique = mitre.tecnique.search_open_tech_db,
-      mitre_sub_tecnique = mitre.sub_tecnique.dns_passive_dns,
+      mitre_technique = mitre.technique.search_open_tech_db,
+      mitre_sub_technique = mitre.sub_technique.dns_passive_dns,
       mitre_id = "T1596.001"
    },
 }

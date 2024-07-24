@@ -27,8 +27,8 @@ alert_ndpi_ssh_obsolete_client.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.lateral_movement,
-      mitre_tecnique = mitre.tecnique.remote_services,
-      mitre_sub_tecnique = mitre.sub_tecnique.ssh,
+      mitre_technique = mitre.technique.remote_services,
+      mitre_sub_technique = mitre.sub_technique.ssh,
       mitre_id = "T1021.004"
    },
 }

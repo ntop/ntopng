@@ -26,8 +26,8 @@ alert_tcp_connection_no_answer.meta = {
   -- Mitre Att&ck Matrix values
   mitre_values = {
     mitre_tactic = mitre.tactic.persistence,
-    mitre_tecnique = mitre.tecnique.traffic_signaling,
-    mitre_sub_tecnique = mitre.sub_tecnique.port_knocking,
+    mitre_technique = mitre.technique.traffic_signaling,
+    mitre_sub_technique = mitre.sub_technique.port_knocking,
     mitre_id = "T1205.001"
   },
 }

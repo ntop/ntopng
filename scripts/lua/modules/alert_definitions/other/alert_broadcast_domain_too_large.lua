@@ -30,7 +30,7 @@ alert_broadcast_domain_too_large.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.discovery,
-      mitre_tecnique = mitre.tecnique.system_network_conf_discovery,
+      mitre_technique = mitre.technique.system_network_conf_discovery,
       mitre_id = "T1016"
    },
 }

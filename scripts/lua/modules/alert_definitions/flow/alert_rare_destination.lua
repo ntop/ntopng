@@ -26,7 +26,7 @@ alert_rare_destination.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.c_and_c,
-      mitre_tecnique = mitre.tecnique.dynamic_resolution,
+      mitre_technique = mitre.technique.dynamic_resolution,
       mitre_id = "T1568"
    },
 }

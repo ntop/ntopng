@@ -29,7 +29,7 @@ alert_traffic_behavior_anomaly.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.credential_access,
-      mitre_tecnique = mitre.tecnique.network_sniffing,
+      mitre_technique = mitre.technique.network_sniffing,
       mitre_id = "T1040"
    },
 }

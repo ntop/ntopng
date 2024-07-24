@@ -26,7 +26,7 @@ alert_tls_certificate_expired.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.initial_access,
-      mitre_tecnique = mitre.tecnique.valid_accounts,
+      mitre_technique = mitre.technique.valid_accounts,
       mitre_id = "T1078"
    },
 }
