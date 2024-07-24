@@ -30,7 +30,7 @@ host_alert_tcp_fin_scan.meta = {
   -- Mitre Att&ck Matrix values
   mitre_values = {
     mitre_tactic = mitre.tactic.reconnaissance,
-    mitre_tecnique = mitre.tecnique.active_scanning,
+    mitre_technique = mitre.technique.active_scanning,
     mitre_id = "T1595"
   },
 }

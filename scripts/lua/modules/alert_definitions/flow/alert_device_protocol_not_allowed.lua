@@ -27,7 +27,7 @@ alert_device_protocol_not_allowed.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.c_and_c,
-      mitre_tecnique = mitre.tecnique.app_layer_proto,
+      mitre_technique = mitre.technique.app_layer_proto,
       mitre_id = "T1071"
    },
    

@@ -27,7 +27,7 @@ alert_known_proto_on_non_std_port.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.c_and_c,
-      mitre_tecnique = mitre.tecnique.nont_std_port,
+      mitre_technique = mitre.technique.nont_std_port,
       mitre_id = "T1571"
    },
 

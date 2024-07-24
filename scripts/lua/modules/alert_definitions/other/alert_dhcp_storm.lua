@@ -31,8 +31,8 @@ alert_dhcp_storm.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.credential_access,
-      mitre_tecnique = mitre.tecnique.adversary_in_the_middle,
-      mitre_sub_tecnique = mitre.sub_tecnique.dhcp_spoofing,
+      mitre_technique = mitre.technique.adversary_in_the_middle,
+      mitre_sub_technique = mitre.sub_technique.dhcp_spoofing,
       mitre_id = "T1557.003"
    },
 }

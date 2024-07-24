@@ -31,8 +31,8 @@ host_alert_snmp_flood.meta = {
   -- Mitre Att&ck Matrix values
   mitre_values = {
     mitre_tactic = mitre.tactic.impact,
-    mitre_tecnique = mitre.tecnique.network_ddos,
-    mitre_sub_tecnique = mitre.sub_tecnique.direct_network_flood,
+    mitre_technique = mitre.technique.network_ddos,
+    mitre_sub_technique = mitre.sub_technique.direct_network_flood,
     mitre_id = "T1498.001"
   },
 }

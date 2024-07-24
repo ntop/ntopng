@@ -27,7 +27,7 @@ alert_ndpi_desktop_or_file_sharing_session.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.lateral_movement,
-      mitre_tecnique = mitre.tecnique.lateral_tool_transfer,
+      mitre_technique = mitre.technique.lateral_tool_transfer,
       mitre_id = "T1570"
    },
 }

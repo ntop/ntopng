@@ -26,8 +26,8 @@ alert_ndpi_http_suspicious_user_agent.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.c_and_c,
-      mitre_tecnique = mitre.tecnique.app_layer_proto,
-      mitre_sub_tecnique = mitre.sub_tecnique.web_proto,
+      mitre_technique = mitre.technique.app_layer_proto,
+      mitre_sub_technique = mitre.sub_technique.web_proto,
       mitre_id = "T1071.001"
    },
 

@@ -27,8 +27,8 @@ icon = "fas fa-fw fa-arrow-circle-up",
   -- Mitre Att&ck Matrix values
   mitre_values = {
     mitre_tactic = mitre.tactic.c_and_c,
-    mitre_tecnique = mitre.tecnique.proxy,
-    mitre_sub_tecnique = mitre.sub_tecnique.external_proxy,
+    mitre_technique = mitre.technique.proxy,
+    mitre_sub_technique = mitre.sub_technique.external_proxy,
     mitre_id = "T1090.002"
   },
 }

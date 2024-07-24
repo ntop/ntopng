@@ -26,7 +26,7 @@ alert_ndpi_http_suspicious_header.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.persistence,
-      mitre_tecnique = mitre.tecnique.server_software_component,
+      mitre_technique = mitre.technique.server_software_component,
       mitre_id = "T1505"
    },
 

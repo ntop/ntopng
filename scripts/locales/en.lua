@@ -5599,7 +5599,7 @@ local lang = {
     ["secs"] = "Secs",
   },
   ["mitre"] = {
-    ["sub_tecnique"] = {
+    ["sub_technique"] = {
       ["arp_cache_poisoning"] = "Arp Cache Poisoning",
       ["dhcp_spoofing"] = "DHCP Spoofing",
       ["direct_network_flood"] = "Direct Network Flood",
@@ -5644,7 +5644,7 @@ local lang = {
       ["reconnaissance"] = "Reconnaissance",
       ["resource_develop"] = "Resource Development",
     },
-    ["tecnique"] = {
+    ["technique"] = {
       ["account_manipulation"] = "Account Manipulation",
       ["active_scanning"] = "Active Scanning",
       ["adversary_in_the_middle"] = "Adversary in the Middle",

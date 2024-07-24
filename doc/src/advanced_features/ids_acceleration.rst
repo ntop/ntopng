@@ -13,7 +13,7 @@ policies from Layer 2 up to Layer 7 dramatically improving the performance
 of the tools as described in the `PF_RING FT acceleration <https://www.ntop.org/guides/pf_ring/thirdparty/suricata.html#pf-ring-ft-acceleration>`_
 section.
 
-ntopng provides an additional tecnique for accelerating IDS/IPS systems,
+ntopng provides an additional technique for accelerating IDS/IPS systems,
 whose idea is similar to the `Smart Recording acceleration <https://www.ntop.org/guides/ntopng/using_with_other_tools/n2disk.html#smart-recording>`_
 used by n2disk.
 In fact ntopng implements Behavioural Checks to detect when a host is misbehaving

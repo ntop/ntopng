@@ -26,8 +26,8 @@ alert_ndpi_tls_suspicious_esni_usage.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.c_and_c,
-      mitre_tecnique = mitre.tecnique.proxy,
-      mitre_sub_tecnique = mitre.sub_tecnique.domain_fronting,
+      mitre_technique = mitre.technique.proxy,
+      mitre_sub_technique = mitre.sub_technique.domain_fronting,
       mitre_id = "T1090.004"
    },
 

@@ -26,7 +26,7 @@ alert_ndpi_dns_suspicious_traffic.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.impact,
-      mitre_tecnique = mitre.tecnique.resource_hijacking,
+      mitre_technique = mitre.technique.resource_hijacking,
       mitre_id = "T1496.001"
    },
 

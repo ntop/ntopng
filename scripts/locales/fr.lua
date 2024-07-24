@@ -5547,7 +5547,7 @@ local lang = {
     ["secs"] = "Secondes",
   },
   ["mitre"] = {
-    ["sub_tecnique"] = {
+    ["sub_technique"] = {
       ["arp_cache_poisoning"] = "Empoisonnement du cache Arp",
       ["dhcp_spoofing"] = "Usurpation DHCP",
       ["direct_network_flood"] = "Inondation directe du réseau",
@@ -5592,7 +5592,7 @@ local lang = {
       ["reconnaissance"] = "Reconnaissance",
       ["resource_develop"] = "Développement des ressources",
     },
-    ["tecnique"] = {
+    ["technique"] = {
       ["account_manipulation"] = "Manipulation de compte",
       ["active_scanning"] = "Analyse active",
       ["adversary_in_the_middle"] = "Adversaire au milieu",

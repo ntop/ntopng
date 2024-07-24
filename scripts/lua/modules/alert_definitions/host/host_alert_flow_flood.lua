@@ -31,7 +31,7 @@ host_alert_flow_flood.meta = {
   -- Mitre Att&ck Matrix values
   mitre_values = {
     mitre_tactic = mitre.tactic.impact,
-    mitre_tecnique = mitre.tecnique.network_ddos,
+    mitre_technique = mitre.technique.network_ddos,
     mitre_id = "T1498"
   },
 }

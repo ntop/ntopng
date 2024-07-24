@@ -30,8 +30,8 @@ host_alert_dns_server_contacts.meta = {
    -- Mitre Att&ck Matrix values
   mitre_values = {
     mitre_tactic = mitre.tactic.c_and_c,
-    mitre_tecnique = mitre.tecnique.app_layer_proto,
-    mitre_sub_tecnique = mitre.sub_tecnique.dns,
+    mitre_technique = mitre.technique.app_layer_proto,
+    mitre_sub_technique = mitre.sub_technique.dns,
     mitre_id = "T1071.004"
   },
 

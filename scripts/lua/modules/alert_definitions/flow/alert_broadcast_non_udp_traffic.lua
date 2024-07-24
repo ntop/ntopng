@@ -30,7 +30,7 @@ alert_broadcast_non_udp_traffic.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.discovery,
-      mitre_tecnique = mitre.tecnique.network_service_discovery,
+      mitre_technique = mitre.technique.network_service_discovery,
       mitre_id = "T1046"
    },
 

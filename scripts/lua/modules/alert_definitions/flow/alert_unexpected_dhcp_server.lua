@@ -26,7 +26,7 @@ alert_unexpected_dhcp_server.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.defense_evasion,
-      mitre_tecnique = mitre.tecnique.rogue_domain_controller,
+      mitre_technique = mitre.technique.rogue_domain_controller,
       mitre_id = "T1207"
    },
 

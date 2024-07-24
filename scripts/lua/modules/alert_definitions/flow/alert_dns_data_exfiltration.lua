@@ -26,7 +26,7 @@ alert_dns_data_exfiltration.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.exfiltration,
-      mitre_tecnique = mitre.tecnique.exfiltration_over_alt_proto,
+      mitre_technique = mitre.technique.exfiltration_over_alt_proto,
       mitre_id = "T1048"
    },
 

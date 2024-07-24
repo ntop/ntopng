@@ -27,7 +27,7 @@ alert_ndpi_http_obsolete_server.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.initial_access,
-      mitre_tecnique = mitre.tecnique.content_injection,
+      mitre_technique = mitre.technique.content_injection,
       mitre_id = "T1659"
    },
 }

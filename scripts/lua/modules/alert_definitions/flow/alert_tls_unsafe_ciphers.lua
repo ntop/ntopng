@@ -26,7 +26,7 @@ alert_tls_unsafe_ciphers.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.c_and_c,
-      mitre_tecnique = mitre.tecnique.encrypted_channel,
+      mitre_technique = mitre.technique.encrypted_channel,
       mitre_id = "T1573"
    },
 }

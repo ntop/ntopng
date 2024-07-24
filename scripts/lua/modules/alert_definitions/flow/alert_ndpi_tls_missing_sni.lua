@@ -26,7 +26,7 @@ alert_ndpi_tls_missing_sni.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.c_and_c,
-      mitre_tecnique = mitre.tecnique.proxy,
+      mitre_technique = mitre.technique.proxy,
       mitre_id = "T1090"
    },
 }

@@ -26,7 +26,7 @@ alert_tls_certificate_mismatch.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.defense_evasion,
-      mitre_tecnique = mitre.tecnique.indicator_removal,
+      mitre_technique = mitre.technique.indicator_removal,
       mitre_id = "T1070"
    },
 }

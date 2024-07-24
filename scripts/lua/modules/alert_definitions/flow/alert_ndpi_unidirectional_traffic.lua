@@ -27,8 +27,8 @@ alert_unidirectional_traffic.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.c_and_c,
-      mitre_tecnique = mitre.tecnique.web_service,
-      mitre_sub_tecnique = mitre.sub_tecnique.one_way_communication,
+      mitre_technique = mitre.technique.web_service,
+      mitre_sub_technique = mitre.sub_technique.one_way_communication,
       mitre_id = "T1102.003"
    },
 }

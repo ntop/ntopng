@@ -26,8 +26,8 @@ alert_unexpected_smtp_server.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.c_and_c,
-      mitre_tecnique = mitre.tecnique.app_layer_proto,
-      mitre_sub_tecnique = mitre.sub_tecnique.mail_protocol,
+      mitre_technique = mitre.technique.app_layer_proto,
+      mitre_sub_technique = mitre.sub_technique.mail_protocol,
       mitre_id = "T1071.003"
    },
 

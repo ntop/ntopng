@@ -30,8 +30,8 @@ alert_elephant_flow.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.collection,
-      mitre_tecnique = mitre.tecnique.data_from_conf_repo,
-      mitre_sub_tecnique = mitre.sub_tecnique.network_device_conf_dump,
+      mitre_technique = mitre.technique.data_from_conf_repo,
+      mitre_sub_technique = mitre.sub_technique.network_device_conf_dump,
       mitre_id = "T1602.002"
    },
 }

@@ -27,7 +27,7 @@ alert_periodicity_changed.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.exfiltration,
-      mitre_tecnique = mitre.tecnique.scheduled_tranfer,
+      mitre_technique = mitre.technique.scheduled_tranfer,
       mitre_id = "T1029"
    },
 }

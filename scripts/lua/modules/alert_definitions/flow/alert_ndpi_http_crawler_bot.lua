@@ -26,8 +26,8 @@ alert_ndpi_http_crawler_bot.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.reconnaissance,
-      mitre_tecnique = mitre.tecnique.search_open_tech_db,
-      mitre_sub_tecnique = mitre.sub_tecnique.wordlist_scanning,
+      mitre_technique = mitre.technique.search_open_tech_db,
+      mitre_sub_technique = mitre.sub_technique.wordlist_scanning,
       mitre_id = "T1595.003"
    },
 }

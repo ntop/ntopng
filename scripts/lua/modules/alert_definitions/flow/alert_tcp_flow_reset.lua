@@ -28,7 +28,7 @@ alert_tcp_flow_reset.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.impact,
-      mitre_tecnique = mitre.tecnique.endpoint_ddos,
+      mitre_technique = mitre.technique.endpoint_ddos,
       mitre_id = "T1499"
    },
 }

@@ -26,8 +26,8 @@ alert_dns_invalid_query.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.c_and_c,
-      mitre_tecnique = mitre.tecnique.dynamic_resolution,
-      mitre_sub_tecnique = mitre.sub_tecnique.dns_calculation,
+      mitre_technique = mitre.technique.dynamic_resolution,
+      mitre_sub_technique = mitre.sub_technique.dns_calculation,
       mitre_id = "T1568.003"
    },
    

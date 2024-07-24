@@ -30,8 +30,8 @@ alert_mac_ip_association_change.meta = {
   -- Mitre Att&ck Matrix values
   mitre_values = {
     mitre_tactic = mitre.tactic.credential_access,
-    mitre_tecnique = mitre.tecnique.adversary_in_the_middle,
-    mitre_sub_tecnique = mitre.sub_tecnique.arp_cache_poisoning,
+    mitre_technique = mitre.technique.adversary_in_the_middle,
+    mitre_sub_technique = mitre.sub_technique.arp_cache_poisoning,
     mitre_id = "T1557.002"
   },
 }

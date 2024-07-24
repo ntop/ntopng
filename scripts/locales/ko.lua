@@ -5563,7 +5563,7 @@ local lang = {
       ["reconnaissance"] = "정찰",
       ["resource_develop"] = "자원개발",
     },
-    ["tecnique"] = {
+    ["technique"] = {
       ["account_manipulation"] = "계정 조작",
       ["active_scanning"] = "능동 스캐닝",
       ["adversary_in_the_middle"] = "중간의 적",
@@ -5619,7 +5619,7 @@ local lang = {
       ["valid_accounts"] = "유효한 계정",
       ["web_service"] = "웹 서비스",
     },
-    ["sub_tecnique"] = {
+    ["sub_technique"] = {
       ["arp_cache_poisoning"] = "Arp 캐시 중독",
       ["dhcp_spoofing"] = "DHCP 스푸핑",
       ["direct_network_flood"] = "직접적인 네트워크 플러딩",

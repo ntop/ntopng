@@ -26,7 +26,7 @@ alert_ndpi_tls_certificate_about_to_expire.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.initial_access,
-      mitre_tecnique = mitre.tecnique.valid_account,
+      mitre_technique = mitre.technique.valid_account,
       mitre_id = "T1078"
    },
 }

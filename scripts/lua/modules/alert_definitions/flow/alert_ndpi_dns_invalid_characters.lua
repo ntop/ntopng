@@ -26,7 +26,7 @@ alert_ndpi_dns_invalid_characters.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.credential_access,
-      mitre_tecnique = mitre.tecnique.adversary_in_the_middle,
+      mitre_technique = mitre.technique.adversary_in_the_middle,
       mitre_id = "T1557"
    },
 }

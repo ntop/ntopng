@@ -26,7 +26,7 @@ alert_ndpi_unsafe_protocol.meta = {
    -- Mitre Att&ck Matrix values
    mitre_values = {
       mitre_tactic = mitre.tactic.credential_access,
-      mitre_tecnique = mitre.tecnique.forced_authentication,
+      mitre_technique = mitre.technique.forced_authentication,
       mitre_id = "T1187"
    },
 
