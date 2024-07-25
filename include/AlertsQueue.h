@@ -25,7 +25,10 @@
 class NetworkInterface;
 
 /* This class provides a way to send asynchronous alerts from C to Lua.
- * Alerts are processed by Lua in alert_utils.processStoreAlertFromQueue. */
+ * Alerts are processed by Lua in alert_utils.processStoreAlertFromQueue.
+ * 
+ * Full example at: https://github.com/ntop/ntopng/commit/8d326f271867cad00ae889cd53519f23f42b190c
+ */
 class AlertsQueue {
  private:
   NetworkInterface *iface;
@@ -48,6 +51,7 @@ class AlertsQueue {
   void pushNfqFlushedAlert(int queue_len, int queue_len_pct, int queue_dropped);
   void pushCloudDisconnectionAlert(const char *descr);
   void pushCloudReconnectionAlert(const char *descr);
+  void pushSNMPTrapAlert(const char *device_ip, const char *descr);
 };
 
 #endif

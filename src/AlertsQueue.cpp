@@ -247,3 +247,24 @@ void AlertsQueue::pushCloudReconnectionAlert(const char *descr) {
 }
 
 /* **************************************************** */
+
+void AlertsQueue::pushSNMPTrapAlert(const char *device_ip, const char *descr) {
+  ndpi_serializer *tlv;
+
+  if (ntop->getPrefs()->are_alerts_disabled()) return;
+
+  tlv = (ndpi_serializer *)calloc(1, sizeof(ndpi_serializer));
+
+  if (tlv) {
+    ndpi_init_serializer_ll(tlv, ndpi_serialization_format_tlv, 64);
+
+    ndpi_serialize_string_string(tlv, "device", device_ip);
+
+    if (descr)
+      ndpi_serialize_string_string(tlv, "description", descr);
+
+    pushAlertJson(tlv, "snmp_trap", NULL, alert_category_network);
+  }
+}
+
+/* **************************************************** */

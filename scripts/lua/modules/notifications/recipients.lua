@@ -138,6 +138,10 @@ local function processStoreAlertFromQueue(alert)
         entity_info = alert_entity_builders.systemEntity("cloud")
         type_info = alert_consts.alert_types.alert_cloud_reconnected.new(alert.description)
         type_info:set_score_notice()
+    elseif (alert.alert_id == "snmp_trap") then
+        entity_info = alert_entity_builders.snmpDeviceEntity(alert.device)
+        type_info = alert_consts.alert_types.alert_snmp_trap.new(alert.device, alert.description)
+        type_info:set_score_warning()
     else
         traceError(TRACE_ERROR, TRACE_CONSOLE, "Unknown alert type " .. (alert.alert_id or ""))
     end

@@ -1137,6 +1137,7 @@ local lang = {
     ["alert_snmp_traffic_change_detected_message_down"] = "No more traffic detected on interface <a href=\"%{port_url}\" title=\"%{port_index}\">%{port}</a>, SNMP device <a href=\"%{url}\" title=\"%{device}\">%{device_name}</a> <a href=\"%{http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=%{device}&snmp_port_idx=%{port_index}&page=historical\"><i class=\"fas fa-lg fa-chart-area\"></i></a>",
     ["alert_snmp_traffic_change_detected_message_up"] = "Traffic detected on interface <a href=\"%{port_url}\" title=\"%{port_index}\">%{port}</a>, SNMP device <a href=\"%{url}\" title=\"%{device}\">%{device_name}</a> <a href=\"%{http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=%{device}&snmp_port_idx=%{port_index}&page=historical\"><i class=\"fas fa-lg fa-chart-area\"></i></a>",
     ["alert_traffic_volume"] = "Threshold Crossed",
+    ["alert_snmp_trap_title"] = "SNMP Trap",
     ["alert_type"] = "Type",
     ["alert_unexpected_behavior_description"] = "Trigger an alert when an unexpected behavior is identified from the specified %{type}/s. <b>Restart is required</b> after enabling/disabling the alert.",
     ["alert_unexpected_score_behavior_description"] = "Trigger an alert when an unexpected score is identified.",
