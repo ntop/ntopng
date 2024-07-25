@@ -298,14 +298,14 @@ using namespace std;
 #include "FlowProfiles.h"
 #include "SubInterface.h"
 #include "SubInterfaces.h"
-#endif
+#endif /* HAVE_NEDGE */
 #include "CounterTrend.h"
 #include "LRUMacIP.h"
 #include "FlowInterfacesStats.h"
 #ifdef HAVE_LDAP
 #include "LdapAuthenticator.h"
-#endif
-#endif
+#endif /* HAVE_LDAP */
+#endif /* NTOPNG_PRO */
 #include "HostPoolStats.h"
 #include "HostPools.h"
 #include "Fingerprint.h"
@@ -313,7 +313,9 @@ using namespace std;
 #include "DnsStats.h"
 #include "SNMPSession.h"
 #include "SNMP.h"
+#ifdef HAVE_SNMP_TRAP
 #include "SNMPTrap.h"
+#endif
 #include "NetworkDiscovery.h"
 #include "ICMPstats.h"
 #include "ICMPinfo.h"
