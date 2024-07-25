@@ -250,27 +250,3 @@ const _i18n = (t) => i18n(t);
 defineExpose({ draw_sankey, set_no_data_flag });
 
 </script>
-
-<style>
-/* .node rect { */
-/*   fill-opacity: 0.9; */
-/*   shape-rendering: crispEdges; */
-/* } */
-
-/* .node text { */
-/*   pointer-events: none; */
-/*   text-shadow: 0 1px 0 #fff; */
-/* } */
-
-/* path.link.link2 { */
-/*     all: initial; */
-/*     fill: unset; */
-/*     stroke: unset; */
-/*     stroke-opacity: unset; */
-/*     stroke-width: unset; */
-/* } */
-
-/* .link:hover { */
-/*   stroke-opacity: 0.5; */
-/* } */
-</style>
