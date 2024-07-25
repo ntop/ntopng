@@ -24,6 +24,7 @@
 /*
  * Example for triggering traps for testing:
  * snmptrap -v 2c -c public 127.0.0.1 '' NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatNotification netSnmpExampleHeartbeatRate i 60
+ * Note: this requires 'apt install snmp snmp-mibs-downloader' on Ubuntu
  */
 
 #ifdef HAVE_LIBSNMP
@@ -51,13 +52,22 @@ SNMPTrap::~SNMPTrap() {
 
 /* ******************************* */
 
-void SNMPTrap::handleTrap(struct snmp_pdu*pdu) {
+void SNMPTrap::handleTrap(struct snmp_pdu *pdu) {
 #if 1
+  char source_ip[INET_ADDRSTRLEN];
+  source_ip[0] = '\0';
+
+  if (pdu->transport_data) {
+    struct sockaddr_in *from = (struct sockaddr_in *)pdu->transport_data;
+    if (from) {
+      inet_ntop(AF_INET, &from->sin_addr, source_ip, sizeof(source_ip));
+    }
+  }
+
   for (netsnmp_variable_list *vars = pdu->variables; vars; vars = vars->next_variable) {
     char buf[1024];
-
     snprint_variable(buf, sizeof(buf), vars->name, vars->name_length, vars);
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s\n", buf);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] %s", source_ip, buf);
   }
 #else
   netsnmp_variable_list *variable;
