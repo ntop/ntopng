@@ -194,7 +194,7 @@ const sources_types = [
 	},
 	{
 		id: "as",
-		regex_page_url: "lua\/as_details",
+		regex_page_url: "lua\/as_stats",
 		label: i18n("page_stats.source_def.as"),
 		query: "asn",
 		source_def_array: [{
