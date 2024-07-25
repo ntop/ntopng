@@ -25,6 +25,7 @@ import { default as PageHostDetailsApplications } from "./page-host-details-appl
 import { default as PageHostDetailsTraffic } from "./page-host-details-traffic.vue";
 import { default as PageHostDetailsPackets } from "./page-host-details-packets.vue";
 import { default as PageHostDetailsFlowSankey } from "./page-host-details-flow-sankey.vue";
+import { default as PageExporterDetailsSankey } from "./page-exporter-details-sankey.vue";
 import { default as PageHostRules } from "./page-host-rules.vue";
 import { default as PageHostDetailsPorts } from "./page-host-details-ports.vue";
 import { default as PageAlertAnalysis } from "./page-alert-analysis.vue";
@@ -188,6 +189,7 @@ let ntopVue = {
     PageExportersConfig: PageExportersConfig,
     PageFlowDeviceInterfaceDetails: PageFlowDeviceInterfaceDetails,
     PageHistoricalFlow: PageHistoricalFlow,
+    PageExporterDetailsSankey: PageExporterDetailsSankey,
     //PageSankeyTest: PageSankeyTest,
     
     // components
