@@ -187,7 +187,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         ts_utils.setupAgain()
     end
 
-    if _POST["toggle_snmp_trap"] then
+    if _POST["toggle_snmp_trap"] and ntop.isEnterpriseXL() then
         ntop.snmpToggleTrapCollection(toboolean(_POST["toggle_snmp_trap"]))
     end
 
