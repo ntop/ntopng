@@ -1696,17 +1696,17 @@ function flow_alert_store:format_record_telemetry(value)
             tonumber(value["l7_proto"])) or ""
 
     -- Prepare response
-    record.event = {
+    record.eventInfo = {
         eventId = value["rowid"],
         timestamp = tonumber(value["tstamp"] or ""),
         eventTypeCode = tonumber(value["alert_id"]),
         eventTypeName = alert_name,
         eventScore = tonumber(value["score"] or ""),
         eventContent = value["info"],
-        eventDetail = flow_related_info
+        eventDetails = flow_related_info
     }
 
-    record.flow = {
+    record.flowInfo = {
         flowProtocolL4 = l4_proto,
         flowApplicationL7 = l7_protocol,
         numBytesDestinationToSource = tonumber(flow["DST2SRC_BYTES"] or 0),
@@ -1714,8 +1714,8 @@ function flow_alert_store:format_record_telemetry(value)
         -- packetsExchanged = tonumber(flow["PACKETS"] or "")
     }
 
-    record.source = flow_cli_ip
-    record.destination = flow_srv_ip
+    record.sourceInfo = flow_cli_ip
+    record.destinationInfo = flow_srv_ip
      
     -- record.community_id = value["community_id"]
     -- record.dst2src_tcp_flags = tonumber(flow["DST2SRC_TCP_FLAGS"] or "")
