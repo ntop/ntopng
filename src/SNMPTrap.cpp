@@ -53,90 +53,25 @@ SNMPTrap::~SNMPTrap() {
 /* ******************************* */
 
 void SNMPTrap::handleTrap(struct snmp_pdu *pdu) {
-#if 1
   char source_ip[INET_ADDRSTRLEN];
   source_ip[0] = '\0';
 
   if (pdu->transport_data) {
     struct sockaddr_in *from = (struct sockaddr_in *)pdu->transport_data;
-    if (from) {
+    if (from)
       inet_ntop(AF_INET, &from->sin_addr, source_ip, sizeof(source_ip));
-    }
   }
 
   for (netsnmp_variable_list *vars = pdu->variables; vars; vars = vars->next_variable) {
     char buf[1024];
     snprint_variable(buf, sizeof(buf), vars->name, vars->name_length, vars);
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] %s", source_ip, buf);
+
+    /* TODO: trigger formatted alert
+    if (ntop->getSystemInterface() && ntop->getSystemInterface()->getAlertsQueue())
+      ntop->getSystemInterface()->getAlertsQueue()->pushSNMPTrapAlert(source_ip, buf);
+    */
   }
-#else
-  netsnmp_variable_list *variable;
-  char oid[MAX_OID_LEN] = {'\0'};
-  tree *mib;
-
-  variable = pdu->variables;
-  while (variable) {
-    // Fill oid with an human readable oid
-    if(snprint_objid(oid, sizeof(oid), variable->name_loc, variable->name_length))
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "oid: %s\n", oid);
-
-    // Now let's figure out the mib
-    mib = get_tree(variable->name_loc, variable->name_length, get_tree_head());
-    while(mib && mib->next_peer)
-      mib = mib->next_peer;
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "mib %s\n",mib->label);
-
-    // Managed types being in netsnmp_vardata
-    switch (variable->type) {
-    case ASN_INTEGER:
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "integer: %ld\n", *variable->val.integer);
-      break;
-
-    case ASN_OCTET_STR:
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "string: %.*s\n", (int)variable->val_len, variable->val.string);
-      break;
-
-    case ASN_OBJECT_ID:
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "oid: ");
-      for (size_t i = 0; i < variable->val_len / sizeof(oid); i++) {
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s%lu", i ? "." : "", variable->val.objid[i]);
-      }
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "\n");
-      break;
-
-    case ASN_BIT_STR:
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "bit string: ");
-      for (size_t i = 0; i < variable->val_len; i++) {
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%02x ", variable->val.bitstring[i]);
-      }
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "\n");
-      break;
-
-    case ASN_COUNTER64:
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "counter64 high: %lu\n", variable->val.counter64->high);
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "counter64 low: %lu\n", variable->val.counter64->low);
-      break;
-
-#ifdef NETSNMP_WITH_OPAQUE_SPECIAL_TYPES
-    case ASN_OPAQUE_FLOAT:
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "float: %f\n", *variable->val.floatVal);
-      break;
-
-    case ASN_OPAQUE_DOUBLE:
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "double: %f\n", *variable->val.doubleVal);
-      break;
-#endif
-
-    default:
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unmanaged ASN type: %u\n", variable->type);
-      break;
-    }
-
-    // Move to the next variable
-    variable = variable->next_variable;
-  }
-
-#endif
 }
 
 /* ******************************************* */
