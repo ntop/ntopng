@@ -5,7 +5,6 @@ Developing Plugins
     :maxdepth: 2
 
     overview
-    structure
     alert_endpoints
     alert_definitions
     checks
