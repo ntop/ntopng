@@ -618,13 +618,10 @@ public:
     /* NOTE: nEdge does the incs in NetfilterInterface::incStatsConntrack, keep
      * it in sync! */
 #ifndef HAVE_NEDGE
-    incEthStats(ingressPacket, eth_proto, num_pkts, pkt_len,
-                getPacketOverhead());
-    ndpiStats->incStats(when, ndpi_proto, 0, 0, num_pkts, pkt_len);
-    // Note: here we are not currently interested in packet direction, so we
-    // tell it is receive
-    ndpiStats->incCategoryStats(when, ndpi_category, 0 /* see above comment */,
-                                pkt_len);
+    incEthStats(ingressPacket, eth_proto, num_pkts, pkt_len, getPacketOverhead());
+
+    // incnDPIStats(when, ndpi_proto, ndpi_category, pkt_len, num_pkts);
+    
     pktStats.incStats(1, pkt_len);
     l4Stats.incStats(when, l4proto, ingressPacket ? num_pkts : 0,
                      ingressPacket ? pkt_len : 0, !ingressPacket ? num_pkts : 0,
@@ -649,6 +646,7 @@ public:
                             bool localreceiver) {
     localStats.incStats(num_pkts, pkt_len, localsender, localreceiver);
   };
+  
   inline void incnDPIFlows(u_int16_t l7_protocol) {
     ndpiStats->incFlowsStats(l7_protocol);
   }
@@ -1353,7 +1351,10 @@ public:
                                       bool *matched);
 #endif
   void getActiveMacs(lua_State *vm);
-  
+
+  void incnDPIStats(time_t when, u_int16_t ndpi_proto,
+		    ndpi_protocol_category_t ndpi_category,
+		    u_int32_t bytes_len, u_int32_t num_pkts);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

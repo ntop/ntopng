@@ -4677,13 +4677,13 @@ static int ntop_snmp_read_responses(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_snmp_toggle_trap_collection(lua_State *vm) {
+#ifdef HAVE_SNMP_TRAP
   bool enable = false;
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TBOOLEAN) != CONST_LUA_OK)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   enable = (bool)lua_toboolean(vm, 1);
 
-#ifdef HAVE_SNMP_TRAP
   ntop->toggleSNMPTrapCollector(enable);
 #endif
 

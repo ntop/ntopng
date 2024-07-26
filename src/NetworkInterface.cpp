@@ -41,7 +41,7 @@ static bool help_printed = false;
 /* Method used for collateral activities */
 NetworkInterface::NetworkInterface() : NetworkInterfaceAlertableEntity(this, alert_entity_interface) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  
+
   init(NULL);
 }
 
@@ -49,13 +49,13 @@ NetworkInterface::NetworkInterface() : NetworkInterfaceAlertableEntity(this, ale
 
 NetworkInterface::NetworkInterface(const char *name,
                                    const char *custom_interface_type)
-  : NetworkInterfaceAlertableEntity(this, alert_entity_interface) {  
+  : NetworkInterfaceAlertableEntity(this, alert_entity_interface) {
   char _ifname[MAX_INTERFACE_NAME_LEN], buf[MAX_INTERFACE_NAME_LEN];
   /* We need to do it as isView() is not yet initialized */
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
 
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  
+
   if (name == NULL) {
     if (!help_printed)
       ntop->getTrace()->traceEvent(TRACE_WARNING,
@@ -392,7 +392,7 @@ void NetworkInterface::cleanShadownDPI() {
   if(ndpi_struct_shadow != NULL) {
     ntop->getTrace()->traceEvent(TRACE_INFO, "%s(%p)", __FUNCTION__,
 				 ndpi_struct_shadow);
-    
+
     ndpi_exit_detection_module(ndpi_struct_shadow);
     ndpi_struct_shadow = NULL;
   }
@@ -418,7 +418,7 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
     "../nDPI/lists/public_suffix_list.dat",
     NULL
   };
-  
+
   if (ndpi_s == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
     exit(-1);
@@ -439,17 +439,17 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   /* Load public domain suffixes (part of the ndpi package) */
   for(int i=0; dirs[i] != NULL; i++) {
     struct stat buf;
-    
+
     if(stat(dirs[i], &buf) == 0) {
       if(ndpi_load_domain_suffixes(ndpi_s, (char*)dirs[i]) == 0)
 	ntop->getTrace()->traceEvent(TRACE_INFO, "Successfully loaded %s", dirs[i]);
       else
 	ntop->getTrace()->traceEvent(TRACE_WARNING, "Error while loading %s", dirs[i]);
-      
+
       break;
     }
   }
-  
+
   memset(d_port, 0, sizeof(d_port));
   ndpi_set_proto_defaults(ndpi_s, 0, 0, NDPI_PROTOCOL_UNRATED,
                           NTOPNG_NDPI_OS_PROTO_ID, (char *)"Operating System",
@@ -592,7 +592,7 @@ bool NetworkInterface::nDPILoadHostnameCategory(char *what, u_int16_t id, char *
     success = (ndpi_load_hostname_category(ndpi_struct_shadow, what, (ndpi_protocol_category_t)id) == 0);
   else
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
-  
+
   return success;
 }
 
@@ -607,7 +607,7 @@ int NetworkInterface::nDPILoadMaliciousJA3Signatures(const char *file_path) {
     n = ndpi_load_malicious_ja3_file(ndpi_struct_shadow, file_path);
   else
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
-  
+
   return n;
 }
 
@@ -615,12 +615,12 @@ int NetworkInterface::nDPILoadMaliciousJA3Signatures(const char *file_path) {
 
 int NetworkInterface::setDomainMask(const char *domain, u_int64_t domain_mask) {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, domain);
-  
+
   if(domain && ndpi_struct_shadow)
     return(ndpi_add_host_risk_mask(ndpi_struct_shadow, (char*)domain, domain_mask));
   else
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
-  
+
   return(-1);
 }
 
@@ -657,7 +657,7 @@ void NetworkInterface::setnDPIProtocolCategory(struct ndpi_detection_module_stru
   else {
     ntop->getTrace()->traceEvent(TRACE_INFO, "Setting protocol association: ID %d (mapped to %u) -> category %d",
 				 protoId, mappedProtoId, protoCategory);
-    
+
     ndpi_set_proto_category(ndpi_str, mappedProtoId, protoCategory);
   }
 }
@@ -963,7 +963,7 @@ NetworkInterface::~NetworkInterface() {
   std::map<u_int16_t /* observationPointId */, ObservationPointIdTrafficStats *>::iterator it_o;
 
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
-  
+
 #ifdef INTERFACE_PROFILING
   u_int64_t n = ethStats.getNumIngressPackets();
   if (isPacketInterface() && n > 0) {
@@ -2358,6 +2358,25 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "direction: %s / len: %u", ingressPacket ? "IN" : "OUT", len_on_wire);
 
+  if(flow->isDetectionCompleted()) {
+    /*
+      Trick to avoid updating interface protocols when the flow
+      application protocol has nit been detected hence account
+      traffic as Unknown. See Flow::~Flow()
+    */
+    
+    if(flow->isFlowAccounted()) {
+      incnDPIStats(when->tv_sec,
+		   flow->getStatsProtocol(), flow->get_protocol_category(),
+		   len_on_wire, 1);
+    } else {
+      incnDPIStats(when->tv_sec,
+		   flow->getStatsProtocol(), flow->get_protocol_category(),
+		   flow->get_bytes(), flow->get_packets());
+      flow->setFlowAccounted(); /* Set the flow as accounted */
+    }
+  }
+
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
            flow->getStatsProtocol(), flow->get_protocol_category(), l4_proto,
            len_on_wire, 1);
@@ -2821,7 +2840,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	  eth_offset = offset;
 	  goto datalink_check;
 	} else if ((sport == L2TP_PORT) && (dport == L2TP_PORT)) {
-	  u_int offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr);	 
+	  u_int offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr);
 	  struct l2tp_header *l2tp = (struct l2tp_header*)&packet[offset];
 	  u_int16_t proto, flags = ntohs(l2tp->flags);
 
@@ -2832,7 +2851,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	    u_int8_t have_offset_bit   = (flags & 0x0200) == 0x0200;
 
 	    offset += sizeof(struct l2tp_header);
-	    
+
 	    if(have_length_bit)   offset += sizeof(u_int16_t);
 	    if(have_sequence_bit) offset += 2;
 	    if(have_offset_bit)   offset += 2;
@@ -2855,8 +2874,8 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	    incStats(ingressPacket, h->ts.tv_sec, 0,
 		     NDPI_PROTOCOL_UNKNOWN,
 		     NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
-	    goto dissect_packet_end;	  
-	  }	  
+	    goto dissect_packet_end;
+	  }
 	} else if ((sport == TZSP_PORT) || (dport == TZSP_PORT)) {
 	  /* https://en.wikipedia.org/wiki/TZSP */
 	  u_int offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr);
@@ -3751,7 +3770,7 @@ void NetworkInterface::startFlowDumping() {
   activeFlowsToDump = new (std::nothrow)SPSCQueue<Flow *>(MAX_ACTIVE_FLOW_QUEUE_LEN, "activeFlowsToDump");
 
   ntop->getPrefs()->do_dump_flows_on_es() || ntop->getPrefs()->do_dump_flows_on_syslog();
-  
+
   if (!isViewed()) {
     /* Do not spawn the dumper thread for viewed interfaces -
        it's the view interface that has the dumper thread */
@@ -4972,7 +4991,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
           )
           /* We're good */
           is_ok = true;
-      } else if(ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN || 
+      } else if(ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN ||
                 ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN) {
       /* Case where one is unknown, the other can match both master and app of the flow */
         if((ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN &&
@@ -5075,10 +5094,10 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
 #endif
 	  if (retriever->pag &&
         retriever->pag->ifaceIndexFilter(&iface_index)) {
-          if (f->getInterface() && 
+          if (f->getInterface() &&
             f->getInterface()->get_id() != iface_index) {
         return (false);
-      }   
+      }
     }
 
     if (retriever->pag && retriever->pag->asnFilter(&asn_filter) &&
@@ -6030,9 +6049,9 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot, bool walk_all,
   else if (!strcmp(sortColumn, "column_server"))
     retriever->sorter = column_server,
       sorter = (isViewed() || isView()) ? ipSorter : hostSorter;
-  else if (!strcmp(sortColumn, "column_proto_l4")) 
+  else if (!strcmp(sortColumn, "column_proto_l4"))
     retriever->sorter = column_proto_l4, sorter = numericSorter;
-  else if (!strcmp(sortColumn, "column_ndpi")) 
+  else if (!strcmp(sortColumn, "column_ndpi"))
     retriever->sorter = column_ndpi, sorter = numericSorter;
   else if (!strcmp(sortColumn, "column_protocol"))
     retriever->sorter = column_protocol, sorter = protocolSorter;
@@ -6824,7 +6843,7 @@ int NetworkInterface::getActiveHostsList(lua_State *vm, u_int32_t *begin_slot, b
             h->lua(vm, NULL /* Already checked */, host_details, false, false,
                  false);
             lua_pushinteger(vm, count++);
-            lua_insert(vm, -2); 
+            lua_insert(vm, -2);
             lua_settable(vm, -3);
           } else {
             h->lua(vm, NULL /* Already checked */, host_details, false, false,
@@ -6846,7 +6865,7 @@ int NetworkInterface::getActiveHostsList(lua_State *vm, u_int32_t *begin_slot, b
             h->lua(vm, NULL /* Already checked */, host_details, false, false,
                  false);
             lua_pushinteger(vm, count++);
-            lua_insert(vm, -2); 
+            lua_insert(vm, -2);
             lua_settable(vm, -3);
           } else {
             h->lua(vm, NULL /* Already checked */, host_details, false, false,
@@ -7419,13 +7438,13 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
     lua_push_bool_table_entry(vm, "has_seen_external_alerts",
 			      hasSeenExternalAlerts());
     lua_push_bool_table_entry(vm, "has_seen_ebpf_events", hasSeenEBPFEvents());
-    
+
     luaNumEngagedAlerts(vm);
     luaAlertedFlows(vm);
-  
+
     lua_push_uint64_table_entry(vm, "num_dropped_alerts",
 				getNumDroppedAlertsSinceReset());
-    
+
     /* Those counters are absolute, i.e., they are not subject to reset */
     lua_push_uint64_table_entry(vm, "num_host_dropped_alerts",
 				num_host_dropped_alerts);
@@ -7433,11 +7452,11 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
 				num_flow_dropped_alerts);
     lua_push_uint64_table_entry(vm, "num_other_dropped_alerts",
 				num_other_dropped_alerts);
-    
+
     lua_push_uint64_table_entry(vm, "periodic_stats_update_frequency_secs",
 				periodicStatsUpdateFrequency());
   }
-  
+
   /* .stats */
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "packets", getNumPackets());
@@ -7463,10 +7482,10 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
 
   if(fullStats) {
     if (db) db->lua(vm, false /* Overall */);
-    
+
     usedPorts.lua(vm, this);
   }
-  
+
   lua_pushstring(vm, "stats");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
@@ -7495,14 +7514,14 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
 
   if(fullStats) {
     bcast_domains->lua(vm);
-    
+
     if (top_sites && ntop->getPrefs()->are_top_talkers_enabled())
       top_sites->lua(vm, (char *)"sites", (char *)"sites.old");
 
     luaAnomalies(vm);
     luaScore(vm);
   }
-  
+
   sumStats(&_tcpFlowStats, &_ethStats, &_localStats, NULL, &_pktStats,
            &_tcpPacketStats, &_dscpStats,
            &_syslogStats, &_downloadStats, &_uploadStats);
@@ -7511,7 +7530,7 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
     _downloadStats.luaRTStats(vm, "download_stats");
     _uploadStats.luaRTStats(vm, "upload_stats");
   }
-  
+
   _tcpFlowStats.lua(vm, "tcpFlowStats");
   _ethStats.lua(vm);
   _localStats.lua(vm);
@@ -7525,11 +7544,11 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
   if(fullStats) {
     _pktStats.lua(vm, "pktSizeDistribution");
     _tcpPacketStats.lua(vm, "tcpPacketStats");
-    
+
     _dscpStats.lua(this, vm);
     _syslogStats.lua(vm);
   }
-  
+
   if (!isView()) {
 #ifdef NTOPNG_PRO
 #ifndef HAVE_NEDGE
@@ -7540,14 +7559,14 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
 
   if(fullStats) {
     if (host_pools) host_pools->lua(vm);
-    
+
 #ifdef NTOPNG_PRO
     traffic_rx_behavior->luaBehavior(vm, "traffic_rx_behavior");
     traffic_tx_behavior->luaBehavior(vm, "traffic_tx_behavior");
     score_behavior->luaBehavior(vm, "score_behavior");
-    
+
     if (custom_app_stats) custom_app_stats->lua(vm);
-    
+
     if (pMap) pMap->lua(vm, "periodicity_map");
     if (sMap) sMap->lua(vm, "service_map");
 #endif
@@ -9856,7 +9875,7 @@ bool NetworkInterface::stopLiveCapture(int capture_id) {
 
     if (live_captures[capture_id] != NULL) {
       NtopngLuaContext *c = (NtopngLuaContext *)live_captures[capture_id];
-      
+
       c->live_capture.stopped = true, rc = true;
       if (c->live_capture.bpfFilterSet) pcap_freecode(&c->live_capture.fcode);
       /* live_captures[capture_id] = NULL; */ /* <-- not necessary as mongoose
@@ -11439,11 +11458,11 @@ bool NetworkInterface::compute_client_server_srv_port_app_proto_flow_stats(Gener
   u_int64_t key = (((u_int64_t)f->get_cli_ip_addr()->key()) << 16) +
     (((u_int64_t)f->get_srv_ip_addr()->key()) << 16) +
     (((u_int64_t)f->get_srv_port()) << 32) +
-    ((u_int64_t)vlan_id << 32) + 
+    ((u_int64_t)vlan_id << 32) +
     (((u_int64_t)detected_protocol.app_protocol) << 16) +
     (u_int64_t)detected_protocol.master_protocol;
 
-  u_int64_t proto_key = ((u_int64_t)vlan_id << 32) + 
+  u_int64_t proto_key = ((u_int64_t)vlan_id << 32) +
                       (((u_int64_t)detected_protocol.app_protocol) << 16) +
                       (u_int64_t)detected_protocol.master_protocol;
 
@@ -11642,7 +11661,7 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
     case 8:
       add_client = add_server = add_srv_port = add_app_proto = true;
       break;
-      
+
     default:
       add_client = true;
       break;
@@ -11932,7 +11951,7 @@ void NetworkInterface::getFilteredLiveFlowsStats(lua_State *vm) {
     walker(&begin_slot, true /* walk_all */, walker_flows,
       compute_client_server_srv_port_flow_stats, &stats);
     break;
-  case AnalysisCriteria::client_server_srv_port_app_proto: 
+  case AnalysisCriteria::client_server_srv_port_app_proto:
     /* client server server port app_proto criteria flows stats case */
     walker(&begin_slot, true /* walk_all */, walker_flows,
       compute_client_server_srv_port_app_proto_flow_stats, &stats);
@@ -12130,7 +12149,7 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
 
   /* Retrieve the server host instance */
   Host* h = f->get_srv_host();
-  if (!h) 
+  if (!h)
     h = f->getViewSharedServer();
 
   if (!h)
@@ -12152,17 +12171,17 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
 
   /* Check L7 filters */
   ndpi_protocol detected_protocol = f->get_detected_protocol();
-   
+
   bool check_both = false;
-  if (l7_app_protocol != NDPI_PROTOCOL_UNKNOWN) 
+  if (l7_app_protocol != NDPI_PROTOCOL_UNKNOWN)
     check_both = true;
 
-  if (detected_protocol.master_protocol == detected_protocol.app_protocol || 
+  if (detected_protocol.master_protocol == detected_protocol.app_protocol ||
       detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN){
     /* CASE master == app OR app == UNKNOWN */
     if (check_both) return false; /* there's a specific app protocol filter */
     else if (!check_both && l7_master_protocol != detected_protocol.master_protocol)
-      return false; 
+      return false;
   } else if (detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN) {
     /* CASE master == UNKNOWN */
     if (check_both) return false; /* there's a specific app protocol filter */
@@ -12739,3 +12758,14 @@ void NetworkInterface::getSFlowDevices(lua_State *vm, bool add_table) {
     lua_settable(vm, -3);
   }
 };
+
+/* **************************************************** */
+
+void NetworkInterface::incnDPIStats(time_t when, u_int16_t ndpi_proto,
+				    ndpi_protocol_category_t ndpi_category,
+				    u_int32_t bytes_len, u_int32_t num_pkts) {
+  ndpiStats->incStats(when, ndpi_proto, 0, 0, num_pkts, bytes_len);
+  ndpiStats->incCategoryStats(when, ndpi_category,
+			      0 /*  we are not currently interested in packet direction, so we tell it is receive  */,
+			      bytes_len);
+}

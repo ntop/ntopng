@@ -177,8 +177,7 @@ void nDPIStats::incStats(u_int32_t when, u_int16_t proto_id,
   if (cbr != counters.end()) {
     pc = cbr->second;
   } else {
-    pc = new (std::nothrow)
-        ProtoCounter(proto_id, enable_throughput_stats, enable_behavior_stats);
+    pc = new (std::nothrow)ProtoCounter(proto_id, enable_throughput_stats, enable_behavior_stats);
 
     if (!pc) return;
 

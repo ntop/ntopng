@@ -93,6 +93,7 @@ class Flow : public GenericHashEntry {
       has_malicious_srv_signature : 1, src2dst_tcp_zero_window : 1,
       dst2src_tcp_zero_window : 1, non_zero_payload_observed : 1,
       is_periodic_flow : 1;
+  u_int8_t iface_flow_accounted:1, _notused:7;
 
   ndpi_multimedia_flow_type rtp_stream_type;
 #ifdef ALERTED_FLOWS_DEBUG
@@ -461,9 +462,7 @@ class Flow : public GenericHashEntry {
   bool isTiny() const;
   inline bool isProto(u_int16_t p) const {
     return (((ndpiDetectedProtocol.master_protocol == p) ||
-             (ndpiDetectedProtocol.app_protocol == p))
-                ? true
-                : false);
+             (ndpiDetectedProtocol.app_protocol == p)) ? true : false);
   }
   bool isTLS() const;
   inline bool isEncryptedProto() const {
@@ -679,50 +678,60 @@ class Flow : public GenericHashEntry {
   inline bool isDetectionCompleted() const {
     return (detection_completed ? true : false);
   };
+  
   inline bool isOneWay() const {
-    return (get_packets() &&
-            (!get_packets_cli2srv() || !get_packets_srv2cli()));
+    return (get_packets() && (!get_packets_cli2srv() || !get_packets_srv2cli()));
   };
+  
   inline bool isBidirectional() const {
     return (get_packets_cli2srv() && get_packets_srv2cli());
   };
+  
   inline bool isRemoteToRemote() const {
     return (cli_host && srv_host && !cli_host->isLocalHost() &&
             !srv_host->isLocalHost());
   };
+  
   inline bool isLocalToRemote() const {
-    return get_cli_ip_addr()->isLocalHost() &&
-           !get_srv_ip_addr()->isLocalHost();
+    return get_cli_ip_addr()->isLocalHost() && !get_srv_ip_addr()->isLocalHost();
   };
+  
   inline bool isRemoteToLocal() const {
-    return !get_cli_ip_addr()->isLocalHost() &&
-           get_srv_ip_addr()->isLocalHost();
+    return !get_cli_ip_addr()->isLocalHost() && get_srv_ip_addr()->isLocalHost();
   };
+  
   inline bool isLocalToLocal() const {
     return get_cli_ip_addr()->isLocalHost() && get_srv_ip_addr()->isLocalHost();
   };
+  
   inline bool isUnicast() const {
     return (cli_ip_addr && srv_ip_addr &&
             !cli_ip_addr->isBroadMulticastAddress() &&
             !srv_ip_addr->isBroadMulticastAddress());
   };
+  
   inline u_int32_t get_cli_ipv4() const {
     return (cli_host->get_ip()->get_ipv4());
   };
+  
   inline u_int32_t get_srv_ipv4() const {
     return (srv_host->get_ip()->get_ipv4());
   };
+  
   inline ndpi_protocol get_detected_protocol() const {
     return (isDetectionCompleted() ? ndpiDetectedProtocol
                                    : ndpiUnknownProtocol);
   };
+  
   inline struct ndpi_flow_struct *get_ndpi_flow() const { return (ndpiFlow); };
   inline const struct ndpi_in6_addr *get_cli_ipv6() const {
     return (cli_host->get_ip()->get_ipv6());
   };
+
   inline const struct ndpi_in6_addr *get_srv_ipv6() const {
     return (srv_host->get_ip()->get_ipv6());
   };
+
   inline u_int16_t get_cli_port() const { return (ntohs(cli_port)); };
   inline u_int16_t get_srv_port() const { return (ntohs(srv_port)); };
   inline u_int16_t get_vlan_id() const { return (vlanId); };
@@ -1430,6 +1439,8 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getPreNATDstPort() { return ntohs(dst_port_pre_nat); };
   inline u_int16_t getPostNATSrcPort() { return ntohs(src_port_post_nat); };
   inline u_int16_t getPostNATDstPort() { return ntohs(dst_port_post_nat); };
+  inline bool isFlowAccounted()        { return iface_flow_accounted; };
+  inline void setFlowAccounted()       { iface_flow_accounted = 1;    };
 };
 
 #endif /* _FLOW_H_ */
