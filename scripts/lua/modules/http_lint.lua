@@ -1509,6 +1509,13 @@ end
 
 -- #################################################################
 
+function validateSankeyCriteria(criteria)
+   return (criteria == 'flow_volume_criteria' or 
+      criteria == 'flow_drops_criteria')
+end
+
+-- #################################################################
+
 function validateToken(token)
 
    if (not token) then
@@ -2670,6 +2677,7 @@ local known_parameters = {
    ["exporter_uuid"] = validateNumber,
    ["probe_uuid"] = validateNumber,
    ["telemetry"] = validateBool,
+   ["criteria"] = validateSankeyCriteria,
 
    -- nEdge policy
    ["default_policy"] = validatePolicy, -- users, nedge policies

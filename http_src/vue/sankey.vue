@@ -122,7 +122,7 @@ async function draw_sankey() {
              )
     	.attr("font-size", 12)
     	.text((d) => d.label)
-	.on("click", function(event, data_obj){ emit('node_click', data_obj.data); });    
+	.on("click", function(event, data_obj){ emit('node_click', data_obj.data, data_obj); });    
     d3_nodes
 	.call(d3.drag().subject(d => d).on("start", dragStart).on("drag", dragMove));
     

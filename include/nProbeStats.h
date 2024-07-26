@@ -25,6 +25,7 @@
 #include "ntop_includes.h"
 
 typedef struct {
+  u_int64_t collection_port;
   u_int64_t nf_ipfix_flows;
   u_int64_t sflow_samples;
 } FlowCollection;
@@ -44,6 +45,7 @@ class nProbeStats {
     char remote_probe_version[64], remote_probe_os[64];
     char remote_probe_license[64], remote_probe_edition[64];
     char remote_probe_maintenance[64];
+    char mode[64];
     u_int32_t source_id, uuid_num, num_exporters;
     u_int64_t remote_bytes, remote_pkts, num_flow_exports;
     u_int32_t remote_ifspeed, remote_time, local_time, avg_bps, avg_pps;

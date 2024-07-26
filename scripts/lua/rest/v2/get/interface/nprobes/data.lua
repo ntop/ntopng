@@ -36,23 +36,25 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
     for source_id, probe_info in pairs(probes_list or {}) do
         local flow_drops = 0
         local exported_flows = 0
+        local probe_interface
         local flow_exporters_num = table.len(probe_info.exporters)
-        if table.len(probe_info.exporters) == 0 then
+        if probe_info["probe.mode"] == "packet_collection" then
             flow_exporters_num = 1 -- Packet exporter
             flow_drops = probe_info["drops.elk_flow_drops"] + probe_info["drops.flow_collection_udp_socket_drops"] +
                             probe_info["drops.export_queue_full"] + probe_info["drops.too_many_flows"] + probe_info["drops.flow_collection_drops"] +
                             probe_info["drops.sflow_pkt_sample_drops"] + probe_info["drops.elk_flow_drops"]
             exported_flows = probe_info["zmq.num_flow_exports"]
+            probe_interface = probe_info["remote.name"]
         else
             for _, values in pairs(probe_info.exporters) do
                 flow_drops = flow_drops + values.num_drops
                 exported_flows = exported_flows + values.num_netflow_flows + values.num_sflow_flows
             end
+            probe_interface = i18n("if_stats_overview.remote_probe_collector_mode")
         end
 
         res[#res + 1] = {
-            probe_interface = ternary((probe_info["remote.name"] ~= "none"), probe_info["remote.name"],
-                i18n("if_stats_overview.remote_probe_collector_mode")),
+            probe_interface = probe_interface,
             probe_version = probe_info["probe.probe_version"],
             probe_ip = probe_info["probe.ip"],
             probe_uuid = probe_info["probe.uuid"],

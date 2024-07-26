@@ -462,6 +462,7 @@ local lang = {
   ["no_data_available"] = "No Data Available",
   ["no_external_link_url"] = "<span><button data-to-copy='%{proto}://%{url}' class='copy-http-url btn btn-light btn-sm border ms-1' style='cursor: pointer;'><i class='fas fa-copy'></i></button>  <a href='%{proto}://%{url}' target='_blank'><i class='fas fa-external-link-alt'></i> %{url_name}</a></span>",
   ["no_flows"] = "No Flows",
+  ["no_nprobes_message"] = "No nProbe Instances found",
   ["no_ports"] = "No Ports",
   ["no_results_found"] = "No results found",
   ["no_talkers_for_the_host"] = "There are no talkers for the current host",
@@ -2764,8 +2765,8 @@ local lang = {
     ["note_maximum_number"] = "The maximum number of downloadable hosts is 32,768.",
   },
   ["exporters_page"] = {
-    ["flow_drops_criteria"] = "Flow Drops",
-    ["flow_volume_criteria"] = "Flow Volume",
+    ["flow_drops_criteria"] = "Total Drops",
+    ["flow_volume_criteria"] = "Total Flows",
   },
   ["external_stats"] = {
     ["capture_drops"] = "Dropped Packets",

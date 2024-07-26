@@ -332,6 +332,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
 
   if (polling_start_time == 0) polling_start_time = (u_int32_t)time(NULL);
 
+//#define TRACE_EXPORTERS
 #ifdef TRACE_EXPORTERS
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msg_id: %u] %s", msg_id, payload);
 #endif
@@ -358,6 +359,10 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
         snprintf(zrs.remote_ifaddress, sizeof(zrs.remote_ifaddress), "%s",
                  json_object_get_string(z));
     }
+
+    if (json_object_object_get_ex(o, "mode", &w))
+      snprintf(zrs.mode, sizeof(zrs.mode),
+                "%s", json_object_get_string(w));
 
     if (json_object_object_get_ex(o, "probe", &w)) {
       if (json_object_object_get_ex(w, "public_ip", &z))
@@ -473,6 +478,10 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
     if (json_object_object_get_ex(o, "flow_collection", &w)) {
       if (json_object_object_get_ex(w, "nf_ipfix_flows", &z))
         zrs.flow_collection.nf_ipfix_flows =
+            (u_int64_t)json_object_get_int64(z);
+            
+      if (json_object_object_get_ex(w, "collection_port", &z))
+        zrs.flow_collection.collection_port =
             (u_int64_t)json_object_get_int64(z);
 
       if (json_object_object_get_ex(w, "sflow_samples", &z))
@@ -3220,6 +3229,8 @@ void ZMQParserInterface::probeLuaStats(lua_State *vm) {
                              zrs->remote_probe_license);
     lua_push_str_table_entry(vm, "probe.probe_edition",
                              zrs->remote_probe_edition);
+    lua_push_str_table_entry(vm, "probe.mode",
+                             zrs->mode);
     lua_push_str_table_entry(vm, "probe.probe_maintenance",
                              zrs->remote_probe_maintenance);
     lua_push_uint64_table_entry(vm, "drops.export_queue_full", zrs->export_queue_full);
@@ -3229,6 +3240,7 @@ void ZMQParserInterface::probeLuaStats(lua_State *vm) {
     lua_push_uint64_table_entry(vm, "drops.flow_collection_drops", zrs->flow_collection_drops);
     lua_push_uint64_table_entry(vm, "drops.flow_collection_udp_socket_drops", zrs->flow_collection_udp_socket_drops);
     lua_push_uint64_table_entry(vm, "flow_collection.nf_ipfix_flows", zrs->flow_collection.nf_ipfix_flows);
+    lua_push_uint64_table_entry(vm, "flow_collection.collection_port", zrs->flow_collection.collection_port);
     lua_push_uint64_table_entry(vm, "flow_collection.sflow_samples", zrs->flow_collection.sflow_samples);
     lua_push_uint64_table_entry(vm, "zmq.num_flow_exports", zrs->num_flow_exports);
     lua_push_uint64_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);

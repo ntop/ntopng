@@ -30,6 +30,16 @@
 			]
 		},
 		{
+			"id": "ntopng_interface",
+			"title_i18n": "flow_devices.ntopng_interface",
+			"data_field": "ntopng_interface",
+			"sortable": true,
+			"min-width": 150,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"id": "probe_interface",
 			"title_i18n": "if_stats_overview.interface_name",
 			"data_field": "probe_interface",
