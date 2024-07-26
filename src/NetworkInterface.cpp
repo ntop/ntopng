@@ -2344,8 +2344,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 
         flow->getFlowShapers(src2dst_direction, &shaper_ingress,
                              &shaper_egress);
-        ntop->getTrace()->traceEvent(
-				     TRACE_DEBUG, "[%s] %u / %u ",
+        ntop->getTrace()->traceEvent(TRACE_DEBUG, "[%s] %u / %u ",
 				     flow->get_detected_protocol_name(buf, sizeof(buf)), shaper_ingress,
 				     shaper_egress);
         pass_verdict = passShaperPacket(shaper_ingress, shaper_egress,
@@ -2357,13 +2356,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 #endif
   }
 
-#if 0
-  if(new_flow)
-    flow->updateCommunityIdFlowHash();
-#endif
-
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "direction: %s / len: %u",
-  // ingressPacket ? "IN" : "OUT", len_on_wire);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "direction: %s / len: %u", ingressPacket ? "IN" : "OUT", len_on_wire);
 
   incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
            flow->getStatsProtocol(), flow->get_protocol_category(), l4_proto,

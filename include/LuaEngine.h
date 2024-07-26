@@ -45,7 +45,7 @@ class LuaEngine {
   char *loaded_script_path;
   bool is_system_vm; /* Executed by callbacks */
   std::string cloud_string;
-  std::set<std::string> requires;
+  std::set<std::string> require_list;
   size_t mem_used;
   u_int32_t start_epoch;
   NtopngLuaContext *lua_context;

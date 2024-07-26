@@ -1584,12 +1584,12 @@ NetworkInterface* LuaEngine::getNetworkInterface() {
 /* ****************************************** */
 
 bool LuaEngine::require(std::string name) {  
-  std::set<std::string>::iterator it = requires.find(name);
+  std::set<std::string>::iterator it = require_list.find(name);
 
-  if(it != requires.end())
+  if(it != require_list.end())
     return(true);
   
-  requires.insert(name);
+  require_list.insert(name);
   return(false);
 }
   
