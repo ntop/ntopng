@@ -355,17 +355,7 @@ Flow::~Flow() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Deleting flow [%u]",
                                  __FUNCTION__, getUses());
 
-  if(!isFlowAccounted()) {
-    /*
-      Increment interface counters for those flows that have not
-      been accounted hence whose traffic has not been accounted
-      in the corresponding network interface. See
-      NetworkInterface::processPacket()
-    */
-    iface->incnDPIStats(iface->getTimeLastPktRcvd(),
-			getStatsProtocol(), get_protocol_category(),
-			get_bytes(), get_packets());
-  }
+  accountFlowTraffic();
   
 #ifdef ALERTED_FLOWS_DEBUG
   if (iface_alert_inc && !iface_alert_dec) {
@@ -8883,4 +8873,24 @@ void Flow::addPrePostNATPort(u_int32_t _src_port_pre_nat,
   dst_port_pre_nat = _dst_port_pre_nat;
   src_port_post_nat = _src_port_post_nat;
   dst_port_post_nat = _dst_port_post_nat;
+}
+
+/* *************************************** */
+
+/*
+  Account flow traffic in interface traffic if not
+  yet done
+*/
+void Flow::accountFlowTraffic() {
+  if(!isFlowAccounted()) {
+    /*
+      Increment interface counters for those flows that have not
+      been accounted hence whose traffic has not been accounted
+      in the corresponding network interface. See
+      NetworkInterface::processPacket()
+    */
+    iface->incnDPIStats(iface->getTimeLastPktRcvd(),
+			getStatsProtocol(), get_protocol_category(),
+			get_bytes(), get_packets());
+  }
 }

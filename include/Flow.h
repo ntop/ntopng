@@ -373,7 +373,7 @@ class Flow : public GenericHashEntry {
   void updateClientContactedPorts(Host *client, ndpi_protocol *proto);
   void updateTCPHostServices(Host *cli_h, Host *srv_h);
   void updateUDPHostServices();
-
+  
  public:
   Flow(NetworkInterface *_iface, int32_t iface_idx,
        u_int16_t _vlanId,
@@ -1441,6 +1441,7 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getPostNATDstPort() { return ntohs(dst_port_post_nat); };
   inline bool isFlowAccounted()        { return iface_flow_accounted; };
   inline void setFlowAccounted()       { iface_flow_accounted = 1;    };
+  void accountFlowTraffic();
 };
 
 #endif /* _FLOW_H_ */

@@ -201,6 +201,19 @@ void PcapInterface::cleanupPcapDumpDir() {
 
 /* **************************************************** */
 
+/*
+  Account flow traffic in the network interface
+*/
+static bool idle_flow_account(GenericHashEntry *h, void *user_data, bool *matched) {
+  Flow *f = (Flow*)h;
+  
+  f->accountFlowTraffic();
+
+  return(false);
+}
+
+/* **************************************************** */
+
 static void *packetPollLoop(void *ptr) {
   PcapInterface *iface = (PcapInterface *)ptr;
   FILE *pcap_list = iface->get_pcap_list();
@@ -402,8 +415,15 @@ static void *packetPollLoop(void *ptr) {
 
   } while (pcap_list != NULL);
 
-  if (iface->read_from_pcap_dump()) iface->set_read_from_pcap_dump_done();
+  if(iface->read_from_pcap_dump()) {
+    FlowHash *fh = iface->get_flows_hash();
+    u_int32_t begin_slot = 0;
+    
+    iface->set_read_from_pcap_dump_done();
 
+    fh->walk(&begin_slot, true /* walk_all */, idle_flow_account, NULL /* user_data */);
+  }
+  
   /* Do two full scans to make sure all stats are updated */
   for (int i = 0; i < 2; i++)
     iface->purgeIdle(time(NULL), false, true /* Full scan */);
