@@ -103,11 +103,6 @@ const get_sankey_data = async () => {
         if (link.value === 0) {
             link.value = 1
         }
-        if (ntopng_url_manager.get_url_entry("criteria") == "flow_drops_criteria") {
-            link.label = formatterUtils.getFormatter("drops")(link.value)
-        } else {
-            link.label = formatterUtils.getFormatter("number")(link.value)
-        }
         let node = graph.nodes.find((el) => el.node_id == link.source_node_id)
         link.source = node.index;
         node = graph.nodes.find((el) => el.node_id == link.target_node_id)
