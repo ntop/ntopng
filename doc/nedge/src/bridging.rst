@@ -52,7 +52,7 @@ While the dedicated network interface case is trivial and does not require a spe
 please find below instructions for configuring a virtual interface over a VLAN on top of the bridge
 created by nedge.
 
-On Ubuntu 20 (or any netplan based system) the interfaces configuration is written by nedge in
+On netplan-based Ubuntu systems the interfaces configuration is written by nedge in
 the `/etc/netplan/30-nedge.yaml` file. It is possible to write an additional configuration file
 `/etc/netplan/30-nedge-management.yaml` which contains the virtual interface configuration as below.
 In this example we assume that the appliance should be visible on VLAN 15 with IP address 10.10.10.1.
