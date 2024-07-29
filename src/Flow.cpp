@@ -281,8 +281,7 @@ Flow::Flow(NetworkInterface *_iface,
     break;
 
   default:
-    setDetectedProtocol(ndpi_guess_undetected_protocol(
-						       iface->get_ndpi_struct(), NULL, protocol));
+    setDetectedProtocol(ndpi_guess_undetected_protocol(iface->get_ndpi_struct(), NULL, protocol));
     break;
   }
 
@@ -356,7 +355,7 @@ Flow::~Flow() {
                                  __FUNCTION__, getUses());
 
   accountFlowTraffic();
-  
+
 #ifdef ALERTED_FLOWS_DEBUG
   if (iface_alert_inc && !iface_alert_dec) {
     char buf[256];
@@ -2331,7 +2330,7 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
   /* In order to avoid overestimating the throughput, we scale small intervals
    * to at least one second */
   if (tdiff_msec < 1000) tdiff_msec = 1000.;
-    
+
   // bps
   float bytes_msec_cli2srv = ((float)(diff_sent_bytes * 1000)) / tdiff_msec;
   float bytes_msec_srv2cli = ((float)(diff_rcvd_bytes * 1000)) / tdiff_msec;
@@ -4993,11 +4992,11 @@ void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto, time_t whe
 	  iface->setServerPort(true, ntohs(srv_port), proto);
 	else { /* Otherwise set this port to the right VLAN */
 	  VLAN *vlan_hash = iface->getVLAN(vlanId, false, false);
-	  
+
 	  if (vlan_hash)
 	    vlan_hash->setServerPort(true, ntohs(srv_port), proto);
 	}
-	
+
 	server->setServerPort(true, ntohs(srv_port), proto, first_seen);
       }
       break;
@@ -5012,13 +5011,13 @@ void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto, time_t whe
 	  iface->setServerPort(false, s_port, proto);
 	else { /* Otherwise set this port to the right VLAN */
 	  VLAN *vlan_hash = iface->getVLAN(vlanId, false, false);
-	  
+
 	  if (vlan_hash) vlan_hash->setServerPort(false, s_port, proto);
 	}
 
 	server->setServerPort(false, s_port, proto, first_seen);
       }
-      
+
       break;
     }
     }
@@ -6783,8 +6782,7 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF *const _ebpf,
     ssize_t fbuf_len = 512;
 
     if (!warning_shown && (fbuf = (char *)malloc(fbuf_len))) {
-      ntop->getTrace()->traceEvent(
-				   TRACE_WARNING, "Identical flow seen across multiple containers? %s",
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Identical flow seen across multiple containers? %s",
 				   print(fbuf, fbuf_len));
 
       warning_shown = true;
@@ -8883,6 +8881,14 @@ void Flow::addPrePostNATPort(u_int32_t _src_port_pre_nat,
 */
 void Flow::accountFlowTraffic() {
   if(!isFlowAccounted()) {
+#ifdef DEBUG
+    char buf[256];
+
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Account %s", print(buf, sizeof(buf)));
+#endif
+
+    endProtocolDissection();
+
     /*
       Increment interface counters for those flows that have not
       been accounted hence whose traffic has not been accounted
