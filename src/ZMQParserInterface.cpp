@@ -684,7 +684,8 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
       break;
     case SRC_VLAN:
     case DST_VLAN:
-      flow->vlan_id = value->int_num;
+      if((flow->vlan_id = value->int_num) > 4095) /* Sanity check */
+	flow->vlan_id = 0;
       break;
     case DOT1Q_SRC_VLAN:
     case DOT1Q_DST_VLAN:

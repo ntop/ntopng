@@ -66,7 +66,8 @@ Flow::Flow(NetworkInterface *_iface,
   /* Note is_periodic_flow is updated by the updateFlowPeriodicity() call */
   detection_completed = 0, non_zero_payload_observed = 0, is_periodic_flow = 0,
     extra_dissection_completed = 0,
-    has_malicious_cli_signature = has_malicious_srv_signature = 0;
+    has_malicious_cli_signature = has_malicious_srv_signature = 0,
+    iface_flow_accounted = 0;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   cli2srv_tos = srv2cli_tos = 0;
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
@@ -354,6 +355,8 @@ Flow::~Flow() {
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Deleting flow [%u]",
                                  __FUNCTION__, getUses());
 
+  accountFlowTraffic();
+  
 #ifdef ALERTED_FLOWS_DEBUG
   if (iface_alert_inc && !iface_alert_dec) {
     char buf[256];
@@ -2328,7 +2331,7 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
   /* In order to avoid overestimating the throughput, we scale small intervals
    * to at least one second */
   if (tdiff_msec < 1000) tdiff_msec = 1000.;
-
+    
   // bps
   float bytes_msec_cli2srv = ((float)(diff_sent_bytes * 1000)) / tdiff_msec;
   float bytes_msec_srv2cli = ((float)(diff_rcvd_bytes * 1000)) / tdiff_msec;
@@ -8870,4 +8873,24 @@ void Flow::addPrePostNATPort(u_int32_t _src_port_pre_nat,
   dst_port_pre_nat = _dst_port_pre_nat;
   src_port_post_nat = _src_port_post_nat;
   dst_port_post_nat = _dst_port_post_nat;
+}
+
+/* *************************************** */
+
+/*
+  Account flow traffic in interface traffic if not
+  yet done
+*/
+void Flow::accountFlowTraffic() {
+  if(!isFlowAccounted()) {
+    /*
+      Increment interface counters for those flows that have not
+      been accounted hence whose traffic has not been accounted
+      in the corresponding network interface. See
+      NetworkInterface::processPacket()
+    */
+    iface->incnDPIStats(iface->getTimeLastPktRcvd(),
+			getStatsProtocol(), get_protocol_category(),
+			get_bytes(), get_packets());
+  }
 }

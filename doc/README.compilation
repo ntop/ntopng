@@ -172,13 +172,7 @@ On FreeBSD
 ~~~~~~~~~~
 
 All versions:
-sudo pkg install gcc git autoconf automake libtool pkgconf gmake sudo libmaxminddb libsodium mysql56-client rrdtool lua53 zip json-c libzmq4 sqlite3 libgcrypt librdkafka bison flex libpcap rename cmake redis hiredis
-
-Up to FreeBSD 13
-sudo pkg install mysql56-client
-
-From FreeBSD 14
-sudo pkg install mysql80-client
+sudo pkg install gcc git autoconf automake libtool pkgconf gmake sudo libmaxminddb libsodium mysql56-client rrdtool lua53 zip json-c libzmq4 sqlite3 libgcrypt librdkafka bison flex libpcap rename cmake redis hiredis mysql80-client bash
 
 
 On OpenSuse
