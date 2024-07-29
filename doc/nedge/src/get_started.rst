@@ -1,22 +1,22 @@
 Getting Started
 ===============
 
-nEdge requires at least **two wired network interfaces** in order to run.
-
-.. warning::
-   nEdge will change the system configuration of the device where it's installed.
-   The original network configuration file is stored in `/etc/network/interfaces.old` in
-   Ubuntu 16 or in `/etc/netplan/*.yaml.old` in case of Ubuntu 18.
-   The nEdge package will force the removal of the network manager as it
-   conflicts with the nEdge operation.
-
-Before installing nEdge, it's necessary to add the ntop repo to the system, by following the
-instructions at http://packages.ntop.org . After configuring the gateway, nEdge can be
-installed with the commands:
+nEdge can be installed on Ubuntu 20 using apt, it is thus necessary to configure the ntop repository by following the
+instructions at http://packages.ntop.org . After configuring the repository, nEdge can be
+installed with the below commands:
 
 `apt-get update`
 
 `apt-get install nedge`
+
+.. note::
+   nEdge requires at least **two wired network interfaces** in order to run.
+
+.. warning::
+   nEdge will **change the system configuration** of the device where it is installed.
+   The original network configuration file is stored in `/etc/netplan/*.yaml.old`.
+   The nEdge package will force the removal of the network manager as it
+   conflicts with the nEdge operation.
 
 First Start
 -----------
