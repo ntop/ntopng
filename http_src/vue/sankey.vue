@@ -146,7 +146,6 @@ async function draw_sankey() {
 
     links_d3
         .append("path")
-        .style('pointer-events', 'none')
         .attr("class", "sankey-link")
         .attr("d", d3.sankeyLinkHorizontal())
         .attr("stroke-width", (d) => {
@@ -155,8 +154,9 @@ async function draw_sankey() {
         .attr("stroke", (d) => `url(#gradient-${d.index}`)
         .append("title")
         .attr("data-bs-toggle", "tooltip")
-        
-    d3.selectAll("linearGradient").append("title").text((d) => `${d.label}`);
+        .attr("data-bs-placement", "top")
+        .attr("title", (d) => `${d.label}`)
+        .text((d) => `${d.label}`);
 }
 
 function dragStart(event, d) {
