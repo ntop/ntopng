@@ -290,22 +290,21 @@ class Flow : public GenericHashEntry {
   } flowShaperIds;
 #endif
   struct timeval last_update_time;
-
+  
   float top_bytes_thpt, top_goodput_bytes_thpt, top_pkts_thpt;
-  float bytes_thpt_cli2srv, goodput_bytes_thpt_cli2srv;
-  float bytes_thpt_srv2cli, goodput_bytes_thpt_srv2cli;
-  float pkts_thpt_cli2srv, pkts_thpt_srv2cli;
+  float bytes_thpt, goodput_bytes_thpt;
+  float pkts_thpt;
   ValueTrend bytes_thpt_trend, goodput_bytes_thpt_trend, pkts_thpt_trend;
-
+  
   MinorConnectionStates current_c_state; 
   u_int counter = 0;
   /*
-     IMPORTANT NOTE
-
-     if you add a new 'directional' field such as cliX and serverX
-     you need to handle it in the Flow::swap() method
+    IMPORTANT NOTE
+    
+    if you add a new 'directional' field such as cliX and serverX
+    you need to handle it in the Flow::swap() method
   */
-
+  
   void deferredInitialization();
   char *intoaV4(unsigned int addr, char *buf, u_short bufLen);
   void allocDPIMemory();
@@ -793,15 +792,9 @@ class Flow : public GenericHashEntry {
   bool get_partial_traffic_stats_view(PartializableFlowTrafficStats *delta,
                                       bool *first_partial);
   bool update_partial_traffic_stats_db_dump();
-  inline float get_pkts_thpt() const {
-    return (pkts_thpt_cli2srv + pkts_thpt_srv2cli);
-  };
-  inline float get_bytes_thpt() const {
-    return (bytes_thpt_cli2srv + bytes_thpt_srv2cli);
-  };
-  inline float get_goodput_bytes_thpt() const {
-    return (goodput_bytes_thpt_cli2srv + goodput_bytes_thpt_srv2cli);
-  };
+  inline float get_pkts_thpt() const { return (pkts_thpt);   };
+  inline float get_bytes_thpt() const { return (bytes_thpt); };
+inline float get_goodput_bytes_thpt() const { return (goodput_bytes_thpt); };
   inline float get_goodput_ratio() const {
     return ((float)(100 * get_goodput_bytes()) / ((float)get_bytes() + 1));
   };
