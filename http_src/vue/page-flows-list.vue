@@ -203,7 +203,7 @@ const map_table_def_columns = (columns) => {
         "throughput": (value, row) => {
             let return_value = ''
             if (value.type === 'bps' && !dataUtils.isEmptyOrNull(value.bps)) {
-                return_value = formatterUtils.getFormatter("bps")(value.bps)
+                return_value = formatterUtils.getFormatter("bps_no_scale")(value.bps)
             } else if (value.type === 'pps' && !dataUtils.isEmptyOrNull(value.pps)) {
                 return_value = formatterUtils.getFormatter("pps")(value.pps)
             }
