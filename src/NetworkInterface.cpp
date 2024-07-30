@@ -10822,10 +10822,22 @@ HostCheck *NetworkInterface::getCheck(HostCheckID t) {
 
 /* *************************************** */
 
+void NetworkInterface::execFlowBeginChecks(Flow *f) {
+  if (flow_checks_executor) {
+    FlowAlert *alert =
+      flow_checks_executor->execChecks(f, flow_check_flow_begin);
+
+    if (alert) enqueueFlowAlert(alert);
+  }
+}
+
+/* *************************************** */
+
 void NetworkInterface::execProtocolDetectedChecks(Flow *f) {
   if (flow_checks_executor) {
     FlowAlert *alert =
       flow_checks_executor->execChecks(f, flow_check_protocol_detected);
+
     if (alert) enqueueFlowAlert(alert);
   }
 }
@@ -10845,18 +10857,8 @@ void NetworkInterface::execPeriodicUpdateChecks(Flow *f) {
 
 void NetworkInterface::execFlowEndChecks(Flow *f) {
   if (flow_checks_executor) {
-    FlowAlert *alert = flow_checks_executor->execChecks(f, flow_check_flow_end);
-
-    if (alert) enqueueFlowAlert(alert);
-  }
-}
-
-/* *************************************** */
-
-void NetworkInterface::execFlowBeginChecks(Flow *f) {
-  if (flow_checks_executor) {
     FlowAlert *alert =
-      flow_checks_executor->execChecks(f, flow_check_flow_begin);
+      flow_checks_executor->execChecks(f, flow_check_flow_end);
 
     if (alert) enqueueFlowAlert(alert);
   }

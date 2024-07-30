@@ -54,6 +54,7 @@ void FlowChecksExecutor::loadFlowChecks(FlowChecksLoader *fcl) {
 FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
   FlowAlertType predominant_alert = f->getPredominantAlert();
   FlowCheck *predominant_check = NULL;
+  bool new_predominant_alert = false;
   std::list<FlowCheck *> *checks = NULL;
   FlowAlert *alert = NULL;
 #ifdef CHECKS_PROFILING
@@ -61,6 +62,9 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
 #endif
 
   switch (c) {
+    case flow_check_flow_begin:
+      checks = flow_begin;
+      break;
     case flow_check_protocol_detected:
       checks = protocol_detected;
       break;
@@ -69,9 +73,6 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
       break;
     case flow_check_flow_end:
       checks = flow_end;
-      break;
-    case flow_check_flow_begin:
-      checks = flow_begin;
       break;
     default:
       return NULL;
@@ -89,6 +90,9 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
     // fc->getName().c_str());
 
     switch (c) {
+      case flow_check_flow_begin:
+        fc->flowBegin(f);
+        break;
       case flow_check_protocol_detected:
         fc->protocolDetected(f);
         break;
@@ -97,9 +101,6 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
         break;
       case flow_check_flow_end:
         fc->flowEnd(f);
-        break;
-      case flow_check_flow_begin:
-        fc->flowBegin(f);
         break;
       default:
         break;
@@ -113,6 +114,7 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
 
     /* Check if the check triggered a predominant alert */
     if (f->getPredominantAlert().id != predominant_alert.id) {
+      new_predominant_alert = true;
       predominant_alert = f->getPredominantAlert();
       predominant_check = fc;
     }
@@ -123,7 +125,7 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
   if (ntop->getPrefs()->dontEmitFlowAlerts())
     return (NULL);
 
-  if(predominant_check) {
+  if(new_predominant_alert) {
     Host *cli_u = f->getViewSharedClient(), *srv_u = f->getViewSharedServer();
 #ifdef DEBUG
     char buf[64];
@@ -184,7 +186,7 @@ FlowAlert *FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
     }
   }
 
-  if (predominant_check) {
+  if (new_predominant_alert) {
     /* Allocate the alert */
     alert = predominant_check->buildAlert(f);
 
