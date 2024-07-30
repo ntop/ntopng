@@ -253,7 +253,7 @@ for _, value in ipairs(flows_stats.flows) do
     record["throughput"] = {
         type = throughput_type,
         pps = value["throughput_pps"],
-        bps = (value["throughput_bps"] or 0),
+        bps = (8 * value["throughput_bps"] or 0), -- This is in BYTES per seconds, see Flow.cpp:7005!
         trend = value["throughput_trend_" .. throughput_type]
     }
     record["application"] = {
