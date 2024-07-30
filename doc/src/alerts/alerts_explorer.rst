@@ -11,16 +11,19 @@ Alerts are organized in the Alerts Explorer according to the entity (subject for
 been generated), whose list includes Host, Interface, Network, Flow, etc. as described in :ref:`BasicConceptAlerts`.
 
 Alerts can be just triggered as one-shot, or can have a duration, that is, they are active for a 
-certain period of time. This period of time starts then a condition is verified (e.g. a threshold is met)
-and stops when the condition is no longer verified. For this reason, such alerts are said to be *engaged*
-or *past*, depending on whether the triggering threshold is still met or not.
+certain period of time (in the *engaged* state). This period of time starts when a condition is verified 
+(e.g. a threshold is met) and stops when the condition is no longer verified (and alerts are moved in the
+*past* state). For this reason, such alerts are said to be *engaged* or *past*, depending on whether the 
+triggering threshold is still met or not. Alerts on flows are always one-shot.
 
 .. _Engaged Alerts:
 
 Engaged Alerts
 --------------
 
-When the threshold is first met, ntopng puts the corresponding alert in an *engaged* state. The set of alerts that are currently engaged is available from the engaged alerts page identified by the hourglass icon.
+When the threshold is first met, ntopng puts the corresponding alert in an *engaged* state. The set of alerts 
+that are currently engaged is available from the engaged alerts page identified by the hourglass icon.
+This applies to all alert families, with the only exception of Flow alerts.
 
 .. figure:: ../img/basic_concepts_alerts_engaged_alerts.png
   :align: center
@@ -33,7 +36,9 @@ When the threshold is first met, ntopng puts the corresponding alert in an *enga
 Past Alerts
 -----------
 
-When the triggering threshold of an engaged alert is no longer met, the alert becomes *past* an it will no longer be visible in the engaged alerts page. Alerts, once released, become available from the *all* alerts page identified by the inbox icon, and their duration is indicated in the corresponding column. 
+When the triggering threshold of an engaged alert is no longer met, the alert becomes *past* an it will no 
+longer be visible in the engaged alerts page. Alerts, once released, become available from the *all* 
+alerts page identified by the inbox icon, and their duration is indicated in the corresponding column. 
 
 .. figure:: ../img/basic_concepts_alerts_past_alerts.png
   :align: center
@@ -41,16 +46,48 @@ When the triggering threshold of an engaged alert is no longer met, the alert be
 
   All Past Alerts Page
 
-Alerts associated with events don't have a duration associated. They are triggered *at the time of the event* but any duration is not meaningful for them. For this reason, such alerts are never *engaged*  or *released*, they are just considered *past* as soon as they are detected, and they are placed under the *all* alerts page without any duration indicated.
+Alerts associated with events don't have a duration associated. They are triggered *at the time of the event* 
+but any duration is not meaningful for them. For this reason, such alerts are never *engaged*  or *released*, 
+they are just considered *past* as soon as they are detected, and they are placed under the *all* alerts page
+without any duration indicated.
 
 .. _FlowAlerts:
 
 Flow Alerts
 -----------
 
-During its execution, ntopng can detect anomalous or suspicious flows for which it triggers special *flow alerts*. Such alerts not only carry the event that caused the alert to be fired, they also carry all the flow details, including source and destination IP addresses, layer-7 application protocol, and ports.
+During its execution, ntopng can detect anomalous or suspicious flows for which it triggers special *flow alerts*.
 
-*Flow alerts* are always associated with events and thus they are never *engaged*  or *released* and are placed in the past alerts directly. 
+Flow alerts can be detected, by means of hooks/checks, at different times (let's call them *check points*) during the flow life cycle:
+
+- When a flow is created
+- When the layer-7 application protocol is detected
+- With periodic checks (e.g. every minute)
+- When a flow terminates
+
+It may happen that multiple issues are detected (by different checks) at the same check point. In this case
+only the *predominant* alert (with the highest score) is triggered and stored in the database, however 
+information about "secondary" issues are also stored in the same alert and displayed in the user interface. 
+This happens for every check point, thus at most one alert per check point is triggered.
+
+In short:
+
+- In case multiple issues are detected at time *t*, a single alert is emitted (notified through the Notification
+  Endpoints and inserted into the database), this alert would report the *predominant* issue and the additional 
+  "secondary" issues.
+- In case additional issues are detected at a later check point at time *t+1*, a new alert is emitted only if
+  an issue with an higher score is detected. Note: when using Clickhouse as database, a Flow alert will always 
+  report (in addition to the predominant issue) *all* the additional issues detected during the whole flow lifecycle,
+  as a consequence of the way flow alerts have been implemented on Clickhouse (as a view on historical flows).
+  The same does not happen when using SQLite, where all alerts, up to the time the predominant alert has been detected,
+  are stored in the database, as a consequence of the way alerts are emitted.
+
+Flow alerts not only carry the (predominant and secondary) events that caused the alert to be fired, 
+they also carry all the flow details, including source and destination IP addresses, layer-7 application protocol, 
+and ports.
+
+*Flow alerts* are always associated with events and thus they are never *engaged* or *released*, they are placed 
+in the past alerts directly. 
 
 .. figure:: ../img/basic_concepts_alerts_flow_alerts.png
   :align: center
