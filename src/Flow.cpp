@@ -2512,7 +2512,9 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 
     if (last_update_time.tv_sec > 0) {
       float tdiff_msec = Utils::msTimevalDiff(tv, &last_update_time);
+#ifdef DEBUG
       u_int32_t total = diff_sent_bytes+diff_rcvd_bytes;
+#endif
       
       updateThroughputStats(tdiff_msec, diff_sent_packets, diff_sent_bytes,
 			    diff_sent_goodput_bytes, diff_rcvd_packets,
