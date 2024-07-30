@@ -834,7 +834,7 @@ if ((page == "overview") or (page == nil)) then
 
     if (ifstats.zmqRecvStats ~= nil) then
         print("<tr><th colspan=7 nowrap>" .. i18n("if_stats_overview.zmq_rx_statistics") .. "</th></tr>\n")
-        local tot_flows = ifstats.zmqRecvStats.flows + ifstats.zmqRecvStats.dropped_flows
+        local tot_flows = (ifstats.zmqRecvStats.flows or 0) + (ifstats.zmqRecvStats.dropped_flows or 0)
         if tot_flows == 0 then
             tot_flows = 1
         end

@@ -250,7 +250,7 @@ function dumpInterfaceStats(ifid)
             res["zmqRecvStats"]["zmq_msg_rcvd"] = ifstats.zmqRecvStats.zmq_msg_rcvd
             res["zmqRecvStats"]["zmq_msg_drops"] = ifstats.zmqRecvStats.zmq_msg_drops
             res["zmqRecvStats"]["zmq_avg_msg_flows"] = math.max(1, ifstats.zmqRecvStats.flows /
-                (ifstats.zmqRecvStats.zmq_msg_rcvd + 1))
+                ((ifstats.zmqRecvStats.zmq_msg_rcvd or 0) + 1))
 
             res["zmq.num_flow_exports"] = ifstats["zmq.num_flow_exports"] or 0
             res["zmq.num_exporters"] = ifstats["zmq.num_exporters"] or 0
