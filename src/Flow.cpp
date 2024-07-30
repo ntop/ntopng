@@ -2359,7 +2359,7 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
     bytes_thpt = bytes_msec;
     goodput_bytes_thpt = goodput_bytes_msec;
 
-    //#if DEBUG_TREND
+    #if DEBUG_TREND
     u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
 
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -2367,7 +2367,7 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
 				 "%lu][diff_rcvd_bytes: %lu][bytes_thpt: %.4f Mbit]",
 				 tdiff_msec, diff_bytes, diff_sent_bytes, diff_rcvd_bytes,
 				 (get_bytes_thpt() * 8)/1000000.);
-    //#endif
+    #endif
 
     if (top_bytes_thpt < get_bytes_thpt())
       top_bytes_thpt = get_bytes_thpt();
