@@ -2826,8 +2826,8 @@ local lang = {
     ["visual_explorer"] = "Visual Explorer",
   },
   ["flow_checks"] = {
-    ["allowed_server_names_description"] = "Comma separated values of server IPs. Example: 173.194.76.109,my.example.com",
-    ["allowed_servers_description"] = "Comma separated values of server IPs. Example: 173.194.76.109,52.97.232.242",
+    ["allowed_server_names_description"] = "Comma separated values of allowed server IPs. Example: 173.194.76.109,my.example.com",
+    ["allowed_servers_description"] = "Comma separated values of allowed server IPs. Example: 173.194.76.109,52.97.232.242",
     ["allowed_servers_title"] = "Allowed Servers",
     ["application_detected"] = "Application Detected",
     ["asn_behavior_check_list"] = "ASN to analyze",

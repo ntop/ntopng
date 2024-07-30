@@ -1051,7 +1051,7 @@ const render_template = () => {
                id='itemslist-textarea'
                class="w-100 form-control"
                rows='3'>${items_list.length > 0 ? items_list.join(',') : ''}</textarea>
-               <small>${gui.input_description || i18n_ext.blacklisted_country}</small>
+               <small>${i18n(gui.input_description) || i18n_ext.blacklisted_country}</small>
             <div class="invalid-feedback"></div>
             <label></label>
          </div>
@@ -1062,7 +1062,7 @@ const render_template = () => {
 
    $table_editor.empty();
 
-   $table_editor.append(`<tr><th class='text-center w-25'>${i18n_ext.enabled}</th><th>${gui.input_title || i18n_ext.scripts_list.templates.blacklisted_country_list}:</th></tr>`)
+   $table_editor.append(`<tr><th class='text-center w-25'>${i18n_ext.enabled}</th><th>${i18n(gui.input_title) || i18n_ext.scripts_list.templates.blacklisted_country_list}:</th></tr>`)
    $table_editor.append($component_container);
 }
 
