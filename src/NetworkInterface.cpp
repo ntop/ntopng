@@ -2054,11 +2054,11 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     tv_ts.tv_sec = h->ts.tv_sec;
     tv_ts.tv_usec = h->ts.tv_usec;
 
-    flow->incStats(src2dst_direction, len_on_wire - encapsulation_overhead,
+    flow->incStats(src2dst_direction, len_on_wire - encapsulation_overhead - frame_padding,
                    payload, trusted_payload_len, l4_proto, is_fragment,
                    tcp_flags, &tv_ts, fragment_extra_overhead);
 #else
-    flow->incStats(src2dst_direction, len_on_wire - encapsulation_overhead,
+    flow->incStats(src2dst_direction, len_on_wire - encapsulation_overhead - frame_padding,
                    payload, trusted_payload_len, l4_proto, is_fragment,
                    tcp_flags, &h->ts, fragment_extra_overhead);
 #endif
