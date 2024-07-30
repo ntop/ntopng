@@ -567,7 +567,7 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
   /* NOTE: UDP flows are updated when the flow ends */
   if (protocol == IPPROTO_TCP)
     updateTCPHostServices(cli_h, srv_h);
-  else {
+  else {      
     switch (l7proto) {
     case NDPI_PROTOCOL_NTP:
       /* Check direction first */
@@ -8560,6 +8560,7 @@ void Flow::updateTCPHostServices(Host *cli_h, Host *srv_h) {
     break;
 
   case NDPI_PROTOCOL_SSH:
+  case NDPI_PROTOCOL_TLS:
     if((((src2dst_tcp_flags & TH_SYN) == 0) && ((dst2src_tcp_flags & TH_SYN) != 0))
        || ((((src2dst_tcp_flags|dst2src_tcp_flags) & TH_SYN) == 0) /* No SYN observed */
 	   && (get_cli_port() < get_srv_port())))
