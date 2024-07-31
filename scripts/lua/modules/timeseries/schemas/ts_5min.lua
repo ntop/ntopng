@@ -354,47 +354,6 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("sflowdev:drops", {
-    step = 300,
-    rrd_fname = "drops"
-})
-schema:addTag("ifid")
-schema:addTag("device")
-schema:addMetric("drops")
-
--- ##############################################
-
-schema = ts_utils.newSchema("sflowdev:flows", {
-    step = 300,
-    rrd_fname = "flows"
-})
-schema:addTag("ifid")
-schema:addTag("device")
-schema:addMetric("flows")
-
-schema = ts_utils.newSchema("sflowdev_port:traffic", {
-    step = 300,
-    rrd_fname = "bytes"
-})
-schema:addTag("ifid")
-schema:addTag("device")
-schema:addTag("port")
-schema:addMetric("bytes_sent")
-schema:addMetric("bytes_rcvd")
-
-schema = ts_utils.newSchema("sflowdev_port:usage", {
-    step = 300,
-    rrd_fname = "usage",
-    metrics_type = ts_utils.metrics.gauge
-})
-schema:addTag("ifid")
-schema:addTag("device")
-schema:addTag("port")
-schema:addMetric("uplink")
-schema:addMetric("downlink")
-
--- ##############################################
-
 schema = ts_utils.newSchema("flowdev:traffic", {
     step = 300,
     rrd_fname = "bytes"

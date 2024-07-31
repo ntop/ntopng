@@ -849,7 +849,7 @@ function ts_utils.getPossiblyChangedSchemas()
     "iface:traffic_anomalies_v2", "iface:traffic_rx_behavior_v5", "iface:traffic_tx_behavior_v5",
     "iface:engaged_alerts", "iface:local_hosts", "subnet:score_anomalies", "subnet:intranet_traffic",
     "subnet:intranet_traffic_min", "host:contacts", -- split in "as_client" and "as_server"
-    "sflowdev_port:usage", "flowdev_port:usage", "snmp_if:usage", "host:score", -- split in "cli_score" and "srv_score"
+    "flowdev_port:usage", "snmp_if:usage", "host:score", -- split in "cli_score" and "srv_score"
     "host:contacts_behaviour", "host:cli_active_flows_behaviour", "host:srv_active_flows_behaviour",
     "host:cli_score_behaviour", "host:srv_score_behaviour", "host:cli_active_flows_anomalies",
     "host:srv_active_flows_anomalies", "host:cli_score_anomalies", "host:srv_score_anomalies", "host:ndpi_categories", -- split in "bytes_sent" and "bytes_rcvd"

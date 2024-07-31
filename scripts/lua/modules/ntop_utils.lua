@@ -884,7 +884,7 @@ end
 
 -- ##############################################
 
-function getNetFlowExportersUnifiedStats()
+function getExportersUnifiedStats()
     local flowdevs = interface.getFlowDevices()
     local unified_exporters = {}
     for interface_id, device_list in pairs(flowdevs or {}) do

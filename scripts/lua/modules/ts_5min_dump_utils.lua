@@ -856,10 +856,8 @@ function ts_dump.run_5min_dump(_ifname, ifstats, when, verbose)
     -- Create RRDs for flow and sFlow probes
     if (config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM()) then
         package.path = dirs.installdir .. "/scripts/lua/pro/modules/timeseries/callbacks/?.lua;" .. package.path
-        local sflow_timeseries = require "sflow_timeseries"
-        local netflow_timeseries = require "netflow_timeseries"
-        sflow_timeseries.sflow_update(when, ifstats, verbose)
-        netflow_timeseries.netflow_update(when, ifstats, verbose)
+        local exporters_timeseries = require "exporters_timeseries"
+        exporters_timeseries.update_timeseries(when, ifstats, verbose)
     end
 
     -- Save Host Pools stats every 5 minutes

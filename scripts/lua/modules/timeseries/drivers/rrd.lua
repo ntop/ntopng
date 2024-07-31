@@ -70,7 +70,6 @@ local HOST_PREFIX_MAP = {
     mac = "",
     subnet = "net:",
     flowdev_port = "flow_device:",
-    sflowdev_port = "sflow:",
     snmp_if = "snmp:",
     host_pool = "pool:"
 }
@@ -128,7 +127,7 @@ local function schema_get_path(schema, tags)
         else
             suffix = tags.if_index .. "/"
         end
-    elseif (parts[1] == "flowdev_port") or (parts[1] == "sflowdev_port") then
+    elseif (parts[1] == "flowdev_port") then
         if (tags.port) then
             if (type(tags.port) == "table") then
                 suffix = tags.port.ifindex .. "/"
