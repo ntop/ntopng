@@ -204,6 +204,12 @@ function snmp_device_alert_store:format_record(value, no_html, is_engaged)
       value = value["port"],
       label = value["port_name"]
    }
+   
+   local alert_snmp_trap_id = 4096 + 36 -- See scripts/lua/modules/alert_keys/other_alert_keys.lua
+
+   if tonumber(value["alert_id"]) == alert_snmp_trap_id then
+      record.disable_info = true
+   end
 
    record[RNAME.ALERT_NAME.name] = alert_name
 

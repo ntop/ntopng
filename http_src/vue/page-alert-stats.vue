@@ -18,10 +18,11 @@
                             <RangePicker v-if="mount_range_picker" ref="range_picker" id="range_picker">
                                 <template v-slot:begin>
                                     <div v-if="query_presets.length > 0" class="ms-1 me-2">
-                                        <select class="me-2 form-select"
-                                            v-model="selected_query_preset" @change="update_select_query_presets()">
+                                        <select class="me-2 form-select" v-model="selected_query_preset"
+                                            @change="update_select_query_presets()">
                                             <template v-for="item in query_presets">
-                                                <option v-if="item.builtin == true" :value="item">{{ item.name }}</option>
+                                                <option v-if="item.builtin == true" :value="item">{{ item.name }}
+                                                </option>
                                             </template>
                                             <optgroup v-if="page != 'analysis'" :label="_i18n('queries.queries')">
                                                 <template v-for="item in query_presets">
@@ -37,7 +38,8 @@
                                         @click="get_permanent_link" :title="_i18n('graphs.get_permanent_link')"
                                         ref="permanent_link_button"><i class="fas fa-lg fa-link"></i></button>
                                     <a v-if="context.show_download" class="btn btn-link btn-sm" id="dt-btn-download"
-                                        :title="_i18n('graphs.download_records')" :href="href_download_records"><i class="fas fa-lg fa-file"></i></a>
+                                        :title="_i18n('graphs.download_records')" :href="href_download_records"><i
+                                            class="fas fa-lg fa-file"></i></a>
                                     <button v-if="context.show_pcap_download" class="btn btn-link btn-sm"
                                         @click="show_modal_traffic_extraction"
                                         :title="_i18n('traffic_recording.pcap_download')"><i
@@ -65,11 +67,12 @@
                                 </Chart>
                             </div>
                         </div>
-			<div></div>
-                        <TableWithConfig ref="table_alerts" :table_config_id="table_config_id" :table_id="table_id" :csrf="context.csrf"
-                            :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
-                            :display_message="display_message" :message_to_display="message_to_display"
-                            @loaded="on_table_loaded" @custom_event="on_table_custom_event" @rows_loaded="rows_loaded">
+                        <div></div>
+                        <TableWithConfig ref="table_alerts" :table_config_id="table_config_id" :table_id="table_id"
+                            :csrf="context.csrf" :f_map_columns="map_table_def_columns"
+                            :get_extra_params_obj="get_extra_params_obj" :display_message="display_message"
+                            :message_to_display="message_to_display" @loaded="on_table_loaded"
+                            @custom_event="on_table_custom_event" @rows_loaded="rows_loaded">
                             <template v-slot:custom_header>
                                 <Dropdown v-for="(t, t_index) in top_table_array"
                                     :f_on_open="get_open_top_table_dropdown(t, t_index)"
@@ -80,8 +83,9 @@
                                     </template>
                                     <template v-slot:menu>
                                         <a v-for="opt in t.options" style="cursor:pointer; display: block;"
-                                            @click="add_top_table_filter(opt, $event)" class="ntopng-truncate tag-filter "
-                                            :title="opt.value">{{ opt.label + " (" + opt.count + "%)" }}</a>
+                                            @click="add_top_table_filter(opt, $event)"
+                                            class="ntopng-truncate tag-filter " :title="opt.value">{{ opt.label + " (" +
+                                            opt.count + "%)" }}</a>
                                     </template>
                                 </Dropdown> <!-- Dropdown columns -->
                             </template> <!-- custom_header -->
@@ -92,11 +96,10 @@
                 <div v-show="page != 'all'" class="card-footer">
                     <button v-if="context.show_acknowledge_all" @click="show_modal_acknowledge_alerts"
                         class="btn btn-primary me-1">
-                        <i class="fas fa fa-user-check"></i> {{_i18n("acknowledge_alerts")}}
+                        <i class="fas fa fa-user-check"></i> {{ _i18n("acknowledge_alerts") }}
                     </button>
-                    <button v-if="context.show_delete_all" @click="show_modal_delete_alerts" 
-                        class="btn btn-danger">
-                        <i class="fas fa fa-trash"></i> {{_i18n("delete_alerts")}}
+                    <button v-if="context.show_delete_all" @click="show_modal_delete_alerts" class="btn btn-danger">
+                        <i class="fas fa fa-trash"></i> {{ _i18n("delete_alerts") }}
                     </button>
                 </div> <!-- card footer -->
             </div> <!-- card-shadow -->
@@ -105,16 +108,20 @@
         <NoteList :note_list="note_list"></NoteList>
     </div> <!-- div row -->
 
-    <ModalAcknowledgeAlert ref="modal_acknowledge" :context="context" :page="page" @acknowledge="refresh_page_components">
+    <ModalAcknowledgeAlert ref="modal_acknowledge" :context="context" :page="page"
+        @acknowledge="refresh_page_components">
     </ModalAcknowledgeAlert>
 
-    <ModalDeleteAlert ref="modal_delete" :context="context" :page="page" @delete_alert="refresh_page_components"></ModalDeleteAlert>
+    <ModalDeleteAlert ref="modal_delete" :context="context" :page="page" @delete_alert="refresh_page_components">
+    </ModalDeleteAlert>
 
-    <ModalAcknowledgeAlerts ref="modal_acknowledge_alerts" :context="context" :page="page" @acknowledge_alerts="refresh_page_components">
-    </ModalAcknowledgeAlerts>    
+    <ModalAcknowledgeAlerts ref="modal_acknowledge_alerts" :context="context" :page="page"
+        @acknowledge_alerts="refresh_page_components">
+    </ModalAcknowledgeAlerts>
 
-    <ModalDeleteAlerts ref="modal_delete_alerts" :context="context" :page="page" @delete_alerts="refresh_page_components">
-    </ModalDeleteAlerts>    
+    <ModalDeleteAlerts ref="modal_delete_alerts" :context="context" :page="page"
+        @delete_alerts="refresh_page_components">
+    </ModalDeleteAlerts>
 
     <ModalAlertsFilter :alert="current_alert" :page="page" @exclude="add_exclude" ref="modal_alerts_filter">
     </ModalAlertsFilter>
@@ -123,7 +130,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeMount,computed, nextTick } from "vue";
+import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
 import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_sync } from "../services/context/ntopng_globals_services";
 import { ntopChartApex } from "../components/ntopChartApex.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
@@ -229,7 +236,7 @@ async function init_params() {
         selected_query_preset.value.value = "";
     }
     table_config_id.value = `alert_${page}`;
-    table_id.value = `${table_config_id.value}_${selected_query_preset.value.value}`;    
+    table_id.value = `${table_config_id.value}_${selected_query_preset.value.value}`;
 }
 
 function init_url_params() {
@@ -251,19 +258,19 @@ function init_url_params() {
 
 async function set_query_presets() {
     if (!props.context.is_ntop_enterprise_l || ntopng_url_manager.get_url_entry("status") == "engaged") {
-	ntopng_sync.ready(get_query_presets_sync_key());
-	return;
+        ntopng_sync.ready(get_query_presets_sync_key());
+        return;
     }
     let url_request = `${http_prefix}/lua/pro/rest/v2/get/alert/preset/consts.lua?page=${page}`;
     let res = await ntopng_utility.http_request(url_request);
     if (res == null || res.length == 0) {
-	query_presets.value = [];
-	ntopng_url_manager.set_key_to_url("query_preset", "");
-	ntopng_url_manager.set_key_to_url("count", "");
-	ntopng_sync.ready(get_query_presets_sync_key());
-	return;
+        query_presets.value = [];
+        ntopng_url_manager.set_key_to_url("query_preset", "");
+        ntopng_url_manager.set_key_to_url("count", "");
+        ntopng_sync.ready(get_query_presets_sync_key());
+        return;
     }
-    
+
     query_presets.value = res[0].list.map((el) => {
         return {
             value: el.id,
@@ -358,10 +365,10 @@ function on_table_loaded() {
 }
 
 function register_table_alerts_events() {
-    
+
     let jquery_table_alerts = $(`#${table_id.value}`);
     jquery_table_alerts.on('click', `a.tag-filter`, async function (e) {
-        
+
         add_table_row_filter(e, $(this));
     });
 }
@@ -385,7 +392,7 @@ const map_table_def_columns = async (columns) => {
 
             if (row.proto.label !== proto.label) {
                 return DataTableRenders.filterize('l4proto', row.proto.value, row.proto.label) + ":" + DataTableRenders.filterize('l7proto', proto.value, proto.label.split(":")[1]) + " " + `${confidence}`;
-            }            
+            }
             return DataTableRenders.filterize('l4proto', row.proto.value, row.proto.label) + " " + `${confidence}`;
         },
         "info": (info, row) => {
@@ -407,14 +414,14 @@ const map_table_def_columns = async (columns) => {
     }
     columns.forEach((c) => {
         c.render_func = map_columns[c.data_field];
-        
+
         if (c.id == "actions") {
             if (set_query_preset_columns == true) {
                 c.button_def_array = [
                     {
                         "id": "expand",
                         "icon": "fas fa fa-search-plus",
-                        "class":["link-button"],
+                        "class": ["link-button"],
                         "title_i18n": "db_search.expand_button",
                         "event_id": "click_button_expand"
                     },
@@ -430,11 +437,20 @@ const map_table_def_columns = async (columns) => {
                 settings: props.context.actions.show_settings,
                 remove: props.context.actions.show_delete,
             };
-        c.button_def_array.forEach((b) => {
-            if (!visible_dict[b.id]) {
-                b.class.push("link-disabled");
-            }
-        });
+            c.button_def_array.forEach((b) => {
+                if (!visible_dict[b.id]) {
+                    b.class.push("link-disabled");
+                }
+                if (b.id == "snmp_info") {
+                    b.f_map_class = (current_class, row) => {
+                        current_class = current_class.filter((class_item) => class_item != "link-disabled");
+                        if (row.disable_info) {
+                            current_class.push("link-disabled");
+                        }
+                        return current_class;
+                    }
+                }
+            });
         }
     });
     return columns;
@@ -512,7 +528,7 @@ function get_permanent_link() {
     // copy the url to the clipboard from the placeholder
     document.execCommand("copy");
     document.body.removeChild(placeholder);
-    
+
     $this.attr("title", `${_i18n('copied')}!`)
         .tooltip("dispose")
         .tooltip()
@@ -557,12 +573,13 @@ function refresh_page_components() {
 
 /* In case no rows are printed, then the message has to be displayed */
 function rows_loaded(res) {
-    if(res?.rows != null) {
+    if (res?.rows != null) {
         display_message.value = (res.rows.length == 0);
     }
 }
 
 function on_table_custom_event(event) {
+    debugger;
     let events_managed = {
         "click_button_snmp_info": click_button_snmp_info,
         "click_button_info": click_button_info,
@@ -587,20 +604,20 @@ function click_button_expand(event) {
     let filters = status.filters;
     let row_filters = alert?.filter?.tag_filters;
     if (row_filters?.length > 0) {
-	row_filters = row_filters.map((f) => {
-	    return {
-		id: f.id,
-		operator: f.op,
-		value: f.value,
-	    };
-	});
-	filters = filters.concat(row_filters);
+        row_filters = row_filters.map((f) => {
+            return {
+                id: f.id,
+                operator: f.op,
+                value: f.value,
+            };
+        });
+        filters = filters.concat(row_filters);
     }
     // remove duplicate filters
     let filters_dict = {};
     filters.forEach((f) => filters_dict[`${f.id}_${f.operator}_${f.value}`] = f);
     filters = ntopng_utility.object_to_array(filters_dict);
-    
+
     let filters_object = filtersManager.get_filters_object(filters);
     ntopng_url_manager.add_obj_to_url(filters_object);
     ntopng_url_manager.reload_url();
