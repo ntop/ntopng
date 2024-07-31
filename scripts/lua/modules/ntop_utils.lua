@@ -939,11 +939,11 @@ function getExporterInfo(unique_source_id) -- Exporter unique_source_id
                 if probe_info.exporters and table.len(probe_info.exporters) > 0 then -- Sflow or NetFlow/IPFIX
                     for exporter_ip, exporter_info in pairs(probe_info.exporters or {}) do
                         if exporter_info.unique_source_id == unique_source_id then
-                            return {
+                            return table.merge({
                                 exporter_ip = exporter_ip,
                                 probe_ip = probe_info["probe.ip"],
                                 ifid = interface_id
-                            }
+                            }, exporter_info)
                         end
                     end
                 elseif probe_info["probe.uuid_num"] == unique_source_id then
