@@ -58,7 +58,9 @@ LocalHost::~LocalHost() {
   if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();
   /* Decrease number of active hosts */
-  iface->decNumHosts(isLocalHost(), is_rx_only);
+  if(isLocalUnicastHost()) {
+    iface->decNumHosts(isLocalHost(), is_rx_only);
+  }
 }
 
 /* *************************************** */
@@ -142,6 +144,7 @@ void LocalHost::initialize() {
   if(isLocalUnicastHost()) {
     if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
       ns->incNumHosts();
+    iface->incNumHosts(isLocalHost(), true /* Init the host, so bytes are 0, considered RX only */);
   }
 
 #ifdef LOCALHOST_DEBUG
@@ -161,7 +164,6 @@ void LocalHost::initialize() {
   else
     fingerprints = NULL;
 
-  iface->incNumHosts(isLocalHost(), true /* Init the host, so bytes are 0, considered RX only */);
 
 #ifdef NTOPNG_PRO
   if ((!(isBroadcastHost() || isMulticastHost()))
