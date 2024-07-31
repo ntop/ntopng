@@ -4,5 +4,5 @@
 # Check for updates or upgrade if requested (every minute)
 * * * * * root /usr/bin/ntopng-utils-manage-updates -a handle-on-demand-requests
 
-# Check for updates (every 24h at 5am)
+# Check for updates (every 24h at 6am)
 0 6 * * * root /usr/bin/ntopng-utils-manage-updates -a check-updates
