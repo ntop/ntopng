@@ -4000,28 +4000,43 @@ void Ntop::setZoneInfo() {
   }
 
 #else
-  char buf[64];
-  ssize_t rc = readlink("/etc/localtime", buf, sizeof(buf));
+  char *tz = NULL;
   u_int num_slash = 0;
+  char buf[64];
 
+  buf[0] = '\0';
   zoneinfo = NULL;
 
-  if (rc > 0) {
-    buf[rc] = '\0';
+  /* Read timezone from TZ env var */
+  tz = getenv("TZ");
+  if (tz != NULL) {
+    if (strlen(tz) > 0)
+      zoneinfo = strdup(tz);
+    else
+      tz = NULL;
+  }
 
-    rc--;
+  /* Read timezone from /etc/localtime (if TZ is not set) */
+  if (tz == NULL) {
+    ssize_t rc = readlink("/etc/localtime", buf, sizeof(buf));
 
-    while (rc > 0) {
-      if (buf[rc] == '/') {
-        if (++num_slash == 2) break;
-      }
+    if (rc > 0) {
+      buf[rc] = '\0';
 
       rc--;
-    }
 
-    if (num_slash == 2) {
-      rc++;
-      zoneinfo = strdup(&buf[rc]);
+      while (rc > 0) {
+        if (buf[rc] == '/') {
+          if (++num_slash == 2) break;
+        }
+
+        rc--;
+      }
+
+      if (num_slash == 2) {
+        rc++;
+        zoneinfo = strdup(&buf[rc]);
+      }
     }
   }
 #endif
