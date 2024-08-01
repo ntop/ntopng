@@ -1612,7 +1612,7 @@ NetworkInterface *NetworkInterface::getDynInterface(u_int64_t criteria,
 /* **************************************************** */
 
 bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_idx,
-				     int datalink_type, bool ingressPacket,
+				     int datalink_type, bool *ingressPacket,
 				     const struct bpf_timeval *when, const u_int64_t packet_time,
 				     struct ndpi_ethhdr *eth, u_int16_t vlan_id, struct ndpi_iphdr *iph,
 				     struct ndpi_ipv6hdr *ip6, u_int16_t ip_offset,
@@ -1655,7 +1655,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     /* Custom disaggregation */
     if (sub_interfaces && (sub_interfaces->getNumSubInterfaces() > 0)) {
       processed = sub_interfaces->processPacket(if_index, bridge_iface_idx,
-						datalink_type, ingressPacket,
+						datalink_type, *ingressPacket,
 						when, packet_time, eth, vlan_id, iph,
 						ip6, ip_offset, encapsulation_overhead, len_on_wire, h, packet,
 						ndpiProtocol, srcHost, dstHost, hostFlow);
@@ -1680,7 +1680,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     }
 
     if (processed && !showDynamicInterfaceTraffic()) {
-      incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+      incStats(*ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
                NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
 
       return (pass_verdict);
@@ -1688,7 +1688,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
   }
 
   if (eth == NULL) {
-    incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+    incStats(*ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
              NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
     return (pass_verdict);
   }
@@ -1734,7 +1734,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 
     /* IPv4 */
     if ((trusted_ip_len < 20) || ((ip_len = iph->ihl * 4) == 0)) {
-      incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+      incStats(*ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
                NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
       return (pass_verdict);
     }
@@ -1744,7 +1744,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 
     if(ip_tot_len > (h->caplen - ip_offset)) {
       /* Invalid lenght */
-      incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+      incStats(*ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
 	       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
       return (pass_verdict);
     }
@@ -1762,7 +1762,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 
 #ifdef IMPLEMENT_SMART_FRAGMENTS
       if (fragment_offset) {
-	incStats(ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
+	incStats(*ingressPacket, when->tv_sec, ETHERTYPE_IP, NDPI_PROTOCOL_UNKNOWN,
 		 NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
 	return (pass_verdict);
       }
@@ -1790,7 +1790,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     u_int32_t *tos_ptr = (u_int32_t *)ip6;
 
     if (trusted_ip_len < sizeof(const struct ndpi_ipv6hdr)) {
-      incStats(ingressPacket, when->tv_sec, ETHERTYPE_IPV6,
+      incStats(*ingressPacket, when->tv_sec, ETHERTYPE_IPV6,
                NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
                len_on_wire, 1);
       return (pass_verdict);
@@ -1806,7 +1806,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
       ipv6_shift += 8 * (options[1] + 1);
 
       if (trusted_ip_len < ipv6_shift) {
-        incStats(ingressPacket, when->tv_sec, ETHERTYPE_IPV6,
+        incStats(*ingressPacket, when->tv_sec, ETHERTYPE_IPV6,
                  NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
                  len_on_wire, 1);
         return (pass_verdict);
@@ -1824,7 +1824,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     trusted_l4_packet_len = packet + h->caplen - l4;
   else {
     /* Invalid lenght */
-    incStats(ingressPacket, when->tv_sec, ETHERTYPE_IPV6,
+    incStats(*ingressPacket, when->tv_sec, ETHERTYPE_IPV6,
 	     NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
 	     len_on_wire, 1);
     return (pass_verdict);
@@ -1851,7 +1851,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
       ntop->getTrace()->traceEvent(
 				   TRACE_INFO, "Invalid TCP packet received [%u bytes long]",
 				   trusted_l4_packet_len);
-      incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+      incStats(*ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
                NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
                len_on_wire, 1);
       return (pass_verdict);
@@ -1876,7 +1876,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
       ntop->getTrace()->traceEvent(
 				   TRACE_INFO, "Invalid UDP packet received [%u bytes long]",
 				   trusted_l4_packet_len);
-      incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+      incStats(*ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
                NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
                len_on_wire, 1);
       return (pass_verdict);
@@ -1894,7 +1894,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
       ntop->getTrace()->traceEvent(
 				   TRACE_INFO, "Invalid SCTP packet received [%u bytes long]",
 				   trusted_l4_packet_len);
-      incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+      incStats(*ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
                NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
                len_on_wire, 1);
       return (pass_verdict);
@@ -1966,13 +1966,13 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
   INTERFACE_PROFILING_SECTION_EXIT(0);
 
   if (flow == NULL) {
-    incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+    incStats(*ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
              NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED,
              l4_proto, len_on_wire, 1);
     return (pass_verdict);
   } else {
 #ifdef HAVE_NEDGE
-    if (new_flow) flow->setIngress2EgressDirection(ingressPacket);
+    if (new_flow) flow->setIngress2EgressDirection(*ingressPacket);
 #endif
 
     if (flow->is_swap_requested()
@@ -2067,16 +2067,17 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 
   /*
     In case of a traffic mirror with no MAC gateway address configured
-    the traffic direction is set based on the local (-m) host
+    the traffic direction is set based on the local (-m) host (** 2 **).
+    See also (** 1 **).
   */
   if (isTrafficMirrored() && (!isGwMacConfigured())) {
     bool cli_local = src_ip.isLocalHost();
     bool srv_local = dst_ip.isLocalHost();
 
     if (cli_local && (!srv_local))
-      ingressPacket = false;
+      *ingressPacket = false;
     else if ((!cli_local) && srv_local)
-      ingressPacket = true;
+      *ingressPacket = true;
     else
       ; /* Leave as is */
 
@@ -2088,7 +2089,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 				 src_ip.isLocalHost() ? "L" : "R",
 				 dst_ip.print(b, sizeof(b)),
 				 dst_ip.isLocalHost() ? "L" : "R",
-				 ingressPacket ? "IN" : "OUT");
+				 *ingressPacket ? "IN" : "OUT");
 #endif
   }
 
@@ -2356,7 +2357,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 #endif
   }
 
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "direction: %s / len: %u", ingressPacket ? "IN" : "OUT", len_on_wire);
+  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "direction: %s / len: %u", *ingressPacket ? "IN" : "OUT", len_on_wire);
 
   if(flow->isDetectionCompleted()) {
     /*
@@ -2377,7 +2378,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     }
   }
 
-  incStats(ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
+  incStats(*ingressPacket, when->tv_sec, iph ? ETHERTYPE_IP : ETHERTYPE_IPV6,
            flow->getStatsProtocol(), flow->get_protocol_category(), l4_proto,
            len_on_wire, 1);
 
@@ -2671,14 +2672,16 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
       break;
   }
 
-  /* Setting traffic direction based on MAC */
+  /* Setting traffic direction based on MAC (** 1 **). See also (** 2 **) */
   if (ethernet) {
-    if (isTrafficMirrored()) {
+    if (isTrafficMirrored() && isGwMacConfigured()) {
       /* Mirror */
-      if (isGwMac(ethernet->h_dest)) ingressPacket = false;
+      if (isGwMac(ethernet->h_dest))
+	ingressPacket = false;
     } else if (!areTrafficDirectionsSupported()) {
       /* Interface with no direction info */
-      if (isInterfaceMac(ethernet->h_source)) ingressPacket = false;
+      if (isInterfaceMac(ethernet->h_source))
+	ingressPacket = false;
     }
   }
 
@@ -3000,7 +3003,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 
       try {
 	pass_verdict = processPacket(if_index, bridge_iface_idx,
-				     datalink_type, ingressPacket, &h->ts, time, ethernet, vlan_id,
+				     datalink_type, &ingressPacket, &h->ts, time, ethernet, vlan_id,
 				     iph, ip6, ip_offset, encapsulation_overhead, len_on_wire, h,
 				     packet, ndpiProtocol, srcHost, dstHost, flow);
       } catch (std::bad_alloc &ba) {
@@ -3158,7 +3161,7 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 
 	try {
 	  pass_verdict = processPacket(if_index, bridge_iface_idx, datalink_type,
-				       ingressPacket, &h->ts, time, ethernet,
+				       &ingressPacket, &h->ts, time, ethernet,
 				       vlan_id, iph, ip6, ip_offset, encapsulation_overhead,
 				       len_on_wire, h, packet, ndpiProtocol, srcHost, dstHost, flow);
 	} catch (std::bad_alloc &ba) {
@@ -10797,6 +10800,8 @@ void NetworkInterface::updateSitesStats() {
     }
   }
 }
+
+/* *************************************** */
 
 void NetworkInterface::incrVisitedWebSite(char *hostname) {
   if (top_sites) top_sites->incrVisitedData(hostname, 1);
