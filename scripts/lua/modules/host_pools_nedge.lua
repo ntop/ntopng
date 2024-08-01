@@ -2,8 +2,9 @@
 -- (C) 2017-24 - ntop.org
 --
 dirs = ntop.getDirs()
-
+package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/?/init.lua;" .. package.path
+package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 
 local ntop_info = ntop.getInfo()
 
