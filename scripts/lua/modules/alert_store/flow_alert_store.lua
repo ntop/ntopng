@@ -239,7 +239,6 @@ function flow_alert_store:insert(alert)
     else
         hex_prefix = "X"
     end
-    -- tprint(alert)
 
     -- Note
     -- The database contains first_seen, tstamp, tstamp_end for historical reasons.
@@ -248,8 +247,6 @@ function flow_alert_store:insert(alert)
     -- - tstamp_end is set to alert.tstamp (which is the time the alert has been emitted as there is no engage on flows)
     -- - first_seen is used to lookups as this is the indexed field
     -- - tstamp (instead of first_seen) is used in select and for visualization as it's in common to all tables
-
-    -- io.write("---------------------------\n") tprint(debug.traceback()) tprint(alert.flow_risk_bitmap) io.write("---------------------------\n")
 
     local fmt = "INSERT INTO %s " ..
                     "(%salert_id, alert_status, alert_category, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, " ..
@@ -261,17 +258,7 @@ function flow_alert_store:insert(alert)
                     "VALUES (%s%u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', " ..
                     "'%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', %u, %u, '%s', '%s'); "
 
-                    local fmt = "INSERT INTO %s " ..
-                    "(%salert_id, alert_status, alert_category, interface_id, tstamp, tstamp_end, severity, ip_version, cli_ip, srv_ip, cli_port, srv_port, vlan_id, " ..
-                    "is_cli_attacker, is_cli_victim, is_srv_attacker, is_srv_victim, proto, l7_proto, l7_master_proto, l7_cat, " ..
-                    "cli_name, srv_name, cli_country, srv_country, cli_blacklisted, srv_blacklisted, cli_location, srv_location, " ..
-                    "cli2srv_bytes, srv2cli_bytes, cli2srv_pkts, srv2cli_pkts, first_seen, community_id, score, " ..
-                    "flow_risk_bitmap, alerts_map, cli_host_pool_id, srv_host_pool_id, cli_network, srv_network, probe_ip, input_snmp, output_snmp, " ..
-                    "json, info) " ..
-                    "VALUES (%s%u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', '%s', '%s', " ..
-                    "'%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s', %u, %u, %s'%s', %u, %u, %u, %u, '%s', %u, %u, '%s', '%s'); "
-
-                    local insert_stmt = string.format(fmt,
+    local insert_stmt = string.format(fmt,
                     self:get_write_table_name(),
                     extra_columns,
                     extra_values,
