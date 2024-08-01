@@ -25,26 +25,31 @@ local license_info = {
 local system_host_stats = cpu_utils.systemHostStats()
 local ram_used = system_host_stats["mem_used"] 
 
+local cpu_load = system_host_stats["cpu_load"] or 0
+local mem_total = system_host_stats["mem_total"] or 0
+local cpu_states = system_host_stats["cpu_states"] or {}
+local mem_ntopng_resident = system_host_stats["mem_ntopng_resident"] or 0
+
 -- format resources_used
 local resources_used = {
   system = {
     cpu = {
-      load = round(system_host_stats["cpu_load"], 2),
+      load = round(cpu_load, 2),
       states = {
-        iowait_percentage = formatValue(system_host_stats["cpu_states"]["iowait"]),
-        active_percentage = round(formatValue(system_host_stats["cpu_states"]["user"] + system_host_stats["cpu_states"]["system"] + system_host_stats["cpu_states"]["nice"] + system_host_stats["cpu_states"]["irq"] + system_host_stats["cpu_states"]["softirq"] + system_host_stats["cpu_states"]["guest"] + system_host_stats["cpu_states"]["guest_nice"]), 2),
-        idle_percentage = round(formatValue(system_host_stats["cpu_states"]["idle"] + system_host_stats["cpu_states"]["steal"]), 2),
+        iowait_percentage = formatValue(cpu_states["iowait"]),
+        active_percentage = round(formatValue((cpu_states["user"] or 0) + (cpu_states["system"] or 0) + (cpu_states["nice"] or 0) + (cpu_states["irq"] or 0) + (cpu_states["softirq"] or 0) + (cpu_states["guest"] or 0) + (cpu_states["guest_nice"] or 0)), 2),
+        idle_percentage = round(formatValue((cpu_states["idle"] or 0) + (cpu_states["steal"] or 0)), 2),
       }
     },
     ram = {
-      percentage_used = round((ram_used / system_host_stats["mem_total"]) * 100 * 100) / 100,
-      available_bytes = (system_host_stats["mem_total"] - ram_used) * 1024,
-      total_bytes = system_host_stats["mem_total"] * 1024,
+      percentage_used = round((ram_used / mem_total) * 100 * 100) / 100,
+      available_bytes = (mem_total - ram_used) * 1024,
+      total_bytes = mem_total * 1024,
     },
   },
   ntopng = {
     ram = {
-      bytes_used = system_host_stats["mem_ntopng_resident"] * 1024,
+      bytes_used = mem_ntopng_resident * 1024,
     },
   },
 }
