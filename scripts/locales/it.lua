@@ -1324,7 +1324,7 @@ local lang = {
     ["target"] = "Obiettivo",
   },
   ["category_lists"] = {
-    ["category_lists"] = "Liste per le Categorie",
+    ["category_lists"] = "Blacklists",
     ["connection_time_out"] = "Connessione andata in timeout dopo %{duration} secondi.",
     ["disable_some_list"] = "Disabilitare alcune liste per risolvere il problema.",
     ["download_succeeded"] = "Lista '%{name}' scaricata con successo",
