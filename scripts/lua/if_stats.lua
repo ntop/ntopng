@@ -838,12 +838,12 @@ if ((page == "overview") or (page == nil)) then
         if tot_flows == 0 then
             tot_flows = 1
         end
-        local pctg_dropped_flows = ((ifstats.zmqRecvStats.dropped_flows * 100) / tot_flows) or 0
-        local tot_zmq_msg_rcvd = ifstats.zmqRecvStats.zmq_msg_rcvd + ifstats.zmqRecvStats.zmq_msg_drops
+        local pctg_dropped_flows = (((ifstats.zmqRecvStats.dropped_flows or 0) * 100) / tot_flows) or 0
+        local tot_zmq_msg_rcvd = (ifstats.zmqRecvStats.zmq_msg_rcvd or 0) + ifstats.zmqRecvStats.zmq_msg_drops
         if tot_zmq_msg_rcvd == 0 then
             tot_zmq_msg_rcvd = 1
         end
-        local pctg_dropped_zmq_msg = ((ifstats.zmqRecvStats.zmq_msg_drops * 100) / tot_flows) or 0
+        local pctg_dropped_zmq_msg = (((ifstats.zmqRecvStats.zmq_msg_drops or 0) * 100) / tot_flows) or 0
 
         print("<tr>")
         print("<th nowrap>" .. i18n("if_stats_overview.collected_flows") ..
@@ -2705,14 +2705,14 @@ print("var last_num_remote_hosts_anomalies = " .. ifstats.anomalies.num_remote_h
 
 if (ifstats.zmqRecvStats ~= nil) then
     print("var last_zmq_time = 0;\n")
-    print("var last_zmq_remote_bps = " .. ifstats.remote_bps .. ";\n")
-    print("var last_zmq_remote_pps = " .. ifstats.remote_pps .. ";\n")
-    print("var last_zmq_flows = " .. ifstats.zmqRecvStats.flows .. ";\n")
-    print("var last_zmq_dropped_flows = " .. ifstats.zmqRecvStats.dropped_flows .. ";\n")
-    print("var last_zmq_events = " .. ifstats.zmqRecvStats.events .. ";\n")
-    print("var last_zmq_counters = " .. ifstats.zmqRecvStats.counters .. ";\n")
-    print("var last_zmq_msg_drops = " .. ifstats.zmqRecvStats.zmq_msg_drops .. ";\n")
-    print("var last_zmq_msg_rcvd = " .. ifstats.zmqRecvStats.zmq_msg_rcvd .. ";\n")
+    print("var last_zmq_remote_bps = " .. (ifstats.remote_bps or 0) .. ";\n")
+    print("var last_zmq_remote_pps = " .. (ifstats.remote_pps or 0) .. ";\n")
+    print("var last_zmq_flows = " .. (ifstats.zmqRecvStats.flows or 0) .. ";\n")
+    print("var last_zmq_dropped_flows = " .. (ifstats.zmqRecvStats.dropped_flows or 0) .. ";\n")
+    print("var last_zmq_events = " .. (ifstats.zmqRecvStats.events or 0) .. ";\n")
+    print("var last_zmq_counters = " .. (ifstats.zmqRecvStats.counters or 0) .. ";\n")
+    print("var last_zmq_msg_drops = " .. (ifstats.zmqRecvStats.zmq_msg_drops or 0) .. ";\n")
+    print("var last_zmq_msg_rcvd = " .. (ifstats.zmqRecvStats.zmq_msg_rcvd or 0) .. ";\n")
     print("var last_zmq_drops_export_queue_full = " .. (ifstats["zmq.drops.export_queue_full"] or 0) .. ";\n")
     print("var last_zmq_drops_flow_collection_drops = " .. (ifstats["zmq.drops.flow_collection_drops"] or 0) .. ";\n")
     print("var last_zmq_drops_flow_collection_udp_socket_drops = " ..
