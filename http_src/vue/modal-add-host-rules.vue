@@ -1112,7 +1112,7 @@ const metricsLoaded = async (_metric_list, _ifid_list, _interface_metric_list, _
   }
 
   flow_exporter_devices.value = format_flow_exporter_device_list(_flow_exporter_devices);
-
+  
   if (!dataUtils.isEmptyArrayOrNull(_host_pool_list)) {
     has_host_pools.value = true;
   }
@@ -1154,8 +1154,9 @@ async function update_exporter_interfaces() {
   if (selected_exporter_device.value.id == '*') {
     return;
   }
+
   const url_device_exporter_details =
-    NtopUtils.buildURL(`${http_prefix}/lua/pro/rest/v2/get/flowdevice/stats.lua?ip=${selected_exporter_device.value.id}&ifid=${selected_exporter_device.value.ifid}`);
+    NtopUtils.buildURL(`${http_prefix}/lua/pro/rest/v2/get/flowdevice/stats.lua?exporter_uuid=${selected_exporter_device.value.id}&ifid=${selected_exporter_device.value.ifid}&ip=${selected_exporter_device.value.ip}`);
 
   await $.get(url_device_exporter_details, function (response, status) {
     interfaces_list = response.rsp;
@@ -1166,11 +1167,10 @@ async function update_exporter_interfaces() {
   ];
 
   interfaces_list.forEach((rsp) => {
-    exporter_interfaces.push({ id: rsp.id, label: rsp.name, timeseries_available: rsp.timeseries_available });
+    exporter_interfaces.push({ id: rsp.ifindex, label: rsp.snmp_ifname, timeseries_available: rsp.timeseries_available });
   })
   flow_exporter_device_ifid_list.value = exporter_interfaces;
   selected_exporter_device_ifid.value = flow_exporter_device_ifid_list.value[1];
-  flow_device_timeseries_available.value = flow_exporter_device_ifid_list.value[0]?.timeseries_available;
 }
 
 /* *************************************************** */
@@ -1185,15 +1185,16 @@ const format_flow_exporter_device_list = function (data) {
   ];
 
   data.forEach((dev) => {
-    const ip = dev.ip;
+    const unique_source_id = dev.unique_source_id;
     _f_exp_dev_list.push({
-      id: ip,
+      id: unique_source_id,
       label: dev.name,
-      value: ip,
+      ip: dev.ip,
+      value: unique_source_id,
       ifid: dev.ifid
     });
   })
-
+  
   _f_exp_dev_list.sort((a, b) => sortingFunctions.sortByIP(
     a.label,
     b.label,
@@ -1267,7 +1268,7 @@ const change_exporter_interfaces = function () {
 
 /* *************************************************** */
 
-onBeforeMount(() => {
+onBeforeMount(async() => {
   metric_type_list.value.forEach((t) => {
     if (t.active) {
       metric_type.value = t;
@@ -1275,6 +1276,9 @@ onBeforeMount(() => {
 
   })
   invalid_add.value = false;
+  await $.get(http_prefix + '/lua/pro/rest/v2/get/flowdevice/timeseries_enabled.lua', function (rsp, status) {
+    flow_device_timeseries_available.value = rsp.rsp
+  });
 })
 
 defineExpose({ show, close, metricsLoaded, invalidAdd });
