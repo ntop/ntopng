@@ -3061,10 +3061,6 @@ void Ntop::checkShutdownWhenDone() {
       if (iface->read_from_pcap_dump() && !iface->read_from_pcap_dump_done())
         /* iface isn't done yet */
         return;
-
-      /* Force all flows idle to run checks on flow_end before running the
-       * final test script to check for emitted alerts */
-      iface->purgeIdle(time(NULL), true, true /* Full scan */);
     }
 
     /* Here all interface reading from pcap files are done. */
@@ -3090,8 +3086,6 @@ void Ntop::checkShutdownWhenDone() {
       const char *test_runtime_script_path =
           ntop->getPrefs()->get_test_runtime_script_path();
 
-      sleep(1); /* Give some time to alerts to get dequeued */
-
       /* Execute as Bash script */
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                    "> Running Runtime Script '%s'",
@@ -3113,6 +3107,8 @@ void Ntop::checkShutdownWhenDone() {
     if (ntop->getPrefs()->get_test_post_script_path()) {
       const char *test_post_script_path =
           ntop->getPrefs()->get_test_post_script_path();
+
+      sleep(1); /* Give some time to alerts to get dequeued */
 
       /* Execute as Bash script */
       ntop->getTrace()->traceEvent(TRACE_NORMAL, "> Running Post Script '%s'",
