@@ -60,7 +60,7 @@
 		},
 		{
 			"id": "exported_flows",
-			"title_i18n": "graphs.metric_labels.exported_flows",
+			"title_i18n": "nprobe_exported_flows",
 			"data_field": "exported_flows",
 			"sortable": true,
 			"class": [
@@ -70,7 +70,7 @@
 		},
 		{
 			"id": "dropped_flows",
-			"title_i18n": "graphs.metric_labels.dropped_flows",
+			"title_i18n": "nprobe_dropped_flows",
 			"data_field": "dropped_flows",
 			"sortable": true,
 			"class": [
