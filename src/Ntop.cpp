@@ -3090,6 +3090,8 @@ void Ntop::checkShutdownWhenDone() {
       const char *test_runtime_script_path =
           ntop->getPrefs()->get_test_runtime_script_path();
 
+      sleep(1); /* Give some time to alerts to get dequeued */
+
       /* Execute as Bash script */
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                    "> Running Runtime Script '%s'",
