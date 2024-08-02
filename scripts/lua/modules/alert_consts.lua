@@ -477,6 +477,21 @@ end
 
 -- ##############################################
 
+function alert_consts.addExtraInfo(alert_id, alert_entity_id, alert_json)
+   local alert_key = alert_consts.getAlertType(alert_id, alert_entity_id)
+   local msg = ""
+
+   if alert_key then
+      local type_info = alert_consts.alert_types[alert_key]
+      if type_info.add_extra_info then
+         msg = type_info.add_extra_info(nil, alert_json)
+      end
+   end
+
+   return msg
+end
+-- ##############################################
+
 -- @brief Given a flow status identified by `status_key`, returns an icon associated to the severity
 -- @param `status info`, A human readable (localized) status info
 -- @param `alerted_severity`, Integer severity of the alert associated to this status

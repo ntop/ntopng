@@ -362,7 +362,6 @@ end
 function alert_utils.get_flow_risk_info(alert_risk, alert_json)
     if (alert_json) and (alert_json.alert_generation) and (alert_json.alert_generation.flow_risk_info) then
         local flow_risk_info = json.decode(alert_json.alert_generation.flow_risk_info)
-
         if (flow_risk_info) and (flow_risk_info[tostring(alert_risk)]) then
             return flow_risk_info[tostring(alert_risk)]
         end
@@ -801,7 +800,7 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
 
                     if alert_id ~= tonumber(predominant_alert) then -- Do not add the predominant alert to the list of additional alerts
                         local message = alert_consts.alertTypeLabel(alert_id, true, alert_entities.flow.entity_id)
-
+                        message = message .. " " .. alert_consts.addExtraInfo(alert_id, alert_entities.flow.entity_id, alert_json)
                         local alert_score = ntop.getFlowAlertScore(alert_id)
 
                         if add_score then

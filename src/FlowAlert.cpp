@@ -65,6 +65,9 @@ ndpi_serializer* FlowAlert::getSerializedAlert() {
   ndpi_serialize_string_string(serializer, "subdir", "flow");
   flow->getJSONRiskInfo(serializer);
   ndpi_serialize_end_of_block(serializer);
+  if (flow->isBlacklistedFlow())
+    ndpi_serialize_string_string(serializer, "blacklist", 
+      flow->get_custom_category_file() ? flow->get_custom_category_file() : "");
 
   flow->getProtocolJSONInfo(serializer);
 

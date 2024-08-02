@@ -35,6 +35,15 @@ function alert_blacklisted_server_contact:init()
     self.super:init()
 end
 
+-- ##############################################
+
+function alert_blacklisted_server_contact:add_extra_info(alert_json)
+    if alert_json and alert_json.blacklist and not isEmptyString(alert_json.blacklist) then
+        return " [ " .. i18n("flow_details.blacklist", { blacklist = alert_json.blacklist or "" }) .. " ] "
+    end
+    return ""
+end
+
 -- #######################################################
 
 -- @brief Format an alert into a human-readable string

@@ -3031,6 +3031,7 @@ local lang = {
     ["average_cpu_load"] = "Average CPU Load",
     ["bittorrent_hash"] = "BitTorrent hash",
     ["blacklisted_flow"] = "Client, server or domain is blacklisted",
+    ["blacklist"] = "Blacklist: \"%{blacklist}\"",
     ["blacklisted_flow_detailed"] = "Blacklisted %{who} [ Blacklist: \"%{blacklist}\" ]",
     ["broadcast_non_udp_traffic"] = "Broadcast Traffic using non-UDP protocol detected [Cli MAC: %{mac}] [Cli IP: %{ip}]",
     ["c_ip_addresses"] = "C IP Addresses",
