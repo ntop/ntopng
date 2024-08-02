@@ -307,8 +307,8 @@ else
             url = "/lua/flows_stats.lua"
         }, {
             entry = page_utils.menu_entries.db_explorer,
-            hidden = (not ntop.isEnterprise()) or (not is_clickhouse_enabled) or ifs.isViewed or
-                not auth.has_capability(auth.capabilities.historical_flows) or
+            hidden = (not ntop.isEnterprise() and not ntop.isnEdgeEnterprise())
+                or not auth.has_capability(auth.capabilities.historical_flows) or ifs.isViewed or
                 ifs['type'] == 'db',
             url = "/lua/pro/db_search.lua"
         }}
