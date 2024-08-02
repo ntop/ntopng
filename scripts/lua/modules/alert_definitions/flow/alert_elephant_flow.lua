@@ -56,7 +56,7 @@ end
 -- @return A human-readable string
 function alert_elephant_flow.format(ifid, alert, alert_type_params)
    local threshold = ""
-   local res = i18n("flow_details.elephant_flow")
+   local res = ""
 
    if alert_type_params then
       local l2r_bytes = bytesToSize(alert_type_params["l2r_bytes"])
