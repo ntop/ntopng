@@ -42,13 +42,13 @@ end
 function formatIPPort(ip, port)
    local hinfo = hostkey2hostinfo(ip)
    local name = hostinfo2label(hinfo)
-   
+
    ip = '<A HREF="' .. ntop.getHttpPrefix() .. '/lua/host_details.lua?host=' .. ip.. '">' .. name .. '</A>'
    port = formatFlowPort(nil, nil, port, false)
 
    return ip,port
 end
-   
+
 function formatASN(v, ip)
    local asn
 
@@ -59,7 +59,7 @@ function formatASN(v, ip)
       local label = v .. " (" .. (as_name or "") .. ")"
       asn = "<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?asn=" .. v .. "\">" .. label .. "</A>"
    end
-   
+
    print("<td>" .. asn .. "</td>\n")
 end
 
@@ -589,7 +589,7 @@ else
     if(flow.flow_swapped == true) then
        print(' <abbr title="'..  i18n("swapped_flow") ..'"><i class="fa-solid fa-repeat"></i></abbr>')
     end
-    
+
     print("</td></tr>\n")
 
     print("<tr><th width=30%>" .. i18n("protocol") .. " / " .. i18n("application") .. "</th>")
@@ -625,14 +625,14 @@ else
         if (flow["proto.ndpi_address_family"] ~= nil) then
             print(" [" .. i18n("network") .. ": " .. flow["proto.ndpi_address_family"] .. "]")
         end
-        
+
         if ((flow["proto.ndpi_confidence"] ~= nil)) then
             local badge_type = 'success'
-            if ((flow.confidence and (flow.confidence == 0 or flow.confidence == -1)) or 
-                (flow["proto.ndpi_confidence"] == 'Unknown')) then 
+            if ((flow.confidence and (flow.confidence == 0 or flow.confidence == -1)) or
+                (flow["proto.ndpi_confidence"] == 'Unknown')) then
                 badge_type = 'warning'
-            end            
-            print(" [" .. i18n("ndpi_confidence") .. ": " .. "<span class=\"badge bg-"..badge_type.."\" title=\"" 
+            end
+            print(" [" .. i18n("ndpi_confidence") .. ": " .. "<span class=\"badge bg-"..badge_type.."\" title=\""
                                 .. flow["proto.ndpi_confidence"] .. "\">" ..
                                 flow["proto.ndpi_confidence"] .. "</span>" .. "]")
         elseif ((flow.confidence) and (not isEmptyString(flow.confidence))) then
@@ -644,12 +644,12 @@ else
 	   -- packet to flow
 	elseif(flow.flow_source == 1) then
 	   -- collected NetFlow/IPFIX
-	   print(" "..i18n("flow_source_netflow"))					     
+	   print(" "..i18n("flow_source_netflow"))
 	elseif(flow.flow_source == 2) then
 	   -- collected sFlow/nfLite
 	   print(" "..i18n("flow_source_sflow"))
 	end
-	   
+
         if (flow.rtp_stream_type ~= nil) then
 	   print(" [ " .. getRTPInfo(flow) .. " ]")
         end
@@ -1221,7 +1221,7 @@ else
 
         ja4url(flow["protos.tls.ja4.client_hash"], nil, 'ja4c')
         print("</td></tr>")
-    end 
+    end
 
     if (flow["protos.tls.client_alpn"] ~= nil) then
         print(
@@ -1265,7 +1265,7 @@ else
         json_flags = json.decode(flow["moreinfo.json"])
         flags = json_flags["CLIENT_TCP_FLAGS"] or json_flags["SERVER_TCP_FLAGS"]
     end
-    
+
     if ((flags ~= nil) and (flags > 0)) then
         print("<tr><th width=30% rowspan=2>" .. i18n("tcp_flags") .. "</th><td nowrap>" .. i18n("client") ..
                   " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("server") .. ": ")
@@ -1309,16 +1309,16 @@ else
         else
             flow_msg = flow_msg .. " " .. i18n("flow_details.flow_peer_roles_inaccurate_msg")
         end
-	
+
 	if(flow["major_conn_state"] ~= 0) then
 	   flow_msg = i18n(string.format("flow_fields_description.major_connection_states.%u",flow["major_conn_state"]))
 	      .. " ("..i18n(string.format("flow_fields_description.minor_connection_states_info.%u",flow["minor_conn_state"]))..").<br>"
 	      .. i18n(string.format("flow_fields_description.minor_connection_states.%u",flow["minor_conn_state"]))
-	      .. " ("..i18n(string.format("flow_fields_description.minor_connection_states_info.%u",flow["minor_conn_state"]))..").<br>"	   
+	      .. " ("..i18n(string.format("flow_fields_description.minor_connection_states_info.%u",flow["minor_conn_state"]))..").<br>"
 	      .. flow_msg
 
 	end
-	
+
         print(flow_msg)
         print("</td></tr>\n")
     end
@@ -1454,21 +1454,20 @@ else
         end
 
         if (riskInfo ~= nil) then
+	   print("<tr><th width=30%> "..i18n("flow_details.flow_issues") .. "</th><td colspan=2>\n")
+	   print("<table class=\"table table-bordered table-striped\" width=100%>\n")
+
+	   print("<tr><th>" .. i18n("description") .. "</th><th>" .. i18n("info") .. "</th><th>" .. i18n("actions") .. "</th></tr>\n")
+	   
             for _, score_alerts in pairsByKeys(alerts_by_score, rev) do
                 for _, score_alert in pairsByField(score_alerts, "message", asc) do
-                    if first then
-                        print("<tr><th width=30% rowspan=" .. (num_statuses + 1) .. ">" ..
-                                  i18n("flow_details.flow_issues") .. "</th><th>" .. i18n("description") .. "</th><th>" ..
-                                  i18n("actions") .. "</th></tr>")
-                        first = false
-                    end
-
+           
                     local status_icon = ""
 
                     local riskLabel = riskInfo[tostring(score_alert.alert_risk)]
 
                     if (riskLabel ~= nil) then
-                        riskLabel = "[" .. shortenString(riskLabel, 64) .. "]"
+                        riskLabel = shortenString(riskLabel, 64)
                     else
                         riskLabel = ""
                     end
@@ -1480,9 +1479,9 @@ else
 
                     print(string.format('<tr>'))
 
-                    local msg = string.format('<td>%s %s %s %s %s</td>', score_alert.message, riskLabel,
+                    local msg = string.format('<td>%s</td><td>%s %s %s %s</td>', score_alert.message, riskLabel,
                         (score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk)) or
-                            '', status_icon or '', flow_risk_utils.get_remediation_documentation_link(score_alert.alert_id))
+			'', status_icon or '', flow_risk_utils.get_remediation_documentation_link(score_alert.alert_id))
                     print(msg)
 
                     if score_alert.alert_id then
@@ -1501,7 +1500,7 @@ else
                         end
 
                         -- Add an anchor to the historical alert
-                        if not ifstats.isViewed -- and score_alert.is_predominant 
+                        if not ifstats.isViewed -- and score_alert.is_predominant
                         then
                             -- Prepare bounds for the historical alert search.
                             local epoch_begin = flow["seen.first"]
@@ -1525,9 +1524,10 @@ else
                         print(string.format('<td></td>'))
                     end
 
-                    print('</tr>')
-                end
-            end
+                    print('</tr>\n')
+		end
+	    end
+	    print("</table></td></tr>\n")
         end
     end
 
@@ -1573,11 +1573,11 @@ else
        local port = elems[2]
        local hinfo = hostkey2hostinfo(ip)
        local name = hostinfo2label(hinfo)
-       
+
        ip,port = formatIPPort(ip, port)
        print("<tr><th width=30%>STUN Mapped Address</th><td>"..ip..":"..port.."</td></tr>\n")
     end
-    
+
     if ((flow["protos.http.last_url"] ~= nil) and (flow.l7_error_code ~= 0)) then
         print("<tr><th width=30%>" .. i18n("l7_error_code") .. "</th>")
         print("<td colspan=2><span class=\"badge ")
@@ -1601,7 +1601,7 @@ else
 	   print("<span id='flow-throughput' class='peity'>" .. pktsToSize(flow["throughput_bps"]) ..
 		 "</span> <span id=throughput_trend></span>")
         end
-	
+
         if (throughput_type == "bps") then
             print(" / <span id=top-flow-throughput>" .. bitsToSize(8 * flow["top_throughput_bps"]) ..
                       "</span> <span id=top_throughput_trend></span>")
@@ -1617,7 +1617,7 @@ else
             print(" / <span id=average-flow-throughput>" .. pktsToSize(flow["average_throughput_bps"]) ..
                       "</span> <span id=average_throughput_trend></span>")
         end
-	
+
         print("</td><td><span id=thpt-load-chart>0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0</span>")
         print("</td></tr>\n")
     end
@@ -1869,18 +1869,18 @@ else
             end
         end
         info = syminfo
-        
+
         -- get SIP rows
         if (ntop.isPro() and (flow["proto.ndpi"] == "SIP")) then
 	   local sip_table_rows = getSIPTableRows(flow, info)
 	   print(sip_table_rows)
-	   
+
 	   isThereSIP = isThereProtocol("SIP", info)
 	   if (isThereSIP == 1) then
 	      isThereSIP = isThereSIPCall(info)
 	   end
         end
-	
+
         info = removeProtocolFields("SIP", info)
 
         -- get RTP rows
@@ -2078,7 +2078,7 @@ print(cliLabel)
 print [[";
   const cliValue = "]]
 print(cliValue)
-print [["; 
+print [[";
   const srvLabel = "]]
 print(srvLabel)
 print [[";
@@ -2165,7 +2165,7 @@ print [[, max: null })
               }
             }
           },
-      }; 
+      };
       const vue = ntopVue.Vue.createApp(vue_options);
       const vue_app = vue.mount("#vue-modals");
       return vue_app;
