@@ -312,6 +312,7 @@ local lang = {
   ["hits"] = "Hits",
   ["host"] = "Host %{host}",
   ["host_address"] = "Host Address",
+  ["host_details_tooltip"] = "Host Details",
   ["host_flows"] = "Host Flows",
   ["host_notes"] = "Host Notes",
   ["host_score_ratio"] = "Host/Score Ratio",

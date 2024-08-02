@@ -1086,7 +1086,7 @@ function flow_alert_store:format_record(value, no_html, verbose)
         reference_html = hostinfo2detailshref({
             ip = cli_ip,
             value["vlan_id"]
-        }, nil, href_icon, "", true, nil, false)
+        }, nil, href_icon, i18n('host_details_tooltip'), true, nil, false)
         if reference_html == href_icon then
             reference_html = ""
         end
@@ -1139,7 +1139,7 @@ function flow_alert_store:format_record(value, no_html, verbose)
         reference_html = hostinfo2detailshref({
             ip = srv_ip,
             vlan = value["vlan_id"]
-        }, nil, href_icon, "", true)
+        }, nil, href_icon, i18n('host_details_tooltip'), true)
         if reference_html == href_icon then
             reference_html = ""
         end
