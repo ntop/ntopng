@@ -839,7 +839,7 @@ if ((page == "overview") or (page == nil)) then
             tot_flows = 1
         end
         local pctg_dropped_flows = (((ifstats.zmqRecvStats.dropped_flows or 0) * 100) / tot_flows) or 0
-        local tot_zmq_msg_rcvd = (ifstats.zmqRecvStats.zmq_msg_rcvd or 0) + ifstats.zmqRecvStats.zmq_msg_drops
+        local tot_zmq_msg_rcvd = (ifstats.zmqRecvStats.zmq_msg_rcvd or 0) + (ifstats.zmqRecvStats.zmq_msg_drops or 0)
         if tot_zmq_msg_rcvd == 0 then
             tot_zmq_msg_rcvd = 1
         end
