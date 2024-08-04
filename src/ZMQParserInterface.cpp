@@ -34,7 +34,7 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
     : ParserInterface(endpoint, custom_interface_type) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
-  zmq_initial_bytes = 0, zmq_initial_pkts = 0;
+  zmq_initial_bytes = 0, zmq_initial_pkts = 0, zmq_initial_drops = 0;
   zmq_remote_stats = zmq_remote_stats_shadow = NULL;
   memset(&last_zmq_remote_stats_update, 0,
          sizeof(last_zmq_remote_stats_update));
@@ -332,7 +332,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
 
   if (polling_start_time == 0) polling_start_time = (u_int32_t)time(NULL);
 
-//#define TRACE_EXPORTERS
+  // #define TRACE_EXPORTERS
+  
 #ifdef TRACE_EXPORTERS
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msg_id: %u] %s", msg_id, payload);
 #endif
@@ -348,6 +349,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
       zrs.remote_bytes = (u_int64_t)json_object_get_int64(w);
     if (json_object_object_get_ex(o, "packets", &w))
       zrs.remote_pkts = (u_int64_t)json_object_get_int64(w);
+    if (json_object_object_get_ex(o, "packet_drops", &w))
+      zrs.remote_pkt_drops = (u_int64_t)json_object_get_int64(w);
 
     if (json_object_object_get_ex(o, "iface", &w)) {
       if (json_object_object_get_ex(w, "name", &z))
@@ -531,7 +534,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
 				 "[probe: {public_ip: %s, ip: %s, version: %s, os: %s, license: %s, "
 				 "edition: %s, maintenance: %s}]"
 				 "[avg: {bps: %u, pps: %u}]"
-				 "[remote: {time: %u, bytes: %u, packets: %u, idle_timeout: %u, "
+				 "[remote: {time: %u, bytes: %u, packets: %u, drops: %u, idle_timeout: %u, "
 				 "lifetime_timeout: %u,"
 				 " collected_lifetime_timeout: %u }]"
 				 "[zmq: {num_exporters: %u, num_flow_exports: %u}]",
@@ -540,7 +543,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
 				 zrs.remote_probe_edition, zrs.remote_probe_maintenance,
 				 zrs.remote_probe_public_address, zrs.remote_probe_address, zrs.avg_bps,
 				 zrs.avg_pps, zrs.remote_time, (u_int32_t)zrs.remote_bytes,
-				 (u_int32_t)zrs.remote_pkts, zrs.remote_idle_timeout,
+				 (u_int32_t)zrs.remote_pkts, (u_int32_t)zrs.remote_pkt_drops, zrs.remote_idle_timeout,
 				 zrs.remote_lifetime_timeout, zrs.remote_collected_lifetime_timeout,
 				 zrs.num_exporters, zrs.num_flow_exports);
 #endif
@@ -3101,6 +3104,7 @@ void ZMQParserInterface::setRemoteStats(nProbeStats *zrs) {
       cumulative_zrs->num_exporters += zrs_i->num_exporters;
       cumulative_zrs->remote_bytes += zrs_i->remote_bytes;
       cumulative_zrs->remote_pkts += zrs_i->remote_pkts;
+      cumulative_zrs->remote_pkt_drops += zrs_i->remote_pkt_drops;
       cumulative_zrs->num_flow_exports += zrs_i->num_flow_exports;
       cumulative_zrs->remote_ifspeed =
           max_val(cumulative_zrs->remote_ifspeed, zrs_i->remote_ifspeed);
@@ -3157,7 +3161,8 @@ void ZMQParserInterface::setRemoteStats(nProbeStats *zrs) {
   ) {
     /* Start over */
     zmq_initial_bytes = cumulative_zrs->remote_bytes,
-    zmq_initial_pkts = cumulative_zrs->remote_pkts;
+    zmq_initial_pkts  = cumulative_zrs->remote_pkts;
+    zmq_initial_drops = cumulative_zrs->remote_pkt_drops;
   }
 
   if (zmq_remote_initial_exported_flows == 0 /* ntopng has been restarted */
@@ -3175,8 +3180,7 @@ void ZMQParserInterface::setRemoteStats(nProbeStats *zrs) {
   /*
    * Don't override ethStats here, these stats are properly updated
    * inside NetworkInterface::processFlow for ZMQ interfaces.
-   * Overriding values here may cause glitches and non-strictly-increasing
-   counters
+   * Overriding values here may cause glitches and non-strictly-increasing counters
    * yielding negative rates.
    ethStats.setNumBytes(cumulative_zrs->remote_bytes),
    ethStats.setNumPackets(cumulative_zrs->remote_pkts);
@@ -3217,29 +3221,22 @@ void ZMQParserInterface::probeLuaStats(lua_State *vm) {
     lua_push_str_table_entry(vm, "remote.if_addr", zrs->remote_ifaddress);
     lua_push_uint64_table_entry(vm, "remote.ifspeed", zrs->remote_ifspeed);
     lua_push_str_table_entry(vm, "probe.ip", zrs->remote_probe_address);
-    lua_push_str_table_entry(vm, "probe.uuid",
-                             zrs->uuid);
-    lua_push_uint64_table_entry(vm, "probe.uuid_num",
-                             zrs->uuid_num);
-    lua_push_str_table_entry(vm, "probe.public_ip",
-                             zrs->remote_probe_public_address);
-    lua_push_str_table_entry(vm, "probe.probe_version",
-                             zrs->remote_probe_version);
+    lua_push_str_table_entry(vm, "probe.uuid", zrs->uuid);
+    lua_push_uint64_table_entry(vm, "probe.uuid_num", zrs->uuid_num);
+    lua_push_str_table_entry(vm, "probe.public_ip", zrs->remote_probe_public_address);
+    lua_push_str_table_entry(vm, "probe.probe_version", zrs->remote_probe_version);
     lua_push_str_table_entry(vm, "probe.probe_os", zrs->remote_probe_os);
-    lua_push_str_table_entry(vm, "probe.probe_license",
-                             zrs->remote_probe_license);
-    lua_push_str_table_entry(vm, "probe.probe_edition",
-                             zrs->remote_probe_edition);
-    lua_push_str_table_entry(vm, "probe.mode",
-                             zrs->mode);
-    lua_push_str_table_entry(vm, "probe.probe_maintenance",
-                             zrs->remote_probe_maintenance);
+    lua_push_str_table_entry(vm, "probe.probe_license", zrs->remote_probe_license);
+    lua_push_str_table_entry(vm, "probe.probe_edition", zrs->remote_probe_edition);
+    lua_push_str_table_entry(vm, "probe.mode", zrs->mode);
+    lua_push_str_table_entry(vm, "probe.probe_maintenance", zrs->remote_probe_maintenance);
     lua_push_uint64_table_entry(vm, "drops.export_queue_full", zrs->export_queue_full);
     lua_push_uint64_table_entry(vm, "drops.too_many_flows", zrs->too_many_flows);
     lua_push_uint64_table_entry(vm, "drops.elk_flow_drops", zrs->elk_flow_drops);
     lua_push_uint64_table_entry(vm, "drops.sflow_pkt_sample_drops", zrs->sflow_pkt_sample_drops);
     lua_push_uint64_table_entry(vm, "drops.flow_collection_drops", zrs->flow_collection_drops);
     lua_push_uint64_table_entry(vm, "drops.flow_collection_udp_socket_drops", zrs->flow_collection_udp_socket_drops);
+    lua_push_uint64_table_entry(vm, "drops.packet_drops", zrs->remote_pkt_drops);
     lua_push_uint64_table_entry(vm, "flow_collection.nf_ipfix_flows", zrs->flow_collection.nf_ipfix_flows);
     lua_push_uint64_table_entry(vm, "flow_collection.collection_port", zrs->flow_collection.collection_port);
     lua_push_uint64_table_entry(vm, "flow_collection.sflow_samples", zrs->flow_collection.sflow_samples);

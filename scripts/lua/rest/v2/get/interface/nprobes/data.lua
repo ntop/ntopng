@@ -32,6 +32,8 @@ local ifstats = interface.getStats()
 local probes_stats = ifstats.probes or {}
 local timeseries_enabled = areFlowdevTimeseriesEnabled()
 
+--tprint(ifstats) io.write("-----------------------\n")
+
 for interface_id, probes_list in pairs(ifstats.probes or {}) do
     for source_id, probe_info in pairs(probes_list or {}) do
         local flow_drops = 0
@@ -65,6 +67,7 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
             probe_maintenance = probe_info["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance"),
             flow_exporters = flow_exporters_num,
             dropped_flows = flow_drops,
+	    dropped_packets = (probe_info["drops.packet_drops"] or 0),
             exported_flows = exported_flows,
             ntopng_interface = if_names[tostring(interface_id)],
             timeseries_enabled = timeseries_enabled,

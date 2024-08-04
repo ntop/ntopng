@@ -39,25 +39,25 @@ typedef struct {
 } ExporterStats;
 
 class nProbeStats {
- public:
-    char remote_ifname[32], remote_ifaddress[64];
-    char remote_probe_address[64], remote_probe_public_address[64], uuid[36];
-    char remote_probe_version[64], remote_probe_os[64];
-    char remote_probe_license[64], remote_probe_edition[64];
-    char remote_probe_maintenance[64];
-    char mode[64];
-    u_int32_t source_id, uuid_num, num_exporters;
-    u_int64_t remote_bytes, remote_pkts, num_flow_exports;
-    u_int32_t remote_ifspeed, remote_time, local_time, avg_bps, avg_pps;
-    u_int32_t remote_lifetime_timeout, remote_idle_timeout,
-        remote_collected_lifetime_timeout;
-    u_int32_t export_queue_full, too_many_flows, elk_flow_drops,
-        sflow_pkt_sample_drops, flow_collection_drops,
-        flow_collection_udp_socket_drops;
-    FlowCollection flow_collection; 
+public:
+  char remote_ifname[32], remote_ifaddress[64];
+  char remote_probe_address[64], remote_probe_public_address[64], uuid[36];
+  char remote_probe_version[64], remote_probe_os[64];
+  char remote_probe_license[64], remote_probe_edition[64];
+  char remote_probe_maintenance[64];
+  char mode[64];
+  u_int32_t source_id, uuid_num, num_exporters;
+  u_int64_t remote_bytes, remote_pkts, remote_pkt_drops, num_flow_exports;
+  u_int32_t remote_ifspeed, remote_time, local_time, avg_bps, avg_pps;
+  u_int32_t remote_lifetime_timeout, remote_idle_timeout,
+    remote_collected_lifetime_timeout;
+  u_int32_t export_queue_full, too_many_flows, elk_flow_drops,
+    sflow_pkt_sample_drops, flow_collection_drops,
+    flow_collection_udp_socket_drops;
+  FlowCollection flow_collection; 
     
-    std::map<u_int32_t, ExporterStats> exportersStats;
- public:
+  std::map<u_int32_t, ExporterStats> exportersStats;
+public:
   nProbeStats();
   ~nProbeStats() {};
 };

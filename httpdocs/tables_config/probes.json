@@ -21,10 +21,11 @@
 			]
 		},
 		{
-			"id": "probe_public_ip",
-			"title_i18n": "if_stats_overview.probe_public_ip",
-			"data_field": "probe_public_ip",
+			"id": "probe_version",
+			"title_i18n": "flow_devices.version",
+			"data_field": "probe_version",
 			"sortable": true,
+			"max-width": "20px",
 			"class": [
 				"text-nowrap"
 			]
@@ -41,7 +42,7 @@
 		},
 		{
 			"id": "probe_interface",
-			"title_i18n": "if_stats_overview.interface_name",
+		    "title_i18n": "flow_devices.nprobe_interface",
 			"data_field": "probe_interface",
 			"sortable": true,
 			"class": [
@@ -69,9 +70,9 @@
 			]
 		},
 		{
-			"id": "dropped_flows",
-			"title_i18n": "nprobe_dropped_flows",
-			"data_field": "dropped_flows",
+			"id": "dropped_packets",
+			"title_i18n": "nprobe_dropped_packets",
+			"data_field": "dropped_packets",
 			"sortable": true,
 			"class": [
 				"text-center",
@@ -79,11 +80,12 @@
 			]
 		},
 		{
-			"id": "probe_uuid",
-			"title_i18n": "if_stats_overview.probe_uuid",
-			"data_field": "probe_uuid",
+			"id": "dropped_flows",
+			"title_i18n": "nprobe_dropped_flows",
+			"data_field": "dropped_flows",
 			"sortable": true,
 			"class": [
+				"text-center",
 				"text-nowrap"
 			]
 		},
@@ -109,6 +111,23 @@
 			"id": "probe_maintenance",
 			"title_i18n": "if_stats_overview.remote_probe_maintenance",
 			"data_field": "probe_maintenance",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "probe_public_ip",
+			"title_i18n": "if_stats_overview.probe_public_ip",
+			"data_field": "probe_public_ip",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},	    		{
+			"id": "probe_uuid",
+			"title_i18n": "if_stats_overview.probe_uuid",
+			"data_field": "probe_uuid",
 			"sortable": true,
 			"class": [
 				"text-nowrap"

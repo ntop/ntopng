@@ -42,7 +42,7 @@ class ZMQParserInterface : public ParserInterface {
   u_int32_t polling_start_time;
   bool once, is_sampled_traffic;
   u_int32_t flow_max_idle, returned_flow_max_idle;
-  u_int64_t zmq_initial_bytes, zmq_initial_pkts,
+  u_int64_t zmq_initial_bytes, zmq_initial_pkts, zmq_initial_drops,
       zmq_remote_initial_exported_flows;
   std::map<u_int32_t, nProbeStats *> source_id_last_zmq_remote_stats;
   nProbeStats *zmq_remote_stats, *zmq_remote_stats_shadow;
@@ -86,8 +86,7 @@ class ZMQParserInterface : public ParserInterface {
  protected:
   struct {
     u_int32_t num_flows,   /* flows processed */
-        num_dropped_flows, /* flows unhandles (received but no room in the flow
-                              hash) */
+        num_dropped_flows, /* flows unhandles (received but no room in the flow hash) */
         num_events, num_counters, num_hello, num_listening_ports, num_templates,
         num_options, num_network_events, num_snmp_interfaces, zmq_msg_rcvd,
         zmq_msg_drops;
