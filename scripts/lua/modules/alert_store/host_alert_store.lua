@@ -27,7 +27,13 @@ local host_alert_store = classes.class(alert_store)
 function host_alert_store:init(args)
     self.super:init()
 
-    self._table_name = "host_alerts"
+    if ntop.isClickHouseEnabled() then
+        self._table_name = "host_alerts_view"
+        self._write_table_name = "host_alerts"
+    else
+        self._table_name = "host_alerts"
+    end
+
     self._alert_entity = alert_entities.host
 end
 
@@ -128,7 +134,7 @@ function host_alert_store:insert(alert)
                                           "(%salert_id, alert_status, alert_category, interface_id, ip_version, ip, vlan_id, name, country, is_attacker, is_victim, " ..
                                           "is_client, is_server, tstamp, tstamp_end, severity, score, granularity, host_pool_id, network, json) " ..
                                           "VALUES (%s%u, %u, %u, %d, %u, '%s', %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
-        self._table_name, extra_columns, extra_values, alert.alert_id, ternary(alert.acknowledged,
+        self:get_write_table_name(), extra_columns, extra_values, alert.alert_id, ternary(alert.acknowledged,
             alert_consts.alert_status.acknowledged.alert_status_id, 0), alert.alert_category,
         self:_convert_ifid(interface.getId()), ip_version, alert.ip, alert.vlan_id or 0, self:_escape(alert.name),
         alert.country_name, is_attacker, is_victim, is_client, is_server, alert.tstamp, alert.tstamp_end,
