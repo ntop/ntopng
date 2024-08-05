@@ -189,6 +189,8 @@ local lang = {
   ["denied"] = "Denied",
   ["description"] = "Description",
   ["destination"] = "Destination",
+  ["flow_issue_description"] = "Issue Description",
+
   ["developer"] = "Developer",
   ["device"] = "Device",
   ["device_ip"] = "Device IP",
@@ -479,6 +481,7 @@ local lang = {
   ["note_flow_search_allowed_networks_talkers"] = "Hosts not belonging to any of the allowed networks will be hidden from the top talkers.",
   ["note_scan_host"] = "The scanning should be scheduled in a couple of seconds, see 'Scan Status' to check the progresses",
   ["notes"] = "NOTES",
+  ["source"] = "Source",
   ["nprobe_dropped_flows"] = "Failed Export Flows",
   ["nprobe_dropped_packets"] = "Capture Drops",
   ["nprobe_exported_flows"] = "Exported Flows",

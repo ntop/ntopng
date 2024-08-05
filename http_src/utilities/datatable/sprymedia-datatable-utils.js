@@ -853,7 +853,9 @@ export class DataTableRenders {
             srvLabel = DataTableRenders.filterizeVlan(flow, row, 'srv_name', flow.srv_ip.name, flow.srv_ip.label, title);
         } else
             srvLabel = DataTableRenders.filterizeVlan(flow, row, 'srv_ip', flow.srv_ip.value, flow.srv_ip.label, flow.srv_ip.label_long);
-        let srvPortLabel = ((flow.srv_port && flow.srv_port > 0) ? ":" + DataTableRenders.filterize('srv_port', flow.srv_port, flow.srv_port) : "");
+        //let srvPortLabel = ((flow.srv_port && flow.srv_port != 0) ? ":" + DataTableRenders.filterize('srv_port', flow.srv_port, flow.srv_port) : "");
+        console.log(flow.srv_port)
+        let srvPortLabel = DataTableRenders.filterize('srv_port', flow.srv_port, flow.srv_port);
 
         let srvFlagLabel = ''
 

@@ -1193,6 +1193,11 @@ function flow_alert_store:format_record(value, no_html, verbose)
         }
     end
 
+    local l4_protocol
+    if not isEmptyString(value["proto"]) then
+        l4_protocol = l4_proto_to_string(value["proto"])
+    end
+
     local flow_cli_port = {
         value = value["cli_port"] or ""
     }
@@ -1200,6 +1205,7 @@ function flow_alert_store:format_record(value, no_html, verbose)
         value = value["srv_port"] or ""
     }
 
+    -- tprint(ntop.getservbyport(tonumber(value["srv_port"]), string.lower(l4_protocol)))
     -- Used to render custom queries (compatible with historical flows columns definition)
     record[RNAME.CLI_IP.name] = flow_cli_ip
     record[RNAME.SRV_IP.name] = flow_srv_ip
@@ -1213,15 +1219,11 @@ function flow_alert_store:format_record(value, no_html, verbose)
             vlan = vlan,
             cli_ip = flow_cli_ip,
             srv_ip = flow_srv_ip,
-            cli_port = value["cli_port"],
-            srv_port = value["srv_port"],
+            --cli_port = value["cli_port"],
+            cli_port = 10,
+            srv_port = ntop.getservbyport(tonumber(value["srv_port"]), string.lower(l4_protocol)),
             active_url = active_url
         }
-    end
-
-    local l4_protocol
-    if not isEmptyString(value["proto"]) then
-        l4_protocol = l4_proto_to_string(value["proto"])
     end
 
     record[RNAME.PROTO.name] = {
@@ -1626,7 +1628,9 @@ function flow_alert_store:format_record_telemetry(value)
     local alert_json = not isEmptyString(value.json) and (json.decode(value.json) or {}) or {}
     local flow_related_info = addExtraFlowInfo(alert_json, value, true)
     -- addExtraFlowInfo ->  addHTTPInfoToAlertDescr, addDNSInfoToAlertDescr, addTLSInfoToAlertDescr, addICMPInfoToAlertDescr, addBytesInfoToAlertDescr
-
+    flow_related_info.client_traffic = nil
+    flow_related_info.server_traffic = nil
+    
     -- TLS IssuerDN
     local flow_tls_issuerdn = nil
     if tonumber(value.alert_id) == flow_alert_keys.flow_alert_tls_certificate_selfsigned then
@@ -1652,10 +1656,10 @@ function flow_alert_store:format_record_telemetry(value)
     if cli_blacklisted == "1" then
         cli_blacklisted = true
     else
-        cli_blacklisted = false
+        cli_blacklisted = nil
     end
     
-    flow_cli_ip.sourceIsBlacklisted = cli_blacklisted
+    -- flow_cli_ip.sourceIsBlacklisted = cli_blacklisted
 
     -- server info
     local srv_ip = value["srv_ip"]
@@ -1672,38 +1676,64 @@ function flow_alert_store:format_record_telemetry(value)
     if srv_blacklisted == "1" then
         srv_blacklisted = true
     else
-        srv_blacklisted = false
+        srv_blacklisted = nil
     end
     
-    flow_srv_ip.destinationIsBlacklisted = srv_blacklisted
+    -- flow_srv_ip.destinationIsBlacklisted = srv_blacklisted
 
     local l4_protocol = not isEmptyString(value["proto"]) and l4_proto_to_string(value["proto"])
     local l7_protocol = tonumber(value["l7_master_proto"]) and tonumber(value["l7_proto"]) and
                             interface.getnDPIFullProtoName(tonumber(value["l7_master_proto"]),
             tonumber(value["l7_proto"])) or ""
 
-    -- Prepare response
-    record.eventInfo = {
+    --[[
+        -- Prepare response
+        record.eventInfo = {
+            eventId = value["rowid"],
+            timestamp = tonumber(value["tstamp"] or ""),
+            eventTypeCode = tonumber(value["alert_id"]),
+            eventTypeName = alert_name,
+            eventScore = tonumber(value["score"] or ""),
+            eventContent = value["info"],
+            eventDetails = flow_related_info
+        }
+        
+        record.flowInfo = {
+            flowProtocolL4 = l4_proto,
+            flowApplicationL7 = l7_protocol,
+            numBytesDestinationToSource = tonumber(flow["DST2SRC_BYTES"] or 0),
+            numBytesSourceToDestination = tonumber(flow["SRC2DST_BYTES"] or 0),
+            -- packetsExchanged = tonumber(flow["PACKETS"] or "")
+        }
+        
+        record.sourceInfo = flow_cli_ip
+        record.destinationInfo = flow_srv_ip
+        ]]
+                
+    record = {
+        sourceAddress = cli_ip or "",
+        sourcePort = value["cli_port"],
+        sourceCountry = cli_country,
+        sourceIsBlacklisted = cli_blacklisted,
+        destinationAddress = srv_ip or "",
+        destinationPort = value["srv_port"],
+        destinationCountry = srv_country,
+        destinationAddress = srv_ip or "",
+        destinationPort = value["srv_port"],
+        destinationCountry = srv_country,
         eventId = value["rowid"],
         timestamp = tonumber(value["tstamp"] or ""),
         eventTypeCode = tonumber(value["alert_id"]),
         eventTypeName = alert_name,
         eventScore = tonumber(value["score"] or ""),
         eventContent = value["info"],
-        eventDetails = flow_related_info
-    }
-
-    record.flowInfo = {
+        eventDetails = flow_related_info,
         flowProtocolL4 = l4_proto,
         flowApplicationL7 = l7_protocol,
         numBytesDestinationToSource = tonumber(flow["DST2SRC_BYTES"] or 0),
-        numBytesSourceToDestination = tonumber(flow["SRC2DST_BYTES"] or 0),
-        -- packetsExchanged = tonumber(flow["PACKETS"] or "")
-    }
+        numBytesSourceToDestination = tonumber(flow["SRC2DST_BYTES"] or 0)
 
-    record.sourceInfo = flow_cli_ip
-    record.destinationInfo = flow_srv_ip
-     
+    }
     -- record.community_id = value["community_id"]
     -- record.dst2src_tcp_flags = tonumber(flow["DST2SRC_TCP_FLAGS"] or "")
     -- record.src2dst_tcp_flags = tonumber(flow["SRC2DST_TCP_FLAGS"] or "")
