@@ -2449,9 +2449,11 @@ if auth.has_capability(auth.capabilities.preferences) then
         printVulnerabilityScan()
     end
 
-    if (tab == "assets_inventory") then
-        printAssetsInventory()
-    end
+    --[[
+        if (tab == "assets_inventory") then
+            printAssetsInventory()
+        end
+    ]]
 
     print [[
         </td></tr>
