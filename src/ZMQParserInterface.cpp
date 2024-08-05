@@ -510,8 +510,8 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
 
 	  if (json_object_object_get_ex(val, "num_drops", &x))
             exp_stats.num_drops = (u_int32_t)json_object_get_int64(x);
-
-    if (json_object_object_get_ex(val, "unique_source_id", &x))
+	  
+	  if (json_object_object_get_ex(val, "unique_source_id", &x))
             exp_stats.unique_source_id = (u_int32_t)json_object_get_int64(x);
 
           zrs.exportersStats[ip] = exp_stats;
