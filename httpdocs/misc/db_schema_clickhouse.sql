@@ -140,64 +140,6 @@ ALTER TABLE flows ADD COLUMN IF NOT EXISTS `POST_NAT_DST_PORT` UInt32;
 
 @
 
-DROP VIEW IF EXISTS `flow_alerts_view`;
-@
-CREATE VIEW IF NOT EXISTS `flow_alerts_view` AS SELECT
-FLOW_ID AS rowid,
-IP_PROTOCOL_VERSION AS ip_version,
-FIRST_SEEN AS tstamp,
-FIRST_SEEN AS first_seen,
-LAST_SEEN AS tstamp_end,
-VLAN_ID AS vlan_id,
-SRC2DST_PACKETS AS cli2srv_pkts,
-DST2SRC_PACKETS AS srv2cli_pkts,
-SRC2DST_BYTES AS cli2srv_bytes,
-DST2SRC_BYTES AS srv2cli_bytes,
-PROTOCOL AS proto,
-IF(IPV4_SRC_ADDR != 0, IPv4NumToString(IPV4_SRC_ADDR), IPv6NumToString(IPV6_SRC_ADDR)) AS cli_ip,
-IF(IPV4_DST_ADDR != 0, IPv4NumToString(IPV4_DST_ADDR), IPv6NumToString(IPV6_DST_ADDR)) AS srv_ip,
-IP_SRC_PORT AS cli_port,
-IP_DST_PORT AS srv_port,
-L7_PROTO AS l7_proto,
-L7_PROTO_MASTER AS l7_master_proto,
-L7_CATEGORY AS l7_cat,
-FLOW_RISK AS flow_risk_bitmap,
-INTERFACE_ID AS interface_id,
-STATUS AS alert_id,
-ALERT_STATUS AS alert_status,
-USER_LABEL AS user_label,
-USER_LABEL_TSTAMP AS user_label_tstamp,
-char(bitShiftRight(SRC_COUNTRY_CODE, 8), bitAnd(SRC_COUNTRY_CODE, 0xFF)) AS cli_country,
-char(bitShiftRight(DST_COUNTRY_CODE, 8), bitAnd(DST_COUNTRY_CODE, 0xFF)) AS srv_country,
-SRC_LABEL AS cli_name,
-DST_LABEL AS srv_name,
-COMMUNITY_ID AS community_id,
-SCORE AS score,
-SRC_HOST_POOL_ID AS cli_host_pool_id,
-DST_HOST_POOL_ID AS srv_host_pool_id,
-SRC_NETWORK_ID AS cli_network,
-DST_NETWORK_ID AS srv_network,
-SEVERITY AS severity,
-ALERT_JSON AS json,
-IS_CLI_ATTACKER AS is_cli_attacker,
-IS_CLI_VICTIM AS is_cli_victim,
-IS_SRV_ATTACKER AS is_srv_attacker,
-IS_SRV_VICTIM AS is_srv_victim,
-IS_CLI_BLACKLISTED AS cli_blacklisted,
-IS_SRV_BLACKLISTED AS srv_blacklisted,
-CLIENT_LOCATION AS cli_location,
-SERVER_LOCATION AS srv_location,
-ALERTS_MAP AS alerts_map,
-INFO AS info,
-IPv4NumToString(PROBE_IP) AS probe_ip,
-INPUT_SNMP AS input_snmp,
-OUTPUT_SNMP AS output_snmp,
-ALERT_CATEGORY as alert_category
-FROM `flows`
-WHERE STATUS != 0 AND IS_ALERT_DELETED != 1;
-
-@
-
 CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `rowid` UUID,
 `alert_id` UInt32 NOT NULL,
@@ -319,7 +261,7 @@ ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS host_pool_id UInt16;
 @
 ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS network UInt16;
 @
-ALTER TABLE host_alerts ADD COLUMN IF NOT EXISTS `country` String;
+ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `country` String;
 @
 ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
@@ -470,7 +412,6 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 ALTER TABLE `system_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
 
 @
-
 DROP VIEW IF EXISTS `all_alerts_view`;
 @
 CREATE VIEW IF NOT EXISTS `all_alerts_view` AS
@@ -596,6 +537,9 @@ CREATE TABLE IF NOT EXISTS `vulnerability_scan_report` (
   `NUM_UDP_PORTS` UInt32
 ) ENGINE =  MergeTree() PARTITION BY toYYYYMMDD(REPORT_DATE) ORDER BY (REPORT_DATE);
 
+
+/* MITRE TABLES AND ALERTS VIEWS */
+
 @
 CREATE TABLE IF NOT EXISTS `mitre_table_info` (
   `ALERT_ID` UInt16 NOT NULL,
@@ -607,3 +551,112 @@ CREATE TABLE IF NOT EXISTS `mitre_table_info` (
 ) ENGINE = ReplacingMergeTree() PRIMARY KEY (ALERT_ID, ENTITY_ID) ORDER BY (ALERT_ID, ENTITY_ID);
 
 @
+
+DROP VIEW IF EXISTS `host_alerts_view`;
+
+@
+
+CREATE VIEW IF NOT EXISTS `host_alerts_view` AS
+SELECT
+  ha.rowid,
+  ha.alert_id,
+  ha.alert_status,
+  ha.interface_id,
+  ha.ip_version,
+  ha.ip,
+  ha.vlan_id,
+  ha.name,
+  ha.is_attacker,
+  ha.is_victim,
+  ha.is_client,
+  ha.is_server,
+  ha.tstamp,
+  ha.tstamp_end,
+  ha.severity,
+  ha.score,
+  ha.granularity,
+  ha.counter,
+  ha.description,
+  ha.json,
+  ha.user_label,
+  ha.user_label_tstamp,
+  mitre.TACTIC AS mitre_tactic,
+  mitre.TECHNIQUE AS mitre_technique,
+  mitre.SUB_TECHNIQUE AS mitre_subtechnique,
+  mitre.MITRE_ID AS mitre_id
+FROM
+  `host_alerts` AS ha
+LEFT JOIN
+  `mitre_table_info` AS mitre
+ON
+  ha.alert_id = mitre.ALERT_ID
+WHERE
+  mitre.ENTITY_ID = 1; 
+
+@
+
+DROP VIEW IF EXISTS `flow_alerts_view`;
+
+@
+
+CREATE VIEW IF NOT EXISTS `flow_alerts_view` AS SELECT
+    f.FLOW_ID AS rowid,
+    f.IP_PROTOCOL_VERSION AS ip_version,
+    f.FIRST_SEEN AS tstamp,
+    f.FIRST_SEEN AS first_seen,
+    f.LAST_SEEN AS tstamp_end,
+    f.VLAN_ID AS vlan_id,
+    f.SRC2DST_PACKETS AS cli2srv_pkts,
+    f.DST2SRC_PACKETS AS srv2cli_pkts,
+    f.SRC2DST_BYTES AS cli2srv_bytes,
+    f.DST2SRC_BYTES AS srv2cli_bytes,
+    f.PROTOCOL AS proto,
+    IF(f.IPV4_SRC_ADDR != 0, IPv4NumToString(f.IPV4_SRC_ADDR), IPv6NumToString(f.IPV6_SRC_ADDR)) AS cli_ip,
+    IF(f.IPV4_DST_ADDR != 0, IPv4NumToString(f.IPV4_DST_ADDR), IPv6NumToString(f.IPV6_DST_ADDR)) AS srv_ip,
+    f.IP_SRC_PORT AS cli_port,
+    f.IP_DST_PORT AS srv_port,
+    f.L7_PROTO AS l7_proto,
+    f.L7_PROTO_MASTER AS l7_master_proto,
+    f.L7_CATEGORY AS l7_cat,
+    f.FLOW_RISK AS flow_risk_bitmap,
+    f.INTERFACE_ID AS interface_id,
+    f.STATUS AS alert_id,
+    f.ALERT_STATUS AS alert_status,
+    f.USER_LABEL AS user_label,
+    f.USER_LABEL_TSTAMP AS user_label_tstamp,
+    char(bitShiftRight(f.SRC_COUNTRY_CODE, 8), bitAnd(f.SRC_COUNTRY_CODE, 0xFF)) AS cli_country,
+    char(bitShiftRight(f.DST_COUNTRY_CODE, 8), bitAnd(f.DST_COUNTRY_CODE, 0xFF)) AS srv_country,
+    f.SRC_LABEL AS cli_name,
+    f.DST_LABEL AS srv_name,
+    f.COMMUNITY_ID AS community_id,
+    f.SCORE AS score,
+    f.SRC_HOST_POOL_ID AS cli_host_pool_id,
+    f.DST_HOST_POOL_ID AS srv_host_pool_id,
+    f.SRC_NETWORK_ID AS cli_network,
+    f.DST_NETWORK_ID AS srv_network,
+    f.SEVERITY AS severity,
+    f.ALERT_JSON AS json,
+    f.IS_CLI_ATTACKER AS is_cli_attacker,
+    f.IS_CLI_VICTIM AS is_cli_victim,
+    f.IS_SRV_ATTACKER AS is_srv_attacker,
+    f.IS_SRV_VICTIM AS is_srv_victim,
+    f.IS_CLI_BLACKLISTED AS cli_blacklisted,
+    f.IS_SRV_BLACKLISTED AS srv_blacklisted,
+    f.CLIENT_LOCATION AS cli_location,
+    f.SERVER_LOCATION AS srv_location,
+    f.ALERTS_MAP AS alerts_map,
+    f.INFO AS info,
+    IPv4NumToString(f.PROBE_IP) AS probe_ip,
+    f.INPUT_SNMP AS input_snmp,
+    f.OUTPUT_SNMP AS output_snmp,
+    f.ALERT_CATEGORY AS alert_category,
+    mitre.TACTIC AS mitre_tactic,
+    mitre.TECHNIQUE AS mitre_technique,
+    mitre.SUB_TECHNIQUE AS mitre_subtechnique,
+    mitre.MITRE_ID AS mitre_id
+FROM `flows` AS f
+LEFT JOIN `mitre_table_info` AS mitre
+    ON f.STATUS = mitre.ALERT_ID
+WHERE f.STATUS != 0 
+    AND f.IS_ALERT_DELETED != 1 
+    AND mitre.ENTITY_ID = 4;
