@@ -1219,9 +1219,8 @@ function flow_alert_store:format_record(value, no_html, verbose)
             vlan = vlan,
             cli_ip = flow_cli_ip,
             srv_ip = flow_srv_ip,
-            --cli_port = value["cli_port"],
-            cli_port = 10,
-            srv_port = ntop.getservbyport(tonumber(value["srv_port"]), string.lower(l4_protocol)),
+            cli_port = value["cli_port"],
+            srv_port = value["srv_port"],
             active_url = active_url
         }
     end
