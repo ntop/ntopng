@@ -2764,5 +2764,8 @@ void Host::setUnidirectionalTCPUDPNoTXIngressFlow(IpAddress *ip,
 void Host::resetHostContacts() {
   ndpi_hll_reset(&outgoing_hosts_tcp_udp_port_with_no_tx_hll);
   ndpi_hll_reset(&incoming_hosts_tcp_udp_port_with_no_tx_hll);
-  ndpi_bitmap_clear(tcp_udp_contacted_ports_no_tx);
+  if(tcp_udp_contacted_ports_no_tx)
+    ndpi_bitmap_free(tcp_udp_contacted_ports_no_tx);
+
+  tcp_udp_contacted_ports_no_tx = ndpi_bitmap_alloc();  
 }

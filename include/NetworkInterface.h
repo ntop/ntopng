@@ -557,8 +557,7 @@ public:
     return (ndpi_get_category_id(get_ndpi_struct(), cat));
   };
   inline char *get_ndpi_proto_breed_name(u_int id) {
-    return (ndpi_get_proto_breed_name(
-				      get_ndpi_struct(), ndpi_get_proto_breed(get_ndpi_struct(), id)));
+    return (ndpi_get_proto_breed_name(ndpi_get_proto_breed(get_ndpi_struct(), id)));
   };
   inline char *get_ndpi_full_proto_name(ndpi_protocol protocol, char *buf,
                                         u_int buf_len) const {

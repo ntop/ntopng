@@ -105,7 +105,7 @@ void ObservationPoint::lua(lua_State* vm, DetailsLevel details_level,
   Score::lua_get_score(vm);
   Score::lua_get_score_breakdown(vm);
 
-  u_int32_t exporter_ip = 0;
+  u_int64_t exporter_ip = 0;
 
   lua_newtable(vm);
   ndpi_bitmap_iterator* iterator = ndpi_bitmap_iterator_alloc(exporter_list);

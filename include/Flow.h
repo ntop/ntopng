@@ -810,8 +810,7 @@ class Flow : public GenericHashEntry {
                                : NDPI_PROTOCOL_UNKNOWN));
   };
   inline const char *get_protocol_breed_name() const {
-    return (ndpi_get_proto_breed_name(iface->get_ndpi_struct(),
-                                      get_protocol_breed()));
+    return (ndpi_get_proto_breed_name(get_protocol_breed()));
   };
   inline ndpi_protocol_category_t get_protocol_category() const {
     return (ndpi_get_proto_category(

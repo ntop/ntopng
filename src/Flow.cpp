@@ -502,8 +502,7 @@ u_int16_t Flow::getStatsProtocol() const {
   u_int16_t stats_protocol;
 
   if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN &&
-      !ndpi_is_subprotocol_informative(NULL,
-                                       ndpiDetectedProtocol.master_protocol))
+      !ndpi_is_subprotocol_informative(ndpiDetectedProtocol.master_protocol))
     stats_protocol = ndpiDetectedProtocol.app_protocol;
   else
     stats_protocol = ndpiDetectedProtocol.master_protocol;
@@ -974,7 +973,7 @@ void Flow::processPacket(const struct pcap_pkthdr *h, const u_char *ip_packet,
     ndpi_flow_risk_bitmap = 0;
   }
 
-  detected = ndpi_is_protocol_detected(iface->get_ndpi_struct(), proto_id);
+  detected = ndpi_is_protocol_detected(proto_id);
 
   if (!detected && hasDissectedTooManyPackets()) {
     /*
@@ -1198,7 +1197,7 @@ void Flow::endProtocolDissection() {
   if (!detection_completed) {
     u_int8_t proto_guessed;
 
-    updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), ndpiFlow, 1,
+    updateProtocol(ndpi_detection_giveup(iface->get_ndpi_struct(), ndpiFlow,
                                          &proto_guessed));
     setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
     setProtocolDetectionCompleted(NULL, 0);
@@ -2485,8 +2484,7 @@ void Flow::update_pools_stats(NetworkInterface *iface, Host *cli_host,
 
       /* Overall host pool stats */
       if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN &&
-          !ndpi_is_subprotocol_informative(
-              NULL, ndpiDetectedProtocol.master_protocol))
+          !ndpi_is_subprotocol_informative(ndpiDetectedProtocol.master_protocol))
         hp->incPoolStats(tv->tv_sec, cli_host_pool_id,
                          ndpiDetectedProtocol.app_protocol, category_id,
                          diff_sent_packets, diff_sent_bytes, diff_rcvd_packets,
@@ -2526,7 +2524,7 @@ void Flow::update_pools_stats(NetworkInterface *iface, Host *cli_host,
       if (!cli_host || (srv_host_pool_id != cli_host_pool_id)) {
         if (ndpiDetectedProtocol.app_protocol != NDPI_PROTOCOL_UNKNOWN &&
             !ndpi_is_subprotocol_informative(
-                NULL, ndpiDetectedProtocol.master_protocol))
+                ndpiDetectedProtocol.master_protocol))
           hp->incPoolStats(tv->tv_sec, srv_host_pool_id,
                            ndpiDetectedProtocol.app_protocol, category_id,
                            diff_rcvd_packets, diff_rcvd_bytes,
@@ -6771,7 +6769,7 @@ void Flow::lua_get_protocols(lua_State *vm) const {
                                 ndpiDetectedProtocol.app_protocol);
     lua_push_uint64_table_entry(vm, "proto.ndpi_informative_proto",
                                 (!ndpi_is_subprotocol_informative(
-                                     NULL, ndpiDetectedProtocol.master_protocol)
+                                     ndpiDetectedProtocol.master_protocol)
                                      ? ndpiDetectedProtocol.app_protocol
                                      : ndpiDetectedProtocol.master_protocol));
     lua_push_uint64_table_entry(vm, "proto.master_ndpi_id",

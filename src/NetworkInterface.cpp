@@ -397,7 +397,7 @@ u_int16_t NetworkInterface::getnDPIProtoByName(const char *name) {
 
 struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   struct ndpi_detection_module_struct *ndpi_s =
-    ndpi_init_detection_module(ndpi_track_flow_payload);
+    ndpi_init_detection_module(NULL);
   ndpi_port_range d_port[MAX_DEFAULT_PORTS];
   NDPI_PROTOCOL_BITMASK all;
 
@@ -6908,8 +6908,7 @@ void NetworkInterface::getFlowsStats(lua_State *vm) {
     if (stats.breeds_bytes[i] > 0)
       lua_push_uint64_table_entry(
 				  vm,
-				  ndpi_get_proto_breed_name(get_ndpi_struct(),
-							    (ndpi_protocol_breed_t)i),
+				  ndpi_get_proto_breed_name((ndpi_protocol_breed_t)i),
 				  stats.breeds_bytes[i]);
   }
 

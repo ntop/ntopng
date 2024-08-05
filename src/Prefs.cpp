@@ -295,7 +295,7 @@ Prefs::~Prefs() {
 void nDPIusage() {
   NDPI_PROTOCOL_BITMASK all;
   struct ndpi_detection_module_struct *ndpi_struct =
-    ndpi_init_detection_module(ndpi_no_prefs);
+    ndpi_init_detection_module(NULL);
 
   // enable all protocols
   NDPI_BITMASK_SET_ALL(all);
@@ -3077,15 +3077,17 @@ void Prefs::setModbusAllowedFunctionCodes(const char *function_codes) {
     }
 
     if(modbus_allowed_function_codes) {
-      ndpi_bitmap_clear(modbus_allowed_function_codes);
+      ndpi_bitmap_free(modbus_allowed_function_codes);
 
-      p = strtok_r(buf, ",", &tmp);
-      while (p != NULL) {
-	int f_code = atoi(p);
+      if((modbus_allowed_function_codes = ndpi_bitmap_alloc()) != NULL) {
+	p = strtok_r(buf, ",", &tmp);
+	while (p != NULL) {
+	  int f_code = atoi(p);
 
-	ndpi_bitmap_set(modbus_allowed_function_codes, f_code);
+	  ndpi_bitmap_set(modbus_allowed_function_codes, f_code);
 
-	p = strtok_r(NULL, ",", &tmp);
+	  p = strtok_r(NULL, ",", &tmp);
+	}
       }
     }
 
