@@ -82,17 +82,16 @@ end
 -- ##############################################
 
 function flow_alert_store:init(args)
-    local table_name = "flow_alerts"
-
     self.super:init()
 
     if ntop.isClickHouseEnabled() then
         -- Alerts from historical flows (see also RecipientQueue::enqueue)
-        table_name = "flow_alerts_view"
+        self._table_name = "flow_alerts_view"
         self._write_table_name = "flows"
+    else
+        self._table_name = "flow_alerts"
     end
 
-    self._table_name = table_name
     self._alert_entity = alert_entities.flow
 end
 
