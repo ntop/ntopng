@@ -9,7 +9,7 @@ require "voip_utils"
 require "flow_utils"
 
 local shaper_utils
-
+local checks = require("checks")
 local format_utils = require "format_utils"
 local have_nedge = ntop.isnEdge()
 local nf_config = nil
@@ -1394,10 +1394,6 @@ else
         local alert_score = flow.score.alert_score[tostring(id)] -- ntop.getFlowAlertScore(id)
         local alert_risk = ntop.getFlowAlertRisk(id)
 
-        if alert_score > 0 then
-            message = message .. string.format(" [%s: %s]", i18n("score"), format_utils.formatValue(alert_score))
-        end
-
         if not alerts_by_score[alert_score] then
             alerts_by_score[alert_score] = {}
         end
@@ -1406,7 +1402,8 @@ else
             is_predominant = is_predominant,
             alert_id = id,
             alert_label = alert_label,
-            alert_risk = alert_risk
+            alert_risk = alert_risk, -- if risk is set, alert comes from nDPI
+            score = alert_score
         }
         num_statuses = num_statuses + 1
     end
@@ -1457,11 +1454,11 @@ else
 	   print("<tr><th width=30%> "..i18n("flow_details.flow_issues") .. "</th><td colspan=2>\n")
 	   print("<table class=\"table table-bordered table-striped\" width=100%>\n")
 
-	   print("<tr><th>" .. i18n("description") .. "</th><th>" .. i18n("info") .. "</th><th>" .. i18n("actions") .. "</th></tr>\n")
+	   print("<tr><th>" .. i18n("flow_issue_description") ..  "</th><th>" .. i18n("score") .. "</th><th>" .. i18n("source") .. "</th><th>" .. i18n("info") .. "</th><th>" .. i18n("actions") .. "</th></tr>\n")
 	   
             for _, score_alerts in pairsByKeys(alerts_by_score, rev) do
                 for _, score_alert in pairsByField(score_alerts, "message", asc) do
-           
+                    
                     local status_icon = ""
 
                     local riskLabel = riskInfo[tostring(score_alert.alert_risk)]
@@ -1477,11 +1474,15 @@ else
                             'fa-lg')
                     end
 
+                    local alert_source = ternary(score_alert.alert_risk, "nDPI", "ntopng")
+
                     print(string.format('<tr>'))
 
-                    local msg = string.format('<td>%s</td><td>%s %s %s %s</td>', score_alert.message, riskLabel,
-                        (score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk)) or
-			'', status_icon or '', flow_risk_utils.get_remediation_documentation_link(score_alert.alert_id))
+                    local msg = string.format('<td> %s </td><td style=\"text-align: center;\"> %s </td><td style=\"text-align: center;\"> %s </td><td> %s %s %s %s </td>', score_alert.message, score_alert.score,alert_source, riskLabel,
+                    riskLabel, (score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk)) or '', 
+                    status_icon or '', flow_risk_utils.get_remediation_documentation_link(score_alert.alert_id))
+
+                    
                     print(msg)
 
                     if score_alert.alert_id then

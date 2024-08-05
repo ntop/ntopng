@@ -75,7 +75,6 @@ async function draw_sankey() {
     sankeyData = sankey(data);
     const { links, nodes } = sankeyData;
     const Lt = d3.map(links, (d) => `${d.label}`);
-    console.log(Lt)
 
     let d3_nodes = d3.select(sankey_chart_ref.value)
         .select("g.nodes")
@@ -152,7 +151,6 @@ async function draw_sankey() {
             return Math.max(1, d.width);
         })
         .attr("stroke", (d) => `url(#gradient-${d.index}`)
-        .append("title")
         .attr("data-bs-toggle", "tooltip")
         .attr("data-bs-placement", "top")
         .attr("title", (d) => `${d.label}`)
