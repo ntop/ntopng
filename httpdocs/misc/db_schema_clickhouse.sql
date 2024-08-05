@@ -140,64 +140,6 @@ ALTER TABLE flows ADD COLUMN IF NOT EXISTS `POST_NAT_DST_PORT` UInt32;
 
 @
 
-DROP VIEW IF EXISTS `flow_alerts_view`;
-@
-CREATE VIEW IF NOT EXISTS `flow_alerts_view` AS SELECT
-FLOW_ID AS rowid,
-IP_PROTOCOL_VERSION AS ip_version,
-FIRST_SEEN AS tstamp,
-FIRST_SEEN AS first_seen,
-LAST_SEEN AS tstamp_end,
-VLAN_ID AS vlan_id,
-SRC2DST_PACKETS AS cli2srv_pkts,
-DST2SRC_PACKETS AS srv2cli_pkts,
-SRC2DST_BYTES AS cli2srv_bytes,
-DST2SRC_BYTES AS srv2cli_bytes,
-PROTOCOL AS proto,
-IF(IPV4_SRC_ADDR != 0, IPv4NumToString(IPV4_SRC_ADDR), IPv6NumToString(IPV6_SRC_ADDR)) AS cli_ip,
-IF(IPV4_DST_ADDR != 0, IPv4NumToString(IPV4_DST_ADDR), IPv6NumToString(IPV6_DST_ADDR)) AS srv_ip,
-IP_SRC_PORT AS cli_port,
-IP_DST_PORT AS srv_port,
-L7_PROTO AS l7_proto,
-L7_PROTO_MASTER AS l7_master_proto,
-L7_CATEGORY AS l7_cat,
-FLOW_RISK AS flow_risk_bitmap,
-INTERFACE_ID AS interface_id,
-STATUS AS alert_id,
-ALERT_STATUS AS alert_status,
-USER_LABEL AS user_label,
-USER_LABEL_TSTAMP AS user_label_tstamp,
-char(bitShiftRight(SRC_COUNTRY_CODE, 8), bitAnd(SRC_COUNTRY_CODE, 0xFF)) AS cli_country,
-char(bitShiftRight(DST_COUNTRY_CODE, 8), bitAnd(DST_COUNTRY_CODE, 0xFF)) AS srv_country,
-SRC_LABEL AS cli_name,
-DST_LABEL AS srv_name,
-COMMUNITY_ID AS community_id,
-SCORE AS score,
-SRC_HOST_POOL_ID AS cli_host_pool_id,
-DST_HOST_POOL_ID AS srv_host_pool_id,
-SRC_NETWORK_ID AS cli_network,
-DST_NETWORK_ID AS srv_network,
-SEVERITY AS severity,
-ALERT_JSON AS json,
-IS_CLI_ATTACKER AS is_cli_attacker,
-IS_CLI_VICTIM AS is_cli_victim,
-IS_SRV_ATTACKER AS is_srv_attacker,
-IS_SRV_VICTIM AS is_srv_victim,
-IS_CLI_BLACKLISTED AS cli_blacklisted,
-IS_SRV_BLACKLISTED AS srv_blacklisted,
-CLIENT_LOCATION AS cli_location,
-SERVER_LOCATION AS srv_location,
-ALERTS_MAP AS alerts_map,
-INFO AS info,
-IPv4NumToString(PROBE_IP) AS probe_ip,
-INPUT_SNMP AS input_snmp,
-OUTPUT_SNMP AS output_snmp,
-ALERT_CATEGORY as alert_category
-FROM `flows`
-WHERE STATUS != 0 AND IS_ALERT_DELETED != 1;
-
-@
-
 CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `rowid` UUID,
 `alert_id` UInt32 NOT NULL,
