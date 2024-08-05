@@ -2141,7 +2141,7 @@ const $script_table = $("#scripts-config").DataTable({
          searchable: false,
          className: 'text-center',
          render: function (data, type, row) {
-            console.log(data, type, row)
+            /* console.log(data, type, row) */
             return data;
          },
       },
