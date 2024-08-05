@@ -115,6 +115,19 @@ function dumpInterfaceStats(ifid)
         res["bytes"] = ifstats.stats_since_reset.bytes
         res["drops"] = drops
 
+	local tot_pkt = 0
+	local tot_pkt_drops = 0
+
+	for interface_id, probes_list in pairs(ifstats.probes or {}) do
+	   for source_id, probe_info in pairs(probes_list or {}) do
+	      tot_pkt = tot_pkt + probe_info["packets.total"]
+	      tot_pkt_drops = tot_pkt_drops + probe_info["packets.drops"]
+	   end
+	end
+
+	res["tot_nprobe_pkts"] = tot_pkt
+	res["tot_pkt_drops"]   = tot_pkt_drops
+
         if ifstats.stats_since_reset.discarded_probing_packets then
             res["discarded_probing_packets"] = ifstats.stats_since_reset.discarded_probing_packets
             res["discarded_probing_bytes"] = ifstats.stats_since_reset.discarded_probing_bytes
@@ -235,7 +248,7 @@ function dumpInterfaceStats(ifid)
         if (ifstats.zmqRecvStats ~= nil) then
 
             if ifstats.zmqRecvStats_since_reset then
-                -- override stats with the values calculated from the latest user reset 
+                -- override stats with the values calculated from the latest user reset
                 -- for consistency with if_stats.lua
                 for k, v in pairs(ifstats.zmqRecvStats_since_reset) do
                     ifstats.zmqRecvStats[k] = v
@@ -327,7 +340,6 @@ function dumpBriefInterfaceStats(ifid)
 
         res["ifid"] = ifid
         res["ifname"] = interface_name
-
         res["drops"] = ifstats.stats_since_reset.drops
 
         res["throughput_bps"] = ifstats.stats.throughput_bps;

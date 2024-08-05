@@ -181,6 +181,27 @@ const map_table_def_columns = (columns) => {
                 return formatted_value
             }
         },
+        "captured_packets": (value, row) => {
+            let diff_value = value
+            if(!first_open.value) {
+                const old_value = localStorage.getItem("exporter_captured_packets." + row.exporter_uuid + row.ip)
+                diff_value = (value - Number(old_value)) / 10
+            }
+            localStorage.setItem("exporter_captured_packets." + row.exporter_uuid + row.ip, value)
+            if (!value)
+                return '';
+            let formatted_value = formatterUtils.getFormatter("number")(value)
+            if(!first_open.value) {
+                let updated_counter = ''
+                if(diff_value > 0 ) {
+                    updated_counter = '<i class="fas fa-arrow-up"></i>'
+                } else {
+                    updated_counter = "<i class='fas fa-minus'></i>"
+                }
+                formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("pps")(diff_value)} ] ${updated_counter}`
+            }
+            return formatted_value
+        },
         "dropped_packets": (value, row) => {
             let diff_value = value
             if(!first_open.value) {

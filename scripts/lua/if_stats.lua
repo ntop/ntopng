@@ -851,10 +851,9 @@ if ((page == "overview") or (page == nil)) then
                 "&page=historical&ts_schema=iface:zmq_recv_flows'><i class='fas fa-chart-area fa-sm'></i></A>", "") ..
                   "</th><td width=20%><span id=if_zmq_flows>" .. formatValue(ifstats.zmqRecvStats.flows) ..
                   "</span></td>")
-        print(
-            "<th nowrap> <i class='fas fa-tint' aria-hidden='true'></i> " .. i18n("if_stats_overview.discarded_flows") ..
-                "</th><td width=20%><span id=if_zmq_dropped_flows>" .. formatValue(ifstats.zmqRecvStats.dropped_flows) ..
-                " [ " .. pctg_dropped_flows .. " % ] " .. "</span></td>")
+        print("<th nowrap> <i class='fas fa-tint' aria-hidden='true'></i> " .. i18n("if_stats_overview.discarded_flows") ..
+	      "</th><td width=20%><span id=if_zmq_dropped_flows>" .. formatValue(ifstats.zmqRecvStats.dropped_flows) ..
+	      " [ " .. pctg_dropped_flows .. " % ] " .. "</span></td>")
         print("<td colspan=2></td>")
         print("</tr>")
 
@@ -923,20 +922,32 @@ if ((page == "overview") or (page == nil)) then
     if not is_sub_interface then
         print("<th width=20%><span id='if_packet_drops_drop'><i class='fas fa-tint' aria-hidden='true'></i></span> ")
         local drops = 0
+	local probe_total_packets      = 0
+	local probe_total_packet_drops = 0
 
-        if not ifstats.zmqRecvStats then
-            drops = ifstats.stats.drops
-            print(i18n("if_stats_overview.dropped_packets") .. ternary(charts_available, " <A HREF='" .. url ..
-                "&page=historical&ts_schema=iface:packets_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "") ..
-                      "</th>")
+	for _, v in pairs(ifstats.probes or {}) do
+	   for _, v1 in pairs(v or {}) do
+	      for _, v2 in pairs(v or {}) do
+		 tprint(v2)
+		 if(v2["packets.total"] ~= nil) then probe_total_packets = probe_total_packets + v2["packets.total"] end
+		 if(v2["packets.drops"] ~= nil) then probe_total_packet_drops = probe_total_packet_drops + v2["packets.drops"] end
+	      end
+	   end
+	end
+	
+	if not ifstats.zmqRecvStats then
+	   drops = ifstats.stats.drops
+	   print(i18n("if_stats_overview.dropped_packets") .. ternary(charts_available, " <A HREF='" .. url ..
+								      "&page=historical&ts_schema=iface:packets_vs_drops'><i class='fas fa-chart-area fa-sm'></i></A>", "") .. "</th>")
         else
-            print(i18n("if_stats_overview.dropped_flows") .. "" .. "</th>")
-            for _, v in pairs(ifstats.exporters or {}) do
-                drops = drops + v["num_drops"]
+	   print(i18n("if_stats_overview.dropped_flows") .. "" .. "</th>")
+	   
+	   for _, v in pairs(ifstats.exporters or {}) do	      
+	       drops = drops + v["num_drops"]
             end
         end
 
-        print("<td width=20% colspan=3><span id=if_drops>")
+        print("<td width=20%><span id=if_drops>")
 
         if (ifstats.stats.drops > 0) then
             print('<span class="badge bg-danger">')
@@ -954,9 +965,22 @@ if ((page == "overview") or (page == nil)) then
         if (ifstats.stats.drops > 0) then
             print('</span>')
         end
-        print("</span>&nbsp;<span id=drops_trend></span>")
+        print("</span>&nbsp;<span id=drops_trend></span>\n")
 
-        print("</td>")
+	-- Packets
+	print("</td><th><i class='fas fa-tint'></i> "..i18n("if_stats_overview.dropped_probe_packets").."</th><td> <span id=if_probe_packet_drops>")
+	local drop_pctg = 0
+
+	tprint(probe_total_packets)
+	tprint(probe_total_packet_drops)
+	
+	if(probe_total_packets > 0) then
+	   drop_pctg = (probe_total_packet_drops*100) / probe_total_packets
+	end
+
+	print(string.format("%.1f", drop_pctg) .. "</span> %&nbsp;<span id=dropped_probe_packets_trend></span>\n")
+
+        print("</td>\n")
     else
         print("<td width=20% colspan=3>")
         print("<small><b>" .. i18n("if_stats_overview.note") .. ":</b> " ..
@@ -2702,6 +2726,7 @@ print("var last_engaged_alerts = " .. ifstats.num_alerts_engaged .. ";\n")
 print("var last_dropped_alerts = " .. ifstats.num_dropped_alerts .. ";\n")
 print("var last_num_local_hosts_anomalies = " .. ifstats.anomalies.num_local_hosts_anomalies .. ";\n")
 print("var last_num_remote_hosts_anomalies = " .. ifstats.anomalies.num_remote_hosts_anomalies .. ";\n")
+print("var last_if_probe_packet_drops = 0;\n")
 
 if (ifstats.zmqRecvStats ~= nil) then
     print("var last_zmq_time = 0;\n")
@@ -2748,7 +2773,7 @@ print [["},
 }
 
 var resetInterfaceCounters = function(drops_only) {
-  if(drops_only) 
+  if(drops_only)
     $('#reset_drops_dialog').modal('show');
   else
     $('#reset_stats_dialog').modal('show');
@@ -2915,11 +2940,26 @@ print [[;
         if(rsp.drops > 0) {
           drops = '<span class="badge bg-danger">';
         }
-        drops = drops + NtopUtils.addCommas(rsp.drops)+" " +]] print(ternary(ifstats.zmqRecvStats, i18n("flows"), i18n("pkts")) .. "\n")
+        drops = drops + NtopUtils.addCommas(rsp.drops)+" " +"]] print(ternary(ifstats.zmqRecvStats, i18n("flows"), i18n("pkts")) .. "\"\n")
+
 print[[
         if(pctg > 0)      { drops  += " [ "+pctg+" % ]"; }
         if(rsp.drops > 0) { drops  += '</span>'; }
         $('#if_drops').html(drops);
+
+        /* ************************************ */
+
+       if(rsp.tot_nprobe_pkts  == 0) {
+         pctg = 0;
+       } else {
+         pctg = ((100. * rsp.tot_pkt_drops) / rsp.tot_nprobe_pkts).toFixed(2);
+       }
+
+       $('#if_probe_packet_drops').html(pctg);
+       $('#dropped_probe_packets_trend').html(NtopUtils.get_trend(pctg, last_if_probe_packet_drops));
+       last_if_probe_packet_drops = pctg;
+
+        /* ************************************ */
 
         $('#exported_flows').html(NtopUtils.fint(rsp.flow_export_count));
         $('#exported_flows_rate').html(NtopUtils.fflows(rsp.flow_export_rate));
@@ -2983,7 +3023,7 @@ if show_zmq_encryption_public_key == true then
          input.select();
          document.execCommand("copy");
          input.type='hidden';
-      } 
+      }
 
       copyButton.onclick = copyKey;
 
@@ -2998,6 +3038,6 @@ print [[
 print(i18n("copied"))
 print [[", trigger: "focus", delay: {"show": 50, "hide": 300}});
 
-      });    
+      });
   </script>
 ]]

@@ -70,9 +70,9 @@
 			]
 		},
 		{
-			"id": "dropped_packets",
-			"title_i18n": "nprobe_dropped_packets",
-			"data_field": "dropped_packets",
+			"id": "dropped_flows",
+			"title_i18n": "nprobe_dropped_flows",
+			"data_field": "dropped_flows",
 			"sortable": true,
 			"class": [
 				"text-center",
@@ -80,9 +80,19 @@
 			]
 		},
 		{
-			"id": "dropped_flows",
-			"title_i18n": "nprobe_dropped_flows",
-			"data_field": "dropped_flows",
+			"id": "captured_packets",
+			"title_i18n": "nprobe_packets",
+			"data_field": "captured_packets",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "dropped_packets",
+			"title_i18n": "nprobe_dropped_packets",
+			"data_field": "dropped_packets",
 			"sortable": true,
 			"class": [
 				"text-center",

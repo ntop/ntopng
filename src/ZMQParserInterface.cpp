@@ -3236,7 +3236,8 @@ void ZMQParserInterface::probeLuaStats(lua_State *vm) {
     lua_push_uint64_table_entry(vm, "drops.sflow_pkt_sample_drops", zrs->sflow_pkt_sample_drops);
     lua_push_uint64_table_entry(vm, "drops.flow_collection_drops", zrs->flow_collection_drops);
     lua_push_uint64_table_entry(vm, "drops.flow_collection_udp_socket_drops", zrs->flow_collection_udp_socket_drops);
-    lua_push_uint64_table_entry(vm, "drops.packet_drops", zrs->remote_pkt_drops);
+    lua_push_uint64_table_entry(vm, "packets.total", zrs->remote_pkts);
+    lua_push_uint64_table_entry(vm, "packets.drops", zrs->remote_pkt_drops);
     lua_push_uint64_table_entry(vm, "flow_collection.nf_ipfix_flows", zrs->flow_collection.nf_ipfix_flows);
     lua_push_uint64_table_entry(vm, "flow_collection.collection_port", zrs->flow_collection.collection_port);
     lua_push_uint64_table_entry(vm, "flow_collection.sflow_samples", zrs->flow_collection.sflow_samples);
