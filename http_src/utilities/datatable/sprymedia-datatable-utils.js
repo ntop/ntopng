@@ -683,11 +683,11 @@ export class DataTableRenders {
     }
     
     static formatMitreTechnique(obj) {
-        return DataTableRenders.filterize('mitre_tactic', obj.mitre_technique, i18n(obj.mitre_technique_i18n), obj.mitre_technique_i18n, obj.mitre_technique_i18n);
+        return DataTableRenders.filterize('mitre_technique', obj.mitre_technique, i18n(obj.mitre_technique_i18n), obj.mitre_technique_i18n, obj.mitre_technique_i18n);
     }
 
     static formatMitreSubTechnique(obj) {
-        return DataTableRenders.filterize('mitre_tactic', obj.mitre_subtechnique, i18n(obj.mitre_subtechnique_i18n), obj.mitre_subtechnique_i18n, obj.mitre_subtechnique_i18n);
+        return DataTableRenders.filterize('mitre_subtechnique', obj.mitre_subtechnique, i18n(obj.mitre_subtechnique_i18n), obj.mitre_subtechnique_i18n, obj.mitre_subtechnique_i18n);
 
     }
 
