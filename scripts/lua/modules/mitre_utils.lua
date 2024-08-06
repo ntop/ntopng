@@ -221,7 +221,7 @@ local mitre_table_utils = {
       },
       phishing = {
         id = 1566,
-        "mitre.technique.phishing"
+        i18n_label = "mitre.technique.phishing"
       },
       phishing_info = {
         id = 1598,

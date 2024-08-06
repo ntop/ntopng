@@ -601,22 +601,26 @@ tag_utils.defined_tags = {
         operators = {'in'}
     },
     mitre_tactic = {
-        value_type = 'text',
+        type = tag_utils.input_types.select,
+        value_type = 'mitre_tactic',
         i18n_label = i18n('db_search.tags.mitre_tactic'),
         operators = {'eq', 'neq'}
     },
-     mitre_technique = {
-        value_type = 'text',
+    mitre_technique = {
+        type = tag_utils.input_types.select,
+        value_type = 'mitre_technique',
         i18n_label = i18n('db_search.tags.mitre_technique'),
         operators = {'eq', 'neq'}
     },
     mitre_subtechnique = {
-        value_type = 'text',
+        type = tag_utils.input_types.select,
+        value_type = 'mitre_subtechnique',
         i18n_label = i18n('db_search.tags.mitre_subtechnique'),
         operators = {'eq', 'neq'}
     },
     mitre_id = {
-        value_type = 'text',
+        type = tag_utils.input_types.select,
+        value_type = 'mitre_id',
         i18n_label = i18n('db_search.tags.mitre_id'),
         operators = {'eq', 'neq'}
     },
@@ -927,6 +931,53 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
             filter.options[#filter.options + 1] = {
                 value = id,
                 label = info.label
+            }
+        end
+
+    elseif tag.value_type == "mitre_id" then
+
+        filter.value_type = 'array'
+        filter.options = {}
+        for name, info in pairsByField(alert_consts.getAllAlertMitreInfoIDs(), 'mitre_id', asc) do
+            filter.options[#filter.options + 1] = {
+                value = info.mitre_id,
+                label = info.mitre_id,
+            }
+        end
+
+    elseif tag.value_type == "mitre_tactic" then
+
+        filter.value_type = 'array'
+        filter.options = {}
+        local mitre_utils = require "mitre_utils"
+        for name, info in pairsByField(mitre_utils.tactic, 'i18n_label', asc) do
+            filter.options[#filter.options + 1] = {
+                value = info.id,
+                label = i18n(info.i18n_label)
+            }
+        end
+
+    elseif tag.value_type == "mitre_technique" then
+
+        filter.value_type = 'array'
+        filter.options = {}
+        local mitre_utils = require "mitre_utils"
+        for name, info in pairsByField(mitre_utils.technique, 'i18n_label', asc) do
+            filter.options[#filter.options + 1] = {
+                value = info.id,
+                label = i18n(info.i18n_label)
+            }
+        end
+
+    elseif tag.value_type == "mitre_subtechnique" then
+
+        filter.value_type = 'array'
+        filter.options = {}
+        local mitre_utils = require "mitre_utils"
+        for name, info in pairsByField(mitre_utils.sub_technique, 'i18n_label', asc) do
+            filter.options[#filter.options + 1] = {
+                value = info.id,
+                label = i18n(info.i18n_label)
             }
         end
 

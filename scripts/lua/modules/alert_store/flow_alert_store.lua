@@ -715,7 +715,12 @@ function flow_alert_store:_get_additional_available_filters()
         l4proto = tag_utils.defined_tags.l4proto,
 
         cli2srv_bytes = tag_utils.defined_tags.cli2srv_bytes,
-        srv2cli_bytes = tag_utils.defined_tags.srv2cli_bytes
+        srv2cli_bytes = tag_utils.defined_tags.srv2cli_bytes,
+
+        mitre_id = tag_utils.defined_tags.mitre_id,
+        mitre_tactic = tag_utils.defined_tags.mitre_tactic,
+        mitre_technique = tag_utils.defined_tags.mitre_technique,
+        mitre_subtechnique = tag_utils.defined_tags.mitre_subtechnique,
     }
 
     return filters

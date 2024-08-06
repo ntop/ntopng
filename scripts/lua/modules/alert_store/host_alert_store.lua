@@ -272,7 +272,11 @@ function host_alert_store:_get_additional_available_filters()
         role_cli_srv = tag_utils.defined_tags.role_cli_srv,
         host_pool_id = tag_utils.defined_tags.host_pool_id,
         network = tag_utils.defined_tags.network,
-        host_location = tag_utils.defined_tags.host_location
+        host_location = tag_utils.defined_tags.host_location,
+        mitre_id = tag_utils.defined_tags.mitre_id,
+        mitre_tactic = tag_utils.defined_tags.mitre_tactic,
+        mitre_technique = tag_utils.defined_tags.mitre_technique,
+        mitre_subtechnique = tag_utils.defined_tags.mitre_subtechnique,
     }
 
     return filters

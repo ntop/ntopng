@@ -567,6 +567,40 @@ end
 
 -- ##############################################
 
+function alert_consts.getAllAlertMitreInfoIDs()
+   local res = {}
+   local key = alert_consts.alert_types[v]
+
+   for key, value in pairs(alert_consts.alert_types) do
+      -- TODO AM: attempt at looking inside new implementation `meta`
+      if value.meta and value.meta.mitre_values then
+         local values = value.meta.mitre_values
+         local tactic = nil
+         local technique = nil
+         local sub_technique = nil
+         if values.mitre_tactic then
+            tactic = values.mitre_tactic.id or nil
+         end
+         if values.mitre_technique then
+            technique = values.mitre_technique.id or nil
+         end
+         if values.mitre_sub_technique then
+            sub_technique = values.mitre_sub_technique.id or nil
+         end
+         res[key] = {
+            mitre_tactic_id = tactic,
+            mitre_technique_id = technique,
+            mitre_sub_technique_id = sub_technique,
+            mitre_id = values.mitre_id
+         }
+      end
+   end
+
+   return res
+end
+
+-- ##############################################
+
 function alert_consts.alertType(v)
    if (alert_consts.alert_types[v] == nil) then
       tprint(debug.traceback())
