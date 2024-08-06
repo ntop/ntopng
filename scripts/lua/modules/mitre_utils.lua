@@ -12,7 +12,8 @@ local alert_entities = require "alert_entities"
 -- table containing information about mitre attack matrix
 -- keep in sync with en.lua["mitre"] AND scripts/lua/modules/mitre_consts.lua
 local mitre_table_utils = {
-  tactic = {
+   -- Tactics
+   tactic = {
       c_and_c = {
         id = 11,
         i18n_label = "mitre.tactic.c_and_c"
@@ -67,8 +68,9 @@ local mitre_table_utils = {
         id = 42,
         i18n_label = "mitre.tactic.resource_develop"
       },
-    },
-    technique = {
+   },
+   -- Techniques
+   technique = {
       account_manipulation = {
         id = 1098,
         i18n_label = "mitre.technique.account_manipulation"
@@ -285,8 +287,9 @@ local mitre_table_utils = {
         id = 1102,
         i18n_label = "mitre.technique.web_service"
       },
-    },
-    sub_technique = {
+   },
+   -- Sub-Techniques
+   sub_technique = {
       arp_cache_poisoning = {
         id = 155702,
         i18n_label = "mitre.sub_technique.sub_technique"
@@ -395,60 +398,56 @@ local mitre_table_utils = {
         id = 159503,
         i18n_label = "mitre.sub_technique.wordlist_scanning"
       },
-    }
+   }
 }
 
 -- ##############################################
 
 local mitre_info_table = {}
 
+--[[
+  {
+    MITRE_ID = {
+      tactic = TACTIC_ID,
+      technique = TECHNIQUE_ID,
+      sub_technique = SUB_TECHNIQUE_ID
+    },
+    ...
+  }
+--]]
+
 -- ##############################################
 
-local function createTableMitreInfo(mitre_info, alert_id, entity_id)
-   if mitre_info.mitre_sub_technique_id ~= nil then
-      if mitre_info_table[mitre_info.mitre_id] == nil then
-	 mitre_info_table[mitre_info.mitre_id] = {
-	    alert_array = {},
-	    tactic = mitre_info.mitre_tactic_id,
-	    technique = mitre_info.mitre_technique_id,
-	    sub_technique = mitre_info.mitre_sub_technique_id
-	 }
-	 mitre_info_table[mitre_info.mitre_id].alert_array[1] = {alert_id, entity_id}
-      else
-	 local alert_array_len = #mitre_info_table[mitre_info.mitre_id].alert_array
-	 mitre_info_table[mitre_info.mitre_id].alert_array[alert_array_len + 1] = {alert_id, entity_id}
-      end
-   elseif mitre_info.mitre_technique_id ~= nil then
-      if mitre_info_table[mitre_info.mitre_id] == nil then
-	 mitre_info_table[mitre_info.mitre_id] = {
-	    alert_array = {},
-	    tactic = mitre_info.mitre_tactic_id,
-	    technique = mitre_info.mitre_technique_id
-	 }
-	 mitre_info_table[mitre_info.mitre_id].alert_array[1] = {alert_id, entity_id}
-      else
-	 local alert_array_len = #mitre_info_table[mitre_info.mitre_id].alert_array
-	 mitre_info_table[mitre_info.mitre_id].alert_array[alert_array_len + 1] = {alert_id, entity_id}
-      end
-   elseif mitre_info.mitre_tactic_id ~= nil then
-      if mitre_info_table[mitre_info.mitre_id] == nil then
-	 mitre_info_table[mitre_info.mitre_id] = {
-	    alert_array = {},
-	    tactic = mitre_info.mitre_tactic_id
-	 }
-	 mitre_info_table[mitre_info.mitre_id].alert_array[1] = {alert_id, entity_id}
-      else
-	 local alert_array_len = #mitre_info_table[mitre_info.mitre_id].alert_array
-	 mitre_info_table[mitre_info.mitre_id].alert_array[alert_array_len + 1] = {alert_id, entity_id}
-      end
+local function add_to_mitre_info_table(mitre_info, alert_id, entity_id)
+   if not mitre_info or not mitre_info.mitre_id then
+      return
    end
+
+   if not mitre_info_table[mitre_info.mitre_id] then
+      mitre_info_table[mitre_info.mitre_id] = {
+         alert_array = {}
+      }
+   end
+
+   if not mitre_info_table[mitre_info.mitre_id].tactic then
+      mitre_info_table[mitre_info.mitre_id].tactic = mitre_info.mitre_tactic_id
+   end
+   
+   if not mitre_info_table[mitre_info.mitre_id].technique then
+      mitre_info_table[mitre_info.mitre_id].technique = mitre_info.mitre_technique_id
+   end
+
+   if not mitre_info_table[mitre_info.mitre_id].sub_technique then
+      mitre_info_table[mitre_info.mitre_id].sub_technique = mitre_info.mitre_sub_technique_id
+   end
+
+   mitre_info_table[mitre_info.mitre_id].alert_array[#mitre_info_table[mitre_info.mitre_id].alert_array + 1] =
+      {alert_id, entity_id}
 end
 
 -- ##############################################
 
-local mitre_ids_map = nil
-
-local function mitreTableInfo()
+local function build_mitre_info_table()
    local checks = require "checks"
    local alert_consts = require "alert_consts"
 
@@ -458,14 +457,12 @@ local function mitreTableInfo()
       subdirs[#subdirs + 1] = subdir.id
    end
 
-   mitre_ids_map = {}
-
    for _, subdir in ipairs(subdirs) do
       local script_type = checks.getScriptType(subdir)
       local scripts = checks.load(getSystemInterfaceId(), script_type, subdir, {return_all = false})
 
       for script_name, script in pairs(scripts.modules) do
-	 if  alert_entities[subdir] then
+	 if alert_entities[subdir] then
 	    local entity_id = alert_entities[subdir].entity_id
 
 	    if entity_id ~= nil then
@@ -473,10 +470,7 @@ local function mitreTableInfo()
 
 	       if alert_key ~= nil then
 		  local mitre_info = alert_consts.getAlertMitreInfoIDs(alert_key)
-
-		  if mitre_info ~= nil then
-		     createTableMitreInfo(mitre_info, script.alert_id, entity_id)
-		  end
+		  add_to_mitre_info_table(mitre_info, script.alert_id, entity_id)
 	       end
             end
 	 end
@@ -492,9 +486,10 @@ function mitre_table_utils.insertDBMitreInfo()
    local value_to_add = ""
    local table_name = "mitre_table_info"
    local table_name_with_values = string.format("%s (alert_id, entity_id, tactic, technique, sub_technique, mitre_id)", table_name)
-   local mitre_table = mitreTableInfo()
 
-   for mitre_id, value in pairs(mitre_table) do
+   build_mitre_info_table()
+
+   for mitre_id, value in pairs(mitre_info_table) do
       local current_values = ""
       for _, alert_key in pairs(value.alert_array) do
 	 if value.tactic == nil then
@@ -524,6 +519,7 @@ function mitre_table_utils.insertDBMitreInfo()
 end
 
 -- ##############################################
+
 --[[
   function mitre_table_utils.convert_mitre_to_id_map()
     -- tprint(convert_mitre_to_id_map_once)
@@ -531,12 +527,11 @@ end
     
     if(convert_mitre_to_id_map_once ~= nil) then return(convert_mitre_to_id_map_once) end
     
-    local mitre_table = mitreTableInfo()
-    --  tprint(mitre_table)
+    build_mitre_info_table()
     
     convert_mitre_to_id_map = {}
     -- Populate lookup table with mitre info
-    for family, categories in pairs(mitre_table) do
+    for family, categories in pairs(mitre_info_table) do
       for name, data in pairs(categories) do
         convert_mitre_to_id_map[data.id] = {type = family, i18n_label = data.i18n_label}
       end
