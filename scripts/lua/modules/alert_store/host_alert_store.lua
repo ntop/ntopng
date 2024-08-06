@@ -17,6 +17,7 @@ local alert_entities = require "alert_entities"
 local alert_roles = require "alert_roles"
 local json = require "dkjson"
 local tag_utils = require "tag_utils"
+--local mitre_consts = require "mitre_consts"
 
 -- ##############################################
 
@@ -328,6 +329,10 @@ local RNAME = {
     NETWORK = {
         name = "network",
         export = false
+    },
+    MITRE = {
+        name = "mitre_data",
+        export = false
     }
 }
 
@@ -366,6 +371,25 @@ function host_alert_store:format_record(value, no_html)
     if reference_html == href_icon then
         reference_html = nil
     end
+
+    local alert_key = alert_consts.getAlertType(tonumber(value["alert_id"]), alert_entities.host.entity_id)
+    local mitre_info = alert_consts.getAlertMitreInfo(alert_key)
+
+    -- Add mitre info from db
+    local mitre_tactic = value["mitre_tactic"] or ""
+    local mitre_technique = value["mitre_technique"] or ""
+    local mitre_subtechnique = value["mitre_subtechnique"] or ""
+
+    record[RNAME.MITRE.name] = {
+        mitre_tactic = mitre_tactic,
+        mitre_technique = mitre_technique,
+        mitre_subtechnique = mitre_subtechnique,
+        mitre_id = value["mitre_id"] or "",
+    
+        mitre_tactic_i18n = mitre_info.mitre_tactic and mitre_info.mitre_tactic.i18n_label or "",
+        mitre_technique_i18n = mitre_info.mitre_technique and mitre_info.mitre_technique.i18n_label or "",
+        mitre_subtechnique_i18n = mitre_info.mitre_subtechnique and mitre_info.mitre_subtechnique.i18n_label or "",
+    }
 
     record[RNAME.IP.name] = {
         value = host,

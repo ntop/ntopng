@@ -674,6 +674,23 @@ export class DataTableRenders {
         return cell;
     }
 
+    static formatMitreId(obj) {
+        return DataTableRenders.filterize('mitre_id', obj.mitre_id, obj.mitre_id_i18n, obj.mitre_id_i18n, obj.mitre_id_i18n);
+    }
+    
+    static formatMitreTactic(obj) {
+        return DataTableRenders.filterize('mitre_tactic', obj.mitre_tactic, i18n(obj.mitre_tactic_i18n), obj.mitre_tactic_i18n, obj.mitre_tactic_i18n);
+    }
+    
+    static formatMitreTechnique(obj) {
+        return DataTableRenders.filterize('mitre_technique', obj.mitre_technique, i18n(obj.mitre_technique_i18n), obj.mitre_technique_i18n, obj.mitre_technique_i18n);
+    }
+
+    static formatMitreSubTechnique(obj) {
+        return DataTableRenders.filterize('mitre_subtechnique', obj.mitre_subtechnique, i18n(obj.mitre_subtechnique_i18n), obj.mitre_subtechnique_i18n, obj.mitre_subtechnique_i18n);
+
+    }
+
     static formatScore(obj, type, row, zero_is_null) {
         if (type !== "display") return obj.value;
         let cell = obj.label;
