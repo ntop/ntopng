@@ -621,6 +621,11 @@ function flow_alert_store:_add_additional_request_filters()
     local srv2cli_bytes = _GET["srv2cli_bytes"]
     local cli2srv_bytes = _GET["cli2srv_bytes"]
 
+    local mitre_tactic = _GET["mitre_tactic"]
+    local mitre_technique = _GET["mitre_technique"]
+    local mitre_subtechnique = _GET["mitre_subtechnique"]
+    local mitre_id = _GET["mitre_id"]
+
     self:format_traffic_direction(_GET["traffic_direction"])
     self:format_location()
 
@@ -657,6 +662,11 @@ function flow_alert_store:_add_additional_request_filters()
 
     self:add_filter_condition_list('cli2srv_bytes', cli2srv_bytes)
     self:add_filter_condition_list('srv2cli_bytes', srv2cli_bytes)
+
+    self:add_filter_condition_list('mitre_tactic', mitre_tactic);
+    self:add_filter_condition_list('mitre_technique', mitre_technique);
+    self:add_filter_condition_list('mitre_subtechnique', mitre_subtechnique);
+    self:add_filter_condition_list('mitre_id', mitre_id);
 
     self:add_filter_condition_list(self:format_query_json_value('proto.tls.ja3_server_hash'), ja3_server, 'string')
     self:add_filter_condition_list(self:format_query_json_value('proto.tls.ja3_client_hash'), ja3_client, 'string')

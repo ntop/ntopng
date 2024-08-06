@@ -208,6 +208,12 @@ function host_alert_store:_add_additional_request_filters()
     local network = _GET["network"]
     local location = _GET["host_location"]
     local location_filter = 'alert_generation.host_info.localhost'
+
+    local mitre_tactic = _GET["mitre_tactic"]
+    local mitre_technique = _GET["mitre_technique"]
+    local mitre_subtechnique = _GET["mitre_subtechnique"]
+    local mitre_id = _GET["mitre_id"]
+
     local is_engaged = self._status == alert_consts.alert_status.engaged.alert_status_id
     if location then
         local tmp_location = split(location, ";")
@@ -252,6 +258,12 @@ function host_alert_store:_add_additional_request_filters()
     self:add_filter_condition_list('role_cli_srv', role_cli_srv)
     self:add_filter_condition_list('host_pool_id', host_pool_id)
     self:add_filter_condition_list('network', network)
+
+    self:add_filter_condition_list('mitre_tactic', mitre_tactic);
+    self:add_filter_condition_list('mitre_technique', mitre_technique);
+    self:add_filter_condition_list('mitre_subtechnique', mitre_subtechnique);
+    self:add_filter_condition_list('mitre_id', mitre_id);
+
     if is_engaged then
         self:add_filter_condition_list(location_filter, location, "number")
     else
