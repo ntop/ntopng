@@ -971,9 +971,6 @@ if ((page == "overview") or (page == nil)) then
 	print("</td><th><i class='fas fa-tint'></i> "..i18n("if_stats_overview.dropped_probe_packets").."</th><td> <span id=if_probe_packet_drops>")
 	local drop_pctg = 0
 
-	tprint(probe_total_packets)
-	tprint(probe_total_packet_drops)
-	
 	if(probe_total_packets > 0) then
 	   drop_pctg = (probe_total_packet_drops*100) / probe_total_packets
 	end
