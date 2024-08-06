@@ -830,6 +830,12 @@ local RNAME = {
     HIST_FLOW_INFO = {
         name = "hist_flow_info",
         export = true
+    },
+
+    
+    MITRE = {
+        name = "mitre_data",
+        export = false
     }
 
 }
@@ -1005,6 +1011,25 @@ function flow_alert_store:format_record(value, no_html, verbose)
             shorten_descr = shorten_msg
         }
     end
+
+    local alert_key = alert_consts.getAlertType(tonumber(value["alert_id"]), alert_entities.flow.entity_id)
+    local mitre_info = alert_consts.getAlertMitreInfo(alert_key)
+
+    -- Add mitre info from db
+    local mitre_tactic = value["mitre_tactic"] or ""
+    local mitre_technique = value["mitre_technique"] or ""
+    local mitre_subtechnique = value["mitre_subtechnique"] or ""
+
+    record[RNAME.MITRE.name] = {
+        mitre_tactic = mitre_tactic,
+        mitre_technique = mitre_technique,
+        mitre_subtechnique = mitre_subtechnique,
+        mitre_id = value["mitre_id"] or "",
+    
+        mitre_tactic_i18n = mitre_info.mitre_tactic and mitre_info.mitre_tactic.i18n_label or "",
+        mitre_technique_i18n = mitre_info.mitre_technique and mitre_info.mitre_technique.i18n_label or "",
+        mitre_subtechnique_i18n = mitre_info.mitre_subtechnique and mitre_info.mitre_subtechnique.i18n_label or "",
+    }
 
     -- local proto = string.lower(interface.getnDPIProtoName(tonumber(value["l7_master_proto"])))
 
