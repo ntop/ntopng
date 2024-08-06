@@ -1,0 +1,36 @@
+{
+	"name" : "Mitre Tactics",
+	"i18n_name" : "",
+	"select" : {
+		"items" : [
+			{
+				"name" : "mitre_tactic"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "mitre_tactic"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "count",
+				"order" : "DESC"
+			}
+		]
+	}
+}
