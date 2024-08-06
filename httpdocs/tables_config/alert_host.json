@@ -50,24 +50,56 @@
 	    "class": ["text-center"]
 	},
 	{
-	    "title_i18n": "alerts_dashboard.alert",
+		"title_i18n": "alerts_dashboard.alert",
 	    "data_field": "msg",
 	    "sortable": false,
-		 "min-width" : "155px",
+		"min-width" : "155px",
 	    "render_type": "formatNameDescription",
 	    "class": ["text-nowrap"]
 	},
 	{
-	    "title_i18n": "host_details.host",
+		"title_i18n": "host_details.host",
 	    "data_field": "ip",
 	    "sortable": false,
-		 "min-width" : "155px",
+		"min-width" : "155px",
 	    "render_type": "formatHost",
 	    "class": ["text-nowrap"]
 	},
 	{
-	    "title_i18n": "description",
+		"title_i18n": "description",
 	    "data_field": "description",
+	    "sortable": false,
+		"min-width" : "200px",
+	    "class": ["text-nowrap"]
+	},
+	{
+		"title_i18n": "mitre.mitre_id",
+	    "data_field": "mitre_data",
+		"render_type": "formatMitreId",
+	    "sortable": false,
+		"min-width" : "200px",
+	    "class": ["text-nowrap"]
+	},
+	{
+		"title_i18n": "mitre.mitre_tactic",
+	    "data_field": "mitre_data",
+		"render_type": "formatMitreTactic",
+	    "sortable": false,
+		"min-width" : "200px",
+	    "class": ["text-nowrap"]
+	},
+	{
+		"title_i18n": "mitre.mitre_technique",
+	    "data_field": "mitre_data",
+		"render_type": "formatMitreTechnique",
+	    "sortable": false,
+		"min-width" : "200px",
+	    "class": ["text-nowrap"]
+	},
+	{
+		"title_i18n": "mitre.mitre_sub_technique",
+	    "data_field": "mitre_data",
+		"render_type": "formatMitreSubTechnique",
 	    "sortable": false,
 		 "min-width" : "200px",
 	    "class": ["text-nowrap"]
