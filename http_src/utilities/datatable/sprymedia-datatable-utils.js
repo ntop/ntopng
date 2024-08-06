@@ -675,20 +675,32 @@ export class DataTableRenders {
     }
 
     static formatMitreId(obj) {
-        return DataTableRenders.filterize('mitre_id', obj.mitre_id, obj.mitre_id_i18n, obj.mitre_id_i18n, obj.mitre_id_i18n);
+        if (obj.mitre_id !== "0") {
+            return DataTableRenders.filterize('mitre_id', obj.mitre_id, obj.mitre_id_i18n, obj.mitre_id_i18n, obj.mitre_id_i18n);
+        }
+        return ""
     }
     
     static formatMitreTactic(obj) {
-        return DataTableRenders.filterize('mitre_tactic', obj.mitre_tactic, i18n(obj.mitre_tactic_i18n), obj.mitre_tactic_i18n, obj.mitre_tactic_i18n);
+        if (obj.mitre_tactic !== "0") {
+            return DataTableRenders.filterize('mitre_tactic', obj.mitre_tactic, i18n(obj.mitre_tactic_i18n), obj.mitre_tactic_i18n, obj.mitre_tactic_i18n);
+        }
+
+        return ""
     }
     
     static formatMitreTechnique(obj) {
-        return DataTableRenders.filterize('mitre_technique', obj.mitre_technique, i18n(obj.mitre_technique_i18n), obj.mitre_technique_i18n, obj.mitre_technique_i18n);
+        if (obj.mitre_technique !== "0") {
+            return DataTableRenders.filterize('mitre_technique', obj.mitre_technique, i18n(obj.mitre_technique_i18n), obj.mitre_technique_i18n, obj.mitre_technique_i18n);
+        }
+        return ""
     }
 
     static formatMitreSubTechnique(obj) {
-        return DataTableRenders.filterize('mitre_subtechnique', obj.mitre_subtechnique, i18n(obj.mitre_subtechnique_i18n), obj.mitre_subtechnique_i18n, obj.mitre_subtechnique_i18n);
-
+        if (obj.mitre_subtechnique !== "0") {
+            return DataTableRenders.filterize('mitre_subtechnique', obj.mitre_subtechnique, i18n(obj.mitre_subtechnique_i18n), obj.mitre_subtechnique_i18n, obj.mitre_subtechnique_i18n);
+        }
+        return ""
     }
 
     static formatScore(obj, type, row, zero_is_null) {

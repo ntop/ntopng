@@ -97,14 +97,6 @@
 	    "class": ["text-nowrap"]
 	},
 	{
-		"title_i18n": "mitre.mitre_sub_technique",
-	    "data_field": "mitre_data",
-		"render_type": "formatMitreSubTechnique",
-	    "sortable": false,
-		 "min-width" : "200px",
-	    "class": ["text-nowrap"]
-	},
-	{
 	    "title_i18n": "db_search.tags.host_pool_id",
 	    "data_field": "host_pool_id",
 	    "sortable": false,
