@@ -1,0 +1,36 @@
+{
+	"name" : "Mitre Techniques",
+	"i18n_name" : "",
+	"select" : {
+		"items" : [
+			{
+				"name" : "mitre_technique"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "mitre_technique"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "count",
+				"order" : "DESC"
+			}
+		]
+	}
+}

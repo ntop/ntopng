@@ -1,0 +1,36 @@
+{
+	"name" : "Mitre Attacks",
+	"i18n_name" : "",
+	"select" : {
+		"items" : [
+			{
+				"name" : "mitre_id"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "mitre_id"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "count",
+				"order" : "DESC"
+			}
+		]
+	}
+}
