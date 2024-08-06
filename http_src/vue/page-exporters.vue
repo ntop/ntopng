@@ -121,7 +121,7 @@ const get_sankey_data = async () => {
         if (ntopng_url_manager.get_url_entry("criteria") == "flow_drops_criteria") {
             link.label = formatterUtils.getFormatter("drops")(link.value)
         } else {
-            link.label = formatterUtils.getFormatter("number")(link.value)
+            link.label = formatterUtils.formatAccounting(link.value)
         }
         let node = graph.nodes.find((el) => el.node_id == link.source_node_id)
         link.source = node.index;
@@ -190,7 +190,7 @@ const map_table_def_columns = (columns) => {
             localStorage.setItem("exporter_exported_flows." + row.exporter_uuid + row.ip, value)
             if (!value)
                 return '';
-            let formatted_value = formatterUtils.getFormatter("number")(value)
+            let formatted_value = formatterUtils.formatAccounting(value)
             if(!first_open.value) {
                 let updated_counter = ''
                 if(diff_value > 0 ) {
@@ -211,7 +211,7 @@ const map_table_def_columns = (columns) => {
             localStorage.setItem("exporter_dropped_flows." + row.exporter_uuid + row.ip, value)
             if (!value)
                 return '';
-            let formatted_value = formatterUtils.getFormatter("number")(value)
+            let formatted_value = formatterUtils.formatAccounting(Math.abs(value))
             if(!first_open.value) {
                 let updated_counter = ''
                 if(diff_value > 0 ) {
@@ -219,7 +219,7 @@ const map_table_def_columns = (columns) => {
                 } else {
                     updated_counter = "<i class='fas fa-minus'></i>"
                 }
-                formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("drops")(diff_value)} ] ${updated_counter}`
+                formatted_value = `${formatted_value} [ ${formatterUtils.formatAccounting(diff_value)} ] ${updated_counter}`
             }
             return formatted_value
         },
@@ -232,7 +232,7 @@ const map_table_def_columns = (columns) => {
             localStorage.setItem("exporter_dropped_packets." + row.exporter_uuid + row.ip, value)
             if (!value)
                 return '';
-            let formatted_value = formatterUtils.getFormatter("number")(value)
+            let formatted_value = formatterUtils.formatAccounting(Math.abs(value))
             if(!first_open.value) {
                 let updated_counter = ''
                 if(diff_value > 0 ) {
@@ -240,28 +240,7 @@ const map_table_def_columns = (columns) => {
                 } else {
                     updated_counter = "<i class='fas fa-minus'></i>"
                 }
-                formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("drops")(diff_value)} ] ${updated_counter}`
-            }
-            return formatted_value
-        },
-        "dropped_flows_last_24_h": (value, row) => {
-            let diff_value = value
-            if(!first_open.value) {
-                const old_value = localStorage.getItem("exporter_dropped_flows_last_24_h." + row.exporter_uuid + row.ip)
-                diff_value = (value - Number(old_value)) / 10
-            }
-            localStorage.setItem("exporter_dropped_flows_last_24_h." + row.exporter_uuid + row.ip, value)
-            if (!value)
-                return '';
-            let formatted_value = formatterUtils.getFormatter("number")(value)
-            if(!first_open.value) {
-                let updated_counter = ''
-                if(diff_value > 0 ) {
-                    updated_counter = '<i class="fas fa-arrow-up"></i>'
-                } else {
-                    updated_counter = "<i class='fas fa-minus'></i>"
-                }
-                formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("drops")(diff_value)} ] ${updated_counter}`
+                formatted_value = `${formatted_value} [ ${formatterUtils.formatAccounting(diff_value)} ] ${updated_counter}`
             }
             return formatted_value
         },
@@ -269,7 +248,7 @@ const map_table_def_columns = (columns) => {
             if (!value) {
                 return '';
             } else {
-                return `<a href="${exporter_url}&ifid=${row.ifid}&ip=${row.probe_ip}"><i class="fas fa-file-export"></i> ${formatterUtils.getFormatter("number")(value)}</a>` 
+                return `<a href="${exporter_url}&ifid=${row.ifid}&ip=${row.probe_ip}"><i class="fas fa-file-export"></i> ${formatterUtils.formatAccounting(value)}</a>` 
             }
         }
     };

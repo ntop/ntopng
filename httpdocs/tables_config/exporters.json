@@ -76,16 +76,6 @@
 				"text-center",
 				"text-nowrap"
 			]
-		},
-		{
-			"id": "dropped_flows_last_24_h",
-			"title_i18n": "if_stats_overview.dropped_flows_last_24_h_by_nprobe",
-			"data_field": "dropped_flows_last_24_h",
-			"sortable": true,
-			"class": [
-				"text-center",
-				"text-nowrap"
-			]
 		}
     ]
 }

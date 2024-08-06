@@ -168,7 +168,7 @@ const map_table_def_columns = (columns) => {
             if (!value) {
                 return '';
             } else {
-                let formatted_value = formatterUtils.getFormatter("number")(value)
+                let formatted_value = formatterUtils.formatAccounting(value)
                 if (!first_open.value) {
                     let updated_counter = ''
                     if (diff_value > 0) {
@@ -176,7 +176,7 @@ const map_table_def_columns = (columns) => {
                     } else {
                         updated_counter = "<i class='fas fa-minus'></i>"
                     }
-                    formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("drops")(diff_value)} ] ${updated_counter}`
+                    formatted_value = `${formatted_value} ${updated_counter}`
                 }
                 return formatted_value
             }
@@ -190,7 +190,7 @@ const map_table_def_columns = (columns) => {
             localStorage.setItem("exporter_captured_packets." + row.exporter_uuid + row.ip, value)
             if (!value)
                 return '';
-            let formatted_value = formatterUtils.getFormatter("number")(value)
+            let formatted_value = formatterUtils.formatAccounting(Math.abs(value))
             if(!first_open.value) {
                 let updated_counter = ''
                 if(diff_value > 0 ) {
@@ -198,7 +198,7 @@ const map_table_def_columns = (columns) => {
                 } else {
                     updated_counter = "<i class='fas fa-minus'></i>"
                 }
-                formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("pps")(diff_value)} ] ${updated_counter}`
+                formatted_value = `${formatted_value} ${updated_counter}`
             }
             return formatted_value
         },
@@ -211,7 +211,7 @@ const map_table_def_columns = (columns) => {
             localStorage.setItem("exporter_dropped_packets." + row.exporter_uuid + row.ip, value)
             if (!value)
                 return '';
-            let formatted_value = formatterUtils.getFormatter("number")(value)
+            let formatted_value = formatterUtils.formatAccounting(Math.abs(value))
             if(!first_open.value) {
                 let updated_counter = ''
                 if(diff_value > 0 ) {
@@ -219,7 +219,7 @@ const map_table_def_columns = (columns) => {
                 } else {
                     updated_counter = "<i class='fas fa-minus'></i>"
                 }
-                formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("drops")(diff_value)} ] ${updated_counter}`
+                formatted_value = `${formatted_value} ${updated_counter}`
             }
             return formatted_value
         },
@@ -233,7 +233,7 @@ const map_table_def_columns = (columns) => {
             if (!value) {
                 return '';
             } else {
-                let formatted_value = formatterUtils.getFormatter("number")(value)
+                let formatted_value = formatterUtils.formatAccounting(value)
                 if (!first_open.value) {
                     let updated_counter = ''
                     if (diff_value > 0) {
@@ -241,7 +241,7 @@ const map_table_def_columns = (columns) => {
                     } else {
                         updated_counter = "<i class='fas fa-minus'></i>"
                     }
-                    formatted_value = `${formatted_value} [ ${formatterUtils.getFormatter("fps_short")(diff_value)} ] ${updated_counter}`
+                    formatted_value = `${formatted_value} ${updated_counter}`
                 }
                 return formatted_value
             }

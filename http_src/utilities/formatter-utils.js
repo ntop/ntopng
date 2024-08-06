@@ -1,5 +1,5 @@
 /**
-    (C) 2022 - ntop.org
+    (C) 2022-24 - ntop.org
 */
 const types = {
     no_formatting: {
@@ -11,14 +11,14 @@ const types = {
     },
     number: {
         id: "number",
-        um: ["", "K", "M", "G", "T"],
+        um: ["", "K", "M", "B", "T"],
         step: 1000,
         decimal: null,
         scale_values: null,
     },
     full_number: {
         id: "number",
-        um: ["", "K", "M", "G", "T"],
+        um: ["", "K", "M", "B", "T"],
         step: 1000,
         decimal: null,
         scale_values: null,
@@ -198,6 +198,25 @@ function getScaleFactorIndex(type, value) {
     return i;
 }
 
+function formatAccounting(amount, decimalCount = 0, decimal = ".", thousands = "'") {
+    try {
+	decimalCount = Math.abs(decimalCount);
+	decimalCount = isNaN(decimalCount) ? 2 : decimalCount;
+
+	const negativeSign = amount < 0 ? "-" : "";
+
+	let i = parseInt(amount = Math.abs(Number(amount) || 0).toFixed(decimalCount)).toString();
+	let j = (i.length > 3) ? i.length % 3 : 0;
+
+	return negativeSign +
+	    (j ? i.substr(0, j) + thousands : '') +
+	    i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousands) +
+	    (decimalCount ? decimal + Math.abs(amount - i).toFixed(decimalCount).slice(2) : "");
+    } catch (e) {
+	console.log(e)
+    }
+}
+
 function getFormatter(type, absoluteValue, scaleFactorIndex) {
     let typeOptions = types[type];
     if (typeOptions == null) { return null; }
@@ -278,6 +297,7 @@ const formatterUtils = function() {
         getUnitMeasureLen,
         getFormatter,
         getScaleFactorIndex,
+	formatAccounting
     };
 }();
 
