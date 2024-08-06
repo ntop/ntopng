@@ -5718,6 +5718,12 @@ local lang = {
       ["valid_accounts"] = "Valid Accounts",
       ["web_service"] = "Web Service",
     },
+    ["title"] = {
+      ["id"] = "Mitre ID",
+      ["sub_technique"] = "Mitre Sub-Technique",
+      ["tactic"] = "Mitre Tactic",
+      ["technique"] = "Mitre Technique",
+    },
   },
   ["modal_download_file"] = {
     ["download"] = "Download",

@@ -581,7 +581,6 @@ function host_alert_store:format_record_telemetry(value)
         record["hostCountry"] = value["country"]
     end
 
-
     return record
 end
 -- ##############################################

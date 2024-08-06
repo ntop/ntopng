@@ -1612,7 +1612,7 @@ function flow_alert_store:get_alert_details(value)
     return details
 end
 
-
+-- ##############################################
 
 function flow_alert_store:format_record_telemetry(value)
     local record = {}
