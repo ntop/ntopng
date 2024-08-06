@@ -4961,8 +4961,7 @@ bool Flow::enqueueAlertToRecipients(FlowAlert *alert) {
 
 /* *************************************** */
 
-/* Update server -> client in case no traffic was already observed on the server
- * side */
+/* Update server -> client in case no traffic was already observed on the server side */
 
 void Flow::updateServerPortsStats(Host *server, ndpi_protocol *proto, time_t when_seen) {
   /*
@@ -5273,7 +5272,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
      analysis to ignore certain bits such as ECE or CWR which may be present
      during a valid 3WH. See https://github.com/ntop/ntopng/issues/3255 */
   u_int8_t flags_3wh = flags & TCP_3WH_MASK;
-
+  
   iface->incFlagStats(flags, cumulative_flags);
 
   if (cli_host) {
@@ -5352,7 +5351,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
       srv_host->updateFinAckAlertsCounter(when->tv_sec, !src2dst_direction);
     iface->getTcpFlowStats()->incFin();
   }
-
+  
   /* The update below must be after the above check */
   if (src2dst_direction)
     src2dst_tcp_flags |= flags;
@@ -5369,9 +5368,16 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
         twh_ok = twh_over = 1, iface->getTcpFlowStats()->incEstablished();
     }
   } else {
-    if (!twh_over) {
+    if (!twh_over) {      
       if (flags_3wh == TH_SYN) {
         if (synTime.tv_sec == 0) memcpy(&synTime, when, sizeof(struct timeval));
+
+	if((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK)) {
+	  /* SYN|ACK arrived before SYN */
+	  ntop->getTrace()->traceEvent(TRACE_WARNING, "*** %02X", flags);
+	  swap_requested = true;
+	}
+	
       } else if (flags_3wh == (TH_SYN | TH_ACK)) {
         if ((synAckTime.tv_sec == 0) && (synTime.tv_sec > 0)) {
           memcpy(&synAckTime, when, sizeof(struct timeval));
@@ -8434,87 +8440,90 @@ void Flow::triggerCustomFlowAlert(u_int8_t score, char *msg) {
 /* *************************************** */
 
 void Flow::swap() {
+#if 0
   if ((ndpiDetectedProtocol.app_protocol == NDPI_PROTOCOL_UNKNOWN) &&
-      (ndpiDetectedProtocol.master_protocol == NDPI_PROTOCOL_UNKNOWN))
+      (ndpiDetectedProtocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)) {
     ; /* Don't awap unknown protocols: let's be conservative */
-  else {
-    Host *h = cli_host;
-    IpAddress *i = cli_ip_addr;
-    u_int8_t m[6];
-    u_int8_t f1 = predominant_alert_info.is_cli_attacker,
-      f2 = predominant_alert_info.is_cli_victim;
-    struct ndpi_analyze_struct *s = initial_bytes_entropy.c2s;
-    TCPSeqNum ts;
-    InterarrivalStats *is = cli2srvPktTime;
-    time_t now = time(NULL);
-    u_int32_t tmp32;
+  } else
+#endif
+    {
+      Host *h = cli_host;
+      IpAddress *i = cli_ip_addr;
+      u_int8_t m[6];
+      u_int8_t f1 = predominant_alert_info.is_cli_attacker,
+	f2 = predominant_alert_info.is_cli_victim;
+      struct ndpi_analyze_struct *s = initial_bytes_entropy.c2s;
+      TCPSeqNum ts;
+      InterarrivalStats *is = cli2srvPktTime;
+      time_t now = time(NULL);
+      u_int32_t tmp32;
 
 #if 0
-    char buf[128];
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Swapping %s", print(buf, sizeof(buf)));
+      char buf[128];
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Swapping %s", print(buf, sizeof(buf)));
 #endif
 
-    if (cli_host && srv_host) {
-      cli_host->decNumFlows(now, true /* as client */),
-	srv_host->decNumFlows(now, false /* as server */);
-      cli_host = srv_host, cli_ip_addr = srv_ip_addr;
-      srv_host = h, srv_ip_addr = i;
-      cli_host->incNumFlows(now, true /* as client */),
-	srv_host->incNumFlows(now, false /* as server */);
-    } else {
-      /* This is probably a view interface */
+      if (cli_host && srv_host) {
+	cli_host->decNumFlows(now, true /* as client */),
+	  srv_host->decNumFlows(now, false /* as server */);
+	cli_host = srv_host, cli_ip_addr = srv_ip_addr;
+	srv_host = h, srv_ip_addr = i;
+	cli_host->incNumFlows(now, true /* as client */),
+	  srv_host->incNumFlows(now, false /* as server */);
+      } else {
+	/* This is probably a view interface */
 
-      if (cli_ip_addr && srv_ip_addr && (cli_host == NULL) &&
-          (srv_host == NULL)) {
-        IpAddress *c = cli_ip_addr;
+	if (cli_ip_addr && srv_ip_addr && (cli_host == NULL) &&
+	    (srv_host == NULL)) {
+	  IpAddress *c = cli_ip_addr;
 
-        cli_ip_addr = srv_ip_addr;
-        srv_ip_addr = c;
+	  cli_ip_addr = srv_ip_addr;
+	  srv_ip_addr = c;
+	}
       }
-    }
 
-    Utils::swap16(&cli_port, &srv_port), Utils::swap32(&srcAS, &dstAS),
-      Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
-    initial_bytes_entropy.c2s = initial_bytes_entropy.s2c;
-    initial_bytes_entropy.s2c = s;
+      Utils::swap16(&cli_port, &srv_port), Utils::swap32(&srcAS, &dstAS),
+	Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
+      initial_bytes_entropy.c2s = initial_bytes_entropy.s2c;
+      initial_bytes_entropy.s2c = s;
 
-    memcpy(m, view_cli_mac, 6);
-    memcpy(view_cli_mac, view_srv_mac, 6);
-    memcpy(view_srv_mac, m, 6);
+      memcpy(m, view_cli_mac, 6);
+      memcpy(view_cli_mac, view_srv_mac, 6);
+      memcpy(view_srv_mac, m, 6);
 
-    predominant_alert_info.is_cli_attacker =
-      predominant_alert_info.is_srv_attacker,
-      predominant_alert_info.is_cli_victim = predominant_alert_info.is_srv_victim;
-    predominant_alert_info.is_srv_attacker = f1,
-      predominant_alert_info.is_srv_victim = f2;
+      predominant_alert_info.is_cli_attacker =
+	predominant_alert_info.is_srv_attacker,
+	predominant_alert_info.is_cli_victim = predominant_alert_info.is_srv_victim;
+      predominant_alert_info.is_srv_attacker = f1,
+	predominant_alert_info.is_srv_victim = f2;
 
-    memcpy(&ts, &tcp_seq_s2d, sizeof(TCPSeqNum));
-    memcpy(&tcp_seq_d2s, &tcp_seq_s2d, sizeof(TCPSeqNum));
-    memcpy(&tcp_seq_s2d, &ts, sizeof(TCPSeqNum));
-    Utils::swap16(&cli2srv_window, &srv2cli_window);
+      memcpy(&ts, &tcp_seq_s2d, sizeof(TCPSeqNum));
+      memcpy(&tcp_seq_d2s, &tcp_seq_s2d, sizeof(TCPSeqNum));
+      memcpy(&tcp_seq_s2d, &ts, sizeof(TCPSeqNum));
+      Utils::swap16(&cli2srv_window, &srv2cli_window);
 
-    cli2srvPktTime = srv2cliPktTime;
-    srv2cliPktTime = is;
+      cli2srvPktTime = srv2cliPktTime;
+      srv2cliPktTime = is;
 
 #ifdef HAVE_NEDGE
-    TrafficShaper *s1 = flowShaperIds.cli2srv.ingress;
-    TrafficShaper *s2 = flowShaperIds.srv2cli.egress;
+      TrafficShaper *s1 = flowShaperIds.cli2srv.ingress;
+      TrafficShaper *s2 = flowShaperIds.srv2cli.egress;
 
-    flowShaperIds.cli2srv.ingress = flowShaperIds.srv2cli.ingress,
-      flowShaperIds.srv2cli.egress = flowShaperIds.cli2srv.egress;
-    flowShaperIds.srv2cli.ingress = s1, flowShaperIds.cli2srv.egress = s2;
+      flowShaperIds.cli2srv.ingress = flowShaperIds.srv2cli.ingress,
+	flowShaperIds.srv2cli.egress = flowShaperIds.cli2srv.egress;
+      flowShaperIds.srv2cli.ingress = s1, flowShaperIds.cli2srv.egress = s2;
 #endif
 
-    tmp32 = flow_device.in_index;
-    flow_device.in_index = flow_device.out_index;
-    flow_device.out_index = tmp32;
+      tmp32 = flow_device.in_index;
+      flow_device.in_index = flow_device.out_index;
+      flow_device.out_index = tmp32;
 
-    /*
-      We do not swap L7 info as if it direction was wrong they were not computed
-      Same applies with latency counters
-    */
-  }
-
+      /*
+	We do not swap L7 info as if it direction was wrong they were not computed
+	Same applies with latency counters
+      */
+    }
+  
   swap_done = 1, swap_requested = 0;
 }
 
