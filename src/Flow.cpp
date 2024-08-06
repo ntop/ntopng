@@ -5374,7 +5374,6 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
 
 	if((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK)) {
 	  /* SYN|ACK arrived before SYN */
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "*** %02X", flags);
 	  swap_requested = true;
 	}
 	
