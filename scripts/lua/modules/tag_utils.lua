@@ -602,22 +602,22 @@ tag_utils.defined_tags = {
     },
     mitre_tactic = {
         value_type = 'text',
-        i18n_label = i18n('mitre.title.tactic'),
+        i18n_label = i18n('db_search.tags.mitre_tactic'),
         operators = {'eq', 'neq'}
     },
      mitre_technique = {
         value_type = 'text',
-        i18n_label = i18n('mitre.title.technique'),
+        i18n_label = i18n('db_search.tags.mitre_technique'),
         operators = {'eq', 'neq'}
     },
     mitre_subtechnique = {
         value_type = 'text',
-        i18n_label = i18n('mitre.title.sub_technique'),
+        i18n_label = i18n('db_search.tags.mitre_subtechnique'),
         operators = {'eq', 'neq'}
     },
     mitre_id = {
         value_type = 'text',
-        i18n_label = i18n('mitre.title.id'),
+        i18n_label = i18n('db_search.tags.mitre_id'),
         operators = {'eq', 'neq'}
     },
 }

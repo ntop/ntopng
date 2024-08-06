@@ -2201,6 +2201,10 @@ local lang = {
       ["mdns_name_txt"] = "MDNS Name TXT",
       ["mdns_ssid"] = "MDNS SSID",
       ["minor_connection_state"] = "Minor Connection State",
+      ["mitre_id"] = "Mitre ID",
+      ["mitre_subtechnique"] = "Mitre Sub-Technique",
+      ["mitre_tactic"] = "Mitre Tactic",
+      ["mitre_technique"] = "Mitre Technique",
       ["name"] = "Hostname",
       ["netbios_name"] = "NetBios Name",
       ["network"] = "Network",
@@ -5717,12 +5721,6 @@ local lang = {
       ["user_execution"] = "User Execution",
       ["valid_accounts"] = "Valid Accounts",
       ["web_service"] = "Web Service",
-    },
-    ["title"] = {
-      ["id"] = "Mitre ID",
-      ["sub_technique"] = "Mitre Sub-Technique",
-      ["tactic"] = "Mitre Tactic",
-      ["technique"] = "Mitre Technique",
     },
   },
   ["modal_download_file"] = {
