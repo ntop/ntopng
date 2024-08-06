@@ -1478,9 +1478,10 @@ else
 
                     print(string.format('<tr>'))
 
-                    local msg = string.format('<td> %s </td><td style=\"text-align: center;\"> %s </td><td style=\"text-align: center;\"> %s </td><td> %s %s %s %s </td>', score_alert.message, score_alert.score,alert_source, riskLabel,
-                    riskLabel, (score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk)) or '', 
-                    status_icon or '', flow_risk_utils.get_remediation_documentation_link(score_alert.alert_id))
+                    local msg = string.format('<td> %s </td><td style=\"text-align: center;\"> %s </td><td style=\"text-align: center;\"> %s </td><td> %s %s %s %s </td>',
+					      score_alert.message, score_alert.score,alert_source, 
+					      riskLabel, (score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk)) or '', 
+					      status_icon or '', flow_risk_utils.get_remediation_documentation_link(score_alert.alert_id))
 
                     
                     print(msg)
