@@ -358,56 +358,54 @@ function host_alert_store:format_record(value, no_html)
         alert_entities.host.entity_id)
     local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
 
-    -- local host = hostinfo2hostkey(value)
-    -- Handle VLAN as a separate field
-    local host = value["ip"]
+    if value["ip"] then
+        local host = value["ip"]
 
-    local reference_html = nil
+        local reference_html = hostinfo2detailshref({
+            ip = value["ip"],
+            vlan = value["vlan_id"]
+        }, nil, href_icon, "", true)
 
-    reference_html = hostinfo2detailshref({
-        ip = value["ip"],
-        vlan = value["vlan_id"]
-    }, nil, href_icon, "", true)
-    if reference_html == href_icon then
-        reference_html = nil
+        if reference_html == href_icon then
+            reference_html = nil
+        end
+
+        record[RNAME.IP.name] = {
+            value = host,
+            label = host,
+            shown_label = host,
+            reference = reference_html,
+            country = interface.getHostCountry(host),
+            is_local = alert_info.alert_generation and alert_info.alert_generation.host_info.localhost,
+            is_multicast = alert_info.alert_generation and alert_info.alert_generation.host_info.is_multicast
+        }
+
+        -- Long, unshortened label
+        local host_label_long = hostinfo2label(self:_alert2hostinfo(value), false --[[ Show VLAN --]] , false)
+
+        if no_html then
+            record[RNAME.IP.name]["label"] = host_label_long
+        else
+            local host_label_short = shortenString(host_label_long)
+            record[RNAME.IP.name]["label"] = host_label_short
+            record[RNAME.IP.name]["label_long"] = host_label_long
+        end
     end
 
-    -- Add mitre info from db
-    local mitre_tactic = value["mitre_tactic"] or ""
-    local mitre_technique = value["mitre_technique"] or ""
-    local mitre_subtechnique = value["mitre_subtechnique"] or ""
+    local mitre_tactic = tonumber(value["mitre_tactic"] or "0")
+    local mitre_technique = tonumber(value["mitre_technique"] or "0")
+    local mitre_subtechnique = tonumber(value["mitre_subtechnique"] or "0")
 
     record[RNAME.MITRE.name] = {
-        mitre_tactic = mitre_tactic,
-        mitre_technique = mitre_technique,
-        mitre_subtechnique = mitre_subtechnique,
         mitre_id = value["mitre_id"] or "",
+        mitre_tactic = value["mitre_tactic"] or "",
+        mitre_technique = value["mitre_technique"] or "",
+        mitre_subtechnique = value["mitre_subtechnique"] or "",
     
-        mitre_tactic_i18n = (mitre_utils.tactic[mitre_tactic] and mitre_utils.tactic[mitre_tactic].i18n_label) or "",
-        mitre_technique_i18n = (mitre_utils.technique[mitre_technique] and mitre_utils.technique[mitre_technique].i18n_label) or "",
-        mitre_subtechnique_i18n = (mitre_utils.sub_technique[mitre_subtechnique] and mitre_utils.sub_technique[mitre_subtechnique].i18n_label) or "",
+        mitre_tactic_i18n = (mitre_utils.tactic_by_id[mitre_tactic] and mitre_utils.tactic_by_id[mitre_tactic].i18n_label) or "",
+        mitre_technique_i18n = (mitre_utils.technique_by_id[mitre_technique] and mitre_utils.technique_by_id[mitre_technique].i18n_label) or "",
+        mitre_subtechnique_i18n = (mitre_utils.sub_technique_by_id[mitre_subtechnique] and mitre_utils.sub_technique_by_id[mitre_subtechnique].i18n_label) or "",
     }
-
-    record[RNAME.IP.name] = {
-        value = host,
-        label = host,
-        shown_label = host,
-        reference = reference_html,
-        country = interface.getHostCountry(host),
-        is_local = alert_info.alert_generation and alert_info.alert_generation.host_info.localhost,
-        is_multicast = alert_info.alert_generation and alert_info.alert_generation.host_info.is_multicast
-    }
-
-    -- Long, unshortened label
-    local host_label_long = hostinfo2label(self:_alert2hostinfo(value), false --[[ Show VLAN --]] , false)
-
-    if no_html then
-        record[RNAME.IP.name]["label"] = host_label_long
-    else
-        local host_label_short = shortenString(host_label_long)
-        record[RNAME.IP.name]["label"] = host_label_short
-        record[RNAME.IP.name]["label_long"] = host_label_long
-    end
 
     record[RNAME.IS_VICTIM.name] = ""
     record[RNAME.IS_ATTACKER.name] = ""

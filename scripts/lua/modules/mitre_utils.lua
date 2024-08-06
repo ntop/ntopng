@@ -403,7 +403,29 @@ local mitre_table_utils = {
 
 -- ##############################################
 
-local mitre_info_table = {}
+mitre_table_utils.tactic_by_id = {}
+mitre_table_utils.technique_by_id = {}
+mitre_table_utils.sub_technique_by_id = {}
+
+local function build_category_id_id_to_info()
+   for tactic, info in pairs(mitre_table_utils.tactic) do
+      mitre_table_utils.tactic_by_id[info.id] = info
+   end
+
+   for technique, info in pairs(mitre_table_utils.technique) do
+      mitre_table_utils.technique_by_id[info.id] = info
+   end
+
+   for sub_technique, info in pairs(mitre_table_utils.sub_technique) do
+      mitre_table_utils.sub_technique_by_id[info.id] = info
+   end
+end
+
+build_category_id_id_to_info()
+
+-- ##############################################
+
+local mitre_id_to_categories = {}
 
 --[[
   {
@@ -418,36 +440,36 @@ local mitre_info_table = {}
 
 -- ##############################################
 
-local function add_to_mitre_info_table(mitre_info, alert_id, entity_id)
+local function add_to_mitre_id_to_categories(mitre_info, alert_id, entity_id)
    if not mitre_info or not mitre_info.mitre_id then
       return
    end
 
-   if not mitre_info_table[mitre_info.mitre_id] then
-      mitre_info_table[mitre_info.mitre_id] = {
+   if not mitre_id_to_categories[mitre_info.mitre_id] then
+      mitre_id_to_categories[mitre_info.mitre_id] = {
          alert_array = {}
       }
    end
 
-   if not mitre_info_table[mitre_info.mitre_id].tactic then
-      mitre_info_table[mitre_info.mitre_id].tactic = mitre_info.mitre_tactic_id
+   if not mitre_id_to_categories[mitre_info.mitre_id].tactic then
+      mitre_id_to_categories[mitre_info.mitre_id].tactic = mitre_info.mitre_tactic_id
    end
    
-   if not mitre_info_table[mitre_info.mitre_id].technique then
-      mitre_info_table[mitre_info.mitre_id].technique = mitre_info.mitre_technique_id
+   if not mitre_id_to_categories[mitre_info.mitre_id].technique then
+      mitre_id_to_categories[mitre_info.mitre_id].technique = mitre_info.mitre_technique_id
    end
 
-   if not mitre_info_table[mitre_info.mitre_id].sub_technique then
-      mitre_info_table[mitre_info.mitre_id].sub_technique = mitre_info.mitre_sub_technique_id
+   if not mitre_id_to_categories[mitre_info.mitre_id].sub_technique then
+      mitre_id_to_categories[mitre_info.mitre_id].sub_technique = mitre_info.mitre_sub_technique_id
    end
 
-   mitre_info_table[mitre_info.mitre_id].alert_array[#mitre_info_table[mitre_info.mitre_id].alert_array + 1] =
+   mitre_id_to_categories[mitre_info.mitre_id].alert_array[#mitre_id_to_categories[mitre_info.mitre_id].alert_array + 1] =
       {alert_id, entity_id}
 end
 
 -- ##############################################
 
-local function build_mitre_info_table()
+local function build_mitre_id_to_categories()
    local checks = require "checks"
    local alert_consts = require "alert_consts"
 
@@ -470,14 +492,14 @@ local function build_mitre_info_table()
 
 	       if alert_key ~= nil then
 		  local mitre_info = alert_consts.getAlertMitreInfoIDs(alert_key)
-		  add_to_mitre_info_table(mitre_info, script.alert_id, entity_id)
+		  add_to_mitre_id_to_categories(mitre_info, script.alert_id, entity_id)
 	       end
             end
 	 end
       end
    end
 
-   return mitre_info_table
+   return mitre_id_to_categories
 end
 
 -- ##############################################
@@ -487,9 +509,9 @@ function mitre_table_utils.insertDBMitreInfo()
    local table_name = "mitre_table_info"
    local table_name_with_values = string.format("%s (alert_id, entity_id, tactic, technique, sub_technique, mitre_id)", table_name)
 
-   build_mitre_info_table()
+   build_mitre_id_to_categories()
 
-   for mitre_id, value in pairs(mitre_info_table) do
+   for mitre_id, value in pairs(mitre_id_to_categories) do
       local current_values = ""
       for _, alert_key in pairs(value.alert_array) do
 	 if value.tactic == nil then
@@ -519,27 +541,5 @@ function mitre_table_utils.insertDBMitreInfo()
 end
 
 -- ##############################################
-
---[[
-  function mitre_table_utils.convert_mitre_to_id_map()
-    -- tprint(convert_mitre_to_id_map_once)
-    -- tprint(debug.traceback())
-    
-    if(convert_mitre_to_id_map_once ~= nil) then return(convert_mitre_to_id_map_once) end
-    
-    build_mitre_info_table()
-    
-    convert_mitre_to_id_map = {}
-    -- Populate lookup table with mitre info
-    for family, categories in pairs(mitre_info_table) do
-      for name, data in pairs(categories) do
-        convert_mitre_to_id_map[data.id] = {type = family, i18n_label = data.i18n_label}
-      end
-    end
-    
-    return convert_mitre_to_id_map
-    
-  end
-  ]]
 
 return mitre_table_utils
