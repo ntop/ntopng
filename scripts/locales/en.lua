@@ -993,7 +993,7 @@ local lang = {
     ["device_has_disconnected"] = "MAC: [ <a href=\"%{device_url}\">%{device}</a> ] disconnected from the interface <a href=\"%{if_url}\">%{if_name}</a> <a target=\"blank\" href=\"%{exclusion_url}\"><i class=\"fas fa-external-link-alt\"></i></a>",
     ["dns_flood_attacker"] = "%{entity} is a DNS flooder [%{value} &gt; %{threshold} client DNS Flows/sec for ~3 sec]",
     ["dns_flood_victim"] = "%{entity} is under DNS flood attack [%{value} &gt; %{threshold} server DNS Flows/sec for ~3 sec]",
-    ["exporters_limit_exceeded"] = "Maximum number of allowed Flow Exporters per license exceeded. The flows from the other exporters are dropped.",
+    ["exporters_limit_exceeded"] = "Exceeded maximum number of license-allowed flow exporters or exporters/ports combinations: expect flow drops",
     ["external_script"] = "%{message}",
     ["fin_scan_attacker"] = "%{entity} is a FIN scan attacker [%{value} &gt; %{threshold} FIN sent]",
     ["fin_scan_victim"] = "%{entity} is under a FIN scan [%{value} &gt; %{threshold} FIN received]",
