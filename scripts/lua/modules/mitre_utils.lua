@@ -11,9 +11,9 @@ local alert_entities = require "alert_entities"
 
 -- table containing information about mitre attack matrix
 -- keep in sync with en.lua["mitre"] AND scripts/lua/modules/mitre_consts.lua
-local mitre_table_utils = {
-   -- Tactics
-   tactic = {
+
+local mitre_utils = {
+  tactic = {
       c_and_c = {
         id = 11,
         i18n_label = "mitre.tactic.c_and_c"
@@ -403,21 +403,21 @@ local mitre_table_utils = {
 
 -- ##############################################
 
-mitre_table_utils.tactic_by_id = {}
-mitre_table_utils.technique_by_id = {}
-mitre_table_utils.sub_technique_by_id = {}
+mitre_utils.tactic_by_id = {}
+mitre_utils.technique_by_id = {}
+mitre_utils.sub_technique_by_id = {}
 
 local function build_category_id_id_to_info()
-   for tactic, info in pairs(mitre_table_utils.tactic) do
-      mitre_table_utils.tactic_by_id[info.id] = info
+   for tactic, info in pairs(mitre_utils.tactic) do
+      mitre_utils.tactic_by_id[info.id] = info
    end
 
-   for technique, info in pairs(mitre_table_utils.technique) do
-      mitre_table_utils.technique_by_id[info.id] = info
+   for technique, info in pairs(mitre_utils.technique) do
+      mitre_utils.technique_by_id[info.id] = info
    end
 
-   for sub_technique, info in pairs(mitre_table_utils.sub_technique) do
-      mitre_table_utils.sub_technique_by_id[info.id] = info
+   for sub_technique, info in pairs(mitre_utils.sub_technique) do
+      mitre_utils.sub_technique_by_id[info.id] = info
    end
 end
 
@@ -504,7 +504,7 @@ end
 
 -- ##############################################
 
-function mitre_table_utils.insertDBMitreInfo()
+function mitre_utils.insertDBMitreInfo()
    local value_to_add = ""
    local table_name = "mitre_table_info"
    local table_name_with_values = string.format("%s (alert_id, entity_id, tactic, technique, sub_technique, mitre_id)", table_name)
@@ -542,4 +542,4 @@ end
 
 -- ##############################################
 
-return mitre_table_utils
+return mitre_utils
