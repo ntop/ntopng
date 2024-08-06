@@ -29,6 +29,7 @@ local flow_alert_keys = require "flow_alert_keys"
 local href_icon = "<i class='fas fa-laptop'></i>"
 local rest_utils = require "rest_utils"
 local historical_flow_details_formatter = require "historical_flow_details_formatter"
+local mitre_utils = require "mitre_utils"
 
 -- ##############################################
 
@@ -1027,23 +1028,19 @@ function flow_alert_store:format_record(value, no_html, verbose)
         }
     end
 
-    local alert_key = alert_consts.getAlertType(tonumber(value["alert_id"]), alert_entities.flow.entity_id)
-    local mitre_info = alert_consts.getAlertMitreInfo(alert_key)
-
-    -- Add mitre info from db
-    local mitre_tactic = value["mitre_tactic"] or ""
-    local mitre_technique = value["mitre_technique"] or ""
-    local mitre_subtechnique = value["mitre_subtechnique"] or ""
+    local mitre_tactic = tonumber(value["mitre_tactic"] or "0")
+    local mitre_technique = tonumber(value["mitre_technique"] or "0")
+    local mitre_subtechnique = tonumber(value["mitre_subtechnique"] or "0")
 
     record[RNAME.MITRE.name] = {
-        mitre_tactic = mitre_tactic,
-        mitre_technique = mitre_technique,
-        mitre_subtechnique = mitre_subtechnique,
         mitre_id = value["mitre_id"] or "",
+        mitre_tactic = value["mitre_tactic"] or "",
+        mitre_technique = value["mitre_technique"] or "",
+        mitre_subtechnique = value["mitre_subtechnique"] or "",
     
-        mitre_tactic_i18n = mitre_info.mitre_tactic and mitre_info.mitre_tactic.i18n_label or "",
-        mitre_technique_i18n = mitre_info.mitre_technique and mitre_info.mitre_technique.i18n_label or "",
-        mitre_subtechnique_i18n = mitre_info.mitre_subtechnique and mitre_info.mitre_subtechnique.i18n_label or "",
+        mitre_tactic_i18n = (mitre_utils.tactic_by_id[mitre_tactic] and mitre_utils.tactic_by_id[mitre_tactic].i18n_label) or "",
+        mitre_technique_i18n = (mitre_utils.technique_by_id[mitre_technique] and mitre_utils.technique_by_id[mitre_technique].i18n_label) or "",
+        mitre_subtechnique_i18n = (mitre_utils.sub_technique_by_id[mitre_subtechnique] and mitre_utils.sub_technique_by_id[mitre_subtechnique].i18n_label) or "",
     }
 
     -- local proto = string.lower(interface.getnDPIProtoName(tonumber(value["l7_master_proto"])))
