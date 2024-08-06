@@ -420,7 +420,8 @@ function datatable_utils.get_datatable_column_def_by_tag(tag)
    if all_datatable_columns_def_by_tag[tag] then
       return all_datatable_columns_def_by_tag[tag]
    else
-      return build_datatable_column_def_default(tag, i18n("db_search.tags."..tag) or tag)
+      return build_datatable_column_def_default(tag, 
+               (i18n("db_search.tags."..tag) and "db_search.tags."..tag) or tag)
    end
 end
 
