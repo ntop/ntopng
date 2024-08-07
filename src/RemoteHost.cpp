@@ -32,7 +32,7 @@ RemoteHost::RemoteHost(NetworkInterface *_iface, int32_t _iface_idx, Mac *_mac,
 #ifdef REMOTEHOST_DEBUG
   char buf[48];
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Instantiating REMOTE host %s",
-                               _ip ? _ip->print(buf, sizeof(buf)) : "");
+    _ip ? _ip->print(buf, sizeof(buf)) : "");
 #endif
   initialize();
 }

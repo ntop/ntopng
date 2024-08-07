@@ -2835,17 +2835,17 @@ void Host::setRxOnlyHost(bool set_it) {
   if(is_rx_only == set_it)
     return; /* Nothing to do */
     
-  if((stats != NULL) /* && (stats->getNumPktsRcvd() || stats->getNumPktsSent()) */) {
-    if(is_rx_only && (set_it == false)) {
-      /* It used to be rx-only ... */
-      iface->decNumHosts(isLocalHost(), true /* rx-only */);
+  //if(stats != NULL && !stats->getNumPktsRcvd() && !stats->getNumPktsSent()) return;
+
+  if(is_rx_only && (set_it == false)) {
+    /* It used to be rx-only ... */
+    iface->decNumHosts(isLocalHost(), true /* rx-only */);
       
-      /* .. and it is not anymore */
-      iface->incNumHosts(isLocalHost(), false);
-    } else if((is_rx_only == false) && (set_it == true)) {
-      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invelid transition"); */
-      /* The above issue is not reported as usually this branch is used during initialization */
-    }
+    /* .. and it is not anymore */
+    iface->incNumHosts(isLocalHost(), false);
+  } else if((is_rx_only == false) && (set_it == true)) {
+    //ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid transition");
+    /* The above issue is not reported as usually this branch is used during initialization */
   }
   
   is_rx_only = set_it;
