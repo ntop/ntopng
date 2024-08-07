@@ -35,7 +35,6 @@ local function get_interfaces_info()
         local ifstats = interface.getStats()
 
         if ifstats then
-
             local since_reset_drops = ifstats.stats_since_reset.drops
             local since_reset_packets = ifstats.stats_since_reset.packets
             local drops_pct = 0
