@@ -58,6 +58,15 @@
 			]
 		},
 		{
+			"id": "time_last_used",
+			"title_i18n": "flow_devices.exporter_time_last_used",
+			"data_field": "time_last_used",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"id": "exported_flows",
 			"title_i18n": "nprobe_exported_flows",
 			"data_field": "exported_flows",

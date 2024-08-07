@@ -181,6 +181,12 @@ const map_table_def_columns = (columns) => {
         "ntopng_interface": (value, row) => {
             return value
         },
+        "time_last_used": (value, row) => {
+	    if (!value)
+               return '';
+     	    else
+	       return (NtopUtils.secondsToTime((Math.round(new Date().getTime() / 1000)) - value) + " ago");
+        },
         "exported_flows": (value, row) => {
             let diff_value = value
             if(!first_open.value) {
@@ -264,11 +270,9 @@ function columns_sorting(col, r0, r1) {
     if (col != null) {
         if (col.id == "ip") {
             return sortingFunctions.sortByIP(r0.probe_ip, r1.probe_ip, col.sort);
-        } else if (col.id == "name") {
+        } else if ((col.id == "name") || (col.id == "ntopng_interface")) {
             return sortingFunctions.sortByName(r0.probe_public_ip, r1.probe_public_ip, col.sort);
-        } else if (col.id == "ntopng_interface") {
-            return sortingFunctions.sortByName(r0.probe_public_ip, r1.probe_public_ip, col.sort);
-        } else if (col.id == "exported_flows") {
+        } else if((col.id == "exported_flows") || (col.id == "time_last_used")) {
             return sortingFunctions.sortByNumber(r0.probe_uuid, r1.probe_uuid, col.sort);
         } else if (col.id == "interface_name") {
             return sortingFunctions.sortByName(r0.probe_interface, r1.probe_interface, col.sort);
