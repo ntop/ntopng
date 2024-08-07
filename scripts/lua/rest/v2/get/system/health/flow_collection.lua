@@ -23,7 +23,6 @@ for _,iface in pairs(names) do
 
       for probe_ip, probe_info in pairsByKeys(probe_list or {}) do
 	 table.insert(stats[iface], probe_info)
-	 tprint(probe_list.exporters)
       end
    end
 end
