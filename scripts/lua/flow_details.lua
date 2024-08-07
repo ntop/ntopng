@@ -660,9 +660,12 @@ else
     if (flow["verdict.pass"] == false) then
         print("</strike>")
     end
-    historicalProtoHostHref(ifid, flow["cli.ip"], flow["proto.l4"], flow["proto.ndpi_id"],
-        page_utils.safe_html(flow["protos.tls.certificate"] or ''))
 
+    if(flow["protos.tls.certificate"] ~= nil) then
+       historicalProtoHostHref(ifid, flow["cli.ip"], flow["proto.l4"], flow["proto.ndpi_id"],
+			       page_utils.safe_html(flow["protos.tls.certificate"] or ''))
+    end
+    
     if ((flow["protos.tls_version"] ~= nil) and (flow["protos.tls_version"] ~= 0)) then
         local tls_version_name = ntop.getTLSVersionName(flow["protos.tls_version"])
 
@@ -1137,21 +1140,23 @@ else
         end
     end
 
-    if (flow["protos.tls.client_requested_server_name"] ~= nil) then
+    if (not(isEmptyString(flow["protos.tls.client_requested_server_name"]))) then
         print("<tr><th width=10%><i class='fas fa-lock'></i> " .. i18n("flow_details.tls_certificate") .. "</th><td>")
         print(i18n("flow_details.client_requested") .. ":<br>")
+	
         -- TLS, so use https
         print(format_external_link(page_utils.safe_html(flow["protos.tls.client_requested_server_name"]),
-            page_utils.safe_html(flow["protos.tls.client_requested_server_name"]), false, "https"))
+				   page_utils.safe_html(flow["protos.tls.client_requested_server_name"]), false, "https"))
         if (flow["category"] ~= nil) then
-            print(" " .. getCategoryIcon(flow["protos.tls.client_requested_server_name"], flow["category"]))
+	   print(" " .. getCategoryIcon(flow["protos.tls.client_requested_server_name"], flow["category"]))
         end
         historicalProtoHostHref(ifid, flow["cli.ip"], nil, flow["proto.ndpi_id"],
-            page_utils.safe_html(flow["protos.tls.client_requested_server_name"] or ''), flow["vlan"])
+				page_utils.safe_html(flow["protos.tls.client_requested_server_name"] or ''), flow["vlan"])
         printAddCustomHostRule(flow["protos.tls.client_requested_server_name"])
         print("</td>")
-
+	
         print("<td>")
+	
         if (flow["protos.tls.server_names"] ~= nil) then
             local servers = string.split(flow["protos.tls.server_names"], ",") or {flow["protos.tls.server_names"]}
 
