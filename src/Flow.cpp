@@ -451,13 +451,10 @@ Flow::~Flow() {
 
   if (flow_payload) free(flow_payload);
 
-  if (isHTTP()) {
+  if (isHTTP() || isHTTP_PROXY()) {
     if (protos.http.last_url) free(protos.http.last_url);
     if (protos.http.last_user_agent) free(protos.http.last_user_agent);
     if (protos.http.last_server) free(protos.http.last_server);
-  } else if (isHTTP_PROXY()) {
-    if (protos.http.last_url) free(protos.http.last_url);
-    if (protos.http.last_user_agent) free(protos.http.last_user_agent);
   } else if (isDNS()) {
     if (protos.dns.last_query) free(protos.dns.last_query);
     if (protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
@@ -673,12 +670,7 @@ void Flow::processDetectedProtocolData() {
  * available. */
 void Flow::processExtraDissectedInformation() {
   if (ndpiFlow) {
-    u_int16_t l7proto;
-
-    l7proto = ndpi_get_lower_proto(ndpiDetectedProtocol);
-
-    switch (l7proto) {
-    case NDPI_PROTOCOL_SSH:
+    if (isSSH()) {
       if (protos.ssh.client_signature == NULL)
 	protos.ssh.client_signature =
 	  strdup(ndpiFlow->protos.ssh.client_signature);
@@ -699,14 +691,7 @@ void Flow::processExtraDissectedInformation() {
 	  strdup(ndpiFlow->protos.ssh.hassh_server);
 	updateHASSH(false /* As server */);
       }
-      break;
-
-      /* Protocols with TLS transport (keep in sync with isTLS()) */
-    case NDPI_PROTOCOL_TLS:
-    case NDPI_PROTOCOL_MAIL_IMAPS:
-    case NDPI_PROTOCOL_MAIL_SMTPS:
-    case NDPI_PROTOCOL_MAIL_POPS:
-    case NDPI_PROTOCOL_QUIC:
+    } else if (isTLS()) {
       protos.tls.tls_version = ndpiFlow->protos.tls_quic.ssl_version;
 
       protos.tls.notBefore = ndpiFlow->protos.tls_quic.notBefore,
@@ -767,9 +752,7 @@ void Flow::processExtraDissectedInformation() {
 	protos.tls.ja3.server_cipher = ndpiFlow->protos.tls_quic.server_cipher;
 	updateSrvJA3();
       }
-      break;
-
-    case NDPI_PROTOCOL_DNS:
+    } else if (isDNS()) {
       if (srv_host && (ndpiFlow->protos.dns.reply_code == 0 /* No Error */)) {
 	/* Now we need to check if the requested IP matches the server host */
 
@@ -844,16 +827,12 @@ void Flow::processExtraDissectedInformation() {
 	  }
 	}
       }
-      break;
-
-    case NDPI_PROTOCOL_MINING:
+    } else if (isMining()) {
       if ((protos.mining.currency == NULL) && (ndpiFlow->protos.mining.currency[0] != '\0'))
         protos.mining.currency = strdup(ndpiFlow->protos.mining.currency);
 
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "-->>> %s", ndpiFlow->protos.mining.currency); */
-      break;
-
-    case NDPI_PROTOCOL_HTTP:
+    } else if (isHTTP() || isHTTP_PROXY()) {
       if (protos.http.last_url) {
 	ndpi_risk_enum risk = ndpi_validate_url(protos.http.last_url);
 
@@ -891,9 +870,7 @@ void Flow::processExtraDissectedInformation() {
 	  }
 	}
       }
-      break;
-
-    case NDPI_PROTOCOL_STUN:
+    } else if (isSTUN()) {
       if((!stun_mapped_address) && (ndpiFlow->stun.mapped_address.port != 0)) {
 	IpAddress ip;
 	char tmp[96], ipb[64];
@@ -907,8 +884,7 @@ void Flow::processExtraDissectedInformation() {
 		 ip.print(ipb, sizeof(ipb)), ndpiFlow->stun.mapped_address.port);
 	stun_mapped_address = strdup(tmp);
       }
-      break;
-    }
+    }    
 
     updateSuspiciousDGADomain();
     // updateHostBlacklists();
