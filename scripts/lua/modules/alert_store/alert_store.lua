@@ -1644,16 +1644,20 @@ end
 -- ##############################################
 
 -- @brief Stats used by the dashboard
-function alert_store:get_stats()
+-- @param which (Optional) Stats to compute
+function alert_store:get_stats(which)
     -- Add filters
     self:add_request_filters()
 
     -- Get child stats
-    local stats = self:_get_additional_stats()
+    local stats = self:_get_additional_stats(which)
 
     stats.count = self:count()
     stats.top = stats.top or {}
-    stats.top.alert_id = self:top_alert_id_historical_by_count()
+
+    if not which or which == "alert_id" then
+        stats.top.alert_id = self:top_alert_id_historical_by_count()
+     end
 
     return stats
 end
@@ -1699,6 +1703,60 @@ function alert_store:format_top_alerts(stats, count)
 
     return top_alerts
 end
+
+-- ##############################################
+
+-- @brief Format generic top returned by get_stats() for top.lua
+function alert_store:format_top_generic(stats, count, field, format_fcn)
+    local top = {}
+
+    for n, value in pairs(stats) do
+        if self._top_limit > 0 and n > self._top_limit then
+            break
+        end
+
+        local label = format_fcn(value[field])
+
+        local info = {
+            key = field,
+            value = value[field],
+            label = shortenString(label, s_len),
+            title = label
+        }
+
+        if value.count and count then
+            info.count = math.floor((tonumber(value.count) * 100) / count)
+        end
+        if value.severity then
+            info.severity = value.severity
+            info.severity_label = i18n(alert_consts.alertSeverityById(value.severity).i18n_title)
+        end
+
+        top[#top + 1] = info
+    end
+
+    return top
+end
+
+-- ##############################################
+
+-- @brief Performs a query for the top by field count
+function alert_store:top_generic_historical(field)
+    -- Preserve all the filters currently set
+    local where_clause = self:build_where_clause()
+
+    local q_res = {}
+    if ntop.isClickHouseEnabled() then
+        local q = string.format(
+            "SELECT %s, COUNT(*) AS count FROM %s WHERE %s GROUP BY %s ORDER BY count DESC LIMIT %u",
+            field, self._table_name, where_clause, field, self._top_limit)
+
+        q_res = interface.alert_store_query(q) or {}
+    end
+
+    return q_res
+end
+
 
 -- ##############################################
 

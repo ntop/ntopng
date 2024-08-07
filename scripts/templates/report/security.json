@@ -1,0 +1,143 @@
+{
+	"name" : "Security Report",
+	"readonly" : true,
+	"filters" : [
+		{
+			"name" : "probe_ip"
+		},
+		{
+			"name" : "output_snmp",
+			"show_only_if_selected" : "probe_ip"
+		},
+		{
+			"name" : "input_snmp",
+			"show_only_if_selected" : "probe_ip"
+		},
+		{
+			"name" : "vlan_id"
+		},
+		{
+			"name" : "network"
+		},
+		{
+			"name" : "l4proto"
+		},
+		{
+			"name" : "l7cat"
+		},
+		{
+			"name" : "l7proto"
+		},
+		{
+			"name" : "host_pool"
+		}
+	],
+	"components" : [
+	{
+		"component" : "pie",
+		"id" : "top_alerted_hosts",
+		"i18n_name" : "top_alerted_hosts",
+		"width" : 12,
+		"height" : 4,
+		"params" : {
+			"url" : "/lua/pro/rest/v2/get/host/alert/top.lua",
+			"url_params" : {
+				"action" : "top_hosts",
+				"status" : "any",
+				"ajax_format" : "pie"
+			}
+		}
+	},
+	{
+		"component" : "pie",
+		"id" : "top_mitre_id",
+		"i18n_name" : "report.top_mitre_id_flows",
+		"width" : 6,
+		"height" : 4,
+		"params" : {
+			"url" : "/lua/pro/rest/v2/get/host/alert/top.lua",
+			"url_params" : {
+				"action" : "top_mitre_id",
+				"status" : "any",
+				"ajax_format" : "pie"
+			}
+		}
+	},
+	{
+		"component" : "pie",
+		"id" : "top_mitre_id",
+		"i18n_name" : "report.top_mitre_id_hosts",
+		"width" : 6,
+		"height" : 4,
+		"params" : {
+			"url" : "/lua/pro/rest/v2/get/flow/alert/top.lua",
+			"url_params" : {
+				"action" : "top_mitre_id",
+				"status" : "any",
+				"ajax_format" : "pie"
+			}
+		}
+	},
+	{
+		"component" : "pie",
+		"id" : "top_mitre_tactic",
+		"i18n_name" : "report.top_mitre_tactic_flows",
+		"width" : 6,
+		"height" : 4,
+		"params" : {
+			"url" : "/lua/pro/rest/v2/get/host/alert/top.lua",
+			"url_params" : {
+				"action" : "top_mitre_tactic",
+				"status" : "any",
+				"ajax_format" : "pie"
+			}
+		}
+	},
+	{
+		"component" : "pie",
+		"id" : "top_mitre_tactic",
+		"i18n_name" : "report.top_mitre_tactic_hosts",
+		"width" : 6,
+		"height" : 4,
+		"params" : {
+			"url" : "/lua/pro/rest/v2/get/flow/alert/top.lua",
+			"url_params" : {
+				"action" : "top_mitre_tactic",
+				"status" : "any",
+				"ajax_format" : "pie"
+			}
+		}
+	},
+	{
+		"component" : "pie",
+		"id" : "top_mitre_technique",
+		"i18n_name" : "report.top_mitre_technique_flows",
+		"width" : 6,
+		"height" : 4,
+		"params" : {
+			"url" : "/lua/pro/rest/v2/get/host/alert/top.lua",
+			"url_params" : {
+				"action" : "top_mitre_technique",
+				"status" : "any",
+				"ajax_format" : "pie"
+			}
+		}
+	},
+	{
+		"component" : "pie",
+		"id" : "top_mitre_technique",
+		"i18n_name" : "report.top_mitre_technique_hosts",
+		"width" : 6,
+		"height" : 4,
+		"params" : {
+			"url" : "/lua/pro/rest/v2/get/flow/alert/top.lua",
+			"url_params" : {
+				"action" : "top_mitre_technique",
+				"status" : "any",
+				"ajax_format" : "pie"
+			}
+		}
+	}
+	]
+}
+

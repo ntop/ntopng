@@ -546,18 +546,47 @@ end
 -- ##############################################
 
 -- @brief Stats used by the dashboard
-function flow_alert_store:_get_additional_stats()
+-- @param which (Optional) Stats to compute
+function flow_alert_store:_get_additional_stats(which)
     local stats = {}
     stats.top = {}
-    stats.top.cli_ip = self:top_cli_ip_historical()
-    stats.top.srv_ip = self:top_srv_ip_historical()
-    stats.top.ip = self:top_ip_merge(stats.top.cli_ip, stats.top.srv_ip)
-    stats.top.l7_proto = self:top_l7_proto_historical()
-    stats.top.cli_network = self:top_cli_network_historical()
-    stats.top.srv_network = self:top_srv_network_historical()
-    stats.top.network = self:top_network_merge(stats.top.cli_network, stats.top.srv_network)
-    stats.top.vlan = self:top_vlan_historical()
-    stats.top.dga_domain = self:top_srv_ip_domain()
+
+    if not which or which == "srv_ip" or  which == "cli_ip" or which == "ip" then
+        stats.top.cli_ip = self:top_cli_ip_historical()
+        stats.top.srv_ip = self:top_srv_ip_historical()
+        stats.top.ip = self:top_ip_merge(stats.top.cli_ip, stats.top.srv_ip)
+    end
+    if not which or which == "l7_proto" then
+        stats.top.l7_proto = self:top_l7_proto_historical()
+    end
+    if not which or which == "cli_network" then
+        stats.top.cli_network = self:top_cli_network_historical()
+    end
+    if not which or which == "srv_network" then
+        stats.top.srv_network = self:top_srv_network_historical()
+    end
+    if not which or which == "network" then
+        stats.top.network = self:top_network_merge(stats.top.cli_network, stats.top.srv_network)
+    end
+    if not which or which == "vlan" then
+        stats.top.vlan = self:top_vlan_historical()
+    end
+    if not which or which == "dga_domain" then
+        stats.top.dga_domain = self:top_srv_ip_domain()
+    end
+    if not which or which == "mitre_id" then
+        stats.top.mitre_id = self:top_generic_historical("mitre_id")
+    end
+    if not which or which == "mitre_tactic" then
+        stats.top.mitre_tactic = self:top_generic_historical("mitre_tactic")
+    end
+    if not which or which == "mitre_technique" then
+        stats.top.mitre_technique = self:top_generic_historical("mitre_technique")
+    end
+    if not which or which == "mitre_subtechnique" then
+        stats.top.mitre_subtechnique = self:top_generic_historical("mitre_subtechnique")
+    end
+
     return stats
 end
 

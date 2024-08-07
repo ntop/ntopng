@@ -342,20 +342,6 @@
 			},
 			"source_type" : "interface"
 		}
-	},
-	{
-		"component" : "pie",
-		"id" : "top_alerted_hosts",
-		"i18n_name" : "top_alerted_hosts",
-		"width" : 12,
-		"height" : 4,
-		"params" : {
-			"url" : "/lua/pro/rest/v2/get/host/alert/top.lua",
-			"url_params" : {
-				"action" : "top_hosts",
-				"ajax_format" : "pie"
-			}
-		}
 	}
 	]
 }
