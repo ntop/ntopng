@@ -343,7 +343,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
   if (o) {
     json_object *w, *z;
 
-    zrs.source_id = source_id;
+    zrs.source_id = source_id, zrs.last_update = time(NULL);
 
     if (json_object_object_get_ex(o, "bytes", &w))
       zrs.remote_bytes = (u_int64_t)json_object_get_int64(w);
@@ -3093,8 +3093,8 @@ void ZMQParserInterface::setRemoteStats(nProbeStats *zrs) {
        it != source_id_last_zmq_remote_stats.end();) {
     nProbeStats *zrs_i = it->second;
 
-    if (last_time > MAX_HASH_ENTRY_IDLE &&
-        zrs_i->remote_time < last_time - MAX_HASH_ENTRY_IDLE /* sec */) {
+    if ((last_time > MAX_PROBE_IDLE_IDLE)
+	&& (zrs_i->remote_time < last_time - MAX_PROBE_IDLE_IDLE /* sec */)) {
       /* Do not account inactive exporters, release them */
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Erased %s [local_time:
       // %u][last_time: %u]", zrs_i->remote_ifname, zrs_i->local_time,
@@ -3218,7 +3218,7 @@ void ZMQParserInterface::probeLuaStats(lua_State *vm) {
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s (%u)", zrs->remote_ifname,
     // it->first);
 
-    lua_push_uint32_table_entry(vm, "probe.last_update", last_zmq_remote_stats_update.tv_sec);
+    lua_push_uint32_table_entry(vm, "probe.last_update", zrs->last_update);
     lua_push_str_table_entry(vm, "remote.name", zrs->remote_ifname);
     lua_push_str_table_entry(vm, "remote.if_addr", zrs->remote_ifaddress);
     lua_push_uint64_table_entry(vm, "remote.ifspeed", zrs->remote_ifspeed);
