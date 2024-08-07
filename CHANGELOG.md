@@ -1,5 +1,4 @@
 # Changelog
- # Changelog
 
 #### ntopng 6.2 (August 2024)
 
@@ -7,75 +6,75 @@
  - Code optimizations, reduce locks, replace with atomic when possible
  - Huge memory usage reduction (by more than half)
  - Huge improvements to SNMP polling
- - Added the possibility to replay historical flows on a virtual interface
- - Added support for ClickHouse Cloud and for TLS towards ClickHouse/SQLite
- - Added Cisco QoS MIB poll
- - Added Korean, Spanish and French translations
- - Added support to influxdb v.2 with compatible v.1 buckets
- - Added CheckMK syslog format
- - Added WeChat Alert endpoint
- - Added filtering ability to report page
- - Added MITRE alerts classification and Security report
+ - Add the possibility to replay historical flows on a virtual interface
+ - Add support for ClickHouse Cloud and for TLS towards ClickHouse/SQLite
+ - Add Cisco QoS MIB poll
+ - Add Korean, Spanish and French translations
+ - Add support to influxdb v.2 with compatible v.1 buckets
+ - Add CheckMK syslog format
+ - Add WeChat Alert endpoint
+ - Add filtering ability to report page
+ - Add MITRE alerts classification and Security report
  - Various tables refactoring, moved to new internal table component
 
 ## Improvements
  - Add flow_risk and host_risk remediations.
  - Add VLAN rules
- - Added drops/flows and probes info to view interface
- - Added exporters limits to ntopng licenses
- - Added extensions for asset inventory
- - added feature sorting flows by protocol 
- - Added flows and drops ts to netflow/sflow exporters
- - Added info to nprobes and exporters pages
- - Added interface to SNMP topology map
- - Added localhost to ipaddress expection lists 
- - Added mac address to the hosts page
- - Added missing DHCP mappings 
- - Added mitre_info to alerts in ClickHouse
- - Added NAT info to ClickHouse and ECS
- - Added SIP status call
- - Added the ability to set custom alert score
- - Added uuid_num and unique_source_id to exporters and probes
- - Added various filters to Historical/Alerts pages
- - Added L2TP decapsulation
- - Added sankey to probes/exporters page
- - Added support for flow source
- - Added --disable-purge for debug purposes Added average flow throughtput in flows
- - Added support for Ethernet-over-IP tunnel support
- - Added SNMP interface and device usage page and timeseries 
- - Added detection of interfaces going down/up when open in pcap mode
- - Added host name discovered with DHCP 
- - Added blacklist charts
- - Added SNMP Trap support
- - Added QoS page to snmp
- - Added sankey to probes/exporters page
- - Added support for MAC addresses in traffic profiles
- - Added smcroute integration.
- - Added traffic profiles rules.
- - Added TCP flow connection state  
- - Added SNMP interface speed configuration 
- - Added report editor
- - Added support for ModBUS Scattered Holding Register Read
- - Added filtering ability to report page 
- - Added JE malloc support
- - Improved cloud support
- - Implemented NetFlow polling device using coroutines
- - Implemented flow traffic account in pcap interfaces when reading traffic from a pcap interface.
- - Implemented mitre_table_info inside database 
- - Implemented TLS swap heuristic similar to SSH
+ - Add drops/flows and probes info to view interface
+ - Add exporters limits to ntopng licenses
+ - Add extensions for asset inventory
+ - Add feature sorting flows by protocol 
+ - Add flows and drops ts to netflow/sflow exporters
+ - Add info to nprobes and exporters pages
+ - Add interface to SNMP topology map
+ - Add localhost to ipaddress expection lists 
+ - Add mac address to the hosts page
+ - Add missing DHCP mappings 
+ - Add mitre_info to alerts in ClickHouse
+ - Add NAT info to ClickHouse and ECS
+ - Add SIP status call
+ - Add the ability to set custom alert score
+ - Add uuid_num and unique_source_id to exporters and probes
+ - Add various filters to Historical/Alerts pages
+ - Add L2TP decapsulation
+ - Add sankey to probes/exporters page
+ - Add support for flow source
+ - Add --disable-purge for debug purposes Added average flow throughtput in flows
+ - Add support for Ethernet-over-IP tunnel support
+ - Add SNMP interface and device usage page and timeseries 
+ - Add detection of interfaces going down/up when open in pcap mode
+ - Add host name discovered with DHCP 
+ - Add blacklist charts
+ - Add SNMP Trap support
+ - Add QoS page to snmp
+ - Add sankey to probes/exporters page
+ - Add support for MAC addresses in traffic profiles
+ - Add smcroute integration.
+ - Add traffic profiles rules.
+ - Add TCP flow connection state  
+ - Add SNMP interface speed configuration 
+ - Add report editor
+ - Add support for ModBUS Scattered Holding Register Read
+ - Add filtering ability to report page 
+ - Add JE malloc support
+ - Improve cloud support
+ - Implement NetFlow polling device using coroutines
+ - Implement flow traffic account in pcap interfaces when reading traffic from a pcap interface.
+ - Implement mitre_table_info inside database 
+ - Implement TLS swap heuristic similar to SSH
  - Improve host pool reload latency
- - Improved performance in SNMP device listing
- - Improved SNMP various performances and reworked interfaces page
- - Modified Lua allocator to avoid allocating small blocks and using ^2 blocks size to reduce heap fragmentation
+ - Improve performance in SNMP device listing
+ - Improve SNMP various performances and reworked interfaces page
+ - Modify Lua allocator to avoid allocating small blocks and using ^2 blocks size to reduce heap fragmentation
  - Reduced memory and trhead usage Added missing HTTP server thread naming Added --limit-resources to tell ntopng to reduce memory usage (useful for systems with limited resources)
  - Rework periodic discovery code
  - Rework flow exporters lua stats
- - Reworked interface polling with snmpbulk
- - Reworked flow exporters host rules
- - Reworked timeseries backend and added support to bar charts
- - Reworked throughput calculation for flow-based interfaces: it is no longer calculated periodically but only when a new flow update is received
- - Updated the dashboard with the editing component feature. 
- - You can now specify (e.g. -i ethX,tunY...) interfaces of different datalink with pcap
+ - Rework interface polling with snmpbulk
+ - Rework flow exporters host rules
+ - Rework timeseries backend and added support to bar charts
+ - Rework throughput calculation for flow-based interfaces: it is no longer calculated periodically but only when a new flow update is received
+ - Update the dashboard with the editing component feature. 
+ - Add support for interfaces of different datalink with pcap (e.g. -i ethX,tunY...)
  
 ## Changes 
  - Add ntopng to group systemd-journal
@@ -89,26 +88,26 @@
  - Add percentage and * as exporter device option in Flow Exporter rules + minor fixes.
  - Add option to backup redis (ntopng-utils-manage-config -a backup -r)
  - Add percentage and * as exporter device option in Flow Exporter rules + minor fixes.
- - Added check for avoiding crash with hosts with no MAC
- - Added trigger period action on shell script
- - Added exporters limits to ntopng licenses
- - Added memory boundaries checks
- - Added switch between normal and per minute traffic ts
- - Added icon in flows that indicate when the flow has swapped directions
- - Added flow exporter top chart
- - Added autosearch when opening edit application page
- - Added topk chart to conversations
- - Added support for ModBUS Scattered Holding Register Read
- - Added host location to flow page 
- - Added limitations for max number of polled SNMP devices
- - Added check for preventing false positive for long lived connections on top of protocols that can take a while
- - Added SNMP usage page
- - Added thpt charts to historical flows 
- - Added garbage collector calls
- - Added startup flush for ntopng.trace_error.alert_queue
- - Added Bootstrap 5 tooltip support
- - Added check to avoid memory issues (heap overflow) during DHCP packet dissection
- - Added check for avoid setting the interface in non-blocking mode when used with pcap files
+ - Add check for avoiding crash with hosts with no MAC
+ - Add trigger period action on shell script
+ - Add exporters limits to ntopng licenses
+ - Add memory boundaries checks
+ - Add switch between normal and per minute traffic ts
+ - Add icon in flows that indicate when the flow has swapped directions
+ - Add flow exporter top chart
+ - Add autosearch when opening edit application page
+ - Add topk chart to conversations
+ - Add support for ModBUS Scattered Holding Register Read
+ - Add host location to flow page 
+ - Add limitations for max number of polled SNMP devices
+ - Add check for preventing false positive for long lived connections on top of protocols that can take a while
+ - Add SNMP usage page
+ - Add thpt charts to historical flows 
+ - Add garbage collector calls
+ - Add startup flush for ntopng.trace_error.alert_queue
+ - Add Bootstrap 5 tooltip support
+ - Add check to avoid memory issues (heap overflow) during DHCP packet dissection
+ - Add check for avoid setting the interface in non-blocking mode when used with pcap files
  - Change the severity of the old blacklisted flow to critical
  - Change the labels from 'Downlink Usage' and 'Uplink Usage' to 'In Usage' and 'Out Usage'
  - Changed score level for various Alerts. 
@@ -124,34 +123,34 @@
  - Prevents non-admin users to pause interfaces
  - Report templates can now be defined in multiple paths
  - Reduced table retention
- - Removed additional http header
- - Removed sflowdev timeseries and unified to flowdev
- - Removed outdated unahandled flows that was casing fiscrepancies in flow accounting
- - Removed useless work when shutting down 
+ - Remove additional http header
+ - Remove sflowdev timeseries and unified to flowdev
+ - Remove outdated unahandled flows that was casing fiscrepancies in flow accounting
+ - Remove useless work when shutting down 
  - Run nmap setcap only when we're outside a container
- - Updated doc with all the latest features.
+ - Update doc with all the latest features.
 
 ## nEdge
  - Add option to enable external captive portal auth
  - Add Keep Src Address flag.
- - Added MAC and IP Address to radius interim-update
- - Added new fields to radius accounting
- - Added code to delete expired flows in ntopng still present in conntrack
- - Added check for offloaded flows with uncompleted protocol detection that have observed too many packets (updated via conntrack)
+ - Add MAC and IP Address to radius interim-update
+ - Add new fields to radius accounting
+ - Add code to delete expired flows in ntopng still present in conntrack
+ - Add check for offloaded flows with uncompleted protocol detection that have observed too many packets (updated via conntrack)
  - Implement remote radius authentication for local users (toggle)
  - Handle broadcast forwarding
  - Optimized std::map to reduce memory usage
  - Remove keep_src_address
  - Remove the hardcoded testing value for traffic_quota_ratio.
- - Removed alerts no longer necessary as they have been replaced by local traffic rules
+ - Remove alerts no longer necessary as they have been replaced by local traffic rules
  - Fix broadcast forwarding
  - Fix `Daily Traffic Quota` and `Daily Time Quota` column style.
- - Fixes incorrect delta calculation
+ - Fix incorrect delta calculation
  - Fix repeater config modal reset
  - Fix the apply button in repeaters modal.
  - Fix progress bar.
  - Fix editing on repeater-config modal by removing unnecessary variable.
- - Fixing the enable_nat and enable_iface toggles
+ - Fix the enable_nat and enable_iface toggles
  - Fix the alignment of column_key icons on the host_details/flows page.
  - Fix `Daily Traffic Quota` and `Daily Time Quota` column style.
  - Fix the alignment of column_info icons.
@@ -172,65 +171,64 @@
  - Fix access to released memory in UT hash iteration
  - Fix navigation from server ports analysis chart view to table view.
  - Fix where on aggregated queries (interface id was ignored)
- - Fixed invalid packet count with fragemented traffic
- - Fixed info field cut after 256 characters
- - Fixed crash and memory leak introduced
- - Fixed missing fields in TLS alerts
- - Fixed invalid application protocol accounting in network interfaces due to partial nDPi detection
- - Fixed pcap download
- - Fixed bug in UDP scan
- - Fixed counter polling
- - Fixed SSH flow swap heuristic
- - Fixes segmentation fault on Stratosphere lab blacklist loading
- - Fixes pcap polling on macOS and FreeBSD Fixes handling of interface pause (idle) on pcap interfaces
- - Fixes SQL injection description
- - Fixes copy not working on alert description (#8316)
- - Fixes string info cut due to buffer size
- - Fixes invalid host rename when using HTTP proxies
- - Fixes reset counters does not reset sent/rcvd bytes/packets 
- - Fixes attempt to index nil value
- - Fixes some performance issues in the new flow page
- - Fixes timeseries queries not working with serialize by mac
- - Fixes incorrect check on TOS
- - Fixes thpt historical flow chart
- - Fixes historical flow charts
- - Fixes duplicated entries in radius
- - Fixes service map learning not reset at startup
- - Fixes circular dependencies
- - Fixes tooltip not working
- - Fixes active monitoring alert discarded with no pool selected 
- - Fixes incorrect hosts number
- - Fixes issue with host pools assignment
- - Fixes remote access alert not triggered 
- - Fixes SNMP topology map and added to all snmp devices
- - Fixes SNMP v3 import not working
- - Fixes topology map not correctly working
- - Fixes various translation to It, JP an other languages.
- - Fixes various issue with application reloading
- - Fixes various issues in SNMP Chart
- - Fixes bytes per minute SNMP Serie not added
- - Fixes shell script execution on alerts engaged 
- - Fixes crash when sorting hosts in low memory conditions
- - Fixes domain name extraction from the info column. 
- - Fixes colors in dygraph plotters
- - Fixes throughput values in local traffic rules. 
- - Fixes wrong source type in exporters report
- - Fixes emergency recipient toast not configured
- - Fixes location not correctly set in case of aggregation
- - Fixes unknown filter applied even when not filtered 
- - Fixes schema id switch in influx
- - Fixes Heap-buffer-overflow in IEC104
- - Fixes influxdb top stats
- - Fixes timeseries charts timezone and removed no more used files
- - Fixes FreeBSD packaging issues with VulScan
- - Fixes incorrect total calculation
- - Fixes various issues on the exporter pages
- - Fixes historical aggregated flow issue with timestamp lower than the last day
- - Fixes various lua memory issues
+ - Fix invalid packet count with fragemented traffic
+ - Fix info field cut after 256 characters
+ - Fix crash and memory leak introduced
+ - Fix missing fields in TLS alerts
+ - Fix invalid application protocol accounting in network interfaces due to partial nDPi detection
+ - Fix pcap download
+ - Fix bug in UDP scan
+ - Fix counter polling
+ - Fix SSH flow swap heuristic
+ - Fix segmentation fault on Stratosphere lab blacklist loading
+ - Fix pcap polling on macOS and FreeBSD Fixes handling of interface pause (idle) on pcap interfaces
+ - Fix SQL injection description
+ - Fix copy not working on alert description (#8316)
+ - Fix string info cut due to buffer size
+ - Fix invalid host rename when using HTTP proxies
+ - Fix reset counters does not reset sent/rcvd bytes/packets 
+ - Fix attempt to index nil value
+ - Fix some performance issues in the new flow page
+ - Fix timeseries queries not working with serialize by mac
+ - Fix incorrect check on TOS
+ - Fix thpt historical flow chart
+ - Fix historical flow charts
+ - Fix duplicated entries in radius
+ - Fix service map learning not reset at startup
+ - Fix circular dependencies
+ - Fix tooltip not working
+ - Fix active monitoring alert discarded with no pool selected 
+ - Fix incorrect hosts number
+ - Fix issue with host pools assignment
+ - Fix remote access alert not triggered 
+ - Fix SNMP topology map and added to all snmp devices
+ - Fix SNMP v3 import not working
+ - Fix topology map not correctly working
+ - Fix various translation to It, JP an other languages.
+ - Fix various issue with application reloading
+ - Fix various issues in SNMP Chart
+ - Fix bytes per minute SNMP Serie not added
+ - Fix shell script execution on alerts engaged 
+ - Fix crash when sorting hosts in low memory conditions
+ - Fix domain name extraction from the info column. 
+ - Fix colors in dygraph plotters
+ - Fix throughput values in local traffic rules. 
+ - Fix wrong source type in exporters report
+ - Fix emergency recipient toast not configured
+ - Fix location not correctly set in case of aggregation
+ - Fix unknown filter applied even when not filtered 
+ - Fix schema id switch in influx
+ - Fix Heap-buffer-overflow in IEC104
+ - Fix influxdb top stats
+ - Fix timeseries charts timezone and removed no more used files
+ - Fix FreeBSD packaging issues with VulScan
+ - Fix incorrect total calculation
+ - Fix various issues on the exporter pages
+ - Fix historical aggregated flow issue with timestamp lower than the last day
+ - Fix various lua memory issues
  - CentOS 7 fixes
  - Workaround for a memory leak on windows for a bug on the pthread library
  - Various OT fixes
- 
 
 #### ntopng 6.0 (October 2023)
 
