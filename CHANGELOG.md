@@ -3,19 +3,20 @@
 #### ntopng 6.2 (August 2024)
 
 ## Breakthroughs
- - Code optimizations, reduce locks, replace with atomic when possible
- - Huge memory usage reduction (by more than half)
+ - Major code optimizations and reduction of locks
+ - Huge memory footprint reduction (by more than half)
  - Huge improvements to SNMP polling
- - Add the possibility to replay historical flows on a virtual interface
- - Add support for ClickHouse Cloud and for TLS towards ClickHouse/SQLite
- - Add Cisco QoS MIB poll
- - Add Korean, Spanish and French translations
- - Add support to influxdb v.2 with compatible v.1 buckets
- - Add CheckMK syslog format
- - Add WeChat Alert endpoint
- - Add filtering ability to report page
- - Add MITRE alerts classification and Security report
- - Various tables refactoring, moved to new internal table component
+ - MITRE alerts classification
+ - New Security report
+ - Replay historical flows on a virtual interface
+ - Support for ClickHouse Cloud and TLS towards ClickHouse/SQLite
+ - Cisco QoS MIB poller
+ - New translations: Korean, Spanish and French
+ - Support for influxdb v.2 (with v.1 compatible buckets)
+ - CheckMK alerts export through Event Console (syslog)
+ - New WeChat Alert endpoint
+ - Add more filtering capabilities to the Reports
+ - New UI table component
 
 ## Improvements
  - Add flow_risk and host_risk remediations.
