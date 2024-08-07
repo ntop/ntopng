@@ -499,7 +499,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
 
 	  memset(&exp_stats, 0, sizeof(exp_stats));
 
-          if (json_object_object_get_ex(val, "time_last_used", &x))
+          if (json_object_object_get_ex(val, "time_last_flow", &x))
             exp_stats.time_last_used = (u_int32_t)json_object_get_int64(x);
 
 	  if (json_object_object_get_ex(val, "num_sflow_flows", &x))
