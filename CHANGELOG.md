@@ -14,7 +14,8 @@
  - Added support to influxdb v.2 with compatible v.1 buckets
  - Added CheckMK syslog format
  - Added WeChat Alert endpoint
- - Added filtering ability to report page 
+ - Added filtering ability to report page
+ - Added MITRE alerts classification and Security report
  - Various tables refactoring, moved to new internal table component
 
 ## Improvements
