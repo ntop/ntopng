@@ -523,7 +523,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
       if (json_object_object_get_ex(w, "num_flow_exports", &z))
         zrs.num_flow_exports = (u_int64_t)json_object_get_int64(z);
 
-      if (json_object_object_get_ex(w, "num_exporters", &z))
+      if (json_object_object_get_ex(w, "num_zmq_exporters", &z))
         zrs.num_exporters = (u_int8_t)json_object_get_int(z);
     }
 
@@ -557,8 +557,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
     /* Process Flow */
     setRemoteStats(&zrs);
 
-    for (std::map<u_int64_t, NetworkInterface *>::iterator it =
-             flowHashing.begin();
+    for (std::map<u_int64_t, NetworkInterface *>::iterator it = flowHashing.begin();
          it != flowHashing.end(); ++it) {
       ZMQParserInterface *z = (ZMQParserInterface *)it->second;
 
@@ -578,8 +577,10 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
           TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
           json_tokener_error_desc(jerr), payload_size, payload);
     }
-    once = true;
+    
+    once = true;    
     if (o) json_object_put(o);
+    
     return -1;
   }
 
@@ -3217,6 +3218,7 @@ void ZMQParserInterface::probeLuaStats(lua_State *vm) {
     // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s (%u)", zrs->remote_ifname,
     // it->first);
 
+    lua_push_uint32_table_entry(vm, "probe.last_update", last_zmq_remote_stats_update.tv_sec);
     lua_push_str_table_entry(vm, "remote.name", zrs->remote_ifname);
     lua_push_str_table_entry(vm, "remote.if_addr", zrs->remote_ifaddress);
     lua_push_uint64_table_entry(vm, "remote.ifspeed", zrs->remote_ifspeed);
