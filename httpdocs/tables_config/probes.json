@@ -109,6 +109,15 @@
 			]
 		},
 		{
+			"id": "probe_last_update",
+			"title_i18n": "if_stats_overview.probe_last_update",
+			"data_field": "probe_last_update",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
 			"id": "probe_license",
 			"title_i18n": "if_stats_overview.remote_probe_license",
 			"data_field": "probe_license",

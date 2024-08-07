@@ -12,8 +12,6 @@ local alert = require "alert"
 local alert_entities = require "alert_entities"
 local format_utils   = require "format_utils"
 
-require "lua_utils"
-
 -- ##############################################
 
 local alert_no_exporter_activity = classes.class(alert)
@@ -53,7 +51,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_no_exporter_activity.format(ifid, alert, alert_type_params)
-   local exporter_ip = split(alert_type_params.exporter_no_activity, "@")[2]
+   local exporter_ip = string.split(alert_type_params.exporter_no_activity, "@")[2]
    
    return(i18n("checks.no_activity_on_exporter_description",
 	       {

@@ -249,6 +249,12 @@ const map_table_def_columns = (columns) => {
         "probe_edition": (value, row) => {
             return value
         },
+        "probe_last_update": (value, row) => {
+	    if (!value)
+               return '';
+     	    else
+	       return (NtopUtils.secondsToTime((Math.round(new Date().getTime() / 1000)) - value) + " ago");
+        },
         "probe_license": (value, row) => {
             return value
         },
