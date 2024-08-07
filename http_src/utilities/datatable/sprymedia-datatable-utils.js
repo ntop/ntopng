@@ -860,7 +860,7 @@ export class DataTableRenders {
         if (flow.cli_ip.country && flow.cli_ip.country !== "nil")
             cliFlagLabel = DataTableRenders.filterize('cli_country', flow.cli_ip.country, flow.cli_ip.country, flow.cli_ip.country, flow.cli_ip.country, ' <img src="' + http_prefix + '/dist/images/blank.gif" class="flag flag-' + flow.cli_ip.country.toLowerCase() + '"></a> ');
 
-        let cliPortLabel = ((flow.cli_port && flow.cli_port > 0) ? ":" + DataTableRenders.filterize('cli_port', flow.cli_port, flow.cli_port) : "");
+        let cliPortLabel = ((flow.cli_port && flow.cli_port.value && flow.cli_port.value != 0) ? ":" + DataTableRenders.filterize('cli_port', flow.cli_port.value, flow.cli_port.label) : "");
 
         let cliBlacklisted = ''
         if (flow.cli_ip.blacklisted == true)
@@ -882,7 +882,7 @@ export class DataTableRenders {
             srvLabel = DataTableRenders.filterizeVlan(flow, row, 'srv_name', flow.srv_ip.name, flow.srv_ip.label, title);
         } else
             srvLabel = DataTableRenders.filterizeVlan(flow, row, 'srv_ip', flow.srv_ip.value, flow.srv_ip.label, flow.srv_ip.label_long);
-        let srvPortLabel = ((flow.srv_port && flow.srv_port != 0) ? ":" + DataTableRenders.filterize('srv_port', flow.srv_port_label, flow.srv_port) : "");
+        let srvPortLabel = ((flow.srv_port && flow.srv_port.value && flow.srv_port.value != 0) ? ":" + DataTableRenders.filterize('srv_port', flow.srv_port.value, flow.srv_port.label) : "");
 
         let srvFlagLabel = ''
 

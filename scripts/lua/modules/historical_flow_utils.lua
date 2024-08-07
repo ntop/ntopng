@@ -886,9 +886,11 @@ local function dt_format_flow(processed_record, record)
 
       -- Add flow info to the processed_record, in place of cli_ip/srv_ip
       local flow = {}
+      local vlan = {}
       local cli_ip = {}
       local srv_ip = {}
-      local vlan = {}
+      local cli_port = {}
+      local srv_port = {}
 
       -- Converting to the same format used for alert flows (see DataTableRenders.formatFlowTuple)
 
@@ -918,19 +920,21 @@ local function dt_format_flow(processed_record, record)
       vlan["label"] = vlan_id["label"]
       vlan["title"] = vlan_id["title"]
 
+      if processed_record["cli_port"] then
+         cli_port["value"] = processed_record["cli_port"]["value"]
+         cli_port["label"] = getservbyport(tonumber(cli_port["value"]))
+      end
+
+      if processed_record["srv_port"] then
+         srv_port["value"] = processed_record["srv_port"]["value"]
+         srv_port["label"] = getservbyport(tonumber(srv_port["value"]))
+      end
+
+      flow["vlan"] = vlan
       flow["cli_ip"] = cli_ip
       flow["srv_ip"] = srv_ip
-      flow["vlan"] = vlan
-
-      flow["cli_port"] = ""
-      if processed_record["cli_port"] then
-         flow["cli_port"] = processed_record["cli_port"]["value"]
-      end
-
-      flow["srv_port"] = ""
-      if processed_record["srv_port"] then
-         flow["srv_port"] = processed_record["srv_port"]["value"]
-      end
+      flow["cli_port"] = cli_port
+      flow["srv_port"] = srv_port
 
       processed_record["flow"] = flow
 

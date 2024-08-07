@@ -1264,13 +1264,15 @@ function flow_alert_store:format_record(value, no_html, verbose)
     end
 
     local flow_cli_port = {
-        value = value["cli_port"] or ""
-    }
-    local flow_srv_port = {
-        value = value["srv_port"] or ""
+        value = value["cli_port"] or "",
+        label = getservbyport(tonumber(value["cli_port"]))
     }
 
-    -- tprint(ntop.getservbyport(tonumber(value["srv_port"]), string.lower(l4_protocol)))
+    local flow_srv_port = {
+        value = value["srv_port"] or "",
+        label = getservbyport(tonumber(value["srv_port"]))
+    }
+
     -- Used to render custom queries (compatible with historical flows columns definition)
     record[RNAME.CLI_IP.name] = flow_cli_ip
     record[RNAME.SRV_IP.name] = flow_srv_ip
@@ -1284,8 +1286,8 @@ function flow_alert_store:format_record(value, no_html, verbose)
             vlan = vlan,
             cli_ip = flow_cli_ip,
             srv_ip = flow_srv_ip,
-            cli_port = value["cli_port"],
-            srv_port = value["srv_port"],
+            cli_port = flow_cli_port,
+            srv_port = flow_srv_port,
             active_url = active_url
         }
     end
@@ -1747,41 +1749,13 @@ function flow_alert_store:format_record_telemetry(value)
 
     local l4_protocol = not isEmptyString(value["proto"]) and l4_proto_to_string(value["proto"])
     local l7_protocol = tonumber(value["l7_master_proto"]) and tonumber(value["l7_proto"]) and
-                            interface.getnDPIFullProtoName(tonumber(value["l7_master_proto"]),
-            tonumber(value["l7_proto"])) or ""
-
-    --[[
-        -- Prepare response
-        record.eventInfo = {
-            eventId = value["rowid"],
-            timestamp = tonumber(value["tstamp"] or ""),
-            eventTypeCode = tonumber(value["alert_id"]),
-            eventTypeName = alert_name,
-            eventScore = tonumber(value["score"] or ""),
-            eventContent = value["info"],
-            eventDetails = flow_related_info
-        }
-        
-        record.flowInfo = {
-            flowProtocolL4 = l4_proto,
-            flowApplicationL7 = l7_protocol,
-            numBytesDestinationToSource = tonumber(flow["DST2SRC_BYTES"] or 0),
-            numBytesSourceToDestination = tonumber(flow["SRC2DST_BYTES"] or 0),
-            -- packetsExchanged = tonumber(flow["PACKETS"] or "")
-        }
-        
-        record.sourceInfo = flow_cli_ip
-        record.destinationInfo = flow_srv_ip
-        ]]
+                            interface.getnDPIFullProtoName(tonumber(value["l7_master_proto"]), tonumber(value["l7_proto"])) or ""
                 
     record = {
         sourceAddress = cli_ip or "",
         sourcePort = value["cli_port"],
         sourceCountry = cli_country,
         sourceIsBlacklisted = cli_blacklisted,
-        destinationAddress = srv_ip or "",
-        destinationPort = value["srv_port"],
-        destinationCountry = srv_country,
         destinationAddress = srv_ip or "",
         destinationPort = value["srv_port"],
         destinationCountry = srv_country,
@@ -1796,15 +1770,9 @@ function flow_alert_store:format_record_telemetry(value)
         flowApplicationL7 = l7_protocol,
         numBytesDestinationToSource = tonumber(flow["DST2SRC_BYTES"] or 0),
         numBytesSourceToDestination = tonumber(flow["SRC2DST_BYTES"] or 0)
-
     }
-    -- record.community_id = value["community_id"]
-    -- record.dst2src_tcp_flags = tonumber(flow["DST2SRC_TCP_FLAGS"] or "")
-    -- record.src2dst_tcp_flags = tonumber(flow["SRC2DST_TCP_FLAGS"] or "")
     
     return record
 end
-
-
 
 return flow_alert_store

@@ -692,12 +692,11 @@ end
 
 -- getservbyport
 function getservbyport(port_num, proto)
-    if (proto == nil) then
-        proto = "TCP"
-    end
-
+    if not port_num then return '' end
     port_num = tonumber(port_num)
+    if not port_num then return '' end
 
+    if not proto then proto = "TCP" end
     proto = string.lower(proto)
 
     -- io.write(port_num.."@"..proto.."\n")

@@ -138,6 +138,7 @@ function shell.dequeueRecipientAlerts(recipient, budget)
     local budget_used = 0
     local MAX_ALERTS_PER_REQUEST = 1
     local return_msg = {}
+
     -- Dequeue alerts up to budget x MAX_ALERTS_PER_REQUEST
     -- Note: in this case budget is the number of script messages to send
     while budget_used <= budget and more_available do
