@@ -11121,7 +11121,7 @@ void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
 
   /* Decrease total number of hosts */
   if (!totalNumHosts) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 4);
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow", 4, ifname);
   } else {
     totalNumHosts--;
   }
@@ -11129,7 +11129,7 @@ void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
   /* Decrease total number of local hosts */
   if (local) {
     if (!numLocalHosts) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 1);
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow", 1, ifname);
     } else {
       numLocalHosts--;
     }
@@ -11138,7 +11138,7 @@ void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
   if(rxOnlyHost) {
     /* Decrease total number of RX only hosts */
     if (!numTotalRxOnlyHosts) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 3); // <---
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow", 3, ifname); // <---
     } else {
       numTotalRxOnlyHosts--;
     }
@@ -11146,7 +11146,7 @@ void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
     /* Decrease total number of RX only local hosts */
     if(local) {
       if (!numLocalRxOnlyHosts) {
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d): Counter overflow", 2);
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow", 2, ifname);
       } else {
         numLocalRxOnlyHosts--;
       }
