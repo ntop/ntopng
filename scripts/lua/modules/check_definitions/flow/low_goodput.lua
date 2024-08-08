@@ -14,8 +14,6 @@ local script = {
   
   -- Script category
   category = checks.check_categories.network,
-
-  packet_interface_only = true,
   nedge_exclude = true,
 
   -- This script is only for alerts generation

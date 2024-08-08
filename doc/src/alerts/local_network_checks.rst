@@ -14,26 +14,11 @@ The ARP traffic between two MACS addresses belonging to different broadcast doma
 
 The Alert is sent when the broadcast domain is too large.
 
+*Interface: Packet & ZMQ*
 
 *Category: Network*
 
 *Enabled by Default*
-
-
-
-**Egress Traffic**
-~~~~~~~~~~~~~~~~~~
-
-Checks for Egress Traffic Bytes exceed.
-
-Egress traffic is network traffic that begins inside of a network and passes through its routers to an outside destination. The system notifies in case the Egress Bytes delta exceeds the threshold.
-
-The alert is sent when the egress traffic bytes exceeds.
-
-*Category: Network*
-
-*Not Enabled by Default*
-
 
 
 **Flow Flood Victim**
@@ -45,51 +30,9 @@ In a computer network, flooding occurs when a router uses a nonadaptive routing 
 
 The alert is sent in case of server flow flood.
 
+*Interface: Packet & ZMQ*
+
 *Category: Cybersecurity*
-
-*Not Enabled by Default*
-
-
-
-**High Network Score**
-~~~~~~~~~~~~~~~~~~~~~~
-
-Checks for High Network Score.
-
-Depending on the number of hosts in a Network, if total Score exceeds the threshold per host configured then the system detects it.
-
-The alert is sent when the high network score is detected.
-
-
-*Category: Network*
-
-*Not Enabled by Default*
-
-
-**Ingress Traffic**
-~~~~~~~~~~~~~~~~~~~
-
-Checks for Ingress Traffic.
-
-Ingress traffic is a network traffic originated from external networks and destined for a node in the host network. When the Ingress Bytes delta exceeds the threshold the system detects the change.
-
-The alert is sent when the ingress bytes exceed the threshold.
-
-*Category: Network*
-
-*Not Enabled by Default*
-
-
-**Inner Traffic**
-~~~~~~~~~~~~~~~~~
-
-Checks for Inner Traffic.
-
-Inner traffic is a network traffic originated from internal networks and destined for other internal networks. When the Inner Bytes delta exceeds the threshold the system detects the change.
-
-The alert is sent when the inner bytes exceed the threshold.
-
-*Category: Network*
 
 *Not Enabled by Default*
 
@@ -102,6 +45,8 @@ Checks for IP or MAC Reassociation/Spoofing.
 This alert might indicate an ARP spoof attempt. 
 
 The alert is sent when an IP address, previously seen with a MAC address, is now seen with another MAC address. Only works for the builtin alert recipient.
+
+*Interface: Packet & ZMQ*
 
 *Category: Network*
 
@@ -117,13 +62,15 @@ Network discovery is the process that allows computers and devices to find each 
 
 The alert is sent when a network discovery is detected.
 
+*Interface: Packet & ZMQ*
+
 *Category: Network*
 
 *Enabled by Default*
 
 
 **Network Issues**
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 
 Checks for Network Discovery.
 
@@ -131,19 +78,23 @@ Network issues, like packets loss, could identify an issue in the network.
 
 The alert is sent when network issues (retransmissions, high number of fragments and packet loss) are identified.
 
+*Interface: Packet & ZMQ*
+
 *Category: Network*
 
 *Enabled by Default*
 
 
 **Network Score per Host**
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for the score of the hosts in a network.
 
 An high score (as average per host) on many hosts of a network could mean a possible issue with the network itself.
 
 The alert is sent when the average score per host of a network is higher then a threshold.
+
+*Interface: Packet & ZMQ*
 
 *Category: Network*
 
@@ -159,6 +110,8 @@ A SYN Flood is a common form of DDoS attack that can target any system connecte
 
 The alert is sent when the number of received SYN exceeds the threshold.
 
+*Interface: Packet*
+
 *Category: Cybersecurity*
 
 *Not Enabled by Default*
@@ -173,6 +126,8 @@ SYN scanning is a tactic that a hacker can use to determine the state of a commu
 This approach, one of the oldest, sometimes is used to perform DoS attack. SYN scanning is also known as half-open scanning.
 
 The alert is sent when the number of received SYNs exceeds the threshold.
+
+*Interface: Packet & ZMQ*
 
 *Category: Cybersecurity*
 

@@ -6,18 +6,21 @@ These checks are performed per network interface monitored by ntopng.
 ____________________
 
 
-**Alerts Drops**
-~~~~~~~~~~~~~~~~
+**Device/MAC Address Tracking**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Check for MAC addresses.
 
-Checks for dropped alerts.
+An alert is triggered whenever an unexpected MAC address connects or disconnects form an Interface. After enabling the alert, a new page, called `Devices Exclusion` (more info can be found `here <../advanced_features/devices_exclusion.html>`_) is going to be available in the `Settings` menu. 
 
-The alerts could be dropped when too many are queued/generated.
+By jumping there, users are able to configure denied/allowed MAC addresses (unexpected/expected MAC addresses). When a denied or non accounted MAC address connects to the Interface a new Engaged alert is going to be triggered, that is going to be released when the unexpected MAC address is going to disconnect from the Interface or when allowed.  
 
-The alert is sent when the system drops the alert.
+*Interface: Packet & ZMQ*
 
-*Category: Internals*
+*Category: Network*
 
-*Enabled by Default*
+*License: Pro*
+
+*Disabled by Default*
 
 
 **DHCP Storm**
@@ -28,6 +31,8 @@ Checks for DHCP flooding.
 DHCP storm occurs when DHCP router gets too many packets requests in a minute - by blocking totally the router functioning.
 
 The alert is triggered when DHCP storm is detected.
+
+*Interface: Packet & ZMQ*
 
 *Category: Cybersecurity*
 
@@ -43,16 +48,71 @@ There are many reasons why the ghost network may appear - starting from misconfi
 
 The alert is sent when the unknown network is discovered.
 
+*Interface: Packet & ZMQ*
+
 *Category: Cybersecurity*
 
 *Enabled by Default*
 
-**Idle Hash Table Entries**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Checks for Idle Entries.
+**Interface Alerts Drops**
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Trigger an alert when the percentage of idle entries in the hash table over the total number of entries exceeds the threshold.
+Checks for dropped alerts.
+
+The alerts could be dropped when too many are queued/generated.
+
+The alert is sent when the system drops the alert.
+
+*Interface: Packet & ZMQ*
+
+*Category: Internals*
+
+*Enabled by Default*
+
+
+**Interface Periodic Activity Not Executed**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for periodic activity.
+
+Periodic activity is not executed since all the worker threads are busy will be buffered until a worker threads are available once again
+
+Alert is sent when the periodic activity hasn't been executed.
+
+*Interface: Packet & ZMQ*
+
+*Category: Internals*
+
+*Enabled by Default*
+
+
+**Interface Slow Periodic Activity**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for slow execution of periodic activity.
+
+A bug is causing a periodic activity to take more than its max duration to complete.
+
+Alert is sent when periodic activity is taking too long to execute. 
+
+*Interface: Packet & ZMQ*
+
+*Category: Internals*
+
+*Enabled by Default*
+
+
+**No Exporter Activity**
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Checks for activities on the exporters.
+
+There could be no traffic because of misconfigurations or because of the service has gone down.
+
+The alert is sent when no activity on the exporter is noticed.
+
+*Interface: ZMQ*
 
 *Category: Internals*
 
@@ -68,9 +128,12 @@ There could be no traffic because of misconfigurations or because of the mirror 
 
 The alert is sent when no activity on the interface is noticed.
 
+*Interface: Packet & ZMQ*
+
 *Category: Internals*
 
 *Enabled by Default*
+
 
 **Packet Drops**
 ~~~~~~~~~~~~~~~~
@@ -81,108 +144,11 @@ The packets could be dropped when too many are analyzed.
 
 The alert is sent when the system drops packets.
 
-*Category: Internals*
-
-*Enabled by Default*
-
-
-**Periodic Activity Not Executed**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Checks for periodic activity.
-
-Periodic activity is not executed since all the worker threads are busy will be buffered until a worker threads are available once again
-
-Alert is sent when the periodic activity hasn't been executed.
-
+*Interface: Packet & ZMQ*
 
 *Category: Internals*
 
 *Enabled by Default*
-
-
-**Slow Periodic Activity**
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Checks for slow execution of periodic activity.
-
-A bug is causing a periodic activity to take more than its max duration to complete.
-
-
-Alert is sent when periodic activity is taking too long to execute. 
-
-*Category: Internals*
-
-*Enabled by Default*
-
-
-**Throughput Exceeded**
-~~~~~~~~~~~~~~~~~~~~
-
-Checks for throughput rate.
-
-When the system throughput (https://en.wikipedia.org/wiki/Network_throughput) rate exceeds a pre-configured threshold of the maximum allowed throughput rate.
-
-The alert is sent when the throughput exceeds threshhold.
-
-*Category: Network*
-
-*Enabled by Default
-
-
-**Unexpected Application Behaviour**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Checks for unexpected app behaviour.
-
-Unexpected behaviour in applications could be an indicator of bugs in the code that causes an unusual attitude or incorrect functioning of an app.
-
-Alert is sent when unusual app behaviour is detected.
-
-*Category: Network*
-
-*Enabled by Default*
-
-
-**Unexpected ASN Behaviour**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Checks for ASN Behaviour.
-
-Unexpected behavior is identified in traffic coming from one of the subnets of the ASN = Autonomous System Number (https://en.wikipedia.org/wiki/Autonomous_system_(Internet))
-
-The alert is sent when unexpected behaviour is seen in ASN.
-
-*Category: Cybersecurity*
-
-*Not Enabled by Default*
-
-
-**Unexpected Device Connected/Disconnected**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Check for MAC addresses.
-
-An alert is triggered whenever an unexpected MAC address connects or disconnects form an Interface. After enabling the alert, a new page, called `Devices Exclusion` (more info can be found `here <../advanced_features/devices_exclusion.html>`_) is going to be available in the `Settings` menu. 
-
-By jumping there, users are able to configure denied/allowed MAC addresses (unexpected/expected MAC addresses). When a denied or non accounted MAC address connects to the Interface a new Engaged alert is going to be triggered, that is going to be released when the unexpected MAC address is going to disconnect from the Interface or when allowed.  
-
-*Category: Network*
-
-*License: Pro*
-
-*Disabled by Default*
-
-
-**Unexpected Network Behaviour**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Checks for Unexpected Behaviour.
-
-Network behavior anomaly detection is focused on networks for abnormal behavior in order to detect threats or flaws.
- 
-Alert is triggered when unexpected behaviour comes from the specific network.
-
-*Category: Cybersecurity*
-
-*Not Enabled by Default*  
 
 
 **Unexpected Score Behaviour**
@@ -192,6 +158,8 @@ Checks for Unexpected Behaviour.
 Score behavior anomaly detection is focused on score for abnormal behavior in order to detect threats or flaws.
  
 Alert is triggered when unexpected behaviour comes from the interface.
+
+*Interface: Packet & ZMQ*
 
 *Category: Cybersecurity*
 
@@ -205,6 +173,8 @@ Checks for Unexpected Behaviour.
 Traffic behavior anomaly detection is focused on the interface for abnormal behavior in order to detect threats or flaws.
  
 Alert is triggered when unexpected behaviour comes from the interface.
+
+*Interface: Packet & ZMQ*
 
 *Category: Cybersecurity*
 

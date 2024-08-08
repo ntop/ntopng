@@ -16,6 +16,7 @@ Half-duplex devices can only transmit in one direction at one time
 
 The alert is sent when Duplex status is changed.
 
+*Interface: Packet & ZMQ*
 
 *Category: SNMP*
 
@@ -31,6 +32,8 @@ An interface discard happens when the device has decided to discard a packet for
 
 The alert is sent when an interface error is seen.
 
+*Interface: Packet & ZMQ*
+
 *Category: SNMP*
 
 *Enabled by Default*
@@ -44,6 +47,8 @@ Checks for Interface Errors.
 An high rate of errors in comparison with packets could represent many issues on a device.
 
 The alert is sent when the errors counter of an interface exceed 5% of packets.
+
+*Interface: Packet & ZMQ*
 
 *Category: SNMP*
 
@@ -60,13 +65,15 @@ A network topology map diagram is also important troubleshooting tool, it can re
 
 Alert is sent when changes in the SNMP network topology are discovered.
 
+*Interface: Packet & ZMQ*
+
 *Category: SNMP*
 
 *Enabled by Default*
 
 
-**MAC Detection**
-~~~~~~~~~~~~~~~~~
+**MAC Detection (SNMP)**
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks if a MAC has disappeared/appeared on an interface or device.
 
@@ -74,19 +81,23 @@ To detect and locate possible unwanted MACs on a device/network.
 
 Alert is sent when a MAC address appear or disapper from an interface or device.
 
+*Interface: Packet & ZMQ*
+
 *Category: SNMP*
 
 *Enabled by Default*
 
 
-**MAC Port Changed**
-~~~~~~~~~~~~~~~~~~~~
+**MAC Port Changed (SNMP)**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks if a MAC has been moved between interfaces or devices.
 
 If a MAC address is continuously moved between the two interfaces, Layer 2 loops might occur. To detect and locate loops, you can view the MAC address move information. To display the MAC address move records after the device is started, use the display mac-address mac-move command.
 
 Alert is sent when MAC address moved between interfaces.
+
+*Interface: Packet & ZMQ*
 
 *Category: SNMP*
 
@@ -113,6 +124,7 @@ and few others.
 
 Alert is sent in case the operational state of an interface changed.
 
+*Interface: Packet & ZMQ*
 
 *Category: SNMP*
 
@@ -130,6 +142,8 @@ When an SNMP agent restarts (for example, after a reboot of the network device),
 
 Alert is sent when a restart for an SNMP device has been seen. 
 
+*Interface: Packet & ZMQ*
+
 *Category: SNMP*
 
 *Enabled by Default*
@@ -141,6 +155,8 @@ Alert is sent when a restart for an SNMP device has been seen.
 Checks for threshold configured in the SNMP Device Rules page.
 
 Alert is sent when a threshold from one of the devices configured is exceeded. 
+
+*Interface: Packet & ZMQ*
 
 *Category: SNMP*
 
@@ -156,6 +172,8 @@ An higher number of MACs on a Non-Trunk port could possibly mean that an unwante
 
 Alert is sent when the number of MACs detected on a non-trunk port exceeds the configured threshold. 
 
+*Interface: Packet & ZMQ*
+
 *Category: SNMP*
 
 *Enabled by Default*
@@ -169,6 +187,8 @@ Checks the traffic from an SNMP device.
 No more traffic from an SNMP device could mean that the device is down or some problem arose (likewise a device that abruptly starts sending traffic). 
 
 Alert is sent when a device starts/stops sending traffic. 
+
+*Interface: Packet & ZMQ*
 
 *Category: SNMP*
 

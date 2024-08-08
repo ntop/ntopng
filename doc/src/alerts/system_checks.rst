@@ -6,6 +6,21 @@ System checks are designed to spot ntopng problems and thus make sure the applic
 ____________________
 
 
+**Exporters Limit Exceeded**
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Checks for a the number of exporters.
+
+Each ntopng license supports up to a specific number of exporters.
+
+The alert is sent when there are more exporters than the number supported by the license.
+
+*Interface: Packet & ZMQ*
+
+*Category: Internals*
+
+*Enabled by Default*
+
+
 **Intrusion Detection and Prevention Log**
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Checks for Intrusion Detection and Prevention logs.
@@ -13,6 +28,8 @@ Checks for Intrusion Detection and Prevention logs.
 Ntopng notifies when a host has been added or removed from the jailed hosts pool.
 
 The Alert is sent when unusual logged events are detected.
+
+*Interface: Packet & ZMQ*
 
 *Category: Internals*
 
@@ -27,6 +44,8 @@ The system sends an alert when a periodic activity is queuing and is not getting
 
 The alert is sent when the worker threads are busy.
 
+*Interface: Packet & ZMQ*
+
 *Category: Internals*
 
 *Enabled by Default*
@@ -39,6 +58,8 @@ Checks for slow periodic activity.
 A periodic activity is taking time to start the execution.
 
 The alert is sent to notify that a periodic activity takes too long.
+
+*Interface: Packet & ZMQ*
 
 *Category: Internals*
 
@@ -53,22 +74,22 @@ Too many alerts are generated in a short period of time, this may cause the syst
 
 The alert is sent when there is no room in the internal alerts queue and the alerts are dropped.
 
+*Interface: Packet & ZMQ*
+
 *Category: Internals*
 
 *Enabled by Default*
 
 
-**Vulnerability Scan Changes**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Checks for Vulnerability scans.
+**System Error**
+~~~~~~~~~~~~~~~~
+Checks for a system errors.
 
-Ntopng notifies when a host, previosly scanned, has changes both on the number of open ports and on the CVEs found.
+Trigger an alert when a system error (ntopng failure) is detected.
 
-The Alert is sent when at least one of these two has changed.
+*Interface: Packet & ZMQ*
 
-The Alert can be found in the Active Monitoring alert section.
-
-*Category: CyberSecurity*
+*Category: Internals*
 
 *Enabled by Default*
 

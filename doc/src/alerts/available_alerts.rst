@@ -7,7 +7,24 @@ ntopng alerts are evaluated with :ref:`WebUIUserScripts`. Checks are executed fo
   :align: center
   :alt: Checks Configuration
   
-Checks are desiged to verify specific conditions and when they are not met, trigger an alert. Below you can find the list of check families and available alerts
+Checks are desiged to verify specific conditions and when they are not met, trigger an alert. 
+
+Interface Types
+~~~~~~~~~~~~~~~
+
+Checks can be available on both, ZMQ Interfaces and Packets Interfaces, or just on one of them;
+
+.. |packet_interface| image:: ../img/packet_interface_icon.png
+- Packet interface: |packet_interface|
+
+.. |zmq_interface| image:: ../img/zmq_interface_icon.png
+- ZMQ interface: |zmq_interface|
+
+
+Alerts List
+~~~~~~~~~~~
+
+Below you can find the list of check families and available alerts
 
 .. toctree::
     :maxdepth: 2
@@ -18,6 +35,7 @@ Checks are desiged to verify specific conditions and when they are not met, trig
     snmp_checks
     flow_checks
     system_checks
+    active_monitoring_checks
     syslog_checks
     host_rules
     
