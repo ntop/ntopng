@@ -22,7 +22,7 @@
 		},
 		{
 			"id": "probe_version",
-			"title_i18n": "flow_devices.version",
+			"title_i18n": "flow_devices.nprobe_version",
 			"data_field": "probe_version",
 			"sortable": true,
 			"max-width": "20px",

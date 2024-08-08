@@ -6183,7 +6183,7 @@ void NetworkInterface::getActiveFlowsStats(
 
   if (!only_traffic_stats) {
     /* DPI stats */
-    ndpi_stats->lua(this, vm);
+    ndpi_stats->lua(this, vm, true);
     stats->lua(vm);
   }
 

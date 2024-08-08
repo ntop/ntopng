@@ -3279,6 +3279,7 @@ local lang = {
     ["note_zmq_fields4"] = "sFlow probes interfaces are determined using field ifIndex received via ZMQ (topic 'counter')",
     ["nprobe_instances"] = "nProbe Instances",
     ["nprobe_interface"] = "IfName (nProbe)",
+    ["nprobe_version"] = "Version (nProbe)",
     ["ntopng_interface"] = "IfName (ntopng)",
     ["observation_point"] = "Observation Point",
     ["observation_point_x"] = "Observation Point %{observation_point}",
