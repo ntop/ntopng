@@ -210,7 +210,50 @@ end
 
 -- ###############################################
 
-local function format_historical_issue_description(flow_details, flow)
+local function format_historical_issue_description(alert_id, score, title, msg, alert_scores)
+    local alert_consts = require "alert_consts"
+    local alert_entities = require "alert_entities"
+
+    if not alert_id or alert_id == "0" then
+        return nil
+    end
+
+    if alert_scores and alert_scores[alert_id] then
+        score = alert_scores[alert_id]
+    end
+    local severity_id = map_score_to_severity(score)
+    local severity = alert_consts.alertSeverityById(severity_id)
+
+    local value = i18n('score') .. ': <span style="color:' .. severity.color .. '">' .. score .. '</span> - ' .. msg
+
+    -- Add Mitre info
+    local alert_key  = alert_consts.getAlertType(alert_id, alert_entities.flow.entity_id)
+    if alert_key then
+        local  mitre_info = alert_consts.getAlertMitreInfo(alert_key)		      
+        if mitre_info then
+
+            value = value .. ' - ' .. i18n("mitre_id") .. ' '
+			  
+	    local keys = split(mitre_info.mitre_id, "%.")
+	    local url  = "https://attack.mitre.org/techniques/"..keys[1]:gsub("%%", "").."/"
+	    if keys[2] ~= nil then
+                url = url .. keys[2]:gsub("%%", "") .. "/"
+            end
+            value = value .. '<a href="'..url..'">'..mitre_info.mitre_id.."</A>"
+
+            value = value .. ' ' .. i18n(mitre_info.mitre_tactic.i18n_label)
+        end
+    end
+
+    return {
+        name = title,
+        values = { value }
+    }
+end
+
+-- ###############################################
+
+local function format_historical_issues(flow_details, flow)
     local alert_store_utils = require "alert_store_utils"
     local alert_entities = require "alert_entities"
     local alert_consts = require "alert_consts"
@@ -232,17 +275,23 @@ local function format_historical_issue_description(flow_details, flow)
     end
 
     local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
-    local alert_score = alert_json.alert_score
+    local alert_scores = alert_json.alert_score
     local alert_consts = require "alert_consts"
     local alert_label = i18n("flow_details.normal")
     local alert_id = tonumber(flow["STATUS"] or 0)
     local main_alert_score = ntop.getFlowAlertScore(tonumber(alert_id))
     -- Check if there is a custom score
-    if alert_score and alert_score[tostring(alert_id)] then
-        main_alert_score = alert_score[tostring(alert_id)]
+    if alert_scores and alert_scores[tostring(alert_id)] then
+        main_alert_score = alert_scores[tostring(alert_id)]
     end
     local severity_id = map_score_to_severity(main_alert_score)
     local severity = alert_consts.alertSeverityById(severity_id)
+
+    flow_details[#flow_details + 1] = {
+        name = i18n('total_flow_score'),
+        values = {'<span style="color:' .. severity.color .. '">' .. format_utils.formatValue(tonumber(flow["SCORE"])) ..
+            '</span>', ''}
+    }
 
     -- No status set
     if (alert_id ~= 0) then
@@ -250,35 +299,16 @@ local function format_historical_issue_description(flow_details, flow)
         if not isEmptyString(details) then
             alert_label = alert_label .. " [" .. details .. "]"
         end
+
+        flow_details[#flow_details + 1] = format_historical_issue_description(tostring(alert_id), tonumber(main_alert_score), i18n("issues_score"), alert_label, alert_scores)
     end
 
-    flow_details[#flow_details + 1] = {
-        name = i18n('total_flow_score'), -- Empty label
-        values = {'<span style="color:' .. severity.color .. '">' .. format_utils.formatValue(tonumber(flow["SCORE"])) ..
-            '</span>', ''}
-    }
-
-    flow_details[#flow_details + 1] = {
-        name = i18n("issues_score"),
-        values = {i18n('score') .. ': <span style="color:' .. severity.color .. '">' ..
-            format_utils.formatValue(main_alert_score) .. '</span> - ' .. alert_label}
-    }
     local alert_utils = require "alert_utils"
     local _, other_issues = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'], alert_json, false, nil,
         true)
     if table.len(other_issues) > 0 then
-        for _, issues in pairs(other_issues or {}) do
-            local alert_id = tostring(issues.alert_id)
-            local score = tonumber(issues.score)
-            if alert_score and alert_score[alert_id] then
-                score = alert_score[alert_id]
-            end
-            local severity_id = map_score_to_severity(score)
-            local severity = alert_consts.alertSeverityById(severity_id)
-            flow_details[#flow_details + 1] = {
-                name = '', -- Empty label
-                values = {i18n('score') .. ': <span style="color:' .. severity.color .. '">' .. score .. '</span> - ' .. issues.msg}
-            }
+        for _, issue in pairs(other_issues or {}) do
+            flow_details[#flow_details + 1] = format_historical_issue_description(tostring(issue.alert_id), tonumber(issue.score), '', issue.msg, alert_scores)
         end
     end
 
@@ -522,7 +552,7 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
         end
 
         if (info["score"]) and (info["score"]["value"] ~= 0) then
-            flow_details = format_historical_issue_description(flow_details, flow)
+            flow_details = format_historical_issues(flow_details, flow)
         end
 
         if (info['COMMUNITY_ID']) and (not isEmptyString(info['COMMUNITY_ID'])) then
