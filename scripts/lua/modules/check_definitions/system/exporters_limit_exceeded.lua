@@ -14,8 +14,8 @@ local script = {
     hooks = {},
 
     gui = {
-        i18n_title = "internals.system_alert_drops",
-        i18n_description = "internals.system_alert_drops_descr"
+        i18n_title = "internals.exporters_limit_exceeded_title",
+        i18n_description = "internals.exporters_limit_exceeded_descr"
     }
 }
 

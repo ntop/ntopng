@@ -9,7 +9,7 @@ local checks = require("checks")
 local script = {
    -- Script category
    category = checks.check_categories.internals,
-
+   zmq_interface_only = true,
    default_enabled = true,
    hooks = {},
 

@@ -81,6 +81,12 @@ for _, subdir in ipairs(subdirs) do
         end 
       end
 
+      if script.zmq_interface_only == true then
+        if not interface.isZMQInterface() then
+          goto continue
+        end 
+      end
+
       if subdir == 'flow' and script.alert_id then
         -- This is an exception, flow alerts has scores set in c++
         local severity_id = ntop.mapScoreToSeverity(ntop.getFlowAlertScore(script.alert_id))
