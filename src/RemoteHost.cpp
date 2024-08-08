@@ -50,6 +50,7 @@ RemoteHost::RemoteHost(NetworkInterface *_iface, int32_t _iface_idx,
 
 RemoteHost::~RemoteHost() {
   /* Decrease number of active hosts */
+  if(isUnicastHost())
   iface->decNumHosts(isLocalHost(), isRxOnlyHost());
 }
 
@@ -61,6 +62,7 @@ void RemoteHost::set_hash_entry_state_idle() {
 
 /* *************************************** */
 
+/* NOTE: Host::initialize will be called by the constructor after the Host initializator */
 void RemoteHost::initialize() {
   char buf[64], host[96];
   char *strIP = ip.print(buf, sizeof(buf));
@@ -78,5 +80,6 @@ void RemoteHost::initialize() {
     ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true);
   }
 
-  iface->incNumHosts(isLocalHost(), true /* Init the host, so bytes are 0, considered RX only */);
+  if (isUnicastHost())
+    iface->incNumHosts(isLocalHost(), true /* Initialization: bytes are 0, considered RX only */);
 }

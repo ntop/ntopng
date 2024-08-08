@@ -290,6 +290,7 @@ class Host : public GenericHashEntry,
     return (ip.isBroadcastAddress() || (mac && mac->isBroadcast()));
   }
   bool isMulticastHost() const { return (ip.isMulticastAddress()); }
+  inline bool isUnicastHost() const { return (!isBroadcastHost() && !isMulticastHost()); };
 
   char *printMask(char *str, u_int str_len) {
     return ip.printMask(str, str_len, isLocalHost());
@@ -917,7 +918,7 @@ class Host : public GenericHashEntry,
       return (false);
   }
   inline bool isRxOnlyHost() {
-    return (is_rx_only && (!isBroadcastHost()) && (!isMulticastHost()));
+    return (is_rx_only && isUnicastHost());
   }
   inline void incUnidirectionalIngressTCPUDPFlows() {
     unidirectionalTCPUDPFlows.numIngressFlows++;

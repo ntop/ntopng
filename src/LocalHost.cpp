@@ -58,9 +58,8 @@ LocalHost::~LocalHost() {
   if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();
   /* Decrease number of active hosts */
-  if(isLocalUnicastHost()) {
+  if(isUnicastHost())
     iface->decNumHosts(isLocalHost(), is_rx_only);
-  }
 }
 
 /* *************************************** */
@@ -90,7 +89,7 @@ void LocalHost::set_hash_entry_state_idle() {
   }
 
   /* Only increase the number of host if it's a unicast host */
-  if(isLocalUnicastHost()) {
+  if(isUnicastHost()) {
     if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
       ns->decNumHosts();
   }
@@ -100,7 +99,7 @@ void LocalHost::set_hash_entry_state_idle() {
 
 /* *************************************** */
 
-/* NOTE: Host::initialize will be called from the Host initializator */
+/* NOTE: Host::initialize will be called by the constructor after the Host initializator */
 void LocalHost::initialize() {
   char buf[64], host[96], rsp[256];
   stats = allocateStats();
@@ -141,10 +140,11 @@ void LocalHost::initialize() {
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 18);
 
   /* Only increase the number of host if it's a unicast host */
-  if(isLocalUnicastHost()) {
+  if(isUnicastHost()) {
     if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
       ns->incNumHosts();
-    iface->incNumHosts(isLocalHost(), true /* Init the host, so bytes are 0, considered RX only */);
+
+    iface->incNumHosts(isLocalHost(), true /* Initialization: bytes are 0, considered RX only */);
   }
 
 #ifdef LOCALHOST_DEBUG

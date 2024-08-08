@@ -286,7 +286,9 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
   active_alerted_flows = 0;
 
   is_dhcp_host = 0, is_crawler_bot_scanner = 0, is_in_broadcast_domain = 0,
-    more_then_one_device = 0, device_ip = 0, is_rx_only = 0;
+    more_then_one_device = 0, device_ip = 0;
+
+  is_rx_only = 0;
 
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be
                                                    changed by deserialize */
@@ -2838,11 +2840,14 @@ void Host::setRxOnlyHost(bool set_it) {
   //if(stats != NULL && !stats->getNumPktsRcvd() && !stats->getNumPktsSent()) return;
 
   if(is_rx_only && (set_it == false)) {
-    /* It used to be rx-only ... */
-    iface->decNumHosts(isLocalHost(), true /* rx-only */);
-      
-    /* .. and it is not anymore */
-    iface->incNumHosts(isLocalHost(), false);
+
+    if(isUnicastHost()) {
+      /* It used to be rx-only ... */
+      iface->decNumHosts(isLocalHost(), true /* rx-only */);
+      /* .. and it is not anymore */
+      iface->incNumHosts(isLocalHost(), false);
+    }
+
   } else if((is_rx_only == false) && (set_it == true)) {
     //ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid transition");
     /* The above issue is not reported as usually this branch is used during initialization */
