@@ -123,7 +123,7 @@ some ntopng alerts are available with a specific license. Here a list of all the
 +--------------------------------+-----------+-----+--------------+--------------+---------------+
 | High Interface Discards/Errors |           |     | x            | x            | x             |
 +--------------------------------+-----------+-----+--------------+--------------+---------------+
-| Interface Errors Exceeded	     |           |     | x            | x            | x             |
+| Interface Errors Exceeded      |           |     | x            | x            | x             |
 +--------------------------------+-----------+-----+--------------+--------------+---------------+
 | LLDP/CDP Topology Monitor      |           |     | x            | x            | x             |
 +--------------------------------+-----------+-----+--------------+--------------+---------------+
@@ -340,7 +340,7 @@ some ntopng alerts are available with a specific license. Here a list of all the
 
 
 **System Behavioural Checks**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +----------------------------------------+-----------+-----+--------------+--------------+---------------+
 |                                        | Community | Pro | Enterprise M | Enterprise L | Enterprise XL |

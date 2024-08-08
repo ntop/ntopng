@@ -24,5 +24,4 @@ These blog posts explain in detail how SNMP monitoring in ntopng works, and what
     usage
     similarity
     topology
-    alerts
     rules

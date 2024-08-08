@@ -11,3 +11,4 @@ ntopng (Enterprise M or better license is required) for using ClickHouse to stor
 
     installation
     clickhouse
+    clickhouse_schema
