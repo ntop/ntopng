@@ -51,8 +51,8 @@ const sortByName = function(val_1, val_2, sort) {
 
 /* Sort by IP Addresses */
 const sortByIP = function(val_1, val_2, sort) {
-  val_1 = NtopUtils.convertIPAddress(val_1);
-  val_2 = NtopUtils.convertIPAddress(val_2);
+  val_1 = String(NtopUtils.convertIPAddress(val_1));
+  val_2 = String(NtopUtils.convertIPAddress(val_2));
   if (sort == 1) {
     return val_1.localeCompare(val_2);
   }

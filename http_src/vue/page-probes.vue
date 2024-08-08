@@ -289,12 +289,18 @@ function columns_sorting(col, r0, r1) {
             return sortingFunctions.sortByNumber(r0.dropped_flows, r1.dropped_flows, col.sort);
         } else if (col.id == "exported_flows") {
             return sortingFunctions.sortByNumber(r0.exported_flows, r1.exported_flows, col.sort);
+        } else if (col.id == "captured_packets") {
+            return sortingFunctions.sortByNumber(r0.captured_packets, r1.captured_packets, col.sort);
+        } else if (col.id == "dropped_packets") {
+            return sortingFunctions.sortByNumber(r0.dropped_packets, r1.dropped_packets, col.sort);
         } else if (col.id == "probe_edition") {
             return sortingFunctions.sortByName(r0.probe_edition, r1.probe_edition, col.sort);
         } else if (col.id == "probe_license") {
             return sortingFunctions.sortByName(r0.probe_license, r1.probe_license, col.sort);
         } else if (col.id == "probe_maintenance") {
             return sortingFunctions.sortByName(r0.probe_maintenance, r1.probe_maintenance, col.sort);
+        } else if (col.id == "probe_last_update") {
+            return sortingFunctions.sortByNumber(r0.probe_last_update, r1.probe_last_update, col.sort);
         }
     }
 }
