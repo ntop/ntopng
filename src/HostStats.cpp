@@ -438,7 +438,7 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
                    sent_bytes);
 
   if (host->isRxOnlyHost() && !isReceiveOnly()) /* no longer RX-only */
-     host->toggleRxOnlyHost(false);
+    host->toggleRxOnlyHost(false);
 }
 
 #ifdef NTOPNG_PRO

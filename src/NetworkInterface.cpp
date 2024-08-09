@@ -11140,7 +11140,7 @@ void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
   if(rxOnlyHost) {
     /* Decrease total number of RX only hosts */
     if (!numTotalRxOnlyHosts) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow", 3, ifname); // <---
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow", 3, ifname);
     } else {
       numTotalRxOnlyHosts--;
     }
