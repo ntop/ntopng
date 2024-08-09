@@ -93,11 +93,11 @@ void nDPIStats::sum(nDPIStats *stats) {
   std::unordered_map<u_int16_t, ProtoCounter *>::iterator it;
   std::unordered_map<u_int16_t, CategoryCounter>::iterator it1;
 
-  for (it = stats->counters.begin(); it != stats->counters.end(); ++it) {
+  for (it = counters.begin(); it != counters.end(); ++it) {
     u_int16_t proto_id = it->first;
     ProtoCounter *c = it->second;
     std::unordered_map<u_int16_t, ProtoCounter *>::iterator it1 =
-        counters.find(proto_id);
+        stats->counters.find(proto_id);
 
     if (it1 != counters.end())
       it1->second->sum(c);
@@ -107,19 +107,19 @@ void nDPIStats::sum(nDPIStats *stats) {
 
       if (pc != NULL) {
         pc->sum(c);
-        counters[proto_id] = pc;
+        stats->counters[proto_id] = pc;
       }
     }
   }
 
-  for (it1 = stats->cat_counters.begin(); it1 != stats->cat_counters.end();
+  for (it1 = cat_counters.begin(); it1 != cat_counters.end();
        ++it1) {
     u_int16_t cat_id = it1->first;
 
-    if (cat_counters.find(cat_id) == cat_counters.end())
-      cat_counters[cat_id] = it1->second;
+    if (stats->cat_counters.find(cat_id) == stats->cat_counters.end())
+      stats->cat_counters[cat_id] = it1->second;
     else
-      cat_counters[cat_id].sum(it1->second);
+      stats->cat_counters[cat_id].sum(it1->second);
   }
 }
 

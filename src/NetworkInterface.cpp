@@ -7391,6 +7391,7 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
   RoundTripStats _downloadStats;
   RoundTripStats _uploadStats;
   LocalTrafficStats _localStats;
+  nDPIStats _ndpiStats;
   PacketStats _pktStats;
   TcpPacketStats _tcpPacketStats;
   DSCPStats _dscpStats;
@@ -7525,7 +7526,7 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
     luaScore(vm);
   }
 
-  sumStats(&_tcpFlowStats, &_ethStats, &_localStats, NULL, &_pktStats,
+  sumStats(&_tcpFlowStats, &_ethStats, &_localStats, &_ndpiStats, &_pktStats,
            &_tcpPacketStats, &_dscpStats,
            &_syslogStats, &_downloadStats, &_uploadStats);
 
@@ -7537,7 +7538,8 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
   _tcpFlowStats.lua(vm, "tcpFlowStats");
   _ethStats.lua(vm);
   _localStats.lua(vm);
-  luaNdpiStats(vm);
+  _ndpiStats.lua(this, vm, true, false);
+  
   lua_push_uint64_table_entry(vm, "traffic_sent_since_reset", _ethStats.getNumEgressBytes() - getCheckPointNumTrafficSent());
   lua_push_uint64_table_entry(vm, "traffic_rcvd_since_reset", _ethStats.getNumIngressBytes() - getCheckPointNumTrafficRcvd());
   lua_push_uint64_table_entry(vm, "packets_sent_since_reset", _ethStats.getNumEgressPackets() - getCheckPointNumPacketsSent());

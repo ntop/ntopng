@@ -928,7 +928,6 @@ if ((page == "overview") or (page == nil)) then
 	for _, v in pairs(ifstats.probes or {}) do
 	   for _, v1 in pairs(v or {}) do
 	      for _, v2 in pairs(v or {}) do
-		 tprint(v2)
 		 if(v2["packets.total"] ~= nil) then probe_total_packets = probe_total_packets + v2["packets.total"] end
 		 if(v2["packets.drops"] ~= nil) then probe_total_packet_drops = probe_total_packet_drops + v2["packets.drops"] end
 	      end
@@ -2776,219 +2775,225 @@ var resetInterfaceCounters = function(drops_only) {
     $('#reset_stats_dialog').modal('show');
 }
 
-setInterval(function() {
-      $.ajax({
-          type: 'GET',
-          url: ']]
-print(ntop.getHttpPrefix())
-print [[/lua/rest/v2/get/interface/data.lua',
-          data: { iffilter: "]]
-print(tostring(interface.name2id(ifstats.name)))
-print [[" },
-          success: function(content) {
-        if(content["rc_str"] != "OK") {
-          return;
-        }
+]]
+if page == 'overview' or isEmptyString(page) then
+    print [[
+    setInterval(function() {
+        $.ajax({
+            type: 'GET',
+            url: ']]
+    print(ntop.getHttpPrefix())
+    print [[/lua/rest/v2/get/interface/data.lua',
+            data: { iffilter: "]]
+    print(tostring(interface.name2id(ifstats.name)))
+    print [[" },
+            success: function(content) {
+            if(content["rc_str"] != "OK") {
+            return;
+            }
 
-        const rsp = content["rsp"];
-        const v = NtopUtils.bytesToVolume(rsp.bytes);
-        $('#if_bytes').html(v);
+            const rsp = content["rsp"];
+            const v = NtopUtils.bytesToVolume(rsp.bytes);
+            $('#if_bytes').html(v);
 
-        $('#if_in_bytes').html(NtopUtils.bytesToVolume(rsp.bytes_download_since_reset));
-        $('#if_out_bytes').html(NtopUtils.bytesToVolume(rsp.bytes_upload_since_reset));
-        $('#if_in_pkts').html(NtopUtils.addCommas(rsp.packets_download_since_reset) + " Pkts");
-        $('#if_out_pkts').html(NtopUtils.addCommas(rsp.packets_upload_since_reset)  + " Pkts");
-        $('#pkts_in_trend').html(NtopUtils.get_trend(rsp.bytes_download, last_in_pkts));
-        $('#pkts_out_trend').html(NtopUtils.get_trend(rsp.bytes_upload, last_out_pkts));
-        last_in_pkts = rsp.bytes_download;
-        last_out_pkts = rsp.bytes_upload;
+            $('#if_in_bytes').html(NtopUtils.bytesToVolume(rsp.bytes_download_since_reset));
+            $('#if_out_bytes').html(NtopUtils.bytesToVolume(rsp.bytes_upload_since_reset));
+            $('#if_in_pkts').html(NtopUtils.addCommas(rsp.packets_download_since_reset) + " Pkts");
+            $('#if_out_pkts').html(NtopUtils.addCommas(rsp.packets_upload_since_reset)  + " Pkts");
+            $('#pkts_in_trend').html(NtopUtils.get_trend(rsp.bytes_download, last_in_pkts));
+            $('#pkts_out_trend').html(NtopUtils.get_trend(rsp.bytes_upload, last_out_pkts));
+            last_in_pkts = rsp.bytes_download;
+            last_out_pkts = rsp.bytes_upload;
 
-        if (typeof rsp.zmqRecvStats !== 'undefined') {
-           var diff, time_diff, flows_label;
-           var now = (new Date()).getTime();
+            if (typeof rsp.zmqRecvStats !== 'undefined') {
+            var diff, time_diff, flows_label;
+            var now = (new Date()).getTime();
 
-           if(last_zmq_time > 0) {
-              time_diff = now - last_zmq_time;
-              diff = rsp.zmqRecvStats.flows - last_zmq_flows;
+            if(last_zmq_time > 0) {
+                time_diff = now - last_zmq_time;
+                diff = rsp.zmqRecvStats.flows - last_zmq_flows;
 
-              if(diff > 0) {
-                 rate = ((diff * 1000)/time_diff).toFixed(1);
-                 flows_label = " [" + NtopUtils.fflows(rate) + "] " + NtopUtils.get_trend(1,0);
-              } else {
-                 flows_label = " "+NtopUtils.get_trend(0,0);
-              }
-           } else {
-              flows_label = " "+NtopUtils.get_trend(0,0);
-           }
-            const pctg_dropped_flows = ((rsp.zmqRecvStats.flows + rsp.zmqRecvStats.dropped_flows) ? rsp.zmqRecvStats.dropped_flows * 100 / (rsp.zmqRecvStats.flows + rsp.zmqRecvStats.dropped_flows) : 0).toFixed(1)
-            const pctg_dropped_zmq_msg = ((rsp.zmqRecvStats.zmq_msg_rcvd + rsp.zmqRecvStats.zmq_msg_drops) ? rsp.zmqRecvStats.zmq_msg_drops * 100 / (rsp.zmqRecvStats.zmq_msg_rcvd + rsp.zmqRecvStats.zmq_msg_drops) : 0).toFixed(1)
+                if(diff > 0) {
+                    rate = ((diff * 1000)/time_diff).toFixed(1);
+                    flows_label = " [" + NtopUtils.fflows(rate) + "] " + NtopUtils.get_trend(1,0);
+                } else {
+                    flows_label = " "+NtopUtils.get_trend(0,0);
+                }
+            } else {
+                flows_label = " "+NtopUtils.get_trend(0,0);
+            }
+                const pctg_dropped_flows = ((rsp.zmqRecvStats.flows + rsp.zmqRecvStats.dropped_flows) ? rsp.zmqRecvStats.dropped_flows * 100 / (rsp.zmqRecvStats.flows + rsp.zmqRecvStats.dropped_flows) : 0).toFixed(1)
+                const pctg_dropped_zmq_msg = ((rsp.zmqRecvStats.zmq_msg_rcvd + rsp.zmqRecvStats.zmq_msg_drops) ? rsp.zmqRecvStats.zmq_msg_drops * 100 / (rsp.zmqRecvStats.zmq_msg_rcvd + rsp.zmqRecvStats.zmq_msg_drops) : 0).toFixed(1)
 
-           $('#if_zmq_remote_bps').html(NtopUtils.bitsToSize(rsp.remote_bps) + " " + NtopUtils.get_trend(rsp.remote_bps, last_zmq_remote_bps));
-           $('#if_zmq_remote_pps').html(NtopUtils.fpackets(rsp.remote_pps) + " " + NtopUtils.get_trend(rsp.remote_pps, last_zmq_remote_pps));
-           $('#if_zmq_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.flows)+flows_label);
-           $('#if_zmq_dropped_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.dropped_flows)+" [ "+pctg_dropped_flows+" % ] "+NtopUtils.get_trend(rsp.zmqRecvStats.dropped_flows, last_zmq_dropped_flows));
-           $('#if_zmq_events').html(NtopUtils.addCommas(rsp.zmqRecvStats.events)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.events, last_zmq_events));
-           $('#if_zmq_counters').html(NtopUtils.addCommas(rsp.zmqRecvStats.counters)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.counters, last_zmq_counters));
-           $('#if_zmq_msg_drops').html(NtopUtils.addCommas(rsp.zmqRecvStats.zmq_msg_drops)+" [ "+pctg_dropped_zmq_msg+" % ] "+NtopUtils.get_trend(rsp.zmqRecvStats.zmq_msg_drops, last_zmq_msg_drops));
-           $('#if_zmq_drops_export_queue_full').html(NtopUtils.addCommas(rsp["zmq.drops.export_queue_full"])+" "+NtopUtils.get_trend(rsp["zmq.drops.export_queue_full"], last_zmq_drops_export_queue_full));
-           $('#if_zmq_drops_flow_collection_drops').html(NtopUtils.addCommas(rsp["zmq.drops.flow_collection_drops"])+" "+NtopUtils.get_trend(rsp["zmq.drops.flow_collection_drops"], last_zmq_drops_flow_collection_drops));
-           $('#if_zmq_drops_flow_collection_udp_socket_drops').html(NtopUtils.addCommas(rsp["zmq.drops.flow_collection_udp_socket_drops"])+" "+NtopUtils.get_trend(rsp["zmq.drops.flow_collection_udp_socket_drops"], last_zmq_drops_flow_collection_udp_socket_drops));
-           $('#if_zmq_msg_rcvd').html(NtopUtils.addCommas(rsp.zmqRecvStats.zmq_msg_rcvd)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.zmq_msg_rcvd, last_zmq_msg_rcvd));
-           $('#if_zmq_avg_msg_flows').html(NtopUtils.addCommas(NtopUtils.formatValue(rsp.zmqRecvStats.zmq_avg_msg_flows)));
-           $('#if_num_remote_zmq_flow_exports').html(NtopUtils.addCommas(rsp["zmq.num_flow_exports"])+" "+NtopUtils.get_trend(rsp["zmq.num_flow_exports"], last_probe_zmq_exported_flows));
+            $('#if_zmq_remote_bps').html(NtopUtils.bitsToSize(rsp.remote_bps) + " " + NtopUtils.get_trend(rsp.remote_bps, last_zmq_remote_bps));
+            $('#if_zmq_remote_pps').html(NtopUtils.fpackets(rsp.remote_pps) + " " + NtopUtils.get_trend(rsp.remote_pps, last_zmq_remote_pps));
+            $('#if_zmq_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.flows)+flows_label);
+            $('#if_zmq_dropped_flows').html(NtopUtils.addCommas(rsp.zmqRecvStats.dropped_flows)+" [ "+pctg_dropped_flows+" % ] "+NtopUtils.get_trend(rsp.zmqRecvStats.dropped_flows, last_zmq_dropped_flows));
+            $('#if_zmq_events').html(NtopUtils.addCommas(rsp.zmqRecvStats.events)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.events, last_zmq_events));
+            $('#if_zmq_counters').html(NtopUtils.addCommas(rsp.zmqRecvStats.counters)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.counters, last_zmq_counters));
+            $('#if_zmq_msg_drops').html(NtopUtils.addCommas(rsp.zmqRecvStats.zmq_msg_drops)+" [ "+pctg_dropped_zmq_msg+" % ] "+NtopUtils.get_trend(rsp.zmqRecvStats.zmq_msg_drops, last_zmq_msg_drops));
+            $('#if_zmq_drops_export_queue_full').html(NtopUtils.addCommas(rsp["zmq.drops.export_queue_full"])+" "+NtopUtils.get_trend(rsp["zmq.drops.export_queue_full"], last_zmq_drops_export_queue_full));
+            $('#if_zmq_drops_flow_collection_drops').html(NtopUtils.addCommas(rsp["zmq.drops.flow_collection_drops"])+" "+NtopUtils.get_trend(rsp["zmq.drops.flow_collection_drops"], last_zmq_drops_flow_collection_drops));
+            $('#if_zmq_drops_flow_collection_udp_socket_drops').html(NtopUtils.addCommas(rsp["zmq.drops.flow_collection_udp_socket_drops"])+" "+NtopUtils.get_trend(rsp["zmq.drops.flow_collection_udp_socket_drops"], last_zmq_drops_flow_collection_udp_socket_drops));
+            $('#if_zmq_msg_rcvd').html(NtopUtils.addCommas(rsp.zmqRecvStats.zmq_msg_rcvd)+" "+NtopUtils.get_trend(rsp.zmqRecvStats.zmq_msg_rcvd, last_zmq_msg_rcvd));
+            $('#if_zmq_avg_msg_flows').html(NtopUtils.addCommas(NtopUtils.formatValue(rsp.zmqRecvStats.zmq_avg_msg_flows)));
+            $('#if_num_remote_zmq_flow_exports').html(NtopUtils.addCommas(rsp["zmq.num_flow_exports"])+" "+NtopUtils.get_trend(rsp["zmq.num_flow_exports"], last_probe_zmq_exported_flows));
 
-           last_remote_pps = rsp.remote_pps;
-           last_remote_bps = rsp.remote_bps;
-           last_zmq_flows = rsp.zmqRecvStats.flows;
-           last_zmq_dropped_flows = rsp.zmqRecvStats.dropped_flows;
-           last_zmq_events = rsp.zmqRecvStats.events;
-           last_zmq_counters = rsp.zmqRecvStats.counters;
-           last_zmq_msg_drops = rsp.zmqRecvStats.zmq_msg_drops;
-           last_zmq_drops_export_queue_full = rsp["zmq.drops.export_queue_full"];
-           last_zmq_drops_flow_collection_drops = rsp["zmq.drops.flow_collection_drops"];
-           last_zmq_drops_flow_collection_udp_socket_drops = rsp["zmq.drops.flow_collection_udp_socket_drops"];
-           last_zmq_msg_rcvd = rsp.zmqRecvStats.zmq_msg_rcvd;
-           last_zmq_avg_msg_flows = rsp.zmqRecvStats.zmq_avg_msg_flows;
-           last_probe_zmq_exported_flows = rsp["zmq.num_flow_exports"];
-           last_zmq_time = now;
-        }
+            last_remote_pps = rsp.remote_pps;
+            last_remote_bps = rsp.remote_bps;
+            last_zmq_flows = rsp.zmqRecvStats.flows;
+            last_zmq_dropped_flows = rsp.zmqRecvStats.dropped_flows;
+            last_zmq_events = rsp.zmqRecvStats.events;
+            last_zmq_counters = rsp.zmqRecvStats.counters;
+            last_zmq_msg_drops = rsp.zmqRecvStats.zmq_msg_drops;
+            last_zmq_drops_export_queue_full = rsp["zmq.drops.export_queue_full"];
+            last_zmq_drops_flow_collection_drops = rsp["zmq.drops.flow_collection_drops"];
+            last_zmq_drops_flow_collection_udp_socket_drops = rsp["zmq.drops.flow_collection_udp_socket_drops"];
+            last_zmq_msg_rcvd = rsp.zmqRecvStats.zmq_msg_rcvd;
+            last_zmq_avg_msg_flows = rsp.zmqRecvStats.zmq_avg_msg_flows;
+            last_probe_zmq_exported_flows = rsp["zmq.num_flow_exports"];
+            last_zmq_time = now;
+            }
 
-        $('#if_pkts').html(NtopUtils.addCommas(rsp.packets)+"]]
+            $('#if_pkts').html(NtopUtils.addCommas(rsp.packets)+"]]
 
-print(" Pkts\");")
+    print(" Pkts\");")
 
-if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
-    local st = ifstats.netfilter
+    if have_nedge and ifstats.type == "netfilter" and ifstats.netfilter then
+        local st = ifstats.netfilter
 
-    print("var last_nfq_queue_total = " .. st.nfq.queue_total .. ";\n")
-    print("var last_nfq_handling_failed = " .. st.failures.handle_packet .. ";\n")
-    print("var last_nfq_enobufs = " .. st.failures.no_buffers .. ";\n")
+        print("var last_nfq_queue_total = " .. st.nfq.queue_total .. ";\n")
+        print("var last_nfq_handling_failed = " .. st.failures.handle_packet .. ";\n")
+        print("var last_nfq_enobufs = " .. st.failures.no_buffers .. ";\n")
+
+        print [[
+            if(rsp.netfilter.nfq.queue_pct > 80) {
+            $('#nfq_queue_total').addClass("badge bg-danger");
+            } else {
+            $('#nfq_queue_total').removeClass("badge bg-danger");
+            }
+            $('#nfq_queue_total').html(NtopUtils.fint(rsp.netfilter.nfq.queue_total) + " [" + NtopUtils.fint(rsp.netfilter.nfq.queue_pct) + " %]");
+            $('#nfq_queue_total_trend').html(NtopUtils.get_trend(rsp.netfilter.nfq.queue_total, last_nfq_queue_total));
+            $('#nfq_handling_failed').html(NtopUtils.fint(rsp.netfilter.failures.handle_packet));
+            $('#nfq_handling_failed_trend').html(NtopUtils.get_trend(rsp.netfilter.failures.handle_packet, last_nfq_handling_failed));
+            $('#nfq_enobufs').html(NtopUtils.fint(rsp.netfilter.failures.no_buffers));
+            $('#nfq_enobufs_trend').html(NtopUtils.get_trend(rsp.netfilter.failures.no_buffers, last_nfq_enobufs));
+            $('#num_conntrack_entries').html(NtopUtils.fint(rsp.netfilter.nfq.num_conntrack_entries)+ " [" + NtopUtils.fint((rsp.netfilter.nfq.num_conntrack_entries*100)/rsp.num_flows) + " %]");
+    ]]
+    end
+
+    if ifstats.stats.discarded_probing_packets then
+        print [[
+            $('#if_discarded_probing_bytes').html(NtopUtils.bytesToVolume(rsp.discarded_probing_bytes));
+            $('#if_discarded_probing_pkts').html(NtopUtils.formatPackets(rsp.discarded_probing_packets));
+            $('#if_discarded_probing_trend').html(NtopUtils.get_trend(rsp.discarded_probing_packets, last_discarded_probing_pkts));
+            last_discarded_probing_pkts = rsp.discarded_probing_packets;
+    ]]
+    end
 
     print [[
-        if(rsp.netfilter.nfq.queue_pct > 80) {
-          $('#nfq_queue_total').addClass("badge bg-danger");
+            var pctg = 0;
+            var drops = "";
+            var last_pkt_retransmissions = ]]
+    print(tostring(ifstats.tcpPacketStats.retransmissions))
+    print [[;
+            var last_pkt_ooo =  ]]
+    print(tostring(ifstats.tcpPacketStats.out_of_order))
+    print [[;
+            var last_pkt_lost = ]]
+    print(tostring(ifstats.tcpPacketStats.lost))
+    print [[;
+
+            $('#pkt_retransmissions').html(NtopUtils.fint(rsp.tcpPacketStats.retransmissions)+" Pkts" + NtopUtils.percentage(rsp.tcpPacketStats.retransmissions, rsp.packets));
+            $('#pkt_retransmissions_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.retransmissions, last_pkt_retransmissions));
+            $('#pkt_ooo').html(NtopUtils.fint(rsp.tcpPacketStats.out_of_order)+" Pkts" + NtopUtils.percentage(rsp.tcpPacketStats.out_of_order, rsp.packets));
+            $('#pkt_ooo_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.out_of_order, last_pkt_ooo));
+            $('#pkt_lost').html(NtopUtils.fint(rsp.tcpPacketStats.lost)+" Pkts");
+            $('#pkt_lost_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.lost, last_pkt_lost) + NtopUtils.percentage(rsp.tcpPacketStats.lost, rsp.packets));
+            last_pkt_retransmissions = rsp.tcpPacketStats.retransmissions;
+            last_pkt_ooo = rsp.tcpPacketStats.out_of_order;
+            last_pkt_lost = rsp.tcpPacketStats.lost;
+
+            $('#pkts_trend').html(NtopUtils.get_trend(rsp.packets, last_pkts));
+            $('#drops_trend').html(NtopUtils.get_trend(rsp.drops, last_drops));
+            last_pkts = rsp.packets;
+            last_drops = rsp.drops;
+
+            $('#engaged_alerts_trend').html(NtopUtils.get_trend(rsp.engaged_alerts, last_engaged_alerts));
+            last_engaged_alerts = rsp.engaged_alerts;
+            $('#dropped_alerts_trend').html(NtopUtils.get_trend(rsp.dropped_alerts, last_dropped_alerts));
+            last_dropped_alerts = rsp.dropped_alerts;
+            $('#dropped_alerts').html(NtopUtils.fint(last_dropped_alerts));
+
+            $('#local_hosts_anomalies').html(NtopUtils.fint(rsp.num_local_hosts_anomalies));
+            $('#local_hosts_anomalies_trend').html(NtopUtils.get_trend(rsp.num_local_hosts_anomalies, last_num_local_hosts_anomalies));
+            last_num_local_hosts_anomalies = rsp.num_local_hosts_anomalies;
+            $('#remote_hosts_anomalies').html(NtopUtils.fint(rsp.num_remote_hosts_anomalies));
+            $('#remote_hosts_anomalies_trend').html(NtopUtils.get_trend(rsp.num_remote_hosts_anomalies, last_num_remote_hosts_anomalies));
+            last_num_remote_hosts_anomalies = rsp.num_remote_hosts_anomalies;
+
+            if((rsp.packets + rsp.drops) > 0) {
+            pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2);
+            }
+
+            if(rsp.drops > 0) {
+            drops = '<span class="badge bg-danger">';
+            }
+            drops = drops + NtopUtils.addCommas(rsp.drops)+" " +"]] print(ternary(ifstats.zmqRecvStats, i18n("flows"), i18n("pkts")) .. "\"\n")
+
+    print[[
+            if(pctg > 0)      { drops  += " [ "+pctg+" % ]"; }
+            if(rsp.drops > 0) { drops  += '</span>'; }
+            $('#if_drops').html(drops);
+
+            /* ************************************ */
+
+        if(rsp.tot_nprobe_pkts  == 0) {
+            pctg = 0;
         } else {
-          $('#nfq_queue_total').removeClass("badge bg-danger");
+            pctg = ((100. * rsp.tot_pkt_drops) / rsp.tot_nprobe_pkts).toFixed(2);
         }
-        $('#nfq_queue_total').html(NtopUtils.fint(rsp.netfilter.nfq.queue_total) + " [" + NtopUtils.fint(rsp.netfilter.nfq.queue_pct) + " %]");
-        $('#nfq_queue_total_trend').html(NtopUtils.get_trend(rsp.netfilter.nfq.queue_total, last_nfq_queue_total));
-        $('#nfq_handling_failed').html(NtopUtils.fint(rsp.netfilter.failures.handle_packet));
-        $('#nfq_handling_failed_trend').html(NtopUtils.get_trend(rsp.netfilter.failures.handle_packet, last_nfq_handling_failed));
-        $('#nfq_enobufs').html(NtopUtils.fint(rsp.netfilter.failures.no_buffers));
-        $('#nfq_enobufs_trend').html(NtopUtils.get_trend(rsp.netfilter.failures.no_buffers, last_nfq_enobufs));
-        $('#num_conntrack_entries').html(NtopUtils.fint(rsp.netfilter.nfq.num_conntrack_entries)+ " [" + NtopUtils.fint((rsp.netfilter.nfq.num_conntrack_entries*100)/rsp.num_flows) + " %]");
-]]
-end
 
-if ifstats.stats.discarded_probing_packets then
+        $('#if_probe_packet_drops').html(pctg);
+        $('#dropped_probe_packets_trend').html(NtopUtils.get_trend(pctg, last_if_probe_packet_drops));
+        last_if_probe_packet_drops = pctg;
+
+            /* ************************************ */
+
+            $('#exported_flows').html(NtopUtils.fint(rsp.flow_export_count));
+            $('#exported_flows_rate').html(NtopUtils.fflows(rsp.flow_export_rate));
+            if(rsp.flow_export_drops > 0) {
+            $('#exported_flows_drops')
+                .addClass("badge bg-danger")
+                .html(NtopUtils.fint(rsp.flow_export_drops));
+            if(rsp.flow_export_count > 0) {
+                $('#exported_flows_drops_pct')
+                .addClass("badge bg-danger")
+                .html("[" + NtopUtils.fpercent(rsp.flow_export_drops / (rsp.flow_export_count + rsp.flow_export_drops + 1) * 100) + "]");
+            } else {
+                $('#exported_flows_drops_pct').addClass("badge bg-danger").html("[100%]");
+            }
+            } else {
+            $('#exported_flows_drops').removeClass().html("0");
+            $('#exported_flows_drops_pct').removeClass().html("[0%]");
+            }
+    ]]
+
+    if interface.isSyslogInterface() then
+        print [[
+            $('#syslog_tot_events').html(rsp.syslog.tot_events);
+    ]]
+    end
+
     print [[
-        $('#if_discarded_probing_bytes').html(NtopUtils.bytesToVolume(rsp.discarded_probing_bytes));
-        $('#if_discarded_probing_pkts').html(NtopUtils.formatPackets(rsp.discarded_probing_packets));
-        $('#if_discarded_probing_trend').html(NtopUtils.get_trend(rsp.discarded_probing_packets, last_discarded_probing_pkts));
-        last_discarded_probing_pkts = rsp.discarded_probing_packets;
+            }
+                });
+        }, ]]
+    print(interface.getStatsUpdateFreq(ifstats.id) .. "")
+    print [[ * 1000)
 ]]
 end
-
-print [[
-        var pctg = 0;
-        var drops = "";
-        var last_pkt_retransmissions = ]]
-print(tostring(ifstats.tcpPacketStats.retransmissions))
-print [[;
-        var last_pkt_ooo =  ]]
-print(tostring(ifstats.tcpPacketStats.out_of_order))
-print [[;
-        var last_pkt_lost = ]]
-print(tostring(ifstats.tcpPacketStats.lost))
-print [[;
-
-        $('#pkt_retransmissions').html(NtopUtils.fint(rsp.tcpPacketStats.retransmissions)+" Pkts" + NtopUtils.percentage(rsp.tcpPacketStats.retransmissions, rsp.packets));
-        $('#pkt_retransmissions_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.retransmissions, last_pkt_retransmissions));
-        $('#pkt_ooo').html(NtopUtils.fint(rsp.tcpPacketStats.out_of_order)+" Pkts" + NtopUtils.percentage(rsp.tcpPacketStats.out_of_order, rsp.packets));
-        $('#pkt_ooo_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.out_of_order, last_pkt_ooo));
-        $('#pkt_lost').html(NtopUtils.fint(rsp.tcpPacketStats.lost)+" Pkts");
-         $('#pkt_lost_trend').html(NtopUtils.get_trend(rsp.tcpPacketStats.lost, last_pkt_lost) + NtopUtils.percentage(rsp.tcpPacketStats.lost, rsp.packets));
-        last_pkt_retransmissions = rsp.tcpPacketStats.retransmissions;
-        last_pkt_ooo = rsp.tcpPacketStats.out_of_order;
-        last_pkt_lost = rsp.tcpPacketStats.lost;
-
-        $('#pkts_trend').html(NtopUtils.get_trend(rsp.packets, last_pkts));
-        $('#drops_trend').html(NtopUtils.get_trend(rsp.drops, last_drops));
-        last_pkts = rsp.packets;
-        last_drops = rsp.drops;
-
-        $('#engaged_alerts_trend').html(NtopUtils.get_trend(rsp.engaged_alerts, last_engaged_alerts));
-        last_engaged_alerts = rsp.engaged_alerts;
-        $('#dropped_alerts_trend').html(NtopUtils.get_trend(rsp.dropped_alerts, last_dropped_alerts));
-        last_dropped_alerts = rsp.dropped_alerts;
-        $('#dropped_alerts').html(NtopUtils.fint(last_dropped_alerts));
-
-        $('#local_hosts_anomalies').html(NtopUtils.fint(rsp.num_local_hosts_anomalies));
-        $('#local_hosts_anomalies_trend').html(NtopUtils.get_trend(rsp.num_local_hosts_anomalies, last_num_local_hosts_anomalies));
-        last_num_local_hosts_anomalies = rsp.num_local_hosts_anomalies;
-        $('#remote_hosts_anomalies').html(NtopUtils.fint(rsp.num_remote_hosts_anomalies));
-        $('#remote_hosts_anomalies_trend').html(NtopUtils.get_trend(rsp.num_remote_hosts_anomalies, last_num_remote_hosts_anomalies));
-        last_num_remote_hosts_anomalies = rsp.num_remote_hosts_anomalies;
-
-        if((rsp.packets + rsp.drops) > 0) {
-          pctg = ((rsp.drops*100)/(rsp.packets+rsp.drops)).toFixed(2);
-        }
-
-        if(rsp.drops > 0) {
-          drops = '<span class="badge bg-danger">';
-        }
-        drops = drops + NtopUtils.addCommas(rsp.drops)+" " +"]] print(ternary(ifstats.zmqRecvStats, i18n("flows"), i18n("pkts")) .. "\"\n")
-
 print[[
-        if(pctg > 0)      { drops  += " [ "+pctg+" % ]"; }
-        if(rsp.drops > 0) { drops  += '</span>'; }
-        $('#if_drops').html(drops);
-
-        /* ************************************ */
-
-       if(rsp.tot_nprobe_pkts  == 0) {
-         pctg = 0;
-       } else {
-         pctg = ((100. * rsp.tot_pkt_drops) / rsp.tot_nprobe_pkts).toFixed(2);
-       }
-
-       $('#if_probe_packet_drops').html(pctg);
-       $('#dropped_probe_packets_trend').html(NtopUtils.get_trend(pctg, last_if_probe_packet_drops));
-       last_if_probe_packet_drops = pctg;
-
-        /* ************************************ */
-
-        $('#exported_flows').html(NtopUtils.fint(rsp.flow_export_count));
-        $('#exported_flows_rate').html(NtopUtils.fflows(rsp.flow_export_rate));
-        if(rsp.flow_export_drops > 0) {
-          $('#exported_flows_drops')
-            .addClass("badge bg-danger")
-            .html(NtopUtils.fint(rsp.flow_export_drops));
-          if(rsp.flow_export_count > 0) {
-            $('#exported_flows_drops_pct')
-              .addClass("badge bg-danger")
-              .html("[" + NtopUtils.fpercent(rsp.flow_export_drops / (rsp.flow_export_count + rsp.flow_export_drops + 1) * 100) + "]");
-          } else {
-            $('#exported_flows_drops_pct').addClass("badge bg-danger").html("[100%]");
-          }
-        } else {
-          $('#exported_flows_drops').removeClass().html("0");
-          $('#exported_flows_drops_pct').removeClass().html("[0%]");
-        }
-]]
-
-if interface.isSyslogInterface() then
-    print [[
-        $('#syslog_tot_events').html(rsp.syslog.tot_events);
-]]
-end
-
-print [[
-           }
-               });
-       }, ]]
-print(interface.getStatsUpdateFreq(ifstats.id) .. "")
-print [[ * 1000)
 
 </script>
 
