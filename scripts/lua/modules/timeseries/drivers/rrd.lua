@@ -102,6 +102,12 @@ local function schema_get_path(schema, tags)
     local suffix = ""
     local rrd
 
+    if isEmptyString(schema.name) then
+        traceError(TRACE_ERROR, TRACE_CONSOLE, "Empty schema requested.")
+        tprint(debug.traceback())
+        return
+    end
+
     -- ifid is mandatory here
     local ifid = tags.ifid or -1
     local host_or_network = nil
