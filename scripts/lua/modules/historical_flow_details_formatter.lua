@@ -230,7 +230,7 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
     local alert_key  = alert_consts.getAlertType(alert_id, alert_entities.flow.entity_id)
     if alert_key then
         local  mitre_info = alert_consts.getAlertMitreInfo(alert_key)		      
-        if mitre_info then
+        if mitre_info and mitre_info.mitre_id then
 
             value = value .. ' - ' .. i18n("mitre_id") .. ' '
 			  
@@ -241,7 +241,9 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
             end
             value = value .. '<a href="'..url..'">'..mitre_info.mitre_id.."</A>"
 
-            value = value .. ' ' .. i18n(mitre_info.mitre_tactic.i18n_label)
+            if mitre_info.mitre_tactic then
+                value = value .. ' ' .. i18n(mitre_info.mitre_tactic.i18n_label)
+            end
         end
     end
 
