@@ -3324,6 +3324,7 @@ bool Flow::is_hash_entry_state_idle_transition_ready() {
 void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
   ndpi_protocol detected_protocol = get_detected_protocol();
 
+  /* Increase Application stats */
   if (detected_protocol.app_protocol != detected_protocol.master_protocol &&
       detected_protocol.app_protocol != NDPI_PROTOCOL_UNKNOWN) {
     ndpi_stats->incStats(0, detected_protocol.app_protocol,
@@ -3336,6 +3337,12 @@ void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
                          get_packets_srv2cli(), get_bytes_srv2cli());
     ndpi_stats->incFlowsStats(detected_protocol.master_protocol);
   }
+
+  /* Increase Category stats */
+  ndpi_stats->incCategoryStats(0,
+    get_protocol_category(), 
+    get_bytes_cli2srv(), 
+    get_bytes_srv2cli());
 
   status_stats->incStats(getAlertsBitmap(), protocol,
                          Utils::mapScoreToSeverity(getPredominantAlertScore()),

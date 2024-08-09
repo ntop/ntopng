@@ -150,7 +150,7 @@ local application_filters = {{
     label = i18n("all")
 }}
 
-local ndpicatstats = ifstats["ndpi_categories"]
+local ndpicatstats = flowstats["ndpi_categories"]
 local tmp_list = {}
 for key, value in pairs(ndpicatstats) do
     local name = getCategoryLabel(key, value.category)
