@@ -651,7 +651,7 @@ else
        historicalProtoHostHref(ifid, flow["cli.ip"], flow["proto.l4"], flow["proto.ndpi_id"],
 			       page_utils.safe_html(flow["protos.tls.certificate"] or ''))
     end
-    
+
     if ((flow["protos.tls_version"] ~= nil) and (flow["protos.tls_version"] ~= 0)) then
         local tls_version_name = ntop.getTLSVersionName(flow["protos.tls_version"])
 
@@ -1129,7 +1129,7 @@ else
     if (not(isEmptyString(flow["protos.tls.client_requested_server_name"]))) then
         print("<tr><th width=10%><i class='fas fa-lock'></i> " .. i18n("flow_details.tls_certificate") .. "</th><td>")
         print(i18n("flow_details.client_requested") .. ":<br>")
-	
+
         -- TLS, so use https
         print(format_external_link(page_utils.safe_html(flow["protos.tls.client_requested_server_name"]),
 				   page_utils.safe_html(flow["protos.tls.client_requested_server_name"]), false, "https"))
@@ -1140,9 +1140,9 @@ else
 				page_utils.safe_html(flow["protos.tls.client_requested_server_name"] or ''), flow["vlan"])
         printAddCustomHostRule(flow["protos.tls.client_requested_server_name"])
         print("</td>")
-	
+
         print("<td>")
-	
+
         if (flow["protos.tls.server_names"] ~= nil) then
             local servers = string.split(flow["protos.tls.server_names"], ",") or {flow["protos.tls.server_names"]}
 
@@ -1429,46 +1429,45 @@ else
 	   print("<table class=\"table table-bordered table-striped\" width=100%>\n")
 
 	   print("<tr><th>" .. i18n("description") ..  "</th><th>" .. i18n("score") .. "</th><th>" .. i18n("info") .. "</th><th>".. i18n("mitre_id") .. "</th><th>".. i18n("remediation") .. "</th><th>" .. i18n("actions") .. "</th></tr>\n")
-	   
+
             for _, score_alerts in pairsByKeys(alerts_by_score, rev) do
                 for _, score_alert in pairsByField(score_alerts, "message", asc) do
 		   local alert_key = nil
 		   local mitre_info = nil
-		   
-                    local status_icon = ""
+		   local status_icon = ""
+		   local riskLabel = riskInfo[tostring(score_alert.alert_risk)]
 
-                    local riskLabel = riskInfo[tostring(score_alert.alert_risk)]
+		   if (riskLabel ~= nil) then
+		      riskLabel = shortenString(riskLabel, 64)
+		   else
+		      riskLabel = ""
+		   end
 
-                    if (riskLabel ~= nil) then
-                        riskLabel = shortenString(riskLabel, 64)
-                    else
-                        riskLabel = ""
-                    end
-
-                    if score_alert.alert_id then
-                        alert_consts.alertTypeIcon(score_alert.alert_id, map_score_to_severity(score_alert.alert_id),
-                            'fa-lg')
+		   if score_alert.alert_id then
+                        alert_consts.alertTypeIcon(score_alert.alert_id, map_score_to_severity(score_alert.alert_id), 'fa-lg')
                     end
 
                     local alert_source = " <span class='badge bg-info'>".. ternary(score_alert.alert_risk, "nDPI", "ntopng") .. "</span>"
 
                     print(string.format('<tr>'))
-		    
+
 		    if score_alert.alert_id then
 		       alert_key  = alert_consts.getAlertType(tonumber(score_alert.alert_id), alert_entities.flow.entity_id)
 
 		       if(alert_key ~= nil) then
-			  mitre_info = alert_consts.getAlertMitreInfo(alert_key)		      
+			  mitre_info = alert_consts.getAlertMitreInfo(alert_key)
 		       end
 		    end
 
 		    local additional = ""
+		    local severity = alert_consts.alertSeverityById(map_score_to_severity(score_alert.score))
 
                     local msg = string.format('<td> %s </td><td style=\"text-align: center;\"> %s </td><td> %s %s %s</td>',
-					      score_alert.message .. alert_source, score_alert.score,
-					      riskLabel, (score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk)) or '', 
+					      score_alert.message .. alert_source,
+					      '<span style="color:' .. severity.color .. '">' .. score_alert.score .. '</span>',
+					      riskLabel, (score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk)) or '',
 					      status_icon or '')
-                    
+		    
                     print(msg)
 
                     if score_alert.alert_id then
@@ -1478,18 +1477,18 @@ else
 			  -- tprint(mitre_info)
 
 			  additional = "<br>"..i18n(mitre_info.mitre_tactic['i18n_label'])
-			  
+
 			  if(mitre_info.mitre_sub_technique ~= nil) then
 			     -- additional = additional .."<br>" .. i18n(mitre_info.mitre_sub_technique.i18n_label)
 			  end
 
 			  local keys = split(mitre_info.mitre_id, "%.")
 			  local url  = "https://attack.mitre.org/techniques/"..keys[1]:gsub("%%", "").."/"
-			  
+
 			  if(keys[2] ~= nil) then
 			     url = url .. keys[2]:gsub("%%", "") .. "/"
 			  end
-			  
+
 			  print('<A HREF="'..url..'">'..mitre_info.mitre_id.."</A>"..additional)
 		       else
 			  print("&nbsp;")
@@ -1498,9 +1497,9 @@ else
 		       print('<td style=\"text-align: center;\">'..
 			     flow_risk_utils.get_remediation_documentation_link(score_alert.alert_id)
 			     .. '</td>')
-		       
+
 		       print('<td nowrap>')
-		       
+
                         -- Add rules to disable the check
                         print(string.format(
                             '<a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a>',

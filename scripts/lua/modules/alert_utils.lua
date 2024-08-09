@@ -383,61 +383,61 @@ end
 -- #################################
 
 function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, local_explorer)
-    local msg
-    local alert_risk
+   local msg
+   local alert_risk
 
-    if tonumber(alert.alert_id) then
-        alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
-    end
+   if tonumber(alert.alert_id) then
+      alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
+   end
 
-    if not alert_json then
-        alert_json = alert_utils.getAlertInfo(alert)
-    end
+   if not alert_json then
+      alert_json = alert_utils.getAlertInfo(alert)
+   end
 
-    local description = alertTypeDescription(alert.alert_id, alert_entities.flow.entity_id)
+   local description = alertTypeDescription(alert.alert_id, alert_entities.flow.entity_id)
 
-    if (type(description) == "string") then
-        -- localization string
-        msg = i18n(description, alert_json)
-    elseif (type(description) == "function") then
-        msg = description(ifid, alert, alert_json, local_explorer)
-    end
+   if (type(description) == "string") then
+      -- localization string
+      msg = i18n(description, alert_json)
+   elseif (type(description) == "function") then
+      msg = description(ifid, alert, alert_json, local_explorer)
+   end
 
-    if isEmptyString(msg) then
-        if alert_json and alert_json.alert_generation and alert_risk and alert_risk > 0 then
-            -- Flow risks most of the times already have a default description, use this in case of emtpy descr
-            msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
-        else
-            -- Normal alerts
-            msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]] , alert.entity_id)
-        end
-    end
+   if isEmptyString(msg) then
+      if alert_json and alert_json.alert_generation and alert_risk and alert_risk > 0 then
+	 -- Flow risks most of the times already have a default description, use this in case of emtpy descr
+	 msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
+      else
+	 -- Normal alerts
+	 msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]] , alert.entity_id)
+      end
+   end
 
-    if not isEmptyString(alert["user_label"]) then
-        msg = string.format('%s <small><span class="text-muted">%s</span></small>', msg, alert["user_label"])
-    end
+   if not isEmptyString(alert["user_label"]) then
+      msg = string.format('%s <small><span class="text-muted">%s</span></small>', msg, alert["user_label"])
+   end
 
-    if add_score then
-        if tonumber(alert.alert_id) then
-            local alert_score = ntop.getFlowAlertScore(tonumber(alert.alert_id))
-            msg = alert_utils.format_score(msg, alert_score)
-        end
-    end
+   if add_score then
+      if tonumber(alert.alert_id) then
+	 local alert_score = ntop.getFlowAlertScore(tonumber(alert.alert_id))
+	 msg = alert_utils.format_score(msg, alert_score)
+      end
+   end
 
-    -- Add the link to the documentation
-    if alert_risk and alert_risk > 0 then
-       msg = string.format("%s %s %s",
-			   msg, flow_risk_utils.get_documentation_link(alert_risk),
-			   flow_risk_utils.get_remediation_documentation_link(alert.alert_id))
-        local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
+   -- Add the link to the documentation
+   if alert_risk and alert_risk > 0 then
+      msg = string.format("%s %s %s",
+			  msg, flow_risk_utils.get_documentation_link(alert_risk),
+			  flow_risk_utils.get_remediation_documentation_link(alert.alert_id))
+      local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
 
-        -- Add check info_msg ~= alert.info to avoid duplicated in description msg
-        --[[if (not isEmptyString(info_msg) and info_msg ~= alert.info) then
+      -- Add check info_msg ~= alert.info to avoid duplicated in description msg
+      --[[if (not isEmptyString(info_msg) and info_msg ~= alert.info) then
          msg = string.format("%s", msg, info_msg)
-      end--]]
-    end
+	 end--]]
+   end
 
-    return msg or ""
+   return msg or ""
 end
 
 -- #################################

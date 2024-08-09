@@ -208,9 +208,9 @@ local function format_historical_host_pool(flow, info)
    }
 end
 
--- ###############################################
+-- a###############################################
 
-local function format_historical_issue_description(alert_id, score, title, msg, alert_scores)
+local function format_historical_issue_description(alert_id, score, title, msg, info, alert_scores)
    local alert_consts = require "alert_consts"
    local alert_entities = require "alert_entities"
 
@@ -221,10 +221,13 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
    if alert_scores and alert_scores[alert_id] then
       score = alert_scores[alert_id]
    end
+   
    local severity_id = map_score_to_severity(score)
    local severity = alert_consts.alertSeverityById(severity_id)
-
-   local value = i18n('score') .. ': <span style="color:' .. severity.color .. '">' .. score .. '</span> - ' .. msg
+   -- local alert_source = " <span class='badge bg-info'>".. ternary(score_alert.alert_risk, "nDPI", "ntopng") .. "</span>"
+   
+   local html = "<tr><td>"..(msg or "").."</td>"..'<td align=center><span style="color:' .. severity.color .. '">' .. score .. '</span></td>'
+   html = html .. "<td>" .. info .. "</td>"
 
 <<<<<<< HEAD
     -- Add Mitre info
@@ -240,9 +243,12 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
       local  mitre_info = alert_consts.getAlertMitreInfo(alert_key)
       
       if mitre_info then
+<<<<<<< HEAD
 	 value = value .. ' - ' .. i18n("mitre_id") .. ' '
 >>>>>>> 0c05864da (Fixed invalid historical flow formatting)
 
+=======
+>>>>>>> e9eaec7cf (Unified formatting of historical and live flows)
 	 local keys = split(mitre_info.mitre_id, "%.")
 	 local url  = "https://attack.mitre.org/techniques/"..keys[1]:gsub("%%", "").."/"
 
@@ -256,17 +262,22 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
 	 if keys[2] ~= nil then
 	    url = url .. keys[2]:gsub("%%", "") .. "/"
 	 end
+<<<<<<< HEAD
 	 value = value .. '<a href="'..url..'">'..mitre_info.mitre_id.."</A>"
 >>>>>>> 0c05864da (Fixed invalid historical flow formatting)
+=======
+>>>>>>> e9eaec7cf (Unified formatting of historical and live flows)
 
-	 value = value .. ' ' .. (i18n(mitre_info.mitre_tactic.i18n_label))
+	 html = html .. '<td><a href="'..url..'">'..mitre_info.mitre_id.."</A>"	 
+	 html = html .. '<br>' .. i18n(mitre_info.mitre_tactic.i18n_label) .. "</td>"
+      else
+	 html = html .. "<td>&nbsp;</td>"
       end
+   else
+      html = html .. "<td>&nbsp;</td>"      
    end
 
-   return {
-      name = title,
-      values = { value }
-   }
+   return html
 end
 
 -- ###############################################
@@ -281,7 +292,7 @@ local function format_historical_issues(flow_details, flow)
    local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
    local details = ""
    local alert
-
+   
    local alert_store_instance = alert_store_instances[alert_entities["flow"].alert_store_name]
 
    if alert_store_instance then
@@ -289,6 +300,7 @@ local function format_historical_issues(flow_details, flow)
       if alerts and #alerts >= 1 then
 	 alert = alerts[1]
 	 details = alert_utils.formatFlowAlertMessage(interface.getId(), alert, alert_json, false, true)
+	 tprint(details)
       end
    end
 
@@ -298,6 +310,7 @@ local function format_historical_issues(flow_details, flow)
    local alert_label = i18n("flow_details.normal")
    local alert_id = tonumber(flow["STATUS"] or 0)
    local main_alert_score = ntop.getFlowAlertScore(tonumber(alert_id))
+
    -- Check if there is a custom score
    if alert_scores and alert_scores[tostring(alert_id)] then
       main_alert_score = alert_scores[tostring(alert_id)]
@@ -307,28 +320,43 @@ local function format_historical_issues(flow_details, flow)
 
    flow_details[#flow_details + 1] = {
       name = i18n('total_flow_score'),
-      values = {'<span style="color:' .. severity.color .. '">' .. format_utils.formatValue(tonumber(flow["SCORE"])) ..
-		   '</span>', ''}
+      values = {'<span style="color:' .. severity.color .. '">' .. format_utils.formatValue(tonumber(flow["SCORE"])) .. '</span>', ''}
    }
 
+   local html = ""
+   
    -- No status set
    if (alert_id ~= 0) then
+      
       alert_label = alert_consts.alertTypeLabel(alert_id, true)
-      if not isEmptyString(details) then
-	 alert_label = alert_label .. " [" .. details .. "]"
-      end
 
-      flow_details[#flow_details + 1] = format_historical_issue_description(tostring(alert_id), tonumber(main_alert_score), i18n("issues_score"), alert_label, alert_scores)
+      html = "<table class=\"table table-bordered table-striped\" width=100%>\n"
+      html = html .. "<tr><th>" .. i18n("description") ..  "</th><th>" .. i18n("score") .. "</th><th>".. i18n("info") .. " / ".. i18n("remediation").. "</th><th>".. i18n("mitre_id") .. "</th></tr>\n"
+      html = html .. format_historical_issue_description(tostring(alert_id), tonumber(main_alert_score), i18n("issues_score"), alert_label, details, alert_scores)
    end
 
    local alert_utils = require "alert_utils"
-   local _, other_issues = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'], alert_json, false, nil,
-							   true)
+   local _, other_issues = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'], alert_json, false, nil, true)
+   
    if table.len(other_issues) > 0 then
       for _, issue in pairs(other_issues or {}) do
-	 flow_details[#flow_details + 1] = format_historical_issue_description(tostring(issue.alert_id), tonumber(issue.score), '', issue.msg, alert_scores)
+	 tprint(issue.msg)
+	 local msg, info
+	 local pieces = string.split(issue.msg, "%[")
+
+	 if(pieces ~= nil) then
+	    msg  = pieces[1]
+	    info = string.gsub(pieces[2], "%]", "")
+	 else
+	    msg = issue.msg
+	    info = ""
+	 end
+	 html = html .. format_historical_issue_description(tostring(issue.alert_id), tonumber(issue.score), '', msg, info, alert_scores) 
       end
    end
+
+   flow_details[#flow_details + 1] = { name = i18n('total_flow_score'), values = { html } }
+
 
    return flow_details
 end
