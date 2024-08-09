@@ -24,7 +24,7 @@ local mitre_utils = {
       },
       collection = {
         id = 9,
-        i18n_label = "mitre.tatcic.collection"
+        i18n_label = "mitre.tactic.collection"
       },
       defense_evasion = {
         id = 5,
