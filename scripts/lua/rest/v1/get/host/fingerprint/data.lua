@@ -12,13 +12,10 @@ local fingerprint_utils = require "fingerprint_utils"
 local rest_utils = require("rest_utils")
 
 local available_fingerprints = {
-   -- TODO handle ja4 (ja3 is deprecated)
-   --[[
-   ja3 = {
-      stats_key = "ja3_fingerprint",
-      href = function(fp) return '<A class="ntopng-external-link" href="https://sslbl.abuse.ch/ja3-fingerprints/'..fp..'" target="_blank">'..fp..'  <i class="fas fa-external-link-alt"></i></A>' end
+   ja4 = {
+      stats_key = "ja4_fingerprint",
+      href = function(fp) return '<A class="ntopng-external-link" href="https://ja4db.com" target="_blank">'..fp..'  <i class="fas fa-external-link-alt"></i></A>' end
    },
-   --]]
    hassh = {
       stats_key = "hassh_fingerprint",
       href = function(fp) return fp end
@@ -61,13 +58,9 @@ if(host_info["host"] ~= nil) then
 end
 
 stats = stats or {}
--- TODO handle ja4 (ja3 is deprecated)
---[[
-if fingerprint_type == "ja3" then
-   stats = stats and stats.ja3_fingerprint or {}
-else
---]]
-if fingerprint_type == "hassh" then
+if fingerprint_type == "ja4" then
+   stats = stats and stats.ja4_fingerprint or {}
+elseif fingerprint_type == "hassh" then
    stats = stats and stats.hassh_fingerprint or {}
 end
 
