@@ -589,9 +589,7 @@ FROM
 LEFT JOIN
   `mitre_table_info` AS mitre
 ON
-  ha.alert_id = mitre.ALERT_ID
-WHERE
-  mitre.ENTITY_ID = 1; 
+  (mitre.ENTITY_ID = 1 AND ha.alert_id = mitre.ALERT_ID);
 
 @
 
@@ -656,8 +654,7 @@ CREATE VIEW IF NOT EXISTS `flow_alerts_view` AS SELECT
     mitre.MITRE_ID AS mitre_id
 FROM `flows` AS f
 LEFT JOIN `mitre_table_info` AS mitre
-    ON f.STATUS = mitre.ALERT_ID
+    ON (mitre.ENTITY_ID = 4 AND f.STATUS = mitre.ALERT_ID)
 WHERE f.STATUS != 0 
-    AND f.IS_ALERT_DELETED != 1 
-    AND (mitre.ENTITY_ID = 4 OR mitre.ENTITY_ID IS NULL);
+    AND f.IS_ALERT_DELETED != 1; 
 
