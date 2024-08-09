@@ -81,5 +81,5 @@ void RemoteHost::initialize() {
   }
 
   if (isUnicastHost())
-    iface->incNumHosts(isLocalHost(), true /* Initialization: bytes are 0, considered RX only */);
+    iface->incNumHosts(false /* isLocalHost() */, true /* Initialization: bytes are 0, considered RX only */);
 }

@@ -408,19 +408,9 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
                          u_int64_t sent_bytes, u_int64_t sent_goodput_bytes,
                          u_int64_t rcvd_packets, u_int64_t rcvd_bytes,
                          u_int64_t rcvd_goodput_bytes, bool peer_is_unicast) {
-  if ((getNumPktsSent() == 0) /* Current count */
-      && (!host->isBroadcastHost()) && (!host->isMulticastHost()) &&
-      (sent_packets > 0)) {
-    /*
-      This is a host (non broadcast/multicast host)
-      that used to be rcvdOnly and that has now sent traffic
-    */
 
-    host->setRxOnlyHost(false /* no longer RX-only */);
-  }
-
-  sent.incStats(when, sent_packets, sent_bytes),
-      rcvd.incStats(when, rcvd_packets, rcvd_bytes);
+  sent.incStats(when, sent_packets, sent_bytes);
+  rcvd.incStats(when, rcvd_packets, rcvd_bytes);
 
   if (ndpiStats) {
     ndpiStats->incStats(when, ndpi_proto, sent_packets, sent_bytes,
@@ -446,6 +436,9 @@ void HostStats::incStats(time_t when, u_int8_t l4_proto, u_int ndpi_proto,
   /* Packet stats sent_stats and rcvd_stats are incremented in Flow::incStats */
   l4stats.incStats(when, l4_proto, rcvd_packets, rcvd_bytes, sent_packets,
                    sent_bytes);
+
+  if (host->isRxOnlyHost() && !isReceiveOnly()) /* no longer RX-only */
+     host->toggleRxOnlyHost(false);
 }
 
 #ifdef NTOPNG_PRO

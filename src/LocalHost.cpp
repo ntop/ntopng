@@ -144,7 +144,7 @@ void LocalHost::initialize() {
     if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
       ns->incNumHosts();
 
-    iface->incNumHosts(isLocalHost(), true /* Initialization: bytes are 0, considered RX only */);
+    iface->incNumHosts(true /* isLocalHost() */, true /* Initialization: bytes are 0, considered RX only */);
   }
 
 #ifdef LOCALHOST_DEBUG
@@ -619,8 +619,8 @@ void LocalHost::setRouterMac(Mac *gw) {
 
 /* *************************************** */
 
-void LocalHost::setRxOnlyHost(bool set_it) {
-  Host::setRxOnlyHost(set_it);
+void LocalHost::toggleRxOnlyHost(bool rx_only) {
+  Host::toggleRxOnlyHost(rx_only);
 
   if (isLocalUnicastHost()) {
     char hostbuf[64], *member;

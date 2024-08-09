@@ -908,7 +908,7 @@ class Host : public GenericHashEntry,
   inline void blacklistHost(char *blacklist_name) { setBlacklistName(blacklist_name); }
   inline char* getBlacklistName()                 { return(blacklist_name);           }
   
-  virtual void setRxOnlyHost(bool set_it);
+  virtual void toggleRxOnlyHost(bool rx_only);
   inline bool resetHostTopSites() {
     if (stats) {
       stats->resetTopSitesData();

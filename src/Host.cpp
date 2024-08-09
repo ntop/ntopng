@@ -288,7 +288,7 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
   is_dhcp_host = 0, is_crawler_bot_scanner = 0, is_in_broadcast_domain = 0,
     more_then_one_device = 0, device_ip = 0;
 
-  is_rx_only = 0;
+  is_rx_only = false;
 
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be
                                                    changed by deserialize */
@@ -301,7 +301,7 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
   memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
   memset(&customHostAlert, 0, sizeof(customHostAlert));
 
-  setRxOnlyHost(true);
+  toggleRxOnlyHost(true);
 
 #ifdef NTOPNG_PRO
   host_traffic_shapers = NULL;
@@ -666,7 +666,7 @@ void Host::lua_get_min_info(lua_State *vm) {
   lua_push_bool_table_entry(vm, "crawlerBotScannerHost",
                             isCrawlerBotScannerHost());
   lua_push_bool_table_entry(vm, "is_blacklisted", isBlacklisted());
-  lua_push_bool_table_entry(vm, "is_rx_only", is_rx_only);
+  lua_push_bool_table_entry(vm, "is_rx_only", isRxOnlyHost());
   lua_push_bool_table_entry(vm, "is_broadcast", isBroadcastHost());
   lua_push_bool_table_entry(vm, "is_multicast", isMulticastHost());
   lua_push_int32_table_entry(vm, "host_services_bitmap", host_services_bitmap);
@@ -954,7 +954,7 @@ void Host::lua(lua_State *vm, AddressTree *ptree, bool host_details,
   if (blacklist_name != NULL)
     lua_push_str_table_entry(vm, "blacklist_name", blacklist_name);
 
-  lua_push_bool_table_entry(vm, "is_rx_only", is_rx_only);
+  lua_push_bool_table_entry(vm, "is_rx_only", isRxOnlyHost());
 
   if (more_then_one_device)
     lua_push_bool_table_entry(vm, "more_then_one_device", more_then_one_device);
@@ -1406,7 +1406,7 @@ void Host::serialize(json_object *my_object, DetailsLevel details_level) {
     json_object_object_add(my_object, "is_blacklisted",
                            json_object_new_boolean(isBlacklisted()));
     json_object_object_add(my_object, "is_rx_only",
-                           json_object_new_boolean(is_rx_only ? true : false));
+                           json_object_new_boolean(isRxOnlyHost()));
     json_object_object_add(my_object, "host_services_bitmap",
                            json_object_new_int(host_services_bitmap));
 
@@ -2833,25 +2833,18 @@ u_int32_t Host::getNumContactsFromPeersAsServerTCPUDPNoTX() {
 
 /* *************************************** */
 
-void Host::setRxOnlyHost(bool set_it) {
-  if(is_rx_only == set_it)
+void Host::toggleRxOnlyHost(bool rx_only) {
+  if(is_rx_only == rx_only)
     return; /* Nothing to do */
     
-  //if(stats != NULL && !stats->getNumPktsRcvd() && !stats->getNumPktsSent()) return;
-
-  if(is_rx_only && (set_it == false)) {
-
+  if(rx_only == false) { /* Rx-only -> Not-Rx-only */
     if(isUnicastHost()) {
-      /* It used to be rx-only ... */
       iface->decNumHosts(isLocalHost(), true /* rx-only */);
-      /* .. and it is not anymore */
-      iface->incNumHosts(isLocalHost(), false);
+      iface->incNumHosts(isLocalHost(), false /* not-rx-only */);
     }
-
-  } else if((is_rx_only == false) && (set_it == true)) {
-    //ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid transition");
-    /* The above issue is not reported as usually this branch is used during initialization */
+  } else {
+    /* Not-Rx-only -> Rx-only: this should happen during initialization only */
   }
   
-  is_rx_only = set_it;
+  is_rx_only = rx_only;
 }
