@@ -549,7 +549,7 @@ local function validateSendersReceivers(mode)
 end
 
 local function validateFingerprintType(ft)
-   local fingerprint_types = {"ja3", "hassh"}
+   local fingerprint_types = {"ja4", "hassh"}
 
    return validateChoice(fingerprint_types, ft)
 end
@@ -2021,8 +2021,6 @@ local known_parameters = {
    ["confidence"] = validateListOfTypeInline(validateFilters(validateNumber)), -- client/server
    ["acknowledged"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- acknowledged
    ["community_id"] = validateListOfTypeInline(validateFilters(validateSingleWord)), -- Community ID
-   ["ja3_client"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
-   ["ja3_server"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["ja4_client"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["issuer_dn"] = validateListOfTypeInline(validateFilters(validateSingleWord)),
    ["last_server"] = validateListOfTypeInline(validateFilters(validateSingleWord)),

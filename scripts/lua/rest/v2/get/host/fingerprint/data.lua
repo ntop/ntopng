@@ -12,10 +12,13 @@ local fingerprint_utils = require "fingerprint_utils"
 local rest_utils = require("rest_utils")
 
 local available_fingerprints = {
+   -- TODO handle ja4 (ja3 is deprecated)
+   --[[
    ja3 = {
       stats_key = "ja3_fingerprint",
       href = function(fp) return '<A class="ntopng-external-link" href="https://sslbl.abuse.ch/ja3-fingerprints/'..fp..'" target="_blank">'..fp..'  <i class="fas fa-external-link-alt"></i></A>' end
    },
+   --]]
    hassh = {
       stats_key = "hassh_fingerprint",
       href = function(fp) return fp end
@@ -72,11 +75,15 @@ local function add_to_res(res, fingerprint_type, stats)
    return res
 end
 
+-- TODO handle ja4 (ja3 is deprecated)
+--[[
 if fingerprint_type == "ja3" then
    -- If there are JA3 stats present, JA4 stats could also be present.
    res = add_to_res(res, fingerprint_type, stats.ja3_fingerprint or {})
    res = add_to_res(res, "ja4", stats.ja4_fingerprint or {})
-elseif fingerprint_type == "hassh" then
+else
+--]]
+if fingerprint_type == "hassh" then
    res = add_to_res(res, fingerprint_type, stats.hassh_fingerprint or {})
 end
 

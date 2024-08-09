@@ -623,14 +623,6 @@ if not is_system_interface then
             what = "community_id"
             label = i18n("db_search.find_in_historical", {what=what, query=query})
             query = query .. tag_utils.SEPARATOR .. "eq"
-         elseif isJA3(query) then
-            what = "ja3_client"
-            label = i18n("db_search.find_in_historical", {what=what, query=query})
-            query = query .. tag_utils.SEPARATOR .. "eq"
-            results[#results + 1] = build_result(label, query, what, nil, nil, "historical")
-            what = "ja3_server"
-            label = i18n("db_search.find_in_historical", {what=what, query=query})
-            query = query .. tag_utils.SEPARATOR .. "eq"
          else
             what = "hostname"
             label = i18n("db_search.find_in_historical", {what=what, query=query})

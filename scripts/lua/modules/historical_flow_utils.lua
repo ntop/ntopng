@@ -1390,8 +1390,6 @@ function historical_flow_utils.get_tags()
    flow_defined_tags["snmp_interface"] = tag_utils.defined_tags["snmp_interface"]
    flow_defined_tags["country"] = tag_utils.defined_tags["country"]
    flow_defined_tags["l7_error_id"] = tag_utils.defined_tags["l7_error_id"]
-   flow_defined_tags["ja3_client"] = tag_utils.defined_tags["ja3_client"]
-   flow_defined_tags["ja3_server"] = tag_utils.defined_tags["ja3_server"]
    flow_defined_tags["ja4_client"] = tag_utils.defined_tags["ja4_client"]
    flow_defined_tags["issuer_dn"] = tag_utils.defined_tags["issuer_dn"]
    flow_defined_tags["http_method"] = tag_utils.defined_tags["http_method"]

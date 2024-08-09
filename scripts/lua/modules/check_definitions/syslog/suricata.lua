@@ -136,9 +136,6 @@ end
 local function parseTLSMetadata(event_tls, flow)
    flow.tls_server_name = event_tls.sni
 
-   if event_tls.ja3  ~= nil then flow.ja3c_hash = event_tls.ja3.hash  end
-   if event_tls.ja3s ~= nil then flow.ja3s_hash = event_tls.ja3s.hash end
-
    -- Additional fields
    flow.TLS_VERSION = event_tls.version
    flow.TLS_CERT_NOT_BEFORE = event_tls.notbefore

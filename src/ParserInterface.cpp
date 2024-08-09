@@ -639,8 +639,6 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     if (zflow->prev_adjacent_as) flow->setPrevAdjacentAS(zflow->prev_adjacent_as);
     if (zflow->next_adjacent_as) flow->setNextAdjacentAS(zflow->next_adjacent_as);
 
-    if (zflow->getJA3cHash()) flow->updateJA3C(zflow->getJA3cHash());
-    if (zflow->getJA3sHash()) flow->updateJA3S(zflow->getJA3sHash());
     if (zflow->getJA4cHash()) flow->updateJA4C(zflow->getJA4cHash());
 
     if (zflow->getRiskInfo()) {

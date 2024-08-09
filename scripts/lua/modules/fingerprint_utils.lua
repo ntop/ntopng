@@ -14,10 +14,13 @@ local fingerprint_utils = {}
 
 -- stats_key equals the name as returned by Host::lua
 local available_fingerprints = {
+   -- TODO handle ja4 (ja3 is deprecated)
+   --[[
    ja3 = {
       stats_key = "ja3_fingerprint",
       href = function(fp) return '<A class="ntopng-external-link" class="https://sslbl.abuse.ch/ja3-fingerprints/'..fp..'" target="_blank">'..fp..' <i class="fas fa-external-link-alt"></A> </i>' end
    },
+   --]]
    hassh = {
       stats_key = "hassh_fingerprint",
       href = function(fp) return fp end

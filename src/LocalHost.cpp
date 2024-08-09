@@ -670,7 +670,6 @@ void LocalHost::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto, 
 
 void LocalHost::lua_get_fingerprints(lua_State *vm) {
   if(fingerprints) {
-    fingerprints->ja3.lua("ja3_fingerprint", vm);
     fingerprints->ja4.lua("ja4_fingerprint", vm);
     fingerprints->hassh.lua("hassh_fingerprint", vm);
   }

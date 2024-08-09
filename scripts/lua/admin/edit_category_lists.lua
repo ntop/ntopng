@@ -184,7 +184,6 @@ if(stats) then
       num_hosts = format_high_num_value_for_tables(stats,"num_hosts"),
       -- num_hits = stats.num_hits,
       num_ips = format_high_num_value_for_tables(stats,"num_ips"),
-      num_ja3 = ternary(stats.num_ja3 > 0, format_high_num_value_for_tables(stats,"num_ja3"), stats.num_ja3),
       duration = secondsToTime(stats.duration),
     }))
     print([[</div>]])

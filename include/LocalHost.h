@@ -201,7 +201,6 @@ class LocalHost : public Host {
     return (usedPorts.getServerPorts(isTCP));
   };
 
-  inline Fingerprint *getJA3Fingerprint()   { return (fingerprints ? &fingerprints->ja3  : NULL); }
   inline Fingerprint *getJA4Fingerprint()   { return (fingerprints ? &fingerprints->ja4  : NULL); }
   inline Fingerprint *getHASSHFingerprint() { return (fingerprints ? &fingerprints->hassh: NULL); }
   void lua_get_fingerprints(lua_State *vm);

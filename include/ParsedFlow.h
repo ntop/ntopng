@@ -35,7 +35,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   char *dns_query;
   char *end_reason;
   char *tls_server_name, *bittorrent_hash;
-  char *ja3c_hash, *ja3s_hash, *ja4c_hash;
+  char *ja4c_hash;
   char *flow_risk_info;
   char *external_alert;
   char *smtp_rcp_to, *smtp_mail_from;
@@ -104,8 +104,6 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline void setDNSQuery(const char *str) { if(dns_query != NULL) free(dns_query);  if(str) { dns_query = strdup(str);} else dns_query = NULL; }
   inline void setTLSserverName(const char *str) { if(tls_server_name != NULL) free(tls_server_name);  if(str) { tls_server_name = strdup(str);} else tls_server_name = NULL; }
   inline void setBittorrentHash(const char *str) { if(bittorrent_hash != NULL) free(bittorrent_hash);  if(str) { bittorrent_hash = strdup(str);} else bittorrent_hash = NULL; }
-  inline void setJA3cHash(const char *str) { if(ja3c_hash != NULL) free(ja3c_hash);  if(str) { ja3c_hash = strdup(str); } else ja3c_hash = NULL; }
-  inline void setJA3sHash(const char *str) { if(ja3s_hash != NULL) free(ja3s_hash);  if(str) { ja3s_hash = strdup(str); } else ja3s_hash = NULL; }
   inline void setJA4cHash(const char *str) { if(ja4c_hash != NULL) free(ja4c_hash);  if(str) { ja4c_hash = strdup(str); } else ja4c_hash = NULL; }
   inline void setRiskInfo(const char *str) { if(flow_risk_info != NULL) free(flow_risk_info);  if(str) { flow_risk_info = strdup(str); } else flow_risk_info = NULL; }
   inline void setExternalAlert(const char *str) { if(external_alert != NULL) free(external_alert);  if(str) { external_alert = strdup(str);} else external_alert = NULL; }
@@ -143,8 +141,6 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline char* getDNSQuery(bool setToNULL = false) { char *r = dns_query; if(setToNULL) dns_query = NULL; return(r); }
   inline char* getTLSserverName(bool setToNULL = false) { char *r = tls_server_name; if(setToNULL) tls_server_name = NULL; return(r); }
   inline char* getBittorrentHash(bool setToNULL = false) { char *r = bittorrent_hash; if(setToNULL) bittorrent_hash = NULL; return(r); }
-  inline char* getJA3cHash(bool setToNULL = false) { char *r = ja3c_hash; if(setToNULL) ja3c_hash = NULL; return(r); }
-  inline char* getJA3sHash(bool setToNULL = false) { char *r = ja3s_hash; if(setToNULL) ja3s_hash = NULL; return(r); }
   inline char* getJA4cHash(bool setToNULL = false) { char *r = ja4c_hash; if(setToNULL) ja4c_hash = NULL; return(r); }
   inline char* getRiskInfo(bool setToNULL = false) { char *r = flow_risk_info; if(setToNULL) flow_risk_info  = NULL; return(r); }
   inline char* getExternalAlert(bool setToNULL = false) { char *r = external_alert; if(setToNULL) external_alert = NULL; return(r); }

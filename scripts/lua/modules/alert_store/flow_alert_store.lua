@@ -642,8 +642,6 @@ function flow_alert_store:_add_additional_request_filters()
     local error_code = _GET["l7_error_id"]
     local confidence = _GET["confidence"]
     local community_id = _GET["community_id"]
-    local ja3_client = _GET["ja3_client"]
-    local ja3_server = _GET["ja3_server"]
     local ja4_client = _GET["ja4_client"]
     local alert_domain = _GET["alert_domain"]
     local l4_proto = _GET["l4proto"]
@@ -698,8 +696,6 @@ function flow_alert_store:_add_additional_request_filters()
     self:add_filter_condition_list('mitre_subtechnique', mitre_subtechnique);
     self:add_filter_condition_list('mitre_id', mitre_id);
 
-    self:add_filter_condition_list(self:format_query_json_value('proto.tls.ja3_server_hash'), ja3_server, 'string')
-    self:add_filter_condition_list(self:format_query_json_value('proto.tls.ja3_client_hash'), ja3_client, 'string')
     self:add_filter_condition_list(self:format_query_json_value('proto.tls.ja4_client_hash'), ja4_client, 'string')
     self:add_filter_condition_list(self:format_query_json_value('proto.l7_error_code'), error_code, 'string')
     self:add_filter_condition_list(self:format_query_json_value('proto.confidence'), confidence, 'string')
@@ -737,8 +733,6 @@ function flow_alert_store:_get_additional_available_filters()
         l7_error_id = tag_utils.defined_tags.l7_error_id,
         confidence = tag_utils.defined_tags.confidence,
         community_id = tag_utils.defined_tags.community_id,
-        ja3_client = tag_utils.defined_tags.ja3_client,
-        ja3_server = tag_utils.defined_tags.ja3_server,
         ja4_client = tag_utils.defined_tags.ja4_client,
         traffic_direction = tag_utils.defined_tags.traffic_direction,
         alert_domain = tag_utils.defined_tags.alert_domain,

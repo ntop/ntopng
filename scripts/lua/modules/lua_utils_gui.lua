@@ -1152,42 +1152,6 @@ function format_tls_info(tls_info, no_html)
         end
     end
 
-    if tls_info["ja3_server_cipher"] then
-        tls_info["ja3_server_cipher"] = nil
-    end
-
-    if tls_info["ja3_server_unsafe_cipher"] then
-        if no_html then
-            tls_info["ja3_server_unsafe_cipher"] = tls_info["ja3_server_unsafe_cipher"]
-        else
-            local badge = get_badge(tls_info["ja3_server_unsafe_cipher"] == "safe")
-            tls_info["ja3_server_unsafe_cipher"] = string.format('<span class="badge bg-%s">%s</span>', badge,
-                tls_info["ja3_server_unsafe_cipher"])
-        end
-    end
-
-    if tls_info["ja3_server_hash"] then
-        if no_html then
-            tls_info["ja3_server_hash"] = tls_info["ja3_server_hash"]
-        else
-            tls_info["ja3_server_hash"] = i18n("copy_button", {
-                full_name = tls_info["ja3_server_hash"],
-                name = tls_info["ja3_server_hash"]
-            })
-        end
-    end
-
-    if tls_info["ja3_client_hash"] then
-        if no_html then
-            tls_info["ja3_client_hash"] = tls_info["ja3_client_hash"]
-        else
-            tls_info["ja3_client_hash"] = i18n("copy_button", {
-                full_name = tls_info["ja3_client_hash"],
-                name = tls_info["ja3_client_hash"]
-            })
-        end
-    end
-
     if tls_info["ja4_client_hash"] then
         if no_html then
             tls_info["ja4_client_hash"] = tls_info["ja4_client_hash"]

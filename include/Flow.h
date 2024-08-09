@@ -202,14 +202,6 @@ class Flow : public GenericHashEntry {
       char *client_requested_server_name, *server_names;
       /* Certificate dissection */
       struct {
-        /* https://engineering.salesforce.com/tls-fingerprinting-with-ja3-and-ja3s-247362855967
-         */
-        char *client_hash, *server_hash;
-        u_int16_t server_cipher;
-        ndpi_cipher_weakness server_unsafe_cipher;
-      } ja3;
-
-      struct {
         char *client_hash;
       } ja4;
     } tls;
@@ -329,9 +321,7 @@ class Flow : public GenericHashEntry {
     Check (and possibly enqueues) the flow for dump
    */
   void dumpCheck(time_t t, bool last_dump_before_free);
-  void updateCliJA3();
   void updateCliJA4();
-  void updateSrvJA3();
   void updateHASSH(bool as_client);
   void processExtraDissectedInformation();
   void processDetectedProtocol(
@@ -449,7 +439,6 @@ class Flow : public GenericHashEntry {
   void setProtocolJSONInfo();
   void getProtocolJSONInfo(ndpi_serializer *serializer);
 
-  inline char *getJa3CliHash() { return (protos.tls.ja3.client_hash); }
   inline char *getJa4CliHash() { return (protos.tls.ja4.client_hash); }
 
   bool isBlacklistedFlow() const;
@@ -530,9 +519,6 @@ class Flow : public GenericHashEntry {
     return (Utils::maskHost(get_cli_ip_addr()->isLocalHost())
             || Utils::maskHost(get_srv_ip_addr()->isLocalHost()));
   };
-  inline const char *getServerCipherClass() const {
-    return (isTLS() ? cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher) : NULL);
-  }
   char *serialize(bool use_labels = false);
   /* Prepares an alert JSON and puts int in the resulting `serializer`. */
   void alert2JSON(FlowAlert *alert, ndpi_serializer *serializer);
@@ -552,17 +538,6 @@ class Flow : public GenericHashEntry {
 
   inline u_int16_t getLowerProtocol() {
     return (ndpi_get_lower_proto(ndpiDetectedProtocol));
-  }
-
-  inline void updateJA3C(char *j) {
-    if (j && (j[0] != '\0') && (protos.tls.ja3.client_hash == NULL))
-      protos.tls.ja3.client_hash = strdup(j);
-    updateCliJA3();
-  }
-  inline void updateJA3S(char *j) {
-    if (j && (j[0] != '\0') && (protos.tls.ja3.server_hash == NULL))
-      protos.tls.ja3.server_hash = strdup(j);
-    updateSrvJA3();
   }
 
   inline void updateJA4C(char *j) {

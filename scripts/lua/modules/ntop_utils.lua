@@ -572,16 +572,6 @@ function isCommunityId(address)
     return false
 end
 
-function isJA3(address)
-    if (address == nil) then
-        return false
-    end
-    if (string.find(address, "%.") or string.find(address, ":")) then
-        return false
-    end
-    return true
-end
-
 -- ##############################################
 
 function isEmptyString(str)

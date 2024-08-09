@@ -478,9 +478,7 @@ Flow::~Flow() {
     if (protos.tls.client_requested_server_name)
       free(protos.tls.client_requested_server_name);
     if (protos.tls.server_names) free(protos.tls.server_names);
-    if (protos.tls.ja3.client_hash) free(protos.tls.ja3.client_hash);
     if (protos.tls.ja4.client_hash) free(protos.tls.ja4.client_hash);
-    if (protos.tls.ja3.server_hash) free(protos.tls.ja3.server_hash);
     if (protos.tls.client_alpn) free(protos.tls.client_alpn);
     if (protos.tls.client_tls_supported_versions)
       free(protos.tls.client_tls_supported_versions);
@@ -733,25 +731,12 @@ void Flow::processExtraDissectedInformation() {
 	  (ndpiFlow->protos.tls_quic.subjectDN != NULL))
 	protos.tls.subjectDN = strdup(ndpiFlow->protos.tls_quic.subjectDN);
 
-      if ((protos.tls.ja3.client_hash == NULL) &&
-	  (ndpiFlow->protos.tls_quic.ja3_client[0] != '\0')) {
-	protos.tls.ja3.client_hash = strdup(ndpiFlow->protos.tls_quic.ja3_client);
-	updateCliJA3();
-      }
-
       if ((protos.tls.ja4.client_hash == NULL) &&
 	  (ndpiFlow->protos.tls_quic.ja4_client[0] != '\0')) {
 	protos.tls.ja4.client_hash = strdup(ndpiFlow->protos.tls_quic.ja4_client);
 	updateCliJA4();
       }
 
-      if ((protos.tls.ja3.server_hash == NULL) &&
-	  (ndpiFlow->protos.tls_quic.ja3_server[0] != '\0')) {
-	protos.tls.ja3.server_hash = strdup(ndpiFlow->protos.tls_quic.ja3_server);
-	protos.tls.ja3.server_unsafe_cipher = ndpiFlow->protos.tls_quic.server_unsafe_cipher;
-	protos.tls.ja3.server_cipher = ndpiFlow->protos.tls_quic.server_cipher;
-	updateSrvJA3();
-      }
     } else if (isDNS()) {
       if (srv_host && (ndpiFlow->protos.dns.reply_code == 0 /* No Error */)) {
 	/* Now we need to check if the requested IP matches the server host */
@@ -3824,18 +3809,6 @@ void Flow::formatSyslogFlow(json_object *my_object) {
 			   json_object_new_string(Utils::formatMac(
 								   srv_host ? srv_host->get_mac() : NULL, buf, sizeof(buf))));
 
-  if (isTLS() && protos.tls.ja3.client_hash)
-    json_object_object_add(
-			   my_object,
-			   Utils::jsonLabel(JA3C_HASH, "JA3C_HASH", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_string(protos.tls.ja3.client_hash));
-
-  if (isTLS() && protos.tls.ja3.server_hash)
-    json_object_object_add(
-			   my_object,
-			   Utils::jsonLabel(JA3S_HASH, "JA3S_HASH", jsonbuf, sizeof(jsonbuf)),
-			   json_object_new_string(protos.tls.ja3.server_hash));
-
   if (isTLS() && protos.tls.ja4.client_hash)
     json_object_object_add(
 			   my_object,
@@ -4436,14 +4409,6 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_string(
 			       s, "community_id",
 			       (char *)getCommunityId(community_id, sizeof(community_id)));
-
-  if (protos.tls.ja3.client_hash)
-    ndpi_serialize_string_string(s, "ja3_client_hash",
-                                 protos.tls.ja3.client_hash);
-
-  if (protos.tls.ja3.server_hash)
-    ndpi_serialize_string_string(s, "ja3_server_hash",
-                                 protos.tls.ja3.server_hash);
 
   if (protos.tls.ja4.client_hash)
     ndpi_serialize_string_string(s, "ja4_client_hash",
@@ -6775,24 +6740,9 @@ void Flow::setParsedeBPFInfo(const ParsedeBPF *const _ebpf,
       iface->setSeenPods();
   }
 
-  updateCliJA3();
-  updateSrvJA3();
   updateCliJA4();
   updateHASSH(true /* AS client */);
   updateHASSH(false /* AS server */);
-}
-
-/* ***************************************************** */
-
-void Flow::updateCliJA3() {
-  if (cli_host && isTLS() && protos.tls.ja3.client_hash) {
-    Fingerprint *f = cli_host->getJA3Fingerprint();
-
-    if(f)
-      f->update(protos.tls.ja3.client_hash,
-		ebpf ? ebpf->src_process_info.process_name : NULL,
-		has_malicious_cli_signature);
-  }
 }
 
 /* ***************************************************** */
@@ -6805,18 +6755,6 @@ void Flow::updateCliJA4() {
       f->update(protos.tls.ja4.client_hash,
 		ebpf ? ebpf->src_process_info.process_name : NULL,
 		has_malicious_cli_signature);
-  }
-}
-
-/* ***************************************************** */
-
-void Flow::updateSrvJA3() {
-  if (srv_host && isTLS() && protos.tls.ja3.server_hash) {
-    Fingerprint *f = srv_host->getJA3Fingerprint();
-
-    if(f)
-      f->update(protos.tls.ja3.server_hash,
-		ebpf ? ebpf->dst_process_info.process_name : NULL, false);
   }
 }
 
@@ -7435,27 +7373,6 @@ void Flow::lua_get_tls_info(lua_State *vm) const {
                                   protos.tls.notAfter);
     }
 
-    if (protos.tls.ja3.client_hash) {
-      lua_push_str_table_entry(vm, "protos.tls.ja3.client_hash",
-                               protos.tls.ja3.client_hash);
-
-      if (has_malicious_cli_signature)
-        lua_push_bool_table_entry(vm, "protos.tls.ja3.client_malicious", true);
-    }
-
-    if (protos.tls.ja3.server_hash) {
-      lua_push_str_table_entry(vm, "protos.tls.ja3.server_hash",
-                               protos.tls.ja3.server_hash);
-      lua_push_str_table_entry(
-			       vm, "protos.tls.ja3.server_unsafe_cipher",
-			       cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher));
-      lua_push_int32_table_entry(vm, "protos.tls.ja3.server_cipher",
-                                 protos.tls.ja3.server_cipher);
-
-      if (has_malicious_srv_signature)
-        lua_push_bool_table_entry(vm, "protos.tls.ja3.server_malicious", true);
-    }
-
     if (protos.tls.ja4.client_hash) {
       lua_push_str_table_entry(vm, "protos.tls.ja4.client_hash",
                                protos.tls.ja4.client_hash);
@@ -7502,27 +7419,6 @@ void Flow::getTLSInfo(ndpi_serializer *serializer) const {
       ndpi_serialize_string_int32(serializer, "notAfter", protos.tls.notAfter);
     }
 
-    if (protos.tls.ja3.client_hash) {
-      ndpi_serialize_string_string(serializer, "ja3_client_hash",
-                                   protos.tls.ja3.client_hash);
-
-      if (has_malicious_cli_signature)
-        ndpi_serialize_string_boolean(serializer, "ja3_client_malicious", true);
-    }
-
-    if (protos.tls.ja3.server_hash) {
-      ndpi_serialize_string_string(serializer, "ja3_server_hash",
-                                   protos.tls.ja3.server_hash);
-      ndpi_serialize_string_string(
-				   serializer, "ja3_server_unsafe_cipher",
-				   cipher_weakness2str(protos.tls.ja3.server_unsafe_cipher));
-      ndpi_serialize_string_int32(serializer, "ja3_server_cipher",
-                                  protos.tls.ja3.server_cipher);
-
-      if (has_malicious_srv_signature)
-        ndpi_serialize_string_boolean(serializer, "ja3_server_malicious", true);
-    }
-
     if (protos.tls.ja4.client_hash) {
       ndpi_serialize_string_string(serializer, "ja4_client_hash",
                                    protos.tls.ja4.client_hash);
@@ -7531,9 +7427,6 @@ void Flow::getTLSInfo(ndpi_serializer *serializer) const {
         ndpi_serialize_string_boolean(serializer, "ja4_client_malicious", true);
     }
   }
-
-
-
 }
 
 /* ***************************************************** */

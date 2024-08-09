@@ -777,7 +777,6 @@ class Host : public GenericHashEntry,
   void offlineSetDHCPName(const char *n);
   void setServerName(const char *n);
   void setResolvedName(const char *resolved_name);
-  virtual Fingerprint *getJA3Fingerprint()   { return (NULL); }
   virtual Fingerprint *getJA4Fingerprint()   { return (NULL); }
   virtual Fingerprint *getHASSHFingerprint() { return (NULL); }
 

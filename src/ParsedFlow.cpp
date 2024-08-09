@@ -34,7 +34,7 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   http_method = NDPI_HTTP_METHOD_UNKNOWN;
   dns_query = tls_server_name = end_reason = NULL;
   dhcp_client_name = NULL, sip_call_id = NULL;
-  ja3c_hash = ja3s_hash = ja4c_hash = NULL;
+  ja4c_hash = NULL;
   external_alert = NULL;
   flow_risk_info = NULL;
   tls_cipher = tls_unsafe_cipher = http_ret_code = 0;
@@ -109,16 +109,6 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
     bittorrent_hash = strdup(pf.bittorrent_hash);
   else
     bittorrent_hash = NULL;
-
-  if (pf.ja3c_hash)
-    ja3c_hash = strdup(pf.ja3c_hash);
-  else
-    ja3c_hash = NULL;
-
-  if (pf.ja3s_hash)
-    ja3s_hash = strdup(pf.ja3s_hash);
-  else
-    ja3s_hash = NULL;
 
   if (pf.ja4c_hash)
     ja4c_hash = strdup(pf.ja4c_hash);
@@ -219,12 +209,6 @@ void ParsedFlow::fromLua(lua_State *L, int index) {
         } else if (!strcmp(key, "dns_query")) {
           if (dns_query) free(dns_query);
           dns_query = strdup(lua_tostring(L, -1));
-        } else if (!strcmp(key, "ja3c_hash")) {
-          if (ja3c_hash) free(ja3c_hash);
-          ja3c_hash = strdup(lua_tostring(L, -1));
-        } else if (!strcmp(key, "ja3s_hash")) {
-          if (ja3s_hash) free(ja3s_hash);
-          ja3s_hash = strdup(lua_tostring(L, -1));
         } else if (!strcmp(key, "ja4c_hash")) {
           if (ja4c_hash) free(ja4c_hash);
           ja4c_hash = strdup(lua_tostring(L, -1));
@@ -330,8 +314,6 @@ void ParsedFlow::freeMemory() {
   if (end_reason)           { free(end_reason); end_reason = NULL; }
   if (tls_server_name)      { free(tls_server_name); tls_server_name = NULL; }
   if (bittorrent_hash)      { free(bittorrent_hash); bittorrent_hash = NULL; }
-  if (ja3c_hash)            { free(ja3c_hash); ja3c_hash = NULL; }
-  if (ja3s_hash)            { free(ja3s_hash); ja3s_hash = NULL; }
   if (ja4c_hash)            { free(ja4c_hash); ja4c_hash = NULL; }
   if (external_alert)       { free(external_alert); external_alert = NULL; }
   if (flow_risk_info)       { free(flow_risk_info); flow_risk_info = NULL; }

@@ -653,7 +653,6 @@ class Ntop {
   inline time_t getLastStatsReset() { return (last_stats_reset); }
   void resetStats();
 
-  bool isMaliciousJA3Hash(std::string md5_hash);
   struct ndpi_detection_module_struct *initnDPIStruct();
 
   void checkReloadHostsBroadcastDomain();

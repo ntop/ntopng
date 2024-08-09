@@ -128,8 +128,6 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addMapping("TLS_SERVER_NAME", TLS_SERVER_NAME, NTOP_PEN);
   addMapping("TLS_CIPHER", TLS_CIPHER, NTOP_PEN);
   addMapping("SSL_UNSAFE_CIPHER", SSL_UNSAFE_CIPHER, NTOP_PEN);
-  addMapping("JA3C_HASH", JA3C_HASH, NTOP_PEN);
-  addMapping("JA3S_HASH", JA3S_HASH, NTOP_PEN);
   addMapping("JA4C_HASH", JA4C_HASH, NTOP_PEN);
   addMapping("BITTORRENT_HASH", BITTORRENT_HASH, NTOP_PEN);
   addMapping("SRC_FRAGMENTS", SRC_FRAGMENTS, NTOP_PEN);
@@ -1065,16 +1063,6 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
   case TLS_SERVER_NAME:
     if (value->string && value->string[0] && value->string[0] != '\n')
       flow->setTLSserverName(value->string);
-    break;
-
-  case JA3C_HASH:
-    if (value->string && value->string[0])
-      flow->setJA3cHash(value->string);
-    break;
-
-  case JA3S_HASH:
-    if (value->string && value->string[0])
-      flow->setJA3sHash(value->string);
     break;
 
   case JA4C_HASH:
