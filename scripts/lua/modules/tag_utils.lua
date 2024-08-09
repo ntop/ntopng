@@ -431,7 +431,7 @@ tag_utils.defined_tags = {
     ja4_client = {
         value_type = 'text',
         i18n_label = i18n('ja4_client_hash'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = {'eq', 'neq'}
     },
     http_method = {
         type = tag_utils.input_types.select,
