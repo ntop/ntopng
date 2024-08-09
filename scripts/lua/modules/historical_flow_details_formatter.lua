@@ -229,47 +229,25 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
    local html = "<tr><td>"..(msg or "").."</td>"..'<td align=center><span style="color:' .. severity.color .. '">' .. score .. '</span></td>'
    html = html .. "<td>" .. info .. "</td>"
 
-<<<<<<< HEAD
-    -- Add Mitre info
-    local alert_key  = alert_consts.getAlertType(alert_id, alert_entities.flow.entity_id)
-    if alert_key then
-        local  mitre_info = alert_consts.getAlertMitreInfo(alert_key)		      
-        if mitre_info and mitre_info.mitre_id then
-=======
    -- Add Mitre info
    local alert_key  = alert_consts.getAlertType(alert_id, alert_entities.flow.entity_id)
    
    if alert_key then
       local  mitre_info = alert_consts.getAlertMitreInfo(alert_key)
       
-      if mitre_info then
-<<<<<<< HEAD
-	 value = value .. ' - ' .. i18n("mitre_id") .. ' '
->>>>>>> 0c05864da (Fixed invalid historical flow formatting)
-
-=======
->>>>>>> e9eaec7cf (Unified formatting of historical and live flows)
+      if mitre_info and mitre_info.mitre_id then
 	 local keys = split(mitre_info.mitre_id, "%.")
 	 local url  = "https://attack.mitre.org/techniques/"..keys[1]:gsub("%%", "").."/"
 
-<<<<<<< HEAD
-            if mitre_info.mitre_tactic then
-                value = value .. ' ' .. i18n(mitre_info.mitre_tactic.i18n_label)
-            end
-        end
-    end
-=======
 	 if keys[2] ~= nil then
 	    url = url .. keys[2]:gsub("%%", "") .. "/"
 	 end
-<<<<<<< HEAD
-	 value = value .. '<a href="'..url..'">'..mitre_info.mitre_id.."</A>"
->>>>>>> 0c05864da (Fixed invalid historical flow formatting)
-=======
->>>>>>> e9eaec7cf (Unified formatting of historical and live flows)
 
-	 html = html .. '<td><a href="'..url..'">'..mitre_info.mitre_id.."</A>"	 
-	 html = html .. '<br>' .. i18n(mitre_info.mitre_tactic.i18n_label) .. "</td>"
+	 html = html .. '<td><a href="'..url..'">'..mitre_info.mitre_id.."</A>"
+
+	 if(mitre_info.mitre_tactic.i18n_label) then
+	    html = html .. '<br>' .. i18n(mitre_info.mitre_tactic.i18n_label) .. "</td>"
+	 end
       else
 	 html = html .. "<td>&nbsp;</td>"
       end
@@ -300,7 +278,6 @@ local function format_historical_issues(flow_details, flow)
       if alerts and #alerts >= 1 then
 	 alert = alerts[1]
 	 details = alert_utils.formatFlowAlertMessage(interface.getId(), alert, alert_json, false, true)
-	 tprint(details)
       end
    end
 
@@ -340,7 +317,6 @@ local function format_historical_issues(flow_details, flow)
    
    if table.len(other_issues) > 0 then
       for _, issue in pairs(other_issues or {}) do
-	 tprint(issue.msg)
 	 local msg, info
 	 local pieces = string.split(issue.msg, "%[")
 
