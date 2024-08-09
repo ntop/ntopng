@@ -659,4 +659,5 @@ LEFT JOIN `mitre_table_info` AS mitre
     ON f.STATUS = mitre.ALERT_ID
 WHERE f.STATUS != 0 
     AND f.IS_ALERT_DELETED != 1 
-    AND mitre.ENTITY_ID = 4;
+    AND (mitre.ENTITY_ID = 4 OR mitre.ENTITY_ID IS NULL);
+
