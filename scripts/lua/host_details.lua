@@ -477,14 +477,11 @@ else
         active = page == "dns",
         page_name = "dns",
         label = i18n("dns")
-    --[[
-    -- TODO handle ja4 (ja3 is deprecated)
     }, {
-        hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "ja3"),
+        hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "ja4"),
         active = page == "tls",
         page_name = "tls",
         label = i18n("tls")
-    --]]
     }, {
         hidden = have_nedge or only_historical or not fingerprint_utils.has_fingerprint_stats(host, "hassh"),
         active = page == "ssh",
@@ -1762,10 +1759,8 @@ setInterval(update_icmp_table, 5000);
             end
         end
 
-    --[[
-    -- TODO handle ja4 (ja3 is deprecated)
     elseif (page == "tls") then
-        local fingerprint_type = 'ja3'
+        local fingerprint_type = 'ja4'
         local context = {
             fingerprint_type = fingerprint_type,
             ifid = ifId,
@@ -1773,7 +1768,6 @@ setInterval(update_icmp_table, 5000);
         }
 
         print(template.gen("pages/host_tls.template", context))
-    --]]
 
     elseif (page == "ssh") then
         local fingerprint_type = 'hassh'
