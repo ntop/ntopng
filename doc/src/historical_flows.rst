@@ -421,3 +421,29 @@ On the preferences page, in the ClickHouse tab, it is possible to modify the hou
 - **ClickHouse Minimum Aggregated Flow Traffic**: Discard aggregated flows with a size less than the specified value (in kilobytes).
 - **Include Alerted Flows**: Include all alerted flows in the aggregated flows.
 
+Replay Historical Flows
+-----------------------
+
+Although the Historical Flow Explorer provides a lot of flexibility for analysing historical flows (by means of filtering capabilities, reports, graphical analysis pages, custom queries) it does not provide all the analysis features which are available for live traffic. In order to overcome this, an historical flows replay functionality has been introduced in ntopng 6.2 (and later versions), to be able to restore and analyse historical flows on a virtual "live" ntopng interface.
+
+In order to replay historical flows, go to the Historical Flow Explorer, select a time frame (and optionally some filters) and click on the Replay button in the toolbox.
+
+.. figure:: img/historical_flows_replay_button.png
+  :align: center
+  :alt: Historical Flows Replay Button
+
+  Historical Flows Replay Button
+
+This will create a new *Database* "live" interface, similar to any other physical interface in ntopng. Please note that:
+
+- Records processing may take a while, depending on the number of records selected from the database. A "Loading" badge appears at the top of the page until records processing completes.
+- Since traffic is analysed as live traffic, there is a maximum number of active flows and hosts that can be stored in memory and thus processed. This depends on the configured flow and host cache size (the same limitation for physical interfaces applies).
+
+.. figure:: img/historical_flows_replay_loading.png
+  :align: center
+  :alt: Historical Flows Live View
+
+  Historical Flows Live View
+
+
+
