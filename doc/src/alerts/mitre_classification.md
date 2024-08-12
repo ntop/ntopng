@@ -29,7 +29,7 @@ behavior and goals:
   for a quick overview of the security landscape.
 
 Security Report
-~~~~~~~~~~~~~~~
+---------------
 
 The Security Report can be found in the Reports page, by selecting it from the list
 or available reports in the dropdown. This report visually represent the distribution
@@ -38,10 +38,12 @@ This allows users to quickly assess the most common types of attacks and their p
 The Top Attacks are displayed for each classification, which are the most frequently
 occurring attacks.
 
-
+.. figure:: ../img/security_report.png
+  :align: center
+  :alt: Security Report
 
 Alerts Explorer
-~~~~~~~~~~~~~~~
+---------------
 
 In the Alerts Explorer, each Flow or Host alert triggered by ntopng is displayed with
 its corresponding MITRE ATT&CK classification (ID, tactic, technique). This section 
@@ -52,7 +54,7 @@ Users can also filter alerts based on specific ATT&CK ID, tactic or technique, t
 on particular types of threats.
 
 Alert Details
-~~~~~~~~~~~~~
+---------------
 
 Clicking on an alert (or a flow) ntopng will expand the view to show detailed information,
 including the ATT&CK ID and the associated tactic description, for each of the flow status
