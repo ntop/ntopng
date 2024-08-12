@@ -38,7 +38,6 @@ This allows users to quickly assess the most common types of attacks and their p
 The Top Attacks are displayed for each classification, which are the most frequently
 occurring attacks.
 
-
 .. figure:: ../img/security_report.png
    :align: center
    :alt: Security Report
@@ -55,6 +54,12 @@ ATT&CK ID.
 
 Users can also filter alerts based on specific ATT&CK ID, tactic or technique, to focus 
 on particular types of threats.
+
+.. figure:: ../img/alert_explorer_mitre_classification.png
+   :align: center
+   :alt: Mitre Classification in Alert Explorer
+  
+   Mitre Classification in Alert Explorer
 
 Alert Details
 ---------------
