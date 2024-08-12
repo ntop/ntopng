@@ -39,7 +39,7 @@ The Top Attacks are displayed for each classification, which are the most freque
 occurring attacks.
 
 
-.. figure:: img/security_report.png
+.. figure:: ../img/security_report.png
    :align: center
    :alt: Security Report
   
