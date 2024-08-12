@@ -6,8 +6,9 @@ These checks are performed per network interface monitored by ntopng.
 ____________________
 
 
-**Device/MAC Address Tracking**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Device/MAC Address Tracking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Check for MAC addresses.
 
 An alert is triggered whenever an unexpected MAC address connects or disconnects form an Interface. After enabling the alert, a new page, called `Devices Exclusion` (more info can be found `here <../advanced_features/devices_exclusion.html>`_) is going to be available in the `Settings` menu. 
@@ -23,8 +24,8 @@ By jumping there, users are able to configure denied/allowed MAC addresses (unex
 *Disabled by Default*
 
 
-**DHCP Storm**
-~~~~~~~~~~~~~~
+DHCP Storm
+~~~~~~~~~~
 
 Checks for DHCP flooding.
 
@@ -39,8 +40,8 @@ The alert is triggered when DHCP storm is detected.
 *Enabled by Default*
 
 
-**Ghost Networks**
-~~~~~~~~~~~~~~~~~~~~~~
+Ghost Networks
+~~~~~~~~~~~~~~
 
 Checks for ghost networks.
 
@@ -55,8 +56,8 @@ The alert is sent when the unknown network is discovered.
 *Enabled by Default*
 
 
-**Interface Alerts Drops**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Interface Alerts Drops
+~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for dropped alerts.
 
@@ -71,8 +72,8 @@ The alert is sent when the system drops the alert.
 *Enabled by Default*
 
 
-**Interface Periodic Activity Not Executed**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Interface Periodic Activity Not Executed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for periodic activity.
 
@@ -87,8 +88,8 @@ Alert is sent when the periodic activity hasn't been executed.
 *Enabled by Default*
 
 
-**Interface Slow Periodic Activity**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Interface Slow Periodic Activity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for slow execution of periodic activity.
 
@@ -103,8 +104,8 @@ Alert is sent when periodic activity is taking too long to execute.
 *Enabled by Default*
 
 
-**No Exporter Activity**
-~~~~~~~~~~~~~~~~~~~~~~~
+No Exporter Activity
+~~~~~~~~~~~~~~~~~~~~
 
 Checks for activities on the exporters.
 
@@ -119,8 +120,8 @@ The alert is sent when no activity on the exporter is noticed.
 *Enabled by Default*
 
 
-**No Traffic Activity**
-~~~~~~~~~~~~~~~~~~~~~~~
+No Traffic Activity
+~~~~~~~~~~~~~~~~~~~
 
 Checks for activities on the interface.
 
@@ -135,8 +136,8 @@ The alert is sent when no activity on the interface is noticed.
 *Enabled by Default*
 
 
-**Packet Drops**
-~~~~~~~~~~~~~~~~
+Packet Drops
+~~~~~~~~~~~~
 
 Checks for dropped packets.
 
@@ -151,8 +152,9 @@ The alert is sent when the system drops packets.
 *Enabled by Default*
 
 
-**Unexpected Score Behaviour**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Unexpected Score Behaviour
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Checks for Unexpected Behaviour.
 
 Score behavior anomaly detection is focused on score for abnormal behavior in order to detect threats or flaws.
@@ -166,8 +168,9 @@ Alert is triggered when unexpected behaviour comes from the interface.
 *Not Enabled by Default*  
 
 
-**Unexpected Traffic Behaviour**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Unexpected Traffic Behaviour
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Checks for Unexpected Behaviour.
 
 Traffic behavior anomaly detection is focused on the interface for abnormal behavior in order to detect threats or flaws.

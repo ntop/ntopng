@@ -6,8 +6,8 @@ Flow checks are performed on live flows.
 ________________________
 
 
-**ALPN/SNI Mismatch**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+ALPN/SNI Mismatch
+~~~~~~~~~~~~~~~~~
 
 Points out when there is an ALPN/SNI Mismatch.
 
@@ -20,8 +20,8 @@ This problem can arise when there is a misalignment between the Application-Laye
 *Enabled by Default*
 
 
-**Anonymous Subscriber**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Anonymous Subscriber
+~~~~~~~~~~~~~~~~~~~~
 
 Points out the unsafe application for you credentials.
 
@@ -34,8 +34,8 @@ An alert is triggered whenever the (source) ip address has been anonymized and i
 *Enabled by Default*
 
 
-**Binary App/.exe Transfer**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Binary App/.exe Transfer
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Cheks for Binary Application Transfer.
 
@@ -51,8 +51,8 @@ The alert is sent to notify an executable file.
 *Enabled by Default*
 
 
-**Binary file/data transfer (attempt)**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Binary file/data transfer (attempt)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Cheks for Binary Application Transfer.
 
@@ -68,8 +68,8 @@ The alert is sent to notify when there is an attempt (without success) of transf
 *Enabled by Default*
 
 
-**Blacklisted Client Contact**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Blacklisted Client Contact
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 The check verifies whether a blacklisted host has been contacted, or viceversa.
@@ -83,8 +83,8 @@ Trigger an alert when a remote blacklisted host contacts a local host.
 *Enabled by Default*
 
 
-**Blacklisted Country**
-~~~~~~~~~~~~~~~~~~~~~~~
+Blacklisted Country
+~~~~~~~~~~~~~~~~~~~
 
 
 Check verififes a Blacklisted Country.
@@ -102,8 +102,8 @@ The alert appears when a blacklisted country is detected.
 *Enabled by Default*
 
 
-**Blacklisted Flow**
-~~~~~~~~~~~~~~~~~~~~~~
+Blacklisted Flow
+~~~~~~~~~~~~~~~~
 
 The system sends you an alert when a blacklisted host or domain is detected.
 
@@ -123,8 +123,8 @@ The goal of the check is to notify that one of above cases has been verified.
 *Enabled by Default*
 
 
-**Blacklisted Server Contact**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Blacklisted Server Contact
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 The check verifies whether a blacklisted host has been contacted, or viceversa.
@@ -138,8 +138,8 @@ Trigger an alert when a localhost contacts a remote blacklisted host.
 *Enabled by Default*
 
 
-**Broadcast Non-UDP Traffic**
-~~~~~~~~~~~~~~~~~~~~~~
+Broadcast Non-UDP Traffic
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The system sends you an alert when an host contacts a Broadcast address using a non-UDP protocol.
 
@@ -152,8 +152,8 @@ The goal of the check is to notify that one host is behaving strangely.
 *Enabled by Default*
 
 
-**Clear-Text Credentials**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Clear-Text Credentials
+~~~~~~~~~~~~~~~~~~~~~~
 
 Points out the unsafe application for you credentials.
 
@@ -169,8 +169,8 @@ The warning appears when the credentials have been inserted on the unsafe/encryp
 *Enabled by Default*
 
 
-**Crawler/Bot**
-~~~~~~~~~~~~~~~
+Crawler/Bot
+~~~~~~~~~~~
 
 Checks for crawlers.
 
@@ -185,8 +185,8 @@ The alert is sent when a crawler on the webpage is detected.
 *Enabled by Default*
 
 
-**Desktop/File Sharing**
-~~~~~~~~~~~~~~~
+Desktop/File Sharing
+~~~~~~~~~~~~~~~~~~~~
 
 Checks for desktop or file sharing.
 
@@ -201,8 +201,8 @@ The alert is sent when a desktop or file sharing is detected.
 *Enabled by Default*
 
 
-**DNS Data Exfiltration**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+DNS Data Exfiltration
+~~~~~~~~~~~~~~~~~~~~~
 
 Verifies for data exfiltration.
 
@@ -219,8 +219,8 @@ The Alert is sent data exfiltration is detected.
 *Enabled by Default*
 
 
-**DNS Invalid Characters**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+DNS Invalid Characters
+~~~~~~~~~~~~~~~~~~~~~~
 
 Notifies that an invalid character is detected in the hostname.
 
@@ -233,8 +233,8 @@ DNS messages are sent via UDP. DNS hostname must only contain a subset of all pr
 *Enabled by Default*
 
 
-**Elephant flow**
-~~~~~~~~~~~~~~~~
+Elephant flow
+~~~~~~~~~~~~~
 
 Checks a flow.
 
@@ -249,8 +249,8 @@ Notifies when elephant flow is detected.
 *Enabled by Default*
 
 
-**Error Code**
-~~~~~~~~~~~~~~
+Error Code
+~~~~~~~~~~
 
 Checks for error code.
 
@@ -274,8 +274,8 @@ Category: *Network*
 *Enabled by Default*
 
 
-**External Alert** 
-~~~~~~~~~~~~~~~~~~
+External Alert 
+~~~~~~~~~~~~~~
 
 
 It’s a notification of External alerts from other devices, for example, logs from a firewall.
@@ -291,8 +291,8 @@ External sources offer a deeper understanding and  more complete view of what’
 *Enabled by Default*
 
 
-**Flow User Check Script**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Flow User Check Script
+~~~~~~~~~~~~~~~~~~~~~~
 
 Trigger a flow alert based on a custom Lua user script. For further information please visit :ref:`ApiHostChecks target`
 
@@ -303,8 +303,8 @@ Trigger a flow alert based on a custom Lua user script. For further information 
 *Not Enabled by Default*
 
 
-**Fragmented DNS Message**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Fragmented DNS Message
+~~~~~~~~~~~~~~~~~~~~~~
 
 Notifies that the message was fragmented.
 
@@ -319,8 +319,8 @@ The UDP protocol is effective and efficient with small responses. In the case of
 *Enabled by Default*
 
 
-**Fully Encrypted Flow**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Fully Encrypted Flow
+~~~~~~~~~~~~~~~~~~~~
 
 Notifies that the message was fully encrypted.
 
@@ -335,8 +335,8 @@ Trigger an alert when a fully encrypted flow is detected.
 *Enabled by Default*
 
 
-**HTTP Obsolete Server**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+HTTP Obsolete Server
+~~~~~~~~~~~~~~~~~~~~
 
 Check controls for an obsolete HTTP server.
 
@@ -351,8 +351,8 @@ The alert is sent when an host contacts an obsolete HTTP server.
 *Enabled by Default*
 
 
-**HTTP Susp. Content**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+HTTP Susp. Content
+~~~~~~~~~~~~~~~~~~
 
 Check controls for HTTP content.
 
@@ -365,8 +365,8 @@ The system notifies when HTTP carries content in unexpected format (e.g. when th
 *Enabled by Default*
 
 
-**HTTP Susp. Header**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+HTTP Susp. Header
+~~~~~~~~~~~~~~~~~
 
 HTTP Host header attacks exploit vulnerable websites that handle the value of the Host header in an unsafe way. If the server implicitly trusts the Host header, and fails to validate it properly, an attacker may be able to use this input to inject harmful payloads that manipulate server-side behavior. Attacks that involve injecting a payload directly into the Host header are often known as "Host header injection" attacks. 
 
@@ -379,8 +379,8 @@ The system notifies of suspicious HTTP header inserted.
 *Enabled by Default*
 
 
-**HTTP Susp. URL**
-~~~~~~~~~~~~~~~~~~~~~~~
+HTTP Susp. URL
+~~~~~~~~~~~~~~
 
 A warning about clicked unsafe URL.
 
@@ -396,14 +396,13 @@ The Alert is sent in order to raise the awareness on this type of URL and to pay
 *Enabled by Default*
 
 
-**HTTP Susp. User-Agent**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+HTTP Susp. User-Agent
+~~~~~~~~~~~~~~~~~~~~~
 
 The alert is sent when a suspicious User Agent is seen.
 
 The User Agent is a string of text that identifies the browser and operating system for the web server. UA is transmitted in the HTTP header when the browser makes a request to the web server. 
-User Agents are just "free-text" and might be used with malicious intentions
- the User Agent might be used to attack websites with:
+User Agents are just "free-text" and might be used with malicious intentions the User Agent might be used to attack websites with:
     • SQL Injection via User Agent 
     • XSS with User Agent 
     • Spoofing User Agent to deceive the server 
@@ -417,8 +416,8 @@ The goal is to notify by making sure all the countermeasures are implemented.
 *Enabled by Default*
 
 
-**HTTP/TLS/QUIC Numeric Hostname/SNI**
-~~~~~~~~~~~~~~~~~~~~~~~~
+HTTP/TLS/QUIC Numeric Hostname/SNI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The Check is able to see a numeric IP Host.
 
@@ -433,8 +432,8 @@ Notifies in case of numeric IP Host.
 *Enabled by Default*
 
 
-**ICMP Data Exfiltration**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+ICMP Data Exfiltration
+~~~~~~~~~~~~~~~~~~~~~~
 
 Checks data Exfiltration by using ping.
  
@@ -451,8 +450,8 @@ The system sends an alert when detects a ICMP data exfiltration.
 *Enabled by Default*
 
 
-**IEC Invalid Command Transition**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IEC Invalid Command Transition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Check for the IEC 104 protocol used in Industrial Control Systems (ICS).
 
@@ -471,8 +470,8 @@ for the flow that does not satisfies these constraints.
 *Disabled by Default*
 
      
-**IEC Invalid Transition**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+IEC Invalid Transition
+~~~~~~~~~~~~~~~~~~~~~~
 
 Check for the IEC 104 protocol used in Industrial Control Systems (ICS).
 
@@ -488,8 +487,8 @@ an alert that should not be confused with `IEC Invalid Command Transition`.
 *Disabled by Default*
 
      
-**IEC Unexpected TypeID**
-~~~~~~~~~~~~~~~~~~~~~~~~~
+IEC Unexpected TypeID
+~~~~~~~~~~~~~~~~~~~~~
 
 Check for the IEC 104 protocol used in Industrial Control Systems (ICS).
 
@@ -504,8 +503,8 @@ is not part of this list, an alert is triggered.
 *Disabled by Default*
 
 
-**Invalid DNS Query**
-~~~~~~~~~~~~~~~~~~~~~~~~
+Invalid DNS Query
+~~~~~~~~~~~~~~~~~
 
 The system detects that the DNS is not correctly resolved.
 
@@ -527,8 +526,8 @@ The Alert is sent in order to notify that the system might have been compromised
 *Enabled by Default*
 
 
-**Known Proto on Non Std Port**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Known Proto on Non Std Port
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks if all the apps are on the right port.
 
@@ -544,8 +543,8 @@ Sends a notification in case the system detects an application is on unusual por
 *Enabled by Default*
 
 
-**Large DNS Packet (512+ bytes)**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Large DNS Packet (512+ bytes)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Check for correct size of DNS packets.
 
@@ -560,8 +559,8 @@ The alert is sent in case the size overcomes 512 bytes.
 *Enabled by Default*
 
 
-**Long Lived**
-~~~~~~~~~~~~~~~
+Long Lived
+~~~~~~~~~~
  
 Checks for long lived flows.
  
@@ -576,8 +575,8 @@ An alert is sent when a flow lasts more than the configured duration.
 *Enabled by Default*
 
 
-**Low Goodput**
-~~~~~~~~~~~~~~~
+Low Goodput
+~~~~~~~~~~~
 
 Checks for low goodput.
 
@@ -601,8 +600,8 @@ The alert is sent when low goodput is tracked.
 *Enabled by Default*
 
 
-**Malformed packets**
-~~~~~~~~~~~~~~~~~~~~~
+Malformed packets
+~~~~~~~~~~~~~~~~~
 
 The alert is sent when it’s not possible to dissect the payload of a packet.
 
@@ -617,8 +616,8 @@ When malformed packets are seen by ntopng, the system warns with alert.
 *Enabled by Default*
 
 
-**Malicious JA3 Fingerp.**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Malicious JA3 Fingerp.
+~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for malicious JA3 signature.
 
@@ -634,8 +633,8 @@ The alert is sent in case malicious ja3 signature is found.
 *Enabled by Default*
 
 
-**Malicious JA3 SHA1 Cert.**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Malicious JA3 SHA1 Cert.
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for blaclisted JA3 SHA1 certificates.
 
@@ -650,8 +649,8 @@ The alert is sent in case a blacklisted JA3 SHA1 certificate is found.
 *Enabled by Default*
 
 
-**Malware Host Contacted**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Malware Host Contacted
+~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for connections with Malware hosts.
 
@@ -664,8 +663,8 @@ The alert is sent in case a flow involves an host blacklisted as Malware.
 *Enabled by Default*
 
 
-**Minor Issues**
-~~~~~~~~~~~~~~~~
+Minor Issues
+~~~~~~~~~~~~
 
 Checks for minor issues in packets.
 
@@ -678,7 +677,7 @@ The alert is sent in case minor packet/flow issues (e.g. DNS traffic with zero T
 *Enabled by Default*
 
 
-**Missing SNI TLS Extn**
+Missing SNI TLS Extn
 ~~~~~~~~~~~~~~~~~~~~
 
 Inspects if SNI is missed.
@@ -696,9 +695,8 @@ Alert is sent to notify that TLS SNI is missing.
 *Enabled by Default*
 
 
-**ModbusTCP Invalid Transition**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+ModbusTCP Invalid Transition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 *Interface: Packet*
 
@@ -707,10 +705,8 @@ Alert is sent to notify that TLS SNI is missing.
 *Enabled by Default*
 
 
-**ModbusTCP Too Many Exceptions**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
+ModbusTCP Too Many Exceptions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 *Interface: Packet*
 
@@ -719,9 +715,8 @@ Alert is sent to notify that TLS SNI is missing.
 *Enabled by Default*
  
 
-**ModbusTCP Unexpected Function Code**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+ModbusTCP Unexpected Function Code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 *Interface: Packet*
 
@@ -730,8 +725,8 @@ Alert is sent to notify that TLS SNI is missing.
 *Enabled by Default*
 
 
-**Not Purged**
-~~~~~~~~~~~~~~
+Not Purged
+~~~~~~~~~~
 
 Checks for bugs in the flow pure logic.
  
@@ -747,8 +742,8 @@ Sends the alert in case of bugs in the flow pure logic.
 *Enabled by Default*
  
 
-**Obsolete SSH Client Version or Cipher**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Obsolete SSH Client Version or Cipher
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Checks for Obsolete SSH client or chiper.
 
 The SSH protocol is a method for secure remote login from one computer to another. If the target is using deprecated SSH settings. A man-in-the-middle attacker may be able to exploit this vulnerability to record the communication to decrypt the session key and even the messages.
@@ -762,8 +757,8 @@ The system sends an alert when it sees an obsolete SSH.
 *Enabled by Default*
 
 
-**Obsolete SSH Server Version or Cipher**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Obsolete SSH Server Version or Cipher
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Checks for obsolete SSH Version
 
 It is possible to customize the supported SSH ciphers on the client machine when support is needed for a deprecated cipher. This is not a very common issue. It typically happens when a modern SSH client is used to connect to an old SSH server that hasn’t yet disabled weaker ciphers.
@@ -777,8 +772,8 @@ The system sends an alert to nitify an obsolete SSH version or Cipher.
 *Enabled by Default*
 
 
-**Old TLS Version**
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Old TLS Version
+~~~~~~~~~~~~~~~
 
 Warns about an old version of TLS.
 
@@ -794,8 +789,8 @@ Alerts when a new version of TLS is needed.
 *Enabled by Default*
 
 
-**Periodic Flow**
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Periodic Flow
+~~~~~~~~~~~~~
 
 Warns about a periodic flow.
 
@@ -810,8 +805,8 @@ Alerts when a new periodic flow is found.
 *Enabled by Default*
 
 
-**Periodicity Changed**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Periodicity Changed
+~~~~~~~~~~~~~~~~~~~
 
 Checks for periodicity change.
 
@@ -826,8 +821,8 @@ The alert is sent when periodicity change is detected.
 *Enabled by Default*
 
 
-**Possible Exploit**
-~~~~~~~~~~~~~~~~~~~~
+Possible Exploit
+~~~~~~~~~~~~~~~~
 
 Checks for an exploit.
 
@@ -843,8 +838,8 @@ The system sends an alert when a possible exploit is detected.
 *Enabled by Default*
 
 
-**Possible Remote Code Execution (RCE)**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Possible Remote Code Execution (RCE)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The system sees RCE that consist in Allowing an attacker to remotely execute malicious code on a computer.
 
@@ -855,8 +850,8 @@ Remote code execution RCE is a type of software security vulnerabilitity. RCE vu
 *Enabled by Default*
 
 
-**Possible SQL Inj**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Possible SQL Inj
+~~~~~~~~~~~~~~~~
 
 Checks for possible sql injections
 
@@ -871,8 +866,8 @@ Sends an alert when SQL might have occurred.
 *Enabled by Default*
 
 
-**Probing Attempt**
-~~~~~~~~~~~~~~~~~~~
+Probing Attempt
+~~~~~~~~~~~~~~~
 
 A probing attempt refers to an action taken to gather information about a system, network, or service, often to identify vulnerabilities, discover services, or understand the system's configuration.
 
@@ -885,8 +880,8 @@ The alert notifies that a probing attempt has been detected.
 *Enabled by Default*
 
 
-**Punicody  IDN**
-~~~~~~~~~~~~~~~~~~~
+Punicody  IDN
+~~~~~~~~~~~~~
 
 The domain has been converted in Ponycode to latin version.
 
@@ -904,8 +899,8 @@ The alert notifies that the website domain name was written in non latin script.
 *Enabled by Default*
 
 
-**Rare Destination**
-~~~~~~~~~~~~~~~~~~~
+Rare Destination
+~~~~~~~~~~~~~~~~
 
 Checks for destinations.
 
@@ -918,8 +913,8 @@ The alert notifies a rare/unusual destination is contacted.
 *Enabled by Default*
 
 
-**Remote Access**
-~~~~~~~~~~~~~~~~~
+Remote Access
+~~~~~~~~~~~~~
 
 Checks for remote access end.
 
@@ -936,8 +931,8 @@ The alert is sent when the the remote access is ended.
 *Enabled by Default*
 
 
-**Remote to Local Insecure Protocol**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Remote to Local Insecure Protocol
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Check for remote to local insecure protocol.
 
@@ -953,8 +948,8 @@ Category: Cybersecurity*
 *Enabled by Default*
 
 
-**Remote to Remote Flow**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Remote to Remote Flow
+~~~~~~~~~~~~~~~~~~~~~
 
 Check for remote flows.
 
@@ -970,8 +965,8 @@ Category: Cybersecurity*
 *Enabled by Default*
 
 
-**Risky ASN**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Risky ASN
+~~~~~~~~~
 
 Check for ASN.
 
@@ -984,8 +979,8 @@ Category: Cybersecurity*
 *Enabled by Default*
 
 
-**Risky Domain**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Risky Domain
+~~~~~~~~~~~~
 
 Check for domain.
 
@@ -998,8 +993,8 @@ Category: Cybersecurity*
 *Enabled by Default*
 
 
-**Service Map Lateral Movement Detection**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Service Map Lateral Movement Detection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for unusual traffic behaviour.
 
@@ -1014,8 +1009,8 @@ The alert is sent in case a lateral movement is detected.
 *Enabled by Default*
 
 
-**SMB insecure**
-~~~~~~~~~~~~~~~~
+SMB insecure
+~~~~~~~~~~~~
 
 Checks for SMB
  
@@ -1030,8 +1025,8 @@ Alert is sent when Server message block is detected.
 *Enabled by Default*
 
 
-**Susp. Device Protocol**
-~~~~~~~~~~~~~~~~~~~~~~~~
+Susp. Device Protocol
+~~~~~~~~~~~~~~~~~~~~~
 
 Warns about an unusual application used by a device
 
@@ -1044,8 +1039,8 @@ The goal is notify that the system has detected a strange behavior from an host.
 *Enabled by Default*
 
 
-**Susp. DGA Domain name**
-~~~~~~~~~~~~~~~~~~~~~~~~
+Susp. DGA Domain name
+~~~~~~~~~~~~~~~~~~~~~
 
 Warns about a suspicious domain that could be used with the scope to make survive the malware.
 
@@ -1061,8 +1056,8 @@ The goal is notify that the system has detected a malware.
 *Enabled by Default*
 
 
-**Susp. DNS traffic**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Susp. DNS traffic
+~~~~~~~~~~~~~~~~~
 
 Checks for suspicious dns traffic.
 
@@ -1077,8 +1072,8 @@ Category:Cybersecurity*
 *Enabled by Default*
 
 
-**Susp. Entropy**
-~~~~~~~~~~~~~~~~
+Susp. Entropy
+~~~~~~~~~~~~~
 
 Checks for suspicious entropy.
 
@@ -1095,8 +1090,8 @@ Alert is sent when suspicious entropy is seen.
 *Enabled by Default*
 
 
-**TCP connection Issues**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+TCP connection Issues
+~~~~~~~~~~~~~~~~~~~~~
 
 Check a TCP connection.
 
@@ -1109,8 +1104,8 @@ Sends an alert in case some issue during the TCP connection arise.
 *Enabled by Default*
 
 
-**TCP connection refused**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+TCP connection refused
+~~~~~~~~~~~~~~~~~~~~~~
 
 Check a TCP connection.
 
@@ -1125,8 +1120,8 @@ Sends an alert in case the port is closed or other errors.
 *Enabled by Default*
 
 
-**TCP Flow Reset**
-~~~~~~~~~~~~~~~~~~
+TCP Flow Reset
+~~~~~~~~~~~~~~
 
 A TCP flow reset refers to the termination of a TCP connection by sending a TCP RST (reset) packet
 
@@ -1139,8 +1134,8 @@ Sends an TCP flow reset is detected.
 *Enabled by Default*
 
 
-**TCP No Data Exchanged**
-~~~~~~~~~~~~~~~~~~~~~~~~~
+TCP No Data Exchanged
+~~~~~~~~~~~~~~~~~~~~~
 
 Checks for no data exchange.
 
@@ -1155,8 +1150,8 @@ The alert is sent when flow ends with no data exchanged.
 *Enabled by Default*
 
 
-**TCP Packets Issues**
-~~~~~~~~~~~~~~~~~~~~~~~~~
+TCP Packets Issues
+~~~~~~~~~~~~~~~~~~
 
 Checks for TCP retransmissions, packets loss and out of orders.
 
@@ -1169,8 +1164,8 @@ The alert is sent when one of these three indicator crosses a configurable thres
 *Enabled by Default*
 
 
-**TCP With No Answer**
-~~~~~~~~~~~~~~~~~~~~~~~~~
+TCP With No Answer
+~~~~~~~~~~~~~~~~~~
 
 Checks for TCP packets.
 
@@ -1183,8 +1178,8 @@ The alert is sent when detecting a TCP connection with no answers.
 *Enabled by Default*
 
 
-**TCP Zero Window**
-~~~~~~~~~~~~~~~~~~~
+TCP Zero Window
+~~~~~~~~~~~~~~~
 
 Checks for zero TCP window.
 
@@ -1199,8 +1194,8 @@ Category: *Network*
 *Enabled by Default*
 
 
-**TLS (probably) Not Carrying HTTPS**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TLS (probably) Not Carrying HTTPS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Check identifies that HTTP content isn't transmitted in TLS protocol.
 
@@ -1217,8 +1212,8 @@ Alert is sent when HTTP traffic is not encrypted.
 *Enabled by Default*
 
 
-**TLS Cert About To Expire**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TLS Cert About To Expire
+~~~~~~~~~~~~~~~~~~~~~~~~
 Checks for TLS validity.
 
 Ntopng tells when the TLS deadline is looming.
@@ -1229,11 +1224,11 @@ The alert is sent in case the TLS certificate is nearly expired.
 
 *Category:Cybersecurity*
 
-*Enabled by Default
+*Enabled by Default*
 
 
-**TLS Cert Expired**
-~~~~~~~~~~~~~~~~~~~~
+TLS Cert Expired
+~~~~~~~~~~~~~~~~
 Checks for TLS certification already expired.
 
 The alert is sent in case TLS cert is already expired.
@@ -1245,8 +1240,8 @@ The alert is sent in case TLS cert is already expired.
 *Enabled by Default*
 
 
-**TLS Cert Issues**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+TLS Cert Issues
+~~~~~~~~~~~~~~~
 
 Check if TLS Certiicate works properly.
 
@@ -1263,8 +1258,8 @@ Alert is sent when a mismatch error in TLS Certificate is seen.
 *Enabled by Default*
 
 
-**TLS Cert Self-Signed**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TLS Cert Self-Signed
+~~~~~~~~~~~~~~~~~~~~
 
 Checks for self signed certificates.
 
@@ -1279,8 +1274,8 @@ The alert notifies about self - signed certificates.
 *Enabled by Default*
 
 
-**TLS Cert Validity Too Long**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TLS Cert Validity Too Long
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 Checks for certificate validity.
 
 TLS/SSL Certificate Validity Periods are currently 398 days, or about 13 months.
@@ -1294,8 +1289,8 @@ The alert is sent to notify about the certificate expiration date.
 *Enabled by Default*
 
 
-**TLS Fatal Alert**
-~~~~~~~~~~~~~~~~~~~
+TLS Fatal Alert
+~~~~~~~~~~~~~~~
 
 A TLS Fatal Alert refers to a critical error in the TLS (Transport Layer Security) handshake process that causes the connection to be terminated immediately
 
@@ -1308,8 +1303,8 @@ Trigger an alert when a TLS fatal error is detected.
 *Enabled by Default*
 
 
-**TLS Susp ESNI Usage**
-~~~~~~~~~~~~~~~~~~~~~~~
+TLS Susp ESNI Usage
+~~~~~~~~~~~~~~~~~~~
 
 Checks for suspicious tls esni usage.
 
@@ -1324,8 +1319,8 @@ Category:Cybersecurity*
 *Enabled by Default*
 
 
-**TLS Susp. Extension**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TLS Susp. Extension
+~~~~~~~~~~~~~~~~~~~
 
 Checks for suspicious tls esni usage.
 
@@ -1338,8 +1333,8 @@ Category:Cybersecurity*
 *Enabled by Default*
 
 
-**TLS Uncommon ALPN**
-~~~~~~~~~~~~~~~~~~~~~
+TLS Uncommon ALPN
+~~~~~~~~~~~~~~~~~
 
 Checks for TLS ALPN.
 
@@ -1352,8 +1347,8 @@ Category:Cybersecurity*
 *Enabled by Default*
 
 
-**TLS Unsafe Ciphers**
-~~~~~~~~~~~~~~~~~~~~~~
+TLS Unsafe Ciphers
+~~~~~~~~~~~~~~~~~~
 
 Checks for secure TLS Cipher.
 
@@ -1368,8 +1363,8 @@ The Alert is sent when unsafe ciphers are seen.
 *Enabled by Default*
 
 
-**Unexpected DHCP**
-~~~~~~~~~~~~~~~~~~~~
+Unexpected DHCP
+~~~~~~~~~~~~~~~
 
 Checks for unusual DHCP.
 
@@ -1385,8 +1380,8 @@ The alert is sent when the system identifies an unexpected DHCP server.
 *Not Enabled by Default*
 
 
-**Unexpected DNS Server**
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Unexpected DNS Server
+~~~~~~~~~~~~~~~~~~~~~
 
 Check for not allowed DNS servers.
 
@@ -1402,8 +1397,8 @@ Category: Cybersecurity*
 *Enabled by Default*
 
 
-**Unexpected NTP Server**
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Unexpected NTP Server
+~~~~~~~~~~~~~~~~~~~~~
 
 Check for not allowed NTP server.
 
@@ -1419,8 +1414,8 @@ Category: Cybersecurity*
 *Enabled by Default*
 
 
-**Unexpected SMTP Server**
-~~~~~~~~~~~~~~~~~~~~
+Unexpected SMTP Server
+~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for unexpected smtp.
 
@@ -1435,8 +1430,8 @@ An alert is sent to notify about a unexpected SMTP server.
 *Not Enabled by Default*
 
 
-**Unidirectional Flow**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Unidirectional Flow
+~~~~~~~~~~~~~~~~~~~
 
 Checks for “one way” data flow.
             
@@ -1452,8 +1447,8 @@ The system sends a notification when detects in and out going data flows.
 *Enabled by Default*
 
 
-**Unsafe protocol**
-~~~~~~~~~~~~~~~~~~~
+Unsafe protocol
+~~~~~~~~~~~~~~~
 
 The check identifies an insecure/unencrypted protocols.
 
@@ -1469,8 +1464,8 @@ The alert is sent when important data is transmitted without any encryption.
 *Enabled by Default*
 
 
-**VLAN Bidirectional Flow**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+VLAN Bidirectional Flow
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Check for bidirectional flow.
 
@@ -1486,8 +1481,8 @@ with remote server address, an alert is triggered.
 *Disabled by Default*
 
 
-**WEb Mining**
-~~~~~~~~~~~~~
+WEb Mining
+~~~~~~~~~~
 
 Check generated traffic from/to hosts known to perform cryptocurrencies mining.
 
@@ -1503,8 +1498,8 @@ Category: Cybersecurity*
 *Enabled by Default*
 
 
-**XSS Attack**
-~~~~~~~~~~~~~~~~
+XSS Attack
+~~~~~~~~~~
 
 The check verifies a possible XSS attack.
 

@@ -3,8 +3,8 @@ Alerts List per License
 
 some ntopng alerts are available with a specific license. Here a list of all the alerts divided by family and their availability depending on the license.
 
-**Host Behavioural Checks**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Host Behavioural Checks
+~~~~~~~~~~~~~~~~~~~~~~~
 
 +--------------------------------+-----------+-----+--------------+--------------+---------------+
 |                                | Community | Pro | Enterprise M | Enterprise L | Enterprise XL |
@@ -61,8 +61,8 @@ some ntopng alerts are available with a specific license. Here a list of all the
 +--------------------------------+-----------+-----+--------------+--------------+---------------+
 
 
-**Interface Behavioural Checks**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Interface Behavioural Checks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +------------------------------------------+-----------+-----+--------------+--------------+---------------+
 |                                          | Community | Pro | Enterprise M | Enterprise L | Enterprise XL |
@@ -89,8 +89,8 @@ some ntopng alerts are available with a specific license. Here a list of all the
 +------------------------------------------+-----------+-----+--------------+--------------+---------------+
 
 
-**Local Networks Behavioural Checks**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Local Networks Behavioural Checks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +----------------------------+-----------+-----+--------------+--------------+---------------+
 |                            | Community | Pro | Enterprise M | Enterprise L | Enterprise XL |
@@ -113,8 +113,8 @@ some ntopng alerts are available with a specific license. Here a list of all the
 +----------------------------+-----------+-----+--------------+--------------+---------------+
 
 
-**SNMP Behavioural Checks**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SNMP Behavioural Checks
+~~~~~~~~~~~~~~~~~~~~~~~
 
 +--------------------------------+-----------+-----+--------------+--------------+---------------+
 |                                | Community | Pro | Enterprise M | Enterprise L | Enterprise XL |
@@ -143,8 +143,8 @@ some ntopng alerts are available with a specific license. Here a list of all the
 +--------------------------------+-----------+-----+--------------+--------------+---------------+
 
 
-**Flow Behavioural Checks**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Flow Behavioural Checks
+~~~~~~~~~~~~~~~~~~~~~~~
 
 +---------------------------------------+-----------+-----+--------------+--------------+---------------+
 |                                       | Community | Pro | Enterprise M | Enterprise L | Enterprise XL |
@@ -339,8 +339,8 @@ some ntopng alerts are available with a specific license. Here a list of all the
 +---------------------------------------+-----------+-----+--------------+--------------+---------------+
 
 
-**System Behavioural Checks**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+System Behavioural Checks
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +----------------------------------------+-----------+-----+--------------+--------------+---------------+
 |                                        | Community | Pro | Enterprise M | Enterprise L | Enterprise XL |
@@ -357,8 +357,8 @@ some ntopng alerts are available with a specific license. Here a list of all the
 +----------------------------------------+-----------+-----+--------------+--------------+---------------+
 
 
-**Active Monitoring Behavioural Checks**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Active Monitoring Behavioural Checks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +----------------------------------------+-----------+-----+--------------+--------------+---------------+
 |                                        | Community | Pro | Enterprise M | Enterprise L | Enterprise XL |
@@ -367,8 +367,8 @@ some ntopng alerts are available with a specific license. Here a list of all the
 +----------------------------------------+-----------+-----+--------------+--------------+---------------+
 
 
-**Syslog Behavioural Checks**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Syslog Behavioural Checks
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +----------------+-----------+-----+--------------+--------------+---------------+
 |                | Community | Pro | Enterprise M | Enterprise L | Enterprise XL |

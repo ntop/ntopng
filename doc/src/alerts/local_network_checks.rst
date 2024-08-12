@@ -5,8 +5,8 @@ These checks are performed on local networks (see -m command line option).
 
 ____________________
 
-**Broadcast Domain Too Large**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Broadcast Domain Too Large
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks broadcast domains.
 
@@ -21,8 +21,8 @@ The Alert is sent when the broadcast domain is too large.
 *Enabled by Default*
 
 
-**Flow Flood Victim**
-~~~~~~~~~~~~~~~~~~~~~
+Flow Flood Victim
+~~~~~~~~~~~~~~~~~
 
 Checks for Flow Flood.
 
@@ -37,8 +37,8 @@ The alert is sent in case of server flow flood.
 *Not Enabled by Default*
 
 
-**IP/MAC Reassoc/Spoofing**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+IP/MAC Reassoc/Spoofing
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for IP or MAC Reassociation/Spoofing.
 
@@ -53,8 +53,8 @@ The alert is sent when an IP address, previously seen with a MAC address, is now
 *Not Enabled by Default*
 
 
-**Network Discovery**
-~~~~~~~~~~~~~~~~~~~~~
+Network Discovery
+~~~~~~~~~~~~~~~~~
 
 Checks for Network Discovery.
 
@@ -69,8 +69,8 @@ The alert is sent when a network discovery is detected.
 *Enabled by Default*
 
 
-**Network Issues**
-~~~~~~~~~~~~~~~~~~
+Network Issues
+~~~~~~~~~~~~~~
 
 Checks for Network Discovery.
 
@@ -85,8 +85,8 @@ The alert is sent when network issues (retransmissions, high number of fragments
 *Enabled by Default*
 
 
-**Network Score per Host**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Network Score per Host
+~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for the score of the hosts in a network.
 
@@ -101,8 +101,8 @@ The alert is sent when the average score per host of a network is higher then a 
 *Enabled by Default*
 
 
-**SYN Flood Victim**
-~~~~~~~~~~~~~~~~~~~~
+SYN Flood Victim
+~~~~~~~~~~~~~~~~
 
 Checks for SYN Flood.
 
@@ -117,8 +117,8 @@ The alert is sent when the number of received SYN exceeds the threshold.
 *Not Enabled by Default*
 
 
-**SYN Scan Victim**
-~~~~~~~~~~~~~~~~~~~
+SYN Scan Victim
+~~~~~~~~~~~~~~~
 
 Checks for SYN Scan.
 

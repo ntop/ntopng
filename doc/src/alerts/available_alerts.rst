@@ -1,7 +1,7 @@
 Available Alerts
 ================
 
-ntopng alerts are evaluated with :ref:`WebUIUserScripts`. Checks are executed for hosts, interfaces, SNMP devices, and other network elements, and are configurable under Checks from the Settings left sidebar.
+Checks are executed for hosts, interfaces, SNMP devices, and other network elements, and are configurable under Checks from the Settings left sidebar.
 
 .. figure:: ../img/alerts_checks_management.png
   :align: center
@@ -15,9 +15,11 @@ Interface Types
 Checks can be available on both, ZMQ Interfaces and Packets Interfaces, or just on one of them;
 
 .. |packet_interface| image:: ../img/packet_interface_icon.png
+
 - Packet interface: |packet_interface|
 
 .. |zmq_interface| image:: ../img/zmq_interface_icon.png
+
 - ZMQ interface: |zmq_interface|
 
 

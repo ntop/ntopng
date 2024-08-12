@@ -5,8 +5,8 @@ These checks are executed after a periodic SNMP poll session, in order to detect
 
 ____________________
 
-**Duplex Status Change**
-~~~~~~~~~~~~~~~~~~~~~~~~
+Duplex Status Change
+~~~~~~~~~~~~~~~~~~~~
 
 Check for Duplex Status.
 
@@ -23,8 +23,8 @@ The alert is sent when Duplex status is changed.
 *Enabled by Default*
 
 
-**High Interface Discards/Errors**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+High Interface Discards/Errors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for Interface Discards and Errors.
  
@@ -39,8 +39,8 @@ The alert is sent when an interface error is seen.
 *Enabled by Default*
 
 
-**Interface Errors Exceeded**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Interface Errors Exceeded
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for Interface Errors.
  
@@ -55,8 +55,8 @@ The alert is sent when the errors counter of an interface exceed 5% of packets.
 *Enabled by Default*
 
 
-**LLDP/CDP Topology Monitor**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+LLDP/CDP Topology Monitor
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for changes in the SNMP network topology.
 
@@ -72,8 +72,8 @@ Alert is sent when changes in the SNMP network topology are discovered.
 *Enabled by Default*
 
 
-**MAC Detection (SNMP)**
-~~~~~~~~~~~~~~~~~~~~~~~~
+MAC Detection (SNMP)
+~~~~~~~~~~~~~~~~~~~~
 
 Checks if a MAC has disappeared/appeared on an interface or device.
 
@@ -88,8 +88,8 @@ Alert is sent when a MAC address appear or disapper from an interface or device.
 *Enabled by Default*
 
 
-**MAC Port Changed (SNMP)**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+MAC Port Changed (SNMP)
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks if a MAC has been moved between interfaces or devices.
 
@@ -104,8 +104,8 @@ Alert is sent when MAC address moved between interfaces.
 *Enabled by Default*
 
 
-**Oper. Status Change**
-~~~~~~~~~~~~~~~~~~~~~~~
+Oper. Status Change
+~~~~~~~~~~~~~~~~~~~
 
 Checks if the operational state of an interface has been changed.
 
@@ -131,8 +131,8 @@ Alert is sent in case the operational state of an interface changed.
 *Enabled by Default*
 
 
-**SNMP Device Restart**
-~~~~~~~~~~~~~~~~~~~~~~~
+SNMP Device Restart
+~~~~~~~~~~~~~~~~~~~
 
 Checks for SNMP device restart.
 
@@ -149,8 +149,8 @@ Alert is sent when a restart for an SNMP device has been seen.
 *Enabled by Default*
 
 
-**Threshold Crossed**
-~~~~~~~~~~~~~~~~~~~~~
+Threshold Crossed
+~~~~~~~~~~~~~~~~~
 
 Checks for threshold configured in the SNMP Device Rules page.
 
@@ -163,8 +163,8 @@ Alert is sent when a threshold from one of the devices configured is exceeded.
 *Enabled by Default*
 
 
-**Too Many MACs on Non-Trunk**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Too Many MACs on Non-Trunk
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks the number of MACs on a Non-Trunk port.
 
@@ -179,8 +179,8 @@ Alert is sent when the number of MACs detected on a non-trunk port exceeds the c
 *Enabled by Default*
 
 
-**Traffic Change Detected**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Traffic Change Detected
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks the traffic from an SNMP device.
 

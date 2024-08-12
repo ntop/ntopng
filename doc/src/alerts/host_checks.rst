@@ -8,8 +8,9 @@ Host checks are performed on active hosts.
 ____________________
 
 
-**Countries Contacts**
-~~~~~~~~~~~~~~~~~~~~~~
+Countries Contacts
+~~~~~~~~~~~~~~~~~~
+
 Checks for Countries Contacts.
 
 The endpoint sends too many requests to different countries - the recognition is based on IP location, overcoming the threshold > 100 Contacts (Minute).
@@ -23,8 +24,8 @@ The alert is sent when the threshold is exceeded.
 *Not Enabled by Default*
 
 
-**Dangerous Host**
-~~~~~~~~~~~~~~~~~~
+Dangerous Host
+~~~~~~~~~~~~~~
 
 Checks for Dangerous Hosts.
 
@@ -39,8 +40,8 @@ The alert is sent when a dangerous host is detected.
 *Not Enabled by Default*
 
 
-**DNS Flood**
-~~~~~~~~~~~~~
+DNS Flood
+~~~~~~~~~
 
 Checks for DNS Flood.
 
@@ -57,8 +58,9 @@ The alert is sent when the number of sent/received SYNs/sec exceeds the threshol
 *Not Enabled by Default*
 
 
-**DNS Server Contacts**
-~~~~~~~~~~~~~~~~~~~~~~~
+DNS Server Contacts
+~~~~~~~~~~~~~~~~~~~
+
 Checks for DNS Server Contacts.
 
 DNS servers are sensitive to all network-based attacks. There are many ways attackers can cause a large amount of network traffic to the DNS servers, such as TCP/UDP/ICMP floods, rendering the service unavailable to other network users by saturating the network connection to the DNS servers.
@@ -72,8 +74,9 @@ The alert is sent when number of different DNS servers contacted exceeds the thr
 *Not Enabled by Default*
 
 
-**DNS Traffic**
-~~~~~~~~~~~~~~~~~~~~~~
+DNS Traffic
+~~~~~~~~~~~
+
 Checks for DNS Traffic.
 
 DNS traffic exceeds the threshold >  (1 MB) 
@@ -85,8 +88,8 @@ The alert is sent when the threshold is exceeded.
 *Not Enabled by Default*
 
 
-**Domain Name Contacts**
-~~~~~~~~~~~~~~~~~~~~~~~
+Domain Name Contacts
+~~~~~~~~~~~~~~~~~~~~
 Checks for Domain Names Contacts.
 
 The alert is sent when the number of different Domain Names contacted from an host exceeds the threshold.
@@ -98,8 +101,8 @@ The alert is sent when the number of different Domain Names contacted from an ho
 *Not Enabled by Default*
 
 
-**Flow Flood**
-~~~~~~~~~~~~~
+Flow Flood
+~~~~~~~~~~
 
 Checks for Flow Flood.
 
@@ -116,8 +119,8 @@ The alert is sent when the number of flows/sec exceeds the threshold.
 *Not Enabled by Default*
 
 
-**Flows Anomaly**
-~~~~~~~~~~~~~~~~~
+Flows Anomaly
+~~~~~~~~~~~~~
 
 Checks for a Flow Anomaly
 
@@ -132,8 +135,8 @@ The alert is sent when the system detects anomalies in active flows number.
 *Not Enabled by Default*
 
 
-**Host External Check (REST)**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Host External Check (REST)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Trigger a host alert from an external script via REST API. For further information please visit :ref:`RESTAPIDocV2 target` and check the *rest/v2/trigger/host/alert.lua* API.
 Please note that the Check must be enabled from the Settings as any other Behavioural Checks before pushing alerts via REST API.
@@ -145,8 +148,8 @@ Please note that the Check must be enabled from the Settings as any other Behavi
 *Not Enabled by Default*
 
 
-**Host User Check Script**
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Host User Check Script
+~~~~~~~~~~~~~~~~~~~~~~
 
 Trigger a host alert based on a custom Lua user script. For further information please visit :ref:`ApiHostChecks target`
 
@@ -157,8 +160,8 @@ Trigger a host alert based on a custom Lua user script. For further information 
 *Not Enabled by Default*
 
 
-**ICMP Flood**
-~~~~~~~~~~~~~~~~~~~~
+ICMP Flood
+~~~~~~~~~~
 
 Checks for ICMP Flood.
 
@@ -175,8 +178,8 @@ The alert is sent when the number of sent/received ICMP Flows/sec exceeds the th
 *Not Enabled by Default*
 
 
-**NTP Server Contacts**
-~~~~~~~~~~~~~~~~~~~~~~~
+NTP Server Contacts
+~~~~~~~~~~~~~~~~~~~
 
 Checks for NTP Server Contacts.
 
@@ -191,8 +194,8 @@ The alert is sent when the number of different NTP servers contacted exceeds the
 *Not Enabled by Default*
 
 
-**Remote Connection**
-~~~~~~~~~~~~~~~~~~~~~
+Remote Connection
+~~~~~~~~~~~~~~~~~
 
 Checks for Remote Connection.
 
@@ -207,8 +210,8 @@ The alert is sent whenever an host has at least one active flow using a remote a
 *Not Enabled by Default*
 
 
-**RST Scan**
-~~~~~~~~~~~~
+RST Scan
+~~~~~~~~
 
 Checks for RESET flag.
 
@@ -223,8 +226,8 @@ The alert is sent whenever an host exceed the configurable threshold of RST per 
 *Not Enabled by Default*
 
 
-**RX-only Host Scan**
-~~~~~~~~~~~~~~~~~~~~~
+RX-only Host Scan
+~~~~~~~~~~~~~~~~~
 
 Checks for scan towards RX-only hosts.
 
@@ -237,8 +240,8 @@ The alert is sent whenever a RX-only host is under scan attack.
 *Not Enabled by Default*
 
 
-**Scan Detection**
-~~~~~~~~~~~~~~~~~~
+Scan Detection
+~~~~~~~~~~~~~~
 Checks for a scan detection.
 
 Host and network scanning cannot go unnoticed because they are usually a symptom of possible exploits and attacks.TCP/UDP flows exceeds the specified standard > 32 Flows (Minute) 
@@ -250,8 +253,8 @@ Host and network scanning cannot go unnoticed because they are usually a symptom
 *Not Enabled by Default*
 
 
-**Score Anomaly**
-~~~~~~~~~~~~~~~~~
+Score Anomaly
+~~~~~~~~~~~~~
 
 Checks for score anomaly.
 
@@ -264,8 +267,8 @@ Anomalies score represents how abnormal the behavior of the host is, based on it
 *Not Enabled by Default*
 
 
-**Score Threshold Exceeded**
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Score Threshold Exceeded
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Checks for Score Threshold
 
@@ -280,8 +283,8 @@ The alert is sent when the threshold is passed.
 *Not Enabled by Default*
 
 
-**Server Port Detected**
-~~~~~~~~~~~~~~~~~~~~~~~~
+Server Port Detected
+~~~~~~~~~~~~~~~~~~~~
 
 Checks for Server Ports changes.
 
@@ -296,8 +299,8 @@ The alert is sent when a change to the server ports is detected.
 *Not Enabled by Default*
 
 
-**SMTP Server Contacts**
-~~~~~~~~~~~~~~~~~~~~~~~~
+SMTP Server Contacts
+~~~~~~~~~~~~~~~~~~~~
 
 Checks for SMTP Server Contacts.
 
@@ -310,8 +313,8 @@ The alert is sent when the number of different SMTP servers contacted exceeds th
 *Not Enabled by Default*
 
 
-**SNMP Flood**
-~~~~~~~~~~~~~~
+SNMP Flood
+~~~~~~~~~~
 
 Checks for SNMP Flood.
 
@@ -328,8 +331,8 @@ The alert is sent when the number SNMP flows/sec exceeds the threshold.
 *Not Enabled by Default*
 
 
-**SYN Flood**
-~~~~~~~~~~~~~
+SYN Flood
+~~~~~~~~~
 
 Checks for SYN Flood.
 
@@ -345,8 +348,8 @@ The alert is sent when the number of sent/received SYNs/sec exceeds the threshol
 
 *Not Enabled by Default*
 
-**SYN Scan**
-~~~~~~~~~~~~
+SYN Scan
+~~~~~~~~
 
 Checks for SYN Scan.
 
@@ -362,8 +365,8 @@ The alert is sent when the number of sent/received SYNs/min exceeds the threshol
 *Not Enabled by Default*
 
 
-**TCP FIN Scan**
-~~~~~~~~~~~~~~~~
+TCP FIN Scan
+~~~~~~~~~~~~
 
 Checks for TCP FIN Scan.
 
