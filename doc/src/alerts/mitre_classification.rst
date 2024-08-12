@@ -38,9 +38,12 @@ This allows users to quickly assess the most common types of attacks and their p
 The Top Attacks are displayed for each classification, which are the most frequently
 occurring attacks.
 
-.. figure:: ../img/security_report.png
-  :align: center
-  :alt: Security Report
+
+.. figure:: img/security_report.png
+   :align: center
+   :alt: Security Report
+  
+   Security Report
 
 Alerts Explorer
 ---------------
