@@ -1657,7 +1657,7 @@ function alert_store:get_stats(which)
 
     if not which or which == "alert_id" then
         stats.top.alert_id = self:top_alert_id_historical_by_count()
-     end
+    end
 
     return stats
 end
@@ -1741,10 +1741,21 @@ end
 -- ##############################################
 
 -- @brief Performs a query for the top by field count
-function alert_store:top_generic_historical(field)
+function alert_store:top_generic_historical(field, excluded_field_values)
     -- Preserve all the filters currently set
     local where_clause = self:build_where_clause()
 
+    -- Filter out fields
+    for _, v in ipairs(excluded_field_values or {}) do
+        where_clause = where_clause .. " AND " .. field .. " != "
+        if type(v) == 'string' then
+            where_clause = where_clause .. "'" .. v .. "'"
+        else
+            where_clause = where_clause .. v
+        end
+    end
+
+    -- Run query
     local q_res = {}
     if ntop.isClickHouseEnabled() then
         local q = string.format(

@@ -181,16 +181,16 @@ function host_alert_store:_get_additional_stats(which)
         stats.top.ip = self:top_ip_historical()
     end
     if not which or which == "mitre_id" then
-        stats.top.mitre_id = self:top_generic_historical("mitre_id")
+        stats.top.mitre_id = self:top_generic_historical("mitre_id", { '' })
     end
     if not which or which == "mitre_tactic" then
-        stats.top.mitre_tactic = self:top_generic_historical("mitre_tactic")
+        stats.top.mitre_tactic = self:top_generic_historical("mitre_tactic", { 0 })
     end
     if not which or which == "mitre_technique" then
-        stats.top.mitre_technique = self:top_generic_historical("mitre_technique")
+        stats.top.mitre_technique = self:top_generic_historical("mitre_technique", { 0 })
     end
     if not which or which == "mitre_subtechnique" then
-        stats.top.mitre_subtechnique = self:top_generic_historical("mitre_subtechnique")
+        stats.top.mitre_subtechnique = self:top_generic_historical("mitre_subtechnique", { 0 })
     end
 
     return stats

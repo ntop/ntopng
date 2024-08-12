@@ -575,16 +575,16 @@ function flow_alert_store:_get_additional_stats(which)
       stats.top.dga_domain = self:top_srv_ip_domain()
    end
    if not which or which == "mitre_id" then
-      stats.top.mitre_id = self:top_generic_historical("mitre_id")
+      stats.top.mitre_id = self:top_generic_historical("mitre_id", { '' })
    end
    if not which or which == "mitre_tactic" then
-      stats.top.mitre_tactic = self:top_generic_historical("mitre_tactic")
+      stats.top.mitre_tactic = self:top_generic_historical("mitre_tactic", { 0 })
    end
    if not which or which == "mitre_technique" then
-      stats.top.mitre_technique = self:top_generic_historical("mitre_technique")
+      stats.top.mitre_technique = self:top_generic_historical("mitre_technique", { 0 })
    end
    if not which or which == "mitre_subtechnique" then
-      stats.top.mitre_subtechnique = self:top_generic_historical("mitre_subtechnique")
+      stats.top.mitre_subtechnique = self:top_generic_historical("mitre_subtechnique", { 0 })
    end
 
    return stats
@@ -789,7 +789,6 @@ local RNAME = {
       export = true,
       elements = {"srv_ip.label", "srv_ip.value", "srv_port", "cli_ip.label", "cli_ip.value", "cli_port"}
    },
-
    VLAN_ID = {
       name = "vlan_id",
       export = true
@@ -810,12 +809,10 @@ local RNAME = {
       name = "srv_port",
       export = false
    },
-
    TRAFFIC = {
       name = "total_bytes",
       export = false
    },
-
    PROTO = {
       name = "proto",
       export = true
@@ -828,7 +825,6 @@ local RNAME = {
       name = "link_to_past_flows",
       export = false
    },
-
    CLI_HOST_POOL_ID = {
       name = "cli_host_pool_id",
       export = false
@@ -845,38 +841,30 @@ local RNAME = {
       name = "srv_network",
       export = false
    },
-
    PROBE_IP = {
       name = "probe_ip",
       export = true
    },
-
    INFO = {
       name = "info",
       export = true
    },
-
    HIST_FLOW_CLI_INFO = {
       name = "hist_flow_cli_info",
       export = true
    },
-
    HIST_FLOW_SRV_INFO = {
       name = "hist_flow_srv_info",
       export = true
    },
-
    HIST_FLOW_INFO = {
       name = "hist_flow_info",
       export = true
    },
-
-
    MITRE = {
       name = "mitre_data",
       export = false
    }
-
 }
 
 -- ##############################################
