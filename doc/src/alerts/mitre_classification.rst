@@ -68,4 +68,8 @@ Clicking on an alert (or a flow) ntopng will expand the view to show detailed in
 including the ATT&CK ID and the associated tactic description, for each of the flow status
 and issue that contributed to trigger the alert.
 
-
+.. figure:: ../img/alert_details_with_mitre_classification.png
+   :align: center
+   :alt: Mitre Classification in Alert Details
+  
+   Mitre Classification in Alert Details
