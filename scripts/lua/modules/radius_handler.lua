@@ -120,8 +120,8 @@ function radius_handler.accountingStop(name, terminate_cause, info)
         end
 
         if info then
-            bytes_sent = info["bytes.sent"] or user_data.bytes_sent
-            bytes_rcvd = info["bytes.rcvd"] or user_data.bytes_rcvd
+            bytes_sent = math.floor((info["bytes.sent"] or 0) / 1024 + 0.5) or user_data.bytes_sent
+            bytes_rcvd = math.floor((info["bytes.rcvd"] or 0) / 1024 + 0.5) or user_data.bytes_rcvd
             packets_sent = info["packets.sent"] or user_data.packets_sent
             packets_rcvd = info["packets.rcvd"] or user_data.packets_rcvd
         else
@@ -163,10 +163,11 @@ function radius_handler.accountingUpdate(name, info)
                 user_data.ip_address = ip_address
             end
         end
-        local bytes_sent = info["bytes.sent"]
-        local bytes_rcvd = info["bytes.rcvd"]
-        local packets_sent = info["packets.sent"]
-        local packets_rcvd = info["packets.rcvd"]
+        -- These are in B, needs to be converted in KB
+        local bytes_sent = math.floor((info["bytes.sent"] or 0) / 1024 + 0.5)
+        local bytes_rcvd = math.floor((info["bytes.rcvd"] or 0) / 1024 + 0.5)
+        local packets_sent = info["packets.sent"] or 0
+        local packets_rcvd = info["packets.rcvd"] or 0
         local current_time = os.time()
 
         user_data.bytes_sent = bytes_sent
