@@ -511,6 +511,7 @@ local lang = {
   ["order_by"] = "Order By",
   ["os"] = "OS",
   ["other"] = "Other",
+  ["other_interfaces"] = "Other Interfaces",
   ["other_ip"] = "Other IP",
   ["others"] = "Others",
   ["out_of_order"] = "Out of Order",
