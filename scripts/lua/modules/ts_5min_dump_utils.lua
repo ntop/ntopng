@@ -1,7 +1,6 @@
 --
 -- (C) 2019-24 - ntop.org
 --
-
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/pools/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/schemas/?.lua;" .. package.path
@@ -14,9 +13,9 @@ local ts_utils = require "ts_utils_core"
 local ts_custom
 
 if ntop.exists(dirs.installdir .. "/scripts/lua/modules/timeseries/custom/ts_5min_custom.lua") then
-   package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
+    package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/custom/?.lua;" .. package.path
 
-   ts_custom = require "ts_5min_custom"
+    ts_custom = require "ts_5min_custom"
 end
 
 -- Set to true to debug host timeseries points timestamps
@@ -66,7 +65,7 @@ function ts_dump.blacklist_update(when, verbose)
     local lists = lists_utils.getCategoryLists()
 
     for list_name, v in pairs(lists) do
-       if(v.status.num_hits.total > 0) then
+        if (v.status.num_hits.total > 0) then
             list_name = list_name:gsub("%s+", "_") -- replace space with underscore
             ts_utils.append("blacklist:hits", {
                 ifid = getSystemInterfaceId(),
@@ -704,7 +703,7 @@ end
 -- ########################################################
 
 function ts_custom_host_function(when, ifstats, hostname, host_ts)
-   -- do nothing
+    -- do nothing
 end
 
 -- ########################################################
@@ -722,23 +721,23 @@ end
 -- ########################################################
 
 local function local_custom_timeseries_dump_callback()
-   local base_dir_file     = dirs.installdir .. "/scripts/lua/modules/timeseries"
-   local custom_file       = "ts_custom_function"
-   local lists_custom_file = base_dir_file.."/"..custom_file ..".lua"
+    local base_dir_file = dirs.installdir .. "/scripts/lua/modules/timeseries"
+    local custom_file = "ts_custom_function"
+    local lists_custom_file = base_dir_file .. "/" .. custom_file .. ".lua"
 
-   if ntop.exists(lists_custom_file) then
-      traceError(TRACE_INFO, TRACE_CONSOLE, "Loading "..lists_custom_file)
-      local content = read_file(lists_custom_file)
+    if ntop.exists(lists_custom_file) then
+        traceError(TRACE_INFO, TRACE_CONSOLE, "Loading " .. lists_custom_file)
+        local content = read_file(lists_custom_file)
 
-      -- tprint(content)
+        -- tprint(content)
 
-      local rc = load(content)
+        local rc = load(content)
 
-      rc("", "") -- needed to activate the function
-      -- lua.execute(open(lists_custom_file).read())
-   else
-      traceError(TRACE_INFO, TRACE_CONSOLE, "Missing file "..lists_custom_file)
-   end
+        rc("", "") -- needed to activate the function
+        -- lua.execute(open(lists_custom_file).read())
+    else
+        traceError(TRACE_INFO, TRACE_CONSOLE, "Missing file " .. lists_custom_file)
+    end
 end
 
 -- ########################################################
@@ -778,7 +777,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, when, verbose)
                         end
 
                         ts_dump.host_update_rrd(host_ts.initial_point_time, host_key, host_ts.initial_point, ifstats,
-						verbose, config)
+                            verbose, config)
                     end
 
                     ts_dump.host_update_rrd(when, host_key, host_ts.ts_point, ifstats, verbose, config)
@@ -787,7 +786,7 @@ function ts_dump.run_5min_dump(_ifname, ifstats, when, verbose)
                     dumped_hosts[host_key] = true
                 end
 
-		ts_custom_host_function(min_instant, ifstats, hostname, host_ts)
+                ts_custom_host_function(min_instant, ifstats, hostname, host_ts)
 
                 if ((num_processed_hosts % 64) == 0) then
                     if not ntop.isDeadlineApproaching() then
@@ -854,10 +853,10 @@ function ts_dump.run_5min_dump(_ifname, ifstats, when, verbose)
     end
 
     -- Create RRDs for flow and sFlow probes
-    if (config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM()) then
+    if (config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM() and not highExporterTimeseriesResolution()) then
         package.path = dirs.installdir .. "/scripts/lua/pro/modules/timeseries/callbacks/?.lua;" .. package.path
         local exporters_timeseries = require "exporters_timeseries"
-        exporters_timeseries.update_timeseries(when, ifstats, verbose)
+        exporters_timeseries.update_timeseries(when, ifstats, verbose, false)
     end
 
     -- Save Host Pools stats every 5 minutes

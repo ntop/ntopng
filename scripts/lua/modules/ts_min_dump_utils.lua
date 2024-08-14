@@ -624,6 +624,13 @@ function ts_dump.run_min_dump(_ifname, ifstats, when, verbose)
     if ifstats.has_seen_pods then
         ts_dump.pods_update_stats(when, ifstats, verbose)
     end
+    
+    -- Create RRDs for flow and sFlow probes
+    if (config.flow_devices_rrd_creation == "1" and ntop.isEnterpriseM() and highExporterTimeseriesResolution()) then
+        package.path = dirs.installdir .. "/scripts/lua/pro/modules/timeseries/callbacks/?.lua;" .. package.path
+        local exporters_timeseries = require "exporters_timeseries"
+        exporters_timeseries.update_timeseries(when, ifstats, verbose, true)
+    end
 
     if ntop.isnEdge() and ifstats.type == "netfilter" and ifstats.netfilter then
         local st = ifstats.netfilter.nfq or {}

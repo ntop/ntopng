@@ -288,6 +288,26 @@ local defined_toats = {
         excluded_pages = EMPTY_PAGES,
         excluded_subpages = EMPTY_PAGES
     },
+    {
+        id = 26,
+        dismissable = true,
+        has_priority = false,
+        predicate = predicates.enable_exporters_timeseries,
+        pages = {pages.nprobe.key, pages.exporters.key},
+        subpages = EMPTY_PAGES,
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
+    },
+    {
+        id = 27,
+        dismissable = true,
+        has_priority = false,
+        predicate = predicates.configured_exporters_timeseries_resolution,
+        pages = {pages.nprobe.key, pages.exporters.key},
+        subpages = EMPTY_PAGES,
+        excluded_pages = EMPTY_PAGES,
+        excluded_subpages = EMPTY_PAGES
+    },
 }
 
 return defined_toats

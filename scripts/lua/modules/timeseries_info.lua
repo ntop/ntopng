@@ -3012,31 +3012,6 @@ local function add_top_flow_port_timeseries(tags, timeseries)
                 }
             end
         end
-
-        if true --[[add_standard_traffic]] then
-            -- Flow Port: --
-            timeseries[#timeseries + 1] = {
-                schema = "flowdev_port:traffic",
-                id = timeseries_id.flow_port,
-                label = i18n("graphs.traffic_rxtx_netflow"),
-                priority = 2,
-                measure_unit = "bps",
-                scale = i18n("graphs.metric_labels.traffic"),
-                timeseries = {
-                    bytes_sent = {
-                        label = i18n('graphs.metric_labels.out_bytes'),
-                        color = timeseries_info.get_timeseries_color('bytes_sent')
-                    },
-                    bytes_rcvd = {
-                        invert_direction = true,
-                        label = i18n('graphs.metric_labels.in_bytes'),
-                        color = timeseries_info.get_timeseries_color('bytes_rcvd')
-                    }
-                },
-                always_visibile = true,
-                default_visible = true
-            }
-        end
     end
 
     return timeseries

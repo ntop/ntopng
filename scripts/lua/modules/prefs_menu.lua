@@ -553,6 +553,10 @@ local menu_subpages = {{
             title = i18n("prefs.toggle_flow_rrds_title"),
             description = i18n("prefs.toggle_flow_rrds_description")
         },
+        toggle_flow_rrds_resolution = {
+            title = i18n("prefs.toggle_flow_rrds_resolution_title"),
+            description = i18n("prefs.toggle_flow_rrds_resolution_description")
+        },
         toggle_pools_rrds = {
             title = i18n(ternary(have_nedge, "prefs.toggle_users_rrds_title", "prefs.toggle_pools_rrds_title")),
             description = i18n(ternary(have_nedge, "prefs.toggle_users_rrds_description",

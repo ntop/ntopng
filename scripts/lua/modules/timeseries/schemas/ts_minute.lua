@@ -1,7 +1,6 @@
 --
 -- (C) 2019-24 - ntop.org
 --
-
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/timeseries/?.lua;" .. package.path
 
@@ -258,7 +257,7 @@ if ntop.isEnterpriseM() then
     schema = ts_utils.newSchema("iface:traffic_tx_behavior_v5", {
         step = 60,
         metrics_type = ts_utils.metrics.gauge,
-        keep_total = true,
+        keep_total = true
     })
     schema:addTag("ifid")
     schema:addMetric("value")
@@ -270,7 +269,7 @@ if ntop.isEnterpriseM() then
     schema = ts_utils.newSchema("iface:traffic_rx_behavior_v5", {
         step = 60,
         metrics_type = ts_utils.metrics.gauge,
-        keep_total = true,
+        keep_total = true
     })
     schema:addTag("ifid")
     schema:addMetric("value")
@@ -737,3 +736,72 @@ schema:addTag("if_index")
 schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
 
+-- ##############################################
+
+-------------------------------------------------------
+-- FLOW PROBES SCHEMAS
+-------------------------------------------------------
+
+if ntop.isEnterpriseM() then
+    schema = ts_utils.newSchema("flowdev:traffic_min", {
+        step = 60,
+        rrd_fname = "bytes_min"
+    })
+    schema:addTag("ifid")
+    schema:addTag("device")
+    schema:addMetric("bytes_sent")
+    schema:addMetric("bytes_rcvd")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("flowdev:drops_min", {
+        step = 60,
+        rrd_fname = "drops_min"
+    })
+    schema:addTag("ifid")
+    schema:addTag("device")
+    schema:addMetric("drops")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("flowdev:flows_min", {
+        step = 60,
+        rrd_fname = "flows_min"
+    })
+    schema:addTag("ifid")
+    schema:addTag("device")
+    schema:addMetric("flows")
+
+    -- ##############################################
+
+    schema = ts_utils.newSchema("flowdev_port:traffic_min", {
+        step = 60,
+        rrd_fname = "bytes_min"
+    })
+    schema:addTag("ifid")
+    schema:addTag("device")
+    schema:addTag("port")
+    schema:addMetric("bytes_sent")
+    schema:addMetric("bytes_rcvd")
+
+    schema = ts_utils.newSchema("flowdev_port:usage_min", {
+        step = 60,
+        rrd_fname = "usage_min",
+        metrics_type = ts_utils.metrics.gauge
+    })
+    schema:addTag("ifid")
+    schema:addTag("device")
+    schema:addTag("port")
+    schema:addMetric("uplink")
+    schema:addMetric("downlink")
+
+    schema = ts_utils.newSchema("flowdev_port:ndpi_min", {
+        step = 60
+    })
+    schema:addTag("ifid")
+    schema:addTag("device")
+    schema:addTag("port")
+    schema:addTag("protocol")
+    schema:addMetric("bytes_sent")
+    schema:addMetric("bytes_rcvd")
+end

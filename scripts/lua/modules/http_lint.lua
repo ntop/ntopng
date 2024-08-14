@@ -2425,6 +2425,8 @@ local known_parameters = {
    ["toggle_emit_host_alerts"] = validateBool,
    ["toggle_date_type"] = validateSingleWord,
 
+   ["exporters_ts_resolution"] = validateNumber,
+
    -- Other
    ["send_test_email"] = validateEmpty,
    ["send_test_slack"] = validateEmpty,

@@ -125,6 +125,12 @@ end
 
 -- ###########################################
 
+function highExporterTimeseriesResolution()
+    return (ntop.getPref("ntopng.prefs.exporters_ts_resolution") == "60")
+end
+
+-- ###########################################
+
 function areAlertsEnabled()
     if (__alert_enabled == nil) then
         -- Not too nice as changes will be read periodically as new VMs are reloaded
@@ -199,7 +205,8 @@ function getMinTSConfig()
     config.ndpi_flows_timeseries_creation = ntop.getPref("ntopng.prefs.ndpi_flows_rrd_creation")
     config.internals_rrd_creation = ntop.getPref("ntopng.prefs.internals_rrd_creation") == "1"
     config.is_dump_flows_enabled = ntop.getPrefs()["is_dump_flows_enabled"]
-
+    config.flow_devices_rrd_creation = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation")
+    
     -- Interface RRD creation is on, with per-protocol nDPI
     if isEmptyString(config.interface_ndpi_timeseries_creation) then
         config.interface_ndpi_timeseries_creation = "per_protocol"

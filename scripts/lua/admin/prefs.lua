@@ -1639,8 +1639,17 @@ if auth.has_capability(auth.capabilities.preferences) then
                 field = "toggle_flow_rrds",
                 default = "0",
                 pref = "flow_device_port_rrd_creation",
-                disabled = not info["version.enterprise_edition"]
+                disabled = not info["version.enterprise_edition"],
+                to_switch = {"row_exporters_ts_resolution"}
             })
+
+            local resolutions_labels = {"1m", "5m"}
+            local resolutions_values = {"60", "300"}
+
+            multipleTableButtonPrefs(subpage_active.entries["toggle_flow_rrds_resolution"].title,
+                subpage_active.entries["toggle_flow_rrds_resolution"].description, resolutions_labels,
+                resolutions_values, "300", "primary", "exporters_ts_resolution", "ntopng.prefs.exporters_ts_resolution", nil, nil, nil,
+                nil, areFlowdevTimeseriesEnabled())
 
             prefsToggleButton(subpage_active, {
                 field = "toggle_interface_usage_probes_timeseries",
@@ -1871,14 +1880,14 @@ if auth.has_capability(auth.capabilities.preferences) then
                 max = 10
             })
 
-	if(ntop.isEnterpriseXL()) then
-	   prefsToggleButton(subpage_active, {
-				field = "toggle_snmp_trap",
-				default = "0",
-				pref = "toggle_snmp_trap"
-	   })
-	end
-	
+        if (ntop.isEnterpriseXL()) then
+            prefsToggleButton(subpage_active, {
+                field = "toggle_snmp_trap",
+                default = "0",
+                pref = "toggle_snmp_trap"
+            })
+        end
+
         prefsToggleButton(subpage_active, {
             field = "toggle_snmp_debug",
             default = "0",
@@ -2232,7 +2241,7 @@ if auth.has_capability(auth.capabilities.preferences) then
                 pref = "toggle_ntopng_assets_inventory",
                 to_switch = {}
             })
-        ]] 
+        ]]
 
         -- Netbox toggle
         prefsToggleButton(subpage_active, {
