@@ -13,6 +13,7 @@ local tcp_flow_state_utils = require("tcp_flow_state_utils")
 local format_utils = require "format_utils"
 local alert_consts = require "alert_consts"
 local rest_utils = require "rest_utils"
+local dscp_consts = require "dscp_consts"
 
 local ifstats = interface.getStats()
 local host = _GET["host"]
@@ -307,6 +308,37 @@ rsp[#rsp + 1] = {
     name = "tcp_flow_state",
     value = tcp_state_filters
 }
+
+local dscp_filters = {{
+    key = "dscp",
+    value = "",
+    label = i18n("all")
+}}
+
+if flowstats["dscps"] then
+    local tmp_list = {}
+    for key, value in pairs(flowstats["dscps"] or {}, asc) do
+        local name = dscp_consts.dscp_descr(key)
+
+        tmp_list[name] = {
+            key = "dscp",
+            value = tonumber(key),
+            label = name
+        }
+    end
+
+    for _, value in pairsByKeys(tmp_list, asc) do
+        dscp_filters[#dscp_filters + 1] = value
+    end    
+end
+
+rsp[#rsp + 1] = {
+    action = "dscp",
+    label = i18n("dscp"),
+    name = "dscp",
+    value = dscp_filters
+}
+
 
 local traffic_filters = {{
     key = "traffic_type",
