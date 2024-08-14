@@ -538,19 +538,24 @@ AC_CHECK_LIB(resolv, inet_aton)
 HIREDIS_INC=
 HIREDIS_LIB=
 AS_VAR_IF(with_hiredis, yes, [
-    pkg-config --exists hiredis
-    if test "$?" -ne 1; then
-    HIREDIS_INC="`pkg-config --cflags hiredis` -I/usr/include/hiredis"
-    if test $SYSTEM = "FreeBSD" && $FREEBSD_VERSION != "15"; then
+    if test -f "${HOME}/hiredis/libhiredis.a" ; then :
+      HIREDIS_INC="-I${HOME}/hiredis/"
+      HIREDIS_LIB="${HOME}/hiredis/libhiredis.a"
+    else
+      pkg-config --exists hiredis
+      if test "$?" -ne 1; then
+      HIREDIS_INC="`pkg-config --cflags hiredis` -I/usr/include/hiredis"
+      if test $SYSTEM = "FreeBSD" && $FREEBSD_VERSION != "15"; then
 	dnl> Note: on freebsd 15 .a is not installed
         HIREDIS_LIB="/usr/local/lib/libhiredis.a"
-    else
+      else
         HIREDIS_LIB="`pkg-config --libs hiredis`"
-    fi
-    else
-    echo "Please install hiredis package prerequisite"
-    exit -1
-    fi
+      fi
+      else
+      echo "Please install hiredis package prerequisite"
+      exit -1
+      fi
+   fi
 ])
 
 if test "${with_nedge+set}" != set; then
