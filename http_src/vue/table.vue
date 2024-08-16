@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch, nextTick } from "vue";
+import { ref, onMounted, computed, watch, nextTick, onUpdated } from "vue";
 import { h } from 'vue';
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import { default as Dropdown } from "./dropdown.vue";
@@ -212,6 +212,14 @@ onMounted(async () => {
     if (props.columns != null) {
         load_table();
     }
+});
+
+onUpdated(() => {
+    console.log("Updating tooltips")
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
 });
 
 const autorefresh_title = computed(() => {
