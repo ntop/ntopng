@@ -1,0 +1,85 @@
+{
+	"id": "snmp_device_rules",
+	"data_url": "lua/pro/rest/v2/get/snmp/device/rules.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "id",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "edit_rule",
+					"icon": "fas fa-edit",
+					"title_i18n": "edit",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_edit"
+				},
+				{
+					"id": "delete_host",
+					"icon": "fas fa-trash",
+					"title_i18n": "delete",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_delete"
+				}
+			]
+		},
+		{
+			"title_i18n": "if_stats_config.snmp_device",
+			"data_field": "device",
+			"sortable": true,
+			"class": [
+				"text-left"
+			]
+		},
+		{
+			"title_i18n": "if_stats_config.snmp_interface",
+			"data_field": "interface",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "if_stats_config.metric",
+			"data_field": "metric",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "if_stats_config.frequency",
+			"data_field": "frequency",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "if_stats_config.threshold",
+			"data_field": "threshold",
+			"sortable": true,
+			"class": [
+				"text-center"
+			]
+		}
+	]
+}
