@@ -558,7 +558,7 @@ ON
 
 DROP VIEW IF EXISTS `flow_alerts_view` ON CLUSTER '$CLUSTER';
 @
-CREATE VIEW IF NOT EXISTS `flow_alerts_view` AS
+CREATE VIEW IF NOT EXISTS `flow_alerts_view` ON CLUSTER '$CLUSTER' AS
 SELECT
     f.FLOW_ID AS rowid,
     f.IP_PROTOCOL_VERSION AS ip_version,
