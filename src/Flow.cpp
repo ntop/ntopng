@@ -3004,7 +3004,9 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
     if (end_reason)
       lua_push_str_table_entry(vm, "flow_end_reason", getEndReason());
 
-    if (isSMTP()) {
+    if (isSMTP()
+	/* Discard SMTP connections that become TLS as the SMTP part is not populated */
+	&& (!isSMTPS())) {
       if (getSMTPMailFrom())
         lua_push_str_table_entry(vm, "smtp_mail_from", getSMTPMailFrom());
 
@@ -4078,7 +4080,10 @@ void Flow::formatGenericFlow(json_object *my_object) {
                            json_object_new_string(iface->get_name()));
 #endif
 
-  if (isSMTP()) {
+  if (isSMTP()
+      /* Discard SMTP connections that become TLS as the SMTP part is not populated */
+      && (!isSMTPS())
+      ) {
     if (getSMTPMailFrom())
       json_object_object_add(my_object,
 			     Utils::jsonLabel(SMTP_MAIL_FROM, "SMTP_MAIL_FROM", jsonbuf, sizeof(jsonbuf)),
