@@ -621,7 +621,6 @@ SELECT
     f.L7_PROTO AS l7_proto,
     f.L7_PROTO_MASTER AS l7_master_proto,
     f.L7_CATEGORY AS l7_cat,
-    f.PROFILE AS profile,
     f.NTOPNG_INSTANCE_NAME AS ntopng_instance_name,
     f.FLOW_RISK AS flow_risk_bitmap,
     f.INTERFACE_ID AS interface_id,
@@ -633,8 +632,6 @@ SELECT
     char(bitShiftRight(f.DST_COUNTRY_CODE, 8), bitAnd(f.DST_COUNTRY_CODE, 0xFF)) AS srv_country,
     f.SRC_LABEL AS cli_name,
     f.DST_LABEL AS srv_name,
-    f.SRC_MAC AS src_mac,
-    f.DST_MAC AS dst_mac,
     f.SRC_ASN AS src_asn,
     f.DST_ASN AS dst_asn,
     f.COMMUNITY_ID AS community_id,
@@ -656,19 +653,11 @@ SELECT
     f.ALERTS_MAP AS alerts_map,
     f.INFO AS info,
     IPv4NumToString(f.PROBE_IP) AS probe_ip,
-    f.OBSERVATION_POINT_ID AS observation_point_id,
     f.SRC2DST_TCP_FLAGS AS src2dst_tcp_flags,
     f.DST2SRC_TCP_FLAGS AS dst2src_tcp_flags,
-    f.CLIENT_NW_LATENCY_US AS client_nw_latency_us,
-    f.SERVER_NW_LATENCY_US AS server_nw_latency_us,
     f.INPUT_SNMP AS input_snmp,
     f.OUTPUT_SNMP AS output_snmp,
-    f.SRC_PROC_NAME AS src_proc_name,
-    f.DST_PROC_NAME AS dst_proc_name,
-    f.SRC_PROC_USER_NAME AS src_proc_user_name,
-    f.DST_PROC_USER_NAME AS dst_proc_user_name,
     f.ALERT_CATEGORY AS alert_category,
-    f.IS_ALERT_DELETED AS is_alert_deleted,
     f.MINOR_CONNECTION_STATE AS minor_connection_state,
     f.MAJOR_CONNECTION_STATE AS major_connection_state,
     mitre.TACTIC AS mitre_tactic,
@@ -680,4 +669,5 @@ LEFT JOIN `mitre_table_info` AS mitre
     ON (mitre.ENTITY_ID = 4 AND f.STATUS = mitre.ALERT_ID)
 WHERE f.STATUS != 0 
     AND f.IS_ALERT_DELETED != 1; 
+
 
