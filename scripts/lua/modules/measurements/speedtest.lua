@@ -19,9 +19,10 @@ local collected_results = {}
 -- see (am_utils.key2host for the details on such format).
 local function run_speedtest(hosts, granularity)
     local rsp
+    local do_trace = false
 
-    if (trace) then
-        print("[run_speedtest] " .. hosts .. " [" .. granularity .. "]\n")
+    if (do_trace) then
+        tprint("[run_speedtest] [" .. granularity .. "]\n")
     end
 
     rsp = ntop.speedtest()
@@ -31,11 +32,7 @@ local function run_speedtest(hosts, granularity)
     end
 
     if do_trace then
-        tprint(hosts)
-    end
-
-    if do_trace then
-        print(rsp)
+        tprint(rsp)
     end
 
     rsp = json.decode(rsp)
@@ -43,9 +40,12 @@ local function run_speedtest(hosts, granularity)
     if (not rsp) then
         return
     end
-    
-    -- NOTE: force_host is set, only a single host will be available
-    for key, host in pairs(hosts) do
+
+    if not rsp["download.speed"] or not rsp["upload.speed"] then
+        return
+    end
+
+    for key, host in pairs(hosts or {}) do
         -- NOTE: results are in Mbps -> for the timeseries convert into Bps
         if (rsp["download.speed"] ~= nil) then
             local isp = nil

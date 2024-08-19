@@ -44,7 +44,7 @@ if table.len(networks_stats) > 1 then
     }}
     local tmp_list = {}
     for n, local_network in pairs(networks_stats) do
-        local network_name = getFullLocalNetworkName(local_network["network_key"])
+        local network_name = getFullLocalNetworkName(tostring(local_network["network_key"]))
         tmp_list[network_name] = {
             key = "network",
             value = local_network["network_id"],
