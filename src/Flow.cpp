@@ -3004,7 +3004,9 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
     if (end_reason)
       lua_push_str_table_entry(vm, "flow_end_reason", getEndReason());
 
-    if (isSMTP()) {
+    if (isSMTP()
+	/* Discard SMTP connections that become TLS as the SMTP part is not populated */
+	&& (!isSMTPS())) {
       if (getSMTPMailFrom())
         lua_push_str_table_entry(vm, "smtp_mail_from", getSMTPMailFrom());
 
@@ -4078,7 +4080,10 @@ void Flow::formatGenericFlow(json_object *my_object) {
                            json_object_new_string(iface->get_name()));
 #endif
 
-  if (isSMTP()) {
+  if (isSMTP()
+      /* Discard SMTP connections that become TLS as the SMTP part is not populated */
+      && (!isSMTPS())
+      ) {
     if (getSMTPMailFrom())
       json_object_object_add(my_object,
 			     Utils::jsonLabel(SMTP_MAIL_FROM, "SMTP_MAIL_FROM", jsonbuf, sizeof(jsonbuf)),
@@ -6645,17 +6650,33 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
      than ntopng. This heuristics attempt to detect such events.
 
      Basically, if netfilter is sending counters for a new flow and ntopng
-     already have an existing flow matching the same 5-tuple, we sum counters
+     already has an existing flow matching the same 5-tuple, we sum counters
      rather than overwriting them.
 
      A complete solution would require the registration of a netfilter check
      and the detection of event NFCT_T_DESTROY.
   */
-  nf_existing_flow =
-    !(get_packets_cli2srv() > s2d_pkts || get_bytes_cli2srv() > s2d_bytes ||
-      get_packets_srv2cli() > d2s_pkts || get_bytes_srv2cli() > d2s_bytes);
+  nf_existing_flow = (get_packets_cli2srv() > s2d_pkts)
+    || (get_packets_srv2cli() > d2s_pkts)
+    || (get_bytes_cli2srv() > s2d_bytes)
+    || (get_bytes_srv2cli() > d2s_bytes);
 
-  if((get_packets_cli2srv() != s2d_pkts) || (get_packets_srv2cli() > d2s_pkts)) {
+#if 1
+  if(nf_existing_flow) {
+    char buf[256];
+    
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping flow update %s [delta pkts %u/%u][delta bytes %u/%u]",
+				 print(buf, sizeof(buf)),				 
+				 s2d_pkts  - get_packets_cli2srv(),
+				 s2d_bytes - get_bytes_cli2srv(),
+				 d2s_pkts  - get_packets_srv2cli(),
+				 d2s_bytes - get_bytes_srv2cli());
+    
+    nf_existing_flow = false; /* Always overwrite */
+  }
+#endif
+  
+  if((get_packets_cli2srv() != s2d_pkts) || (get_packets_srv2cli() != d2s_pkts)) {
     /* Update last seen only in case of packets changed (i.e. do not update the flow if the are steady) */
     updateSeen();
   }
