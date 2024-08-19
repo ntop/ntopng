@@ -843,7 +843,7 @@ if ((page == "overview") or (page == nil)) then
         if tot_zmq_msg_rcvd == 0 then
             tot_zmq_msg_rcvd = 1
         end
-        local pctg_dropped_zmq_msg = (((ifstats.zmqRecvStats.zmq_msg_drops or 0) * 100) / tot_flows) or 0
+        local pctg_dropped_zmq_msg =  string.format("%.2f", (((ifstats.zmqRecvStats.zmq_msg_drops or 0) * 100) / tot_flows) or 0)
 
         print("<tr>")
         print("<th nowrap>" .. i18n("if_stats_overview.collected_flows") ..

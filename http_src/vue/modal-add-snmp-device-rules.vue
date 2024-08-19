@@ -351,25 +351,25 @@ const set_row_to_edit = (row) => {
     disable_add.value = false;
 
     snmp_devices_list.value.forEach((item) => {
-      if (item.label_to_insert == row.device)
+      if (item.label_to_insert == row.device.id)
         selected_snmp_device.value = item;
     })
 
     // set threshold sign
     sign_threshold_list.value.forEach((t) => {
-      t.active = (t.value == row.threshold_sign)
+      t.active = (t.value == row.threshold.sign)
     })
 
     snmp_metric_list.value.forEach((t) => {
-      if (t.id == row.metric)
+      if (t.id == row.metric.id)
         selected_snmp_device_metric.value = t;
     })
 
     // set threshold
-    if (row.metric_type == 'volume')
+    if (row.metric.type == 'volume')
       volume_threshold_list.value.forEach((t) => {
-        if ((row.threshold % t.value) == 0) {
-          let row_threshold_value = row.threshold / t.value;
+        if ((row.threshold.value % t.value) == 0) {
+          let row_threshold_value = row.threshold.value / t.value;
           if (row_threshold_value < 1024) {
             t.active = true;
             threshold.value.value = row_threshold_value == 0 ? 1 : row_threshold_value;
@@ -380,11 +380,11 @@ const set_row_to_edit = (row) => {
           t.active = false;
         }
       })
-    else if (row.metric_type == 'throughput') {
-      row.threshold = row.threshold * 8;
+    else if (row.metric.type == 'throughput') {
+      row.threshold.value = row.threshold.value * 8;
       throughput_threshold_list.value.forEach((t) => {
         if ((row.threshold % t.value) == 0) {
-          let row_threshold_value = row.threshold / t.value;
+          let row_threshold_value = row.threshold.value / t.value;
           if (row_threshold_value < 1000) {
             t.active = true;
             threshold.value.value = row_threshold_value == 0 ? 1 : row_threshold_value;
@@ -398,22 +398,20 @@ const set_row_to_edit = (row) => {
     } else {
 
       //percentage case
-      threshold.value.value = row.threshold * row.threshold_sign;
+      threshold.value.value = row.threshold.value * row.threshold.sign;
 
     }
     change_active_threshold();
     metric_type_active_list.value.forEach((item) => {
-      if (item.id == row.metric_type) {
+      if (item.id == row.metric.type) {
         metric_type.value = item;
         item.active = true;
       } else
         item.active = false;
     })
 
-    // set rule_type
-    rule_type.value = row.rule_type;
     snmp_devices_list.value.forEach((t) => {
-      if (t.label == row.device)
+      if (t.label == row.device.id)
         selected_snmp_device.value = t;
     })
 
@@ -422,14 +420,14 @@ const set_row_to_edit = (row) => {
         selected_frequency.value = item;
     });
 
-    change_interfaces(row.device_port);
+    change_interfaces(row.interface.id);
 
   }
 }
 
 const show = (row) => {
   if (row != null) {
-    set_row_to_edit(row);
+    set_row_to_edit(row.row);
   } else {
     reset_modal_form();
   }
@@ -555,10 +553,9 @@ const add_ = (is_edit) => {
   const tmp_metric_label = selected_snmp_device_metric.value.label;
   const tmp_device = selected_snmp_device.value.label_to_insert;
   const tmp_device_label = selected_snmp_device.value.label;
-  const tmp_device_ifid = selected_snmp_interface.value == null || Object.entries(selected_snmp_interface.value).length === 0 ? "*" : selected_snmp_interface.value.id;
-  const tmp_device_ifid_label = selected_snmp_interface.value == null || Object.entries(selected_snmp_interface.value).length === 0 ? "*" : selected_snmp_interface.value.label;
-  // debugger;
-  // console.log(threshold)
+  const tmp_device_ifid = selected_snmp_interface.value == null || Object.entries(selected_snmp_interface.value).length === 0 || tmp_device_label === "*" ? "*" : selected_snmp_interface.value.id;
+  const tmp_device_ifid_label = selected_snmp_interface.value == null || Object.entries(selected_snmp_interface.value).length === 0 || tmp_device_label === "*" ? "*" : selected_snmp_interface.value.label;
+
   let tmp_metric_type = metric_type.value.id;
   let basic_value;
   let measure_unit_label;
