@@ -1127,6 +1127,7 @@ local lang = {
     },
   },
   ["alerts_dashboard"] = {
+    ["main_alert"] = "Main Alert",
     ["active_flows_anomaly"] = "Live Flows Anomaly",
     ["add_filter"] = "Add Filter",
     ["alert"] = "Alert",

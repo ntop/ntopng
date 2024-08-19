@@ -117,7 +117,7 @@
 			]
 		},
 		{
-			"title_i18n": "alerts_dashboard.alert",
+			"title_i18n": "alerts_dashboard.main_alert",
 			"data_field": "msg",
 			"min-width": "155px",
 			"sortable": false,
