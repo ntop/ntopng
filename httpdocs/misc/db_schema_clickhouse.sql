@@ -597,7 +597,8 @@ DROP VIEW IF EXISTS `flow_alerts_view`;
 
 @
 
-CREATE VIEW IF NOT EXISTS `flow_alerts_view` AS SELECT
+CREATE VIEW IF NOT EXISTS `flow_alerts_view` AS
+SELECT
     f.FLOW_ID AS rowid,
     f.IP_PROTOCOL_VERSION AS ip_version,
     f.FIRST_SEEN AS tstamp,
