@@ -7133,7 +7133,7 @@ bool Utils::readEthernetIPDeviceInfo(char *device_ip, u_int8_t timeout_sec, lua_
   memcpy((char *)&serv_addr.sin_addr.s_addr, (char *)server->h_addr, server->h_length);
   serv_addr.sin_port = htons(44818);
 
-  retval = sendto(sockfd, etherip_query, sizeof(etherip_query),
+  retval = sendto(sockfd, (const char*) etherip_query, sizeof(etherip_query),
 	      0, (struct sockaddr *)&serv_addr,
 	      sizeof(serv_addr));
 
@@ -7152,7 +7152,7 @@ bool Utils::readEthernetIPDeviceInfo(char *device_ip, u_int8_t timeout_sec, lua_
     if(ret > 0) {
       struct sockaddr_in from;
       socklen_t from_len = sizeof(from);
-      int len = recvfrom(sockfd, response, sizeof(response), 0,
+      int len = recvfrom(sockfd, (char *)response, sizeof(response), 0,
 			 (struct sockaddr *)&from, &from_len);
 
       lua_newtable(vm);
