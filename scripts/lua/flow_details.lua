@@ -1447,7 +1447,14 @@ else
                         alert_consts.alertTypeIcon(score_alert.alert_id, map_score_to_severity(score_alert.alert_id), 'fa-lg')
                     end
 
-                    local alert_source = " <span class='badge bg-info'>".. ternary(score_alert.alert_risk, "nDPI", "ntopng") .. "</span>"
+                    if (tonumber(score_alert.alert_risk) == 0) then
+                        alert_src = "ntopng"
+                     
+                    else
+                        alert_src = "nDPI"
+                    end
+                    
+                    local alert_source = " <span class='badge bg-info'>" .. alert_src .. "</span>"
 
                     print(string.format('<tr>'))
 

@@ -221,12 +221,25 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
    if alert_scores and alert_scores[alert_id] then
       score = alert_scores[alert_id]
    end
+
+   -- If alert risk is 0 then it comes from ntonpg, else nDPI
+   local alert_risk = ntop.getFlowAlertRisk(tonumber(alert_id))
+   local alert_src   
+
+   if (tonumber(alert_risk) == 0) then
+      alert_src = "ntopng"
    
+   else
+      alert_src = "nDPI"
+   end
+
+   local alert_source = " <span class='badge bg-info'>" .. alert_src .. "</span>"
+
    local severity_id = map_score_to_severity(score)
    local severity = alert_consts.alertSeverityById(severity_id)
    -- local alert_source = " <span class='badge bg-info'>".. ternary(score_alert.alert_risk, "nDPI", "ntopng") .. "</span>"
    
-   local html = "<tr><td>"..(msg or "").."</td>"..'<td align=center><span style="color:' .. severity.color .. '">' .. score .. '</span></td>'
+   local html = "<tr><td>" .. (msg or "") .. alert_source .. "</td>" .. '<td align=center><span style="color:' .. severity.color .. '">' .. score .. '</span></td>'
    html = html .. "<td>" .. info .. "</td>"
 
    -- Add Mitre info
