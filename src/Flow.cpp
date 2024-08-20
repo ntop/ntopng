@@ -562,7 +562,7 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
   /* NOTE: UDP flows are updated when the flow ends */
   if (protocol == IPPROTO_TCP)
     updateTCPHostServices(cli_h, srv_h);
-  else {      
+  else {
     switch (l7proto) {
     case NDPI_PROTOCOL_NTP:
       /* Check direction first */
@@ -869,7 +869,7 @@ void Flow::processExtraDissectedInformation() {
 		 ip.print(ipb, sizeof(ipb)), ndpiFlow->stun.mapped_address.port);
 	stun_mapped_address = strdup(tmp);
       }
-    }    
+    }
 
     updateSuspiciousDGADomain();
     // updateHostBlacklists();
@@ -2388,16 +2388,16 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
   bool first_partial;
   PartializableFlowTrafficStats partial;
   Host *cli_h = NULL, *srv_h = NULL;
-  
+
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Periodic flow update");
 #endif
 
   if((last_update_time.tv_sec > 0)
      && ((tv->tv_sec - last_update_time.tv_sec) < 3.)) {
-     
+
     return; /* Too early */
-  }  
+  }
 
   get_partial_traffic_stats(&periodic_stats_update_partial, &partial, &first_partial);
 
@@ -2476,7 +2476,7 @@ void Flow::periodic_stats_update(const struct timeval *tv) {
 #ifdef DEBUG
       u_int32_t total = diff_sent_bytes+diff_rcvd_bytes;
 #endif
-      
+
       updateThroughputStats(tdiff_msec, diff_sent_packets, diff_sent_bytes,
 			    diff_sent_goodput_bytes, diff_rcvd_packets,
 			    diff_rcvd_bytes, diff_rcvd_goodput_bytes);
@@ -3342,8 +3342,8 @@ void Flow::sumStats(nDPIStats *ndpi_stats, FlowStats *status_stats) {
 
   /* Increase Category stats */
   ndpi_stats->incCategoryStats(0,
-    get_protocol_category(), 
-    get_bytes_cli2srv(), 
+    get_protocol_category(),
+    get_bytes_cli2srv(),
     get_bytes_srv2cli());
 
   status_stats->incStats(getAlertsBitmap(), protocol,
@@ -5225,7 +5225,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
      analysis to ignore certain bits such as ECE or CWR which may be present
      during a valid 3WH. See https://github.com/ntop/ntopng/issues/3255 */
   u_int8_t flags_3wh = flags & TCP_3WH_MASK;
-  
+
   iface->incFlagStats(flags, cumulative_flags);
 
   if (cli_host) {
@@ -5304,7 +5304,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
       srv_host->updateFinAckAlertsCounter(when->tv_sec, !src2dst_direction);
     iface->getTcpFlowStats()->incFin();
   }
-  
+
   /* The update below must be after the above check */
   if (src2dst_direction)
     src2dst_tcp_flags |= flags;
@@ -5321,7 +5321,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
         twh_ok = twh_over = 1, iface->getTcpFlowStats()->incEstablished();
     }
   } else {
-    if (!twh_over) {      
+    if (!twh_over) {
       if (flags_3wh == TH_SYN) {
         if (synTime.tv_sec == 0) memcpy(&synTime, when, sizeof(struct timeval));
 
@@ -5329,7 +5329,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
 	  /* SYN|ACK arrived before SYN */
 	  swap_requested = true;
 	}
-	
+
       } else if (flags_3wh == (TH_SYN | TH_ACK)) {
         if ((synAckTime.tv_sec == 0) && (synTime.tv_sec > 0)) {
           memcpy(&synAckTime, when, sizeof(struct timeval));
@@ -6644,6 +6644,8 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
                            u_int64_t s2d_bytes, u_int64_t d2s_bytes) {
   u_int16_t eth_proto = ETHERTYPE_IP;
   bool nf_existing_flow;
+  u_int32_t s2d_pkts_delta, d2s_pkts_delta;
+  u_int64_t s2d_bytes_delta, d2s_bytes_delta;
 
   /*
      netfilter (depending on configured timeouts) could expire a flow before
@@ -6656,26 +6658,27 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
      A complete solution would require the registration of a netfilter check
      and the detection of event NFCT_T_DESTROY.
   */
-  nf_existing_flow = (get_packets_cli2srv() > s2d_pkts)
-    || (get_packets_srv2cli() > d2s_pkts)
-    || (get_bytes_cli2srv() > s2d_bytes)
-    || (get_bytes_srv2cli() > d2s_bytes);
+  nf_existing_flow = (s2d_pkts >= get_packets_cli2srv())
+    && (d2s_pkts >= get_packets_srv2cli())
+    && (s2d_bytes >= get_bytes_cli2srv())
+    && (d2s_bytes >= get_bytes_srv2cli());
+
+  s2d_pkts_delta = nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
+    d2s_pkts_delta = nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts,
+    s2d_bytes_delta = nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
+    d2s_bytes_delta = nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes;;
 
 #if 1
-  if(nf_existing_flow) {
+  if(!nf_existing_flow) {
     char buf[256];
-    
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping flow update %s [delta pkts %u/%u][delta bytes %u/%u]",
-				 print(buf, sizeof(buf)),				 
-				 s2d_pkts  - get_packets_cli2srv(),
-				 s2d_bytes - get_bytes_cli2srv(),
-				 d2s_pkts  - get_packets_srv2cli(),
-				 d2s_bytes - get_bytes_srv2cli());
-    
-    nf_existing_flow = false; /* Always overwrite */
+
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping flow update %s [delta pkts %u/%u][delta bytes %lu/%lu]",
+				 print(buf, sizeof(buf)),
+				 s2d_pkts_delta, s2d_bytes_delta,
+				 d2s_pkts_delta, d2s_bytes_delta);
   }
 #endif
-  
+
   if((get_packets_cli2srv() != s2d_pkts) || (get_packets_srv2cli() != d2s_pkts)) {
     /* Update last seen only in case of packets changed (i.e. do not update the flow if the are steady) */
     updateSeen();
@@ -6685,10 +6688,10 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
     float tdiff_msec = (now - last_conntrack_update) * 1000;
 
     updateThroughputStats(tdiff_msec,
-			  nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
-			  nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes, 0,
-			  nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts,
-			  nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes, 0);
+			  s2d_pkts_delta,
+			  s2d_bytes_delta, 0,
+			  d2s_pkts_delta,
+			  d2s_bytes_delta, 0);
   }
 
   /*
@@ -6698,22 +6701,24 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   */
   last_conntrack_update = now;
 
-  static_cast<NetfilterInterface *>(iface)->incStatsConntrack(isIngress2EgressDirection(), now, eth_proto, getStatsProtocol(),
+  static_cast<NetfilterInterface *>(iface)->incStatsConntrack(isIngress2EgressDirection(),
+							      now, eth_proto, getStatsProtocol(),
 							      get_protocol_category(), protocol,
-							      nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
-							      nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts);
+							      s2d_bytes_delta, s2d_pkts_delta);
 
-  static_cast<NetfilterInterface *>(iface)->incStatsConntrack(!isIngress2EgressDirection(), now, eth_proto, getStatsProtocol(),
+  static_cast<NetfilterInterface *>(iface)->incStatsConntrack(!isIngress2EgressDirection(),
+							      now, eth_proto, getStatsProtocol(),
 							      get_protocol_category(), protocol,
-							      nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes,
-							      nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts);
+							      d2s_bytes_delta, d2s_pkts_delta);
 
   if (nf_existing_flow) {
+    /* Set value */
     stats.setStats(true, s2d_pkts, s2d_bytes, 0);
     stats.setStats(false, d2s_pkts, d2s_bytes, 0);
   } else {
-    stats.incStats(true, s2d_pkts, s2d_bytes, 0);
-    stats.incStats(false, d2s_pkts, d2s_bytes, 0);
+    /* Increment value */
+    stats.incStats(true, s2d_pkts_delta, s2d_bytes_delta, 0);
+    stats.incStats(false, d2s_pkts_delta, d2s_bytes_delta, 0);
   }
 
   if((!detection_completed) && (get_packets() > (2*NDPI_MIN_NUM_PACKETS))) {
@@ -8419,7 +8424,7 @@ void Flow::swap() {
 	Same applies with latency counters
       */
     }
-  
+
   swap_done = 1, swap_requested = 0;
 }
 
