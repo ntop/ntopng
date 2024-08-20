@@ -221,15 +221,20 @@ for _, value in ipairs(flows_stats.flows) do
     end
 
     local proto_id = 0
+    local proto_name 
+    
+    -- l4_protocol_list.l4_keys entry is like:  { "IP",        "ip",          0 }
     for _, proto in pairs(l4_protocol_list.l4_keys) do
-        if proto[1] == value["proto.l4"] or proto[2] == value["proto.l4"] then
+        if proto[1] == value["proto.l4"] or proto[2] == value["proto.l4"] or proto[3] == tonumber(value["proto.l4"]) then
             proto_id = (proto[3])
+            proto_name = (proto[1])
             break
         end
     end
+
     record["l4_proto"] = {
         id = proto_id,
-        name = value["proto.l4"]
+        name = proto_name
     }
     record["first_seen"] = value["seen.first"]
     record["last_seen"] = value["seen.last"]

@@ -167,7 +167,13 @@ const map_table_def_columns = (columns) => {
                 proto = !row.verdict ? ` <strike>${value.name}</strike>` : `${value.name}`
             }
             proto = `<a href="#" class="tableFilter" tag-filter="l4proto" tag-value="${value.id}">${proto}</a>`
-            return `${proto}:${application}`
+            if (row.l4_proto.name == "UDP" || row.l4_proto.name == "TCP") {
+                return `${proto}:${application}`
+            }
+            else {
+                return `${proto}`
+
+            }
         },
         "proto": (value, row) => {
             if (value) {
