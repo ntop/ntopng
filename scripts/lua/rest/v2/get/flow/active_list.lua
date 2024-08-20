@@ -221,7 +221,7 @@ for _, value in ipairs(flows_stats.flows) do
     end
 
     local proto_id = 0
-    local proto_name 
+    local proto_name = ""
     
     -- l4_protocol_list.l4_keys entry is like:  { "IP",        "ip",          0 }
     for _, proto in pairs(l4_protocol_list.l4_keys) do
