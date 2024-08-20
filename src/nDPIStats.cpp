@@ -99,7 +99,7 @@ void nDPIStats::sum(nDPIStats *stats) {
     std::unordered_map<u_int16_t, ProtoCounter *>::iterator it1 =
         stats->counters.find(proto_id);
 
-    if (it1 != counters.end())
+    if (it1 != stats->counters.end())
       it1->second->sum(c);
     else {
       ProtoCounter *pc = new (std::nothrow) ProtoCounter(

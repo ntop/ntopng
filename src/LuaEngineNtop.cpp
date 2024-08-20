@@ -6145,17 +6145,21 @@ static int ntop_add_local_network(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_check_local_network_alias(lua_State *vm) {
-  char *local_network;
   u_int16_t network_id = (u_int16_t)-1;
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
-  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  if ((local_network = (char *)lua_tostring(vm, 1)) == NULL)
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+  if (lua_type(vm, 1) == LUA_TSTRING) {
+    char *local_network;
 
-  network_id = ntop->getLocalNetworkId(local_network);
+    if ((local_network = (char *)lua_tostring(vm, 1)) == NULL)
+      return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
+
+    network_id = ntop->getLocalNetworkId(local_network);
+
+  } else if (lua_type(vm, 1) == LUA_TNUMBER) {
+    network_id = (u_int16_t)lua_tonumber(vm, 1);
+  }
 
   if (network_id != (u_int16_t)-1) {
     if (!ntop->getLocalNetworkAlias(vm, network_id)) {
