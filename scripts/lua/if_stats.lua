@@ -708,61 +708,10 @@ if ((page == "overview") or (page == nil)) then
             probe_mode = " --zmq-probe-mode"
         end
 
-        if ntop.isCloud() then
-            if (prefs.zmq_publish_events_url == nil) then
-                print("<p><b><font color=red>Please restart ntopng with --zmq-publish-events &lt;URL&gt;</font></b>")
-            else
-                local info = ntop.getHostInformation()
-                local elems = string.split(zmq_endpoint, ":")
-                local port = elems[3]
-
-                zmq_endpoint = "tcp://" .. info.ip .. ":" .. port
-
-                print("<li>nprobe --cloud " .. zmq_endpoint .. " --zmq-encryption-key '" ..
-                          i18n("if_stats_overview.zmq_encryption_alias") .. "' ...")
-            end
-        else
-            print("<li>nprobe --zmq " .. zmq_endpoint .. probe_mode .. " --zmq-encryption-key '" ..
-                      i18n("if_stats_overview.zmq_encryption_alias") .. "' ...")
-        end
+        print("<li>nprobe --zmq " .. zmq_endpoint .. probe_mode .. " --zmq-encryption-key '" ..
+              i18n("if_stats_overview.zmq_encryption_alias") .. "' ...")
 
         print("</small></ul>");
-
-        if (ntop.isCloud() and (prefs.zmq_publish_events_url ~= nil)) then
-            -- Sample configuration file
-            print [[
-        <script type='text/javascript'>
-        function configDownload() {
-          var filename = 'nprobe-example.conf';
-          var content = "";
-          content += "# Set the capture interface name\n";
-          content += "#-i=INTERFACE_NAME\n";
-          content += "\n";
-          content += "# Set the ntopng address properly\n";
-          content += "--cloud=]]
-            print(zmq_endpoint)
-            print [[\n";
-          content += "--instance-name=SET_YOUR_NPROBE_INSTANCE_NAME\n";
-          content += "--zmq-encryption-key=']]
-            print(ifstats.encryption.public_key)
-            print [['\n";
-          content += "\n";
-          content += "# Add more options here...\n";
-          content += "\n";
-          var element = document.createElement('a');
-          element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
-          element.setAttribute('download', filename);
-          element.style.display = 'none';
-          document.body.appendChild(element);
-          element.click();
-          document.body.removeChild(element);
-        }
-        </script>
-        <button type="button" class="btn btn-sm btn-secondary" onclick="configDownload();">]]
-            print(i18n("if_stats_overview.zmq_download_conf"))
-            print [[</button>
-        ]]
-        end
 
         print("</td></tr>\n")
     end
