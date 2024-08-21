@@ -1683,10 +1683,10 @@ function flow_alert_store:format_record_telemetry(value)
 
    -- Flow related info
    local alert_json = not isEmptyString(value.json) and (json.decode(value.json) or {}) or {}
-   local flow_related_info = addExtraFlowInfo(alert_json, value, true)
+   --local flow_related_info = addExtraFlowInfo(alert_json, value, true)
    -- addExtraFlowInfo ->  addHTTPInfoToAlertDescr, addDNSInfoToAlertDescr, addTLSInfoToAlertDescr, addICMPInfoToAlertDescr, addBytesInfoToAlertDescr
-   flow_related_info.client_traffic = nil
-   flow_related_info.server_traffic = nil
+   --flow_related_info.client_traffic = nil
+   --flow_related_info.server_traffic = nil
 
    -- TLS IssuerDN
    local flow_tls_issuerdn = nil
@@ -1696,8 +1696,26 @@ function flow_alert_store:format_record_telemetry(value)
    end
 
    -- get alert details page info
-   local flow = db_search_manager.get_flow(value["rowid"], value["tstamp_epoch"], "")
+   --local flow = db_search_manager.get_flow(value["rowid"], value["tstamp_epoch"], "")
+   local flow = db_search_manager.get_flow(4807156, 1722029153, "")
+   --tprint(flow_related_info)
 
+   
+   local t, other_issues = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'], alert_json, false, true, true)
+
+   local other_flow_issues = ""
+
+   if other_issues and type(other_issues) == "table" then
+      for i, entry in ipairs(other_issues) do
+         -- Check if entry exists and has a msg property
+
+         if entry and entry.msg then
+            -- Add the current message to the string
+            other_flow_issues = other_flow_issues .. tostring(entry.msg) .. " - "
+         end
+      end
+   end
+   
    -- client info
    local cli_ip = value["cli_ip"]
    local cli_country = value["cli_country"] or (cli_ip and interface.getHostMinInfo(cli_ip)["country"]) or ""
@@ -1756,7 +1774,7 @@ function flow_alert_store:format_record_telemetry(value)
       eventTypeName = alert_name,
       eventScore = tonumber(value["score"] or ""),
       eventContent = value["info"],
-      eventDetails = flow_related_info,
+      eventDetails = other_flow_issues,
       flowProtocolL4 = l4_proto,
       flowApplicationL7 = l7_protocol,
       numBytesDestinationToSource = tonumber(flow["DST2SRC_BYTES"] or 0),
