@@ -1696,10 +1696,7 @@ function flow_alert_store:format_record_telemetry(value)
    end
 
    -- get alert details page info
-   --local flow = db_search_manager.get_flow(value["rowid"], value["tstamp_epoch"], "")
-   local flow = db_search_manager.get_flow(4807156, 1722029153, "")
-   --tprint(flow_related_info)
-
+   local flow = db_search_manager.get_flow(value["rowid"], value["tstamp_epoch"], "")
    
    local t, other_issues = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'], alert_json, false, true, true)
 
