@@ -30,6 +30,7 @@ nProbeStats::nProbeStats() {
       flow_collection_drops = flow_collection_udp_socket_drops = 0;
    
    remote_bytes = remote_pkts = num_flow_exports = 0;
+   memset(&flow_collection, 0, sizeof(flow_collection));
 }
 
 /* *************************************** */
