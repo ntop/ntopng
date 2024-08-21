@@ -158,7 +158,6 @@ const map_table_def_columns = (columns) => {
     let map_columns = {
         "ip": (value, row) => {
             let returnValue = value;
-
             // Add interface name if defined
             if (!dataUtils.isEmptyOrNull(row['interface_name'])) {
             returnValue = `${returnValue} ${row['interface_name']}`;
@@ -269,14 +268,24 @@ const map_table_def_columns = (columns) => {
 function columns_sorting(col, r0, r1) {
     if (col != null) {
         if (col.id == "ip") {
+            return sortingFunctions.sortByIP(r0.ip, r1.ip, col.sort);
+        } else if (col.id == "name") {
+            return sortingFunctions.sortByName(r0.name, r1.name, col.sort);
+        }   else if (col.id == "ntopng_interface") {
+            return sortingFunctions.sortByIP(r0.ntopng_interface, r1.ntopng_interface, col.sort);
+        } else if (col.id == "probe_ip") {
             return sortingFunctions.sortByIP(r0.probe_ip, r1.probe_ip, col.sort);
-        } else if ((col.id == "name") || (col.id == "ntopng_interface")) {
-            return sortingFunctions.sortByName(r0.probe_public_ip, r1.probe_public_ip, col.sort);
-        } else if((col.id == "exported_flows") || (col.id == "time_last_used")) {
-            return sortingFunctions.sortByNumber(r0.probe_uuid, r1.probe_uuid, col.sort);
+        } else if (col.id == "export_type") {
+            return sortingFunctions.sortByName(r0.export_type, r1.export_type, col.sort);
+        } else if (col.id == "time_last_used") {
+            return sortingFunctions.sortByName(r0.name, r1.name, col.sort);
+        } else if (col.id == "exported_flows") {
+            return sortingFunctions.sortByNumber(r0.exported_flows, r1.exported_flows, col.sort);
+        } else if (col.id == "dropped_flows") {
+            return sortingFunctions.sortByNumber(r0.dropped_flows, r1.dropped_flows, col.sort);
         } else if (col.id == "interface_name") {
-            return sortingFunctions.sortByName(r0.probe_interface, r1.probe_interface, col.sort);
-        } 
+            return sortingFunctions.sortByName(r0.interface_name, r1.interface_name, col.sort);
+        }
     }
 }
 
