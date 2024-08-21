@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, defineProps } from "vue";
+import { ref, onMounted } from "vue";
 
 const _i18n = (t) => i18n(t);
 const custom_name = ref(null);

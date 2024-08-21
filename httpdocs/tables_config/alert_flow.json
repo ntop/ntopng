@@ -92,7 +92,7 @@
 			"data_field": "score",
 			"sortable": true,
 			"min-width": "80px",
-			"render_type": "formatValueLabel",
+			"render_type": "formatScore",
 			"class": [
 				"text-center"
 			]
