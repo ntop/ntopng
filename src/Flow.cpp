@@ -47,7 +47,8 @@ Flow::Flow(NetworkInterface *_iface,
   : GenericHashEntry(_iface) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
-  iface_index = _iface_idx,
+  creation_time = iface->getTimeLastPktRcvd(),
+    iface_index = _iface_idx,
     vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port,
     srv_port = _srv_port, privateFlowId = _private_flow_id;
   flow_dropped_counts_increased = 0, vrfId = 0, protocolErrorCode = 0;
@@ -8800,4 +8801,19 @@ void Flow::accountFlowTraffic() {
 			getStatsProtocol(), get_protocol_category(),
 			get_bytes(), get_packets());
   }
+}
+
+/* *************************************** */
+
+bool Flow::is_active_entry_now_idle(u_int max_idleness) const {  
+  bool is_expired = (((u_int)(iface->getTimeLastPktRcvd()) > (creation_time + max_idleness)) ? true : false);
+
+  /*
+    This mechanism prevents collected flows with past timestamps
+    to be purged immediately, thus guaranteeing that they stay in
+    memory at least max_idleness seconds
+  */
+  if(!is_expired) return(false);
+  
+  return(GenericHashEntry::is_active_entry_now_idle(max_idleness));
 }
