@@ -586,7 +586,7 @@ void usage() {
 #if defined(HAVE_CLICKHOUSE) && defined(NTOPNG_PRO) && defined(HAVE_MYSQL)
   printf(
 	 "                                    | clickhouse    Dump in ClickHouse "
-	 "(Enterprise M/L/XL)\n"
+	 "(Enterprise M/L/XL/XXL)\n"
 	 "                                    |   Format:\n"
 	 "                                    |   clickhouse;<host[@[<tcp-"
 	 "port>,]<mysql-port]|socket>;<dbname>;<user>;<pw>\n"
@@ -600,7 +600,7 @@ void usage() {
 	 "                                    |\n"
 #ifndef HAVE_NEDGE
 	 "                                    | clickhouse-cluster    Dump in "
-	 "ClickHouse Cluster (Enterprise M/L/XL)\n"
+	 "ClickHouse Cluster (Enterprise M/L/XL/XXL)\n"
 	 "                                    |   Format:\n"
 	 "                                    |   clickhouse-cluster;<host[@[<tcp-"
 	 "port>,]<mysql-port]|socket>;<dbname>;<user>;<pw>;<cluster name>\n"
@@ -617,7 +617,7 @@ void usage() {
 	 "                                    |\n"
 #endif
 	 "                                    | clickhouse-cloud    Dump in "
-	 "ClickHouse Cloud (Enterprise M/L/XL)\n"
+	 "ClickHouse Cloud (Enterprise M/L/XL/XXL)\n"
 	 "                                    |   Format:\n"
 	 "                                    |   clickhouse-cloud;<host[@[<tcp-"
 	 "port>,]<mysql-port]|socket>;<dbname>;<clickhouse-user>,<mysql-user>;<pw>;\n"
@@ -644,7 +644,7 @@ void usage() {
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
 	 "                                    |\n"
 	 "                                    | kafka   Dump to Kafka (Enterprise "
-	 "M/L/XL)\n"
+	 "M/L/XL/XXL)\n"
 	 "                                    |   Format:\n"
 	 "                                    |   "
 	 "kafka;[<brokerIP[:<port>]]+;<topic>[;<kafka option>=<value>]+\n"
@@ -2950,7 +2950,20 @@ bool Prefs::is_enterprise_l_edition() {
 bool Prefs::is_enterprise_xl_edition() {
   return
 #ifdef NTOPNG_PRO
-    ntop->getPro()->has_valid_enterprise_xl_license()
+    ntop->getPro()->has_valid_enterprise_xl_license() ||
+    is_enterprise_xxl_edition() /* XXL or higher */
+#else
+    false
+#endif
+    ;
+}
+
+/* *************************************** */
+
+bool Prefs::is_enterprise_xxl_edition() {
+  return
+#ifdef NTOPNG_PRO
+    ntop->getPro()->has_valid_enterprise_xxl_license()
 #else
     false
 #endif

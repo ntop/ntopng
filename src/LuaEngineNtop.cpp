@@ -3540,6 +3540,14 @@ static int ntop_is_enterprise_xl(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_is_enterprise_xxl(lua_State *vm) {
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+  lua_pushboolean(vm, ntop->getPrefs()->is_enterprise_xxl_edition());
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_is_nedge(lua_State *vm) {
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
   lua_pushboolean(vm, ntop->getPrefs()->is_nedge_pro_edition());
@@ -4075,6 +4083,8 @@ static int ntop_get_info(lua_State *vm) {
                               ntop->getPrefs()->is_enterprise_l_edition());
     lua_push_bool_table_entry(vm, "version.enterprise_xl_edition",
                               ntop->getPrefs()->is_enterprise_xl_edition());
+    lua_push_bool_table_entry(vm, "version.enterprise_xxl_edition",
+                              ntop->getPrefs()->is_enterprise_xxl_edition());
 
     lua_push_bool_table_entry(vm, "version.nedge_edition",
                               ntop->getPrefs()->is_nedge_pro_edition());
@@ -4367,7 +4377,9 @@ static int ntop_snmp_max_num_engines(lua_State *vm) {
   u_int16_t num = MIN_NUM_ASYNC_SNMP_ENGINES;
 
 #ifdef NTOPNG_PRO
-  if(ntop->getPro()->has_valid_enterprise_xl_license())
+  if(ntop->getPro()->has_valid_enterprise_xxl_license())
+    num = NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_XXL;
+  else if(ntop->getPro()->has_valid_enterprise_xl_license())
     num = NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_XL;
   else if(ntop->getPro()->has_valid_enterprise_l_license())
     num = NTOPNG_MAX_NUM_SNMP_DEVICES_ENT_L;
@@ -8000,6 +8012,7 @@ static luaL_Reg _ntop_reg[] = {
     { "isEnterpriseM", ntop_is_enterprise_m},
     { "isEnterpriseL", ntop_is_enterprise_l},
     { "isEnterpriseXL", ntop_is_enterprise_xl},
+    { "isEnterpriseXXL", ntop_is_enterprise_xxl},
     { "isnEdge", ntop_is_nedge},
     { "isnEdgeEnterprise", ntop_is_nedge_enterprise},
     { "isPackage", ntop_is_package},
