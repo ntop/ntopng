@@ -4443,7 +4443,7 @@ static int ntop_snmpset(lua_State *vm) {
 /* Asynchronous calls */
 static int ntop_allocasnyncengine(lua_State *vm) {
   SNMP **snmpAsyncEngine = getLuaVMUserdata(vm, snmpAsyncEngine);
-  u_int8_t slot_id;
+  u_int16_t slot_id;
   bool found_empty_slot = false;
 
   for (slot_id = 0; slot_id < MAX_NUM_ASYNC_SNMP_ENGINES; slot_id++) {
@@ -4468,11 +4468,11 @@ static int ntop_allocasnyncengine(lua_State *vm) {
 
 static int ntop_freeasnyncengine(lua_State *vm) {
   SNMP **snmpAsyncEngine = getLuaVMUserdata(vm, snmpAsyncEngine);
-  u_int8_t slot_id;
+  u_int16_t slot_id;
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  slot_id = (u_int8_t)lua_tonumber(vm, 1);
+  slot_id = (u_int16_t)lua_tonumber(vm, 1);
 
   if ((slot_id >= MAX_NUM_ASYNC_SNMP_ENGINES) ||
       (snmpAsyncEngine[slot_id] == NULL))
@@ -4488,11 +4488,11 @@ static int ntop_freeasnyncengine(lua_State *vm) {
 
 static int ntop_snmpgetasync(lua_State *vm) {
   SNMP **snmpAsyncEngine = getLuaVMUserdata(vm, snmpAsyncEngine);
-  u_int8_t slot_id;
+  u_int16_t slot_id;
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  slot_id = (u_int8_t)lua_tonumber(vm, 1);
+  slot_id = (u_int16_t)lua_tonumber(vm, 1);
 
   if ((slot_id >= MAX_NUM_ASYNC_SNMP_ENGINES) ||
       (snmpAsyncEngine[slot_id] == NULL))
@@ -4506,11 +4506,11 @@ static int ntop_snmpgetasync(lua_State *vm) {
 
 static int ntop_snmpgetnextasync(lua_State *vm) {
   SNMP **snmpAsyncEngine = getLuaVMUserdata(vm, snmpAsyncEngine);
-  u_int8_t slot_id;
+  u_int16_t slot_id;
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  slot_id = (u_int8_t)lua_tonumber(vm, 1);
+  slot_id = (u_int16_t)lua_tonumber(vm, 1);
 
   if ((slot_id >= MAX_NUM_ASYNC_SNMP_ENGINES) ||
       (snmpAsyncEngine[slot_id] == NULL))
@@ -4524,11 +4524,11 @@ static int ntop_snmpgetnextasync(lua_State *vm) {
 
 static int ntop_snmpgetnextbulkasync(lua_State *vm) {
   SNMP **snmpAsyncEngine = getLuaVMUserdata(vm, snmpAsyncEngine);
-  u_int8_t slot_id;
+  u_int16_t slot_id;
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  slot_id = (u_int8_t)lua_tonumber(vm, 1);
+  slot_id = (u_int16_t)lua_tonumber(vm, 1);
 
   if ((slot_id >= MAX_NUM_ASYNC_SNMP_ENGINES) ||
       (snmpAsyncEngine[slot_id] == NULL))
@@ -4542,12 +4542,12 @@ static int ntop_snmpgetnextbulkasync(lua_State *vm) {
 
 static int ntop_snmpreadasyncrsp(lua_State *vm) {
   SNMP **snmpAsyncEngine = getLuaVMUserdata(vm, snmpAsyncEngine);
-  u_int8_t slot_id;
+  u_int16_t slot_id;
   u_int timeout = 0; /* Don't wait */
   
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  slot_id = (u_int8_t)lua_tonumber(vm, 1);
+  slot_id = (u_int16_t)lua_tonumber(vm, 1);
 
   if ((slot_id >= MAX_NUM_ASYNC_SNMP_ENGINES) ||
       (snmpAsyncEngine[slot_id] == NULL))
