@@ -51,7 +51,7 @@ NtopngLuaContext::NtopngLuaContext() {
 NtopngLuaContext::~NtopngLuaContext() {
   if (snmpBatch) delete snmpBatch;
 
-  for (u_int8_t slot_id = 0; slot_id < MAX_NUM_ASYNC_SNMP_ENGINES; slot_id++) {
+  for (u_int16_t slot_id = 0; slot_id < MAX_NUM_ASYNC_SNMP_ENGINES; slot_id++) {
     if (snmpAsyncEngine[slot_id] != NULL)
       delete snmpAsyncEngine[slot_id];
   }
