@@ -30,10 +30,20 @@
 
             {%
             local url
+            local c
+           
             if (not isEmptyString(item.url)) then
-            url = item.url
+              url = item.url
             else
-            url = navbar.base_url .. "&page=" .. item.page_name
+              url = navbar.base_url 
+
+              if(string.find(url , "%?")) then
+                c = "&"
+              else
+                c = "?"
+              end
+
+              url = navbar.base_url  .. c .. "page=" .. item.page_name
             end
             %}
 
