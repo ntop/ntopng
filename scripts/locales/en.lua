@@ -3243,6 +3243,7 @@ local lang = {
     ["web_mining_detected"] = "The website is known for mining cryptocurrencies on client devices",
   },
   ["flow_devices"] = {
+    ["exporters_interfaces"] = "Exporters Interfaces",
     ["active_sflow"] = "Active sFlow Exporters",
     ["all_device_ports"] = "All %{device} Ports",
     ["all_exporters"] = "All NetFlow/IPFIX Exporter Devices",
@@ -3281,6 +3282,7 @@ local lang = {
     ["note_zmq_fields3"] = "sFlow probes are determined using sFlow field deviceIP received via ZMQ (topic 'counter')",
     ["note_zmq_fields4"] = "sFlow probes interfaces are determined using field ifIndex received via ZMQ (topic 'counter')",
     ["nprobe_instances"] = "nProbe Instances",
+    ["nprobe_ip"] = "nProbe IP",
     ["nprobe_interface"] = "IfName (nProbe)",
     ["nprobe_version"] = "Version (nProbe)",
     ["ntopng_interface"] = "IfName (ntopng)",
