@@ -6643,7 +6643,7 @@ bool Flow::isTiny() const {
 void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
                            u_int64_t s2d_bytes, u_int64_t d2s_bytes) {
   u_int16_t eth_proto = ETHERTYPE_IP;
-  bool nf_existing_flow;
+  bool flow_already_existing;
   u_int32_t s2d_pkts_delta, d2s_pkts_delta;
   u_int64_t s2d_bytes_delta, d2s_bytes_delta;
 
@@ -6658,24 +6658,30 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
      A complete solution would require the registration of a netfilter check
      and the detection of event NFCT_T_DESTROY.
   */
-  nf_existing_flow = (s2d_pkts >= get_packets_cli2srv())
+  flow_already_existing = (s2d_pkts >= get_packets_cli2srv())
     && (d2s_pkts >= get_packets_srv2cli())
     && (s2d_bytes >= get_bytes_cli2srv())
     && (d2s_bytes >= get_bytes_srv2cli());
 
-  s2d_pkts_delta = nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
-    d2s_pkts_delta = nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts,
-    s2d_bytes_delta = nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
-    d2s_bytes_delta = nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes;;
+  s2d_pkts_delta = flow_already_existing ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
+    d2s_pkts_delta = flow_already_existing ? d2s_pkts - get_packets_srv2cli() : d2s_pkts,
+    s2d_bytes_delta = flow_already_existing ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
+    d2s_bytes_delta = flow_already_existing ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes;;
 
 #if 1
-  if(!nf_existing_flow) {
-    char buf[256];
-
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Skipping flow update %s [delta pkts %u/%u][delta bytes %lu/%lu]",
-				 print(buf, sizeof(buf)),
-				 s2d_pkts_delta, s2d_bytes_delta,
-				 d2s_pkts_delta, d2s_bytes_delta);
+  if(!flow_already_existing) {
+    if((protocol == IPPROTO_UDP) || (protocol == IPPROTO_TCP)) {
+      char buf[256];
+      
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "New flow update %s [delta pkts %u/%u][delta bytes %lu/%lu] [s2d_pkts %u/%u][d2s_pkts %u/%u][s2d_bytes %u/%u][d2s_bytes %u/%u]",
+				   print(buf, sizeof(buf)),
+				   s2d_pkts_delta, s2d_bytes_delta,
+				   d2s_pkts_delta, d2s_bytes_delta,
+				   s2d_pkts, get_packets_cli2srv(),
+				   d2s_pkts, get_packets_srv2cli(),
+				   s2d_bytes, get_bytes_cli2srv(),
+				   d2s_bytes, get_bytes_srv2cli());				 
+    }
   }
 #endif
 
@@ -6711,7 +6717,7 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 							      get_protocol_category(), protocol,
 							      d2s_bytes_delta, d2s_pkts_delta);
 
-  if (nf_existing_flow) {
+  if (!flow_already_existing) {
     /* Set value */
     stats.setStats(true, s2d_pkts, s2d_bytes, 0);
     stats.setStats(false, d2s_pkts, d2s_bytes, 0);
