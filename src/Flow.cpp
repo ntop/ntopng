@@ -6668,12 +6668,13 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
     s2d_bytes_delta = flow_already_existing ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
     d2s_bytes_delta = flow_already_existing ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes;;
 
-#if 1
+#if 0
   if(!flow_already_existing) {
     if((protocol == IPPROTO_UDP) || (protocol == IPPROTO_TCP)) {
       char buf[256];
       
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "New flow update %s [delta pkts %u/%u][delta bytes %lu/%lu] [s2d_pkts %u/%u][d2s_pkts %u/%u][s2d_bytes %u/%u][d2s_bytes %u/%u]",
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "New flow update %s [delta pkts %u/%u][delta bytes %lu/%lu] [s2d_pkts %u/%u][d2s_pkts %u/%u][s2d_bytes %u/%u][d2s_bytes %u/%u]",
 				   print(buf, sizeof(buf)),
 				   s2d_pkts_delta, s2d_bytes_delta,
 				   d2s_pkts_delta, d2s_bytes_delta,
