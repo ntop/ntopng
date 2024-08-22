@@ -2950,7 +2950,20 @@ bool Prefs::is_enterprise_l_edition() {
 bool Prefs::is_enterprise_xl_edition() {
   return
 #ifdef NTOPNG_PRO
-    ntop->getPro()->has_valid_enterprise_xl_license()
+    ntop->getPro()->has_valid_enterprise_xl_license() ||
+    is_enterprise_xxl_edition() /* XXL or higher */
+#else
+    false
+#endif
+    ;
+}
+
+/* *************************************** */
+
+bool Prefs::is_enterprise_xxl_edition() {
+  return
+#ifdef NTOPNG_PRO
+    ntop->getPro()->has_valid_enterprise_xxl_license()
 #else
     false
 #endif
