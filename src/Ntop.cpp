@@ -226,7 +226,7 @@ Ntop::Ntop(const char *appName) {
     trap_collector = new SNMPTrap();
   } catch(...) {
     /* Likely running tests on pcaps or no privileges (avoid level=error as it breaks regression tests) */
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Support for SNMP traps is disabled (requires privileges)");
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Support for SNMP traps is disabled (requires privileges)");
   }
 #endif
 }
