@@ -6,226 +6,236 @@ ntopng supports a large number of command line parameters. To see what they are,
 
 .. code:: bash
 
-	Usage:
-	  ntopng <configuration file path>
-	  or
-	  ntopng <command line options> 
-	
-	Options:
-	[--dns-mode|-n] <mode>              | DNS address resolution mode
-	                                    | 0 - Decode DNS responses and resolve
-	                                    |     local numeric IPs only (default)
-	                                    | 1 - Decode DNS responses and resolve all
-	                                    |     numeric IPs
-	                                    | 2 - Decode DNS responses but don't
-	                                    |     resolve numeric IPs
-	                                    | 3 - Don't decode DNS/MDNS/HTTP/TLS responses
-	                                    |     and don't resolve numeric IPs (all hosts)
-	                                    | 4 - Don't decode DNS/MDNS/HTTP/TLS responses
-	                                    |     and don't resolve numeric IPs (localhost only)
-	[--interface|-i] <interface|pcap>   | Input interface name (numeric/symbolic),
-	                                    | view or pcap file path, including:
-	                                    | zmq://<IP address>         [ZMQ flow collection]
-	                                    | tcp://<IP address>         [DEPRECATED ZMQ flow collection]
-	                                    | kafka://<brokers list>     [Kafka flow collection]
-	                                    | kafka-ssl://<brokers list> [Kafka flow collection over SSL/TLS]
-	[--data-dir|-d] <path>              | Data directory (must be writable).
-	                                    | Default: /var/lib/ntopng
-	[--install-dir|-t] <path>           | Set the installation directory to <dir>.
-	                                    | Should be set when installing ntopng 
-	                                    | under custom directories
-	[--daemon|-e]                       | Daemonize ntopng
-	[--httpdocs-dir|-1] <path>          | HTTP documents root directory.
-	                                    | Default: httpdocs
-	[--scripts-dir|-2] <path>           | Scripts directory.
-	                                    | Default: scripts
-	[--callbacks-dir|-3] <path>         | Callbacks directory.
-	                                    | Default: scripts/callbacks
-	[--pcap-dir|-5] <path>              | Storage directory used for continuous traffic
-	                                    | recording in PCAP format.
-	                                    | Default: /var/lib/ntopng
-	[--no-promisc|-u]                   | Don't set the interface in promisc mode.
-	[--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.
-	                                    | Addr can be an IPv4 (192.168.1.1)
-	                                    | or IPv6 ([3ffe:2a00:100:7031::1]) addr.
-	                                    | Surround IPv6 addr with square brackets.
-	                                    | Prepend a ':' without addr before the
-	                                    | listening port on the loopback address.
-	                                    | Default port: 3000
-	                                    | Examples:
-	                                    | -w :3000
-	                                    | -w 192.168.1.1:3001
-	                                    | -w [3ffe:2a00:100:7031::1]:3002
-	[--https-port|-W] <[:]https port>   | HTTPS. See also -w above. Default: 3001
-	[--http-log|-L] <path>              | Log HTTP requests in the specified file
-	[--local-networks|-m] <local nets>  | Local networks list.
-	                                    | <local nets> is a comma-separated list of networks
-	                                    | in CIDR format or a path to a file.
-	                                    | The file accepts multiple lines with networks in CIDR format.
-	                                    | An optional '=<alias>' is supported
-	                                    | to specify an alias.
-	                                    | Examples:
-	                                    | -m "192.168.1.0/24,172.16.0.0/16"
-	                                    | -m "192.168.1.0/24=LAN_1,192.168.2.0/24=LAN_2,10.0.0.0/8"
-	                                    | -m "/path/to/local_networks_file"
-	[--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file
-	                                    | (eg. protos.txt)
-	[--redis|-r] <fmt>                  | Redis connection. <fmt> is specified as
-	                                    | [h[:port[:pwd]]][@db-id] where db-id
-	                                    | identifies the database Id (default 0).
-	                                    | h is the host running Redis (default
-	                                    | localhost), optionally followed by a
-	                                    |  ':'-separated port (default 6379).
-	                                    | The special characters \ and ` are not
-	                                    | supported by ntopng.
-	                                    | A password can be specified after
-	                                    | the port when Redis auth is required.
-	                                    | By default password auth is disabled.
-	                                    | On unix <fmt> can also be the redis socket file path.
-	                                    | Port is ignored for socket-based connections.
-	                                    | Examples:
-	                                    | -r @2
-	                                    | -r 129.168.1.3
-	                                    | -r 129.168.1.3:6379@3
-	                                    | -r 129.168.1.3:6379:nt0pngPwD@0
-	                                    | -r /var/run/redis/redis.sock
-	                                    | -r /var/run/redis/redis.sock@2
-	[--core-affinity|-g] <ids>          | Bind the capture/processing threads to
-	                                    | specific CPU cores (specified as a comma-
-	                                    | separated list of core id)
-	[--other-core-affinity|-y] <ids>    | Bind service threads to specific CPU cores
-	                                    | (specified as a comma-separated list of core id)
-	[--user|-U] <sys user>              | Run ntopng with the specified user
-	                                    | instead of ntopng
-	[--dont-change-user|-s]             | Do not change user (debug only)
-	[--shutdown-when-done]              | Terminate after reading the pcap (debug only)
-	[--offline]                         | Run in offline mode (avoid contacting remote sites, including blacklists) 
-	[--insecure]                        | Allow connections to TLS sites with invalid certificates 
-	[--zmq-encryption]                  | Enable ZMQ encryption
-	[--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption secret key (debug only) 
-	[--zmq-publish-events <URL>]        | Endpoint for publishing events (e.g. IPS)
-	[--disable-autologout|-q]           | Disable web logout for inactivity
-	[--disable-login|-l] <mode>         | Disable user login authentication:
-	                                    | 0 - Disable login only for localhost
-	                                    | 1 - Disable login for all hosts
-	[--max-num-flows|-X] <num>          | Max number of active flows
-	                                    | (default: 131072)
-	[--max-num-hosts|-x] <num>          | Max number of active hosts
-	                                    | (default: 131072)
-	[--pcap-reforge-timestamps|-z]      | Reforge timestamps when reading from file
-	[--users-file] <path>               | Users configuration file path
-	                                    | Default: ntopng-users.conf
-	[--original-speed]                  | Reproduce (-i) the pcap file at original speed
-	[--log-labels}                      | Enable dump of host labels in /var/lib/ntopng/labels.log
-	[--pid|-G] <path>                   | Pid file path
-	[--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)
-	[--dump-flows|-F] <mode>            | Dump expired flows. Mode:
-	                                    |
-	                                    | es            Dump in ElasticSearch database
-	                                    |   Format:
-	                                    |   es;<mapping type>;<idx name>;<es URL>;<username>:<password>
-	                                    |   Example:
-	                                    |   es;ntopng;ntopng-%Y.%m.%d;http://localhost:9200/_bulk;user:pwd
-	                                    |   Notes:
-	                                    |   The <idx name> accepts the strftime() format.
-	                                    |   <mapping type> must be set to ntopng and it is
-	                                    |   used until ElasticSearch version 6 and ignored in newer versions.
-	                                    |
-	                                    | syslog        Dump in syslog
-	                                    |   Format:
-	                                    |   syslog[;<facility-text>]
-	                                    |   Example:
-	                                    |   syslog
-	                                    |   syslog;local3
-	                                    |   Notes:
-	                                    |   <facility-text> is case-insensitive.
-	                                    |
-	                                    | clickhouse    Dump in ClickHouse (Enterprise M/L/XL)
-	                                    |   Format:
-	                                    |   clickhouse;<host[@[<tcp port>,]<mysqlport]|socket>;<dbname>;<user>;<pw>
-	                                    |   Example:
-	                                    |   clickhouse;127.0.0.1;ntopng;default;
-	                                    |   You can also use just -F clickhouse as alias of:
-	                                    |   -F "clickhouse;127.0.0.1@9000,9004;ntopng;default;"
-	                                    |
-	                                    | clickhouse-cluster    Dump in ClickHouse Cluster (Enterprise M/L/XL)
-	                                    |   Format:
-	                                    |   clickhouse-cluster;<host[@[<tcp port>,]<mysqlport]|socket>;<dbname>;<user>;<pw>;<cluster name>
-	                                    |   Example:
-	                                    |   clickhouse-cluster;127.0.0.1;ntopng;default;ntop_cluster
-	                                    |   You can also use just -F clickhouse-cluster as alias of:
-	                                    |   -F "clickhouse-cluster;127.0.0.1@9000,9004;ntopng;default;ntop_cluster"
-	                                    |
-	                                    | clickhouse-cloud    Dump in ClickHouse Cloud (Enterprise M/L/XL)
-	                                    |   Format:
-	                                    |   clickhouse-cloud;<host[@[<tcp-port>,]<mysql-port]|socket>;<dbname>;<clickhouse-user>,<mysql-user>;<pw>
-	                                    |   Example:
-	                                    |   -F "clickhouse-cloud;europe-east15.clickhouse.cloud@9440,3306s;ntopng;default,mysql-user;mych-password"
-	                                    | NOTE:
-	                                    |   - 's' after the ports stands for secure, using TLS to encrypt the communication
-	                                    |   - clickhouse-user used by clickhouse-client
-	                                    |   - mysql-user used for queries
-	                                    |   - clickhouse-user and mysql-user are separated by a ','
-	                                    |   - tcp-port used by clickhouse-client
-	                                    |   - mysql-port used for queries
-	                                    |
-	                                    | kafka   Dump to Kafka (Enterprise M/L/XL)
-	                                    |   Format:
-	                                    |   kafka;[<brokerIP[:<port>]]+;<topic>[;<kafka option>=<value>]+
-	                                    |   
-	                                    |   Example:
-	                                    |   "kafka;127.0.0.1;flows"
-	                                    |   "kafka;127.0.0.1:7689,192.168.1.20,192.168.1.2:9092;flows;compression.codec=gzip"
-	                                    |   
-	                                    |   See at the bottom of this help the list of supported kafka configuration options.
-	                                    |
-	                                    | mysql         Dump in MySQL database
-	                                    |   Format:
-	                                    |   mysql;<host[@port]|socket>;<dbname><user>;<pw>
-	                                    |   mysql;127.0.0.1;ntopng;root;
-	                                    |
-	[--export-flows|-I] <endpoint>      | Export flows with the specified endpoint
-	                                    | See https://wp.me/p1LxdS-O5 for a -I use case.
-	[--zmq-encryption-key <key>]        | ZMQ (export) encryption public key (-I only) 
-	[--hw-timestamp-mode] <mode>        | Enable hw timestamping/stripping.
-	                                    | Supported TS modes are:
-	                                    | apcon - Timestamped pkts by apcon.com
-	                                    |         hardware devices
-	                                    | ixia  - Timestamped pkts by ixiacom.com
-	                                    |         hardware devices
-	                                    | vss   - Timestamped pkts by vssmonitoring.com
-	                                    |         hardware devices
-	[--capture-direction] <dir>         | Specify packet capture direction
-	                                    | 0=RX+TX (default), 1=RX only, 2=TX only
-	[--cluster-id] <cluster id>         | Specify the PF_RING cluster ID on which incoming packets will be bound.
-	[--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.
-	                                    | Useful when using ntopng behind a proxy.
-	[--instance-name|-N <name>]         | Assign a name to this ntopng instance.
-	[--community]                       | Start ntopng in community edition.
-	[--check-license]                   | Check if the license is valid.
-	[--check-maintenance]               | Check until maintenance is included
-	                                    | in the license.
-	[--version|-V]                      | Print version and license information, then quit
-	[--version-json]                    | Print version and license information in JSON format, then quit
-	[--verbose|-v] <level>              | Verbose tracing [range 0 (min).. 6 (max)]
-	                                    | 0 - Errors only
-	                                    | 1 - Warning
-	                                    | 2 - Normal (default value)
-	                                    | 3 - Informative
-	                                    | 4 - Future use
-	                                    | 5 - Future use
-	                                    | 6 - Debug
-	[--print-ndpi-protocols]            | Print the nDPI protocols list
-	[--ignore-macs]                     | Ignore packets MAC addresses
-	[--ignore-vlans]                    | Ignore packets VLAN tags
-	[--pcap-file-purge-flows]           | Enable flow purge with pcap files (debug only)
-	[--simulate-vlans]                  | Simulate VLAN traffic (debug only)
-	[--simulate-macs]                   | Simulate MACs in the traffic (debug only)
-	[--simulate-ips] <num>              | Simulate IPs by choosing clients and servers among <num> random addresses
-	[--limit-resources]                 | Non-essential features are disabled
-	                                    | in order to save memoty and threads
-	[--help|-h]                         | Help
-	
+    Usage:
+      ntopng <configuration file path>
+      or
+      ntopng <command line options> 
+    
+    Options:
+    [--dns-mode|-n] <mode>              | DNS address resolution mode
+                                        | 0 - Decode DNS responses and resolve
+                                        |     local numeric IPs only (default)
+                                        | 1 - Decode DNS responses and resolve all
+                                        |     numeric IPs
+                                        | 2 - Decode DNS responses but don't
+                                        |     resolve numeric IPs
+                                        | 3 - Don't decode DNS/MDNS/HTTP/TLS responses
+                                        |     and don't resolve numeric IPs (all hosts)
+                                        | 4 - Don't decode DNS/MDNS/HTTP/TLS responses
+                                        |     and don't resolve numeric IPs (localhost only)
+    [--interface|-i] <interface|pcap>   | Input interface name (numeric/symbolic),
+                                        | view or pcap file path, including:
+                                        | zmq://<IP address>         [ZMQ flow collection]
+                                        | tcp://<IP address>         [Deprecated - use zmq://]
+                                        | kafka://<brokers list>     [Kafka flow collection]
+                                        | kafka-ssl://<brokers list> [Kafka flow collection over SSL/TLS]
+    [--data-dir|-d] <path>              | Data directory (must be writable).
+                                        | Default: /var/lib/ntopng
+    [--install-dir|-t] <path>           | Set the installation directory to <dir>.
+                                        | Should be set when installing ntopng 
+                                        | under custom directories
+    [--daemon|-e]                       | Daemonize ntopng
+    [--httpdocs-dir|-1] <path>          | HTTP documents root directory.
+                                        | Default: httpdocs
+    [--scripts-dir|-2] <path>           | Scripts directory.
+                                        | Default: scripts
+    [--callbacks-dir|-3] <path>         | Callbacks directory.
+                                        | Default: scripts/callbacks
+    [--pcap-dir|-5] <path>              | Storage directory used for continuous traffic
+                                        | recording in PCAP format.
+                                        | Default: /var/lib/ntopng
+    [--no-promisc|-u]                   | Don't set the interface in promisc mode.
+    [--http-port|-w] <[addr:]port>      | HTTP. Set to 0 to disable http server.
+                                        | Addr can be an IPv4 (192.168.1.1)
+                                        | or IPv6 ([3ffe:2a00:100:7031::1]) addr.
+                                        | Surround IPv6 addr with square brackets.
+                                        | Prepend a ':' without addr before the
+                                        | listening port on the loopback address.
+                                        | Default port: 3000
+                                        | Examples:
+                                        | -w :3000
+                                        | -w 192.168.1.1:3001
+                                        | -w [3ffe:2a00:100:7031::1]:3002
+    [--https-port|-W] <[:]https port>   | HTTPS. See also -w above. Default: 3001
+    [--http-log|-L] <path>              | Log HTTP requests in the specified file
+    [--local-networks|-m] <local nets>  | Local networks list.
+                                        | <local nets> is a comma-separated list of networks
+                                        | in CIDR format or a path to a file.
+                                        | The file accepts multiple lines with networks in CIDR format.
+                                        | An optional '=<alias>' is supported
+                                        | to specify an alias.
+                                        | Examples:
+                                        | -m "192.168.1.0/24,172.16.0.0/16"
+                                        | -m "192.168.1.0/24=LAN_1,192.168.2.0/24=LAN_2,10.0.0.0/8"
+                                        | -m "/path/to/local_networks_file"
+    [--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file
+                                        | (eg. protos.txt)
+    [--redis|-r] <fmt>                  | Redis connection. <fmt> is specified as
+                                        | [h[:port[:pwd]]][@db-id] where db-id
+                                        | identifies the database Id (default 0).
+                                        | h is the host running Redis (default
+                                        | localhost), optionally followed by a
+                                        |  ':'-separated port (default 6379).
+                                        | The special characters \ and ` are not
+                                        | supported by ntopng.
+                                        | A password can be specified after
+                                        | the port when Redis auth is required.
+                                        | By default password auth is disabled.
+                                        | On unix <fmt> can also be the redis socket file path.
+                                        | Port is ignored for socket-based connections.
+                                        | Examples:
+                                        | -r @2
+                                        | -r 129.168.1.3
+                                        | -r 129.168.1.3:6379@3
+                                        | -r 129.168.1.3:6379:nt0pngPwD@0
+                                        | -r /var/run/redis/redis.sock
+                                        | -r /var/run/redis/redis.sock@2
+    [--core-affinity|-g] <ids>          | Bind the capture/processing threads to
+                                        | specific CPU cores (specified as a comma-
+                                        | separated list of core id)
+    [--other-core-affinity|-y] <ids>    | Bind service threads to specific CPU cores
+                                        | (specified as a comma-separated list of core id)
+    [--user|-U] <sys user>              | Run ntopng with the specified user
+                                        | instead of ntopng
+    [--dont-change-user|-s]             | Do not change user (debug only)
+    [--disable-purge]                   | Disable data purge (debug only)
+    [--ciphers-list] <list>             | Specify the list of TLS ciphers to be used
+                                        | when https is used. Default: "HIGH:!aNULL:!MD5:!RC4"
+    [--shutdown-when-done]              | Terminate after reading the pcap (debug only)
+    [--offline]                         | Run in offline mode (avoid contacting remote sites, including blacklists) 
+    [--insecure]                        | Allow connections to TLS sites with invalid certificates 
+    [--zmq-encryption]                  | Enable ZMQ encryption
+    [--zmq-encryption-key-priv <key>]   | ZMQ (collection) encryption secret key (debug only) 
+    [--zmq-publish-events <URL>]        | Endpoint for publishing events (e.g. IPS)
+    [--disable-autologout|-q]           | Disable web logout for inactivity
+    [--disable-login|-l] <mode>         | Disable user login authentication:
+                                        | 0 - Disable login only for localhost
+                                        | 1 - Disable login for all hosts
+    [--max-num-flows|-X] <num>          | Max number of active flows
+                                        | (default: 131072)
+    [--max-num-hosts|-x] <num>          | Max number of active hosts
+                                        | (default: 131072)
+    [--pcap-reforge-timestamps|-z]      | Reforge timestamps when reading from file
+    [--users-file] <path>               | Users configuration file path
+                                        | Default: ntopng-users.conf
+    [--original-speed]                  | Reproduce (-i) the pcap file at original speed
+    [--log-labels}                      | Enable dump of host labels in /var/lib/ntopng/labels.log
+    [--pid|-G] <path>                   | Pid file path
+    [--packet-filter|-B] <filter>       | Ingress packet filter (BPF filter)
+    [--dump-flows|-F] <mode>            | Dump expired flows. Mode:
+                                        |
+                                        | es            Dump in ElasticSearch database
+                                        |   Format:
+                                        |   es;<mapping type>;<idx name>;<es URL>;<username>:<password>
+                                        |   Example:
+                                        |   es;ntopng;ntopng-%Y.%m.%d;http://localhost:9200/_bulk;user:pwd
+                                        |   Notes:
+                                        |   The <idx name> accepts the strftime() format.
+                                        |   <mapping type> must be set to ntopng and it is
+                                        |   used until ElasticSearch version 6 and ignored in newer versions.
+                                        |
+                                        | syslog        Dump in syslog
+                                        |   Format:
+                                        |   syslog[;<facility-text>]
+                                        |   Example:
+                                        |   syslog
+                                        |   syslog;local3
+                                        |   Notes:
+                                        |   <facility-text> is case-insensitive.
+                                        |
+                                        | clickhouse    Dump in ClickHouse (Enterprise M/L/XL/XXL)
+                                        |   Format:
+                                        |   clickhouse;<host[@[<tcp-port>,]<mysql-port]|socket>;<dbname>;<user>;<pw>
+                                        |   Example:
+                                        |   clickhouse;127.0.0.1;ntopng;default;
+                                        |   You can also use just -F clickhouse as alias of:
+                                        |   -F "clickhouse;127.0.0.1@9000,9004;ntopng;default;"
+                                        |
+                                        | clickhouse-cluster    Dump in ClickHouse Cluster (Enterprise M/L/XL/XXL)
+                                        |   Format:
+                                        |   clickhouse-cluster;<host[@[<tcp-port>,]<mysql-port]|socket>;<dbname>;<user>;<pw>;<cluster name>
+                                        |   Example:
+                                        |   clickhouse-cluster;127.0.0.1;ntopng;default;ntop_cluster
+                                        |   You can also use just -F clickhouse-cluster as alias of:
+                                        |   -F "clickhouse-cluster;127.0.0.1@9000,9004;ntopng;default;ntop_cluster"
+                                        | NOTE:
+                                        | - tcp-port used by clickhouse-client
+                                        | - mysql-port used for queries
+                                        |
+                                        | clickhouse-cloud    Dump in ClickHouse Cloud (Enterprise M/L/XL/XXL)
+                                        |   Format:
+                                        |   clickhouse-cloud;<host[@[<tcp-port>,]<mysql-port]|socket>;<dbname>;<clickhouse-user>,<mysql-user>;<pw>;
+                                        |   Example:
+                                        |   clickhouse-cloud;europe-east15.clickhouse.cloud@9440,3306s;ntopng;default,mysql-user;mych-password
+                                        | NOTE:
+                                        | - clickhouse-user used by clickhouse-client
+                                        | - mysql-user used for queries
+                                        | - tcp-port used by clickhouse-client
+                                        | - mysql-port used for queries
+                                        |
+                                        |
+                                        | kafka   Dump to Kafka (Enterprise M/L/XL/XXL)
+                                        |   Format:
+                                        |   kafka;[<brokerIP[:<port>]]+;<topic>[;<kafka option>=<value>]+
+                                        |   
+                                        |   Example:
+                                        |   "kafka;127.0.0.1;flows"
+                                        |   "kafka;127.0.0.1:7689,192.168.1.20,192.168.1.2:9092;flows;compression.codec=gzip"
+                                        |   
+                                        |   See at the bottom of this help the list of supported kafka configuration options.
+                                        |
+                                        | mysql         Dump in MySQL database
+                                        |   Format:
+                                        |   mysql;<host[@port]|socket>;<dbname>;<user>;<pw>
+                                        |   mysql;127.0.0.1;ntopng;root;
+                                        |   "mysql;127.0.0.1@3306;ntopng;root;" [Cleartext (no TLS)]
+                                        |   "mysql;127.0.0.1@3306s;ntopng;root;" [TLS]
+                                        |
+    [--export-flows|-I] <endpoint>      | Export flows with the specified endpoint
+                                        | See https://wp.me/p1LxdS-O5 for a -I use case.
+    [--zmq-encryption-key <key>]        | ZMQ (export) encryption public key (-I only) 
+    [--hw-timestamp-mode] <mode>        | Enable hw timestamping/stripping.
+                                        | Supported TS modes are:
+                                        | apcon - Timestamped pkts by apcon.com
+                                        |         hardware devices
+                                        | ixia  - Timestamped pkts by ixiacom.com
+                                        |         hardware devices
+                                        | vss   - Timestamped pkts by vssmonitoring.com
+                                        |         hardware devices
+    [--capture-direction] <dir>         | Specify packet capture direction
+                                        | 0=RX+TX (default), 1=RX only, 2=TX only
+    [--cluster-id] <cluster id>         | Specify the PF_RING cluster ID on which incoming packets will be bound.
+    [--http-prefix|-Z <prefix>]         | HTTP prefix to be prepended to URLs.
+                                        | Useful when using ntopng behind a proxy.
+    [--instance-name|-N <name>]         | Assign a name to this ntopng instance.
+    [--community]                       | Start ntopng in community edition.
+    [--fail-invalid-license]            | Exit without a valid license.
+    [--check-license]                   | Check if the license is valid.
+    [--check-maintenance]               | Check until maintenance is included
+                                        | in the license.
+    [--version|-V]                      | Print version and license
+                                        | information, then quit
+    [--version-json]                    | Print version and license
+                                        | info in JSON format, then quit
+    [--verbose|-v] <level>              | Verbose tracing [range 0 (min).. 6 (max)]
+                                        | 0 - Errors only
+                                        | 1 - Warning
+                                        | 2 - Normal (default value)
+                                        | 3 - Informative
+                                        | 4 - Future use
+                                        | 5 - Future use
+                                        | 6 - Debug
+    [--print-ndpi-protocols]            | Print the nDPI protocols list
+    [--ignore-macs]                     | Ignore packets MAC addresses
+    [--ignore-vlans]                    | Ignore packets VLAN tags
+    [--pcap-file-purge-flows]           | Enable flow purge with pcap files (debug only)
+    [--simulate-vlans]                  | Simulate VLAN traffic (debug only)
+    [--simulate-macs]                   | Simulate MACs in the traffic (debug only)
+    [--simulate-ips] <num>              | Simulate IPs by choosing clients and servers among <num> random addresses
+    [--limit-resources]                 | Non-essential features are disabled
+                                        | in order to save memoty and threads
+    [--help|-h]                         | Help
+    
 	
 Some of the most important parameters are briefly discussed here.
 
@@ -329,8 +339,9 @@ Some of the most important parameters are briefly discussed here.
       9.9.9.9/32
       10.0.0.0/8
 
+:code:`[--ciphers-list] <list>`
 
-
+   You can defined the ciphers list as you do with HTTP servers such Apache (see SSLCipherSuite in https://httpd.apache.org/docs/trunk/en/ssl/ssl_howto.html).
 
 :code:`[—disable-login|-l]`
 
