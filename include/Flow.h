@@ -37,7 +37,8 @@ class FlowCheck;
 
 class Flow : public GenericHashEntry {
  private:
-  int32_t iface_index; /* Interface index on which this flow has been first observed */
+  time_t creation_time; /*** Epoch of the flow creation */
+  int32_t iface_index;  /* Interface index on which this flow has been first observed */
   Host *cli_host, *srv_host;
   IpAddress *cli_ip_addr, *srv_ip_addr;
   /* IPv4 only, so a int32 bit is only needed */
@@ -373,6 +374,7 @@ class Flow : public GenericHashEntry {
        time_t _last_seen, u_int8_t *_view_cli_mac, u_int8_t *_view_srv_mac);
   ~Flow();
 
+  virtual bool is_active_entry_now_idle(u_int max_idleness) const;
   inline Bitmap128 getAlertsBitmap() const { return (alerts_map); }
 
   /* Enqueues an alert to all available flow recipients. */

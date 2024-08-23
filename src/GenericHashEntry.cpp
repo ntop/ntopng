@@ -85,10 +85,7 @@ void GenericHashEntry::periodic_stats_update(const struct timeval *tv) {
 /* ***************************************** */
 
 bool GenericHashEntry::is_active_entry_now_idle(u_int max_idleness) const {
-  bool ret =
-      (((u_int)(iface->getTimeLastPktRcvd()) > (last_seen + max_idleness))
-           ? true
-           : false);
+  bool ret = (((u_int)(iface->getTimeLastPktRcvd()) > (last_seen + max_idleness)) ? true : false);
 
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s() [lastPkt: %u][last_seen: %u][max_idleness: %u][idle: %s]",

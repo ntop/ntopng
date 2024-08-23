@@ -47,7 +47,8 @@ Flow::Flow(NetworkInterface *_iface,
   : GenericHashEntry(_iface) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
-  iface_index = _iface_idx,
+  creation_time = iface->getTimeLastPktRcvd(),
+    iface_index = _iface_idx,
     vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port,
     srv_port = _srv_port, privateFlowId = _private_flow_id;
   flow_dropped_counts_increased = 0, vrfId = 0, protocolErrorCode = 0;
@@ -6668,12 +6669,13 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
     s2d_bytes_delta = flow_already_existing ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
     d2s_bytes_delta = flow_already_existing ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes;;
 
-#if 1
+#if 0
   if(!flow_already_existing) {
     if((protocol == IPPROTO_UDP) || (protocol == IPPROTO_TCP)) {
       char buf[256];
       
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "New flow update %s [delta pkts %u/%u][delta bytes %lu/%lu] [s2d_pkts %u/%u][d2s_pkts %u/%u][s2d_bytes %u/%u][d2s_bytes %u/%u]",
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+				   "New flow update %s [delta pkts %u/%u][delta bytes %lu/%lu] [s2d_pkts %u/%u][d2s_pkts %u/%u][s2d_bytes %u/%u][d2s_bytes %u/%u]",
 				   print(buf, sizeof(buf)),
 				   s2d_pkts_delta, s2d_bytes_delta,
 				   d2s_pkts_delta, d2s_bytes_delta,
@@ -8799,4 +8801,19 @@ void Flow::accountFlowTraffic() {
 			getStatsProtocol(), get_protocol_category(),
 			get_bytes(), get_packets());
   }
+}
+
+/* *************************************** */
+
+bool Flow::is_active_entry_now_idle(u_int max_idleness) const {  
+  bool is_expired = (((u_int)(iface->getTimeLastPktRcvd()) > (creation_time + max_idleness)) ? true : false);
+
+  /*
+    This mechanism prevents collected flows with past timestamps
+    to be purged immediately, thus guaranteeing that they stay in
+    memory at least max_idleness seconds
+  */
+  if(!is_expired) return(false);
+  
+  return(GenericHashEntry::is_active_entry_now_idle(max_idleness));
 }
