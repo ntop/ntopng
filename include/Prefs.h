@@ -41,7 +41,7 @@ class Prefs {
  private:
   u_int8_t num_deferred_interfaces_to_register;
   pcap_direction_t captureDirection;
-  char **deferred_interfaces_to_register, *cli;
+  char **deferred_interfaces_to_register, *cli, *ciphers_list;
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
   bool enable_client_x509_auth, reproduce_at_original_speed, disable_purge;
@@ -732,6 +732,7 @@ class Prefs {
   inline bool collectBlackListStats()      { return(collect_blacklist_stats);          }
   inline bool limitResourcesUsage()        { return(limited_resources_mode);           }
   inline bool failOnInvalidLicense()       { return(fail_on_invalid_license);          }
+  inline char* getCiphersList()            { return(ciphers_list);                     }
 };
 
 #endif /* _PREFS_H_ */
