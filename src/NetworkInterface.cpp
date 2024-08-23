@@ -1150,8 +1150,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
 #endif
 
 #if DEBUG_FLOW_DUMP
-      ntop->getTrace()->traceEvent(
-				   TRACE_NORMAL, "[%s] Queueing flow to dump [IDLE]", __FUNCTION__);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [IDLE]", __FUNCTION__);
 #endif
     } else {
       incNumQueueDroppedFlows(1);
@@ -1169,8 +1168,7 @@ int NetworkInterface::dumpFlow(time_t when, Flow *f) {
 #endif
 
 #if DEBUG_FLOW_DUMP
-      ntop->getTrace()->traceEvent(
-				   TRACE_NORMAL, "[%s] Queueing flow to dump [ACTIVE]", __FUNCTION__);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Queueing flow to dump [ACTIVE]", __FUNCTION__);
 #endif
     } else {
       incNumQueueDroppedFlows(1);
