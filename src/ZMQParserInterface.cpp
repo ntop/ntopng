@@ -921,15 +921,15 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
     if (value->string) {
       if (!strchr(value->string, '.')) {
 	/* Old behaviour, only the app protocol */
-	flow->l7_proto.app_protocol = atoi(value->string);
+	flow->l7_proto.proto.app_protocol = atoi(value->string);
       } else {
 	char *proto_dot;
 
-	flow->l7_proto.master_protocol = (u_int16_t)strtoll(value->string, &proto_dot, 10);
-	flow->l7_proto.app_protocol    = (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
+	flow->l7_proto.proto.master_protocol = (u_int16_t)strtoll(value->string, &proto_dot, 10);
+	flow->l7_proto.proto.app_protocol    = (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
       }
     } else {
-      flow->l7_proto.app_protocol = value->int_num;
+      flow->l7_proto.proto.app_protocol = value->int_num;
     }
 
 #if 0
@@ -1478,17 +1478,17 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow *const flow,
       if (value->string) {
         if (!strchr(value->string, '.')) {
           /* Old behaviour, only the app protocol */
-          l7_proto.app_protocol = atoi(value->string);
+          l7_proto.proto.app_protocol = atoi(value->string);
         } else {
           char *proto_dot;
-          l7_proto.master_protocol =
+          l7_proto.proto.master_protocol =
               (u_int16_t)strtoll(value->string, &proto_dot, 10);
-          l7_proto.app_protocol = (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
+          l7_proto.proto.app_protocol = (u_int16_t)strtoll(proto_dot + 1, NULL, 10);
         }
       } else {
-        l7_proto.app_protocol = value->int_num;
+        l7_proto.proto.app_protocol = value->int_num;
       }
-      return (flow->l7_proto.app_protocol == l7_proto.app_protocol);
+      return (flow->l7_proto.proto.app_protocol == l7_proto.proto.app_protocol);
     }
 
     case L7_PROTO_NAME:
@@ -1496,7 +1496,7 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow *const flow,
         /* This lookup should be optimized */
         u_int16_t app_protocol =
             ndpi_get_proto_by_name(get_ndpi_struct(), value->string);
-        return (flow->l7_proto.app_protocol == app_protocol);
+        return (flow->l7_proto.proto.app_protocol == app_protocol);
       } else
         return false;
 
