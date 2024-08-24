@@ -5110,8 +5110,8 @@ static int ntop_get_l7_policy_info(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_PARAM_ERROR));
 
   pool_id = (u_int16_t)lua_tointeger(vm, 1);
-  proto.master_protocol = (u_int16_t)lua_tointeger(vm, 2);
-  proto.app_protocol = proto.master_protocol;
+  proto.proto.master_protocol = (u_int16_t)lua_tointeger(vm, 2);
+  proto.proto.app_protocol = proto.proto.master_protocol;
   proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;  // important for
   // ndpi_get_proto_category below
 
