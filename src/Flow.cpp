@@ -24,8 +24,7 @@
 /* static so default is zero-initialization, let's just define it */
 
 const ndpi_protocol Flow::ndpiUnknownProtocol = {
-  NDPI_PROTOCOL_UNKNOWN, /* master_protocol */
-  NDPI_PROTOCOL_UNKNOWN, /* app_protocol    */
+  { NDPI_PROTOCOL_UNKNOWN /* master_protocol */, NDPI_PROTOCOL_UNKNOWN /* app_protocol */ },
   NDPI_PROTOCOL_UNKNOWN, /* protocol_by_ip */
   NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, NULL};
 // #define DEBUG_DISCOVERY
@@ -3191,7 +3190,7 @@ void Flow::setRisk(ndpi_risk risk_bitmap) {
   ndpi_flow_risk_bitmap = risk_bitmap;
 
   has_malicious_cli_signature =
-    NDPI_ISSET_BIT(ndpi_flow_risk_bitmap, NDPI_MALICIOUS_JA3);
+    NDPI_ISSET_BIT(ndpi_flow_risk_bitmap, NDPI_MALICIOUS_FINGERPRINT);
 }
 
 /* *************************************** */
