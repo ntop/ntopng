@@ -38,24 +38,10 @@ const get_extra_params_obj = () => {
 
 const map_table_def_columns = (columns) => {
     let map_columns = {
-        "nprobe_ip": (value, row) => {
+        "probe_ip": (value, row) => {
             return value
         },
         "exporter_ip": (value, row) => {
-            return value
-        },
-        "in_bytes": (value, row) => {
-            if (!value)
-                return '';
-            return formatterUtils.getFormatter("bytes")(value);
-        },
-        "out_bytes": (value, row) => {
-            if (!value)
-                return '';
-            return formatterUtils.getFormatter("bytes")(value);
-        },
-        "interface_id": (value, row) => {
-
             return value
         }
     };
@@ -67,20 +53,18 @@ const map_table_def_columns = (columns) => {
     return columns;
 };
 
-
-
 function columns_sorting(col, r0, r1) {
     if (col != null) {
-        if (col.id == "nprobe_ip") {
-            return sortingFunctions.sortByIP(r0.nprobe_ip, r1.nprobe_ip, col.sort);
+        if (col.id == "probe_ip") {
+            return sortingFunctions.sortByIP(r0.probe_ip, r1.probe_ip, col.sort);
         } else if (col.id == "exporter_ip") {
             return sortingFunctions.sortByName(r0.exporter_ip, r1.exporter_ip, col.sort);
-        } else if (col.id == "interface_id") {
-            return sortingFunctions.sortByNumber(r0.interface_id, r1.interface_id, col.sort);
-        } else if (col.id == "in_bytes") {
-            return sortingFunctions.sortByNumber(r0.in_bytes, r1.in_bytes, col.sort);
-        } else if (col.id == "out_bytes") {
-            return sortingFunctions.sortByNumber(r0.out_bytes, r1.out_bytes, col.sort);
+        } else if (col.id == "interface_name") {
+            return sortingFunctions.sortByName(r0.interface_name, r1.interface_name, col.sort);
+        } else if (col.id == "probe_edition") {
+            return sortingFunctions.sortByName(r0.probe_edition, r1.probe_edition, col.sort);
+        } else if (col.id == "probe_maintenance") {
+            return sortingFunctions.sortByName(r0.probe_maintenance, r1.probe_maintenance, col.sort);
         }
     }
 }
