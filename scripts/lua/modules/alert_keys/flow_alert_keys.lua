@@ -4,7 +4,7 @@
 
 -- ##############################################
 
--- Keep in sync with ntop_typedefs.h FlowAlertTypeEnum
+-- Keep in sync with ntop_typedefs.h FlowAlertTypeEnum and ndpi_flow_alert_keys.lua
 local flow_alert_keys = {
    flow_alert_normal                               = 0,
    flow_alert_blacklisted                          = 1,
