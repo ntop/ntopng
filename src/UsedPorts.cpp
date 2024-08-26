@@ -145,8 +145,8 @@ bool UsedPorts::setServerPort(bool isTCP, u_int16_t port,
   restore();
   
   if (isTCP) {
-    if((proto->master_protocol == NDPI_PROTOCOL_FTP_DATA)
-       || (proto->app_protocol == NDPI_PROTOCOL_FTP_DATA))
+    if((proto->proto.master_protocol == NDPI_PROTOCOL_FTP_DATA)
+       || (proto->proto.app_protocol == NDPI_PROTOCOL_FTP_DATA))
       ;
     else {
       if (tcp_server_ports.count(port) == 0) set_new_port = true;

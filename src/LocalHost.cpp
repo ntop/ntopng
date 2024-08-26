@@ -653,7 +653,7 @@ void LocalHost::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto, 
     if (when - get_first_seen() > learning_period) {
       if (!contacted_server_ports.isFull()) {
 	/* ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** port %u ***", port); */
-        contacted_server_ports.enqueue({port, proto->app_protocol}, true);
+        contacted_server_ports.enqueue({port, proto->proto.app_protocol}, true);
       } else {
 	char ip_buf[64];
 

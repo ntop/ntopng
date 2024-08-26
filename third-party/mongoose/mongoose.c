@@ -4844,7 +4844,7 @@ static void ssl_locking_callback(int mode, int mutex_num, const char *file,
 // Dynamically load SSL library. Set up ctx->ssl_ctx pointer.
 static int set_ssl_option(struct mg_context *ctx) {
   int i, size;
-  const char *pem;
+  const char *pem, *ciphers;
 
   // If PEM file is not specified, skip SSL initialization.
   if ((pem = ctx->config[SSL_CERTIFICATE]) == NULL) {
@@ -4868,7 +4868,12 @@ static int set_ssl_option(struct mg_context *ctx) {
   }
 
   /* ntop */
-  SSL_CTX_set_cipher_list(ctx->ssl_ctx, "HIGH:!aNULL:!MD5:!RC4");
+  ciphers = (const char*)ntop->getPrefs()->getCiphersList();
+  if(ciphers == NULL) ciphers = CONST_DEFAULT_TLS_CIPHERS;
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Using TLS ciphers %s", ciphers);
+  
+  SSL_CTX_set_cipher_list(ctx->ssl_ctx, ciphers);
 
 #ifndef __APPLE__ /* Brew comes with an old OpenSSL version */
 #ifdef MODERN_OPENSSL

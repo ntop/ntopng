@@ -42,7 +42,7 @@
 #include "flow_checks/FlowRiskHTTPSuspiciousURL.h"
 #include "flow_checks/FlowRiskKnownProtocolOnNonStandardPort.h"
 #include "flow_checks/FlowRiskMalformedPacket.h"
-#include "flow_checks/FlowRiskMaliciousJA3.h"
+#include "flow_checks/FlowRiskMaliciousFingerprint.h"
 #include "flow_checks/FlowRiskMaliciousSHA1Certificate.h"
 #include "flow_checks/FlowRiskMalwareHostContacted.h"
 #include "flow_checks/FlowRiskPeriodicFlow.h"

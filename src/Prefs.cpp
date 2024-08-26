@@ -87,6 +87,7 @@ Prefs::Prefs(Ntop *_ntop) {
   default_l7policy = PASS_ALL_SHAPER_ID;
   use_mac_in_flow_key = false;
   fingerprint_stats = false;
+  ciphers_list = NULL;
   device_protocol_policies_enabled = false, enable_vlan_trunk_bridge = false;
   max_extracted_pcap_bytes = CONST_DEFAULT_MAX_EXTR_PCAP_BYTES;
   behaviour_analysis_learning_period =
@@ -284,6 +285,7 @@ Prefs::~Prefs() {
   free(redis_host);
   if (redis_password) free(redis_password);
   if (cli) free(cli);
+  if (ciphers_list) free(ciphers_list);
   if (mysql_host) free(mysql_host);
   if (mysql_dbname) free(mysql_dbname);
   if (mysql_user) free(mysql_user);
@@ -487,6 +489,8 @@ void usage() {
 	 "                                    | instead of %s\n"
 	 "[--dont-change-user|-s]             | Do not change user (debug only)\n"
 	 "[--disable-purge]                   | Disable data purge (debug only)\n"
+	 "[--ciphers-list] <list>             | Specify the list of TLS ciphers to be used\n"
+	 "                                    | when https is used. Default: \"%s\"\n"
 	 "[--shutdown-when-done]              | Terminate after reading the pcap "
 	 "(debug only)\n"
 	 "[--offline]                         | Run in offline mode (avoid "
@@ -528,8 +532,9 @@ void usage() {
 #endif
 	 CONST_DEFAULT_DOCS_DIR, CONST_DEFAULT_SCRIPTS_DIR,
 	 CONST_DEFAULT_CALLBACKS_DIR, CONST_DEFAULT_DATA_DIR,
-	 CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT + 1,
-	 CONST_DEFAULT_NTOP_USER, MAX_NUM_INTERFACE_HOSTS, MAX_NUM_INTERFACE_HOSTS,
+	 CONST_DEFAULT_NTOP_PORT, CONST_DEFAULT_NTOP_PORT + 1,	 
+	 CONST_DEFAULT_NTOP_USER, CONST_DEFAULT_TLS_CIPHERS,
+	 MAX_NUM_INTERFACE_HOSTS, MAX_NUM_INTERFACE_HOSTS,
 	 CONST_DEFAULT_USERS_FILE);
 
   printf(
@@ -1167,6 +1172,7 @@ static const struct option long_options[] = {
   {"callbacks-dir", required_argument, NULL, '3'},
   {"prefs-dir", required_argument, NULL, '4'},
   {"pcap-dir", required_argument, NULL, '5'},
+  {"ciphers-list", required_argument, NULL, 198},
   {"disable-purge", no_argument, NULL, 199},
   {"limit-resources", no_argument, NULL, 200},
   {"test-script-post", required_argument, NULL, 201},
@@ -2121,6 +2127,10 @@ int Prefs::setOption(int optkey, char *optarg) {
 
   case 'V':
     print_version = true;
+    break;
+
+  case 198:
+    ciphers_list = strdup(optarg);
     break;
 
   case 199:

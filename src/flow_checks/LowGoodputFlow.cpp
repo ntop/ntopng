@@ -35,7 +35,7 @@ void LowGoodputFlow::checkLowGoodput(Flow *f) {
   if (f->get_packets() <= 3) return;       /* Minimum number of packets     */
   if (f->get_goodput_ratio() > 60) return; /* Goodput less than 60%         */
 
-  switch (f->get_detected_protocol().app_protocol) {
+  switch (f->get_detected_protocol().proto.app_protocol) {
     case NDPI_PROTOCOL_MDNS:
     case NDPI_PROTOCOL_NTOP:
     case NDPI_PROTOCOL_SIGNAL:

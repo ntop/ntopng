@@ -57,7 +57,7 @@
 #include "flow_alerts/FlowRiskHTTPSuspiciousUserAgentAlert.h"
 #include "flow_alerts/FlowRiskKnownProtocolOnNonStandardPortAlert.h"
 #include "flow_alerts/FlowRiskMalformedPacketAlert.h"
-#include "flow_alerts/FlowRiskMaliciousJA3Alert.h"
+#include "flow_alerts/FlowRiskMaliciousFingerprintAlert.h"
 #include "flow_alerts/FlowRiskMaliciousSHA1CertificateAlert.h"
 #include "flow_alerts/FlowRiskMalwareHostContactedAlert.h"
 #include "flow_alerts/FlowRiskPeriodicFlowAlert.h"

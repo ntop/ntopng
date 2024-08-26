@@ -3365,8 +3365,8 @@ DeviceProtoStatus Ntop::getDeviceAllowedProtocolStatus(DeviceType dev_type,
   DeviceProtocolBitmask *bitmask = getDeviceAllowedProtocols(dev_type);
   NDPI_PROTOCOL_BITMASK *direction_bitmask =
       as_client ? (&bitmask->clientAllowed) : (&bitmask->serverAllowed);
-  u_int16_t master_proto = ndpi_map_user_proto_id_to_ndpi_id(iface[0]->get_ndpi_struct(), proto.master_protocol);
-  u_int16_t app_proto = ndpi_map_user_proto_id_to_ndpi_id(iface[0]->get_ndpi_struct(), proto.app_protocol);
+  u_int16_t master_proto = ndpi_map_user_proto_id_to_ndpi_id(iface[0]->get_ndpi_struct(), proto.proto.master_protocol);
+  u_int16_t app_proto = ndpi_map_user_proto_id_to_ndpi_id(iface[0]->get_ndpi_struct(), proto.proto.app_protocol);
 
 #ifdef HAVE_NEDGE
   /* On nEdge the concept of device protocol policies is only applied to

@@ -1594,6 +1594,9 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 #define NO_VLAN (u_int16_t)-1
 #define NO_IN_IF_INDEX (u_int32_t)-1
 #define NO_OUT_IF_INDEX (u_int32_t)-1
+
+#define CONST_DEFAULT_TLS_CIPHERS "HIGH:!aNULL:!MD5:!RC4"
+
 /******************************************************************************/
 
 #endif /* _NTOP_DEFINES_H_ */

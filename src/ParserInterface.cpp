@@ -473,8 +473,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     ndpi_protocol p = Flow::ndpiUnknownProtocol;
     ndpi_protocol guessed_protocol = Flow::ndpiUnknownProtocol;
 
-    p.app_protocol = zflow->l7_proto.app_protocol;
-    p.master_protocol = zflow->l7_proto.master_protocol;
+    p.proto.app_protocol = zflow->l7_proto.proto.app_protocol;
+    p.proto.master_protocol = zflow->l7_proto.proto.master_protocol;
     p.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
 
     /*
@@ -500,10 +500,10 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 							   0, ntohs(zflow->dst_port));
     }
 
-    guessed_protocol.app_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(),
-								      guessed_protocol.app_protocol);
-    guessed_protocol.master_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(),
-									 guessed_protocol.master_protocol);
+    guessed_protocol.proto.app_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(),
+								      guessed_protocol.proto.app_protocol);
+    guessed_protocol.proto.master_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(),
+									 guessed_protocol.proto.master_protocol);
     
 #ifdef NTOPNG_PRO
   if (unique_source_id) {
@@ -560,20 +560,20 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
         /* If nprobe acts is in collector-passthrough mode L7_PROTO is not
            present, using the protocol guess on the ntopng side is desirable in
            this case */
-        ((zflow->l7_proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
-	 && (zflow->l7_proto.master_protocol == NDPI_PROTOCOL_UNKNOWN))
+        ((zflow->l7_proto.proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+	 && (zflow->l7_proto.proto.master_protocol == NDPI_PROTOCOL_UNKNOWN))
 	||
         /* If the protocol is greater than NDPI_MAX_SUPPORTED_PROTOCOLS, it
            means it is a custom protocol so the application protocol received
            from nprobe can be overridden */
-        (guessed_protocol.app_protocol >= NDPI_MAX_SUPPORTED_PROTOCOLS)) {
+        (guessed_protocol.proto.app_protocol >= NDPI_MAX_SUPPORTED_PROTOCOLS)) {
       p = guessed_protocol;
     }
 
     if (zflow->hasParsedeBPF()) {
       /* nProbe Agent does not perform nDPI detection*/
-      p.master_protocol = guessed_protocol.master_protocol;
-      p.app_protocol = guessed_protocol.app_protocol;
+      p.proto.master_protocol = guessed_protocol.proto.master_protocol;
+      p.proto.app_protocol = guessed_protocol.proto.app_protocol;
     }
 
     /* Now, depending on the q and on the zflow, there's an additional check

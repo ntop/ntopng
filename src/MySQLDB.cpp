@@ -636,7 +636,7 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf,
 
   if (f->get_cli_ip_addr()->isIPv4()) {
     len = snprintf(values_buf, values_buf_len, MYSQL_INSERT_VALUES_V4,
-                   f->get_vlan_id(), f->get_detected_protocol().app_protocol,
+                   f->get_vlan_id(), f->get_detected_protocol().proto.app_protocol,
                    htonl(f->get_cli_ip_addr()->get_ipv4()), f->get_cli_port(),
                    htonl(f->get_srv_ip_addr()->get_ipv4()), f->get_srv_port(),
                    f->get_protocol(), (uintmax_t)bytes_cli2srv,
@@ -650,7 +650,7 @@ int MySQLDB::flow2InsertValues(Flow *f, char *json, char *values_buf,
   } else {
     len =
         snprintf(values_buf, values_buf_len, MYSQL_INSERT_VALUES_V6,
-                 f->get_vlan_id(), f->get_detected_protocol().app_protocol,
+                 f->get_vlan_id(), f->get_detected_protocol().proto.app_protocol,
                  f->get_cli_ip_addr()->print(cli_str, sizeof(cli_str)),
                  f->get_cli_port(),
                  f->get_srv_ip_addr()->print(srv_str, sizeof(srv_str)),

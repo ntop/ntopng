@@ -27,7 +27,7 @@
 class FlowRiskMaliciousJA3 : public FlowRisk {
  private:
   FlowAlertType getAlertType() const {
-    return FlowRiskMaliciousJA3Alert::getClassType();
+    return FlowRiskMaliciousFingerprintAlert::getClassType();
   }
 
  public:
@@ -35,15 +35,15 @@ class FlowRiskMaliciousJA3 : public FlowRisk {
   ~FlowRiskMaliciousJA3(){};
 
   FlowAlert *buildAlert(Flow *f) {
-    return new FlowRiskMaliciousJA3Alert(this, f);
+    return new FlowRiskMaliciousFingerprintAlert(this, f);
   }
 
   std::string getName() const {
     return (FlowRiskAlerts::getCheckName(
-        FlowRiskMaliciousJA3Alert::getClassRisk()));
+        FlowRiskMaliciousFingerprintAlert::getClassRisk()));
   }
   ndpi_risk_enum handledRisk() {
-    return FlowRiskMaliciousJA3Alert::getClassRisk();
+    return FlowRiskMaliciousFingerprintAlert::getClassRisk();
   }
 };
 

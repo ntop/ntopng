@@ -451,8 +451,8 @@ class Flow : public GenericHashEntry {
   static const ndpi_protocol ndpiUnknownProtocol;
   bool isTiny() const;
   inline bool isProto(u_int16_t p) const {
-    return (((ndpiDetectedProtocol.master_protocol == p) ||
-             (ndpiDetectedProtocol.app_protocol == p)) ? true : false);
+    return (((ndpiDetectedProtocol.proto.master_protocol == p) ||
+             (ndpiDetectedProtocol.proto.app_protocol == p)) ? true : false);
   }
   bool isTLS() const;
   inline bool isEncryptedProto() const {
@@ -508,14 +508,14 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getCliDeviceDisallowedProtocol() const {
     DeviceProtoStatus cli_ps = cli_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), true);
     
-    return (cli_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol
-               : ndpiDetectedProtocol.master_protocol;
+    return (cli_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.proto.app_protocol
+               : ndpiDetectedProtocol.proto.master_protocol;
   }
   inline u_int16_t getSrvDeviceDisallowedProtocol() const {
     DeviceProtoStatus srv_ps = srv_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), false);
     
-    return (srv_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol
-               : ndpiDetectedProtocol.master_protocol;
+    return (srv_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.proto.app_protocol
+               : ndpiDetectedProtocol.proto.master_protocol;
   }
   inline bool isMaskedFlow() const {
     return (Utils::maskHost(get_cli_ip_addr()->isLocalHost())
