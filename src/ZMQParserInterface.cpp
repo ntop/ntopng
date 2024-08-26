@@ -1474,7 +1474,10 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow *const flow,
 
   switch (field) {
     case L7_PROTO: {
-      ndpi_proto l7_proto = {0};
+      ndpi_proto l7_proto;;
+
+      memset(&l7_proto, 0, sizeof(l7_proto));
+      
       if (value->string) {
         if (!strchr(value->string, '.')) {
           /* Old behaviour, only the app protocol */
