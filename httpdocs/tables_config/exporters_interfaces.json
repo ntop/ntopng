@@ -1,0 +1,67 @@
+{
+	"id": "exporters_interfaces",
+	"data_url": "lua/pro/rest/v2/get/exporters/exporters_interfaces.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": true,
+	"columns": [
+		{
+			"id": "nprobe_ip",
+			"title_i18n": "flow_devices.nprobe_ip",
+			"data_field": "nprobe_ip",
+			"sortable": true,
+			"min-width": "30px",
+			"sticky": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+            "id": "exporter_ip",
+			"title_i18n": "flow_devices.exporter_ip",
+			"data_field": "exporter_ip",
+			"sortable": true,
+			"sticky": true,
+			"min-width": "30px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+        {
+            "id": "interface_id",
+            "title_i18n": "interface_id",
+            "data_field": "interface_id",
+            "sortable": true,
+            "min-width": "80px",
+            "class": [
+                "text-center",
+                "text-nowrap"
+            ]
+        },
+		{
+            "id": "in_bytes",
+			"title_i18n": "snmp.in_bytes",
+			"data_field": "in_bytes",
+			"sortable": true,
+			"min-width": "40px",
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		},
+		{
+            "id": "out_bytes",
+			"title_i18n": "snmp.out_bytes",
+			"data_field": "out_bytes",
+			"sortable": true,
+			"min-width": "40px",
+			"class": [
+                "text-center",
+				"text-nowrap"
+			]
+		}
+	]
+}
+
+
