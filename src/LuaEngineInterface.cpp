@@ -4699,8 +4699,8 @@ static void ntop_get_maps_filters(lua_State *vm, MapsFilters *filters) {
   if (lua_type(vm, 5) == LUA_TNUMBER)
     filters->first_seen = (u_int32_t)lua_tonumber(vm, 5);
   if (lua_type(vm, 6) == LUA_TSTRING)
-    filters->ndpi_proto = ndpi_get_protocol_id(
-        curr_iface->get_ndpi_struct(), (char *)lua_tostring(vm, 6));
+    filters->ndpi_proto = ndpi_get_proto_by_name(curr_iface->get_ndpi_struct(),
+						 (char *)lua_tostring(vm, 6));
 
   if (lua_type(vm, 7) == LUA_TNUMBER)
     filters->network_id = (int16_t)lua_tonumber(vm, 7);
@@ -4909,8 +4909,7 @@ static int ntop_interface_service_map_set_multiple_status(lua_State *vm) {
       new_status = (ServiceAcceptance)lua_tonumber(vm, 3);
 
     if (l7_proto != NULL)
-      proto_id =
-          ndpi_get_protocol_id(curr_iface->get_ndpi_struct(), l7_proto);
+      proto_id = ndpi_get_proto_by_name(curr_iface->get_ndpi_struct(), l7_proto);
 
     curr_iface->getServiceMap()->setBatchStatus(proto_id, current_status,
                                                     new_status);
