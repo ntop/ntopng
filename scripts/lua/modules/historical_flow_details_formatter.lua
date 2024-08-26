@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/alert_store/?.lua;" .. p
 require "lua_utils"
 local json = require "dkjson"
 local dscp_consts = require "dscp_consts"
+local flow_risk_utils = require "flow_risk_utils"
 
 local historical_flow_details_formatter = {}
 
@@ -228,7 +229,6 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
 
    if (tonumber(alert_risk) == 0) then
       alert_src = "ntopng"
-   
    else
       alert_src = "nDPI"
    end
@@ -237,10 +237,10 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
 
    local severity_id = map_score_to_severity(score)
    local severity = alert_consts.alertSeverityById(severity_id)
-   -- local alert_source = " <span class='badge bg-info'>".. ternary(score_alert.alert_risk, "nDPI", "ntopng") .. "</span>"
-   
+   local remediation = flow_risk_utils.get_remediation_documentation_link(alert_risk, alert_src)
+
    local html = "<tr><td>" .. (msg or "") .. alert_source .. "</td>" .. '<td align=center><span style="color:' .. severity.color .. '">' .. score .. '</span></td>'
-   html = html .. "<td>" .. info .. "</td>"
+   html = html .. "<td>" .. info .. remediation .."</td>"
 
    -- Add Mitre info
    local alert_key  = alert_consts.getAlertType(alert_id, alert_entities.flow.entity_id)

@@ -1366,7 +1366,7 @@ else
         local alert_label = alert_consts.alertTypeLabel(id, true, alert_entities.flow.entity_id)
         local message = alert_label
         local alert_score = flow.score.alert_score[tostring(id)] -- ntop.getFlowAlertScore(id)
-        local alert_risk = ntop.getFlowAlertRisk(id)
+        local alert_risk = ntop.getFlowAlertRisk(tonumber(id))
 
         if not alerts_by_score[alert_score] then
             alerts_by_score[alert_score] = {}
@@ -1444,19 +1444,18 @@ else
 		   end
 
 		   if score_alert.alert_id then
-                        alert_consts.alertTypeIcon(score_alert.alert_id, map_score_to_severity(score_alert.alert_id), 'fa-lg')
-                    end
+                alert_consts.alertTypeIcon(score_alert.alert_id, map_score_to_severity(score_alert.alert_id), 'fa-lg')
+            end
 
-                    if (tonumber(score_alert.alert_risk) == 0) then
-                        alert_src = "ntopng"
-                     
-                    else
-                        alert_src = "nDPI"
-                    end
-                    
-                    local alert_source = " <span class='badge bg-info'>" .. alert_src .. "</span>"
+            if (tonumber(score_alert.alert_risk) == 0) then
+                alert_src = "ntopng"
+            else
+                alert_src = "nDPI"
+            end
+            
+            local alert_source = " <span class='badge bg-info'>" .. alert_src .. "</span>"
 
-                    print(string.format('<tr>'))
+            print(string.format('<tr>'))
 
 		    if score_alert.alert_id then
 		       alert_key  = alert_consts.getAlertType(tonumber(score_alert.alert_id), alert_entities.flow.entity_id)
@@ -1472,7 +1471,7 @@ else
                     local msg = string.format('<td> %s </td><td style=\"text-align: center;\"> %s </td><td> %s %s %s</td>',
 					      score_alert.message .. alert_source,
 					      '<span style="color:' .. severity.color .. '">' .. score_alert.score .. '</span>',
-					      riskLabel, (score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk)) or '',
+					      riskLabel, (score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk, alert_src)) or '',
 					      status_icon or '')
 		    
                     print(msg)
@@ -1502,7 +1501,7 @@ else
 		       end
 
 		       print('<td style=\"text-align: center;\">'..
-			     flow_risk_utils.get_remediation_documentation_link(score_alert.alert_id)
+			     flow_risk_utils.get_remediation_documentation_link(score_alert.alert_id, alert_src)
 			     .. '</td>')
 
 		       print('<td nowrap>')

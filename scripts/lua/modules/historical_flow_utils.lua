@@ -512,6 +512,21 @@ end
 
 local function dt_format_flow_risk(flow_risk_id)
    local flow_risks = {}
+   
+   -- Get alert risk source
+   --[[
+      local alert_src = ""
+      local alert_risk = ntop.getFlowAlertRisk(tonumber(flow_risk_id))
+      tprint("flow_risk_id:" .. tostring(flow_risk_id))
+      tprint("alert_risk_id:" .. tostring(alert_risk))
+      tprint("-------")
+      
+      if (tonumber(alert_risk) == 0) then 
+         alert_src = "ntopng"
+      else
+         alert_src = "nDPI"
+      end
+      ]]
 
    for i = 1, 63 do
       local cur_risk = (tonumber(flow_risk_id) >> i) & 0x1
@@ -519,12 +534,13 @@ local function dt_format_flow_risk(flow_risk_id)
       if cur_risk > 0 then
 	 local cur_risk_id = i
          local title = ntop.getRiskStr(cur_risk_id)
+
 	 local flow_risk = {
 	    title = title,
 	    label = title,
 	    value = cur_risk_id,
-            help  = flow_risk_utils.get_documentation_link(cur_risk_id),
-            remediation = flow_risk_utils.get_remediation_documentation_link(cur_risk_id)
+            help  = flow_risk_utils.get_documentation_link(cur_risk_id, ""),
+            remediation = flow_risk_utils.get_remediation_documentation_link(cur_risk_id, "")
 	 }
 
 	 flow_risks[#flow_risks + 1] = flow_risk
