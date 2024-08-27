@@ -16,7 +16,7 @@ require "ndpi_flow_alert_keys"
         NDPI_TLS_CERTIFICATE_EXPIRED,9
         NDPI_TLS_CERTIFICATE_MISMATCH, /* 10 */
     }
-    ]]
+]]
 
 
 local ndpi_flow_alert_keys = {
