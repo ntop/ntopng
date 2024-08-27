@@ -45,6 +45,7 @@ const props = defineProps({
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
 watch(() => [props.epoch_begin, props.epoch_end, props.filters], (cur_value, old_value) => {
+
   refresh_component();
 }, { flush: 'pre', deep: true });
 

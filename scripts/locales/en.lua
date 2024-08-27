@@ -3243,6 +3243,9 @@ local lang = {
     ["web_mining_detected"] = "The website is known for mining cryptocurrencies on client devices",
   },
   ["flow_devices"] = {
+    ["probes_count"] = "Probes",
+    ["exporters_count"] = "Exporters",
+    ["interfaces_count"] = "Exporters Interfaces",
     ["exporters_interfaces"] = "Interfaces",
     ["active_sflow"] = "Active sFlow Exporters",
     ["all_device_ports"] = "All %{device} Ports",
