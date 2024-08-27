@@ -1473,7 +1473,6 @@ else
 					      '<span style="color:' .. severity.color .. '">' .. score_alert.score .. '</span>',
 					      riskLabel, (score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk, alert_src)) or '',
 					      status_icon or '')
-		    
                     print(msg)
 
                     if score_alert.alert_id then
@@ -1501,7 +1500,7 @@ else
 		       end
 
 		       print('<td style=\"text-align: center;\">'..
-			     flow_risk_utils.get_remediation_documentation_link(score_alert.alert_id, alert_src)
+			     flow_risk_utils.get_remediation_documentation_link(score_alert.alert_risk, alert_src)
 			     .. '</td>')
 
 		       print('<td nowrap>')
