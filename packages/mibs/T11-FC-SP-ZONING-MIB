@@ -1,0 +1,550 @@
+T11-FC-SP-ZONING-MIB  DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE,
+    NOTIFICATION-TYPE, mib-2,
+    Counter32
+                        FROM SNMPv2-SMI                -- [RFC2578]
+    TruthValue          FROM SNMPv2-TC                 -- [RFC2579]
+    MODULE-COMPLIANCE, OBJECT-GROUP,
+    NOTIFICATION-GROUP
+                        FROM SNMPv2-CONF               -- [RFC2580]
+    ifIndex             FROM IF-MIB                    -- [RFC2863]
+    t11ZsServerEntry,
+    t11ZsStatsEntry,
+    t11ZsNotifyControlEntry,
+    t11ZsFabricIndex    FROM T11-FC-ZONE-SERVER-MIB    -- [RFC4936]
+    T11FcSpPolicyHashValue,
+    T11FcSpPolicyHashFormat,
+    T11FcSpHashCalculationStatus
+                        FROM T11-FC-SP-TC-MIB;
+
+t11FcSpZoningMIB  MODULE-IDENTITY
+    LAST-UPDATED  "200808200000Z"
+
+    ORGANIZATION  "This MIB module was developed through the
+                  coordinated effort of two organizations:
+                  T11 began the development and the IETF (in
+                  the IMSS Working Group) finished it."
+    CONTACT-INFO
+            "     Claudio DeSanti
+                  Cisco Systems, Inc.
+                  170 West Tasman Drive
+                  San Jose, CA 95134 USA
+                  EMail: cds@cisco.com
+
+                  Keith McCloghrie
+                  Cisco Systems, Inc.
+                  170 West Tasman Drive
+                  San Jose, CA 95134 USA
+                  Email: kzm@cisco.com"
+    DESCRIPTION
+           "This MIB module specifies the extensions to the
+           T11-FC-ZONE-SERVER-MIB module that are necessary for the
+           management of Fibre Channel's FC-SP Zoning Servers, as
+           defined in the FC-SP specification.
+
+           The persistence of values written to these MIB objects is
+           the same as the persistence of the objects they extend,
+           i.e., it is given by the value of the relevant instance of
+           t11ZsServerDatabaseStorageType (defined in the
+           T11-FC-ZONE-SERVER-MIB module).
+
+           Copyright (C) The IETF Trust (2008).  This version
+           of this MIB module is part of RFC 5324;  see the RFC
+           itself for full legal notices."
+    REVISION  "200808200000Z"
+    DESCRIPTION
+           "Initial version of this MIB module, published as RFC 5324."
+    ::= { mib-2 177 }
+
+t11FcSpZsMIBNotifications  OBJECT IDENTIFIER ::= { t11FcSpZoningMIB 0 }
+t11FcSpZsMIBObjects        OBJECT IDENTIFIER ::= { t11FcSpZoningMIB 1 }
+t11FcSpZsMIBConformance    OBJECT IDENTIFIER ::= { t11FcSpZoningMIB 2 }
+t11FcSpZsConfiguration  OBJECT IDENTIFIER ::= { t11FcSpZsMIBObjects 1 }
+t11FcSpZsStatistics     OBJECT IDENTIFIER ::= { t11FcSpZsMIBObjects 2 }
+
+--
+-- Augmenting the table of Zone Servers
+--
+
+t11FcSpZsServerTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpZsServerEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table which provides FC-SP-specific information about
+           the Zone Servers on each Fabric in one or more Switches."
+    ::= { t11FcSpZsConfiguration 1 }
+
+t11FcSpZsServerEntry OBJECT-TYPE
+    SYNTAX       T11FcSpZsServerEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information relevant to FC-SP
+           for a particular Zone Server for a particular Fabric
+           on a particular Switch.  The Fabric and Switch are
+           identified in the same manner as in t11ZsServerEntry."
+    AUGMENTS   { t11ZsServerEntry }
+    ::= { t11FcSpZsServerTable 1 }
+
+T11FcSpZsServerEntry ::= SEQUENCE {
+    t11FcSpZsServerCapabilityObject      BITS,
+    t11FcSpZsServerEnabled               TruthValue,
+    t11FcSpZoneSetHashStatus             T11FcSpHashCalculationStatus,
+    t11FcSpActiveZoneSetHashType         T11FcSpPolicyHashFormat,
+    t11FcSpActiveZoneSetHash             T11FcSpPolicyHashValue,
+    t11FcSpZoneSetDatabaseHashType       T11FcSpPolicyHashFormat,
+    t11FcSpZoneSetDatabaseHash           T11FcSpPolicyHashValue
+}
+
+t11FcSpZsServerCapabilityObject OBJECT-TYPE
+    SYNTAX       BITS {
+                     fcSpZoning(0)
+                 }
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "Capabilities of the Zone Server for the particular Fabric
+           on the particular Switch, with respect to FC-SP Zoning:
+
+               fcSpZoning -- set to 1 to indicate the Switch is
+                             capable of supporting FC-SP Zoning.
+           "
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, Table 184."
+    ::= { t11FcSpZsServerEntry 1 }
+
+t11FcSpZsServerEnabled OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "This object indicates whether the Zone Server for the
+           particular Fabric on the particular Switch, is operating in
+           FC-SP Zoning mode."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, Table 185."
+    ::= { t11FcSpZsServerEntry 2 }
+
+t11FcSpZoneSetHashStatus OBJECT-TYPE
+    SYNTAX       T11FcSpHashCalculationStatus
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "When read, the value of this object is either:
+
+             correct -- the corresponding instances of both
+                        t11FcSpActiveZoneSetHash and
+                        t11FcSpZoneSetDatabaseHash contain
+                        the correct hash values; or
+             stale   -- the corresponding instances of
+                        t11FcSpActiveZoneSetHash and
+                        t11FcSpZoneSetDatabaseHash contain
+                        stale (possibly incorrect) values;
+
+           Writing a value of 'calculate' is a request to re-calculate
+           and update the values of the corresponding instances of both
+           t11FcSpActiveZoneSetHash and t11FcSpZoneSetDatabaseHash.
+           Writing a value of 'correct' or 'stale' to this object
+           is an error (e.g., 'wrongValue').
+
+           When the Active Zone Set and/or the Zone Set Database are
+           updated, it is common that multiple changes need to be made
+           at the same time.  In such circumstances, the use of this
+           object allows the hash values to be updated only once after
+           all changes, rather than repeatedly/after each individual
+           change.
+
+           If and when the corresponding instance of
+           t11ZsServerDatabaseStorageType has the value 'permanent(4)',
+           then if write access is supported to any instance of a
+           read-write object in any row of any table governed by the
+           'permanent' value of t11ZsServerDatabaseStorageType, then
+
+           write access to the corresponding instance of this object
+           must also be supported."
+    REFERENCE
+           "t11ZsServerDatabaseStorageType in
+           'Fibre Channel Zone Server MIB', RFC 4936, August 2007."
+    DEFVAL      { stale }
+    ::= { t11FcSpZsServerEntry 3 }
+
+t11FcSpActiveZoneSetHashType OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyHashFormat
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The format used for the hash value contained in the
+           corresponding instance of t11FcSpActiveZoneSetHash."
+    ::= { t11FcSpZsServerEntry 4 }
+
+t11FcSpActiveZoneSetHash OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyHashValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The value of the hash for the current Active Zone Set.
+            The format of this value is given by the corresponding
+            instance of t11FcSpActiveZoneSetHashType."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, Table 187."
+    ::= { t11FcSpZsServerEntry 5 }
+
+t11FcSpZoneSetDatabaseHashType OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyHashFormat
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The format used for the hash value contained in the
+           corresponding instance of t11FcSpZoneSetDatabaseHash."
+    ::= { t11FcSpZsServerEntry 6 }
+
+t11FcSpZoneSetDatabaseHash OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyHashValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The value of the hash for the current Zone Set Database.
+            The format of this value is given by the corresponding
+            instance of t11FcSpZoneSetDatabaseHashType."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, Table 187."
+    ::= { t11FcSpZsServerEntry 7 }
+
+--
+-- Additional Statistics for FC-SP Zoning
+--
+
+t11FcSpZsStatsTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpZsStatsEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of statistics specific to FC-SP that are
+           maintained by Zone Servers."
+    ::= { t11FcSpZsStatistics 1 }
+
+t11FcSpZsStatsEntry OBJECT-TYPE
+    SYNTAX       T11FcSpZsStatsEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A set of statistics specific to FC-SP for a particular
+           Zone Server for a particular Fabric on a particular Switch.
+           The Fabric and Switch are identified in the same manner as
+           in t11ZsStatsEntry."
+    AUGMENTS   { t11ZsStatsEntry }
+    ::= { t11FcSpZsStatsTable 1 }
+
+T11FcSpZsStatsEntry ::= SEQUENCE {
+    t11FcSpZsSPCMITrequestsSent       Counter32,
+    t11FcSpZsSPCMITrequestsAccepted   Counter32,
+    t11FcSpZsSPCMITrequestsRejected   Counter32,
+    t11FcSpZsZcpRequestsSent          Counter32,
+    t11FcSpZsZcpRequestsAccepted      Counter32,
+    t11FcSpZsZcpRequestsRejected      Counter32,
+    t11FcSpZsZirRequestsAccepted      Counter32,
+    t11FcSpZsZirRequestsRejected      Counter32
+}
+
+t11FcSpZsSPCMITrequestsSent OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of SP Commit Zone Changes (SPCMIT) operation
+
+           requests sent by the Zone Server.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    ::= { t11FcSpZsStatsEntry 1 }
+
+t11FcSpZsSPCMITrequestsAccepted OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of SP Commit Zone Changes (SPCMIT) operation
+           requests received and accepted by the Zone Server.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    ::= { t11FcSpZsStatsEntry 2 }
+
+t11FcSpZsSPCMITrequestsRejected OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of SP Commit Zone Changes (SPCMIT) operation
+           requests received but rejected by the Zone Server.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    ::= { t11FcSpZsStatsEntry 3 }
+
+t11FcSpZsZcpRequestsSent OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of Zoning Check Protocol (ZCP) requests sent
+           by the Zone Server.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    ::= { t11FcSpZsStatsEntry 4 }
+
+t11FcSpZsZcpRequestsAccepted OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of Zoning Check Protocol (ZCP) requests received
+
+           and accepted by the Zone Server.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    ::= { t11FcSpZsStatsEntry 5 }
+
+t11FcSpZsZcpRequestsRejected OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of Zoning Check Protocol (ZCP) requests received
+           but rejected by the Zone Server.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    ::= { t11FcSpZsStatsEntry 6 }
+
+t11FcSpZsZirRequestsAccepted OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of Zoning Information Request (ZIR) requests
+           received and accepted by the Zone Server.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    ::= { t11FcSpZsStatsEntry 7 }
+
+t11FcSpZsZirRequestsRejected OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of Zoning Information Request (ZIR) requests
+           received but rejected by the Zone Server.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    ::= { t11FcSpZsStatsEntry 8 }
+
+--
+--  Enable/Disable for Notifications
+--
+
+t11FcSpZsNotifyControlTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpZsNotifyControlEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of control information for notifications
+           generated due to Zone Server events related to
+           FC-SP Zoning."
+    ::= { t11FcSpZsConfiguration 2 }
+
+t11FcSpZsNotifyControlEntry OBJECT-TYPE
+    SYNTAX       T11FcSpZsNotifyControlEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry is an augmentation of the notification control
+           information for a Zone Server for a particular Fabric on a
+           particular Switch.  The Fabric and Switch are identified in
+           the same manner as in t11ZsNotifyControlEntry."
+    AUGMENTS   { t11ZsNotifyControlEntry }
+    ::= { t11FcSpZsNotifyControlTable 1 }
+
+T11FcSpZsNotifyControlEntry ::= SEQUENCE {
+     t11FcSpZsNotifyJoinSuccessEnable    TruthValue,
+     t11FcSpZsNotifyJoinFailureEnable    TruthValue
+}
+
+t11FcSpZsNotifyJoinSuccessEnable OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "This object specifies whether
+           t11FcSpZsFabricJoinFailureNotify notifications should be
+           generated by the Zone Server for this Fabric."
+    ::= { t11FcSpZsNotifyControlEntry 1 }
+
+t11FcSpZsNotifyJoinFailureEnable OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "This object specifies whether
+           t11FcSpZsFabricJoinSuccessNotify notifications should be
+           generated by the Zone Server for this Fabric."
+    ::= { t11FcSpZsNotifyControlEntry 2 }
+
+--
+-- Notifications
+--
+
+t11FcSpZsFabricJoinSuccessNotify NOTIFICATION-TYPE
+    OBJECTS      { ifIndex, t11ZsFabricIndex }
+    STATUS       current
+    DESCRIPTION
+           "This notification indicates that a Switch that is part
+           of one Fabric (indicated by the value of t11ZsFabricIndex)
+           has successfully joined (on the interface indicated by the
+           value of ifIndex) with a Switch that is part of another
+           Fabric.
+
+           If multiple Virtual Fabrics are configured on an interface,
+           and all are successfully joined at the same time, and if
+           the agent so chooses, then it can generate just one
+           notification in which t11ZsFabricIndex has the value 4096."
+    ::= { t11FcSpZsMIBNotifications 1 }
+
+t11FcSpZsFabricJoinFailureNotify NOTIFICATION-TYPE
+    OBJECTS      { ifIndex, t11ZsFabricIndex }
+    STATUS       current
+    DESCRIPTION
+           "This notification indicates that an E_Port on the local
+           Switch has entered the Isolated state because a join
+           between two Fabrics failed.  The failure occurred on the
+           local Fabric indicated by the value of t11ZsFabricIndex,
+           on the interface indicated by the value of ifIndex.
+
+           If multiple Virtual Fabrics are configured on an interface,
+           and all have a failure to join at the same time, and if the
+           agent so chooses, then it can generate just one notification
+           in which t11ZsFabricIndex has the value 4096."
+    ::= { t11FcSpZsMIBNotifications 2 }
+
+--
+-- Conformance
+--
+
+t11FcSpZsMIBCompliances
+                    OBJECT IDENTIFIER ::= { t11FcSpZsMIBConformance 1 }
+t11FcSpZsMIBGroups  OBJECT IDENTIFIER ::= { t11FcSpZsMIBConformance 2 }
+
+t11FcSpZsMIBCompliance MODULE-COMPLIANCE
+    STATUS       current
+    DESCRIPTION
+           "The compliance statement for entities that
+           implement the extensions specified in FC-SP for
+           Fibre Channel's Zone Server."
+
+    MODULE  -- this module
+
+        MANDATORY-GROUPS { t11FcSpZsObjectsGroup,
+                           t11FcSpZsNotificationControlGroup,
+                           t11FcSpZsNotificationGroup }
+
+        GROUP        t11FcSpZsStatisticsGroup
+        DESCRIPTION
+            "These counters, containing Zone Server statistics,
+            are mandatory only for those systems that count
+            such events."
+
+-- Write access is not required for any objects in this MIB module:
+
+        OBJECT       t11FcSpZsServerEnabled
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpZoneSetHashStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpZsNotifyJoinSuccessEnable
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpZsNotifyJoinFailureEnable
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+    ::= { t11FcSpZsMIBCompliances 1 }
+
+-- Units of Conformance
+
+t11FcSpZsObjectsGroup OBJECT-GROUP
+    OBJECTS  { t11FcSpZsServerCapabilityObject,
+               t11FcSpZsServerEnabled,
+               t11FcSpZoneSetHashStatus,
+               t11FcSpActiveZoneSetHashType,
+               t11FcSpActiveZoneSetHash,
+               t11FcSpZoneSetDatabaseHashType,
+               t11FcSpZoneSetDatabaseHash
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of objects for Zone configuration
+
+           information of a Zone Server capable of
+           operating in FC-SP Zoning mode."
+    ::= { t11FcSpZsMIBGroups 1 }
+
+t11FcSpZsNotificationControlGroup OBJECT-GROUP
+    OBJECTS  { t11FcSpZsNotifyJoinSuccessEnable,
+               t11FcSpZsNotifyJoinFailureEnable
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of notification control objects for
+           monitoring Zone Server failures specific to FC-SP."
+    ::= { t11FcSpZsMIBGroups 2 }
+
+t11FcSpZsStatisticsGroup OBJECT-GROUP
+    OBJECTS  { t11FcSpZsSPCMITrequestsSent,
+               t11FcSpZsSPCMITrequestsAccepted,
+               t11FcSpZsSPCMITrequestsRejected,
+               t11FcSpZsZcpRequestsSent,
+               t11FcSpZsZcpRequestsAccepted,
+               t11FcSpZsZcpRequestsRejected,
+               t11FcSpZsZirRequestsAccepted,
+               t11FcSpZsZirRequestsRejected
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of objects for collecting Zone Server
+            statistics which are specific to FC-SP."
+    ::= { t11FcSpZsMIBGroups 3 }
+
+t11FcSpZsNotificationGroup NOTIFICATION-GROUP
+    NOTIFICATIONS { t11FcSpZsFabricJoinSuccessNotify,
+                    t11FcSpZsFabricJoinFailureNotify
+                  }
+    STATUS        current
+    DESCRIPTION
+           "A collection of notification(s) for monitoring
+           Zone Server events that are specific to FC-SP."
+    ::= { t11FcSpZsMIBGroups 4 }
+
+END

@@ -1,0 +1,1739 @@
+ NEMO-MIB DEFINITIONS ::= BEGIN
+  IMPORTS
+    MODULE-IDENTITY,  mib-2, Unsigned32, Counter32,
+    Gauge32,
+    OBJECT-TYPE, NOTIFICATION-TYPE
+               FROM SNMPv2-SMI
+    TEXTUAL-CONVENTION,
+    TruthValue, DateAndTime, TimeStamp
+               FROM SNMPv2-TC
+    SnmpAdminString
+               FROM SNMP-FRAMEWORK-MIB
+    MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+               FROM SNMPv2-CONF
+    InetAddressType, InetAddress, InetAddressPrefixLength
+               FROM INET-ADDRESS-MIB
+    InterfaceIndex
+               FROM IF-MIB
+    mip6BindingHomeAddressType, mip6BindingHomeAddress,
+    mip6MnBLEntry, mip6BindingCacheEntry,
+    mip6MnBLCOAType, mip6MnBLCOA
+               FROM MOBILEIPV6-MIB
+    ;
+
+ nemoMIB MODULE-IDENTITY
+     LAST-UPDATED "200903100000Z"      -- 10 March 2009
+     ORGANIZATION "IETF MEXT Working Group"
+
+     CONTACT-INFO
+        "           Sri Gundavelli
+            Postal: Cisco
+                    170 W.Tasman Drive,
+                    San Jose, CA 95134
+                    USA
+               Tel: +1-408-527-6109
+             Email: sgundave@cisco.com
+
+                    Glenn Mansfield Keeni
+            Postal: Cyber Solutions Inc.
+                    6-6-3, Minami Yoshinari
+                    Aoba-ku, Sendai, Japan 989-3204.
+               Tel: +81-22-303-4012
+               Fax: +81-22-303-4015
+            E-mail: glenn@cysols.com
+
+                    Kenichi Nagami
+            Postal: INTEC NetCore Inc.
+                    1-3-3, Shin-suna
+                    Koto-ku, Tokyo, 135-0075
+                    Japan
+               Tel: +81-3-5665-5069
+            E-mail: nagami@inetcore.com
+
+                    Kazuhide Koide
+            Postal: KDDI CORPORATION
+                    GARDEN AIR TOWER 3-10-10, Iidabashi
+                    Chiyoda-ku, Tokyo, 102-8460 Japan
+               Tel: +81-3-6678-3378
+            E-mail: ka-koide@kddi.com
+
+        Support Group E-mail: mext@ietf.org
+        "
+        DESCRIPTION
+         "Copyright (c) 2009 IETF Trust and the persons identified
+          as authors of the code.  All rights reserved.
+
+          Redistribution and use in source and binary forms, with
+          or without modification, are permitted provided that the
+          following conditions are met:
+
+          - Redistributions of source code must retain the above
+            copyright notice, this list of conditions and the
+            following disclaimer.
+
+          - Redistributions in binary form must reproduce the
+            above copyright notice, this list of conditions and
+            the following disclaimer in the documentation and/or
+            other materials provided with the distribution.
+
+          - Neither the name of Internet Society, IETF or IETF
+            Trust, nor the names of specific contributors, may be
+            used to endorse or promote products derived from this
+            software without specific prior written permission.
+
+         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+         CONTRIBUTORS 'AS IS' AND ANY EXPRESS OR IMPLIED
+         WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+         WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+         PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE
+         COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+         INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+         CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+         PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+         DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+         CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+         CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+         OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+         SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+         DAMAGE.
+
+         This version of this MIB module is part of RFC 5488;
+         see the RFC itself for full legal notices."
+
+         REVISION    "200903100000Z"      -- 10 March 2009
+         DESCRIPTION "Initial version, published as RFC 5488."
+              ::= { mib-2  184 }
+
+  -- The NEMO MIB has the following primary groups
+
+  nemoNotifications        OBJECT IDENTIFIER ::= { nemoMIB 0 }
+  nemoObjects              OBJECT IDENTIFIER ::= { nemoMIB 1 }
+  nemoConformance          OBJECT IDENTIFIER ::= { nemoMIB 2 }
+  nemoCore                 OBJECT IDENTIFIER ::= { nemoObjects 1 }
+  nemoMr                   OBJECT IDENTIFIER ::= { nemoObjects 2 }
+  nemoCn                   OBJECT IDENTIFIER ::= { nemoObjects 3 }
+  nemoHa                   OBJECT IDENTIFIER ::= { nemoObjects 4 }
+
+   -- The sub groups
+
+  nemoSystem               OBJECT IDENTIFIER ::= { nemoCore 1 }
+  nemoBindings             OBJECT IDENTIFIER ::= { nemoCore 2 }
+
+  nemoConfiguration        OBJECT IDENTIFIER ::= { nemoCore 3 }
+  nemoStats                OBJECT IDENTIFIER ::= { nemoCore 4 }
+
+  nemoMrSystem             OBJECT IDENTIFIER ::= { nemoMr 1 }
+  nemoMrConf               OBJECT IDENTIFIER ::= { nemoMr 2 }
+  nemoMrRegistration       OBJECT IDENTIFIER ::= { nemoMr 3 }
+  nemoMrGlobalStats        OBJECT IDENTIFIER ::= { nemoMr 4 }
+
+  nemoHaAdvertisement      OBJECT IDENTIFIER ::= { nemoHa 1 }
+  nemoHaStats              OBJECT IDENTIFIER ::= { nemoHa 2 }
+  nemoHaRegistration       OBJECT IDENTIFIER ::= { nemoHa 3 }
+  nemoHaGlobalStats        OBJECT IDENTIFIER ::= { nemoHaStats 1 }
+
+  -- Textual Conventions
+NemoBURequestRejectionCode ::= TEXTUAL-CONVENTION
+       STATUS        current
+       DESCRIPTION
+               "The value of the status field in the Binding
+                Acknowledgment message when the Binding Update
+                was rejected for NEMO-specific reasons.
+               "
+       REFERENCE
+               "RFC 3963: Section 4.2"
+       SYNTAX  INTEGER {
+               mobileRouterOperationNotPermitted (140),
+               invalidPrefix                     (141),
+               notAuthorizedForPrefix            (142),
+               forwardingSetupFailed             (143)
+              }
+
+  --
+  --
+  -- nemoSystem group
+  --
+  --
+
+  nemoCapabilities OBJECT-TYPE
+      SYNTAX      BITS {
+                       mobileRouter       (0),
+                       homeAgentSupport   (1)
+                  }
+      MAX-ACCESS  read-only
+      STATUS      current
+      DESCRIPTION
+              "This object indicates the NEMO functions that
+               are supported by this managed entity.  Multiple
+               NEMO functions may be supported by a single
+               entity.
+              "
+      REFERENCE
+              "RFC 3963: Section 3"
+      ::= { nemoSystem 1 }
+
+  nemoStatus OBJECT-TYPE
+      SYNTAX      INTEGER { enabled(1), disabled(2) }
+      MAX-ACCESS  read-write
+      STATUS      current
+      DESCRIPTION
+              "This object indicates whether the NEMO
+               function is enabled for the managed entity.  If it
+               is enabled, the agent discovery and registration
+               functions will be operational.
+
+               Changing the status from enabled(1) to disabled(2)
+               will terminate the agent discovery and registration
+               functions.  On the other hand, changing the status
+               from disabled(2) to enabled(1) will start the agent
+               discovery and registration functions.
+
+               The value of this object MUST remain unchanged
+               across reboots of the managed entity.
+              "
+      ::= { nemoSystem 2 }
+
+ nemoCounterDiscontinuityTime OBJECT-TYPE
+    SYNTAX      TimeStamp
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The value of sysUpTime on the most recent occasion at
+             which any one or more of this NEMO entity's counters,
+             viz., counters with OID prefix 'nemoMrConf',
+             'nemoMrRegnCounters', 'nemoMrGlobalStats', or
+             'nemoHaGlobalStats', suffered a discontinuity.  If
+             no such discontinuities have occurred since the last
+             re-initialization of the local management subsystem,
+             then this object will have a zero value.
+            "
+    ::= { nemoStats 1 }
+ --
+ --
+
+ --   nemoConfiguration group
+ --
+ --
+
+nemoMrBLTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NemoMrBLEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "This table corresponds to the Binding Update List
+             (BL) that includes NEMO-related information and that
+             is maintained by the mobile router.  The table
+             holds a row for every binding that the mobile
+             router has established or is trying to establish.
+             Entries from the table are deleted as the lifetime
+             of the binding expires.
+            "
+    REFERENCE
+            "RFC 3775: Sections 4.5, 11.1
+             RFC 3963: Section 5.2"
+    ::= { nemoMrRegistration 1 }
+
+nemoMrBLEntry  OBJECT-TYPE
+    SYNTAX      NemoMrBLEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "An entry pertaining to NEMO-related information
+             contained in a Binding Update sent by a NEMO-enabled
+             mobile router to its home agent.
+            "
+    AUGMENTS {mip6MnBLEntry}
+::= { nemoMrBLTable 1 }
+
+NemoMrBLEntry ::= SEQUENCE {
+    nemoMrBLMode     INTEGER,
+    nemoMrBLMrFlag   TruthValue,
+    nemoMrBLHomeAddressPrefixLength   InetAddressPrefixLength,
+    nemoMrBLCareofAddressPrefixLength InetAddressPrefixLength,
+    nemoMrBLActiveEgressIfIndex       InterfaceIndex,
+    nemoMrBLEstablishedHomeTunnelIfIndex InterfaceIndex
+    }
+nemoMrBLMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+      implicitMode (1),
+      explicitMode (2)
+                }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "implicitMode(1): the Mobile Network Prefix Option
+             is not included in the Binding Update by the mobile
+             router.
+
+             explicitMode(2): the mobile router included one or
+             more Mobile Network Prefix Options in the Binding
+             Update.
+            "
+    REFERENCE
+            "RFC 3963: Section 5.2"
+    ::= { nemoMrBLEntry 1 }
+
+nemoMrBLMrFlag OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "true(1): the mobile router sent the Binding Update
+             with Mobile Router Flag set.
+
+             false(2): the mobile router did not send the Binding
+             Update with Mobile Router Flag set.  This implies that
+             the mobile router is acting as a mobile node.
+            "
+    REFERENCE
+            "RFC 3963: Sections 4.1, 5.1"
+    ::= { nemoMrBLEntry 2 }
+
+nemoMrBLHomeAddressPrefixLength  OBJECT-TYPE
+    SYNTAX      InetAddressPrefixLength
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The prefix length of the mobile router's home network.
+            "
+    REFERENCE
+        "RFC 3963: Section 3"
+    ::= { nemoMrBLEntry 3 }
+
+nemoMrBLCareofAddressPrefixLength  OBJECT-TYPE
+    SYNTAX      InetAddressPrefixLength
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The prefix length of the care-of address of the
+             mobile router.
+            "
+    REFERENCE
+        "RFC 3963: Section 3"
+    ::= { nemoMrBLEntry 4 }
+
+nemoMrBLActiveEgressIfIndex OBJECT-TYPE
+    SYNTAX      InterfaceIndex
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The interface index of the currently active
+             egress interface.
+            "
+    REFERENCE
+        "RFC 3963: Section 5.5"
+    ::= { nemoMrBLEntry 5 }
+
+nemoMrBLEstablishedHomeTunnelIfIndex  OBJECT-TYPE
+    SYNTAX      InterfaceIndex
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The interface index of the tunnel established
+             between the mobile router and the home agent
+             for NEMO traffic.
+            "
+    REFERENCE
+        "RFC 3963: Section 5.5"
+    ::= { nemoMrBLEntry 6 }
+
+-- Mobile Router Registration Group Counters
+
+nemoMrRegnCounters OBJECT IDENTIFIER ::= { nemoMrRegistration 2 }
+
+nemoMrMobilityMessagesSent OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of mobility messages, i.e., IPv6
+             datagrams with Mobility Header, sent by the mobile
+             node.  This will include Binding Updates sent by a
+             mobile router with the Mobile Router Flag set.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3775: Sections 4.2, 6.1
+             RFC 3963: Section 4.1"
+    ::= {  nemoMrRegnCounters 1 }
+
+nemoMrMobilityMessagesRecd OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of mobility messages, i.e., IPv6
+             datagrams with Mobility Header, received by the
+             mobile node.  This will include Binding
+             Acknowledgements with Mobile Router Flag set that
+             are sent to a mobile router.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3775: Sections 4.2, 6.1
+             RFC 3963: Sections 4.1, 4.2"
+    ::= {  nemoMrRegnCounters 2 }
+
+nemoMrPrefixRegMode OBJECT-TYPE
+    SYNTAX INTEGER {
+              implicitMode       (1),
+              explicitMode       (2)
+           }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+            "This object indicates the mode in which the mobile
+             network prefixes will be registered with the home
+             agent.
+
+             implicitMode(1): the Mobile Network Prefix Option will
+             not be included in the Binding Update by the mobile
+             router.
+
+             explicitMode(2): the mobile router will include one or
+             more Mobile Network Prefix Options in the Binding
+             Update.
+
+             The value of this object MUST remain unchanged
+             across reboots of the managed entity.
+            "
+    REFERENCE
+            "RFC 3963: Section 5.2"
+    ::= { nemoMrRegistration 3 }
+
+nemoHaMobileNetworkPrefixTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NemoHaMobileNetworkPrefixEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "This table contains the mobile network prefixes
+             that the home agent maintains for the mobile router.
+             The mobile network prefixes in this table are
+             registered by Binding Updates or are manually
+             pre-configured.
+            "
+    REFERENCE
+            "RFC 3963: Section 6.1.2"
+    ::= { nemoHaRegistration 1 }
+
+nemoHaMobileNetworkPrefixEntry OBJECT-TYPE
+    SYNTAX      NemoHaMobileNetworkPrefixEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "An entry for a mobile network prefix.
+
+             The instances of the columnar objects in this entry
+             pertain to an interface for a particular value of
+             mip6BindingHomeAddressType, mip6BindingHomeAddress,
+             and nemoHaMobileNetworkPrefixSeqNo.
+
+             The nemoHaMobileNetworkPrefixSeqNo object is used to
+             distinguish between multiple instances of
+             the mobile network prefix in the same Binding Update
+             for the same set of mip6BindingHomeAddressType and
+             mip6BindingHomeAddress.
+
+             There is no upper-bound on the maximum number of
+             mobile network prefixes in a Binding Update but, for
+             practical purposes, the upper bound of the value
+
+             nemoHaMobileNetworkPrefixSeqNo is set to 1024.
+
+             Implementers need to be aware that if the total
+             number of octets in mip6BindingHomeAddress
+             exceeds 112, then OIDs of column
+             instances in this row will have more than 128
+             sub-identifiers and cannot be accessed using
+             SNMPv1, SNMPv2c, or SNMPv3.
+            "
+    INDEX  { mip6BindingHomeAddressType,
+             mip6BindingHomeAddress,
+             nemoHaMobileNetworkPrefixSeqNo
+}
+::= { nemoHaMobileNetworkPrefixTable 1 }
+
+NemoHaMobileNetworkPrefixEntry ::= SEQUENCE {
+    nemoHaMobileNetworkPrefixSeqNo       Unsigned32,
+    nemoHaMobileNetworkPrefixType        InetAddressType,
+    nemoHaMobileNetworkPrefix            InetAddress,
+    nemoHaMobileNetworkPrefixLength      Unsigned32,
+    nemoHaMobileNetworkPrefixSource      INTEGER
+}
+
+nemoHaMobileNetworkPrefixSeqNo OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..1024)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "A Binding Update may have multiple mobile network
+             prefixes.
+
+             This object, along with mip6BindingHomeAddressType
+             and mip6BindingHomeAddress, uniquely identifies a
+             row containing a single mobile network prefix for
+             a mobile router in this table.
+            "
+    REFERENCE
+            "RFC 3963: Sections 2, 6.1, 6.2"
+    ::= { nemoHaMobileNetworkPrefixEntry 1 }
+
+nemoHaMobileNetworkPrefixType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The address type for the mobile network prefix
+             that follows.
+            "
+    ::= { nemoHaMobileNetworkPrefixEntry 2 }
+
+nemoHaMobileNetworkPrefix OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "A mobile network prefix related to the
+             corresponding Binding Update.
+
+             The type of the address represented by this object
+             is specified by the corresponding
+             nemoHaMobileNetworkPrefixType object.
+            "
+    REFERENCE
+            "RFC 3963: Sections 2, 6.1, 6.2"
+    ::= { nemoHaMobileNetworkPrefixEntry 3 }
+
+nemoHaMobileNetworkPrefixLength OBJECT-TYPE
+    SYNTAX      Unsigned32 (0..128)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The length of the prefix specified by the corresponding
+             nemoHaMobileNetworkPrefix object.
+            "
+    REFERENCE
+            "RFC 3963: Sections 4.3, 6.1, 6.2"
+    ::= { nemoHaMobileNetworkPrefixEntry 4 }
+
+nemoHaMobileNetworkPrefixSource OBJECT-TYPE
+    SYNTAX      INTEGER {
+             configured    (1),
+             bindingUpdate (2)
+             }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The information source of the mobile network prefix
+             configured with the Binding Update.
+
+             configured(1): indicates that the mobile network prefix
+             has been manually pre-configured.
+
+             bindingUpdate(2): indicates that the information is
+             introduced to the home agent by the Mobile Network
+
+             Prefix Option in the Binding Updates received by the
+             home agent.
+            "
+    REFERENCE
+            "RFC 3963: Sections 4.3, 6.1, 6.2"
+    ::= { nemoHaMobileNetworkPrefixEntry 5 }
+
+nemoBindingCacheTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NemoBindingCacheEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+           "This table models the Binding Cache that includes
+            NEMO-related information and that is maintained by the
+            home agent.  Entries in this table are not required
+            to survive a reboot of the home agent.
+           "
+    REFERENCE
+            "RFC 3775: Sections 4.5, 9.1, 10.1,
+             RFC 3963: Section 6.1"
+    ::= { nemoBindings 1 }
+
+nemoBindingCacheEntry  OBJECT-TYPE
+    SYNTAX      NemoBindingCacheEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "An entry containing additional information related
+             to NEMO-enabled entries in the Binding Cache table
+             of the home agent.
+            "
+    AUGMENTS {mip6BindingCacheEntry}
+::= { nemoBindingCacheTable 1 }
+
+NemoBindingCacheEntry ::= SEQUENCE {
+     nemoBindingMrFlag     TruthValue,
+     nemoBindingMrMode     INTEGER
+    }
+
+nemoBindingMrFlag OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "true(1): indicates that the Binding Cache entry is from
+             an entity acting as a mobile router.
+
+             false(2): implies that the Binding Cache entry is from
+             an entity acting as a mobile node.
+            "
+    REFERENCE
+            "RFC 3963: Sections 6.1.1, 6.2"
+    ::= { nemoBindingCacheEntry 1 }
+
+nemoBindingMrMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+      implicitMode(1),
+      explicitMode(2)
+                }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "implicitMode(1): the Mobile Network Prefix Option is
+             not included in the Binding Update by the mobile
+             router.
+
+             explicitMode(2): the mobile router included one or
+             more Mobile Network Prefix Options in the Binding
+             Update.
+            "
+    REFERENCE
+            "RFC 3963: Sections 5.2, 6.1.1, 6.2"
+    ::= { nemoBindingCacheEntry 2 }
+
+--
+-- nemoMrEgressIfTable
+--
+nemoMrEgressIfTable        OBJECT-TYPE
+     SYNTAX      SEQUENCE OF NemoMrEgressIfEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+             "A table representing the egress interfaces that
+              will be used by the mobile router for roaming to
+              foreign networks.  Each entry in this table
+              represents a configured egress interface.
+             "
+     ::= { nemoMrSystem 1 }
+
+nemoMrEgressIfEntry OBJECT-TYPE
+     SYNTAX      NemoMrEgressIfEntry
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+             "An entry in the egress interface table.  It
+
+              represents a single egress interface entry.
+             "
+     INDEX  { nemoMrEgressIfIndex }
+     ::= { nemoMrEgressIfTable 1 }
+
+NemoMrEgressIfEntry ::=
+     SEQUENCE {
+      nemoMrEgressIfIndex             InterfaceIndex,
+      nemoMrEgressIfPriority          Unsigned32,
+      nemoMrEgressIfDescription       SnmpAdminString,
+      nemoMrEgressIfRoamHoldDownTime  Gauge32
+     }
+
+nemoMrEgressIfIndex  OBJECT-TYPE
+     SYNTAX      InterfaceIndex
+     MAX-ACCESS  not-accessible
+     STATUS      current
+     DESCRIPTION
+             "The index of the interface on the mobile router.
+             "
+     ::= { nemoMrEgressIfEntry 1 }
+
+nemoMrEgressIfPriority   OBJECT-TYPE
+     SYNTAX      Unsigned32 (0..255)
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+             "The priority configured to the egress interface.
+              This value will be configured to a value between 0
+              and 255.
+             "
+     ::= { nemoMrEgressIfEntry 2 }
+
+nemoMrEgressIfDescription   OBJECT-TYPE
+     SYNTAX      SnmpAdminString
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+             "A human-readable textual description of the egress
+              interface on the mobile router.
+             "
+     ::= { nemoMrEgressIfEntry 3 }
+
+nemoMrEgressIfRoamHoldDownTime  OBJECT-TYPE
+     SYNTAX      Gauge32
+     UNITS       "seconds"
+     MAX-ACCESS  read-only
+     STATUS      current
+     DESCRIPTION
+             "This object indicates the time for which the
+              egress interface will be held down during roaming
+              to avoid interface flapping.
+             "
+     ::= { nemoMrEgressIfEntry 4 }
+
+nemoMrDiscoveryRequests OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Total number of Modified Dynamic Home Agent Address
+             Discovery Requests, with Mobile Router Support Flag
+             set, sent by the mobile router.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3775: Sections 10.5, 11.4.1
+             RFC 3963: Section 7.1"
+       ::= { nemoMrConf 1 }
+
+nemoMrDiscoveryReplies OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Total number of Modified Dynamic Home Agent Address
+             Discovery Replies, with Mobile Router Support Flag
+             set, received by the mobile router.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3775: Sections 10.5, 11.4.1
+             RFC 3963: Section 7.2"
+       ::= { nemoMrConf 2 }
+
+nemoMrDiscoveryRepliesRouterFlagZero OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Total number of Modified Dynamic Home Agent Address
+             Discovery Replies, with Mobile Router Support Flag set
+             to 0 although the flag in the corresponding request
+             is set to 1.  It implies that there is no home agent
+             that supports mobile router functionality in the home
+             network.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3775: Sections 10.5, 11.4.1
+             RFC 3963: Section 7.2"
+       ::= { nemoMrConf 3 }
+
+nemoMrMovedHome OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Number of times the mobile router has detected
+             movement from a foreign network to its home
+             network.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+        "RFC 3963: Section 3"
+        ::= { nemoMrConf 4 }
+
+nemoMrMovedOutofHome OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Number of times the mobile router has detected
+             movement to a foreign network from the home
+             network, has acquired a care-of address, and
+             has initiated the care-of address registration
+             process.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+        "RFC 3963: Section 3"
+        ::= { nemoMrConf 5 }
+
+nemoMrMovedFNtoFN OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Number of times the mobile router has detected
+             movement to/from a foreign network from/to another
+             foreign network.  Note that 'movement' implies
+             movement in layer 3, i.e., the mobile router's care-of
+             address changed, and it initiated the care-of address
+             registration process.
+
+             If there are multiple egress interfaces, this counter
+             counts the total number of movements.  The movement
+             as a mobile node of the mobile entity is not counted.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3963: Section 3"
+        ::= { nemoMrConf 6 }
+
+nemoMrBetterIfDetected OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Number of times the NEMO entity has found an egress
+             interface with better priority.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+        ::= { nemoMrConf 7 }
+
+--
+-- nemoStats:nemoMrGlobalStats
+--
+
+nemoMrBindingAcksWONemoSupport  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Acknowledgements without
+             NEMO support received by the mobile router.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3963: Section 5.3"
+        ::= { nemoMrGlobalStats 1 }
+
+nemoMrBindingAcksRegTypeChangeDisallowed  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Acknowledgements
+             received by the mobile router with status code
+             indicating 'Registration type change disallowed'
+             (Code 139).
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3775: Section 9.5.1
+             RFC 3963: Section 6.2"
+        ::= { nemoMrGlobalStats 2 }
+
+nemoMrBindingAcksOperationNotPermitted  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Acknowledgements
+             received by the mobile router with status code
+
+             indicating 'Mobile Router Operation not permitted'
+             (Code 140).
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3963: Section 6.6"
+        ::= { nemoMrGlobalStats 3 }
+
+nemoMrBindingAcksInvalidPrefix  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Acknowledgements
+             received by the mobile router with status code
+             indicating 'Invalid Prefix' (Code 141).
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3963: Section 6.6"
+        ::= { nemoMrGlobalStats 4 }
+
+nemoMrBindingAcksNotAuthorizedForPrefix OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Acknowledgements
+             received by the mobile router with status code
+             indicating 'Not Authorized for Prefix' (Code 142).
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3963 : Section 6.6"
+        ::= { nemoMrGlobalStats 5 }
+
+nemoMrBindingAcksForwardingSetupFailed OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Acknowledgements
+             received by the mobile router with status code
+             indicating 'Forwarding Setup failed' (Code 143).
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3963: Section 6.6"
+        ::= { nemoMrGlobalStats 6 }
+
+nemoMrBindingAcksOtherError OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Acknowledgements
+             received by the mobile router (Mobile Router Flag is
+             set) with status code other than:
+
+             successfully processed                  --(Code 0  )
+             mobileRouterOperationNotPermitted (140) --(Code 140)
+             invalidPrefix                     (141) --(Code 141)
+             notAuthorizedForPrefix            (142) --(Code 142)
+             forwardingSetupFailed             (143) --(Code 143)
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3963 : Section 6.6"
+        ::= { nemoMrGlobalStats 7 }
+
+--
+-- nemoStats:nemoHaGlobalStats
+--
+
+nemoHaBUAcksWONemoSupport  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Acknowledgements
+             without NEMO support sent by the home agent.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3963: Section 5.3"
+        ::= { nemoHaGlobalStats 1 }
+
+nemoHaBUAcksRegTypeChangeDisallowed  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Update requests
+             rejected by the home agent with status code
+             in the Binding Acknowledgement indicating
+             'Registration type change disallowed' (Code 139).
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3775: Section 9.5.1
+             RFC 3963: Section 6.2"
+        ::= { nemoHaGlobalStats 2 }
+
+nemoHaBUAcksOperationNotPermitted  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Update requests
+             rejected by the home agent with status code in
+             the Binding Acknowledgement indicating 'Mobile
+             Router Operation not permitted' (Code 140).
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3963: Section 6.6"
+        ::= { nemoHaGlobalStats 3 }
+
+nemoHaBUAcksInvalidPrefix  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Update requests
+             rejected by the home agent with status code in
+             the Binding Acknowledgement indicating 'Invalid
+             Prefix' (Code 141).
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3963: Section 6.6"
+        ::= { nemoHaGlobalStats 4 }
+
+nemoHaBUAcksNotAuthorizedForPrefix OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Update requests
+             rejected by the home agent with status code in
+             the Binding Acknowledgement indicating 'Not
+             Authorized for Prefix' (Code 142).
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3963: Section 6.6"
+        ::= { nemoHaGlobalStats 5 }
+
+nemoHaBUAcksForwardingSetupFailed OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Update requests
+             rejected by the home agent with status code in
+             the Binding Acknowledgement indicating 'Forwarding
+             Setup failed' (Code 143).
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3963: Section 6.6"
+        ::= { nemoHaGlobalStats 6 }
+
+nemoHaBUAcksOtherError OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The total number of Binding Update requests
+             from mobile routers (Mobile Router Flag is set)
+             rejected by the home agent with status code
+             other than:
+
+             mobileRouterOperationNotPermitted (140)
+             invalidPrefix                     (141)
+             notAuthorizedForPrefix            (142)
+             forwardingSetupFailed             (143)
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoCounterDiscontinuityTime.
+            "
+    REFERENCE
+            "RFC 3963: Section 6.6"
+        ::= { nemoHaGlobalStats 7 }
+
+nemoHaCounterTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NemoHaCounterEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "A table containing registration statistics for all
+             mobile routers registered with the home agent.
+            "
+    ::= { nemoHaStats 2 }
+
+nemoHaCounterEntry  OBJECT-TYPE
+    SYNTAX      NemoHaCounterEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "Home agent registration statistics for a mobile
+             router.
+
+             Implementers need to be aware that if the total
+             number of octets in mip6BindingHomeAddress
+             exceeds 113, then OIDs of column instances in
+             this row will have more than 128 sub-identifiers and
+             cannot be accessed using SNMPv1, SNMPv2c, or SNMPv3.
+            "
+    INDEX   { mip6BindingHomeAddressType,
+              mip6BindingHomeAddress
+            }
+    ::= { nemoHaCounterTable 1 }
+
+NemoHaCounterEntry      ::= SEQUENCE {
+    nemoHaBURequestsAccepted       Counter32,
+    nemoHaBURequestsDenied         Counter32,
+    nemoHaBCEntryCreationTime      DateAndTime,
+    nemoHaBUAcceptedTime           DateAndTime,
+    nemoHaBURejectionTime          DateAndTime,
+    nemoHaRecentBURejectionCode    NemoBURequestRejectionCode,
+    nemoHaCtrDiscontinuityTime     TimeStamp
+    }
+
+nemoHaBURequestsAccepted OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Total number of Binding Update requests from the
+             mobile router accepted by the home agent.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoHaCtrDiscontinuityTime.
+            "
+    ::= { nemoHaCounterEntry 1 }
+
+nemoHaBURequestsDenied   OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Total number of Binding Update requests from the
+             mobile router rejected by the home agent.
+
+             Discontinuities in the value of this counter can
+             occur at re-initialization of the management system,
+             and at other times as indicated by the value of
+             nemoHaCtrDiscontinuityTime.
+            "
+    ::= { nemoHaCounterEntry 2 }
+
+nemoHaBCEntryCreationTime   OBJECT-TYPE
+    SYNTAX      DateAndTime (SIZE (11))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The time when the current Binding Cache entry was
+             created for the mobile router.  An implementation
+             MUST return all 11 bytes of the DateAndTime
+             textual-convention so that a manager may retrieve
+             the offset from GMT time.
+            "
+    ::= { nemoHaCounterEntry 3 }
+
+nemoHaBUAcceptedTime  OBJECT-TYPE
+    SYNTAX      DateAndTime (SIZE (11))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The time at which the last Binding Update was
+             accepted by the home agent for this mobile router.
+             An implementation MUST return all 11 bytes of the
+             DateAndTime textual-convention so that a manager
+             may retrieve the offset from GMT time.
+            "
+    ::= { nemoHaCounterEntry 4 }
+
+nemoHaBURejectionTime  OBJECT-TYPE
+    SYNTAX      DateAndTime (SIZE (11))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The time at which the last Binding Update was
+             rejected by the home agent for this mobile router.
+             If there have been no rejections, then this object
+             will be inaccessible.  An implementation MUST return
+             all 11 bytes of the DateAndTime textual-convention
+             so that a manager may retrieve the offset from GMT
+
+             time.
+            "
+    ::= { nemoHaCounterEntry 5 }
+
+nemoHaRecentBURejectionCode  OBJECT-TYPE
+    SYNTAX      NemoBURequestRejectionCode
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The Status code (>= 128) in the latest Binding
+             Acknowledgment indicating a rejection, sent to this
+             mobile router.
+
+             If a Binding Update request is rejected and a Binding
+             Acknowledgment is not sent to this mobile router,
+             then this will be the value of the Status code that
+             corresponds to the reason of the rejection.  If there
+             have been no Binding Update request rejections, then
+             this object will be inaccessible.
+            "
+    ::= { nemoHaCounterEntry 6 }
+
+nemoHaCtrDiscontinuityTime OBJECT-TYPE
+   SYNTAX      TimeStamp
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION
+           "The value of sysUpTime on the most recent occasion
+            at which any one or more of the counters in this row,
+            viz., instances of 'nemoHaBURequestsAccepted' and
+            'nemoHaBURequestsDenied', suffered a discontinuity.
+            If no such discontinuity has occurred since the
+            last re-initialization of the local management
+            subsystem, then this object will have a zero value.
+           "
+   ::= { nemoHaCounterEntry 7 }
+
+--
+--
+-- nemoNotifications
+--
+--
+
+nemoHomeTunnelEstablished NOTIFICATION-TYPE
+    OBJECTS   {
+                nemoMrBLActiveEgressIfIndex,
+                nemoMrBLEstablishedHomeTunnelIfIndex,
+                mip6MnBLCOAType,
+                mip6MnBLCOA,
+                nemoMrBLHomeAddressPrefixLength,
+                nemoMrBLCareofAddressPrefixLength
+              }
+    STATUS    current
+    DESCRIPTION
+            "This notification is sent by the mobile router
+             every time the tunnel is established between the
+             home agent and the mobile router.
+            "
+    REFERENCE
+            "RFC 3963: Section 5.5"
+        ::= { nemoNotifications 1 }
+
+nemoHomeTunnelReleased NOTIFICATION-TYPE
+    OBJECTS {
+                nemoMrBLActiveEgressIfIndex,
+                nemoMrBLEstablishedHomeTunnelIfIndex,
+                mip6MnBLCOAType,
+                mip6MnBLCOA,
+                nemoMrBLHomeAddressPrefixLength,
+                nemoMrBLCareofAddressPrefixLength
+            }
+    STATUS    current
+    DESCRIPTION
+            "This notification is sent by the mobile router
+             every time the tunnel is deleted between the home
+             agent and the mobile router.
+            "
+    REFERENCE
+            "RFC 3963: Section 5.5"
+        ::= { nemoNotifications 2}
+
+-- Conformance information
+nemoGroups      OBJECT IDENTIFIER ::= { nemoConformance 1 }
+nemoCompliances OBJECT IDENTIFIER ::= { nemoConformance 2 }
+
+-- Units of conformance
+nemoSystemGroup    OBJECT-GROUP
+     OBJECTS {
+               nemoCapabilities,
+               nemoStatus
+    }
+     STATUS  current
+     DESCRIPTION
+             "A collection of objects for basic NEMO
+              monitoring.
+             "
+     ::= { nemoGroups 1 }
+
+nemoBindingCacheGroup    OBJECT-GROUP
+     OBJECTS {
+               nemoBindingMrFlag,
+               nemoBindingMrMode
+    }
+     STATUS  current
+     DESCRIPTION
+             "A collection of objects for monitoring the
+              NEMO extensions of the Binding Cache.
+             "
+     ::= { nemoGroups 2 }
+
+nemoStatsGroup    OBJECT-GROUP
+     OBJECTS {
+               nemoCounterDiscontinuityTime
+    }
+     STATUS  current
+     DESCRIPTION
+             "A collection of objects for
+              monitoring NEMO statistics.
+             "
+     ::= { nemoGroups 3 }
+
+nemoMrConfGroup   OBJECT-GROUP
+     OBJECTS {
+               nemoMrEgressIfPriority,
+               nemoMrEgressIfDescription,
+               nemoMrEgressIfRoamHoldDownTime,
+               nemoMrDiscoveryRequests,
+               nemoMrDiscoveryReplies,
+               nemoMrDiscoveryRepliesRouterFlagZero,
+               nemoMrMovedHome,
+               nemoMrMovedOutofHome,
+               nemoMrMovedFNtoFN,
+               nemoMrBetterIfDetected
+    }
+     STATUS  current
+     DESCRIPTION
+             "A collection of objects for monitoring
+              the configuration-related information on
+              the mobile router.
+             "
+     ::= { nemoGroups 4 }
+
+nemoMrRegistrationGroup  OBJECT-GROUP
+
+     OBJECTS {
+               nemoMrBLMode,
+               nemoMrBLMrFlag,
+               nemoMrBLHomeAddressPrefixLength,
+               nemoMrBLCareofAddressPrefixLength,
+               nemoMrBLActiveEgressIfIndex,
+               nemoMrBLEstablishedHomeTunnelIfIndex,
+               nemoMrMobilityMessagesSent,
+               nemoMrMobilityMessagesRecd,
+               nemoMrPrefixRegMode,
+               nemoMrBindingAcksWONemoSupport,
+               nemoMrBindingAcksRegTypeChangeDisallowed,
+               nemoMrBindingAcksOperationNotPermitted,
+               nemoMrBindingAcksInvalidPrefix,
+               nemoMrBindingAcksNotAuthorizedForPrefix,
+               nemoMrBindingAcksForwardingSetupFailed,
+               nemoMrBindingAcksOtherError
+    }
+     STATUS  current
+     DESCRIPTION
+             "A collection of objects for monitoring
+              the registration details and statistics for
+              the mobile router.
+             "
+     ::= { nemoGroups 5 }
+
+nemoHaSystemGroup    OBJECT-GROUP
+    OBJECTS {
+              nemoHaMobileNetworkPrefixType,
+              nemoHaMobileNetworkPrefix,
+              nemoHaMobileNetworkPrefixLength,
+              nemoHaMobileNetworkPrefixSource
+   }
+    STATUS  current
+    DESCRIPTION
+            "A collection of objects for basic NEMO
+             configuration monitoring at the home agent.
+            "
+    ::= { nemoGroups 6 }
+
+nemoHaStatsGroup   OBJECT-GROUP
+    OBJECTS {
+              nemoHaBURequestsAccepted,
+              nemoHaBURequestsDenied,
+              nemoHaBCEntryCreationTime,
+              nemoHaBUAcceptedTime,
+              nemoHaBURejectionTime,
+              nemoHaRecentBURejectionCode,
+              nemoHaCtrDiscontinuityTime
+   }
+    STATUS  current
+    DESCRIPTION
+            "A collection of objects for monitoring NEMO
+             registration-related statistics pertaining to
+             the mobile routers registered with the home agent.
+            "
+    ::= { nemoGroups 7 }
+
+nemoHaGlobalStatsGroup   OBJECT-GROUP
+    OBJECTS {
+              nemoHaBUAcksWONemoSupport,
+              nemoHaBUAcksRegTypeChangeDisallowed,
+              nemoHaBUAcksOperationNotPermitted,
+              nemoHaBUAcksInvalidPrefix,
+              nemoHaBUAcksNotAuthorizedForPrefix,
+              nemoHaBUAcksForwardingSetupFailed,
+              nemoHaBUAcksOtherError
+   }
+    STATUS  current
+    DESCRIPTION
+            "A collection of objects for monitoring basic
+             NEMO advertisement and registration statistics
+             on a home agent.
+            "
+    ::= { nemoGroups 8 }
+
+nemoNotificationGroup   NOTIFICATION-GROUP
+    NOTIFICATIONS {
+             nemoHomeTunnelEstablished,
+             nemoHomeTunnelReleased
+   }
+    STATUS  current
+    DESCRIPTION
+            "A collection of notifications from a home agent
+             or correspondent node to the manager about the
+             tunnel status of the mobile router.
+            "
+    ::= { nemoGroups 9 }
+
+-- Compliance statements
+nemoCoreCompliance MODULE-COMPLIANCE
+     STATUS  current
+     DESCRIPTION
+            "The compliance statement for SNMP entities
+             that implement the NEMO-MIB.
+             "
+
+     MODULE  -- this module
+         MANDATORY-GROUPS { nemoSystemGroup
+                          }
+     ::= { nemoCompliances 1 }
+
+nemoCompliance2 MODULE-COMPLIANCE
+     STATUS  current
+     DESCRIPTION
+            "The compliance statement for SNMP entities that
+             implement the NEMO-MIB and support monitoring of
+             the Binding Cache.
+
+             There are a number of INDEX objects that cannot be
+             represented in the form of OBJECT clauses in SMIv2,
+             but for which there are compliance requirements,
+             expressed in OBJECT-clause form in this description:
+
+             -- OBJECT      mip6BindingHomeAddressType
+             -- SYNTAX      InetAddressType { ipv6(2) }
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6BindingHomeAddress
+             --     object.
+             --
+             -- OBJECT      mip6BindingHomeAddress
+             -- SYNTAX      InetAddress (SIZE(16))
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6BindingHomeAddress
+             --     object.
+             --
+             "
+     MODULE  -- this module
+         MANDATORY-GROUPS { nemoSystemGroup,
+                            nemoBindingCacheGroup
+                          }
+     ::= { nemoCompliances 2 }
+
+nemoCoreReadOnlyCompliance MODULE-COMPLIANCE
+     STATUS  current
+     DESCRIPTION
+            "The compliance statement for SNMP entities
+             that implement the NEMO-MIB without support
+             for read-write (i.e., in read-only mode).
+             "
+     MODULE  -- this module
+         MANDATORY-GROUPS { nemoSystemGroup
+                          }
+
+     OBJECT      nemoStatus
+     MIN-ACCESS  read-only
+     DESCRIPTION
+            "Write access is not required."
+     ::= { nemoCompliances 3 }
+
+nemoReadOnlyCompliance2 MODULE-COMPLIANCE
+     STATUS  current
+     DESCRIPTION
+            "The compliance statement for SNMP entities that
+             implement the NEMO-MIB without support for read-write
+             (i.e., in read-only mode) and with support for
+             monitoring of the Binding Cache.
+
+             There are a number of INDEX objects that cannot be
+             represented in the form of OBJECT clauses in SMIv2,
+             but for which there are compliance requirements,
+             expressed in OBJECT-clause form in this description:
+
+             -- OBJECT      mip6BindingHomeAddressType
+             -- SYNTAX      InetAddressType { ipv6(2) }
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6BindingHomeAddress
+             --     object.
+             --
+             -- OBJECT      mip6BindingHomeAddress
+             -- SYNTAX      InetAddress (SIZE(16))
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6BindingHomeAddress
+             --     object.
+             --
+             "
+     MODULE  -- this module
+         MANDATORY-GROUPS { nemoSystemGroup,
+                            nemoBindingCacheGroup
+                          }
+     OBJECT      nemoStatus
+     MIN-ACCESS  read-only
+     DESCRIPTION
+            "Write access is not required."
+     ::= { nemoCompliances 4 }
+
+nemoMrCompliance MODULE-COMPLIANCE
+     STATUS  current
+     DESCRIPTION
+            "The compliance statement for SNMP entities that
+
+             implement the NEMO-MIB for monitoring configuration-
+             related information, registration details, and
+             statistics on a mobile router.
+
+             There are a number of INDEX objects that cannot be
+             represented in the form of OBJECT clauses in SMIv2,
+             but for which there are compliance requirements,
+             expressed in OBJECT-clause form in this description:
+
+             -- OBJECT      mip6MnHomeAddressType
+             -- SYNTAX      InetAddressType { ipv6(2) }
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6MnHomeAddress
+             --     object.
+             --
+             -- OBJECT      mip6MnHomeAddress
+             -- SYNTAX      InetAddress (SIZE(16))
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6MnHomeAddress
+             --     object.
+             --
+             -- OBJECT      mip6MnBLNodeAddressType
+             -- SYNTAX      InetAddressType { ipv6(2) }
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6MnBLNodeAddress
+             --     object.
+             --
+             -- OBJECT      mip6MnBLNodeAddress
+             -- SYNTAX      InetAddress (SIZE(16))
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6MnBLNodeAddress
+             --     object.
+             "
+     MODULE  -- this module
+         MANDATORY-GROUPS { nemoStatsGroup,
+                            nemoMrConfGroup,
+                            nemoMrRegistrationGroup
+                          }
+     ::= { nemoCompliances 5 }
+
+nemoMrReadOnlyCompliance2 MODULE-COMPLIANCE
+     STATUS  current
+     DESCRIPTION
+            "The compliance statement for SNMP entities that
+
+             implement the NEMO-MIB without support for read-
+             write (i.e., in read-only mode) and with support for
+             monitoring of configuration-related information,
+             registration details, and statistics on a mobile
+             router.
+
+             There are a number of INDEX objects that cannot be
+             represented in the form of OBJECT clauses in SMIv2,
+             but for which there are compliance requirements,
+             expressed in OBJECT-clause form in this description:
+
+             -- OBJECT      mip6MnHomeAddressType
+             -- SYNTAX      InetAddressType { ipv6(2) }
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6MnHomeAddress
+             --     object.
+             --
+             -- OBJECT      mip6MnHomeAddress
+             -- SYNTAX      InetAddress (SIZE(16))
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6MnHomeAddress
+             --     object.
+             --
+             -- OBJECT      mip6MnBLNodeAddressType
+             -- SYNTAX      InetAddressType { ipv6(2) }
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6MnBLNodeAddress
+             --     object.
+             --
+             -- OBJECT      mip6MnBLNodeAddress
+             -- SYNTAX      InetAddress (SIZE(16))
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6MnBLNodeAddress
+             --     object.
+             "
+     MODULE  -- this module
+         MANDATORY-GROUPS { nemoStatsGroup,
+                            nemoMrConfGroup,
+                            nemoMrRegistrationGroup
+                          }
+
+     OBJECT      nemoMrPrefixRegMode
+     MIN-ACCESS  read-only
+     DESCRIPTION
+            "Write access is not required."
+     ::= { nemoCompliances 6 }
+
+nemoHaCoreCompliance MODULE-COMPLIANCE
+     STATUS  current
+     DESCRIPTION
+            "The compliance statement for SNMP entities that
+             implement the NEMO-MIB for configuration monitoring
+             at the home agent.
+
+             There are a number of INDEX objects that cannot be
+             represented in the form of OBJECT clauses in SMIv2,
+             but for which there are compliance requirements,
+             expressed in OBJECT-clause form in this description:
+
+             -- OBJECT      mip6BindingHomeAddressType
+             -- SYNTAX      InetAddressType { ipv6(2) }
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6BindingHomeAddress
+             --     object.
+             --
+             -- OBJECT      mip6BindingHomeAddress
+             -- SYNTAX      InetAddress (SIZE(16))
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6BindingHomeAddress
+             --     object.
+             --
+             "
+     MODULE  -- this module
+         MANDATORY-GROUPS { nemoHaSystemGroup
+                          }
+     ::= { nemoCompliances 7 }
+
+nemoHaCompliance2 MODULE-COMPLIANCE
+     STATUS  current
+     DESCRIPTION
+            "The compliance statement for SNMP entities that
+             implement the NEMO-MIB with support for monitoring
+             of the home agent functionality, specifically the
+             home-agent-registration-related statistics.
+
+             There are a number of INDEX objects that cannot be
+             represented in the form of OBJECT clauses in SMIv2,
+             but for which there are compliance requirements,
+             expressed in OBJECT-clause form in this description:
+
+             -- OBJECT      mip6BindingHomeAddressType
+             -- SYNTAX      InetAddressType { ipv6(2) }
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6BindingHomeAddress
+             --     object.
+             --
+             -- OBJECT      mip6BindingHomeAddress
+             -- SYNTAX      InetAddress (SIZE(16))
+             -- DESCRIPTION
+             --     This MIB module requires support for global
+             --     IPv6 addresses for the mip6BindingHomeAddress
+             --     object.
+             --
+             "
+     MODULE  -- this module
+         MANDATORY-GROUPS { nemoHaSystemGroup,
+                            nemoHaStatsGroup,
+                            nemoHaGlobalStatsGroup
+                          }
+     ::= { nemoCompliances 8 }
+
+nemoNotificationCompliance MODULE-COMPLIANCE
+     STATUS  current
+     DESCRIPTION
+            "The compliance statement for SNMP entities that
+             implement the NEMO-MIB and support Notification
+             from the home agent.
+             "
+     MODULE  -- this module
+         MANDATORY-GROUPS { nemoNotificationGroup
+                          }
+     ::= { nemoCompliances 9 }
+
+END

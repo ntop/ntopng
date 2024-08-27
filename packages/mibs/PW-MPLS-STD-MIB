@@ -1,0 +1,914 @@
+PW-MPLS-STD-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+   MODULE-IDENTITY, OBJECT-TYPE, Unsigned32, mib-2
+      FROM SNMPv2-SMI                   -- [RFC2578]
+
+   MODULE-COMPLIANCE, OBJECT-GROUP
+      FROM SNMPv2-CONF                  -- [RFC2580]
+
+   StorageType
+      FROM SNMPv2-TC                    -- [RFC2579]
+
+   InterfaceIndexOrZero
+      FROM IF-MIB                       -- [RFC2863]
+
+   MplsTunnelIndex, MplsTunnelInstanceIndex,
+   MplsLdpIdentifier, MplsLsrIdentifier
+      FROM MPLS-TC-STD-MIB              -- [RFC3811]
+
+   MplsIndexType
+      FROM MPLS-LSR-STD-MIB             -- [RFC3813]
+
+   PwIndexType
+      FROM PW-TC-STD-MIB                -- [RFC5542]
+
+   pwIndex                              -- [RFC5601]
+      FROM PW-STD-MIB
+;
+
+pwMplsStdMIB MODULE-IDENTITY
+   LAST-UPDATED "200906120000Z"  --  12 June 2009 00:00:00 GMT
+   ORGANIZATION "Pseudowire Emulation Edge-to-Edge (PWE3) Working
+                 Group."
+   CONTACT-INFO
+       "
+        David Zelig, Editor
+        Email: davidz@corrigent.com
+
+        Thomas D. Nadeau, Editor
+        Email:  tom.nadeau@bt.com
+
+        The PWE3 Working Group (email distribution pwe3@ietf.org,
+        http://www.ietf.org/html.charters/pwe3-charter.html)
+       "
+   DESCRIPTION
+       "This MIB module complements the PW-STD-MIB module for PW
+        operation over MPLS.
+
+        Copyright (c) 2009 IETF Trust and the persons identified as
+        authors of the code.  All rights reserved.
+
+        Redistribution and use in source and binary forms, with or
+        without modification, are permitted provided that the
+        following conditions are met:
+
+        - Redistributions of source code must retain the above
+          copyright notice, this list of conditions and the
+          following disclaimer.
+
+        - Redistributions in binary form must reproduce the above
+          copyright notice, this list of conditions and the following
+          disclaimer in the documentation and/or other materials
+          provided with the distribution.
+
+        - Neither the name of Internet Society, IETF or IETF Trust,
+          nor the names of specific contributors, may be used to
+          endorse or promote products derived from this software
+          without specific prior written permission.
+
+        THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+        CONTRIBUTORS 'AS IS' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+        INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+        MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+
+        DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+        CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+        SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+        NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+        LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+        HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+        CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+        OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+        SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+        This version of this MIB module is part of RFC 5602;
+        see the RFC itself for full legal notices.
+       "
+
+   -- Revision history.
+    REVISION "200906120000Z"  -- 12 June 2009 00:00:00 GMT
+    DESCRIPTION
+        "First published as RFC 5602. "
+  ::= { mib-2 181 }
+
+-- Top-level components of this MIB.
+
+ -- Notifications
+ pwMplsNotifications OBJECT IDENTIFIER
+                               ::= { pwMplsStdMIB 0 }
+
+-- Tables, Scalars
+pwMplsObjects       OBJECT IDENTIFIER
+                              ::= { pwMplsStdMIB 1 }
+-- Conformance
+pwMplsConformance   OBJECT IDENTIFIER
+                              ::= { pwMplsStdMIB 2 }
+
+-- PW MPLS table
+
+pwMplsTable   OBJECT-TYPE
+   SYNTAX        SEQUENCE OF PwMplsEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "This table controls MPLS-specific parameters when the PW is
+        going to be carried over MPLS PSN."
+   ::= { pwMplsObjects 1 }
+
+pwMplsEntry   OBJECT-TYPE
+   SYNTAX        PwMplsEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+        "A row in this table represents parameters specific to MPLS
+         PSN for a pseudowire (PW).  The row is created
+         automatically by the local agent if the pwPsnType is
+         mpls(1).  It is indexed by pwIndex, which uniquely
+         identifies a singular PW.
+         Manual entries in this table SHOULD be preserved after a
+         reboot, and the agent MUST ensure the integrity of those
+         entries.
+         If the set of entries of a specific row were found to be
+         nonconsistent after reboot, the PW pwOperStatus MUST be
+         declared as down(2).
+         Any read-write object in this table MAY be changed at any
+         time; however, change of some objects (for example,
+         pwMplsMplsType) during PW forwarding state MAY cause traffic
+         disruption."
+   INDEX  { pwIndex }
+      ::= { pwMplsTable 1 }
+
+PwMplsEntry ::= SEQUENCE {
+      pwMplsMplsType             BITS,
+      pwMplsExpBitsMode          INTEGER,
+      pwMplsExpBits              Unsigned32,
+      pwMplsTtl                  Unsigned32,
+      pwMplsLocalLdpID           MplsLdpIdentifier,
+      pwMplsLocalLdpEntityIndex  Unsigned32,
+      pwMplsPeerLdpID            MplsLdpIdentifier,
+      pwMplsStorageType          StorageType
+   }
+
+pwMplsMplsType OBJECT-TYPE
+   SYNTAX   BITS {
+       mplsTe    (0),
+       mplsNonTe (1),
+       pwOnly    (2)
+            }
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+        "This object is set by the operator to indicate the outer
+         tunnel types, if existing.  mplsTe(0) is used if the outer
+         tunnel is set up by MPLS-TE, and mplsNonTe(1) is used if the
+         outer tunnel is set up by LDP or manually.  A combination of
+         mplsTe(0) and mplsNonTe(1) MAY exist.
+         pwOnly(2) is used if there is no outer tunnel label, i.e.,
+         in static provisioning without an MPLS tunnel.  pwOnly(2)
+         cannot be combined with mplsNonTe(1) or mplsTe(0).
+         An implementation that can identify automatically that the
+         peer node is directly connected MAY support the bit
+         pwOnly(2) as read-only.
+        "
+   DEFVAL { { mplsNonTe } }
+   ::= { pwMplsEntry 1 }
+
+pwMplsExpBitsMode OBJECT-TYPE
+   SYNTAX   INTEGER {
+       outerTunnel      (1),
+       specifiedValue   (2),
+       serviceDependant (3)
+            }
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "This object is set by the operator to determine the PW shim
+        label EXP bits.  The value of outerTunnel(1) is used where
+        there is an outer tunnel -- pwMplsMplsType equals to
+        mplsTe(0) or mplsNonTe(1).  Note that in this case, there
+        is no need to mark the PW label with the EXP bits, since the
+        PW label is not visible to the intermediate nodes.
+        If there is no outer tunnel, specifiedValue(2) SHOULD be used
+        to indicate that the value is specified by pwMplsExpBits.
+        Setting serviceDependant(3) indicates that the EXP bits are
+        set based on a rule that is implementation specific."
+   DEFVAL { outerTunnel }
+   ::= { pwMplsEntry 2 }
+
+pwMplsExpBits OBJECT-TYPE
+   SYNTAX        Unsigned32 (0..7)
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+        "This object is set by the operator if pwMplsExpBitsMode is
+         set to specifiedValue(2) to indicate the MPLS EXP bits to
+         be used on the PW shim label.  Otherwise, it SHOULD be set
+         to zero."
+   DEFVAL { 0 }
+   ::= { pwMplsEntry 3 }
+
+pwMplsTtl OBJECT-TYPE
+   SYNTAX        Unsigned32 (0..255)
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+        "This object is set by the operator to indicate the PW TTL
+         value to be used on the PW shim label."
+   DEFVAL { 2 }
+   ::= { pwMplsEntry 4 }
+
+pwMplsLocalLdpID OBJECT-TYPE
+   SYNTAX        MplsLdpIdentifier
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+        "The LDP identifier of the LDP entity that creates
+         this PW in the local node.  As the PW labels are always
+         set from the per-platform label space, the last two octets
+         in the LDP ID MUST always both be zeros."
+   REFERENCE
+        "'LDP specifications', RFC 3036, section 2.2.2."
+   ::= { pwMplsEntry 5 }
+
+pwMplsLocalLdpEntityIndex OBJECT-TYPE
+   SYNTAX        Unsigned32 (1..4294967295)
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+        "The local node LDP Entity Index of the LDP entity creating
+         this PW."
+   ::= { pwMplsEntry 6 }
+
+pwMplsPeerLdpID OBJECT-TYPE
+   SYNTAX        MplsLdpIdentifier
+   MAX-ACCESS    read-only
+   STATUS        current
+   DESCRIPTION
+        "The peer LDP identifier of the LDP session.  This object
+         SHOULD return the value zero if LDP is not used or if the
+         value is not yet known."
+   ::= { pwMplsEntry 7 }
+
+pwMplsStorageType OBJECT-TYPE
+   SYNTAX        StorageType
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "This variable indicates the storage type for this row."
+   DEFVAL { nonVolatile }
+   ::= { pwMplsEntry 8 }
+
+-- End of PW MPLS Table
+
+-- Pseudowire MPLS Outbound Tunnel Table
+
+pwMplsOutboundTable   OBJECT-TYPE
+   SYNTAX        SEQUENCE OF PwMplsOutboundEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "This table reports and configures the current outbound MPLS
+        tunnels (i.e., toward the PSN) or the physical interface in
+        the case of a PW label only that carries the PW traffic.  It
+        also reports the current outer tunnel and LSP that forward
+        the PW traffic."
+   ::= { pwMplsObjects 2 }
+
+pwMplsOutboundEntry OBJECT-TYPE
+   SYNTAX        PwMplsOutboundEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "A row in this table configures the outer tunnel used for
+        carrying the PW traffic toward the PSN.
+        In the case of PW label only, it configures the interface
+        that will carry the PW traffic.
+
+        An entry in this table augments the pwMplsEntry, and is
+        created automatically when the corresponding row has been
+        created by the agent in the pwMplsEntry.
+
+        This table points to the appropriate MPLS MIB module:
+
+        In the MPLS-TE case, the three objects relevant to the
+        indexing of a TE tunnel head-end (as used in the
+        MPLS-TE-STD-MIB) are to be configured, and the tunnel
+        instance indicates the LSP that is currently in use for
+        forwarding the traffic.
+
+        In the case of signaled non-TE MPLS (an outer tunnel label
+        assigned by LDP), the table points to the XC entry in the
+        LSR-STD-MIB.  If the non-TE MPLS tunnel is manually
+        configured, the operator configures the XC pointer to this
+        tunnel.
+
+        In the case of PW label only (no outer tunnel), the ifIndex
+        of the port to carry the PW is configured here.
+
+        It is possible to associate a PW to one TE tunnel head-end
+        and a non-TE tunnel together.  An indication in this table
+        will report the currently active one.  In addition, in the
+        TE case, the table reports the active tunnel instance
+        (i.e., the specific LSP in use).
+        Any read-write object in this table MAY be changed at any
+        time; however, change of some objects (for example,
+        MPLS-TE indexes) during PW forwarding state MAY cause traffic
+        disruption."
+   AUGMENTS { pwMplsEntry }
+      ::= { pwMplsOutboundTable 1 }
+
+PwMplsOutboundEntry ::= SEQUENCE {
+      pwMplsOutboundLsrXcIndex           MplsIndexType,
+      pwMplsOutboundTunnelIndex          MplsTunnelIndex,
+      pwMplsOutboundTunnelInstance       MplsTunnelInstanceIndex,
+      pwMplsOutboundTunnelLclLSR         MplsLsrIdentifier,
+      pwMplsOutboundTunnelPeerLSR        MplsLsrIdentifier,
+      pwMplsOutboundIfIndex              InterfaceIndexOrZero,
+      pwMplsOutboundTunnelTypeInUse      INTEGER
+      }
+
+pwMplsOutboundLsrXcIndex      OBJECT-TYPE
+   SYNTAX        MplsIndexType
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "This object is applicable if the pwMplsMplsType mplsNonTe(1)
+        bit is set, and MUST return a value of zero otherwise.
+        If the outer tunnel is signaled, the object is read-only
+        and indicates the XC index in the MPLS-LSR-STD-MIB of the
+        outer tunnel toward the peer.  Otherwise (tunnel is set up
+        manually), the operator defines the XC index of the manually
+        created outer tunnel through this object.
+       "
+   ::= { pwMplsOutboundEntry 1 }
+
+pwMplsOutboundTunnelIndex         OBJECT-TYPE
+   SYNTAX        MplsTunnelIndex
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "This object is applicable if the pwMplsMplsType mplsTe(0)
+        bit is set, and MUST return a value of zero otherwise.
+        It is part of the set of indexes for the outbound tunnel.
+
+        The operator sets this object to represent the desired
+        tunnel head-end toward the peer for carrying the PW
+        traffic.
+       "
+   ::= { pwMplsOutboundEntry  2 }
+
+pwMplsOutboundTunnelInstance      OBJECT-TYPE
+   SYNTAX        MplsTunnelInstanceIndex
+   MAX-ACCESS    read-only
+   STATUS        current
+   DESCRIPTION
+       "This object is applicable if the pwMplsMplsType mplsTe(0)
+        bit is set, and MUST return a value of zero otherwise.
+        It indicates the actual tunnel instance that is currently
+        active and carrying the PW traffic.  It SHOULD return the
+        value zero if the information from the MPLS-TE
+        application is not yet known.
+       "
+   ::= { pwMplsOutboundEntry   3 }
+
+pwMplsOutboundTunnelLclLSR        OBJECT-TYPE
+   SYNTAX        MplsLsrIdentifier
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "This object is applicable if the pwMplsMplsType mplsTe(0)
+        bit is set, and MUST return a value of all zeros otherwise.
+        It is part of the set of indexes for the outbound tunnel.
+        The operator sets this object to represent the desired
+        tunnel head-end toward the peer for carrying the PW
+        traffic.
+       "
+   ::= { pwMplsOutboundEntry   4 }
+
+pwMplsOutboundTunnelPeerLSR       OBJECT-TYPE
+   SYNTAX        MplsLsrIdentifier
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "This object is applicable if the pwMplsMplsType mplsTe(0)
+        bit is set, and MUST return a value of zero otherwise.
+        It is part of the set of indexes for the outbound tunnel.
+        Note that in most cases, it equals to pwPeerAddr.
+       "
+   ::= { pwMplsOutboundEntry   5 }
+
+pwMplsOutboundIfIndex       OBJECT-TYPE
+   SYNTAX         InterfaceIndexOrZero
+   MAX-ACCESS     read-write
+   STATUS         current
+   DESCRIPTION
+       "This object is applicable if the pwMplsMplsType pwOnly(0)
+        bit is set, and MUST return a value of zero otherwise.
+        The operator configures the ifIndex of the outbound port
+        in this case.
+       "
+   ::= { pwMplsOutboundEntry   6 }
+
+pwMplsOutboundTunnelTypeInUse OBJECT-TYPE
+   SYNTAX         INTEGER {
+                  notYetKnown (1),
+                  mplsTe      (2),
+                  mplsNonTe   (3),
+                  pwOnly      (4)
+   }
+   MAX-ACCESS     read-only
+   STATUS         current
+   DESCRIPTION
+       "This object indicates the current tunnel that is carrying
+        the PW traffic.
+        The value of notYetKnown(1) should be used if the agent is
+        currently unable to determine which tunnel or interface is
+        carrying the PW, for example, because both tunnels are in
+        operational status down.
+       "
+   ::= { pwMplsOutboundEntry   7 }
+
+-- End of PW MPLS Outbound Tunnel table
+
+-- PW MPLS inbound table
+
+pwMplsInboundTable OBJECT-TYPE
+   SYNTAX           SEQUENCE OF PwMplsInboundEntry
+   MAX-ACCESS       not-accessible
+   STATUS           current
+   DESCRIPTION
+       "This table indicates the PW LDP XC entry in the
+        MPLS-LSR-STD-MIB for signaled PWs.
+       "
+   ::= { pwMplsObjects 3 }
+
+pwMplsInboundEntry OBJECT-TYPE
+   SYNTAX           PwMplsInboundEntry
+   MAX-ACCESS       not-accessible
+   STATUS           current
+   DESCRIPTION
+        "A row in this table is created by the agent
+         for each signaled PW, and shows the XC index related to
+         the PW signaling in the inbound direction in the
+         MPLS-LSR-STD-MIB that controls and display the information
+         for all the LDP signaling processes in the local node.
+        "
+   INDEX  { pwIndex }
+      ::= { pwMplsInboundTable 1 }
+
+PwMplsInboundEntry ::= SEQUENCE {
+      pwMplsInboundXcIndex           MplsIndexType
+   }
+
+pwMplsInboundXcIndex OBJECT-TYPE
+   SYNTAX        MplsIndexType
+   MAX-ACCESS    read-only
+   STATUS        current
+   DESCRIPTION
+       "The XC index representing this PW in the inbound
+        direction.  It MUST return the value zero if the
+        information is not yet known."
+   ::= { pwMplsInboundEntry 1 }
+
+-- End of PW MPLS inbound table
+
+-- PW to Non-TE mapping Table.
+
+pwMplsNonTeMappingTable OBJECT-TYPE
+   SYNTAX           SEQUENCE OF PwMplsNonTeMappingEntry
+   MAX-ACCESS       not-accessible
+   STATUS           current
+   DESCRIPTION
+       "This table indicates the PW association to the outbound
+        tunnel in non-TE applications, maps the PW to its (inbound)
+        XC entry, and indicates the PW-to-physical interface mapping
+        for a PW without an outer tunnel.
+       "
+   ::= { pwMplsObjects 4 }
+
+pwMplsNonTeMappingEntry OBJECT-TYPE
+   SYNTAX           PwMplsNonTeMappingEntry
+   MAX-ACCESS       not-accessible
+   STATUS           current
+   DESCRIPTION
+        "A row in this table displays the association
+         between the PW and
+         - its non-TE MPLS outbound outer tunnel,
+         - its XC entry in the MPLS-LSR-STD-MIB, or
+         - its physical interface if there is no outer tunnel
+           (PW label only) and manual configuration.
+
+         Rows are created in this table by the agent depending on
+         the setting of pwMplsMplsType:
+
+         - If the pwMplsMplsType mplsNonTe(1) bit is set, the agent
+         creates a row for the outbound direction
+         (pwMplsNonTeMappingDirection set to psnBound(1)).
+         The pwMplsNonTeMappingXcIndex holds the XC index in the
+         MPLS-LSR-STD-MIB of the PSN-bound outer tunnel.
+         pwMplsNonTeMappingIfIndex MUST be zero for this row.
+
+         - If the pwMplsMplsType pwOnly(2) bit is set, the agent
+         creates a row for the outbound direction
+         (pwMplsNonTeMappingDirection set to psnBound(1)).
+         The pwMplsNonTeMappingIfIndex holds the ifIndex of the
+         physical port this PW will use in the outbound direction.
+         pwMplsNonTeMappingXcIndex MUST be zero for this row.
+
+         - If the PW has been set up by a signaling protocol (i.e.,
+         pwOwner equal pwIdFecSignaling(2) or
+         genFecSignaling(3)), the agent creates a row for the
+         inbound direction (pwMplsNonTeMappingDirection set to
+         fromPsn(2)).
+         The pwMplsNonTeMappingXcIndex holds the XC index in the
+         MPLS-LSR-STD-MIB of the PW LDP-generated XC entry.
+         pwMplsNonTeMappingIfIndex MUST be zero for this row.
+
+         An application can use this table to quickly retrieve the
+         PW carried over specific non-TE MPLS outer tunnel or
+         physical interface.
+         "
+   INDEX  { pwMplsNonTeMappingDirection,
+            pwMplsNonTeMappingXcIndex,
+            pwMplsNonTeMappingIfIndex,
+            pwMplsNonTeMappingPwIndex }
+      ::= { pwMplsNonTeMappingTable 1 }
+
+PwMplsNonTeMappingEntry ::= SEQUENCE {
+      pwMplsNonTeMappingDirection         INTEGER,
+      pwMplsNonTeMappingXcIndex           MplsIndexType,
+      pwMplsNonTeMappingIfIndex           InterfaceIndexOrZero,
+      pwMplsNonTeMappingPwIndex           PwIndexType
+   }
+
+pwMplsNonTeMappingDirection OBJECT-TYPE
+   SYNTAX        INTEGER {
+                 psnBound (1),
+                 fromPsn  (2)
+   }
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Index for the conceptual XC row identifying the tunnel-to-PW
+        mappings, indicating the direction of the packet flow for
+        this entry.
+        psnBound(1) indicates that the entry is related to
+        packets toward the PSN.
+        fromPsn(2) indicates that the entry is related to
+        packets coming from the PSN.
+       "
+   ::= { pwMplsNonTeMappingEntry 1 }
+
+pwMplsNonTeMappingXcIndex OBJECT-TYPE
+   SYNTAX        MplsIndexType
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "See the description clause of pwMplsNonTeMappingEntry for
+        the usage guidelines of this object."
+   ::= { pwMplsNonTeMappingEntry 2 }
+
+pwMplsNonTeMappingIfIndex  OBJECT-TYPE
+   SYNTAX        InterfaceIndexOrZero
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "See the description clause of pwMplsNonTeMappingEntry for
+        the usage guidelines of this object."
+   ::= { pwMplsNonTeMappingEntry 3 }
+
+pwMplsNonTeMappingPwIndex  OBJECT-TYPE
+   SYNTAX        PwIndexType
+   MAX-ACCESS    read-only
+   STATUS        current
+   DESCRIPTION
+       "The value that represents the PW in the pwTable."
+   ::= { pwMplsNonTeMappingEntry 4 }
+
+-- End of PW to Non-TE mapping Table.
+
+-- PW to TE MPLS tunnels mapping Table.
+
+pwMplsTeMappingTable OBJECT-TYPE
+   SYNTAX           SEQUENCE OF PwMplsTeMappingEntry
+   MAX-ACCESS       not-accessible
+   STATUS           current
+   DESCRIPTION
+       "This table reports the PW association to the
+        outbound MPLS tunnel for MPLS-TE applications."
+   ::= { pwMplsObjects 5 }
+
+pwMplsTeMappingEntry OBJECT-TYPE
+   SYNTAX           PwMplsTeMappingEntry
+   MAX-ACCESS       not-accessible
+   STATUS           current
+   DESCRIPTION
+        "A row in this table represents the association
+         between a PW and its MPLS-TE outer (head-end) tunnel.
+
+         An application can use this table to quickly retrieve the
+         list of the PWs that are configured on a specific MPLS-TE
+         outer tunnel.
+
+         The pwMplsTeMappingTunnelInstance reports the actual
+         LSP out of the tunnel head-end that is currently
+         forwarding the traffic.
+
+         The table is indexed by the head-end indexes of a TE
+         tunnel and the PW index.
+        "
+   INDEX  { pwMplsTeMappingTunnelIndex,
+            pwMplsTeMappingTunnelInstance,
+            pwMplsTeMappingTunnelPeerLsrID,
+            pwMplsTeMappingTunnelLocalLsrID,
+            pwMplsTeMappingPwIndex }
+      ::= { pwMplsTeMappingTable 1 }
+
+PwMplsTeMappingEntry ::= SEQUENCE {
+      pwMplsTeMappingTunnelIndex       MplsTunnelIndex,
+      pwMplsTeMappingTunnelInstance    MplsTunnelInstanceIndex,
+      pwMplsTeMappingTunnelPeerLsrID   MplsLsrIdentifier,
+      pwMplsTeMappingTunnelLocalLsrID  MplsLsrIdentifier,
+      pwMplsTeMappingPwIndex           PwIndexType
+   }
+
+pwMplsTeMappingTunnelIndex OBJECT-TYPE
+   SYNTAX        MplsTunnelIndex
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Primary index for the conceptual row identifying the
+        MPLS-TE tunnel that is carrying the PW traffic."
+   ::= { pwMplsTeMappingEntry 1 }
+
+pwMplsTeMappingTunnelInstance OBJECT-TYPE
+   SYNTAX        MplsTunnelInstanceIndex
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "This object identifies the MPLS-TE LSP that is carrying the
+        PW traffic.  It MUST return the value zero if the
+        information of the specific LSP is not yet known.
+        Note that based on the recommendation in the
+        MPLS-TC-STD-MIB, instance index 0 should refer to the
+        configured tunnel interface."
+   ::= { pwMplsTeMappingEntry 2 }
+
+pwMplsTeMappingTunnelPeerLsrID  OBJECT-TYPE
+   SYNTAX        MplsLsrIdentifier
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "This object identifies the peer LSR when the outer tunnel
+        is MPLS-TE."
+   ::= { pwMplsTeMappingEntry 3 }
+
+pwMplsTeMappingTunnelLocalLsrID  OBJECT-TYPE
+   SYNTAX        MplsLsrIdentifier
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "This object identifies the local LSR."
+   ::= { pwMplsTeMappingEntry 4 }
+
+pwMplsTeMappingPwIndex  OBJECT-TYPE
+   SYNTAX        PwIndexType
+   MAX-ACCESS    read-only
+   STATUS        current
+   DESCRIPTION
+       "This object returns the value that represents the PW in the
+        pwTable."
+   ::= { pwMplsTeMappingEntry 5 }
+
+-- End of PW to TE MPLS tunnels mapping Table.
+
+-- conformance information
+
+pwMplsGroups      OBJECT IDENTIFIER ::= { pwMplsConformance 1 }
+pwMplsCompliances OBJECT IDENTIFIER ::= { pwMplsConformance 2 }
+
+-- Compliance requirement for fully compliant implementations.
+
+pwMplsModuleFullCompliance MODULE-COMPLIANCE
+    STATUS  current
+    DESCRIPTION
+            "The compliance statement for agents that provide full
+             support for the PW-MPLS-STD-MIB module.  Such devices
+             can then be monitored and also be configured using
+             this MIB module."
+
+   MODULE  -- this module
+   MANDATORY-GROUPS { pwMplsGroup,
+                      pwMplsOutboundMainGroup,
+                      pwMplsInboundGroup,
+                      pwMplsMappingGroup
+                     }
+
+   GROUP        pwMplsOutboundTeGroup
+   DESCRIPTION "This group MUST be supported if the implementation
+                allows MPLS-TE tunnels to carry PW traffic.
+                "
+
+   OBJECT       pwMplsMplsType
+   DESCRIPTION "Support of pwOnly(2) is not required.  At least one
+                of mplsTe(0) or mplsNonTe(1) MUST be supported if
+                signaling of PW is supported.
+                "
+
+   OBJECT       pwMplsExpBitsMode
+   DESCRIPTION "Support of specifiedValue(2) and
+                serviceDependant(3) is optional.
+                "
+
+   OBJECT       pwMplsLocalLdpID
+   MIN-ACCESS   read-only
+   DESCRIPTION "A read-write access is required if the
+                implementation supports more than one LDP entity
+                identifier for PW signaling.
+                "
+
+   OBJECT       pwMplsLocalLdpEntityIndex
+   MIN-ACCESS   read-only
+   DESCRIPTION "A read-write access is required if the
+                implementation supports more than one LDP entity
+                index for PW signaling.
+                "
+
+   OBJECT       pwMplsOutboundLsrXcIndex
+   MIN-ACCESS   read-only
+   DESCRIPTION "A value other than zero MUST be supported if the
+                implementation supports non-TE signaling of the
+                outer tunnel.
+                A read-write access MUST be supported if the
+                implementation supports PW label manual setting
+                and carrying them over non-TE tunnels.
+                "
+
+   OBJECT       pwMplsOutboundIfIndex
+   MIN-ACCESS   read-only
+   DESCRIPTION "A value other than zero and read-write operations
+                MUST be supported if the implementation supports
+                manually configured PW without MPLS outer tunnel.
+                "
+    ::= { pwMplsCompliances 1 }
+
+-- Compliance requirement for Read Only compliant implementations.
+
+pwMplsModuleReadOnlyCompliance MODULE-COMPLIANCE
+    STATUS  current
+    DESCRIPTION
+            "The compliance statement for agents that provide read-
+             only support for the PW-MPLS-STD-MIB module.  Such
+             devices can then be monitored but cannot be configured
+             using this MIB module."
+
+   MODULE  -- this module
+   MANDATORY-GROUPS { pwMplsGroup,
+                      pwMplsOutboundMainGroup,
+                      pwMplsInboundGroup,
+                      pwMplsMappingGroup
+                     }
+
+   GROUP        pwMplsOutboundTeGroup
+   DESCRIPTION "This group MUST be supported if the implementation
+                allows MPLS-TE tunnels to carry PW traffic.
+                "
+
+   OBJECT       pwMplsMplsType
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.
+                Support of pwOnly(2) is not required.  At least one
+                of mplsTe(0) or mplsNonTe(1) MUST be supported if
+                signaling of PW is supported.
+                "
+
+   OBJECT       pwMplsExpBitsMode
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.
+                Support of specifiedValue(2) and serviceDependant(3)
+                is optional.
+                "
+   OBJECT       pwMplsExpBits
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.
+                "
+   OBJECT       pwMplsTtl
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.
+                "
+
+   OBJECT       pwMplsLocalLdpID
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.
+                "
+
+   OBJECT       pwMplsLocalLdpEntityIndex
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.
+                "
+
+   OBJECT       pwMplsStorageType
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.
+                "
+
+   OBJECT       pwMplsOutboundLsrXcIndex
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.
+                A value other than zero MUST be supported if the
+                implementation supports non-TE signaling of the
+                outer tunnel.
+                "
+
+   OBJECT       pwMplsOutboundTunnelIndex
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.
+                "
+
+   OBJECT       pwMplsOutboundTunnelLclLSR
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.
+                "
+
+   OBJECT       pwMplsOutboundTunnelPeerLSR
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.
+                "
+
+   OBJECT       pwMplsOutboundIfIndex
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.
+                A value other than zero MUST be supported if the
+                implementation supports manually configured PW
+                without MPLS outer tunnel.
+                "
+    ::= { pwMplsCompliances 2 }
+
+-- Units of conformance.
+
+pwMplsGroup OBJECT-GROUP
+   OBJECTS {
+            pwMplsMplsType,
+            pwMplsExpBitsMode,
+            pwMplsExpBits,
+            pwMplsTtl,
+            pwMplsLocalLdpID,
+            pwMplsLocalLdpEntityIndex,
+            pwMplsPeerLdpID,
+            pwMplsStorageType
+          }
+   STATUS  current
+   DESCRIPTION
+       "Collection of objects needed for PW over MPLS PSN
+        configuration."
+   ::= { pwMplsGroups 1 }
+
+pwMplsOutboundMainGroup OBJECT-GROUP
+   OBJECTS {
+            pwMplsOutboundLsrXcIndex,
+            pwMplsOutboundIfIndex,
+            pwMplsOutboundTunnelTypeInUse
+          }
+   STATUS  current
+   DESCRIPTION
+       "Collection of objects needed for outbound association of
+        PW and MPLS tunnel."
+   ::= { pwMplsGroups 2 }
+
+pwMplsOutboundTeGroup OBJECT-GROUP
+   OBJECTS {
+            pwMplsOutboundTunnelIndex,
+            pwMplsOutboundTunnelInstance,
+            pwMplsOutboundTunnelLclLSR,
+            pwMplsOutboundTunnelPeerLSR
+          }
+   STATUS  current
+   DESCRIPTION
+       "Collection of objects needed for outbound association of
+        PW and MPLS-TE tunnel."
+   ::= { pwMplsGroups 3 }
+
+pwMplsInboundGroup OBJECT-GROUP
+   OBJECTS {
+            pwMplsInboundXcIndex
+          }
+   STATUS  current
+   DESCRIPTION
+       "Collection of objects needed for inbound PW presentation.
+        This group MUST be supported if PW signaling through LDP is
+        used."
+   ::= { pwMplsGroups 4 }
+
+pwMplsMappingGroup OBJECT-GROUP
+   OBJECTS {
+            pwMplsNonTeMappingPwIndex,
+            pwMplsTeMappingPwIndex
+          }
+   STATUS  current
+   DESCRIPTION
+       "Collection of objects needed for mapping association of
+        PW and MPLS tunnel."
+   ::= { pwMplsGroups 5 }
+
+END

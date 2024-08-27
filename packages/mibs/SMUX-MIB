@@ -1,0 +1,160 @@
+SMUX-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+        enterprises
+                FROM RFC1155-SMI
+        DisplayString
+                FROM RFC1213-MIB
+        OBJECT-TYPE
+                FROM RFC1212;
+
+unix    OBJECT IDENTIFIER ::= { enterprises 4 }
+
+smux    OBJECT IDENTIFIER ::= { unix 4 }
+
+smuxPeerTable   OBJECT-TYPE
+        SYNTAX  SEQUENCE OF SmuxPeerEntry
+        ACCESS  not-accessible
+        STATUS  mandatory
+        DESCRIPTION
+            "The SMUX peer table."
+        ::= { smux 1 }
+
+smuxPeerEntry   OBJECT-TYPE
+        SYNTAX  SmuxPeerEntry
+        ACCESS  not-accessible
+        STATUS  mandatory
+        DESCRIPTION
+            "An entry in the SMUX peer table."
+        INDEX   { smuxPindex }
+        ::= { smuxPeerTable 1}
+
+SmuxPeerEntry ::=
+    SEQUENCE {
+        smuxPindex
+            INTEGER,
+        smuxPidentity
+            OBJECT IDENTIFIER,
+        smuxPdescription
+            DisplayString,
+        smuxPstatus
+            INTEGER
+    }
+
+smuxPindex      OBJECT-TYPE
+        SYNTAX  INTEGER
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION
+            "An index which uniquely identifies a SMUX peer."
+        ::= { smuxPeerEntry 1 }
+
+smuxPidentity   OBJECT-TYPE
+        SYNTAX  OBJECT IDENTIFIER
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION
+            "The authoritative designation for a SMUX peer."
+        ::= { smuxPeerEntry 2 }
+
+smuxPdescription OBJECT-TYPE
+        SYNTAX  DisplayString (SIZE (0..255))
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION
+            "A human-readable description of a SMUX peer."
+        ::= { smuxPeerEntry 3 }
+
+smuxPstatus     OBJECT-TYPE
+        SYNTAX  INTEGER { valid(1), invalid(2), connecting(3) }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION
+            "The type of SMUX peer.
+
+            Setting this object to the value invalid(2) has
+            the effect of invaliding the corresponding entry
+            in the smuxPeerTable.  It is an implementation-
+            specific matter as to whether the agent removes an
+            invalidated entry from the table.  Accordingly,
+            management stations must be prepared to receive
+            tabular information from agents that correspond to
+            entries not currently in use.  Proper
+            interpretation of such entries requires
+            examination of the relative smuxPstatus object."
+        ::= { smuxPeerEntry 4 }
+
+smuxTreeTable   OBJECT-TYPE
+        SYNTAX  SEQUENCE OF SmuxTreeEntry
+        ACCESS  not-accessible
+        STATUS  mandatory
+        DESCRIPTION
+            "The SMUX tree table."
+        ::= { smux 2 }
+
+smuxTreeEntry   OBJECT-TYPE
+        SYNTAX  SmuxTreeEntry
+        ACCESS  not-accessible
+        STATUS  mandatory
+        DESCRIPTION
+            "An entry in the SMUX tree table."
+        INDEX   { smuxTsubtree, smuxTpriority }
+        ::= { smuxTreeTable 1}
+
+SmuxTreeEntry ::=
+    SEQUENCE {
+        smuxTsubtree
+            OBJECT IDENTIFIER,
+        smuxTpriority
+            INTEGER,
+        smuxTindex
+            INTEGER,
+        smuxTstatus
+            INTEGER
+    }
+
+smuxTsubtree    OBJECT-TYPE
+        SYNTAX  OBJECT IDENTIFIER
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION
+            "The MIB subtree being exported by a SMUX peer."
+        ::= { smuxTreeEntry 1 }
+
+smuxTpriority OBJECT-TYPE
+        SYNTAX  INTEGER (0..'7fffffff'h)
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION
+            "The SMUX peer's priority when exporting the MIB
+            subtree."
+        ::= { smuxTreeEntry 2 }
+
+smuxTindex OBJECT-TYPE
+        SYNTAX  INTEGER
+        ACCESS  read-only
+        STATUS  mandatory
+        DESCRIPTION
+            "The SMUX peer's identity."
+        ::= { smuxTreeEntry 3 }
+
+smuxTstatus     OBJECT-TYPE
+        SYNTAX  INTEGER { valid(1), invalid(2) }
+        ACCESS  read-write
+        STATUS  mandatory
+        DESCRIPTION
+            "The type of SMUX tree.
+
+            Setting this object to the value invalid(2) has
+            the effect of invaliding the corresponding entry
+            in the smuxTreeTable.  It is an implementation-
+            specific matter as to whether the agent removes an
+            invalidated entry from the table.  Accordingly,
+            management stations must be prepared to receive
+            tabular information from agents that correspond to
+            entries not currently in use.  Proper
+            interpretation of such entries requires
+            examination of the relative smuxTstatus object."
+        ::= { smuxTreeEntry 4 }
+
+END

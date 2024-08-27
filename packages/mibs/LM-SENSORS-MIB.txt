@@ -1,0 +1,230 @@
+LM-SENSORS-MIB DEFINITIONS ::= BEGIN
+
+--
+-- Derived from the original VEST-INTERNETT-MIB. Open issues:
+--
+-- (a) where to register this MIB?
+-- (b) use not-accessible for diskIOIndex?
+--
+
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32, Gauge32
+        FROM SNMPv2-SMI
+    DisplayString
+        FROM SNMPv2-TC
+    ucdExperimental
+        FROM UCD-SNMP-MIB;
+
+lmSensorsMIB MODULE-IDENTITY
+    LAST-UPDATED "200011050000Z"
+    ORGANIZATION "AdamsNames Ltd"
+    CONTACT-INFO    
+        "Primary Contact: M J Oldfield
+         email:     m@mail.tc"
+    DESCRIPTION
+        "This MIB module defines objects for lm_sensor derived data."
+    REVISION     "200011050000Z"
+    DESCRIPTION
+        "Derived from DISKIO-MIB ex UCD."
+    ::= { lmSensors 1 }
+
+lmSensors      OBJECT IDENTIFIER ::= { ucdExperimental 16 }
+
+--
+
+lmTempSensorsTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF LMTempSensorsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table of temperature sensors and their values."
+    ::= { lmSensors 2 }
+
+lmTempSensorsEntry OBJECT-TYPE
+    SYNTAX      LMTempSensorsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry containing a device and its statistics."
+    INDEX       { lmTempSensorsIndex }
+    ::= { lmTempSensorsTable 1 }
+
+LMTempSensorsEntry ::= SEQUENCE {
+    lmTempSensorsIndex    Integer32,
+    lmTempSensorsDevice   DisplayString,
+    lmTempSensorsValue    Gauge32
+}
+
+lmTempSensorsIndex OBJECT-TYPE
+    SYNTAX      Integer32 (0..65535)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Reference index for each observed device."
+    ::= { lmTempSensorsEntry 1 }
+
+lmTempSensorsDevice OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The name of the temperature sensor we are reading."
+    ::= { lmTempSensorsEntry 2 }
+
+lmTempSensorsValue OBJECT-TYPE
+    SYNTAX      Gauge32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The temperature of this sensor in mC."
+    ::= { lmTempSensorsEntry 3 }
+--
+
+lmFanSensorsTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF LMFanSensorsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table of fan sensors and their values."
+    ::= { lmSensors 3 }
+
+lmFanSensorsEntry OBJECT-TYPE
+    SYNTAX      LMFanSensorsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry containing a device and its statistics."
+    INDEX       { lmFanSensorsIndex }
+    ::= { lmFanSensorsTable 1 }
+
+LMFanSensorsEntry ::= SEQUENCE {
+    lmFanSensorsIndex    Integer32,
+    lmFanSensorsDevice   DisplayString,
+    lmFanSensorsValue    Gauge32
+}
+
+lmFanSensorsIndex OBJECT-TYPE
+    SYNTAX      Integer32 (0..65535)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Reference index for each observed device."
+    ::= { lmFanSensorsEntry 1 }
+
+lmFanSensorsDevice OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The name of the fan sensor we are reading."
+    ::= { lmFanSensorsEntry 2 }
+
+lmFanSensorsValue OBJECT-TYPE
+    SYNTAX      Gauge32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The rotation speed of the fan in RPM."
+    ::= { lmFanSensorsEntry 3 }
+
+--
+
+lmVoltSensorsTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF LMVoltSensorsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table of voltage sensors and their values."
+    ::= { lmSensors 4 }
+
+lmVoltSensorsEntry OBJECT-TYPE
+    SYNTAX      LMVoltSensorsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry containing a device and its statistics."
+    INDEX       { lmVoltSensorsIndex }
+    ::= { lmVoltSensorsTable 1 }
+
+LMVoltSensorsEntry ::= SEQUENCE {
+    lmVoltSensorsIndex    Integer32,
+    lmVoltSensorsDevice   DisplayString,
+    lmVoltSensorsValue    Gauge32
+}
+
+lmVoltSensorsIndex OBJECT-TYPE
+    SYNTAX      Integer32 (0..65535)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Reference index for each observed device."
+    ::= { lmVoltSensorsEntry 1 }
+
+lmVoltSensorsDevice OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The name of the device we are reading."
+    ::= { lmVoltSensorsEntry 2 }
+
+lmVoltSensorsValue OBJECT-TYPE
+    SYNTAX      Gauge32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The voltage in mV."
+    ::= { lmVoltSensorsEntry 3 }
+
+--
+
+lmMiscSensorsTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF LMMiscSensorsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table of miscellaneous sensor devices and their values."
+    ::= { lmSensors 5 }
+
+lmMiscSensorsEntry OBJECT-TYPE
+    SYNTAX      LMMiscSensorsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry containing a device and its statistics."
+    INDEX       { lmMiscSensorsIndex }
+    ::= { lmMiscSensorsTable 1 }
+
+LMMiscSensorsEntry ::= SEQUENCE {
+    lmMiscSensorsIndex    Integer32,
+    lmMiscSensorsDevice   DisplayString,
+    lmMiscSensorsValue    Gauge32
+}
+
+lmMiscSensorsIndex OBJECT-TYPE
+    SYNTAX      Integer32 (0..65535)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Reference index for each observed device."
+    ::= { lmMiscSensorsEntry 1 }
+
+lmMiscSensorsDevice OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The name of the device we are reading."
+    ::= { lmMiscSensorsEntry 2 }
+
+lmMiscSensorsValue OBJECT-TYPE
+    SYNTAX      Gauge32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The value of this sensor."
+    ::= { lmMiscSensorsEntry 3 }
+
+
+END

@@ -1,0 +1,40 @@
+SNMP-IEEE802-TM-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-IDENTITY, snmpModules, snmpDomains
+        FROM SNMPv2-SMI;
+
+    snmpIeee802TmMib MODULE-IDENTITY
+        LAST-UPDATED "200611210000Z"
+        ORGANIZATION "IETF Operations and Management Area"
+        CONTACT-INFO
+            "Juergen Schoenwaelder (Editor)
+             International University Bremen
+             P.O. Box 750 561
+             28725 Bremen, Germany
+
+             Phone: +49 421 200-3587
+             EMail: j.schoenwaelder@iu-bremen.de
+
+             Send comments to <ietfmibs@ops.ietf.org>."
+        DESCRIPTION
+            "This MIB module defines the SNMP over IEEE 802
+             transport mapping.
+
+             Copyright (C) The IETF Trust (2006).  This version
+             of this MIB module is part of RFC 4789; see the RFC
+             itself for full legal notices."
+        REVISION "200611210000Z"
+        DESCRIPTION
+            "The initial version, published as RFC 4789."
+        ::= { snmpModules 21 }
+
+    snmpIeee802Domain OBJECT-IDENTITY
+        STATUS  current
+        DESCRIPTION
+            "The SNMP over IEEE 802 networks transport domain.  The
+             corresponding transport address is of type MacAddress
+             as defined in the SNMPv2-TC module (RFC 2579)."
+        REFERENCE "RFC 2579"
+        ::= { snmpDomains 6 }
+END

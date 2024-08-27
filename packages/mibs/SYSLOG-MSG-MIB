@@ -1,0 +1,598 @@
+SYSLOG-MSG-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE, Unsigned32, mib-2
+        FROM SNMPv2-SMI
+    TEXTUAL-CONVENTION, DisplayString, TruthValue
+        FROM SNMPv2-TC
+    OBJECT-GROUP, NOTIFICATION-GROUP, MODULE-COMPLIANCE
+        FROM SNMPv2-CONF
+    SyslogFacility, SyslogSeverity
+
+        FROM SYSLOG-TC-MIB;
+
+syslogMsgMib MODULE-IDENTITY
+    LAST-UPDATED "200908130800Z"
+    ORGANIZATION "IETF OPSAWG Working Group"
+    CONTACT-INFO
+        "Juergen Schoenwaelder
+         <j.schoenwaelder@jacobs-university.de>
+         Jacobs University Bremen
+         Campus Ring 1
+         28757 Bremen
+         Germany
+
+         Alexander Clemm
+         <alex@cisco.com>
+         Cisco Systems
+         170 West Tasman Drive
+         San Jose, CA 95134-1706
+         USA
+
+         Anirban Karmakar
+         <akarmaka@cisco.com>
+         Cisco Systems India Pvt Ltd
+         SEZ Unit, Cessna Business Park,
+         Sarjapur Marathahalli ORR,
+         Bangalore, Karnataka 560103
+         India"
+    DESCRIPTION
+        "This MIB module represents SYSLOG messages as SNMP objects.
+
+         Copyright (c) 2009 IETF Trust and the persons identified as
+         authors of the code.  All rights reserved.
+
+         Redistribution and use in source and binary forms, with or
+         without modification, is permitted pursuant to, and subject
+         to the license terms contained in, the Simplified BSD License
+         set forth in Section 4.c of the IETF Trust's Legal Provisions
+         Relating to IETF Documents
+         (http://trustee.ietf.org/license-info).
+
+         This version of this MIB module is part of RFC 5676; see
+         the RFC itself for full legal notices."
+
+    REVISION "200908130800Z"
+    DESCRIPTION
+        "Initial version issued as part of RFC 5676."
+    ::= { mib-2 192 }
+
+-- textual convention definitions
+
+SyslogTimeStamp ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "2d-1d-1d,1d:1d:1d.3d,1a1d:1d"
+    STATUS       current
+    DESCRIPTION
+       "A date-time specification.  This type is similar to the
+        DateAndTime type defined in the SNMPv2-TC, except the
+        subsecond granulation is microseconds instead of
+        deciseconds and a zero-length string can be used
+        to indicate a missing value.
+
+        field  octets  contents                  range
+        -----  ------  --------                  -----
+          1      1-2   year*                     0..65536
+          2       3    month                     1..12
+          3       4    day                       1..31
+          4       5    hour                      0..23
+          5       6    minutes                   0..59
+          6       7    seconds                   0..60
+                       (use 60 for leap-second)
+          7     8-10   microseconds*             0..999999
+          8      11    direction from UTC        '+' / '-'
+          9      12    hours from UTC*           0..13
+         10      13    minutes from UTC          0..59
+
+        * Notes:
+        - the value of year is in network-byte order
+        - the value of microseconds is in network-byte order
+        - daylight saving time in New Zealand is +13
+
+        For example, Tuesday May 26, 1992 at 1:30:15 PM EDT would be
+        displayed as:
+
+                        1992-5-26,13:30:15.0,-4:0
+
+        Note that if only local time is known, then timezone
+        information (fields 11-13) is not present."
+    SYNTAX      OCTET STRING (SIZE (0 | 10 | 13))
+
+SyslogParamValueString ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "65535t"
+    STATUS       current
+    DESCRIPTION
+       "The value of a SYSLOG SD-PARAM is represented using the
+        ISO/IEC IS 10646-1 character set, encoded as an octet string
+        using the UTF-8 transformation format described in RFC 3629.
+
+        Since additional code points are added by amendments to the
+        10646 standard from time to time, implementations must be
+        prepared to encounter any code point from 0x00000000 to
+        0x7fffffff.  Byte sequences that do not correspond to the
+        valid UTF-8 encoding of a code point or that are outside this
+        range are prohibited.  Similarly, overlong UTF-8 sequences
+        are prohibited.
+
+        UTF-8 may require multiple bytes to represent a single
+        character / code point; thus, the length of this object in
+        octets may be different from the number of characters
+        encoded.  Similarly, size constraints refer to the number of
+        encoded octets, not the number of characters represented by
+        an encoding."
+    REFERENCE
+       "RFC 3629: UTF-8, a transformation format of ISO 10646"
+    SYNTAX     OCTET STRING
+
+-- object definitions
+
+syslogMsgNotifications OBJECT IDENTIFIER ::= { syslogMsgMib 0 }
+syslogMsgObjects       OBJECT IDENTIFIER ::= { syslogMsgMib 1 }
+syslogMsgConformance   OBJECT IDENTIFIER ::= { syslogMsgMib 2 }
+
+syslogMsgControl       OBJECT IDENTIFIER ::= { syslogMsgObjects 1 }
+
+syslogMsgTableMaxSize OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+       "The maximum number of SYSLOG messages that may be held in
+        syslogMsgTable.  A particular setting does not guarantee that
+        there is sufficient memory available for the maximum number
+        of table entries indicated by this object.  A value of 0 means
+        no fixed limit.
+
+        If an application reduces the limit while there are SYSLOG
+        messages in the syslogMsgTable, the SYSLOG messages that are
+        in the syslogMsgTable for the longest time MUST be discarded
+        to bring the table down to the new limit.
+
+        The value of this object should be kept in nonvolatile
+        memory."
+    DEFVAL      { 0 }
+    ::= { syslogMsgControl 1 }
+
+syslogMsgEnableNotifications OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+       "Indicates whether syslogMsgNotification notifications are
+        generated.
+
+        The value of this object should be kept in nonvolatile
+        memory."
+    DEFVAL      { false }
+    ::= { syslogMsgControl 2 }
+
+syslogMsgTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF SyslogMsgEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+       "A table containing recent SYSLOG messages.  The size of the
+        table is controlled by the syslogMsgTableMaxSize object."
+    ::= { syslogMsgObjects 2 }
+
+syslogMsgEntry OBJECT-TYPE
+    SYNTAX      SyslogMsgEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+       "An entry of the syslogMsgTable."
+    INDEX { syslogMsgIndex }
+    ::= { syslogMsgTable 1 }
+
+SyslogMsgEntry ::= SEQUENCE {
+    syslogMsgIndex      Unsigned32,
+    syslogMsgFacility   SyslogFacility,
+    syslogMsgSeverity   SyslogSeverity,
+    syslogMsgVersion    Unsigned32,
+    syslogMsgTimeStamp  SyslogTimeStamp,
+    syslogMsgHostName   DisplayString,
+    syslogMsgAppName    DisplayString,
+    syslogMsgProcID     DisplayString,
+    syslogMsgMsgID      DisplayString,
+    syslogMsgSDParams   Unsigned32,
+    syslogMsgMsg        OCTET STRING
+}
+
+syslogMsgIndex OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..4294967295)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+       "A monotonically increasing number used to identify entries in
+        the syslogMsgTable.  When syslogMsgIndex reaches the maximum
+        value (4294967295), the value wraps back to 1.
+
+        Applications periodically polling the syslogMsgTable for new
+        entries should take into account that a complete rollover of
+        syslogMsgIndex will happen if more than 4294967294 messages
+        are received during a poll interval."
+    ::= { syslogMsgEntry 1 }
+
+syslogMsgFacility OBJECT-TYPE
+    SYNTAX      SyslogFacility
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "The facility of the SYSLOG message."
+    REFERENCE
+       "RFC 5424: The Syslog Protocol (Section 6.2.1)
+        RFC 5427: Textual Conventions for Syslog Management"
+    ::= { syslogMsgEntry 2 }
+
+syslogMsgSeverity OBJECT-TYPE
+    SYNTAX      SyslogSeverity
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "The severity of the SYSLOG message"
+    REFERENCE
+       "RFC 5424: The Syslog Protocol (Section 6.2.1)
+        RFC 5427: Textual Conventions for Syslog Management"
+    ::= { syslogMsgEntry 3 }
+
+syslogMsgVersion OBJECT-TYPE
+    SYNTAX      Unsigned32 (0..999)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "The version of the SYSLOG message.  A value of 0 indicates
+        that the version is unknown."
+    REFERENCE
+       "RFC 5424: The Syslog Protocol (Section 6.2.2)"
+    ::= { syslogMsgEntry 4 }
+
+syslogMsgTimeStamp OBJECT-TYPE
+    SYNTAX      SyslogTimeStamp
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "The timestamp of the SYSLOG message.  A zero-length
+        string is returned if the timestamp is unknown."
+    REFERENCE
+       "RFC 5424: The Syslog Protocol (Section 6.2.3)"
+    ::= { syslogMsgEntry 5 }
+
+syslogMsgHostName OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..255))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "The hostname and the (optional) domain name of the SYSLOG
+        message.  A zero-length string indicates an unknown hostname.
+        The SYSLOG protocol specification constrains this string to
+        printable US-ASCII code points."
+    REFERENCE
+       "RFC 5424: The Syslog Protocol (Section 6.2.4)"
+    ::= { syslogMsgEntry 6 }
+
+syslogMsgAppName OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..48))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "The app-name of the SYSLOG message.  A zero-length string
+        indicates an unknown app-name.  The SYSLOG protocol
+        specification constrains this string to printable US-ASCII
+        code points."
+    REFERENCE
+       "RFC 5424: The Syslog Protocol (Section 6.2.5)"
+    ::= { syslogMsgEntry 7 }
+
+syslogMsgProcID OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..128))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "The procid of the SYSLOG message.  A zero-length string
+        indicates an unknown procid.  The SYSLOG protocol
+        specification constrains this string to printable
+        US-ASCII code points."
+    REFERENCE
+       "RFC 5424: The Syslog Protocol (Section 6.2.6)"
+    ::= { syslogMsgEntry 8 }
+
+syslogMsgMsgID OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..32))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "The msgid of the SYSLOG message.  A zero-length string
+        indicates an unknown msgid.  The SYSLOG protocol specification
+        constrains this string to printable US-ASCII code points."
+    REFERENCE
+       "RFC 5424: The Syslog Protocol (Section 6.2.7)"
+    ::= { syslogMsgEntry 9 }
+
+syslogMsgSDParams OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "The total number of structured data element parameters
+        carried in the SYSLOG message.  This number effectively
+        indicates the number of entries in the syslogMsgSDTable.
+        It can be used, for example, by a notification receiver
+        to determine whether a notification carried all
+        structured data element parameters of a SYSLOG message."
+    ::= { syslogMsgEntry 10 }
+
+syslogMsgMsg OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "The message part of the SYSLOG message.  The syntax does not
+        impose a size restriction.  Implementations of this MIB module
+        may truncate the message part of the SYSLOG message such that
+        it fits into the size constraints imposed by the implementation
+        environment.  Such truncations can also happen elsewhere in the
+        SYSLOG forwarding chain.
+
+        If the first octets contain the value 'EFBBBF'h, then the rest
+        of the message is a UTF-8 string.  Since SYSLOG messages may be
+        truncated at arbitrary octet boundaries during forwarding, the
+        message may contain invalid UTF-8 encodings at the end."
+    REFERENCE
+       "RFC 5424: The Syslog Protocol (Sections 6.1 and 6.4)"
+    ::= { syslogMsgEntry 11 }
+
+syslogMsgSDTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF SyslogMsgSDEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+       "A table containing structured data elements of SYSLOG
+        messages."
+    ::= { syslogMsgObjects 3 }
+
+syslogMsgSDEntry OBJECT-TYPE
+    SYNTAX      SyslogMsgSDEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+       "An entry of the syslogMsgSDTable."
+    INDEX { syslogMsgIndex, syslogMsgSDParamIndex,
+            syslogMsgSDID, syslogMsgSDParamName }
+    ::= { syslogMsgSDTable 1 }
+
+SyslogMsgSDEntry ::= SEQUENCE {
+    syslogMsgSDParamIndex  Unsigned32,
+    syslogMsgSDID          DisplayString,
+    syslogMsgSDParamName   DisplayString,
+    syslogMsgSDParamValue  SyslogParamValueString
+}
+
+syslogMsgSDParamIndex OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..4294967295)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+       "This object indexes the structured data element parameters
+        contained in a SYSLOG message.  The first structured data
+        element parameter has the index value 1, and subsequent
+        parameters are indexed by incrementing the index of the
+        previous parameter.  The index increases across structured
+        data element boundaries so that the value reflects the
+        position of a structured data element parameter in a
+        SYSLOG message."
+    REFERENCE
+       "RFC 5424: The Syslog Protocol (Section 6.3.3)"
+    ::= { syslogMsgSDEntry 1 }
+
+syslogMsgSDID OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (1..32))
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+       "The name (SD-ID) of a structured data element.  The SYSLOG
+        protocol specification constrains this string to printable
+        US-ASCII code points."
+    REFERENCE
+       "RFC 5424: The Syslog Protocol (Section 6.3.2)"
+    ::= { syslogMsgSDEntry 2 }
+
+syslogMsgSDParamName OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (1..32))
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+       "The name of a parameter of the structured data element.  The
+        SYSLOG protocol specification constrains this string to
+        printable US-ASCII code points."
+    REFERENCE
+       "RFC 5424: The Syslog Protocol (Section 6.3.3)"
+    ::= { syslogMsgSDEntry 3 }
+
+syslogMsgSDParamValue OBJECT-TYPE
+    SYNTAX      SyslogParamValueString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "The value of the parameter of a SYSLOG message identified by
+        the index of this table.  The value is stored in the unescaped
+        format."
+    REFERENCE
+       "RFC 5424: The Syslog Protocol (Section 6.3.3)"
+    ::= { syslogMsgSDEntry 4 }
+
+-- notification definitions
+
+syslogMsgNotification NOTIFICATION-TYPE
+    OBJECTS     { syslogMsgFacility, syslogMsgSeverity,
+                  syslogMsgVersion, syslogMsgTimeStamp,
+                  syslogMsgHostName, syslogMsgAppName,
+                  syslogMsgProcID, syslogMsgMsgID,
+                  syslogMsgSDParams, syslogMsgMsg }
+    STATUS      current
+    DESCRIPTION
+       "The syslogMsgNotification is generated when a new SYSLOG
+        message is received and the value of
+        syslogMsgGenerateNotifications is true.
+
+        Implementations may add syslogMsgSDParamValue objects as long
+        as the resulting notification fits into the size constraints
+        imposed by the implementation environment and the notification
+        message size constraints imposed by maxMessageSize [RFC3412]
+        and SNMP transport mappings."
+    ::= { syslogMsgNotifications 1 }
+
+-- conformance statements
+
+syslogMsgGroups      OBJECT IDENTIFIER ::= { syslogMsgConformance 1 }
+syslogMsgCompliances OBJECT IDENTIFIER ::= { syslogMsgConformance 2 }
+
+syslogMsgFullCompliance MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+       "The compliance statement for implementations of the
+        SYSLOG-MSG-MIB."
+    MODULE      -- this module
+    MANDATORY-GROUPS {
+        syslogMsgGroup,
+        syslogMsgSDGroup,
+        syslogMsgControlGroup,
+        syslogMsgNotificationGroup
+    }
+    ::= { syslogMsgCompliances 1 }
+
+syslogMsgReadOnlyCompliance MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+       "The compliance statement for implementations of the
+        SYSLOG-MSG-MIB that do not support read-write access."
+    MODULE      -- this module
+    MANDATORY-GROUPS {
+        syslogMsgGroup,
+        syslogMsgSDGroup,
+        syslogMsgControlGroup,
+        syslogMsgNotificationGroup
+    }
+    OBJECT syslogMsgTableMaxSize
+       MIN-ACCESS  read-only
+       DESCRIPTION
+          "Write access is not required."
+    OBJECT syslogMsgEnableNotifications
+       MIN-ACCESS  read-only
+       DESCRIPTION
+          "Write access is not required."
+    ::= { syslogMsgCompliances 2 }
+
+syslogMsgNotificationCompliance MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+       "The compliance statement for implementations of the
+        SYSLOG-MSG-MIB that do only generate notifications and do not
+        provide a table to allow read access to SYSLOG message
+        details."
+    MODULE      -- this module
+    MANDATORY-GROUPS {
+
+        syslogMsgGroup,
+        syslogMsgSDGroup,
+        syslogMsgNotificationGroup
+    }
+    OBJECT      syslogMsgFacility
+    MIN-ACCESS  accessible-for-notify
+    DESCRIPTION
+        "Read access is not required."
+    OBJECT      syslogMsgSeverity
+    MIN-ACCESS  accessible-for-notify
+    DESCRIPTION
+       "Read access is not required."
+    OBJECT      syslogMsgVersion
+    MIN-ACCESS  accessible-for-notify
+    DESCRIPTION
+       "Read access is not required."
+    OBJECT      syslogMsgTimeStamp
+    MIN-ACCESS  accessible-for-notify
+    DESCRIPTION
+       "Read access is not required."
+    OBJECT      syslogMsgHostName
+    MIN-ACCESS  accessible-for-notify
+    DESCRIPTION
+       "Read access is not required."
+    OBJECT      syslogMsgAppName
+    MIN-ACCESS  accessible-for-notify
+    DESCRIPTION
+       "Read access is not required."
+    OBJECT      syslogMsgProcID
+    MIN-ACCESS  accessible-for-notify
+    DESCRIPTION
+       "Read access is not required."
+    OBJECT      syslogMsgMsgID
+    MIN-ACCESS  accessible-for-notify
+    DESCRIPTION
+       "Read access is not required."
+    OBJECT      syslogMsgSDParams
+    MIN-ACCESS  accessible-for-notify
+    DESCRIPTION
+       "Read access is not required."
+    OBJECT      syslogMsgMsg
+    MIN-ACCESS  accessible-for-notify
+    DESCRIPTION
+       "Read access is not required."
+    OBJECT      syslogMsgSDParamValue
+    MIN-ACCESS  accessible-for-notify
+    DESCRIPTION
+       "Read access is not required."
+    ::= { syslogMsgCompliances 3 }
+
+syslogMsgNotificationGroup NOTIFICATION-GROUP
+    NOTIFICATIONS {
+        syslogMsgNotification
+    }
+    STATUS      current
+    DESCRIPTION
+       "The notifications emitted by this MIB module."
+    ::= { syslogMsgGroups 1 }
+
+syslogMsgGroup OBJECT-GROUP
+    OBJECTS {
+        -- syslogMsgIndex,
+        syslogMsgFacility,
+        syslogMsgSeverity,
+        syslogMsgVersion,
+        syslogMsgTimeStamp,
+        syslogMsgHostName,
+        syslogMsgAppName,
+        syslogMsgProcID,
+        syslogMsgMsgID,
+        syslogMsgSDParams,
+        syslogMsgMsg
+    }
+    STATUS      current
+    DESCRIPTION
+       "A collection of objects representing a SYSLOG message,
+        excluding structured data elements."
+    ::= { syslogMsgGroups 2 }
+
+syslogMsgSDGroup OBJECT-GROUP
+    OBJECTS {
+        -- syslogMsgSDParamIndex,
+        -- syslogMsgSDID,
+        -- syslogMsgSDParamName,
+        syslogMsgSDParamValue
+    }
+    STATUS      current
+    DESCRIPTION
+       "A collection of objects representing the structured data
+        elements of a SYSLOG message."
+    ::= { syslogMsgGroups 3 }
+
+syslogMsgControlGroup OBJECT-GROUP
+    OBJECTS {
+        syslogMsgTableMaxSize,
+        syslogMsgEnableNotifications
+
+    }
+    STATUS      current
+    DESCRIPTION
+       "A collection of control objects to control the size of the
+        syslogMsgTable and to enable/disable notifications."
+    ::= { syslogMsgGroups 4 }
+
+END

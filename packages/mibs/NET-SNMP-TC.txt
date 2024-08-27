@@ -1,0 +1,128 @@
+NET-SNMP-TC DEFINITIONS ::= BEGIN
+
+--
+-- Textual conventions and enumerations for the Net-SNMP project
+--
+
+IMPORTS
+    netSnmpModuleIDs, netSnmpAgentOIDs, netSnmpDomains FROM NET-SNMP-MIB
+
+    MODULE-IDENTITY, Opaque FROM SNMPv2-SMI
+
+    TEXTUAL-CONVENTION FROM SNMPv2-TC;
+
+netSnmpTCs MODULE-IDENTITY
+    LAST-UPDATED "200510140000Z"
+    ORGANIZATION "www.net-snmp.org"
+    CONTACT-INFO    
+	 "postal:   Wes Hardaker
+                    P.O. Box 382
+                    Davis CA  95617
+
+          email:    net-snmp-coders@lists.sourceforge.net"
+    DESCRIPTION
+	"Textual conventions and enumerations for the Net-SNMP project"
+    REVISION     "200202120000Z"
+    DESCRIPTION
+	"First draft"
+    ::= { netSnmpModuleIDs 1}
+
+
+-- =====================
+--
+--  Textual Conventions
+--
+-- =====================
+
+--
+-- Define the Float Textual Convention
+--   This definition was written by David Perkins.
+--
+
+Float ::= TEXTUAL-CONVENTION
+    STATUS      current
+    DESCRIPTION
+        "A single precision floating-point number.  The semantics
+         and encoding are identical for type 'single' defined in
+         IEEE Standard for Binary Floating-Point,
+         ANSI/IEEE Std 754-1985.
+         The value is restricted to the BER serialization of
+         the following ASN.1 type:
+             FLOATTYPE ::= [120] IMPLICIT FloatType
+         (note: the value 120 is the sum of '30'h and '48'h)
+         The BER serialization of the length for values of
+         this type must use the definite length, short
+         encoding form.
+
+         For example, the BER serialization of value 123
+         of type FLOATTYPE is '9f780442f60000'h.  (The tag
+         is '9f78'h; the length is '04'h; and the value is
+         '42f60000'h.) The BER serialization of value
+         '9f780442f60000'h of data type Opaque is
+         '44079f780442f60000'h. (The tag is '44'h; the length
+         is '07'h; and the value is '9f780442f60000'h.)"
+    SYNTAX Opaque (SIZE (7))
+
+
+-- =====================
+--
+--  Enumerations
+--
+-- =====================
+
+--
+-- System Object ID values
+--
+--	XXX - do we want to distinguish between O/S versions ?
+--	(as is currently done with HP-UX)
+--
+
+hpux9             OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 1 }
+sunos4            OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 2 }
+solaris           OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 3 }
+osf               OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 4 }
+ultrix            OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 5 }
+hpux10            OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 6 }
+netbsd            OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 7 }
+freebsd           OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 8 }
+irix              OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 9 }
+linux             OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 10 }
+bsdi              OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 11 }
+openbsd           OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 12 }
+win32		  OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 13 } -- unlucky
+hpux11            OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 14 }
+aix               OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 15 }
+macosx            OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 16 }
+dragonfly         OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 17 }
+unknown           OBJECT IDENTIFIER ::= { netSnmpAgentOIDs 255 }
+
+
+
+--
+--  Transport Domains
+--
+-- Object identifiers for the non-standard transports that UCD/Net-SNMP
+-- supports.  Note that snmpTCPDomain is the subject of Internet Draft
+-- draft-irtf-nmrg-snmp-tcp-06.txt, which defines the OID
+-- .iso.org.dod.internet.experimental.nmrg.nmrgSnmpDomains.snmpTCPDomain
+-- (.1.3.6.1.3.91.1.1) for the SNMP over TCP over IPv4 transport domain.
+-- This draft (or its successor) is available from the Network Management
+-- Research Group web page at http://www.ibr.cs.tu-bs.de/projects/nmrg/
+--
+-- The NMRG OID for snmpTCPDomain is currently used by the code, but in case
+-- this is thought to be a Bad Idea, we define a private transport domain here
+-- that we could use instead.  The Unix domain, AAL5 PVC domain and
+-- the IPv6 domains are also defined privately here (for now).
+
+netSnmpTCPDomain	OBJECT IDENTIFIER ::= { netSnmpDomains 1 } -- obsolete
+netSnmpUnixDomain	OBJECT IDENTIFIER ::= { netSnmpDomains 2 } -- obsolete
+netSnmpAAL5PVCDomain	OBJECT IDENTIFIER ::= { netSnmpDomains 3 }
+netSnmpUDPIPv6Domain	OBJECT IDENTIFIER ::= { netSnmpDomains 4 } -- obsolete
+netSnmpTCPIPv6Domain	OBJECT IDENTIFIER ::= { netSnmpDomains 5 } -- obsolete
+netSnmpCallbackDomain	OBJECT IDENTIFIER ::= { netSnmpDomains 6 }
+netSnmpAliasDomain	OBJECT IDENTIFIER ::= { netSnmpDomains 7 }
+netSnmpDTLSUDPDomain	OBJECT IDENTIFIER ::= { netSnmpDomains 8 }
+netSnmpDTLSSCTPDomain	OBJECT IDENTIFIER ::= { netSnmpDomains 9 }
+netSnmpTLSTCPDomain	OBJECT IDENTIFIER ::= { netSnmpDomains 10 }
+
+END

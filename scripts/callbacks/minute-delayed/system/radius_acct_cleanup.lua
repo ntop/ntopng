@@ -22,7 +22,7 @@ if radius_handler.isAccountingEnabled() then
             -- In case the MAC is not connected, call the stop 
             -- and move the host into the default pool
             s:bind_member(member, host_pools.DEFAULT_POOL_ID)
-            radius_handler.accountingStop(member)
+            radius_handler.accountingStop(member, 4 --[[ Idle Timeout ]])
         end
     end
 

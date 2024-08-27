@@ -1,0 +1,154 @@
+NET-SNMP-VACM-MIB DEFINITIONS ::= BEGIN
+
+--
+-- Defines Net-SNMP extensions to the standard VACM view table.
+--
+
+IMPORTS
+    SnmpAdminString
+    	FROM SNMP-FRAMEWORK-MIB
+
+    netSnmpObjects, netSnmpGroups
+	FROM NET-SNMP-MIB
+
+    vacmGroupName, vacmAccessContextPrefix, vacmAccessSecurityModel,
+    vacmAccessSecurityLevel
+        FROM SNMP-VIEW-BASED-ACM-MIB
+
+    OBJECT-TYPE, MODULE-IDENTITY
+        FROM SNMPv2-SMI
+
+    OBJECT-GROUP, NOTIFICATION-GROUP
+	FROM SNMPv2-CONF
+
+    TEXTUAL-CONVENTION, DisplayString, RowStatus, StorageType
+	FROM SNMPv2-TC;
+
+
+netSnmpVacmMIB MODULE-IDENTITY
+    LAST-UPDATED "200608270000Z"
+    ORGANIZATION "www.net-snmp.org"
+    CONTACT-INFO    
+	 "postal:   Wes Hardaker
+                    P.O. Box 382
+                    Davis CA  95617
+
+          email:    net-snmp-coders@lists.sourceforge.net"
+    DESCRIPTION
+         "Defines Net-SNMP extensions to the standard VACM view table."
+    REVISION     "200608270000Z"
+    DESCRIPTION
+        "First draft"
+    ::= { netSnmpObjects 9 }
+
+
+nsVacmAccessTable  OBJECT-TYPE
+    SYNTAX       SEQUENCE OF NsVacmAccessEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION "Net-SNMP extensions to vacmAccessTable."
+    ::= { netSnmpVacmMIB 1 }
+
+nsVacmAccessEntry  OBJECT-TYPE
+    SYNTAX       NsVacmAccessEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION "Net-SNMP extensions to vacmAccessTable."
+    INDEX       { vacmGroupName,
+                  vacmAccessContextPrefix,
+                  vacmAccessSecurityModel,
+                  vacmAccessSecurityLevel,
+                  nsVacmAuthType
+                }
+    ::= { nsVacmAccessTable 1 }
+
+NsVacmAccessEntry ::= SEQUENCE
+    {
+        nsVacmAuthType         SnmpAdminString,
+        nsVacmContextMatch     INTEGER,
+        nsVacmViewName         SnmpAdminString,
+        nsVacmStorageType      StorageType,
+        nsVacmStatus           RowStatus
+    }
+
+nsVacmAuthType OBJECT-TYPE
+    SYNTAX       SnmpAdminString (SIZE(0..32))
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION "The type of processing that the specified view
+                 should be applied to.   See 'snmpd.conf(5)' and
+                 'snmptrapd.conf(5)' for details."
+    ::= { nsVacmAccessEntry 1 }
+
+nsVacmContextMatch OBJECT-TYPE
+    SYNTAX       INTEGER
+                { exact (1), -- exact match of prefix and contextName
+                  prefix (2) -- Only match to the prefix
+                }
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION "If the value of this object is exact(1), then all
+                 rows where the contextName exactly matches
+                 vacmAccessContextPrefix are selected.
+
+                 If the value of this object is prefix(2), then all
+                 rows where the contextName whose starting octets
+                 exactly match vacmAccessContextPrefix are selected.
+                 This allows for a simple form of wildcarding.
+
+                 The value of this object should be consistent across
+                 all nsVacmAccessEntries corresponding to a single
+                 row of the vacmAccessTable.
+                "
+    DEFVAL      { exact }
+    ::= { nsVacmAccessEntry 2 }
+
+nsVacmViewName OBJECT-TYPE
+    SYNTAX       SnmpAdminString (SIZE(0..32))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION "The MIB view authorised for the appropriate style
+                 of processing (as indicated by nsVacmToken).
+
+                 The interpretation of this value is the same as for
+                 the standard VACM ViewName objects."
+    DEFVAL      { ''H }   -- the empty string
+    ::= { nsVacmAccessEntry 3 }
+
+
+nsVacmStorageType OBJECT-TYPE
+    SYNTAX       StorageType
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION "The storage type for this (group of) conceptual rows.
+
+                 Conceptual rows having the value 'permanent' need not
+                 allow write-access to any columnar objects in the row.
+
+                 The value of this object should be consistent across
+                 all nsVacmAccessEntries corresponding to a single
+                 row of the vacmAccessTable.
+                "
+    DEFVAL      { nonVolatile }
+    ::= { nsVacmAccessEntry 4 }
+
+nsVacmStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION "The status of this (group of) conceptual rows.
+
+                 The  RowStatus TC [RFC2579] requires that this
+                 DESCRIPTION clause states under which circumstances
+                 other objects in this row can be modified:
+
+                 The value of this object has no effect on whether
+                 other objects in this conceptual row can be modified.
+
+                 The value of this object should be consistent across
+                 all nsVacmAccessEntries corresponding to a single
+                 row of the vacmAccessTable.
+                "
+    ::= { nsVacmAccessEntry 5 }
+
+END

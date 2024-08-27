@@ -1,0 +1,74 @@
+UCD-DEMO-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32	FROM SNMPv2-SMI
+    ucdavis					FROM UCD-SNMP-MIB;
+
+ucdDemoMIB MODULE-IDENTITY
+    LAST-UPDATED "9912090000Z"
+    ORGANIZATION "University of California, Davis"
+    CONTACT-INFO
+	"This mib is no longer being maintained by the University of
+	 California and is now in life-support-mode and being
+	 maintained by the net-snmp project.  The best place to write
+	 for public questions about the net-snmp-coders mailing list
+	 at net-snmp-coders@lists.sourceforge.net.
+
+         postal:   Wes Hardaker
+                   P.O. Box 382
+                   Davis CA  95617
+
+         email:    net-snmp-coders@lists.sourceforge.net
+        "
+    DESCRIPTION
+	"The UCD-SNMP Demonstration MIB."
+    REVISION	 "9912090000Z"
+    DESCRIPTION
+	"SMIv2 version converted from older MIB definitions."
+    ::= { ucdavis 14 }
+
+ucdDemoMIBObjects OBJECT IDENTIFIER ::= { ucdDemoMIB 1 }
+
+ucdDemoPublic OBJECT IDENTIFIER ::= { ucdDemoMIBObjects 1 }
+
+ucdDemoResetKeys OBJECT-TYPE
+    SYNTAX	Integer32 (0..2147483647)
+    MAX-ACCESS	read-write
+    STATUS	current
+    DESCRIPTION
+	"A set of value 1 to this object resets the
+	 demonstration user's auth and priv keys to the
+	 keys based on the P->Ku->Kul transformation of the
+	 value of the ucdDemoPasspharse object.
+
+	 Values other than 1 are ignored."
+    ::= { ucdDemoPublic 1 }
+
+ucdDemoPublicString OBJECT-TYPE
+    SYNTAX	OCTET STRING (SIZE(0..1024))
+    MAX-ACCESS	read-write
+    STATUS	current
+    DESCRIPTION
+	"A publicly settable string that can be set for testing 
+	 snmpsets.  This value has no real usage other than
+	 testing purposes."
+    ::= { ucdDemoPublic 2 }
+
+ucdDemoUserList OBJECT-TYPE
+    SYNTAX	OCTET STRING
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The list of users affected by the ucdDemoResetKeys object."
+    ::= { ucdDemoPublic 3 }
+
+ucdDemoPassphrase  OBJECT-TYPE
+    SYNTAX	OCTET STRING
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The demo passphrase that ucdDemoResetKeys changes each 
+	 users localized key to based on the P->Ku->Kul transformation."
+    ::= { ucdDemoPublic 4 }
+
+END

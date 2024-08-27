@@ -1,0 +1,138 @@
+NET-SNMP-PASS-MIB DEFINITIONS ::= BEGIN
+
+--
+-- Example MIB objects for "pass" and "pass-persist" extension script
+--
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, TimeTicks, IpAddress,
+          Counter32, Gauge32, Integer32     FROM SNMPv2-SMI
+    SnmpAdminString                         FROM SNMP-FRAMEWORK-MIB
+    netSnmpExamples                         FROM NET-SNMP-EXAMPLES-MIB
+;
+
+netSnmpPassExamples MODULE-IDENTITY
+    LAST-UPDATED "200905280000Z"
+    ORGANIZATION "www.net-snmp.org"
+    CONTACT-INFO    
+	 "postal:   Wes Hardaker
+                    P.O. Box 382
+                    Davis CA  95617
+
+          email:    net-snmp-coders@lists.sourceforge.net"
+    DESCRIPTION
+	"Example MIB objects for pass/pass-persist extension script"
+    ::= { netSnmpExamples 255 }
+
+--
+-- Example scalars
+--
+
+netSnmpPassString OBJECT-TYPE
+    SYNTAX      SnmpAdminString
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Example string scalar object."
+    DEFVAL { "Life, the Universe, and Everything" }
+    ::= { netSnmpPassExamples 1 }
+
+netSnmpPassTimeTicks OBJECT-TYPE
+    SYNTAX      TimeTicks
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Example timetick object."
+    DEFVAL { 363136200 }  -- 42 days, 0:42:42.00
+    ::= { netSnmpPassExamples 3 }
+
+netSnmpPassIpAddress OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Example IP Address object."
+    DEFVAL { '7f000001'H }  -- 127.0.0.1
+    ::= { netSnmpPassExamples 4 }
+
+netSnmpPassCounter OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Example counter object.
+                 Note that this object will always return the value '42'."
+    ::= { netSnmpPassExamples 5 }
+
+netSnmpPassGauge OBJECT-TYPE
+    SYNTAX      Gauge32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Example Gauge object."
+    DEFVAL { 42 }
+    ::= { netSnmpPassExamples 6 }
+
+netSnmpPassCounter64 OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Example Counter64 object."
+    ::= { netSnmpPassExamples 7 }
+
+netSnmpPassInteger64 OBJECT-TYPE
+    SYNTAX      Opaque
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION "Example Opaque Integer64 object."
+    ::= { netSnmpPassExamples 8 }
+
+
+netSnmpPassOIDValue OBJECT IDENTIFIER
+    ::= { netSnmpPassExamples 99 }
+
+--
+--  Example Table
+--
+
+netSnmpPassTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NetSnmpPassEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Example table"
+    ::= { netSnmpPassExamples 2 }
+
+netSnmpPassEntry OBJECT-TYPE
+    SYNTAX      NetSnmpPassEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Conceptual row in the example table."
+    INDEX   { netSnmpPassIndex }
+    ::= {netSnmpPassTable 1 }
+
+NetSnmpPassEntry ::= SEQUENCE {
+	netSnmpPassIndex   Integer32,
+	netSnmpPassInteger Integer32,
+	netSnmpPassOID 	   OBJECT IDENTIFIER
+}
+
+netSnmpPassIndex OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Arbitrary index into the netSnmpPassTable.
+                 Note that there will always be one row, with index 1"
+    ::= { netSnmpPassEntry 1 }
+
+netSnmpPassInteger OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Example Integer (table) object."
+    DEFVAL { 42 }
+    ::= { netSnmpPassEntry 2 }
+
+netSnmpPassOID OBJECT-TYPE
+    SYNTAX      OBJECT IDENTIFIER
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION "Example OID (table) object."
+    DEFVAL { netSnmpPassOIDValue }
+    ::= { netSnmpPassEntry 3 }
+
+END

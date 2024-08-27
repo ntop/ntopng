@@ -1,0 +1,1916 @@
+TPM-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE,
+    Counter32, Unsigned32         FROM SNMPv2-SMI    --[RFC2578]
+
+    MODULE-COMPLIANCE,
+    OBJECT-GROUP                  FROM SNMPv2-CONF   --[RFC2580]
+
+    SnmpAdminString               FROM SNMP-FRAMEWORK-MIB --[RFC3411]
+
+    RowStatus, TEXTUAL-CONVENTION, TimeStamp,
+    StorageType                   FROM SNMPv2-TC  --[RFC2579]
+
+    rmon, OwnerString             FROM RMON-MIB   --[RFC2819]
+
+    protocolDirLocalIndex,
+    ZeroBasedCounter32            FROM RMON2-MIB  --[RFC2021]
+
+    ZeroBasedCounter64            FROM HCNUM-TC  --[RFC2856]
+
+    AppLocalIndex, TransactionAggregationType,
+    RmonClientID, DataSourceOrZero,
+    apmAppDirAppLocalIndex, apmExceptionIndex,
+    apmReportGroup, apmExceptionGroup,
+    apmAppDirResponsivenessType   FROM APM-MIB   --[RFC3729]
+
+    SspmClockSource, SspmClockMaxSkew,
+    SspmMicroSeconds              FROM SSPM-MIB;  --[RFC4149]
+
+-- Transaction Performance Monitoring MIB
+
+tpmMIB MODULE-IDENTITY
+       LAST-UPDATED    "200507280000Z"  -- 28 July 2005
+       ORGANIZATION    "IETF RMON MIB Working Group"
+       CONTACT-INFO
+         "E-mail: rmonmib@ietf.org
+          Subscribe: rmonmib-request@ietf.org
+                     w/ msg body: subscribe rmonmib
+
+                  Russell Dietz
+                  Hifn, Inc.
+          Postal: 750 University Ave
+                  Los Gatos, CA 95032-7695
+
+                  USA
+             Tel: +1 408 399-3623
+             Fax: +1 408 399-3501
+          E-mail: rdietz@hifn.com
+
+                  Robert G. Cole
+                  Johns Hopkins University Applied Physics Laboratory
+          Postal: MP2-170
+                  11100 Johns Hopkins Road
+                  Laurel, MD 20723-6099
+                  USA
+             Tel: +1 443 778-6951
+          E-mail: robert.cole@jhuapl.edu"
+       DESCRIPTION
+          "This module defines extensions to the RMON2-MIB module
+          for the collection of Performance Metrics related to
+          application traffic in a network.  In particular,
+          it describes managed objects used for monitoring
+          selectable performance metrics and statistics
+          derived from the monitoring of network packets and
+          sub-application level transactions.
+
+          In order to maintain the RMON 'look-and-feel', some of
+          the text from the RMON2 [RFC2021] and HC-RMON [RFC3273]
+          MIBs by Steve Waldbusser have been used in this MIB module.
+
+          Copyright (C) The Internet Society (2005).  This version of
+          this MIB module is part of RFC 4150; see the RFC itself for
+          full legal notices."
+
+       REVISION        "200507280000Z"   -- 28 July 2005
+       DESCRIPTION
+           "The original version of this MIB module,
+           published as RFC 4150."
+       ::= { rmon 30 }
+
+--
+-- Object Identifier Assignments
+--
+
+tpmCapabilities         OBJECT IDENTIFIER ::= { tpmMIB 1 }
+tpmReports              OBJECT IDENTIFIER ::= { tpmMIB 2 }
+tpmConformance          OBJECT IDENTIFIER ::= { tpmMIB 3 }
+
+-- tpmAggrReportCntrlTable OBJECT IDENTIFIER ::= { tpmReports 1 }
+-- tpmAggrReportTable      OBJECT IDENTIFIER ::= { tpmReports 2 }
+-- tpmCurReportTable       OBJECT IDENTIFIER ::= { tpmReports 3 }
+-- tpmCurReportSize        OBJECT IDENTIFIER ::= { tpmReports 4 }
+
+-- tpmExcpReportTable      OBJECT IDENTIFIER ::= { tpmReports 5 }
+
+--
+-- Textual Conventions
+--
+
+TpmTransactionMetricIndex ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "d"
+    STATUS       current
+    DESCRIPTION
+        "An index used to identify an entry in the
+        tpmTransMetricDir table uniquely.  Each such entry defines
+        the protocol transaction and metric instance to be
+        monitored for a specific application."
+    SYNTAX       Unsigned32 (1..65535)
+
+TpmMetricDefID ::= TEXTUAL-CONVENTION
+    DISPLAY-HINT "d"
+    STATUS       current
+    DESCRIPTION
+        "An index that identifies through reference to a specific
+        performance metrics.  The metrics are referenced
+        through their type (connect, delay, loss, etc.), their
+        directional characteristics (one-way, round trip, etc.),
+        their name, and their reference to a documented definition."
+    SYNTAX       Unsigned32 (1..2147483647)
+
+--
+-- The tpmCapabilitiesGroup
+--
+
+tpmClockResolution OBJECT-TYPE
+    SYNTAX      SspmMicroSeconds
+    MAX-ACCESS  read-only
+    STATUS      current
+    -- UNITS       Microseconds
+    DESCRIPTION
+        "A read-only variable indicating the resolution
+         of the measurements possible by this device."
+    ::= { tpmCapabilities 1 }
+
+tpmClockMaxSkew OBJECT-TYPE
+    SYNTAX      SspmClockMaxSkew
+    MAX-ACCESS  read-only
+    STATUS      current
+    -- UNITS       Seconds
+    DESCRIPTION
+        "A read-only variable indicating the maximum
+
+         offset error due to skew of the local clock
+         over the time interval 86400 seconds, in seconds."
+    ::= { tpmCapabilities 2 }
+
+tpmClockSource OBJECT-TYPE
+    SYNTAX      SspmClockSource
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "A read-only variable indicating the source of the clock.
+         This is provided to allow a user to determine how accurate
+         the timing mechanism is compared with other devices."
+    ::= { tpmCapabilities 3 }
+
+tpmTransMetricDirLastChange OBJECT-TYPE
+    SYNTAX      TimeStamp
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The value of sysUpTime at the time the
+        tpmTransMetricDirTable was last modified, through
+        modifications of the tpmTransMetricDirConfig object."
+    ::= { tpmCapabilities 4 }
+
+tpmTransMetricDirTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF TpmTransMetricDirEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This table is used to describe and link sets of
+        performance metrics and protocols to an entry in
+        the application directory.  This table, with the
+        tpmMetricDefTable, describes the capability of
+        the agent to collection sub-application level
+        data related to each entry in the
+        apmAppDirectoryTable.
+
+        This table lists the protocol transactions and their
+        corresponding performance metrics that this agent
+        has the capability to compute and collect, for the specified
+        application.  There is one entry in this table for each such
+        application, protocol transaction, and metric combination
+        supported by this agent.  The entries in this
+        table represent the metrics that are collected for each
+        protocol transaction that comprise the application.
+        The agent should boot up with this table pre-configured
+        with those combinations of applications, protocol
+        transactions, and metrics that it knows about and wishes to
+
+        monitor.  Implementations must populate the table with all
+        possible application, protocol transaction, and metric
+        combinations and have the default configuration objects
+        set to supportedOff(2).  This table does not support the
+        creation of new combinations by the management application.
+
+        The deletion of an entry in the apmAppDirectoryTable will
+        cause the removal of entries from this table.  These entries
+        must be removed because the appLocalIndex value will no
+        longer be visible in the apmAppDirectoryTable.  When an entry
+        is created in the apmAppDirectoryTable and the agent has the
+        ability to support metrics for these protocol transactions,
+        the appropriate entries must be made in the
+        tpmTransMetricDefTable."
+    ::= { tpmCapabilities 5 }
+
+tpmTransMetricDirEntry OBJECT-TYPE
+    SYNTAX      TpmTransMetricDirEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A conceptual row in the tpmTransMetricDirTable.
+
+        An example of the indexing of this entry is
+        tpmTransMetricDirConfig.5.2  where 5 is the
+        value of a valid and visible appLocalIndex object
+        in the appLocalDir table.  The entries describe
+        the transaction and metric pairs monitored for this
+        application.  The tpmTransMetricProtocolIndex
+        identifies the protocol transaction and the
+        tpmMetricDefIndex describes the metric monitored."
+    INDEX { tpmTransMetricAppLocalIndex, -- Application Index
+            tpmTransMetricIndex    -- (Protocol,Metric) Index
+          }
+    ::= { tpmTransMetricDirTable 1 }
+
+TpmTransMetricDirEntry ::= SEQUENCE {
+    tpmTransMetricAppLocalIndex   AppLocalIndex,
+    tpmTransMetricIndex           TpmTransactionMetricIndex,
+    tpmTransMetricProtocolIndex   Unsigned32,
+    tpmTransMetricMetricIndex     Unsigned32,
+    tpmTransMetricDirConfig       INTEGER
+}
+
+tpmTransMetricAppLocalIndex OBJECT-TYPE
+    SYNTAX      AppLocalIndex
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An index used to uniquely identify the application
+        with which the entries in the tpmTransMetricDir
+        table are associated."
+    ::= { tpmTransMetricDirEntry 1 }
+
+tpmTransMetricIndex OBJECT-TYPE
+    SYNTAX      TpmTransactionMetricIndex
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An index used to uniquely identify an entry in the
+        tpmTransMetricDir table.  Each such entry defines
+        protocol transaction and metric instance
+        to be monitored for a specific application."
+    ::= { tpmTransMetricDirEntry 2 }
+
+tpmTransMetricProtocolIndex OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..2147483647)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The protocolDirLocalIndex of the particular transaction to
+        be analyzed when computing and generating the selected metric
+        for a specific application."
+    ::= { tpmTransMetricDirEntry 3 }
+
+tpmTransMetricMetricIndex OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..2147483647)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The tpmMetricDefinitionID of the particular metric to be
+        generated."
+    ::= { tpmTransMetricDirEntry 4 }
+
+tpmTransMetricDirConfig OBJECT-TYPE
+    SYNTAX      INTEGER {
+                    notSupported(1),
+                    supportedOff(2),
+                    supportedOn(3)
+                }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object describes and configures the probe's support
+        for this performance metric in relationship to the
+        specified transaction and application.  The agent
+
+        creates entries in this table for all metric
+        and transaction combinations that it can generate.  Because
+        the probe will only populate this table with supported
+        entries, and the table cannot have entries added, the
+        notSupported(1) setting is only used to signify that other
+        configuration parameters are causing the agent currently not
+        to support the generation and collection of this metric for
+        the specified protocol and application.  Also, the status of
+        this object will not change to notSupported(1) due to a
+        change to supportedOff(2) in the tpmMetricDir table.
+
+        If the value of this object is notSupported(1), the probe
+        will not perform computations for this performance metric and
+        transaction combination and will not allow this object to be
+        changed to any other value.  If the value of this object is
+        supportedOn(3), the probe supports computations for this
+        performance metric and protocol and is configured to perform
+        the computations for this performance metric and protocol
+        combination for the application for all interfaces.
+        If the value of this object is supportedOff(2), the
+        probe supports computations for this performance
+        metric for the specified protocol, but is configured
+        not to perform the computations for this performance
+        metric and protocol for the application for any
+        interfaces.  Whenever this value changes from
+        supportedOn(3) to supportedOff(2), the probe shall
+        cause the deletion of all entries in the tpmReportGroup
+        tables, for all appropriate studies configured in the
+        tpmAggrReportCntrlTable.
+
+        The value of this object must persist across reboots."
+    ::= { tpmTransMetricDirEntry 5 }
+
+--
+-- TPM Metric Definitions Table
+--
+
+tpmMetricDefTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF TpmMetricDefEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The tpmMetricDefTable describes the metrics
+        available to the TPM-MIB.  The tpmMetricDefTable
+        can define metrics by referencing existing IETF,
+        ITU, and other standards organizations' documents,
+        including enterprise-specific documents.
+
+        Examples of appropriate references include the
+        ITU-T Recommendation Y.1540 [Y.1540] on IP
+        packet transfer performance metrics and the
+        IETF documents from the IPPM WG; e.g., RFC2681
+        on the round trip delay metric [RFC2681] or
+        RFC3393 on the delay variation metric [RFC3393].
+        Other examples include RFC2679 [RFC2679], RFC2680
+        [RFC2680], and RFC3432 [RFC3432].  Although no
+        specific metric is mandatory, implementations
+        should, at a minimum, support a round-trip delay
+        and a round-trip loss metric.
+
+        This table contains one row per metric supported by this
+        agent, and it should be populated during system
+        initialization."
+    ::= { tpmCapabilities 6 }
+
+tpmMetricDefEntry OBJECT-TYPE
+    SYNTAX      TpmMetricDefEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Information about a particular metric."
+    INDEX   { tpmMetricDefinitionID }
+    ::= { tpmMetricDefTable 1 }
+
+TpmMetricDefEntry ::= SEQUENCE {
+      tpmMetricDefinitionID              TpmMetricDefID,
+      tpmMetricDefType                   INTEGER,
+      tpmMetricDefDirType                INTEGER,
+      tpmMetricDefName                   SnmpAdminString,
+      tpmMetricDefReference              SnmpAdminString,
+      tpmMetricDefGlobalID               OBJECT IDENTIFIER
+}
+
+tpmMetricDefinitionID     OBJECT-TYPE
+    SYNTAX      TpmMetricDefID
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The index for this entry.  This object identifies
+         the particular metric in this MIB module."
+    ::= { tpmMetricDefEntry 1 }
+
+tpmMetricDefType   OBJECT-TYPE
+    SYNTAX      INTEGER  {
+                          other(1),
+                          connectMetric(2),
+                          delayMetric(3),
+                          lossMetric(4)
+                }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The basic type of metric indicated by this entry.
+
+        The value 'other(1)' indicates that this metric cannot be
+        characterized by any of the remaining enumerations specified
+        for this object.
+
+        The value 'connectMetric(2)' indicates that this metric
+        measures connectivity characteristics.
+
+        The value 'delayMetric(3)' indicates that this metric
+        measures delay characteristics.
+
+        The value 'lossMetric(4)' indicates that this metric
+        measures loss characteristics."
+    ::= { tpmMetricDefEntry 2 }
+
+tpmMetricDefDirType   OBJECT-TYPE
+    SYNTAX      INTEGER  {
+                          oneWay(1),
+                          twoWay(2),
+                          multiWay(3)
+                }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The directional characteristics of the this metric.
+
+        The value 'oneWay(1)' indicates that this metric is measured
+        with some sort of unidirectional test.
+
+        The value 'twoWay(2)' indicates that this metric is measured
+        with some sort of bidirectional test.
+
+        The value 'multiWay(3)' indicates that this metric is
+        measured with some combination of unidirectional and/or
+        bidirectional tests."
+    ::= { tpmMetricDefEntry 3 }
+
+tpmMetricDefName OBJECT-TYPE
+    SYNTAX      SnmpAdminString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The textual name of this metric.  For example, if
+        this tpmMetricDefEntry identified the IPPM metric for
+        round trip delay, then this object should contain
+        the value, e.g., 'Type-P-Round-Trip-Delay'."
+    ::= { tpmMetricDefEntry 4 }
+
+tpmMetricDefReference OBJECT-TYPE
+    SYNTAX      SnmpAdminString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "This object contains a reference to the document that
+        defines this metric.  If this document is available online
+        via electronic download, then a de-referencable URL
+        should be specified in this object.  The implementation
+        must support an HTTP URL type and may support additional
+        types of de-referencable URLs such as an FTP type.
+
+        For example, if this tpmMetricDefName identified the IPPM
+        metric 'Type-P-Round-Trip-Delay', then this object should
+        contain the value, e.g.,
+        'http://www.ietf.org/rfc/rfc2681.txt'."
+    ::= { tpmMetricDefEntry 5 }
+
+tpmMetricDefGlobalID OBJECT-TYPE
+    SYNTAX      OBJECT IDENTIFIER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "This object contains a reference to the Object ID
+        in a metrics registration MIB being developed
+        in the IPPM WG at the IETF; e.g., the
+        IPPM-REGISTRY-MIB [RFC4148], which defines the metric.
+        In the event that this metric has no corresponding
+        object identifier (OID) or until the IPPM-REGISTRY-MIB is
+        defined, then the value should be set to 0.0 for none."
+    ::= { tpmMetricDefEntry 6 }
+
+--
+-- The tpmAggregateReportsGroup
+--
+
+tpmAggrReportCntrlTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF TpmAggrReportCntrlEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The tpmAggrReportCntrlTable is the controlling entry
+        that manages the population of studies in the Transport
+        Aggregate Report for selected interfaces, metrics, and
+        transaction protocols and applications.
+
+        Note that this is not like the typical RMON
+        controlTable and dataTable in which each entry creates
+        its own data table.  Each entry in this table enables the
+        creation of multiple data tables on a study basis.  For each
+        interval, the study is updated in place, and the current
+        data content of the table becomes invalid.
+
+        The control table entries are persistent across
+        system reboots."
+    ::= { tpmReports 1 }
+
+tpmAggrReportCntrlEntry OBJECT-TYPE
+    SYNTAX      TpmAggrReportCntrlEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A conceptual row in the tpmAggrReportCntrlTable.
+
+        An example of the indexing of this entry is
+        tpmAggrReportCntrlDataSource.1"
+    INDEX { tpmAggrReportCntrlIndex }
+    ::= { tpmAggrReportCntrlTable 1 }
+
+TpmAggrReportCntrlEntry ::= SEQUENCE {
+    tpmAggrReportCntrlIndex               Unsigned32,
+    tpmAggrReportCntrlApmCntrlIndex       Unsigned32,
+    tpmAggrReportCntrlDataSource          DataSourceOrZero,
+    tpmAggrReportCntrlAggrType            TransactionAggregationType,
+    tpmAggrReportCntrlInterval            Unsigned32,
+    tpmAggrReportCntrlReqSize             Unsigned32,
+    tpmAggrReportCntrlGrantedSize         Unsigned32,
+    tpmAggrReportCntrlReqReports          Unsigned32,
+    tpmAggrReportCntrlGrantedReports      Unsigned32,
+    tpmAggrReportCntrlStartTime           TimeStamp,
+    tpmAggrReportCntrlReportNumber        Unsigned32,
+    tpmAggrReportCntrlInsertsDenied       Counter32,
+    tpmAggrReportCntrlDroppedFrames       Counter32,
+    tpmAggrReportCntrlOwner               OwnerString,
+    tpmAggrReportCntrlStorageType         StorageType,
+    tpmAggrReportCntrlStatus              RowStatus
+}
+
+tpmAggrReportCntrlIndex OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..65535)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An index that uniquely identifies an entry in the
+        tpmAggrReportCntrlTable.  Each such entry defines a unique
+        report whose results are placed in the tpmAggrReportTable on
+        behalf of this tpmAggrReportCntrlEntry."
+    ::= { tpmAggrReportCntrlEntry 1 }
+
+tpmAggrReportCntrlApmCntrlIndex OBJECT-TYPE
+    SYNTAX      Unsigned32 (0..65535)
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "This index associates this TpmAggrReportCntrlEntry directly
+        with an existing ApmReportControlEntry.  This link is used
+        to synchronize reports in the associated tpmAggrReportTable.
+
+        A value of 0 (zero) enables an independent control table that
+        will report entries to tpmAggrReportTable based only on the
+        other objects in this table.
+
+        A non-zero value indicates that this row is defined through
+        the APM-MIB.  In this case, all row objects are set to their
+        corresponding values in the APM-MIB.  In the event that a
+        SET is issued to a row object, while the value of the
+        tpmAggrReportCntrlApmCntrlIndex is non-zero, the agent
+        MUST respond as if the object of the SET command
+        had MAX-ACCESS of read-only.
+
+        This object may not be modified if the associated
+        tpmAggrReportCntrlStatus object is equal to active(1)."
+    DEFVAL { 0 }
+    ::= { tpmAggrReportCntrlEntry 2 }
+
+tpmAggrReportCntrlDataSource OBJECT-TYPE
+    SYNTAX      DataSourceOrZero
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The source of the data for TPM Reports generated on
+        behalf of this tpmAggrReportCntrlEntry.
+
+        If the measurement is being performed by a probe, this should
+        be set to the interface or port where data was received for
+        analysis.  If the measurement isn't being performed by a
+        probe this should be set to the primary interface over which
+
+        the measurement is being performed.  If the measurement isn't
+        being performed by a probe and there is no primary interface,
+        or if this information isn't known, this object should be
+        set to 0.0.
+
+        If the tpmAggrReportCntrlApmCntrlIndex is non-zero,
+        then this object is set to the corresponding
+        apmReportControlTable object in the APM-MIB [RFC3729].
+
+        This object may not be modified if the associated
+        tpmAggrReportCntrlStatus object is equal to active(1)."
+    ::= { tpmAggrReportCntrlEntry 3 }
+
+tpmAggrReportCntrlAggrType OBJECT-TYPE
+    SYNTAX      TransactionAggregationType
+             -- INTEGER {
+             --    flows(1),
+             --    clients(2),
+             --    servers(3),
+             --    applications(4)
+             -- }
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The type of aggregation being performed for this set of
+        reports.
+
+        If the tpmAggrReportCntrlApmCntrlIndex is non-zero,
+        then this object should be set by the agent to the value
+        of the apmReportControlAggregationType object.
+
+        This object may not be modified if the associated
+        tpmAggrReportCntrlStatus object is equal to active(1)."
+    ::= { tpmAggrReportCntrlEntry 4 }
+
+tpmAggrReportCntrlInterval OBJECT-TYPE
+    SYNTAX      Unsigned32
+    UNITS       "Seconds"
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "The interval in seconds over which data is accumulated before
+        being aggregated into a report in the tpmAggrReportTable.
+        All reports with the same tpmAggrReportCntrlIndex will be
+        based on the same interval.
+
+        If the tpmAggrReportCntrlApmCntrlIndex is non-zero,
+        then this object should be set by the agent to the value
+
+        of the apmReportControlControlInterval object.
+
+        This object may not be modified if the associated
+        tpmReportAggregateCntrlStatus object is equal to active(1)."
+    DEFVAL { 3600 }
+    ::= { tpmAggrReportCntrlEntry 5 }
+
+tpmAggrReportCntrlReqSize OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The maximum number of Client and Server combination
+        entries requested for this report.
+
+        If the tpmAggrReportCntrlApmCntrlIndex is non-zero,
+        then this object should be set by the agent to the value
+        of the apmReportControlRequestedSize object.
+
+        When this object is created or modified, the probe
+        should set tpmReportCntrlGrantedSize as closely to this
+        object as is possible for the particular probe
+        implementation and available resources.
+
+        It is important to note that this value is the number of
+        requested entries in the tpmAggrReportTable only.  Because
+        the probe can derive this table from the apmReportTable, the
+        probe must make sure that sufficient resources exist to
+        support the creation of the apmReportTable, plus any
+        additional resources required to convert or support this
+        table.
+
+        This object may not be modified if the associated
+        tpmReportAggregateCntrlStatus object is equal to active(1)."
+    ::= { tpmAggrReportCntrlEntry 6 }
+
+tpmAggrReportCntrlGrantedSize OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The maximum number of performance entries in this report.
+
+        When the associated tpmAggrReportCntrlReqSize object is
+        created or modified, the probe should set this
+        object as closely to the requested value as is
+        possible for the particular implementation and
+        available resources.  The probe must not lower this
+
+        value except as a result of a set to the associated
+        tpmAggrReportCntrlReqSize object.
+
+        It is an implementation-specific matter as to whether
+        zero-valued entries are available."
+    ::= { tpmAggrReportCntrlEntry 7 }
+
+tpmAggrReportCntrlReqReports OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..65535)
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The number of saved reports requested to be allocated on
+        behalf of this entry.
+
+        If the tpmAggrReportCntrlApmCntrlIndex is non-zero,
+        then this object should be set by the agent to the value
+        of the apmReportControlcwRequestedReportsDataSource object.
+
+        This object may not be modified if the associated
+        tpmReportAggregateCntrlStatus object is equal to active(1)."
+    ::= { tpmAggrReportCntrlEntry 8 }
+
+tpmAggrReportCntrlGrantedReports OBJECT-TYPE
+    SYNTAX      Unsigned32 (0..65535)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of saved reports the agent has allocated based
+        on the requested amount in tpmAggrReportCntrlReqReports.
+        Because each report can have many entries, the total number
+        of entries allocated will be this number multiplied by the
+        value of tpmAggrReportCntrlGrantedSize, or by 1 if that
+        object doesn't exist.
+
+        When the associated tpmAggrReportCntrlReqReports object is
+        created or modified, the agent should set this object as
+        closely to the requested value as is possible for the
+        particular implementation and available resources.  When
+        considering available resources, the agent must consider its
+        ability to allocate this many reports, each with the number
+        of entries represented by tpmAggrReportCntrlGrantedSize, or
+        by 1 if that object doesn't exist.
+
+        Note that although the storage required for each report may
+        fluctuate due to changing conditions, the agent must continue
+        to have storage available to satisfy the full report size for
+        all reports, when necessary.  Further, the agent must not
+
+        lower this value except as a result of a set to the
+        associated tpmAggrReportCntrlReqSize object."
+    ::= { tpmAggrReportCntrlEntry 9 }
+
+tpmAggrReportCntrlStartTime OBJECT-TYPE
+    SYNTAX      TimeStamp
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The value of sysUpTime when the system began processing the
+        report in progress.  Note that the report in progress is not
+        available.
+
+        This object may be used by the management station to figure
+        out the start time for all previous reports saved for this
+        tpmAggrReportCntrlEntry, as reports are started at fixed
+        intervals.
+
+        If the tpmAggrReportCntrlApmCntrlIndex is non-zero,
+        then this object is set to the corresponding
+        apmReportControlTable object in the APM-MIB defined in
+        the IETF's RMONMIB WG."
+    ::= { tpmAggrReportCntrlEntry 10 }
+
+tpmAggrReportCntrlReportNumber OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of the report in progress.  When an
+        tpmAggrReportCntrlEntry is activated, the first report will
+        be numbered zero.
+
+        If the tpmAggrReportCntrlApmCntrlIndex is non-zero,
+        then this object should be set by the agent to the value
+        of the apmReportControlReportNumber object."
+    ::= { tpmAggrReportCntrlEntry 11 }
+
+tpmAggrReportCntrlInsertsDenied OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of attempts to add an entry to reports for
+        this TpmAggrReportCntrlEntry that failed because the number
+        of entries would have exceeded tpmAggrReportCntrlGrantedSize.
+
+        This number is valuable in determining if enough entries have
+
+        been allocated for reports in light of fluctuating network
+        usage.  Note that an entry that is denied will often be
+        attempted again, so this number will not predict the exact
+        number of additional entries needed, but it can be used to
+        understand the relative magnitude of the problem.
+
+        Also note that there is no ordering specified for the entries
+        in the report; thus, there are no rules for which entries
+        will be omitted when not enough entries are available.  As a
+        consequence, the agent is not required to delete 'least
+        valuable' entries first."
+    ::= { tpmAggrReportCntrlEntry 12 }
+
+tpmAggrReportCntrlDroppedFrames OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+       "The total number of frames that were received by the agent
+        and therefore not accounted for in the *StatsDropEvents, but
+        for which the agent chose not to count for this entry for
+        whatever reason.  Most often, this event occurs when the
+        agent is out of some resources and decides to shed load from
+        this collection.
+
+        This count does not include packets that were not counted
+        because they had MAC-layer errors.
+
+        Note that if the alMatrixTables are not implemented or are
+        inactive because no protocols are enabled in the protocol
+        directory, this value should be 0.
+
+        Note that, unlike the dropEvents counter, this number is the
+        exact number of frames dropped."
+    ::= { tpmAggrReportCntrlEntry 13 }
+
+tpmAggrReportCntrlOwner OBJECT-TYPE
+    SYNTAX      OwnerString
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The entity that configured this entry and is
+        therefore using the resources assigned to it.
+
+        If the tpmAggrReportCntrlApmCntrlIndex is non-zero,
+        then this object should be set by the agent to the value
+        of the apmReportControlReportNumber object.
+
+        This object may not be modified if the associated
+        tpmReportAggregateCntrlStatus object is equal to active(1)."
+    ::= { tpmAggrReportCntrlEntry 14 }
+
+tpmAggrReportCntrlStorageType OBJECT-TYPE
+    SYNTAX      StorageType
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The storage type of this tpmAggrReportCntrlEntry.  If the
+        value of this object is 'permanent', no objects in this row
+        need to be writable."
+    ::= { tpmAggrReportCntrlEntry 15 }
+
+tpmAggrReportCntrlStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The status of this performance control entry.
+
+        An entry may not exist in the active state unless each
+        object in the entry has an appropriate value.
+
+        If the tpmAggrReportCntrlApmCntrlIndex is non-zero,
+        then this object should be set by the agent to the value
+        of the apmReportControlReportNumber object.
+
+        Once this object is set to active(1), no objects in the
+        tpmAggrReportCntrlTable can be changed.
+
+        If this object is not equal to active(1), all associated
+        entries in the tpmAggrReportTable shall be deleted."
+    ::= { tpmAggrReportCntrlEntry 16 }
+
+--
+-- Transport Aggregate Report Table
+--
+
+tpmAggrReportTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF TpmAggrReportEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This table contains transport performance metric
+        studies for each of the control table entries in
+        tpmAggrReportCntrlTable.  These studies are
+
+        provided based on the selections and parameters
+        found for the entry in the
+        tpmAggregateReportCntrlTable.
+
+        The performance statistics are specified in the
+        tpmTransMetricDirTable associated with the
+        application in question and indexed by
+        appLocalIndex and tpmTransMetricIndex."
+    ::= { tpmReports 2 }
+
+tpmAggrReportEntry OBJECT-TYPE
+    SYNTAX      TpmAggrReportEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A conceptual row in the tpmAggrReportTable.
+
+        The tpmAggrReportCntrlIndex value in the index identifies the
+        tpmAggrReportCntrlEntry on whose behalf this entry was
+        created.
+
+        The tpmAggrReportIndex value in the index identifies which
+        report (in the series of reports) this entry is a part of.
+
+        The tpmAggrReportAppLocalIndex value in the index identifies
+        the application protocol that is being reported.
+
+        The tpmTransMetricIndex value in the index identifies
+        the transaction protocol-metric pair for the traffic flows
+        aggregated in this entry.
+
+        The protocolDirLocalIndex value in the index identifies the
+        network layer protocol of the tpmAggrReportServerAddress.
+        When the associated tpmAggrReportCntrlAggrType value is equal
+        to applications(4) or clients(2), this value will equal 0.
+
+        The tpmAggrReportServerAddress value in the index identifies
+        the network layer address of the server in traffic flows
+        aggregated in this entry.
+
+        The tpmAggrReportApmNameClientID value in the index
+        identifies the client in traffic flows aggregated in this
+        entry.  If the associated tpmAggrReportCntrlAggrType is equal
+        to applications(4) or servers(3), then this object will be
+        set to 0.
+
+        An example of the indexing of this entry is
+        tpmAggrReportStatN.3.15.34.262.18.4.128.2.6.7.3256521"
+    INDEX { tpmAggrReportCntrlIndex,
+            tpmAggrReportIndex,
+            tpmAggrReportAppLocalIndex,       -- Application Layer
+            tpmAggrReportTransMetricIndex,    -- Metric and Protocol
+            protocolDirLocalIndex,            -- Network Layer
+            tpmAggrReportServerAddress,
+            tpmAggrReportApmNameClientID
+          }
+    ::= { tpmAggrReportTable 1 }
+
+TpmAggrReportEntry ::= SEQUENCE {
+    tpmAggrReportIndex                    Unsigned32,
+    tpmAggrReportAppLocalIndex            AppLocalIndex,
+    tpmAggrReportTransMetricIndex         TpmTransactionMetricIndex,
+    tpmAggrReportServerAddress            OCTET STRING,
+    tpmAggrReportApmNameClientID          RmonClientID,
+    tpmAggrReportStatN                    ZeroBasedCounter32,
+    tpmAggrReportOverflowStatN            ZeroBasedCounter32,
+    tpmAggrReportHCStatN                  ZeroBasedCounter64,
+    tpmAggrReportStatSumX                 ZeroBasedCounter32,
+    tpmAggrReportOverflowStatSumX         ZeroBasedCounter32,
+    tpmAggrReportHCStatSumX               ZeroBasedCounter64,
+    tpmAggrReportStatMaximum              ZeroBasedCounter32,
+    tpmAggrReportStatMinimum              ZeroBasedCounter32,
+    tpmAggrReportStatSumSq                ZeroBasedCounter32,
+    tpmAggrReportOverflowStatSumSq        ZeroBasedCounter32,
+    tpmAggrReportHCStatSumSq              ZeroBasedCounter64,
+    tpmAggrReportStatSumIX                ZeroBasedCounter32,
+    tpmAggrReportOverflowStatSumIX        ZeroBasedCounter32,
+    tpmAggrReportHCStatSumIX              ZeroBasedCounter64,
+    tpmAggrReportStatSumIXSq              ZeroBasedCounter32,
+    tpmAggrReportOverflowStatSumIXSq      ZeroBasedCounter32,
+    tpmAggrReportHCStatSumIXSq            ZeroBasedCounter64
+}
+
+tpmAggrReportIndex  OBJECT-TYPE
+    SYNTAX      Unsigned32 (1..2147483647)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The value of tpmAggrReportCntrlNumber for the report to
+        which this entry belongs."
+    ::= { tpmAggrReportEntry 1 }
+
+tpmAggrReportAppLocalIndex  OBJECT-TYPE
+    SYNTAX      AppLocalIndex
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The common application of the transactions aggregated
+        in this entry."
+    ::= { tpmAggrReportEntry 2 }
+
+tpmAggrReportTransMetricIndex OBJECT-TYPE
+    SYNTAX      TpmTransactionMetricIndex
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A unique index that identifies the transaction and
+        metric associated with the statistics reported here."
+    ::= { tpmAggrReportEntry 3 }
+
+tpmAggrReportServerAddress OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (0..108))
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The network layer address of the server host in this
+        conversation.
+
+        This is represented as an octet string with specific
+        semantics and length as identified by the
+        protocolDirLocalIndex component of the index.
+
+        Because this object is an index variable, it is encoded in
+        the index according to the index encoding rules.  For
+        example, if the protocolDirLocalIndex indicates an
+        encapsulation of IPv4, this object is encoded as a length
+        octet of 4, followed by the 4 octets of the IPv4 address,
+        in network byte order.
+
+        If the associated tpmAggrReportCntrlAggrType is equal to
+        application(4) or client(2), then this object will be a null
+        string and will be encoded simply as a length octet of 0."
+    ::= { tpmAggrReportEntry 4 }
+
+tpmAggrReportApmNameClientID OBJECT-TYPE
+    SYNTAX      RmonClientID
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A unique ID assigned to the machine represented by this
+        mapping.  This ID is assigned by the agent using an
+        implementation-specific algorithm."
+    ::= { tpmAggrReportEntry 5 }
+
+tpmAggrReportStatN OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The count of the total number of data points for the
+        specified metric.  This number always represents the
+        total size of the statistical datum analyzed.  Each
+        metric specifies the exact meaning of this object.
+
+        This value represents the results for one metric and is
+        related directly to the specific parameters of the metric
+        and the Server and Client addresses involved."
+    ::= { tpmAggrReportEntry 6 }
+
+tpmAggrReportOverflowStatN OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of times the associated
+        tpmAggrReportStatN counter has overflowed.  Note
+        that this object will only be instantiated if the
+        associated tpmAggrReportHCStatN object is also
+        instantiated for a particular dataSource."
+    ::= { tpmAggrReportEntry 7 }
+
+tpmAggrReportHCStatN OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The high-capacity version of tpmAggrReportStatN.
+        Note that this object will only be instantiated if the
+        agent supports high-capacity monitoring for a particular
+        dataSource."
+    ::= { tpmAggrReportEntry 8 }
+
+tpmAggrReportStatSumX OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The sum of all the data point values for the specified
+        metric.  This number always represents the total values
+        of the statistical datum analyzed.  Each metric
+        specifies the exact meaning of this object.
+
+        This value represents the results of one metric and is
+        related directly to the specific parameters of the metric
+        and the Server and Client addresses involved."
+    ::= { tpmAggrReportEntry 9 }
+
+tpmAggrReportOverflowStatSumX OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of times the associated
+        tpmAggrReportStatSumX counter has overflowed.
+        Note that this object will only be instantiated if the
+        associated tpmAggrReportHCStatSumX object is also
+        instantiated for a particular dataSource."
+    ::= { tpmAggrReportEntry 10 }
+
+tpmAggrReportHCStatSumX OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The high-capacity version of tpmAggrReportStatSumX.
+        Note that this object will only be instantiated if the
+        agent supports High Capacity monitoring for a particular
+        dataSource."
+    ::= { tpmAggrReportEntry 11 }
+
+tpmAggrReportStatMaximum OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The single maximum data point value observed during the
+        study period for the specified metric.  This number always
+        represents the maximum value of any single statistical
+        datum analyzed.  Each metric specifies the exact meaning
+        of this object.
+
+        This value represents the results of one metric and is
+        related directly to the specific parameters of the metric
+        and the Server and Client addresses involved."
+    ::= { tpmAggrReportEntry 12 }
+
+tpmAggrReportStatMinimum OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The single minimum data point value observed during the
+        study period for the specified metric.  This number always
+        represents the minimum value of any single statistical
+        datum analyzed.  Each metric specifies the exact meaning
+        of this object.
+
+        This value represents the results of one metric and is
+        related directly to the specific parameters of the metric
+        and the Server and Client addresses involved."
+    ::= { tpmAggrReportEntry 13 }
+
+tpmAggrReportStatSumSq OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The sum of all the squared data point values for the
+        specified metric.  This number always represents the
+        total of the squared values of the statistical datum
+        analyzed.  Each metric specifies the exact meaning of
+        this object.
+
+        This value represents the results of one metric and is
+        related directly to the specific parameters of the metric
+        and the Server and Client addresses involved."
+    ::= { tpmAggrReportEntry 14 }
+
+tpmAggrReportOverflowStatSumSq OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of times the associated
+        tpmAggrReportStatSumSq counter has overflowed.
+        Note that this object will only  be instantiated if
+        the associated tpmAggrReportHCStatSumSq object
+        is also instantiated for a particular dataSource."
+    ::= { tpmAggrReportEntry 15 }
+
+tpmAggrReportHCStatSumSq OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The high-capacity version of tpmAggrReportStatSumSq.
+        Note that this object will only be instantiated if the
+        agent supports High Capacity monitoring for a particular
+
+        dataSource."
+    ::= { tpmAggrReportEntry 16 }
+
+tpmAggrReportStatSumIX OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "For each interval, each data point is associated with a
+        value I, I = 1..N where N is the number of data points;
+        tpmAggrReportStatSumIX is the multiplication of the
+        data point value with the current I.  This value
+        along with the other statistics values allow the
+        calculation of the slope of the least-squares line
+        through the data points."
+    ::= { tpmAggrReportEntry 17 }
+
+tpmAggrReportOverflowStatSumIX OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of times the associated
+        tpmAggrReportStatSumIX counter has overflowed.
+        Note that this object will only be instantiated if the
+        associated tpmAggrReportHCStatSumIX object is also
+        instantiated for a particular dataSource."
+    ::= { tpmAggrReportEntry 18 }
+
+tpmAggrReportHCStatSumIX OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The high-capacity version of tpmAggrReportStatSumIX.
+        Note that this object will only be instantiated if the
+        agent supports High Capacity monitoring for a particular
+        dataSource."
+    ::= { tpmAggrReportEntry 19 }
+
+tpmAggrReportStatSumIXSq OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "For each interval, each data point is associated with a
+        value I, I = 1..N where N is the number of data points;
+        tpmAggrReportStatSumIXSq is the multiplication
+
+        of the data point value with the current I.
+        This value along with the other statistics
+        values allow the calculation of the slope of
+        the least-squares line through the data points."
+    ::= { tpmAggrReportEntry 20 }
+
+tpmAggrReportOverflowStatSumIXSq OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of times the associated
+        tpmAggrReportStatSumIXSq counter has overflowed.
+        Note that this object will only be instantiated if the
+        associated tpmAggrReportHCStatSumIXSq object is also
+        instantiated for a particular dataSource."
+    ::= { tpmAggrReportEntry 21 }
+
+tpmAggrReportHCStatSumIXSq OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The high-capacity version of tpmAggrReportStatSumIXSq.
+        Note that this object will only be instantiated if the
+        agent supports High Capacity monitoring for a particular
+        dataSource."
+    ::= { tpmAggrReportEntry 22 }
+
+--
+-- The tpmCurrentReportsGroup
+--
+
+tpmCurReportTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF TpmCurReportEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This table will contain entries associated with an
+        apmReportControlEntry that consitute a current 'snapshot'
+        of the metrics being collected in association with
+        a set of TPM-related application transactions.
+        This table contains all sub-flow metrics for transactions
+        that have been started but have not yet finished (i.e.,
+        current) and a history of those that have finished (i.e.,
+        completed).  It may not always be obvious from the context
+        whether a transaction is currently in-progress or has
+        been completed.  Therefore, the completion status of a
+
+        transaction is indicated by the value of
+        the tpmCurReportCompletion object."
+    ::= { tpmReports 3 }
+
+tpmCurReportEntry OBJECT-TYPE
+    SYNTAX      TpmCurReportEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A conceptual row in the tpmCurReportTable.
+
+        The tpmAggrReportControlIndex value in the index identifies
+        the tpmAggrReportCntrlEntry on whose behalf this entry was
+        created.  The tpmCurReportAppLocalIndex value in the
+        index identifies the application protocol that is being
+        reported.  The protocolDirLocalIndex value in the
+        index identifies the network layer protocol
+        of the tpmAggrReportServerAddress.  When the associated
+        tpmAggrReportCntrlAggrType value is
+        equal to applications(4), this value will equal 0.
+        The tpmCurReportServerAddress value in the
+        index identifies the network layer address of the
+        server in traffic flows aggregated in this entry.
+        The tpmCurReportCurrentApmNameClientID value in the
+        index identifies the network layer address of the
+        client in traffic flows aggregated in this entry.
+        The tpmCurReportCurrentMetricIndex value in the
+        index identifies the transported application protocol
+        of the traffic flows aggregated in this entry.
+
+        Note that the order of protocolDirLocalIndex variables is
+        the opposite of that in the RMON2 MIB (application.network
+        instead of network.application); the report entries are
+        sorted by application first, server second, and client third.
+        The tpmCurReportCntrIndex value in the index identifies
+        the tpmAggrReportCntrlEntry on whose behalf this entry was
+        created.  The tpmCurReportMetricIndex value in the index
+        identifies the metric and protocol of the
+        tpmCurReportServerAddress, via the tpmTransMetricDir
+        table.
+
+        An example of the indexing of this table is
+        tpmCurReportStatisticN.3.34.262.18.4.128.2.6.6.3256521.29667"
+    INDEX { tpmAggrReportCntrlIndex,
+            tpmCurReportAppLocalIndex,         -- Application Layer
+            tpmCurReportTransMetricIndex,      -- Metric and Protocol
+            protocolDirLocalIndex,             -- Network Layer
+            tpmCurReportServerAddress,
+            tpmCurReportApmNameClientID,
+            tpmCurReportApmTransactionID
+          }
+    ::= { tpmCurReportTable 1 }
+
+TpmCurReportEntry ::= SEQUENCE {
+    tpmCurReportAppLocalIndex              AppLocalIndex,
+    tpmCurReportTransMetricIndex           TpmTransactionMetricIndex,
+    tpmCurReportServerAddress              OCTET STRING,
+    tpmCurReportApmNameClientID            RmonClientID,
+    tpmCurReportApmTransactionID           Unsigned32,
+    tpmCurReportMetricValue                ZeroBasedCounter32,
+    tpmCurReportCompletion                 INTEGER
+}
+
+tpmCurReportAppLocalIndex  OBJECT-TYPE
+    SYNTAX      AppLocalIndex
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The common application of the transactions reported
+        in this entry."
+    ::= { tpmCurReportEntry 1 }
+
+tpmCurReportTransMetricIndex OBJECT-TYPE
+    SYNTAX      TpmTransactionMetricIndex
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A unique index that identifies the transaction and
+        metric associated with the statistics reported here."
+    ::= { tpmCurReportEntry 2 }
+
+tpmCurReportServerAddress OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (0..108))
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The network server address for this tpmCurReportEntry.
+
+        This is represented as an octet string with
+        specific semantics and length as identified
+        by the protocolDirLocalIndex component of the index.
+
+        For example, if the protocolDirLocalIndex indicates an
+        encapsulation of IPv4, this object is encoded as a length
+        octet of 4, followed by the 4 octets of the IPv4 address,
+        in network byte order."
+    ::= { tpmCurReportEntry 3 }
+
+tpmCurReportApmNameClientID OBJECT-TYPE
+    SYNTAX      RmonClientID
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A unique ID assigned to the machine represented by this
+        mapping.  This ID is assigned by the agent using an
+        implementation-specific algorithm."
+    ::= { tpmCurReportEntry 4 }
+
+tpmCurReportApmTransactionID OBJECT-TYPE
+    SYNTAX      Unsigned32 (0..4294967295)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A unique value for this transaction amongst other
+        transactions sharing the same application,
+        transaction-layer protocol and metric, and
+        server and client addresses.  Implementations may choose to
+        use the value of the client's source port, when possible.
+
+        If the tpmAggrReportCntrlApmCntrlIndex is non-zero,
+        then this object is set to the corresponding
+        apmTransactionID object in the APM-MIB developed
+        in the IETF's RMONMIB WG."
+    ::= { tpmCurReportEntry 5 }
+
+tpmCurReportMetricValue OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The current value of the metric being evaluated.
+        For some transaction types this value may be 0, e.g.,
+        the current round-trip time for a DNS query.  For
+        other transaction types, this will represent the
+        current value of a continuously measured metric, e.g.,
+        the current throughput of an FTP transaction."
+    ::= { tpmCurReportEntry 6 }
+
+tpmCurReportCompletion OBJECT-TYPE
+    SYNTAX      INTEGER {
+                    current(1),
+                    completed(2)
+                }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The status of this transaction.  It is not always obvious
+        from context whether a transaction is ongoing or
+        completed.  E.g., an ftp-GET transaction may last several
+        minutes or hours, and a value found in the
+        tpmCurReportMetricValue object lists to observed throughput
+        for the transaction up to this point in time.  The value
+        of the tpmCurReportCompletion indicates whether the
+        transaction has been completed."
+    ::= { tpmCurReportEntry 7 }
+
+tpmCurReportSize OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The maximum number of completed transactions desired to be
+        retained in the tpmCurReportTable.  If the agent doesn't have
+        enough resources to retain this many, it will retain as many
+        as possible.  Regardless of this value, the agent must
+        attempt to keep records for all current transactions it is
+        monitoring.
+
+        The agent should consider this value to give a hint as to
+        how many transactions to save.  This is not a hard limit,
+        just a hint to a maximum value of interest.  If this value is
+        reduced by the management station, the agent can take note,
+        it may free some records, or it may do nothing.
+
+        The value of this object must persist across reboots."
+    ::= { tpmReports 4 }
+
+--
+-- The tpmExceptionReportsGroup
+--
+
+tpmExcpReportTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF TpmExcpReportEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This table contains all sub-flow metrics for transactions
+        that have been tagged by the apmExceptionTable filter
+        as having had poor performance."
+    ::= { tpmReports 5 }
+
+tpmExcpReportEntry OBJECT-TYPE
+    SYNTAX      TpmExcpReportEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A conceptual row in the tpmExcpReportTable.  This table
+        contains aggregated information associated with
+        exceptions counted in the apmExceptionTable.  The
+        information is aggregated in a manner identical to the
+        aggregation in the tpmAggrReportTable, with the exception
+        that data only from transactions associated with a
+        flagged application is included.
+
+        The indexing into this table follows the indexing in the
+        APM-MIB but adds the tpmTransMetricIndex to identify the
+        sub-application transaction and metric pair."
+    INDEX { apmAppDirAppLocalIndex,       -- Application
+            apmAppDirResponsivenessType,  -- Responsiveness Type
+            apmExceptionIndex,            -- Linkage to ApmExceptions
+            tpmExcpReportTransMetricIndex -- Metric and Protocol
+          }
+    ::= { tpmExcpReportTable 1 }
+
+TpmExcpReportEntry ::= SEQUENCE {
+    tpmExcpReportTransMetricIndex         TpmTransactionMetricIndex,
+    tpmExcpReportStatN                    ZeroBasedCounter32,
+    tpmExcpReportOverflowStatN            ZeroBasedCounter32,
+    tpmExcpReportHCStatN                  ZeroBasedCounter64,
+    tpmExcpReportStatSumX                 ZeroBasedCounter32,
+    tpmExcpReportOverflowStatSumX         ZeroBasedCounter32,
+    tpmExcpReportHCStatSumX               ZeroBasedCounter64,
+    tpmExcpReportStatMaximum              ZeroBasedCounter32,
+    tpmExcpReportStatMinimum              ZeroBasedCounter32,
+    tpmExcpReportStatSumSq                ZeroBasedCounter32,
+    tpmExcpReportOverflowStatSumSq        ZeroBasedCounter32,
+    tpmExcpReportHCStatSumSq              ZeroBasedCounter64,
+    tpmExcpReportStatSumIX                ZeroBasedCounter32,
+    tpmExcpReportOverflowStatSumIX        ZeroBasedCounter32,
+    tpmExcpReportHCStatSumIX              ZeroBasedCounter64,
+    tpmExcpReportStatSumIXSq              ZeroBasedCounter32,
+    tpmExcpReportOverflowStatSumIXSq      ZeroBasedCounter32,
+    tpmExcpReportHCStatSumIXSq            ZeroBasedCounter64
+}
+
+tpmExcpReportTransMetricIndex OBJECT-TYPE
+    SYNTAX      TpmTransactionMetricIndex
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+         "A unique index that identifies the transaction and
+         metric associated with the data reported here."
+    ::= { tpmExcpReportEntry 1 }
+
+tpmExcpReportStatN OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The count of the total number of data points for the
+        specified metric.  This number always represents the
+        total size of the statistical datum analyzed.  Each
+        metric specifies the exact meaning of this object.
+
+        This value represents the results of one metric and is
+        related directly to the specific parameters of the metric
+        and the Server and Client addresses involved."
+    ::= { tpmExcpReportEntry 2 }
+
+tpmExcpReportOverflowStatN OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of times the associated tpmExcpReportStatN
+        counter has overflowed.  Note that this object will only
+        be instantiated if the associated tpmExcpReportHCStatN
+        object is also instantiated for a particular dataSource."
+    ::= { tpmExcpReportEntry 3 }
+
+tpmExcpReportHCStatN OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The high-capacity version of tpmExcpReportStatN.
+        Note that this object will only be instantiated if the
+        agent supports High Capacity monitoring for a particular
+        dataSource."
+    ::= { tpmExcpReportEntry 4 }
+
+tpmExcpReportStatSumX OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The sum of all the data point values for the specified
+        metric.  This number always represents the total values
+
+        of the statistical datum analyzed.  Each metric
+        specifies the exact meaning of this object.
+
+        This value represents the results of one metric and is
+        related directly to the specific parameters of the metric
+        and the Server and Client addresses involved."
+    ::= { tpmExcpReportEntry 5 }
+
+tpmExcpReportOverflowStatSumX OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of times the associated
+        tpmExcpReportStatSumX counter has overflowed.
+        Note that this object will only be instantiated if
+        the associated tpmExcpReportHCStatSumX object is also
+        instantiated for a particular dataSource."
+    ::= { tpmExcpReportEntry 6 }
+
+tpmExcpReportHCStatSumX OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The high-capacity version of tpmExcpReportStatSumX.
+        Note that this object will only be instantiated if the
+        agent supports High Capacity monitoring for a particular
+        dataSource."
+    ::= { tpmExcpReportEntry 7 }
+
+tpmExcpReportStatMaximum OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The single maximum data point value observed during the
+        study period for the specified metric.  This number always
+        represents the maximum value of any single statistical
+        datum analyzed.  Each metric specifies the exact meaning
+        of this object.
+
+        This value represents the results of one metric and is
+        related directly to the specific parameters of the metric
+        and the Server and Client addresses involved."
+    ::= { tpmExcpReportEntry 8 }
+
+tpmExcpReportStatMinimum OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The single minimum data point value observed during the
+        study period for the specified metric.  This number always
+        represents the minimum value of any single statistical
+        datum analyzed.  Each metric specifies the exact meaning
+        of this object.
+
+        This value represents the results of one metric and is
+        related directly to the specific parameters of the metric
+        and the Server and Client addresses involved."
+    ::= { tpmExcpReportEntry 9 }
+
+tpmExcpReportStatSumSq OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The sum of all the squared data point values for the
+        specified metric.  This number always represents the
+        total of the squared values of the statistical datum
+        analyzed.  Each metric specifies the exact meaning of
+        this object.
+
+        This value represents the results of one metric and is
+        related directly to the specific parameters of the metric
+        and the Server and Client addresses involved."
+    ::= { tpmExcpReportEntry 10 }
+
+tpmExcpReportOverflowStatSumSq OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of times the associated
+        tpmExcpReportStatSumSq counter has overflowed.
+        Note that this object will only be instantiated if the
+        associated tpmExcpReportHCStatSumSq object is also
+        instantiated for a particular dataSource."
+    ::= { tpmExcpReportEntry 11 }
+
+tpmExcpReportHCStatSumSq OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The high-capacity version of tpmExcpReportStatSumSq.
+        Note that this object will only be instantiated if the
+        agent supports High Capacity monitoring for a particular
+        dataSource."
+    ::= { tpmExcpReportEntry 12 }
+
+tpmExcpReportStatSumIX OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "For each interval, each data point is associated with a
+        value I, I = 1..N where N is the number of data points;
+        tpmExcpReportStatSumIX is the multiplication of the
+        data point value with the current I.  This value along with
+        the other statistics values allow the calculation of the
+        slope of the least-squares line through the data points."
+    ::= { tpmExcpReportEntry 13 }
+
+tpmExcpReportOverflowStatSumIX OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of times the associated
+        tpmExcpReportStatSumIX counter has overflowed.
+        Note that this object will only be instantiated if the
+        associated tpmExcpReportHCStatSumIX object is also
+        instantiated for a particular dataSource."
+    ::= { tpmExcpReportEntry 14 }
+
+tpmExcpReportHCStatSumIX OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The high-capacity version of tpmExcpReportStatSumIX.
+        Note that this object will only be instantiated if the
+        agent supports High Capacity monitoring for a particular
+        dataSource."
+    ::= { tpmExcpReportEntry 15 }
+
+tpmExcpReportStatSumIXSq OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "For each interval, each data point is associated with a
+
+        value I, I = 1..N where N is the number of data points;
+        tpmExcpReportStatSumIXSq is the multiplication of the data
+        point value with the current I.  This value along with the
+        other statistics values allow the calculation of the slope of
+        the least-squares line through the data points."
+    ::= { tpmExcpReportEntry 16 }
+
+tpmExcpReportOverflowStatSumIXSq OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of times the associated
+        tpmExcpReportStatSumIXSq counter has overflowed.
+        Note that this object will only be instantiated if the
+        associated tpmExcpReportHCStatSumIXSq object is also
+        instantiated for a particular dataSource."
+    ::= { tpmExcpReportEntry 17 }
+
+tpmExcpReportHCStatSumIXSq OBJECT-TYPE
+    SYNTAX      ZeroBasedCounter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The high-capacity version of tpmExcpReportStatSumIXSq.
+        Note that this object will only be instantiated if the
+        agent supports High Capacity monitoring for a particular
+        dataSource."
+    ::= { tpmExcpReportEntry 18 }
+
+--
+-- TPM Conformance
+--
+
+tpmMIBCompliances  OBJECT IDENTIFIER ::= { tpmConformance 1 }
+tpmGroups          OBJECT IDENTIFIER ::= { tpmConformance 2 }
+
+--
+-- TPM Compliance Statement
+--
+
+tpmMIBCompliance MODULE-COMPLIANCE
+    STATUS  current
+    DESCRIPTION
+        "Describes the requirements for conformance to
+        the TPM-MIB.
+
+        This compliance statement defines the following
+
+        TPM-MIB implementation:
+
+         - tpmCapabilitiesGroup (minimum)
+         - tpmAggregateReportsGroup (minimum)
+         - tpmCurrentReportsGroup (optional)
+         - tpmExceptionReportsGroup (optional).
+
+        In order to implement the (optional)
+        tpmExceptionReportsGroup, it is necessary
+        to implement pieces of the APM-MIB as
+        described in the tpmApmMIBCompliance MODULE
+        below.  Further, in the event that the TPM-MIB
+        is used to provide a drill-down capability,
+        which is the true value of this MIB, then the
+        tpmApmReportControlGroup must be implemented."
+    MODULE -- this module
+
+    MANDATORY-GROUPS
+        { tpmCapabilitiesGroup,
+          tpmAggregateReportsGroup }
+
+    GROUP tpmCurrentReportsGroup
+    DESCRIPTION
+        "The implementation of this group is optional."
+
+    GROUP tpmExceptionReportsGroup
+    DESCRIPTION
+        "The implementation of this group is optional.
+        However, because the control for this reporting group
+        resides with the APM-MIB module, the apmReportGroup
+        and the apmExceptionGroup must also be implemented."
+    ::= { tpmMIBCompliances 1 }
+
+--
+-- tpmCurrentReportsGroup Compliance
+--
+tpmCurrentReportsCompliance MODULE-COMPLIANCE
+        STATUS  current
+        DESCRIPTION
+            "This defines the Current Reports compliance.
+             This is useful when information on in-progress
+             and historical transaction-level data is
+             desired."
+        MODULE -- this module
+
+        MANDATORY-GROUPS
+            { tpmCapabilitiesGroup,
+              tpmAggregateReportsGroup,
+              tpmCurrentReportsGroup }
+    ::= { tpmMIBCompliances 2 }
+
+--
+-- tpmExceptionReportsGroup Compliance
+--
+tpmExceptionReportsCompliance MODULE-COMPLIANCE
+        STATUS  current
+        DESCRIPTION
+            "This defines the Exception Reports compliance.
+             This is useful when information on
+             transactions whose performance is deemed
+             out-of-bounds."
+
+        MODULE -- this module
+
+        MANDATORY-GROUPS
+            { tpmCapabilitiesGroup,
+              tpmAggregateReportsGroup,
+              tpmExceptionReportsGroup }
+
+        MODULE APM-MIB
+
+        MANDATORY-GROUPS
+            { apmReportGroup,
+              apmExceptionGroup }
+    ::= { tpmMIBCompliances 3 }
+
+--
+--  TPM-MIB Groups
+--
+
+tpmCapabilitiesGroup    OBJECT-GROUP
+    OBJECTS { tpmClockResolution,
+              tpmClockMaxSkew,
+              tpmClockSource,
+              tpmTransMetricDirLastChange,
+              tpmTransMetricProtocolIndex,
+              tpmTransMetricMetricIndex,
+              tpmTransMetricDirConfig,
+              tpmMetricDefType,
+              tpmMetricDefDirType,
+              tpmMetricDefName,
+              tpmMetricDefReference,
+              tpmMetricDefGlobalID }
+    STATUS  current
+    DESCRIPTION
+        "The tpmCapabilitiesGroup specifies various capabilities
+        associated with the monitoring agent."
+    ::= { tpmGroups 1 }
+
+tpmAggregateReportsGroup    OBJECT-GROUP
+    OBJECTS { tpmAggrReportCntrlApmCntrlIndex,
+              tpmAggrReportCntrlDataSource,
+              tpmAggrReportCntrlAggrType,
+              tpmAggrReportCntrlInterval,
+              tpmAggrReportCntrlReqSize,
+              tpmAggrReportCntrlGrantedSize,
+              tpmAggrReportCntrlReqReports,
+              tpmAggrReportCntrlGrantedReports,
+              tpmAggrReportCntrlStartTime,
+              tpmAggrReportCntrlReportNumber,
+              tpmAggrReportCntrlInsertsDenied,
+              tpmAggrReportCntrlDroppedFrames,
+              tpmAggrReportCntrlOwner,
+              tpmAggrReportCntrlStorageType,
+              tpmAggrReportCntrlStatus,
+              tpmAggrReportStatN,
+              tpmAggrReportOverflowStatN,
+              tpmAggrReportHCStatN,
+              tpmAggrReportStatSumX,
+              tpmAggrReportOverflowStatSumX,
+              tpmAggrReportHCStatSumX,
+              tpmAggrReportStatMaximum,
+              tpmAggrReportStatMinimum,
+              tpmAggrReportStatSumSq,
+              tpmAggrReportOverflowStatSumSq,
+              tpmAggrReportHCStatSumSq,
+              tpmAggrReportStatSumIX,
+              tpmAggrReportOverflowStatSumIX,
+              tpmAggrReportHCStatSumIX,
+              tpmAggrReportStatSumIXSq,
+              tpmAggrReportOverflowStatSumIXSq,
+              tpmAggrReportHCStatSumIXSq }
+    STATUS  current
+    DESCRIPTION
+        "The tpmAggregateReportsGroup provides control
+        and reporting of aggregate measurement
+        statistics."
+    ::= { tpmGroups 2 }
+
+tpmCurrentReportsGroup  OBJECT-GROUP
+    OBJECTS { tpmCurReportMetricValue,
+              tpmCurReportCompletion,
+              tpmCurReportSize }
+    STATUS  current
+    DESCRIPTION
+        "The tpmCurrentReportsGroup contains metric
+        information relating to ongoing measurements
+        as well as historical values."
+    ::= { tpmGroups 3 }
+
+tpmExceptionReportsGroup  OBJECT-GROUP
+    OBJECTS { tpmExcpReportStatN,
+              tpmExcpReportOverflowStatN,
+              tpmExcpReportHCStatN,
+              tpmExcpReportStatSumX,
+              tpmExcpReportOverflowStatSumX,
+              tpmExcpReportHCStatSumX,
+              tpmExcpReportStatMaximum,
+              tpmExcpReportStatMinimum,
+              tpmExcpReportStatSumSq,
+              tpmExcpReportOverflowStatSumSq,
+              tpmExcpReportHCStatSumSq,
+              tpmExcpReportStatSumIX,
+              tpmExcpReportOverflowStatSumIX,
+              tpmExcpReportHCStatSumIX,
+              tpmExcpReportStatSumIXSq,
+              tpmExcpReportOverflowStatSumIXSq,
+              tpmExcpReportHCStatSumIXSq }
+    STATUS  current
+    DESCRIPTION
+        "The tpmExceptionReportsGroup reports
+        sub-application level statistics associated
+        with errant applications."
+    ::= { tpmGroups 4 }
+
+END

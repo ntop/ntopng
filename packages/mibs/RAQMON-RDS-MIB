@@ -1,0 +1,672 @@
+RAQMON-RDS-MIB DEFINITIONS ::= BEGIN
+
+   IMPORTS
+       MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE,
+       Counter32, Unsigned32
+           FROM SNMPv2-SMI
+
+       DateAndTime
+           FROM SNMPv2-TC
+
+       rmon
+           FROM RMON-MIB
+
+       SnmpAdminString
+           FROM SNMP-FRAMEWORK-MIB
+
+       InetAddressType, InetAddress, InetPortNumber
+           FROM INET-ADDRESS-MIB
+
+       Dscp
+           FROM DIFFSERV-DSCP-TC
+
+       MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+           FROM SNMPv2-CONF;
+
+   raqmonDsMIB MODULE-IDENTITY
+       LAST-UPDATED "200610100000Z"      -- October 10, 2006
+       ORGANIZATION "RMON Working Group"
+       CONTACT-INFO
+           "WG EMail: rmonmib@ietf.org
+            Subscribe: rmonmib-request@ietf.org
+
+            MIB Editor:
+            Eugene Golovinsky
+            Postal: BMC Software, Inc.
+                    2101 CityWest Boulevard,
+                    Houston, TX, 77094
+                    USA
+            Tel:    +713-918-1816
+            Email:  egolovin@bmc.com
+           "
+       DESCRIPTION
+           "This is the RAQMON Data Source notification MIB Module.
+            It provides a mapping of RAQMON PDUs to SNMP
+            notifications.
+
+            Ds stands for data source.
+
+            Note that all of the object types defined in this module
+            are accessible-for-notify and would consequently not be
+            available to a browser using simple Get, GetNext, or
+            GetBulk requests.
+
+            Copyright (c) The Internet Society (2006).
+
+            This version of this MIB module is part of RFC 4712;
+            See the RFC itself for full legal notices."
+
+       REVISION      "200610100000Z"     -- October 10, 2006
+       DESCRIPTION
+           "Initial version, published as RFC 4712."
+              ::= { rmon 32 }
+
+-- This OID allocation conforms to [RFC3737]
+
+   raqmonDsNotifications OBJECT IDENTIFIER ::= { raqmonDsMIB 0 }
+   raqmonDsMIBObjects OBJECT IDENTIFIER ::= { raqmonDsMIB 1 }
+   raqmonDsConformance OBJECT IDENTIFIER ::= { raqmonDsMIB 2 }
+
+   raqmonDsNotificationTable OBJECT-TYPE
+       SYNTAX SEQUENCE OF RaqmonDsNotificationEntry
+       MAX-ACCESS not-accessible
+       STATUS     current
+       DESCRIPTION
+           "This conceptual table provides the SNMP mapping of
+            the RAQMON BASIC PDU.  It is indexed by the RAQMON
+            Data Source, sub-session, and address of the peer
+            entity.
+
+            Note that there is no concern about the indexation of
+            this table exceeding the limits defined by RFC 2578
+            Section 3.5.  According to [RFC4710], Section 5.1,
+            only IPv4 and IPv6 addresses can be reported as
+            participant addresses."
+       ::= { raqmonDsMIBObjects 1 }
+
+   raqmonDsNotificationEntry OBJECT-TYPE
+       SYNTAX     RaqmonDsNotificationEntry
+       MAX-ACCESS not-accessible
+       STATUS     current
+       DESCRIPTION
+           "The entry (row) is not retrievable and is not kept by
+            RDSs.  It serves data organization purposes only."
+       INDEX { raqmonDsDSRC, raqmonDsRCN, raqmonDsPeerAddrType,
+               raqmonDsPeerAddr }
+       ::= { raqmonDsNotificationTable 1 }
+
+   RaqmonDsNotificationEntry ::= SEQUENCE {
+           raqmonDsDSRC                      Unsigned32,
+           raqmonDsRCN                       Unsigned32,
+           raqmonDsPeerAddrType              InetAddressType,
+           raqmonDsPeerAddr                  InetAddress,
+           raqmonDsAppName                   SnmpAdminString,
+           raqmonDsDataSourceDevicePort      InetPortNumber,
+           raqmonDsReceiverDevicePort        InetPortNumber,
+           raqmonDsSessionSetupDateTime      DateAndTime,
+           raqmonDsSessionSetupDelay         Unsigned32,
+           raqmonDsSessionDuration           Unsigned32,
+           raqmonDsSessionSetupStatus        SnmpAdminString,
+           raqmonDsRoundTripEndToEndNetDelay Unsigned32,
+           raqmonDsOneWayEndToEndNetDelay    Unsigned32,
+           raqmonDsApplicationDelay          Unsigned32,
+           raqmonDsInterArrivalJitter        Unsigned32,
+           raqmonDsIPPacketDelayVariation    Unsigned32,
+           raqmonDsTotalPacketsReceived      Counter32,
+           raqmonDsTotalPacketsSent          Counter32,
+           raqmonDsTotalOctetsReceived       Counter32,
+           raqmonDsTotalOctetsSent           Counter32,
+           raqmonDsCumulativePacketLoss      Counter32,
+           raqmonDsPacketLossFraction        Unsigned32,
+           raqmonDsCumulativeDiscards        Counter32,
+           raqmonDsDiscardsFraction          Unsigned32,
+           raqmonDsSourcePayloadType         Unsigned32,
+           raqmonDsReceiverPayloadType       Unsigned32,
+           raqmonDsSourceLayer2Priority      Unsigned32,
+           raqmonDsSourceDscp                Dscp,
+           raqmonDsDestinationLayer2Priority Unsigned32,
+           raqmonDsDestinationDscp           Dscp,
+           raqmonDsCpuUtilization            Unsigned32,
+           raqmonDsMemoryUtilization         Unsigned32 }
+
+   raqmonDsDSRC OBJECT-TYPE
+       SYNTAX     Unsigned32
+       MAX-ACCESS not-accessible
+       STATUS     current
+       DESCRIPTION
+           "Data Source identifier represents a unique session
+            descriptor that points to a specific session
+            between communicating entities.  Identifiers unique for
+            sessions conducted between two entities are
+            generated by the communicating entities.  Zero is a
+            valid value, with no special semantics."
+       ::= { raqmonDsNotificationEntry 1 }
+
+   raqmonDsRCN OBJECT-TYPE
+        SYNTAX      Unsigned32 (0..15)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "The Record Count Number indicates a sub-session
+             within a communication session.  A maximum number of 16
+             sub-sessions are supported; this limitation is
+             dictated by reasons of compatibility with other
+             transport protocols."
+        ::= { raqmonDsNotificationEntry 2 }
+
+   raqmonDsPeerAddrType OBJECT-TYPE
+       SYNTAX InetAddressType
+       MAX-ACCESS not-accessible
+       STATUS current
+       DESCRIPTION
+           "The type of the Internet address of the peer participant
+            for this session."
+       REFERENCE
+           "Section 5.2 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 3 }
+
+   raqmonDsPeerAddr OBJECT-TYPE
+       SYNTAX InetAddress
+       MAX-ACCESS not-accessible
+       STATUS current
+       DESCRIPTION
+           "The Internet Address of the peer participant for this
+            session."
+       REFERENCE
+           "Section 5.2 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 4 }
+
+   raqmonDsAppName  OBJECT-TYPE
+       SYNTAX     SnmpAdminString
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "This is a text string giving the name and possibly the
+            version of the application associated with that session,
+            e.g., 'XYZ VoIP Agent 1.2'."
+       REFERENCE
+           "Section 5.28 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 5 }
+
+   raqmonDsDataSourceDevicePort OBJECT-TYPE
+       SYNTAX     InetPortNumber
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "The port number from which data for this session was sent
+            by the Data Source device."
+       REFERENCE
+           "Section 5.5 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 6 }
+
+   raqmonDsReceiverDevicePort OBJECT-TYPE
+       SYNTAX     InetPortNumber
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "The port number where the data for this session was
+            received."
+       REFERENCE
+           "Section 5.6 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 7 }
+
+   raqmonDsSessionSetupDateTime OBJECT-TYPE
+       SYNTAX     DateAndTime
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "The time when session was initiated."
+       REFERENCE
+           "Section 5.7 of [RFC4710]"
+   ::= { raqmonDsNotificationEntry 8 }
+
+   raqmonDsSessionSetupDelay OBJECT-TYPE
+       SYNTAX     Unsigned32 (0..65535)
+       UNITS      "milliseconds"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "Session setup time."
+       REFERENCE
+           "Section 5.8 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 9 }
+
+   raqmonDsSessionDuration OBJECT-TYPE
+       SYNTAX     Unsigned32
+       UNITS      "seconds"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "Session duration, including setup time.  The SYNTAX of
+            this object allows expression of the duration of sessions
+            that do not exceed 4660 hours and 20 minutes."
+       REFERENCE
+           "Section 5.9 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 10 }
+
+   raqmonDsSessionSetupStatus OBJECT-TYPE
+       SYNTAX     SnmpAdminString
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "Describes appropriate communication session states, e.g.,
+            Call Established successfully, RSVP reservation
+            failed, etc."
+       REFERENCE
+           "Section 5.10 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 11 }
+
+   raqmonDsRoundTripEndToEndNetDelay OBJECT-TYPE
+       SYNTAX     Unsigned32
+       UNITS      "milliseconds"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "Most recent available information about the
+            round-trip end-to-end network delay."
+       REFERENCE
+           "Section 5.11 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry  12}
+
+   raqmonDsOneWayEndToEndNetDelay OBJECT-TYPE
+       SYNTAX     Unsigned32
+       UNITS      "milliseconds"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "Most recent available information about the
+            one-way end-to-end network delay."
+       REFERENCE
+           "Section 5.12 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry  13}
+
+   raqmonDsApplicationDelay OBJECT-TYPE
+       SYNTAX     Unsigned32  (0..65535)
+       UNITS      "milliseconds"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "Most recent available information about the
+            application delay."
+       REFERENCE
+           "Section 5.13 of [RFC4710"
+       ::= { raqmonDsNotificationEntry  14}
+
+   raqmonDsInterArrivalJitter OBJECT-TYPE
+       SYNTAX     Unsigned32  (0..65535)
+       UNITS      "milliseconds"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "An estimate of the inter-arrival jitter."
+       REFERENCE
+           "Section 5.14 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry  15}
+
+   raqmonDsIPPacketDelayVariation OBJECT-TYPE
+       SYNTAX     Unsigned32  (0..65535)
+       UNITS      "milliseconds"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "An estimate of the inter-arrival delay variation."
+       REFERENCE
+           "Section 5.15 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry  16}
+
+   raqmonDsTotalPacketsReceived OBJECT-TYPE
+       SYNTAX     Counter32
+       UNITS     "packets"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "The number of packets transmitted within a communication
+
+            session by the receiver since the start of the session."
+       REFERENCE
+           "Section 5.16 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 17 }
+
+   raqmonDsTotalPacketsSent OBJECT-TYPE
+       SYNTAX     Counter32
+       UNITS     "packets"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "The number of packets transmitted within a communication
+            session by the sender since the start of the session."
+       REFERENCE
+           "Section 5.17 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 18 }
+
+   raqmonDsTotalOctetsReceived OBJECT-TYPE
+       SYNTAX     Counter32
+       UNITS      "octets"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "The total number of payload octets (i.e., not including
+            header or padding octets) transmitted in packets by the
+            receiver within a communication session since the start
+            of the session."
+       REFERENCE
+           "Section 5.18 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 19 }
+
+   raqmonDsTotalOctetsSent OBJECT-TYPE
+       SYNTAX     Counter32
+       UNITS      "octets"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "The number of payload octets (i.e., not including headers
+            or padding) transmitted in packets by the sender within
+            a communication sub-session since the start of the
+            session."
+       REFERENCE
+           "Section 5.19 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 20 }
+
+   raqmonDsCumulativePacketLoss OBJECT-TYPE
+       SYNTAX     Counter32
+       UNITS      "packets"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "The number of packets from this session whose loss
+            had been detected since the start of the session."
+       REFERENCE
+           "Section 5.20 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 21 }
+
+   raqmonDsPacketLossFraction OBJECT-TYPE
+       SYNTAX     Unsigned32 (0..100)
+       UNITS      "percentage of packets sent"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "The percentage of lost packets with respect to the
+            overall packets sent.  This is defined to be 100 times
+            the number of packets lost divided by the number of
+            packets expected."
+       REFERENCE
+           "Section 5.21 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 22 }
+
+   raqmonDsCumulativeDiscards OBJECT-TYPE
+       SYNTAX     Counter32
+       UNITS      "packets"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "The number of packet discards detected since the
+            start of the session."
+       REFERENCE
+           "Section 5.22 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 23 }
+
+   raqmonDsDiscardsFraction OBJECT-TYPE
+       SYNTAX     Unsigned32 (0..100)
+       UNITS      "percentage of packets sent"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "The percentage of discards with respect to the overall
+            packets sent.  This is defined to be 100 times the number
+            of discards divided by the number of packets expected."
+       REFERENCE
+           "Section 5.23 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 24 }
+
+   raqmonDsSourcePayloadType OBJECT-TYPE
+       SYNTAX     Unsigned32 (0..127)
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "The payload type of the packet sent by this RDS."
+       REFERENCE
+           "RFC 1890, Section 5.24 of [RFC4710] "
+       ::= { raqmonDsNotificationEntry 25 }
+
+   raqmonDsReceiverPayloadType OBJECT-TYPE
+       SYNTAX     Unsigned32 (0..127)
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "The payload type of the packet received by this RDS."
+       REFERENCE
+           "RFC 1890, Section 5.25 of [RFC4710] "
+   ::= { raqmonDsNotificationEntry 26 }
+
+   raqmonDsSourceLayer2Priority OBJECT-TYPE
+       SYNTAX     Unsigned32 (0..7)
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "Source Layer 2 priority used by the data source to send
+            packets to the receiver by this data source during this
+            communication session."
+       REFERENCE
+           "Section 5.26 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 27 }
+
+   raqmonDsSourceDscp OBJECT-TYPE
+       SYNTAX     Dscp
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "Layer 3 TOS/DSCP values used by the Data Source to
+            prioritize traffic sent."
+       REFERENCE
+           "Section 5.27 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 28 }
+
+   raqmonDsDestinationLayer2Priority OBJECT-TYPE
+       SYNTAX     Unsigned32 (0..7)
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "Destination Layer 2 priority.  This is the priority used
+            by the peer communicating entity to send packets to the
+            data source."
+       REFERENCE
+           "Section 5.28 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 29 }
+
+   raqmonDsDestinationDscp OBJECT-TYPE
+       SYNTAX     Dscp
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "Layer 3 TOS/DSCP values used by the
+            peer communicating entity to prioritize traffic
+            sent to the source."
+       REFERENCE
+           "Section 5.29 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 30 }
+
+   raqmonDsCpuUtilization OBJECT-TYPE
+       SYNTAX     Unsigned32 (0..100)
+       UNITS      "percent"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "Latest available information about the total CPU
+            utilization."
+       REFERENCE
+           "Section 5.30 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 31 }
+
+   raqmonDsMemoryUtilization OBJECT-TYPE
+       SYNTAX     Unsigned32 (0..100)
+       UNITS      "percent"
+       MAX-ACCESS accessible-for-notify
+       STATUS     current
+       DESCRIPTION
+           "Latest available information about the total memory
+            utilization."
+       REFERENCE
+           "Section 5.31 of [RFC4710]"
+       ::= { raqmonDsNotificationEntry 32 }
+
+   -- definitions of the notifications
+   --
+   -- raqmonDsAppName is the only object that MUST be sent by an
+   -- RDS every time the static notification is generated.
+
+   -- raqmonDsTotalPacketsReceived is the only object that MUST be
+   -- sent by an RD every time the dynamic notification is generated.
+
+   -- Other objects from the raqmonDsNotificationTable may be
+   -- included in the variable binding list.  Specifically, a raqmon
+   -- notification will include MIB objects that provide information
+   -- about metrics that characterize the application session
+
+      raqmonDsStaticNotification NOTIFICATION-TYPE
+       OBJECTS { raqmonDsAppName }
+       STATUS current
+       DESCRIPTION
+           "This notification maps the static parameters in the
+            BASIC RAQMON PDU onto an SNMP transport.
+            This notification is expected to be sent once per
+            session, or when a new sub-session is initiated.
+            The following objects MAY be carried by the
+            raqmonDsStaticNotification:
+
+            raqmonDsDataSourceDevicePort,
+            raqmonDsReceiverDevicePort,
+            raqmonDsSessionSetupDateTime,
+            raqmonDsSessionSetupDelay,
+            raqmonDsSessionDuration,
+            raqmonDsSourcePayloadType,
+            raqmonDsReceiverPayloadType,
+            raqmonDsSourceLayer2Priority,
+            raqmonDsSourceDscp,
+            raqmonDsDestinationLayer2Priority,
+            raqmonDsDestinationDscp
+
+            It is RECOMMENDED to keep the size of a notification
+            within the MTU size limits in order to avoid
+            fragmentation."
+       ::= { raqmonDsNotifications  1 }
+
+   raqmonDsDynamicNotification NOTIFICATION-TYPE
+       OBJECTS { raqmonDsTotalPacketsReceived }
+       STATUS current
+       DESCRIPTION
+           "This notification maps the dynamic parameters in the
+            BASIC RAQMON PDU onto an SNMP transport.
+
+            The following objects MAY be carried by the
+            raqmonDsDynamicNotification:
+
+            raqmonDsRoundTripEndToEndNetDelay,
+            raqmonDsOneWayEndToEndNetDelay,
+            raqmonDsApplicationDelay,
+            raqmonDsInterArrivalJitter,
+            raqmonDsIPPacketDelayVariation,
+            raqmonDsTotalPacketsSent,
+            raqmonDsTotalOctetsReceived,
+            raqmonDsTotalOctetsSent,
+            raqmonDsCumulativePacketLoss,
+            raqmonDsPacketLossFraction,
+            raqmonDsCumulativeDiscards,
+            raqmonDsDiscardsFraction,
+            raqmonDsCpuUtilization,
+            raqmonDsMemoryUtilization
+
+            It is RECOMMENDED to keep the size of a notification
+            within the MTU size limits in order to avoid
+            fragmentation."
+       ::= { raqmonDsNotifications  2 }
+
+   raqmonDsByeNotification NOTIFICATION-TYPE
+       OBJECTS { raqmonDsAppName }
+       STATUS current
+       DESCRIPTION
+           "The BYE Notification.  This Notification is the
+            equivalent of the RAQMON NULL PDU, which signals the
+            end of a RAQMON session."
+       ::= { raqmonDsNotifications  3 }
+
+   --
+   -- conformance information
+   raqmonDsCompliance OBJECT IDENTIFIER ::=
+                                        { raqmonDsConformance 1 }
+   raqmonDsGroups OBJECT IDENTIFIER ::= { raqmonDsConformance 2 }
+
+raqmonDsBasicCompliance MODULE-COMPLIANCE
+        STATUS current
+        DESCRIPTION
+           "The compliance statement for SNMP entities that
+            implement this MIB module.
+
+            There are a number of INDEX objects that cannot be
+            represented in the form of OBJECT clauses in SMIv2, but
+            for which we have the following compliance requirements,
+            expressed in OBJECT clause form in this description
+            clause:
+
+            -- OBJECT      raqmonDsPeerAddrType
+            -- SYNTAX      InetAddressType { ipv4(1), ipv6(2) }
+
+            -- DESCRIPTION
+            --     This MIB requires support for only global IPv4
+            --     and IPv6 address types.
+            --
+            -- OBJECT      raqmonDsPeerAddr
+            -- SYNTAX      InetAddress (SIZE(4|16))
+            -- DESCRIPTION
+            --     This MIB requires support for only global IPv4
+            --     and IPv6 address types.
+            --
+           "
+        MODULE  -- this module
+            MANDATORY-GROUPS { raqmonDsNotificationGroup,
+                               raqmonDsPayloadGroup }
+        ::= { raqmonDsCompliance 1 }
+
+   raqmonDsNotificationGroup NOTIFICATION-GROUP
+       NOTIFICATIONS { raqmonDsStaticNotification,
+                       raqmonDsDynamicNotification,
+                       raqmonDsByeNotification }
+       STATUS current
+       DESCRIPTION
+           "Standard RAQMON Data Source Notification group."
+       ::= { raqmonDsGroups 1 }
+
+   raqmonDsPayloadGroup OBJECT-GROUP
+       OBJECTS { raqmonDsAppName,
+                 raqmonDsDataSourceDevicePort,
+                 raqmonDsReceiverDevicePort,
+                 raqmonDsSessionSetupDateTime,
+                 raqmonDsSessionSetupDelay,
+                 raqmonDsSessionDuration,
+                 raqmonDsSessionSetupStatus,
+                 raqmonDsRoundTripEndToEndNetDelay,
+                 raqmonDsOneWayEndToEndNetDelay,
+                 raqmonDsApplicationDelay,
+                 raqmonDsInterArrivalJitter,
+                 raqmonDsIPPacketDelayVariation,
+                 raqmonDsTotalPacketsReceived,
+                 raqmonDsTotalPacketsSent,
+                 raqmonDsTotalOctetsReceived,
+                 raqmonDsTotalOctetsSent,
+                 raqmonDsCumulativePacketLoss,
+                 raqmonDsPacketLossFraction,
+                 raqmonDsCumulativeDiscards,
+                 raqmonDsDiscardsFraction,
+                 raqmonDsSourcePayloadType,
+                 raqmonDsReceiverPayloadType,
+                 raqmonDsSourceLayer2Priority,
+                 raqmonDsSourceDscp,
+                 raqmonDsDestinationLayer2Priority,
+                 raqmonDsDestinationDscp,
+                 raqmonDsCpuUtilization,
+                 raqmonDsMemoryUtilization }
+       STATUS current
+       DESCRIPTION
+           "Standard RAQMON Data Source payload MIB objects group."
+       ::= { raqmonDsGroups 2 }
+
+   END

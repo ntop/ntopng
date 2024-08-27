@@ -40,7 +40,8 @@ ntopng-prep:
 	#wget -O ${NTOPNG_BUILD}/usr/share/nmap/scripts/vulscan/cve.csv 	https://www.computec.ch/projekte/vulscan/download/cve.csv
 	# wget -O ${NTOPNG_BUILD}/usr/share/nmap/scripts/vulscan/openvas.csv 	https://www.computec.ch/projekte/vulscan/download/openvas.csv
 
-	rm -rf ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/
+	rm -rf ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip 
+	rm -rf ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/mibs 
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name "*~"   | xargs /bin/rm -f
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".svn" | xargs /bin/rm -rf
 	find ${NTOPNG_BUILD}/usr/share/ntopng -name ".git*" | xargs /bin/rm -rf
@@ -98,6 +99,7 @@ ntopng-data:
 	cp ${HOME}/dat_files/dbip-city-lite-*.mmdb ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/dbip-city-lite.mmdb
 	cp ${HOME}/dat_files/dbip-asn-lite-*.mmdb ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/dbip-asn-lite.mmdb
 	cp ${HOME}/dat_files/dbip-country-lite-*.mmdb ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/geoip/dbip-country-lite.mmdb
+	cp -r $(NTOPNG_HOME)/packages/mibs ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ 
 	@echo
 	@find . -name "*~" -exec /bin/rm {} ';'
 	@/bin/rm -f ../ntopng-data_*deb

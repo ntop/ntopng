@@ -1,0 +1,920 @@
+T11-FC-SP-AUTHENTICATION-MIB  DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, OBJECT-IDENTITY,
+    NOTIFICATION-TYPE,
+    mib-2, Counter32, Unsigned32
+                                      FROM SNMPv2-SMI  -- [RFC2578]
+    MODULE-COMPLIANCE, OBJECT-GROUP,
+    NOTIFICATION-GROUP
+                                      FROM SNMPv2-CONF -- [RFC2580]
+    StorageType, AutonomousType,
+    TruthValue, TimeStamp             FROM SNMPv2-TC   -- [RFC2579]
+    InterfaceIndex                    FROM IF-MIB      -- [RFC2863]
+    fcmInstanceIndex,
+    FcNameIdOrZero                    FROM FC-MGMT-MIB -- [RFC4044]
+    t11FamLocalSwitchWwn
+                       FROM T11-FC-FABRIC-ADDR-MGR-MIB -- [RFC4439]
+    T11FabricIndex                    FROM T11-TC-MIB  -- [RFC4439]
+    T11FcSpDhGroups,
+    T11FcSpHashFunctions,
+    T11FcSpSignFunctions,
+    T11FcSpLifetimeLeft,
+    T11FcSpLifetimeLeftUnits,
+    T11FcSpAuthRejectReasonCode,
+    T11FcSpAuthRejReasonCodeExp       FROM T11-FC-SP-TC-MIB;
+
+t11FcSpAuthenticationMIB  MODULE-IDENTITY
+    LAST-UPDATED  "200808200000Z"
+    ORGANIZATION  "This MIB module was developed through the
+
+                  coordinated effort of two organizations:
+                  T11 began the development and the IETF (in
+                  the IMSS Working Group) finished it."
+    CONTACT-INFO
+            "     Claudio DeSanti
+                  Cisco Systems, Inc.
+                  170 West Tasman Drive
+                  San Jose, CA 95134 USA
+                  EMail: cds@cisco.com
+
+                  Keith McCloghrie
+                  Cisco Systems, Inc.
+                  170 West Tasman Drive
+                  San Jose, CA 95134 USA
+                  Email: kzm@cisco.com"
+    DESCRIPTION
+           "This MIB module specifies the management information
+           required to manage the Authentication Protocols defined by
+           Fibre Channel's FC-SP specification.
+
+           This MIB module defines three tables:
+
+            - t11FcSpAuEntityTable is a table of Fibre Channel
+              entities that can be authenticated using FC-SP's
+              Authentication Protocols.
+
+            - t11FcSpAuIfStatTable is a table with one row for each
+              mapping of an Authentication entity onto an interface,
+              containing statistics information.
+
+            - t11FcSpAuRejectTable is a table of volatile information
+              about FC-SP Authentication Protocol transactions
+              that were most recently rejected.
+
+           Copyright (C) The IETF Trust (2008).  This version
+           of this MIB module is part of RFC 5324;  see the RFC
+           itself for full legal notices."
+    REVISION  "200808200000Z"
+    DESCRIPTION
+           "Initial version of this MIB module, published as RFC 5324."
+    ::= { mib-2 176 }
+
+t11FcSpAuMIBNotifications
+                   OBJECT IDENTIFIER ::= { t11FcSpAuthenticationMIB 0 }
+t11FcSpAuMIBObjects
+                   OBJECT IDENTIFIER ::= { t11FcSpAuthenticationMIB 1 }
+t11FcSpAuMIBConformance
+                   OBJECT IDENTIFIER ::= { t11FcSpAuthenticationMIB 2 }
+
+t11FcSpAuMIBIdentities
+                   OBJECT IDENTIFIER ::= { t11FcSpAuthenticationMIB 3 }
+
+--
+-- OIDs defined for use as values of t11FcSpAuServerProtocol
+--
+
+t11FcSpAuServerProtocolRadius OBJECT-IDENTITY
+    STATUS       current
+    DESCRIPTION
+           "This OID identifies RADIUS as the protocol used
+           to communicate with an External Server as part of
+           the process by which identities are verified.
+           In this case, information about the RADIUS Servers
+           is likely to be provided in radiusAuthServerExtTable
+           defined in the RADIUS-AUTH-CLIENT-MIB."
+    REFERENCE
+           "radiusAuthServerExtTable in 'RADIUS Authentication
+            Client MIB', RFC 4668, August 2006."
+    ::= { t11FcSpAuMIBIdentities 1 }
+
+t11FcSpAuServerProtocolDiameter OBJECT-IDENTITY
+    STATUS       current
+    DESCRIPTION
+           "This OID identifies Diameter as the protocol used
+           to communicate with an External Server as part of
+           the process by which identities are verified."
+    REFERENCE
+           "RFC 3588, September 2003."
+    ::= { t11FcSpAuMIBIdentities 2 }
+
+t11FcSpAuServerProtocolTacacs OBJECT-IDENTITY
+    STATUS       current
+    DESCRIPTION
+           "This OID identifies TACACS as the protocol used
+           to communicate with an External Server as part of
+           the process by which identities are verified."
+    REFERENCE
+           "RFC 1492, July 1993."
+    ::= { t11FcSpAuMIBIdentities 3 }
+
+--
+-- Configuration for the Authentication Protocols
+--
+
+t11FcSpAuEntityTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpAuEntityEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of Fibre Channel entities that can be authenticated
+           using FC-SP's Authentication Protocols.
+
+           The purpose of an FC-SP Authentication Protocol is to verify
+           that a claimed name is associated with the claiming entity.
+           The Authentication Protocols can be used to authenticate
+           Nx_Ports, B_Ports, or Switches."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 3.2.25."
+    ::= { t11FcSpAuMIBObjects 1 }
+
+t11FcSpAuEntityEntry OBJECT-TYPE
+    SYNTAX       T11FcSpAuEntityEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Information about the configuration and capabilities of an
+           FC-SP entity (which is managed within the Fibre Channel
+           management instance identified by fcmInstanceIndex) on a
+           particular Fabric with respect to FC-SP's Authentication
+           Protocols."
+    INDEX   { fcmInstanceIndex, t11FcSpAuEntityName,
+              t11FcSpAuFabricIndex }
+    ::= { t11FcSpAuEntityTable 1 }
+
+T11FcSpAuEntityEntry ::= SEQUENCE {
+    t11FcSpAuEntityName             FcNameIdOrZero,
+    t11FcSpAuFabricIndex            T11FabricIndex,
+    t11FcSpAuServerProtocol         AutonomousType,
+                                                   -- Config parameters
+    t11FcSpAuStorageType            StorageType,
+    t11FcSpAuSendRejNotifyEnable    TruthValue,
+    t11FcSpAuRcvRejNotifyEnable     TruthValue,
+    t11FcSpAuDefaultLifetime        T11FcSpLifetimeLeft,
+    t11FcSpAuDefaultLifetimeUnits   T11FcSpLifetimeLeftUnits,
+    t11FcSpAuRejectMaxRows          Unsigned32,
+                                                   -- Capabilities
+    t11FcSpAuDhChapHashFunctions    T11FcSpHashFunctions,
+    t11FcSpAuDhChapDhGroups         T11FcSpDhGroups,
+    t11FcSpAuFcapHashFunctions      T11FcSpHashFunctions,
+    t11FcSpAuFcapCertsSignFunctions T11FcSpSignFunctions,
+    t11FcSpAuFcapDhGroups           T11FcSpDhGroups,
+    t11FcSpAuFcpapHashFunctions     T11FcSpHashFunctions,
+    t11FcSpAuFcpapDhGroups          T11FcSpDhGroups
+
+}
+
+t11FcSpAuEntityName OBJECT-TYPE
+    SYNTAX     FcNameIdOrZero (SIZE (8))
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+           "The name used to identify the FC-SP entity.
+
+           For entities that are Fibre Channel Switches, this value
+           corresponds to the Switch's value of fcmSwitchWWN.  For
+           entities other than Fibre Channel Switches, this value
+           corresponds to the value of fcmInstanceWwn for the
+           corresponding Fibre Channel management instance."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.3.3.
+            - fcmInstanceWwn & fcmSwitchWWN,
+              'Fibre Channel Management MIB', RFC 4044, May 2005."
+    ::= { t11FcSpAuEntityEntry 1 }
+
+t11FcSpAuFabricIndex OBJECT-TYPE
+    SYNTAX       T11FabricIndex
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies a
+           particular Fabric to which the entity is attached."
+    ::= { t11FcSpAuEntityEntry 2 }
+
+t11FcSpAuServerProtocol OBJECT-TYPE
+    SYNTAX       AutonomousType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The protocol, if any, used by the entity to communicate
+           with a third party (i.e., an External Server) as part of
+           the process by which it verifies DH-CHAP responses.  For
+           example, if the entity is using an external RADIUS server
+           to verify DH-CHAP responses, then this object will have
+           the value t11FcSpAuServerProtocolRadius.
+
+           The value, zeroDotZero, is used to indicate that no
+           protocol is being used to communicate with a third
+           party to verify DH-CHAP responses.
+
+           When no protocol is being used, or if the third party is
+
+           unreachable via the specified protocol, then locally
+           configured information (if any) may be used instead."
+    ::= { t11FcSpAuEntityEntry 3 }
+
+t11FcSpAuStorageType OBJECT-TYPE
+    SYNTAX       StorageType
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "This object specifies the memory realization of
+           configuration information related to an FC-SP
+           Entity on a particular Fabric: specifically, for
+           MIB objects in the row containing this object.
+
+           Even if an instance of this object has the value
+           'permanent(4)', none of the information in the
+           corresponding row of this table needs to be writable."
+    ::= { t11FcSpAuEntityEntry 4 }
+
+t11FcSpAuSendRejNotifyEnable OBJECT-TYPE
+    SYNTAX     TruthValue
+    MAX-ACCESS read-write
+    STATUS     current
+    DESCRIPTION
+           "An indication of whether or not the entity should issue
+           t11FcSpAuRejectSentNotify notifications when sending
+           AUTH_Reject/SW_RJT/LS_RJT to reject an AUTH message.
+
+           If the value of the object is 'true', then this type of
+           notification is generated.  If the value is 'false',
+           this type of notification is not generated."
+    DEFVAL { false }
+    ::= { t11FcSpAuEntityEntry 5 }
+
+t11FcSpAuRcvRejNotifyEnable OBJECT-TYPE
+    SYNTAX     TruthValue
+    MAX-ACCESS read-write
+    STATUS     current
+    DESCRIPTION
+           "An indication of whether or not the entity should issue
+           t11FcSpAuRejectReceivedNotify notifications on the receipt
+           of AUTH_Reject/SW_RJT/LS_RJT messages.
+
+           If the value of the object is 'true', then this type of
+           notification is generated.  If the value is 'false',
+           this type of notification is not generated."
+    DEFVAL { false }
+    ::= { t11FcSpAuEntityEntry 6 }
+
+t11FcSpAuDefaultLifetime OBJECT-TYPE
+    SYNTAX       T11FcSpLifetimeLeft
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "When the value of this object is non-zero, it specifies the
+           default value of a lifetime, specified in units given by
+           the corresponding instance of t11FcSpAuDefaultLifetimeUnits.
+           This default lifetime is to be used for any Security
+           Association that has no explicitly specified value for its
+           lifetime.
+
+           An SA's lifetime is either the time interval or the number
+           of passed bytes, after which the SA has to be terminated and
+           (if necessary) replaced with a new SA.
+
+           If this object is zero, then there is no default value for
+           lifetime."
+    DEFVAL       { 28800 }         -- 8 hours (in units of seconds)
+     ::= { t11FcSpAuEntityEntry 7 }
+
+t11FcSpAuDefaultLifetimeUnits OBJECT-TYPE
+    SYNTAX       T11FcSpLifetimeLeftUnits
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "The units in which the value of the corresponding
+           instance of t11FcSpAuDefaultLifetime specifies a
+           default lifetime for a Security Association that has
+           no explicitly-specified value for its lifetime."
+    DEFVAL       { seconds }
+    ::= { t11FcSpAuEntityEntry 8 }
+
+t11FcSpAuRejectMaxRows OBJECT-TYPE
+    SYNTAX       Unsigned32 (0..1000)
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "The maximum number of rows in the t11FcSpAuRejectTable for
+           this entity on this Fabric.  If and when an AUTH message is
+           rejected, and the t11FcSpAuRejectTable already contains this
+           maximum number of rows for the specific entity and Fabric,
+           the row containing the oldest information is discarded and
+           replaced by a row containing information about the new
+           rejection.
+
+           There will be less than this maximum number of rows in
+           the t11FcSpAuRejectTable in exceptional circumstances,
+           e.g., after an agent restart.
+
+           In an implementation that does not support the
+           t11FcSpAuRejectTable, this object will always be zero."
+    ::= { t11FcSpAuEntityEntry 9 }
+
+t11FcSpAuDhChapHashFunctions OBJECT-TYPE
+    SYNTAX     T11FcSpHashFunctions
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+           "The hash functions that the entity supports when using
+           the DH-CHAP algorithm."
+    ::= { t11FcSpAuEntityEntry 10 }
+
+t11FcSpAuDhChapDhGroups OBJECT-TYPE
+    SYNTAX     T11FcSpDhGroups
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+           "The DH Groups that the entity supports when using the
+           DH-CHAP algorithm in FC-SP."
+    ::= { t11FcSpAuEntityEntry 11 }
+
+t11FcSpAuFcapHashFunctions OBJECT-TYPE
+    SYNTAX     T11FcSpHashFunctions
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+           "The hash functions that the entity supports when
+           specified as Protocol Parameters in the AUTH_Negotiate
+           message for FCAP in FC-SP."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.5.2.1 and table 28."
+    ::= { t11FcSpAuEntityEntry 12 }
+
+t11FcSpAuFcapCertsSignFunctions OBJECT-TYPE
+    SYNTAX     T11FcSpSignFunctions
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+           "The signature functions used within certificates that
+           the entity supports when using FCAP in FC-SP."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.5.4.2 and tables 38 & 39."
+    ::= { t11FcSpAuEntityEntry 13 }
+
+t11FcSpAuFcapDhGroups OBJECT-TYPE
+    SYNTAX     T11FcSpDhGroups
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+           "The DH Groups that the entity supports when using the
+           FCAP algorithm in FC-SP."
+    ::= { t11FcSpAuEntityEntry 14 }
+
+t11FcSpAuFcpapHashFunctions OBJECT-TYPE
+    SYNTAX     T11FcSpHashFunctions
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+           "The hash functions that the entity supports when using
+           the FCPAP algorithm in FC-SP."
+    ::= { t11FcSpAuEntityEntry 15 }
+
+t11FcSpAuFcpapDhGroups OBJECT-TYPE
+    SYNTAX     T11FcSpDhGroups
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+           "The DH Groups that the entity supports when using the
+           FCPAP algorithm in FC-SP."
+    ::= { t11FcSpAuEntityEntry 16 }
+
+--
+-- The Mapping of Authentication Entities onto Interfaces
+-- and Statistics
+--
+
+t11FcSpAuIfStatTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpAuIfStatEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each FC-SP Authentication entity can operate on one or more
+           interfaces, but at most one of them can operate on each
+           interface.  A row in this table exists for each interface
+           to each Fabric on which each Authentication entity operates.
+
+           The objects within this table contain statistics information
+           related to FC-SP's Authentication Protocols."
+    ::= { t11FcSpAuMIBObjects 2 }
+
+t11FcSpAuIfStatEntry OBJECT-TYPE
+    SYNTAX       T11FcSpAuIfStatEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A set of Authentication Protocols statistics for an FC-SP
+           Authentication entity (identified by t11FcSpAuEntityName) on
+           one of its interfaces to a particular Fabric, which is
+           managed within the Fibre Channel management instance
+           identified by fcmInstanceIndex."
+    INDEX   { fcmInstanceIndex, t11FcSpAuEntityName,
+              t11FcSpAuIfStatInterfaceIndex,
+              t11FcSpAuIfStatFabricIndex }
+    ::= { t11FcSpAuIfStatTable 1 }
+
+T11FcSpAuIfStatEntry ::= SEQUENCE {
+    t11FcSpAuIfStatInterfaceIndex        InterfaceIndex,
+    t11FcSpAuIfStatFabricIndex           T11FabricIndex,
+    t11FcSpAuIfStatTimeouts              Counter32,
+    t11FcSpAuIfStatInAcceptedMsgs        Counter32,
+    t11FcSpAuIfStatInLsSwRejectedMsgs    Counter32,
+    t11FcSpAuIfStatInAuthRejectedMsgs    Counter32,
+    t11FcSpAuIfStatOutAcceptedMsgs       Counter32,
+    t11FcSpAuIfStatOutLsSwRejectedMsgs   Counter32,
+    t11FcSpAuIfStatOutAuthRejectedMsgs   Counter32
+}
+
+t11FcSpAuIfStatInterfaceIndex OBJECT-TYPE
+    SYNTAX       InterfaceIndex
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The interface on which the FC-SP Authentication entity
+           operates and for which the statistics are collected."
+    ::= { t11FcSpAuIfStatEntry 1 }
+
+t11FcSpAuIfStatFabricIndex OBJECT-TYPE
+    SYNTAX       T11FabricIndex
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value identifying the particular Fabric for
+           which the statistics are collected."
+    ::= { t11FcSpAuIfStatEntry 2 }
+
+t11FcSpAuIfStatTimeouts OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of FC-SP Authentication Protocol messages sent
+           by the particular entity on the particular Fabric on the
+           particular interface, for which no response was received
+           within a timeout period.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.11."
+    ::= { t11FcSpAuIfStatEntry 3 }
+
+t11FcSpAuIfStatInAcceptedMsgs OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of FC-SP Authentication Protocol messages
+           received and accepted by the particular entity on the
+           particular Fabric on the particular interface.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.1."
+    ::= { t11FcSpAuIfStatEntry 4 }
+
+t11FcSpAuIfStatInLsSwRejectedMsgs OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of FC-SP Authentication Protocol messages
+           received by the particular entity on the particular Fabric
+           on the particular interface, and rejected by a lower-level
+           (SW_RJT or LS_RJT) reject.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.1."
+    ::= { t11FcSpAuIfStatEntry 5 }
+
+t11FcSpAuIfStatInAuthRejectedMsgs OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of FC-SP Authentication Protocol messages
+           received by the particular entity on the particular Fabric
+           on the particular interface, and rejected by an AUTH_Reject
+           message.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.1."
+    ::= { t11FcSpAuIfStatEntry 6 }
+
+t11FcSpAuIfStatOutAcceptedMsgs OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of FC-SP Authentication Protocol messages sent
+           by the particular entity on the particular Fabric on the
+           particular interface, which were accepted by the
+           neighboring entity, i.e., not rejected by an AUTH_Reject
+           message, nor by a lower-level (SW_RJT or LS_RJT) reject.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.1."
+    ::= { t11FcSpAuIfStatEntry 7 }
+
+t11FcSpAuIfStatOutLsSwRejectedMsgs OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of FC-SP Authentication Protocol messages sent
+           by the particular entity on the particular Fabric on the
+           particular interface, which were rejected by a lower-level
+           (SW_RJT or LS_RJT) reject.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.1."
+    ::= { t11FcSpAuIfStatEntry 8 }
+
+t11FcSpAuIfStatOutAuthRejectedMsgs OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of FC-SP Authentication Protocol messages sent
+           by the particular entity on the particular Fabric on the
+           particular interface, which were rejected by an
+           AUTH_Reject message.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.1."
+    ::= { t11FcSpAuIfStatEntry 9 }
+
+--
+-- Information about Authentication Protocol Transactions
+-- which were recently rejected
+--
+
+t11FcSpAuRejectTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpAuRejectEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of volatile information about FC-SP Authentication
+           Protocol transactions that were recently rejected with
+           an AUTH_Reject message, or with an SW_RJT/LS_RJT.
+
+           The maximum number of rows in this table for a specific
+           entity on a specific Fabric is given by the value of the
+           corresponding instance of t11FcSpAuRejectMaxRows.
+
+           The syntax of t11FcSpAuRejTimestamp is TimeStamp, and thus
+           its value rolls over to zero after approximately 497 days.
+           To avoid any confusion due to such a rollover, rows should
+           be deleted from this table before they are 497 days old.
+
+           This table will be empty if no AUTH_Reject messages,
+           nor any SW_RJT/LS_RJT's rejecting an AUTH message,
+           have been sent or received since the last
+           re-initialization of the agent."
+    ::= { t11FcSpAuMIBObjects 3 }
+
+t11FcSpAuRejectEntry OBJECT-TYPE
+    SYNTAX       T11FcSpAuRejectEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Information about one AUTH message (either an
+           AUTH_ELS or an AUTH_ILS) that was rejected with an
+           AUTH_Reject, SW_RJT or LS_RJT message, sent/received by
+           the entity identified by values of fcmInstanceIndex and
+           t11FcSpAuEntityName, on an interface to a particular
+           Fabric."
+    INDEX   { fcmInstanceIndex, t11FcSpAuEntityName,
+              t11FcSpAuRejInterfaceIndex, t11FcSpAuRejFabricIndex,
+              t11FcSpAuRejTimestamp }
+    ::= { t11FcSpAuRejectTable 1 }
+
+T11FcSpAuRejectEntry ::= SEQUENCE {
+    t11FcSpAuRejInterfaceIndex        InterfaceIndex,
+    t11FcSpAuRejFabricIndex           T11FabricIndex,
+    t11FcSpAuRejTimestamp             TimeStamp,
+    t11FcSpAuRejDirection             INTEGER,
+    t11FcSpAuRejType                  INTEGER,
+    t11FcSpAuRejAuthMsgString         OCTET STRING,
+    t11FcSpAuRejReasonCode            T11FcSpAuthRejectReasonCode,
+    t11FcSpAuRejReasonCodeExp         T11FcSpAuthRejReasonCodeExp
+}
+
+t11FcSpAuRejInterfaceIndex OBJECT-TYPE
+    SYNTAX       InterfaceIndex
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The interface on which the rejected AUTH message was
+           sent or received."
+    ::= { t11FcSpAuRejectEntry 1 }
+
+t11FcSpAuRejFabricIndex OBJECT-TYPE
+    SYNTAX       T11FabricIndex
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value identifying the particular Fabric on
+
+           which the rejected AUTH message was sent or received."
+    ::= { t11FcSpAuRejectEntry 2 }
+
+t11FcSpAuRejTimestamp OBJECT-TYPE
+    SYNTAX       TimeStamp
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The time at which the AUTH message was rejected.  If two
+           rows have the same value of this object for the same
+           entity on the same interface and Fabric, the value of
+           this object for the later one is incremented by one."
+    ::= { t11FcSpAuRejectEntry 3 }
+
+t11FcSpAuRejDirection OBJECT-TYPE
+    SYNTAX       INTEGER { sent(1), received(2) }
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "An indication of whether the rejection was sent or
+           received by the identified entity.
+
+           The value 'sent(1)' corresponds to a notification of
+           type t11FcSpAuRejectSentNotify; the value 'received(2)'
+           corresponds to t11FcSpAuRejectReceivedNotify."
+    ::= { t11FcSpAuRejectEntry 4 }
+
+t11FcSpAuRejType OBJECT-TYPE
+    SYNTAX       INTEGER {
+                     authReject(1),
+                     swRjt(2),
+                     lsRjt(3)
+                 }
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "An indication of whether the rejection was an
+           AUTH_Reject, an SW_RJT or an LS_RJT."
+    ::= { t11FcSpAuRejectEntry 5 }
+
+t11FcSpAuRejAuthMsgString OBJECT-TYPE
+    SYNTAX       OCTET STRING (SIZE(0..255))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The binary content of the AUTH message that was
+           rejected, formatted as an octet string (in network
+           byte order) containing the content of the message.
+
+           If the binary content is unavailable, then the
+           length is zero.  Otherwise, the first octet of the
+           message identifies the type of message:
+
+              '90'h - an AUTH_ELS, see Table 6 in FC-SP,
+              '40'h - an AUTH_ILS, see Table 3 in FC-SP, or
+              '41'h - an B_AUTH_ILS, see Table 5 in FC-SP.
+
+           and the remainder of the message may be truncated."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, Tables 3, 5 and 6."
+    ::= { t11FcSpAuRejectEntry 6 }
+
+t11FcSpAuRejReasonCode OBJECT-TYPE
+    SYNTAX       T11FcSpAuthRejectReasonCode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The reason code with which this AUTH message was
+           rejected."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, Table 17, 48, 52."
+    ::= { t11FcSpAuRejectEntry 7 }
+
+t11FcSpAuRejReasonCodeExp OBJECT-TYPE
+    SYNTAX       T11FcSpAuthRejReasonCodeExp
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The reason code explanation with which this AUTH
+           message was rejected."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, Table 17, 48, 52."
+    ::= { t11FcSpAuRejectEntry 8 }
+
+--
+-- Notifications
+--
+
+t11FcSpAuRejectSentNotify NOTIFICATION-TYPE
+    OBJECTS   { t11FamLocalSwitchWwn,
+                t11FcSpAuRejAuthMsgString,
+                t11FcSpAuRejType,
+                t11FcSpAuRejReasonCode,
+                t11FcSpAuRejReasonCodeExp }
+    STATUS       current
+    DESCRIPTION
+           "This notification indicates that a Switch (identified
+           by the value of t11FamLocalSwitchWwn) has sent a reject
+           message of the type indicated by t11FcSpAuRejType in
+           response to an AUTH message.
+
+           The content of the rejected AUTH message is given by the
+           value of t11FcSpAuRejAuthMsgString.  The values of the
+           Reason Code and Reason Code Explanation in the
+           AUTH_Reject/SW_RJT/LS_RJT are indicated by the values of
+           t11FcSpAuRejReasonCode and t11FcSpAuRejReasonCodeExp."
+    ::= { t11FcSpAuMIBNotifications 1 }
+
+t11FcSpAuRejectReceivedNotify NOTIFICATION-TYPE
+    OBJECTS   { t11FamLocalSwitchWwn,
+                t11FcSpAuRejAuthMsgString,
+                t11FcSpAuRejType,
+                t11FcSpAuRejReasonCode,
+                t11FcSpAuRejReasonCodeExp }
+    STATUS       current
+    DESCRIPTION
+           "This notification indicates that a Switch (identified
+           by the value of t11FamLocalSwitchWwn) has received a
+           reject message of the type indicated by t11FcSpAuRejType
+           in response to an AUTH message.
+
+           The content of the rejected AUTH message is given by the
+           value of t11FcSpAuRejAuthMsgString.  The values of the
+           Reason Code and Reason Code Explanation in the
+           AUTH_Reject/SW_RJT/LS_RJT are indicated by the values of
+           t11FcSpAuRejReasonCode and t11FcSpAuRejReasonCodeExp."
+    ::= { t11FcSpAuMIBNotifications 2 }
+
+--
+-- Conformance
+--
+
+t11FcSpAuMIBCompliances
+                  OBJECT IDENTIFIER ::= { t11FcSpAuMIBConformance 1 }
+t11FcSpAuMIBGroups
+                  OBJECT IDENTIFIER ::= { t11FcSpAuMIBConformance 2 }
+
+t11FcSpAuMIBCompliance MODULE-COMPLIANCE
+    STATUS       current
+    DESCRIPTION
+           "The compliance statement for entities that
+           implement one or more of the Authentication Protocols
+           defined in FC-SP."
+
+    MODULE  -- this module
+        MANDATORY-GROUPS { t11FcSpAuGeneralGroup,
+                           t11FcSpAuRejectedGroup,
+                           t11FcSpAuNotificationGroup }
+
+        GROUP      t11FcSpAuIfStatsGroup
+        DESCRIPTION
+               "These counters, of particular FC-SP messages and
+               events, are mandatory only for those systems that
+               count such messages/events."
+
+-- Write access is not required for any objects in this MIB module:
+
+        OBJECT     t11FcSpAuStorageType
+        MIN-ACCESS read-only
+        DESCRIPTION
+               "Write access is not required."
+
+        OBJECT     t11FcSpAuSendRejNotifyEnable
+        MIN-ACCESS read-only
+        DESCRIPTION
+               "Write access is not required."
+
+        OBJECT     t11FcSpAuRcvRejNotifyEnable
+        MIN-ACCESS read-only
+        DESCRIPTION
+               "Write access is not required."
+
+        OBJECT     t11FcSpAuDefaultLifetime
+        MIN-ACCESS read-only
+        DESCRIPTION
+               "Write access is not required."
+
+        OBJECT     t11FcSpAuDefaultLifetimeUnits
+        MIN-ACCESS read-only
+        DESCRIPTION
+               "Write access is not required."
+
+        OBJECT     t11FcSpAuRejectMaxRows
+        MIN-ACCESS read-only
+        DESCRIPTION
+               "Write access is not required."
+        ::= { t11FcSpAuMIBCompliances 1 }
+
+-- Units of Conformance
+
+t11FcSpAuGeneralGroup OBJECT-GROUP
+    OBJECTS  { t11FcSpAuServerProtocol,
+               t11FcSpAuStorageType,
+               t11FcSpAuSendRejNotifyEnable,
+               t11FcSpAuRcvRejNotifyEnable,
+               t11FcSpAuDefaultLifetime,
+               t11FcSpAuDefaultLifetimeUnits,
+               t11FcSpAuRejectMaxRows,
+               t11FcSpAuDhChapHashFunctions,
+               t11FcSpAuDhChapDhGroups,
+               t11FcSpAuFcapHashFunctions,
+               t11FcSpAuFcapCertsSignFunctions,
+               t11FcSpAuFcapDhGroups,
+               t11FcSpAuFcpapHashFunctions,
+               t11FcSpAuFcpapDhGroups,
+               t11FcSpAuIfStatTimeouts }
+    STATUS   current
+    DESCRIPTION
+           "A collection of objects for the capabilities and
+           configuration parameters of FC-SP's Authentication
+           Protocols.  The inclusion of t11FcSpAuIfStatTimeouts
+           in this group provides information on mappings of
+           Authentication entities onto interfaces."
+    ::= { t11FcSpAuMIBGroups 1 }
+
+t11FcSpAuIfStatsGroup OBJECT-GROUP
+    OBJECTS  { t11FcSpAuIfStatInAcceptedMsgs,
+               t11FcSpAuIfStatInLsSwRejectedMsgs,
+               t11FcSpAuIfStatInAuthRejectedMsgs,
+               t11FcSpAuIfStatOutAcceptedMsgs,
+               t11FcSpAuIfStatOutLsSwRejectedMsgs,
+               t11FcSpAuIfStatOutAuthRejectedMsgs }
+    STATUS   current
+    DESCRIPTION
+           "A collection of objects for monitoring the
+           operations of FC-SP's Authentication Protocols."
+    ::= { t11FcSpAuMIBGroups 2 }
+
+t11FcSpAuRejectedGroup OBJECT-GROUP
+    OBJECTS  { t11FcSpAuRejDirection,
+               t11FcSpAuRejType,
+               t11FcSpAuRejAuthMsgString,
+               t11FcSpAuRejReasonCode,
+               t11FcSpAuRejReasonCodeExp }
+    STATUS   current
+    DESCRIPTION
+           "A collection of objects holding information concerning
+           FC-SP Authentication Protocol transactions that were
+           recently rejected with an AUTH_Reject, with an SW_RJT,
+           or with an LS_RJT."
+    ::= { t11FcSpAuMIBGroups 3 }
+
+t11FcSpAuNotificationGroup NOTIFICATION-GROUP
+    NOTIFICATIONS  { t11FcSpAuRejectSentNotify,
+                     t11FcSpAuRejectReceivedNotify }
+    STATUS   current
+    DESCRIPTION
+           "A collection of notifications for use in the management
+           of FC-SP's Authentication Protocols."
+    ::= { t11FcSpAuMIBGroups 4 }
+
+END
