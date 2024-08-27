@@ -603,7 +603,7 @@ void Flow::processDetectedProtocolData() {
       && (ndpiFlow->host_server_name[0] != '\0') && (!host_server_name)) {
     Utils::sanitizeHostName((char *)ndpiFlow->host_server_name);
 
-    if (ndpi_is_proto(ndpiDetectedProtocol, NDPI_PROTOCOL_HTTP)) {
+    if (ndpi_is_proto(ndpiDetectedProtocol.proto, NDPI_PROTOCOL_HTTP)) {
       char *double_column = strrchr((char *)ndpiFlow->host_server_name, ':');
 
       if (double_column) double_column[0] = '\0';
