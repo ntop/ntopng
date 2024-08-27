@@ -3611,16 +3611,17 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
     if (addr) {
       if (is_client && (getPreNATSrcIp() != getPostNATSrcIp()))
         use_nat = true;
+        tmp_ip.set(getPreNATSrcIp());
 
       /* With NAT they are IPv4 */
-      tmp_ip.set(getPreNATSrcIp());
       json_object_object_add(
 			     host_object,
 			     Utils::jsonLabel(
 					      is_client ? (addr->isIPv4() ? IPV4_SRC_ADDR : IPV6_SRC_ADDR)
 					      : (addr->isIPv4() ? IPV4_DST_ADDR : IPV6_DST_ADDR),
 					      "ip", jsonbuf, sizeof(jsonbuf)),
-			     json_object_new_string(tmp_ip.print(buf, sizeof(buf))));
+			     json_object_new_string(use_nat ? tmp_ip.print(buf, sizeof(buf)) : 
+                               addr->print(buf, sizeof(buf))));
 
       /* Custom information elements, Local, Blacklisted, Has Services and
        * domain name */
