@@ -1,0 +1,67 @@
+NET-SNMP-MIB DEFINITIONS ::= BEGIN
+
+--
+-- Top-level infrastructure of the Net-SNMP project enterprise MIB tree
+--
+
+IMPORTS
+    MODULE-IDENTITY, enterprises FROM SNMPv2-SMI;
+
+netSnmp MODULE-IDENTITY
+    LAST-UPDATED "200201300000Z"
+    ORGANIZATION "www.net-snmp.org"
+    CONTACT-INFO    
+	 "postal:   Wes Hardaker
+                    P.O. Box 382
+                    Davis CA  95617
+
+          email:    net-snmp-coders@lists.sourceforge.net"
+    DESCRIPTION
+	"Top-level infrastructure of the Net-SNMP project enterprise MIB tree"
+    REVISION     "200201300000Z"
+    DESCRIPTION
+	"First draft"
+    ::= { enterprises 8072}
+
+
+--
+--  Net-SNMP enterprise-specific management objects
+--
+
+netSnmpObjects              OBJECT IDENTIFIER ::= {netSnmp 1}
+-- netSnmpExamples             OBJECT IDENTIFIER ::= {netSnmp 2}
+netSnmpEnumerations         OBJECT IDENTIFIER ::= {netSnmp 3}
+netSnmpModuleIDs            OBJECT IDENTIFIER ::= {netSnmpEnumerations 1}
+netSnmpAgentOIDs            OBJECT IDENTIFIER ::= {netSnmpEnumerations 2}
+netSnmpDomains              OBJECT IDENTIFIER ::= {netSnmpEnumerations 3}
+netSnmpExperimental         OBJECT IDENTIFIER ::= {netSnmp 9999}
+
+--
+-- A subtree specifically designed for private testing purposes.
+-- No "public" management objects should ever be defined within this tree.
+--
+-- It is provided for private experimentation, prior to transferring a MIB
+-- structure to another part of the overall OID tree
+--
+netSnmpPlaypen              OBJECT IDENTIFIER ::= {netSnmpExperimental 9999}
+
+
+--
+--  Notifications
+--
+
+netSnmpNotificationPrefix   OBJECT IDENTIFIER ::= {netSnmp 4}
+netSnmpNotifications        OBJECT IDENTIFIER ::= {netSnmpNotificationPrefix 0}
+netSnmpNotificationObjects  OBJECT IDENTIFIER ::= {netSnmpNotificationPrefix 1}
+
+
+--
+--  Conformance
+--     (No laughing at the back!)
+--
+
+netSnmpConformance          OBJECT IDENTIFIER ::= {netSnmp 5}
+netSnmpCompliances          OBJECT IDENTIFIER ::= {netSnmpConformance 1}
+netSnmpGroups               OBJECT IDENTIFIER ::= {netSnmpConformance 2}
+
+END

@@ -62,6 +62,7 @@ binary-arch: build install
 	fi
 	rm -rf ./debian/@APP@/etc/ntopng/nedge.conf
 	rm -rf ./debian/@APP@/usr/share/ntopng/httpdocs/geoip/*.dat
+	rm -rf ./debian/@APP@/usr/share/ntopng/httpdocs/mibs
 #	strip ./debian/@APP@/usr/bin/@APP@
 	-find ./debian/@APP@ -name .svn -exec /bin/rm -rf {} ';'
 	-find ./debian/@APP@ -name '*~' -exec /bin/rm -rf {} ';'

@@ -1,0 +1,47 @@
+DPI20-MIB DEFINITIONS ::= BEGIN
+
+-- Objects in this MIB are implemented in the local SNMP agent.
+
+   IMPORTS
+           MODULE-IDENTITY, OBJECT-TYPE, snmpModules, enterprises
+                   FROM SNMPv2-SMI
+
+   ibm      OBJECT IDENTIFIER ::= { enterprises 2 }
+   ibmDPI   OBJECT IDENTIFIER ::= { ibm 2 }
+   dpi20MIB OBJECT IDENTIFIER ::= { ibmDPI 1 }
+
+-- dpi20MIB MODULE-IDENTITY
+--   LAST-UPDATED "9401210000Z"
+--   ORGANIZATION "IBM Research - T.J. Watson Research Center"
+--   CONTACT-INFO "           Bert Wijnen
+--                 Postal:    IBM International Operations
+--                            Watsonweg 2
+--                            1423 ND Uithoorn
+--                            The Netherlands
+
+--                 Tel:       +31 2975 53316
+--                 Fax:       +31 2975 62468
+--                 E-mail:    wijnen@vnet.ibm.com"
+--   DESCRIPTION "MIB module describing DPI objects."
+--   ::= { snmpModules x }
+
+   dpiPort  OBJECT IDENTIFIER ::= { dpi20MIB 1 }
+
+   dpiPortForTCP   OBJECT-TYPE
+           SYNTAX  INTEGER (0..65535)
+           ACCESS  read-only
+           STATUS  mandatory
+           DESCRIPTION "The TCP port number on which the agent
+                        listens for DPI connections. A zero value
+                        means the agent has no DPI TCP port."
+           ::= { dpiPort 1 }
+
+   dpiPortForUDP   OBJECT-TYPE
+           SYNTAX  INTEGER (0..65535)
+           ACCESS  read-only
+           STATUS  mandatory
+           DESCRIPTION "The UDP port number on which the agent
+                        listens for DPI packets. A zero value
+                        means the agent has no DPI UDP port."
+           ::= { dpiPort 2 }
+END

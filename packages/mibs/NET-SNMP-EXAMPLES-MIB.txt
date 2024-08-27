@@ -1,0 +1,285 @@
+NET-SNMP-EXAMPLES-MIB DEFINITIONS ::= BEGIN
+
+--
+-- Example MIB objects for agent module example implementations
+--
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32,
+    NOTIFICATION-TYPE                       FROM SNMPv2-SMI
+    SnmpAdminString                         FROM SNMP-FRAMEWORK-MIB
+    netSnmp                                 FROM NET-SNMP-MIB
+    RowStatus, StorageType                  FROM SNMPv2-TC
+    InetAddressType, InetAddress            FROM INET-ADDRESS-MIB
+;
+
+netSnmpExamples MODULE-IDENTITY
+    LAST-UPDATED "200406150000Z"
+    ORGANIZATION "www.net-snmp.org"
+    CONTACT-INFO    
+	 "postal:   Wes Hardaker
+                    P.O. Box 382
+                    Davis CA  95617
+
+          email:    net-snmp-coders@lists.sourceforge.net"
+    DESCRIPTION
+	"Example MIB objects for agent module example implementations"
+    REVISION     "200406150000Z"
+    DESCRIPTION
+	"Corrected notification example definitions"
+    REVISION     "200202060000Z"
+    DESCRIPTION
+	"First draft"
+    ::= { netSnmp 2 }
+
+--
+-- top level structure
+--
+netSnmpExampleScalars       OBJECT IDENTIFIER ::= { netSnmpExamples 1 }
+netSnmpExampleTables        OBJECT IDENTIFIER ::= { netSnmpExamples 2 }
+netSnmpExampleNotifications OBJECT IDENTIFIER ::= { netSnmpExamples 3 }
+netSnmpExampleNotificationPrefix  OBJECT IDENTIFIER
+                                  ::= { netSnmpExampleNotifications 0 }
+netSnmpExampleNotificationObjects OBJECT IDENTIFIER
+                                  ::= { netSnmpExampleNotifications 2 }
+-- netSnmpTutorial          OBJECT IDENTIFIER ::= { netSnmpExamples 4 }
+
+--
+-- Example scalars
+--
+
+netSnmpExampleInteger OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+	"This is a simple object which merely houses a writable
+	 integer.  It's only purposes is to hold the value of a single
+	 integer.  Writing to it will simply change the value for
+	 subsequent GET/GETNEXT/GETBULK retrievals.
+
+	 This example object is implemented in the
+	 agent/mibgroup/examples/scalar_int.c file."
+    DEFVAL { 42 }
+    ::= { netSnmpExampleScalars 1 }
+
+netSnmpExampleSleeper OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+	"This is a simple object which is a basic integer.  It's value
+	 indicates the number of seconds that the agent will take in
+	 responding to requests of this object.  This is implemented
+	 in a way which will allow the agent to keep responding to
+	 other requests while access to this object is blocked.  It is
+	 writable, and changing it's value will change the amount of
+	 time the agent will effectively wait for before returning a
+	 response when this object is manipulated.  Note that SET
+	 requests through this object will take longer, since the
+	 delay is applied to each internal transaction phase, which
+	 could result in delays of up to 4 times the value of this
+	 object.
+
+	 This example object is implemented in the
+	 agent/mibgroup/examples/delayed_instance.c file."
+    DEFVAL { 1 }
+    ::= { netSnmpExampleScalars 2 }
+
+netSnmpExampleString OBJECT-TYPE
+    SYNTAX      SnmpAdminString
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+	"This is a simple object which merely houses a writable
+	 string.  It's only purposes is to hold the value of a single
+	 string.  Writing to it will simply change the value for
+	 subsequent GET/GETNEXT/GETBULK retrievals.
+
+	 This example object is implemented in the
+	 agent/mibgroup/examples/watched.c file."
+    DEFVAL { "So long, and thanks for all the fish!" }
+    ::= { netSnmpExampleScalars 3 }
+
+
+--
+--  Example Tables
+--
+
+netSnmpIETFWGTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NetSnmpIETFWGEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+	"This table merely contains a set of data which is otherwise
+	 useless for true network management.  It is a table which
+	 describes properies about a IETF Working Group, such as the
+	 names of the two working group chairs.
+
+	 This example table is implemented in the
+	 agent/mibgroup/examples/data_set.c file."
+    ::= { netSnmpExampleTables 1 }
+
+netSnmpIETFWGEntry OBJECT-TYPE
+    SYNTAX      NetSnmpIETFWGEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+	"A row describing a given working group"
+    INDEX   { nsIETFWGName }
+    ::= {netSnmpIETFWGTable 1 }
+
+NetSnmpIETFWGEntry ::= SEQUENCE {
+	nsIETFWGName	OCTET STRING,
+	nsIETFWGChair1	OCTET STRING,
+	nsIETFWGChair2	OCTET STRING
+}
+
+nsIETFWGName OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(1..32))
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+	"The name of the IETF Working Group this table describes."
+    ::= { netSnmpIETFWGEntry 1 }
+
+nsIETFWGChair1 OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+	"One of the names of the chairs for the IETF working group."
+    ::= { netSnmpIETFWGEntry 2 }
+
+nsIETFWGChair2 OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+	"The other name, if one exists, of the chairs for the IETF
+	working group."
+    ::= { netSnmpIETFWGEntry 3 }
+
+--
+-- A table used in a table_iterator example
+--   (agent/mibgroup/examples/netSnmpHostsTable*.[ch])
+--
+
+netSnmpHostsTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NetSnmpHostsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+	"An example table that implements a wrapper around the
+	/etc/hosts file on a machine using the iterator helper API."
+    ::= { netSnmpExampleTables 2 }
+
+netSnmpHostsEntry OBJECT-TYPE
+    SYNTAX      NetSnmpHostsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+	"A host name mapped to an ip address"
+    INDEX   { netSnmpHostName }
+    ::= { netSnmpHostsTable 1 }
+
+NetSnmpHostsEntry ::= SEQUENCE {
+    netSnmpHostName         OCTET STRING,
+    netSnmpHostAddressType  InetAddressType,
+    netSnmpHostAddress      InetAddress,
+    netSnmpHostStorage      StorageType,
+    netSnmpHostRowStatus    RowStatus
+}
+
+netSnmpHostName OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(0..64))
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+	"A host name that exists in the /etc/hosts (unix) file."
+    ::= { netSnmpHostsEntry 1 }
+
+netSnmpHostAddressType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+	"The address type of then given host."
+    ::= { netSnmpHostsEntry 2 }
+
+netSnmpHostAddress OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+	"The address of then given host."
+    ::= { netSnmpHostsEntry 3 }
+
+netSnmpHostStorage OBJECT-TYPE
+    SYNTAX       StorageType
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION "The storage type for this conceptual row."
+    DEFVAL      { nonVolatile }
+    ::= { netSnmpHostsEntry 4 }
+
+netSnmpHostRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION "The status of this conceptual row."
+    ::= { netSnmpHostsEntry 5 }
+
+
+--
+--  Example Notifications
+--
+
+netSnmpExampleHeartbeatRate OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  accessible-for-notify
+    STATUS      current
+    DESCRIPTION
+        "A simple integer object, to act as a payload for the
+         netSnmpExampleHeartbeatNotification.  The value has
+         no real meaning, but is nominally the interval (in
+         seconds) between successive heartbeat notifications."
+::= { netSnmpExampleNotificationObjects 1 }
+
+netSnmpExampleHeartbeatName OBJECT-TYPE
+    SYNTAX      SnmpAdminString
+    MAX-ACCESS  accessible-for-notify
+    STATUS      current
+    DESCRIPTION
+        "A simple string object, to act as an optional payload
+         for the netSnmpExampleHeartbeatNotification.  This varbind
+         is not part of the notification definition, so is optional
+         and need not be included in the notification payload. 
+         The value has no real meaning, but the romantically inclined
+         may take it to be the object of the sender's affection,
+         and hence the cause of the heart beating faster."
+::= { netSnmpExampleNotificationObjects 2 }
+
+netSnmpExampleHeartbeatNotification NOTIFICATION-TYPE
+    OBJECTS     { netSnmpExampleHeartbeatRate }
+    STATUS      current
+    DESCRIPTION
+        "An example notification, used to illustrate the
+         definition and generation of trap and inform PDUs
+         (including the use of both standard and additional
+         varbinds in the notification payload).
+         This notification will typically be sent every
+	 30 seconds, using the code found in the example module
+             agent/mibgroup/examples/notification.c"
+::= { netSnmpExampleNotificationPrefix 1 }
+    
+netSnmpExampleNotification OBJECT-TYPE
+    SYNTAX      SnmpAdminString
+    MAX-ACCESS  accessible-for-notify
+    STATUS      obsolete
+    DESCRIPTION
+        "This object was improperly defined for its original purpose,
+         and should no longer be used."
+::= { netSnmpExampleNotifications 1 }
+
+END

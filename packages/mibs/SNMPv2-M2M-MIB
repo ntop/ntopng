@@ -1,0 +1,807 @@
+SNMPv2-M2M-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE,
+    Integer32, Counter32, snmpModules
+        FROM SNMPv2-SMI
+    DisplayString, InstancePointer, RowStatus, TimeStamp
+        FROM SNMPv2-TC
+    MODULE-COMPLIANCE, OBJECT-GROUP
+        FROM SNMPv2-CONF
+    contextIdentity
+        FROM SNMPv2-PARTY-MIB;
+
+snmpM2M MODULE-IDENTITY
+    LAST-UPDATED "9304010000Z"
+    ORGANIZATION "IETF SNMPv2 Working Group"
+    CONTACT-INFO
+            "        Steven Waldbusser
+
+             Postal: Carnegie Mellon University
+                     4910 Forbes Ave
+                     Pittsburgh, PA  15213
+
+                Tel: +1 412 268 6628
+                Fax: +1 412 268 4987
+
+             E-mail: waldbusser@cmu.edu"
+    DESCRIPTION
+            "The Manager-to-Manager MIB module."
+    ::= { snmpModules 2 }
+
+snmpM2MObjects OBJECT IDENTIFIER ::= { snmpM2M 1 }
+
+-- the alarm group
+--
+-- a collection of objects allowing the description and
+-- configuration of threshold alarms from a SNMPv2 entity
+-- acting in a dual role.
+
+snmpAlarm      OBJECT IDENTIFIER ::= { snmpM2MObjects 1 }
+
+-- This Alarm mechanism periodically takes statistical samples
+-- from variables available via SNMPv2 and compares them to
+-- thresholds that have been configured.  The alarm table
+-- stores configuration entries that each define a variable,
+-- polling period, and threshold parameters.  If a sample is
+-- found to cross the threshold values, an event is generated.
+-- Only variables that resolve to an ASN.1 primitive type of
+-- INTEGER (Integer32, Counter32, Gauge32, TimeTicks,
+-- Counter64, or UInteger32) may be monitored in this way.
+--
+-- This function has a hysteresis mechanism to limit the
+-- generation of events.  This mechanism generates one event
+-- as a threshold is crossed in the appropriate direction.  No
+-- more events are generated for that threshold until the
+-- opposite threshold is crossed.
+--
+-- In the case of sampling a deltaValue, an entity may
+-- implement this mechanism with more precision if it takes a
+-- delta sample twice per period, each time comparing the sum
+-- of the latest two samples to the threshold.  This allows
+-- the detection of threshold crossings that span the sampling
+-- boundary.  Note that this does not require any special
+-- configuration of the threshold value.  It is suggested that
+-- entities implement this more precise algorithm.
+--
+
+snmpAlarmNextIndex OBJECT-TYPE
+    SYNTAX     INTEGER (0..65535)
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+            "The index number of the next appropriate
+            unassigned entry in the snmpAlarmTable.  The value
+            0 indicates that no unassigned entries are
+            available.
+
+            A management station should create new entries in
+            the snmpAlarmTable using this algorithm: first,
+            issue a management protocol retrieval operation to
+            determine the value of snmpAlarmNextIndex; and,
+            second, issue a management protocol set operation
+            to create an instance of the snmpAlarmStatus
+            object setting its value to `createAndGo' or
+            `createAndWait' (as specified in the description
+            of the RowStatus textual convention)."
+    ::= { snmpAlarm 1 }
+
+snmpAlarmTable OBJECT-TYPE
+    SYNTAX     SEQUENCE OF SnmpAlarmEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+            "A list of snmpAlarm entries."
+    ::= { snmpAlarm 2 }
+
+snmpAlarmEntry OBJECT-TYPE
+    SYNTAX     SnmpAlarmEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+            "A list of parameters that set up a periodic
+            sampling query to check for alarm conditions.  The
+            contextIdentity included in the INDEX clause is
+            the context to which the sampling queries are
+            directed."
+    INDEX      { contextIdentity, snmpAlarmIndex }
+    ::= { snmpAlarmTable 1 }
+
+SnmpAlarmEntry ::= SEQUENCE {
+    snmpAlarmIndex                    INTEGER,
+    snmpAlarmVariable                 InstancePointer,
+    snmpAlarmInterval                 Integer32,
+    snmpAlarmSampleType               INTEGER,
+    snmpAlarmValue                    Integer32,
+    snmpAlarmStartupAlarm             INTEGER,
+    snmpAlarmRisingThreshold          Integer32,
+    snmpAlarmFallingThreshold         Integer32,
+    snmpAlarmRisingEventIndex         INTEGER,
+    snmpAlarmFallingEventIndex        INTEGER,
+    snmpAlarmUnavailableEventIndex    INTEGER,
+    snmpAlarmStatus                   RowStatus
+}
+
+snmpAlarmIndex OBJECT-TYPE
+    SYNTAX     INTEGER (1..65535)
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+            "An index that uniquely identifies an entry in the
+            snmpAlarm table for a particular sampling context.
+            Each such entry defines a diagnostic sample at a
+            particular interval for a variable in the
+            particular context's object resources."
+    ::= { snmpAlarmEntry 1 }
+
+snmpAlarmVariable OBJECT-TYPE
+    SYNTAX     InstancePointer
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The object identifier of the particular variable
+            to be sampled.  Only variables that resolve to an
+            ASN.1 primitive type of INTEGER (Integer32,
+            Counter32, Gauge32, TimeTicks, Counter64, or
+            UInteger32) may be sampled.
+
+            If it is detected by an error response of
+            authorizationError, noSuchObject, or
+            noSuchInstance that the variable name of an
+            established snmpAlarmEntry is no longer available
+            in the sampling context, a single
+            snmpObjectUnavailableAlarm event is generated and
+            the status of this snmpAlarmEntry is set to
+            `destroy'.  Likewise, if the syntax of the
+            variable retrieved by the query is not Integer32,
+            Counter32, Gauge32, TimeTicks, Counter64, or
+            UInteger32, the same actions will be taken.
+
+            If the SNMPv2 entity acting in a dual role detects
+            that the sampled value can not be obtained due to
+            lack of response to management queries, it should
+            either:
+
+                 1) Set the status of this snmpAlarmEntry to
+                 `destroy', if it is determined that further
+                 communication is not possible;
+
+                 or,
+                 2) Delete the associated snmpAlarmValue
+                 instance (but not the entire conceptual row),
+                 and continue to attempt to sample the
+                 variable and recreate the associated
+                 snmpAlarmValue instance should communication
+                 be reestablished.
+
+            An attempt to modify this object will fail with an
+            `inconsistentValue' error if the associated
+            snmpAlarmStatus object would be equal to `active'
+            both before and after the modification attempt."
+    ::= { snmpAlarmEntry 2 }
+
+snmpAlarmInterval OBJECT-TYPE
+    SYNTAX     Integer32
+    UNITS      "seconds"
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The interval in seconds over which the data is
+            sampled and compared with the rising and falling
+            thresholds.  When setting this object and the
+            sampling type is `deltaValue',  care should be
+            taken to ensure that the change during this
+            interval of the variable being sampled will not
+            exceed the (-2^31...2^31-1) range of the
+            snmpAlarmValue.
+
+            An attempt to modify this object will fail with an
+            `inconsistentValue' error if the associated
+            snmpAlarmStatus object would be equal to `active'
+            both before and after the modification attempt."
+    ::= { snmpAlarmEntry 3 }
+
+snmpAlarmSampleType OBJECT-TYPE
+    SYNTAX     INTEGER {
+                   absoluteValue(1),
+                   deltaValue(2)
+               }
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The method of sampling the selected variable and
+            calculating the value to be compared against the
+            thresholds.  If the value of this object is
+            `absoluteValue', the value of the selected
+            variable at the end of the sampling interval will
+            be compared directly with both the
+            snmpAlarmRisingThreshold and the
+            snmpAlarmFallingThreshold values.  If the value of
+            this object is `deltaValue', the value of the
+            selected variable at the end of the sampling
+            interval will be subtracted from its value at the
+            end of the previous sampling interval, and the
+            difference compared with both the
+            snmpAlarmRisingThreshold and the
+            snmpAlarmFallingThreshold values.
+
+            An attempt to modify this object will fail with an
+            `inconsistentValue' error if the associated
+            snmpAlarmStatus object would be equal to `active'
+            both before and after the modification attempt."
+    DEFVAL { deltaValue }
+    ::= { snmpAlarmEntry 4 }
+
+snmpAlarmValue OBJECT-TYPE
+    SYNTAX     Integer32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+            "The value of the statistic during the last
+            sampling period.  The value during the current
+            sampling period is not made available until the
+            period is completed.  If the value of the
+            statistic does not fit in the signed 32 bit
+            representation of this object, it should be
+            truncated in an implementation specific manner.
+
+            Note that if the associated snmpAlarmSampleType is
+            set to `deltaValue', the value of this object is
+            the difference in the sampled variable since the
+            last sample.
+
+            This object will be created by the SNMPv2 entity
+            acting in a dual role when this entry is set to
+            `active', and the first sampling period has
+            completed.  It may be created and deleted at other
+            times by the SNMPv2 entity acting in a dual role
+            when the sampled value can not be obtained, as
+            specified in the snmpAlarmVariable object."
+    ::= { snmpAlarmEntry 5 }
+
+snmpAlarmStartupAlarm OBJECT-TYPE
+    SYNTAX     INTEGER {
+                   risingAlarm(1),
+                   fallingAlarm(2),
+                   risingOrFallingAlarm(3)
+               }
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The alarm that may be sent when this entry is
+            first set to `active'.  If the first sample after
+            this entry becomes active is greater than or equal
+            to the risingThreshold and snmpAlarmStartupAlarm
+            is equal to `risingAlarm' or
+            `risingOrFallingAlarm', then a single rising alarm
+            will be generated.  If the first sample after this
+            entry becomes active is less than or equal to the
+            fallingThreshold and snmpAlarmStartupAlarm is
+            equal to `fallingAlarm' or `risingOrFallingAlarm',
+            then a single falling alarm will be generated.
+            Note that a snmpObjectUnavailableAlarm is sent
+            upon startup whenever it is applicable,
+            independent of the setting of
+            snmpAlarmStartupAlarm.
+
+            An attempt to modify this object will fail with an
+            `inconsistentValue' error if the associated
+            snmpAlarmStatus object would be equal to `active'
+            both before and after the modification attempt."
+    DEFVAL { risingOrFallingAlarm }
+    ::= { snmpAlarmEntry 6 }
+
+snmpAlarmRisingThreshold OBJECT-TYPE
+    SYNTAX     Integer32
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "A threshold for the sampled statistic.  When the
+            current sampled value is greater than or equal to
+            this threshold, and the value at the last sampling
+            interval was less than this threshold, a single
+            event will be generated.  A single event will also
+            be generated if the first sample after this entry
+            becomes active is greater than or equal to this
+            threshold and the associated snmpAlarmStartupAlarm
+            is equal to `risingAlarm' or
+            `risingOrFallingAlarm'.
+
+            After a rising event is generated, another such
+            event will not be generated until the sampled
+            value falls below this threshold and reaches the
+            snmpAlarmFallingThreshold.
+
+            An attempt to modify this object will fail with an
+            `inconsistentValue' error if the associated
+            snmpAlarmStatus object would be equal to `active'
+            both before and after the modification attempt."
+    ::= { snmpAlarmEntry 7 }
+
+snmpAlarmFallingThreshold OBJECT-TYPE
+    SYNTAX     Integer32
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "A threshold for the sampled statistic.  When the
+            current sampled value is less than or equal to
+            this threshold, and the value at the last sampling
+            interval was greater than this threshold, a single
+            event will be generated.  A single event will also
+            be generated if the first sample after this entry
+            becomes active is less than or equal to this
+            threshold and the associated snmpAlarmStartupAlarm
+            is equal to `fallingAlarm' or
+            `risingOrFallingAlarm'.
+
+            After a falling event is generated, another such
+            event will not be generated until the sampled
+            value rises above this threshold and reaches the
+            snmpAlarmRisingThreshold.
+
+            An attempt to modify this object will fail with an
+            `inconsistentValue' error if the associated
+            snmpAlarmStatus object would be equal to `active'
+            both before and after the modification attempt."
+    ::= { snmpAlarmEntry 8 }
+
+snmpAlarmRisingEventIndex OBJECT-TYPE
+    SYNTAX     INTEGER (0..65535)
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The index of the snmpEventEntry that is used when
+            a rising threshold is crossed.  The snmpEventEntry
+            identified by a particular value of this index is
+            the same as identified by the same value of the
+            snmpEventIndex object.  If there is no
+            corresponding entry in the snmpEventTable, then no
+            association exists.  In particular, if this value
+            is zero, no associated event will be generated, as
+            zero is not a valid snmpEventIndex.
+
+            An attempt to modify this object will fail with an
+            `inconsistentValue' error if the associated
+            snmpAlarmStatus object would be equal to `active'
+            both before and after the modification attempt."
+    ::= { snmpAlarmEntry 9 }
+
+snmpAlarmFallingEventIndex OBJECT-TYPE
+    SYNTAX     INTEGER (0..65535)
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The index of the snmpEventEntry that is used when
+            a falling threshold is crossed.  The
+            snmpEventEntry identified by a particular value of
+            this index is the same as identified by the same
+            value of the snmpEventIndex object.  If there is
+            no corresponding entry in the snmpEventTable, then
+            no association exists.  In particular, if this
+            value is zero, no associated event will be
+            generated, as zero is not a valid snmpEventIndex.
+
+            An attempt to modify this object will fail with an
+            `inconsistentValue' error if the associated
+            snmpAlarmStatus object would be equal to `active'
+            both before and after the modification attempt."
+    ::= { snmpAlarmEntry 10 }
+
+snmpAlarmUnavailableEventIndex OBJECT-TYPE
+    SYNTAX     INTEGER (0..65535)
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The index of the snmpEventEntry that is used when
+            a variable becomes unavailable.  The
+            snmpEventEntry identified by a particular value of
+            this index is the same as identified by the same
+            value of the snmpEventIndex object.  If there is
+            no corresponding entry in the snmpEventTable, then
+            no association exists.  In particular, if this
+            value is zero, no associated event will be
+            generated, as zero is not a valid snmpEventIndex.
+
+            An attempt to modify this object will fail with an
+            `inconsistentValue' error if the associated
+            snmpAlarmStatus object would be equal to `active'
+            both before and after the modification attempt."
+    ::= { snmpAlarmEntry 11 }
+
+snmpAlarmStatus OBJECT-TYPE
+    SYNTAX     RowStatus
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The status of this snmpAlarm entry.  This object
+            may not be set to `active' unless the following
+            columnar objects exist in this row:
+            snmpAlarmVariable, snmpAlarmInterval,
+            snmpAlarmSampleType, snmpAlarmStartupAlarm,
+            snmpAlarmRisingThreshold,
+            snmpAlarmFallingThreshold,
+            snmpAlarmRisingEventIndex,
+            snmpAlarmFallingEventIndex, and
+            snmpAlarmUnavailableEventIndex."
+    ::= { snmpAlarmEntry 12 }
+
+-- alarm-related notifications
+
+snmpAlarmNotifications
+               OBJECT IDENTIFIER ::= { snmpAlarm 3 }
+
+snmpRisingAlarm NOTIFICATION-TYPE
+    OBJECTS { snmpAlarmVariable, snmpAlarmSampleType,
+              snmpAlarmValue, snmpAlarmRisingThreshold }
+    STATUS  current
+    DESCRIPTION
+            "An event that is generated when an alarm entry
+            crosses its rising threshold.  The instances of
+            those objects contained within the varbind list
+            are those of the alarm entry which generated this
+            event."
+    ::= { snmpAlarmNotifications 1 }
+
+snmpFallingAlarm NOTIFICATION-TYPE
+    OBJECTS { snmpAlarmVariable, snmpAlarmSampleType,
+              snmpAlarmValue, snmpAlarmFallingThreshold }
+    STATUS  current
+    DESCRIPTION
+            "An event that is generated when an alarm entry
+            crosses its falling threshold.  The instances of
+            those objects contained within the varbind list
+            are those of the alarm entry which generated this
+            event."
+    ::= { snmpAlarmNotifications 2 }
+
+snmpObjectUnavailableAlarm NOTIFICATION-TYPE
+    OBJECTS { snmpAlarmVariable }
+    STATUS  current
+    DESCRIPTION
+            "An event that is generated when a variable
+            monitored by an alarm entry becomes unavailable.
+            The instance of snmpAlarmVariable contained within
+            the varbind list is the one associated with the
+            alarm entry which generated this event."
+    ::= { snmpAlarmNotifications 3 }
+
+-- the event group
+--
+-- a collection of objects allowing the description and
+-- configuration of events from a SNMPv2 entity acting
+-- in a dual role.
+
+snmpEvent      OBJECT IDENTIFIER ::= { snmpM2MObjects 2 }
+
+-- The snmpEvent table defines the set of events generated on
+-- a SNMPv2 entity acting in a dual role.  Each entry in the
+-- snmpEventTable associates an event type with the
+-- notification method and associated parameters.  Some
+-- snmpEvent entries are fired by an associated condition in
+-- the snmpAlarmTable.  Others are fired on behalf of
+-- conditions defined in the NOTIFICATION-TYPE macro.  The
+-- snmpNotificationTable defines notifications that should
+-- occur when an associated event is fired.
+
+snmpEventNextIndex OBJECT-TYPE
+    SYNTAX     INTEGER (0..65535)
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+            "The index number of the next appropriate
+            unassigned entry in the snmpEventTable.  The value
+            0 indicates that no unassigned entries are
+            available.
+
+            A management station should create new entries in
+            the snmpEventTable using this algorithm: first,
+            issue a management protocol retrieval operation to
+            determine the value of snmpEventNextIndex; and,
+            second, issue a management protocol set operation
+            to create an instance of the snmpEventStatus
+            object setting its value to `createAndWait' or
+            'createAndGo'."
+    ::= { snmpEvent 1 }
+
+snmpEventTable OBJECT-TYPE
+    SYNTAX     SEQUENCE OF SnmpEventEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+            "A list of events."
+    ::= { snmpEvent 2 }
+
+snmpEventEntry OBJECT-TYPE
+    SYNTAX     SnmpEventEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+            "A set of parameters that describe an event that
+            is generated when certain conditions are met."
+    INDEX      { snmpEventIndex }
+    ::= { snmpEventTable 1 }
+
+SnmpEventEntry ::= SEQUENCE {
+    snmpEventIndex          INTEGER,
+    snmpEventID             OBJECT IDENTIFIER,
+    snmpEventDescription    DisplayString,
+    snmpEventEvents         Counter32,
+    snmpEventLastTimeSent   TimeStamp,
+    snmpEventStatus         RowStatus
+}
+
+snmpEventIndex OBJECT-TYPE
+    SYNTAX     INTEGER (1..65535)
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+            "An index that uniquely identifies an entry in the
+            snmpEvent table.  Each such entry defines an event
+            generated when the appropriate conditions occur."
+    ::= { snmpEventEntry 1 }
+
+snmpEventID OBJECT-TYPE
+    SYNTAX     OBJECT IDENTIFIER
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The authoritative identification of the event
+            type generated by this entry.  This variable
+            occurs as the second varbind of an InformRequest-
+            PDU.  If this OBJECT IDENTIFIER maps to a
+            NOTIFICATION-TYPE the sender will place the
+            objects listed in the NOTIFICATION-TYPE in the
+            varbind list."
+    ::= { snmpEventEntry 2 }
+
+snmpEventDescription OBJECT-TYPE
+    SYNTAX     DisplayString (SIZE (0..127))
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "A comment describing this snmpEvent entry."
+    ::= { snmpEventEntry 3 }
+
+snmpEventEvents OBJECT-TYPE
+    SYNTAX     Counter32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+            "The number of events caused by event generators
+            associated with this snmpEvent entry."
+    ::= { snmpEventEntry 4 }
+
+snmpEventLastTimeSent OBJECT-TYPE
+    SYNTAX     TimeStamp
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+            "The value of sysUpTime at the time this snmpEvent
+            entry last generated an event.  If this entry has
+            not generated any events, this value will be
+            zero."
+    DEFVAL { 0 }
+    ::= { snmpEventEntry 5 }
+
+snmpEventStatus OBJECT-TYPE
+    SYNTAX     RowStatus
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The status of this snmpEvent entry.  This object
+            may not be set to `active' unless the following
+            columnar objects exist in this row: snmpEventID,
+            snmpEventDescription, snmpEventEvents, and
+            snmpEventLastTimeSent.
+
+            Setting an instance of this object to the value
+            'destroy' has the effect of invalidating any/all
+            entries in the snmpEventTable, and the
+            snmpEventNotifyTable which reference the
+            corresponding snmpEventEntry."
+    ::= { snmpEventEntry 6 }
+
+snmpEventNotifyMinInterval OBJECT-TYPE
+    SYNTAX     Integer32
+    UNITS      "seconds"
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+            "The minimum interval that the SNMPv2 entity
+            acting in a dual role will wait before
+            retransmitting an InformRequest-PDU.  This object
+            specifies the minimal value supported by the
+            SNMPv2 entity acting in a dual role, based on
+            resource or implementation constraints.
+
+            For a particular entry in the
+            snmpEventNotifyTable, if the associated
+            snmpEventNotifyIntervalRequested variable is
+            greater than this object, the
+            snmpEventNotifyIntervalRequested value shall be
+            used as the minimum interval for retransmissions
+            of InformRequest-PDUs sent on behalf of that
+            entry."
+    ::= { snmpEvent 3 }
+
+snmpEventNotifyMaxRetransmissions OBJECT-TYPE
+    SYNTAX     Integer32
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+            "The maximum number of time that the SNMPv2 entity
+            acting in a dual role will retransmit an
+            InformRequest-PDU.  This object specifies the
+            maximal value supported by the SNMPv2 entity
+            acting in a dual role, based on resource or
+            implementation constraints.
+
+            For a particular entry in the
+            snmpEventNotifyTable, if the associated
+            snmpEventNotifyRetransmissionsRequested variable
+            is less than this object, the
+            snmpEventNotifyRetransmissionsRequested value
+            shall be used as the retransmission count for
+            InformRequest-PDUs sent on behalf of that entry."
+    ::= { snmpEvent 4 }
+
+-- The snmpEventNotifyTable is used to configure the
+
+-- destination and type of notifications sent by a SNMPv2
+-- entity acting in a manager role when a particular event
+-- is triggered.
+
+snmpEventNotifyTable OBJECT-TYPE
+    SYNTAX     SEQUENCE OF SnmpEventNotifyEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+            "A list of protocol configuration entries for
+            event notifications from this entity."
+    ::= { snmpEvent 5 }
+
+snmpEventNotifyEntry OBJECT-TYPE
+    SYNTAX     SnmpEventNotifyEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+            "A set of parameters that describe the type and
+            destination of InformRequest-PDUs sent for a
+            particular event.  The snmpEventIndex in this
+            entry's INDEX clause identifies the snmpEventEntry
+            which, when triggered, will generate a
+            notification as configured in this entry.  The
+            contextIdentity in this entry's INDEX clause
+            identifies the context to which a notification
+            will be sent."
+    INDEX      { snmpEventIndex, contextIdentity }
+    ::= { snmpEventNotifyTable 1 }
+
+SnmpEventNotifyEntry ::= SEQUENCE {
+    snmpEventNotifyIntervalRequested        Integer32,
+    snmpEventNotifyRetransmissionsRequested Integer32,
+    snmpEventNotifyLifetime                 Integer32,
+    snmpEventNotifyStatus                   RowStatus
+}
+
+snmpEventNotifyIntervalRequested OBJECT-TYPE
+    SYNTAX     Integer32
+    UNITS      "seconds"
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The requested interval for retransmission of
+            Inform PDUs generated on the behalf of this entry.
+
+            This variable will be the actual interval used
+            unless the snmpEventNotifyMinInterval is greater
+            than this object, in which case the interval shall
+            be equal to snmpEventNotifyMinInterval."
+    DEFVAL { 30 }
+    ::= { snmpEventNotifyEntry 1 }
+
+snmpEventNotifyRetransmissionsRequested OBJECT-TYPE
+    SYNTAX     Integer32
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The requested number of retransmissions of an
+            InformRequest-PDU generated on behalf of this
+            entry.
+
+            This variable will be the actual number of
+            retransmissions used unless the
+            snmpEventNotifyMaxRetransmissions is less than
+            this object, in which case the retransmission
+            count shall be equal to
+            snmpEventNotifyMaxRetransmissions."
+    DEFVAL { 5 }
+    ::= { snmpEventNotifyEntry 2 }
+
+snmpEventNotifyLifetime OBJECT-TYPE
+    SYNTAX     Integer32
+    UNITS      "seconds"
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The number of seconds this entry shall live until
+            the corresponding instance of
+            snmpEventNotifyStatus is set to 'destroy'.  This
+            value shall count down to zero, at which time the
+            corresponding instance of snmpEventNotifyStatus
+            will be set to 'destroy'.  Any management station
+            that is using this entry must periodically refresh
+            this value to ensure the continued delivery of
+            events."
+    DEFVAL { 86400 }
+    ::= { snmpEventNotifyEntry 3 }
+
+snmpEventNotifyStatus OBJECT-TYPE
+    SYNTAX     RowStatus
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+            "The state of this snmpEventNotifyEntry.  This
+            object may not be set to `active' unless the
+            following columnar objects exist in this row:
+            snmpEventNotifyIntervalRequested,
+            snmpEventNotifyRetransmissionsRequested, and
+            snmpEventNotifyLifetime."
+    ::= { snmpEventNotifyEntry 4 }
+
+-- conformance information
+
+snmpM2MConformance
+               OBJECT IDENTIFIER ::= { snmpM2M 2 }
+
+snmpM2MCompliances
+               OBJECT IDENTIFIER ::= { snmpM2MConformance 1 }
+snmpM2MGroups  OBJECT IDENTIFIER ::= { snmpM2MConformance 2 }
+
+-- compliance statements
+
+snmpM2MCompliance MODULE-COMPLIANCE
+    STATUS  current
+    DESCRIPTION
+            "The compliance statement for SNMPv2 entities
+            which implement the Manager-to-Manager MIB."
+    MODULE  -- this module
+        MANDATORY-GROUPS { snmpAlarmGroup, snmpEventGroup }
+    ::= { snmpM2MCompliances 1 }
+
+-- units of conformance
+
+snmpAlarmGroup OBJECT-GROUP
+    OBJECTS { snmpAlarmNextIndex,
+              snmpAlarmVariable, snmpAlarmInterval,
+              snmpAlarmSampleType, snmpAlarmValue,
+              snmpAlarmStartupAlarm, snmpAlarmRisingThreshold,
+              snmpAlarmFallingThreshold,
+              snmpAlarmRisingEventIndex,
+              snmpAlarmFallingEventIndex,
+              snmpAlarmUnavailableEventIndex,
+              snmpAlarmStatus }
+    STATUS  current
+    DESCRIPTION
+            "A collection of objects allowing the description
+            and configuration of threshold alarms from a
+            SNMPv2 entity acting in a dual role."
+    ::= { snmpM2MGroups 1 }
+
+snmpEventGroup OBJECT-GROUP
+    OBJECTS { snmpEventNextIndex,
+              snmpEventID, snmpEventDescription,
+              snmpEventEvents, snmpEventLastTimeSent,
+              snmpEventStatus, snmpEventNotifyMinInterval,
+              snmpEventNotifyMaxRetransmissions,
+              snmpEventNotifyIntervalRequested,
+              snmpEventNotifyRetransmissionsRequested,
+              snmpEventNotifyLifetime, snmpEventNotifyStatus }
+    STATUS  current
+    DESCRIPTION
+            "A collection of objects allowing the description
+            and configuration of events from a SNMPv2 entity
+            acting in a dual role."
+    ::= { snmpM2MGroups 2 }
+
+END
