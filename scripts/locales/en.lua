@@ -646,7 +646,7 @@ local lang = {
   ["show_hide_filters"] = "Show/Hide Filters",
   ["showing_x_to_y_rows"] = "Showing %{x} to %{y} of %{tot} rows",
   ["similarity"] = "Similarity",
-  ["snmp_max_num_devices_configured"] = "A number %{configured_devices} of SNMP devices have been configured, exceeding the limit of %{max_num}. Therefore, not all devices will be polled.",
+  ["snmp_max_num_devices_configured"] = "%{configured_devices} SNMP devices have been configured, exceeding the limit of %{max_num} devices. Therefore, not all devices will be polled.",
   ["source"] = "Source",
   ["span_with_title"] = "<A HREF='%{url}'>%{shorten_name}</A",
   ["speed"] = "Speed",
