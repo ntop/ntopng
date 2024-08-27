@@ -222,12 +222,7 @@ Ntop::Ntop(const char *appName) {
 #endif
 
 #ifdef HAVE_SNMP_TRAP
-  try {
-    trap_collector = new SNMPTrap();
-  } catch(...) {
-    /* Likely running tests on pcaps or no privileges (avoid level=error as it breaks regression tests) */
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Support for SNMP traps is disabled (requires privileges)");
-  }
+  trap_collector = NULL;
 #endif
 }
 
@@ -1074,10 +1069,17 @@ void Ntop::loadMacManufacturers(char *dir) {
 /* ******************************************* */
 
 #ifdef HAVE_SNMP_TRAP
-/* Note: the collector is already allocated in the constructor
- * as the socket should be created before changing user */
+/* Note: this is always called on init as socket should be created before changing user */
 void Ntop::initSNMPTrapCollector() {
-  if (!trap_collector) return;
+  try {
+    trap_collector = new SNMPTrap();
+  } catch(...) {
+    /* Likely running tests on pcaps or no privileges (avoid level=error as it breaks regression tests) */
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Support for SNMP traps is disabled (requires privileges)");
+  }
+
+  if (!trap_collector)
+    return;
 
   if (ntop->getPrefs()->isSNMPTrapEnabled())
     trap_collector->startTrapCollection();
