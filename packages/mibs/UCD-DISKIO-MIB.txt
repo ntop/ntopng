@@ -1,0 +1,185 @@
+UCD-DISKIO-MIB DEFINITIONS ::= BEGIN
+
+--
+-- Derived from the original VEST-INTERNETT-MIB. Open issues:
+--
+-- (a) where to register this MIB?
+-- (b) use not-accessible for diskIOIndex?
+--
+
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32, Counter32, Counter64
+        FROM SNMPv2-SMI
+    DisplayString
+        FROM SNMPv2-TC
+    ucdExperimental
+        FROM UCD-SNMP-MIB;
+
+ucdDiskIOMIB MODULE-IDENTITY
+    LAST-UPDATED "201604040000Z"
+    ORGANIZATION "University of California, Davis"
+    CONTACT-INFO    
+	"This mib is no longer being maintained by the University of
+	 California and is now in life-support-mode and being
+	 maintained by the net-snmp project.  The best place to write
+	 for public questions about the net-snmp-coders mailing list
+	 at net-snmp-coders@lists.sourceforge.net.
+
+         postal:   Wes Hardaker
+                   P.O. Box 382
+                   Davis CA  95617
+
+         email:    net-snmp-coders@lists.sourceforge.net
+        "
+    DESCRIPTION
+        "This MIB module defines objects for disk IO statistics."
+
+    REVISION     "201604040000Z"
+    DESCRIPTION
+        "Add 64-bit counter for busy micro-seconds."
+
+    REVISION     "200504200000Z"
+    DESCRIPTION
+        "Add 64 bit counters. Patch from Dan Nelson."
+
+    REVISION     "200202130000Z"
+    DESCRIPTION
+        "Add 1, 5 and 15-minute load average objects"
+
+    REVISION     "200001260000Z"
+    DESCRIPTION
+        "SMIv2 version derived from older definitions contained
+         in the VEST-INTERNETT-MIB module."
+    ::= { ucdExperimental 15 }
+
+diskIOTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF DiskIOEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table of IO devices and how much data they have read/written."
+    ::= { ucdDiskIOMIB 1 }
+
+diskIOEntry OBJECT-TYPE
+    SYNTAX      DiskIOEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry containing a device and its statistics."
+    INDEX       { diskIOIndex }
+    ::= { diskIOTable 1 }
+
+DiskIOEntry ::= SEQUENCE {
+    diskIOIndex         Integer32,
+    diskIODevice        DisplayString,
+    diskIONRead         Counter32,
+    diskIONWritten      Counter32,
+    diskIOReads         Counter32,
+    diskIOWrites        Counter32,
+    diskIOLA1           Integer32,
+    diskIOLA5           Integer32,
+    diskIOLA15          Integer32,
+    diskIONReadX        Counter64,
+    diskIONWrittenX     Counter64,
+    diskIOBusyTime      Counter64
+}
+
+diskIOIndex OBJECT-TYPE
+    SYNTAX      Integer32 (0..65535)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Reference index for each observed device."
+    ::= { diskIOEntry 1 }
+
+diskIODevice OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The name of the device we are counting/checking."
+    ::= { diskIOEntry 2 }
+
+diskIONRead OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of bytes read from this device since boot."
+    ::= { diskIOEntry 3 }
+
+diskIONWritten OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of bytes written to this device since boot."
+    ::= { diskIOEntry 4 }
+
+diskIOReads OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of read accesses from this device since boot."
+    ::= { diskIOEntry 5 }
+
+diskIOWrites OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of write accesses to this device since boot."
+    ::= { diskIOEntry 6 }
+
+diskIOLA1 OBJECT-TYPE
+    SYNTAX      Integer32 (0..100)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The 1 minute average load of disk (%)"
+    ::= { diskIOEntry 9 }
+
+diskIOLA5 OBJECT-TYPE
+    SYNTAX      Integer32 (0..100)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The 5 minute average load of disk (%)"
+    ::= { diskIOEntry 10 }
+
+diskIOLA15 OBJECT-TYPE
+    SYNTAX      Integer32 (0..100)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The 15 minute average load of disk (%)"
+    ::= { diskIOEntry 11 }
+
+diskIONReadX OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of bytes read from this device since boot."
+    ::= { diskIOEntry 12 }
+
+diskIONWrittenX OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of bytes written to this device since boot."
+    ::= { diskIOEntry 13 }
+
+
+diskIOBusyTime OBJECT-TYPE
+    SYNTAX      Counter64
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of usecs the drive has been busy since boot."
+    ::= { diskIOEntry 14 }
+
+END

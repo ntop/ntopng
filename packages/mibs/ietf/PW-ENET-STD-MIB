@@ -1,0 +1,491 @@
+PW-ENET-STD-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+   OBJECT-TYPE, MODULE-IDENTITY, Unsigned32, mib-2
+       FROM SNMPv2-SMI                    -- [RFC2578]
+
+   MODULE-COMPLIANCE, OBJECT-GROUP
+       FROM SNMPv2-CONF                   -- [RFC2580]
+
+   StorageType, RowStatus
+       FROM SNMPv2-TC                     -- [RFC2579]
+
+   InterfaceIndexOrZero
+       FROM IF-MIB                        -- [RFC2863]
+
+   ZeroBasedCounter32
+       FROM RMON2-MIB                     -- [RFC4502]
+
+   pwIndex
+       FROM PW-STD-MIB                    -- [RFC5601]
+
+   VlanIdOrAnyOrNone
+       FROM Q-BRIDGE-MIB;                 -- [RFC4363]
+
+pwEnetStdMIB MODULE-IDENTITY
+    LAST-UPDATED "200906150000Z"  -- 15 June 2009 00:00:00 GMT
+
+    ORGANIZATION "Pseudowire Edge-to-Edge Emulation (PWE3) Working
+                 Group"
+
+    CONTACT-INFO
+         "David Zelig
+          Email: davidz@oversi.com
+
+          Thomas D. Nadeau
+          Email:  tom.nadeau@bt.com
+         "
+    DESCRIPTION
+        "This MIB module describes a model for managing Ethernet
+         point-to-point pseudowire services over a Packet
+         Switched Network (PSN).
+
+         Copyright (c) 2009 IETF Trust and the persons identified
+         as authors of the code.  All rights reserved.
+
+         Redistribution and use in source and binary forms, with or
+         without modification, are permitted provided that the following
+         conditions are met:
+
+         - Redistributions of source code must retain the above
+           copyright notice, this list of conditions and the following
+           disclaimer.
+
+         - Redistributions in binary form must reproduce the above
+           copyright notice, this list of conditions and the following
+           disclaimer in the documentation and/or other materials
+           provided with the distribution.
+
+         - Neither the name of Internet Society, IETF or IETF Trust, nor
+           the names of specific contributors, may be used to endorse or
+           promote products derived from this software without specific
+           prior written permission.
+
+         THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+         CONTRIBUTORS 'AS IS' AND ANY EXPRESS OR IMPLIED WARRANTIES,
+         INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+         MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+         DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+         CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+         SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+         NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+         LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+         HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+         CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+         OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+         EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+         This version of this MIB module is part of RFC 5603;
+
+         see the RFC itself for full legal notices."
+
+   -- Revision history
+   REVISION "200906150000Z"  -- 15 June 2009 00:00:00 GMT
+   DESCRIPTION "Initial version published as part of RFC 5603."
+      ::= { mib-2 180 }
+
+pwEnetObjects        OBJECT IDENTIFIER ::= { pwEnetStdMIB 1 }
+pwEnetConformance    OBJECT IDENTIFIER ::= { pwEnetStdMIB 2 }
+
+--
+-- Ethernet PW table
+--
+
+pwEnetTable  OBJECT-TYPE
+    SYNTAX SEQUENCE OF PwEnetEntry
+    MAX-ACCESS  not-accessible
+    STATUS     current
+    DESCRIPTION
+        "This table contains the index to the Ethernet tables
+        associated with this Ethernet PW, the VLAN configuration,
+        and the VLAN mode."
+    ::= { pwEnetObjects 1 }
+
+pwEnetEntry  OBJECT-TYPE
+    SYNTAX     PwEnetEntry
+    MAX-ACCESS  not-accessible
+    STATUS     current
+    DESCRIPTION
+        "This table is indexed by the same index that was created
+        for the associated entry in the PW generic table in the
+
+        PW-STD-MIB module.
+        The pwIndex and the pwEnetPwInstance are used as indexes
+        to allow multiple VLANs to exist on the same PW.
+
+        An entry is created in this table by the agent for every
+        entry in the pwTable with a pwType of 'ethernetTagged'
+        or 'ethernet'.  Additional rows may be created by the
+        operator or the agent if multiple entries are required for
+        the same PW.
+
+        The value of pwEnetPwInstance can be arbitrarily selected
+        to make the row unique; however, implementations that know
+        the VLAN field value when the row is created MAY use the
+        value of the VLAN itself for better readability and
+        backward compatibility with older versions of this MIB
+
+        module.
+
+        This table provides Ethernet port mapping and VLAN
+        configuration for each Ethernet PW.
+
+        All read-create objects in this table MAY be changed at any
+        time; however, change of some objects (for example,
+        pwEnetVlanMode) during the PW forwarding state MAY cause traffic
+        disruption.
+
+        Manual entries in this table SHOULD be preserved after a
+        reboot, and the agent MUST ensure the integrity of those
+        entries.  If the set of entries of a specific row is found to
+        be inconsistent after reboot, the PW pwOperStatus MUST be
+        declared as notPresent(5).
+        "
+    INDEX { pwIndex, pwEnetPwInstance }
+    ::= { pwEnetTable 1 }
+
+PwEnetEntry ::= SEQUENCE {
+       pwEnetPwInstance    Unsigned32,
+       pwEnetPwVlan        VlanIdOrAnyOrNone,
+       pwEnetVlanMode      INTEGER,
+       pwEnetPortVlan      VlanIdOrAnyOrNone,
+       pwEnetPortIfIndex   InterfaceIndexOrZero,
+       pwEnetPwIfIndex     InterfaceIndexOrZero,
+       pwEnetRowStatus     RowStatus,
+       pwEnetStorageType   StorageType
+   }
+
+pwEnetPwInstance  OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "If multiple rows are mapped to the same PW, this index is
+         used to uniquely identify the individual row.
+         If the value of the VLAN field is known at the time of
+         row creation, the value of pwEnetPwVlan MAY be used
+         for better readability and backward compatibility with
+         older versions of this MIB module.  Otherwise, the value
+         1 SHOULD be set to the first row for each pwIndex
+         for better readability and in order that the management
+         application will know in advance how to access the
+         first row when it was created by the agent.
+        "
+    ::= { pwEnetEntry 1 }
+
+pwEnetPwVlan  OBJECT-TYPE
+    SYNTAX      VlanIdOrAnyOrNone
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "This object defines the (service-delimiting) VLAN field
+        value on the PW.  The value 4095 MUST be used if the
+        object is not applicable, for example, when mapping all
+        packets from an Ethernet port to this PW (raw mode).
+        The value 0 MUST be set to indicate untagged frames
+        (from the PW point of view), i.e., when pwEnetVlanMode
+        equals 'noChange' and pwEnetPortVlan equals 0."
+    ::= { pwEnetEntry 2 }
+
+pwEnetVlanMode  OBJECT-TYPE
+    SYNTAX     INTEGER {
+             other(0),
+             portBased(1),
+             noChange(2),
+             changeVlan(3),
+             addVlan(4),
+             removeVlan(5)
+    }
+    MAX-ACCESS  read-create
+    STATUS     current
+    DESCRIPTION
+        "This object indicates the mode of VLAN handling between the
+         port or the virtual port associated with the PW and the
+         PW encapsulation.
+
+       - 'other' indicates an operation that is not defined by
+          this MIB module.
+
+        - 'portBased' indicates that the forwarder will forward
+          packets between the port and the PW independent of their
+          structure (i.e., there are no service-delimiting VLAN tags
+          from the PE standpoint).
+
+        - 'noChange' indicates that the PW contains the original
+           user VLAN, as specified in pwEnetPortVlan; i.e., the
+           VLAN on the PE-CE link is the service-delimiting tag
+           and is kept 'as is' on the PW.
+
+        - 'changeVlan' indicates that the VLAN field on the PW
+          may be different than the VLAN field on the user's
+
+          port.  The VLAN on the PE-CE link is the service-delimiting
+          tag but has a different value on the PW.
+
+        - 'addVlan' indicates that a VLAN field will be added
+          on the PSN-bound direction (i.e., on the PW). pwEnetPwVlan
+          indicates the value that will be added.
+
+        - 'removeVlan' indicates that the encapsulation on the
+          PW does not include the service-delimiting VLAN field.
+          Note that PRI bits transparency is lost in this case.
+
+        - Implementation of 'portsbased', 'removeVlan', 'addVlan'
+          'other', and 'changeVlan' is OPTIONAL.
+        "
+    DEFVAL { noChange }
+    ::= { pwEnetEntry 3 }
+
+pwEnetPortVlan  OBJECT-TYPE
+    SYNTAX     VlanIdOrAnyOrNone
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+        "This object defines if the mapping between the original port
+        (physical port or VPLS virtual port) to the PW is VLAN based
+        or not.  In case of VLAN mapping, this object indicates the
+        VLAN value on the original port.
+
+        The value of '4095' MUST be used if the whole original port
+        traffic is mapped to the same PW.  Note that a pwType of
+        'ethernetTagged' can still be used if service-delimiting tag
+        is added on the PW (pwEnetVlanMode equals 'addVlan').
+
+        This object MUST be equal to pwEnetPwVlan if pwEnetVlanMode
+        equals 'noChange'.
+
+        The value 0 indicates that packets without a VLAN field
+        (i.e., untagged frames) on the port are associated to this
+        PW.  This allows the same behavior as assigning 'Default
+        VLAN' to untagged frames.
+        "
+    DEFVAL  { 4095 }
+    ::= { pwEnetEntry 4 }
+
+pwEnetPortIfIndex  OBJECT-TYPE
+    SYNTAX      InterfaceIndexOrZero
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "This object is used to specify the ifIndex of the Ethernet
+         port associated with this PW for point-to-point Ethernet
+         service, or the ifIndex of the virtual interface of the
+         VPLS instance associated with the PW if the service is
+         VPLS.  Two rows in this table can point to the same ifIndex
+         only if there is no overlap of VLAN values specified in
+         pwEnetPortVlan that are associated with this port.
+
+         A value of zero indicates that association to an ifIndex is
+         not yet known."
+    ::= { pwEnetEntry 5 }
+
+pwEnetPwIfIndex  OBJECT-TYPE
+    SYNTAX     InterfaceIndexOrZero
+    MAX-ACCESS read-create
+    STATUS     current
+    DESCRIPTION
+        "If the PW is modeled as an ifIndex in the ifTable, this
+         object indicates the value of the ifIndex representing the
+         Ethernet PW on the PSN side in the Etherlike-MIB.  Note that
+         this value may be different from the value of pwIfIndex
+         that represents the ifIndex of the PW for ifType 'pw'."
+     DEFVAL { 0 }
+    ::= { pwEnetEntry 6 }
+
+pwEnetRowStatus  OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "This object enables creating, deleting, and modifying this
+         row."
+   ::= { pwEnetEntry 7 }
+
+pwEnetStorageType  OBJECT-TYPE
+    SYNTAX      StorageType
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "This object indicates the storage type of this row."
+    DEFVAL { nonVolatile }
+    ::= { pwEnetEntry 8 }
+
+--
+-- Ethernet PW Statistics Table
+--
+
+pwEnetStatsTable  OBJECT-TYPE
+    SYNTAX SEQUENCE OF PwEnetStatsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This table contains statistical counters specific for
+         Ethernet PW."
+    ::= { pwEnetObjects 2 }
+
+pwEnetStatsEntry  OBJECT-TYPE
+    SYNTAX      PwEnetStatsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Each entry represents the statistics gathered for the
+         PW carrying the Ethernet."
+    INDEX { pwIndex }
+    ::= { pwEnetStatsTable 1 }
+
+PwEnetStatsEntry ::= SEQUENCE {
+    pwEnetStatsIllegalVlan        ZeroBasedCounter32,
+    pwEnetStatsIllegalLength      ZeroBasedCounter32
+}
+
+pwEnetStatsIllegalVlan  OBJECT-TYPE
+    SYNTAX     ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of packets received (from the PSN) on this PW
+         with either an illegal VLAN field, a missing VLAN field
+         when one was expected, or an excessive VLAN field when
+         it was not expected.  This counter may not be applicable
+         in some cases, and MUST return the value of zero in
+         such a case."
+    ::= { pwEnetStatsEntry 1 }
+
+pwEnetStatsIllegalLength  OBJECT-TYPE
+    SYNTAX     ZeroBasedCounter32
+    MAX-ACCESS  read-only
+    STATUS     current
+    DESCRIPTION
+        "The number of packets that were received with an illegal
+         Ethernet packet length on this PW.  An illegal length is
+         defined as being greater than the value in the advertised
+         MTU supported, or shorter than the allowed Ethernet packet
+         size."
+    ::= { pwEnetStatsEntry 2 }
+
+---
+--- Conformance description
+---
+
+pwEnetGroups      OBJECT IDENTIFIER ::= { pwEnetConformance 1 }
+pwEnetCompliances OBJECT IDENTIFIER ::= { pwEnetConformance 2 }
+
+-- Compliance requirement for fully compliant implementations
+
+pwEnetModuleFullCompliance MODULE-COMPLIANCE
+    STATUS  current
+    DESCRIPTION
+            "The compliance statement for agents that provides full
+             support for the PW-ENET-STD-MIB module.  Such devices
+             can then be monitored and also be configured using
+             this MIB module."
+    MODULE  -- this module
+      MANDATORY-GROUPS {
+                         pwEnetGroup,
+                         pwEnetStatsGroup
+                        }
+
+   OBJECT       pwEnetVlanMode
+   DESCRIPTION "An implementation MUST support at least the value
+                noChange(2)."
+
+   OBJECT       pwEnetPwIfIndex
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access and values other than zero are
+                required only for implementations that support
+                modeling the Ethernet PW in the Etherlike-MIB."
+   OBJECT       pwEnetRowStatus
+   SYNTAX       RowStatus { active(1), notInService(2),
+                            notReady(3) }
+   WRITE-SYNTAX RowStatus { active(1), notInService(2),
+                            createAndGo(4), destroy(6)
+                          }
+   MIN-ACCESS   read-only
+   DESCRIPTION "Support for createAndWait is not required.  Support
+                of notReady is not required for implementations that
+                do not support signaling.
+                Support of read-write is not required for
+                implementations that do not support more than one
+                VLAN mapping to the same PW."
+    ::= { pwEnetCompliances 1 }
+
+-- Compliance requirement for read-only compliant implementations
+
+pwEnetModuleReadOnlyCompliance MODULE-COMPLIANCE
+    STATUS  current
+    DESCRIPTION
+            "The compliance statement for agents that provide read-
+             only support for the PW-ENET-STD-MIB module.  Such
+             devices can then be monitored but cannot be configured
+             using this MIB module."
+
+    MODULE  -- this module
+      MANDATORY-GROUPS { pwEnetGroup,
+                         pwEnetStatsGroup
+                         }
+
+   OBJECT       pwEnetPwVlan
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required."
+
+   OBJECT       pwEnetVlanMode
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.  An implementation
+                MUST support at least the value noChange(2)."
+
+   OBJECT       pwEnetPortVlan
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required."
+
+   OBJECT       pwEnetPortIfIndex
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required."
+
+   OBJECT       pwEnetPwIfIndex
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.  Values other than
+                zero are required only for implementations that
+                support modeling the Ethernet PW in the
+                Etherlike-MIB."
+
+   OBJECT       pwEnetRowStatus
+   SYNTAX       RowStatus { active(1), notInService(2),
+                            notReady(3) }
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required.  Support
+                of notReady is not required for implementations that
+                do not support signaling."
+
+   OBJECT       pwEnetStorageType
+   MIN-ACCESS   read-only
+   DESCRIPTION "Write access is not required."
+    ::= { pwEnetCompliances 2 }
+
+-- Units of conformance
+
+pwEnetGroup OBJECT-GROUP
+   OBJECTS {
+            pwEnetPwVlan,
+            pwEnetVlanMode,
+            pwEnetPortVlan,
+            pwEnetPortIfIndex,
+            pwEnetPwIfIndex,
+            pwEnetRowStatus,
+            pwEnetStorageType
+   }
+   STATUS  current
+   DESCRIPTION
+       "Collection of objects for basic Ethernet PW configuration."
+   ::= { pwEnetGroups 1 }
+
+pwEnetStatsGroup OBJECT-GROUP
+   OBJECTS {
+            pwEnetStatsIllegalVlan,
+            pwEnetStatsIllegalLength
+   }
+   STATUS  current
+   DESCRIPTION
+       "Collection of objects counting various PW level errors."
+   ::= { pwEnetGroups 2 }
+
+END

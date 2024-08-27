@@ -1,0 +1,4274 @@
+T11-FC-SP-POLICY-MIB  DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE, mib-2,
+    Counter32, Unsigned32
+                          FROM SNMPv2-SMI              -- [RFC2578]
+    RowStatus, StorageType, TimeStamp,
+    TruthValue            FROM SNMPv2-TC               -- [RFC2579]
+    MODULE-COMPLIANCE, OBJECT-GROUP,
+    NOTIFICATION-GROUP
+                          FROM SNMPv2-CONF             -- [RFC2580]
+    SnmpAdminString       FROM SNMP-FRAMEWORK-MIB      -- [RFC3411]
+    InetAddress, InetPortNumber,
+    InetAddressType       FROM INET-ADDRESS-MIB        -- [RFC4001]
+    fcmInstanceIndex,
+    FcNameIdOrZero,
+    FcDomainIdOrZero      FROM FC-MGMT-MIB             -- [RFC4044]
+    T11NsGs4RejectReasonCode
+                          FROM T11-FC-NAME-SERVER-MIB  -- [RFC4438]
+    T11FabricIndex        FROM T11-TC-MIB              -- [RFC4439]
+    T11FcSpAlphaNumName,
+    T11FcSpAlphaNumNameOrAbsent,
+    T11FcSpPolicyName,
+    T11FcSpPolicyNameType,
+    T11FcSpPolicyObjectType,
+    T11FcSpPolicyHashFormat,
+    T11FcSpPolicyHashValue,
+    T11FcSpHashCalculationStatus   FROM T11-FC-SP-TC-MIB;
+
+t11FcSpPolicyMIB  MODULE-IDENTITY
+    LAST-UPDATED  "200808200000Z"
+    ORGANIZATION  "This MIB module was developed through the
+                  coordinated effort of two organizations:
+                  T11 began the development and the IETF (in
+                  the IMSS Working Group) finished it."
+    CONTACT-INFO
+            "     Claudio DeSanti
+                  Cisco Systems, Inc.
+                  170 West Tasman Drive
+                  San Jose, CA 95134 USA
+                  EMail: cds@cisco.com
+
+                  Keith McCloghrie
+                  Cisco Systems, Inc.
+                  170 West Tasman Drive
+                  San Jose, CA 95134 USA
+                  Email: kzm@cisco.com"
+    DESCRIPTION
+           "This MIB module specifies the management information
+           required to manage Fabric Policies as defined by Fibre
+           Channel's FC-SP specification.
+
+           FC-SP uses the term 'Policy Objects', sometimes abbreviated
+           to just 'Objects', to refer to containers used to hold the
+           data by which Fabric Policies are specified/stored.  This
+           obviously has the potential to cause confusion between
+           'Policy Objects' and 'MIB objects'.  The DESCRIPTIONs in
+           this MIB module attempt to avoid such confusion by the use
+           of different adjectives and capitalization, even though such
+           mechanisms are less effective when used in descriptors.
+
+           Some types of Policy Objects contain multiple items of
+           information, each of which are held in the same format
+           within the Policy Object.  In such cases, FC-SP uses the
+           term 'Entry' to describe each instance of the common format.
+           For example, FC-SP defines an Attribute Policy Object as
+           containing one or more 'Attribute Entries'.  Again, this MIB
+           module attempts to avoid confusion by the use of adjectives
+           and capitalization to distinguish an Entry within a Policy
+           Object from an entry within a MIB table.
+
+           A Fabric's database of Policy Objects consists of a set of
+           active Objects that are to be enforced by that Fabric, as
+           well as non-active Objects that are not enforced.
+           Operations defined (in FC-SP) for Policy Management are:
+
+            - Add/Get/Remove operations on individual non-active
+              Policy Objects,
+            - Activate/Deactivate operations on a Policy Summary
+              Object, and
+            - Get operations on the active Policy Summary Object
+              and/or on individual active Policy Objects.
+
+           This MIB module has five parts:
+
+            1) Active Policy Objects - read-only MIB objects
+               representing the set of active Policy Objects for
+               each Fabric,
+            2) Activate/Deactivate Operations
+
+               - a read-write MIB object to invoke an Activate
+                 operation of the policies specified via a non-active
+                 Policy Summary Object, and
+               - a read-write MIB object to invoke a Deactivate
+                 operation.
+
+            3) Non-active Policy Objects
+               - read-create MIB objects to allow the creation of
+                 non-active Policy Summary Objects (which reference
+                 non-active Policy Objects), and
+               - read-create MIB objects representing non-active
+                 Policy Objects.
+
+            4) Statistics
+
+            5) Control information and Notifications
+
+           Copyright (C) The IETF Trust (2008).  This version
+           of this MIB module is part of RFC 5324;  see the RFC
+           itself for full legal notices."
+    REVISION  "200808200000Z"
+    DESCRIPTION
+           "Initial version of this MIB module, published as RFC 5324."
+    ::= { mib-2 178 }
+
+t11FcSpPoMIBNotifications  OBJECT IDENTIFIER ::= { t11FcSpPolicyMIB 0 }
+t11FcSpPoMIBObjects        OBJECT IDENTIFIER ::= { t11FcSpPolicyMIB 1 }
+t11FcSpPoMIBConformance    OBJECT IDENTIFIER ::= { t11FcSpPolicyMIB 2 }
+t11FcSpPoActive         OBJECT IDENTIFIER ::= { t11FcSpPoMIBObjects 1 }
+t11FcSpPoOperations     OBJECT IDENTIFIER ::= { t11FcSpPoMIBObjects 2 }
+t11FcSpPoNonActive      OBJECT IDENTIFIER ::= { t11FcSpPoMIBObjects 3 }
+t11FcSpPoStatistics     OBJECT IDENTIFIER ::= { t11FcSpPoMIBObjects 4 }
+t11FcSpPoControl        OBJECT IDENTIFIER ::= { t11FcSpPoMIBObjects 5 }
+
+--
+--  Part 1 - Active Policy Objects
+--
+
+t11FcSpPoTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table containing top-level information about active
+           FC-SP policies on various Fabrics."
+    ::= { t11FcSpPoActive 1 }
+
+t11FcSpPoEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about active FC-SP policies
+           for a particular Fabric, managed as part of the Fibre
+           Channel management instance identified by fcmInstanceIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex }
+    ::= { t11FcSpPoTable 1 }
+
+T11FcSpPoEntry ::= SEQUENCE {
+    t11FcSpPoFabricIndex           T11FabricIndex,
+    t11FcSpPoPolicySummaryObjName  T11FcSpAlphaNumName,
+    t11FcSpPoAdminFabricName       FcNameIdOrZero,
+    t11FcSpPoActivatedTimeStamp    TimeStamp
+}
+
+t11FcSpPoFabricIndex OBJECT-TYPE
+    SYNTAX       T11FabricIndex
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies a particular
+           Fabric."
+    ::= { t11FcSpPoEntry 1 }
+
+t11FcSpPoPolicySummaryObjName OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumName
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The name of this Fabric's (active) Policy Summary Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.3 and table 104."
+    ::= { t11FcSpPoEntry 2 }
+
+t11FcSpPoAdminFabricName OBJECT-TYPE
+    SYNTAX       FcNameIdOrZero (SIZE (8))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The administratively-specified name for this Fabric, as
+           specified in the active Switch Membership List Object.
+           This value is meaningful only when Static Domain_IDs are
+           in use in a Fabric (see FC-SW-4).  Static Domain_IDs are
+           administratively enabled by a setting of the Switch Flags
+
+           in each Switch Entry in the Switch Membership List Object.
+           If Static Domain_IDs are not in use, this value might be
+           '0000000000000000'h.
+
+           The t11FamEnable, t11FamFabricName, and
+           t11FamConfigDomainIdType objects defined in the
+           T11-FC-FABRIC-ADDR-MGR-MIB module are also concerned with
+           the use of an administratively-specified name for a Fabric
+           and Static Domain_IDs.  When FC-SP Policy is in use in a
+           Fabric, the values of t11FamEnable, t11FamFabricName, and
+           t11FamConfigDomainIdType must be read-only and reflect the
+           active Policy Objects.  For example, the value of
+           t11FamFabricName must reflect the value of
+           t11FcSpPoAdminFabricName."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 108.
+            - Fibre Channel - Switch Fabric-4 (FC-SW-4),
+              ANSI INCITS 418-2006, April 2006, section 7.1.
+            - Fibre Channel Fabric Address Manager MIB', RFC 4439,
+              March 2006."
+    ::= { t11FcSpPoEntry 3 }
+
+t11FcSpPoActivatedTimeStamp OBJECT-TYPE
+    SYNTAX       TimeStamp
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The value of sysUpTime at which this Fabric's Policy
+           Summary Object was last activated, or zero if the same
+           Policy Summary Object has been active since the last
+           restart of the management system."
+    ::= { t11FcSpPoEntry 4 }
+
+--
+-- The table of Policy Summary Objects
+--
+
+t11FcSpPoSummaryTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoSummaryEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of information about active Policy Objects listed
+           within FC-SP Policy Summary Objects."
+    ::= { t11FcSpPoActive 2 }
+
+t11FcSpPoSummaryEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoSummaryEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one of the active
+           Policy Objects listed within the Policy Summary Object for
+           the Fabric identified by t11FcSpPoFabricIndex and managed
+           within the Fibre Channel management instance identified by
+           fcmInstanceIndex.
+
+           How many Policy Objects of a given type can be active at
+           any one time for a given Fabric depends on the type, as
+           specified in FC-SP.  For some types, it is one per Fabric;
+           for other types, more than one can be active per Fabric.
+           In both of these cases, the absence of any entries in this
+           table for a particular type is equivalent to there being one
+           Policy Object of that type that is empty, e.g., a Switch
+           Membership List Object that identifies zero Switches."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.3 and table 104."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoSummaryPolicyNameType,
+             t11FcSpPoSummaryPolicyName }
+    ::= { t11FcSpPoSummaryTable 1 }
+
+T11FcSpPoSummaryEntry ::= SEQUENCE {
+    t11FcSpPoSummaryPolicyNameType  T11FcSpPolicyNameType,
+    t11FcSpPoSummaryPolicyName      T11FcSpPolicyName,
+    t11FcSpPoSummaryPolicyType      T11FcSpPolicyObjectType,
+    t11FcSpPoSummaryHashFormat      T11FcSpPolicyHashFormat,
+    t11FcSpPoSummaryHashValue       T11FcSpPolicyHashValue
+}
+
+t11FcSpPoSummaryPolicyNameType OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyNameType {
+                     nodeName(1),
+                     alphaNumericName(7)
+                 }
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The combination of t11FcSpPoSummaryPolicyNameType and
+           t11FcSpPoSummaryPolicyName specify the name of the Policy
+           Object contained in the Policy Summary Object.
+
+           The type of name is 'nodeName' if the value of the
+           corresponding instance of t11FcSpPoSummaryPolicyType is
+           'switchConnectivity', or 'alphaNumericName' otherwise."
+    ::= { t11FcSpPoSummaryEntry 1 }
+
+t11FcSpPoSummaryPolicyName OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyName
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The combination of t11FcSpPoSummaryPolicyNameType and
+           t11FcSpPoSummaryPolicyName specify the name of the Policy
+           Object contained in the Policy Summary Object."
+    ::= { t11FcSpPoSummaryEntry 2 }
+
+t11FcSpPoSummaryPolicyType OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyObjectType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The 'Identifier' that specifies the type of this
+           Policy Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.3.1 and table 104."
+    ::= { t11FcSpPoSummaryEntry 3 }
+
+t11FcSpPoSummaryHashFormat OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyHashFormat
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The format of this Policy Object's hash value as
+           contained in the corresponding instance of the
+           t11FcSpPoSummaryHashValue object."
+    ::= { t11FcSpPoSummaryEntry 4 }
+
+t11FcSpPoSummaryHashValue OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyHashValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The hash value of this Policy Object, in the format
+           identified by the corresponding instance of the
+           t11FcSpPoSummaryHashFormat object."
+    ::= { t11FcSpPoSummaryEntry 5 }
+
+--
+-- Switch Entries in Active Switch Membership List Objects
+--
+
+t11FcSpPoSwMembTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoSwMembEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of Switch Entries in active Switch Membership List
+           Objects.
+
+           One Switch Membership List Object is represented by all
+           of the rows of this table that have the same values
+           of fcmInstanceIndex and t11FcSpPoFabricIndex."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 110."
+    ::= { t11FcSpPoActive 3 }
+
+t11FcSpPoSwMembEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoSwMembEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one Switch Entry
+           within the active Switch Membership List Object for the
+           Fabric identified by t11FcSpPoFabricIndex and managed
+           within the Fibre Channel management instance identified
+           by fcmInstanceIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoSwMembSwitchNameType, t11FcSpPoSwMembSwitchName }
+    ::= { t11FcSpPoSwMembTable 1 }
+
+T11FcSpPoSwMembEntry ::= SEQUENCE {
+    t11FcSpPoSwMembSwitchNameType   T11FcSpPolicyNameType,
+    t11FcSpPoSwMembSwitchName       FcNameIdOrZero,
+    t11FcSpPoSwMembSwitchFlags      BITS,
+    t11FcSpPoSwMembDomainID         FcDomainIdOrZero,
+    t11FcSpPoSwMembPolicyDataRole   INTEGER,
+    t11FcSpPoSwMembAuthBehaviour    BITS,
+    t11FcSpPoSwMembAttribute        T11FcSpAlphaNumNameOrAbsent
+}
+
+t11FcSpPoSwMembSwitchNameType OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyNameType {
+                     nodeName(1),
+                     restrictedNodeName(2),
+                     wildcard(5),
+                     restrictedWildcard(6)
+                 }
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "If the value of this object is 'nodeName' or
+           'restrictedNodeName', then the combination of
+           this object and t11FcSpPoSwMembSwitchName specify the
+           Switch Name of this Switch Entry.
+
+           The membership is restricted or unrestricted based on the
+           name type.  Restricted membership means that the Switch is
+           not allowed to be part of the Fabric unless allowed by a
+           specific Switch Connectivity Object.  Unrestricted
+           membership means that the Switch is allowed to be part of
+           the Fabric unless disallowed by a specific Switch
+           Connectivity Object.
+
+           The values of 'wildcard' and 'restrictedWildcard' provide
+           the means to specify whether to allow/deny membership for
+           Switches not explicitly named in the Switch Membership
+           List Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 110."
+    ::= { t11FcSpPoSwMembEntry 1 }
+
+t11FcSpPoSwMembSwitchName OBJECT-TYPE
+    SYNTAX       FcNameIdOrZero (SIZE (8))
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "When the value of t11FcSpPoSwMembSwitchNameType is
+           'wildcard' or 'restrictedWildcard', this object has the
+           value '0000000000000000'h.
+
+           Otherwise, the combination of t11FcSpPoSwMembSwitchNameType
+           and this object specify the Switch Name of this Switch
+           Entry."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 110."
+    ::= { t11FcSpPoSwMembEntry 2 }
+
+t11FcSpPoSwMembSwitchFlags OBJECT-TYPE
+    SYNTAX       BITS {
+                     staticDomainID(0),
+                     insistentDomainID(1),
+                     serialPortsAccess(2),
+                     physicalPortsAccess(3),
+                     managerRole(4)
+                 }
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "Configurable options in respect to the administration
+           of Policy Objects at this Switch:
+
+              'staticDomainID'      - if this bit is set, the Switch
+           uses the 'Static Domain_IDs behavior' (as defined in
+           FC-SW-4).  This bit needs to have the same setting for all
+           Switches in a Fabric's Switch Membership List Object, or
+           else the Fabric will partition.  If this bit is set, the
+           Domain_ID for the Switch is given by the corresponding
+           instance of t11FcSpPoSwMembDomainID.
+
+              'insistentDomainID'   -  if this bit is set, the
+           Switch uses the 'Insistent Domain_ID behavior' (see
+           t11FamConfigDomainId of T11-FC-FABRIC-ADDR-MGR-MIB), the
+           Domain_ID for the Switch is given by the corresponding
+           instance of t11FcSpPoSwMembDomainID.
+
+              'serialPortsAccess'   - the Switch allows management
+           through serial ports when and only when this bit is set.
+
+              'physicalPortsAccess' - the Switch allows management
+           through the physical panel when and only when this bit
+           is set.
+
+              'managerRole'         - the Switch is allowed to change
+           the Fabric Policy configuration (on receipt of any of the
+           EACA, Enhanced Stage Fabric Configuration (ESFC), Enhanced
+           Update Fabric Configuration (EUFC), ACA, SFC, or UFC
+           SW_ILSs) if and only if this bit is set.
+
+           Whenever a Fabric has Active Policy Objects, the value of
+           the t11FamConfigDomainIdType object defined in the
+           T11-FC-FABRIC-ADDR-MGR-MIB module must be read-only and
+           reflect the values of the 'staticDomainID' and
+           'insistentDomainID' bits of this object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 112.
+            - Fibre Channel - Switch Fabric-4 (FC-SW-4),
+              ANSI INCITS 418-2006, April 2006, section 7.1.
+            - t11FamConfigDomainIdType, T11-FC-FABRIC-ADDR-MGR-MIB,
+              Fibre Channel Fabric Address Manager MIB, RFC 4439."
+    ::= { t11FcSpPoSwMembEntry 3 }
+
+t11FcSpPoSwMembDomainID OBJECT-TYPE
+    SYNTAX       FcDomainIdOrZero
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The specified Domain_ID value when either of the
+           'staticDomainID' or 'insistentDomainID' bits are set in
+           the corresponding instance of t11FcSpPoSwMembSwitchFlags.
+
+           Whenever a Fabric has Active Policy Objects, the value
+           of the t11FamConfigDomainId object defined in the
+           T11-FC-FABRIC-ADDR-MGR-MIB module must be read-only and
+           reflect the value of this object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and tables 111 and 112.
+            - t11FamConfigDomainId, T11-FC-FABRIC-ADDR-MGR-MIB,
+              Fibre Channel Fabric Address Manager MIB, RFC 4439."
+    ::= { t11FcSpPoSwMembEntry 4 }
+
+t11FcSpPoSwMembPolicyDataRole OBJECT-TYPE
+    SYNTAX       INTEGER {
+                     client(1),
+                     autonomous(2),
+                     server(3)
+                 }
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The role of the Switch in terms of which Policy data
+           it retains/maintains:
+
+             'client' - the Switch operates as a Client Switch.
+           A Client Switch maintains its own Switch Connectivity
+           Object and all Fabric-wide List Objects.  If FC-SP
+           Zoning is used, a Client Switch maintains only the
+           subset of the Active Zone Set that it requires to
+           enforce the current Fabric Zoning configuration.
+
+             'autonomous' -  the Switch operates as an Autonomous
+           Switch.  An Autonomous Switch maintains its own Switch
+           Connectivity Object and all Fabric-wide List Objects.
+           This is the same as 'client' except that if FC-SP Zoning
+           is used, an Autonomous Switch maintains a complete copy
+           of the Fabric Zoning Database.
+
+             'server' - the Switch operates as a Server Switch.
+           A Server Switch maintains all Fabric-wide List Objects
+           and the Switch Connectivity Objects of each Switch in
+           the Fabric.  If FC-SP Zoning is used, a Server Switch
+           maintains a complete copy of the Fabric Zoning Database."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 113."
+    ::= { t11FcSpPoSwMembEntry 5 }
+
+t11FcSpPoSwMembAuthBehaviour  OBJECT-TYPE
+    SYNTAX       BITS {
+                     mustAuthenticate(0),
+                     rejectIsFailure(1)
+                 }
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The authentication behaviour of the Switch:
+
+             'mustAuthenticate' - if this bit is set, all connections
+           between this Switch and neighbor Switches must be
+           authenticated.
+
+             'rejectIsFailure' - if this bit is set, the rejection of
+           an AUTH_Negotiate message must be considered as an
+           authentication failure by this Switch."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 114."
+    ::= { t11FcSpPoSwMembEntry 6 }
+
+t11FcSpPoSwMembAttribute  OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumNameOrAbsent
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The name of an active Attribute Policy Object that is
+           defined for this Switch, or the zero-length string.  The
+
+           zero-length string indicates that no Attribute Policy
+           Object is defined for this Switch."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 110."
+    ::= { t11FcSpPoSwMembEntry 7 }
+
+--
+-- Node Entries in Active Node Membership List Objects
+--
+
+t11FcSpPoNoMembTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoNoMembEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of Node Entries in active Node Membership List
+           Objects.
+
+           One Node Membership List Object is represented by all
+           of the rows of this table that have the same values
+           of fcmInstanceIndex and t11FcSpPoFabricIndex."
+    ::= { t11FcSpPoActive 4 }
+
+t11FcSpPoNoMembEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoNoMembEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one Node Entry
+           within the active Node Membership List Object for the
+           Fabric identified by t11FcSpPoFabricIndex and managed
+           within the Fibre Channel management instance identified
+           by fcmInstanceIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoNoMembNodeNameType, t11FcSpPoNoMembNodeName }
+    ::= { t11FcSpPoNoMembTable 1 }
+
+T11FcSpPoNoMembEntry ::= SEQUENCE {
+    t11FcSpPoNoMembNodeNameType   T11FcSpPolicyNameType,
+    t11FcSpPoNoMembNodeName       FcNameIdOrZero,
+    t11FcSpPoNoMembFlags          BITS,
+    t11FcSpPoNoMembCtAccessIndex  Unsigned32,
+    t11FcSpPoNoMembAttribute      T11FcSpAlphaNumNameOrAbsent
+}
+
+t11FcSpPoNoMembNodeNameType OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyNameType {
+                     nodeName(1),
+                     restrictedNodeName(2),
+                     portName(3),
+                     restrictedPortName(4),
+                     wildcard(5),
+                     restrictedWildcard(6)
+                 }
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "If the value of this object is 'wildcard' or
+           'restrictedWildcard', this Node Entry applies to Nodes not
+           explicitly named in the Node Membership List Object.
+
+           Otherwise, the combination of this object and
+           t11FcSpPoNoMembNodeName specify the name of this Node Entry
+           in the active Node Membership List Object.  A Node is
+           identified by its Node Name or by one or more of its Port
+           Names.
+
+           Restricted membership means that a Node is not allowed to be
+           connected to the Fabric unless allowed by a specific Switch
+           Connectivity Object.  Unrestricted membership means that a
+           Node is allowed to be connected to the Fabric unless
+           disallowed by a specific Switch Connectivity Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 116."
+    ::= { t11FcSpPoNoMembEntry 1 }
+
+t11FcSpPoNoMembNodeName OBJECT-TYPE
+    SYNTAX       FcNameIdOrZero (SIZE (8))
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "If the value of t11FcSpPoNoMembNodeNameType is
+           'wildcard' or 'restrictedWildcard', this object has the
+           value '0000000000000000'h.
+
+           Otherwise, the combination of t11FcSpPoNoMembNodeNameType
+           and this object specify the name of this Node Entry is the
+           active Node Membership List Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 116."
+    ::= { t11FcSpPoNoMembEntry 2 }
+
+t11FcSpPoNoMembFlags OBJECT-TYPE
+    SYNTAX       BITS {
+                     scsiEnclosureAccess(0),
+                     authenticationRequired(1)
+                 }
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "Configurable options in respect to the administration
+           of Policy Objects at this Node:
+
+                'scsiEnclosureAccess'      - the Node is allowed to
+           control any Switch through SCSI Enclosure Services if this
+           bit is set.  If a Switch does not support SCSI Enclosure
+           Services, this bit is ignored.
+
+                'authenticationRequired'   - the Node is required to
+           authenticate itself to any Switch to which it is connected
+           if and only if this bit is set."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 118."
+    ::= { t11FcSpPoNoMembEntry 3 }
+
+t11FcSpPoNoMembCtAccessIndex  OBJECT-TYPE
+    SYNTAX       Unsigned32 (0..4294967295)
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "If the value of this object is zero, then access by this
+           Node to Generic Services is not limited by a Common
+           Transport Access Specifier.
+
+           Otherwise, the limits are specified by the set of Common
+           Transport Access Descriptors contained in those rows of
+           the t11FcSpPoCtDescrTable for the same Fabric and for which
+           the value of t11FcSpPoCtDescrSpecifierIndex is the same as
+           the value of this object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP), February 2007,
+              section 7.1.4.1 and tables 118/119/120/121."
+    ::= { t11FcSpPoNoMembEntry 4 }
+
+t11FcSpPoNoMembAttribute  OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumNameOrAbsent
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The name of an active Attribute Policy Object that is
+           defined for this Node, or the zero-length string.  The
+           zero-length string indicates that no Attribute Policy
+           Object is defined for this Node."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 116."
+    ::= { t11FcSpPoNoMembEntry 5 }
+
+--
+--
+-- Common Transport Access Descriptors
+--
+
+t11FcSpPoCtDescrTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoCtDescrEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of Common Transport Access Descriptors being used
+           within active Policy Objects.
+
+           A Common Transport Access Specifier is a list of Common
+           Transport Access Descriptors that specify whether a Node
+           is allowed to access a Generic Service or Sub-Server.
+
+           An active Common Transport Access Specifier is represented
+           by all rows of this table that have the same values of
+           fcmInstanceIndex, t11FcSpPoFabricIndex, and
+           t11FcSpPoCtDescrSpecifierIndex."
+    ::= { t11FcSpPoActive 5 }
+
+t11FcSpPoCtDescrEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoCtDescrEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one Common
+           Transport Access Descriptor of an active Common Transport
+           Access Specifier used within the Fabric identified by
+           t11FcSpPoFabricIndex and managed within the Fibre Channel
+           management instance identified by fcmInstanceIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoCtDescrSpecifierIndex, t11FcSpPoCtDescrIndex }
+    ::= { t11FcSpPoCtDescrTable 1 }
+
+T11FcSpPoCtDescrEntry ::= SEQUENCE {
+    t11FcSpPoCtDescrSpecifierIndex   Unsigned32,
+    t11FcSpPoCtDescrIndex            Unsigned32,
+    t11FcSpPoCtDescrFlags            BITS,
+    t11FcSpPoCtDescrGsType           OCTET STRING,
+    t11FcSpPoCtDescrGsSubType        OCTET STRING
+}
+
+t11FcSpPoCtDescrSpecifierIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies a particular
+           Common Transport Access Specifier within a Fabric."
+    ::= { t11FcSpPoCtDescrEntry 1 }
+
+t11FcSpPoCtDescrIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies a particular
+           Common Transport Access Descriptor within a Common Transport
+           Access Specifier."
+    ::= { t11FcSpPoCtDescrEntry 2 }
+
+t11FcSpPoCtDescrFlags OBJECT-TYPE
+    SYNTAX       BITS {
+                     allow(0),
+                     gsTypeWildcard(1),
+                     gsSubTypeWildcard(2),
+                     readOnly(3)
+                 }
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The flag bits that specify how access is to be limited by
+           this Common Transport Access Descriptor:
+
+            - allow -- access to the specified Generic Service and
+              Server is allowed if this bit is set, and is to be denied
+              if this bit is not set.
+
+            - gsTypeWildcard -- if this bit is set, the Generic Service
+
+              to be allowed/denied is specified by the value of
+              t11FcSpPoCtDescrGsType.  If this bit is set, then the
+              gsSubTypeWildcard bit must not be set.
+
+            - gsSubTypeWildcard -- if this bit is set, the Generic
+              Service to be allowed/denied is specified by the value of
+              t11FcSpPoCtDescrGsSubType.  If this bit is set, then the
+              gsTypeWildcard bit must not be set.
+
+            - readOnly -- if this bit is set, then access is to be
+              granted only for reading."
+    ::= { t11FcSpPoCtDescrEntry 3 }
+
+t11FcSpPoCtDescrGsType OBJECT-TYPE
+    SYNTAX       OCTET STRING (SIZE (1))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The GS_Type of the Generic Service (e.g., the FC-GS-5
+           Management Service) that is subject to access control.
+           This value is ignored if the gsTypeWildcard bit is not set
+           in the corresponding value of t11FcSpPoCtDescrFlags."
+    REFERENCE
+           "- Fibre Channel - Generic Services-5 (FC-GS-5),
+              ANSI INCITS 427-2006, section 4.3.2.4."
+    ::= { t11FcSpPoCtDescrEntry 4 }
+
+t11FcSpPoCtDescrGsSubType OBJECT-TYPE
+    SYNTAX       OCTET STRING (SIZE (1))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The GS_Subtype of the Generic Server (e.g., the Fabric Zone
+           Server) that is subject to access control.  This value is
+           ignored if the gsSubTypeWildcard bit is not set in the
+           corresponding value of t11FcSpPoCtDescrFlags."
+    REFERENCE
+           "- Fibre Channel - Generic Services-5 (FC-GS-5),
+              ANSI INCITS 427-2006, section 4.3.2.5."
+    ::= { t11FcSpPoCtDescrEntry 5 }
+
+--
+--
+-- Switches/Nodes in Active Switch Connectivity Objects
+--
+
+t11FcSpPoSwConnTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoSwConnEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of active Switch Connectivity Objects.
+
+           A Switch Connectivity Object defines to which other
+           Switches or Nodes a particular Switch may/may not be
+           connected at the Node level and/or at the Port level."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.6.1, tables 123/124."
+    ::= { t11FcSpPoActive 6 }
+
+t11FcSpPoSwConnEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoSwConnEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains the name of either a Switch or a Node
+           with which any port of a particular Switch, or a particular
+           port of that Switch, is allowed or not allowed to be
+           connected.
+
+           The particular Switch is on the Fabric identified by
+           t11FcSpPoFabricIndex and managed within the Fibre Channel
+           management instance identified by fcmInstanceIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoSwConnSwitchName, t11FcSpPoSwConnAllowedType,
+             t11FcSpPoSwConnPortNameOrAll,
+             t11FcSpPoSwConnAllowedIndex }
+    ::= { t11FcSpPoSwConnTable 1 }
+
+T11FcSpPoSwConnEntry ::= SEQUENCE {
+    t11FcSpPoSwConnSwitchName       FcNameIdOrZero,
+    t11FcSpPoSwConnAllowedType      INTEGER,
+    t11FcSpPoSwConnPortNameOrAll    FcNameIdOrZero,
+    t11FcSpPoSwConnAllowedIndex     Unsigned32,
+    t11FcSpPoSwConnAllowedNameType  T11FcSpPolicyNameType,
+    t11FcSpPoSwConnAllowedName      T11FcSpPolicyName
+}
+
+t11FcSpPoSwConnSwitchName OBJECT-TYPE
+    SYNTAX       FcNameIdOrZero (SIZE (8))
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The name of the particular Switch for which this Switch
+
+           Connectivity Object specifies topology restrictions."
+    ::= { t11FcSpPoSwConnEntry 1 }
+
+t11FcSpPoSwConnAllowedType OBJECT-TYPE
+    SYNTAX       INTEGER { switch(1), node(2) }
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "This object specifies whether this row refers to
+           Switch-to-Switch or Switch-to-Node connectivity, i.e.,
+           whether the corresponding instance of
+           t11FcSpPoSwConnAllowedName specifies the name of a Switch
+           or the name of a Node."
+    ::= { t11FcSpPoSwConnEntry 2 }
+
+t11FcSpPoSwConnPortNameOrAll OBJECT-TYPE
+    SYNTAX       FcNameIdOrZero (SIZE(0 | 8))
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "This object specifies either the particular port to which
+           this topology restriction applies, or if the value is the
+           zero-length string, that the topology restriction applies
+           to all ports on the particular Switch.
+
+           In the FC-SP Policy Database, restrictions for a particular
+           port are formatted within a Port Connectivity Entry of a
+           Switch Connectivity Object, whereas restrictions for all
+           ports on the Switch are specified in the main part of a
+           Switch Connectivity Object, i.e., not in a Port Connectivity
+           Entry."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.6.1, tables 123/124."
+    ::= { t11FcSpPoSwConnEntry 3 }
+
+t11FcSpPoSwConnAllowedIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "When multiple rows in this table apply to the same
+           port(s) in the same Switch's Switch Connectivity Object,
+           this object provides a unique index value to distinguish
+           between such rows."
+    ::= { t11FcSpPoSwConnEntry 4 }
+
+t11FcSpPoSwConnAllowedNameType OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyNameType {
+                     nodeName(1),
+                     restrictedNodeName(2),
+                     portName(3),
+                     restrictedPortName(4),
+                     wildcard(5),
+                     restrictedWildcard(6)
+                 }
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "If the value of this object is 'wildcard' or
+           'restrictedWildcard', this row specifies whether
+           connectivity is allowed/not allowed with entities not
+           explicitly named by other rows.
+
+           Otherwise, the combination of t11FcSpPoSwConnAllowedNameType
+           and t11FcSpPoSwConnAllowedName specify the name of:
+
+           - a Switch (if t11FcSpPoSwConnAllowedType = 'switch'), or
+           - a Node (if t11FcSpPoSwConnAllowedType = 'node')
+
+           to which connectivity is:
+
+            - allowed by 'nodeName' and 'portName',
+            - not allowed by 'restrictedNodeName' and
+              'restrictedPortName'."
+    ::= { t11FcSpPoSwConnEntry 5 }
+
+t11FcSpPoSwConnAllowedName OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyName (SIZE (8))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "If the value of t11FcSpPoSwConnAllowedNameType is
+           'wildcard' or 'restrictedWildcard', this object has the
+           value '0000000000000000'h.
+
+           Otherwise, the combination of t11FcSpPoSwConnAllowedNameType
+           and t11FcSpPoSwConnAllowedName specify the name of:
+
+           - a Switch (if t11FcSpPoSwConnAllowedType = 'switch'), or
+           - a Node (if t11FcSpPoSwConnAllowedType = 'node')
+
+           to which connectivity is allowed/restricted."
+    ::= { t11FcSpPoSwConnEntry 6 }
+
+--
+-- IP Management Entries in Active IP Management List Objects
+--
+
+t11FcSpPoIpMgmtTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoIpMgmtEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of IP Management Entries in active IP Management
+           List Objects.  An IP Management List Object is a
+           Fabric-wide Policy Object that describes which IP hosts
+           are allowed to manage a Fabric.
+
+           One IP Management List Object is represented by all
+           of the rows of this table that have the same values
+           of fcmInstanceIndex and t11FcSpPoFabricIndex."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.7"
+    ::= { t11FcSpPoActive 7 }
+
+t11FcSpPoIpMgmtEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoIpMgmtEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one IP Management
+           Entry within the active IP Management List Object for the
+           Fabric identified by t11FcSpPoFabricIndex and managed
+           within the Fibre Channel management instance identified
+           by fcmInstanceIndex.
+
+           The Policy Object Name of an IP Management Entry Policy
+           Object is either an IPv6 Address Range or an IPv4 Address
+           Range, where in each case, the range is specified as two
+           addresses: the low and high ends of the range.  In
+           particular, since the Policy Object Name in this situation
+           can only be an IPv6 Address Range or an IPv4 Address Range,
+           it is represented here by three MIB objects defined as a
+           (InetAddressType, InetAddress, InetAddress) tuple, in which
+           the first address is the low end of the range, the second
+           address is the high end of the range, and both addresses are
+           of the type designated by InetAddressType.
+
+           In theory, the use of t11FcSpPoIpMgmtEntryNameLow and
+           t11FcSpPoIpMgmtEntryNameHigh (which both have the syntax
+
+           of InetAddress) in the INDEX could cause the need for
+           excessively long OIDs.  In practice, this can't happen
+           because FC-SP doesn't allow these objects to be specified
+           as DNS names."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoIpMgmtEntryNameType,
+             t11FcSpPoIpMgmtEntryNameLow,
+             t11FcSpPoIpMgmtEntryNameHigh }
+    ::= { t11FcSpPoIpMgmtTable 1 }
+
+T11FcSpPoIpMgmtEntry ::= SEQUENCE {
+    t11FcSpPoIpMgmtEntryNameType   InetAddressType,
+    t11FcSpPoIpMgmtEntryNameLow    InetAddress,
+    t11FcSpPoIpMgmtEntryNameHigh   InetAddress,
+    t11FcSpPoIpMgmtWkpIndex        Unsigned32,
+    t11FcSpPoIpMgmtAttribute       T11FcSpAlphaNumNameOrAbsent
+}
+
+t11FcSpPoIpMgmtEntryNameType OBJECT-TYPE
+    SYNTAX       InetAddressType
+                 -- INTEGER { ipv4(1), ipv6(2) }
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The combination of t11FcSpPoIpMgmtNameType,
+           t11FcSpPoIpMgmtNameLow, and t11FcSpPoIpMgmtNameHigh
+           specify the Internet address range of this IP Management
+           Entry in the IP Management List Object.
+
+           The FC-SP specification does not allow the use of a
+           DNS domain name to specify the address at the lower end
+           or at the higher end of the Internet address range, nor does
+           it allow the specification of a zone index.  Therefore, the
+           type of address must be one of: 'ipv4', or 'ipv6'."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP), February 2007,
+              sections 7.1.7.1 & 7.1.2, tables 103/126."
+    ::= { t11FcSpPoIpMgmtEntry 1 }
+
+t11FcSpPoIpMgmtEntryNameLow OBJECT-TYPE
+    SYNTAX       InetAddress (SIZE(4 | 16))
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The lower end of an Internet address range.  The type
+           of this address is given by the corresponding instance
+           of t11FcSpPoIpMgmtEntryNameType.
+
+           The combination of t11FcSpPoIpMgmtNameType,
+           t11FcSpPoIpMgmtNameLow, and t11FcSpPoIpMgmtNameHigh
+           specify the Internet address range of this IP Management
+           Entry in the IP Management List Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP), February 2007,
+              sections 7.1.7.1 & 7.1.2, tables 103/126."
+    ::= { t11FcSpPoIpMgmtEntry 2 }
+
+t11FcSpPoIpMgmtEntryNameHigh OBJECT-TYPE
+    SYNTAX       InetAddress (SIZE(4 | 16))
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The higher end of an Internet address range.  The type
+           of this address is given by the corresponding instance
+           of t11FcSpPoIpMgmtEntryNameType.
+
+           The combination of t11FcSpPoIpMgmtNameType,
+           t11FcSpPoIpMgmtNameLow, and t11FcSpPoIpMgmtNameHigh
+           specify the Internet address range of this IP Management
+           Entry in the IP Management List Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, sections 7.1.7.1 & 7.1.2, tables 103/126."
+    ::= { t11FcSpPoIpMgmtEntry 3 }
+
+t11FcSpPoIpMgmtWkpIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (0..4294967295)
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "This object identifies the restrictions for IP management
+           access by IP hosts in this range of IP addresses, specified
+           as the set of Well-Known Protocols Access Descriptors
+           contained in those rows of the t11FcSpPoWkpDescrTable for
+           which the value of t11FcSpPoWkpDescrSpecifierIndex is the
+           same as the value of this object.  A value of zero indicates
+           that this IP Management Entry does not identify a Well-Known
+           Protocols Access Specifier."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.7.1 and tables 127/129."
+    ::= { t11FcSpPoIpMgmtEntry 4 }
+
+t11FcSpPoIpMgmtAttribute OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumNameOrAbsent
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The name of an active Attribute Policy Object that is
+           defined for this IP Management entry or the zero-length
+           string.  The zero-length string indicates that no Attribute
+           Policy Object is defined for this IP Management entry."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.7.1 and table 128."
+    ::= { t11FcSpPoIpMgmtEntry 5 }
+
+--
+-- Well-Known Protocol Access Descriptors
+--
+
+t11FcSpPoWkpDescrTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoWkpDescrEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of the Well-Known Protocol Access Descriptors
+           being used within active Policy Objects.
+
+           A Well-Known Protocol Access Specifier is a list of
+           Well-Known Protocol Access Descriptors each of which
+           specifies a protocol number, a port number, and/or various
+           flags specifying how IP management access is restricted.
+
+           A Well-Known Protocol Transport Access Specifier is
+           represented by all rows of this table that have the
+           same values of fcmInstanceIndex, t11FcSpPoFabricIndex,
+           and t11FcSpPoWkpDescrSpecifierIndex."
+    ::= { t11FcSpPoActive 8 }
+
+t11FcSpPoWkpDescrEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoWkpDescrEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one Well-Known
+           Protocol Access Descriptor of a Well-Known Protocol
+           Access Specifier used within the Fabric identified by
+           t11FcSpPoFabricIndex and managed within the Fibre Channel
+           management instance identified by fcmInstanceIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoWkpDescrSpecifierIndex, t11FcSpPoWkpDescrIndex }
+    ::= { t11FcSpPoWkpDescrTable 1 }
+
+T11FcSpPoWkpDescrEntry ::= SEQUENCE {
+    t11FcSpPoWkpDescrSpecifierIndex   Unsigned32,
+    t11FcSpPoWkpDescrIndex            Unsigned32,
+    t11FcSpPoWkpDescrFlags            BITS,
+    t11FcSpPoWkpDescrWkpNumber        Unsigned32,
+    t11FcSpPoWkpDescrDestPort         InetPortNumber
+}
+
+t11FcSpPoWkpDescrSpecifierIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies a particular
+           Well-Known Protocol Access Specifier within a Fabric."
+    ::= { t11FcSpPoWkpDescrEntry 1 }
+
+t11FcSpPoWkpDescrIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies a particular
+           Well-Known Protocol Access Descriptor within a Well-Known
+           Protocol Access Specifier."
+    ::= { t11FcSpPoWkpDescrEntry 2 }
+
+t11FcSpPoWkpDescrFlags OBJECT-TYPE
+    SYNTAX       BITS {
+                     allow(0),
+                     wkpWildcard(1),
+                     destPortWildcard(2),
+                     readOnly(3)
+                 }
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The flag bits that specify how access is to be limited by
+           this Well-Known Protocol Access Descriptor:
+
+            - allow -- IP management access using this protocol/port
+              is allowed if this bit is set, and to be denied if this
+              bit is not set.
+
+            - wkpWildcard -- if this bit is set, the IP Protocol number
+              of the Well-Known Protocol to be allowed/denied is
+              specified by the value of t11FcSpPoWkpDescrWkpNumber.
+
+            - destPortWildcard -- if this bit is set, the Destination
+              (TCP/UDP) Port number of the Well-Known Protocol to be
+              allowed/denied is specified by the value of
+              t11FcSpPoWkpDescrDestPort.
+
+            - readOnly -- if this bit is set, then access is to be
+              granted only for reading."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.7.1 and table 131."
+    ::= { t11FcSpPoWkpDescrEntry 3 }
+
+t11FcSpPoWkpDescrWkpNumber OBJECT-TYPE
+    SYNTAX       Unsigned32 (0..255)
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "When the 'wkpWildcard' bit is set in the corresponding
+           instance of t11FcSpPoWkpDescrFlags, this object specifies
+           the IP protocol number of the Well-Known Protocol."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.7.1 and table 131.
+            - http://www.iana.org/assignments/protocol-numbers."
+    ::= { t11FcSpPoWkpDescrEntry 4 }
+
+t11FcSpPoWkpDescrDestPort OBJECT-TYPE
+    SYNTAX       InetPortNumber
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "When the 'destPortWildcard' bit is set in the corresponding
+           instance of t11FcSpPoWkpDescrFlags, this object specifies
+           the Destination (TCP/UDP) Port number of the Well-Known
+           Protocol.  When the 'destPortWildcard' bit is reset, this
+           object is ignored (and can have the value zero)."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.7.1 and table 131.
+            - http://www.iana.org/assignments/port-numbers."
+    ::= { t11FcSpPoWkpDescrEntry 5 }
+
+--
+-- Attribute Entries in Active Attribute Policy Objects
+--
+
+t11FcSpPoAttribTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoAttribEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of the Attribute Policy Objects being used within
+           active Policy Objects.  In the FC-SP Policy Database, each
+           Attribute Policy Object consists of an Attribute Object Name
+           and a set of Attribute Entries.
+
+           An active Attribute Policy Object is represented by all the
+           Attribute Entries in this table that have the same value
+           of t11FcSpPoAttribName."
+    ::= { t11FcSpPoActive 9 }
+
+t11FcSpPoAttribEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoAttribEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each row contains information specific to an Attribute
+           Entry contained within an Attribute Policy Object that is
+           active within the Fabric identified by t11FcSpPoFabricIndex
+           and managed within the Fibre Channel management instance
+           identified by fcmInstanceIndex.
+
+           For some types of Attribute Policy Objects, it is valuable
+           to break out some semantically significant parts of the
+           Policy Object's value into their own individual MIB
+           objects; for example, to extract the one or more individual
+           Authentication Protocol Identifiers and associated
+           Authentication Protocol Parameters out of an Attribute
+           Object containing a 'AUTH_Negotiate Message Payload'.
+           For such types, another MIB table is defined to hold the
+           extracted values in MIB objects specific to the Attribute
+           Policy Object's type.  In such cases, the
+           t11FcSpPoAttribExtension object in this table points to the
+           other MIB table.
+
+           If the value of one Attribute Entry is too large (more than
+           256 bytes) to be contained within the value of one instance
+           of t11FcSpPoAttribValue, then one row in this table contains
+           the first 256 bytes, and one (or more) other row(s) in this
+           table contain the rest of the value."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoAttribName, t11FcSpPoAttribEntryIndex,
+             t11FcSpPoAttribPartIndex }
+    ::= { t11FcSpPoAttribTable 1 }
+
+T11FcSpPoAttribEntry ::= SEQUENCE {
+    t11FcSpPoAttribName         T11FcSpAlphaNumName,
+    t11FcSpPoAttribEntryIndex   Unsigned32,
+    t11FcSpPoAttribPartIndex    Unsigned32,
+    t11FcSpPoAttribType         Unsigned32,
+    t11FcSpPoAttribValue        OCTET STRING,
+    t11FcSpPoAttribExtension    OBJECT IDENTIFIER
+}
+
+t11FcSpPoAttribName OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumName
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The name of the Attribute Policy Object containing one
+           or more Attribute Entries."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.8.1 and table 133."
+    ::= { t11FcSpPoAttribEntry 1 }
+
+t11FcSpPoAttribEntryIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A unique value to distinguish this Attribute Entry
+           from other Attribute Entries contained in the same
+           Attribute Policy Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.8.1, tables 133/134."
+    ::= { t11FcSpPoAttribEntry 2 }
+
+t11FcSpPoAttribPartIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "When the value of an Attribute Entry is shorter than 257
+           bytes, the whole value is contained in one instance of
+
+           t11FcSpPoAttribValue, and the value of this object is 1.
+
+           If the value of an Attribute Entry is longer than 256 bytes,
+           then that value is divided up on 256-byte boundaries such
+           that all parts are 256 bytes long except the last part, which
+           is shorter if necessary, with each such part contained in
+           a separate row of this table, and the value of this object
+           is set to the part number.  That is, this object has the
+           value of 1 for bytes 0-255, the value of 2 for bytes
+           256-511, etc."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.8.1, tables 134/135."
+    ::= { t11FcSpPoAttribEntry 3 }
+
+t11FcSpPoAttribType OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The type of attribute.  The first type to be defined is:
+
+           t11FcSpPoAttribType    t11FcSpPoAttribValue
+           ===================    ====================
+             '00000001'h          The AUTH_Negotiate Message Payload
+           "
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP), February 2007,
+              section 7.1.8.1, tables 134/135 and table 10."
+    ::= { t11FcSpPoAttribEntry 4 }
+
+t11FcSpPoAttribValue OBJECT-TYPE
+    SYNTAX       OCTET STRING (SIZE (0..256))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The value of an Attribute Entry is divided up on 256-byte
+           boundaries such that all parts are 256 bytes long except the
+           last part, which is shorter if necessary, and each such part
+           is contained in a separate instance of this object.
+
+           The value of this object is independent of whether some
+           parts of its value are broken out into separate MIB objects
+           pointed to by the corresponding instance of
+           t11FcSpPoAttribExtension."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP), February 2007,
+              section 7.1.8.1, tables 134/135 and table 10."
+    ::= { t11FcSpPoAttribEntry 5 }
+
+t11FcSpPoAttribExtension OBJECT-TYPE
+    SYNTAX       OBJECT IDENTIFIER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "For some types of Attribute Policy Object, the value of
+           this MIB object points to type-specific MIB objects that
+           contain individual/broken-out parts of the Attribute Policy
+           Object's value.  If this object doesn't point to such
+           type-specific MIB objects, then it contains the value:
+           zeroDotZero.
+
+           In particular, when the value of t11FcSpPoAttribType
+           indicates 'AUTH_Negotiate Message Payload', one or more
+           Authentication Protocol Identifiers and their associated
+           Authentication Protocol Parameters are embedded within the
+           value of the corresponding instance of t11FcSpPoAttribValue;
+           MIB objects to contain these individual values are defined
+           in the t11FcSpPoAuthProtTable.  Thus, for an 'AUTH_Negotiate
+           Message Payload' Attribute, the value of this object
+           contains an OID within the t11FcSpPoAuthProtTable, e.g.,
+           of the whole table, of an individual row, or of an individual
+           instance within the table."
+    ::= { t11FcSpPoAttribEntry 6 }
+
+--
+-- Auth. Protocol Parameters in Active Attribute Policy Objects
+--
+
+t11FcSpPoAuthProtTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoAuthProtEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of Authentication Protocol Identifier and
+           Authentication Protocol Parameters that are embedded in
+           Attribute Policy Objects being used within active Policy
+           Objects.
+
+           This table is used for Attribute Entries of Attribute Policy
+           Objects for which the value of t11FcSpPoAttribType indicates
+           'AUTH_Negotiate Message Payload' and the value of
+           t11FcSpPoAttribExtension contains the OID of this table."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP), February 2007,
+              sections 5.3.2 & 7.1.8.1, tables 134/135 and tables
+              10/11."
+    ::= { t11FcSpPoActive 10 }
+
+t11FcSpPoAuthProtEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoAuthProtEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about an Authentication
+           Protocol that is extracted out of the Attribute Entry
+           (identified by t11FcSpPoAttribEntryIndex) of the Policy
+           Attribute Object (identified by t11FcSpPoAttribName), which
+           is active within the Fabric identified by
+           t11FcSpPoFabricIndex and managed within the Fibre Channel
+           management instance identified by fcmInstanceIndex.
+
+           If the value of one Attribute Protocol Parameters string is
+           too large (more than 256 bytes) to be contained within the
+           value of one instance of t11FcSpPoAuthProtParams, then one
+           row in this table contains the first 256 bytes, and one (or
+           more) other row(s) in this table contain the rest of the
+           value."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoAttribName, t11FcSpPoAttribEntryIndex,
+             t11FcSpPoAuthProtIdentifier,
+             t11FcSpPoAuthProtPartIndex }
+    ::= { t11FcSpPoAuthProtTable 1 }
+
+T11FcSpPoAuthProtEntry ::= SEQUENCE {
+    t11FcSpPoAuthProtIdentifier   Unsigned32,
+    t11FcSpPoAuthProtPartIndex    Unsigned32,
+    t11FcSpPoAuthProtParams       OCTET STRING
+}
+
+t11FcSpPoAuthProtIdentifier OBJECT-TYPE
+    SYNTAX       Unsigned32 (0..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The Authentication Protocol Identifier:
+
+                    1      = DH-CHAP
+                    2      = FCAP
+                    3      = FCPAP
+
+                    4      = IKEv2
+                    5      = IKEv2-AUTH
+              240 thru 255 = Vendor Specific Protocols
+
+            all other values are 'Reserved' (by T11)."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.3.2, table 11."
+    ::= { t11FcSpPoAuthProtEntry 1 }
+
+t11FcSpPoAuthProtPartIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "When the value of an Attribute Protocol Parameters string
+           is shorter than 257 bytes, the whole value is contained in
+           one instance of t11FcSpPoAuthProtParams, and the value of
+           this object is 1. (This includes the case when the Attribute
+           Protocol Parameters string is zero bytes in length.)
+
+           If the value of an Authentication Protocol Parameters string
+           is longer than 256 bytes, then that value is divided up on
+           256-byte boundaries such that all parts are 256 bytes long
+           except the last part, which is shorter if necessary, with
+           each such part contained in a separate row of this table,
+           and the value of this object is set to the part number.
+           That is, this object has the value of 1 for bytes 0-255,
+           the value of 2 for bytes 256-511, etc."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.3.2, table 10."
+    ::= { t11FcSpPoAuthProtEntry 2 }
+
+t11FcSpPoAuthProtParams OBJECT-TYPE
+    SYNTAX       OCTET STRING (SIZE (0..256))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The value of an Authentication Protocol Parameters string
+           is divided up on 256-byte boundaries such that all parts
+           are 256 bytes long except the last part, which is shorter
+           if necessary, and each such part is contained in a
+           separate instance of this object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.3.2, table 10."
+    ::= { t11FcSpPoAuthProtEntry 3 }
+
+--
+-- Part 2 - Activate/De-Activate Operations
+--
+
+--
+-- Objects to Invoke Activate/De-Activate Operations
+--
+
+t11FcSpPoOperTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoOperEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table that allows Activate and Deactivate operations
+           to be invoked for FC-SP Policies on various Fabrics.
+
+           Activating a new policy configuration is a two-step
+           process:
+
+            1) create a single Policy Summary Object as a set of rows
+               in the t11FcSpPoNaSummaryTable specifying a set of
+               Policy Objects that describe the new configuration; and
+            2) activate that Policy Summary Object using the
+               t11FcSpPoOperActivate object defined in this table.
+
+           Deactivating the current policy configuration is a one-step
+           process: the current Policy Summary Object is deactivated
+           using the t11FcSpPoOperDeActivate object."
+    ::= { t11FcSpPoOperations 1 }
+
+t11FcSpPoOperEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoOperEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry allows an Activate and/or Deactivate operation
+           to be invoked on a particular Fabric, which is managed as
+           part of the Fibre Channel management instance identified
+           by fcmInstanceIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex }
+    ::= { t11FcSpPoOperTable 1 }
+
+T11FcSpPoOperEntry ::= SEQUENCE {
+    t11FcSpPoOperActivate     T11FcSpAlphaNumName,
+    t11FcSpPoOperDeActivate   T11FcSpAlphaNumName,
+    t11FcSpPoOperResult       INTEGER,
+    t11FcSpPoOperFailCause    SnmpAdminString
+}
+
+t11FcSpPoOperActivate OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumName
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "Writing the name of a Policy Summary Object into this
+           object is a request to activate the policy configuration
+           described by the combination of all rows in
+           t11FcSpPoNaSummaryTable that have that name as their
+           value of t11FcSpPoNaSummaryName and are for the same
+           Fabric.
+
+           Before issuing such a request, the relevant rows in the
+           t11FcSpPoNaSummaryTable must exist and represent a complete
+           and consistent Policy Summary Object.  If they do not, the
+           request will fail, with t11FcSpPoOperResult having the
+           'badSummaryObject' value.
+
+           When read, the value of this object is always the zero-
+           length string.
+
+           Writing to this object does not delete (or in any way
+           affect) any rows in the MIB tables for non-active
+           Policy Objects."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.3.6.2"
+    ::= { t11FcSpPoOperEntry 1 }
+
+t11FcSpPoOperDeActivate OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumName
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "Writing the current value of t11FcSpPoPolicySummaryObjName
+           into this object (for a particular Fabric) is a request
+           to deactivate that Fabric's current policy configuration.
+           Writing any other value into this object is an error
+           (e.g., 'wrongValue').
+
+           When read, the value of this object is always the zero-
+           length string."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.3.6.3"
+    ::= { t11FcSpPoOperEntry 2 }
+
+t11FcSpPoOperResult OBJECT-TYPE
+    SYNTAX       INTEGER {
+                     activateSuccess(1),
+                     badSummaryObject(2),
+                     activateFailure(3),
+                     deactivateSuccess(4),
+                     deactivateFailure(5),
+                     inProgress(6),
+                     none(7)
+                 }
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "This object indicates the status/result of the last
+           activation/deactivation that was invoked via the
+           corresponding instance of t11FcSpPoOperActivate or
+           t11FcSpPoOperDeActivate.
+
+           When the value of this object is 'inProgress', the
+           values of the corresponding instances of
+           t11FcSpPoOperActivate and t11FcSpPoOperDeActivate
+           cannot be modified.
+
+           The value 'badSummaryObject' indicates an activation
+           request that did not name a complete and consistent
+           Policy Summary Object.
+
+           The value 'none' indicates activation/deactivation
+           has not been attempted since the last restart of
+           the management system."
+    ::= { t11FcSpPoOperEntry 3 }
+
+t11FcSpPoOperFailCause OBJECT-TYPE
+    SYNTAX       SnmpAdminString (SIZE (0..64))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "A textual message indicating the reason for the
+           most recent activation/deactivation failure, or the
+           zero-length string if no information is available
+           (e.g., because the corresponding instance of
+           t11FcSpPoOperResult has the value 'none').
+
+           When the corresponding instance of
+           t11FcSpPoOperResult is either 'activateFailure'
+           or 'deactivateFailure', the value of this object
+           indicates the reason for that failure."
+    ::= { t11FcSpPoOperEntry 4 }
+
+--
+-- Part 3 - Non-Active Policy Objects
+--
+
+--
+-- Non-Active Policy Summary Objects Available for Activation
+--
+
+t11FcSpPoNaSummaryTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoNaSummaryEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of non-active Policy Summary Objects available
+           to be activated.
+
+           The functionality of this table deviates slightly from FC-SP
+           in that FC-SP specifies that the only Policy Summary Object
+           is the Active one, i.e., FC-SP does not store non-active
+           Policy Summary Objects in the Policy Database.  Instead,
+           FC-SP requires a new Policy Summary Object to be created
+           for, and embedded within, every Activate (APS) request.
+           Thus, the newly created Policy Summary Object outlasts the
+           APS request only as the new active Policy Summary Object and
+           only if the APS succeeds.  In contrast, the Activate
+           operation provided by this MIB module consists of two steps:
+
+           1) create a non-active Policy Summary Object as a set of
+              entries in this table describing a new configuration;
+           2) activate a Policy Summary Object (stored as a set of
+              entries in this table) using t11FcSpPoOperActivate.
+
+           These two steps are only loosely connected, i.e., the result
+           of the first operation is a non-active Policy Summary Object
+           that is retained (in this table) even if it isn't
+           immediately activated.  Even after an attempt to activate
+           it succeeds or fails, a non-active Policy Summary Object
+           is not deleted, but is retained and still available for
+           subsequent modification/re-use."
+    ::= { t11FcSpPoNonActive 1 }
+
+t11FcSpPoNaSummaryEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoNaSummaryEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one non-active
+           Policy Object within a non-active Policy Summary Object
+           defined for potential use on the Fabric identified by
+           t11FcSpPoFabricIndex, and managed within the Fibre Channel
+           management instance identified by fcmInstanceIndex.
+
+           A non-active Policy Summary Object is described by a set
+           of entries in this table that have the same value of
+           t11FcSpPoNaSummaryName.
+
+           As and when a Policy Summary Object is activated using the
+           t11FcSpPoOperActivate object, if the activation is
+           successful, existing rows (if any) in MIB tables for active
+           Policy Objects are deleted and replaced by the appropriate
+           new set of rows.  Existing rows in this table and/or in
+           other tables for non-active Policy Objects are not
+           affected by the activate operation.
+
+           The StorageType of a row in this table is specified by the
+           instance of t11FcSpPoStorageType that is INDEX-ed by the
+           same values of fcmInstanceIndex and t11FcSpPoFabricIndex."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.3 and table 104."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoNaSummaryName, t11FcSpPoNaSummaryPolicyType,
+             t11FcSpPoNaSummaryPolicyIndex }
+    ::= { t11FcSpPoNaSummaryTable 1 }
+
+T11FcSpPoNaSummaryEntry ::= SEQUENCE {
+    t11FcSpPoNaSummaryName            T11FcSpAlphaNumName,
+    t11FcSpPoNaSummaryPolicyType      T11FcSpPolicyObjectType,
+    t11FcSpPoNaSummaryPolicyIndex     Unsigned32,
+    t11FcSpPoNaSummaryPolicyNameType  T11FcSpPolicyNameType,
+    t11FcSpPoNaSummaryPolicyName      T11FcSpPolicyName,
+    t11FcSpPoNaSummaryHashStatus      T11FcSpHashCalculationStatus,
+    t11FcSpPoNaSummaryHashFormat      T11FcSpPolicyHashFormat,
+    t11FcSpPoNaSummaryHashValue       T11FcSpPolicyHashValue,
+    t11FcSpPoNaSummaryRowStatus       RowStatus
+}
+
+t11FcSpPoNaSummaryName OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumName
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The name of the non-active Policy Summary Object that
+           contains this Policy Object."
+    ::= { t11FcSpPoNaSummaryEntry 1 }
+
+t11FcSpPoNaSummaryPolicyType OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyObjectType
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The 'Identifier' (i.e., the type) of this Policy Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.3.1 and table 104."
+    ::= { t11FcSpPoNaSummaryEntry 2 }
+
+t11FcSpPoNaSummaryPolicyIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A unique integer value to distinguish this Policy Object
+           from any others that have the same type and that are
+           contained in the same Policy Summary Object."
+    ::= { t11FcSpPoNaSummaryEntry 3 }
+
+t11FcSpPoNaSummaryPolicyNameType OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyNameType {
+                     nodeName(1),
+                     alphaNumericName(7)
+                 }
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The combination of t11FcSpPoNaSummaryPolicyNameType and
+           t11FcSpPoNaSummaryPolicyName specify the name of the
+           non-active Policy Object identified by this row.
+
+           The type of name must be 'nodeName' if the value of the
+           corresponding instance of t11FcSpPoNaSummaryPolicyType is
+           'switchConnectivity', or 'alphaNumericName' otherwise."
+    ::= { t11FcSpPoNaSummaryEntry 4 }
+
+t11FcSpPoNaSummaryPolicyName OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyName
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The combination of t11FcSpPoNaSummaryPolicyNameType and
+           t11FcSpPoNaSummaryPolicyName specify the name of the
+           non-active Policy Object identified by this row."
+    ::= { t11FcSpPoNaSummaryEntry 5 }
+
+t11FcSpPoNaSummaryHashStatus OBJECT-TYPE
+    SYNTAX       T11FcSpHashCalculationStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "When read, the value of this object is either:
+
+             correct -- the corresponding instance of
+                        t11FcSpPoNaSummaryHashValue contains
+                        the correct value; or
+             stale   -- the corresponding instance of
+                        t11FcSpPoNaSummaryHashValue contains
+                        a stale (possibly incorrect) value;
+
+           Writing a value of 'calculate' is a request to re-calculate
+           and update the value of the corresponding instance of
+           t11FcSpPoNaSummaryHashValue.  Writing a value of 'correct'
+          or 'stale' to this object is an error (e.g., 'wrongValue')."
+    DEFVAL      { stale }
+    ::= { t11FcSpPoNaSummaryEntry 6 }
+
+t11FcSpPoNaSummaryHashFormat OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyHashFormat
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The format of this Policy Object's hash value as
+           contained in the corresponding instance of the
+           t11FcSpPoNaSummaryHashValue object."
+    DEFVAL      { '00000001'h }
+    ::= { t11FcSpPoNaSummaryEntry 7 }
+
+t11FcSpPoNaSummaryHashValue OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyHashValue
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The hash value of this Policy Object, in the format
+           identified by the corresponding instance of the
+           t11FcSpPoNaSummaryHashFormat object."
+    DEFVAL      { "" }
+    ::= { t11FcSpPoNaSummaryEntry 8 }
+
+t11FcSpPoNaSummaryRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of this row.
+
+           Before a row in this table can have 'active' status,
+           a non-Active Policy Object must already be represented
+           in the table corresponding to the value of
+           t11FcSpPoNaSummaryPolicyType with the name given by the
+           combination of t11FcSpPoNaSummaryPolicyNameType and
+           t11FcSpPoNaSummaryPolicyName.  If such a Policy Object gets
+           deleted from the relevant table, the row in this table must
+           also get deleted.
+
+           When a row has 'active' status, the only write-able MIB
+           objects in this table are t11FcSpPoNaSummaryHashStatus and
+           t11FcSpPoNaSummaryRowStatus."
+    ::= { t11FcSpPoNaSummaryEntry 9 }
+
+--
+-- Non-Active Switch Membership List Objects
+--
+
+t11FcSpPoNaSwListTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoNaSwListEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of non-active Switch Membership List Objects."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 108."
+    ::= { t11FcSpPoNonActive 2 }
+
+t11FcSpPoNaSwListEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoNaSwListEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one non-active
+           Switch Membership List Object for the Fabric identified
+           by t11FcSpPoFabricIndex and managed within the Fibre
+
+           Channel management instance identified by
+           fcmInstanceIndex.
+
+           The StorageType of a row in this table is specified by the
+           instance of t11FcSpPoStorageType that is INDEX-ed by the
+           same values of fcmInstanceIndex and t11FcSpPoFabricIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoNaSwListName }
+    ::= { t11FcSpPoNaSwListTable 1 }
+
+T11FcSpPoNaSwListEntry ::= SEQUENCE {
+    t11FcSpPoNaSwListName         T11FcSpAlphaNumName,
+    t11FcSpPoNaSwListFabricName   FcNameIdOrZero,
+    t11FcSpPoNaSwListRowStatus    RowStatus
+}
+
+t11FcSpPoNaSwListName OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumName
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The name of the Switch Membership List Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 108."
+    ::= { t11FcSpPoNaSwListEntry 1 }
+
+t11FcSpPoNaSwListFabricName OBJECT-TYPE
+    SYNTAX       FcNameIdOrZero
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The administratively specified Fabric_Name.  This value
+           is meaningful only when static Domain_IDs are used in a
+           Fabric.  If Static Domain_IDs are not used, the Fabric_Name
+           is dynamically determined, in which case the value of this
+           object can be '0000000000000000'h or the zero-length
+           string."
+    REFERENCE
+           "- t11FamConfigDomainId, T11-FC-FABRIC-ADDR-MGR-MIB,
+              Fibre Channel Fabric Address Manager MIB, RFC 4439;
+            - ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, table 108."
+    ::= { t11FcSpPoNaSwListEntry 2 }
+
+t11FcSpPoNaSwListRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of this row.  Values of object instances
+           within the row can be modified at any time.
+
+           If a row in this table is deleted, any row in the
+           t11FcSpPoNaSwMembTable for the same Switch Membership
+           List Object will also get deleted."
+    ::= { t11FcSpPoNaSwListEntry 3 }
+
+--
+-- Switch Entries in Non-Active Switch Membership List Objects
+--
+
+t11FcSpPoNaSwMembTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoNaSwMembEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of Switch Entries in non-active Switch Membership
+           List Objects."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 110."
+    ::= { t11FcSpPoNonActive 3 }
+
+t11FcSpPoNaSwMembEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoNaSwMembEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one Switch that
+           is listed in a Switch Entry of a non-active Switch Membership
+           List Object for the Fabric identified by t11FcSpPoFabricIndex
+           and managed within the Fibre Channel management instance
+           identified by fcmInstanceIndex.
+
+           A row cannot exist unless there is a row in
+           t11FcSpPoNaSwListTable for the given Switch Membership List
+           Object, i.e., the row in t11FcSpPoNaSwListTable for a
+           Switch Membership List Object must be created before (or
+           simultaneously with) a row in this table for a Switch
+           Entry in that Switch Membership List Object, and when a
+           row in t11FcSpPoNaSwListTable is deleted, all rows in this
+           table for Switch Entries in that Switch Membership List
+
+           Object also get deleted.
+
+           The StorageType of a row in this table is specified by the
+           instance of t11FcSpPoStorageType that is INDEX-ed by the
+           same values of fcmInstanceIndex and t11FcSpPoFabricIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoNaSwListName,
+             t11FcSpPoNaSwMembSwitchNameType,
+             t11FcSpPoNaSwMembSwitchName }
+    ::= { t11FcSpPoNaSwMembTable 1 }
+
+T11FcSpPoNaSwMembEntry ::= SEQUENCE {
+    t11FcSpPoNaSwMembSwitchNameType   T11FcSpPolicyNameType,
+    t11FcSpPoNaSwMembSwitchName       FcNameIdOrZero,
+    t11FcSpPoNaSwMembFlags            BITS,
+    t11FcSpPoNaSwMembDomainID         FcDomainIdOrZero,
+    t11FcSpPoNaSwMembPolicyDataRole   INTEGER,
+    t11FcSpPoNaSwMembAuthBehaviour    BITS,
+    t11FcSpPoNaSwMembAttribute        T11FcSpAlphaNumNameOrAbsent,
+    t11FcSpPoNaSwMembRowStatus        RowStatus
+}
+
+t11FcSpPoNaSwMembSwitchNameType OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyNameType {
+                     nodeName(1),
+                     restrictedNodeName(2),
+                     wildcard(5),
+                     restrictedWildcard(6)
+                 }
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "If the value of this object is 'nodeName' or
+           'restrictedNodeName', then the combination of
+           this object and t11FcSpPoNaSwMembSwitchName specify the
+           Switch Name of this Switch Entry.
+
+           The membership is restricted or unrestricted based on the
+           name type.  Restricted membership means that the Switch is
+           not allowed to be part of the Fabric unless allowed by a
+           specific Switch Connectivity Object.  Unrestricted
+           membership means that the Switch is allowed to be part of
+           the Fabric unless disallowed by a specific Switch
+           Connectivity Object.
+
+           The values of 'wildcard' and 'restrictedWildcard' provide
+           the means to specify whether to allow/deny membership for
+           Switches not explicitly named in the Switch Membership
+
+           List Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 110."
+    ::= { t11FcSpPoNaSwMembEntry 1 }
+
+t11FcSpPoNaSwMembSwitchName OBJECT-TYPE
+    SYNTAX       FcNameIdOrZero (SIZE (8))
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "If the value of t11FcSpPoSwMembSwitchNameType is
+           'wildcard' or 'restrictedWildcard', this object has the
+           value '0000000000000000'h.
+
+           Otherwise, the combination of
+           t11FcSpPoNaSwMembSwitchNameType and this object specify the
+           Switch Name of this Switch Entry."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 110."
+    ::= { t11FcSpPoNaSwMembEntry 2 }
+
+t11FcSpPoNaSwMembFlags OBJECT-TYPE
+    SYNTAX       BITS {
+                     staticDomainID(0),
+                     insistentDomainID(1),
+                     serialPortsAccess(2),
+                     physicalPortsAccess(3),
+                     managerRole(4)
+                 }
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "Configurable options in respect to the administration
+           of Policy Objects at this Switch:
+
+              'staticDomainID'     - the Switch uses the 'Static
+           Domain_IDs behavior' (as defined in FC-SW-4) when this bit
+           is set.  This bit should have the same setting for all
+           Switches in a Fabric's Switch Membership List Object, or
+           else the Fabric will partition.  If this bit is set,
+           the 'insistentDomainID' bit must not be set.
+
+              'insistentDomainID'  - if this bit is set, the Switch
+           uses the 'Insistent Domain_IDs behavior' (as defined in
+
+           FC-SW-4), and the 'staticDomainID' bit must not be set.
+
+              'serialPortsAccess'  - the Switch allows management
+           through serial ports when and only when this bit is set.
+
+              'physicalPortsAccess' - the Switch allows management
+           through the physical panel when and only when this bit
+           is set.
+
+              'managerRole'        - the Switch is allowed to change
+           the Fabric Policy configuration (on receipt of any of the
+           EACA, ESFC, EUFC, ACA, SFC, or UFC SW_ILSs) if this bit is
+           set."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 112."
+    ::= { t11FcSpPoNaSwMembEntry 3 }
+
+t11FcSpPoNaSwMembDomainID OBJECT-TYPE
+    SYNTAX       FcDomainIdOrZero
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The Domain_ID to be used when either the 'staticDomainID'
+           bit or the 'insistentDomainID' bit is set in the
+           corresponding value of t11FcSpPoNaSwMembFlags."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and tables 111 and 112."
+    ::= { t11FcSpPoNaSwMembEntry 4 }
+
+t11FcSpPoNaSwMembPolicyDataRole OBJECT-TYPE
+    SYNTAX       INTEGER {
+                     client(1),
+                     autonomous(2),
+                     server(3)
+                 }
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The role of the Switch in terms of which Policy data
+           it retains/maintains:
+
+             'client' - the Switch operates as a Client Switch.
+           A Client Switch maintains its own Switch Connectivity
+           Object and all Fabric-wide List Objects.  If FC-SP
+
+           Zoning is used, a Client Switch maintains only the
+           subset of the Active Zone Set that it requires to
+           enforce the current Fabric Zoning configuration.
+
+             'autonomous' -  the Switch operates as an Autonomous
+           Switch.  An Autonomous Switch maintains its own Switch
+           Connectivity Object and all Fabric-wide List Objects.
+           This is the same as 'client' except that if FC-SP Zoning
+           is used, an Autonomous Switch maintains a complete copy
+           of the Fabric Zoning Database.
+
+             'server' - the Switch operates as a Server Switch.
+           A Server Switch maintains all Fabric-wide List Objects
+           and the Switch Connectivity Objects of each Switch in
+           the Fabric.  If FC-SP Zoning is used, a Server Switch
+           maintains a complete copy of the Fabric Zoning Database."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 113."
+    ::= { t11FcSpPoNaSwMembEntry 5 }
+
+t11FcSpPoNaSwMembAuthBehaviour  OBJECT-TYPE
+    SYNTAX       BITS {
+                      mustAuthenticate(0),
+                      rejectIsFailure(1)
+                 }
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The authentication behaviour of the Switch:
+
+             'mustAuthenticate' - if this bit is set, all connections
+           between this Switch and neighbor Switches must be
+           authenticated.
+
+             'rejectIsFailure' - if this bit is set, the rejection of
+           an AUTH_Negotiate message must be considered as an
+           authentication failure by this Switch."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 114."
+    ::= { t11FcSpPoNaSwMembEntry 6 }
+
+t11FcSpPoNaSwMembAttribute OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumNameOrAbsent
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The name of a non-active Attribute Policy Object that
+           is defined for this Switch.  The zero-length string
+           indicates that no non-active Attribute Policy Object is
+           defined for this Switch.
+
+           The effect of having no rows in the t11FcSpPoNaAttribTable
+           for which the value of t11FcSpPoNaAttribName is the
+           same as the value of this object, is the same as
+           this object's value being the zero-length string."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 110."
+    ::= { t11FcSpPoNaSwMembEntry 7 }
+
+t11FcSpPoNaSwMembRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of this row.  Values of object instances
+           within the row can be modified at any time.
+
+           A row cannot exist unless there is a row in the
+           t11FcSpPoNaSwListTable for the Switch Membership List
+           Object containing the Switch Entry for this Switch, i.e.,
+           the row in t11FcSpPoNaSwListTable for a Switch Membership
+           List Object must be created before (or simultaneously)
+           with a row in this table for a Switch Entry in that
+           Switch Membership List Object; and when a row in
+           t11FcSpPoNaSwListTable is deleted, any row in this
+           table for a Switch Entry in that Switch Membership
+           List Object also gets deleted."
+    ::= { t11FcSpPoNaSwMembEntry 8 }
+
+--
+-- Node Entries in Non-Active Node Membership List Objects
+--
+
+t11FcSpPoNaNoMembTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoNaNoMembEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of Node Entries in non-active Node Membership List
+           Objects.
+
+           One Node Membership List Object is represented by all
+           the rows in this table that have the same value of
+           t11FcSpPoNaNoMembListName."
+    ::= { t11FcSpPoNonActive 4 }
+
+t11FcSpPoNaNoMembEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoNaNoMembEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one Node Entry of
+           a non-active Node Membership List Object for the Fabric
+           identified by t11FcSpPoFabricIndex and managed within
+           the Fibre Channel management instance identified by
+           fcmInstanceIndex.
+
+           The StorageType of a row in this table is specified by the
+           instance of t11FcSpPoStorageType that is INDEX-ed by the
+           same values of fcmInstanceIndex and t11FcSpPoFabricIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoNaNoMembListName,
+             t11FcSpPoNaNoMembNodeNameType,
+             t11FcSpPoNaNoMembNodeName }
+    ::= { t11FcSpPoNaNoMembTable 1 }
+
+T11FcSpPoNaNoMembEntry ::= SEQUENCE {
+    t11FcSpPoNaNoMembListName       T11FcSpAlphaNumName,
+    t11FcSpPoNaNoMembNodeNameType   T11FcSpPolicyNameType,
+    t11FcSpPoNaNoMembNodeName       FcNameIdOrZero,
+    t11FcSpPoNaNoMembFlags          BITS,
+    t11FcSpPoNaNoMembCtAccessIndex  Unsigned32,
+    t11FcSpPoNaNoMembAttribute      T11FcSpAlphaNumNameOrAbsent,
+    t11FcSpPoNaNoMembRowStatus      RowStatus
+}
+
+t11FcSpPoNaNoMembListName OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumName
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The name of the non-active Node Membership List Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 116."
+    ::= { t11FcSpPoNaNoMembEntry 1 }
+
+t11FcSpPoNaNoMembNodeNameType OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyNameType {
+                     nodeName(1),
+                     restrictedNodeName(2),
+                     portName(3),
+                     restrictedPortName(4),
+                     wildcard(5),
+                     restrictedWildcard(6)
+                 }
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "If the value of this object is 'wildcard' or
+           'restrictedWildcard', this Node Entry applies to Nodes not
+           explicitly named in the Node Membership List Object.
+
+           Otherwise, the combination of this object and
+           t11FcSpPoNaNoMembNodeName specify the name of this Node Entry
+           in the active Node Membership List Object.  A Node is
+           identified by its Node Name or by one or more of its Port
+           Names.
+
+           Restricted membership means that a Node is not allowed to be
+           connected to the Fabric unless allowed by a specific Switch
+           Connectivity Object.  Unrestricted membership means that a
+           Node is allowed to be connected to the Fabric unless
+           disallowed by a specific Switch Connectivity Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 116."
+    ::= { t11FcSpPoNaNoMembEntry 2 }
+
+t11FcSpPoNaNoMembNodeName OBJECT-TYPE
+    SYNTAX       FcNameIdOrZero (SIZE (8))
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "If the value of t11FcSpPoNaNoMembNodeNameType is
+           'wildcard' or 'restrictedWildcard', this object has the
+           value '0000000000000000'h.
+
+           Otherwise, the combination of t11FcSpPoNaNoMembNodeNameType
+           and this object specify the name of this Node Entry is the
+           active Node Membership List Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 116."
+    ::= { t11FcSpPoNaNoMembEntry 3 }
+
+t11FcSpPoNaNoMembFlags OBJECT-TYPE
+    SYNTAX       BITS {
+                     scsiEnclosureAccess(0),
+                     authenticationRequired(1)
+                 }
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "Configurable options in respect to the administration
+           of Policy Objects at this Node:
+
+                'scsiEnclosureAccess'      - the Node is allowed to
+           control any Switch through SCSI Enclosure Services if this
+           bit is set.  If a Switch does not support SCSI Enclosure
+           Services, this bit is ignored.
+
+                'authenticationRequired'   - the Node is required to
+           authenticate itself to any Switch to which it is connected
+           if and only if this bit is set."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 118."
+    ::= { t11FcSpPoNaNoMembEntry 4 }
+
+t11FcSpPoNaNoMembCtAccessIndex  OBJECT-TYPE
+    SYNTAX       Unsigned32 (0..4294967295)
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "If the value of this object is zero, then access by this
+           Node to Generic Services is not limited by a Common
+           Transport Access Specifier.
+
+           Otherwise, the limits are specified by the set of Common
+           Transport Access Descriptors contained in those rows of
+           the t11FcSpPoNaCtDescrTable for which the value of
+           t11FcSpPoNaCtDescrSpecifierIndex is the same as the value
+           of this object.  No such rows in t11FcSpPoNaCtDescrTable
+           have the same effect as this object's value being zero."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP), February 2007,
+              section 7.1.4.1 and tables 118/119/120/121."
+    ::= { t11FcSpPoNaNoMembEntry 5 }
+
+t11FcSpPoNaNoMembAttribute  OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumNameOrAbsent
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The name of a non-active Attribute Policy Object that
+           is defined for this Node.  The zero-length string indicates
+           that no non-active Attribute Policy Object is defined for
+           this Node.
+
+           The effect of having no rows in the t11FcSpPoNaAttribTable
+           for which the value of t11FcSpPoNaAttribName is the
+           same as the value of this object, is the same as
+           this object's value being the zero-length string."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.4.1 and table 116."
+    ::= { t11FcSpPoNaNoMembEntry 6 }
+
+t11FcSpPoNaNoMembRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of this row.  Values of object instances
+           within the row can be modified at any time."
+    ::= { t11FcSpPoNaNoMembEntry 7 }
+
+--
+--
+-- Non-Active Common Transport Access Descriptors
+--
+
+t11FcSpPoNaCtDescrTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoNaCtDescrEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of Common Transport Access Descriptors referenced
+           by non-active Policy Objects.
+
+           A Common Transport Access Specifier is a list of Common
+           Transport Access Descriptors that specify whether a Node
+           is allowed to access a Generic Service or Sub-Server.
+
+           A non-active Common Transport Access Specifier is
+           represented by all rows of this table that have the same
+
+           values of fcmInstanceIndex, t11FcSpPoFabricIndex, and
+           t11FcSpPoNaCtDescrSpecifierIndex."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.5"
+    ::= { t11FcSpPoNonActive 5 }
+
+t11FcSpPoNaCtDescrEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoNaCtDescrEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one Common Transport
+           Access Descriptor of an non-active Common Transport Access
+           Specifier used within the Fabric identified by
+           t11FcSpPoFabricIndex and managed within the Fibre Channel
+           management instance identified by fcmInstanceIndex.
+
+           The StorageType of a row in this table is specified by the
+           instance of t11FcSpPoStorageType that is INDEX-ed by the
+           same values of fcmInstanceIndex and t11FcSpPoFabricIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoNaCtDescrSpecifierIndex, t11FcSpPoNaCtDescrIndex }
+    ::= { t11FcSpPoNaCtDescrTable 1 }
+
+T11FcSpPoNaCtDescrEntry ::= SEQUENCE {
+    t11FcSpPoNaCtDescrSpecifierIndex   Unsigned32,
+    t11FcSpPoNaCtDescrIndex            Unsigned32,
+    t11FcSpPoNaCtDescrFlags            BITS,
+    t11FcSpPoNaCtDescrGsType           OCTET STRING,
+    t11FcSpPoNaCtDescrGsSubType        OCTET STRING,
+    t11FcSpPoNaCtDescrRowStatus        RowStatus
+}
+
+t11FcSpPoNaCtDescrSpecifierIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies a particular
+           Common Transport Access Specifier within a Fabric."
+    ::= { t11FcSpPoNaCtDescrEntry 1 }
+
+t11FcSpPoNaCtDescrIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies a particular
+           Common Transport Access Descriptor within a Common Transport
+           Access Specifier."
+    ::= { t11FcSpPoNaCtDescrEntry 2 }
+
+t11FcSpPoNaCtDescrFlags OBJECT-TYPE
+    SYNTAX       BITS {
+                     allow(0),
+                     gsTypeWildcard(1),
+                     gsSubTypeWildcard(2),
+                     readOnly(3)
+                 }
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The flag bits that specify how access is to be limited by
+           this Common Transport Access Descriptor:
+
+            - allow -- access to the specified Generic Service and
+              Server is allowed if this bit is set, and is to be denied
+              if this bit is not set.
+
+            - gsTypeWildcard -- if this bit is set, the Generic Service
+              to be allowed/denied is specified by the value of
+              t11FcSpPoNaCtDescrGsType, and the gsSubTypeWildcard bit
+              must not also be set.
+
+            - gsSubTypeWildcard -- if this bit is set, the Generic
+              Service to be allowed/denied is specified by the value of
+              t11FcSpPoNaCtDescrGsSubType, and the gsTypeWildcard bit
+              must not also be set.
+
+            - readOnly -- if this bit is set, then access is to be
+              granted only for reading."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP), February 2007,
+              section 7.1.5.1, and tables 117, 118, and 120."
+    ::= { t11FcSpPoNaCtDescrEntry 3 }
+
+t11FcSpPoNaCtDescrGsType OBJECT-TYPE
+    SYNTAX       OCTET STRING (SIZE (1))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The GS_Type of the Generic Service (e.g., the FC-GS-5
+           Management Service) that is subject to access control.
+
+           This value is ignored if the gsTypeWildcard bit is not set
+           in the corresponding value of t11FcSpPoNaCtDescrFlags."
+    REFERENCE
+           "- ANSI INCITS 427-2006,
+              Fibre Channel - Generic Services-5 (FC-GS-5),
+              section 4.3.2.4.
+            - ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.5.1 and table 120."
+    ::= { t11FcSpPoNaCtDescrEntry 4 }
+
+t11FcSpPoNaCtDescrGsSubType OBJECT-TYPE
+    SYNTAX       OCTET STRING (SIZE (1))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The GS_Subtype of the Generic Server (e.g., the Fabric Zone
+           Server) that is subject to access control.  This value is
+           ignored if the gsSubTypeWildcard bit is not set in the
+           corresponding value of t11FcSpPoNaCtDescrFlags."
+    REFERENCE
+           "- ANSI INCITS 427-2006,
+              Fibre Channel - Generic Services-5 (FC-GS-5),
+              section 4.3.2.5.
+            - ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.5.1 and table 120."
+    ::= { t11FcSpPoNaCtDescrEntry 5 }
+
+t11FcSpPoNaCtDescrRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of this row.  Values of object instances
+           within the row can be modified at any time."
+    ::= { t11FcSpPoNaCtDescrEntry 6 }
+
+--
+-- Switches/Nodes in Non-Active Switch Connectivity Objects
+--
+
+t11FcSpPoNaSwConnTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoNaSwConnEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of non-active Switch Connectivity Objects.
+
+           A Switch Connectivity Object defines to which other
+           Switches or Nodes a particular Switch may/may not be
+           connected at the Node level and/or at the Port level."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.6."
+    ::= { t11FcSpPoNonActive 6 }
+
+t11FcSpPoNaSwConnEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoNaSwConnEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains the name of a Switch/Node with which
+           any port of a particular Switch on a particular Fabric, or
+           a particular port on that Switch, is allowed or not allowed
+           to be connected.
+
+           The particular Fabric is identified by t11FcSpPoFabricIndex
+           and managed within the Fibre Channel management instance
+           identified by fcmInstanceIndex.
+
+           The StorageType of a row in this table is specified by the
+           instance of t11FcSpPoStorageType that is INDEX-ed by the
+           same values of fcmInstanceIndex and t11FcSpPoFabricIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoNaSwConnSwitchName,
+             t11FcSpPoNaSwConnAllowedType,
+             t11FcSpPoNaSwConnPortNameOrAll,
+             t11FcSpPoNaSwConnAllowedIndex }
+    ::= { t11FcSpPoNaSwConnTable 1 }
+
+T11FcSpPoNaSwConnEntry ::= SEQUENCE {
+    t11FcSpPoNaSwConnSwitchName       FcNameIdOrZero,
+    t11FcSpPoNaSwConnAllowedType      INTEGER,
+    t11FcSpPoNaSwConnPortNameOrAll    FcNameIdOrZero,
+    t11FcSpPoNaSwConnAllowedIndex     Unsigned32,
+    t11FcSpPoNaSwConnAllowedNameType  T11FcSpPolicyNameType,
+    t11FcSpPoNaSwConnAllowedName      FcNameIdOrZero,
+    t11FcSpPoNaSwConnRowStatus        RowStatus
+}
+
+t11FcSpPoNaSwConnSwitchName OBJECT-TYPE
+    SYNTAX       FcNameIdOrZero (SIZE (8))
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The name of the Switch for which this Switch Connectivity
+           Object specifies topology restrictions."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.6.1 and table 123."
+    ::= { t11FcSpPoNaSwConnEntry 1 }
+
+t11FcSpPoNaSwConnAllowedType OBJECT-TYPE
+    SYNTAX       INTEGER { switch(1), node(2) }
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "This object specifies whether this row refers to an
+           'Allowed Switch' that concerns Switch-to-Switch
+           connectivity or an 'Allowed Node' that concerns
+           Switch-to-Node connectivity.  Consequently, this object's
+           value indicates whether the corresponding instance of
+           t11FcSpPoNaSwConnAllowedName specifies the name of a Switch
+           or the name of a Node."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.6.1 and table 123."
+    ::= { t11FcSpPoNaSwConnEntry 2 }
+
+t11FcSpPoNaSwConnPortNameOrAll OBJECT-TYPE
+    SYNTAX       FcNameIdOrZero (SIZE(0 | 8))
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "This object specifies either the particular port on which
+           this topology restriction applies, or if the value is the
+           zero-length string, that the topology restriction applies
+           to all ports of the Switch.
+
+           In other words, if this object's value contains the name of
+           a port, then this row represents a 'Port Connectivity Entry'
+           (as described in FC-SP) within a Switch Connectivity Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.6.1 and tables 123/124."
+    ::= { t11FcSpPoNaSwConnEntry 3 }
+
+t11FcSpPoNaSwConnAllowedIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "When multiple rows in this table refer to different
+           'Allowed Switches' or to different 'Allowed Nodes' for the
+           same port(s) in the same Switch Connectivity Object, this
+           object provides a unique index value to distinguish between
+           such rows."
+    ::= { t11FcSpPoNaSwConnEntry 4 }
+
+t11FcSpPoNaSwConnAllowedNameType OBJECT-TYPE
+    SYNTAX       T11FcSpPolicyNameType {
+                     nodeName(1),
+                     restrictedNodeName(2),
+                     portName(3),
+                     restrictedPortName(4),
+                     wildcard(5),
+                     restrictedWildcard(6)
+                 }
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "If the value of this object is 'wildcard' or
+           'restrictedWildcard', this row specifies whether
+           connectivity is allowed/not allowed with entities not
+           explicitly named by other rows.
+
+           Otherwise, the combination of
+           t11FcSpPoNaSwConnAllowedNameType and
+           t11FcSpPoNaSwConnAllowedName specify the name of:
+
+           - a Switch (if t11FcSpPoNaSwConnAllowedType = 'switch'), or
+           - a Node (if t11FcSpPoNaSwConnAllowedType = 'node')
+
+           to which connectivity is allowed/not allowed."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.6.1 and tables 123/124."
+    ::= { t11FcSpPoNaSwConnEntry 5 }
+
+t11FcSpPoNaSwConnAllowedName OBJECT-TYPE
+    SYNTAX       FcNameIdOrZero (SIZE (8))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "If t11FcSpPoNaSwConnAllowedNameType has the value
+           'wildcard' or 'restrictedWildcard', this object has the
+           value '0000000000000000'h.
+
+           Otherwise, the combination of
+           t11FcSpPoNaSwConnAllowedNameType and
+           t11FcSpPoNaSwConnAllowedName specify the name of:
+
+           - a Switch (if t11FcSpPoNaSwConnAllowedType = 'switch'), or
+           - a Node (if t11FcSpPoNaSwConnAllowedType = 'node')
+
+           to which connectivity is allowed/not allowed."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.6.1 and tables 123/124."
+    ::= { t11FcSpPoNaSwConnEntry 6 }
+
+t11FcSpPoNaSwConnRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of this row.  Values of object instances
+           within the row can be modified at any time."
+    ::= { t11FcSpPoNaSwConnEntry 7 }
+
+--
+-- IP Management Entries in Non-Active IP Management List Objects
+--
+
+t11FcSpPoNaIpMgmtTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoNaIpMgmtEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of IP Management Entries in non-active IP
+           Management List Objects.  The IP Management List Object is a
+           Fabric-wide Policy Object that describes which IP hosts are
+           allowed to manage a Fabric.
+
+           One non-active IP Management List Object is represented by
+           all rows of this table that have the same values of
+           fcmInstanceIndex and t11FcSpPoFabricIndex."
+    ::= { t11FcSpPoNonActive 7 }
+
+t11FcSpPoNaIpMgmtEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoNaIpMgmtEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one IP Management
+
+           entry within a non-active IP Management List Object for the
+           Fabric identified by t11FcSpPoFabricIndex and managed
+           within the Fibre Channel management instance identified
+           by fcmInstanceIndex.
+
+           The Policy Object Name of an IP Management Entry Policy
+           Object is either an IPv6 Address Range or an IPv4 Address
+           Range.  In a Fabric's database of Policy Objects, every
+           Policy Object Name, including these Internet address ranges,
+           is represented as a (T11FcSpPolicyNameType,
+           T11FcSpPolicyName) tuple.  In contrast, this MIB module
+           uses the conventional MIB syntax for IP addresses, and
+           therefore represents the Policy Object Name of an IP
+           Management Entry Policy Object as a (InetAddressType,
+           InetAddress, InetAddress) tuple.
+
+           In theory, the use of t11FcSpPoNaIpMgmtEntryNameLow and
+           t11FcSpPoNaIpMgmtEntryNameHigh, which have the syntax of
+           InetAddress, in the INDEX could cause the need for
+           excessively long OIDs.  In practice, this can't happen
+           because FC-SP doesn't allow these objects to be specified
+           as DNS names.
+
+           The StorageType of a row in this table is specified by the
+           instance of t11FcSpPoStorageType that is INDEX-ed by the
+           same values of fcmInstanceIndex and t11FcSpPoFabricIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoNaIpMgmtListName,
+             t11FcSpPoNaIpMgmtEntryNameType,
+             t11FcSpPoNaIpMgmtEntryNameLow,
+             t11FcSpPoNaIpMgmtEntryNameHigh }
+    ::= { t11FcSpPoNaIpMgmtTable 1 }
+
+T11FcSpPoNaIpMgmtEntry ::= SEQUENCE {
+    t11FcSpPoNaIpMgmtListName        T11FcSpAlphaNumName,
+    t11FcSpPoNaIpMgmtEntryNameType   InetAddressType,
+    t11FcSpPoNaIpMgmtEntryNameLow    InetAddress,
+    t11FcSpPoNaIpMgmtEntryNameHigh   InetAddress,
+    t11FcSpPoNaIpMgmtWkpIndex        Unsigned32,
+    t11FcSpPoNaIpMgmtAttribute       T11FcSpAlphaNumNameOrAbsent,
+    t11FcSpPoNaIpMgmtRowStatus       RowStatus
+}
+
+t11FcSpPoNaIpMgmtListName OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumName
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The name of a non-active Node Membership List Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.7.1 and table 125."
+    ::= { t11FcSpPoNaIpMgmtEntry 1 }
+
+t11FcSpPoNaIpMgmtEntryNameType OBJECT-TYPE
+    SYNTAX       InetAddressType { ipv4(1), ipv6(2) }
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The combination of t11FcSpPoNaIpMgmtEntryNameType,
+           t11FcSpPoNaIpMgmtNameLow, and t11FcSpPoNaIpMgmtNameHigh
+           specify the Internet address range of this IP Management
+           Entry in the IP Management List Object.
+
+           The FC-SP specification does not allow this address to
+           be specified using a DNS domain name, nor does it allow
+           the specification of zone indexes.  Therefore, the
+           type of address must be one of: 'ipv4' or 'ipv6'."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, sections 7.1.7.1 and table 126."
+    ::= { t11FcSpPoNaIpMgmtEntry 2 }
+
+t11FcSpPoNaIpMgmtEntryNameLow OBJECT-TYPE
+    SYNTAX       InetAddress (SIZE(4 | 16))
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The lower end of an Internet address range.  The type
+           of this address is given by the corresponding instance
+           of t11FcSpPoNaIpMgmtEntryNameType.
+
+           The combination of t11FcSpPoNaIpMgmtEntryNameType,
+           t11FcSpPoNaIpMgmtNameLow, and t11FcSpPoIpMgmtNameHigh
+           specify the Internet address range of this IP Management
+           Entry in the IP Management List Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, sections 7.1.7.1 and table 126."
+    ::= { t11FcSpPoNaIpMgmtEntry 3 }
+
+t11FcSpPoNaIpMgmtEntryNameHigh OBJECT-TYPE
+    SYNTAX       InetAddress (SIZE(4 | 16))
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The higher end of an Internet address range.  The type
+           of this address is given by the corresponding instance
+           of t11FcSpPoNaIpMgmtEntryNameType.
+
+           The combination of t11FcSpPoNaIpMgmtEntryNameType,
+           t11FcSpPoNaIpMgmtNameLow, and t11FcSpPoNaIpMgmtNameHigh
+           specify the Internet address range of this IP Management
+           Entry in the IP Management List Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, sections 7.1.7.1 and table 126."
+    ::= { t11FcSpPoNaIpMgmtEntry 4 }
+
+t11FcSpPoNaIpMgmtWkpIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (0..4294967295)
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "This object identifies the restrictions for IP management
+           access by IP hosts in this range of IP addresses.
+
+           The restrictions are specified as the set of Well-Known
+           Protocols Access Descriptors contained in those rows of the
+           t11FcSpPoNaWkpDescrTable for which the value of
+           t11FcSpPoNaWkpDescrSpecifierIndx is the same as the value
+           of this object.  If there are no such rows or if the value
+           of this object is zero, then this IP Management Entry does
+           not identify any Well-Known Protocols Access restrictions."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.7.1 and tables 127/129."
+    ::= { t11FcSpPoNaIpMgmtEntry 5 }
+
+t11FcSpPoNaIpMgmtAttribute OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumNameOrAbsent
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The name of a non-active Attribute Policy Object that
+           is defined for this IP Management entry.  The zero-length
+           string indicates that no non-active Attribute Policy Object
+           is defined for it.
+
+           The effect of having no rows in the t11FcSpPoNaAttribTable
+           for which the value of t11FcSpPoNaAttribName is the same
+           as the value of this object, is the same as this object's
+           value being the zero-length string."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.7.1 and table 128."
+    ::= { t11FcSpPoNaIpMgmtEntry 6 }
+
+t11FcSpPoNaIpMgmtRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of this row.  Values of object instances
+           within the row can be modified at any time."
+    ::= { t11FcSpPoNaIpMgmtEntry 7 }
+
+--
+-- Non-Active Well-Known Protocol Access Descriptors
+--
+
+t11FcSpPoNaWkpDescrTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoNaWkpDescrEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of the Well-Known Protocol Access Descriptors
+           referenced from non-active Policy Objects.
+
+           A Well-Known Protocol Access Specifier is a list of
+           Well-Known Protocol Access Descriptors each of which
+           specifies a protocol number, a port number, and/or various
+           flags specifying how IP management access is restricted.
+
+           A non-active Well-Known Protocol Transport Access Specifier
+           is represented by all rows of this table that have the same
+           values of fcmInstanceIndex, t11FcSpPoFabricIndex, and
+           t11FcSpPoNaWkpDescrSpecifierIndx."
+    ::= { t11FcSpPoNonActive 8 }
+
+t11FcSpPoNaWkpDescrEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoNaWkpDescrEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one Well-Known
+
+           Protocol Access Descriptor of a non-active Well-Known
+           Protocol Access Specifier used within the Fabric identified
+           by t11FcSpPoFabricIndex and managed within the Fibre Channel
+           management instance identified by fcmInstanceIndex.
+
+           The StorageType of a row in this table is specified by the
+           instance of t11FcSpPoStorageType that is INDEX-ed by the
+           same values of fcmInstanceIndex and t11FcSpPoFabricIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoNaWkpDescrSpecifierIndx,
+             t11FcSpPoNaWkpDescrIndex }
+    ::= { t11FcSpPoNaWkpDescrTable 1 }
+
+T11FcSpPoNaWkpDescrEntry ::= SEQUENCE {
+    t11FcSpPoNaWkpDescrSpecifierIndx    Unsigned32,
+    t11FcSpPoNaWkpDescrIndex            Unsigned32,
+    t11FcSpPoNaWkpDescrFlags            BITS,
+    t11FcSpPoNaWkpDescrWkpNumber        Unsigned32,
+    t11FcSpPoNaWkpDescrDestPort         InetPortNumber,
+    t11FcSpPoNaWkpDescrRowStatus        RowStatus
+}
+
+t11FcSpPoNaWkpDescrSpecifierIndx OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies a particular
+           non-active Well-Known Protocol Access Specifier within
+           a Fabric."
+    ::= { t11FcSpPoNaWkpDescrEntry 1 }
+
+t11FcSpPoNaWkpDescrIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies a particular
+           Well-Known Protocol Access Descriptor within a
+           non-active Well-Known Protocol Access Specifier."
+    ::= { t11FcSpPoNaWkpDescrEntry 2 }
+
+t11FcSpPoNaWkpDescrFlags OBJECT-TYPE
+    SYNTAX       BITS {
+                     allow(0),
+                     wkpWildcard(1),
+                     destPortWildcard(2),
+                     readOnly(3)
+
+                 }
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The flag bits that specify how access is to be limited by
+           this Well-Known Protocol Access Descriptor:
+
+            - allow -- IP management access using this protocol/port
+              is allowed if this bit is set, and to be denied if this
+              bit is not set.
+
+            - wkpWildcard -- if this bit is set, the IP Protocol number
+              of the Well-Known Protocol to be allowed/denied is
+              specified by the value of t11FcSpPoNaWkpDescrWkpNumber.
+
+            - destPortWildcard -- if this bit is set, the Destination
+              (TCP/UDP) Port number of the Well-Known Protocol to be
+              allowed/denied is specified by the value of
+              t11FcSpPoNaWkpDescrDestPort.
+
+            - readOnly -- if this bit is set, then access is to be
+              granted only for reading."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.7.1 and table 131."
+    ::= { t11FcSpPoNaWkpDescrEntry 3 }
+
+t11FcSpPoNaWkpDescrWkpNumber OBJECT-TYPE
+    SYNTAX       Unsigned32 (0..255)
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "When the 'wkpWildcard' bit is set in the corresponding
+           instance of t11FcSpPoNaWkpDescrFlags, this object specifies
+           the IP protocol number of the Well-Known Protocol."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.7.1 and table 131.
+            - http://www.iana.org/assignments/protocol-numbers."
+    ::= { t11FcSpPoNaWkpDescrEntry 4 }
+
+t11FcSpPoNaWkpDescrDestPort OBJECT-TYPE
+    SYNTAX       InetPortNumber
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "When the 'destPortWildcard' bit is set in the corresponding
+           instance of t11FcSpPoNaWkpDescrFlags, this object specifies
+           the Destination (TCP/UDP) Port number of the Well-Known
+           Protocol.  When the 'destPortWildcard' bit is reset, this
+           object is ignored (and can have the value zero)."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.7.1 and table 131.
+            - http://www.iana.org/assignments/port-numbers."
+    ::= { t11FcSpPoNaWkpDescrEntry 5 }
+
+t11FcSpPoNaWkpDescrRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of this row.  Values of object instances
+           within the row can be modified at any time."
+    ::= { t11FcSpPoNaWkpDescrEntry 6 }
+
+--
+-- Attribute Entries in Non-Active Attribute Policy Objects
+--
+
+t11FcSpPoNaAttribTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoNaAttribEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of the Attribute Policy Objects being used within
+           non-active Policy Objects.
+
+           A non-active Attribute Policy Object is represented by all
+           the Attribute Entries in this table that have the same
+           value of t11FcSpPoNaAttribName."
+    ::= { t11FcSpPoNonActive 9 }
+
+t11FcSpPoNaAttribEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoNaAttribEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one Attribute
+           Entry contained within an Attribute Policy Object
+           that is non-active within the Fabric identified by
+           t11FcSpPoFabricIndex and managed within the Fibre Channel
+           management instance identified by fcmInstanceIndex.
+
+           For some types of Attribute Policy Objects, it is valuable
+           to break out some semantically significant parts of the
+           Policy Object's value into their own individual MIB
+           objects; for example, to extract the one or more individual
+           Authentication Protocol Identifiers and associated
+
+           Authentication Protocol Parameters out of an Attribute
+           containing a 'AUTH_Negotiate Message Payload'.  For such
+           types, another MIB table is defined to hold the extracted
+           values in MIB objects specific to the Attribute Policy
+           Object's type.  In such cases, the
+           t11FcSpPoNaAttribExtension object in this table points to
+           the other MIB table.
+
+           If the value of one Attribute Entry is too large (more than
+           256 bytes) to be contained within the value of one instance
+           of t11FcSpPoNaAttribValue, then one row in this table
+           contains the first 256 bytes, and one (or more) other row(s)
+           in this table contain the rest of the value.
+
+           The StorageType of a row in this table is specified by the
+           instance of t11FcSpPoStorageType that is INDEX-ed by the
+           same values of fcmInstanceIndex and t11FcSpPoFabricIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoNaAttribName, t11FcSpPoNaAttribEntryIndex,
+             t11FcSpPoNaAttribPartIndex }
+    ::= { t11FcSpPoNaAttribTable 1 }
+
+T11FcSpPoNaAttribEntry ::= SEQUENCE {
+    t11FcSpPoNaAttribName         T11FcSpAlphaNumName,
+    t11FcSpPoNaAttribEntryIndex   Unsigned32,
+    t11FcSpPoNaAttribPartIndex    Unsigned32,
+    t11FcSpPoNaAttribType         Unsigned32,
+    t11FcSpPoNaAttribValue        OCTET STRING,
+    t11FcSpPoNaAttribExtension    OBJECT IDENTIFIER,
+    t11FcSpPoNaAttribRowStatus    RowStatus
+}
+
+t11FcSpPoNaAttribName OBJECT-TYPE
+    SYNTAX       T11FcSpAlphaNumName
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The name of the Attribute Policy Object containing one
+           or more Attribute Entries."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.8.1 and table 133."
+    ::= { t11FcSpPoNaAttribEntry 1 }
+
+t11FcSpPoNaAttribEntryIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A unique value to distinguish this Attribute Entry
+           from other Attribute Entries contained in the same
+           Attribute Policy Object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.8.1, tables 133/134."
+    ::= { t11FcSpPoNaAttribEntry 2 }
+
+t11FcSpPoNaAttribPartIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "When the value of an Attribute Entry is shorter than 257
+           bytes, the whole value is contained in one instance of
+           t11FcSpPoNaAttribValue, and the value of this object is 1.
+
+           If the value of an Attribute Entry is longer than 256 bytes,
+           then that value is divided up on 256-byte boundaries such
+           that all parts are 256 bytes long except the last part which
+           is shorter if necessary, with each such part contained in
+           a separate row of this table, and the value of this object
+           is set to the part number.  That is, this object has the
+           value of 1 for bytes 0-255, the value of 2 for bytes
+           256-511, etc."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.1.8.1, tables 134/135."
+    ::= { t11FcSpPoNaAttribEntry 3 }
+
+t11FcSpPoNaAttribType OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The type of attribute.  The first type to be defined is:
+
+           t11FcSpPoNaAttribType    t11FcSpPoNaAttribValue
+
+           =====================    ======================
+             '00000001'h          The AUTH_Negotiate Message Payload
+           "
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP), February 2007,
+              section 7.1.8.1, tables 134/135 and table 10."
+    ::= { t11FcSpPoNaAttribEntry 4 }
+
+t11FcSpPoNaAttribValue OBJECT-TYPE
+    SYNTAX       OCTET STRING (SIZE (0..256))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The value of an Attribute Entry is divided up on 256-byte
+           boundaries such that all parts are 256 bytes long except the
+           last part, which is shorter if necessary, and each such part
+           is contained in a separate instance of this object.
+
+           When the value of the corresponding instance of
+           t11FcSpPoNaAttribExtension is not zeroDotZero, then the same
+           underlying management data has its value contained both in
+           this object and in the individual/broken-out parts pointed
+           to by t11FcSpPoNaAttribExtension.  Thus, after any
+           modification of the underlying management data, e.g., after
+           a Set operation to the value of either MIB representation,
+           then that modification is reflected in the values of both
+           MIB representations."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP), February 2007,
+              section 7.1.8.1, tables 134/135 and table 10."
+    ::= { t11FcSpPoNaAttribEntry 5 }
+
+t11FcSpPoNaAttribExtension OBJECT-TYPE
+    SYNTAX       OBJECT IDENTIFIER
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "For some types of Attribute Policy Object, the value of
+           this MIB object points to type-specific MIB objects that
+           contain individual/broken-out parts of the Attribute Policy
+           Object's value.  If this object doesn't point to such
+           type-specific MIB objects, then it contains the value:
+           zeroDotZero.
+
+           In particular, when the value of t11FcSpPoNaAttribType
+           indicates 'AUTH_Negotiate Message Payload', one or more
+
+           Authentication Protocol Identifiers and their associated
+           Authentication Protocol Parameters are embedded within
+           the value of the corresponding instance of
+           t11FcSpPoNaAttribValue; MIB objects to contain these
+           individual values are defined in the
+           t11FcSpPoAuthProtTable.  Thus, for an 'AUTH_Negotiate
+           Message Payload' Attribute, the value of this object would
+           contain the OID of t11FcSpPoNaAuthProtTable.
+
+           When the value of this object is not zeroDotZero, then the
+           same underlying management data has its value contained in
+           both the individual/broken-out parts pointed to by this
+           object and in the corresponding instance of
+           t11FcSpPoNaAttribValue.  Thus, after any modification of the
+           underlying management data, e.g., after a Set operation to
+           the value of either MIB representation, then that
+           modification is reflected in the values of both MIB
+           representations."
+    ::= { t11FcSpPoNaAttribEntry 6 }
+
+t11FcSpPoNaAttribRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of this row.  Values of object instances
+           within the row can be modified at any time."
+    ::= { t11FcSpPoNaAttribEntry 7 }
+
+--
+-- Auth. Protocol Parameters in Non-Active Attribute Policy Objects
+--
+
+t11FcSpPoNaAuthProtTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoNaAuthProtEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of Authentication Protocol Identifier and
+           Authentication Protocol Parameters that are embedded in
+           Attribute Policy Objects being used within non-active
+           Policy Objects.
+
+           This table is used for Attribute Entries of Attribute Policy
+           Objects for which the value of t11FcSpPoNaAttribType
+           indicates 'AUTH_Negotiate Message Payload' and the value of
+           t11FcSpPoNaAttribExtension contains the OID of this table."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, sections 5.3.2 & 7.1.8.1,
+              tables 134/135 and tables 10/11."
+    ::= { t11FcSpPoNonActive 10 }
+
+t11FcSpPoNaAuthProtEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoNaAuthProtEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each row contains information about an Authentication
+           Protocol that is extracted out of the Attribute Entry
+           (identified by t11FcSpPoNaAttribEntryIndex) of the
+           non-active Policy Attribute Object (identified by
+           t11FcSpPoNaAttribName) for the Fabric identified by
+           t11FcSpPoFabricIndex and managed within the Fibre Channel
+           management instance identified by fcmInstanceIndex.
+
+           If the value of one Attribute Protocol Parameters string is
+           too large (more than 256 bytes) to be contained within the
+           value of one instance of t11FcSpPoNaAuthProtParams, then
+           one row in this table contains the first 256 bytes, and
+           one (or more) other row(s) in this table contain the rest
+           of the value.
+
+           The same underlying management data that is represented in
+           rows of this table is also represented by the corresponding
+           instances of t11FcSpPoNaAttribValue.  Thus, after any
+           modification of the underlying management data, e.g., after
+           a Set operation to the value of either MIB representation,
+           then that modification is reflected in the values of both
+           MIB representations."
+    INDEX  { fcmInstanceIndex, t11FcSpPoFabricIndex,
+             t11FcSpPoNaAttribName, t11FcSpPoNaAttribEntryIndex,
+             t11FcSpPoNaAuthProtIdentifier,
+             t11FcSpPoNaAuthProtPartIndex }
+    ::= { t11FcSpPoNaAuthProtTable 1 }
+
+T11FcSpPoNaAuthProtEntry ::= SEQUENCE {
+    t11FcSpPoNaAuthProtIdentifier   Unsigned32,
+    t11FcSpPoNaAuthProtPartIndex    Unsigned32,
+    t11FcSpPoNaAuthProtParams       OCTET STRING,
+    t11FcSpPoNaAuthProtRowStatus    RowStatus
+}
+
+t11FcSpPoNaAuthProtIdentifier OBJECT-TYPE
+    SYNTAX       Unsigned32 (0..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The Authentication Protocol Identifier:
+
+                    1      = DH-CHAP
+                    3      = FCPAP
+                    4      = IKEv2
+                    5      = IKEv2-AUTH
+              240 thru 255 = Vendor Specific Protocols
+
+            all other values are 'Reserved' (by T11)."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.3.2, table 11."
+    ::= { t11FcSpPoNaAuthProtEntry 1 }
+
+t11FcSpPoNaAuthProtPartIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "When the value of an Attribute Protocol Parameters string
+           is shorter than 257 bytes, the whole value is contained in
+           one instance of t11FcSpPoNaAuthProtParams, and the value of
+           this object is 1. (This includes the case when the Attribute
+           Protocol Parameters string is zero bytes in length.)
+
+           If the value of an Authentication Protocol Parameters string
+           is longer than 256 bytes, then that value is divided up on
+           256-byte boundaries such that all parts are 256 bytes long
+           except the last part, which is shorter if necessary, with
+           each such part contained in a separate row of this table,
+           and the value of this object is set to the part number.
+           That is, this object has the value of 1 for bytes 0-255,
+           the value of 2 for bytes 256-511, etc."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.3.2, table 10."
+    ::= { t11FcSpPoNaAuthProtEntry 2 }
+
+t11FcSpPoNaAuthProtParams OBJECT-TYPE
+    SYNTAX       OCTET STRING (SIZE (0..256))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The value of an Authentication Protocol Parameters string
+           is divided up on 256-byte boundaries such that all parts
+           are 256 bytes long except the last part, which is shorter
+           if necessary, and each such part is contained in a
+           separate instance of this object."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 5.3.2, table 10."
+    ::= { t11FcSpPoNaAuthProtEntry 3 }
+
+t11FcSpPoNaAuthProtRowStatus  OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of this row.  Values of object instances
+           within the row can be modified at any time."
+    ::= { t11FcSpPoNaAuthProtEntry 4 }
+
+--
+-- Part 4 - Statistics
+--
+
+t11FcSpPoStatsTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoStatsEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of statistics maintained by FC-SP Security
+           Policy Servers."
+    ::= { t11FcSpPoStatistics 1 }
+
+t11FcSpPoStatsEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoStatsEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A set of statistics for the FC-SP Security Policy Server on
+           the Fabric identified by the value of t11FcSpPoFabricIndex,
+           and managed within the Fibre Channel management instance
+           identified by fcmInstanceIndex."
+    INDEX   { fcmInstanceIndex, t11FcSpPoFabricIndex }
+    ::= { t11FcSpPoStatsTable 1 }
+
+T11FcSpPoStatsEntry ::= SEQUENCE {
+    t11FcSpPoInRequests     Counter32,
+    t11FcSpPoInAccepts      Counter32,
+    t11FcSpPoInRejects      Counter32
+}
+
+t11FcSpPoInRequests OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of FC-SP Policy Management Requests
+           (e.g., GPS, APS, etc.) received by this FC-SP
+           Security Policy Server on this Fabric.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.3."
+    ::= { t11FcSpPoStatsEntry 1 }
+
+t11FcSpPoInAccepts OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of times that this FC-SP Security Policy Server
+           sent an Accept CT_IU on this Fabric in response to a
+           received FC-SP Policy Management Request (e.g., GPS, APS,
+           etc.).
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.3."
+    ::= { t11FcSpPoStatsEntry 2 }
+
+t11FcSpPoInRejects OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of times that this FC-SP Security Policy Server
+           sent a Reject CT_IU on this Fabric in response to a
+           received FC-SP Policy Management Request (e.g., GPS, APS,
+           etc.).
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.3."
+    ::= { t11FcSpPoStatsEntry 3 }
+
+--
+-- Part 5 - Control Information & Notifications
+--
+
+--
+-- Control Information
+--
+
+t11FcSpPoServerAddress OBJECT-TYPE
+    SYNTAX       FcNameIdOrZero
+    MAX-ACCESS   accessible-for-notify
+    STATUS       current
+    DESCRIPTION
+           "The WWN of the FC-SP Security Policy Server that
+           received a request that is referenced in a
+           notification."
+    ::= { t11FcSpPoControl 1 }
+
+t11FcSpPoControlTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpPoControlEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of control information, including the memory
+           realization of FC-SP Policy Databases, and concerning
+           the generation of notifications due to FC-SP
+           Policy-related events."
+    ::= { t11FcSpPoControl 2 }
+
+t11FcSpPoControlEntry OBJECT-TYPE
+    SYNTAX       T11FcSpPoControlEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains control information specific to FC-SP
+           Policy and Policy-related events for the Fabric identified
+           by the value of t11FcSpPoFabricIndex, and managed within
+           the Fibre Channel management instance identified by
+           fcmInstanceIndex."
+    INDEX   { fcmInstanceIndex, t11FcSpPoFabricIndex }
+    ::= { t11FcSpPoControlTable 1 }
+
+T11FcSpPoControlEntry ::= SEQUENCE {
+     t11FcSpPoStorageType              StorageType,
+     t11FcSpPoNotificationEnable       TruthValue,
+     t11FcSpPoLastNotifyType           INTEGER,
+     t11FcSpPoRequestSource            FcNameIdOrZero,
+     t11FcSpPoReasonCode               T11NsGs4RejectReasonCode,
+     t11FcSpPoCtCommandString          OCTET STRING,
+     t11FcSpPoReasonCodeExp            Unsigned32,
+     t11FcSpPoReasonVendorCode         OCTET STRING
+}
+
+t11FcSpPoStorageType OBJECT-TYPE
+    SYNTAX       StorageType
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "This object specifies the memory realization of FC-SP
+           Policy Objects and related information for a particular
+           Fabric; specifically, for:
+
+             - rows created and/or modified for the particular
+               Fabric in these tables:
+
+                   t11FcSpPoNaSummaryTable
+                   t11FcSpPoNaSwListTable
+                   t11FcSpPoNaSwMembTable
+                   t11FcSpPoNaNoMembTable
+                   t11FcSpPoNaCtDescrTable
+                   t11FcSpPoNaSwConnTable
+                   t11FcSpPoNaIpMgmtTable
+                   t11FcSpPoNaWkpDescrTable
+                   t11FcSpPoNaAttribTable
+
+             - the activate and deactivate actions invoked through
+               the t11FcSpPoOperActivate and t11FcSpPoOperDeActivate
+               objects for the particular Fabric; and
+
+             - modified information contained in the same row
+               as an instance of this object.
+
+           Even if an instance of this object has the value
+           'permanent(4)', none of the information defined in
+           this MIB module for the given Fabric needs to be
+           writable."
+    ::= { t11FcSpPoControlEntry 1 }
+
+t11FcSpPoNotificationEnable OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "This object specifies whether the following types of
+           notifications:
+
+              t11FcSpPoNotifyActivation,
+              t11FcSpPoNotifyActivateFail,
+              t11FcSpPoNotifyDeactivation and
+              t11FcSpPoNotifyDeactivateFail
+
+           should be generated for this Fabric."
+    ::= { t11FcSpPoControlEntry 2 }
+
+t11FcSpPoLastNotifyType OBJECT-TYPE
+    SYNTAX       INTEGER {
+                     none(1),
+                     activation(2),
+                     activateFail(3),
+                     deactivation(4),
+                     deactivateFail(5)
+                 }
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "An indication of which of the following types of
+           notification is currently being/was most recently
+           generated for the Fabric:
+
+             'activation'     -- t11FcSpPoNotifyActivation
+             'activateFail'   -- t11FcSpPoNotifyActivateFail
+             'deactivation'   -- t11FcSpPoNotifyDeactivation
+             'deactivateFail' -- t11FcSpPoNotifyDeactivateFail
+
+           The value 'none' indicates that none of these types of
+           notifications have been generated since the last restart
+           of the network management system, and therefore that the
+           corresponding instances of: t11FcSpPoRequestSource,
+           t11FcSpPoReasonCode, t11FcSpPoCtCommandString,
+           t11FcSpPoReasonCodeExp, and
+           t11FcSpPoReasonVendorCode are irrelevant."
+    ::= { t11FcSpPoControlEntry 3 }
+
+t11FcSpPoRequestSource OBJECT-TYPE
+    SYNTAX       FcNameIdOrZero
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The WWN of the source of the (Activate Policy Summary
+           or Deactivate Policy Summary) request for which the
+           current/most recent notification of the type indicated by
+           the corresponding instance of t11FcSpPoLastNotifyType
+           is being/was generated.
+
+           If no source is available, the value of this object is
+           the zero-length string."
+    DEFVAL { "" }
+    ::= { t11FcSpPoControlEntry 4 }
+
+t11FcSpPoReasonCode OBJECT-TYPE
+    SYNTAX       T11NsGs4RejectReasonCode
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The reason code associated with the failure that is
+           indicated when the value of the corresponding instance
+           of t11FcSpPoLastNotifyType is 'activateFail' or
+           'deactivateFail'.
+
+           For other values of t11FcSpPoLastNotifyType, the value
+           of this object is 'none(1)'."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.3.6.2 & 7.3.6.3"
+    ::= { t11FcSpPoControlEntry 5 }
+
+t11FcSpPoCtCommandString OBJECT-TYPE
+    SYNTAX        OCTET STRING (SIZE (0..255))
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+           "The binary content of the failed request that is
+           indicated when the value of the corresponding instance of
+           t11FcSpPoLastNotifyType is 'activateFail' or
+           'deactivateFail'.  The content of the request is formatted
+           as an octet string (in network byte order) containing the
+           CT_IU, as described in Table 2 of [FC-GS-5] (including the
+           preamble).
+
+           For other values of t11FcSpPoLastNotifyType, or if the
+           CT_IU's content is unavailable, the value of this object
+           is the zero-length string.
+
+           When the length of this object is 255 octets, it
+           contains the first 255 octets of the CT_IU (in
+           network-byte order)."
+    ::= { t11FcSpPoControlEntry 6 }
+
+t11FcSpPoReasonCodeExp OBJECT-TYPE
+    SYNTAX       Unsigned32 (0..255)
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The reason code explanation associated with the failure
+           that is indicated when the value of the corresponding
+           instance of t11FcSpPoLastNotifyType is 'activateFail' or
+           'deactivateFail'.
+
+           For other values of t11FcSpPoLastNotifyType, the value
+           of this object is zero."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.3.6.2 & 7.3.6.3"
+    ::= { t11FcSpPoControlEntry 7 }
+
+t11FcSpPoReasonVendorCode  OBJECT-TYPE
+    SYNTAX       OCTET STRING (SIZE (0 | 1))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The vendor-specific reason code associated with the failure
+           that is indicated when the value of the corresponding
+           instance of t11FcSpPoLastNotifyType is 'activateFail' or
+           'deactivateFail'.
+
+           For other values of t11FcSpPoLastNotifyType, or if no
+           vendor-specific reason code is available, the value
+           of this object is the zero-length string."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.3.6.2 & 7.3.6.3"
+    ::= { t11FcSpPoControlEntry 8 }
+
+--
+-- Notification definitions
+--
+
+t11FcSpPoNotifyActivation NOTIFICATION-TYPE
+    OBJECTS      { t11FcSpPoServerAddress,
+                   t11FcSpPoPolicySummaryObjName,
+                   t11FcSpPoRequestSource }
+    STATUS       current
+    DESCRIPTION
+           "This notification is generated whenever a Security
+           Policy Server (indicated by the value of
+           t11FcSpPoServerAddress) successfully completes the
+           execution of an Activate Policy Summary request.
+           The value of t11FcSpPoRequestSource indicates
+           the source of the APS request.  The value of
+           t11FcSpPoPolicySummaryObjName indicates the name of
+           the activated Policy Summary Object."
+    ::= { t11FcSpPoMIBNotifications 1 }
+
+t11FcSpPoNotifyActivateFail NOTIFICATION-TYPE
+    OBJECTS      { t11FcSpPoServerAddress,
+                   t11FcSpPoRequestSource,
+                   t11FcSpPoCtCommandString,
+                   t11FcSpPoReasonCode,
+                   t11FcSpPoReasonCodeExp,
+                   t11FcSpPoReasonVendorCode }
+    STATUS       current
+    DESCRIPTION
+           "This notification is generated whenever a Security Policy
+           Server (indicated by the value of t11FcSpPoServerAddress)
+           fails to complete the execution of an Activate Policy
+           Summary request.
+
+           The value of t11FcSpPoCtCommandString indicates the
+           rejected request, and the values of t11FcSpPoReasonCode,
+           t11FcSpPoReasonCodeExp, and t11FcSpPoReasonVendorCode
+           indicate the reason for the rejection.  The value of
+           t11FcSpPoRequestSource indicates the source of the
+           request."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.3.6.2."
+    ::= { t11FcSpPoMIBNotifications 2 }
+
+t11FcSpPoNotifyDeactivation NOTIFICATION-TYPE
+    OBJECTS      { t11FcSpPoServerAddress,
+                   t11FcSpPoRequestSource }
+    STATUS       current
+    DESCRIPTION
+           "This notification is generated whenever a Security
+           Policy Server (indicated by the value of
+           t11FcSpPoServerAddress) successfully completes the
+
+           execution of a Deactivate Policy Summary request.
+           The value of t11FcSpPoRequestSource indicates
+           the source of the DPS request."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 7.3.6.3."
+    ::= { t11FcSpPoMIBNotifications 3 }
+
+t11FcSpPoNotifyDeactivateFail NOTIFICATION-TYPE
+    OBJECTS      { t11FcSpPoServerAddress,
+                   t11FcSpPoRequestSource,
+                   t11FcSpPoCtCommandString,
+                   t11FcSpPoReasonCode,
+                   t11FcSpPoReasonCodeExp,
+                   t11FcSpPoReasonVendorCode }
+    STATUS       current
+    DESCRIPTION
+           "This notification is generated whenever a Security Policy
+           Server (indicated by the value of t11FcSpPoServerAddress)
+           fails to complete the execution of a Deactivate Policy
+           Summary request.
+
+           The value of t11FcSpPoCtCommandString indicates the
+           rejected request, and the values of t11FcSpPoReasonCode,
+           t11FcSpPoReasonCodeExp, and t11FcSpPoReasonVendorCode
+           indicate the reason for the rejection.  The value of
+           t11FcSpPoRequestSource indicates the source of the
+           request."
+    ::= { t11FcSpPoMIBNotifications 4 }
+
+--
+-- Conformance
+--
+
+t11FcSpPoMIBCompliances
+                    OBJECT IDENTIFIER ::= { t11FcSpPoMIBConformance 1 }
+t11FcSpPoMIBGroups  OBJECT IDENTIFIER ::= { t11FcSpPoMIBConformance 2 }
+
+t11FcSpPoMIBCompliance MODULE-COMPLIANCE
+    STATUS       current
+    DESCRIPTION
+           "The compliance statement for entities that
+           support the Fabric Policies defined in FC-SP,"
+
+    MODULE  -- this module
+        MANDATORY-GROUPS { t11FcSpPoActiveObjectsGroup }
+
+        GROUP        t11FcSpPoNonActiveObjectsGroup
+        DESCRIPTION
+            "These objects are mandatory for FC-SP Security Policy
+            Servers."
+
+        GROUP        t11FcSpPoNotifyObjectsGroup
+        DESCRIPTION
+            "These objects are mandatory for FC-SP Security Policy
+            Servers."
+
+        GROUP        t11FcSpPoNotificationGroup
+        DESCRIPTION
+            "These notifications are mandatory for FC-SP Security
+            Policy Servers."
+
+        GROUP        t11FcSpPoOperationsObjectsGroup
+        DESCRIPTION
+            "These objects are mandatory only for FC-SP Security
+            Policy Servers that support the activation/deactivation
+            of policies via SNMP."
+
+        GROUP        t11FcSpPoStatsObjectsGroup
+        DESCRIPTION
+            "These objects are optional."
+
+-- Write access is not required for any objects in this MIB module:
+
+        OBJECT       t11FcSpPoOperActivate
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoOperDeActivate
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoStorageType
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNotificationEnable
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSummaryPolicyNameType
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSummaryPolicyName
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSummaryHashStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSummaryRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSwListFabricName
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSwListRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSwMembFlags
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSwMembDomainID
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSwMembPolicyDataRole
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSwMembAuthBehaviour
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSwMembAttribute
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSwMembRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaNoMembFlags
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaNoMembCtAccessIndex
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaNoMembAttribute
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaNoMembRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaCtDescrFlags
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaCtDescrGsType
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaCtDescrGsSubType
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaCtDescrRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSwConnAllowedNameType
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSwConnAllowedName
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaSwConnRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaIpMgmtWkpIndex
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaIpMgmtAttribute
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaIpMgmtRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaWkpDescrFlags
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaWkpDescrWkpNumber
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaWkpDescrDestPort
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaWkpDescrRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaAttribType
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaAttribValue
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaAttribRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaAuthProtParams
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+
+        OBJECT       t11FcSpPoNaAuthProtRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION
+            "Write access is not required."
+    ::= { t11FcSpPoMIBCompliances 1 }
+
+-- Units of Conformance
+
+t11FcSpPoActiveObjectsGroup OBJECT-GROUP
+    OBJECTS  {   t11FcSpPoPolicySummaryObjName,
+                 t11FcSpPoAdminFabricName,
+                 t11FcSpPoActivatedTimeStamp,
+                 t11FcSpPoSummaryPolicyType,
+                 t11FcSpPoSummaryHashFormat,
+                 t11FcSpPoSummaryHashValue,
+                 t11FcSpPoSwMembSwitchFlags,
+                 t11FcSpPoSwMembDomainID,
+                 t11FcSpPoSwMembPolicyDataRole,
+                 t11FcSpPoSwMembAuthBehaviour,
+                 t11FcSpPoSwMembAttribute,
+                 t11FcSpPoNoMembFlags,
+                 t11FcSpPoNoMembCtAccessIndex,
+                 t11FcSpPoNoMembAttribute,
+                 t11FcSpPoCtDescrFlags,
+                 t11FcSpPoCtDescrGsType,
+                 t11FcSpPoCtDescrGsSubType,
+                 t11FcSpPoSwConnAllowedNameType,
+                 t11FcSpPoSwConnAllowedName,
+                 t11FcSpPoIpMgmtWkpIndex,
+                 t11FcSpPoIpMgmtAttribute,
+                 t11FcSpPoWkpDescrFlags,
+                 t11FcSpPoWkpDescrWkpNumber,
+                 t11FcSpPoWkpDescrDestPort,
+                 t11FcSpPoAttribType,
+                 t11FcSpPoAttribValue,
+                 t11FcSpPoAttribExtension,
+                 t11FcSpPoAuthProtParams
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of MIB objects that contain information
+           about active Policy Objects that express Fibre Channel
+           Security (FC-SP) policy."
+    ::= { t11FcSpPoMIBGroups 1 }
+
+t11FcSpPoOperationsObjectsGroup OBJECT-GROUP
+    OBJECTS  {   t11FcSpPoOperActivate,
+                 t11FcSpPoOperDeActivate,
+                 t11FcSpPoOperResult,
+                 t11FcSpPoOperFailCause
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of MIB objects that allow a new set of
+           Fibre Channel Security (FC-SP) policies to be activated
+           or an existing set to be deactivated."
+    ::= { t11FcSpPoMIBGroups 2 }
+
+t11FcSpPoNonActiveObjectsGroup OBJECT-GROUP
+    OBJECTS  {   t11FcSpPoStorageType,
+                 t11FcSpPoNaSummaryPolicyNameType,
+                 t11FcSpPoNaSummaryPolicyName,
+                 t11FcSpPoNaSummaryHashStatus,
+                 t11FcSpPoNaSummaryHashFormat,
+                 t11FcSpPoNaSummaryHashValue,
+                 t11FcSpPoNaSummaryRowStatus,
+                 t11FcSpPoNaSwListFabricName,
+                 t11FcSpPoNaSwListRowStatus,
+                 t11FcSpPoNaSwMembFlags,
+                 t11FcSpPoNaSwMembDomainID,
+                 t11FcSpPoNaSwMembPolicyDataRole,
+                 t11FcSpPoNaSwMembAuthBehaviour,
+                 t11FcSpPoNaSwMembAttribute,
+                 t11FcSpPoNaSwMembRowStatus,
+                 t11FcSpPoNaNoMembFlags,
+                 t11FcSpPoNaNoMembCtAccessIndex,
+                 t11FcSpPoNaNoMembAttribute,
+                 t11FcSpPoNaNoMembRowStatus,
+                 t11FcSpPoNaCtDescrFlags,
+                 t11FcSpPoNaCtDescrGsType,
+                 t11FcSpPoNaCtDescrGsSubType,
+                 t11FcSpPoNaCtDescrRowStatus,
+                 t11FcSpPoNaSwConnAllowedNameType,
+                 t11FcSpPoNaSwConnAllowedName,
+                 t11FcSpPoNaSwConnRowStatus,
+                 t11FcSpPoNaIpMgmtWkpIndex,
+                 t11FcSpPoNaIpMgmtAttribute,
+                 t11FcSpPoNaIpMgmtRowStatus,
+                 t11FcSpPoNaWkpDescrFlags,
+                 t11FcSpPoNaWkpDescrWkpNumber,
+                 t11FcSpPoNaWkpDescrDestPort,
+                 t11FcSpPoNaWkpDescrRowStatus,
+                 t11FcSpPoNaAttribType,
+                 t11FcSpPoNaAttribValue,
+                 t11FcSpPoNaAttribExtension,
+                 t11FcSpPoNaAttribRowStatus,
+                 t11FcSpPoNaAuthProtParams,
+                 t11FcSpPoNaAuthProtRowStatus
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of MIB objects that contain information
+           about non-active Policy Objects available for activation
+           in order to change Fibre Channel Security (FC-SP) policy."
+    ::= { t11FcSpPoMIBGroups 3 }
+
+t11FcSpPoStatsObjectsGroup OBJECT-GROUP
+    OBJECTS  {   t11FcSpPoInRequests,
+                 t11FcSpPoInAccepts,
+                 t11FcSpPoInRejects
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of MIB objects that contain statistics
+           that can be maintained by FC-SP Security Policy Servers."
+    ::= { t11FcSpPoMIBGroups 4 }
+
+t11FcSpPoNotifyObjectsGroup OBJECT-GROUP
+    OBJECTS  {   t11FcSpPoNotificationEnable,
+                 t11FcSpPoServerAddress,
+                 t11FcSpPoLastNotifyType,
+                 t11FcSpPoRequestSource,
+                 t11FcSpPoReasonCode,
+                 t11FcSpPoCtCommandString,
+                 t11FcSpPoReasonCodeExp,
+                 t11FcSpPoReasonVendorCode
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of MIB objects to control the generation of
+           notifications concerning Fibre Channel Security (FC-SP)
+           policy, and to hold information contained in such
+           notifications."
+    ::= { t11FcSpPoMIBGroups 5 }
+
+t11FcSpPoNotificationGroup NOTIFICATION-GROUP
+    NOTIFICATIONS  {   t11FcSpPoNotifyActivation,
+                       t11FcSpPoNotifyActivateFail,
+                       t11FcSpPoNotifyDeactivation,
+                       t11FcSpPoNotifyDeactivateFail
+                   }
+    STATUS   current
+    DESCRIPTION
+           "A collection of notifications of events concerning
+           Fibre Channel Security (FC-SP) policy."
+    ::= { t11FcSpPoMIBGroups 6 }
+
+END

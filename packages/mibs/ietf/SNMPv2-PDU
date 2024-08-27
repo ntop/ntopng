@@ -1,0 +1,133 @@
+SNMPv2-PDU DEFINITIONS ::= BEGIN
+
+ObjectName ::= OBJECT IDENTIFIER
+
+ObjectSyntax ::= CHOICE {
+      simple           SimpleSyntax,
+      application-wide ApplicationSyntax }
+
+SimpleSyntax ::= CHOICE {
+      integer-value   INTEGER (-2147483648..2147483647),
+      string-value    OCTET STRING (SIZE (0..65535)),
+      objectID-value  OBJECT IDENTIFIER }
+
+ApplicationSyntax ::= CHOICE {
+      ipAddress-value        IpAddress,
+      counter-value          Counter32,
+      timeticks-value        TimeTicks,
+      arbitrary-value        Opaque,
+      big-counter-value      Counter64,
+      unsigned-integer-value Unsigned32 }
+
+IpAddress ::= [APPLICATION 0] IMPLICIT OCTET STRING (SIZE (4))
+
+Counter32 ::= [APPLICATION 1] IMPLICIT INTEGER (0..4294967295)
+
+Unsigned32 ::= [APPLICATION 2] IMPLICIT INTEGER (0..4294967295)
+
+Gauge32 ::= Unsigned32
+
+TimeTicks ::= [APPLICATION 3] IMPLICIT INTEGER (0..4294967295)
+
+Opaque ::= [APPLICATION 4] IMPLICIT OCTET STRING
+
+Counter64 ::= [APPLICATION 6]
+              IMPLICIT INTEGER (0..18446744073709551615)
+
+-- protocol data units
+
+PDUs ::= CHOICE {
+     get-request      GetRequest-PDU,
+     get-next-request GetNextRequest-PDU,
+     get-bulk-request GetBulkRequest-PDU,
+     response         Response-PDU,
+     set-request      SetRequest-PDU,
+     inform-request   InformRequest-PDU,
+     snmpV2-trap      SNMPv2-Trap-PDU,
+     report           Report-PDU }
+
+-- PDUs
+
+GetRequest-PDU ::= [0] IMPLICIT PDU
+
+GetNextRequest-PDU ::= [1] IMPLICIT PDU
+
+Response-PDU ::= [2] IMPLICIT PDU
+
+SetRequest-PDU ::= [3] IMPLICIT PDU
+
+-- [4] is obsolete
+
+GetBulkRequest-PDU ::= [5] IMPLICIT BulkPDU
+
+InformRequest-PDU ::= [6] IMPLICIT PDU
+
+SNMPv2-Trap-PDU ::= [7] IMPLICIT PDU
+
+--   Usage and precise semantics of Report-PDU are not defined
+--   in this document.  Any SNMP administrative framework making
+--   use of this PDU must define its usage and semantics.
+
+Report-PDU ::= [8] IMPLICIT PDU
+
+max-bindings INTEGER ::= 2147483647
+
+PDU ::= SEQUENCE {
+        request-id INTEGER (-214783648..214783647),
+        error-status                -- sometimes ignored
+            INTEGER {
+                noError(0),
+                tooBig(1),
+                noSuchName(2),      -- for proxy compatibility
+                badValue(3),        -- for proxy compatibility
+                readOnly(4),        -- for proxy compatibility
+                genErr(5),
+                noAccess(6),
+                wrongType(7),
+                wrongLength(8),
+                wrongEncoding(9),
+                wrongValue(10),
+                noCreation(11),
+                inconsistentValue(12),
+                resourceUnavailable(13),
+                commitFailed(14),
+                undoFailed(15),
+                authorizationError(16),
+                notWritable(17),
+                inconsistentName(18)
+            },
+        error-index                 -- sometimes ignored
+            INTEGER (0..max-bindings),
+        variable-bindings           -- values are sometimes ignored
+            VarBindList
+    }
+
+BulkPDU ::=                         -- must be identical in
+    SEQUENCE {                      -- structure to PDU
+        request-id      INTEGER (-214783648..214783647),
+        non-repeaters   INTEGER (0..max-bindings),
+        max-repetitions INTEGER (0..max-bindings),
+        variable-bindings           -- values are ignored
+            VarBindList
+    }
+
+-- variable binding
+
+VarBind ::= SEQUENCE {
+        name ObjectName,
+        CHOICE {
+            value          ObjectSyntax,
+            unSpecified    NULL,    -- in retrieval requests
+
+                                    -- exceptions in responses
+            noSuchObject   [0] IMPLICIT NULL,
+            noSuchInstance [1] IMPLICIT NULL,
+            endOfMibView   [2] IMPLICIT NULL
+        }
+    }
+
+-- variable-binding list
+
+VarBindList ::= SEQUENCE (SIZE (0..max-bindings)) OF VarBind
+
+END

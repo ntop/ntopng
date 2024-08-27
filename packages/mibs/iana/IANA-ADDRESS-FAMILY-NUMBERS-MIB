@@ -1,0 +1,170 @@
+IANA-ADDRESS-FAMILY-NUMBERS-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    mib-2                               FROM SNMPv2-SMI
+    TEXTUAL-CONVENTION                  FROM SNMPv2-TC;
+
+ianaAddressFamilyNumbers MODULE-IDENTITY
+    LAST-UPDATED "201409020000Z"  -- September 2, 2014
+    ORGANIZATION "IANA"
+    CONTACT-INFO
+        "Postal:    Internet Assigned Numbers Authority
+                    Internet Corporation for Assigned Names and Numbers
+                    12025 Waterfront Drive, Suite 300
+                    Los Angeles, CA 90094-2536
+                    USA
+
+        Tel:    +1  310-301-5800
+        E-Mail: iana&iana.org"
+    DESCRIPTION
+        "The MIB module defines the AddressFamilyNumbers
+        textual convention."
+
+    -- revision history
+
+    REVISION     "201409020000Z"  -- September 2, 2014
+    DESCRIPTION  "Assigned value 16396."
+
+    REVISION     "201309250000Z"  -- September 25, 2013
+    DESCRIPTION  "Assigned values 16391-16395."
+
+    REVISION     "201307160000Z"  -- July 16, 2013
+    DESCRIPTION  "Fixed labels for 16389-16390."
+
+    REVISION     "201306260000Z"  -- June 26, 2013
+    DESCRIPTION  "Added assignments 26-28."
+
+    REVISION     "201306180000Z"  -- June 18, 2013
+    DESCRIPTION  "Added assignments 16384-16390. Assignment 
+                  25 added in 2007 revision."
+
+    REVISION     "200203140000Z"  -- March 14, 2002
+    DESCRIPTION  "AddressFamilyNumbers assignment 22 to 
+                 fibreChannelWWPN. AddressFamilyNumbers 
+                 assignment 23 to fibreChannelWWNN.
+                 AddressFamilyNumers assignment 24 to gwid."
+
+    REVISION     "200009080000Z"  -- September 8, 2000
+    DESCRIPTION  "AddressFamilyNumbers assignment 19 to xtpOverIpv4.  
+                 AddressFamilyNumbers assignment 20 to xtpOverIpv6.  
+                 AddressFamilyNumbers assignment 21 to xtpNativeModeXTP."
+
+    REVISION     "200003010000Z"  -- March 1, 2000
+    DESCRIPTION  "AddressFamilyNumbers assignment 17 to distinguishedName. 
+                 AddressFamilyNumbers assignment 18 to asNumber."
+
+    REVISION     "200002040000Z"  -- February 4, 2000
+    DESCRIPTION  "AddressFamilyNumbers assignment 16 to dns."
+
+    REVISION     "9908260000Z"  -- August 26, 1999
+    DESCRIPTION  "Initial version, published as RFC 2677."
+    ::= { mib-2 72 }
+
+AddressFamilyNumbers ::= TEXTUAL-CONVENTION
+    STATUS       current
+    DESCRIPTION
+        "The definition of this textual convention with the
+        addition of newly assigned values is published
+        periodically by the IANA, in either the Assigned
+        Numbers RFC, or some derivative of it specific to
+        Internet Network Management number assignments.
+        (The latest arrangements can be obtained by
+        contacting the IANA.)
+
+        The enumerations are described as:
+
+        other(0),    -- none of the following
+        ipV4(1),     -- IP Version 4
+        ipV6(2),     -- IP Version 6
+        nsap(3),     -- NSAP
+        hdlc(4),     -- (8-bit multidrop)
+        bbn1822(5),
+        all802(6),   -- (includes all 802 media
+                     --   plus Ethernet 'canonical format')
+        e163(7),
+        e164(8),     -- (SMDS, Frame Relay, ATM)
+        f69(9),      -- (Telex)
+        x121(10),    -- (X.25, Frame Relay)
+        ipx(11),     -- IPX (Internet Protocol Exchange)
+        appleTalk(12),  -- Apple Talk
+        decnetIV(13),   -- DEC Net Phase IV
+        banyanVines(14),  -- Banyan Vines
+        e164withNsap(15),
+                     -- (E.164 with NSAP format subaddress)
+        dns(16),     -- (Domain Name System)
+        distinguishedName(17), -- (Distinguished Name, per X.500)
+        asNumber(18), -- (16-bit quantity, per the AS number space)
+        xtpOverIpv4(19),  -- XTP over IP version 4
+        xtpOverIpv6(20),  -- XTP over IP version 6
+        xtpNativeModeXTP(21),  -- XTP native mode XTP
+        fibreChannelWWPN(22),  -- Fibre Channel World-Wide Port Name 
+        fibreChannelWWNN(23),  -- Fibre Channel World-Wide Node Name
+        gwid(24),    -- Gateway Identifier 
+        afi(25),  -- AFI for L2VPN information
+        mplsTpSectionEndpointIdentifier(26),  -- MPLS-TP Section Endpoint Identifier
+        mplsTpLspEndpointIdentifier(27),  -- MPLS-TP LSP Endpoint Identifier
+        mplsTpPseudowireEndpointIdentifier(28),  -- MPLS-TP Pseudowire Endpoint Identifier
+        eigrpCommonServiceFamily(16384),  -- EIGRP Common Service Family
+        eigrpIpv4ServiceFamily(16385),  -- EIGRP IPv4 Service Family
+        eigrpIpv6ServiceFamily(16386),  -- EIGRP IPv6 Service Family
+        lispCanonicalAddressFormat(16387),  -- LISP Canonical Address Format (LCAF)
+        bgpLs(16388),  -- BGP-LS
+        fortyeightBitMacBitMac(16389),  -- 48-bit MAC
+        sixtyfourBitMac(16390),  -- 64-bit MAC
+        oui(16391),  -- OUI
+        mac24(16392),  -- MAC/24
+        mac40(16393),  -- MAC/40
+        ipv664(16394),  -- IPv6/64
+        rBridgePortID(16395),  -- RBridge Port ID
+        trillNickname(16396),  -- TRILL Nickname 
+        reserved(65535)
+
+        Requests for new values should be made to IANA via
+        email (iana&iana.org)."
+    SYNTAX  INTEGER {
+                other(0),
+                ipV4(1),
+                ipV6(2),
+                nsap(3),
+                hdlc(4),
+                bbn1822(5),
+                all802(6),
+                e163(7),
+                e164(8),
+                f69(9),
+                x121(10),
+                ipx(11),
+                appleTalk(12),
+                decnetIV(13),
+                banyanVines(14),
+                e164withNsap(15),
+                dns(16),
+                distinguishedName(17), -- (Distinguished Name, per X.500)
+                asNumber(18), -- (16-bit quantity, per the AS number space)
+                xtpOverIpv4(19),
+                xtpOverIpv6(20),
+                xtpNativeModeXTP(21),
+                fibreChannelWWPN(22),
+                fibreChannelWWNN(23),
+                gwid(24),
+                afi(25),
+                mplsTpSectionEndpointIdentifier(26),
+                mplsTpLspEndpointIdentifier(27),
+                mplsTpPseudowireEndpointIdentifier(28),
+                eigrpCommonServiceFamily(16384),
+                eigrpIpv4ServiceFamily(16385),
+                eigrpIpv6ServiceFamily(16386),
+                lispCanonicalAddressFormat(16387),
+                bgpLs(16388),
+                fortyeightBitMac(16389),
+                sixtyfourBitMac(16390),
+                oui(16391),
+                mac24(16392),
+                mac40(16393),
+                ipv664(16394),
+                rBridgePortID(16395),
+                trillNickname(16396),
+                reserved(65535)
+            }
+    END

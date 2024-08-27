@@ -1,0 +1,1918 @@
+UCD-SNMP-MIB DEFINITIONS ::= BEGIN
+
+-- Design notes:
+--
+-- The design of this mib may seem unusual in parts, as it was
+-- designed for ease of numerical management routines.
+-- 
+-- In that light, most sub-sections of this mib have four common
+-- numerical oid consistencies:
+--
+-- 2021.ID.1   : an integer index value.  In scalers, this is always
+--               of value 1.  In tables it is a row index.
+-- 2021.ID.2   : a name of the script, process, etc. that this row represents.
+-- 2021.ID.100 : An error flag indicating if an error is present on
+--               that row (a threshold value was crossed, etc).
+-- 2021.ID.101 : An error string describing why the error flag is non-0.
+--
+-- These conventions enable managers to easy examine portions of the
+-- mib by setting the ID to the sub-section they are interested in
+-- monitoring, and then scanning the .100 value to check for an
+-- error(s), and get a more specific error message from .101 for the
+-- named check found in .2.
+--
+-- Row numbers between 2 and 100 are sub-section specific.
+--
+-- Mib sections utilizing the above conventions:
+--   Tables:  	procTable, execTable, diskTable, loadTable
+--   Scalers: 	memory, snmperrs
+
+
+IMPORTS
+    OBJECT-TYPE, NOTIFICATION-TYPE, MODULE-IDENTITY,
+    Integer32, Opaque, enterprises, Counter32, Unsigned32
+        FROM SNMPv2-SMI
+
+    CounterBasedGauge64
+        FROM HCNUM-TC
+
+    TEXTUAL-CONVENTION, DisplayString, TruthValue
+	FROM SNMPv2-TC;
+
+ucdavis MODULE-IDENTITY
+    LAST-UPDATED "201606100000Z"
+    ORGANIZATION "University of California, Davis"
+    CONTACT-INFO    
+	"This mib is no longer being maintained by the University of
+	 California and is now in life-support-mode and being
+	 maintained by the net-snmp project.  The best place to write
+	 for public questions about the net-snmp-coders mailing list
+	 at net-snmp-coders@lists.sourceforge.net.
+
+         postal:   Wes Hardaker
+                   P.O. Box 382
+                   Davis CA  95617
+
+         email:    net-snmp-coders@lists.sourceforge.net
+        "
+    DESCRIPTION
+	"This file defines the private UCD SNMP MIB extensions."
+
+    REVISION     "201606100000Z"
+    DESCRIPTION
+	"New 64-bit memory objects"
+
+    REVISION     "201407310000Z"
+    DESCRIPTION
+	"New object for number of CPUs as counted by the agent"
+    REVISION	 "201105140000Z"
+    DESCRIPTION
+	"New objects for monitoring CPU Steal, Guest and Nice values"
+
+    REVISION	 "200901190000Z"
+    DESCRIPTION
+	"New 64-bit objects for monitoring large disk usage"
+
+    REVISION	 "200611220000Z"
+    DESCRIPTION
+	"Clarify behaviour of objects in the memory & systemStats groups
+         (including updated versions of malnamed mem*Text objects).
+         Define suitable TCs to describe error reporting/fix behaviour."
+
+    REVISION	 "200404070000Z"
+    DESCRIPTION
+	"Added ssCpuRawSoftIRQ for Linux (2.6) and forgotten raw swap counters."
+
+    REVISION	 "200209050000Z"
+    DESCRIPTION
+	"Deprecate the non-raw objects."
+
+    REVISION	 "200109200000Z"
+    DESCRIPTION
+	"Group to monitor log files"
+
+    REVISION	 "200101170000Z"
+    DESCRIPTION
+	"Added raw CPU and IO counters."
+
+    REVISION	 "9912090000Z"
+    DESCRIPTION
+	"SMIv2 version converted from older MIB definitions."
+    ::= { enterprises 2021 }
+
+-- Current UCD core mib table entries:
+--   prTable          OBJECT IDENTIFIER ::= { ucdavis   2 }
+--   memory           OBJECT IDENTIFIER ::= { ucdavis   4 }
+--   extTable         OBJECT IDENTIFIER ::= { ucdavis   8 }
+--   diskTable        OBJECT IDENTIFIER ::= { ucdavis   9 }
+--   loadTable        OBJECT IDENTIFIER ::= { ucdavis  10 }
+--   systemStats      OBJECT IDENTIFIER ::= { ucdavis  11 }
+--   ucdDemoMIB       OBJECT IDENTIFIER ::= { ucdavis  14 } - UCD-DEMO-MIB
+--   fileTable        OBJECT IDENTIFIER ::= { ucdavis  15 }
+--   logMatch         OBJECT IDENTIFIER ::= { ucdavis  16 }
+--   version          OBJECT IDENTIFIER ::= { ucdavis 100 }
+--   snmperrs         OBJECT IDENTIFIER ::= { ucdavis 101 }
+--   mibRegistryTable OBJECT IDENTIFIER ::= { ucdavis 102 }
+
+-- Older mib table entries that were changed to new locations above:
+--   processes        OBJECT IDENTIFIER ::= { ucdavis   1 }
+--   exec             OBJECT IDENTIFIER ::= { ucdavis   3 }
+--   disk             OBJECT IDENTIFIER ::= { ucdavis   6 }
+--   load             OBJECT IDENTIFIER ::= { ucdavis   7 }
+
+-- Never implemented and removed from the mib:
+--   lockd            OBJECT IDENTIFIER ::= { ucdavis   5 }
+
+-- Branches for registering other UCD MIB modules:
+ucdInternal           OBJECT IDENTIFIER ::= { ucdavis 12 }
+ucdExperimental       OBJECT IDENTIFIER ::= { ucdavis 13 }
+
+-- OID values assigned in the ucdExperimental branch:
+--   ucdIpFwAccMIB    OBJECT IDENTIFIER ::= { ucdExperimental  1 } - UCD-IPFWACC-MIB
+--   ucdIpFilter      OBJECT IDENTIFIER ::= { ucdExperimental  2 } - UCD-IPFILTER-MIB
+--   wavelan          OBJECT IDENTIFIER ::= { ucdExperimental  3 } - WL-MIB
+--   ucdDlmodMIB      OBJECT IDENTIFIER ::= { ucdExperimental 14 } - UCD-DLMOD-MIB
+--   ucdDiskIOMIB     OBJECT IDENTIFIER ::= { ucdExperimental 15 } - UCD-DISKIO-MIB
+--   lmSensors        OBJECT IDENTIFIER ::= { ucdExperimental 16 } - LM-SENSORS-MIB
+
+
+-- These are the old returned values of the agent type.
+-- originally returned to:  .iso.org.dod.internet.mgmt.mib-2.system.sysObjectID.0 
+-- Current versions of the agent return an equivalent OID from the netSnmpAgentOIDs
+-- tree (defined in NET-SNMP-TC), which includes values for some additional O/Ss
+
+ucdSnmpAgent      OBJECT IDENTIFIER ::= { ucdavis 250 }
+hpux9             OBJECT IDENTIFIER ::= { ucdSnmpAgent 1 }
+sunos4            OBJECT IDENTIFIER ::= { ucdSnmpAgent 2 }
+solaris           OBJECT IDENTIFIER ::= { ucdSnmpAgent 3 }
+osf               OBJECT IDENTIFIER ::= { ucdSnmpAgent 4 }
+ultrix            OBJECT IDENTIFIER ::= { ucdSnmpAgent 5 }
+hpux10            OBJECT IDENTIFIER ::= { ucdSnmpAgent 6 }
+netbsd1           OBJECT IDENTIFIER ::= { ucdSnmpAgent 7 }
+freebsd           OBJECT IDENTIFIER ::= { ucdSnmpAgent 8 }
+irix              OBJECT IDENTIFIER ::= { ucdSnmpAgent 9 }
+linux             OBJECT IDENTIFIER ::= { ucdSnmpAgent 10 }
+bsdi              OBJECT IDENTIFIER ::= { ucdSnmpAgent 11 }
+openbsd           OBJECT IDENTIFIER ::= { ucdSnmpAgent 12 }
+win32		  OBJECT IDENTIFIER ::= { ucdSnmpAgent 13 } -- unlucky
+hpux11            OBJECT IDENTIFIER ::= { ucdSnmpAgent 14 }
+aix               OBJECT IDENTIFIER ::= { ucdSnmpAgent 15 }
+macosx            OBJECT IDENTIFIER ::= { ucdSnmpAgent 16 }
+dragonfly         OBJECT IDENTIFIER ::= { ucdSnmpAgent 17 }
+unknown           OBJECT IDENTIFIER ::= { ucdSnmpAgent 255 }
+
+
+--
+-- Define the Float Textual Convention
+--   This definition was written by David Perkins.
+--
+
+Float ::= TEXTUAL-CONVENTION
+    STATUS      current
+    DESCRIPTION
+        "A single precision floating-point number.  The semantics
+         and encoding are identical for type 'single' defined in
+         IEEE Standard for Binary Floating-Point,
+         ANSI/IEEE Std 754-1985.
+         The value is restricted to the BER serialization of
+         the following ASN.1 type:
+             FLOATTYPE ::= [120] IMPLICIT FloatType
+         (note: the value 120 is the sum of '30'h and '48'h)
+         The BER serialization of the length for values of
+         this type must use the definite length, short
+         encoding form.
+
+         For example, the BER serialization of value 123
+         of type FLOATTYPE is '9f780442f60000'h.  (The tag
+         is '9f78'h; the length is '04'h; and the value is
+         '42f60000'h.) The BER serialization of value
+         '9f780442f60000'h of data type Opaque is
+         '44079f780442f60000'h. (The tag is '44'h; the length
+         is '07'h; and the value is '9f780442f60000'h."
+    SYNTAX Opaque (SIZE (7))
+
+UCDErrorFlag ::= TEXTUAL-CONVENTION
+    STATUS      current
+    DESCRIPTION
+        "Represents a possible error condition"
+    SYNTAX INTEGER  { noError(0),  error(1) }
+
+UCDErrorFix ::= TEXTUAL-CONVENTION
+    STATUS      current
+    DESCRIPTION
+        "Represents a 'push-button' object, to invoke a suitable
+         configured action.  Will always return 0 when read."
+    SYNTAX INTEGER  { noError(0),  runFix(1) }
+
+--
+-- Process table checks
+--
+
+prTable OBJECT-TYPE
+    SYNTAX	SEQUENCE OF PrEntry
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+	"A table containing information on running
+	 programs/daemons configured for monitoring in the
+	 snmpd.conf file of the agent.  Processes violating the
+	 number of running processes required by the agent's
+	 configuration file are flagged with numerical and
+	 textual errors."
+    ::= { ucdavis 2 }
+
+prEntry OBJECT-TYPE
+    SYNTAX	PrEntry
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+        "An entry containing a process and its statistics."
+    INDEX	{ prIndex }
+    ::= { prTable  1 }
+
+PrEntry ::= SEQUENCE {
+    prIndex		Integer32,
+    prNames		DisplayString,
+    prMin		Integer32,
+    prMax		Integer32,
+    prCount		Integer32,
+    prErrorFlag		UCDErrorFlag,
+    prErrMessage	DisplayString,
+    prErrFix		UCDErrorFix,
+    prErrFixCmd		DisplayString
+}
+
+prIndex OBJECT-TYPE
+    SYNTAX	Integer32 (0..65535)
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Reference Index for each observed process."
+    ::= { prEntry 1 }
+
+prNames OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The process name we're counting/checking on."
+    ::= { prEntry 2 }
+
+prMin OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The minimum number of processes that should be
+	 running.  An error flag is generated if the number of
+	 running processes is < the minimum."
+    ::= { prEntry 3 }
+
+prMax OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The maximum number of processes that should be
+	 running.  An error flag is generated if the number of
+	 running processes is > the maximum."
+    ::= { prEntry 4 }
+
+prCount OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The number of current processes running with the name
+	 in question."
+    ::= { prEntry 5 }
+
+prErrorFlag OBJECT-TYPE
+    SYNTAX	UCDErrorFlag
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"A Error flag to indicate trouble with a process.  It
+	 goes to 1 if there is an error, 0 if no error."
+    ::= { prEntry 100 }
+
+prErrMessage OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"An error message describing the problem (if one exists)."
+    ::= { prEntry 101 }
+
+prErrFix OBJECT-TYPE
+    SYNTAX	UCDErrorFix
+    MAX-ACCESS	read-write
+    STATUS	current
+    DESCRIPTION
+	"Setting this to one will try to fix the problem if
+	 the agent has been configured with a script to call
+	 to attempt to fix problems automatically using remote
+	 snmp operations."
+    ::= { prEntry 102 }
+
+prErrFixCmd OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The command that gets run when the prErrFix column is 
+	 set to 1."
+    ::= { prEntry 103 }
+
+
+
+extTable OBJECT-TYPE
+    SYNTAX	SEQUENCE OF ExtEntry
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+	"A table of extensible commands returning output and
+	 result codes.  These commands are configured via the
+	 agent's snmpd.conf file."
+    ::= { ucdavis 8 }
+
+extEntry OBJECT-TYPE
+    SYNTAX     ExtEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "An entry containing an extensible script/program and its output."
+    INDEX      { extIndex }
+    ::= { extTable  1 }
+
+ExtEntry ::= SEQUENCE {
+    extIndex		Integer32,
+    extNames		DisplayString,
+    extCommand		DisplayString,
+    extResult		Integer32,
+    extOutput		DisplayString,
+    extErrFix		UCDErrorFix,
+    extErrFixCmd	DisplayString
+}
+
+extIndex OBJECT-TYPE
+    SYNTAX	Integer32 (0..65535)
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Reference Index for extensible scripts.  Simply an
+	 integer row number."
+    ::= { extEntry 1 }
+
+extNames OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"A Short, one name description of the extensible command."
+    ::= { extEntry 2 }
+
+extCommand OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The command line to be executed."
+    ::= { extEntry 3 }
+
+extResult OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The result code (exit status) from the executed command."
+    ::= { extEntry 100 }
+
+extOutput OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The first line of output of the executed command."
+    ::= { extEntry 101 }
+
+extErrFix OBJECT-TYPE
+    SYNTAX	UCDErrorFix
+    MAX-ACCESS	read-write
+    STATUS	current
+    DESCRIPTION
+	"Setting this to one will try to fix the problem if
+	 the agent has been configured with a script to call
+	 to attempt to fix problems automatically using remote
+	 snmp operations."
+    ::= { extEntry 102 }
+	
+extErrFixCmd OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The command that gets run when the extErrFix column is 
+	 set to 1."
+    ::= { extEntry 103 }
+
+--
+-- Memory usage/watch reporting.
+-- Not supported on all systems!
+-- See agent/mibgroup/ucd_snmp.h to see if its loaded for your architecture.
+--
+memory OBJECT IDENTIFIER ::= { ucdavis 4 }
+
+memIndex OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Bogus Index.  This should always return the integer 0."
+    ::= { memory 1 } 
+
+memErrorName OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Bogus Name. This should always return the string 'swap'."
+    ::= { memory 2 } 
+
+memTotalSwap OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The total amount of swap space configured for this host."
+    ::= { memory 3 }
+
+memAvailSwap OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The amount of swap space currently unused or available."
+    ::= { memory 4 }
+
+memTotalReal OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The total amount of real/physical memory installed
+         on this host."
+    ::= { memory 5 }
+
+memAvailReal OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The amount of real/physical memory currently unused
+         or available."
+    ::= { memory 6 }
+
+memTotalSwapTXT OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The total amount of swap space or virtual memory allocated
+         for text pages on this host.
+
+         This object will not be implemented on hosts where the
+         underlying operating system does not distinguish text
+         pages from other uses of swap space or virtual memory."
+    ::= { memory 7 }
+
+memAvailSwapTXT OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	deprecated
+    DESCRIPTION	
+	"The amount of swap space or virtual memory currently
+         being used by text pages on this host.
+
+         This object will not be implemented on hosts where the
+         underlying operating system does not distinguish text
+         pages from other uses of swap space or virtual memory.
+
+         Note that (despite the name), this value reports the
+         amount used, rather than the amount free or available
+         for use.  For clarity, this object is being deprecated
+         in favour of 'memUsedSwapTXT(16)."
+    ::= { memory 8 }
+
+memTotalRealTXT OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The total amount of real/physical memory allocated
+         for text pages on this host.
+
+         This object will not be implemented on hosts where the
+         underlying operating system does not distinguish text
+         pages from other uses of physical memory."
+    ::= { memory 9 }
+
+memAvailRealTXT OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	deprecated
+    DESCRIPTION
+	"The amount of real/physical memory currently being
+         used by text pages on this host.
+
+         This object will not be implemented on hosts where the
+         underlying operating system does not distinguish text
+         pages from other uses of physical memory.
+
+         Note that (despite the name), this value reports the
+         amount used, rather than the amount free or available
+         for use.  For clarity, this object is being deprecated
+         in favour of 'memUsedRealTXT(17)."
+    ::= { memory 10 }
+
+memTotalFree OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+        "The total amount of memory free or available for use on
+         this host.  This value typically covers both real memory
+         and swap space or virtual memory."
+    ::= { memory 11 }
+
+memMinimumSwap OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The minimum amount of swap space expected to be kept
+         free or available during normal operation of this host.
+
+         If this value (as reported by 'memAvailSwap(4)') falls
+         below the specified level, then 'memSwapError(100)' will
+         be set to 1 and an error message made available via
+         'memSwapErrorMsg(101)'."
+    ::= { memory 12 }
+
+memShared OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+        "The total amount of real or virtual memory currently
+         allocated for use as shared memory.
+
+         This object will not be implemented on hosts where the
+         underlying operating system does not explicitly identify
+         memory as specifically reserved for this purpose."
+    ::= { memory 13 }
+
+memBuffer OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+        "The total amount of real or virtual memory currently
+         allocated for use as memory buffers.
+
+         This object will not be implemented on hosts where the
+         underlying operating system does not explicitly identify
+         memory as specifically reserved for this purpose."
+    ::= { memory 14 }
+
+memCached OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+        "The total amount of real or virtual memory currently
+         allocated for use as cached memory.
+
+         This object will not be implemented on hosts where the
+         underlying operating system does not explicitly identify
+         memory as specifically reserved for this purpose."
+    ::= { memory 15 }
+
+memUsedSwapTXT OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION	
+	"The amount of swap space or virtual memory currently
+         being used by text pages on this host.
+
+         This object will not be implemented on hosts where the
+         underlying operating system does not distinguish text
+         pages from other uses of swap space or virtual memory."
+    ::= { memory 16 }
+
+memUsedRealTXT OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The amount of real/physical memory currently being
+         used by text pages on this host.
+
+         This object will not be implemented on hosts where the
+         underlying operating system does not distinguish text
+         pages from other uses of physical memory."
+    ::= { memory 17 }
+
+memTotalSwapX OBJECT-TYPE
+    SYNTAX	CounterBasedGauge64
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The total amount of swap space configured for this host."
+    ::= { memory 18 }
+
+memAvailSwapX OBJECT-TYPE
+    SYNTAX	CounterBasedGauge64
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The amount of swap space currently unused or available."
+    ::= { memory 19 }
+
+memTotalRealX OBJECT-TYPE
+    SYNTAX	CounterBasedGauge64
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The total amount of real/physical memory installed
+         on this host."
+    ::= { memory 20 }
+
+memAvailRealX OBJECT-TYPE
+    SYNTAX	CounterBasedGauge64
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The amount of real/physical memory currently unused
+         or available."
+    ::= { memory 21 }
+
+
+memTotalFreeX OBJECT-TYPE
+    SYNTAX	CounterBasedGauge64
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+        "The total amount of memory free or available for use on
+         this host.  This value typically covers both real memory
+         and swap space or virtual memory."
+    ::= { memory 22 }
+
+memMinimumSwapX OBJECT-TYPE
+    SYNTAX	CounterBasedGauge64
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The minimum amount of swap space expected to be kept
+         free or available during normal operation of this host.
+
+         If this value (as reported by 'memAvailSwap(4)') falls
+         below the specified level, then 'memSwapError(100)' will
+         be set to 1 and an error message made available via
+         'memSwapErrorMsg(101)'."
+    ::= { memory 23 }
+
+memSharedX OBJECT-TYPE
+    SYNTAX	CounterBasedGauge64
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+        "The total amount of real or virtual memory currently
+         allocated for use as shared memory.
+
+         This object will not be implemented on hosts where the
+         underlying operating system does not explicitly identify
+         memory as specifically reserved for this purpose."
+    ::= { memory 24 }
+
+memBufferX OBJECT-TYPE
+    SYNTAX	CounterBasedGauge64
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+        "The total amount of real or virtual memory currently
+         allocated for use as memory buffers.
+
+         This object will not be implemented on hosts where the
+         underlying operating system does not explicitly identify
+         memory as specifically reserved for this purpose."
+    ::= { memory 25 }
+
+memCachedX OBJECT-TYPE
+    SYNTAX	CounterBasedGauge64
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+        "The total amount of real or virtual memory currently
+         allocated for use as cached memory.
+
+         This object will not be implemented on hosts where the
+         underlying operating system does not explicitly identify
+         memory as specifically reserved for this purpose."
+    ::= { memory 26 }
+
+memSysAvail OBJECT-TYPE
+    SYNTAX	CounterBasedGauge64
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+        "The total amount of available memory, which is an estimate
+         of how much memory is available for starting new applications,
+         without swapping.
+
+         This object will not be implemented on hosts where the
+         underlying operating system does not explicitly identify
+         memory as specifically reserved for this purpose."
+    ::= { memory 27 }
+
+
+memSwapError OBJECT-TYPE
+    SYNTAX	UCDErrorFlag
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Indicates whether the amount of available swap space
+         (as reported by 'memAvailSwap(4)'), is less than the
+         desired minimum (specified by 'memMinimumSwap(12)')."
+    ::= { memory 100 }
+	
+memSwapErrorMsg OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Describes whether the amount of available swap space
+         (as reported by 'memAvailSwap(4)'), is less than the
+         desired minimum (specified by 'memMinimumSwap(12)')."
+    ::= { memory 101 } 
+
+
+dskTable OBJECT-TYPE
+    SYNTAX	SEQUENCE OF DskEntry
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+	"Disk watching information.  Partions to be watched
+	 are configured by the snmpd.conf file of the agent."
+    ::= { ucdavis 9 }
+
+dskEntry OBJECT-TYPE
+    SYNTAX     DskEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "An entry containing a disk and its statistics."
+    INDEX      { dskIndex }
+    ::= { dskTable  1 }
+
+DskEntry ::= SEQUENCE {
+    dskIndex		Integer32,
+    dskPath		DisplayString,
+    dskDevice		DisplayString,
+    dskMinimum		Integer32,
+    dskMinPercent	Integer32,
+    dskTotal		Integer32,
+    dskAvail		Integer32,
+    dskUsed		Integer32,
+    dskPercent		Integer32,
+    dskPercentNode	Integer32,
+    dskErrorFlag	UCDErrorFlag,
+    dskErrorMsg		DisplayString,
+    dskTotalLow		Unsigned32,
+    dskTotalHigh	Unsigned32,
+    dskAvailLow		Unsigned32,
+    dskAvailHigh	Unsigned32,
+    dskUsedLow		Unsigned32,
+    dskUsedHigh		Unsigned32
+}
+
+dskIndex OBJECT-TYPE
+    SYNTAX	Integer32 (0..65535)
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Integer reference number (row number) for the disk mib."
+    ::= { dskEntry 1 }
+	
+dskPath OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Path where the disk is mounted."
+    ::= { dskEntry 2 } 
+
+dskDevice OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Path of the device for the partition"
+    ::= { dskEntry 3 } 
+
+dskMinimum OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Minimum space required on the disk (in kBytes) before the
+         errors are triggered.  Either this or dskMinPercent is
+         configured via the agent's snmpd.conf file."
+    ::= { dskEntry 4 } 
+
+dskMinPercent OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Percentage of minimum space required on the disk before the
+         errors are triggered.  Either this or dskMinimum is
+         configured via the agent's snmpd.conf file."
+    ::= { dskEntry 5 } 
+
+dskTotal OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Total size of the disk/partion (kBytes).
+	 For large disks (>2Tb), this value will
+	 latch at INT32_MAX (2147483647)."
+    ::= { dskEntry 6 } 
+
+dskAvail OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Available space on the disk.
+	 For large lightly-used disks (>2Tb), this
+	 value will latch at INT32_MAX (2147483647)."
+    ::= { dskEntry 7 } 
+
+dskUsed OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Used space on the disk.
+	 For large heavily-used disks (>2Tb), this
+	 value will latch at INT32_MAX (2147483647)."
+    ::= { dskEntry 8 } 
+
+dskPercent OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Percentage of space used on disk"
+    ::= { dskEntry 9 } 
+
+dskPercentNode OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Percentage of inodes used on disk"
+    ::= { dskEntry 10 } 
+
+dskTotalLow OBJECT-TYPE
+    SYNTAX	Unsigned32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Total size of the disk/partion (kBytes).
+	Together with dskTotalHigh composes 64-bit number."
+    ::= { dskEntry 11 }
+
+dskTotalHigh OBJECT-TYPE
+    SYNTAX	Unsigned32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Total size of the disk/partion (kBytes).
+	Together with dskTotalLow composes 64-bit number."
+    ::= { dskEntry 12 }
+
+dskAvailLow OBJECT-TYPE
+    SYNTAX	Unsigned32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Available space on the disk (kBytes).
+	Together with dskAvailHigh composes 64-bit number."
+    ::= { dskEntry 13 }
+
+dskAvailHigh OBJECT-TYPE
+    SYNTAX	Unsigned32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Available space on the disk (kBytes).
+	Together with dskAvailLow composes 64-bit number."
+    ::= { dskEntry 14 }
+
+dskUsedLow OBJECT-TYPE
+    SYNTAX	Unsigned32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Used space on the disk (kBytes).
+	Together with dskUsedHigh composes 64-bit number."
+    ::= { dskEntry 15 }
+
+dskUsedHigh OBJECT-TYPE
+    SYNTAX	Unsigned32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Used space on the disk (kBytes).
+	Together with dskUsedLow composes 64-bit number."
+    ::= { dskEntry 16 }
+
+dskErrorFlag OBJECT-TYPE
+    SYNTAX	UCDErrorFlag
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Error flag signaling that the disk or partition is under
+	 the minimum required space configured for it."
+    ::= { dskEntry 100 } 
+     
+dskErrorMsg OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"A text description providing a warning and the space left
+	 on the disk."
+    ::= { dskEntry 101 } 
+     
+laTable OBJECT-TYPE
+    SYNTAX	SEQUENCE OF LaEntry
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+	"Load average information."
+    ::= { ucdavis 10 }
+
+laEntry OBJECT-TYPE
+    SYNTAX	LaEntry
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+	"An entry containing a load average and its values."
+    INDEX	{ laIndex }
+    ::= { laTable  1 }
+
+LaEntry ::= SEQUENCE {
+    laIndex		Integer32,
+    laNames		DisplayString,
+    laLoad		DisplayString,
+    laConfig		DisplayString,
+    laLoadInt		Integer32,
+    laLoadFloat		Float,
+    laErrorFlag		UCDErrorFlag,
+    laErrMessage	DisplayString
+}
+
+laIndex OBJECT-TYPE
+    SYNTAX	Integer32 (0..3)
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"reference index/row number for each observed loadave."
+    ::= { laEntry 1 }
+
+laNames OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The list of loadave names we're watching."
+    ::= { laEntry 2 }
+
+laLoad OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The 1,5 and 15 minute load averages (one per row)."
+    ::= { laEntry 3 }
+
+laConfig OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-write
+    STATUS	current
+    DESCRIPTION
+	"The watch point for load-averages to signal an
+	 error.  If the load averages rises above this value,
+	 the laErrorFlag below is set."
+    ::= { laEntry 4 }
+
+laLoadInt OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The 1,5 and 15 minute load averages as an integer.
+	 This is computed by taking the floating point
+	 loadaverage value and multiplying by 100, then
+	 converting the value to an integer."
+    ::= { laEntry 5 }
+
+laLoadFloat OBJECT-TYPE
+    SYNTAX	Float
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The 1,5 and 15 minute load averages as an opaquely
+	 wrapped floating point number."
+    ::= { laEntry 6 }
+
+laErrorFlag OBJECT-TYPE
+    SYNTAX	UCDErrorFlag
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"A Error flag to indicate the load-average has crossed
+	 its threshold value defined in the snmpd.conf file.
+	 It is set to 1 if the threshold is crossed, 0 otherwise."
+    ::= { laEntry 100 }
+
+laErrMessage OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"An error message describing the load-average and its
+	 surpased watch-point value."
+    ::= { laEntry 101 }
+
+
+version	OBJECT IDENTIFIER ::= { ucdavis 100 }
+
+versionIndex OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Index to mib (always 0)"
+    ::= { version 1 } 
+
+versionTag OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"CVS tag keyword"
+    ::= { version 2 } 
+     
+versionDate OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Date string from RCS keyword"
+    ::= { version 3 } 
+
+versionCDate OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Date string from ctime() "
+    ::= { version 4 } 
+
+versionIdent OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Id string from RCS keyword"
+    ::= { version 5 } 
+
+versionConfigureOptions OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION  
+	"Options passed to the configure script when this agent was built."
+    ::= { version 6 } 
+
+versionClearCache OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-write
+    STATUS	current
+    DESCRIPTION  
+	"Set to 1 to clear the exec cache, if enabled"
+    ::= { version 10 } 
+
+versionUpdateConfig OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-write
+    STATUS	current
+    DESCRIPTION  
+	"Set to 1 to read-read the config file(s)."
+    ::= { version 11 } 
+
+versionRestartAgent OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-write
+    STATUS	current
+    DESCRIPTION  
+	"Set to 1 to restart the agent."
+    ::= { version 12 } 
+
+versionSavePersistentData OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-write
+    STATUS	current
+    DESCRIPTION  
+	"Set to 1 to force the agent to save it's persistent data immediately."
+    ::= { version 13 } 
+
+versionDoDebugging OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-write
+    STATUS	current
+    DESCRIPTION  
+	"Set to 1 to turn debugging statements on in the agent or 0
+	 to turn it off."
+    ::= { version 20 } 
+
+
+snmperrs OBJECT IDENTIFIER ::= { ucdavis 101 }
+
+snmperrIndex OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Bogus Index for snmperrs (always 0)."
+    ::= { snmperrs 1 }
+
+snmperrNames OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"snmp"
+    ::= { snmperrs 2 }
+
+snmperrErrorFlag OBJECT-TYPE
+    SYNTAX	UCDErrorFlag
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"A Error flag to indicate trouble with the agent.  It
+	 goes to 1 if there is an error, 0 if no error."
+    ::= { snmperrs 100 }
+
+snmperrErrMessage OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"An error message describing the problem (if one exists)."
+    ::= { snmperrs 101 }
+
+
+mrTable OBJECT-TYPE
+    SYNTAX	SEQUENCE OF MrEntry
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+	"A table displaying all the oid's registered by mib modules in
+	 the agent.  Since the agent is modular in nature, this lists
+	 each module's OID it is responsible for and the name of the module"
+    ::= { ucdavis 102 }
+
+mrEntry OBJECT-TYPE
+    SYNTAX	MrEntry
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+	"An entry containing a registered mib oid."
+    INDEX	{ IMPLIED mrIndex }
+    ::= { mrTable 1 }
+
+MrEntry ::= SEQUENCE {
+    mrIndex		OBJECT IDENTIFIER,
+    mrModuleName	DisplayString
+}
+
+mrIndex OBJECT-TYPE
+    SYNTAX	OBJECT IDENTIFIER
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The registry slot of a mibmodule."
+    ::= { mrEntry  1 }
+
+mrModuleName OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The module name that registered this OID."
+    ::= { mrEntry  2 }
+
+systemStats OBJECT IDENTIFIER ::= { ucdavis 11 }
+
+ssIndex OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Bogus Index.  This should always return the integer 1."
+    ::= { systemStats 1 }
+
+ssErrorName OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Bogus Name. This should always return the string 'systemStats'."
+    ::= { systemStats 2 }
+
+ssSwapIn OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The average amount of memory swapped in from disk,
+         calculated over the last minute."
+    ::= { systemStats 3 }
+
+ssSwapOut OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The average amount of memory swapped out to disk,
+         calculated over the last minute."
+    ::= { systemStats 4 }
+
+ssIOSent OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "blocks/s"
+    MAX-ACCESS	read-only
+    STATUS	deprecated
+    DESCRIPTION
+	"The average amount of data written to disk or other
+         block device, calculated over the last minute.
+       
+	 This object has been deprecated in favour of
+         'ssIORawSent(57)', which can be used to calculate
+         the same metric, but over any desired time period."
+    ::= { systemStats 5 }
+
+ssIOReceive OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "blocks/s"
+    MAX-ACCESS	read-only
+    STATUS	deprecated
+    DESCRIPTION
+	"The average amount of data read from disk or other
+         block device, calculated over the last minute.
+       
+	 This object has been deprecated in favour of
+         'ssIORawReceived(58)', which can be used to calculate
+         the same metric, but over any desired time period."
+    ::= { systemStats 6 }
+
+ssSysInterrupts OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "interrupts/s"
+    MAX-ACCESS	read-only
+    STATUS	deprecated
+    DESCRIPTION
+	"The average rate of interrupts processed (including
+         the clock) calculated over the last minute.
+       
+	 This object has been deprecated in favour of
+         'ssRawInterrupts(59)', which can be used to calculate
+         the same metric, but over any desired time period."
+    ::= { systemStats 7 }
+
+ssSysContext OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "switches/s"
+    MAX-ACCESS	read-only
+    STATUS	deprecated
+    DESCRIPTION
+	"The average rate of context switches,
+         calculated over the last minute.
+       
+	 This object has been deprecated in favour of
+         'ssRawContext(60)', which can be used to calculate
+         the same metric, but over any desired time period."
+    ::= { systemStats 8 }
+
+ssCpuUser OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	deprecated
+    DESCRIPTION
+	"The percentage of CPU time spent processing
+         user-level code, calculated over the last minute.
+       
+	 This object has been deprecated in favour of
+         'ssCpuRawUser(50)', which can be used to calculate
+         the same metric, but over any desired time period."
+    ::= { systemStats 9 }
+
+ssCpuSystem OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	deprecated
+    DESCRIPTION
+	"The percentage of CPU time spent processing
+         system-level code, calculated over the last minute.
+       
+	 This object has been deprecated in favour of
+         'ssCpuRawSystem(52)', which can be used to calculate
+         the same metric, but over any desired time period."
+    ::= { systemStats 10 }
+
+ssCpuIdle OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	deprecated
+    DESCRIPTION
+	"The percentage of processor time spent idle,
+         calculated over the last minute.
+       
+	 This object has been deprecated in favour of
+         'ssCpuRawIdle(53)', which can be used to calculate
+         the same metric, but over any desired time period."
+    ::= { systemStats 11 }
+
+-- The agent only implements those of the following counters that the
+-- kernel supports! Don't expect all to be present.
+
+ssCpuRawUser OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of 'ticks' (typically 1/100s) spent
+         processing user-level code.
+
+         On a multi-processor system, the 'ssCpuRaw*'
+         counters are cumulative over all CPUs, so their
+         sum will typically be N*100 (for N processors)."
+    ::= { systemStats 50 }
+
+ssCpuRawNice OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of 'ticks' (typically 1/100s) spent
+         processing reduced-priority code.
+
+         This object will not be implemented on hosts where
+         the underlying operating system does not measure
+         this particular CPU metric.
+
+         On a multi-processor system, the 'ssCpuRaw*'
+         counters are cumulative over all CPUs, so their
+         sum will typically be N*100 (for N processors)."
+    ::= { systemStats 51 }
+
+ssCpuRawSystem OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of 'ticks' (typically 1/100s) spent
+         processing system-level code.
+
+         On a multi-processor system, the 'ssCpuRaw*'
+         counters are cumulative over all CPUs, so their
+         sum will typically be N*100 (for N processors).
+
+         This object may sometimes be implemented as the
+         combination of the 'ssCpuRawWait(54)' and
+         'ssCpuRawKernel(55)' counters, so care must be
+         taken when summing the overall raw counters."
+    ::= { systemStats 52 }
+
+ssCpuRawIdle OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of 'ticks' (typically 1/100s) spent
+         idle.
+
+         On a multi-processor system, the 'ssCpuRaw*'
+         counters are cumulative over all CPUs, so their
+         sum will typically be N*100 (for N processors)."
+    ::= { systemStats 53 }
+
+ssCpuRawWait OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of 'ticks' (typically 1/100s) spent
+         waiting for IO.
+
+         This object will not be implemented on hosts where
+         the underlying operating system does not measure
+         this particular CPU metric.  This time may also be
+         included within the 'ssCpuRawSystem(52)' counter.
+
+         On a multi-processor system, the 'ssCpuRaw*'
+         counters are cumulative over all CPUs, so their
+         sum will typically be N*100 (for N processors)."
+    ::= { systemStats 54 }
+
+ssCpuRawKernel OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of 'ticks' (typically 1/100s) spent
+         processing kernel-level code.
+
+         This object will not be implemented on hosts where
+         the underlying operating system does not measure
+         this particular CPU metric.  This time may also be
+         included within the 'ssCpuRawSystem(52)' counter.
+
+         On a multi-processor system, the 'ssCpuRaw*'
+         counters are cumulative over all CPUs, so their
+         sum will typically be N*100 (for N processors)."
+    ::= { systemStats 55 }
+
+ssCpuRawInterrupt OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of 'ticks' (typically 1/100s) spent
+         processing hardware interrupts.
+
+         This object will not be implemented on hosts where
+         the underlying operating system does not measure
+         this particular CPU metric.
+
+         On a multi-processor system, the 'ssCpuRaw*'
+         counters are cumulative over all CPUs, so their
+         sum will typically be N*100 (for N processors)."
+    ::= { systemStats 56 }
+
+ssIORawSent OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of blocks sent to a block device"
+    ::= { systemStats 57 }
+
+ssIORawReceived OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of blocks received from a block device"
+    ::= { systemStats 58 }
+
+ssRawInterrupts OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of interrupts processed"
+    ::= { systemStats 59 }
+
+ssRawContexts OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of context switches"
+    ::= { systemStats 60 }
+
+ssCpuRawSoftIRQ OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of 'ticks' (typically 1/100s) spent
+         processing software interrupts.
+
+         This object will not be implemented on hosts where
+         the underlying operating system does not measure
+         this particular CPU metric.
+
+         On a multi-processor system, the 'ssCpuRaw*'
+         counters are cumulative over all CPUs, so their
+         sum will typically be N*100 (for N processors)."
+    ::= { systemStats 61 }
+
+ssRawSwapIn OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of blocks swapped in"
+    ::= { systemStats 62 }
+
+ssRawSwapOut OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number of blocks swapped out"
+    ::= { systemStats 63 }
+
+ssCpuRawSteal OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of 'ticks' (typically 1/100s) spent
+         by the hypervisor code to run other VMs even
+         though the CPU in the current VM had something runnable.
+
+         This object will not be implemented on hosts where
+         the underlying operating system does not measure
+         this particular CPU metric.
+
+         On a multi-processor system, the 'ssCpuRaw*'
+         counters are cumulative over all CPUs, so their
+         sum will typically be N*100 (for N processors)."
+    ::= { systemStats 64 }
+
+ssCpuRawGuest OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of 'ticks' (typically 1/100s) spent
+         by the CPU to run a virtual CPU (guest).
+
+         This object will not be implemented on hosts where
+         the underlying operating system does not measure
+         this particular CPU metric.
+
+         On a multi-processor system, the 'ssCpuRaw*'
+         counters are cumulative over all CPUs, so their
+         sum will typically be N*100 (for N processors)."
+    ::= { systemStats 65 }
+
+ssCpuRawGuestNice OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of 'ticks' (typically 1/100s) spent
+         by the CPU to run a niced virtual CPU (guest).
+
+         This object will not be implemented on hosts where
+         the underlying operating system does not measure
+         this particular CPU metric.
+
+         On a multi-processor system, the 'ssCpuRaw*'
+         counters are cumulative over all CPUs, so their
+         sum will typically be N*100 (for N processors)."
+    ::= { systemStats 66 }
+
+ssCpuNumCpus OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of processors, as counted by the agent.
+         This object's value may be useful in the management
+         of certain operating systems where notions such as
+         load average do not take into account the number of
+         processors in the system.
+
+         For other objects in the systemStats group whose
+         descriptions refer to 'N processors', this object's
+         value is N."
+    ::= { systemStats 67 }
+
+
+-- possibly used in the future:
+--
+-- ssErrorFlag OBJECT-TYPE
+--     SYNTAX	   UCDErrorFlag
+--     MAX-ACCESS  read-only
+--     STATUS      current
+--     DESCRIPTION
+--         "Error flag."
+--     ::= { systemStats 100 }
+-- 
+-- ssErrMessage OBJECT-TYPE
+--     SYNTAX      DisplayString
+--     MAX-ACCESS  read-only
+--     STATUS      current
+--     DESCRIPTION  
+--         "Error message describing the errorflag condition."
+--     ::= { systemStats 101 } 
+
+
+ucdTraps OBJECT IDENTIFIER ::= { ucdavis 251 }
+
+ucdStart NOTIFICATION-TYPE
+    STATUS	current
+    DESCRIPTION
+	"This trap could in principle be sent when the agent start"
+    ::= { ucdTraps 1 }
+    
+ucdShutdown	NOTIFICATION-TYPE
+    STATUS current
+    DESCRIPTION
+	"This trap is sent when the agent terminates"
+    ::= { ucdTraps 2 }
+
+--
+-- File Table:  monitor a list of files to check for a maximum size.
+-- 
+
+fileTable OBJECT-TYPE
+    SYNTAX	SEQUENCE OF FileEntry
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+	"Table of monitored files."
+    ::= { ucdavis 15 }
+    
+fileEntry OBJECT-TYPE
+    SYNTAX	FileEntry
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+	"Entry of file"
+    INDEX	{ fileIndex }
+    ::= { fileTable 1 }
+
+FileEntry ::= SEQUENCE {
+    fileIndex		Integer32,
+    fileName		DisplayString,
+    fileSize		Integer32,
+    fileMax		Integer32,
+    fileErrorFlag	UCDErrorFlag,
+    fileErrorMsg	DisplayString
+}
+
+fileIndex OBJECT-TYPE
+    SYNTAX	Integer32 (0..2147483647)
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Index of file"
+    ::= { fileEntry 1 }
+
+fileName OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Filename"
+    ::= { fileEntry 2 }
+
+fileSize OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Size of file (kB)"
+    ::= { fileEntry 3 }
+
+fileMax	OBJECT-TYPE
+    SYNTAX	Integer32
+    UNITS       "kB"
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Limit of filesize (kB)"
+    ::= { fileEntry 4 }
+
+fileErrorFlag OBJECT-TYPE
+    SYNTAX	UCDErrorFlag
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Limit exceeded flag"
+    ::= { fileEntry 100 }
+
+fileErrorMsg OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"Filesize error message"
+    ::= { fileEntry 101 }
+
+logMatch OBJECT IDENTIFIER ::= { ucdavis 16 }
+
+logMatchMaxEntries OBJECT-TYPE
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"The maximum number of logmatch entries
+		this snmpd daemon can support."
+	::= { logMatch 1 }
+
+logMatchTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF LogMatchEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"Table of monitored files."
+	::= { logMatch 2 }
+
+logMatchEntry OBJECT-TYPE
+	SYNTAX LogMatchEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"Entry of file"
+	INDEX { logMatchIndex }
+	::= { logMatchTable 1 }
+
+LogMatchEntry ::=
+	SEQUENCE { 
+		logMatchIndex
+			Integer32,
+		logMatchName
+			DisplayString,
+		logMatchFilename
+			DisplayString,
+		logMatchRegEx
+			DisplayString,
+		logMatchGlobalCounter
+			Counter32,
+		logMatchGlobalCount
+			Integer32,
+		logMatchCurrentCounter
+			Counter32,
+		logMatchCurrentCount
+			Integer32,
+		logMatchCounter
+			Counter32,
+		logMatchCount
+			Integer32,
+		logMatchCycle
+			Integer32,
+		logMatchErrorFlag
+			UCDErrorFlag,
+		logMatchRegExCompilation
+			DisplayString
+	 }
+
+logMatchIndex OBJECT-TYPE
+	SYNTAX Integer32 (1..2147483647)
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Index of logmatch"
+	::= { logMatchEntry 1 }
+
+logMatchName OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"logmatch instance name"
+	::= { logMatchEntry 2 }
+
+logMatchFilename OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"filename to be logmatched"
+	::= { logMatchEntry 3 }
+
+logMatchRegEx OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"regular expression"
+	::= { logMatchEntry 4 }
+
+logMatchGlobalCounter OBJECT-TYPE
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"global count of matches"
+	::= { logMatchEntry 5 }
+
+logMatchGlobalCount OBJECT-TYPE
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Description."
+	::= { logMatchEntry 6 }
+
+logMatchCurrentCounter OBJECT-TYPE
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Regex match counter. This counter will
+		be reset with each logfile rotation."
+	::= { logMatchEntry 7 }
+
+logMatchCurrentCount OBJECT-TYPE
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Description."
+	::= { logMatchEntry 8 }
+
+logMatchCounter OBJECT-TYPE
+	SYNTAX Counter32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Regex match counter. This counter will
+		be reset with each read"
+	::= { logMatchEntry 9 }
+
+logMatchCount OBJECT-TYPE
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Description."
+	::= { logMatchEntry 10 }
+
+logMatchCycle OBJECT-TYPE
+	SYNTAX Integer32
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"time between updates (if not queried) in seconds"
+	::= { logMatchEntry 11 }
+
+logMatchErrorFlag OBJECT-TYPE
+	SYNTAX UCDErrorFlag
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"errorflag: is this line configured correctly?"
+	::= { logMatchEntry 100 }
+
+logMatchRegExCompilation OBJECT-TYPE
+	SYNTAX DisplayString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"message of regex precompilation"
+	::= { logMatchEntry 101 }
+
+END

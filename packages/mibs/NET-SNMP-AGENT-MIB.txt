@@ -1,0 +1,554 @@
+NET-SNMP-AGENT-MIB DEFINITIONS ::= BEGIN
+
+--
+-- Defines control and monitoring structures for the Net-SNMP agent.
+--
+
+IMPORTS
+    SnmpAdminString
+    	FROM SNMP-FRAMEWORK-MIB
+
+    netSnmpObjects, netSnmpModuleIDs, netSnmpNotifications, netSnmpGroups
+	FROM NET-SNMP-MIB
+
+    OBJECT-TYPE, NOTIFICATION-TYPE, MODULE-IDENTITY, Integer32, Unsigned32
+        FROM SNMPv2-SMI
+
+    OBJECT-GROUP, NOTIFICATION-GROUP
+	FROM SNMPv2-CONF
+
+    TEXTUAL-CONVENTION, DisplayString, RowStatus, TruthValue
+	FROM SNMPv2-TC;
+
+
+netSnmpAgentMIB MODULE-IDENTITY
+    LAST-UPDATED "201003170000Z"
+    ORGANIZATION "www.net-snmp.org"
+    CONTACT-INFO    
+	 "postal:   Wes Hardaker
+                    P.O. Box 382
+                    Davis CA  95617
+
+          email:    net-snmp-coders@lists.sourceforge.net"
+    DESCRIPTION
+	 "Defines control and monitoring structures for the Net-SNMP agent."
+    REVISION     "201003170000Z"
+    DESCRIPTION
+	 "Made sure that this MIB can be compiled by MIB compilers that do not
+	 recognize a double dash as end-of-comments."
+    REVISION     "200502070000Z"
+    DESCRIPTION
+    	"Fixing syntax errors"
+    REVISION     "200202090000Z"
+    DESCRIPTION
+	"First revision."
+    ::= { netSnmpModuleIDs 2 }
+
+
+nsVersion              OBJECT IDENTIFIER ::= {netSnmpObjects 1}
+nsMibRegistry          OBJECT IDENTIFIER ::= {netSnmpObjects 2}
+nsExtensions           OBJECT IDENTIFIER ::= {netSnmpObjects 3}
+nsDLMod                OBJECT IDENTIFIER ::= {netSnmpObjects 4}
+nsCache                OBJECT IDENTIFIER ::= {netSnmpObjects 5}
+nsErrorHistory         OBJECT IDENTIFIER ::= {netSnmpObjects 6}
+nsConfiguration        OBJECT IDENTIFIER ::= {netSnmpObjects 7}
+nsTransactions         OBJECT IDENTIFIER ::= {netSnmpObjects 8}
+
+--
+--  MIB Module data caching management
+--
+
+NetsnmpCacheStatus ::= TEXTUAL-CONVENTION
+    STATUS      current
+    DESCRIPTION "an indication of the status of data caching entries"
+    SYNTAX INTEGER {
+		enabled(1),
+		disabled(2),
+		empty  (3),
+		cached (4),
+		expired(5)
+           }
+
+nsCacheDefaultTimeout         OBJECT-TYPE
+    SYNTAX      INTEGER		-- ???
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "Default cache timeout value (unless overridden
+       for a particular cache entry)."
+    DEFVAL { 5 } --seconds-- 
+    ::= { nsCache 1 }
+
+nsCacheEnabled                OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "Whether data caching is active overall."
+    DEFVAL { true }
+    ::= { nsCache 2 }
+
+nsCacheTable     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NsCacheEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A table of individual MIB module data caches."
+    ::= { nsCache 3 }
+
+nsCacheEntry     OBJECT-TYPE
+    SYNTAX      NsCacheEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A conceptual row within the cache table."
+    INDEX       { IMPLIED nsCachedOID }
+    ::= { nsCacheTable 1 }
+
+NsCacheEntry ::= SEQUENCE {
+    nsCachedOID     OBJECT IDENTIFIER,
+    nsCacheTimeout  INTEGER,		-- ?? TimeTicks ??
+    nsCacheStatus   NetsnmpCacheStatus	-- ?? INTEGER ??
+}
+
+nsCachedOID     OBJECT-TYPE
+    SYNTAX      OBJECT IDENTIFIER
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "The root OID of the data being cached."
+    ::= { nsCacheEntry 1 }
+
+nsCacheTimeout  OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "The length of time (?in seconds) for which the data in
+       this particular cache entry will remain valid." 
+    ::= { nsCacheEntry 2 }
+
+nsCacheStatus   OBJECT-TYPE
+    SYNTAX      NetsnmpCacheStatus
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "The current status of this particular cache entry.
+       Acceptable values for Set requests are 'enabled(1)',
+       'disabled(2)' or 'empty(3)' (to clear all cached data).
+       Requests to read the value of such an object will
+       return 'disabled(2)' through to 'expired(5)'."
+    ::= { nsCacheEntry 3 }
+
+--
+--  Agent configuration
+--    Debug and logging output
+--
+
+nsConfigDebug          OBJECT IDENTIFIER ::= {nsConfiguration 1}
+nsConfigLogging        OBJECT IDENTIFIER ::= {nsConfiguration 2}
+
+nsDebugEnabled         OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "Whether the agent is configured to generate debugging output"
+    DEFVAL { false }
+    ::= { nsConfigDebug 1 }
+
+nsDebugOutputAll       OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "Whether the agent is configured to display all debugging output
+       rather than filtering on individual debug tokens.  Nothing will
+       be generated unless nsDebugEnabled is also true(1)"
+    DEFVAL { false }
+    ::= { nsConfigDebug 2 }
+
+nsDebugDumpPdu        OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+      "Whether the agent is configured to display raw packet dumps.
+       This is unrelated to the nsDebugEnabled setting."
+    DEFVAL { false }
+    ::= { nsConfigDebug 3 }
+
+nsDebugTokenTable     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NsDebugTokenEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A table of individual debug tokens, used to control the selection
+       of what debugging output should be produced.  This table is only
+       effective if nsDebugOutputAll is false(2), and nothing will
+       be generated unless nsDebugEnabled is also true(1)"
+    ::= { nsConfigDebug 4 }
+
+nsDebugTokenEntry     OBJECT-TYPE
+    SYNTAX      NsDebugTokenEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A conceptual row within the debug token table."
+    INDEX       { IMPLIED nsDebugTokenPrefix }
+    ::= { nsDebugTokenTable 1 }
+
+NsDebugTokenEntry ::= SEQUENCE {
+    nsDebugTokenPrefix  DisplayString,
+    nsDebugTokenStatus  RowStatus
+}
+
+nsDebugTokenPrefix    OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A token prefix for which to generate the corresponding
+       debugging output.  Note that debug output will be generated
+       for all registered debug statements sharing this prefix
+       (rather than an exact match).  Nothing will be generated
+       unless both nsDebuggingEnabled is set true(1) and the
+       corresponding nsDebugTokenStatus value is active(1)."
+    ::= { nsDebugTokenEntry 2 }
+
+nsDebugTokenStatus   OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+      "Whether to generate debug output for the corresponding debug
+       token prefix.  Nothing will be generated unless both
+       nsDebuggingEnabled is true(1) and this instance is active(1).
+       Note that is valid for an instance to be left with the value
+       notInService(2) indefinitely - i.e. the meaning of 'abnormally
+       long' (see RFC 2579, RowStatus) for this table is infinite."
+    ::= { nsDebugTokenEntry 4 }
+
+--
+-- Logging configuration
+--
+
+nsLoggingTable     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NsLoggingEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A table of individual logging output destinations, used to control
+       where various levels of output from the agent should be directed."
+    ::= { nsConfigLogging 1 }
+
+nsLoggingEntry     OBJECT-TYPE
+    SYNTAX      NsLoggingEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A conceptual row within the logging table."
+    INDEX       { nsLogLevel, IMPLIED nsLogToken }
+    ::= { nsLoggingTable 1 }
+
+NsLoggingEntry ::= SEQUENCE {
+    nsLogLevel          INTEGER,
+    nsLogToken          DisplayString,
+    nsLogType           INTEGER,
+    nsLogMaxLevel       INTEGER,
+    nsLogStatus         RowStatus
+}
+
+nsLogLevel    OBJECT-TYPE
+    SYNTAX      INTEGER {
+		     emergency(0),
+		     alert    (1),
+		     critical (2),
+		     error    (3),
+		     warning  (4),
+		     notice   (5),
+		     info     (6),
+		     debug    (7)
+                }
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "The (minimum) priority level for which this logging entry
+       should be applied."
+    ::= { nsLoggingEntry 1 }
+
+nsLogToken    OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A token for which to generate logging entries.
+       Depending on the style of logging, this may either
+       be simply an arbitrary token, or may have some
+       particular meaning (such as the filename to log to)."
+    ::= { nsLoggingEntry 2 }
+
+nsLogType     OBJECT-TYPE
+    SYNTAX      INTEGER {
+		     stdout   (1),
+		     stderr   (2),
+		     file     (3),
+		     syslog   (4),
+		     callback (5)
+                }
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+      "The type of logging for this entry."
+    ::= { nsLoggingEntry 3 }
+
+nsLogMaxLevel OBJECT-TYPE
+    SYNTAX      INTEGER {
+		     emergency(0),
+		     alert    (1),
+		     critical (2),
+		     error    (3),
+		     warning  (4),
+		     notice   (5),
+		     info     (6),
+		     debug    (7)
+                }
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+      "The maximum priority level for which this logging entry
+       should be applied."
+    DEFVAL      { emergency }
+    ::= { nsLoggingEntry 4 }
+
+nsLogStatus   OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+      "Whether to generate logging output for this entry.
+       Note that is valid for an instance to be left with the value
+       notInService(2) indefinitely - i.e. the meaning of 'abnormally
+       long' (see RFC 2579, RowStatus) for this table is infinite."
+    ::= { nsLoggingEntry 5 }
+
+--
+--  Monitoring outstanding "transactions"
+--    (i.e. requests sent to AgentX subagents, or proxied agents)
+--
+
+nsTransactionTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NsTransactionEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+	"Lists currently outstanding transactions in the net-snmp agent.
+	 This includes requests to AgentX subagents, or proxied SNMP agents."
+    ::= { nsTransactions 1 }
+
+nsTransactionEntry OBJECT-TYPE
+    SYNTAX      NsTransactionEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+	"A row describing a given transaction."
+    INDEX   { nsTransactionID }
+    ::= {nsTransactionTable 1 }
+
+NsTransactionEntry ::= SEQUENCE {
+    nsTransactionID   Unsigned32,
+    nsTransactionMode Integer32
+}
+
+nsTransactionID OBJECT-TYPE
+    SYNTAX      Unsigned32 (0..4294967295)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+	"The internal identifier for a given transaction."
+    ::= { nsTransactionEntry 1 }
+
+nsTransactionMode OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+	"The mode number for the current operation being performed."
+    ::= { nsTransactionEntry 2 }
+
+
+--
+--  Monitoring the MIB modules currently registered in the agent
+--    (an updated version of UCD-SNMP-MIB::mrTable)
+--
+
+nsModuleTable OBJECT-TYPE
+    SYNTAX	SEQUENCE OF NsModuleEntry
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+	"A table displaying all the oid's registered by mib modules in
+	 the agent.  Since the agent is modular in nature, this lists
+	 each module's OID it is responsible for and the name of the module"
+    ::= { nsMibRegistry 1 }
+
+nsModuleEntry OBJECT-TYPE
+    SYNTAX	NsModuleEntry
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+        "An entry containing a registered mib oid."
+    INDEX       { nsmContextName, nsmRegistrationPoint, 
+                  nsmRegistrationPriority }
+    ::= { nsModuleTable 1 }
+
+NsModuleEntry ::= SEQUENCE {
+    nsmContextName          SnmpAdminString,
+    nsmRegistrationPoint    OBJECT IDENTIFIER,
+    nsmRegistrationPriority INTEGER,
+    nsModuleName	    DisplayString,
+    nsModuleModes           BITS,
+    nsModuleTimeout         Integer32
+}
+
+nsmContextName OBJECT-TYPE
+    SYNTAX      SnmpAdminString
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+	"The context name the module is registered under."
+    ::= { nsModuleEntry 1 }
+
+nsmRegistrationPoint OBJECT-TYPE
+    SYNTAX	OBJECT IDENTIFIER
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+	"The registry OID of a mib module."
+    ::= { nsModuleEntry  2 }
+
+nsmRegistrationPriority OBJECT-TYPE
+    SYNTAX	INTEGER (-2147483648..2147483647)
+    MAX-ACCESS	not-accessible
+    STATUS	current
+    DESCRIPTION
+	"The priority of the registered mib module."
+    ::= { nsModuleEntry  3 }
+
+nsModuleName OBJECT-TYPE
+    SYNTAX	DisplayString
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The module name that registered this OID."
+    ::= { nsModuleEntry  4 }
+
+nsModuleModes OBJECT-TYPE
+    SYNTAX	BITS { getAndGetNext(0), set(1), getBulk(2) }
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The modes that the particular lower level handler can cope
+  	 with directly."
+    ::= { nsModuleEntry  5 }
+
+nsModuleTimeout OBJECT-TYPE
+    SYNTAX	Integer32
+    MAX-ACCESS	read-only
+    STATUS	current
+    DESCRIPTION
+	"The registered timeout.  This is only meaningful for handlers
+	 that expect to return results at a later date (subagents,
+	 etc)"
+    ::= { nsModuleEntry  6 }
+
+
+--
+--  Notifications relating to the basic operation of the agent
+--
+
+nsNotifyStart        NOTIFICATION-TYPE
+    STATUS	current
+    DESCRIPTION
+	"An indication that the agent has started running."
+    ::= { netSnmpNotifications 1 }
+    
+nsNotifyShutdown     NOTIFICATION-TYPE
+    STATUS current
+    DESCRIPTION
+	"An indication that the agent is in the process of being shut down."
+    ::= { netSnmpNotifications 2 }
+
+nsNotifyRestart      NOTIFICATION-TYPE
+    STATUS	current
+    DESCRIPTION
+	"An indication that the agent has been restarted.
+	 This does not imply anything about whether the configuration has
+	 changed or not (unlike the standard coldStart or warmStart traps)"
+    ::= { netSnmpNotifications 3 }
+    
+
+--
+-- Conformance-related definitions
+--
+
+nsModuleGroup  OBJECT-GROUP
+    OBJECTS {
+        nsModuleName, nsModuleModes, nsModuleTimeout
+    }
+    STATUS	current
+    DESCRIPTION
+	"The objects relating to the list of MIB modules registered
+	 with the Net-SNMP agent."
+    ::= { netSnmpGroups 2 }
+
+nsCacheGroup  OBJECT-GROUP
+    OBJECTS {
+        nsCacheDefaultTimeout, nsCacheEnabled,
+        nsCacheTimeout,        nsCacheStatus
+    }
+    STATUS	current
+    DESCRIPTION
+	"The objects relating to data caching in the Net-SNMP agent."
+    ::= { netSnmpGroups 4 }
+
+nsConfigGroups OBJECT IDENTIFIER ::= {netSnmpGroups 7}
+
+nsDebugGroup  OBJECT-GROUP
+    OBJECTS {
+        nsDebugEnabled, nsDebugOutputAll, nsDebugDumpPdu,
+        nsDebugTokenStatus
+    }
+    STATUS	current
+    DESCRIPTION
+	"The objects relating to debug configuration in the Net-SNMP agent."
+    ::= { nsConfigGroups 1 }
+
+nsLoggingGroup  OBJECT-GROUP
+    OBJECTS {
+        nsLogType, nsLogMaxLevel, nsLogStatus
+    }
+    STATUS	current
+    DESCRIPTION
+	"The objects relating to logging configuration in the Net-SNMP agent."
+    ::= { nsConfigGroups 2 }
+
+nsTransactionGroup  OBJECT-GROUP
+    OBJECTS {
+        nsTransactionMode
+    }
+    STATUS	current
+    DESCRIPTION
+	"The objects relating to transaction monitoring in the Net-SNMP agent."
+    ::= { netSnmpGroups 8 }
+
+nsAgentNotifyGroup NOTIFICATION-GROUP
+    NOTIFICATIONS { nsNotifyStart, nsNotifyShutdown, nsNotifyRestart }
+    STATUS	current
+    DESCRIPTION
+	"The notifications relating to the basic operation of the Net-SNMP agent."
+    ::= { netSnmpGroups 9 }
+
+    
+
+END

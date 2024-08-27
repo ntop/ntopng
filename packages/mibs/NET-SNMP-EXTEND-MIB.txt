@@ -1,0 +1,325 @@
+NET-SNMP-EXTEND-MIB DEFINITIONS ::= BEGIN
+
+--
+-- Defines a framework for scripted extensions
+--
+
+IMPORTS
+    nsExtensions FROM NET-SNMP-AGENT-MIB
+
+    OBJECT-TYPE, NOTIFICATION-TYPE, MODULE-IDENTITY, Integer32
+        FROM SNMPv2-SMI
+
+    OBJECT-GROUP, NOTIFICATION-GROUP
+	FROM SNMPv2-CONF
+
+    DisplayString, RowStatus, StorageType FROM SNMPv2-TC;
+
+
+netSnmpExtendMIB MODULE-IDENTITY
+    LAST-UPDATED "201003170000Z"
+    ORGANIZATION "www.net-snmp.org"
+    CONTACT-INFO    
+	 "postal:   Wes Hardaker
+                    P.O. Box 382
+                    Davis CA  95617
+
+          email:    net-snmp-coders@lists.sourceforge.net"
+    DESCRIPTION
+	 "Defines a framework for scripted extensions for the Net-SNMP agent."
+    REVISION     "201003170000Z"
+    DESCRIPTION
+         "Fixed inconsistencies in the definition of nsExtendConfigTable."
+    REVISION     "200405080000Z"
+    DESCRIPTION
+	"First revision."
+    ::= { nsExtensions 1 }
+
+nsExtendObjects  OBJECT IDENTIFIER ::= { nsExtensions 2}
+nsExtendGroups   OBJECT IDENTIFIER ::= { nsExtensions 3}
+
+nsExtendNumEntries OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "The number of rows in the nsExtendConfigTable"
+    ::= { nsExtendObjects 1 }
+
+nsExtendConfigTable     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NsExtendConfigEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A table of scripted extensions - configuration and (basic) output."
+    ::= { nsExtendObjects 2 }
+
+nsExtendConfigEntry     OBJECT-TYPE
+    SYNTAX      NsExtendConfigEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A conceptual row within the extension table."
+    INDEX       { nsExtendToken }
+    ::= { nsExtendConfigTable 1 }
+
+NsExtendConfigEntry ::= SEQUENCE {
+    nsExtendToken       DisplayString,
+    nsExtendCommand     DisplayString,
+    nsExtendArgs        DisplayString,
+    nsExtendInput       DisplayString,
+    nsExtendCacheTime   INTEGER,
+    nsExtendExecType    INTEGER,
+    nsExtendRunType     INTEGER,
+
+    nsExtendStorage     StorageType,
+    nsExtendStatus      RowStatus
+}
+
+    --
+    --  The configuration of an extension command
+    --
+
+nsExtendToken   OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "An arbitrary token to identify this extension entry"
+    ::= { nsExtendConfigEntry 1 }
+
+nsExtendCommand OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+      "The full path of the command binary (or script) to run"
+    ::= { nsExtendConfigEntry 2 }
+
+nsExtendArgs    OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+      "Any command-line arguments for the command"
+    DEFVAL      { ''H }   -- the empty string
+    ::= { nsExtendConfigEntry 3 }
+
+nsExtendInput   OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+      "The standard input for the command"
+    DEFVAL      { ''H }   -- the empty string
+    ::= { nsExtendConfigEntry 4 }
+
+nsExtendCacheTime OBJECT-TYPE
+    SYNTAX      INTEGER
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+      "The length of time for which the output of
+       this command will be cached.  During this time,
+       retrieving the output-related values will not
+       reinvoke the command.
+       A value of -1 indicates that the output results
+       should not be cached at all, and retrieving each
+       individual output-related value will invoke the
+       command afresh." 
+    DEFVAL      { 5 }
+    ::= { nsExtendConfigEntry 5 }
+
+nsExtendExecType OBJECT-TYPE
+    SYNTAX      INTEGER
+               { exec  (1), -- 'fork-and-exec'
+                 shell (2)  -- run via a sub-shell
+               }
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+      "The mechanism used to invoke the command."
+    DEFVAL      { exec }
+    ::= { nsExtendConfigEntry 6 }
+
+nsExtendRunType OBJECT-TYPE
+    SYNTAX      INTEGER
+               { run-on-read (1),
+                 run-on-set  (2),
+                 run-command (3)
+               }
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+      "Used to implement 'push-button' command invocation.
+       The command for a 'run-on-read' entry will be invoked
+       whenever one of the corresponding output-related
+       instances is requested (and assuming the cached value
+       is not still current).
+       The command for a 'run-on-set' entry will only be invoked
+       on receipt of a SET assignment for this object with the
+       value 'run-command'.
+       Reading an instance of this object will always return either
+       'run-on-read' or 'run-on-set'.
+      "
+    DEFVAL      { run-on-read }
+    ::= { nsExtendConfigEntry 7 }
+
+    --
+    --  Standard table-manipulation objects
+    --
+
+nsExtendStorage OBJECT-TYPE
+    SYNTAX      StorageType
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+      "The storage type for this conceptual row."
+    DEFVAL      { volatile }
+    ::= { nsExtendConfigEntry 20 }
+
+nsExtendStatus  OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+      "Used to create new rows in the table, in the standard manner.
+       Note that is valid for an instance to be left with the value
+       notInService(2) indefinitely - i.e. the meaning of 'abnormally
+       long' (see RFC 2579, RowStatus) for this table is infinite."
+    ::= { nsExtendConfigEntry 21 }
+
+
+    --
+    --  The results of running the extension command
+    --
+
+nsExtendOutput1Table     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NsExtendOutput1Entry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A table of scripted extensions - configuration and (basic) output."
+    ::= { nsExtendObjects 3 }
+
+nsExtendOutput1Entry     OBJECT-TYPE
+    SYNTAX      NsExtendOutput1Entry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A conceptual row within the extension table."
+    AUGMENTS    { nsExtendConfigEntry }
+    ::= { nsExtendOutput1Table 1 }
+
+NsExtendOutput1Entry ::= SEQUENCE {
+    nsExtendOutput1Line DisplayString,
+    nsExtendOutputFull  DisplayString,
+    nsExtendOutNumLines Integer32,
+    nsExtendResult      Integer32
+}
+
+nsExtendOutput1Line OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "The first line of output from the command"
+    ::= { nsExtendOutput1Entry 1 }
+
+nsExtendOutputFull  OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "The full output from the command, as a single string"
+    ::= { nsExtendOutput1Entry 2 }
+
+nsExtendOutNumLines OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "The number of lines of output (and hence
+       the number of rows in nsExtendOutputTable
+       relating to this particular entry)."
+    ::= { nsExtendOutput1Entry 3 }
+
+nsExtendResult  OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "The return value of the command."
+    ::= { nsExtendOutput1Entry 4 }
+
+
+    --
+    --  The line-based output table
+    --
+
+nsExtendOutput2Table     OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NsExtendOutput2Entry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A table of (line-based) output from scripted extensions."
+    ::= { nsExtendObjects 4 }
+
+nsExtendOutput2Entry     OBJECT-TYPE
+    SYNTAX      NsExtendOutput2Entry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "A conceptual row within the line-based output table."
+    INDEX       { nsExtendToken, nsExtendLineIndex }
+    ::= { nsExtendOutput2Table 1 }
+
+NsExtendOutput2Entry ::= SEQUENCE {
+    nsExtendLineIndex INTEGER,
+    nsExtendOutLine   DisplayString
+}
+
+nsExtendLineIndex OBJECT-TYPE
+    SYNTAX      INTEGER(1..1024)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+      "The index of this line of output.
+       For a given nsExtendToken, this will run from
+       1 to the corresponding value of nsExtendNumLines."
+    ::= { nsExtendOutput2Entry 1 }
+
+nsExtendOutLine OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+      "A single line of output from the extension command."
+    ::= { nsExtendOutput2Entry 2 }
+
+--
+-- Conformance-related definitions
+--
+
+nsExtendConfigGroup  OBJECT-GROUP
+    OBJECTS {
+        nsExtendCommand,   nsExtendArgs,     nsExtendInput,
+        nsExtendCacheTime, nsExtendExecType, nsExtendRunType,
+        nsExtendStorage,   nsExtendStatus,   nsExtendNumEntries
+    }
+    STATUS	current
+    DESCRIPTION
+	"Objects relating to the configuration of extension commands."
+    ::= { nsExtendGroups 1 }
+
+nsExtendOutputGroup  OBJECT-GROUP
+    OBJECTS {
+        nsExtendOutNumLines, nsExtendResult,
+        nsExtendOutLine,   nsExtendOutput1Line, nsExtendOutputFull
+    }
+    STATUS	current
+    DESCRIPTION
+	"Objects relating to the output of extension commands."
+    ::= { nsExtendGroups 2 }
+
+END

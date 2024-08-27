@@ -1,0 +1,2483 @@
+T11-FC-SP-SA-MIB  DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE,
+    Unsigned32, Counter32, Counter64, TimeTicks, Gauge32,
+    mib-2                 FROM SNMPv2-SMI              -- [RFC2578]
+    RowStatus, StorageType, AutonomousType, TimeStamp,
+    TruthValue            FROM SNMPv2-TC               -- [RFC2579]
+    MODULE-COMPLIANCE, OBJECT-GROUP,
+    NOTIFICATION-GROUP
+                          FROM SNMPv2-CONF             -- [RFC2580]
+    InterfaceIndex,
+    InterfaceIndexOrZero  FROM IF-MIB                  -- [RFC2863]
+    fcmInstanceIndex,
+    FcAddressIdOrZero     FROM FC-MGMT-MIB             -- [RFC4044]
+    T11FabricIndex        FROM T11-TC-MIB              -- [RFC4439]
+    T11FcSpType,
+    T11FcSpiIndex,
+    T11FcSpLifetimeLeft,
+    T11FcSpLifetimeLeftUnits,
+    T11FcSpSecurityProtocolId,
+    T11FcRoutingControl,
+    T11FcSaDirection,
+    T11FcSpPrecedence,
+    T11FcSpTransforms      FROM T11-FC-SP-TC-MIB;
+
+t11FcSpSaMIB  MODULE-IDENTITY
+    LAST-UPDATED  "200808200000Z"
+    ORGANIZATION  "This MIB module was developed through the
+                  coordinated effort of two organizations:
+                  T11 began the development and the IETF (in
+                  the IMSS Working Group) finished it."
+    CONTACT-INFO
+            "     Claudio DeSanti
+                  Cisco Systems, Inc.
+                  170 West Tasman Drive
+                  San Jose, CA 95134 USA
+                  EMail: cds@cisco.com
+
+                  Keith McCloghrie
+                  Cisco Systems, Inc.
+                  170 West Tasman Drive
+                  San Jose, CA 95134 USA
+                  Email: kzm@cisco.com"
+    DESCRIPTION
+           "This MIB module specifies the management information
+           required to manage Security Associations established via
+           Fibre Channel's FC-SP specification.
+
+           The MIB module consists of six parts:
+
+           - a per-Fabric table, t11FcSpSaIfTable, of capabilities,
+             parameters, status information, and counters; the counters
+             include non-transient aggregates of per-SA transient
+             counters;
+
+           - three tables, t11FcSpSaPropTable, t11FcSpSaTSelPropTable,
+             and t11FcSpSaTransTable, specifying the proposals for an
+             FC-SP entity acting as an SA_Initiator to present to the
+             SA_Responder during the negotiation of Security
+
+             Associations.  The same information is also used by an
+             FC-SP entity acting as an SA_Responder to decide what to
+             accept during the negotiation of Security Associations.
+             One of these tables, t11FcSpSaTransTable, is used not only
+             for information about security transforms to propose and
+             to accept, but also as agreed upon during the negotiation
+             of Security Associations;
+
+           - a table, t11FcSpSaTSelDrByTable, of Traffic Selectors
+             having the security action of 'drop' or 'bypass' to be
+             applied either to ingress traffic that is unprotected by
+             FC-SP, or to all egress traffic;
+
+           - four tables, t11FcSpSaPairTable, t11FcSpSaTSelNegInTable,
+             t11FcSpSaTSelNegOutTable, and t11FcSpSaTSelSpiTable,
+             containing information about active bidirectional pairs of
+             Security Associations; in particular, t11FcSpSaPairTable
+             has one row per active bidirectional SA pair,
+             t11FcSpSaTSelNegInTable and t11FcSpSaTSelNegOutTable
+             contain information on the Traffic Selectors negotiated on
+             the SAs, and the t11FcSpSaTSelSpiTable is an alternate
+             lookup table such that the Traffic Selector(s) in use on a
+             particular Security Association can be quickly determined
+             based on the (ingress) SPI value;
+
+           - a table, t11FcSpSaControlTable, of control and other
+             information concerning the generation of notifications for
+             events related to FC-SP Security Associations;
+
+           - one notification, t11FcSpSaNotifyAuthFailure, generated on
+             the occurrence of an Authentication failure for a received
+             FC-2 or CT_IU frame.
+
+           Copyright (C) The IETF Trust (2008).  This version
+           of this MIB module is part of RFC 5324;  see the RFC
+           itself for full legal notices."
+    REVISION  "200808200000Z"
+    DESCRIPTION
+           "Initial version of this MIB module, published as RFC 5324."
+    ::= { mib-2 179 }
+
+t11FcSpSaMIBNotifications OBJECT IDENTIFIER ::= { t11FcSpSaMIB 0 }
+t11FcSpSaMIBObjects     OBJECT IDENTIFIER ::= { t11FcSpSaMIB 1 }
+t11FcSpSaMIBConformance OBJECT IDENTIFIER ::= { t11FcSpSaMIB 2 }
+t11FcSpSaBase           OBJECT IDENTIFIER ::= { t11FcSpSaMIBObjects 1 }
+t11FcSpSaConfig         OBJECT IDENTIFIER ::= { t11FcSpSaMIBObjects 2 }
+t11FcSpSaActive         OBJECT IDENTIFIER ::= { t11FcSpSaMIBObjects 3 }
+t11FcSpSaControl        OBJECT IDENTIFIER ::= { t11FcSpSaMIBObjects 4 }
+
+--
+--  Base-level Per-Fabric Information
+--
+
+t11FcSpSaIfTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpSaIfEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table containing per-Fabric information related to
+           FC-SP Security Associations."
+    ::= { t11FcSpSaBase 1 }
+
+t11FcSpSaIfEntry OBJECT-TYPE
+    SYNTAX       T11FcSpSaIfEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information related to Security
+           Associations on a particular Fabric, and managed as part
+           of the Fibre Channel management instance identified by
+           fcmInstanceIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpSaIfIndex,
+             t11FcSpSaIfFabricIndex }
+    ::= { t11FcSpSaIfTable 1 }
+
+T11FcSpSaIfEntry ::= SEQUENCE {
+    t11FcSpSaIfIndex               InterfaceIndexOrZero,
+    t11FcSpSaIfFabricIndex         T11FabricIndex,
+             -- capabilities
+    t11FcSpSaIfEspHeaderCapab      T11FcSpTransforms,
+    t11FcSpSaIfCTAuthCapab         T11FcSpTransforms,
+    t11FcSpSaIfIKEv2Capab          T11FcSpTransforms,
+    t11FcSpSaIfIkev2AuthCapab      TruthValue,
+             -- parameters and status
+    t11FcSpSaIfStorageType         StorageType,
+    t11FcSpSaIfReplayPrevention    TruthValue,
+    t11FcSpSaIfReplayWindowSize    Unsigned32,
+    t11FcSpSaIfDeadPeerDetections  Counter32,
+    t11FcSpSaIfTerminateAllSas     INTEGER,
+             -- summary frame counters
+    t11FcSpSaIfOutDrops            Counter64,
+    t11FcSpSaIfOutBypasses         Counter64,
+    t11FcSpSaIfOutProcesses        Counter64,
+    t11FcSpSaIfOutUnMatcheds       Counter64,
+    t11FcSpSaIfInUnprotUnmtchDrops Counter64,
+             -- aggregates of per-SA transient counters
+    t11FcSpSaIfInDetReplays        Counter64,
+    t11FcSpSaIfInUnprotMtchDrops   Counter64,
+    t11FcSpSaIfInBadXforms         Counter64,
+    t11FcSpSaIfInGoodXforms        Counter64,
+    t11FcSpSaIfInProtUnmtchs       Counter64
+}
+
+t11FcSpSaIfIndex OBJECT-TYPE
+    SYNTAX       InterfaceIndexOrZero
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "This object has a non-zero value to identify a particular
+           interface, or the value zero to indicate that the
+           information in this row applies to all (of the management
+           instance's) interfaces to the particular Fabric.
+
+           If any row has a non-zero value of t11FcSpSaIfIndex, then
+           all rows for the same Fibre Channel management instance must
+           also have a non-zero value of t11FcSpSaIfIndex and thereby
+           be specific to a particular interface.
+
+           As and when zero values of t11FcSpSaIfIndex are used in
+           this table, then they must also be used in each other
+           table that has t11FcSpSaIfIndex in its INDEX clause."
+    ::= { t11FcSpSaIfEntry 1 }
+
+t11FcSpSaIfFabricIndex OBJECT-TYPE
+    SYNTAX       T11FabricIndex
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies a particular
+           Fabric."
+    ::= { t11FcSpSaIfEntry 2 }
+
+t11FcSpSaIfEspHeaderCapab OBJECT-TYPE
+    SYNTAX       T11FcSpTransforms
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "A list of the standardized transforms supported by this
+           entity on this interface for ESP_Header protection."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, Appendix A.3.1, tables A.23, A.25."
+    ::= { t11FcSpSaIfEntry 3 }
+
+t11FcSpSaIfCTAuthCapab OBJECT-TYPE
+    SYNTAX       T11FcSpTransforms
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "A list of the standardized transforms supported by this
+           entity on this interface for CT_Authentication protection."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, Appendix A.3.1, tables A.23, A.25."
+    ::= { t11FcSpSaIfEntry 4 }
+
+t11FcSpSaIfIKEv2Capab OBJECT-TYPE
+    SYNTAX       T11FcSpTransforms
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "A list of the standardized transforms supported by this
+           entity on this interface with IKEv2 protection."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, Appendix A.3.1, tables A.23, A.24,
+              A.25, A.26."
+    ::= { t11FcSpSaIfEntry 5 }
+
+t11FcSpSaIfIkev2AuthCapab OBJECT-TYPE
+    SYNTAX     TruthValue
+    MAX-ACCESS read-only
+    STATUS     current
+    DESCRIPTION
+           "An indication of whether the entity is capable of
+           supporting the IKEv2-AUTH protocol on this interface, i.e.,
+           concatenation of Authentication and SA Management
+           Transactions, such that an SA Management Transaction is
+           used to perform both the authentication function and
+           SA management."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.7.2, and table A.27."
+    ::= { t11FcSpSaIfEntry 6 }
+
+t11FcSpSaIfStorageType OBJECT-TYPE
+    SYNTAX       StorageType
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "This object specifies the memory realization of
+           information related to FC-SP Security Associations
+           for interface(s) to a particular Fabric; specifically,
+           for rows created and/or modified in these tables:
+
+                   t11FcSpSaPropTable
+                   t11FcSpSaTSelDrByTable
+                   t11FcSpSaControlTable
+
+           and, for modified information contained in the same
+           row as an instance of this object.
+
+           Even if an instance of this object has the value
+           'permanent(4)', none of the information defined in
+           this MIB module for interface(s) to the given Fabric
+           need to be writable."
+    ::= { t11FcSpSaIfEntry 7 }
+
+t11FcSpSaIfReplayPrevention  OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "This object indicates whether anti-replay protection is
+           enabled for frame reception on this interface.
+
+           Note that the replay-protection mechanism in FC-SP is
+           conceptually similar to the corresponding mechanism in
+           IPsec ESP."
+    REFERENCE
+           "- IP Encapsulating Security Payload (ESP),
+              RFC 4303, December 2005, section 3.3.3."
+    ::= { t11FcSpSaIfEntry 8 }
+
+t11FcSpSaIfReplayWindowSize OBJECT-TYPE
+    SYNTAX       Unsigned32
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "The size of the replay window to be used when
+           anti-replay protection is enabled for frame reception
+           on this interface.
+
+           Note that the replay-protection mechanism in FC-SP is
+           conceptually similar to the corresponding mechanism in
+           IPsec ESP."
+    REFERENCE
+           "- IP Encapsulating Security Payload (ESP),
+              RFC 4303, December 2005, section 3.4.3."
+    ::= { t11FcSpSaIfEntry 9 }
+
+t11FcSpSaIfDeadPeerDetections OBJECT-TYPE
+    SYNTAX       Counter32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of times that a dead peer condition has been
+           detected on this interface.
+
+           This counter has no discontinuities other than those
+           that all Counter32's have when sysUpTime=0."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 8.5.3.3."
+    ::= { t11FcSpSaIfEntry 10 }
+
+t11FcSpSaIfTerminateAllSas OBJECT-TYPE
+    SYNTAX       INTEGER { noop(1), terminate(2) }
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "Setting this object to 'terminate' is a request to
+           terminate all outstanding Security Associations on this
+           interface.
+
+           When read, the value of this object is always 'noop'.
+           Setting this object to 'noop' has no effect."
+    ::= { t11FcSpSaIfEntry 11 }
+
+t11FcSpSaIfOutDrops OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of output frames that were dropped, instead
+           of being transmitted on this interface, because they matched
+           an active (at that time) Traffic Selector with an action of
+           'Drop'.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaIfEntry 12 }
+
+t11FcSpSaIfOutBypasses        OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of output frames that were transmitted
+           unchanged by FC-SP on this interface because they matched
+           an active (at that time) Traffic Selector with an action
+           of 'Bypass'.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaIfEntry 13 }
+
+t11FcSpSaIfOutProcesses       OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of output frames that were protected by FC-SP
+           before being transmitted on this interface because they
+           matched an active (at that time) Traffic Selector with an
+           action of 'Process'.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaIfEntry 14 }
+
+t11FcSpSaIfOutUnMatcheds OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of frames that were transmitted unchanged by
+           FC-SP on this interface because they did not match any
+           Traffic Selector active at that time.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaIfEntry 15 }
+
+t11FcSpSaIfInUnprotUnmtchDrops OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of frames received on this interface that
+           were dropped because they were unprotected and did not
+           match any Traffic Selector active at that time.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaIfEntry 16 }
+
+t11FcSpSaIfInDetReplays OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of times that a replay has been detected on
+           a Security Association that is currently active or was
+           previously active on this interface.  Note that a frame
+           that is discarded because it is 'behind' the window,
+           i.e., too old, is counted as a replay.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaIfEntry 17 }
+
+t11FcSpSaIfInUnprotMtchDrops OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of times that a frame received on this
+           interface was dropped because it matched with a Traffic
+           Selector for a Security Association that was active at
+           the time of receipt but the frame was not protected as
+           negotiated for that Security Association.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaIfEntry 18 }
+
+t11FcSpSaIfInBadXforms OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of times that a frame received on this
+           interface was dropped because of a failure of one of the
+           transforms negotiated for the Security Association on
+           which it was received.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaIfEntry 19 }
+
+t11FcSpSaIfInGoodXforms OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of frames received on this interface on a
+           Security Association for which the transforms negotiated
+           for that Security Association were successfully applied,
+           and that matched a Traffic Selector for that Security
+           Association.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaIfEntry 20 }
+
+t11FcSpSaIfInProtUnmtchs OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of frames received on this interface that
+           were dropped because they did not match any of the Traffic
+           Selectors negotiated for the Security Association on which
+           they were received, even though the Security Association's
+           transforms were successfully applied.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaIfEntry 21 }
+
+--
+--  Proposals to present in Security Association negotiation
+--
+
+t11FcSpSaPropTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpSaPropEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of proposals for an FC-SP entity acting as an
+           SA_Initiator to present to the SA_Responder during the
+           negotiation of Security Associations.  This information
+           is also used by an FC-SP entity acting as an SA_Responder
+           to decide what to accept during the negotiation of
+           Security Associations."
+    ::= { t11FcSpSaConfig 1 }
+
+t11FcSpSaPropEntry OBJECT-TYPE
+    SYNTAX       T11FcSpSaPropEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one proposal for
+           the FC-SP entity to present, or what to accept, during
+           the negotiation of Security Associations on one or more
+           interfaces (identified by t11FcSpSaIfIndex) to a
+           particular Fabric (identified by t11FcSpSaIfFabricIndex),
+           and managed as part of the Fibre Channel management
+           instance identified by fcmInstanceIndex.
+
+           The StorageType of a row in this table is specified by
+           the instance of t11FcSpSaIfStorageType that is INDEX-ed
+           by the same values of fcmInstanceIndex, t11FcSpSaIfIndex
+           and t11FcSpSaIfFabricIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpSaIfIndex,
+             t11FcSpSaIfFabricIndex,
+             t11FcSpSaPropIndex }
+    ::= { t11FcSpSaPropTable 1 }
+
+T11FcSpSaPropEntry ::= SEQUENCE {
+    t11FcSpSaPropIndex             Unsigned32,
+    t11FcSpSaPropSecurityProt      T11FcSpSecurityProtocolId,
+    t11FcSpSaPropTSelListIndex     Unsigned32,
+    t11FcSpSaPropTransListIndex    Unsigned32,
+    t11FcSpSaPropAcceptAlgorithm   INTEGER,
+    t11FcSpSaPropOutMatchSucceeds  Counter64,
+    t11FcSpSaPropRowStatus         RowStatus
+}
+
+t11FcSpSaPropIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies a particular
+           proposal for use on one or more interfaces to a Fabric."
+    ::= { t11FcSpSaPropEntry 1 }
+
+t11FcSpSaPropSecurityProt OBJECT-TYPE
+    SYNTAX       T11FcSpSecurityProtocolId
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The Security Protocol identifier for this proposal, i.e.,
+           whether the proposal is for traffic to be protected using
+           ESP_Header or CT_Authentication."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.3.2.2 and table 67."
+    ::= { t11FcSpSaPropEntry 2 }
+
+t11FcSpSaPropTSelListIndex OBJECT-TYPE
+    SYNTAX       Unsigned32
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "When the value of this object is non-zero, it points
+           to the proposal's list of Traffic Selectors.  The value
+           must be non-zero in an active row of this table.
+
+           The identified list is represented by all rows in the
+           t11FcSpSaTSelPropTable for which t11FcSpSaTSelPropListIndex
+           has the same value as this object (and with corresponding
+           values of t11FcSpSaIfIndex and fcmInstanceIndex)."
+    ::= { t11FcSpSaPropEntry 3 }
+
+t11FcSpSaPropTransListIndex OBJECT-TYPE
+    SYNTAX       Unsigned32
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "When the value of this object is non-zero, it points to
+           the proposal's list of Transforms.  The value must be
+           non-zero in an active row of this table.
+
+           The identified list is represented by all rows in the
+           t11FcSpSaTransTable for which t11FcSpSaTransListIndex
+           has the same value as this object (and with corresponding
+           values of t11FcSpSaIfIndex and fcmInstanceIndex)."
+    ::= { t11FcSpSaPropEntry 4 }
+
+t11FcSpSaPropAcceptAlgorithm OBJECT-TYPE
+    SYNTAX       INTEGER {
+                     intersection(1),
+                     union(2),
+                     other(3)
+                 }
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The algorithm by which an SA_Responder in an SA negotiation
+           decides on which Traffic Selectors to specify in a response
+           to an IKE_Create_Child_SA request.  This algorithm is used
+
+           when the Traffic Selectors specified by an SA_Initiator in
+           an IKE_Create_Child_SA request overlap with this proposal's
+           list of Traffic Selectors:
+
+           intersection(1) - the SA_Responder specifies the largest
+                         subset of what the SA_Initiator proposed,
+                         which is also a subset of this proposal's
+                         Traffic Selectors.
+
+           union(2)    - the SA_Responder specifies the smallest
+                         superset of what the SA_Initiator proposed,
+                         which is also a superset of this proposal's
+                         Traffic Selectors.
+
+           other(3)    - the SA_Responder uses some other algorithm.
+           "
+    ::= { t11FcSpSaPropEntry 5 }
+
+t11FcSpSaPropOutMatchSucceeds OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of egress frames that have matched a Traffic
+           Selector that was negotiated to select traffic for an
+           SA based on this proposal being accepted.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaPropEntry 6 }
+
+t11FcSpSaPropRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of a row.  Values of object instances
+           within an active row can be modified at any time.
+
+           The status cannot be set to 'active' unless and
+           until the instances of t11FcSpSaPropTSelListIndex
+           and t11FcSpSaPropTransListIndex in the row have
+           been set to point to active rows in the
+           t11FcSpSaTSelPropTable and t11FcSpSaTransTable
+           tables, respectively.  A row in this table is
+           deleted if the active rows it points to are deleted."
+    ::= { t11FcSpSaPropEntry 7 }
+
+--
+--  Traffic Selector Proposals
+--
+
+t11FcSpSaTSelPropTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpSaTSelPropEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table containing information about Traffic Selectors
+           to propose and/or to accept during the negotiation of
+           Security Associations."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.4.5.
+            - Use of IKEv2 in FC-SP, RFC 4595,
+              July 2006, section 4.4."
+    ::= { t11FcSpSaConfig 2 }
+
+t11FcSpSaTSelPropEntry OBJECT-TYPE
+    SYNTAX       T11FcSpSaTSelPropEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one Traffic
+           Selector within a list of Traffic Selectors to propose,
+           or for use in determining what to accept during Security
+           Association negotiation.
+
+           One such list is configured for use on a Fabric by
+           configuring the list's value of t11FcSpSaTSelPropListIndex
+           as the value of an instance of t11FcSpSaPropTSelListIndex,
+           for corresponding values of t11FcSpSaIfIndex and
+           fcmInstanceIndex.  Further, the proposing and accepting
+           of Traffic Selectors is only done as a part of a proposal
+           specified by a row of the t11FcSpSaPropTable, i.e.,
+           in combination with the proposing and accepting of security
+           transforms as specified by the combination of
+           t11FcSpSaPropTSelListIndex and t11FcSpSaPropTransListIndex
+           in one row of the t11FcSpSaPropTable.
+
+           The StorageType of a row in this table is specified by
+           the instance of t11FcSpSaTSelPropStorageType in that row."
+    INDEX  { fcmInstanceIndex, t11FcSpSaIfIndex,
+             t11FcSpSaTSelPropListIndex, t11FcSpSaTSelPropPrecedence }
+    ::= { t11FcSpSaTSelPropTable 1 }
+
+T11FcSpSaTSelPropEntry ::= SEQUENCE {
+    t11FcSpSaTSelPropListIndex    Unsigned32,
+    t11FcSpSaTSelPropPrecedence   T11FcSpPrecedence,
+    t11FcSpSaTSelPropDirection    T11FcSaDirection,
+    t11FcSpSaTSelPropStartSrcAddr FcAddressIdOrZero,
+    t11FcSpSaTSelPropEndSrcAddr   FcAddressIdOrZero,
+    t11FcSpSaTSelPropStartDstAddr FcAddressIdOrZero,
+    t11FcSpSaTSelPropEndDstAddr   FcAddressIdOrZero,
+    t11FcSpSaTSelPropStartRCtl    T11FcRoutingControl,
+    t11FcSpSaTSelPropEndRCtl      T11FcRoutingControl,
+    t11FcSpSaTSelPropStartType    T11FcSpType,
+    t11FcSpSaTSelPropEndType      T11FcSpType,
+    t11FcSpSaTSelPropStorageType  StorageType,
+    t11FcSpSaTSelPropRowStatus    RowStatus
+}
+
+t11FcSpSaTSelPropListIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that identifies a particular list of
+           Traffic Selectors."
+    ::= { t11FcSpSaTSelPropEntry 1 }
+
+t11FcSpSaTSelPropPrecedence OBJECT-TYPE
+    SYNTAX       T11FcSpPrecedence
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The precedence of this Traffic Selector.  Each
+           Traffic Selector within a particular list of
+           Traffic Selectors must have a different precedence.
+
+           If an egress frame matches multiple Traffic Selectors,
+           it should be transmitted on the SA associated with the
+           Traffic Selector having the numerically smallest
+           precedence value."
+    ::= { t11FcSpSaTSelPropEntry 2 }
+
+t11FcSpSaTSelPropDirection OBJECT-TYPE
+    SYNTAX       T11FcSaDirection
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "An indication of whether this Traffic Selector is
+           to be proposed for ingress or egress traffic."
+    DEFVAL   { egress }
+    ::= { t11FcSpSaTSelPropEntry 3 }
+
+t11FcSpSaTSelPropStartSrcAddr OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest 24-bit value of a source address
+           (S_ID) of a frame that will match with this Traffic
+           Selector."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.4.5."
+    DEFVAL   { '000000'h }
+    ::= { t11FcSpSaTSelPropEntry 4 }
+
+t11FcSpSaTSelPropEndSrcAddr  OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest 24-bit value of a source address
+           (S_ID) of a frame that will match with this Traffic
+           Selector."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.4.5."
+    DEFVAL   { 'FFFFFF'h }
+    ::= { t11FcSpSaTSelPropEntry 5 }
+
+t11FcSpSaTSelPropStartDstAddr OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest 24-bit value of a destination
+           address (D_ID) of a frame that will match with this
+           Traffic Selector."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.4.5."
+    DEFVAL   { '000000'h }
+    ::= { t11FcSpSaTSelPropEntry 6 }
+
+t11FcSpSaTSelPropEndDstAddr OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest 24-bit value of a destination
+           address (D_ID) of a frame that will match with this
+           Traffic Selector."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.4.5."
+    DEFVAL   { 'FFFFFF'h }
+    ::= { t11FcSpSaTSelPropEntry 7 }
+
+t11FcSpSaTSelPropStartRCtl OBJECT-TYPE
+    SYNTAX       T11FcRoutingControl
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest 8-bit value contained within a
+           Routing Control (R_CTL) field of a frame that will match
+           with this Traffic Selector."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.4.5."
+    DEFVAL   { '00'h }
+    ::= { t11FcSpSaTSelPropEntry 8 }
+
+t11FcSpSaTSelPropEndRCtl OBJECT-TYPE
+    SYNTAX       T11FcRoutingControl
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest 8-bit value contained within a
+           Routing Control (R_CTL) field of a frame that will match
+           with this Traffic Selector."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.4.5."
+    DEFVAL   { 'FF'h }
+    ::= { t11FcSpSaTSelPropEntry 9 }
+
+t11FcSpSaTSelPropStartType OBJECT-TYPE
+    SYNTAX       T11FcSpType
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest of a range of possible 'type'
+           values of frames that will match with this Traffic
+           Selector."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.4.5."
+    DEFVAL   { '0000'h }
+    ::= { t11FcSpSaTSelPropEntry 10 }
+
+t11FcSpSaTSelPropEndType OBJECT-TYPE
+    SYNTAX       T11FcSpType
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest of a range of possible 'type'
+           values of frames that will match with this Traffic
+           Selector."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.4.5."
+    DEFVAL   { 'FFFF'h }
+    ::= { t11FcSpSaTSelPropEntry 11 }
+
+t11FcSpSaTSelPropStorageType OBJECT-TYPE
+    SYNTAX       StorageType
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "This object specifies the memory realization of
+           the information in this row.
+
+           Even if an instance of this object has the value
+           'permanent(4)', none of the information in its row
+           needs to be writable."
+    ::= { t11FcSpSaTSelPropEntry 12 }
+
+t11FcSpSaTSelPropRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of this row.  Values of object instances
+           within the row can be modified at any time."
+    ::= { t11FcSpSaTSelPropEntry 13 }
+
+--
+--  Transform Proposals
+--
+
+t11FcSpSaTransTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpSaTransEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table containing information about security transforms
+           to propose, to accept and/or agreed upon during the
+           negotiation of Security Associations."
+    ::= { t11FcSpSaConfig 3 }
+
+t11FcSpSaTransEntry OBJECT-TYPE
+    SYNTAX       T11FcSpSaTransEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one proposal within a
+           list of security transforms to be proposed, to be accepted,
+           or already agreed upon, for use on a pair of Security
+           Associations on one or more interfaces (identified by
+           t11FcSpSaIfIndex), managed as part of the Fibre Channel
+           management instance identified by fcmInstanceIndex.
+
+           One such list is configured to be proposed or accepted for
+           use on a Fabric, by having the list's value of
+           t11FcSpSaTransListIndex be the value of an instance of
+           t11FcSpSaPropTransListIndex for that Fabric.  Further,
+           the proposing and accepting of security transforms is only
+           done as a part of a proposal specified by a row of the
+           t11FcSpSaPropTable, i.e., in combination with the proposing
+           and accepting of Traffic Selectors as specified by the
+           combination of t11FcSpSaPropTSelListIndex and
+           t11FcSpSaPropTransListIndex in one row of the
+           t11FcSpSaPropTable.
+
+           The security (encryption and integrity) transform in use on
+           an SA pair is indicated by having the pair's values of
+           t11FcSpSaPairTransListIndex and t11FcSpSaPairTransIndex
+           contain the values of t11FcSpSaTransListIndex and
+           t11FcSpSaTransIndex for the transform's row in this table.
+
+           The StorageType of a row in this table is specified by
+           the instance of t11FcSpSaTransStorageType in that row."
+    INDEX  { fcmInstanceIndex, t11FcSpSaIfIndex,
+             t11FcSpSaTransListIndex, t11FcSpSaTransIndex }
+    ::= { t11FcSpSaTransTable 1 }
+
+T11FcSpSaTransEntry ::= SEQUENCE {
+    t11FcSpSaTransListIndex      Unsigned32,
+    t11FcSpSaTransIndex          Unsigned32,
+    t11FcSpSaTransSecurityProt   T11FcSpSecurityProtocolId,
+    t11FcSpSaTransEncryptAlg     AutonomousType,
+    t11FcSpSaTransEncryptKeyLen  Unsigned32,
+    t11FcSpSaTransIntegrityAlg   AutonomousType,
+    t11FcSpSaTransStorageType    StorageType,
+    t11FcSpSaTransRowStatus      RowStatus
+}
+
+t11FcSpSaTransListIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies a particular
+           list of security transforms to be proposed, to be accepted,
+           or already agreed upon."
+    ::= { t11FcSpSaTransEntry 1 }
+
+t11FcSpSaTransIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that uniquely identifies one security
+           transform within a list identified by
+           t11FcSpSaTransListIndex."
+    ::= { t11FcSpSaTransEntry 2 }
+
+t11FcSpSaTransSecurityProt OBJECT-TYPE
+    SYNTAX       T11FcSpSecurityProtocolId
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The Security Protocol identifier that indicates
+           whether this transform is for traffic to be protected
+           using ESP_Header or using CT_Authentication."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.3.2.2 and table 67."
+    ::= { t11FcSpSaTransEntry 3 }
+
+t11FcSpSaTransEncryptAlg OBJECT-TYPE
+    SYNTAX       AutonomousType
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The Encryption Algorithm for this transform."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.3.2.3 and tables 69 & 70."
+    ::= { t11FcSpSaTransEntry 4 }
+
+t11FcSpSaTransEncryptKeyLen OBJECT-TYPE
+    SYNTAX       Unsigned32
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The key length in bits to be used with an encryption
+           algorithm that has a variable length key.  This object
+           is ignored when the corresponding instance of
+           t11FcSpSaTransEncryptAlg specifies an algorithm with a
+           fixed length key."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.3.2.5 and table 77."
+    ::= { t11FcSpSaTransEntry 5 }
+
+t11FcSpSaTransIntegrityAlg OBJECT-TYPE
+    SYNTAX       AutonomousType
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The Integrity Algorithm for this transform."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, section 6.3.2.3 and tables 69 & 72."
+    ::= { t11FcSpSaTransEntry 6 }
+
+t11FcSpSaTransStorageType OBJECT-TYPE
+    SYNTAX       StorageType
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "This object specifies the memory realization of
+           the information in this row.
+
+           Even if an instance of this object has the value
+
+           'permanent(4)', none of the information in its row
+           needs to be writable."
+    ::= { t11FcSpSaTransEntry 7 }
+
+t11FcSpSaTransRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of this row.
+
+           When an instance of t11FcSpSaPairTransListIndex points to
+           a row in this table, values of object instances in the row
+           cannot be modified nor can the row be deleted.  Otherwise,
+           a row can be modified or deleted at any time."
+    ::= { t11FcSpSaTransEntry 8 }
+
+--
+--  Traffic Selectors for Drop & Bypass
+--
+
+t11FcSpSaTSelDrByTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpSaTSelDrByEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table containing Traffic Selectors to select which
+           traffic is to be dropped or is to bypass further
+           security processing."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, sections 4.6, 4.7, and 6.4.5.
+            - Use of IKEv2 in FC-SP, RFC 4595,
+              July 2006, section 4.4."
+    ::= { t11FcSpSaConfig 4 }
+
+t11FcSpSaTSelDrByEntry OBJECT-TYPE
+    SYNTAX       T11FcSpSaTSelDrByEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry represents one Traffic Selector having the
+           security action of 'drop' or 'bypass', which is applied
+           based on a precedence value, either to ingress traffic
+           that is unprotected by FC-SP, or to all egress
+           traffic on one or more interfaces (identified by
+           t11FcSpSaIfIndex) to a particular Fabric (identified
+
+           by t11FcSpSaIfFabricIndex), and managed as part of the Fibre
+           Channel management instance identified by fcmInstanceIndex.
+
+           The StorageType of a row in this table is specified by
+           the instance of t11FcSpSaIfStorageType that is INDEX-ed
+           by the same values of fcmInstanceIndex, t11FcSpSaIfIndex
+           and t11FcSpSaIfFabricIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpSaIfIndex, t11FcSpSaIfFabricIndex,
+             t11FcSpSaTSelDrByDirection, t11FcSpSaTSelDrByPrecedence }
+    ::= { t11FcSpSaTSelDrByTable 1 }
+
+T11FcSpSaTSelDrByEntry ::= SEQUENCE {
+    t11FcSpSaTSelDrByDirection     T11FcSaDirection,
+    t11FcSpSaTSelDrByPrecedence    T11FcSpPrecedence,
+    t11FcSpSaTSelDrByAction        INTEGER,
+    t11FcSpSaTSelDrByStartSrcAddr  FcAddressIdOrZero,
+    t11FcSpSaTSelDrByEndSrcAddr    FcAddressIdOrZero,
+    t11FcSpSaTSelDrByStartDstAddr  FcAddressIdOrZero,
+    t11FcSpSaTSelDrByEndDstAddr    FcAddressIdOrZero,
+    t11FcSpSaTSelDrByStartRCtl     T11FcRoutingControl,
+    t11FcSpSaTSelDrByEndRCtl       T11FcRoutingControl,
+    t11FcSpSaTSelDrByStartType     T11FcSpType,
+    t11FcSpSaTSelDrByEndType       T11FcSpType,
+    t11FcSpSaTSelDrByMatches       Counter64,
+    t11FcSpSaTSelDrByRowStatus     RowStatus
+}
+
+t11FcSpSaTSelDrByDirection OBJECT-TYPE
+    SYNTAX       T11FcSaDirection
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An indication of whether this Traffic Selector is
+           for ingress or egress traffic."
+    ::= { t11FcSpSaTSelDrByEntry 1 }
+
+t11FcSpSaTSelDrByPrecedence OBJECT-TYPE
+    SYNTAX       T11FcSpPrecedence
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The precedence of this Traffic Selector.  If and when a
+           frame is compared against multiple Traffic Selectors, and
+           multiple of them have a match with the frame, the security
+           action to be taken for the frame is that specified for the
+           matching Traffic Selector having the numerically smallest
+           precedence value."
+    ::= { t11FcSpSaTSelDrByEntry 2 }
+
+t11FcSpSaTSelDrByAction OBJECT-TYPE
+    SYNTAX       INTEGER { drop(1), bypass(2) }
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The security action to be taken for a frame that
+           matches this Traffic Selector."
+    DEFVAL   { drop }
+    ::= { t11FcSpSaTSelDrByEntry 3 }
+
+t11FcSpSaTSelDrByStartSrcAddr OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest 24-bit value of a source address
+           (S_ID) of a frame that will match with this Traffic
+           Selector."
+    DEFVAL   { '000000'h }
+    ::= { t11FcSpSaTSelDrByEntry 4 }
+
+t11FcSpSaTSelDrByEndSrcAddr  OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest 24-bit value of a source address
+           (S_ID) of a frame that will match with this Traffic
+           Selector."
+    DEFVAL   { 'FFFFFF'h }
+    ::= { t11FcSpSaTSelDrByEntry 5 }
+
+t11FcSpSaTSelDrByStartDstAddr OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest 24-bit value of a destination
+           address (D_ID) of a frame that will match with this
+           Traffic Selector."
+    DEFVAL   { '000000'h }
+    ::= { t11FcSpSaTSelDrByEntry 6 }
+
+t11FcSpSaTSelDrByEndDstAddr OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest 24-bit value of a destination
+           address (D_ID) of a frame that will match with this
+           Traffic Selector."
+    DEFVAL   { 'FFFFFF'h }
+    ::= { t11FcSpSaTSelDrByEntry 7 }
+
+t11FcSpSaTSelDrByStartRCtl OBJECT-TYPE
+    SYNTAX       T11FcRoutingControl
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest 8-bit value contained within a
+           Routing Control (R_CTL) field of a frame that will match
+           with this Traffic Selector."
+    DEFVAL   { '00'h }
+    ::= { t11FcSpSaTSelDrByEntry 8 }
+
+t11FcSpSaTSelDrByEndRCtl OBJECT-TYPE
+    SYNTAX       T11FcRoutingControl
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest 8-bit value contained within a
+           Routing Control (R_CTL) field of a frame that will match
+           with this Traffic Selector."
+    DEFVAL   { 'FF'h }
+    ::= { t11FcSpSaTSelDrByEntry 9 }
+
+t11FcSpSaTSelDrByStartType OBJECT-TYPE
+    SYNTAX       T11FcSpType
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest of a range of possible 'type'
+           values of frames that will match with this Traffic
+           Selector."
+    DEFVAL   { '0000'h }
+    ::= { t11FcSpSaTSelDrByEntry 10 }
+
+t11FcSpSaTSelDrByEndType OBJECT-TYPE
+    SYNTAX       T11FcSpType
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest of a range of possible 'type'
+           values of frames that will match with this Traffic
+           Selector."
+    DEFVAL   { 'FFFF'h }
+    ::= { t11FcSpSaTSelDrByEntry 11 }
+
+t11FcSpSaTSelDrByMatches OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of frames for which the action specified by
+           the corresponding instance of t11FcSpSaTSelDrByAction was
+           taken because of a match with this Traffic Selector.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaTSelDrByEntry 12 }
+
+t11FcSpSaTSelDrByRowStatus OBJECT-TYPE
+    SYNTAX       RowStatus
+    MAX-ACCESS   read-create
+    STATUS       current
+    DESCRIPTION
+           "The status of this row.  Values of object instances
+           within the row can be modified at any time."
+    ::= { t11FcSpSaTSelDrByEntry 13 }
+
+--
+--  Active Security Associations
+--
+
+t11FcSpSaPairTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpSaPairEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table containing information about active
+           bidirectional pairs of Security Associations."
+    ::= { t11FcSpSaActive 1 }
+
+t11FcSpSaPairEntry OBJECT-TYPE
+    SYNTAX       T11FcSpSaPairEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one active
+           bidirectional pair of Security Associations on an
+           interface to a particular Fabric (identified by
+           t11FcSpSaIfFabricIndex), managed as part of the Fibre
+           Channel management instance identified by
+           fcmInstanceIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpSaPairIfIndex,
+             t11FcSpSaIfFabricIndex, t11FcSpSaPairInboundSpi }
+    ::= { t11FcSpSaPairTable 1 }
+
+T11FcSpSaPairEntry ::= SEQUENCE {
+    t11FcSpSaPairIfIndex           InterfaceIndex,
+    t11FcSpSaPairInboundSpi        T11FcSpiIndex,
+    t11FcSpSaPairSecurityProt      T11FcSpSecurityProtocolId,
+    t11FcSpSaPairTransListIndex    Unsigned32,
+    t11FcSpSaPairTransIndex        Unsigned32,
+    t11FcSpSaPairLifetimeLeft      T11FcSpLifetimeLeft,
+    t11FcSpSaPairLifetimeLeftUnits T11FcSpLifetimeLeftUnits,
+    t11FcSpSaPairTerminate         INTEGER,
+    t11FcSpSaPairInProtUnMatchs    Counter64,
+    t11FcSpSaPairInDetReplays      Counter64,
+    t11FcSpSaPairInBadXforms       Counter64,
+    t11FcSpSaPairInGoodXforms      Counter64
+}
+
+t11FcSpSaPairIfIndex OBJECT-TYPE
+    SYNTAX       InterfaceIndex
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "This object identifies the interface to the particular
+           Fabric on which this SA pair is active."
+    ::= { t11FcSpSaPairEntry 1 }
+
+t11FcSpSaPairInboundSpi OBJECT-TYPE
+    SYNTAX       T11FcSpiIndex
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The SPI value that is used to indicate that an incoming
+           frame was received on the ingress SA of this SA pair."
+    ::= { t11FcSpSaPairEntry 2 }
+
+t11FcSpSaPairSecurityProt OBJECT-TYPE
+    SYNTAX       T11FcSpSecurityProtocolId
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The object indicates whether this SA uses ESP_Header to
+           protect FC-2 frames, or CT_Authentication to protect Common
+           Transport Information Units (CT_IUs)."
+    ::= { t11FcSpSaPairEntry 3 }
+
+t11FcSpSaPairTransListIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The combination of this value and the value of the
+           corresponding instance of t11FcSpSaPairTransIndex
+           identify the row in the t11FcSpSaTransTable that
+           contains the transforms that are in use on this SA pair."
+    ::= { t11FcSpSaPairEntry 4 }
+
+t11FcSpSaPairTransIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The combination of this value and the value of the
+           corresponding instance of t11FcSpSaPairTransListIndex
+           identify the row in the t11FcSpSaTransTable that
+           contains the transforms that are in use on this SA pair."
+    ::= { t11FcSpSaPairEntry 5 }
+
+t11FcSpSaPairLifetimeLeft OBJECT-TYPE
+    SYNTAX       T11FcSpLifetimeLeft
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The remaining lifetime of this SA pair, given in the
+           units specified by the value of the corresponding
+           instance of t11FcSpSaPairLifetimeLeft."
+    ::= { t11FcSpSaPairEntry 6 }
+
+t11FcSpSaPairLifetimeLeftUnits OBJECT-TYPE
+    SYNTAX       T11FcSpLifetimeLeftUnits
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The units in which the value of the corresponding
+           instance of t11FcSpSaPairLifetimeLeft specifies the
+           remaining lifetime of this SA pair."
+    ::= { t11FcSpSaPairEntry 7 }
+
+t11FcSpSaPairTerminate OBJECT-TYPE
+    SYNTAX       INTEGER { noop(1), terminate(2) }
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "Setting this object to 'terminate' is a request
+           to terminate this pair of Security Associations.
+
+           When read, the value of this object is always 'noop'.
+           Setting this object to 'noop' has no effect."
+    ::= { t11FcSpSaPairEntry 8 }
+
+t11FcSpSaPairInProtUnMatchs OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of frames received on this SA for which the
+           SA's transforms were successfully applied to the frame,
+           but the frame was still dropped because it did not match
+           any of the SA's ingress Traffic Selectors.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaPairEntry 9 }
+
+t11FcSpSaPairInDetReplays OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of times that a replay has been detected on
+           this Security Association.  Note that a frame that is
+           discarded because it is 'behind' the window, i.e., too old,
+           is counted as a replay.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaPairEntry 10 }
+
+t11FcSpSaPairInBadXforms OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of times that a received frame was dropped
+           because one of the transforms negotiated for this Security
+           Association failed.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaPairEntry 11 }
+
+t11FcSpSaPairInGoodXforms OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of received frames for which the transforms
+           negotiated for this Security Association, were
+           successfully applied.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaPairEntry 12 }
+
+--
+--  Negotiated Ingress Traffic Selectors
+--
+
+t11FcSpSaTSelNegInTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpSaTSelNegInEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table containing information about ingress Traffic
+           Selectors that are in use on active Security
+           Associations."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, sections 4.6, 4.7, and 6.4.5.
+            - Use of IKEv2 in FC-SP, RFC 4595,
+              July 2006, section 4.4."
+    ::= { t11FcSpSaActive 2 }
+
+t11FcSpSaTSelNegInEntry OBJECT-TYPE
+    SYNTAX       T11FcSpSaTSelNegInEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one ingress Traffic
+           Selector that is in use on an active Security Association
+           on an interface (identified by t11FcSpSaPairIfIndex) to
+           a particular Fabric (identified by t11FcSpSaIfFabricIndex),
+           managed as part of the Fibre Channel management instance
+           identified by fcmInstanceIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpSaPairIfIndex,
+             t11FcSpSaIfFabricIndex, t11FcSpSaTSelNegInIndex }
+    ::= { t11FcSpSaTSelNegInTable 1 }
+
+T11FcSpSaTSelNegInEntry ::= SEQUENCE {
+    t11FcSpSaTSelNegInIndex         Unsigned32,
+    t11FcSpSaTSelNegInInboundSpi    T11FcSpiIndex,
+    t11FcSpSaTSelNegInStartSrcAddr  FcAddressIdOrZero,
+    t11FcSpSaTSelNegInEndSrcAddr    FcAddressIdOrZero,
+    t11FcSpSaTSelNegInStartDstAddr  FcAddressIdOrZero,
+    t11FcSpSaTSelNegInEndDstAddr    FcAddressIdOrZero,
+    t11FcSpSaTSelNegInStartRCtl     T11FcRoutingControl,
+    t11FcSpSaTSelNegInEndRCtl       T11FcRoutingControl,
+    t11FcSpSaTSelNegInStartType     T11FcSpType,
+    t11FcSpSaTSelNegInEndType       T11FcSpType,
+    t11FcSpSaTSelNegInUnpMtchDrops  Counter64
+}
+
+t11FcSpSaTSelNegInIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value to distinguish an ingress Traffic Selector
+           from all others currently in use by Security Associations
+           on the same interface to a particular Fabric."
+    ::= { t11FcSpSaTSelNegInEntry 1 }
+
+t11FcSpSaTSelNegInInboundSpi OBJECT-TYPE
+    SYNTAX       T11FcSpiIndex
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The SPI of the ingress SA on which this Traffic Selector
+           is in use.
+
+           This value can be used to find the SA pair's row in the
+           t11FcSpSaPairTable."
+    ::= { t11FcSpSaTSelNegInEntry 2 }
+
+t11FcSpSaTSelNegInStartSrcAddr OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest 24-bit value of a source address
+           (S_ID) of a frame that will match with this Traffic
+           Selector."
+    ::= { t11FcSpSaTSelNegInEntry 3 }
+
+t11FcSpSaTSelNegInEndSrcAddr  OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest 24-bit value of a source address
+           (S_ID) of a frame that will match with this Traffic
+           Selector."
+    ::= { t11FcSpSaTSelNegInEntry 4 }
+
+t11FcSpSaTSelNegInStartDstAddr OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest 24-bit value of a destination
+           address (D_ID) of a frame that will match with this
+           Traffic Selector."
+    ::= { t11FcSpSaTSelNegInEntry 5 }
+
+t11FcSpSaTSelNegInEndDstAddr OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest 24-bit value of a destination
+           address (D_ID) of a frame that will match with this
+           Traffic Selector."
+    ::= { t11FcSpSaTSelNegInEntry 6 }
+
+t11FcSpSaTSelNegInStartRCtl OBJECT-TYPE
+    SYNTAX       T11FcRoutingControl
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest 8-bit value contained within a
+           Routing Control (R_CTL) field of a frame that will match
+           with this Traffic Selector."
+    ::= { t11FcSpSaTSelNegInEntry 7 }
+
+t11FcSpSaTSelNegInEndRCtl OBJECT-TYPE
+    SYNTAX       T11FcRoutingControl
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest 8-bit value contained within a
+           Routing Control (R_CTL) field of a frame that will match
+           with this Traffic Selector."
+    ::= { t11FcSpSaTSelNegInEntry 8 }
+
+t11FcSpSaTSelNegInStartType OBJECT-TYPE
+    SYNTAX       T11FcSpType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest of a range of possible 'type'
+           values of frames that will match with this Traffic
+           Selector."
+    ::= { t11FcSpSaTSelNegInEntry 9 }
+
+t11FcSpSaTSelNegInEndType OBJECT-TYPE
+    SYNTAX       T11FcSpType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest of a range of possible 'type'
+           values of frames that will match with this Traffic
+           Selector."
+    ::= { t11FcSpSaTSelNegInEntry 10 }
+
+t11FcSpSaTSelNegInUnpMtchDrops OBJECT-TYPE
+    SYNTAX       Counter64
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of times that a received frame was dropped
+           because it matched with this Traffic Selector but the
+           frame was not protected as negotiated for the Security
+           Association identified by t11FcSpSaTSelNegInInboundSpi.
+
+           This counter has no discontinuities other than those
+           that all Counter64's have when sysUpTime=0."
+    ::= { t11FcSpSaTSelNegInEntry 11 }
+
+--
+--  Negotiated Egress Traffic Selectors
+--
+
+t11FcSpSaTSelNegOutTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpSaTSelNegOutEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table containing information about egress Traffic
+           Selectors that are in use on active Security
+           Associations."
+    REFERENCE
+           "- ANSI INCITS 426-2007, T11/Project 1570-D,
+              Fibre Channel - Security Protocols (FC-SP),
+              February 2007, sections 4.6, 4.7, and 6.4.5.
+            - Use of IKEv2 in FC-SP, RFC 4595,
+              July 2006, section 4.4."
+    ::= { t11FcSpSaActive 3 }
+
+t11FcSpSaTSelNegOutEntry OBJECT-TYPE
+    SYNTAX       T11FcSpSaTSelNegOutEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry contains information about one egress Traffic
+           Selector that is in use on an active Security Association
+           on an interface (identified by t11FcSpSaPairIfIndex) to
+           a particular Fabric (identified by t11FcSpSaIfFabricIndex),
+           managed as part of the Fibre Channel management instance
+           identified by fcmInstanceIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpSaPairIfIndex,
+             t11FcSpSaIfFabricIndex, t11FcSpSaTSelNegOutPrecedence }
+    ::= { t11FcSpSaTSelNegOutTable 1 }
+
+T11FcSpSaTSelNegOutEntry ::= SEQUENCE {
+    t11FcSpSaTSelNegOutPrecedence     T11FcSpPrecedence,
+    t11FcSpSaTSelNegOutInboundSpi     T11FcSpiIndex,
+    t11FcSpSaTSelNegOutStartSrcAddr   FcAddressIdOrZero,
+    t11FcSpSaTSelNegOutEndSrcAddr     FcAddressIdOrZero,
+    t11FcSpSaTSelNegOutStartDstAddr   FcAddressIdOrZero,
+    t11FcSpSaTSelNegOutEndDstAddr     FcAddressIdOrZero,
+    t11FcSpSaTSelNegOutStartRCtl      T11FcRoutingControl,
+    t11FcSpSaTSelNegOutEndRCtl        T11FcRoutingControl,
+    t11FcSpSaTSelNegOutStartType      T11FcSpType,
+    t11FcSpSaTSelNegOutEndType        T11FcSpType
+}
+
+t11FcSpSaTSelNegOutPrecedence OBJECT-TYPE
+    SYNTAX       T11FcSpPrecedence
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "The precedence of this Traffic Selector.  If and when a
+           frame is compared against multiple Traffic Selectors, and
+           multiple of them have a match with the frame, the security
+           action to be taken for the frame is that specified for the
+           matching Traffic Selector having the numerically smallest
+           precedence value."
+    ::= { t11FcSpSaTSelNegOutEntry 1 }
+
+t11FcSpSaTSelNegOutInboundSpi OBJECT-TYPE
+    SYNTAX       T11FcSpiIndex
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The SPI of the ingress SA of the SA pair for which this
+           Traffic Selector is in use on the egress SA.
+
+           This value can be used to find the SA pair's row in the
+           t11FcSpSaPairTable."
+    ::= { t11FcSpSaTSelNegOutEntry 2 }
+
+t11FcSpSaTSelNegOutStartSrcAddr OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest 24-bit value of a source address
+           (S_ID) of a frame that will match with this Traffic
+           Selector."
+    ::= { t11FcSpSaTSelNegOutEntry 3 }
+
+t11FcSpSaTSelNegOutEndSrcAddr  OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest 24-bit value of a source address
+           (S_ID) of a frame that will match with this Traffic
+           Selector."
+    ::= { t11FcSpSaTSelNegOutEntry 4 }
+
+t11FcSpSaTSelNegOutStartDstAddr OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest 24-bit value of a destination
+           address (D_ID) of a frame that will match with this
+           Traffic Selector."
+    ::= { t11FcSpSaTSelNegOutEntry 5 }
+
+t11FcSpSaTSelNegOutEndDstAddr OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero (SIZE (3))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest 24-bit value of a destination
+           address (D_ID) of a frame that will match with this
+           Traffic Selector."
+    ::= { t11FcSpSaTSelNegOutEntry 6 }
+
+t11FcSpSaTSelNegOutStartRCtl OBJECT-TYPE
+    SYNTAX       T11FcRoutingControl
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest 8-bit value contained within a
+           Routing Control (R_CTL) field of a frame that will match
+           with this Traffic Selector."
+    ::= { t11FcSpSaTSelNegOutEntry 7 }
+
+t11FcSpSaTSelNegOutEndRCtl OBJECT-TYPE
+    SYNTAX       T11FcRoutingControl
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest 8-bit value contained within a
+           Routing Control (R_CTL) field of a frame that will match
+           with this Traffic Selector."
+    ::= { t11FcSpSaTSelNegOutEntry 8 }
+
+t11FcSpSaTSelNegOutStartType OBJECT-TYPE
+    SYNTAX       T11FcSpType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically smallest of a range of possible 'type'
+           values of frames that will match with this Traffic
+           Selector."
+    ::= { t11FcSpSaTSelNegOutEntry 9 }
+
+t11FcSpSaTSelNegOutEndType OBJECT-TYPE
+    SYNTAX       T11FcSpType
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The numerically largest of a range of possible 'type'
+           values of frames that will match with this Traffic
+           Selector."
+    ::= { t11FcSpSaTSelNegOutEntry 10 }
+
+--
+--  Traffic Selectors index-ed by SPI
+--
+
+t11FcSpSaTSelSpiTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpSaTSelSpiEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table identifying the Traffic Selectors in use on
+           particular Security Associations, INDEX-ed by their
+           (ingress) SPI values."
+    ::= { t11FcSpSaActive 4 }
+
+t11FcSpSaTSelSpiEntry OBJECT-TYPE
+    SYNTAX       T11FcSpSaTSelSpiEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry identifies one Traffic Selector in use on an SA
+           pair on the interface (identified by t11FcSpSaPairIfIndex)
+           to a particular Fabric (identified by
+           t11FcSpSaIfFabricIndex), and managed as part of the Fibre
+           Channel management instance identified by fcmInstanceIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpSaPairIfIndex,
+             t11FcSpSaIfFabricIndex,
+             t11FcSpSaTSelSpiInboundSpi, t11FcSpSaTSelSpiTrafSelIndex }
+    ::= { t11FcSpSaTSelSpiTable 1 }
+
+T11FcSpSaTSelSpiEntry ::= SEQUENCE {
+    t11FcSpSaTSelSpiInboundSpi     T11FcSpiIndex,
+    t11FcSpSaTSelSpiTrafSelIndex   Unsigned32,
+    t11FcSpSaTSelSpiDirection      T11FcSaDirection,
+    t11FcSpSaTSelSpiTrafSelPtr     Unsigned32
+}
+
+t11FcSpSaTSelSpiInboundSpi OBJECT-TYPE
+    SYNTAX       T11FcSpiIndex
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An SPI value that identifies the ingress Security
+           Association of a particular SA pair."
+    ::= { t11FcSpSaTSelSpiEntry 1 }
+
+t11FcSpSaTSelSpiTrafSelIndex OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "An index value that distinguishes between the
+           (potentially multiple) Traffic Selectors in use on
+           this Security Association pair."
+    ::= { t11FcSpSaTSelSpiEntry 2 }
+
+t11FcSpSaTSelSpiDirection OBJECT-TYPE
+    SYNTAX       T11FcSaDirection
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "This object indicates whether this Traffic Selector
+           is being used for ingress or for egress traffic."
+    ::= { t11FcSpSaTSelSpiEntry 3 }
+
+t11FcSpSaTSelSpiTrafSelPtr OBJECT-TYPE
+    SYNTAX       Unsigned32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "This object contains a pointer into another table that
+           can be used to obtain more information about this Traffic
+           Selector.
+
+           If the corresponding instance of t11FcSpSaTSelSpiDirection
+           has the value 'egress', then this object contains the
+           value of t11FcSpSaTSelNegOutPrecedence in the row of
+           t11FcSpSaTSelNegOutTable, which contains more information.
+
+           If the corresponding instance of t11FcSpSaTSelSpiDirection
+           has the value 'ingress', then this object contains the
+           value of t11FcSpSaTSelNegInIndex that identifies the row
+           in t11FcSpSaTSelNegInTable containing more information."
+    ::= { t11FcSpSaTSelSpiEntry 4 }
+
+--
+-- Notification information & control
+--
+
+t11FcSpSaControlTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF T11FcSpSaControlEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "A table of control and other information concerning
+           the generation of notifications for events related
+           to FC-SP Security Associations."
+    ::= { t11FcSpSaControl 1 }
+
+t11FcSpSaControlEntry OBJECT-TYPE
+    SYNTAX       T11FcSpSaControlEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION
+           "Each entry identifies information for the one or more
+
+           interfaces (identified by t11FcSpSaIfIndex) to a
+           particular Fabric (identified by t11FcSpSaIfFabricIndex),
+           and managed as part of the Fibre Channel management
+           instance identified by fcmInstanceIndex.
+
+           The StorageType of a row in this table is specified by
+           the instance of t11FcSpSaIfStorageType that is INDEX-ed
+           by the same values of fcmInstanceIndex, t11FcSpSaIfIndex,
+           and t11FcSpSaIfFabricIndex."
+    INDEX  { fcmInstanceIndex, t11FcSpSaIfIndex,
+             t11FcSpSaIfFabricIndex }
+    ::= { t11FcSpSaControlTable 1 }
+
+T11FcSpSaControlEntry ::= SEQUENCE {
+    t11FcSpSaControlAuthFailEnable  TruthValue,
+    t11FcSpSaControlInboundSpi      T11FcSpiIndex,
+    t11FcSpSaControlSource          FcAddressIdOrZero,
+    t11FcSpSaControlDestination     FcAddressIdOrZero,
+    t11FcSpSaControlFrame           OCTET STRING,
+    t11FcSpSaControlElapsed         TimeTicks,
+    t11FcSpSaControlSuppressed      Gauge32,
+    t11FcSpSaControlWindow          Unsigned32,
+    t11FcSpSaControlMaxNotifs       Unsigned32,
+    t11FcSpSaControlLifeExcdEnable  TruthValue,
+    t11FcSpSaControlLifeExcdSpi     T11FcSpiIndex,
+    t11FcSpSaControlLifeExcdDir     T11FcSaDirection,
+    t11FcSpSaControlLifeExcdTime    TimeStamp
+}
+
+t11FcSpSaControlAuthFailEnable OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "This object specifies whether a t11FcSpSaNotifyAuthFailure
+           notification should be generated for the first occurrence
+           of an Authentication failure within a time window for this
+           Fabric."
+    ::= { t11FcSpSaControlEntry 1 }
+
+t11FcSpSaControlInboundSpi OBJECT-TYPE
+    SYNTAX       T11FcSpiIndex
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The SPI value of the ingress Security Association on
+           which was received the last frame for which a
+           t11FcSpSaNotifyAuthFailure was generated.
+
+           If no t11FcSpSaNotifyAuthFailure notifications have
+           been generated, the value of this object is zero."
+    ::= { t11FcSpSaControlEntry 2 }
+
+t11FcSpSaControlSource OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The S_ID contained in the last frame for which a
+           t11FcSpSaNotifyAuthFailure was generated.
+
+           If no t11FcSpSaNotifyAuthFailure notifications have
+           been generated, the value of this object is the
+           zero-length string."
+    ::= { t11FcSpSaControlEntry 3 }
+
+t11FcSpSaControlDestination OBJECT-TYPE
+    SYNTAX       FcAddressIdOrZero
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The D_ID contained in the last frame for which a
+           t11FcSpSaNotifyAuthFailure was generated.
+
+           If no t11FcSpSaNotifyAuthFailure notifications have
+           been generated, the value of this object is the
+           zero-length string."
+    ::= { t11FcSpSaControlEntry 4 }
+
+t11FcSpSaControlFrame OBJECT-TYPE
+    SYNTAX       OCTET STRING (SIZE (0..256))
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The binary content of the last frame for which a
+           t11FcSpSaNotifyAuthFailure was generated.  If more than
+           256 bytes of the frame are available, then this object
+           contains the first 256 bytes.  If less than 256 bytes of
+           the frame are available, then this object contains the
+           first N bytes, where N is greater or equal to zero.
+
+           If no t11FcSpSaNotifyAuthFailure notifications have
+           been generated, the value of this object is the
+           zero-length string."
+    ::= { t11FcSpSaControlEntry 5 }
+
+t11FcSpSaControlElapsed OBJECT-TYPE
+    SYNTAX       TimeTicks
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The elapsed time since the last generation of a
+           t11FcSpSaNotifyAuthFailure notification on the same
+           Fabric, or the value of sysUpTime if no
+           t11FcSpSaNotifyAuthFailure notifications have been
+           generated since the last restart."
+    ::= { t11FcSpSaControlEntry 6 }
+
+t11FcSpSaControlSuppressed OBJECT-TYPE
+    SYNTAX       Gauge32
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The number of occurrences of an Authentication failure
+           on a Fabric that were suppressed because they occurred
+           on the same Fabric within the same time window as a
+           previous Authentication failure for which a
+           t11FcSpSaNotifyAuthFailure notification was generated.
+
+           The value of this object is reset to zero on a restart
+           of the network management subsystem, and whenever a
+           t11FcSpSaNotifyAuthFailure notification is generated.
+           In the event that the value of this object reaches its
+           maximum value, it remains at that value until it is
+           reset on the generation of the next
+           t11FcSpSaNotifyAuthFailure notification."
+    ::= { t11FcSpSaControlEntry 7 }
+
+t11FcSpSaControlWindow OBJECT-TYPE
+    SYNTAX       Unsigned32 (1..4294967295)
+    UNITS        "seconds"
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "The length of a time window that begins when a
+           t11FcSpSaNotifyAuthFailure notification is generated for
+           any Security Association on a particular Fabric.  For the
+           duration of the time window, further Authentication failures
+           occurring for the same Security Association are counted but
+           no t11FcSpSaNotifyAuthFailure notification is generated.
+
+           When this object is modified before the end of a time
+           window, that time window is immediately terminated, i.e.,
+           the next Authentication failure on the relevant Fabric
+           after the modification will cause a new time window to
+
+           begin with the new length."
+    DEFVAL   { 300 }
+    ::= { t11FcSpSaControlEntry 8 }
+
+t11FcSpSaControlMaxNotifs OBJECT-TYPE
+    SYNTAX       Unsigned32
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "The maximum number of t11FcSpSaNotifyAuthFailure
+           notifications to be generated per Fabric within a
+           t11FcSpSaControlWindow time window.  Subsequent
+           Authentication failures occurring on the same Fabric
+           in the same time window are counted, but no
+           t11FcSpSaNotifyAuthFailure notification is generated.
+
+           When this object is modified before the end of a time
+           window, that time window is immediately terminated, i.e.,
+           the next Authentication failure on the relevant Fabric
+           after the modification will cause a new time window to
+           begin with the new length."
+    DEFVAL   { 16 }
+    ::= { t11FcSpSaControlEntry 9 }
+
+t11FcSpSaControlLifeExcdEnable OBJECT-TYPE
+    SYNTAX       TruthValue
+    MAX-ACCESS   read-write
+    STATUS       current
+    DESCRIPTION
+           "This object specifies whether t11FcSpSaNotifyLifeExceeded
+           notifications should be generated for this Fabric."
+    DEFVAL   { true }
+    ::= { t11FcSpSaControlEntry 10 }
+
+t11FcSpSaControlLifeExcdSpi OBJECT-TYPE
+    SYNTAX       T11FcSpiIndex
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The SPI of the SA that was most recently terminated
+           because its lifetime (in seconds or in passed bytes)
+           was exceeded.  Such terminations include those due to
+           a failed attempt to renew an SA after its lifetime was
+           exceeded."
+    ::= { t11FcSpSaControlEntry 11 }
+
+t11FcSpSaControlLifeExcdDir OBJECT-TYPE
+    SYNTAX       T11FcSaDirection
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The direction of frame transmission on the SA that was
+           most recently terminated because its lifetime (in seconds
+           or in passed bytes) was exceeded."
+    ::= { t11FcSpSaControlEntry 12 }
+
+t11FcSpSaControlLifeExcdTime OBJECT-TYPE
+    SYNTAX       TimeStamp
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION
+           "The time of the most recent termination of an SA
+           due to its lifetime (in seconds or in passed bytes)
+           being exceeded.  Such terminations include those
+           due to a failed attempt to renew an SA after its
+           lifetime was exceeded."
+    ::= { t11FcSpSaControlEntry 13 }
+
+--
+-- Notification definitions
+--
+
+t11FcSpSaNotifyAuthFailure NOTIFICATION-TYPE
+    OBJECTS      { t11FcSpSaControlInboundSpi,
+                   t11FcSpSaControlSource,
+                   t11FcSpSaControlDestination,
+                   t11FcSpSaControlFrame,
+                   t11FcSpSaControlElapsed,
+                   t11FcSpSaControlSuppressed }
+    STATUS       current
+    DESCRIPTION
+           "When this notification is generated, it indicates the
+           occurrence of an Authentication failure for a received
+           FC-2 or CT_IU frame.  The t11FcSpSaControlInboundSpi,
+           t11FcSpSaControlSource, and t11FcSpSaControlDestination
+           objects in the varbindlist are the frame's SPI, source and
+           destination addresses, respectively.  t11FcSpSaControlFrame
+           provides the (beginning of the) frame's content if such is
+           available.
+
+           This notification is generated only for the first
+           occurrence of an Authentication failure on a Fabric within
+           a time window.  Subsequent occurrences of an Authentication
+           Failure on the same Fabric within the same time window
+           are counted but suppressed.
+
+           The value of t11FcSpSaControlElapsed contains (a lower bound
+           on) the elapsed time since the last generation of this
+           notification for the same Fabric.  The value of
+           t11FcSpSaControlSuppressed contains the number of
+           generations which were suppressed in the time window after
+           that last generation, or zero if unknown."
+    ::= { t11FcSpSaMIBNotifications 1 }
+
+t11FcSpSaNotifyLifeExceeded NOTIFICATION-TYPE
+    OBJECTS      { t11FcSpSaControlLifeExcdSpi,
+                   t11FcSpSaControlLifeExcdDir }
+    STATUS       current
+    DESCRIPTION
+           "This notification is generated when the lifetime (in
+           seconds or in passed bytes) of an SA is exceeded, and the
+           SA is either immediately terminated or is terminated
+           because an attempt to renew the SA fails.  The values of
+           t11FcSpSaControlLifeExcdSpi and t11FcSpSaControlLifeExcdDir
+           contain the SPI and direction of the terminated SA."
+    ::= { t11FcSpSaMIBNotifications 2 }
+
+--
+-- Conformance
+--
+
+t11FcSpSaMIBCompliances
+                    OBJECT IDENTIFIER ::= { t11FcSpSaMIBConformance 1 }
+t11FcSpSaMIBGroups  OBJECT IDENTIFIER ::= { t11FcSpSaMIBConformance 2 }
+
+t11FcSpSaMIBCompliance MODULE-COMPLIANCE
+    STATUS       current
+    DESCRIPTION
+           "The compliance statement for entities that implement
+           FC-SP Security Associations."
+
+    MODULE  -- this module
+        MANDATORY-GROUPS
+            { t11FcSpSaCapabilityGroup,
+              t11FcSpSaParamStatusGroup,
+              t11FcSpSaSummaryCountGroup,
+              t11FcSpSaProposalGroup,
+              t11FcSpSaDropBypassGroup,
+              t11FcSpSaActiveGroup,
+              t11FcSpSaNotifInfoGroup,
+              t11FcSpSaNotificationGroup
+            }
+
+       -- The following is an auxiliary (listed in an INDEX clause)
+
+       -- object for which the SMIv2 does not allow an OBJECT clause
+       -- to be specified, but for which this MIB has the following
+       -- compliance requirement:
+       --      OBJECT        t11FcSpSaIfIndex
+       --      DESCRIPTION
+       --          Compliance requires support for either one of:
+       --          - individual interfaces using ifIndex values, or
+       --          - the use of the zero value.
+
+-- Write access is not required for any objects in this MIB module:
+
+        OBJECT       t11FcSpSaIfStorageType
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelPropStorageType
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTransStorageType
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaIfReplayPrevention
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaIfReplayWindowSize
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaIfTerminateAllSas
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaPropSecurityProt
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaPropTSelListIndex
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaPropTransListIndex
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaPropAcceptAlgorithm
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaPropRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelPropDirection
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelPropStartSrcAddr
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelPropEndSrcAddr
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelPropStartDstAddr
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelPropEndDstAddr
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelPropStartRCtl
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelPropEndRCtl
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelPropStartType
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelPropEndType
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelPropRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTransSecurityProt
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTransEncryptAlg
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTransEncryptKeyLen
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTransIntegrityAlg
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTransRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelDrByAction
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelDrByStartSrcAddr
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelDrByEndSrcAddr
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelDrByStartDstAddr
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelDrByEndDstAddr
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelDrByStartRCtl
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelDrByEndRCtl
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelDrByStartType
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelDrByEndType
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaTSelDrByRowStatus
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaPairTerminate
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaControlAuthFailEnable
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaControlWindow
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaControlMaxNotifs
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+
+        OBJECT       t11FcSpSaControlLifeExcdEnable
+        MIN-ACCESS   read-only
+        DESCRIPTION  "Write access is not required."
+    ::= { t11FcSpSaMIBCompliances 1 }
+
+-- Units of Conformance
+
+t11FcSpSaCapabilityGroup OBJECT-GROUP
+    OBJECTS  { t11FcSpSaIfEspHeaderCapab,
+               t11FcSpSaIfCTAuthCapab,
+               t11FcSpSaIfIKEv2Capab,
+               t11FcSpSaIfIkev2AuthCapab
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of objects containing information
+           related to capabilities of FC-SP entities."
+    ::= { t11FcSpSaMIBGroups 1 }
+
+t11FcSpSaParamStatusGroup OBJECT-GROUP
+
+    OBJECTS  { t11FcSpSaIfStorageType,
+               t11FcSpSaIfReplayPrevention,
+               t11FcSpSaIfReplayWindowSize,
+               t11FcSpSaIfDeadPeerDetections,
+               t11FcSpSaIfTerminateAllSas
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of objects containing parameters
+           and status information related to FC-SP entities."
+    ::= { t11FcSpSaMIBGroups 2 }
+
+t11FcSpSaSummaryCountGroup OBJECT-GROUP
+    OBJECTS  { t11FcSpSaIfOutDrops,
+               t11FcSpSaIfOutBypasses,
+               t11FcSpSaIfOutProcesses,
+               t11FcSpSaIfOutUnMatcheds,
+               t11FcSpSaIfInUnprotUnmtchDrops,
+               t11FcSpSaIfInDetReplays,
+               t11FcSpSaIfInUnprotMtchDrops,
+               t11FcSpSaIfInBadXforms,
+               t11FcSpSaIfInGoodXforms,
+               t11FcSpSaIfInProtUnmtchs
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of objects containing summary
+           counters for FC-SP Security Associations."
+    ::= { t11FcSpSaMIBGroups 3 }
+
+t11FcSpSaProposalGroup OBJECT-GROUP
+    OBJECTS  { t11FcSpSaPropSecurityProt,
+               t11FcSpSaPropTSelListIndex,
+               t11FcSpSaPropTransListIndex,
+               t11FcSpSaPropAcceptAlgorithm,
+               t11FcSpSaPropOutMatchSucceeds,
+               t11FcSpSaPropRowStatus,
+               t11FcSpSaTSelPropDirection,
+               t11FcSpSaTSelPropStartSrcAddr,
+               t11FcSpSaTSelPropEndSrcAddr,
+               t11FcSpSaTSelPropStartDstAddr,
+               t11FcSpSaTSelPropEndDstAddr,
+               t11FcSpSaTSelPropStartRCtl,
+               t11FcSpSaTSelPropEndRCtl,
+               t11FcSpSaTSelPropStartType,
+               t11FcSpSaTSelPropEndType,
+               t11FcSpSaTSelPropStorageType,
+               t11FcSpSaTSelPropRowStatus
+
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of objects containing information
+           related to making and accepting proposals for
+           FC-SP Security Associations."
+    ::= { t11FcSpSaMIBGroups 4 }
+
+t11FcSpSaDropBypassGroup OBJECT-GROUP
+    OBJECTS  { t11FcSpSaTSelDrByAction,
+               t11FcSpSaTSelDrByStartSrcAddr,
+               t11FcSpSaTSelDrByEndSrcAddr,
+               t11FcSpSaTSelDrByStartDstAddr,
+               t11FcSpSaTSelDrByEndDstAddr,
+               t11FcSpSaTSelDrByStartRCtl,
+               t11FcSpSaTSelDrByEndRCtl,
+               t11FcSpSaTSelDrByStartType,
+               t11FcSpSaTSelDrByEndType,
+               t11FcSpSaTSelDrByMatches,
+               t11FcSpSaTSelDrByRowStatus
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of objects containing information
+           about Traffic Selectors of traffic to drop or bypass
+           for FC-SP Security."
+    ::= { t11FcSpSaMIBGroups 5 }
+
+t11FcSpSaActiveGroup OBJECT-GROUP
+    OBJECTS  { t11FcSpSaPairSecurityProt,
+               t11FcSpSaPairTransListIndex,
+               t11FcSpSaPairTransIndex,
+               t11FcSpSaPairLifetimeLeft,
+               t11FcSpSaPairLifetimeLeftUnits,
+               t11FcSpSaPairTerminate,
+               t11FcSpSaPairInProtUnMatchs,
+               t11FcSpSaPairInDetReplays,
+               t11FcSpSaPairInBadXforms,
+               t11FcSpSaPairInGoodXforms,
+               t11FcSpSaTransSecurityProt,
+               t11FcSpSaTransEncryptAlg,
+               t11FcSpSaTransEncryptKeyLen,
+               t11FcSpSaTransIntegrityAlg,
+               t11FcSpSaTransStorageType,
+               t11FcSpSaTransRowStatus,
+               t11FcSpSaTSelNegInInboundSpi,
+               t11FcSpSaTSelNegInStartSrcAddr,
+               t11FcSpSaTSelNegInEndSrcAddr,
+               t11FcSpSaTSelNegInStartDstAddr,
+               t11FcSpSaTSelNegInEndDstAddr,
+               t11FcSpSaTSelNegInStartRCtl,
+               t11FcSpSaTSelNegInEndRCtl,
+               t11FcSpSaTSelNegInStartType,
+               t11FcSpSaTSelNegInEndType,
+               t11FcSpSaTSelNegInUnpMtchDrops,
+               t11FcSpSaTSelNegOutInboundSpi,
+               t11FcSpSaTSelNegOutStartSrcAddr,
+               t11FcSpSaTSelNegOutEndSrcAddr,
+               t11FcSpSaTSelNegOutStartDstAddr,
+               t11FcSpSaTSelNegOutEndDstAddr,
+               t11FcSpSaTSelNegOutStartRCtl,
+               t11FcSpSaTSelNegOutEndRCtl,
+               t11FcSpSaTSelNegOutStartType,
+               t11FcSpSaTSelNegOutEndType,
+               t11FcSpSaTSelSpiDirection,
+               t11FcSpSaTSelSpiTrafSelPtr
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of objects containing information related
+           to currently active FC-SP Security Associations."
+    ::= { t11FcSpSaMIBGroups 6 }
+
+t11FcSpSaNotifInfoGroup OBJECT-GROUP
+    OBJECTS  { t11FcSpSaControlAuthFailEnable,
+               t11FcSpSaControlInboundSpi,
+               t11FcSpSaControlSource,
+               t11FcSpSaControlDestination,
+               t11FcSpSaControlFrame,
+               t11FcSpSaControlElapsed,
+               t11FcSpSaControlSuppressed,
+               t11FcSpSaControlWindow,
+               t11FcSpSaControlMaxNotifs,
+               t11FcSpSaControlLifeExcdEnable,
+               t11FcSpSaControlLifeExcdSpi,
+               t11FcSpSaControlLifeExcdDir,
+               t11FcSpSaControlLifeExcdTime
+             }
+    STATUS   current
+    DESCRIPTION
+           "A collection of objects containing information
+           related to notifications of events concerning
+           FC-SP Security Associations."
+    ::= { t11FcSpSaMIBGroups 7 }
+
+t11FcSpSaNotificationGroup NOTIFICATION-GROUP
+    NOTIFICATIONS  { t11FcSpSaNotifyAuthFailure,
+                     t11FcSpSaNotifyLifeExceeded
+                   }
+    STATUS         current
+    DESCRIPTION
+           "A collection of notifications of events concerning
+           FC-SP Security Associations."
+    ::= { t11FcSpSaMIBGroups 8 }
+
+END
