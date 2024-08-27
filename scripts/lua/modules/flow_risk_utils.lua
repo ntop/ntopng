@@ -31,8 +31,6 @@ function flow_risk_utils.get_remediation_documentation_link(risk_id, source)
    if (source == "ntopng") then
       url = string.format("https://www.ntop.org/guides/ntopng/remediations/ntopng_flow_risks.html#risk-%.3u", risk_id)
    else
-      tprint(risk_id)
-      
       url = string.format("https://www.ntop.org/guides/ntopng/remediations/ndpi_flow_risks.html#risk-%.3u", risk_id)
    end
 
