@@ -195,10 +195,11 @@
         with incomplete TWH */
 #define MAX_FLOW_IDLE 60        /* sec */
 #define MAX_LOCAL_HOST_IDLE 300 /* sec */
+#define MAX_MAC_IDLE 300 /* sec */
 #define MAX_REMOTE_HOST_IDLE 60 /* sec */
 #define MAX_HASH_ENTRY_IDLE                                               \
   60 /* sec - Generic idle time for hash entries different from hosts and \
-        flows (i.e., ASes and Macs) */
+        flows (i.e., ASes and Countries) */
 #define MAX_PROBE_IDLE_IDLE 1800 /* 30 min (Used in ZMQParserInterface.cpp) */
 #define MAX_RRD_QUEUE_LEN 200000 /* timeseries in the queue */
 #define MIN_NUM_IDLE_ENTRIES_IF 5000

@@ -162,6 +162,10 @@ class Mac : public GenericHashEntry {
     stats->incSentStats(t, num_pkts, num_bytes), last_seen = t;
   }
 
+  bool is_hash_entry_state_idle_transition_ready() {
+    return ((getUses() == 0) && is_active_entry_now_idle(MAX_MAC_IDLE));
+  }
+
   inline void incnDPIStats(time_t when, ndpi_protocol_category_t ndpi_category,
                            u_int64_t sent_packets, u_int64_t sent_bytes,
                            u_int64_t sent_goodput_bytes, u_int64_t rcvd_packets,
