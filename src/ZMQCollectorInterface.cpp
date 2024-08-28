@@ -35,7 +35,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
   const char **topics = Utils::getMessagingTopics();
 
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  
+
   num_subscribers = 0;
   server_secret_key[0] = '\0';
   server_public_key[0] = '\0';
@@ -151,7 +151,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
 
 ZMQCollectorInterface::~ZMQCollectorInterface() {
   map<u_int32_t, zmq_probe *>::iterator p;
-  
+
 #ifdef INTERFACE_PROFILING
   u_int64_t n = recvStats.num_flows;
 
@@ -177,10 +177,10 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
 
   for (p = active_probes.begin(); p != active_probes.end(); p++) {
     zmq_probe *probe = p->second;
-    
+
     free(probe);
   }
-  
+
   zmq_ctx_destroy(context);
 }
 
@@ -244,7 +244,7 @@ void ZMQCollectorInterface::checkIdleProbes(time_t now) {
       free(probe);
     } else
       p++;
-  } 
+  }
 }
 
 /* **************************************************** */
@@ -444,10 +444,9 @@ void ZMQCollectorInterface::collect_flows() {
         size = zmq_recv(items[subscriber_id].socket, payload, payload_len, 0);
 
         if (size > 0 && (u_int32_t)size > payload_len)
-          ntop->getTrace()->traceEvent(
-              TRACE_WARNING,
-              "ZMQ message truncated? [size: %u][payload_len: %u]", size,
-              payload_len);
+          ntop->getTrace()->traceEvent(TRACE_WARNING,
+				       "ZMQ message truncated? [size: %u][payload_len: %u]", size,
+				       payload_len);
         else if (size > 0) {
           char *uncompressed = NULL;
           u_int uncompressed_len;
@@ -469,10 +468,11 @@ void ZMQCollectorInterface::collect_flows() {
 
             uLen = uncompressed_len = max(5 * size, MAX_ZMQ_FLOW_BUF);
             uncompressed = (char *)malloc(uncompressed_len + 1);
-            if ((err = uncompress((Bytef *)uncompressed, &uLen,
+
+	    if ((err = uncompress((Bytef *)uncompressed, &uLen,
                                   (Bytef *)&payload[1], size - 1)) != Z_OK) {
-              ntop->getTrace()->traceEvent(
-                  TRACE_ERROR, "Uncompress error [%d][len: %u]", err, size);
+	      ntop->getTrace()->traceEvent(TRACE_ERROR, "[topic: %s] Uncompress error %d [compressed len: %u]",
+					   h->url, err, size);
               continue;
             }
 
@@ -523,7 +523,7 @@ void ZMQCollectorInterface::collect_flows() {
             probe->last_msg_id = current_msg_id;
           }
 
-          /* Process the message */ 
+          /* Process the message */
           switch (h->url[0]) {
             case 'e': /* event */
               recvStats.num_events++;
@@ -537,7 +537,7 @@ void ZMQCollectorInterface::collect_flows() {
                     parseTLVFlow(uncompressed, uncompressed_len, subscriber_id,
                                  msg_id, this);
               else {
-                uncompressed[uncompressed_len] = '\0';		
+                uncompressed[uncompressed_len] = '\0';
                 recvStats.num_flows += parseJSONFlow(uncompressed, uncompressed_len, subscriber_id, msg_id);
               }
               break;
@@ -645,7 +645,7 @@ void ZMQCollectorInterface::lua(lua_State *vm, bool fullStats) {
   lua_settable(vm, -3);
 
   /* ****************** */
-  
+
   lua_newtable(vm);
   lua_push_uint64_table_entry(vm, "flows", recvStats.num_flows - recvStatsCheckpoint.num_flows);
   lua_push_uint64_table_entry(vm, "dropped_flows",

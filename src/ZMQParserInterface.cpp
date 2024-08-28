@@ -331,7 +331,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
   if (polling_start_time == 0) polling_start_time = (u_int32_t)time(NULL);
 
   // #define TRACE_EXPORTERS
-  
+
 #ifdef TRACE_EXPORTERS
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[msg_id: %u] %s", msg_id, payload);
 #endif
@@ -480,7 +480,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
       if (json_object_object_get_ex(w, "nf_ipfix_flows", &z))
         zrs.flow_collection.nf_ipfix_flows =
             (u_int64_t)json_object_get_int64(z);
-            
+
       if (json_object_object_get_ex(w, "collection_port", &z))
         zrs.flow_collection.collection_port =
             (u_int64_t)json_object_get_int64(z);
@@ -508,7 +508,7 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
 
 	  if (json_object_object_get_ex(val, "num_drops", &x))
             exp_stats.num_drops = (u_int32_t)json_object_get_int64(x);
-	  
+
 	  if (json_object_object_get_ex(val, "unique_source_id", &x))
             exp_stats.unique_source_id = (u_int32_t)json_object_get_int64(x);
 
@@ -575,10 +575,10 @@ u_int8_t ZMQParserInterface::parseEvent(const char *payload, int payload_size,
           TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
           json_tokener_error_desc(jerr), payload_size, payload);
     }
-    
-    once = true;    
+
+    once = true;
     if (o) json_object_put(o);
-    
+
     return -1;
   }
 
@@ -1477,7 +1477,7 @@ bool ZMQParserInterface::matchPENNtopField(ParsedFlow *const flow,
       ndpi_proto l7_proto;;
 
       memset(&l7_proto, 0, sizeof(l7_proto));
-      
+
       if (value->string) {
         if (!strchr(value->string, '.')) {
           /* Old behaviour, only the app protocol */
@@ -2746,13 +2746,11 @@ u_int8_t ZMQParserInterface::parseTemplate(const char *payload,
         if (!template_warning_sent) {
           std::set<std::string>::iterator it;
 
-          ntop->getTrace()->traceEvent(
-              TRACE_WARNING,
-              "Some mandatory fields are missing in the ZMQ template:");
+          ntop->getTrace()->traceEvent(TRACE_WARNING,
+				       "Some mandatory fields are missing in the ZMQ template:");
           template_warning_sent = true;
 
-          for (it = mandatory_fields.begin(); it != mandatory_fields.end();
-               ++it) {
+          for (it = mandatory_fields.begin(); it != mandatory_fields.end(); ++it) {
             ntop->getTrace()->traceEvent(TRACE_WARNING, "\t%s", (*it).c_str());
           }
         }
@@ -3248,7 +3246,7 @@ void ZMQParserInterface::probeLuaStats(lua_State *vm) {
 
       if(zrs->num_flow_exports < zmq_remote_initial_exported_flows)
 	zmq_remote_initial_exported_flows = zrs->num_flow_exports; /* nProbe has been reset */
-      
+
       lua_push_uint64_table_entry(vm, "zmq.num_flow_exports",
           zrs->num_flow_exports - zmq_remote_initial_exported_flows);
       lua_push_uint64_table_entry(vm, "zmq.num_exporters", zrs->num_exporters);
