@@ -523,8 +523,8 @@ local function dt_format_flow_risk(flow_risk_id)
 	    title = title,
 	    label = title,
 	    value = cur_risk_id,
-            help  = flow_risk_utils.get_documentation_link(cur_risk_id),
-            remediation = flow_risk_utils.get_remediation_documentation_link(cur_risk_id)
+       help  = flow_risk_utils.get_documentation_link(cur_risk_id, ""),
+       remediation = flow_risk_utils.get_remediation_documentation_link(cur_risk_id, "")
 	 }
 
 	 flow_risks[#flow_risks + 1] = flow_risk

@@ -383,61 +383,66 @@ end
 -- #################################
 
 function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, local_explorer)
-   local msg
-   local alert_risk
+    local msg
+    local alert_risk
 
-   if tonumber(alert.alert_id) then
-      alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
-   end
+    if tonumber(alert.alert_id) then
+        alert_risk = ntop.getFlowAlertRisk(tonumber(alert.alert_id))
 
-   if not alert_json then
-      alert_json = alert_utils.getAlertInfo(alert)
-   end
+        if (tonumber(alert_risk) == 0) then
+            alert_src = "ntopng"
+        else
+            alert_src = "nDPI"
+        end
+    end
 
-   local description = alertTypeDescription(alert.alert_id, alert_entities.flow.entity_id)
+    if not alert_json then
+        alert_json = alert_utils.getAlertInfo(alert)
+    end
 
-   if (type(description) == "string") then
-      -- localization string
-      msg = i18n(description, alert_json)
-   elseif (type(description) == "function") then
-      msg = description(ifid, alert, alert_json, local_explorer)
-   end
+    local description = alertTypeDescription(alert.alert_id, alert_entities.flow.entity_id)
 
-   if isEmptyString(msg) then
-      if alert_json and alert_json.alert_generation and alert_risk and alert_risk > 0 then
-	 -- Flow risks most of the times already have a default description, use this in case of emtpy descr
-	 msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
-      else
-	 -- Normal alerts
-	 msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]] , alert.entity_id)
-      end
-   end
+    if (type(description) == "string") then
+        -- localization string
+        msg = i18n(description, alert_json)
+    elseif (type(description) == "function") then
+        msg = description(ifid, alert, alert_json, local_explorer)
+    end
 
-   if not isEmptyString(alert["user_label"]) then
-      msg = string.format('%s <small><span class="text-muted">%s</span></small>', msg, alert["user_label"])
-   end
+    if isEmptyString(msg) then
+        if alert_json and alert_json.alert_generation and alert_risk and alert_risk > 0 then
+            -- Flow risks most of the times already have a default description, use this in case of emtpy descr
+            msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
+        else
+            -- Normal alerts
+            msg = alert_consts.alertTypeLabel(tonumber(alert.alert_id), true --[[ no_html --]] , alert.entity_id)
+        end
+    end
 
-   if add_score then
-      if tonumber(alert.alert_id) then
-	 local alert_score = ntop.getFlowAlertScore(tonumber(alert.alert_id))
-	 msg = alert_utils.format_score(msg, alert_score)
-      end
-   end
+    if not isEmptyString(alert["user_label"]) then
+        msg = string.format('%s <small><span class="text-muted">%s</span></small>', msg, alert["user_label"])
+    end
 
-   -- Add the link to the documentation
-   if alert_risk and alert_risk > 0 then
-      msg = string.format("%s %s %s",
-			  msg, flow_risk_utils.get_documentation_link(alert_risk),
-			  flow_risk_utils.get_remediation_documentation_link(alert.alert_id))
-      local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
+    if add_score then
+        if tonumber(alert.alert_id) then
+            local alert_score = ntop.getFlowAlertScore(tonumber(alert.alert_id))
+            msg = alert_utils.format_score(msg, alert_score)
+        end
+    end
 
-      -- Add check info_msg ~= alert.info to avoid duplicated in description msg
-      --[[if (not isEmptyString(info_msg) and info_msg ~= alert.info) then
+    -- Add the link to the documentation
+    if alert_risk and alert_risk > 0 then
+        msg = string.format("%s %s %s", msg, flow_risk_utils.get_documentation_link(alert_risk, alert_src),
+            flow_risk_utils.get_remediation_documentation_link(alert.alert_id, alert_src))
+        local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
+
+        -- Add check info_msg ~= alert.info to avoid duplicated in description msg
+        --[[if (not isEmptyString(info_msg) and info_msg ~= alert.info) then
          msg = string.format("%s", msg, info_msg)
 	 end--]]
-   end
+    end
 
-   return msg or ""
+    return msg or ""
 end
 
 -- #################################
@@ -800,18 +805,19 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
 
                     if alert_id ~= tonumber(predominant_alert) then -- Do not add the predominant alert to the list of additional alerts
                         local message = alert_consts.alertTypeLabel(alert_id, true, alert_entities.flow.entity_id)
-                        message = message .. " " .. alert_consts.addExtraInfo(alert_id, alert_entities.flow.entity_id, alert_json)
+                        message = message .. " " ..
+                                      alert_consts.addExtraInfo(alert_id, alert_entities.flow.entity_id, alert_json)
                         local alert_score = ntop.getFlowAlertScore(alert_id)
 
                         if add_score then
                             message = alert_utils.format_score(message, alert_score)
                         end
 
-                        local alert_risk = ntop.getFlowAlertRisk(alert_id)
-                        if alert_risk > 0 then
+                        local alert_risk = ntop.getFlowAlertRisk(tonumber(alert_id))
+                        if alert_risk > 0 then -- source is nDPI
                             if not no_html then
                                 message = string.format("%s %s", message,
-                                    flow_risk_utils.get_documentation_link(alert_risk))
+                                    flow_risk_utils.get_documentation_link(alert_risk, "nDPI"))
                             end
                             local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
                             if not isEmptyString(info_msg) then
@@ -829,7 +835,7 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
                                 msg = message,
                                 score = alert_score,
                                 alert_id = alert_id
-                            }                            
+                            }
                         else
                             additional_alerts[#additional_alerts + 1] = message
                         end
