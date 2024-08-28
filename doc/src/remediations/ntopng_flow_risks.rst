@@ -275,7 +275,7 @@ LONG LIVED FLOW
 ==============
 
 #. **Description:**
-The long lived flow alert is triggered when there are an excessive number of established TCP connections that remain open or idle idle for a prolonged period, potentially indicating a botnet or other persistent threat.
+The long lived flow alert is triggered when a flow is active for at least a configurable period of time (e.g. 5 minutes), potentially indicating a botnet or other persistent threat.
 
 #. **Implied Security Risk:**
 Detecting this alert may indicate the presence of compromised devices or systems engaged in data exfiltration, command and control (C&C) communications, or other malicious activities using long-lived, idle connections to avoid detection.
