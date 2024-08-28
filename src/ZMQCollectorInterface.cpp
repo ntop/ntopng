@@ -471,8 +471,7 @@ void ZMQCollectorInterface::collect_flows() {
             uncompressed = (char *)malloc(uncompressed_len + 1);
             if ((err = uncompress((Bytef *)uncompressed, &uLen,
                                   (Bytef *)&payload[1], size - 1)) != Z_OK) {
-              ntop->getTrace()->traceEvent(
-                  TRACE_ERROR, "Uncompress error [%d][len: %u]", err, size);
+              ntop->getTrace()->traceEvent(TRACE_ERROR, "[topic: %s] Uncompress error %d [compressed len: %u]", h->url, err, size);
               continue;
             }
 
