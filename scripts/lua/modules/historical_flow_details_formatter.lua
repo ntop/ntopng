@@ -211,7 +211,7 @@ end
 
 -- a###############################################
 
-local function format_historical_issue_description(alert_id, score, title, msg, info, alert_scores)
+local function format_historical_issue_description(alert_id, score, title, msg, info, alert_scores, add_remediation)
    local alert_consts = require "alert_consts"
    local alert_entities = require "alert_entities"
 
@@ -229,6 +229,7 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
 
    if (tonumber(alert_risk) == 0) then
       alert_src = "ntopng"
+      alert_risk = alert_id
    else
       alert_src = "nDPI"
    end
@@ -238,9 +239,14 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
    local severity_id = map_score_to_severity(score)
    local severity = alert_consts.alertSeverityById(severity_id)
    local remediation = flow_risk_utils.get_remediation_documentation_link(alert_risk, alert_src)
-
+   
    local html = "<tr><td>" .. (msg or "") .. alert_source .. "</td>" .. '<td align=center><span style="color:' .. severity.color .. '">' .. score .. '</span></td>'
-   html = html .. "<td>" .. info .. remediation .."</td>"
+   
+   if (add_remediation) then
+      html = html .. "<td>" .. info .. remediation .."</td>"
+   else
+      html = html .. "<td>" .. info .."</td>"
+   end
 
    -- Add Mitre info
    local alert_key  = alert_consts.getAlertType(alert_id, alert_entities.flow.entity_id)
@@ -322,25 +328,25 @@ local function format_historical_issues(flow_details, flow)
 
       html = "<table class=\"table table-bordered table-striped\" width=100%>\n"
       html = html .. "<tr><th>" .. i18n("description") ..  "</th><th>" .. i18n("score") .. "</th><th>".. i18n("info") .. " / ".. i18n("remediation").. "</th><th>".. i18n("mitre_id") .. "</th></tr>\n"
-      html = html .. format_historical_issue_description(tostring(alert_id), tonumber(main_alert_score), i18n("issues_score"), alert_label, details, alert_scores)
+      html = html .. format_historical_issue_description(tostring(alert_id), tonumber(main_alert_score), i18n("issues_score"), alert_label, details, alert_scores, false)
    end
-
+   
    local alert_utils = require "alert_utils"
    local _, other_issues = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'], alert_json, false, nil, true)
    
    if table.len(other_issues) > 0 then
       for _, issue in pairs(other_issues or {}) do
-	 local msg, info
-	 local pieces = string.split(issue.msg, "%[")
+         local msg, info
+         local pieces = string.split(issue.msg, "%[")
 
-	 if(pieces ~= nil) then
-	    msg  = pieces[1]
-	    info = string.gsub(pieces[2], "%]", "")
-	 else
-	    msg = issue.msg
-	    info = ""
-	 end
-	 html = html .. format_historical_issue_description(tostring(issue.alert_id), tonumber(issue.score), '', msg, info, alert_scores) 
+         if(pieces ~= nil) then
+            msg  = pieces[1]
+            info = string.gsub(pieces[2], "%]", "")
+         else
+            msg = issue.msg
+            info = ""
+         end
+         html = html .. format_historical_issue_description(tostring(issue.alert_id), tonumber(issue.score), '', msg, info, alert_scores, true) 
       end
    end
 
@@ -587,7 +593,7 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
       end
 
       if (info["score"]) and (info["score"]["value"] ~= 0) then
-	 flow_details = format_historical_issues(flow_details, flow)
+	      flow_details = format_historical_issues(flow_details, flow)
       end
 
       if (info['COMMUNITY_ID']) and (not isEmptyString(info['COMMUNITY_ID'])) then
