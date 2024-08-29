@@ -120,7 +120,18 @@ Ntop::Ntop(const char *appName) {
 #ifndef WIN32
   if (can_send_icmp) {
     cping = new (std::nothrow) ContinuousPing();
+
+    /* Default */
     default_ping = new (std::nothrow) Ping(NULL /* System interface */);
+
+    /* Pinger per interface */
+    ntop_if_t *devpointer, *cur;
+    if (Utils::ntop_findalldevs(&devpointer) == 0) {
+      for (cur = devpointer; cur; cur = cur->next)
+        if (cur->name) 
+          getPing(cur->name);
+      Utils::ntop_freealldevs(devpointer);
+    }
   }
 #endif
 
@@ -3874,7 +3885,7 @@ Ping *Ntop::getPing(char *ifname) {
     return (pinger);
   } else
     return (it->second);
-}
+  }
 }
 
 /* ******************************************* */
