@@ -349,20 +349,6 @@ schema:addMetric("bytes_sent")
 schema:addMetric("bytes_rcvd")
 
 -------------------------------------------------------
--- EVENT EXPORTER SCHEMAS
--------------------------------------------------------
-
-schema = ts_utils.newSchema("evexporter_iface:traffic", {
-    step = 300,
-    rrd_fname = "bytes"
-})
-schema:addTag("ifid")
-schema:addTag("exporter")
-schema:addTag("ifname")
-schema:addMetric("bytes_sent")
-schema:addMetric("bytes_rcvd")
-
--------------------------------------------------------
 -- FLOW PROBES SCHEMAS
 -------------------------------------------------------
 
