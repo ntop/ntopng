@@ -406,6 +406,10 @@ else
         section = page_utils.menu_sections.collection,
         hidden = not has_exporters or not ntop.isEnterpriseM() or is_system_interface,
         entries = {{
+            entry = page_utils.menu_entries.sflow_exporters,
+            hidden = table.len(interface.getSFlowDevices() or {}) == 0,
+            url = '/lua/pro/enterprise/sflowdevices_stats.lua'
+        }, {
             entry = page_utils.menu_entries.nprobe,
             url = '/lua/pro/enterprise/nprobe.lua'
         }, {

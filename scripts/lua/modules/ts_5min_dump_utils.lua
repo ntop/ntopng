@@ -671,6 +671,50 @@ end
 
 -- ########################################################
 
+function ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
+    local flowdevs = interface.getSFlowDevices()
+
+    -- Return in case of view interface, no timeseries for view interface,
+    -- already on the viewed interface.
+    if ifstats.isView then
+        return
+    end
+
+    for interface_id, device_list in pairs(flowdevs or {}) do
+       for flow_device_ip, _value in pairs(device_list, asc) do
+            local ports = interface.getSFlowDeviceInfo(flow_device_ip)
+
+            if (verbose) then
+                print("[" .. __FILE__() .. ":" .. __LINE__() .. "] Processing sFlow probe " .. flow_device_ip .. "\n")
+            end
+
+            for port_idx, port_value in pairs(ports) do
+                if ifstats.has_seen_ebpf_events then
+                    -- This is actualy an event exporter
+                    local dev_ifname = format_utils.formatExporterInterface(port_idx, port_value)
+                    ts_utils.append("evexporter_iface:traffic", {
+                        ifid = ifstats.id,
+                        exporter = flow_device_ip,
+                        ifname = dev_ifname,
+                        bytes_sent = port_value.ifOutOctets,
+                        bytes_rcvd = port_value.ifInOctets
+                    }, when)
+                else
+                    ts_utils.append("sflowdev_port:traffic", {
+                        ifid = ifstats.id,
+                        device = flow_device_ip,
+                        port = port_idx,
+                        bytes_sent = port_value.ifOutOctets,
+                        bytes_rcvd = port_value.ifInOctets
+                    }, when)
+                end
+            end
+        end
+    end
+end
+
+-- ########################################################
+
 function ts_dump.host_update_rrd(when, hostname, host, ifstats, verbose, config)
     -- Crunch additional stats for local hosts only
     if config.host_ts_creation ~= "off" then
@@ -857,6 +901,8 @@ function ts_dump.run_5min_dump(_ifname, ifstats, when, verbose)
         package.path = dirs.installdir .. "/scripts/lua/pro/modules/timeseries/callbacks/?.lua;" .. package.path
         local exporters_timeseries = require "exporters_timeseries"
         exporters_timeseries.update_timeseries(when, ifstats, verbose, false)
+        -- Create RRDs for sflow counters
+        ts_dump.sflow_device_update_rrds(when, ifstats, verbose)
     end
 
     -- Save Host Pools stats every 5 minutes
