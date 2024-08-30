@@ -466,7 +466,7 @@ void ZMQCollectorInterface::collect_flows() {
             int err;
             uLongf uLen;
 
-            uLen = uncompressed_len = max(5 * size, MAX_ZMQ_FLOW_BUF);
+	    uLen = uncompressed_len = ndpi_min(ndpi_max(10 * size, MAX_ZMQ_FLOW_BUF), MAX_ZMQ_FLOW_BUF/3);
             uncompressed = (char *)malloc(uncompressed_len + 1);
 
 	    if ((err = uncompress((Bytef *)uncompressed, &uLen,
