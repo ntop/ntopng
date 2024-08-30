@@ -7,7 +7,6 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/toasts/?.lua;" .. package.path
 package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua;" .. package.path
 
-
 if ((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then
     package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path
 end
@@ -237,10 +236,8 @@ else
         }, {
             -- Pro or Enterprise with clickhouse disabled
             entry = page_utils.menu_entries.traffic_report,
-            hidden = not (
-              (ntop.isPro() and not ntop.isEnterprise() and not ntop.isnEdgeEnterprise()) or 
-              ((ntop.isEnterprise() or ntop.isnEdgeEnterprise()) and not is_clickhouse_enabled)
-            ),
+            hidden = not ((ntop.isPro() and not ntop.isEnterprise() and not ntop.isnEdgeEnterprise()) or
+                ((ntop.isEnterprise() or ntop.isnEdgeEnterprise()) and not is_clickhouse_enabled)),
             url = "/lua/pro/report.lua"
         }, {
             -- Enterprise with clickhouse enabled
@@ -279,7 +276,8 @@ else
     -- Alerts
     page_utils.add_menubar_section({
         section = page_utils.menu_sections.alerts,
-        hidden = not prefs.are_alerts_enabled or not auth.has_capability(auth.capabilities.alerts) or is_pcap_dump or is_db_view_interface,
+        hidden = not prefs.are_alerts_enabled or not auth.has_capability(auth.capabilities.alerts) or is_pcap_dump or
+            is_db_view_interface,
         entries = {{
             entry = page_utils.menu_entries.alerts_list,
             url = "/lua/alert_stats.lua"
@@ -293,7 +291,7 @@ else
             entry = page_utils.menu_sections.notifications,
             hidden = not is_admin,
             url = '/lua/admin/endpoint_notifications_list.lua'
-        },}
+        }}
     })
 
     -- ##############################################
@@ -307,9 +305,8 @@ else
             url = "/lua/flows_stats.lua"
         }, {
             entry = page_utils.menu_entries.db_explorer,
-            hidden = (not ntop.isEnterprise() and not ntop.isnEdgeEnterprise())
-                or not auth.has_capability(auth.capabilities.historical_flows) or ifs.isViewed or
-                ifs['type'] == 'db',
+            hidden = (not ntop.isEnterprise() and not ntop.isnEdgeEnterprise()) or
+                not auth.has_capability(auth.capabilities.historical_flows) or ifs.isViewed or ifs['type'] == 'db',
             url = "/lua/pro/db_search.lua"
         }}
     })
@@ -323,7 +320,7 @@ else
                 entry = page_utils.menu_entries.chatbot,
                 url = '/lua/chatbot.lua'
             }}})
-    ]]--
+    ]] --
 
     -- ##############################################
     local checks = require "checks"
@@ -350,7 +347,7 @@ else
             hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or not ntop.isEnterpriseM() or
                 not devices_exclusion_enabled,
             url = '/lua/pro/admin/edit_device_exclusions.lua'
-        } ,{
+        }, {
             entry = page_utils.menu_entries.networks,
             url = '/lua/network_stats.lua'
         }, {
@@ -391,7 +388,7 @@ else
         }, {
             entry = page_utils.menu_entries.host_rules,
             url = '/lua/pro/host_rules.lua',
-            hidden = not ntop.isEnterprise() or not isAdministrator(),
+            hidden = not ntop.isEnterprise() or not isAdministrator()
         }}
     })
 
@@ -406,6 +403,10 @@ else
         section = page_utils.menu_sections.collection,
         hidden = not has_exporters or not ntop.isEnterpriseM() or is_system_interface,
         entries = {{
+            entry = page_utils.menu_entries.sflow_exporters,
+            hidden = table.len(interface.getSFlowDevices() or {}) == 0,
+            url = '/lua/pro/enterprise/sflowdevices_stats.lua'
+        }, {
             entry = page_utils.menu_entries.nprobe,
             url = '/lua/pro/enterprise/nprobe.lua'
         }, {
@@ -669,13 +670,14 @@ page_utils.add_menubar_section({
     }, {
         entry = page_utils.menu_entries.alert_exclusions,
         section = page_utils.menu_sections.admin,
-        hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or not ntop.isEnterpriseM() or (tonumber(getSystemInterfaceId()) == tonumber(interface.getId())),
+        hidden = not is_admin or not auth.has_capability(auth.capabilities.checks) or not ntop.isEnterpriseM() or
+            (tonumber(getSystemInterfaceId()) == tonumber(interface.getId())),
         url = '/lua/pro/admin/edit_alert_exclusions.lua?subdir=host'
-           }, {
+    }, {
         entry = page_utils.menu_entries.category_lists,
         hidden = not is_admin,
         url = '/lua/admin/blacklists.lua?enabled_status=enabled'
-}, {
+    }, {
         entry = page_utils.menu_entries.divider
     }, {
         entry = page_utils.menu_entries.manage_configurations,
@@ -706,13 +708,12 @@ page_utils.add_menubar_section({
 
 -- Developer
 
-if not info.oem and auth.has_capability(auth.capabilities.developer) then    
+if not info.oem and auth.has_capability(auth.capabilities.developer) then
 
-    if  not ntop.isEnterpriseM() or (has_developer_enabled) then
+    if not ntop.isEnterpriseM() or (has_developer_enabled) then
         page_utils.add_menubar_section({
             section = page_utils.menu_sections.dev,
-            entries = {
-	       {
+            entries = {{
                 entry = page_utils.menu_entries.rest_api,
                 url = '/lua/swagger.lua'
             }, {

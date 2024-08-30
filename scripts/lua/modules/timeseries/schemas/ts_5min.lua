@@ -352,6 +352,16 @@ schema:addMetric("bytes_rcvd")
 -- FLOW PROBES SCHEMAS
 -------------------------------------------------------
 
+schema = ts_utils.newSchema("sflowdev_port:traffic", {
+    step = 300,
+    rrd_fname = "bytes"
+})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addTag("port")
+schema:addMetric("bytes_sent")
+schema:addMetric("bytes_rcvd")
+
 -- ##############################################
 
 schema = ts_utils.newSchema("flowdev:traffic", {
