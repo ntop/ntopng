@@ -3981,7 +3981,7 @@ local lang = {
     ["remote_only"] = "Remote (Remote Only)",
     ["server"] = " [ Server: <a href=\"%{base_url}/lua/host_details.lua?host=%{server}\">%{server_name}</a> ]",
     ["server_as"] = "Server AS",
-    ["sflow_devices"] = "sFlow Exporters Counters",
+    ["sflow_devices"] = "sFlow Counter Exporters",
     ["source_id"] = "Source Id",
     ["talking_with"] = "Talking With",
     ["tcp_only"] = "TCP Only",
