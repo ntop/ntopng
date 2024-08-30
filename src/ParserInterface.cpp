@@ -102,8 +102,10 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
       if(!shown) {
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Flow dropped due to limits to the license. Exporters limit: %d | Exporters Interfaces limit: %d",
-				     get_max_num_flow_exporters(), get_max_num_flow_exporters_interfaces());
+				     "Flow dropped due to limits to the license. Exporters limit: %d (%d active)"
+				     " | Interfaces limit: %d (%d active)",
+				     get_max_num_flow_exporters(), ntop->getNumFlowExporters(),
+				     get_max_num_flow_exporters_interfaces(), ntop->getNumFlowExportersInterfaces());
 	ntop->getRedis()->set(EXPORTERS_EXCEEDED_LIMITS_KEY, "1");
 	shown = true;
       }
