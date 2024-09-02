@@ -87,7 +87,7 @@ void FlowChecksLoader::registerChecks() {
   if ((fcb = new FlowRiskHTTPSuspiciousURL())) registerCheck(fcb);
   if ((fcb = new FlowRiskKnownProtocolOnNonStandardPort())) registerCheck(fcb);
   if ((fcb = new FlowRiskMalformedPacket())) registerCheck(fcb);
-  if ((fcb = new FlowRiskMaliciousJA3())) registerCheck(fcb);
+  if ((fcb = new FlowRiskMaliciousFingerprint())) registerCheck(fcb);
   if ((fcb = new FlowRiskMaliciousSHA1Certificate())) registerCheck(fcb);
   if ((fcb = new FlowRiskPeriodicFlow())) registerCheck(fcb);
   if ((fcb = new FlowRiskSMBInsecureVersion())) registerCheck(fcb);

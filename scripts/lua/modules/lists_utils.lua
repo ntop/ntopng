@@ -36,8 +36,6 @@ local MAX_TOTAL_IP_RULES = 1000000
 -- Domain rules are the most expensive.
 -- On average they take ~7.5 KB/domain. 40k rules are loaded in about 7 seconds.
 local MAX_TOTAL_DOMAIN_RULES = 200000
--- JA3 rules use hash tables, so they are fast to load
-local MAX_TOTAL_JA3_RULES = 200000
 
 local is_nedge = ntop.isnEdge()
 
@@ -563,23 +561,6 @@ end
 
 -- ##############################################
 
-local function handle_ja3_suricata_csv_line(line)
-    local parts = string.split(line, ",")
-
-    if ((parts ~= nil) and (#parts >= 1)) then
-        local md5_hash = parts[1]
-
-        if (string.len(md5_hash) == 32) then
-            ntop.loadMaliciousJA3Hash(string.lower(md5_hash))
-            return (true)
-        end
-    end
-
-    return (false)
-end
-
--- ##############################################
-
 -- Loads hosts from a list file on disk
 local function loadFromListFile(list_name, list, user_custom_categories, stats)
     local list_fname = getListCacheFile(list_name)
@@ -589,23 +570,7 @@ local function loadFromListFile(list_name, list, user_custom_categories, stats)
     
     traceError(trace_level, TRACE_CONSOLE, string.format("Loading '%s' [%s]...", list_name, list.format))
 
-    if list.format == "ja3_suricata_csv" then
-        -- Load the signatures file in nDPI
-        local n = ntop.loadMaliciousJA3Signatures(list_fname)
-        if n >= 0 then
-
-            stats.num_ja3 = stats.num_ja3 + n
-            num_rules = num_rules + n
-
-        else -- Failure
-            if list.status.num_hosts > 0 then
-                -- Avoid generating warnings during first startup
-                traceError(TRACE_WARNING, TRACE_CONSOLE, string.format("Could not find '%s'...", list_fname))
-            end
-
-            return (false)
-        end
-    elseif list.format == "hosts" then
+    if list.format == "hosts" then
         -- MAX_TOTAL_DOMAIN_RULES
         num_rules = ntop.loadCustomCategoryFile(list_fname, 0, list.category, list.name, ignore_private_ips) or 0
         stats.num_hosts = stats.num_hosts + num_rules
@@ -676,7 +641,6 @@ local function reloadListsNow()
     local stats = {
         num_hosts = 0,
         num_ips = 0,
-        num_ja3 = 0,
         begin = os.time(),
         duration = 0
     }
@@ -706,10 +670,6 @@ local function reloadListsNow()
                     limit_reached_error = i18n("category_lists.too_many_hosts_loaded", {
                         limit = MAX_TOTAL_DOMAIN_RULES
                     }) .. ". " .. i18n("category_lists.disable_some_list")
-                elseif (stats.num_ja3 >= MAX_TOTAL_JA3_RULES) then
-                    limit_reached_error = i18n("category_lists.too_many_ja3_loaded", {
-                        limit = MAX_TOTAL_JA3_RULES
-                    }) .. ". " .. i18n("category_lists.disable_some_list")
                 else
                     -- should never happen
                     limit_reached_error = "reloadListsNow: unknown error"
@@ -738,8 +698,8 @@ local function reloadListsNow()
     stats.duration = (os.time() - stats.begin)
 
     traceError(TRACE_NORMAL, TRACE_CONSOLE,
-        string.format("Loaded Category Lists (%u hosts, %u IPs, %u JA3) loaded in %d sec", stats.num_hosts,
-            stats.num_ips, stats.num_ja3, stats.duration))
+        string.format("Loaded Category Lists (%u hosts, %u IPs) loaded in %d sec", stats.num_hosts,
+            stats.num_ips, stats.duration))
 
     -- Save the stats
     ntop.setCache("ntopng.cache.category_lists.load_stats", json.encode(stats))

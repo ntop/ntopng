@@ -19,20 +19,20 @@
  *
  */
 
-#ifndef _FLOW_RISK_MALICIOUS_JA3_H_
-#define _FLOW_RISK_MALICIOUS_JA3_H_
+#ifndef _FLOW_RISK_MALICIOUS_FINGERPRINT_H_
+#define _FLOW_RISK_MALICIOUS_FINGERPRINT_H_
 
 #include "ntop_includes.h"
 
-class FlowRiskMaliciousJA3 : public FlowRisk {
+class FlowRiskMaliciousFingerprint : public FlowRisk {
  private:
   FlowAlertType getAlertType() const {
     return FlowRiskMaliciousJA3Alert::getClassType();
   }
 
  public:
-  FlowRiskMaliciousJA3(){};
-  ~FlowRiskMaliciousJA3(){};
+  FlowRiskMaliciousFingerprint(){};
+  ~FlowRiskMaliciousFingerprint(){};
 
   FlowAlert *buildAlert(Flow *f) {
     return new FlowRiskMaliciousJA3Alert(this, f);
@@ -47,4 +47,4 @@ class FlowRiskMaliciousJA3 : public FlowRisk {
   }
 };
 
-#endif /* _FLOW_RISK_MALICIOUS_JA3_H_ */
+#endif /* _FLOW_RISK_MALICIOUS_FINGERPRINT_H_ */

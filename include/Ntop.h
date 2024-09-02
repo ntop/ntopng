@@ -773,7 +773,6 @@ class Ntop {
                           char *list_name);
   bool nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t id,
                                 char *list_name);
-  int nDPILoadMaliciousJA3Signatures(const char *file_path);
   int nDPISetDomainMask(const char *domain, u_int64_t domain_mask);
   void setLastInterfacenDPIReload(time_t now);
   bool needsnDPICleanup();
