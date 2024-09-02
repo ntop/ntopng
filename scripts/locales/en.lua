@@ -1659,6 +1659,7 @@ local lang = {
     },
   },
   ["checks"] = {
+    ["network_configuration"] = "Network Configuration",
     ["categories"] = "Categories",
     ["category"] = "Category",
     ["category_active_monitoring"] = "Active Monitoring",
@@ -2857,6 +2858,12 @@ local lang = {
     ["visual_explorer"] = "Visual Explorer",
   },
   ["flow_checks"] = {
+    ["dns_servers_title"] = "DNS Servers List",
+    ["ntp_servers_title"] = "NTP Servers List",
+    ["smtp_servers_title"] = "SMTP Servers List",
+    ["dhcp_servers_title"] = "DHCP Servers List",
+    ["save_configuration"] = "Save Configuration",
+    ["gateway"] = "Gateway",
     ["allowed_server_names_description"] = "Comma separated values of allowed server IPs. Example: 173.194.76.109,my.example.com",
     ["allowed_servers_description"] = "Comma separated values of allowed server IPs. Example: 173.194.76.109,52.97.232.242",
     ["allowed_servers_title"] = "Allowed Servers",
