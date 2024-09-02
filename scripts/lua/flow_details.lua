@@ -1437,6 +1437,7 @@ else
 		   local status_icon = ""
 		   local riskLabel = riskInfo[tostring(score_alert.alert_risk)]
            local alert_src
+           local alert_risk = score_alert.alert_risk
 
 		   if (riskLabel ~= nil) then
 		      riskLabel = shortenString(riskLabel, 64)
@@ -1449,7 +1450,8 @@ else
             end
 
             if (tonumber(score_alert.alert_risk) == 0) then
-                alert_src = "ntopng"
+                alert_src = "ntopng"                
+                alert_risk = score_alert.alert_id
             else
                 alert_src = "nDPI"
             end
@@ -1471,7 +1473,7 @@ else
                     local msg = string.format('<td> %s </td><td style=\"text-align: center;\"> %s </td><td> %s %s %s</td>',
 					      score_alert.message .. alert_source,
 					      '<span style="color:' .. severity.color .. '">' .. score_alert.score .. '</span>',
-					      riskLabel, (score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(score_alert.alert_risk, alert_src)) or '',
+					      riskLabel, (score_alert.alert_risk > 0 and flow_risk_utils.get_documentation_link(alert_risk, alert_src)) or '',
 					      status_icon or '')
 		    
                     print(msg)
@@ -1501,7 +1503,7 @@ else
 		       end
 
 		       print('<td style=\"text-align: center;\">'..
-			     flow_risk_utils.get_remediation_documentation_link(score_alert.alert_risk, alert_src)
+			     flow_risk_utils.get_remediation_documentation_link(alert_risk, alert_src)
 			     .. '</td>')
 
 		       print('<td nowrap>')
