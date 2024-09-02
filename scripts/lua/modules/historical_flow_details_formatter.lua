@@ -238,12 +238,12 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
 
    local severity_id = map_score_to_severity(score)
    local severity = alert_consts.alertSeverityById(severity_id)
-   local remediation = flow_risk_utils.get_remediation_documentation_link(alert_risk, alert_src)
+   local remediation = flow_risk_utils.get_remediation_documentation_link(tostring(alert_risk), alert_src)
    
    local html = "<tr><td>" .. (msg or "") .. alert_source .. "</td>" .. '<td align=center><span style="color:' .. severity.color .. '">' .. score .. '</span></td>'
-   
+
    if (add_remediation) then
-      html = html .. "<td>" .. info .. remediation .."</td>"
+      html = html .. "<td>" .. info .. " " .. remediation .."</td>"
    else
       html = html .. "<td>" .. info .."</td>"
    end
@@ -328,7 +328,7 @@ local function format_historical_issues(flow_details, flow)
 
       html = "<table class=\"table table-bordered table-striped\" width=100%>\n"
       html = html .. "<tr><th>" .. i18n("description") ..  "</th><th>" .. i18n("score") .. "</th><th>".. i18n("info") .. " / ".. i18n("remediation").. "</th><th>".. i18n("mitre_id") .. "</th></tr>\n"
-      html = html .. format_historical_issue_description(tostring(alert_id), tonumber(main_alert_score), i18n("issues_score"), alert_label, details, alert_scores, false)
+      html = html .. format_historical_issue_description(tostring(alert_id), tonumber(main_alert_score), i18n("issues_score"), alert_label, details, alert_scores, true)
    end
    
    local alert_utils = require "alert_utils"
