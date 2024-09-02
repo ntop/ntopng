@@ -412,10 +412,10 @@ local function init_check(check, mod_fname, full_path, script, script_type, subd
 
         -- Possibly localize the input title/description
         if check.gui.input_title then
-            check.gui.input_title = check.gui.input_title
+            check.gui.input_title = i18n(check.gui.input_title)
         end
         if check.gui.input_description then
-            check.gui.input_description = check.gui.input_description
+            check.gui.input_description = i18n(check.gui.input_description)
         end
     end
 
