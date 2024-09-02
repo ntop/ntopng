@@ -287,23 +287,6 @@ static int ntop_ip_cmp(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_loadMaliciousJA3Signatures(lua_State *vm) {
-  const char *file_path;
-  int n = 0;
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
-    return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  file_path = lua_tostring(vm, 1);
-
-  n = ntop->nDPILoadMaliciousJA3Signatures(file_path);
-
-  lua_pushinteger(vm, n);
-  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-/* ****************************************** */
-
 static int ntop_setDomainMask(lua_State *vm) {
   const char *domain;
   int rc;
@@ -8185,14 +8168,13 @@ static luaL_Reg _ntop_reg[] = {
     { "elasticsearchConnection", ntop_elasticsearch_connection},
     { "getInstanceName", ntop_get_instance_name},
 
-    /* Custom Categories, Malicious JA3 signatures
+    /* Custom Categories, Malicious fingerprints
      * Note: only inteded to be called from housekeeping.lua */
     { "initnDPIReload", ntop_initnDPIReload},
     { "finalizenDPIReload", ntop_finalizenDPIReload},
     { "loadCustomCategoryIp", ntop_loadCustomCategoryIp},
     { "loadCustomCategoryHost", ntop_loadCustomCategoryHost},
     { "loadCustomCategoryFile", ntop_loadCustomCategoryFile},
-    { "loadMaliciousJA3Signatures", ntop_loadMaliciousJA3Signatures},
     { "setDomainMask", ntop_setDomainMask},
     { "addTrustedIssuerDN", ntop_addTrustedIssuerDN},
 

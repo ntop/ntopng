@@ -148,9 +148,9 @@ static const FlowAlertTypeExtended risk_enum_to_alert_type[NDPI_MAX_RISK] {
     {{flow_alert_ndpi_risky_domain, alert_category_security},
      "ndpi_risky_domain"},
 
-    /* NDPI_MALICIOUS_JA3 */
-    {{flow_alert_ndpi_malicious_ja3, alert_category_security},
-     "ndpi_malicious_ja3"},
+    /* NDPI_MALICIOUS_FINGERPRINT */
+    {{flow_alert_ndpi_malicious_fingerprint, alert_category_security},
+     "ndpi_malicious_fingerprint"},
 
     /* NDPI_MALICIOUS_SHA1_CERTIFICATE */
     {{flow_alert_ndpi_malicious_sha1_certificate, alert_category_security},

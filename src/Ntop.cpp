@@ -3507,18 +3507,6 @@ bool Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t cat_id,
 
 /* ******************************************* */
 
-int Ntop::nDPILoadMaliciousJA3Signatures(const char *file_path) {
-  int rc = 0;
-
-  for (u_int i = 0; i < get_num_interfaces(); i++)
-    if (getInterface(i))
-      rc = getInterface(i)->nDPILoadMaliciousJA3Signatures(file_path);
-
-  return (rc /* last one returned */);
-}
-
-/* ******************************************* */
-
 int Ntop::nDPISetDomainMask(const char *domain, u_int64_t domain_mask) {
   int rc = 0;
 
