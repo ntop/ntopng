@@ -31,7 +31,6 @@ const props = defineProps({
     context: Object
 });
 
-// creare post nuova dove salvo su nuova ContentVisibilityAutoStateChangeEvent, anche get
 
 const ipAddresses = reactive({});
 const validationErrors = reactive({});

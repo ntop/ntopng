@@ -37,7 +37,7 @@ local context = {
 local json_context = json.encode(context)
 
 template_utils.render("pages/vue_page.template", {
-    vue_page_name = "PageAssetsInventory",
+    vue_page_name = "PageNetworkConfiguration",
     page_context = json_context
 })
 
