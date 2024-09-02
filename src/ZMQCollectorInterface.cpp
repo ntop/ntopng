@@ -251,10 +251,8 @@ void ZMQCollectorInterface::checkIdleProbes(time_t now) {
 
 void ZMQCollectorInterface::collect_flows() {
   struct zmq_msg_hdr_v0 h0;
-  struct zmq_msg_hdr_v1 *h =
-      (struct zmq_msg_hdr_v1 *)&h0; /* NOTE: in network-byte-order format */
-  char *payload = NULL;
-  const u_int payload_len = 131072;
+  struct zmq_msg_hdr_v1 *h = (struct zmq_msg_hdr_v1 *)&h0; /* NOTE: in network-byte-order format */
+  char *zmq_payload = NULL;
   zmq_pollitem_t items[MAX_ZMQ_SUBSCRIBERS];
   u_int32_t zmq_max_num_polls_before_purge = MAX_ZMQ_POLLS_BEFORE_PURGE;
   u_int32_t now, next_purge_idle = (u_int32_t)time(NULL) + FLOW_PURGE_FREQUENCY;
@@ -262,7 +260,7 @@ void ZMQCollectorInterface::collect_flows() {
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Collecting flows on %s", ifname);
 
-  if ((payload = (char *)malloc(payload_len + 1 /* Leave a char for \0 */)) ==
+  if ((zmq_payload = (char *)malloc(CONST_ZMQ_PAYLOAD_LEN + 1 /* Leave a char for \0 */)) ==
       NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Out of memory");
     return;
@@ -276,7 +274,7 @@ void ZMQCollectorInterface::collect_flows() {
       if (ntop->getGlobals()->isShutdown()) {
         ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				     "Flow collection on %s is over: ntop is shutting down", ifname);
-        free(payload);
+        free(zmq_payload);
         return;
       }
     }
@@ -292,7 +290,7 @@ void ZMQCollectorInterface::collect_flows() {
       zmq_max_num_polls_before_purge--;
 
       if (rc < 0 || !isRunning()) {
-        if (payload) free(payload);
+        if (zmq_payload) free(zmq_payload);
         ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				     "Flow collection is over on %s: ntop is shutting down",
 				     ifname);
@@ -310,12 +308,14 @@ void ZMQCollectorInterface::collect_flows() {
     } while (rc == 0);
 
     for (int subscriber_id = 0; subscriber_id < num_subscribers; subscriber_id++) {
-
       if (items[subscriber_id].revents & ZMQ_POLLIN) {
         u_int32_t msg_id = 0, current_msg_id = 0;
         u_int32_t source_id = 0;
         u_int32_t publisher_version = 0;
+	u_int32_t received_compressed_size = 0;
         zmq_probe *probe = NULL;
+	bool tlv_encoding = false;
+	bool compressed = false;
 
         size = zmq_recv(items[subscriber_id].socket, &h0, sizeof(h0), 0);
 
@@ -324,17 +324,16 @@ void ZMQCollectorInterface::collect_flows() {
           publisher_version = h0.version;
         } else {
           /* safety checks */
-          if (((size != sizeof(struct zmq_msg_hdr_v1)) &&
-               (size != sizeof(struct zmq_msg_hdr_v2))) ||
-              ((h->version != ZMQ_MSG_VERSION) &&
-               (h->version != ZMQ_MSG_VERSION_TLV) &&
-               (h->version != ZMQ_COMPATIBILITY_MSG_VERSION))) {
-            ntop->getTrace()->traceEvent(
-                TRACE_WARNING,
-                "Unsupported publisher version: is your nProbe sender "
-                "outdated? [%u][%u][%u][%u][%u]",
-                size, sizeof(struct zmq_msg_hdr_v1), h->version,
-                ZMQ_MSG_VERSION, ZMQ_COMPATIBILITY_MSG_VERSION);
+          if (((size != sizeof(struct zmq_msg_hdr_v3)) &&
+               (size != sizeof(struct zmq_msg_hdr_v2)) &&
+	       (size != sizeof(struct zmq_msg_hdr_v1))
+		) ||
+              (h->version > ZMQ_MSG_VERSION)) {
+            ntop->getTrace()->traceEvent(TRACE_WARNING,
+					 "Unsupported publisher version: is your nProbe sender "
+					 "outdated? [%u][%u][%u][%u][%u]",
+					 size, sizeof(struct zmq_msg_hdr_v1), h->version,
+					 ZMQ_MSG_VERSION, ZMQ_COMPATIBILITY_MSG_VERSION);
             continue; /* skip message */
           }
 
@@ -344,8 +343,7 @@ void ZMQCollectorInterface::collect_flows() {
 #endif
 
 #ifdef ZMQ_DEBUG
-          ntop->getTrace()->traceEvent(TRACE_NORMAL, "[version: %u]",
-                                       h->version);
+          ntop->getTrace()->traceEvent(TRACE_NORMAL, "[version: %u]", h->version);
 #endif
 
           if (h->version == ZMQ_COMPATIBILITY_MSG_VERSION) {
@@ -359,6 +357,15 @@ void ZMQCollectorInterface::collect_flows() {
 
             source_id = h2->source_id, msg_id = ntohl(h2->msg_id);
             publisher_version = h2->version;
+	  } else if ((h->version == ZMQ_MSG_VERSION) && (size == sizeof(struct zmq_msg_hdr_v3))) {
+            struct zmq_msg_hdr_v3 *h3 = (struct zmq_msg_hdr_v3 *)&h0;
+
+            source_id = h3->source_id, msg_id = ntohl(h3->msg_id);
+            publisher_version = h3->version;
+	    received_compressed_size = h3->compressed_size;
+
+	    if(h3->flags & ZMQ_FLAG_IS_TLV)         tlv_encoding = true;
+	    if(h3->flags & ZMQ_FLAG_IS_COMPRESSED)  compressed   = true;
           }
         }
 
@@ -395,12 +402,11 @@ void ZMQCollectorInterface::collect_flows() {
             if (msg_id < probe->last_msg_id) {
               /* Start over (just reset active_probes) */
 #ifdef MSG_ID_DEBUG
-              ntop->getTrace()->traceEvent(
-                  TRACE_NORMAL,
-                  "ROLLBACK [subscriber_id: "
-                  "%u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u]",
-                  subscriber_id, msg_id, probe->last_msg_id, recvStats.zmq_msg_rcvd,
-                  recvStats.zmq_msg_drops);
+              ntop->getTrace()->traceEvent(TRACE_NORMAL,
+					   "ROLLBACK [subscriber_id: "
+					   "%u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u]",
+					   subscriber_id, msg_id, probe->last_msg_id, recvStats.zmq_msg_rcvd,
+					   recvStats.zmq_msg_drops);
 #endif
             } else {
               /* Compute delta (this message ID - last message ID) */
@@ -410,12 +416,11 @@ void ZMQCollectorInterface::collect_flows() {
                 /* Lost message detected */
                 recvStats.zmq_msg_drops += diff - 1;
 #ifdef MSG_ID_DEBUG
-                ntop->getTrace()->traceEvent(
-                    TRACE_NORMAL,
-                    "DROP [subscriber_id: "
-                    "%u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]",
-                    subscriber_id, msg_id, probe->last_msg_id, recvStats.zmq_msg_rcvd,
-                    recvStats.zmq_msg_drops, diff - 1);
+                ntop->getTrace()->traceEvent(TRACE_NORMAL,
+					     "DROP [subscriber_id: "
+					     "%u][msg_id=%u][last=%u][tot_msgs=%u][drops=%u][+%u]",
+					     subscriber_id, msg_id, probe->last_msg_id, recvStats.zmq_msg_rcvd,
+					     recvStats.zmq_msg_drops, diff - 1);
 #endif
               }
             }
@@ -441,41 +446,52 @@ void ZMQCollectorInterface::collect_flows() {
           function shall return -1 and set errno to one of the values defined
           below.
         */
-        size = zmq_recv(items[subscriber_id].socket, payload, payload_len, 0);
+        size = zmq_recv(items[subscriber_id].socket, zmq_payload, CONST_ZMQ_PAYLOAD_LEN, 0);
 
-        if (size > 0 && (u_int32_t)size > payload_len)
-          ntop->getTrace()->traceEvent(
-              TRACE_WARNING,
-              "ZMQ message truncated? [size: %u][payload_len: %u]", size,
-              payload_len);
+        if (size > 0 && (u_int32_t)size > CONST_ZMQ_PAYLOAD_LEN)
+          ntop->getTrace()->traceEvent(TRACE_WARNING,
+				       "ZMQ message truncated? [size: %u][CONST_ZMQ_PAYLOAD_LEN: %u]", size,
+				       CONST_ZMQ_PAYLOAD_LEN);
         else if (size > 0) {
           char *uncompressed = NULL;
           u_int uncompressed_len;
-          bool tlv_encoding = false;
-          bool compressed = false;
 
           recvStats.zmq_msg_rcvd++;
-          payload[size] = '\0';
+          zmq_payload[size] = '\0';
 
-          if (publisher_version == ZMQ_MSG_VERSION_TLV)
-            tlv_encoding = true;
-          else if (payload[0] == 0)
-            compressed = true;
+	  if(publisher_version != ZMQ_MSG_VERSION) {
+	    /* Compatibility mode */
+
+	    if (publisher_version == ZMQ_MSG_VERSION_TLV)
+	      tlv_encoding = true;
+	    else if(zmq_payload[0] == 0)
+	      compressed = true;
+	  }
 
           if (compressed /* Compressed traffic */) {
 #ifdef HAVE_ZLIB
             int err;
             uLongf uLen;
 
-            uLen = uncompressed_len = ndpi_min(ndpi_max(10 * size, MAX_ZMQ_FLOW_BUF), MAX_ZMQ_FLOW_BUF/3);
+	    if(received_compressed_size == 0) /* Old nProbe: do the best to guess the size */
+	      uLen = uncompressed_len = ndpi_min(ndpi_max(10 * size, MAX_ZMQ_FLOW_BUF), MAX_ZMQ_FLOW_BUF/3); /* Compatibility mode */
+	    else
+	      uLen = uncompressed_len = received_compressed_size; /* We know already the uncompressed size */
+
             uncompressed = (char *)malloc(uncompressed_len + 1);
-            if ((err = uncompress((Bytef *)uncompressed, &uLen,
-                                  (Bytef *)&payload[1], size - 1)) != Z_OK) {
-	      ntop->getTrace()->traceEvent(TRACE_ERROR, "[topic: %s] Uncompress error %d [compressed len: %u][max decompress len: %u]",
-					   h->url, err, size, uncompressed_len);
+
+	    if(publisher_version == ZMQ_MSG_VERSION /* struct zmq_msg_hdr_v3 */)
+	      err = uncompress((Bytef *)uncompressed, &uLen, (Bytef *)zmq_payload, size);
+	    else
+	      err = uncompress((Bytef *)uncompressed, &uLen, (Bytef *)&zmq_payload[1], size - 1);
+
+	    if (err != Z_OK) {
+	      ntop->getTrace()->traceEvent(TRACE_ERROR, "[topic: %s][version: %u] Uncompress error %d [compressed len: %u][max decompress len: %u]",
+					   h->url, publisher_version, err, size, uncompressed_len);
 
 	      if(err == Z_BUF_ERROR)
 		ntop->getTrace()->traceEvent(TRACE_ERROR, "Internal error: decompression buffer too short");
+
               continue;
             }
 
@@ -494,9 +510,9 @@ void ZMQCollectorInterface::collect_flows() {
           } else if (tlv_encoding /* TLV encoding */) {
             // ntop->getTrace()->traceEvent(TRACE_NORMAL, "TLV message over
             // ZMQ");
-            uncompressed = payload, uncompressed_len = size;
+            uncompressed = zmq_payload, uncompressed_len = size;
           } else /* JSON string */
-            uncompressed = payload, uncompressed_len = size;
+            uncompressed = zmq_payload, uncompressed_len = size;
 
           if (ntop->getPrefs()->get_zmq_encryption_pwd())
             Utils::xor_encdec(
@@ -526,7 +542,7 @@ void ZMQCollectorInterface::collect_flows() {
             probe->last_msg_id = current_msg_id;
           }
 
-          /* Process the message */ 
+          /* Process the message */
           switch (h->url[0]) {
             case 'e': /* event */
               recvStats.num_events++;
@@ -540,7 +556,7 @@ void ZMQCollectorInterface::collect_flows() {
                     parseTLVFlow(uncompressed, uncompressed_len, subscriber_id,
                                  msg_id, this);
               else {
-                uncompressed[uncompressed_len] = '\0';		
+                uncompressed[uncompressed_len] = '\0';
                 recvStats.num_flows += parseJSONFlow(uncompressed, uncompressed_len, subscriber_id, msg_id);
               }
               break;
@@ -599,7 +615,7 @@ void ZMQCollectorInterface::collect_flows() {
 
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow collection is over.");
 
-  if (payload) free(payload);
+  if (zmq_payload) free(zmq_payload);
 }
 
 /* **************************************************** */

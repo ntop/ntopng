@@ -114,8 +114,14 @@
 #endif
 
 #define ZMQ_COMPATIBILITY_MSG_VERSION 1
-#define ZMQ_MSG_VERSION 2
-#define ZMQ_MSG_VERSION_TLV 3
+#define ZMQ_MSG_VERSION               4 /* struct zmq_msg_hdr_v3 */
+#define ZMQ_MSG_VERSION_TLV           3
+#define ZMQ_MSG_VERSION_OLD           2
+
+/* Keep in sync with nProbe */
+#define ZMQ_FLAG_IS_TLV        2 << 0
+#define ZMQ_FLAG_IS_COMPRESSED 2 << 1
+
 #define LOGIN_URL "/lua/login.lua"
 #define LOCALE_URL "/lua/locale.lua"
 #define LOGOUT_URL "/lua/ntopng_logout.lua"
@@ -1594,6 +1600,9 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 #define NO_VLAN (u_int16_t)-1
 #define NO_IN_IF_INDEX (u_int32_t)-1
 #define NO_OUT_IF_INDEX (u_int32_t)-1
+
+#define CONST_ZMQ_PAYLOAD_LEN     131072 /* 128k max ZMQ message size */
+
 /******************************************************************************/
 
 #endif /* _NTOP_DEFINES_H_ */
