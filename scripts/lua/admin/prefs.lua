@@ -18,6 +18,7 @@ local influxdb = require("influxdb")
 local script_manager = require("script_manager")
 local info = ntop.getInfo()
 local auth = require "auth"
+local prefs = ntop.getPrefs()
 
 local email_peer_pattern = [[^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)$]]
 
@@ -1346,6 +1347,15 @@ if auth.has_capability(auth.capabilities.preferences) then
             "active_local_host_cache_interval", prefs.active_local_host_cache_interval or 3600, "number",
             showActiveLocalHostCacheInterval, nil, nil, {
                 min = 60,
+                tformat = "mhd"
+            })
+            
+
+        prefsInputFieldPrefs(subpage_active.entries["mac_address_cache_duration"].title,
+            subpage_active.entries["mac_address_cache_duration"].description, "ntopng.prefs.",
+            "mac_address_cache_duration", prefs.mac_address_cache_duration or 300, "number", true, nil,
+            nil, {
+                min = 5,
                 tformat = "mhd"
             })
 

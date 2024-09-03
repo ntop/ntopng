@@ -203,6 +203,10 @@ local menu_subpages = {{
         local_host_cache_duration = {
             title = i18n("prefs.local_host_cache_duration_title"),
             description = i18n("prefs.local_host_cache_duration_description")
+        },
+        mac_address_cache_duration = {
+            title = i18n("prefs.mac_address_cache_duration_title"),
+            description = i18n("prefs.mac_address_cache_duration_description")
         }
     }
 }, {

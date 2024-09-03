@@ -92,6 +92,7 @@ Prefs::Prefs(Ntop *_ntop) {
   max_extracted_pcap_bytes = CONST_DEFAULT_MAX_EXTR_PCAP_BYTES;
   behaviour_analysis_learning_period =
     CONST_DEFAULT_BEHAVIOUR_ANALYSIS_LEARNING_PERIOD;
+  mac_address_cache_duration = MAX_MAC_IDLE;
   behaviour_analysis_learning_status_during_learning = service_allowed;
   behaviour_analysis_learning_status_post_learning = service_allowed;
   iec60870_learning_period = CONST_IEC104_LEARNING_TIME;
@@ -915,6 +916,8 @@ void Prefs::reloadPrefsFromRedis() {
     pkt_ifaces_flow_max_idle = getDefaultPrefsValue(CONST_FLOW_MAX_IDLE_PREFS, MAX_FLOW_IDLE),
     active_local_hosts_cache_interval = getDefaultPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL,
 							     CONST_DEFAULT_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL),
+    mac_address_cache_duration = getDefaultPrefsValue(CONST_RUNTIME_MAC_ADDRESS_CACHE_DURATION,
+							     MAX_MAC_IDLE),
 
     log_to_file = getDefaultBoolPrefsValue(CONST_RUNTIME_PREFS_LOG_TO_FILE, false);
   intf_rrd_raw_days = getDefaultPrefsValue(CONST_INTF_RRD_RAW_DAYS, INTF_RRD_RAW_DAYS),
@@ -2775,6 +2778,8 @@ void Prefs::lua(lua_State *vm) {
                               iec60870_learning_period);
   lua_push_uint64_table_entry(vm, "modbus_learning_period",
                               modbus_learning_period);
+  lua_push_uint64_table_entry(vm, "mac_address_cache_duration",
+                              mac_address_cache_duration);
   lua_push_uint64_table_entry(vm, "devices_learning_period",
                               devices_learning_period);
   lua_push_uint64_table_entry(vm, "host_port_learning_period",
