@@ -88,28 +88,32 @@ async function refresh_component() {
     /* TODO handle dot-separated path for non-flat json */
     let counter_value = data[props.params.counter_path];
 
-    let counter_formatter = data[props.params.counter_formatter];
-    if (!counter_formatter) {
-      counter_formatter = "number";
-    }
-
-    let formatCounter = formatterUtils.getFormatter(counter_formatter);
-    counter.value = formatCounter(counter_value)
-
-    if (counter_value) {
-        props.set_component_attr('active', true);
-    }
-
-    if (props.params.link) {
-      const link_url_params = {
-        ifid: props.ifid,
-        epoch_begin: props.epoch_begin,
-        epoch_end: props.epoch_end,
-        ...props.params.link.url_params
+    if(props.params.counter_formatter == "no_formatting") {
+       counter.value = counter_value;
+    } else {
+      let counter_formatter = data[props.params.counter_formatter];
+      if (!counter_formatter) {
+        counter_formatter = "number";
       }
 
-      const link_query_params = ntopng_url_manager.obj_to_url_params(link_url_params);
-      link_url.value = `${http_prefix}${props.params.link.url}?${link_query_params}`;
+      let formatCounter = formatterUtils.getFormatter(counter_formatter);
+      counter.value = formatCounter(counter_value)
+
+      if (counter_value) {
+        props.set_component_attr('active', true);
+      }
+
+      if (props.params.link) {
+        const link_url_params = {
+          ifid: props.ifid,
+          epoch_begin: props.epoch_begin,
+          epoch_end: props.epoch_end,
+          ...props.params.link.url_params
+        }
+
+        const link_query_params = ntopng_url_manager.obj_to_url_params(link_url_params);
+        link_url.value = `${http_prefix}${props.params.link.url}?${link_query_params}`;
+      }
     }
   }
 }
