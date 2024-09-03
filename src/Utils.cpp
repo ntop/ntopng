@@ -802,16 +802,14 @@ int Utils::dropPrivileges() {
   int rv;
 
   if (getgid() && getuid()) {
-    ntop->getTrace()->traceEvent(
-        TRACE_NORMAL, "Privileges are not dropped as we're not superuser");
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Privileges are not dropped as we're not superuser");
     return -1;
   }
 
   if (Utils::retainWriteCapabilities() != 0) {
 #ifdef HAVE_LIBCAP
-    ntop->getTrace()->traceEvent(
-        TRACE_WARNING,
-        "Unable to retain privileges for privileged file writing");
+    ntop->getTrace()->traceEvent(TRACE_WARNING,
+				 "Unable to retain privileges for privileged file writing");
 #endif
   }
 
@@ -825,7 +823,7 @@ int Utils::dropPrivileges() {
   }
 
   if (pw != NULL) {
-    /* Change the working dir ownership */
+    /* Change the working dir own2ership */
     rv = chown(ntop->get_working_dir(), pw->pw_uid, pw->pw_gid);
     if (rv != 0)
       ntop->getTrace()->traceEvent(TRACE_ERROR,
@@ -850,8 +848,7 @@ int Utils::dropPrivileges() {
      */
     if ((initgroups(pw->pw_name, pw->pw_gid) != 0) ||
         (setgid(pw->pw_gid) != 0) || (setuid(pw->pw_uid) != 0)) {
-      ntop->getTrace()->traceEvent(
-          TRACE_WARNING, "Unable to drop privileges [%s]", strerror(errno));
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to drop privileges [%s]", strerror(errno));
       return -1;
     }
 
@@ -3896,52 +3893,54 @@ int Utils::retainWriteCapabilities() {
 #ifdef HAVE_LIBCAP
   cap_t caps;
 
-  /* Add the capability of interest to the permitted capabilities  */
+  /* (1) Read the current process capabilities */
   caps = cap_get_proc();
+
+  /* (2) Add the capability of interest to the permitted capabilities  */
+  /* CAP_PERMITTED: It is a superset for the effective capabilities that the process may assume. 
+     If the capability is available in this set, a process transitions it to an effective set and drops it later.
+     But once a process has dropped capability from the permitted set, it can not re-aquire
+  */
   if (cap_set_flag(caps, CAP_PERMITTED, num_cap, cap_values, CAP_SET) == -1)
-    ntop->getTrace()->traceEvent(
-        TRACE_WARNING, "Capabilities cap_set_flag error: %s", strerror(errno));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_flag error: %s", strerror(errno));
 
+  /* CAP_INHERITABLE: This set is reserved for execve() syscall. If the capability is set to inheritable,
+     it will be added permitted set when the program is executed with execve() syscall */
   if (cap_set_flag(caps, CAP_INHERITABLE, num_cap, cap_values, CAP_SET) == -1)
-    ntop->getTrace()->traceEvent(
-        TRACE_WARNING, "Capabilities cap_set_flag error: %s", strerror(errno));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_flag error: %s", strerror(errno));
 
+  /* CAP_EFFECTIVE: Capabilities used by the kernel to perform permission checks for the thread */
   if (cap_set_flag(caps, CAP_EFFECTIVE, num_cap, cap_values, CAP_SET) == -1)
-    ntop->getTrace()->traceEvent(
-        TRACE_WARNING, "Capabilities cap_set_flag error: %s", strerror(errno));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_flag error: %s", strerror(errno));
 
-  rc = cap_set_proc(caps);
+  /* (3) Set the new process capabilities */
+  rc = cap_set_proc(caps); 
   if (rc == 0) {
 #ifdef TRACE_CAPABILITIES
-    ntop->getTrace()->traceEvent(
-        TRACE_NORMAL, "[CAPABILITIES] INITIAL SETUP [%s][num_cap: %u]",
-        cap_to_text(caps, NULL), num_cap);
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPABILITIES] INITIAL SETUP [%s][num_cap: %u]",
+				 cap_to_text(caps, NULL), num_cap);
 #endif
 
     /* Tell the kernel to retain permitted capabilities */
     if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) != 0) {
-      ntop->getTrace()->traceEvent(
-          TRACE_WARNING, "Unable to retain permitted capabilities [%s]\n",
-          strerror(errno));
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to retain permitted capabilities [%s]\n",
+				   strerror(errno));
       rc = -1;
     }
   } else {
-    ntop->getTrace()->traceEvent(
-        TRACE_WARNING, "Capabilities cap_set_proc error: %s", strerror(errno));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_proc error: %s", strerror(errno));
   }
 
   if (cap_free(caps) == -1)
-    ntop->getTrace()->traceEvent(
-        TRACE_WARNING, "Capabilities cap_free error: %s", strerror(errno));
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_free error: %s", strerror(errno));
 
 #else
 #if !defined(__APPLE__) && !defined(__FreeBSD__)
   rc = -1;
   ntop->getTrace()->traceEvent(TRACE_WARNING,
                                "ntopng has not been compiled with libcap-dev");
-  ntop->getTrace()->traceEvent(
-      TRACE_WARNING,
-      "Network discovery and other privileged activities will fail");
+  ntop->getTrace()->traceEvent(TRACE_WARNING,
+			       "Network discovery and other privileged activities will fail");
 #endif
 #endif
 
@@ -3969,36 +3968,49 @@ static int _setWriteCapabilities(int enable) {
   if (enable) capabilitiesMutex.lock(__FILE__, __LINE__);
 
   caps = cap_get_proc();
+
   if (caps) {
 #ifdef TRACE_CAPABILITIES
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
-                                 "[CAPABILITIES] BEFORE [enable: %u][%s]",
-                                 enable, cap_to_text(caps, NULL));
+                                 "[CAPABILITIES] BEFORE [enable: %u][%s][tid: %u]",
+                                 enable, cap_to_text(caps, NULL), gettid());
 #endif
 
-    if (cap_set_flag(caps, CAP_EFFECTIVE, num_cap, cap_values,
-                     enable ? CAP_SET : CAP_CLEAR) == -1)
+    if (cap_set_flag(caps, CAP_EFFECTIVE, num_cap, cap_values, enable ? CAP_SET : CAP_CLEAR) == -1) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
                                    "Capabilities cap_set_flag error: %s",
                                    strerror(errno));
-
-    if (cap_set_proc(caps) == -1)
+      rc = -1;
+    }
+    
+    if (cap_set_proc(caps) == -1) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_proc error: %s [enable: %u]",
 				   strerror(errno), enable);
-    else {
+       rc = -1;
+    } else {
 #ifdef TRACE_CAPABILITIES
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                    "[CAPABILITIES] Capabilities %s [rc: %d]",
                                    enable ? "ENABLE" : "DISABLE", rc);
 #endif
     }
+    
+#ifdef TRACE_CAPABILITIES
+    if(rc != -1)
+      ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				   "[CAPABILITIES] AFTER  [enable: %u][%s][tid: %u]",
+				   enable, cap_to_text(caps, NULL), gettid());
+#endif
 
-    if (cap_free(caps) == -1)
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                   "Capabilities cap_free error");
-  } else
+    if (cap_free(caps) == -1) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_free error");
+      rc = -1;
+    }
+  } else {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_get_proc error");
     rc = -1;
-
+  }
+  
   if (!enable) capabilitiesMutex.unlock(__FILE__, __LINE__);
 #else
   rc = -1;
@@ -4030,7 +4042,8 @@ static int _setWriteCapabilities(int enable) {
 
 int Utils::gainWriteCapabilities() {
 #if !defined(__APPLE__) && !defined(__FreeBSD__)
-  if (ntop && !ntop->hasDroppedPrivileges()) return (0);
+  if (ntop && !ntop->hasDroppedPrivileges())
+    return(-99);
 
   return (_setWriteCapabilities(true));
 #else

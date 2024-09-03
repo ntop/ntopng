@@ -75,9 +75,10 @@ void initWinsock32() {
 /* ******************************** */
 
 extern "C" {
-int ntop_main(int argc, char *argv[])
+  int ntop_main(int argc, char *argv[])
 #else
-int main(int argc, char *argv[])
+
+    int main(int argc, char *argv[])
 #endif
 {
   Prefs *prefs = NULL;
@@ -108,7 +109,7 @@ int main(int argc, char *argv[])
     printf("Unable to set SQLITE_CONFIG_MULTITHREAD for sqlite, exiting.");
     exit(1);
   }
-  
+
   sqlite3_initialize();
 #endif
 
@@ -206,7 +207,7 @@ int main(int argc, char *argv[])
         else
           endpoint = ifName;
 
-        
+
 #ifdef HAVE_ZMQ
         iface = new (std::nothrow) ZMQCollectorInterface(endpoint);
 #endif
@@ -395,15 +396,26 @@ int main(int argc, char *argv[])
     ntop->toggleSNMPTrapCollector(true);
 #endif
 
-  /* Register the HTTP server before dropping the privileges. This is required
-   * in order to possibly bind the HTTP server to privileged ports (< 1024) */
-  ntop->registerHTTPserver(new (std::nothrow) HTTPserver(
-      prefs->get_docs_dir(), prefs->get_scripts_dir()));
-
+#ifndef __linux__
+  /*
+     On non-Linux platforms (no capabilites) we need to register the HTTP server before
+     dropping the privileges. This is required in order to possibly
+     bind the HTTP server to privileged ports (< 1024)
+  */
+  ntop->registerHTTPserver(new (std::nothrow) HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir()));
+#endif
+  
   /* Drop the privileges before initializing the network interfaces. This
    * is necessary as the initialization may create files/directories, which
    * should not be created as root. */
   if (prefs->do_change_user()) Utils::dropPrivileges();
+
+#ifdef __linux__
+  /*
+    On Linux the HTTP server is started after dropping privileges as we can use capabilities
+ */
+  ntop->registerHTTPserver(new (std::nothrow) HTTPserver(prefs->get_docs_dir(), prefs->get_scripts_dir()));
+#endif
 
   /* initInterface writes DB data on disk, keep it after changing user */
   for (int i = 0; i < MAX_NUM_INTERFACE_IDS; i++) {
@@ -480,7 +492,7 @@ int main(int argc, char *argv[])
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Terminating...");
 
   ntop->getGlobals()->requestShutdown();
-  
+
   /* Perform all the necessary cleanup (purge all flows, hosts, etc)
    * and wait for other threads termination */
   ntop->shutdownAll();
