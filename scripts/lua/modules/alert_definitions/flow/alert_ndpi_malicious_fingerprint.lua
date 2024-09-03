@@ -15,13 +15,13 @@ local mitre = require "mitre_utils"
 
 -- ##############################################
 
-local alert_ndpi_malicious_ja3 = classes.class(alert)
+local alert_ndpi_malicious_fingerprint = classes.class(alert)
 
 -- ##############################################
 
-alert_ndpi_malicious_ja3.meta = {
-  alert_key = flow_alert_keys.flow_alert_ndpi_malicious_ja3,
-  i18n_title = "flow_checks_config.malicious_ja3",
+alert_ndpi_malicious_fingerprint.meta = {
+  alert_key = flow_alert_keys.flow_alert_ndpi_malicious_fingerprint,
+  i18n_title = "flow_checks_config.malicious_fingerprint",
   icon = "fas fa-fw fa-info-circle",
 
    -- Mitre Att&ck Matrix values
@@ -36,12 +36,12 @@ alert_ndpi_malicious_ja3.meta = {
 
 -- @brief Prepare an alert table used to generate the alert
 -- @return A table with the alert built
-function alert_ndpi_malicious_ja3:init()
+function alert_ndpi_malicious_fingerprint:init()
    -- Call the parent constructor
    self.super:init()
 end
 
 -- #######################################################
 
-return alert_ndpi_malicious_ja3
+return alert_ndpi_malicious_fingerprint
 

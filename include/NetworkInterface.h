@@ -1267,7 +1267,6 @@ public:
                                ndpi_protocol_category_t protoCategory);
   bool nDPILoadIPCategory(char *what, u_int16_t id, char *list_name);
   bool nDPILoadHostnameCategory(char *what, u_int16_t id, char *list_name);
-  int nDPILoadMaliciousJA3Signatures(const char *file_path);
   int setDomainMask(const char *domain, u_int64_t domain_mask);
   int addTrustedIssuerDN(const char *dn);
   inline void setLastInterfacenDPIReload(time_t now) { last_ndpi_reload = now; }

@@ -70,6 +70,7 @@ local context = {
 local json_context = json.encode(context)
 
 if page == "overview" or not page then
+   -- Edit page-as-stats.vue (see http_src/vue/ntop_vue.js)
     template_utils.render("pages/vue_page.template", {
         vue_page_name = "PageAsStats",
         page_context = json_context

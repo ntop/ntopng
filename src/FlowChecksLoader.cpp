@@ -87,7 +87,7 @@ void FlowChecksLoader::registerChecks() {
   if ((fcb = new FlowRiskHTTPSuspiciousURL())) registerCheck(fcb);
   if ((fcb = new FlowRiskKnownProtocolOnNonStandardPort())) registerCheck(fcb);
   if ((fcb = new FlowRiskMalformedPacket())) registerCheck(fcb);
-  if ((fcb = new FlowRiskMaliciousJA3())) registerCheck(fcb);
+  if ((fcb = new FlowRiskMaliciousFingerprint())) registerCheck(fcb);
   if ((fcb = new FlowRiskMaliciousSHA1Certificate())) registerCheck(fcb);
   if ((fcb = new FlowRiskPeriodicFlow())) registerCheck(fcb);
   if ((fcb = new FlowRiskSMBInsecureVersion())) registerCheck(fcb);
@@ -286,6 +286,7 @@ void FlowChecksLoader::loadConfiguration() {
            it is normal that is going to trigger the warning */
         if (strcmp(check_key, "tls_old_protocol_version") &&
             strcmp(check_key, "tls_malicious_signature") &&
+            strcmp(check_key, "ndpi_malicious_ja3") &&
             strcmp(check_key, "ndpi_http_numeric_ip_host")
 #ifdef HAVE_NEDGE
             &&

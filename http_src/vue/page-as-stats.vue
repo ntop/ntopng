@@ -43,7 +43,8 @@ const map_table_def_columns = (columns) => {
             let return_value = "";
 
             if (asName.length > 0) {
-                return_value += `<A class='ntopng-external-link' href='https://stat.ripe.net/app/launchpad/S1_${row["asn"]}_C13C31C4C34C9C22C28C20C6C7C26C29C30C14C17C2C21C33C16C10'>${row["asname"]}&nbsp;<i class='fas fa-external-link-alt fa-lg'></i></A>`
+                return_value += `${row["asname"]} [ <A class='ntopng-external-link' href='https://stat.ripe.net/app/launchpad/S1_${row["asn"]}_C13C31C4C34C9C22C28C20C6C7C26C29C30C14C17C2C21C33C16C10'>RIPEstat <i class='fas fa-external-link-alt fa-sm'></i></A>`;
+                return_value += ` | <A class='ntopng-external-link' href='https://www.peeringdb.com/asn/${row["asn"]}'>PeeringDB <i class='fas fa-external-link-alt fa-sm'></i></A> ]`;
             }
             return return_value;
         },

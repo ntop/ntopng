@@ -67,9 +67,13 @@ UsedPorts::~UsedPorts() {
   if(bitmap_server_ports) {
     if(h) {
       char redis_key[128];
-      
-      getRedisKey(redis_key, 128);
-      ntop->getRedis()->set(redis_key, bitmap_server_ports->serializer());
+      const char *rsp = bitmap_server_ports->serializer();
+
+      if(rsp != NULL) {
+	getRedisKey(redis_key, 128);
+	ntop->getRedis()->set(redis_key, rsp);
+	ndpi_free((void*)rsp);
+      }
     }
 
     delete bitmap_server_ports;

@@ -1080,26 +1080,39 @@ void Ntop::loadMacManufacturers(char *dir) {
 /* ******************************************* */
 
 #ifdef HAVE_SNMP_TRAP
-/* Note: this is always called on init as socket should be created before changing user */
 void Ntop::initSNMPTrapCollector() {
+  if (trap_collector != NULL) return; /* already initialized */
+
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Initializing SNMP Trap collector");
+
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) && \
+    !defined(HAVE_NEDGE)
+  if (Utils::gainWriteCapabilities() == -1)
+    ntop->getTrace()->traceEvent(TRACE_ERROR,
+                                 "Unable to enable capabilities");
+#endif
+
   try {
     trap_collector = new SNMPTrap();
   } catch(...) {
-    /* Likely running tests on pcaps or no privileges (avoid level=error as it breaks regression tests) */
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Support for SNMP traps is disabled (requires privileges)");
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize SNMP traps collector");
   }
 
-  if (!trap_collector)
-    return;
-
-  if (ntop->getPrefs()->isSNMPTrapEnabled())
-    trap_collector->startTrapCollection();
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32) && \
+    !defined(HAVE_NEDGE)
+  Utils::dropWriteCapabilities();
+#endif
 }
 
 /* ******************************************* */
 
 void Ntop::toggleSNMPTrapCollector(bool enable) {
-  if (!trap_collector) return;
+  if (trap_collector == NULL) {
+    initSNMPTrapCollector();
+
+    if (trap_collector == NULL)
+      return;
+  }
 
   if (enable) {
     trap_collector->startTrapCollection();
@@ -3503,18 +3516,6 @@ bool Ntop::nDPILoadHostnameCategory(char *what, ndpi_protocol_category_t cat_id,
   }
 
   return success;
-}
-
-/* ******************************************* */
-
-int Ntop::nDPILoadMaliciousJA3Signatures(const char *file_path) {
-  int rc = 0;
-
-  for (u_int i = 0; i < get_num_interfaces(); i++)
-    if (getInterface(i))
-      rc = getInterface(i)->nDPILoadMaliciousJA3Signatures(file_path);
-
-  return (rc /* last one returned */);
 }
 
 /* ******************************************* */

@@ -6821,7 +6821,7 @@ void Flow::updateHASSH(bool as_client) {
       && (fp = h->getHASSHFingerprint())) {
     if(fp)
       fp->update(hassh, pinfo ? pinfo->process_name : NULL,
-		 false /* We track client JA3 */);
+		 false /* malicious */);
   }
 }
 

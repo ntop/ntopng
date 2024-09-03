@@ -598,21 +598,6 @@ bool NetworkInterface::nDPILoadHostnameCategory(char *what, u_int16_t id, char *
 
 /* *************************************** */
 
-int NetworkInterface::nDPILoadMaliciousJA3Signatures(const char *file_path) {
-  int n = 0;
-
-  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, file_path);
-
-  if (file_path && ndpi_struct_shadow)
-    n = ndpi_load_malicious_ja3_file(ndpi_struct_shadow, file_path);
-  else
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: invalid nDPI state");
-
-  return n;
-}
-
-/* *************************************** */
-
 int NetworkInterface::setDomainMask(const char *domain, u_int64_t domain_mask) {
   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s(%p) [%s]", __FUNCTION__, ndpi_struct_shadow, domain);
 
