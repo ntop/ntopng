@@ -60,6 +60,9 @@ void ProtoCounter::sum(ProtoCounter *p) {
   bytes.incStats(p->bytes.getSent(), p->bytes.getRcvd());
   duration += p->duration;
   total_flows += p->total_flows;
+
+  if(bytes_thpt && p->bytes_thpt)
+    bytes_thpt->set(p->bytes_thpt);
 }
 
 /* *************************************************/
@@ -94,13 +97,14 @@ void ProtoCounter::lua(lua_State *vm, NetworkInterface *iface, bool tsLua,
         lua_push_uint64_table_entry(vm, "bytes.rcvd", bytes.getRcvd());
         lua_push_uint64_table_entry(vm, "duration", duration);
         lua_push_uint64_table_entry(vm, "num_flows", total_flows);
-/*
+
+	/*
 #ifdef NTOPNG_PRO
-        if (behavior_bytes_traffic)
+	  if (behavior_bytes_traffic)
           behavior_bytes_traffic->luaBehavior(
-              vm, "l7_traffic_behavior");
+	  vm, "l7_traffic_behavior");
 #endif
-*/
+	*/
         if (bytes_thpt) {
           lua_newtable(vm);
 
@@ -171,7 +175,6 @@ void ProtoCounter::updateStats(const struct timeval *tv,
   if (bytes_thpt)
     bytes_thpt->updateStats(tv, bytes.getSent() + bytes.getRcvd());
 
-  
 #ifdef NTOPNG_PRO
 #if 0
   if (tv->tv_sec >= nextMinPeriodicUpdate) {
@@ -179,7 +182,7 @@ void ProtoCounter::updateStats(const struct timeval *tv,
       behavior_bytes_traffic = new (std::nothrow)
           BehaviorAnalysis(0.9 /* Alpha parameter */, 0.1 /* Beta parameter */,
                            0.05 /* Significance */, true /* Counter */);
-    
+
     if (behavior_bytes_traffic)
       behavior_bytes_traffic->updateBehavior(xNULL, bytes.getSent() + bytes.getRcvd(), NULL, false);
   }
