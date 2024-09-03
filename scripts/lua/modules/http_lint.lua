@@ -1968,6 +1968,7 @@ local known_parameters = {
    ["flow_hash_id"] = validateNumber, -- The ID uniquely identifying the flow in the hash table
    ["user"] = validateSingleWord, -- The user ID
    ["snapshot_name"] = validateSingleWord, -- The user ID
+   ["command"] = validateSingleWord, -- The user ID
    ["report_name"] = validateSingleWord, -- The report name
    ["report_template"] = validateSingleWord, -- The report template
    ["report_title"] = validateSingleWord, -- The report title (used in vs reports)
@@ -1975,7 +1976,9 @@ local known_parameters = {
    ["pool_id"] = validateNumber, -- A pool ID
    ["direction"] = validateDirection, -- Sent or Received direction
    ["download"] = validateBool,
-   ["item"] = validateSingleWord, -- Used by the Import/Export page to select the item to import/export
+   ["item"] = validateJSON, -- Used by the Import/Export page to select the item to import/export
+   ["config"] = validateUnquoted, -- Used by the Import/Export page to select the item to import/export
+   ["asset_key"] = validateSingleWord, -- Used by network configuration
    ["stats_type"] = validateStatsType, -- A mode for historical stats queries
    ["alertstats_type"] = validateAlertStatsType, -- A mode for alerts stats queries
    ["flowhosts_type"] = validateFlowHostsTypeOrIpVersionOrIp, -- A filter for local/remote hosts in each of the two directions
@@ -2827,7 +2830,6 @@ local function validateParameter(k, v)
       if (type(v) == "table") then
 	 for table_key, table_value in pairs(v) do
 	    local success, message, purified = validateParameter(table_key, table_value)
-
 	    -- Stop, if any of the table value fails the validation against
 	    -- the expected table key
 	    if not success then
@@ -2925,10 +2927,9 @@ local function lintParams()
 
    -- Extend the parameters with validators from the scripts
    local additional_params = script_manager.extendLintParams(http_lint, known_parameters)
-
    for _, id in pairs(params_to_validate) do
       for k, v in pairs(id) do
-	 if (debug) then
+	 if (false) then
 	    io.write("[LINT] Validating [" .. k .. "]\n")
 	 end
 
@@ -2939,7 +2940,6 @@ local function lintParams()
 	       end
 	    else
 	       local success, message, purified = validateSpecialParameter(k, v)
-
 	       if success then
 		  id[k] = purified
 	       else

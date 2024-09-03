@@ -34,9 +34,8 @@ const props = defineProps({
 
 const ipAddresses = reactive({});
 const validationErrors = reactive({});
-const update_config_url = `${http_prefix}/lua/rest/v2/get/network_config/network_config.lua`
-//const get_config_url = `${http_prefix}/lua/rest/v2/get/network_config/network_config.lua?action=get`
-const get_config_url = `${http_prefix}/lua/rest/v2/get/checks/get_checks.lua?check_subdir=flow&ifid=${props.context.ifid}`
+const set_config_url = `${http_prefix}/lua/rest/v2/set/network/config.lua`
+const get_config_url = `${http_prefix}/lua/rest/v2/get/network/config.lua?ifid=${props.context.ifid}`
 const modifiedInputs = ref([]);
 
 const isSaving = ref(false);
@@ -54,11 +53,11 @@ const saveButtonClass = computed(() => {
 });
 
 const check_name = {
-    "unexpected_dns": { "i18n_title": "flow_checks.dns_servers_title", "device_type": "DNS Server", "reques_param": "unexpected_dns" },
-    "unexpected_ntp": { "i18n_title": "flow_checks.ntp_servers_title", "device_type": "NTP Server", "reques_param": "unexpected_ntp" },
-    "unexpected_dhcp": { "i18n_title": "flow_checks.dhcp_servers_title", "device_type": "DHCP Server", "reques_param": "unexpected_dhcp" },
-    "unexpected_smtp": { "i18n_title": "flow_checks.smtp_servers_title", "device_type": "SMTP Server", "reques_param": "unexpected_smtp" },
-    "gateway": { "i18n_title": "flow_checks.gateway", "device_type": "Gateway", "reques_param": "gateway" },
+    "dns_list":  { "i18n_title": "flow_checks.dns_servers_title", "device_type": "DNS Server", "reques_param": "dns_list" },
+    "ntp_list":  { "i18n_title": "flow_checks.ntp_servers_title", "device_type": "NTP Server", "reques_param": "ntp_list" },
+    "dhcp_list": { "i18n_title": "flow_checks.dhcp_servers_title", "device_type": "DHCP Server", "reques_param": "dhcp_list" },
+    "smtp_list": { "i18n_title": "flow_checks.smtp_servers_title", "device_type": "SMTP Server", "reques_param": "smtp_list" },
+    "gateway":         { "i18n_title": "flow_checks.gateway", "device_type": "Gateway", "reques_param": "gateway" },
 }
 
 Object.keys(check_name).forEach(key => {
@@ -69,10 +68,10 @@ onMounted(() => {
     getConfig();
 });
 
+// Function used to populate text area with data received from the backend at page initialization
 const getConfig = async () => {
     const data = await ntopng_utility.http_request(get_config_url)
-    console.log(data)
-    
+
     data.forEach(item => {
         const key = Object.keys(check_name).find(k => k === item.key);
         if (key && item.is_enabled === true) {
@@ -83,13 +82,14 @@ const getConfig = async () => {
     })
 };
 
-
+// Used to mark a text area as modified so that only modified text areas are sent to the backend to be stored in redis
 const markAsModified = (key) => {
     if (!modifiedInputs.value.includes(key)) {
         modifiedInputs.value.push(key);
     }
 };
 
+// Function to validate IP addresses inserted in text area
 const validateIpAddresses = () => {
     let isValid = true;
     Object.keys(ipAddresses).forEach(key => {
@@ -106,32 +106,34 @@ const validateIpAddresses = () => {
     return isValid;
 };
 
+// Function used to post data to the backend and save the values in
 const saveConfig = async () => {
     if (validateIpAddresses()) {
         isSaving.value = true;
+        let data = { csrf: props.context.csrf, config: []};
+
+        let headers = {
+            'Content-Type': 'application/json'
+        };
+
         try {
             for (const key of modifiedInputs.value) {
                 const value = ipAddresses[key];
                 const ips = value.split(',').map(ip => ip.trim());
-                let enabled_value = ips.length > 0;
 
                 let requestData = {
-                    check_subdir: 'flow',
-                    script_key: check_name[key].reques_param,
-                    csrf: props.context.csrf,
-                    JSON: JSON.stringify({
-                        all: {
-                            enabled: enabled_value,
-                            script_conf: {
-                                items: ips
-                            }
-                        }
-                    })
+                    asset_key: check_name[key].reques_param,
+                    item: ips
                 };
-                console.log(requestData)
-                await ntopng_utility.http_post_request(update_config_url, requestData);
-                
+
+                data.config.push(requestData)
+
             }
+
+            console.log(data)
+            //await ntopng_utility.http_post_request(set_config_url, data);
+
+            await ntopng_utility.http_request(set_config_url, { method: 'post', headers, body: JSON.stringify(data) })
             modifiedInputs.value = [];
 
             // Show success when saved
