@@ -1,4 +1,4 @@
-<template>
+x2<template>
   <div class="container-fluid p-3">
     <div class="row">
       <div class="col-md-4 mb-2">
@@ -63,7 +63,7 @@ const probes_counter_str = "probes_count"
 // used for dashboard badges
 const badgeParams = {
   "i18n_name": "",
-  "counter_formatter": "number",
+  "counter_formatter": "no_formatting",
   "component_resp_field": "",
   "counter_path": "",
   "url_params": {},
