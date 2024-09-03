@@ -391,7 +391,8 @@ int main(int argc, char *argv[])
   ntop->loadMacManufacturers(prefs->get_docs_dir());
   ntop->loadTrackers();
 #ifdef HAVE_SNMP_TRAP
-  ntop->initSNMPTrapCollector();
+  if (prefs->isSNMPTrapEnabled())
+    ntop->toggleSNMPTrapCollector(true);
 #endif
 
   /* Register the HTTP server before dropping the privileges. This is required

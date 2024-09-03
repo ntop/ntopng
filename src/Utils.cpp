@@ -29,7 +29,7 @@
 #include <ifaddrs.h>
 #endif
 
-// #define TRACE_CEPABILITIES
+// #define TRACE_CAPABILITIES
 
 static const char *hex_chars = "0123456789ABCDEF";
 
@@ -126,10 +126,10 @@ typedef struct {
 #include <sys/prctl.h>
 
 static cap_value_t cap_values[] = {
-    CAP_DAC_OVERRIDE, /* Bypass file read, write, and execute permission checks
-                       */
-    CAP_NET_ADMIN,    /* Perform various network-related operations */
-    CAP_NET_RAW       /* Use RAW and PACKET sockets */
+  CAP_DAC_OVERRIDE,    /* Bypass file read, write, and execute permission checks */
+  CAP_NET_ADMIN,       /* Perform various network-related operations */
+  CAP_NET_RAW,         /* Use RAW and PACKET sockets */
+  CAP_NET_BIND_SERVICE /* Listen on non-privileges ports (e.g. UDP 162 for traps) */
 };
 
 int num_cap = sizeof(cap_values) / sizeof(cap_value_t);
@@ -3912,7 +3912,7 @@ int Utils::retainWriteCapabilities() {
 
   rc = cap_set_proc(caps);
   if (rc == 0) {
-#ifdef TRACE_CEPABILITIES
+#ifdef TRACE_CAPABILITIES
     ntop->getTrace()->traceEvent(
         TRACE_NORMAL, "[CAPABILITIES] INITIAL SETUP [%s][num_cap: %u]",
         cap_to_text(caps, NULL), num_cap);
@@ -3970,7 +3970,7 @@ static int _setWriteCapabilities(int enable) {
 
   caps = cap_get_proc();
   if (caps) {
-#ifdef TRACE_CEPABILITIES
+#ifdef TRACE_CAPABILITIES
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                  "[CAPABILITIES] BEFORE [enable: %u][%s]",
                                  enable, cap_to_text(caps, NULL));
@@ -3986,7 +3986,7 @@ static int _setWriteCapabilities(int enable) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_proc error: %s [enable: %u]",
 				   strerror(errno), enable);
     else {
-#ifdef TRACE_CEPABILITIES
+#ifdef TRACE_CAPABILITIES
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                    "[CAPABILITIES] Capabilities %s [rc: %d]",
                                    enable ? "ENABLE" : "DISABLE", rc);
