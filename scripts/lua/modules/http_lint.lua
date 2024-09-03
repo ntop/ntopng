@@ -2357,6 +2357,7 @@ local known_parameters = {
    ["non_local_host_max_idle"] = validateNumber,
    ["flow_max_idle"] = validateNumber,
    ["active_local_host_cache_interval"] = validateNumber,
+   ["mac_address_cache_duration"] = validateNumber,
    ["auth_session_duration"] = validateNumber,
    ["local_host_cache_duration"] = validateNumber,
    ["intf_rrd_raw_days"] = validateNumber,

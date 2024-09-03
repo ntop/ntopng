@@ -537,3 +537,10 @@ void Mac::dumpAssetInfo() {
   ndpi_term_serializer(&device_json);
 }
 #endif
+
+/* *************************************** */
+
+bool Mac::is_hash_entry_state_idle_transition_ready() {
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Configured Expiration Time: %d", ntop->getPrefs()->macAddressCacheDuration());
+  return ((getUses() == 0) && is_active_entry_now_idle(ntop->getPrefs()->macAddressCacheDuration()));
+}

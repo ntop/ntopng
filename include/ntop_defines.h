@@ -832,6 +832,8 @@
   NTOPNG_PREFS_PREFIX ".is_active_local_host_cache_enabled"
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL \
   NTOPNG_PREFS_PREFIX ".active_local_host_cache_interval"
+#define CONST_RUNTIME_MAC_ADDRESS_CACHE_DURATION \
+  NTOPNG_PREFS_PREFIX ".mac_address_cache_duration"
 #define CONST_RUNTIME_PREFS_LOG_TO_FILE NTOPNG_PREFS_PREFIX ".log_to_file"
 #define CONST_RUNTIME_PREFS_HOUSEKEEPING_FREQ \
   NTOPNG_PREFS_PREFIX ".housekeeping_freq"
