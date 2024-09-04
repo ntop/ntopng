@@ -7,7 +7,7 @@ This guide is a quickstart to get up and running for GUI development
 3. Before making changes to any page make sure to run `npm run watch` so that changes are displayed after every file save
 4. After having made changes please build with the appropriate command.
     - `npm run build:ntopng.js` to compile js only. If CSS changes have not been done
-    - `npm run build:ntopng.js` to compile css only. If JS changes have not been done
+    - `npm run css:lint` to compile css only. If JS changes have not been done
     - `npm run build` to compile all the changes
 
 ## Project structure
