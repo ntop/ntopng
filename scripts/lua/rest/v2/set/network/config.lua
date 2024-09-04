@@ -15,27 +15,11 @@ local post_data = _POST["payload"]
 
 local res = {}
 
-local config = _POST["config"]
-tprint(_POST)
+local payload = _POST["payload"]
+local data = json.decode(payload)
 
-local data = json.decode(config)
-
--- data is:
---[[
-asset_key = [ "gateway", "unexpected_dhcp", "unexpected_dns", "unexpected_ntp", "unexpected_smtp"]
-
-{ "csrf":..., "config": [ {"asset_key": asset_key, "item": [ip1, ip2, ip3...]}, {"asset_key": asset_key_1, "item": [ip1, ip2, ip3...]}]}
-]]
-
--- local script_key = post_data["asset_key"] -- asset_key
--- local redis_key = "ntopng.prefs." .. script_key .. "_ip_list"
-
--- for each element in respone: ntop.getCache(redis_key)
-
-if isEmptyString(ifid) then
-    rest_utils.answer(rest_utils.consts.err.invalid_interface)
-    return
+for k,v in pairs(data.config) do
+   ntop.setCache("ntopng.prefs.nw_config_".. v.key, v.value)
 end
-
 
 rest_utils.answer(rest_utils.consts.success.ok, res)

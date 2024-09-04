@@ -15,13 +15,18 @@ local ifid = tonumber(_GET["ifid"])
 
 local res = {}
 
--- Get data from redis: expected format, array of objects with keys: 
-res = {{key= "unexpected_dhcp", value_description="192.168.2.85, 192.168.2.45" or "", is_enabled=true or false}}
-
-
 if isEmptyString(ifid) then
     rest_utils.answer(rest_utils.consts.err.invalid_interface)
     return
 end
+
+-- Get data from redis: expected format, array of objects with keys: 
+res = {
+   {key= "dns_list", value_description=ntop.getCache("ntopng.prefs.nw_config_dns_list") or "" },
+   {key= "ntp_list", value_description=ntop.getCache("ntopng.prefs.nw_config_ntp_list") or "" },
+   {key= "dhcp_list", value_description=ntop.getCache("ntopng.prefs.nw_config_dhcp_list") or "" },
+   {key= "smtp_list", value_description=ntop.getCache("ntopng.prefs.nw_config_smtp_list") or "" },
+   {key= "gateway_list", value_description=ntop.getCache("ntopng.prefs.nw_config_gateway_list") or "" },
+}
 
 rest_utils.answer(rest_utils.consts.success.ok, res)
