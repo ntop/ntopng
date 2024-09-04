@@ -201,7 +201,7 @@ class Prefs {
 #endif
   bool print_version, print_version_json;
   bool snmp_polling;
-  bool active_monitoring;
+  bool active_monitoring, network_discovery;
 
   InterfacesSet lan_interfaces, wan_interfaces;
 

@@ -163,7 +163,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_runtime_flows_dump = true;
   enable_activities_debug = false;
   snmp_polling = true;
-  active_monitoring = false;
+  active_monitoring = network_discovery = false;
   vs_max_num_scans = 4;
   vs_slow_scan = false;
   tls_quic_hostnaming = false;
@@ -940,6 +940,7 @@ void Prefs::reloadPrefsFromRedis() {
     enable_activities_debug = getDefaultBoolPrefsValue(CONST_ACTIVITIES_DEBUG_ENABLED, false),
     snmp_polling = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_SNMP_POLLING, true);
   active_monitoring = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACTIVE_MONITORING, false);
+    network_discovery = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_NETWORK_DISCOVERY, false);
 
   enable_arp_matrix_generation =
     getDefaultBoolPrefsValue(CONST_DEFAULT_ARP_MATRIX_GENERATION, false),
@@ -2669,6 +2670,7 @@ void Prefs::lua(lua_State *vm) {
 			                      vs_max_num_scans);
   lua_push_bool_table_entry(vm, "vs_slow_scan", vs_slow_scan);
   lua_push_bool_table_entry(vm, "snmp_polling", snmp_polling);
+  lua_push_bool_table_entry(vm, "network_discovery", network_discovery);
   lua_push_bool_table_entry(vm, "active_monitoring", active_monitoring);
   lua_push_bool_table_entry(vm, "tls_quic_hostnaming", tls_quic_hostnaming);
 

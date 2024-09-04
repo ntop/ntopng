@@ -296,6 +296,15 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "active_monitoring"
         })
 
+        print('<thead class="table-primary"><tr><th colspan=2 class="info">' ..
+            i18n("active_monitoring_stats.network_discovery") .. '</th></tr></thead>')
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_network_discovery",
+            default = "0",
+            pref = "network_discovery"
+            })
+
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
                 i18n("save") .. '</button></th></tr>')
