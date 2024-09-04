@@ -22,7 +22,7 @@ print [[
    <script>
     window.onload = function() {
       const ui = SwaggerUIBundle({
-	    url: "/misc/rest-api-v2.json",
+	    url: "]] print(ntop.getHttpPrefix()) print[[/misc/rest-api-v2.json",
 	    dom_id: '#swagger-ui',
 	    presets: [
 	       SwaggerUIBundle.presets.apis,
