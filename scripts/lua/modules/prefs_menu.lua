@@ -35,6 +35,10 @@ local menu_subpages = {{
         toggle_active_monitoring = {
             title = i18n("prefs.toggle_active_monitoring_title"),
             description = i18n("prefs.toggle_active_monitoring_description")
+        },
+        toggle_network_discovery = {
+            title = i18n("active_monitoring_stats.network_discovery"),
+            description = i18n("active_monitoring_stats.network_discovery_description")
         }
     }
 },{

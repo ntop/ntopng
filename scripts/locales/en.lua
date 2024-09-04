@@ -859,6 +859,8 @@ local lang = {
   },
   ["active_monitoring_stats"] = {
     ["active_monitoring"] = "Active Monitoring",
+    ["network_discovery"] = "Network Discovery",
+    ["network_discovery_description"] = "Enable the possibility to execute and run Network Discovery",
     ["active_monitoring_description"] = "Monitors the status and the response time of specific hosts",
     ["add_icmp"] = "Add ICMP Monitor",
     ["add_pool"] = "New Active Monitoring Pool",
