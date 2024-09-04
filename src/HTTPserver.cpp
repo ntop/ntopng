@@ -1568,6 +1568,7 @@ static int handle_lua_request(struct mg_connection *conn) {
       }
 
       bool attack_attempt;
+  
 
       // NOTE: username is stored into the engine context, so we must guarantee
       // that LuaEngine is destroyed after username goes out of context! Indeeed
@@ -1799,8 +1800,7 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
 
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   
-  memset(ports, 0, sizeof(ports)),
-      memset(access_log_path, 0, sizeof(access_log_path));
+  memset(ports, 0, sizeof(ports)), memset(access_log_path, 0, sizeof(access_log_path));
   use_http = true;
 
   ntop->getPrefs()->get_http_binding_addresses(&http_binding_addr1,
@@ -1894,9 +1894,18 @@ HTTPserver::HTTPserver(const char *_docs_dir, const char *_scripts_dir) {
   http_prefix = ntop->getPrefs()->get_http_prefix(),
   http_prefix_len = strlen(ntop->getPrefs()->get_http_prefix());
 
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32)
+  if (Utils::gainWriteCapabilities() == -1)
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable capabilities");
+#endif
+
   /* NOTE: the HTTP server must be started now as here ntopng still
    * has admin privileges to possibly bind to privileged ports. */
   startHttpServer();
+
+#if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(WIN32)
+  Utils::dropWriteCapabilities();
+#endif
 
   /* NOTE: requests are still rejected until start_accepting_requests is
    * called. */

@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "5.7",
+    "version": "6.3",
     "title": "ntopng",
     "description": "ntopng RESTful API documentation"
   },

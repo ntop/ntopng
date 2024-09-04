@@ -86,13 +86,6 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if ((zflow->vlan_id == 0) && ntop->getPrefs()->do_simulate_vlans())
     zflow->vlan_id = rand() % SIMULATE_VLANS_MAX_VALUE;
 
-#ifdef TRACE_EXPORTERS
-  ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "[unique_source_id: %u];device_ip: %u][probe_ip: %u][iface: %u->%u]",
-			       unique_source_id, zflow->exporter_device_ip,
-			       zflow->nprobe_ip, zflow->inIndex, zflow->outIndex);
-#endif
-  
 #ifdef NTOPNG_PRO
   if(unique_source_id != 0) {
     if (!flow_interfaces_stats->checkExporters(unique_source_id,
@@ -101,11 +94,18 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       static bool shown = false;
 
       if(!shown) {
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dropped due to limits to the license");
+	
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Flow dropped due to limits to the license. Exporters limit: %d (%d active)"
-				     " | Interfaces limit: %d (%d active)",
-				     get_max_num_flow_exporters(), ntop->getNumFlowExporters(),
-				     get_max_num_flow_exporters_interfaces(), ntop->getNumFlowExportersInterfaces());
+				     "Exporters t: %d/%d max | Exporter Interfaces: %d/%d max",
+				     ntop->getNumFlowExporters(), get_max_num_flow_exporters(), 
+				     ntop->getNumFlowExportersInterfaces(), get_max_num_flow_exporters_interfaces());
+
+	ntop->getTrace()->traceEvent(TRACE_NORMAL,
+				     "Discarded [unique_source_id: %u];device_ip: %u][probe_ip: %u][iface: %u->%u]",
+				     unique_source_id, zflow->exporter_device_ip,
+				     zflow->nprobe_ip, zflow->inIndex, zflow->outIndex);
+  
 	ntop->getRedis()->set(EXPORTERS_EXCEEDED_LIMITS_KEY, "1");
 	shown = true;
       }
