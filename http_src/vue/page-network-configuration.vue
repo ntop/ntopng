@@ -53,11 +53,11 @@ const saveButtonClass = computed(() => {
 });
 
 const check_name = {
-    "dns_list":  { "i18n_title": "flow_checks.dns_servers_title", "device_type": "DNS Server", "reques_param": "dns_list" },
-    "ntp_list":  { "i18n_title": "flow_checks.ntp_servers_title", "device_type": "NTP Server", "reques_param": "ntp_list" },
-    "dhcp_list": { "i18n_title": "flow_checks.dhcp_servers_title", "device_type": "DHCP Server", "reques_param": "dhcp_list" },
-    "smtp_list": { "i18n_title": "flow_checks.smtp_servers_title", "device_type": "SMTP Server", "reques_param": "smtp_list" },
-    "gateway":         { "i18n_title": "flow_checks.gateway", "device_type": "Gateway", "reques_param": "gateway" },
+    "dns_list":     { "i18n_title": "network_configuration.dns_servers_title", "device_type": "DNS Server", "reques_param": "dns_list" },
+    "ntp_list":     { "i18n_title": "network_configuration.ntp_servers_title", "device_type": "NTP Server", "reques_param": "ntp_list" },
+    "dhcp_list":    { "i18n_title": "network_configuration.dhcp_servers_title", "device_type": "DHCP Server", "reques_param": "dhcp_list" },
+    "smtp_list":    { "i18n_title": "network_configuration.smtp_servers_title", "device_type": "SMTP Server", "reques_param": "smtp_list" },
+    "gateway_list": { "i18n_title": "network_configuration.gateway_servers_title", "device_type": "Gateway", "reques_param": "gateway_list" },
 }
 
 Object.keys(check_name).forEach(key => {
@@ -74,7 +74,7 @@ const getConfig = async () => {
 
     data.forEach(item => {
         const key = Object.keys(check_name).find(k => k === item.key);
-        if (key && item.is_enabled === true) {
+        if (key) {
             ipAddresses[key] = Array.isArray(item.value_description)
                 ? item.value_description.join(', ')
                 : item.value_description;
@@ -119,18 +119,16 @@ const saveConfig = async () => {
         try {
             for (const key of modifiedInputs.value) {
                 const value = ipAddresses[key];
-                const ips = value.split(',').map(ip => ip.trim());
 
                 let requestData = {
-                    asset_key: check_name[key].reques_param,
-                    item: ips
+                    key: check_name[key].reques_param,
+                    value: value
                 };
 
                 data.config.push(requestData)
-
             }
 
-            console.log(data)
+            // console.log(data)
             //await ntopng_utility.http_post_request(set_config_url, data);
 
             await ntopng_utility.http_request(set_config_url, { method: 'post', headers, body: JSON.stringify(data) })
