@@ -188,7 +188,7 @@ const href_download_records = computed(() => {
     params.format = "txt";
     params.visible_columns = visible_columns;
     const url_params = ntopng_url_manager.obj_to_url_params(params);
-    return `${location.origin}/${download_endpoint}?${url_params}`;
+    return `${download_endpoint}?${url_params}`;
 });
 
 const href_analyse_records = computed(() => {
@@ -196,7 +196,7 @@ const href_analyse_records = computed(() => {
     const analyse_endpoint = props.context.analyse.endpoint;
     let params = ntopng_url_manager.get_url_object();
     const url_params = ntopng_url_manager.obj_to_url_params(params);
-    return `${location.origin}/${analyse_endpoint}?${url_params}`;
+    return `${analyse_endpoint}?${url_params}`;
 });
 
 let chart_data_url = `${http_prefix}/lua/pro/rest/v2/get/db/ts.lua`;
