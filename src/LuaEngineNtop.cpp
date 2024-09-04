@@ -7776,6 +7776,36 @@ static int ntop_toggle_new_delete_trace(lua_State *vm) {
   return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }
 
+/* **************************************************************** */
+
+static int ntop_get_license_limits(lua_State *vm) {
+  lua_newtable(vm);
+
+  lua_newtable(vm);
+  lua_push_uint32_table_entry(vm, "num_flow_exporters", ntop->getNumFlowExporters());
+  lua_push_uint32_table_entry(vm, "num_flow_exporter_interfaces", ntop->getNumFlowExportersInterfaces());
+#if 0
+  lua_push_uint32_table_entry(vm, "num_host_pools", );
+  lua_push_uint32_table_entry(vm, "num_pool_members", );
+  lua_push_uint32_table_entry(vm, "num_profiles", );
+#endif
+  lua_pushstring(vm, "current");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  lua_newtable(vm);
+  lua_push_uint32_table_entry(vm, "num_flow_exporters", get_max_num_flow_exporters());
+  lua_push_uint32_table_entry(vm, "num_flow_exporter_interfaces", get_max_num_flow_exporters_interfaces());
+  lua_push_uint32_table_entry(vm, "num_host_pools", MAX_NUM_HOST_POOLS);
+  lua_push_uint32_table_entry(vm, "num_pool_members", MAX_NUM_POOL_MEMBERS);
+  lua_push_uint32_table_entry(vm, "num_profiles", MAX_NUM_PROFILES);
+  lua_pushstring(vm, "max");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
+
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
 #if defined(NTOPNG_PRO)
 
 /* **************************************************************** */
@@ -8316,6 +8346,9 @@ static luaL_Reg _ntop_reg[] = {
     /* Debug */
     { "toggleNewDeleteTrace", ntop_toggle_new_delete_trace },
 
+    /* License */
+    { "getLicenseLimits", ntop_get_license_limits },
+    
 #if defined(NTOPNG_PRO)
     /* TODO: move to message_broker engine */
     { "publish", m_broker_publish },
