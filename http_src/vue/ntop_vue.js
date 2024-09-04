@@ -66,6 +66,7 @@ import { default as PageProbes } from "./page-probes.vue"
 import { default as PageExporters } from "./page-exporters.vue"
 import { default as PageExportersDetails } from "./page-exporters-details.vue"
 import { default as PageExportersInterfaces } from "./page-exporters-interfaces.vue"
+import { default as PageNetworkConfiguration } from "./page-network-configuration.vue"
 
 /* Config pages */
 import { default as PageSNMPConfig } from "./page-snmp-config.vue"
@@ -190,6 +191,7 @@ let ntopVue = {
     PageFlowDeviceInterfaceDetails: PageFlowDeviceInterfaceDetails,
     PageHistoricalFlow: PageHistoricalFlow,
     PageExportersInterfaces: PageExportersInterfaces,
+    PageNetworkConfiguration: PageNetworkConfiguration,
     //PageSankeyTest: PageSankeyTest,
     
     // components

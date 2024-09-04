@@ -143,6 +143,7 @@ page_utils.menu_entries = {
    nedge_users            = {key = "nedge_users", i18n_title = "manage_users.manage_users", section = "admin", help_link = "https://www.ntop.org/guides/nedge/users.html#"},
    manage_users           = {key = "manage_users", i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"), section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-users"},
    preferences            = {key = "preferences", i18n_title = "prefs.preferences", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#preferences"},
+   network_config         = {key = "network_config", i18n_title = "checks.network_configuration", section = "admin"},
    scripts_config         = {key = "scripts_config", i18n_title = "about.checks", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_all     = {key = "scripts_config", subkey="all", i18n_title = "all", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    scripts_config_hosts   = {key = "scripts_config", subkey="hosts", i18n_title = alert_entities.host.i18n_label, section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
