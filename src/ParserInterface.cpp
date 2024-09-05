@@ -97,7 +97,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dropped due to limits to the license");
 	
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Exporters t: %d/%d max | Exporter Interfaces: %d/%d max",
+				     "Exporters: %d/%d max | Exporter Interfaces: %d/%d max",
 				     ntop->getNumFlowExporters(), get_max_num_flow_exporters(), 
 				     ntop->getNumFlowExportersInterfaces(), get_max_num_flow_exporters_interfaces());
 
