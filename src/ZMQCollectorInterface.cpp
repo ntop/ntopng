@@ -476,7 +476,7 @@ void ZMQCollectorInterface::collect_flows() {
 	    if(received_compressed_size == 0) /* Old nProbe: do the best to guess the size */
 	      uLen = uncompressed_len = ndpi_min(ndpi_max(10 * size, MAX_ZMQ_FLOW_BUF), MAX_ZMQ_FLOW_BUF/3); /* Compatibility mode */
 	    else
-	      uLen = uncompressed_len = received_compressed_size; /* We know already the uncompressed size */
+	      uLen = uncompressed_len = received_compressed_size + 16; /* We know already the uncompressed size */
 
             uncompressed = (char *)malloc(uncompressed_len + 1);
 
