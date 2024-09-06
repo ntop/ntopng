@@ -246,6 +246,9 @@ vs_utils.restore_host_to_scan()
 -- Reload Alert Exclusions
 ntop.reloadAlertExclusions()
 
+-- Removing limits exceeded key, it's used just for the badges in the gui
+ntop.delCache("ntopng.limits.exporters")
+
 -- initialization of mitre attack matrix informations
 local mitre_utils = require "mitre_utils"
 local mitre_table = mitre_utils.insertDBMitreInfo() 
