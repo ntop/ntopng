@@ -472,17 +472,16 @@ void SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
 
 #ifndef NETSNMP_DISABLE_DES
             if(!strcasecmp(privacy_protocol, "DES")) {
-              snmpSession->session.securityPrivProto = snmp_duplicate_objid(
-									    usmDESPrivProtocol, USM_PRIV_PROTO_DES_LEN);
-              snmpSession->session.securityPrivProtoLen =
-		USM_PRIV_PROTO_DES_LEN;
+              snmpSession->session.securityPrivProto = snmp_duplicate_objid(usmDESPrivProtocol, USM_PRIV_PROTO_DES_LEN);
+              snmpSession->session.securityPrivProtoLen = USM_PRIV_PROTO_DES_LEN;
             } else
 #endif
 	      if(!strncasecmp(privacy_protocol, "AES", 3)) {
-		snmpSession->session.securityPrivProto = snmp_duplicate_objid(
-									      usmAESPrivProtocol, USM_PRIV_PROTO_AES_LEN);
-		snmpSession->session.securityPrivProtoLen =
-                  USM_PRIV_PROTO_AES_LEN;
+		snmpSession->session.securityPrivProto = snmp_duplicate_objid(usmAESPrivProtocol, USM_PRIV_PROTO_AES_LEN);
+		snmpSession->session.securityPrivProtoLen = USM_PRIV_PROTO_AES_LEN;
+	      } else if(!strncasecmp(privacy_protocol, "AES128", 6)) {
+		snmpSession->session.securityPrivProto = snmp_duplicate_objid(usmAESPrivProtocol, USM_PRIV_PROTO_AES128_LEN);
+		snmpSession->session.securityPrivProtoLen = USM_PRIV_PROTO_AES128_LEN;
 	      }
 
             snmpSession->session.securityPrivKeyLen = USM_PRIV_KU_LEN;
