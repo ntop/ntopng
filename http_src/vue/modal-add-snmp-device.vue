@@ -228,7 +228,8 @@ const snmp_auth_protocols = ref([
 
 const snmp_privacy_protocols = ref([
   { id: "des", label: "DES" },
-  { id: "aes", label: "AES" }
+  { id: "aes", label: "AES" },
+  { id: "aes128", label: "AES128" },  
 ]);
 const selected_privacy_protocol = ref(null);
 

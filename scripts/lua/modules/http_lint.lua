@@ -750,7 +750,7 @@ local function validateSnmpAuthProtocol(protocol)
 end
 
 local function validateSnmpPrivacyProtocol(protocol)
-   local protocols = {"des", "aes"}
+   local protocols = {"des", "aes", "aes128"}
    return validateChoice(protocols, protocol)
 end
 
