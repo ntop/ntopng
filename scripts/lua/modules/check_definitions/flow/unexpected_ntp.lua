@@ -26,15 +26,12 @@ local script = {
       items = {},
    },
 
-   gui = {
-      i18n_title        = "flow_checks.unexpected_ntp_title",
-      i18n_description  = "flow_checks.unexpected_ntp_description",
 
-      input_builder     = "items_list",
-      item_list_type    = "ip_address",
-      input_title       = "flow_checks.allowed_servers_title",
-      input_description = "flow_checks.allowed_servers_description",
-   }
+      gui = {
+         i18n_title        = "flow_checks.unexpected_ntp_title",
+         i18n_description  = "flow_checks.unexpected_ntp_description",
+      }
+
 }
 
 -- #################################################################
