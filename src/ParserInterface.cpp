@@ -94,7 +94,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 #endif
   
 #ifdef NTOPNG_PRO
-  if(unique_source_id != 0) {
+  if((unique_source_id != 0) && (!isSubInterface())) {
     if (!flow_interfaces_stats->checkExporters(unique_source_id,
 					       zflow->inIndex, zflow->outIndex,
 					       zflow->exporter_device_ip, zflow->nprobe_ip)) {
