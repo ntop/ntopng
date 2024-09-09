@@ -10,7 +10,7 @@ if(ntop.limitResourcesUsage()) then return end
 
 local prefs = ntop.getPrefs()
 
-if(prefs.active_monitoring == true) then
+if(prefs.network_discovery == true) then
    
    local discover_utils = require "discover_utils"
    local callback_utils = require "callback_utils"

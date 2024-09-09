@@ -206,7 +206,7 @@ async function checkNetworkDiscoveryEnabled() {
   const url = `${http_prefix}/lua/rest/v2/get/ntopng/get_preferences.lua`
   const rsp = await ntopng_utility.http_request(url);
 
-  networkDiscoveryPrefEnabled.value = rsp.active_monitoring
+  networkDiscoveryPrefEnabled.value = rsp.network_discovery
 }
 
 const destroy = () => {

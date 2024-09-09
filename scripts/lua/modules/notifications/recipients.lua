@@ -268,7 +268,7 @@ function recipients.initialize()
                     if family == "flow" then
                         flow_alert_types = table.concat(alerts, ",")
                     elseif family == "host" then
-                        host_alert_types = table.concat(alert, ",")
+                        host_alert_types = table.concat(alerts, ",")
                     else -- other
                         if not isEmptyString(other_alert_types) then
                             other_alert_types = other_alert_types .. "," .. table.concat(alerts, ",")

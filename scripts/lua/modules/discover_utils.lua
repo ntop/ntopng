@@ -1730,7 +1730,6 @@ end
 -- ################################################################################
 
 function discover.discovery_function(ifname, ifstats)
-
    if not interface.isDiscoverableInterface() then
       return
    end

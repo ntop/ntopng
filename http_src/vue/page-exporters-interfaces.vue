@@ -2,7 +2,7 @@ x2<template>
   <div class="container-fluid p-3">
     <div class="row">
       <div class="col-md-4 mb-2">
-        <div class="bg-info text-white p-3 d-flex justify-content-between align-items-center">
+        <div ref="nprobeComponent" class="bg-success text-white p-3 d-flex justify-content-between align-items-center">
           <BadgeComponent id="probesCounter" :params="probesCounterParams" :ifid="props.context.ifid.toString()"
             :get_component_data="get_component_data_func(probesCounterParams)"
             :set_component_attr="set_component_attr_func(probesCounterParams)" :filters="{}">
@@ -10,7 +10,7 @@ x2<template>
         </div>
       </div>
       <div class="col-md-4 mb-2">
-        <div class="bg-info text-white p-3 d-flex justify-content-between align-items-center">
+        <div ref="exporterComponent" class="bg-success text-white p-3 d-flex justify-content-between align-items-center">
           <BadgeComponent id="exportersCounter" :params="exportersCounterParams" :ifid="props.context.ifid.toString()"
             :get_component_data="get_component_data_func(exportersCounterParams)"
             :set_component_attr="set_component_attr_func(exportersCounterParams)" :filters="{}">
@@ -18,7 +18,7 @@ x2<template>
         </div>
       </div>
       <div class="col-md-4 mb-2">
-        <div class="bg-info text-white p-3 d-flex justify-content-between align-items-center">
+        <div ref="interfaceComponent" class="bg-success text-white p-3 d-flex justify-content-between align-items-center">
           <BadgeComponent id="interfacesCounter" :params="interfacesCounterParams" :ifid="props.context.ifid.toString()"
             :get_component_data="get_component_data_func(interfacesCounterParams)"
             :set_component_attr="set_component_attr_func(interfacesCounterParams)" :filters="{}">
@@ -49,6 +49,9 @@ const table_id = ref('exporters_interfaces');
 const table_exporters_details = ref(null);
 const csrf = props.context.csrf;
 const components_info = reactive({});
+const exporterComponent = ref(null);
+const interfaceComponent = ref(null);
+const nprobeComponent = ref(null);
 
 const exporter_notes_url = `${http_prefix}/lua/pro/rest/v2/get/exporters/exporter_notes.lua?`
 const flowdevice_interface_url = `${http_prefix}/lua/pro/enterprise/flowdevice_interface_details.lua?`
@@ -60,6 +63,9 @@ const interfaces_counter_str = "interfaces_count"
 const exporters_counter_str = "exporters_count"
 const probes_counter_str = "probes_count"
 
+const interfaces_limit_str = "interfaces_limit"
+const exporters_limit_str = "exporters_limit"
+
 // used for dashboard badges
 const badgeParams = {
   "i18n_name": "",
@@ -70,9 +76,9 @@ const badgeParams = {
   "url": ""
 }
 
-const probesCounterParams = reactive({ ...badgeParams, url: exporters_counter_url, component_resp_field: probes_counter_str, i18n_name: create_18n_str(probes_counter_str), counter_path: probes_counter_str })
-const exportersCounterParams = reactive({ ...badgeParams, url: exporters_counter_url, component_resp_field: exporters_counter_str, i18n_name: create_18n_str(exporters_counter_str), counter_path: exporters_counter_str })
-const interfacesCounterParams = reactive({ ...badgeParams, url: exporters_counter_url, component_resp_field: interfaces_counter_str, i18n_name: create_18n_str(interfaces_counter_str), counter_path: interfaces_counter_str })
+const probesCounterParams = reactive({ ...badgeParams, componentRef: nprobeComponent, url: exporters_counter_url, current_value: probes_counter_str, i18n_name: create_18n_str(probes_counter_str), counter_path: probes_counter_str })
+const exportersCounterParams = reactive({ ...badgeParams, componentRef: exporterComponent, url: exporters_counter_url, current_value: exporters_counter_str, limit_value: exporters_limit_str, i18n_name: create_18n_str(exporters_counter_str), counter_path: exporters_counter_str })
+const interfacesCounterParams = reactive({ ...badgeParams, componentRef: interfaceComponent, url: exporters_counter_url, current_value: interfaces_counter_str, limit_value: interfaces_limit_str, i18n_name: create_18n_str(interfaces_counter_str), counter_path: interfaces_counter_str })
 const loading = ref(false);
 
 function create_18n_str(i18n_name) {
@@ -102,7 +108,16 @@ function get_component_data_func(component) {
 
     info.data = info.data.then((response) => {
       loading.value = false;
-      const value = response[component.component_resp_field];
+      if (response.are_limits_exceeded) {
+        if (response[component.current_value] === response[component.limit_value]) {
+          component.componentRef.classList.add('bg-danger')
+          component.componentRef.classList.remove('bg-success')
+        }
+      } else if(response[component.current_value] === response[component.limit_value]) {
+        component.componentRef.classList.add('bg-warning')
+        component.componentRef.classList.remove('bg-success')
+      }
+      const value = `${response[component.current_value]}${component.limit_value ? " / " + response[component.limit_value] : ""}`;
       const resKey = component.counter_path
 
       return { [resKey]: value }
