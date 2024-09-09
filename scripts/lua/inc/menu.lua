@@ -679,7 +679,12 @@ page_utils.add_menubar_section({
         entry = page_utils.menu_entries.category_lists,
         hidden = not is_admin,
         url = '/lua/admin/blacklists.lua?enabled_status=enabled'
-}, {
+},  {
+        entry = page_utils.menu_entries.network_config,
+        section = page_utils.menu_sections.admin,
+        hidden = not is_admin or not auth.has_capability(auth.capabilities.checks),
+        url = '/lua/admin/network_configuration.lua'
+           },  {
         entry = page_utils.menu_entries.divider
     }, {
         entry = page_utils.menu_entries.manage_configurations,
