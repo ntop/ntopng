@@ -31,6 +31,7 @@ class UnexpectedSMTPServer : public UnexpectedServer {
   }
 
  protected:
+  bool isAllowedHost(Flow *f);
   bool isAllowedProto(Flow *f) { return (f->isSMTPorSMTPS()); }
 
  public:

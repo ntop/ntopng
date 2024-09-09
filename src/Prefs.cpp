@@ -219,6 +219,11 @@ Prefs::Prefs(Ntop *_ntop) {
   ls_proto = NULL;
   has_cmdl_trace_lvl = false;
 
+  dns_servers = new (std::nothrow) ServerConfiguration();
+  ntp_servers = new (std::nothrow) ServerConfiguration();
+  dhcp_servers = new (std::nothrow) ServerConfiguration();
+  smtp_servers = new (std::nothrow) ServerConfiguration();
+
 #ifdef HAVE_NEDGE
   disable_dns_resolution();
   disable_dns_responses_decoding();
@@ -3161,3 +3166,36 @@ void Prefs::setModbusAllowedFunctionCodes(const char *function_codes) {
 }
 
 #endif
+
+/* *************************************** */
+
+void Prefs::reloadServersConfiguration() {
+  dns_servers->reloadServerConfiguration((char *) CONST_DNS_SERVER_CONFIGURATION_REDIS_KEY);
+  ntp_servers->reloadServerConfiguration((char *) CONST_NTP_SERVER_CONFIGURATION_REDIS_KEY);
+  dhcp_servers->reloadServerConfiguration((char *) CONST_DHCP_SERVER_CONFIGURATION_REDIS_KEY);
+  smtp_servers->reloadServerConfiguration((char *) CONST_SMTP_SERVER_CONFIGURATION_REDIS_KEY);
+}
+
+/* *************************************** */
+
+bool Prefs::isDNSServer(IpAddress *ip, u_int16_t vlan_id) {
+  return dns_servers->findAddress(ip, vlan_id);
+}
+
+/* *************************************** */
+
+bool Prefs::isNTPServer(IpAddress *ip, u_int16_t vlan_id) {
+  return ntp_servers->findAddress(ip, vlan_id);
+}
+
+/* *************************************** */
+
+bool Prefs::isDHCPServer(IpAddress *ip, u_int16_t vlan_id) {
+  return dhcp_servers->findAddress(ip, vlan_id);
+}
+
+/* *************************************** */
+
+bool Prefs::isSMTPServer(IpAddress *ip, u_int16_t vlan_id) {
+  return smtp_servers->findAddress(ip, vlan_id);
+}

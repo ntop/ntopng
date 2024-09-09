@@ -22,4 +22,6 @@ for k,v in pairs(data.config) do
    ntop.setCache("ntopng.prefs.nw_config_".. v.key, v.value)
 end
 
+ntop.reloadServersConfiguration()
+
 rest_utils.answer(rest_utils.consts.success.ok, res)

@@ -1610,6 +1610,11 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 #define CONST_DEFAULT_TLS_CIPHERS "HIGH:!aNULL:!MD5:!RC4"
 #define CONST_ZMQ_PAYLOAD_LEN     131072 /* 128k max ZMQ message size */
 
+#define CONST_DNS_SERVER_CONFIGURATION_REDIS_KEY "ntopng.prefs.nw_config_dns_list"
+#define CONST_NTP_SERVER_CONFIGURATION_REDIS_KEY "ntopng.prefs.nw_config_ntp_list"
+#define CONST_DHCP_SERVER_CONFIGURATION_REDIS_KEY "ntopng.prefs.nw_config_dhcp_list"
+#define CONST_SMTP_SERVER_CONFIGURATION_REDIS_KEY "ntopng.prefs.nw_config_smtp_list"
+
 /******************************************************************************/
 
 #endif /* _NTOP_DEFINES_H_ */

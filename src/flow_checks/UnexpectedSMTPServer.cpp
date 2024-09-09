@@ -24,18 +24,16 @@
 
 /* ***************************************************** */
 
-void UnexpectedServer::protocolDetected(Flow *f) {
-  if (!isAllowedProto(f)) return;
+bool UnexpectedSMTPServer::isAllowedHost(Flow *f) {
+  IpAddress *p = (IpAddress *) getServerIP(f);
 
-  if (!isAllowedHost(f)) {
-    FlowAlertType alert_type = getAlertType();
-    u_int8_t c_score, s_score;
-    risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;
+  if (p == NULL || p->isBroadcastAddress()) return true;
 
-    computeCliSrvScore(ntop->getFlowAlertScore(alert_type.id), cli_score_pctg, &c_score, &s_score);
-
-    f->triggerAlertAsync(alert_type, c_score, s_score);
+  if (p->isSmtpServer() && !ntop->getPrefs()->isSMTPServer(p, f->get_vlan_id())) {
+    return false;
   }
+
+  return (true);
 }
 
 /* ***************************************************** */

@@ -221,6 +221,7 @@ using namespace std;
 #include "MDNS.h"
 #include "AddressTree.h"
 #include "VLANAddressTree.h"
+#include "ServerConfiguration.h"
 #include "BroadcastDomains.h"
 #include "Cardinality.h"
 #include "PeerStats.h"

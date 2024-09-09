@@ -186,6 +186,8 @@ class Prefs {
   bool appliance;
 #endif
 
+  ServerConfiguration *dns_servers, *ntp_servers, *dhcp_servers, *smtp_servers;
+
 #ifdef HAVE_PF_RING
   int pfring_cluster_id;
 #endif
@@ -725,6 +727,11 @@ class Prefs {
   char* getKafkaTopic() { return (kafka_topic); }
   char* getKafkaOptions() { return (kafka_options); }
 #endif
+  void reloadServersConfiguration();
+  bool isDNSServer(IpAddress *ip, u_int16_t vlan_id);
+  bool isNTPServer(IpAddress *ip, u_int16_t vlan_id);
+  bool isSMTPServer(IpAddress *ip, u_int16_t vlan_id);
+  bool isDHCPServer(IpAddress *ip, u_int16_t vlan_id);
   inline bool useMacAddressInFlowKey()     { return (use_mac_in_flow_key);  }
   inline bool enableFingerprintStats()     { return (fingerprint_stats);    }
   inline bool doReforgeTimestamps()        { return(do_reforge_timestamps); }

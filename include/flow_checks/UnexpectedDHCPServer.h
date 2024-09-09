@@ -31,6 +31,7 @@ class UnexpectedDHCPServer : public UnexpectedServer {
   }
 
  protected:
+  bool isAllowedHost(Flow *f);
   bool isAllowedProto(Flow *f) {
     return (f->isDHCP() && (f->get_srv_port() == 67 /* Server port */));
   }

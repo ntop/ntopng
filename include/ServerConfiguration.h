@@ -19,34 +19,22 @@
  *
  */
 
-#ifndef _UNEXPECTED_DNS_SERVER_H_
-#define _UNEXPECTED_DNS_SERVER_H_
+#ifndef _SERVER_CONFIGURATION_H
+#define _SERVER_CONFIGURATION_H
 
 #include "ntop_includes.h"
 
-class UnexpectedDNSServer : public UnexpectedServer {
+class ServerConfiguration {
  private:
-  FlowAlertType getAlertType() const {
-    return UnexpectedDNSServerAlert::getClassType();
-  }
-
- protected:
-  bool isAllowedHost(Flow *f);
-  bool isAllowedProto(Flow *f) { return (f->isDNS()); }
-  const IpAddress *getServerIP(Flow *f) { return (f->get_dns_srv_ip_addr()); }
-
+  VLANAddressTree *tree, *tree_shadow;
+  
+  void loadConfiguration(VLANAddressTree *tree, char *key);
  public:
-  UnexpectedDNSServer() : UnexpectedServer(){};
-  ~UnexpectedDNSServer(){};
+  ServerConfiguration();
+  ~ServerConfiguration();
 
-  FlowAlert *buildAlert(Flow *f) {
-    UnexpectedDNSServerAlert *alert = new UnexpectedDNSServerAlert(this, f);
-    alert->setCliAttacker();
-    return alert;
-  }
-//  bool loadConfiguration(json_object *config);
-
-  std::string getName() const { return (std::string("unexpected_dns")); }
+  bool findAddress(IpAddress *ip, u_int16_t vlan_id);
+  void reloadServerConfiguration(char *key);
 };
 
-#endif /* _UNEXPECTED_DNS_SERVER_H_ */
+#endif /* _SERVER_CONFIGURATION_H */

@@ -32,7 +32,7 @@ class UnexpectedServer : public FlowCheck {
   virtual FlowAlertType getAlertType() const = 0;
 
  protected:
-  bool isAllowedHost(Flow *f);
+  bool isAllowedHost(Flow *f) { return (false); }
 
   virtual bool isAllowedProto(Flow *f) { return (false); }
   virtual const IpAddress *getServerIP(Flow *f) {
@@ -56,7 +56,7 @@ class UnexpectedServer : public FlowCheck {
   };
 
   void protocolDetected(Flow *f);
-  bool loadConfiguration(json_object *config);
+  bool loadConfiguration(json_object *config) { return (true); }
 };
 
 #endif /* _UNEXPECTED_HOST_H_ */

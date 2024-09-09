@@ -7918,6 +7918,13 @@ static int read_ether_ip_device_info(lua_State *vm) {
 
 /* **************************************************************** */
 
+static int reload_servers_configuration(lua_State *vm) {
+  ntop->getPrefs()->reloadServersConfiguration();
+  return(ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* **************************************************************** */
+
 static luaL_Reg _ntop_reg[] = {
     { "getDirs", ntop_get_dirs},
     { "getInfo", ntop_get_info},
@@ -8360,6 +8367,8 @@ static luaL_Reg _ntop_reg[] = {
     /* Modbus */
     { "readModbusDeviceInfo", read_modbus_device_info },
     { "readEthernetIPDeviceInfo", read_ether_ip_device_info },
+
+    { "reloadServersConfiguration", reload_servers_configuration },
     
     {NULL, NULL}
 };
