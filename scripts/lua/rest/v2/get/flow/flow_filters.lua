@@ -509,7 +509,7 @@ if ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then
     for _, ports in pairs(ports_table) do
         for portidx, _ in pairsByKeys(ports, asc) do
             local name = format_portidx_name(dev_ip, portidx)
-            tmp_list[name] = {
+            tmp_list[tostring(name)] = {
                 key = "inIfIdx",
                 value = portidx,
                 label = name
@@ -541,7 +541,7 @@ if ntop.isPro() and not isEmptyString(_GET["deviceIP"]) then
     for _, ports in pairs(ports_table) do
         for portidx, _ in pairsByKeys(ports, asc) do
             local name = format_portidx_name(dev_ip, portidx)
-            tmp_list[name] = {
+            tmp_list[tostring(name)] = {
                 key = "outIfIdx",
                 value = portidx,
                 label = name
