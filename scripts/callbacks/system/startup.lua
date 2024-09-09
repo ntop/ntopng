@@ -31,6 +31,7 @@ local presets_utils = require "presets_utils"
 local blog_utils = require("blog_utils")
 local vs_utils = require "vs_utils"
 local drop_host_pool_utils = require "drop_host_pool_utils"
+local json = require "dkjson"
 
 -- ##################################################################
 
@@ -39,6 +40,60 @@ traceError(TRACE_NORMAL, TRACE_CONSOLE, "Processing startup.lua: please hold on.
 if ntop.isPro() then
    package.path = dirs.installdir .. "/pro/scripts/callbacks/system/?.lua;" .. package.path
    require("startup")
+end
+
+-- ##################################################################
+
+local function migrate_script_config(conf, proto_name)
+   local config = conf.config.flow["unexpected_"..proto_name]
+   local ret = false
+
+   if(config ~= nil) then
+      if(config.all.enabled) then
+	 local value = config.all.script_conf.items
+
+	 if(value ~= nil) then
+	    -- tprint(value)
+	    local new_key = "ntopng.prefs.nw_config_" .. proto_name .. "_list"
+	    local new_value = ""
+
+	    for k,v in pairs(value) do
+	       if(k == 1) then
+		  new_value = v
+	       else
+		  new_value = new_value .. "," .. v
+	       end
+	    end
+
+	    if(new_value ~= "") then
+	      --  tprint(new_key.." = "..new_value)
+	       ntop.setCache("ntopng.prefs.nw_config_"..proto_name.."_list", new_value)
+	       ret = true
+	    end
+
+	    config.all.script_conf.items = nil -- remove value from config
+	 end
+      end
+   end
+
+   return ret
+end
+
+local function migrate_unexpected_proto_config()
+   local key = "ntopng.prefs.checks.configset_v1"
+   local conf = json.decode(ntop.getCache(key))
+   local modified
+   local rc = false
+
+   rc = rc or migrate_script_config(conf, "dns")
+   rc = rc or migrate_script_config(conf, "ntp")
+   rc = rc or migrate_script_config(conf, "dhcp")
+   rc = rc or migrate_script_config(conf, "smtp")
+
+   if(rc == true) then
+      -- something has been migrated
+      ntop.setCache(key, json.encode(conf))
+   end
 end
 
 -- ##################################################################
@@ -243,6 +298,9 @@ end
 vs_utils.migrate_keys()
 vs_utils.restore_host_to_scan()
 
+-- migrate unexpected dns/ntp/dhcp/smtp scripts to /lua/admin/network_configuration.lua
+migrate_unexpected_proto_config()
+
 -- Reload Alert Exclusions
 ntop.reloadAlertExclusions()
 
@@ -251,6 +309,6 @@ ntop.delCache("ntopng.limits.exporters")
 
 -- initialization of mitre attack matrix informations
 local mitre_utils = require "mitre_utils"
-local mitre_table = mitre_utils.insertDBMitreInfo() 
+local mitre_table = mitre_utils.insertDBMitreInfo()
 
 traceError(TRACE_NORMAL, TRACE_CONSOLE, "Completed startup.lua")
