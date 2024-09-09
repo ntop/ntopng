@@ -2292,7 +2292,7 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
       /* enable uploading (implies PUT over HTTP) */
       curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
     }
-    
+
     if (write_fname) {
       ntop->fixPath(write_fname);
       out_f = fopen(write_fname, "wb");
@@ -3473,7 +3473,17 @@ ndpi_patricia_node_t *Utils::ptree_add_rule(ndpi_patricia_tree_t *ptree,
   ndpi_patricia_node_t *node = NULL;
 
   line = strdup(addr_line);
-  ip = line;
+
+  /* Remove heading/trailer  []  if present */
+  if(line[0] == '[') {
+    int len = strlen(line);
+
+    if(len > 0) line[len-1] = '\0';
+
+    ip = &line[1];
+  } else
+    ip = line;
+
   bits = strchr(line, '/');
   if (bits == NULL)
     bits = (char *)"/32";
@@ -3897,7 +3907,7 @@ int Utils::retainWriteCapabilities() {
   caps = cap_get_proc();
 
   /* (2) Add the capability of interest to the permitted capabilities  */
-  /* CAP_PERMITTED: It is a superset for the effective capabilities that the process may assume. 
+  /* CAP_PERMITTED: It is a superset for the effective capabilities that the process may assume.
      If the capability is available in this set, a process transitions it to an effective set and drops it later.
      But once a process has dropped capability from the permitted set, it can not re-aquire
   */
@@ -3914,7 +3924,7 @@ int Utils::retainWriteCapabilities() {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_flag error: %s", strerror(errno));
 
   /* (3) Set the new process capabilities */
-  rc = cap_set_proc(caps); 
+  rc = cap_set_proc(caps);
   if (rc == 0) {
 #ifdef TRACE_CAPABILITIES
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[CAPABILITIES] INITIAL SETUP [%s][num_cap: %u]",
@@ -3982,7 +3992,7 @@ static int _setWriteCapabilities(int enable) {
                                    strerror(errno));
       rc = -1;
     }
-    
+
     if (cap_set_proc(caps) == -1) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_set_proc error: %s [enable: %u]",
 				   strerror(errno), enable);
@@ -3994,7 +4004,7 @@ static int _setWriteCapabilities(int enable) {
                                    enable ? "ENABLE" : "DISABLE", rc);
 #endif
     }
-    
+
 #ifdef TRACE_CAPABILITIES
     if(rc != -1)
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -4010,7 +4020,7 @@ static int _setWriteCapabilities(int enable) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Capabilities cap_get_proc error");
     rc = -1;
   }
-  
+
   if (!enable) capabilitiesMutex.unlock(__FILE__, __LINE__);
 #else
   rc = -1;
@@ -7194,7 +7204,7 @@ bool Utils::readEthernetIPDeviceInfo(char *device_ip, u_int8_t timeout_sec, lua_
 		char str[64];
 		u_int32_t u32;
 		bool found = false;
-		
+
 		offset += 16; /* Skip socket address */
 
 		l = /* ntohs */(*((u_int16_t*)&response[offset])); offset += 2;
@@ -7214,7 +7224,7 @@ bool Utils::readEthernetIPDeviceInfo(char *device_ip, u_int8_t timeout_sec, lua_
 
 		l = /* ntohs */(*((u_int16_t*)&response[offset])); offset += 2;
 		lua_push_int32_table_entry(vm, "product_code", l);
-		
+
 		snprintf(str, sizeof(str), "%u.%02u", response[offset], response[offset+1]); offset += 2;
 		lua_push_str_table_entry(vm, "revision", str);
 
@@ -7228,7 +7238,7 @@ bool Utils::readEthernetIPDeviceInfo(char *device_ip, u_int8_t timeout_sec, lua_
 		strncpy(str, (char*)&response[offset+1], ndpi_min(sizeof(str)-1, l)); str[l] = '\0';
 		offset += l + 1;
 		lua_push_str_table_entry(vm, "product_name", str);
-		
+
 		offset++; /* Skip state */
 	      }
 	    }
