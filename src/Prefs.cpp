@@ -219,8 +219,8 @@ Prefs::Prefs(Ntop *_ntop) {
   ls_proto = NULL;
   has_cmdl_trace_lvl = false;
 
-  dns_servers = new (std::nothrow) ServerConfiguration();
-  ntp_servers = new (std::nothrow) ServerConfiguration();
+  dns_servers  = new (std::nothrow) ServerConfiguration();
+  ntp_servers  = new (std::nothrow) ServerConfiguration();
   dhcp_servers = new (std::nothrow) ServerConfiguration();
   smtp_servers = new (std::nothrow) ServerConfiguration();
 
@@ -316,6 +316,11 @@ Prefs::~Prefs() {
   if(modbus_allowed_function_codes)
     ndpi_bitmap_free(modbus_allowed_function_codes);
 #endif
+
+  if(dns_servers)  delete dns_servers;
+  if(ntp_servers)  delete ntp_servers;
+  if(dhcp_servers) delete dhcp_servers;
+  if(smtp_servers) delete smtp_servers;
 }
 
 /* ******************************************* */
