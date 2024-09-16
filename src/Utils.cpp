@@ -2739,6 +2739,14 @@ char *Utils::formatMac(const u_int8_t *const mac, char *buf, u_int buf_len) {
 
 /* **************************************** */
 
+u_int64_t Utils::encodeMacTo64(u_int8_t mac[6]) {
+  u_int64_t m = 0;
+  memcpy(&m, mac, 6);
+  return (m);
+}
+
+/* **************************************** */
+
 u_int64_t Utils::macaddr_int(const u_int8_t *mac) {
   if (mac == NULL)
     return (0);

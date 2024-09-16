@@ -1061,7 +1061,7 @@ static int ntop_get_mac_64(lua_State *vm) {
 
   Utils::parseMac(mac, mac_str);
 
-  lua_pushnumber(vm, Mac::to64(mac));
+  lua_pushnumber(vm, Utils::encodeMacTo64(mac));
 
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
 }

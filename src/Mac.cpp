@@ -462,15 +462,7 @@ void Mac::deleteMacData() {
 
 /* *************************************** */
 
-u_int64_t Mac::to64(u_int8_t mac[6]) {
-  u_int64_t m = 0;
-  memcpy(&m, mac, 6);
-  return (m);
-}
-
-/* *************************************** */
-
-u_int64_t Mac::get_mac64() { return Mac::to64(mac); }
+u_int64_t Mac::get_mac64() { return Utils::encodeMacTo64(mac); }
 
 /* *************************************** */
 
