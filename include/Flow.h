@@ -78,6 +78,8 @@ class Flow : public GenericHashEntry {
   } predominant_alert_info;
 
   char *json_protocol_info, *riskInfo, *end_reason;
+  char *wlan_ssid;
+  u_int8_t wtp_mac_address[6];
 
   /* Calculate the entropy on the first MAX_ENTROPY_BYTES bytes */
   struct {
@@ -1330,6 +1332,9 @@ inline float get_goodput_bytes_thpt() const { return (goodput_bytes_thpt); };
   void setFlowRiskName(char *r);
   char *getFlowRiskName();
   void getJSONRiskInfo(ndpi_serializer *serializer);
+  void setWLANInfo(char *wlan_ssid, u_int8_t *wtp_mac_address);
+  char *getWLANSSID() { return (wlan_ssid); };
+  u_int8_t *getWTPMACAddress() { return (wtp_mac_address); };
 
   inline FlowTrafficStats *getTrafficStats() { return (&stats); };
   inline char *get_custom_category_file() const {

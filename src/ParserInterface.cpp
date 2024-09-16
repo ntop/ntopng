@@ -360,6 +360,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   flow->setTOS(zflow->src_tos, true), flow->setTOS(zflow->dst_tos, false);
   flow->setRtt();
 
+  if (zflow->getWLANSSID())
+    flow->setWLANInfo(zflow->getWLANSSID(), zflow->getWTPMACAddress());
+
   if(zflow->getSIPCallId())
     flow->setSIPCallId(zflow->getSIPCallId());
 

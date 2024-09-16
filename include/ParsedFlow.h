@@ -53,6 +53,8 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   ndpi_risk ndpi_flow_risk_bitmap;
   char *ndpi_flow_risk_name;
   FlowSource flow_source;
+  char *wlan_ssid;
+  u_int8_t wtp_mac_address[6];
   
  public:
   ParsedFlow();
@@ -132,6 +134,9 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline void setPreNATDstPort(u_int16_t v) { dst_port_pre_nat = v; };
   inline void setPostNATSrcPort(u_int16_t v) { src_port_post_nat = v; };
   inline void setPostNATDstPort(u_int16_t v) { dst_port_post_nat = v; };
+  inline void setWLANSSID(const char *str) { if(wlan_ssid != NULL) free(wlan_ssid);  if(str) { wlan_ssid = strdup(str);} else wlan_ssid = NULL; }
+  inline void setWTPMACAddress(const char *str) { Utils::parseMac(wtp_mac_address, str); }
+
   /* ****** */
   inline char* getL7Info(bool setToNULL = false)  { char *r = l7_info; if(setToNULL) l7_info = NULL; return(r); }
   inline char* getHTTPurl(bool setToNULL = false) { char *r = http_url; if(setToNULL) http_url = NULL; return(r); }
@@ -149,6 +154,9 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline char* getSMTPMailFrom(bool setToNull = false) { char *r = smtp_mail_from; if(setToNull) smtp_mail_from = NULL; return(r); }
   inline char* getDHCPClientName(bool setToNull = false) { char *r = dhcp_client_name; if(setToNull) dhcp_client_name = NULL; return(r); }
   inline char* getSIPCallId(bool setToNull = false) { char *r = sip_call_id; if(setToNull) sip_call_id = NULL; return(r); }
+  inline char* getWLANSSID(bool setToNull = false) { char *r = wlan_ssid; if(setToNull) wlan_ssid = NULL; return(r); }
+  inline u_int8_t *getWTPMACAddress() { return wtp_mac_address; }
+
   inline u_int32_t getPreNATSrcIp() { return src_ip_addr_pre_nat; };
   inline u_int32_t getPreNATDstIp() { return dst_ip_addr_pre_nat; };
   inline u_int32_t getPostNATSrcIp() { return src_ip_addr_post_nat; };

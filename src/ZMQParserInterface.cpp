@@ -76,11 +76,6 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addMapping("IPV6_DST_ADDR", IPV6_DST_ADDR);
   addMapping("IP_PROTOCOL_VERSION", IP_PROTOCOL_VERSION);
   addMapping("PROTOCOL", PROTOCOL);
-  addMapping("L7_PROTO", L7_PROTO, NTOP_PEN);
-  addMapping("L7_PROTO_NAME", L7_PROTO_NAME, NTOP_PEN);
-  addMapping("L7_INFO", L7_INFO, NTOP_PEN);
-  addMapping("L7_CONFIDENCE", L7_CONFIDENCE, NTOP_PEN);
-  addMapping("L7_ERROR_CODE", L7_ERROR_CODE, NTOP_PEN);
   addMapping("IN_BYTES", IN_BYTES);
   addMapping("IN_PKTS", IN_PKTS);
   addMapping("OUT_BYTES", OUT_BYTES);
@@ -90,8 +85,6 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addMapping("EXPORTER_IPV4_ADDRESS", EXPORTER_IPV4_ADDRESS);
   addMapping("EXPORTER_IPV6_ADDRESS", EXPORTER_IPV6_ADDRESS);
   addMapping("TOTAL_FLOWS_EXP", TOTAL_FLOWS_EXP);
-  addMapping("NPROBE_IPV4_ADDRESS", NPROBE_IPV4_ADDRESS, NTOP_PEN);
-  addMapping("NPROBE_INSTANCE_NAME", NPROBE_INSTANCE_NAME, NTOP_PEN);
   addMapping("TCP_FLAGS", TCP_FLAGS);
   addMapping("INITIATOR_PKTS", INITIATOR_PKTS);
   addMapping("INITIATOR_OCTETS", INITIATOR_OCTETS);
@@ -113,6 +106,17 @@ ZMQParserInterface::ZMQParserInterface(const char *endpoint,
   addMapping("BGP_NEXT_ADJACENT_ASN", BGP_NEXT_ADJACENT_ASN);
   addMapping("BGP_PREV_ADJACENT_ASN", BGP_PREV_ADJACENT_ASN);
   addMapping("FLOW_END_REASON", FLOW_END_REASON);
+  addMapping("WLAN_SSID", WLAN_SSID);
+  addMapping("WTP_MAC_ADDRESS", WTP_MAC_ADDRESS);
+
+  /* ntop IEs */
+  addMapping("L7_PROTO", L7_PROTO, NTOP_PEN);
+  addMapping("L7_PROTO_NAME", L7_PROTO_NAME, NTOP_PEN);
+  addMapping("L7_INFO", L7_INFO, NTOP_PEN);
+  addMapping("L7_CONFIDENCE", L7_CONFIDENCE, NTOP_PEN);
+  addMapping("L7_ERROR_CODE", L7_ERROR_CODE, NTOP_PEN);
+  addMapping("NPROBE_IPV4_ADDRESS", NPROBE_IPV4_ADDRESS, NTOP_PEN);
+  addMapping("NPROBE_INSTANCE_NAME", NPROBE_INSTANCE_NAME, NTOP_PEN);
   addMapping("OOORDER_IN_PKTS", OOORDER_IN_PKTS, NTOP_PEN);
   addMapping("OOORDER_OUT_PKTS", OOORDER_OUT_PKTS, NTOP_PEN);
   addMapping("RETRANSMITTED_IN_PKTS", RETRANSMITTED_IN_PKTS, NTOP_PEN);
@@ -896,6 +900,12 @@ bool ZMQParserInterface::parsePENZeroField(ParsedFlow *const flow,
     case BGP_PREV_ADJACENT_ASN:
       flow->prev_adjacent_as = value->int_num;
       break;
+    case WLAN_SSID:
+      if (value->string) flow->setWLANSSID(value->string);
+      break;
+    case WTP_MAC_ADDRESS:
+      if (value->string) flow->setWTPMACAddress(value->string);
+      break;
     default:
       ntop->getTrace()->traceEvent(TRACE_INFO,
                                    "Skipping no-PEN flow fieldId %u", field);
@@ -1453,6 +1463,18 @@ bool ZMQParserInterface::matchPENZeroField(ParsedFlow *const flow,
         return (flow->prev_adjacent_as == (u_int32_t)atoi(value->string));
       else
         return (flow->prev_adjacent_as == value->int_num);
+
+    case WLAN_SSID:
+      if (value->string) {
+        if (flow->getWLANSSID())
+          return (!strcmp(value->string, flow->getWLANSSID()));
+      }
+
+    case WTP_MAC_ADDRESS: {
+      u_int8_t mac[6];
+      Utils::parseMac(mac, value->string);
+      return (memcmp(flow->getWTPMACAddress(), mac, sizeof(mac)) == 0);
+    }
 
     default:
       ntop->getTrace()->traceEvent(TRACE_INFO,

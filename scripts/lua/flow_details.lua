@@ -2010,6 +2010,19 @@ else
         end
     end
 
+    if flow.wlan then
+        if flow.wlan.ssid then
+            print("<tr><th width=10%>" .. getFlowKey('WLAN_SSID') .. "</th>")
+            print("<td colspan=2>" .. flow.wlan["ssid"] .. "</td>")
+            print("</tr>\n")
+        end
+        if flow.wlan.wtp_mac_address then
+            print("<tr><th width=10%>" .. getFlowKey('WTP_MAC_ADDRESS') .. "</th>")
+            print("<td colspan=2>" .. flow.wlan["wtp_mac_address"] .. "</td>")
+            print("</tr>\n")
+        end
+    end
+
     if (flow.flow_payload ~= nil) then
         local idx
 

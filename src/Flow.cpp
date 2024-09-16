@@ -103,6 +103,8 @@ Flow::Flow(NetworkInterface *_iface,
   ndpiFlowRiskName = NULL;
   viewFlowStats = NULL, suspicious_dga_domain = NULL;
   flow_payload = NULL, flow_payload_len = 0;
+  wlan_ssid = NULL;
+  memset(wtp_mac_address, 0, sizeof(wtp_mac_address));
 
   last_db_dump.partial = NULL;
   last_db_dump.first_seen = last_db_dump.last_seen = 0;
@@ -422,6 +424,7 @@ Flow::~Flow() {
 
   if (riskInfo) free(riskInfo);
   if (end_reason) free(end_reason);
+  if (wlan_ssid) free(wlan_ssid);
   if (viewFlowStats) delete (viewFlowStats);
   if (periodic_stats_update_partial) delete (periodic_stats_update_partial);
   if (last_db_dump.partial) delete (last_db_dump.partial);
@@ -3004,6 +3007,20 @@ void Flow::lua(lua_State *vm, AddressTree *ptree, DetailsLevel details_level,
     if (end_reason)
       lua_push_str_table_entry(vm, "flow_end_reason", getEndReason());
 
+    if (wlan_ssid) {
+      char mac_buf[20];
+
+      lua_newtable(vm);
+
+      lua_push_str_table_entry(vm, "ssid", wlan_ssid);
+      lua_push_str_table_entry(vm, "wtp_mac_address",
+        Utils::formatMac(wtp_mac_address, mac_buf, sizeof(mac_buf)));
+
+      lua_pushstring(vm, "wlan");
+      lua_insert(vm, -2);
+      lua_settable(vm, -3);
+    }
+
     if (isSMTP()
 	/* Discard SMTP connections that become TLS as the SMTP part is not populated */
 	&& (!isSMTPS())) {
@@ -3960,6 +3977,19 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			   Utils::jsonLabel(FLOW_END_REASON, "FLOW_END_REASON", jsonbuf,
 					    sizeof(jsonbuf)),
 			   json_object_new_string(end_reason));
+
+  if (wlan_ssid) {
+    char mac_buf[20];
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(WLAN_SSID, "WLAN_SSID", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_string(wlan_ssid));
+    json_object_object_add(my_object,
+			   Utils::jsonLabel(WTP_MAC_ADDRESS, "WTP_MAC_ADDRESS", jsonbuf,
+					    sizeof(jsonbuf)),
+			   json_object_new_string(Utils::formatMac(wtp_mac_address, mac_buf,
+                                                                   sizeof(mac_buf))));
+  }
 
   if (protocol == IPPROTO_TCP) {
     json_object_object_add(my_object,
@@ -8287,6 +8317,16 @@ void Flow::setEndReason(char *r) {
 /* *************************************** */
 
 char *Flow::getEndReason() { return (end_reason); }
+
+/* *************************************** */
+
+void Flow::setWLANInfo(char *_wlan_ssid, u_int8_t *_wtp_mac_address) {
+  if (_wlan_ssid) {
+    if (wlan_ssid) free(wlan_ssid);
+    wlan_ssid = strdup(_wlan_ssid);
+  }
+  memcpy(wtp_mac_address, _wtp_mac_address, 6);
+}
 
 /* *************************************** */
 

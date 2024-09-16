@@ -53,6 +53,8 @@ ParsedFlow::ParsedFlow() : ParsedFlowCore(), ParsedeBPF() {
   src_ip_addr_pre_nat = dst_ip_addr_pre_nat =
     src_ip_addr_post_nat = dst_ip_addr_post_nat = 0;
   memset(&custom_app, 0, sizeof(custom_app));
+  wlan_ssid = NULL;
+  memset(&wtp_mac_address, 0, sizeof(wtp_mac_address));
 
   has_parsed_ebpf = false;
 }
@@ -149,6 +151,13 @@ ParsedFlow::ParsedFlow(const ParsedFlow &pf) : ParsedFlowCore(pf), ParsedeBPF(pf
     sip_call_id = strdup(pf.sip_call_id);
   else
     sip_call_id = NULL;
+
+  if(pf.wlan_ssid)
+    wlan_ssid = strdup(pf.wlan_ssid);
+  else
+    wlan_ssid = NULL;
+
+  memcpy(&wtp_mac_address, &pf.wtp_mac_address, sizeof(wtp_mac_address));
 
   tls_cipher = pf.tls_cipher;
   tls_unsafe_cipher = pf.tls_unsafe_cipher;
@@ -322,6 +331,7 @@ void ParsedFlow::freeMemory() {
   if (smtp_mail_from)       { free(smtp_mail_from); smtp_mail_from = NULL; }
   if (dhcp_client_name)     { free(dhcp_client_name); dhcp_client_name = NULL; }
   if (sip_call_id)          { free(sip_call_id); sip_call_id = NULL; }
+  if (wlan_ssid)            { free(wlan_ssid); wlan_ssid = NULL; }
 }
 
 /* *************************************** */
