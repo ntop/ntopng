@@ -1789,11 +1789,13 @@ bool ZMQParserInterface::preprocessFlow(ParsedFlow *flow) {
                flow->dst_ip.isEmpty())
         flow->dst_ip.setVersion(6);
       else {
+        char buf_src[64], buf_dst[64];
         invalid_flow = true;
 
         ntop->getTrace()->traceEvent(TRACE_WARNING,
-				     "IP version mismatch: client:%d server:%d - flow will be ignored",
-				     flow->src_ip.getVersion(), flow->dst_ip.getVersion());
+				     "IP version mismatch: client: %s (%d) server: %s (%d) - flow will be ignored",
+				     flow->src_ip.print(buf_src, sizeof(buf_src)), flow->src_ip.getVersion(),
+                                     flow->dst_ip.print(buf_dst, sizeof(buf_dst)), flow->dst_ip.getVersion());
       }
     }
   }
