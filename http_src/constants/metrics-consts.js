@@ -1,6 +1,7 @@
 import interfaceTopTables from "./interface_top_tables.js";
 import hostTopTables from "./host_top_tables.js";
 import snmpInterfaceTopTables from "./snmp_interface_top_tables.js";
+import snmpInterfaceUsage from "./snmp_interface_usage_tables.js";
 import flowDeviceTopTables from "./flow_device_top_tables.js";
 import proxySnmp from "../proxies/snmp.js";
 
@@ -69,6 +70,7 @@ const sources_types_tables = {
 	interface: interfaceTopTables,
 	host: hostTopTables,
 	snmp_device: snmpInterfaceTopTables,
+	snmp_interface: snmpInterfaceUsage,
 	flow_device: flowDeviceTopTables,
 	flow_interface: flowDeviceTopTables,
 };

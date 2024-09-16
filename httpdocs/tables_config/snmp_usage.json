@@ -91,6 +91,15 @@
 			]
 		},
 		{
+			"title_i18n": "score_usage",
+			"data_field": "score",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
 			"title_i18n": "page_stats.congestion_rate",
 			"data_field": "congestion_rate",
 			"sortable": true,

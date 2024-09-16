@@ -715,23 +715,24 @@ function print_stats_row(col, row) {
 function jump_to_historical_flows() {
     let status = ntopng_status_manager.get_status();
     let params = { epoch_begin: status.epoch_begin, epoch_end: status.epoch_end };
-    debugger;
     /* Add the source elements to the redirect, like host, snmp, ecc. */
     if (last_timeseries_groups_loaded && last_timeseries_groups_loaded.length > 0) {
         /* Use the first element */
         const source_array = last_timeseries_groups_loaded[0].source_array
         const source_def = last_timeseries_groups_loaded[0].source_type.source_def_array
         if (source_array) {
+            let probe = ''
             source_array.forEach((elem, i) => {
                 if (!dataUtils.isEmptyOrNull(elem.label) && source_def[i]) {
                     const value = source_def[i].value
                     switch (value) {
                         case 'device':
+                            probe = elem.value
                             params["probe_ip"] = `${elem.value};eq` 
                             break;
-                        case 'if_index':
                         case 'port':
-                            params["snmp_interface"] = `${elem.value};eq` 
+                        case 'if_index':
+                            params["snmp_interface"] = `${probe}_${elem.value};eq` 
                             break;
                         case 'host':
                             params["ip"] = `${elem.value};eq` 
@@ -761,6 +762,7 @@ function jump_to_historical_flows() {
             })
         }
     }
+    debugger;
     let url_params = ntopng_url_manager.obj_to_url_params(params);
     const historical_url = `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
     ntopng_url_manager.go_to_url(historical_url);
