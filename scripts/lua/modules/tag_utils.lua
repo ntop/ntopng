@@ -616,12 +616,12 @@ tag_utils.defined_tags = {
     },
     wlan_ssid = {
         value_type = 'text',
-        i18n_label = i18n('db_search.tags.apn_mac'),
+        i18n_label = i18n('db_search.tags.wlan_ssid'),
         operators = {'eq', 'neq', 'in', 'nin'}
     },
     apn_mac = {
         value_type = 'mac',
-        i18n_label = i18n('db_search.tags.wlan_ssid'),
+        i18n_label = i18n('db_search.tags.apn_mac'),
         operators = {'eq', 'neq'}
     },
 }
