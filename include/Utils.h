@@ -156,8 +156,10 @@ class Utils {
   static u_int32_t timeval2usec(const struct timeval *tv);
   static void xor_encdec(u_char *data, int data_len, u_char *key);
   static bool isPrintableChar(u_char c);
+  static char *formatMacAddress(const u_int8_t *const mac, char *buf, u_int buf_len);
   static char *formatMac(const u_int8_t *const mac, char *buf, u_int buf_len);
   static u_int64_t encodeMacTo64(u_int8_t mac[6]);
+  static void decode64ToMac(u_int64_t mac64, u_int8_t mac[6] /* out */);
   static void parseMac(u_int8_t *mac, const char *symMac);
   static u_int32_t macHash(const u_int8_t *const mac);
   static bool isEmptyMac(const u_int8_t *const mac);

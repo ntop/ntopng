@@ -2727,9 +2727,10 @@ bool Utils::discardOldFilesExceeding(const char *path,
 
 /* **************************************** */
 
-char *Utils::formatMac(const u_int8_t *const mac, char *buf, u_int buf_len) {
-  if ((mac == NULL) || (ntop->getPrefs()->getHostMask() != no_host_mask))
-    snprintf(buf, buf_len, "00:00:00:00:00:00");
+/* Format MAC address to string */
+char *Utils::formatMacAddress(const u_int8_t *const mac, char *buf, u_int buf_len) {
+  if (mac == NULL)
+    buf[0] = '\0';
   else
     snprintf(buf, buf_len, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0] & 0xFF,
              mac[1] & 0xFF, mac[2] & 0xFF, mac[3] & 0xFF, mac[4] & 0xFF,
@@ -2739,10 +2740,27 @@ char *Utils::formatMac(const u_int8_t *const mac, char *buf, u_int buf_len) {
 
 /* **************************************** */
 
+/* Format host MAC in case of getHostMask() = no_host_mask */
+char *Utils::formatMac(const u_int8_t *const mac, char *buf, u_int buf_len) {
+  if (ntop->getPrefs()->getHostMask() != no_host_mask) {
+    snprintf(buf, buf_len, "00:00:00:00:00:00");
+    return buf;
+  }
+  return Utils::formatMacAddress(mac, buf, buf_len);
+}
+
+/* **************************************** */
+
 u_int64_t Utils::encodeMacTo64(u_int8_t mac[6]) {
   u_int64_t m = 0;
   memcpy(&m, mac, 6);
   return (m);
+}
+
+/* **************************************** */
+
+void Utils::decode64ToMac(u_int64_t mac64, u_int8_t mac[6] /* out */) {
+  memcpy(mac, &mac64, 6);
 }
 
 /* **************************************** */

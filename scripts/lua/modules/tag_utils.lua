@@ -614,6 +614,16 @@ tag_utils.defined_tags = {
         i18n_label = i18n('db_search.tags.mitre_id'),
         operators = {'eq', 'neq'}
     },
+    wlan_ssid = {
+        value_type = 'text',
+        i18n_label = i18n('db_search.tags.apn_mac'),
+        operators = {'eq', 'neq', 'in', 'nin'}
+    },
+    apn_mac = {
+        value_type = 'mac',
+        i18n_label = i18n('db_search.tags.wlan_ssid'),
+        operators = {'eq', 'neq'}
+    },
 }
 -- #####################################
 

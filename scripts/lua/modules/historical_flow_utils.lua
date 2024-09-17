@@ -347,7 +347,10 @@ end
 -- #####################################
 
 local function dt_format_mac(mac)
-   return mac
+   if mac == nil then return "" end
+   mac = tonumber(mac)
+   if mac == 0 then return "" end
+   return ntop.decodeMac64(mac)
 end
 
 -- #####################################
@@ -1116,6 +1119,8 @@ local flow_columns = {
    ['POST_NAT_SRC_PORT']      = { tag = "post_nat_src_port", dt_func = dt_format_port, db_type = "Number", db_raw_type = "Uint16" },
    ['POST_NAT_IPV4_DST_ADDR'] = { tag = "post_nat_ipv4_dst_addr", dt_func = dt_format_nat_ip, select_func = "IPv4NumToString", db_type = "Number", db_raw_type = "Uint32"  },
    ['POST_NAT_DST_PORT']      = { tag = "post_nat_dst_port", dt_func = dt_format_port, db_type = "Number", db_raw_type = "Uint16" },
+   ['WLAN_SSID']              = { tag = "wlan_ssid", db_type = "String", db_raw_type = "String" },
+   ['WTP_MAC_ADDRESS']        = { tag = "apn_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
    
    --[[ TODO: this column is for the aggregated_flow_columns but the parsing Function
               only parses these columns, so a new logic to parse only the aggregated_flow_columns
@@ -1163,7 +1168,8 @@ local aggregated_flow_columns = {
    ['OUTPUT_SNMP'] =          { tag = "output_snmp", dt_func = dt_format_snmp_interface, db_type = "Number", db_raw_type = "Uint32" },
    ['SRC_NETWORK_ID'] =       { tag = "cli_network", dt_func = dt_format_network, db_type = "Number", db_raw_type = "Uint16" },
    ['DST_NETWORK_ID'] =       { tag = "srv_network", dt_func = dt_format_network, db_type = "Number", db_raw_type = "Uint16" },
-
+   ['WLAN_SSID'] =            { tag = "wlan_ssid", db_type = "String", db_raw_type = "String" },
+   ['WTP_MAC_ADDRESS'] =      { tag = "apn_mac", dt_func = dt_format_mac, db_type = "Number", db_raw_type = "Uint64" },
 }
 -- Extra columns (e.g. result of SQL functions)
 local additional_flow_columns = {

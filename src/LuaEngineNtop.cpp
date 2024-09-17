@@ -1068,6 +1068,25 @@ static int ntop_get_mac_64(lua_State *vm) {
 
 /* ****************************************** */
 
+static int ntop_decode_mac_64(lua_State *vm) {
+  u_int64_t mac64;
+  u_int8_t mac[6];
+  char buf[20];
+
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
+
+  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  mac64 = lua_tonumber(vm, 1);
+
+  Utils::decode64ToMac(mac64, mac);
+  lua_pushstring(vm, Utils::formatMacAddress(mac, buf, sizeof(buf)));
+
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+}
+
+/* ****************************************** */
+
 static int ntop_is_ipv6(lua_State *vm) {
   char *ip;
   struct in6_addr addr6;
@@ -8237,6 +8256,7 @@ static luaL_Reg _ntop_reg[] = {
     {"getTLSVersionName", ntop_get_tls_version_name},
     {"isIPv6", ntop_is_ipv6},
     {"getMac64", ntop_get_mac_64},
+    {"decodeMac64", ntop_decode_mac_64},
     {"reloadFlowChecks", ntop_reload_flow_checks},
     {"reloadHostChecks", ntop_reload_host_checks},
     {"reloadAlertExclusions", ntop_reload_alert_exclusions},
