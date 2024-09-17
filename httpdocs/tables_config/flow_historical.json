@@ -448,6 +448,7 @@
 			"data_field": "wlan_ssid",
 			"min-width": "100px",
 			"sortable": true,
+			"render_generic": "wlan_ssid",
 			"class": [
 				"no-wrap"
 			]
@@ -457,6 +458,7 @@
 			"data_field": "apn_mac",
 			"min-width": "100px",
 			"sortable": true,
+			"render_generic": "apn_mac",
 			"class": [
 				"no-wrap"
 			]
