@@ -879,6 +879,11 @@ function getExportersUnifiedStats()
     local unified_exporters = {}
     for interface_id, device_list in pairs(flowdevs or {}) do
         for device_id, exporter_info in pairs(device_list, asc) do
+            if type(exporter_info) == "number" then
+                tprint(flowdevs)
+                tprint(debug.traceback())
+                goto continue
+            end
             local exporter_ip = exporter_info.exporter_ip
             if not unified_exporters[exporter_ip] then
                 unified_exporters[exporter_ip] = {}
@@ -911,6 +916,7 @@ function getExportersUnifiedStats()
                     end
                 end
             end
+            ::continue::
         end
     end
 
