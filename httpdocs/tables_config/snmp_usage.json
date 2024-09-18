@@ -58,7 +58,7 @@
 			]
 		},
 		{
-			"title_i18n": "snmp.ifName",
+			"title_i18n": "snmp.interface",
 			"data_field": "interface",
 			"sortable": true,
 			"class": [

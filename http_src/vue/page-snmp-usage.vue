@@ -83,7 +83,9 @@ const map_table_def_columns = (columns) => {
             return `<a href=${url}>${value}</a>`
         },
         "interface": (value, row) => {
-            const url = `${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${row.ip}&snmp_port_idx=${row.ifid}`
+            const epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
+            const epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
+            const url = `${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${row.ip}&snmp_port_idx=${row.ifid}&page=historical&ifid=-1&epoch_end=${epoch_end}&epoch_begin=${epoch_begin}&timeseries_groups_mode=1_chart_x_metric&timeseries_groups=snmp_interface;-1%2B${row.ip}%2B${row.ifid};snmp_if:usage;uplink=true:false:false:false|downlink=true:false:false:false`
             return `<a href=${url}>${value}</a>`
         },
         "type": (type, row) => {
