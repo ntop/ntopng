@@ -2333,6 +2333,7 @@ local known_parameters = {
    ["toggle_slow_mode"] = validateBool,
    ["toggle_message_broker"] = validateBool,
    ["toggle_tls_quic_hostnaming"] = validateBool,
+   ["toggle_exclude_from_usage_page"] = validateBool,
 
    -- Input fields
    ["companion_interface"] = validateEmptyOr(validateInterface),
