@@ -759,6 +759,11 @@
   NTOPNG_PREFS_PREFIX ".behaviour_analysis_learning_status_during_learning"
 #define CONST_PREFS_BEHAVIOUR_ANALYSIS_STATUS_POST_LEARNING \
   NTOPNG_PREFS_PREFIX ".behaviour_analysis_learning_status_post_learning"
+  
+#define CONST_PREFS_HTTP_INDEX_PAGE \
+  NTOPNG_PREFS_PREFIX ".http_index_page"
+#define DEFAULT_HTTP_INDEX_PAGE \
+  ""
 
 #define CONST_PREFS_IEC60870_ANALYSIS_LEARNING_PERIOD \
   NTOPNG_PREFS_PREFIX ".iec60870_learning_period"

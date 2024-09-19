@@ -120,6 +120,7 @@ Prefs::Prefs(Ntop *_ntop) {
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
+  http_index_page = strdup("");
   instance_name = NULL;
   categorization_enabled = false, enable_users_login = true;
   categorization_key = NULL, zmq_encryption_pwd = NULL;
@@ -1030,6 +1031,11 @@ void Prefs::reloadPrefsFromRedis() {
   getDefaultStringPrefsValue(CONST_PREFS_MESSAGE_BROKER, &tmp, DEFAULT_MESSAGE_BROKER);
   if (message_broker) free(message_broker);
   message_broker = tmp;
+  char *tmp2 = NULL;
+  getDefaultStringPrefsValue(CONST_PREFS_HTTP_INDEX_PAGE, &tmp2, DEFAULT_HTTP_INDEX_PAGE);
+  if (http_index_page) free(http_index_page);
+  http_index_page = tmp2;
+
 
   global_dns_forging_enabled =
     getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, false);
@@ -2666,6 +2672,7 @@ void Prefs::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "is_interface_name_only",
                             enable_interface_name_only);
   lua_push_uint64_table_entry(vm, "http_port", http_port);
+  lua_push_str_table_entry(vm, "http_index_page", http_index_page);
 
   lua_push_uint64_table_entry(vm, "max_num_hosts", max_num_hosts);
   lua_push_uint64_table_entry(vm, "max_num_flows", max_num_flows);

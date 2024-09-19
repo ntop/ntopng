@@ -638,7 +638,21 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "is_interface_name_only"
         })
 
+        -- #####################
+
+        prefsInputFieldPrefs(subpage_active.entries["http_index_page"].title, subpage_active.entries["http_index_page"].description,
+            "ntopng.prefs.", "http_index_page", prefs.http_index_page, false, nil, nil, nil, {
+                style = {
+                    width = "25em;"
+                },
+                attributes = {
+                    spellcheck = "false",
+                    maxlength = 256,
+                }
+            })
+
         printMenuEntriesPrefs()
+        tprint(prefs)
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..

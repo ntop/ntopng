@@ -6790,6 +6790,8 @@ local lang = {
     ["ignored_interfaces_description"] = "When 'Ingress Interface' is selected as disaggregation criterion, do not add to a dynamic interface any flow having its %%INPUT_SNMP in this list. When 'Interface' disaggregation is selected, do not add to the first (second) dynamic interface any flow having its %%INPUT_SNMP (%%OUTPUT_SNMP) in this list. Specify one or more comma-separated SNMP interface ids. Changes require %{product} restart.",
     ["ignored_interfaces_title"] = "Ignored interfaces",
     ["incompatible_influxdb_version_found"] = "Incompatible InfluxDB version: required \"%{required}\", found \"%{found}\". Please install an updated version from the <a href='%{url}'>official site</a>.",
+    ["http_index_page"] = "Index Page",
+    ["http_index_page_description"] = "An ntopng page, used to be redirected whenever the ntopng index page is requested. By default it's the /index page, containing the main Dashboard (e.g. set /lua/pro/enterprise/snmpdevices_stats.lua to set the SNMP page as the default one instead of the Dashboard)",
     ["influxdb_auth_description"] = "Enable InfluxDB authentication.",
     ["influxdb_auth_title"] = "InfluxDB Authentication",
     ["influxdb_create_error"] = "Could not create \"%{db}\" database: %{msg}",

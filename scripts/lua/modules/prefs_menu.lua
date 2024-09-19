@@ -842,6 +842,10 @@ local menu_subpages = {{
                 product = info.product
             })
         },
+        http_index_page = {
+            title = i18n("prefs.http_index_page"),
+            description = i18n("prefs.http_index_page_description")
+        },
         toggle_menu_entry_help = {
             title = i18n("prefs.toggle_menu_entry_help_title"),
             description = i18n("prefs.toggle_menu_entry_help_description")

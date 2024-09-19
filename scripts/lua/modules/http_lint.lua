@@ -2380,6 +2380,7 @@ local known_parameters = {
    ["max_ui_strlen"] = validateNumber,
    ["ntopng_host_address"] = validateSingleWord,
    ["http_acl_management_port"] = validateACLNetworksList,
+   ["http_index_page"] = validateUnquoted,
    ["safe_search_dns"] = validateIPV4,
    ["global_dns"] = validateEmptyOr(validateIPV4),
    ["secondary_dns"] = validateEmptyOr(validateIPV4),

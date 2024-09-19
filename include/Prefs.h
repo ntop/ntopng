@@ -44,6 +44,7 @@ class Prefs {
   char **deferred_interfaces_to_register, *cli, *ciphers_list;
   char *http_binding_address1, *http_binding_address2;
   char *https_binding_address1, *https_binding_address2;
+  char *http_index_page;
   bool enable_client_x509_auth, reproduce_at_original_speed, disable_purge;
   char* zmq_publish_events_url, *http_log_path;
   const char *clickhouse_client, *clickhouse_cluster_name;
@@ -558,6 +559,9 @@ class Prefs {
   };
   inline u_int32_t get_pkt_ifaces_flow_max_idle() {
     return (pkt_ifaces_flow_max_idle);
+  };
+  inline char *getHttpIndexPage() {
+    return http_index_page;
   };
   inline bool are_top_talkers_enabled() { return (enable_top_talkers); };
   inline bool flow_table_duration_or_last_seen() { return (flow_table_time); };
