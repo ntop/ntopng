@@ -652,7 +652,6 @@ if auth.has_capability(auth.capabilities.preferences) then
             })
 
         printMenuEntriesPrefs()
-        tprint(prefs)
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
