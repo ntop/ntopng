@@ -1374,7 +1374,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                             if not hide_exporters_name then
                                 label = exporter_ip .. ' · ' .. label
                             end
-                            interfaces_list[label] = {
+                            interfaces_list[tostring(label)] = {
                                 value = exporter_ip .. "_" .. interface_id,
                                 label = label,
                                 show_only_value = exporter_ip
