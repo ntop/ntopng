@@ -350,6 +350,23 @@ Flow::~Flow() {
   bool is_oneway_tcp_udp_flow =
     (((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) && isOneWay()) ? true : false;
 
+#ifdef DOMAIN_COLLECTION
+  if(host_server_name != NULL) {
+    if(strchr(host_server_name, ':') == NULL /* No IPv6 or IP:port */) {
+      const char *domain = ndpi_get_host_domain(iface->get_ndpi_struct(), host_server_name);
+      int len = strlen(domain);
+      
+      if((len > 0)
+	 && (!isdigit(domain[len-1]))
+	 && (domain[0] != '_')
+	 && (strchr(domain, '.') != NULL)) {
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", domain);
+	ntop->getRedis()->hashSet("ntopng.domains", domain, "1");
+      }
+    }
+  }
+#endif
+  
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (getUses() != 0 && !ntop->getGlobals()->isShutdown())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Deleting flow [%u]",
@@ -765,14 +782,12 @@ void Flow::processExtraDissectedInformation() {
 		ipv4_addr = ntohl(inet_addr(buf));
 
 		if (addr->equal(ipv4_addr))
-		  srv_host->setResolvedName(
-					    (char *)ndpiFlow->protos.dns.ptr_domain_name);
+		  srv_host->setResolvedName((char *)ndpiFlow->protos.dns.ptr_domain_name);
 		else {
 		  /* This is not the right IPv4 host: let's cache it for later
 		   */
 
-		  ntop->getRedis()->setResolvedAddress(
-						       buf, (char *)ndpiFlow->protos.dns.ptr_domain_name);
+		  ntop->getRedis()->setResolvedAddress(buf, (char *)ndpiFlow->protos.dns.ptr_domain_name);
 		}
 	      }
 	    } else if (strcmp(&ndpiFlow->host_server_name[len - 9],
