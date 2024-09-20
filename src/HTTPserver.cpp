@@ -1504,12 +1504,8 @@ static int handle_lua_request(struct mg_connection *conn) {
                  request_info->uri + 9);
       else
         snprintf(path, sizeof(path), "%s%s%s", httpserver->get_scripts_dir(),
-                 Utils::getURL(
-                     len == 1 ? (char *)"/lua/index.lua" : request_info->uri,
-                     uri, sizeof(uri)),
-                 len > 1 && request_info->uri[len - 1] == '/'
-                     ? (char *)"index.lua"
-                     : (char *)"");
+                 Utils::getURL(len == 1 ? (char *)ntop->getPrefs()->getHttpIndexPage() : request_info->uri, uri, sizeof(uri)),
+                 len > 1 && request_info->uri[len - 1] == '/' ? (char *)"index.lua" : (char *)"");
 
       if (strlen(path) > 4 && strncmp(&path[strlen(path) - 4], ".lua", 4))
         snprintf(&path[strlen(path)], sizeof(path) - strlen(path) - 1, "%s",

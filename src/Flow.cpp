@@ -362,7 +362,7 @@ Flow::~Flow() {
 	 && (strchr(domain, '.') != NULL)
 	 && (ndpi_strrstr(domain, ".local") == NULL)
 	 ) {
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", domain);
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%s]", domain, host_server_name);
 	ntop->getRedis()->hashSet("ntopng.domains", domain, "1");
       }
     }

@@ -120,7 +120,7 @@ Prefs::Prefs(Ntop *_ntop) {
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
-  http_index_page = strdup("");
+  http_index_page = strdup("/lua/index.lua");
   instance_name = NULL;
   categorization_enabled = false, enable_users_login = true;
   categorization_key = NULL, zmq_encryption_pwd = NULL;
@@ -287,6 +287,7 @@ Prefs::~Prefs() {
   if (es_pwd) free(es_pwd);
   if (es_host) free(es_host);
   if (instance_name) free(instance_name);
+  if (http_index_page) free(http_index_page);
   free(http_prefix);
   free(local_networks);
   free(redis_host);

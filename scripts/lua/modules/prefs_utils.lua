@@ -287,7 +287,8 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
         <tr>
           <td width="100%;"></td>
           <td style="vertical-align:top;">]]
-      if extra.tformat ~= nil then
+
+     if extra.tformat ~= nil then
         value = prefsResolutionButtons(extra.tformat, value, nil, extra.format_spec, extra.max)
       end
 
@@ -309,10 +310,15 @@ function prefsInputFieldPrefs(label, comment, prekey, key, default_value, _input
       style = table.merge(style, extra.style)
       attributes = table.merge(attributes, extra.attributes)
 
+      if((value == nil) or (value == "nil")) then
+	 value = "/lua/index.lua"
+      end
+	 
       print[[
           </td>
           <td style="vertical-align:top; padding-left: 2em; white-space: nowrap;">
-            <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
+
+           <input id="id_input_]] print(key) print[[" type="]] print(input_type) print [[" class="form-control" ]] print(table.tconcat(attributes, "=", " ", nil, '"')) print[[ name="]] print(key) print [[" style="]] print(table.tconcat(style, ":", "; ", ";")) print[[" value="]] print(value..'"')
           if disableAutocomplete then print(" autocomplete=\"off\"") end
         print [[/>]] print(extra.append or "") print[[
             <span id="input_error_]] print(key) print[[" class="text-danger" hidden>!</span>
