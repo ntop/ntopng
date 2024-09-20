@@ -30,7 +30,7 @@ class Paginator {
   bool a2z_sort_order;
   bool detailed_results /* deprecated, use DetailsLevel instead */;
   char *sort_column, *country_filter, *host_filter, *client_filter,
-      *server_filter;
+      *server_filter, *wlan_ssid_filter;
   char *container_filter, *pod_filter;
   char *traffic_profile_filter;
   char *username_filter, *pidname_filter;
@@ -80,6 +80,14 @@ class Paginator {
   inline bool countryFilter(char **f) const {
     if (country_filter) {
       (*f) = country_filter;
+      return true;
+    }
+    return false;
+  }
+
+  inline bool wlanSSIDFilter(char **f) const {
+    if (wlan_ssid_filter) {
+      (*f) = wlan_ssid_filter;
       return true;
     }
     return false;

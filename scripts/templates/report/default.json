@@ -30,6 +30,9 @@
 		},
 		{
 			"name" : "host_pool"
+		},
+		{
+			"name" : "wlan_ssid"
 		}
 	],
 	"components" : [

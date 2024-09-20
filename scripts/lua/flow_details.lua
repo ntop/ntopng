@@ -1865,6 +1865,19 @@ else
                   "</td></tr>\n")
     end
 
+    if flow.wlan then
+        if flow.wlan.ssid then
+            print("<tr><th width=10%>" .. getFlowKey('WLAN_SSID') .. "</th>")
+            print("<td colspan=2>" .. flow.wlan["ssid"] .. "</td>")
+            print("</tr>\n")
+        end
+        if flow.wlan.wtp_mac_address then
+            print("<tr><th width=10%>" .. getFlowKey('WTP_MAC_ADDRESS') .. "</th>")
+            print("<td colspan=2>" .. flow.wlan["wtp_mac_address"] .. "</td>")
+            print("</tr>\n")
+        end
+    end
+
     if (flow["moreinfo.json"] ~= nil) then
         local flow_field_value_maps = require "flow_field_value_maps"
         local info, pos, err = json.decode(flow["moreinfo.json"], 1, nil)
@@ -2007,19 +2020,6 @@ else
             num = num + 1
 
             ::continue::
-        end
-    end
-
-    if flow.wlan then
-        if flow.wlan.ssid then
-            print("<tr><th width=10%>" .. getFlowKey('WLAN_SSID') .. "</th>")
-            print("<td colspan=2>" .. flow.wlan["ssid"] .. "</td>")
-            print("</tr>\n")
-        end
-        if flow.wlan.wtp_mac_address then
-            print("<tr><th width=10%>" .. getFlowKey('WTP_MAC_ADDRESS') .. "</th>")
-            print("<td colspan=2>" .. flow.wlan["wtp_mac_address"] .. "</td>")
-            print("</tr>\n")
         end
     end
 

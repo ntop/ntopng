@@ -166,6 +166,7 @@ function getFlowsFilter()
     local icmp_type = _GET["icmp_type"]
     local icmp_code = _GET["icmp_cod"]
     local dscp_filter = _GET["dscp"]
+    local wlan_ssid_filter = _GET["wlan_ssid"]
     local host_pool = _GET["host_pool_id"]
     local flow_status = _GET["flow_status"]
     local flow_status_severity = _GET["flow_status_severity"]
@@ -368,6 +369,10 @@ function getFlowsFilter()
 
     if not isEmptyString(dscp_filter) then
         pageinfo["dscpFilter"] = tonumber(dscp_filter)
+    end
+
+    if not isEmptyString(wlan_ssid_filter) then
+        pageinfo["wlanSSIDFilter"] = wlan_ssid_filter
     end
 
     if not isEmptyString(talking_with) then

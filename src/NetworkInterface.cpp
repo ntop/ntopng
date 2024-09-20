@@ -4845,6 +4845,7 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
   u_int32_t asn_filter;
   char *username_filter;
   char *pidname_filter;
+  char *wlan_ssid_filter;
   u_int32_t deviceIP = 0;
   int32_t iface_index = -1;
   u_int32_t inIndex, outIndex;
@@ -5120,6 +5121,10 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
       if ((!f->isICMP()) || (cur_type != icmp_type) || (cur_code != icmp_code))
         return (false);
     }
+
+    if (retriever->pag && retriever->pag->wlanSSIDFilter(&wlan_ssid_filter) &&
+        (!f->getWLANSSID() || strcmp(f->getWLANSSID(), wlan_ssid_filter)))
+      return (false);
 
     if (retriever->pag && retriever->pag->dscpFilter(&dscp_filter) &&
         f->getCli2SrvDSCP() != dscp_filter &&
@@ -6114,6 +6119,9 @@ static bool flow_sum_stats(GenericHashEntry *flow, void *user_data,
     if(retriever->host) {
       /* Add this info only in case some filter host is requested */
       stats->updateTalkingHosts(f);
+    }
+    if(f->getWLANSSID()) {
+      stats->updateWLANSSID(f);
     }
     retriever->totBytesSent += f->get_bytes_cli2srv();
     retriever->totBytesRcvd += f->get_bytes_srv2cli();

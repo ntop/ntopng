@@ -24,6 +24,7 @@ local flow_info = _GET["flow_info"]
 local flowstats = interface.getActiveFlowsStats(host, nil, false, talking_with, client, server, flow_info)
 local selected_ip = _GET["flowhosts_type"]
 
+
 local rsp = {}
 
 if interface.isView() then
@@ -454,6 +455,34 @@ if table.len(networks_stats) > 1 then
         label = i18n("flows_page.networks"),
         name = "network",
         value = networks_filter
+    }
+end
+
+local wlan_ssid_filters = {{
+    key = "wlan_ssid",
+    value = "",
+    label = i18n("all")
+}}
+
+if table.len(flowstats["wlan_ssid"]) > 0 then
+    local tmp_list = {}
+    for key, value in pairs(flowstats["wlan_ssid"] or {}, asc) do
+        tmp_list[key] = {
+            key = "wlan_ssid",
+            value = key,
+            label = key
+        }
+    end
+
+    for _, value in pairsByKeys(tmp_list, asc) do
+        wlan_ssid_filters[#wlan_ssid_filters + 1] = value
+    end    
+
+    rsp[#rsp + 1] = {
+        action = "wlan_ssid",
+        label = i18n("flow_fields_description.wlan_ssid"),
+        name = "wlan_ssid",
+        value = wlan_ssid_filters
     }
 end
 

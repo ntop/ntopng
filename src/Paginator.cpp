@@ -37,6 +37,7 @@ Paginator::Paginator() {
   traffic_profile_filter = NULL;
   username_filter = NULL;
   pidname_filter = NULL;
+  wlan_ssid_filter = NULL;
 
   /* bool */
   a2z_sort_order = true;
@@ -90,6 +91,7 @@ Paginator::Paginator() {
 Paginator::~Paginator() {
   if (sort_column) free(sort_column);
   if (country_filter) free(country_filter);
+  if (wlan_ssid_filter) free(wlan_ssid_filter);
   if (host_filter) free(host_filter);
   if (client_filter) free(client_filter);
   if (server_filter) free(server_filter);
@@ -121,6 +123,8 @@ void Paginator::readOptions(lua_State* L, int index) {
           sort_column = strdup(lua_tostring(L, -1));
         } else if (!strcmp(key, "deviceIpFilter")) {
           deviceIP = ntohl(inet_addr(lua_tostring(L, -1)));
+        } else if (!strcmp(key, "wlanSSIDFilter")) {
+          wlan_ssid_filter = strdup(lua_tostring(L, -1));
         } else if (!strcmp(key, "countryFilter")) {
           if (country_filter) free(country_filter);
           country_filter = strdup(lua_tostring(L, -1));

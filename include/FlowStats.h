@@ -36,6 +36,7 @@ class FlowStats {
   u_int32_t dscps[64];  // 64 values available for dscp
   u_int32_t host_pools[UNLIMITED_NUM_HOST_POOLS];
   std::map<std::string, u_int16_t> talking_hosts;
+  std::map<std::string, u_int16_t> wlan_ssid;
 
  public:
   FlowStats();
@@ -46,6 +47,7 @@ class FlowStats {
                 u_int8_t dscp_srv2cli, Flow *flow);
 
   void updateTalkingHosts(Flow *f);
+  void updateWLANSSID(Flow *f);
 
   void lua(lua_State *vm);
 

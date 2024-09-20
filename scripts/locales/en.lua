@@ -742,6 +742,7 @@ local lang = {
   ["traffic_type"] = "Traffic Type",
   ["type"] = "ICMP Type",
   ["udp"] = "UDP",
+  ["wlan_ssid"] = "WLAN SSID",
   ["udp_processes"] = "UDP Processes",
   ["unable_to_copy_to_clickboard"] = "Unable to copy to clipboard",
   ["undo"] = "Undo",
@@ -2147,6 +2148,7 @@ local lang = {
     ["top_servers"] = "Top Servers",
     ["traffic_direction"] = "Traffic Direction",
     ["vlan_id"] = "VLAN",
+    ["wlan_ssid"] = "WLAN SSID",
     ["where_note"] = "Use &lt;field&gt; &lt;operator&gt; &lt;value&gt; conditions, where &lt;operator&gt; could be &lt;, &gt;, =, !=. AND/OR operators are also allowed to combine conditions. Please use quotes for string fields (e.g. INFO='www.ntop.org')",
     ["all"] = {
       ["host_pool"] = "All Host Pools",
@@ -2158,6 +2160,7 @@ local lang = {
       ["output_snmp"] = "All Interfaces",
       ["probe_ip"] = "All Exporters",
       ["vlan_id"] = "All VLANs",
+      ["wlan_ssid"] = "All WLAN SSID",
     },
     ["tags"] = {
       ["acknowledged"] = "Acknowledged",

@@ -229,6 +229,15 @@ void FlowStats::lua(lua_State *vm) {
   lua_pushstring(vm, "talking_with");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
+
+  lua_newtable(vm);
+
+  for (it2 = wlan_ssid.begin(); it2 != wlan_ssid.end(); it2++)
+    lua_push_uint32_table_entry(vm, it2->first.c_str(), it2->second);
+
+  lua_pushstring(vm, "wlan_ssid");
+  lua_insert(vm, -2);
+  lua_settable(vm, -3);
 }
 
 /* *************************************** */
@@ -249,6 +258,18 @@ void FlowStats::updateTalkingHosts(Flow *f) {
 
 /* *************************************** */
 
+void FlowStats::updateWLANSSID(Flow *f) {
+  char *wlan_ssid_string = f->getWLANSSID();
+  if(wlan_ssid_string) {
+    std::pair<std::map<std::string, u_int16_t>::iterator, bool> ret;
+    ret = wlan_ssid.insert(std::pair<std::string, u_int16_t>(
+        wlan_ssid_string, 1));
+    if (!ret.second) ret.first->second++;
+  }
+}
+
+/* *************************************** */
+
 void FlowStats::resetStats() {
   memset(counters, 0, sizeof(counters));
   memset(protocols, 0, sizeof(protocols));
@@ -256,6 +277,7 @@ void FlowStats::resetStats() {
   memset(dscps, 0, sizeof(dscps));
   memset(host_pools, 0, sizeof(host_pools));
   talking_hosts.clear();
+  wlan_ssid.clear();
 }
 
 /* *************************************** */
