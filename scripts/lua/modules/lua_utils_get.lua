@@ -561,6 +561,12 @@ end
 
 -- ##############################################
 
+function getURLPathPattern()
+    return "^\\/lua\\/[^\\/]+\\.lua(/?.*)?$"
+end
+
+-- ##############################################
+
 function getRestUrl(script, is_pro, is_enterprise)
     if is_enterprise then
         return (ntop.getHttpPrefix() .. "/lua/enterprise/rest/v2/get/" .. script)
