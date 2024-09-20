@@ -43,7 +43,31 @@ By clicking on the 'Action' button, it is possible to jump to the interface conf
 
 Note that both, the Usage timeseries and the Top Congested Interfaces charts, have different colored bars based on the percentage:
 
-- between 0 and 25, the bar has a light green color
-- between 25 and 50, the bar has a green color
+- between 0 and 24, the bar has a light green color
+- between 25 and 49, the bar has a green color
 - between 50 and 75, the bar has a yellow color
-- between 75 and 100, the bar has a red color
+- between 76 and 100, the bar has a red color
+
+Exclude Interfaces or Devices
+-----------------------------
+
+It is possible to exclude entire devices or single interfaces from the Usage summary.
+By jumping to the device summary page (by clicking on an SNMP device), click on the configuration page.
+
+.. figure:: ../img/snmp_device_configuration_page.png
+  :align: center
+  :alt: SNMP Usage Timeseries
+
+Here toggle the 'Exclude From Usage' preference.
+
+.. figure:: ../img/exclude_device_from_usage.png
+  :align: center
+  :alt: SNMP Usage Timeseries
+
+The same thing is achievable with the interfaces, by jumping to the interface summary and clicking on the configuration page.
+
+.. figure:: ../img/exclude_interface_from_usage.png
+  :align: center
+  :alt: SNMP Usage Timeseries
+
+
