@@ -359,7 +359,9 @@ Flow::~Flow() {
       if((len > 0)
 	 && (!isdigit(domain[len-1]))
 	 && (domain[0] != '_')
-	 && (strchr(domain, '.') != NULL)) {
+	 && (strchr(domain, '.') != NULL)
+	 && (ndpi_strrstr(domain, ".local") == NULL)
+	 ) {
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", domain);
 	ntop->getRedis()->hashSet("ntopng.domains", domain, "1");
       }
