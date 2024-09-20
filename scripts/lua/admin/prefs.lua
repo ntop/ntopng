@@ -647,7 +647,8 @@ if auth.has_capability(auth.capabilities.preferences) then
                 },
                 attributes = {
                     spellcheck = "false",
-                    maxlength = 256,
+                    maxlength = 518,
+                    pattern = getURLPathPattern()
                 }
             })
 
