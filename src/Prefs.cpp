@@ -120,7 +120,7 @@ Prefs::Prefs(Ntop *_ntop) {
   config_file_path = ndpi_proto_path = NULL;
   http_port = CONST_DEFAULT_NTOP_PORT;
   http_prefix = strdup("");
-  http_index_page = strdup("/lua/index.lua");
+  http_index_page = strdup(INDEX_URL);
   instance_name = NULL;
   categorization_enabled = false, enable_users_login = true;
   categorization_key = NULL, zmq_encryption_pwd = NULL;
@@ -888,10 +888,11 @@ static TsDriver str2TsDriver(const char *driver) {
 
 void Prefs::reloadPrefsFromRedis() {
   char *aux = NULL;
-  // sets to the default value in redis if no key is found
+  char *tmp = NULL;
+  
+  // sets to the default value in redis if no key is found  
 #ifdef PREFS_RELOAD_DEBUG
-  ntop->getTrace()->traceEvent(TRACE_DEBUG,
-                               "A preference has changed, reloading...");
+  ntop->getTrace()->traceEvent(TRACE_DEBUG, "A preference has changed, reloading...");
 #endif
 
   enable_auto_logout_at_runtime = getDefaultPrefsValue(
@@ -1028,26 +1029,24 @@ void Prefs::reloadPrefsFromRedis() {
   if(message_broker_url) free(message_broker_url);
   message_broker_url = aux;
 
-  char *tmp = NULL;
   getDefaultStringPrefsValue(CONST_PREFS_MESSAGE_BROKER, &tmp, DEFAULT_MESSAGE_BROKER);
   if (message_broker) free(message_broker);
   message_broker = tmp;
-  char *tmp2 = NULL;
-  getDefaultStringPrefsValue(CONST_PREFS_HTTP_INDEX_PAGE, &tmp2, DEFAULT_HTTP_INDEX_PAGE);
+
+  getDefaultStringPrefsValue(CONST_PREFS_HTTP_INDEX_PAGE, &tmp, DEFAULT_HTTP_INDEX_PAGE);
   if (http_index_page) free(http_index_page);
-  http_index_page = tmp2;
 
+  if(tmp[0] == '\0') {
+    free(tmp);
+    tmp = strdup(INDEX_URL);
+  }
+  http_index_page = tmp;
 
-  global_dns_forging_enabled =
-    getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, false);
-  enable_client_x509_auth =
-    getDefaultBoolPrefsValue(CONST_PREFS_CLIENT_X509_AUTH, false);
-  emit_flow_alerts =
-    getDefaultBoolPrefsValue(CONST_PREFS_EMIT_FLOW_ALERTS, true);
-  emit_host_alerts =
-    getDefaultBoolPrefsValue(CONST_PREFS_EMIT_HOST_ALERTS, true);
-  tls_quic_hostnaming = 
-    getDefaultBoolPrefsValue(CONST_PREFS_TLS_QUIC_HOSTNAMING, false);
+  global_dns_forging_enabled = getDefaultBoolPrefsValue(CONST_PREFS_GLOBAL_DNS_FORGING_ENABLED, false);
+  enable_client_x509_auth = getDefaultBoolPrefsValue(CONST_PREFS_CLIENT_X509_AUTH, false);
+  emit_flow_alerts = getDefaultBoolPrefsValue(CONST_PREFS_EMIT_FLOW_ALERTS, true);
+  emit_host_alerts = getDefaultBoolPrefsValue(CONST_PREFS_EMIT_HOST_ALERTS, true);
+  tls_quic_hostnaming = getDefaultBoolPrefsValue(CONST_PREFS_TLS_QUIC_HOSTNAMING, false);
 
   /* Used for stats */
   collect_blacklist_stats = getDefaultBoolPrefsValue(CONST_PREFS_COLLECT_BLACKLISTSTATS, false);

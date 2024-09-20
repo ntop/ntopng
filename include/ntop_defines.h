@@ -124,6 +124,7 @@
 #define ZMQ_FLAG_IS_COMPRESSED 2 << 1
 
 #define LOGIN_URL "/lua/login.lua"
+#define INDEX_URL "/lua/index.lua"
 #define LOCALE_URL "/lua/locale.lua"
 #define LOGOUT_URL "/lua/ntopng_logout.lua"
 #define CAPTIVE_PORTAL_URL "/lua/captive_portal.lua"
