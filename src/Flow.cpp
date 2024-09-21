@@ -337,6 +337,33 @@ void Flow::allocDPIMemory() {
 
 void Flow::freeDPIMemory() {
   if (ndpiFlow) {
+#ifdef DOMAIN_COLLECTION
+    if(host_server_name != NULL) {
+      if(strchr(host_server_name, ':') == NULL /* No IPv6 or IP:port */) {
+	const char *domain = ndpi_get_host_domain(iface->get_ndpi_struct(), host_server_name);
+	int len = strlen(domain);
+
+	if((len > 0)
+	   && (!isdigit(domain[len-1]))
+	   && (domain[0] != '_')
+	   && (strchr(domain, '.') != NULL)
+	   && (ndpi_strrstr(domain, ".local") == NULL)
+	   && (ndpi_strrstr(domain, ".arpa") == NULL)
+	   ) {
+	  const char *ja4r = ndpiFlow->protos.tls_quic.ja4_client_raw ? ndpiFlow->protos.tls_quic.ja4_client_raw : "";
+	  char buf[64];
+	  char *client = get_cli_host()->get_ip()->printMask(buf, sizeof(buf), true);
+
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s\t%s [%s] [%s]", client, domain, host_server_name, ja4r);
+	  ntop->getRedis()->hashSet("ntopng.domains", domain, ja4r);
+
+	  if(iface->getDomainFd())
+	    fprintf(iface->getDomainFd(), "%s\t%s\t%s\t%s\n", client, domain, host_server_name, ja4r);
+	}
+      }
+    }
+#endif
+
     setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
     ndpi_confidence = ndpiFlow->confidence;
     ndpi_free_flow(ndpiFlow);
@@ -350,25 +377,6 @@ Flow::~Flow() {
   bool is_oneway_tcp_udp_flow =
     (((protocol == IPPROTO_TCP) || (protocol == IPPROTO_UDP)) && isOneWay()) ? true : false;
 
-#ifdef DOMAIN_COLLECTION
-  if(host_server_name != NULL) {
-    if(strchr(host_server_name, ':') == NULL /* No IPv6 or IP:port */) {
-      const char *domain = ndpi_get_host_domain(iface->get_ndpi_struct(), host_server_name);
-      int len = strlen(domain);
-      
-      if((len > 0)
-	 && (!isdigit(domain[len-1]))
-	 && (domain[0] != '_')
-	 && (strchr(domain, '.') != NULL)
-	 && (ndpi_strrstr(domain, ".local") == NULL)
-	 ) {
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [%s]", domain, host_server_name);
-	ntop->getRedis()->hashSet("ntopng.domains", domain, "1");
-      }
-    }
-  }
-#endif
-  
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
   if (getUses() != 0 && !ntop->getGlobals()->isShutdown())
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] Deleting flow [%u]",
@@ -6723,7 +6731,7 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
   if(!flow_already_existing) {
     if((protocol == IPPROTO_UDP) || (protocol == IPPROTO_TCP)) {
       char buf[256];
-      
+
       ntop->getTrace()->traceEvent(TRACE_WARNING,
 				   "New flow update %s [delta pkts %u/%u][delta bytes %lu/%lu] [s2d_pkts %u/%u][d2s_pkts %u/%u][s2d_bytes %u/%u][d2s_bytes %u/%u]",
 				   print(buf, sizeof(buf)),
@@ -6732,7 +6740,7 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 				   s2d_pkts, get_packets_cli2srv(),
 				   d2s_pkts, get_packets_srv2cli(),
 				   s2d_bytes, get_bytes_cli2srv(),
-				   d2s_bytes, get_bytes_srv2cli());				 
+				   d2s_bytes, get_bytes_srv2cli());
     }
   }
 #endif
@@ -8865,7 +8873,7 @@ void Flow::accountFlowTraffic() {
 
 /* *************************************** */
 
-bool Flow::is_active_entry_now_idle(u_int max_idleness) const {  
+bool Flow::is_active_entry_now_idle(u_int max_idleness) const {
   bool is_expired = (((u_int)(iface->getTimeLastPktRcvd()) > (creation_time + max_idleness)) ? true : false);
 
   /*
@@ -8874,6 +8882,6 @@ bool Flow::is_active_entry_now_idle(u_int max_idleness) const {
     memory at least max_idleness seconds
   */
   if(!is_expired) return(false);
-  
+
   return(GenericHashEntry::is_active_entry_now_idle(max_idleness));
 }

@@ -236,6 +236,11 @@ NetworkInterface::NetworkInterface(const char *name,
   updateLbdIdentifier();
   updateFlowsOnlyInterface();
   updatePushFiltersSettings();
+
+#ifdef DOMAIN_COLLECTION
+  snprintf(buf, sizeof(buf), "/var/lib/ntopng/%d/domains.txt", id);
+  domain_fd = fopen(buf, "a");
+#endif
 }
 
 /* **************************************************** */
@@ -406,19 +411,27 @@ u_int16_t NetworkInterface::getnDPIProtoByName(const char *name) {
 
 /* ********************** */
 
+struct ndpi_keys_struct {
+  const char *proto, *key;
+};
+  
 struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module(NULL);
   ndpi_port_range d_port[MAX_DEFAULT_PORTS];
   NDPI_PROTOCOL_BITMASK all;
   ndpi_cfg_error rc;
-  const char* ndpi_key = "flow.track_payload";
   const char* dirs[] = {
     "/usr/share/ndpi/public_suffix_list.dat",
     "/usr/local/share/ndpi/public_suffix_list.dat",
     "../nDPI/lists/public_suffix_list.dat",
     NULL
   };
-
+  const struct ndpi_keys_struct ndpi_keys[] = {
+    { NULL, "flow.track_payload" },
+    { "tls", "metadata.ja4r_fingerprint" },
+    { NULL, NULL }
+  };
+    
   if (ndpi_s == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
     exit(-1);
@@ -428,11 +441,13 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   NDPI_BITMASK_SET_ALL(all);
   ndpi_set_protocol_detection_bitmask2(ndpi_s, &all);
 
-  rc = ndpi_set_config(ndpi_s, NULL, ndpi_key, "1");
-  if (rc != NDPI_CFG_OK) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error ndpi_set_config(%s): %d", ndpi_key, rc);
+  for(int i=0; ndpi_keys[i].key != NULL; i++) {
+    rc = ndpi_set_config(ndpi_s, ndpi_keys[i].proto, ndpi_keys[i].key, "1");
+    
+    if (rc != NDPI_CFG_OK)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error ndpi_set_config(%s): %d", ndpi_keys[i], rc);
   }
-
+  
   if (ntop->getCustomnDPIProtos() != NULL)
     ndpi_load_protocols_file(ndpi_s, ntop->getCustomnDPIProtos());
 
@@ -1053,6 +1068,11 @@ NetworkInterface::~NetworkInterface() {
   cleanShadownDPI();
 
   if (smart_recording_instance_name) free(smart_recording_instance_name);
+
+#ifdef DOMAIN_COLLECTION
+  if(domain_fd != NULL)
+    fclose(domain_fd);
+#endif
 }
 
 /* **************************************************** */
