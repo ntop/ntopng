@@ -37,6 +37,7 @@ import { default as Spinner } from "./spinner.vue";
 import { default as Dropdown } from "./dropdown.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
+import { default as dataUtils } from "../utilities/data-utils.js";
 import formatterUtils from "../utilities/formatter-utils";
 
 /* ************************************** */
@@ -84,8 +85,11 @@ const map_table_def_columns = (columns) => {
     const formatter = formatterUtils.getFormatter("percentage");
     let map_columns = {
         "device_name": (value, row) => {
-            const url = `${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?ip=${row.device_ip}`
-            return `<a href=${url}>${value}</a>`
+            let url = `<a href='${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?ip=${row.device_ip}'>${value}</a>`
+            if (dataUtils.isEmptyOrNull(value)) {
+                url = row.device_ip
+            }
+            return url
         },
         "interface_name": (value, row) => {
             value = value.replace(/</g, "&lt;").replace(/>/g, "&gt;");

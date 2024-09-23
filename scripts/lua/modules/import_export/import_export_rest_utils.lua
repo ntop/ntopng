@@ -93,7 +93,7 @@ function import_export_rest_utils.export(instances, is_download, return_envelope
 
     -- Build the list of configurations for each module
     for name, instance in pairs(instances) do
-        local conf = instance:export()
+        local conf = instance:export(name)
         if not conf then
             rc = rest_utils.consts.err.internal_error
             missing_modules[#missing_modules + 1] = name

@@ -49,25 +49,30 @@ if not ntop.isnEdge() then
             label = i18n("manage_configurations.snmp"),
             order = 1
         },
+        snmp_data = {
+            key = "snmp_data",
+            label = i18n("manage_configurations.snmp_data"),
+            order = 2
+        },
         active_monitoring = {
             key = "active_monitoring",
             label = i18n("manage_configurations.active_monitoring_vs"),
-            order = 2
+            order = 3
         },
         checks = {
             key = "checks",
             label = i18n("manage_configurations.checks"),
-            order = 3
+            order = 4
         },
         notifications = {
             key = "notifications",
             label = i18n("manage_configurations.notifications"),
-            order = 4
+            order = 5
         },
         pool = {
             key = "pool",
             label = i18n("manage_configurations.pool_endpoint_recipients"),
-            order = 5
+            order = 6
         }
     }
 else

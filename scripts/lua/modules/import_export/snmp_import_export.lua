@@ -56,8 +56,13 @@ end
 
 -- @brief Export configuration
 -- @return The current configuration
-function snmp_import_export:export()
-   local conf = snmp_config.export()
+function snmp_import_export:export(name)
+   local conf = {}
+   if name == "snmp_data" then
+      conf = snmp_config.export_data()
+   else
+      conf = snmp_config.export()
+   end
    return conf
 end
 
