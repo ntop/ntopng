@@ -580,7 +580,6 @@ function rows_loaded(res) {
 }
 
 function on_table_custom_event(event) {
-    debugger;
     let events_managed = {
         "click_button_snmp_info": click_button_snmp_info,
         "click_button_info": click_button_info,
