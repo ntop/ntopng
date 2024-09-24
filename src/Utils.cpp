@@ -5081,8 +5081,7 @@ void Utils::tlv2lua(lua_State *vm, ndpi_serializer *serializer) {
 
   if (rc == -1) return;
 
-  while ((et = ndpi_deserialize_get_item_type(&deserializer, &kt)) !=
-         ndpi_serialization_unknown) {
+  while ((et = ndpi_deserialize_get_item_type(&deserializer, &kt)) != ndpi_serialization_unknown) {
     char key[64];
     u_int32_t k32;
     ndpi_string ks, vs;
