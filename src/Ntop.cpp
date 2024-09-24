@@ -3293,7 +3293,8 @@ bool Ntop::isATrackerHost(char *host) {
 
 void Ntop::initAllowedProtocolPresets() {
   for (u_int i = 0; i < device_max_type; i++) {
-    DeviceProtocolBitmask *b = ntop->getDeviceAllowedProtocols((DeviceType)i);
+    DeviceProtocolBitmask *b = getDeviceAllowedProtocols((DeviceType)i);
+    
     NDPI_BITMASK_SET_ALL(b->clientAllowed);
     NDPI_BITMASK_SET_ALL(b->serverAllowed);
   }
@@ -3303,7 +3304,7 @@ void Ntop::initAllowedProtocolPresets() {
 
 void Ntop::refreshAllowedProtocolPresets(DeviceType device_type, bool client,
                                          lua_State *L, int index) {
-  DeviceProtocolBitmask *b = ntop->getDeviceAllowedProtocols(device_type);
+  DeviceProtocolBitmask *b = getDeviceAllowedProtocols(device_type);
 
   lua_pushnil(L);
 
