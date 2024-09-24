@@ -3,20 +3,20 @@
     <div class="col-12 mb-2 mt-2">
         <AlertInfo></AlertInfo>
         <div class="card h-100 overflow-hidden">
-            <DateTimeRangePicker style="margin-top:0.5rem;" class="ms-1" :id="id_date_time_picker" :enable_refresh="true"
-                ref="date_time_picker" @epoch_change="epoch_change" :min_time_interval_id="min_time_interval_id"
-                :custom_time_interval_list="time_preset_list">
+            <DateTimeRangePicker style="margin-top:0.5rem;" class="ms-1" :id="id_date_time_picker"
+                :enable_refresh="true" ref="date_time_picker" @epoch_change="epoch_change"
+                :min_time_interval_id="min_time_interval_id" :custom_time_interval_list="time_preset_list">
                 <template v-slot:begin>
                 </template>
                 <template v-slot:extra_buttons>
                     <button v-if="enable_snapshots" class="btn btn-link btn-sm" @click="show_modal_snapshot"
-                        :title="_i18n('page_stats.manage_snapshots_btn')"><i class="fas fa-lg fa-camera-retro"></i></button>
+                        :title="_i18n('page_stats.manage_snapshots_btn')"><i
+                            class="fas fa-lg fa-camera-retro"></i></button>
                     <button v-if="traffic_extraction_permitted" class="btn btn-link btn-sm"
                         @click="show_modal_traffic_extraction" :title="_i18n('traffic_recording.pcap_download')"><i
                             class="fas fa-lg fa-download"></i></button>
                     <button :disabled="is_safari" class="btn btn-link btn-sm" @click="show_modal_download_file"
-                        :title="image_button_title"><i
-                            class="fas fa-lg fa-file-image"></i></button>
+                        :title="image_button_title"><i class="fas fa-lg fa-file-image"></i></button>
                     <button v-if="is_history_enabled" class="btn btn-link btn-sm" @click="jump_to_historical_flows"
                         :title="_i18n('page_stats.historical_flows')"><i class="fas fa-search-plus"></i></button>
                 </template>
@@ -63,8 +63,8 @@
                     <SelectSearch v-model:selected_option="selected_top_table" :options="top_table_options">
                     </SelectSearch>
                 </div>
-                <Datatable v-if="selected_top_table?.table_config_def" :key="selected_top_table?.value" ref="top_table_ref"
-                    :table_buttons="selected_top_table.table_config_def.table_button"
+                <Datatable v-if="selected_top_table?.table_config_def" :key="selected_top_table?.value"
+                    ref="top_table_ref" :table_buttons="selected_top_table.table_config_def.table_button"
                     :columns_config="selected_top_table.table_config_def.columns_config"
                     :data_url="selected_top_table.table_config_def.data_url"
                     :enable_search="selected_top_table.table_config_def.enable_search"
@@ -201,7 +201,7 @@ function set_default_source_object_in_url() {
 }
 
 onBeforeMount(async () => {
-    
+
     if (ntopng_url_manager.get_url_entry("page") == "va_historical") {
         let columns_tmp = [];
         stats_columns.forEach((item) => {
@@ -209,15 +209,15 @@ onBeforeMount(async () => {
                 columns_tmp.push(item);
             }
         })
-        
+
         stats_columns = columns_tmp;
     }
-    
+
     if (props.source_value_object.is_va) {
         min_time_interval_id.value = "hour";
         ntopng_utility.check_and_set_default_time_interval("day");
     };
-    
+
     set_default_source_object_in_url();
 });
 
@@ -246,7 +246,7 @@ async function init() {
         timeseries_groups = await metricsManager.get_default_timeseries_groups(http_prefix, metric_ts_schema, metric_query);
     }
     metrics.value = await get_metrics(push_custom_metric);
-    
+
     if (push_custom_metric == true) {
         selected_metric.value = custom_metric;
     } else {
@@ -260,7 +260,7 @@ let last_push_custom_metric = null;
 async function get_metrics(push_custom_metric, force_refresh) {
     let metrics = await metricsManager.get_metrics(http_prefix);
     if (!force_refresh && last_push_custom_metric == push_custom_metric) { return metrics.value; }
-    
+
     if (push_custom_metric) {
         metrics.push(custom_metric);
     }
@@ -274,14 +274,14 @@ async function get_metrics(push_custom_metric, force_refresh) {
     /* Order Metrics */
     if (metrics.length > 0)
         metrics.sort(NtopUtils.sortAlphabetically);
-    
+
     return metrics;
 }
 
 async function get_snapshots_metrics() {
     if (!props.enable_snapshots) { return; }
     let url = `${http_prefix}/lua/pro/rest/v2/get/filters/snapshots.lua?page=${page_snapshots}`;
-    
+
     let snapshots_obj = await ntopng_utility.http_request(url);
     let snapshots = ntopng_utility.object_to_array(snapshots_obj);
     let metrics_snapshots = snapshots.map((s) => {
@@ -634,10 +634,10 @@ function set_top_table_options(timeseries_groups, status) {
 }
 
 let stats_columns = [
-    { id: "metric", label: _i18n("page_stats.metric"), va: true},
+    { id: "metric", label: _i18n("page_stats.metric"), va: true },
     { id: "avg", label: _i18n("page_stats.average"), class: "text-end", va: true },
     { id: "perc_95", label: _i18n("page_stats.95_perc"), class: "text-end", va: true },
-    { id: "max", label: _i18n("page_stats.max"), class: "text-end", va: true},
+    { id: "max", label: _i18n("page_stats.max"), class: "text-end", va: true },
     { id: "min", label: _i18n("page_stats.min"), class: "text-end", va: true },
     { id: "total", label: _i18n("page_stats.total"), class: "text-end", va: false },
 ];
@@ -709,17 +709,28 @@ function print_stats_column(col) {
 
 function print_stats_row(col, row) {
     let label = row[col.id];
+    const historical_filter = props.source_value_object.historical_link_to_table;
+    if (historical_filter && historical_filter.add_historical_link_to_table && historical_filter.historical_link_col_id == col.id) {
+        const element = historical_filter.historical_filters.find((el) => { return el.table_label === label })
+        if (element) {
+            let params = create_historical_params()
+            params[element.historical_filter] = params[historical_filter.historical_filter_to_change]
+            delete params[historical_filter.historical_filter_to_change]
+            let url_params = ntopng_url_manager.obj_to_url_params(params);
+            label = `<a href="${http_prefix}/lua/pro/db_search.lua?${url_params}">${label}</a>`
+        }
+    }
     return label;
 }
 
-function jump_to_historical_flows() {
+function create_historical_params() {
     let status = ntopng_status_manager.get_status();
     let params = { epoch_begin: status.epoch_begin, epoch_end: status.epoch_end };
     /* Add the source elements to the redirect, like host, snmp, ecc. */
     if (last_timeseries_groups_loaded && last_timeseries_groups_loaded.length > 0) {
-        /* Use the first element */
         const source_array = last_timeseries_groups_loaded[0].source_array
         const source_def = last_timeseries_groups_loaded[0].source_type.source_def_array
+        /* Use the first element */
         if (source_array) {
             let probe = ''
             source_array.forEach((elem, i) => {
@@ -728,32 +739,32 @@ function jump_to_historical_flows() {
                     switch (value) {
                         case 'device':
                             probe = elem.value
-                            params["probe_ip"] = `${elem.value};eq` 
+                            params["probe_ip"] = `${elem.value};eq`
                             break;
                         case 'port':
                         case 'if_index':
-                            params["snmp_interface"] = `${probe}_${elem.value};eq` 
+                            params["snmp_interface"] = `${probe}_${elem.value};eq`
                             break;
                         case 'host':
-                            params["ip"] = `${elem.value};eq` 
+                            params["ip"] = `${elem.value};eq`
                             break;
                         case 'mac':
-                            params["mac"] = `${elem.value};eq` 
+                            params["mac"] = `${elem.value};eq`
                             break;
                         case 'subnet':
-                            params["network"] = `${elem.value};eq` 
+                            params["network"] = `${elem.value};eq`
                             break;
                         case 'asn':
-                            params["asn"] = `${elem.value};eq` 
+                            params["asn"] = `${elem.value};eq`
                             break;
                         case 'country':
-                            params["country"] = `${elem.value};eq` 
+                            params["country"] = `${elem.value};eq`
                             break;
                         case 'vlan':
-                            params["vlan_id"] = `${elem.value};eq` 
+                            params["vlan_id"] = `${elem.value};eq`
                             break;
                         case 'pool':
-                            params["host_pool_id"] = `${elem.value};eq` 
+                            params["host_pool_id"] = `${elem.value};eq`
                             break;
                         default:
                             break;
@@ -762,7 +773,12 @@ function jump_to_historical_flows() {
             })
         }
     }
-    debugger;
+
+    return params
+}
+
+function jump_to_historical_flows() {
+    const params = create_historical_params()
     let url_params = ntopng_url_manager.obj_to_url_params(params);
     const historical_url = `${http_prefix}/lua/pro/db_search.lua?${url_params}`;
     ntopng_url_manager.go_to_url(historical_url);
