@@ -106,6 +106,7 @@ function presets_utils.init()
    addPreset('multimedia', basic_policy)
    addProtocolByName('multimedia', 'client', 'HTTP',        presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'TLS',         presets_utils.ALLOW)
+   addProtocolByName('multimedia', 'server', 'TLS',         presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'RTP',         presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'RTSP',        presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'NetFlix',     presets_utils.ALLOW)
@@ -119,6 +120,7 @@ function presets_utils.init()
    addProtocolByName('multimedia', 'client', 'Skype_Teams', presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'Skype_TeamsCall', presets_utils.ALLOW)
    addProtocolByName('multimedia', 'client', 'SSDP',        presets_utils.ALLOW)
+   addProtocolByName('multimedia', 'server', 'Sonos',       presets_utils.ALLOW)
 
    addPresetFrom('tv', 'multimedia')
 
@@ -131,7 +133,8 @@ function presets_utils.init()
    addProtocolByName('nas', 'server', 'NFS',         presets_utils.ALLOW)
    addProtocolByName('nas', 'server', 'RSYNC',       presets_utils.ALLOW)
    addProtocolByName('nas', 'server', 'TFTP',        presets_utils.ALLOW)
-
+   addProtocolByName('nas', 'server', 'TLS',         presets_utils.ALLOW)
+   
    -- Printer devices
    addPreset('printer', basic_policy)
    addProtocolByName('printer', 'server', 'HTTP',    presets_utils.ALLOW)
