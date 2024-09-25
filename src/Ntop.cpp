@@ -3861,7 +3861,8 @@ u_int64_t Ntop::getNumActiveProbes() const {
 Ping *Ntop::getPing(char *ifname) {
   if (!can_send_icmp) return (NULL);
 
-  if ((ifname == NULL) || (ifname[0] == '\0'))
+  // Check if the interface is null or is a ZMQ interface
+  if ((ifname == NULL) || (ifname[0] == '\0') || strstr(ifname, "://"))
     return (default_ping);
   else {
     std::map<std::string /* ifname */, Ping *>::iterator it = ping.find(std::string(ifname));
