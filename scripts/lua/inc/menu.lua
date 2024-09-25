@@ -306,7 +306,8 @@ else
         }, {
             entry = page_utils.menu_entries.db_explorer,
             hidden = (not ntop.isEnterprise() and not ntop.isnEdgeEnterprise()) or
-                not auth.has_capability(auth.capabilities.historical_flows) or ifs.isViewed or ifs['type'] == 'db',
+                not auth.has_capability(auth.capabilities.historical_flows) or ifs.isViewed or ifs['type'] == 'db'
+                or not hasClickHouseSupport(),
             url = "/lua/pro/db_search.lua"
         }}
     })
