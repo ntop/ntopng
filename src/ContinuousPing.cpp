@@ -150,6 +150,7 @@ void ContinuousPing::ping(char *_addr, bool use_v6, char *ifname) {
   std::string key = std::string(_addr);
   std::map<std::string, ContinuousPingStats *>::iterator it;
   Ping *pinger = NULL;
+  bool use_default_pinger = true;
 
   /* Get the pinger for the interface, if exists */
   if (ifname) {
@@ -160,20 +161,19 @@ void ContinuousPing::ping(char *_addr, bool use_v6, char *ifname) {
     if (it != if_pinger.end()) {
       // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Using pinger for %s", ifname);
       pinger = it->second;
+      use_default_pinger = false;
     }
+  }
 
-    if(pinger == NULL) {
-      /* No pinger found */
-      return;
-    }
-  } else
+  /* No pinger found/configured, try with the default pinger */
+  if (use_default_pinger)
     pinger = default_pinger;
   
   m.lock(__FILE__, __LINE__);
 
   if (!use_v6) {
     it = v4_results.find(key);
-
+//#define TRACE_PING 1
     if (it != v4_results.end()) {
       /* Already present */
 #ifdef TRACE_PING
