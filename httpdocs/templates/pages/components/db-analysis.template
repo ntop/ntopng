@@ -1,13 +1,13 @@
 {#
-    (C) 2021 - ntop.org    
-    Base template for datatables.
+(C) 2021 - ntop.org
+Base template for datatables.
 #}
 
 <!-- defines base_path globals const-->
 <script type='text/javascript'>
-  const base_path = '{* ntop.getHttpPrefix() *}';
-  const default_ifid = '{* interface.getId() *}';
-  const navbar_context = {* navbar *};
+const base_path = '{* ntop.getHttpPrefix() *}';
+const default_ifid = '{* interface.getId() *}';
+const navbar_context = {* navbar *};
 </script>
 
 <div id="navbar">
@@ -35,25 +35,25 @@
                       @select_option="set_query_preset_in_url">
                   </select-search>
                 </div>
-              </template>
-            </range-picker>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
+</template>
+</range-picker>
+</div>
+</div>
+</div>
+</div>
+</div>
 
 
-  <div class='col-12'>
+<div class='col-12'>
     <div class="card card-shadow widget-box-container">
       <div class="overlay justify-content-center align-items-center position-absolute h-100 w-100">
         <div class="text-center">
           <div class="spinner-border text-primary mt-5" role="status">
             <span class="sr-only position-absolute">Loading...</span>
           </div>
-        </div>
-      </div>
-      <div class="card-body">
+</div>
+</div>
+<div class="card-body">
         <div class="row"  style="justify-content: space-evenly; gap: 5rem 0%; margin: 2rem;">
 
         {% for _, chart_opts in ipairs(charts) do %}
@@ -68,22 +68,18 @@
               }) 
             *}
             </div>
-          </div>
-      
-        {% end %}
-
-      </div>
-    </div>
-  </div>
 </div>
 
-<script type="text/javascript">
-    i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
-    
+{% end %}
 
-</script>
+</div>
+</div>
+</div>
+</div>
+
 <script type='text/javascript'>
-  let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
+i18n_ext.showing_x_to_y_rows = "{{ i18n('showing_x_to_y_rows', {x='_START_', y='_END_', tot='_TOTAL_'}) }}";
+    let pageCsrf = "{{ ntop.getRandomCSRFValue() }}";
   let table = undefined;
   let VUE_APP;
 

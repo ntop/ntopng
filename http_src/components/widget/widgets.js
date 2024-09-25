@@ -394,7 +394,7 @@ export class ChartWidget extends Widget {
             else {
                 axis.labels.formatter = NtopUtils[selectedFormatter];
             }
-        }
+        }        // enable formatters
     }
 
     _buildDataLabels(config, rsp) {
