@@ -1447,8 +1447,16 @@ static int handle_lua_request(struct mg_connection *conn) {
   if (strstr(request_info->uri, "//") || strstr(request_info->uri, "&&") ||
       strstr(request_info->uri, "??") || strstr(request_info->uri, "..") ||
       strstr(request_info->uri, "\r") || strstr(request_info->uri, "\n")) {
+    char buf[64];
+    char session_id[NTOP_SESSION_ID_LENGTH], session_key[32];
+    
+    mg_get_cookie(conn, session_key, session_id, sizeof(session_id));
     ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                 "[HTTP] The URL %s is invalid/dangerous",
+                                 "[HTTP] [%s][%s:%u][%s] The URL %s is invalid/dangerous",
+				 username,
+				 Utils::intoaV4((unsigned int)request_info->remote_ip, buf, sizeof(buf)),
+				 request_info->remote_port,
+				 session_key,
                                  request_info->uri);
     if (original_uri)
       request_info->uri = original_uri;
