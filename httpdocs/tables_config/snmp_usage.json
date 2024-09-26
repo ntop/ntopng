@@ -31,13 +31,22 @@
 					"event_id": "click_button_timeseries"
 				},
 				{
-					"id": "interface_configuration",
+					"id": "device_configuration",
 					"icon": "fas fa-cog",
-					"title_i18n": "flow_checks.callback_config",
+					"title_i18n": "snmp_page.device_configuration",
 					"class": [
 						"link-button"
 					],
-					"event_id": "click_button_configuration"
+					"event_id": "click_button_device_configuration"
+				},
+				{
+					"id": "interface_configuration",
+					"icon": "fas fa-cog",
+					"title_i18n": "snmp_page.interface_configuration",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_interface_configuration"
 				}
 			]
 		},

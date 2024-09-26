@@ -212,9 +212,16 @@ function click_button_timeseries(event) {
 
 /* ************************************** */
 
-function click_button_configuration(event) {
+function click_button_device_configuration(event) {
     const row = event.row;
-    window.open(create_config_url_link(row));
+    window.open(`${http_prefix}/lua/pro/enterprise/snmp_device_details.lua?host=${row.ip}&page=config`);
+}
+
+/* ************************************** */
+
+function click_button_interface_configuration(event) {
+    const row = event.row;
+    window.open(`${http_prefix}/lua/pro/enterprise/snmp_interface_details.lua?host=${row.ip}&snmp_port_idx=${row.ifid}&page=config`);
 }
 
 /* ************************************** */
@@ -222,7 +229,8 @@ function click_button_configuration(event) {
 function on_table_custom_event(event) {
     let events_managed = {
         "click_button_timeseries": click_button_timeseries,
-        "click_button_configuration": click_button_configuration
+        "click_button_device_configuration": click_button_device_configuration,
+        "click_button_interface_configuration": click_button_interface_configuration
     };
     if (events_managed[event.event_id] == null) {
         return;

@@ -7909,6 +7909,8 @@ local lang = {
     },
   },
   ["snmp_page"] = {
+    ["interface_configuration"] = "Interface Configuration",
+    ["device_configuration"] = "Device Configuration",
     ["guide_snmp_page_message"] = "Visit page <a href='%{url}'> SNMP</a> to add this host to the list of configured SNMP devices.",
     ["ip_associated"] = "IP Associated",
     ["multiple_macs"] = "<a href='%{num_mac_href}'>%{mac} and %{num_mac} more macs</a>",
