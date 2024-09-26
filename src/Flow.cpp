@@ -5499,7 +5499,7 @@ std::string Flow::getFlowInfo(bool isLuaRequest) {
         info_field = std::string(protos.ssh.client_signature);
       }
     } else if (isLuaRequest && hasRisk(NDPI_DESKTOP_OR_FILE_SHARING_SESSION)) {
-      info_field = std::string("<i class='fa fa-lg fa-binoculars'></i> Desktop Sharing");
+      info_field = std::string("Desktop Sharing");
     } else if (isMining() && protos.mining.currency) {
       info_field = std::string(protos.mining.currency);
     } else if (isSIP()) {
@@ -5512,15 +5512,15 @@ std::string Flow::getFlowInfo(bool isLuaRequest) {
 	break;
 
       case ndpi_multimedia_audio_flow:
-	info_field = std::string("<i class='fa fa-lg fa-volume-up'></i> Audio");
+	info_field = std::string("Audio");
 	break;
 
       case ndpi_multimedia_video_flow:
-	info_field = std::string("<i class='fa fa-lg fa-video'></i> Video");
+	info_field = std::string("Video");
 	break;
 
       case ndpi_multimedia_screen_sharing_flow:
-	info_field = std::string("<i class='fa fa-lg fa-binoculars'></i> Desktop Sharing");
+	info_field = std::string("Desktop Sharing");
 	break;
       }
     }

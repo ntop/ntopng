@@ -95,9 +95,9 @@ class AggregatedFlowsStats {
     if (proto_name) { free(proto_name); }
     proto_name = strdup(_proto_name);
   };
-  inline void setInfoKey(char* _key) { 
+  inline void setInfoKey(string _key) { 
     if (info_key) { free(info_key); }
-    info_key = strdup(_key);
+    info_key = strdup(_key.c_str());
   };
   inline void setProtoKey(u_int64_t _key) { proto_key = _key; };
   inline void setKey(u_int64_t _key) { key = _key; };

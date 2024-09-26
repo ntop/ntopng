@@ -50,9 +50,8 @@ import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
 import NtopUtils from "../utilities/ntop-utils";
 import { default as TableWithConfig } from "./table-with-config.vue";
-import { default as Dropdown } from "./dropdown.vue";
 import { default as Spinner } from "./spinner.vue";
-
+import infoUtils from "../utilities/map/info-utils.js";
 import { default as SelectSearch } from "./select-search.vue";
 
 const props = defineProps({
@@ -346,8 +345,7 @@ const map_table_def_columns = async (columns) => {
             columns.push(
                 {
                     title_i18n: "info", sortable: true, name: 'info', data_field: 'info', class: ['text-nowrap'], responsivePriority: 1, render_func: (data_field) => {
-
-                        return `${data_field.label}`
+                        return `${infoUtils.addFlowInfoIcon(data_field.label)}`
                     }
                 });
         }
@@ -395,6 +393,8 @@ const map_table_def_columns = async (columns) => {
             return NtopUtils.bytesToSize(data_field);
         }
     });
+
+    console.log(columns)
     return columns;
 }
 
@@ -457,7 +457,7 @@ const format_flows_icon = function (data, rowData) {
     else if (selected_criteria.value.value == 5)
         url = `${http_prefix}/lua/flows_stats.lua?application=${rowData.application.id}&client=${rowData.client.ip}&server=${rowData.server.ip}&vlan=${rowData.vlan_id.id}`;
     else if (selected_criteria.value.value == 6) {
-        url = `${http_prefix}/lua/flows_stats.lua?flow_info=${rowData.info.id}`;
+        url = `${http_prefix}/lua/flows_stats.lua?flow_info=${NtopUtils.stripTags(rowData.info.id)}`;
         if (add_host) url = url + `&host=` + props.context.host;
     }
     else if (selected_criteria.value.value == 7) {
