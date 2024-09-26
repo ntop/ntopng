@@ -39,6 +39,7 @@ import { default as dataUtils } from "../utilities/data-utils.js";
 import { default as Spinner } from "./spinner.vue";
 import formatterUtils from "../utilities/formatter-utils";
 import NtopUtils from "../utilities/ntop-utils.js";
+import infoUtils from "../utilities/map/info-utils.js";
 
 /* ************************************** */
 
@@ -221,9 +222,9 @@ const map_table_def_columns = (columns) => {
         "info": (value, row) => {
             let info = ''
             if (!dataUtils.isEmptyOrNull(value)) {
-                info = value
-                const periodic_map_url = `${http_prefix}/lua/pro/enterprise/network_maps.lua?map=periodicity_map&page=table`
+                info = infoUtils.addFlowInfoIcon(value);
                 if (row.periodic_flow) {
+                    const periodic_map_url = `${http_prefix}/lua/pro/enterprise/network_maps.lua?map=periodicity_map&page=table`
                     const address = row.client.mac ? row.client.mac : row.client.host
                     info = `${value} <a href="${periodic_map_url}&host=${address}&l7proto=${row.application.name}"><span class="badge bg-warning text-dark">${i18n("periodic_flow")}</span></a>`
                 }

@@ -2771,3 +2771,15 @@ function shortFlowLabel(flow)
 end
 
 -- #######################
+
+-- A one line flow description
+-- This uses the information from flow.getInfo()
+function format_flow_info_field(flow)
+    local info = ""
+    if not isEmptyString(flow["info"]) then
+        
+    end
+    return info
+end
+
+-- #######################
