@@ -218,6 +218,12 @@ function ts_common.normalizeVal(v, max_val, options)
         v = options.min_value
     end
 
+    -- In case the value is not nil, round it, removing values after commas
+    -- that is because with high timeframe, approximation does not work correctly enough
+    if v == v then
+        v = math.floor(v + 0.5)
+    end
+
     return v
 end
 
