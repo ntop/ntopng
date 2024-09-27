@@ -132,6 +132,15 @@ Upon successful generation, the license key will be printed in the browser:
 
 At this point the license can be installed as described above or simply by following the instructions indicated in the resulting page.
 
+.. _LicenseManager:
+
+Using the License Manager
+=========================
+
+In addition to the standard licenses described above, ntopng can use the license manager (LM). Please refer to https://www.ntop.org/guides/nprobe/introduction.html#using-the-license-manager for details about the LM.
+
+In order to use the LM simply do ```ntopng --license-mgr <licensemgr>.conf <other ntopng options>```.
+
 
 
 
