@@ -296,14 +296,6 @@ if auth.has_capability(auth.capabilities.preferences) then
             default = "0",
             pref = "active_monitoring"
         })
-        print('<thead class="table-primary"><tr><th colspan=2 class="info">' ..
-                  i18n("active_monitoring_stats.network_discovery") .. '</th></tr></thead>')
-
-        prefsToggleButton(subpage_active, {
-            field = "toggle_network_discovery",
-            default = "0",
-            pref = "network_discovery"
-        })
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
@@ -448,10 +440,17 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.network_discovery") ..
                   '</th></tr></thead>')
 
-        local elementToSwitch = {"network_discovery_interval", "network_discovery_debug"}
-
+        local elementToSwitch = {"toggle_periodic_network_discovery", "toggle_network_discovery_debug"}
         prefsToggleButton(subpage_active, {
             field = "toggle_network_discovery",
+            default = "0",
+            pref = "network_discovery",
+            to_switch = elementToSwitch
+        })
+        
+        elementToSwitch = {"network_discovery_interval"}
+        prefsToggleButton(subpage_active, {
+            field = "toggle_periodic_network_discovery",
             default = "0",
             pref = "is_periodic_network_discovery_enabled",
             to_switch = elementToSwitch
@@ -640,8 +639,9 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         -- #####################
 
-        prefsInputFieldPrefs(subpage_active.entries["http_index_page"].title, subpage_active.entries["http_index_page"].description,
-            "ntopng.prefs.", "http_index_page", prefs.http_index_page, false, nil, nil, nil, {
+        prefsInputFieldPrefs(subpage_active.entries["http_index_page"].title,
+            subpage_active.entries["http_index_page"].description, "ntopng.prefs.", "http_index_page",
+            prefs.http_index_page, false, nil, nil, nil, {
                 style = {
                     width = "25em;"
                 },
@@ -1371,12 +1371,10 @@ if auth.has_capability(auth.capabilities.preferences) then
                 min = 60,
                 tformat = "mhd"
             })
-            
 
         prefsInputFieldPrefs(subpage_active.entries["mac_address_cache_duration"].title,
             subpage_active.entries["mac_address_cache_duration"].description, "ntopng.prefs.",
-            "mac_address_cache_duration", prefs.mac_address_cache_duration or 300, "number", true, nil,
-            nil, {
+            "mac_address_cache_duration", prefs.mac_address_cache_duration or 300, "number", true, nil, nil, {
                 min = 5,
                 tformat = "mhd"
             })
@@ -1680,8 +1678,8 @@ if auth.has_capability(auth.capabilities.preferences) then
 
             multipleTableButtonPrefs(subpage_active.entries["toggle_flow_rrds_resolution"].title,
                 subpage_active.entries["toggle_flow_rrds_resolution"].description, resolutions_labels,
-                resolutions_values, "300", "primary", "exporters_ts_resolution", "ntopng.prefs.exporters_ts_resolution", nil, nil, nil,
-                nil, areFlowdevTimeseriesEnabled())
+                resolutions_values, "300", "primary", "exporters_ts_resolution", "ntopng.prefs.exporters_ts_resolution",
+                nil, nil, nil, nil, areFlowdevTimeseriesEnabled())
 
             prefsToggleButton(subpage_active, {
                 field = "toggle_interface_usage_probes_timeseries",

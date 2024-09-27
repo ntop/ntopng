@@ -36,10 +36,6 @@ local menu_subpages = {{
             title = i18n("prefs.toggle_active_monitoring_title"),
             description = i18n("prefs.toggle_active_monitoring_description")
         },
-        toggle_network_discovery = {
-            title = i18n("active_monitoring_stats.network_discovery"),
-            description = i18n("active_monitoring_stats.network_discovery_description")
-        }
     }
 },{
     id = "alerts",
@@ -407,6 +403,10 @@ local menu_subpages = {{
     hidden = false,
     entries = {
         toggle_network_discovery = {
+            title = i18n("active_monitoring_stats.network_discovery"),
+            description = i18n("active_monitoring_stats.network_discovery_description")
+        },
+        toggle_periodic_network_discovery = {
             title = i18n("prefs.toggle_network_discovery_title"),
             description = i18n("prefs.toggle_network_discovery_description")
         },

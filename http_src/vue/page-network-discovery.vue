@@ -197,7 +197,7 @@ const checkDiscovery = async () => {
 
 // Function to redirect to a url
 function redirectToPreferencesPage() {
-  const url = `${http_prefix}/lua/admin/prefs.lua`
+  const url = `${http_prefix}/lua/admin/prefs.lua?tab=discovery`
   ntopng_url_manager.go_to_url(url)
 }
 
