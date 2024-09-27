@@ -296,15 +296,6 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "active_monitoring"
         })
 
-        print('<thead class="table-primary"><tr><th colspan=2 class="info">' ..
-            i18n("active_monitoring_stats.network_discovery") .. '</th></tr></thead>')
-
-        prefsToggleButton(subpage_active, {
-            field = "toggle_network_discovery",
-            default = "0",
-            pref = "network_discovery"
-            })
-
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
                 i18n("save") .. '</button></th></tr>')
@@ -448,10 +439,16 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.network_discovery") ..
                   '</th></tr></thead>')
 
-        local elementToSwitch = {"network_discovery_interval", "network_discovery_debug"}
-
+        local elementToSwitch = {"toggle_periodic_network_discovery", "toggle_network_discovery_debug"}
         prefsToggleButton(subpage_active, {
             field = "toggle_network_discovery",
+            default = "0",
+            pref = "network_discovery"
+        })
+
+        elementToSwitch = {"network_discovery_interval", "network_discovery_debug"}
+        prefsToggleButton(subpage_active, {
+            field = "toggle_periodic_network_discovery",
             default = "0",
             pref = "is_periodic_network_discovery_enabled",
             to_switch = elementToSwitch
@@ -1880,14 +1877,14 @@ if auth.has_capability(auth.capabilities.preferences) then
                 max = 10
             })
 
-	if(ntop.isEnterpriseXL()) then
-	   prefsToggleButton(subpage_active, {
-				field = "toggle_snmp_trap",
-				default = "0",
-				pref = "toggle_snmp_trap"
-	   })
-	end
-	
+        if (ntop.isEnterpriseXL()) then
+            prefsToggleButton(subpage_active, {
+                field = "toggle_snmp_trap",
+                default = "0",
+                pref = "toggle_snmp_trap"
+            })
+        end
+
         prefsToggleButton(subpage_active, {
             field = "toggle_snmp_debug",
             default = "0",
@@ -2241,7 +2238,7 @@ if auth.has_capability(auth.capabilities.preferences) then
                 pref = "toggle_ntopng_assets_inventory",
                 to_switch = {}
             })
-        ]] 
+        ]]
 
         -- Netbox toggle
         prefsToggleButton(subpage_active, {
