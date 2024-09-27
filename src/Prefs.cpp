@@ -111,6 +111,7 @@ Prefs::Prefs(Ntop *_ntop) {
   snmp_trap_enabled = CONST_DEFAULT_SNMP_TRAP_ENABLED;
   pro_callbacks_dir = strdup(CONST_DEFAULT_PRO_CALLBACKS_DIR);
   create_labels_logfile = false;
+  lic_mgr_config_file = NULL;
 #endif
   pcap_dir = NULL;
   test_pre_script_path = test_post_script_path = test_runtime_script_path =
@@ -1192,6 +1193,9 @@ static const struct option long_options[] = {
   {"callbacks-dir", required_argument, NULL, '3'},
   {"prefs-dir", required_argument, NULL, '4'},
   {"pcap-dir", required_argument, NULL, '5'},
+#ifdef NTOPNG_PRO
+  {"license-mgr", required_argument, NULL, 197},
+#endif
   {"ciphers-list", required_argument, NULL, 198},
   {"disable-purge", no_argument, NULL, 199},
   {"limit-resources", no_argument, NULL, 200},
@@ -2149,6 +2153,12 @@ int Prefs::setOption(int optkey, char *optarg) {
     print_version = true;
     break;
 
+#ifdef NTOPNG_PRO
+  case 197:
+    lic_mgr_config_file = strdup(optarg);
+    break;
+#endif
+    
   case 198:
     ciphers_list = strdup(optarg);
     break;

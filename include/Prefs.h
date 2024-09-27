@@ -201,6 +201,7 @@ class Prefs {
   char* message_broker;
 #ifdef NTOPNG_PRO
   bool print_maintenance, print_license;
+  char *lic_mgr_config_file;
 #endif
   bool print_version, print_version_json;
   bool snmp_polling;
@@ -745,6 +746,9 @@ class Prefs {
   inline bool limitResourcesUsage()        { return(limited_resources_mode);           }
   inline bool failOnInvalidLicense()       { return(fail_on_invalid_license);          }
   inline char* getCiphersList()            { return(ciphers_list);                     }
+#ifdef NTOPNG_PRO
+  inline char* getLicMgrConfigFile()       { return(lic_mgr_config_file);              }
+#endif
 };
 
 #endif /* _PREFS_H_ */
