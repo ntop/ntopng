@@ -91,7 +91,7 @@
   let selected_custom_queries = {};
   {% for item in pairs(query_presets) do %}
                   {% 
-                  local name = i18n(query_presets[item]["i18n_name"])
+                  local name = i18n(query_presets[item]["i18n_name"]) or query_presets[item]["i18n_name"]
                   local query_item = query_presets[item]
                   %}
                   custom_queries_list.push({

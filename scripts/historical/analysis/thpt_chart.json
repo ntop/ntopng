@@ -1,0 +1,25 @@
+{
+    "name" : "Throughput Chart",
+    "i18n_name" : "Throughput",
+    "data_source" : "flows",
+    "hourly": true,
+    "chart" : [
+	{
+            "chart_id" : "traffic_chart", // Each id MUST be different
+            "chart_i18n_name" : "Throughput Chart",
+            "chart_css_styles" : { // CSS chart styles, optional feature
+                "max-height" : "25rem",
+                "min-height" : "25rem",
+            },
+            "chart_endpoint" : "/lua/rest/v2/get/db/charts/default_rest.lua",
+            "chart_events" : { // JS Events, optional feature
+                "dataPointSelection" : "db_analyze"
+            },
+            "chart_sql_query" : "SELECT slot, SUM(tot_average_bytes * 8) AS count FROM (SELECT epoch - (epoch % 10) AS slot, sum(flow_bytes) AS tot_average_bytes FROM (SELECT FIRST_SEEN AS start_time, LAST_SEEN AS end_time, TOTAL_BYTES / toFloat64((end_time - start_time) + 1) AS flow_bytes, arrayJoin(range(toUInt32(start_time), toUInt32(end_time + 1))) AS epoch FROM flows WHERE $WHERE$) GROUP BY epoch) GROUP BY slot ORDER BY slot ASC",
+            "chart_type" : "area_apex_chart",
+            "chart_record_value" : "bytes",
+            "chart_record_label" : "Throughput",
+            "chart_width" : 6, // Chart width, it can be a number between 1 and 12, optional feature
+        }],
+    "show_in_page" : "analysis",
+}
