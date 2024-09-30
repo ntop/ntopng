@@ -236,11 +236,6 @@ NetworkInterface::NetworkInterface(const char *name,
   updateLbdIdentifier();
   updateFlowsOnlyInterface();
   updatePushFiltersSettings();
-
-#ifdef DOMAIN_COLLECTION
-  snprintf(buf, sizeof(buf), "/var/lib/ntopng/%d/domains.txt", id);
-  domain_fd = fopen(buf, "a");
-#endif
 }
 
 /* **************************************************** */
@@ -1068,11 +1063,6 @@ NetworkInterface::~NetworkInterface() {
   cleanShadownDPI();
 
   if (smart_recording_instance_name) free(smart_recording_instance_name);
-
-#ifdef DOMAIN_COLLECTION
-  if(domain_fd != NULL)
-    fclose(domain_fd);
-#endif
 }
 
 /* **************************************************** */

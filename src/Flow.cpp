@@ -337,8 +337,7 @@ void Flow::allocDPIMemory() {
 
 void Flow::freeDPIMemory() {
   if (ndpiFlow) {
-#ifdef DOMAIN_COLLECTION
-    if(host_server_name != NULL) {
+    if(ntop->getPrefs()->are_sites_collection_enabled() && (host_server_name != NULL)) {
       if(strchr(host_server_name, ':') == NULL /* No IPv6 or IP:port */) {
 	const char *domain = ndpi_get_host_domain(iface->get_ndpi_struct(), host_server_name);
 	int len = strlen(domain);
@@ -350,19 +349,20 @@ void Flow::freeDPIMemory() {
 	   && (ndpi_strrstr(domain, ".local") == NULL)
 	   && (ndpi_strrstr(domain, ".arpa") == NULL)
 	   ) {
+	  char tbuf[16];
+#ifdef DEBUG
 	  const char *ja4r = ndpiFlow->protos.tls_quic.ja4_client_raw ? ndpiFlow->protos.tls_quic.ja4_client_raw : "";
 	  char buf[64];
 	  char *client = get_cli_host()->get_ip()->printMask(buf, sizeof(buf), true);
 
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s\t%s [%s] [%s]", client, domain, host_server_name, ja4r);
-	  ntop->getRedis()->hashSet("ntopng.domains", domain, ja4r);
+	  ntop->getTrace()->traceEvent(TRACE_INFO, "%s\t%s [%s] [%s]", client, domain, host_server_name, ja4r);
+#endif
 
-	  if(iface->getDomainFd())
-	    fprintf(iface->getDomainFd(), "%s\t%s\t%s\t%s\n", client, domain, host_server_name, ja4r);
+	  snprintf(tbuf, sizeof(tbuf), "%u", (u_int32_t)time(NULL));
+	  ntop->getRedis()->hashSet("ntopng.domains", domain, tbuf);
 	}
       }
     }
-#endif
 
     setRisk(ndpi_flow_risk_bitmap | ndpiFlow->risk);
     ndpi_confidence = ndpiFlow->confidence;
@@ -417,9 +417,8 @@ Flow::~Flow() {
     if (is_oneway_tcp_udp_flow) cli_u->incUnidirectionalEgressTCPUDPFlows();
   }
 
-  if (!cli_host &&
-      cli_ip_addr) /* Dynamically allocated only when cli_host was NULL in Flow
-                      constructor (viewed interfaces) */
+  if (!cli_host && cli_ip_addr) /* Dynamically allocated only when cli_host was NULL in Flow
+				   constructor (viewed interfaces) */
     delete cli_ip_addr;
 
   if (srv_u) {
@@ -8846,8 +8845,7 @@ void Flow::addPrePostNATPort(u_int32_t _src_port_pre_nat,
 /* *************************************** */
 
 /*
-  Account flow traffic in interface traffic if not
-  yet done
+  Account flow traffic in interface traffic if not yet done
 */
 void Flow::accountFlowTraffic() {
   if(!isFlowAccounted()) {

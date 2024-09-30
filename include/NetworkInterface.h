@@ -188,9 +188,6 @@ protected:
   u_int16_t next_compq_remove_idx;
   ParsedFlow **companionQueue;
   bool ip_reassignment_alerts_enabled;
-#ifdef DOMAIN_COLLECTION
-  FILE *domain_fd;
-#endif
   
   /* Live Capture */
   Mutex active_captures_lock;
@@ -1356,10 +1353,6 @@ public:
   void incnDPIStats(time_t when, u_int16_t ndpi_proto,
 		    ndpi_protocol_category_t ndpi_category,
 		    u_int32_t bytes_len, u_int32_t num_pkts);
-
-#ifdef DOMAIN_COLLECTION
-  inline FILE* getDomainFd() { return(domain_fd); }
-#endif
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */
