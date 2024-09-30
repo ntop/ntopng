@@ -91,6 +91,10 @@ local menu_subpages = {{
                 url = "https://resources.sei.cmu.edu/asset_files/Presentation/2010_017_001_49763.pdf"
             })
         },
+        toggle_sites_collection = {
+            title = i18n("prefs.toggle_sites_collection_title"),
+            description = i18n("prefs.toggle_sites_collection_description")
+        },
         toggle_tls_quic_hostnaming = {
             title = i18n("prefs.toggle_tls_quic_hostnaming_title"),
             description = i18n("prefs.toggle_tls_quic_hostnaming_description")

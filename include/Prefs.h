@@ -87,7 +87,8 @@ class Prefs {
   u_int32_t other_rrd_raw_days, other_rrd_1min_days, other_rrd_1h_days,
       other_rrd_1d_days;
   u_int32_t housekeeping_frequency;
-  bool disable_alerts, enable_top_talkers, enable_active_local_hosts_cache;
+  bool disable_alerts, enable_top_talkers, enable_sites_collection, 
+      enable_active_local_hosts_cache;
   bool enable_flow_device_port_rrd_creation,
       enable_observation_points_rrd_creation,
       enable_intranet_traffic_rrd_creation;
@@ -565,6 +566,7 @@ class Prefs {
     return http_index_page;
   };
   inline bool are_top_talkers_enabled() { return (enable_top_talkers); };
+  inline bool are_sites_collection_enabled() { return (enable_sites_collection); };
   inline bool flow_table_duration_or_last_seen() { return (flow_table_time); };
   inline bool is_active_local_host_cache_enabled() {
     return (enable_active_local_hosts_cache);

@@ -70,7 +70,7 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_intranet_traffic_rrd_creation = false;
   http_log_path = NULL;
   reproduce_at_original_speed = false;
-  enable_top_talkers = false;
+  enable_top_talkers = enable_sites_collection = false;
   enable_active_local_hosts_cache = false, enable_tiny_flows_export = true,
     enable_captive_portal = false, mac_based_captive_portal = false,
     enable_arp_matrix_generation = false,
@@ -944,6 +944,7 @@ void Prefs::reloadPrefsFromRedis() {
     other_rrd_1d_days = getDefaultPrefsValue(CONST_OTHER_RRD_1D_DAYS, OTHER_RRD_1D_DAYS),
 
     enable_top_talkers = getDefaultBoolPrefsValue(CONST_TOP_TALKERS_ENABLED, CONST_DEFAULT_TOP_TALKERS_ENABLED),
+    enable_sites_collection = getDefaultBoolPrefsValue(CONST_SITES_COLLECTION_ENABLED, CONST_DEFAULT_SITES_COLLECTION_ENABLED),
     enable_active_local_hosts_cache = getDefaultBoolPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
 							       CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED),
     enable_tiny_flows_export = getDefaultBoolPrefsValue(CONST_IS_TINY_FLOW_EXPORT_ENABLED,
@@ -2764,6 +2765,7 @@ void Prefs::lua(lua_State *vm) {
   lua_push_uint64_table_entry(vm, "other_rrd_1d_days", other_rrd_1d_days);
 
   lua_push_bool_table_entry(vm, "are_top_talkers_enabled", enable_top_talkers);
+  lua_push_bool_table_entry(vm, "sites_collection", enable_sites_collection);
   lua_push_bool_table_entry(vm, "flow_table_time", flow_table_time);
   lua_push_bool_table_entry(vm, "flow_table_probe_order",
                             flow_table_probe_order);

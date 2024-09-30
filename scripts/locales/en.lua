@@ -7163,6 +7163,8 @@ local lang = {
     ["toggle_tls_quic_hostnaming_title"] = "TLS & QUIC hostnames",
     ["toggle_top_sites_description"] = "Toggle the creation of top visited web sites for local hosts. Top sites are created using an <a href=\"%{url}\">heuristic</a> that maintain no more than 20 sites per local host. The heuristic fully operates in memory and does not require any interaction with the disk. Top sites are cleared every 5 minutes. An historical archive of top visited web sites can be created, for each local host, by periodically polling the JSON <i class=\"fas fa-download fa-sm\"></i> download link accessible from host details page. The application protocols of these sites are: TLS, QUIC, HTTP and DNS",
     ["toggle_top_sites_title"] = "Top Visited Sites",
+    ["toggle_sites_collection_title"] = "Sites Collection",
+    ["toggle_sites_collection_description"] = "Toggle the creation of a report of top sites visited to be sent to ntopng used to analyze and create of collection of secure/insecure sites",
     ["toggle_traffic_rrd_creation_description"] = "Toggle the creation of bytes and packets timeseries.",
     ["toggle_traffic_rrd_creation_title"] = "Traffic",
     ["toggle_use_mac_in_flow_key_description"] = "Use the MAC Address to generate the flow key. This is suggested in case the same IP can be seen using different MAC Addresses (e.g. a load balancer).",
