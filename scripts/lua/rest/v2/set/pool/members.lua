@@ -29,12 +29,14 @@ local radius_handler = require "radius_handler"
          connectivity = "reject"
          username: "905395124063",
          password: "XXX",
+         
          terminateCause: "1"
        },
        ["192.168.2.221/32@0"] = {
          group = "staff", 
          connectivity = "reject"
          username: "905395124064",
+         handle_with_radius: true,
          password: "XXX",
        }
      }
@@ -82,6 +84,7 @@ for member, info in pairs(_POST["associations"] or {}) do
     local connectivity = info["connectivity"]
     local username = info["username"]
     local password = info["password"]
+    local handle_with_radius = toboolean(info["handle_with_radius"] or false)
 
     if connectivity == "pass" then
         if s:bind_member(m, pool_id) == true then
@@ -89,7 +92,9 @@ for member, info in pairs(_POST["associations"] or {}) do
             local current_interface = interface.getId() or -1 -- System Interface
             res["associations"][m]["status"] = "OK"
             interface.select(tostring(interface.getFirstInterfaceId()))
-            radius_handler.accountingStart(m, username, password)
+            if handle_with_radius then
+              radius_handler.accountingStart(m, username, password)
+            end
             interface.select(current_interface) 
         else
             res["associations"][m]["status"] = "ERROR"
@@ -104,7 +109,9 @@ for member, info in pairs(_POST["associations"] or {}) do
         res["associations"][m]["status"] = "OK"
         interface.select(tostring(interface.getFirstInterfaceId()))
         local mac_info = interface.getMacInfo(m)
-        radius_handler.accountingStop(m, terminate_cause, mac_info)
+        if handle_with_radius then
+          radius_handler.accountingStop(m, terminate_cause, mac_info)
+        end
         interface.select(current_interface) 
     else
         res["associations"][m]["status"] = "ERROR"
