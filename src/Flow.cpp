@@ -349,7 +349,6 @@ void Flow::freeDPIMemory() {
 	   && (ndpi_strrstr(domain, ".local") == NULL)
 	   && (ndpi_strrstr(domain, ".arpa") == NULL)
 	   ) {
-	  char tbuf[16];
 #ifdef DEBUG
 	  const char *ja4r = ndpiFlow->protos.tls_quic.ja4_client_raw ? ndpiFlow->protos.tls_quic.ja4_client_raw : "";
 	  char buf[64];
@@ -358,8 +357,7 @@ void Flow::freeDPIMemory() {
 	  ntop->getTrace()->traceEvent(TRACE_INFO, "%s\t%s [%s] [%s]", client, domain, host_server_name, ja4r);
 #endif
 
-	  snprintf(tbuf, sizeof(tbuf), "%u", (u_int32_t)time(NULL));
-	  ntop->getRedis()->hashSet("ntopng.domains", domain, tbuf);
+	  ntop->getRedis()->hashSet("ntopng.domains", domain, host_server_name);
 	}
       }
     }
