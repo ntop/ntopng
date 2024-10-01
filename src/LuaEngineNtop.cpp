@@ -7804,11 +7804,9 @@ static int ntop_get_license_limits(lua_State *vm) {
                               ntop->getNumFlowExporters());
   lua_push_uint32_table_entry(vm, "num_flow_exporter_interfaces",
                               ntop->getNumFlowExportersInterfaces());
-#if 0
-  lua_push_uint32_table_entry(vm, "num_host_pools", );
-  lua_push_uint32_table_entry(vm, "num_pool_members", );
-  lua_push_uint32_table_entry(vm, "num_profiles", );
-#endif
+  lua_push_uint32_table_entry(vm, "num_host_pools", ntop->getNumberHostPools());
+  lua_push_uint32_table_entry(vm, "num_pool_members", ntop->getNumberHostPoolsMembers());
+  lua_push_uint32_table_entry(vm, "num_profiles", ntop->getNumberProfiles());
   lua_pushstring(vm, "current");
   lua_insert(vm, -2);
   lua_settable(vm, -3);

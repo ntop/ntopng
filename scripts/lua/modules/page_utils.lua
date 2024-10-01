@@ -160,6 +160,7 @@ page_utils.menu_entries = {
    alert_exclusions_flows = {key = "alert_exclusions", subkey="flows", i18n_title = alert_entities.flow.i18n_label, section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    alert_exclusions_domains = {key = "alert_exclusions", subkey="domains", i18n_title = alert_entities.domain.i18n_label, section = "alert_exclusions", help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"},
    license                = {key = "license", i18n_title = "license_page.license", section = "admin"},
+   limits                 = {key = "limits", i18n_title = "limits_page.limits", section = "admin"},
    profiles               = {key = "profiles", i18n_title = "traffic_profiles.traffic_profiles", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/advanced_features/traffic_profiles.html"},
    categories             = {key = "categories", i18n_title = "custom_categories.apps_and_categories", section = "admin", help_link = "https://www.ntop.org/guides/ntopng/web_gui/categories.html#custom-applications"},
    category_lists         = {key = "category_lists", i18n_title = "category_lists.category_lists", section = "admin"},

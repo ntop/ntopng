@@ -184,6 +184,9 @@ class HostPools {
                 ? routing_policy_id[pool_id]
                 : DEFAULT_ROUTING_TABLE_ID);
   }
+
+  u_int16_t getCurrentHostPoolsNumber();
+  u_int32_t getCurrentMaxHostPoolsMembers();
 #endif
 };
 

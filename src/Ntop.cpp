@@ -2919,6 +2919,54 @@ void Ntop::checkReloadHostPools() {
 
 /* ******************************************* */
 
+u_int16_t Ntop::getNumberHostPools() {
+  u_int16_t pools_number = 0;
+  for (int i = 0; i < get_num_interfaces(); i++) {
+    NetworkInterface *iface;
+
+    if ((iface = ntop->getInterface(i)) != NULL) {
+      pools_number = pools_number + iface->getNumberHostPools();
+      break;
+    }
+  }
+  return pools_number;
+}
+
+/* ******************************************* */
+
+u_int32_t Ntop::getNumberHostPoolsMembers() {
+  hostPoolsReloadInProgress = false;
+  u_int32_t max_members_number = 0;
+
+  for (int i = 0; i < get_num_interfaces(); i++) {
+    NetworkInterface *iface;
+    u_int32_t pool_member_number = 0;
+
+    if ((iface = ntop->getInterface(i)) != NULL) 
+      pool_member_number = iface->getNumberHostPoolsMembers();
+      
+    if (pool_member_number > max_members_number)
+      max_members_number = pool_member_number;
+  }
+  return max_members_number;
+}
+
+/* ******************************************* */
+
+u_int8_t Ntop::getNumberProfiles() {
+  u_int8_t num_profiles = 0;
+#ifdef NTOPNG_PRO
+  for (int i = 0; i < get_num_interfaces(); i++) {
+    NetworkInterface *iface;
+    if ((iface = ntop->getInterface(i)) != NULL) 
+      num_profiles = iface->getNumProfiles();
+  }
+#endif
+  return num_profiles;
+}
+
+/* ******************************************* */
+
 void Ntop::checkReloadAlertExclusions() {
 #ifdef NTOPNG_PRO
   if (alert_exclusions_shadow) { /* Dispose old memory if necessary */

@@ -617,3 +617,29 @@ u_int16_t HostPools::getPoolByName(const char *pool_name) {
 
   return NO_HOST_POOL_ID;
 }
+
+/* *************************************** */
+
+u_int16_t HostPools::getCurrentHostPoolsNumber() {
+  HostPoolStats *hps;
+  u_int16_t pools_number = 0;
+  for (int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+    if((hps = stats[i])) {
+      pools_number = pools_number + 1;
+    }
+  }
+  return pools_number;
+}
+
+/* *************************************** */
+
+u_int32_t HostPools::getCurrentMaxHostPoolsMembers() {
+  HostPoolStats *hps;
+  u_int32_t max_members_number = 0;
+  for (int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+    if((hps = stats[i])) {
+      max_members_number += getNumPoolHosts(i);
+    }
+  }
+  return max_members_number;
+}

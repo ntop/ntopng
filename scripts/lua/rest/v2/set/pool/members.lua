@@ -29,7 +29,6 @@ local radius_handler = require "radius_handler"
          connectivity = "reject"
          username: "905395124063",
          password: "XXX",
-         
          terminateCause: "1"
        },
        ["192.168.2.221/32@0"] = {

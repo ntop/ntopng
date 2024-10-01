@@ -827,6 +827,9 @@ class Ntop {
   void initSNMPTrapCollector();
   void toggleSNMPTrapCollector(bool enable);
 #endif
+  u_int16_t getNumberHostPools();
+  u_int32_t getNumberHostPoolsMembers();
+  u_int8_t getNumberProfiles();
 };
 
 extern Ntop *ntop;

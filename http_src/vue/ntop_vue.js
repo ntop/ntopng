@@ -67,6 +67,7 @@ import { default as PageExporters } from "./page-exporters.vue"
 import { default as PageExportersDetails } from "./page-exporters-details.vue"
 import { default as PageExportersInterfaces } from "./page-exporters-interfaces.vue"
 import { default as PageNetworkConfiguration } from "./page-network-configuration.vue"
+import { default as PageLimits } from "./page-limits.vue"
 
 /* Config pages */
 import { default as PageSNMPConfig } from "./page-snmp-config.vue"
@@ -152,6 +153,7 @@ let ntopVue = {
     PageAsStats: PageAsStats,
     PageProbes: PageProbes,
     PageExportersDetails: PageExportersDetails,
+    PageLimits: PageLimits,
     
     /* SNMP */
     PageSNMPDevices: PageSNMPDevices,

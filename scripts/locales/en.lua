@@ -5376,6 +5376,14 @@ local lang = {
     ["status"] = "Status",
     ["valid"] = "Valid License",
   },
+  ["limits_page"] = {
+    ["limits"] = "License Limits",
+    ["num_profiles"] = "Profiles ( Current / Max )",
+    ["num_host_pools"] = "Host Pools ( Current / Max )",
+    ["num_pool_members"] = "Host Pools Members ( Current / Max )",
+    ["num_flow_exporters"] = "Flow Exporters ( Current / Max )",
+    ["num_flow_exporter_interfaces"] = "Flow Exporters Interfaces ( Current / Max )",
+  },
   ["live_capture"] = {
     ["active_live_captures"] = "Live Captures",
     ["live_capture"] = "Live Capture",

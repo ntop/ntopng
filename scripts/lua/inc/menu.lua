@@ -691,6 +691,9 @@ page_utils.add_menubar_section({
             entry = page_utils.menu_entries.license,
             hidden = info["pro.forced_community"],
             url = '/lua/license.lua'
+        }, {
+            entry = page_utils.menu_entries.limits,
+            url = '/lua/limits.lua'
         }, {entry = page_utils.menu_entries.divider}, {
             entry = page_utils.menu_entries.scripts_config,
             section = page_utils.menu_sections.checks,

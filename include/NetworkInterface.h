@@ -899,6 +899,16 @@ public:
   inline void reloadHostPools() {
     if (host_pools) host_pools->reloadPools();
   }
+  inline u_int16_t getNumberHostPools() {
+    if (host_pools) 
+      return host_pools->getCurrentHostPoolsNumber();
+    return 0;
+  }
+  inline u_int32_t getNumberHostPoolsMembers() {
+    if (host_pools) 
+      return host_pools->getCurrentMaxHostPoolsMembers();
+    return 0;
+  }
 
   bool registerLiveCapture(NtopngLuaContext *const luactx, int *id);
   bool deregisterLiveCapture(NtopngLuaContext *const luactx);
@@ -1347,6 +1357,8 @@ public:
                                                    bool *matched);
   static bool compute_info_flow_stats(GenericHashEntry *node, void *user_data,
                                       bool *matched);
+
+  inline u_int8_t getNumProfiles() { return (flow_profiles) ? flow_profiles->getNumProfiles() : 0; }
 #endif
   void getActiveMacs(lua_State *vm);
 
