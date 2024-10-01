@@ -900,17 +900,13 @@ public:
     if (host_pools) host_pools->reloadPools();
   }
   inline u_int16_t getNumberHostPools() {
-  #ifdef NTOPNG_PRO
     if (host_pools) 
       return host_pools->getCurrentHostPoolsNumber();
-  #endif
     return 0;
   }
   inline u_int32_t getNumberHostPoolsMembers() {
-  #ifdef NTOPNG_PRO
     if (host_pools) 
       return host_pools->getCurrentMaxHostPoolsMembers();
-  #endif
     return 0;
   }
 

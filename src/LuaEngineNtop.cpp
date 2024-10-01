@@ -7817,10 +7817,10 @@ static int ntop_get_license_limits(lua_State *vm) {
                               get_max_num_flow_exporters());
   lua_push_uint32_table_entry(vm, "num_flow_exporter_interfaces",
                               get_max_num_flow_exporters_interfaces());
+  lua_push_uint32_table_entry(vm, "num_profiles", MAX_NUM_PROFILES);
 #endif
   lua_push_uint32_table_entry(vm, "num_host_pools", MAX_NUM_HOST_POOLS);
   lua_push_uint32_table_entry(vm, "num_pool_members", MAX_NUM_POOL_MEMBERS);
-  lua_push_uint32_table_entry(vm, "num_profiles", MAX_NUM_PROFILES);
   lua_pushstring(vm, "max");
   lua_insert(vm, -2);
   lua_settable(vm, -3);
