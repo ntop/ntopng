@@ -116,14 +116,6 @@ print("</td></tr>\n")
 end
 print("<tr><th><a class='ntopng-external-link' href=\"http://d3js.org\" target=\"_blank\">Data-Driven Documents (d3js) <i class='fas fa-external-link-alt'></i></A></th><td colspan=2>2.9.1 / 3.0</td></tr>\n")
 
-print("<tr><th>".. i18n("about.licence_limits") .."</th><td colspan=2><table width=100% class=\"table table-bordered table-striped\">"
-      .. "<tr><th>Pools</th><td align=right>"..info["constants.max_num_host_pools"].."</td></tr>"
-      .. "<tr><th>Pool Members</th><td align=right>"..info["constants.max_num_pool_members"].."</td></tr>"
-      .. "<tr><th>Profiles</th><td align=right>"..info["constants.max_num_profiles"].."</td></tr>\n"
-      .. "<td></tr>\n"
-)
-
-
 print("</table>\n")
 
 print("</div>")

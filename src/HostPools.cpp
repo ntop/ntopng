@@ -583,7 +583,8 @@ u_int16_t HostPools::getCurrentHostPoolsNumber() {
 u_int32_t HostPools::getCurrentMaxHostPoolsMembers() {
   HostPoolStats *hps;
   u_int32_t max_members_number = 0;
-  for (int i = 0; i < MAX_NUM_HOST_POOLS; i++) {
+  /* Starting from 1, because 0 is the default host pool */
+  for (int i = 1; i < MAX_NUM_HOST_POOLS; i++) {
     if((hps = stats[i])) {
       max_members_number += getNumPoolHosts(i);
     }
