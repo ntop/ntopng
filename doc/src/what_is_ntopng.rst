@@ -101,6 +101,13 @@ Installing on OPNsense/pfSense
 
 OPNsense installation instructions are available in the :ref:`OPNsenseIntegration` integration page. pfSense installation instructions are available in the :ref:`pfSenseIntegration` integration page.
 
+.. note::
+   On some versions, the redis package comes with a default configuration that is suboptimal for OPNsense/pfSense. Please edit `/usr/local/etc/redis.conf` and check the line `dir /var/db/redis/` that specifies where redis leeps the database. Such database must be on persistent storage (i.e. the disk) and not in the ramdisk as for instance on pfSense. In this case you can fix he problem setting it to `dir /var/db/pkg/ntopng/` or to any other appropriate directory that is on persistent storage and not in ramdisk.
+   
+.. warning::
+   Please remember that OPNsense/pfSense devices have often limited resources. If you have to monitor a large network, we suggest you to consider running nProbe (that has limited resources usage and do not need disk stoage for keeping historical data) on OPNsense/pfSense that exports flow towards ntopng running on an host on the LAN that has more resources available.
+
+
 Software Updates
 ================
 
