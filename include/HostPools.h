@@ -72,6 +72,8 @@ class HostPools {
   u_int16_t getPool(Host *h, bool *mac_match = NULL);
   u_int16_t getPool(Mac *m);
   u_int16_t getPoolByName(const char *pool_name);
+  u_int16_t getCurrentHostPoolsNumber();
+  u_int32_t getCurrentMaxHostPoolsMembers();
 
   bool findIpPool(IpAddress *ip, u_int16_t vlan_id, u_int16_t *found_pool,
                   ndpi_patricia_node_t **found_node);
@@ -185,8 +187,6 @@ class HostPools {
                 : DEFAULT_ROUTING_TABLE_ID);
   }
 
-  u_int16_t getCurrentHostPoolsNumber();
-  u_int32_t getCurrentMaxHostPoolsMembers();
 #endif
 };
 
