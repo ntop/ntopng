@@ -188,7 +188,7 @@ class Prefs {
   bool appliance;
 #endif
 
-  ServerConfiguration *dns_servers, *ntp_servers, *dhcp_servers, *smtp_servers;
+  ServerConfiguration *gateway, *dns_servers, *ntp_servers, *dhcp_servers, *smtp_servers;
 
 #ifdef HAVE_PF_RING
   int pfring_cluster_id;
@@ -735,6 +735,7 @@ class Prefs {
   char* getKafkaOptions() { return (kafka_options); }
 #endif
   void reloadServersConfiguration();
+  bool isGateway(IpAddress *ip, u_int16_t vlan_id);
   bool isDNSServer(IpAddress *ip, u_int16_t vlan_id);
   bool isNTPServer(IpAddress *ip, u_int16_t vlan_id);
   bool isSMTPServer(IpAddress *ip, u_int16_t vlan_id);

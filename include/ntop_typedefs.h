@@ -459,7 +459,7 @@ typedef enum {
   flow_alert_ndpi_tls_certificate_selfsigned = 28,
   flow_alert_ndpi_binary_application_transfer = 29,
   flow_alert_ndpi_known_proto_on_non_std_port = 30,
-  flow_alert_noutused_8 = 31,
+  flow_alert_unexpected_gateway = 31,
   flow_alert_unexpected_dhcp_server = 32,
   flow_alert_unexpected_dns_server = 33,
   flow_alert_unexpected_smtp_server = 34,

@@ -78,6 +78,7 @@
 #include "flow_checks/TCPZeroWindow.h"
 #include "flow_checks/TCPPacketsIssues.h"
 #include "flow_checks/UnexpectedServer.h"
+#include "flow_checks/UnexpectedGateway.h"
 #include "flow_checks/UnexpectedDNSServer.h"
 #include "flow_checks/UnexpectedDHCPServer.h"
 #include "flow_checks/UnexpectedNTPServer.h"

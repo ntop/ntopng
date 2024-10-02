@@ -221,6 +221,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ls_proto = NULL;
   has_cmdl_trace_lvl = false;
 
+  gateway      = new (std::nothrow) ServerConfiguration();
   dns_servers  = new (std::nothrow) ServerConfiguration();
   ntp_servers  = new (std::nothrow) ServerConfiguration();
   dhcp_servers = new (std::nothrow) ServerConfiguration();
@@ -320,6 +321,7 @@ Prefs::~Prefs() {
     ndpi_bitmap_free(modbus_allowed_function_codes);
 #endif
 
+  if(gateway)  delete gateway;
   if(dns_servers)  delete dns_servers;
   if(ntp_servers)  delete ntp_servers;
   if(dhcp_servers) delete dhcp_servers;
@@ -3194,10 +3196,17 @@ void Prefs::setModbusAllowedFunctionCodes(const char *function_codes) {
 /* *************************************** */
 
 void Prefs::reloadServersConfiguration() {
+  gateway->reloadServerConfiguration((char *) CONST_GATEWAY_CONFIGURATION_REDIS_KEY);
   dns_servers->reloadServerConfiguration((char *) CONST_DNS_SERVER_CONFIGURATION_REDIS_KEY);
   ntp_servers->reloadServerConfiguration((char *) CONST_NTP_SERVER_CONFIGURATION_REDIS_KEY);
   dhcp_servers->reloadServerConfiguration((char *) CONST_DHCP_SERVER_CONFIGURATION_REDIS_KEY);
   smtp_servers->reloadServerConfiguration((char *) CONST_SMTP_SERVER_CONFIGURATION_REDIS_KEY);
+}
+
+/* *************************************** */
+
+bool Prefs::isGateway(IpAddress *ip, u_int16_t vlan_id) {
+  return gateway->findAddress(ip, vlan_id);
 }
 
 /* *************************************** */
