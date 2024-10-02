@@ -64,9 +64,9 @@ function columns_sorting(col, r0, r1) {
 
     /* In case the values are the same, sort by Name */
     if (r0_col == r1_col) {
-      return sortingFunctions.sortByName(r0.device, r1.device, col ? col.sort : null);
+      return sortingFunctions.sortByName(r0_col, r1_col, col ? col.sort : null);
     } else if (col.id == "limit") {
-      return sortingFunctions.sortByName(r0.device, r1.device, col ? col.sort : null);
+      return sortingFunctions.sortByName(r0_col, r1_col, col ? col.sort : null);
     } else if (col.id == "current") {
       const lower_value = -1;
       return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort, lower_value);

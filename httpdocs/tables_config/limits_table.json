@@ -1,9 +1,9 @@
 {
 	"id": "limits_table",
 	"data_url": "lua/rest/v2/get/ntopng/limits.lua",
-	"use_current_page": false,
+	"use_current_page": true,
 	"enable_search": false,
-	"paging": true,
+	"paging": false,
 	"display_empty_rows": true,
 	"default_sort": {
 		"column_id": "limit",
