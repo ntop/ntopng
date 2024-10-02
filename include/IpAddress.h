@@ -132,6 +132,7 @@ class IpAddress {
   inline void setPopServer() { addr.popServer = true; }
   inline bool isNtpServer() const { return (addr.ntpServer); }
   inline void setNtpServer() { addr.ntpServer = true; }
+  inline bool isGateway() { return false; }
 
   char* print(char* str, u_int str_len, u_int8_t bitmask = 0xFF) const;
   char* printMask(char* str, u_int str_len, bool isLocalIP);
