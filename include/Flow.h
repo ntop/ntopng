@@ -1405,6 +1405,7 @@ inline float get_goodput_bytes_thpt() const { return (goodput_bytes_thpt); };
   inline MinorConnectionStates getCurrentConnectionState() { return(current_c_state); };
   bool checkS1ConnState();
   bool isTCPFlagSet(u_int8_t flags, int flag_to_check);
+  void updateSynFloodAlerts(bool connection_opened); 
   MinorConnectionStates calculateConnectionState(bool is_cumulative);
   MajorConnectionStates getMajorConnState();
   inline u_int32_t getPreNATSrcIp() { return ntohl(src_ip_addr_pre_nat); };

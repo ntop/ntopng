@@ -445,6 +445,13 @@ Flow::~Flow() {
                       constructor (viewed interfaces) */
     delete srv_ip_addr;
 
+  /* Clean up SYN Flood Counts if the we have an open conection and the flow is being purged*/
+
+  if( getCurrentConnectionState() == S0 ){
+    updateSynFloodAlerts(false);
+  }
+
+
   /*
     Finish deleting other flow data structures
   */
@@ -8733,6 +8740,27 @@ bool Flow::checkS1ConnState() {
 				   !(isTCPFlagSet(src2dst_tcp_flags,TH_RST)) && !(isTCPFlagSet(dst2src_tcp_flags,TH_RST))     /* NO RST */
 				   ));
 }
+/* **************************************************** */
+
+void Flow::updateSynFloodAlerts(bool connection_opened){
+    if((current_c_state != S0 && !connection_opened) || 
+    (current_c_state !=MINOR_NO_STATE && connection_opened))
+      return;
+
+    
+    NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
+    if (srv_host) 
+      srv_network_stats =
+        srv_host->getNetworkStats(srv_host->get_local_network_id());
+
+    if (cli_host)
+      cli_host->updateSynFloodAlertsCounter(true,connection_opened);
+    if (srv_host)
+      srv_host->updateSynFloodAlertsCounter(false,connection_opened);
+
+    if (srv_network_stats)
+      srv_network_stats->updateSynFloodAlertsCounter(connection_opened);
+}
 
 /* **************************************************** */
 
@@ -8745,17 +8773,37 @@ MinorConnectionStates Flow::calculateConnectionState(bool is_cumulative) {
       !(isTCPFlagSet(dst2src_tcp_flags,TH_SYN))) {
     if (!(isTCPFlagSet(dst2src_tcp_flags,TH_RST))) {
       if ((isTCPFlagSet(src2dst_tcp_flags,TH_RST))) {
+        updateSynFloodAlerts(false);
         return(setCurrentConnectionState(RSTOS0));
       } else {
         if ((isTCPFlagSet(src2dst_tcp_flags,TH_FIN))) {
+          updateSynFloodAlerts(false);
           return(setCurrentConnectionState(SH));
         } else {
-          return(setCurrentConnectionState(S0));
+            /* We are assuming that the TCP connection is established on
+             * server side when it sees the clients SYN
+             * this helps us detect SYN flood victims even if all the SYN
+             * packets are rejected or dropped*/
+            updateSynFloodAlerts(true);
+            return(setCurrentConnectionState(S0));
         }
       }
     } else {
+      updateSynFloodAlerts(false);
       return(setCurrentConnectionState(REJ));
     }
+  }
+
+  /* Account for connection being closed after SYNACK*/
+  if ((isTCPFlagSet(src2dst_tcp_flags,TH_SYN)) &&
+      (isTCPFlagSet(dst2src_tcp_flags,TH_SYN)) &&
+      (isTCPFlagSet(dst2src_tcp_flags,TH_ACK)) &&
+      !(isTCPFlagSet(src2dst_tcp_flags,TH_ACK))&&
+      ((isTCPFlagSet(dst2src_tcp_flags,TH_RST))|| 
+      (isTCPFlagSet(src2dst_tcp_flags,TH_RST)) ||
+      (isTCPFlagSet(src2dst_tcp_flags,TH_FIN)) ||
+      (isTCPFlagSet(dst2src_tcp_flags,TH_FIN)))) {
+      updateSynFloodAlerts(false);
   }
 
   /* Check RSTRH */
@@ -8810,8 +8858,10 @@ MinorConnectionStates Flow::calculateConnectionState(bool is_cumulative) {
     return(setCurrentConnectionState(RSTR));
 
   /* Check S1 */
-  if (checkS1ConnState())
+  if (checkS1ConnState()){
+    updateSynFloodAlerts(false);
     return(setCurrentConnectionState(S1));
+  }
 
   if (getCurrentConnectionState() != MINOR_NO_STATE)
     return(getCurrentConnectionState());

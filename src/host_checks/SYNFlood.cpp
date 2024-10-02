@@ -35,7 +35,7 @@ void SYNFlood::periodicUpdate(Host *h, HostAlert *engaged_alert) {
                          CLIENT_NO_RISK_PERCENTAGE);
 
   /* Reset counters once done */
-  h->reset_syn_flood_hits();
+  //h->reset_syn_flood_hits();
 }
 
 /* ***************************************************** */

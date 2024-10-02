@@ -540,6 +540,7 @@ class Host : public GenericHashEntry,
   bool addIfMatching(lua_State *vm, AddressTree *ptree, char *key);
   bool addIfMatching(lua_State *vm, u_int8_t *mac);
   void updateSynAlertsCounter(time_t when, bool syn_sent);
+  void updateSynFloodAlertsCounter(bool attacker, bool connection_opened);
   void updateFinAlertsCounter(time_t when, bool fin_sent);
   void updateRstAlertsCounter(time_t when, bool rst_sent);
   void updateICMPAlertsCounter(time_t when, bool icmp_sent);

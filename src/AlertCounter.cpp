@@ -67,7 +67,15 @@ void AlertCounter::inc(time_t when, AlertableEntity *alertable) {
           );
   #endif
 }
+/* *************************************** */
 
+void AlertCounter::inc_no_time_window(){
+  current_hits++;
+}
+
+void AlertCounter::dec(){
+  current_hits--;
+}
 /* *************************************** */
 
 u_int16_t AlertCounter::hits() const {

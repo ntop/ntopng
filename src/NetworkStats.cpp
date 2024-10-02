@@ -196,7 +196,7 @@ void NetworkStats::updateRoundTripTime(u_int32_t rtt_msecs) {
 void NetworkStats::housekeepAlerts(ScriptPeriodicity p) {
   switch (p) {
     case minute_script:
-      flow_flood_victim_alert.reset_hits(), syn_flood_victim_alert.reset_hits();
+      flow_flood_victim_alert.reset_hits(); /*,syn_flood_victim_alert.reset_hits()*/
       syn_recvd_last_min = synack_sent_last_min = 0;
       break;
     default:
@@ -208,8 +208,17 @@ void NetworkStats::housekeepAlerts(ScriptPeriodicity p) {
 
 void NetworkStats::updateSynAlertsCounter(time_t when, bool syn_sent) {
   if (!syn_sent) {
-    syn_flood_victim_alert.inc(when, this);
     syn_recvd_last_min++;
+  }
+}
+/* *************************************** */
+
+void NetworkStats::updateSynFloodAlertsCounter( bool connection_opened) {
+  if (connection_opened) {
+    syn_flood_victim_alert.inc_no_time_window();
+  }
+  else{
+    syn_flood_victim_alert.dec();
   }
 }
 

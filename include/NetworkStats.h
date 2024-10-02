@@ -138,6 +138,7 @@ class NetworkStats : public InterfaceMemberAlertableEntity,
   virtual void updateStats(const struct timeval *tv);
 
   void updateSynAlertsCounter(time_t when, bool syn_sent);
+  void updateSynFloodAlertsCounter(bool connection_opened);
   void updateSynAckAlertsCounter(time_t when, bool synack_sent);
   void updateRoundTripTime(u_int32_t rtt_msecs);
   void incNumFlows(time_t t, bool as_client);
