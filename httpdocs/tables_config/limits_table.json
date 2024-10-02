@@ -1,0 +1,40 @@
+{
+	"id": "limits_table",
+	"data_url": "lua/rest/v2/get/ntopng/limits.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": true,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "limit",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"title_i18n": "limits_page.limit",
+			"data_field": "limit",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "limits_page.current",
+			"data_field": "current",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "limits_page.max",
+			"data_field": "max",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		}
+	]
+}

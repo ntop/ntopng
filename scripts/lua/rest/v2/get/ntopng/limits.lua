@@ -21,11 +21,9 @@ local limits = ntop.getLicenseLimits()
 
 for limit, max in pairsByKeys(limits.max) do
     res[#res + 1] = {
-        name = limit,
-        values = {{
-            current = limits.current[limit] or 0,
-            max = max
-        }}
+        limit = limit,
+        current = limits.current[limit] or 0,
+        max = max
     }
 end
 

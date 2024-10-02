@@ -3,42 +3,80 @@
 -->
 
 <template>
-  <div class="row">
-    <div class="col-md-12 col-lg-12">
-      <div class="mt-4 card card-shadow">
-        <div class="card-body">
-          <BootstrapTable :horizontal="true" :id="table_id" :rows="stats_rows" :print_html_title="print_html_title"
-            :print_html_row="print_stats_row" :head_width="8" :row_width="2" :text_align="'text-end'">
-          </BootstrapTable>
-        </div>
-      </div>
+  <div class="card h-100 overflow-hidden">
+    <div class="m-2 mb-3">
+      <TableWithConfig :table_id="table_id" :f_map_columns="map_table_def_columns"
+        :get_extra_params_obj="get_extra_params_obj" :f_sort_rows="columns_sorting">
+      </TableWithConfig>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { default as BootstrapTable } from "./bootstrap-table.vue";
+import { default as TableWithConfig } from "./table-with-config.vue";
+import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 
-const url = "/lua/rest/v2/get/ntopng/limits.lua";
-const stats_rows = ref([]);
 const table_id = ref('limits_table')
 
-const print_html_title = function (name) {
-  return (i18n("limits_page." + name) || name);
-}
+/* ************************************** */
 
-const print_stats_row = function (value) {
-  if (value.current < value.max) {
-    return `<span class="text-success">${value.current} / ${value.max}</span>`;
-  } else {
-    return `<span class="text-danger">! ${value.current} / ${value.max}</span>`;
+const get_extra_params_obj = () => {
+    let extra_params = ntopng_url_manager.get_url_object();
+    return extra_params;
+};
+
+/* ************************************** */
+
+const map_table_def_columns = (columns) => {
+  let map_columns = {
+    "limit": (value, row) => {
+      return (i18n("limits_page." + value) || value);
+    },
+    "current": (value, row) => {
+      if (value < row.max) {
+        return `<span class="text-success">${value}</span>`;
+      } else {
+        return `<span class="text-danger">! ${value}</span>`;
+      }
+    },
+    "max": (value, row) => {
+      if (row.current < value) {
+        return `<span class="text-success">${value}</span>`;
+      } else {
+        return `<span class="text-danger">! ${value}</span>`;
+      }
+    },
+  };
+  columns.forEach((c) => {
+    c.render_func = map_columns[c.data_field];
+  });
+
+  return columns;
+};
+
+/* ************************************** */
+
+function columns_sorting(col, r0, r1) {
+  if (col != null) {
+    const r0_col = r0[col.data.data_field];
+    const r1_col = r1[col.data.data_field];
+
+    /* In case the values are the same, sort by Name */
+    if (r0_col == r1_col) {
+      return sortingFunctions.sortByName(r0.device, r1.device, col ? col.sort : null);
+    } else if (col.id == "limit") {
+      return sortingFunctions.sortByName(r0.device, r1.device, col ? col.sort : null);
+    } else if (col.id == "current") {
+      const lower_value = -1;
+      return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort, lower_value);
+    } else if (col.id == "max") {
+      const lower_value = -1;
+      return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort, lower_value);
+    }
   }
-}
 
-onMounted(async () => {
-  const limits = await ntopng_utility.http_request(`${http_prefix}${url}`);
-  stats_rows.value = limits
-});
+  return sortingFunctions.sortByName(r0.device, r1.device, col ? col.sort : null);
+}
 
 </script>
