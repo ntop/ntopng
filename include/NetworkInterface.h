@@ -1358,7 +1358,9 @@ public:
   static bool compute_info_flow_stats(GenericHashEntry *node, void *user_data,
                                       bool *matched);
 
+#ifndef HAVE_NEDGE
   inline u_int8_t getNumProfiles() { return (flow_profiles) ? flow_profiles->getNumProfiles() : 0; }
+#endif
 #endif
   void getActiveMacs(lua_State *vm);
 
