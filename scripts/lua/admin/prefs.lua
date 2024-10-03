@@ -419,8 +419,8 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
 
         prefsToggleButton(subpage_active, {
-            field = "toggle_dns_history",
-            pref = "dns_history",
+            field = "toggle_dns_cache",
+            pref = "dns_cache",
             default = "0"
         })
 

@@ -95,9 +95,9 @@ local menu_subpages = {{
             title = i18n("prefs.toggle_sites_collection_title"),
             description = i18n("prefs.toggle_sites_collection_description")
         },
-        toggle_dns_history = {
-            title = i18n("prefs.toggle_dns_history_title"),
-            description = i18n("prefs.toggle_dns_history_description")
+        toggle_dns_cache = {
+            title = i18n("prefs.toggle_dns_cache_title"),
+            description = i18n("prefs.toggle_dns_cache_description")
         },
         toggle_tls_quic_hostnaming = {
             title = i18n("prefs.toggle_tls_quic_hostnaming_title"),
