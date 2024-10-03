@@ -59,7 +59,7 @@
       </div>
           
   </div>
-  <NoteList :note_list="notes_list" add_sub_notes="true" 
+  <NoteList :note_list="notes_list" :add_sub_notes=true 
                     :sub_note_list="sub_notes_list"> 
           </NoteList>
     </div>
@@ -72,6 +72,7 @@ import  ModalDeleteConfirm  from "./modal-delete-confirm.vue";
 import  ModalAddDeviceExclusion  from "./modal-add-device-exclusion.vue";
 import  ModalEditDeviceExclusion  from "./modal-edit-device-exclusion.vue";
 import { default as NoteList } from "./note-list.vue";
+import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 import { ref, onMounted } from "vue";
 
 
@@ -287,19 +288,13 @@ function columns_sorting(col, r0, r1) {
       }
       return r1_col.localeCompare(r0_col);
     }else if(col.id == "first_seen") {
-      r0_col = r0["first_seen"]["timestamp"] == 0 ? '' : r0["first_seen"]["data"];
-      r1_col = r1["first_seen"]["timestamp"] == 0 ? '' : r1["first_seen"]["data"];
-      if (col.sort == 1) {
-        return r0_col.localeCompare(r1_col);
-      }
-      return r1_col.localeCompare(r0_col);
+      r0_col = r0["first_seen"]["timestamp"] == 0 ? 0 : r0["first_seen"]["timestamp"];
+      r1_col = r1["first_seen"]["timestamp"] == 0 ? 0 : r1["first_seen"]["timestamp"];
+      return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort)
     } else if(col.id == "last_seen") {
-      r0_col = r0["last_seen"]["timestamp"] == 0 ? '' : r0["last_seen"]["data"];
-      r1_col = r1["last_seen"]["timestamp"] == 0 ? '' : r1["last_seen"]["data"];
-      if (col.sort == 1) {
-        return r0_col.localeCompare(r1_col);
-      }
-      return r1_col.localeCompare(r0_col);
+      r0_col = r0["last_seen"]["timestamp"] == 0 ? 0 : r0["last_seen"]["timestamp"];
+      r1_col = r1["last_seen"]["timestamp"] == 0 ? 0 : r1["last_seen"]["timestamp"];
+      return sortingFunctions.sortByNumberWithNormalizationValue(r0_col, r1_col, col.sort)
     } else if (col.id == "status") {
       if (col.sort == 1) {
         return r0_col.localeCompare(r1_col);
