@@ -418,6 +418,12 @@ if auth.has_capability(auth.capabilities.preferences) then
             default = "0"
         })
 
+        prefsToggleButton(subpage_active, {
+            field = "toggle_dns_history",
+            pref = "dns_history",
+            default = "0"
+        })
+
         print('<thead class="table-primary"><tr><th colspan=2 class="info">TLS / QUIC</th></tr></thead>')
 
         prefsToggleButton(subpage_active, {
