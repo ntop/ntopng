@@ -49,6 +49,7 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    nScrub <https://www.ntop.org/guides/nscrub/>
    nBox <https://www.ntop.org/guides/nbox/>
    nTap <https://www.ntop.org/guides/ntap/>
+   License Manager <https://www.ntop.org/guides/license/>
 
 .. Indices and tables
 .. ==================
