@@ -12251,7 +12251,7 @@
         "tags": [
           "PCAP"
         ],
-        "summary": "Downlaod PCAP data extracted by a scheduled extraction task (scheduled with /lua/rest/v2/create/pcap/extraction/task.lua)",
+        "summary": "Download PCAP data extracted by a scheduled extraction task (scheduled with /lua/rest/v2/create/pcap/extraction/task.lua)",
         "description": "Raw PCAP data is returned",
         "operationId": "get_pcap_extraction_data",
         "produces": [
