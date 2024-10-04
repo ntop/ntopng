@@ -9554,6 +9554,7 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
     return (true);
 
   if (db == NULL) {
+    try {
     if (ntop->getPrefs()->do_dump_flows_on_clickhouse()) {
 #if defined(NTOPNG_PRO) && defined(HAVE_CLICKHOUSE) && defined(HAVE_MYSQL)
       db = new (std::nothrow) ClickHouseFlowDB(this);
@@ -9577,11 +9578,11 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
     }
 #if defined(HAVE_KAFKA) && defined(NTOPNG_PRO)
     else if ((ntop->getPrefs()->getKakfaBrokersList() != NULL)) {
-      kafka = new KafkaProducer(this, ntop->getPrefs()->getKakfaBrokersList(),
-                                ntop->getPrefs()->getKafkaTopic(),
-                                ntop->getPrefs()->getKafkaOptions());
-      db = kafka;
-    }
+	kafka = new (std::nothrow) KafkaProducer(this, ntop->getPrefs()->getKakfaBrokersList(),
+						 ntop->getPrefs()->getKafkaTopic(),
+						 ntop->getPrefs()->getKafkaOptions());
+	db = kafka;
+      }
 #endif
 #if !defined(WIN32) && !defined(__APPLE__)
     else if (ntop->getPrefs()->do_dump_flows_on_syslog()) {
@@ -9589,6 +9590,9 @@ bool NetworkInterface::initFlowDump(u_int8_t num_dump_interfaces) {
     }
 #endif
 #endif
+    } catch (...) {
+      ;
+    }
   }
 
   return (db != NULL);
