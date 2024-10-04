@@ -339,21 +339,25 @@ void Flow::freeDPIMemory() {
   if (ndpiFlow) {
     if(isDNS() && ntop->getPrefs()->is_dns_cache_enabled()) {
       for(u_int i=0; i<ndpiFlow->protos.dns.num_rsp_addr; i++) {
-	char addr_buf[64], key[128];
-	
-	if(ndpiFlow->protos.dns.is_rsp_addr_ipv6[i] == 0)
-	  inet_ntop(AF_INET, &ndpiFlow->protos.dns.rsp_addr[i].ipv4, addr_buf, sizeof(addr_buf));
-	else
-	  inet_ntop(AF_INET6, &ndpiFlow->protos.dns.rsp_addr[i].ipv6, addr_buf, sizeof(addr_buf));
-
-	snprintf(key, sizeof(key), "ntopng.dns_cache.%s", addr_buf);	
-	ntop->getRedis()->set(key, ndpiFlow->host_server_name, ndpiFlow->protos.dns.rsp_addr_ttl[i]);
-
+	/* Skip entries "almost" expired */
+	   
+	if(ndpiFlow->protos.dns.rsp_addr_ttl[i] > 5 /* sec */) {
+	  char addr_buf[64], key[128];
+	  
+	  if(ndpiFlow->protos.dns.is_rsp_addr_ipv6[i] == 0)
+	    inet_ntop(AF_INET, &ndpiFlow->protos.dns.rsp_addr[i].ipv4, addr_buf, sizeof(addr_buf));
+	  else
+	    inet_ntop(AF_INET6, &ndpiFlow->protos.dns.rsp_addr[i].ipv6, addr_buf, sizeof(addr_buf));
+	  
+	  snprintf(key, sizeof(key), "ntopng.dns_cache.%s", addr_buf);	
+	  ntop->getRedis()->set(key, ndpiFlow->host_server_name, ndpiFlow->protos.dns.rsp_addr_ttl[i]);
+	  
 #if 0
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "(%s) %s [ttl: %u]",
-				     ndpiFlow->host_server_name, addr_buf,
-				     ndpiFlow->protos.dns.rsp_addr_ttl[i]);
+	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "(%s) %s [ttl: %u]",
+				       ndpiFlow->host_server_name, addr_buf,
+				       ndpiFlow->protos.dns.rsp_addr_ttl[i]);
 #endif
+	}
       }
     }
 
