@@ -674,10 +674,10 @@ void usage() {
 	 "                                    |   \"kafka;127.0.0.1;flows\"\n"
 	 "                                    |   "
 	 "\"kafka;127.0.0.1:7689,192.168.1.20,192.168.1.2:9092;flows;compression."
-	 "codec=gzip\"\n"
+	 "codec=gzip,debug=all\"\n"
 	 "                                    |   \n"
 	 "                                    |   See at the bottom of this help "
-	 "the list of supported kafka configuration options.\n"
+	 "the list of (comma separated) supported kafka configuration options.\n"
 	 "                                    |\n"
 #endif
 #endif
