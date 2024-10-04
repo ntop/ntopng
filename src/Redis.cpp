@@ -28,8 +28,9 @@
 Redis::Redis(const char *_redis_host, const char *_redis_password,
              u_int16_t _redis_port, u_int8_t _redis_db_id,
              bool giveup_on_failure) {
-  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  
+  if (trace_new_delete)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+
   redis_host = _redis_host ? strdup(_redis_host) : NULL;
   redis_password = _redis_password ? strdup(_redis_password) : NULL;
   redis_port = _redis_port, redis_db_id = _redis_db_id;
@@ -517,7 +518,7 @@ int Redis::_set(bool use_nx, const char *key, const char *value,
                 u_int expire_secs) {
   int rc, ret_code = 0;
   redisReply *reply;
-  const char *cmd = use_nx ? "SETNX" : "SET";
+  const char *cmd = "SET";
 
   if ((value == NULL) || (value[0] == '\0')) {
     if (strncmp(key, NTOPNG_PREFS_PREFIX, sizeof(NTOPNG_PREFS_PREFIX)) == 0) {
@@ -530,42 +531,40 @@ int Redis::_set(bool use_nx, const char *key, const char *value,
   l->lock(__FILE__, __LINE__);
 
   if (isCacheable(key)) addToCache(key, value, expire_secs);
-
+#ifdef DEBUG_REDIS_SET
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s %s %s %sEX %d", cmd, key,
+                               value, use_nx ? "NX " : "", expire_secs);
+#endif
   stats.num_set++;
-  reply = (redisReply *)redisCommand(redis, "%s %s %s", cmd, key, value);
+  if (use_nx) {
+    reply = (redisReply *)redisCommand(redis, "%s %s %s NX EX %d", cmd, key,
+                                       value, expire_secs);
+  } else {
+    if (expire_secs) {
+      reply = (redisReply *)redisCommand(redis, "%s %s %s EX %d", cmd, key,
+                                         value, expire_secs);
+    } else {
+      reply = (redisReply *)redisCommand(redis, "%s %s %s", cmd, key, value);
+    }
+  }
+
   if (!reply) reconnectRedis(true);
   if (reply && (reply->type == REDIS_REPLY_ERROR))
     ntop->getTrace()->traceEvent(TRACE_ERROR, "%s",
                                  reply->str ? reply->str : "???");
   if (reply) {
-    if (reply->type == REDIS_REPLY_INTEGER) {
-      /* SETNX */
-      ret_code =
-          reply->integer; /* 1=value not existing, 0=value already existing */
-    }
-
     freeReplyObject(reply), rc = 0;
-  } else
+  } else {
     rc = -1;
-
-  if ((expire_secs != 0) &&
-      ((use_nx && (ret_code == 1)) || ((!use_nx) && (rc == 0)))) {
-    stats.num_expire++;
-    reply = (redisReply *)redisCommand(redis, "EXPIRE %s %u", key, expire_secs);
-    if (!reply) reconnectRedis(true);
-    if (reply && (reply->type == REDIS_REPLY_ERROR))
-      ntop->getTrace()->traceEvent(TRACE_ERROR, "%s",
-                                   reply->str ? reply->str : "???");
-    if (reply)
-      freeReplyObject(reply), rc = 0;
-    else
-      rc = -1;
   }
+
   l->unlock(__FILE__, __LINE__);
+#ifdef DEBUG_REDIS_SET
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Redis return code: %d",
+                               reply->integer);
+#endif
 
   if (reply && expire_secs == 0) checkDumpable(key);
-
-  if (use_nx) rc = ret_code;
 
   return (rc);
 }
