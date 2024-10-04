@@ -11,17 +11,17 @@ In order to connect ntopng to ClickHouse use option :code:`-F`. The format of th
 
 .. code:: bash
 
-    clickhouse;<host[@port]|unix-socket;<dbname>;<user>;<pw>
+    clickhouse;<host[@mysqlport]|unix-socket;<dbname>;<user>;<pw>
 
 or 
 
 .. code:: bash
 	  
-    clickhouse-cluster;<host[@port]|socket>;<dbname>;<user>;<pw>;<cluster name>
+    clickhouse-cluster;<host[@mysqlport]|socket>;<dbname>;<user>;<pw>;<cluster name>
 
 Where
 
-- :code:`<host[@port]|socket>` Specifies the database :code:`host` or a :code:`socket` file. By default, port :code:`9000` is used for the connection via clickhouse-client. To use a different port, specify it with :code:`@port`. The host can be a symbolic name or an IP address. By default ntopng connects in clear text, this unless you want to do it over TLS and in this case you need to append a 's' after the port. Example :code:`192.168.2.1@9004s`. Please see later in this pare more information about TLS connections.
+- :code:`<host[@mysqlport]|socket>` Specifies the database :code:`host` or a :code:`socket` file. By default, port :code:`9000` is used for the connection via clickhouse-client and :code:`9004` for ClickHouse connection over MySQL. To use a different port, specify it with :code:`@mysqlport`. The host can be a symbolic name or an IP address. By default ntopng connects in clear text, this unless you want to do it over TLS and in this case you need to append a 's' after the port. Example :code:`192.168.2.1@9004s`. Please see later in this pare more information about TLS connections.
 - :code:`<dbname>` Specifies the name of the database to be used and defaults to :code:`ntopng`
 - :code:`<user>` Specifies an user with read and write permissions on :code:`<dbname>`
 - :code:`<pw>` Specifies the password that authenticates :code:`<user>`
