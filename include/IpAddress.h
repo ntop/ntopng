@@ -29,7 +29,7 @@ struct ipAddress {
       multicastIP : 1, broadcastIP : 1, blacklistedIP : 1, localIP : 1;
 
   u_int8_t dnsServer : 1, dhcpServer : 1, smtpServer : 1, ntpServer : 1,
-      imapServer : 1, popServer : 1, unused : 2;
+      imapServer : 1, popServer : 1, gateway: 1, unused : 1;
   union {
     struct ndpi_in6_addr ipv6;
     u_int32_t ipv4; /* Host byte code */
@@ -132,7 +132,8 @@ class IpAddress {
   inline void setPopServer() { addr.popServer = true; }
   inline bool isNtpServer() const { return (addr.ntpServer); }
   inline void setNtpServer() { addr.ntpServer = true; }
-  inline bool isGateway() { return false; }
+  inline bool isGateway() const { return (addr.gateway); }
+  inline void setGateway(bool is_gateway) { addr.gateway = is_gateway; }
 
   char* print(char* str, u_int str_len, u_int8_t bitmask = 0xFF) const;
   char* printMask(char* str, u_int str_len, bool isLocalIP);

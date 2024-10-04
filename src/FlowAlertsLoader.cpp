@@ -81,8 +81,10 @@ FlowAlertsLoader::FlowAlertsLoader() {
                 LongLivedFlowAlert::getDefaultScore());
   registerAlert(LowGoodputFlowAlert::getClassType(),
                 LowGoodputFlowAlert::getDefaultScore());
+#if defined(HAVE_NEDGE)
   registerAlert(NedgeBlockedFlowAlert::getClassType(),
                 NedgeBlockedFlowAlert::getDefaultScore());
+#endif
   registerAlert(NotPurgedAlert::getClassType(),
                 NotPurgedAlert::getDefaultScore());
   registerAlert(RareDestinationAlert::getClassType(),
