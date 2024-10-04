@@ -2346,7 +2346,12 @@ bool Utils::httpGetPost(lua_State *vm, char *url,
       memset(&progressState, 0, sizeof(progressState));
       progressState.vm = vm;
       curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+
+#if LIBCURL_VERSION_NUM >= 0x072000
+      curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
+#else
       curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
+#endif
       curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &progressState);
     }
 

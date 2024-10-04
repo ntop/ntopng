@@ -351,7 +351,11 @@ static void* do_download(void* data)
     printf("curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
 #endif
   } else {
+#if LIBCURL_VERSION_NUM >= 0x073700
+    curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD_T, &size);
+#else
     curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD, &size);
+#endif
     curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &time);
     curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &time1);
     curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &time2);
@@ -623,7 +627,13 @@ static void* do_upload(void *p) {
       para->finish = 1;
       return(NULL);
     }
+
+#if LIBCURL_VERSION_NUM >= 0x073700
+    curl_easy_getinfo(curl, CURLINFO_SIZE_UPLOAD_T, &size_upload);
+#else
     curl_easy_getinfo(curl, CURLINFO_SIZE_UPLOAD, &size_upload);
+#endif
+    
     para->result += size_upload;
     loop--;
   }
