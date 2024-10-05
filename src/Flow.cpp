@@ -5354,8 +5354,11 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
   }
 
   if ((flags & TH_SYN) &&
-      (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
-    iface->getTcpFlowStats()->incSyn();
+      (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN)) {
+        iface->getTcpFlowStats()->incSyn();
+        cli_host->incNumActiveTCPFlows(true);
+        srv_host->incNumActiveTCPFlows(false);
+      }
 
   if ((flags & TH_RST) &&
       (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) {
@@ -5397,8 +5400,11 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
   if (cumulative_flags) {
     if (!twh_over) {
       if ((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK) &&
-          ((dst2src_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK)))
-        twh_ok = twh_over = 1, iface->getTcpFlowStats()->incEstablished();
+          ((dst2src_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))){
+            twh_ok = twh_over = 1, iface->getTcpFlowStats()->incEstablished();
+            cli_host->incNumEstablishedTCPFlows(true);
+            srv_host->incNumEstablishedTCPFlows(false);
+          }
     }
   } else {
     if (!twh_over) {

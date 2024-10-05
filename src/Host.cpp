@@ -91,8 +91,6 @@ Host::~Host() {
 
   freeHostNames();
 
-  if (syn_flood.attacker_counter) delete syn_flood.attacker_counter;
-  if (syn_flood.victim_counter) delete syn_flood.victim_counter;
   if (flow_flood.attacker_counter) delete flow_flood.attacker_counter;
   if (flow_flood.victim_counter) delete flow_flood.victim_counter;
   if (icmp_flood.attacker_counter) delete icmp_flood.attacker_counter;
@@ -177,10 +175,6 @@ u_int16_t Host::decScoreValue(u_int16_t score_decr,
 /* *************************************** */
 
 void Host::updateSynAlertsCounter(time_t when, bool syn_sent) {
-  AlertCounter *counter = syn_sent ? syn_flood.attacker_counter : syn_flood.victim_counter;
-
-  counter->inc(when, this);
-
   if (syn_sent)
     syn_scan.syn_sent_last_min++;
   else
@@ -317,8 +311,6 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
 
   INTERFACE_PROFILING_SUB_SECTION_ENTER(
       iface, "Host::initialize: new AlertCounter", 17);
-  syn_flood.attacker_counter = new (std::nothrow) AlertCounter();
-  syn_flood.victim_counter = new (std::nothrow) AlertCounter();
   flow_flood.attacker_counter = new (std::nothrow) AlertCounter();
   flow_flood.victim_counter = new (std::nothrow) AlertCounter();
   icmp_flood.attacker_counter = new (std::nothrow) AlertCounter();
@@ -705,9 +697,9 @@ void Host::lua_get_geoloc(lua_State *vm) {
 void Host::lua_get_syn_flood(lua_State *vm) const {
   u_int16_t hits;
 
-  if ((hits = syn_flood.victim_counter->hits()))
+  if ((hits = (syn_flood.num_active_tcp_flows_as_server - syn_flood.num_established_tcp_flows_as_server)))
     lua_push_uint64_table_entry(vm, "hits.syn_flood_victim", hits);
-  if ((hits = syn_flood.attacker_counter->hits()))
+  if ((hits = (syn_flood.num_active_tcp_flows_as_client - syn_flood.num_established_tcp_flows_as_client)))
     lua_push_uint64_table_entry(vm, "hits.syn_flood_attacker", hits);
 }
 
@@ -1502,9 +1494,30 @@ void Host::incNumFlows(time_t t, bool as_client) {
 void Host::decNumFlows(time_t t, bool as_client) {
   if (as_client) {
     num_active_flows_as_client--;
+    syn_flood.num_active_tcp_flows_as_client--;
+    syn_flood.num_established_tcp_flows_as_client--;
   } else {
     num_active_flows_as_server--;
+    syn_flood.num_active_tcp_flows_as_server--;
+    syn_flood.num_established_tcp_flows_as_server--;
   }
+}
+
+/* *************************************** */
+
+void Host::incNumEstablishedTCPFlows(bool as_client) {
+  if (as_client) 
+    syn_flood.num_established_tcp_flows_as_client++;
+  else 
+    syn_flood.num_established_tcp_flows_as_server++;
+}
+
+/* *************************************** */
+void Host::incNumActiveTCPFlows(bool as_client) {
+  if (as_client) 
+    syn_flood.num_active_tcp_flows_as_client++;
+  else 
+    syn_flood.num_active_tcp_flows_as_server++;
 }
 
 /* *************************************** */

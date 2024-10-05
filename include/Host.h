@@ -78,7 +78,7 @@ class Host : public GenericHashEntry,
   /* END Host data: */
 
   /* Counters used by host alerts */
-  AttackVictimCounter syn_flood, flow_flood, icmp_flood, dns_flood, snmp_flood, rst_scan;
+  AttackVictimCounter flow_flood, icmp_flood, dns_flood, snmp_flood, rst_scan;
 
   struct {
     u_int32_t syn_sent_last_min, synack_recvd_last_min; /* (attacker) */
@@ -89,6 +89,11 @@ class Host : public GenericHashEntry,
     u_int32_t fin_sent_last_min, finack_recvd_last_min; /* (attacker) */
     u_int32_t fin_recvd_last_min, finack_sent_last_min; /* (victim) */
   } fin_scan;
+
+  struct {
+    std::atomic<u_int32_t> num_active_tcp_flows_as_client, num_established_tcp_flows_as_client; /* (attacker) */
+    std::atomic<u_int32_t> num_active_tcp_flows_as_server, num_established_tcp_flows_as_server; /* (victim) */
+  } syn_flood;
 
   /* Need atomic as inc/dec done on different threads */
   std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server;
@@ -590,14 +595,10 @@ class Host : public GenericHashEntry,
   };
 
   inline u_int16_t syn_flood_victim_hits() const {
-    return syn_flood.victim_counter ? syn_flood.victim_counter->hits() : 0;
+    return syn_flood.num_active_tcp_flows_as_server - syn_flood.num_established_tcp_flows_as_server;
   };
   inline u_int16_t syn_flood_attacker_hits() const {
-    return syn_flood.attacker_counter ? syn_flood.attacker_counter->hits() : 0;
-  };
-  inline void reset_syn_flood_hits() {
-    if (syn_flood.victim_counter) syn_flood.victim_counter->reset_hits();
-    if (syn_flood.attacker_counter) syn_flood.attacker_counter->reset_hits();
+    return syn_flood.num_active_tcp_flows_as_client - syn_flood.num_established_tcp_flows_as_client;
   };
 
   inline u_int16_t flow_flood_victim_hits() const {
@@ -655,6 +656,9 @@ class Host : public GenericHashEntry,
 
   void incNumFlows(time_t t, bool as_client);
   void decNumFlows(time_t t, bool as_client);
+  void incNumActiveTCPFlows(bool as_client);
+  void incNumEstablishedTCPFlows(bool as_client);
+  
   inline void incNumAlertedFlows(bool as_client) {
     active_alerted_flows++;
     if (stats) stats->incNumAlertedFlows(as_client);
