@@ -434,7 +434,7 @@ Flow::~Flow() {
 
   if (cli_u) {
     cli_u->decUses(); /* Decrease the number of uses */
-    cli_u->decNumFlows(get_last_seen(), true);
+    cli_u->decNumFlows(get_last_seen(), true, isTCP(), twh_over);
 
     if (is_oneway_tcp_udp_flow) cli_u->incUnidirectionalEgressTCPUDPFlows();
   }
@@ -445,7 +445,7 @@ Flow::~Flow() {
 
   if (srv_u) {
     srv_u->decUses(); /* Decrease the number of uses */
-    srv_u->decNumFlows(get_last_seen(), false);
+    srv_u->decNumFlows(get_last_seen(), false, isTCP(), twh_over);
 
     if (is_oneway_tcp_udp_flow) {
       srv_u->incUnidirectionalIngressTCPUDPFlows();
@@ -8468,12 +8468,20 @@ void Flow::swap() {
 #endif
 
       if (cli_host && srv_host) {
-	cli_host->decNumFlows(now, true /* as client */),
-	  srv_host->decNumFlows(now, false /* as server */);
+	cli_host->decNumFlows(now, true /* as client */, isTCP(), twh_over),
+	  srv_host->decNumFlows(now, false /* as server */, isTCP(), twh_over);
 	cli_host = srv_host, cli_ip_addr = srv_ip_addr;
 	srv_host = h, srv_ip_addr = i;
 	cli_host->incNumFlows(now, true /* as client */),
 	  srv_host->incNumFlows(now, false /* as server */);
+  if(isTCP()){
+    cli_host->incNumActiveTCPFlows(true /* as client */);
+    srv_host->incNumActiveTCPFlows(false /* as server */);
+    if(twh_over){
+      cli_host->incNumEstablishedTCPFlows(true /* as client */);
+      srv_host->incNumEstablishedTCPFlows(false /* as server */);
+    }
+  }
       } else {
 	/* This is probably a view interface */
 

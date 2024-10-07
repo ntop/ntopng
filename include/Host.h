@@ -655,7 +655,7 @@ class Host : public GenericHashEntry,
   };
 
   void incNumFlows(time_t t, bool as_client);
-  void decNumFlows(time_t t, bool as_client);
+  void decNumFlows(time_t t, bool as_client, bool isTCP, u_int16_t isTwhOver);
   void incNumActiveTCPFlows(bool as_client);
   void incNumEstablishedTCPFlows(bool as_client);
   
