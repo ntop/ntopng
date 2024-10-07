@@ -4,7 +4,7 @@
 
 -- ##############################################
 
-local flow_alert_keys = require "flow_alert_keys"
+local host_alert_keys = require "host_alert_keys"
 -- Import the classes library.
 local classes = require "classes"
 -- Make sure to import the Superclass!
@@ -14,13 +14,13 @@ local mitre = require "mitre_utils"
 
 -- ##############################################
 
-local alert_unexpected_gateway = classes.class(alert)
+local host_alert_unexpected_gateway = classes.class(alert)
 
 -- ##############################################
 
-alert_unexpected_gateway.meta = {
-   alert_key = flow_alert_keys.flow_alert_unexpected_gateway,
-   i18n_title = "flow_alerts_explorer.alert_unexpected_gateway_title",
+host_alert_unexpected_gateway.meta = {
+   alert_key = host_alert_keys.host_alert_unexpected_gateway,
+   i18n_title = "flow_checks.unexpected_gateway_title",
    icon = "fas fa-fw fa-exclamation",
 
    -- Mitre Att&ck Matrix values
@@ -39,7 +39,7 @@ alert_unexpected_gateway.meta = {
 -- @param one_flow_param The first alert param
 -- @param another_flow_param The second alert param
 -- @return A table with the alert built
-function alert_unexpected_gateway:init()
+function host_alert_unexpected_gateway:init()
    -- Call the parent constructor
    self.super:init()
 end
@@ -51,10 +51,10 @@ end
 -- @param alert The alert description table, including alert data such as the generating entity, timestamp, granularity, type
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
-function alert_unexpected_gateway.format(ifid, alert, alert_type_params)
+function host_alert_unexpected_gateway.format(ifid, alert, alert_type_params)
     return(i18n("flow_alerts_explorer.status_unexpected_gateway_description", { server=alert_type_params.server_ip} ))
 end
 
 -- #######################################################
 
-return alert_unexpected_gateway
+return host_alert_unexpected_gateway

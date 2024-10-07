@@ -762,7 +762,6 @@ class Host : public GenericHashEntry,
   void checkNameReset();
   void checkDataReset();
   void checkBroadcastDomain();
-  void checkGatewayInfo();
   bool hasAnomalies() const;
   void housekeep(time_t t); /* Virtual method, called in the datapath from
                                GenericHash::purgeIdle */

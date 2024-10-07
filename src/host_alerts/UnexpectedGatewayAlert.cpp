@@ -19,31 +19,21 @@
  *
  */
 
-#include "ntop_includes.h"
-#include "flow_checks_includes.h"
-//#define DEBUG_GATEWAY 1
+#include "host_alerts_includes.h"
 
 /* ***************************************************** */
 
-bool UnexpectedGateway::isAllowedHost(Flow *f) {
-  IpAddress *p = (IpAddress *)getServerIP(f);
+UnexpectedGatewayAlert::UnexpectedGatewayAlert(HostCheck* c, Host* f,
+                                             risk_percentage cli_pctg)
+    : HostAlert(c, f, cli_pctg) {};
 
-  if (p == NULL || p->isBroadcastAddress()) return true;
+/* ***************************************************** */
 
-#ifdef DEBUG_GATEWAY
-  char buf[64];
-  ntop->getTrace()->traceEvent(
-      TRACE_NORMAL,
-      "Checking Unexpected Gateway [IP %s] [Is Gateway: %s] [Is Configured Gateway: "
-      "%s]",
-      p->print(buf, sizeof(buf)), p->isGateway() ? "Yes" : "No",
-      ntop->getPrefs()->isGateway(p, f->get_vlan_id()) ? "Yes" : "No");
-#endif
-  if (p->isGateway() && !ntop->getPrefs()->isGateway(p, f->get_vlan_id())) {
-    return false;
-  }
+ndpi_serializer* UnexpectedGatewayAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  if (serializer == NULL) return NULL;
 
-  return (true);
+  return serializer;
 }
 
 /* ***************************************************** */

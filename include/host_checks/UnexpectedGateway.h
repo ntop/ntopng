@@ -19,29 +19,26 @@
  *
  */
 
-#ifndef _UNEXPECTED_GATEWAY_ALERT_H_
-#define _UNEXPECTED_GATEWAY_ALERT_H_
+#ifndef _UNEXPECTED_GATEWAY_H_
+#define _UNEXPECTED_GATEWAY_H_
 
 #include "ntop_includes.h"
 
-class UnexpectedGatewayAlert : public UnexpectedServerAlert {
- private:
- protected:
-  const IpAddress *getServerIP(Flow *f) { return (f->get_dns_srv_ip_addr()); }
-
+class UnexpectedGateway : public HostCheck {
  public:
-  static FlowAlertType getClassType() {
-    return {flow_alert_unexpected_gateway, alert_category_security};
-  }
-  static u_int8_t getDefaultScore() { return SCORE_LEVEL_ERROR; };
+  UnexpectedGateway();
+  ~UnexpectedGateway(){};
 
-  UnexpectedGatewayAlert(FlowCheck *c, Flow *f)
-      : UnexpectedServerAlert(c, f){};
-  ~UnexpectedGatewayAlert(){};
+  UnexpectedGatewayAlert *allocAlert(HostCheck *c, Host *h,
+                                    risk_percentage cli_pctg) {
+    return new UnexpectedGatewayAlert(c, h, cli_pctg);
+  };
 
-  bool autoAck() const { return false; };
+  bool loadConfiguration(json_object *config);
+  void periodicUpdate(Host *h, HostAlert *engaged_alert);
 
-  FlowAlertType getAlertType() const { return getClassType(); }
+  HostCheckID getID() const { return host_check_unexpected_gateway; }
+  std::string getName() const { return (std::string("unexpected_gateway")); }
 };
 
-#endif /* _UNEXPECTED_GATEWAY_ALERT_H_ */
+#endif /* _UNEXPECTED_GATEWAY_H_ */

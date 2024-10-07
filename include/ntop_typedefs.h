@@ -459,7 +459,7 @@ typedef enum {
   flow_alert_ndpi_tls_certificate_selfsigned = 28,
   flow_alert_ndpi_binary_application_transfer = 29,
   flow_alert_ndpi_known_proto_on_non_std_port = 30,
-  flow_alert_unexpected_gateway = 31,
+  flow_alert_notused_8 = 31,
   flow_alert_unexpected_dhcp_server = 32,
   flow_alert_unexpected_dns_server = 33,
   flow_alert_unexpected_smtp_server = 34,
@@ -560,7 +560,7 @@ typedef enum {
   host_alert_syn_scan = 5,
   host_alert_syn_flood = 6,
   host_alert_domain_names_contacts = 7,
-  host_alert_notused_1 = 8,
+  host_alert_unexpected_gateway = 8,
   host_alert_notused_2 = 9,
   host_alert_flows_anomaly = 10,
   host_alert_score_anomaly = 11,
@@ -633,6 +633,7 @@ typedef enum {
   host_check_host_scanner,
   host_check_rx_only_host_scan,
   host_check_server_ports_contacts,
+  host_check_unexpected_gateway,
 
   NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */
 } HostCheckID;

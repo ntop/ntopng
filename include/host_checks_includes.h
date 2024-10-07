@@ -43,6 +43,7 @@
 
 #include "host_checks/DangerousHost.h"
 #include "host_checks/RemoteConnection.h"
+#include "host_checks/UnexpectedGateway.h"
 #include "host_checks/DomainNamesContacts.h"
 #include "host_checks/ScanDetection.h"
 #include "host_checks/ScoreThreshold.h"

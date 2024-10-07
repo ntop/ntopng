@@ -74,6 +74,7 @@ void HostChecksLoader::registerChecks() {
   if ((fcb = new SMTPServerContacts()))  registerCheck(fcb);
   if ((fcb = new NTPServerContacts()))   registerCheck(fcb);
   if ((fcb = new RemoteConnection()))    registerCheck(fcb);
+  if ((fcb = new UnexpectedGateway()))   registerCheck(fcb);
   if ((fcb = new DangerousHost()))       registerCheck(fcb);
   if ((fcb = new DomainNamesContacts())) registerCheck(fcb);
   if ((fcb = new ScoreThreshold()))      registerCheck(fcb);
