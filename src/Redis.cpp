@@ -516,7 +516,7 @@ int Redis::hashDel(const char *key, const char *field) {
 
 int Redis::_set(bool use_nx, const char *key, const char *value,
                 u_int expire_secs) {
-  int rc, ret_code = 0;
+  int rc;
   redisReply *reply;
   const char *cmd = "SET";
 

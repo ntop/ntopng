@@ -1306,7 +1306,6 @@ void Host::periodic_stats_update(const struct timeval *tv) {
   checkDataReset();
   checkStatsReset();
   checkBroadcastDomain();
-  checkGatewayInfo();
 
   /* Update the pointer to the operating system according to what is specified
    * in cur_os_type, if necessary */
@@ -2021,13 +2020,6 @@ void Host::checkBroadcastDomain() {
   if (iface->reloadHostsBroadcastDomain())
     is_in_broadcast_domain =
         iface->isLocalBroadcastDomainHost(this, false /* Non-inline call */);
-}
-
-/* *************************************** */
-
-void Host::checkGatewayInfo() {
-  bool is_gateway = getDeviceType() == device_networking;
-  ip.setGateway(is_gateway);
 }
 
 /* *************************************** */

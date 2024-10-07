@@ -105,8 +105,6 @@ FlowAlertsLoader::FlowAlertsLoader() {
                 TCPNoDataExchangedAlert::getDefaultScore());
   registerAlert(TCPZeroWindowAlert::getClassType(),
                 TCPZeroWindowAlert::getDefaultScore());
-  registerAlert(UnexpectedGatewayAlert::getClassType(),
-                UnexpectedGatewayAlert::getDefaultScore());
   registerAlert(UnexpectedDHCPServerAlert::getClassType(),
                 UnexpectedDHCPServerAlert::getDefaultScore());
   registerAlert(UnexpectedDNSServerAlert::getClassType(),
