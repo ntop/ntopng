@@ -53,7 +53,9 @@ if isAdministrator() then
       ntop.setMacDeviceType(mac, devtype, true --[[ overwrite ]])
 
       pool_id = _POST["pool"]
-      host_pools_instance:bind_member(mac, tonumber(pool_id))
+      if pool_id then
+         host_pools_instance:bind_member(mac, tonumber(pool_id))
+      end
    end
 end
 
