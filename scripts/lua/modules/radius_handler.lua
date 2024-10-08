@@ -119,16 +119,26 @@ function radius_handler.accountingStop(name, terminate_cause, info)
             end
         end
 
+        bytes_sent = user_data.bytes_sent or 0
+        bytes_rcvd = user_data.bytes_rcvd or 0
+        packets_sent = user_data.packets_sent or 0
+        packets_rcvd = user_data.packets_rcvd or 0
+
         if info then
-            bytes_sent = math.floor((info["bytes.sent"] or 0) / 1024 + 0.5) or user_data.bytes_sent
-            bytes_rcvd = math.floor((info["bytes.rcvd"] or 0) / 1024 + 0.5) or user_data.bytes_rcvd
-            packets_sent = info["packets.sent"] or user_data.packets_sent
-            packets_rcvd = info["packets.rcvd"] or user_data.packets_rcvd
-        else
-            bytes_sent = user_data.bytes_sent
-            bytes_rcvd = user_data.bytes_rcvd
-            packets_sent = user_data.packets_sent
-            packets_rcvd = user_data.packets_rcvd
+            -- These are in B, needs to be converted in KB
+            if (info["bytes.sent"] or 0) > 0 then
+                bytes_sent = math.floor((info["bytes.sent"] or 0) / 1024 + 0.5)
+            end
+            if (info["bytes.rcvd"] or 0) > 0 then
+                bytes_rcvd = math.floor((info["bytes.rcvd"] or 0) / 1024 + 0.5)
+            end
+    
+            if (info["packets.sent"] or 0) > 0 then
+                packets_sent = info["packets.sent"] or 0
+            end
+            if (info["packets.rcvd"] or 0) > 0 then
+                packets_rcvd = info["packets.rcvd"] or 0
+            end
         end
 
         interface.radiusAccountingStop(user_data.username --[[ Username ]] , user_data.session_id, name --[[ MAC Address]] ,
@@ -163,12 +173,26 @@ function radius_handler.accountingUpdate(name, info)
                 user_data.ip_address = ip_address
             end
         end
-        -- These are in B, needs to be converted in KB
-        local bytes_sent = math.floor((info["bytes.sent"] or 0) / 1024 + 0.5)
-        local bytes_rcvd = math.floor((info["bytes.rcvd"] or 0) / 1024 + 0.5)
-        local packets_sent = info["packets.sent"] or 0
-        local packets_rcvd = info["packets.rcvd"] or 0
         local current_time = os.time()
+        local bytes_sent = user_data.bytes_sent or 0
+        local bytes_rcvd = user_data.bytes_rcvd or 0
+        local packets_sent = user_data.packets_sent or 0
+        local packets_rcvd = user_data.packets_rcvd or 0
+
+        -- These are in B, needs to be converted in KB
+        if info and (info["bytes.sent"] or 0) > 0 then
+            bytes_sent = math.floor((info["bytes.sent"] or 0) / 1024 + 0.5)
+        end
+        if info and (info["bytes.rcvd"] or 0) > 0 then
+            bytes_rcvd = math.floor((info["bytes.rcvd"] or 0) / 1024 + 0.5)
+        end
+
+        if info and (info["packets.sent"] or 0) > 0 then
+            packets_sent = info["packets.sent"] or 0
+        end
+        if info and (info["packets.rcvd"] or 0) > 0 then
+            packets_rcvd = info["packets.rcvd"] or 0
+        end
 
         user_data.bytes_sent = bytes_sent
         user_data.bytes_rcvd = bytes_rcvd
