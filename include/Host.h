@@ -331,7 +331,9 @@ class Host : public GenericHashEntry,
     return (observationPointId);
   };
 
-  char *get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
+  inline bool has_name_set() { return(names.server_name ? true : false); }
+  
+  char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
 
   inline void incSentTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts,
                          u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {
@@ -377,7 +379,7 @@ class Host : public GenericHashEntry,
   inline void set_ipv4(u_int32_t _ipv4) { ip.set(_ipv4); };
   inline void set_ipv6(struct ndpi_in6_addr *_ipv6) { ip.set(_ipv6); };
   inline u_int32_t key() { return (ip.key()); };
-  inline IpAddress *get_ip() { return (&ip); };
+  inline IpAddress* get_ip() { return (&ip); };
   inline bool isIPv4() const { return ip.isIPv4(); };
   inline bool isIPv6() const { return ip.isIPv6(); };
   void set_mac(Mac *m);

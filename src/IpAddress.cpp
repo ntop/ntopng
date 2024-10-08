@@ -452,3 +452,14 @@ void IpAddress::dump() {
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s [Local: %s][SystemHost: %s]",
                                print(buf, sizeof(buf)), local, system);
 }
+
+/* ****************************** */
+
+void IpAddress::fillIP(ndpi_ip_addr_t *ip_addr) {
+  memset(ip_addr, 0, sizeof(ndpi_ip_addr_t));
+
+  if(addr.ipVersion == 4)
+    ip_addr->ipv4 = addr.ipType.ipv4;
+  else
+    memcpy(&ip_addr->ipv6, get_ipv6(), sizeof(struct ndpi_in6_addr));
+}

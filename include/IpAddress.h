@@ -62,6 +62,8 @@ class IpAddress {
   inline const struct ndpi_in6_addr* get_ipv6() const {
     return ((addr.ipVersion == 6) ? &addr.ipType.ipv6 : NULL);
   }
+
+  void fillIP(ndpi_ip_addr_t *ip_addr);
   inline const struct ipAddress* getIP() const { return (&addr); };
   inline bool equal(u_int32_t ipv4_addr) const {
     if ((addr.ipVersion == 4) && (addr.ipType.ipv4 == ipv4_addr))

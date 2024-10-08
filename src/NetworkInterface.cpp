@@ -425,8 +425,9 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
     { NULL, "flow.track_payload" },
     { "tls", "metadata.ja4r_fingerprint" },
     { NULL, NULL }
+
   };
-    
+
   if (ndpi_s == NULL) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to initialize nDPI");
     exit(-1);
@@ -442,7 +443,14 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
     if (rc != NDPI_CFG_OK)
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Error ndpi_set_config(%s): %d", ndpi_keys[i], rc);
   }
-  
+
+  if(ntop->getPrefs()->is_dns_cache_enabled()) {
+    rc = ndpi_set_config(ndpi_s, NULL, "dpi.address_cache_size", "512000");
+
+    if (rc != NDPI_CFG_OK)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to enable the DNS cache: %d", rc);
+  }  
+
   if (ntop->getCustomnDPIProtos() != NULL)
     ndpi_load_protocols_file(ndpi_s, ntop->getCustomnDPIProtos());
 

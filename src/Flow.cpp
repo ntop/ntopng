@@ -126,8 +126,7 @@ Flow::Flow(NetworkInterface *_iface,
   INTERFACE_PROFILING_SUB_SECTION_ENTER(iface,
                                         "Flow::Flow: iface->findFlowHosts", 7);
   iface->findFlowHosts(_iface_idx, _vlanId, _observation_point_id, _private_flow_id,
-                       _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip,
-                       &srv_host);
+                       _cli_mac, _cli_ip, &cli_host, _srv_mac, _srv_ip, &srv_host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 7);
 
   if (_observation_point_id) {
@@ -199,8 +198,7 @@ Flow::Flow(NetworkInterface *_iface,
     if (cli_host)
       routing_table_id = hp->getRoutingPolicy(cli_host->get_host_pool());
     if (srv_host)
-      routing_table_id = max_val(
-				 routing_table_id, hp->getRoutingPolicy(srv_host->get_host_pool()));
+      routing_table_id = max_val(routing_table_id, hp->getRoutingPolicy(srv_host->get_host_pool()));
   }
 #endif
 
@@ -337,26 +335,26 @@ void Flow::allocDPIMemory() {
 
 void Flow::freeDPIMemory() {
   if (ndpiFlow) {
-    if(isDNS() && ntop->getPrefs()->is_dns_cache_enabled()) {
-      for(u_int i=0; i<ndpiFlow->protos.dns.num_rsp_addr; i++) {
-	/* Skip entries "almost" expired */
-	   
-	if(ndpiFlow->protos.dns.rsp_addr_ttl[i] > 5 /* sec */) {
-	  char addr_buf[64], key[128];
-	  
-	  if(ndpiFlow->protos.dns.is_rsp_addr_ipv6[i] == 0)
-	    inet_ntop(AF_INET, &ndpiFlow->protos.dns.rsp_addr[i].ipv4, addr_buf, sizeof(addr_buf));
-	  else
-	    inet_ntop(AF_INET6, &ndpiFlow->protos.dns.rsp_addr[i].ipv6, addr_buf, sizeof(addr_buf));
-	  
-	  snprintf(key, sizeof(key), "ntopng.dns_cache.%s", addr_buf);	
-	  ntop->getRedis()->set(key, ndpiFlow->host_server_name, ndpiFlow->protos.dns.rsp_addr_ttl[i]);
-	  
-#if 0
-	  ntop->getTrace()->traceEvent(TRACE_NORMAL, "(%s) %s [ttl: %u]",
-				       ndpiFlow->host_server_name, addr_buf,
-				       ndpiFlow->protos.dns.rsp_addr_ttl[i]);
-#endif
+    if((!isDNS()) && ntop->getPrefs()->is_dns_cache_enabled()) {
+      Host *h;
+      
+      if(srv_host) {
+	/* Standard Interface */
+	h = srv_host;
+      } else {
+	/* View Interface */
+	h = getViewSharedServer();	
+      }
+
+      if(h && (h->has_name_set() == false)) {
+	struct ndpi_address_cache_item *i;
+	ndpi_ip_addr_t ip_addr;
+	
+	h->get_ip()->fillIP(&ip_addr);
+	
+	if((i = ndpi_cache_address_find(iface->get_ndpi_struct(), ip_addr)) != NULL) {
+	  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "**** %s", i->hostname); */
+	  h->setServerName(i->hostname);
 	}
       }
     }
@@ -410,8 +408,7 @@ Flow::~Flow() {
   if (iface_alert_inc && !iface_alert_dec) {
     char buf[256];
 
-    ntop->getTrace()->traceEvent(
-				 TRACE_WARNING, "[MISMATCH][inc but not dec][alerted: %u] %s",
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "[MISMATCH][inc but not dec][alerted: %u] %s",
 				 isFlowAlerted() ? 1 : 0, print(buf, sizeof(buf)));
   }
 #endif
@@ -461,9 +458,8 @@ Flow::~Flow() {
     }
   }
 
-  if (!srv_host &&
-      srv_ip_addr) /* Dynamically allocated only when srv_host was NULL in Flow
-                      constructor (viewed interfaces) */
+  if (!srv_host && srv_ip_addr) /* Dynamically allocated only when srv_host was NULL in Flow
+				   constructor (viewed interfaces) */
     delete srv_ip_addr;
 
   /*
@@ -1167,8 +1163,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
 		if (at != NULL) {
 		  // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s <->
 		  // %s", name, (char*)ndpiFlow->host_server_name);
-		  ntop->getRedis()->setResolvedAddress(
-						       name, (char *)ndpiFlow->host_server_name);
+		  ntop->getRedis()->setResolvedAddress(name, (char *)ndpiFlow->host_server_name);
 		}
 	      }
 	    }
@@ -1861,8 +1856,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
                                        PartializableFlowTrafficStats *partial,
                                        bool first_partial,
                                        const struct timeval *tv) {
-  update_pools_stats(
-		     iface, cli_host, srv_host, tv, partial->get_cli2srv_packets(),
+  update_pools_stats(iface, cli_host, srv_host, tv, partial->get_cli2srv_packets(),
 		     partial->get_cli2srv_bytes(), partial->get_srv2cli_packets(),
 		     partial->get_srv2cli_bytes());
 
