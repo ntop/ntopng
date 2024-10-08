@@ -336,29 +336,19 @@ void Flow::allocDPIMemory() {
 void Flow::freeDPIMemory() {
   if (ndpiFlow) {
     if((!isDNS()) && ntop->getPrefs()->is_dns_cache_enabled()) {
-      Host *h;
-      
+
       if(srv_host) {
 	/* Standard Interface */
-	h = srv_host;
+	updateServerName(srv_host);
       } else {
-	/* View Interface */
-	h = getViewSharedServer();	
-      }
-
-      if(h && (h->has_name_set() == false)) {
-	struct ndpi_address_cache_item *i;
-	ndpi_ip_addr_t ip_addr;
-	
-	h->get_ip()->fillIP(&ip_addr);
-	
-	if((i = ndpi_cache_address_find(iface->get_ndpi_struct(), ip_addr)) != NULL) {
-	  /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "**** %s", i->hostname); */
-	  h->setServerName(i->hostname);
-	}
+	/*
+	  View Interface: see (****)
+	  Needs to be delayed until getViewSharedServer() is filled
+	  by ViewInterface::viewed_flows_walker()
+	*/
       }
     }
-
+    
     if(ntop->getPrefs()->are_sites_collection_enabled() && (host_server_name != NULL)) {
       if(strchr(host_server_name, ':') == NULL /* No IPv6 or IP:port */) {
 	const char *domain = ndpi_get_host_domain(iface->get_ndpi_struct(), host_server_name);
@@ -1526,10 +1516,7 @@ char *Flow::intoaV4(unsigned int addr, char *buf, u_short bufLen) {
 /* *************************************** */
 
 u_int64_t Flow::get_current_bytes_cli2srv() const {
-  int64_t diff = get_bytes_cli2srv() -
-    (periodic_stats_update_partial
-     ? periodic_stats_update_partial->get_cli2srv_bytes()
-     : 0);
+  int64_t diff = get_bytes_cli2srv() - (periodic_stats_update_partial ? periodic_stats_update_partial->get_cli2srv_bytes() : 0);
 
   /*
     We need to do this as due to concurrency issues,
@@ -1541,10 +1528,7 @@ u_int64_t Flow::get_current_bytes_cli2srv() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_bytes_srv2cli() const {
-  int64_t diff = get_bytes_srv2cli() -
-    (periodic_stats_update_partial
-     ? periodic_stats_update_partial->get_srv2cli_bytes()
-     : 0);
+  int64_t diff = get_bytes_srv2cli() - (periodic_stats_update_partial ? periodic_stats_update_partial->get_srv2cli_bytes() : 0);
 
   /*
     We need to do this as due to concurrency issues,
@@ -1573,10 +1557,7 @@ u_int64_t Flow::get_current_goodput_bytes_cli2srv() const {
 
 u_int64_t Flow::get_current_goodput_bytes_srv2cli() const {
   int64_t diff =
-    get_goodput_bytes_srv2cli() -
-    (periodic_stats_update_partial
-     ? periodic_stats_update_partial->get_srv2cli_goodput_bytes()
-     : 0);
+    get_goodput_bytes_srv2cli() - (periodic_stats_update_partial ? periodic_stats_update_partial->get_srv2cli_goodput_bytes() : 0);
 
   /*
     We need to do this as due to concurrency issues,
@@ -1588,10 +1569,7 @@ u_int64_t Flow::get_current_goodput_bytes_srv2cli() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_packets_cli2srv() const {
-  int64_t diff = get_packets_cli2srv() -
-    (periodic_stats_update_partial
-     ? periodic_stats_update_partial->get_cli2srv_packets()
-     : 0);
+  int64_t diff = get_packets_cli2srv() - (periodic_stats_update_partial ? periodic_stats_update_partial->get_cli2srv_packets() : 0);
 
   /*
     We need to do this as due to concurrency issues,
@@ -1603,10 +1581,7 @@ u_int64_t Flow::get_current_packets_cli2srv() const {
 /* *************************************** */
 
 u_int64_t Flow::get_current_packets_srv2cli() const {
-  int64_t diff = get_packets_srv2cli() -
-    (periodic_stats_update_partial
-     ? periodic_stats_update_partial->get_srv2cli_packets()
-     : 0);
+  int64_t diff = get_packets_srv2cli() - (periodic_stats_update_partial ? periodic_stats_update_partial->get_srv2cli_packets() : 0);
 
   /*
     We need to do this as due to concurrency issues,
@@ -1792,8 +1767,7 @@ bool Flow::dump(time_t t, bool last_dump_before_free) {
     }
   }
 
-  /* Add protocol information in the JSON field (if not already set by alerts)
-   */
+  /* Add protocol information in the JSON field (if not already set by alerts) */
   setProtocolJSONInfo();
   getInterface()->dumpFlow(get_last_seen(), this);
 
@@ -1856,6 +1830,16 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
                                        PartializableFlowTrafficStats *partial,
                                        bool first_partial,
                                        const struct timeval *tv) {
+  if((!isDNS()) && ntop->getPrefs()->is_dns_cache_enabled()) {
+    if(!srv_host) {
+      /* Standard Interface */
+      /* Handled in Flow::freeDPIMemory() */
+    } else {
+      /* View interface (****) */
+      updateServerName(getViewSharedServer());
+    }
+  }
+
   update_pools_stats(iface, cli_host, srv_host, tv, partial->get_cli2srv_packets(),
 		     partial->get_cli2srv_bytes(), partial->get_srv2cli_packets(),
 		     partial->get_srv2cli_bytes());
@@ -8898,4 +8882,29 @@ bool Flow::is_active_entry_now_idle(u_int max_idleness) const {
   if(!is_expired) return(false);
 
   return(GenericHashEntry::is_active_entry_now_idle(max_idleness));
+}
+
+/* *************************************** */
+
+/* #define DEBUG_UPDATE  1 */
+
+void Flow::updateServerName(Host *h) {
+  if(h && (h->has_name_set() == false)) {
+    struct ndpi_address_cache_item *i;
+    ndpi_ip_addr_t ip_addr;
+
+    h->get_ip()->fillIP(&ip_addr);
+
+#ifdef DEBUG_UPDATE
+    char buf[64];
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "**** Host: %p [%s]", h, srv_ip_addr->print(buf, sizeof(buf)));
+#endif
+
+    if((i = ndpi_cache_address_find(iface->get_ndpi_struct(), ip_addr)) != NULL) {
+#ifdef DEBUG_UPDATE
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "**** SET %s", i->hostname);
+#endif
+      h->setServerName(i->hostname);
+    }
+  }
 }

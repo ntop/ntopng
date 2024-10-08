@@ -365,6 +365,7 @@ class Flow : public GenericHashEntry {
   void updateClientContactedPorts(Host *client, ndpi_protocol *proto);
   void updateTCPHostServices(Host *cli_h, Host *srv_h);
   void updateUDPHostServices();
+  void updateServerName(Host *h);
   
  public:
   Flow(NetworkInterface *_iface, int32_t iface_idx,
