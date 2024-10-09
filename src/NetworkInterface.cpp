@@ -288,7 +288,6 @@ void NetworkInterface::init(const char *interface_name) {
   push_host_filters = false;
 
   top_sites = NULL;
-  top_os = NULL;
 
   reload_hosts_bcast_domain = false;
   hosts_bcast_domain_last_update = 0;
@@ -1053,7 +1052,6 @@ NetworkInterface::~NetworkInterface() {
 
   addRedisSitesKey();
   if (top_sites) delete top_sites;
-  if (top_os) delete top_os;
 
   if (prev_flow_checks_executor) delete prev_flow_checks_executor;
   if (flow_checks_executor) delete flow_checks_executor;
@@ -8496,7 +8494,6 @@ void NetworkInterface::allocateStructures(bool disable_dump) {
     gw_macs = new MacHash(this, 32, 64);
 
     top_sites = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
-    top_os = new (std::nothrow) MostVisitedList(HOST_SITES_TOP_NUMBER);
 
     if (disable_dump) flow_dump_disabled_by_backend = true;
 
@@ -10807,12 +10804,6 @@ void NetworkInterface::updateSitesStats() {
     if (top_sites)
       top_sites->saveOldData(get_id(), (char *)additional_key_info.c_str(),
 			     (char *)HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED);
-
-    if (top_os) {
-      additional_key_info = ".topOs";
-      top_os->saveOldData(get_id(), (char *)additional_key_info.c_str(),
-                          (char *)HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED);
-    }
   }
 }
 
@@ -10820,18 +10811,6 @@ void NetworkInterface::updateSitesStats() {
 
 void NetworkInterface::incrVisitedWebSite(char *hostname) {
   if (top_sites) top_sites->incrVisitedData(hostname, 1);
-}
-
-/* *************************************** */
-
-void NetworkInterface::incrOS(char *hostname) {
-  char *firstdot = NULL, *nextdot = NULL;
-
-  firstdot = strchr(hostname, '.');
-
-  if (firstdot) nextdot = strchr(&firstdot[1], '.');
-
-  top_os->incrVisitedData(nextdot ? &firstdot[1] : hostname, 1);
 }
 
 /* *************************************** */
@@ -10959,32 +10938,24 @@ u_int16_t NetworkInterface::getFirstObservationPointId() {
 
 void NetworkInterface::removeRedisSitesKey() {
   // System Interface, no Network sites for sure
-  if (id == -1 || !top_sites || !top_os) return;
+  if (id == -1 || !top_sites) return;
 
   top_sites->serializeDeserialize(
 				  id, false, (char *)"", (char *)HASHKEY_TOP_SITES_SERIALIZATION_KEY,
 				  (char *)HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED,
 				  (char *)HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED);
-  top_os->serializeDeserialize(id, false, (char *)"",
-                               (char *)HASHKEY_TOP_OS_SERIALIZATION_KEY,
-                               (char *)HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED,
-                               (char *)HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED);
 }
 
 /* *************************************** */
 
 void NetworkInterface::addRedisSitesKey() {
   // System Interface, no Network sites for sure
-  if (id == -1 || !top_sites || !top_os) return;
+  if (id == -1 || !top_sites) return;
 
   top_sites->serializeDeserialize(
 				  id, true, (char *)"", (char *)HASHKEY_TOP_SITES_SERIALIZATION_KEY,
 				  (char *)HASHKEY_LOCAL_HOSTS_TOP_SITES_HOUR_KEYS_PUSHED,
 				  (char *)HASHKEY_LOCAL_HOSTS_TOP_SITES_DAY_KEYS_PUSHED);
-  top_os->serializeDeserialize(id, true, (char *)"",
-                               (char *)HASHKEY_TOP_OS_SERIALIZATION_KEY,
-                               (char *)HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED,
-                               (char *)HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED);
 }
 
 /* *************************************** */

@@ -27,7 +27,8 @@
 
 ViewInterface::ViewInterface(const char *_endpoint)
     : NetworkInterface(_endpoint) {
-  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  if (trace_new_delete)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
   is_view = true; /* This is a view interface */
   is_packet_interface = true;
 
@@ -116,7 +117,7 @@ ViewInterface::~ViewInterface() {
   frame #4: 0x000000010010f124 ntopng`NetworkInterface::purgeIdleFlows
   frame #5: 0x000000010010eda4 ntopng`NetworkInterface::purgeIdle
   frame #6: 0x00000001001100b8 ntopng`NetworkInterface::dissectPacket
-  frame #7: 0x000000010017594c ntopng`packetPollLoop			      
+  frame #7: 0x000000010017594c ntopng`packetPollLoop
 */
 
 bool ViewInterface::viewEnqueue(time_t t, Flow *f,
@@ -464,8 +465,8 @@ void ViewInterface::sumStats(TcpFlowStats *_tcpFlowStats, EthStats *_ethStats,
   for (u_int8_t s = 0; s < num_viewed_interfaces; s++)
     viewed_interfaces[s]->sumStats(_tcpFlowStats, _ethStats, _localStats,
                                    _ndpiStats, _pktStats, _tcpPacketStats,
-				   _dscpStats,
-                                   _syslogStats, _downloadStats, _uploadStats);
+                                   _dscpStats, _syslogStats, _downloadStats,
+                                   _uploadStats);
 }
 
 /* **************************************************** */
@@ -495,8 +496,10 @@ Flow *ViewInterface::findFlowByTuple(u_int16_t vlan_id,
 void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
   NetworkStats *network_stats;
   PartializableFlowTrafficStats partials;
-  bool first_partial; /* Whether this is the first time the view is visiting this flow */
-  const IpAddress *cli_ip = f->get_cli_ip_addr(), *srv_ip = f->get_srv_ip_addr();
+  bool first_partial; /* Whether this is the first time the view is visiting
+                         this flow */
+  const IpAddress *cli_ip = f->get_cli_ip_addr(),
+                  *srv_ip = f->get_srv_ip_addr();
 
   if (f->get_last_seen() > getTimeLastPktRcvd())
     setTimeLastPktRcvd(f->get_last_seen());
@@ -509,13 +512,14 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
   if (f->get_partial_traffic_stats_view(&partials, &first_partial)) {
     /*
       IMPORTANT
-      
+
       Do not skip updates when partials are zero as you need to update the
       host timers and score
     */
     if (!cli_ip || !srv_ip)
-      ntop->getTrace()->traceEvent(TRACE_ERROR,
-				   "Unable to get flow hosts. Out of memory? Expect issues.");
+      ntop->getTrace()->traceEvent(
+          TRACE_ERROR,
+          "Unable to get flow hosts. Out of memory? Expect issues.");
 
     if (cli_ip && srv_ip) {
       Host *cli_host, *srv_host;
@@ -528,18 +532,19 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
        * first_partial is true. */
       if (first_partial) {
 #ifdef HANDLE_VIEW_MACS
-	if(macs_hash != NULL) {
-	  srcMac = getMac(f->getViewCliMac(), true /* Create if missing */, true /* Inline call */);
-	  dstMac = getMac(f->getViewSrvMac(), true /* Create if missing */, true /* Inline call */);
+        if (macs_hash != NULL) {
+          srcMac = getMac(f->getViewCliMac(), true /* Create if missing */,
+                          true /* Inline call */);
+          dstMac = getMac(f->getViewSrvMac(), true /* Create if missing */,
+                          true /* Inline call */);
 
           setSeenMacAddresses();
-	}
+        }
 #endif
-	
-        findFlowHosts(f->getInterfaceIndex(),
-		      f->get_vlan_id(), f->get_observation_point_id(),
-                      f->getPrivateFlowId(), srcMac,
-                      (IpAddress *)cli_ip, &cli_host, dstMac,
+
+        findFlowHosts(f->getInterfaceIndex(), f->get_vlan_id(),
+                      f->get_observation_point_id(), f->getPrivateFlowId(),
+                      srcMac, (IpAddress *)cli_ip, &cli_host, dstMac,
                       (IpAddress *)srv_ip, &srv_host);
 
         if (cli_host) cli_host->setViewInterfaceMac(f->getViewCliMac());
@@ -549,39 +554,52 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
          * ViewInterface::viewed_flows_walker is called synchronously with the
          * ViewInterface purgeIdle. This also saves some unnecessary hash table
          * lookup time. */
-        cli_host = f->getViewSharedClient(), srv_host = f->getViewSharedServer();
-	
+        cli_host = f->getViewSharedClient(),
+        srv_host = f->getViewSharedServer();
+
 #ifdef HANDLE_VIEW_MACS
-	if(cli_host) srcMac = cli_host->getMac(); else srcMac = NULL;
-	if(srv_host) dstMac = srv_host->getMac(); else dstMac = NULL;
+        if (cli_host)
+          srcMac = cli_host->getMac();
+        else
+          srcMac = NULL;
+        if (srv_host)
+          dstMac = srv_host->getMac();
+        else
+          dstMac = NULL;
 #endif
       }
 
 #ifdef HANDLE_VIEW_MACS
 #ifdef DEBUG
-      if(partials.get_cli2srv_packets() || partials.get_srv2cli_packets()) {
-	char buf_c[64], buf_s[64];
-	
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "%s <-> %s [pkts: %u/%u][bytes: %u/%u]",
-				     cli_ip->print(buf_c, sizeof(buf_c)),
-				     srv_ip->print(buf_s, sizeof(buf_s)),
-				     partials.get_cli2srv_packets(), partials.get_srv2cli_packets(),
-				     partials.get_cli2srv_bytes(), partials.get_srv2cli_bytes());
+      if (partials.get_cli2srv_packets() || partials.get_srv2cli_packets()) {
+        char buf_c[64], buf_s[64];
+
+        ntop->getTrace()->traceEvent(
+            TRACE_WARNING, "%s <-> %s [pkts: %u/%u][bytes: %u/%u]",
+            cli_ip->print(buf_c, sizeof(buf_c)),
+            srv_ip->print(buf_s, sizeof(buf_s)), partials.get_cli2srv_packets(),
+            partials.get_srv2cli_packets(), partials.get_cli2srv_bytes(),
+            partials.get_srv2cli_bytes());
       }
 #endif
-      
-      if(srcMac) {
-	srcMac->incSentStats(tv->tv_sec, partials.get_cli2srv_packets(), partials.get_cli2srv_bytes());
-	srcMac->incRcvdStats(tv->tv_sec, partials.get_srv2cli_packets(), partials.get_srv2cli_bytes());
+
+      if (srcMac) {
+        srcMac->incSentStats(tv->tv_sec, partials.get_cli2srv_packets(),
+                             partials.get_cli2srv_bytes());
+        srcMac->incRcvdStats(tv->tv_sec, partials.get_srv2cli_packets(),
+                             partials.get_srv2cli_bytes());
       }
-      
-      if(dstMac) {
-	dstMac->incSentStats(tv->tv_sec, partials.get_srv2cli_packets(), partials.get_srv2cli_bytes());
-	dstMac->incRcvdStats(tv->tv_sec, partials.get_cli2srv_packets(), partials.get_cli2srv_bytes());	
+
+      if (dstMac) {
+        dstMac->incSentStats(tv->tv_sec, partials.get_srv2cli_packets(),
+                             partials.get_srv2cli_bytes());
+        dstMac->incRcvdStats(tv->tv_sec, partials.get_cli2srv_packets(),
+                             partials.get_cli2srv_bytes());
       }
 #endif
-      
-      f->hosts_periodic_stats_update(this, cli_host, srv_host, &partials, first_partial, tv);
+
+      f->hosts_periodic_stats_update(this, cli_host, srv_host, &partials,
+                                     first_partial, tv);
 
       /* Setting up dhcp/ntp/dns/smtp server bits */
       if (cli_host && partials.get_cli2srv_bytes() > 0) {
@@ -642,7 +660,8 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
       if (cli_host) {
         if (first_partial) {
           cli_host->incNumFlows(f->get_last_seen(), true), cli_host->incUses();
-          network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
+          network_stats =
+              cli_host->getNetworkStats(cli_host->get_local_network_id());
 
           if (network_stats)
             network_stats->incNumFlows(f->get_last_seen(), true);
@@ -651,35 +670,34 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
             f->getViewInterfaceFlowStats()->setClientHost(cli_host);
 
           cli_host->setLastDeviceIp(f->getFlowDeviceIP());
-	  
-	  if(f->isBlacklistedClient()) {
-	    char *cat = f->get_custom_category_file();
-	    
-	    if(cat != NULL)
-	      cli_host->setBlacklistName(cat);
-	  }
+
+          if (f->isBlacklistedClient()) {
+            char *cat = f->get_custom_category_file();
+
+            if (cat != NULL) cli_host->setBlacklistName(cat);
+          }
         }
       }
 
       if (srv_host) {
         if (first_partial) {
           srv_host->incUses(), srv_host->incNumFlows(f->get_last_seen(), false);
-          network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
-	  
+          network_stats =
+              srv_host->getNetworkStats(srv_host->get_local_network_id());
+
           if (network_stats)
             network_stats->incNumFlows(f->get_last_seen(), false);
-	  
+
           if (f->getViewInterfaceFlowStats())
             f->getViewInterfaceFlowStats()->setServerHost(srv_host);
-	  
+
           srv_host->setLastDeviceIp(f->getFlowDeviceIP());
 
-	  if(f->isBlacklistedServer()) {
-	    char *cat = f->get_custom_category_file();
+          if (f->isBlacklistedServer()) {
+            char *cat = f->get_custom_category_file();
 
-	    if(cat != NULL)
-	      srv_host->setBlacklistName(cat);
-	  }
+            if (cat != NULL) srv_host->setBlacklistName(cat);
+          }
         }
       }
 
@@ -696,6 +714,17 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
         if (srv_score_val && srv_host)
           srv_host->incScoreValue(srv_score_val, score_category,
                                   false /* as server */);
+      }
+
+      /* In case of View Interface the top sites needs to be handled here */
+      struct ndpi_flow_struct *ndpiFlow = f->get_ndpi_flow();
+      if (ndpiFlow && cli_host) {
+        ntop->getTrace()->traceEvent(TRACE_DEBUG,
+                                     "Dumping server name searched [%s]",
+                                     ndpiFlow->host_server_name);
+        if (cli_host->isLocalHost() && ndpiFlow->host_server_name[0] != '\0') {
+          cli_host->incrVisitedWebSite((char *)ndpiFlow->host_server_name);
+        }
       }
 
       if (partials.get_is_flow_alerted()) {
@@ -817,21 +846,23 @@ void ViewInterface::lua_queues_stats(lua_State *vm) {
 /* **************************************************** */
 
 #ifdef NTOPNG_PRO
-void ViewInterface::getFlowDevices(lua_State *vm) {  
+void ViewInterface::getFlowDevices(lua_State *vm) {
   for (int i = 0; i < num_viewed_interfaces; i++)
     viewed_interfaces[i]->getFlowDevices(vm);
 }
 
 /* **************************************************** */
 
-void ViewInterface::getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP, bool showAllStats) {
+void ViewInterface::getFlowDeviceInfo(lua_State *vm, u_int32_t deviceIP,
+                                      bool showAllStats) {
   for (int i = 0; i < num_viewed_interfaces; i++)
     viewed_interfaces[i]->getFlowDeviceInfo(vm, deviceIP, showAllStats);
 }
 
 /* **************************************************** */
 
-void ViewInterface::getFlowDeviceInfoByIP(lua_State *vm, u_int32_t deviceIP, bool showAllStats) {
+void ViewInterface::getFlowDeviceInfoByIP(lua_State *vm, u_int32_t deviceIP,
+                                          bool showAllStats) {
   for (int i = 0; i < num_viewed_interfaces; i++)
     viewed_interfaces[i]->getFlowDeviceInfoByIP(vm, deviceIP, showAllStats);
 }
@@ -840,8 +871,8 @@ void ViewInterface::getFlowDeviceInfoByIP(lua_State *vm, u_int32_t deviceIP, boo
 /* **************************************************** */
 
 void ViewInterface::getSFlowDevices(lua_State *vm, bool add_table) {
-  if(add_table) lua_newtable(vm);
-  
+  if (add_table) lua_newtable(vm);
+
   for (int i = 0; i < num_viewed_interfaces; i++)
     viewed_interfaces[i]->getSFlowDevices(vm, false);
 }

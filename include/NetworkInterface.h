@@ -130,7 +130,6 @@ protected:
   BehaviorAnalysis *score_behavior, *traffic_tx_behavior, *traffic_rx_behavior;
 #endif
   MostVisitedList *top_sites;
-  MostVisitedList *top_os;
 
   /* Flows queues waiting to be dumped */
   SPSCQueue<Flow *> *idleFlowsToDump, *activeFlowsToDump;
@@ -452,7 +451,6 @@ public:
 
   void checkDisaggregationMode();
   void incrVisitedWebSite(char *hostname);
-  void incrOS(char *hostname);
   inline void incScoreValue(u_int16_t score_incr, bool as_client) {
     as_client ? score_as_cli += score_incr : score_as_srv += score_incr;
   };
