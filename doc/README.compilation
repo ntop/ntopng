@@ -43,6 +43,9 @@ On Ubuntu/Debian (up to Debian 11) do
 oo Debian 12
 - apt install debsigs
 
+If you want to optimize memory usage please consider installing jemalloc
+- git clone https://github.com/jemalloc/jemalloc.git 
+
 If you plan to build ntopng dependencies you should also install:
 - apt install libzstd-dev cmake librdkafka-dev libbpfcc-dev libjson-c-dev
 
