@@ -6201,6 +6201,7 @@ local lang = {
     ["gateway_servers_title"] = "Network Gateways",
     ["ntp_servers_title"] = "NTP Servers",
     ["smtp_servers_title"] = "SMTP Servers",
+    ["input_box_description"] = "Insert a comma separated string of"
   },
   ["network_details"] = {
     ["network"] = "Network",

@@ -11,6 +11,9 @@
                 <div v-if="validationErrors[key]" class="text-danger mt-1">
                     {{ validationErrors[key] }}
                 </div>
+                <div class="text-start">
+                    {{ _i18n("network_configuration.input_box_description") + " " + _i18n(value.i18n_title) }}
+                </div>
             </div>
         </div>
         <div class="d-flex justify-content-end mt-4">
