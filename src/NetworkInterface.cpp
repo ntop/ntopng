@@ -443,7 +443,7 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Error ndpi_set_config(%s): %d", ndpi_keys[i], rc);
   }
 
-  if(ntop->getPrefs()->is_dns_cache_enabled()) {
+  if(ntop->getPrefs() && ntop->getPrefs()->is_dns_cache_enabled()) {
     rc = ndpi_set_config(ndpi_s, NULL, "dpi.address_cache_size", "512000");
 
     if (rc != NDPI_CFG_OK)
