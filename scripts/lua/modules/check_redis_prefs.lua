@@ -28,7 +28,7 @@ end
 
 -- ###########################################
 
-function areHostTimeseriesEnabled(ifid)
+function areHostTimeseriesEnabled()
     local rv = ntop.getPref("ntopng.prefs.hosts_ts_creation")
     if isEmptyString(rv) then
         rv = "light"

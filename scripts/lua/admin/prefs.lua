@@ -2205,12 +2205,13 @@ if auth.has_capability(auth.capabilities.preferences) then
             showElement, default_broker_id --[[show]] )
 
         prefsInputFieldPrefs(subpage_active.entries["message_broker_url"].title,
-            subpage_active.entries["message_broker_url"].description, "ntopng.prefs.", "message_broker_url", "", "text",
+            subpage_active.entries["message_broker_url"].description, "ntopng.prefs.", "message_broker_url", prefs.message_broker_url, "text",
             showElement, nil, nil, {
                 attributes = {
                     spellcheck = "false"
                 },
-                pattern = "[^\\s]+"
+                pattern = "[^\\s]+",
+                required = true
             })
 
         prefsInputFieldPrefs(subpage_active.entries["message_broker_username"].title,

@@ -77,7 +77,8 @@ Prefs::Prefs(Ntop *_ntop) {
     enable_informative_captive_portal = false,
     enable_external_auth_captive_portal = false,
     override_dst_with_post_nat_dst = false,
-    override_src_with_post_nat_src = false;
+    override_src_with_post_nat_src = false,
+    message_broker_enabled = false;
   hostMask = no_host_mask, collect_blacklist_stats = false;
   enable_asn_behaviour_analysis = enable_network_behaviour_analysis =
     enable_iface_l7_behaviour_analysis = false;
@@ -839,7 +840,7 @@ void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer,
                                        const char *default_value) {
   char rsp[MAX_PATH];
 
-  if ((ntop->getRedis()->get((char *)pref_key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0'))
+  if ((ntop->getRedis()->get((char *)pref_key, rsp, sizeof(rsp)) == 0) && (rsp[0] != '\0') && strcmp(rsp, "nil"))
     *buffer = strdup(rsp);
   else
     *buffer = strdup(default_value);
@@ -947,6 +948,7 @@ void Prefs::reloadPrefsFromRedis() {
 
     enable_top_talkers = getDefaultBoolPrefsValue(CONST_TOP_TALKERS_ENABLED, CONST_DEFAULT_TOP_TALKERS_ENABLED),
     enable_sites_collection = getDefaultBoolPrefsValue(CONST_SITES_COLLECTION_ENABLED, CONST_DEFAULT_SITES_COLLECTION_ENABLED),
+    message_broker_enabled = getDefaultBoolPrefsValue(CONST_PREFS_MESSAGE_BROKER_ENABLED, DEFAULT_MESSAGE_BROKER_ENABLED),
     enable_dns_cache = getDefaultBoolPrefsValue(CONST_DNS_CACHE_ENABLED, CONST_DEFAULT_DNS_CACHE_ENABLED),
     enable_active_local_hosts_cache = getDefaultBoolPrefsValue(CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED,
 							       CONST_DEFAULT_IS_ACTIVE_LOCAL_HOSTS_CACHE_ENABLED),
@@ -1030,9 +1032,12 @@ void Prefs::reloadPrefsFromRedis() {
     free(aux);
   }
 
-  getDefaultStringPrefsValue(CONST_PREFS_MESSAGE_BROKER_URL, &aux, DEFAULT_MESSAGE_BROKER_URL);
-  if(message_broker_url) free(message_broker_url);
-  message_broker_url = aux;
+  getDefaultStringPrefsValue(CONST_PREFS_MESSAGE_BROKER_URL, &tmp, DEFAULT_MESSAGE_BROKER_URL);
+  if (tmp) {
+    if (message_broker_url) free(message_broker_url);
+    message_broker_url = strdup(tmp);
+    free(tmp);
+  }
 
   getDefaultStringPrefsValue(CONST_PREFS_MESSAGE_BROKER, &tmp, DEFAULT_MESSAGE_BROKER);
   if (message_broker) free(message_broker);
@@ -2841,6 +2846,7 @@ void Prefs::lua(lua_State *vm) {
                             enable_external_auth_captive_portal);
 
   lua_push_uint64_table_entry(vm, "max_ui_strlen", max_ui_strlen);
+  
 
   lua_push_str_table_entry(vm, "config_file",
                            config_file_path ? config_file_path : (char *)"");
@@ -2857,6 +2863,10 @@ void Prefs::lua(lua_State *vm) {
   lua_push_str_table_entry(vm, "capture_direction",
                            Utils::captureDirection2Str(captureDirection));
 
+  lua_push_str_table_entry(vm, "message_broker_url", message_broker_url ? message_broker_url : "");
+  lua_push_str_table_entry(vm, "message_broker", message_broker ? message_broker : "");
+  lua_push_bool_table_entry(vm, "toggle_message_broker", message_broker_enabled);
+  
   lua_push_str_table_entry(vm, "zmq_publish_events_url", zmq_publish_events_url);
   lua_push_bool_table_entry(vm, "limited_resources_mode", limited_resources_mode);
 }
