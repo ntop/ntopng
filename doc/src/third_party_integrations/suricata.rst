@@ -76,7 +76,7 @@ Example:
 
 .. code:: text
 
-   -i=syslog://127.0.0.1:9999
+   -i=syslog://127.0.0.1:5140
    -i=eth1
 
 Please remember to *restart* the *ntopng* service to apply the change.

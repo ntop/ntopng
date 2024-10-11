@@ -38,12 +38,12 @@ Example:
 
 .. code:: text
 
-   -i=syslog://*:9999
+   -i=syslog://*:5140
    -i=eth1
 
 By default, ntopng listens both on UDP and TCP, in order to listen on UDP only or TCP
 only, the :code:`@udp` or :code:`@tcp` suffix should be appended to the interface name
-(example :code:`syslog://*:9999@udp`).
+(example :code:`syslog://*:5140@udp`).
 
 Note:
 
@@ -98,7 +98,7 @@ specifying the IP, the port and the protocol where ntopng will listen for connec
 .. code:: bash
 
    cat /etc/rsyslog.d/99-remote.conf 
-   *.*  action(type="omfwd" target="127.0.0.1" port="9999" protocol="tcp" action.resumeRetryCount="100" queue.type="linkedList" queue.size="10000")
+   *.*  action(type="omfwd" target="127.0.0.1" port="5140" protocol="tcp" action.resumeRetryCount="100" queue.type="linkedList" queue.size="10000")
 
 Please remember to *restart* the *rsyslog* service in order to apply the configuration.
 
@@ -121,7 +121,7 @@ on each host. Example:
 .. code:: bash
 
    cat /etc/rsyslog.d/99-remote.conf 
-   *.*  action(type="omfwd" target="10.0.0.1" port="9999" protocol="tcp" action.resumeRetryCount="100" queue.type="linkedList" queue.size="10000")
+   *.*  action(type="omfwd" target="10.0.0.1" port="5140" protocol="tcp" action.resumeRetryCount="100" queue.type="linkedList" queue.size="10000")
 
 Please remember to *restart* the *rsyslog* service in order to apply the configuration.
 
