@@ -2692,6 +2692,7 @@ local known_parameters = {
    ["exporter_uuid"] = validateNumber,
    ["probe_uuid"] = validateNumber,
    ["telemetry"] = validateBool,
+   ["preset"] = validateSingleWord,
 
    -- nEdge policy
    ["default_policy"] = validatePolicy, -- users, nedge policies
@@ -2715,6 +2716,8 @@ local known_parameters = {
 
    -- Host Pools / users associations
    ["associations"] = {jsonCleanup, validateAssociations},
+   ["host_visibility"] = validateSingleWord,
+   ["hide"] = validateBool,
 
    -- json POST DATA
    ["payload"] = {jsonCleanup, validateJSON},

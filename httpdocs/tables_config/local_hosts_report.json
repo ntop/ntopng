@@ -1,0 +1,97 @@
+{
+	"id": "local_hosts_report",
+	"data_url": "lua/pro/rest/v2/get/interface/local_hosts_report.lua",
+	"use_current_page": true,
+	"enable_search": false,
+	"paging": true,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "limit",
+		"sort": 0
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "hide_host",
+					"icon": "fa-solid fa-eye-slash",
+					"title_i18n": "hide_host",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_hide_host"
+				},
+				{
+					"id": "show_host",
+					"icon": "fa-solid fa-eye",
+					"title_i18n": "show_host",
+					"class": [
+						"link-button"
+					],
+					"event_id": "click_button_show_host"
+				}
+			]
+		},
+		{
+			"title_i18n": "ip_address",
+			"data_field": "ip",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "db_explorer.host_name",
+			"data_field": "name",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "availability",
+			"data_field": "availability",
+			"sortable": false,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "traffic_labels.bytes_sent",
+			"data_field": "bytes_sent",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "traffic_labels.bytes_rcvd",
+			"data_field": "bytes_rcvd",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		},
+		{
+			"title_i18n": "total_traffic",
+			"data_field": "total_traffic",
+			"sortable": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			]
+		}
+	]
+}

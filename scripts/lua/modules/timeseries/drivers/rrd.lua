@@ -467,10 +467,12 @@ local function sampleSeries(schema, cur_points, step, max_points, series, consol
         for i = end_idx, #serie do
             serie[i] = nil
         end
+
+        data_serie.data = serie
     end
 
     -- new step, new count, new data
-    return step * sampled_dp, count
+    return step * sampled_dp, count, series
 end
 
 -- ##############################################
@@ -571,10 +573,10 @@ function driver:timeseries_query(options)
             -- Not enough point to represent the data, empty the serie
             if num_not_nan_pts >= options.min_num_points then
                 modified_serie[i] = ts_common.normalizeVal(v, max_val, options)
-                count = count + 1
             else
                 modified_serie[i] = options.fill_value
             end
+            count = count + 1
         end
 
         series[#series + 1] = {
@@ -584,7 +586,7 @@ function driver:timeseries_query(options)
     end
 
     if count > options.max_num_points then
-        sampled_fstep, count = sampleSeries(options.schema_info, count, fstep, options.max_num_points, series,
+        sampled_fstep, count, series = sampleSeries(options.schema_info, count, fstep, options.max_num_points, series,
             consolidation)
     end
 

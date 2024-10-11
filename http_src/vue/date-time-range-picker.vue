@@ -6,58 +6,68 @@
                 <div class="btn-group me-auto btn-group-sm flex-wrap d-flex">
                     <slot name="begin"></slot>
                     <div>
-                      <select-search :disabled="disabled_date_picker"
-                        v-model:selected_option="selected_time_option" :id="'time_preset_range_picker'"
-                            :options="time_preset_list_filtered" @select_option="change_select_time(null)">
+                        <select-search :disabled="disabled_date_picker" v-model:selected_option="selected_time_option"
+                            :id="'time_preset_range_picker'" :options="time_preset_list_filtered"
+                            @select_option="change_select_time(null)">
                         </select-search>
                     </div>
                     <div class="btn-group ms-2">
                         <span class="input-group-text">
                             <i class="fas fa-calendar-alt"></i>
                         </span>
-                        <input :disabled="disabled_date_picker" class="flatpickr flatpickr-input form-control" type="text" placeholder="Choose a date.."
-                            data-id="datetime" ref="begin-date" style="width:10rem;">
+                        <input :disabled="disabled_date_picker" class="flatpickr flatpickr-input form-control"
+                            type="text" placeholder="Choose a date.." data-id="datetime" ref="begin-date"
+                            style="width:10rem;">
                         <!-- <input ref="begin-date" @change="enable_apply=true" @change="change_begin_date" type="date" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
                         <!-- <input ref="begin-time" @change="enable_apply=true" type="time" class="date_time_input begin-timepicker form-control border-right-0 fix-safari-input"> -->
                         <span class="input-group-text">
                             <i class="fas fa-long-arrow-alt-right"></i>
                         </span>
-                        <input :disabled="disabled_date_picker" class="flatpickr flatpickr-input form-control" type="text" placeholder="Choose a date.."
-                            data-id="datetime" ref="end-date" style="width:10rem;">
+                        <input :disabled="disabled_date_picker" class="flatpickr flatpickr-input form-control"
+                            type="text" placeholder="Choose a date.." data-id="datetime" ref="end-date"
+                            style="width:10rem;">
                         <!-- <input ref="end-date" @change="enable_apply=true" type="date" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input" style="width: 2.5rem;"> -->
                         <!-- <input ref="end-time" @change="enable_apply=true" type="time" class="date_time_input end-timepicker form-control border-left-0 fix-safari-input"> -->
-                        <span v-show="wrong_date || wrong_min_interval" :title="invalid_date_message" style="margin-left:0.2rem;color:red;">
+                        <span v-show="wrong_date || wrong_min_interval" :title="invalid_date_message"
+                            style="margin-left:0.2rem;color:red;">
                             <i class="fas fa-exclamation-circle"></i>
                         </span>
                     </div>
 
                     <div class="d-flex align-items-center ms-2">
-                        <button :disabled="!enable_apply || wrong_date || wrong_min_interval" @click="apply" type="button" class="btn btn-sm btn-primary">{{
-                            i18n('apply') }}</button>
+                        <button :disabled="!enable_apply || wrong_date || wrong_min_interval" @click="apply"
+                            type="button" class="btn btn-sm btn-primary">{{
+                                i18n('apply') }}</button>
 
                         <div class="btn-group">
-                            <button :disabled="disabled_date_picker" @click="jump_time_back()" type="button" class="btn btn-sm btn-link" ref="btn-jump-time-back"
+                            <button :disabled="disabled_date_picker" @click="jump_time_back()" type="button"
+                                class="btn btn-sm btn-link" ref="btn-jump-time-back"
                                 :title="i18n('date_time_range_picker.btn_move_left')">
                                 <i class="fas fa-long-arrow-alt-left"></i>
                             </button>
-                            <button :disabled="disabled_date_picker" @click="jump_time_ahead()" type="button" class="btn btn-sm btn-link me-2" ref="btn-jump-time-ahead"
+                            <button :disabled="disabled_date_picker" @click="jump_time_ahead()" type="button"
+                                class="btn btn-sm btn-link me-2" ref="btn-jump-time-ahead"
                                 :title="i18n('date_time_range_picker.btn_move_right')">
                                 <i class="fas fa-long-arrow-alt-right"></i>
                             </button>
-                            <button :disabled="disabled_date_picker" @click="zoom(2)" type="button" class="btn btn-sm btn-link" ref="btn-zoom-in"
+                            <button :disabled="disabled_date_picker" @click="zoom(2)" type="button"
+                                class="btn btn-sm btn-link" ref="btn-zoom-in"
                                 :title="i18n('date_time_range_picker.btn_zoom_in')">
                                 <i class="fas fa-search-plus"></i>
                             </button>
-                            <button :disabled="disabled_date_picker" @click="zoom(0.5)" type="button" class="btn btn-sm btn-link" ref="btn-zoom-out"
+                            <button :disabled="disabled_date_picker" @click="zoom(0.5)" type="button"
+                                class="btn btn-sm btn-link" ref="btn-zoom-out"
                                 :title="i18n('date_time_range_picker.btn_zoom_out')">
                                 <i class="fas fa-search-minus"></i>
                             </button>
-                            <button :disabled="history_last_status == null || disabled_date_picker" type="button" @click="apply_status_by_history()"
-                                class="btn btn-sm btn-link" :title="i18n('date_time_range_picker.btn_undo')">
+                            <button :disabled="history_last_status == null || disabled_date_picker" type="button"
+                                @click="apply_status_by_history()" class="btn btn-sm btn-link"
+                                :title="i18n('date_time_range_picker.btn_undo')">
                                 <i class="fas fa-undo"></i>
                             </button>
-                            <button :disabled="select_time_value == 'custom' || disabled_date_picker" @click="change_select_time()"
-                                type="button" class="btn btn-sm btn-link" :title="i18n('date_time_range_picker.btn_refresh')">
+                            <button :disabled="select_time_value == 'custom' || disabled_date_picker"
+                                @click="change_select_time()" type="button" class="btn btn-sm btn-link"
+                                :title="i18n('date_time_range_picker.btn_refresh')">
                                 <i class="fas fa-sync"></i>
                             </button>
                             <slot name="extra_buttons"></slot>
@@ -82,8 +92,9 @@ export default {
         enable_refresh: Boolean,
         disabled_date_picker: Boolean,
         min_time_interval_id: String,
-	    round_time: Boolean, //if min_time_interval_id != null round time by min_time_interval_id
+        round_time: Boolean, //if min_time_interval_id != null round time by min_time_interval_id
         custom_time_interval_list: Array,
+        custom_change_select_time: Function,
     },
     computed: {
         // a computed getter
@@ -109,10 +120,10 @@ export default {
             }
         },
         "min_time_interval_id": function () {
-          // todo
+            // todo
         },
         "round_time": function () {
-          // todo
+            // todo
         },
     },
     emits: ["epoch_change"],
@@ -128,8 +139,8 @@ export default {
             this.time_preset_list_filtered = this.time_preset_list;
             return;
         }
-	const timeframes_dict = this.get_timeframes_available();
-	const min_time_interval = timeframes_dict[this.min_time_interval_id];
+        const timeframes_dict = this.get_timeframes_available();
+        const min_time_interval = timeframes_dict[this.min_time_interval_id];
         this.time_preset_list_filtered = this.time_preset_list.filter((elem) => {
             if (elem.value == "custom") {
                 return true;
@@ -247,19 +258,19 @@ export default {
             const timeframes_dict = this.get_timeframes_available();
             const tolerance = 60;
             let now = this.get_utc_seconds(Date.now());
-	    if (this.round_time == true && this.min_time_interval_id != null) {
-		now = this.round_time_by_min_interval(now)
-	    }
+            if (this.round_time == true && this.min_time_interval_id != null) {
+                now = this.round_time_by_min_interval(now)
+            }
             const end_utc_s = this.get_utc_seconds(end_utc);
             const begin_utc_s = this.get_utc_seconds(begin_utc);
-	    
+
             if (this.is_between(end_utc_s, now, tolerance)) {
-		this.select_time_value = null;
-		for (let time_id in timeframes_dict) {
-		    if (this.is_between(begin_utc_s, now - timeframes_dict[time_id], tolerance)) {
-			this.select_time_value = time_id;
-		    }
-		}
+                this.select_time_value = null;
+                for (let time_id in timeframes_dict) {
+                    if (this.is_between(begin_utc_s, now - timeframes_dict[time_id], tolerance)) {
+                        this.select_time_value = time_id;
+                    }
+                }
                 if (this.select_time_value == null) {
                     this.select_time_value = "custom";
                 }
@@ -311,24 +322,30 @@ export default {
         //     }
         // },
         change_select_time: function (refresh_data) {
-            let s_values = this.get_timeframes_available();
-            let interval_s = s_values[this.selected_time_option.value];
-            let epoch_end = this.get_utc_seconds(Date.now());
-            let epoch_begin = epoch_end - interval_s;
+            let epoch_end;
+            let epoch_begin;
+            if (this.$props.custom_change_select_time) {
+                [epoch_begin, epoch_end] = this.$props.custom_change_select_time(this.selected_time_option.value);
+            } else {
+                let s_values = this.get_timeframes_available();
+                let interval_s = s_values[this.selected_time_option.value];
+                epoch_end = this.get_utc_seconds(Date.now());
+                epoch_begin = epoch_end - interval_s;
+            }
             let status = { epoch_begin: epoch_begin, epoch_end: epoch_end, refresh_data };
             this.emit_epoch_change(status);
         },
         get_timeframes_available: function () {
-	    const timeframes_dict = ntopng_utility.get_timeframes_dict();
+            const timeframes_dict = ntopng_utility.get_timeframes_dict();
             const timeframes_ids = this.time_preset_list.map((ts) => ts.value);
-	    let timeframes_available = {};
-	    timeframes_ids.forEach((tf_id) => {
-		timeframes_available[tf_id] = timeframes_dict[tf_id];
-	    });
-	    return timeframes_available;
+            let timeframes_available = {};
+            timeframes_ids.forEach((tf_id) => {
+                timeframes_available[tf_id] = timeframes_dict[tf_id];
+            });
+            return timeframes_available;
         },
         get_utc_seconds: function (utc_ms) {
-	    return ntopng_utility.get_utc_seconds(utc_ms);
+            return ntopng_utility.get_utc_seconds(utc_ms);
         },
         is_between: function (x, y, tolerance) {
             return x >= y - tolerance && x <= y;
@@ -377,23 +394,23 @@ export default {
                 this.wrong_date = true;
                 return;
             }
-	    if (this.min_time_interval_id && this.round_time == true) {
-		epoch_status.epoch_begin = this.round_time_by_min_interval(epoch_status.epoch_begin);
-		epoch_status.epoch_end = this.round_time_by_min_interval(epoch_status.epoch_end);
-	    }
+            if (this.min_time_interval_id && this.round_time == true) {
+                epoch_status.epoch_begin = this.round_time_by_min_interval(epoch_status.epoch_begin);
+                epoch_status.epoch_end = this.round_time_by_min_interval(epoch_status.epoch_end);
+            }
 
             if (id != this.id) {
                 this.on_status_updated(epoch_status);
             }
             ntopng_events_manager.emit_event(ntopng_events.EPOCH_CHANGE, epoch_status, this.id);
-	    if (emit_only_global_event) {
-		return;
-	    }
+            if (emit_only_global_event) {
+                return;
+            }
             this.$emit("epoch_change", epoch_status);
         },
-	round_time_by_min_interval: function(ts) {
-	    return ntopng_utility.round_time_by_timeframe_id(ts, this.min_time_interval_id);
-	},
+        round_time_by_min_interval: function (ts) {
+            return ntopng_utility.round_time_by_timeframe_id(ts, this.min_time_interval_id);
+        },
         add_status_in_history: function (epoch_status) {
             this.history_last_status = this.history[this.history.length - 1];
             if (this.history.length > 5) {
