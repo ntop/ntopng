@@ -33,9 +33,6 @@ void SYNFlood::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   else if ((hits = h->syn_flood_victim_hits()) > threshold)
     triggerFlowHitsAlert(h, engaged_alert, false, hits, threshold,
                          CLIENT_NO_RISK_PERCENTAGE);
-
-  /* Reset counters once done */
-  h->reset_syn_flood_hits();
 }
 
 /* ***************************************************** */

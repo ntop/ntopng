@@ -421,7 +421,7 @@ Flow::~Flow() {
 
   if (cli_u) {
     cli_u->decUses(); /* Decrease the number of uses */
-    cli_u->decNumFlows(get_last_seen(), true);
+    cli_u->decNumFlows(get_last_seen(), true, isTCP(), twh_over);
 
     if (is_oneway_tcp_udp_flow) cli_u->incUnidirectionalEgressTCPUDPFlows();
   }
@@ -432,7 +432,7 @@ Flow::~Flow() {
 
   if (srv_u) {
     srv_u->decUses(); /* Decrease the number of uses */
-    srv_u->decNumFlows(get_last_seen(), false);
+    srv_u->decNumFlows(get_last_seen(), false, isTCP(), twh_over);
 
     if (is_oneway_tcp_udp_flow) {
       srv_u->incUnidirectionalIngressTCPUDPFlows();
@@ -5332,8 +5332,11 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
   }
 
   if ((flags & TH_SYN) &&
-      (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN))
-    iface->getTcpFlowStats()->incSyn();
+      (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN)) {
+        iface->getTcpFlowStats()->incSyn();
+        cli_host->incNumActiveTCPFlows(true);
+        srv_host->incNumActiveTCPFlows(false);
+      }
 
   if ((flags & TH_RST) &&
       (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) {
@@ -5375,8 +5378,11 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
   if (cumulative_flags) {
     if (!twh_over) {
       if ((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK) &&
-          ((dst2src_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK)))
-        twh_ok = twh_over = 1, iface->getTcpFlowStats()->incEstablished();
+          ((dst2src_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))){
+            twh_ok = twh_over = 1, iface->getTcpFlowStats()->incEstablished();
+            cli_host->incNumEstablishedTCPFlows(true);
+            srv_host->incNumEstablishedTCPFlows(false);
+          }
     }
   } else {
     if (!twh_over) {
@@ -8440,12 +8446,20 @@ void Flow::swap() {
 #endif
 
       if (cli_host && srv_host) {
-	cli_host->decNumFlows(now, true /* as client */),
-	  srv_host->decNumFlows(now, false /* as server */);
+	cli_host->decNumFlows(now, true /* as client */, isTCP(), twh_over),
+	  srv_host->decNumFlows(now, false /* as server */, isTCP(), twh_over);
 	cli_host = srv_host, cli_ip_addr = srv_ip_addr;
 	srv_host = h, srv_ip_addr = i;
 	cli_host->incNumFlows(now, true /* as client */),
 	  srv_host->incNumFlows(now, false /* as server */);
+  if(isTCP()){
+    cli_host->incNumActiveTCPFlows(true /* as client */);
+    srv_host->incNumActiveTCPFlows(false /* as server */);
+    if(twh_over){
+      cli_host->incNumEstablishedTCPFlows(true /* as client */);
+      srv_host->incNumEstablishedTCPFlows(false /* as server */);
+    }
+  }
       } else {
 	/* This is probably a view interface */
 
