@@ -39,6 +39,8 @@ class FlowRiskTLSCertificateExpiredAlert : public FlowRiskAlert {
     : FlowRiskAlert(c, f){ setAlertScore(getDefaultScore());};
   ~FlowRiskTLSCertificateExpiredAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
   ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
 };

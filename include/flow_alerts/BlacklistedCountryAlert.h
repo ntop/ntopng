@@ -42,6 +42,8 @@ class BlacklistedCountryAlert : public FlowAlert {
   };
   ~BlacklistedCountryAlert(){};
 
+  bool autoAck() const { return false; };
+
   FlowAlertType getAlertType() const { return getClassType(); }
 
   bool isServer() { return is_server; }
