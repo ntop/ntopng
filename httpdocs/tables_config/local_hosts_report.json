@@ -6,8 +6,8 @@
 	"paging": true,
 	"display_empty_rows": true,
 	"default_sort": {
-		"column_id": "limit",
-		"sort": 0
+		"column_id": "total_traffic",
+		"sort": 2
 	},
 	"columns": [
 		{

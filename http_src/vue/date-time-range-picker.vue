@@ -277,7 +277,6 @@ export default {
             } else {
                 this.select_time_value = "custom";
             }
-
             this.time_preset_list_filtered.forEach(element => {
                 element.currently_active = false
                 if (element.value == this.select_time_value) {
@@ -332,7 +331,7 @@ export default {
                 epoch_end = this.get_utc_seconds(Date.now());
                 epoch_begin = epoch_end - interval_s;
             }
-            let status = { epoch_begin: epoch_begin, epoch_end: epoch_end, refresh_data };
+            let status = { epoch_begin: epoch_begin, epoch_end: epoch_end, timeframe_id: this.selected_time_option.value, refresh_data };
             this.emit_epoch_change(status);
         },
         get_timeframes_available: function () {

@@ -4,8 +4,8 @@
 
 <template>
   <DateTimeRangePicker class="mt-1 mb-2" :id="id_date_time_picker" :enable_refresh="false" ref="date_time_picker"
-    @epoch_change="epoch_change" :custom_time_interval_list="time_preset_list" min_time_interval_id="hour"
-    :custom_change_select_time="custom_change_select_time" :round_time="true">
+    @epoch_change="epoch_change" :custom_time_interval_list="time_preset_list" min_time_interval_id="5_min"
+    :round_time="true">
   </DateTimeRangePicker>
   <div class="card h-100 overflow-hidden">
     <div class="m-2 mb-3">
@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-import { ref, onBeforeMount } from "vue";
+import { ref, onBeforeMount, onMounted } from "vue";
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import formatterUtils from "../utilities/formatter-utils";
@@ -47,12 +47,13 @@ const date_time_picker = ref(null);
 const table_local_hosts_report = ref(null);
 let id_date_time_picker = "date_time_picker";
 const note_list = ref([i18n('local_hosts_report_description')]);
+const date_format = ref(null);
 
 /* ************************************** */
 
 const time_preset_list = [
   { value: "hour", label: i18n('show_alerts.presets.hour'), currently_active: false },
-  { value: "day", label: i18n('show_alerts.presets.day'), currently_active: false },
+  { value: "day", label: i18n('show_alerts.presets.day'), currently_active: true },
   { value: "week", label: i18n('show_alerts.presets.week'), currently_active: false },
   { value: "month", label: i18n('show_alerts.presets.month'), currently_active: false },
   { value: "year", label: i18n('show_alerts.presets.year'), currently_active: false },
@@ -63,11 +64,12 @@ const filters = ref([{
   id: "host_visibility",
   label: i18n('hosts'),
   title: i18n('hosts'),
+  basic_label: i18n('hosts_to_visualize'),
   options: [
-    { key: "host_visibility", value: "visible", label: i18n('visible'), currently_active: true },
-    { key: "host_visibility", value: "hidden", label: i18n('hidden'), currently_active: false },
+    { key: "host_visibility", value: "only_traffic", label: i18n('only_traffic'), currently_active: true },
     { key: "host_visibility", value: "no_traffic", label: i18n('no_traffic'), currently_active: false },
-    { key: "host_visibility", value: "only_traffic", label: i18n('only_traffic'), currently_active: false }
+    { key: "host_visibility", value: "visible", label: i18n('visible'), currently_active: false },
+    { key: "host_visibility", value: "hidden", label: i18n('hidden'), currently_active: false },
   ],
 }])
 
@@ -130,7 +132,10 @@ const get_extra_params_obj = () => {
 
 /* ************************************** */
 
-async function epoch_change() {
+async function epoch_change(status) {
+  if (status && status.timeframe_id) {
+    ntopng_url_manager.set_key_to_url("preset", status.timeframe_id);
+  }
   if (table_local_hosts_report.value) {
     table_local_hosts_report.value.refresh_table(false);
   }
@@ -138,78 +143,12 @@ async function epoch_change() {
 
 /* ************************************** */
 
-function getMonday(d) {
-  const date = new Date(d);
-  const day = date.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  date.setDate(date.getDate() + diff);
-  date.setHours(0, 0, 0, 0);
-  return date;
-}
-
-/* ************************************** */
-
-function custom_change_select_time(timeframe_id) {
-  const now = new Date();
-
-  let epoch_begin = 0;
-  let epoch_end = 0;
-  switch (timeframe_id) {
-    case 'hour':
-      const currentHour = now.getHours();
-      const currentMinutes = now.getMinutes();
-      const nextHour = currentMinutes === 0 ? currentHour : currentHour + 1;
-      const previousHour = currentHour;
-      const previousHourDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), previousHour, 0, 0, 0);
-      const nextHourDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), nextHour, 0, 0, 0);
-      epoch_begin = previousHourDate.getTime();
-      epoch_end = nextHourDate.getTime();
-      break;
-    case 'day':
-      const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-      const nextDayMidnight = new Date(todayMidnight);
-      nextDayMidnight.setDate(todayMidnight.getDate() + 1);
-      epoch_begin = todayMidnight.getTime();
-      epoch_end = nextDayMidnight.getTime();
-      break;
-    case 'week':
-      const currentMonday = getMonday(now);
-      const nextMonday = new Date(currentMonday);
-      nextMonday.setDate(currentMonday.getDate() + 7);
-      epoch_begin = currentMonday.getTime();
-      epoch_end = nextMonday.getTime();
-      break;
-    case 'month':
-      const currentMonthFirstDay = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-      const nextMonthFirstDay = new Date(currentMonthFirstDay);
-      nextMonthFirstDay.setMonth(currentMonthFirstDay.getMonth() + 1);
-      epoch_begin = currentMonthFirstDay.getTime();
-      epoch_end = nextMonthFirstDay.getTime();
-      break;
-    case 'year':
-      const currentYearFirstDay = new Date(now.getFullYear(), 1, 0, 0, 0, 0, 0);
-      const nextYearFirstDay = new Date(currentYearFirstDay);
-      nextYearFirstDay.setFullYear(nextYearFirstDay.getFullYear() + 1);
-      epoch_begin = currentYearFirstDay.getTime();
-      epoch_end = nextYearFirstDay.getTime();
-      break;
-
-    default:
-      break;
-  }
-  ntopng_url_manager.set_key_to_url("preset", timeframe_id);
-
-  return [epoch_begin / 1000, epoch_end / 1000]
-}
-
-/* ************************************** */
-
 function calculate_gradient(value, max_value) {
   if (!value || value == 0) {
     return gradient_color[0]
-  } else if(value > (max_value / 3 * 2)) {
+  } else if (value > (max_value / 3 * 2)) {
     return gradient_color[3]
-  } else if(value > (max_value / 3 * 2)) {
+  } else if (value > (max_value / 3 * 2)) {
     return gradient_color[2]
   } else {
     return gradient_color[1]
@@ -232,13 +171,19 @@ const map_table_def_columns = (columns) => {
       return value;
     },
     "availability": (value, row) => {
+      const epoch_begin = Number(ntopng_url_manager.get_url_entry("epoch_begin"));
+      const epoch_end = Number(ntopng_url_manager.get_url_entry("epoch_end"));
       const squareLength = 7, squareHeight = 20;
       let svg = `<svg width='${squareLength * value.length + value.length * 2}' height='20' viewBox='0 0 ${squareLength * value.length + value.length * 2} 20'>`;
-
+      const epoch_diff = (epoch_end - epoch_begin) / value.length;
       value.forEach((el, index) => {
+        const current_time = epoch_begin + (epoch_diff * index);
         const rect = $(document.createElementNS("http://www.w3.org/2000/svg", "rect"));
         rect.attr('x', index * (squareLength + 2)).attr('y', 0).attr('width', squareLength).attr('height', squareHeight);
         rect.attr('fill', calculate_gradient(el, row.max_value_per_point[index]));
+        rect.attr('data-bs-toggle', "tooltip");
+        rect.attr('data-bs-placement', "top");
+        rect.attr('data-bs-original-title', ntopng_utility.from_utc_to_server_date_format(new Date(current_time * 1000), date_format.value));
         svg = `${svg}${rect[0].outerHTML}`;
       })
       svg = `${svg}</svg>`
@@ -288,21 +233,17 @@ function add_table_filter(opt) {
 
 /* ************************************** */
 
-onBeforeMount(() => {
-  let current_epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
-  let current_epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
-  let [epoch_begin, epoch_end] = custom_change_select_time("hour");
-  if (!current_epoch_begin) {
-    ntopng_url_manager.set_key_to_url("epoch_begin", `${epoch_begin}`);
-  }
-  if (!current_epoch_end) {
-    ntopng_url_manager.set_key_to_url("epoch_end", `${epoch_end}`);
-  }
-  if (!current_epoch_begin && !current_epoch_end) {
-    ntopng_url_manager.set_key_to_url("preset", "hour");
-    time_preset_list[0].currently_active = true;
-  }
+onBeforeMount(async () => {
   const visibility = ntopng_url_manager.get_url_entry("host_visibility");
+  const epoch_begin = ntopng_url_manager.get_url_entry("epoch_begin");
+  const epoch_end = ntopng_url_manager.get_url_entry("epoch_end");
+  if (!epoch_end || !epoch_begin) {
+    const now = ntopng_utility.get_utc_seconds(Date.now());
+    const day_ago = now - 86400;
+    ntopng_url_manager.set_key_to_url("epoch_begin", `${day_ago}`);
+    ntopng_url_manager.set_key_to_url("epoch_end", `${now}`);
+    ntopng_url_manager.set_key_to_url("preset", 'day');
+  }
   filters.value.forEach((item) => {
     let selected_option
     item.options.forEach((item2) => {
@@ -319,6 +260,17 @@ onBeforeMount(() => {
     }
     item.current_option = selected_option;
   })
+  date_format.value = await ntopng_utility.get_date_format(false, props.context.csrf, http_prefix);
 })
+
+/* ************************************** */
+
+onMounted(async () => {
+  await Promise.all([
+    ntopng_sync.on_ready(id_date_time_picker),
+  ]);
+});
+
+/* ************************************** */
 
 </script>

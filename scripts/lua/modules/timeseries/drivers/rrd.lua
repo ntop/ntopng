@@ -401,7 +401,7 @@ end
 -- ##############################################
 
 local function sampleSeries(schema, cur_points, step, max_points, series, consolidation)
-    local sampled_dp = math.ceil(cur_points / max_points)
+    local sampled_dp = math.floor(cur_points / max_points + 0.5)
     local count = nil
     local nan = 0 / 0
 
