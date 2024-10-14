@@ -1522,6 +1522,7 @@ void Host::incNumEstablishedTCPFlows(bool as_client) {
 }
 
 /* *************************************** */
+
 void Host::incNumActiveTCPFlows(bool as_client) {
   if (as_client) 
     syn_flood.num_active_tcp_flows_as_client++;
