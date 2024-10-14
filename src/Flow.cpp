@@ -5334,15 +5334,20 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
   if ((flags & TH_SYN) &&
       (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN)) {
         iface->getTcpFlowStats()->incSyn();
-        cli_host->incNumActiveTCPFlows(true);
-        srv_host->incNumActiveTCPFlows(false);
-      }
-
+        if(cli_host)
+	  cli_host->incNumActiveTCPFlows(true);
+	
+        if(srv_host)
+	  srv_host->incNumActiveTCPFlows(false);
+  }
+  
   if ((flags & TH_RST) &&
       (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) {
     iface->getTcpFlowStats()->incReset();
+    
     if (cli_host)
       cli_host->updateRstAlertsCounter(when->tv_sec, src2dst_direction);
+
     if (srv_host)
       srv_host->updateRstAlertsCounter(when->tv_sec, !src2dst_direction);
   }
@@ -5351,8 +5356,10 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
       (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN)) {
     if (cli_host)
       cli_host->updateFinAlertsCounter(when->tv_sec, src2dst_direction);
+
     if (srv_host)
       srv_host->updateFinAlertsCounter(when->tv_sec, !src2dst_direction);
+
     iface->getTcpFlowStats()->incFin();
   }
 
@@ -5361,8 +5368,10 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
        (TH_FIN | TH_ACK))) {
     if (cli_host)
       cli_host->updateFinAckAlertsCounter(when->tv_sec, src2dst_direction);
+
     if (srv_host)
       srv_host->updateFinAckAlertsCounter(when->tv_sec, !src2dst_direction);
+
     iface->getTcpFlowStats()->incFin();
   }
 
@@ -5380,8 +5389,8 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
       if ((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK) &&
           ((dst2src_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))){
             twh_ok = twh_over = 1, iface->getTcpFlowStats()->incEstablished();
-            cli_host->incNumEstablishedTCPFlows(true);
-            srv_host->incNumEstablishedTCPFlows(false);
+            if(cli_host) cli_host->incNumEstablishedTCPFlows(true);
+            if(srv_host) srv_host->incNumEstablishedTCPFlows(false);
           }
     }
   } else {
