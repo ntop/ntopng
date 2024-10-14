@@ -337,7 +337,7 @@ class Host : public GenericHashEntry,
   };
 
   inline bool has_name_set() { return(names.server_name ? true : false); }
-  
+
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
 
   inline void incSentTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts,
@@ -587,10 +587,12 @@ class Host : public GenericHashEntry,
   inline u_int16_t snmp_flood_victim_hits() const {
     return snmp_flood.victim_counter ? snmp_flood.victim_counter->hits() : 0;
   };
+
   inline u_int16_t snmp_flood_attacker_hits() const {
     return snmp_flood.attacker_counter ? snmp_flood.attacker_counter->hits()
                                        : 0;
   };
+
   inline void reset_snmp_flood_hits() {
     if (snmp_flood.victim_counter) snmp_flood.victim_counter->reset_hits();
     if (snmp_flood.attacker_counter) snmp_flood.attacker_counter->reset_hits();
@@ -599,6 +601,7 @@ class Host : public GenericHashEntry,
   inline u_int16_t syn_flood_victim_hits() const {
     return syn_flood.num_active_tcp_flows_as_server - syn_flood.num_established_tcp_flows_as_server;
   };
+
   inline u_int16_t syn_flood_attacker_hits() const {
     return syn_flood.num_active_tcp_flows_as_client - syn_flood.num_established_tcp_flows_as_client;
   };
@@ -606,10 +609,12 @@ class Host : public GenericHashEntry,
   inline u_int16_t flow_flood_victim_hits() const {
     return flow_flood.victim_counter ? flow_flood.victim_counter->hits() : 0;
   };
+
   inline u_int16_t flow_flood_attacker_hits() const {
     return flow_flood.attacker_counter ? flow_flood.attacker_counter->hits()
                                        : 0;
   };
+
   inline void reset_flow_flood_hits() {
     if (flow_flood.victim_counter) flow_flood.victim_counter->reset_hits();
     if (flow_flood.attacker_counter) flow_flood.attacker_counter->reset_hits();
@@ -660,7 +665,7 @@ class Host : public GenericHashEntry,
   void decNumFlows(time_t t, bool as_client, bool isTCP, u_int16_t isTwhOver);
   void incNumActiveTCPFlows(bool as_client);
   void incNumEstablishedTCPFlows(bool as_client);
-  
+
   inline void incNumAlertedFlows(bool as_client) {
     active_alerted_flows++;
     if (stats) stats->incNumAlertedFlows(as_client);
@@ -913,7 +918,7 @@ class Host : public GenericHashEntry,
   void setBlacklistName(char *name);
   inline void blacklistHost(char *blacklist_name) { setBlacklistName(blacklist_name); }
   inline char* getBlacklistName()                 { return(blacklist_name);           }
-  
+
   virtual void toggleRxOnlyHost(bool rx_only);
   inline bool resetHostTopSites() {
     if (stats) {

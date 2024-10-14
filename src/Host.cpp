@@ -45,7 +45,7 @@ Host::Host(NetworkInterface *_iface, int32_t _iface_idx,
       HostChecksStatus(),
       HostAlertableEntity(_iface, alert_entity_host) {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
-  
+
   ip.set(_ip);
 
 #ifdef BROADCAST_DEBUG
@@ -63,7 +63,7 @@ Host::Host(NetworkInterface *_iface, int32_t _iface_idx,
 
 Host::~Host() {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
-  
+
   if ((getUses() > 0)
       /* View hosts are not in sync with viewed flows so during shutdown it can
          be normal */
@@ -123,7 +123,7 @@ Host::~Host() {
   if(!ntop->getPrefs()->limitResourcesUsage()) {
     if (tcp_udp_contacted_ports_no_tx)
       ndpi_bitmap_free(tcp_udp_contacted_ports_no_tx);
-    
+
     ndpi_hll_destroy(&outgoing_hosts_tcp_udp_port_with_no_tx_hll);
     ndpi_hll_destroy(&incoming_hosts_tcp_udp_port_with_no_tx_hll);
   }
@@ -263,7 +263,7 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
 
   vlan_id = _vlanId & 0xFFF; /* Cleanup any possible junk */
   iface_index = _iface_idx;
-  host_pool_id_is_from_mac = false; 
+  host_pool_id_is_from_mac = false;
   /* stats = NULL; useless initi, it will be instantiated by specialized classes
    */
   stats = stats_shadow = NULL;
@@ -335,7 +335,7 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
 		  5 /* StdError: 18.4% */);
   } else
     tcp_udp_contacted_ports_no_tx = NULL;
-  
+
   if (ip.getVersion() /* IP is set */) {
     char country_name[64];
 
@@ -361,7 +361,7 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
                                         true /* Inline call */)) != NULL)
       obs_point->incUses();
   }
-    
+
   /* Increase the number of active hosts */
   reloadHostBlacklist();
 }
@@ -377,7 +377,7 @@ void Host::deferredInitialization() {
   is_in_broadcast_domain =
       iface->isLocalBroadcastDomainHost(this, true /* Inline call */);
 
-  
+
 
   reloadDhcpHost();
 }
@@ -938,7 +938,7 @@ void Host::lua(lua_State *vm, AddressTree *ptree, bool host_details,
 			     getNumContactedPeersAsClientTCPUDPNoTX());
   lua_push_int32_table_entry(vm, "num_incoming_peers_that_sent_tcp_udp_flows_no_response",
 			     getNumContactsFromPeersAsServerTCPUDPNoTX());
-  
+
   if (device_ip)
     lua_push_str_table_entry(vm, "device_ip",
                              Utils::intoaV4(device_ip, buf, sizeof(buf)));
@@ -1491,42 +1491,41 @@ void Host::incNumFlows(time_t t, bool as_client) {
 /* *************************************** */
 
 void Host::decNumFlows(time_t t, bool as_client, bool isTCP, u_int16_t isTwhOver) {
-  if (as_client) {
+  if(as_client)
     num_active_flows_as_client--;
-  } else {
+  else
     num_active_flows_as_server--;
-  }
+  
+  if(isTCP) {
+    if(as_client) {
+      syn_flood.num_active_tcp_flows_as_client--;
 
-  if(isTCP && as_client){
-    syn_flood.num_active_tcp_flows_as_client--;
-    if(isTwhOver){
-      syn_flood.num_established_tcp_flows_as_client--;
+      if(isTwhOver)
+	syn_flood.num_established_tcp_flows_as_client--;
+    } else {
+      syn_flood.num_active_tcp_flows_as_server--;
+      
+      if(isTwhOver)
+	syn_flood.num_established_tcp_flows_as_server--;
     }
   }
-
-  if(isTCP && !as_client){
-    syn_flood.num_active_tcp_flows_as_server--;
-    if(isTwhOver){
-      syn_flood.num_established_tcp_flows_as_server--;
-    }
-  }    
 }
 
 /* *************************************** */
 
 void Host::incNumEstablishedTCPFlows(bool as_client) {
-  if (as_client) 
+  if (as_client)
     syn_flood.num_established_tcp_flows_as_client++;
-  else 
+  else
     syn_flood.num_established_tcp_flows_as_server++;
 }
 
 /* *************************************** */
 
 void Host::incNumActiveTCPFlows(bool as_client) {
-  if (as_client) 
+  if (as_client)
     syn_flood.num_active_tcp_flows_as_client++;
-  else 
+  else
     syn_flood.num_active_tcp_flows_as_server++;
 }
 
@@ -1777,10 +1776,10 @@ void Host::offlineSetTLSName(const char *tls_n) {
        some mismatches we do not set TLS names for local hosts
        that are more subject to naming errors, and that whose
        name could be set via other protocols
-     */    
+     */
     return;
   }
-  
+
   if (!names.tls && tls_n && (names.tls = Utils::toLowerResolvedNames(tls_n))) {
 #ifdef NTOPNG_PRO
     if (ntop->getPrefs()->do_tls_quic_hostnaming())
@@ -2270,7 +2269,7 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
 
 /* *************************************** */
 
-/* Enqueue alert to recipients */ 
+/* Enqueue alert to recipients */
 bool Host::enqueueAlertToRecipients(HostAlert *alert, bool released) {
   bool rv = false;
   u_int32_t buflen;
@@ -2772,7 +2771,7 @@ void Host::setBlacklistName(char *name) {
   blacklist_name = strdup(name);
 
   ntop->incBlacklisHits(std::string(name));
-  
+
   if(ntop->getPrefs()->collectBlackListStats()) {
     char key[128], theDate[32], ip_buf[64];
     time_t theTime = time(NULL);
@@ -2838,7 +2837,7 @@ void Host::resetHostContacts() {
 
     if(tcp_udp_contacted_ports_no_tx)
       ndpi_bitmap_free(tcp_udp_contacted_ports_no_tx);
-    
+
     tcp_udp_contacted_ports_no_tx = ndpi_bitmap_alloc();
   }
 }
@@ -2860,7 +2859,7 @@ u_int32_t Host::getNumContactsFromPeersAsServerTCPUDPNoTX() {
 void Host::toggleRxOnlyHost(bool rx_only) {
   if(is_rx_only == rx_only)
     return; /* Nothing to do */
-    
+
   if(rx_only == false) { /* Rx-only -> Not-Rx-only */
     if(isUnicastHost()) {
       iface->decNumHosts(isLocalHost(), true /* rx-only */);
@@ -2869,6 +2868,6 @@ void Host::toggleRxOnlyHost(bool rx_only) {
   } else {
     /* Not-Rx-only -> Rx-only: this should happen during initialization only */
   }
-  
+
   is_rx_only = rx_only;
 }

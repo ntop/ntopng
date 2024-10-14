@@ -35,7 +35,7 @@ ParserInterface::ParserInterface(const char *endpoint,
 
 #ifdef NTOPNG_PRO
   flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
-  
+
   if (!flow_interfaces_stats)
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Memory allocation failure");
 #endif
@@ -58,12 +58,12 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   IpAddress srcIP, dstIP;
   u_int32_t private_flow_id, unique_source_id = zflow->unique_source_id;
   u_int32_t in_pkts, in_bytes, out_pkts, out_bytes;
-  
+
 #ifdef NTOPNG_PRO
   if(!flow_interfaces_stats)
     return false;
 #endif
-  
+
   if(unique_source_id == 0)
     unique_source_id = zflow->nprobe_ip + zflow->exporter_device_ip;
 
@@ -95,17 +95,17 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
       if(!shown) {
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dropped due to limits to the license");
-	
+
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				     "Exporters: %d/%d max | Exporter Interfaces: %d/%d max",
-				     ntop->getNumFlowExporters(), get_max_num_flow_exporters(), 
+				     ntop->getNumFlowExporters(), get_max_num_flow_exporters(),
 				     ntop->getNumFlowExportersInterfaces(), get_max_num_flow_exporters_interfaces());
 
 	ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				     "Discarded [unique_source_id: %u];device_ip: %u][probe_ip: %u][iface: %u->%u]",
 				     unique_source_id, zflow->exporter_device_ip,
 				     zflow->nprobe_ip, zflow->inIndex, zflow->outIndex);
-  
+
 	ntop->getRedis()->set(EXPORTERS_EXCEEDED_LIMITS_KEY, "1");
 	shown = true;
       }
@@ -391,7 +391,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
 #ifdef MAC_DEBUG
   char bufm1[32], bufm2[32];
-  
+
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Processing Flow [src mac: %s][dst mac: %s][src2dst: %i]",
 			       Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)),
 			       Utils::formatMac(dstMac->get_mac(), bufm2, sizeof(bufm2)),
@@ -402,7 +402,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     in_bytes  = zflow->pkt_sampling_rate * zflow->in_bytes,
     out_pkts  = zflow->pkt_sampling_rate * zflow->out_pkts,
     out_bytes = zflow->pkt_sampling_rate * zflow->out_bytes;
-    
+
   /* Update MAC stats
      Note: do not use src2dst_direction to inc the stats as
      in_bytes/in_pkts and out_bytes/out_pkts are already relative to the current
@@ -434,13 +434,13 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       if (zflow->tcp.tcp_flags && (zflow->tcp.client_tcp_flags == 0) &&
           (zflow->tcp.server_tcp_flags == 0)) {
         /* TCP flags are cumulative and set only if client/server flags are zero */
-	
+
         flow->updateTcpFlags(&now_tv, zflow->tcp.tcp_flags, src2dst_direction);
       }
     }
 
-    if (zflow->tcp.client_tcp_flags!=0 && zflow->tcp.server_tcp_flags != 0)
-      flow->calculateConnectionState(true);    
+    if(zflow->tcp.client_tcp_flags && zflow->tcp.server_tcp_flags)
+      flow->calculateConnectionState(true);
 
     flow->updateTcpSeqIssues(zflow);
 
@@ -466,14 +466,14 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 			    zflow->getPreNATDstIp(),
 			    zflow->getPostNATSrcIp(),
 			    zflow->getPostNATDstIp());
-    
+
     /* Add Pre-Post NAT src/dst Ports */
     flow->addPrePostNATPort(zflow->getPreNATSrcPort(),
 			    zflow->getPreNATDstPort(),
 			    zflow->getPostNATSrcPort(),
 			    zflow->getPostNATDstPort());
   }
-  
+
   if (!flow->isDetectionCompleted()) {
     ndpi_protocol p = Flow::ndpiUnknownProtocol;
     ndpi_protocol guessed_protocol = Flow::ndpiUnknownProtocol;
@@ -509,7 +509,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 								      guessed_protocol.proto.app_protocol);
     guessed_protocol.proto.master_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(),
 									 guessed_protocol.proto.master_protocol);
-    
+
 #ifdef NTOPNG_PRO
   if (unique_source_id) {
       if (!flow_interfaces_stats)

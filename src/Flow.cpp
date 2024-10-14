@@ -348,7 +348,7 @@ void Flow::freeDPIMemory() {
 	*/
       }
     }
-    
+
     if(ntop->getPrefs()->are_sites_collection_enabled() && (host_server_name != NULL)) {
       if(strchr(host_server_name, ':') == NULL /* No IPv6 or IP:port */) {
 	const char *domain = ndpi_get_host_domain(iface->get_ndpi_struct(), host_server_name);
@@ -5039,8 +5039,7 @@ void Flow::updateClientContactedPorts(Host *client, ndpi_protocol *proto) {
     switch (protocol) {
     case IPPROTO_TCP:
       if ((src2dst_tcp_flags & TH_SYN) == TH_SYN)
-	client->setContactedPort((protocol == IPPROTO_TCP), ntohs(srv_port),
-				 proto);
+	client->setContactedPort((protocol == IPPROTO_TCP), ntohs(srv_port), proto);
       break;
 
     case IPPROTO_UDP: {
@@ -5276,124 +5275,186 @@ void Flow::updateSNMPFlood(const struct bpf_timeval *when,
 void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
                           bool src2dst_direction) {
   NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
-  /* Only packet-interfaces see every segment. Non-packet-interfaces
-     have cumulative flags */
-  bool cumulative_flags = !getInterface()->isPacketInterface();
+  bool is_packet_interface = getInterface()->isPacketInterface();;
   /* Flags used for the analysis of the 3WH. Original flags are masked for this
      analysis to ignore certain bits such as ECE or CWR which may be present
      during a valid 3WH. See https://github.com/ntop/ntopng/issues/3255 */
   u_int8_t flags_3wh = flags & TCP_3WH_MASK;
 
-  iface->incFlagStats(flags, cumulative_flags);
+#ifdef DEBUG
+  char buf[64];
+
+  ntop->getTrace()->traceEvent(TRACE_WARNING, "->> %s", printTCPflags(flags_3wh, buf, sizeof(buf)));
+#endif
+
+  iface->incFlagStats(flags, !is_packet_interface);
 
   if (cli_host) {
-    cli_host->incFlagStats(src2dst_direction, flags, cumulative_flags);
-    cli_network_stats =
-      cli_host->getNetworkStats(cli_host->get_local_network_id());
+    cli_host->incFlagStats(src2dst_direction, flags, !is_packet_interface);
+    cli_network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
   }
 
   if (srv_host) {
-    srv_host->incFlagStats(!src2dst_direction, flags, cumulative_flags);
-    srv_network_stats =
-      srv_host->getNetworkStats(srv_host->get_local_network_id());
+    srv_host->incFlagStats(!src2dst_direction, flags, !is_packet_interface);
+    srv_network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
   }
 
-  /* Update syn alerts counters. In case of cumulative flags, the AND is used as
-   * possibly other flags can be present  */
-  if ((!cumulative_flags && flags_3wh == TH_SYN) ||
-      (cumulative_flags && (flags_3wh & TH_SYN) == TH_SYN)) {
-    if (cli_host)
-      cli_host->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
-    if (srv_host)
-      srv_host->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
-    if (cli_network_stats)
-      cli_network_stats->updateSynAlertsCounter(when->tv_sec,
-                                                src2dst_direction);
-    if (srv_network_stats)
-      srv_network_stats->updateSynAlertsCounter(when->tv_sec,
-                                                !src2dst_direction);
-  }
+  if(!is_packet_interface) {
+    /*
+      nProbe
 
-  /* Update synack alerts counter. In case of cumulative flags, the AND is used
-   * as possibly other flags can be present */
-  if ((!cumulative_flags && (flags_3wh == (TH_SYN | TH_ACK))) ||
-      (cumulative_flags &&
-       ((flags_3wh & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK)))) {
-    if (cli_host)
-      cli_host->updateSynAckAlertsCounter(when->tv_sec, src2dst_direction);
-    if (srv_host)
-      srv_host->updateSynAckAlertsCounter(when->tv_sec, !src2dst_direction);
-    if (cli_network_stats)
-      cli_network_stats->updateSynAckAlertsCounter(when->tv_sec,
-                                                   src2dst_direction);
-    if (srv_network_stats)
-      srv_network_stats->updateSynAckAlertsCounter(when->tv_sec,
-                                                   !src2dst_direction);
-  }
+      Main principles
+      - With flows we can consider *only* flows with a single flag (e.g. SYN or RST)
+        Flows with multiple flags set should be ignored for alerts and flow state as we don't know
+	their number but just their presence
+      - As flows can be bi-directional, we need to pay attention to direction flags as they might be wrong
+     */
 
-  if ((flags & TH_SYN) &&
-      (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN)) {
-        iface->getTcpFlowStats()->incSyn();
-        if(cli_host)
-	  cli_host->incNumActiveTCPFlows(true);
-	
-        if(srv_host)
-	  srv_host->incNumActiveTCPFlows(false);
-  }
-  
-  if ((flags & TH_RST) &&
-      (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) {
-    iface->getTcpFlowStats()->incReset();
-    
-    if (cli_host)
-      cli_host->updateRstAlertsCounter(when->tv_sec, src2dst_direction);
+    /* Update syn alerts counters. In case of cumulative flags, the AND is used as
+     * possibly other flags can be present  */
+    /* We have received a RST flag not observed before for this flow */
+    if ((flags == TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN)) {
+      if (cli_host)
+	cli_host->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
 
-    if (srv_host)
-      srv_host->updateRstAlertsCounter(when->tv_sec, !src2dst_direction);
-  }
+      if (srv_host)
+	srv_host->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
 
-  if ((flags & TH_FIN) &&
-      (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN)) {
-    if (cli_host)
-      cli_host->updateFinAlertsCounter(when->tv_sec, src2dst_direction);
+      if (cli_network_stats)
+	cli_network_stats->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
 
-    if (srv_host)
-      srv_host->updateFinAlertsCounter(when->tv_sec, !src2dst_direction);
+      if (srv_network_stats)
+	srv_network_stats->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
+    }
 
-    iface->getTcpFlowStats()->incFin();
-  }
+    /* We have received a RST flag not observed before for this flow */
+    if ((flags == TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) {
+      iface->getTcpFlowStats()->incReset();
 
-  if ((flags & (TH_FIN | TH_ACK)) &&
-      (((src2dst_tcp_flags | dst2src_tcp_flags) & (TH_FIN | TH_ACK)) !=
-       (TH_FIN | TH_ACK))) {
-    if (cli_host)
-      cli_host->updateFinAckAlertsCounter(when->tv_sec, src2dst_direction);
+      if (cli_host)
+	cli_host->updateRstAlertsCounter(when->tv_sec, src2dst_direction);
 
-    if (srv_host)
-      srv_host->updateFinAckAlertsCounter(when->tv_sec, !src2dst_direction);
+      if (srv_host)
+	srv_host->updateRstAlertsCounter(when->tv_sec, !src2dst_direction);
+    }
 
-    iface->getTcpFlowStats()->incFin();
-  }
+    /* We have received a FIN flag not observed before for this flow */
+    if ((flags == TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN)) {
+      if (cli_host)
+	cli_host->updateFinAlertsCounter(when->tv_sec, src2dst_direction);
 
-  /* The update below must be after the above check */
-  if (src2dst_direction)
-    src2dst_tcp_flags |= flags;
-  else
-    dst2src_tcp_flags |= flags;
+      if (srv_host)
+	srv_host->updateFinAlertsCounter(when->tv_sec, !src2dst_direction);
 
-  if (!cumulative_flags)
+      iface->getTcpFlowStats()->incFin();
+    }
+
+    /* *** */
+
+    if (!twh_over) {
+      if(flags & (TH_ACK | TH_PUSH | TH_RST | TH_FIN)) {
+	twh_ok = twh_over = 1, iface->getTcpFlowStats()->incEstablished();
+	if(cli_host) cli_host->incNumEstablishedTCPFlows(true);
+	if(srv_host) srv_host->incNumEstablishedTCPFlows(false);
+      }
+    }
+
+    if (src2dst_direction)
+      src2dst_tcp_flags |= flags;
+    else
+      dst2src_tcp_flags |= flags;
+
+    /*
+      Note
+      for nProbe, calculateConnectionState()
+      is called in ParserInterface::processFlow
+    */
+  } else {
+    /* Packet Interface */
+
+    /* Update syn alerts counters. In case of cumulative flags, the AND is used as
+     * possibly other flags can be present  */
+    if (flags_3wh == TH_SYN) {
+      if (cli_host)
+	cli_host->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
+
+      if (srv_host)
+	srv_host->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
+
+      if (cli_network_stats)
+	cli_network_stats->updateSynAlertsCounter(when->tv_sec,
+						  src2dst_direction);
+      if (srv_network_stats)
+	srv_network_stats->updateSynAlertsCounter(when->tv_sec,
+						  !src2dst_direction);
+    }
+
+    /* Update synack alerts counter. In case of cumulative flags, the AND is used
+     * as possibly other flags can be present */
+    if(flags_3wh == (TH_SYN | TH_ACK)) {
+      if (cli_host)
+	cli_host->updateSynAckAlertsCounter(when->tv_sec, src2dst_direction);
+
+      if (srv_host)
+	srv_host->updateSynAckAlertsCounter(when->tv_sec, !src2dst_direction);
+
+      if (cli_network_stats)
+	cli_network_stats->updateSynAckAlertsCounter(when->tv_sec, src2dst_direction);
+
+      if (srv_network_stats)
+	srv_network_stats->updateSynAckAlertsCounter(when->tv_sec, !src2dst_direction);
+    }
+
+    if ((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN)) {
+      iface->getTcpFlowStats()->incSyn();
+
+      if(cli_host)
+	cli_host->incNumActiveTCPFlows(true);
+
+      if(srv_host)
+	srv_host->incNumActiveTCPFlows(false);
+    }
+
+    if ((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) {
+      iface->getTcpFlowStats()->incReset();
+
+      if (cli_host)
+	cli_host->updateRstAlertsCounter(when->tv_sec, src2dst_direction);
+
+      if (srv_host)
+	srv_host->updateRstAlertsCounter(when->tv_sec, !src2dst_direction);
+    }
+
+    if ((flags & TH_FIN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_FIN) != TH_FIN)) {
+      if (cli_host)
+	cli_host->updateFinAlertsCounter(when->tv_sec, src2dst_direction);
+
+      if (srv_host)
+	srv_host->updateFinAlertsCounter(when->tv_sec, !src2dst_direction);
+
+      iface->getTcpFlowStats()->incFin();
+    }
+
+    if ((flags & (TH_FIN | TH_ACK))
+	&& (((src2dst_tcp_flags | dst2src_tcp_flags) & (TH_FIN | TH_ACK)) != (TH_FIN | TH_ACK))) {
+      if (cli_host)
+	cli_host->updateFinAckAlertsCounter(when->tv_sec, src2dst_direction);
+
+      if (srv_host)
+	srv_host->updateFinAckAlertsCounter(when->tv_sec, !src2dst_direction);
+
+      iface->getTcpFlowStats()->incFin();
+    }
+
+    /* *** */
+
+    if (src2dst_direction)
+      src2dst_tcp_flags |= flags;
+    else
+      dst2src_tcp_flags |= flags;
+
     calculateConnectionState(false);
 
-  if (cumulative_flags) {
-    if (!twh_over) {
-      if ((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK) &&
-          ((dst2src_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK))){
-            twh_ok = twh_over = 1, iface->getTcpFlowStats()->incEstablished();
-            if(cli_host) cli_host->incNumEstablishedTCPFlows(true);
-            if(srv_host) srv_host->incNumEstablishedTCPFlows(false);
-          }
-    }
-  } else {
     if (!twh_over) {
       if (flags_3wh == TH_SYN) {
         if (synTime.tv_sec == 0) memcpy(&synTime, when, sizeof(struct timeval));
@@ -5402,11 +5463,11 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
 	  /* SYN|ACK arrived before SYN */
 	  swap_requested = true;
 	}
-
       } else if (flags_3wh == (TH_SYN | TH_ACK)) {
         if ((synAckTime.tv_sec == 0) && (synTime.tv_sec > 0)) {
           memcpy(&synAckTime, when, sizeof(struct timeval));
           timeval_diff(&synTime, (struct timeval *)when, &serverNwLatency, 1);
+
           /* Coherence check */
           if (serverNwLatency.tv_sec > 5)
             memset(&serverNwLatency, 0, sizeof(serverNwLatency));
@@ -5414,14 +5475,12 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
             srv_host->updateRoundTripTime(Utils::timeval2ms(&serverNwLatency));
         }
       } else if ((flags_3wh == TH_ACK) ||
-                 (flags_3wh ==
-                  (TH_ACK | TH_PUSH)) /* TCP Fast Open may contain data and PSH
-                                         in the final TWH ACK */
+                 (flags_3wh == (TH_ACK | TH_PUSH)) /* TCP Fast Open may contain data and PSH
+						      in the final TWH ACK */
 		 ) {
         if ((ackTime.tv_sec == 0) && (synAckTime.tv_sec > 0)) {
           memcpy(&ackTime, when, sizeof(struct timeval));
-          timeval_diff(&synAckTime, (struct timeval *)when, &clientNwLatency,
-                       1);
+          timeval_diff(&synAckTime, (struct timeval *)when, &clientNwLatency, 1);
 
           /* Coherence check */
           if (clientNwLatency.tv_sec > 5)
@@ -8748,7 +8807,6 @@ bool Flow::isTCPFlagSet(u_int8_t tcp_flags, int flag_to_check) {
 /* **************************************************** */
 
 bool Flow::checkS1ConnState() {
-
   return(current_c_state == S1 || ((isTCPFlagSet(src2dst_tcp_flags,TCP_3WH_MASK)) &&
 				   (isTCPFlagSet(dst2src_tcp_flags,TCP_3WH_MASK))&&                                   /* 3WH OK */
 				   !((isTCPFlagSet(src2dst_tcp_flags,TH_FIN)) && (isTCPFlagSet(src2dst_tcp_flags,TH_ACK))) &&  /* NO FIN ACK in src2dst */
