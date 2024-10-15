@@ -1117,6 +1117,7 @@ local flow_columns = {
    ['SERVER_LOCATION'] =      { tag = "srv_location", dt_func = dt_format_location, db_type = "Number", db_raw_type = "Uint8" },
    ['SRC_NETWORK_ID'] =       { tag = "cli_network", dt_func = dt_format_network, db_type = "Number", db_raw_type = "Uint16" },
    ['DST_NETWORK_ID'] =       { tag = "srv_network", dt_func = dt_format_network, db_type = "Number", db_raw_type = "Uint16" },
+   ['SNMP_INTERFACE'] =       { tag = "snmp_interface", dt_func = dt_format_snmp_interface, db_type = "Number", db_raw_type = "Uint32" },
    ['INPUT_SNMP'] =           { tag = "input_snmp", dt_func = dt_format_snmp_interface, db_type = "Number", db_raw_type = "Uint32" },
    ['OUTPUT_SNMP'] =          { tag = "output_snmp", dt_func = dt_format_snmp_interface, db_type = "Number", db_raw_type = "Uint32" },
    ['SRC_HOST_POOL_ID'] =     { tag = "cli_host_pool_id", dt_func = dt_format_pool_id, db_type = "Number", db_raw_type = "Uint16" },
@@ -1189,6 +1190,7 @@ local aggregated_flow_columns = {
    ['DST_COUNTRY_CODE'] =     { tag = "srv_country", dt_func = dt_format_country, db_type = "Number", db_raw_type = "Uint16" },
    ['SRC_ASN'] =              { tag = "cli_asn", simple_dt_func = simple_format_src_asn, db_type = "Number", db_raw_type = "Uint32" },
    ['DST_ASN'] =              { tag = "srv_asn", simple_dt_func = simple_format_dst_asn, db_type = "Number", db_raw_type = "Uint32" },
+   ['SNMP_INTERFACE'] =       { tag = "snmp_interface", dt_func = dt_format_snmp_interface, db_type = "Number", db_raw_type = "Uint32" },
    ['INPUT_SNMP'] =           { tag = "input_snmp", dt_func = dt_format_snmp_interface, db_type = "Number", db_raw_type = "Uint32" },
    ['OUTPUT_SNMP'] =          { tag = "output_snmp", dt_func = dt_format_snmp_interface, db_type = "Number", db_raw_type = "Uint32" },
    ['SRC_NETWORK_ID'] =       { tag = "cli_network", dt_func = dt_format_network, db_type = "Number", db_raw_type = "Uint16" },
@@ -1205,6 +1207,7 @@ local additional_flow_columns = {
    ['NETWORK_ID'] =           { tag = "network", dt_func = dt_format_network },
    ['ASN'] =                  { tag = "asn", simple_dt_func = simple_format_asn },
    ['COUNTRY_CODE'] =         { tag = "country", dt_func = dt_format_country },
+   ['snmp_interface'] =       { tag = "snmp_interface", dt_func = dt_format_snmp_interface, db_type = "Number", db_raw_type = "Uint32" },
 }
 
 -- #####################################
