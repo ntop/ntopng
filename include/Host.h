@@ -602,14 +602,6 @@ class Host : public GenericHashEntry,
     return syn_flood.num_active_tcp_flows_as_server - syn_flood.num_established_tcp_flows_as_server;
   };
 
-  inline void incNumActiveTCPFlowsAsClient() const {
-    syn_flood.num_active_tcp_flows_as_client++;
-  }
-
-  inline void incNumActiveTCPFlowsAsServer() const {
-    syn_flood.num_active_tcp_flows_as_server++;
-  }
-
   inline u_int16_t syn_flood_attacker_hits() const {
     return syn_flood.num_active_tcp_flows_as_client - syn_flood.num_established_tcp_flows_as_client;
   };
