@@ -486,7 +486,7 @@ if ((page == "overview") or (page == nil)) then
         if ntop.isEnterpriseM() then
             msg = i18n("if_stats_overview.remote_probe_collecting_from_x_devices", {
                 num = tot_num_nprobes,
-                url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/probes.lua"
+                url = ntop.getHttpPrefix() .. "/lua/pro/enterprise/nprobe.lua"
             })
         else
             msg = i18n("if_stats_overview.remote_probe_collecting_from_x_devices_no_link", {
