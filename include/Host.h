@@ -96,7 +96,7 @@ class Host : public GenericHashEntry,
   } syn_flood;
 
   /* Need atomic as inc/dec done on different threads */
-  std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server;
+  std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server; /* All protocols */
   u_int32_t asn;
 
   struct {
@@ -576,9 +576,11 @@ class Host : public GenericHashEntry,
   inline u_int16_t dns_flood_victim_hits() const {
     return dns_flood.victim_counter ? dns_flood.victim_counter->hits() : 0;
   };
+  
   inline u_int16_t dns_flood_attacker_hits() const {
     return dns_flood.attacker_counter ? dns_flood.attacker_counter->hits() : 0;
   };
+  
   inline void reset_dns_flood_hits() {
     if (dns_flood.victim_counter) dns_flood.victim_counter->reset_hits();
     if (dns_flood.attacker_counter) dns_flood.attacker_counter->reset_hits();
@@ -598,21 +600,15 @@ class Host : public GenericHashEntry,
     if (snmp_flood.attacker_counter) snmp_flood.attacker_counter->reset_hits();
   };
 
-  inline u_int16_t syn_flood_victim_hits() const {
-    return syn_flood.num_active_tcp_flows_as_server - syn_flood.num_established_tcp_flows_as_server;
-  };
-
-  inline u_int16_t syn_flood_attacker_hits() const {
-    return syn_flood.num_active_tcp_flows_as_client - syn_flood.num_established_tcp_flows_as_client;
-  };
+  u_int32_t syn_flood_victim_hits();
+  u_int32_t syn_flood_attacker_hits();
 
   inline u_int16_t flow_flood_victim_hits() const {
     return flow_flood.victim_counter ? flow_flood.victim_counter->hits() : 0;
   };
 
   inline u_int16_t flow_flood_attacker_hits() const {
-    return flow_flood.attacker_counter ? flow_flood.attacker_counter->hits()
-                                       : 0;
+    return flow_flood.attacker_counter ? flow_flood.attacker_counter->hits() : 0;
   };
 
   inline void reset_flow_flood_hits() {
@@ -622,14 +618,14 @@ class Host : public GenericHashEntry,
 
   inline u_int32_t syn_scan_victim_hits() const {
     return syn_scan.syn_recvd_last_min > syn_scan.synack_sent_last_min
-               ? syn_scan.syn_recvd_last_min - syn_scan.synack_sent_last_min
-               : 0;
+               ? syn_scan.syn_recvd_last_min - syn_scan.synack_sent_last_min : 0;
   };
+  
   inline u_int32_t syn_scan_attacker_hits() const {
     return syn_scan.syn_sent_last_min > syn_scan.synack_recvd_last_min
-               ? syn_scan.syn_sent_last_min - syn_scan.synack_recvd_last_min
-               : 0;
+               ? syn_scan.syn_sent_last_min - syn_scan.synack_recvd_last_min : 0;
   };
+  
   inline void reset_syn_scan_hits() {
     syn_scan.syn_sent_last_min = syn_scan.synack_recvd_last_min =
         syn_scan.syn_recvd_last_min = syn_scan.synack_sent_last_min = 0;
@@ -637,14 +633,14 @@ class Host : public GenericHashEntry,
 
   inline u_int32_t fin_scan_victim_hits() const {
     return fin_scan.fin_recvd_last_min > fin_scan.finack_sent_last_min
-               ? fin_scan.fin_recvd_last_min - fin_scan.finack_sent_last_min
-               : 0;
+               ? fin_scan.fin_recvd_last_min - fin_scan.finack_sent_last_min : 0;
   };
+  
   inline u_int32_t fin_scan_attacker_hits() const {
     return fin_scan.fin_sent_last_min > fin_scan.finack_recvd_last_min
-               ? fin_scan.fin_sent_last_min - fin_scan.finack_recvd_last_min
-               : 0;
+               ? fin_scan.fin_sent_last_min - fin_scan.finack_recvd_last_min : 0;
   };
+  
   inline void reset_fin_scan_hits() {
     fin_scan.fin_sent_last_min = fin_scan.finack_recvd_last_min =
         fin_scan.fin_recvd_last_min = fin_scan.finack_sent_last_min = 0;
@@ -653,17 +649,18 @@ class Host : public GenericHashEntry,
   inline u_int16_t rst_scan_victim_hits() const {
     return rst_scan.victim_counter ? rst_scan.victim_counter->hits() : 0;
   };
+  
   inline u_int16_t rst_scan_attacker_hits() const {
     return rst_scan.attacker_counter ? rst_scan.attacker_counter->hits() : 0;
   };
+  
   inline void reset_rst_scan_hits() {
     if (rst_scan.victim_counter) rst_scan.victim_counter->reset_hits();
     if (rst_scan.attacker_counter) rst_scan.attacker_counter->reset_hits();
   };
 
-  void incNumFlows(time_t t, bool as_client);
+  void incNumFlows(time_t t, bool as_client, bool isTCP);
   void decNumFlows(time_t t, bool as_client, bool isTCP, u_int16_t isTwhOver);
-  void incNumActiveTCPFlows(bool as_client);
   void incNumEstablishedTCPFlows(bool as_client);
 
   inline void incNumAlertedFlows(bool as_client) {

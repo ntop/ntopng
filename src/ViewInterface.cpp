@@ -659,9 +659,8 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 
       if (cli_host) {
         if (first_partial) {
-          cli_host->incNumFlows(f->get_last_seen(), true), cli_host->incUses();
-          network_stats =
-              cli_host->getNetworkStats(cli_host->get_local_network_id());
+          cli_host->incNumFlows(f->get_last_seen(), f->isTCP(), true), cli_host->incUses();
+          network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
 
           if (network_stats)
             network_stats->incNumFlows(f->get_last_seen(), true);
@@ -681,9 +680,8 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 
       if (srv_host) {
         if (first_partial) {
-          srv_host->incUses(), srv_host->incNumFlows(f->get_last_seen(), false);
-          network_stats =
-              srv_host->getNetworkStats(srv_host->get_local_network_id());
+          srv_host->incUses(), srv_host->incNumFlows(f->get_last_seen(), f->isTCP(), false);
+          network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
 
           if (network_stats)
             network_stats->incNumFlows(f->get_last_seen(), false);

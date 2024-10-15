@@ -150,7 +150,7 @@ Flow::Flow(NetworkInterface *_iface,
     Increase the hosts counter or Init the IP Addresses in case hosts are NULL
   */
   if (cli_host) {
-    cli_host->incUses(), cli_host->incNumFlows(last_seen, true);
+    cli_host->incUses(), cli_host->incNumFlows(last_seen, true, isTCP());
     cli_host->incCliContactedPorts(_srv_port);
     cli_ip_addr = cli_host->get_ip();
   } else {
@@ -164,7 +164,7 @@ Flow::Flow(NetworkInterface *_iface,
 
   if (srv_host) {
     /* Standard Interface */
-    srv_host->incUses(), srv_host->incNumFlows(last_seen, false);
+    srv_host->incUses(), srv_host->incNumFlows(last_seen, false, isTCP());
     srv_host->incSrvPortsContacts(htons(_cli_port));
     srv_host->incSrvHostContacts(_cli_ip);
     srv_ip_addr = srv_host->get_ip();
@@ -5310,9 +5310,9 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
       - As flows can be bi-directional, we need to pay attention to direction flags as they might be wrong
      */
 
-    /* Update syn alerts counters. In case of cumulative flags, the AND is used as
-     * possibly other flags can be present  */
-    /* We have received a RST flag not observed before for this flow */
+    /* Update syn alerts counters. In case of cumulative flags, the AND is used as possibly other flags can be present  */
+
+    /* We have received a SYN flag not observed before for this flow */
     if ((flags == TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN)) {
       if (cli_host)
 	cli_host->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
@@ -5407,12 +5407,6 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
 
     if ((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN)) {
       iface->getTcpFlowStats()->incSyn();
-
-      if(new_flow) {
-        /* Increase the number of flows only if it's a new flow */
-        if(cli_host) cli_host->incNumActiveTCPFlows(true);
-        if(srv_host) srv_host->incNumActiveTCPFlows(false);
-      }
     }
 
     if ((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) {
@@ -5496,23 +5490,28 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
         goto not_yet;
       } else {
       not_yet:
-        twh_over = 1;
+	if(twh_over == 0) {
+	  twh_over = 1;
+
+	  if(cli_host) cli_host->incNumEstablishedTCPFlows(true);
+	  if(srv_host) srv_host->incNumEstablishedTCPFlows(false);
 
 #if 0
-	if(!twh_ok) {
-	  char buf[256];
+	  if(!twh_ok) {
+	    char buf[256];
 
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "[flags: %u][src2dst: %u] not ok %s",
-				       flags, src2dst_direction ? 1 : 0, print(buf, sizeof(buf)));
-	}
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[flags: %u][src2dst: %u] not ok %s",
+					 flags, src2dst_direction ? 1 : 0, print(buf, sizeof(buf)));
+	  }
 #endif
+	}
 
-        /*
-          Sometimes nDPI detects the protocol at the first packet
-          so we're already on the protocol detected slot. This is
-          is not a good news as we might have protocol detected
-          when 3WH is not yet completed.
-        */
+	/*
+	  Sometimes nDPI detects the protocol at the first packet
+	  so we're already on the protocol detected slot. This is
+	  is not a good news as we might have protocol detected
+	  when 3WH is not yet completed.
+	*/
         if (get_state() == hash_entry_state_allocated)
           set_hash_entry_state_flow_notyetdetected();
       }
@@ -8518,16 +8517,15 @@ void Flow::swap() {
 	  srv_host->decNumFlows(now, false /* as server */, isTCP(), twh_over);
 	cli_host = srv_host, cli_ip_addr = srv_ip_addr;
 	srv_host = h, srv_ip_addr = i;
-	cli_host->incNumFlows(now, true /* as client */),
-	  srv_host->incNumFlows(now, false /* as server */);
-  if(isTCP()){
-    cli_host->incNumActiveTCPFlows(true /* as client */);
-    srv_host->incNumActiveTCPFlows(false /* as server */);
-    if(twh_over){
-      cli_host->incNumEstablishedTCPFlows(true /* as client */);
-      srv_host->incNumEstablishedTCPFlows(false /* as server */);
-    }
-  }
+	cli_host->incNumFlows(now, true /* as client */, isTCP()),
+	  srv_host->incNumFlows(now, false /* as server */, isTCP());
+
+	if(isTCP()) {
+	  if(twh_over) {
+	    cli_host->incNumEstablishedTCPFlows(true /* as client */);
+	    srv_host->incNumEstablishedTCPFlows(false /* as server */);
+	  }
+	}
       } else {
 	/* This is probably a view interface */
 
