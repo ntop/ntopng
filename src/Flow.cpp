@@ -5273,7 +5273,7 @@ void Flow::updateSNMPFlood(const struct bpf_timeval *when,
 /* *************************************** */
 
 void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
-                          bool src2dst_directio, bool new_flow) {
+                          bool src2dst_direction, bool new_flow) {
   NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
   bool is_packet_interface = getInterface()->isPacketInterface();;
   /* Flags used for the analysis of the 3WH. Original flags are masked for this
