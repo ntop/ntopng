@@ -1,0 +1,74 @@
+{
+	"name" : "Top Receiver AS Exporter Iface",
+	"i18n_name" : "top_receiver_as_exporter_if",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"visualization_type" : "table",
+	"hourly": true,
+	"sql" : "SELECT ASN, IPv4NumToString(any(IPV4_ADDR)) IPV4_ADDR, IPv6NumToString(any(IPV6_ADDR)) IPV6_ADDR, PROBE_IP, SNMP_INTERFACE AS snmp_interface, SUM(IN_BYTES) AS in_bytes, SUM(OUT_BYTES) AS out_bytes FROM (SELECT SRC_ASN AS ASN, IPV4_SRC_ADDR AS IPV4_ADDR, IPV6_SRC_ADDR AS IPV6_ADDR, PROBE_IP, INPUT_SNMP AS SNMP_INTERFACE, DST2SRC_BYTES AS OUT_BYTES, 0 AS IN_BYTES $FROM$ $WHERE$ AND SRC_ASN!=0 UNION ALL SELECT SRC_ASN AS ASN, IPV4_SRC_ADDR AS IPV4_ADDR, IPV6_SRC_ADDR AS IPV6_ADDR, PROBE_IP, OUTPUT_SNMP AS SNMP_INTERFACE, DST2SRC_BYTES AS IN_BYTES, 0 AS OUT_BYTES $FROM$ $WHERE$ AND SRC_ASN!=0 UNION ALL SELECT DST_ASN AS ASN, IPV4_DST_ADDR AS IPV4_ADDR, IPV6_DST_ADDR AS IPV6_ADDR, PROBE_IP, INPUT_SNMP AS SNMP_INTERFACE, SRC2DST_BYTES AS IN_BYTES, 0 AS OUT_BYTES $FROM$ $WHERE$ AND DST_ASN!=0 UNION ALL SELECT DST_ASN AS ASN, IPV4_DST_ADDR AS IPV4_ADDR, IPV6_DST_ADDR AS IPV6_ADDR, PROBE_IP, OUTPUT_SNMP AS SNMP_INTERFACE, SRC2DST_BYTES AS OUT_BYTES, 0 AS IN_BYTES $FROM$ $WHERE$ AND DST_ASN!=0) AS f $GROUPBY$ $ORDERBY$ $LIMIT$",
+	"select" : {
+		"items" : [
+			{
+				"name" : "ASN",
+				"func" : "",
+				"value_type" : "asn"
+			},
+			{
+				"name" : "PROBE_IP",
+				"func" : "",
+				"value_type" : "probe_ip"
+			},
+			{
+				"name" : "snmp_interface",
+				"func" : "",
+				"value_type" : "snmp_interface"
+			},
+			{
+				"name" : "in_bytes",
+				"func" : "",
+				"value_type" : "bytes"
+			},
+			{
+				"name" : "out_bytes",
+				"func" : "",
+				"value_type" : "bytes"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name": "SRC_ASN",
+				"op": "neq",
+				"value": "DST_ASN",
+				"value_type": "number",
+				"input": "fixed"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "ASN"
+			},
+			{
+				"name" : "PROBE_IP"
+			},
+			{
+				"name" : "snmp_interface"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "in_bytes",
+				"order" : "DESC"
+			},
+			{
+				"name" : "out_bytes",
+				"order" : "DESC"
+			}
+		]
+	}
+}
