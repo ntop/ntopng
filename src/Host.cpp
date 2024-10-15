@@ -295,6 +295,11 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx,
   memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
   memset(&customHostAlert, 0, sizeof(customHostAlert));
 
+  syn_flood.num_active_tcp_flows_as_client = 0,
+    syn_flood.num_established_tcp_flows_as_client = 0,
+    syn_flood.num_active_tcp_flows_as_server = 0,
+    syn_flood.num_established_tcp_flows_as_server = 0;
+  
   toggleRxOnlyHost(true);
 
 #ifdef NTOPNG_PRO
