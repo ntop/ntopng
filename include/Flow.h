@@ -594,7 +594,7 @@ class Flow : public GenericHashEntry {
   void updateDNSFlood(const struct bpf_timeval *when, bool src2dst_direction);
   void updateSNMPFlood(const struct bpf_timeval *when, bool src2dst_direction);
   void updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
-                      bool src2dst_direction);
+                      bool src2dst_direction, bool new_flow);
   void updateTcpWindow(u_int16_t window, bool src2dst_direction);
   void updateTcpSeqIssues(const ParsedFlow *pf);
   void updateTLS(ParsedFlow *zflow);

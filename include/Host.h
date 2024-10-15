@@ -91,8 +91,8 @@ class Host : public GenericHashEntry,
   } fin_scan;
 
   struct {
-    std::atomic<u_int32_t> num_active_tcp_flows_as_client, num_established_tcp_flows_as_client; /* (attacker) */
-    std::atomic<u_int32_t> num_active_tcp_flows_as_server, num_established_tcp_flows_as_server; /* (victim) */
+    u_int32_t num_active_tcp_flows_as_client, num_established_tcp_flows_as_client; /* (attacker) */
+    u_int32_t num_active_tcp_flows_as_server, num_established_tcp_flows_as_server; /* (victim) */
   } syn_flood;
 
   /* Need atomic as inc/dec done on different threads */
@@ -602,6 +602,14 @@ class Host : public GenericHashEntry,
     return syn_flood.num_active_tcp_flows_as_server - syn_flood.num_established_tcp_flows_as_server;
   };
 
+  inline void incNumActiveTCPFlowsAsClient() const {
+    syn_flood.num_active_tcp_flows_as_client++;
+  }
+
+  inline void incNumActiveTCPFlowsAsServer() const {
+    syn_flood.num_active_tcp_flows_as_server++;
+  }
+
   inline u_int16_t syn_flood_attacker_hits() const {
     return syn_flood.num_active_tcp_flows_as_client - syn_flood.num_established_tcp_flows_as_client;
   };
@@ -663,7 +671,6 @@ class Host : public GenericHashEntry,
 
   void incNumFlows(time_t t, bool as_client);
   void decNumFlows(time_t t, bool as_client, bool isTCP, u_int16_t isTwhOver);
-  void incNumActiveTCPFlows(bool as_client);
   void incNumEstablishedTCPFlows(bool as_client);
 
   inline void incNumAlertedFlows(bool as_client) {

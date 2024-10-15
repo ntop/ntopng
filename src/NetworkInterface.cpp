@@ -1997,7 +1997,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 
     switch (l4_proto) {
     case IPPROTO_TCP:
-      flow->updateTcpFlags(when, tcp_flags, src2dst_direction);
+      flow->updateTcpFlags(when, tcp_flags, src2dst_direction, new_flow);
 
       /*
 	This is the heuristic "For TCP flows for which the 3WH has not been

@@ -5273,7 +5273,7 @@ void Flow::updateSNMPFlood(const struct bpf_timeval *when,
 /* *************************************** */
 
 void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
-                          bool src2dst_direction) {
+                          bool src2dst_directio, bool new_flow) {
   NetworkStats *cli_network_stats = NULL, *srv_network_stats = NULL;
   bool is_packet_interface = getInterface()->isPacketInterface();;
   /* Flags used for the analysis of the 3WH. Original flags are masked for this
@@ -5408,11 +5408,11 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
     if ((flags & TH_SYN) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_SYN) != TH_SYN)) {
       iface->getTcpFlowStats()->incSyn();
 
-      if(cli_host)
-	cli_host->incNumActiveTCPFlows(true);
-
-      if(srv_host)
-	srv_host->incNumActiveTCPFlows(false);
+      if(new_flow) {
+        /* Increase the number of flows only if it's a new flow */
+        if(cli_host) cli_host->incNumActiveTCPFlows(true);
+        if(srv_host) srv_host->incNumActiveTCPFlows(false);
+      }
     }
 
     if ((flags & TH_RST) && (((src2dst_tcp_flags | dst2src_tcp_flags) & TH_RST) != TH_RST)) {
