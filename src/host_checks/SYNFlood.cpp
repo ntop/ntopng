@@ -21,11 +21,21 @@
 
 #include "ntop_includes.h"
 #include "host_checks_includes.h"
+#define DEBUG_SYN_FLOOD 0
 
 /* ***************************************************** */
 
 void SYNFlood::periodicUpdate(Host *h, HostAlert *engaged_alert) {
   u_int16_t hits = 0;
+
+#ifdef DEBUG_SYN_FLOOD
+  char buf[64];
+  ntop->getTrace()->traceEvent(
+      TRACE_NORMAL,
+      "Checking SYN Flood [IP: %s] [Attacker Hits: %d] [Victim Hits: %d]",
+      h->get_string_key(buf, sizeof(buf)), h->syn_flood_attacker_hits(),
+      h->syn_flood_victim_hits());
+#endif
 
   if ((hits = h->syn_flood_attacker_hits()) > threshold)
     triggerFlowHitsAlert(h, engaged_alert, true, hits, threshold,
