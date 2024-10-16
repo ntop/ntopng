@@ -21,8 +21,10 @@ www:         https://www.ntop.org
 prefix:      /
 EOF
 
+# Note: ntopng requires the 'redis' pkg on FreeBSD, however the package name on OPNsense is 'redis72' (dependency of 'os-redis')
+# for this reason this dependency should be installed manually for the time being
 echo "deps: {" >> ${STAGEDIR}/+MANIFEST
-for i in "json-c" "libmaxminddb" "libzmq4" "rrdtool" "lua53" "libsodium" "sqlite3" "hiredis" "redis" "librdkafka" "zstd" "nmap" "curl"
+for i in "json-c" "libmaxminddb" "libzmq4" "rrdtool" "lua53" "libsodium" "sqlite3" "hiredis" "librdkafka" "zstd" "nmap" "curl"
 do
     pkg query "  %n: { version: \"%v\", origin: %o }" "$i" >> ${STAGEDIR}/+MANIFEST
 done
