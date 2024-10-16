@@ -88,7 +88,7 @@ Run the below command to install the ntopng package:
 
 .. code:: bash
 
-   pkg install ntopng
+   pkg install ntopng redis
 
 License Configuration
 =====================

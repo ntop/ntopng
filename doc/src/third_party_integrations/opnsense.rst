@@ -28,7 +28,7 @@ And install the repository using the command provided at https://packages.ntop.o
 
 .. code:: bash
 
-   pkg add https://packages.ntop.org/FreeBSD/FreeBSD:13:amd64/latest/ntop-1.0.pkg
+   pkg add https://packages.ntop.org/FreeBSD/FreeBSD:14:amd64/latest/ntop-1.0.pkg
 
 The output should look like the below.
 
@@ -53,10 +53,11 @@ Log into the OPNsense Shell as administrator (select option 8) and run:
 .. code:: bash
 
    pkg update
-   pkg install os-ntopng-enterprise
+   pkg install os-ntopng-enterprise os-redis
 
 
-Or point the browser to the OPNsense management page, go to the *System* > *Firmware* > *Plugins* page,
+Alternatively you can point the browser to the OPNsense management page and install the
+plugins from the user interface. Go to the *System* > *Firmware* > *Plugins* page, 
 and click on the *Check for updates*.
 
 .. figure:: ../img/opnsense_check_for_updates.png
@@ -76,7 +77,7 @@ sure you remove it in case the latter is already installed).
 
   ntopng and Redis Plugins Installation
 
-Install plugin *os-ntopng-enterprise*, then install plugin *os-redis* (which is a requirement) by
+Install the *os-ntopng-enterprise* and the *os-redis* plugins (which is a requirement) by
 clicking on the *+* symbol.
 
 .. warning::
