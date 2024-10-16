@@ -23,15 +23,15 @@
 				"name" : "INFO"
 			},
 			{
-				"name" : "Errors",
-				"func" : "sum", 
-				"param" : "toInt32OrZero(JSON_VALUE(ALERT_JSON, '$.proto.l7_error_code')) > 0",
+				"name" : "Queries",
+				"func" : "count",
+				"param" : "*",
 				"value_type" : "number"
 			},
 			{
-				"name" : "Hits",
-				"func" : "count",
-				"param" : "*",
+				"name" : "Errors",
+				"func" : "sum", 
+				"param" : "toInt32OrZero(JSON_VALUE(ALERT_JSON, '$.proto.l7_error_code')) > 0",
 				"value_type" : "number"
 			}
 		]
@@ -77,7 +77,7 @@
 	"sortby" : {
 		"items" : [
 			{
-				"name" : "Hits",
+				"name" : "Queries",
 				"order" : "DESC"
 			},
 			{
