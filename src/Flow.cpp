@@ -5354,10 +5354,12 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
 
     if (!twh_over) {
       if(flags & (TH_ACK | TH_PUSH | TH_RST | TH_FIN)) {
-	twh_over = 1, iface->getTcpFlowStats()->incEstablished();
-	
-	if(cli_host) cli_host->incNumEstablishedTCPFlows(true);
-	if(srv_host) srv_host->incNumEstablishedTCPFlows(false);
+	twh_ok = twh_over = 1, iface->getTcpFlowStats()->incEstablished();
+      Host *cli_host = getViewSharedClient();
+      Host *srv_host = getViewSharedServer();
+      if(cli_host || srv_host) setTwhOverForViewInterface();
+      if(cli_host) cli_host->incNumEstablishedTCPFlows(true);
+      if(srv_host) srv_host->incNumEstablishedTCPFlows(false);
       }
     }
 
@@ -8493,30 +8495,29 @@ void Flow::swap() {
   u_int32_t tmp32;
   Host *cli_host = getViewSharedClient();
   Host *srv_host = getViewSharedServer();
-  Host *h = cli_host;
 
 #if 0
   char buf[128];
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Swapping %s", print(buf, sizeof(buf)));
 #endif
 
-  if (cli_host && srv_host) {
-    /* Standard (non-view) interface */
-    cli_host->decNumFlows(now, true /* as client */, isTCP(), twh_over),
-      srv_host->decNumFlows(now, false /* as server */, isTCP(), twh_over);
-    cli_host = srv_host, cli_ip_addr = srv_ip_addr;
-    srv_host = h, srv_ip_addr = i;
-    cli_host->incNumFlows(now, true /* as client */, isTCP()),
-      srv_host->incNumFlows(now, false /* as server */, isTCP());
+    if (cli_host && srv_host) {
+      Host *h = cli_host;
+	cli_host->decNumFlows(now, true /* as client */, isTCP(), twh_over),
+	  srv_host->decNumFlows(now, false /* as server */, isTCP(), twh_over);
+	cli_host = srv_host, cli_ip_addr = srv_ip_addr;
+	srv_host = h, srv_ip_addr = i;
+	cli_host->incNumFlows(now, true /* as client */, isTCP()),
+	  srv_host->incNumFlows(now, false /* as server */, isTCP());
 
-    if(isTCP()) {
-      if(twh_over) {
-	cli_host->incNumEstablishedTCPFlows(true /* as client */);
-	srv_host->incNumEstablishedTCPFlows(false /* as server */);
-      }
-    }
-  } else {
-    /* This is probably a view interface: we swap only IP addresses */
+	if(isTCP()) {
+	  if(twh_over) {
+	    cli_host->incNumEstablishedTCPFlows(true /* as client */);
+	    srv_host->incNumEstablishedTCPFlows(false /* as server */);
+	  }
+	}
+      } else {
+	/* This is probably a view interface */
 
     if (cli_ip_addr && (cli_host == NULL)
 	&& srv_ip_addr && (srv_host == NULL)) {
