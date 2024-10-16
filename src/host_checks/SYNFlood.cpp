@@ -21,7 +21,7 @@
 
 #include "ntop_includes.h"
 #include "host_checks_includes.h"
-#define DEBUG_SYN_FLOOD 0
+//#define DEBUG_SYN_FLOOD 0
 
 /* ***************************************************** */
 
