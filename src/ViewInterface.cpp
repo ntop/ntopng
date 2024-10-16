@@ -659,7 +659,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 
       if (cli_host) {
         if (first_partial) {
-          cli_host->incNumFlows(f->get_last_seen(), f->isTCP(), true), cli_host->incUses();
+          cli_host->incNumFlows(f->get_last_seen(), true, f->isTCP()), cli_host->incUses();
           network_stats = cli_host->getNetworkStats(cli_host->get_local_network_id());
 
           if (network_stats)
@@ -680,7 +680,7 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 
       if (srv_host) {
         if (first_partial) {
-          srv_host->incUses(), srv_host->incNumFlows(f->get_last_seen(), f->isTCP(), false);
+          srv_host->incUses(), srv_host->incNumFlows(f->get_last_seen(), false, f->isTCP());
           network_stats = srv_host->getNetworkStats(srv_host->get_local_network_id());
 
           if (network_stats)
@@ -697,6 +697,12 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
             if (cat != NULL) srv_host->setBlacklistName(cat);
           }
         }
+      }
+
+      if (!f->isTwhOverForViewInterface() && f->isThreeWayHandshakeOK()) {
+        f->setTwhOverForViewInterface();
+        if (srv_host) srv_host->incNumEstablishedTCPFlows(false);
+        if (cli_host) cli_host->incNumEstablishedTCPFlows(true);
       }
 
       /* Score increments are performed here periodically for view interfaces */

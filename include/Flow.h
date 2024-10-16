@@ -57,6 +57,7 @@ class Flow : public GenericHashEntry {
   u_int32_t protocolErrorCode;
   u_int8_t protocol, src2dst_tcp_flags, dst2src_tcp_flags, flow_verdict;
   u_int16_t flow_score;
+  bool twh_over_view; /* This flag is used for view interfaces */
   u_int8_t view_cli_mac[6], view_srv_mac[6];
   struct ndpi_flow_struct *ndpiFlow;
   ndpi_risk ndpi_flow_risk_bitmap;
@@ -487,6 +488,8 @@ class Flow : public GenericHashEntry {
   }
   inline bool isBittorrent() const { return (isProto(NDPI_PROTOCOL_BITTORRENT)); }
 
+  inline bool isTwhOverForViewInterface() { return twh_over_view; }
+  inline void setTwhOverForViewInterface() { twh_over_view = true; }
 #if defined(NTOPNG_PRO)
   inline bool isLateralMovement() const { return (lateral_movement); }
   inline void setLateralMovement(bool change) { lateral_movement = change; }

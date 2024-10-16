@@ -87,6 +87,7 @@ Flow::Flow(NetworkInterface *_iface,
   periodic_stats_update_partial = NULL;
   bt_hash = NULL, ebpf = NULL, iec104 = NULL, stun_mapped_address = NULL;
 
+  twh_over_view = false;
   flow_verdict = 0;
   operating_system = os_unknown;
   src2dst_tcp_flags = 0, dst2src_tcp_flags = 0, last_update_time.tv_sec = 0,
@@ -8496,7 +8497,6 @@ void Flow::swap() {
   } else
 #endif
     {
-      Host *h = cli_host;
       IpAddress *i = cli_ip_addr;
       u_int8_t m[6];
       u_int8_t f1 = predominant_alert_info.is_cli_attacker,
@@ -8506,6 +8506,9 @@ void Flow::swap() {
       InterarrivalStats *is = cli2srvPktTime;
       time_t now = time(NULL);
       u_int32_t tmp32;
+      Host *cli_host = getViewSharedClient();
+      Host *srv_host = getViewSharedServer();
+      Host *h = cli_host;
 
 #if 0
       char buf[128];
