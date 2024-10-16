@@ -1,0 +1,89 @@
+{
+	"name" : "DNS Queries",
+	"i18n_name" : "top_dns_queries",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"visualization_type" : "table",
+	"hourly": false,
+	"select" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "IPV4_SRC_ADDR"
+			},
+			{
+				"name" : "IPV6_SRC_ADDR"
+			},
+			{
+				"name" : "SRC_LABEL"
+			},
+			{
+				"name" : "INFO"
+			},
+			{
+				"name" : "Errors",
+				"func" : "sum", 
+				"param" : "toInt32OrZero(JSON_VALUE(ALERT_JSON, '$.proto.l7_error_code')) > 0",
+				"value_type" : "number"
+			},
+			{
+				"name" : "Hits",
+				"func" : "count",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name": "L7_PROTO",
+				"op": "eq",
+				"value": "5",
+				"value_type": "number",
+				"input": "fixed"
+			
+			},
+			{
+				"name": "INFO",
+				"op": "neq",
+				"value": "",
+				"value_type": "text",
+				"input": "fixed"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "VLAN_ID"
+			},
+			{
+				"name" : "IPV4_SRC_ADDR"
+			},
+			{
+				"name" : "IPV6_SRC_ADDR"
+			},
+			{
+				"name" : "SRC_LABEL"
+			},
+			{
+				"name" : "INFO"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "Hits",
+				"order" : "DESC"
+			},
+			{
+				"name" : "Errors",
+				"order" : "DESC"
+			}
+		]
+	}
+}
