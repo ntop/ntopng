@@ -26,22 +26,21 @@
 /* ***************************************************** */
 
 void SYNFlood::periodicUpdate(Host *h, HostAlert *engaged_alert) {
-  u_int16_t hits = 0;
-
+  u_int32_t hits = 0, t_shold = threshold * 60 /* sec */;;
+  
 #ifdef DEBUG_SYN_FLOOD
   char buf[64];
-  ntop->getTrace()->traceEvent(
-      TRACE_NORMAL,
-      "Checking SYN Flood [IP: %s] [Attacker Hits: %d] [Victim Hits: %d]",
-      h->get_string_key(buf, sizeof(buf)), h->syn_flood_attacker_hits(),
-      h->syn_flood_victim_hits());
+  ntop->getTrace()->traceEvent(TRACE_NORMAL,
+			       "Checking SYN Flood [IP: %s] [Attacker Hits: %d] [Victim Hits: %d]",
+			       h->get_string_key(buf, sizeof(buf)), h->syn_flood_attacker_hits(),
+			       h->syn_flood_victim_hits());
 #endif
 
-  if ((hits = h->syn_flood_attacker_hits()) > threshold)
-    triggerFlowHitsAlert(h, engaged_alert, true, hits, threshold,
+  if ((hits = h->syn_flood_attacker_hits()) > t_shold)
+    triggerFlowHitsAlert(h, engaged_alert, true, hits, t_shold,
                          CLIENT_FULL_RISK_PERCENTAGE);
-  else if ((hits = h->syn_flood_victim_hits()) > threshold)
-    triggerFlowHitsAlert(h, engaged_alert, false, hits, threshold,
+  else if ((hits = h->syn_flood_victim_hits()) > t_shold)
+    triggerFlowHitsAlert(h, engaged_alert, false, hits, t_shold,
                          CLIENT_NO_RISK_PERCENTAGE);
 }
 
