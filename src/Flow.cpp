@@ -5354,12 +5354,14 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
 
     if (!twh_over) {
       if(flags & (TH_ACK | TH_PUSH | TH_RST | TH_FIN)) {
-	twh_ok = twh_over = 1, iface->getTcpFlowStats()->incEstablished();
-      Host *cli_host = getViewSharedClient();
-      Host *srv_host = getViewSharedServer();
-      if(cli_host || srv_host) setTwhOverForViewInterface();
-      if(cli_host) cli_host->incNumEstablishedTCPFlows(true);
-      if(srv_host) srv_host->incNumEstablishedTCPFlows(false);
+	Host *cli_host = getViewSharedClient();
+	Host *srv_host = getViewSharedServer();
+	
+	twh_over = 1, iface->getTcpFlowStats()->incEstablished();
+	
+	if(cli_host || srv_host) setTwhOverForViewInterface();
+	if(cli_host) cli_host->incNumEstablishedTCPFlows(true);
+	if(srv_host) srv_host->incNumEstablishedTCPFlows(false);
       }
     }
 
