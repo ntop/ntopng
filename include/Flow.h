@@ -39,7 +39,7 @@ class Flow : public GenericHashEntry {
  private:
   time_t creation_time; /*** Epoch of the flow creation */
   int32_t iface_index;  /* Interface index on which this flow has been first observed */
-  Host *cli_host, *srv_host;
+  Host *cli_host, *srv_host; /* They are ALWAYS NULL on ViewInterfaces. For shared hosts see below viewFlowStats */
   IpAddress *cli_ip_addr, *srv_ip_addr;
   /* IPv4 only, so a int32 bit is only needed */
   u_int32_t src_ip_addr_pre_nat, dst_ip_addr_pre_nat,
@@ -91,12 +91,12 @@ class Flow : public GenericHashEntry {
                               hash table */
 
   u_int16_t detection_completed : 1, extra_dissection_completed : 1,
-      twh_over : 1, twh_ok : 1, dissect_next_http_packet : 1, passVerdict : 1,
+      twh_over : 1, dissect_next_http_packet : 1, passVerdict : 1,
       flow_dropped_counts_increased : 1, quota_exceeded : 1, swap_done : 1,
       swap_requested : 1, has_malicious_cli_signature : 1,
       has_malicious_srv_signature : 1, src2dst_tcp_zero_window : 1,
       dst2src_tcp_zero_window : 1, non_zero_payload_observed : 1,
-      is_periodic_flow : 1;
+    is_periodic_flow : 1, ____notused:1;
   u_int8_t iface_flow_accounted:1, _notused:7;
 
   ndpi_multimedia_flow_type rtp_stream_type;
@@ -657,7 +657,7 @@ class Flow : public GenericHashEntry {
                           u_int32_t _dst_port_post_nat);
   void check_swap();
 
-  inline bool isThreeWayHandshakeOK() const { return (twh_ok ? true : false); };
+  inline bool isThreeWayHandshakeOK() const { return (twh_over ? true : false); };
   inline bool isDetectionCompleted() const {
     return (detection_completed ? true : false);
   };

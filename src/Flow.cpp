@@ -82,7 +82,7 @@ Flow::Flow(NetworkInterface *_iface,
   host_server_name = NULL, flow_source = packet_to_flow;
   icmp_info = _icmp_info ? new (std::nothrow) ICMPinfo(*_icmp_info) : NULL;
   ndpiFlow = NULL, confidence = NDPI_CONFIDENCE_UNKNOWN;
-  json_info = NULL, tlv_info = NULL, twh_over = twh_ok = 0,
+  json_info = NULL, tlv_info = NULL, twh_over = 0,
     dissect_next_http_packet = 0;
   periodic_stats_update_partial = NULL;
   bt_hash = NULL, ebpf = NULL, iec104 = NULL, stun_mapped_address = NULL;
@@ -5354,7 +5354,8 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
 
     if (!twh_over) {
       if(flags & (TH_ACK | TH_PUSH | TH_RST | TH_FIN)) {
-	twh_ok = twh_over = 1, iface->getTcpFlowStats()->incEstablished();
+	twh_over = 1, iface->getTcpFlowStats()->incEstablished();
+	
 	if(cli_host) cli_host->incNumEstablishedTCPFlows(true);
 	if(srv_host) srv_host->incNumEstablishedTCPFlows(false);
       }
@@ -5485,7 +5486,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
 
           setRtt();
 
-          twh_ok = 1;
+          twh_over = 1;
           iface->getTcpFlowStats()->incEstablished();
         }
         goto not_yet;
@@ -5496,15 +5497,6 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
 
 	  if(cli_host) cli_host->incNumEstablishedTCPFlows(true);
 	  if(srv_host) srv_host->incNumEstablishedTCPFlows(false);
-
-#if 0
-	  if(!twh_ok) {
-	    char buf[256];
-
-	    ntop->getTrace()->traceEvent(TRACE_WARNING, "[flags: %u][src2dst: %u] not ok %s",
-					 flags, src2dst_direction ? 1 : 0, print(buf, sizeof(buf)));
-	  }
-#endif
 	}
 
 	/*
@@ -8490,98 +8482,91 @@ void Flow::triggerCustomFlowAlert(u_int8_t score, char *msg) {
 /* *************************************** */
 
 void Flow::swap() {
-#if 0
-  if ((ndpiDetectedProtocol.proto.app_protocol == NDPI_PROTOCOL_UNKNOWN) &&
-      (ndpiDetectedProtocol.proto.master_protocol == NDPI_PROTOCOL_UNKNOWN)) {
-    ; /* Don't awap unknown protocols: let's be conservative */
-  } else
-#endif
-    {
-      IpAddress *i = cli_ip_addr;
-      u_int8_t m[6];
-      u_int8_t f1 = predominant_alert_info.is_cli_attacker,
-	f2 = predominant_alert_info.is_cli_victim;
-      struct ndpi_analyze_struct *s = initial_bytes_entropy.c2s;
-      TCPSeqNum ts;
-      InterarrivalStats *is = cli2srvPktTime;
-      time_t now = time(NULL);
-      u_int32_t tmp32;
-      Host *cli_host = getViewSharedClient();
-      Host *srv_host = getViewSharedServer();
-      Host *h = cli_host;
+  IpAddress *i = cli_ip_addr;
+  u_int8_t m[6];
+  u_int8_t f1 = predominant_alert_info.is_cli_attacker,
+    f2 = predominant_alert_info.is_cli_victim;
+  struct ndpi_analyze_struct *s = initial_bytes_entropy.c2s;
+  TCPSeqNum ts;
+  InterarrivalStats *is = cli2srvPktTime;
+  time_t now = time(NULL);
+  u_int32_t tmp32;
+  Host *cli_host = getViewSharedClient();
+  Host *srv_host = getViewSharedServer();
+  Host *h = cli_host;
 
 #if 0
-      char buf[128];
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Swapping %s", print(buf, sizeof(buf)));
+  char buf[128];
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Swapping %s", print(buf, sizeof(buf)));
 #endif
 
-      if (cli_host && srv_host) {
-	cli_host->decNumFlows(now, true /* as client */, isTCP(), twh_over),
-	  srv_host->decNumFlows(now, false /* as server */, isTCP(), twh_over);
-	cli_host = srv_host, cli_ip_addr = srv_ip_addr;
-	srv_host = h, srv_ip_addr = i;
-	cli_host->incNumFlows(now, true /* as client */, isTCP()),
-	  srv_host->incNumFlows(now, false /* as server */, isTCP());
+  if (cli_host && srv_host) {
+    /* Standard (non-view) interface */
+    cli_host->decNumFlows(now, true /* as client */, isTCP(), twh_over),
+      srv_host->decNumFlows(now, false /* as server */, isTCP(), twh_over);
+    cli_host = srv_host, cli_ip_addr = srv_ip_addr;
+    srv_host = h, srv_ip_addr = i;
+    cli_host->incNumFlows(now, true /* as client */, isTCP()),
+      srv_host->incNumFlows(now, false /* as server */, isTCP());
 
-	if(isTCP()) {
-	  if(twh_over) {
-	    cli_host->incNumEstablishedTCPFlows(true /* as client */);
-	    srv_host->incNumEstablishedTCPFlows(false /* as server */);
-	  }
-	}
-      } else {
-	/* This is probably a view interface */
-
-	if (cli_ip_addr && srv_ip_addr && (cli_host == NULL) &&
-	    (srv_host == NULL)) {
-	  IpAddress *c = cli_ip_addr;
-
-	  cli_ip_addr = srv_ip_addr;
-	  srv_ip_addr = c;
-	}
+    if(isTCP()) {
+      if(twh_over) {
+	cli_host->incNumEstablishedTCPFlows(true /* as client */);
+	srv_host->incNumEstablishedTCPFlows(false /* as server */);
       }
+    }
+  } else {
+    /* This is probably a view interface: we swap only IP addresses */
 
-      Utils::swap16(&cli_port, &srv_port), Utils::swap32(&srcAS, &dstAS),
-	Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
-      initial_bytes_entropy.c2s = initial_bytes_entropy.s2c;
-      initial_bytes_entropy.s2c = s;
+    if (cli_ip_addr && (cli_host == NULL)
+	&& srv_ip_addr && (srv_host == NULL)) {
+      IpAddress *c = cli_ip_addr;
 
-      memcpy(m, view_cli_mac, 6);
-      memcpy(view_cli_mac, view_srv_mac, 6);
-      memcpy(view_srv_mac, m, 6);
+      cli_ip_addr = srv_ip_addr;
+      srv_ip_addr = c;
+    }
+  }
 
-      predominant_alert_info.is_cli_attacker =
-	predominant_alert_info.is_srv_attacker,
-	predominant_alert_info.is_cli_victim = predominant_alert_info.is_srv_victim;
-      predominant_alert_info.is_srv_attacker = f1,
-	predominant_alert_info.is_srv_victim = f2;
+  Utils::swap16(&cli_port, &srv_port), Utils::swap32(&srcAS, &dstAS),
+    Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
+  initial_bytes_entropy.c2s = initial_bytes_entropy.s2c;
+  initial_bytes_entropy.s2c = s;
 
-      memcpy(&ts, &tcp_seq_s2d, sizeof(TCPSeqNum));
-      memcpy(&tcp_seq_d2s, &tcp_seq_s2d, sizeof(TCPSeqNum));
-      memcpy(&tcp_seq_s2d, &ts, sizeof(TCPSeqNum));
-      Utils::swap16(&cli2srv_window, &srv2cli_window);
+  memcpy(m, view_cli_mac, 6);
+  memcpy(view_cli_mac, view_srv_mac, 6);
+  memcpy(view_srv_mac, m, 6);
 
-      cli2srvPktTime = srv2cliPktTime;
-      srv2cliPktTime = is;
+  predominant_alert_info.is_cli_attacker =
+    predominant_alert_info.is_srv_attacker,
+    predominant_alert_info.is_cli_victim = predominant_alert_info.is_srv_victim;
+  predominant_alert_info.is_srv_attacker = f1,
+    predominant_alert_info.is_srv_victim = f2;
+
+  memcpy(&ts, &tcp_seq_s2d, sizeof(TCPSeqNum));
+  memcpy(&tcp_seq_d2s, &tcp_seq_s2d, sizeof(TCPSeqNum));
+  memcpy(&tcp_seq_s2d, &ts, sizeof(TCPSeqNum));
+  Utils::swap16(&cli2srv_window, &srv2cli_window);
+
+  cli2srvPktTime = srv2cliPktTime;
+  srv2cliPktTime = is;
 
 #ifdef HAVE_NEDGE
-      TrafficShaper *s1 = flowShaperIds.cli2srv.ingress;
-      TrafficShaper *s2 = flowShaperIds.srv2cli.egress;
+  TrafficShaper *s1 = flowShaperIds.cli2srv.ingress;
+  TrafficShaper *s2 = flowShaperIds.srv2cli.egress;
 
-      flowShaperIds.cli2srv.ingress = flowShaperIds.srv2cli.ingress,
-	flowShaperIds.srv2cli.egress = flowShaperIds.cli2srv.egress;
-      flowShaperIds.srv2cli.ingress = s1, flowShaperIds.cli2srv.egress = s2;
+  flowShaperIds.cli2srv.ingress = flowShaperIds.srv2cli.ingress,
+    flowShaperIds.srv2cli.egress = flowShaperIds.cli2srv.egress;
+  flowShaperIds.srv2cli.ingress = s1, flowShaperIds.cli2srv.egress = s2;
 #endif
 
-      tmp32 = flow_device.in_index;
-      flow_device.in_index = flow_device.out_index;
-      flow_device.out_index = tmp32;
+  tmp32 = flow_device.in_index;
+  flow_device.in_index = flow_device.out_index;
+  flow_device.out_index = tmp32;
 
-      /*
-	We do not swap L7 info as if it direction was wrong they were not computed
-	Same applies with latency counters
-      */
-    }
+  /*
+    We do not swap L7 info as if it direction was wrong they were not computed
+    Same applies with latency counters
+  */    
 
   swap_done = 1, swap_requested = 0;
 }
