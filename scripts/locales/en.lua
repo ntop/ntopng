@@ -4075,6 +4075,7 @@ local lang = {
         ["blocked_flows"] = "Blocked Flows",
         ["bytes_sent_non_unicast"] = "Bytes Sent Non Unicast",
         ["bytes_sent_unicast"] = "Bytes Sent Unicast",
+        ["packets_sent_unicast"] = "Packets Sent Unicast",
         ["category"] = "Categories",
         ["cli_active_flows_anomalies"] = "Anomalies: Client Live Flows",
         ["cli_active_flows_behaviour"] = "Behaviour: Client Live Flows",
