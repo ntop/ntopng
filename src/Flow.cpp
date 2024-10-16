@@ -5476,8 +5476,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
         }
       } else if ((flags_3wh == TH_ACK) ||
                  (flags_3wh == (TH_ACK | TH_PUSH)) /* TCP Fast Open may contain data and PSH
-						      in the final TWH ACK */
-		 ) {
+						      in the final TWH ACK */) {
         if ((ackTime.tv_sec == 0) && (synAckTime.tv_sec > 0)) {
           memcpy(&ackTime, when, sizeof(struct timeval));
           timeval_diff(&synAckTime, (struct timeval *)when, &clientNwLatency, 1);
@@ -5489,10 +5488,9 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
             cli_host->updateRoundTripTime(Utils::timeval2ms(&clientNwLatency));
 
           setRtt();
-
-          twh_over = 1;
           iface->getTcpFlowStats()->incEstablished();
         }
+	
         goto not_yet;
       } else {
       not_yet:
@@ -8488,48 +8486,46 @@ void Flow::triggerCustomFlowAlert(u_int8_t score, char *msg) {
 void Flow::swap() {
   IpAddress *i = cli_ip_addr;
   u_int8_t m[6];
-  u_int8_t f1 = predominant_alert_info.is_cli_attacker,
-    f2 = predominant_alert_info.is_cli_victim;
+  u_int8_t f1 = predominant_alert_info.is_cli_attacker;
+  u_int8_t f2 = predominant_alert_info.is_cli_victim;
   struct ndpi_analyze_struct *s = initial_bytes_entropy.c2s;
   TCPSeqNum ts;
   InterarrivalStats *is = cli2srvPktTime;
   time_t now = time(NULL);
   u_int32_t tmp32;
-  Host *cli_host = getViewSharedClient();
-  Host *srv_host = getViewSharedServer();
 
 #if 0
   char buf[128];
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Swapping %s", print(buf, sizeof(buf)));
 #endif
 
-    if (cli_host && srv_host) {
-      Host *h = cli_host;
-	cli_host->decNumFlows(now, true /* as client */, isTCP(), twh_over),
-	  srv_host->decNumFlows(now, false /* as server */, isTCP(), twh_over);
-	cli_host = srv_host, cli_ip_addr = srv_ip_addr;
-	srv_host = h, srv_ip_addr = i;
-	cli_host->incNumFlows(now, true /* as client */, isTCP()),
-	  srv_host->incNumFlows(now, false /* as server */, isTCP());
+  if (cli_host && srv_host) {
+    /* Not a view interface */
+    Host *h = cli_host;
+    
+    cli_host->decNumFlows(now, true /* as client */, isTCP(), twh_over),
+      srv_host->decNumFlows(now, false /* as server */, isTCP(), twh_over);
+    cli_host = srv_host, cli_ip_addr = srv_ip_addr;
+    srv_host = h, srv_ip_addr = i;
+    cli_host->incNumFlows(now, true /* as client */, isTCP()),
+      srv_host->incNumFlows(now, false /* as server */, isTCP());
 
-	if(isTCP()) {
-	  if(twh_over) {
-	    cli_host->incNumEstablishedTCPFlows(true /* as client */);
-	    srv_host->incNumEstablishedTCPFlows(false /* as server */);
-	  }
-	}
-      } else {
-	/* This is probably a view interface */
+    if(isTCP() && twh_over) {
+      cli_host->incNumEstablishedTCPFlows(true /* as client */);
+      srv_host->incNumEstablishedTCPFlows(false /* as server */);      
+    }
+  } else {
+    /* This is a view interface */
 
     if (cli_ip_addr && (cli_host == NULL)
 	&& srv_ip_addr && (srv_host == NULL)) {
       IpAddress *c = cli_ip_addr;
-
+	
       cli_ip_addr = srv_ip_addr;
       srv_ip_addr = c;
     }
   }
-
+    
   Utils::swap16(&cli_port, &srv_port), Utils::swap32(&srcAS, &dstAS),
     Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
   initial_bytes_entropy.c2s = initial_bytes_entropy.s2c;
@@ -8539,8 +8535,7 @@ void Flow::swap() {
   memcpy(view_cli_mac, view_srv_mac, 6);
   memcpy(view_srv_mac, m, 6);
 
-  predominant_alert_info.is_cli_attacker =
-    predominant_alert_info.is_srv_attacker,
+  predominant_alert_info.is_cli_attacker = predominant_alert_info.is_srv_attacker,
     predominant_alert_info.is_cli_victim = predominant_alert_info.is_srv_victim;
   predominant_alert_info.is_srv_attacker = f1,
     predominant_alert_info.is_srv_victim = f2;
@@ -8570,7 +8565,7 @@ void Flow::swap() {
     We do not swap L7 info as if it direction was wrong they were not computed
     Same applies with latency counters
   */    
-
+  
   swap_done = 1, swap_requested = 0;
 }
 
