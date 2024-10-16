@@ -57,7 +57,7 @@ function barChartPlotter(e) {
   let min_sep = Infinity;
   for (let i = 1; i < points.length; i++) {
     const sep = points[i].canvasx - points[i - 1].canvasx;
-    if (sep < min_sep) min_sep = sep;
+    if (sep < min_sep && sep > 0) min_sep = sep;
   }
 
   if(min_sep > MAX_BAR_WIDTH) {
@@ -65,7 +65,7 @@ function barChartPlotter(e) {
   }
 
   /* Keep just a little distance between the bars */
-  const bar_width = Math.floor(0.95 * min_sep);
+  const bar_width = Math.floor(0.9 * min_sep);
 
   /* Do the actual plotting */
   for (var i = 0; i < points.length; i++) {

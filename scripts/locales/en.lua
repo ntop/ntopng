@@ -5032,6 +5032,7 @@ local lang = {
         ["host_threshold_rules"] = "JSON Host Rules",
         ["interface_network_discovery"] = "Periodic Interface Network Discovery",
         ["interface_speed"] = "Interface Speed",
+        ["link_speed"] = "Link Speed",
         ["interface_speed_measure_unit"] = "(Mbit/s)",
         ["interface_speed_popup_msg"] = "Specify the maximum interface speed",
         ["interface_top_talkers_creation"] = "Create Interface Top Talkers",

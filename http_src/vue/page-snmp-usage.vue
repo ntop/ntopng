@@ -54,6 +54,7 @@ const time_preset_list = [
     { value: "custom", label: i18n('show_alerts.presets.custom'), currently_active: false, disabled: true, },
 ];
 
+const max_interfaces = 20
 const serie_name = "Congestion";
 const table_snmp_usage = ref(null);
 const date_time_picker = ref(null);
@@ -226,6 +227,17 @@ function click_button_interface_configuration(event) {
 
 /* ************************************** */
 
+function fillEmptyValues(config) {
+    if (config.data && config.data.length > 0) {
+        for(let i = config.data.length; i < max_interfaces; i++) {
+            config.data[i] = [i, null];
+        }
+    }
+    return config;
+}
+
+/* ************************************** */
+
 function on_table_custom_event(event) {
     let events_managed = {
         "click_button_timeseries": click_button_timeseries,
@@ -253,16 +265,16 @@ async function get_chart_options() {
 
     result = await ntopng_utility.http_post_request(base_url, post_params);
     /* Format the result in the format needed by Dygraph */
-    const config = timeseriesUtils.formatSimpleSerie(result, serie_name, "bar", ["percentage"], [0, 100]);
+    let config = timeseriesUtils.formatSimpleSerie(result, serie_name, "bar", ["percentage"], [0, 100]);
 
     /* Custom options for this chart */
     config.title = '<div style="font-size:18px;">' + i18n('snmp.top_congested_devices') + '</div>';
     config.titleHeight = 48;
-    config.axes.y.axisLabelWidth = 40;
+    config.axes.y.axisLabelWidth = 50;
     config.xAxisHeight = 6;
     config.axes.x.axisLabelWidth = 120;
     config.axes.x.pixelsPerLabel = 20;
-    config.xRangePad = 50;
+    config.xRangePad = 40;
 
     localStorage.setItem(`${serie_name}_x_axis_label`, JSON.stringify(result.labels));
     localStorage.setItem(`${serie_name}_metadata`, JSON.stringify(result.metadata));
@@ -296,6 +308,8 @@ async function get_chart_options() {
             click_button_timeseries({ row: metadata });
         }
     }
+
+    config = fillEmptyValues(config);
 
     return config;
 }

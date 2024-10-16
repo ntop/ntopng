@@ -91,7 +91,7 @@
 			]
 		},
 		{
-			"title_i18n": "if_stats_config.interface_speed",
+			"title_i18n": "if_stats_config.link_speed",
 			"data_field": "speed",
 			"sortable": true,
 			"class": [
