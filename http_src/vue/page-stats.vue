@@ -716,6 +716,12 @@ function print_stats_row(col, row) {
             let params = create_historical_params()
             params[element.historical_filter] = params[historical_filter.historical_filter_to_change]
             delete params[historical_filter.historical_filter_to_change]
+            params["aggregated"] = false;
+            params["query_preset"] = "";
+            params["count"] = "THROUGHPUT";
+            if (!params["ifid"]) {
+                params["ifid"] = historical_filter.historical_interface_id
+            }
             let url_params = ntopng_url_manager.obj_to_url_params(params);
             label = `<a href="${http_prefix}/lua/pro/db_search.lua?${url_params}">${label}</a>`
         }
