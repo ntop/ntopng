@@ -3711,6 +3711,7 @@ bool Ntop::addLocalNetwork(char *_net) {
   for (i = 0; i < id; i++) {
     if (strcmp(local_network_names[i], net) == 0) {
       /* Already present */
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Already present");
       free(net);
       return (false);
     }
@@ -3766,7 +3767,7 @@ void Ntop::addLocalNetworkList(const char *rule) {
 
   while (net != NULL) {
     if (!addLocalNetwork(net))
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to parse network %s or already defined: skipping it", net);
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Unable to parse network %s or already defined: skipping it", net);
     else
       ntop->getTrace()->traceEvent(TRACE_INFO, "Added network %s", net);
     
