@@ -14,7 +14,7 @@ local mattermost = {
   },
   endpoint_template = {
     script_key = endpoint_key, -- Unique string key
-    template_name = "mattermost_endpoint.template" 
+    template_name = "mattermost_endpoint.template"
   },
   recipient_params = {
     { param_name = "mattermost_channelname" }
@@ -35,9 +35,10 @@ local function readSettings(recipient)
   local settings = {
     -- Endpoint
     url = recipient.endpoint_conf.mattermost_url,
-    mattermost_token = recipient.endpoint_conf.mattermost_token, -- this information is coming from the endpoint configuration recipient.endpoint_conf.
+    mattermost_token = recipient.endpoint_conf.mattermost_token,           -- this information is coming from the endpoint configuration recipient.endpoint_conf.
     -- Recipient
-    mattermost_channel = recipient.recipient_params.mattermost_channelname -- (**) this information is coming from the recipient configuration recipient.recipient_params.
+    mattermost_channel = recipient.recipient_params
+    .mattermost_channelname                                                -- (**) this information is coming from the recipient configuration recipient.recipient_params.
   }
   return settings
 end
@@ -47,60 +48,49 @@ end
 function mattermost.isAvailable()
   -- ntop.httpPost is not available on some platforms (e.g. Windows),
   -- so on such platforms this endpoint should be disabled.
-  return(ntop.postHTTPJsonData ~= nil)
+  return (ntop.postHTTPJsonData ~= nil)
 end
 
 -- ##############################################
 
 -- This is a custom function defined public with the purpose of allowing
 -- other code to call it.
-function mattermost.sendMattermost(message_body,settings)
+function mattermost.sendMattermost(message_body, settings)
   local rc = false
   local retry_attempts = 3
 
   if (isEmptyString(settings.mattermost_channel) or isEmptyString(settings.mattermost_token) or isEmptyString(settings.url))
   then
-    return false
+    return rc
   end
 
   while retry_attempts > 0 do
-
     local msg = message_body
-    local body = json.encode({channel_id = settings.mattermost_channel, message = msg})
-    if (body ~= nil) 
+    local body = json.encode({ channel_id = settings.mattermost_channel, message = msg })
+    if (body ~= nil)
     then
       -- Only if a custom alert is thrown this script will be run
       local post_rc = ntop.postHTTPJsonData("", "", settings.url, body, nil, settings.mattermost_token)
-      if post_rc 
+      if post_rc
       then
-        if post_rc.RESPONSE_CODE == 204 
-        then
         -- Success
-          rc = true
-          break
-        elseif post_rc.RESPONSE_CODE == 401 then
-          -- Too many requests, don't retry as this would cause the situation to worsen
-          -- https://httpstatuses.com/429
-            return false, "Unauthorized"
-        elseif post_rc.RESPONSE_CODE == 429 then
-        -- Too many requests, don't retry as this would cause the situation to worsen
-        -- https://httpstatuses.com/429
-          return false, "Too many requests"
-        end
+        rc = true
+        break
       end
-  
+
       retry_attempts = retry_attempts - 1
     end
-    end
+  end
 
 
-  return true
+  return rc
 end
 
 local function formatMattermostMessage(alert)
-  local msg = format_utils.formatMessage(alert, {nohtml=true, add_cr=true, no_bracket_around_date=true, emoji=true, show_entity=true})
-  
-  return(msg)
+  local msg = format_utils.formatMessage(alert,
+    { nohtml = true, add_cr = true, no_bracket_around_date = true, emoji = true, show_entity = true })
+
+  return (msg)
 end
 
 -- The function in charge of dequeuing alerts. Some code is boilerplate and
@@ -125,7 +115,7 @@ function mattermost.dequeueRecipientAlerts(recipient, budget)
     local i = 0
     while i < max_alerts_per_request do
       local notification = ntop.recipient_dequeue(recipient.recipient_id)
-      if notification then 
+      if notification then
         if alert_utils.filter_notification(notification, recipient.recipient_id) then
           notifications[#notifications + 1] = notification.alert
           i = i + 1
@@ -143,12 +133,12 @@ function mattermost.dequeueRecipientAlerts(recipient, budget)
     local alerts = {}
 
     for _, json_message in ipairs(notifications) do
-      table.insert(alerts, formatMattermostMessage(json.decode(json_message)))       
+      table.insert(alerts, formatMattermostMessage(json.decode(json_message)))
     end
 
-    local res, msg = mattermost.sendMattermost(table.concat(alerts, "\n"),settings)
+    local res, msg = mattermost.sendMattermost(table.concat(alerts, "\n"), settings)
     if not res then
-      return {success = false, error_message = msg}
+      return { success = false, error_message = msg }
     end
 
     -- Remove the processed messages from the queue
@@ -156,7 +146,7 @@ function mattermost.dequeueRecipientAlerts(recipient, budget)
     sent = sent + 1
   end
 
-  return {success = true, more_available = more_available}
+  return { success = true, more_available = more_available }
 end
 
 -- ##############################################
