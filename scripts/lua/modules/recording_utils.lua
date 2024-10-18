@@ -28,6 +28,7 @@ local is_running_job_pending_key = "ntopng.cache.traffic_recording_job_pending"
 local recording_utils = {}
 
 recording_utils.default_disk_space = 10 * 1024
+recording_utils.default_snaplen = 1536
 
 -- #################################
 
@@ -503,7 +504,7 @@ function recording_utils.createConfig(ifid, params)
     max_file_size = 256,      -- Max file length (MB)
     max_file_duration = 60,   -- Max file duration (sec)
     max_disk_space = recording_utils.default_disk_space, -- Max disk space (MB)
-    snaplen = 1536,           -- Capture length
+    snaplen = recording_utils.default_snaplen, -- Capture length
     writer_core = 0,          -- Writer thread affinity
     reader_core = 1,          -- Reader thread affinity
     indexer_cores = { 2 },    -- Indexer threads affinity

@@ -20,6 +20,7 @@ local flow_export = false
 
 -- POST check
 if(_SERVER["REQUEST_METHOD"] == "POST") then
+  local snaplen
   local disk_space
   local smart_disk_space
 
@@ -37,6 +38,13 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
     bpf_filter = _POST["bpf_filter"]
   end
   ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.bpf_filter', bpf_filter)
+
+  -- Set capture len
+  snaplen = recording_utils.default_snaplen
+  if not isEmptyString(_POST["snaplen"]) then
+    snaplen = tonumber(_POST["snaplen"])
+  end
+  ntop.setCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.snaplen', tostring(snaplen))
 
   -- Set disk space
   disk_space = recording_utils.default_disk_space
@@ -93,6 +101,7 @@ if(_SERVER["REQUEST_METHOD"] == "POST") then
   -- Configure/start or stop the recording service
   if record_traffic then
     local config = {}
+    config.snaplen = snaplen
     config.max_disk_space = disk_space
     config.bpf_filter = bpf_filter
     if ntop.isEnterpriseXL() and smart_record_traffic then
@@ -122,6 +131,7 @@ if ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording_flow_exp
   flow_export = true
 end
 
+local snaplen = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.snaplen') or recording_utils.default_snaplen
 local bpf_filter = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.bpf_filter')
 local disk_space = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.traffic_recording.disk_space')
 local smart_disk_space = ntop.getCache('ntopng.prefs.ifid_'..master_ifid..'.smart_traffic_recording.disk_space')
@@ -223,6 +233,14 @@ print [[
         <td colspan=2>
           <input type="number" style="width:127px;display:inline;" class="form-control" name="disk_space" placeholder="" min="1" step="1" max="]] print(ternary((max_space/1024)>1, (max_space/1024), 1)) print [[" value="]] print(disk_space) print [["></input><span style="vertical-align: middle"> GB</span><br>
 <small>]] print(i18n("traffic_recording.disk_space_note") .. ternary(storage_info.if_used > 0, " "..i18n("traffic_recording.disk_space_note_in_use", {in_use=tostring(format_utils.round(storage_info.if_used/(1024*1024*1024), 2))}), "")) print[[</small>
+        </td>
+      </tr>
+
+      <tr id="tr-snaplen">
+        <th>]] print(i18n("traffic_recording.snaplen")) print [[</th>
+        <td colspan=2>
+          <input type="number" style="width:127px;display:inline;" class="form-control" name="snaplen" placeholder="" min="14" step="1" max="16384" value="]] print(snaplen) print [["></input><span style="vertical-align: middle"> Bytes</span><br>
+          <small>]] print(i18n("traffic_recording.disk_space_note")) print[[</small>
         </td>
       </tr>
 
@@ -348,12 +366,14 @@ print[[
 }
 
 function toggle_recording_enabled_on(){
+  $("#tr-snaplen").css("display","table-row");
   $("#tr-disk_space").css("display","table-row");
   $("#tr-bpf_filter").css("display","table-row");
   $("#tr-storage_dir").css("display","table-row");
 }
 
 function toggle_recording_enabled_off(){
+  $("#tr-snaplen").css("display","none");
   $("#tr-disk_space").css("display","none");
   $("#tr-bpf_filter").css("display","none");
   $("#tr-storage_dir").css("display","none");
@@ -375,11 +395,13 @@ function update_smart_record_traffic() {
 }
 
 function toggle_smart_recording_enabled_on(){
+  $("#tr-smart_snaplen").css("display","table-row");
   $("#tr-smart_disk_space").css("display","table-row");
   $("#tr-smart_storage_dir").css("display","table-row");
 }
 
 function toggle_smart_recording_enabled_off(){
+  $("#tr-smart_snaplen").css("display","none");
   $("#tr-smart_disk_space").css("display","none");
   $("#tr-smart_storage_dir").css("display","none");
 }

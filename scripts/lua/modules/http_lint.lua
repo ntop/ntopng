@@ -2465,6 +2465,7 @@ local known_parameters = {
    ["bpf_filter"] = validateEmptyOr(validateUnquoted), --
 
    -- TRAFFIC RECORDING
+   ["snaplen"] = validateNumber,
    ["disk_space"] = validateNumber,
    ["smart_disk_space"] = validateNumber,
    ["file_id"] = validateNumber,
