@@ -963,8 +963,9 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
     break;
 
   case L7_INFO:
-    if (value->string && value->string[0] && value->string[0] != '\n')
+    if (value->string && value->string[0] && value->string[0] != '\n') {
       flow->setL7Info(value->string);
+    }
     break;
 
   case L7_CONFIDENCE:

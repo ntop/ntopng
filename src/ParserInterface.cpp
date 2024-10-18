@@ -597,16 +597,21 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       - When nProbe has no plugins enabled, then nDPI data is taken
     */
     if (zflow->getL7Info() && zflow->getL7Info()[0]) {
-      if (flow->isDNS() && !zflow->getDNSQuery()) {
-        zflow->setDNSQuery(zflow->getL7Info());
-      } else if (flow->isHTTP() && !zflow->getHTTPsite()) {
-        zflow->setHTTPsite(zflow->getL7Info());
-        if (flow->get_cli_host())
-          flow->get_cli_host()->incrVisitedWebSite(zflow->getHTTPsite());
-      } else if (flow->isTLS() && !zflow->getTLSserverName()) {
-        zflow->setTLSserverName(zflow->getL7Info());
-        if (flow->get_cli_host())
-          flow->get_cli_host()->incrVisitedWebSite(zflow->getTLSserverName());
+      if (flow->isDNS()) {
+        if (!zflow->getDNSQuery())
+          zflow->setDNSQuery(zflow->getL7Info());
+      } else if (flow->isHTTP()) {
+        if (!zflow->getHTTPsite()) {
+          zflow->setHTTPsite(zflow->getL7Info());
+          if (flow->get_cli_host())
+            flow->get_cli_host()->incrVisitedWebSite(zflow->getHTTPsite());
+        }
+      } else if (flow->isTLS()) {
+        if (!zflow->getTLSserverName()) {
+          zflow->setTLSserverName(zflow->getL7Info());
+          if (flow->get_cli_host())
+            flow->get_cli_host()->incrVisitedWebSite(zflow->getTLSserverName());
+        }
       }
     }
 

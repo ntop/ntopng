@@ -733,9 +733,9 @@ void Flow::processExtraDissectedInformation() {
       protos.tls.notBefore = ndpiFlow->protos.tls_quic.notBefore,
         protos.tls.notAfter = ndpiFlow->protos.tls_quic.notAfter;
 
-      if(protos.tls.client_requested_server_name == NULL)  {
+      if(protos.tls.client_requested_server_name == NULL &&
+         ndpiFlow->host_server_name[0] != '\0')  {
 	protos.tls.client_requested_server_name = strdup(ndpiFlow->host_server_name);
-
 	/* Now some minor cleanup */
 	char *c;
 
@@ -4878,9 +4878,11 @@ bool Flow::isBlacklistedServer() const {
 /* *************************************** */
 
 bool Flow::isTLS() const {
-  return (isProto(NDPI_PROTOCOL_TLS) || isProto(NDPI_PROTOCOL_MAIL_IMAPS) ||
+  return (isProto(NDPI_PROTOCOL_TLS) ||
+          isProto(NDPI_PROTOCOL_MAIL_IMAPS) ||
           isProto(NDPI_PROTOCOL_MAIL_SMTPS) ||
-          isProto(NDPI_PROTOCOL_MAIL_POPS) || isProto(NDPI_PROTOCOL_QUIC));
+          isProto(NDPI_PROTOCOL_MAIL_POPS) ||
+          isProto(NDPI_PROTOCOL_QUIC));
 }
 
 /* *************************************** */
@@ -6009,8 +6011,9 @@ void Flow::updateDNS(ParsedFlow *zflow) {
 void Flow::updateTLS(ParsedFlow *zflow) {
   if (zflow->getTLSserverName()
       && isTLS()
-      && (!protos.tls.client_requested_server_name))
+      && (!protos.tls.client_requested_server_name)) {
     protos.tls.client_requested_server_name = zflow->getTLSserverName(true);
+  }
 }
 
 /* *************************************** */
