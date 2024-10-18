@@ -707,22 +707,24 @@ void Flow::processDetectedProtocolData() {
 void Flow::processExtraDissectedInformation() {
   if (ndpiFlow) {
     if (isSSH()) {
-      if (protos.ssh.client_signature == NULL)
+      if (protos.ssh.client_signature == NULL &&
+          !Utils::isEmptyString(ndpiFlow->protos.ssh.client_signature))
 	protos.ssh.client_signature =
 	  strdup(ndpiFlow->protos.ssh.client_signature);
-      if (protos.ssh.server_signature == NULL)
+      if (protos.ssh.server_signature == NULL &&
+          !Utils::isEmptyString(ndpiFlow->protos.ssh.server_signature))
 	protos.ssh.server_signature =
 	  strdup(ndpiFlow->protos.ssh.server_signature);
 
       if (protos.ssh.hassh.client_hash == NULL &&
-	  ndpiFlow->protos.ssh.hassh_client[0] != '\0') {
+	  !Utils::isEmptyString(ndpiFlow->protos.ssh.hassh_client)) {
 	protos.ssh.hassh.client_hash =
 	  strdup(ndpiFlow->protos.ssh.hassh_client);
 	updateHASSH(true /* As client */);
       }
 
       if (protos.ssh.hassh.server_hash == NULL &&
-	  ndpiFlow->protos.ssh.hassh_server[0] != '\0') {
+	  !Utils::isEmptyString(ndpiFlow->protos.ssh.hassh_server)) {
 	protos.ssh.hassh.server_hash =
 	  strdup(ndpiFlow->protos.ssh.hassh_server);
 	updateHASSH(false /* As server */);
@@ -734,7 +736,7 @@ void Flow::processExtraDissectedInformation() {
         protos.tls.notAfter = ndpiFlow->protos.tls_quic.notAfter;
 
       if(protos.tls.client_requested_server_name == NULL &&
-         ndpiFlow->host_server_name[0] != '\0')  {
+         !Utils::isEmptyString(ndpiFlow->host_server_name)) {
 	protos.tls.client_requested_server_name = strdup(ndpiFlow->host_server_name);
 	/* Now some minor cleanup */
 	char *c;
@@ -746,31 +748,31 @@ void Flow::processExtraDissectedInformation() {
 	  c[0] = '\0';
       }
 
-      if ((protos.tls.server_names == NULL) &&
-	  (ndpiFlow->protos.tls_quic.server_names != NULL))
+      if (protos.tls.server_names == NULL &&
+	  !Utils::isEmptyString(ndpiFlow->protos.tls_quic.server_names))
 	protos.tls.server_names = strdup(ndpiFlow->protos.tls_quic.server_names);
 
       if (protos.tls.client_alpn == NULL) {
-	if (ndpiFlow->protos.tls_quic.negotiated_alpn != NULL)
+	if (!Utils::isEmptyString(ndpiFlow->protos.tls_quic.negotiated_alpn))
 	  protos.tls.client_alpn = strdup(ndpiFlow->protos.tls_quic.negotiated_alpn);
-	else if (ndpiFlow->protos.tls_quic.advertised_alpns != NULL)
+	else if (!Utils::isEmptyString(ndpiFlow->protos.tls_quic.advertised_alpns))
 	  protos.tls.client_alpn = strdup(ndpiFlow->protos.tls_quic.advertised_alpns);
       }
 
-      if ((protos.tls.client_tls_supported_versions == NULL) &&
-	  (ndpiFlow->protos.tls_quic.tls_supported_versions != NULL))
+      if (protos.tls.client_tls_supported_versions == NULL &&
+	  !Utils::isEmptyString(ndpiFlow->protos.tls_quic.tls_supported_versions))
 	protos.tls.client_tls_supported_versions = strdup(ndpiFlow->protos.tls_quic.tls_supported_versions);
 
-      if ((protos.tls.issuerDN == NULL) &&
-	  (ndpiFlow->protos.tls_quic.issuerDN != NULL))
+      if (protos.tls.issuerDN == NULL &&
+	  !Utils::isEmptyString(ndpiFlow->protos.tls_quic.issuerDN))
 	protos.tls.issuerDN = strdup(ndpiFlow->protos.tls_quic.issuerDN);
 
-      if ((protos.tls.subjectDN == NULL) &&
-	  (ndpiFlow->protos.tls_quic.subjectDN != NULL))
+      if (protos.tls.subjectDN == NULL &&
+	  !Utils::isEmptyString(ndpiFlow->protos.tls_quic.subjectDN))
 	protos.tls.subjectDN = strdup(ndpiFlow->protos.tls_quic.subjectDN);
 
-      if ((protos.tls.ja4.client_hash == NULL) &&
-	  (ndpiFlow->protos.tls_quic.ja4_client[0] != '\0')) {
+      if (protos.tls.ja4.client_hash == NULL &&
+	  !Utils::isEmptyString(ndpiFlow->protos.tls_quic.ja4_client)) {
 	protos.tls.ja4.client_hash = strdup(ndpiFlow->protos.tls_quic.ja4_client);
 	updateCliJA4();
       }
@@ -849,7 +851,8 @@ void Flow::processExtraDissectedInformation() {
 	}
       }
     } else if (isMining()) {
-      if ((protos.mining.currency == NULL) && (ndpiFlow->protos.mining.currency[0] != '\0'))
+      if (protos.mining.currency == NULL &&
+          !Utils::isEmptyString(ndpiFlow->protos.mining.currency))
         protos.mining.currency = strdup(ndpiFlow->protos.mining.currency);
 
       /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "-->>> %s", ndpiFlow->protos.mining.currency); */
@@ -861,7 +864,8 @@ void Flow::processExtraDissectedInformation() {
 	  addRisk(((ndpi_risk)2) << (risk - 1));
       }
 
-      if ((!protos.http.last_server) && ndpiFlow->http.server)
+      if (protos.http.last_server == NULL &&
+          !Utils::isEmptyString(ndpiFlow->http.server))
 	protos.http.last_server = strdup(ndpiFlow->http.server);
 
       if (ndpiFlow->http.response_status_code == 200) {
@@ -892,7 +896,8 @@ void Flow::processExtraDissectedInformation() {
 	}
       }
     } else if (isSTUN()) {
-      if((!stun_mapped_address) && (ndpiFlow->stun.mapped_address.port != 0)) {
+      if(stun_mapped_address == NULL &&
+         ndpiFlow->stun.mapped_address.port != 0) {
 	IpAddress ip;
 	char tmp[96], ipb[64];
 

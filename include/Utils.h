@@ -41,6 +41,7 @@ class Utils {
   static bool validInterface(const pcap_if_t *pcap_if);
 
  public:
+  static inline bool isEmptyString(const char *s) { return (!s || !s[0]); }
   static char *toLowerResolvedNames(const char *const name);
   static char *jsonLabel(int label, const char *label_str, char *buf,
                          u_int buf_len);
