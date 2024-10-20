@@ -121,6 +121,9 @@ Host::~Host() {
   iface->decPoolNumHosts(get_host_pool(), false /* Host is deleted offline */);
   if (customHostAlert.msg) free(customHostAlert.msg);
 
+  if(fingerprint.tcp_fingerprint != NULL)
+    free(fingerprint.tcp_fingerprint);
+  
   if (!ntop->getPrefs()->limitResourcesUsage()) {
     if (tcp_udp_contacted_ports_no_tx)
       ndpi_bitmap_free(tcp_udp_contacted_ports_no_tx);
@@ -372,6 +375,7 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx, u_int16_t _vlanId,
       obs_point->incUses();
   }
 
+  fingerprint.tcp_fingerprint = NULL, fingerprint.os = os_hint_unknown;
   /* Increase the number of active hosts */
   reloadHostBlacklist();
 }
@@ -941,14 +945,11 @@ void Host::lua(lua_State *vm, AddressTree *ptree, bool host_details,
   lua_get_num_contacts(vm);
   lua_get_num_http_hosts(vm);
 
-  lua_push_float_table_entry(
-      vm, "bytes_ratio", ndpi_data_ratio(getNumBytesSent(), getNumBytesRcvd()));
-  lua_push_float_table_entry(
-      vm, "pkts_ratio", ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()));
+  lua_push_float_table_entry(vm, "bytes_ratio", ndpi_data_ratio(getNumBytesSent(), getNumBytesRcvd()));
+  lua_push_float_table_entry(vm, "pkts_ratio", ndpi_data_ratio(getNumPktsSent(), getNumPktsRcvd()));
 
-  lua_push_int32_table_entry(
-      vm, "num_contacted_peers_with_tcp_udp_flows_no_response",
-      getNumContactedPeersAsClientTCPUDPNoTX());
+  lua_push_int32_table_entry(vm, "num_contacted_peers_with_tcp_udp_flows_no_response",
+			     getNumContactedPeersAsClientTCPUDPNoTX());
   lua_push_int32_table_entry(
       vm, "num_incoming_peers_that_sent_tcp_udp_flows_no_response",
       getNumContactsFromPeersAsServerTCPUDPNoTX());
@@ -971,6 +972,17 @@ void Host::lua(lua_State *vm, AddressTree *ptree, bool host_details,
 
   lua_unidirectional_tcp_udp_flows(vm, true);
 
+  if(fingerprint.tcp_fingerprint != NULL) {
+    lua_newtable(vm);
+
+    lua_push_str_table_entry(vm, "tcp", fingerprint.tcp_fingerprint);
+    lua_push_str_table_entry(vm, "os", ndpi_print_os_hint(fingerprint.os));
+    
+    lua_pushstring(vm, "fingerprint");
+    lua_insert(vm, -2);
+    lua_settable(vm, -3);
+  }
+  
   if (host_details) {
     lua_get_score_breakdown(vm);
     lua_blacklisted_flows(vm);
@@ -2934,5 +2946,14 @@ u_int32_t Host::syn_flood_attacker_hits() {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: counter overflow [act: %u][est: %u]",
 				 act_as_client, est_as_client);
     return(0);
+  }
+}
+
+/* *************************************** */
+
+void Host::setTCPfingerprint(char *tcp_fingerprint, enum operating_system_hint os) {
+  if(fingerprint.tcp_fingerprint == NULL) {
+    fingerprint.tcp_fingerprint = strdup(tcp_fingerprint);
+    fingerprint.os = os;
   }
 }

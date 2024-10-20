@@ -5385,12 +5385,18 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
   } else {
     /* Packet Interface */
 
+    if(flags_3wh |TH_SYN) {
+      if(ndpiFlow && ndpiFlow->tcp.fingerprint)
+	cli_host->setTCPfingerprint(ndpiFlow->tcp.fingerprint,
+				    (enum operating_system_hint)ndpiFlow->tcp.os_hint);
+    }
+      
     /* Update syn alerts counters. In case of cumulative flags, the AND is used as
      * possibly other flags can be present  */
     if (flags_3wh == TH_SYN) {
       if (cli_host)
 	cli_host->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
-
+      
       if (srv_host)
 	srv_host->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
 

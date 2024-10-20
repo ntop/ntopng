@@ -34,7 +34,10 @@ class Host : public GenericHashEntry,
   IpAddress ip;
   Mac *mac;
   char *asname, *blacklist_name;
-
+  struct {
+    char *tcp_fingerprint;
+    enum operating_system_hint os;
+  } fingerprint;
   int32_t iface_index; /* Interface index on which this host has been first observed */
   u_int16_t host_services_bitmap;
   u_int16_t vlan_id;
@@ -988,6 +991,8 @@ class Host : public GenericHashEntry,
 
   virtual SPSCQueue<std::pair<u_int16_t, u_int16_t>> *getContactedServerPorts() { return (NULL);};
   virtual char *getSerializationKey(char *buf, uint bufsize) { return (NULL); };
+
+  void setTCPfingerprint(char *tcp_fingerprint, enum operating_system_hint os);
 };
 
 #endif /* _HOST_H_ */
