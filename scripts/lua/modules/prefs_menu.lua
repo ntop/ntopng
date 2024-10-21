@@ -516,6 +516,10 @@ local menu_subpages = {{
         toggle_snmp_trap = {
             title = i18n("prefs.toggle_snmp_trap_title"),
             description = i18n("prefs.toggle_snmp_trap_description")
+        },
+        toggle_snmp_excluded_from_usage = {
+            title = i18n("prefs.toggle_snmp_excluded_from_usage_title"),
+            description = i18n("prefs.toggle_snmp_excluded_from_usage_description")
         }
     }
 }, {

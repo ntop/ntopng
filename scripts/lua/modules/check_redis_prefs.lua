@@ -261,3 +261,12 @@ end
 function isAllowedSystemInterface()
     return ntop.isAllowedInterface(tonumber(getSystemInterfaceId()))
 end
+
+-- ##############################################
+
+function areNewInterfacesExcludedFromUsage()
+    local excluded = ntop.getCache("ntopng.prefs.toggle_snmp_excluded_from_usage")
+    if not isEmptyString(excluded) or excluded == "0" then
+        return true
+    end
+end

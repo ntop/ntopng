@@ -53,7 +53,7 @@ end
 local function end_table()
     print(
         '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-            i18n("save") .. '</button></th></tr>')
+        i18n("save") .. '</button></th></tr>')
 
     print [[<input name="csrf" type="hidden" value="]]
     print(ntop.getRandomCSRFValue())
@@ -164,7 +164,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             end
 
             local ok, message = influxdb.init(_POST["influx_dbname"], url, tonumber(_POST["influx_retention"]),
-                username, password, false --[[verbose]] )
+                username, password, false --[[verbose]])
             if not ok then
                 message_info = message
                 message_severity = "alert-danger"
@@ -176,7 +176,6 @@ if auth.has_capability(auth.capabilities.preferences) then
                 message_severity = "alert-success"
             end
         end
-
     elseif (_POST["n2disk_license"] ~= nil) then
         recording_utils.setLicense(_POST["n2disk_license"])
     end
@@ -250,7 +249,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<table class="table">')
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.zmq_interfaces") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         prefsInputFieldPrefs(subpage_active.entries["ignored_interfaces"].title,
             subpage_active.entries["ignored_interfaces"].description, "ntopng.prefs.", "ignored_interfaces", "", false,
@@ -276,7 +275,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
@@ -289,7 +288,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<form method="post">')
         print('<table class="table">')
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' ..
-                  i18n("active_monitoring_stats.active_monitoring") .. '</th></tr></thead>')
+            i18n("active_monitoring_stats.active_monitoring") .. '</th></tr></thead>')
 
         prefsToggleButton(subpage_active, {
             field = "toggle_active_monitoring",
@@ -299,22 +298,22 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
         print [[" />
         </form> ]]
-
     end
+
     function printAlerts()
         print('<form method="post">')
         print('<table class="table">')
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("show_alerts.alerts") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
-        local elementToSwitch = {"row_toggle_emit_flow_alerts", "row_toggle_emit_host_alerts", "max_entity_alerts",
-                                 "max_num_secs_before_delete_alert", "row_alert_page_refresh_rate_enabled"}
+        local elementToSwitch = { "row_toggle_emit_flow_alerts", "row_toggle_emit_host_alerts", "max_entity_alerts",
+            "max_num_secs_before_delete_alert", "row_alert_page_refresh_rate_enabled" }
 
         prefsToggleButton(subpage_active, {
             field = "disable_alerts_generation",
@@ -334,7 +333,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             field = "toggle_emit_flow_alerts",
             default = "1",
             pref = "emit_flow_alerts",
-            on_value = "1", -- On  flow alerts are generated
+            on_value = "1",  -- On  flow alerts are generated
             off_value = "0", -- Off NO flow alerts are generated
             hidden = not showElements
         })
@@ -343,7 +342,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             field = "toggle_emit_host_alerts",
             default = "1",
             pref = "emit_host_alerts",
-            on_value = "1", -- On  alerts are generated
+            on_value = "1",  -- On  alerts are generated
             off_value = "0", -- Off NO alerts are generated
             hidden = not showElements
         })
@@ -365,8 +364,8 @@ if auth.has_capability(auth.capabilities.preferences) then
         prefsToggleButton(subpage_active, {
             field = "alert_page_refresh_rate_enabled",
             default = "0",
-            to_switch = {"alert_page_refresh_rate"},
-            on_value = "1", -- Refresh rate set
+            to_switch = { "alert_page_refresh_rate" },
+            on_value = "1",  -- Refresh rate set
             off_value = "0", -- Refresh rate not set
             hidden = not showElements
         })
@@ -387,7 +386,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<tr><th colspan=2 style="text-align:right;">')
         print(
             '<button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' .. i18n("save") ..
-                '</button>')
+            '</button>')
         print('</th></tr>')
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
@@ -434,7 +433,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
 
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
@@ -450,17 +449,17 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<table class="table">')
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.network_discovery") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
-        local elementToSwitch = {"toggle_periodic_network_discovery", "toggle_network_discovery_debug"}
+        local elementToSwitch = { "toggle_periodic_network_discovery", "toggle_network_discovery_debug" }
         prefsToggleButton(subpage_active, {
             field = "toggle_network_discovery",
             default = "0",
             pref = "network_discovery",
             to_switch = elementToSwitch
         })
-        
-        elementToSwitch = {"network_discovery_interval"}
+
+        elementToSwitch = { "network_discovery_interval" }
         prefsToggleButton(subpage_active, {
             field = "toggle_periodic_network_discovery",
             default = "0",
@@ -476,7 +475,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         local interval = ntop.getPref("ntopng.prefs.network_discovery_interval")
 
         if isEmptyString(interval) then -- set a default value
-            interval = 15 * 60 -- 15 minutes
+            interval = 15 * 60          -- 15 minutes
             ntop.setPref("ntopng.prefs.network_discovery_interval", tostring(interval))
         end
 
@@ -495,7 +494,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
 
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
@@ -513,14 +512,14 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<table class="table">')
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.license") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         prefsInputFieldPrefs(subpage_active.entries["n2disk_license"].title,
             subpage_active.entries["n2disk_license"].description ..
-                i18n("prefs.n2disk_license_description_enterprise_l") .. "<br>" ..
-                ternary(n2disk_info.version ~= nil, i18n("prefs.n2disk_license_version", {
-                    version = n2disk_info.version
-                }) .. "<br>", "") .. ternary(n2disk_info.systemid ~= nil, i18n("prefs.n2disk_license_systemid", {
+            i18n("prefs.n2disk_license_description_enterprise_l") .. "<br>" ..
+            ternary(n2disk_info.version ~= nil, i18n("prefs.n2disk_license_version", {
+                version = n2disk_info.version
+            }) .. "<br>", "") .. ternary(n2disk_info.systemid ~= nil, i18n("prefs.n2disk_license_systemid", {
                 systemid = n2disk_info.systemid
             }), ""), "ntopng.prefs.", "n2disk_license", ternary(n2disk_info.license ~= nil, n2disk_info.license, ""),
             false, nil, nil, nil, {
@@ -534,7 +533,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             })
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("traffic_recording.settings") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         prefsInputFieldPrefs(subpage_active.entries["max_extracted_pcap_bytes"].title,
             subpage_active.entries["max_extracted_pcap_bytes"].description, "ntopng.prefs.", "max_extracted_pcap_bytes",
@@ -548,7 +547,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
@@ -563,7 +562,7 @@ if auth.has_capability(auth.capabilities.preferences) then
     local function printMenuEntriesPrefs()
         if ntop.isEnterpriseM() then
             print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.menu_entries") ..
-                      '</th></tr></thead>')
+                '</th></tr></thead>')
         end
 
         prefsToggleButton(subpage_active, {
@@ -580,18 +579,16 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "menu_entries.developer",
             default = "1"
         })
-
     end
 
     -- #####################
 
     function printGUI()
-
         print('<form method="post">')
         print('<table class="table">')
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.web_user_interface") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         if prefs.is_autologout_enabled == true then
             prefsToggleButton(subpage_active, {
@@ -603,8 +600,8 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         -- ######################
 
-        local t_labels = {i18n("default"), i18n("white"), i18n("dark")}
-        local t_values = {"default", "white", "dark"}
+        local t_labels = { i18n("default"), i18n("white"), i18n("dark") }
+        local t_values = { "default", "white", "dark" }
         local label = "toggle_theme"
 
         multipleTableButtonPrefs(subpage_active.entries[label].title, subpage_active.entries[label].description,
@@ -612,8 +609,8 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         -- ######################
 
-        local d_labels = {i18n("little_endian"), i18n("middle_endian"), i18n("big_endian")}
-        local d_values = {"little_endian", "middle_endian", "big_endian"}
+        local d_labels = { i18n("little_endian"), i18n("middle_endian"), i18n("big_endian") }
+        local d_values = { "little_endian", "middle_endian", "big_endian" }
         local d_label = "toggle_date_type"
 
         multipleTableButtonPrefs(subpage_active.entries[d_label].title, subpage_active.entries[d_label].description,
@@ -668,7 +665,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
@@ -682,7 +679,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<table class="table">')
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.connectivity_check") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         prefsInputFieldPrefs(subpage_active.entries["connectivity_check_url"].title,
             subpage_active.entries["connectivity_check_url"].description, "ntopng.prefs.", "connectivity_check_url", "",
@@ -695,10 +692,10 @@ if auth.has_capability(auth.capabilities.preferences) then
             })
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.report") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
-        local t_labels = {i18n("bytes"), i18n("packets")}
-        local t_values = {"bps", "pps"}
+        local t_labels = { i18n("bytes"), i18n("packets") }
+        local t_values = { "bps", "pps" }
 
         multipleTableButtonPrefs(subpage_active.entries["toggle_thpt_content"].title,
             subpage_active.entries["toggle_thpt_content"].description, t_labels, t_values, "bps", "primary",
@@ -707,9 +704,9 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- ######################
 
         if ntop.isPro() then
-            t_labels = {i18n("topk_heuristic.precision.disabled"), i18n("topk_heuristic.precision.more_accurate"),
-                        i18n("topk_heuristic.precision.less_accurate"), i18n("topk_heuristic.precision.aggressive")}
-            t_values = {"disabled", "more_accurate", "accurate", "aggressive"}
+            t_labels = { i18n("topk_heuristic.precision.disabled"), i18n("topk_heuristic.precision.more_accurate"),
+                i18n("topk_heuristic.precision.less_accurate"), i18n("topk_heuristic.precision.aggressive") }
+            t_values = { "disabled", "more_accurate", "accurate", "aggressive" }
 
             multipleTableButtonPrefs(subpage_active.entries["topk_heuristic_precision"].title,
                 subpage_active.entries["topk_heuristic_precision"].description, t_labels, t_values, "more_accurate",
@@ -720,10 +717,10 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         if (isAdministratorOrPrintErr()) then
             print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("hosts") ..
-                      '</th></tr></thead>')
+                '</th></tr></thead>')
 
-            local h_labels = {i18n("prefs.no_host_mask"), i18n("prefs.local_host_mask"), i18n("prefs.remote_host_mask")}
-            local h_values = {"0", "1", "2"}
+            local h_labels = { i18n("prefs.no_host_mask"), i18n("prefs.local_host_mask"), i18n("prefs.remote_host_mask") }
+            local h_values = { "0", "1", "2" }
 
             multipleTableButtonPrefs(subpage_active.entries["toggle_host_mask"].title,
                 subpage_active.entries["toggle_host_mask"].description, h_labels, h_values, "0", "primary",
@@ -740,11 +737,10 @@ if auth.has_capability(auth.capabilities.preferences) then
                 default = "0",
                 pref = "fingerprint_stats"
             })
-
         end
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.flow_table") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         prefsToggleButton(subpage_active, {
             field = "toggle_flow_begin",
@@ -752,14 +748,14 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "first_seen_set"
         })
 
-        local h_labels = {i18n("prefs.duration"), i18n("prefs.last_seen")}
-        local h_values = {"0", "1"}
+        local h_labels = { i18n("prefs.duration"), i18n("prefs.last_seen") }
+        local h_values = { "0", "1" }
 
         multipleTableButtonPrefs(subpage_active.entries["flow_table_time"].title,
             subpage_active.entries["flow_table_time"].description, h_labels, h_values, "0", "primary",
             "flow_table_time", "ntopng.prefs.flow_table_time")
 
-        h_labels = {i18n("prefs.ip_order"), i18n("prefs.name_order")}
+        h_labels = { i18n("prefs.ip_order"), i18n("prefs.name_order") }
 
         multipleTableButtonPrefs(subpage_active.entries["flow_table_probe_order"].title,
             subpage_active.entries["flow_table_probe_order"].description, h_labels, h_values, "0", "primary",
@@ -767,7 +763,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
@@ -782,7 +778,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<table class="table">')
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.updates") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
         prefsToggleButton(subpage_active, {
             field = "toggle_autoupdates",
             default = "0",
@@ -793,26 +789,25 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
         print [[" />
     </form>]]
-
     end
 
     -- ================================================================================
 
     local function printAuthDuration()
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.authentication_duration") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         prefsInputFieldPrefs(subpage_active.entries["authentication_duration"].title,
             subpage_active.entries["authentication_duration"].description, "ntopng.prefs.", "auth_session_duration",
             prefs.auth_session_duration, "number", true, nil, nil, {
-                min = 60 --[[ 1 minute --]] ,
-                max = 86400 * 7 --[[ 7 days --]] ,
+                min = 60 --[[ 1 minute --]],
+                max = 86400 * 7 --[[ 7 days --]],
                 tformat = "mhd"
             })
 
@@ -821,7 +816,6 @@ if auth.has_capability(auth.capabilities.preferences) then
             default = "0",
             pref = "auth_session_midnight_expiration"
         })
-
     end
 
     -- ================================================================================
@@ -832,11 +826,11 @@ if auth.has_capability(auth.capabilities.preferences) then
         end
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.ldap_authentication") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
-        local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind", "server",
-                                 "bind_dn", "bind_pwd", "ldap_server_address", "search_path", "user_group",
-                                 "admin_group", "row_toggle_ldap_referrals"}
+        local elementToSwitch = { "row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind", "server",
+            "bind_dn", "bind_pwd", "ldap_server_address", "search_path", "user_group",
+            "admin_group", "row_toggle_ldap_referrals" }
 
         prefsToggleButton(subpage_active, {
             field = auth_toggles.ldap,
@@ -848,26 +842,26 @@ if auth.has_capability(auth.capabilities.preferences) then
             -- enabled when both "host cache" and "cache" are enabled).
             -- The following inputs will be shown/hidden when this preference changes.
             nested_to_switch = { -- input: the input ID to toggle (e.g. the "local hosts cache")
-            -- parent: the parent of the input which affects the input logic (e.g. "host cache")
-            -- parent_enabled_value: the parent input value that should make the child input visible
-            -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
-            {
-                input = "bind_dn",
-                parent = "input-toggle_ldap_anonymous_bind",
-                parent_enabled_value = "0",
-                pref_enabled_value = "1"
-            }, {
+                -- parent: the parent of the input which affects the input logic (e.g. "host cache")
+                -- parent_enabled_value: the parent input value that should make the child input visible
+                -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
+                {
+                    input = "bind_dn",
+                    parent = "input-toggle_ldap_anonymous_bind",
+                    parent_enabled_value = "0",
+                    pref_enabled_value = "1"
+                }, {
                 input = "bind_pwd",
                 parent = "input-toggle_ldap_anonymous_bind",
                 parent_enabled_value = "0",
                 pref_enabled_value = "1"
-            }}
+            } }
         })
 
         local showElements = (ntop.getPref("ntopng.prefs.ldap.auth_enabled") == "1")
 
-        local labels_account = {i18n("prefs.posix"), i18n("prefs.samaccount")}
-        local values_account = {"posix", "samaccount"}
+        local labels_account = { i18n("prefs.posix"), i18n("prefs.samaccount") }
+        local values_account = { "posix", "samaccount" }
         multipleTableButtonPrefs(subpage_active.entries["multiple_ldap_account_type"].title,
             subpage_active.entries["multiple_ldap_account_type"].description, labels_account, values_account, "posix",
             "primary", "multiple_ldap_account_type", "ntopng.prefs.ldap.account_type", nil, nil, nil, nil, showElements)
@@ -883,7 +877,7 @@ if auth.has_capability(auth.capabilities.preferences) then
                 }
             })
 
-        local elementToSwitchBind = {"bind_dn", "bind_pwd"}
+        local elementToSwitchBind = { "bind_dn", "bind_pwd" }
         prefsToggleButton(subpage_active, {
             field = "toggle_ldap_anonymous_bind",
             default = "1",
@@ -958,13 +952,13 @@ if auth.has_capability(auth.capabilities.preferences) then
         end
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.radius_auth") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         -- RADIUS GUI authentication
 
-        local elementToSwitch = {"row_toggle_radius_accounting", "row_toggle_radius_external_auth_for_local_users",
-                                 "radius_admin_group", "radius_unpriv_capabilties_group", "radius_server_address",
-                                 "radius_acct_server_address", "radius_secret", "row_radius_auth_proto"}
+        local elementToSwitch = { "row_toggle_radius_accounting", "row_toggle_radius_external_auth_for_local_users",
+            "radius_admin_group", "radius_unpriv_capabilties_group", "radius_server_address",
+            "radius_acct_server_address", "radius_secret", "row_radius_auth_proto" }
 
         prefsToggleButton(subpage_active, {
             field = auth_toggles.radius,
@@ -998,14 +992,14 @@ if auth.has_capability(auth.capabilities.preferences) then
                 }
             })
 
-        local labels_auth_protocols = {i18n("prefs.pap"), i18n("prefs.chap")}
-        local values_auth_protocols = {"pap", "chap"}
+        local labels_auth_protocols = { i18n("prefs.pap"), i18n("prefs.chap") }
+        local values_auth_protocols = { "pap", "chap" }
         multipleTableButtonPrefs(subpage_active.entries["radius_auth_proto"].title,
             subpage_active.entries["radius_auth_proto"].description, labels_auth_protocols, values_auth_protocols,
             "pap", "primary", "radius_auth_proto", "ntopng.prefs.radius.radius_auth_proto", nil, nil, nil, nil,
             showElements)
 
-        local groupsElements = {"radius_admin_group", "radius_unpriv_capabilties_group"}
+        local groupsElements = { "radius_admin_group", "radius_unpriv_capabilties_group" }
         local showGroupsElements = (ntop.getPref("ntopng.prefs.radius.external_auth_for_local_users_enabled") ~= "1")
         prefsToggleButton(subpage_active, {
             field = "toggle_radius_external_auth_for_local_users",
@@ -1036,7 +1030,7 @@ if auth.has_capability(auth.capabilities.preferences) then
                 }
             })
 
-        local accountingElements = {"radius_acct_server_address"}
+        local accountingElements = { "radius_acct_server_address" }
 
         prefsToggleButton(subpage_active, {
             field = "toggle_radius_accounting",
@@ -1064,9 +1058,9 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     local function printHttpAuth()
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.http_auth") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
-        local elementToSwitch = {"http_auth_url"}
+        local elementToSwitch = { "http_auth_url" }
 
         prefsToggleButton(subpage_active, {
             field = auth_toggles.http,
@@ -1079,7 +1073,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         prefsInputFieldPrefs(subpage_active.entries["http_auth_server"].title,
             subpage_active.entries["http_auth_server"].description, "ntopng.prefs.http_authenticator", "http_auth_url",
-            "", nil, showElements, true, true --[[ allowUrls ]] , {
+            "", nil, showElements, true, true --[[ allowUrls ]], {
                 attributes = {
                     spellcheck = "false",
                     maxlength = 255,
@@ -1093,7 +1087,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         prefsInputFieldPrefs(subpage_active.entries["http_auth_server"].title,
             subpage_active.entries["http_auth_server"].description,
             "ntopng.prefs.http_authenticator.log_positive_event_enabled", "http_auth_url", "", nil, showElements, true,
-            true --[[ allowUrls ]] , {
+            true --[[ allowUrls ]], {
                 attributes = {
                     spellcheck = "false",
                     maxlength = 255,
@@ -1107,7 +1101,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
     local function printLocalAuth()
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.local_auth") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         prefsToggleButton(subpage_active, {
             field = auth_toggles["local"],
@@ -1128,7 +1122,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         -- Note: order must correspond to evaluation order in Ntop.cpp
         print('<thead class="table-primary"><tr><th class="info" colspan="2">' .. i18n("prefs.client_x509_auth") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
         prefsToggleButton(subpage_active, {
             field = "toggle_client_x509_auth",
             default = "0",
@@ -1160,7 +1154,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
@@ -1171,14 +1165,13 @@ if auth.has_capability(auth.capabilities.preferences) then
     -- #####################
 
     function printOTProtocols()
-
         print('<form method="post">')
         print('<table class="table">')
 
         -- ######################
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.ot_protocols") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
         -- By default 1 hour of learning
         prefsInputFieldPrefs(subpage_active.entries["iec60870_learning_period"].title,
             subpage_active.entries["iec60870_learning_period"].description, "ntopng.prefs.", "iec60870_learning_period",
@@ -1197,7 +1190,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
 
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
@@ -1221,7 +1214,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- ######################
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.service_map") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
         -- Behavior analysis for asn, network and l7proto (iface)
 
         local is_behaviour_analysis_enabled = ntop.isEnterpriseL()
@@ -1235,22 +1228,22 @@ if auth.has_capability(auth.capabilities.preferences) then
             })
 
         multipleTableButtonPrefs(subpage_active.entries["behaviour_analysis_learning_status_during_learning"].title,
-            subpage_active.entries["behaviour_analysis_learning_status_during_learning"].description, {i18n(
-                "traffic_behaviour.undecided"), i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
-            {LEARNING_STATUS.UNDECIDED, LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
-            "primary", -- [selected color]
+            subpage_active.entries["behaviour_analysis_learning_status_during_learning"].description, { i18n(
+                "traffic_behaviour.undecided"), i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied") },
+            { LEARNING_STATUS.UNDECIDED, LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED }, LEARNING_STATUS.ALLOWED, -- [default value]
+            "primary",                                                                                             -- [selected color]
             "behaviour_analysis_learning_status_during_learning",
-            "ntopng.prefs.behaviour_analysis_learning_status_during_learning", -- [redis key]
-            false, -- [disabled]
-            {}, nil, nil, is_behaviour_analysis_enabled --[[show]] )
+            "ntopng.prefs.behaviour_analysis_learning_status_during_learning",                                     -- [redis key]
+            false,                                                                                                 -- [disabled]
+            {}, nil, nil, is_behaviour_analysis_enabled --[[show]])
 
         multipleTableButtonPrefs(subpage_active.entries["behaviour_analysis_learning_status_post_learning"].title,
-            subpage_active.entries["behaviour_analysis_learning_status_post_learning"].description, {i18n(
-                "traffic_behaviour.undecided"), i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
-            {LEARNING_STATUS.UNDECIDED, LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
+            subpage_active.entries["behaviour_analysis_learning_status_post_learning"].description, { i18n(
+                "traffic_behaviour.undecided"), i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied") },
+            { LEARNING_STATUS.UNDECIDED, LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED }, LEARNING_STATUS.ALLOWED, -- [default value]
             "primary", "behaviour_analysis_learning_status_post_learning",
             "ntopng.prefs.behaviour_analysis_learning_status_post_learning", false, {}, nil, nil,
-            is_behaviour_analysis_enabled --[[show]] )
+            is_behaviour_analysis_enabled --[[show]])
 
         -- #####################
 
@@ -1258,7 +1251,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         if is_device_connection_disconnection_analysis_enabled then
             print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.devices_behaviour") ..
-                      '</th></tr></thead>')
+                '</th></tr></thead>')
             -- Behavior analysis for asn, network and l7proto (iface)
 
             prefsInputFieldPrefs(subpage_active.entries["devices_learning_period"].title,
@@ -1271,25 +1264,25 @@ if auth.has_capability(auth.capabilities.preferences) then
 
             multipleTableButtonPrefs(subpage_active.entries["devices_status_during_learning"].title,
                 subpage_active.entries["devices_status_during_learning"].description,
-                {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
-                {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
-                "primary", -- [selected color]
+                { i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied") },
+                { LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED }, LEARNING_STATUS.ALLOWED,    -- [default value]
+                "primary",                                                                       -- [selected color]
                 "devices_status_during_learning", "ntopng.prefs.devices_status_during_learning", -- [redis key]
-                false, -- [disabled]
-                {}, nil, nil, is_device_connection_disconnection_analysis_enabled --[[show]] )
+                false,                                                                           -- [disabled]
+                {}, nil, nil, is_device_connection_disconnection_analysis_enabled --[[show]])
 
             multipleTableButtonPrefs(subpage_active.entries["devices_status_post_learning"].title,
                 subpage_active.entries["devices_status_post_learning"].description,
-                {i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied")},
-                {LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED}, LEARNING_STATUS.ALLOWED, -- [default value]
+                { i18n("traffic_behaviour.allowed"), i18n("traffic_behaviour.denied") },
+                { LEARNING_STATUS.ALLOWED, LEARNING_STATUS.DENIED }, LEARNING_STATUS.ALLOWED, -- [default value]
                 "primary", "devices_status_post_learning", "ntopng.prefs.devices_status_post_learning", false, {}, nil,
-                nil, is_device_connection_disconnection_analysis_enabled --[[show]] )
+                nil, is_device_connection_disconnection_analysis_enabled --[[show]])
         end
 
         -- #####################
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.host_analysis") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         prefsInputFieldPrefs(subpage_active.entries["host_port_learning_period"].title,
             subpage_active.entries["host_port_learning_period"].description, "ntopng.prefs.",
@@ -1302,7 +1295,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
 
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
@@ -1318,7 +1311,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print('<table class="table">')
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.stats_reset") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
         prefsToggleButton(subpage_active, {
             field = "toggle_midnight_stats_reset",
             default = "0",
@@ -1327,28 +1320,28 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.local_hosts_cache_settings") ..
-                '</th></tr></thead>')
+            '</th></tr></thead>')
 
         prefsToggleButton(subpage_active, {
             field = "toggle_local_host_cache_enabled",
             default = "1",
             pref = "is_local_host_cache_enabled",
-            to_switch = {"local_host_cache_duration", "row_toggle_active_local_host_cache_enabled",
-                         "active_local_host_cache_interval"},
+            to_switch = { "local_host_cache_duration", "row_toggle_active_local_host_cache_enabled",
+                "active_local_host_cache_interval" },
 
             -- Similar to "to_switch" but for nested items (e.g. "local hosts cache" only
             -- enabled when both "host cache" and "cache" are enabled).
             -- The following inputs will be shown/hidden when this preference changes.
             nested_to_switch = { -- input: the input ID to toggle (e.g. the "local hosts cache")
-            -- parent: the parent of the input which affects the input logic (e.g. "host cache")
-            -- parent_enabled_value: the parent input value that should make the child input visible
-            -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
-            {
-                input = "active_local_host_cache_interval",
-                parent = "input-toggle_active_local_host_cache_enabled",
-                parent_enabled_value = "1",
-                pref_enabled_value = "1"
-            }}
+                -- parent: the parent of the input which affects the input logic (e.g. "host cache")
+                -- parent_enabled_value: the parent input value that should make the child input visible
+                -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
+                {
+                    input = "active_local_host_cache_interval",
+                    parent = "input-toggle_active_local_host_cache_enabled",
+                    parent_enabled_value = "1",
+                    pref_enabled_value = "1"
+                } }
         })
 
         local showLocalHostCacheInterval = false
@@ -1368,7 +1361,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             field = "toggle_active_local_host_cache_enabled",
             default = "0",
             pref = "is_active_local_host_cache_enabled",
-            to_switch = {"active_local_host_cache_interval"}
+            to_switch = { "active_local_host_cache_interval" }
         })
 
         local showActiveLocalHostCacheInterval = false
@@ -1395,7 +1388,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print('<table class="table">')
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.idle_timeout_settings") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         prefsInputFieldPrefs(subpage_active.entries["flow_max_idle"].title,
             subpage_active.entries["flow_max_idle"].description, "ntopng.prefs.", "flow_max_idle", prefs.flow_max_idle,
@@ -1426,7 +1419,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
@@ -1477,12 +1470,12 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         if not force_rrd then
             print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.timeseries_database') ..
-                      '</th></tr></thead>')
+                '</th></tr></thead>')
         end
 
-        local elementToSwitch = {"ts_post_data_url", "influx_dbname", "influx_retention", "row_toggle_influx_auth",
-                                 "influx_username", "influx_password", "row_ts_high_resolution"}
-        local showElementArray = {false, true, false}
+        local elementToSwitch = { "ts_post_data_url", "influx_dbname", "influx_retention", "row_toggle_influx_auth",
+            "influx_username", "influx_password", "row_ts_high_resolution" }
+        local showElementArray = { false, true, false }
 
         local active_driver = "rrd"
         local influx_active = false
@@ -1492,25 +1485,25 @@ if auth.has_capability(auth.capabilities.preferences) then
             -- enabled when both "host cache" and "cache" are enabled).
             -- The following inputs will be shown/hidden when this preference changes.
             local nested_to_switch = { -- input: the input ID to toggle (e.g. the "local hosts cache")
-            -- parent: the parent of the input which affects the input logic (e.g. "host cache")
-            -- parent_enabled_value: the parent input value that should make the child input visible
-            -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
-            {
-                input = "influx_username",
-                parent = "input-toggle_influx_auth",
-                parent_enabled_value = "1",
-                pref_enabled_value = "influxdb"
-            }, {
+                -- parent: the parent of the input which affects the input logic (e.g. "host cache")
+                -- parent_enabled_value: the parent input value that should make the child input visible
+                -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
+                {
+                    input = "influx_username",
+                    parent = "input-toggle_influx_auth",
+                    parent_enabled_value = "1",
+                    pref_enabled_value = "influxdb"
+                }, {
                 input = "influx_password",
                 parent = "input-toggle_influx_auth",
                 parent_enabled_value = "1",
                 pref_enabled_value = "influxdb"
-            }}
+            } }
 
             multipleTableButtonPrefs(subpage_active.entries["multiple_timeseries_database"].title,
-                subpage_active.entries["multiple_timeseries_database"].description, {"RRD", "InfluxDB 1.x/2.x"},
-                {"rrd", "influxdb"}, "rrd", "primary", "timeseries_driver", "ntopng.prefs.timeseries_driver", nil,
-                elementToSwitch, showElementArray, nested_to_switch, true --[[show]] )
+                subpage_active.entries["multiple_timeseries_database"].description, { "RRD", "InfluxDB 1.x/2.x" },
+                { "rrd", "influxdb" }, "rrd", "primary", "timeseries_driver", "ntopng.prefs.timeseries_driver", nil,
+                elementToSwitch, showElementArray, nested_to_switch, true --[[show]])
 
             active_driver = ntop.getPref("ntopng.prefs.timeseries_driver")
             influx_active = (active_driver == "influxdb")
@@ -1540,7 +1533,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             field = "toggle_influx_auth",
             default = "0",
             pref = "influx_auth_enabled",
-            to_switch = {"influx_username", "influx_password"},
+            to_switch = { "influx_username", "influx_password" },
             hidden = not influx_active
         })
 
@@ -1564,15 +1557,16 @@ if auth.has_capability(auth.capabilities.preferences) then
                 pattern = "[^\\s]+"
             })
 
-        local resolutions_labels = {"1m", "5m"}
-        local resolutions_values = {"60", "300"}
+        local resolutions_labels = { "1m", "5m" }
+        local resolutions_values = { "60", "300" }
 
         multipleTableButtonPrefs(subpage_active.entries["timeseries_resolution_resolution"].title,
             subpage_active.entries["timeseries_resolution_resolution"].description .. "<br><b>" .. i18n("notes") ..
-                [[</b>:<ul>
+            [[</b>:<ul>
       <li>]] .. i18n("prefs.ts_resolution_note2", {
                 external_icon = "<i class='fas fa-external-link-alt'></i>",
-                url = "https://docs.influxdata.com/influxdb/v1.8/query_language/manage-database/#delete-a-database-with-drop-database"
+                url =
+                "https://docs.influxdata.com/influxdb/v1.8/query_language/manage-database/#delete-a-database-with-drop-database"
             }) .. [[</li>
       </ul>]], resolutions_labels, resolutions_values, "300", "primary", "ts_high_resolution",
             "ntopng.prefs.ts_resolution", nil, nil, nil, nil, influx_active)
@@ -1591,12 +1585,12 @@ if auth.has_capability(auth.capabilities.preferences) then
             })
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.interfaces_timeseries') ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         -- TODO: make also per-category interface RRDs
-        local l7_rrd_labels = {i18n("prefs.none"), i18n("prefs.per_protocol"), i18n("prefs.per_category"),
-                               i18n("prefs.both")}
-        local l7_rrd_values = {"none", "per_protocol", "per_category", "both"}
+        local l7_rrd_labels = { i18n("prefs.none"), i18n("prefs.per_protocol"), i18n("prefs.per_category"),
+            i18n("prefs.both") }
+        local l7_rrd_values = { "none", "per_protocol", "per_category", "both" }
 
         local elementToSwitch = {}
         local showElementArray = nil -- { true, false, false }
@@ -1605,7 +1599,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             field = "toggle_interface_traffic_rrd_creation",
             default = "1",
             pref = "interface_rrd_creation",
-            to_switch = {"row_interfaces_ndpi_timeseries_creation"}
+            to_switch = { "row_interfaces_ndpi_timeseries_creation" }
         })
 
         local showElement = ntop.getPref("ntopng.prefs.interface_rrd_creation") == "1"
@@ -1616,12 +1610,12 @@ if auth.has_capability(auth.capabilities.preferences) then
             "ntopng.prefs.interface_ndpi_timeseries_creation", nil, elementToSwitch, showElementArray, nil, showElement)
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.local_hosts_timeseries') ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
-        local hosts_rrd_labels = {i18n("off"), i18n("light"), i18n("full")}
-        local hosts_rrd_values = {"off", "light", "full"}
-        local hostElemsToSwitch = {"row_hosts_ndpi_timeseries_creation", "row_toggle_local_hosts_one_way_ts"}
-        local hostShowElementArray = {{false, false, true} --[[ ndpi ]] , {false, true, true} --[[ one-way traffic ]] }
+        local hosts_rrd_labels = { i18n("off"), i18n("light"), i18n("full") }
+        local hosts_rrd_values = { "off", "light", "full" }
+        local hostElemsToSwitch = { "row_hosts_ndpi_timeseries_creation", "row_toggle_local_hosts_one_way_ts" }
+        local hostShowElementArray = { { false, false, true } --[[ ndpi ]], { false, true, true } --[[ one-way traffic ]] }
 
         multipleTableButtonPrefs(subpage_active.entries["toggle_local_hosts_ts_creation"].title,
             subpage_active.entries["toggle_local_hosts_ts_creation"].description, hosts_rrd_labels, hosts_rrd_values,
@@ -1644,17 +1638,17 @@ if auth.has_capability(auth.capabilities.preferences) then
             elementToSwitch, showElementArray, nil, show_host_l7)
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.l2_devices_timeseries') ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         prefsToggleButton(subpage_active, {
             field = "toggle_l2_devices_traffic_rrd_creation",
             default = "0",
             pref = "l2_device_rrd_creation",
-            to_switch = {"row_l2_devices_ndpi_timeseries_creation"}
+            to_switch = { "row_l2_devices_ndpi_timeseries_creation" }
         })
 
-        local l7_rrd_labels = {i18n("prefs.none"), i18n("prefs.per_category")}
-        local l7_rrd_values = {"none", "per_category"}
+        local l7_rrd_labels = { i18n("prefs.none"), i18n("prefs.per_category") }
+        local l7_rrd_values = { "none", "per_category" }
 
         local showElement = ntop.getPref("ntopng.prefs.l2_device_rrd_creation") == "1"
 
@@ -1665,7 +1659,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.system_probes_timeseries') ..
-                '</th></tr></thead>')
+            '</th></tr></thead>')
 
         prefsToggleButton(subpage_active, {
             field = "toggle_system_probes_timeseries",
@@ -1675,18 +1669,18 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         if ntop.isPro() then
             print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.exporter_timeseries') ..
-                      '</th></tr></thead>')
+                '</th></tr></thead>')
 
             prefsToggleButton(subpage_active, {
                 field = "toggle_flow_rrds",
                 default = "0",
                 pref = "flow_device_port_rrd_creation",
                 disabled = not info["version.enterprise_edition"],
-                to_switch = {"row_exporters_ts_resolution"}
+                to_switch = { "row_exporters_ts_resolution" }
             })
 
-            local resolutions_labels = {"1m", "5m"}
-            local resolutions_values = {"60", "300"}
+            local resolutions_labels = { "1m", "5m" }
+            local resolutions_values = { "60", "300" }
 
             multipleTableButtonPrefs(subpage_active.entries["toggle_flow_rrds_resolution"].title,
                 subpage_active.entries["toggle_flow_rrds_resolution"].description, resolutions_labels,
@@ -1702,7 +1696,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         end
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.other_timeseries') ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         if ntop.isPro() then
             prefsToggleButton(subpage_active, {
@@ -1822,7 +1816,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         end
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
         print('</table>')
 
         print [[<input name="csrf" type="hidden" value="]]
@@ -1840,7 +1834,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<form method="post">')
         print('<table class="table">')
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.logging") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         loggingSelector(subpage_active.entries["toggle_logging_level"].title,
             subpage_active.entries["toggle_logging_level"].description, "toggle_logging_level",
@@ -1866,7 +1860,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
 
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
@@ -1898,8 +1892,8 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "snmp_polling"
         })
 
-        local t_labels = {"v1", "v2c"}
-        local t_values = {"0", "1"}
+        local t_labels = { "v1", "v2c" }
+        local t_values = { "0", "1" }
 
         multipleTableButtonPrefs(subpage_active.entries["default_snmp_proto_version"].title,
             subpage_active.entries["default_snmp_proto_version"].description, t_labels, t_values, "1", "primary",
@@ -1922,6 +1916,14 @@ if auth.has_capability(auth.capabilities.preferences) then
                 max = 10
             })
 
+        if (ntop.isEnterpriseL()) then
+            prefsToggleButton(subpage_active, {
+                field = "toggle_snmp_excluded_from_usage",
+                default = "0",
+                pref = "toggle_snmp_excluded_from_usage"
+            })
+        end
+
         if (ntop.isEnterpriseXL()) then
             prefsToggleButton(subpage_active, {
                 field = "toggle_snmp_trap",
@@ -1929,6 +1931,8 @@ if auth.has_capability(auth.capabilities.preferences) then
                 pref = "toggle_snmp_trap"
             })
         end
+
+        tprint(areNewInterfacesExcludedFromUsage())
 
         prefsToggleButton(subpage_active, {
             field = "toggle_snmp_debug",
@@ -1942,7 +1946,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
 
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
@@ -1956,7 +1960,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<table class="table">')
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' ..
-                  i18n("hosts_stats.page_scan_hosts.prefs_tab_title") .. '</th></tr></thead>')
+            i18n("hosts_stats.page_scan_hosts.prefs_tab_title") .. '</th></tr></thead>')
 
         prefsInputFieldPrefs(subpage_active.entries["vs_concurrently_scan_number"].title,
             subpage_active.entries["vs_concurrently_scan_number"].description, "ntopng.prefs.",
@@ -1973,24 +1977,23 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
 
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
         print [[" />
     </form>
     </table>]]
-
     end
 
     function printDumpSettings()
         print('<form method="post">')
         print('<table class="table">')
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.flows_dump") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
-        local elements_to_switch = {"row_toggle_tiny_flows_dump", "max_num_packets_per_tiny_flow",
-                                    "max_num_bytes_per_tiny_flow"}
+        local elements_to_switch = { "row_toggle_tiny_flows_dump", "max_num_packets_per_tiny_flow",
+            "max_num_bytes_per_tiny_flow" }
         if prefs.is_dump_flows_to_es_enabled then
             elements_to_switch[#elements_to_switch + 1] = "dump_frequency"
         end
@@ -2004,20 +2007,20 @@ if auth.has_capability(auth.capabilities.preferences) then
             -- enabled when both "host cache" and "cache" are enabled).
             -- The following inputs will be shown/hidden when this preference changes.
             nested_to_switch = { -- input: the input ID to toggle (e.g. the "local hosts cache")
-            -- parent: the parent of the input which affects the input logic (e.g. "host cache")
-            -- parent_enabled_value: the parent input value that should make the child input visible
-            -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
-            {
-                input = "max_num_packets_per_tiny_flow",
-                parent = "input-toggle_tiny_flows_dump",
-                parent_enabled_value = "1",
-                pref_enabled_value = "1"
-            }, {
+                -- parent: the parent of the input which affects the input logic (e.g. "host cache")
+                -- parent_enabled_value: the parent input value that should make the child input visible
+                -- pref_enabled_value: this preference value that should make the child input visible (e.g. "1" when "cache" is enabled)
+                {
+                    input = "max_num_packets_per_tiny_flow",
+                    parent = "input-toggle_tiny_flows_dump",
+                    parent_enabled_value = "1",
+                    pref_enabled_value = "1"
+                }, {
                 input = "max_num_bytes_per_tiny_flow",
                 parent = "input-toggle_tiny_flows_dump",
                 parent_enabled_value = "1",
                 pref_enabled_value = "1"
-            }}
+            } }
         })
 
         local showAllElements = ntop.getPref("ntopng.prefs.enable_runtime_flows_dump") ~= "0"
@@ -2034,7 +2037,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             field = "toggle_tiny_flows_dump",
             default = "1",
             pref = "tiny_flows_export_enabled",
-            to_switch = {"max_num_packets_per_tiny_flow", "max_num_bytes_per_tiny_flow"},
+            to_switch = { "max_num_packets_per_tiny_flow", "max_num_bytes_per_tiny_flow" },
             reverse_switch = true,
             hidden = not showAllElements
         })
@@ -2058,7 +2061,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
 
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
@@ -2071,7 +2074,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<form method="post">')
         print('<table class="table">')
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.clickhouse") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         local showAggregateFlowsPrefs = ntop.isEnterpriseXL() and ntop.isClickHouseEnabled()
 
@@ -2114,7 +2117,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         })
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
 
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
@@ -2130,7 +2133,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         -- ######################
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.names") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         local ntopng_host_info = ntop.getHostInformation()
         prefsInputFieldPrefs(subpage_active.entries["ntopng_host_address"].title,
@@ -2156,7 +2159,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             })
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
 
         print('</table>')
         print [[<input name="csrf" type="hidden" value="]]
@@ -2171,11 +2174,11 @@ if auth.has_capability(auth.capabilities.preferences) then
         local lint_preference = "message_broker"
         local showElement = (ntop.getPref("ntopng.prefs.toggle_message_broker") == "1")
         local brokers_list = {
-            names = {i18n('prefs.nats') --[[, i18n('prefs.mqtt')]] },
-            ids = {'nats' --[[, 'mqtt']] }
+            names = { i18n('prefs.nats') --[[, i18n('prefs.mqtt')]] },
+            ids = { 'nats' --[[, 'mqtt']] }
         }
-        local elementsToSwitch = {"row_message_broker", "message_broker_url", "message_broker_username",
-                                  "message_broker_password", "message_broker_topics_list"}
+        local elementsToSwitch = { "row_message_broker", "message_broker_url", "message_broker_username",
+            "message_broker_password", "message_broker_topics_list" }
         if (_POST["toggle_message_broker"]) then
             showElement = (_POST["toggle_message_broker"] == "1")
         end
@@ -2201,11 +2204,12 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         multipleTableButtonPrefs(subpage_active.entries["message_brokers_list"].title,
             subpage_active.entries["message_brokers_list"].description, brokers_list.names, brokers_list.ids,
-            default_broker_id, "primary", lint_preference, "ntopng.prefs.message_broker", {nil}, nil, nil, nil,
-            showElement, default_broker_id --[[show]] )
+            default_broker_id, "primary", lint_preference, "ntopng.prefs.message_broker", { nil }, nil, nil, nil,
+            showElement, default_broker_id --[[show]])
 
         prefsInputFieldPrefs(subpage_active.entries["message_broker_url"].title,
-            subpage_active.entries["message_broker_url"].description, "ntopng.prefs.", "message_broker_url", prefs.message_broker_url, "text",
+            subpage_active.entries["message_broker_url"].description, "ntopng.prefs.", "message_broker_url",
+            prefs.message_broker_url, "text",
             showElement, nil, nil, {
                 attributes = {
                     spellcheck = "false"
@@ -2277,7 +2281,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         end
 
         -- ntop asset inventory
-        --[[ 
+        --[[
             prefsToggleButton(subpage_active, {
                 field = "toggle_ntopng_assets_inventory",
                 default = "0",
@@ -2291,7 +2295,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             field = "toggle_netbox",
             default = "0",
             pref = "toggle_netbox",
-            to_switch = {"netbox_activation_url", "netbox_default_site", "netbox_personal_access_token"}
+            to_switch = { "netbox_activation_url", "netbox_default_site", "netbox_personal_access_token" }
         })
 
         -- (label, comment, prekey, key, default_value, _input_type, showEnabled, disableAutocomplete, allowURLs, extra)
@@ -2335,7 +2339,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
 
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
@@ -2348,7 +2352,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<form method="post">')
         print('<table class="table">')
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("prefs.reports") ..
-                  '</th></tr></thead>')
+            '</th></tr></thead>')
 
         prefsToggleButton(subpage_active, {
             field = "toggle_enable_automatic_reports",
@@ -2367,7 +2371,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
-                i18n("save") .. '</button></th></tr>')
+            i18n("save") .. '</button></th></tr>')
 
         print [[<input name="csrf" type="hidden" value="]]
         print(ntop.getRandomCSRFValue())
@@ -2403,9 +2407,9 @@ if auth.has_capability(auth.capabilities.preferences) then
                 <input name="csrf" type="hidden" value="]] .. ntop.getRandomCSRFValue() .. [[" />
                 <div class="btn-group btn-toggle mt-2">
                   <button class='btn btn-sm ]] .. expert_view_class .. [[' name='show_advanced_prefs' value='true'>]] ..
-              i18n("prefs.expert_view") .. [[</button>
+        i18n("prefs.expert_view") .. [[</button>
                   <button class='btn btn-sm ]] .. simple_view_class .. [[' name='show_advanced_prefs' value='false'>]] ..
-              i18n("prefs.simple_view") .. [[</button>
+        i18n("prefs.simple_view") .. [[</button>
                 </div>
               </form>
 
@@ -2522,5 +2526,4 @@ aysHandleForm("form", {
 /* Use the validator script to override default chrome bubble, which is displayed out of window */
 $("form[id!='search-host-form']").validator({disable:true});
 </script>]])
-
 end --[[ isAdministratorOrPrintErr ]]
