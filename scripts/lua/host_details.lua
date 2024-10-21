@@ -820,9 +820,18 @@ else
                           '" target=_blank><small>AbuseIP DB</small> <i class=\"fas fa-external-link-alt\"></i></A>')
             end
 
+	    if(host.fingerprint ~= nil) then
+	       if(host.fingerprint.os ~= "Unknown") then
+		  print(' <span class="badge bg-success">OS: '.. host.fingerprint.os .. '</span>')
+	       else
+		  print(' <span class="badge bg-warning">TCP Fingerprint: '.. host.fingerprint.tcp .. '</span>')
+	       end
+	    end
+
             print("</td>\n")
         end
-
+	
+	
         local h_notes = getHostNotes(host_info) or ''
 
         if (not isEmptyString(h_notes)) then
