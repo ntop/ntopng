@@ -53,582 +53,582 @@ tag_utils.defined_tags = {
         type = tag_utils.input_types.select,
         value_type = 'alert_id',
         i18n_label = i18n('db_search.tags.alert_id'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     alert_category = {
         type = tag_utils.input_types.select,
         value_type = 'alert_category',
         i18n_label = i18n('db_search.tags.alert_category'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     l7proto = {
         type = tag_utils.input_types.select,
         value_type = 'l7_proto',
         i18n_label = i18n('db_search.tags.l7_proto'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     l7proto_master = {
         type = tag_utils.input_types.select,
         value_type = 'l7_proto',
         i18n_label = i18n('db_search.tags.l7_proto'),
-        operators = {'eq', 'neq'},
+        operators = { 'eq', 'neq' },
         hide = true
     },
     l7cat = {
         type = tag_utils.input_types.select,
         value_type = 'l7_category',
         i18n_label = i18n('db_search.tags.l7cat'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     flow_risk = {
         type = tag_utils.input_types.select,
         value_type = 'flow_risk',
         i18n_label = i18n('db_search.tags.flow_risk'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     l4proto = {
         type = tag_utils.input_types.select,
         value_type = 'l4_proto',
         i18n_label = i18n('db_search.tags.l4proto'),
-        operators = {'eq', 'neq'},
+        operators = { 'eq', 'neq' },
         bpf_key = 'ip proto'
     },
     ip_version = {
         type = tag_utils.input_types.select,
         value_type = 'ip_version',
         i18n_label = i18n('db_search.tags.ip_version'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     ip = {
         value_type = 'ip,cidr', -- Set to 'ip' to accept IP only
         i18n_label = i18n('db_search.tags.ip'),
-        operators = {'eq', 'neq'},
+        operators = { 'eq', 'neq' },
         bpf_key = 'ip host'
     },
     cli_ip = {
         value_type = 'ip,cidr', -- Set to 'ip' to accept IP only
         i18n_label = i18n('db_search.tags.cli_ip'),
-        operators = {'eq', 'neq'},
+        operators = { 'eq', 'neq' },
         bpf_key = 'ip host'
     },
     srv_ip = {
         value_type = 'ip,cidr', -- Set to 'ip' to accept IP only
         i18n_label = i18n('db_search.tags.srv_ip'),
-        operators = {'eq', 'neq'},
+        operators = { 'eq', 'neq' },
         bpf_key = 'ip host'
     },
     network_cidr = {
         value_type = 'cidr',
         i18n_label = i18n('db_search.tags.network_cidr'),
-        operators = {'eq', 'neq'},
+        operators = { 'eq', 'neq' },
         bpf_key = 'net'
     },
     cli_network_cidr = {
         value_type = 'cidr',
         i18n_label = i18n('db_search.tags.cli_network_cidr'),
-        operators = {'eq', 'neq'},
+        operators = { 'eq', 'neq' },
         bpf_key = 'net'
     },
     srv_network_cidr = {
         value_type = 'cidr',
         i18n_label = i18n('db_search.tags.srv_network_cidr'),
-        operators = {'eq', 'neq'},
+        operators = { 'eq', 'neq' },
         bpf_key = 'net'
     },
     traffic_direction = {
         type = tag_utils.input_types.select,
         value_type = 'traffic_direction',
         i18n_label = i18n('db_search.tags.traffic_direction'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     name = {
         value_type = 'hostname',
         i18n_label = i18n('db_search.tags.name'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     cli_name = {
         value_type = 'hostname',
         i18n_label = i18n('db_search.tags.cli_name'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     srv_name = {
         value_type = 'hostname',
         i18n_label = i18n('db_search.tags.srv_name'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     network_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.network_name'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     src2dst_dscp = {
         type = tag_utils.input_types.select,
         value_type = 'dscp_type',
         i18n_label = i18n('db_search.tags.src2dst_dscp'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     dst2src_dscp = {
         type = tag_utils.input_types.select,
         value_type = 'dscp_type',
         i18n_label = i18n('db_search.tags.dst2src_dscp'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     duration = {
         value_type = 'number',
         i18n_label = i18n('db_search.duration'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     cli_port = {
         value_type = 'port',
         i18n_label = i18n('db_search.tags.cli_port'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
         bpf_key = 'port'
     },
     srv_port = {
         value_type = 'port',
         i18n_label = i18n('db_search.tags.srv_port'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'},
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' },
         bpf_key = 'port'
     },
     country = {
         type = tag_utils.input_types.select,
         value_type = 'country',
         i18n_label = i18n('db_search.tags.country'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     cli_country = {
         type = tag_utils.input_types.select,
         value_type = 'country',
         i18n_label = i18n('db_search.tags.cli_country'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     srv_country = {
         type = tag_utils.input_types.select,
         value_type = 'country',
         i18n_label = i18n('db_search.tags.srv_country'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     asn = {
         value_type = 'asn',
         i18n_label = i18n('db_search.tags.asn'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     cli_asn = {
         value_type = 'asn',
         i18n_label = i18n('db_search.tags.cli_asn'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     srv_asn = {
         value_type = 'asn',
         i18n_label = i18n('db_search.tags.srv_asn'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     cli_nw_latency = {
         value_type = 'nw_latency_type',
         i18n_label = i18n('db_search.tags.cli_nw_latency'),
-        operators = {'eq', 'lt', 'gt', 'lte', 'gte'}
+        operators = { 'eq', 'lt', 'gt', 'lte', 'gte' }
     },
     srv_nw_latency = {
         value_type = 'nw_latency_type',
         i18n_label = i18n('db_search.tags.srv_nw_latency'),
-        operators = {'eq', 'lt', 'gt', 'lte', 'gte'}
+        operators = { 'eq', 'lt', 'gt', 'lte', 'gte' }
     },
     observation_point_id = {
         type = tag_utils.input_types.select,
         value_type = 'observation_point_id',
         i18n_label = i18n('db_search.tags.observation_point_id'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     probe_ip = {
         type = tag_utils.input_types.select_with_input,
         value_type = 'probe_ip',
         i18n_label = i18n('db_search.tags.probe_ip'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     vlan_id = {
         value_type = 'vlan_id',
         i18n_label = i18n('db_search.tags.vlan_id'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     snmp_interface = {
         type = tag_utils.input_types.select,
         value_type = 'snmp_interface',
         i18n_label = i18n('db_search.tags.snmp_interface'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     input_snmp = {
         type = tag_utils.input_types.select,
         value_type = 'snmp_interface',
         i18n_label = i18n('db_search.tags.input_snmp'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     output_snmp = {
         type = tag_utils.input_types.select,
         value_type = 'snmp_interface',
         i18n_label = i18n('db_search.tags.output_snmp'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     src2dst_tcp_flags = {
         value_type = 'flags',
         i18n_label = i18n('db_search.src2dst_tcp_flags'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     dst2src_tcp_flags = {
         value_type = 'flags',
         i18n_label = i18n('db_search.dst2src_tcp_flags'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     severity = {
         type = tag_utils.input_types.select,
         value_type = 'severity',
         i18n_label = i18n('db_search.tags.severity'),
-        operators = {'eq', 'lte', 'gte', 'neq'}
+        operators = { 'eq', 'lte', 'gte', 'neq' }
     },
     score = {
         value_type = 'score',
         i18n_label = i18n('db_search.tags.score'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     mac = {
         value_type = 'mac',
         i18n_label = i18n('db_search.tags.mac'),
-        operators = {'eq', 'neq'},
+        operators = { 'eq', 'neq' },
         bpf_key = 'ether host'
     },
     cli_mac = {
         value_type = 'mac',
         i18n_label = i18n('db_search.tags.cli_mac'),
-        operators = {'eq', 'neq'},
+        operators = { 'eq', 'neq' },
         bpf_key = 'ether host'
     },
     srv_mac = {
         value_type = 'mac',
         i18n_label = i18n('db_search.tags.srv_mac'),
-        operators = {'eq', 'neq'},
+        operators = { 'eq', 'neq' },
         bpf_key = 'ether host'
     },
     network = {
         type = tag_utils.input_types.select,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.network'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     cli_network = {
         type = tag_utils.input_types.select,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.cli_network'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     srv_network = {
         type = tag_utils.input_types.select,
         value_type = 'network_id',
         i18n_label = i18n('db_search.tags.srv_network'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     info = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.info'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     bytes = {
         value_type = 'bytes',
         i18n_label = i18n('db_search.tags.bytes'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     cli2srv_bytes = {
         type = tag_utils.input_types.input,
         value_type = 'number',
         i18n_label = i18n('traffic_labels.cli2srv_bytes'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     srv2cli_bytes = {
         type = tag_utils.input_types.input,
         value_type = 'number',
         i18n_label = i18n('traffic_labels.srv2cli_bytes'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     number = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.number'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     out_of_order = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.out_of_order'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     lost = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.lost'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     retransmissions = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.retransmissions'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     flows_number = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.flows_number'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     packets = {
         value_type = 'packets',
         i18n_label = i18n('db_search.tags.packets'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     host_pool = {
         type = tag_utils.input_types.select,
         value_type = 'host_pool',
         i18n_label = i18n('db_search.tags.host_pool_id'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     cli_host_pool_id = {
         type = tag_utils.input_types.select,
         value_type = 'host_pool_id',
         i18n_label = i18n('db_search.tags.cli_host_pool_id'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     srv_host_pool_id = {
         type = tag_utils.input_types.select,
         value_type = 'host_pool_id',
         i18n_label = i18n('db_search.tags.srv_host_pool_id'),
-        operators = {'eq', 'neq', 'lt', 'gt', 'gte', 'lte'}
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
     subtype = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.subtype'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     role = {
         type = tag_utils.input_types.select,
         value_type = 'role',
         i18n_label = i18n('db_search.tags.role'),
-        operators = {'eq'}
+        operators = { 'eq' }
     },
     role_cli_srv = {
         type = tag_utils.input_types.select,
         value_type = 'role_cli_srv',
         i18n_label = i18n('db_search.tags.role_cli_srv'),
-        operators = {'eq'}
+        operators = { 'eq' }
     },
     l7_error_id = {
         value_type = 'l7_error_id',
         i18n_label = i18n('db_search.tags.error_code'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     confidence = {
         type = tag_utils.input_types.select,
         value_type = 'confidence',
         i18n_label = i18n('db_search.tags.confidence'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     community_id = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.community_id'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     ja4_client = {
         value_type = 'text',
         i18n_label = i18n('ja4_client_hash'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     http_method = {
         type = tag_utils.input_types.select,
         value_type = 'http_method',
         i18n_label = i18n('db_search.tags.http_method'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     http_return = {
         type = tag_utils.input_types.select,
         value_type = 'http_return',
         i18n_label = i18n('db_search.tags.http_return_code'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     http_url = {
         value_type = 'http_url',
         i18n_label = i18n('db_search.tags.http_url'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     issuer_dn = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.issuer_dn'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     user_agent = {
         value_type = 'user_agent',
         i18n_label = i18n('db_search.tags.user_agent'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     last_server = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.last_server'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     netbios_name = {
         value_type = 'netbios_name',
         i18n_label = i18n('db_search.tags.netbios_name'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     mdns_answer = {
         value_type = 'mdns_answer',
         i18n_label = i18n('db_search.tags.mdns_answer'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     mdns_name = {
         value_type = 'mdns_name',
         i18n_label = i18n('db_search.tags.mdns_name'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     mdns_name_txt = {
         value_type = 'mdns_name_txt',
         i18n_label = i18n('db_search.tags.mdns_name_txt'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     mdns_ssid = {
         value_type = 'mdns_ssid',
         i18n_label = i18n('db_search.tags.mdns_ssid'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     alert_domain = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.dga_domain_name'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     cli_location = {
         type = tag_utils.input_types.select,
         value_type = 'location',
         i18n_label = i18n('db_search.tags.cli_location'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     srv_location = {
         type = tag_utils.input_types.select,
         value_type = 'location',
         i18n_label = i18n('db_search.tags.srv_location'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     host_location = {
         type = tag_utils.input_types.select,
         value_type = 'location',
         i18n_label = i18n('db_search.tags.host_location'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     cli_proc_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.cli_proc_name'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     srv_proc_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.srv_proc_name'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     cli_user_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.cli_user_name'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     srv_user_name = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.srv_user_name'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     major_connection_state = {
         type = tag_utils.input_types.select,
         value_type = 'major_connection_state',
         i18n_label = i18n("db_search.tags.major_connection_state"),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     minor_connection_state = {
         type = tag_utils.input_types.select,
         value_type = 'minor_connection_state',
         i18n_label = i18n("db_search.tags.minor_connection_state"),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     pre_nat_ipv4_src_addr = {
         value_type = 'ip',
         i18n_label = i18n("db_search.tags.pre_nat_ipv4_src_addr"),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     pre_nat_ipv4_dst_addr = {
         value_type = 'ip',
         i18n_label = i18n("db_search.tags.pre_nat_ipv4_dst_addr"),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     post_nat_ipv4_src_addr = {
         value_type = 'ip',
         i18n_label = i18n("db_search.tags.post_nat_ipv4_src_addr"),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     post_nat_ipv4_dst_addr = {
         value_type = 'ip',
         i18n_label = i18n("db_search.tags.post_nat_ipv4_dst_addr"),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     pre_nat_src_port = {
         value_type = 'port',
         i18n_label = i18n("db_search.tags.pre_nat_src_port"),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     pre_nat_dst_port = {
         value_type = 'port',
         i18n_label = i18n("db_search.tags.pre_nat_dst_port"),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     post_nat_src_port = {
         value_type = 'port',
         i18n_label = i18n("db_search.tags.post_nat_src_port"),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     post_nat_dst_port = {
         value_type = 'port',
         i18n_label = i18n("db_search.tags.post_nat_dst_port"),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     description = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.alert_description'),
-        operators = {'in'}
+        operators = { 'in' }
     },
     mitre_tactic = {
         type = tag_utils.input_types.select,
         value_type = 'mitre_tactic',
         i18n_label = i18n('db_search.tags.mitre_tactic'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     mitre_technique = {
         type = tag_utils.input_types.select,
         value_type = 'mitre_technique',
         i18n_label = i18n('db_search.tags.mitre_technique'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     mitre_subtechnique = {
         type = tag_utils.input_types.select,
         value_type = 'mitre_subtechnique',
         i18n_label = i18n('db_search.tags.mitre_subtechnique'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     mitre_id = {
         type = tag_utils.input_types.select,
         value_type = 'mitre_id',
         i18n_label = i18n('db_search.tags.mitre_id'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
     wlan_ssid = {
         type = tag_utils.input_types.select,
         value_type = 'wlan_ssid',
         i18n_label = i18n('db_search.tags.wlan_ssid'),
-        operators = {'eq', 'neq', 'in', 'nin'}
+        operators = { 'eq', 'neq', 'in', 'nin' }
     },
     apn_mac = {
         value_type = 'mac',
         i18n_label = i18n('db_search.tags.apn_mac'),
-        operators = {'eq', 'neq'}
+        operators = { 'eq', 'neq' }
     },
 }
 -- #####################################
 
-tag_utils.traffic_direction = {{
+tag_utils.traffic_direction = { {
     label = i18n("flows_page.remote_only"),
     id = 0
 }, {
@@ -640,11 +640,11 @@ tag_utils.traffic_direction = {{
 }, {
     label = i18n("flows_page.local_cli_remote_srv"),
     id = 3
-}}
+} }
 
 -- #####################################
 
-tag_utils.confidence = {{
+tag_utils.confidence = { {
     label = i18n("confidence_unknown"),
     id = -1
 }, {
@@ -653,11 +653,11 @@ tag_utils.confidence = {{
 }, {
     label = i18n("confidence_dpi"),
     id = 1
-}}
+} }
 
 -- #####################################
 
-tag_utils.http_return = {{
+tag_utils.http_return = { {
     label = i18n("http_info.return_codes.200"),
     id = 200
 }, {
@@ -711,11 +711,11 @@ tag_utils.http_return = {{
 }, {
     label = i18n("http_info.return_codes.503"),
     id = 503
-}}
+} }
 
 -- #####################################
 
-tag_utils.http_method = {{
+tag_utils.http_method = { {
     label = i18n("http_info.methods.get"),
     id = 'GET'
 }, {
@@ -742,11 +742,11 @@ tag_utils.http_method = {{
 }, {
     label = i18n("http_info.methods.patch"),
     id = 'PATCH'
-}}
+} }
 
 -- #####################################
 
-tag_utils.location = {{
+tag_utils.location = { {
     label = i18n("details.label_remote"),
     id = 0
 }, {
@@ -755,7 +755,7 @@ tag_utils.location = {{
 }, {
     label = i18n("multicast"),
     id = 2
-}}
+} }
 
 -- #####################################
 
@@ -922,9 +922,8 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
 
     -- select (array of values)
     -- tprint(tag.value_type)
-    if (tag.value_type == "alert_id" or tag.value_type == "alert_type" --[[ alert_id should be used --]] ) and entity ~=
+    if (tag.value_type == "alert_id" or tag.value_type == "alert_type" --[[ alert_id should be used --]]) and entity ~=
         nil then
-
         filter.value_type = 'array'
         filter.options = {}
         local alert_types = alert_consts.getAlertTypesInfo(entity.entity_id)
@@ -934,9 +933,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = info.label
             }
         end
-
     elseif tag.value_type == "mitre_id" then
-
         filter.value_type = 'array'
         filter.options = {}
         for name, info in pairsByField(alert_consts.getAllAlertMitreInfoIDs(), 'mitre_id', asc) do
@@ -945,13 +942,12 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = info.mitre_id,
             }
         end
-
     elseif tag.value_type == "wlan_ssid" then
         local flows_stats = interface.getActiveFlowsStats()
         filter.value_type = 'array'
         filter.options = {}
         local tmp_list = {}
-        
+
         if table.len(flows_stats["wlan_ssid"]) > 0 then
             local tmp_list = {}
             for key, value in pairs(flows_stats["wlan_ssid"] or {}, asc) do
@@ -967,11 +963,9 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                     value = key,
                     label = key,
                 }
-            end    
+            end
         end
-
     elseif tag.value_type == "mitre_tactic" then
-
         filter.value_type = 'array'
         filter.options = {}
         local mitre_utils = require "mitre_utils"
@@ -981,9 +975,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = i18n(info.i18n_label)
             }
         end
-
     elseif tag.value_type == "mitre_technique" then
-
         filter.value_type = 'array'
         filter.options = {}
         local mitre_utils = require "mitre_utils"
@@ -993,9 +985,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = i18n(info.i18n_label)
             }
         end
-
     elseif tag.value_type == "mitre_subtechnique" then
-
         filter.value_type = 'array'
         filter.options = {}
         local mitre_utils = require "mitre_utils"
@@ -1005,9 +995,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = i18n(info.i18n_label)
             }
         end
-
     elseif tag.value_type == "alert_category" then
-
         filter.value_type = 'array'
         filter.options = {}
         local alert_categories = require "alert_categories"
@@ -1017,7 +1005,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = i18n(info.i18n_title)
             }
         end
-
     elseif tag.value_type == "dscp_type" then
         local dscp_consts = require "dscp_consts"
         filter.value_type = 'array'
@@ -1029,7 +1016,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = info.label
             }
         end
-
     elseif tag.value_type == "flow_risk" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1043,7 +1029,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = info
             }
         end
-
     elseif tag.value_type == "host_pool_id" or tag.value_type == "host_pool" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1092,7 +1077,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = v.label
             }
         end
-
     elseif tag.value_type == "confidence" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1102,7 +1086,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = v.label
             }
         end
-
     elseif tag.value_type == "http_return" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1112,7 +1095,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = v.label
             }
         end
-
     elseif tag.value_type == "http_method" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1122,7 +1104,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = v.label
             }
         end
-
     elseif tag.value_type == "location" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1132,7 +1113,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = v.label
             }
         end
-
     elseif tag.value_type == "l4_proto" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1155,7 +1135,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = name
             }
         end
-
     elseif tag.value_type == "l7_proto" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1166,7 +1145,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = name
             }
         end
-
     elseif tag.value_type == "l7_category" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1177,7 +1155,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = getCategoryLabel(name, id)
             }
         end
-
     elseif tag.value_type == "network_id" then
         filter.options = {}
         local networks_stats = interface.getNetworksStats()
@@ -1187,7 +1164,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = getFullLocalNetworkName(ns.network_key)
             }
         end
-
     elseif tag.value_type == "observation_point_id" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1205,7 +1181,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = v.alias
             }
         end
-
     elseif tag.value_type == "country" then
         local country_codes = require "country_codes"
         filter.value_type = 'array'
@@ -1220,7 +1195,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = label
             }
         end
-
     elseif tag.value_type == "vlan_id" then
         filter.options = {}
         local vlans = interface.getVLANsList()
@@ -1241,7 +1215,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = vlan_name
             }
         end
-
     elseif tag.value_type == "probe_ip" then
         filter.options = {}
         local full_dev_list = {}
@@ -1254,7 +1227,7 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                     value = exporter_ip,
                     label = probe_name,
                     display_more_filters = true
-                }                
+                }
             end
         end
         -- And sFlow devices
@@ -1286,7 +1259,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
             value = "6",
             label = i18n("ipv6")
         }
-
     elseif tag.value_type == "role" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1302,7 +1274,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
             value = "no_attacker_no_victim",
             label = i18n("no_attacker_no_victim")
         }
-
     elseif tag.value_type == "role_cli_srv" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1314,7 +1285,6 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
             value = "server",
             label = i18n("server")
         }
-
     elseif tag.value_type == "severity" then
         filter.value_type = 'array'
         filter.options = {}
@@ -1324,34 +1294,41 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 label = i18n(severity.i18n_title)
             }
         end
-
     elseif tag.value_type == "snmp_interface" then
         if ntop.isPro() then
             filter.value_type = 'array'
-            
+
             if snmp_filter_options_cache then
                 filter.options = snmp_filter_options_cache
             else
                 filter.options = {}
                 local flow_devices = {}
                 local interfaces_list = {}
+                local probe_ip_requested = nil
                 -- Active flow devices
                 if (restrict_filters and not isEmptyString(_GET["probe_ip"])) then
                     local tmp = split(_GET["probe_ip"], ";")
-                    flow_devices = {{
+                    probe_ip_requested = tmp[1]
+                    flow_devices = { {
                         [tmp[1]] = true
-                    }}
+                    } }
                 else
-                    local tmp = interface.getFlowDevices() 
+                    local tmp = interface.getFlowDevices()
                     for _, dev_list in pairs(tmp) do
                         for _, exporter_info in pairs(dev_list) do
                             flow_devices[exporter_info.exporter_ip] = 1
                         end
                     end
                 end
+
                 -- SNMP devices
                 local snmp_config = require "snmp_config"
-                local devices = snmp_config.get_all_configured_devices()
+                local devices = {}
+                if isEmptyString(probe_ip_requested) then
+                    devices = snmp_config.get_all_configured_devices()
+                else
+                    devices = flow_devices[1]
+                end
                 local snmp_cached_dev = require "snmp_cached_dev"
                 -- use pairsByKeys to impose order
                 for probe_ip, _ in pairsByKeys(devices) do
@@ -1388,22 +1365,23 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                     end
                 end
 
-                for exporter_ip, _ in pairs(flow_devices or {}) do
-                    -- Add interfaces for flow devices which are not polled by SNMP
-                    local interfaces = interface.getFlowDeviceInfoByIP(exporter_ip)
-                    
-                    for _, interfaces_table in pairs(interfaces) do
-                        for interface_id, interface_info in pairsByKeys(interfaces_table) do
+                for _, exporter in pairs(flow_devices or {}) do
+                    for exporter_ip, _  in pairs(exporter or {}) do
+                        -- Add interfaces for flow devices which are not polled by SNMP
+                        local interfaces = interface.getFlowDeviceInfoByIP(exporter_ip)
 
-                            local label = format_portidx_name(exporter_ip, interface_id, false, false)
-                            if not hide_exporters_name then
-                                label = exporter_ip .. ' · ' .. label
+                        for _, interfaces_table in pairs(interfaces or {}) do
+                            for interface_id, _ in pairsByKeys(interfaces_table) do
+                                local label = format_portidx_name(exporter_ip, interface_id, false, false)
+                                if not hide_exporters_name then
+                                    label = exporter_ip .. ' · ' .. label
+                                end
+                                interfaces_list[tostring(label)] = {
+                                    value = exporter_ip .. "_" .. interface_id,
+                                    label = label,
+                                    show_only_value = exporter_ip
+                                }
                             end
-                            interfaces_list[tostring(label)] = {
-                                value = exporter_ip .. "_" .. interface_id,
-                                label = label,
-                                show_only_value = exporter_ip
-                            }
                         end
                     end
                 end
@@ -1471,7 +1449,6 @@ function tag_utils.build_bpf(filters)
 
     -- Build 'or' groups (same key)
     for key, _value in pairs(filters) do
-
         if not tag_utils.defined_tags[key] then
             goto skip_filter
         end

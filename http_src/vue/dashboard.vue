@@ -505,7 +505,7 @@ async function load_filters(filters_available, res, show_second_load) {
         let tmp = {}
         filters_available.forEach((element) => {
             if (element.show_only_if_selected) {
-                const selected = ntopng_url_manager.get_url_entry(element.show_only_if_selected)
+                const selected = ntopng_url_manager.get_url_entry(element.show_only_if_selected) || ''
                 if (selected !== '') {
                     retrieve_filters = `${retrieve_filters}${element.name},`
                     tmp[element.show_only_if_selected] = selected
@@ -524,7 +524,7 @@ async function load_filters(filters_available, res, show_second_load) {
         const id = element?.name || "";
         const filter_options = res.find((el) => el.id == id)?.options;
         /* Check the filters available, if no filter or only 1 filter is provided, hide the dropdown */
-        if (filter_options && filter_options.length > 1) {
+        if (filter_options && filter_options.length > 0) {
             const selected = ntopng_url_manager.get_url_entry(id)
             let all_label = i18n('db_search.all.' + id)
             if (dataUtils.isEmptyOrNull(all_label)) {
