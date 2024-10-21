@@ -1,0 +1,66 @@
+{
+	"name" : "L7 Traffic",
+	"i18n_name" : "l7_traffic",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"hourly": true,
+	"chart" : [{
+		"chart_id" : "l7_contacts",
+		"chart_type" : "topk-timeseries",
+		"unit_measure": "bytes",
+		"params" : {
+			"count" : "TOTAL_BYTES"
+		}
+	}],
+	"visualization_type" : "table",
+	"select" : {
+		"items" : [
+			{
+				"name" : "PROTOCOL"
+			},
+			{
+				"name" : "L7_PROTO"
+			},
+			{
+				"name" : "L7_PROTO_MASTER"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			},
+			{
+				"name" : "total_bytes",
+				"func" : "SUM",
+				"param" : "TOTAL_BYTES",
+				"value_type" : "bytes"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "PROTOCOL"
+			},
+			{
+				"name" : "L7_PROTO"
+			},
+			{
+				"name" : "L7_PROTO_MASTER"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "total_bytes",
+				"order" : "DESC"
+			}
+		]
+	}
+}
