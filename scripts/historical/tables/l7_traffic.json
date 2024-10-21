@@ -5,11 +5,11 @@
 	"show_in_page" : "overview",
 	"hourly": true,
 	"chart" : [{
-		"chart_id" : "l7_contacts",
+		"chart_id" : "l7_traffic",
 		"chart_type" : "topk-timeseries",
-		"unit_measure": "bytes",
+		"unit_measure": "bps",
 		"params" : {
-			"count" : "TOTAL_BYTES"
+			"count" : "THROUGHPUT"
 		}
 	}],
 	"visualization_type" : "table",
