@@ -1932,8 +1932,6 @@ if auth.has_capability(auth.capabilities.preferences) then
             })
         end
 
-        tprint(areNewInterfacesExcludedFromUsage())
-
         prefsToggleButton(subpage_active, {
             field = "toggle_snmp_debug",
             default = "0",
