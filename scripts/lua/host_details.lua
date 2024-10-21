@@ -740,21 +740,8 @@ else
             print("<tr><th>" .. i18n("name") .. "</th>")
 
             if (isAdministrator()) then
-                local n
-                local method = "http"
-
-                if (host.names.tls ~= nil) then
-                    n = host.names.tls
-                    method = "https"
-                elseif (host.names.http ~= nil) then
-                    n = host.names.http
-                elseif (host.names.resolved ~= nil) then
-                    n = host.names.resolved
-                else
-                    n = getIpUrl(host["ip"])
-                end
-
-                print("<td colspan=2><A class='ntopng-external-link' href=\"" .. method .. "://" .. n ..
+                local n = hostinfo2label(host, true)
+                print("<td colspan=2><A class='ntopng-external-link' href=\"http://" .. n ..
                           "\"> <span id=name>")
             else
                 print("<td colspan=2>")
