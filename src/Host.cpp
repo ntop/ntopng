@@ -1518,40 +1518,11 @@ void Host::incNumFlows(time_t t, bool as_client, bool isTCP) {
 
 /* *************************************** */
 
-void Host::decNumFlows(time_t t, bool as_client, bool isTCP,
-                       u_int16_t isTwhOver) {
+void Host::decNumFlows(time_t t, bool as_client) { 
   if (as_client)
     num_active_flows_as_client--;
   else
     num_active_flows_as_server--;
-
-  if (isTCP) {
-    if (as_client) {
-      if(syn_flood.num_active_tcp_flows_as_client == 0)
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internel error [client]");
-      else
-	syn_flood.num_active_tcp_flows_as_client--;
-      
-      if (isTwhOver) {
-	if(syn_flood.num_established_tcp_flows_as_client == 0)
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internel error [client]");
-	else
-	  syn_flood.num_established_tcp_flows_as_client--;
-      }
-    } else {
-      if(syn_flood.num_active_tcp_flows_as_server == 0)
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internel error [server]");
-      else
-	syn_flood.num_active_tcp_flows_as_server--;
-      
-      if (isTwhOver) {
-	if(syn_flood.num_established_tcp_flows_as_server == 0)
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internel error [server]");
-	else
-	  syn_flood.num_established_tcp_flows_as_server--;
-      }
-    }
-  }
 }
 
 /* *************************************** */

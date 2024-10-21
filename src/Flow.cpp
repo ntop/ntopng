@@ -422,7 +422,7 @@ Flow::~Flow() {
 
   if (cli_u) {
     cli_u->decUses(); /* Decrease the number of uses */
-    cli_u->decNumFlows(get_last_seen(), true, isTCP(), twh_over);
+    cli_u->decNumFlows(get_last_seen(), true);
 
     if (is_oneway_tcp_udp_flow) cli_u->incUnidirectionalEgressTCPUDPFlows();
   }
@@ -433,7 +433,7 @@ Flow::~Flow() {
 
   if (srv_u) {
     srv_u->decUses(); /* Decrease the number of uses */
-    srv_u->decNumFlows(get_last_seen(), false, isTCP(), twh_over);
+    srv_u->decNumFlows(get_last_seen(), false);
 
     if (is_oneway_tcp_udp_flow) {
       srv_u->incUnidirectionalIngressTCPUDPFlows();
@@ -5472,10 +5472,10 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
       if (flags_3wh == TH_SYN) {
         if (synTime.tv_sec == 0) memcpy(&synTime, when, sizeof(struct timeval));
 
-	if((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK)) {
-	  /* SYN|ACK arrived before SYN */
-	  swap_requested = true;
-	}
+	      if((src2dst_tcp_flags & (TH_SYN | TH_ACK)) == (TH_SYN | TH_ACK)) {
+	        /* SYN|ACK arrived before SYN */
+	        swap_requested = true;
+	      }
       } else if (flags_3wh == (TH_SYN | TH_ACK)) {
         if ((synAckTime.tv_sec == 0) && (synTime.tv_sec > 0)) {
           memcpy(&synAckTime, when, sizeof(struct timeval));
@@ -8517,8 +8517,8 @@ void Flow::swap() {
     /* Not a view interface */
     Host *h = cli_host;
     
-    cli_host->decNumFlows(now, true /* as client */, isTCP(), twh_over),
-      srv_host->decNumFlows(now, false /* as server */, isTCP(), twh_over);
+    cli_host->decNumFlows(now, true /* as client */);
+      srv_host->decNumFlows(now, false /* as server */);
     cli_host = srv_host, cli_ip_addr = srv_ip_addr;
     srv_host = h, srv_ip_addr = i;
     cli_host->incNumFlows(now, true /* as client */, isTCP()),
