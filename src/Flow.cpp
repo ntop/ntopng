@@ -5386,7 +5386,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
     /* Packet Interface */
 
     if(flags_3wh |TH_SYN) {
-      if(ndpiFlow && ndpiFlow->tcp.fingerprint)
+      if(cli_host && ndpiFlow && ndpiFlow->tcp.fingerprint)
 	cli_host->setTCPfingerprint(ndpiFlow->tcp.fingerprint,
 				    (enum operating_system_hint)ndpiFlow->tcp.os_hint);
     }
