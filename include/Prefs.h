@@ -70,7 +70,7 @@ class Prefs {
 #ifdef NTOPNG_PRO
   ndpi_bitmap* modbus_allowed_function_codes;
   u_int modbus_too_many_exceptions;
-  bool netbox_enabled, asset_inventory_enabled, snmp_trap_enabled;
+  bool netbox_enabled, asset_inventory_enabled, snmp_trap_enabled, enable_asset_inventory_log;
 #endif
   ServiceAcceptance behaviour_analysis_learning_status_during_learning,
       behaviour_analysis_learning_status_post_learning;
@@ -282,6 +282,10 @@ class Prefs {
   inline void dont_change_user() { change_user = false; };
   inline bool is_sql_log_enabled() { return (enable_sql_log); };
   inline bool is_access_log_enabled() { return (enable_access_log); };
+#ifdef NTOPNG_PRO
+  inline bool is_asset_inventory_log_enabled() { return (enable_asset_inventory_log); };
+  inline void do_asset_inventory_log(bool state = false) { enable_asset_inventory_log = state; };
+#endif
   inline void do_enable_access_log(bool state = true) {
     enable_access_log = state;
   };

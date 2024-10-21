@@ -313,8 +313,11 @@ local menu_subpages = {{
             description = i18n("prefs.toggle_host_pools_log_description", {
                 product = info["product"]
             })
+        },
+        toggle_asset_inventory_log = {
+            title = i18n("prefs.toggle_asset_inventory_log_title"),
+            description = i18n("prefs.toggle_asset_inventory_log_description")
         }
-
     }
 }, {
     id = "message_broker",

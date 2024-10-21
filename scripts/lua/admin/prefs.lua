@@ -1858,6 +1858,14 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "enable_host_pools_log"
         })
 
+        if ntop.isEnterpriseL() then
+            prefsToggleButton(subpage_active, {
+                field = "toggle_asset_inventory_log",
+                default = "0",
+                pref = "enable_asset_inventory_log"
+            })
+        end
+
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
             i18n("save") .. '</button></th></tr>')

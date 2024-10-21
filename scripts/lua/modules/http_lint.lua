@@ -2252,6 +2252,7 @@ local known_parameters = {
    ["toggle_sites_collection"] = validateBool,
    ["toggle_dns_cache"] = validateBool,
    ["toggle_http_enable_access_log"] = validateBool,
+   ["toggle_asset_inventory_log"] = validateBool,
    ["toggle_captive_portal"] = validateBool,
    ["toggle_mdns_repeater"] = validateBool,
    ["toggle_informative_captive_portal"] = validateBool,

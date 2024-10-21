@@ -107,6 +107,7 @@ Prefs::Prefs(Ntop *_ntop) {
   scripts_dir = strdup(CONST_DEFAULT_SCRIPTS_DIR);
   callbacks_dir = strdup(CONST_DEFAULT_CALLBACKS_DIR);
 #ifdef NTOPNG_PRO
+  enable_asset_inventory_log = false;
   asset_inventory_enabled = CONST_DEFAULT_ASSET_INVENTORY_ENABLED;
   netbox_enabled = CONST_DEFAULT_NETBOX_ENABLED;
   snmp_trap_enabled = CONST_DEFAULT_SNMP_TRAP_ENABLED;
@@ -910,6 +911,7 @@ void Prefs::reloadPrefsFromRedis() {
     getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_UPPERBOUND, 10000);
   max_aggregated_flows_traffic_upperbound =
     getDefaultPrefsValue(CONST_MAX_AGGREGATED_FLOWS_TRAFFIC_UPPERBOUND, 1);
+  enable_asset_inventory_log = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ASSET_INVENTORY_LOG, false);
 #endif
   // alert preferences
   enable_access_log = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACCESS_LOG, false);
