@@ -420,15 +420,21 @@ const get_open_top_table_dropdown = (top, top_index) => {
         load_top_table_details(top, top_index);
     };
 };
+
+function match_traffic_recording_window(begin_epoch, end_epoch) {
+   const w_first_epoch = props.context.n2disk_window_first_epoch;
+   const w_last_epoch = props.context.n2disk_window_last_epoch;
+
+   return begin_epoch >= w_first_epoch && 
+          begin_epoch <= w_last_epoch && 
+          end_epoch >= w_first_epoch && 
+          end_epoch <= w_last_epoch;
+}
+
 function update_show_download_pcap(new_status) {
    const tmp_begin_epoch = new_status.epoch_begin;
    const tmp_end_epoch = new_status.epoch_end;
-   const w_first_epoch = props.context.n2disk_window_first_epoch;
-   const w_last_epoch = props.context.n2disk_window_last_epoch;
-   show_pcap_download.value = tmp_begin_epoch >= w_first_epoch && 
-                              tmp_begin_epoch <= w_last_epoch && 
-                              tmp_end_epoch >= w_first_epoch && 
-                              tmp_end_epoch <= w_last_epoch;
+   show_pcap_download.value = match_traffic_recording_window(tmp_begin_epoch, tmp_end_epoch);
 }
 
 async function register_components_on_status_update() {
@@ -479,6 +485,10 @@ const map_table_def_columns = async (columns) => {
         "first_seen": (first_seen, row) => {
             if (first_seen !== undefined)
                 return first_seen.time;
+        },
+        "last_seen": (last_seen, row) => {
+            if (last_seen !== undefined)
+                return last_seen.time;
         },
         "DURATION": (duration, row) => {
             return NtopUtils.secondsToTime(duration)
@@ -545,10 +555,13 @@ const map_table_def_columns = async (columns) => {
                 row_data: props.context.is_enterprise_xl && flows_aggregated.value,
             };
             c.button_def_array.forEach((b) => {
-                b.f_map_class = (current_class) => {
-                    // if is not defined is enabled
-                    if (b.id == 'pcap_download' && show_pcap_download.value === false) {
-                        current_class.push("link-disabled");
+                b.f_map_class = (current_class, row) => {
+                    if (b.id == 'pcap_download') {
+                        if (!(row.first_seen && row.first_seen.epoch &&
+                              row.last_seen  && row.last_seen.epoch  &&
+                              match_traffic_recording_window(row.first_seen.epoch, row.last_seen.epoch))) {
+                            current_class.push("link-disabled");
+                        }
                     } else if (visible_dict[b.id] != null && visible_dict[b.id] == false) {
                         current_class.push("link-disabled");
                     }
@@ -557,7 +570,6 @@ const map_table_def_columns = async (columns) => {
             });
         }
     });
-    // console.log(columns);
     return columns;
 };
 

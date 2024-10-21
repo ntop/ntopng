@@ -428,12 +428,16 @@ end
 
 -- #####################################
 
-local function dt_format_time(time)
+local function dt_format_time(epoch)
+   local time = epoch
    if (time) and (tonumber(time)) then
       time = format_utils.formatPastEpochShort(time)
    end
 
-   return time
+   return {
+      epoch = tonumber(epoch),
+      time = time
+   }
 end
 
 -- #####################################
@@ -448,7 +452,8 @@ end
 
 -- #####################################
 
-local function dt_format_time_with_highlight(time, record)
+local function dt_format_time_with_highlight(epoch, record)
+   local time = epoch
    if (time) and (tonumber(time)) then
       time = format_utils.formatPastEpochShort(time)
    end
@@ -457,6 +462,7 @@ local function dt_format_time_with_highlight(time, record)
    local severity = alert_consts.alertSeverityById(severity_id)
 
    return {
+      epoch = tonumber(epoch),
       time = time,
       highlight = severity.color,
    }
