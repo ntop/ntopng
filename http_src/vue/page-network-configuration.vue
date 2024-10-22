@@ -3,6 +3,8 @@
         <div v-for="(value, key) in check_name" :key="key" class="mb-4">
             <div class="mb-2">
                 <strong>{{ _i18n(value.i18n_title) }}</strong>
+                <br>
+                {{ _i18n("network_configuration.input_box_description") + " " + _i18n(value.i18n_title) }}
             </div>
             <div>
                 <textarea v-model="ipAddresses[key]" class="form-control rounded"
@@ -11,6 +13,7 @@
                 <div v-if="validationErrors[key]" class="text-danger mt-1">
                     {{ validationErrors[key] }}
                 </div>
+                
             </div>
         </div>
         <div class="d-flex justify-content-end mt-4">
