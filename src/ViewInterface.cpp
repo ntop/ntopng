@@ -701,8 +701,6 @@ void ViewInterface::viewed_flows_walker(Flow *f, const struct timeval *tv) {
 
       if (!f->isTwhOverForViewInterface() && f->isThreeWayHandshakeOK()) {
         f->setTwhOverForViewInterface();
-        if (srv_host) srv_host->incNumEstablishedTCPFlows(false);
-        if (cli_host) cli_host->incNumEstablishedTCPFlows(true);
       }
 
       /* Score increments are performed here periodically for view interfaces */

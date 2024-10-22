@@ -93,18 +93,13 @@ class Host : public GenericHashEntry,
     u_int32_t fin_recvd_last_min, finack_sent_last_min; /* (victim) */
   } fin_scan;
 
-  struct {
-    std::atomic<u_int32_t> num_active_tcp_flows_as_client, num_established_tcp_flows_as_client; /* (attacker) */
-    std::atomic<u_int32_t> num_active_tcp_flows_as_server, num_established_tcp_flows_as_server; /* (victim) */
-  } syn_flood;
-
   /* Need atomic as inc/dec done on different threads */
   std::atomic<u_int32_t> num_active_flows_as_client, num_active_flows_as_server; /* All protocols */
   u_int32_t asn;
 
   struct {
     u_int32_t as_client /* this host contacted a blacklisted host */,
-        as_server /* a blacklisted host contacted me */;
+      as_server /* a blacklisted host contacted me */;
     u_int32_t checkpoint_as_client, checkpoint_as_server;
   } num_blacklisted_flows;
 
@@ -511,7 +506,6 @@ class Host : public GenericHashEntry,
                          ndpi_protocol_category_t category_id) const;
   void lua_get_packets(lua_State *vm) const;
   void lua_get_time(lua_State *vm) const;
-  void lua_get_syn_flood(lua_State *vm) const;
   void lua_get_flow_flood(lua_State *vm) const;
   void lua_get_services(lua_State *vm) const;
   void lua_get_syn_scan(lua_State *vm) const;
@@ -603,25 +597,22 @@ class Host : public GenericHashEntry,
     if (snmp_flood.attacker_counter) snmp_flood.attacker_counter->reset_hits();
   };
 
-  u_int32_t syn_flood_victim_hits();
-  u_int32_t syn_flood_attacker_hits();
-
   inline u_int16_t flow_flood_victim_hits() const {
     return flow_flood.victim_counter ? flow_flood.victim_counter->hits() : 0;
   };
-
+  
   inline u_int16_t flow_flood_attacker_hits() const {
     return flow_flood.attacker_counter ? flow_flood.attacker_counter->hits() : 0;
   };
-
+  
   inline void reset_flow_flood_hits() {
     if (flow_flood.victim_counter) flow_flood.victim_counter->reset_hits();
     if (flow_flood.attacker_counter) flow_flood.attacker_counter->reset_hits();
   };
-
+  
   inline u_int32_t syn_scan_victim_hits() const {
     return syn_scan.syn_recvd_last_min > syn_scan.synack_sent_last_min
-               ? syn_scan.syn_recvd_last_min - syn_scan.synack_sent_last_min : 0;
+      ? syn_scan.syn_recvd_last_min - syn_scan.synack_sent_last_min : 0;
   };
   
   inline u_int32_t syn_scan_attacker_hits() const {

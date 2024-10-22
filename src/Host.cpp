@@ -303,11 +303,6 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx, u_int16_t _vlanId,
   memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
   memset(&customHostAlert, 0, sizeof(customHostAlert));
 
-  syn_flood.num_active_tcp_flows_as_client = 0,
-  syn_flood.num_established_tcp_flows_as_client = 0,
-  syn_flood.num_active_tcp_flows_as_server = 0,
-  syn_flood.num_established_tcp_flows_as_server = 0;
-
   toggleRxOnlyHost(true);
 
 #ifdef NTOPNG_PRO
@@ -707,23 +702,12 @@ void Host::lua_get_geoloc(lua_State *vm) {
 
 /* ***************************************************** */
 
-void Host::lua_get_syn_flood(lua_State *vm) const {
-  u_int16_t hits;
-
-  if ((hits = (syn_flood.num_active_tcp_flows_as_server - syn_flood.num_established_tcp_flows_as_server)))
-    lua_push_uint64_table_entry(vm, "hits.syn_flood_victim", hits);
-  
-  if ((hits = (syn_flood.num_active_tcp_flows_as_client - syn_flood.num_established_tcp_flows_as_client)))
-    lua_push_uint64_table_entry(vm, "hits.syn_flood_attacker", hits);
-}
-
-/* ***************************************************** */
-
 void Host::lua_get_flow_flood(lua_State *vm) const {
   u_int16_t hits;
 
   if ((hits = flow_flood.victim_counter->hits()))
     lua_push_uint64_table_entry(vm, "hits.flow_flood_victim", hits);
+
   if ((hits = flow_flood.attacker_counter->hits()))
     lua_push_uint64_table_entry(vm, "hits.flow_flood_attacker", hits);
 }
@@ -1505,11 +1489,9 @@ void Host::incNumFlows(time_t t, bool as_client, bool isTCP) {
   if (as_client) {
     counter = flow_flood.attacker_counter;
     num_active_flows_as_client++;
-    if(isTCP) syn_flood.num_active_tcp_flows_as_client++;
   } else {
     counter = flow_flood.victim_counter;
     num_active_flows_as_server++;
-    if(isTCP) syn_flood.num_active_tcp_flows_as_server++;
   }
 
   counter->inc(t, this);
@@ -1524,50 +1506,6 @@ void Host::decNumFlows(time_t t, bool as_client, bool isTCP,
     num_active_flows_as_client--;
   else
     num_active_flows_as_server--;
-
-  if (isTCP) {
-    if (as_client) {
-      if(syn_flood.num_active_tcp_flows_as_client == 0)
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internel error [client]");
-      else
-	syn_flood.num_active_tcp_flows_as_client--;
-      
-      if (isTwhOver) {
-	if(syn_flood.num_established_tcp_flows_as_client == 0)
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internel error [client]");
-	else
-	  syn_flood.num_established_tcp_flows_as_client--;
-      }
-    } else {
-      if(syn_flood.num_active_tcp_flows_as_server == 0)
-	ntop->getTrace()->traceEvent(TRACE_WARNING, "Internel error [server]");
-      else
-	syn_flood.num_active_tcp_flows_as_server--;
-      
-      if (isTwhOver) {
-	if(syn_flood.num_established_tcp_flows_as_server == 0)
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Internel error [server]");
-	else
-	  syn_flood.num_established_tcp_flows_as_server--;
-      }
-    }
-  }
-}
-
-/* *************************************** */
-
-void Host::incNumEstablishedTCPFlows(bool as_client) {
-  if (as_client) {
-    if(syn_flood.num_active_tcp_flows_as_client <= syn_flood.num_established_tcp_flows_as_client)
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internel error [client]");
-    
-    syn_flood.num_established_tcp_flows_as_client++;
-  } else {
-    if(syn_flood.num_active_tcp_flows_as_server <= syn_flood.num_established_tcp_flows_as_server)
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internel error [server]");
-    
-    syn_flood.num_established_tcp_flows_as_server++;
-  } 
 }
 
 /* *************************************** */
@@ -2916,37 +2854,6 @@ void Host::toggleRxOnlyHost(bool rx_only) {
   }
 
   is_rx_only = rx_only;
-}
-
-/* *************************************** */
-
-u_int32_t Host::syn_flood_victim_hits() {
-  u_int32_t act_as_server = syn_flood.num_active_tcp_flows_as_server;
-  u_int32_t est_as_server = syn_flood.num_established_tcp_flows_as_server;
-
-  if(act_as_server >= est_as_server)
-    return(act_as_server - est_as_server);
-  else {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: counter overflow [act: %u][est: %u]",
-				 act_as_server, est_as_server);
-    return(0);
-  }
-}
-
-
-/* *************************************** */
-
-u_int32_t Host::syn_flood_attacker_hits() {
-  u_int32_t act_as_client = syn_flood.num_active_tcp_flows_as_client;
-  u_int32_t est_as_client = syn_flood.num_established_tcp_flows_as_client;
-
-  if(act_as_client >= est_as_client)
-    return(act_as_client - est_as_client);
-  else {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal error: counter overflow [act: %u][est: %u]",
-				 act_as_client, est_as_client);
-    return(0);
-  }
 }
 
 /* *************************************** */
