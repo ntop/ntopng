@@ -26,6 +26,8 @@ local inactive_hosts_utils = require("inactive_hosts_utils")
 local have_nedge = ntop.isnEdge()
 local wheel = nil
 
+local host_ts_available = areHostTimeseriesEnabled()
+
 local function generate_map_url(map, map_type, query, icon)
     local url = ""
 
@@ -311,6 +313,11 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
     label = i18n('inactive_hosts_navbar') ..
         '<span class="badge rounded-pill bg-dark" style="float: right; margin-top: -8px;">' ..
         inactive_hosts_utils.getInactiveHostsNumber(ifstats.id) .. '</span>'
+}, {
+    hidden = not host_ts_available or not ntop.isEnterpriseXL(),
+    active = page == "local_hosts_report" or page == nil,
+    page_name = "local_hosts_report",
+    label = i18n("local_hosts_report")
 }})
 
 if page == 'active_hosts' and ntop.isnEdge() then
@@ -900,6 +907,14 @@ elseif page == "inactive_hosts" then
         csrf = ntop.getRandomCSRFValue(),
         show_historical = ntop.isEnterpriseM() and hasClickHouseSupport()
     })
+elseif page == "local_hosts_report" then
+    local json = require "dkjson"
+    local json_context = json.encode({
+        ifid = ifstats.id,
+        csrf = ntop.getRandomCSRFValue()
+    })
+    template_utils.render("pages/vue_page.template", { vue_page_name = "PageLocalHostsReport", page_context = json_context })
+    
 end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

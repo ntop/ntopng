@@ -183,7 +183,7 @@ const map_table_def_columns = (columns) => {
         rect.attr('fill', calculate_gradient(el, row.max_value_per_point[index]));
         rect.attr('data-bs-toggle', "tooltip");
         rect.attr('data-bs-placement', "top");
-        rect.attr('data-bs-original-title', ntopng_utility.from_utc_to_server_date_format(new Date(current_time * 1000), date_format.value));
+        rect.attr('data-bs-original-title', ntopng_utility.from_utc_to_server_date_format(new Date(current_time * 1000), date_format.value) + ` \n Activity: ${formatter(el)}`);
         svg = `${svg}${rect[0].outerHTML}`;
       })
       svg = `${svg}</svg>`
