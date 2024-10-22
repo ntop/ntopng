@@ -21,7 +21,8 @@
                                         <select class="me-2 form-select" style="min-width:8rem;"
                                             v-model="selected_query_preset" @change="update_select_query_presets()">
                                             <template v-for="item in query_presets">
-                                                <option v-if="item.builtin == true" :value="item">{{ item.name }}</option>
+                                                <option v-if="item.builtin == true" :value="item">{{ item.name }}
+                                                </option>
                                             </template>
                                             <optgroup v-if="page != 'analysis'" :label="_i18n('queries.queries')">
                                                 <template v-for="item in query_presets">
@@ -42,8 +43,8 @@
                                     <a v-if="context.show_analyse_records" class="btn btn-link btn-sm"
                                         :title="_i18n('graphs.analyse_records')" :href="href_analyse_records"><i
                                             class="fas fa-lg fa-play"></i></a>
-                                    <button v-if="context.show_pcap_download || show_pcap_download" class="btn btn-link btn-sm"
-                                        @click="show_modal_traffic_extraction"
+                                    <button v-if="context.show_pcap_download || show_pcap_download"
+                                        class="btn btn-link btn-sm" @click="show_modal_traffic_extraction"
                                         :title="_i18n('traffic_recording.pcap_download')"><i
                                             class="fas fa-lg fa-download"></i></button>
                                     <button v-if="context.is_ntop_enterprise_m" class="btn btn-link btn-sm"
@@ -65,9 +66,10 @@
                         <div v-if="context.show_chart" class="col-12 mb-2" id="chart-vue">
                             <div class="card overflow-hidden" :style="chart_style">
                                 <!-- <div class="card h-300 overflow-hidden"> -->
-                                <Chart ref="chart" id="chart_0" :chart_type="chart_type" :base_url_request="chart_data_url"
-                                    :map_chart_options="f_map_chart_options" :register_on_status_change="false"
-                                    :min_time_interval_id="min_time_interval_id" :round_time="round_time">
+                                <Chart ref="chart" id="chart_0" :chart_type="chart_type"
+                                    :base_url_request="chart_data_url" :map_chart_options="f_map_chart_options"
+                                    :register_on_status_change="false" :min_time_interval_id="min_time_interval_id"
+                                    :round_time="round_time">
                                 </Chart>
                             </div>
                         </div>
@@ -85,8 +87,9 @@
                                     </template>
                                     <template v-slot:menu>
                                         <a v-for="opt in t.options" style="cursor:pointer; display: block;"
-                                            @click="add_top_table_filter(opt, $event)" class="ntopng-truncate tag-filter "
-                                            :title="opt.value">{{ opt.label + " (" + opt.count + "%)" }}</a>
+                                            @click="add_top_table_filter(opt, $event)"
+                                            class="ntopng-truncate tag-filter " :title="opt.value">{{ opt.label + " (" +
+                                            opt.count + "%)" }}</a>
                                     </template>
                                 </Dropdown> <!-- Dropdown columns -->
                             </template> <!-- custom_header -->
@@ -128,11 +131,11 @@
 import { ref, onMounted, onBeforeMount, computed, nextTick } from "vue";
 import { ntopng_status_manager, ntopng_custom_events, ntopng_url_manager, ntopng_utility, ntopng_sync, ntopng_events_manager } from "../services/context/ntopng_globals_services";
 import NtopUtils from "../utilities/ntop-utils";
+import { default as dataUtils } from "../utilities/data-utils.js";
 import { ntopChartApex } from "../components/ntopChartApex.js";
 import { DataTableRenders } from "../utilities/datatable/sprymedia-datatable-utils.js";
 import FormatterUtils from "../utilities/formatter-utils.js";
 
-import { default as SelectSearch } from "./select-search.vue";
 import { default as Navbar } from "./page-navbar.vue";
 import { default as AlertInfo } from "./alert-info.vue";
 import { default as Chart } from "./chart.vue";
@@ -232,9 +235,9 @@ const count_page_components_reloaded = ref(0)
 
 onBeforeMount(async () => {
     init_params();
-    init_url_params();
+    await init_url_params();
     await set_query_presets();
-    ntopng_events_manager.on_event_change('range_picker', ntopng_events.EPOCH_CHANGE, (new_status) => {update_show_download_pcap(new_status);}, true);
+    ntopng_events_manager.on_event_change('range_picker', ntopng_events.EPOCH_CHANGE, (new_status) => { update_show_download_pcap(new_status); }, true);
     mount_range_picker.value = true;
 });
 
@@ -264,9 +267,17 @@ function init_params() {
     }
 }
 
-function init_url_params() {
+async function init_url_params() {
+    const url_params_obj = ntopng_url_manager.get_url_object(ntopng_url_manager.get_url_params());
     if (ntopng_url_manager.get_url_entry("ifid") == null) {
         ntopng_url_manager.set_key_to_url("ifid", default_ifid);
+    }
+    for (const key in url_params_obj) {
+        const value = url_params_obj[key]
+        const result = value.split(";"); /* Do not add the values like ;eq, it causes problems with linting */
+        if (dataUtils.isEmptyOrNull(result[0])) {
+            ntopng_url_manager.delete_key_from_url(key)
+        }
     }
     // 30 min default
     // chiamare set default_time interval
@@ -354,16 +365,6 @@ const f_map_chart_options = async (chart_options) => {
 };
 
 function change_flow_type() {
-    // if (flows_aggregated.value == false) {
-    // 	ntopng_url_manager.delete_params(["aggregated"]);	
-    // 	table_config_id.value = "flow_historical";
-    // } else {
-    // 	ntopng_url_manager.set_key_to_url("aggregated", "true");
-    // 	table_config_id.value = "flow_historical_aggregated";
-    // }
-    // refresh_page_components(true);
-    // load_top_table_array_overview();
-
     // currently we can't refresh component without reload the page because we need refresh props.context
     if (flows_aggregated.value == false) {
         ntopng_url_manager.delete_params(["aggregated"]);
@@ -422,19 +423,19 @@ const get_open_top_table_dropdown = (top, top_index) => {
 };
 
 function match_traffic_recording_window(begin_epoch, end_epoch) {
-   const w_first_epoch = props.context.n2disk_window_first_epoch;
-   const w_last_epoch = props.context.n2disk_window_last_epoch;
+    const w_first_epoch = props.context.n2disk_window_first_epoch;
+    const w_last_epoch = props.context.n2disk_window_last_epoch;
 
-   return begin_epoch >= w_first_epoch && 
-          begin_epoch <= w_last_epoch && 
-          end_epoch >= w_first_epoch && 
-          end_epoch <= w_last_epoch;
+    return begin_epoch >= w_first_epoch &&
+        begin_epoch <= w_last_epoch &&
+        end_epoch >= w_first_epoch &&
+        end_epoch <= w_last_epoch;
 }
 
 function update_show_download_pcap(new_status) {
-   const tmp_begin_epoch = new_status.epoch_begin;
-   const tmp_end_epoch = new_status.epoch_end;
-   show_pcap_download.value = match_traffic_recording_window(tmp_begin_epoch, tmp_end_epoch);
+    const tmp_begin_epoch = new_status.epoch_begin;
+    const tmp_end_epoch = new_status.epoch_end;
+    show_pcap_download.value = match_traffic_recording_window(tmp_begin_epoch, tmp_end_epoch);
 }
 
 async function register_components_on_status_update() {
@@ -522,8 +523,8 @@ const map_table_def_columns = async (columns) => {
         },
         "cli_nw_latency": (cli_nw_latency, row) => f_print_latency("cli_nw_latency", cli_nw_latency, row),
         "srv_nw_latency": (srv_nw_latency, row) => f_print_latency("srv_nw_latency", srv_nw_latency, row),
-        "major_connection_state": (major_connection_state, row) => f_print_state("major_connection_state", major_connection_state , row),
-        "minor_connection_state": (minor_connection_state, row) => f_print_state("minor_connection_state", minor_connection_state , row),
+        "major_connection_state": (major_connection_state, row) => f_print_state("major_connection_state", major_connection_state, row),
+        "minor_connection_state": (minor_connection_state, row) => f_print_state("minor_connection_state", minor_connection_state, row),
         "pre_nat_ipv4_src_addr": (value, row) => { return DataTableRenders.filterize('pre_nat_ipv4_src_addr', value.value, value.label) },
         "pre_nat_src_port": (value, row) => { return DataTableRenders.filterize('pre_nat_src_port', value.value, value.label) },
         "pre_nat_ipv4_dst_addr": (value, row) => { return DataTableRenders.filterize('pre_nat_ipv4_dst_addr', value.value, value.label) },
@@ -558,8 +559,8 @@ const map_table_def_columns = async (columns) => {
                 b.f_map_class = (current_class, row) => {
                     if (b.id == 'pcap_download') {
                         if (!(row.first_seen && row.first_seen.epoch &&
-                              row.last_seen  && row.last_seen.epoch  &&
-                              match_traffic_recording_window(row.first_seen.epoch, row.last_seen.epoch))) {
+                            row.last_seen && row.last_seen.epoch &&
+                            match_traffic_recording_window(row.first_seen.epoch, row.last_seen.epoch))) {
                             current_class.push("link-disabled");
                         }
                     } else if (visible_dict[b.id] != null && visible_dict[b.id] == false) {
@@ -655,6 +656,7 @@ function show_modal_snapshot() {
 }
 
 async function add_exclude(params) {
+    debugger;
     params.csrf = props.context.csrf;
     let url = `${http_prefix}/lua/pro/rest/v2/add/alert/exclusion.lua`;
     try {

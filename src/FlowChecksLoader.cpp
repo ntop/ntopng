@@ -287,7 +287,8 @@ void FlowChecksLoader::loadConfiguration() {
         if (strcmp(check_key, "tls_old_protocol_version") &&
             strcmp(check_key, "tls_malicious_signature") &&
             strcmp(check_key, "ndpi_malicious_ja3") &&
-            strcmp(check_key, "ndpi_http_numeric_ip_host")
+            strcmp(check_key, "ndpi_http_numeric_ip_host") &&
+            strcmp(check_key, "unexpected_gateway")
 #ifdef HAVE_NEDGE
             &&
             strcmp(check_key, "lateral_movement") &&
