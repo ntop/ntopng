@@ -601,7 +601,7 @@
 #define CONST_OLD_DEFAULT_NTOP_USER "nobody"
 #define CONST_DEFAULT_NTOP_USER "ntopng"
 #define CONST_TOO_EARLY "TooEarly"
-#define CONST_LABELS_LOG_FILE "labels.log"
+#define CONST_ACTIVITY_LOG_FILE "ntopng-activities.log"
 
 #define CONST_LUA_OK 1
 #define CONST_LUA_ERROR 0

@@ -112,7 +112,6 @@ Prefs::Prefs(Ntop *_ntop) {
   netbox_enabled = CONST_DEFAULT_NETBOX_ENABLED;
   snmp_trap_enabled = CONST_DEFAULT_SNMP_TRAP_ENABLED;
   pro_callbacks_dir = strdup(CONST_DEFAULT_PRO_CALLBACKS_DIR);
-  create_labels_logfile = false;
   lic_mgr_config_file = NULL;
 #endif
   pcap_dir = NULL;
@@ -556,10 +555,6 @@ void usage() {
 	 CONST_DEFAULT_USERS_FILE);
 
   printf(
-#ifdef NTOPNG_PRO
-	 "[--log-labels}                      | Enable dump of host labels in "
-	 "%s/%s\n"
-#endif
 #ifndef WIN32
 	 "[--pid|-G] <path>                   | Pid file path\n"
 #endif
@@ -599,10 +594,6 @@ void usage() {
 	 "case-insensitive.\n"
 	 "                                    |\n"
 #endif
-#endif
-#ifdef NTOPNG_PRO
-	 ,
-	 CONST_DEFAULT_DATA_DIR, CONST_LABELS_LOG_FILE
 #endif
 	 );
 
@@ -1211,9 +1202,6 @@ static const struct option long_options[] = {
   {"disable-purge", no_argument, NULL, 199},
   {"limit-resources", no_argument, NULL, 200},
   {"test-script-post", required_argument, NULL, 201},
-#ifdef NTOPNG_PRO
-  {"log-labels", no_argument, NULL, 202},
-#endif
 #ifdef HAVE_PF_RING
   {"cluster-id", required_argument, NULL, 204},
 #endif
@@ -2186,12 +2174,6 @@ int Prefs::setOption(int optkey, char *optarg) {
     if (test_post_script_path) free(test_post_script_path);
     test_post_script_path = strdup(optarg);
     break;
-
-#ifdef NTOPNG_PRO
-  case 202:
-    create_labels_logfile = true;
-    break;
-#endif
 
   case 203:
     zmq_publish_events_url = strdup(optarg);
