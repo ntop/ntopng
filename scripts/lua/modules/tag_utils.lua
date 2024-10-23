@@ -1309,9 +1309,9 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 if (restrict_filters and not isEmptyString(_GET["probe_ip"])) then
                     local tmp = split(_GET["probe_ip"], ";")
                     probe_ip_requested = tmp[1]
-                    flow_devices = { {
-                        [tmp[1]] = true
-                    } }
+                    flow_devices = {
+                        [tmp[1]] = 1
+                    }
                 else
                     local tmp = interface.getFlowDevices()
                     for _, dev_list in pairs(tmp) do
@@ -1322,14 +1322,15 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                 end
 
                 -- SNMP devices
+                local snmp_cached_dev = require "snmp_cached_dev"
                 local snmp_config = require "snmp_config"
                 local devices = {}
                 if isEmptyString(probe_ip_requested) then
                     devices = snmp_config.get_all_configured_devices()
                 else
-                    devices = flow_devices[1]
+                    devices = flow_devices
                 end
-                local snmp_cached_dev = require "snmp_cached_dev"
+
                 -- use pairsByKeys to impose order
                 for probe_ip, _ in pairsByKeys(devices) do
                     if flow_devices[probe_ip] then
@@ -1365,23 +1366,21 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
                     end
                 end
 
-                for _, exporter in pairs(flow_devices or {}) do
-                    for exporter_ip, _  in pairs(exporter or {}) do
-                        -- Add interfaces for flow devices which are not polled by SNMP
-                        local interfaces = interface.getFlowDeviceInfoByIP(exporter_ip)
+                for exporter_ip, _ in pairs(flow_devices or {}) do
+                    -- Add interfaces for flow devices which are not polled by SNMP
+                    local interfaces = interface.getFlowDeviceInfoByIP(exporter_ip)
 
-                        for _, interfaces_table in pairs(interfaces or {}) do
-                            for interface_id, _ in pairsByKeys(interfaces_table) do
-                                local label = format_portidx_name(exporter_ip, interface_id, false, false)
-                                if not hide_exporters_name then
-                                    label = exporter_ip .. ' · ' .. label
-                                end
-                                interfaces_list[tostring(label)] = {
-                                    value = exporter_ip .. "_" .. interface_id,
-                                    label = label,
-                                    show_only_value = exporter_ip
-                                }
+                    for _, interfaces_table in pairs(interfaces or {}) do
+                        for interface_id, _ in pairsByKeys(interfaces_table) do
+                            local label = format_portidx_name(exporter_ip, interface_id, false, false)
+                            if not hide_exporters_name then
+                                label = exporter_ip .. ' · ' .. label
                             end
+                            interfaces_list[tostring(label)] = {
+                                value = exporter_ip .. "_" .. interface_id,
+                                label = label,
+                                show_only_value = exporter_ip
+                            }
                         end
                     end
                 end
