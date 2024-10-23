@@ -1,0 +1,7 @@
+/var/lib/ntopng/ntopng-activities.log {
+	maxsize 1M
+	daily
+	missingok
+	rotate 4
+	copytruncate
+}
