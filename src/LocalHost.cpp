@@ -66,6 +66,9 @@ LocalHost::~LocalHost() {
   freeLocalHostData();
   /* Decrease number of active hosts */
   if (isUnicastHost()) iface->decNumHosts(isLocalHost(), is_rx_only);
+#ifdef NTOPNG_PRO
+    ntop->get_am()->deleteHost(this, get_first_seen(), time(NULL));
+#endif
 }
 
 /* *************************************** */
@@ -180,6 +183,7 @@ void LocalHost::initialize() {
       (ntop->getPrefs()->isAssetInventoryEnabled() ||
        ntop->getPrefs()->isNetBoxEnabled()))
     dumpAssetInfo();
+  ntop->get_am()->createHost(this);
 #endif
 }
 

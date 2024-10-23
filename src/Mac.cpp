@@ -75,6 +75,7 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
       (ntop->getPrefs()->isAssetInventoryEnabled() ||
        ntop->getPrefs()->isNetBoxEnabled()))
     dumpAssetInfo();
+  ntop->get_am()->createMac(this);
 #endif
 
   updateHostPool(true /* inline with packet processing */,
@@ -104,6 +105,10 @@ Mac::~Mac() {
   freeMacData();
   if (stats) delete (stats);
   if (stats_shadow) delete (stats_shadow);
+
+#ifdef NTOPNG_PRO
+  ntop->get_am()->deleteMac(this, get_first_seen(), time(NULL));
+#endif
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s [total %u][%s]",
