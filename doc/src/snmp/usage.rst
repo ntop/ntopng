@@ -15,7 +15,7 @@ ntopng has the ability to monitor the usage percentage of each interfaces for ea
   :align: center
   :alt: SNMP Usage
 
-Here it is possible to understand with interface is congested and which not.
+Here it is possible to understand the congested interfaces.
 
 The chart, shows only the Top congested SNMP interfaces; an interface is considered congested if at least 75% of the link is used.
 The link speed (up and down) info, is provided by SNMP in most cases, however sometimes the link speed is not correct. It is however possible to manually configure it by jumping to the SNMP Interface configuration page.
@@ -51,7 +51,7 @@ Note that both, the Usage timeseries and the Top Congested Interfaces charts, ha
 Exclude Interfaces or Devices
 -----------------------------
 
-It is possible to exclude entire devices or single interfaces from the Usage summary.
+By default, all SNMP devices/interfaces are included in the Usage page; however it is possible to exclude entire devices or single interfaces (if not interested in them).
 By jumping to the device summary page (by clicking on an SNMP device), click on the configuration page.
 
 .. figure:: ../img/snmp_device_configuration_page.png
@@ -65,6 +65,23 @@ Here toggle the 'Exclude From Usage' preference.
   :alt: SNMP Usage Timeseries
 
 The same thing is achievable with the interfaces, by jumping to the interface summary and clicking on the configuration page.
+
+.. figure:: ../img/exclude_interface_from_usage.png
+  :align: center
+  :alt: SNMP Usage Timeseries
+
+Automatic Exclusion
+===================
+
+Moreover it is possible to automatically exclude all the SNMP Devices/Interfaces newly added into ntopng automatically.
+In order to do that, a preference is needed to be enabled; jump to Settings, Preferences, SNMP (see image below) and enable the 'SNMP Exclude New Interfaces from Usage' preference.
+From now on, all the newly added devices (with the interfaces) are going to be automatically excluded from the SNMP Usage.
+
+.. figure:: ../img/snmp_usage_automatic_exclusion.png
+  :align: center
+  :alt: SNMP Usage Timeseries
+
+It is however still possible to include back again the excluded interfaces/devices by jumping to the preferences and disabling the relative preference (just like for disabling them).
 
 .. figure:: ../img/exclude_interface_from_usage.png
   :align: center
