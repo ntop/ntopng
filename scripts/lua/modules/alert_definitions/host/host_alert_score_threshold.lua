@@ -47,8 +47,7 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function host_alert_score_threshold.format(ifid, alert, alert_type_params)
-  local alert_consts = require("alert_consts")
-  local host = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
+  local host = hostinfo2label({ ip = alert["ip"], name = alert["name"], vlan = alert["vlan_id"] }, true, false)
   local threshold = alert_type_params["threshold"] or 0
   local as_cli_or_srv = i18n("client")
   local as_cli = true
