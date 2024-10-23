@@ -5367,8 +5367,6 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
 	twh_over = 1, iface->getTcpFlowStats()->incEstablished();
 	
 	if(cli_host || srv_host) setTwhOverForViewInterface();
-	if(cli_host) cli_host->incNumEstablishedTCPFlows(true);
-	if(srv_host) srv_host->incNumEstablishedTCPFlows(false);
       }
     }
 
@@ -5509,9 +5507,6 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
       not_yet:
 	if(twh_over == 0) {
 	  twh_over = 1;
-
-	  if(cli_host) cli_host->incNumEstablishedTCPFlows(true);
-	  if(srv_host) srv_host->incNumEstablishedTCPFlows(false);
 	}
 
 	/*
@@ -8523,11 +8518,6 @@ void Flow::swap() {
     srv_host = h, srv_ip_addr = i;
     cli_host->incNumFlows(now, true /* as client */, isTCP()),
       srv_host->incNumFlows(now, false /* as server */, isTCP());
-
-    if(isTCP() && twh_over) {
-      cli_host->incNumEstablishedTCPFlows(true /* as client */);
-      srv_host->incNumEstablishedTCPFlows(false /* as server */);      
-    }
   } else {
     /* This is a view interface */
 

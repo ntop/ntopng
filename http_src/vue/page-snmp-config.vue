@@ -8,7 +8,7 @@
     <hr>
     <div class="m-4 card card-shadow">
       <div class="card-body">
-        <div class="table table-striped table-bordered col-sm-12">
+        <table class="table table-striped table-bordered col-sm-12">
           <tbody class="table_length">
             <tr>
               <td>
@@ -43,7 +43,7 @@
               </td>
             </tr>
           </tbody>
-        </div>
+        </table>
         <div class="d-flex justify-content-end me-1">
           <button class="btn btn-primary" :disabled="disable_save" @click="reload_page">
             {{ _i18n('save_settings') }}

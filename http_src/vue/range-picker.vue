@@ -1,23 +1,28 @@
 <template>
     <div style="width:100%">
         <div class="mb-1">
-            <modal-filters :filters_options="modal_data" @apply="apply_modal" ref="modal_filters" :id="id_modal_filters">
+            <modal-filters :filters_options="modal_data" @apply="apply_modal" ref="modal_filters"
+                :id="id_modal_filters">
             </modal-filters>
-            <date-time-range-picker :id="id_data_time_range_picker" :min_time_interval_id="min_time_interval_id" :round_time="round_time">
+            <date-time-range-picker :id="id_data_time_range_picker" :min_time_interval_id="min_time_interval_id"
+                :round_time="round_time">
                 <template v-slot:begin>
                     <div v-if="is_alert_stats_url" style="margin-right:0.1rem;" class="d-flex align-items-center me-2">
                         <div class="btn-group" id="statusSwitch" role="group">
                             <a v-if="page != 'flow'" href="#" @click="update_status_view('engaged')" class="btn btn-sm"
-                                :class="{ 'active': status_view == 'engaged', 'btn-seconday': status_view != 'engaged', 'btn-primary': status_view == 'engaged' }"><i class="fa-solid fa-hourglass-half" title="Engaged"></i></a>
+                                :class="{ 'active': status_view == 'engaged', 'btn-seconday': status_view != 'engaged', 'btn-primary': status_view == 'engaged' }"><i
+                                    class="fa-solid fa-hourglass-half" title="Engaged"></i></a>
                             <a href="#" @click="update_status_view('historical')" class="btn btn-sm"
-                                :class="{ 'active': status_view == 'historical' || (page == 'flow' && status_view == 'engaged'), 'btn-seconday': status_view != 'historical', 'btn-primary': status_view == 'historical' || (page == 'flow' && status_view == 'engaged') }"><i class="fa-regular fa-eye" title="Require Attention"></i></a>
+                                :class="{ 'active': status_view == 'historical' || (page == 'flow' && status_view == 'engaged'), 'btn-seconday': status_view != 'historical', 'btn-primary': status_view == 'historical' || (page == 'flow' && status_view == 'engaged') }"><i
+                                    class="fa-regular fa-eye" title="Require Attention"></i></a>
                             <!-- <a href="#" @click="update_status_view('acknowledged')" class="btn btn-sm"
                                 :class="{ 'active': status_view == 'acknowledged', 'btn-seconday': status_view != 'acknowledged', 'btn-primary': status_view == 'acknowledged' }"><i class="fa-solid fa-check-double" title="Acknowledged"></i></a>-->
                             <a href="#" @click="update_status_view('any')" class="btn btn-sm"
-                                :class="{ 'active': status_view == 'any', 'btn-seconday': status_view != 'any', 'btn-primary': status_view == 'any' }"><i class="fa-solid fa-inbox" title="All"></i></a>
+                                :class="{ 'active': status_view == 'any', 'btn-seconday': status_view != 'any', 'btn-primary': status_view == 'any' }"><i
+                                    class="fa-solid fa-inbox" title="All"></i></a>
                         </div>
                     </div>
-		    <slot name="begin"></slot>
+                    <slot name="begin"></slot>
                 </template>
                 <template v-slot:extra_buttons>
                     <slot name="extra_range_buttons"></slot>
@@ -27,7 +32,8 @@
 
         <!-- tagify -->
         <div v-if="page != 'all'" class="d-flex mt-1" style="width:100%">
-            <input class="w-100 form-control h-auto" name="tags" ref="tagify" :placeholder="i18n('show_alerts.filters')">
+            <input class="w-100 form-control h-auto" name="tags" ref="tagify"
+                :placeholder="i18n('show_alerts.filters')">
 
             <button v-show="modal_data && modal_data.length > 0" class="btn btn-link" aria-controls="flow-alerts-table"
                 type="button" id="btn-add-alert-filter" @click="show_modal_filters"><span><i class="fas fa-plus"
@@ -48,6 +54,7 @@
 <script type="text/javascript">
 import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import { default as ModalFilters } from "./modal-filters.vue";
+import { default as dataUtils } from "../utilities/data-utils.js";
 import filtersManager from "../utilities/filters-manager.js";
 
 
@@ -145,10 +152,10 @@ const load_filters_data = async function () {
                 ) {
                     return;
                 }
-		let value_label = value;
-		if (filter_def.value_type == "array") {
-		    value_label = filter_def?.options?.find((opt) => opt.value == value)?.label;
-		}
+                let value_label = value;
+                if (filter_def.value_type == "array") {
+                    value_label = filter_def?.options?.find((opt) => opt.value == value)?.label;
+                }
                 filters.push({ id: filter_def.id, operator: operator, value: value, label: filter_def.label, value_label });
             });
         }
@@ -224,12 +231,22 @@ export default {
             // delete all previous filter
             ntopng_url_manager.delete_params(FILTERS_CONST.map((f) => f.id));
             TAGIFY.tagify.removeAllTags();
-            let filters_object = filtersManager.get_filters_object(filters);
-            ntopng_url_manager.add_obj_to_url(filters_object);
+            const filters_object = filtersManager.get_filters_object(filters);
+            let filters_to_add = {}
+            for (const key in filters_object) {
+                const value = filters_object[key]
+                const result = value.split(";"); /* Do not add the values like ;eq, it causes problems with linting */
+                if (!dataUtils.isEmptyOrNull(result[0])) {
+                    filters_to_add[key] = filters_object[key]
+                }
+            }
+            ntopng_url_manager.add_obj_to_url(filters_to_add);
             filters.forEach((f) => {
-                let tag = create_tag_from_filter(f);
-                if (tag == null) { return; }
-                TAGIFY.addFilterTag(tag);
+                if (!dataUtils.isEmptyOrNull(f.value)) {
+                    let tag = create_tag_from_filter(f);
+                    if (tag == null) { return; }
+                    TAGIFY.addFilterTag(tag);
+                }
             });
             this.last_filters = filters;
         },

@@ -322,11 +322,6 @@ page_utils.print_navbar(title, url, { {
     page_name = "sites",
     label = i18n("sites_page.sites")
 }, {
-    hidden = not host_ts_available or not ntop.isEnterpriseM(),
-    active = page == "local_hosts_report",
-    page_name = "local_hosts_report",
-    label = i18n("local_hosts_report")
-}, {
     hidden = not charts_available,
     active = page == "historical",
     page_name = "historical",
@@ -1740,12 +1735,6 @@ elseif (page == "sites") then
         print("<div class='alert alert-info'><i class='fas fa-info-circle fa-lg' aria-hidden='true'></i> " .. msg ..
             "</div>")
     end
-elseif (page == "local_hosts_report") then
-    local json_context = json.encode({
-        ifid = ifstats.id,
-        csrf = ntop.getRandomCSRFValue()
-    })
-    template.render("pages/vue_page.template", { vue_page_name = "PageLocalHostsReport", page_context = json_context })
 elseif (page == "historical") then
     local source_value_object = {
         ifid = interface.getId()

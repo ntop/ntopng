@@ -111,8 +111,11 @@ function backup_config.fs_save_backup(backup_time_key, backup, to_ignore)
 
     -- get last backup
     local handle = io.open(base_dir..path_separator..last_b_name, "r")
-    local backup_string = handle:read("*a")
-    handle:close()
+    local backup_string
+    if handle then
+        backup_string = handle:read("*a")
+        handle:close()
+    end
 
     if (num_backups >= 7) then
         -- remove here the first_b_name
@@ -141,11 +144,13 @@ function backup_config.fs_save_backup(backup_time_key, backup, to_ignore)
         local backup_j_string = json.encode(backup)
         local writer = io.open(base_dir..path_separator..key.."_config.json","w")
 
-        if debugger then
-            traceError(TRACE_DEBUG, TRACE_CONSOLE, "SAVING BACKUP: "..base_dir..path_separator..key.."_config.json")
+        -- In case there is some error with permissions
+        if writer then
+            writer:write(backup_j_string)
+            writer:close()
+        else
+            traceError(TRACE_WARNING, TRACE_CONSOLE, "Unable to save configuration backup: "..base_dir..path_separator..key.."_config.json")
         end
-        writer:write(backup_j_string)
-        writer:close()
     end
     
 end
