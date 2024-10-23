@@ -174,14 +174,14 @@ void Trace::traceEvent(int eventTraceLevel, const char *_file, const int line,
     if (traceRedis
 	&& traceRedis->isOperational()
 	&& ntop->getRedis()->isOperational()) {
-    if (traceRedis->llen(NTOPNG_TRACE) >= MAX_NUM_NTOPNG_TRACES) {
-      memset(buf, 0, sizeof(buf));
+      if (traceRedis->llen(NTOPNG_TRACE) >= MAX_NUM_NTOPNG_TRACES) {
+        memset(buf, 0, sizeof(buf));
 
-      traceRedis->rpop(NTOPNG_TRACE,buf, sizeof(buf));
-    }
-    traceRedis->lpush(NTOPNG_TRACE, out_buf, MAX_NUM_NTOPNG_TRACES,
+        traceRedis->rpop(NTOPNG_TRACE,buf, sizeof(buf));
+      }
+      traceRedis->lpush(NTOPNG_TRACE, out_buf, MAX_NUM_NTOPNG_TRACES,
     			false /* Do not re-trace errors, re-tracing would yield a deadlock */);
-  }
+    }
   }
 
 }
