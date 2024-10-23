@@ -337,6 +337,7 @@ class Host : public GenericHashEntry,
   inline bool has_name_set() { return(names.server_name ? true : false); }
 
   char* get_name(char *buf, u_int buf_len, bool force_resolution_if_not_found);
+  char* print(char *buf, u_int buf_len, bool force_resolution_if_not_found = false);
 
   inline void incSentTcp(u_int32_t ooo_pkts, u_int32_t retr_pkts,
                          u_int32_t lost_pkts, u_int32_t keep_alive_pkts) {

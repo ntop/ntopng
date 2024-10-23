@@ -67,7 +67,7 @@ LocalHost::~LocalHost() {
   /* Decrease number of active hosts */
   if (isUnicastHost()) iface->decNumHosts(isLocalHost(), is_rx_only);
 #ifdef NTOPNG_PRO
-    ntop->get_am()->deleteHost(this, get_first_seen(), time(NULL));
+  ntop->get_am()->deleteHost(this, get_first_seen(), time(NULL));
 #endif
 }
 

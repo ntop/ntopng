@@ -1033,6 +1033,13 @@ void Host::lua(lua_State *vm, AddressTree *ptree, bool host_details,
 
 /* ***************************************** */
 
+char *Host::print(char *buf, u_int buf_len,
+                  bool force_resolution_if_not_found) {
+  print(buf, buf_len, force_resolution_if_not_found);
+}
+
+/* ***************************************** */
+
 char *Host::get_name(char *buf, u_int buf_len,
                      bool force_resolution_if_not_found) {
   char *addr = NULL, name_buf[128];
