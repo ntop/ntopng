@@ -214,7 +214,6 @@ char *ZMQCollectorInterface::findInterfaceEncryptionKeys(char *public_key, char 
 void ZMQCollectorInterface::checkPointCounters(bool drops_only) {
   if (!drops_only) {
     recvStatsCheckpoint.num_flows = recvStats.num_flows,
-    recvStatsCheckpoint.num_dropped_flows = recvStats.num_dropped_flows,
     recvStatsCheckpoint.num_events = recvStats.num_events,
     recvStatsCheckpoint.num_counters = recvStats.num_counters,
     recvStatsCheckpoint.num_templates = recvStats.num_templates,
@@ -223,6 +222,7 @@ void ZMQCollectorInterface::checkPointCounters(bool drops_only) {
     recvStatsCheckpoint.zmq_msg_rcvd = recvStats.zmq_msg_rcvd;
   }
 
+  recvStatsCheckpoint.num_dropped_flows = recvStats.num_dropped_flows;
   recvStatsCheckpoint.zmq_msg_drops = recvStats.zmq_msg_drops;
 
   NetworkInterface::checkPointCounters(drops_only);
