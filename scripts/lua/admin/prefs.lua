@@ -1858,7 +1858,7 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "enable_host_pools_log"
         })
 
-        if ntop.isEnterpriseL() then
+        if ntop.isEnterprise() or ntop.isnEdgeEnterprise() then
             prefsToggleButton(subpage_active, {
                 field = "toggle_asset_inventory_log",
                 default = "0",
