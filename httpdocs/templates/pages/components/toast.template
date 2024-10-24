@@ -30,16 +30,24 @@
 
 {% if toast.action and toast.action.js then %}
 <script type="text/javascript">
-    const toastCSRF = "{{ ntop.getRandomCSRFValue() }}";
-    const toastConfigFlowChanges = function() {
+    var toastCSRF = "{{ ntop.getRandomCSRFValue() }}";
+
+    var toastConfigFlowChanges = function() {
+        var $error_label = $("#toast-config-change-modal_more_content")
         $.ajax({
             type: 'POST',
             contentType: "application/json",
             dataType: "json",
             url: `${http_prefix}/lua/rest/v2/edit/ntopng/incr_flows.lua`,
-            data: JSON.stringify({ csrf: toastCSRF }),
-            success: function(rsp) { $('#toast-config-change-modal-flows').modal('hide'); },
-            error: function(rsp) { $('#toast-config-change-modal-flows_more_content').show(); }
+            data: JSON.stringify({
+                csrf: toastCSRF,
+            }),
+            success: function(rsp) {
+                $('#toast-config-change-modal-flows').modal('hide');
+            },
+            error: function(rsp) {
+                $('#toast-config-change-modal-flows_more_content').show();
+            }
         });
     }
 
@@ -48,7 +56,7 @@
         $('.modal-backdrop').remove();
     });
 
-    const toastConfigHostChanges = function() {
+    var toastConfigHostChanges = function() {
         var $error_label = $("#toast-config-change-modal_more_content")
         $.ajax({
             type: 'POST',
