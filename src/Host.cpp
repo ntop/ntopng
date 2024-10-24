@@ -1035,7 +1035,13 @@ void Host::lua(lua_State *vm, AddressTree *ptree, bool host_details,
 
 char *Host::print(char *buf, u_int buf_len,
                   bool force_resolution_if_not_found) {
-  return get_name(buf, buf_len, force_resolution_if_not_found);
+  /* try get name */
+  char *name = get_name(buf, buf_len, force_resolution_if_not_found);
+  if (name[0] != '\0')
+    return name;
+
+  /* no name: print ip */
+  return get_ip()->print(buf, buf_len);
 }
 
 /* ***************************************** */
