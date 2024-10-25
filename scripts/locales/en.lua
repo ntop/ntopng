@@ -7626,6 +7626,7 @@ local lang = {
         ["last_minute"] = "Last Minute",
         ["last_week"] = "Last Week",
         ["minute"] = "Minute",
+        ["monthly"] = "Monthly",
         ["network_delete_config_btn"] = "Delete Network %{network} Configuration",
         ["network_delete_config_confirm"] = "Do you really want to delete the %{granularity} configuration for network",
         ["network_interface_rule_threshold_cross"] = "Threshold Crossed",
