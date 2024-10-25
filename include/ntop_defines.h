@@ -1201,6 +1201,7 @@
 #define FIVE_MINUTES_SCRIPT_DIR "5minute"
 #define HOURLY_SCRIPT_DIR "hourly"
 #define DAILY_SCRIPT_DIR "daily"
+#define MONTHLY_SCRIPT_DIR "monthly"
 
 #define MACS_DISCONNECTION                                                \
   "ntopng.cache.checks.ifid_%d.macs_disconnected" /* Sync with checks.lua \

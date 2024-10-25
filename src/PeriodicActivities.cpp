@@ -38,6 +38,7 @@ static activity_descr ad[] = {
     {FIVE_MINUTES_SCRIPT_DIR, 300, 300, false, false, true},
     {HOURLY_SCRIPT_DIR, 3600, 600, false, false, true},
     {DAILY_SCRIPT_DIR, 86400, 3600, true, false, true},
+    {MONTHLY_SCRIPT_DIR, 2592000, 3600, true, false, true},
 
     {NULL, 0, 0, false, false, false}};
 
