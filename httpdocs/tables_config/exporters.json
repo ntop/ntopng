@@ -58,6 +58,16 @@
 			]
 		},
 		{
+			"id": "exporter_interfaces",
+			"title_i18n": "if_stats_overview.flow_exporters_interfaces_num",
+			"data_field": "exporter_interfaces",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
 			"id": "time_last_used",
 			"title_i18n": "flow_devices.exporter_time_last_used",
 			"data_field": "time_last_used",
@@ -86,5 +96,5 @@
 				"text-nowrap"
 			]
 		}
-    ]
+	]
 }

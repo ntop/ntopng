@@ -304,8 +304,9 @@ void Flow::deferredInitialization() {
 
       Mac *srv_mac = srv_host->getMac();
       /* Add client gateway */
-      if (srv_mac && (!srv_host->isLocalHost())) {
+      if (srv_mac && !srv_mac->isNull() && !srv_host->isLocalHost()) {
         LocalHost *lh = (LocalHost *)cli_host;
+	
         lh->setRouterMac(srv_mac);
       }
     }
@@ -8976,4 +8977,37 @@ void Flow::updateServerName(Host *h) {
       h->setServerName(i->hostname);
     }
   }
+}
+
+/* *************************************** */
+
+char* Flow::getDomainName() {
+  switch (getLowerProtocol()) {
+  case NDPI_PROTOCOL_DNS:
+    /* ndpi_get_host_domain(iface->get_ndpi_struct(), protos.dns.last_query) */
+    break;
+
+  case NDPI_PROTOCOL_HTTP:
+  case NDPI_PROTOCOL_HTTP_PROXY:
+    // protos.http.last_server
+    break;
+
+  case NDPI_PROTOCOL_TLS:
+  case NDPI_PROTOCOL_MAIL_IMAPS:
+  case NDPI_PROTOCOL_MAIL_SMTPS:
+  case NDPI_PROTOCOL_MAIL_POPS:
+  case NDPI_PROTOCOL_QUIC:
+    // protos.tls.client_requested_server_name
+    break;
+
+  case NDPI_PROTOCOL_MDNS:
+    // protos.mdns.name
+    break;
+
+  case NDPI_PROTOCOL_NETBIOS:
+    // protos.netbios.name
+    break;
+  }
+  
+  return(NULL);
 }

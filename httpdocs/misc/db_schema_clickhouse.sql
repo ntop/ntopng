@@ -53,7 +53,36 @@ CREATE TABLE IF NOT EXISTS `flows` (
 `SRC_PROC_NAME` String,
 `DST_PROC_NAME` String,
 `SRC_PROC_USER_NAME` String,
-`DST_PROC_USER_NAME` String
+`DST_PROC_USER_NAME` String,
+`ALERTS_MAP` String,
+`SEVERITY` UInt8,
+`IS_CLI_ATTACKER` UInt8,
+`IS_CLI_VICTIM` UInt8,
+`IS_CLI_BLACKLISTED` UInt8,
+`IS_SRV_ATTACKER` UInt8,
+`IS_SRV_VICTIM` UInt8,
+`IS_SRV_BLACKLISTED` UInt8,
+`ALERT_STATUS` UInt8,
+`USER_LABEL` String,
+`USER_LABEL_TSTAMP` DateTime,
+`ALERT_JSON` String, /* Extra flow metadata (not alert only) */
+`IS_ALERT_DELETED` UInt8,
+`SRC2DST_PACKETS` UInt32,
+`DST2SRC_PACKETS` UInt32,
+`ALERT_CATEGORY` UInt8,
+`MINOR_CONNECTION_STATE` UInt8,
+`MAJOR_CONNECTION_STATE` UInt8,
+`PRE_NAT_IPV4_SRC_ADDR` UInt32,
+`PRE_NAT_SRC_PORT` UInt32,
+`PRE_NAT_IPV4_DST_ADDR` UInt32,
+`PRE_NAT_DST_PORT` UInt32,
+`POST_NAT_IPV4_SRC_ADDR` UInt32,
+`POST_NAT_SRC_PORT` UInt32,
+`POST_NAT_IPV4_DST_ADDR` UInt32,
+`POST_NAT_DST_PORT` UInt32,
+`WLAN_SSID` String,
+`WTP_MAC_ADDRESS` UInt64,
+`DOMAIN_NAME` String
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (IPV4_SRC_ADDR, IPV4_DST_ADDR, FIRST_SEEN);
 @
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `FLOW_ID` UInt64;
@@ -141,6 +170,8 @@ ALTER TABLE flows ADD COLUMN IF NOT EXISTS `POST_NAT_DST_PORT` UInt32;
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `WLAN_SSID` String;
 @
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `WTP_MAC_ADDRESS` UInt64;
+@
+ALTER TABLE flows ADD COLUMN IF NOT EXISTS `DOMAIN_NAME` String;
 
 @
 
@@ -162,7 +193,8 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime NULL
+`user_label_tstamp` DateTime NULL,
+`alert_category` UInt8
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `active_monitoring_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
@@ -209,7 +241,18 @@ CREATE TABLE IF NOT EXISTS `flow_alerts` (
 `alerts_map` String, -- An HEX bitmap of all flow statuses
 `flow_risk_bitmap` UInt64 NOT NULL,
 `user_label` String,
-`user_label_tstamp` DateTime
+`user_label_tstamp` DateTime,
+`cli_host_pool_id` UInt16,
+`srv_host_pool_id` UInt16,
+`cli_network` UInt16,
+`srv_network` UInt16,
+`info` String,
+`cli_location` UInt8,
+`srv_location` UInt8,
+`probe_ip` String,
+`input_snmp` UInt32,
+`output_snmp` UInt32,
+`alert_category` UInt8
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(first_seen) ORDER BY (first_seen);
 @
 ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS cli_host_pool_id UInt16;
@@ -258,16 +301,20 @@ CREATE TABLE IF NOT EXISTS `host_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime
+`user_label_tstamp` DateTime,
+`host_pool_id` UInt16,
+`network` UInt16,
+`country` String,
+`alert_category` UInt8
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
-ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS host_pool_id UInt16;
+ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `host_pool_id` UInt16;
 @
-ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS network UInt16;
+ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `network` UInt16;
 @
 ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `country` String;
 @
-ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
+ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `alert_category` UInt8;
 
 @
 
@@ -290,7 +337,8 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime
+`user_label_tstamp` DateTime,
+`alert_category` UInt8
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `mac_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
@@ -315,7 +363,8 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime
+`user_label_tstamp` DateTime,
+`alert_category` UInt8
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `snmp_alerts` MODIFY COLUMN `port` UInt32;
@@ -341,7 +390,8 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime
+`user_label_tstamp` DateTime,
+`alert_category` UInt8
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `network_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
@@ -366,7 +416,8 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime
+`user_label_tstamp` DateTime,
+`alert_category` UInt8
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `interface_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
@@ -388,7 +439,8 @@ CREATE TABLE IF NOT EXISTS `user_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime
+`user_label_tstamp` DateTime,
+`alert_category` UInt8
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `user_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
@@ -410,7 +462,8 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 `description` String,
 `json` String,
 `user_label` String,
-`user_label_tstamp` DateTime
+`user_label_tstamp` DateTime,
+`alert_category` UInt8
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `system_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
@@ -512,7 +565,14 @@ CREATE TABLE IF NOT EXISTS `hourly_flows` (
        `INPUT_SNMP` UInt32,
        `OUTPUT_SNMP` UInt32,
        `SRC_NETWORK_ID` UInt16,
-       `DST_NETWORK_ID` UInt16
+       `DST_NETWORK_ID` UInt16,
+       `SRC_LABEL` String,
+       `DST_LABEL` String,
+       `INTERFACE_ID` UInt16,
+       `WLAN_SSID` String,
+       `WTP_MAC_ADDRESS` UInt64,
+       `CLIENT_LOCATION` UInt8,
+       `SERVER_LOCATION` UInt8
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (IPV4_SRC_ADDR, IPV4_DST_ADDR, FIRST_SEEN);
 @
 ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS SRC_LABEL String;

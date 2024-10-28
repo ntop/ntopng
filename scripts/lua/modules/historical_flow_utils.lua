@@ -368,14 +368,12 @@ end
 
 -- #####################################
 
-local function dt_format_ssid_obj(ssid)
-   local formatted_ssid = {
-      title = ssid,
-      label = ssid,
-      value = ssid,
+local function dt_format_str_obj(s)
+   return {
+      title = s,
+      label = s,
+      value = s,
    } 
-
-   return formatted_ssid
 end
 
 -- #####################################
@@ -1150,8 +1148,9 @@ local flow_columns = {
    ['POST_NAT_SRC_PORT']      = { tag = "post_nat_src_port", dt_func = dt_format_port, db_type = "Number", db_raw_type = "Uint16" },
    ['POST_NAT_IPV4_DST_ADDR'] = { tag = "post_nat_ipv4_dst_addr", dt_func = dt_format_nat_ip, select_func = "IPv4NumToString", db_type = "Number", db_raw_type = "Uint32"  },
    ['POST_NAT_DST_PORT']      = { tag = "post_nat_dst_port", dt_func = dt_format_port, db_type = "Number", db_raw_type = "Uint16" },
-   ['WLAN_SSID']              = { tag = "wlan_ssid", dt_func = dt_format_ssid_obj, db_type = "String", db_raw_type = "String" },
+   ['WLAN_SSID']              = { tag = "wlan_ssid", dt_func = dt_format_str_obj, db_type = "String", db_raw_type = "String" },
    ['WTP_MAC_ADDRESS']        = { tag = "apn_mac", dt_func = dt_format_mac_obj, db_type = "Number", db_raw_type = "Uint64" },
+   ['DOMAIN_NAME']            = { tag = "domain_name", dt_func = dt_format_str_obj, db_type = "String", db_raw_type = "String" },
    
    --[[ TODO: this column is for the aggregated_flow_columns but the parsing Function
               only parses these columns, so a new logic to parse only the aggregated_flow_columns

@@ -431,14 +431,6 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
                                    prefs->get_callbacks_dir());
       exit(-1);
     }
-
-    if (prefs->get_local_networks()) {
-      setLocalNetworks(prefs->get_local_networks());
-    } else {
-      /* Add defaults */
-      /* http://www.networksorcery.com/enp/protocol/ip/multicast.htm */
-      setLocalNetworks((char *)CONST_DEFAULT_LOCAL_NETS);
-    }
   }
 
   /* Initialize redis and populate some default values */
@@ -473,6 +465,14 @@ void Ntop::registerPrefs(Prefs *_prefs, bool quick_registration) {
 
   if (quick_registration)
     return;
+
+  if (prefs->get_local_networks()) {
+    setLocalNetworks(prefs->get_local_networks());
+  } else {
+    /* Add defaults */
+    /* http://www.networksorcery.com/enp/protocol/ip/multicast.htm */
+    setLocalNetworks((char *)CONST_DEFAULT_LOCAL_NETS);
+  }
 
   checkReloadAlertExclusions();
 
@@ -3685,7 +3685,7 @@ bool Ntop::addLocalNetwork(char *_net) {
   int id = local_network_tree.getNumAddresses();
   int i, pos = 0;
 
-  if (id >= CONST_MAX_NUM_NETWORKS) {
+  if (id >= getMaxNumLocalNetworks()) {
     ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined (%d): ignored %s", id, _net);
     return (false);
   }
@@ -3748,7 +3748,7 @@ bool Ntop::addLocalNetwork(char *_net) {
 bool Ntop::getLocalNetworkAlias(lua_State *vm, u_int16_t network_id) {
   char *alias = NULL;
 
-  if (network_id < CONST_MAX_NUM_NETWORKS)
+  if (network_id < getMaxNumLocalNetworks())
     alias = local_network_aliases[network_id];
 
   // Checking if the network has an alias
@@ -4327,5 +4327,17 @@ u_int32_t Ntop::getMaxNumFlowExporters() {
 u_int32_t Ntop::getMaxNumFlowExportersInterfaces() {
   return get_max_num_flow_exporters_interfaces();
 }
-
 #endif /* NTOPNG_PRO */
+  
+/* ******************************************* */
+
+u_int16_t Ntop::getMaxNumLocalNetworks() { 
+#ifdef NTOPNG_PRO
+  return get_max_num_local_networks();
+#else
+  return MAX_NUM_LOCAL_NETWORKS;
+#endif /* NTOPNG_PRO */
+}
+
+/* ******************************************* */
+

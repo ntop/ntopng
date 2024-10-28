@@ -175,6 +175,13 @@ const map_table_def_columns = (columns) => {
         "ntopng_interface": (value, row) => {
             return value
         },
+        "exporter_interfaces": (value, row) => {
+            if (!value) {
+                return '';
+            } else {
+                return formatterUtils.getFormatter("number")(value)
+            }
+        },
         "time_last_used": (value, row) => {
 	    if (!value)
                return '';
@@ -272,6 +279,8 @@ function columns_sorting(col, r0, r1) {
             return sortingFunctions.sortByIP(r0.probe_ip, r1.probe_ip, col.sort);
         } else if (col.id == "export_type") {
             return sortingFunctions.sortByName(r0.export_type, r1.export_type, col.sort);
+        } else if (col.id == "exporter_interfaces") {
+            return sortingFunctions.sortByNumber(r0.exporter_interfaces, r1.exporter_interfaces, col.sort);
         } else if (col.id == "time_last_used") {
             return sortingFunctions.sortByName(r0.name, r1.name, col.sort);
         } else if (col.id == "exported_flows") {

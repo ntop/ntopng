@@ -490,6 +490,11 @@ tag_utils.defined_tags = {
         i18n_label = i18n('db_search.tags.mdns_ssid'),
         operators = { 'eq', 'neq', 'in', 'nin' }
     },
+    domain_name = {
+        value_type = 'text',
+        i18n_label = i18n('db_search.tags.domain_name'),
+        operators = { 'eq', 'neq', 'in', 'nin' }
+    },
     alert_domain = {
         value_type = 'text',
         i18n_label = i18n('db_search.tags.dga_domain_name'),

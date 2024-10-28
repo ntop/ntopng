@@ -130,7 +130,7 @@ local function format_historical_last_first_seen(flow, info)
         name = i18n("db_explorer.date_time"),
         values = {
             [1] = info.first_seen.time,
-            [2] = info.last_seen
+            [2] = info.last_seen.time
         }
     }
 end
@@ -680,11 +680,11 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
             flow_details[#flow_details + 1] = format_historical_obs_point(flow)
         end
 
-        if info.wlan_ssid then
+        if not isEmptyString(info.wlan_ssid) then
             flow_details[#flow_details + 1] = format_historical_wlan_ssid(flow, info)
         end
         
-        if info.apn_mac then
+        if info.apn_mac and not isEmptyString(info.apn_mac.value) then
             flow_details[#flow_details + 1] = format_historical_wtp_mac_address(flow, info)
         end
 

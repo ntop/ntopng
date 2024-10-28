@@ -1990,6 +1990,7 @@ else
 
             print("</tr>\n")
         end
+
         for key, value in pairsByKeys(info) do
             if tonumber(key) then
                 key = getFlowLabelFromId(key)
@@ -1999,11 +2000,21 @@ else
                 goto continue
             end
 
-            if (num == 0) then
-                print("<tr><th colspan=3>" .. i18n("flow_details.additional_flow_elements") .. "</th></tr>\n")
+            local empty_value = false
+            if type(value) == "table" then
+                if table.len(value) == 0 then empty_value = true end
+            else
+                empty_value = isEmptyString(value)
             end
 
-            if (value ~= "" and key ~= "CLIENT_TCP_FLAGS" and key ~= "SERVER_TCP_FLAGS") then
+            if not empty_value
+               and key ~= "CLIENT_TCP_FLAGS"
+               and key ~= "SERVER_TCP_FLAGS"
+            then
+                if num == 0 then
+                    print("<tr><th colspan=3>" .. i18n("flow_details.additional_flow_elements") .. "</th></tr>\n")
+                end
+
                 if type(value) == "table" then
                     print("<tr><th width=10%>" .. getFlowKey(key) .. "</th>")
                     for _, value in pairs(value or {}) do
@@ -2015,9 +2026,8 @@ else
                               format_custom_field(key, value, snmpdevice) .. "</td></tr>\n")
                 end
 
+                num = num + 1
             end
-
-            num = num + 1
 
             ::continue::
         end

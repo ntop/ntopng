@@ -8,24 +8,24 @@ local alert_utils = require "alert_utils"
 
 
 local webhook = {
-   name = "Webhook",
-   endpoint_params = {
-      { param_name = "webhook_url" },
-      { param_name = "webhook_sharedsecret", optional = true },
-      { param_name = "webhook_username", optional = true },
-      { param_name = "webhook_password", optional = true },
-      -- TODO: configure severity (Errors, Errors and Warnings, All)
-   },
-   endpoint_template = {
-      script_key = "webhook",
-      template_name = "webhook_endpoint.template"
-   },
-   recipient_params = {
-   },
-   recipient_template = {
-      script_key = "webhook",
-      template_name = "webhook_recipient.template"
-   },
+  name = "Webhook",
+  endpoint_params = {
+    { param_name = "webhook_url" },
+    { param_name = "webhook_sharedsecret", optional = true },
+    { param_name = "webhook_username",     optional = true },
+    { param_name = "webhook_password",     optional = true },
+    -- TODO: configure severity (Errors, Errors and Warnings, All)
+  },
+  endpoint_template = {
+    script_key = "webhook",
+    template_name = "webhook_endpoint.template"
+  },
+  recipient_params = {
+  },
+  recipient_template = {
+    script_key = "webhook",
+    template_name = "webhook_recipient.template"
+  },
 }
 
 webhook.EXPORT_FREQUENCY = 60
@@ -39,7 +39,7 @@ local MAX_ALERTS_PER_REQUEST = 10
 
 -- @brief Returns the desided formatted output for recipient params
 function webhook.format_recipient_params(recipient_params)
-   return string.format("(%s)", webhook.name)
+  return string.format("(%s)", webhook.name)
 end
 
 -- ##############################################
@@ -64,23 +64,45 @@ function webhook.sendMessage(alerts, settings)
 
   local message = {
     version = webhook.API_VERSION,
+    timestamp = os.time(),
     sharedsecret = settings.sharedsecret,
     alerts = alerts,
   }
 
-  local json_message = json.encode(message)
+  -- Use dkjson with specific formatting options for consistency
+  local json_message = json.encode(message, {
+    indent = true, -- Pretty print
+    keyorder = {   -- Consistent key ordering
+      "version",
+      "timestamp",
+      "sharedsecret",
+      "alerts"
+    }
+  })
 
   local rc = false
   local retry_attempts = 3
   while retry_attempts > 0 do
-    if ntop.postHTTPJsonData(settings.username, settings.password, settings.url, json_message, webhook.REQUEST_TIMEOUT) then 
+    if ntop.postHTTPJsonData(settings.username, settings.password, settings.url, json_message, webhook.REQUEST_TIMEOUT) then
       rc = true
-      break 
+      break
     end
     retry_attempts = retry_attempts - 1
   end
 
   return rc
+end
+
+-- ##############################################
+
+local function formatAlertMsg(alert)
+  local decoded_alert = json.decode(alert)
+  if decoded_alert and decoded_alert.json then
+    local json_decoded = json.decode(decoded_alert.json)
+    decoded_alert.json = json_decoded
+    decoded_alert.metadata = {}
+  end
+  return decoded_alert
 end
 
 -- ##############################################
@@ -96,7 +118,6 @@ function webhook.dequeueRecipientAlerts(recipient, budget)
   -- Dequeue alerts up to budget x MAX_ALERTS_PER_REQUEST
   -- Note: in this case budget is the number of webhook messages to send
   while budget_used <= budget and more_available do
-
     local diff = os.time() - start_time
     if diff >= webhook.ITERATION_TIMEOUT then
       break
@@ -107,7 +128,7 @@ function webhook.dequeueRecipientAlerts(recipient, budget)
     local i = 0
     while i < MAX_ALERTS_PER_REQUEST do
       local notification = ntop.recipient_dequeue(recipient.recipient_id)
-      if notification then 
+      if notification then
         if alert_utils.filter_notification(notification, recipient.recipient_id) then
           notifications[#notifications + 1] = notification.alert
           i = i + 1
@@ -125,12 +146,12 @@ function webhook.dequeueRecipientAlerts(recipient, budget)
     local alerts = {}
 
     for _, json_message in ipairs(notifications) do
-      local alert = json.decode(json_message)
+      local alert = formatAlertMsg(json_message)
       table.insert(alerts, alert)
     end
 
     if not webhook.sendMessage(alerts, settings) then
-      return {success=false, error_message="Unable to send alerts to the webhook"}
+      return { success = false, error_message = "Unable to send alerts to the webhook" }
     end
 
     -- Remove the processed messages from the queue
@@ -138,7 +159,7 @@ function webhook.dequeueRecipientAlerts(recipient, budget)
     sent = sent + 1
   end
 
-  return {success = true, more_available = more_available}
+  return { success = true, more_available = more_available }
 end
 
 -- ##############################################
@@ -162,4 +183,3 @@ end
 -- ##############################################
 
 return webhook
-

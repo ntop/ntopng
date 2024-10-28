@@ -72,6 +72,18 @@ end
 
 -- #####################################
 
+local function build_datatable_column_def_obj(name, i18n_label)
+   return {
+      data_field = name,
+      title_i18n = i18n_label,
+      sortable = true,
+      class = { "no-wrap" },
+      render_generic = name,
+   }
+end
+
+-- #####################################
+
 local function build_datatable_column_def_number(name, i18n_label)
    return {
       data_field = name,
@@ -421,6 +433,7 @@ local all_datatable_columns_def_by_tag = {
       class = { "no-wrap" },
       render_type = "formatMitreSubTechnique",
    },
+   ['domain_name'] = build_datatable_column_def_obj('domain_name', "db_search.tags.domain_name")
 }
 
 -- #####################################
@@ -440,7 +453,7 @@ datatable_utils.datatable_column_def_builder_by_type = {
    ['network'] = build_datatable_column_def_network,
    ['pool_id'] = build_datatable_column_def_pool_id,
    ['country'] = build_datatable_column_def_country,
-   ['snmp_interface'] = build_datatable_column_def_snmp_interface,
+   ['snmp_interface'] = build_datatable_column_def_snmp_interface
 }
 
 -- #####################################

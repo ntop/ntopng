@@ -442,7 +442,7 @@ const check_username = () => {
 }
 
 const check_snmp_auth_passphrase = () => {
-  if (snmp_auth_passphrase.value != null && snmp_auth_passphrase.value.length > 8) {
+  if (snmp_auth_passphrase.value != null && snmp_auth_passphrase.value.length >= 6) {
     is_snmp_auth_passphrase_valid.value = true;
   } else {
     is_snmp_auth_passphrase_valid.value = false;
@@ -450,7 +450,7 @@ const check_snmp_auth_passphrase = () => {
 }
 
 const check_snmp_privacy_passphrase = () => {
-  if (snmp_privacy_passphrase.value != null && snmp_privacy_passphrase.value.length > 8) {
+  if (snmp_privacy_passphrase.value != null && snmp_privacy_passphrase.value.length >= 6) {
     is_snmp_privacy_passphrase_valid.value = true;
   } else {
     is_snmp_privacy_passphrase_valid.value = false;

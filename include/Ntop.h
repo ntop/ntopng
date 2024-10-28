@@ -702,6 +702,8 @@ class Ntop {
     return getUserPasswordHashLocal(user, val, sizeof(val));
   }
 
+  u_int16_t getMaxNumLocalNetworks();
+
   /* Local network address list methods */
   inline u_int16_t getNumLocalNetworks() {
     return local_network_tree.getNumAddresses();

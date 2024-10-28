@@ -158,6 +158,13 @@ const map_table_def_columns = (columns) => {
                 return formatterUtils.getFormatter("number")(value)
             }
         },
+        "exporters_interfaces": (value, row) => {
+            if (!value) {
+                return '';
+            } else {
+                return formatterUtils.getFormatter("number")(value)
+            }
+        },
         "dropped_flows": (value, row) => {
             let diff_value = value
             if (!first_open.value) {
@@ -285,6 +292,8 @@ function columns_sorting(col, r0, r1) {
             return sortingFunctions.sortByName(r0.ntopng_interface, r1.ntopng_interface, col.sort);
         } else if (col.id == "flow_exporters") {
             return sortingFunctions.sortByNumber(r0.flow_exporters, r1.flow_exporters, col.sort);
+        } else if (col.id == "exporters_interfaces") {
+            return sortingFunctions.sortByNumber(r0.exporters_interfaces, r1.exporters_interfaces, col.sort);
         } else if (col.id == "dropped_flows") {
             return sortingFunctions.sortByNumber(r0.dropped_flows, r1.dropped_flows, col.sort);
         } else if (col.id == "exported_flows") {

@@ -4570,7 +4570,8 @@ static int ntop_snmpv3_batch_get(lua_State *vm) {
   char *oid[SNMP_MAX_NUM_OIDS] = {NULL};
   char value_types[SNMP_MAX_NUM_OIDS];
   SNMP *snmp;
-
+  bool ret;
+  
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
 
   if (!curr_iface)
@@ -4605,19 +4606,21 @@ static int ntop_snmpv3_batch_get(lua_State *vm) {
     getLuaVMUservalue(vm, snmpBatch) = snmp;
   }
 
-  snmp->send_snmpv3_request(
-      (char *)lua_tostring(vm, 1), /* agent_host */
-      (char *)lua_tostring(vm, 2), /* level */
-      (char *)lua_tostring(vm, 3), /* username */
-      (char *)lua_tostring(vm, 4), /* auth_protocol */
-      (char *)lua_tostring(vm, 5), /* auth_passphrase */
-      (char *)lua_tostring(vm, 6), /* privacy_protocol */
-      (char *)lua_tostring(vm, 7), /* privacy_passphrase */
-      snmp_get_pdu, oid,           /* oid */
-      value_types, NULL, true /* batch */);
+  ret = snmp->send_snmpv3_request((char *)lua_tostring(vm, 1), /* agent_host */
+				  (char *)lua_tostring(vm, 2), /* level */
+				  (char *)lua_tostring(vm, 3), /* username */
+				  (char *)lua_tostring(vm, 4), /* auth_protocol */
+				  (char *)lua_tostring(vm, 5), /* auth_passphrase */
+				  (char *)lua_tostring(vm, 6), /* privacy_protocol */
+				  (char *)lua_tostring(vm, 7), /* privacy_passphrase */
+				  snmp_get_pdu, oid,           /* oid */
+				  value_types, NULL, true /* batch */);
 
-  lua_pushnil(vm);
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+  if(ret) {
+    lua_pushnil(vm);
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+  } else
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 #else
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
 #endif

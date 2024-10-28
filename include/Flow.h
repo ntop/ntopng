@@ -441,7 +441,8 @@ class Flow : public GenericHashEntry {
     return predominant_alert_info.is_srv_victim;
   };
   inline char *getProtocolInfo() { return json_protocol_info; };
-
+  char* getDomainName();
+  
   void setProtocolJSONInfo();
   void getProtocolJSONInfo(ndpi_serializer *serializer);
 

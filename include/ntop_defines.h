@@ -378,7 +378,8 @@
   8 /* Maximum number of alerts for the flow score breadkown. Additional \
        alerts will fall under 'other' */
 
-#define CONST_MAX_NUM_NETWORKS 1024
+#define CONST_MAX_NUM_NETWORKS 32768
+#define MAX_NUM_LOCAL_NETWORKS 1024
 #define CONST_MAX_NUM_CHECKPOINTS 4
 
 #define HOST_IS_DHCP_SERVER 0x01
@@ -1200,6 +1201,7 @@
 #define FIVE_MINUTES_SCRIPT_DIR "5minute"
 #define HOURLY_SCRIPT_DIR "hourly"
 #define DAILY_SCRIPT_DIR "daily"
+#define MONTHLY_SCRIPT_DIR "monthly"
 
 #define MACS_DISCONNECTION                                                \
   "ntopng.cache.checks.ifid_%d.macs_disconnected" /* Sync with checks.lua \
@@ -1246,7 +1248,7 @@
 #define PREF_LDAP_USER_GROUP NTOPNG_PREFS_PREFIX ".ldap.user_group"
 #define PREF_LDAP_ADMIN_GROUP NTOPNG_PREFS_PREFIX ".ldap.admin_group"
 #define PREF_LDAP_FOLLOW_REFERRALS NTOPNG_PREFS_PREFIX ".ldap.follow_referrals"
-#define PREF_LDAP_DEBUG NTOPNG_PREFS_PREFIX ".ldap.debug"
+#define PREF_LDAP_DEBUG NTOPNG_PREFS_PREFIX ".ldap_debug"
 #ifdef HAVE_LDAP
 #define MAX_LDAP_LEN \
   256 /* Keep it in sync with lua preferences file prefs.lua */

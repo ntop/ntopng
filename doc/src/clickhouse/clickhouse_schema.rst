@@ -105,9 +105,9 @@ Flows table description:
 +---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
 | SERVER_LOCATION           | Destination Location      | UInt8          | 0 stands for Remote Host; 1 stands for Local Host; 2 stands for Multicast Host                                           |
 +---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
-| SRC_NETWORK_ID            | Source Network ID         | UInt16         | The Network ID of the Source address                                                                                     |
+| SRC_NETWORK_ID            | Source Network ID         | UInt32         | The Network ID of the Source address                                                                                     |
 +---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
-| DST_NETWORK_ID            | Destination Network ID    | UInt16         | The Network ID of the Destination address                                                                                |
+| DST_NETWORK_ID            | Destination Network ID    | UInt32         | The Network ID of the Destination address                                                                                |
 +---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+
 | INPUT_SNMP                | Input SNMP Interface      | UInt32         | If SNMP is enabled, contains the Input Interface ID of the device where the flow was seen                                |
 +---------------------------+---------------------------+----------------+--------------------------------------------------------------------------------------------------------------------------+

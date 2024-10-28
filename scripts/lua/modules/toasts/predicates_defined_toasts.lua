@@ -159,7 +159,7 @@ local function create_too_many_flows_toast(toast, level, is_db_view)
             err_msg = i18n("alert_messages.too_many_flows_err"),
             message = i18n("alert_messages.too_many_flows_details"),
             custom_alert_class = 'alert alert-danger',
-            confirm = i18n('double_num_flows_hosts'),
+            confirm = i18n('increase_num_flows_hosts'),
             confirm_button = 'btn-danger'
         }
     }
@@ -187,7 +187,7 @@ local function create_too_many_hosts_toast(toast, level)
             err_msg = i18n("alert_messages.too_many_hosts_err"),
             message = i18n("alert_messages.too_many_hosts_details"),
             custom_alert_class = 'alert alert-danger',
-            confirm = i18n('double_num_flows_hosts'),
+            confirm = i18n('increase_num_flows_hosts'),
             confirm_button = 'btn-danger'
         }
     }

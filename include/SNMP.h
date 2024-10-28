@@ -49,7 +49,7 @@ class SNMP {
 #endif
   u_int8_t getbulk_max_num_repetitions;
   
-  void send_snmp_request(char *agent_host, u_int version, char *community,
+  bool send_snmp_request(char *agent_host, u_int version, char *community,
                          char *level, char *username, char *auth_protocol,
                          char *auth_passphrase, char *privacy_protocol,
                          char *privacy_passphrase, snmp_pdu_primitive pduType,
@@ -70,13 +70,13 @@ class SNMP {
   
 #ifdef HAVE_LIBSNMP
   void handle_async_response(struct snmp_pdu *pdu, const char *agent_ip);
-  void send_snmp_set_request(char *agent_host, char *community,
+  bool send_snmp_set_request(char *agent_host, char *community,
                              snmp_pdu_primitive pduType, u_int version,
                              char *oid[SNMP_MAX_NUM_OIDS],
                              char value_types[SNMP_MAX_NUM_OIDS],
                              char *values[SNMP_MAX_NUM_OIDS]);
 
-  void send_snmpv3_request(char *agent_host, char *level, char *username,
+  bool send_snmpv3_request(char *agent_host, char *level, char *username,
                            char *auth_protocol, char *auth_passphrase,
                            char *privacy_protocol, char *privacy_passphrase,
                            snmp_pdu_primitive pduType,
@@ -85,7 +85,7 @@ class SNMP {
                            char *values[SNMP_MAX_NUM_OIDS], bool _batch_mode);
 #endif
 
-  void send_snmpv1v2c_request(char *agent_host, char *community,
+  bool send_snmpv1v2c_request(char *agent_host, char *community,
                               snmp_pdu_primitive pduType, u_int version,
                               char *oid[SNMP_MAX_NUM_OIDS], bool _batch_mode);
   void snmp_fetch_responses(lua_State *vm, u_int timeout);

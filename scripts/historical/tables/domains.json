@@ -1,0 +1,47 @@
+{
+	"name" : "Top Domains",
+	"i18n_name" : "top_domains",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"hourly": false,
+	"visualization_type" : "table",
+	"select" : {
+		"items" : [
+			{
+				"name" : "DOMAIN_NAME"
+			},
+			{
+				"name" : "count",
+				"func" : "COUNT",
+				"param" : "*",
+				"value_type" : "number"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name": "DOMAIN_NAME",
+				"op": "neq",
+				"value": "",
+				"value_type": "string",
+				"input": "fixed"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "DOMAIN_NAME"
+			}
+		]
+	},
+	"sortby" : {
+		"items" : [
+			{
+				"name" : "count",
+				"order" : "DESC"
+			}
+		]
+	}
+}

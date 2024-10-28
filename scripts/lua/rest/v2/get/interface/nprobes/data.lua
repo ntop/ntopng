@@ -38,17 +38,27 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
         local flow_drops = 0
         local exported_flows = 0
         local probe_interface
+        local num_ports = 0
         local flow_exporters_num = table.len(probe_info.exporters)
 
-	if probe_info["probe.mode"] == "packet_collection" then
+        if probe_info["probe.mode"] == "packet_collection" then
             flow_exporters_num = 1 -- Packet exporter
             flow_drops = probe_info["drops.elk_flow_drops"] + probe_info["drops.flow_collection_udp_socket_drops"] +
-                            probe_info["drops.export_queue_full"] + probe_info["drops.too_many_flows"] + probe_info["drops.flow_collection_drops"] +
-                            probe_info["drops.sflow_pkt_sample_drops"] + probe_info["drops.elk_flow_drops"]
+                probe_info["drops.export_queue_full"] + probe_info["drops.too_many_flows"] +
+                probe_info["drops.flow_collection_drops"] +
+                probe_info["drops.sflow_pkt_sample_drops"] + probe_info["drops.elk_flow_drops"]
             exported_flows = probe_info["zmq.num_flow_exports"]
             probe_interface = probe_info["remote.name"]
+            local ports_table = interface.getFlowDeviceInfo(probe_info["probe.uuid_num"], true)
+            for _, ports in pairs(ports_table or {}) do
+                num_ports = num_ports + table.len(ports)
+            end
         else
             for _, values in pairs(probe_info.exporters) do
+                local ports_table = interface.getFlowDeviceInfo(values.unique_source_id, true)
+                for _, ports in pairs(ports_table or {}) do
+                    num_ports = num_ports + table.len(ports)
+                end
                 flow_drops = flow_drops + values.num_drops
                 exported_flows = exported_flows + values.num_netflow_flows + values.num_sflow_flows
             end
@@ -65,18 +75,18 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
             probe_edition = probe_info["probe.probe_edition"],
             probe_license = probe_info["probe.probe_license"] or i18n("if_stats_overview.no_license"),
             probe_maintenance = probe_info["probe.probe_maintenance"] or i18n("if_stats_overview.expired_maintenance"),
-	    probe_last_update = (probe_info["probe.last_update"] or 0),
+            probe_last_update = (probe_info["probe.last_update"] or 0),
             flow_exporters = flow_exporters_num,
+            exporters_interfaces = num_ports,
             dropped_flows = flow_drops,
-	    captured_packets = (probe_info["packets.total"] or 0),
-	    dropped_packets = (probe_info["packets.drops"] or 0),
+            captured_packets = (probe_info["packets.total"] or 0),
+            dropped_packets = (probe_info["packets.drops"] or 0),
             exported_flows = exported_flows,
             ntopng_interface = if_names[tostring(interface_id)],
             timeseries_enabled = timeseries_enabled,
             ifid = interface_id,
         }
     end
-    
 end
 
 rest_utils.answer(rc, res)

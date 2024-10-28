@@ -214,22 +214,33 @@ int asynch_response(int operation, struct snmp_session *sp, int reqid,
 
   switch (operation) {
   case NETSNMP_CALLBACK_OP_RECEIVED_MESSAGE:
-    if(pdu->command == SNMP_MSG_RESPONSE) {
-      sockaddr_in *sa = (sockaddr_in *)pdu->transport_data;
-      char buf[32], *peer = sp->peername;
+    switch(pdu->command) {
+    case SNMP_MSG_RESPONSE:
+    case SNMP_MSG_REPORT:
+      {
+	sockaddr_in *sa = (sockaddr_in *)pdu->transport_data;
+	char buf[32], *peer = sp->peername;
+	
+	if(peer == NULL) {
+	  if(sa->sin_family == 2) /* IPv4 */
+	    peer = Utils::intoaV4(ntohl(sa->sin_addr.s_addr), buf, sizeof(buf));
+	  else
+	    ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing IPv6 support");
+	}
+	
+	s->handle_async_response(pdu, peer);
 
-      if(peer == NULL) {
-	if(sa->sin_family == 2) /* IPv4 */
-	  peer = Utils::intoaV4(ntohl(sa->sin_addr.s_addr), buf, sizeof(buf));
-	else
-	  ntop->getTrace()->traceEvent(TRACE_WARNING, "Missing IPv6 support");
+	if(pdu->command == SNMP_MSG_RESPONSE)
+	   rc = 1; /* SNMP_MSG_REPORT needs to be considered as an error */
       }
-
-      s->handle_async_response(pdu, peer), rc = 1;
-    } else
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unhandled pdu command %d",
-				   pdu->command);
+      break;
+      
+    default:
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unhandled pdu command %d", pdu->command);
+      break;
+    }    
     break;
+    
   case NETSNMP_CALLBACK_OP_TIMED_OUT:
     /* Reached when snmp_sess_timeout is called due to a timeout */
   default:
@@ -245,7 +256,7 @@ int asynch_response(int operation, struct snmp_session *sp, int reqid,
  * https://raw.githubusercontent.com/winlibs/net-snmp/master/snmplib/snmp_client.c
  */
 
-void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
+bool SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
                                   snmp_pdu_primitive pduType, u_int version,
                                   char *_oid[SNMP_MAX_NUM_OIDS],
                                   bool _batch_mode) {
@@ -263,9 +274,8 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
       sessions.push_back(snmpSession);
       initSession = true;
     } catch (std::bad_alloc &ba) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                   "Unable to allocate SNMP session");
-      return;
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to allocate SNMP session");
+      return(false);
     }
   } else {
     if(sessions.size() == 0) {
@@ -311,7 +321,7 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
 
   if((pdu = snmp_pdu_create(pdu_type)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP PDU create error");
-    return;
+    return(false);
   }
 
   if(pdu_type == SNMP_MSG_GETBULK) {
@@ -336,22 +346,26 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP send: no OID specified");
     snmp_free_pdu(pdu);
     snmp_perror("snmp_parse_oid");
+    return(false);
   } else {
     /* Send the request */
     if((rc = snmp_sess_send(snmpSession->session_ptr, pdu)) == 0) {
       snmp_free_pdu(pdu);
       snmp_perror("snmp_sess_send");
       ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP send error [rc: %d]", rc);
+      return(false);
     }
   }
 
   // snmp_free_pdu(pdu); /* TODO: this is apparently freed when we close the
   // session */
+
+  return(true);
 }
 
 /* ******************************************* */
 
-void SNMP::send_snmpv3_request(char *agent_host, char *level, char *username,
+bool SNMP::send_snmpv3_request(char *agent_host, char *level, char *username,
                                char *auth_protocol, char *auth_passphrase,
                                char *privacy_protocol, char *privacy_passphrase,
                                snmp_pdu_primitive pduType,
@@ -359,15 +373,15 @@ void SNMP::send_snmpv3_request(char *agent_host, char *level, char *username,
                                char value_types[SNMP_MAX_NUM_OIDS],
                                char *values[SNMP_MAX_NUM_OIDS],
                                bool _batch_mode) {
-  send_snmp_request(agent_host, 2 /* SNMPv3 */, NULL, level, username,
-                    auth_protocol, auth_passphrase, privacy_protocol,
-                    privacy_passphrase, pduType, oid, value_types, values,
-                    _batch_mode);
+  return(send_snmp_request(agent_host, 2 /* SNMPv3 */, NULL, level, username,
+			   auth_protocol, auth_passphrase, privacy_protocol,
+			   privacy_passphrase, pduType, oid, value_types, values,
+			   _batch_mode));
 }
 
 /* ******************************************* */
 
-void SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
+bool SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
                              char *level, char *username, char *auth_protocol,
                              char *auth_passphrase, char *privacy_protocol,
                              char *privacy_passphrase,
@@ -390,9 +404,8 @@ void SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
       sessions.push_back(snmpSession);
       initSession = true;
     } catch (std::bad_alloc &ba) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                   "Unable to allocate SNMP session");
-      return;
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to allocate SNMP session");
+      return(false);
     }
   } else {
     if(sessions.size() == 0) {
@@ -428,12 +441,10 @@ void SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
         /* set the SNMPv3 user name */
         if(username) {
           snmpSession->session.securityName = strdup(username);
-          snmpSession->session.securityNameLen =
-	    strlen(snmpSession->session.securityName);
+          snmpSession->session.securityNameLen = strlen(snmpSession->session.securityName);
         } else {
-          ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                       "SNMP PDU no username specified");
-          return;
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP PDU no username specified");
+          return(false);
         }
 
         if((!strcasecmp(level, "authNoPriv")) ||
@@ -447,24 +458,20 @@ void SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
             snmpSession->session.securityAuthProto = usmHMACSHA1AuthProtocol;
             snmpSession->session.securityAuthProtoLen =
 	      sizeof(usmHMACSHA1AuthProtocol) / sizeof(oid);
-            snmpSession->session.securityAuthKeyLen =
-	      USM_AUTH_KU_LEN; /* CHECK */
+            snmpSession->session.securityAuthKeyLen = USM_AUTH_KU_LEN; /* CHECK */
           } else {
-            ntop->getTrace()->traceEvent(
-					 TRACE_WARNING, "SNMP PDU invalid authentication protocol [%s]",
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP PDU invalid authentication protocol [%s]",
 					 auth_protocol);
-            return;
+            return(false);
           }
 
           if(generate_Ku(snmpSession->session.securityAuthProto,
 			 snmpSession->session.securityAuthProtoLen,
 			 (u_char *)auth_passphrase, strlen(auth_passphrase),
 			 snmpSession->session.securityAuthKey,
-			 &snmpSession->session.securityAuthKeyLen) !=
-	     SNMPERR_SUCCESS) {
-            ntop->getTrace()->traceEvent(
-					 TRACE_WARNING, "SNMP PDU authentication pass phrase error");
-            return;
+			 &snmpSession->session.securityAuthKeyLen) != SNMPERR_SUCCESS) {
+            ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP PDU authentication pass phrase error");
+            return(false);
           }
 
           if(!strcasecmp(level, "authPriv")) {
@@ -490,11 +497,9 @@ void SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
 			   (u_char *)privacy_passphrase,
 			   strlen(privacy_passphrase),
 			   snmpSession->session.securityPrivKey,
-			   &snmpSession->session.securityPrivKeyLen) !=
-	       SNMPERR_SUCCESS) {
-              ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                           "SNMP PDU security privacy error");
-              return;
+			   &snmpSession->session.securityPrivKeyLen) != SNMPERR_SUCCESS) {
+              ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP PDU security privacy error");
+              return(false);
             }
           } else
             snmpSession->session.securityLevel = SNMP_SEC_LEVEL_AUTHNOPRIV;
@@ -524,7 +529,7 @@ void SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
     pdu_type = SNMP_MSG_SET;
     if(values == NULL) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP PDU create error");
-      return;
+      return(false);
     }
     break;
   default:
@@ -536,7 +541,7 @@ void SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
 
   if((pdu = snmp_pdu_create(pdu_type)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP PDU create error");
-    return;
+    return(false);
   }
 
   if(pdu_type == SNMP_MSG_GETBULK) {
@@ -564,15 +569,18 @@ void SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
     snmp_free_pdu(pdu);
     snmp_perror("snmp_sess_send");
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP send error [rc: %d]", rc);
+    return(false);
   }
 
   // snmp_free_pdu(pdu); /* TODO: this is apparently freed when we close the
   // session */
+
+  return(true);
 }
 
 /* ******************************************* */
 
-void SNMP::send_snmp_set_request(char *agent_host, char *community,
+bool SNMP::send_snmp_set_request(char *agent_host, char *community,
                                  snmp_pdu_primitive pduType, u_int version,
                                  char *_oid[SNMP_MAX_NUM_OIDS],
                                  char value_types[SNMP_MAX_NUM_OIDS],
@@ -593,7 +601,7 @@ void SNMP::send_snmp_set_request(char *agent_host, char *community,
     } catch (std::bad_alloc &ba) {
       ntop->getTrace()->traceEvent(TRACE_WARNING,
                                    "Unable to allocate SNMP session");
-      return;
+      return(false);
     }
   } else {
     if(sessions.size() == 0) {
@@ -625,7 +633,7 @@ void SNMP::send_snmp_set_request(char *agent_host, char *community,
   /* Create the PDU */
   if((pdu = snmp_pdu_create(SNMP_MSG_SET)) == NULL) {
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP PDU create error");
-    return;
+    return(false);
   }
 
   for (u_int i = 0; i < SNMP_MAX_NUM_OIDS; i++) {
@@ -646,7 +654,10 @@ void SNMP::send_snmp_set_request(char *agent_host, char *community,
     snmp_free_pdu(pdu);
     snmp_perror("snmp_sess_send");
     ntop->getTrace()->traceEvent(TRACE_WARNING, "SNMP send error [rc: %d]", rc);
+    return(false);
   }
+
+  return(true);
 }
 
 /* ******************************************* */
@@ -766,7 +777,7 @@ int SNMP::snmp_read_response(lua_State *vm, u_int timeout) {
 
 /* ******************************************* */
 
-void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
+bool SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
                                   snmp_pdu_primitive pduType, u_int version,
                                   char *oid[SNMP_MAX_NUM_OIDS],
                                   bool _batch_mode) {
@@ -775,9 +786,9 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
   SNMPMessage *message;
   int len;
   u_char buf[1500];
-  int operation = (pduType == snmp_get_pdu) ? NTOP_SNMP_GET_REQUEST_TYPE
-    : NTOP_SNMP_GETNEXT_REQUEST_TYPE;
-
+  int operation = (pduType == snmp_get_pdu) ? NTOP_SNMP_GET_REQUEST_TYPE : NTOP_SNMP_GETNEXT_REQUEST_TYPE;
+  bool found = false;
+  
   batch_mode = _batch_mode;
 
   if((message = snmp_create_message())) {
@@ -790,7 +801,7 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
 
     for (i = 0; i < SNMP_MAX_NUM_OIDS; i++) {
       if(oid[i] != NULL)
-        snmp_add_varbind_null(message, oid[i]);
+        snmp_add_varbind_null(message, oid[i]), found = true;
       else
         break;
     }
@@ -802,6 +813,8 @@ void SNMP::send_snmpv1v2c_request(char *agent_host, char *community,
 
     send_udp_datagram(buf, len, udp_sock, agent_host, agent_port);
   }
+
+  return(found);
 }
 
 /* ******************************************* */
