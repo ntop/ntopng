@@ -1237,6 +1237,14 @@ function format_http_info(http_info, no_html)
         end
     end
 
+    if http_info["last_user_agent"] then
+        if no_html then
+          http_info["last_user_agent"] = http_info["last_user_agent"]
+        else
+          http_info["last_user_agent"] = string.format('<span">%s</span>', http_info["last_user_agent"])
+        end
+      end
+
     return http_info
 end
 
