@@ -800,7 +800,7 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
             for bit_num = 0, 7 do
                 -- Checks the bits set in this current nibble
                 local has_bit = alerts_map_nibble & (1 << bit_num) == (1 << bit_num)
-
+                
                 if has_bit then -- The bit is set
                     -- The actual alert id is the bit number times the current byte multiplied by 8
                     local alert_id = math.floor(8 * nibble_num / 2) + bit_num
