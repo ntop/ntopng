@@ -1079,59 +1079,65 @@ end
 -- @brief Given a table of values, if available, it's going to format the values with the standard
 --        info and then return the same table formatted
 function format_dns_query_info(dns_info, no_html)
+
+    local formatted_dns_query_info = {}
+
     if dns_info.last_query_type then
         if no_html then
-            dns_info.last_query_type = dns_utils.getQueryType(dns_info.last_query_type)
+            formatted_dns_query_info.last_query_type = dns_utils.getQueryType(dns_info.last_query_type)
         else
-            dns_info.last_query_type = string.format('<span class="badge bg-info">%s</span>',
+            formatted_dns_query_info.last_query_type = string.format('<span class="badge bg-info">%s</span>',
                 dns_utils.getQueryType(dns_info.last_query_type))
         end
     end
 
     if dns_info.last_return_code then
         if no_html then
-            dns_info.last_return_code = dns_utils.getResponseStatusCode(dns_info.last_return_code)
+            formatted_dns_query_info.last_return_code = dns_utils.getResponseStatusCode(dns_info.last_return_code)
         else
             local badge = get_badge(dns_info.last_return_code)
-            dns_info.last_return_code = string.format('<span class="badge bg-%s">%s</span>', badge,
+            formatted_dns_query_info.last_return_code = string.format('<span class="badge bg-%s">%s</span>', badge,
                 dns_utils.getResponseStatusCode(dns_info.last_return_code))
         end
     end
 
     if dns_info.last_query then
         if no_html then
-            dns_info["last_query"] = dns_info["last_query"]
+            formatted_dns_query_info["last_query"] = dns_info["last_query"]
         else
             local url = dns_info["last_query"]
             url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
             if not string.find(url, '*') then
-                dns_info.last_query = format_dns_query_copy_btn(dns_info["last_query"])
+                formatted_dns_query_info.last_query = format_dns_query_copy_btn(dns_info["last_query"])
             end
         end
     end
 
-    return dns_info
+    return formatted_dns_query_info
 end
 
 -- ##############################################
 
 function format_tls_info(tls_info, no_html)
+
+    local formatted_tls_info = {}
+
     if tls_info.notBefore then
-        tls_info.notBefore = formatEpoch(tls_info.notBefore)
+        formatted_tls_info.notBefore = formatEpoch(tls_info.notBefore)
     end
 
     if tls_info.notAfter then
-        tls_info.notAfter = formatEpoch(tls_info.notAfter)
+        formatted_tls_info.notAfter = formatEpoch(tls_info.notAfter)
     end
 
     if tls_info.notBefore and tls_info.notAfter then
-        tls_info["tls_certificate_validity"] = string.format("%s - %s", tls_info.notBefore, tls_info.notAfter)
-        tls_info.notBefore = nil
-        tls_info.notAfter = nil
+        formatted_tls_info["tls_certificate_validity"] = string.format("%s - %s", tls_info.notBefore, tls_info.notAfter)
+        formatted_tls_info.notBefore = nil
+        tlformatted_tls_infos_info.notAfter = nil
     end
 
     if (tls_info.tls_version) and (tls_info.tls_version > 0) then
-        tls_info["tls_version"] = ntop.getTLSVersionName(tls_info.tls_version)
+        formatted_tls_info["tls_version"] = ntop.getTLSVersionName(tls_info.tls_version)
     end
 
     if tls_info.client_requested_server_name then
@@ -1139,10 +1145,10 @@ function format_tls_info(tls_info, no_html)
         url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
         if not string.find(url, '*') then
             if no_html then
-                tls_info["client_requested_server_name"] = tls_info["client_requested_server_name"]
+                formatted_tls_info["client_requested_server_name"] = tls_info["client_requested_server_name"]
             else
                 if not isEmptyString(url) then
-                    tls_info["client_requested_server_name"] = i18n("external_link_url", {
+                    formatted_tls_info["client_requested_server_name"] = i18n("external_link_url", {
                         proto = 'https',
                         url = url,
                         url_name = url
@@ -1154,9 +1160,9 @@ function format_tls_info(tls_info, no_html)
 
     if tls_info["ja4_client_hash"] then
         if no_html then
-            tls_info["ja4_client_hash"] = tls_info["ja4_client_hash"]
+            formatted_tls_info["ja4_client_hash"] = tls_info["ja4_client_hash"]
         else
-            tls_info["ja4_client_hash"] = i18n("copy_button", {
+            formatted_tls_info["ja4_client_hash"] = i18n("copy_button", {
                 full_name = tls_info["ja4_client_hash"],
                 name = tls_info["ja4_client_hash"]
             })
@@ -1165,45 +1171,49 @@ function format_tls_info(tls_info, no_html)
 
     if tls_info["server_names"] then
         if no_html then
-            tls_info["server_names"] = tls_info["server_names"]
+            formatted_tls_info["server_names"] = tls_info["server_names"]
         else
-            tls_info["server_names"] = i18n("copy_button", {
+            formatted_tls_info["server_names"] = i18n("copy_button", {
                 full_name = tls_info["server_names"],
                 name = tls_info["server_names"]
             })
         end
     end
 
-    return tls_info
+    return formatted_tls_info
 end
 
 -- ##############################################
 
 function format_icmp_info(icmp_info)
     local icmp_utils = require "icmp_utils"
+    local formatted_icmp_info = {}
 
     if icmp_info.code then
-        icmp_info.code = icmp_utils.get_icmp_code(icmp_info.type, icmp_info.code)
+        formatted_icmp_info.code = icmp_utils.get_icmp_code(icmp_info.type, icmp_info.code)
     end
 
     if icmp_info.type then
-        icmp_info.type = icmp_utils.get_icmp_type(icmp_info.type)
+        formatted_icmp_info.type = icmp_utils.get_icmp_type(icmp_info.type)
     end
 
-    return icmp_info
+    return formatted_icmp_info
 end
 
 -- ##############################################
 
 function format_http_info(http_info, no_html)
+
+    local formatted_http_info = {}
+
     if http_info["last_return_code"] then
         if http_info["last_return_code"] ~= 0 then
             if no_html then
-                http_info["last_method"] = http_info["last_method"]
+                formatted_http_info["last_method"] = http_info["last_method"]
             else
                 local badge = get_badge(http_info.last_return_code < 400)
 
-                http_info["last_return_code"] = string.format('<span class="badge bg-%s">%s</span>', badge,
+                formatted_http_info["last_return_code"] = string.format('<span class="badge bg-%s">%s</span>', badge,
                     http_utils.getResponseStatusCode(http_info["last_return_code"]))
             end
         end
@@ -1211,9 +1221,9 @@ function format_http_info(http_info, no_html)
 
     if http_info["last_method"] then
         if no_html then
-            http_info["last_method"] = http_info["last_method"]
+            formatted_http_info["last_method"] = http_info["last_method"]
         else
-            http_info["last_method"] = string.format('<span class="badge bg-info">%s</span>', http_info["last_method"])
+            formatted_http_info["last_method"] = string.format('<span class="badge bg-info">%s</span>', http_info["last_method"])
         end
     end
 
@@ -1226,9 +1236,9 @@ function format_http_info(http_info, no_html)
         url = string.gsub(url, " ", "") -- Clean the URL from spaces and %20, spaces in html
         if not string.find(url, '*') then
             if no_html then
-                http_info["last_url"] = url
+                formatted_http_info["last_url"] = url
             else
-                http_info["last_url"] = i18n("external_link_url", {
+                formatted_http_info["last_url"] = i18n("external_link_url", {
                     proto = 'http',
                     url = url,
                     url_name = url
@@ -1237,15 +1247,15 @@ function format_http_info(http_info, no_html)
         end
     end
 
-    if http_info["last_user_agent"] then
+    if not isEmptyString(http_info["last_user_agent"]) then
         if no_html then
-          http_info["last_user_agent"] = http_info["last_user_agent"]
+            formatted_http_info["last_user_agent"] = http_info["last_user_agent"]
         else
-          http_info["last_user_agent"] = string.format('<span">%s</span>', http_info["last_user_agent"])
+            formatted_http_info["last_user_agent"] = string.format('<span">%s</span>', http_info["last_user_agent"])
         end
-      end
+    end
 
-    return http_info
+    return formatted_http_info
 end
 
 -- ##############################################
@@ -1292,6 +1302,10 @@ function format_proto_info(flow_details, proto_info)
     end
 
     for protocol, protocol_info in pairs(proto_details) do
+        if table.len(protocol_info) == 0 then
+            -- Skip if protocol_info is empty
+            goto continue
+        end
         local rsp = {
             name = i18n('alerts_dashboard.flow_related_info_composed', {
                 proto = i18n(protocol)
@@ -1306,6 +1320,7 @@ function format_proto_info(flow_details, proto_info)
             }
             flow_details[#flow_details + 1] = rsp
         end
+        ::continue::
     end
 
     return flow_details
