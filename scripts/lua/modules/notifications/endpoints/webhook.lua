@@ -102,7 +102,7 @@ local function formatAlertMsg(alert)
     if json_decoded and json_decoded.flow_risk_info then
       json_decoded.flow_risk_info = json.decode(json_decoded.flow_risk_info)
     end
-    if json_decoded and json_decoded.alert_generation.flow_risk_info then
+    if json_decoded and json_decoded.alert_generation and json_decoded.alert_generation.flow_risk_info then
       json_decoded.alert_generation.flow_risk_info = json.decode(json_decoded.alert_generation.flow_risk_info)
     end
     decoded_alert.json = json_decoded
