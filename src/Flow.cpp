@@ -306,7 +306,7 @@ void Flow::deferredInitialization() {
       /* Add client gateway */
       if (srv_mac && !srv_mac->isNull() && !srv_host->isLocalHost()) {
         LocalHost *lh = (LocalHost *)cli_host;
-	
+
         lh->setRouterMac(srv_mac);
       }
     }
@@ -5364,9 +5364,9 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
       if(flags & (TH_ACK | TH_PUSH | TH_RST | TH_FIN)) {
 	Host *cli_host = getViewSharedClient();
 	Host *srv_host = getViewSharedServer();
-	
+
 	twh_over = 1, iface->getTcpFlowStats()->incEstablished();
-	
+
 	if(cli_host || srv_host) setTwhOverForViewInterface();
       }
     }
@@ -5389,13 +5389,13 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
 	cli_host->setTCPfingerprint(ndpiFlow->tcp.fingerprint,
 				    (enum operating_system_hint)ndpiFlow->tcp.os_hint);
     }
-      
+
     /* Update syn alerts counters. In case of cumulative flags, the AND is used as
      * possibly other flags can be present  */
     if (flags_3wh == TH_SYN) {
       if (cli_host)
 	cli_host->updateSynAlertsCounter(when->tv_sec, src2dst_direction);
-      
+
       if (srv_host)
 	srv_host->updateSynAlertsCounter(when->tv_sec, !src2dst_direction);
 
@@ -5502,7 +5502,7 @@ void Flow::updateTcpFlags(const struct bpf_timeval *when, u_int8_t flags,
           setRtt();
           iface->getTcpFlowStats()->incEstablished();
         }
-	
+
         goto not_yet;
       } else {
       not_yet:
@@ -8512,7 +8512,7 @@ void Flow::swap() {
   if (cli_host && srv_host) {
     /* Not a view interface */
     Host *h = cli_host;
-    
+
     cli_host->decNumFlows(now, true /* as client */, isTCP(), twh_over),
       srv_host->decNumFlows(now, false /* as server */, isTCP(), twh_over);
     cli_host = srv_host, cli_ip_addr = srv_ip_addr;
@@ -8525,12 +8525,12 @@ void Flow::swap() {
     if (cli_ip_addr && (cli_host == NULL)
 	&& srv_ip_addr && (srv_host == NULL)) {
       IpAddress *c = cli_ip_addr;
-	
+
       cli_ip_addr = srv_ip_addr;
       srv_ip_addr = c;
     }
   }
-    
+
   Utils::swap16(&cli_port, &srv_port), Utils::swap32(&srcAS, &dstAS),
     Utils::swap8(&src2dst_tcp_flags, &dst2src_tcp_flags);
   initial_bytes_entropy.c2s = initial_bytes_entropy.s2c;
@@ -8569,8 +8569,8 @@ void Flow::swap() {
   /*
     We do not swap L7 info as if it direction was wrong they were not computed
     Same applies with latency counters
-  */    
-  
+  */
+
   swap_done = 1, swap_requested = 0;
 }
 
@@ -8984,30 +8984,30 @@ void Flow::updateServerName(Host *h) {
 char* Flow::getDomainName() {
   switch (getLowerProtocol()) {
   case NDPI_PROTOCOL_DNS:
-    /* ndpi_get_host_domain(iface->get_ndpi_struct(), protos.dns.last_query) */
+    if(protos.dns.last_query)
+      return((char*)ndpi_get_host_domain(iface->get_ndpi_struct(), protos.dns.last_query));
     break;
 
   case NDPI_PROTOCOL_HTTP:
   case NDPI_PROTOCOL_HTTP_PROXY:
-    // protos.http.last_server
-    break;
-
   case NDPI_PROTOCOL_TLS:
   case NDPI_PROTOCOL_MAIL_IMAPS:
   case NDPI_PROTOCOL_MAIL_SMTPS:
   case NDPI_PROTOCOL_MAIL_POPS:
   case NDPI_PROTOCOL_QUIC:
-    // protos.tls.client_requested_server_name
+    {
+      char *s = getFlowServerInfo();
+
+      if(s)
+	return((char*)ndpi_get_host_domain(iface->get_ndpi_struct(), s));
+    }
     break;
 
   case NDPI_PROTOCOL_MDNS:
-    // protos.mdns.name
-    break;
-
-  case NDPI_PROTOCOL_NETBIOS:
-    // protos.netbios.name
+    if(protos.mdns.name)
+      return((char*)ndpi_get_host_domain(iface->get_ndpi_struct(), protos.mdns.name));
     break;
   }
-  
+
   return(NULL);
 }
