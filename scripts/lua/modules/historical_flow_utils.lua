@@ -1723,7 +1723,7 @@ end
 
 -- #####################################
 
-function historical_flow_utils.get_historical_mac(mac,tag)
+function historical_flow_utils.get_historical_mac(mac)
    return "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?mac=" .. mac .. "\">" .. mac .. "</a>"
 end
 

@@ -403,7 +403,9 @@ end
 
 local function format_historical_community_id(flow)
     return {
-        name = "<A class='ntopng-external-link' href=\"https://github.com/corelight/community-id-spec\">CommunityId <i class=\"fas fa-external-link-alt\"></i></A>",
+        name = "<A class='ntopng-external-link' href=\"https://github.com/corelight/community-id-spec\">" .. 
+            i18n("db_explorer.community_id") ..
+            " <i class=\"fas fa-external-link-alt\"></i></A>",
         values = {flow["COMMUNITY_ID"] ..
             "<button style=\"\" class=\"btn btn-sm border ms-1\" data=\"" .. flow["COMMUNITY_ID"] .. 
             "\" onclick=\"NtopUtils.copyToClipboard(this.getAttribute('data'), '" .. i18n('copied') .. 
