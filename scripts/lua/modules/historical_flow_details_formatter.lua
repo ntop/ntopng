@@ -403,8 +403,12 @@ end
 
 local function format_historical_community_id(flow)
     return {
-        name = i18n("db_explorer.community_id"),
-        values = {flow["COMMUNITY_ID"]}
+        name = "<A class='ntopng-external-link' href=\"https://github.com/corelight/community-id-spec\">CommunityId <i class=\"fas fa-external-link-alt\"></i></A>",
+        values = {flow["COMMUNITY_ID"] ..
+            "<button style=\"\" class=\"btn btn-sm border ms-1\" data=\"" .. flow["COMMUNITY_ID"] .. 
+            "\" onclick=\"NtopUtils.copyToClipboard(this.getAttribute('data'), '" .. i18n('copied') .. 
+            "', '" .. i18n('request_failed_message') .. "', this)\">" ..
+            "<i class=\"fas fa-copy\"></i></button>"}
     }
 end
 
@@ -627,7 +631,7 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
             flow_details = format_historical_issues(flow_details, flow)
         end
 
-        if (info['COMMUNITY_ID']) and (not isEmptyString(info['COMMUNITY_ID'])) then
+        if (info['community_id']) and (not isEmptyString(info['community_id'])) then
             flow_details[#flow_details + 1] = format_historical_community_id(flow)
         end
 

@@ -942,6 +942,8 @@ local function dt_format_flow(processed_record, record)
       local cli_port = {}
       local srv_port = {}
 
+      local cli_mac = processed_record["cli_mac"]
+      local srv_mac = processed_record["srv_mac"]
       -- Converting to the same format used for alert flows (see DataTableRenders.formatFlowTuple)
 
       cli_ip["value"]      = cli["ip"]                                                        -- IP address
@@ -985,6 +987,8 @@ local function dt_format_flow(processed_record, record)
       flow["srv_ip"] = srv_ip
       flow["cli_port"] = cli_port
       flow["srv_port"] = srv_port
+      flow["cli_mac"] = cli_mac
+      flow["srv_mac"] = srv_mac
 
       processed_record["flow"] = flow
 
@@ -1719,6 +1723,12 @@ end
 
 -- #####################################
 
+function historical_flow_utils.get_historical_mac(mac,tag)
+   return "<a href=\"" .. ntop.getHttpPrefix() .. "/lua/hosts_stats.lua?mac=" .. mac .. "\">" .. mac .. "</a>"
+end
+
+-- #####################################
+
 function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, add_hostnames, add_country_flags)
    local label = ""
    local vlan = ""
@@ -1769,7 +1779,7 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
       if info.cli_asn and info.cli_asn.value > 0 and not isEmptyString(info.cli_asn.title) then
          label = label .. " [ " ..historical_flow_utils.get_historical_url(info.cli_asn.title, "cli_asn", info.cli_asn.value, add_hyperlinks) .. " ]"
       elseif not isEmptyString(info.cli_mac) and (info.cli_mac ~= '00:00:00:00:00:00') then
-         label = label .. " [ " .. info. cli_mac .. " ]"
+         label = label .. " [ " .. historical_flow_utils.get_historical_mac(info.cli_mac) .. " ]"
       end
    end
    
@@ -1813,7 +1823,7 @@ function historical_flow_utils.getHistoricalFlowLabel(record, add_hyperlinks, ad
       if info.srv_asn and info.srv_asn.value > 0 and not isEmptyString(info.srv_asn.title) then
          label = label .. " [ " ..historical_flow_utils.get_historical_url(info.srv_asn.title, "srv_asn", info.srv_asn.value, add_hyperlinks) .. " ]"
       elseif not isEmptyString(info.srv_mac) and (info.srv_mac ~= '00:00:00:00:00:00') then
-         label = label .. " [ " .. info. srv_mac .. " ]"
+         label = label .. " [ " .. historical_flow_utils.get_historical_mac(info.srv_mac) .. " ]"
       end
    end
 
@@ -1827,7 +1837,7 @@ function historical_flow_utils.getHistoricalProtocolLabel(record, add_hyperlinks
   local label = ""
 
   local info = historical_flow_utils.format_clickhouse_record(record)
-  local alert_json = json.decode(info["ALERT_JSON"] or '') or {}
+  local alert_json = json.decode(info["json"] or '') or {}
   
   if info.l4proto then
     label = label ..historical_flow_utils.get_historical_url(info.l4proto.label, "l4proto", info.l4proto.value, add_hyperlinks)
@@ -1851,7 +1861,7 @@ function historical_flow_utils.getHistoricalProtocolLabel(record, add_hyperlinks
   end
 
   if (alert_json.proto) and (alert_json.proto.confidence) and (not isEmptyString(alert_json.proto.confidence)) then
-    label = label .. " [" .. i18n("confidence") .. ": " .. get_confidence(alert_json.proto.confidence) .. "]"
+   label = label .. "[Confidence: " .. format_confidence_badge(alert_json.proto.confidence) .. "]"
   end
 
   return label

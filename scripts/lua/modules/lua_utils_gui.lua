@@ -1207,6 +1207,27 @@ end
 
 -- ##############################################
 
+function format_ssh_info(ssh_info)
+    local formatted_ssh_info = {}
+
+    if not isEmptyString(ssh_info["client_signature"]) then
+        formatted_ssh_info["client_signature"] = string.format('<span>%s</span>', ssh_info["client_signature"])
+    end
+    if not isEmptyString(ssh_info["client_hash.hassh"]) then
+        formatted_ssh_info["client_hash.hassh"] = string.format('<span>%s</span>', ssh_info["client_hash.hassh"])
+    end
+    if not isEmptyString(ssh_info["server_signature"]) then
+        formatted_ssh_info["server_signature"] = string.format('<span>%s</span>', ssh_info["server_signature"])
+    end
+    if not isEmptyString(ssh_info["server_hash.hassh"]) then
+        formatted_ssh_info["server_hash.hassh"] = string.format('<span>%s</span>', ssh_info["server_hash.hassh"])
+    end
+
+    return formatted_ssh_info
+end
+
+-- ##############################################
+
 function format_http_info(http_info, no_html)
 
     local formatted_http_info = {}
@@ -1256,7 +1277,7 @@ function format_http_info(http_info, no_html)
         if no_html then
             formatted_http_info["last_user_agent"] = http_info["last_user_agent"]
         else
-            formatted_http_info["last_user_agent"] = string.format('<span">%s</span>', http_info["last_user_agent"])
+            formatted_http_info["last_user_agent"] = string.format('<span>%s</span>', http_info["last_user_agent"])
         end
     end
 
@@ -1289,7 +1310,7 @@ function format_proto_info(flow_details, proto_info)
             proto_info[key] = nil
         end
     end
-    
+
     for proto, info in pairs(proto_info or {}) do
         if proto == "tls" then
             proto_details[proto] = format_tls_info(info)
@@ -1303,6 +1324,8 @@ function format_proto_info(flow_details, proto_info)
         elseif proto == "icmp" then
             proto_details[proto] = format_icmp_info(info)
             break
+        elseif proto == "ssh" then
+            proto_details[proto] = format_ssh_info(info)
         end
     end
 
