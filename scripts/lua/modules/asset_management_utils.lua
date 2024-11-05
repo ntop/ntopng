@@ -17,7 +17,6 @@ local table_name = "asset_management"
 -- @brief insert assetkey
 function asset_management_utils.insert_host(entry)
 
-    -- IMPORTANT: keep in sync with check_alert_params function, to be sure to not have issues with empty parameters
     local insert_host = string.format(
         "INSERT INTO %s " ..
         "(type, key, ip, mac, vlan, network, name, device_type, manufacturer, first_seen, last_seen) " ..
@@ -45,24 +44,24 @@ end
 
 function asset_management_utils.insert_mac(entry)
 
-    -- IMPORTANT: keep in sync with check_alert_params function, to be sure to not have issues with empty parameters
-    local insert_host = string.format(
+    local insert_mac = string.format(
         "INSERT INTO %s " ..
-        "(type, key, mac, first_seen, last_seen) " ..
-        "VALUES ('%s','%s','%s', %u, %u) "..
+        "(type, key, mac, device_type, first_seen, last_seen) " ..
+        "VALUES ('%s','%s','%s','%s', %u, %u) "..
         "ON CONFLICT(key) DO UPDATE SET last_seen = %u ;",
         table_name, 
         entry["type"],
         entry["mac"],
         entry["mac"],
+        entry["device_type"],
         entry["first_seen"],
         entry["last_seen"],
         entry["last_seen"]
     )
 
-    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_host)
+    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_mac)
 
-    return interface.alert_store_query(insert_host)
+    return interface.alert_store_query(insert_mac)
 end
 
 -- ##############################################
