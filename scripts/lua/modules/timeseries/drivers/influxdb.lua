@@ -941,11 +941,6 @@ function driver:timeseries_query(options)
     options.epoch_end = fixTendForRetention(options.epoch_end, retention_policy)
     local time_step = ts_common.calculateSampledTimeStep(raw_step, options.epoch_begin, options.epoch_end, options)
 
-    if time_step >= 3600 then
-        time_step = math.floor((time_step / 2) + 0.5)
-        options.max_num_points = options.max_num_points * 2
-    end
-
     -- NOTE: this offset is necessary to fix graph edge points when data insertion is not aligned with tstep
     local unaligned_offset = raw_step - 1
 

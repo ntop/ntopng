@@ -143,6 +143,17 @@ return {
         i18n_am_ts_metric = "active_monitoring_stats.download_speed",
         -- The operator to use when comparing the measurement with the threshold, "gt" for ">" or "lt" for "<".
         operator = "lt",
+        additional_timeseries = {{
+            schema="am_host:upload",
+            label=i18n("active_monitoring_stats.upload_speed"),
+            metrics_labels = { i18n("active_monitoring_stats.upload_speed") },
+            value_formatter = {"field_units.mbits"},
+          }, {
+            schema="am_host:latency",
+            label=i18n("latency"),
+            metrics_labels = { i18n("latency") },
+            value_formatter = {"NtopUtils.fmillis"},
+          }},
         -- If set, indicates a maximum threshold value
         max_threshold = 10000,
         -- If set, indicates the default threshold value

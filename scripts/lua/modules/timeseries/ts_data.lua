@@ -14,12 +14,6 @@ local function addHostInfo(tags)
     if not isEmptyString(host["host"]) and serialize_by_mac then
         local host_info = interface.getHostMinInfo(host["host"], host["vlan"])
         if (host_info ~= nil) then
-            -- Add the label if available
-            if (host_info.name) and not isEmptyString(host_info.name) then
-                -- Add the symbolic host name (if present)
-                tags.label = host_info.name
-            end
-
             -- Add the label MAC if available
             if (host_info.mac) and not isEmptyString(host_info.mac) then
                 tags.mac = host_info.mac;

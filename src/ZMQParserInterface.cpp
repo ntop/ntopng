@@ -1632,9 +1632,8 @@ bool ZMQParserInterface::matchField(ParsedFlow *const flow, const char *key,
 
 /* **************************************************** */
 
-bool ZMQParserInterface::parseNProbeAgentField(
-    ParsedFlow *const flow, const char *key, ParsedValue *value,
-    json_object *const jvalue) {
+bool ZMQParserInterface::parseNProbeAgentField(ParsedFlow *const flow, const char *key, ParsedValue *value,
+					       json_object *const jvalue) {
   bool ret = false;
   json_object *obj;
 
@@ -1969,16 +1968,13 @@ int ZMQParserInterface::parseSingleJSONFlow(json_object *o,
                   !json_object_iter_equal(&additional_it, &additional_itEnd)) {
                 const char *additional_key =
                     json_object_iter_peek_name(&additional_it);
-                json_object *additional_v =
-                    json_object_iter_peek_value(&additional_it);
-                const char *additional_value =
-                    json_object_get_string(additional_v);
+                json_object *additional_v = json_object_iter_peek_value(&additional_it);
+                const char *additional_value = json_object_get_string(additional_v);
 
                 if ((additional_key != NULL) && (additional_value != NULL)) {
                   // ntop->getTrace()->traceEvent(TRACE_NORMAL, "Additional
                   // field: %s", additional_key);
-                  flow.addAdditionalField(
-                      additional_key, json_object_new_string(additional_value));
+                  flow.addAdditionalField(additional_key, json_object_new_string(additional_value));
                 }
                 json_object_iter_next(&additional_it);
               }
@@ -2301,7 +2297,6 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char *payload,
 
         if (rc > 0) n++;
       }
-
     } else {
       rc = parseSingleJSONFlow(f, source_id);
 
@@ -3406,5 +3401,64 @@ u_int16_t ZMQParserInterface::findVLANMapping(std::string name) {
 }
 
 /* **************************************************** */
+
+u_int8_t ZMQParserInterface::parseJSONCustomIE(const char *payload,
+					       int payload_size) {
+  json_object *f;
+  enum json_tokener_error jerr = json_tokener_success;
+  sFlowInterfaceStats stats;
+
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s", payload);
+
+  memset(&stats, 0, sizeof(stats));
+  f = json_tokener_parse_verbose(payload, &jerr);
+
+  if (f != NULL) {
+    if (json_object_get_type(f) == json_type_array) {
+      /* IE array */
+      int id, num_elements = json_object_array_length(f);
+
+      for (id = 0; id < num_elements; id++) {
+	json_object *o = json_object_array_get_idx(f, id);
+
+	if(o != NULL) {
+	  struct json_object_iterator it = json_object_iter_begin(o);
+	  struct json_object_iterator itEnd = json_object_iter_end(o);
+
+	  while (!json_object_iter_equal(&it, &itEnd)) {
+	    const char *key = json_object_iter_peek_name(&it);
+	    json_object *jvalue = json_object_iter_peek_value(&it);
+	    const char *value = json_object_get_string(jvalue);
+
+	    if((key != NULL) && (value != NULL)) {
+	      ntop->getTrace()->traceEvent(TRACE_INFO, "%s = %s", key, value);
+
+	      /* TODO: handle custom IEs */
+	    } /* if */
+
+	    /* Move to the next element */
+	    json_object_iter_next(&it);
+	  } /* while */
+	}
+      } /* for */
+    }
+
+    json_object_put(f);
+  } else {
+    // if o != NULL
+    if (!once) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING,
+          "Invalid message received: your nProbe sender is outdated, data "
+				   "encrypted or invalid JSON?");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "JSON Parse error [%s] payload size: %u payload: %s",
+				   json_tokener_error_desc(jerr), payload_size, payload);
+    }
+
+    once = true;
+    return -1;
+  }
+
+  return 0;
+}
 
 #endif

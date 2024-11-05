@@ -55,10 +55,9 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
     if (strncmp(e, "zmq", 3) == 0) e[0] = 't', e[1] = 'c', e[2] = 'p';
 
     if (num_subscribers == MAX_ZMQ_SUBSCRIBERS) {
-      ntop->getTrace()->traceEvent(
-          TRACE_ERROR,
-          "Too many endpoints defined %u: skipping those in excess",
-          num_subscribers);
+      ntop->getTrace()->traceEvent(TRACE_ERROR,
+				   "Too many endpoints defined %u: skipping those in excess",
+				   num_subscribers);
       break;
     }
 
@@ -83,7 +82,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
       }
 #else
       ntop->getTrace()->traceEvent(TRACE_ERROR,
-          "Unable to enable ZMQ CURVE encryption, ZMQ >= 4.1 is required");
+				   "Unable to enable ZMQ CURVE encryption, ZMQ >= 4.1 is required");
 #endif
     }
 
@@ -105,9 +104,9 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
         zmq_close(subscriber[num_subscribers].socket);
         zmq_ctx_destroy(context);
         ntop->getTrace()->traceEvent(
-            TRACE_ERROR,
-            "Unable to bind to ZMQ endpoint %s [collector]: %s (%d)", e,
-            strerror(errno), errno);
+				     TRACE_ERROR,
+				     "Unable to bind to ZMQ endpoint %s [collector]: %s (%d)", e,
+				     strerror(errno), errno);
         free(tmp);
         throw("Unable to bind to the specified ZMQ endpoint");
       }
@@ -116,22 +115,19 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
         zmq_close(subscriber[num_subscribers].socket);
         zmq_ctx_destroy(context);
         ntop->getTrace()->traceEvent(
-            TRACE_ERROR,
-            "Unable to connect to ZMQ endpoint %s [probe]: %s (%d)", e,
-            strerror(errno), errno);
+				     TRACE_ERROR,
+				     "Unable to connect to ZMQ endpoint %s [probe]: %s (%d)", e,
+				     strerror(errno), errno);
         free(tmp);
         throw("Unable to connect to the specified ZMQ endpoint");
       }
     }
 
     for (int i = 0; topics[i] != NULL; i++) {
-      if (zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_SUBSCRIBE,
-                         topics[i], strlen(topics[i])) != 0) {
+      if (zmq_setsockopt(subscriber[num_subscribers].socket, ZMQ_SUBSCRIBE, topics[i], strlen(topics[i])) != 0) {
         zmq_close(subscriber[num_subscribers].socket);
         zmq_ctx_destroy(context);
-        ntop->getTrace()->traceEvent(
-            TRACE_ERROR, "Unable to connect to subscribe to topic %s",
-            topics[i]);
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to connect to subscribe to topic %s", topics[i]);
         free(tmp);
         throw("Unable to subscribe to the specified ZMQ endpoint");
       }
@@ -159,9 +155,9 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
     for (u_int i = 0; i < INTERFACE_PROFILING_NUM_SECTIONS; i++) {
       if (INTERFACE_PROFILING_SECTION_LABEL(i) != NULL)
         ntop->getTrace()->traceEvent(
-            TRACE_NORMAL, "[PROFILING] Section #%d '%s': AVG %llu ticks", i,
-            INTERFACE_PROFILING_SECTION_LABEL(i),
-            INTERFACE_PROFILING_SECTION_AVG(i, n));
+				     TRACE_NORMAL, "[PROFILING] Section #%d '%s': AVG %llu ticks", i,
+				     INTERFACE_PROFILING_SECTION_LABEL(i),
+				     INTERFACE_PROFILING_SECTION_AVG(i, n));
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
                                    "[PROFILING] Section #%d '%s': %llu ticks",
                                    i, INTERFACE_PROFILING_SECTION_LABEL(i),
@@ -214,12 +210,12 @@ char *ZMQCollectorInterface::findInterfaceEncryptionKeys(char *public_key, char 
 void ZMQCollectorInterface::checkPointCounters(bool drops_only) {
   if (!drops_only) {
     recvStatsCheckpoint.num_flows = recvStats.num_flows,
-    recvStatsCheckpoint.num_events = recvStats.num_events,
-    recvStatsCheckpoint.num_counters = recvStats.num_counters,
-    recvStatsCheckpoint.num_templates = recvStats.num_templates,
-    recvStatsCheckpoint.num_options = recvStats.num_options,
-    recvStatsCheckpoint.num_network_events = recvStats.num_network_events,
-    recvStatsCheckpoint.zmq_msg_rcvd = recvStats.zmq_msg_rcvd;
+      recvStatsCheckpoint.num_events = recvStats.num_events,
+      recvStatsCheckpoint.num_counters = recvStats.num_counters,
+      recvStatsCheckpoint.num_templates = recvStats.num_templates,
+      recvStatsCheckpoint.num_options = recvStats.num_options,
+      recvStatsCheckpoint.num_network_events = recvStats.num_network_events,
+      recvStatsCheckpoint.zmq_msg_rcvd = recvStats.zmq_msg_rcvd;
   }
 
   recvStatsCheckpoint.num_dropped_flows = recvStats.num_dropped_flows;
@@ -281,7 +277,7 @@ void ZMQCollectorInterface::collect_flows() {
 
     for (int i = 0; i < num_subscribers; i++)
       items[i].socket = subscriber[i].socket, items[i].fd = 0,
-      items[i].events = ZMQ_POLLIN, items[i].revents = 0;
+	items[i].events = ZMQ_POLLIN, items[i].revents = 0;
 
     do {
       rc = zmq_poll(items, num_subscribers, MAX_ZMQ_POLL_WAIT_MS);
@@ -327,7 +323,7 @@ void ZMQCollectorInterface::collect_flows() {
           if (((size != sizeof(struct zmq_msg_hdr_v3)) &&
                (size != sizeof(struct zmq_msg_hdr_v2)) &&
 	       (size != sizeof(struct zmq_msg_hdr_v1))
-		) ||
+	       ) ||
               (h->version > ZMQ_MSG_VERSION)) {
             ntop->getTrace()->traceEvent(TRACE_WARNING,
 					 "Unsupported publisher version: is your nProbe sender "
@@ -503,7 +499,7 @@ void ZMQCollectorInterface::collect_flows() {
               ntop->getTrace()->traceEvent(TRACE_ERROR,
                                            "Unable to uncompress ZMQ traffic: "
                                            "ntopng compiled without zlib"),
-                  once = true;
+		once = true;
 
             continue;
 #endif
@@ -516,8 +512,8 @@ void ZMQCollectorInterface::collect_flows() {
 
           if (ntop->getPrefs()->get_zmq_encryption_pwd())
             Utils::xor_encdec(
-                (u_char *)uncompressed, uncompressed_len,
-                (u_char *)ntop->getPrefs()->get_zmq_encryption_pwd());
+			      (u_char *)uncompressed, uncompressed_len,
+			      (u_char *)ntop->getPrefs()->get_zmq_encryption_pwd());
 
           if (false) {
             ntop->getTrace()->traceEvent(TRACE_NORMAL, "[url: %s]", h->url);
@@ -544,61 +540,68 @@ void ZMQCollectorInterface::collect_flows() {
 
           /* Process the message */
           switch (h->url[0]) {
-            case 'e': /* event */
-              recvStats.num_events++;
-              parseEvent(uncompressed, uncompressed_len, source_id, msg_id,
-                         this);
-              break;
+	  case 'e': /* event */
+	    recvStats.num_events++;
+	    parseEvent(uncompressed, uncompressed_len, source_id, msg_id,
+		       this);
+	    break;
 
-            case 'f': /* flow */
-              if (tlv_encoding)
-                recvStats.num_flows +=
-                    parseTLVFlow(uncompressed, uncompressed_len, subscriber_id,
-                                 msg_id, this);
-              else {
-                uncompressed[uncompressed_len] = '\0';
-                recvStats.num_flows += parseJSONFlow(uncompressed, uncompressed_len, subscriber_id, msg_id);
-              }
-              break;
+	  case 'f': /* flow */
+	    if (tlv_encoding)
+	      recvStats.num_flows += parseTLVFlow(uncompressed, uncompressed_len,
+						  subscriber_id, msg_id, this);
+	    else {
+	      uncompressed[uncompressed_len] = '\0';
+	      recvStats.num_flows += parseJSONFlow(uncompressed, uncompressed_len, subscriber_id, msg_id);
+	    }
+	    break;
 
-            case 'c': /* counter */
+	  case 'c': /* counter / custom-ie */
+	    if(h->url[1] == 'o') {
+	      /* counter */
               if (tlv_encoding)
                 parseTLVCounter(uncompressed, uncompressed_len);
               else
                 parseJSONCounter(uncompressed, uncompressed_len);
+
               recvStats.num_counters++;
-              break;
+	    } else {
+	      /* custom-ie (JSON only) */
 
-            case 't': /* template */
-              recvStats.num_templates++;
-              parseTemplate(uncompressed, uncompressed_len, subscriber_id,
-                            msg_id, this);
-              break;
+	      parseJSONCustomIE(uncompressed, uncompressed_len);
+	    }
+	    break;
 
-            case 'o': /* option */
-              recvStats.num_options++;
-              parseOption(uncompressed, uncompressed_len, subscriber_id, msg_id,
-                          this);
-              break;
+	  case 't': /* template */
+	    recvStats.num_templates++;
+	    parseTemplate(uncompressed, uncompressed_len, subscriber_id,
+			  msg_id, this);
+	    break;
 
-            case 'h': /* hello */
-              recvStats.num_hello++;
-              /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HELLO] %s",
-               * uncompressed); */
-              ntop->askToRefreshIPSRules();
-              break;
+	  case 'o': /* option */
+	    recvStats.num_options++;
+	    parseOption(uncompressed, uncompressed_len, subscriber_id, msg_id,
+			this);
+	    break;
 
-            case 'l': /* listening-ports */
-              recvStats.num_listening_ports++;
-              parseListeningPorts(uncompressed, uncompressed_len, subscriber_id,
-                                  msg_id, this);
-              break;
+	  case 'h': /* hello */
+	    recvStats.num_hello++;
+	    /* ntop->getTrace()->traceEvent(TRACE_NORMAL, "[HELLO] %s",
+	     * uncompressed); */
+	    ntop->askToRefreshIPSRules();
+	    break;
 
-            case 's': /* snmp-ifaces */
-              recvStats.num_snmp_interfaces++;
-              parseSNMPIntefaces(uncompressed, uncompressed_len, subscriber_id,
-                                 msg_id, this);
-              break;
+	  case 'l': /* listening-ports */
+	    recvStats.num_listening_ports++;
+	    parseListeningPorts(uncompressed, uncompressed_len, subscriber_id,
+				msg_id, this);
+	    break;
+
+	  case 's': /* snmp-ifaces */
+	    recvStats.num_snmp_interfaces++;
+	    parseSNMPIntefaces(uncompressed, uncompressed_len, subscriber_id,
+			       msg_id, this);
+	    break;
           }
 
           /* ntop->getTrace()->traceEvent(TRACE_INFO, "[%s] %s", h->url,
@@ -642,8 +645,8 @@ void ZMQCollectorInterface::startPacketPolling() {
 
 bool ZMQCollectorInterface::set_packet_filter(char *filter) {
   ntop->getTrace()->traceEvent(
-      TRACE_ERROR, "No filter can be set on a collector interface. Ignored %s",
-      filter);
+			       TRACE_ERROR, "No filter can be set on a collector interface. Ignored %s",
+			       filter);
   return (false);
 }
 

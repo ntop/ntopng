@@ -197,6 +197,8 @@ void LocalHost::deferredInitialization() {
 /* *************************************** */
 
 void LocalHost::addInactiveData() {
+  char key[128], *serialization_key;
+
   /* Remove the key from the hash, used to get the offline hosts */
   /* Exclude the multicast/broadcast addresses */
   if (!ntop->getRedis() || !isLocalUnicastHost()) return;
@@ -229,23 +231,27 @@ void LocalHost::addInactiveData() {
 
   if (cur_mac) {
     ndpi_serialize_string_uint32(&host_json, "device_type", getDeviceType());
-    ndpi_serialize_string_string(&host_json, "mac",
-                                 cur_mac->print(buf, sizeof(buf)));
+    ndpi_serialize_string_string(&host_json, "mac", cur_mac->print(buf, sizeof(buf)));
   }
 
   ndpi_serialize_string_uint32(&host_json, "vlan", (u_int16_t)get_vlan_id());
-  ndpi_serialize_string_uint32(&host_json, "network",
-                               (u_int32_t)get_local_network_id());
-  ndpi_serialize_string_string(&host_json, "name",
-                               get_name(buf, sizeof(buf), false));
+  ndpi_serialize_string_uint32(&host_json, "network", (u_int32_t)get_local_network_id());
+  ndpi_serialize_string_string(&host_json, "name", get_name(buf, sizeof(buf), false));
+
+  serialization_key = getSerializationKey(key, sizeof(key));
+
+  ndpi_serialize_string_string(&host_json, "key", serialization_key);
 
   json_str = ndpi_serializer_get_buffer(&host_json, &json_str_len);
   if ((json_str != NULL) && (json_str_len > 0)) {
-    char key[128], redis_key[64];
-    snprintf(redis_key, sizeof(redis_key), OFFLINE_LOCAL_HOSTS_KEY,
-             iface->get_id());
-    ntop->getRedis()->hashSet(redis_key, getSerializationKey(key, sizeof(key)),
-                              json_str);
+    char redis_key[64];
+
+    /* Will be removed */
+    snprintf(redis_key, sizeof(redis_key), OFFLINE_LOCAL_HOSTS_KEY, iface->get_id());
+    ntop->getRedis()->hashSet(redis_key, serialization_key, json_str);
+
+    snprintf(redis_key, sizeof(redis_key), OFFLINE_LOCAL_HOSTS_MACS_QUEUE_NAME, iface->get_id());
+    ntop->getRedis()->lpush(redis_key, json_str, CONST_MAX_INACTIVE_HOSTS_MAC_QUEUE_LEN);
   }
 
   ndpi_term_serializer(&host_json);

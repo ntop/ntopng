@@ -118,6 +118,7 @@ class ZMQParserInterface : public ParserInterface {
                       u_int32_t msg_id, void *data);
   u_int8_t parseTLVCounter(const char *payload, int payload_size);
   u_int8_t parseJSONCounter(const char *payload, int payload_size);
+  u_int8_t parseJSONCustomIE(const char *payload, int payload_size);
   u_int8_t parseTemplate(const char *payload, int payload_size,
                          u_int32_t source_id, u_int32_t msg_id, void *data);
   u_int8_t parseOption(const char *payload, int payload_size,

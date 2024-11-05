@@ -909,6 +909,8 @@
   ".alert_exclusions" /* Keep in sync with hosts_control.lua */
 
 #define CONST_MAX_ALERT_MSG_QUEUE_LEN 8192
+#define CONST_MAX_INACTIVE_HOSTS_MAC_QUEUE_LEN 65000
+
 #define CONST_MAX_ES_MSG_QUEUE_LEN 8192
 #define CONST_MAX_MYSQL_QUEUE_LEN 8192
 #define CONST_MAX_NUM_READ_ALERTS 32
@@ -1614,6 +1616,8 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
   "scripts/callbacks/checks/flows/custom_flow_end_script.lua"
 
 #define OFFLINE_LOCAL_HOSTS_KEY "ntopng.hosts.offline.ifid_%d"
+#define OFFLINE_LOCAL_HOSTS_MACS_QUEUE_NAME "ntopng.inactive_hosts_macs.queue.ifid_%d"
+
 #define EXPORTERS_EXCEEDED_LIMITS_KEY "ntopng.limits.exporters"
 
 #define MAX_NUM_PCAP_INTERFACES 8
