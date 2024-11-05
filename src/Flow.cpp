@@ -7667,10 +7667,10 @@ void Flow::getSSHInfo(ndpi_serializer *serializer) const {
                                    protos.ssh.server_signature);
 
     if (protos.ssh.hassh.client_hash)
-      ndpi_serialize_string_string(serializer, "hassh_client_hash",
+      ndpi_serialize_string_string(serializer, "client_hash_hassh",
                                    protos.ssh.hassh.client_hash);
     if (protos.ssh.hassh.server_hash)
-      ndpi_serialize_string_string(serializer, "hassh_server_hash",
+      ndpi_serialize_string_string(serializer, "server_hash_hassh",
                                    protos.ssh.hassh.server_hash);
   }
 }
