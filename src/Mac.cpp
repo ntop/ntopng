@@ -104,7 +104,8 @@ Mac::~Mac() {
     ndpi_serialize_string_string(&device_json, "mac", mac);
     ndpi_serialize_string_uint32(&device_json, "first_seen", first_seen);
     ndpi_serialize_string_uint32(&device_json, "last_seen", last_seen);
-
+    ndpi_serialize_string_uint32(&device_json, "device_type", getDeviceType());
+	
     json_str = ndpi_serializer_get_buffer(&device_json, &json_str_len);
     if ((json_str != NULL) && (json_str_len > 0)) {
       snprintf(redis_key, sizeof(redis_key), OFFLINE_LOCAL_HOSTS_MACS_QUEUE_NAME, iface->get_id());
