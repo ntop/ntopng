@@ -126,6 +126,26 @@ CREATE INDEX IF NOT EXISTS `host_alerts_i_is_victim` ON `host_alerts`(`is_victim
 CREATE INDEX IF NOT EXISTS `host_alerts_i_is_server` ON `host_alerts`(`is_server`);
 
 -- -----------------------------------------------------
+-- Table `asset_management`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `asset_management` (
+`rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
+`type` TEXT NOT NULL,
+`key` TEXT NULL UNIQUE,
+`ip` TEXT NULL,
+`mac` TEXT NOT NULL,
+`vlan` UNSIGNED INT,
+`network` UNSIGNED INT,
+`name` TEXT NULL,
+`device_type` UNSIGNED INT,
+`manufacturer` TEXT NULL,
+`first_seen` DATETIME NOT NULL DEFAULT 0,
+`last_seen` DATETIME NOT NULL DEFAULT 0,
+`trigger_alert` INTEGER NULL CHECK(`trigger_alert` IN (0,1)),
+`device_status` TEXT NULL
+);
+
+-- -----------------------------------------------------
 -- Table `mac_alerts`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `mac_alerts` (
