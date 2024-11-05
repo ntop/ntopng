@@ -1213,14 +1213,14 @@ function format_ssh_info(ssh_info)
     if not isEmptyString(ssh_info["client_signature"]) then
         formatted_ssh_info["client_signature"] = string.format('<span>%s</span>', ssh_info["client_signature"])
     end
-    if not isEmptyString(ssh_info["client_hash.hassh"]) then
-        formatted_ssh_info["client_hash.hassh"] = string.format('<span>%s</span>', ssh_info["client_hash.hassh"])
+    if not isEmptyString(ssh_info["hassh_client_hash"]) then
+        formatted_ssh_info["hassh_client_hash"] = string.format('<span>%s</span>', ssh_info["hassh_client_hash"])
     end
     if not isEmptyString(ssh_info["server_signature"]) then
         formatted_ssh_info["server_signature"] = string.format('<span>%s</span>', ssh_info["server_signature"])
     end
-    if not isEmptyString(ssh_info["server_hash.hassh"]) then
-        formatted_ssh_info["server_hash.hassh"] = string.format('<span>%s</span>', ssh_info["server_hash.hassh"])
+    if not isEmptyString(ssh_info["hassh_server_hash"]) then
+        formatted_ssh_info["hassh_server_hash"] = string.format('<span>%s</span>', ssh_info["hassh_server_hash"])
     end
 
     return formatted_ssh_info
