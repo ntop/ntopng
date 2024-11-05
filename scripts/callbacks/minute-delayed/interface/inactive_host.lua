@@ -22,13 +22,10 @@ local redis_key = string.format("ntopng.inactive_hosts_macs.queue.ifid_%d", inte
 
 while os.difftime(os.time(), start_time) < duration and ntop.llenCache(redis_key) > 0 do
     local entry = json.decode(ntop.lpopCache(redis_key))
-    tprint(entry)
 
     if entry["type"] == "host" then
         asset_management_utils.insert_host(entry)
-        tprint(entry["type"])
     else
         asset_management_utils.insert_mac(entry)
-        tprint(entry["type"])
     end
 end
