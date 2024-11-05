@@ -224,6 +224,8 @@ void LocalHost::addInactiveData() {
 #endif
 
   ndpi_init_serializer(&host_json, ndpi_serialization_format_json);
+
+  ndpi_serialize_string_string(&host_json, "type", "host");
   ndpi_serialize_string_string(&host_json, "ip", ip.print(buf, sizeof(buf)));
 
   ndpi_serialize_string_uint64(&host_json, "first_seen", get_first_seen());
@@ -731,7 +733,7 @@ void LocalHost::lua_get_fingerprints(lua_State *vm) {
 #ifdef NTOPNG_PRO
 void LocalHost::dumpAssetInfo() {
   char buf[64], mac_buf[32], *json_str = NULL,
-                             *ip = printMask(buf, sizeof(buf)), *mac_ptr;
+    *ip = printMask(buf, sizeof(buf)), *mac_ptr;
   ndpi_serializer device_json;
   u_int32_t json_str_len = 0;
 
@@ -768,6 +770,7 @@ void LocalHost::dumpAssetInfo() {
 
   if ((json_str != NULL) && (json_str_len > 0)) {
     char key[64];
+
     snprintf(key, sizeof(key), ASSET_LIST_INSERTION_KEY, iface->get_id());
     ntop->getRedis()->rpush(key, json_str, 1024);
   }

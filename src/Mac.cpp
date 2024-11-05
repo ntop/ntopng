@@ -92,11 +92,32 @@ Mac::~Mac() {
   if ((!broadcast_mac) && (!special_mac)) dumpToRedis();
 
   if (!special_mac && ntop->getRedis() && ntop->getPrefs()->is_pro_edition()) {
-    char mac_addr[64], mac_disconnection_key[128];
+    char mac_addr[64], mac_disconnection_key[128], *mac, *json_str;
+    ndpi_serializer device_json;
+    u_int32_t json_str_len = 0;
+    char redis_key[64];
+
+    mac = print(mac_addr, sizeof(mac_addr));
+
+    ndpi_init_serializer(&device_json, ndpi_serialization_format_json);
+    ndpi_serialize_string_string(&device_json, "type", "mac");
+    ndpi_serialize_string_string(&device_json, "mac", mac);
+    ndpi_serialize_string_uint32(&device_json, "first_seen", first_seen);
+    ndpi_serialize_string_uint32(&device_json, "last_seen", last_seen);
+
+    json_str = ndpi_serializer_get_buffer(&device_json, &json_str_len);
+    if ((json_str != NULL) && (json_str_len > 0)) {
+      snprintf(redis_key, sizeof(redis_key), OFFLINE_LOCAL_HOSTS_MACS_QUEUE_NAME, iface->get_id());
+      ntop->getRedis()->lpush(redis_key, json_str, CONST_MAX_INACTIVE_HOSTS_MAC_QUEUE_LEN);
+    }
+
+    ndpi_term_serializer(&device_json);
+
+    /* Will be removed */
     snprintf(mac_disconnection_key, sizeof(mac_disconnection_key),
-             (char *)MACS_DISCONNECTION, iface->get_id());
-    ntop->getRedis()->lpush(mac_disconnection_key,
-                            print(mac_addr, sizeof(mac_addr)), 0 /* No Trim */);
+	     (char *)MACS_DISCONNECTION, iface->get_id());
+
+    ntop->getRedis()->lpush(mac_disconnection_key, print(mac_addr, sizeof(mac_addr)), 0 /* No Trim */);
   }
 
   if (model) free(model);
@@ -544,7 +565,7 @@ bool Mac::is_hash_entry_state_idle_transition_ready() {
           ? "true"
           : "false",
       time(NULL), last_seen, ntop->getPrefs()->macAddressCacheDuration());
-*/ 
+*/
   return ((getUses() == 0) && is_active_entry_now_idle(
                                   ntop->getPrefs()->macAddressCacheDuration()));
 }
