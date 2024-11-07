@@ -240,32 +240,32 @@ class Host : public GenericHashEntry,
   inline bool isDhcpServer() const {
     return (host_services_bitmap & (1 << HOST_IS_DHCP_SERVER));
   }
-  void setDhcpServer(char *name);
+  virtual void setDhcpServer(char *name);
 
   inline bool isDnsServer() const {
     return (host_services_bitmap & (1 << HOST_IS_DNS_SERVER));
   }
-  void setDnsServer(char *name);
+  virtual void setDnsServer(char *name);
 
   inline bool isSmtpServer() const {
     return (host_services_bitmap & (1 << HOST_IS_SMTP_SERVER));
   }
-  void setSmtpServer(char *name);
+  virtual void setSmtpServer(char *name);
 
   inline bool isImapServer() const {
     return (host_services_bitmap & (1 << HOST_IS_IMAP_SERVER));
   }
-  void setImapServer(char *name);
+  virtual void setImapServer(char *name);
 
   inline bool isPopServer() const {
     return (host_services_bitmap & (1 << HOST_IS_POP_SERVER));
   }
-  void setPopServer(char *name);
+  virtual void setPopServer(char *name);
 
   inline bool isNtpServer() const {
     return (host_services_bitmap & (1 << HOST_IS_NTP_SERVER));
   }
-  void setNtpServer(char *name);
+  virtual void setNtpServer(char *name);
 
   inline u_int16_t getServicesMap() { return (host_services_bitmap); }
   /*
@@ -771,15 +771,15 @@ class Host : public GenericHashEntry,
   virtual void inlineSetOSDetail(const char *detail) {}
   virtual const char *getOSDetail(char *const buf, ssize_t buf_len);
   void offlineSetTLSName(const char *n);
-  void offlineSetHTTPName(const char *n);
-  void offlineSetNetbiosName(const char *n);
+  virtual void offlineSetHTTPName(const char *n);
+  virtual void offlineSetNetbiosName(const char *n);
   void offlineSetSSDPLocation(const char *url);
-  void offlineSetMDNSInfo(char *const s);
-  void offlineSetMDNSName(const char *n);
-  void offlineSetMDNSTXTName(const char *n);
-  void offlineSetDHCPName(const char *n);
-  void setServerName(const char *n);
-  void setResolvedName(const char *resolved_name);
+  virtual void offlineSetMDNSInfo(char *const s);
+  virtual void offlineSetMDNSName(const char *n);
+  virtual void offlineSetMDNSTXTName(const char *n);
+  virtual void offlineSetDHCPName(const char *n);
+  virtual void setServerName(const char *n);
+  virtual void setResolvedName(const char *resolved_name);
   virtual Fingerprint *getJA4Fingerprint()   { return (NULL); }
   virtual Fingerprint *getHASSHFingerprint() { return (NULL); }
 

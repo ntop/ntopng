@@ -778,3 +778,157 @@ void LocalHost::dumpAssetInfo() {
   ndpi_term_serializer(&device_json);
 }
 #endif
+
+/* *************************************** */
+
+void LocalHost::setDhcpServer(char *name) {
+  bool previousDhcpServer = isDhcpServer();
+  Host::setDhcpServer(name);
+  #ifdef NTOPNG_PRO
+    if (!previousDhcpServer && isDhcpServer())
+      ntop->get_am()->setServerInfo(this, dhcp_server, name);
+  #endif
+}
+
+/* *************************************** */
+
+void LocalHost::setDnsServer(char *name) {
+  bool previous_DnsServer = isDnsServer();
+  Host::setDnsServer(name);
+  #ifdef NTOPNG_PRO
+    if (!previous_DnsServer && isDnsServer())
+      ntop->get_am()->setServerInfo(this, dns_server, name);
+  #endif
+}
+
+/* *************************************** */
+
+void LocalHost::setSmtpServer(char *name) {
+  bool previous_SmtpServer = isSmtpServer();
+  Host::setSmtpServer(name);
+  #ifdef NTOPNG_PRO
+    if (!previous_SmtpServer && isSmtpServer())
+      ntop->get_am()->setServerInfo(this, smtp_server, name);
+  #endif
+}
+
+/* *************************************** */
+
+void LocalHost::setNtpServer(char *name) {
+  bool previous_NtpServer = isNtpServer();
+  Host::setNtpServer(name);
+  #ifdef NTOPNG_PRO
+    if (!previous_NtpServer && isNtpServer())
+      ntop->get_am()->setServerInfo(this, ntp_server, name);
+  #endif
+}
+
+/* *************************************** */
+
+void LocalHost::setImapServer(char *name) {
+  bool previous_ImapServer = isImapServer();
+  Host::setImapServer(name);
+  #ifdef NTOPNG_PRO
+    if (!previous_ImapServer && isImapServer())
+      ntop->get_am()->setServerInfo(this, imap_server, name);
+  #endif
+}
+
+/* *************************************** */
+
+void LocalHost::setPopServer(char *name) {
+  bool previous_popServer = isPopServer();
+  Host::setPopServer(name);
+  #ifdef NTOPNG_PRO
+    if (!previous_popServer && isPopServer())
+      ntop->get_am()->setServerInfo(this, pop_server, name);
+  #endif
+}
+
+/* *************************************** */
+
+void LocalHost::offlineSetMDNSInfo(char *const str) {
+    bool previous_mdns_info = names.mdns_info ? true : false;
+    Host::offlineSetMDNSInfo(str);
+    #ifdef NTOPNG_PRO
+      if (names.mdns_info && !previous_mdns_info)
+        ntop->get_am()->setResolvedName(this, label_mdns_info, names.mdns_info);
+    #endif
+}
+
+/* *************************************** */
+
+void LocalHost::offlineSetMDNSName(const char *mdns_n) {
+    bool previous_mdns = names.mdns ? true : false;
+    Host::offlineSetMDNSName(mdns_n);
+    #ifdef NTOPNG_PRO
+      if (names.mdns && !previous_mdns)
+          ntop->get_am()->setResolvedName(this, label_mdns, names.mdns);
+    #endif
+}
+
+/* *************************************** */
+
+void LocalHost::offlineSetDHCPName(const char *dhcp_n) {
+  bool previous_dhcp = names.dhcp ? true : false;
+  Host::offlineSetDHCPName(dhcp_n);
+  #ifdef NTOPNG_PRO
+    if (names.dhcp && !previous_dhcp)
+      ntop->get_am()->setResolvedName(this, label_dhcp, names.dhcp);
+  #endif
+}
+
+/* *************************************** */
+
+void LocalHost::offlineSetMDNSTXTName(const char *mdns_n_txt) {
+  bool previous_mdns_txt = names.mdns_txt ? true : false;
+  Host::offlineSetMDNSTXTName(mdns_n_txt);
+  #ifdef NTOPNG_PRO
+    if (names.mdns_txt && !previous_mdns_txt)
+      ntop->get_am()->setResolvedName(this, label_mdns_txt, names.mdns_txt);
+  #endif
+}
+
+/* *************************************** */
+
+void LocalHost::offlineSetNetbiosName(const char *netbios_n) {
+  bool previous_netbios = names.netbios ? true : false;
+  Host::offlineSetNetbiosName(netbios_n);
+  #ifdef NTOPNG_PRO
+    if (names.netbios && !previous_netbios)
+      ntop->get_am()->setResolvedName(this, label_netbios, names.netbios);
+  #endif
+}
+
+/* *************************************** */
+
+void LocalHost::offlineSetHTTPName(const char *http_n) {
+  bool previous_http = names.http ? true : false;
+  Host::offlineSetHTTPName(http_n);
+  #ifdef NTOPNG_PRO
+    if(names.http && !previous_http)
+      ntop->get_am()->setResolvedName(this, label_http, names.http);
+  #endif
+}
+
+/* *************************************** */
+
+void LocalHost::setServerName(const char *server_n) {
+  bool previous_server_name = names.server_name ? true : false;
+  Host::setServerName(server_n);
+  #ifdef NTOPNG_PRO
+    if(names.server_name && !previous_server_name)
+      ntop->get_am()->setResolvedName(this, label_server_name, names.server_name);
+  #endif
+}
+
+/* *************************************** */
+
+void LocalHost::setResolvedName(const char *resolved_name) {
+  bool previous_resolved = names.resolved ? true : false;
+  Host::setResolvedName(resolved_name);
+  #ifdef NTOPNG_PRO
+    if(names.resolved && !previous_resolved)
+        ntop->get_am()->setResolvedName(this, label_resolver, names.resolved);
+  #endif
+}
