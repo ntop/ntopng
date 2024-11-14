@@ -56,13 +56,13 @@ end
 -- @return A human-readable string
 function host_alert_server_ports_contacts.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
-  local entity = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
-  local value = alert_type_params.port or 0
+  local host = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
+  local port = alert_type_params.port or 0
+  local protocol = interface.getnDPIFullProtoName(0, alert_type_params.app_protocol)
   
   return i18n("alert_messages.host_alert_server_ports_contacts", {
-    entity = entity,
-    value = value,
-    threshold = alert_type_params.app_protocol or 0,
+    port = port,
+    protocol = protocol,
   })
 end
 

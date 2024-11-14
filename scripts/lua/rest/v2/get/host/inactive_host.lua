@@ -7,7 +7,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 require "lua_utils"
 require "mac_utils"
 local rest_utils = require "rest_utils"
-local inactive_hosts_utils = require "inactive_hosts_utils"
+local asset_management_utils = require "asset_management_utils"
 
 if not _GET["serial_key"] then
     rest_utils.answer(rest_utils.consts.err.invalid_args)
@@ -29,26 +29,18 @@ local rsp = {
     host_info = {}
 }
 local serial_key = _GET["serial_key"]
-local host_details = inactive_hosts_utils.getInactiveHostInfo(ifid, serial_key) or {}
+local list = asset_management_utils.get_inactive_host_info(ifid, serial_key) or {}
 
 -- Check if at least an host is inactive
-if table.len(host_details) > 0 then
+for _, host_details in pairs(list or {}) do
     require "mac_utils"
-    local format_utils = require("format_utils")
     local discover_utils = require "discover_utils"
     local network_name = ""
-    local networks_stats = interface.getNetworksStats()
     local first_seen = formatEpoch(host_details["first_seen"]) .. " [" ..
                            secondsToTime(os.time() - host_details["first_seen"]) .. " " .. i18n("details.ago") .. "]"
     local last_seen = formatEpoch(host_details["last_seen"]) .. " [" ..
                           secondsToTime(os.time() - host_details["last_seen"]) .. " " .. i18n("details.ago") .. "]"
     local url
-
-    for n, ns in pairs(networks_stats or {}) do
-        if ns.network_id == tonumber(host_details["network"]) then
-            network_name = getFullLocalNetworkName(ns.network_key)
-        end
-    end
 
     rsp["host_name"] = host_details["name"]
 
@@ -82,8 +74,10 @@ if table.len(host_details) > 0 then
         }}
     }
 
-    if interface.getNetworkStats(host_details.network) then
+    local network_stats = interface.getNetworkStats(tonumber(host_details["network"]))
+    for key, _ in pairs(network_stats or {}) do
         url = '/lua/hosts_stats.lua?network=' .. host_details.network
+        network_name = getFullLocalNetworkName(key)
     end
 
     rsp["host_info"][#rsp["host_info"] + 1] = {

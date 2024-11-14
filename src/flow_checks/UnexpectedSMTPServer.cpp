@@ -25,15 +25,16 @@
 /* ***************************************************** */
 
 bool UnexpectedSMTPServer::isAllowedHost(Flow *f) {
-  IpAddress *p = (IpAddress *) getServerIP(f);
-
-  if (p == NULL || p->isBroadcastAddress()) return true;
-
-  if (p->isSmtpServer() && !ntop->getPrefs()->isSMTPServer(p, f->get_vlan_id())) {
-    return false;
+  if(ntop->getPrefs()->getConfiguredSMTPServers()->isEmptyConfiguration())
+    return(true);
+  else {
+    IpAddress *p = (IpAddress *) getServerIP(f);
+    
+    if(p != NULL)
+      return(ntop->getPrefs()->isSMTPServer(p, f->get_vlan_id()));
+    else
+      return(true);
   }
-
-  return (true);
 }
 
 /* ***************************************************** */

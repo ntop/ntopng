@@ -19,22 +19,31 @@
  *
  */
 
+#ifndef _SFLOW_PKT_INTERFACE_H_
+#define _SFLOW_PKT_INTERFACE_H_
+
 #include "ntop_includes.h"
-#include "flow_checks_includes.h"
 
-/* ***************************************************** */
+#define PF_RING_MAX_SOCKETS 2
 
-bool UnexpectedDHCPServer::isAllowedHost(Flow *f) {
-  if(ntop->getPrefs()->getConfiguredDHCPServers()->isEmptyConfiguration())
-    return(true);
-  else {
-    IpAddress *ip = f->get_cli_ip_addr();
-    
-    if (ip == NULL || ip->isBroadcastAddress())
-      return(true);
-    
-    return(ntop->getPrefs()->isDHCPServer(ip, f->get_vlan_id()));
-  }
-}
+class sFlowPktInterface : public NetworkInterface {
+ private:
+  int sock_fd;
 
-/* ***************************************************** */
+ public:
+  sFlowPktInterface(const char *name);
+  ~sFlowPktInterface();
+
+  void sflowPacketPollLoop();
+  virtual bool areTrafficDirectionsSupported() { return (false); };
+  bool isDiscoverableInterface()               { return (false); };
+  virtual InterfaceType getIfType() const      { return (interface_type_PCAP); };
+  virtual const char *get_type() const {
+    return (CONST_INTERFACE_TYPE_PCAP);
+  };
+  void startPacketPolling();
+  void shutdown();
+  bool set_packet_filter(char *filter) { return(false); }
+};
+
+#endif /* _SFLOW_PKT_INTERFACE_H_ */

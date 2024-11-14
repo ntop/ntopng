@@ -2323,8 +2323,9 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char *payload,
 
   if (f != NULL) {
     int n = 0, rc;
-
-    if (json_object_get_type(f) == json_type_array) {
+    enum json_type t = json_object_get_type(f);
+    
+    if (t == json_type_array) {
       /* Flow array */
       int id, num_elements = json_object_array_length(f);
 
@@ -2334,7 +2335,16 @@ u_int8_t ZMQParserInterface::parseJSONFlow(const char *payload,
         if (rc > 0) n++;
       }
     } else {
-      rc = parseSingleJSONFlow(f, source_id);
+      if(t == json_type_string) {
+	json_object *obj = json_tokener_parse(json_object_get_string(f));
+
+	if(obj != NULL) {
+	  rc = parseSingleJSONFlow(obj, source_id);
+	  json_object_put(obj);
+	} else
+	  rc = -1;
+      } else
+	rc = parseSingleJSONFlow(f, source_id);
 
       if (rc > 0) n++;
     }

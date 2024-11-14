@@ -40,8 +40,6 @@ import { default as PageSNMPDeviceRules } from "./page-snmp-device-rules.vue";
 import { default as PageSnmpDevicesInterfacesSimilarity } from "./page-snmp-devices-interfaces-similarity.vue";
 import { default as PageHostsPortsAnalysis } from "./page-hosts-ports-analysis.vue";
 import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue";
-import { default as PageInactiveHosts } from "./page-inactive-hosts.vue";
-import { default as PageInactiveHostDetails } from "./page-inactive-host-details.vue";
 import { default as PageExportersConfig } from "./page-flowdevice-config.vue";
 import { default as PageFlowDeviceInterfaceDetails } from "./page-flowdevice-interface-config.vue";
 import { default as PageVulnerabilityScan } from "./page-vulnerability-scan.vue";
@@ -69,6 +67,8 @@ import { default as PageExportersInterfaces } from "./page-exporters-interfaces.
 import { default as PageNetworkConfiguration } from "./page-network-configuration.vue"
 import { default as PageLimits } from "./page-limits.vue"
 import { default as PageLocalHostsReport } from "./page-local-hosts-report.vue"
+import { default as PageInactiveHostsList } from "./page-inactive-hosts.vue"
+import { default as PageInactiveHostDetails } from "./page-inactive-host-details.vue"
 
 /* Config pages */
 import { default as PageSNMPConfig } from "./page-snmp-config.vue"
@@ -144,8 +144,6 @@ let ntopVue = {
     PageManageConfigurationBackup: PageManageConfigurationBackup,
     PageSNMPDeviceRules: PageSNMPDeviceRules,
     PageHostsPortsAnalysis: PageHostsPortsAnalysis,
-    PageInactiveHosts: PageInactiveHosts,
-    PageInactiveHostDetails: PageInactiveHostDetails,
     PageVulnerabilityScan: PageVulnerabilityScan,
     PageHostVsResult: PageHostVsResult,
     PageOpenPorts: PageOpenPorts,
@@ -156,6 +154,8 @@ let ntopVue = {
     PageExportersDetails: PageExportersDetails,
     PageLimits: PageLimits,
     PageLocalHostsReport: PageLocalHostsReport,
+    PageInactiveHostsList: PageInactiveHostsList,
+    PageInactiveHostDetails: PageInactiveHostDetails,
     
     /* SNMP */
     PageSNMPDevices: PageSNMPDevices,

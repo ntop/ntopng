@@ -235,17 +235,20 @@ extern "C" {
           ntop->getTrace()->traceEvent(TRACE_WARNING,
                                        "Inline/bridge capabilities have now "
                                        "been moved in ntopng Edge (nEdge)");
-          ntop->getTrace()->traceEvent(
-              TRACE_WARNING, "For more information and free migration see:");
-          ntop->getTrace()->traceEvent(
-              TRACE_WARNING,
-              "https://www.ntop.org/support/faq/"
-              "migration-of-ntopng-inline-pro-enterprises-licenses-to-ntopng-"
-              "edge-nedge/");
+          ntop->getTrace()->traceEvent(TRACE_WARNING, "For more information and free migration see:");
+          ntop->getTrace()->traceEvent(TRACE_WARNING,
+				       "https://www.ntop.org/support/faq/"
+				       "migration-of-ntopng-inline-pro-enterprises-licenses-to-ntopng-"
+				       "edge-nedge/");
           ntop->getTrace()->traceEvent(TRACE_WARNING, "\n");
         }
 #endif
 
+#if !defined(HAVE_NEDGE)
+	if (iface == NULL && strncmp(ifName, "sflow:", 6) == 0)
+          iface = new (std::nothrow) sFlowPktInterface(ifName);
+#endif
+	
 #if defined(HAVE_NEDGE)
         if (iface == NULL && strncmp(ifName, "nf:", 3) == 0)
           iface = new (std::nothrow) NetfilterInterface(ifName);
@@ -272,9 +275,8 @@ extern "C" {
       if (iface) delete iface;
       iface = NULL;
     } catch (...) {
-      ntop->getTrace()->traceEvent(
-          TRACE_NORMAL, "Unable to open interface %s. Falling back to pcap.",
-          ifName);
+      ntop->getTrace()->traceEvent(TRACE_NORMAL, "Unable to open interface %s. Falling back to pcap.",
+				   ifName);
       if (iface) delete iface;
       iface = NULL;
     }
@@ -285,9 +287,8 @@ extern "C" {
         errno = 0;
         iface = new PcapInterface(ifName, i, false);
       } catch (int err) {
-        ntop->getTrace()->traceEvent(
-            TRACE_ERROR, "Unable to open interface %s with pcap [%d]: %s",
-            ifName, err, strerror(err));
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to open interface %s with pcap [%d]: %s",
+				     ifName, err, strerror(err));
         if (iface) delete iface;
         iface = NULL;
       }

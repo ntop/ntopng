@@ -180,19 +180,22 @@ function radius_handler.accountingUpdate(name, info)
         local packets_rcvd = user_data.packets_rcvd or 0
 
         -- These are in B, needs to be converted in KB
-        if info and (info["bytes.sent"] or 0) > 0 then
-            bytes_sent = math.floor((info["bytes.sent"] or 0) / 1024 + 0.5)
+        if info and (info["bytes.sent"]) > 0 then
+            bytes_sent = math.floor((info["bytes.sent"]) / 1024 + 0.5)
         end
-        if info and (info["bytes.rcvd"] or 0) > 0 then
-            bytes_rcvd = math.floor((info["bytes.rcvd"] or 0) / 1024 + 0.5)
+        if info and (info["bytes.rcvd"]) > 0 then
+            bytes_rcvd = math.floor((info["bytes.rcvd"]) / 1024 + 0.5)
         end
 
-        if info and (info["packets.sent"] or 0) > 0 then
-            packets_sent = info["packets.sent"] or 0
+        if info and (info["packets.sent"]) > 0 then
+            packets_sent = info["packets.sent"]
         end
-        if info and (info["packets.rcvd"] or 0) > 0 then
-            packets_rcvd = info["packets.rcvd"] or 0
+        if info and (info["packets.rcvd"]) > 0 then
+            packets_rcvd = info["packets.rcvd"]
         end
+
+        traceError(TRACE_NORMAL, TRACE_CONSOLE,
+            string.format("Accounting update [MAC: %s][In Bytes: %d][Out Bytes: %d][Radius In Bytes: %d][Radius Out Bytes: %d]", name, info["bytes.rcvd"], info["bytes.sent"], bytes_rcvd, bytes_sent))
 
         user_data.bytes_sent = bytes_sent
         user_data.bytes_rcvd = bytes_rcvd

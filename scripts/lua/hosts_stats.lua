@@ -22,7 +22,6 @@ local page_utils = require("page_utils")
 local custom_column_utils = require("custom_column_utils")
 local discover = require("discover_utils")
 local template_utils = require("template_utils")
-local inactive_hosts_utils = require("inactive_hosts_utils")
 local have_nedge = ntop.isnEdge()
 local wheel = nil
 
@@ -308,11 +307,8 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
     label = i18n('active_hosts')
 }, {
     active = page == "inactive_hosts" or page == nil,
-    hidden = inactive_hosts_utils.getInactiveHostsNumber(ifstats.id) == 0,
     page_name = "inactive_hosts",
-    label = i18n('inactive_hosts_navbar') ..
-        '<span class="badge rounded-pill bg-dark" style="float: right; margin-top: -8px;">' ..
-        inactive_hosts_utils.getInactiveHostsNumber(ifstats.id) .. '</span>'
+    label = i18n('inactive_hosts_navbar')
 }, {
     hidden = not host_ts_available or not ntop.isEnterpriseXL(),
     active = page == "local_hosts_report" or page == nil,
@@ -902,11 +898,13 @@ elseif page == "active_hosts" then
     })
     template_utils.render("pages/vue_page.template", { vue_page_name = "PageHostsList", page_context = json_context })
 elseif page == "inactive_hosts" then
-    template_utils.render("pages/inactive_hosts.template", {
+    local json = require "dkjson" 
+    local json_context = json.encode({
         ifid = ifstats.id,
-        csrf = ntop.getRandomCSRFValue(),
-        show_historical = ntop.isEnterpriseM() and hasClickHouseSupport()
+        historical_available = hasClickHouseSupport(),
+        csrf = ntop.getRandomCSRFValue()
     })
+    template_utils.render("pages/vue_page.template", { vue_page_name = "PageInactiveHostsList", page_context = json_context })
 elseif page == "local_hosts_report" then
     local json = require "dkjson"
     local json_context = json.encode({

@@ -40,6 +40,7 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
         local probe_interface
         local num_ports = 0
         local flow_exporters_num = table.len(probe_info.exporters)
+        local is_probe_in_memory = false
 
         if probe_info["probe.mode"] == "packet_collection" then
             flow_exporters_num = 1 -- Packet exporter
@@ -64,6 +65,10 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
             end
             probe_interface = i18n("if_stats_overview.remote_probe_collector_mode")
         end
+        
+        if interface.getHostInfo(probe_info["probe.ip"]) then
+            is_probe_in_memory = true
+        end
 
         res[#res + 1] = {
             probe_interface = probe_interface,
@@ -79,6 +84,7 @@ for interface_id, probes_list in pairs(ifstats.probes or {}) do
             flow_exporters = flow_exporters_num,
             exporters_interfaces = num_ports,
             dropped_flows = flow_drops,
+            is_in_memory = is_probe_in_memory, 
             captured_packets = (probe_info["packets.total"] or 0),
             dropped_packets = (probe_info["packets.drops"] or 0),
             exported_flows = exported_flows,

@@ -34,6 +34,7 @@ class HostAlert {
   bool expiring; /* engaged, under re-evaluation */
   HostCheckID check_id;
   std::string check_name;
+  u_int64_t rowid; /* row id used by engaged alert in the in-memory table */
   time_t engage_time;
   time_t release_time;
   time_t timeout_time; /* used by alerts with no C++ Check to automatically
@@ -90,7 +91,7 @@ class HostAlert {
   inline HostCheckID getCheckType() const { return (check_id); }
   inline std::string getCheckName() const { return (check_name); }
 
-  inline void setEngaged() { expiring = released = false; }
+  inline void setEngaged(u_int64_t _rowid) { expiring = released = false; rowid = _rowid; }
 
   inline void setExpiring() { expiring = true; }
   inline bool isExpired() { return expiring; }
@@ -111,6 +112,7 @@ class HostAlert {
 
   inline time_t getEngageTime() { return engage_time; }
   inline time_t getReleaseTime() { return release_time; }
+  inline u_int32_t getRowID() { return rowid; }
 
   inline bool equals(HostAlertType type) {
     return getAlertType().id == type.id;

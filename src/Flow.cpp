@@ -337,8 +337,11 @@ void Flow::allocDPIMemory() {
 
 void Flow::freeDPIMemory() {
   if (ndpiFlow) {
-    if((!isDNS()) && ntop->getPrefs()->is_dns_cache_enabled()) {
-
+    if(isDNS()) {
+      if(ndpiFlow && (ndpiFlow->protos.dns.is_query == 0)) {
+	swap_requested = 1;
+      }
+    } else if(/* !isDNS() */ ntop->getPrefs()->is_dns_cache_enabled()) {
       if(srv_host) {
 	/* Standard Interface */
 	updateServerName(srv_host);
@@ -1119,7 +1122,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
 
     if (ndpiFlow->host_server_name[0] != '\0') {
       std::string addresses;
-      
+
       if (cli_host && (ndpiFlow->protos.dns.reply_code == 0 /* no Error */)) {
 	cli_host->incContactedService((char *)ndpiFlow->host_server_name);
 	cli_host->incrVisitedWebSite((char *)ndpiFlow->host_server_name);
@@ -1127,7 +1130,7 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
 
       for(u_int i=0; i<ndpiFlow->protos.dns.num_rsp_addr; i++) {
 	char buf[64];
-	
+
 	if(ndpiFlow->protos.dns.is_rsp_addr_ipv6[i] == 0)
 	  inet_ntop(AF_INET, &ndpiFlow->protos.dns.rsp_addr[i].ipv4, buf, sizeof(buf));
 	else
@@ -1135,8 +1138,8 @@ void Flow::processDNSPacket(const u_char *ip_packet, u_int16_t ip_len,
 
 	if(i > 0) addresses += ",";
 	addresses += buf;
-      }     
-      
+      }
+
       setDNSQuery(ndpiFlow->host_server_name, (char*)addresses.c_str(), true);
 
       if (ndpiFlow->protos.dns.query_type != 0)
@@ -4402,7 +4405,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
   ndpi_serialize_string_string(s, "action", "store");
   ndpi_serialize_string_int64(s, "first_seen", get_first_seen());
   ndpi_serialize_string_int32(s, "score", getScore());
-  ndpi_serialize_string_boolean(s, "acknowledged", alert->autoAck());
+  ndpi_serialize_string_boolean(s, "require_attention", !alert->autoAck());
 
   ndpi_serialize_string_boolean(s, "is_flow_alert", true);
   ndpi_serialize_string_int64(s, "tstamp", now);
@@ -5990,9 +5993,8 @@ bool Flow::setDNSQuery(char *query_value, char *rsp_addresses, bool copy_memory)
     time_t last_pkt_rcvd = getInterface()->getTimeLastPktRcvd();
 
     if (!protos.dns.last_query_shadow /* The first time the swap is done */
-        ||
-        protos.dns.last_query_update_time + 1 <
-	last_pkt_rcvd /* Latest swap occurred at least one second ago */) {
+        || (protos.dns.last_query_update_time + 1 <
+	    last_pkt_rcvd /* Latest swap occurred at least one second ago */)) {
       if (protos.dns.last_query_shadow) free(protos.dns.last_query_shadow);
       protos.dns.last_query_shadow = protos.dns.last_query;
       protos.dns.last_query = copy_memory ? strdup(query_value) : query_value;
@@ -6004,20 +6006,20 @@ bool Flow::setDNSQuery(char *query_value, char *rsp_addresses, bool copy_memory)
 	protos.dns.last_rsp = copy_memory ? strdup(rsp_addresses) : rsp_addresses;
       else
 	protos.dns.last_rsp = NULL;
-      
+
       protos.dns.last_query_update_time = last_pkt_rcvd;
 
-#ifdef DEBUG 
+#ifdef DEBUG
       if(protos.dns.last_rsp)
 	ntop->getTrace()->traceEvent(TRACE_NORMAL, "**** %s", protos.dns.last_rsp);
 #endif
-      
-      return true; /* Swap successfull */
+
+      return(true); /* Swap successful */
     }
   }
 
   /* Unable to set the DNS query. Too early or not a DNS flow. */
-  return false;
+  return(false);
 }
 
 /* *************************************** */
@@ -7736,7 +7738,7 @@ void Flow::lua_get_dns_info(lua_State *vm) const {
 
       if(protos.dns.last_rsp)
 	lua_push_str_table_entry(vm, "protos.dns.last_rsp", protos.dns.last_rsp);
-      
+
       if (hasInvalidDNSQueryChars())
         lua_push_bool_table_entry(vm, "protos.dns.invalid_chars_in_query", true);
     }

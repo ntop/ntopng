@@ -241,6 +241,7 @@ local function getSchemaRetentionPolicy(schema, tstart, tend, options)
     if schema.options.influx_internal_query then
         return "raw"
     end
+    tstart = tonumber(tstart)
 
     options = options or {}
     local first_aggr_time = tonumber(ntop.getPref(FIRST_AGGREGATION_TIME_KEY))
@@ -1612,6 +1613,10 @@ function driver:timeseries_top(options, top_tags)
             end
             if isEmptyString(ext_label) then
                 ext_label = ifindex
+            end
+            -- Special case, top protocol timeseries, here the ext_label needs to be the protocol
+            if query_tag.protocol then
+                ext_label = value[3]
             end
 
             sorted[#sorted + 1] = {

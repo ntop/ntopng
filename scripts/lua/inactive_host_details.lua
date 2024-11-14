@@ -22,9 +22,12 @@ page_utils.print_navbar(title, url, {{
     label = "<i class=\"fas fa-lg fa-home\"></i>"
 }})
 
-template_utils.render("pages/inactive_host_details.template", {
+local json = require "dkjson" 
+local json_context = json.encode({
     ifid = interface.getId(),
     csrf = ntop.getRandomCSRFValue()
 })
+template_utils.render("pages/vue_page.template", { vue_page_name = "PageInactiveHostDetails", page_context = json_context })
+
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

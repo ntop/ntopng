@@ -2013,6 +2013,7 @@ local known_parameters = {
    ["alert_subtype"] = validateSingleWord,                                            -- An alert subtype string
    ["alert_severity"] = validateNumber,                                               -- An alert severity enum
    ["severity"] = validateListOfTypeInline(validateFilters(validateNumber)),          -- Same as alert_severity
+   ["alert_status"] = validateListOfTypeInline(validateFilters(validateNumber)),      -- An alert status enum
    ["alert_granularity"] = validateNumber,                                            -- An alert granularity
    ["entity"] = validateNumber,                                                       -- An alert entity type
    ["by_24h"] = validateBool,                                                         -- Used to know if the new or the old timeseries format is requested

@@ -21,7 +21,7 @@
         <TableWithConfig ref="table_probes" :table_id="table_id" :csrf="csrf" :f_map_columns="map_table_def_columns"
             :f_sort_rows="columns_sorting" :get_extra_params_obj="get_extra_params_obj">
         </TableWithConfig>
-        
+
         <NoteList :note_list="note_list"> </NoteList>
     </div>
 </template>
@@ -35,8 +35,8 @@ import { default as SelectSearch } from "./select-search.vue";
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 import { default as TableWithConfig } from "./table-with-config.vue";
 import { default as NoteList } from "./note-list.vue";
-import { default as formatterUtils} from "../utilities/formatter-utils";
-import { default as dataUtils} from "../utilities/data-utils.js";
+import { default as formatterUtils } from "../utilities/formatter-utils";
+import { default as dataUtils } from "../utilities/data-utils.js";
 
 const props = defineProps({
     context: Object,
@@ -91,7 +91,7 @@ onMounted(() => {
         first_open.value = false;
         table_probes.value.refresh_table()
         update_sankey_data()
-    }, 10000 /* 10 sec refresh */)    
+    }, 10000 /* 10 sec refresh */)
 })
 
 /* ************************************** */
@@ -152,19 +152,26 @@ const get_extra_params_obj = () => {
 const map_table_def_columns = (columns) => {
     let map_columns = {
         "ip": (value, row) => {
-            let returnValue = value;
+            let exporter_ip = value;
             // Add interface name if defined
             if (!dataUtils.isEmptyOrNull(row['interface_name'])) {
-            returnValue = `${returnValue} ${row['interface_name']}`;
+                exporter_ip = `${exporter_ip} ${row['interface_name']}`;
             }
 
+            let timeseries_link = ""
             // Add timeseries icon if timeseries are enabled
             if (row['timeseries_enabled']) {
                 let timeseriesUrl = `${chart_url}ip=${value}&page=historical&ifid=${row['ifid']}`;
-                returnValue += `&nbsp;<a href="${timeseriesUrl}"><i class="fas fa-chart-area fa-lg"></i></a>`;
+                timeseries_link = ` <a href="${timeseriesUrl}"><i class="fas fa-chart-area fa-lg"></i></a>`;
             }
 
-            return `<a href="${host_url}ip=${value}&exporter_uuid=${row.exporter_uuid}&probe_uuid=${row.probe_uuid}">${returnValue}</a>`;
+            let host_link = ""
+            if (row.is_in_memory) {
+                const host_details_url = `${http_prefix}/lua/host_details.lua?`
+                host_link = ` <a href=${host_details_url}host=${value}><i class="fas fa-laptop"></i></a>`
+            }
+
+            return `<a href="${host_url}ip=${value}&exporter_uuid=${row.exporter_uuid}&probe_uuid=${row.probe_uuid}">${exporter_ip}</a>${host_link}${timeseries_link}`;
         },
         "probe_ip": (value, row) => {
             return value;
@@ -183,14 +190,14 @@ const map_table_def_columns = (columns) => {
             }
         },
         "time_last_used": (value, row) => {
-	    if (!value)
-               return '';
-     	    else
-	       return (NtopUtils.secondsToTime((Math.round(new Date().getTime() / 1000)) - value) + " ago");
+            if (!value)
+                return '';
+            else
+                return (NtopUtils.secondsToTime((Math.round(new Date().getTime() / 1000)) - value) + " ago");
         },
         "exported_flows": (value, row) => {
             let diff_value = value
-            if(!first_open.value) {
+            if (!first_open.value) {
                 const old_value = localStorage.getItem("exporter_exported_flows." + row.exporter_uuid + row.ip)
                 diff_value = (value - Number(old_value)) / 10
             }
@@ -198,9 +205,9 @@ const map_table_def_columns = (columns) => {
             if (!value)
                 return '';
             let formatted_value = formatterUtils.formatAccounting(value)
-            if(!first_open.value) {
+            if (!first_open.value) {
                 let updated_counter = ''
-                if(diff_value > 0 ) {
+                if (diff_value > 0) {
                     updated_counter = '<i class="fas fa-arrow-up"></i>'
                 } else {
                     updated_counter = "<i class='fas fa-minus'></i>"
@@ -211,7 +218,7 @@ const map_table_def_columns = (columns) => {
         },
         "dropped_flows": (value, row) => {
             let diff_value = value
-            if(!first_open.value) {
+            if (!first_open.value) {
                 const old_value = localStorage.getItem("exporter_dropped_flows." + row.exporter_uuid + row.ip)
                 diff_value = (value - Number(old_value)) / 10
             }
@@ -219,9 +226,9 @@ const map_table_def_columns = (columns) => {
             if (!value)
                 return '';
             let formatted_value = formatterUtils.formatAccounting(Math.abs(value))
-            if(!first_open.value) {
+            if (!first_open.value) {
                 let updated_counter = ''
-                if(diff_value > 0 ) {
+                if (diff_value > 0) {
                     updated_counter = '<i class="fas fa-arrow-up"></i>'
                 } else {
                     updated_counter = "<i class='fas fa-minus'></i>"
@@ -232,7 +239,7 @@ const map_table_def_columns = (columns) => {
         },
         "dropped_packets": (value, row) => {
             let diff_value = value
-            if(!first_open.value) {
+            if (!first_open.value) {
                 const old_value = localStorage.getItem("exporter_dropped_packets." + row.exporter_uuid + row.ip)
                 diff_value = (value - Number(old_value)) / 10
             }
@@ -240,9 +247,9 @@ const map_table_def_columns = (columns) => {
             if (!value)
                 return '';
             let formatted_value = formatterUtils.formatAccounting(Math.abs(value))
-            if(!first_open.value) {
+            if (!first_open.value) {
                 let updated_counter = ''
-                if(diff_value > 0 ) {
+                if (diff_value > 0) {
                     updated_counter = '<i class="fas fa-arrow-up"></i>'
                 } else {
                     updated_counter = "<i class='fas fa-minus'></i>"
@@ -255,7 +262,7 @@ const map_table_def_columns = (columns) => {
             if (!value) {
                 return '';
             } else {
-                return `<a href="${exporter_url}&ifid=${row.ifid}&ip=${row.probe_ip}"><i class="fas fa-file-export"></i> ${formatterUtils.formatAccounting(value)}</a>` 
+                return `<a href="${exporter_url}&ifid=${row.ifid}&ip=${row.probe_ip}"><i class="fas fa-file-export"></i> ${formatterUtils.formatAccounting(value)}</a>`
             }
         }
     };
@@ -273,7 +280,7 @@ function columns_sorting(col, r0, r1) {
             return sortingFunctions.sortByIP(r0.ip, r1.ip, col.sort);
         } else if (col.id == "name") {
             return sortingFunctions.sortByName(r0.name, r1.name, col.sort);
-        }   else if (col.id == "ntopng_interface") {
+        } else if (col.id == "ntopng_interface") {
             return sortingFunctions.sortByIP(r0.ntopng_interface, r1.ntopng_interface, col.sort);
         } else if (col.id == "probe_ip") {
             return sortingFunctions.sortByIP(r0.probe_ip, r1.probe_ip, col.sort);

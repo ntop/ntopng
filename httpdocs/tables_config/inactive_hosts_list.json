@@ -1,10 +1,14 @@
 {
-	"id": "inactive_hosts",
+	"id": "inactive_hosts_list",
 	"data_url": "lua/rest/v2/get/host/inactive_list.lua",
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": true,
 	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "ip_address",
+		"sort": 0
+	},
 	"columns": [
 		{
 			"id": "actions",
@@ -18,44 +22,39 @@
 			"render_v_node_type": "button_list",
 			"button_def_array": [
 				{
-					"id": "historical_data",
-					"icon": "fas fa-search-plus",
+					"id": "historical_flows",
+					"icon": "fas fa-stream",
 					"title_i18n": "db_explorer.historical_data",
 					"class": [
-						"link-button"
+						"link-button",
+						"btn-info"
 					],
 					"event_id": "click_button_historical_flows"
-				},
-				{
-					"id": "delete",
-					"icon": "fas fa fa-trash",
-					"title_i18n": "delete",
-					"class": [
-						"link-button"
-					],
-					"event_id": "click_button_delete"
 				}
 			]
 		},
 		{
-			"title_i18n": "db_explorer.host_data",
-			"data_field": "host",
+			"title_i18n": "ip_address",
+			"data_field": "ip_address",
 			"sortable": true,
+			"min-width" : "180px",
 			"class": [
 				"text-nowrap"
 			]
 		},
 		{
 			"title_i18n": "name",
-			"data_field": "name",
+			"data_field": "host_name",
 			"sortable": true,
+			"min-width" : "120px",
 			"class": [
 				"text-nowrap"
 			]
 		},
 		{
 			"title_i18n": "mac_address",
-			"data_field": "mac_address",
+			"data_field": "mac",
+			"min-width" : "120px",
 			"sortable": true,
 			"class": [
 				"text-nowrap"
@@ -65,6 +64,7 @@
 			"title_i18n": "manufacturer",
 			"data_field": "manufacturer",
 			"sortable": true,
+			"min-width" : "120px",
 			"class": [
 				"text-nowrap"
 			]
@@ -73,18 +73,20 @@
 			"title_i18n": "first_seen",
 			"data_field": "first_seen",
 			"sortable": true,
+			"min-width" : "120px",
 			"class": [
-				"text-center",
-				"text-nowrap"
+				"text-nowrap",
+				"text-center"
 			]
 		},
 		{
 			"title_i18n": "last_seen",
 			"data_field": "last_seen",
 			"sortable": true,
+			"min-width" : "120px",
 			"class": [
-				"text-center",
-				"text-nowrap"
+				"text-nowrap",
+				"text-center"
 			]
 		}
 	]

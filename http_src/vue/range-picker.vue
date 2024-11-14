@@ -11,7 +11,7 @@
                         <div class="btn-group" id="statusSwitch" role="group">
                             <a v-if="page != 'flow'" href="#" @click="update_status_view('engaged')" class="btn btn-sm"
                                 :class="{ 'active': status_view == 'engaged', 'btn-seconday': status_view != 'engaged', 'btn-primary': status_view == 'engaged' }"><i
-                                    class="fa-solid fa-hourglass-half" title="Engaged"></i></a>
+                                    class="fa-solid fa-fire" title="Engaged"></i></a>
                             <a href="#" @click="update_status_view('historical')" class="btn btn-sm"
                                 :class="{ 'active': status_view == 'historical' || (page == 'flow' && status_view == 'engaged'), 'btn-seconday': status_view != 'historical', 'btn-primary': status_view == 'historical' || (page == 'flow' && status_view == 'engaged') }"><i
                                     class="fa-regular fa-eye" title="Require Attention"></i></a>

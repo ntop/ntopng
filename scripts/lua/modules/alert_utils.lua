@@ -433,9 +433,8 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, 
    
    -- Add the link to the documentation
    if alert_risk and alert_risk > 0 then
-      msg = string.format("%s %s %s",
-			  msg, flow_risk_utils.get_documentation_link(alert_risk, alert_src),
-			  flow_risk_utils.get_remediation_documentation_link(alert_risk, alert_src))
+      msg = string.format("%s %s",
+			  msg, flow_risk_utils.get_remediation_documentation_link(alert_risk, alert_src))
       local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
 
       -- Add check info_msg ~= alert.info to avoid duplicated in description msg
@@ -819,7 +818,7 @@ function alert_utils.format_other_alerts(alert_bitmap, predominant_alert, alert_
                         if alert_risk > 0 then -- source is nDPI
                             if not no_html then
                                 message = string.format("%s %s", message,
-                                    flow_risk_utils.get_documentation_link(alert_risk, "nDPI"))
+                                    flow_risk_utils.get_remediation_documentation_link(alert_risk, "nDPI"))
                             end
                             local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)
                             if not isEmptyString(info_msg) then

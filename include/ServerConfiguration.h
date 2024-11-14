@@ -33,6 +33,7 @@ class ServerConfiguration {
   ServerConfiguration();
   ~ServerConfiguration();
 
+  inline bool isEmptyConfiguration() { return((tree == NULL) || tree->isEmpty()); }
   bool findAddress(IpAddress *ip, u_int16_t vlan_id);
   void reloadServerConfiguration(char *key);
 };

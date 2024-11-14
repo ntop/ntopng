@@ -7,7 +7,7 @@ This section describes how to use this functionality to build traffic reports on
 
 .. note::
 
-   ClickHouse support including Historical Flows Explorer and Reports is only available in ntopng Enterprise M or above.
+   Historical Flows Explorer and Reports are only available ntopng Enterprise M or above with ClickHouse enabled.
 
 Reports contain charts of monitored interfaces overall traffic, local versus remote traffic, local networks traffic, as well as the traffic grouped by:
 

@@ -665,6 +665,14 @@ export class DataTableRenders {
         return cell;
     }
 
+    static formatValueLabelEngaged(obj, type, row, zero_is_null) {
+        let date_time = this.formatValueLabel(obj, type, row, zero_is_null)
+        if (row.is_engaged) {
+            date_time = `<i class="fa-solid fa-fire" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title="${i18n('engaged_alert')}"></i> ${date_time}`
+        }
+        return date_time;
+    }
+
     static formatCategory(obj, type, row, zero_is_null) {
         if (type !== "display") return obj.value;
         let cell = `<a class='tag-filter' data-tag-key='alert_category' data-tag-value='${obj.value}' data-tag-label='${obj.label}' href='javascript:void(0)'><i class="fa fas ${obj.icon}" title="${obj.label}"></i></a>`;

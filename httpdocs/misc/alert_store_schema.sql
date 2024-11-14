@@ -1,10 +1,16 @@
 -- -----------------------------------------------------
+-- -----------------------------------------------------
+-- Persistent DataBase
+-- -----------------------------------------------------
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
 -- Table `active_monitoring_alerts`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `rowid` INTEGER PRIMARY KEY AUTOINCREMENT,
 `alert_id` INTEGER NOT NULL CHECK(`alert_id` >= 0),
-`alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0, -- e.g., historical [0], acknowledged [1], engaged (TBD)
+`alert_status` INTEGER NOT NULL CHECK(`alert_status` >= 0) DEFAULT 0, -- e.g., historical [0], acknowledged [1], engaged [2]
 `resolved_ip` TEXT NULL,
 `resolved_name` TEXT NULL,
 `interface_id` INTEGER NULL,
@@ -19,9 +25,15 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `description` TEXT NULL,
 `json` TEXT NULL,
 `user_label` TEXT NULL, -- A label that can be set by the user
-`user_label_tstamp` DATETIME NULL DEFAULT 0 -- Timestamp of the last user_label change
+`user_label_tstamp` DATETIME NULL DEFAULT 0, -- Timestamp of the last user_label change
+`alert_category` INTEGER NULL,
+`require_attention` INTEGER NULL DEFAULT 0
 );
-
+@
+ALTER TABLE `active_monitoring_alerts` ADD `alert_category` INTEGER NULL;
+@
+ALTER TABLE `active_monitoring_alerts` ADD `require_attention` INTEGER NULL;
+@
 CREATE INDEX IF NOT EXISTS `am_alerts_i_id` ON `active_monitoring_alerts`(alert_id);
 CREATE INDEX IF NOT EXISTS `am_alerts_i_alert_status` ON `active_monitoring_alerts`(alert_status);
 CREATE INDEX IF NOT EXISTS `am_alerts_i_severity` ON `active_monitoring_alerts`(severity);
@@ -72,9 +84,48 @@ CREATE TABLE IF NOT EXISTS `flow_alerts` (
 `alerts_map` BLOB DEFAULT 0, -- An HEX bitmap of all flow statuses
 `flow_risk_bitmap` INTEGER NOT NULL DEFAULT 0,
 `user_label` TEXT NULL,
-`user_label_tstamp` DATETIME NULL DEFAULT 0
+`user_label_tstamp` DATETIME NULL DEFAULT 0,
+`cli_network` INTEGER NULL,
+`srv_network` INTEGER NULL,
+`cli_host_pool_id` INTEGER NULL,
+`srv_host_pool_id` INTEGER NULL,
+`info` TEXT NULL,
+`cli_location` INTEGER NULL,
+`srv_location` INTEGER NULL,
+`probe_ip` TEXT NULL,
+`input_snmp` INTEGER NULL,
+`output_snmp` INTEGER NULL,
+`alert_category` INTEGER NULL,
+`require_attention` INTEGER NULL DEFAULT 0
 );
-
+@
+ALTER TABLE `flow_alerts` ADD `require_attention` INTEGER NULL;
+@
+ALTER TABLE `flow_alerts` ADD `alert_category` INTEGER NULL;
+@
+ALTER TABLE `flow_alerts` ADD `output_snmp` INTEGER NULL;
+@
+ALTER TABLE `flow_alerts` ADD `input_snmp` INTEGER NULL;
+@
+ALTER TABLE `flow_alerts` ADD `probe_ip` TEXT NULL;
+@
+ALTER TABLE `flow_alerts` ADD `cli_location` INTEGER NULL;
+@
+ALTER TABLE `flow_alerts` ADD `srv_location` INTEGER NULL;
+@
+ALTER TABLE `flow_alerts` ADD `info` TEXT NULL;
+@
+ALTER TABLE `flow_alerts` ADD `cli_host_pool_id` INTEGER NULL;
+@
+ALTER TABLE `flow_alerts` ADD `srv_host_pool_id` INTEGER NULL;
+@
+ALTER TABLE `flow_alerts` ADD `cli_network` INTEGER NULL;
+@
+ALTER TABLE `flow_alerts` ADD `srv_network` INTEGER NULL;
+@
+-- Added for compatibility reasons but not used by SQLite
+ALTER TABLE `flow_alerts` ADD `interface_id` INTEGER NULL;
+@
 CREATE INDEX IF NOT EXISTS `flow_alerts_i_id` ON `flow_alerts`(alert_id);
 CREATE INDEX IF NOT EXISTS `flow_alerts_i_alert_status` ON `flow_alerts`(alert_status);
 CREATE INDEX IF NOT EXISTS `flow_alerts_i_severity` ON `flow_alerts`(severity);
@@ -115,9 +166,24 @@ CREATE TABLE IF NOT EXISTS `host_alerts` (
 `description` TEXT NULL,
 `json` TEXT NULL,
 `user_label` TEXT NULL,
-`user_label_tstamp` DATETIME NULL DEFAULT 0
+`user_label_tstamp` DATETIME NULL DEFAULT 0,
+`alert_category` INTEGER NULL,
+`require_attention` INTEGER NULL DEFAULT 0
 );
-
+@
+ALTER TABLE `host_alerts` ADD `require_attention` INTEGER NULL;
+@
+ALTER TABLE `host_alerts` ADD `alert_category` INTEGER NULL;
+@
+ALTER TABLE `host_alerts` ADD `host_pool_id` INTEGER NULL;
+@
+ALTER TABLE `host_alerts` ADD `network` INTEGER NULL;
+@
+ALTER TABLE `host_alerts` ADD `country` TEXT NULL;
+@
+-- Added for compatibility reasons but not used by SQLite
+ALTER TABLE `host_alerts` ADD `interface_id` INTEGER NULL;
+@
 CREATE INDEX IF NOT EXISTS `host_alerts_i_id` ON `host_alerts`(`alert_id`);
 CREATE INDEX IF NOT EXISTS `host_alerts_i_alert_status` ON `host_alerts`(`alert_status`);
 CREATE INDEX IF NOT EXISTS `host_alerts_i_severity` ON `host_alerts`(`severity`);
@@ -153,9 +219,18 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `description` TEXT NULL,
 `json` TEXT NULL,
 `user_label` TEXT NULL,
-`user_label_tstamp` DATETIME NULL DEFAULT 0
+`user_label_tstamp` DATETIME NULL DEFAULT 0,
+`alert_category` INTEGER NULL,
+`require_attention` INTEGER NULL DEFAULT 0
 );
-
+@
+ALTER TABLE `mac_alerts` ADD `require_attention` INTEGER NULL;
+@
+ALTER TABLE `mac_alerts` ADD `alert_category` INTEGER NULL;
+@
+-- Added for compatibility reasons but not used by SQLite
+ALTER TABLE `mac_alerts` ADD `interface_id` INTEGER NULL;
+@
 CREATE INDEX IF NOT EXISTS `mac_alerts_i_id` ON `mac_alerts`(alert_id);
 CREATE INDEX IF NOT EXISTS `mac_alerts_i_alert_status` ON `mac_alerts`(alert_status);
 CREATE INDEX IF NOT EXISTS `mac_alerts_i_severity` ON `mac_alerts`(severity);
@@ -187,9 +262,18 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 `description` TEXT NULL,
 `json` TEXT NULL,
 `user_label` TEXT NULL,
-`user_label_tstamp` DATETIME NULL DEFAULT 0
+`user_label_tstamp` DATETIME NULL DEFAULT 0,
+`alert_category` INTEGER NULL,
+`require_attention` INTEGER NULL DEFAULT 0
 );
-
+@
+ALTER TABLE `snmp_alerts` ADD `require_attention` INTEGER NULL;
+@
+ALTER TABLE `snmp_alerts` ADD `alert_category` INTEGER NULL;
+@
+-- Added for compatibility reasons but not used by SQLite
+ALTER TABLE `snmp_alerts` ADD `interface_id` INTEGER NULL;
+@
 CREATE INDEX IF NOT EXISTS `snmp_alerts_i_id` ON `snmp_alerts`(alert_id);
 CREATE INDEX IF NOT EXISTS `snmp_alerts_i_alert_status` ON `snmp_alerts`(alert_status);
 CREATE INDEX IF NOT EXISTS `snmp_alerts_i_severity` ON `snmp_alerts`(severity);
@@ -218,9 +302,18 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 `description` TEXT NULL,
 `json` TEXT NULL,
 `user_label` TEXT NULL,
-`user_label_tstamp` DATETIME NULL DEFAULT 0
+`user_label_tstamp` DATETIME NULL DEFAULT 0,
+`alert_category` INTEGER NULL,
+`require_attention` INTEGER NULL DEFAULT 0
 );
-
+@
+ALTER TABLE `network_alerts` ADD `require_attention` INTEGER NULL;
+@
+ALTER TABLE `network_alerts` ADD `alert_category` INTEGER NULL;
+@
+-- Added for compatibility reasons but not used by SQLite
+ALTER TABLE `network_alerts` ADD `interface_id` INTEGER NULL;
+@
 CREATE INDEX IF NOT EXISTS `network_alerts_i_id` ON `network_alerts`(alert_id);
 CREATE INDEX IF NOT EXISTS `network_alerts_i_severity` ON `network_alerts`(severity);
 CREATE INDEX IF NOT EXISTS `network_alerts_i_tstamp` ON `network_alerts`(tstamp);
@@ -249,9 +342,18 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `description` TEXT NULL,
 `json` TEXT NULL,
 `user_label` TEXT NULL,
-`user_label_tstamp` DATETIME NULL DEFAULT 0
+`user_label_tstamp` DATETIME NULL DEFAULT 0,
+`alert_category` INTEGER NULL,
+`require_attention` INTEGER NULL DEFAULT 0
 );
-
+@
+ALTER TABLE `interface_alerts` ADD `require_attention` INTEGER NULL;
+@
+ALTER TABLE `interface_alerts` ADD `alert_category` INTEGER NULL;
+@
+-- Added for compatibility reasons but not used by SQLite
+ALTER TABLE `interface_alerts` ADD `interface_id` INTEGER NULL;
+@
 CREATE INDEX IF NOT EXISTS `interface_alerts_i_id` ON `interface_alerts`(alert_id);
 CREATE INDEX IF NOT EXISTS `interface_alerts_i_severity` ON `interface_alerts`(severity);
 CREATE INDEX IF NOT EXISTS `interface_alerts_i_tstamp` ON `interface_alerts`(tstamp);
@@ -277,9 +379,18 @@ CREATE TABLE IF NOT EXISTS `user_alerts` (
 `description` TEXT NULL,
 `json` TEXT NULL,
 `user_label` TEXT NULL,
-`user_label_tstamp` DATETIME NULL DEFAULT 0
+`user_label_tstamp` DATETIME NULL DEFAULT 0,
+`alert_category` INTEGER NULL,
+`require_attention` INTEGER NULL DEFAULT 0
 );
-
+@
+ALTER TABLE `user_alerts` ADD `require_attention` INTEGER NULL;
+@
+ALTER TABLE `user_alerts` ADD `alert_category` INTEGER NULL;
+@
+-- Added for compatibility reasons but not used by SQLite
+ALTER TABLE `user_alerts` ADD `interface_id` INTEGER NULL;
+@
 CREATE INDEX IF NOT EXISTS `user_alerts_i_id` ON `user_alerts`(alert_id);
 CREATE INDEX IF NOT EXISTS `user_alerts_i_severity` ON `user_alerts`(severity);
 CREATE INDEX IF NOT EXISTS `user_alerts_i_tstamp` ON `user_alerts`(tstamp);
@@ -305,53 +416,22 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 `description` TEXT NULL,
 `json` TEXT NULL,
 `user_label` TEXT NULL,
-`user_label_tstamp` DATETIME NULL DEFAULT 0
+`user_label_tstamp` DATETIME NULL DEFAULT 0,
+`alert_category` INTEGER NULL,
+`require_attention` INTEGER NULL DEFAULT 0
 );
-
+@
+ALTER TABLE `system_alerts` ADD `require_attention` INTEGER NULL;
+@
+ALTER TABLE `system_alerts` ADD `alert_category` INTEGER NULL;
+@
+-- Added for compatibility reasons but not used by SQLite
+ALTER TABLE `system_alerts` ADD `interface_id` INTEGER NULL;
+@
 CREATE INDEX IF NOT EXISTS `system_alerts_i_id` ON `system_alerts`(alert_id);
 CREATE INDEX IF NOT EXISTS `system_alerts_i_severity` ON `system_alerts`(severity);
 CREATE INDEX IF NOT EXISTS `system_alerts_i_tstamp` ON `system_alerts`(tstamp);
 CREATE INDEX IF NOT EXISTS `system_alerts_i_alert_status` ON `system_alerts`(alert_status);
-
-/* NOTE: add new ALTER TABLE statements before any pre existing ALTER TABLE statement,
- * this because SQLite does not support IF NOT EXISTS on ALTER TABLE, thus they will fail
- * on the second execution, preventing any subsequent statement to be executed.  */
-
-ALTER TABLE `active_monitoring_alerts` ADD `alert_category` INTEGER NULL;
-ALTER TABLE `flow_alerts` ADD `alert_category` INTEGER NULL;
-ALTER TABLE `host_alerts` ADD `alert_category` INTEGER NULL;
-ALTER TABLE `mac_alerts` ADD `alert_category` INTEGER NULL;
-ALTER TABLE `snmp_alerts` ADD `alert_category` INTEGER NULL;
-ALTER TABLE `network_alerts` ADD `alert_category` INTEGER NULL;
-ALTER TABLE `interface_alerts` ADD `alert_category` INTEGER NULL;
-ALTER TABLE `user_alerts` ADD `alert_category` INTEGER NULL;
-ALTER TABLE `system_alerts` ADD `alert_category` INTEGER NULL;
-
-ALTER TABLE `flow_alerts` ADD `output_snmp` INTEGER NULL;
-ALTER TABLE `flow_alerts` ADD `input_snmp` INTEGER NULL;
-ALTER TABLE `flow_alerts` ADD `probe_ip` TEXT NULL;
-ALTER TABLE `flow_alerts` ADD `cli_location` INTEGER NULL;
-ALTER TABLE `flow_alerts` ADD `srv_location` INTEGER NULL;
-ALTER TABLE `flow_alerts` ADD `info` TEXT NULL;
-ALTER TABLE `flow_alerts` ADD `cli_host_pool_id` INTEGER NULL;
-ALTER TABLE `flow_alerts` ADD `srv_host_pool_id` INTEGER NULL;
-ALTER TABLE `flow_alerts` ADD `cli_network` INTEGER NULL;
-ALTER TABLE `flow_alerts` ADD `srv_network` INTEGER NULL;
-
-ALTER TABLE `host_alerts` ADD `host_pool_id` INTEGER NULL;
-ALTER TABLE `host_alerts` ADD `network` INTEGER NULL;
-ALTER TABLE `host_alerts` ADD `country` TEXT NULL;
-
--- New field not present in the original table added for compatibility reasons but not used by SQLite
--- IMPORTANT: leave them at the end and remove in future versions and update SQLiteAlertStore::openStore()
-ALTER TABLE `flow_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `host_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `mac_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `snmp_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `network_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `interface_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `user_alerts` ADD `interface_id` INTEGER NULL;
-ALTER TABLE `system_alerts` ADD `interface_id` INTEGER NULL;
 
 @
 
@@ -378,15 +458,210 @@ CREATE TABLE IF NOT EXISTS `asset_management` (
 @
 
 -- -----------------------------------------------------
+-- -----------------------------------------------------
 -- In-Memory DataBase
+-- -----------------------------------------------------
 -- -----------------------------------------------------
 
 ATTACH DATABASE ':memory:' AS mem_db;
 
 @
 
+-- -----------------------------------------------------
+-- Table engaged_active_monitoring_alerts
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS mem_db.engaged_active_monitoring_alerts (
+rowid INTEGER PRIMARY KEY,
+alert_id INTEGER NOT NULL CHECK(alert_id >= 0),
+alert_status INTEGER NOT NULL CHECK(alert_status >= 0) DEFAULT 0, -- e.g., historical [0], acknowledged [1], engaged (TBD)
+resolved_ip TEXT NULL,
+resolved_name TEXT NULL,
+interface_id INTEGER NULL,
+measurement TEXT NULL,
+measure_threshold INTEGER NULL DEFAULT 0,
+measure_value REAL NULL DEFAULT 0,
+tstamp DATETIME NOT NULL,
+tstamp_end DATETIME NULL DEFAULT 0,
+severity INTEGER NOT NULL CHECK(severity >= 0),
+score INTEGER NOT NULL DEFAULT 0 CHECK(score >= 0),
+counter INTEGER NOT NULL DEFAULT 0 CHECK(counter >= 0),
+description TEXT NULL,
+json TEXT NULL,
+user_label TEXT NULL, -- A label that can be set by the user
+user_label_tstamp DATETIME NULL DEFAULT 0, -- Timestamp of the last user_label change
+alert_category INTEGER NULL,
+require_attention INTEGER NULL DEFAULT 0
+);
+
+@
+
+-- -----------------------------------------------------
+-- Table engaged_mac_alerts
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS mem_db.engaged_mac_alerts (
+rowid INTEGER PRIMARY KEY,
+alert_id INTEGER NOT NULL CHECK(alert_id >= 0),
+alert_status INTEGER NOT NULL CHECK(alert_status >= 0) DEFAULT 0,
+interface_id INTEGER NULL,
+address TEXT NULL DEFAULT 0,
+device_type INTEGER NULL CHECK(device_type >= 0),
+name TEXT NULL,
+is_attacker INTEGER NULL CHECK(is_attacker IN (0,1)),
+is_victim INTEGER NULL CHECK(is_victim IN (0,1)),
+tstamp DATETIME NOT NULL,
+tstamp_end DATETIME NULL DEFAULT 0,
+severity INTEGER NOT NULL CHECK(severity >= 0),
+score INTEGER NOT NULL DEFAULT 0 CHECK(score >= 0),
+granularity INTEGER NOT NULL DEFAULT 0 CHECK(granularity >= 0),
+counter INTEGER NOT NULL DEFAULT 0 CHECK(counter >= 0),
+description TEXT NULL,
+json TEXT NULL,
+user_label TEXT NULL,
+user_label_tstamp DATETIME NULL DEFAULT 0,
+alert_category INTEGER NULL,
+require_attention INTEGER NULL DEFAULT 0
+);
+
+@
+
+-- -----------------------------------------------------
+-- Table engaged_snmp_alerts
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS mem_db.engaged_snmp_alerts (
+rowid INTEGER PRIMARY KEY,
+alert_id INTEGER NOT NULL CHECK(alert_id >= 0),
+alert_status INTEGER NOT NULL CHECK(alert_status >= 0) DEFAULT 0,
+interface_id INTEGER NULL,
+ip TEXT NOT NULL,
+port INTEGER NULL,
+name TEXT NULL,
+port_name TEXT NULL,
+tstamp DATETIME NOT NULL,
+tstamp_end DATETIME NULL DEFAULT 0,
+severity INTEGER NOT NULL CHECK(severity >= 0),
+score INTEGER NOT NULL DEFAULT 0 CHECK(score >= 0),
+granularity INTEGER NOT NULL DEFAULT 0 CHECK(granularity >= 0),
+counter INTEGER NOT NULL DEFAULT 0 CHECK(counter >= 0),
+description TEXT NULL,
+json TEXT NULL,
+user_label TEXT NULL,
+user_label_tstamp DATETIME NULL DEFAULT 0,
+alert_category INTEGER NULL,
+require_attention INTEGER NULL DEFAULT 0
+);
+
+@
+
+-- -----------------------------------------------------
+-- Table engaged_network_alerts
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS mem_db.engaged_network_alerts (
+rowid INTEGER PRIMARY KEY ,
+local_network_id INTEGER NOT NULL CHECK(local_network_id >= 0),
+alert_id INTEGER NOT NULL CHECK(alert_id >= 0),
+alert_status INTEGER NOT NULL CHECK(alert_status >= 0) DEFAULT 0,
+interface_id INTEGER NULL,
+name TEXT NULL,
+alias TEXT NULL,
+tstamp DATETIME NOT NULL,
+tstamp_end DATETIME NULL DEFAULT 0,
+severity INTEGER NOT NULL CHECK(severity >= 0),
+score INTEGER NOT NULL DEFAULT 0 CHECK(score >= 0),
+granularity INTEGER NOT NULL DEFAULT 0 CHECK(granularity >= 0),
+counter INTEGER NOT NULL DEFAULT 0 CHECK(counter >= 0),
+description TEXT NULL,
+json TEXT NULL,
+user_label TEXT NULL,
+user_label_tstamp DATETIME NULL DEFAULT 0,
+alert_category INTEGER NULL,
+require_attention INTEGER NULL DEFAULT 0
+);
+
+@
+
+-- -----------------------------------------------------
+-- Table engaged_interface_alerts
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS mem_db.engaged_interface_alerts (
+rowid INTEGER PRIMARY KEY,
+ifid INTEGER NOT NULL CHECK(ifid >= -1),
+alert_id INTEGER NOT NULL CHECK(alert_id >= 0),
+alert_status INTEGER NOT NULL CHECK(alert_status >= 0) DEFAULT 0,
+interface_id INTEGER NULL,
+subtype TEXT NULL,
+name TEXT NULL,
+alias TEXT NULL,
+tstamp DATETIME NOT NULL,
+tstamp_end DATETIME NULL DEFAULT 0,
+severity INTEGER NOT NULL CHECK(severity >= 0),
+score INTEGER NOT NULL DEFAULT 0 CHECK(score >= 0),
+granularity INTEGER NOT NULL DEFAULT 0 CHECK(granularity >= 0),
+counter INTEGER NOT NULL DEFAULT 0 CHECK(counter >= 0),
+description TEXT NULL,
+json TEXT NULL,
+user_label TEXT NULL,
+user_label_tstamp DATETIME NULL DEFAULT 0,
+alert_category INTEGER NULL,
+require_attention INTEGER NULL DEFAULT 0
+);
+
+@
+
+-- -----------------------------------------------------
+-- Table engaged_user_alerts
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS mem_db.engaged_user_alerts (
+rowid INTEGER PRIMARY KEY,
+alert_id INTEGER NOT NULL CHECK(alert_id >= 0),
+alert_status INTEGER NOT NULL CHECK(alert_status >= 0) DEFAULT 0,
+interface_id INTEGER NULL,
+user TEXT NULL,
+tstamp DATETIME NOT NULL,
+tstamp_end DATETIME NULL DEFAULT 0,
+severity INTEGER NOT NULL CHECK(severity >= 0),
+score INTEGER NOT NULL DEFAULT 0 CHECK(score >= 0),
+granularity INTEGER NOT NULL DEFAULT 0 CHECK(granularity >= 0),
+counter INTEGER NOT NULL DEFAULT 0 CHECK(counter >= 0),
+description TEXT NULL,
+json TEXT NULL,
+user_label TEXT NULL,
+user_label_tstamp DATETIME NULL DEFAULT 0,
+alert_category INTEGER NULL,
+require_attention INTEGER NULL DEFAULT 0
+);
+
+@
+
+-- -----------------------------------------------------
+-- Table engaged_system_alerts
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS mem_db.engaged_system_alerts (
+rowid INTEGER PRIMARY KEY,
+alert_id INTEGER NOT NULL CHECK(alert_id >= 0),
+alert_status INTEGER NOT NULL CHECK(alert_status >= 0) DEFAULT 0,
+interface_id INTEGER NULL,
+name TEXT NULL,
+tstamp DATETIME NOT NULL,
+tstamp_end DATETIME NULL DEFAULT 0,
+severity INTEGER NOT NULL CHECK(severity >= 0),
+score INTEGER NOT NULL DEFAULT 0 CHECK(score >= 0),
+granularity INTEGER NOT NULL DEFAULT 0 CHECK(granularity >= 0),
+counter INTEGER NOT NULL DEFAULT 0 CHECK(counter >= 0),
+description TEXT NULL,
+json TEXT NULL,
+user_label TEXT NULL,
+user_label_tstamp DATETIME NULL DEFAULT 0,
+alert_category INTEGER NULL,
+require_attention INTEGER NULL DEFAULT 0
+);
+
+@
+
+-- -----------------------------------------------------
+-- Table engaged_host_alerts
+-- -----------------------------------------------------
 CREATE TABLE mem_db.engaged_host_alerts (
-rowid INTEGER PRIMARY KEY AUTOINCREMENT,
+rowid INTEGER PRIMARY KEY,
 alert_id INTEGER NOT NULL CHECK(alert_id >= 0),
 alert_status INTEGER NOT NULL CHECK(alert_status >= 0) DEFAULT 0,
 interface_id INTEGER NULL,
@@ -411,12 +686,68 @@ user_label_tstamp DATETIME NULL DEFAULT 0,
 country TEXT NULL,
 network INTEGER NULL,
 host_pool_id INTEGER NULL,
-alert_category INTEGER NULL
+alert_category INTEGER NULL,
+require_attention INTEGER NULL DEFAULT 0
 );
 
 @
+-- -----------------------------------------------------
+-- -----------------------------------------------------
+-- Views
+-- -----------------------------------------------------
+-- -----------------------------------------------------
 
--- View with engaged and historical alerts
+@
+
+CREATE TEMP VIEW active_monitoring_alerts_view AS
+SELECT * FROM active_monitoring_alerts
+UNION ALL
+SELECT * FROM mem_db.engaged_active_monitoring_alerts
+
+@
+
+CREATE TEMP VIEW mac_alerts_view AS
+SELECT * FROM mac_alerts
+UNION ALL
+SELECT * FROM mem_db.engaged_mac_alerts
+
+@
+
+CREATE TEMP VIEW snmp_alerts_view AS
+SELECT * FROM snmp_alerts
+UNION ALL
+SELECT * FROM mem_db.engaged_snmp_alerts
+
+@
+
+CREATE TEMP VIEW network_alerts_view AS
+SELECT * FROM network_alerts
+UNION ALL
+SELECT * FROM mem_db.engaged_network_alerts
+
+@
+
+CREATE TEMP VIEW interface_alerts_view AS
+SELECT * FROM interface_alerts
+UNION ALL
+SELECT * FROM mem_db.engaged_interface_alerts
+
+@
+
+CREATE TEMP VIEW user_alerts_view AS
+SELECT * FROM user_alerts
+UNION ALL
+SELECT * FROM mem_db.engaged_user_alerts
+
+@
+
+CREATE TEMP VIEW system_alerts_view AS
+SELECT * FROM system_alerts
+UNION ALL
+SELECT * FROM mem_db.engaged_system_alerts
+
+@
+
 -- Note: columns are listed manually as order may change due to alter table
 CREATE TEMP VIEW host_alerts_view AS
 SELECT 
@@ -445,11 +776,12 @@ SELECT
     country,
     network,
     host_pool_id,
-    alert_category
+    alert_category,
+    require_attention
 FROM host_alerts
 UNION ALL
 SELECT
-    rowid,
+    (rowid+1000000000) rowid, -- Avoid conflicts
     alert_id,
     alert_status,
     interface_id,
@@ -474,10 +806,6 @@ SELECT
     country,
     network,
     host_pool_id,
-    alert_category
+    alert_category,
+    require_attention
 FROM mem_db.engaged_host_alerts;
-
-@
-
-SELECT severity, (tstamp - tstamp % 58) as slot, count(*) count FROM host_alerts_view WHERE (tstamp >= 1730967760 AND tstamp <= 1730969560) AND ( ((alert_status = 0) OR (alert_status = 1)) ) GROUP BY severity, slot ORDER BY severity, slot ASC
-

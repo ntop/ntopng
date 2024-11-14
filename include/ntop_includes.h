@@ -391,6 +391,7 @@ using namespace std;
 #include "NtopngLuaContext.h"
 #ifndef HAVE_NEDGE
 #include "PcapInterface.h"
+#include "sFlowPktInterface.h"
 #endif
 #include "ViewInterface.h"
 #ifdef HAVE_PF_RING

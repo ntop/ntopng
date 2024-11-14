@@ -2,6 +2,7 @@
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/ntop/ntopng/build.yml?branch=dev&logo=github)](https://github.com/ntop/ntopng/actions?query=workflow%3ABuild)
 [![Fuzzing Status](https://oss-fuzz-build-logs.storage.googleapis.com/badges/ntopng.svg)](https://bugs.chromium.org/p/oss-fuzz/issues/list?sort=-opened&can=1&q=proj:ntopng)
+[![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20ntopng%20Guru-006BFF)](https://gurubase.io/g/ntopng)
 
 ### Introduction
 

@@ -3202,29 +3202,29 @@ void Prefs::reloadServersConfiguration() {
 /* *************************************** */
 
 bool Prefs::isGateway(IpAddress *ip, u_int16_t vlan_id) {
-  return gateway->findAddress(ip, vlan_id);
+  return(gateway->findAddress(ip, vlan_id));
 }
 
 /* *************************************** */
 
 bool Prefs::isDNSServer(IpAddress *ip, u_int16_t vlan_id) {
-  return dns_servers->findAddress(ip, vlan_id);
+  return(dns_servers->findAddress(ip, vlan_id));
 }
 
 /* *************************************** */
 
 bool Prefs::isNTPServer(IpAddress *ip, u_int16_t vlan_id) {
-  return ntp_servers->findAddress(ip, vlan_id);
+  return(ntp_servers->findAddress(ip, vlan_id));
 }
 
 /* *************************************** */
 
 bool Prefs::isDHCPServer(IpAddress *ip, u_int16_t vlan_id) {
-  return dhcp_servers->findAddress(ip, vlan_id);
+  return(dhcp_servers->findAddress(ip, vlan_id));
 }
 
 /* *************************************** */
 
 bool Prefs::isSMTPServer(IpAddress *ip, u_int16_t vlan_id) {
-  return smtp_servers->findAddress(ip, vlan_id);
+  return(smtp_servers->findAddress(ip, vlan_id));
 }

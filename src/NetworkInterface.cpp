@@ -366,6 +366,7 @@ void NetworkInterface::init(const char *interface_name) {
   hostAlertsQueue = new (std::nothrow) SPSCQueue<HostAlertReleasedPair>(MAX_HOST_CHECKS_QUEUE_LEN,
 									"hostAlertsQueue");
   flow_serial = 0;
+  alert_serial = 1; /* first assigned rowid is 1 */
 
   /* nDPI handling */
   ndpi_cleanup_needed = false;

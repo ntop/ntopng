@@ -137,7 +137,11 @@ const get_extra_params_obj = () => {
 const map_table_def_columns = (columns) => {
     let map_columns = {
         "probe_ip": (value, row) => {
-            return `<a href=${exporter_url}probe_uuid=${row.probe_uuid_num}>${value}</a><a href=${host_url}host=${value}> <i class="fas fa-laptop"></i></a>`
+            let host_link = ""
+            if (row.is_in_memory) {
+                host_link = ` <a href=${host_url}host=${value}> <i class="fas fa-laptop"></i></a>`
+            }
+            return `<a href=${exporter_url}probe_uuid=${row.probe_uuid_num}>${value}</a>${host_link}`
         },
         "probe_public_ip": (value, row) => {
             return value

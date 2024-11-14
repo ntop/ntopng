@@ -1,75 +1,20 @@
-<!--
-  (C) 2013-22 - ntop.org
--->
-
+<!-- (C) 2024 - ntop.org     -->
 <template>
-  <div class="row">
-    <div class="col-md-12 col-lg-12">
-      <div class="card  card-shadow">
-        <div class="card-body">
-          <TabList ref="inactive_hosts_tab_list" id="inactive_hosts_tab_list" :tab_list="tab_list"
-            @click_item="change_show_charts">
-          </TabList>
-          <!--
-          <div class="card card-shadow">
-            <div class="card-body p-1">
-              <transition name="component-fade" mode="out-in">
-                <div key="1" v-if="show_charts == true" class="row mb-4 mt-4" id="host_details_traffic">
-                  
-                </div>
-              </transition>
-            </div>
-          </div>
-          <div class="text-center" style="cursor: pointer;" @click="change_show_charts">
-            <i v-if="show_charts == false" class="fa-solid fa-angles-down"></i>
-            <i v-else class="fa-solid fa-angles-up"></i>
-          </div>
-          -->
-          <div>
-            <div key="1" v-if="show_charts == true" class="row mb-4 mt-4" id="host_details_traffic">
-              <template v-if="show_charts == true" v-for="chart_option in chart_options">
-                <div class="col-4">
-                  <h3 class="widget-name">{{ chart_option.title }}</h3>
-                  <Chart :ref="chart_option.ref" :id="chart_option.id" :chart_type="chart_option.type"
-                    :base_url_request="chart_option.url" :register_on_status_change="true">
-                  </Chart>
-                </div>
-              </template>
-            </div>
-
-            <TableWithConfig v-else ref="table_inactive_hosts" :table_id="table_id" :csrf="csrf"
-              :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
-              @custom_event="on_table_custom_event">
-              <template v-slot:custom_header>
-                <Dropdown v-for="(t, t_index) in filter_table_array"
-                  :f_on_open="get_open_filter_table_dropdown(t, t_index)"
-                  :ref="el => { filter_table_dropdown_array[t_index] = el }" :hidden="t.hidden"> <!-- Dropdown columns -->
-                  <template v-slot:title>
-                    <Spinner :show="t.show_spinner" size="1rem" class="me-1"></Spinner>
-                    <a class="ntopng-truncate" :title="t.title">{{ t.label }}</a>
-                  </template>
-                  <template v-slot:menu>
-                    <a v-for="opt in t.options" style="cursor:pointer; display: block;" @click="add_table_filter(opt, $event, t, t_index)"
-                      class="ntopng-truncate tag-filter" :title="opt.value">
-                      <template v-if="opt.count == null">{{ opt.label }}</template>
-                      <template v-else>{{ opt.label + " (" + opt.count + ")" }}</template>
-                    </a>
-                  </template>
-                </Dropdown> <!-- Dropdown filters -->
-              </template>
-            </TableWithConfig>
-          </div>
-          <div class="card-footer mt-3">
-            <button type="button" ref="delete_all" @click="delete_all_entries" class="btn btn-danger me-1"><i
-                class='fas fa-trash'></i> {{ _i18n("delete_all_entries") }}</button>
-            <button type="button" ref="delete_older" @click="delete_entries_since" class="btn btn-danger me-1"><i
-                class='fas fa-trash'></i> {{ _i18n("delete_older") }}</button>
-            <button type="button" ref="download" @click="download" class="btn btn-primary me-1"><i
-                class='fas fa-download'></i></button>
-          </div>
+  <div class="m-2 mb-3">
+    <TableWithConfig ref="table_inactive_hosts" :table_id="table_id" :csrf="context.csrf"
+      :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
+      @custom_event="on_table_custom_event">
+      <template v-slot:custom_header>
+        <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
+          <span class="no-wrap d-flex align-items-center my-auto me-2 filters-label"><b>{{ item["basic_label"]
+              }}</b></span>
+          <!-- :key="host_filters_key" -->
+          <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5" dropdown_size="small"
+            :options="item['options']" @select_option="add_table_filter">
+          </SelectSearch>
         </div>
-      </div>
-    </div>
+      </template> <!-- Dropdown filters -->
+    </TableWithConfig>
   </div>
   <ModalDeleteInactiveHost ref="modal_delete" :context="context" @delete_host="refresh_table"></ModalDeleteInactiveHost>
   <ModalDeleteInactiveHostEpoch ref="modal_delete_older" :context="context" @delete_host="refresh_table">
@@ -80,189 +25,202 @@
 <script setup>
 import { ref, nextTick, onMounted } from "vue";
 import { default as TableWithConfig } from "./table-with-config.vue";
-import { default as Dropdown } from "./dropdown.vue";
-import { default as Spinner } from "./spinner.vue";
-import { default as Chart } from "./chart.vue";
-import { default as TabList } from "./tab-list.vue";
 import { default as ModalDeleteInactiveHost } from "./modal-delete-inactive-host.vue";
 import { default as ModalDeleteInactiveHostEpoch } from "./modal-delete-inactive-host-epoch.vue";
 import { default as ModalDownloadInactiveHost } from "./modal-download-inactive-host.vue";
+import { default as SelectSearch } from "./select-search.vue";
+import { default as dataUtils } from "../utilities/data-utils.js";
+import { default as osUtils } from "../utilities/map/os-utils.js";
 import { ntopng_url_manager } from "../services/context/ntopng_globals_services";
 
 const _i18n = (t) => i18n(t);
 
-const table_id = ref('inactive_hosts');
-const title = ref(_i18n('local_hosts_only'));
+const host_filters_key = ref(0);
+const table_id = ref('inactive_hosts_list');
 const filter_table_array = ref([]);
 const filter_table_dropdown_array = ref([]);
 const table_inactive_hosts = ref();
 const modal_download = ref();
 const modal_delete = ref();
 const modal_delete_older = ref();
-const chart_1 = ref();
-const chart_2 = ref();
-const chart_3 = ref();
-const show_charts = ref(false);
-const inactive_hosts_tab_list = ref();
-const applications_tab = ref();
-const change_applications_tab_event = "change_applications_tab_event";
+const child_safe_icon = "<font color='#5cb85c'><i class='fas fa-lg fa-child' aria-hidden='true' title='" + i18n("host_pools.children_safe") + "'></i></font>"
+const system_host_icon = "<i class='fas fa-flag' title='" + i18n("system_host") + "'></i>"
+const hidden_from_top_icon = "<i class='fas fa-eye-slash' title='" + i18n("hidden_from_top_talkers") + "'></i>"
+const dhcp_host_icon = '<i class="fa-solid fa-bolt" title="DHCP Host"></i>'
+const blacklisted_icon = "<i class='fas fa-ban fa-sm' title='" + i18n("hosts_stats.blacklisted") + "'></i>"
+const crawler_bot_scanner_host_icon = "<i class='fas fa-spider fa-sm' title='" + i18n("hosts_stats.crawler_bot_scanner") + "'></i>"
+const multicast_icon = "<abbr title='" + i18n("multicast") + "'><span class='badge bg-primary'>" + i18n("short_multicast") + "</span></abbr>"
+const localhost_icon = "<abbr data-bs-toggle='tooltip' data-bs-placement='top' data-bs-original-title='" + i18n("details.label_local_host") + "'><span class='badge bg-success'>" + i18n("details.label_short_local_host") + "</span></abbr>"
+const remotehost_icon = "<abbr title='" + i18n("details.label_remote") + "'><span class='badge bg-secondary'>" + i18n("details.label_short_remote") + "</span></abbr>"
+const blackhole_icon = "<abbr title='" + i18n("details.label_blackhole") + "'><span class='badge bg-info'>" + i18n("details.label_short_blackhole") + "</span></abbr>"
+const blocking_quota_icon = "<i class='fas fa-hourglass' title='" + i18n("hosts_stats.blocking_traffic_policy_popup_msg") + "'></i>"
+
+/* ************************************** */
+
 const props = defineProps({
-  ifid: Number,
-  csrf: String,
-  show_historical: Boolean,
-});
-const context = ref({
-  csrf: props.csrf,
-  ifid: props.ifid
-})
-const chart_options = [
-  {
-    ref: chart_1,
-    title: i18n('active_inactive'),
-    type: ntopChartApex.typeChart.DONUT,
-    url: `${http_prefix}/lua/rest/v2/get/host/inactive/active_inactive.lua`,
-    id: `active_inactive_distro`,
-  },
-  {
-    ref: chart_2,
-    title: i18n('inactivity_period'),
-    type: ntopChartApex.typeChart.DONUT,
-    url: `${http_prefix}/lua/rest/v2/get/host/inactive/inactivity_period.lua`,
-    id: `inactivity_period`,
-  },
-  {
-    ref: chart_3,
-    title: i18n('manufacturer'),
-    type: ntopChartApex.typeChart.DONUT,
-    url: `${http_prefix}/lua/rest/v2/get/host/inactive/inactive_manufacturer.lua`,
-    id: `inactive_manufacturer`,
-  },
-]
-
-const tab_list = ref([
-  {
-    title: i18n('table_view'),
-    active: (show_charts.value == false),
-    id: "table"
-  },
-  {
-    title: i18n('chart_view'),
-    active: (show_charts.value == true),
-    id: "chart"
-  },
-])
-
-/* ************************************** */
-
-onMounted(async () => {
-  ntopng_events_manager.on_custom_event("change_applications_tab_event", change_applications_tab_event, (tab) => {
-    ntopng_url_manager.set_key_to_url('view', tab.id);
-  });
-  load_table_filters_overview();
+  context: Object,
 });
 
 /* ************************************** */
 
-const get_open_filter_table_dropdown = (filter, filter_index) => {
-  return (_) => {
-    load_table_filters(filter, filter_index);
+const map_table_def_columns = (columns) => {
+  let map_columns = {
+    "ip_address": (value, row) => {
+      const host = row.host
+      let ip_address = host.ip
+      let icons = ''
+
+      if (!dataUtils.isEmptyOrNull(host.system_host)) {
+        icons = `${icons} ${system_host_icon}`
+      }
+      if (!dataUtils.isEmptyOrNull(host.os)) {
+        const os_icon = osUtils.getOS(host.os);
+        icons = `${icons} ${os_icon.icon}`
+      }
+      if (!dataUtils.isEmptyOrNull(host.device_type)) {
+        icons = `${icons} ${osUtils.getAssetIcon(host.device_type) || ''}`
+      }
+      if (!dataUtils.isEmptyOrNull(host.hidden_from_top)) {
+        icons = `${icons} ${hidden_from_top_icon}`
+      }
+      if (!dataUtils.isEmptyOrNull(host.child_safe)) {
+        icons = `${icons} ${child_safe_icon}`
+      }
+      if (!dataUtils.isEmptyOrNull(host.dhcp_host)) {
+        icons = `${icons} ${dhcp_host_icon}`
+      }
+      if (!dataUtils.isEmptyOrNull(host.blocking_traffic_policy)) {
+        icons = `${icons} ${blocking_quota_icon}`
+      }
+      if (!dataUtils.isEmptyOrNull(host.country)) {
+        icons = `${icons} <a href='${http_prefix}/lua/hosts_stats.lua?country=${host.country}'><img src='${http_prefix}/dist/images/blank.gif' class='flag flag-${host.country.toLowerCase()}'></a>`
+      }
+      if (!dataUtils.isEmptyOrNull(host.is_blacklisted)) {
+        icons = `${icons} ${blacklisted_icon}`
+      }
+      if (!dataUtils.isEmptyOrNull(host.crawler_bot_scanner_host)) {
+        icons = `${icons} ${crawler_bot_scanner_host_icon}`
+      }
+      if (!dataUtils.isEmptyOrNull(host.is_multicast)) {
+        icons = `${icons} ${multicast_icon}`
+      }
+      if (!dataUtils.isEmptyOrNull(host.localhost)) {
+        icons = `${icons} ${localhost_icon}`
+      }
+      if (!dataUtils.isEmptyOrNull(host.remotehost)) {
+        icons = `${icons} ${remotehost_icon}`
+      }
+      if (!dataUtils.isEmptyOrNull(host.is_blackhole)) {
+        icons = `${icons} ${blackhole_icon}`
+      }
+      return `<a href="${http_prefix}/lua/inactive_host_details.lua?ifid=${props.context.ifid}&serial_key=${row.key}">${ip_address}</a> ${icons}`
+    },
+    "host_name": (value, row) => {
+      let name = value.name
+      if (!dataUtils.isEmptyOrNull(value.alt_name)) {
+        name = value.alt_name
+        if (value.alt_name != value.name && !dataUtils.isEmptyOrNull(value.name)) {
+          name = `${name} [${value.name}]`
+        }
+      }
+
+      return name
+    },
+    "mac": (value, row) => {
+      let result = value.value
+      if (!dataUtils.isEmptyOrNull(value.name)) {
+        result = `<span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-original-title='${value.value}'>${value.name}</span>`
+      }
+      if (value.is_in_memory) {
+        result = `<a href='${http_prefix}/lua/mac_details.lua?host=${value.value}'>${result}</a>`
+      }
+
+      return result;
+    },
+    "manufacturer": (value, row) => {
+      return value;
+    },
+    "first_seen": (value, row) => {
+      return value.date
+    },
+    "last_seen": (value, row) => {
+      return value.date
+    }
   };
+
+  columns.forEach((c) => {
+    c.render_func = map_columns[c.data_field];
+    if (c.id == "actions") {
+      const visible_dict = {
+        historical_flows: props.context.historical_available,
+      };
+      c.button_def_array.forEach((b) => {
+        if (!visible_dict[b.id]) {
+          b.class.push("link-disabled");
+        }
+      });
+    }
+  });
+
+  return columns;
 };
-
-/* ************************************** */
-
-async function load_table_filters_overview(action) {
-  filter_table_array.value = await load_table_filters_array("overview");
-  set_filter_array_label();
-}
 
 /* ************************************** */
 
 function set_filter_array_label() {
   filter_table_array.value.forEach((el, index) => {
+    /* Setting the basic label */
     if (el.basic_label == null) {
       el.basic_label = el.label;
     }
 
+    /* Getting the currently selected filter */
     const url_entry = ntopng_url_manager.get_url_entry(el.id)
-    if (url_entry != null) {
-      el.options.forEach((option) => {
-        if (option.value.toString() === url_entry) {
-          el.label = `${el.basic_label}: ${option.label || option.value}`
-        }
-      })
-    } else {
-      el.label = `${el.basic_label}: ${el.options[0].label || el.options[0].value}`
-    }
+    el.options.forEach((option) => {
+      if (option.value.toString() === url_entry) {
+        el.current_option = option;
+      }
+    })
   })
 }
 
 /* ************************************** */
 
-async function load_table_filters(filter, filter_index) {
-  filter.show_spinner = true;
-  await nextTick();
-  if (filter.data_loaded == false) {
-    let new_filter_array = await load_table_filters_array(filter.id, filter);
-    filter.options = new_filter_array.find((t) => t.id == filter.id).options;
-    await nextTick();
-    let dropdown = filter_table_dropdown_array.value[filter_index];
-    dropdown.load_menu();
-  }
-  filter.show_spinner = false;
+function change_filter_labels() {
+  set_filter_array_label()
 }
 
 /* ************************************** */
 
-async function load_table_filters_array(action) {
-  const params = ntopng_url_manager.get_url_params();
-  const url = `${http_prefix}/lua/rest/v2/get/host/inactive_filters.lua?action=${action}&${params}`;
+async function add_table_filter(opt) {
+  ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
+  set_filter_array_label();
+  table_inactive_hosts.value.refresh_table();
+//  filter_table_array.value = await load_table_filters_array()
+}
+
+/* ************************************** */
+
+async function load_table_filters_array() {
+  let extra_params = get_extra_params_obj();
+  let url_params = ntopng_url_manager.obj_to_url_params(extra_params);
+  const url = `${http_prefix}/lua/rest/v2/get/host/inactive_filters.lua?${url_params}`;
   let res = await ntopng_utility.http_request(url);
+  host_filters_key.value = host_filters_key.value + 1
+
   return res.map((t) => {
+    const key_in_url = ntopng_url_manager.get_url_entry(t.name);
+    if (dataUtils.isEmptyOrNull(key_in_url)) {
+      ntopng_url_manager.set_key_to_url(t.name, ``);
+    }
     return {
-      id: t.action || t.name,
+      id: t.name,
       label: t.label,
       title: t.tooltip,
-      data_loaded: action != 'overview',
       options: t.value,
       hidden: (t.value.length == 1)
     };
   });
-}
-
-/* ************************************** */
-
-function add_table_filter(opt, event, filter, filter_index) {
-  event.stopPropagation();
-  ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
-  set_filter_array_label();
-  table_inactive_hosts.value.refresh_table();
-  if (show_charts.value == true) {
-    chart_options.forEach((el) => {
-      el.ref.value[0].update_chart()
-    })
-  }
-  load_table_filters(filter, filter_index)
-}
-
-/* ************************************** */
-
-function refresh_table() {
-  table_inactive_hosts.value.refresh_table();
-}
-
-/* ************************************** */
-
-function change_show_charts(item) {
-  show_charts.value = !show_charts.value;
-  tab_list.value.forEach((i) => {
-    i.active = false;
-    if(i.id == "table" && show_charts.value == false)
-      i.active = true;
-    else if(i.id == "chart" && show_charts.value == true)
-      i.active = true;
-  });
-  ntopng_events_manager.emit_custom_event(change_applications_tab_event, item);
 }
 
 /* ************************************** */
@@ -274,10 +232,22 @@ const get_extra_params_obj = () => {
 
 /* ************************************** */
 
+function create_historical_flows_url_link(row) {
+  return `${http_prefix}/lua/pro/db_search.lua?ip=${row.host.ip};eq&vlan_id=${row.host.vlan.id};eq&epoch_begin=${row.first_seen.timestamp}&epoch_end=${row.last_seen.timestamp}`
+}
+
+/* ************************************** */
+
+function click_button_historical_flows(event) {
+  const row = event.row;
+  window.open(create_historical_flows_url_link(row));
+}
+
+/* ************************************** */
+
 function on_table_custom_event(event) {
   let events_managed = {
     "click_button_historical_flows": click_button_historical_flows,
-    "click_button_delete": click_button_delete,
   };
   if (events_managed[event.event_id] == null) {
     return;
@@ -287,97 +257,16 @@ function on_table_custom_event(event) {
 
 /* ************************************** */
 
-function click_button_delete(event) {
-  const row = event.row.serial_key;
-  modal_delete.value.show(row, i18n('delete_inactive_host', { host: event.row.host.ip_address.value }));
+function refresh_table() {
+  table_inactive_hosts.value.refresh_table(true);
 }
 
 /* ************************************** */
 
-function delete_all_entries() {
-  modal_delete.value.show('all', i18n('delete_all_inactive_hosts'));
-}
-
-/* ************************************** */
-
-function delete_entries_since() {
-  modal_delete_older.value.show();
-}
-
-/* ************************************** */
-
-function download() {
-  modal_download.value.show();
-}
-
-/* ************************************** */
-
-function click_button_historical_flows(event) {
-  const row = event.row;
-  let vlan = ''
-  if(row.vlan != 0)
-    vlan = `@${row.vlan}`
-  window.location.href = `${http_prefix}/lua/pro/db_search.lua?epoch_begin=${row.epoch_begin - 100}&epoch_end=${row.epoch_end + 100}&ip=${row.ip_address.value || row.ip_address}${vlan};eq&mac=${row.mac_address.value || row.mac_address};eq`;
-}
-
-/* ************************************** */
-
-const map_table_def_columns = (columns) => {
-  let map_columns = {
-    "mac_address": (mac, row) => {
-      let result = mac;
-      if (mac != null &&
-        mac.url != null &&
-        mac.name != null &&
-        mac.value != null) {
-        result = `<a href='${http_prefix}${mac.url}' title='${mac.value}'>${mac.name}</a>`
-      }
-
-      return result;
-    },
-    "network": (network, row) => {
-      let result = network;
-      if (network.url != null &&
-        network.name != null &&
-        network.value != null) {
-        result = `<a href='${http_prefix}${network.url}' title='${network.value}'>${network.name}</a>`
-      }
-
-      return result;
-    },
-    "host": (host, row) => {
-      let result = '';
-      const ip_address = host.ip_address;
-      result = `<a href='${http_prefix}${ip_address.url}' title='${ip_address.value}'>${ip_address.name}</a>`
-
-      if (host.vlan != null && host.vlan.name != "") {
-        const vlan = host.vlan;
-        if (vlan.url != null) {
-          result = `${result}@<a href='${http_prefix}${vlan.url || '#'}' title='${vlan.value}'>${vlan.name}</a>`
-        } else {
-          result = `${result}@${vlan.name}`
-        }
-      }
-      return `${result} ${host.device_type}`;
-    },
-  };
-
-  columns.forEach((c) => {
-    c.render_func = map_columns[c.data_field];
-    if (c.id == "actions") {
-      const visible_dict = {
-        historical_data: props.show_historical,
-      };
-      c.button_def_array.forEach((b) => {
-        if (!visible_dict[b.id]) {
-          b.class.push("disabled");
-        }
-      });
-    }
-  });
-
-  return columns;
-};
+onMounted(async () => {
+  filter_table_array.value = await load_table_filters_array();
+  set_filter_array_label()
+});
 
 /* ************************************** */
 

@@ -85,6 +85,7 @@ protected:
     num_alerts_engaged_error[ALERT_ENTITY_MAX_NUM_ENTITIES],
     num_alerts_engaged_critical[ALERT_ENTITY_MAX_NUM_ENTITIES],
     num_alerts_engaged_emergency[ALERT_ENTITY_MAX_NUM_ENTITIES], flow_serial;
+  std::atomic<u_int64_t> alert_serial;
   /* Counters for active alerts. Changed by multiple concurrent threads */
   std::atomic<u_int64_t>
   num_active_alerted_flows_notice; /* Counts all flow alerts with severity
@@ -1284,6 +1285,7 @@ public:
   }
   u_int16_t getnDPIProtoByName(const char *name);
   inline u_int32_t getNewFlowSerial() { return (flow_serial++); }
+  inline u_int64_t getNewAlertSerial() { return alert_serial.fetch_add(1, std::memory_order_relaxed); }
   bool resetHostTopSites(AddressTree *allowed_hosts, char *host_ip,
                          u_int16_t vlan_id, u_int16_t observationPointId);
   void localHostsServerPorts(lua_State *vm);

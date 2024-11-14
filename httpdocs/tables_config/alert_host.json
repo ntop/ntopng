@@ -30,7 +30,7 @@
 	    "data_field": "tstamp",
 		 "min-width" : "115px",
 	    "sortable": true,
-	    "render_type": "formatValueLabel",
+	    "render_type": "formatValueLabelEngaged",
 	    "class": ["text-center", "text-nowrap"]
 	},
 	{

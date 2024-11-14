@@ -26,7 +26,16 @@ local am_alert_store = classes.class(alert_store)
 function am_alert_store:init(args)
    self.super:init()
 
-   self._table_name = "active_monitoring_alerts"
+   if ntop.isClickHouseEnabled() then
+      self._table_name = "active_monitoring_alerts_view"
+      self._write_table_name = "active_monitoring_alerts"
+      self._engaged_write_table_name = "engaged_active_monitoring_alerts"
+   else
+      self._table_name = "active_monitoring_alerts_view"
+      self._write_table_name = "active_monitoring_alerts"
+      self._engaged_write_table_name = "mem_db.engaged_active_monitoring_alerts"
+   end
+
    self._alert_entity = alert_entities.am_host
 end
 
@@ -34,12 +43,12 @@ end
 
 --@brief ifid
 function am_alert_store:get_ifid()
-   return self:get_system_ifid() 
+   return getSystemInterfaceId()
 end
 
 -- ##############################################
 
-function am_alert_store:insert(alert)
+function am_alert_store:_build_insert_query(alert, write_table, alert_status, extra_columns, extra_values)
    local resolved_ip
    local resolved_name
    local measurement
@@ -59,21 +68,16 @@ function am_alert_store:insert(alert)
       end
    end
 
-   local extra_columns = ""
-   local extra_values = ""
-   if(ntop.isClickHouseEnabled()) then
-      extra_columns = "rowid, "
-      extra_values = "generateUUIDv4(), "
-   end
-
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(%salert_id, interface_id, tstamp, tstamp_end, severity, score, resolved_ip, resolved_name, "..
+      "(%salert_id, alert_status, require_attention, interface_id, tstamp, tstamp_end, severity, score, resolved_ip, resolved_name, "..
       "measurement, measure_threshold, measure_value, json) "..
-      "VALUES (%s%u, %d, %u, %u, %u, %u, '%s', '%s', '%s', %u, %f, '%s'); ",
-      self._table_name, 
+      "VALUES (%s%u, %u, %u, %d, %u, %u, %u, %u, '%s', '%s', '%s', %u, %f, '%s'); ",
+      write_table, 
       extra_columns,
       extra_values,
       alert.alert_id,
+      alert_status,
+      ternary(alert.require_attention, 1, 0),
       self:_convert_ifid(getSystemInterfaceId()),
       alert.tstamp,
       alert.tstamp_end,

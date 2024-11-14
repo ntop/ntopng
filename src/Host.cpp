@@ -2167,6 +2167,9 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
   char *alert_json = NULL;
   u_int32_t alert_json_len;
 
+  /* rowid is used by engaged (in-memory) alerts only to delete them when disengaged */
+  ndpi_serialize_string_int64(s, "rowid", alert->getRowID());
+
   ndpi_serialize_string_int32(s, "ifid", getInterface()->get_id());
   ndpi_serialize_string_uint64(s, "pool_id", get_host_pool());
 
@@ -2176,7 +2179,7 @@ void Host::alert2JSON(HostAlert *alert, bool released, ndpi_serializer *s) {
   ndpi_serialize_string_int32(s, "alert_category",
                               alert->getAlertType().category);
   ndpi_serialize_string_int32(s, "score", alert->getAlertScore());
-  ndpi_serialize_string_boolean(s, "acknowledged", alert->autoAck());
+  ndpi_serialize_string_boolean(s, "require_attention", !alert->autoAck());
   ndpi_serialize_string_string(s, "subtype", "" /* No subtype for hosts */);
   ndpi_serialize_string_int32(s, "ip_version", ip.getVersion());
   ndpi_serialize_string_string(s, "ip", ip.print(ip_buf, sizeof(ip_buf)));
@@ -2327,6 +2330,7 @@ void Host::releaseAllEngagedAlerts() {
 bool Host::triggerAlert(HostAlert *alert) {
   ScoreCategory score_category;
   HostAlertType alert_type;
+  u_int64_t alert_rowid = alert->getRowID();
 
   if (alert == NULL) return false;
 
@@ -2348,12 +2352,17 @@ bool Host::triggerAlert(HostAlert *alert) {
     return false;
   }
 
+  /* Get a new rowid, unless already engaged and assigned a rowid */
+  if (!alert_rowid) alert_rowid = iface->getNewAlertSerial();
+
   /* Leave this AFTER the isHostAlertDisabled check */
-  alert->setEngaged();
+  alert->setEngaged(alert_rowid);
 
   if (hasCheckEngagedAlert(alert->getCheckType())) {
     if (getCheckEngagedAlert(alert->getCheckType()) == alert) {
       /* This is a refresh (see alert->isExpired()) */
+      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Refreshing alert already engaged"
+      //  " with ID = %llu", alert->getRowID());
       return true;
     } else {
       ntop->getTrace()->traceEvent(
@@ -2363,6 +2372,8 @@ bool Host::triggerAlert(HostAlert *alert) {
       return false;
     }
   }
+
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Triggering alert engaged with ID = %llu", alert->getRowID());
 
 #ifdef DEBUG_SCORE
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Set host score %u/%u",
@@ -2391,6 +2402,8 @@ bool Host::triggerAlert(HostAlert *alert) {
  */
 void Host::releaseAlert(HostAlert *alert) {
   ScoreCategory score_category;
+
+  //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Releasing alert engaged with ID = %llu", alert->getRowID());
 
   /* Set as released */
   alert->release();

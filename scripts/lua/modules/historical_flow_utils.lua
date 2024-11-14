@@ -573,7 +573,6 @@ local function dt_format_flow_risk(flow_risk_id)
 	    title = title,
 	    label = title,
 	    value = cur_risk_id,
-            help  = flow_risk_utils.get_documentation_link(cur_risk_id, ""),
             remediation = flow_risk_utils.get_remediation_documentation_link(cur_risk_id, "")
 	 }
 
@@ -1166,6 +1165,7 @@ local flow_columns = {
    
    -- Alert data
    ['ALERT_STATUS'] =         { tag = "alert_status" },
+   ['REQUIRE_ATTENTION'] =    { tag = "require_attention" },
    ['USER_LABEL'] =           { tag = "user_label" },
    ['USER_LABEL_TSTAMP'] =    { tag = "user_label_tstamp" },
 }

@@ -32,9 +32,11 @@ function host_alert_store:init(args)
     if ntop.isClickHouseEnabled() then
         self._table_name = "host_alerts_view"
         self._write_table_name = "host_alerts"
+        self._engaged_write_table_name = "engaged_host_alerts"
     else
         self._table_name = "host_alerts_view"
         self._write_table_name = "host_alerts"
+        self._engaged_write_table_name = "mem_db.engaged_host_alerts"
     end
 
     self._alert_entity = alert_entities.host
@@ -99,7 +101,7 @@ end
 
 -- ##############################################
 
-function host_alert_store:insert(alert)
+function host_alert_store:_build_insert_query(alert, write_table, alert_status, extra_columns, extra_values)
     local is_attacker = ternary(alert.is_attacker, 1, 0)
     local is_victim = ternary(alert.is_victim, 1, 0)
     local is_client = ternary(alert.is_client, 1, 0)
@@ -120,13 +122,6 @@ function host_alert_store:insert(alert)
         end
     end
 
-    local extra_columns = ""
-    local extra_values = ""
-    if (ntop.isClickHouseEnabled()) then
-        extra_columns = "rowid, "
-        extra_values = "generateUUIDv4(), "
-    end
-
     -- In case of some parameter empty, do not insert the alert
     if not check_alert_params(alert) then
         return
@@ -134,33 +129,32 @@ function host_alert_store:insert(alert)
 
     -- IMPORTANT: keep in sync with check_alert_params function, to be sure to not have issues with empty parameters
     local insert_stmt = string.format("INSERT INTO %s " ..
-                                          "(%salert_id, alert_status, alert_category, interface_id, ip_version, ip, vlan_id, name, country, is_attacker, is_victim, " ..
-                                          "is_client, is_server, tstamp, tstamp_end, severity, score, granularity, host_pool_id, network, json) " ..
-                                          "VALUES (%s%u, %u, %u, %d, %u, '%s', %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
-        self:get_write_table_name(), extra_columns, extra_values, alert.alert_id, ternary(alert.acknowledged,
-            alert_consts.alert_status.acknowledged.alert_status_id, 0), alert.alert_category,
-        self:_convert_ifid(interface.getId()), ip_version, alert.ip, alert.vlan_id or 0, self:_escape(alert.name),
-        alert.country_name, is_attacker, is_victim, is_client, is_server, alert.tstamp, alert.tstamp_end,
-        map_score_to_severity(alert.score), alert.score, alert.granularity, alert.host_pool_id or 0, alert.network or 0,
+        "(%salert_id, alert_status, require_attention, alert_category, interface_id, ip_version, ip, vlan_id, name, country, is_attacker, is_victim, " ..
+        "is_client, is_server, tstamp, tstamp_end, severity, score, granularity, host_pool_id, network, json) " ..
+        "VALUES (%s%u, %u, %u, %u, %d, %u, '%s', %u, '%s', '%s', %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, %u, '%s'); ",
+        write_table,
+        extra_columns, extra_values,
+        alert.alert_id,
+        alert_status,
+        ternary(alert.require_attention, 1, 0),
+        alert.alert_category,
+        self:_convert_ifid(interface.getId()),
+        ip_version,
+        alert.ip,
+        alert.vlan_id or 0,
+        self:_escape(alert.name),
+        alert.country_name,
+        is_attacker, is_victim, is_client, is_server,
+        alert.tstamp,
+        alert.tstamp_end,
+        map_score_to_severity(alert.score),
+        alert.score,
+        alert.granularity,
+        alert.host_pool_id or 0,
+        alert.network or 0,
         self:_escape(alert.json or ""))
 
-    -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_stmt)
-
-    return interface.alert_store_query(insert_stmt)
-end
-
--- ##############################################
-
-function host_alert_store:insert_engaged(alert)
-    --traceError(TRACE_NORMAL, TRACE_CONSOLE, "host_alert_store:insert_engaged")
-    -- TODO
-end
-
--- ##############################################
-
-function host_alert_store:delete_engaged(alert)
-    --traceError(TRACE_NORMAL, TRACE_CONSOLE, "host_alert_store:delete_engaged")
-    -- TODO
+   return insert_stmt
 end
 
 -- ##############################################
@@ -308,6 +302,7 @@ end
 -- @brief Get info about additional available filters
 function host_alert_store:_get_additional_available_filters()
     local filters = {
+        alert_status = tag_utils.defined_tags.alert_status,
         vlan_id = tag_utils.defined_tags.vlan_id,
         ip_version = tag_utils.defined_tags.ip_version,
         ip = tag_utils.defined_tags.ip,
@@ -455,6 +450,9 @@ function host_alert_store:format_record(value, no_html)
         mitre_subtechnique_i18n = (mitre_utils.sub_technique_by_id[mitre_subtechnique] and mitre_utils.sub_technique_by_id[mitre_subtechnique].i18n_label) or "",
     }
 
+    local is_engaged = self._status == alert_consts.alert_status.engaged.alert_status_id or
+       (value.alert_status and tonumber(value.alert_status) == alert_consts.alert_status.engaged.alert_status_id)
+    record["is_engaged"] = is_engaged
     record[RNAME.IS_VICTIM.name] = ""
     record[RNAME.IS_ATTACKER.name] = ""
     record[RNAME.IS_CLIENT.name] = ""

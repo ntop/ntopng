@@ -4,111 +4,132 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
-require "mac_utils"
+require "label_utils"
+require "ntop_utils"
+require "http_lint"
+require "lua_utils_get"
+local format_utils = require "format_utils"
 local rest_utils = require "rest_utils"
-local inactive_hosts_utils = require "inactive_hosts_utils"
+local asset_management_utils = require "asset_management_utils"
 
-if not isAdministratorOrPrintErr() then
-    rest_utils.answer(rest_utils.consts.err.not_granted)
-    return
-end
+local ifid = _GET["ifid"] or interface.getId()
+local start = _GET["start"] or 0
+local length = _GET["length"] or 0
+local sort = _GET["sort"] or "ip_address"
+local order = _GET["order"] or "desc"
+local rsp = {}
 
--- =============================
-
-local ifid = _GET["ifid"]
-local download = _GET["download"]
-local filters = {
-    vlan = _GET["vlan_id"],
-    network = _GET["network"],
-    device_type = _GET["device_type"],
-    manufacturer = _GET["manufacturer"],
+local gui_to_db_columns = {
+    ip_address = "ip",
+    host_name = "name",
+    mac = "mac",
+    vlan = "vlan",
+    network = "network",
+    device_type = "device_type",
+    manufacturer = "manufacturer",
+    first_seen = "first_seen",
+    last_seen = "last_seen",
+    device_status = "device_status",
 }
 
--- Return the data
-for filter, value in pairs(filters) do
+local filters = {
+    manufacturer = _GET["manufacturer"],
+    vlan = _GET["vlan"],
+    device_type = _GET["device_type"],
+    network = _GET["network"],
+}
+for key, value in pairs(filters) do
     if isEmptyString(value) then
-        filters[filter] = nil
+        filters[key] = nil
     end
 end
 
-if not isEmptyString(ifid) then
-    interface.select(ifid)
-else
-    ifid = interface.getId()
-end
+local tot_inactive_hosts = asset_management_utils.get_total_inactive_hosts(ifid, filters)[1].count
+local inactive_hosts = asset_management_utils.get_inactive_hosts(ifid, order, gui_to_db_columns[sort], start, length, filters)
 
--- Download the data
-if download == "true" then
-    local format = _GET["format"]
-    local rsp = ""
+for _, value in pairs(inactive_hosts or {}) do
+    local record = {}
 
-    if format == "csv" then
-        -- CSV requested
-        rsp = inactive_hosts_utils.getInactiveHosts(ifid, filters)
-        rsp = inactive_hosts_utils.formatInactiveHostsCSV(rsp)
-    elseif format == "json" then
-        -- JSON requested
-        rsp = inactive_hosts_utils.getInactiveHosts(ifid, filters)
-        rsp = inactive_hosts_utils.formatInactiveHostsJSON(rsp)
-    else
-        -- Wrong format requested, Error!
-        rest_utils.answer(rest_utils.consts.err.not_granted)
-        return
+    local column_ip = {
+        ip = value.ip
+    }
+    if not isEmptyString(value.os) then
+        column_ip.os = tonumber(value.os)
+    end
+    if value["systemhost"] then
+        column_ip.system_host = true
+    end
+    if value["hiddenFromTop"] then
+        column_ip.hidden_from_top = true
+    end
+    if value["childSafe"] then
+        column_ip.child_safe = true
+    end
+    if value["dhcpHost"] then
+        column_ip.dhcp_host = true
+    end
+    if value["device_type"] then
+        column_ip.device_type = value["device_type"]
+    end
+    if value["country"] then
+        column_ip.country = value["country"]
+    end
+    if value["is_blacklisted"] then
+        column_ip.is_blacklisted = value["is_blacklisted"]
+    end
+    if value["crawlerBotScannerHost"] then
+        column_ip.crawler_bot_scanner_host = value["crawlerBotScannerHost"]
+    end
+    column_ip.localhost = true
+    if value["is_blackhole"] then
+        column_ip.is_blackhole = value["is_blackhole"]
     end
 
-    rest_utils.vanilla_payload_response(rest_utils.consts.success.ok, rsp, "text/" .. format)
-    return
-else
-    local rsp = {}
-    local hosts = inactive_hosts_utils.getInactiveHosts(ifid, filters)
-    
-    -- Check if at least an host is inactive
-    if table.len(hosts) > 0 then
-        local start = _GET["start"]
-        local length = _GET["length"]
-        local order_field = _GET["sort"] or "last_seen"
-        local count = 1
-        local order
+    column_ip["vlan"] = {
+        name = '',
+        id = 0
+    }
 
-        if (_GET["order"]) and (_GET["order"] == "asc") then
-            order = asc
-        else
-            order = rev
-        end
-    
-        -- Sorting the table
-        if order_field == "host" then
-            -- In case of the column Host, a specific sorting is needed
-            -- handling ip@vlan
-            local tmp_table = {}
-            for _, value in pairs(hosts) do
-                tmp_table[value.host] = value
-            end             
-            for key, value in pairsByDottedDecimalKeys(tmp_table, order) do
-                if count >= start + 1 and count <= start + length then
-                    rsp[#rsp + 1] = value
-                end
-                count = count + 1
-            end             
-        else
-            -- Otherwise use the standard sorting and cutting table
-            table.sort(hosts, function(x, y)
-                return order(x[order_field], y[order_field])
-            end)
-        
-            -- Cutting down the table
-            for key, value in pairs({table.unpack(hosts, start + 1, start + length)}) do
-                rsp[key] = value
-            end
-        end
-        
-        -- Formatting the values
-        rsp = inactive_hosts_utils.formatInactiveHosts(rsp)
+    if not isEmptyString(value["vlan"]) then
+        column_ip["vlan"]["name"] = getFullVlanName(value["vlan"])
+        column_ip["vlan"]["id"] = value["vlan"]
     end
-    
-    rest_utils.extended_answer(rest_utils.consts.success.ok, rsp, {
-        ["recordsTotal"] = #hosts
-    })    
+
+    record.host_name = {
+        alt_name = "",
+        name = value["name"]
+    }
+
+    local alt_name = getHostAltName(value["ip"])
+    if not isEmptyString(alt_name) then
+        record.hostname.alt_name = alt_name
+    end
+
+    local in_memory_mac = false
+    if interface.getMacInfo(value["mac"]) then
+        in_memory_mac = true
+    end
+
+    record["mac"] = {
+        value = value["mac"],
+        name = getDeviceName(value["mac"]),
+        is_in_memory = in_memory_mac
+    }
+
+    record["host"] = column_ip
+    record["first_seen"] = {
+        date = format_utils.formatPastEpochShort(value["first_seen"]),
+        timestamp = value["first_seen"]
+    }
+    record["last_seen"] = {
+        date = format_utils.formatPastEpochShort(value["last_seen"]),
+        timestamp = value["last_seen"]
+    }
+    record["manufacturer"] = value["manufacturer"]
+    record["key"] = value["key"]
+    rsp[#rsp + 1] = record
 end
 
+rest_utils.extended_answer(rest_utils.consts.success.ok, rsp, {
+    ["recordsTotal"] = tonumber(tot_inactive_hosts)
+})

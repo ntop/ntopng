@@ -28,10 +28,12 @@
 ParserInterface::ParserInterface(const char *endpoint,
                                  const char *custom_interface_type)
     : NetworkInterface(endpoint, custom_interface_type) {
-  if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+  if (trace_new_delete)
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
   num_companion_interfaces = 0;
-  companion_interfaces  = new (std::nothrow) NetworkInterface *[MAX_NUM_COMPANION_INTERFACES]();
+  companion_interfaces =
+      new (std::nothrow) NetworkInterface *[MAX_NUM_COMPANION_INTERFACES]();
 
 #ifdef NTOPNG_PRO
   flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
@@ -60,11 +62,10 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   u_int32_t in_pkts, in_bytes, out_pkts, out_bytes;
 
 #ifdef NTOPNG_PRO
-  if(!flow_interfaces_stats)
-    return false;
+  if (!flow_interfaces_stats) return false;
 #endif
 
-  if(unique_source_id == 0)
+  if (unique_source_id == 0)
     unique_source_id = zflow->nprobe_ip + zflow->exporter_device_ip;
 
   now = time(NULL);
@@ -87,27 +88,32 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     zflow->vlan_id = rand() % SIMULATE_VLANS_MAX_VALUE;
 
 #ifdef NTOPNG_PRO
-  if((unique_source_id != 0) && (!isSubInterface())) {
-    if (!flow_interfaces_stats->checkExporters(unique_source_id,
-					       zflow->inIndex, zflow->outIndex,
-					       zflow->exporter_device_ip, zflow->nprobe_ip)) {
+  if ((unique_source_id != 0) && (!isSubInterface())) {
+    if (!flow_interfaces_stats->checkExporters(
+            unique_source_id, zflow->inIndex, zflow->outIndex,
+            zflow->exporter_device_ip, zflow->nprobe_ip)) {
       static bool shown = false;
 
-      if(!shown) {
-	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Flow dropped due to limits to the license");
+      if (!shown) {
+        ntop->getTrace()->traceEvent(
+            TRACE_NORMAL, "Flow dropped due to limits to the license");
 
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Exporters: %d/%d max | Exporter Interfaces: %d/%d max",
-				     ntop->getNumFlowExporters(), get_max_num_flow_exporters(),
-				     ntop->getNumFlowExportersInterfaces(), get_max_num_flow_exporters_interfaces());
+        ntop->getTrace()->traceEvent(
+            TRACE_NORMAL,
+            "Exporters: %d/%d max | Exporter Interfaces: %d/%d max",
+            ntop->getNumFlowExporters(), get_max_num_flow_exporters(),
+            ntop->getNumFlowExportersInterfaces(),
+            get_max_num_flow_exporters_interfaces());
 
-	ntop->getTrace()->traceEvent(TRACE_NORMAL,
-				     "Discarded [unique_source_id: %u];device_ip: %u][probe_ip: %u][iface: %u->%u]",
-				     unique_source_id, zflow->exporter_device_ip,
-				     zflow->nprobe_ip, zflow->inIndex, zflow->outIndex);
+        ntop->getTrace()->traceEvent(
+            TRACE_NORMAL,
+            "Discarded [unique_source_id: %u];device_ip: %u][probe_ip: "
+            "%u][iface: %u->%u]",
+            unique_source_id, zflow->exporter_device_ip, zflow->nprobe_ip,
+            zflow->inIndex, zflow->outIndex);
 
-	ntop->getRedis()->set(EXPORTERS_EXCEEDED_LIMITS_KEY, "1");
-	shown = true;
+        ntop->getRedis()->set(EXPORTERS_EXCEEDED_LIMITS_KEY, "1");
+        shown = true;
       }
 
       return false;
@@ -146,7 +152,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
         switch (flowHashingMode) {
           case flowhashing_probe_ip:
-            virtual_observation_point_id = zflow->exporter_device_ip & 0xFFF /* 4096 */;
+            virtual_observation_point_id =
+                zflow->exporter_device_ip & 0xFFF /* 4096 */;
             break;
 
           case flowhashing_iface_idx:
@@ -161,7 +168,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
           case flowhashing_probe_ip_and_ingress_iface_idx:
             virtual_observation_point_id =
-                ((((u_int64_t)zflow->exporter_device_ip) << 32) + zflow->inIndex) &
+                ((((u_int64_t)zflow->exporter_device_ip) << 32) +
+                 zflow->inIndex) &
                 0xFFF /* 4096 */;
             break;
 
@@ -183,7 +191,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
         switch (flowHashingMode) {
           case flowhashing_probe_ip:
-            vIface = getDynInterface((u_int64_t)zflow->exporter_device_ip, true);
+            vIface =
+                getDynInterface((u_int64_t)zflow->exporter_device_ip, true);
             break;
 
           case flowhashing_iface_idx:
@@ -203,7 +212,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
             // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[IP: %u][inIndex:
             // %u]", zflow->exporter_device_ip, zflow->inIndex);
             vIface = getDynInterface(
-                (((u_int64_t)zflow->exporter_device_ip) << 32) + zflow->inIndex, true);
+                (((u_int64_t)zflow->exporter_device_ip) << 32) + zflow->inIndex,
+                true);
             break;
 
           case flowhashing_vrfid:
@@ -234,8 +244,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
         processed = true;
       }
 
-      if (processed && (!showDynamicInterfaceTraffic()))
-	return true;
+      if (processed && (!showDynamicInterfaceTraffic())) return true;
     }
   }
 
@@ -248,29 +257,29 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
   srcIP.set(&zflow->src_ip), dstIP.set(&zflow->dst_ip);
 
-  INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::processFlow: getFlow", 0);
+  INTERFACE_PROFILING_SECTION_ENTER("NetworkInterface::processFlow: getFlow",
+                                    0);
 
-  if(zflow->getSIPCallId()) {
+  if (zflow->getSIPCallId()) {
     size_t len = strlen(zflow->getSIPCallId());
 
-    private_flow_id = ndpi_quick_hash((const unsigned char*)zflow->getSIPCallId(), len);
+    private_flow_id =
+        ndpi_quick_hash((const unsigned char *)zflow->getSIPCallId(), len);
   } else
     private_flow_id = 0;
 
   /* Updating Flow */
-  flow = getFlow(UNKNOWN_PKT_IFACE_IDX,
-		 srcMac, dstMac, zflow->vlan_id, zflow->observationPointId,
-                 private_flow_id, zflow->exporter_device_ip, zflow->inIndex,
-                 zflow->outIndex, NULL /* ICMPinfo */, &srcIP, &dstIP,
-                 zflow->src_port, zflow->dst_port, zflow->l4_proto,
-                 &src2dst_direction, zflow->first_switched,
-                 zflow->last_switched, 0, &new_flow, true,
-                 (u_int8_t *)zflow->src_mac, (u_int8_t *)zflow->dst_mac);
+  flow = getFlow(UNKNOWN_PKT_IFACE_IDX, srcMac, dstMac, zflow->vlan_id,
+                 zflow->observationPointId, private_flow_id,
+                 zflow->exporter_device_ip, zflow->inIndex, zflow->outIndex,
+                 NULL /* ICMPinfo */, &srcIP, &dstIP, zflow->src_port,
+                 zflow->dst_port, zflow->l4_proto, &src2dst_direction,
+                 zflow->first_switched, zflow->last_switched, 0, &new_flow,
+                 true, (u_int8_t *)zflow->src_mac, (u_int8_t *)zflow->dst_mac);
 
   INTERFACE_PROFILING_SECTION_EXIT(0);
 
-  if (flow == NULL)
-    return(false);
+  if (flow == NULL) return (false);
 
   if (zflow->absolute_packet_octet_counters) {
     /* Ajdust bytes and packets counters if the zflow update contains absolute
@@ -363,10 +372,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if (zflow->getWLANSSID())
     flow->setWLANInfo(zflow->getWLANSSID(), zflow->getWTPMACAddress());
 
-  if(zflow->getSIPCallId())
-    flow->setSIPCallId(zflow->getSIPCallId());
+  if (zflow->getSIPCallId()) flow->setSIPCallId(zflow->getSIPCallId());
 
-  if(zflow->isSwapped()) flow->set_swap_done();
+  if (zflow->isSwapped()) flow->set_swap_done();
 
   flow->setFlowSource(zflow->getFlowSource());
 
@@ -376,7 +384,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   /* Update process and container info */
   if (zflow->hasParsedeBPF()) {
     bool swap_direction = ((ntohs(zflow->src_port) == flow->get_cli_port()) &&
-                           (ntohs(zflow->dst_port) == flow->get_srv_port())) ? false : true;
+                           (ntohs(zflow->dst_port) == flow->get_srv_port()))
+                              ? false
+                              : true;
 
     flow->setParsedeBPFInfo(zflow, swap_direction);
 
@@ -392,16 +402,17 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 #ifdef MAC_DEBUG
   char bufm1[32], bufm2[32];
 
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Processing Flow [src mac: %s][dst mac: %s][src2dst: %i]",
-			       Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)),
-			       Utils::formatMac(dstMac->get_mac(), bufm2, sizeof(bufm2)),
-			       (src2dst_direction) ? 1 : 0);
+  ntop->getTrace()->traceEvent(
+      TRACE_NORMAL, "Processing Flow [src mac: %s][dst mac: %s][src2dst: %i]",
+      Utils::formatMac(srcMac->get_mac(), bufm1, sizeof(bufm1)),
+      Utils::formatMac(dstMac->get_mac(), bufm2, sizeof(bufm2)),
+      (src2dst_direction) ? 1 : 0);
 #endif
 
-  in_pkts   = zflow->pkt_sampling_rate * zflow->in_pkts,
-    in_bytes  = zflow->pkt_sampling_rate * zflow->in_bytes,
-    out_pkts  = zflow->pkt_sampling_rate * zflow->out_pkts,
-    out_bytes = zflow->pkt_sampling_rate * zflow->out_bytes;
+  in_pkts = zflow->pkt_sampling_rate * zflow->in_pkts,
+  in_bytes = zflow->pkt_sampling_rate * zflow->in_bytes,
+  out_pkts = zflow->pkt_sampling_rate * zflow->out_pkts,
+  out_bytes = zflow->pkt_sampling_rate * zflow->out_bytes;
 
   /* Update MAC stats
      Note: do not use src2dst_direction to inc the stats as
@@ -410,7 +421,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   */
   if (likely(srcMac != NULL)) {
     srcMac->incSentStats(getTimeLastPktRcvd(), in_pkts, in_bytes);
-    srcMac->incRcvdStats(getTimeLastPktRcvd(),  out_pkts, out_bytes);
+    srcMac->incRcvdStats(getTimeLastPktRcvd(), out_pkts, out_bytes);
 
     srcMac->setSourceMac();
   }
@@ -433,13 +444,15 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
       if (zflow->tcp.tcp_flags && (zflow->tcp.client_tcp_flags == 0) &&
           (zflow->tcp.server_tcp_flags == 0)) {
-        /* TCP flags are cumulative and set only if client/server flags are zero */
+        /* TCP flags are cumulative and set only if client/server flags are zero
+         */
 
-        flow->updateTcpFlags(&now_tv, zflow->tcp.tcp_flags, src2dst_direction, new_flow);
+        flow->updateTcpFlags(&now_tv, zflow->tcp.tcp_flags, src2dst_direction,
+                             new_flow);
       }
     }
 
-    if(zflow->tcp.client_tcp_flags && zflow->tcp.server_tcp_flags)
+    if (zflow->tcp.client_tcp_flags && zflow->tcp.server_tcp_flags)
       flow->calculateConnectionState(true);
 
     flow->updateTcpSeqIssues(zflow);
@@ -453,25 +466,21 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
                          0 /* TODO: add keepalive */);
   }
 
-  flow->addFlowStats(new_flow, src2dst_direction,
-                     in_pkts, in_bytes, 0,
+  flow->addFlowStats(new_flow, src2dst_direction, in_pkts, in_bytes, 0,
                      out_pkts, out_bytes, 0,
                      zflow->pkt_sampling_rate * zflow->in_fragments,
                      zflow->pkt_sampling_rate * zflow->out_fragments,
                      zflow->first_switched, zflow->last_switched);
 
-  if(zflow->getPreNATSrcIp()) {
+  if (zflow->getPreNATSrcIp()) {
     /* Add Pre-Post NAT src/dst IPv4 */
-    flow->addPrePostNATIPv4(zflow->getPreNATSrcIp(),
-			    zflow->getPreNATDstIp(),
-			    zflow->getPostNATSrcIp(),
-			    zflow->getPostNATDstIp());
+    flow->addPrePostNATIPv4(zflow->getPreNATSrcIp(), zflow->getPreNATDstIp(),
+                            zflow->getPostNATSrcIp(), zflow->getPostNATDstIp());
 
     /* Add Pre-Post NAT src/dst Ports */
-    flow->addPrePostNATPort(zflow->getPreNATSrcPort(),
-			    zflow->getPreNATDstPort(),
-			    zflow->getPostNATSrcPort(),
-			    zflow->getPostNATDstPort());
+    flow->addPrePostNATPort(
+        zflow->getPreNATSrcPort(), zflow->getPreNATDstPort(),
+        zflow->getPostNATSrcPort(), zflow->getPostNATDstPort());
   }
 
   if (!flow->isDetectionCompleted()) {
@@ -487,51 +496,23 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       defined in ntopng will still be applied to the protocols detected by
       nprobe.
     */
-    if(zflow->src_ip.isIPv4()) {
-      guessed_protocol = ndpi_guess_undetected_protocol_v4(get_ndpi_struct(),
-							   flow->get_ndpi_flow(),
-							   flow->get_protocol(),
-							   ntohl(zflow->src_ip.get_ipv4()),
-							   ntohs(zflow->src_port),
-							   ntohl(zflow->dst_ip.get_ipv4()),
-							   ntohs(zflow->dst_port));
+    if (zflow->src_ip.isIPv4()) {
+      guessed_protocol = ndpi_guess_undetected_protocol_v4(
+          get_ndpi_struct(), flow->get_ndpi_flow(), flow->get_protocol(),
+          ntohl(zflow->src_ip.get_ipv4()), ntohs(zflow->src_port),
+          ntohl(zflow->dst_ip.get_ipv4()), ntohs(zflow->dst_port));
     } else {
       /* IPv6: use protcol guess only based on ports/protocol */
 
-      guessed_protocol = ndpi_guess_undetected_protocol_v4(get_ndpi_struct(),
-							   flow->get_ndpi_flow(),
-							   flow->get_protocol(),
-							   0, ntohs(zflow->src_port),
-							   0, ntohs(zflow->dst_port));
+      guessed_protocol = ndpi_guess_undetected_protocol_v4(
+          get_ndpi_struct(), flow->get_ndpi_flow(), flow->get_protocol(), 0,
+          ntohs(zflow->src_port), 0, ntohs(zflow->dst_port));
     }
 
-    guessed_protocol.proto.app_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(),
-								      guessed_protocol.proto.app_protocol);
-    guessed_protocol.proto.master_protocol = ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(),
-									 guessed_protocol.proto.master_protocol);
-
-#ifdef NTOPNG_PRO
-  if (unique_source_id) {
-      if (!flow_interfaces_stats)
-        flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
-
-      if (flow_interfaces_stats) {
-	flow_interfaces_stats->incStats(now, unique_source_id, zflow->inIndex, flow->getStatsProtocol(),
-					out_pkts, out_bytes, in_pkts, in_bytes);
-
-	/* If the SNMP device is actually an host with an SNMP agent, then traffic
-	   can enter and leave it from the same interface (think to a management
-	   interface). For this reason it is important to check the outIndex and
-	   increase its counters only if it is different from inIndex to avoid
-	   double counting. */
-
-	if (zflow->outIndex != zflow->inIndex)
-	  flow_interfaces_stats->incStats(now, unique_source_id, zflow->outIndex,
-					  flow->getStatsProtocol(),
-					  in_pkts, in_bytes, out_pkts, out_bytes);
-      }
-  }
-#endif
+    guessed_protocol.proto.app_protocol = ndpi_map_ndpi_id_to_user_proto_id(
+        get_ndpi_struct(), guessed_protocol.proto.app_protocol);
+    guessed_protocol.proto.master_protocol = ndpi_map_ndpi_id_to_user_proto_id(
+        get_ndpi_struct(), guessed_protocol.proto.master_protocol);
 
     flow->setFlowVerdict(zflow->getFlowVerdict());
     flow->setJSONInfo(zflow->getAdditionalFieldsJSON());
@@ -550,8 +531,9 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
       if (custom_app_stats ||
           (custom_app_stats = new (std::nothrow) CustomAppStats(this))) {
-        custom_app_stats->incStats(zflow->getCustomApp().remapped_app_id,
-				   zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
+        custom_app_stats->incStats(
+            zflow->getCustomApp().remapped_app_id,
+            zflow->pkt_sampling_rate * (zflow->in_bytes + zflow->out_bytes));
       }
     }
 #endif
@@ -565,9 +547,8 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
         /* If nprobe acts is in collector-passthrough mode L7_PROTO is not
            present, using the protocol guess on the ntopng side is desirable in
            this case */
-        ((zflow->l7_proto.proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
-	 && (zflow->l7_proto.proto.master_protocol == NDPI_PROTOCOL_UNKNOWN))
-	||
+        ((zflow->l7_proto.proto.app_protocol == NDPI_PROTOCOL_UNKNOWN) &&
+         (zflow->l7_proto.proto.master_protocol == NDPI_PROTOCOL_UNKNOWN)) ||
         /* If the protocol is greater than NDPI_MAX_SUPPORTED_PROTOCOLS, it
            means it is a custom protocol so the application protocol received
            from nprobe can be overridden */
@@ -598,8 +579,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     */
     if (zflow->getL7Info() && zflow->getL7Info()[0]) {
       if (flow->isDNS()) {
-        if (!zflow->getDNSQuery())
-          zflow->setDNSQuery(zflow->getL7Info());
+        if (!zflow->getDNSQuery()) zflow->setDNSQuery(zflow->getL7Info());
       } else if (flow->isHTTP()) {
         if (!zflow->getHTTPsite()) {
           zflow->setHTTPsite(zflow->getL7Info());
@@ -619,35 +599,35 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
     flow->setConfidence(zflow->getConfidence());
     flow->setNdpiConfidence(zflow->getConfidence());
 
-    if (flow->isDNS())  flow->updateDNS(zflow);
+    if (flow->isDNS()) flow->updateDNS(zflow);
     if (flow->isHTTP()) flow->updateHTTP(zflow);
-    if (flow->isTLS())  flow->updateTLS(zflow);
+    if (flow->isTLS()) flow->updateTLS(zflow);
 
     if (flow->isSMTP()) {
       if (zflow->getSMTPMailFrom())
         flow->setSMTPMailFrom(zflow->getSMTPMailFrom());
-      if (zflow->getSMTPRcptTo())
-        flow->setSMTPRcptTo(zflow->getSMTPRcptTo());
+      if (zflow->getSMTPRcptTo()) flow->setSMTPRcptTo(zflow->getSMTPRcptTo());
     }
 
     if (flow->isDHCP()) {
-      if(zflow->getDHCPClientName()) {
-	flow->setDHCPHostName(zflow->getDHCPClientName());
+      if (zflow->getDHCPClientName()) {
+        flow->setDHCPHostName(zflow->getDHCPClientName());
       }
     }
 
-    if (zflow->getRiskName())
-      flow->setFlowRiskName(zflow->getRiskName());
+    if (zflow->getRiskName()) flow->setFlowRiskName(zflow->getRiskName());
 
     if (zflow->getBittorrentHash())
       flow->setBTHash(zflow->getBittorrentHash(true));
 
-    if (zflow->vrfId)  flow->setVRFid(zflow->vrfId);
+    if (zflow->vrfId) flow->setVRFid(zflow->vrfId);
     if (zflow->src_as) flow->setSrcAS(zflow->src_as);
     if (zflow->dst_as) flow->setDstAS(zflow->dst_as);
 
-    if (zflow->prev_adjacent_as) flow->setPrevAdjacentAS(zflow->prev_adjacent_as);
-    if (zflow->next_adjacent_as) flow->setNextAdjacentAS(zflow->next_adjacent_as);
+    if (zflow->prev_adjacent_as)
+      flow->setPrevAdjacentAS(zflow->prev_adjacent_as);
+    if (zflow->next_adjacent_as)
+      flow->setNextAdjacentAS(zflow->next_adjacent_as);
 
     if (zflow->getJA4cHash()) flow->updateJA4C(zflow->getJA4cHash());
 
@@ -667,11 +647,13 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
       if ((o = json_tokener_parse_verbose(zflow->getRiskInfo(), &jerr)) !=
           NULL) {
         /* NOTE: keep in sync with  FlowRisk::ignoreRisk() */
-        if (json_object_object_get_ex(o, "6" /* NDPI_TLS_SELFSIGNED_CERTIFICATE */, &obj)) {
+        if (json_object_object_get_ex(
+                o, "6" /* NDPI_TLS_SELFSIGNED_CERTIFICATE */, &obj)) {
           const char *issuerDN = json_object_get_string(obj);
 
-          if(flow->isTLS()) flow->setTLSCertificateIssuerDN((char *)issuerDN);
-        } else if (json_object_object_get_ex(o, "16" /* NDPI_SUSPICIOUS_DGA_DOMAIN */, &obj)) {
+          if (flow->isTLS()) flow->setTLSCertificateIssuerDN((char *)issuerDN);
+        } else if (json_object_object_get_ex(
+                       o, "16" /* NDPI_SUSPICIOUS_DGA_DOMAIN */, &obj)) {
           const char *dgaDomain = json_object_get_string(obj);
 
           flow->setDGADomain((char *)dgaDomain);
@@ -683,13 +665,38 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 
     if (zflow->getExternalAlert()) {
       enum json_tokener_error jerr = json_tokener_success;
-      json_object *o = json_tokener_parse_verbose(zflow->getExternalAlert(), &jerr);
+      json_object *o =
+          json_tokener_parse_verbose(zflow->getExternalAlert(), &jerr);
 
       if (o) flow->setExternalAlert(o);
     }
 
     flow->updateSuspiciousDGADomain();
   }
+
+#ifdef NTOPNG_PRO
+  if (unique_source_id) {
+    if (!flow_interfaces_stats)
+      flow_interfaces_stats = new (std::nothrow) FlowInterfacesStats();
+
+    if (flow_interfaces_stats) {
+      flow_interfaces_stats->incStats(now, unique_source_id, zflow->inIndex,
+                                      flow->getStatsProtocol(), out_pkts,
+                                      out_bytes, in_pkts, in_bytes);
+
+      /* If the SNMP device is actually an host with an SNMP agent, then traffic
+         can enter and leave it from the same interface (think to a management
+         interface). For this reason it is important to check the outIndex and
+         increase its counters only if it is different from inIndex to avoid
+         double counting. */
+
+      if (zflow->outIndex != zflow->inIndex)
+        flow_interfaces_stats->incStats(now, unique_source_id, zflow->outIndex,
+                                        flow->getStatsProtocol(), in_pkts,
+                                        in_bytes, out_pkts, out_bytes);
+    }
+  }
+#endif
 
   /* Do not put incStats before guessing the flow protocol */
   u_int16_t eth_type = srcIP.isIPv4() ? ETHERTYPE_IP : ETHERTYPE_IPV6;
@@ -704,10 +711,11 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
 #ifdef DEBUG
   char a[32], b[32];
 
-  ntop->getTrace()->traceEvent(TRACE_WARNING, "Direction: %u [ntop: %s][%s -> %s]", zflow->direction,
-			       flow->isLocalToRemote() ? "L->R" : "R->L",
-			       flow->get_cli_ip_addr()->print(a, sizeof(a)),
-			       flow->get_srv_ip_addr()->print(b, sizeof(b)));
+  ntop->getTrace()->traceEvent(
+      TRACE_WARNING, "Direction: %u [ntop: %s][%s -> %s]", zflow->direction,
+      flow->isLocalToRemote() ? "L->R" : "R->L",
+      flow->get_cli_ip_addr()->print(a, sizeof(a)),
+      flow->get_srv_ip_addr()->print(b, sizeof(b)));
 #endif
 
   if (zflow->direction == UNKNOWN_FLOW_DIRECTION) {
@@ -720,21 +728,21 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if (zflow->direction == 0 /* RX */) {
     if (zflow->in_pkts)
       incStats(true /* Ingress */, now, eth_type, flow->getStatsProtocol(),
-               flow->get_protocol_category(), zflow->l4_proto,
-               in_bytes, in_pkts);
+               flow->get_protocol_category(), zflow->l4_proto, in_bytes,
+               in_pkts);
     if (zflow->out_pkts)
       incStats(false /* Egress */, now, eth_type, flow->getStatsProtocol(),
-               flow->get_protocol_category(), zflow->l4_proto,
-               out_bytes, out_pkts);
+               flow->get_protocol_category(), zflow->l4_proto, out_bytes,
+               out_pkts);
   } else { /* TX */
     if (zflow->out_bytes)
       incStats(true /* Ingress */, now, eth_type, flow->getStatsProtocol(),
-               flow->get_protocol_category(), zflow->l4_proto,
-               out_bytes, out_pkts);
+               flow->get_protocol_category(), zflow->l4_proto, out_bytes,
+               out_pkts);
     if (zflow->in_pkts)
       incStats(false /* Egress */, now, eth_type, flow->getStatsProtocol(),
-               flow->get_protocol_category(), zflow->l4_proto,
-               in_bytes, in_pkts);
+               flow->get_protocol_category(), zflow->l4_proto, in_bytes,
+               in_pkts);
   }
 
 #ifdef NTOPNG_PRO
@@ -746,7 +754,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
        || ntop->get_export_interface()
 #endif
 #endif
-       )) {
+           )) {
     /* Dump flow */
     flow->dump(zflow->last_switched, true /* last dump before free */);
   }
@@ -755,7 +763,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   /* purge is actually performed at most one time every FLOW_PURGE_FREQUENCY */
   // purgeIdle(zflow->last_switched);
 
-  return(true);
+  return (true);
 }
 
 /* **************************************************** */
@@ -887,9 +895,10 @@ void ParserInterface::reloadCompanions() {
             }
           }
         } else
-          ntop->getTrace()->traceEvent(TRACE_ERROR,
-				       "Too many companion interfaces defined [interface: %s]",
-				       get_name());
+          ntop->getTrace()->traceEvent(
+              TRACE_ERROR,
+              "Too many companion interfaces defined [interface: %s]",
+              get_name());
       }
 
       free(companions[i]);
@@ -917,9 +926,9 @@ void ParserInterface::deliverFlowToCompanions(ParsedFlow *const flow) {
 
       if (!cur_companion) continue;
 
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL,
-      //        "Trying to enqueue flow to companion interface [from: %s][to: %s]",
-      //        get_name(), cur_companion->get_name());
+      // ntop->getTrace()->traceEvent(TRACE_NORMAL,
+      //         "Trying to enqueue flow to companion interface [from: %s][to:
+      //         %s]", get_name(), cur_companion->get_name());
 
       if (cur_companion->isTrafficMirrored() ||
           !cur_companion->isPacketInterface()) {

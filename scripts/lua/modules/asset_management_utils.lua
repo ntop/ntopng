@@ -129,4 +129,125 @@ end
 
 -- ##############################################
 
+-- Return the lists of inactive hosts from the DB 
+function asset_management_utils.get_inactive_hosts(ifid, order, sort, start, length, filters)
+    if not ifid then
+        ifid = interface.getId()
+    end
+
+    if sort == "ip" and hasClickHouseSupport() then
+        sort = "IPv4StringToNum(ip)"
+    end
+    local where = ""
+    
+    for key, value in pairs(filters or {}) do
+        where = where .. "AND"
+        if tonumber(value) then
+            value = tonumber(value)
+        else
+            value = string.format("'%s'", value)
+        end
+        
+        where = string.format("%s %s=%s ", where, key, value)
+    end
+
+    if sort and order then
+        where = string.format("%s ORDER BY %s %s", where, sort, order)
+    end
+
+    if start and length then
+        where = string.format("%s LIMIT %s, %s", where, start, length)
+    end
+
+    local query = string.format("SELECT key, ip, mac, vlan, network, name, device_type, manufacturer, %s, %s " ..
+        "FROM %s WHERE type='%s' AND last_seen!=%d %s",
+        ternary(hasClickHouseSupport(), "toUnixTimestamp(last_seen) as last_seen", "last_seen"),
+        ternary(hasClickHouseSupport(), "toUnixTimestamp(first_seen) as first_seen", "first_seen"),
+        table_name,
+        "host", -- Only hosts here
+        0, -- 0 Because by default an host that is still in memory has a last_seen 0
+        where
+    )
+    local res = interface.alert_store_query(query)
+    return res
+end
+
+-- ##############################################
+
+-- Return the lists of inactive hosts from the DB 
+function asset_management_utils.get_total_inactive_hosts(ifid, filters)
+    if not ifid then
+        ifid = interface.getId()
+    end
+    local where = ""
+    
+    for key, value in pairs(filters) do
+        where = where .. "AND"
+        if tonumber(value) then
+            value = tonumber(value)
+        else
+            value = string.format("'%s'", value)
+        end
+        
+        where = string.format("%s %s=%s ", where, key, value)
+    end
+
+    local query = string.format("SELECT COUNT(*) as count " ..
+        "FROM %s WHERE type='%s' %s AND last_seen!=%d",
+        table_name,
+        "host", -- Only hosts here,
+        where,
+        0 -- 0 Because by default an host that is still in memory has a last_seen 0
+    )
+    local res = interface.alert_store_query(query)
+    return res
+end
+
+-- ##############################################
+
+-- Return the lists of inactive hosts from the DB 
+function asset_management_utils.get_filters(ifid)
+    if not ifid then
+        ifid = interface.getId()
+    end
+
+    local query = string.format("SELECT 'manufacturer' AS filter, manufacturer AS value, COUNT(*) AS count " ..
+        "FROM %s where type='host' GROUP BY manufacturer UNION ALL " ..
+        "SELECT 'device_type' AS filter, %s AS value, COUNT(*) AS count " ..
+        "FROM %s where type='host' GROUP BY device_type UNION ALL " ..
+        "SELECT 'vlan' AS filter, %s AS value, COUNT(*) AS count " ..
+        "FROM %s where type='host' GROUP BY vlan UNION ALL " ..
+        "SELECT 'network' AS filter, %s AS value, COUNT(*) AS count " ..
+        "FROM %s where type='host' GROUP BY network",
+        table_name,
+        ternary(hasClickHouseSupport(), "CAST(device_type, 'String')", "CAST(device_type AS CHAR)"),
+        table_name,
+        ternary(hasClickHouseSupport(), "CAST(vlan, 'String')", "CAST(vlan AS CHAR)"),
+        table_name,
+        ternary(hasClickHouseSupport(), "CAST(network, 'String')", "CAST(network AS CHAR)"),
+        table_name
+    )
+    local res = interface.alert_store_query(query)
+    return res
+end
+
+-- ##############################################
+
+-- Return the lists of inactive hosts from the DB 
+function asset_management_utils.get_inactive_host_info(ifid, key)
+    if isEmptyString(key) then
+        return nil
+    end
+    local query = string.format("SELECT key, ip, mac, vlan, network, name, device_type, manufacturer, %s , %s FROM %s WHERE key='%s'", 
+        ternary(hasClickHouseSupport(), "toUnixTimestamp(last_seen) as last_seen", "last_seen"),
+        ternary(hasClickHouseSupport(), "toUnixTimestamp(first_seen) as first_seen", "first_seen"),
+        table_name, 
+        key
+    )
+    local res = interface.alert_store_query(query)
+    return res
+end
+
+-- ##############################################
+
 return asset_management_utils

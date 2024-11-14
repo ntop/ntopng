@@ -28,11 +28,13 @@ class VLANAddressTree {
  protected:
   AddressTree **tree;
   ndpi_void_fn_t free_func;
-
+  u_int32_t num_addresses;
+  
  public:
   VLANAddressTree(ndpi_void_fn_t data_free_func = NULL);
   ~VLANAddressTree();
 
+  inline bool isEmpty() { return(num_addresses == 0); }
   bool addAddress(u_int16_t vlan_id, char *_net, const int16_t user_data = -1);
   bool addAddresses(u_int16_t vlan_id, char *net, const int16_t user_data = -1);
 

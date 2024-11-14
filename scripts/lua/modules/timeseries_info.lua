@@ -95,7 +95,7 @@ function timeseries_info.get_timeseries_color(subject)
         return series_extra_info[subject].color
     end
 
-    -- Safety check, if an improper value is given, 
+    -- Safety check, if an improper value is given,
     -- then return a default color
     return series_extra_info.default.color
 end
@@ -103,7 +103,7 @@ end
 -- #################################
 
 -- Timeseries list
-local community_timeseries = {{
+local community_timeseries = { {
     schema = "iface:traffic_rxtx",
     id = timeseries_id.iface,
     label = i18n("graphs.traffic_rxtx"),
@@ -595,27 +595,27 @@ local community_timeseries = {{
     },
     nedge_exclude = true
 }, -- host_details.lua (HOST): --
-{
-    schema = "host:traffic",
-    id = timeseries_id.host,
-    label = i18n("graphs.traffic_rxtx"),
-    priority = 0,
-    measure_unit = "bps",
-    scale = i18n('graphs.metric_labels.traffic'),
-    timeseries = {
-        bytes_sent = {
-            label = i18n('graphs.metric_labels.sent'),
-            color = timeseries_info.get_timeseries_color('bytes_sent')
+    {
+        schema = "host:traffic",
+        id = timeseries_id.host,
+        label = i18n("graphs.traffic_rxtx"),
+        priority = 0,
+        measure_unit = "bps",
+        scale = i18n('graphs.metric_labels.traffic'),
+        timeseries = {
+            bytes_sent = {
+                label = i18n('graphs.metric_labels.sent'),
+                color = timeseries_info.get_timeseries_color('bytes_sent')
+            },
+            bytes_rcvd = {
+                invert_direction = true,
+                label = i18n('graphs.metric_labels.rcvd'),
+                color = timeseries_info.get_timeseries_color('bytes_rcvd')
+            }
         },
-        bytes_rcvd = {
-            invert_direction = true,
-            label = i18n('graphs.metric_labels.rcvd'),
-            color = timeseries_info.get_timeseries_color('bytes_rcvd')
-        }
-    },
-    always_visibile = true,
-    default_visible = true
-}, {
+        always_visibile = true,
+        default_visible = true
+    }, {
     schema = "host:score",
     id = timeseries_id.host,
     label = i18n("graphs.score"),
@@ -1005,50 +1005,50 @@ local community_timeseries = {{
         }
     }
 }, -- mac_details.lua (MAC): --
-{
-    schema = "mac:traffic",
-    id = timeseries_id.mac,
-    label = i18n("graphs.traffic_rxtx"),
-    priority = 0,
-    measure_unit = "bps",
-    scale = i18n('graphs.metric_labels.traffic'),
-    timeseries = {
-        bytes_sent = {
-            label = i18n('graphs.metric_labels.sent'),
-            color = timeseries_info.get_timeseries_color('bytes_sent')
+    {
+        schema = "mac:traffic",
+        id = timeseries_id.mac,
+        label = i18n("graphs.traffic_rxtx"),
+        priority = 0,
+        measure_unit = "bps",
+        scale = i18n('graphs.metric_labels.traffic'),
+        timeseries = {
+            bytes_sent = {
+                label = i18n('graphs.metric_labels.sent'),
+                color = timeseries_info.get_timeseries_color('bytes_sent')
+            },
+            bytes_rcvd = {
+                invert_direction = true,
+                label = i18n('graphs.metric_labels.rcvd'),
+                color = timeseries_info.get_timeseries_color('bytes_rcvd')
+            }
         },
-        bytes_rcvd = {
-            invert_direction = true,
-            label = i18n('graphs.metric_labels.rcvd'),
-            color = timeseries_info.get_timeseries_color('bytes_rcvd')
-        }
-    },
-    always_visibile = true,
-    default_visible = true
-}, -- network_details.lua (SUBNET): --
-{
-    schema = "subnet:traffic",
-    id = timeseries_id.network,
-    label = i18n("graphs.traffic"),
-    measure_unit = "bps",
-    scale = i18n('graphs.metric_labels.traffic'),
-    timeseries = {
-        bytes_egress = {
-            label = i18n('graphs.metrics_suffixes.egress'),
-            color = timeseries_info.get_timeseries_color('bytes')
+        always_visibile = true,
+        default_visible = true
+    }, -- network_details.lua (SUBNET): --
+    {
+        schema = "subnet:traffic",
+        id = timeseries_id.network,
+        label = i18n("graphs.traffic"),
+        measure_unit = "bps",
+        scale = i18n('graphs.metric_labels.traffic'),
+        timeseries = {
+            bytes_egress = {
+                label = i18n('graphs.metrics_suffixes.egress'),
+                color = timeseries_info.get_timeseries_color('bytes')
+            },
+            bytes_ingress = {
+                label = i18n('graphs.metrics_suffixes.ingress'),
+                color = timeseries_info.get_timeseries_color('bytes')
+            },
+            bytes_inner = {
+                label = i18n('graphs.metrics_suffixes.inner'),
+                color = timeseries_info.get_timeseries_color('bytes')
+            }
         },
-        bytes_ingress = {
-            label = i18n('graphs.metrics_suffixes.ingress'),
-            color = timeseries_info.get_timeseries_color('bytes')
-        },
-        bytes_inner = {
-            label = i18n('graphs.metrics_suffixes.inner'),
-            color = timeseries_info.get_timeseries_color('bytes')
-        }
-    },
-    always_visibile = true,
-    default_visible = true
-}, {
+        always_visibile = true,
+        default_visible = true
+    }, {
     schema = "subnet:broadcast_traffic",
     id = timeseries_id.network,
     label = i18n("broadcast_traffic"),
@@ -1185,27 +1185,27 @@ local community_timeseries = {{
     },
     nedge_exclude = true
 }, -- as_details.lua (ASN): --
-{
-    schema = "asn:traffic",
-    id = timeseries_id.asn,
-    label = i18n("graphs.traffic_rxtx"),
-    priority = 0,
-    measure_unit = "bps",
-    scale = i18n('graphs.metric_labels.traffic'),
-    timeseries = {
-        bytes_sent = {
-            label = i18n('graphs.metric_labels.sent'),
-            color = timeseries_info.get_timeseries_color('bytes_sent')
+    {
+        schema = "asn:traffic",
+        id = timeseries_id.asn,
+        label = i18n("graphs.traffic_rxtx"),
+        priority = 0,
+        measure_unit = "bps",
+        scale = i18n('graphs.metric_labels.traffic'),
+        timeseries = {
+            bytes_sent = {
+                label = i18n('graphs.metric_labels.sent'),
+                color = timeseries_info.get_timeseries_color('bytes_sent')
+            },
+            bytes_rcvd = {
+                invert_direction = true,
+                label = i18n('graphs.metric_labels.rcvd'),
+                color = timeseries_info.get_timeseries_color('bytes_rcvd')
+            }
         },
-        bytes_rcvd = {
-            invert_direction = true,
-            label = i18n('graphs.metric_labels.rcvd'),
-            color = timeseries_info.get_timeseries_color('bytes_rcvd')
-        }
-    },
-    always_visibile = true,
-    default_visible = true
-}, {
+        always_visibile = true,
+        default_visible = true
+    }, {
     schema = "asn:rtt",
     id = timeseries_id.asn,
     label = i18n("graphs.rtt"),
@@ -1341,30 +1341,30 @@ local community_timeseries = {{
     },
     nedge_exclude = true
 }, -- country_details.lua (Country): --
-{
-    schema = "country:traffic",
-    id = timeseries_id.country,
-    label = i18n("graphs.traffic"),
-    priority = 0,
-    measure_unit = "bps",
-    scale = i18n('graphs.metric_labels.traffic'),
-    timeseries = {
-        bytes_egress = {
-            label = i18n('graphs.metrics_suffixes.egress'),
-            color = timeseries_info.get_timeseries_color('bytes')
+    {
+        schema = "country:traffic",
+        id = timeseries_id.country,
+        label = i18n("graphs.traffic"),
+        priority = 0,
+        measure_unit = "bps",
+        scale = i18n('graphs.metric_labels.traffic'),
+        timeseries = {
+            bytes_egress = {
+                label = i18n('graphs.metrics_suffixes.egress'),
+                color = timeseries_info.get_timeseries_color('bytes')
+            },
+            bytes_ingress = {
+                label = i18n('graphs.metrics_suffixes.ingress'),
+                color = timeseries_info.get_timeseries_color('bytes')
+            },
+            bytes_inner = {
+                label = i18n('graphs.metrics_suffixes.inner'),
+                color = timeseries_info.get_timeseries_color('bytes')
+            }
         },
-        bytes_ingress = {
-            label = i18n('graphs.metrics_suffixes.ingress'),
-            color = timeseries_info.get_timeseries_color('bytes')
-        },
-        bytes_inner = {
-            label = i18n('graphs.metrics_suffixes.inner'),
-            color = timeseries_info.get_timeseries_color('bytes')
-        }
-    },
-    always_visibile = true,
-    default_visible = true
-}, {
+        always_visibile = true,
+        default_visible = true
+    }, {
     schema = "country:score",
     id = timeseries_id.country,
     label = i18n("score"),
@@ -1383,47 +1383,47 @@ local community_timeseries = {{
         }
     }
 }, -- os_details.lua (Operating System): --
-{
-    schema = "os:traffic",
-    id = timeseries_id.os,
-    label = i18n("graphs.traffic_rxtx"),
-    priority = 0,
-    measure_unit = "bps",
-    scale = i18n('graphs.metric_labels.traffic'),
-    timeseries = {
-        bytes_egress = {
-            label = i18n('graphs.metrics_suffixes.egress'),
-            color = timeseries_info.get_timeseries_color('bytes_sent')
+    {
+        schema = "os:traffic",
+        id = timeseries_id.os,
+        label = i18n("graphs.traffic_rxtx"),
+        priority = 0,
+        measure_unit = "bps",
+        scale = i18n('graphs.metric_labels.traffic'),
+        timeseries = {
+            bytes_egress = {
+                label = i18n('graphs.metrics_suffixes.egress'),
+                color = timeseries_info.get_timeseries_color('bytes_sent')
+            },
+            bytes_ingress = {
+                label = i18n('graphs.metrics_suffixes.ingress'),
+                color = timeseries_info.get_timeseries_color('bytes_rcvd')
+            }
         },
-        bytes_ingress = {
-            label = i18n('graphs.metrics_suffixes.ingress'),
-            color = timeseries_info.get_timeseries_color('bytes_rcvd')
-        }
-    },
-    always_visibile = true,
-    default_visible = true
-}, -- vlan_details.lua (VLAN): --
-{
-    schema = "vlan:traffic",
-    id = timeseries_id.vlan,
-    label = i18n("graphs.traffic_rxtx"),
-    priority = 0,
-    measure_unit = "bps",
-    scale = i18n('graphs.metric_labels.traffic'),
-    timeseries = {
-        bytes_sent = {
-            label = i18n('graphs.metric_labels.sent'),
-            color = timeseries_info.get_timeseries_color('bytes_sent')
+        always_visibile = true,
+        default_visible = true
+    }, -- vlan_details.lua (VLAN): --
+    {
+        schema = "vlan:traffic",
+        id = timeseries_id.vlan,
+        label = i18n("graphs.traffic_rxtx"),
+        priority = 0,
+        measure_unit = "bps",
+        scale = i18n('graphs.metric_labels.traffic'),
+        timeseries = {
+            bytes_sent = {
+                label = i18n('graphs.metric_labels.sent'),
+                color = timeseries_info.get_timeseries_color('bytes_sent')
+            },
+            bytes_rcvd = {
+                invert_direction = true,
+                label = i18n('graphs.metric_labels.rcvd'),
+                color = timeseries_info.get_timeseries_color('bytes_rcvd')
+            }
         },
-        bytes_rcvd = {
-            invert_direction = true,
-            label = i18n('graphs.metric_labels.rcvd'),
-            color = timeseries_info.get_timeseries_color('bytes_rcvd')
-        }
-    },
-    always_visibile = true,
-    default_visible = true
-}, {
+        always_visibile = true,
+        default_visible = true
+    }, {
     schema = "vlan:score",
     id = timeseries_id.vlan,
     label = i18n("score"),
@@ -1442,27 +1442,27 @@ local community_timeseries = {{
         }
     }
 }, -- pool_details.lua (Host Pool): --
-{
-    schema = "host_pool:traffic",
-    id = timeseries_id.host_pool,
-    label = i18n("graphs.traffic_rxtx"),
-    priority = 0,
-    measure_unit = "bps",
-    scale = i18n('graphs.metric_labels.traffic'),
-    timeseries = {
-        bytes_sent = {
-            label = i18n('graphs.metric_labels.sent'),
-            color = timeseries_info.get_timeseries_color('bytes_sent')
+    {
+        schema = "host_pool:traffic",
+        id = timeseries_id.host_pool,
+        label = i18n("graphs.traffic_rxtx"),
+        priority = 0,
+        measure_unit = "bps",
+        scale = i18n('graphs.metric_labels.traffic'),
+        timeseries = {
+            bytes_sent = {
+                label = i18n('graphs.metric_labels.sent'),
+                color = timeseries_info.get_timeseries_color('bytes_sent')
+            },
+            bytes_rcvd = {
+                invert_direction = true,
+                label = i18n('graphs.metric_labels.rcvd'),
+                color = timeseries_info.get_timeseries_color('bytes_rcvd')
+            }
         },
-        bytes_rcvd = {
-            invert_direction = true,
-            label = i18n('graphs.metric_labels.rcvd'),
-            color = timeseries_info.get_timeseries_color('bytes_rcvd')
-        }
-    },
-    always_visibile = true,
-    default_visible = true
-}, {
+        always_visibile = true,
+        default_visible = true
+    }, {
     schema = "host_pool:blocked_flows",
     id = timeseries_id.host_pool,
     label = i18n("graphs.blocked_flows"),
@@ -1502,26 +1502,26 @@ local community_timeseries = {{
         }
     }
 }, -- pod_details.lua (Pod): --
-{
-    schema = "pod:num_flows",
-    id = timeseries_id.pod,
-    label = i18n("graphs.active_flows"),
-    priority = 0,
-    measure_unit = "fps",
-    scale = i18n('graphs.metric_labels.flows'),
-    timeseries = {
-        as_client = {
-            label = i18n('graphs.flows_as_client'),
-            color = timeseries_info.get_timeseries_color('flows')
+    {
+        schema = "pod:num_flows",
+        id = timeseries_id.pod,
+        label = i18n("graphs.active_flows"),
+        priority = 0,
+        measure_unit = "fps",
+        scale = i18n('graphs.metric_labels.flows'),
+        timeseries = {
+            as_client = {
+                label = i18n('graphs.flows_as_client'),
+                color = timeseries_info.get_timeseries_color('flows')
+            },
+            as_server = {
+                label = i18n('graphs.flows_as_server'),
+                color = timeseries_info.get_timeseries_color('bytes_rcvd')
+            }
         },
-        as_server = {
-            label = i18n('graphs.flows_as_server'),
-            color = timeseries_info.get_timeseries_color('bytes_rcvd')
-        }
-    },
-    always_visibile = true,
-    default_visible = true
-}, {
+        always_visibile = true,
+        default_visible = true
+    }, {
     schema = "pod:num_containers",
     id = timeseries_id.pod,
     label = i18n("containers_stats.containers"),
@@ -1569,26 +1569,26 @@ local community_timeseries = {{
         }
     }
 }, -- container_details.lua (Container): --
-{
-    schema = "container:num_flows",
-    id = timeseries_id.container,
-    label = i18n("graphs.active_flows"),
-    priority = 0,
-    measure_unit = "fps",
-    scale = i18n('graphs.metric_labels.flows'),
-    timeseries = {
-        as_client = {
-            label = i18n('graphs.flows_as_client'),
-            color = timeseries_info.get_timeseries_color('flows')
+    {
+        schema = "container:num_flows",
+        id = timeseries_id.container,
+        label = i18n("graphs.active_flows"),
+        priority = 0,
+        measure_unit = "fps",
+        scale = i18n('graphs.metric_labels.flows'),
+        timeseries = {
+            as_client = {
+                label = i18n('graphs.flows_as_client'),
+                color = timeseries_info.get_timeseries_color('flows')
+            },
+            as_server = {
+                label = i18n('graphs.flows_as_server'),
+                color = timeseries_info.get_timeseries_color('bytes_rcvd')
+            }
         },
-        as_server = {
-            label = i18n('graphs.flows_as_server'),
-            color = timeseries_info.get_timeseries_color('bytes_rcvd')
-        }
-    },
-    always_visibile = true,
-    default_visible = true
-}, {
+        always_visibile = true,
+        default_visible = true
+    }, {
     schema = "container:rtt",
     id = timeseries_id.container,
     label = i18n("containers_stats.avg_rtt"),
@@ -1623,28 +1623,28 @@ local community_timeseries = {{
         }
     }
 }, -- hash_table_details.lua (Hash Table): --
-{
-    schema = "ht:state",
-    id = timeseries_id.hash_state,
-    label = i18n("about.cpu_load"),
-    priority = 0,
-    measure_unit = "number",
-    chart_type = "bar",
-    ts_query = "CountriesHash",
-    scale = i18n('graphs.metric_labels.hash_entries'),
-    timeseries = {
-        num_idle = {
-            label = i18n('graphs.metric_labels.num_idle'),
-            color = timeseries_info.get_timeseries_color('default')
+    {
+        schema = "ht:state",
+        id = timeseries_id.hash_state,
+        label = i18n("about.cpu_load"),
+        priority = 0,
+        measure_unit = "number",
+        chart_type = "bar",
+        ts_query = "CountriesHash",
+        scale = i18n('graphs.metric_labels.hash_entries'),
+        timeseries = {
+            num_idle = {
+                label = i18n('graphs.metric_labels.num_idle'),
+                color = timeseries_info.get_timeseries_color('default')
+            },
+            num_active = {
+                label = i18n('graphs.metric_labels.num_active'),
+                color = timeseries_info.get_timeseries_color('default')
+            }
         },
-        num_active = {
-            label = i18n('graphs.metric_labels.num_active'),
-            color = timeseries_info.get_timeseries_color('default')
-        }
-    },
-    always_visibile = true,
-    default_visible = true
-}, {
+        always_visibile = true,
+        default_visible = true
+    }, {
     schema = "ht:state",
     id = timeseries_id.hash_state,
     label = i18n("hash_table.HostHash"),
@@ -1759,33 +1759,33 @@ local community_timeseries = {{
     },
     default_visible = true
 }, -- system_stats.lua (System Stats): --
-{
-    schema = "system:cpu_states",
-    id = timeseries_id.system,
-    label = i18n("about.cpu_load"),
-    priority = 0,
-    measure_unit = "percentage",
-    chart_type = "bar",
-    scale = i18n('graphs.metric_labels.load'),
-    timeseries = {
-        iowait_pct = {
-            label = i18n('about.iowait'),
-            color = timeseries_info.get_timeseries_color('default')
+    {
+        schema = "system:cpu_states",
+        id = timeseries_id.system,
+        label = i18n("about.cpu_load"),
+        priority = 0,
+        measure_unit = "percentage",
+        chart_type = "bar",
+        scale = i18n('graphs.metric_labels.load'),
+        timeseries = {
+            iowait_pct = {
+                label = i18n('about.iowait'),
+                color = timeseries_info.get_timeseries_color('default')
+            },
+            idle_pct = {
+                label = i18n('about.idle'),
+                color = timeseries_info.get_timeseries_color('default'),
+                hidden = true
+            },
+            active_pct = {
+                label = i18n('about.active'),
+                color = timeseries_info.get_timeseries_color('default')
+            }
         },
-        idle_pct = {
-            label = i18n('about.idle'),
-            color = timeseries_info.get_timeseries_color('default'),
-            hidden = true
-        },
-        active_pct = {
-            label = i18n('about.active'),
-            color = timeseries_info.get_timeseries_color('default')
-        }
-    },
-    always_visibile = true,
-    default_visible = true,
-    draw_stacked = true
-}, {
+        always_visibile = true,
+        default_visible = true,
+        draw_stacked = true
+    }, {
     schema = "process:resident_memory",
     id = timeseries_id.system,
     label = i18n("graphs.process_memory"),
@@ -1821,25 +1821,25 @@ local community_timeseries = {{
         }
     }
 },
--- { schema = "iface:engaged_alerts",          id = timeseries_id.system, label = i18n("graphs.engaged_alerts"),            priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.alerts'), timeseries = { engaged_alerts     = { label = i18n('graphs.engaged_alerts'),            color = timeseries_info.get_timeseries_color('alerts') }}},
--- { schema = "iface:dropped_alerts",          id = timeseries_id.system, label = i18n("graphs.dropped_alerts"),            priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.alerts'), timeseries = { dropped_alerts     = { label = i18n('graphs.dropped_alerts'),            color = timeseries_info.get_timeseries_color('alerts') }}},
+    -- { schema = "iface:engaged_alerts",          id = timeseries_id.system, label = i18n("graphs.engaged_alerts"),            priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.alerts'), timeseries = { engaged_alerts     = { label = i18n('graphs.engaged_alerts'),            color = timeseries_info.get_timeseries_color('alerts') }}},
+    -- { schema = "iface:dropped_alerts",          id = timeseries_id.system, label = i18n("graphs.dropped_alerts"),            priority = 0, measure_unit = "number", scale = i18n('graphs.metric_labels.alerts'), timeseries = { dropped_alerts     = { label = i18n('graphs.dropped_alerts'),            color = timeseries_info.get_timeseries_color('alerts') }}},
 
--- profile_details.lua (Profile): --
-                              {
-    schema = "profile:traffic",
-    id = timeseries_id.profile,
-    label = i18n("graphs.traffic"),
-    priority = 0,
-    measure_unit = "bps",
-    scale = i18n('graphs.metric_labels.traffic'),
-    timeseries = {
-        bytes = {
-            label = i18n('graphs.metric_labels.bytes'),
-            color = timeseries_info.get_timeseries_color('bytes')
-        }
-    },
-    always_visibile = true
-}, {
+    -- profile_details.lua (Profile): --
+    {
+        schema = "profile:traffic",
+        id = timeseries_id.profile,
+        label = i18n("graphs.traffic"),
+        priority = 0,
+        measure_unit = "bps",
+        scale = i18n('graphs.metric_labels.traffic'),
+        timeseries = {
+            bytes = {
+                label = i18n('graphs.metric_labels.bytes'),
+                color = timeseries_info.get_timeseries_color('bytes')
+            }
+        },
+        always_visibile = true
+    }, {
     schema = "redis:memory",
     id = timeseries_id.redis,
     label = i18n("about.ram_memory"),
@@ -1867,21 +1867,21 @@ local community_timeseries = {{
         }
     }
 }, -- influxdb_monitor.lua (Influx DB): --
-{
-    schema = "influxdb:storage_size",
-    id = timeseries_id.influxdb,
-    label = i18n("traffic_recording.storage_utilization"),
-    priority = 0,
-    measure_unit = "bytes",
-    scale = i18n('graphs.metric_labels.bytes'),
-    timeseries = {
-        disk_bytes = {
-            label = i18n('graphs.metric_labels.bytes'),
-            color = timeseries_info.get_timeseries_color('bytes')
-        }
-    },
-    always_visibile = true
-}, {
+    {
+        schema = "influxdb:storage_size",
+        id = timeseries_id.influxdb,
+        label = i18n("traffic_recording.storage_utilization"),
+        priority = 0,
+        measure_unit = "bytes",
+        scale = i18n('graphs.metric_labels.bytes'),
+        timeseries = {
+            disk_bytes = {
+                label = i18n('graphs.metric_labels.bytes'),
+                color = timeseries_info.get_timeseries_color('bytes')
+            }
+        },
+        always_visibile = true
+    }, {
     schema = "influxdb:memory_size",
     id = timeseries_id.influxdb,
     label = i18n("about.ram_memory"),
@@ -1959,7 +1959,7 @@ local community_timeseries = {{
             color = timeseries_info.get_timeseries_color('default')
         }
     }
-}}
+} }
 
 -- #################################
 
@@ -2106,9 +2106,9 @@ local function add_top_blacklist_hits_timeseries(tags, timeseries)
     local series = ts_utils.listSeries("blacklist:hits", table.clone(tags), tags.epoch_begin) or {}
     local tmp_tags = table.clone(tags)
 
---    if table.empty(series) then
---        return;
---    end
+    --    if table.empty(series) then
+    --        return;
+    --    end
     for _, serie in pairs(series or {}) do
         tmp_tags.blacklist_name = serie.blacklist_name
         timeseries[#timeseries + 1] = {
@@ -2371,9 +2371,9 @@ local function add_top_host_timeseries(tags, timeseries)
     local host_ts_creation = ntop.getPref("ntopng.prefs.hosts_ts_creation")
     local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
     local has_top_protocols = (host_ts_enabled == "both" or host_ts_enabled == "per_protocol") and
-                                  (host_ts_creation == "full")
+        (host_ts_creation == "full")
     local has_top_categories = (host_ts_enabled == "both" or host_ts_enabled == "per_category") and
-                                   (host_ts_creation == "full")
+        (host_ts_creation == "full")
 
     -- L4 Protocols
     if host_ts_creation == "full" then
@@ -2501,7 +2501,7 @@ end
 local function add_top_interface_timeseries(tags, timeseries)
     local interface_ts_enabled = ntop.getCache("ntopng.prefs.interface_ndpi_timeseries_creation")
     local has_top_protocols = interface_ts_enabled == "both" or interface_ts_enabled == "per_protocol" or
-                                  interface_ts_enabled ~= "0"
+        interface_ts_enabled ~= "0"
     local has_top_categories = interface_ts_enabled == "both" or interface_ts_enabled == "per_category"
 
     -- Top Traffic Profiles
@@ -2732,7 +2732,7 @@ local function add_flowdev_interfaces_timeseries(tags, timeseries)
             always_visibile = true
         }
     end
-    
+
     local ports_table = interface.getFlowDeviceInfoByIP(tags.device) or {}
     for _, ports in pairs(ports_table) do
         for port_idx, _ in pairs(ports) do
@@ -2773,7 +2773,7 @@ local function add_snmp_interfaces_timeseries(tags, timeseries)
 
     local cached_device = snmp_cached_dev:get_interfaces(tags.device)
 
-    local snmp_dev_ts = {{
+    local snmp_dev_ts = { {
         schema = "snmp_dev:cpu_states",
         id = timeseries_id.snmp_device,
         label = i18n("about.cpu_load"),
@@ -2833,7 +2833,7 @@ local function add_snmp_interfaces_timeseries(tags, timeseries)
                 color = timeseries_info.get_timeseries_color('default')
             }
         }
-    }}
+    } }
 
     for _, timeserie in pairs(snmp_dev_ts) do
         if table.len(ts_utils.listSeries(timeserie.schema, table.clone(tags), os.time() - 1800) or {}) > 0 then
@@ -2933,84 +2933,100 @@ end
 -- #################################
 
 local function add_top_flow_port_timeseries(tags, timeseries)
-    local add_standard_traffic = true
-    local top_protocols_pref = ntop.getPref("ntopng.prefs.interface_ndpi_timeseries_creation")
+    local tmp_tags = table.clone(tags)
+    local ts_suffix = "" -- this is used just for influxdb
+    if highExporterTimeseriesResolution() and ts_utils.getDriverName() == "influxdb" then
+        ts_suffix = "_min"
+    end
+    local series = ts_utils.listSeries("flowdev_port:ndpi" .. ts_suffix, table.clone(tags), tags.epoch_begin) or {}
+    if not table.empty(series) then
+        timeseries[#timeseries + 1] = {
+            schema = "top:flowdev_port:ndpi" .. ts_suffix,
+            chart_type = "line",
+            id = timeseries_id.snmp_device,
+            label = i18n("db_search.top_l7proto"),
+            draw_stacked = true,
+            priority = 2,
+            type = "top",
+            measure_unit = "bps",
+            scale = i18n("graphs.metric_labels.traffic"),
+            timeseries = {
+                bytes = {
+                    label = i18n('graphs.metric_labels.traffic'),
+                    draw_type = "line",
+                    color = timeseries_info.get_timeseries_color('bytes')
+                }
+            },
+        }
 
-    -- Top l7 Protocols
-    if top_protocols_pref == 'both' or top_protocols_pref == 'per_protocol' then
-        local series = ts_utils.listSeries("flowdev_port:ndpi", table.clone(tags), tags.epoch_begin) or {}
-        local tmp_tags = table.clone(tags)
-
-        if not table.empty(series) then
-            for _, serie in pairs(series or {}) do
-                local tot = 0
-                tmp_tags.protocol = serie.protocol
-                local tot_serie = ts_utils.queryTotal("flowdev_port:ndpi", tags.epoch_begin, tags.epoch_end, tmp_tags)
-                -- Remove serie with no data
-                for _, value in pairs(tot_serie or {}) do
-                    tot = tot + tonumber(value)
-                end
-
-                if (tot > 0) then
-                    timeseries[#timeseries + 1] = {
-                        schema = "top:flowdev_port:ndpi",
-                        group = i18n("graphs.l7_proto"),
-                        priority = 2,
-                        query = "protocol:" .. serie.protocol,
-                        label = serie.protocol,
-                        measure_unit = "bps",
-                        scale = i18n("graphs.metric_labels.traffic"),
-                        timeseries = {
-                            bytes_sent = {
-                                label = serie.protocol .. " " .. i18n('graphs.metric_labels.sent'),
-                                color = timeseries_info.get_timeseries_color('bytes')
-                            },
-                            bytes_rcvd = {
-                                label = serie.protocol .. " " .. i18n('graphs.metric_labels.rcvd'),
-                                color = timeseries_info.get_timeseries_color('bytes')
-                            }
-                        }
-                    }
-                end
-            end
-        end
-
-        if ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1" then
-            tmp_tags.if_index = tags.port
-            tmp_tags.ifid = getSystemInterfaceId()
-            tmp_tags.port = nil
-            tmp_tags.protocol = nil
+        for _, serie in pairs(series or {}) do
             local tot = 0
-            local tot_serie = ts_utils.queryTotal("snmp_if:traffic_min", tags.epoch_begin, tags.epoch_end, tmp_tags)
+            tmp_tags.protocol = serie.protocol
+            local tot_serie = ts_utils.queryTotal("flowdev_port:ndpi" .. ts_suffix, tags.epoch_begin, tags.epoch_end, tmp_tags)
+            -- Remove serie with no data
             for _, value in pairs(tot_serie or {}) do
                 tot = tot + tonumber(value)
             end
 
             if (tot > 0) then
-                add_standard_traffic = false
-                -- Add this unique serie if snmp timeseries are enabled
                 timeseries[#timeseries + 1] = {
-                    schema = "snmp_if:traffic_min",
-                    id = timeseries_id.flow_port,
-                    label = i18n("graphs.traffic_rxtx_snmp_min"), -- i18n("graphs.traffic_rxtx")
+                    schema = "top:flowdev_port:ndpi" .. ts_suffix,
+                    group = i18n("graphs.l7_proto"),
                     priority = 2,
+                    query = "protocol:" .. serie.protocol,
+                    label = serie.protocol,
                     measure_unit = "bps",
                     scale = i18n("graphs.metric_labels.traffic"),
                     timeseries = {
                         bytes_sent = {
-                            label = i18n('graphs.metric_labels.out_bytes'),
-                            color = timeseries_info.get_timeseries_color('bytes_sent')
+                            label = serie.protocol .. " " .. i18n('graphs.metric_labels.sent'),
+                            color = timeseries_info.get_timeseries_color('bytes')
                         },
                         bytes_rcvd = {
-                            invert_direction = true,
-                            label = i18n('graphs.metric_labels.in_bytes'),
-                            color = timeseries_info.get_timeseries_color('bytes_rcvd')
+                            label = serie.protocol .. " " .. i18n('graphs.metric_labels.rcvd'),
+                            color = timeseries_info.get_timeseries_color('bytes')
                         }
-                    },
-                    always_visibile = true,
-                    default_visible = true
+                    }
                 }
             end
+        end
+    end
+
+    if ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1" then
+        tmp_tags.if_index = tags.port
+        tmp_tags.ifid = getSystemInterfaceId()
+        tmp_tags.port = nil
+        tmp_tags.protocol = nil
+        local tot = 0
+        local tot_serie = ts_utils.queryTotal("snmp_if:traffic_min", tags.epoch_begin, tags.epoch_end, tmp_tags)
+        for _, value in pairs(tot_serie or {}) do
+            tot = tot + tonumber(value)
+        end
+
+        if (tot > 0) then
+            add_standard_traffic = false
+            -- Add this unique serie if snmp timeseries are enabled
+            timeseries[#timeseries + 1] = {
+                schema = "snmp_if:traffic_min",
+                id = timeseries_id.flow_port,
+                label = i18n("graphs.traffic_rxtx_snmp_min"), -- i18n("graphs.traffic_rxtx")
+                priority = 2,
+                measure_unit = "bps",
+                scale = i18n("graphs.metric_labels.traffic"),
+                timeseries = {
+                    bytes_sent = {
+                        label = i18n('graphs.metric_labels.out_bytes'),
+                        color = timeseries_info.get_timeseries_color('bytes_sent')
+                    },
+                    bytes_rcvd = {
+                        invert_direction = true,
+                        label = i18n('graphs.metric_labels.in_bytes'),
+                        color = timeseries_info.get_timeseries_color('bytes_rcvd')
+                    }
+                },
+                always_visibile = true,
+                default_visible = true
+            }
         end
     end
 
@@ -3113,34 +3129,34 @@ function timeseries_info.get_host_rules_schema(rule_type)
     if rule_type == "host" then
         local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
         local has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~=
-                                      "0"
+            "0"
         local has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
 
-        local metric_list = {{
+        local metric_list = { {
             title = i18n('graphs.traffic_rxtx'),
             group = i18n('generic_data'),
             label = i18n('graphs.traffic_rxtx'),
-            id = 'host:traffic' --[[ here the ID is the schema ]] ,
+            id = 'host:traffic' --[[ here the ID is the schema ]],
             show_volume = true
         }, {
             title = i18n('graphs.traffic_rcvd'),
             group = i18n('generic_data'),
             label = i18n('graphs.traffic_rcvd'),
-            id = 'host:traffic-RX' --[[ here the ID is the schema ]] ,
+            id = 'host:traffic-RX' --[[ here the ID is the schema ]],
             show_volume = true
         }, {
             title = i18n('graphs.traffic_sent'),
             group = i18n('generic_data'),
             label = i18n('graphs.traffic_sent'),
-            id = 'host:traffic-TX' --[[ here the ID is the schema ]] ,
+            id = 'host:traffic-TX' --[[ here the ID is the schema ]],
             show_volume = true
         }, {
             title = i18n('score'),
             group = i18n('generic_data'),
             label = i18n('score'),
-            id = 'host:score' --[[ here the ID is the schema ]] ,
+            id = 'host:score' --[[ here the ID is the schema ]],
             show_volume = false
-        }}
+        } }
 
         if has_top_protocols then
             local application_list = interface.getnDPIProtocols()
@@ -3150,7 +3166,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
                     group = i18n('applications_long'),
                     title = application,
                     id = 'top:host:ndpi',
-                    extra_metric = 'protocol:' .. application --[[ here the schema is the ID ]] ,
+                    extra_metric = 'protocol:' .. application --[[ here the schema is the ID ]],
                     show_volume = true
                 }
             end
@@ -3164,7 +3180,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
                     group = i18n('categories'),
                     title = category,
                     id = 'top:host:ndpi_categories',
-                    extra_metric = 'category:' .. category --[[ here the schema is the ID ]] ,
+                    extra_metric = 'category:' .. category --[[ here the schema is the ID ]],
                     show_volume = true
                 }
             end
@@ -3174,34 +3190,34 @@ function timeseries_info.get_host_rules_schema(rule_type)
     elseif rule_type == "interface" then
         local ifname_ts_enabled = ntop.getCache("ntopng.prefs.ifname_ndpi_timeseries_creation")
         local has_top_protocols = ifname_ts_enabled == "both" or ifname_ts_enabled == "per_protocol" or
-                                      ifname_ts_enabled ~= "0"
+            ifname_ts_enabled ~= "0"
         local has_top_categories = ifname_ts_enabled == "both" or ifname_ts_enabled == "per_category"
 
-        local metric_list = {{
+        local metric_list = { {
             title = i18n('graphs.traffic_rxtx'),
             group = i18n('generic_data'),
             label = i18n('graphs.traffic_rxtx'),
-            id = 'iface:traffic_rxtx' --[[ here the ID is the schema ]] ,
+            id = 'iface:traffic_rxtx' --[[ here the ID is the schema ]],
             show_volume = true
         }, {
             title = i18n('graphs.traffic_rcvd'),
             group = i18n('generic_data'),
             label = i18n('graphs.traffic_rcvd'),
-            id = 'iface:traffic_rxtx-rx' --[[ here the ID is the schema ]] ,
+            id = 'iface:traffic_rxtx-rx' --[[ here the ID is the schema ]],
             show_volume = true
         }, {
             title = i18n('graphs.traffic_sent'),
             group = i18n('generic_data'),
             label = i18n('graphs.traffic_sent'),
-            id = 'iface:traffic_rxtx-tx' --[[ here the ID is the schema ]] ,
+            id = 'iface:traffic_rxtx-tx' --[[ here the ID is the schema ]],
             show_volume = true
         }, {
             title = i18n('score'),
             group = i18n('generic_data'),
             label = i18n('score'),
-            id = 'iface:score' --[[ here the ID is the schema ]] ,
+            id = 'iface:score' --[[ here the ID is the schema ]],
             show_volume = false
-        }}
+        } }
 
         if has_top_protocols then
             local application_list = interface.getnDPIProtocols()
@@ -3211,7 +3227,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
                     group = i18n('applications_long'),
                     title = application,
                     id = 'top:iface:ndpi',
-                    extra_metric = 'protocol:' .. application --[[ here the schema is the ID ]] ,
+                    extra_metric = 'protocol:' .. application --[[ here the schema is the ID ]],
                     show_volume = true
                 }
             end
@@ -3225,7 +3241,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
                     group = i18n('categories'),
                     title = category,
                     id = 'top:iface:ndpi_categories',
-                    extra_metric = 'category:' .. category --[[ here the schema is the ID ]] ,
+                    extra_metric = 'category:' .. category --[[ here the schema is the ID ]],
                     show_volume = true
                 }
             end
@@ -3233,7 +3249,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
 
         return metric_list
     elseif rule_type == "exporter" then
-        local metric_list = {{
+        local metric_list = { {
             title = i18n('traffic'),
             group = i18n('generic_data'),
             label = i18n('traffic'),
@@ -3242,17 +3258,16 @@ function timeseries_info.get_host_rules_schema(rule_type)
             title = i18n("graphs.usage"),
             group = i18n('generic_data'),
             label = i18n("graphs.usage"),
-            id = 'flowdev_port:usage' --[[ here the ID is the schema ]] ,
+            id = 'flowdev_port:usage' --[[ here the ID is the schema ]],
             show_volume = false,
             type = 'flowdev_port'
-        }}
+        } }
 
         return metric_list
     elseif rule_type == "host_pool" then
         local metric_list = {}
         for _, item in ipairs(community_timeseries) do
             if (item.id == timeseries_id.host_pool) then
-
                 metric_list[#metric_list + 1] = item
             end
         end
@@ -3263,7 +3278,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
             -- group = i18n('generic_data'),
             measure_unit = "bps",
             label = i18n('graphs.traffic_rcvd'),
-            id = 'host_pool:traffic-RX' --[[ here the ID is the schema ]] ,
+            id = 'host_pool:traffic-RX' --[[ here the ID is the schema ]],
             schema = 'host_pool:traffic-RX',
             show_volume = true
 
@@ -3275,7 +3290,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
             -- group = i18n('generic_data'),
             label = i18n('graphs.traffic_sent'),
             measure_unit = "bps",
-            id = 'host_pool:traffic-TX' --[[ here the ID is the schema ]] ,
+            id = 'host_pool:traffic-TX' --[[ here the ID is the schema ]],
             schema = 'host_pool:traffic-TX',
             show_volume = true
 
@@ -3285,7 +3300,6 @@ function timeseries_info.get_host_rules_schema(rule_type)
     elseif rule_type == "CIDR" then
         local metric_list = {}
         for _, item in ipairs(community_timeseries) do
-
             if (item.schema == "subnet:traffic") then
                 item.label = i18n("graphs.network_traffic.total")
             end
@@ -3293,7 +3307,6 @@ function timeseries_info.get_host_rules_schema(rule_type)
                 item.label = i18n("graphs.network_broadcast_traffic.total")
             end
             if (item.id == timeseries_id.network) then
-
                 metric_list[#metric_list + 1] = item
             end
         end
@@ -3304,7 +3317,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
             -- group = i18n('generic_data'),
             measure_unit = "bps",
             label = i18n('graphs.network_traffic.ingress'),
-            id = 'subnet:traffic-ingress' --[[ here the ID is the schema ]] ,
+            id = 'subnet:traffic-ingress' --[[ here the ID is the schema ]],
             schema = 'subnet:traffic-ingress',
             show_volume = true
 
@@ -3316,7 +3329,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
             -- group = i18n('generic_data'),
             label = i18n('graphs.network_traffic.egress'),
             measure_unit = "bps",
-            id = 'subnet:traffic-egress' --[[ here the ID is the schema ]] ,
+            id = 'subnet:traffic-egress' --[[ here the ID is the schema ]],
             schema = 'subnet:traffic-egress',
             show_volume = true
 
@@ -3328,7 +3341,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
             -- group = i18n('generic_data'),
             label = i18n('graphs.network_traffic.inner'),
             measure_unit = "bps",
-            id = 'subnet:traffic-inner' --[[ here the ID is the schema ]] ,
+            id = 'subnet:traffic-inner' --[[ here the ID is the schema ]],
             schema = 'subnet:traffic-inner',
             show_volume = true
         }
@@ -3339,7 +3352,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
             -- group = i18n('generic_data'),
             measure_unit = "bps",
             label = i18n('graphs.network_broadcast_traffic.ingress'),
-            id = 'subnet:broadcast_traffic-ingress' --[[ here the ID is the schema ]] ,
+            id = 'subnet:broadcast_traffic-ingress' --[[ here the ID is the schema ]],
             schema = 'subnet:broadcast_traffic-ingress',
             show_volume = true
 
@@ -3351,7 +3364,7 @@ function timeseries_info.get_host_rules_schema(rule_type)
             -- group = i18n('generic_data'),
             label = i18n('graphs.network_broadcast_traffic.egress'),
             measure_unit = "bps",
-            id = 'subnet:broadcast_traffic-egress' --[[ here the ID is the schema ]] ,
+            id = 'subnet:broadcast_traffic-egress' --[[ here the ID is the schema ]],
             schema = 'subnet:broadcast_traffic-egress',
             show_volume = true
 
@@ -3363,13 +3376,12 @@ function timeseries_info.get_host_rules_schema(rule_type)
             -- group = i18n('generic_data'),
             label = i18n('graphs.network_broadcast_traffic.inner'),
             measure_unit = "bps",
-            id = 'subnet:broadcast_traffic-inner' --[[ here the ID is the schema ]] ,
+            id = 'subnet:broadcast_traffic-inner' --[[ here the ID is the schema ]],
             schema = 'subnet:broadcast_traffic-inner',
             show_volume = true
 
         }
         return metric_list
-
     elseif rule_type == 'vlan' then
         local metric_list = {}
         for _, item in ipairs(community_timeseries) do
@@ -3392,7 +3404,6 @@ function timeseries_info.get_host_rules_schema(rule_type)
         end
         return metric_list
     end
-
 end
 
 -- #################################

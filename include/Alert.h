@@ -27,8 +27,10 @@ class Alert {
   time_t tstamp;
   time_t last_update;
   AlertType alert_id;
-  u_int8_t score;
+  u_int64_t rowid; /* used by engaged alert in the in-memory table */
   u_int16_t port;
+  u_int8_t score;
+  bool require_attention;
   std::string subtype;
   std::string json;
   std::string ip;

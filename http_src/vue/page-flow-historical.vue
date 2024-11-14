@@ -515,9 +515,8 @@ const map_table_def_columns = async (columns) => {
             for (let i = 0; i < flow_risks.length; i++) {
                 const flow_risk = flow_risks[i];
                 const flow_risk_label = (flow_risk.label || flow_risk.value);
-                const flow_risk_help = (flow_risk.help);
                 const flow_risk_remediation = (flow_risk.remediation);
-                res.push(`${flow_risk_label} ${flow_risk_help} ${flow_risk_remediation}`);
+                res.push(`${flow_risk_label} ${flow_risk_remediation}`);
             }
             return res.join(', ');
         },

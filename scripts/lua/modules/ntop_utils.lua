@@ -888,7 +888,7 @@ function getExportersUnifiedStats()
             if not unified_exporters[exporter_ip] then
                 unified_exporters[exporter_ip] = {}
             end
-            local ports_table = interface.getFlowDeviceInfoByIP(exporter_ip)
+            local ports_table = interface.getFlowDeviceInfoByIP(exporter_ip, true)
             for _, ports in pairs(ports_table) do
                 for port_idx, port_info in pairs(ports) do
                     if not unified_exporters[exporter_ip][port_idx] then

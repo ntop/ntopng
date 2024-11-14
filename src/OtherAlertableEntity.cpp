@@ -37,10 +37,12 @@ OtherAlertableEntity::~OtherAlertableEntity() {}
 
 void OtherAlertableEntity::luaAlert(lua_State *vm, const Alert *alert,
                                     ScriptPeriodicity p) const {
+  lua_push_int64_table_entry(vm, "rowid", alert->rowid);
   lua_push_int32_table_entry(vm, "alert_id", alert->alert_id);
   lua_push_str_table_entry(vm, "subtype", alert->subtype.c_str());
   lua_push_int32_table_entry(vm, "entity_id", getEntityType());
   lua_push_str_table_entry(vm, "entity_val", getEntityValue().c_str());
+  lua_push_bool_table_entry(vm, "require_attention", alert->require_attention);
   lua_push_int32_table_entry(vm, "score", alert->score);
   lua_push_int32_table_entry(vm, "severity",
                              Utils::mapScoreToSeverity(alert->score));
@@ -84,10 +86,12 @@ bool OtherAlertableEntity::triggerAlert(lua_State *vm, std::string key,
     if (it == engaged_alerts[(u_int)p].end()) {
       Alert alert;
 
+      alert.rowid = getAlertInterface()->getNewAlertSerial();
       alert.tstamp = alert.last_update = now;
       alert.score = score;
       alert.alert_id = alert_id;
       alert.subtype = subtype;
+      alert.require_attention = false;
       alert.json = json;
       alert.ip = ip ? ip : "";
       alert.name = name ? name : "";

@@ -994,7 +994,11 @@ function driver:timeseries_top(options, top_tags)
             if isEmptyString(ext_label) then
                 ext_label = ifindex
             end
-
+            -- Special case, top protocol timeseries, here the ext_label needs to be the protocol
+            if available_tags[top_item][1].protocol then
+                ext_label = top_item
+            end
+            
             count = table.len(available_series[top_item].data)
             top_series[#top_series + 1] = {
                 data = available_series[top_item].data,
@@ -1010,8 +1014,6 @@ function driver:timeseries_top(options, top_tags)
             break
         end
     end
-
-    local stats = nil
 
     return {
         metadata = {

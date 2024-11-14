@@ -82,7 +82,8 @@ CREATE TABLE IF NOT EXISTS `flows` (
 `POST_NAT_DST_PORT` UInt32,
 `WLAN_SSID` String,
 `WTP_MAC_ADDRESS` UInt64,
-`DOMAIN_NAME` String
+`DOMAIN_NAME` String,
+`REQUIRE_ATTENTION` Boolean
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (IPV4_SRC_ADDR, IPV4_DST_ADDR, FIRST_SEEN);
 @
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `FLOW_ID` UInt64;
@@ -172,6 +173,8 @@ ALTER TABLE flows ADD COLUMN IF NOT EXISTS `WLAN_SSID` String;
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `WTP_MAC_ADDRESS` UInt64;
 @
 ALTER TABLE flows ADD COLUMN IF NOT EXISTS `DOMAIN_NAME` String;
+@
+ALTER TABLE flows ADD COLUMN IF NOT EXISTS `REQUIRE_ATTENTION` Boolean;
 
 @
 
@@ -194,10 +197,40 @@ CREATE TABLE IF NOT EXISTS `active_monitoring_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime NULL,
-`alert_category` UInt8
+`alert_category` UInt8,
+`require_attention` Boolean
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `active_monitoring_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
+@
+ALTER TABLE `active_monitoring_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
+
+@
+
+DROP TABLE IF EXISTS `engaged_active_monitoring_alerts`;
+@
+CREATE TABLE `engaged_active_monitoring_alerts` (
+`rowid` UUID,
+`alert_id` UInt32 NOT NULL,
+`alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
+`resolved_ip` String,
+`resolved_name` String,
+`measurement` String,
+`measure_threshold` UInt32 NULL,
+`measure_value` REAL NULL,
+`tstamp` DateTime NOT NULL,
+`tstamp_end` DateTime NULL,
+`severity` UInt8 NOT NULL,
+`score` UInt16 NOT NULL,
+`counter` UInt32 NOT NULL,
+`description` String,
+`json` String,
+`user_label` String,
+`user_label_tstamp` DateTime NULL,
+`alert_category` UInt8,
+`require_attention` Boolean
+) ENGINE = Memory;
 
 @
 
@@ -252,7 +285,8 @@ CREATE TABLE IF NOT EXISTS `flow_alerts` (
 `probe_ip` String,
 `input_snmp` UInt32,
 `output_snmp` UInt32,
-`alert_category` UInt8
+`alert_category` UInt8,
+`require_attention` Boolean
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(first_seen) ORDER BY (first_seen);
 @
 ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS cli_host_pool_id UInt16;
@@ -276,6 +310,8 @@ ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS input_snmp UInt32;
 ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS output_snmp UInt32;
 @
 ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
+@
+ALTER TABLE `flow_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
 
 @
 
@@ -305,7 +341,8 @@ CREATE TABLE IF NOT EXISTS `host_alerts` (
 `host_pool_id` UInt16,
 `network` UInt16,
 `country` String,
-`alert_category` UInt8
+`alert_category` UInt8,
+`require_attention` Boolean
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `host_pool_id` UInt16;
@@ -315,6 +352,42 @@ ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `network` UInt16;
 ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `country` String;
 @
 ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `alert_category` UInt8;
+@
+ALTER TABLE `host_alerts` ADD COLUMN IF NOT EXISTS `require_attention` UInt8;
+
+@
+
+DROP TABLE IF EXISTS `engaged_host_alerts`;
+@
+CREATE TABLE `engaged_host_alerts` (
+`rowid` UUID,
+`alert_id` UInt32 NOT NULL,
+`alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
+`ip_version` UInt8 NOT NULL,
+`ip` String NOT NULL,
+`vlan_id` UInt16,
+`name` String,
+`is_attacker` UInt8,
+`is_victim` UInt8,
+`is_client` UInt8,
+`is_server` UInt8,
+`tstamp` DateTime NOT NULL,
+`tstamp_end` DateTime,
+`severity` UInt8 NOT NULL,
+`score` UInt16 NOT NULL,
+`granularity` UInt8 NOT NULL,
+`counter` UInt32 NOT NULL,
+`description` String,
+`json` String,
+`user_label` String,
+`user_label_tstamp` DateTime,
+`host_pool_id` UInt16,
+`network` UInt16,
+`country` String,
+`alert_category` UInt8,
+`require_attention` Boolean
+) ENGINE = Memory;
 
 @
 
@@ -338,10 +411,41 @@ CREATE TABLE IF NOT EXISTS `mac_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime,
-`alert_category` UInt8
+`alert_category` UInt8,
+`require_attention` Boolean
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `mac_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
+@
+ALTER TABLE `mac_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
+
+@
+
+DROP TABLE IF EXISTS `engaged_mac_alerts`;
+@
+CREATE TABLE `engaged_mac_alerts` (
+`rowid` UUID,
+`alert_id` UInt32 NOT NULL,
+`alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
+`address` String,
+`device_type` UInt8 NULL,
+`name` String,
+`is_attacker` UInt8,
+`is_victim` UInt8,
+`tstamp` DateTime NOT NULL,
+`tstamp_end` DateTime,
+`severity` UInt8 NOT NULL,
+`score` UInt16 NOT NULL,
+`granularity` UInt8 NOT NULL,
+`counter` UInt32 NOT NULL,
+`description` String,
+`json` String,
+`user_label` String,
+`user_label_tstamp` DateTime,
+`alert_category` UInt8,
+`require_attention` Boolean
+) ENGINE = Memory;
 
 @
 
@@ -364,12 +468,42 @@ CREATE TABLE IF NOT EXISTS `snmp_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime,
-`alert_category` UInt8
+`alert_category` UInt8,
+`require_attention` Boolean
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `snmp_alerts` MODIFY COLUMN `port` UInt32;
 @
 ALTER TABLE `snmp_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
+@
+ALTER TABLE `snmp_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
+
+@
+
+DROP TABLE IF EXISTS `engaged_snmp_alerts`;
+@
+CREATE TABLE `engaged_snmp_alerts` (
+`rowid` UUID,
+`alert_id` UInt32 NOT NULL,
+`alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
+`ip` String NOT NULL,
+`port` UInt32,
+`name` String,
+`port_name` String,
+`tstamp` DateTime NOT NULL,
+`tstamp_end` DateTime,
+`severity` UInt8 NOT NULL,
+`score` UInt16 NOT NULL,
+`granularity` UInt8 NOT NULL,
+`counter` UInt32 NOT NULL,
+`description` String,
+`json` String,
+`user_label` String,
+`user_label_tstamp` DateTime,
+`alert_category` UInt8,
+`require_attention` Boolean
+) ENGINE = Memory;
 
 @
 
@@ -391,10 +525,39 @@ CREATE TABLE IF NOT EXISTS `network_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime,
-`alert_category` UInt8
+`alert_category` UInt8,
+`require_attention` Boolean
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `network_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
+@
+ALTER TABLE `network_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
+
+@
+
+DROP TABLE IF EXISTS `engaged_network_alerts`;
+@
+CREATE TABLE `engaged_network_alerts` (
+`rowid` UUID,
+`local_network_id` UInt16 NOT NULL,
+`alert_id` UInt32 NOT NULL,
+`alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
+`name` String,
+`alias` String,
+`tstamp` DateTime NOT NULL,
+`tstamp_end` DateTime,
+`severity` UInt8 NOT NULL,
+`score` UInt16 NOT NULL,
+`granularity` UInt8 NOT NULL,
+`counter` UInt32 NOT NULL,
+`description` String,
+`json` String,
+`user_label` String,
+`user_label_tstamp` DateTime,
+`alert_category` UInt8,
+`require_attention` Boolean
+) ENGINE = Memory;
 
 @
 
@@ -417,10 +580,40 @@ CREATE TABLE IF NOT EXISTS `interface_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime,
-`alert_category` UInt8
+`alert_category` UInt8,
+`require_attention` Boolean
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `interface_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
+@
+ALTER TABLE `interface_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
+
+@
+
+DROP TABLE IF EXISTS `engaged_interface_alerts`;
+@
+CREATE TABLE `engaged_interface_alerts` (
+`rowid` UUID,
+`ifid` UInt8 NOT NULL,
+`alert_id` UInt32 NOT NULL,
+`alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
+`subtype` String,
+`name` String,
+`alias` String,
+`tstamp` DateTime NOT NULL,
+`tstamp_end` DateTime,
+`severity` UInt8 NOT NULL,
+`score` UInt16 NOT NULL,
+`granularity` UInt8 NOT NULL,
+`counter` UInt32 NOT NULL,
+`description` String,
+`json` String,
+`user_label` String,
+`user_label_tstamp` DateTime,
+`alert_category` UInt8,
+`require_attention` Boolean
+) ENGINE = Memory;
 
 @
 
@@ -440,10 +633,37 @@ CREATE TABLE IF NOT EXISTS `user_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime,
-`alert_category` UInt8
+`alert_category` UInt8,
+`require_attention` Boolean
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `user_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
+@
+ALTER TABLE `user_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
+
+@
+
+DROP TABLE IF EXISTS `engaged_user_alerts`;
+@
+CREATE TABLE `engaged_user_alerts` (
+`rowid` UUID,
+`alert_id` UInt32 NOT NULL,
+`alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
+`user` String,
+`tstamp` DateTime NOT NULL,
+`tstamp_end` DateTime,
+`severity` UInt8 NOT NULL,
+`score` UInt16 NOT NULL,
+`granularity` UInt8 NOT NULL,
+`counter` UInt32 NOT NULL,
+`description` String,
+`json` String,
+`user_label` String,
+`user_label_tstamp` DateTime,
+`alert_category` UInt8,
+`require_attention` Boolean
+) ENGINE = Memory;
 
 @
 
@@ -463,33 +683,37 @@ CREATE TABLE IF NOT EXISTS `system_alerts` (
 `json` String,
 `user_label` String,
 `user_label_tstamp` DateTime,
-`alert_category` UInt8
+`alert_category` UInt8,
+`require_attention` Boolean
 ) ENGINE = MergeTree() PARTITION BY toYYYYMMDD(tstamp) ORDER BY (tstamp);
 @
 ALTER TABLE `system_alerts` ADD COLUMN IF NOT EXISTS alert_category UInt8;
+@
+ALTER TABLE `system_alerts` ADD COLUMN IF NOT EXISTS require_attention Boolean;
 
 @
-DROP VIEW IF EXISTS `all_alerts_view`;
+
+DROP TABLE IF EXISTS `engaged_system_alerts`;
 @
-CREATE VIEW IF NOT EXISTS `all_alerts_view` AS
-SELECT 8 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `active_monitoring_alerts`
-UNION ALL
-SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, ALERT_STATUS AS alert_status, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score, ALERT_CATEGORY AS alert_category FROM `flows` WHERE (STATUS != 0 AND IS_ALERT_DELETED != 1)
-UNION ALL
-SELECT 1 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `host_alerts`
-UNION ALL
-SELECT 5 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `mac_alerts`
-UNION ALL
-SELECT 3 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `snmp_alerts`
-UNION ALL
-SELECT 2 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `network_alerts`
-UNION ALL
-SELECT 0 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `interface_alerts`
-UNION ALL
-SELECT 7 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `user_alerts`
-UNION ALL
-SELECT 9 entity_id, interface_id, alert_id, alert_status, tstamp, tstamp_end, severity, score, alert_category FROM `system_alerts`
-;
+CREATE TABLE `engaged_system_alerts` (
+`rowid` UUID,
+`alert_id` UInt32 NOT NULL,
+`alert_status` UInt8 NOT NULL,
+`interface_id` UInt16 NULL,
+`name` String,
+`tstamp` DateTime NOT NULL,
+`tstamp_end` DateTime,
+`severity` UInt8 NOT NULL,
+`score` UInt16 NOT NULL,
+`granularity` UInt8 NOT NULL,
+`counter` UInt32 NOT NULL,
+`description` String,
+`json` String,
+`user_label` String,
+`user_label_tstamp` DateTime,
+`alert_category` UInt8,
+`require_attention` Boolean
+) ENGINE = Memory;
 
 @
 
@@ -530,9 +754,7 @@ CREATE TABLE IF NOT EXISTS `alert_severities` (
 
 /* Remove */
 DROP TABLE IF EXISTS `aggregated_flows`;
-
 @
-
 CREATE TABLE IF NOT EXISTS `hourly_flows` (
        `FLOW_ID` UInt64,
        `IP_PROTOCOL_VERSION` UInt8,
@@ -591,6 +813,8 @@ ALTER TABLE `hourly_flows` ADD COLUMN IF NOT EXISTS SERVER_LOCATION UInt8;
 
 @
 
+/* VS */
+
 CREATE TABLE IF NOT EXISTS `vulnerability_scan_data` (
   `HOST` String NOT NULL,
   `SCAN_TYPE` String NOT NULL,
@@ -611,10 +835,9 @@ CREATE TABLE IF NOT EXISTS `vulnerability_scan_report` (
   `NUM_UDP_PORTS` UInt32
 ) ENGINE =  MergeTree() PARTITION BY toYYYYMMDD(REPORT_DATE) ORDER BY (REPORT_DATE);
 
-
-/* MITRE TABLES AND ALERTS VIEWS */
-
 @
+
+/* MITRE */
 
 CREATE TABLE IF NOT EXISTS `mitre_table_info` (
   `ALERT_ID` UInt16 NOT NULL,
@@ -627,10 +850,92 @@ CREATE TABLE IF NOT EXISTS `mitre_table_info` (
 
 @
 
-DROP VIEW IF EXISTS `host_alerts_view`;
+/* ASSET */
+
+CREATE TABLE IF NOT EXISTS `asset_management` (
+`type` String NOT NULL,
+`key` String NOT NULL,
+`ip` String NULL,
+`mac` String NOT NULL,
+`vlan` UInt16 NULL,
+`network` UInt16 NULL,
+`name` String NULL,
+`device_type` UInt16 NULL,
+`manufacturer` String NULL,
+`first_seen` DateTime NOT NULL DEFAULT 0,
+`last_seen` DateTime NOT NULL DEFAULT 0,
+`trigger_alert` Boolean NULL,
+`device_status` String NULL
+) ENGINE = MergeTree() PRIMARY KEY (`key`) ORDER BY (`key`);
+@
+
+/* VIEWS */
+
+DROP VIEW IF EXISTS `active_monitoring_alerts_view`;
+@
+CREATE VIEW IF NOT EXISTS `active_monitoring_alerts_view` AS
+SELECT * FROM `active_monitoring_alerts`
+UNION ALL
+SELECT * FROM `engaged_active_monitoring_alerts`
 
 @
 
+DROP VIEW IF EXISTS `mac_alerts_view`;
+@
+CREATE VIEW IF NOT EXISTS `mac_alerts_view` AS
+SELECT * FROM `mac_alerts`
+UNION ALL
+SELECT * FROM `engaged_mac_alerts`
+
+@
+
+DROP VIEW IF EXISTS `snmp_alerts_view`;
+@
+CREATE VIEW IF NOT EXISTS `snmp_alerts_view` AS
+SELECT * FROM `snmp_alerts`
+UNION ALL
+SELECT * FROM `engaged_snmp_alerts`
+
+@
+
+DROP VIEW IF EXISTS `network_alerts_view`;
+@
+CREATE VIEW IF NOT EXISTS `network_alerts_view` AS
+SELECT * FROM `network_alerts`
+UNION ALL
+SELECT * FROM `engaged_network_alerts`
+
+@
+
+DROP VIEW IF EXISTS `interface_alerts_view`;
+@
+CREATE VIEW IF NOT EXISTS `interface_alerts_view` AS
+SELECT * FROM `interface_alerts`
+UNION ALL
+SELECT * FROM `engaged_interface_alerts`
+
+@
+
+DROP VIEW IF EXISTS `user_alerts_view`;
+@
+CREATE VIEW IF NOT EXISTS `user_alerts_view` AS
+SELECT * FROM `user_alerts`
+UNION ALL
+SELECT * FROM `engaged_user_alerts`
+
+@
+
+DROP VIEW IF EXISTS `system_alerts_view`;
+@
+CREATE VIEW IF NOT EXISTS `system_alerts_view` AS
+SELECT * FROM `system_alerts`
+UNION ALL
+SELECT * FROM `engaged_system_alerts`
+
+@
+
+DROP VIEW IF EXISTS `host_alerts_view`;
+@
 CREATE VIEW IF NOT EXISTS `host_alerts_view` AS
 SELECT
   ha.rowid,
@@ -655,12 +960,18 @@ SELECT
   ha.json,
   ha.user_label,
   ha.user_label_tstamp,
+  ha.require_attention,
   mitre.TACTIC AS mitre_tactic,
   mitre.TECHNIQUE AS mitre_technique,
   mitre.SUB_TECHNIQUE AS mitre_subtechnique,
   mitre.MITRE_ID AS mitre_id
 FROM
-  `host_alerts` AS ha
+(
+  SELECT * FROM `host_alerts`
+  UNION ALL
+  SELECT * FROM `engaged_host_alerts`
+)
+  AS ha
 LEFT JOIN
   `mitre_table_info` AS mitre
 ON
@@ -669,9 +980,7 @@ ON
 @
 
 DROP VIEW IF EXISTS `flow_alerts_view`;
-
 @
-
 CREATE VIEW IF NOT EXISTS `flow_alerts_view` AS
 SELECT
     f.FLOW_ID AS rowid,
@@ -735,6 +1044,7 @@ SELECT
     f.ALERT_CATEGORY AS alert_category,
     f.MINOR_CONNECTION_STATE AS minor_connection_state,
     f.MAJOR_CONNECTION_STATE AS major_connection_state,
+    f.REQUIRE_ATTENTION AS require_attention,
     mitre.TACTIC AS mitre_tactic,
     mitre.TECHNIQUE AS mitre_technique,
     mitre.SUB_TECHNIQUE AS mitre_subtechnique,
@@ -747,18 +1057,25 @@ WHERE f.STATUS != 0
 
 @
 
-CREATE TABLE IF NOT EXISTS `asset_management` (
-`type` String NOT NULL,
-`key` String NOT NULL,
-`ip` String NULL,
-`mac` String NOT NULL,
-`vlan` UInt16 NULL,
-`network` UInt16 NULL,
-`name` String NULL,
-`device_type` UInt16 NULL,
-`manufacturer` String NULL,
-`first_seen` DateTime NOT NULL DEFAULT 0,
-`last_seen` DateTime NOT NULL DEFAULT 0,
-`trigger_alert` Boolean NULL,
-`device_status` String NULL
-) ENGINE = MergeTree() PRIMARY KEY (`key`) ORDER BY (`key`);
+DROP VIEW IF EXISTS `all_alerts_view`;
+@
+CREATE VIEW IF NOT EXISTS `all_alerts_view` AS
+SELECT 8 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `active_monitoring_alerts`
+UNION ALL
+SELECT 4 entity_id, INTERFACE_ID AS interface_id, STATUS AS alert_id, ALERT_STATUS AS alert_status, REQUIRE_ATTENTION AS require_attention, FIRST_SEEN AS tstamp, LAST_SEEN AS tstamp_end, SEVERITY AS severity, SCORE AS score, ALERT_CATEGORY AS alert_category FROM `flows` WHERE (STATUS != 0 AND IS_ALERT_DELETED != 1)
+UNION ALL
+SELECT 1 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `host_alerts`
+UNION ALL
+SELECT 5 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `mac_alerts`
+UNION ALL
+SELECT 3 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `snmp_alerts`
+UNION ALL
+SELECT 2 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `network_alerts`
+UNION ALL
+SELECT 0 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `interface_alerts`
+UNION ALL
+SELECT 7 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `user_alerts`
+UNION ALL
+SELECT 9 entity_id, interface_id, alert_id, alert_status, require_attention, tstamp, tstamp_end, severity, score, alert_category FROM `system_alerts`
+;
+

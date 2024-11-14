@@ -26,31 +26,35 @@ local interface_alert_store = classes.class(alert_store)
 function interface_alert_store:init(args)
    self.super:init()
 
-   self._table_name = "interface_alerts"
+   if ntop.isClickHouseEnabled() then
+      self._table_name = "interface_alerts_view"
+      self._write_table_name = "interface_alerts"
+      self._engaged_write_table_name = "engaged_interface_alerts"
+   else
+      self._table_name = "interface_alerts_view"
+      self._write_table_name = "interface_alerts"
+      self._engaged_write_table_name = "mem_db.engaged_interface_alerts"
+   end
+
    self._alert_entity = alert_entities.interface
 end
 
 -- ##############################################
 
-function interface_alert_store:insert(alert)
+function interface_alert_store:_build_insert_query(alert, write_table, alert_status, extra_columns, extra_values)
    local name = getInterfaceName(alert.ifid)
    local alias = getHumanReadableInterfaceName(name)
    local subtype = alert.subtype or ''
 
-   local extra_columns = ""
-   local extra_values = ""
-   if(ntop.isClickHouseEnabled()) then
-      extra_columns = "rowid, "
-      extra_values = "generateUUIDv4(), "
-   end
-
    local insert_stmt = string.format("INSERT INTO %s "..
-      "(%salert_id, interface_id, tstamp, tstamp_end, severity, score, ifid, subtype, name, alias, granularity, json) "..
-      "VALUES (%s%u, %d, %u, %u, %u, %u, %d, '%s', '%s', '%s', %u, '%s'); ",
-      self._table_name,
+      "(%salert_id, alert_status, require_attention, interface_id, tstamp, tstamp_end, severity, score, ifid, subtype, name, alias, granularity, json) "..
+      "VALUES (%s%u, %u, %u, %d, %u, %u, %u, %u, %d, '%s', '%s', '%s', %u, '%s'); ",
+      write_table,
       extra_columns,
       extra_values,
       alert.alert_id,
+      alert_status,
+      ternary(alert.require_attention, 1, 0),
       self:_convert_ifid(interface.getId()),
       alert.tstamp,
       alert.tstamp_end,
@@ -63,11 +67,8 @@ function interface_alert_store:insert(alert)
       alert.granularity,
       self:_escape(alert.json))
 
-   -- traceError(TRACE_NORMAL, TRACE_CONSOLE, insert_stmt)
-
-   return interface.alert_store_query(insert_stmt)
+   return insert_stmt
 end
-
 
 -- ##############################################
 

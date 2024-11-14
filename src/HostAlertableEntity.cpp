@@ -70,6 +70,8 @@ bool HostAlertableEntity::addEngagedAlert(HostAlert *a) {
       alerts->engaged_alerts_map.setBit(a->getAlertType().id);
       incNumAlertsEngaged(Utils::mapScoreToSeverity(a->getAlertScore()));
       success = true;
+    } else {
+      //ntop->getTrace()->traceEvent(TRACE_WARNING, "Duplicated host alert (same type), skipping");
     }
   }
   

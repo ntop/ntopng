@@ -301,7 +301,6 @@ end
 local function format_historical_issues(flow_details, flow)
     local alert_store_utils = require "alert_store_utils"
     local alert_entities = require "alert_entities"
-    local alert_consts = require "alert_consts"
     local format_utils = require "format_utils"
     local alert_store_instances = alert_store_utils.all_instances_factory()
     local alert_utils = require "alert_utils"
@@ -378,7 +377,7 @@ local function format_historical_issues(flow_details, flow)
     end
 
     flow_details[#flow_details + 1] = {
-        name = i18n('total_flow_score'),
+        name = i18n('detected_issues'),
         values = {html}
     }
 

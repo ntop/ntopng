@@ -450,6 +450,15 @@ const map_table_def_columns = async (columns) => {
                         }
                         return current_class;
                     }
+                } else if (b.id == "acknowledge" || b.id == "remove") {
+                    /* Engaged alerts have no acknowledge nor remove */
+                    b.f_map_class = (current_class, row) => {
+                        current_class = current_class.filter((class_item) => class_item != "link-disabled");
+                        if (row.is_engaged) {
+                            current_class.push("link-disabled");
+                        }
+                        return current_class;
+                    }
                 }
             });
         }

@@ -278,6 +278,17 @@ tag_utils.defined_tags = {
         i18n_label = i18n('db_search.dst2src_tcp_flags'),
         operators = { 'eq', 'neq', 'in', 'nin' }
     },
+    alert_status = {
+        type = tag_utils.input_types.select,
+        value_type = 'alert_status',
+        i18n_label = i18n('db_search.tags.alert_status'),
+        operators = { 'eq', 'neq' }
+    },
+    require_attention = {
+        value_type = 'boolean',
+        i18n_label = i18n('db_search.tags.require_attention'),
+        operators = { 'eq', 'neq' }
+    },
     severity = {
         type = tag_utils.input_types.select,
         value_type = 'severity',
@@ -893,6 +904,9 @@ tag_utils.formatters = {
     severity = function(severity)
         return (i18n(alert_consts.alertSeverityById(tonumber(severity)).i18n_title))
     end,
+    alert_status = function(status)
+        return (i18n(alert_consts.alertSeverityById(tonumber(status)).i18n_title))
+    end,
     alert_id = function(status)
         local alert_entities = require "alert_entities"
         return alert_consts.alertTypeLabel(status, true, alert_entities.flow.entity_id)
@@ -1305,6 +1319,17 @@ function tag_utils.get_tag_info(id, entity, hide_exporters_name, restrict_filter
             value = "server",
             label = i18n("server")
         }
+    elseif tag.value_type == "alert_status" then
+        filter.value_type = 'array'
+        filter.options = {}
+        for key, info in pairs(alert_consts.alert_status) do
+            if info.on_db then
+                filter.options[#filter.options + 1] = {
+                    value = info.alert_status_id,
+                    label = i18n(info.i18n_title)
+                }
+            end
+        end
     elseif tag.value_type == "severity" then
         filter.value_type = 'array'
         filter.options = {}

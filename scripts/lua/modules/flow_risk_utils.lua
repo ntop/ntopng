@@ -8,23 +8,6 @@ local clock_start = os.clock()
 
 -- ##############################################
 
-function flow_risk_utils.get_documentation_link(risk_id, source)
-
-   local url = ""
-
-   if (source == "ntopng") then
-      url = string.format("https://www.ntop.org/guides/ntopng/remediations/ntopng_flow_risks.html#risk-%.3u", risk_id)
-   else
-      url = string.format("https://www.ntop.org/guides/ntopng/remediations/ndpi_flow_risks.html#risk-%.3u", risk_id)
-   end
-
-   local link = string.format('<a href="%s" target="_blank"><i class="fas fa-lg fa-question-circle"></i></a>', url)
-
-   return link
-end
-
--- ##############################################
-
 function flow_risk_utils.get_remediation_documentation_link(risk_id, source)
    local url = ""
    if (source == "ntopng") then

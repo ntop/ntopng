@@ -53,6 +53,8 @@ class AddressTree {
   inline u_int32_t getNumAddressesIPv4() const { return (numAddressesIPv4); }
   inline u_int32_t getNumAddressesIPv6() const { return (numAddressesIPv6); }
 
+  inline bool isEmpty() { return(getNumAddresses() == 0); }
+  
   inline ndpi_patricia_tree_t *getTree(bool isV4) const {
     return (isV4 ? ptree_v4 : ptree_v6);
   }
