@@ -53,6 +53,9 @@ void BlacklistedCountry::protocolDetected(Flow *f) {
     cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE; /* Client is being attacked */
   }
 
+  if (!ntop->getPrefs()->dontHideProbeAttemptsAlert() && f->isTCP() && !f->isThreeWayHandshakeOK()) 
+      return;
+
   if (is_server_bl || is_client_bl) {
     FlowAlertType alert_type = BlacklistedCountryAlert::getClassType();
 

@@ -28,6 +28,10 @@ void BlacklistedFlow::protocolDetected(Flow *f) {
   if ((f->get_protocol_category() == CUSTOM_CATEGORY_MALWARE) &&
       !(f->isBlacklistedServer()) &&
       !(f->isBlacklistedClient())) {
+
+    if (!ntop->getPrefs()->dontHideProbeAttemptsAlert() && f->isTCP() && !f->isThreeWayHandshakeOK()) 
+      return;
+    
     FlowAlertType alert_type = BlacklistedFlowAlert::getClassType();
     u_int8_t c_score, s_score;
     risk_percentage cli_score_pctg = CLIENT_HIGH_RISK_PERCENTAGE;

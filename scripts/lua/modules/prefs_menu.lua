@@ -55,6 +55,10 @@ local menu_subpages = {{
             title = i18n("prefs.toggle_emit_host_alerts_title"),
             description = i18n("prefs.toggle_emit_host_alerts_description")
         },
+        toggle_hide_probing_attempt_alerts = {
+            title = i18n("prefs.toggle_hide_probing_attempt_alerts_title"),
+            description = i18n("prefs.toggle_hide_probing_attempt_alerts_description")
+        },
         alert_page_refresh_rate_enabled = {
             title = i18n("prefs.enable_alerts_refresh_title"),
             description = i18n("prefs.enable_alerts_refresh_description")

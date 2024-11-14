@@ -312,7 +312,7 @@ if auth.has_capability(auth.capabilities.preferences) then
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n("show_alerts.alerts") ..
             '</th></tr></thead>')
 
-        local elementToSwitch = { "row_toggle_emit_flow_alerts", "row_toggle_emit_host_alerts", "max_entity_alerts",
+        local elementToSwitch = { "row_toggle_emit_flow_alerts", "row_toggle_emit_host_alerts", "row_toggle_hide_probing_attempt_alerts", "max_entity_alerts",
             "max_num_secs_before_delete_alert", "row_alert_page_refresh_rate_enabled" }
 
         prefsToggleButton(subpage_active, {
@@ -344,6 +344,15 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "emit_host_alerts",
             on_value = "1",  -- On  alerts are generated
             off_value = "0", -- Off NO alerts are generated
+            hidden = not showElements
+        })
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_hide_probing_attempt_alerts",
+            default = "0",
+            pref = "hide_probing_attempt_alerts",
+            on_value = "1",  -- On  flow alerts are generated
+            off_value = "0", -- Off NO flow alerts are generated
             hidden = not showElements
         })
 

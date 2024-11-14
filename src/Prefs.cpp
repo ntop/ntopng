@@ -62,6 +62,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ewma_alpha_percent = CONST_DEFAULT_EWMA_ALPHA_PERCENT;
   data_dir = strdup(CONST_DEFAULT_DATA_DIR);
   emit_flow_alerts = emit_host_alerts = true;
+  hide_probing_attempts_alerts = false;
   fail_on_invalid_license = false;
   zmq_publish_events_url = NULL;
   enable_access_log = false, enable_sql_log = false;
@@ -1049,6 +1050,7 @@ void Prefs::reloadPrefsFromRedis() {
   enable_client_x509_auth = getDefaultBoolPrefsValue(CONST_PREFS_CLIENT_X509_AUTH, false);
   emit_flow_alerts = getDefaultBoolPrefsValue(CONST_PREFS_EMIT_FLOW_ALERTS, true);
   emit_host_alerts = getDefaultBoolPrefsValue(CONST_PREFS_EMIT_HOST_ALERTS, true);
+  hide_probing_attempts_alerts = getDefaultBoolPrefsValue(CONST_PREFS_HIDE_PROBING_ATTEMPS_ALERTS, false);
   tls_quic_hostnaming = getDefaultBoolPrefsValue(CONST_PREFS_TLS_QUIC_HOSTNAMING, false);
 
   /* Used for stats */

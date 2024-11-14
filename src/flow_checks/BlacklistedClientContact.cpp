@@ -26,6 +26,10 @@
 
 void BlacklistedClientContact::protocolDetected(Flow *f) {
   if (f->isBlacklistedClient() && f->isRemoteToLocal()) {
+
+    if (!ntop->getPrefs()->dontHideProbeAttemptsAlert() && f->isTCP() && !f->isThreeWayHandshakeOK()) 
+      return;
+
     FlowAlertType alert_type = BlacklistedClientContactAlert::getClassType();
     u_int8_t c_score, s_score;
     risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;

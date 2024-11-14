@@ -58,9 +58,9 @@ class Prefs {
     service_license_check, enable_sql_log, enable_access_log, log_to_file,
     enable_mac_ndpi_stats, enable_activities_debug, enable_behaviour_analysis,
     enable_asn_behaviour_analysis, enable_network_behaviour_analysis,
-    enable_iface_l7_behaviour_analysis, emit_flow_alerts, emit_host_alerts,
-    dump_flows_on_clickhouse, use_mac_in_flow_key, do_reforge_timestamps,
-    add_vlan_tags_to_cloud_exporters, collect_blacklist_stats,
+    enable_iface_l7_behaviour_analysis, emit_flow_alerts, hide_probing_attempts_alerts,
+    emit_host_alerts, dump_flows_on_clickhouse, use_mac_in_flow_key, 
+    do_reforge_timestamps,add_vlan_tags_to_cloud_exporters, collect_blacklist_stats,
     fail_on_invalid_license, limited_resources_mode, fingerprint_stats,
     tls_quic_hostnaming;
   u_int32_t behaviour_analysis_learning_period;
@@ -719,6 +719,9 @@ class Prefs {
   };
   inline bool dontEmitHostAlerts() {
     return (disable_alerts || !emit_host_alerts);
+  };
+  inline bool dontHideProbeAttemptsAlert() {
+    return (disable_alerts || !hide_probing_attempts_alerts);
   };
   inline void dontUseClickHouse() {
     dump_flows_on_clickhouse = dump_flows_on_mysql = false;
