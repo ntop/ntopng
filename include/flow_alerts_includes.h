@@ -61,6 +61,7 @@
 #include "flow_alerts/FlowRiskMaliciousSHA1CertificateAlert.h"
 #include "flow_alerts/FlowRiskMalwareHostContactedAlert.h"
 #include "flow_alerts/FlowRiskPeriodicFlowAlert.h"
+#include "flow_alerts/FlowRiskProbingAttemptAlert.h"
 #include "flow_alerts/FlowRiskSMBInsecureVersionAlert.h"
 #include "flow_alerts/FlowRiskSSHObsoleteServerAlert.h"
 #include "flow_alerts/FlowRiskSSHObsoleteClientAlert.h"
