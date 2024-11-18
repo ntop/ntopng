@@ -24,7 +24,17 @@
 
 void FlowRiskProbingAttempt::flowEnd(Flow *f){
     if((f->get_protocol() == IPPROTO_TCP) && (!f->isThreeWayHandshakeOK())) {
+        FlowAlertType alert_type = FlowRiskProbingAttemptAlert::getClassType();
+        u_int8_t c_score, s_score;
+        risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
+
+        if(f->get_ndpi_flow())
+            ndpi_set_risk(f->get_ndpi_flow(), NDPI_PROBING_ATTEMPT, (char*) "TCP Probing");        
+        
         f->setRisk(f->getRiskBitmap() | NDPI_PROBING_ATTEMPT);
+
+        computeCliSrvScore(ntop->getFlowAlertScore(alert_type.id), cli_score_pctg, &c_score, &s_score);
+        f->triggerAlertAsync(alert_type, c_score, s_score);
     }
 }
 

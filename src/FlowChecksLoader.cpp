@@ -90,6 +90,7 @@ void FlowChecksLoader::registerChecks() {
   if ((fcb = new FlowRiskMaliciousFingerprint())) registerCheck(fcb);
   if ((fcb = new FlowRiskMaliciousSHA1Certificate())) registerCheck(fcb);
   if ((fcb = new FlowRiskPeriodicFlow())) registerCheck(fcb);
+  if ((fcb = new FlowRiskProbingAttempt())) registerCheck(fcb);
   if ((fcb = new FlowRiskSMBInsecureVersion())) registerCheck(fcb);
   if ((fcb = new FlowRiskSSHObsoleteServer())) registerCheck(fcb);
   if ((fcb = new FlowRiskSSHObsoleteClient())) registerCheck(fcb);
