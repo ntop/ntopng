@@ -88,14 +88,14 @@ class Flow : public GenericHashEntry {
   } initial_bytes_entropy;
 
   u_int32_t hash_entry_id; /* Uniquely identify this flow inside the flows_hash hash table */
-
+  u_int32_t periodicity; /* When is_periodic_flow is set, specifies how periodic (seconds) is this flow */
   u_int16_t detection_completed : 1, extra_dissection_completed : 1,
       twh_over : 1, dissect_next_http_packet : 1, passVerdict : 1,
       flow_dropped_counts_increased : 1, quota_exceeded : 1, swap_done : 1,
       swap_requested : 1, has_malicious_cli_signature : 1,
       has_malicious_srv_signature : 1, src2dst_tcp_zero_window : 1,
       dst2src_tcp_zero_window : 1, non_zero_payload_observed : 1,
-    is_periodic_flow : 1, ____notused:1;
+    is_periodic_flow : 1, ____notused:1;  
   u_int8_t iface_flow_accounted:1, _notused:7;
 
   ndpi_multimedia_flow_type rtp_stream_type;
@@ -1396,7 +1396,7 @@ inline float get_goodput_bytes_thpt() const { return (goodput_bytes_thpt); };
   inline ndpi_multimedia_flow_type getRTPStreamType() {
     return (rtp_stream_type);
   }
-  inline void setPeriodicFlow() { is_periodic_flow = 1; }
+  inline void setPeriodicFlow(u_int32_t _periodicity) { is_periodic_flow = 1, periodicity = _periodicity; }
   inline bool isPeriodicFlow() { return (is_periodic_flow ? true : false); }
   void swap();
   bool isDPIDetectedFlow();

@@ -67,7 +67,7 @@ Flow::Flow(NetworkInterface *_iface,
   detection_completed = 0, non_zero_payload_observed = 0, is_periodic_flow = 0,
     extra_dissection_completed = 0,
     has_malicious_cli_signature = has_malicious_srv_signature = 0,
-    iface_flow_accounted = 0;
+    iface_flow_accounted = 0, periodicity = 0;
   ndpiDetectedProtocol = ndpiUnknownProtocol;
   cli2srv_tos = srv2cli_tos = 0;
   src2dst_tcp_zero_window = dst2src_tcp_zero_window = 0;
@@ -929,6 +929,13 @@ void Flow::processExtraDissectedInformation() {
     ndpi_risk_enum risk = NDPI_PERIODIC_FLOW;
     ndpi_risk r_bitmap = ((ndpi_risk)2) << (risk - 1);
 
+    if(get_ndpi_flow() != NULL) {
+      char msg[32];
+
+      snprintf(msg, sizeof(msg), "%u sec", periodicity);
+      ndpi_set_risk(get_ndpi_flow(), NDPI_PERIODIC_FLOW, msg);
+    }
+    
     setRisk(r_bitmap);
   }
 
