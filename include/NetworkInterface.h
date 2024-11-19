@@ -1069,8 +1069,8 @@ public:
   bool getOSInfo(lua_State *vm, OSType os_type);
   bool getCountryInfo(lua_State *vm, const char *country);
   bool getVLANInfo(lua_State *vm, u_int16_t vlan_id);
-  void incNumHosts(bool local, bool rxOnlyHost);
-  void decNumHosts(bool local, bool rxOnlyHost);
+  void incNumHosts(Host *host, bool rxOnlyHost);
+  void decNumHosts(Host *host, bool rxOnlyHost);
   inline void incNumL2Devices() { numL2Devices++; }
   inline void decNumL2Devices() { numL2Devices--; }
   inline u_int32_t getScalingFactor() const { return (scalingFactor); }

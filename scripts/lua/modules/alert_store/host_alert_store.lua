@@ -522,7 +522,7 @@ function host_alert_store:format_record(value, no_html)
 
     local network_value = value['network']
     if isEmptyString(network_value) or
-       tonumber(network_value) == network_consts.UNKNOWN_NETWORK then
+       tonumber(network_value) >= network_consts.UNKNOWN_NETWORK then
         network_value = ""
     end
     local network = RNAME.NETWORK.name

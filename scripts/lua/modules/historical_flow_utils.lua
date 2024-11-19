@@ -767,7 +767,7 @@ local function dt_format_network(network)
    local networks_stats = interface.getNetworksStats()
 
    if isEmptyString(network)
-      or tonumber(network) == network_consts.UNKNOWN_NETWORK then
+      or tonumber(network) >= network_consts.UNKNOWN_NETWORK then
      return { value = 0, label = "", title = "" }
    end
 

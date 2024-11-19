@@ -1400,13 +1400,13 @@ Flow *NetworkInterface::getFlow(int32_t if_index, Mac *src_mac, Mac *dst_mac, u_
   if (src_mac) {
     if ((srcHost = (*src2dst_direction) ? ret->get_cli_host()
 	 : ret->get_srv_host())) {
-      if ((!src_mac->isSpecialMac()) && (primary_mac = srcHost->getMac()) &&
-          primary_mac != src_mac) {
+      if ((!src_mac->isSpecialMac())
+	  && (primary_mac = srcHost->getMac())
+	  && (primary_mac != src_mac) /* Mac address has changed */) {
 #ifdef MAC_DEBUG
         char buf[32], bufm1[32], bufm2[32];
 
-        ntop->getTrace()->traceEvent(
-				     TRACE_NORMAL,
+        ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				     "Detected mac address [new MAC: %s] [old host: %s/primary mac: "
 				     "%s][pkts: %u]",
 				     Utils::formatMac(src_mac->get_mac(), bufm1, sizeof(bufm1)),
@@ -1428,29 +1428,31 @@ Flow *NetworkInterface::getFlow(int32_t if_index, Mac *src_mac, Mac *dst_mac, u_
              */
 #ifndef HAVE_NEDGE
             if (ret->get_packets_cli2srv() == 1 /* first packet */)
-              src_mac->incRcvdStats(
-				    getTimeLastPktRcvd(), 1,
+              src_mac->incRcvdStats(getTimeLastPktRcvd(), 1,
 				    ret->get_bytes_cli2srv() /* size of the last packet */);
 #endif
           }
         }
 
         srcHost->set_mac(src_mac);
+
+	/* We're changing host's special mac with a non-special one */
+	incNumHosts(srcHost, srcHost->isRxOnlyHost());
+	      
         srcHost->updateHostPool(true /* Inline */);
       }
     }
   }
 
   if (dst_mac) {
-    if ((dstHost = (*src2dst_direction) ? ret->get_srv_host()
-	 : ret->get_cli_host())) {
-      if ((!dst_mac->isSpecialMac()) && (primary_mac = dstHost->getMac()) &&
-          primary_mac != dst_mac) {
+    if ((dstHost = (*src2dst_direction) ? ret->get_srv_host() : ret->get_cli_host())) {
+      if ((!dst_mac->isSpecialMac())
+	  && (primary_mac = dstHost->getMac())
+	  && (primary_mac != dst_mac)) {
 #ifdef MAC_DEBUG
         char buf[32], bufm1[32], bufm2[32];
 
-        ntop->getTrace()->traceEvent(
-				     TRACE_NORMAL,
+        ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				     "Detected mac address [new MAC: %s] [old host: %s/primary mac: %s]",
 				     Utils::formatMac(dst_mac->get_mac(), bufm1, sizeof(bufm1)),
 				     dstHost->get_ip()->print(buf, sizeof(buf)),
@@ -1458,6 +1460,10 @@ Flow *NetworkInterface::getFlow(int32_t if_index, Mac *src_mac, Mac *dst_mac, u_
 #endif
 
         dstHost->set_mac(dst_mac);
+
+	/* We're changing host's special mac with a non-special one */
+	incNumHosts(dstHost, dstHost->isRxOnlyHost());
+
         dstHost->updateHostPool(true /* Inline */);
       }
     }
@@ -3799,12 +3805,10 @@ void NetworkInterface::startPacketPolling() {
   if (pollLoopCreated) {
     if ((cpu_affinity != -1) && (ntop->getNumCPUs() > 1)) {
       if (Utils::setThreadAffinity(pollLoop, cpu_affinity))
-        ntop->getTrace()->traceEvent(
-				     TRACE_WARNING, "Couldn't set affinity of interface %s to core %d",
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Couldn't set affinity of interface %s to core %d",
 				     get_description(), cpu_affinity);
       else
-        ntop->getTrace()->traceEvent(
-				     TRACE_NORMAL, "Setting affinity of interface %s to core %d",
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "Setting affinity of interface %s to core %d",
 				     get_description(), cpu_affinity);
     }
 
@@ -3815,8 +3819,7 @@ void NetworkInterface::startPacketPolling() {
 #endif
   }
 
-  ntop->getTrace()->traceEvent(
-			       TRACE_NORMAL, "Started packet polling on interface '%s' [id: %u]...",
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Started packet polling on interface '%s' [id: %u]...",
 			       get_description(), get_id());
 
   running = true;
@@ -11081,44 +11084,54 @@ void NetworkInterface::checkDHCPStorm(time_t when, u_int32_t num_pkts) {
 
 /* *************************************** */
 
-void NetworkInterface::incNumHosts(bool local, bool rxOnlyHost) {
+void NetworkInterface::incNumHosts(Host *host, bool rxOnlyHost) {
+  bool local = host->isLocalHost();
+  
   /* Do not increase nor decrease hosts in case ntopng is shutting down, it's useless */
-  if (isShuttingDown())
+  if(isShuttingDown() || (!host->isUnicastHost()))
     return;
 
   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Increasing number of %s %s hosts", local ? "Local" : "Remote", rxOnlyHost ? "RX Only" : "Bidirectional");
 
   totalNumHosts++;
-  if (local) {
+  if(local)
     numLocalHosts++;
-  }
+  
   if(rxOnlyHost) {
     numTotalRxOnlyHosts++;
-    if (local) {
-      numLocalRxOnlyHosts++;
-    }
+    
+    if (local)
+      numLocalRxOnlyHosts++;    
   }
-};
+
+#ifdef DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "****** %s() [totalNumHosts: %u][numTotalRxOnlyHosts: %u][numLocalRxOnlyHosts: %u]",
+			       __FUNCTION__, totalNumHosts.load(), numTotalRxOnlyHosts.load(), numLocalRxOnlyHosts.load());
+#endif
+}
 
 /* *************************************** */
 
-void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
+void NetworkInterface::decNumHosts(Host *host, bool rxOnlyHost) {
+  bool local = host->isLocalHost();
+  
   /* Do not increase nor decrease hosts in case ntopng is shutting down, it's useless */
-  if (isShuttingDown())
+  if(isShuttingDown() || (!host->isUnicastHost()))
     return;
+  
   //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Decreasing number of %s %s hosts", local ? "Local" : "Remote", rxOnlyHost ? "RX Only" : "Bidirectional");
 
   /* Decrease total number of hosts */
-  if (totalNumHosts == 0) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow", 4, ifname);
+  if (totalNumHosts.load() == 0) {
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow [totalNumHosts]", 1, ifname);
   } else {
     totalNumHosts--;
   }
 
   /* Decrease total number of local hosts */
   if (local) {
-    if (numLocalHosts == 0) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow", 1, ifname);
+    if (numLocalHosts.load() == 0) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow [numLocalHosts]", 2, ifname);
     } else {
       numLocalHosts--;
     }
@@ -11126,21 +11139,26 @@ void NetworkInterface::decNumHosts(bool local, bool rxOnlyHost) {
 
   if(rxOnlyHost) {
     /* Decrease total number of RX only hosts */
-    if (numTotalRxOnlyHosts == 0) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow", 3, ifname);
+    if (numTotalRxOnlyHosts.load() == 0) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow [numTotalRxOnlyHosts]", 3, ifname);
     } else {
       numTotalRxOnlyHosts--;
     }
 
     /* Decrease total number of RX only local hosts */
     if(local) {
-      if (numLocalRxOnlyHosts == 0) {
-        ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow", 2, ifname);
+      if (numLocalRxOnlyHosts.load() == 0) {
+        ntop->getTrace()->traceEvent(TRACE_WARNING, "Internal Error (%d) on interface %s: Counter overflow [numLocalRxOnlyHosts]", 4, ifname);
       } else {
         numLocalRxOnlyHosts--;
       }
     }
   }
+
+#ifdef DEBUG
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "****** %s() [totalNumHosts: %u][numTotalRxOnlyHosts: %u][numLocalRxOnlyHosts: %u]",
+			       __FUNCTION__, totalNumHosts.load(), numTotalRxOnlyHosts.load(), numLocalRxOnlyHosts.load());
+#endif
 };
 
 /* **************************************************** */

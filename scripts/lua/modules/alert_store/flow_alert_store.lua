@@ -1106,13 +1106,13 @@ function flow_alert_store:format_record(value, no_html, verbose)
 
    -- Removing the server network if the host has no network
    if isEmptyString(value['srv_network'])
-      or tonumber(value['srv_network']) == network_consts.UNKNOWN_NETWORK then
+      or tonumber(value['srv_network']) >= network_consts.UNKNOWN_NETWORK then
       record[srv_network]['label'] = ''
       record[srv_network]['value'] = ''
    end
 
    if isEmptyString(value['cli_network'])
-      or tonumber(value['cli_network']) == network_consts.UNKNOWN_NETWORK then
+      or tonumber(value['cli_network']) >= network_consts.UNKNOWN_NETWORK then
       record[cli_network]['label'] = ''
       record[cli_network]['value'] = ''
    end

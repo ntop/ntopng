@@ -366,8 +366,8 @@ function getLocalNetworkAliasById(network)
     local networks_stats = interface.getNetworksStats() or {}
     local network_id = tonumber(network)
 
-    -- If network is (u_int8_t)-1 then return an empty value
-    if network == nil or network == network_consts.UNKNOWN_NETWORK then
+    -- If network is unknown (u_int32_t max) then return an empty value
+    if network_id == nil or network_id >= network_consts.UNKNOWN_NETWORK then
         return ' '
     end
 
@@ -412,10 +412,11 @@ end
 
 function getFullLocalNetworkName(network)
     local network_consts = require "network_consts"
+    local network_id = tonumber(network)
 
     local alias = getLocalNetworkAlias(network)
 
-    if tonumber(network) == network_consts.UNKNOWN_NETWORK then
+    if network_id ~= nil and network_id >= network_consts.UNKNOWN_NETWORK then
         return ""
     end
 

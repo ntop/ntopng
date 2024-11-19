@@ -31,6 +31,7 @@ Host::Host(NetworkInterface *_iface, int32_t _iface_idx, char *ipAddress,
       HostAlertableEntity(_iface, alert_entity_host) {
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
+
   ip.set(ipAddress);
   initialize(NULL, _iface_idx, _vlan_id, observation_point_id);
 }
@@ -123,7 +124,7 @@ Host::~Host() {
 
   if(fingerprint.tcp_fingerprint != NULL)
     free(fingerprint.tcp_fingerprint);
-  
+
   if (!ntop->getPrefs()->limitResourcesUsage()) {
     if (tcp_udp_contacted_ports_no_tx)
       ndpi_bitmap_free(tcp_udp_contacted_ports_no_tx);
@@ -303,14 +304,15 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx, u_int16_t _vlanId,
   memset(&num_blacklisted_flows, 0, sizeof(num_blacklisted_flows));
   memset(&customHostAlert, 0, sizeof(customHostAlert));
 
+  /* Mac MUST be set before toggleRxOnlyHost() */
+  if ((mac = _mac)) mac->incUses();
+  
   toggleRxOnlyHost(true);
 
 #ifdef NTOPNG_PRO
   host_traffic_shapers = NULL;
   has_blocking_quota = has_blocking_shaper = false;
 #endif
-
-  if ((mac = _mac)) mac->incUses();
 
   observationPointId = observation_point_id;
 
@@ -961,12 +963,12 @@ void Host::lua(lua_State *vm, AddressTree *ptree, bool host_details,
 
     lua_push_str_table_entry(vm, "tcp", fingerprint.tcp_fingerprint);
     lua_push_str_table_entry(vm, "os", ndpi_print_os_hint(fingerprint.os));
-    
+
     lua_pushstring(vm, "fingerprint");
     lua_insert(vm, -2);
     lua_settable(vm, -3);
   }
-  
+
   if (host_details) {
     lua_get_score_breakdown(vm);
     lua_blacklisted_flows(vm);
@@ -1733,7 +1735,7 @@ void Host::offlineSetMDNSTXTName(const char *mdns_n_txt) {
 
 void Host::offlineSetNetbiosName(const char *netbios_n) {
   if (!isValidHostName(netbios_n)) return;
-  if (!names.netbios && netbios_n) 
+  if (!names.netbios && netbios_n)
     names.netbios = Utils::toLowerResolvedNames(netbios_n);
 }
 
@@ -2776,18 +2778,14 @@ void Host::resetHostContacts() {
 
 u_int32_t Host::getNumContactedPeersAsClientTCPUDPNoTX() {
   return (!ntop->getPrefs()->limitResourcesUsage()
-              ? (u_int32_t)ndpi_hll_count(
-                    &outgoing_hosts_tcp_udp_port_with_no_tx_hll)
-              : 0);
+              ? (u_int32_t)ndpi_hll_count(&outgoing_hosts_tcp_udp_port_with_no_tx_hll) : 0);
 };
 
 /* *************************************** */
 
 u_int32_t Host::getNumContactsFromPeersAsServerTCPUDPNoTX() {
   return (!ntop->getPrefs()->limitResourcesUsage()
-              ? (u_int32_t)ndpi_hll_count(
-                    &incoming_hosts_tcp_udp_port_with_no_tx_hll)
-              : 0);
+              ? (u_int32_t)ndpi_hll_count(&incoming_hosts_tcp_udp_port_with_no_tx_hll) : 0);
 };
 
 /* *************************************** */
@@ -2795,14 +2793,36 @@ u_int32_t Host::getNumContactsFromPeersAsServerTCPUDPNoTX() {
 void Host::toggleRxOnlyHost(bool rx_only) {
   if (is_rx_only == rx_only) return; /* Nothing to do */
 
+#ifdef DEBUG
+  {
+    char buf[64];
+
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s [is-rx-only: %s][isUnicast(): %s][isLocal: %s]",
+				 print(buf, sizeof(buf)),
+				 rx_only ? "true" : "false", isUnicastHost() ? "true" : "false",
+				 isLocalHost() ? "true" : "false");
+  }
+#endif
+
   if (rx_only == false) { /* Rx-only -> Not-Rx-only */
     if (isUnicastHost()) {
-      iface->decNumHosts(isLocalHost(), true /* rx-only */);
-      iface->incNumHosts(isLocalHost(), false /* not-rx-only */);
+      iface->decNumHosts(this, true /* rx-only */);
+      iface->incNumHosts(this, false /* not-rx-only */);
     }
   } else {
     /* Not-Rx-only -> Rx-only: this should happen during initialization only */
   }
+
+#ifdef DEBUG
+  {
+    char buf[64];
+
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "%s [is-rx-only: %s] [%u rx-only hosts]",
+				 print(buf, sizeof(buf)),
+				 rx_only ? "true" : "false",
+				 iface->getNumRxOnlyHosts());
+  }
+#endif
 
   is_rx_only = rx_only;
 }
