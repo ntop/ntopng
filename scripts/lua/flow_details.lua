@@ -1480,7 +1480,7 @@ else
                     if score_alert.alert_id then
 		       print('<td nowrap>')
 
-		       if(mitre_info ~= nil) then
+		       if((mitre_info ~= nil) and (mitre_info.mitre_tactic ~= nil)) then
 			  -- tprint(mitre_info)
 
 			  additional = "<br>"..i18n(mitre_info.mitre_tactic['i18n_label'])

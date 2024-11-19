@@ -65,7 +65,7 @@ LocalHost::~LocalHost() {
   if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();
   /* Decrease number of active hosts */
-  if (isUnicastHost()) iface->decNumHosts(isLocalHost(), is_rx_only);
+  if (isUnicastHost()) iface->decNumHosts(this, is_rx_only);
 #ifdef NTOPNG_PRO
   ntop->get_am()->deleteHost(this, get_first_seen(), time(NULL));
 #endif
@@ -126,8 +126,7 @@ void LocalHost::initialize() {
   /* Clone the initial point. It will be written to the timeseries DB to
    * address the first point problem
    * (https://github.com/ntop/ntopng/issues/2184). */
-  initial_ts_point =
-      new (std::nothrow) LocalHostStats(*(LocalHostStats *)stats);
+  initial_ts_point = new (std::nothrow) LocalHostStats(*(LocalHostStats *)stats);
   initialization_time = time(NULL);
 
   char *strIP = ip.print(buf, sizeof(buf));
@@ -145,20 +144,17 @@ void LocalHost::initialize() {
     }
   }
 
-  INTERFACE_PROFILING_SUB_SECTION_ENTER(
-      iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
+  INTERFACE_PROFILING_SUB_SECTION_ENTER(iface, "LocalHost::initialize: updateHostTrafficPolicy", 18);
   updateHostTrafficPolicy(host);
   INTERFACE_PROFILING_SUB_SECTION_EXIT(iface, 18);
 
-  /* Only increase the number of host if it's a unicast host */
+  /* Only increase the hosts number if it's a unicast host */
   if (isUnicastHost()) {
     if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
       ns->incNumHosts();
-
-    iface->incNumHosts(
-        true /* isLocalHost() */,
-        true /* Initialization: bytes are 0, considered RX only */);
   }
+  
+  iface->incNumHosts(this, true /* Initialization: bytes are 0, considered RX only */);  
 
 #ifdef LOCALHOST_DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "%s is %s [%p]",

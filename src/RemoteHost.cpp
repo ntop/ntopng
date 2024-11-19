@@ -51,7 +51,7 @@ RemoteHost::RemoteHost(NetworkInterface *_iface, int32_t _iface_idx,
 RemoteHost::~RemoteHost() {
   /* Decrease number of active hosts */
   if(isUnicastHost())
-    iface->decNumHosts(isLocalHost(), is_rx_only);
+    iface->decNumHosts(this, is_rx_only);
 }
 
 /* *************************************** */
@@ -81,5 +81,5 @@ void RemoteHost::initialize() {
   }
 
   if (isUnicastHost())
-    iface->incNumHosts(false /* isLocalHost() */, true /* Initialization: bytes are 0, considered RX only */);
+    iface->incNumHosts(this, true /* Initialization: bytes are 0, considered RX only */);
 }
