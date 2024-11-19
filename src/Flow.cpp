@@ -4479,7 +4479,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
 
     ndpi_serialize_string_int32(s, "cli_host_pool_id",
                                 cli_host->get_host_pool());
-    ndpi_serialize_string_int32(s, "cli_network",
+    ndpi_serialize_string_uint32(s, "cli_network",
                                 (u_int32_t)cli_host->get_local_network_id());
   }
 
@@ -4500,7 +4500,7 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
 
     ndpi_serialize_string_int32(s, "srv_host_pool_id",
                                 srv_host->get_host_pool());
-    ndpi_serialize_string_int32(s, "srv_network",
+    ndpi_serialize_string_uint32(s, "srv_network",
                                 (u_int32_t)srv_host->get_local_network_id());
   }
 
