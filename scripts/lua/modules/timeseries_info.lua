@@ -2704,8 +2704,12 @@ end
 -- #################################
 
 local function add_flowdev_interfaces_timeseries(tags, timeseries)
-    local snmp_utils = require "snmp_utils"
     require "lua_utils_gui"
+    local ts_suffix = "" -- this is used just for influxdb
+    local are_l7_ts_enabled = areExportersTimeseriesPerApplicationEnabled()
+    if highExporterTimeseriesResolution() and ts_utils.getDriverName() == "influxdb" then
+        ts_suffix = "_min"
+    end
 
     if ntop.getPref("ntopng.prefs.snmp_devices_rrd_creation") == "1" then
         local tmp_tags = table.clone(tags)
@@ -2731,6 +2735,61 @@ local function add_flowdev_interfaces_timeseries(tags, timeseries)
             },
             always_visibile = true
         }
+    end
+    local series = ts_utils.listSeries("flowdev:ndpi" .. ts_suffix, table.clone(tags), tags.epoch_begin) or {}
+    if not table.empty(series) and are_l7_ts_enabled then
+        timeseries[#timeseries + 1] = {
+            schema = "top:flowdev:ndpi" .. ts_suffix,
+            chart_type = "line",
+            id = timeseries_id.flow_dev,
+            label = i18n("db_search.top_l7proto"),
+            draw_stacked = true,
+            priority = 2,
+            type = "top",
+            measure_unit = "bps",
+            scale = i18n("graphs.metric_labels.traffic"),
+            timeseries = {
+                bytes = {
+                    label = i18n('graphs.metric_labels.traffic'),
+                    draw_type = "line",
+                    color = timeseries_info.get_timeseries_color('bytes')
+                }
+            },
+        }
+        local tmp_tags = table.clone(tags)
+
+        for _, serie in pairs(series or {}) do
+            local tot = 0
+            tmp_tags.protocol = serie.protocol
+            local tot_serie = ts_utils.queryTotal("flowdev:ndpi" .. ts_suffix, tags.epoch_begin, tags.epoch_end, tmp_tags)
+            -- Remove serie with no data
+            for _, value in pairs(tot_serie or {}) do
+                tot = tot + tonumber(value)
+            end
+
+            if (tot > 0) then
+                timeseries[#timeseries + 1] = {
+                    schema = "top:flowdev:ndpi" .. ts_suffix,
+                    group = i18n("graphs.l7_proto"),
+                    priority = 2,
+                    query = "protocol:" .. serie.protocol,
+                    label = serie.protocol,
+                    measure_unit = "bps",
+                    scale = i18n("graphs.metric_labels.traffic"),
+                    timeseries = {
+                        bytes_sent = {
+                            label = serie.protocol .. " " .. i18n('graphs.metric_labels.sent'),
+                            color = timeseries_info.get_timeseries_color('bytes_sent')
+                        },
+                        bytes_rcvd = {
+                            invert_direction = true,
+                            label = serie.protocol .. " " .. i18n('graphs.metric_labels.rcvd'),
+                            color = timeseries_info.get_timeseries_color('bytes_rcvd')
+                        }
+                    }
+                }
+            end
+        end
     end
 
     local ports_table = interface.getFlowDeviceInfoByIP(tags.device) or {}
@@ -2935,11 +2994,14 @@ end
 local function add_top_flow_port_timeseries(tags, timeseries)
     local tmp_tags = table.clone(tags)
     local ts_suffix = "" -- this is used just for influxdb
+    local are_l7_ts_enabled = areExportersTimeseriesPerApplicationEnabled()
+    local series = ts_utils.listSeries("flowdev_port:ndpi" .. ts_suffix, table.clone(tags), tags.epoch_begin) or {}
+    
     if highExporterTimeseriesResolution() and ts_utils.getDriverName() == "influxdb" then
         ts_suffix = "_min"
     end
-    local series = ts_utils.listSeries("flowdev_port:ndpi" .. ts_suffix, table.clone(tags), tags.epoch_begin) or {}
-    if not table.empty(series) then
+
+    if not table.empty(series) and are_l7_ts_enabled then
         timeseries[#timeseries + 1] = {
             schema = "top:flowdev_port:ndpi" .. ts_suffix,
             chart_type = "line",

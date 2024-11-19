@@ -1665,16 +1665,6 @@ if auth.has_capability(auth.capabilities.preferences) then
             "primary", "l2_devices_ndpi_timeseries_creation", "ntopng.prefs.l2_device_ndpi_timeseries_creation", nil,
             elementToSwitch, showElementArray, nil, showElement)
 
-        print(
-            '<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.system_probes_timeseries') ..
-            '</th></tr></thead>')
-
-        prefsToggleButton(subpage_active, {
-            field = "toggle_system_probes_timeseries",
-            default = "1",
-            pref = "system_probes_timeseries"
-        })
-
         if ntop.isPro() then
             print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.exporter_timeseries') ..
                 '</th></tr></thead>')
@@ -1684,8 +1674,15 @@ if auth.has_capability(auth.capabilities.preferences) then
                 default = "0",
                 pref = "flow_device_port_rrd_creation",
                 disabled = not info["version.enterprise_edition"],
-                to_switch = { "row_exporters_ts_resolution" }
+                to_switch = { "row_exporters_ts_resolution", "row_exporters_ndpi_ts_creation" }
             })
+            showElement = ntop.getPref("ntopng.prefs.flow_device_port_rrd_creation") == "1"
+            l7_rrd_labels = { i18n("prefs.none"), i18n("prefs.per_protocol") }
+            l7_rrd_values = { "none", "per_protocol" }
+            multipleTableButtonPrefs(subpage_active.entries["toggle_exporters_ndpi_ts_creation"].title,
+            subpage_active.entries["toggle_exporters_ndpi_ts_creation"].description, l7_rrd_labels, l7_rrd_values, "none",
+            "primary", "exporters_ndpi_ts_creation", "ntopng.prefs.exporters_ndpi_ts_creation", nil,
+            elementToSwitch, showElementArray, nil, showElement)
 
             local resolutions_labels = { "1m", "5m" }
             local resolutions_values = { "60", "300" }
@@ -1702,6 +1699,16 @@ if auth.has_capability(auth.capabilities.preferences) then
                 disabled = not info["version.enterprise_edition"]
             })
         end
+
+        print(
+            '<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.system_probes_timeseries') ..
+            '</th></tr></thead>')
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_system_probes_timeseries",
+            default = "1",
+            pref = "system_probes_timeseries"
+        })
 
         print('<thead class="table-primary"><tr><th colspan=2 class="info">' .. i18n('prefs.other_timeseries') ..
             '</th></tr></thead>')

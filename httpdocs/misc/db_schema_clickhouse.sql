@@ -862,8 +862,8 @@ CREATE TABLE IF NOT EXISTS `asset_management` (
 `name` String NULL,
 `device_type` UInt16 NULL,
 `manufacturer` String NULL,
-`first_seen` DateTime NOT NULL DEFAULT 0,
-`last_seen` DateTime NOT NULL DEFAULT 0,
+`first_seen` DateTime NOT NULL,
+`last_seen` DateTime NOT NULL,
 `trigger_alert` Boolean NULL,
 `device_status` String NULL
 ) ENGINE = MergeTree() PRIMARY KEY (`key`) ORDER BY (`key`);

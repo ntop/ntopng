@@ -546,6 +546,10 @@ local menu_subpages = {{
             title = i18n("prefs.toggle_exporter_interface_usage_timeseries_title"),
             description = i18n("prefs.toggle_exporter_interface_usage_timeseries_description")
         },
+        toggle_exporters_ndpi_ts_creation = {
+            title = i18n("prefs.toggle_exporters_ndpi_ts_creation_title"),
+            description = i18n("prefs.toggle_exporters_ndpi_ts_creation_description")
+        },
         ts_data_retention = {
             title = i18n("prefs.ts_and_stats_data_retention"),
             description = i18n("prefs.ts_and_stats_data_retention_descr")

@@ -772,6 +772,15 @@ if ntop.isEnterpriseM() then
     schema:addTag("device")
     schema:addMetric("flows")
 
+    schema = ts_utils.newSchema("flowdev:ndpi_min", {
+        step = 60
+    })
+    schema:addTag("ifid")
+    schema:addTag("device")
+    schema:addTag("protocol")
+    schema:addMetric("bytes_sent")
+    schema:addMetric("bytes_rcvd")
+
     -- ##############################################
 
     schema = ts_utils.newSchema("flowdev_port:traffic_min", {

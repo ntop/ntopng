@@ -395,6 +395,17 @@ schema:addMetric("flows")
 
 -- ##############################################
 
+schema = ts_utils.newSchema("flowdev:ndpi", {
+    step = 300
+})
+schema:addTag("ifid")
+schema:addTag("device")
+schema:addTag("protocol")
+schema:addMetric("bytes_sent")
+schema:addMetric("bytes_rcvd")
+
+-- ##############################################
+
 schema = ts_utils.newSchema("flowdev_port:traffic", {
     step = 300,
     rrd_fname = "bytes"

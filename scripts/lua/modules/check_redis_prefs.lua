@@ -63,6 +63,12 @@ end
 
 -- ###########################################
 
+function areExportersTimeseriesPerApplicationEnabled()
+    return ((ntop.getPref("ntopng.prefs.exporters_ndpi_ts_creation") or "") == "per_protocol")
+end
+
+-- ###########################################
+
 function areHostPoolsTimeseriesEnabled(ifid)
     return (ntop.isPro() and (ntop.getPref("ntopng.prefs.host_pools_rrd_creation") == "1"))
 end

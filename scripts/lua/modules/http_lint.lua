@@ -2425,6 +2425,7 @@ local known_parameters = {
    ["hosts_ndpi_timeseries_creation"] = validateChoiceInline({ "none", "per_protocol", "per_category", "both" }),
    ["interfaces_ndpi_timeseries_creation"] = validateChoiceInline({ "none", "per_protocol", "per_category", "both" }),
    ["l2_devices_ndpi_timeseries_creation"] = validateChoiceInline({ "none", "per_category" }),
+   ["exporters_ndpi_ts_creation"] = validateChoiceInline({ "none", "per_protocol" }),
    ["slack_notification_severity_preference"] = validateNotificationSeverity,
    ["email_notification_severity_preference"] = validateNotificationSeverity,
    ["webhook_notification_severity_preference"] = validateNotificationSeverity,
