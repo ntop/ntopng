@@ -44,8 +44,7 @@ class FlowRiskProbingAttempt : public FlowCheck {
   void flowEnd(Flow *f);
 
   std::string getName() const {
-    return (
-        FlowRiskAlerts::getCheckName(FlowRiskProbingAttemptAlert::getClassRisk()));
+    return (std::string("probing_attempt_ntopng"));
   }
   ndpi_risk_enum handledRisk() { return FlowRiskProbingAttemptAlert::getClassRisk(); }
 };
