@@ -24,7 +24,7 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskProbingAttemptAlert : public FlowRiskAlert {
+class TCPProbingAttemptAlert : public FlowRiskAlert {
   private:
     ndpi_serializer *getAlertJSON(ndpi_serializer *serializer);
 
@@ -37,10 +37,10 @@ class FlowRiskProbingAttemptAlert : public FlowRiskAlert {
       return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
     }
 
-    FlowRiskProbingAttemptAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) {
+    TCPProbingAttemptAlert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f) {
       setAlertScore(getDefaultScore());
     };
-    ~FlowRiskProbingAttemptAlert() {};
+    ~TCPProbingAttemptAlert() {};
 
     FlowAlertType getAlertType() const { return getClassType(); }
     ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }

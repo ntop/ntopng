@@ -20,8 +20,8 @@ local script = {
   },
 
   gui = {
-    i18n_title = "flow_risk.probing_attempt_ntopng",
-    i18n_description = "",
+    i18n_title = "flow_risk.tcp_probing_attempt",
+    i18n_description = "flow_risk.tcp_probing_attempt",
   }
 }
 

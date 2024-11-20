@@ -22,9 +22,9 @@
 #include "ntop_includes.h"
 #include "flow_checks_includes.h"
 
-void FlowRiskProbingAttempt::flowEnd(Flow *f){
+void TCPProbingAttempt::flowEnd(Flow *f){
     if((f->get_protocol() == IPPROTO_TCP) && (!f->isThreeWayHandshakeOK())) {
-        FlowAlertType alert_type = FlowRiskProbingAttemptAlert::getClassType();
+        FlowAlertType alert_type = TCPProbingAttemptAlert::getClassType();
         u_int8_t c_score, s_score;
         risk_percentage cli_score_pctg = CLIENT_FAIR_RISK_PERCENTAGE;
 
@@ -38,7 +38,7 @@ void FlowRiskProbingAttempt::flowEnd(Flow *f){
     }
 }
 
-FlowAlert* FlowRiskProbingAttempt::buildAlert(Flow *f){
-    FlowRiskProbingAttemptAlert *alert = new (std::nothrow) FlowRiskProbingAttemptAlert(this, f);
+FlowAlert* TCPProbingAttempt::buildAlert(Flow *f){
+    TCPProbingAttemptAlert *alert = new (std::nothrow) TCPProbingAttemptAlert(this, f);
     return alert;
 }

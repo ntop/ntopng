@@ -24,29 +24,29 @@
 
 #include "ntop_includes.h"
 
-class FlowRiskProbingAttempt : public FlowCheck {
+class TCPProbingAttempt : public FlowCheck {
  private:
   FlowAlertType getAlertType() const {
-    return FlowRiskProbingAttemptAlert::getClassType();
+    return TCPProbingAttemptAlert::getClassType();
   }
 
  public:
-  FlowRiskProbingAttempt() : FlowCheck(
+  TCPProbingAttempt() : FlowCheck(
     ntopng_edition_community, false /* All interfaces */,
                   false /* Don't exclude for nEdge */,
                   false /* NOT only for nEdge */,
                   false /* has_protocol_detected */,
                   false /* has_periodic_update */, true /* has_flow_end */){};
-  ~FlowRiskProbingAttempt(){};
+  ~TCPProbingAttempt(){};
 
   FlowAlert *buildAlert(Flow *f);
 
   void flowEnd(Flow *f);
 
   std::string getName() const {
-    return (std::string("probing_attempt_ntopng"));
+    return (std::string("tcp_probing_attempt"));
   }
-  ndpi_risk_enum handledRisk() { return FlowRiskProbingAttemptAlert::getClassRisk(); }
+  ndpi_risk_enum handledRisk() { return TCPProbingAttemptAlert::getClassRisk(); }
 };
 
 #endif /* _PROBING_ATTEMPT_H_ */

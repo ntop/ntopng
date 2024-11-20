@@ -90,7 +90,6 @@ void FlowChecksLoader::registerChecks() {
   if ((fcb = new FlowRiskMaliciousFingerprint())) registerCheck(fcb);
   if ((fcb = new FlowRiskMaliciousSHA1Certificate())) registerCheck(fcb);
   if ((fcb = new FlowRiskPeriodicFlow())) registerCheck(fcb);
-  if ((fcb = new FlowRiskProbingAttempt())) registerCheck(fcb);
   if ((fcb = new FlowRiskSMBInsecureVersion())) registerCheck(fcb);
   if ((fcb = new FlowRiskSSHObsoleteServer())) registerCheck(fcb);
   if ((fcb = new FlowRiskSSHObsoleteClient())) registerCheck(fcb);
@@ -122,6 +121,7 @@ void FlowChecksLoader::registerChecks() {
   if ((fcb = new TCPZeroWindow())) registerCheck(fcb);
   if ((fcb = new TCPNoDataExchanged())) registerCheck(fcb);
   if ((fcb = new TCPPacketsIssues())) registerCheck(fcb);
+  if ((fcb = new TCPProbingAttempt())) registerCheck(fcb);
   if ((fcb = new UnexpectedDNSServer())) registerCheck(fcb);
   if ((fcb = new UnexpectedDHCPServer())) registerCheck(fcb);
   if ((fcb = new UnexpectedNTPServer())) registerCheck(fcb);

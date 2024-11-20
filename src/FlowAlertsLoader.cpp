@@ -129,8 +129,8 @@ FlowAlertsLoader::FlowAlertsLoader() {
                 BlacklistedServerContactAlert::getDefaultScore());
   registerAlert(TCPFlowResetAlert::getClassType(), 
                 TCPFlowResetAlert::getDefaultScore());
-  registerAlert(FlowRiskProbingAttemptAlert::getClassType(),
-                FlowRiskProbingAttemptAlert::getDefaultScore());
+  registerAlert(TCPProbingAttemptAlert::getClassType(),
+                TCPProbingAttemptAlert::getDefaultScore());
 }
 
 /* **************************************************** */

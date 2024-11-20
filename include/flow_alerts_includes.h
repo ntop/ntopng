@@ -61,7 +61,6 @@
 #include "flow_alerts/FlowRiskMaliciousSHA1CertificateAlert.h"
 #include "flow_alerts/FlowRiskMalwareHostContactedAlert.h"
 #include "flow_alerts/FlowRiskPeriodicFlowAlert.h"
-#include "flow_alerts/FlowRiskProbingAttemptAlert.h"
 #include "flow_alerts/FlowRiskSMBInsecureVersionAlert.h"
 #include "flow_alerts/FlowRiskSSHObsoleteServerAlert.h"
 #include "flow_alerts/FlowRiskSSHObsoleteClientAlert.h"
@@ -87,6 +86,7 @@
 #include "flow_alerts/BlacklistedClientContactAlert.h"
 #include "flow_alerts/BlacklistedServerContactAlert.h"
 #include "flow_alerts/TCPFlowResetAlert.h"
+#include "flow_alerts/TCPProbingAttemptAlert.h"
 
 /* Pro Alerts - do NOT use #ifdef as alerts must always be available */
 #include "flow_alerts/FlowRiskTLSUnsafeCiphersAlert.h"

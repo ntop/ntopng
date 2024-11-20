@@ -1503,6 +1503,7 @@ int Prefs::setOption(int optkey, char *optarg) {
 	free(cur_nets);
       }
     }
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "LOCAL NETWORKS %s", local_networks);
   } break;
 
 #ifndef HAVE_NEDGE

@@ -21,7 +21,7 @@
 
 #include "flow_alerts_includes.h"
 
-ndpi_serializer* FlowRiskProbingAttemptAlert::getAlertJSON(
+ndpi_serializer* TCPProbingAttemptAlert::getAlertJSON(
     ndpi_serializer* serializer) {
   if (serializer == NULL) return NULL;
 
