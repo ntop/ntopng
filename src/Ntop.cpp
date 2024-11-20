@@ -3680,65 +3680,68 @@ u_int32_t Ntop::getLocalNetworkId(const char *address_str) {
 /* ******************************************* */
 
 bool Ntop::addLocalNetwork(char *_net) {
-  char *net, *position_ptr;
+  char *net, *position_ptr, *_as;
   char alias[64] = "";
   u_int32_t id = local_network_tree.getNumAddresses();
   u_int32_t i, pos = 0;
 
-  if (id >= getMaxNumLocalNetworks()) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined (%d): ignored %s", id, _net);
-    return (false);
-  }
-
-  // Getting the pointer and the position to the "=" indicator
-  position_ptr = strstr(_net, "=");
-  pos = (position_ptr == NULL ? 0 : position_ptr - _net);
-
-  if (pos) {
-    // "=" indicator is present inside the string
-    // Separating the alias from the network
-    net = strndup(_net, pos);
-    memcpy(alias, position_ptr + 1, strlen(_net) - pos - 1);
+  _as = strchr(_net, ':');
+  if (_as){
+    u_int16_t as = (u_int16_t) atoi(_as + 1);
+    bool res = local_as.insert(as).second;
+    if(res) {
+      ntop->getTrace()->traceEvent(TRACE_INFO, "Added Autonomous System %s", _as + 1);
+    }else{
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure Adding Autonomous System %s", _as + 1);
+      return (false);
+    }
   } else {
-    net = strdup(_net);
-  }
+    if (pos) {
+      // "=" indicator is present inside the string
+      // Separating the alias from the network
+      net = strndup(_net, pos);
+      memcpy(alias, position_ptr + 1, strlen(_net) - pos - 1);
+    } else {
+      net = strdup(_net);
+    }
 
-  if (net == NULL) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
-    return (false);
-  }
+    if (net == NULL) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Not enough memory");
+      return (false);
+    }
 
-  for (i = 0; i < id; i++) {
-    if (strcmp(local_network_names[i], net) == 0) {
-      /* Already present */
-      //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Already present");
+    for (i = 0; i < id; i++) {
+      if (strcmp(local_network_names[i], net) == 0) {
+        /* Already present */
+        //ntop->getTrace()->traceEvent(TRACE_NORMAL, "Already present");
+        free(net);
+        return (false);
+      }
+    }
+
+    // Adding the Network to the local Networks
+    if (!local_network_tree.addAddresses(net)) {
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure adding address");
       free(net);
       return (false);
     }
-  }
 
-  // Adding the Network to the local Networks
-  if (!local_network_tree.addAddresses(net)) {
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure adding address");
-    free(net);
-    return (false);
-  }
+    local_network_names[id] = net;
 
-  local_network_names[id] = net;
+    // Adding, if available, the alias
+    if (pos) {
+      char out[128] = {'\0'};
+      u_int len = ndpi_min(strlen(alias), sizeof(out) - 2);
 
-  // Adding, if available, the alias
-  if (pos) {
-    char out[128] = {'\0'};
-    u_int len = ndpi_min(strlen(alias), sizeof(out) - 2);
+      for (u_int i = 0, j = 0; i < len; i++) {
+        if (isprint(alias[i])) out[j++] = alias[i];
+      }
 
-    for (u_int i = 0, j = 0; i < len; i++) {
-      if (isprint(alias[i])) out[j++] = alias[i];
+      local_network_aliases[id] = strdup(out);
     }
 
-    local_network_aliases[id] = strdup(out);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Added Local Network %s", net);
   }
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Added Local Network %s", net);
 
   return (true);
 }

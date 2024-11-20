@@ -129,6 +129,9 @@ class Ntop {
   char *local_network_aliases[CONST_MAX_NUM_NETWORKS];
   AddressTree local_network_tree, cloud_local_network_tree;
 
+  /* Local Autonomous Systems*/
+  std::set<u_int16_t> local_as;
+
   /* Alerts */
   FlowAlertsLoader flow_alerts_loader;
 
