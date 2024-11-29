@@ -148,12 +148,12 @@ local function printPort(port, proto, is_server_port)
             print('<li><A HREF="' .. historical_base_url .. '"><span class="badge bg-secondary">' .. port .. " (" ..
                       proto .. ")" .. "</span></A></li>\n")
         else
-            print('<li><A HREF="/lua/flows_stats.lua?port=' .. port .. '"><span class="badge bg-secondary">' .. port ..
+            print('<li><A HREF="' .. ntop.getHttpPrefix() .. '/lua/flows_stats.lua?port=' .. port .. '"><span class="badge bg-secondary">' .. port ..
                       " (" .. proto .. ")" .. "</span></A></li>\n")
         end
     else
         print(
-            '<li><A HREF="/lua/flows_stats.lua?port=' .. port .. '"><span class="badge bg-secondary">' .. port .. " (" ..
+            '<li><A HREF="' .. ntop.getHttpPrefix() .. '/lua/flows_stats.lua?port=' .. port .. '"><span class="badge bg-secondary">' .. port .. " (" ..
                 proto .. ")" .. "</span></A></li>\n")
     end
 end
