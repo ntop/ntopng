@@ -15,6 +15,13 @@ Configuration
 #############
 
 To enable this feature, first enable the ACL Violation alert.
+There are two alerts for this feature:
+ - ACL Violation (ARP), for ARP traffic.
+ - ACL Violation (ICMP/TCP/UDP), for ICMP/TCP/UDP traffic.
+
+.. note::
+
+  Even if a rule is set but the alert is not enabled, no alert is going to be emitted by ntopng.
 
 .. figure:: ../img/acl_violation_alert.png
   :align: center
@@ -73,3 +80,20 @@ Delete Rules
 ############
 
 It is instead possible to delete rules, like for the Edit, by clicking on the Action button and selecting `Delete`. Other than that it's possible to delete all the rules by clicking on the red button `Delete All Rules` below the table.
+
+Alert
+#####
+
+After configuring everything, ntopng is going to start checking for flows not respecting the set rules and trigger the alerts;
+
+.. figure:: ../img/acl_violation_alert_flow.png
+  :align: center
+  :alt: Flow Alert (ICMP/TCP/UDP)
+
+  Flow Alert (ICMP/TCP/UDP)
+
+.. figure:: ../img/acl_violation_alert_mac.png
+  :align: center
+  :alt: MAC Alert (ARP)
+
+  MAC Alert (ARP)

@@ -60,7 +60,9 @@ end
 if (flow_config) then
     -- Interface alerts
     if (flow_config["access_control_list"]) and
-        (flow_config["access_control_list"]["all"]["enabled"]) then
+        (flow_config["access_control_list"]["all"]["enabled"]) or
+        (interface_config["acl_violation_arp"]) and 
+        (interface_config["acl_violation_arp"]["min"]["enabled"]) then
         acl_violation_enabled = true
     end
 end

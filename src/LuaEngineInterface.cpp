@@ -2096,7 +2096,7 @@ static int ntop_interface_remove_ip_acl(lua_State *vm) {
 /* ****************************************** */
 
 static int ntop_interface_insert_mac_acl(lua_State *vm) {
-  bool res;
+  bool res = false;
 #ifdef NTOPNG_PRO
   NetworkInterface *curr_iface = getCurrentInterface(vm);
   char *mac_string;
@@ -4710,7 +4710,7 @@ static int ntop_interface_check_context(lua_State *vm) {
       (strcmp(c->iface->getEntityValue().c_str(), entity_val)) != 0) {
     /* NOTE: setting a context for a differnt interface is currently not
      * supported */
-    ntop->getTrace()->traceEvent(TRACE_WARNING, "Bad context - expected interface %s, found %s (%s) in context",
+    ntop->getTrace()->traceEvent(TRACE_DEBUG, "Bad context - expected interface %s, found %s (%s) in context",
         entity_val,
         c->iface == NULL ? "NULL" : c->iface->getEntityValue().c_str(),
         c->iface == NULL ? "NULL" : c->iface->get_name());

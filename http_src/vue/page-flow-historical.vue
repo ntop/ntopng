@@ -405,6 +405,13 @@ async function load_top_table_array(action, top) {
     const url = `${http_prefix}/lua/pro/rest/v2/get/flow/top.lua?${url_params}&action=${action}`;
     let res = await ntopng_utility.http_request(url);
     return res.map((t) => {
+        if (t.value) {
+            t.value.forEach((e, index) => {
+                if (e.count < 1) {
+                    t.value[index].count = '<1' 
+                }
+            })
+        }
         return {
             id: t.action || t.name,
             label: t.label,

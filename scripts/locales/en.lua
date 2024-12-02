@@ -912,7 +912,7 @@ local lang = {
       ["add_rule_arp"] = "When adding an ARP rule, only the 'Client' and 'Notes' fields will remain editable, because the Server for ARP is automatically set to FF:FF:FF:FF:FF:FF",
       ["add_rule_advanced_rules"] = "Click on the 'Advanced Settings' option to be able to add rules manually on a text-like format",
       ["errors"] = {
-          ["error_while_adding"] = "Unexpected error while adding a rule, please check the spelling [rule: %{rule}]",
+          ["error_while_adding"] = "Unexpected error while adding a rule, please check the spelling [rule: %{rule}]. Is the rule already present perhaps?",
           ["error_rule_not_found"] = "Unexpected error while deleting a rule, rule not found [rule: %{rule}]",
           ["error_delete"] = "Unexpected error while deleting a rule, please check the spelling [rule: %{rule}]",
           ["mandatory_port"] = "In case of UDP or TCP protocols, Port or Application are mandatory",
@@ -1190,9 +1190,12 @@ local lang = {
     },
   },
   ["alerts_dashboard"] = {
-    ["access_control_list"] = "ACL Violation (TCP/UDP/ICMP)",
+    ["access_control_list"] = "ACL Violation (ICMP/TCP/UDP)",
+    ["access_control_list_arp"] = "ACL Violation (ARP)",
     ["access_control_list_descr"] = "Flow violating the rules set in the ACL <a href='%{href}'><i class='fas fa-cog fa-sm'></i></a>",
-    ["access_control_list_check_description"] = "Trigger an alert whenever a flow with TCP/UDP/ICMP protocol not following the configured rules in the Access Control List page is detected <a href='" .. ntop.getHttpPrefix() .. "/lua/pro/admin/access_control_list.lua'><i class='fas fa-cog fa-sm'></i></a>. <b>This does not block the traffic, only triggers the alert</b>",
+    ["access_control_list_check_description"] = "Trigger an alert whenever a flow with ICMP/TCP/UDP protocol not following the configured rules in the Access Control List page is detected <a href='" .. ntop.getHttpPrefix() .. "/lua/pro/admin/access_control_list.lua'><i class='fas fa-cog fa-sm'></i></a>. <b>This does not block the traffic, only triggers the alert</b>",
+    ["alert_acl_violation_arp_descr"] = "%{num} new ARP Flow(s) violating the rules set in the ACL <a href='%{href}'><i class='fas fa-cog fa-sm'></i></a>",
+    ["access_control_list_arp_description"] = "Trigger an alert whenever a flow with ARP protocol not following the configured rules in the Access Control List page is detected <a href='" .. ntop.getHttpPrefix() .. "/lua/pro/admin/access_control_list.lua'><i class='fas fa-cog fa-sm'></i></a>. <b>This does not block the traffic, only triggers the alert</b>",
     ["active_flows_anomaly"] = "Live Flows Anomaly",
     ["add_filter"] = "Add Filter",
     ["alert"] = "Alert",
