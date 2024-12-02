@@ -524,6 +524,15 @@ end
 
 -- ###############################################
 
+local function format_historical_application_latency(latency)
+    return {
+        name = i18n("flow_details.application_latency"),
+        values = {(tonumber(latency)) .. " ms"}
+    }
+end
+
+-- ###############################################
+
 local function format_historical_obs_point(flow)
     return {
         name = i18n("db_explorer.observation_point"),
@@ -696,6 +705,10 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
             flow_details[#flow_details + 1] = format_historical_latency(flow, "SERVER_NW_LATENCY_US", "srv")
         end
         local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
+
+        if (alert_json["appl_latency"]) then
+            flow_details[#flow_details + 1] = format_historical_application_latency(alert_json["appl_latency"])
+        end
 
         if (alert_json["traffic_stats"] and table.len(alert_json["traffic_stats"]) > 0) then
             local rowspan = 1;

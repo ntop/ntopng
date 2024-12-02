@@ -8131,9 +8131,11 @@ void Flow::getProtocolJSONInfo(ndpi_serializer *serializer) {
       // srv2cli.lost
       ndpi_serialize_string_uint32(serializer, "srv2cli_lost",
 				   getTrafficStats()->get_srv2cli_tcp_lost());
-
     ndpi_serialize_end_of_block(serializer); /* traffic_stats block */
   }
+
+  if(protocol == IPPROTO_TCP && applLatencyMsec > 0)
+      ndpi_serialize_string_float(serializer, "appl_latency", applLatencyMsec, "%.2f");
 
   if(alert_score.size() > 0) {
     ndpi_serialize_start_of_block(serializer, "alert_score");
