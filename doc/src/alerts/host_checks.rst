@@ -92,7 +92,7 @@ Domain Name Contacts
 ~~~~~~~~~~~~~~~~~~~~
 Checks for Domain Names Contacts.
 
-The alert is sent when the number of different Domain Names contacted from an host exceeds the threshold.
+The alert is sent when the number of contacted Domain Names from a host exceeds the threshold. Never triggered for DNS and SMTP servers.
 
 *Interface: Packet & ZMQ*
 
