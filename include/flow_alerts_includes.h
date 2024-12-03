@@ -43,6 +43,7 @@
 #include "flow_alerts/UnexpectedDNSServerAlert.h"
 #include "flow_alerts/UnexpectedNTPServerAlert.h"
 #include "flow_alerts/UnexpectedSMTPServerAlert.h"
+#include "flow_alerts/UnexpectedServerConnectionAlert.h"
 #include "flow_alerts/UnexpectedServerAlert.h"
 #include "flow_alerts/WebMiningAlert.h"
 #include "flow_alerts/VLANBidirectionalTrafficAlert.h"

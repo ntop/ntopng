@@ -185,7 +185,7 @@ class Prefs {
   bool appliance;
 #endif
 
-  ServerConfiguration *gateway, *dns_servers, *ntp_servers, *smtp_servers, *dhcp_servers;
+  ServerConfiguration *gateway, *dns_servers, *ntp_servers, *smtp_servers, *dhcp_servers,*passive_servers;
 
 #ifdef HAVE_PF_RING
   int pfring_cluster_id;
@@ -744,12 +744,14 @@ class Prefs {
   bool isNTPServer(IpAddress *ip, u_int16_t vlan_id);
   bool isSMTPServer(IpAddress *ip, u_int16_t vlan_id);
   bool isDHCPServer(IpAddress *ip, u_int16_t vlan_id);
+  bool isPassiveServer(IpAddress *ip, u_int16_t vlan_id);
 
-  ServerConfiguration* getConfiguredGateways()    { return(gateway);      }
-  ServerConfiguration* getConfiguredDNSServers()  { return(dns_servers);  }
-  ServerConfiguration* getConfiguredNTPServers()  { return(ntp_servers);  }
-  ServerConfiguration* getConfiguredSMTPServers() { return(smtp_servers); }
-  ServerConfiguration* getConfiguredDHCPServers() { return(dhcp_servers); }
+  ServerConfiguration* getConfiguredGateways()      { return(gateway);          }
+  ServerConfiguration* getConfiguredDNSServers()    { return(dns_servers);      }
+  ServerConfiguration* getConfiguredNTPServers()    { return(ntp_servers);      }
+  ServerConfiguration* getConfiguredSMTPServers()   { return(smtp_servers);     }
+  ServerConfiguration* getConfiguredDHCPServers()   { return(dhcp_servers);     }
+  ServerConfiguration* getConfiguredPassiveServer() { return(passive_servers);  }
 
   inline bool useMacAddressInFlowKey()     { return (use_mac_in_flow_key);  }
   inline bool enableFingerprintStats()     { return (fingerprint_stats);    }

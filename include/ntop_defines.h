@@ -1637,6 +1637,7 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 #define CONST_NTP_SERVER_CONFIGURATION_REDIS_KEY "ntopng.prefs.nw_config_ntp_list"
 #define CONST_DHCP_SERVER_CONFIGURATION_REDIS_KEY "ntopng.prefs.nw_config_dhcp_list"
 #define CONST_SMTP_SERVER_CONFIGURATION_REDIS_KEY "ntopng.prefs.nw_config_smtp_list"
+#define CONST_PASSIVE_SERVER_CONFIGURATION_REDIS_KEY "ntopng.prefs.nw_config_passive_list"
 
 /******************************************************************************/
 

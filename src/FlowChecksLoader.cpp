@@ -125,6 +125,7 @@ void FlowChecksLoader::registerChecks() {
   if ((fcb = new UnexpectedDHCPServer())) registerCheck(fcb);
   if ((fcb = new UnexpectedNTPServer())) registerCheck(fcb);
   if ((fcb = new UnexpectedSMTPServer())) registerCheck(fcb);
+  if ((fcb = new UnexpectedServerConnection())) registerCheck(fcb);
   if ((fcb = new WebMining())) registerCheck(fcb);
   if ((fcb = new VLANBidirectionalTraffic())) registerCheck(fcb);
   if ((fcb = new BlacklistedClientContact())) registerCheck(fcb);

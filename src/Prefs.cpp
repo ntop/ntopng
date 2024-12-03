@@ -227,6 +227,7 @@ Prefs::Prefs(Ntop *_ntop) {
   ntp_servers  = new (std::nothrow) ServerConfiguration();
   dhcp_servers = new (std::nothrow) ServerConfiguration();
   smtp_servers = new (std::nothrow) ServerConfiguration();
+  passive_servers = new (std::nothrow) ServerConfiguration();
 
 #ifdef HAVE_NEDGE
   disable_dns_resolution();
@@ -327,6 +328,7 @@ Prefs::~Prefs() {
   if(ntp_servers)  delete ntp_servers;
   if(dhcp_servers) delete dhcp_servers;
   if(smtp_servers) delete smtp_servers;
+  if(passive_servers) delete passive_servers;
 }
 
 /* ******************************************* */
@@ -3197,6 +3199,7 @@ void Prefs::reloadServersConfiguration() {
   ntp_servers->reloadServerConfiguration((char *) CONST_NTP_SERVER_CONFIGURATION_REDIS_KEY);
   dhcp_servers->reloadServerConfiguration((char *) CONST_DHCP_SERVER_CONFIGURATION_REDIS_KEY);
   smtp_servers->reloadServerConfiguration((char *) CONST_SMTP_SERVER_CONFIGURATION_REDIS_KEY);
+  passive_servers->reloadServerConfiguration((char *) CONST_PASSIVE_SERVER_CONFIGURATION_REDIS_KEY);
 }
 
 /* *************************************** */
@@ -3227,4 +3230,10 @@ bool Prefs::isDHCPServer(IpAddress *ip, u_int16_t vlan_id) {
 
 bool Prefs::isSMTPServer(IpAddress *ip, u_int16_t vlan_id) {
   return(smtp_servers->findAddress(ip, vlan_id));
+}
+
+/* *************************************** */
+
+bool Prefs::isPassiveServer(IpAddress *ip, u_int16_t vlan_id) {
+  return(passive_servers->findAddress(ip, vlan_id));
 }

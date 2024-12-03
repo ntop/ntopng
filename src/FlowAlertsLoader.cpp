@@ -117,6 +117,8 @@ FlowAlertsLoader::FlowAlertsLoader() {
                 UnexpectedNTPServerAlert::getDefaultScore());
   registerAlert(UnexpectedSMTPServerAlert::getClassType(),
                 UnexpectedSMTPServerAlert::getDefaultScore());
+  registerAlert(UnexpectedServerConnectionAlert::getClassType(),
+                UnexpectedServerConnectionAlert::getDefaultScore());
   registerAlert(VLANBidirectionalTrafficAlert::getClassType(),
                 VLANBidirectionalTrafficAlert::getDefaultScore());
   registerAlert(WebMiningAlert::getClassType(),
