@@ -48,7 +48,8 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_acl_violation_arp.format(ifid, alert, alert_type_params)
-    return i18n('alerts_dashboard.alert_acl_violation_arp_descr', { num = alert_type_params.num_new_flows })
+   local href = ntop.getHttpPrefix() .. '/lua/pro/admin/access_control_list.lua'
+    return i18n('alerts_dashboard.alert_acl_violation_arp_descr', { num = alert_type_params.num_new_flows, href = href })
 end
 
 -- #######################################################

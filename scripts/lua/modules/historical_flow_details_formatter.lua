@@ -245,7 +245,7 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
     local alert_risk = ntop.getFlowAlertRisk(tonumber(alert_id))
     local alert_src
     local riskLabel = ""
-
+    
     if (tonumber(alert_risk) == 0) then
         alert_src = "ntopng"
         alert_risk = alert_id
@@ -323,7 +323,7 @@ local function format_historical_issues(flow_details, flow)
         local alerts, _ = alert_store_instance:select_request(nil, "*")
         if alerts and #alerts >= 1 then
             alert = alerts[1]
-            details = alert_utils.formatFlowAlertMessage(interface.getId(), alert, alert_json, false, true)
+            details = alert_utils.formatFlowAlertMessage(interface.getId(), alert, alert_json, false, true, true)
         end
     end
 

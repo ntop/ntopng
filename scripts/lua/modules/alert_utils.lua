@@ -382,7 +382,7 @@ end
 
 -- #################################
 
-function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, local_explorer)
+function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, local_explorer, exclude_remediation_link)
    local msg
    local alert_risk
 
@@ -432,7 +432,7 @@ function alert_utils.formatFlowAlertMessage(ifid, alert, alert_json, add_score, 
    end
    
    -- Add the link to the documentation
-   if alert_risk and alert_risk > 0 then
+   if alert_risk and alert_risk > 0 and not exclude_remediation_link then
       msg = string.format("%s %s",
 			  msg, flow_risk_utils.get_remediation_documentation_link(alert_risk, alert_src))
       local info_msg = alert_utils.get_flow_risk_info(alert_risk, alert_json)

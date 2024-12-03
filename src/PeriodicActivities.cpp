@@ -100,11 +100,11 @@ void PeriodicActivities::run() {
     for (u_int16_t i = 0; i < num_sec_min_activities; i++)
       sec_min_activities[i]->schedule(this, now, false);
 
-    if(num_running_hour_day_activities == 0) {
-      /* At most only one concurrent activity */
-      for (u_int16_t i = 0; i < num_hour_day_activities; i++)
-	hour_day_activities[i]->schedule(this, now, true);
-    }
+    //if(num_running_hour_day_activities == 0) {
+    /* At most only one concurrent activity */
+    for (u_int16_t i = 0; i < num_hour_day_activities; i++)
+	    hour_day_activities[i]->schedule(this, now, true);
+    //}
     
     sleep(1);
   }

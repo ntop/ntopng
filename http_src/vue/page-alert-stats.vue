@@ -406,6 +406,9 @@ const map_table_def_columns = async (columns) => {
         "info": (info, row) => {
             return `${DataTableRenders.filterize('info', info.value, info.label)}`;
         },
+        "address": (address, row) => {
+            return `${DataTableRenders.filterize('mac', address.value, address.label)}`;
+        },
         "cli2srv_bytes": (info, row) => {
 
             return `${DataTableRenders.filterize('cli2srv_bytes', row.total_bytes.bytes_sent, formatterUtils.getFormatter("bytes")(row.total_bytes.bytes_sent))}`;

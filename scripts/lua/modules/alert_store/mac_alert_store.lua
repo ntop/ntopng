@@ -19,7 +19,7 @@ local json = require "dkjson"
 
 -- ##############################################
 
-local mac_alert_store =  classes.class(alert_store)
+local mac_alert_store = classes.class(alert_store)
 
 -- ##############################################
 
@@ -42,10 +42,9 @@ end
 -- ##############################################
 
 function mac_alert_store:_build_insert_query(alert, write_table, alert_status, extra_columns, extra_values)
-
-   local insert_stmt = string.format("INSERT INTO %s "..
-      "(%salert_id, alert_status, require_attention, interface_id, tstamp, tstamp_end, severity, score, address, device_type, name, "..
-      "is_attacker, is_victim, json) "..
+   local insert_stmt = string.format("INSERT INTO %s " ..
+      "(%salert_id, alert_status, require_attention, interface_id, tstamp, tstamp_end, severity, score, address, device_type, name, " ..
+      "is_attacker, is_victim, json) " ..
       "VALUES (%s%u, %u, %u, %d, %u, %u, %u, %u, '%s', %u, '%s', %u, %u, '%s'); ",
       write_table,
       extra_columns,
@@ -75,8 +74,9 @@ function mac_alert_store:top_address_historical()
    -- Preserve all the filters currently set
    local where_clause = self:build_where_clause()
 
-   local q = string.format("SELECT address, count(*) count FROM %s WHERE %s GROUP BY address ORDER BY count DESC LIMIT %u",
-			   self._table_name, where_clause, self._top_limit)
+   local q = string.format(
+      "SELECT address, count(*) count FROM %s WHERE %s GROUP BY address ORDER BY count DESC LIMIT %u",
+      self._table_name, where_clause, self._top_limit)
 
    local q_res = interface.alert_store_query(q) or {}
 
@@ -95,19 +95,33 @@ end
 
 -- ##############################################
 
+-- @brief Get info about additional available filters
+function mac_alert_store:_get_additional_available_filters()
+   local tag_utils = require "tag_utils"
+   local filters = {
+      mac = tag_utils.defined_tags.mac,
+   }
+
+   return filters
+end
+
+-- ##############################################
+
 --@brief Add filters according to what is specified inside the REST API
 function mac_alert_store:_add_additional_request_filters()
    -- Add filters specific to the mac family
+   local mac = _GET["mac"]
+   self:add_filter_condition_list('address', mac)
 end
 
 -- ##############################################
 
 local RNAME = {
-   ADDRESS = { name = "address", export = true},
-   DEVICE_TYPE = { name = "device_type", export = true},
-   NAME = { name = "name", export = true},
-   DESCRIPTION = { name = "description", export = true},
-   MSG = { name = "msg", export = true, elements = {"name", "value", "description"}}
+   ADDRESS = { name = "address", export = true },
+   DEVICE_TYPE = { name = "device_type", export = true },
+   NAME = { name = "name", export = true },
+   DESCRIPTION = { name = "description", export = true },
+   MSG = { name = "msg", export = true, elements = { "name", "value", "description" } }
 }
 
 function mac_alert_store:get_rnames()
@@ -123,10 +137,15 @@ function mac_alert_store:format_record(value, no_html)
    local alert_fullname = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), true, alert_entities.mac.entity_id)
    local msg = alert_utils.formatAlertMessage(ifid, value, alert_info)
 
-   record[RNAME.ADDRESS.name] = value["address"]
-   record[RNAME.DEVICE_TYPE.name] = { 
-     value = value["device_type"],
-     label = string.format("%s %s", discover.devtype2string(value["device_type"]), discover.devtype2icon(value["device_type"])),
+   record[RNAME.ADDRESS.name] = {
+      value = value["address"],
+      label = value["address"]
+   }
+   
+   record[RNAME.DEVICE_TYPE.name] = {
+      value = value["device_type"],
+      label = string.format("%s %s", discover.devtype2string(value["device_type"]),
+         discover.devtype2icon(value["device_type"])),
    }
 
    record[RNAME.NAME.name] = value["name"]
@@ -142,11 +161,11 @@ function mac_alert_store:format_record(value, no_html)
    record[RNAME.DESCRIPTION.name] = msg
 
    record[RNAME.MSG.name] = {
-     name = noHtml(alert_name),
-     fullname = alert_fullname,
-     value = tonumber(value["alert_id"]),
-     description = msg,
-     configset_ref = alert_utils.getConfigsetAlertLink(alert_info)
+      name = noHtml(alert_name),
+      fullname = alert_fullname,
+      value = tonumber(value["alert_id"]),
+      description = msg,
+      configset_ref = alert_utils.getConfigsetAlertLink(alert_info)
    }
 
    return record

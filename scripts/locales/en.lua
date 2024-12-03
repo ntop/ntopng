@@ -2242,6 +2242,7 @@ local lang = {
       ["alert_description"] = "Description",
       ["alert_id"] = "Alert Type",
       ["alert_status"] = "Alert Status",
+      ["address"] = "MAC Address",
       ["apn_mac"] = "APN MAC",
       ["asn"] = "ASN",
       ["bytes"] = "Bytes",

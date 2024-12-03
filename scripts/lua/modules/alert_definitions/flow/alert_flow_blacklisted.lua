@@ -43,63 +43,16 @@ end
 -- @param alert_type_params Table `alert_type_params` as built in the `:init` method
 -- @return A human-readable string
 function alert_flow_blacklisted.format(ifid, alert, alert_type_params)
-    local who = {}
-
-    if alert_type_params["cli_blacklisted"] and alert_type_params["cli_blacklisted"] ~= "0" then
-        who[#who + 1] = {
-            type = i18n("client"),
-            blacklist_name = alert_type_params["custom_cat_file"]
-        }
+    local blacklist = ""
+    if not isEmptyString(alert_type_params["custom_cat_file"]) then
+        blacklist = alert_type_params["custom_cat_file"]
     end
-
-    if alert_type_params["srv_blacklisted"] and alert_type_params["srv_blacklisted"] ~= "0" then
-        who[#who + 1] = {
-            type = i18n("server"),
-            blacklist_name = alert_type_params["custom_cat_file"]
-        }
-    end
-
-    local who_string = ""
-    local black_list_names = ""
-    for _, v in ipairs(who) do
-        if v.type then
-            if who_string ~= "" then
-                who_string = who_string .. ", "
-            end
-            who_string = who_string .. v.type
-        end
-
-        if v.blacklist_name then
-            if black_list_names ~= "" then
-                black_list_names = black_list_names .. ", "
-            end
-            black_list_names = black_list_names .. v.blacklist_name
-        end
-    end
+    -- This alert has been split into 3 alerts, this triggers only for the category
     local res = i18n("flow_details.blacklisted_flow_detailed", {
-        who = who_string,
-        blacklist = black_list_names
+        who = i18n("category"),
+        blacklist = blacklist
     })
-    
-    if #who == 0 and alert_type_params["cat_blacklisted"] then
-        if ntop.getCache(blacklist_debug) == '1' then
-            traceError(TRACE_NORMAL, TRACE_CONSOLE, "Blacklisted flow with no blacklisted client nor server. Info:\n")
-            tprint(alert)
-            tprint(alert_type_params)
-        end
-        local l7_protocol
-        if tonumber(alert["l7_master_proto"]) and tonumber(alert["l7_proto"]) then
-            l7_protocol =
-                interface.getnDPIFullProtoName(tonumber(alert["l7_master_proto"]), tonumber(alert["l7_proto"]))
-        end
-        res = i18n("blacklisted_category", {
-            config_href = "<a href='" .. ntop.getHttpPrefix() .. "/lua/admin/edit_categories.lua?application=" ..
-                l7_protocol .. "' target='_blank'><i class='fas fa-cog fa-sm'></i></a>"
-        })
-    end
 
-    -- res = alert_type_params["custom_cat_file"]
-    tprint(res)
     return res
 end
 
