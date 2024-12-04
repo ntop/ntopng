@@ -1,31 +1,42 @@
 <template>
-    <div class="container mt-4">
-        <div v-for="(value, key) in check_name" :key="key" class="mb-4">
-            <div class="mb-2">
-                <strong>{{ _i18n(value.i18n_title) }}</strong>
-                <br>
-                {{ _i18n("network_configuration.input_box_description") + " " + _i18n(value.i18n_title) }}
-            </div>
-            <div>
-                <textarea v-model="ipAddresses[key]" class="form-control rounded"
-                    :placeholder="`Enter ${value.device_type} IPs (Comma Separated)`" @input="markAsModified(key)"
-                    rows="3"></textarea>
-                <div v-if="validationErrors[key]" class="text-danger mt-1">
-                    {{ validationErrors[key] }}
+    <div class="m-3">
+        <div class="m-4 card card-shadow">
+            <div class="card-body">
+                <table class="table table-striped table-bordered col-sm-12">
+                    <tbody class="table_length">
+                        <tr v-for="(value, key) in check_name" :key="key" class="mb-4">
+                            <td>
+                                <div class="mb-2">
+                                    <b>{{ _i18n(value.i18n_title) }}</b>
+                                </div>
+                                <div>
+                                    <textarea v-model="ipAddresses[key]" class="form-control rounded"
+                                        :placeholder="`Enter ${value.device_type} IPs (Comma Separated)`"
+                                        @input="markAsModified(key)" rows="2"></textarea>
+                                    <div v-if="validationErrors[key]" class="text-danger mt-1">
+                                        {{ validationErrors[key] }}
+                                    </div>
+
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="d-flex justify-content-end me-1">
+                    <button class="btn btn-primary" :disabled="disable_save" @click="reload_page">
+                        {{ _i18n('save_settings') }}
+                    </button>
                 </div>
-                
             </div>
         </div>
-        <div class="d-flex justify-content-end mt-4">
-            <button @click="saveConfig" :class="saveButtonClass" :disabled="isSaving"> {{ saveButtonText }}
-            </button>
-        </div>
+        <NoteList :note_list="notes"> </NoteList>
     </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
+import { default as NoteList } from "./note-list.vue";
 import regexValidation from "../utilities/regex-validation.js";
 
 const _i18n = (t) => i18n(t);
@@ -34,6 +45,10 @@ const props = defineProps({
     context: Object
 });
 
+const notes = [
+    _i18n("network_configuration.allowed_servers_description"),
+    _i18n("network_configuration.uses_of_servers")
+]
 
 const ipAddresses = reactive({});
 const validationErrors = reactive({});
@@ -56,10 +71,10 @@ const saveButtonClass = computed(() => {
 });
 
 const check_name = {
-    "dns_list":     { "i18n_title": "network_configuration.dns_servers_title", "device_type": "DNS Server", "reques_param": "dns_list" },
-    "ntp_list":     { "i18n_title": "network_configuration.ntp_servers_title", "device_type": "NTP Server", "reques_param": "ntp_list" },
-    "dhcp_list":    { "i18n_title": "network_configuration.dhcp_servers_title", "device_type": "DHCP Server", "reques_param": "dhcp_list" },
-    "smtp_list":    { "i18n_title": "network_configuration.smtp_servers_title", "device_type": "SMTP Server", "reques_param": "smtp_list" },
+    "dns_list": { "i18n_title": "network_configuration.dns_servers_title", "device_type": "DNS Server", "reques_param": "dns_list" },
+    "ntp_list": { "i18n_title": "network_configuration.ntp_servers_title", "device_type": "NTP Server", "reques_param": "ntp_list" },
+    "dhcp_list": { "i18n_title": "network_configuration.dhcp_servers_title", "device_type": "DHCP Server", "reques_param": "dhcp_list" },
+    "smtp_list": { "i18n_title": "network_configuration.smtp_servers_title", "device_type": "SMTP Server", "reques_param": "smtp_list" },
     "gateway_list": { "i18n_title": "network_configuration.gateway_servers_title", "device_type": "Gateway", "reques_param": "gateway_list" },
 }
 
@@ -113,7 +128,7 @@ const validateIpAddresses = () => {
 const saveConfig = async () => {
     if (validateIpAddresses()) {
         isSaving.value = true;
-        let data = { csrf: props.context.csrf, config: []};
+        let data = { csrf: props.context.csrf, config: [] };
 
         let headers = {
             'Content-Type': 'application/json'
