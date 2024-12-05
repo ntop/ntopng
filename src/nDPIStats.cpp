@@ -57,11 +57,11 @@ nDPIStats::nDPIStats(nDPIStats &stats) {
         ProtoCounter *pc =
             new (std::nothrow) ProtoCounter(it->first,
 #ifdef NTOPNG_PRO
-                                            enable_throughput_stats,
+                                            stats.getEnableThptStats(),
 #else
                                             false,
 #endif
-                                            enable_behavior_stats);
+                                            stats.getEnableBehaviorStats());
 
         if (pc != NULL) {
           pc->set(c);

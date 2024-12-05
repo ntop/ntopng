@@ -69,7 +69,8 @@ LocalHost::~LocalHost() {
   freeLocalHostData();
 
   /* Decrease number of active hosts */
-  if (isUnicastHost()) iface->decNumHosts(this, is_rx_only);
+  iface->decNumHosts(this, is_rx_only);
+  
 #ifdef NTOPNG_PRO
   ntop->get_am()->deleteHost(this, get_first_seen(), time(NULL));
 #endif
@@ -157,7 +158,7 @@ void LocalHost::initialize() {
     if (NetworkStats *ns = iface->getNetworkStats(local_network_id))
       ns->incNumHosts();
   }
-
+  
   iface->incNumHosts(this, true /* Initialization: bytes are 0, considered RX only */);
 
 #ifdef LOCALHOST_DEBUG

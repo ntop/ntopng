@@ -50,8 +50,7 @@ RemoteHost::RemoteHost(NetworkInterface *_iface, int32_t _iface_idx,
 
 RemoteHost::~RemoteHost() {
   /* Decrease number of active hosts */
-  if(isUnicastHost())
-    iface->decNumHosts(this, is_rx_only);
+  iface->decNumHosts(this, is_rx_only);
 }
 
 /* *************************************** */
@@ -80,6 +79,5 @@ void RemoteHost::initialize() {
     ntop->getRedis()->getAddress(host, rsp, sizeof(rsp), true);
   }
 
-  if (isUnicastHost())
-    iface->incNumHosts(this, true /* Initialization: bytes are 0, considered RX only */);
+  iface->incNumHosts(this, true /* Initialization: bytes are 0, considered RX only */);
 }

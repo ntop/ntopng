@@ -22,14 +22,6 @@ local prefs = ntop.getPrefs()
 
 local email_peer_pattern = [[^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*)$]]
 
-if ntop.isPro() or ntop.isnEdgeEnterprise() then
-    package.path = dirs.installdir .. "/scripts/lua/pro/?.lua;" .. package.path
-    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
-    if hasClickHouseSupport() then
-        flow_db_utils = require("flow_db_utils")
-    end
-end
-
 sendHTTPContentTypeHeader('text/html')
 
 local alerts_disabled = false

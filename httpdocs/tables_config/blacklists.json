@@ -7,7 +7,7 @@
 	"display_empty_rows": true,
 	"default_sort": {
 		"column_id": "status",
-		"sort": 1
+		"sort": 2
 	},
 	"columns": [
 		{

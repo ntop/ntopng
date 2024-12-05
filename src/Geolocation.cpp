@@ -195,6 +195,7 @@ Geolocation::~Geolocation() {
 bool Geolocation::getAS(IpAddress *addr, u_int32_t *asn, char **asname) {
   if (asn) *asn = 0;
   if (asname) *asname = NULL;
+  bool ret = false; 
 
 #ifdef HAVE_MAXMINDDB
   sockaddr *sa = NULL;
@@ -235,16 +236,15 @@ bool Geolocation::getAS(IpAddress *addr, u_int32_t *asn, char **asname) {
         }
       }
 
-      return(true);
+      ret = true;
     } else
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Lookup failed [%s]",
                                    MMDB_strerror(mmdb_error));
-
-    free(sa);
   }
+  if (sa) free(sa);
 #endif
 
-  return(false);
+  return ret;
 }
 
 /* *************************************** */
@@ -259,6 +259,8 @@ bool Geolocation::getInfo(IpAddress *addr, char **continent_code,
   if (city) *city = strdup((char *)UNKNOWN_CITY);
   if (latitude) *latitude = 0;
   if (longitude) *longitude = 0;
+
+  bool ret = false;
 
 #ifdef HAVE_MAXMINDDB
   sockaddr *sa = NULL;
@@ -337,8 +339,7 @@ bool Geolocation::getInfo(IpAddress *addr, char **continent_code,
       }
     }
 
-    free(sa);
-    return(true);
+    ret = true;
   } else {
     char buf[64];
 
@@ -348,9 +349,10 @@ bool Geolocation::getInfo(IpAddress *addr, char **continent_code,
         addr ? addr : 0, addr ? addr->print(buf, sizeof(buf)) : "",
         addr ? addr->getVersion() : 0);
   }
+  if (sa) free(sa);
 #endif
 
-  return(false);
+  return ret;
 }
 
 /* *************************************** */

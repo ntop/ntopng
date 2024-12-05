@@ -2776,10 +2776,8 @@ void Host::toggleRxOnlyHost(bool rx_only) {
 #endif
 
   if(rx_only == false) { /* Rx-only -> Not-Rx-only */
-    if(isUnicastHost()) {
-      iface->decNumHosts(this, true /* rx-only */);
-      iface->incNumHosts(this, false /* not-rx-only */);
-    }
+    iface->decNumHosts(this, true /* rx-only */);
+    iface->incNumHosts(this, false /* not-rx-only */);
   } else {
     /* Not-Rx-only -> Rx-only: this should happen during initialization only */
   }

@@ -56,7 +56,10 @@ class nDPIStats {
            bool tsLua = false, bool diff = false);
   json_object *getJSONObject(NetworkInterface *iface);
   void sum(nDPIStats *s);
-
+#ifdef NTOPNG_PRO
+  bool getEnableThptStats() { return enable_throughput_stats; }
+#endif
+  bool getEnableBehaviorStats() { return enable_behavior_stats; }
   inline u_int64_t getProtoBytes(u_int16_t proto_id) {
     std::unordered_map<u_int16_t, ProtoCounter *>::iterator pi =
         counters.find(proto_id);
