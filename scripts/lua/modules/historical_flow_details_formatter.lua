@@ -371,21 +371,37 @@ local function format_historical_issues(flow_details, flow)
     local _, other_issues = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'], alert_json, false, nil,
         true)
 
-    if table.len(other_issues) > 0 then
-        for _, issue in pairs(other_issues or {}) do
-            local msg, info
-            local pieces = string.split(issue.msg, "%[")
+    -- dividing "issues" by their score
+    local issues_by_score = {}
+    for _, issue in pairs(other_issues or {}) do
+        local issue_id = tostring(issue.alert_id)
+        if alert_scores and alert_scores[issue_id] then
+            issue.score = alert_scores[issue_id]
+        end
+        if not issues_by_score[issue.score] then
+            issues_by_score[issue.score] = {}
+        end
+        issues_by_score[issue.score][#issues_by_score[issue.score] + 1] = issue
+    end
 
-            if (pieces ~= nil) then
-                msg = pieces[1]
-                info = string.gsub(pieces[2], "%]", "")
-            else
-                msg = issue.msg
-                info = ""
+    if table.len(issues_by_score) > 0 then
+        -- iterate over issues from the highest scoring to the lowest scoring class.
+        for _, issue_list in pairsByKeys(issues_by_score or {}, rev) do
+            for _, issue in pairs(issue_list or {}) do
+                local msg, info
+                local pieces = string.split(issue.msg, "%[")
+
+                if (pieces ~= nil) then
+                    msg = pieces[1]
+                    info = string.gsub(pieces[2], "%]", "")
+                else
+                    msg = issue.msg
+                    info = ""
+                end
+                html = html ..
+                    format_historical_issue_description(tostring(issue.alert_id), tonumber(issue.score), '', msg,
+                        info, alert_scores, true, riskInfo)
             end
-            html = html ..
-                format_historical_issue_description(tostring(issue.alert_id), tonumber(issue.score), '', msg,
-                    info, alert_scores, true, riskInfo)
         end
     end
 
