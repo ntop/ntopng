@@ -53,12 +53,12 @@ Flow::Flow(NetworkInterface *_iface,
   flow_dropped_counts_increased = 0, protocolErrorCode = 0;
   srcAS = dstAS = 0;
 
-  memset(&collection, 0, sizeof(collection));
-
   if(_protocol == IPPROTO_TCP)
     tcp = (FlowTCP*)calloc(1, sizeof(FlowTCP));
   else
     tcp = NULL;
+
+  collection = NULL;
   
   predominant_alert.id = flow_alert_normal,
     predominant_alert.category = alert_category_other,
@@ -502,7 +502,8 @@ Flow::~Flow() {
   
   if(riskInfo) free(riskInfo);
   if(end_reason) free(end_reason);
-  if(collection.wifi.wlan_ssid) free(collection.wifi.wlan_ssid);
+
+  if(collection && collection->wifi.wlan_ssid) free(collection->wifi.wlan_ssid);
   if(viewFlowStats) delete (viewFlowStats);
   if(periodic_stats_update_partial) delete (periodic_stats_update_partial);
   if(last_db_dump.partial) delete (last_db_dump.partial);
@@ -2916,8 +2917,8 @@ void Flow::lua(lua_State *vm, AddressTree *ptree,
     lua_get_info(vm, true /* Client */);
     lua_get_info(vm, false /* Server */);
 
-    if(collection.vrfId)
-      lua_push_uint64_table_entry(vm, "vrfId", collection.vrfId);
+    if(collection && collection->vrfId)
+      lua_push_uint64_table_entry(vm, "vrfId", collection->vrfId);
 
     /* See VLANAddressTree.h for details */
     lua_push_uint32_table_entry(vm, "observation_point_id",
@@ -2962,11 +2963,14 @@ void Flow::lua(lua_State *vm, AddressTree *ptree,
       }
     }
 
-    if(collection.prevAdjacentAS)
-      lua_push_int32_table_entry(vm, "prev_adjacent_as", collection.prevAdjacentAS);
-    if(collection.nextAdjacentAS)
-      lua_push_int32_table_entry(vm, "next_adjacent_as", collection.nextAdjacentAS);
+    if(collection) {
+      if(collection->prevAdjacentAS)
+	lua_push_int32_table_entry(vm, "prev_adjacent_as", collection->prevAdjacentAS);
 
+      if(collection->nextAdjacentAS)
+	lua_push_int32_table_entry(vm, "next_adjacent_as", collection->nextAdjacentAS);
+    }
+    
     lua_tos(vm);
     lua_get_protocols(vm);
     lua_push_str_table_entry(vm, "community_id",
@@ -3096,14 +3100,14 @@ void Flow::lua(lua_State *vm, AddressTree *ptree,
     if(end_reason)
       lua_push_str_table_entry(vm, "flow_end_reason", getEndReason());
 
-    if(collection.wifi.wlan_ssid) {
+    if(collection && collection->wifi.wlan_ssid) {
       char mac_buf[20];
 
       lua_newtable(vm);
 
-      lua_push_str_table_entry(vm, "ssid", collection.wifi.wlan_ssid);
+      lua_push_str_table_entry(vm, "ssid", collection->wifi.wlan_ssid);
       lua_push_str_table_entry(vm, "wtp_mac_address",
-			       Utils::formatMac(collection.wifi.wtp_mac_address, mac_buf, sizeof(mac_buf)));
+			       Utils::formatMac(collection->wifi.wtp_mac_address, mac_buf, sizeof(mac_buf)));
 
       lua_pushstring(vm, "wlan");
       lua_insert(vm, -2);
@@ -4055,16 +4059,17 @@ void Flow::formatGenericFlow(json_object *my_object) {
 					    sizeof(jsonbuf)),
 			   json_object_new_string(end_reason));
 
-  if(collection.wifi.wlan_ssid) {
+  if(collection && collection->wifi.wlan_ssid) {
     char mac_buf[20];
+    
     json_object_object_add(my_object,
 			   Utils::jsonLabel(WLAN_SSID, "WLAN_SSID", jsonbuf,
 					    sizeof(jsonbuf)),
-			   json_object_new_string(collection.wifi.wlan_ssid));
+			   json_object_new_string(collection->wifi.wlan_ssid));
     json_object_object_add(my_object,
 			   Utils::jsonLabel(WTP_MAC_ADDRESS, "WTP_MAC_ADDRESS", jsonbuf,
 					    sizeof(jsonbuf)),
-			   json_object_new_string(Utils::formatMac(collection.wifi.wtp_mac_address, mac_buf,
+			   json_object_new_string(Utils::formatMac(collection->wifi.wtp_mac_address, mac_buf,
                                                                    sizeof(mac_buf))));
   }
 
@@ -8473,12 +8478,18 @@ char *Flow::getEndReason() { return (end_reason); }
 /* *************************************** */
 
 void Flow::setWLANInfo(char *_wlan_ssid, u_int8_t *_wtp_mac_address) {
-  if(_wlan_ssid) {
-    if(collection.wifi.wlan_ssid) free(collection.wifi.wlan_ssid);
-    collection.wifi.wlan_ssid = strdup(_wlan_ssid);
+  allocateCollection();
+
+  if(collection) {
+    if(_wlan_ssid) {
+      if(collection->wifi.wlan_ssid)
+	free(collection->wifi.wlan_ssid);
+      
+	collection->wifi.wlan_ssid = strdup(_wlan_ssid);
+    }
+    
+    memcpy(collection->wifi.wtp_mac_address, _wtp_mac_address, 6);
   }
-  
-  memcpy(collection.wifi.wtp_mac_address, _wtp_mac_address, 6);
 }
 
 /* *************************************** */
@@ -8945,10 +8956,15 @@ void Flow::addPrePostNATIPv4(u_int32_t _src_ip_addr_pre_nat,
                         u_int32_t _dst_ip_addr_pre_nat,
                         u_int32_t _src_ip_addr_post_nat,
                         u_int32_t _dst_ip_addr_post_nat) {
-  collection.nat.src_ip_addr_pre_nat = _src_ip_addr_pre_nat;
-  collection.nat.dst_ip_addr_pre_nat = _dst_ip_addr_pre_nat;
-  collection.nat.src_ip_addr_post_nat = _src_ip_addr_post_nat;
-  collection.nat.dst_ip_addr_post_nat = _dst_ip_addr_post_nat;
+
+  allocateCollection();
+
+  if(collection) {
+    collection->nat.src_ip_addr_pre_nat = _src_ip_addr_pre_nat;
+    collection->nat.dst_ip_addr_pre_nat = _dst_ip_addr_pre_nat;
+    collection->nat.src_ip_addr_post_nat = _src_ip_addr_post_nat;
+    collection->nat.dst_ip_addr_post_nat = _dst_ip_addr_post_nat;
+  }
 }
 
 /* **************************************************** */
@@ -8957,10 +8973,15 @@ void Flow::addPrePostNATPort(u_int32_t _src_port_pre_nat,
                           u_int32_t _dst_port_pre_nat,
                           u_int32_t _src_port_post_nat,
                           u_int32_t _dst_port_post_nat) {
-  collection.nat.src_port_pre_nat = _src_port_pre_nat;
-  collection.nat.dst_port_pre_nat = _dst_port_pre_nat;
-  collection.nat.src_port_post_nat = _src_port_post_nat;
-  collection.nat.dst_port_post_nat = _dst_port_post_nat;
+
+  allocateCollection();
+
+  if(collection) {
+    collection->nat.src_port_pre_nat = _src_port_pre_nat;
+    collection->nat.dst_port_pre_nat = _dst_port_pre_nat;
+    collection->nat.src_port_post_nat = _src_port_post_nat;
+    collection->nat.dst_port_post_nat = _dst_port_post_nat;
+  }
 }
 
 /* *************************************** */
@@ -9063,6 +9084,17 @@ const char* Flow::getDomainName() {
   return(NULL);
 }
 
+/* *************************************** */
+
+void Flow::allocateCollection() {
+  if(collection != NULL)
+    return;
+  else
+    collection = (FlowCollectionInfo*)calloc(1, sizeof(FlowCollectionInfo));
+}
+
+/* *************************************** */
+
 #if defined(NTOPNG_PRO)
   bool Flow::isFlowAllowed(bool *is_allowed) {
     if (isTCP() || isUDP() || isICMP())
@@ -9070,3 +9102,4 @@ const char* Flow::getDomainName() {
     return true;  };
 #endif
 
+/* *************************************** */
