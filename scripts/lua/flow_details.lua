@@ -1471,8 +1471,12 @@ else
                   alert_src = "ntopng"
                   alert_risk = score_alert.alert_id
                   if not isEmptyString(flow.json_alert) then
-                     local alert_json = json.decode(flow.json_alert)
-                     riskLabel = alert_utils.formatAlertMessage(ifid, { alert_id = alert_risk, entity_id = alert_entities.flow.entity_id }, alert_json)
+                     local alert_json = json.decode(flow.json_alert) or nil
+                     if alert_json and alert_json.alerts then
+                        alert_json = alert_json.alerts[tostring(alert_risk)]
+                     end
+                     flow.alert_id = alert_risk
+                     riskLabel = alert_utils.formatFlowAlertMessage(ifid, flow, alert_json, false, true, true)
                   end
                end
 

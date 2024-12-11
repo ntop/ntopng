@@ -110,7 +110,7 @@ class Flow : public GenericHashEntry {
     u_int8_t is_cli_attacker : 1, is_cli_victim : 1, is_srv_attacker : 1, is_srv_victim : 1, auto_acknowledge : 1;
   } alert_info;
 
-  char *json_protocol_info, *json_alert, *riskInfo, *end_reason;
+  char *json_protocol_info, *alerts_json, *alerts_json_shadow, *riskInfo, *end_reason;
 
   /* Calculate the entropy on the first MAX_ENTROPY_BYTES bytes */
   struct {
@@ -451,8 +451,8 @@ class Flow : public GenericHashEntry {
     return alert_info.is_srv_victim;
   };
   inline char *getProtocolInfo() { return json_protocol_info; };
-  void updateJSONAlert();
-  inline char *getAlertJSON() { return json_alert; };
+  void updateAlertsJSON();
+  inline char *getAlertJSON() { return alerts_json; };
   const char* getDomainName();
 
   void setProtocolJSONInfo();

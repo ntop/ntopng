@@ -108,7 +108,8 @@ Flow::Flow(NetworkInterface *_iface,
   trigger_immediate_periodic_update = false;
   next_call_periodic_update = 0;
 
-  riskInfo = NULL, json_protocol_info = NULL, json_alert = NULL;
+  riskInfo = NULL, json_protocol_info = NULL;
+  alerts_json = NULL, alerts_json_shadow = NULL;
   end_reason = NULL;
   ndpiFlowRiskName = NULL;
   viewFlowStats = NULL, suspicious_dga_domain = NULL;
@@ -587,7 +588,8 @@ Flow::~Flow() {
 
   if(icmp_info) delete (icmp_info);
   if(json_protocol_info) free(json_protocol_info);
-  if(json_alert) free(json_alert);
+  if(alerts_json) free(alerts_json);
+  if(alerts_json_shadow) free(alerts_json_shadow);
   if(external_alert.json) json_object_put(external_alert.json);
   if(external_alert.source) free(external_alert.source);
 
@@ -2905,8 +2907,8 @@ void Flow::lua(lua_State *vm, AddressTree *ptree,
   if (json_protocol_info)
     lua_push_str_table_entry(vm, "json_protocol_info", json_protocol_info);
 
-  if (json_alert)
-    lua_push_str_table_entry(vm, "json_alert", json_alert);
+  char *json = alerts_json; /* Copying ref as it may be moved to the shadow meantime */
+  if (json) lua_push_str_table_entry(vm, "json_alert", json);
 
   if(details_level >= details_high) {
     if(tcp && tcp->tcp_fingerprint)
@@ -4545,7 +4547,8 @@ void Flow::alert2JSON(FlowAlert *alert, ndpi_serializer *s) {
 
   ndpi_serialize_string_string(s, "info", getFlowInfo(false).c_str());
 
-  ndpi_serialize_string_string(s, "json", json_alert ? json_alert : "");
+  char *json = alerts_json; /* Copying ref as it may be moved to the shadow meantime */
+  ndpi_serialize_string_string(s, "json", json ? json : "");
 }
 
 /* *************************************** */
@@ -8147,7 +8150,7 @@ void Flow::setAlertInfo(FlowAlert *alert) {
 
 /* ***************************************************** */
 
-void Flow::updateJSONAlert() {
+void Flow::updateAlertsJSON() {
   ndpi_serializer serializer;
   char *json = NULL;
   u_int32_t json_len = 0;
@@ -8185,8 +8188,12 @@ void Flow::updateJSONAlert() {
 
   json = ndpi_serializer_get_buffer(&serializer, &json_len);
 
-  if(json_alert) free(json_alert);
-  json_alert = strdup(json ? json : "");
+  if(alerts_json) {
+    /* Moving to shadow as it may be in use by alert2JSON() or lua() */
+    if (alerts_json_shadow) free(alerts_json_shadow);
+    alerts_json_shadow = alerts_json;
+  }
+  alerts_json = strdup(json ? json : "");
 
   ndpi_term_serializer(&serializer);
 }
@@ -8234,19 +8241,22 @@ bool Flow::setAlertsMap(FlowAlert *alert) {
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "Discarding alert (normal)");
 #endif
+    delete alert;
     return false;
   }
 
   /* Check if the same alert has been already triggered and
    * accounted in the score */
   if(alerts_map.isSetBit(alert_type.id)) {
-    /* TODO replace alert rather then skipping it as it may contain updated values 
-     * or (optimization) let the check update the alert content */
+    /* TODO replace the alert rather then skipping it as it may contain updated values
+     * or let the check update the alert content rather than triggering a new alert.
+     * In any case, should we also send out a new notitication? */
 #ifdef DEBUG_SCORE
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				 "[%s] Discarding alert type %u (already set)",
 				 iface->get_name(), alert_type.id);
 #endif
+    delete alert;
     return false;
   }
 
@@ -8264,6 +8274,7 @@ bool Flow::setAlertsMap(FlowAlert *alert) {
 			    (IpAddress *)get_srv_ip_addr(), &srv_host);
     if((cli_host && cli_host->isFlowAlertDisabled(alert_type)) ||
 	(srv_host && srv_host->isFlowAlertDisabled(alert_type))) {
+      delete alert;
       return false;
     }
   } else {
@@ -8273,6 +8284,7 @@ bool Flow::setAlertsMap(FlowAlert *alert) {
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
 				   "Discarding alert (host filter)");
 #endif
+      delete alert;
       return false;
     }
   }
@@ -8285,6 +8297,7 @@ bool Flow::setAlertsMap(FlowAlert *alert) {
   /* Set alerts bitmap */
   alerts_map.setBit(alert_type.id);
   triggered_alerts[alert_type.id] = alert;
+  setAlertInfo(alert);
 
   /* Update score */
   flow_score += flow_inc;
@@ -8328,22 +8341,9 @@ bool Flow::triggerAlert(FlowAlert *alert, bool sync) {
 
   res = setAlertsMap(alert);
 
-  if(ntop->getPrefs()->dontEmitFlowAlerts()) {
-    /* Nothing to enqueue, can dispose the memory */
-    delete alert;
-    return res;
-  }
-
   if (res) {
-
-    setAlertInfo(alert);
-
     pending_alerts = true;
-
     if (sync) flushAlerts();
-
-  } else {
-    delete alert;
   }
 
   return res;
@@ -8354,15 +8354,16 @@ bool Flow::triggerAlert(FlowAlert *alert, bool sync) {
 void Flow::flushAlerts() {
   if (!pending_alerts) return;
 
-  /* Always enqueue the predominant alert, with json info for all alerts */
-  FlowAlert *alert = triggered_alerts[predominant_alert.id];
-
   /* Update JSON */
-  updateJSONAlert();
+  updateAlertsJSON();
 
-  /* Enqueue the alert (memory is disposed automatically upon failing
-   * enqueues) */
-  iface->enqueueFlowAlert(alert);
+  if (!ntop->getPrefs()->dontEmitFlowAlerts()) {
+    /* Always enqueue the predominant alert, with json info for all alerts */
+    FlowAlert *alert = triggered_alerts[predominant_alert.id];
+
+    /* Enqueue the alert */
+    iface->enqueueFlowAlert(alert);
+  }
 
   pending_alerts = false;
 }
