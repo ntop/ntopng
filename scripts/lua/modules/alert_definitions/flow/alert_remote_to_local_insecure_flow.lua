@@ -55,18 +55,18 @@ function alert_remote_to_local_insecure_flow.format(ifid, alert, alert_type_para
 
    local alert_message = ""
 
-   if (alert_type_params.ndpi_category == 100) then
-      alert_message = i18n("ndpi_categories.Malware")
-   elseif (alert_type_params.ndpi_category == 102) then
-      alert_message = i18n("ndpi_categories.Banned_Site")
+   if (alert_type_params.ndpi_breed == 3) then
+      alert_message = alert_message .. i18n("alerts_dashboard.ndpi_unsafe_protocol_title")
+   elseif (alert_type_params.ndpi_breed == 4) then
+      alert_message = alert_message .. i18n("alerts_dashboard.ndpi_potentially_dangerous_protocol_title")
+   elseif (alert_type_params.ndpi_breed == 5) then
+      alert_message = alert_message .. i18n("alerts_dashboard.ndpi_dangerous_protocol_title")
    end
 
-   if (alert_type_params.ndpi_breed == 3) then
-      alert_message = alert_message .. " [" .. i18n("alerts_dashboard.ndpi_unsafe_protocol_title") .. "]"
-   elseif (alert_type_params.ndpi_breed == 4) then
-      alert_message = alert_message .. " [" .. i18n("alerts_dashboard.ndpi_potentially_dangerous_protocol_title") .. "]"
-   elseif (alert_type_params.ndpi_breed == 5) then
-      alert_message = alert_message .. " [" .. i18n("alerts_dashboard.ndpi_dangerous_protocol_title") .. "]"
+   if (alert_type_params.ndpi_category == 100) then
+      alert_message = alert_message .. " [" .. i18n("ndpi_categories.Malware") .. "]"
+   elseif (alert_type_params.ndpi_category == 102) then
+      alert_message = alert_message .. " [" .. i18n("ndpi_categories.Banned_Site") .. "]"
    end
 
    return alert_message
