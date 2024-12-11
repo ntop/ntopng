@@ -23,10 +23,10 @@
 
 ndpi_serializer* UnexpectedServerAlert::getAlertJSON(
     ndpi_serializer* serializer) {
-  Flow* f = getFlow();
+  Flow *f = getFlow();
   const IpAddress* server = getServerIP(f);
 
-  if (serializer != NULL && server != NULL) {
+  if (serializer && server) {
     char buf[64];
 
     ndpi_serialize_string_string(serializer, "server_ip",

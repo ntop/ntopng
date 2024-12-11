@@ -36,6 +36,8 @@ class BlacklistedCountryAlert : public FlowAlert {
   }
   static u_int8_t getDefaultScore() { return SCORE_LEVEL_ERROR; };
 
+  inline bool get_is_server() { return is_server; };
+
   BlacklistedCountryAlert(FlowCheck* c, Flow* f, bool _is_server)
       : FlowAlert(c, f) {
     is_server = _is_server;

@@ -39,6 +39,11 @@ class IECUnexpectedTypeIdAlert : public FlowAlert {
   }
   static u_int8_t getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
+  inline u_int16_t get_asdu() { return asdu; };
+  inline u_int8_t get_type_id() { return type_id; };
+  inline u_int8_t get_cause_tx() { return cause_tx; };
+  inline u_int8_t get_negative() { return negative; };
+
   IECUnexpectedTypeIdAlert(FlowCheck* c, Flow* f, u_int8_t _type_id,
                            u_int16_t _asdu, u_int8_t _cause_tx,
                            u_int8_t _negative)

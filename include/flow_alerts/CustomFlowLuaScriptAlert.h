@@ -34,7 +34,9 @@ class CustomFlowLuaScriptAlert : public FlowAlert {
     return {flow_alert_custom_lua_script, alert_category_security};
   }
   static u_int8_t getDefaultScore() { return SCORE_LEVEL_ERROR; };
-  
+ 
+  inline std::string get_msg() { return msg; };
+ 
   CustomFlowLuaScriptAlert(FlowCheck* c, Flow* f) : FlowAlert(c, f){ setAlertScore(SCORE_LEVEL_ERROR); };
   ~CustomFlowLuaScriptAlert(){};
 

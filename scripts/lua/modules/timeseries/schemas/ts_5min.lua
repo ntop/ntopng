@@ -249,9 +249,9 @@ schema:addMetric("bytes_rcvd")
 
 -- ##############################################
 
-schema = ts_utils.newSchema("blacklist:hits", {
+schema = ts_utils.newSchema("blacklist_v2:hits", {
     step = 300,
-    metrics_type = ts_utils.metrics.counter
+    metrics_type = ts_utils.metrics.gauge
 })
 schema:addTag("ifid")
 schema:addTag("blacklist_name")

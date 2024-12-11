@@ -26,8 +26,6 @@
 
 class VLANBidirectionalTrafficAlert : public FlowAlert {
  private:
-  ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
-
  public:
   static FlowAlertType getClassType() {
     return {flow_alert_vlan_bidirectional_traffic, alert_category_security};

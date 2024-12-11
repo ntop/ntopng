@@ -70,6 +70,25 @@ bool Bitmap128::isSetBit(u_int8_t id) const {
 
 /* ****************************************** */
 
+/* Return the first bit set, starting from start */
+int Bitmap128::getNext(u_int8_t start) {
+  int i = -1;
+
+  if (start < 64) {
+    i = Utils::bitmapGetNext(bitmap[0], start);
+    if (i >= 0) return i;
+    i = Utils::bitmapGetNext(bitmap[1], 0);
+    if (i >= 0) return i + 64;
+  } else {
+    i = Utils::bitmapGetNext(bitmap[1], start - 64);
+    if (i >= 0) return i + 64;
+  }
+
+  return i;
+}
+
+/* ****************************************** */
+
 void Bitmap128::bitmapOr(const Bitmap128 b) {
   bitmap[0] |= b.bitmap[0], bitmap[1] |= b.bitmap[1];
 }

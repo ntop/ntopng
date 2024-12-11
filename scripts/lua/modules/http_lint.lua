@@ -2762,7 +2762,16 @@ local known_parameters = {
    ["draw"] = validateNumber,
    ["visible_columns"] = validateEmptyOr(validateListOfTypeInline(validateSingleWord)),
    ["instance_name"] = validateSingleWord, -- used in flow explorer
-   ["hide_exporters_name"] = validateBool
+   ["hide_exporters_name"] = validateBool,
+   ["dns_list"] = validateSingleWord,
+   ["ntp_list"] = validateSingleWord,
+   ["dhcp_list"] = validateSingleWord,
+   ["smtp_list"] = validateSingleWord,
+   ["gateway_list"] = validateSingleWord,
+   ["whitelisted_networks"] = validateSingleWord,
+   ["corporate_devices"] = validateSingleWord,
+   ["local_devices"] = validateSingleWord,
+   
 }
 
 -- A special parameter is formed by a prefix, followed by a variable suffix

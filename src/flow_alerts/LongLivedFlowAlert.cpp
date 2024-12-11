@@ -21,10 +21,12 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* LongLivedFlowAlert::getAlertJSON(ndpi_serializer* serializer) {
-  if (serializer == NULL) return NULL;
+ndpi_serializer* LongLivedFlowAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
 
-  ndpi_serialize_string_uint64(serializer, "longlived.threshold", longlived_th);
+  if (serializer) {
+    ndpi_serialize_string_uint64(serializer, "longlived.threshold", longlived_th);
+  }
 
   return serializer;
 }

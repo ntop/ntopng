@@ -46,7 +46,7 @@ class FlowCheck : public Check {
   virtual void flowEnd(Flow *f){};
   virtual void flowBegin(Flow *f){};
 
-  /* Used to build an alert when triggerAlertAsync is used */
+  /* Used to build an alert */
   virtual FlowAlert *buildAlert(Flow *f) { return NULL; };
 
   void addCheck(std::list<FlowCheck *> *l, NetworkInterface *iface,

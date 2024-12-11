@@ -1139,6 +1139,7 @@ local flow_columns = {
    ['IS_SRV_ATTACKER'] =      { tag = "is_srv_attacker" },
    ['IS_SRV_VICTIM'] =        { tag = "is_srv_victim" },
    ['IS_SRV_BLACKLISTED'] =   { tag = "is_srv_blacklisted" },
+   ['PROTOCOL_INFO_JSON'] =   { tag = "protocol_info_json" },
    ['ALERT_JSON'] =           { tag = "json" },
    ['SRC_PROC_NAME'] =        { tag = "cli_proc_name", db_type = "String", db_raw_type = "String" },
    ['DST_PROC_NAME'] =        { tag = "srv_proc_name", db_type = "String", db_raw_type = "String" },
@@ -1284,6 +1285,7 @@ historical_flow_utils.min_aggregated_flow_db_columns = {
 historical_flow_utils.extra_db_columns = {
    ["throughput"] = "ABS(LAST_SEEN - FIRST_SEEN) as TIME_DELTA, (TOTAL_BYTES / (TIME_DELTA + 1)) * 8 as THROUGHPUT",
    ["duration"] = "ABS(LAST_SEEN - FIRST_SEEN) as DURATION",
+   ["protocol_info_json"] = "PROTOCOL_INFO_JSON",
    ["alert_json"] = "ALERT_JSON"
 }
 

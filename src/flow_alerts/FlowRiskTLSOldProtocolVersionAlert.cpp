@@ -23,11 +23,11 @@
 
 ndpi_serializer* FlowRiskTLSOldProtocolVersionAlert::getAlertJSON(
     ndpi_serializer* serializer) {
-  Flow* f = getFlow();
+  Flow *f = getFlow();
 
-  if (serializer == NULL) return NULL;
-
-  ndpi_serialize_string_int32(serializer, "tls_version", f->getTLSVersion());
+  if (serializer) {
+    ndpi_serialize_string_int32(serializer, "tls_version", f->getTLSVersion());
+  }
 
   return serializer;
 }

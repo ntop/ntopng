@@ -28,49 +28,45 @@ FlowAlert::FlowAlert(FlowCheck *c, Flow *f) {
   flow = f;
   cli_attacker = srv_attacker = false;
   cli_victim = srv_victim = false;
+  cli_score = srv_score = 0;
   if (c) check_name = c->getName();
   alert_score = SCORE_LEVEL_INFO;
+  json_alert = NULL;
 }
 
 /* **************************************************** */
 
 FlowAlert::~FlowAlert() {
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
+  if (json_alert) free(json_alert);
 }
 
 /* ***************************************************** */
 
-ndpi_serializer* FlowAlert::getSerializedAlert() {
-  ndpi_serializer *serializer;
+const char *FlowAlert::getSerializedAlert() {
+  ndpi_serializer serializer;
+  char *json;
+  u_int32_t json_len; 
 
-  serializer = (ndpi_serializer *)malloc(sizeof(ndpi_serializer));
-
-  if (serializer == NULL) return NULL;
-
-  if (ndpi_init_serializer(serializer, ndpi_serialization_format_json) == -1) {
-    free(serializer);
+  if (json_alert)
+    return json_alert;
+ 
+  if (ndpi_init_serializer(&serializer, ndpi_serialization_format_json) == -1)
     return NULL;
-  }
 
-  /* Add here global check information, common to any alerted flow */
+  ndpi_serialize_start_of_block(&serializer, "alert_generation");
+  ndpi_serialize_string_string(&serializer, "script_key", getCheckName().c_str());
+  ndpi_serialize_string_string(&serializer, "subdir", "flow");
+  ndpi_serialize_end_of_block(&serializer);
 
-  /* Guys used to link the alert back to the active flow */
-  ndpi_serialize_string_uint64(serializer, "ntopng.key", flow->key());
-  ndpi_serialize_string_uint64(serializer, "hash_entry_id",
-                               flow->get_hash_entry_id());
+  getAlertJSON(&serializer);
 
-  /* Add information relative to this check */
-  ndpi_serialize_start_of_block(serializer, "alert_generation");
-  ndpi_serialize_string_string(serializer, "script_key", getCheckName().c_str());
-  ndpi_serialize_string_string(serializer, "subdir", "flow");
-  flow->getJSONRiskInfo(serializer);
-  ndpi_serialize_end_of_block(serializer);
-  if (flow->isBlacklistedFlow())
-    ndpi_serialize_string_string(serializer, "blacklist", 
-      flow->get_custom_category_file() ? flow->get_custom_category_file() : "");
+  json = ndpi_serializer_get_buffer(&serializer, &json_len);
 
-  /* This call adds check-specific information to the serializer */
-  getAlertJSON(serializer);
+  if (json)
+    json_alert = strdup(json);
 
-  return serializer;
+  ndpi_term_serializer(&serializer);
+
+  return json_alert;
 }

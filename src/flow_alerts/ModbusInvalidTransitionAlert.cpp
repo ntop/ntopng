@@ -21,8 +21,9 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* ModbusInvalidTransitionAlert::getAlertJSON(ndpi_serializer* serializer) {
-  Flow* f = getFlow();
+ndpi_serializer* ModbusInvalidTransitionAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  Flow *f = getFlow();
   
   if(serializer) {
     ndpi_serialize_string_uint32(serializer, "timestamp", packet_epoch);

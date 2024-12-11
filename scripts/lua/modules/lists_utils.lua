@@ -30,6 +30,8 @@ local MAX_LIST_ERRORS = 2
 local MIN_DOWNLOAD_INTERVAL = 3600
 local SIXH_DOWNLOAD_INTERVAL = 21600
 
+local REDIS_KEY_HITS = "ntopng.cache.system.blacklists_hits"
+
 -- IP addresses have very litte impact on memory/load time.
 -- 150k IP addresses rules can be loaded in 2 seconds
 local MAX_TOTAL_IP_RULES = 1000000
@@ -786,9 +788,7 @@ end
 
 function lists_utils.startup()
     local protos_utils = require "protos_utils"
-    local all_lists = get_lists()
 
-    -- tprint(all_lists)
     if (ntop.limitResourcesUsage()) then
         return
     end
@@ -807,8 +807,31 @@ function lists_utils.startup()
     -- Need to do the actual reload also here as otherwise some
     -- flows may be misdetected until housekeeping.lua is executed
     lists_utils.checkReloadLists()
+    lists_utils.cleanBlacklistsHits()
 end
 
 -- ##############################################
+
+function lists_utils.getHitsSinceLastUpdateAndUpdate(blacklist_name, current_hits)
+    -- current_hits is a counter, so to get the Gauge value, we have to 
+    -- subtruct from current_hits the 'last_hits', however in redis, save the
+    -- counter value!
+    local last_update = ntop.getHashCache(REDIS_KEY_HITS, blacklist_name)
+    local delta_hits = current_hits
+    if last_update and tonumber(last_update) then
+        delta_hits = current_hits - last_update
+        if delta_hits < 0 then
+            delta_hits = current_hits
+        end
+    end
+    ntop.setHashCache(REDIS_KEY_HITS, blacklist_name, current_hits)
+    return delta_hits
+end
+
+-- ##############################################
+
+function lists_utils.cleanBlacklistsHits()
+    ntop.delCache(REDIS_KEY_HITS)
+end
 
 return lists_utils

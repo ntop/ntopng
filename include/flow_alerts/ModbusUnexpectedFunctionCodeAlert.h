@@ -36,6 +36,8 @@ class ModbusUnexpectedFunctionCodeAlert : public FlowAlert {
   }
   static u_int8_t getDefaultScore() { return SCORE_LEVEL_ERROR; };
 
+  inline u_int8_t get_function_code() { return function_code; };
+
   ModbusUnexpectedFunctionCodeAlert(FlowCheck* c, Flow* f, u_int8_t _function_code) : FlowAlert(c, f) {
     function_code = _function_code;
   };

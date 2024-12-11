@@ -10,7 +10,6 @@ require "ntop_utils"
 local page_utils = require "page_utils"
 local json = require "dkjson"
 local template_utils = require("template_utils")
-local ifid = interface.getId()
 
 sendHTTPContentTypeHeader('text/html')
 
@@ -18,15 +17,19 @@ page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.networ
 
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
-local ifstats = interface.getStats()
-local probes = ifstats.probes
+local page = _GET["page"]
 
-page_utils.print_navbar(i18n("checks.network_configuration"), ntop.getHttpPrefix() .. "/lua/admin/network_configuration.lua", {{
-    url = ntop.getHttpPrefix() .. "/lua/admin/network_configuration.lua",
-    active = true,
+page_utils.print_navbar(i18n("checks.network_configuration"),
+    ntop.getHttpPrefix() .. "/lua/admin/network_configuration.lua", { {
+    active = (page == nil or page =='assets_inventory'),
     page_name = "assets_inventory",
     label = "<i class=\"fas fa-lg fa-home\"  data-bs-toggle=\"tooltip\" data-bs-placement=\"top\" title=\"" ..
-    i18n("checks.network_configuration") .. "\"></i>"
+        i18n("checks.network_configuration") .. "\"></i>"
+}, {
+    active = (page == "policy"),
+    page_name = "policy",
+    hidden = not ntop.isEnterpriseL(),
+    label = i18n("network_configuration.network_policy")
 }})
 
 local context = {
@@ -36,9 +39,16 @@ local context = {
 
 local json_context = json.encode(context)
 
-template_utils.render("pages/vue_page.template", {
-    vue_page_name = "PageNetworkConfiguration",
-    page_context = json_context
-})
+if (page == nil or page =='assets_inventory') then
+    template_utils.render("pages/vue_page.template", {
+        vue_page_name = "PageNetworkConfiguration",
+        page_context = json_context
+    })
+else
+    template_utils.render("pages/vue_page.template", {
+        vue_page_name = "PageNetworkPolicy",
+        page_context = json_context
+    })
+end
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

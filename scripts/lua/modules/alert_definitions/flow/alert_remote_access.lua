@@ -45,17 +45,21 @@ end
 -- #######################################################
 
 function alert_remote_access.format(ifid, alert, alert_type_params)
-   local now = os.time()
-   local tstamp_end = alert["tstamp_end"] or now
-   local time = tstamp_end - alert["tstamp"]
+   if(alert.tstamp) then
+      local now = os.time()
+      local tstamp_end = alert["tstamp_end"] or now
+      local time = tstamp_end - alert["tstamp"]
 
-   if time == 0 then
-      time = "< 1"
+      if time == 0 then
+	 time = "< 1"
+      else
+	 time = secondsToTime(time)
+      end
+
+      return (i18n("alerts_dashboard.remote_access_alert_descr", { time = time }))
    else
-      time = secondsToTime(time)
+      return("")
    end
-
-   return (i18n("alerts_dashboard.remote_access_alert_descr", { time = time }))
 end
 
 -- #######################################################

@@ -23,7 +23,7 @@
 
 ndpi_serializer* BroadcastNonUDPTrafficAlert::getAlertJSON(
     ndpi_serializer* serializer) {
-  Flow* f = getFlow();
+  Flow *f = getFlow();
   char buf[64];
 
   if (serializer == NULL) return NULL;

@@ -23,6 +23,29 @@ const validateIP = (ip) => {
 
 /* ****************************************************** */
 
+const validateCIDR = (network) => {
+    const network_split = network.split('/');
+    if (network_split.length == 2) {
+        const subnet = network_split[1];
+        const ip = network_split[0];
+        const num = Number(subnet);
+        if (validateIPv4(ip) || validateIPv6(ip)) {
+            return (!isNaN(num) && num >= 1 && num <= 128 && Number.isInteger(num));
+        }
+    }
+    return false;
+}
+
+/* ****************************************************** */
+
+const validateNetwork = (ip) => {
+    const ipv4 = new RegExp(regexes.ipv4);
+
+    return ipv4.test(ip);
+}
+
+/* ****************************************************** */
+
 const validateIPv4 = (ip) => {
     const ipv4 = new RegExp(regexes.ipv4);
 
@@ -126,7 +149,8 @@ const regexValidation = function () {
         validateCommaSeparatedPortList,
         validatePortRange,
         validateSingleWord,
-        validateURL
+        validateURL,
+        validateCIDR
     };
 }();
 

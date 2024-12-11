@@ -31,7 +31,7 @@
 			{
 				"name" : "Errors",
 				"func" : "sum", 
-				"param" : "toInt32OrZero(JSON_VALUE(ALERT_JSON, '$.proto.l7_error_code')) > 0",
+				"param" : "toInt32OrZero(JSON_VALUE(PROTOCOL_INFO_JSON, '$.proto.l7_error_code')) > 0",
 				"value_type" : "number"
 			}
 		]

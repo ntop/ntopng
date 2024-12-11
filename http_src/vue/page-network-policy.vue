@@ -1,8 +1,5 @@
 <template>
     <div class="m-3">
-        <div class="alert alert-info alert-dismissable">
-            <span v-html="alert_note"></span>
-        </div>
         <div class="m-4 card card-shadow">
             <div class="card-body">
                 <table class="table table-striped table-bordered col-sm-12">
@@ -13,8 +10,8 @@
                                     <b>{{ _i18n(value.i18n_title) }}</b>
                                 </div>
                                 <div class="ms-4 me-4">
-                                    <textarea v-model="ipAddresses[key]" class="form-control rounded"
-                                        :placeholder="`Enter ${value.device_type} IPs (Comma Separated)`"
+                                    <textarea v-model="networks[key]" class="form-control rounded"
+                                        :placeholder="`Enter ${value.device_type} Networks (Comma Separated)`"
                                         @input="markAsModified(key)" rows="2"></textarea>
                                     <small>{{ _i18n(value.i18n_description) }}</small>
                                     <div v-if="validationErrors[key]" class="text-danger mt-1">
@@ -27,7 +24,7 @@
                     </tbody>
                 </table>
                 <div class="d-flex justify-content-end me-1">
-                    <button class="btn btn-primary" :disabled="disable_save" @click="reloadIp">
+                    <button class="btn btn-primary" :disabled="disable_save" @click="reloadNetworks">
                         {{ _i18n('save_settings') }}
                     </button>
                 </div>
@@ -38,7 +35,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 import { default as NoteList } from "./note-list.vue";
 import regexValidation from "../utilities/regex-validation.js";
@@ -54,16 +51,16 @@ const notes = [
     _i18n("network_configuration.uses_of_servers")
 ]
 
-const ipAddresses = reactive({});
+const networks = reactive({});
 const validationErrors = reactive({});
-const set_config_url = `${http_prefix}/lua/rest/v2/set/network/config.lua`
-const get_config_url = `${http_prefix}/lua/rest/v2/get/network/config.lua?ifid=${props.context.ifid}`
+const set_config_url = `${http_prefix}/lua/pro/rest/v2/set/network/policy.lua`
+const get_config_url = `${http_prefix}/lua/pro/rest/v2/get/network/policy.lua`
 const modifiedInputs = ref([]);
-const disable_save = ref(true)
 
 const alert_note = ref(_i18n('network_configuration.alert_note'))
 const isSaving = ref(false);
 const saveSuccess = ref(false);
+const disable_save = ref(true)
 
 const saveButtonText = computed(() => {
     if (isSaving.value) return 'Saving...';
@@ -76,16 +73,19 @@ const saveButtonClass = computed(() => {
     return 'btn btn-primary';
 });
 
+const reloadNetworks = function () {
+    saveConfig()
+    getConfig();
+}
+
 const check_name = {
-    "dns_list": { "i18n_title": "network_configuration.dns_servers_title", "device_type": "DNS Server", "reques_param": "dns_list", "i18n_description": "network_configuration.dns_servers_description" },
-    "ntp_list": { "i18n_title": "network_configuration.ntp_servers_title", "device_type": "NTP Server", "reques_param": "ntp_list", "i18n_description": "network_configuration.ntp_servers_description" },
-    "dhcp_list": { "i18n_title": "network_configuration.dhcp_servers_title", "device_type": "DHCP Server", "reques_param": "dhcp_list", "i18n_description": "network_configuration.dhcp_servers_description" },
-    "smtp_list": { "i18n_title": "network_configuration.smtp_servers_title", "device_type": "SMTP Server", "reques_param": "smtp_list", "i18n_description": "network_configuration.smtp_servers_description" },
-    "gateway_list": { "i18n_title": "network_configuration.gateway_servers_title", "device_type": "Gateway", "reques_param": "gateway_list", "i18n_description": "network_configuration.gateway_servers_description" },
+    "local_devices": { "i18n_title": "network_configuration.local_devices_title", "device_type": "Local Devices", "reques_param": "local_devices", "i18n_description": "network_configuration.local_devices_description" },
+    "corporate_devices": { "i18n_title": "network_configuration.corporate_devices_title", "device_type": "Corporate Devices", "reques_param": "corporate_devices", "i18n_description": "network_configuration.corporate_devices_description" },
+    "whitelisted_networks": { "i18n_title": "network_configuration.whitelisted_networks_title", "device_type": "Whitelisted", "reques_param": "whitelisted_networks", "i18n_description": "network_configuration.whitelisted_networks_description" },
 }
 
 Object.keys(check_name).forEach(key => {
-    ipAddresses[key] = '';
+    networks[key] = '';
 });
 
 onMounted(() => {
@@ -99,14 +99,12 @@ const getConfig = async () => {
     data.forEach(item => {
         const key = Object.keys(check_name).find(k => k === item.key);
         if (key) {
-            ipAddresses[key] = Array.isArray(item.value_description)
+            networks[key] = Array.isArray(item.value_description)
                 ? item.value_description.join(', ')
                 : item.value_description;
         }
     })
 };
-
-/* ************************************** */
 
 // Used to mark a text area as modified so that only modified text areas are sent to the backend to be stored in redis
 const markAsModified = (key) => {
@@ -116,17 +114,15 @@ const markAsModified = (key) => {
     disable_save.value = false
 };
 
-/* ************************************** */
-
-// Function to validate IP addresses inserted in text area
-const validateIpAddresses = () => {
+// Function to validate Network addresses inserted in text area
+const validateNetworkAddresses = () => {
     let isValid = true;
-    Object.keys(ipAddresses).forEach(key => {
-        const ips = ipAddresses[key].split(',').map(ip => ip.trim()).filter(ip => ip !== '');
-        if (ips.length === 0) {
+    Object.keys(networks).forEach(key => {
+        const network_list = networks[key].split(',').map(net => net.trim()).filter(net => net !== '');
+        if (network_list.length === 0) {
             validationErrors[key] = '';
-        } else if (!ips.every(regexValidation.validateIP)) {
-            validationErrors[key] = 'Invalid IP address format';
+        } else if (!network_list.every(regexValidation.validateCIDR)) {
+            validationErrors[key] = 'Invalid Network format';
             isValid = false;
         } else {
             validationErrors[key] = '';
@@ -135,19 +131,14 @@ const validateIpAddresses = () => {
     return isValid;
 };
 
-const reloadIp = function () {
-    saveConfig()
-    getConfig();
-}
-
 // Function used to post data to the backend and save the values in
 const saveConfig = async () => {
-    if (validateIpAddresses()) {
+    if (validateNetworkAddresses()) {
         isSaving.value = true;
         let data = { csrf: props.context.csrf };
 
         for (const server of modifiedInputs.value) {
-            const value = ipAddresses[server];
+            const value = networks[server];
             const key = check_name[server].reques_param
             data = {
                 [key]: value,

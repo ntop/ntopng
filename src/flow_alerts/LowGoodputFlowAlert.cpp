@@ -23,7 +23,7 @@
 
 ndpi_serializer* LowGoodputFlowAlert::getAlertJSON(
     ndpi_serializer* serializer) {
-  Flow* f = getFlow();
+  Flow *f = getFlow();
 
   if (serializer) {
     ndpi_serialize_string_float(serializer, "goodput_ratio",

@@ -2365,11 +2365,12 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
     if(flow->isFlowAccounted()) {
       incnDPIStats(when->tv_sec,
 		   flow->getStatsProtocol(), flow->get_protocol_category(),
-		   len_on_wire, 1);
+		   0, len_on_wire, 0, 1);
     } else {
       incnDPIStats(when->tv_sec,
 		   flow->getStatsProtocol(), flow->get_protocol_category(),
-		   flow->get_bytes(), flow->get_packets());
+		   flow->get_bytes_cli2srv(), flow->get_bytes_srv2cli(), 
+       flow->get_packets_cli2srv(), flow->get_packets_srv2cli());
       flow->setFlowAccounted(); /* Set the flow as accounted */
     }
   }
@@ -10602,10 +10603,7 @@ HostCheck *NetworkInterface::getCheck(HostCheckID t) {
 
 void NetworkInterface::execFlowBeginChecks(Flow *f) {
   if (flow_checks_executor) {
-    FlowAlert *alert =
-      flow_checks_executor->execChecks(f, flow_check_flow_begin);
-
-    if (alert) enqueueFlowAlert(alert);
+    flow_checks_executor->execChecks(f, flow_check_flow_begin);
   }
 }
 
@@ -10613,10 +10611,7 @@ void NetworkInterface::execFlowBeginChecks(Flow *f) {
 
 void NetworkInterface::execProtocolDetectedChecks(Flow *f) {
   if (flow_checks_executor) {
-    FlowAlert *alert =
-      flow_checks_executor->execChecks(f, flow_check_protocol_detected);
-
-    if (alert) enqueueFlowAlert(alert);
+    flow_checks_executor->execChecks(f, flow_check_protocol_detected);
   }
 }
 
@@ -10624,10 +10619,7 @@ void NetworkInterface::execProtocolDetectedChecks(Flow *f) {
 
 void NetworkInterface::execPeriodicUpdateChecks(Flow *f) {
   if (flow_checks_executor) {
-    FlowAlert *alert =
-      flow_checks_executor->execChecks(f, flow_check_periodic_update);
-
-    if (alert) enqueueFlowAlert(alert);
+    flow_checks_executor->execChecks(f, flow_check_periodic_update);
   }
 }
 
@@ -10635,10 +10627,7 @@ void NetworkInterface::execPeriodicUpdateChecks(Flow *f) {
 
 void NetworkInterface::execFlowEndChecks(Flow *f) {
   if (flow_checks_executor) {
-    FlowAlert *alert =
-      flow_checks_executor->execChecks(f, flow_check_flow_end);
-
-    if (alert) enqueueFlowAlert(alert);
+    flow_checks_executor->execChecks(f, flow_check_flow_end);
   }
 }
 
@@ -12560,9 +12549,8 @@ void NetworkInterface::getSFlowDevices(lua_State *vm, bool add_table) {
 
 void NetworkInterface::incnDPIStats(time_t when, u_int16_t ndpi_proto,
 				    ndpi_protocol_category_t ndpi_category,
-				    u_int32_t bytes_len, u_int32_t num_pkts) {
-  ndpiStats->incStats(when, ndpi_proto, 0, 0, num_pkts, bytes_len);
-  ndpiStats->incCategoryStats(when, ndpi_category,
-			      0 /*  we are not currently interested in packet direction, so we tell it is receive  */,
-			      bytes_len);
+				    u_int32_t bytes_sent, u_int32_t bytes_rcvd, 
+            u_int32_t pkts_sent, u_int32_t pkts_rcvd) {
+  ndpiStats->incStats(when, ndpi_proto, pkts_sent, bytes_sent, pkts_rcvd, bytes_rcvd);
+  ndpiStats->incCategoryStats(when, ndpi_category, bytes_sent, bytes_rcvd);
 }

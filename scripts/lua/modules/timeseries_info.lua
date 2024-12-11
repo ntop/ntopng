@@ -156,14 +156,14 @@ local community_timeseries = { {
         }
     }
 }, {
-    schema = "top:blacklist:hits",
+    schema = "top:blacklist_v2:hits",
     chart_type = "line",
     id = timeseries_id.blacklist,
     label = i18n('graphs.metric_labels.top_blacklist_hits'),
     type = "top",
     draw_stacked = true,
     priority = 2,
-    measure_unit = "hitss",
+    measure_unit = "number",
     scale = i18n('graphs.metric_labels.blacklist_hits'),
     timeseries = {
         hits = {
@@ -2103,7 +2103,7 @@ end
 -- #################################
 
 local function add_top_blacklist_hits_timeseries(tags, timeseries)
-    local series = ts_utils.listSeries("blacklist:hits", table.clone(tags), tags.epoch_begin) or {}
+    local series = ts_utils.listSeries("blacklist_v2:hits", table.clone(tags), tags.epoch_begin) or {}
     local tmp_tags = table.clone(tags)
 
     --    if table.empty(series) then
@@ -2112,14 +2112,14 @@ local function add_top_blacklist_hits_timeseries(tags, timeseries)
     for _, serie in pairs(series or {}) do
         tmp_tags.blacklist_name = serie.blacklist_name
         timeseries[#timeseries + 1] = {
-            schema = "blacklist:hits",
+            schema = "blacklist_v2:hits",
             id = timeseries_id.blacklist,
+            chart_type = "line",
             group = i18n("graphs.metric_labels.blacklist_num_hits"),
             priority = 0,
             query = "blacklist_name:" .. serie.blacklist_name,
             label = serie.blacklist_name:gsub("_", " "),
-            measure_unit = "hitss",
-
+            measure_unit = "number",
             scale = i18n('graphs.metric_labels.blacklist_hits'),
             timeseries = {
                 hits = {

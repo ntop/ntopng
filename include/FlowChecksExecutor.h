@@ -39,7 +39,7 @@ class FlowChecksExecutor { /* One instance per ntopng Interface */
   FlowChecksExecutor(FlowChecksLoader *fcl, NetworkInterface *_iface);
   virtual ~FlowChecksExecutor();
 
-  FlowAlert *execChecks(Flow *f, FlowChecks c);
+  void execChecks(Flow *f, FlowChecks c);
 };
 
 #endif /* _FLOW_CHECKS_EXECUTOR_H_ */

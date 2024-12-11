@@ -23,11 +23,11 @@
 
 ndpi_serializer* FlowRiskKnownProtocolOnNonStandardPortAlert::getAlertJSON(
     ndpi_serializer* serializer) {
-  Flow* f = getFlow();
+  Flow *f = getFlow();
 
-  if (serializer == NULL) return NULL;
-
-  f->getInfo(serializer);
+  if (serializer) {
+    f->getInfo(serializer);
+  }
 
   return serializer;
 }

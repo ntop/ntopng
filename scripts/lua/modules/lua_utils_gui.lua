@@ -1470,10 +1470,10 @@ function format_confidence_from_json(record)
     local alert_json = {}
     local confidence = nil
 
-    if record["ALERT_JSON"] then
-        alert_json = json.decode(record["ALERT_JSON"])
-    elseif record["json"] then
-        alert_json = json.decode(record["json"])
+    if record["PROTOCOL_INFO_JSON"] then
+        alert_json = json.decode(record["PROTOCOL_INFO_JSON"])
+    elseif record["protocol_info_json"] then
+        alert_json = json.decode(record["protocol_info_json"])
     end
 
     if (alert_json) and (alert_json.proto) and (alert_json.proto.confidence) and

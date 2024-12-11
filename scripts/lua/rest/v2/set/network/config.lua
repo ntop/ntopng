@@ -6,20 +6,34 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
-require "lua_utils"
+require "http_lint"
 local rest_utils = require "rest_utils"
-local json = require "dkjson"
-
-local action = _GET["action"]
-local post_data = _POST["payload"]
 
 local res = {}
+local dns_list = _POST["dns_list"]
+local ntp_list = _POST["ntp_list"]
+local smtp_list = _POST["smtp_list"]
+local dhcp_list = _POST["dhcp_list"]
+local gateway_list = _POST["gateway_list"]
 
-local payload = _POST["payload"]
-local data = json.decode(payload)
+if dns_list then
+   ntop.setCache("ntopng.prefs.nw_config_dns_list", dns_list)
+end
 
-for k,v in pairs(data.config) do
-   ntop.setCache("ntopng.prefs.nw_config_".. v.key, v.value)
+if ntp_list then
+   ntop.setCache("ntopng.prefs.nw_config_ntp_list", ntp_list)
+end
+
+if smtp_list then
+   ntop.setCache("ntopng.prefs.nw_config_smtp_list", smtp_list)
+end
+
+if dhcp_list then
+   ntop.setCache("ntopng.prefs.nw_config_dhcp_list", dhcp_list)
+end
+
+if gateway_list then
+   ntop.setCache("ntopng.prefs.nw_config_gateway_list", gateway_list)
 end
 
 ntop.reloadServersConfiguration()

@@ -36,6 +36,9 @@ class ElephantFlowAlert : public FlowAlert {
   }
   static u_int8_t getDefaultScore() { return SCORE_LEVEL_WARNING; };
 
+  inline u_int64_t get_l2r_threshold() { return l2r_th; };
+  inline u_int64_t get_r2l_threshold() { return r2l_th; };
+
   ElephantFlowAlert(FlowCheck *c, Flow *f, u_int64_t _l2r_th, u_int64_t _r2l_th)
       : FlowAlert(c, f) {
     l2r_th = _l2r_th;

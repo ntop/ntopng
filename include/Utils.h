@@ -276,6 +276,7 @@ class Utils {
   static bool bitmapIsSet(u_int64_t bitmap, u_int8_t v);
   static u_int64_t bitmapSet(u_int64_t bitmap, u_int8_t v);
   static u_int64_t bitmapClear(u_int64_t bitmap, u_int8_t v);
+  static int bitmapGetNext(u_int64_t bitmap, u_int8_t start);
 
   static inline u_int64_t bitmapOr(u_int64_t bitmap1, u_int64_t bitmap2) {
     return (bitmap1 | bitmap2);

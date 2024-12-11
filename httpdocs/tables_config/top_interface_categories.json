@@ -1,0 +1,111 @@
+{
+	"id": "top_interface_categories",
+	"data_url": "lua/rest/v2/get/interface/l7/cat_data.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+		"column_id": "total_bytes",
+		"sort": 2
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "actions",
+			"sortable": false,
+			"sticky": true,
+			"class": [
+				"text-nowrap",
+				"text-center"
+			],
+			"render_v_node_type": "button_list",
+			"button_def_array": [
+				{
+					"id": "historical_flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "db_explorer.historical_data",
+					"class": [
+						"link-button",
+						"btn-info"
+					],
+					"event_id": "click_button_historical_flows"
+				},
+				{
+					"id": "live_flows",
+					"icon": "fas fa-stream",
+					"title_i18n": "flows_page.live_flows",
+					"class": [
+						"link-button",
+						"btn-info"
+					],
+					"event_id": "click_button_live_flows"
+				},
+				{
+					"id": "timeseries",
+					"icon": "fas fa-lg fa-chart-area",
+					"title_i18n": "prefs.timeseries",
+					"class": [
+						"link-button",
+						"btn-info"
+					],
+					"event_id": "click_button_timeseries"
+				}
+			]
+		},
+		{
+			"title_i18n": "category",
+			"data_field": "category",
+			"sortable": true,
+			"min-width" : "120px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "applications_list",
+			"data_field": "applications_list",
+			"sortable": false,
+			"min-width" : "180px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "total_bytes",
+			"data_field": "total_bytes",
+			"sortable": true,
+			"min-width" : "90px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "traffic_labels.bytes_sent",
+			"data_field": "bytes_sent",
+			"sortable": true,
+			"min-width" : "90px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "traffic_labels.bytes_rcvd",
+			"data_field": "bytes_rcvd",
+			"sortable": true,
+			"min-width" : "90px",
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "percentage",
+			"data_field": "percentage",
+			"min-width" : "120px",
+			"sortable": false,
+			"class": [
+				"text-nowrap"
+			]
+		}
+	]
+}

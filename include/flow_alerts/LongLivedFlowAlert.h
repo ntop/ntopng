@@ -36,6 +36,8 @@ class LongLivedFlowAlert : public FlowAlert {
   }
   static u_int8_t getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
+  inline u_int64_t get_longlived_th() { return longlived_th; };
+
   LongLivedFlowAlert(FlowCheck *c, Flow *f, u_int64_t _longlived_th)
       : FlowAlert(c, f) {
     longlived_th = _longlived_th;

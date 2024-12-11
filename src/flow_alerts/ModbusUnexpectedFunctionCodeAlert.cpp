@@ -21,7 +21,9 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* ModbusUnexpectedFunctionCodeAlert::getAlertJSON(ndpi_serializer* serializer) {
+ndpi_serializer* ModbusUnexpectedFunctionCodeAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+
   if (serializer) {
     ndpi_serialize_string_uint32(serializer, "function_code", function_code);
   }

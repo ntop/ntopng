@@ -37,6 +37,11 @@ class IECInvalidCommandTransitionAlert : public FlowAlert {
   }
   static u_int8_t getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
+  inline u_int32_t get_packet_epoch() { return packet_epoch; };
+  inline u_int32_t get_transitions_m_to_c() { return transitions_m_to_c; };
+  inline u_int32_t get_transitions_c_to_m() { return transitions_c_to_m; };
+  inline u_int32_t get_transitions_c_to_c() { return transitions_c_to_c; };
+
   IECInvalidCommandTransitionAlert(FlowCheck *c, Flow *f, struct timeval *_time,
                                    u_int32_t _transitions_m_to_c,
                                    u_int32_t _transitions_c_to_m,

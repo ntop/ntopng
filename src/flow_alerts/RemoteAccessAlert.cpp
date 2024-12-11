@@ -21,13 +21,14 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* RemoteAccessAlert::getAlertJSON(ndpi_serializer* serializer) {
-  Flow* f = getFlow();
+ndpi_serializer* RemoteAccessAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+  Flow *f = getFlow();
 
-  if (serializer == NULL) return NULL;
-
-  ndpi_serialize_string_int64(serializer, "first_seen", f->get_first_seen());
-  ndpi_serialize_string_int64(serializer, "last_seen", f->get_last_seen());
+  if (serializer) {
+    ndpi_serialize_string_int64(serializer, "first_seen", f->get_first_seen());
+    ndpi_serialize_string_int64(serializer, "last_seen", f->get_last_seen());
+  }
 
   return serializer;
 }

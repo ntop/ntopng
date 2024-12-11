@@ -9,6 +9,7 @@ require "lua_utils"
 local json = require "dkjson"
 local dscp_consts = require "dscp_consts"
 local flow_risk_utils = require "flow_risk_utils"
+local alert_utils = require "alert_utils"
 
 local historical_flow_details_formatter = {}
 
@@ -229,8 +230,7 @@ end
 
 -- a###############################################
 
-local function format_historical_issue_description(alert_id, score, title, msg, info, alert_scores, add_remediation,
-                                                   riskInfo)
+local function format_historical_issue_description(alert, alert_id, score, title, msg, info, alert_scores, add_remediation, riskInfo, alert_info)
     local alert_consts = require "alert_consts"
     local alert_entities = require "alert_entities"
 
@@ -249,12 +249,26 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
     if (tonumber(alert_risk) == 0) then
         alert_src = "ntopng"
         alert_risk = alert_id
+        if isEmptyString(msg) and not isEmptyString(info) then
+            msg = info
+        end
+        -- Adapting to the new alerts format
+        if alert_info and alert then
+            alert.alert_id = alert_id
+            info = alert_utils.formatFlowAlertMessage(interface.getId(), alert, alert_info, false, true, true)
+        end
     else
         alert_src = "nDPI"
     end
 
-    if riskInfo and table.len(riskInfo) > 0 then
-        riskLabel = riskInfo[tostring(alert_risk)]
+    if riskInfo then
+        if type(riskInfo) == "string" then -- backward compatibility
+           riskInfo = json.decode(riskInfo)
+        end
+
+        if riskInfo and riskInfo[tostring(alert_risk)] then
+           riskLabel = riskInfo[tostring(alert_risk)]
+        end
     end
 
     local alert_source = " <span class='badge bg-info'>" .. alert_src .. "</span>"
@@ -266,7 +280,7 @@ local function format_historical_issue_description(alert_id, score, title, msg, 
     local html = "<tr><td>" .. (msg or "") .. alert_source .. "</td>" .. '<td align=center><span style="color:' ..
         severity.color .. '">' .. score .. '</span></td>'
 
-    if riskLabel then
+    if not isEmptyString(riskLabel) then
         info = riskLabel
     end
     if (add_remediation) then
@@ -327,15 +341,16 @@ local function format_historical_issues(flow_details, flow)
         end
     end
 
-    local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
     local alert_scores = alert_json.alert_score
     local alert_consts = require "alert_consts"
     local alert_label = i18n("flow_details.normal")
     local alert_id = tonumber(flow["STATUS"] or 0)
     local main_alert_score = ntop.getFlowAlertScore(tonumber(alert_id))
 
-    if not isEmptyString(alert_json.flow_risk_info) then
-        riskInfo = json.decode(alert_json.flow_risk_info, 1, nil)
+    if alert_json and alert_json.flow_risk_info then
+        riskInfo = alert_json.flow_risk_info
+    elseif alert_json and alert_json.alert_generation and alert_json.alert_generation.flow_risk_info then
+        riskInfo = alert_json.alert_generation.flow_risk_info
     end
 
     -- Check if there is a custom score
@@ -363,11 +378,10 @@ local function format_historical_issues(flow_details, flow)
             html .. "<tr><th>" .. i18n("description") .. "</th><th>" .. i18n("score") .. "</th><th>" .. i18n("info") ..
             " / " .. i18n("remediation") .. "</th><th>" .. i18n("mitre_id") .. "</th></tr>\n"
         html = html ..
-            format_historical_issue_description(tostring(alert_id), tonumber(main_alert_score),
+            format_historical_issue_description(alert, tostring(alert_id), tonumber(main_alert_score),
                 i18n("issues_score"), alert_label, details, alert_scores, true, riskInfo)
     end
 
-    local alert_utils = require "alert_utils"
     local _, other_issues = alert_utils.format_other_alerts(flow['ALERTS_MAP'], flow['STATUS'], alert_json, false, nil,
         true)
 
@@ -383,9 +397,13 @@ local function format_historical_issues(flow_details, flow)
                 msg = issue.msg
                 info = ""
             end
+            local alert_info = nil
+            if alert_json and alert_json.alerts then
+                alert_info = alert_json.alerts[tostring(issue.alert_id)]
+            end
             html = html ..
-                format_historical_issue_description(tostring(issue.alert_id), tonumber(issue.score), '', msg,
-                    info, alert_scores, true, riskInfo)
+                format_historical_issue_description(alert, tostring(issue.alert_id), tonumber(issue.score), '', msg,
+                    info, alert_scores, true, riskInfo, alert_info)
         end
     end
 
@@ -428,11 +446,11 @@ end
 -- ###############################################
 
 local function add_info_field(flow)
-    local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
+    local protocol_info_json = json.decode(flow["PROTOCOL_INFO_JSON"] or '') or {}
     local proto_details = {}
     local add_info = true
-    if table.len(alert_json) >= 1 then
-        for proto, info in pairs(alert_json["proto"] or {}) do
+    if table.len(protocol_info_json) >= 1 then
+        for proto, info in pairs(protocol_info_json["proto"] or {}) do
             if proto == "tls" then
                 add_info = isEmptyString(info.client_requested_server_name)
                 break
@@ -704,34 +722,35 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
         if tonumber(flow["SERVER_NW_LATENCY_US"]) ~= 0 then
             flow_details[#flow_details + 1] = format_historical_latency(flow, "SERVER_NW_LATENCY_US", "srv")
         end
-        local alert_json = json.decode(flow["ALERT_JSON"] or '') or {}
 
-        if (alert_json["appl_latency"]) then
-            flow_details[#flow_details + 1] = format_historical_application_latency(alert_json["appl_latency"])
+        local protocol_info_json = json.decode(flow["PROTOCOL_INFO_JSON"] or '') or {}
+
+        if (protocol_info_json["appl_latency"]) then
+            flow_details[#flow_details + 1] = format_historical_application_latency(protocol_info_json["appl_latency"])
         end
 
-        if (alert_json["traffic_stats"] and table.len(alert_json["traffic_stats"]) > 0) then
+        if (protocol_info_json["traffic_stats"] and table.len(protocol_info_json["traffic_stats"]) > 0) then
             local rowspan = 1;
 
-            if (alert_json["traffic_stats"]["cli2srv_retransmissions"] ~= 0 or
-                    alert_json["traffic_stats"]["srv2cli_retransmissions"] ~= 0) then
+            if (protocol_info_json["traffic_stats"]["cli2srv_retransmissions"] ~= 0 or
+                    protocol_info_json["traffic_stats"]["srv2cli_retransmissions"] ~= 0) then
                 rowspan = rowspan + 1
             end
 
-            if (alert_json["traffic_stats"]["cli2srv_out_of_order"] ~= 0 or
-                    alert_json["traffic_stats"]["srv2cli_out_of_order"] ~= 0) then
+            if (protocol_info_json["traffic_stats"]["cli2srv_out_of_order"] ~= 0 or
+                    protocol_info_json["traffic_stats"]["srv2cli_out_of_order"] ~= 0) then
                 rowspan = rowspan + 1
             end
 
-            if (alert_json["traffic_stats"]["cli2srv_lost"] ~= 0 or alert_json["traffic_stats"]["srv2cli_lost"] ~= 0) then
+            if (protocol_info_json["traffic_stats"]["cli2srv_lost"] ~= 0 or protocol_info_json["traffic_stats"]["srv2cli_lost"] ~= 0) then
                 rowspan = rowspan + 1
             end
             flow_details = table.merge(flow_details,
-                format_historical_flow_traffic_stats(rowspan, alert_json["traffic_stats"]["cli2srv_retransmissions"],
-                    alert_json["traffic_stats"]["srv2cli_retransmissions"],
-                    alert_json["traffic_stats"]["cli2srv_out_of_order"],
-                    alert_json["traffic_stats"]["srv2cli_out_of_order"], alert_json["traffic_stats"]["cli2srv_lost"],
-                    alert_json["traffic_stats"]["srv2cli_lost"]))
+                format_historical_flow_traffic_stats(rowspan, protocol_info_json["traffic_stats"]["cli2srv_retransmissions"],
+                    protocol_info_json["traffic_stats"]["srv2cli_retransmissions"],
+                    protocol_info_json["traffic_stats"]["cli2srv_out_of_order"],
+                    protocol_info_json["traffic_stats"]["srv2cli_out_of_order"], protocol_info_json["traffic_stats"]["cli2srv_lost"],
+                    protocol_info_json["traffic_stats"]["srv2cli_lost"]))
         end
 
         if tonumber(flow["OBSERVATION_POINT_ID"]) ~= 0 then
@@ -746,8 +765,8 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
             flow_details[#flow_details + 1] = format_historical_wtp_mac_address(flow, info)
         end
 
-        if table.len(alert_json["proto"]) > 0 then
-            flow_details = format_historical_proto_info(flow_details, alert_json["proto"])
+        if table.len(protocol_info_json["proto"]) > 0 then
+            flow_details = format_historical_proto_info(flow_details, protocol_info_json["proto"])
 
             if (type(flow_details[#flow_details]['values']) == 'table') and
                 (table.len(flow_details[#flow_details]['values']) == 0) then
@@ -755,8 +774,8 @@ function historical_flow_details_formatter.formatHistoricalFlowDetails(flow)
             end
         end
 
-        if table.len(alert_json["proto"]) > 0 then
-            flow_details = format_historical_custom_fields(flow_details, alert_json["custom_fields"])
+        if table.len(protocol_info_json["proto"]) > 0 then
+            flow_details = format_historical_custom_fields(flow_details, protocol_info_json["custom_fields"])
         end
     end
     return flow_details

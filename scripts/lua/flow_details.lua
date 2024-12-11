@@ -614,8 +614,9 @@ else
          print(" [" .. i18n("network") .. ": " .. flow["proto.ndpi_address_family"] .. "]")
       end
 
-      if ((flow["proto.ndpi_confidence"] ~= nil)) then
+      if((flow["proto.ndpi_confidence"] ~= nil) and (flow["proto.ndpi_confidence"] ~= "Unknown")) then
          local badge_type = 'success'
+
          if ((flow.confidence and (flow.confidence == 0 or flow.confidence == -1)) or
                 (flow["proto.ndpi_confidence"] == 'Unknown')) then
             badge_type = 'warning'
@@ -1469,8 +1470,8 @@ else
                   -- Alert produced by ntopng
                   alert_src = "ntopng"
                   alert_risk = score_alert.alert_id
-                  if not isEmptyString(flow.json_protocol_info) then
-                     local alert_json = json.decode(flow.json_protocol_info)
+                  if not isEmptyString(flow.json_alert) then
+                     local alert_json = json.decode(flow.json_alert)
                      riskLabel = alert_utils.formatAlertMessage(ifid, { alert_id = alert_risk, entity_id = alert_entities.flow.entity_id }, alert_json)
                   end
                end

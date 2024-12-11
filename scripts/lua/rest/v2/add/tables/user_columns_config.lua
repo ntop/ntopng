@@ -8,6 +8,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 -- #####################################
 
 local rest_utils = require("rest_utils")
+local daily_timeout = 86400
 
 -- #####################################
 
@@ -29,7 +30,7 @@ local function save_column_config()
   end
 
   local redis_key = string.format(redis_base_key, table_id, user_id)
-  ntop.setCache(redis_key, json.encode(visible_columns))
+  ntop.setCache(redis_key, json.encode(visible_columns), daily_timeout)
 
   return(rest_utils.answer(rest_utils.consts.success.ok, visible_columns))
 end

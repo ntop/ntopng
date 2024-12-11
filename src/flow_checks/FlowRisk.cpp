@@ -57,7 +57,7 @@ void FlowRisk::checkRisk(Flow *f) {
   ndpi_risk_enum r = handledRisk();
 
   if (f->hasRisk(r)) {
-    u_int16_t cli_score, srv_score;
+    u_int16_t c_score, s_score;
     ndpi_risk risk_bitmap;
 
     /* Check exceptions for ZMQ-delivered flows */
@@ -71,9 +71,11 @@ void FlowRisk::checkRisk(Flow *f) {
     risk_bitmap = 0;
     NDPI_SET_BIT(risk_bitmap, r);
 
-    ndpi_risk2score(risk_bitmap, &cli_score, &srv_score);
+    ndpi_risk2score(risk_bitmap, &c_score, &s_score);
 
-    f->triggerAlertAsync(getAlertType(), cli_score, srv_score);
+    FlowAlert *alert = buildAlert(f);
+    alert->setCliSrvScores(c_score, s_score);
+    f->triggerAlert(alert);
   }
 }
 

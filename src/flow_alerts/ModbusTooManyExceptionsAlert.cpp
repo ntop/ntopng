@@ -21,7 +21,9 @@
 
 #include "flow_checks_includes.h"
 
-ndpi_serializer* ModbusTooManyExceptionsAlert::getAlertJSON(ndpi_serializer* serializer) {
+ndpi_serializer* ModbusTooManyExceptionsAlert::getAlertJSON(
+    ndpi_serializer* serializer) {
+
   if (serializer) {
     ndpi_serialize_string_uint32(serializer, "num_exceptions", num_exceptions);
   }

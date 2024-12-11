@@ -262,6 +262,12 @@ end
 
 -- ##############################################
 
+function radius_handler.deleteAllKeys()
+    ntop.delCache("ntopng.radius.accounting.*")
+end
+
+-- ##############################################
+
 return radius_handler
 
 -- ##############################################

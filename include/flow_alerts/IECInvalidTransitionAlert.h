@@ -38,6 +38,10 @@ class IECInvalidTransitionAlert : public FlowAlert {
   }
   static u_int8_t getDefaultScore() { return SCORE_LEVEL_NOTICE; };
 
+  inline u_int32_t get_packet_epoch() { return packet_epoch; };
+  inline u_int16_t get_type_i() { return type_i; };
+  inline u_int8_t get_type_id() { return type_id; };
+
   IECInvalidTransitionAlert(FlowCheck *c, Flow *f, struct timeval *_time,
                             u_int16_t _type_i, u_int8_t _type_id)
       : FlowAlert(c, f) {

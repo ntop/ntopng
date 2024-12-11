@@ -305,7 +305,11 @@ page_utils.print_navbar(title, url, { {
 }, {
     active = page == "ndpi",
     page_name = "ndpi",
-    label = i18n("applications")
+    label = i18n("applications_long")
+}, {
+    active = page == "ndpi_categories",
+    page_name = "ndpi_categories",
+    label = i18n("categories")
 }, {
     hidden = have_nedge,
     active = page == "ICMP",
@@ -1422,202 +1426,27 @@ elseif (page == "DSCP") then
 
 ]]
 elseif (page == "ndpi") then
-    print [[
-   <div class='card'>
-   <div class='card-header'>
-  <ul id="ndpiNav" class="nav nav-tabs card-header-tabs" role="tablist">
-    <li class="nav-item active"><a class="nav-link active" data-bs-toggle="tab" role="tab" href="#applications" active>]]
-    print(i18n("applications"))
-    print [[</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" role="tab" href="#categories">]]
-    print(i18n("categories"))
-    print [[</a></li>
-  </ul>
-  </div>
-  <div class='card-body tab-content'>
-    <div id="applications" class="tab-pane in active">
-
-      <table class="table table-bordered table-striped">
-]]
-
-    if ntop.isPro() and ifstats["custom_apps"] then
-        print [[
-        <tr>
-          <th class="text-start">]]
-        print(i18n("ndpi_page.overview", {
-            what = i18n("ndpi_page.custom_applications")
-        }))
-        print [[</th>
-          <td colspan=5><div class="pie-chart" id="topCustomApps"></td>
-        </tr>
-]]
-    end
-
-    print [[
-        <tr>
-          <th class="text-start">]]
-    print(i18n("ndpi_page.overview", {
-        what = i18n("applications")
-    }))
-    print [[</th>
-          <td colspan=3><div class="pie-chart" id="topApplicationProtocols"></td>
-          <td colspan=2><div class="pie-chart" id="topApplicationBreeds"></td>
-        </tr>
-        <tr>
-          <th class="text-start">]]
-    print(i18n("ndpi_page.live_flows_count"))
-    print [[</th>
-          <td colspan=3><div class="pie-chart" id="topFlowsCount"></td>
-          <td colspan=2><div class="pie-chart" id="topTCPFlowsStats">
-          <br><small><b>]]
-    print(i18n("ndpi_page.note"))
-    print [[ :</b>]]
-    print(i18n("ndpi_page.note_live_flows_chart"))
-    print [[
-          </td>
-        </tr>
-      </table>
-     <table id="if_stats_ndpi" class="table table-bordered table-striped tablesorter">
-       <thead>
-         <tr>
-           <th>]]
-    print(i18n("application"))
-    print [[</th>
-           <th class='text-end'>]]
-    print(i18n("ndpi_page.total_since_startup"))
-    print [[</th>
-           <th>]]
-    print(i18n("percentage"))
-    print [[</th>
-         </tr>
-       </thead>
-       <tbody id="if_stats_ndpi_tbody"></tbody>
-     </table>
-    </div>
-    <div id="categories" class="tab-pane">
-      <table class="table table-bordered table-striped">
-        <tr>
-          <th class="text-start">]]
-    print(i18n("ndpi_page.overview", {
-        what = i18n("categories")
-    }))
-    print [[</th>
-          <td colspan=5><div class="pie-chart" id="topApplicationCategories"></td>
-        </tr>
-      </table>
-     <table id="if_stats_ndpi_categories" class="table table-bordered table-striped tablesorter">
-       <thead>
-         <tr>
-           <th>]]
-    print(i18n("category"))
-    print [[</th>
-           <th>]]
-    print(i18n("applications"))
-    print [[</th>
-           <th class='text-end'>]]
-    print(i18n("ndpi_page.total_since_startup"))
-    print [[</th>
-           <th>]]
-    print(i18n("percentage"))
-    print [[</th>
-         </tr>
-       </thead>
-       <tbody id="if_stats_ndpi_categories_tbody"></tbody>
-     </table>
-    </div>
-    </div>
-    </div>
-
-]]
-
-    print [[
-        <script type='text/javascript'>
-         window.onload=function() {]]
-
-    if ntop.isPro() and ifstats["custom_apps"] then
-        print [[do_pie("#topCustomApps", ']]
-        print(ntop.getHttpPrefix())
-        print [[/lua/pro/get_custom_app_stats.lua', { ifid: "]]
-        print(ifid)
-        print [[" }, "", refresh);
-]]
-    end
-
-    print [[do_pie("#topApplicationProtocols", ']]
-    print(ntop.getHttpPrefix())
-    print [[/lua/rest/v2/get/interface/l7/stats.lua', { ndpistats_mode: "sinceStartup", ifid: "]]
-    print(ifid)
-    print [[" }, "", refresh);
-
-       do_pie("#topApplicationBreeds", ']]
-    print(ntop.getHttpPrefix())
-    print [[/lua/rest/v2/get/interface/l7/stats.lua', { breed: "true", ndpistats_mode: "sinceStartup", ifid: "]]
-    print(ifid)
-    print [[" }, "", refresh);
-
-       do_pie("#topApplicationCategories", ']]
-    print(ntop.getHttpPrefix())
-    print [[/lua/rest/v2/get/interface/l7/stats.lua', { ndpi_category: "true", ndpistats_mode: "sinceStartup", ifid: "]]
-    print(ifid)
-    print [[" }, "", refresh);
-
-       do_pie("#topFlowsCount", ']]
-    print(ntop.getHttpPrefix())
-    print [[/lua/rest/v2/get/interface/l7/stats.lua', { breed: "true", ndpistats_mode: "count", ifid: "]]
-    print(ifid)
-    print [[" }, "", refresh);
-
-       do_pie("#topTCPFlowsStats", ']]
-    print(ntop.getHttpPrefix())
-    print [[/lua/iface_tcp_stats.lua', { ifid: "]]
-    print(ifid)
-    print [[" }, "", refresh);
+    local context = {
+        ifid = ifid,
+        historical_available = hasClickHouseSupport(),
+        csrf = ntop.getRandomCSRFValue(),
+        uptime = ntop.getUptime(),
+        l7_timeseries_enabled = areInterfaceL7TimeseriesEnabled(ifid)
     }
 
-function update_ndpi_table() {
-  $.ajax({
-    type: 'GET',
-    url: ']]
-    print(ntop.getHttpPrefix())
-    print [[/lua/if_stats_ndpi.lua',
-    data: { ifid: "]]
-    print(ifid)
-    print [[" },
-    success: function(content) {
-      if(content) {
-         $('#if_stats_ndpi_tbody').html(content);
-         // Let the TableSorter script know that we updated the table
-         $('#if_stats_ndpi_tbody').trigger("update");
-      }
+    local json_context = json.encode(context)
+    template.render("pages/vue_page.template", { vue_page_name = "PageTopInterfaceApplications", page_context = json_context })
+elseif (page == "ndpi_categories") then
+    local context = {
+        ifid = ifid,
+        historical_available = hasClickHouseSupport(),
+        csrf = ntop.getRandomCSRFValue(),
+        uptime = ntop.getUptime(),
+        l7_timeseries_enabled = areInterfaceCategoriesTimeseriesEnabled(ifid)
     }
-  });
-}
-update_ndpi_table();
-setInterval(update_ndpi_table, 5000);
 
-function update_ndpi_categories_table() {
-  $.ajax({
-    type: 'GET',
-    url: ']]
-    print(ntop.getHttpPrefix())
-    print [[/lua/if_stats_ndpi_categories.lua',
-    data: { ifid: "]]
-    print(ifid)
-    print [[" },
-    success: function(content) {
-      if(content) {
-         $('#if_stats_ndpi_categories_tbody').html(content);
-         // Let the TableSorter script know that we updated the table
-         $('#if_stats_ndpi_categories_tbody').trigger("update");
-      }
-    }
-  });
-}
-update_ndpi_categories_table();
-setInterval(update_ndpi_categories_table, 5000);
-
-</script>
-]]
+    local json_context = json.encode(context)
+    template.render("pages/vue_page.template", { vue_page_name = "PageTopInterfaceCategories", page_context = json_context })
 elseif (page == "ICMP") then
     print [[
   <div class='card'>

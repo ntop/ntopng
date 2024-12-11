@@ -119,7 +119,7 @@ if(ndpistats_mode == "count") then
     }
   end
 
-  rest_utils.answer(rc, graph_utils.convert_pie_data(res, new_charts, js_formatter))
+  rest_utils.answer(rc, graph_utils.convert_pie_data(res, true, js_formatter))
   return
 end
 
@@ -138,4 +138,4 @@ if collapse_stats == "true" then
   res = stats_utils.collapse_stats(res, 1, 3 --[[ threshold ]])
 end
 
-rest_utils.answer(rc, graph_utils.convert_pie_data(res, new_charts, js_formatter))
+rest_utils.answer(rc, graph_utils.convert_pie_data(res, true, js_formatter))

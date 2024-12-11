@@ -65,12 +65,14 @@ function ts_dump.blacklist_update(when, verbose)
     local lists = lists_utils.getCategoryLists()
 
     for list_name, v in pairs(lists) do
-        if (v.status.num_hits.total > 0) then
+        local current_hits = v.status.num_hits.total
+        if (current_hits > 0) then
             list_name = list_name:gsub("%s+", "_") -- replace space with underscore
-            ts_utils.append("blacklist:hits", {
+            local num_hits = lists_utils.getHitsSinceLastUpdateAndUpdate(list_name, current_hits)
+            ts_utils.append("blacklist_v2:hits", {
                 ifid = getSystemInterfaceId(),
                 blacklist_name = list_name,
-                hits = v.status.num_hits.total
+                hits = num_hits
             }, when)
         end
     end

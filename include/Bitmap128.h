@@ -41,6 +41,7 @@ class Bitmap128 {
   void setBits(char *list); /* Parse a comma-separate list of bit positions */
   void clearBit(u_int8_t id);
   bool isSetBit(u_int8_t id) const;
+  int getNext(u_int8_t start);
   void bitmapOr(const Bitmap128 b);
   void set(const Bitmap128 *b);
   bool equal(const Bitmap128 *b) const;

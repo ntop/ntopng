@@ -99,12 +99,15 @@ local function formatAlertMsg(alert)
   local decoded_alert = json.decode(alert)
   if decoded_alert and decoded_alert.json then
     local json_decoded = json.decode(decoded_alert.json)
-    if json_decoded and json_decoded.flow_risk_info then
+
+    -- Decode json (old format was string)
+    if json_decoded and json_decoded.flow_risk_info and type(json_decoded.flow_risk_info) == "string" then
       json_decoded.flow_risk_info = json.decode(json_decoded.flow_risk_info)
     end
-    if json_decoded and json_decoded.alert_generation and json_decoded.alert_generation.flow_risk_info then
+    if json_decoded and json_decoded.alert_generation and json_decoded.alert_generation.flow_risk_info and type(json_decoded.alert_generation.flow_risk_info) == "string" then
       json_decoded.alert_generation.flow_risk_info = json.decode(json_decoded.alert_generation.flow_risk_info)
     end
+
     decoded_alert.json = json_decoded
     decoded_alert.metadata = {}
   end

@@ -1386,7 +1386,8 @@ public:
 
   void incnDPIStats(time_t when, u_int16_t ndpi_proto,
 		    ndpi_protocol_category_t ndpi_category,
-		    u_int32_t bytes_len, u_int32_t num_pkts);
+		    u_int32_t bytes_sent, u_int32_t bytes_rcvd, 
+        u_int32_t pkts_sent, u_int32_t pkts_rcvd);
 };
 
 #endif /* _NETWORK_INTERFACE_H_ */

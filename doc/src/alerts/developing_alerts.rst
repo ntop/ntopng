@@ -151,9 +151,8 @@ Creating Flow Alerts
 
 Alert classes are instantiated inside :code:`buildAlert`, a method that must be implemented by each flow check. This method is called by ntopng to create the alert, when it has been told to do so from a flow check.
 
-Checks use :code:`triggerAlertAsync` or :code:`triggerAlertSync` to tell ntopng to create an asyncronous alert. The first method is an asyncronous call, faster, but can cause the alert JSON to be generated after the call. The FlowCheck should implement the buildAlert() method which is called in the predominant check to actually build the FlowAlert object.
+Checks use :code:`triggerAlert` to pass ntopng an alert. The first method is an asyncronous call, faster, but can cause the alert JSON to be generated after the call. The FlowCheck should implement the buildAlert() method which is called in the predominant check to actually build the FlowAlert object.
 The second method is a syncrhonous call, more expensive, but causes the alert (FlowAlert) to be immediately enqueued to all recipients.
-Indeed, the actual alert creation is triggered from the flow check with the call :code:`f->triggerAlertAsync` or :code:`f->triggerAlertSync`. This call tells ntopng to create an alert identified with :code:`BlacklistedFlowAlert::getClassType()` on the flow instance pointed by :code:`f`.
 
 Creating Host Alerts
 --------------------

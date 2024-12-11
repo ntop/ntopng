@@ -14,6 +14,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/vulnerability_scan/?.lua
 -- Important: load this before any other alert related module
 require "prefs_utils"
 local checks = require "checks"
+local radius_handler = require "radius_handler"
 checks.loadChecks()
 
 local recipients = require "recipients"
@@ -117,6 +118,7 @@ end
 
 if ntop.isnEdge() then
    host_pools_nedge.initPools()
+   radius_handler.deleteAllKeys()
 end
 
 if(ntop.isPro()) then

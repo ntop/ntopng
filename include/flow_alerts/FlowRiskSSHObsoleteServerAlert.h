@@ -26,8 +26,6 @@
 
 class FlowRiskSSHObsoleteServerAlert : public FlowRiskAlert {
  private:
-  ndpi_serializer *getAlertJSON(ndpi_serializer *serializer);
-
  public:
   static ndpi_risk_enum getClassRisk() {
     return NDPI_SSH_OBSOLETE_SERVER_VERSION_OR_CIPHER;

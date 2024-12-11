@@ -5068,6 +5068,21 @@ u_int64_t Utils::bitmapClear(u_int64_t bitmap, u_int8_t v) {
 
 /* ****************************************************** */
 
+int Utils::bitmapGetNext(u_int64_t bitmap, u_int8_t start) {
+  u_int64_t mask;
+
+  if (start >= 64) return -1;
+
+  mask = (1ULL << start) - 1;
+  bitmap &= ~mask;
+
+  if (bitmap == 0) return -1;
+
+  return __builtin_ctzll(bitmap);
+}
+
+/* ****************************************************** */
+
 json_object *Utils::cloneJSONSimple(json_object *src) {
   struct json_object_iterator obj_it = json_object_iter_begin(src);
   struct json_object_iterator obj_itEnd = json_object_iter_end(src);

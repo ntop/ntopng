@@ -23,6 +23,7 @@
 
 ndpi_serializer* IECUnexpectedTypeIdAlert::getAlertJSON(
     ndpi_serializer* serializer) {
+
   if (serializer) {
     ndpi_serialize_string_uint32(serializer, "type_id", type_id);
     ndpi_serialize_string_uint32(serializer, "asdu", asdu);

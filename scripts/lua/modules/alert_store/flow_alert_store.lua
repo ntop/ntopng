@@ -924,11 +924,17 @@ end
 function flow_alert_store:format_record(value, no_html, verbose)
    local record = self:format_json_record_common(value, alert_entities.flow.entity_id, no_html)
    local alert_info = alert_utils.getAlertInfo(value)
+
+   local predominant_alert_info = alert_info -- old format
+   if alert_info.alerts then -- new format
+      predominant_alert_info = alert_info.alerts[value.alert_id]
+   end
+
    local alert_name = alert_consts.alertTypeLabel(tonumber(value["alert_id"]), true --[[ no_html --]] ,
 						  alert_entities.flow.entity_id)
    local show_cli_port = (value["cli_port"] ~= '' and value["cli_port"] ~= '0')
    local show_srv_port = (value["srv_port"] ~= '' and value["srv_port"] ~= '0')
-   local msg = alert_utils.formatFlowAlertMessage(interface.getId(), value, alert_info, false, local_explorer)
+   local msg = alert_utils.formatFlowAlertMessage(interface.getId(), value, predominant_alert_info, false, local_explorer)
    local active_url = ""
    local attacker = ""
    local victim = ""
@@ -1135,7 +1141,7 @@ function flow_alert_store:format_record(value, no_html, verbose)
    }
 
    if not no_html then
-      record[RNAME.MSG.name].configset_ref = alert_utils.getConfigsetAlertLink(alert_info)
+      record[RNAME.MSG.name].configset_ref = alert_utils.getConfigsetAlertLink(predominant_alert_info)
    end
 
    -- Format Client

@@ -100,17 +100,17 @@ class Flow : public GenericHashEntry {
      predominant of a flow, which is written into `predominant_alert`.
   */
   Bitmap128 alerts_map;
-  std::map<FlowAlertTypeEnum, u_int16_t /* score */> alert_score;
+  std::map<FlowAlertTypeEnum, FlowAlert *> triggered_alerts;
   FlowAlertType predominant_alert;   /* This is the predominant alert */
   u_int16_t predominant_alert_score; /* The score associated to the predominant alert */
-  ndpi_serializer *alert_json_serializer;
+  bool pending_alerts; /* alerts triggered with triggerAlert but waiting to be enqueued */
   FlowSource flow_source;
 
   struct {
     u_int8_t is_cli_attacker : 1, is_cli_victim : 1, is_srv_attacker : 1, is_srv_victim : 1, auto_acknowledge : 1;
-  } predominant_alert_info;
+  } alert_info;
 
-  char *json_protocol_info, *riskInfo, *end_reason;
+  char *json_protocol_info, *json_alert, *riskInfo, *end_reason;
 
   /* Calculate the entropy on the first MAX_ENTROPY_BYTES bytes */
   struct {
@@ -367,17 +367,7 @@ class Flow : public GenericHashEntry {
   void luaScore(lua_State *vm);
   void luaIEC104(lua_State *vm);
   void callFlowUpdate(time_t t);
-  /*
-    Method to trigger alerts, synchronous or asynchronous, depending on the last
-    argument.
-    - Asynchronous: The alerts bitmap is updated and the predominant alert is
-    possibly updated. Recipients enqueue is not performed.
-    - Synchronous:  The alerts bitmap is updated and the predominant alert is
-    possibly updated. Immediate alert JSON generation and enqueue to the
-    recipients are performed as well.
-   */
-  bool setAlertsBitmap(FlowAlertType alert_type, u_int16_t cli_inc,
-                       u_int16_t srv_inc, bool async);
+  bool setAlertsMap(FlowAlert *alert);
   void setNormalToAlertedCounters();
   /* Decreases scores on both client and server hosts when the flow is being
    * destructed */
@@ -406,21 +396,16 @@ class Flow : public GenericHashEntry {
   bool enqueueAlertToRecipients(FlowAlert *alert);
 
   /*
-    Called by FlowCheck subclasses to trigger a flow alert. This is an
-    asynchronous call, faster, but can cause the alert JSON to be generated
-    after the call. The FlowCheck should implement the buildAlert() method which
-    is called in the predominant check to actually build the FlowAlert object.
+     Called by FlowCheck subclasses to trigger a flow alert. Setting sync
+     will causes the alert (FlowAlert) to be immediatly enqueued to recipients.
    */
-  bool triggerAlertAsync(FlowAlertType alert_type, u_int16_t cli_score_inc,
-                         u_int16_t srv_score_inc);
-
+  bool triggerAlert(FlowAlert *alert, bool sync = false);
   /*
-     Called by FlowCheck subclasses to trigger a flow alert. This is a
-     syncrhonous call, more expensive, but causes the alert (FlowAlert) to be
-     immediately enqueued to all recipients.
+     Alerts are not flushed immediatly as optimization (unless sync is set in
+     triggerAlert). If pending_alerts, they are enqueued to recipients, in a single
+     notification for the predominant one.
    */
-  bool triggerAlertSync(FlowAlert *alert, u_int16_t cli_score_inc,
-                        u_int16_t srv_score_inc);
+  void flushAlerts();
 
   /*
     Enqueues the predominant alert of the flow to all available flow recipients.
@@ -449,23 +434,25 @@ class Flow : public GenericHashEntry {
   bool isFlowAllowed(bool *is_allowed);
 #endif
 
-  void setPredominantAlertInfo(FlowAlert *alert);
-  inline bool isPredominantAlertAutoAck() {
-    return !!predominant_alert_info.auto_acknowledge;
+  void setAlertInfo(FlowAlert *alert);
+  inline bool isAlertAutoAck() {
+    return !!alert_info.auto_acknowledge;
   };
   inline u_int8_t isClientAttacker() {
-    return predominant_alert_info.is_cli_attacker;
+    return alert_info.is_cli_attacker;
   };
   inline u_int8_t isClientVictim() {
-    return predominant_alert_info.is_cli_victim;
+    return alert_info.is_cli_victim;
   };
   inline u_int8_t isServerAttacker() {
-    return predominant_alert_info.is_srv_attacker;
+    return alert_info.is_srv_attacker;
   };
   inline u_int8_t isServerVictim() {
-    return predominant_alert_info.is_srv_victim;
+    return alert_info.is_srv_victim;
   };
   inline char *getProtocolInfo() { return json_protocol_info; };
+  void updateJSONAlert();
+  inline char *getAlertJSON() { return json_alert; };
   const char* getDomainName();
 
   void setProtocolJSONInfo();
@@ -1381,7 +1368,6 @@ inline float get_goodput_bytes_thpt() const { return (goodput_bytes_thpt); };
 
   u_char *getCommunityId(u_char *community_id, u_int community_id_len);
   void setJSONRiskInfo(char *r);
-  char *getJSONRiskInfo();
   void setEndReason(char *r);
   char *getEndReason();
   void setSMTPMailFrom(char *r);
