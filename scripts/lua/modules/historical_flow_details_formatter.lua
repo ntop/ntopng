@@ -322,6 +322,7 @@ end
 -- ###############################################
 
 local function format_historical_issues(flow_details, flow)
+    local historical_flow_utils = require "historical_flow_utils"
     local alert_store_utils = require "alert_store_utils"
     local alert_entities = require "alert_entities"
     local format_utils = require "format_utils"
@@ -340,12 +341,10 @@ local function format_historical_issues(flow_details, flow)
     local alert_store_instance = alert_store_instances[alert_entities["flow"].alert_store_name]
     local main_alert_score
 
-    if alert_store_instance then
-        local alerts, _ = alert_store_instance:select_request(nil, "*")
-        if alerts and #alerts >= 1 then
-            alert = alerts[1]
-            details = alert_utils.formatFlowAlertMessage(interface.getId(), alert, alert_json, false, true, true)
-        end
+
+    if tonumber(flow["SCORE"]) > 0 then
+        alert = historical_flow_utils.convertFlowToAlert(flow)
+        details = alert_utils.formatFlowAlertMessage(interface.getId(), alert, alert_info, false, true, true)
     end
 
     if alert_json and alert_json.flow_risk_info then
