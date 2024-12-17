@@ -623,8 +623,8 @@ int NetworkInterface::addTrustedIssuerDN(const char *dn) {
 ndpi_protocol_category_t NetworkInterface::get_ndpi_proto_category(u_int16_t protoid) {
   ndpi_protocol proto;
   protoid = ndpi_map_user_proto_id_to_ndpi_id(get_ndpi_struct(), protoid);
-  proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
-  proto.master_protocol = protoid;
+  proto.proto.app_protocol = NDPI_PROTOCOL_UNKNOWN;
+  proto.proto.master_protocol = protoid;
   proto.category = NDPI_PROTOCOL_CATEGORY_UNSPECIFIED;
 
   return (get_ndpi_proto_category(proto));
@@ -2311,7 +2311,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 	}
       } else if (flow->getRTPStreamType() == ndpi_multimedia_unknown_flow) {
 	if (flow->get_ndpi_flow() != NULL) {
-	  flow->setRTPStreamType(flow->get_ndpi_flow()->flow_multimedia_type);
+	  flow->setRTPStreamType(flow->get_ndpi_flow()->flow_multimedia_types);
 	}
       }
       break;
@@ -4974,8 +4974,8 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
       if(ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN &&
           ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN) {
         if(
-            (ndpi_proto_master_proto == f->get_detected_protocol().master_protocol) &&
-            (ndpi_proto_app_proto == f->get_detected_protocol().app_protocol)
+            (ndpi_proto_master_proto == f->get_detected_protocol().proto.master_protocol) &&
+            (ndpi_proto_app_proto == f->get_detected_protocol().proto.app_protocol)
           )
           /* We're good */
           is_ok = true;
@@ -4983,19 +4983,19 @@ static bool flow_matches(Flow *f, struct flowHostRetriever *retriever) {
                 ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN) {
       /* Case where one is unknown, the other can match both master and app of the flow */
         if((ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN &&
-              (ndpi_proto_app_proto == f->get_detected_protocol().app_protocol ||
-              ndpi_proto_app_proto == f->get_detected_protocol().master_protocol)) ||
+              (ndpi_proto_app_proto == f->get_detected_protocol().proto.app_protocol ||
+              ndpi_proto_app_proto == f->get_detected_protocol().proto.master_protocol)) ||
             (ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN &&
-              (ndpi_proto_master_proto == f->get_detected_protocol().app_protocol ||
-              ndpi_proto_master_proto == f->get_detected_protocol().master_protocol)))
+              (ndpi_proto_master_proto == f->get_detected_protocol().proto.app_protocol ||
+              ndpi_proto_master_proto == f->get_detected_protocol().proto.master_protocol)))
           /* We're good */
           is_ok = true;
       } else {
       /* Case where both are not unknown */
         if (((ndpi_proto_master_proto == NDPI_PROTOCOL_UNKNOWN) ||
-              (ndpi_proto_master_proto == f->get_detected_protocol().master_protocol)) &&
+              (ndpi_proto_master_proto == f->get_detected_protocol().proto.master_protocol)) &&
             ((ndpi_proto_app_proto == NDPI_PROTOCOL_UNKNOWN) ||
-              (ndpi_proto_app_proto == f->get_detected_protocol().app_protocol))
+              (ndpi_proto_app_proto == f->get_detected_protocol().proto.app_protocol))
           )
           /* We're good */
           is_ok = true;
@@ -5291,7 +5291,7 @@ static bool flow_search_walker(GenericHashEntry *h, void *user_data,
       retriever->elems[retriever->actNumEntries++].numericValue = f->get_protocol();
       break;
     case column_ndpi:
-      retriever->elems[retriever->actNumEntries++].numericValue = f->get_detected_protocol().app_protocol;
+      retriever->elems[retriever->actNumEntries++].numericValue = f->get_detected_protocol().proto.app_protocol;
       break;
     case column_protocol:
       retriever->actNumEntries++;
@@ -6968,7 +6968,7 @@ static bool flow_stats_walker(GenericHashEntry *h, void *user_data,
 
   if(iface) {
     u_int32_t proto_id = ndpi_map_user_proto_id_to_ndpi_id(
-        iface->get_ndpi_struct(), flow->get_detected_protocol().app_protocol);
+        iface->get_ndpi_struct(), flow->get_detected_protocol().proto.app_protocol);
     stats->num_flows++,
       stats->ndpi_bytes[proto_id] +=
       (u_int32_t)flow->get_bytes(),
@@ -7289,10 +7289,10 @@ static bool num_flows_walker(GenericHashEntry *node, void *user_data,
 
   if(iface) {
     u_int32_t proto_id = ndpi_map_user_proto_id_to_ndpi_id(
-        iface->get_ndpi_struct(), flow->get_detected_protocol().app_protocol);
+        iface->get_ndpi_struct(), flow->get_detected_protocol().proto.app_protocol);
 /*
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
-      "Increasing usage of protocol %d, converted from %d", proto_id, flow->get_detected_protocol().app_protocol);
+      "Increasing usage of protocol %d, converted from %d", proto_id, flow->get_detected_protocol().proto.app_protocol);
 */
     num_flows[proto_id]++;
     *matched = true;
@@ -11203,8 +11203,8 @@ bool NetworkInterface::compute_protocol_flow_stats(GenericHashEntry *node,
   /* <vlan_id (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
   key =
     ((u_int64_t)vlan_id << 32) +
-    (((u_int64_t)detected_protocol.app_protocol) << 16) +
-    (u_int64_t)detected_protocol.master_protocol;
+    (((u_int64_t)detected_protocol.proto.app_protocol) << 16) +
+    (u_int64_t)detected_protocol.proto.master_protocol;
 
   it = stats->count.find(key);
 
@@ -11457,12 +11457,12 @@ bool NetworkInterface::compute_client_server_srv_port_app_proto_flow_stats(Gener
     (((u_int64_t)f->get_srv_ip_addr()->key()) << 16) +
     (((u_int64_t)f->get_srv_port()) << 32) +
     ((u_int64_t)vlan_id << 32) +
-    (((u_int64_t)detected_protocol.app_protocol) << 16) +
-    (u_int64_t)detected_protocol.master_protocol;
+    (((u_int64_t)detected_protocol.proto.app_protocol) << 16) +
+    (u_int64_t)detected_protocol.proto.master_protocol;
 
   u_int64_t proto_key = ((u_int64_t)vlan_id << 32) +
-                      (((u_int64_t)detected_protocol.app_protocol) << 16) +
-                      (u_int64_t)detected_protocol.master_protocol;
+                      (((u_int64_t)detected_protocol.proto.app_protocol) << 16) +
+                      (u_int64_t)detected_protocol.proto.master_protocol;
 
   it = stats->count.find(key);
 
@@ -11670,17 +11670,17 @@ void NetworkInterface::build_lua_rsp(lua_State *vm,
       char buf[64], proto[16];
       u_int64_t key = flow_stats->getProtoKey();
 
-      detected_protocol.master_protocol = (u_int16_t)(key & 0x00000000000FFFF);
-      detected_protocol.app_protocol    = (u_int16_t)((key >> 16) & 0x000000000000FFFF);
+      detected_protocol.proto.master_protocol = (u_int16_t)(key & 0x00000000000FFFF);
+      detected_protocol.proto.app_protocol    = (u_int16_t)((key >> 16) & 0x000000000000FFFF);
 
-      if (detected_protocol.master_protocol == detected_protocol.app_protocol)
-        snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
-      else if (detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
-        snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
-      else if (detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
-        snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
+      if (detected_protocol.proto.master_protocol == detected_protocol.proto.app_protocol)
+        snprintf(proto, sizeof(proto), "%u", detected_protocol.proto.master_protocol);
+      else if (detected_protocol.proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+        snprintf(proto, sizeof(proto), "%u", detected_protocol.proto.master_protocol);
+      else if (detected_protocol.proto.master_protocol == NDPI_PROTOCOL_UNKNOWN)
+        snprintf(proto, sizeof(proto), "%u", detected_protocol.proto.app_protocol);
       else
-        snprintf(proto, sizeof(proto), "%u.%u", detected_protocol.master_protocol, detected_protocol.app_protocol);
+        snprintf(proto, sizeof(proto), "%u.%u", detected_protocol.proto.master_protocol, detected_protocol.proto.app_protocol);
 
       /* Currently it is not supported the possibily to add double filter on
        * master and app proto */
@@ -11785,8 +11785,8 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
   /* Get from the key, the master and application protocol,
   * first 16 bit for the master, second for the application
   */
-  detected_protocol.master_protocol = (u_int16_t)(it->first & 0x00000000000FFFF);
-  detected_protocol.app_protocol    = (u_int16_t)((it->first >> 16) & 0x000000000000FFFF);
+  detected_protocol.proto.master_protocol = (u_int16_t)(it->first & 0x00000000000FFFF);
+  detected_protocol.proto.app_protocol    = (u_int16_t)((it->first >> 16) & 0x000000000000FFFF);
 
   proto = get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf));
 
@@ -11831,8 +11831,8 @@ void NetworkInterface::sort_and_filter_flow_stats(lua_State *vm,
 	/* Get from the key, the master and application protocol,
 	 * first 16 bit for the master, second for the application
 	 */
-	detected_protocol.master_protocol = (u_int16_t)(it->second->getProtoKey() & 0x00000000000FFFF);
-	detected_protocol.app_protocol    = (u_int16_t)((it->second->getProtoKey() >> 16) & 0x000000000000FFFF);
+	detected_protocol.proto.master_protocol = (u_int16_t)(it->second->getProtoKey() & 0x00000000000FFFF);
+	detected_protocol.proto.app_protocol    = (u_int16_t)((it->second->getProtoKey() >> 16) & 0x000000000000FFFF);
 
 	it->second->setProtoName(proto = get_ndpi_full_proto_name(detected_protocol, buf, sizeof(buf)));
 
@@ -12068,8 +12068,8 @@ bool NetworkInterface::get_host_ports(GenericHashEntry *node,
   /* <srv_port (16 bit)><app_protocol (16 bit)><master_protocol (16 bit) */
   u_int64_t port_proto_key =
     ((u_int64_t)srv_port << 32) +
-    (((u_int64_t)detected_protocol.app_protocol) << 16) +
-    (u_int64_t)detected_protocol.master_protocol;
+    (((u_int64_t)detected_protocol.proto.app_protocol) << 16) +
+    (u_int64_t)detected_protocol.proto.master_protocol;
 
   /* <srv_key (16 bit)><srv_vlan_id (16 bit)> */
   u_int64_t host_key =
@@ -12103,18 +12103,18 @@ void NetworkInterface::lua_push_ports(lua_State *vm,
 
     u_int64_t key = it->first;
     ndpi_protocol detected_protocol;
-    detected_protocol.master_protocol = (u_int16_t)(key & 0x00000000000FFFF);
-    detected_protocol.app_protocol    = (u_int16_t)((key >> 16) & 0x000000000000FFFF);
+    detected_protocol.proto.master_protocol = (u_int16_t)(key & 0x00000000000FFFF);
+    detected_protocol.proto.app_protocol    = (u_int16_t)((key >> 16) & 0x000000000000FFFF);
     u_int16_t srv_port                = (u_int64_t)((key >> 32) & 0x000000000000FFFF);
 
-    if (detected_protocol.master_protocol == detected_protocol.app_protocol)
-      snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
-    else if (detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
-      snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
-    else if (detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
-      snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
+    if (detected_protocol.proto.master_protocol == detected_protocol.proto.app_protocol)
+      snprintf(proto, sizeof(proto), "%u", detected_protocol.proto.master_protocol);
+    else if (detected_protocol.proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+      snprintf(proto, sizeof(proto), "%u", detected_protocol.proto.master_protocol);
+    else if (detected_protocol.proto.master_protocol == NDPI_PROTOCOL_UNKNOWN)
+      snprintf(proto, sizeof(proto), "%u", detected_protocol.proto.app_protocol);
     else
-      snprintf(proto, sizeof(proto), "%u.%u", detected_protocol.master_protocol, detected_protocol.app_protocol);
+      snprintf(proto, sizeof(proto), "%u.%u", detected_protocol.proto.master_protocol, detected_protocol.proto.app_protocol);
 
     lua_push_str_table_entry(vm, "proto_id", proto);
     lua_push_str_table_entry(vm, "l7_proto_name",
@@ -12174,21 +12174,21 @@ bool NetworkInterface::get_hosts_by_port(GenericHashEntry *node,
   if (l7_app_protocol != NDPI_PROTOCOL_UNKNOWN)
     check_both = true;
 
-  if (detected_protocol.master_protocol == detected_protocol.app_protocol ||
-      detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN){
+  if (detected_protocol.proto.master_protocol == detected_protocol.proto.app_protocol ||
+      detected_protocol.proto.app_protocol == NDPI_PROTOCOL_UNKNOWN){
     /* CASE master == app OR app == UNKNOWN */
     if (check_both) return false; /* there's a specific app protocol filter */
-    else if (!check_both && l7_master_protocol != detected_protocol.master_protocol)
+    else if (!check_both && l7_master_protocol != detected_protocol.proto.master_protocol)
       return false;
-  } else if (detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN) {
+  } else if (detected_protocol.proto.master_protocol == NDPI_PROTOCOL_UNKNOWN) {
     /* CASE master == UNKNOWN */
     if (check_both) return false; /* there's a specific app protocol filter */
-    else if (!check_both && l7_master_protocol != detected_protocol.app_protocol)
+    else if (!check_both && l7_master_protocol != detected_protocol.proto.app_protocol)
       return false;
   } else {
     /* CASE BOTH protocols in Flow */
     if (check_both) { /* there's a specific app protocol filter */
-      if (l7_master_protocol == detected_protocol.master_protocol && l7_app_protocol != detected_protocol.app_protocol) {
+      if (l7_master_protocol == detected_protocol.proto.master_protocol && l7_app_protocol != detected_protocol.proto.app_protocol) {
         /* Same master protocols different app protocols */
         return false;
       }
@@ -12303,7 +12303,7 @@ bool NetworkInterface::get_hosts_by_service(GenericHashEntry *node,
   port_finder = ports_list.begin();
 
   while (port_finder != ports_list.end() && port_found == 0) {
-    if(port_finder->second.app_protocol == l7_proto) {
+    if(port_finder->second.proto.app_protocol == l7_proto) {
       port_found = port_finder->first;
     }
     ++port_finder;
@@ -12478,8 +12478,8 @@ static bool compute_vlan_flow_stats(GenericHashEntry *node, void *user_data,
    * bit) */
   u_int64_t key = (((u_int64_t)f->get_srv_port()) << 48) +
     (((u_int64_t)vlan_id) << 32) +
-    (((u_int64_t)detected_protocol.app_protocol) << 16) +
-    (u_int64_t)detected_protocol.master_protocol;
+    (((u_int64_t)detected_protocol.proto.app_protocol) << 16) +
+    (u_int64_t)detected_protocol.proto.master_protocol;
   std::unordered_map<u_int64_t, AggregatedFlowsStats *>::iterator it;
   std::unordered_map<u_int64_t, AggregatedFlowsStats *> *count =
     static_cast<std::unordered_map<u_int64_t, AggregatedFlowsStats *> *>(user_data);
@@ -12524,23 +12524,23 @@ void NetworkInterface::getVLANFlowsStats(lua_State *vm) {
     u_int16_t vlan_id, dst_port;
 
     if (fs) {
-      detected_protocol.master_protocol = (u_int16_t)(it->first & 0x00000000000FFFF);
-      detected_protocol.app_protocol   = (u_int16_t)((it->first >> 16) & 0x000000000000FFFF);
+      detected_protocol.proto.master_protocol = (u_int16_t)(it->first & 0x00000000000FFFF);
+      detected_protocol.proto.app_protocol   = (u_int16_t)((it->first >> 16) & 0x000000000000FFFF);
       vlan_id = (u_int16_t)((it->first >> 32) & 0x000000000000FFFF);
       dst_port = (u_int16_t)((it->first >> 48) & 0x000000000000FFFF);
 
       lua_newtable(vm);
 
-      if (detected_protocol.master_protocol == detected_protocol.app_protocol)
-        snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
-      else if (detected_protocol.app_protocol == NDPI_PROTOCOL_UNKNOWN)
-        snprintf(proto, sizeof(proto), "%u", detected_protocol.master_protocol);
-      else if (detected_protocol.master_protocol == NDPI_PROTOCOL_UNKNOWN)
-        snprintf(proto, sizeof(proto), "%u", detected_protocol.app_protocol);
+      if (detected_protocol.proto.master_protocol == detected_protocol.proto.app_protocol)
+        snprintf(proto, sizeof(proto), "%u", detected_protocol.proto.master_protocol);
+      else if (detected_protocol.proto.app_protocol == NDPI_PROTOCOL_UNKNOWN)
+        snprintf(proto, sizeof(proto), "%u", detected_protocol.proto.master_protocol);
+      else if (detected_protocol.proto.master_protocol == NDPI_PROTOCOL_UNKNOWN)
+        snprintf(proto, sizeof(proto), "%u", detected_protocol.proto.app_protocol);
       else
         snprintf(proto, sizeof(proto), "%u.%u",
-                 detected_protocol.master_protocol,
-                 detected_protocol.app_protocol);
+                 detected_protocol.proto.master_protocol,
+                 detected_protocol.proto.app_protocol);
 
       lua_push_uint32_table_entry(vm, "vlan_id", vlan_id);
       lua_push_uint32_table_entry(vm, "dst_port", dst_port);

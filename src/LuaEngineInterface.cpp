@@ -1391,11 +1391,11 @@ static int ntop_get_ndpi_full_protocol_name(lua_State *vm) {
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  proto.master_protocol = (u_int32_t)lua_tonumber(vm, 1);
+  proto.proto.master_protocol = (u_int32_t)lua_tonumber(vm, 1);
 
   if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  proto.app_protocol = (u_int32_t)lua_tonumber(vm, 2);
+  proto.proto.app_protocol = (u_int32_t)lua_tonumber(vm, 2);
 
   if (curr_iface)
     lua_pushstring(
@@ -4696,7 +4696,7 @@ static void ntop_get_maps_filters(lua_State *vm, MapsFilters *filters) {
   if (lua_type(vm, 5) == LUA_TNUMBER)
     filters->first_seen = (u_int32_t)lua_tonumber(vm, 5);
   if (lua_type(vm, 6) == LUA_TSTRING)
-    filters->ndpi_proto = ndpi_get_protocol_id(
+    filters->ndpi_proto = ndpi_get_proto_by_name(
         curr_iface->get_ndpi_struct(), (char *)lua_tostring(vm, 6));
 
   if (lua_type(vm, 7) == LUA_TNUMBER)
@@ -4907,7 +4907,7 @@ static int ntop_interface_service_map_set_multiple_status(lua_State *vm) {
 
     if (l7_proto != NULL)
       proto_id =
-          ndpi_get_protocol_id(curr_iface->get_ndpi_struct(), l7_proto);
+          ndpi_get_proto_by_name(curr_iface->get_ndpi_struct(), l7_proto);
 
     curr_iface->getServiceMap()->setBatchStatus(proto_id, current_status,
                                                     new_status);

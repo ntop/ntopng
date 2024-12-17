@@ -95,7 +95,7 @@ class Flow : public GenericHashEntry {
       is_periodic_flow : 1;
   u_int8_t iface_flow_accounted:1, _notused:7;
 
-  ndpi_multimedia_flow_type rtp_stream_type;
+  u_int8_t rtp_stream_type;
 #ifdef ALERTED_FLOWS_DEBUG
   bool iface_alert_inc, iface_alert_dec;
 #endif
@@ -449,8 +449,8 @@ class Flow : public GenericHashEntry {
   static const ndpi_protocol ndpiUnknownProtocol;
   bool isTiny() const;
   inline bool isProto(u_int16_t p) const {
-    return (((ndpiDetectedProtocol.master_protocol == p) ||
-             (ndpiDetectedProtocol.app_protocol == p)) ? true : false);
+    return (((ndpiDetectedProtocol.proto.master_protocol == p) ||
+             (ndpiDetectedProtocol.proto.app_protocol == p)) ? true : false);
   }
   bool isTLS() const;
   inline bool isEncryptedProto() const {
@@ -506,14 +506,14 @@ class Flow : public GenericHashEntry {
   inline u_int16_t getCliDeviceDisallowedProtocol() const {
     DeviceProtoStatus cli_ps = cli_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), true);
     
-    return (cli_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol
-               : ndpiDetectedProtocol.master_protocol;
+    return (cli_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.proto.app_protocol
+               : ndpiDetectedProtocol.proto.master_protocol;
   }
   inline u_int16_t getSrvDeviceDisallowedProtocol() const {
     DeviceProtoStatus srv_ps = srv_host->getDeviceAllowedProtocolStatus(get_detected_protocol(), false);
     
-    return (srv_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.app_protocol
-               : ndpiDetectedProtocol.master_protocol;
+    return (srv_ps == device_proto_forbidden_app) ? ndpiDetectedProtocol.proto.app_protocol
+               : ndpiDetectedProtocol.proto.master_protocol;
   }
   inline bool isMaskedFlow() const {
     return (Utils::maskHost(get_cli_ip_addr()->isLocalHost())
@@ -1380,10 +1380,10 @@ inline float get_goodput_bytes_thpt() const { return (goodput_bytes_thpt); };
   inline u_int8_t getCustomFlowAlertScore() { return (customFlowAlert.score); }
   inline char *getCustomFlowAlertMessage() { return (customFlowAlert.msg); }
   void triggerCustomFlowAlert(u_int8_t score, char *msg);
-  inline void setRTPStreamType(ndpi_multimedia_flow_type s) {
+  inline void setRTPStreamType(u_int8_t s) {
     rtp_stream_type = s;
   }
-  inline ndpi_multimedia_flow_type getRTPStreamType() {
+  inline u_int8_t getRTPStreamType() {
     return (rtp_stream_type);
   }
   inline void setPeriodicFlow() { is_periodic_flow = 1; }

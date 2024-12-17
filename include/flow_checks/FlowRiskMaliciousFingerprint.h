@@ -19,28 +19,32 @@
  *
  */
 
-#ifndef _FR_MALICIOUS_JA3_ALERT_H_
-#define _FR_MALICIOUS_JA3_ALERT_H_
+#ifndef _FLOW_RISK_MALICIOUS_FINGERPRINT_H_
+#define _FLOW_RISK_MALICIOUS_FINGERPRINT_H_
 
 #include "ntop_includes.h"
 
-class FlowRiskMaliciousJA3Alert : public FlowRiskAlert {
+class FlowRiskMaliciousFingerprint : public FlowRisk {
+ private:
+  FlowAlertType getAlertType() const {
+    return FlowRiskMaliciousFingerprintAlert::getClassType();
+  }
+
  public:
-  static ndpi_risk_enum getClassRisk() { return NDPI_MALICIOUS_JA3; }
-  static FlowAlertType getClassType() {
-    return FlowRiskAlerts::getFlowRiskAlertType(getClassRisk());
+  FlowRiskMaliciousFingerprint(){};
+  ~FlowRiskMaliciousFingerprint(){};
+
+  FlowAlert *buildAlert(Flow *f) {
+    return new FlowRiskMaliciousFingerprintAlert(this, f);
   }
-  static u_int8_t getDefaultScore() {
-    return FlowRiskAlerts::getFlowRiskScore(getClassRisk());
+
+  std::string getName() const {
+    return (FlowRiskAlerts::getCheckName(
+        FlowRiskMaliciousFingerprintAlert::getClassRisk()));
   }
-
-  FlowRiskMaliciousJA3Alert(FlowCheck *c, Flow *f) : FlowRiskAlert(c, f){};
-  ~FlowRiskMaliciousJA3Alert(){};
-
-  FlowAlertType getAlertType() const { return getClassType(); }
-  ndpi_risk_enum getAlertRisk() const { return getClassRisk(); }
-
-  bool autoAck() const { return false; };
+  ndpi_risk_enum handledRisk() {
+    return FlowRiskMaliciousFingerprintAlert::getClassRisk();
+  }
 };
 
-#endif /* _FR_MALICIOUS_JA3_ALERT_H_ */
+#endif /* _FLOW_RISK_MALICIOUS_FINGERPRINT_H_ */

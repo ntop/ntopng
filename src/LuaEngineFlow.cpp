@@ -162,7 +162,7 @@ static int ntop_flow_get_l7_master_proto(lua_State *vm) {
   Flow *f = c ? c->flow : NULL;
 
   if (f)
-    lua_pushinteger(vm, f->get_detected_protocol().master_protocol);
+    lua_pushinteger(vm, f->get_detected_protocol().proto.master_protocol);
   else
     lua_pushnil(vm);
 
@@ -176,7 +176,7 @@ static int ntop_flow_get_l7_proto(lua_State *vm) {
   Flow *f = c ? c->flow : NULL;
 
   if (f)
-    lua_pushinteger(vm, f->get_detected_protocol().app_protocol);
+    lua_pushinteger(vm, f->get_detected_protocol().proto.app_protocol);
   else
     lua_pushnil(vm);
 

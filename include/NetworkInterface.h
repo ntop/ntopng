@@ -533,7 +533,7 @@ public:
     return (ndpi_get_proto_name(get_ndpi_struct(), id));
   };
   inline u_int16_t get_ndpi_proto_id(char *proto) {
-    u_int16_t _proto = ndpi_get_protocol_id(get_ndpi_struct(), proto);
+    u_int16_t _proto = ndpi_get_proto_by_name(get_ndpi_struct(), proto);
     return ndpi_map_ndpi_id_to_user_proto_id(get_ndpi_struct(), _proto);
   };
   inline int get_ndpi_category_id(char *cat) {

@@ -44,7 +44,7 @@ FlowGrouper::~FlowGrouper() {
 bool FlowGrouper::inGroup(Flow *flow) {
   switch (sorter) {
     case column_ndpi:
-      return (flow->get_detected_protocol().app_protocol == app_protocol);
+      return (flow->get_detected_protocol().proto.app_protocol == app_protocol);
     default:
       return false;
   }
@@ -59,7 +59,7 @@ int FlowGrouper::newGroup(Flow *flow) {
 
   switch (sorter) {
     case column_ndpi:
-      app_protocol = flow->get_detected_protocol().app_protocol;
+      app_protocol = flow->get_detected_protocol().proto.app_protocol;
       break;
     default:
       return -1;
