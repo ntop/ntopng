@@ -406,17 +406,28 @@ u_int16_t NetworkInterface::getnDPIProtoByName(const char *name) {
 
 /* ********************** */
 
+struct ndpi_keys_struct {
+  const char *proto, *key, *value;
+};
+
 struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   struct ndpi_detection_module_struct *ndpi_s = ndpi_init_detection_module(NULL);
   ndpi_port_range d_port[MAX_DEFAULT_PORTS];
   NDPI_PROTOCOL_BITMASK all;
   ndpi_cfg_error rc;
-  const char* ndpi_key = "flow.track_payload";
   const char* dirs[] = {
     "/usr/share/ndpi/public_suffix_list.dat",
     "/usr/local/share/ndpi/public_suffix_list.dat",
     "../nDPI/lists/public_suffix_list.dat",
     NULL
+  };
+  const struct ndpi_keys_struct ndpi_keys[] = {
+    { NULL,   "flow.track_payload",           "1"  },
+    { "tls",  "metadata.ja4r_fingerprint",    "1"  },
+    { NULL,   "packets_limit_per_flow",       "64" },
+    { "stun", "monitoring",                   "1"  },
+    { "stun", "max_packets_extra_dissection", "32" },
+    { NULL, NULL, NULL }
   };
 
   if (ndpi_s == NULL) {
@@ -428,9 +439,14 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
   NDPI_BITMASK_SET_ALL(all);
   ndpi_set_protocol_detection_bitmask2(ndpi_s, &all);
 
-  rc = ndpi_set_config(ndpi_s, NULL, ndpi_key, "1");
-  if (rc != NDPI_CFG_OK) {
-    ntop->getTrace()->traceEvent(TRACE_ERROR, "Error ndpi_set_config(%s): %d", ndpi_key, rc);
+  for(int i=0; ndpi_keys[i].key != NULL; i++) {
+    rc = ndpi_set_config(ndpi_s, ndpi_keys[i].proto, ndpi_keys[i].key, ndpi_keys[i].value);
+
+    if (rc != NDPI_CFG_OK)
+      ntop->getTrace()->traceEvent(TRACE_ERROR, "Error ndpi_set_config(%s/%s/%s): %d",
+				   ndpi_keys[i].proto ? ndpi_keys[i].proto : "NULL",
+				   ndpi_keys[i].key   ? ndpi_keys[i].key   : "NULL",
+				   ndpi_keys[i].value, rc);
   }
 
   if (ntop->getCustomnDPIProtos() != NULL)
@@ -452,8 +468,8 @@ struct ndpi_detection_module_struct *NetworkInterface::initnDPIStruct() {
 
   memset(d_port, 0, sizeof(d_port));
   ndpi_set_proto_defaults(ndpi_s, 0, 0, NDPI_PROTOCOL_UNRATED,
-                          NTOPNG_NDPI_OS_PROTO_ID, (char *)"Operating System",
-                          NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, d_port, d_port);
+			  NTOPNG_NDPI_OS_PROTO_ID, (char *)"Operating System",
+			  NDPI_PROTOCOL_CATEGORY_SYSTEM_OS, d_port, d_port);
 
   // load custom protocols
   loadProtocolsAssociations(ndpi_s);
@@ -2350,7 +2366,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
       application protocol has nit been detected hence account
       traffic as Unknown. See Flow::~Flow()
     */
-    
+
     if(flow->isFlowAccounted()) {
       incnDPIStats(when->tv_sec,
 		   flow->getStatsProtocol(), flow->get_protocol_category(),
@@ -7524,7 +7540,7 @@ void NetworkInterface::lua(lua_State *vm, bool fullStats) {
   _ethStats.lua(vm);
   _localStats.lua(vm);
   _ndpiStats.lua(this, vm, true, false);
-  
+
   lua_push_uint64_table_entry(vm, "traffic_sent_since_reset", _ethStats.getNumEgressBytes() - getCheckPointNumTrafficSent());
   lua_push_uint64_table_entry(vm, "traffic_rcvd_since_reset", _ethStats.getNumIngressBytes() - getCheckPointNumTrafficRcvd());
   lua_push_uint64_table_entry(vm, "packets_sent_since_reset", _ethStats.getNumEgressPackets() - getCheckPointNumPacketsSent());
