@@ -531,6 +531,7 @@ typedef enum {
   flow_alert_tcp_flow_reset = 100,
   flow_alert_ndpi_probing_attempt = 101,
   flow_alert_access_control_list = 102,
+  flow_alert_local_to_internet_connection = 103,
   
   MAX_DEFINED_FLOW_ALERT_TYPE, /* Leave it as last member */
 

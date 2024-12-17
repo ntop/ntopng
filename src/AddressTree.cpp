@@ -216,6 +216,28 @@ bool AddressTree::addAddressAndData(const char *_what, void *user_data) {
 
 /* ******************************************* */
 
+bool AddressTree::addUniqueAddressAndData(const char *_what, void *user_data) {
+  ndpi_patricia_node_t *node = NULL;
+
+  if (match((char *) _what)) {
+    return false;
+  }
+
+  updateLock.wrlock(__FILE__, __LINE__);
+  
+  node = Utils::ptree_add_rule(strchr(_what, '.') ? ptree_v4 : ptree_v6, _what);
+
+  if (node) {
+    ndpi_patricia_set_node_data(node, user_data);
+    numAddresses++;
+  }
+
+  updateLock.unlock(__FILE__, __LINE__);
+  
+  return true;
+}
+/* ******************************************* */
+
 bool AddressTree::addAddress(const char *_what, const int64_t user_data) {
   u_int32_t _mac[6];
   int64_t id = (user_data == -1) ? numAddresses : user_data;

@@ -7950,6 +7950,22 @@ static int reload_servers_configuration(lua_State *vm) {
 
 /* **************************************************************** */
 
+#ifdef NTOPNG_PRO
+
+static int reload_networks_policy_configuration(lua_State *vm) {
+  if (ntop->getPrefs()->reloadNetworksPolicyConfiguration()){
+    lua_pushboolean(vm, 1);
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
+  }
+
+  lua_pushboolean(vm, 0);
+  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+
+}
+#endif
+
+/* **************************************************************** */
+
 static luaL_Reg _ntop_reg[] = {
     {"getDirs", ntop_get_dirs},
     {"getInfo", ntop_get_info},
@@ -8395,6 +8411,10 @@ static luaL_Reg _ntop_reg[] = {
     {"readEthernetIPDeviceInfo", read_ether_ip_device_info},
 
     {"reloadServersConfiguration", reload_servers_configuration},
+  
+#if defined(NTOPNG_PRO)
+    {"reloadNetworksPolicyConfiguration", reload_networks_policy_configuration},
+#endif
 
     {NULL, NULL}};
 

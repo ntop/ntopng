@@ -187,6 +187,11 @@ class Prefs {
 
   ServerConfiguration *gateway, *dns_servers, *ntp_servers, *smtp_servers, *dhcp_servers;
 
+#ifdef NTOPNG_PRO
+  AddressTree *networks_policy_configuration;
+  AddressTree *networks_policy_configuration_shadow;
+#endif
+
 #ifdef HAVE_PF_RING
   int pfring_cluster_id;
 #endif
@@ -739,6 +744,11 @@ class Prefs {
   char* getKafkaOptions() { return (kafka_options); }
 #endif
   void reloadServersConfiguration();
+#ifdef NTOPNG_PRO
+  bool reloadNetworksPolicyConfiguration();
+  bool loadPolicyConfiguration(AddressTree *tree, char *key, const char* type);
+  AddressTree* getNetworksPolicyConfiguration();
+#endif
   bool isGateway(IpAddress *ip, u_int16_t vlan_id);
   bool isDNSServer(IpAddress *ip, u_int16_t vlan_id);
   bool isNTPServer(IpAddress *ip, u_int16_t vlan_id);

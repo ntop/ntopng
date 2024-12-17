@@ -138,6 +138,7 @@ void FlowChecksLoader::registerChecks() {
   if ((fcb = new ExternalAlertCheckPro())) registerCheck(fcb);
   if ((fcb = new InvalidDNSQuery())) registerCheck(fcb);
   if ((fcb = new AccessControlList())) registerCheck(fcb);
+  if ((fcb = new LocalToInternetConnection())) registerCheck(fcb);
 #if !defined(HAVE_NEDGE)
   if ((fcb = new LateralMovement())) registerCheck(fcb);
   if ((fcb = new PeriodicityChanged())) registerCheck(fcb);

@@ -133,6 +133,8 @@ FlowAlertsLoader::FlowAlertsLoader() {
                 BlacklistedServerContactAlert::getDefaultScore());
   registerAlert(TCPFlowResetAlert::getClassType(), 
                 TCPFlowResetAlert::getDefaultScore());
+  registerAlert(LocalToInternetConnectionAlert::getClassType(),
+                LocalToInternetConnectionAlert::getDefaultScore());
 }
 
 /* **************************************************** */

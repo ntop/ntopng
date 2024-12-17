@@ -113,6 +113,7 @@
 #include "flow_checks/FlowRiskTLSUncommonALPN.h"
 #include "flow_checks/FlowRiskTLSUnsafeCiphers.h"
 #include "flow_checks/NedgeBlockedFlow.h"
+#include "flow_checks/LocalToInternetConnection.h"
 #endif
 
 #endif /* _FLOW_CHECKS_INCLUDES_H_ */

@@ -227,6 +227,8 @@ Prefs::Prefs(Ntop *_ntop) {
   ntp_servers  = new (std::nothrow) ServerConfiguration();
   dhcp_servers = new (std::nothrow) ServerConfiguration();
   smtp_servers = new (std::nothrow) ServerConfiguration();
+  networks_policy_configuration = NULL;
+  networks_policy_configuration_shadow = NULL;
 
 #ifdef HAVE_NEDGE
   disable_dns_resolution();
@@ -327,6 +329,8 @@ Prefs::~Prefs() {
   if(ntp_servers)  delete ntp_servers;
   if(dhcp_servers) delete dhcp_servers;
   if(smtp_servers) delete smtp_servers;
+  if(networks_policy_configuration) delete networks_policy_configuration;
+  if(networks_policy_configuration_shadow) delete networks_policy_configuration_shadow;
 }
 
 /* ******************************************* */
@@ -3197,6 +3201,78 @@ void Prefs::reloadServersConfiguration() {
   ntp_servers->reloadServerConfiguration((char *) CONST_NTP_SERVER_CONFIGURATION_REDIS_KEY);
   dhcp_servers->reloadServerConfiguration((char *) CONST_DHCP_SERVER_CONFIGURATION_REDIS_KEY);
   smtp_servers->reloadServerConfiguration((char *) CONST_SMTP_SERVER_CONFIGURATION_REDIS_KEY);
+}
+
+/* *************************************** */
+
+#ifdef NTOPNG_PRO
+
+bool Prefs::reloadNetworksPolicyConfiguration() {
+  AddressTree *new_tree=NULL;
+  new_tree = new (std::nothrow) AddressTree;
+  if(new_tree == NULL) {
+    ntop->getTrace()->traceEvent(TRACE_ERROR, "Unable to Load Configuration");
+    return false;
+  }
+
+  bool res = loadPolicyConfiguration(new_tree, (char *) CONST_LOCAL_DEVICES_NETWORKS_CONFIGURATION_REDIS_KEY, CONST_LOCAL_DEVICES_NETWORKS)
+        && loadPolicyConfiguration(new_tree, (char *) CONST_CORPORATE_DEVICES_NETWORKS_CONFIGURATION_REDIS_KEY, CONST_CORPORATE_DEVICES_NETWORKS)
+        && loadPolicyConfiguration(new_tree, (char *) CONST_WHITELISTED_NETWORKS_CONFIGURATION_REDIS_KEY, CONST_WHITELISTED_NETWORKS);
+
+  if (new_tree && res) {
+    if (networks_policy_configuration) {
+      if (networks_policy_configuration_shadow) delete networks_policy_configuration_shadow;
+      networks_policy_configuration_shadow = networks_policy_configuration;
+    }
+
+    networks_policy_configuration = new_tree;
+  }
+
+  return res;
+}
+
+/* *************************************** */
+
+bool Prefs::loadPolicyConfiguration(AddressTree *tree, char *key, const char* type){
+  char *rsp = NULL;
+  Redis *redis = ntop->getRedis();
+  u_int actual_len = redis->len(key);
+
+  if (actual_len++ /* ++ for the \0 */ > 0 &&
+      (rsp = (char *)malloc(actual_len)) != NULL) {
+    redis->get(key, rsp, actual_len);
+
+    /* Get a list of server separated by commas */
+    std::string ipStr(rsp);
+    char charToRemove = ' ';
+
+    /* Remove the spaces between the IPs */
+    ipStr.erase(std::remove(ipStr.begin(), ipStr.end(), charToRemove), ipStr.end());
+
+    /* Now iterate the string */
+    std::stringstream ipList(ipStr);
+    std::string ip;
+    while (std::getline(ipList, ip, ',')) {
+      // add the address and its type
+      if (!tree->addUniqueAddressAndData(ip.c_str(), strdup(type))) {
+        ntop->getTrace()->traceEvent(
+            TRACE_WARNING, "Unable to add tree node in Policy Configuration [Network: %s]", (char *) ip.c_str());
+        return false;
+      }
+      ntop->getTrace()->traceEvent(TRACE_DEBUG, "Added [Network: %s] to Redis %s list", (char *) ip.c_str(),key);
+    }
+
+    if (rsp) free(rsp);
+  }
+  return true;
+}
+
+#endif
+
+/* *************************************** */
+
+AddressTree *Prefs::getNetworksPolicyConfiguration(){
+  return networks_policy_configuration;
 }
 
 /* *************************************** */
