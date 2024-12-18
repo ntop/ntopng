@@ -54,6 +54,7 @@ class Mac : public GenericHashEntry {
 
 #ifdef NTOPNG_PRO
   void dumpAssetInfo();
+  void dumpAssetInfoToRedis();
 #endif
   void checkDeviceTypeFromManufacturer();
   void readDHCPCache();

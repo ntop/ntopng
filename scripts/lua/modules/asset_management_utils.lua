@@ -79,8 +79,8 @@ function asset_management_utils.insert_mac(entry)
     if hasClickHouseSupport() then
         local insert_mac = string.format(
             "INSERT INTO %s " ..
-            "(type, key, mac, manufacturer, vlan, device_type, first_seen, last_seen) " ..
-            "SELECT '%s','%s','%s','%s','%d', %u, %u, %u "..
+            "(type, key, mac, manufacturer, vlan, device_type, first_seen, last_seen, device_status, trigger_alert) " ..
+            "SELECT '%s','%s','%s','%s','%d', %u, %u, %u, '%s', %u "..
             "WHERE NOT EXISTS ( SELECT 1 FROM %s WHERE key = '%s' )",
             table_name, 
             entry["type"],
@@ -91,6 +91,8 @@ function asset_management_utils.insert_mac(entry)
             entry["device_type"],
             entry["first_seen"],
             entry["last_seen"],
+            "allowed",
+            0,
             table_name,
             entry["mac"]
         )
@@ -106,8 +108,8 @@ function asset_management_utils.insert_mac(entry)
     else
         local insert_mac = string.format(
             "INSERT INTO %s " ..
-            "(type, key, mac, manufacturer, vlan, device_type, first_seen, last_seen) " ..
-            "VALUES ('%s','%s','%s','%s', %u, %u, %u, %u) "..
+            "(type, key, mac, manufacturer, vlan, device_type, first_seen, last_seen, device_status, trigger_alert) " ..
+            "VALUES ('%s','%s','%s','%s', %u, %u, %u, %u, '%s', %u) "..
             "ON CONFLICT(key) DO UPDATE SET last_seen = %u ;",
             table_name, 
             entry["type"],
@@ -118,6 +120,8 @@ function asset_management_utils.insert_mac(entry)
             entry["device_type"],
             entry["first_seen"],
             entry["last_seen"],
+            "allowed",
+            0,
             entry["last_seen"]
         )
 	
@@ -246,6 +250,31 @@ function asset_management_utils.get_inactive_host_info(ifid, key)
     )
     local res = interface.alert_store_query(query)
     return res
+end
+
+-- ##############################################
+
+function asset_management_utils.get_devices()
+    local query = string.format("SELECT mac, name, manufacturer, device_status, trigger_alert, %s, %s FROM '%s' WHERE type = 'mac'",
+        ternary(hasClickHouseSupport(), "toUnixTimestamp(last_seen) as last_seen", "last_seen"),
+        ternary(hasClickHouseSupport(), "toUnixTimestamp(first_seen) as first_seen", "first_seen"),
+        table_name)
+    local res = interface.alert_store_query(query)
+
+    local data = {}
+    for _, val in pairs(res) do
+        local info = {}
+        info["device_status"] = val["device_status"]
+        info["trigger_alert"] = ternary(val["trigger_alert"] == 0, true, false)
+        info["first_seen"] = val["first_seen"]
+        info["last_seen"] = val["last_seen"]
+        info["name"] = val["name"]
+        info["manufacturer"] = val["manufacturer"]
+
+        local mac = val["mac"]
+        data[mac] = info
+    end
+    return data
 end
 
 -- ##############################################
