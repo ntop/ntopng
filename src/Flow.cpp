@@ -2113,14 +2113,12 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
 
   switch (get_protocol()) {
   case IPPROTO_TCP:
-    Flow::incTcpBadStats(
-			 true, cli_host, srv_host, iface, partial->get_cli2srv_tcp_ooo(),
-			 partial->get_cli2srv_tcp_retr(), partial->get_cli2srv_tcp_lost(),
-			 partial->get_cli2srv_tcp_keepalive());
-    Flow::incTcpBadStats(
-			 false, cli_host, srv_host, iface, partial->get_srv2cli_tcp_ooo(),
-			 partial->get_srv2cli_tcp_retr(), partial->get_srv2cli_tcp_lost(),
-			 partial->get_srv2cli_tcp_keepalive());
+    incTcpBadStats(true, cli_host, srv_host, iface, partial->get_cli2srv_tcp_ooo(),
+		   partial->get_cli2srv_tcp_retr(), partial->get_cli2srv_tcp_lost(),
+		   partial->get_cli2srv_tcp_keepalive());
+    incTcpBadStats(false, cli_host, srv_host, iface, partial->get_srv2cli_tcp_ooo(),
+		   partial->get_srv2cli_tcp_retr(), partial->get_srv2cli_tcp_lost(),
+		   partial->get_srv2cli_tcp_keepalive());
     break;
 
   case IPPROTO_ICMP:
@@ -7417,10 +7415,14 @@ u_int32_t Flow::getCliTcpIssues() {
           stats.get_cli2srv_tcp_lost());
 }
 
+/* ***************************************************** */
+
 u_int32_t Flow::getSrvTcpIssues() {
   return (stats.get_srv2cli_tcp_retr() + stats.get_srv2cli_tcp_ooo() +
           stats.get_srv2cli_tcp_lost());
 }
+
+/* ***************************************************** */
 
 double Flow::getCliRetrPercentage() {
   if(get_packets_cli2srv() >
@@ -7431,6 +7433,8 @@ double Flow::getCliRetrPercentage() {
     return 0;
 }
 
+/* ***************************************************** */
+
 double Flow::getSrvRetrPercentage() {
   if(get_packets_srv2cli() >
       10 /* Do not compute retransmissions with too few packets */)
@@ -7438,23 +7442,6 @@ double Flow::getSrvRetrPercentage() {
             (double)get_packets_srv2cli());
   else
     return 0;
-}
-
-/* ***************************************************** */
-
-void Flow::lua_get_tcp_stats(lua_State *vm) const {
-  lua_newtable(vm);
-
-  lua_push_uint64_table_entry(vm, "cli2srv.retransmissions",
-                              stats.get_cli2srv_tcp_retr());
-  lua_push_uint64_table_entry(vm, "cli2srv.out_of_order",
-                              stats.get_cli2srv_tcp_ooo());
-  lua_push_uint64_table_entry(vm, "cli2srv.lost", stats.get_cli2srv_tcp_lost());
-  lua_push_uint64_table_entry(vm, "srv2cli.retransmissions",
-                              stats.get_srv2cli_tcp_retr());
-  lua_push_uint64_table_entry(vm, "srv2cli.out_of_order",
-                              stats.get_srv2cli_tcp_ooo());
-  lua_push_uint64_table_entry(vm, "srv2cli.lost", stats.get_srv2cli_tcp_lost());
 }
 
 /* ***************************************************** */

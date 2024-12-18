@@ -61,14 +61,14 @@ local vlans_stats = interface.getVLANsInfo(sortColumn, perPage, to_skip, sOrder,
 
 local total_rows = 0
 
-if(vlans_stats ~= nil) then
+if(vlans_stats) then
    total_rows = vlans_stats["numVLANs"]
+   vlans_stats = vlans_stats["VLANs"]
 end
-vlans_stats = vlans_stats["VLANs"]
 
 local res_formatted = {}
 
-for _, vlan in ipairs(vlans_stats) do
+for _, vlan in pairs(vlans_stats or {}) do
    local record = vlan2record(interface.getId(), vlan)
    res_formatted[#res_formatted + 1] = record
 end

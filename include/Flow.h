@@ -617,11 +617,11 @@ class Flow : public GenericHashEntry {
   void updateDNS(ParsedFlow *zflow);
   void updateHTTP(ParsedFlow *zflow);
   void updateSuspiciousDGADomain();
-  static void incTcpBadStats(bool src2dst_direction, Host *cli, Host *srv,
-                             NetworkInterface *iface, u_int32_t ooo_pkts,
-                             u_int32_t retr_pkts, u_int32_t lost_pkts,
-                             u_int32_t keep_alive_pkts);
-
+  void incTcpBadStats(bool src2dst_direction, Host *cli, Host *srv,
+		      NetworkInterface *iface, u_int32_t ooo_pkts,
+		      u_int32_t retr_pkts, u_int32_t lost_pkts,
+		      u_int32_t keep_alive_pkts);
+  
   void updateTcpSeqNum(const struct bpf_timeval *when, u_int32_t seq_num,
                        u_int32_t ack_seq_num, u_int16_t window, u_int8_t flags,
                        u_int16_t payload_len, bool src2dst_direction);
@@ -918,8 +918,6 @@ inline float get_goodput_bytes_thpt() const { return (goodput_bytes_thpt); };
   void lua_snmp_info(lua_State *vm);
   void lua_device_protocol_allowed_info(lua_State *vm);
   void lua_get_flow_connection_state(lua_State *vm);
-  void lua_get_tcp_stats(lua_State *vm) const;
-
   void lua_get_unicast_info(lua_State *vm) const;
   void lua_get_status(lua_State *vm) const;
   void lua_get_protocols(lua_State *vm) const;
