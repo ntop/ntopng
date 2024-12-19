@@ -15,6 +15,12 @@ local table_name = "asset_management"
 
 -- ##############################################
 
+
+function get_mac_serialization_key(mac, ifid)
+    return tostring(ifid) .. "_" .. mac
+end
+
+
 -- @brief insert assetkey
 function asset_management_utils.insert_host(entry)
 
@@ -265,7 +271,7 @@ function asset_management_utils.get_devices()
     for _, val in pairs(res) do
         local info = {}
         info["device_status"] = val["device_status"]
-        info["trigger_alert"] = ternary(val["trigger_alert"] == 0, true, false)
+        info["trigger_alert"] = ternary(val["trigger_alert"] == "1", true, false)
         info["first_seen"] = val["first_seen"]
         info["last_seen"] = val["last_seen"]
         info["name"] = val["name"]
@@ -277,6 +283,60 @@ function asset_management_utils.get_devices()
     return data
 end
 
+
 -- ##############################################
+
+-- Edit a list of macs with the specified trigger_alert value
+
+function asset_management_utils.edit_mac_list(device_list, trigger_alert, ifid)
+    for _, device in pairs(device_list) do
+        asset_management_utils.edit_mac(device, trigger_alert, "allowed", ifid)
+    end
+end
+
+function asset_management_utils.edit_mac(device, trigger_alert, mac_status, ifid)
+    if isMacAddress(device) then
+        local key = get_mac_serialization_key(device, ifid)
+        local query = ""
+        if hasClickHouseSupport() then
+            query = string.format("ALTER TABLE %s UPDATE ", table_name)
+        else
+            query = string.format("UPDATE %s SET", table_name) 
+        end
+
+        if not isEmptyString(mac_status) and mac_status ~= nil then
+            query = query .. "`device_status` = '" .. mac_status .. "', "
+        end
+
+        query = query .."`trigger_alert` = ".. ternary(trigger_alert, "1", "0") .." "
+    
+        query = query .. "WHERE `key`='" .. key .. "'"
+        interface.alert_store_query(query)
+    end
+end
+
+function asset_management_utils.delete_all() 
+    local query = ""
+    if hasClickHouseSupport() then
+        query = string.format("ALTER TABLE %s DELETE WHERE type = 'mac'", table_name)
+    else
+        query = string.format("DELETE FROM %s WHERE type = 'mac'", table_name)
+    end
+    interface.alert_store_query(query)
+end
+
+function asset_management_utils.delete_mac(device, ifid)
+    local key = get_mac_serialization_key(device, ifid)
+    local query = ""
+
+    if hasClickHouseSupport() then
+        query = string.format("ALTER TABLE %s DELETE WHERE key = '%s'", table_name, key)
+    else
+        query = string.format("DELETE FROM %s WHERE key = '%s'", table_name, key)
+    end
+
+    interface.alert_store_query(query)
+
+end
 
 return asset_management_utils
