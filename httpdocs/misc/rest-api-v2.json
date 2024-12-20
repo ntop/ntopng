@@ -11595,6 +11595,46 @@
         }
       }
     },
+    "/lua/rest/v2/get/mac/data.lua":{
+      "get":{
+        "tags": [
+          "Macs"
+        ],
+        "summary": "Get Macs traffic information",
+        "operationId": "get_macs_traffic_information",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "mac",
+            "in": "query",
+            "description": "Mac Address to get information",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/mac/alert/list.lua": {
       "get": {
         "tags": [
