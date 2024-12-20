@@ -589,7 +589,7 @@ function alert_utils.formatAlertNotification(notif, options)
     end
 
     -- entity can be hidden for example when one is OK with just the message
-    if options.show_entity and notif.entity_id and notif.entity_val then
+    if notif.entity_id and notif.entity_val then
         local ev = notif.entity_val
 
         if notif.entity_id == alert_entities.flow.entity_id then
