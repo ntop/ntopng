@@ -695,7 +695,8 @@ void Flow::processExtraDissectedInformation() {
       protos.tls.notBefore = ndpiFlow->protos.tls_quic.notBefore,
         protos.tls.notAfter = ndpiFlow->protos.tls_quic.notAfter;
 
-      if(protos.tls.client_requested_server_name == NULL)  {
+      if((protos.tls.client_requested_server_name == NULL)
+	 && (ndpiFlow->host_server_name[0] != '\0')) {
 	protos.tls.client_requested_server_name = strdup(ndpiFlow->host_server_name);
 
 	/* Now some minor cleanup */
