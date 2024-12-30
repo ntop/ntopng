@@ -24,10 +24,10 @@
 /* static so default is zero-initialization, let's just define it */
 
 const ndpi_protocol Flow::ndpiUnknownProtocol = {
-  NDPI_PROTOCOL_UNKNOWN, /* master_protocol */
-  NDPI_PROTOCOL_UNKNOWN, /* app_protocol    */
+  { NDPI_PROTOCOL_UNKNOWN /* master_protocol */, NDPI_PROTOCOL_UNKNOWN /* app_protocol */ },
   NDPI_PROTOCOL_UNKNOWN, /* protocol_by_ip */
   NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, NULL};
+
 // #define DEBUG_DISCOVERY
 // #define DEBUG_UA
 // #define DEBUG_SCORE
