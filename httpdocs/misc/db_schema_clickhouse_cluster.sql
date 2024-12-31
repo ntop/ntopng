@@ -729,45 +729,45 @@ CREATE TABLE `engaged_system_alerts` (
 DROP TABLE IF EXISTS `aggregated_flows` ON CLUSTER '$CLUSTER';
 @
 CREATE TABLE IF NOT EXISTS `hourly_flows` ON CLUSTER '$CLUSTER' (
-       `FLOW_ID` UInt64,
-       `IP_PROTOCOL_VERSION` UInt8,
-       `FIRST_SEEN` DateTime,
-       `LAST_SEEN` DateTime,
-       `VLAN_ID` UInt16,
-       `PACKETS` UInt32,
-       `TOTAL_BYTES` UInt64,
-       `SRC2DST_BYTES` UInt64, /* Total */
-       `DST2SRC_BYTES` UInt64, /* Total */
-       `SCORE` UInt16, /* Total score */
-       `PROTOCOL` UInt8,
-       `IPV4_SRC_ADDR` UInt32,
-       `IPV6_SRC_ADDR` IPv6,
-       `IPV4_DST_ADDR` UInt32,
-       `IPV6_DST_ADDR` IPv6,
-       `IP_DST_PORT` UInt16,
-       `L7_PROTO` UInt16,
-       `L7_PROTO_MASTER` UInt16,
-       `NUM_FLOWS` UInt32, /* Total number of flows that have been aggregated */
-       `FLOW_RISK` UInt64, /* OS of flow risk */
-       `SRC_MAC` UInt64,
-       `DST_MAC` UInt64,
-       `PROBE_IP` UInt32, /* EXPORTER_IPV4_ADDRESS */
-       `NTOPNG_INSTANCE_NAME` String,
-       `SRC_COUNTRY_CODE` UInt16,
-       `DST_COUNTRY_CODE` UInt16,
-       `SRC_ASN` UInt32,
-       `DST_ASN` UInt32,
-       `INPUT_SNMP` UInt32,
-       `OUTPUT_SNMP` UInt32,
-       `SRC_NETWORK_ID` UInt32,
-       `DST_NETWORK_ID` UInt32,
-       `SRC_LABEL` String,
-       `DST_LABEL` String,
-       `INTERFACE_ID` UInt16,
-       `WLAN_SSID` String,
-       `WTP_MAC_ADDRESS` UInt64,
-       `CLIENT_LOCATION` UInt8,
-       `SERVER_LOCATION` UInt8
+`FLOW_ID` UInt64,
+`IP_PROTOCOL_VERSION` UInt8,
+`FIRST_SEEN` DateTime,
+`LAST_SEEN` DateTime,
+`VLAN_ID` UInt16,
+`PACKETS` UInt32,
+`TOTAL_BYTES` UInt64,
+`SRC2DST_BYTES` UInt64, /* Total */
+`DST2SRC_BYTES` UInt64, /* Total */
+`SCORE` UInt16, /* Total score */
+`PROTOCOL` UInt8,
+`IPV4_SRC_ADDR` UInt32,
+`IPV6_SRC_ADDR` IPv6,
+`IPV4_DST_ADDR` UInt32,
+`IPV6_DST_ADDR` IPv6,
+`IP_DST_PORT` UInt16,
+`L7_PROTO` UInt16,
+`L7_PROTO_MASTER` UInt16,
+`NUM_FLOWS` UInt32, /* Total number of flows that have been aggregated */
+`FLOW_RISK` UInt64, /* OS of flow risk */
+`SRC_MAC` UInt64,
+`DST_MAC` UInt64,
+`PROBE_IP` UInt32, /* EXPORTER_IPV4_ADDRESS */
+`NTOPNG_INSTANCE_NAME` String,
+`SRC_COUNTRY_CODE` UInt16,
+`DST_COUNTRY_CODE` UInt16,
+`SRC_ASN` UInt32,
+`DST_ASN` UInt32,
+`INPUT_SNMP` UInt32,
+`OUTPUT_SNMP` UInt32,
+`SRC_NETWORK_ID` UInt32,
+`DST_NETWORK_ID` UInt32,
+`SRC_LABEL` String,
+`DST_LABEL` String,
+`INTERFACE_ID` UInt16,
+`WLAN_SSID` String,
+`WTP_MAC_ADDRESS` UInt64,
+`CLIENT_LOCATION` UInt8,
+`SERVER_LOCATION` UInt8
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(FIRST_SEEN) ORDER BY (IPV4_SRC_ADDR, IPV4_DST_ADDR, FIRST_SEEN);
 @
 ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS SRC_LABEL String;
@@ -789,23 +789,23 @@ ALTER TABLE `hourly_flows` ON CLUSTER '$CLUSTER' ADD COLUMN IF NOT EXISTS SERVER
 /* VS */
 
 CREATE TABLE IF NOT EXISTS `vulnerability_scan_data` ON CLUSTER '$CLUSTER' (
-  `HOST` String NOT NULL,
-  `SCAN_TYPE` String NOT NULL,
-  `LAST_SCAN` DateTime NOT NULL,
-  `JSON_INFO` String,
-  `VS_RESULT_FILE` String
+`HOST` String NOT NULL,
+`SCAN_TYPE` String NOT NULL,
+`LAST_SCAN` DateTime NOT NULL,
+`JSON_INFO` String,
+`VS_RESULT_FILE` String
 ) ENGINE = ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(LAST_SCAN) ORDER BY (LAST_SCAN, HOST, SCAN_TYPE);
 
 @
 
 CREATE TABLE IF NOT EXISTS `vulnerability_scan_report` ON CLUSTER '$CLUSTER' (
-  `REPORT_NAME` String,
-  `REPORT_DATE` DateTime NOT NULL,
-  `REPORT_JSON_INFO` String,
-  `NUM_SCANNED_HOSTS` UInt32,
-  `NUM_CVES` UInt32,
-  `NUM_TCP_PORTS` UInt32,
-  `NUM_UDP_PORTS` UInt32
+`REPORT_NAME` String,
+`REPORT_DATE` DateTime NOT NULL,
+`REPORT_JSON_INFO` String,
+`NUM_SCANNED_HOSTS` UInt32,
+`NUM_CVES` UInt32,
+`NUM_TCP_PORTS` UInt32,
+`NUM_UDP_PORTS` UInt32
 ) ENGINE =  ReplicatedMergeTree('/clickhouse/{cluster}/tables/{database}/{table}', '{replica}') PARTITION BY toYYYYMMDD(REPORT_DATE) ORDER BY (REPORT_DATE); 
 
 @
@@ -813,12 +813,12 @@ CREATE TABLE IF NOT EXISTS `vulnerability_scan_report` ON CLUSTER '$CLUSTER' (
 /* MITRE */
 
 CREATE TABLE IF NOT EXISTS `mitre_table_info`  ON CLUSTER '$CLUSTER' (
-  `ALERT_ID` UInt16 NOT NULL,
-  `ENTITY_ID` UInt16 NOT NULL,
-  `TACTIC` UInt16,
-  `TECHNIQUE` UInt16,
-  `SUB_TECHNIQUE` UInt16,
-  `MITRE_ID` String
+`ALERT_ID` UInt16 NOT NULL,
+`ENTITY_ID` UInt16 NOT NULL,
+`TACTIC` UInt16,
+`TECHNIQUE` UInt16,
+`SUB_TECHNIQUE` UInt16,
+`MITRE_ID` String
 ) ENGINE = ReplacingMergeTree() PRIMARY KEY (ALERT_ID, ENTITY_ID) ORDER BY (ALERT_ID, ENTITY_ID);
 
 @
@@ -848,21 +848,21 @@ ALTER TABLE `asset_management` ADD COLUMN IF NOT EXISTS `ifid` UInt8;
 /* ASSET */
 
 CREATE TABLE IF NOT EXISTS `assets` (
-  `type` String NOT NULL,
-  `key` String NOT NULL,
-  `ifid` UInt8 NOT NULL,
-  `ip` String NULL,
-  `mac` String NOT NULL,
-  `vlan` UInt16 NULL,
-  `network` UInt16 NULL,
-  `name` String NULL,
-  `device_type` UInt16 NULL,
-  `manufacturer` String NULL,
-  `first_seen` DateTime NOT NULL,
-  `last_seen` DateTime NOT NULL,
-  `gateway_mac` String NULL,
-  `json_info` String NULL, -- A json containing all other info
-  version UInt64 -- Used to not have duplicates
+`type` String NOT NULL,
+`key` String NOT NULL,
+`ifid` UInt8 NOT NULL,
+`ip` String NULL,
+`mac` String NOT NULL,
+`vlan` UInt16 NULL,
+`network` UInt16 NULL,
+`name` String NULL,
+`device_type` UInt16 NULL,
+`manufacturer` String NULL,
+`first_seen` DateTime NOT NULL,
+`last_seen` DateTime NOT NULL,
+`gateway_mac` String NULL,
+`json_info` String NULL, -- A json containing all other info
+`version` UInt64 -- Used to not have duplicates
 ) ENGINE = ReplacingMergeTree(version) PRIMARY KEY (`type`, `key`) ORDER BY (`type`, `key`);
 @
 
@@ -935,44 +935,44 @@ DROP VIEW IF EXISTS `host_alerts_view` ON CLUSTER '$CLUSTER';
 @
 CREATE VIEW IF NOT EXISTS `host_alerts_view` ON CLUSTER '$CLUSTER' AS
 SELECT
-  ha.rowid,
-  ha.alert_id,
-  ha.alert_status,
-  ha.interface_id,
-  ha.ip_version,
-  ha.ip,
-  ha.vlan_id,
-  ha.name,
-  ha.is_attacker,
-  ha.is_victim,
-  ha.is_client,
-  ha.is_server,
-  ha.tstamp,
-  ha.tstamp_end,
-  ha.severity,
-  ha.score,
-  ha.granularity,
-  ha.counter,
-  ha.description,
-  ha.json,
-  ha.user_label,
-  ha.user_label_tstamp,
-  ha.require_attention,
-  mitre.TACTIC AS mitre_tactic,
-  mitre.TECHNIQUE AS mitre_technique,
-  mitre.SUB_TECHNIQUE AS mitre_subtechnique,
-  mitre.MITRE_ID AS mitre_id
+    ha.rowid,
+    ha.alert_id,
+    ha.alert_status,
+    ha.interface_id,
+    ha.ip_version,
+    ha.ip,
+    ha.vlan_id,
+    ha.name,
+    ha.is_attacker,
+    ha.is_victim,
+    ha.is_client,
+    ha.is_server,
+    ha.tstamp,
+    ha.tstamp_end,
+    ha.severity,
+    ha.score,
+    ha.granularity,
+    ha.counter,
+    ha.description,
+    ha.json,
+    ha.user_label,
+    ha.user_label_tstamp,
+    ha.require_attention,
+    mitre.TACTIC AS mitre_tactic,
+    mitre.TECHNIQUE AS mitre_technique,
+    mitre.SUB_TECHNIQUE AS mitre_subtechnique,
+    mitre.MITRE_ID AS mitre_id
 FROM
 (
-  SELECT * FROM `host_alerts`
-  UNION ALL
-  SELECT * FROM `engaged_host_alerts`
+    SELECT * FROM `host_alerts`
+    UNION ALL
+    SELECT * FROM `engaged_host_alerts`
 )
-  AS ha
+    AS ha
 LEFT JOIN
-  `mitre_table_info` AS mitre
+    `mitre_table_info` AS mitre
 ON
-  (mitre.ENTITY_ID = 1 AND ha.alert_id = mitre.ALERT_ID);
+    (mitre.ENTITY_ID = 1 AND ha.alert_id = mitre.ALERT_ID);
 
 @
 
