@@ -342,6 +342,12 @@ local rest_utils = {
                 str = "MAX_SNMP_DEVICES_NUM_REACHED"
             },
 
+            zmq_encryption_disabled = {
+                http_code = 503,
+                rc = -58,
+                str= "IFACE_ENCRYPTION_NOT_PRESENT"
+            },
+
             -- Checks
             not_enabled = {http_code = 400, rc = -2, str = "NOT_ENABLED"}
         }

@@ -7478,6 +7478,7 @@ local lang = {
     ["use_server_timezone"] = "Use Server Timezone",
   },
   ["rest_consts"] = {
+    ["IFACE_ENCRYPTION_NOT_PRESENT"] = "Please start ntopng with argument --zmq-encryption",
     ["ADD_POOL_FAILED"] = "Unable to add a pool with the submitted params",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS"] = "Too many pools created. Consider upgrading ntopng to Enterprise M or above to create additional pools.",
     ["ADD_POOL_FAILED_TOO_MANY_POOLS_ENTERPRISE"] = "Too many pools created.",
