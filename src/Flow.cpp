@@ -3846,7 +3846,6 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			     json_object_new_string(cli_ip->print(buf, sizeof(buf))));
     }
 
-#ifdef FULL_SERIALIZATION
     /* Custom information elements not supported (yet) by nProbe */
     json_object_object_add(my_object,
                            Utils::jsonLabel(SRC_ADDR_LOCAL, "SRC_ADDR_LOCAL",
@@ -3858,16 +3857,17 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			   json_object_new_boolean(cli_ip->isBlacklistedAddress()));
 
     if (get_cli_host()) {
+#ifdef FULL_SERIALIZATION
       json_object_object_add(my_object,
 			     Utils::jsonLabel(SRC_ADDR_SERVICES, "SRC_ADDR_SERVICES", jsonbuf,
 					      sizeof(jsonbuf)),
 			     json_object_new_int(get_cli_host()->getServicesMap()));
+#endif
       json_object_object_add(my_object,
 			     Utils::jsonLabel(SRC_NAME, "SRC_NAME", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(
 						    get_cli_host()->get_visual_name(buf, sizeof(buf))));
     }
-#endif
   }
 
   if (srv_ip) {
@@ -3883,7 +3883,6 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			     json_object_new_string(srv_ip->print(buf, sizeof(buf))));
     }
 
-#ifdef FULL_SERIALIZATION
     /* Custom information elements not supported (yet) by nProbe */
     json_object_object_add(my_object,
                            Utils::jsonLabel(DST_ADDR_LOCAL, "DST_ADDR_LOCAL",
@@ -3895,16 +3894,17 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			   json_object_new_boolean(srv_ip->isBlacklistedAddress()));
 
     if (get_srv_host()) {
+#ifdef FULL_SERIALIZATION
       json_object_object_add(my_object,
 			     Utils::jsonLabel(DST_ADDR_SERVICES, "DST_ADDR_SERVICES", jsonbuf,
 					      sizeof(jsonbuf)),
 			     json_object_new_int(get_srv_host()->getServicesMap()));
+#endif
       json_object_object_add(my_object,
 			     Utils::jsonLabel(SRC_NAME, "DST_NAME", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(
 						    get_srv_host()->get_visual_name(buf, sizeof(buf))));
     }
-#endif
   }
 
   json_object_object_add(my_object, Utils::jsonLabel(SRC_TOS, "SRC_TOS", jsonbuf, sizeof(jsonbuf)),
@@ -4058,7 +4058,6 @@ void Flow::formatGenericFlow(json_object *my_object) {
     }
   }
 
-#ifdef FULL_SERIALIZATION
   if (ntop->getPrefs() && ntop->getPrefs()->get_instance_name())
     json_object_object_add(
 			   my_object,
@@ -4071,7 +4070,6 @@ void Flow::formatGenericFlow(json_object *my_object) {
                            Utils::jsonLabel(INTERFACE_NAME, "INTERFACE_NAME",
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_string(iface->get_name()));
-#endif
 
   if (isSMTP()
       /* Discard SMTP connections that become TLS as the SMTP part is not populated */
@@ -4163,13 +4161,11 @@ void Flow::formatGenericFlow(json_object *my_object) {
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_string(bt_hash));
 
-#ifdef FULL_SERIALIZATION
   if (isTLS() && protos.tls.client_requested_server_name)
     json_object_object_add(my_object,
 			   Utils::jsonLabel(TLS_SERVER_NAME, "TLS_SERVER_NAME", jsonbuf,
 					    sizeof(jsonbuf)),
 			   json_object_new_string(protos.tls.client_requested_server_name));
-#endif
 
 #ifdef HAVE_NEDGE
   if (iface && iface->is_bridge_interface())
@@ -4227,11 +4223,9 @@ void Flow::formatGenericFlow(json_object *my_object) {
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_int(iface->get_id()));
 
-#ifdef FULL_SERIALIZATION
     json_object_object_add(
 			   my_object, Utils::jsonLabel(STATUS, "STATUS", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int((u_int8_t)getPredominantAlert().id));
-#endif
   }
 }
 
