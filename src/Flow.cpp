@@ -3587,12 +3587,12 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
   json_object *host_object;
   bool use_nat = false;
 
-  if ((host_object = json_object_new_object()) != NULL) {
+  if((host_object = json_object_new_object()) != NULL) {
     char buf[64], jsonbuf[64], *c;
     IpAddress tmp_ip;
 
     /* Adding MAC */
-    if (host && host->getMac() && !host->getMac()->isNull())
+    if(host && host->getMac() && !host->getMac()->isNull())
       json_object_object_add(
 			     host_object,
 			     Utils::jsonLabel(is_client ? IN_SRC_MAC : IN_DST_MAC, "mac", jsonbuf,
@@ -3601,17 +3601,21 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
 								     buf, sizeof(buf))));
 
     /* Adding IP */
-    if (addr) {
-      if (is_client && (getPreNATSrcIp() != getPostNATSrcIp()))
-        use_nat = true;
+    if(addr) {
+      if(getPreNATSrcIp()) {
+        tmp_ip.set(getPreNATSrcIp());
+        if(is_client && (getPreNATSrcIp() != getPostNATSrcIp()))
+          use_nat = true;
+      } else {
+        tmp_ip.set(addr);
+      }
 
       /* With NAT they are IPv4 */
-      tmp_ip.set(getPreNATSrcIp());
       json_object_object_add(
 			     host_object,
 			     Utils::jsonLabel(
-					      is_client ? (addr->isIPv4() ? IPV4_SRC_ADDR : IPV6_SRC_ADDR)
-					      : (addr->isIPv4() ? IPV4_DST_ADDR : IPV6_DST_ADDR),
+					      is_client ? (tmp_ip.isIPv4() ? IPV4_SRC_ADDR : IPV6_SRC_ADDR)
+					      : (tmp_ip.isIPv4() ? IPV4_DST_ADDR : IPV6_DST_ADDR),
 					      "ip", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(tmp_ip.print(buf, sizeof(buf))));
 
@@ -3627,7 +3631,7 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
 					      "is_blacklisted", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_boolean(addr->isBlacklistedAddress()));
 
-      if (get_cli_host()) {
+      if(get_cli_host()) {
         json_object_object_add(host_object,
 			       Utils::jsonLabel(is_client ? SRC_ADDR_SERVICES : DST_ADDR_SERVICES,
 						"has_services", jsonbuf, sizeof(jsonbuf)),
@@ -3640,7 +3644,7 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
       tmp_ip.reset();
     }
 
-    if (use_nat) {
+    if(use_nat) {
       json_object *nat = json_object_new_object();
       u_int16_t port = 0;
       if(is_client) {
@@ -3660,14 +3664,14 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
 
     /* Geolocation info */
     c = host ? host->get_country(buf, sizeof(buf)) : NULL;
-    if (c) {
+    if(c) {
       json_object *geo = json_object_new_object();
       json_object *location = json_object_new_object();
 
-      if (geo) {
+      if(geo) {
         json_object_object_add(geo, "country_name", json_object_new_string(c));
 
-        if (host && location) {
+        if(host && location) {
           float latitude, longitude;
 
           host->get_geocoordinates(&latitude, &longitude);
@@ -3683,7 +3687,7 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
     }
 
     u_int16_t port = 0;
-    if (use_nat)
+    if(use_nat)
       port = is_client ? getPreNATSrcPort() : getPreNATDstPort();
     else
       port = is_client ? get_cli_port() : get_srv_port();
@@ -3727,7 +3731,7 @@ void Flow::formatECSHost(json_object *my_object, bool is_client,
 			   json_object_new_int64(is_client ? stats.get_cli2srv_tcp_lost()
 						 : stats.get_srv2cli_tcp_lost()));
 
-    if (vlanId > 0)
+    if(vlanId > 0)
       json_object_object_add(host_object,
                              Utils::jsonLabel(is_client ? SRC_VLAN : DST_VLAN,
                                               "vlan", jsonbuf, sizeof(jsonbuf)),
