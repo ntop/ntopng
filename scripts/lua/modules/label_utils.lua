@@ -72,15 +72,22 @@ function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
         end
     end
 
+
     local hostinfo = {
         host = flow_info[host_type .. ".ip"],
         label = flow_info[host_type .. ".host"],
-        mac = flow_info[host_type .. ".mac"],
+        -- mac = flow_info[host_type .. ".mac"],
         dhcpHost = flow_info[host_type .. ".dhcpHost"],
         broadcast_domain_host = flow_info[host_type .. ".broadcast_domain_host"],
         vlan = flow_info["vlan"]
     }
 
+    mac = flow_info[host_type .. ".mac"]
+
+    if not isEmptyString(mac) then
+       hostinfo.mac = mac
+    end
+    
     return (hostinfo2label(hostinfo, true, false, true))
 end
 
@@ -320,7 +327,13 @@ function getHostAltName(host_info)
         host_key = host_info
     end
 
-    return ntop.getCache(getHostAltNamesKey(host_key))
+    local alt_name = ntop.getCache(getHostAltNamesKey(host_key)) or ""
+    -- In case the alt_name and the key are the same, return nil
+    if (not isEmptyString(alt_name)) and (string.lower(alt_name) == string.lower(host_key)) then
+        return nil
+    end
+
+    return alt_name
 end
 
 -- ##############################################

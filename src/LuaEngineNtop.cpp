@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-24 - ntop.org
+ * (C) 2013-25 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -4094,7 +4094,7 @@ static int ntop_get_info(lua_State *vm) {
 #ifdef NTOPNG_PRO
       ntop->getPro()->is_oem() ? (char *)"" :
 #endif
-                               (char *)"&copy; 1998-24 - ntop");
+                               (char *)"&copy; 1998-25 - ntop");
   lua_push_str_table_entry(vm, "authors", (char *)"The ntop team");
   lua_push_str_table_entry(vm, "license", (char *)"GNU GPLv3");
   lua_push_str_table_entry(vm, "platform", (char *)PACKAGE_MACHINE);

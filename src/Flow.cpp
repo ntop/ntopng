@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-24 - ntop.org
+ * (C) 2013-25 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -210,7 +210,8 @@ Flow::Flow(NetworkInterface *_iface,
 #ifdef ALERTED_FLOWS_DEBUG
   iface_alert_inc = iface_alert_dec = false;
 #endif
-  if(_first_seen > _last_seen) _first_seen = _last_seen;
+  if((_first_seen > _last_seen) || (_first_seen == 0))
+    _first_seen = _last_seen;
 
   first_seen = _first_seen, last_seen = _last_seen;
   bytes_thpt_trend = trend_unknown, pkts_thpt_trend = trend_unknown;
@@ -972,7 +973,7 @@ void Flow::processExtraDissectedInformation() {
       char msg[32];
 
       snprintf(msg, sizeof(msg), "%u sec", periodicity);
-      ndpi_set_risk(get_ndpi_flow(), NDPI_PERIODIC_FLOW, msg);
+      ndpi_set_risk(iface->get_ndpi_struct(), get_ndpi_flow(), NDPI_PERIODIC_FLOW, msg);
     }
 
     setRisk(r_bitmap);
@@ -2182,8 +2183,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
 
       if(srv_host->getHTTPstats() && host_server_name &&
 	  isThreeWayHandshakeOK()) {
-	srv_host->getHTTPstats()->updateHTTPHostRequest(
-							tv->tv_sec, host_server_name, partial->get_num_http_requests(),
+	srv_host->getHTTPstats()->updateHTTPHostRequest(tv->tv_sec, host_server_name, partial->get_num_http_requests(),
 							partial->get_cli2srv_bytes(), partial->get_srv2cli_bytes());
       }
     }
@@ -3958,8 +3958,6 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			     json_object_new_string(cli_ip->print(buf, sizeof(buf))));
     }
 
-#ifdef FULL_SERIALIZATION
-    /* Custom information elements not supported (yet) by nProbe */
     json_object_object_add(my_object,
                            Utils::jsonLabel(SRC_ADDR_LOCAL, "SRC_ADDR_LOCAL",
                                             jsonbuf, sizeof(jsonbuf)),
@@ -3970,16 +3968,18 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			   json_object_new_boolean(cli_ip->isBlacklistedAddress()));
 
     if(get_cli_host()) {
+#ifdef FULL_SERIALIZATION
+    /* Custom information elements not supported (yet) by nProbe */
       json_object_object_add(my_object,
 			     Utils::jsonLabel(SRC_ADDR_SERVICES, "SRC_ADDR_SERVICES", jsonbuf,
 					      sizeof(jsonbuf)),
 			     json_object_new_int(get_cli_host()->getServicesMap()));
+#endif
       json_object_object_add(my_object,
 			     Utils::jsonLabel(SRC_NAME, "SRC_NAME", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(
 						    get_cli_host()->get_visual_name(buf, sizeof(buf))));
     }
-#endif
   }
 
   if(srv_ip) {
@@ -3995,8 +3995,6 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			     json_object_new_string(srv_ip->print(buf, sizeof(buf))));
     }
 
-#ifdef FULL_SERIALIZATION
-    /* Custom information elements not supported (yet) by nProbe */
     json_object_object_add(my_object,
                            Utils::jsonLabel(DST_ADDR_LOCAL, "DST_ADDR_LOCAL",
                                             jsonbuf, sizeof(jsonbuf)),
@@ -4007,16 +4005,18 @@ void Flow::formatGenericFlow(json_object *my_object) {
 			   json_object_new_boolean(srv_ip->isBlacklistedAddress()));
 
     if(get_srv_host()) {
+/* Custom information elements not supported (yet) by nProbe */
+#ifdef FULL_SERIALIZATION
       json_object_object_add(my_object,
 			     Utils::jsonLabel(DST_ADDR_SERVICES, "DST_ADDR_SERVICES", jsonbuf,
 					      sizeof(jsonbuf)),
 			     json_object_new_int(get_srv_host()->getServicesMap()));
+#endif
       json_object_object_add(my_object,
 			     Utils::jsonLabel(SRC_NAME, "DST_NAME", jsonbuf, sizeof(jsonbuf)),
 			     json_object_new_string(
 						    get_srv_host()->get_visual_name(buf, sizeof(buf))));
     }
-#endif
   }
 
   json_object_object_add(my_object, Utils::jsonLabel(SRC_TOS, "SRC_TOS", jsonbuf, sizeof(jsonbuf)),
@@ -4184,7 +4184,6 @@ void Flow::formatGenericFlow(json_object *my_object) {
     }
   }
 
-#ifdef FULL_SERIALIZATION
   if(ntop->getPrefs() && ntop->getPrefs()->get_instance_name())
     json_object_object_add(
 			   my_object,
@@ -4197,7 +4196,6 @@ void Flow::formatGenericFlow(json_object *my_object) {
                            Utils::jsonLabel(INTERFACE_NAME, "INTERFACE_NAME",
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_string(iface->get_name()));
-#endif
 
   if(isSMTP()
       /* Discard SMTP connections that become TLS as the SMTP part is not populated */
@@ -4289,13 +4287,11 @@ void Flow::formatGenericFlow(json_object *my_object) {
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_string(bt_hash));
 
-#ifdef FULL_SERIALIZATION
   if(isTLS() && protos.tls.client_requested_server_name)
     json_object_object_add(my_object,
 			   Utils::jsonLabel(TLS_SERVER_NAME, "TLS_SERVER_NAME", jsonbuf,
 					    sizeof(jsonbuf)),
 			   json_object_new_string(protos.tls.client_requested_server_name));
-#endif
 
 #ifdef HAVE_NEDGE
   if(iface && iface->is_bridge_interface())
@@ -4353,11 +4349,9 @@ void Flow::formatGenericFlow(json_object *my_object) {
                                             jsonbuf, sizeof(jsonbuf)),
                            json_object_new_int(iface->get_id()));
 
-#ifdef FULL_SERIALIZATION
     json_object_object_add(
 			   my_object, Utils::jsonLabel(STATUS, "STATUS", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int((u_int8_t)getPredominantAlert().id));
-#endif
   }
 }
 
@@ -5217,14 +5211,14 @@ void Flow::incStats(bool cli2srv_direction, u_int pkt_len, u_int8_t *payload,
 
 /* *************************************** */
 
-void Flow::addFlowStats(bool new_flow, bool cli2srv_direction, u_int in_pkts,
+bool Flow::addFlowStats(bool new_flow, bool cli2srv_direction, u_int in_pkts,
                         u_int in_bytes, u_int in_goodput_bytes, u_int out_pkts,
                         u_int out_bytes, u_int out_goodput_bytes,
                         u_int in_fragments, u_int out_fragments,
                         time_t first_seen, time_t last_seen) {
   /* Don't update seen if no traffic has been observed */
   if(!(in_bytes || out_bytes || in_pkts || out_pkts))
-    return;
+    return(false);
 
   updateSeen(last_seen);
   callFlowUpdate(last_seen);
@@ -5260,6 +5254,8 @@ void Flow::addFlowStats(bool new_flow, bool cli2srv_direction, u_int in_pkts,
     else
       updateThroughputStats(tdiff_msec, out_pkts, out_bytes, 0, in_pkts, in_bytes, 0);
   }
+
+  return(true);
 }
 
 /* *************************************** */
@@ -6070,6 +6066,21 @@ void Flow::dissectDNS(bool src2dst_direction, char *payload,
     stats.incDNSQuery(getLastQueryType());
   else if((dns_header.flags & 0x8000) == 0x8000)
     stats.incDNSResp(getDNSRetCode());
+}
+
+/* *************************************** */
+
+void Flow::setICMPTypeCode(u_int16_t icmp_type_code) {
+  if(icmp_info == NULL)
+    icmp_info = new (std::nothrow) ICMPinfo();
+    
+  if(icmp_info != NULL) {
+    u_int8_t icmp_code = (u_int8_t)(icmp_type_code & 0x00FF);
+    u_int8_t icmp_type = (u_int8_t)((icmp_type_code >> 8) & 0xFF);
+    
+    icmp_info->setCode(icmp_code), protos.icmp.cli2srv.icmp_code = icmp_code;
+    icmp_info->setType(icmp_type), protos.icmp.cli2srv.icmp_type = icmp_type;
+  }  
 }
 
 /* *************************************** */

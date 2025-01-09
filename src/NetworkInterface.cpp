@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-24 - ntop.org
+ * (C) 2013-25 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -6039,8 +6039,7 @@ int NetworkInterface::sortFlows(u_int32_t *begin_slot, bool walk_all,
     p->deviceIpFilter(&deviceIP), p->inIndexFilter(&inIndex),
       p->outIndexFilter(&outIndex);
 
-    ntop->getTrace()->traceEvent(
-				 TRACE_NORMAL, "[Device IP] %s / [In Idx] %u / [Out Idx] %u",
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "[Device IP] %s / [In Idx] %u / [Out Idx] %u",
 				 Utils::intoaV4(deviceIP, buf, sizeof(buf)), inIndex, outIndex);
   }
 

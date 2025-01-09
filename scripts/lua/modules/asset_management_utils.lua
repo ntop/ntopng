@@ -6,6 +6,7 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "ntop_utils"
 require "check_redis_prefs"
+require "lua_utils_generic"
 local json = require "dkjson"
 
 -- ##############################################
@@ -31,6 +32,22 @@ local function getAssetInfo(ifid, key, type)
     )
     local res = interface.alert_store_query(query)
     return res
+end
+
+-- ##############################################
+
+-- This function is used to update entry and merge those info with in DB informations
+-- e.g. in case an host was already into the DB just update those data
+local function updateData(entry, ifid, type)
+    local data = getAssetInfo(ifid, entry.key, type)
+    if data and table.len(data) > 0 then
+        data = data[1]
+        entry.first_seen = data.first_seen -- Keep the old first_seen
+        local data_json_info = json.decode(data.json_info or "") or {}
+        local entry_json_info = json.decode(entry.json_info or "") or {}
+        entry.json_info = json.encode(table.merge(data_json_info, entry_json_info)) -- Merge the json_info field
+    end
+    return entry
 end
 
 -- ##############################################
@@ -181,6 +198,7 @@ end
 -- @brief insert assetkey
 function asset_management_utils.insertHost(entry, version, ifid)
     local query = nil
+    entry = updateData(entry, ifid, "host")
 
     if hasClickHouseSupport() then
         query = string.format(
@@ -233,6 +251,7 @@ end
 
 function asset_management_utils.insertMac(entry, version, ifid)
     local query = nil
+    entry = updateData(entry, ifid, "mac")
     if hasClickHouseSupport() then
         query = string.format(
             "INSERT INTO %s " ..

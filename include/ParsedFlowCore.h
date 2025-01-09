@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-24 - ntop.org
+ * (C) 2013-25 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,7 +30,7 @@ class ParsedFlowCore {
   u_int8_t src_tos, dst_tos;
   IpAddress src_ip, dst_ip;
   u_int32_t first_switched, last_switched;
-  u_int16_t observationPointId;
+  u_int16_t observationPointId, icmp_type_code;
   u_int8_t version; /* 0 so far */
   u_int8_t l4_proto;
   u_int32_t source_id;

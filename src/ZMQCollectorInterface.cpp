@@ -1,6 +1,6 @@
 /*
  *
- * (C) 2013-24 - ntop.org
+ * (C) 2013-25 - ntop.org
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -103,8 +103,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
       if (zmq_bind(subscriber[num_subscribers].socket, e) != 0) {
         zmq_close(subscriber[num_subscribers].socket);
         zmq_ctx_destroy(context);
-        ntop->getTrace()->traceEvent(
-				     TRACE_ERROR,
+        ntop->getTrace()->traceEvent(TRACE_ERROR,
 				     "Unable to bind to ZMQ endpoint %s [collector]: %s (%d)", e,
 				     strerror(errno), errno);
         free(tmp);
@@ -114,8 +113,7 @@ ZMQCollectorInterface::ZMQCollectorInterface(const char *_endpoint) : ZMQParserI
       if (zmq_connect(subscriber[num_subscribers].socket, e) != 0) {
         zmq_close(subscriber[num_subscribers].socket);
         zmq_ctx_destroy(context);
-        ntop->getTrace()->traceEvent(
-				     TRACE_ERROR,
+        ntop->getTrace()->traceEvent(TRACE_ERROR,
 				     "Unable to connect to ZMQ endpoint %s [probe]: %s (%d)", e,
 				     strerror(errno), errno);
         free(tmp);
@@ -154,8 +152,7 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
   if (n > 0) {
     for (u_int i = 0; i < INTERFACE_PROFILING_NUM_SECTIONS; i++) {
       if (INTERFACE_PROFILING_SECTION_LABEL(i) != NULL)
-        ntop->getTrace()->traceEvent(
-				     TRACE_NORMAL, "[PROFILING] Section #%d '%s': AVG %llu ticks", i,
+        ntop->getTrace()->traceEvent(TRACE_NORMAL, "[PROFILING] Section #%d '%s': AVG %llu ticks", i,
 				     INTERFACE_PROFILING_SECTION_LABEL(i),
 				     INTERFACE_PROFILING_SECTION_AVG(i, n));
       ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -183,7 +180,8 @@ ZMQCollectorInterface::~ZMQCollectorInterface() {
 /* **************************************************** */
 
 #if ZMQ_VERSION >= ZMQ_MAKE_VERSION(4, 1, 0)
-char *ZMQCollectorInterface::findInterfaceEncryptionKeys(char *public_key, char *secret_key, int public_key_len, int secret_key_len) {
+char *ZMQCollectorInterface::findInterfaceEncryptionKeys(char *public_key, char *secret_key,
+							 int public_key_len, int secret_key_len) {
   char public_key_path[PATH_MAX], secret_key_path[PATH_MAX];
   bool rc = false;
 
@@ -193,7 +191,8 @@ char *ZMQCollectorInterface::findInterfaceEncryptionKeys(char *public_key, char 
              ntop->get_working_dir(), get_id());
     snprintf(secret_key_path, sizeof(secret_key_path), "%s/%d/key.priv",
              ntop->get_working_dir(), get_id());
-    rc = ZMQUtils::readEncryptionKeysFromFile(public_key_path, secret_key_path, public_key, secret_key, public_key_len, secret_key_len);
+    rc = ZMQUtils::readEncryptionKeysFromFile(public_key_path, secret_key_path,
+					      public_key, secret_key, public_key_len, secret_key_len);
   }
 
   if (!rc) {
@@ -511,8 +510,7 @@ void ZMQCollectorInterface::collect_flows() {
             uncompressed = zmq_payload, uncompressed_len = size;
 
           if (ntop->getPrefs()->get_zmq_encryption_pwd())
-            Utils::xor_encdec(
-			      (u_char *)uncompressed, uncompressed_len,
+            Utils::xor_encdec((u_char *)uncompressed, uncompressed_len,
 			      (u_char *)ntop->getPrefs()->get_zmq_encryption_pwd());
 
           if (false) {
@@ -542,15 +540,14 @@ void ZMQCollectorInterface::collect_flows() {
           switch (h->url[0]) {
 	  case 'e': /* event */
 	    recvStats.num_events++;
-	    parseEvent(uncompressed, uncompressed_len, source_id, msg_id,
-		       this);
+	    parseEvent(uncompressed, uncompressed_len, source_id, msg_id, this);
 	    break;
 
 	  case 'f': /* flow */
 	    if (tlv_encoding)
 	      recvStats.num_flows += parseTLVFlow(uncompressed, uncompressed_len,
 						  subscriber_id, msg_id, this);
-	    else {
+	    else if(ntop->getPrefs()->is_pro_edition()) {
 	      uncompressed[uncompressed_len] = '\0';
 	      recvStats.num_flows += parseJSONFlow(uncompressed, uncompressed_len, subscriber_id, msg_id);
 	    }

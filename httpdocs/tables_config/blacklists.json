@@ -6,7 +6,7 @@
 	"paging": false,
 	"display_empty_rows": true,
 	"default_sort": {
-		"column_id": "status",
+		"column_id": "hits",
 		"sort": 2
 	},
 	"columns": [
