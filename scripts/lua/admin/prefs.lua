@@ -807,7 +807,7 @@ if auth.has_capability(auth.capabilities.preferences) then
 
         local elementToSwitch = {"row_multiple_ldap_account_type", "row_toggle_ldap_anonymous_bind", "server",
                                  "bind_dn", "bind_pwd", "ldap_server_address", "search_path", "user_group",
-                                 "admin_group", "row_toggle_ldap_referrals"}
+                                 "admin_group", "row_toggle_ldap_referrals", "row_toggle_ldap_debug"}
 
         prefsToggleButton(subpage_active, {
             field = auth_toggles.ldap,
@@ -919,6 +919,14 @@ if auth.has_capability(auth.capabilities.preferences) then
             reverse_switch = true,
             hidden = not showElements
         })
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_ldap_debug",
+            default = "0",
+            pref = "ldap_debug",
+            hidden = not showElements
+        })
+
     end
 
     -- #####################

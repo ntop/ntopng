@@ -2307,6 +2307,7 @@ local known_parameters = {
    ["toggle_radius_auth"] = validateBool,
    ["toggle_http_auth"] = validateBool,
    ["toggle_ldap_referrals"] = validateBool,
+   ["toggle_ldap_debug"] = validateBool,
    ["toggle_webhook_notification"] = validateBool,
    ["toggle_elasticsearch_notification"] = validateBool,
    ["toggle_auth_session_midnight_expiration"] = validateBool,

@@ -753,6 +753,10 @@ local menu_subpages = {{
             description = i18n("prefs.toggle_ldap_referrals_description"),
             hidden = (not hasLdap)
         },
+        toggle_ldap_debug = {
+            title = i18n("prefs.toggle_ldap_debug_title"),
+            description = i18n("prefs.toggle_ldap_debug_description")
+        },
         radius_server = {
             title = i18n("prefs.radius_server_title"),
             description = i18n("prefs.radius_server_description", {
