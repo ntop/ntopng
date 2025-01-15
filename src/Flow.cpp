@@ -51,7 +51,7 @@ Flow::Flow(NetworkInterface *_iface,
     vlanId = _vlanId, protocol = _protocol, cli_port = _cli_port,
     srv_port = _srv_port, privateFlowId = _private_flow_id;
   flow_dropped_counts_increased = 0, vrfId = 0, protocolErrorCode = 0;
-  srcAS = dstAS = prevAdjacentAS = nextAdjacentAS = 0;
+  srcAS = dstAS = prevAdjacentAS = nextAdjacentAS = 0, rttSec = 0;
   predominant_alert.id = flow_alert_normal,
     predominant_alert.category = alert_category_other,
     predominant_alert_score = 0;
