@@ -45,7 +45,6 @@ class Host : public GenericHashEntry,
   time_t last_stats_reset;
   std::atomic<u_int32_t> active_alerted_flows;
   u_int8_t view_interface_mac[6];
-
   /*
     The check below makes sense for TCP as with UDP unidirectional flows
     (e.g. RTP or syslog) could be legitimate. However in general UDP flows
@@ -123,6 +122,13 @@ class Host : public GenericHashEntry,
     u_int32_t skip_until_epoch;
     char *msg;
   } customHostAlert;
+
+  struct {
+      u_int32_t  capacity;
+      u_int32_t  tokens;
+      u_int32_t  leakRate;
+      time_t lastLeak;
+  } netscanFlow;
 
   Mutex m;
   u_int32_t mac_last_seen;
@@ -227,6 +233,10 @@ class Host : public GenericHashEntry,
   inline u_int32_t getNumBlacklistedAsSrvReset() const {
     return getNumBlacklistedAsSrv() - getCheckpointBlacklistedAsSrv();
   }
+  
+  inline u_int32_t getNetscanTokens() { return (netscanFlow.tokens); };
+  
+  inline void resetNetscanTokens() { netscanFlow.tokens = 0; };
 
   inline bool isDhcpServer() const {
     return (host_services_bitmap & (1 << HOST_IS_DHCP_SERVER));
@@ -543,7 +553,7 @@ class Host : public GenericHashEntry,
   void updateSNMPAlertsCounter(time_t when, bool snmp_sent);
   void updateSynAckAlertsCounter(time_t when, bool synack_sent);
   void updateFinAckAlertsCounter(time_t when, bool finack_sent);
-
+  void networkScan(time_t t, IpAddress *_srv_ip);
   virtual void updateNetworkRTT(u_int32_t rtt_msecs) { return; }
   inline void updateRoundTripTime(u_int32_t rtt_msecs) {
     if (as) as->updateRoundTripTime(rtt_msecs);

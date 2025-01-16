@@ -264,7 +264,10 @@ void Host::housekeep(time_t t) {
 void Host::initialize(Mac *_mac, int32_t _iface_idx, u_int16_t _vlanId,
                       u_int16_t observation_point_id) {
   if(_vlanId == (u_int16_t)-1) _vlanId = 0;
-
+  netscanFlow.capacity = 50;
+  netscanFlow.tokens   = 0;
+  netscanFlow.leakRate = 2;
+  netscanFlow.lastLeak = time(NULL);
   vlan_id = _vlanId & 0xFFF; /* Cleanup any possible junk */
   iface_index = _iface_idx;
   host_pool_id_is_from_mac = false;
@@ -1490,6 +1493,24 @@ void Host::incNumFlows(time_t t, bool as_client, bool isTCP) {
 
   counter->inc(t, this);
   if(stats) stats->incNumFlows(as_client);
+}
+
+/* *************************************** */
+
+void Host::networkScan(time_t t, IpAddress *_srv_ip){
+  int el = static_cast<u_int32_t>(t - netscanFlow.lastLeak);
+  if (el>0){
+    netscanFlow.tokens = el * netscanFlow.leakRate;
+    if(netscanFlow.tokens < 0){ 
+      netscanFlow.tokens = 0; 
+    }
+    netscanFlow.lastLeak = t;
+  }
+  if(_srv_ip->isPrivateAddress()){
+    if (netscanFlow.tokens < netscanFlow.capacity) {
+      netscanFlow.tokens++;
+    }
+  }
 }
 
 /* *************************************** */
