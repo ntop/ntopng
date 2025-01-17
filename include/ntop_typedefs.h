@@ -584,6 +584,7 @@ typedef enum {
   host_alert_external_script = 27, /* Triggered from Lua (see rest/v2/trigger/host/alert.lua) */
   host_alert_host_scanner = 28,
   host_alert_server_ports_contacts = 29,
+  host_alert_network_scanner = 30,
 
   MAX_DEFINED_HOST_ALERT_TYPE, /* Leave it as last member */
   MAX_HOST_ALERT_TYPE = 32     /* Constrained by HostAlertBitmap */
@@ -636,6 +637,7 @@ typedef enum {
   host_check_rx_only_host_scan,
   host_check_server_ports_contacts,
   host_check_unexpected_gateway,
+  host_check_network_scanner,
 
   NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */
 } HostCheckID;

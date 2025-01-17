@@ -156,6 +156,8 @@ Flow::Flow(NetworkInterface *_iface,
   if(cli_host) {
     cli_host->incUses(), cli_host->incNumFlows(last_seen, true, isTCP());
     cli_host->incCliContactedPorts(_srv_port);
+    if(isTCP() || isUDP() || isICMP())
+      cli_host->networkScan(last_seen,srv_host->get_ip());
     cli_ip_addr = cli_host->get_ip();
   } else {
     /*

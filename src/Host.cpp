@@ -264,7 +264,8 @@ void Host::housekeep(time_t t) {
 void Host::initialize(Mac *_mac, int32_t _iface_idx, u_int16_t _vlanId,
                       u_int16_t observation_point_id) {
   if(_vlanId == (u_int16_t)-1) _vlanId = 0;
-
+  netscanFlow.capacity = 50;
+  netscanFlow.timeWindow = 2;
   vlan_id = _vlanId & 0xFFF; /* Cleanup any possible junk */
   iface_index = _iface_idx;
   host_pool_id_is_from_mac = false;
@@ -1490,6 +1491,19 @@ void Host::incNumFlows(time_t t, bool as_client, bool isTCP) {
 
   counter->inc(t, this);
   if(stats) stats->incNumFlows(as_client);
+}
+
+/* *************************************** */
+
+void Host::networkScan(time_t t, IpAddress *_srv_ip){
+  while (!netscanFlow.tokens.empty() && (t - netscanFlow.tokens.front()) > netscanFlow.timeWindow) {
+    netscanFlow.tokens.pop_front();
+  }
+  if(_srv_ip->isPrivateAddress()){
+    if (netscanFlow.tokens.size() < netscanFlow.capacity) {
+      netscanFlow.tokens.push_back(t);
+    }
+  }
 }
 
 /* *************************************** */

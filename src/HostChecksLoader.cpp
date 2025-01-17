@@ -78,6 +78,7 @@ void HostChecksLoader::registerChecks() {
   if ((fcb = new DomainNamesContacts())) registerCheck(fcb);
   if ((fcb = new ICMPFlood()))           registerCheck(fcb);
   if ((fcb = new ScanDetection()))       registerCheck(fcb);
+  if ((fcb = new NetworkScanner()))      registerCheck(fcb);
 
 #ifdef NTOPNG_PRO
   if ((fcb = new ScoreAnomaly()))        registerCheck(fcb);

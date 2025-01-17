@@ -1578,6 +1578,9 @@ local lang = {
       ["top_srv"] = "Hosts as server with most alerts",
       ["top_vlan"] = "VLANs with most alerts",
     },
+    ["network_scanner_description"] = "Trigger an alert when a host is potentially performing network scanning",
+    ["network_scanner_title"] = "Network Scanner detector",
+    ["network_scanner_message"] = "Potentially a network scanner",
   },
   ["alerts_thresholds_config"] = {
     ["active_local_hosts"] = "Local Hosts Alert",
