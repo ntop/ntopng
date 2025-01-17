@@ -37,8 +37,7 @@ const timeout_delete = 1 * 500;
 const props = defineProps({
     url: String,
     ifid: Number,
-    csrf: String,
-    columns_config: Array
+    csrf: String
 });
 
 const table_config = ref({});
@@ -59,7 +58,6 @@ function add_repeater(repeater) {
     set_rule(repeater, add_url);
 }
 
-
 function set_rule(rule, url) {
     let headers = {
         'Content-Type': 'application/json'
@@ -70,11 +68,11 @@ function set_rule(rule, url) {
     refresh_table();    
 }
 
-
-
-const format_interfaces = function(data, rowData) { 
+const format_interfaces = function(data, rowData) {
+    if (!data) data = ""; 
     return data.split(",").join(", ");
 }
+
 function set_datatable_config() {
     const datatableButton = [];
     
@@ -107,26 +105,29 @@ function set_datatable_config() {
     let columns = [
 	 { 
 	    columnName: _i18n("nedge.page_repeater_config.type"), targets: 0, name: 'type', data: 'type', className: 'text-nowrap text-left', responsivePriority: 1, render: function (data, _, rowData)  {
-            if (data == "custom") {
-                return _i18n("nedge.page_repeater_config.modal_repeater_config.custom");
-            } else {
-                return _i18n("nedge.page_repeater_config.modal_repeater_config.mdns");
+                if (data == "custom") {
+                    return _i18n("nedge.page_repeater_config.modal_repeater_config.custom");
+                } else {
+                    return _i18n("nedge.page_repeater_config.modal_repeater_config.mdns");
+                }
             }
-        }
 	},
-     { 
+        { 
 	    columnName: _i18n("nedge.page_repeater_config.ip"), targets: 0, name: 'ip', data: 'ip', className: 'text-nowrap text-left', responsivePriority: 1
 	},
-     { 
+        { 
 	    columnName: _i18n("nedge.page_repeater_config.port"), targets: 0, name: 'port', data: 'port', className: 'text-nowrap text-left', responsivePriority: 1
 	},
-    {
+        {
 	    columnName: _i18n("nedge.page_repeater_config.interfaces"), targets: 0, name: 'interfaces', data: 'details', className: 'text-nowrap text-left', responsivePriority: 1, render: function (data,_,rowData)  {
-		    return format_interfaces(data, rowData)}
+		return format_interfaces(data, rowData)}
+	},
+        {
+	    columnName: _i18n("nedge.page_repeater_config.restricted_interfaces"), targets: 0, name: 'restricted_interfaces', data: 'restricted_details', className: 'text-nowrap text-left', responsivePriority: 1, render: function (data,_,rowData)  {
+		return format_interfaces(data, rowData)}
 	},
     ];
     let wrap_columns_config = columns.map((c) => c);
-    // let wrap_columns_config = props.columns_config.map((c) => c);
     wrap_columns_config.push({ columnName: _i18n("actions"), width: '5%', name: 'actions', className: 'text-center', orderable: false, responsivePriority: 0, render: function (_, type, rowData) { return add_action_column(rowData) } });
     
     defaultDatatableConfig.columns_config = wrap_columns_config;

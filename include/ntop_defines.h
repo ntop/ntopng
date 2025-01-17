@@ -1207,6 +1207,8 @@
 #define GRE_HEADER_KEY 0x2000      /* 32 bit */
 #define GRE_HEADER_SEQ_NUM 0x1000  /* 32 bit */
 
+#define PREF_FORWARDER_DEBUG NTOPNG_PREFS_PREFIX ".forwarder_debug"
+
 #define HOST_LOW_GOODPUT_THRESHOLD \
   25 /* No more than X low goodput flows per host */
 

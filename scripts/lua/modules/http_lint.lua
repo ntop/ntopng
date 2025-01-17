@@ -2696,7 +2696,9 @@ local known_parameters = {
    ["repeater_type"] = validateSingleWord,
    ["repeater_id"] = validateNumber,
    ["interfaces"] = validateSingleWord,
+   ["restricted_interfaces"] = validateSingleWord,
    ["interface_details"] = validateUnquoted,
+   ["restricted_interface_details"] = validateUnquoted,
    ["keep_src_address"] = validateBool,
 
    -- Containers

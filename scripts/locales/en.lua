@@ -6109,11 +6109,14 @@ local lang = {
     ["you_can_use_gateways_in_policies"] = "You can specify gateways priorities in <a href=\"%{url}\">Routing Policies</a>.",
     ["page_repeater_config"] = {
       ["interface"] = "Network Interface",
-      ["interfaces"] = "Network Interfaces",
+      ["interfaces"] = "Trusted Network Interfaces",
       ["ip"] = "IP",
       ["keep_src_address"] = "Keep Source Address",
       ["port"] = "Port",
       ["repeater_id"] = "Repeater ID",
+      ["restricted_interface"] = "Restricted Network Interface",
+      ["restricted_interfaces"] = "Restricted Network Interfaces",
+      ["restricted_interfaces_note"] = "Multicast/Broadcast traffic from Trusted Network Interfaces is not forwarded to Restricted Network Interfaces",
       ["type"] = "Type",
       ["modal_repeater_config"] = {
         ["custom"] = "Custom",

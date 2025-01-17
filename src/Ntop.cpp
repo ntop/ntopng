@@ -622,65 +622,55 @@ void Ntop::start() {
 #endif
 
 #ifdef HAVE_NEDGE
-  char **rsp = NULL;
-  char repeater[256];
   char key[128];
+  char **keys = NULL;
+  int nkeys;
+  char repeater[256];
 
   snprintf(key, sizeof(key), "ntopng.prefs.config.repeater.*");
 
-  int counter = redis->keys(key, &rsp);
+  nkeys = redis->keys(key, &keys);
 
-  memset(key, 0, sizeof(key));
-
-  for(int i = 1; i<= counter; i++) {
-    memset(key, 0, sizeof(key));
-    snprintf(key, sizeof(key), "ntopng.prefs.config.repeater.%d",i);
+  for(int i = 0; i < nkeys; i++) {
 
     memset(repeater, 0, sizeof(repeater));
-    redis->get(key, repeater, sizeof(repeater));
+    redis->get(keys[i], repeater, sizeof(repeater));
 
     string ip;
-    int port;
+    int port = 0;
     string interfaces;
+    string restricted_interfaces;
     string type;
     bool keep_source = false;
     char *tmp = NULL;
 
     char *token = strtok_r(repeater, "|", &tmp);
-    if (token != NULL) {
-      type = token;
-      token = strtok_r(NULL, "|", &tmp);
-      if (token != NULL) {
-        ip = token;
-        token = strtok_r(NULL, "|", &tmp);
-        if (token != NULL) {
-          port = atoi(token);
-          token = strtok_r(NULL, "|", &tmp);
-          if (token != NULL) {
-            interfaces = token;
-            token = strtok_r(NULL, "|", &tmp);
-            if (token != NULL)
-              keep_source = (token[0] == '1');
+    if (token != NULL) { type = token;       token = strtok_r(NULL, "|", &tmp); }
+    if (token != NULL) { ip = token;         token = strtok_r(NULL, "|", &tmp); }
+    if (token != NULL) { port = atoi(token); token = strtok_r(NULL, "|", &tmp); }
+    if (token != NULL) { interfaces = token; token = strtok_r(NULL, "|", &tmp); }
+    if (token != NULL) { keep_source = (token[0] == '1'); token = strtok_r(NULL, "|", &tmp); }
+    if (token != NULL) { restricted_interfaces = token; }
+    if (interfaces.length() > 0) {
+      PacketForwarder *multicastForwarder;
 
-            PacketForwarder *multicastForwarder;
+      if (ip.length() > 3 && strcmp(ip.c_str() + ip.length() - 3, "255") == 0)
+        multicastForwarder = new (std::nothrow) BroadcastForwarder(ip, port, interfaces, restricted_interfaces, keep_source);
+      else
+        multicastForwarder = new (std::nothrow) MulticastForwarder(ip, port, interfaces, restricted_interfaces, keep_source);
 
-            if (ip.length() > 3 && strcmp(ip.c_str() + ip.length() - 3, "255") == 0)
-              multicastForwarder = new (std::nothrow) BroadcastForwarder(ip, port, interfaces, keep_source);
-            else
-              multicastForwarder = new (std::nothrow) MulticastForwarder(ip, port, interfaces, keep_source);
-
-            if (multicastForwarder) {
-              multicastForwarder->start();
-              multicastForwarders.push_back(multicastForwarder);
-            } else {
-              ntop->getTrace()->traceEvent(TRACE_ERROR, "Error occured instantiating forwarder on IP %s Port %d",
-					   ip.c_str(), port);
-            }
-          }
-        }
+      if (multicastForwarder) {
+        multicastForwarder->start();
+        multicastForwarders.push_back(multicastForwarder);
+      } else {
+        ntop->getTrace()->traceEvent(TRACE_ERROR, "Error occured instantiating forwarder on IP %s Port %d",
+          ip.c_str(), port);
       }
     }
+
+    if (keys[i]) free(keys[i]);
   }
+  if (keys) free(keys);
 #endif
 
   checkReloadHostPools();
