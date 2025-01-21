@@ -73,6 +73,9 @@ import { default as PageInactiveHostDetails } from "./page-inactive-host-details
 import { default as PageAccessControlList } from "./page-access-control-list.vue"
 import { default as PageTopInterfaceApplications } from "./page-top-interface-applications.vue"
 import { default as PageTopInterfaceCategories } from "./page-top-interface-categories.vue"
+import { default as PageObservationPoints } from "./page-observation-points.vue"
+import { default as PageObservationPointsConfig } from "./page-observation-points-config.vue"
+import { default as PageObservationPointsList } from "./page-flow-exporters-list.vue"
 
 /* Config pages */
 import { default as PageSNMPConfig } from "./page-snmp-config.vue"
@@ -168,6 +171,9 @@ let ntopVue = {
     PageAccessControlList: PageAccessControlList,
     PageTopInterfaceApplications: PageTopInterfaceApplications,
     PageTopInterfaceCategories: PageTopInterfaceCategories,
+    PageObservationPoints: PageObservationPoints,
+    PageObservationPointsConfig: PageObservationPointsConfig,
+    PageObservationPointsList: PageObservationPointsList,
     
     /* SNMP */
     PageSNMPDevices: PageSNMPDevices,

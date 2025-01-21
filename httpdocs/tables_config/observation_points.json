@@ -1,0 +1,95 @@
+{
+	"id": "observation_points",
+	"data_url": "lua/pro/rest/v2/get/interface/observation_points/stats.lua",
+	"paging": false,
+	"display_empty_rows": false,
+	"default_sort": {
+		"column_id": "observation_point",
+		"sort": 1
+	},
+	"columns": [
+		{
+			"id": "actions",
+			"title_i18n": "widgets_page.actions",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			],
+			"render_v_node_type": "button_array",
+			"button_def_array": [
+				{
+					"id": "live_flows",
+					"icon": "fa-solid fa-magnifying-glass-plus",
+					"title_i18n": "flows",
+					"class": [
+						"link-button",
+						"btn-info"
+					],
+					"event_id": "click_button_live_flows"
+				}
+			]
+		},
+		{
+			"id": "observation_point",
+			"title_i18n": "db_explorer.observation_point",
+			"data_field": "observation_point",
+			"sortable": true,
+			"class": [
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "exporters",
+			"title_i18n": "flows_page.exporters",
+			"data_field": "exporters",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "total_flows",
+			"title_i18n": "flow_devices.tot_flows",
+			"data_field": "total_flows",
+			"sortable": true,
+			"min-width": 150,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "hosts",
+			"title_i18n": "flows_page.hosts",
+			"data_field": "hosts",
+			"sortable": true,
+			"max-width": "20px",
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "throughput",
+			"title_i18n": "throughput",
+			"data_field": "throughput",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "traffic",
+			"title_i18n": "traffic",
+			"data_field": "traffic",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		}
+	]
+}
