@@ -1294,7 +1294,9 @@ else
                 if source == "resolved" then
                     source = "DNS Resolution"
                 else
-                    --source = source:upper()
+		   if(string.find(source, " ") == nil) then
+			 source = source:upper()
+		   end
                 end
 
                 if not name_sources[name] then

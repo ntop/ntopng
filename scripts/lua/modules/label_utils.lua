@@ -109,7 +109,7 @@ local function hostinfo2label_resolved(host_info, show_vlan, shorten_len, skip_r
         -- Try and get the resolved name
         res = ntop.getResolvedName(ip)
 
-        if not isEmptyString(res) then
+        if((not isEmptyString(res)) and (res ~= ip)) then
             res = string.lower(res)
 
 	    if(host_info.names == nil) then
@@ -117,6 +117,8 @@ local function hostinfo2label_resolved(host_info, show_vlan, shorten_len, skip_r
 	    end
 
 	    host_info.names["DNS (Cache) Resolution"] = res
+	    interface.setHostResolvedName(ip, res);
+	    -- tprint(ip .. " = " .. res)
         else
             -- Nothing found, just fallback to the IP address
             res = ip

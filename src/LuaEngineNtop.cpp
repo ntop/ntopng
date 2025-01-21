@@ -1180,19 +1180,32 @@ static int ntop_get_risk_list(lua_State *vm) {
 bool check_network_entry(char *ip_addr, char* rsp, void *user_data) {
   AddressTree *at = (AddressTree*)user_data;
   char a[64], *slash;
-
+  u_int8_t network_mask_bits;
+  
   snprintf(a, sizeof(a), "%s", ip_addr);
   slash = strchr(a, '/');
 
   if(slash != NULL)
     slash[0] = '\0'; /* Remove slash if present */
   
-  if(at->find(a) != -1) {
-    /* Overlapping address*/
-    snprintf(rsp, MAX_RSP_LEN, "Overlapping address error %s", ip_addr);
-    return(false);
-  } else
-    at->addAddress(ip_addr);
+  if(at->find(a, &network_mask_bits) != -1) {
+    /* Overlapping address */
+    bool ok = false;
+    
+    if(slash != NULL) {
+      if(atoi(&slash[1]) > network_mask_bits) {
+	/* This is smaller subnet, so we accept it */
+	ok = true;
+      }
+    }
+
+    if(!ok) {
+      snprintf(rsp, MAX_RSP_LEN, "Overlapping address error %s", ip_addr);
+      return(false);
+    }
+  }
+  
+  at->addAddress(ip_addr);
   
   return true;
 }

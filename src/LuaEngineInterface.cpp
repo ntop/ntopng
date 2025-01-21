@@ -600,7 +600,8 @@ static int ntop_add_data_to_assets(lua_State *vm) {
     get_host_vlan_info(host, &key, &vlan_id, host_ip, sizeof(host_ip));
 
     if ((!iface) || 
-        ((h = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId))) == NULL)) {
+        ((h = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+				  getLuaVMUservalue(vm, observationPointId))) == NULL)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s",
                                    host_ip);
       return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -647,7 +648,8 @@ static int ntop_remove_data_from_assets(lua_State *vm) {
     get_host_vlan_info(host, &key, &vlan_id, host_ip, sizeof(host_ip));
 
     if ((!iface) || 
-        ((h = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId))) == NULL)) {
+        ((h = iface->findHostByIP(get_allowed_nets(vm), host_ip,
+				  vlan_id, getLuaVMUservalue(vm, observationPointId))) == NULL)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s",
                                    host_ip);
       return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -711,9 +713,8 @@ static int ntop_interface_live_capture(lua_State *vm) {
     get_host_vlan_info(host, &key, &vlan_id, host_ip, sizeof(host_ip));
 
     if ((!curr_iface) ||
-        ((h = curr_iface->findHostByIP(
-              get_allowed_nets(vm), host_ip, vlan_id,
-              getLuaVMUservalue(vm, observationPointId))) == NULL)) {
+        ((h = curr_iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+				       getLuaVMUservalue(vm, observationPointId))) == NULL)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s",
                                    host_ip);
       return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -1915,7 +1916,8 @@ static int ntop_set_host_operating_system(lua_State *vm) {
                                    getLuaVMUservalue(vm, observationPointId));
 
 #if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[iface: %s][host_ip: %s][vlan_id: %u][host: %p][os: %u]", curr_iface->get_name(), host_ip, vlan_id, host, os);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[iface: %s][host_ip: %s][vlan_id: %u][host: %p][os: %u]",
+			       curr_iface->get_name(), host_ip, vlan_id, host, os);
 #endif
 
   if (curr_iface && host && os < os_max_os && os != os_unknown)
@@ -1944,12 +1946,12 @@ static int ntop_set_host_resolved_name(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   host_name = (char *)lua_tostring(vm, 2);
 
-  host =
-      curr_iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
-                                   getLuaVMUservalue(vm, observationPointId));
+  host = curr_iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+				  getLuaVMUservalue(vm, observationPointId));
 
 #if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[iface: %s][host_ip: %s][vlan_id: %u][host: %p][os: %u]", curr_iface->get_name(), host_ip, vlan_id, host, os);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[iface: %s][host_ip: %s][vlan_id: %u][host: %p][os: %u]",
+			       curr_iface->get_name(), host_ip, vlan_id, host, os);
 #endif
 
   if (curr_iface && host && host_name) host->setResolvedName(host_name);
