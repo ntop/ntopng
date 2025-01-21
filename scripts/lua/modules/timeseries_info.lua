@@ -3214,12 +3214,11 @@ end
 
 -- #################################
 
-function timeseries_info.get_host_rules_schema(rule_type)
+function timeseries_info.get_traffic_rules_schema(rule_type)
     if rule_type == "host" then
         local host_ts_enabled = ntop.getCache("ntopng.prefs.host_ndpi_timeseries_creation")
-        local has_top_protocols = host_ts_enabled == "both" or host_ts_enabled == "per_protocol" or host_ts_enabled ~=
-            "0"
-        local has_top_categories = host_ts_enabled == "both" or host_ts_enabled == "per_category"
+        local has_top_protocols = (host_ts_enabled == "both" or host_ts_enabled == "per_protocol")
+        local has_top_categories = (host_ts_enabled == "both" or host_ts_enabled == "per_category")
 
         local metric_list = { {
             title = i18n('graphs.traffic_rxtx'),

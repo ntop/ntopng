@@ -87,10 +87,13 @@ const row_render_functions = {
   /* Render function for 'throughput' table type */
   throughput: function (column, row) {
     if (column.id == 'name') {
+      let name = row.name;
+      if (row['instance_name'])
+        name = `${row.name} [${row.instance_name}]`;
       if (row['url'])
-        return `<a href='${row.url}'>${row.name}</a>`;
+        return `<a href='${row.url}'>${name}</a>`;
       else
-        return row.name;
+        return name;
     } else if (column.id == 'throughput') {
       if (row['throughput_type'] && row['throughput_type'] == 'pps') {
         return NtopUtils.fpackets(row[column.id]);
@@ -183,10 +186,8 @@ async function refresh_table() {
      ...props.params.url_params,
         ...props.filters
   }
-  const query_params = ntopng_url_manager.obj_to_url_params(url_params);
  
-  //let data = await ntopng_utility.http_request(`${http_prefix}${props.params.url}?${query_params}`);
-  let data = await props.get_component_data(`${http_prefix}${props.params.url}`, query_params);
+  let data = await props.get_component_data(`${http_prefix}${props.params.url}`, url_params);
 
   let rows = [];
   if (props.params.table_type == 'db_search') {

@@ -48,12 +48,7 @@ const get_url_params = () => {
         ...props.params.url_params,
         ...props.filters
     }
-    let query_params = ntopng_url_manager.obj_to_url_params(url_params);
-
-    /* Push ifid to the parameters (e.g. "ts_query=ifid:$IFID$" */
-    query_params = query_params.replaceAll("%24IFID%24" /* $IFID$ */, props.ifid);
-
-    return query_params;
+    return url_params;
 }
 
 function get_chart_options() {

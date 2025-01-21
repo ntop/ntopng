@@ -156,6 +156,7 @@ const map_table_def_columns = (columns) => {
     if (c.id == "actions") {
       const visible_dict = {
         historical_flows: props.context.historical_available,
+        details: true,
       };
       c.button_def_array.forEach((b) => {
         if (!visible_dict[b.id]) {
@@ -241,6 +242,12 @@ function create_historical_flows_url_link(row) {
 
 /* ************************************** */
 
+function create_button_host_details(row) {
+  return `${http_prefix}/lua/inactive_host_details.lua?ifid=${props.context.ifid}&serial_key=${row.key}`
+}
+
+/* ************************************** */
+
 function click_button_historical_flows(event) {
   const row = event.row;
   window.open(create_historical_flows_url_link(row));
@@ -248,9 +255,17 @@ function click_button_historical_flows(event) {
 
 /* ************************************** */
 
+function click_button_host_details(event) {
+  const row = event.row;
+  window.open(create_button_host_details(row));
+}
+
+/* ************************************** */
+
 function on_table_custom_event(event) {
   let events_managed = {
     "click_button_historical_flows": click_button_historical_flows,
+    "click_button_host_details": click_button_host_details,
   };
   if (events_managed[event.event_id] == null) {
     return;

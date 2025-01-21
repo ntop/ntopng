@@ -1,17 +1,12 @@
-Developing Plugins
-==================
+Developers
+==========
 
 .. toctree::
     :maxdepth: 2
 
     overview
+    developing_alerts
     alert_endpoints
-    alert_definitions
-    checks
-    check_hooks
-    check_gui
     localization
     timeseries_schemas
-    examples
-    distributing_scripts
 

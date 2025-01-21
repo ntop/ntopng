@@ -63,17 +63,14 @@ LocalHost::~LocalHost() {
   if (trace_new_delete)
     ntop->getTrace()->traceEvent(TRACE_NORMAL, "[delete] %s", __FILE__);
 
-  addInactiveData();
+  dumpAssetInfo(true);
 
   if (initial_ts_point) delete (initial_ts_point);
   freeLocalHostData();
 
   /* Decrease number of active hosts */
   iface->decNumHosts(this, is_rx_only);
-  
-#ifdef NTOPNG_PRO
-  ntop->get_am()->deleteHost(this, get_first_seen(), time(NULL));
-#endif
+  asset_map.clear();
 }
 
 /* *************************************** */
@@ -179,17 +176,7 @@ void LocalHost::initialize() {
     fingerprints = NULL;
 
   tcp_fingerprint_host_os = os_hint_unknown;
-
-#ifdef NTOPNG_PRO
-  if ((!(isBroadcastHost() || isMulticastHost())) &&
-      ntop->getPrefs()->is_enterprise_xl_edition() &&
-      (ntop->getPrefs()->isAssetInventoryEnabled() ||
-       ntop->getPrefs()->isNetBoxEnabled()))
-    dumpAssetInfo();
-
-  if(!(isBroadcastHost() || isMulticastHost()))
-    ntop->get_am()->createHost(this);
-#endif
+  dumpAssetInfo(false);
 }
 
 /* *************************************** */
@@ -200,7 +187,7 @@ void LocalHost::deferredInitialization() {
 
 /* *************************************** */
 
-void LocalHost::addInactiveData() {
+void LocalHost::dumpAssetInfo(bool include_last_seen) {
   Mac *cur_mac = getMac();
   /* Remove the key from the hash, used to get the offline hosts */
   /* Exclude the multicast/broadcast addresses */
@@ -231,7 +218,12 @@ void LocalHost::addInactiveData() {
   ndpi_serialize_string_string(&host_json, "ip", ip.print(buf, sizeof(buf)));
 
   ndpi_serialize_string_uint64(&host_json, "first_seen", get_first_seen());
-  ndpi_serialize_string_uint64(&host_json, "last_seen", get_last_seen());
+  if (include_last_seen) {
+    /* This is done in a way that when an host disappear and reapper in the net, it is not 
+     * going to be shown in the list of inactive hosts, the last seen is put to 0 again
+     */
+    ndpi_serialize_string_uint64(&host_json, "last_seen", get_last_seen());
+  }
 
   if (cur_mac) {
     ndpi_serialize_string_uint32(&host_json, "device_type", getDeviceType());
@@ -246,6 +238,9 @@ void LocalHost::addInactiveData() {
   serialization_key = getSerializationKey(key, sizeof(key), true);
 
   ndpi_serialize_string_string(&host_json, "key", serialization_key);
+
+  /* Now dump the json_info field */
+  dumpAssetJson(&host_json);
 
   json_str = ndpi_serializer_get_buffer(&host_json, &json_str_len);
   if ((json_str != NULL) && (json_str_len > 0)) {
@@ -676,10 +671,6 @@ void LocalHost::luaDoHDot(lua_State *vm) {
 void LocalHost::setRouterMac(Mac *gw) {
   if (!router_mac_set) {
     memcpy(router_mac, gw->get_mac(), 6), router_mac_set = true;
-
-#ifdef NTOPNG_PRO
-    ntop->get_am()->addClientGateway(this, gw, get_first_seen());
-#endif
   }
 }
 
@@ -747,209 +738,98 @@ void LocalHost::lua_get_fingerprints(lua_State *vm) {
 
 /* *************************************** */
 
-#ifdef NTOPNG_PRO
-void LocalHost::dumpAssetInfo() {
-  char buf[64], mac_buf[32], *json_str = NULL,
-    *ip = printMask(buf, sizeof(buf)), *mac_ptr;
-  ndpi_serializer device_json;
-  u_int32_t json_str_len = 0;
-
-  ndpi_init_serializer(&device_json, ndpi_serialization_format_json);
-
-  mac_ptr = Utils::formatMac(getMac()->get_mac(), mac_buf, sizeof(mac_buf));
-
-  if (getMac() && serializeByMac()) {
-    /* DHCP */
-    ndpi_serialize_string_string(&device_json, "key", mac_ptr);
-
-    ndpi_serialize_string_uint32(&device_json, "role", mac->getDeviceType());
-  } else {
-    /* IP */
-    ndpi_serialize_string_string(&device_json, "key", ip);
-    ndpi_serialize_string_uint32(&device_json, "role", getDeviceType());
-  }
-
-  ndpi_serialize_string_string(&device_json, "mac", mac_ptr);
-  if (mac->get_manufacturer())
-    ndpi_serialize_string_string(&device_json, "manufacturer", mac->get_manufacturer());
-
-  if (isIPv6())
-    ndpi_serialize_string_string(&device_json, "ipv6", ip);
-  else
-    ndpi_serialize_string_string(&device_json, "ipv4", ip);
-
-  ndpi_serialize_string_string(&device_json, "source", "traffic");
-  ndpi_serialize_string_uint32(&device_json, "first_seen", first_seen);
-  ndpi_serialize_string_uint32(&device_json, "last_seen", last_seen);
-
-  json_str = ndpi_serializer_get_buffer(&device_json, &json_str_len);
-
-  if ((json_str != NULL) && (json_str_len > 0)) {
-    char key[64];
-
-    snprintf(key, sizeof(key), ASSET_LIST_INSERTION_KEY, iface->get_id());
-    ntop->getRedis()->rpush(key, json_str, 1024);
-  }
-
-  ndpi_term_serializer(&device_json);
-}
-#endif
-
-/* *************************************** */
-
 void LocalHost::setDhcpServer(char *name) {
   Host::setDhcpServer(name);
-#ifdef NTOPNG_PRO
-  bool previousDhcpServer = isDhcpServer();
-  if (!previousDhcpServer && isDhcpServer())
-    ntop->get_am()->setServerInfo(this, dhcp_server, name);
-#endif
+  addDataToAssets((char *) "dhcp_server", (char *) "true");
 }
 
 /* *************************************** */
 
 void LocalHost::setDnsServer(char *name) {
   Host::setDnsServer(name);
-#ifdef NTOPNG_PRO
-  bool previous_DnsServer = isDnsServer();
-  if (!previous_DnsServer && isDnsServer())
-    ntop->get_am()->setServerInfo(this, dns_server, name);
-#endif
+  addDataToAssets((char *) "dns_server", (char *) "true");
 }
 
 /* *************************************** */
 
 void LocalHost::setSmtpServer(char *name) {
   Host::setSmtpServer(name);
-#ifdef NTOPNG_PRO
-  bool previous_SmtpServer = isSmtpServer();
-  if (!previous_SmtpServer && isSmtpServer())
-    ntop->get_am()->setServerInfo(this, smtp_server, name);
-#endif
+  addDataToAssets((char *) "smtp_server", (char *) "true");
 }
 
 /* *************************************** */
 
 void LocalHost::setNtpServer(char *name) {
   Host::setNtpServer(name);
-#ifdef NTOPNG_PRO
-  bool previous_NtpServer = isNtpServer();
-  if (!previous_NtpServer && isNtpServer())
-    ntop->get_am()->setServerInfo(this, ntp_server, name);
-#endif
+  addDataToAssets((char *) "ntp_server", (char *) "true");
 }
 
 /* *************************************** */
 
 void LocalHost::setImapServer(char *name) {
   Host::setImapServer(name);
-#ifdef NTOPNG_PRO
-  bool previous_ImapServer = isImapServer();
-  if (!previous_ImapServer && isImapServer())
-    ntop->get_am()->setServerInfo(this, imap_server, name);
-#endif
+  addDataToAssets((char *) "imap_server", (char *) "true");
 }
 
 /* *************************************** */
 
 void LocalHost::setPopServer(char *name) {
   Host::setPopServer(name);
-#ifdef NTOPNG_PRO
-  bool previous_popServer = isPopServer();
-  if (!previous_popServer && isPopServer())
-    ntop->get_am()->setServerInfo(this, pop_server, name);
-#endif
+  addDataToAssets((char *) "pop_server", (char *) "true");
 }
 
 /* *************************************** */
 
 void LocalHost::offlineSetMDNSInfo(char *const str) {
-#ifdef NTOPNG_PRO
-  bool previous_mdns_info = names.mdns_info ? true : false;
-#endif
   Host::offlineSetMDNSInfo(str);
-#ifdef NTOPNG_PRO
-  if (names.mdns_info && !previous_mdns_info)
-    ntop->get_am()->setResolvedName(this, label_mdns_info, names.mdns_info);
-#endif
 }
 
 /* *************************************** */
 
 void LocalHost::offlineSetMDNSName(const char *mdns_n) {
-#ifdef NTOPNG_PRO
-  bool previous_mdns = names.mdns ? true : false;
-#endif
   Host::offlineSetMDNSName(mdns_n);
-#ifdef NTOPNG_PRO
-  if (names.mdns && !previous_mdns)
-    ntop->get_am()->setResolvedName(this, label_mdns, names.mdns);
-#endif
+  addDataToAssets((char *) "mdns_name", (char *) mdns_n);
 }
 
 /* *************************************** */
 
 void LocalHost::offlineSetDHCPName(const char *dhcp_n) {
-#ifdef NTOPNG_PRO
-  bool previous_dhcp = names.dhcp ? true : false;
-#endif
   Host::offlineSetDHCPName(dhcp_n);
-#ifdef NTOPNG_PRO
-  if (names.dhcp && !previous_dhcp)
-    ntop->get_am()->setResolvedName(this, label_dhcp, names.dhcp);
-#endif
+  addDataToAssets((char *) "dhcp_name", (char *) dhcp_n);
 }
 
 /* *************************************** */
 
 void LocalHost::offlineSetMDNSTXTName(const char *mdns_n_txt) {
-#ifdef NTOPNG_PRO
-  bool previous_mdns_txt = names.mdns_txt ? true : false;
-#endif
   Host::offlineSetMDNSTXTName(mdns_n_txt);
-#ifdef NTOPNG_PRO
-  if (names.mdns_txt && !previous_mdns_txt)
-    ntop->get_am()->setResolvedName(this, label_mdns_txt, names.mdns_txt);
-#endif
+  addDataToAssets((char *) "mdns_txt_name", (char *) mdns_n_txt);
 }
 
 /* *************************************** */
 
 void LocalHost::offlineSetNetbiosName(const char *netbios_n) {
-#ifdef NTOPNG_PRO
-  bool previous_netbios = names.netbios ? true : false;
-#endif
   Host::offlineSetNetbiosName(netbios_n);
-#ifdef NTOPNG_PRO
-  if (names.netbios && !previous_netbios)
-    ntop->get_am()->setResolvedName(this, label_netbios, names.netbios);
-#endif
+  addDataToAssets((char *) "netbios_name", (char *) netbios_n);
+}
+
+/* *************************************** */
+
+void LocalHost::offlineSetTLSName(const char *tls_n) {
+  Host::offlineSetHTTPName(tls_n);
+  addDataToAssets((char *) "tls_name", (char *) tls_n);
 }
 
 /* *************************************** */
 
 void LocalHost::offlineSetHTTPName(const char *http_n) {
-#ifdef NTOPNG_PRO
-  bool previous_http = names.http ? true : false;
-#endif
   Host::offlineSetHTTPName(http_n);
-#ifdef NTOPNG_PRO
-  if(names.http && !previous_http)
-    ntop->get_am()->setResolvedName(this, label_http, names.http);
-#endif
+  addDataToAssets((char *) "http_name", (char *) http_n);
 }
 
 /* *************************************** */
 
 void LocalHost::setServerName(const char *server_n) {
-#ifdef NTOPNG_PRO
-  bool previous_server_name = names.server_name ? true : false;
-#endif
   Host::setServerName(server_n);
-#ifdef NTOPNG_PRO
-  if(names.server_name && !previous_server_name)
-    ntop->get_am()->setResolvedName(this, label_server_name, names.server_name);
-#endif
 }
 
 /* *************************************** */
@@ -958,15 +838,8 @@ void LocalHost::setResolvedName(const char *resolved_name) {
   char buf[64];
 
   if(strcmp(get_ip()->print(buf, sizeof(buf)), resolved_name)) {
-#ifdef NTOPNG_PRO
-    bool previous_resolved = names.resolved ? true : false;
-#endif
     Host::setResolvedName(resolved_name);
-
-#ifdef NTOPNG_PRO
-    if(names.resolved && !previous_resolved)
-      ntop->get_am()->setResolvedName(this, label_resolver, names.resolved);
-#endif
+    addDataToAssets((char *) "dns_name", (char *) resolved_name);
   }
 }
 
@@ -974,7 +847,8 @@ void LocalHost::setResolvedName(const char *resolved_name) {
 
 void LocalHost::setTCPfingerprint(char *_tcp_fingerprint,
 				  enum operating_system_hint os) {
-
+  if (_tcp_fingerprint && _tcp_fingerprint[0] != '\0')
+    addDataToAssets((char *) "tcp_fingerprint", (char *) _tcp_fingerprint);
   if(tcp_fingerprint_host_os == os_hint_unknown) {
     /* Not yet set the host fingerprint */
     OSType os_type = Utils::OShint2OSType(os);
@@ -1006,11 +880,52 @@ void LocalHost::setOS(OSType _os, OSLearningMode mode) {
   if((_os != os_unknown) && (getOS() != _os)) {
     os_learning[mode] = _os;
 
+    char buf[8];
+    snprintf(buf, sizeof(buf), "%d", _os);
+    addDataToAssets((char *) "os_type", buf);
+    
     Host::setOS(_os, mode);
-
-#ifdef NTOPNG_PRO
-    if(ntop->get_am() != NULL)
-      ntop->get_am()->setHostOS(this, _os, mode);
-#endif
   }
+}
+
+/* *************************************** */
+
+/* This function is used to add a new field to the asset map;
+ * this field is going to be automatically added to the json, when dumped to redis
+ * Note: the function overwrite the old values if already present
+ */
+bool LocalHost::addDataToAssets(char *_field, char *_value) {
+  /* Check for incorrect values */
+  if (_field && _field[0] != '\0' && _value && _value[0] != '\0') {
+    std::string field = _field;
+    std::string value = _value;
+    asset_map[field] = value;
+    return true;
+  }
+  return false;
+}
+
+/* *************************************** */
+
+/* This function instead remove a field from the asset map */
+bool LocalHost::removeDataFromAssets(char *field) {
+  if (asset_map.size() > 0 && field && field[0] != '\0') {
+    asset_map.erase(field);
+    return true;
+  }
+  return false;
+}
+
+/* *************************************** */
+
+void LocalHost::dumpAssetJson(ndpi_serializer *serializer) {
+  /* Check for the map size */
+  if (asset_map.size() == 0) 
+    return;
+
+  ndpi_serialize_start_of_block(serializer, "json_info"); /* Custom fields block */
+  for(std::map<std::string, std::string>::iterator it = asset_map.begin(); it != asset_map.end(); it++) {
+    ndpi_serialize_string_string(serializer, it->first.c_str(), it->second.c_str());
+  }
+  ndpi_serialize_end_of_block(serializer);
 }

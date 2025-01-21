@@ -351,7 +351,7 @@ else
     end
 
     host_label = hostinfo2label(host, false, false)
-
+-- tprint(host.names)
     if canRestoreHost(ifId, host_info["host"], host_vlan) then
         printRestoreHostBanner(true --[[ hidden ]] )
     else
@@ -1294,7 +1294,7 @@ else
                 if source == "resolved" then
                     source = "DNS Resolution"
                 else
-                    source = source:upper()
+                    --source = source:upper()
                 end
 
                 if not name_sources[name] then

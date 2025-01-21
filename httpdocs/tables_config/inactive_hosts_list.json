@@ -22,6 +22,16 @@
 			"render_v_node_type": "button_list",
 			"button_def_array": [
 				{
+					"id": "details",
+					"icon": "fa-solid fa-magnifying-glass-plus",
+					"title_i18n": "host_details_tooltip",
+					"class": [
+						"link-button",
+						"btn-info"
+					],
+					"event_id": "click_button_host_details"
+				},
+				{
 					"id": "historical_flows",
 					"icon": "fas fa-stream",
 					"title_i18n": "db_explorer.historical_data",
@@ -37,7 +47,7 @@
 			"title_i18n": "ip_address",
 			"data_field": "ip_address",
 			"sortable": true,
-			"min-width" : "180px",
+			"min-width": "180px",
 			"class": [
 				"text-nowrap"
 			]
@@ -46,7 +56,7 @@
 			"title_i18n": "name",
 			"data_field": "host_name",
 			"sortable": true,
-			"min-width" : "120px",
+			"min-width": "120px",
 			"class": [
 				"text-nowrap"
 			]
@@ -54,7 +64,7 @@
 		{
 			"title_i18n": "mac_address",
 			"data_field": "mac",
-			"min-width" : "120px",
+			"min-width": "120px",
 			"sortable": true,
 			"class": [
 				"text-nowrap"
@@ -64,7 +74,7 @@
 			"title_i18n": "manufacturer",
 			"data_field": "manufacturer",
 			"sortable": true,
-			"min-width" : "120px",
+			"min-width": "120px",
 			"class": [
 				"text-nowrap"
 			]
@@ -73,7 +83,7 @@
 			"title_i18n": "first_seen",
 			"data_field": "first_seen",
 			"sortable": true,
-			"min-width" : "120px",
+			"min-width": "120px",
 			"class": [
 				"text-nowrap",
 				"text-center"
@@ -83,7 +93,7 @@
 			"title_i18n": "last_seen",
 			"data_field": "last_seen",
 			"sortable": true,
-			"min-width" : "120px",
+			"min-width": "120px",
 			"class": [
 				"text-nowrap",
 				"text-center"

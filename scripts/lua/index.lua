@@ -90,10 +90,19 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- ######################################
 
+local infrastructure_view = false
+
+local view = _GET["view"]
+local infrastructure_view = view and view == 'infrastructure' and ntop.isEnterpriseM() 
+if infrastructure_view then
+  template = "infrastructure"
+end
+
 local context = {
   ifid = ifid,
   page = "dashboard",
   template = template,
+  is_infrastructure = infrastructure_view,
   csrf = ntop.getRandomCSRFValue(),
   template_endpoint = ntop.getHttpPrefix() .. "/lua/rest/v2/get/dashboard/template/data.lua",
   template_list_endpoint = ntop.getHttpPrefix() .. "/lua/rest/v2/get/dashboard/template/list.lua"

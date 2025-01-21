@@ -955,6 +955,10 @@ class Host : public GenericHashEntry,
   void setUnidirectionalTCPUDPNoTXEgressFlow(IpAddress *ip, u_int16_t port);
   void setUnidirectionalTCPUDPNoTXIngressFlow(IpAddress *ip, u_int16_t port);
 
+  /* Currently used only by LocalHost */
+  bool addDataToAssets(char *field, char *value) { return false; };
+  bool removeDataFromAssets(char *field) { return false; };
+
   u_int32_t getNumContactedPeersAsClientTCPUDPNoTX();
   u_int32_t getNumContactsFromPeersAsServerTCPUDPNoTX();
 

@@ -1,7 +1,7 @@
 .. _Alert Endpoints:
 
-Alert Endpoints
-===============
+Endpoints
+=========
 
 When an alert occurs, ntopng exports the alert to the `configured endpoints`_.
 By creating a custom endpoint, users can easily export the alert data to their preferred service or

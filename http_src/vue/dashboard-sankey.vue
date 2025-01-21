@@ -81,9 +81,8 @@ async function get_sankey_data() {
          ...props.params.url_params,
         ...props.filters
     }
-    let url_params = ntopng_url_manager.obj_to_url_params(query_params);
 
-    let graph = await props.get_component_data(url, url_params);
+    let graph = await props.get_component_data(url, query_params);
 
     graph = make_complete_graph(graph);
 

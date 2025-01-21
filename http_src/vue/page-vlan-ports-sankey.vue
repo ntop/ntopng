@@ -21,7 +21,7 @@
             <template v-for="(value, key, index) in available_filters">
               <div class="m-1" v-if="value.length > 0">
                 <div style="min-width: 14rem;">
-                  <label class="my-auto me-1">{{ _i18n('ports_analysis.' + key) }}: </label>
+                  <label class="my-auto me-1">{{ _i18n('server_ports.' + key) }}: </label>
                   <SelectSearch
                     v-model:selected_option="active_filter_list[key]"
                     :options="value"

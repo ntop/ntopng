@@ -17,7 +17,8 @@ function format_utils.round(num, idp)
    if math.abs(num) == math.huge then
       -- This is an infinite, e.g., 1/0 or -1/0
       res = num
-   elseif num == math.floor(num) then
+--   elseif num == math.floor(num) then
+   elseif string.find(tostring(num), 'e') == nil then
       -- This is an integer, so represent it
       -- without decimals
       res = string.format("%d", math.floor(num))

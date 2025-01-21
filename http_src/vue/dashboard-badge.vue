@@ -80,10 +80,8 @@ async function refresh_component() {
       ...props.params.url_params,
       ...props.filters
     }
-    const query_params = ntopng_url_manager.obj_to_url_params(url_params);
 
-    // let data = await ntopng_utility.http_request(`${http_prefix}${props.params.url}?${query_params}`);
-    let data = await props.get_component_data(`${http_prefix}${props.params.url}`, query_params);
+    let data = await props.get_component_data(`${http_prefix}${props.params.url}`, url_params);
 
     /* TODO handle dot-separated path for non-flat json */
     let counter_value = data[props.params.counter_path];
@@ -91,10 +89,9 @@ async function refresh_component() {
     if(props.params.counter_formatter == "no_formatting") {
        counter.value = counter_value;
     } else {
-      let counter_formatter = data[props.params.counter_formatter];
-      if (!counter_formatter) {
+      let counter_formatter = props.params.counter_formatter;
+      if (!counter_formatter)
         counter_formatter = "number";
-      }
 
       let formatCounter = formatterUtils.getFormatter(counter_formatter);
       counter.value = formatCounter(counter_value)

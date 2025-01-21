@@ -2221,8 +2221,8 @@ static int progress_callback(void *clientp, double dltotal, double dlnow,
                              double ultotal, double ulnow) {
   ProgressState *progressState = (ProgressState *)clientp;
 
-  progressState->bytes.download = (u_int32_t)dlnow,
-  progressState->bytes.upload = (u_int32_t)ulnow;
+  progressState->bytes.download = (u_int32_t)lround(dlnow),
+    progressState->bytes.upload = (u_int32_t)lround(ulnow);
 
   return Utils::progressCanContinue(progressState) ? 0 /* continue */
                                                    : 1 /* stop transfer */;

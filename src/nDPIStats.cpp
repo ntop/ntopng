@@ -247,7 +247,7 @@ json_object *nDPIStats::getJSONObject(NetworkInterface *iface) {
   inner = json_object_new_object();
 
   for (it1 = cat_counters.begin(); it1 != cat_counters.end(); ++it1)
-    it1->second.addProtoJson(inner, iface, (ndpi_protocol_category_t)it->first);
+    it1->second.addProtoJson(inner, iface, (ndpi_protocol_category_t)it1->first);
 
   json_object_object_add(my_object, "categories", inner);
 

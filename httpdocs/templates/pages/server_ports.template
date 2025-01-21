@@ -4,8 +4,8 @@
 #}
 
 
-<div id="hosts-ports-analysis">
-  <page-hosts-ports-analysis
+<div id="server-ports">
+  <page-server-ports
   :is_ntop_enterprise_m="is_ntop_enterprise_m"
   :ifid="ifid"
   :draw="draw"
@@ -13,7 +13,7 @@
   :order="order"
   :start="start"
   :length="length">
-  </page-hosts-ports-analysis>
+  </page-server-ports>
 </div>
   
 <script type="text/javascript">  
@@ -31,7 +31,7 @@
     if(is_live == "true") {
         vue_options = {
             components: {	  
-                'page-hosts-ports-analysis': ntopVue.PageHostsPortsAnalysis,
+                'page-server-ports': ntopVue.PageServerPorts,
             },
             /**
             * First method called when the component is created.
@@ -55,7 +55,7 @@
     }
     
     const _vue = ntopVue.Vue.createApp(vue_options);
-    const vue_app = _vue.mount('#hosts-ports-analysis');
+    const vue_app = _vue.mount('#server-ports');
     return vue_app;
   }
 

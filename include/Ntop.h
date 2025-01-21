@@ -111,7 +111,6 @@ class Ntop {
   std::atomic<u_int32_t> num_flow_exporters;
   std::atomic<u_int32_t> num_flow_interfaces;
 #ifdef NTOPNG_PRO
-  AssetManagement am;
 #ifdef HAVE_KAFKA
   KafkaClient kafkaClient;
 #endif
@@ -803,9 +802,6 @@ class Ntop {
   inline ClickHouseImport *getClickHouseImport() { return (clickhouseImport); }
 #endif
   inline char *getTZname() { return (myTZname); }
-#ifdef NTOPNG_PRO
-  inline AssetManagement *get_am() { return (&am); }
-#endif
   inline Mutex *get_pools_lock()      { return (&pools_lock); };
   inline u_int32_t get_current_time() { return(current_time); };
 

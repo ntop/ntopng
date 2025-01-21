@@ -42,20 +42,19 @@ class LocalHost : public Host {
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail, *tcp_fingerprint;
   std::map<OSLearningMode, OSType> os_learning; /* How OS info has been learnt */
+  std::map<std::string, std::string> asset_map; /* For generic purposes, a <string, string> pair is done */
   /* END Host data: */
 
   void initialize();
   void deferredInitialization();
   void freeLocalHostData();
-  void addInactiveData();
+  void dumpAssetInfo(bool include_last_seen);
   virtual void deleteHostData();
+  void dumpAssetJson(ndpi_serializer *serializer);
 
   char *getMacBasedSerializationKey(char *redis_key, size_t size, char *mac_key, bool short_format);
   char *getIPBasedSerializationKey(char *redis_key, size_t size, bool short_format);
   void luaDoHDot(lua_State *vm);
-#ifdef NTOPNG_PRO
-  void dumpAssetInfo();
-#endif
   
  public:
   LocalHost(NetworkInterface *_iface, int32_t _iface_idx,
@@ -222,9 +221,12 @@ class LocalHost : public Host {
   void offlineSetDHCPName(const char *n);
   void offlineSetMDNSTXTName(const char *n);
   void offlineSetNetbiosName(const char *n);
+  void offlineSetTLSName(const char *n);
   void offlineSetHTTPName(const char *n);
   void setServerName(const char *n);
   void setResolvedName(const char *resolved_name);
+  bool addDataToAssets(char *field, char *value);
+  bool removeDataFromAssets(char *field);
 
   virtual void setOS(OSType _os, OSLearningMode mode);
   void setTCPfingerprint(char *tcp_fingerprint, enum operating_system_hint os);

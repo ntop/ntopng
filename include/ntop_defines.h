@@ -239,7 +239,6 @@
 #define DHCP_CACHE "ntopng.dhcp.%d.cache.%s"
 #define DHCP_STORM_QUEUE_NAME "ntopng.dhcp.storm.%d"
 #define ASSET_SERVICE_KEY "ntopng.asset.%d.%s" /* ifId.host */
-#define ASSET_LIST_INSERTION_KEY "ntopng.asset.device_queue.%d" /* take in sync with lua code */
 #define ASSET_HASH_CACHE_KEY "ntopng.asset.hash.cache.%d" /* take in sync with lua code */
 #define DHCP_STORM_PPS_THSHOLD 2048
 #define NTOPNG_TRACE "ntopng.trace"
@@ -1232,6 +1231,8 @@
 #define GRE_HEADER_ROUTING 0x4000  /* 32 bit */
 #define GRE_HEADER_KEY 0x2000      /* 32 bit */
 #define GRE_HEADER_SEQ_NUM 0x1000  /* 32 bit */
+
+#define PREF_FORWARDER_DEBUG NTOPNG_PREFS_PREFIX ".forwarder_debug"
 
 #define HOST_LOW_GOODPUT_THRESHOLD \
   25 /* No more than X low goodput flows per host */

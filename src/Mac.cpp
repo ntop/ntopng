@@ -70,17 +70,8 @@ Mac::Mac(NetworkInterface *_iface, u_int8_t _mac[6])
 #endif
 
 #ifdef NTOPNG_PRO
-  if ((!special_mac) && (!broadcast_mac) &&
-      ntop->getPrefs()->is_enterprise_xl_edition() &&
-      (ntop->getPrefs()->isAssetInventoryEnabled() ||
-       ntop->getPrefs()->isNetBoxEnabled()))
-    dumpAssetInfo();
-
   if ((!special_mac) && ntop->getRedis() && ntop->getPrefs()->is_enterprise_m_edition()) 
-    dumpAssetInfoToRedis(false);
-
-  if((!special_mac) && (!broadcast_mac))
-    ntop->get_am()->createMac(this);
+    dumpAssetInfo(false);
 #endif
 
   updateHostPool(true /* inline with packet processing */,
@@ -98,7 +89,7 @@ Mac::~Mac() {
 
 #ifdef NTOPNG_PRO
   if (!special_mac && ntop->getRedis() && ntop->getPrefs()->is_enterprise_m_edition()) 
-    dumpAssetInfoToRedis(true);
+    dumpAssetInfo(true);
 #endif
 
   if (model) free(model);
@@ -107,10 +98,6 @@ Mac::~Mac() {
   freeMacData();
   if (stats) delete (stats);
   if (stats_shadow) delete (stats_shadow);
-
-#ifdef NTOPNG_PRO
-  ntop->get_am()->deleteMac(this, get_first_seen(), time(NULL));
-#endif
 
 #ifdef DEBUG
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "Deleted %s [total %u][%s]",
@@ -506,38 +493,7 @@ void Mac::dumpToRedis() {
 /* *************************************** */
 
 #ifdef NTOPNG_PRO
-/* This is used for netbox */
-void Mac::dumpAssetInfo() {
-  char buf[32], *json_str = NULL;
-  ndpi_serializer device_json;
-  u_int32_t json_str_len = 0;
-  char *mac_ptr = Utils::formatMac(get_mac(), buf, sizeof(buf));
-
-  ndpi_init_serializer(&device_json, ndpi_serialization_format_json);
-
-  ndpi_serialize_string_string(&device_json, "key", mac_ptr);
-  ndpi_serialize_string_string(&device_json, "mac", mac_ptr);
-  ndpi_serialize_string_string(&device_json, "source", "traffic");
-  ndpi_serialize_string_uint32(&device_json, "first_seen", first_seen);
-  ndpi_serialize_string_uint32(&device_json, "last_seen", last_seen);
-  ndpi_serialize_string_string(&device_json, "manufacturer",
-                               manuf ? manuf : "n/a");
-  ndpi_serialize_string_uint32(&device_json, "role", device_type);
-
-  json_str = ndpi_serializer_get_buffer(&device_json, &json_str_len);
-
-  if ((json_str != NULL) && (json_str_len > 0)) {
-    char key[64];
-    snprintf(key, sizeof(key), ASSET_LIST_INSERTION_KEY, iface->get_id());
-    ntop->getRedis()->rpush(key, json_str, 1024);
-  }
-
-  ndpi_term_serializer(&device_json);
-}
-
-/* *************************************** */
-
-void Mac::dumpAssetInfoToRedis(bool dump_last_seen) {
+void Mac::dumpAssetInfo(bool dump_last_seen) {
   char mac_addr[64], *mac, *json_str;
   ndpi_serializer device_json;
   u_int32_t json_str_len = 0;
@@ -562,7 +518,6 @@ void Mac::dumpAssetInfoToRedis(bool dump_last_seen) {
 
   ndpi_term_serializer(&device_json);
 }
-
 #endif
 
 /* *************************************** */

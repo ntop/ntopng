@@ -10863,6 +10863,45 @@
         }
       }
     },
+    "/lua/rest/v2/get/host/inactive_asset.lua": {
+      "get": {
+        "tags": [
+          "Hosts"
+        ],
+        "summary": "Return the data collected by ntopng relative to an inactive asset (local host)",
+        "description": "Given a serial key (concatenation of ifid, host ip and host vlan), returns all the data relative to the host requested if present",
+        "operationId": "get_inactive_asset",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "serial_key",
+            "in": "query",
+            "description": "Host identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          }
+        }
+      }
+    },
     "/lua/rest/v2/get/host/pool/members.lua": {
       "get": {
         "tags": [
@@ -11591,6 +11630,46 @@
         "responses": {
           "0": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/get/mac/data.lua":{
+      "get":{
+        "tags": [
+          "Macs"
+        ],
+        "summary": "Get Macs traffic information",
+        "operationId": "get_macs_traffic_information",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "mac",
+            "in": "query",
+            "description": "Mac Address to get information",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-1": {
+            "description": "NOT_FOUND"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
           }
         }
       }

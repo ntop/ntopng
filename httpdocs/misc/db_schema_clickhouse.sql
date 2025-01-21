@@ -720,41 +720,6 @@ CREATE TABLE `engaged_system_alerts` (
 
 @
 
-CREATE TABLE IF NOT EXISTS `l7_protocols` (
-`id` UInt16 NOT NULL,
-`name` String NOT NULL
-) ENGINE = ReplacingMergeTree() ORDER BY (id);
-
-@
-
-CREATE TABLE IF NOT EXISTS `l7_categories` (
-`id` UInt16 NOT NULL,
-`name` String NOT NULL
-) ENGINE = ReplacingMergeTree() ORDER BY (id);
-
-@
-
-CREATE TABLE IF NOT EXISTS `l4_protocols` (
-`id` UInt16 NOT NULL,
-`name` String NOT NULL
-) ENGINE = ReplacingMergeTree() ORDER BY (id);
-
-@
-
-CREATE TABLE IF NOT EXISTS `flow_risks` (
-`id` UInt16 NOT NULL,
-`name` String NOT NULL
-) ENGINE = ReplacingMergeTree() ORDER BY (id);
-
-@
-
-CREATE TABLE IF NOT EXISTS `alert_severities` (
-`id` UInt16 NOT NULL,
-`name` String NOT NULL
-) ENGINE = ReplacingMergeTree() ORDER BY (id);
-
-@
-
 /* Remove */
 DROP TABLE IF EXISTS `aggregated_flows`;
 @

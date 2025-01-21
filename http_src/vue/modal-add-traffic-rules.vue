@@ -271,7 +271,7 @@
       </div>
       <template v-if="metric_type.id == 'percentage'">
         <div class="message alert alert-warning mt-3">
-          {{ _i18n("show_alerts.host_rules_percentage") }}
+          {{ _i18n("show_alerts.traffic_rules_percentage") }}
         </div>
       </template>
     </template>
@@ -296,8 +296,8 @@ import { default as modal } from "./modal.vue";
 import { default as SelectSearch } from "./select-search.vue";
 import { default as NoteList } from "./note-list.vue";
 import regexValidation from "../utilities/regex-validation.js";
-import NtopUtils from "../utilities/ntop-utils";
-import dataUtils from "../utilities/data-utils"
+import NtopUtils from "../utilities/ntop-utils.js";
+import dataUtils from "../utilities/data-utils.js"
 import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 
 const input_mac_list = ref("");
@@ -308,7 +308,7 @@ let has_host_pools = ref(false);
 let has_cidr = ref(false);
 const modal_id = ref(null);
 const emit = defineEmits(['add', 'edit']);
-let title = i18n('if_stats_config.add_host_rules_title');
+let title = i18n('if_stats_config.add_traffic_rules_title');
 const host_placeholder = i18n('if_stats_config.host_placeholder')
 
 const metrics_ready = ref(false)
@@ -457,7 +457,7 @@ const reset_modal_form = async function () {
   selected_flow_device_metric.value = flow_device_metric_list.value[0];
 
   is_edit_page.value = false;
-  title = i18n('if_stats_config.add_host_rules_title');
+  title = i18n('if_stats_config.add_traffic_rules_title');
   selected_frequency.value = frequency_list.value[0];
   metric_type.value = metric_type_list.value[0];
   selected_exporter_device.value = flow_exporter_devices.value[1];
@@ -597,7 +597,7 @@ const change_metric_type_hp = (set_active_one) => {
 const set_row_to_edit = (row) => {
 
   if (row != null) {
-    title = _i18n('if_stats_config.edit_host_rules_title');
+    title = _i18n('if_stats_config.edit_traffic_rules_title');
     is_edit_page.value = true;
 
     row_to_edit_id.value = row.row_id;

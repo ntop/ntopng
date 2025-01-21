@@ -588,8 +588,6 @@ void Ntop::start() {
 
 #ifdef NTOPNG_PRO
   if (!pro->forced_community_edition()) pro->printLicenseInfo();
-
-  am.init();
 #endif
 
   FlowRiskAlerts::checkUndefinedRisks();

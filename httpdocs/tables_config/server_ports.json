@@ -1,5 +1,5 @@
 {
-	"id": "server_ports_analysis",
+	"id": "server_ports",
 	"data_url": "lua/pro/rest/v2/get/host/hosts_details_by_port.lua",
 	"use_current_page": false,
 	"enable_search": false,

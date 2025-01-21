@@ -871,7 +871,7 @@ function set_report_title() {
 
 /* Callback to request REST data from components */
 function get_component_data_func(component) {
-    const get_component_data = async (url, url_params, post_params) => {
+    const get_component_data = async (url, query_params, post_params) => {
         let info = {};
         if (data_from_backup) {
             // backward compatibility (component_id was not defined)
@@ -894,6 +894,21 @@ function get_component_data_func(component) {
                     await info.data; /* wait in case of previous pending requests */
                 }
             }
+
+            /* If infrastructure monitor, call the aggregator endpoint */
+            if (props.context.is_infrastructure && !url.includes("infrastructure")) {
+                const infrastructure_proxy_url = "/lua/pro/rest/v2/get/infrastructure/aggregate.lua";
+
+                query_params['endpoint'] = url;
+                query_params['component'] = component.component;
+
+                url = infrastructure_proxy_url;
+            }
+
+            let url_params = ntopng_url_manager.obj_to_url_params(query_params);
+
+            /* Push ifid to the parameters (e.g. "ts_query=ifid:$IFID$" */
+            url_params = url_params.replaceAll("%24IFID%24" /* $IFID$ */, props.context.ifid);
 
             const data_url = `${url}?${url_params}`;
 

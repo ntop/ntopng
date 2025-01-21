@@ -25,13 +25,6 @@
 ---------------------------------
 
 --! @memberof interface
---! @brief Sets the network interface name identified by Id as active one on which to perform operations.
---! @details For more information please read the @ref ntop_set_active_interface_id documentation.
---! @tparam number id param.
---! @return The network interface name of network interface identified by Id, nill otherwise.
-function setActiveInterfaceId(id)
-
---! @memberof interface
 --! @brief Get the network interface names.
 --! @details For more information please read the @ref ntop_get_interface_names documentation.
 --! @return A table with the id of the network interface as key and the network interface name as value.

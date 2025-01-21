@@ -303,7 +303,7 @@ local function is_infrastructure(host)
     local infrastructure_utils = require("infrastructure_utils")
 
     -- The host is considered an infrastructure host if it contains the endpoint in the name
-    if host:find(infrastructure_utils.ENDPOINT_TO_EXTRACT_DATA) or host:find(infrastructure_utils.SUFFIX_THROUGHPUT) then
+    if host:find(infrastructure_utils.INSTANCE_DATA_ENDPOINT) or host:find(infrastructure_utils.THROUGHPUT_ENDPOINT) then
         local instance = infrastructure_utils.get_instance_by_host(host)
 
         if not instance then

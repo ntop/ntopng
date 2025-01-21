@@ -72,7 +72,6 @@ function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
         end
     end
 
-
     local hostinfo = {
         host = flow_info[host_type .. ".ip"],
         label = flow_info[host_type .. ".host"],
@@ -84,7 +83,7 @@ function flowinfo2hostname(flow_info, host_type, alerts_view, add_hostname)
 
     mac = flow_info[host_type .. ".mac"]
 
-    if not isEmptyString(mac) then
+    if((hostinfo.host == nil) and (not isEmptyString(mac))) then
        hostinfo.mac = mac
     end
     
@@ -112,6 +111,12 @@ local function hostinfo2label_resolved(host_info, show_vlan, shorten_len, skip_r
 
         if not isEmptyString(res) then
             res = string.lower(res)
+
+	    if(host_info.names == nil) then
+                host_info.names = {}
+	    end
+
+	    host_info.names["DNS (Cache) Resolution"] = res
         else
             -- Nothing found, just fallback to the IP address
             res = ip
