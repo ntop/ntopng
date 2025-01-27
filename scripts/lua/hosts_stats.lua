@@ -306,10 +306,6 @@ page_utils.print_navbar(i18n("hosts"), base_url .. "?", {{
     page_name = "active_hosts",
     label = i18n('active_hosts')
 }, {
-    active = page == "inactive_hosts" or page == nil,
-    page_name = "inactive_hosts",
-    label = i18n('inactive_hosts_navbar')
-}, {
     hidden = not host_ts_available or not ntop.isEnterpriseXL(),
     active = page == "local_hosts_report" or page == nil,
     page_name = "local_hosts_report",
@@ -897,14 +893,6 @@ elseif page == "active_hosts" then
         csrf = ntop.getRandomCSRFValue()
     })
     template_utils.render("pages/vue_page.template", { vue_page_name = "PageHostsList", page_context = json_context })
-elseif page == "inactive_hosts" then
-    local json = require "dkjson" 
-    local json_context = json.encode({
-        ifid = ifstats.id,
-        historical_available = hasClickHouseSupport(),
-        csrf = ntop.getRandomCSRFValue()
-    })
-    template_utils.render("pages/vue_page.template", { vue_page_name = "PageInactiveHostsList", page_context = json_context })
 elseif page == "local_hosts_report" then
     local json = require "dkjson"
     local json_context = json.encode({

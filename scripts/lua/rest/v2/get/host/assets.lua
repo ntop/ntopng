@@ -10,7 +10,7 @@ require "http_lint"
 require "lua_utils_get"
 local format_utils = require "format_utils"
 local rest_utils = require "rest_utils"
-local asset_management_utils = require "asset_management_utils"
+local asset_utils = require "asset_utils"
 
 local ifid = _GET["ifid"] or interface.getId()
 local start = _GET["start"] or 0
@@ -32,11 +32,17 @@ local gui_to_db_columns = {
     device_status = "device_status",
 }
 
+if sort == "status" then
+    -- The status sorting is pretty much the last_seen sorting
+    sort = "last_seen"
+end
+
 local filters = {
     manufacturer = _GET["manufacturer"],
     vlan = _GET["vlan"],
     device_type = _GET["device_type"],
     network = _GET["network"],
+    status = _GET["status"]
 }
 for key, value in pairs(filters) do
     if isEmptyString(value) then
@@ -44,10 +50,10 @@ for key, value in pairs(filters) do
     end
 end
 
-local tot_inactive_hosts = asset_management_utils.getNumInactiveHosts(ifid, filters)[1].count
-local inactive_hosts = asset_management_utils.getInactiveHosts(ifid, order, gui_to_db_columns[sort], start, length, filters)
+local tot_assets = asset_utils.getNumAssets(ifid, filters)[1].count
+local assets = asset_utils.getHostsAssets(ifid, order, gui_to_db_columns[sort], start, length, filters)
 
-for _, value in pairs(inactive_hosts or {}) do
+for _, value in pairs(assets or {}) do
     local record = {}
 
     local column_ip = {
@@ -121,9 +127,14 @@ for _, value in pairs(inactive_hosts or {}) do
         date = format_utils.formatPastEpochShort(value["first_seen"]),
         timestamp = value["first_seen"]
     }
+    local last_seen = tonumber(value["last_seen"])
+    local date = format_utils.formatPastEpochShort(last_seen)
+    if last_seen == 0 then
+        date = "-"
+    end
     record["last_seen"] = {
-        date = format_utils.formatPastEpochShort(value["last_seen"]),
-        timestamp = value["last_seen"]
+        date = date,
+        timestamp = last_seen
     }
     record["manufacturer"] = value["manufacturer"]
     record["key"] = value["key"]
@@ -131,5 +142,5 @@ for _, value in pairs(inactive_hosts or {}) do
 end
 
 rest_utils.extended_answer(rest_utils.consts.success.ok, rsp, {
-    ["recordsTotal"] = tonumber(tot_inactive_hosts)
+    ["recordsTotal"] = tonumber(tot_assets)
 })

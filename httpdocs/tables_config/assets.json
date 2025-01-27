@@ -1,6 +1,6 @@
 {
-	"id": "inactive_hosts_list",
-	"data_url": "lua/rest/v2/get/host/inactive_list.lua",
+	"id": "assets",
+	"data_url": "lua/rest/v2/get/host/assets.lua",
 	"use_current_page": false,
 	"enable_search": false,
 	"paging": true,
@@ -40,6 +40,16 @@
 						"btn-info"
 					],
 					"event_id": "click_button_historical_flows"
+				},
+				{
+					"id": "delete",
+					"icon": "fas fa fa-trash",
+					"title_i18n": "delete",
+					"class": [
+						"link-button",
+						"btn-info"
+					],
+					"event_id": "click_button_delete"
 				}
 			]
 		},
@@ -77,6 +87,16 @@
 			"min-width": "120px",
 			"class": [
 				"text-nowrap"
+			]
+		},
+		{
+			"title_i18n": "status",
+			"data_field": "status",
+			"sortable": true,
+			"min-width": "70px",
+			"class": [
+				"text-nowrap",
+				"text-center"
 			]
 		},
 		{

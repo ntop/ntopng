@@ -88,9 +88,8 @@ const row_render_functions = {
   throughput: function (column, row) {
     if (column.id == 'name') {
       let name = row.name;
-      if (row['instance_id']) {
+      if (row['instance_name'])
         name = `${row.name} [${row.instance_name}]`;
-      }
       if (row['url'])
         return `<a href='${row.url}'>${name}</a>`;
       else
@@ -188,7 +187,7 @@ async function refresh_table() {
         ...props.filters
   }
  
-  let data = await props.get_component_data(`${http_prefix}${props.params.url}`, url_params);
+  let data = await props.get_component_data(`${http_prefix}${props.params.url}`, url_params, undefined, props.epoch_begin);
 
   let rows = [];
   if (props.params.table_type == 'db_search') {

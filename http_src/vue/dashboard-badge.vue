@@ -45,7 +45,6 @@ const props = defineProps({
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */
 watch(() => [props.epoch_begin, props.epoch_end, props.filters], (cur_value, old_value) => {
-
   refresh_component();
 }, { flush: 'pre', deep: true });
 
@@ -81,7 +80,7 @@ async function refresh_component() {
       ...props.filters
     }
 
-    let data = await props.get_component_data(`${http_prefix}${props.params.url}`, url_params);
+    let data = await props.get_component_data(`${http_prefix}${props.params.url}`, url_params, undefined, props.epoch_begin);
 
     /* TODO handle dot-separated path for non-flat json */
     let counter_value = data[props.params.counter_path];
@@ -89,10 +88,9 @@ async function refresh_component() {
     if(props.params.counter_formatter == "no_formatting") {
        counter.value = counter_value;
     } else {
-      let counter_formatter = data[props.params.counter_formatter];
-      if (!counter_formatter) {
+      let counter_formatter = props.params.counter_formatter;
+      if (!counter_formatter)
         counter_formatter = "number";
-      }
 
       let formatCounter = formatterUtils.getFormatter(counter_formatter);
       counter.value = formatCounter(counter_value)

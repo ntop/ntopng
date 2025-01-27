@@ -8,14 +8,10 @@ section.
     :maxdepth: 2
     :numbered:
 
-    access_control_list
-    host_policy
     authentication
     behavior_analysis
     bridging_and_policing
     category_lists
-    device_protocols
-    devices_exclusion
     dynamic_interfaces_disaggregation
     flows_dump
     ids_acceleration
@@ -25,8 +21,6 @@ section.
     sflow_collection
     snapshots
     syslog
-    traffic_profiles
-    traffic_rules
     view_interfaces
     additional_features
 

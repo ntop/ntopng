@@ -1,8 +1,3 @@
---! @brief Set the *active interface* by using the interface id.
---! @param id the interface id.
---! @return the interface name on success, nil otherwise.
-function interface.setActiveInterfaceId(int id)
-
 --! @brief Get the available ntopng network interfaces.
 --! @return a table containing (ifid -> ifname) mappings.
 function interface.getIfNames()

@@ -705,11 +705,11 @@ function graph_utils.merge_pie_data(aggregated_data, data, max_values)
    -- Note: aggregated_data may be nil
    local items = {}
    if aggregated_data then
-      for _, l in ipairs(aggregated_data.labels) do
+      for _, l in ipairs(aggregated_data.labels or {}) do
          items[l] = aggregated_data.series[_]
       end
    end
-   for _, l in ipairs(data.labels) do
+   for _, l in ipairs(data.labels or {}) do
       if items[l] then
          items[l] = items[l] + data.series[_]
       else

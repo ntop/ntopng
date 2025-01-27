@@ -11,7 +11,7 @@ local json = require "dkjson"
 
 -- ##############################################
 
-local asset_management_utils = {}
+local asset_utils = {}
 local table_name = "assets"
 
 -- ##############################################
@@ -51,7 +51,7 @@ local function partiallyFormatInfo(res)
             tmp["os_type"] = json_info["os_type"]
             json_info["os_type"] = nil
         end
-        
+
         local resolved_names = {}
         if table.len(json_info) > 0 then
             resolved_names["mdns_name"] = json_info["mdns_name"]
@@ -83,7 +83,7 @@ local function partiallyFormatInfo(res)
             if resolved_names["dns_name"] then
                 json_info["dns_name"] = nil
             end
-            tmp["names"] = resolved_names 
+            tmp["names"] = resolved_names
         end
 
         tmp.json_info = json_info
@@ -155,6 +155,10 @@ local function getAssetData(ifid, order, sort, start, length, filters, asset_typ
     end
     local where = ""
 
+    -- Exception for the status filter, it's last_seen = 0 or last_seen != 0
+    local status_filter = filters["status"]
+    filters["status"] = nil
+
     for key, value in pairs(filters or {}) do
         where = where .. "AND"
         if tonumber(value) then
@@ -166,11 +170,21 @@ local function getAssetData(ifid, order, sort, start, length, filters, asset_typ
         where = string.format("%s %s=%s ", where, key, value)
     end
 
+    if status_filter then
+        where = string.format("%s AND %s%s%s", where, "last_seen", ternary(status_filter == "0", "=", "!="), "0")
+    end
+    filters["status"] = status_filter
+
     local sort_query = ""
     local limit_query = ""
 
     if sort and order then
-        sort_query = string.format("ORDER BY %s %s", sort, order)
+        if sort == "last_seen" then
+            -- Set last seen = 0 at start or end
+            sort_query = string.format("ORDER BY (%s = 0) %s, %s %s", sort, order, sort, order)
+        else
+            sort_query = string.format("ORDER BY %s %s", sort, order)
+        end
     end
 
     if start and length then
@@ -182,18 +196,16 @@ local function getAssetData(ifid, order, sort, start, length, filters, asset_typ
     if hasClickHouseSupport() then
         query = string.format(
             "SELECT a.type, a.key, a.ifid, a.ip, a.mac, a.vlan, a.network, a.name, a.device_type, a.manufacturer, %s, %s, a.gateway_mac, a.json_info, a.version" ..
-                " FROM %s a INNER JOIN (SELECT type, key, MAX(version) AS max_version FROM %s WHERE type='%s' %s AND ifid=%d %s GROUP BY type, key) AS latest" ..
+                " FROM %s a INNER JOIN (SELECT type, key, MAX(version) AS max_version FROM %s WHERE type='%s' AND ifid=%d %s GROUP BY type, key) AS latest" ..
                 " ON a.type = latest.type AND a.key = latest.key AND a.version = latest.max_version %s %s",
             ternary(hasClickHouseSupport(), "toUnixTimestamp(a.last_seen) as last_seen", "a.last_seen"),
             ternary(hasClickHouseSupport(), "toUnixTimestamp(a.first_seen) as first_seen", "a.first_seen"), table_name,
             table_name, asset_type, -- Only hosts here
-            ternary(check_last_seen, 'AND last_seen!=0', ''), -- 0 Because by default an host that is still in memory has a last_seen 0
             tonumber(ifid), where, sort_query, limit_query)
     else
         query = string.format(
             "SELECT type, key, ifid, ip, mac, vlan, network, name, device_type, manufacturer, last_seen, first_seen, gateway_mac, json_info" ..
-                " FROM %s WHERE type='%s' %s AND ifid=%d %s %s %s", table_name, asset_type, -- Only hosts here
-            ternary(check_last_seen, 'AND last_seen!=0', ''), -- 0 Because by default an host that is still in memory has a last_seen 0
+                " FROM %s WHERE type='%s' AND ifid=%d %s %s %s", table_name, asset_type, -- Only hosts here
             tonumber(ifid), where, sort_query, limit_query)
     end
     return interface.alert_store_query(query)
@@ -206,6 +218,9 @@ local function getNumAssets(ifid, filters, asset_type, check_last_seen)
         ifid = interface.getId()
     end
     local where = ""
+    -- Exception for the status filter, it's last_seen = 0 or last_seen != 0
+    local status_filter = filters["status"]
+    filters["status"] = nil
 
     for key, value in pairs(filters) do
         where = where .. "AND"
@@ -218,18 +233,21 @@ local function getNumAssets(ifid, filters, asset_type, check_last_seen)
         where = string.format("%s %s=%s ", where, key, value)
     end
 
+    if status_filter then
+        where = string.format("%s AND %s%s%s", where, "last_seen", ternary(status_filter == "0", "=", "!="), "0")
+    end
+    filters["status"] = status_filter
+
     local query = nil
     if hasClickHouseSupport() then
         query = string.format(
-            "SELECT count(*) as count FROM %s a INNER JOIN (SELECT type, key, MAX(version) AS max_version FROM %s WHERE type='%s' %s AND ifid=%d %s GROUP BY type, key) AS latest" ..
+            "SELECT count(*) as count FROM %s a INNER JOIN (SELECT type, key, MAX(version) AS max_version FROM %s WHERE type='%s' AND ifid=%d %s GROUP BY type, key) AS latest" ..
                 " ON a.type = latest.type AND a.key = latest.key AND a.version = latest.max_version", table_name,
             table_name, asset_type, -- Only hosts here
-            ternary(check_last_seen, 'AND last_seen!=0', ''), -- 0 Because by default an host that is still in memory has a last_seen 0
             tonumber(ifid), where)
     else
-        query = string.format("SELECT COUNT(*) as count " .. "FROM %s WHERE type='%s' %s %s AND ifid=%d", table_name,
-            asset_type, where, ternary(check_last_seen, 'AND last_seen!=0', ''), -- 0 Because by default an host that is still in memory has a last_seen 0
-            ifid)
+        query = string.format("SELECT COUNT(*) as count " .. "FROM %s WHERE type='%s' %s AND ifid=%d", table_name,
+            asset_type, where, ifid)
     end
 
     return interface.alert_store_query(query)
@@ -244,7 +262,7 @@ end
 -- ##############################################
 
 -- @brief insert assetkey
-function asset_management_utils.getLastVersion(ifid)
+function asset_utils.getLastVersion(ifid)
     local query = string.format("SELECT version FROM %s WHERE ifid=%d ORDER BY version DESC LIMIT 1", table_name, ifid)
     local last_version = interface.alert_store_query(query)
     if table.len(last_version) == 0 then
@@ -258,7 +276,7 @@ end
 -- ##############################################
 
 -- @brief insert assetkey
-function asset_management_utils.insertHost(entry, version, ifid)
+function asset_utils.insertHost(entry, version, ifid)
     local query = nil
     entry = updateData(entry, ifid, "host")
 
@@ -286,7 +304,7 @@ function asset_management_utils.insertHost(entry, version, ifid)
     return interface.alert_store_query(query)
 end
 
-function asset_management_utils.insertMac(entry, version, ifid)
+function asset_utils.insertMac(entry, version, ifid)
     local query = nil
     entry = updateData(entry, ifid, "mac")
     if hasClickHouseSupport() then
@@ -311,35 +329,35 @@ end
 
 -- ##############################################
 
-function asset_management_utils.getDevices(ifid, order, sort, start, length, filters)
+function asset_utils.getDevicesAssets(ifid, order, sort, start, length, filters)
     return getAssetData(ifid, order, sort, start, length, filters, "mac" --[[ Asset Type ]] , false)
 end
 
 -- ##############################################
 
 -- Return the lists of inactive hosts from the DB
-function asset_management_utils.getInactiveHosts(ifid, order, sort, start, length, filters)
+function asset_utils.getHostsAssets(ifid, order, sort, start, length, filters)
     return getAssetData(ifid, order, sort, start, length, filters, "host" --[[ Asset Type ]] , true)
 end
 
 -- ##############################################
 
 -- Return the lists of inactive hosts from the DB
-function asset_management_utils.getNumDevices(ifid, filters)
+function asset_utils.getNumDevices(ifid, filters)
     return getNumAssets(ifid, filters, "mac", false)
 end
 
 -- ##############################################
 
 -- Return the lists of inactive hosts from the DB
-function asset_management_utils.getNumInactiveHosts(ifid, filters)
+function asset_utils.getNumAssets(ifid, filters)
     return getNumAssets(ifid, filters, "host", true)
 end
 
 -- ##############################################
 
 -- Return the lists of inactive hosts from the DB
-function asset_management_utils.getFilters(ifid)
+function asset_utils.getFilters(ifid)
     if not ifid then
         ifid = interface.getId()
     end
@@ -361,13 +379,13 @@ end
 
 -- ##############################################
 
-function asset_management_utils.getInactiveHostInfo(ifid, key)
+function asset_utils.getInactiveHostInfo(ifid, key)
     return getAssetInfo(ifid, key, "host")
 end
 
 -- ##############################################
 
-function asset_management_utils.getMacInfo(ifid, key)
+function asset_utils.getMacInfo(ifid, key)
     return getAssetInfo(ifid, key, "mac")
 end
 
@@ -375,18 +393,18 @@ end
 
 -- Edit a list of macs with the specified trigger_alert value
 
-function asset_management_utils.editMacList(device_list, trigger_alert, ifid)
+function asset_utils.editMacList(device_list, trigger_alert, ifid)
     for _, device in pairs(device_list) do
-        asset_management_utils.editMac(device, trigger_alert, "allowed", ifid)
+        asset_utils.editMac(device, trigger_alert, "allowed", ifid)
     end
 end
 
 -- ##############################################
 
-function asset_management_utils.editMac(device, trigger_alert, mac_status, ifid)
+function asset_utils.editMac(device, trigger_alert, mac_status, ifid)
     if isMacAddress(device) then
         local key = get_mac_serialization_key(device, ifid)
-        local fields = asset_management_utils.getMacInfo(ifid, key)
+        local fields = asset_utils.getMacInfo(ifid, key)
         if fields and table.len(fields) > 0 then
             fields = fields[1]
             fields = updateJsonField(fields, {
@@ -394,7 +412,7 @@ function asset_management_utils.editMac(device, trigger_alert, mac_status, ifid)
                 trigger_alert = trigger_alert
             })
             if hasClickHouseSupport() then
-                asset_management_utils.insertMac(fields, tonumber(fields.version) + 1, tonumber(ifid))
+                asset_utils.insertMac(fields, tonumber(fields.version) + 1, tonumber(ifid))
             else
                 local update_query = string.format(
                     "UPDATE %s SET `json_info`='%s' WHERE type='mac' AND ifid=%d AND key='%s'", table_name,
@@ -407,19 +425,19 @@ end
 
 -- ##############################################
 
-function asset_management_utils.deleteAll(ifid)
+function asset_utils.deleteAll(ifid, type)
     local query = ""
     if hasClickHouseSupport() then
-        query = string.format("ALTER TABLE %s DELETE WHERE type='mac' and ifid=%d", table_name, tonumber(ifid))
+        query = string.format("ALTER TABLE %s DELETE WHERE type='%s' and ifid=%d", table_name, type, tonumber(ifid))
     else
-        query = string.format("DELETE FROM %s WHERE type='mac' and ifid=%d", table_name, tonumber(ifid))
+        query = string.format("DELETE FROM %s WHERE type='%s' and ifid=%d", table_name, type, tonumber(ifid))
     end
     interface.alert_store_query(query)
 end
 
 -- ##############################################
 
-function asset_management_utils.deleteMac(device, ifid)
+function asset_utils.deleteMac(device, ifid)
     local key = get_mac_serialization_key(device, ifid)
     local query = ""
 
@@ -432,4 +450,32 @@ function asset_management_utils.deleteMac(device, ifid)
     interface.alert_store_query(query)
 end
 
-return asset_management_utils
+-- ##############################################
+
+function asset_utils.deleteHost(ifid, serial_key)
+    local query = ""
+
+    if hasClickHouseSupport() then
+        query = string.format("ALTER TABLE %s DELETE WHERE key='%s' AND type='host' AND ifid=%s", table_name, serial_key, ifid)
+    else
+        query = string.format("DELETE FROM %s WHERE key='%s' and type='host' AND ifid=%s", table_name, serial_key, ifid)
+    end
+
+    interface.alert_store_query(query)
+end
+
+-- ##############################################
+
+function asset_utils.deleteAllEntriesSince(ifid, type, last_seen)
+    local query = ""
+
+    if hasClickHouseSupport() then
+        query = string.format("ALTER TABLE %s DELETE WHERE type='%s' AND ifid=%s AND last_seen<%s AND last_seen != 0", table_name, type, ifid, last_seen)
+    else
+        query = string.format("DELETE FROM %s WHERE type='%s' AND ifid=%s AND last_seen<%s AND last_seen != 0", table_name, type, ifid, last_seen)
+    end
+
+    interface.alert_store_query(query)
+end
+
+return asset_utils

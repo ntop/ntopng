@@ -54,7 +54,7 @@ const get_url_params = () => {
 function get_chart_options() {
     const url = base_url.value;
     const url_params = get_url_params();
-    return props.get_component_data(url, url_params);
+    return props.get_component_data(url, url_params, undefined, props.epoch_begin);
 }
 
 /* Watch - detect changes on epoch_begin / epoch_end and refresh the component */

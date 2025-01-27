@@ -82,7 +82,7 @@ async function get_sankey_data() {
         ...props.filters
     }
 
-    let graph = await props.get_component_data(url, query_params);
+    let graph = await props.get_component_data(url, query_params, undefined, props.epoch_begin);
 
     graph = make_complete_graph(graph);
 

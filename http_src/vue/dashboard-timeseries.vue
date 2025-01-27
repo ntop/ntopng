@@ -260,7 +260,7 @@ async function get_chart_options() {
     }
   }
   /* Have to be used this get_component_data, in order to create report too */
-  let result = await props.get_component_data(url, {}, post_params);
+  let result = await props.get_component_data(url, {}, post_params, props.epoch_begin);
   /* Format the result in the format needed by Dygraph */
   result = timeseriesUtils.tsArrayToOptionsArray(result, timeseries_groups.value, group_option_mode, '');
   if (result[0]) {

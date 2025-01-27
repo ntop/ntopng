@@ -39,6 +39,5 @@ Below you can find the list of check families and available alerts
     system_checks
     active_monitoring_checks
     syslog_checks
-    host_rules
     
 

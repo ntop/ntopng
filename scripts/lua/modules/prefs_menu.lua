@@ -190,6 +190,10 @@ local menu_subpages = {{
             title = i18n("prefs.toggle_active_local_host_cache_enabled_title"),
             description = i18n("prefs.toggle_active_local_host_cache_enabled_description")
         },
+        toggle_assets_collection = {
+            title = i18n("prefs.toggle_assets_collection"),
+            description = i18n("prefs.toggle_assets_collection_description")
+        },
         active_local_host_cache_interval = {
             title = i18n("prefs.active_local_host_cache_interval_title"),
             description = i18n("prefs.active_local_host_cache_interval_description")

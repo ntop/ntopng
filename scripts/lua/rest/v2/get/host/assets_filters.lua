@@ -8,7 +8,7 @@ require "lua_utils"
 require "mac_utils"
 local rest_utils = require "rest_utils"
 local discover_utils = require "discover_utils"
-local asset_management_utils = require "asset_management_utils"
+local asset_utils = require "asset_utils"
 
 if not isAdministratorOrPrintErr() then
     rest_utils.answer(rest_utils.consts.err.not_granted)
@@ -19,7 +19,7 @@ end
 
 local ifid = _GET["ifid"] or interface.getId()
 
-local available_filters = asset_management_utils.getFilters(ifid)
+local available_filters = asset_utils.getFilters(ifid)
 local rsp = {}
 local filters = {}
 
@@ -27,8 +27,10 @@ for _, value in pairs(available_filters or {}) do
     if not filters[value.filter] then
         filters[value.filter] = {}
     end
-
-    filters[value.filter][value.value] = value.count
+    
+    if value.value then
+        filters[value.filter][value.value] = value.count
+    end
 end
 
 for key, value in pairsByKeys(filters or {}, asc) do
@@ -47,7 +49,7 @@ for key, value in pairsByKeys(filters or {}, asc) do
     for name, count in pairsByKeys(value or {}) do
         local value = name
         if isEmptyString(value) then
-           goto continue 
+            goto continue
         end
         if tonumber(name) then
             value = tonumber(name)
@@ -83,5 +85,26 @@ for key, value in pairsByKeys(filters or {}, asc) do
         value = filter_list
     }
 end
+
+local status_filters = {{
+    key = "status",
+    value = "",
+    label = i18n("all")
+}, {
+    key = "status",
+    value = "0",
+    label = i18n('active')
+}, {
+    key = "status",
+    value = "1",
+    label = i18n('inactive')
+}}
+
+rsp[#rsp + 1] = {
+    action = "status",
+    label = i18n("status"),
+    name = "status",
+    value = status_filters
+}
 
 rest_utils.answer(rest_utils.consts.success.ok, rsp)

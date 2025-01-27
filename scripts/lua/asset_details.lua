@@ -14,7 +14,7 @@ page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.hosts)
 dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 local title = " "
-local url = ntop.getHttpPrefix() .. "/lua/inactive_host_details.lua?"
+local url = ntop.getHttpPrefix() .. "/lua/asset_details.lua?"
 
 page_utils.print_navbar(title, url, {{
     active = true,
@@ -27,7 +27,7 @@ local json_context = json.encode({
     ifid = interface.getId(),
     csrf = ntop.getRandomCSRFValue()
 })
-template_utils.render("pages/vue_page.template", { vue_page_name = "PageInactiveHostDetails", page_context = json_context })
+template_utils.render("pages/vue_page.template", { vue_page_name = "PageAssetDetails", page_context = json_context })
 
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

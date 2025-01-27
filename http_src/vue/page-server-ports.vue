@@ -36,7 +36,7 @@
                         </div>
                     </div>
                     <div>
-                        <TableWithConfig ref="table_server_ports_analysis" :csrf="csrf" :table_id="table_id"
+                        <TableWithConfig ref="table_server_ports" :csrf="csrf" :table_id="table_id"
                             :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
                             @custom_event="on_table_custom_event">
                             <template v-slot:custom_header>
@@ -71,7 +71,7 @@
 <script setup>
 import { ref, onMounted, nextTick } from "vue";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
-import NtopUtils from "../utilities/ntop-utils";
+import NtopUtils from "../utilities/ntop-utils.js";
 import { default as Spinner } from "./spinner.vue";
 
 import { default as TableWithConfig } from "./table-with-config.vue";
@@ -109,10 +109,10 @@ const criteria_list_def = [
 
 /* Consts */
 const selected_criteria = ref(criteria_list_def[0]);
-const table_id = ref('server_ports_analysis');
+const table_id = ref('server_ports');
 const selected_port = ref({});
 const selected_application = ref({});
-const table_server_ports_analysis = ref();
+const table_server_ports = ref();
 
 let port_list = ref([]);
 let application_list = ref([]);
@@ -156,7 +156,7 @@ onMounted(async () => {
     }
 
     load_table_filters_overview();
-    table_server_ports_analysis.value.refresh_table();
+    table_server_ports.value.refresh_table();
 
 
 });
@@ -170,20 +170,20 @@ const get_extra_params_obj = () => {
 /* Function to update L4 Protocol */
 async function update_criteria() {
     await update_dropdown_menus(false);
-    table_server_ports_analysis.value.refresh_table();
+    table_server_ports.value.refresh_table();
 
 };
 
 /* Function to update Application */
 async function update_port_list() {
     await update_dropdown_menus(true)
-    table_server_ports_analysis.value.refresh_table();
+    table_server_ports.value.refresh_table();
 }
 
 /* Function to update port */
 function update_port() {
     set_port_in_url();
-    table_server_ports_analysis.value.refresh_table();
+    table_server_ports.value.refresh_table();
 }
 
 function set_port_in_url() {
@@ -282,7 +282,7 @@ function add_table_filter(opt, event) {
     event.stopPropagation();
     ntopng_url_manager.set_key_to_url(opt.key, `${opt.value}`);
     set_filter_array_label();
-    table_server_ports_analysis.value.refresh_table();
+    table_server_ports.value.refresh_table();
 }
 
 /* Function to update dropdown menus */

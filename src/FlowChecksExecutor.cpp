@@ -82,8 +82,7 @@ void FlowChecksExecutor::execChecks(Flow *f, FlowChecks c) {
     t1 = Utils::getTimeNsec();
 #endif
 
-    // ntop->getTrace()->traceEvent(TRACE_ERROR, "->> %s",
-    // fc->getName().c_str());
+    // ntop->getTrace()->traceEvent(TRACE_ERROR, "%s", fc->getName().c_str());
 
     switch (c) {
       case flow_check_flow_begin:

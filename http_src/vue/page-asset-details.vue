@@ -22,8 +22,8 @@ import { default as BootstrapTable } from "./bootstrap-table.vue";
 
 const _i18n = (t) => i18n(t);
 
-const url = "/lua/rest/v2/get/host/inactive_host.lua";
-const table_id = ref('inactive_host_details');
+const url = "/lua/rest/v2/get/host/asset_details.lua";
+const table_id = ref('asset_details');
 const props = defineProps({
   ifid: Number,
   csrf: String,

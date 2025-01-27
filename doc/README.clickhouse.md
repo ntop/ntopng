@@ -2,6 +2,10 @@
 For more information about howto use ClickHouse in ntopng please see
 - https://www.ntop.org/guides/ntopng/clickhouse.html
 
+# Usage Recommendations
+We recommend you to [read this document](https://clickhouse.com/docs/en/operations/tips#:~:text=You%20can%20use%20ClickHouse%20in,mark%20cache%20in%20the%20config), in particular, if your system has limited resources such as memory and disk
+
+
 # Clickhouse Is Eating All My Disk/Memory
 You can instruct ntopng to limit disk space usage by setting data retention in preferences to a low value. By default we store 30 days but that can take a lot of disk soace on large networks In this case you can reduce it a bit (e.g. to 7 days).
 

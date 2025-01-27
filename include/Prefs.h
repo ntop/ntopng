@@ -65,7 +65,7 @@ class Prefs {
     tls_quic_hostnaming;
   u_int32_t behaviour_analysis_learning_period;
   u_int32_t iec60870_learning_period, modbus_learning_period,
-    devices_learning_period, mac_address_cache_duration;
+    devices_learning_period, mac_address_cache_duration, enable_assets_collection;
   u_int32_t host_port_learning_period;
 #ifdef NTOPNG_PRO
   ndpi_bitmap* modbus_allowed_function_codes;
@@ -717,6 +717,7 @@ class Prefs {
 #endif
   inline u_int32_t devicesLearingPeriod() { return (devices_learning_period); };
   inline u_int32_t macAddressCacheDuration() { return (mac_address_cache_duration); };
+  inline bool isAssetsCollectionEnabled() { return (enable_assets_collection); };
   inline u_int32_t hostPortLearningPeriod() { return (host_port_learning_period); };
   inline bool are_alerts_disabled() { return (disable_alerts); };
   inline bool dontEmitFlowAlerts() {

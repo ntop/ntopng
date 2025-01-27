@@ -757,11 +757,11 @@ public:
   void updateServiceMap(Flow *f);
 
   /* Access Control List */
-  inline bool insertIPACL(u_int8_t protocol, char *src, char *dst, u_int16_t port, u_int16_t l7_proto, bool is_allowed) {
+  inline bool insertIPACL(u_int8_t protocol, char *src, char *dst, char* port, u_int16_t l7_proto, bool is_allowed) {
     if (acl_flow) return acl_flow->insertIPACL(protocol, src, dst, port, l7_proto, is_allowed);
     return false;
   }
-  inline bool removeIPACL(u_int8_t protocol, char *src, char *dst, u_int16_t port, u_int16_t l7_proto) {
+  inline bool removeIPACL(u_int8_t protocol, char *src, char *dst, char* port, u_int16_t l7_proto) {
     if (acl_flow) return acl_flow->removeIPACL(protocol, src, dst, port, l7_proto);
     return false;
   }

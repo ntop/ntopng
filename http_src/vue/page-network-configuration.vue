@@ -5,7 +5,9 @@
         </div>
         <div class="card card-shadow">
             <div class="card-body">
-                <table class="table table-striped table-bordered col-sm-12">
+                <Loading v-if="loading"></Loading>
+                <table class="table table-striped table-bordered col-sm-12"
+                    :class="[(loading) ? 'ntopng-gray-out' : '']">
                     <tbody class="table_length">
                         <tr v-for="(value, key) in check_name" :key="key" class="mb-4">
                             <td>
@@ -42,6 +44,7 @@ import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { ntopng_utility } from "../services/context/ntopng_globals_services.js";
 import { default as NoteList } from "./note-list.vue";
 import regexValidation from "../utilities/regex-validation.js";
+import { default as Loading } from "./loading.vue";
 
 const _i18n = (t) => i18n(t);
 
@@ -54,10 +57,11 @@ const notes = [
     _i18n("network_configuration.uses_of_servers")
 ]
 
+const loading = ref(false);
 const ipAddresses = reactive({});
 const validationErrors = reactive({});
 const set_config_url = `${http_prefix}/lua/rest/v2/set/network/config.lua`
-const get_config_url = `${http_prefix}/lua/rest/v2/get/network/config.lua?ifid=${props.context.ifid}`
+const get_config_url = `${http_prefix}/lua/rest/v2/get/network/config.lua`
 const modifiedInputs = ref([]);
 const disable_save = ref(true)
 
@@ -94,6 +98,7 @@ onMounted(() => {
 
 // Function used to populate text area with data received from the backend at page initialization
 const getConfig = async () => {
+    loading.value = true;
     const data = await ntopng_utility.http_request(get_config_url)
 
     data.forEach(item => {
@@ -104,6 +109,7 @@ const getConfig = async () => {
                 : item.value_description;
         }
     })
+    loading.value = false;
 };
 
 /* ************************************** */
@@ -137,7 +143,6 @@ const validateIpAddresses = () => {
 
 const reloadIp = function () {
     saveConfig()
-    getConfig();
 }
 
 // Function used to post data to the backend and save the values in
@@ -157,10 +162,11 @@ const saveConfig = async () => {
 
         await ntopng_utility.http_post_request(set_config_url, data)
         modifiedInputs.value = [];
-
+        loading.value = true;
         // Show success when saved
         saveSuccess.value = true;
         setTimeout(() => {
+            getConfig();
             saveSuccess.value = false;
         }, 1500);
     }

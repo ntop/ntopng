@@ -11,7 +11,7 @@ ntopng has the ability to create alerts; there are various alerts family (Flow, 
     syslog_checks
 
 
-Here a couple of examples of alerts:
+Here a couple of examples:
 
 .. toctree::
     :maxdepth: 2

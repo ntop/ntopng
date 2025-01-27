@@ -457,9 +457,10 @@ async function set_templates_list(report_template) {
 let dasboard_loop_interval;
 
 /* Dashboard update interval/frequency */
-const loop_interval = 10 * 1000;
+const REFRESH_INTERVAL_SEC = 10;
 
 function start_dashboard_refresh_loop() {
+    const loop_interval = REFRESH_INTERVAL_SEC * 1000;
     dasboard_loop_interval = setInterval(() => {
         set_components_epoch_interval();
     }, loop_interval);
@@ -764,16 +765,16 @@ const delete_report = async (file_name) => {
 /* Dump report content - keep in sync with dashboard_utils.build_report (lua) */
 const serialize_report = async (name) => {
 
-    let components_data = {};
+    let tmp_components_data = {};
     for (var key in components_info) {
-        components_data[key] = await components_info[key].data;
+        tmp_components_data[key] = await components_info[key].data;
     }
 
     let content = {
         version: "1.0", // Report dump version
         name: name,
         template: components.value,
-        data: components_data
+        data: tmp_components_data
     };
 
     if (main_epoch_interval.value &&
@@ -871,7 +872,7 @@ function set_report_title() {
 
 /* Callback to request REST data from components */
 function get_component_data_func(component) {
-    const get_component_data = async (url, query_params, post_params) => {
+    const get_component_data = async (url, query_params, post_params, refresh_epoch) => {
         let info = {};
         if (data_from_backup) {
             // backward compatibility (component_id was not defined)
@@ -886,43 +887,62 @@ function get_component_data_func(component) {
             }
             loading.value = false;
         } else {
+            /* datasource_id is an optimization for components getting live data
+             * from the same endpoint (e.g. multiple badges in the infrastructure dashboard) */
+            let datasource_id = component.datasource_id ? component.datasource_id : component.component_id
 
             /* Check if there is already a promise for the same request */
-            if (components_info[component.component_id]) {
-                info = components_info[component.component_id];
-                if (info.data) {
+            let pending = false;
+            if (components_info[datasource_id]) {
+                info = components_info[datasource_id];
+                if (info.data && !info.data.done) {
+                    pending = true;
                     await info.data; /* wait in case of previous pending requests */
                 }
             }
 
-            /* If infrastructure monitor, call the aggregator endpoint */
-            if (props.context.is_infrastructure) {
-                const infrastructure_proxy_url = "/lua/pro/rest/v2/get/infrastructure/aggregate.lua";
+            if (pending /* pending request from previous iteration (slow) */
+                /* or other component calling the same endpoint (same time slot) */
+                || (info.refresh_epoch && info.refresh_epoch == refresh_epoch)) {
+                /* Use data from other/pending requests */
 
-                query_params['endpoint'] = url;
-                query_params['component'] = component.component;
-
-                url = infrastructure_proxy_url;
-            }
-
-            let url_params = ntopng_url_manager.obj_to_url_params(query_params);
-
-            /* Push ifid to the parameters (e.g. "ts_query=ifid:$IFID$" */
-            url_params = url_params.replaceAll("%24IFID%24" /* $IFID$ */, props.context.ifid);
-
-            const data_url = `${url}?${url_params}`;
-
-            loading.value = true;
-            if (post_params) {
-                info.data = ntopng_utility.http_post_request(data_url, post_params)
             } else {
-                info.data = ntopng_utility.http_request(data_url);
-            }
-            info.data.then(() => {
-                loading.value = false;
-            });
+                /* Request fresh data */
 
-            components_info[component.component_id] = info;
+                /* If infrastructure monitor, call the aggregator endpoint */
+                if (props.context.is_infrastructure && !url.includes("infrastructure")) {
+                    const infrastructure_proxy_url = "/lua/pro/rest/v2/get/infrastructure/aggregate.lua";
+
+                    query_params['endpoint'] = url;
+                    query_params['component'] = component.component;
+
+                    url = infrastructure_proxy_url;
+                }
+
+                let url_params = ntopng_url_manager.obj_to_url_params(query_params);
+
+                /* Push ifid to the parameters (e.g. "ts_query=ifid:$IFID$" */
+                url_params = url_params.replaceAll("%24IFID%24" /* $IFID$ */, props.context.ifid);
+
+                const data_url = `${url}?${url_params}`;
+
+                loading.value = true;
+
+                if (post_params) {
+                    info.data = ntopng_utility.http_post_request(data_url, post_params)
+                } else {
+                    info.data = ntopng_utility.http_request(data_url);
+                }
+
+                info.refresh_epoch = refresh_epoch;
+                components_info[datasource_id] = info;
+
+                info.data.then(() => {
+                    info.data.done = true;
+                    loading.value = false;
+                });
+
+            }
         }
         return info.data;
     };

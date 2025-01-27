@@ -142,7 +142,7 @@
 #define REST_API_PREFIX "/lua/rest/"
 #define REST_API_PRO_PREFIX "/lua/pro/rest/"
 #define INTERFACE_DATA_URL "/lua/rest/get/interface/data.lua"
-#define MAX_PASSWORD_LEN 32 + 1      /* \0 */
+#define MAX_PASSWORD_LEN 128 + 1      /* \0 */
 #define HTTP_SESSION_DURATION 43200  // 12h
 #define HTTP_SESSION_MIDNIGHT_EXPIRATION false
 #define EXTENDED_HTTP_SESSION_DURATION 604800  // 7d
@@ -347,6 +347,7 @@
 #define CONST_INTERFACE_TYPE_DB "db"
 #define CONST_INTERFACE_TYPE_UNKNOWN "unknown"
 
+#define CONST_ASSETS_PERIODIC_UPDATE 600      /* 10 min */
 #define CONST_DEMO_MODE_DURATION 600          /* 10 min */
 #define CONST_MAX_DUMP_DURATION 300           /* 5 min */
 #define CONST_MAX_NUM_PACKETS_PER_LIVE 100000 /* live captures via HTTP */
@@ -573,7 +574,6 @@
 #define HASHKEY_IFACE_TOP_OS "ntopng.cache.top_os"
 #define HASHKEY_IFACE_TOP_OS_HOUR_KEYS_PUSHED "ntopng.cache.top_os_hour_done"
 #define HASHKEY_IFACE_TOP_OS_DAY_KEYS_PUSHED "ntopng.cache.top_os_day_done"
-#define HASHKEY_LOCALHOST_RX_ONLY "ntopng.cache.localhost_host_rx_only"
 
 #define CONST_DEFAULT_DOCS_DIR "httpdocs"
 #define CONST_DEFAULT_SCRIPTS_DIR "scripts"
@@ -850,6 +850,8 @@
   NTOPNG_PREFS_PREFIX ".is_active_local_host_cache_enabled"
 #define CONST_RUNTIME_ACTIVE_LOCAL_HOSTS_CACHE_INTERVAL \
   NTOPNG_PREFS_PREFIX ".active_local_host_cache_interval"
+#define CONST_RUNTIME_ENABLE_ASSETS_COLLECTION \
+  NTOPNG_PREFS_PREFIX ".enable_assets_collection"
 #define CONST_RUNTIME_MAC_ADDRESS_CACHE_DURATION \
   NTOPNG_PREFS_PREFIX ".mac_address_cache_duration"
 #define CONST_RUNTIME_PREFS_LOG_TO_FILE NTOPNG_PREFS_PREFIX ".log_to_file"
@@ -1621,7 +1623,7 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
 #define CUSTOM_FLOW_END_SCRIPT \
   "scripts/callbacks/checks/flows/custom_flow_end_script.lua"
 
-#define OFFLINE_LOCAL_HOSTS_MACS_QUEUE_NAME "ntopng.inactive_hosts_macs.queue.ifid_%d"
+#define OFFLINE_LOCAL_HOSTS_MACS_QUEUE_NAME "ntopng.assets_hosts_macs.queue.ifid_%d"
 
 #define EXPORTERS_EXCEEDED_LIMITS_KEY "ntopng.limits.exporters"
 

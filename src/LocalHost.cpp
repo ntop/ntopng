@@ -120,6 +120,7 @@ void LocalHost::initialize() {
 
   local_network_id = -1;
   os_detail = NULL;
+  asset_map_updated = false;
 
   ip.isLocalHost(&local_network_id);
   inconsistent_host_os = false;
@@ -177,6 +178,7 @@ void LocalHost::initialize() {
 
   tcp_fingerprint_host_os = os_hint_unknown;
   dumpAssetInfo(false);
+  gettimeofday(&last_periodic_asset_update, NULL);
 }
 
 /* *************************************** */
@@ -188,7 +190,13 @@ void LocalHost::deferredInitialization() {
 /* *************************************** */
 
 void LocalHost::dumpAssetInfo(bool include_last_seen) {
-  Mac *cur_mac = getMac();
+  /* Return in case the preference is disabled */
+  if (!ntop->getPrefs()->isAssetsCollectionEnabled()) {
+#ifdef NTOPNG_DEBUG
+    ntop->getTrace()->traceEvent(TRACE_NORMAL, "Assets Collection Disabled, please enable it from the Preferences.");
+#endif  
+    return;
+  }
   /* Remove the key from the hash, used to get the offline hosts */
   /* Exclude the multicast/broadcast addresses */
   if (!ntop->getRedis() || !isLocalUnicastHost()) return;
@@ -196,6 +204,7 @@ void LocalHost::dumpAssetInfo(bool include_last_seen) {
   /* Exclude local-link fe80::/10, marked as private */
   if (isIPv6() && isPrivateHost()) return;
 
+  Mac *cur_mac = getMac();
   /* In case the MAC is NULL or the MAC is a special */
   /* address or a broadcast address do not include it */
   if (!cur_mac || cur_mac->isSpecialMac() || cur_mac->isBroadcast()) return;
@@ -205,11 +214,14 @@ void LocalHost::dumpAssetInfo(bool include_last_seen) {
   u_int32_t json_str_len = 0;
 
 #ifdef NTOPNG_DEBUG
+  cur_mac->print(buf, sizeof(buf));
   ntop->getTrace()->traceEvent(TRACE_NORMAL,
-			       "Adding Host %s to inactive hosts Interace %d, with MAC: %s",
+			       "Adding Host %s to Assets [Ifid: %d][VLAN: %d][MAC: %s][Status: %s]",
 			       ip.print(buf, sizeof(buf)),
 			       iface->get_id(),
-			       cur_mac->print(buf, sizeof(buf)));
+             vlan_id,
+			       buf,
+             include_last_seen ? "Inactive" : "Active");
 #endif
 
   ndpi_init_serializer(&host_json, ndpi_serialization_format_json);
@@ -257,6 +269,13 @@ void LocalHost::dumpAssetInfo(bool include_last_seen) {
 
 void LocalHost::periodic_stats_update(const struct timeval *tv) {
   checkGatewayInfo();
+  /* If at least 5 minutes passed and the map was updated, dump the info */
+  float diff = Utils::msTimevalDiff(tv, &last_periodic_asset_update) / 1000; /* in Sec */
+  if ((diff > CONST_ASSETS_PERIODIC_UPDATE) && asset_map_updated) {
+    memcpy(&last_periodic_asset_update, tv, sizeof(last_periodic_asset_update));
+    asset_map_updated = false;
+    dumpAssetInfo(false);
+  }
   Host::periodic_stats_update(tv);
 }
 
@@ -674,29 +693,6 @@ void LocalHost::setRouterMac(Mac *gw) {
   }
 }
 
-/* *************************************** */
-
-void LocalHost::toggleRxOnlyHost(bool rx_only) {
-  Host::toggleRxOnlyHost(rx_only);
-
-  if (isLocalUnicastHost()) {
-    char hostbuf[64], *member;
-
-    member = get_hostkey(hostbuf, sizeof(hostbuf));
-
-    if (is_rx_only) {
-      /* Add this host to the hash of RX-only local hosts */
-      char seenbuf[16];
-
-      snprintf(seenbuf, sizeof(seenbuf), "%u", (u_int32_t)get_last_seen());
-      ntop->getRedis()->hashSet(HASHKEY_LOCALHOST_RX_ONLY, member, seenbuf);
-    } else {
-      /* Delete the key in case it was present */
-      ntop->getRedis()->hashDel(HASHKEY_LOCALHOST_RX_ONLY, member);
-    }
-  }
-}
-
 /* ***************************************************** */
 
 void LocalHost::setServerPort(bool isTCP, u_int16_t port, ndpi_protocol *proto,
@@ -895,11 +891,14 @@ void LocalHost::setOS(OSType _os, OSLearningMode mode) {
  * Note: the function overwrite the old values if already present
  */
 bool LocalHost::addDataToAssets(char *_field, char *_value) {
+  if (!ntop->getPrefs()->isAssetsCollectionEnabled()) return false;
+
   /* Check for incorrect values */
   if (_field && _field[0] != '\0' && _value && _value[0] != '\0') {
     std::string field = _field;
     std::string value = _value;
     asset_map[field] = value;
+    asset_map_updated = true; /* Next time dump data */
     return true;
   }
   return false;
@@ -909,8 +908,11 @@ bool LocalHost::addDataToAssets(char *_field, char *_value) {
 
 /* This function instead remove a field from the asset map */
 bool LocalHost::removeDataFromAssets(char *field) {
+  if (!ntop->getPrefs()->isAssetsCollectionEnabled()) return false;
+
   if (asset_map.size() > 0 && field && field[0] != '\0') {
     asset_map.erase(field);
+    asset_map_updated = true; /* Next time dump data */
     return true;
   }
   return false;

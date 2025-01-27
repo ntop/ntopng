@@ -17,4 +17,4 @@ Contrary to tools based on signatures, ntopng is a behavioural-based tool. Below
     alerts_list_per_license
     available_recipients
     risk_and_check_exclusion
-    developing_alerts
+    remediations/index

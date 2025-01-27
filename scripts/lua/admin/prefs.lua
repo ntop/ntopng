@@ -1377,12 +1377,19 @@ if auth.has_capability(auth.capabilities.preferences) then
                 tformat = "mhd"
             })
 
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_assets_collection",
+            default = "1",
+            pref = "enable_assets_collection"
+        })
+
         prefsInputFieldPrefs(subpage_active.entries["mac_address_cache_duration"].title,
             subpage_active.entries["mac_address_cache_duration"].description, "ntopng.prefs.",
             "mac_address_cache_duration", prefs.mac_address_cache_duration or 300, "number", true, nil, nil, {
                 min = 5,
                 tformat = "mhd"
-            })
+        })
 
         print('</table>')
 

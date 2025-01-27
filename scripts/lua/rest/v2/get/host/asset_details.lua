@@ -8,7 +8,7 @@ require "lua_utils"
 require "mac_utils"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
-local asset_management_utils = require "asset_management_utils"
+local asset_utils = require "asset_utils"
 local discover_utils = require "discover_utils"
 
 if not _GET["serial_key"] then
@@ -31,7 +31,7 @@ local rsp = {
     host_info = {}
 }
 local serial_key = _GET["serial_key"]
-local list = asset_management_utils.getInactiveHostInfo(ifid, serial_key) or {}
+local list = asset_utils.getInactiveHostInfo(ifid, serial_key) or {}
 
 -- Check if at least an host is inactive
 for _, host_details in pairs(list or {}) do
@@ -88,22 +88,22 @@ for _, host_details in pairs(list or {}) do
     end
     
     if host_details.is_dns_server then
-        ip = ip .. " <span class='badge bg-success'>" .. i18n('inactive_host_details.dns_server') .. "</span>"
+        ip = ip .. " <span class='badge bg-success'>" .. i18n('asset_details.dns_server') .. "</span>"
     end
     if host_details.is_dhcp_server then
-        ip = ip .. " <span class='badge bg-success'>" .. i18n('inactive_host_details.dhcp_server') .. "</span>"
+        ip = ip .. " <span class='badge bg-success'>" .. i18n('asset_details.dhcp_server') .. "</span>"
     end
     if host_details.is_smtp_server then
-        ip = ip .. " <span class='badge bg-success'>" .. i18n('inactive_host_details.smtp_server') .. "</span>"
+        ip = ip .. " <span class='badge bg-success'>" .. i18n('asset_details.smtp_server') .. "</span>"
     end
     if host_details.is_ntp_server then
-        ip = ip .. " <span class='badge bg-success'>" .. i18n('inactive_host_details.ntp_server') .. "</span>"
+        ip = ip .. " <span class='badge bg-success'>" .. i18n('asset_details.ntp_server') .. "</span>"
     end
     if host_details.is_imap_server then
-        ip = ip .. " <span class='badge bg-success'>" .. i18n('inactive_host_details.imap_server') .. "</span>"
+        ip = ip .. " <span class='badge bg-success'>" .. i18n('asset_details.imap_server') .. "</span>"
     end
     if host_details.is_pop_server then
-        ip = ip .. " <span class='badge bg-success'>" .. i18n('inactive_host_details.pop_server') .. "</span>"
+        ip = ip .. " <span class='badge bg-success'>" .. i18n('asset_details.pop_server') .. "</span>"
     end
 
     rsp["host_info"][#rsp["host_info"] + 1] = {
@@ -140,7 +140,7 @@ for _, host_details in pairs(list or {}) do
         for type, name in pairs(host_details.names) do
             rsp["host_info"][#rsp["host_info"] + 1] = {
                 values = {{
-                    name = i18n("inactive_host_details." .. type)
+                    name = i18n("asset_details." .. type)
                 },{
                     name = name
                 }}
@@ -150,7 +150,7 @@ for _, host_details in pairs(list or {}) do
 
     -- Now add the info inside the json_info
     for name, value in pairs(json_info or {}) do
-        local formatted_name = i18n('inactive_host_details.' .. name)
+        local formatted_name = i18n('asset_details.' .. name)
         if isEmptyString(formatted_name) then
             formatted_name = name
         end

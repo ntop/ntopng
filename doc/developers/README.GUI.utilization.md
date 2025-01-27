@@ -1,19 +1,8 @@
 ## GUI utilization guide
 
 To create the dist of ntopng (compile vue code):
-- cd httpdocs/dist/
-- git checkout dev
-- git pull
-- cd ..
-- make dist-ntopng
-- cd httpdocs/dist/
-- git add -u
-- git commit -m "Update dist"
-- git push
-- cd ..
-- git add httpdocs/dist
-- git commit -m "Update dist ref"
-- git push
+- npm run build (to build css and js for the first time building)
+- npm run build:js (to only build the js part)
 
 - `/scripts/locales/en.lua` is a config file with key value pairs that are used in the GUI. Each key is used inside the GUI to display the relative value. Binding is done via utility function i18n:
     1. `i18n(ENTRY)` which displays the value of ENTRY

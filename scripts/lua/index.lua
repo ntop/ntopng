@@ -18,9 +18,15 @@ local ifstats = interface.getStats()
 
 -- ######################################
 
-local is_system_interface = page_utils.is_system_view()
+local template = _GET["template"]
+local view = _GET["view"]
 
-if is_system_interface then
+-- ######################################
+
+local infrastructure_view = view and view == 'infrastructure' and ntop.isEnterpriseM() 
+
+local is_system_interface = page_utils.is_system_view()
+if is_system_interface and not infrastructure_view then
   print(ntop.httpRedirect(ntop.getHttpPrefix().."/lua/system_stats.lua"))
   return
 end
@@ -81,7 +87,11 @@ else
   end
 end
 
-local template = _GET["template"] or default_template
+template = template or default_template
+
+if infrastructure_view then
+  template = "infrastructure"
+end
 
 -- ######################################
 
@@ -90,13 +100,11 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 
 -- ######################################
 
-local monitor_infrastructure = false
-
 local context = {
   ifid = ifid,
   page = "dashboard",
   template = template,
-  is_infrastructure = monitor_infrastructure,
+  is_infrastructure = infrastructure_view,
   csrf = ntop.getRandomCSRFValue(),
   template_endpoint = ntop.getHttpPrefix() .. "/lua/rest/v2/get/dashboard/template/data.lua",
   template_list_endpoint = ntop.getHttpPrefix() .. "/lua/rest/v2/get/dashboard/template/list.lua"

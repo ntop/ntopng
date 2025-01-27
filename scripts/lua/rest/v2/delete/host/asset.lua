@@ -5,8 +5,9 @@
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
+require "http_lint"
 local rest_utils = require("rest_utils")
-local inactive_hosts_utils = require("inactive_hosts_utils")
+local asset_utils = require("asset_utils")
 --
 -- Read alerts data
 -- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/delete/host/alerts.lua
@@ -34,12 +35,11 @@ end
 local num_hosts_deleted = 0
 
 if tonumber(serial_key) then
-   local epoch = os.time() - tonumber(serial_key)
-   num_hosts_deleted = inactive_hosts_utils.deleteAllEntriesSince(ifid, epoch)
+   num_hosts_deleted = asset_utils.deleteAllEntriesSince(ifid, 'host', tonumber(serial_key))
 elseif (serial_key == "all") then
-   num_hosts_deleted = inactive_hosts_utils.deleteAllEntries(ifid)
-else
-   num_hosts_deleted = inactive_hosts_utils.deleteSingleEntry(ifid, serial_key)
+   num_hosts_deleted = asset_utils.deleteAll(ifid, 'host')
+elseif (not isEmptyString(serial_key)) then
+   num_hosts_deleted = asset_utils.deleteHost(ifid, serial_key)
 end
 
 rest_utils.answer(rc, {deleted_hosts = num_hosts_deleted})

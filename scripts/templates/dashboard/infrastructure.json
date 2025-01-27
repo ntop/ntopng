@@ -1,0 +1,229 @@
+{
+	"name" : "Default Enterprise Dashboard",
+	"readonly" : true,
+	"components" : [
+		{
+			"component" : "badge",
+			"id" : "total_throughput",
+			"datasource_id" : "interface_data",
+			"i18n_name" : "",
+			"color" : "info",
+			"inactive_color" : "secondary",
+			"width" : 4,
+			"height" : 2,
+			"params" : {
+				"url" : "/lua/rest/v2/get/interface/data.lua",
+				"url_params" : {
+				},
+				"icon" : "fas fa-gauge-simple-high",
+				"i18n_name" : "infrastructure_dashboard.total_throughput",
+				"link" : {
+					"url" : "/lua/flows_stats.lua",
+					"url_params" : {}
+				},
+				"counter_path" : "throughput_bps",
+				"counter_formatter" : "bps"
+			}
+		},
+		{
+			"component" : "badge",
+			"id" : "critical_alert_count",
+			"datasource_id" : "infrastructure_data",
+			"i18n_name" : "",
+			"color" : "success",
+			"inactive_color" : "secondary",
+			"width" : 4,
+			"height" : 2,
+			"params" : {
+				"url" : "/lua/pro/rest/v2/get/infrastructure/aggregate.lua",
+				"url_params" : {
+					"type" : "summary"
+				},
+				"icon" : "fas fa-signal",
+				"i18n_name" : "infrastructure_dashboard.active_instances",
+				"link" : {
+					"url" : "/lua/alert_stats.lua",
+					"url_params" : {
+						"status" : "engaged"
+					}
+				},
+				"counter_path" : "active_instances",
+				"counter_formatter" : "number"
+			}
+		},
+		{
+			"component" : "badge",
+			"id" : "active_host_count",
+			"datasource_id" : "infrastructure_data",
+			"i18n_name" : "",
+			"color" : "danger",
+			"inactive_color" : "secondary",
+			"width" : 4,
+			"height" : 2,
+			"params" : {
+				"url" : "/lua/pro/rest/v2/get/infrastructure/aggregate.lua",
+				"url_params" : {
+					"type" : "summary"
+				},
+				"icon" : "fas fa-plug-circle-xmark",
+				"i18n_name" : "infrastructure_dashboard.offline_instances",
+				"link" : {
+					"url" : "/lua/hosts_stats.lua",
+					"url_params" : {
+						"mode" : "local"
+					}
+				},
+				"counter_path" : "offline_instances",
+				"counter_formatter" : "number"
+			}
+		},
+		{
+			"component" : "badge",
+			"id" : "active_flow_count",
+			"datasource_id" : "interface_data",
+			"i18n_name" : "",
+			"color" : "info",
+			"inactive_color" : "secondary",
+			"width" : 4,
+			"height" : 2,
+			"params" : {
+				"url" : "/lua/rest/v2/get/interface/data.lua",
+				"url_params" : {
+					"type" : "summary"
+				},
+				"icon" : "fas fa-stream",
+				"i18n_name" : "live_flows",
+				"link" : {
+					"url" : "/lua/flows_stats.lua",
+					"url_params" : {}
+				},
+				"counter_path" : "num_flows",
+				"counter_formatter" : "number"
+			}
+		},
+		{
+			"component" : "badge",
+			"id" : "active_host_count",
+			"datasource_id" : "interface_data",
+			"i18n_name" : "",
+			"color" : "success",
+			"inactive_color" : "secondary",
+			"width" : 4,
+			"height" : 2,
+			"params" : {
+				"url" : "/lua/rest/v2/get/interface/data.lua",
+				"url_params" : {
+					"type" : "summary"
+				},
+				"icon" : "fas fa-laptop",
+				"i18n_name" : "graphs.active_hosts",
+				"link" : {
+					"url" : "/lua/hosts_stats.lua",
+					"url_params" : {
+						"mode" : "local"
+					}
+				},
+				"counter_path" : "num_local_hosts",
+				"counter_formatter" : "number"
+			}
+		},
+		{
+			"component" : "badge",
+			"id" : "critical_alert_count",
+			"datasource_id" : "interface_data",
+			"i18n_name" : "",
+			"color" : "danger",
+			"inactive_color" : "secondary",
+			"width" : 4,
+			"height" : 2,
+			"params" : {
+				"url" : "/lua/rest/v2/get/interface/data.lua",
+				"url_params" : {
+					"type" : "summary"
+				},
+				"icon" : "fas fa-exclamation-triangle",
+				"i18n_name" : "show_alerts.engaged_alerts",
+				"link" : {
+					"url" : "/lua/alert_stats.lua",
+					"url_params" : {
+						"status" : "engaged"
+					}
+				},
+				"counter_path" : "engaged_alerts",
+				"counter_formatter" : "number"
+			}
+		},
+		{
+			"component" : "timeseries",
+			"id" : "traffic_chart",
+			"i18n_name" : "interfaces_traffic",
+			"width" : 12,
+			"height" : 3,
+			"params" : {
+			"url" : "/lua/pro/rest/v2/get/timeseries/ts_multi.lua",
+			"url_params" : { },
+			"post_params" : {
+				"limit" : 180,
+				"version" : 4,
+				"ts_requests": {
+					"$ANY_IFID$" : {
+						"ts_query": "ifid:$IFID$",
+						"ts_schema": "iface:traffic_rxtx",
+						"tskey": "$IFID$"
+					}
+				}
+			},
+			"source_type" : "interface"
+			}
+		},
+		{
+			"component" : "table",
+			"id" : "top_local_talkers",
+			"i18n_name" : "report.top_local_hosts",
+			"width" : 4,
+			"height" : 4,
+			"time_window" : "",
+			"time_offset" : "",
+			"params" : {
+				"url" : "/lua/pro/rest/v2/get/interface/top/local/talkers.lua",
+				"url_params" : {},
+				"table_type" : "throughput",
+				"columns" : [
+					{ "id" : "name", "i18n_name" : "host_details.host" },
+					{ "id" : "throughput", "i18n_name" : "dashboard.actual_traffic", "style" : "text-align: right" }
+				]
+			}
+		},
+		{
+			"component" : "table",
+			"id" : "top_remote_destinations",
+			"i18n_name" : "report.top_remote_hosts",
+			"width" : 4,
+			"height" : 4,
+			"params" : {
+				"url" : "/lua/pro/rest/v2/get/interface/top/remote/talkers.lua",
+				"url_params" : {},
+				"table_type" : "throughput",
+				"columns" : [
+					{ "id" : "name", "i18n_name" : "host_details.host" },
+					{ "id" : "throughput", "i18n_name" : "dashboard.actual_traffic", "style" : "text-align: right" }
+				]
+			}
+		},
+		{
+			"component" : "pie",
+			"id" : "top_l7_proto",
+			"i18n_name" : "top_l7_proto",
+			"width" : 4,
+			"height" : 4,
+			"params" : {
+				"url" : "/lua/rest/v2/get/interface/l7/stats.lua",
+				"url_params" : {
+					"breed" : "true",
+					"ndpistats_mode" : "count"
+				}
+			}
+		}
+	]
+}
+

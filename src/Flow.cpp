@@ -335,8 +335,11 @@ void Flow::allocDPIMemory() {
 void Flow::freeDPIMemory() {
   if(ndpiFlow) {
     if(isDNS()) {
-      if(ndpiFlow && (ndpiFlow->protos.dns.is_query == 0)) {
-	      swap_requested = 1;
+      if(ndpiFlow) {
+	if((stats.get_cli2srv_packets() > 0) && (stats.get_srv2cli_packets() == 0)
+	   && (ndpiFlow->protos.dns.is_query == 0)) {
+	  swap_requested = 1;
+	}
       }
     } else if(/* !isDNS() */ ntop->getPrefs()->is_dns_cache_enabled()) {
       if(srv_host) {
@@ -2178,8 +2181,9 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
     /* Don't break, let's process also HTTP_PROXY */
   case NDPI_PROTOCOL_HTTP_PROXY:
     if(srv_host) {
-      if(!Utils::isIPAddress(host_server_name) &&
-	  hasRisk(NDPI_NUMERIC_IP_HOST)) {
+      if((!Utils::isIPAddress(host_server_name))
+	 /* && hasRisk(NDPI_NUMERIC_IP_HOST) */
+	 ) {
 	srv_host->offlineSetHTTPName(host_server_name);
       }
 
@@ -8433,8 +8437,9 @@ void Flow::check_swap()
     if(protocol == IPPROTO_UDP) /* && (get_cli_port() > 32768) && (get_srv_port() > 32768) */ {
       /* We disable UDP swap that might be wrong in particular for probing attempts */
       ; /* Don't do anything: this might be RTP or similar */
-    } else
+    } else {
       swap_requested = 1; /* This flow will be swapped */
+    }
   }
 }
 
@@ -8662,8 +8667,9 @@ void Flow::updateTCPHostServices(Host *cli_h, Host *srv_h) {
     if(tcp) {
       if((((tcp->src2dst_tcp_flags & TH_SYN) == 0) && ((tcp->dst2src_tcp_flags & TH_SYN) != 0))
 	 || ((((tcp->src2dst_tcp_flags|tcp->dst2src_tcp_flags) & TH_SYN) == 0) /* No SYN observed */
-	     && (get_cli_port() < get_srv_port())))
+	     && (get_cli_port() < get_srv_port()))) {
 	swap_requested = 1;
+      }
     }
     break;
 
@@ -9082,10 +9088,15 @@ void Flow::allocateCollection() {
 /* *************************************** */
 
 #if defined(NTOPNG_PRO)
-  bool Flow::isFlowAllowed(bool *is_allowed) {
-    if (isTCP() || isUDP() || isICMP())
-      return iface->findFlowACL(this, is_allowed);
-    return true;  };
+/* Used by AccessControlList.cpp */
+
+bool Flow::isFlowAllowed(bool *is_allowed) {
+  if (isTCP() || isUDP() || isICMP())
+    return iface->findFlowACL(this, is_allowed);
+  else
+    return true;
+};
+
 #endif
 
 /* *************************************** */

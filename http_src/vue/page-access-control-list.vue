@@ -1,33 +1,35 @@
 <!-- (C) 2024 - ntop.org     -->
 <template>
   <div class="m-2 mb-3">
-    <div class="card card-shadow">
-      <div class="card-body">
-        <TableWithConfig ref="table_access_control_list" :table_id="table_id" :csrf="context.csrf"
-          :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
-          :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event">
-          <template v-slot:custom_buttons>
-            <button class="btn btn-link" type="button" @click="add_rule">
-              <i class="fas fa-plus" data-bs-toggle="tooltip" data-bs-placement="top"
-                :title="_i18n('policy.add_rule')"></i>
-            </button>
-          </template>
-          <template v-slot:custom_header>
-            <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
-              <span class="no-wrap d-flex align-items-center my-auto me-2 filters-label"><b>{{ item["basic_label"]
-                  }}</b></span>
-              <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5" dropdown_size="small"
-                :options="item['options']" @select_option="add_table_filter">
-              </SelectSearch>
-            </div>
-            <div class="d-flex justify-content-center align-items-center">
-              <div class="btn btn-sm btn-primary mt-2 me-3" type="button" @click="reset_filters">
-                {{ _i18n('reset') }}
-              </div>
-            </div>
-          </template> <!-- Dropdown filters -->
-        </TableWithConfig>
+    <template v-if="(!props.context.is_check_enabled)">
+      <div class="alert alert-warning" role="alert" id='error-alert' v-html:="error_message">
       </div>
+    </template>
+    <div :class="[(!props.context.is_check_enabled) ? 'ntopng-gray-out' : '']">
+      <TableWithConfig ref="table_access_control_list" :table_id="table_id" :csrf="context.csrf"
+        :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
+        :f_sort_rows="columns_sorting" @custom_event="on_table_custom_event">
+        <template v-slot:custom_buttons>
+          <button class="btn btn-link" type="button" @click="add_rule">
+            <i class="fas fa-plus" data-bs-toggle="tooltip" data-bs-placement="top"
+              :title="_i18n('policy.add_rule')"></i>
+          </button>
+        </template>
+        <template v-slot:custom_header>
+          <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
+            <span class="no-wrap d-flex align-items-center my-auto me-2 filters-label"><b>{{ item["basic_label"]
+                }}</b></span>
+            <SelectSearch v-model:selected_option="item['current_option']" theme="bootstrap-5" dropdown_size="small"
+              :options="item['options']" @select_option="add_table_filter">
+            </SelectSearch>
+          </div>
+          <div class="d-flex justify-content-center align-items-center">
+            <div class="btn btn-sm btn-primary mt-2 me-3" type="button" @click="reset_filters">
+              {{ _i18n('reset') }}
+            </div>
+          </div>
+        </template> <!-- Dropdown filters -->
+      </TableWithConfig>
       <div class="card-footer mt-3">
         <button type="button" ref="delete_all_rules" @click="delete_all_rules" class="btn btn-danger">
           <i class="fas fa-trash"></i>
@@ -38,8 +40,8 @@
           {{ _i18n("acl_page.export_rules") }}
         </button>
       </div>
+      <NoteList :note_list="notes"></NoteList>
     </div>
-    <NoteList :note_list="notes"> </NoteList>
   </div>
   <ModalAddACLRule ref="modal_add" :context="context" :url_request="url_add_request" :l4_proto_list="l4_proto"
     :l7_proto_list="l7_proto" @add="refresh_table">
@@ -78,6 +80,7 @@ const modal_edit = ref(null);
 const modal_delete = ref(null);
 const modal_delete_all = ref(null);
 const filter_table_array = ref([]);
+const error_message = i18n('acl_page.check_disabled') + " <a href='" + http_prefix + "/lua/admin/edit_configset.lua?subdir=all#disabled'><i class='fas fa-cog fa-sm'></i></a>";
 const table_id = ref('access_control_list');
 const url_add_request = '/lua/pro/rest/v2/add/system/access_control_list_rules.lua'
 const url_edit_request = '/lua/pro/rest/v2/add/system/edit_access_control_list_rule.lua'

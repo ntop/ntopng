@@ -1,12 +1,49 @@
-{% -- Generate forms for the actual switch of the currently active interface %}
 
-{% -- For the system interface %}
+{% -- Print out the infrastructure dropdown %}
+
+{% if ntop.isEnterpriseM() and isAdministrator() and (table.len(infrastructure_instances) > 0) then %}  
+
+  {% -- Form for selecting infrastrucure instance id %}
+  <form id="switch_infrastructure_form" method="POST" action="{{ ntop.getHttpPrefix() }}/lua/index.lua">
+    <input name="switch_instance" type="hidden" value="1" />
+    <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
+    <input name="instance_id" type="hidden" value="" />
+  </form>
+
+  <li class="nav-item d-sm-flex">
+    <div class="d-flex">
+      <select name="infrastructure-dropdown" id="infrastructure-dropdown" class="selectpicker form-select-lg pb-0"
+        data-width="fit" data-live-search="true" data-live-search-placeholder="{{ i18n('search') }}" data-actions-box="true">
+
+        <option value="{{ ntop.getHttpPrefix() }}/lua/index.lua" href="#" data-content=""> {{ i18n('infrastructure_dashboard.local') }}</option>
+
+        <option disabled>{{ i18n('infrastructure_dashboard.dashboards') }}</option>
+
+        {% local selected = '' %}
+        {% if infrastructure_view then %}
+            {% selected = 'selected=""' %}
+        {% end %}
+        <option value="{{ ntop.getHttpPrefix() }}/lua/index.lua?view=infrastructure" href="#" data-content="{{ "<i class='fas fa-tachometer-alt'></i> "..i18n('infrastructure_dashboard.infrastructure') }}" {{ selected }}></option>
+
+        <option disabled>{{ i18n('infrastructure_dashboard.instances') }}</option>
+        {% for k,v in pairs(infrastructure_instances or {}) do %}
+        <option value="{{ v.url }}" href="#" data-content="{{ "<i class='fas fa-building'></i> "..v.name }}"></option>
+        {% end %} 
+
+      </select>
+    </div>
+  </li>
+{% end %}
+
+{% -- Print out the interfaces dropdown %}
+
+{% -- Generate forms for the actual switch of the currently active interface %}
+{% -- Form for the system interface %}
 <form id="switch_interface_form_{{ getSystemInterfaceId() }}" method="POST" action="{{ ntop.getHttpPrefix() }}/lua/system_stats.lua?ifid={{ getSystemInterfaceId() }}">
   <input name="switch_interface" type="hidden" value="1" />
   <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
 </form>
-
-{% -- For all other interfaces %}
+{% -- Form for all other interfaces %}
 {% for k, v in pairsByValues(ifnames, asc) do %}
 <form id="switch_interface_form_{{ k }}" method="POST" action="{{ action_urls[k] }}">
   <input name="switch_interface" type="hidden" value="1" />
@@ -14,8 +51,7 @@
 </form>
 {% end %}
 
-
-{% -- Print out the interfaces dropdown %}
+{% if not infrastructure_view then %}
 
 <li class="nav-item d-sm-flex">
   <div class="d-flex">
@@ -71,21 +107,17 @@
           {% end %}
         {% end %}
       {% end %}
-  {% if ntop.isPro() and isAdministrator() and (table.len(infrastructures) > 0) then %}  
-    <option disabled>{{ i18n('infrastructure_dashboard.infrastructure') }}</option>
-    {% for k,v in pairs(infrastructures or {}) do %}
-      <option value="{{ v }}" href="#" data-content="{{ "<i class='fas fa-building'></i> "..k }}"> {{ v }}</option>
-    {% end %} 
-  {% end %}
   </select>
 </div>
 </li>
 
+{% -- not infrastructure_view %}
+{% end %}
 
 {% -- Print the observation point dropdown %}
 {% if(observationPoints ~= nil) then %}
   {% for _, v in pairsByKeys(observationPoints, asc) do %}
-  <form id="switch_interface_form_observation_point_{{ v["obs_point"] }}" method="POST" action="{{ ntop.getHttpPrefix() .. "/lua/flows_stats.lua" .. "" }}?ifid={{ interface.getId() }}&observationPointId={{ v["obs_point"] }}" >
+  <form id="switch_observation_point_form_{{ v["obs_point"] }}" method="POST" action="{{ ntop.getHttpPrefix() .. "/lua/flows_stats.lua" .. "" }}?ifid={{ interface.getId() }}&observationPointId={{ v["obs_point"] }}" >
     <input name="switch_interface" type="hidden" value="1" />
     <input name="csrf" type="hidden" value="{{ ntop.getRandomCSRFValue() }}" />
   </form>
@@ -107,21 +139,38 @@
 
 <script type="text/javascript">
   // initialize the selectpicker
+  $('#infrastructure-dropdown').selectpicker();
   $('#interfaces-dropdown').selectpicker();
   $('#observationpoint-dropdown').selectpicker();
-   
+ 
+  $(`#infrastructure-dropdown`).on('change', function(e) {
+    const selectedValue = $(this).val();
+
+    /* URL */
+    window.location.replace(selectedValue);
+
+    /* Instance ID (not yet supported)
+    $('#switch_infrastructure_form [name="instance_id"]').val(selectedValue);
+    toggleSystemInterface($('#switch_infrastructure_form'));
+    */
+
+  });
+  
   $(`#observationpoint-dropdown`).on('change', function(e) {
     const selectedValue = $(this).val();
-    $('#switch_interface_form_observation_point_'+ selectedValue).submit();
+    $('#switch_observation_point_form_'+ selectedValue).submit();
   });
 
   $("#interfaces-dropdown").on("change", function(e) {
     const selectedValue = $(this).val();
 
-    if(isNaN(Number(selectedValue)) ){
+    if (isNaN(Number(selectedValue)) ) {
+      /* URL */
       window.location.replace(selectedValue);
-    }else{
-      toggleSystemInterface($('#switch_interface_form_' + selectedValue)); }
+    } else {
+      /* Interface ID */
+      toggleSystemInterface($('#switch_interface_form_' + selectedValue));
+    }
   });
 
   const toggleObservationPoint = ($form = null) => {

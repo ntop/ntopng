@@ -1,0 +1,72 @@
+{
+	"name" : "ASN Flows",
+	"i18n_name" : "asn_flows",
+	"data_source" : "flows",
+	"show_in_page" : "overview",
+	"visualization_type" : "table",
+	"hourly": true,
+	"sql" : "SELECT SRC_ASN,DST_ASN,SUM(BYTES_SENT) as bytes_sent, SUM(BYTES_RCVD) as bytes_rcvd, SUM(total_traffic) as total_bytes, AVG(THROUGHPUT) as throughput FROM (SELECT SRC_ASN,DST_ASN,SUM(SRC2DST_BYTES) as BYTES_SENT,SUM(DST2SRC_BYTES) as BYTES_RCVD,SUM(TOTAL_BYTES) as total_traffic, ABS(MAX(LAST_SEEN) - MIN(FIRST_SEEN) + 1) as DELTA_TIME, (SUM(TOTAL_BYTES) / (DELTA_TIME)) * 8 as THROUGHPUT $FROM$ $WHERE$ $GROUPBY$) $GROUPBY$ $ORDERBY$",
+	"select" : {
+		"items" : [
+			{
+				"name" : "SRC_ASN",
+				"func" : "",
+				"value_type" : "asn"
+			},
+			{
+				"name" : "DST_ASN",
+				"func" : "",
+				"value_type" : "asn"
+			},
+			{
+				"name" : "bytes_sent",
+				"func" : "",
+				"value_type" : "bytes"
+			},
+			{
+				"name" : "bytes_rcvd",
+				"func" : "",
+				"value_type" : "bytes"
+			},
+			{
+				"name" : "total_bytes",
+				"func" : "",
+				"value_type" : "bytes"
+			},
+			{
+				"name" : "THROUGHPUT",
+				"func" : "",
+				"value_type" : "bytes"
+			}
+		]
+	},
+	"filters" : {
+		"items" : [
+			{
+				"name": "SRC_ASN",
+				"op": "neq",
+				"value": "DST_ASN",
+				"value_type": "number",
+				"input": "fixed"
+			}
+		]
+	},
+	"groupby" : {
+		"items" : [
+			{
+				"name" : "SRC_ASN"
+			},
+			{
+				"name" : "DST_ASN"
+			}
+		]
+	},
+    "sortby" : {
+        "items" : [
+            {
+                "name" : "total_bytes",
+                "order" : "DESC"
+            }
+        ]
+    }
+}

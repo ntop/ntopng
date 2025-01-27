@@ -38,7 +38,7 @@ import { default as PageNetworkDiscovery } from "./page-network-discovery.vue";
 import { default as PageManageConfigurationBackup } from "./page-manage-configurations-backup.vue";
 import { default as PageSNMPDeviceRules } from "./page-snmp-device-rules.vue";
 import { default as PageSnmpDevicesInterfacesSimilarity } from "./page-snmp-devices-interfaces-similarity.vue";
-import { default as PageHostsPortsAnalysis } from "./page-hosts-ports-analysis.vue";
+import { default as PageServerPorts } from "./page-server-ports.vue";
 import { default as NedgeRepeatersConfig } from "./page-nedge-repeaters-config.vue";
 import { default as PageExportersConfig } from "./page-flowdevice-config.vue";
 import { default as PageFlowDeviceInterfaceDetails } from "./page-flowdevice-interface-config.vue";
@@ -68,11 +68,12 @@ import { default as PageNetworkConfiguration } from "./page-network-configuratio
 import { default as PageNetworkPolicy } from "./page-network-policy.vue"
 import { default as PageLimits } from "./page-limits.vue"
 import { default as PageLocalHostsReport } from "./page-local-hosts-report.vue"
-import { default as PageInactiveHostsList } from "./page-inactive-hosts.vue"
-import { default as PageInactiveHostDetails } from "./page-inactive-host-details.vue"
 import { default as PageAccessControlList } from "./page-access-control-list.vue"
 import { default as PageTopInterfaceApplications } from "./page-top-interface-applications.vue"
 import { default as PageTopInterfaceCategories } from "./page-top-interface-categories.vue"
+import { default as PageObservationPoints } from "./page-observation-points.vue"
+import { default as PageObservationPointsConfig } from "./page-observation-points-config.vue"
+import { default as PageObservationPointsList } from "./page-flow-exporters-list.vue"
 
 /* Config pages */
 import { default as PageSNMPConfig } from "./page-snmp-config.vue"
@@ -152,7 +153,7 @@ let ntopVue = {
     PageHostMap: PageHostMap,
     PageManageConfigurationBackup: PageManageConfigurationBackup,
     PageSNMPDeviceRules: PageSNMPDeviceRules,
-    PageHostsPortsAnalysis: PageHostsPortsAnalysis,
+    PageServerPorts: PageServerPorts,
     PageVulnerabilityScan: PageVulnerabilityScan,
     PageHostVsResult: PageHostVsResult,
     PageOpenPorts: PageOpenPorts,
@@ -163,11 +164,12 @@ let ntopVue = {
     PageExportersDetails: PageExportersDetails,
     PageLimits: PageLimits,
     PageLocalHostsReport: PageLocalHostsReport,
-    PageInactiveHostsList: PageInactiveHostsList,
-    PageInactiveHostDetails: PageInactiveHostDetails,
     PageAccessControlList: PageAccessControlList,
     PageTopInterfaceApplications: PageTopInterfaceApplications,
     PageTopInterfaceCategories: PageTopInterfaceCategories,
+    PageObservationPoints: PageObservationPoints,
+    PageObservationPointsConfig: PageObservationPointsConfig,
+    PageObservationPointsList: PageObservationPointsList,
     
     /* SNMP */
     PageSNMPDevices: PageSNMPDevices,

@@ -95,9 +95,6 @@ print('<h4>Available Interfaces</h4>')
 print('<pre><code>interface.getIfNames()</code></pre>')
 printTable(interface.getIfNames())
 
-print('<hr><h4>Switch network interface</h4>')
-print('<p>In order to switch the network interface where ntopng is running, you need to use the method <b>setActiveInterfaceId(id)</b>, for more information please read the documentation and if you are looking for a complete and correctly example how to switch interface and active a new session, please read the source code of the <b>set_active_interface.lua</b> script.</p>')
-
 print('<hr><h2 id="interface_information">Interface information</h2>')
 print('<p>The interface lua class provide a few methods to get information about the active network interface.</p>')
 

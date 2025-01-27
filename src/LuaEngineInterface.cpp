@@ -51,31 +51,6 @@ NetworkInterface *getCurrentInterface(lua_State *vm) {
 
 /* ****************************************** */
 
-static int ntop_set_active_interface_id(lua_State *vm) {
-  NetworkInterface *iface;
-  int id;
-
-  ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
-
-  if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  id = lua_tonumber(vm, 1);
-
-  iface = ntop->getNetworkInterface(vm, id);
-
-  ntop->getTrace()->traceEvent(TRACE_INFO, "Index: %d, Name: %s", id,
-                               iface ? iface->get_name() : "<unknown>");
-
-  if (iface != NULL)
-    lua_pushstring(vm, iface->get_name());
-  else
-    lua_pushnil(vm);
-
-  return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
-}
-
-/* ****************************************** */
-
 bool matches_allowed_ifname(char *allowed_ifname, char *iface) {
   return (
       ((allowed_ifname == NULL) ||
@@ -625,7 +600,8 @@ static int ntop_add_data_to_assets(lua_State *vm) {
     get_host_vlan_info(host, &key, &vlan_id, host_ip, sizeof(host_ip));
 
     if ((!iface) || 
-        ((h = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId))) == NULL)) {
+        ((h = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+				  getLuaVMUservalue(vm, observationPointId))) == NULL)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s",
                                    host_ip);
       return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -672,7 +648,8 @@ static int ntop_remove_data_from_assets(lua_State *vm) {
     get_host_vlan_info(host, &key, &vlan_id, host_ip, sizeof(host_ip));
 
     if ((!iface) || 
-        ((h = iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id, getLuaVMUservalue(vm, observationPointId))) == NULL)) {
+        ((h = iface->findHostByIP(get_allowed_nets(vm), host_ip,
+				  vlan_id, getLuaVMUservalue(vm, observationPointId))) == NULL)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s",
                                    host_ip);
       return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -736,9 +713,8 @@ static int ntop_interface_live_capture(lua_State *vm) {
     get_host_vlan_info(host, &key, &vlan_id, host_ip, sizeof(host_ip));
 
     if ((!curr_iface) ||
-        ((h = curr_iface->findHostByIP(
-              get_allowed_nets(vm), host_ip, vlan_id,
-              getLuaVMUservalue(vm, observationPointId))) == NULL)) {
+        ((h = curr_iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+				       getLuaVMUservalue(vm, observationPointId))) == NULL)) {
       ntop->getTrace()->traceEvent(TRACE_WARNING, "Unable to locate host %s",
                                    host_ip);
       return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
@@ -1940,7 +1916,8 @@ static int ntop_set_host_operating_system(lua_State *vm) {
                                    getLuaVMUservalue(vm, observationPointId));
 
 #if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[iface: %s][host_ip: %s][vlan_id: %u][host: %p][os: %u]", curr_iface->get_name(), host_ip, vlan_id, host, os);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[iface: %s][host_ip: %s][vlan_id: %u][host: %p][os: %u]",
+			       curr_iface->get_name(), host_ip, vlan_id, host, os);
 #endif
 
   if (curr_iface && host && os < os_max_os && os != os_unknown)
@@ -1969,12 +1946,12 @@ static int ntop_set_host_resolved_name(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   host_name = (char *)lua_tostring(vm, 2);
 
-  host =
-      curr_iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
-                                   getLuaVMUservalue(vm, observationPointId));
+  host = curr_iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
+				  getLuaVMUservalue(vm, observationPointId));
 
 #if 0
-  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[iface: %s][host_ip: %s][vlan_id: %u][host: %p][os: %u]", curr_iface->get_name(), host_ip, vlan_id, host, os);
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "[iface: %s][host_ip: %s][vlan_id: %u][host: %p][os: %u]",
+			       curr_iface->get_name(), host_ip, vlan_id, host, os);
 #endif
 
   if (curr_iface && host && host_name) host->setResolvedName(host_name);
@@ -2113,11 +2090,12 @@ static int ntop_interface_insert_ip_acl(lua_State *vm) {
 #ifdef NTOPNG_PRO
   NetworkInterface *curr_iface = getCurrentInterface(vm);
   u_int8_t protocol = 0;
-  u_int16_t port = 0, l7_proto = 0;
+  u_int16_t l7_proto = 0;
   bool is_allowed = true;
-  char *src, *dst;
+  char *src, *dst, *port;
+  
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
-    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));  
   protocol = (u_int8_t) lua_tointeger(vm, 1);
 
   if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TSTRING) != CONST_LUA_OK)
@@ -2128,8 +2106,8 @@ static int ntop_interface_insert_ip_acl(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   dst = (char *)lua_tostring(vm, 3);
 
-  if (lua_type(vm, 4) == LUA_TNUMBER)
-    port = (u_int16_t) lua_tointeger(vm, 4);
+  if (lua_type(vm, 4) == LUA_TSTRING)
+    port = (char *)lua_tostring(vm, 4);
 
   if (lua_type(vm, 5) == LUA_TNUMBER)
     l7_proto = (u_int16_t) lua_tointeger(vm, 5);
@@ -2154,8 +2132,9 @@ static int ntop_interface_remove_ip_acl(lua_State *vm) {
 #ifdef NTOPNG_PRO
   NetworkInterface *curr_iface = getCurrentInterface(vm);
   u_int8_t protocol = 0;
-  u_int16_t port = 0, l7_proto = 0;
-  char *src, *dst;
+  u_int16_t l7_proto = 0;
+  char *src, *dst, *port;
+  
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   protocol = (u_int8_t) lua_tointeger(vm, 1);
@@ -2168,8 +2147,8 @@ static int ntop_interface_remove_ip_acl(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   dst = (char *)lua_tostring(vm, 3);
 
-  if (lua_type(vm, 4) == LUA_TNUMBER)
-    port = (u_int16_t) lua_tointeger(vm, 4);
+  if (lua_type(vm, 4) == LUA_TSTRING)
+    port = (char *)lua_tostring(vm, 4);
 
   if (lua_type(vm, 5) == LUA_TNUMBER)
     l7_proto = (u_int16_t) lua_tointeger(vm, 5);
@@ -2177,6 +2156,7 @@ static int ntop_interface_remove_ip_acl(lua_State *vm) {
   if (curr_iface)
     res = curr_iface->removeIPACL(protocol, src, dst, port, l7_proto);
 #endif
+  
   lua_pushboolean(vm, res);
   
   return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_OK));
@@ -5535,7 +5515,6 @@ static int ntop_interface_trigger_traffic_alert(lua_State *vm) {
 /* ****************************************** */
 
 static luaL_Reg _ntop_interface_reg[] = {
-    {"setActiveInterfaceId", ntop_set_active_interface_id},
     {"getIfNames", ntop_get_interface_names},
     {"getIfMac", ntop_get_interface_mac},
     {"getFirstInterfaceId", ntop_get_first_interface_id},

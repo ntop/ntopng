@@ -38,11 +38,12 @@ class LocalHost : public Host {
   std::unordered_map<u_int32_t, DoHDoTStats *> doh_dot_map;
   u_int8_t router_mac[6]; /* MAC address pf the first router used (no Mac* to
                              avoid purging race conditions) */
-  u_int8_t router_mac_set : 1, drop_all_host_traffic : 1, systemHost : 1, _notused : 5;
+  u_int8_t router_mac_set : 1, drop_all_host_traffic : 1, systemHost : 1, asset_map_updated : 1, _notused : 4;
   /* LocalHost data: update LocalHost::deleteHostData when adding new fields */
   char *os_detail, *tcp_fingerprint;
   std::map<OSLearningMode, OSType> os_learning; /* How OS info has been learnt */
   std::map<std::string, std::string> asset_map; /* For generic purposes, a <string, string> pair is done */
+  struct timeval last_periodic_asset_update;
   /* END Host data: */
 
   void initialize();
@@ -78,7 +79,6 @@ class LocalHost : public Host {
     if (network) network->updateRoundTripTime(rtt_msecs);
   }
 
-  void toggleRxOnlyHost(bool rx_only);
   virtual NetworkStats *getNetworkStats(int32_t networkId) {
     return (iface->getNetworkStats(networkId));
   };

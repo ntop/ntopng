@@ -2117,6 +2117,7 @@ local known_parameters = {
     ["is_ifname"] = validateBool,
     ["metric_label"] = validateUnquoted,
     ["flows_page_type"] = validateSingleWord,
+    ["view"] = validateSingleWord,
 
     -- VULNERABILITY SCAN
     ["scan_type"] = validateSingleWord,
@@ -2190,7 +2191,6 @@ local known_parameters = {
     ["only_memory"] = validateBool,
     ["only_alerted_hosts"] = validateBool,
     ["map_search"] = validateUnquoted,
-    ["view"] = validateSingleWord,
 
     -- Script editor
     ["script_file_path"] = validateLuaScriptPath,
@@ -2363,6 +2363,7 @@ local known_parameters = {
     ["flow_max_idle"] = validateNumber,
     ["active_local_host_cache_interval"] = validateNumber,
     ["mac_address_cache_duration"] = validateNumber,
+    ["toggle_assets_collection"] = validateBool,
     ["auth_session_duration"] = validateNumber,
     ["local_host_cache_duration"] = validateNumber,
     ["intf_rrd_raw_days"] = validateNumber,
@@ -2539,6 +2540,7 @@ local known_parameters = {
     ["allowed_interface"] = validateEmptyOr(validateInterface), -- the interface an user is allowed to configure
     ["allowed_networks"] = validateNetworksList, -- a list of networks the user is allowed to monitor
     ["switch_interface"] = validateInterface, -- a new active ntopng interface
+    ["switch_instance"] = validateInterface, -- a new active ntopng infrastructure instance
     ["qos_class_id"] = validateNumber,
     ["edit_members"] = validateEmpty, -- set if we are editing pool members
     ["trigger_alerts"] = validateBool, -- true if alerts should be active for this entity

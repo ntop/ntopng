@@ -105,6 +105,8 @@ const note_list = [
   _i18n("acl_page.edit_acl_notes"),
   _i18n("acl_page.edit_arp_only_client"),
   _i18n("acl_page.edit_arp_tcp_udp"),
+  _i18n("acl_page.all_ports"),
+  _i18n("acl_page.ports_range"),
   _i18n("acl_page.edit_save"),
 ]
 

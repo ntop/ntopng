@@ -505,7 +505,7 @@ static int getAuthorizedUser(struct mg_connection *conn,
          authentication. For this reason it is necessary to check submitted
          username and password. */
       if (strcmp(request_info->request_method, "POST") == 0) {
-        char post_data[1024];
+        char post_data[2048];
         char label[128];
         int post_data_len = mg_read(conn, post_data, sizeof(post_data));
         bool success;
@@ -987,7 +987,7 @@ static void redirect_to_password_change(
 static void authorize(struct mg_connection *conn,
                       const struct mg_request_info *request_info,
                       char *username, char *group, bool *localuser) {
-  char user[32] = {'\0'}, password[32] = {'\0'}, referer[256] = {'\0'};
+  char user[32] = {'\0'}, password[129] = {'\0'}, referer[256] = {'\0'};
   bool bad_user_pwd = false;
 
   if (!strcmp(request_info->request_method, "POST")) {
