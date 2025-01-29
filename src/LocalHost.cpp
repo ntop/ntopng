@@ -897,6 +897,18 @@ bool LocalHost::addDataToAssets(char *_field, char *_value) {
   if (_field && _field[0] != '\0' && _value && _value[0] != '\0') {
     std::string field = _field;
     std::string value = _value;
+    if (strcmp(_field, "mdns_name") == 0) {
+      size_t pos = 0;
+      while ((pos = value.find("'", pos)) != std::string::npos) {
+        // Check if the next character is also a quote
+        if ((pos + 1 < value.size()) && value[pos + 1] == '\'') {
+          pos += 2; // Skip already doubled quotes
+        } else {
+          value.insert(pos, "'");
+          pos += 2;
+        }
+      }
+    }
     asset_map[field] = value;
     asset_map_updated = true; /* Next time dump data */
     return true;
