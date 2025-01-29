@@ -1588,6 +1588,8 @@ extern NtopngLuaContext* getUserdata(struct lua_State *vm);
   "ntopng.checks.modbus_invalid_transition_enabled"
 #define CHECKS_MODBUS_TOO_MANY_EXCEPTIONS \
   "ntopng.checks.modbus_too_many_exceptions"
+#define CHECKS_MODBUS_UNEXPECTED_FUNCTION_CODE \
+  "ntopng.checks.modbus_unexpected_function_code_enabled"
 
 #define CUSTOM_FLOW_NDPI_SCRIPT \
   "scripts/callbacks/checks/flows/custom_flow_protocol_detected_script.lua"
