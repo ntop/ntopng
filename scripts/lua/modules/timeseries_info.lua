@@ -1892,6 +1892,23 @@ local community_timeseries = { {
             color = timeseries_info.get_timeseries_color('default')
         }
     }
+}, {
+    schema = "redis:reads_writes",
+    id = timeseries_id.redis,
+    label = i18n("system_stats.redis.redis_reads_writes"),
+    priority = 0,
+    measure_unit = "number",
+    scale = i18n('graphs.metric_labels.reads_writes'),
+    timeseries = {
+        num_reads = {
+            label = i18n('graphs.metric_labels.reads'),
+            color = timeseries_info.get_timeseries_color('default')
+        },
+        num_writes = {
+            label = i18n('graphs.metric_labels.writes'),
+            color = timeseries_info.get_timeseries_color('bytes')
+        }
+    }
 }, -- influxdb_monitor.lua (Influx DB): --
     {
         schema = "influxdb:storage_size",

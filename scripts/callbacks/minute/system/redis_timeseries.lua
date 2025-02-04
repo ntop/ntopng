@@ -40,6 +40,9 @@ if redis_api.redisTimeseriesEnabled() then
     if stats["dbsize"] then
         ts_utils.append("redis:keys", {ifid = ifid, num_keys = stats["dbsize"]}, when)
     end
+    if stats["reads"] and stats["writes"] then
+        ts_utils.append("redis:reads_writes", {ifid = ifid, num_reads = stats["reads"], num_writes = stats["writes"]}, when)
+    end
 
     for key, val in pairs(hits_stats) do
         if(old_hits_stats[key] ~= nil) then

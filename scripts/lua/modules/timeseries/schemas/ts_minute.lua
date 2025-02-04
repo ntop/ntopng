@@ -711,6 +711,17 @@ schema:addMetric("num_keys")
 
 -- ################################################
 
+schema = ts_utils.newSchema("redis:reads_writes", {
+    metrics_type = ts_utils.metrics.counter,
+    is_system_schema = true,
+    step = 60
+})
+schema:addTag("ifid")
+schema:addMetric("num_reads")
+schema:addMetric("num_writes")
+
+-- ################################################
+
 -- Cache
 schema = ts_utils.newSchema("redis:hits", {
     metrics_type = ts_utils.metrics.gauge,

@@ -856,7 +856,7 @@ function ts_utils.getPossiblyChangedSchemas()
     "host:tcp_rx_stats", "host:udp_sent_unicast", "host:dns_qry_rcvd_rsp_sent", "host:dns_qry_sent_rsp_rcvd",
     "host:tcp_tx_stats", "iface:hosts_anomalies", -- Added missing ifid tag
     "influxdb:storage_size", "influxdb:exported_points", "influxdb:exports", "influxdb:rtt", "system:cpu_load",
-    "process:resident_memory", "redis:keys", "redis:memory", "periodic_script:timeseries_writes",
+    "process:resident_memory", "redis:keys", "redis:memory", "redis:reads_writes", "periodic_script:timeseries_writes",
     "mac:arp_rqst_sent_rcvd_rpls", -- Active Monitoring
     "am_host:http_stats_min", "am_host:https_stats_min", "am_host:val_min", "am_host:http_stats_5mins",
     "am_host:https_stats_5mins", "am_host:val_5mins", "am_host:http_stats_hour", "am_host:https_stats_hour",
