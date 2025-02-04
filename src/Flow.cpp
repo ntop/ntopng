@@ -6705,10 +6705,10 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
     float tdiff_msec = (now - last_conntrack_update) * 1000;
 
     updateThroughputStats(tdiff_msec,
-			  nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts,
-			  nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes, 0,
-			  nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts,
-			  nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes, 0);
+                          s2d_pkts_delta,
+                          s2d_bytes_delta, 0,
+                          d2s_pkts_delta,
+                          d2s_bytes_delta, 0);
   }
 
   /*
