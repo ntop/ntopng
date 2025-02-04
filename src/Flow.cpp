@@ -2313,7 +2313,7 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
     bytes_thpt = bytes_msec;
     goodput_bytes_thpt = goodput_bytes_msec;
 
-    #if DEBUG_TREND
+#if DEBUG_TREND
     u_int64_t diff_bytes = diff_sent_bytes + diff_rcvd_bytes;
 
     ntop->getTrace()->traceEvent(TRACE_NORMAL,
@@ -2321,7 +2321,7 @@ void Flow::updateThroughputStats(float tdiff_msec, u_int32_t diff_sent_packets,
 				 "%lu][diff_rcvd_bytes: %lu][bytes_thpt: %.4f Mbit]",
 				 tdiff_msec, diff_bytes, diff_sent_bytes, diff_rcvd_bytes,
 				 (get_bytes_thpt() * 8)/1000000.);
-    #endif
+#endif
 
     if (top_bytes_thpt < get_bytes_thpt())
       top_bytes_thpt = get_bytes_thpt();
@@ -6634,7 +6634,11 @@ bool Flow::isTiny() const {
 void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
                            u_int64_t s2d_bytes, u_int64_t d2s_bytes) {
   u_int16_t eth_proto = ETHERTYPE_IP;
-  bool nf_existing_flow;
+  u_int32_t s2d_pkts_delta = 0, d2s_pkts_delta = 0;
+  u_int64_t s2d_bytes_delta = 0, d2s_bytes_delta = 0;
+  bool s2d_increased = false, d2s_increased = false;
+  bool s2d_set = s2d_pkts || s2d_bytes; /* Check if s2d direction is set */
+  bool d2s_set = d2s_pkts || d2s_bytes; /* Check if d2s direction is set */
 
   /*
      netfilter (depending on configured timeouts) could expire a flow before
@@ -6646,12 +6650,53 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
 
      A complete solution would require the registration of a netfilter check
      and the detection of event NFCT_T_DESTROY.
-  */
-  nf_existing_flow =
-    !(get_packets_cli2srv() > s2d_pkts || get_bytes_cli2srv() > s2d_bytes ||
-      get_packets_srv2cli() > d2s_pkts || get_bytes_srv2cli() > d2s_bytes);
 
-  if((get_packets_cli2srv() != s2d_pkts) || (get_packets_srv2cli() > d2s_pkts)) {
+     Note: for some flows this is called per direction.
+  */
+
+  if (s2d_set) {
+    s2d_increased = (s2d_pkts >= get_packets_cli2srv())
+                 && (s2d_bytes >= get_bytes_cli2srv());
+
+    if (s2d_increased) { /* Compute diff */
+      s2d_pkts_delta  = s2d_pkts  - get_packets_cli2srv();
+      s2d_bytes_delta = s2d_bytes - get_bytes_cli2srv();
+    } else { /* Use abs value */
+      s2d_pkts_delta  = s2d_pkts;
+      s2d_bytes_delta = s2d_bytes;
+    }
+  }
+
+  if (d2s_set) {
+    d2s_increased = (d2s_pkts >= get_packets_srv2cli())
+                 && (d2s_bytes >= get_bytes_srv2cli());
+
+    if (d2s_increased) { /* Compute diff */
+      d2s_pkts_delta  = d2s_pkts  - get_packets_srv2cli();
+      d2s_bytes_delta = d2s_bytes - get_bytes_srv2cli();
+    } else { /* Use abs value */
+      d2s_pkts_delta  = d2s_pkts;
+      d2s_bytes_delta = d2s_bytes;
+    }
+  }
+
+#if 0
+  if((protocol == IPPROTO_UDP) || (protocol == IPPROTO_TCP)) {
+    char buf[256];
+    ntop->getTrace()->traceEvent(TRACE_WARNING, "Flow stats update " //"%s "
+				 "[curr-pkts %u/%u][updt-pkts %u/%u][delta pkts %u/%u] "
+				 "[curr-bytes %u/%u][updt-bytes %u/%u][delta bytes %lu/%lu]",
+				 //print(buf, sizeof(buf)),
+				 get_packets_cli2srv(), get_packets_srv2cli(),
+				 s2d_pkts, d2s_pkts,
+				 s2d_pkts_delta, d2s_pkts_delta,
+				 get_bytes_cli2srv(), get_bytes_srv2cli(),
+				 s2d_bytes, d2s_bytes, 
+				 s2d_bytes_delta, d2s_bytes_delta);
+  }
+#endif
+
+  if((s2d_pkts && get_packets_cli2srv() != s2d_pkts) || (d2s_pkts && get_packets_srv2cli() != d2s_pkts)) {
     /* Update last seen only in case of packets changed (i.e. do not update the flow if the are steady) */
     updateSeen();
   }
@@ -6672,23 +6717,29 @@ void Flow::setPacketsBytes(time_t now, u_int32_t s2d_pkts, u_int32_t d2s_pkts,
     the conntrack handler, and thus the flow is still alive.
   */
   last_conntrack_update = now;
+    
+  if(s2d_set) {
+    static_cast<NetfilterInterface *>(iface)->incStatsConntrack(isIngress2EgressDirection(),
+							        now, eth_proto, getStatsProtocol(),
+							        get_protocol_category(), protocol,
+							        s2d_bytes_delta, s2d_pkts_delta);
 
-  static_cast<NetfilterInterface *>(iface)->incStatsConntrack(isIngress2EgressDirection(), now, eth_proto, getStatsProtocol(),
-							      get_protocol_category(), protocol,
-							      nf_existing_flow ? s2d_bytes - get_bytes_cli2srv() : s2d_bytes,
-							      nf_existing_flow ? s2d_pkts - get_packets_cli2srv() : s2d_pkts);
+    if(s2d_increased)
+      stats.incStats(true, s2d_pkts_delta, s2d_bytes_delta, 0);
+    else
+      stats.setStats(true, s2d_pkts, s2d_bytes, 0);
+  }
 
-  static_cast<NetfilterInterface *>(iface)->incStatsConntrack(!isIngress2EgressDirection(), now, eth_proto, getStatsProtocol(),
-							      get_protocol_category(), protocol,
-							      nf_existing_flow ? d2s_bytes - get_bytes_srv2cli() : d2s_bytes,
-							      nf_existing_flow ? d2s_pkts - get_packets_srv2cli() : d2s_pkts);
+  if(d2s_set) {
+    static_cast<NetfilterInterface *>(iface)->incStatsConntrack(!isIngress2EgressDirection(),
+							        now, eth_proto, getStatsProtocol(),
+							        get_protocol_category(), protocol,
+							        d2s_bytes_delta, d2s_pkts_delta);
 
-  if (nf_existing_flow) {
-    stats.setStats(true, s2d_pkts, s2d_bytes, 0);
-    stats.setStats(false, d2s_pkts, d2s_bytes, 0);
-  } else {
-    stats.incStats(true, s2d_pkts, s2d_bytes, 0);
-    stats.incStats(false, d2s_pkts, d2s_bytes, 0);
+    if (d2s_increased)
+      stats.incStats(false, d2s_pkts_delta, d2s_bytes_delta, 0);
+    else
+      stats.setStats(false, d2s_pkts, d2s_bytes, 0);
   }
 
   if((!detection_completed) && (get_packets() > (2*NDPI_MIN_NUM_PACKETS))) {
