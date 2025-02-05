@@ -7,9 +7,12 @@ package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 if((dirs.scriptdir ~= nil) and (dirs.scriptdir ~= "")) then package.path = dirs.scriptdir .. "/lua/modules/?.lua;" .. package.path end
 
 require "lua_utils"
+require "ntop_utils"
 local page_utils = require("page_utils")
 local script_manager = require("script_manager")
 local graph_utils = require("graph_utils")
+local json = require "dkjson"
+local template_utils = require("template_utils")
 
 local charts_available = script_manager.systemTimeseriesEnabled()
 
@@ -114,56 +117,20 @@ refreshRedisStats();
  ]]
    print("</table>\n")
 elseif(page == "stats") then
-
-   print [[
-<div id="table-redis-stats"></div>
-<script type='text/javascript'>
-
-$("#table-redis-stats").datatable({
-   title: "",
-   perPage: 100,
-   hidePerPage: true,
-   url: "]] print(ntop.getHttpPrefix()) print("/lua/rest/v2/get/redis/redis_stats.lua") print[[",
-   columns: [
-     {
-       field: "column_key",
-       hidden: true,
-       css: {
-         width: '15%',
-       }
-     }, {
-       field: "column_command",
-       sortable: true,
-       title: "]] print(i18n("please_wait_page.command")) print[[",
-       css: {
-         width: '15%',
-       }
-     }, {
-       title: "]] print(i18n("chart")) print[[",
-       field: "column_chart",
-       hidden: ]] if not charts_available then print("true") else print("false") end print[[,
-       sortable: false,
-       css: {
-         textAlign: 'center',
-         width: '5%',
-       }
-     }, {
-       title: "]] print(i18n("system_stats.redis.tot_calls")) print[[",
-       field: "column_hits",
-       sortable: true,
-       css: {
-         textAlign: 'right'
-       }
-     }
-   ], tableCallback: function() {
-      datatableInitRefreshRows($("#table-redis-stats"), "column_key", 5000, {"column_hits": NtopUtils.addCommas});
-   }
-});
-</script>
- ]]
+   local context = {
+      ifid = interface.getId(),
+      csrf = ntop.getRandomCSRFValue()
+  }
+  
+  local json_context = json.encode(context)
+  
+  template_utils.render("pages/vue_page.template", {
+      vue_page_name = "PageRedisStats",
+      page_context = json_context
+  })
 
 elseif(page == "historical" and charts_available) then 
-   graph_utils.drawNewGraphs({ ifid = -1})
+   graph_utils.drawNewGraphs({ ifid = -1, command = _GET["redis_command"]})
 end
 
 -- #######################################################

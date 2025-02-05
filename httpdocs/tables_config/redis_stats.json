@@ -1,0 +1,44 @@
+{
+	"id": "redis_stats",
+	"data_url": "lua/rest/v2/get/redis/redis_stats.lua",
+	"use_current_page": false,
+	"enable_search": false,
+	"paging": false,
+	"display_empty_rows": true,
+	"default_sort": {
+        "column_id": "column_command",
+        "sort": 1
+    },
+	"columns": [
+		{
+			"id": "column_command",
+			"title_i18n": "please_wait_page.command",
+			"data_field": "column_command",
+			"sortable": true,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "column_chart",
+			"title_i18n": "chart",
+			"data_field": "column_chart",
+			"sortable": false,
+			"class": [
+				"text-center",
+				"text-nowrap"
+			]
+		},
+		{
+			"id": "column_hits",
+			"title_i18n": "system_stats.redis.tot_calls",
+			"data_field": "column_hits",
+			"sortable": true,
+			"class": [
+                "text-right",
+				"text-nowrap"
+			]
+		}
+	]
+}
