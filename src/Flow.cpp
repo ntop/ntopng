@@ -3958,6 +3958,12 @@ void Flow::formatGenericFlow(json_object *my_object) {
     json_object_object_add(my_object,
 			   Utils::jsonLabel(TCP_FLAGS, "TCP_FLAGS", jsonbuf, sizeof(jsonbuf)),
 			   json_object_new_int(src2dst_tcp_flags | dst2src_tcp_flags));
+    json_object_object_add(my_object,
+                Utils::jsonLabel(TCP_FLAGS, "CLIENT_TCP_FLAGS", jsonbuf, sizeof(jsonbuf)),
+                json_object_new_int(tcp->src2dst_tcp_flags));
+    json_object_object_add(my_object,
+                Utils::jsonLabel(TCP_FLAGS, "SERVER_TCP_FLAGS", jsonbuf, sizeof(jsonbuf)),
+                json_object_new_int(tcp->dst2src_tcp_flags));
 
     json_object_object_add(my_object,
                            Utils::jsonLabel(TCP_FLAGS, "IN_RETRANSMISSIONS",
