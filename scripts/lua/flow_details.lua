@@ -30,6 +30,7 @@ local page_utils       = require("page_utils")
 local icmp_utils       = require("icmp_utils")
 local alert_consts     = require("alert_consts")
 local mitre_utils      = require("mitre_utils")
+local auth             = require "auth"
 
 if ntop.isPro() then
    package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
@@ -1541,9 +1542,13 @@ else
                   print('<td nowrap>')
 
                   -- Add rules to disable the check
-                  print(string.format(
-                     '<a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a>',
-                     score_alert.alert_id, score_alert.alert_label))
+                  if auth.has_capability(auth.capabilities.checks) and ntop.isEnterpriseM()
+                  then
+                     print(string.format(
+                        '<a href="#alerts_filter_dialog" alert_id=%u alert_label="%s" class="btn btn-sm btn-warning" role="button"><i class="fas fa-bell-slash"></i></a>',
+                        score_alert.alert_id, score_alert.alert_label))
+                  end
+                end
 
                   -- If available, add a cog to configure the check
                   if alert_id_to_flow_check[score_alert.alert_id] then
