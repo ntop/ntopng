@@ -126,8 +126,9 @@ if(password ~= nil and confirm_password ~= nil) then
       return
    end
 
-   if(ntop.resetUserPassword(_SESSION["user"], username, "", password)) then
+   if(not ntop.resetUserPassword(_SESSION["user"], username, "", password)) then
       rest_utils.answer(rest_utils.consts.err.edit_user_failed, res)
+      return
    end
 end
 
