@@ -599,7 +599,7 @@ else
       if ((flow.client_process ~= nil) or (flow.server_process ~= nil)) then
          print("s")
       end
-      print("flows_stats.lua?application=" .. flow["proto.ndpi"] .. "\">")
+      print("flows_stats.lua?application=" .. flow["proto.ndpi_id"] .. "\">")
       print(getApplicationLabel(flow["proto.ndpi"], 32) .. "</A> ")
 
       print("(<A HREF=\"" .. ntop.getHttpPrefix() .. "/lua/")
