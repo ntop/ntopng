@@ -365,8 +365,8 @@ local function printAddCustomHostRule(full_url)
 
    print [[<script>
    function addToCustomizedCategories() {
-      var is_category = ($("#new_rule_type").val() == "category");
-      var target_value = is_category ? $("#flow_target_category").val() : $("#flow_target_app").val();;
+      var is_category = ($("#new_rule_type").val() === undefined || $("#new_rule_type").val() == "category");
+      var target_value = is_category ? $("#flow_target_category").val() : $("#flow_target_app").val();
       var target_url = NtopUtils.cleanCustomHostUrl($("#categories_url_add").val());
 
       if(!target_value || !target_url)
