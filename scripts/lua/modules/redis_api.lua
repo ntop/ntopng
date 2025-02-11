@@ -85,10 +85,6 @@ function redis_api.getStats()
         memory = redis_status["used_memory_rss"],
         -- The number of keys in the database
         dbsize = redis_status["dbsize"],
-        -- The number of reads in the database
-        reads = redis_status["total_reads_processed"],
-        -- The number of writes in the database
-        writes = redis_status["total_writes_processed"],
         -- Health
         health = getHealth(redis_status)
     }

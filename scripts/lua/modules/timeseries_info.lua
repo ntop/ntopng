@@ -1893,7 +1893,7 @@ local community_timeseries = { {
         }
     }
 }, {
-    schema = "redis:reads_writes",
+    schema = "redis:reads_writes_v2",
     id = timeseries_id.redis,
     label = i18n("system_stats.redis.redis_reads_writes"),
     priority = 0,

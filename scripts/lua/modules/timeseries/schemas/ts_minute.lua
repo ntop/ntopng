@@ -711,8 +711,8 @@ schema:addMetric("num_keys")
 
 -- ################################################
 
-schema = ts_utils.newSchema("redis:reads_writes", {
-    metrics_type = ts_utils.metrics.counter,
+schema = ts_utils.newSchema("redis:reads_writes_v2", {
+    metrics_type = ts_utils.metrics.gauge,
     is_system_schema = true,
     step = 60
 })
