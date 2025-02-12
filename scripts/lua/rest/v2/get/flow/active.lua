@@ -90,7 +90,7 @@ for _key, value in ipairs(flows_stats) do
    client["name"] = stripVlan(cli_name)
    client["ip"] = value["cli.ip"]
    client["port"] = value["cli.port"]
-
+   client["country"] = value["cli.country"]
    local info = interface.getHostInfo(value["cli.ip"], value["cli.vlan"])
    if info then
       client["is_broadcast_domain"] = info.broadcast_domain_host
@@ -106,7 +106,7 @@ for _key, value in ipairs(flows_stats) do
    server["name"] = stripVlan(srv_name) 
    server["ip"] = value["srv.ip"]
    server["port"] = value["srv.port"]
-
+   server["country"] = value["srv.country"]
    info = interface.getHostInfo(value["srv.ip"], value["srv.vlan"])
    local info = interface.getHostInfo(value["cli.ip"], value["cli.vlan"])
    if info then
