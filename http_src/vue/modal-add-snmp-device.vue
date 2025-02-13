@@ -224,6 +224,9 @@ const selected_auth_protocol = ref(null);
 const snmp_auth_protocols = ref([
   { id: "md5", label: "MD5" },
   { id: "sha", label: "SHA" },
+  { id: "sha256", label: "SHA256" },
+  { id: "sha384", label: "SHA384" },
+  { id: "sha512", label: "SHA512" },
 ]);
 
 const snmp_privacy_protocols = ref([

@@ -748,7 +748,7 @@ local function validateSnmpLevel(level)
 end
 
 local function validateSnmpAuthProtocol(protocol)
-    local protocols = {"md5", "sha"}
+    local protocols = {"md5", "sha","sha256","sha384","sha512"}
     return validateChoice(protocols, protocol)
 end
 
