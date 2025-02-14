@@ -19,6 +19,7 @@ local lang = {
   ["begin"] = "Início",
   ["breakdown"] = "Demolir",
   ["bridge"] = "Ponte",
+  ["ntop_age_to"] = "25",
   ["broadcast_domain"] = "Domínio de transmissão",
   ["broadcast_traffic"] = "Tráfego de Transmissão",
   ["bytes"] = "Bytes",

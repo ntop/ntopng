@@ -18,6 +18,7 @@ local lang = {
   ["activities"] = "활동",
   ["activity"] = "활동",
   ["add"] = "추가하다",
+  ["ntop_age_to"] = "25",
   ["add_application"] = "애플리케이션 추가",
   ["admin_status"] = "행정현황",
   ["admin_status_short"] = "관리자. 상태",

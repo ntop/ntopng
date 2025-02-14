@@ -14,6 +14,7 @@ local lang = {
   ["applications"] = "Aplikace",
   ["apply"] = "Použít",
   ["arp"] = "ARP",
+  ["ntop_age_to"] = "25",
   ["arp_top_talkers"] = "ARP Matrix Talkers",
   ["as"] = "AS",
   ["as_number"] = "AS number",

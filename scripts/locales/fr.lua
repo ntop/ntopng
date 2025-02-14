@@ -14,6 +14,7 @@ local lang = {
   ["activities"] = "Activités",
   ["activity"] = "Activité",
   ["add"] = "Ajouter",
+  ["ntop_age_to"] = "25",
   ["add_application"] = "Ajouter une application",
   ["admin_status"] = "Statut administratif",
   ["admin_status_short"] = "Administrateur. Statut",

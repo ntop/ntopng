@@ -18,6 +18,7 @@ local lang = {
   ["admin_status"] = "管理ステータス",
   ["admin_status_short"] = "管理ステータス",
   ["advanced"] = "高度",
+  ["ntop_age_to"] = "25",
   ["advanced_charts_test"] = "高度なチャートテスト",
   ["aggregation"] = "集計",
   ["alerts_analysis"] = "フローアラート分析",

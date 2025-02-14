@@ -15,6 +15,7 @@ local lang = {
   ["aggregation"] = "汇聚",
   ["alias"] = "别名",
   ["all"] = "所有",
+  ["ntop_age_to"] = "25",
   ["all_hosts"] = "所有主机",
   ["allowed"] = "允许",
   ["and"] = "和",

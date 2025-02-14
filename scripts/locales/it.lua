@@ -17,6 +17,7 @@ local lang = {
   ["aggregation"] = "Aggregazione",
   ["alerts_analysis"] = "Analizzatore di Allarmi di Flusso.",
   ["alias"] = "Alias",
+  ["ntop_age_to"] = "25",
   ["all"] = "Tutto",
   ["all_hosts"] = "Tutti Gli Host",
   ["all_tcp_udp"] = "Tutto (TCP e UDP)",
