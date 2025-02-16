@@ -180,7 +180,7 @@ with the name of the process which initiated or received the TLS connection.
 .. _`nProbe Agent integration`: https://www.ntop.org/guides/ntopng/using_with_nprobe_agent.html
 .. _`abuse.ch database`: https://sslbl.abuse.ch/ja3-fingerprints
 .. _`JA3`: https://github.com/salesforce/ja3
-.. _`Flows section`: flows.html#tls-information
+.. _`Flows section`: ../flows/flows.html#tls-information
 
 SSH
 ^^^
@@ -190,7 +190,7 @@ along with their the number of uses. As explained in the `related Flows section`
 malicious applications or vulnerable SSH versions.
 
 .. _`HASSH`: https://engineering.salesforce.com/open-sourcing-hassh-abed3ae5044c
-.. _`related Flows section`: flows.html#ssh-signature
+.. _`related Flows section`: ../flows/flows.html#ssh-signature
 
 HTTP
 ^^^^

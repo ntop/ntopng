@@ -67,11 +67,11 @@ Enabling Flow Dump
 ------------------
 
 ntopng can dump flows data to a persistent storage and provides view to browse
-recorded flows data in the past. Check out the `Flows Dump documentation`_ for more details on
+recorded flows data in the past. Check out the `ClickHouse <index.html>`_ for more details on
 how to setup the connection and the historical views available for this mode.
 
 In order to dump flows to disk ntopng requires the `-F clickhouse` option to be
-specified as described in the `Flows Dump documentation`_.
+specified as described in the `ClickHouse <index.html>`_.
 
 Custom Queries
 --------------

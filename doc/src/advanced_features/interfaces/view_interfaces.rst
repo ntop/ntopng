@@ -1,5 +1,5 @@
-Physical Interfaces Aggregation: Interface Views
-================================================
+View Interfaces
+===============
 
 Ntopng can aggregate two or more physical interfaces into logical units, the so called Interface Views.
 Interface views are seen and treated in the web GUI as if they were real interfaces. In the background,
@@ -33,7 +33,7 @@ Upon successful startup, ntopng shows, in the top toolbar ‘Interfaces’ menu,
 with other physical interfaces. An eye is show next to each view, which can be clicked and selected as if it
 was a physical interface.
 
-.. figure:: ../img/advanced_features_view_ifaces_dropdown.png
+.. figure:: ../../img/advanced_features_view_ifaces_dropdown.png
   :align: center
   :alt: View Interfaces Dropdown
 

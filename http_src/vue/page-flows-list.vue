@@ -271,7 +271,8 @@ const map_table_def_columns = (columns) => {
             return ''
         },
         "qoe": (value) => {
-            if (value && value > 0) {
+            /* The value is between 0 and 100 */
+            if (value && value > 0 && value <= 100) {
                 return `<span class='badge ${QoEUtils.QoEQualityBadge(value)}'>${QoEUtils.QoEQualityLabel(value)}</span>`
             }
             return '';

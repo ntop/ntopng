@@ -1988,7 +1988,8 @@ bool Ntop::checkGuiUserPassword(struct mg_connection *conn, const char *user,
   if (ntop->isCaptivePortalUser(user)) {
     ntop->getTrace()->traceEvent(
         TRACE_WARNING, "User %s is not a gui user. Login is denied.", user);
-    return false;
+    rv = false;
+    goto failure;
   }
 
   remote_ip = client_addr.print(ipbuf, sizeof(ipbuf));
@@ -2013,9 +2014,13 @@ bool Ntop::checkGuiUserPassword(struct mg_connection *conn, const char *user,
           TRACE_INFO, "IP %s is now blacklisted from login for %d seconds",
           remote_ip, FAILED_LOGIN_ATTEMPTS_INTERVAL);
 
-    HTTPserver::traceLogin(user, false);
-  } else
+  } else {
     ntop->getRedis()->del(key);
+  }
+
+ failure:
+  if (!rv)
+    HTTPserver::traceLogin(user, NULL, false);
 
   return (rv);
 }

@@ -200,9 +200,9 @@ defaults to 15 minutes.
 Controls the interface disaggregation as explained in the `Interfaces Disaggregation`_
 section.
 
-.. _`Local Broadcast Domain`: ../basic_concepts/local_broadcast_domain.html
+.. _`Local Broadcast Domain`: ../../../basic_concepts/local_broadcast_domain.html
 .. _`DHCP range`: #id1
-.. _`Interfaces Disaggregation`: ../advanced_features/dynamic_interfaces_disaggregation.html
+.. _`Interfaces Disaggregation`: ../../../advanced_features/dynamic_interfaces_disaggregation.html
 
 **Duplicate Disaggregated Traffic**:
 When the Dynamic Traffic Disaggregation option is set, normally ntopng will only report the

@@ -5,19 +5,14 @@ Advanced ntopng features such as logical interface aggregation and bridging are 
 section.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
     :numbered:
 
-    authentication
     bridging_and_policing
-    category_lists
-    dynamic_interfaces_disaggregation
     ids_acceleration
+    interfaces/index
     live_pcap_download
-    multitenancy
     oem
     snapshots
     syslog
-    view_interfaces
-    additional_features
 

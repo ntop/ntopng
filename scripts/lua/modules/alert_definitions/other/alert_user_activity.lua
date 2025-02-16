@@ -44,7 +44,9 @@ function alert_user_activity:init(scope, name, params, remote_addr, status)
    self.alert_type_params = {
 	scope = scope,
 	name = name,
-	params = params,
+	params = {
+           method = params.method
+        },
 	remote_addr = remote_addr,
 	status = status,
    }
@@ -55,12 +57,16 @@ end
 function alert_user_activity.format(ifid, alert, alert_type_params)
    local decoded = alert_type_params
    local user = alert.user or alert.entity_val
- 
+
    if decoded.scope ~= nil then
  
       if decoded.scope == 'login' and decoded.status ~= nil then
 	  if decoded.status == 'authorized' then
-		 return i18n('user_activity.login_successful', {user=user})
+		if decoded.params and decoded.params['method'] then
+			return i18n('user_activity.login_successful_method', {user=user, method=decoded.params['method']})
+		else
+			return i18n('user_activity.login_successful', {user=user})
+		end
 	  else
 		 return i18n('user_activity.login_not_authorized', {user=user})
 	  end

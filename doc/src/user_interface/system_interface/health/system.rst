@@ -1,22 +1,9 @@
-.. _Health:
-
-Health
-######
-
-.. figure:: ../../img/web_gui_system_interface.png
-  :align: center
-  :alt: System Interface
-
-  System Interface
-
-Like descripted in this `system section`_, the system interface is used to monitor the system on which ntopng is running.
-In the Health section, users are able to monitor some core information about the system, going from the CPU/Memory usage of the system to the interfaces or Redis status.
-
+.. _System:
 
 System
 ------
 
-.. figure:: ../../img/web_gui_system_interface_health.png
+.. figure:: ../../../img/web_gui_system_interface_health.png
   :align: center
   :alt: System Interface
 
@@ -51,7 +38,7 @@ Information exposed is accessible from the `wrench` icon of any interface - incl
 
 Internals timeseries generation is of by default and can be enabled from  `Preferences->Timeseries->Internals`.
 
-.. figure:: ../../img/internals_timeseries.png
+.. figure:: ../../../img/internals_timeseries.png
   :align: center
   :alt: Internals Timeseries
 
@@ -82,7 +69,7 @@ Failing to meet one or more of the conditions will almost surely cause ntopng to
 
 Aim of the `Hash Tables` internals table is to monitor hash tables and hash table entries to check and possibly highlight the issues above.
 
-.. figure:: ../../img/internals_hash_tables.png
+.. figure:: ../../../img/internals_hash_tables.png
   :align: center
   :alt: Internals: Hash Tables
 
@@ -136,7 +123,7 @@ Failing to meet one or more of the conditions above can cause ntopng to malfunct
 
 Aim of the `Periodic Activities` internals table is to monitor the execution of periodic activities to check and possibly highlight the issues above.
 
-.. figure:: ../../img/internals_periodic_activities.png
+.. figure:: ../../../img/internals_periodic_activities.png
   :align: center
   :alt: Internals: Periodic Activities
 
@@ -165,7 +152,7 @@ Degraded Performance
 
 When ntopng detects issues with periodic activities, it shows a triangle left to the periodic activity name. Hovering the mouse on the triangle prints the description of the ongoing issue. A yellow triangle is also shown at the top of every page. Clicking on the triangle opens a page with a summary of all the periodic activities with issues.
 
-.. figure:: ../../img/internals_periodic_activities_issues.png
+.. figure:: ../../../img/internals_periodic_activities_issues.png
   :align: center
   :alt: Internals: Periodic Activities with Issues
 
@@ -186,7 +173,7 @@ Checks
 
 Aim of the `Checks` internals table is to monitor the execution of scripts.
 
-.. figure:: ../../img/internals_checks.png
+.. figure:: ../../../img/internals_checks.png
   :align: center
   :alt: Internals: Checks
 
@@ -205,7 +192,7 @@ Information shown is useful to troubleshoot the following issues:
 - `Troubleshoot` periodic activities with :ref:`Degraded Performance`: A periodic activity may be slow because it is executing too many checks. Combining data from the `Periodic Activities` internals table with this table can highlight this condition.
 
 
-.. figure:: ../../img/web_gui_system_interface_queues.png
+.. figure:: ../../../img/web_gui_system_interface_queues.png
   :align: center
   :alt: ntopng Activities
 
@@ -213,151 +200,5 @@ Information shown is useful to troubleshoot the following issues:
 
 
 .. _`system section`: ../basic_concepts/system_interface.html
-.. _`Historical Charts`: ./other_components.html
+.. _`Historical Charts`: ../../shared/other_components.html
 
-
-Interfaces
-----------
-
-.. figure:: ../../img/web_gui_interfaces_monitoring.png
-  :align: center
-  :alt: Interfaces Monitoring
-
-  Interfaces Monitoring
-
-In the Interfaces Health monitoring, the state of the interfaces analyzed by ntopng is going to be displayed, from the number of alerts, to the number of hosts, 
-flows, devices, packets received and dropped.
-
-.. _Alert Monitor:
-
-Alert
------
-
-This monitor is used to understand if there is some alert loss and how much is the internal queue filled. 
-
-.. figure:: ../../img/alert_monitor_home.png
-  :align: center
-  :alt: The Alert Monitor Home
-
-  The Alert Monitor Home
-
-The overview has the following items:
-
-- :code:`Fill Level/Dropped`: indicates how much is the internal queue filled and the number of alerts dropped.
-
-.. _Redis Monitor:
-
-Redis Monitor
--------------
-
-`Redis <https://redis.io/>`_ is a key-value store used by ntopng to cache data and preferences. Redis runs as an external service both on Linux and on Windows. ntopng connects to Redis using sockets. Failing to connect to Redis would cause ntopng to malfunction. Redis must always be up, running and reachable to ensure ntopng functionalities.
-
-Aim of this monitor is to check Redis health and resources used. The home of the Redis Monitor shows a brief overview
-
-.. figure:: ../../img/redis_monitor_home.png
-  :align: center
-  :alt: The Redis Monitor Home
-
-  The Redis Monitor Home
-
-The overview has three items:
-
-- :code:`health`: A badge which is either green or red, depending on the status of Redis. The badge is green when the Redis Append Only File (AOF) is operational, otherwise the badge is red.
-- :code:`ram`: Total memory Redis has obtained from the operating system.
-- :code:`database keys`: Total number of keys currently stored in Redis.
-
-ntopng interacts with Redis using `commands <https://redis.io/commands>`_. The number of times each command is issued is reported under the *wrench* page
-
-.. figure:: ../../img/redis_monitor_wrench.png
-  :align: center
-  :alt: The Redis Commands Monitor
-
-  The Redis Commands Monitor
-
-This page is mostly useful to debug anomalous uses of commands and it not really relevant for a user.
-
-Available timeseries are:
-
-- A stacked `Top Commands Call` to have an overview of the top commands used in time.
-- RAM used
-- Database keys
-- Number of calls for a subset of Redis commands used.
-
-Timeseries can be disabled from the :ref:`ntopngPreferences`, tab *Timeseries->System Probes*.
-
-.. _InfluxDB Monitor:
-
-InfluxDB Monitor
-----------------
-
-ntopng features an :ref:`InfluxDB Driver` to export timeseries to `InfluxDB <https://www.influxdata.com/>`_. Using InfluxDB causes ntopng to enable and periodically execute the InfluxDB monitor. The InfluxDB monitor checks InfluxDB health and status. The home of the InfluxDB Monitor shows a brief overview
-
-.. figure:: ../../img/influxdb_monitor_home.png
-  :align: center
-  :alt: The InfluxDB Monitor Home
-
-  The InfluxDB Monitor Home
-
-The overview has the following items:
-
-- :code:`health`: A badge which is either green, yellow or red, depending on the status of InfluxDB. The badge is green when ntopng is correctly exporting to InfluxDB, yellow when there are export errors that are recoverable and didn't cause any data loss, red when export errors are persistent and data loss is occurring.
-- :code:`storage utilization`: Total disk space used by InfluxDB.
-- :code:`ram`: Total memory InfluxDB has obtained from the operating system.
-- :code:`total exports`. Total number of successful writes into InfluxDB. A single write writes multiple points at once.
-- :code:`total points`: Total number of points successfully written into InfluxDB.
-- :code:`dropped points`: Total number of points dropped due to InfluxDB write failures.
-- :code:`series cardinality`: An indication of how challenging is for InfluxDB to handle written points.
-
-When InfluxDB is temporarily unable to export, the :code:`health` turns yellow.
-
-.. figure:: ../../img/influxdb_monitor_temporarily_unable.png
-  :align: center
-  :alt: InfluxDB Temporarily Unable to Export
-
-  InfluxDB Temporarily Unable to Export
-
-`Temporarily unable to export` means ntopng is actively retrying failing exports. Exports typically fails when InfluxDB is down or cannot ingest new data. After several attempts, ntopng gives up and drops the data it couldn't export. In this case, the :code:`health` turns into red.
-
-.. figure:: ../../img/influxdb_monitor_failing.png
-  :align: center
-  :alt: InfluxDB Failing to Export
-
-  InfluxDB Failing to Export
-
-`Failing to export` also causes alerts to be triggered with the reason of the failure to help the administrator fixing the issue.
-
-ntopng keeps retrying even when the :code:`health` is red to recover as soon as InfluxDB becomes fully functional again.
-
-Timeseries of items shows in the overview are available as well from the *char* page.
-
-.. figure:: ../../img/influxdb_monitor_timeseries.png
-  :align: center
-  :alt: InfluxDB Monitor Timeseries
-
-  InfluxDB Monitor Timeseries
-
-Timeseries can be disabled from the :ref:`ntopngPreferences`, tab *Timeseries->System Probes*.
-
-The InfluxDB monitor is implemented as an ntopng plugin. Source code is available on `gitHub <https://github.com/ntop/ntopng/tree/dev/scripts/plugins/influxdb_monitor>`_.
-
-.. _ClickHouse Monitor:
-
-ClickHouse Monitor
-------------------
-
-ntopng features ClickHouse to export flows to `ClickHouse <https://clickhouse.com/>`_. Enabling the export into ClickHouse Database is going to make the :doc:`Historical Flow Explorer <../clickhouse/historical_flow_explorer>` page available.
-
-.. note::
-    ClickHouse export is available only with Enterprise license
-
-.. figure:: ../../img/clickhouse_monitor_home.png
-  :align: center
-  :alt: The ClickHouse Monitor Home
-
-  The ClickHouse Monitor Home
-
-The overview has the following items:
-
-- :code:`Health`: A badge which is either green, yellow or red, depending on the status of ClickHouse. The badge is green when ntopng is correctly exporting to ClickHouse, yellow when there are export errors that are recoverable and didn't cause any data loss, red when export errors are persistent and data loss is occurring.
-- :code:`Tables Size`: Total disk space used by ClickHouse.
-- :code:`Last Errors`: A log trace used to check if some error occurred during the export of the flows

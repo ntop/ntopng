@@ -47,7 +47,7 @@ class AlertsQueue {
   void pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac,
                                         const u_int8_t *dst_mac, u_int32_t spa,
                                         u_int32_t tpa, u_int16_t vlan_id);
-  void pushLoginTrace(const char *user, bool authorized);
+  void pushLoginTrace(const char *user, const char *method, bool authorized);
   void pushNfqFlushedAlert(int queue_len, int queue_len_pct, int queue_dropped);
   void pushCloudDisconnectionAlert(const char *descr);
   void pushCloudReconnectionAlert(const char *descr);

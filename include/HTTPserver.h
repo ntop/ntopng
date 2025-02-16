@@ -57,7 +57,7 @@ class HTTPserver {
 
   bool valid_user_pwd(char *user, char *pass);
   static bool authorized_localhost_user_login(const struct mg_connection *conn);
-  static void traceLogin(const char *user, bool authorized);
+  static void traceLogin(const char *user, const char *method, bool authorized);
 
   bool authorize_noconn(char *username, char *session_id, u_int session_id_size,
                         u_int session_duration);

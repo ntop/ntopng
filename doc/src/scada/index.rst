@@ -1,5 +1,5 @@
-OT, ICS, SCADA Monitoring
-#########################
+Industrial Monitoring
+#####################
 
 Operational Technology (OT) refers to computing systems that are used to manage industrial operations. ntopng supports some Industrial control systems (ICS) often managed via a Supervisory Control and Data Acquisition (SCADA) systems. Via nDPI it can detect protocols such as Modbus, IEC 60780 and BACnet. In addition to this, ntopng has extensive for some protocols.
 

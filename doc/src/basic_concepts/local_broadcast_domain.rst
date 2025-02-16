@@ -16,6 +16,6 @@ Local broadcast domain hosts can be usually identified by MAC address, in order
 to correctly serialize them in a DHCP network. This can be set from the
 `interface configuration settings`_.
 
-.. |lbd_icon| image:: ../img/lbd_icon.png
+.. _`interface configuration settings`: ../user_interface/network_interface/interface/interfaces.html#settings
 .. _`broadcast domain`: https://en.wikipedia.org/wiki/Broadcast_domain
-.. _`interface configuration settings`: ../web_gui/interfaces.html#settings
+.. |lbd_icon| image:: ../img/lbd_icon.png

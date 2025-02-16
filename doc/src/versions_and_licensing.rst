@@ -1,21 +1,87 @@
-Adding a License
-################
+.. _AvailableVersions:
+  
+Available Versions & Licensing
+##############################
 
-ntopng is available in multiple versions (see :ref:`AvailableVersions`). Some versions require a license key. This section describes how to obtain and add a license key to ntopng.
+The ntopng software comes in four versions: Community, Professional, Enterprise M, Enterprise L, and Enterprise L Bundle. Each version unlocks additional features with respect to the smaller one.
+
+The full list of features and differences between versions is available in the ntopng 
+`Product Page <https://www.ntop.org/products/traffic-analysis/ntop/>`_.
+
+ntopng Community
+----------------
+
+The Community version is free to use and open source. The full source code can be found on `Github <https://github.com/ntop/ntopng>`_.
+
+ntopng Professional
+-------------------
+
+The Professional version offers some extra features with respect to the Community, which are particularly useful for SMEs, including graphical reports, traffic profiles and LDAP authentication.
+
+ntopng Enterprise M
+-------------------
+
+The Enterprise M version offers some extra features with respect to the Professional version, which are particularly useful for large organizations, including SNMP support, advanced alerts management.
+
+ntopng Enterprise L
+-------------------
+
+The Enterprise L version offers some extra features with respect to the Enterprise M version, including fast ClickHouse export, historical data explorer and analysis, Identity Management (the ability to correlate users to traffic).
+
+
+ntopng Enterprise L Bundle
+--------------------------
+
+The Enterprise L Bundle unlocks ntopng Enterprise L, nProbe Pro (Flow Collection), and n2disk 1 Gbit (Continuous Recording).
+
+.. warning::
+   ntopng and nProbe must be on the same machine to have them unlocked with the ntopng Enterprise L Bundle license. The bundle license must be placed under :code:`/etc/ntopng/ntopng.license`.
+
+Licensing
+---------
+
+The Community edition does not need any license. Professional and Enterprise
+versions require a license. ntopng automatically switches to one of these four versions, 
+depending on the presence of a license.
+
+License is per-server and is released according to the EULA (End User
+License Agreement). Each license is perpetual (i.e. it does not
+expire) and it allows to install updates for one year since
+purchase/license issue. This means that a license generated on
+1/1/2021 will be able to activate new versions of the software until
+12/31/2021. If you want to install new versions of the software release
+after that date, you need to renew the maintenance or avoid further
+updating the software. For source-based ntopng you can refer to the
+GPL-v3 License.
+
+ntopng licenses are generated using the orderId and email you provided
+when the license has been purchased on https://shop.ntop.org/.
+
+Once the license has been generated, it can be applied to ntopng
+simply by visiting page "Settings"->"License" of the web GUI and
+pasting the license key in the license form.
+
+Alternatively, the license key can be placed in a one-line file
+:code:`ntopng.license`:
+
+- On Linux, the file must be placed in :code:`/etc/ntopng.license`
+- On Windows, the file must be placed in :code:`Program
+  Files/ntopng/ntopng.license`
+
+.. note::
+
+   An ntopng restart is recommended once the license has been applied
+   to make sure all the new functionalities will be unlocked.
 
 .. _PurchasingALicense:
 
 Purchasing a License
-====================
+--------------------
 
 The first step is to purchase a license. Licenses can be purchased online at https://shop.ntop.org. For bulk purchases, reseller discounts, or any other special requirement related to the purchase of licenses you can `contact ntop <https://www.ntop.org/support/need-help-2/contact-us/>`_ directly.
-
-The Order Id
-------------
-
 Once the purchase has been completed successfully, you will receive an `Order Id`.
 
-.. figure:: ../img/adding_a_license_the_order_id.png
+.. figure:: img/adding_a_license_the_order_id.png
   :align: center
   :width: 400
   :alt: The Order Id
@@ -25,7 +91,7 @@ Once the purchase has been completed successfully, you will receive an `Order Id
 The `Order Id` is a numeric identifier associated to the purchase. Along with the `Order Id` you'll also find the `email` indicated during the purchase procedure. Both `Order Id` and the `email` are necessary to generate the license key.
 
 Generating the License Key
-==========================
+--------------------------
 
 License keys are generated at https://shop.ntop.org/mkntopng/. To generate the license key, you need:
 
@@ -33,17 +99,12 @@ License keys are generated at https://shop.ntop.org/mkntopng/. To generate the l
 - The `System Id`, that is, an identifier associated to the host running ntopng
 - The ntopng `version`, that is, a string representing the version of the installed ntopng (e.g., `5.1.210819`).
 
-Section :ref:`PurchasingALicense` describes how to obtain the `Order Id` and the associated `email`. Here it is shown how to get the `System Id` and the `version`.
-
-Obtaining The `System Id` And The `version`
-------------------------------------------
-
 .. note::
   The `System Id` and the `version` can only be obtained after ntopng has been installed successfully. If you have not yet installed it, follow the installation procedure indicated at https://packages.ntop.org/ before moving forward with the license key generation.
 
 The `System Id` and the `version` can be always obtained from the ntopng UI, page `"Help -> About"`
 
-.. figure:: ../img/adding_a_license_ui_systemid_version.png
+.. figure:: img/adding_a_license_ui_systemid_version.png
   :align: center
   :alt: `System Id` and `version` from the UI
 
@@ -88,7 +149,7 @@ You can copy the license key in a plain text file :code:`/etc/ntopng.license`, e
 Alternatively on selected platforms (e.g. Windows), you can paste the license key straight into the ntopng UI, page `"Settings -> License"`
 
 
-.. figure:: ../img/adding_a_license_ui_install.png
+.. figure:: img/adding_a_license_ui_install.png
   :align: center
   :alt: Installing the ntopng License Key
 
@@ -101,7 +162,7 @@ This said it is recommended to place the license key in the plain text file.
    A restart of ntopng is required after license installation to make sure all the licensed features will be properly unlocked.
 
 Example
-=======
+-------
 
 Let's say that we've purchased an ntopng Enterprise L license for:
 
@@ -116,7 +177,7 @@ The `Order Id` received after the purchase is 1621231231 and the email indicated
 
 The form at https://shop.ntop.org/mkntopng/ will be filled as follow
 
-.. figure:: ../img/adding_a_license_example.png
+.. figure:: img/adding_a_license_example.png
   :align: center
   :alt: License Generation Example
 
@@ -124,7 +185,7 @@ The form at https://shop.ntop.org/mkntopng/ will be filled as follow
 
 Upon successful generation, the license key will be printed in the browser:
 
-.. figure:: ../img/adding_a_license_browser_generated_license.png
+.. figure:: img/adding_a_license_browser_generated_license.png
   :align: center
   :alt: The Obtained License Key
 
@@ -135,7 +196,7 @@ At this point the license can be installed as described above or simply by follo
 .. _LicenseManager:
 
 Using the License Manager
-=========================
+-------------------------
 
 In addition to the standard licenses described above, ntopng can use the license manager (LM). Please refer to https://www.ntop.org/guides/nprobe/introduction.html#using-the-license-manager for details about the LM.
 
@@ -174,3 +235,9 @@ where
 - INSTANCE_NAME is a string used to indetity this specific instance
 - AUTH_TOKEN is a token that the LM can use to prevent issuing valid licenses for unknown AUTH_TOKEN. Its value must be configured in the LM.
 - PRODUCT_FAMILY and PRODUCT_EDITION define what license the ntop application will as the LM when contacting it.
+
+Licenses on a Container
+-----------------------
+
+An article that explain everything in details on how to deploy a license inside a container can be found here:
+`Deploying Licenses inside Conteainers <https://www.ntop.org/support/faq/my-license-does-not-work-inside-a-container-what-can-i-do/>`_

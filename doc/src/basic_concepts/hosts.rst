@@ -10,7 +10,7 @@ To give an example, let's consider ntopng is monitoring interface `eth1` with IP
 - ICMP echo requests exiting `eth1` with source IP `192.168.2.1` and destination IP `192.168.2.2`
 - ICMP echo replies entering `eth1` with source IP `192.168.2.2` and destination IP `192.168.2.1`
 
-As two different IP addresses are seen, ntopng will create, update and make available through the Web GUI two hosts, namely, `192.168.2.1` and `192.168.2.2`. The whole section :ref:`Hosts` of this guide thoroughly discuss all the information that is available for any host.
+As two different IP addresses are seen, ntopng will create, update and make available through the Web GUI two hosts, namely, `192.168.2.1` and `192.168.2.2`. The whole section of this guide thoroughly discuss all the information that is available for any host.
 
 Local Networks
 --------------

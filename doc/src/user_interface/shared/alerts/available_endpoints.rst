@@ -3,11 +3,98 @@
 Notifications
 =============
 
-When an alert occurs, ntopng exports the alert to the configured endpoints. By creating a custom endpoint, users can easily export the alert data to their preferred service or trigger a specialized action based on the triggered alert.
-Here a list of the available endpoints.
+Once evaluated, alerts are sent to recipients. Recipients, along with their associated endpoints, are managed from the system interface.
+
+.. figure:: ../../../img/alerts_endpoints_recipients_management.png
+  :align: center
+  :alt: Endpoints and Recipients Management
+
+Recipients are associated to one, and only one endpoint, but the same endpoint can be shared across multiple recipients.
+
+Endpoints and recipients have a type and a set of configuration parameters which depends on the type. All the available endpoints and recipients are described in `this`_ section.
+
+Endpoints contain common configuration which is then extended with recipients configuration. For example, the *email* endpoint contains the SMTP server address, whereas *email* recipients contain destination email addressses. This allows the creation of multiple *email* recipients, all sharing the same endpoint and, thus, the same SMTP server address.
+
+An extensive example can bee seen at https://www.ntop.org/ntopng/using-ntopng-recipients-and-endpoints-for-flexible-alert-handling/.
+
+.. _`this`: ../alerts/available_recipients.html
+
+Builtin
+-------
+
+A builtin *Alert Store DB* recipient, along with its builtin *Alert Store DB* endpoint, is always present. This is used to deliver alerts to the internal database (SQLite or ClickHouse) and have them accessible inside the web UI. Engaged alerts are not affected by the builtin pair and are always shown. For example, the following alerts are shown under *Flow Alerts* because they have been delivered to the builtin recipient. The builtin recipient cannot be edited or deleted.
+
+.. figure:: ../../../img/alerts_builtin_historical_flows.png
+  :align: center
+  :alt: Builtin Recipient - Flow Alerts
+
+
+
+Delivery Criteria
+-----------------
+
+Each recipient can be configured to receive alerts on the basis of a few criteria:
+
+- Severity
+- Alert Category
+- Host Pool
+
+Severity Criteria
+^^^^^^^^^^^^^^^^^
+
+A minimum severity is indicated when creating/editing the recipient. All alerts having the indicated (or an higher severity) will be delivered to the recipient.
+
+.. figure:: ../../../img/alerts_recipient_criteria_minimum_severity.png
+  :align: center
+  :alt: Severity
+
+
+
+Check Category
+^^^^^^^^^^^^^^
+
+Multiple types can be indicated when creating/editing the recipient. All alerts belonging to the indicated types will be delivered to the recipient.
+
+.. figure:: ../../../img/alerts_recipient_criteria_category_filter.png
+  :align: center
+  :alt: Alert Category
+
+
+
+Check Entity
+^^^^^^^^^^^^
+
+Multiple types can be indicated when creating/editing the recipient. All alerts belonging to the indicated entity will be delivered to the recipient.
+
+.. figure:: ../../../img/alerts_recipient_criteria_entity_filter.png
+  :align: center
+  :alt: Alert Category
+
+
+
+Host Pool Criteria
+^^^^^^^^^^^^^^^^^^
+
+None or multiple host pools can be configured to filter alerts which are relative to hosts, including Flow and Host alerts.
+ 
+.. figure:: ../../../img/alerts_recipient_criteria_pool_filter.png
+  :align: center
+  :alt: Host Pool Criteria
+
+
+
+Active Monitoring
+^^^^^^^^^^^^^^^^^
+
+None or multiple alerts regarding active monitored devices can be configured.
+ 
+.. figure:: ../../../img/alerts_recipient_criteria_active_monitoring_filter.png
+  :align: center
+  :alt: Host Pool Criteria
+
 
 Available Endpoints
-###################
+-------------------
 
 Currently available Endpoints and license required are: 
 
@@ -49,7 +136,7 @@ Below a guide on how to configure each Endpoint/Recipient.
 
 
 Discord
--------
+^^^^^^^
 
 Discord (https://discord.com) is a popular collaboration application that can be used by ntopng to deliver alerts to recipients. In order to deliver alerts you need to configure a new Discord server as described in this document https://support.discord.com/hc/en-us/articles/204849977-How-do-I-create-a-server- and the to create a webhook as decribed here https://support.discord.com/hc/en-us/articles/360045093012-Server-Integrations-Page
 
@@ -65,7 +152,7 @@ The above picture shows sample alerts delivered to a discord server.
 
 .. _ElasticsearchAlerts:
 Elasticsearch
--------------
+^^^^^^^^^^^^^
 
 This recipient is designed to send alerts to `Elasticsearch <https://www.elastic.co/>`_.
 
@@ -186,7 +273,7 @@ Alerts are sent to Elasticsearch in JSON format, following the ECS format (more 
    }
 
 Email
------
+^^^^^
 
 One can create the email endpoint as follows
 
@@ -203,7 +290,7 @@ endpoint but each one with a different destination email address:
   :alt: Email Endpoint Configuration
 
 Fail2Ban
---------
+^^^^^^^^
 
 First of all, install Fail2Ban, for infos about the download check `Fail2Ban <https://www.fail2ban.org/wiki/index.php/Downloads>`_.
 After that you will be able to see the Fail2Ban Endpoint.
@@ -219,7 +306,7 @@ After creating the endpoint, create a new recipient to associate with the new en
         Fail2Ban Endpoint isn't going to be called for each alert but only for those that supports it, in the specific case only those with the Attacker available; check the specific user guide section for more infos :ref:`Alert Summary`.
 
 Mattermost
-----------
+^^^^^^^^^^
 
 `Mattermost <https://mattermost.com>`_ is an Open Source, self-hostable online chat service designed as an internal chat for organisations and companies.
 
@@ -237,7 +324,7 @@ After creating the endpoint, create a new recipient with the new endpoint just c
 
 .. _Microsoft Teams:
 MS Teams
---------
+^^^^^^^^
 
 Like for the Webhook, Microsoft Teams endpoint can be used to deliver alert information to a MS Teams Channel configuring a Connector in MS Teams and the URL in ntopng. Alert information are provided to MS Teams in Message Card (Specific MS Teams JSON format) by means of POST requests.
 
@@ -253,7 +340,7 @@ Official guide to MS Teams Webhook can be found `Here <https://docs.microsoft.co
   MS Teams recipient is only available in ntopng Enterprise L or above.
 
 PagerDuty
----------
+^^^^^^^^^
 
 First of all, create a PagerDuty account. For information about the PagerDuty account, please refer to the following link: `PagerDuty <https://developer.pagerduty.com/sign-up/>`_. 
 After that, you will be able to see the PagerDuty Endpoint.
@@ -276,7 +363,7 @@ After creating the endpoint, proceed to create a new recipient to associate with
 
 
 Shell Script
-------------
+^^^^^^^^^^^^
 
 Create the script you want to execute each time the alert is triggered and put it inside the directory :code:`/usr/share/ntopng/scripts/shell/`.
 
@@ -302,7 +389,7 @@ Example of simple shell script reading the alert information from the standard i
    cat - >> /tmp/shell-script.log
 
 Slack
------
+^^^^^
 
 `Slack <https://slack.com>`_ is a IRC-like business communication platform that can be used by ntopng to deliver alerts. In order to deliver alerts to a slack channel you need to:
 
@@ -338,7 +425,7 @@ Slack
   :alt: 
 
 Syslog
-------
+^^^^^^
 
 Alerts are sent to syslog using standard syslog severities as per RFC 5424.
 
@@ -436,7 +523,7 @@ The final result should look like the one showed in the image below.
 .. figure:: ../../../img/checkmk_service_level_association.png
 
 Telegram
---------
+^^^^^^^^
 
 First of all navigate from the Web GUI into the section Notification->Endpoints; after that, click on the `+` on the right corner of the Endpoint window, this way it will add a new Endpoint for the notification system. Select inside the `Type` window `Telegram`. Then open Telegram, search for `@BotFather` and start a new conversion with it.
 
@@ -475,7 +562,7 @@ Now add to the relative Pool the Telegram recipient you just created and it's do
 .. figure:: ../../../img/telegram_alerts.png
 
 Webhook
--------
+^^^^^^^
 
 Webhooks can be used to deliver alert information to a HTTP endpoint by configuring the URL in ntopng. Alert information are provided to the webhook in JSON format by means of POST requests.
 
@@ -484,7 +571,7 @@ A Shared Secret can be configured in ntopng, which is an arbitrary string includ
 A Username and Password can also be used to use HTTP Basic authentication.
 
 WeChat
--------
+^^^^^^
 
 WeChat can be used to deliver alert information to a WeChat HTTP endpoint by configuring the URL in ntopng. 
 
@@ -496,7 +583,7 @@ Alert information are provided to the webhook in JSON format by means of POST re
 
 
 TheHive
-------
+^^^^^^^
 
 First of all, install TheHive. For information about the downloads and installation, please refer to the following link: `TheHive <https://docs.strangebee.com/thehive/setup/installation/step-by-step-guide/#cortex-misp>`_.
 After that, you will be able to see the TheHive Endpoint.

@@ -11,7 +11,7 @@ This Web Interface is used to monitor the status of a Network Interface; there c
 
 By changing interface and jumping to the Network Interface some options are going to be available.
 
-.. _`section`: ../interfaces/index.html
+.. _`section`: ../../advanced_features/interfaces/index.html
 
 Dashboard
 ---------
@@ -70,8 +70,10 @@ Maps
 
 .. toctree::
     :maxdepth: 3
-
-    maps/index
+    
+    maps/analysis_map
+    maps/geo_map
+    maps/host_map
 
 
 Interface
@@ -80,7 +82,12 @@ Interface
 .. toctree::
     :maxdepth: 2
 
-    interface/index
+    interface/interfaces
+    interface/networks
+    interface/host_pools
+    interface/autonomouse_systems
+    interface/countries
+    interface/http_servers_local
 
 
 Policies
@@ -89,7 +96,51 @@ Policies
 .. toctree::
     :maxdepth: 2
 
-    ../shared/policies/index
+    ../shared/policies/access_control_list
+    ../shared/policies/allowed_applications
+    ../shared/policies/device_mac_address_tracking
+    ../shared/policies/network_configuration
+    ../shared/policies/traffic_rules
+    ../shared/alerts/others/available_alerts
+    ../shared/alerts/others/behavioural_checks_exclusion
+    ../shared/policies/traffic_profiles
+    
 
+Settings
+--------
+
+.. toctree::
+  :maxdepth: 2
+
+  ../shared/settings/users
+  ../shared/settings/preferences
+  ../shared/settings/blacklists
+  ../shared/settings/configurations
+  ../shared/settings/applications_and_categories
+
+
+Developer
+---------
+
+.. toctree::
+  :maxdepth: 2
+
+  ../shared/developer/rest_api
+  ../shared/developer/analyze_pcap_file
+  ../shared/developer/manage_data
+  ../shared/developer/behavioural_checks
+  ../shared/developer/alert_flow_status_definitions
+  ../shared/developer/directories
+
+
+Help
+----
+
+.. toctree::
+  :maxdepth: 2
+
+  ../shared/help/about
+  ../shared/help/ntop_blog
+  ../shared/help/report_an_issue
 
 

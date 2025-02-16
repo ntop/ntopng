@@ -196,11 +196,11 @@ bool HTTPserver::authorized_localhost_user_login(
 
 /* ****************************************** */
 
-void HTTPserver::traceLogin(const char *user, bool authorized) {
+void HTTPserver::traceLogin(const char *user, const char *method, bool authorized) {
   if (ntop->getSystemInterface()
       /* Can be NULL during startup so check is necessary */
       && ntop->getSystemInterface()->getAlertsQueue())
-    ntop->getSystemInterface()->getAlertsQueue()->pushLoginTrace(user, authorized);
+    ntop->getSystemInterface()->getAlertsQueue()->pushLoginTrace(user, method, authorized);
 }
 
 /* ****************************************** */
@@ -242,7 +242,7 @@ static void create_session(const char *user, const char *group, bool localuser,
   ntop->getTrace()->traceEvent(TRACE_INFO, "[HTTP] Set session sessions.%s",
                                session_id);
 
-  HTTPserver::traceLogin(user, true);
+  HTTPserver::traceLogin(user, localuser ? "local" : "remote", true);
 }
 
 /* ****************************************** */

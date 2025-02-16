@@ -110,7 +110,7 @@ local function processStoreAlertFromQueue(alert)
         type_info:set_subtype(string.format("%s_%s_%s", alert.ip, alert.old_mac, alert.new_mac))
     elseif (alert.alert_id == "login_failed") then
         entity_info = alert_entity_builders.userEntity(alert.user)
-        type_info = alert_consts.alert_types.alert_login_failed.new()
+        type_info = alert_consts.alert_types.alert_login_failed.new(alert)
         type_info:set_score_warning()
     elseif (alert.alert_id == "broadcast_domain_too_large") then
         entity_info = alert_entity_builders.macEntity(alert.src_mac)
@@ -121,7 +121,7 @@ local function processStoreAlertFromQueue(alert)
             alert.tpa))
     elseif ((alert.alert_id == "user_activity") and (alert.scope == "login")) then
         entity_info = alert_entity_builders.userEntity(alert.user)
-        type_info = alert_consts.alert_types.alert_user_activity.new("login", nil, nil, nil, "authorized")
+        type_info = alert_consts.alert_types.alert_user_activity.new("login", nil, alert, nil, "authorized")
         type_info:set_score_notice()
         type_info:set_subtype("login//")
     elseif (alert.alert_id == "nfq_flushed") then

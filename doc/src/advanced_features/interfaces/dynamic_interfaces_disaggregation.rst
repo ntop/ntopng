@@ -14,7 +14,7 @@ Dynamic Disaggregation
 Dynamic Interfaces Disaggregation can be enabled from the network interface configuration tab
 as depicted in the picture below.
 
-.. figure:: ./../img/dynamic_interface_disaggregation.png
+.. figure:: ../../img/dynamic_interface_disaggregation.png
   :align: center
   :alt: Dynamic Interfaces Disaggregation
 
@@ -44,7 +44,7 @@ same time, by selecting a Dynamic disaggregation criteria and configuring custom
 same time. Custom rules have higher priority: traffic matching custom rules will not be
 processed by the dynamic disaggregation.
 
-.. figure:: ./../img/custom_interface_disaggregation.png
+.. figure:: ../../img/custom_interface_disaggregation.png
   :align: center
   :alt: Custom Interfaces Disaggregation
 
@@ -56,7 +56,7 @@ SRC_VLAN, DST_VLAN.
 Note that in this case the same traffic can be diverted to multiple interfaces in case of 
 overlapping filters.
 
-.. figure:: ./../img/custom_interface_disaggregation_dialog.png
+.. figure:: ../../img/custom_interface_disaggregation_dialog.png
   :align: center
   :scale: 60 %
   :alt: Custom Interfaces Disaggregation Dialog

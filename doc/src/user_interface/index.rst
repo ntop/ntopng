@@ -28,11 +28,11 @@ Administrator privileges are granted to user *admin*. If an unauthenticated user
 
 The header bar show the ntopng status information, in particular:
 
-- The currently `selected interface <interfaces.html>`_.
+- The currently `selected interface <../basic_concepts/interfaces.html>`_.
 - The interface Up/Down throughput chart.
 - A series of coloured badges.
-- A `search box <host_search.html>`_.
-- The notifications bell and the `user administration menu <administration.html>`_.
+- A search box.
+- The notifications bell and the `user administration menu <../user_interface/shared/settings/users.html>`_.
 
 The coloured indicate the status of many components in ntopng. The badges in the above picture have the following meaning (from left to right):
 
@@ -54,7 +54,7 @@ Each individual menu bar entry will be discussed below.
       
 The Interfaces dropdown menu entry in the top toolbar contains lists all the interfaces that are currently
 monitored by ntopng. Among all interfaces listed, one has a check mark that indicates the interface is
-currently selected. A special interface is always present in ntopng, the `System Interface`_.
+currently selected. A special interface is always present in ntopng, the `System Interface <../basic_concepts/system_interface.html>`_.
 Most of the data and information shown in ntopng web GUI is related to the currently selected
 interface. Any interface listed can be selected simply by clicking on its name.
 

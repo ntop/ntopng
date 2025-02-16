@@ -1,7 +1,7 @@
-.. _Category Lists:
+.. _Blacklists:
 
-Category Lists / Blacklists
-===========================
+Blacklists
+==========
 
 ntopng uses third party IP/domain lists to detect malicious hosts, the Category Lists.
 Each list contains a list of hosts which are associated to a particular `protocol category`_.
@@ -13,7 +13,7 @@ ntopng to detect malicious hosts and generate `alerts`_.
 
   Check out the `Custom Category Hosts docs`_ for a way to assign custom hosts to the ntopng categories.
 
-.. figure:: ../img/advanced_features_category_lists.png
+.. figure:: ../../../img/advanced_features_category_lists.png
   :align: center
   :alt: Category Lists Configuration Page
 
@@ -32,7 +32,7 @@ The *Status* column indicates the list current status:
 By clicking on the *Edit* button it's possible to edit the list update frequency and
 to disable the list.
 
-.. figure:: ../img/advanced_features_category_lists_edit.png
+.. figure:: ../../../img/advanced_features_category_lists_edit.png
   :align: center
   :alt: Customize a Category List options
   :scale: 70%
@@ -41,9 +41,9 @@ to disable the list.
 
 When a list is disabled, it will not be updated anymore.
 
-.. _`protocol category`: ../web_gui/settings.html#category
-.. _`Custom Category Hosts docs`: ../web_gui/categories.html#custom-category-hosts
-.. _`alerts`: ../web_gui/alerts.html
+.. _`protocol category`: applications_and_categories.html
+.. _`Custom Category Hosts docs`: applications_and_categories.html
+.. _`alerts`: ../../../basic_concepts/alerts.html
 
 Custom Blacklists
 -----------------

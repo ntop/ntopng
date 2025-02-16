@@ -8,23 +8,21 @@ ntopng can be used in combination with other ntop tools. Documentation to use nt
    :caption: User's Guide
 
    what_is_ntopng
-   use_cases/index
-   basic_concepts/index
+   versions_and_licensing
+   installation
    how_to_start/index
-   adding_a_license/index
    cli_options/index
    user_interface/index
    interfaces/index
    alerts/index
    using_with_other_tools/index
-   flow_dump/index
-   containers   
    scada/index
-   advanced_features/index
    operating_ntopng_on_large_networks
+   flow_dump/index
+   advanced_features/index
    third_party_integrations/index
-   faq
    performances/index
+   faq
 
 .. toctree::
    :caption: Developer's Guide

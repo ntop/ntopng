@@ -8645,6 +8645,7 @@ local lang = {
     ["live_extraction_with_filter"] = "User '%{user}' downloaded traffic from interface %{ifname} from %{from} to %{to} matching filter '%{filter}'.",
     ["login_not_authorized"] = "Login denied for user '%{user}'.",
     ["login_successful"] = "User '%{user}' logged in.",
+    ["login_successful_method"] = "User '%{user}' logged in with '%{method}' authentication.",
     ["password_changed"] = "Password for user '%{pwd_user}' changed by '%{user}' with ip '%{ip}'.",
     ["recording_disabled"] = "User '%{user}' disabled Traffic Recording on interface %{ifname}.",
     ["recording_enabled"] = "User '%{user}' enabled Traffic Recording on interface %{ifname}.",

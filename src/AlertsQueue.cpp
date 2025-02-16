@@ -170,7 +170,7 @@ void AlertsQueue::pushBroadcastDomainTooLargeAlert(const u_int8_t *src_mac,
 
 /* **************************************************** */
 
-void AlertsQueue::pushLoginTrace(const char *user, bool authorized) {
+void AlertsQueue::pushLoginTrace(const char *user, const char *method, bool authorized) {
   ndpi_serializer *tlv;
 
   if (ntop->getPrefs()->are_alerts_disabled()) return;
@@ -182,6 +182,8 @@ void AlertsQueue::pushLoginTrace(const char *user, bool authorized) {
 
     ndpi_serialize_string_string(tlv, "scope", "login");
     ndpi_serialize_string_string(tlv, "user", user);
+    if (method)
+      ndpi_serialize_string_string(tlv, "method", method);
 
     pushAlertJson(tlv, authorized ? "user_activity" : "login_failed", NULL, alert_category_system);
   }

@@ -101,7 +101,7 @@ will be split into two separate virtual network interfaces into ntopng:
      - `tcp://127.0.0.1:5556`: flows from exporter on port 2055
      - `tcp://127.0.0.1:5557`: flows from exporter on port 6343
 
-.. _`Dynamic Interfaces Disaggregation`: advanced_features/dynamic_interfaces_disaggregation.html
+.. _`Dynamic Interfaces Disaggregation`: ../advanced_features/interfaces/dynamic_interfaces_disaggregation.html
 
 Observation Points
 ~~~~~~~~~~~~~~~~~~

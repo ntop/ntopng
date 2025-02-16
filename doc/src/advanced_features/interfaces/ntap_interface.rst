@@ -10,7 +10,7 @@ ntop has developed `nTap <https://www.ntop.org/products/traffic-analysis/ntap/>`
 - a remote tap that captures traffic, encrypts it, and sends it to remote collector
 - a central collector application that receives encryoted packets sent by the remote tap(s). The collector is not needed with ntopng Enterprise L as it natively includes nTap collection capabilities.
 
-.. figure:: ../img/ntap_ntopng.png
+.. figure:: ../../img/ntap_ntopng.png
   :align: center
   :alt: nTap Integation with ntopng
   :scale: 95

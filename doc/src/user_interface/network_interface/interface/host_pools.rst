@@ -25,8 +25,6 @@ Each row of the table shows, for each pool, the following information:
 - Throughput, with the overall actual throughput of the pool
 - Traffic, with the total traffic exchanged by the pool
 
-Host pools can be configured from the `network interface page`_.
-
 Pools can be created or managed from the *System* interface, 
 *Pools* menu. It is possible to add new pools using the “plus” button in the same page.
 
@@ -52,8 +50,7 @@ from the *Settings* > *Manage Configuration* page. Imported host pools will repl
 An “Alias” can be associated to each pool member to ease the its identification. Typically, one would
 assign a mnemonic label as member alias (e.g., “John’s iPhone” or “Smart TV”).
 
-A view of host pool statistics is accessible from the actual interface, *Hosts* > *Host Pools* menu,
-as discussed in the `relevant section`_. The view shows live pool information (e.g., overall pool throughput)
+A view of host pool statistics is accessible from the actual interface, *Hosts* > *Host Pools* menu. The view shows live pool information (e.g., overall pool throughput)
 and provides access to the historical pool traffic timeseries (Professional version) as well as to the 
 currently active pool members.
 

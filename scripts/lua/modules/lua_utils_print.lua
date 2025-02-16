@@ -345,7 +345,8 @@ end
 -- ##############################################
 
 function formatQoE(value)
-   if(value >     90) then label = i18n("flow_details.qoe_excellent", { value = value })
+   if(value >     100) then label = "" -- Unknown QoE
+   elseif(value >     90) then label = i18n("flow_details.qoe_excellent", { value = value })
    elseif(value > 75) then label = i18n("flow_details.qoe_good",      { value = value })
    elseif(value > 60) then label = i18n("flow_details.qoe_fair",      { value = value })
    elseif(value > 50) then label = i18n("flow_details.qoe_degraded",  { value = value })

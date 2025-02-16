@@ -683,10 +683,19 @@ page_utils.add_menubar_section({
 
 -- ##############################################
 
+-- Notifications
+page_utils.add_menubar_section({
+    section = page_utils.menu_sections.notifications,
+    hidden = not is_system_interface or not is_admin,
+    url = '/lua/admin/endpoint_notifications_list.lua'
+})
+
+-- ##############################################
+
 -- Rules & Policies
 page_utils.add_menubar_section({
     section = page_utils.menu_sections.policies,
-    hidden = is_system_interface or infrastructure_view,
+    hidden = infrastructure_view,
     entries = {
         {
             entry = page_utils.menu_entries.access_control_list,
@@ -734,15 +743,6 @@ page_utils.add_menubar_section({
             url = '/lua/pro/admin/edit_profiles.lua'
         }
     }
-})
-
--- ##############################################
-
--- Notifications
-page_utils.add_menubar_section({
-    section = page_utils.menu_sections.notifications,
-    hidden = not is_system_interface or not is_admin,
-    url = '/lua/admin/endpoint_notifications_list.lua'
 })
 
 page_utils.add_menubar_section({

@@ -19,12 +19,12 @@ traffic to users. ntopng Enterprise L includes plugin for collecting VPN logs an
 correlate network traffic to VPN users supporting multiple devices from the vendors 
 below:
 
-- `Fortinet </guides/ntopng/alerts/syslog_checks.html#fortinet>`_
-- `Kerberos/NXLog (Windows Active Directory) </guides/ntopng/alerts/syslog_checks.html#kerberos-nxlog>`_
-- `OpenVPN </guides/ntopng/alerts/syslog_checks.html#openvpn>`_
-- `OPNsense </guides/ntopng/alerts/syslog_checks.html#opnsense>`_
-- `SonicWall </guides/ntopng/alerts/syslog_checks.html#sonicwall>`_
-- `Sophos </guides/ntopng/alerts/syslog_checks.html#sophos>`_
+- `Fortinet <../user_interface/shared/alerts/others/syslog_checks.html#fortinet>`_
+- `Kerberos/NXLog (Windows Active Directory) <../user_interface/shared/alerts/others/syslog_checks.html#kerberos-nxlog>`_
+- `OpenVPN <../user_interface/shared/alerts/others/syslog_checks.html#openvpn>`_
+- `OPNsense <../user_interface/shared/alerts/others/syslog_checks.html#opnsense>`_
+- `SonicWall <../user_interface/shared/alerts/others/syslog_checks.html#sonicwall>`_
+- `Sophos <../user_interface/shared/alerts/others/syslog_checks.html#sophos>`_
 
 For further information about all the VPN plugins please also visit :ref:`SyslogChecks target`.
 

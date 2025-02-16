@@ -9,4 +9,4 @@ The ability to also *enforce Traffic Policies* is available in:
 
 .. _`nEdge`: https://www.ntop.org/products/traffic-analysis/ntopng-edge
 .. _`nEdge Documentation`: https://www.ntop.org/guides/nedge
-.. _`Host Pools section`: ../web_gui/pools.html
+.. _`Host Pools section`: ../user_interface/network_interface/interface/host_pools.html

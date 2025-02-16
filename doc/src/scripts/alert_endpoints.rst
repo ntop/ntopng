@@ -266,7 +266,7 @@ how to log to console `flow flood attackers alerts`_.
 
   return my_endpoint
 
-.. _`configured endpoints`: ../web_gui/alerts.html#alert-endopints
+.. _`configured endpoints`: ../user_interface/shared/alerts/others/available_alerts.rst
 .. _`email_alert_endpoint`: https://github.com/ntop/ntopng/tree/dev/scripts/scripts/email_alert_endpoint
 .. _`prefs_menu.lua`: https://github.com/ntop/ntopng/blob/dev/scripts/lua/modules/prefs_menu.lua
 .. _`Localization section`: https://www.ntop.org/guides/ntopng/scripts/localization.html

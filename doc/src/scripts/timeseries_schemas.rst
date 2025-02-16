@@ -3,7 +3,7 @@
 Timeseries Schemas
 ==================
 
-Checks invoked via the `checks hooks`_ can use the `Timeseries
+Checks invoked via the checks hooks can use the `Timeseries
 API`_ to write their own timeseries data and then visualize it in `Custom
 Pages`_. A full example of a script specialized in collecting Redis metrics
 is the `Redis monitor script`_ .
@@ -23,7 +23,7 @@ The directory can contain one or more of the following files:
 - :code:`day.lua`: Define schemas whose points have 1 day resolution.
 
 For example, schemas defined into `min.lua` are suitable to be used in the user
-scripts `min` hook (see `the relevant page`_ for more details). Each file should use the timeseries
+scripts `min` hook. Each file should use the timeseries
 API in order to define its schemas. Here is an example of `min.lua`:
 
 .. code:: lua
@@ -73,7 +73,6 @@ A check could then use the above schema as follows:
 It's important to check that `params.ts_enabled` flag in order to call `ts_utils.append` only
 if the timeseries are enabled for the given entity currently processed.
 
-.. _`checks hooks`: check_hooks.html#user-script-hooks
 .. _`Timeseries API`: ../api/timeseries/index.html
 .. _`Custom Pages`: custom_pages.html
 .. _`Redis monitor script`: https://github.com/ntop/ntopng/tree/dev/scripts/scripts/redis_monitor

@@ -13,4 +13,4 @@ To monitor data from a mirror/SPAN port or from a tap, refer to `Monitoring a Po
 nTap Virtual Tap
 ================
 
-`nTap <https://www.ntop.org/guides/ntap/>`_ is ntop's implementation of a remote/virtual/cloud tap natively embedded in ntopng. You can read more about it `here <../interfaces/ntap_interface.html>`_
+`nTap <https://www.ntop.org/guides/ntap/>`_ is ntop's implementation of a remote/virtual/cloud tap natively embedded in ntopng. You can read more about it `here <../advanced_features/interfaces/ntap_interface.html>`_
