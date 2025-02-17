@@ -24,7 +24,7 @@ Example:
 ## Exporting Alerts to ELK
 
 To export alerts instead, users need to configure an ELK Endpoint and then an ELK Recipient.
-For more info follow the [documentation](https://www.ntop.org/guides/ntopng/alerts/available_recipients.html)<br />
+For more info follow the [documentation](https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html)<br />
 **_NOTE:_**  A Pro License at least is needed to export Alerts to ELK.
 
 ## Adding ntopng data from Kibana GUI

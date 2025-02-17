@@ -51,7 +51,7 @@ following links:
 When RSS is enabled, the traffic will be spread across multiple virtual
 interfaces. View Interfaces can be used in order to aggregate the traffic
 back into a single interface, check out
-https://www.ntop.org/guides/ntopng/advanced_features/view_interfaces.html .
+https://www.ntop.org/guides/ntopng/advanced_features/interfaces/view_interfaces.html .
 
 Additional Tuning
 -----------------

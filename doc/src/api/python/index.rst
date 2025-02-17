@@ -41,7 +41,7 @@ All the examples require:
 - ntopng URL (-n option, *localhost:3000* by default)
 - ntopng credentials
    - ntopng user (-u option, *admin* by default) and ntopng password (-p option, *admin* by default)
-   - or ntopng Token (https://www.ntop.org/guides/ntopng/advanced_features/authentication.html?#token-based-authentication)
+   - or ntopng Token (https://www.ntop.org/guides/ntopng/user_interface/shared/settings/preferences.html#token-based-authentication)
 
 Some of the examples also require an ntopng interface ID (-i option) and additional parameters (e.g. host).
 

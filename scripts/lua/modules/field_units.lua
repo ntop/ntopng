@@ -20,7 +20,8 @@ local field_units = {
    score = "field_units.score",
    per_host_score = "field_units.per_host_score",
    macs = "field_units.macs",
-   exceptions = "field_units.exceptions"
+   exceptions = "field_units.exceptions",
+   domains = "field_units.domains"
 }
 
 return field_units

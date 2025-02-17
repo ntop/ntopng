@@ -25,3 +25,4 @@ local do_trace = false
 -- #################################################################
 
 checks.interfaceChecks(granularity, checks_var, do_trace)
+checks.hostChecks(granularity, checks_var, do_trace)

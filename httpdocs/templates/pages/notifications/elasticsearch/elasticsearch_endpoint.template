@@ -1,7 +1,7 @@
 <div class="form-group mb-3 row">
     <label class="col-form-label col-sm-3">
 		<b>{{ i18n("notification_endpoint.elasticsearch.url") }}</b>
-    <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#elasticsearch"><i class="fa-regular fa-circle-question"></i></a>
+    <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#elasticsearch"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
 	<input
@@ -13,7 +13,7 @@
 <div class="form-group mb-3 row">
     <label class="col-form-label col-sm-3">
 	{{ i18n("notification_endpoint.elasticsearch.username") }}
-    <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#elasticsearch"><i class="fa-regular fa-circle-question"></i></a>
+    <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#elasticsearch"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
 	<input
@@ -25,7 +25,7 @@
 <div class="form-group mb-3 row">
     <label class="col-form-label col-sm-3">
 	{{ i18n("notification_endpoint.elasticsearch.password") }}
-    <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#elasticsearch"><i class="fa-regular fa-circle-question"></i></a>
+    <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#elasticsearch"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
 	<input name="elasticsearch_password" type="password" class="form-control" />

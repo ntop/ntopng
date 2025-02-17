@@ -36,6 +36,7 @@ local host_alert_keys = {
   host_alert_external_script             = 27,
   host_alert_host_scanner                = 28,
   host_alert_server_ports_contacts       = 29,
+  host_alert_suspicious_domain_scan      = 30,
   
   -- NOTE: Keep in sync with HostAlertTypeEnum in ntop_typedefs.h
 }

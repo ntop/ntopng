@@ -251,7 +251,7 @@ function email.runTest(recipient)
   if sent.success then
     message_info = i18n("prefs.email_sent_successfully")
   else
-    message_info = i18n("prefs.email_send_error", {msg = sent.msg, url = "https://www.ntop.org/guides/ntopng/web_gui/alerts.html#email"})
+    message_info = i18n("prefs.email_send_error", {msg = sent.msg, url = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#email"})
   end
 
   return sent.success, message_info

@@ -928,7 +928,7 @@ bool MySQLDB::connectToDB(MYSQL *conn, bool select_db) {
 	return (false);
       } else {
 	int clickhouse_version = atoi(row[0]);
-	int min_clickhouse_version = 22; /* See https://www.ntop.org/guides/ntopng/clickhouse/installation.html */
+	int min_clickhouse_version = 22; /* See https://www.ntop.org/guides/ntopng/flow_dump/clickhouse/index.html */
 
 	if(clickhouse_version < min_clickhouse_version) {
 	  ntop->getTrace()->traceEvent(TRACE_ERROR, "Your ClickHouse server v.%s is too old (< %u.X.X.X): please update",

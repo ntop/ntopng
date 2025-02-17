@@ -1,7 +1,7 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         <b>{{ i18n("notification_endpoint.syslog.alert_format") }}</b>
-        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#syslog"><i class="fa-regular fa-circle-question"></i></a>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#syslog"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
         <select name="syslog_alert_format" class="form-select" required>
@@ -23,7 +23,7 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
 	    {{ i18n("notification_endpoint.syslog.host") }}
-        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#syslog"><i class="fa-regular fa-circle-question"></i></a>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#syslog"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
 	<input
@@ -36,7 +36,7 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
 	    {{ i18n("notification_endpoint.syslog.port") }}
-        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#syslog"><i class="fa-regular fa-circle-question"></i></a>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#syslog"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
 	<input
@@ -49,7 +49,7 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         <b>{{ i18n("notification_endpoint.syslog.protocol") }}</b>
-        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#syslog"><i class="fa-regular fa-circle-question"></i></a>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#syslog"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
         <select name="syslog_protocol" class="form-select">

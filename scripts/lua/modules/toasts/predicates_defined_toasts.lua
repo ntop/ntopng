@@ -602,7 +602,7 @@ function predicates.vulnerability_scan(toast, container)
     if (not is_clickhouse_enable) then
 
         local body = i18n("hosts_stats.page_scan_hosts.enable_clickhouse_toast_label", {
-            link = "https://www.ntop.org/guides/ntopng/vulnerability_scan/index.html#scan-reports"
+            link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/monitoring/vulnerability_scan.html#scan-reports"
         })
         table.insert(container, toast_ui:new(toast.id, i18n("info"),body,
             ToastLevel.INFO, nil, toast.dismissable))
@@ -750,7 +750,7 @@ function predicates.create_endpoint(toast, container)
 
     local title = i18n("endpoint_notifications.hints.create_endpoint.title")
     local body = i18n("endpoint_notifications.hints.create_endpoint.body", {
-        link = "https://www.ntop.org/guides/ntopng/scripts/alert_endpoints.html"
+        link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#available-endpoints"
     })
     local action = {
         title = i18n("endpoint_notifications.hints.create_endpoint.action"),
@@ -783,7 +783,7 @@ function predicates.create_recipients_for_endpoint(toast, container)
 
     local title = i18n("endpoint_notifications.hints.create_recipients.title")
     local body = i18n("endpoint_notifications.hints.create_recipients.body", {
-        link = "https://www.ntop.org/guides/ntopng/scripts/alert_endpoints.html"
+        link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#available-endpoints"
     })
     local action = {
         url = ntop.getHttpPrefix() .. "/lua/admin/endpoint_notifications_list.lua?subdir=recipient",

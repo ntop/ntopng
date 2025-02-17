@@ -1,7 +1,7 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
 	    <b>{{ i18n("notification_endpoint.thehive.url") }}</b>
-        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#thehive"><i class="fa-regular fa-circle-question"></i></a>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#thehive"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
 	<input
@@ -13,7 +13,7 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
         <b>{{ i18n("notification_endpoint.thehive.api_token") }}</b>
-        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#thehive"><i class="fa-regular fa-circle-question"></i></a>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#thehive"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
         <input data-validation-message="{{ i18n('notification_endpoint.thehive.validation.invalid_token') }}"
@@ -25,7 +25,7 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
 	    <b>{{ i18n("notification_endpoint.thehive.observable_url") }}</b>
-        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#thehive"><i class="fa-regular fa-circle-question"></i></a>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#thehive"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
 	<input
@@ -38,7 +38,7 @@
 <div class="mb-3 row">
     <label class="col-form-label col-sm-3">
 	    <b>{{ i18n("notification_endpoint.thehive.observable_mail") }}</b>
-        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#thehive"><i class="fa-regular fa-circle-question"></i></a>
+        <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#thehive"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
 	<input

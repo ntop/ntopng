@@ -255,7 +255,9 @@ local current_configset = nil
 local function invokeScriptHook(check, configset, hook_fn, p1, p2, p3)
     current_script = check
     current_configset = configset
-    return (hook_fn(p1, p2, p3))
+    if type(hook_fn) == "function" then
+        return (hook_fn(p1, p2, p3))
+    end
 end
 
 -- ###########################################
@@ -397,9 +399,14 @@ local function init_check(check, mod_fname, full_path, script, script_type, subd
     end
 
     if subdir == "host" then
-        check.hooks = {
-            min = true
-        }
+        if check.hooks and table.len(check.hooks) > 0 then
+            -- Hook defined in lua
+        else
+            -- C check
+            check.hooks = {
+                min = true
+            }
+        end
     end
 
     if check.gui then
@@ -420,7 +427,7 @@ local function init_check(check, mod_fname, full_path, script, script_type, subd
     end
 
     -- Expand hooks
-    if (check.hooks and check.hooks["all"] ~= nil) then
+    if check.hooks and check.hooks["all"] ~= nil then
         local callback = check.hooks["all"]
         check.hooks["all"] = nil
 
@@ -430,7 +437,7 @@ local function init_check(check, mod_fname, full_path, script, script_type, subd
     end
 
     if not check.hooks then
-        -- Flow checks no longer have hooks. They have callbacks in C++ that have replaced hooks
+        -- e.g. flow checks no longer have hooks, they have callbacks in C++ that replace hooks
         check.hooks = {}
     end
 end
@@ -591,11 +598,18 @@ local function get_loadable_checks(script_type, subdir)
                 local check_info
 
                 -- Getting check info, like edition and key
+
+                -- Read from C for host/flow
                 if subdir == "host" then
                     check_info = ntop.getHostCheckInfo(mod_fname)
                 elseif subdir == "flow" then
                     check_info = ntop.getFlowCheckInfo(mod_fname)
                 else
+                    -- Read from lua definition for other families
+                    -- or as fallback (e.g. lua checks for hosts/flows)
+                end
+
+                if not check_info then
                     check_info = get_check_info(checks_dir, fname)
                 end
 
@@ -1832,6 +1846,25 @@ end
 -- ##############################################
 
 -- The function below ia called once at the startup
+local function setupHostChecks(str_granularity, checks_var, do_trace)
+    if (do_trace) then
+        print("alert.lua:setup(" .. str_granularity .. ") called\n")
+    end
+    checks_var.ifid = interface.getId()
+
+    -- Load the check modules
+    checks_var.available_modules = checks.load(checks_var.ifid, checks.script_types.traffic_element, "host", {
+        hook_filter = str_granularity
+    })
+
+    checks_var.configset = checks.getConfigset()
+    -- Retrieve the configuration associated to the confset
+    checks_var.iface_config = checks.getConfig(checks_var.configset, "host")
+end
+
+-- ##############################################
+
+-- The function below ia called once at the startup
 local function setupInterfaceChecks(str_granularity, checks_var, do_trace)
     if (do_trace) then
         print("alert.lua:setup(" .. str_granularity .. ") called\n")
@@ -1934,6 +1967,42 @@ local function setupActiveMonitoringChecks(str_granularity, checks_var, do_trace
     checks_var.configset = checks.getConfigset()
 
     return true
+end
+
+-- #################################################################
+
+-- This function runs lua hosts checks (it does not applies to C++ checks)
+local function runHostChecks(granularity, checks_var, do_trace)
+    if table.empty(checks_var.available_modules.hooks[granularity]) then
+        if (do_trace) then
+            print("host:runScripts(" .. granularity .. "): no modules, skipping\n")
+        end
+        return
+    end
+
+    local granularity_id = alert_granularities[granularity].granularity_id
+
+    local info = interface.getStats()
+    local entity_info = alert_entity_builders.interfaceAlertEntity(checks_var.ifid)
+
+    if (do_trace) then
+        print("checkHostAlerts()\n")
+    end
+
+    for mod_key, hook_fn in pairs(checks_var.available_modules.hooks[granularity]) do
+        local check = checks_var.available_modules.modules[mod_key]
+        local conf = checks.getTargetHookConfig(checks_var.iface_config, check, granularity)
+
+        if (conf.enabled) then
+            invokeScriptHook(check, checks_var.configset, hook_fn, {
+                granularity = granularity,
+                alert_entity = entity_info,
+                entity_info = info,
+                check_config = conf.script_conf,
+                check = check
+            })
+        end
+    end
 end
 
 -- #################################################################
@@ -2160,6 +2229,13 @@ end
 --        The run, cycle all the alerts and execute them
 --        The teardown, unloads the alerts from the vm
 -- #################################################################
+
+-- Used to run lua hosts checks (it does not applies to C++ checks)
+function checks.hostChecks(granularity, checks_var, do_trace)
+    setupHostChecks(granularity, checks_var, do_trace)
+    runHostChecks(granularity, checks_var, do_trace)
+    teardownChecks(granularity, checks_var, do_trace)
+end
 
 -- #################################################################
 

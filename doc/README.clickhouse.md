@@ -1,6 +1,6 @@
 # ClickHouse
 For more information about howto use ClickHouse in ntopng please see
-- https://www.ntop.org/guides/ntopng/clickhouse.html
+- https://www.ntop.org/guides/ntopng/flow_dump/clickhouse/clickhouse.html
 
 # Usage Recommendations
 We recommend you to [read this document](https://clickhouse.com/docs/en/operations/tips), in particular, if your system has limited resources such as memory and disk

@@ -176,7 +176,7 @@ page_utils.menu_entries = {
         key = "traffic_dashboard",
         i18n_title = "dashboard.traffic_dashboard",
         section = "dashboard",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/dashboard.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/dashboard/dashboard.html"
     },
     network_discovery = {
         key = "network_discovery",
@@ -187,13 +187,13 @@ page_utils.menu_entries = {
         key = "traffic_report",
         i18n_title = "report.traffic_report",
         section = "dashboard",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/report.html"
+        help_link = "https://www.ntop.org/guides/ntopng/flow_dump/clickhouse/reports.html"
     },
     traffic_analysis = {
         key = "traffic_analysis",
         i18n_title = "db_explorer.traffic_analysis",
         section = "dashboard",
-        help_link = "https://www.ntop.org/guides/ntopng/clickhouse.html?#historical-flows-explorer"
+        help_link = "https://www.ntop.org/guides/ntopng/flow_dump/clickhouse/historical_flows.html"
     },
 
     -- Alerts
@@ -201,7 +201,7 @@ page_utils.menu_entries = {
         key = "detected_alerts",
         i18n_title = "show_alerts.detected_alerts",
         section = "alerts",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/alerts.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/alerts_explorer.html"
     },
     alerts_dashboard = {
         key = "alerts_dashboard",
@@ -229,7 +229,7 @@ page_utils.menu_entries = {
         key = "flows",
         i18n_title = "flows",
         section = "flows",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/flows.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/flows/flows.html"
     },
     active_flows = {
         key = "active_flows",
@@ -245,13 +245,13 @@ page_utils.menu_entries = {
         key = "db_explorer",
         i18n_title = "db_explorer.historical_data_explorer",
         section = "flows",
-        help_link = "https://www.ntop.org/guides/ntopng/clickhouse.html?#historical-flows-explorer"
+        help_link = "https://www.ntop.org/guides/ntopng/flow_dump/clickhouse/historical_flows.html"
     },
     server_ports = {
         key = "server_ports",
         i18n_title = "server_ports.server_ports",
         section = "flows",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#http-servers-local"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/flows/server_ports.html"
     },
 
     -- Hosts
@@ -259,7 +259,7 @@ page_utils.menu_entries = {
         key = "hosts",
         i18n_title = "hosts",
         section = "hosts",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html#"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/hosts/hosts.html#id1"
     },
     devices = {
         key = "devices",
@@ -289,7 +289,7 @@ page_utils.menu_entries = {
         key = "networks",
         i18n_title = "networks",
         section = "if_stats",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/if_stats.html?#networks"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/interface/networks.html"
     },
     vlans = {
         key = "vlans",
@@ -305,25 +305,25 @@ page_utils.menu_entries = {
         key = "autonomous_systems",
         i18n_title = "as_stats.autonomous_systems",
         section = "if_stats",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#autonomous-systems"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/interface/autonomous_systems.html"
     },
     countries = {
         key = "countries",
         i18n_title = "countries",
         section = "if_stats",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#countries"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/interface/countries.html"
     },
     operating_systems = {
         key = "operating_systems",
         i18n_title = "operating_systems",
         section = "if_stats",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#operating-systems"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/interface/operating_systems.html"
     },
     http_servers = {
         key = "http_servers",
         i18n_title = "http_servers_stats.local_http_servers",
         section = "if_stats",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#http-servers-local"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/interface/http_servers_local.html"
     },    
     containers = {
         key = "containers",
@@ -424,7 +424,7 @@ page_utils.menu_entries = {
         key = "geo_map",
         i18n_title = "geo_map.geo_map",
         section = "maps",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/hosts.html?#geo-map"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/maps/geo_map.html"
     },
     hosts_map = {
         key = "hosts_map",
@@ -443,19 +443,19 @@ page_utils.menu_entries = {
         key = "manage_users",
         i18n_title = ternary(is_nedge, "nedge.system_users", "manage_users.manage_users"),
         section = "admin",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-users"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/settings/users.html"
     },
     preferences = {
         key = "preferences",
         i18n_title = "prefs.preferences",
         section = "admin",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#preferences"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/settings/preferences.html"
     },
     categories = {
         key = "categories",
         i18n_title = "custom_categories.apps_and_categories",
         section = "admin",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/categories.html#custom-applications"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/settings/applications_and_categories.html#custom-applications"
     },
     category_lists = {
         key = "category_lists",
@@ -498,109 +498,109 @@ page_utils.menu_entries = {
         key = "traffic_rules",
         i18n_title = "if_stats_config.traffic_rules",
         section = "policies",
-        help_link = "https://www.ntop.org/guides/ntopng/advanced_features/traffic_rules.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/policies/traffic_rules.html"
     },
     profiles = {
         key = "profiles",
         i18n_title = "traffic_profiles.traffic_profiles",
         section = "policies",
-        help_link = "https://www.ntop.org/guides/ntopng/advanced_features/traffic_profiles.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/policies/traffic_profiles.html"
     },
     alert_exclusions = {
         key = "alert_exclusions",
         i18n_title = "edit_check.exclusion_list",
         section = "policies",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/behavioural_checks_exclusion.html"
     },
     alert_exclusions_hosts = {
         key = "alert_exclusions",
         subkey = "hosts",
         i18n_title = alert_entities.host.i18n_label,
         section = "alert_exclusions",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     alert_exclusions_flows = {
         key = "alert_exclusions",
         subkey = "flows",
         i18n_title = alert_entities.flow.i18n_label,
         section = "alert_exclusions",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     alert_exclusions_domains = {
         key = "alert_exclusions",
         subkey = "domains",
         i18n_title = alert_entities.domain.i18n_label,
         section = "alert_exclusions",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config = {
         key = "scripts_config",
         i18n_title = "about.checks",
         section = "policies",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_all = {
         key = "scripts_config",
         subkey = "all",
         i18n_title = "all",
         section = "policies",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_hosts = {
         key = "scripts_config",
         subkey = "hosts",
         i18n_title = alert_entities.host.i18n_label,
         section = "policies",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_interfaces = {
         key = "scripts_config",
         subkey = "interfaces",
         i18n_title = alert_entities.interface.i18n_label,
         section = "policies",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_networks = {
         key = "scripts_config",
         subkey = "networks",
         i18n_title = alert_entities.network.i18n_label,
         section = "policies",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_snmp_devices = {
         key = "scripts_config",
         subkey = "snmp_devices",
         i18n_title = alert_entities.snmp_device.i18n_label,
         section = "policies",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_flows = {
         key = "scripts_config",
         subkey = "flows",
         i18n_title = alert_entities.flow.i18n_label,
         section = "policies",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_system = {
         key = "scripts_config",
         subkey = "system",
         i18n_title = alert_entities.system.i18n_label,
         section = "policies",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_syslog = {
         key = "scripts_config",
         subkey = "syslog",
         i18n_title = "syslog.syslog",
         section = "policies",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     scripts_config_active_monitoring = {
         key = "scripts_config",
         subkey = "active_monitoring",
         i18n_title = "active_monitoring",
         section = "policies",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/checks.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/others/available_alerts.html"
     },
     device_exclusions = {
         key = "device_exclusions",
@@ -613,13 +613,13 @@ page_utils.menu_entries = {
         key = "endpoint_notifications",
         i18n_title = "endpoint_notifications.endpoint_list",
         section = "notifications",
-        help_link = "https://www.ntop.org/guides/ntopng/scripts/alert_endpoints.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#available-endpoints"
     },
     endpoint_recipients = {
         key = "endpoint_recipients",
         i18n_title = "endpoint_notifications.enpoint_recipients_list",
         section = "notifications",
-        help_link = "https://www.ntop.org/guides/ntopng/scripts/alert_endpoints.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/alerts/available_endpoints.html#available-endpoints"
     },
 
     -- Tools
@@ -671,7 +671,7 @@ page_utils.menu_entries = {
         key = "analyze_pcap",
         i18n_title = "about.analyze_pcap",
         section = "dev",
-        help_link = "https://www.ntop.org/guides/ntopng/advanced_features/index.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/developer/analyze_pcap_file.html"
     },
     alert_definitions = {
         key = "alert_definitions",
@@ -693,7 +693,7 @@ page_utils.menu_entries = {
         key = "manage_data",
         i18n_title = "manage_data.manage_data",
         section = "dev",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/settings.html#manage-data"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/developer/manage_data.html"
     },
 
     -- Help
@@ -701,7 +701,7 @@ page_utils.menu_entries = {
         key = "about",
         i18n_title = "about.about",
         section = "about",
-        help_link = "https://www.ntop.org/guides/ntopng/web_gui/help_menu.html?#about"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/help/about.html"
     },
     license = {
         key = "license",
@@ -764,7 +764,7 @@ page_utils.menu_entries = {
         key = "users",
         i18n_title = "users.users",
         section = "hosts",
-        help_link = "https://www.ntop.org/guides/ntopng/advanced_features/authentication.html"
+        help_link = "https://www.ntop.org/guides/ntopng/user_interface/shared/settings/preferences.html#user-authentication"
     },
     system_setup = {
         key = "system_setup",

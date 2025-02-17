@@ -85,8 +85,9 @@ Interface
     interface/interfaces
     interface/networks
     interface/host_pools
-    interface/autonomouse_systems
+    interface/autonomous_systems
     interface/countries
+    interface/operating_systems
     interface/http_servers_local
 
 

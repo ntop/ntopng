@@ -161,7 +161,7 @@ local function getAssetData(ifid, order, sort, start, length, filters, asset_typ
     end
 
     if sort == "ip" and hasClickHouseSupport() then
-        sort = "IPv4StringToNum(ip)"
+        sort = "toIPv6(ip)"
     end
     local where = ""
 
