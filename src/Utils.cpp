@@ -1986,7 +1986,7 @@ bool Utils::sendMail(lua_State *vm, char *from, char *to, char *cc,
     if (strncmp(smtp_server, "smtps://", 8) == 0)
       curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
     else if (strncmp(smtp_server, "smtp://", 7) == 0)
-      curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_NONE);
+      curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
     else /* Try using SSL */
       curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
 
