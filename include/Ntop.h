@@ -45,6 +45,7 @@ class Ntop {
   bool hostPoolsReloadInProgress;
   bool interfacesShuttedDown;
   bool offline, forced_offline;
+  bool broadcast_ip_disabled;
   Bloom *resolvedHostsBloom; /* Used by all redis class instances */
   JobQueue jobsQueue;
   AddressTree local_interface_addresses;
@@ -287,6 +288,7 @@ class Ntop {
    * 131.114.21.0/24,10.0.0.0/255.0.0.0 .
    */
   void setLocalNetworks(char *nets);
+
   /**
    * @brief Check if the ingress parameter is in the local networks.
    * @details Inline method.
@@ -301,9 +303,16 @@ class Ntop {
                       u_int8_t *network_mask_bits = NULL);
 
   /**
+   * @brief Return true is broadcast addresses are disabled (point-to-point).
+   */
+  bool isBroadcastIPDisabled() { return broadcast_ip_disabled; };
+  void disableBroadcastIP() { broadcast_ip_disabled = true; };
+
+  /**
    * @brief Start ntopng packet processing.
    */
   void start();
+
   /**
    * @brief Resolve the host name.
    * @details Use the redis database to resolve the IP address and get the host

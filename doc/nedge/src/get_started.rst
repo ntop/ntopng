@@ -1,7 +1,7 @@
 Getting Started
 ===============
 
-nEdge can be installed on Ubuntu 20 using apt, it is thus necessary to configure the ntop repository by following the
+nEdge can be installed on Ubuntu 20 or 24 LTS using apt, it is thus necessary to configure the ntop repository by following the
 instructions at http://packages.ntop.org . After configuring the repository, nEdge can be
 installed with the below commands:
 

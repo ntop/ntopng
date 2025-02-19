@@ -376,6 +376,7 @@ protected:
   void pollQueuedeCompanionEvents();
   bool getInterfaceBooleanPref(const char *pref_key,
                                bool default_pref_value) const;
+  void setCustomName(char *alias, bool set_on_empty);
   virtual void incEthStats(bool ingressPacket, u_int16_t proto,
                            u_int32_t num_pkts, u_int32_t num_bytes,
                            u_int pkt_overhead) {

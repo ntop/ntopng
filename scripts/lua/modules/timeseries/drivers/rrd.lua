@@ -407,6 +407,7 @@ local function sampleSeries(schema, cur_points, step, max_points, series, consol
 
     for _, data_serie in pairs(series) do
         local serie = data_serie.data
+        local aggregated_serie = {}
         local num = 0
         local sum = 0
         local all_nan = true
@@ -437,9 +438,9 @@ local function sampleSeries(schema, cur_points, step, max_points, series, consol
                 end
 
                 if (consolidation == "MAX") then
-                    serie[end_idx] = max_val
+                    aggregated_serie[end_idx] = max_val
                 else
-                    serie[end_idx] = sum / num
+                    aggregated_serie[end_idx] = sum / num
                 end
 
                 end_idx = end_idx + 1
@@ -457,18 +458,18 @@ local function sampleSeries(schema, cur_points, step, max_points, series, consol
                 sum = nan
             end
 
-            serie[end_idx] = sum / num
+            aggregated_serie[end_idx] = sum / num
             end_idx = end_idx + 1
         end
 
         count = end_idx - 1
 
         -- remove the exceeding points
-        for i = end_idx, #serie do
-            serie[i] = nil
+        for i = end_idx, #aggregated_serie do
+            aggregated_serie[i] = nil
         end
 
-        data_serie.data = serie
+        data_serie.data = aggregated_serie
     end
 
     -- new step, new count, new data

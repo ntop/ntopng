@@ -150,6 +150,7 @@ class Flow : public GenericHashEntry {
       dst2src_tcp_zero_window : 1, non_zero_payload_observed : 1,
     is_periodic_flow : 1, ____notused:1;
   u_int8_t iface_flow_accounted:1, _notused:7;
+  DropReason dropVerdictReason;
 
   u_int8_t rtp_stream_type;
 #ifdef ALERTED_FLOWS_DEBUG
@@ -597,12 +598,12 @@ public:
   inline u_int8_t getTcpFlagsSrv2Cli() const { return (dst2src_tcp_flags); };
 #ifdef HAVE_NEDGE
   bool checkPassVerdict(const struct tm *now);
-  bool isPassVerdict() const;
+  bool isPassVerdict();
   inline void setConntrackMarker(u_int32_t marker) { this->marker = marker; }
   inline u_int32_t getConntrackMarker() { return (marker); }
   void incFlowDroppedCounters();
 #endif
-  void setDropVerdict();
+  void setDropVerdict(DropReason reason);
   u_int32_t getPid(bool client);
   u_int32_t getFatherPid(bool client);
   u_int32_t get_uid(bool client) const;
@@ -668,9 +669,10 @@ public:
   void updateQUICStats(bool src2dst_direction, const struct timeval *tv,
 		       u_int8_t *payload, u_int16_t payload_len);
   void updateUDPTimestamp(bool src2dst_direction, const struct timeval *tv);
-  void computeQoEscore(u_int8_t *cli_to_srv_qoe, u_int8_t *srv_to_cli_qoe);
-  u_int8_t computeQoETCPscore(QoELimits *l, bool cli_to_srv);
-  u_int8_t computeQoEUDPscore(QoELimits *l, bool cli_to_srv);
+  void computeQoEscore(u_int8_t *cli_to_srv_qoe, std::vector<std::string> *cli_to_srv_qoe_issues,
+		       u_int8_t *srv_to_cli_qoe, std::vector<std::string> *srv_to_cli_qoe_issues);
+  u_int8_t computeQoETCPscore(QoELimits *l, bool cli_to_srv, std::vector<std::string> *issues);
+  u_int8_t computeQoEUDPscore(QoELimits *l, bool cli_to_srv, std::vector<std::string> *issues);
   u_int8_t getQoEScore();
 #endif
   void endProtocolDissection();

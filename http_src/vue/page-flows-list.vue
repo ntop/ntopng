@@ -273,7 +273,7 @@ const map_table_def_columns = (columns) => {
         "qoe": (value) => {
             /* The value is between 0 and 100 */
             if (value && value > 0 && value <= 100) {
-                return `<span class='badge ${QoEUtils.QoEQualityBadge(value)}'>${QoEUtils.QoEQualityLabel(value)}</span>`
+                return QoEUtils.QoEQualityIcon(value)
             }
             return '';
         },
@@ -538,7 +538,7 @@ onBeforeMount(() => {
 /* ************************************** */
 
 onMounted(() => {
-    clearInterval(interval_id.value);
+        clearInterval(interval_id.value);
     interval_id.value = setInterval(refresh_table, refresh_rate)
     //    chart.value.update(application_thpt_url + "?" + ntopng_url_manager.get_url_params());
 });

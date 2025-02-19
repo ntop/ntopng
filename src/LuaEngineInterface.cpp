@@ -3476,7 +3476,7 @@ static int ntop_drop_flow_traffic(lua_State *vm) {
   f = curr_iface->findFlowByKeyAndHashId(key, hash_id, ptree);
 
   if (f) {
-    f->setDropVerdict();
+    f->setDropVerdict(DROP_REASON_USER_ACTION);
     lua_pushboolean(vm, true);
   } else
     lua_pushboolean(vm, false);

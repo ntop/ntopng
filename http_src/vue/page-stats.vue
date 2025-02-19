@@ -485,15 +485,23 @@ function get_ts_compare(status) {
     let r = Number.parseInt((status.epoch_end - status.epoch_begin) / 60);
     if (r <= 5) {
         return "5m";
+    } else if (r <= 10) {
+        return "10m";
     } else if (r <= 30) {
         return "30m";
     } else if (r <= 60) {
         return "1h";
+    } else if (r <= 60 * 2) {
+        return "2h";
+    } else if (r <= 60 * 6) {
+        return "6h";
+    } else if (r <= 60 * 12) {
+        return "12h";
     } else if (r <= 60 * 24) {
         return "1d";
     } else if (r <= 60 * 24 * 7) {
         return "1w";
-    } else if (r <= 60 * 24 * 30) {
+    } else if (r <= 60 * 24 * 31) {
         return "1M";
     } else {
         return "1Y";

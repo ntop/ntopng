@@ -1040,4 +1040,18 @@ flow_consts.major_connection_states = {
    ["CLOSED"]      = 3
 }
 
+-- keep in sync with enum DropReason in include/ntop_typedefs.h 
+flow_consts.drop_reason = {
+   [ 1] = { i18n_label = "drop_reason.user_action" },
+   [ 2] = { i18n_label = "drop_reason.probe_verdict" },
+   [ 3] = { i18n_label = "drop_reason.blacklisted_flow" },
+   [ 4] = { i18n_label = "drop_reason.quota_exceeded" },
+   [ 5] = { i18n_label = "drop_reason.drop_cli" },
+   [ 6] = { i18n_label = "drop_reason.drop_srv" },
+   [ 7] = { i18n_label = "drop_reason.cli2srv_shaper" },
+   [ 8] = { i18n_label = "drop_reason.srv2cli_shaper" },
+   [ 9] = { i18n_label = "drop_reason.dev_not_allow_proto_cli" },
+   [10] = { i18n_label = "drop_reason.dev_not_allow_proto_srv" },
+}
+
 return flow_consts

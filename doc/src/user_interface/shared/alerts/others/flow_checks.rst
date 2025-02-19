@@ -1090,6 +1090,20 @@ Alert is sent when suspicious entropy is seen.
 *Enabled by Default*
 
 
+Susp. Domain Scan
+~~~~~~~~~~~~~~~~~
+
+Warns about a suspicious domain scan.
+
+The goal is notify that an host is scanning domains on another host. Requires historical flows (Clickhouse enabled).
+
+*Interface: Packet & ZMQ*
+
+*Category: Cybersecurity*
+
+*Disabled by Default*
+
+
 TCP connection Issues
 ~~~~~~~~~~~~~~~~~~~~~
 

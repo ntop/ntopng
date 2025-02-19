@@ -254,6 +254,7 @@ Prefs::~Prefs() {
   if(ifNames) {
     for (int i = 0; i < num_interfaces; i++) {
       if(ifNames[i].name) free(ifNames[i].name);
+      if(ifNames[i].alias) free(ifNames[i].alias);
       if(ifNames[i].description) free(ifNames[i].description);
     }
 
@@ -463,6 +464,8 @@ void usage() {
 	 "\"192.168.1.0/24=LAN_1,192.168.2.0/24=LAN_2,10.0.0.0/8\"\n"
 	 "                                    | -m "
 	 "\"/path/to/local_networks_file\"\n"
+	 "[--ppp-networks|-M] <local list>    | Disable detection of broadcast IP addresses\n"
+	 "                                    | for local networks (point-to-point addresses).\n"
 	 "[--ndpi-protocols|-p] <file>.protos | Specify a nDPI protocol file\n"
 	 "                                    | (eg. protos.txt)\n"
 	 "[--redis|-r] <fmt>                  | Redis connection. <fmt> is "
@@ -837,6 +840,16 @@ char *Prefs::get_if_descr(int id) {
 
 /* ******************************************* */
 
+char *Prefs::get_if_alias(int id) {
+  for (int i = 0; i < num_interfaces; i++) {
+    if(ifNames[i].id == id) return ifNames[i].alias;
+  }
+
+  return NULL;
+};
+
+/* ******************************************* */
+
 void Prefs::getDefaultStringPrefsValue(const char *pref_key, char **buffer,
                                        const char *default_value) {
   char rsp[MAX_PATH];
@@ -1165,101 +1178,102 @@ void Prefs::loadInstanceNameDefaults() {
 
 static const struct option long_options[] = {
 #ifndef WIN32
-  {"data-dir", required_argument, NULL, 'd'},
+  {"data-dir",                required_argument, NULL, 'd'},
 #endif
-  {"daemon", no_argument, NULL, 'e'},
-  {"core-affinity", required_argument, NULL, 'g'},
-  {"help", no_argument, NULL, 'h'},
-  {"interface", required_argument, NULL, 'i'},
-  {"traffic-filtering", required_argument, NULL, 'k'},
-  {"disable-login", required_argument, NULL, 'l'},
-  {"http-log", required_argument, NULL, 'L'},
-  {"local-networks", required_argument, NULL, 'm'},
+  {"daemon",                  no_argument,       NULL, 'e'},
+  {"core-affinity",           required_argument, NULL, 'g'},
+  {"help",                    no_argument,       NULL, 'h'},
+  {"interface",               required_argument, NULL, 'i'},
+  {"traffic-filtering",       required_argument, NULL, 'k'},
+  {"disable-login",           required_argument, NULL, 'l'},
+  {"http-log",                required_argument, NULL, 'L'},
+  {"local-networks",          required_argument, NULL, 'm'},
+  {"ppp-networks",            no_argument,       NULL, 'M'},
 #ifndef HAVE_NEDGE
-  {"dns-mode", required_argument, NULL, 'n'},
+  {"dns-mode",                required_argument, NULL, 'n'},
 #endif
-  {"ndpi-protocols", required_argument, NULL, 'p'},
-  {"disable-autologout", no_argument, NULL, 'q'},
-  {"redis", required_argument, NULL, 'r'},
-  {"dont-change-user", no_argument, NULL, 's'},
+  {"ndpi-protocols",          required_argument, NULL, 'p'},
+  {"disable-autologout",      no_argument,       NULL, 'q'},
+  {"redis",                   required_argument, NULL, 'r'},
+  {"dont-change-user",        no_argument,       NULL, 's'},
 #ifndef WIN32
-  {"install-dir", required_argument, NULL, 't'},
+  {"install-dir",             required_argument, NULL, 't'},
 #endif
-  {"no-promisc", no_argument, NULL, 'u'},
-  {"verbose", required_argument, NULL, 'v'},
-  {"http-port", required_argument, NULL, 'w'},
-  {"max-num-hosts", required_argument, NULL, 'x'},
-  {"other-core-affinity", required_argument, NULL, 'y'},
-  {"packet-filter", required_argument, NULL, 'B'},
-  {"dump-hosts", required_argument, NULL, 'D'},
-  {"dump-flows", required_argument, NULL, 'F'},
+  {"no-promisc",              no_argument,       NULL, 'u'},
+  {"verbose",                 required_argument, NULL, 'v'},
+  {"http-port",               required_argument, NULL, 'w'},
+  {"max-num-hosts",           required_argument, NULL, 'x'},
+  {"other-core-affinity",     required_argument, NULL, 'y'},
+  {"packet-filter",           required_argument, NULL, 'B'},
+  {"dump-hosts",              required_argument, NULL, 'D'},
+  {"dump-flows",              required_argument, NULL, 'F'},
 #ifndef WIN32
-  {"pid", required_argument, NULL, 'G'},
+  {"pid",                     required_argument, NULL, 'G'},
 #endif
-  {"export-flows", required_argument, NULL, 'I'},
-  {"instance-name", required_argument, NULL, 'N'},
-  {"capture-direction", required_argument, NULL, 'Q'},
-  {"sticky-hosts", required_argument, NULL, 'S'},
-  {"user", required_argument, NULL, 'U'},
-  {"version", no_argument, NULL, 'V'},
-  {"https-port", required_argument, NULL, 'W'},
-  {"max-num-flows", required_argument, NULL, 'X'},
-  {"http-prefix", required_argument, NULL, 'Z'},
-  {"httpdocs-dir", required_argument, NULL, '1'},
-  {"scripts-dir", required_argument, NULL, '2'},
-  {"callbacks-dir", required_argument, NULL, '3'},
-  {"prefs-dir", required_argument, NULL, '4'},
-  {"pcap-dir", required_argument, NULL, '5'},
+  {"export-flows",            required_argument, NULL, 'I'},
+  {"instance-name",           required_argument, NULL, 'N'},
+  {"capture-direction",       required_argument, NULL, 'Q'},
+  {"sticky-hosts",            required_argument, NULL, 'S'},
+  {"user",                    required_argument, NULL, 'U'},
+  {"version",                 no_argument,       NULL, 'V'},
+  {"https-port",              required_argument, NULL, 'W'},
+  {"max-num-flows",           required_argument, NULL, 'X'},
+  {"http-prefix",             required_argument, NULL, 'Z'},
+  {"httpdocs-dir",            required_argument, NULL, '1'},
+  {"scripts-dir",             required_argument, NULL, '2'},
+  {"callbacks-dir",           required_argument, NULL, '3'},
+  {"prefs-dir",               required_argument, NULL, '4'},
+  {"pcap-dir",                required_argument, NULL, '5'},
 #ifdef NTOPNG_PRO
-  {"license-mgr", required_argument, NULL, 197},
+  {"license-mgr",             required_argument, NULL, 197},
 #endif
-  {"ciphers-list", required_argument, NULL, 198},
-  {"disable-purge", no_argument, NULL, 199},
-  {"limit-resources", no_argument, NULL, 200},
-  {"test-script-post", required_argument, NULL, 201},
+  {"ciphers-list",            required_argument, NULL, 198},
+  {"disable-purge",           no_argument,       NULL, 199},
+  {"limit-resources",         no_argument,       NULL, 200},
+  {"test-script-post",        required_argument, NULL, 201},
 #ifdef HAVE_PF_RING
-  {"cluster-id", required_argument, NULL, 204},
+  {"cluster-id",              required_argument, NULL, 204},
 #endif
 #ifdef NTOPNG_PRO
-  {"version-json", no_argument, NULL, 205},
+  {"version-json",            no_argument,       NULL, 205},
 #endif
-  {"test-script-pre", required_argument, NULL, 206},
-  {"pcap-file-purge-flows", no_argument, NULL, 207},
-  {"original-speed", no_argument, NULL, 208},
-  {"online-check", no_argument, NULL, 209},
-  {"print-ndpi-protocols", no_argument, NULL, 210},
-  {"online-license-check", no_argument, NULL, 211},  // deprecated (removed)
-  {"hw-timestamp-mode", required_argument, NULL, 212},
-  {"shutdown-when-done", no_argument, NULL, 213},
-  {"simulate-vlans", no_argument, NULL, 214},
+  {"test-script-pre",         required_argument, NULL, 206},
+  {"pcap-file-purge-flows",   no_argument,       NULL, 207},
+  {"original-speed",          no_argument,       NULL, 208},
+  {"online-check",            no_argument,       NULL, 209},
+  {"print-ndpi-protocols",    no_argument,       NULL, 210},
+  {"online-license-check",    no_argument,       NULL, 211}, // deprecated (removed)
+  {"hw-timestamp-mode",       required_argument, NULL, 212},
+  {"shutdown-when-done",      no_argument,       NULL, 213},
+  {"simulate-vlans",          no_argument,       NULL, 214},
 #ifndef HAVE_NEDGE
-  {"ignore-macs", no_argument, NULL, 216},
+  {"ignore-macs",             no_argument,       NULL, 216},
 #endif
-  {"ignore-vlans", no_argument, NULL, 217},
-  {"test-script", required_argument, NULL, 218},
+  {"ignore-vlans",            no_argument,       NULL, 217},
+  {"test-script",             required_argument, NULL, 218},
 #if HAVE_ZMQ
-  {"zmq-publish-events", required_argument, NULL, 203},
-  {"zmq-encrypt-pwd", required_argument, NULL, 215},
-  {"zmq-encryption", no_argument, NULL, 219},
+  {"zmq-publish-events",      required_argument, NULL, 203},
+  {"zmq-encrypt-pwd",         required_argument, NULL, 215},
+  {"zmq-encryption",          no_argument,       NULL, 219},
   {"zmq-encryption-key-priv", required_argument, NULL, 220},
-  {"zmq-encryption-key", required_argument, NULL, 222},
+  {"zmq-encryption-key",      required_argument, NULL, 222},
 #endif
-  {"simulate-ips", required_argument, NULL, 221},
+  {"simulate-ips",            required_argument, NULL, 221},
 #ifndef HAVE_NEDGE
-  {"appliance", no_argument, NULL, 223},
+  {"appliance",               no_argument,       NULL, 223},
 #endif
-  {"simulate-macs", no_argument, NULL, 224},
-  {"insecure", no_argument, NULL, 225},
-  {"offline", no_argument, NULL, 226},
+  {"simulate-macs",           no_argument,       NULL, 224},
+  {"insecure",                no_argument,       NULL, 225},
+  {"offline",                 no_argument,       NULL, 226},
 #ifdef NTOPNG_PRO
-  {"fail-invalid-license", no_argument, NULL, 251},
-  {"check-maintenance", no_argument, NULL, 252},
-  {"check-license", no_argument, NULL, 253},
-  {"community", no_argument, NULL, 254},
+  {"fail-invalid-license",    no_argument,       NULL, 251},
+  {"check-maintenance",       no_argument,       NULL, 252},
+  {"check-license",           no_argument,       NULL, 253},
+  {"community",               no_argument,       NULL, 254},
 #endif
 
   /* End of options */
-  {NULL, no_argument, NULL, 0}};
+  {NULL,                      no_argument,       NULL, 0}};
 
 /* ******************************************* */
 
@@ -1519,6 +1533,10 @@ int Prefs::setOption(int optkey, char *optarg) {
       }
     }
   } break;
+
+  case 'M':
+    ntop->disableBroadcastIP();
+    break;
 
 #ifndef HAVE_NEDGE
   case 'n':
@@ -2521,7 +2539,7 @@ int Prefs::loadFromCLI(int argc, char *argv[]) {
 #else
 			  argc, argv,
 #endif
-			  "k:eg:hi:w:r:sg:m:n:p:qd:t:x:y:1:2:3:4:5:l:L:uv:zA:B:c:CD:E:F:N:G:I:O:Q:"
+			  "k:eg:hi:w:r:sg:m:n:p:qd:t:x:y:1:2:3:4:5:l:L:uv:zA:B:c:CD:E:F:MN:G:I:O:Q:"
 			  "S:TU:X:W:VZ:",
 			  long_options, NULL)) != '?') {
     if(c == 255) break;
@@ -2622,20 +2640,33 @@ int Prefs::loadFromFile(const char *path) {
 
 void Prefs::add_network_interface(char *name, char *description) {
   if(num_interfaces < MAX_NUM_DEFINED_INTERFACES) {
-    int id = Utils::ifname2id(name);
+    char *real_name = NULL;
+    char *ifname = NULL;
+    int id;
 
+    if (strncmp(name, "-", 1) == 0) {
+      ifname = strdup("stdin");
+    } else {
+      /* check if this is an alias (linux altname)*/
+      real_name = Utils::get_real_name(name);
+      if (real_name)
+        ifname = real_name;
+      else
+        ifname = strdup(name);
+    }
+
+    id = Utils::ifname2id(ifname);
     if(id >= 0) {
-      ifNames[num_interfaces].name =
-	strdup(!strncmp(name, "-", 1) ? "stdin" : name);
-      ifNames[num_interfaces].description =
-	strdup(description ? description : name);
+      ifNames[num_interfaces].name = ifname;
+      ifNames[num_interfaces].alias = real_name ? strdup(name) : NULL;
+      ifNames[num_interfaces].description = strdup(description ? description : name);
       ifNames[num_interfaces].id = id;
       num_interfaces++;
-      //      ntop->getTrace()->traceEvent(TRACE_ERROR, "Added interface [id:
-      //      %d][name: %s]", id, name);
-    } else
+    } else {
+      free(ifname);
       ntop->getTrace()->traceEvent(
 				   TRACE_ERROR, "Unable to get a valid id for %s, skipping.", name);
+    }
   } else {
     ntop->getTrace()->traceEvent(TRACE_ERROR,
                                  "Too many interfaces (%d): discarded %s",

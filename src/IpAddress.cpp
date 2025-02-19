@@ -163,7 +163,8 @@ void IpAddress::checkIP() {
     else if (ntop->isLocalAddress(AF_INET, &addr.ipType.ipv4, &local_network_id,
                                   &nmask_bits)) {
       addr.localIP = true;
-      if (nmask_bits > 0 &&
+      if (!ntop->isBroadcastIPDisabled() &&
+          nmask_bits > 0 &&
           nmask_bits < 31) { /* /0 no mask, /32 is just an host, /31 is a
                                 point-to-point */
         nmask = ~((1 << (32 - nmask_bits)) - 1);

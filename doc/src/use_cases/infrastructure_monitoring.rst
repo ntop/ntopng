@@ -48,7 +48,7 @@ This `blog post <https://www.ntop.org/ntopng/infrastructure-monitoring-observing
 Infrastructure Dashboard
 ========================
 
-Once the Infrastructure Monitorin has been configured by adding other ntopng instances to the monitored instances, a new drop-down menu appears at the top of the page. This menu, besides allowing the user to jump to other instances, includes an Infrastructure Dashboard entry. This dashboard enables users to efficiently oversee multiple regions in a unified interface while allowing granular drill-down into specific regions when needed, making it possible to:
+Once the Infrastructure Monitoring has been configured by adding other ntopng instances to the monitored instances, a new drop-down menu appears at the top of the page. This menu, besides allowing the user to jump to other instances, includes an Infrastructure Dashboard entry. This dashboard enables users to efficiently oversee multiple regions in a unified interface while allowing granular drill-down into specific regions when needed, making it possible to:
 
 - Monitor in real-time all ntopng instances deployed across different locations
 - Monitor the total bandwidth of the entire distributed network, including traffic per application protocol

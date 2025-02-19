@@ -1076,6 +1076,7 @@ typedef struct _ntop_if_t {
   /* PF_RING related fields */
   char *module;
   int license;
+  int ifindex;
   _ntop_if_t *next;
 } ntop_if_t;
 
@@ -1234,5 +1235,20 @@ typedef enum {
 typedef struct {
   u_int16_t max_rtt, ideal_rtt, max_jitter, ideal_jitter;
 } QoELimits;
+
+/* Keep in sync with flow_consts.drop_reason in flow_consts.lua */
+typedef enum {
+  DROP_REASON_UNKNOWN = 0,
+  DROP_REASON_USER_ACTION,
+  DROP_REASON_PROBE_VERDICT,
+  DROP_REASON_BLACKLISTED_FLOW,
+  DROP_REASON_QUOTA_EXCEEDED,
+  DROP_REASON_DROP_CLI,
+  DROP_REASON_DROP_SRV,
+  DROP_REASON_CLI2SRV_SHAPER,
+  DROP_REASON_SRV2CLI_SHAPER,
+  DROP_REASON_DEV_NOT_ALLOW_PROTO_CLI,
+  DROP_REASON_DEV_NOT_ALLOW_PROTO_SRV
+} DropReason;
 
 #endif /* _NTOP_TYPEDEFS_H_ */

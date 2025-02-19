@@ -344,15 +344,28 @@ end
 
 -- ##############################################
 
-function formatQoE(value)
+-- See QoEQualityLabel in http_src/utilities/qoe-utils.js
+function formatQoE(qoe)
+   local value = qoe.qoe_score
+   
    if(value >     100) then label = "" -- Unknown QoE
-   elseif(value >     90) then label = i18n("flow_details.qoe_excellent", { value = value })
-   elseif(value > 75) then label = i18n("flow_details.qoe_good",      { value = value })
-   elseif(value > 60) then label = i18n("flow_details.qoe_fair",      { value = value })
-   elseif(value > 50) then label = i18n("flow_details.qoe_degraded",  { value = value })
+   elseif(value >  90) then label = i18n("flow_details.qoe_excellent", { value = value })
+   elseif(value > 75)  then label = i18n("flow_details.qoe_good",      { value = value })
+   elseif(value > 60)  then label = i18n("flow_details.qoe_fair",      { value = value })
+   elseif(value > 50)  then label = i18n("flow_details.qoe_degraded",  { value = value })
    else label = i18n("flow_details.qoe_poor",                         { value = value })
    end
 
+   if(#qoe.issues > 0) then
+      label = label .. "\n<p><ul>\n"
+      
+      for _, i in pairs(qoe.issues) do
+	 label = label .. "<li>"..i.."\n"
+      end
+
+      label = label .. "\n</ul>\n"
+   end
+   
    return(label)
 end
 

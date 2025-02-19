@@ -79,6 +79,7 @@ Ntop::Ntop(const char *appName) {
   epoch_buf[0] = '\0'; /* It will be initialized by start() */
   last_stats_reset = 0;
   old_iface_to_purge = NULL;
+  broadcast_ip_disabled = false;
 
   setZoneInfo();
 
@@ -739,14 +740,12 @@ void Ntop::start() {
 bool Ntop::isLocalAddress(int family, void *addr, int32_t *network_id,
                           u_int8_t *network_mask_bits) {
   u_int8_t nmask_bits;
+#if 0
+  char ipb[32];
 
-
-  if(false) {
-    char ipb[32];
-
-    ntop->getTrace()->traceEvent(TRACE_NORMAL, "FIND XX %s",
-				 Utils::intoaV4(ntohl(*(u_int32_t*)addr), ipb, sizeof(ipb)));
-  }
+  ntop->getTrace()->traceEvent(TRACE_NORMAL, "Find %s",
+    Utils::intoaV4(ntohl(*(u_int32_t*)addr), ipb, sizeof(ipb)));
+#endif
 
   *network_id = localNetworkLookup(family, addr, &nmask_bits);
 
@@ -3713,6 +3712,7 @@ bool Ntop::addLocalNetwork(char *_net) {
     char alias[64] = "";
     u_int32_t id = local_network_tree.getNumAddresses();
     u_int32_t i, pos = 0;
+    char out[128] = {'\0'};
 
     if (id >= getMaxNumLocalNetworks()) {
       ntop->getTrace()->traceEvent(TRACE_ERROR, "Too many networks defined (%d): ignored %s", id, _net);
@@ -3740,7 +3740,7 @@ bool Ntop::addLocalNetwork(char *_net) {
     for (i = 0; i < id; i++) {
       if (strcmp(local_network_names[i], net) == 0) {
 	/* Already present */
-	//ntop->getTrace()->traceEvent(TRACE_NORMAL, "Already present");
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "Network %s already present", net);
 	free(net);
 	return (false);
       }
@@ -3748,7 +3748,7 @@ bool Ntop::addLocalNetwork(char *_net) {
 
     // Adding the Network to the local Networks
     if (!local_network_tree.addAddresses(net)) {
-      ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure adding address");
+      ntop->getTrace()->traceEvent(TRACE_WARNING, "Failure adding address %s", net);
       free(net);
       return (false);
     }
@@ -3756,8 +3756,8 @@ bool Ntop::addLocalNetwork(char *_net) {
     local_network_names[id] = net;
 
     // Adding, if available, the alias
+    out[0] = '\0';
     if (pos) {
-      char out[128] = {'\0'};
       u_int len = ndpi_min(strlen(alias), sizeof(out) - 2);
 
       for (u_int i = 0, j = 0; i < len; i++) {
@@ -3767,7 +3767,7 @@ bool Ntop::addLocalNetwork(char *_net) {
       local_network_aliases[id] = strdup(out);
     }
 
-    ntop->getTrace()->traceEvent(TRACE_INFO, "Added Local Network %s", net);
+    ntop->getTrace()->traceEvent(TRACE_INFO, "Added Local Network #%u %s %s", id, net, out);
 
     return (true);
   }

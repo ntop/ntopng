@@ -28,6 +28,30 @@ const QoEQualityBadge = (value) => {
 
 /* ******************************************************************** */
 
+/* *** NOTE: in order to be able to used these icons, please include in the HTML/vue page
+    <script src="https://unpkg.com/lucide@latest"></script> 
+*/
+/* This function check if value is not set (null or empty).
+ * Do not check for 0 as it may be a valid value. */
+const QoEQualityIcon = (value) => {
+    let icon = ''
+    if (value > 90 && value <= 100) {
+        icon = '<svg data-bs-toggle="tooltip" data-bs-placement="bottom" title="' + QoEQualityLabel(value) + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-signal mb-1 text-success" style="margin-top:-4px;"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/><path d="M22 4v16"/></svg>';
+    } else if (value > 75) {
+        icon = '<svg data-bs-toggle="tooltip" data-bs-placement="bottom" title="' + QoEQualityLabel(value) + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-signal-high mb-1 text-success" style="margin-top:-4px;"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/></svg>'
+    } else if (value > 60) {
+        icon = '<svg data-bs-toggle="tooltip" data-bs-placement="bottom" title="' + QoEQualityLabel(value) + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-signal-high mb-1 text-success" style="margin-top:-4px;"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/><path d="M17 20V8"/></svg>'
+    } else if (value > 50) {
+        icon = '<svg data-bs-toggle="tooltip" data-bs-placement="bottom" title="' + QoEQualityLabel(value) + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-signal-medium mb-1 text-warning" style="margin-top:-4px;"><path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/></svg>'
+    } else if (value <= 50) {
+        icon = '<svg data-bs-toggle="tooltip" data-bs-placement="bottom" title="' + QoEQualityLabel(value) + '" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-signal-low mb-1 text-error" style="margin-top:-4px;"><path d="M2 20h.01"/><path d="M7 20v-4"/></svg>'
+    }
+
+    return icon;
+}
+
+/* ******************************************************************** */
+
 /* This function check if value is not set (null or empty).
  * Do not check for 0 as it may be a valid value. */
 const QoEQualityLabel = (value) => {
@@ -53,6 +77,7 @@ const dataUtils = function () {
     return {
         QoEQualityBadge,
         QoEQualityLabel,
+        QoEQualityIcon,
     };
 }();
 

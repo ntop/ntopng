@@ -691,6 +691,13 @@ else
 
    print("</tr>\n")
 
+   if not flow["verdict.pass"] and flow["verdict.reason"] then
+      print("<tr>")
+      print("<th>" .. i18n("flow_details.drop_reason") .. "</th>")
+      print("<td colspan=2>" .. i18n(flow_consts.drop_reason[flow["verdict.reason"]].i18n_label) .. "</td>")
+      print("</tr>")
+   end
+
    if (ntop.isPro() and ifstats.inline and (flow["shaper.cli2srv_ingress"] ~= nil)) then
       local host_pools_nedge = require("host_pools_nedge")
       print("<tr><th width=10% rowspan=2>" .. i18n("flow_details.flow_shapers") .. "</th>")

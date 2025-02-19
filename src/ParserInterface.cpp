@@ -400,7 +400,7 @@ bool ParserInterface::processFlow(ParsedFlow *zflow) {
   if (zflow->tcp.out_window)
     flow->setFlowTcpWindow(zflow->tcp.out_window, !src2dst_direction);
 
-  if (zflow->getFlowVerdict() == 2 /* DROP */) flow->setDropVerdict();
+  if (zflow->getFlowVerdict() == 2 /* DROP */) flow->setDropVerdict(DROP_REASON_PROBE_VERDICT);
 
   flow->setRisk(zflow->getRisk());
   flow->setTOS(zflow->src_tos, true), flow->setTOS(zflow->dst_tos, false);

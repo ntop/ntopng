@@ -4520,6 +4520,30 @@ err:
 
 /* ****************************************************** */
 
+int Utils::get_ifindex(const char *ifname) {
+  int ifindex = -1;
+#if not defined(WIN32)
+  int sockfd;
+  struct ifreq ifr;
+
+  sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+  if (sockfd < 0)
+    return -1;
+
+  memset(&ifr, 0, sizeof(ifr));
+  strncpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name)-1);
+
+  if (ioctl(sockfd, SIOCGIFINDEX, &ifr) == -1)
+    return -1;
+
+  ifindex = ifr.ifr_ifindex;
+#endif
+
+  return ifindex;
+}
+
+/* ****************************************************** */
+
 int Utils::ntop_findalldevs(ntop_if_t **alldevsp) {
   char ebuf[PCAP_ERRBUF_SIZE];
   pcap_if_t *pdevs, *pdev;
@@ -4560,6 +4584,7 @@ int Utils::ntop_findalldevs(ntop_if_t **alldevsp) {
             strdup((pdev && pdev->description) ? pdev->description : "");
         cur->module = strdup(pfdev->module);
         cur->license = pfdev->license;
+        cur->ifindex = pfdev->ifindex;
 
         if (!*alldevsp) *alldevsp = cur;
         if (tail) tail->next = cur;
@@ -4589,6 +4614,7 @@ int Utils::ntop_findalldevs(ntop_if_t **alldevsp) {
         if (cur) {
           cur->name = strdup(pdev->name);
           cur->description = strdup(pdev->description ? pdev->description : "");
+          cur->ifindex = Utils::get_ifindex(pdev->name);
 
           if (!*alldevsp) *alldevsp = cur;
           if (tail) tail->next = cur;
@@ -4625,6 +4651,33 @@ void Utils::ntop_freealldevs(ntop_if_t *alldevsp) {
 
     free(cur);
   }
+}
+
+/* ****************************************************** */
+
+char *Utils::get_real_name(const char *ifname_alias) {
+  char *real_name = NULL;
+#if not defined(WIN32)
+  ntop_if_t *devpointer, *cur;
+  int ifindex = Utils::get_ifindex(ifname_alias);
+
+  if (ifindex == -1)
+    return NULL;
+
+  if (Utils::ntop_findalldevs(&devpointer) == 0) {
+    for (cur = devpointer; cur; cur = cur->next) {
+      if (cur->ifindex != -1 && cur->ifindex == ifindex /* same id */ &&
+          cur->name && strcmp(cur->name, ifname_alias) != 0 /* alias */) {
+        real_name = strdup(cur->name);
+        break;
+      }
+    }
+
+    Utils::ntop_freealldevs(devpointer);
+  }
+#endif
+
+  return real_name;
 }
 
 /* ****************************************************** */

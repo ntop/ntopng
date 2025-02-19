@@ -2305,6 +2305,7 @@ local known_parameters = {
     ["toggle_external_alerts"] = validateBool,
     ["toggle_influx_auth"] = validateBool,
     ["toggle_ldap_auth"] = validateBool,
+    ["toggle_ldap_ext_user_cap"] = validateBool,
     ["toggle_local_auth"] = validateBool,
     ["toggle_radius_accounting"] = validateBool,
     ["toggle_radius_external_auth_for_local_users"] = validateBool,

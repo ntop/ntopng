@@ -46,6 +46,7 @@ local script = {
 
 -- #################################################################
 
+-- Generate alert (store)
 local function report_host(params, ip, vlan, victim, num_domains)
    local hostinfo = {
       host = ip,
@@ -53,8 +54,6 @@ local function report_host(params, ip, vlan, victim, num_domains)
    }
    local descr = ""
    local score = 100
-
-   -- Generate alert
 
    local alert = alert_consts.alert_types.host_alert_suspicious_domain_scan.new(
       interface.getId(),
@@ -78,6 +77,7 @@ end
 
 -- #################################################################
 
+-- Check number of domains contacted by an host towards another host
 local function domains_check(params)
 
    -- Settings
@@ -104,7 +104,7 @@ local function domains_check(params)
       .. "FROM flows "
       .. "WHERE INTERFACE_ID=%u "
          .. "AND DOMAIN_NAME!='' "
-         .. "AND (L7_PROTO!=5 AND L7_PROTO_MASTER!=5) AND L7_PROTO_MASTER!=5 "
+         .. "AND (L7_PROTO!=5 AND L7_PROTO_MASTER!=5) "
          .. "AND (FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) "
       .. "GROUP BY VLAN_ID, IPV4_SRC_ADDR, IPV6_SRC_ADDR, IPV4_DST_ADDR, IPV6_DST_ADDR "
       .. "ORDER BY count DESC "
@@ -118,17 +118,15 @@ local function domains_check(params)
 
    for _, row in ipairs(results) do
       local count = tonumber(row.count) or 0
-      if count > threshold then
-         local vlan_id = tonumber(row.vlan_id) or 0
+      local vlan_id = tonumber(row.vlan_id) or 0
 
-         local ip = row.ip_src_4
-         if row.ip_src_6 and row.ip_src_6 ~= '::' then ip = row.ip_src_6 end
+      local ip = row.ip_src_4
+      if row.ip_src_6 and row.ip_src_6 ~= '::' then ip = row.ip_src_6 end
 
-         local victim_ip = row.ip_dst_4
-         if row.ip_dst_6 and row.ip_dst_6 ~= '::' then victim_ip = row.ip_dst_6 end
+      local victim_ip = row.ip_dst_4
+      if row.ip_dst_6 and row.ip_dst_6 ~= '::' then victim_ip = row.ip_dst_6 end
 
-         report_host(params, ip, vlan_id, victim_ip, count)
-      end
+      report_host(params, ip, vlan_id, victim_ip, count)
    end
 
 end

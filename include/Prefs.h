@@ -31,7 +31,7 @@ extern void usage();
 extern void nDPIusage();
 
 typedef struct {
-  char *name, *description;
+  char *name, *alias, *description;
   int id;
 } InterfaceInfo;
 
@@ -353,6 +353,7 @@ class Prefs {
   void getDefaultStringPrefsValue(const char* pref_key, char** buffer,
                                   const char* default_value);
   char* get_if_name(int id);
+  char* get_if_alias(int id);
   char* get_if_descr(int id);
   inline const char* get_config_file_path() { return (config_file_path); };
   inline const char* get_ndpi_proto_file_path() { return (ndpi_proto_path); };

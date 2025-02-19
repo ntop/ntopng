@@ -53,6 +53,7 @@ NetworkInterface::NetworkInterface(const char *name,
   char _ifname[MAX_INTERFACE_NAME_LEN], buf[MAX_INTERFACE_NAME_LEN];
   /* We need to do it as isView() is not yet initialized */
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
+  char *alias;
 
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
@@ -74,14 +75,14 @@ NetworkInterface::NetworkInterface(const char *name,
   } else {
     if (isNumber(name)) {
       /* We need to convert this numeric index into an interface name */
-      int id = atoi(name);
+      int ifid = atoi(name);
 
       _ifname[0] = '\0';
-      printAvailableInterfaces(false, id, _ifname, sizeof(_ifname));
+      printAvailableInterfaces(false, ifid, _ifname, sizeof(_ifname));
 
       if (_ifname[0] == '\0') {
         ntop->getTrace()->traceEvent(TRACE_WARNING,
-                                     "Unable to locate interface Id %d", id);
+                                     "Unable to locate interface Id %d", ifid);
         printAvailableInterfaces(false, 0, NULL, 0);
         exit(0);
       }
@@ -108,6 +109,10 @@ NetworkInterface::NetworkInterface(const char *name,
   if (strcmp(name, "-") == 0) name = "stdin";
 
   id = Utils::ifname2id(name);
+
+  /* if interface alias, set as custom name (if not set already) */
+  alias = ntop->getPrefs()->get_if_alias(get_id());
+  if (alias) setCustomName(alias, true);
 
   purge_idle_flows_hosts = true;
 
@@ -780,6 +785,19 @@ bool NetworkInterface::isRunning() const {
  * completed) */
 bool NetworkInterface::isShuttingDown() const {
   return !running && shutting_down;
+}
+
+/* **************************************************** */
+
+void NetworkInterface::setCustomName(char *alias, bool set_on_empty) {
+  char pref_buf[CONST_MAX_LEN_REDIS_KEY];
+  char rsp[MAX_INTERFACE_NAME_LEN];
+
+  if (ntop->getRedis()) {
+    snprintf(pref_buf, sizeof(pref_buf), CONST_INTERFACE_CUSTOM_NAME, get_id());
+    if (!set_on_empty || ntop->getRedis()->get(pref_buf, rsp, sizeof(rsp)) != 0)
+      ntop->getRedis()->set(pref_buf, alias);
+  }
 }
 
 /* **************************************************** */
@@ -2704,13 +2722,20 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 
       bos = (((u_int8_t)packet[ip_offset + 2]) & 0x1), ip_offset += 4;
       if (bos) {
-        u_int8_t is_ethernet;
-
-        eth_type = guessEthType((const u_char *)&packet[ip_offset],
-                                h->caplen - ip_offset, &is_ethernet);
-
-        if (is_ethernet) ip_offset += sizeof(struct ndpi_ethhdr);
-        break;
+	if(h->caplen > (sizeof(struct ndpi_ethhdr) + ip_offset)) {	
+	  u_int8_t is_ethernet;
+	  
+	  eth_type = guessEthType((const u_char *)&packet[ip_offset],
+				  h->caplen - ip_offset, &is_ethernet);
+	  
+	  if (is_ethernet) ip_offset += sizeof(struct ndpi_ethhdr);
+	  break;
+	} else {
+	  incStats(ingressPacket, h->ts.tv_sec, ETHERTYPE_IP,
+		   NDPI_PROTOCOL_UNKNOWN, NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0,
+		   len_on_wire, 1);
+	  goto dissect_packet_end;
+	}
       }
     } else
       break;
@@ -2888,41 +2913,49 @@ bool NetworkInterface::dissectPacket(int32_t if_index,
 	  goto datalink_check;
 	} else if ((sport == L2TP_PORT) && (dport == L2TP_PORT)) {
 	  u_int offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr);
-	  struct l2tp_header *l2tp = (struct l2tp_header*)&packet[offset];
-	  u_int16_t proto, flags = ntohs(l2tp->flags);
 
-	  if((flags & 0x8002) == 0x02) {
-	    /* L2TP v2 Data packet */
-	    u_int8_t have_length_bit   = (flags & 0x4000) == 0x4000;
-	    u_int8_t have_sequence_bit = (flags & 0x0800) == 0x0800;
-	    u_int8_t have_offset_bit   = (flags & 0x0200) == 0x0200;
+	  if((offset+sizeof(struct l2tp_header)) > h->caplen) {
+	    struct l2tp_header *l2tp = (struct l2tp_header*)&packet[offset];
+	    u_int16_t proto, flags = ntohs(l2tp->flags);
 
-	    offset += sizeof(struct l2tp_header);
+	    if((flags & 0x8002) == 0x02) {
+	      /* L2TP v2 Data packet */
+	      u_int8_t have_length_bit   = (flags & 0x4000) == 0x4000;
+	      u_int8_t have_sequence_bit = (flags & 0x0800) == 0x0800;
+	      u_int8_t have_offset_bit   = (flags & 0x0200) == 0x0200;
 
-	    if(have_length_bit)   offset += sizeof(u_int16_t);
-	    if(have_sequence_bit) offset += 2;
-	    if(have_offset_bit)   offset += 2;
-	  }
+	      offset += sizeof(struct l2tp_header);
 
-	  /* PPP */
-	  offset += 2;
-	  proto = (packet[offset] << 8) + packet[offset+1];
-	  offset += 2; /* Skip proto */
+	      if(have_length_bit)   offset += sizeof(u_int16_t);
+	      if(have_sequence_bit) offset += 2;
+	      if(have_offset_bit)   offset += 2;
+	    }
 
-	  if(proto == 0x0021) {
-	    /* IPv4 */
-	    eth_type = ETHERTYPE_IP;
-	    iph = (struct ndpi_iphdr *)&packet[offset];
-	  } else if(proto == 0x0057) {
-	    /* IPv6 */
-	    eth_type = ETHERTYPE_IPV6;
-	    ip6 = (struct ndpi_ipv6hdr *)&packet[offset];
+	    /* PPP */
+	    offset += 2;
+	    proto = (packet[offset] << 8) + packet[offset+1];
+	    offset += 2; /* Skip proto */
+
+	    if(proto == 0x0021) {
+	      /* IPv4 */
+	      eth_type = ETHERTYPE_IP;
+	      iph = (struct ndpi_iphdr *)&packet[offset];
+	    } else if(proto == 0x0057) {
+	      /* IPv6 */
+	      eth_type = ETHERTYPE_IPV6;
+	      ip6 = (struct ndpi_ipv6hdr *)&packet[offset];
+	    } else {
+	      incStats(ingressPacket, h->ts.tv_sec, 0,
+		       NDPI_PROTOCOL_UNKNOWN,
+		       NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
+	      goto dissect_packet_end;
+	    }
 	  } else {
 	    incStats(ingressPacket, h->ts.tv_sec, 0,
 		     NDPI_PROTOCOL_UNKNOWN,
 		     NDPI_PROTOCOL_CATEGORY_UNSPECIFIED, 0, len_on_wire, 1);
 	    goto dissect_packet_end;
-	  }
+	  }	  
 	} else if ((sport == TZSP_PORT) || (dport == TZSP_PORT)) {
 	  /* https://en.wikipedia.org/wiki/TZSP */
 	  u_int offset = ip_offset + ip_len + sizeof(struct ndpi_udphdr);
@@ -6326,7 +6359,7 @@ static bool flow_drop_walker(GenericHashEntry *h, void *user_data,
   Flow *f = (Flow *)h;
 
   if (flow_matches(f, retriever)) {
-    f->setDropVerdict();
+    f->setDropVerdict(DROP_REASON_USER_ACTION);
     *matched = true;
   }
 
