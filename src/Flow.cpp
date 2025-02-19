@@ -1715,9 +1715,9 @@ char *Flow::print(char *buf, u_int buf_len, bool full_report) const {
 #if defined(NTOPNG_PRO) && defined(SHAPER_DEBUG)
   char shapers[64];
 
-  TrafficShaper *cli2srv_in = flowShaperIds.cli2srv.ingress;
+  TrafficShaper *cli2srv_in  = flowShaperIds.cli2srv.ingress;
   TrafficShaper *cli2srv_out = flowShaperIds.cli2srv.egress;
-  TrafficShaper *srv2cli_in = flowShaperIds.srv2cli.ingress;
+  TrafficShaper *srv2cli_in  = flowShaperIds.srv2cli.ingress;
   TrafficShaper *srv2cli_out = flowShaperIds.srv2cli.egress;
 
   if(iface->is_bridge_interface()) {
@@ -1731,18 +1731,10 @@ char *Flow::print(char *buf, u_int buf_len, bool full_report) const {
 	     "[srv2cli_egress shaping_enabled: %i max_rate: %lu] ",
 	     passVerdict ? "PASS" : "DROP",
              (int) dropVerdictReason,
-	     flowShaperIds.cli2srv.ingress
-	     ? flowShaperIds.cli2srv.ingress->get_shaper_id()
-	     : DEFAULT_SHAPER_ID,
-	     flowShaperIds.cli2srv.egress
-	     ? flowShaperIds.cli2srv.egress->get_shaper_id()
-	     : DEFAULT_SHAPER_ID,
-	     flowShaperIds.srv2cli.ingress
-	     ? flowShaperIds.srv2cli.ingress->get_shaper_id()
-	     : DEFAULT_SHAPER_ID,
-	     flowShaperIds.srv2cli.egress
-	     ? flowShaperIds.srv2cli.egress->get_shaper_id()
-	     : DEFAULT_SHAPER_ID,
+	     flowShaperIds.cli2srv.ingress ? flowShaperIds.cli2srv.ingress->get_shaper_id() : DEFAULT_SHAPER_ID,
+	     flowShaperIds.cli2srv.egress  ? flowShaperIds.cli2srv.egress->get_shaper_id()  : DEFAULT_SHAPER_ID,
+	     flowShaperIds.srv2cli.ingress ? flowShaperIds.srv2cli.ingress->get_shaper_id() : DEFAULT_SHAPER_ID,
+	     flowShaperIds.srv2cli.egress  ? flowShaperIds.srv2cli.egress->get_shaper_id()  : DEFAULT_SHAPER_ID,
 	     cli2srv_in->shaping_enabled(), cli2srv_in->get_max_rate_kbit_sec(),
 	     cli2srv_out->shaping_enabled(), cli2srv_out->get_max_rate_kbit_sec(),
 	     srv2cli_in->shaping_enabled(), srv2cli_in->get_max_rate_kbit_sec(),
@@ -3034,21 +3026,13 @@ void Flow::lua(lua_State *vm, AddressTree *ptree,
     if(cli_host && srv_host) {
       /* Shapers */
       lua_push_uint64_table_entry(vm, "shaper.cli2srv_ingress",
-				  flowShaperIds.cli2srv.ingress
-				  ? flowShaperIds.cli2srv.ingress->get_shaper_id()
-				  : DEFAULT_SHAPER_ID);
+				  flowShaperIds.cli2srv.ingress ? flowShaperIds.cli2srv.ingress->get_shaper_id() : DEFAULT_SHAPER_ID);
       lua_push_uint64_table_entry(vm, "shaper.cli2srv_egress",
-				  flowShaperIds.cli2srv.egress
-				  ? flowShaperIds.cli2srv.egress->get_shaper_id()
-				  : DEFAULT_SHAPER_ID);
+				  flowShaperIds.cli2srv.egress  ? flowShaperIds.cli2srv.egress->get_shaper_id()  : DEFAULT_SHAPER_ID);
       lua_push_uint64_table_entry(vm, "shaper.srv2cli_ingress",
-				  flowShaperIds.srv2cli.ingress
-				  ? flowShaperIds.srv2cli.ingress->get_shaper_id()
-				  : DEFAULT_SHAPER_ID);
+				  flowShaperIds.srv2cli.ingress ? flowShaperIds.srv2cli.ingress->get_shaper_id() : DEFAULT_SHAPER_ID);
       lua_push_uint64_table_entry(vm, "shaper.srv2cli_egress",
-				  flowShaperIds.srv2cli.egress
-				  ? flowShaperIds.srv2cli.egress->get_shaper_id()
-				  : DEFAULT_SHAPER_ID);
+				  flowShaperIds.srv2cli.egress  ? flowShaperIds.srv2cli.egress->get_shaper_id()  : DEFAULT_SHAPER_ID);
 
       /* Quota */
       lua_push_str_table_entry(vm, "cli.quota_source",
@@ -6687,23 +6671,43 @@ bool Flow::updateDirectionShapers(bool src2dst_direction,
   bool verdict = true;
 
   if(cli_host && srv_host) {
-    if(src2dst_direction) {
-      *ingress_shaper = srv_host->get_ingress_shaper(ndpiDetectedProtocol);
-      *egress_shaper =  cli_host->get_egress_shaper(ndpiDetectedProtocol);
+    u_int16_t cli_pool = cli_host->get_host_pool();
+    u_int16_t srv_pool = srv_host->get_host_pool();
 
-      if(*ingress_shaper) srv2cli_in = (*ingress_shaper)->get_shaper_id();
+    if(src2dst_direction) {
+
+      if (cli_pool == NO_HOST_POOL_ID && srv_pool != NO_HOST_POOL_ID)
+        *egress_shaper = NULL; /* do not use shaper for Not Assigned if the other host has a pool */
+      else
+        *egress_shaper  = cli_host->get_egress_shaper(ndpiDetectedProtocol);
+
+      if (srv_pool == NO_HOST_POOL_ID && cli_pool != NO_HOST_POOL_ID)
+        *egress_shaper = NULL;
+      else
+        *ingress_shaper = srv_host->get_ingress_shaper(ndpiDetectedProtocol);
+
       if(*egress_shaper)  cli2srv_out = (*egress_shaper)->get_shaper_id();
+      if(*ingress_shaper) srv2cli_in = (*ingress_shaper)->get_shaper_id();
 
     } else {
-      *ingress_shaper = cli_host->get_ingress_shaper(ndpiDetectedProtocol);
-      *egress_shaper = srv_host->get_egress_shaper(ndpiDetectedProtocol);
 
-      if(*ingress_shaper) cli2srv_in = (*ingress_shaper)->get_shaper_id();
+      if (srv_pool == NO_HOST_POOL_ID && cli_pool != NO_HOST_POOL_ID)
+        *egress_shaper = NULL;
+      else
+        *egress_shaper  = srv_host->get_egress_shaper(ndpiDetectedProtocol);
+
+
+      if (cli_pool == NO_HOST_POOL_ID && srv_pool != NO_HOST_POOL_ID)
+        *egress_shaper = NULL;
+      else
+        *ingress_shaper = cli_host->get_ingress_shaper(ndpiDetectedProtocol);
+
       if(*egress_shaper)  srv2cli_out = (*egress_shaper)->get_shaper_id();
+      if(*ingress_shaper) cli2srv_in = (*ingress_shaper)->get_shaper_id();
     }
 
-    if((*ingress_shaper && (*ingress_shaper)->shaping_enabled() && (*ingress_shaper)->get_max_rate_kbit_sec() == 0) ||
-        (*egress_shaper &&  (*egress_shaper)->shaping_enabled() &&  (*egress_shaper)->get_max_rate_kbit_sec() == 0))
+    if(((*ingress_shaper) && (*ingress_shaper)->shaping_enabled() && (*ingress_shaper)->get_max_rate_kbit_sec() == 0) ||
+        ((*egress_shaper) &&  (*egress_shaper)->shaping_enabled() &&  (*egress_shaper)->get_max_rate_kbit_sec() == 0))
       verdict = false;
   } else
     *ingress_shaper = *egress_shaper = NULL;
@@ -6717,14 +6721,14 @@ void Flow::updateFlowShapers(bool first_update) {
   bool cli2srv_verdict, srv2cli_verdict;
   u_int8_t old_verdict = passVerdict;
   bool new_verdict = true;
-  u_int16_t old_cli2srv_in = cli2srv_in, old_cli2srv_out = cli2srv_out,
-    old_srv2cli_in = srv2cli_in, old_srv2cli_out = srv2cli_out;
+  u_int16_t old_cli2srv_in  = cli2srv_in,
+            old_cli2srv_out = cli2srv_out,
+            old_srv2cli_in  = srv2cli_in, 
+            old_srv2cli_out = srv2cli_out;
 
   /* Re-compute the verdict */
-  cli2srv_verdict = updateDirectionShapers(true, &flowShaperIds.cli2srv.ingress,
-                                           &flowShaperIds.cli2srv.egress);
-  srv2cli_verdict = updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress,
-                                           &flowShaperIds.srv2cli.egress);
+  cli2srv_verdict = updateDirectionShapers(true,  &flowShaperIds.cli2srv.ingress, &flowShaperIds.cli2srv.egress);
+  srv2cli_verdict = updateDirectionShapers(false, &flowShaperIds.srv2cli.ingress, &flowShaperIds.srv2cli.egress);
   if (!cli2srv_verdict) dropVerdictReason = DROP_REASON_CLI2SRV_SHAPER;
   if (!srv2cli_verdict) dropVerdictReason = DROP_REASON_SRV2CLI_SHAPER;
   new_verdict = (cli2srv_verdict && srv2cli_verdict);

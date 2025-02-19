@@ -4536,7 +4536,11 @@ int Utils::get_ifindex(const char *ifname) {
   if (ioctl(sockfd, SIOCGIFINDEX, &ifr) == -1)
     return -1;
 
+#ifdef __linux__
   ifindex = ifr.ifr_ifindex;
+#else
+  ifindex = ifr.ifr_index;
+#endif
 #endif
 
   return ifindex;
