@@ -321,11 +321,11 @@ async function draw_sankey() {
 function get_size() {
     emit('update_width');
     let width = props.width
-    if (width == undefined) { width = $(sankey_chart_ref.value).parent().parent().width() - 10; }
-    emit('update_height');
+    if (width == undefined) { width = $(sankey_chart_ref.value).parent().parent().width() * 0.95; }
 
+    emit('update_height');
     let height = props.height
-    if (height == undefined) { height = $(sankey_chart_ref.value).parent().parent().height() - 80; }
+    if (height == undefined) { height = $(sankey_chart_ref.value).parent().parent().height() * 0.75; }
 
     return { width, height };
 }
