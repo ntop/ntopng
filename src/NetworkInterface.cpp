@@ -53,7 +53,7 @@ NetworkInterface::NetworkInterface(const char *name,
   char _ifname[MAX_INTERFACE_NAME_LEN], buf[MAX_INTERFACE_NAME_LEN];
   /* We need to do it as isView() is not yet initialized */
   char pcap_error_buffer[PCAP_ERRBUF_SIZE];
-  char *alias;
+  char *alias = NULL;
 
   if(trace_new_delete) ntop->getTrace()->traceEvent(TRACE_NORMAL, "[new] %s", __FILE__);
 
@@ -111,8 +111,10 @@ NetworkInterface::NetworkInterface(const char *name,
   id = Utils::ifname2id(name);
 
   /* if interface alias, set as custom name (if not set already) */
-  alias = ntop->getPrefs()->get_if_alias(get_id());
-  if (alias) setCustomName(alias, true);
+  if (ntop->getPrefs()) {
+    alias = ntop->getPrefs()->get_if_alias(get_id());
+    if (alias) setCustomName(alias, true);
+  }
 
   purge_idle_flows_hosts = true;
 
