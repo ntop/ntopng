@@ -1,47 +1,38 @@
 <template>
-    <div v-if="no_data" class="alert alert-info" id="empty-message">
-        {{ no_data_message || _i18n('flows_page.no_data') }}
-    </div>
-
-    <div class="sankey-visualization">
-        <div class="zoom-controls-container mb-3">
-            <div class="zoom-controls bg-light p-2 rounded shadow-sm">
-                <div class="d-flex align-items-center gap-2">
-                    <!-- zoom value -->
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fw-bold">Zoom</span>
-                        <span class="badge zoom-badge px-2 py-1">{{ Math.round(currentScale * 100) }}%</span>
-                    </div>
-                    <div class="btn-group btn-group-sm" role="group" aria-label="Zoom controls">
-                        <!-- Zoom In -->
-                        <button type="button" class="btn zoom-btn" @click="zoomChart(0.5)">
-                            <i class="fa-solid fa-magnifying-glass-plus"></i>
-                        </button>
-                        <!-- Zoom Out -->
-                        <button type="button" class="btn zoom-btn" @click="zoomChart(-0.5)">
-                            <i class="fa-solid fa-magnifying-glass-minus"></i>
-                        </button>
-                    </div>
-                    <!-- Reset Zoom -->
-                    <div class="text-muted small d-flex align-items-center gap-1">
-                        <i class="bi bi-mouse2"></i>
-                        <span>Double-click to reset</span>
-                    </div>
-                </div>
+    <div class="sankey-container">
+        <!-- Zoom button group -->
+        <div class="btn-group-container">
+            <div class="btn-group" role="group">
+                <!-- Zoom Plus -->
+                <button type="button" class="btn zoom-btn" @click="zoomChart(0.5)">
+                    <i class="fa-solid fa-magnifying-glass-plus"></i>
+                </button>
+                <!-- Zoom minus -->
+                <button type="button" class="btn zoom-btn" @click="zoomChart(-0.5)">
+                    <i class="fa-solid fa-magnifying-glass-minus"></i>
+                </button>
             </div>
         </div>
 
-        <!-- Sankey Diagram -->
-        <svg ref="sankey_chart_ref" :width="sankey_size.width" :height="sankey_size.height" class="sankey-svg"
-            v-bind:style="{ cursor: cursorIcon }">
-            <g class="zoom-group">
-                <g class="nodes" style="stroke: #000;strokeOpacity: 0.5;" />
-                <g class="links" style="stroke: #000;strokeOpacity: 0.3;fill:none;" />
-            </g>
-        </svg>
+        <!-- no data -->
+        <div v-if="no_data" class="alert alert-info" id="empty-message">
+            {{ no_data_message || _i18n('flows_page.no_data') }}
+        </div>
+
+        <div class="sankey-wrapper">
+            <div class="sankey-visualization">
+                <!-- Sankey -->
+                <svg ref="sankey_chart_ref" :width="sankey_size.width" :height="sankey_size.height" class="sankey-svg"
+                    v-bind:style="{ cursor: cursorIcon }">
+                    <g class="zoom-group">
+                        <g class="nodes" style="stroke: #000;strokeOpacity: 0.5;" />
+                        <g class="links" style="stroke: #000;strokeOpacity: 0.3;fill:none;" />
+                    </g>
+                </svg>
+            </div>
+        </div>
     </div>
 </template>
-
 
 <script setup>
 import { ref, onMounted, onBeforeMount, onBeforeUnmount, watch } from "vue";
@@ -210,45 +201,10 @@ async function draw_sankey() {
     let data = props.sankey_data;
     const size = get_size();
     sankey_size.value = size;
-    sankey = create_sankey(size.width - 10, size.height - 5);
+    sankey = create_sankey(size.width, size.height);
 
     sankeyData = sankey(data);
     const { links, nodes } = sankeyData;
-
-    const nodes1 = sankeyData.nodes.map((node, index) => {
-        // Calculate vertical spacing
-        console.log(size)
-        const totalHeight = size.height - 40; // Leave some padding
-        const spacing = totalHeight / (sankeyData.nodes.length + 1);
-
-        // Force new y coordinates
-        const y0 = spacing * (index + 1);
-        const y1 = y0 + (spacing * 0.8); // Make height 80% of spacing
-        let res = {
-            ...node,
-            x0: node.x0,
-            x1: node.x1,
-            y0: y0,
-            y1: y1,
-            label: node.label
-        };
-
-        console.log(totalHeight, spacing, index)
-
-        return res;
-    });
-
-    // Verify the fix worked
-    console.log('Fixed nodes:', nodes1.map(n => ({
-        label: n.label,
-        x0: n.x0,
-        y0: n.y0,
-        x1: n.x1,
-        y1: n.y1,
-        isY0NaN: Number.isNaN(n.y0),
-        isY1NaN: Number.isNaN(n.y1)
-    })));
-
 
     let d3_nodes = d3.select(sankey_chart_ref.value)
         .select("g.nodes")
@@ -343,28 +299,38 @@ defineExpose({ draw_sankey, set_no_data_flag });
 </script>
 
 <style scoped>
-.sankey-visualization {
+.sankey-container {
+    width: 100%;
+    height: 100%;
     position: relative;
 }
 
-.zoom-controls-container {
-    display: flex;
-    justify-content: flex-end;
+.sankey-wrapper {
+    width: 100%;
+    height: 100%;
 }
 
-.zoom-controls {
-    width: 300px;
+.sankey-visualization {
+    width: 100%;
+    height: 100%;
+    position: relative;
 }
 
 .sankey-svg {
-    margin: 10px;
+    width: 100%;
+    height: 100%;
 }
 
-.zoom-badge {
-    background-color: #fd7e14 !important;
-    height: 24px;
-    display: flex;
-    align-items: center;
+.alert {
+    margin: 20px;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.alert-info {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #0c5460;
 }
 
 .zoom-btn {
@@ -381,13 +347,19 @@ defineExpose({ draw_sankey, set_no_data_flag });
     background-color: #e76b06 !important;
 }
 
-.btn-group-sm {
-    height: 24px;
+.sankey-wrapper-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
 }
 
-.progress-bar {
-    width: 20ch;
-    transition: width 0.01s ease-in-out;
-    background-color: #fd7e14 !important;
+.sankey-container {
+    flex: 1;
+}
+
+.btn-group-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
 }
 </style>
