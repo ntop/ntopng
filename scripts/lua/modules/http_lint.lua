@@ -2181,6 +2181,7 @@ local known_parameters = {
     ["netbox_activation_url"] = validateSingleWord,
     ["netbox_default_site"] = validateSingleWord,
     ["netbox_personal_access_token"] = validateSingleWord,
+    ["is_infrastructure"] = validateBool,
 
     -- Service Map
     ["service_id"] = validateNumber,

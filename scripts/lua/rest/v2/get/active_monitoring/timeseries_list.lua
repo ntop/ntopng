@@ -4,13 +4,19 @@
 
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
+if ntop.isEnterprise() then
+    package.path = dirs.installdir .. "/pro/scripts/lua/enterprise/modules/?.lua;" .. package.path
+end
 
 require "lua_utils"
 local rest_utils  = require "rest_utils"
 local json = require("dkjson")
 local script_manager = require("script_manager")
 local am_utils = require "am_utils"
-
+local infrastructure_utils = nil
+if ntop.isEnterprise() then
+    infrastructure_utils = require("infrastructure_utils")
+end
 --
 -- List of active monitoring hosts (replaces get_active_monitoring_hosts.lua)
 -- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{ }' http://localhost:3000/lua/rest/v2/get/am_host/list.lua
@@ -90,27 +96,37 @@ for key, am_host in pairs(am_hosts) do
     res[#res + 1] = {
        key = key,
        label = am_host.label,
-       html_label = html_label,
        host = am_host.host,
-       alerted = alerted,
        measurement = i18n(m_info.i18n_label),
        measurement_key = am_host.measurement,
-       chart = chart,
-       threshold = am_host.threshold,
        last_measure = column_last_value or "",
-       value_js_formatter = m_info.value_js_formatter,
-       last_mesurement_time = column_last_update,
        last_ip = column_last_ip,
        ifname = column_ifname,
-       granularity = am_host.granularity,
-       availability = availability or "",
-       hours = hourly_stats or {},
-       unit = i18n(m_info.i18n_unit) or m_info.i18n_unit,
-       jitter = column_jitter,
-       readonly = am_host.readonly
     }
 
     ::continue::
+end
+
+
+if infrastructure_utils then
+    local infrastructure_instances = infrastructure_utils.get_all_instances()
+
+    for _, instance in pairs(infrastructure_instances or {}) do
+        local host = instance.url
+        local measurement_host_tag = instance.url
+        if table.len(measurement_host_tag:split("//")) == 2 then
+            measurement_host_tag = measurement_host_tag:split("//")[2]
+        end
+        if table.len(measurement_host_tag:split(":")) == 2 then
+            measurement_host_tag = measurement_host_tag:split(":")[1]
+        end
+        res[#res + 1] = {
+            label = host,
+            host = measurement_host_tag,
+            measurement = '<i class="fas fa-building"></i>',
+            measurement_key = "infrastructure"
+        }
+    end
 end
 
 -- ################################################

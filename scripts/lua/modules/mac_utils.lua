@@ -198,10 +198,14 @@ function mac2record(mac)
         mac["throughput_bps"] = 0
     end
 
-    local sent2rcvd = round((mac["bytes.sent"] * 100) / (mac["bytes.sent"] + mac["bytes.rcvd"]), 0)
-    record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: " ..
+    record["column_breakdown"] = ""
+    local total_bytes = mac["bytes.sent"] + mac["bytes.rcvd"]
+    if total_bytes > 0 then
+      local sent2rcvd = round((mac["bytes.sent"] * 100) / total_bytes, 0) or 0
+      record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: " ..
                                      sent2rcvd .. "%;'>Sent</div><div class='progress-bar bg-success' style='width: " ..
                                      (100 - sent2rcvd) .. "%;'>Rcvd</div></div>"
+    end
 
     if (throughput_type == "pps") then
         record["column_thpt"] = pktsToSize(mac["throughput_pps"])

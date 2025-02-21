@@ -446,9 +446,9 @@ function graph_utils.printProtocolQuota(proto, ndpi_stats, category_stats, quota
         local traffic_taken = ternary(proto.traffic_quota ~= "0", math.min(total_bytes, tonumber(proto.traffic_quota)),
             0)
         local traffic_remaining = math.max(tonumber(proto.traffic_quota) - traffic_taken, 0)
-        local traffic_quota_ratio = round(traffic_taken * 100 / (traffic_taken + traffic_remaining), 0) or 0
-        if not traffic_quota_ratio then
-            traffic_quota_ratio = 0
+        local traffic_quota_ratio = 0
+        if traffic_taken + traffic_remaining > 0 then
+            traffic_quota_ratio = round(traffic_taken * 100 / (traffic_taken + traffic_remaining), 0) or 0
         end
 
         if show_td then
@@ -493,7 +493,10 @@ function graph_utils.printProtocolQuota(proto, ndpi_stats, category_stats, quota
 
         local duration_taken = ternary(proto.time_quota ~= "0", math.min(total_duration, tonumber(proto.time_quota)), 0)
         local duration_remaining = math.max(proto.time_quota - duration_taken, 0)
-        local duration_quota_ratio = round(duration_taken * 100 / (duration_taken + duration_remaining), 0) or 0
+        local duration_quota_ratio = 0
+        if duration_taken + duration_remaining > 0 then
+            duration_quota_ratio = round(duration_taken * 100 / (duration_taken + duration_remaining), 0) or 0
+        end
 
         if show_td then
             output[#output + 1] = [[<td class='text-end']] .. ternary(time_exceeded, ' style=\'color:red;\'', '') ..

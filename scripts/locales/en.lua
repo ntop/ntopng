@@ -8442,8 +8442,11 @@ local lang = {
     ["bytes_rcvd"] = "Bytes Received",
     ["bytes_sent"] = "Bytes Sent",
     ["cli2srv_bytes"] = "Cli to Srv Bytes",
+    ["cli2srv_packets"] = "Cli to Srv Packets",
     ["srv2cli_bytes"] = "Srv to Cli Bytes",
+    ["srv2cli_packets"] = "Srv to Cli Packets",
     ["total_bytes"] = "Total (Bytes)",
+    ["total_packets"] = "Total Packets",
     ["total_percentage"] = "Total (%)",
   },
   ["traffic_page"] = {

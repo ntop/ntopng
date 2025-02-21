@@ -358,6 +358,16 @@ tag_utils.defined_tags = {
         i18n_label = i18n('traffic_labels.srv2cli_bytes'),
         operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
     },
+    cli2srv_packets = {
+        value_type = 'packets',
+        i18n_label = i18n('traffic_labels.cli2srv_packets'),
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
+    },
+    srv2cli_packets = {
+        value_type = 'packets',
+        i18n_label = i18n('traffic_labels.srv2cli_packets'),
+        operators = { 'eq', 'neq', 'lt', 'gt', 'gte', 'lte' }
+    },
     number = {
         value_type = 'number',
         i18n_label = i18n('db_search.tags.number'),

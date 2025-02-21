@@ -28,6 +28,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 local page = _GET["page"] or 'overview'
 local host = _GET["host"]
 local measurement = _GET["measurement"]
+local is_infrastructure = _GET["is_infrastructure"]
 
 -- ###########################################
 
@@ -87,11 +88,17 @@ if (page == "overview") then
         vue_page_name = "PageActiveMonitoring",
         page_context = json_context
     })
-elseif ((page == "historical") and (not isEmptyString(host)) and (not isEmptyString(measurement))) then
+elseif ((page == "historical") and (not isEmptyString(host))) then
     local graph_utils = require("graph_utils")
+    local host_tag = host
+    if not isEmptyString(measurement) then
+        host_tag = host .. ",metric:" .. measurement
+    elseif not isEmptyString(is_infrastructure) then
+        host_tag = host .. ",metric:infrastructure"
+    end
     graph_utils.drawNewGraphs({
         ifid = -1,
-        host = host .. ",metric:" .. measurement
+        host = host_tag
     })
 end
 

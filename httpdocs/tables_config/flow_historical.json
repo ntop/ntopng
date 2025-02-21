@@ -250,6 +250,48 @@
 			]
 		},
 		{
+			"title_i18n": "traffic_labels.srv2cli_bytes",
+			"data_field": "cli2srv_bytes",
+			"sortable": true,
+			"min-width": "90px",
+			"style": "text-align:right;",
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
+			"title_i18n": "traffic_labels.srv2cli_bytes",
+			"data_field": "srv2cli_bytes",
+			"sortable": true,
+			"min-width": "90px",
+			"style": "text-align:right;",
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
+			"title_i18n": "traffic_labels.cli2srv_packets",
+			"data_field": "cli2srv_packets",
+			"sortable": true,
+			"min-width": "80px",
+			"render_type": "full_number",
+			"style": "text-align:right;",
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
+			"title_i18n": "traffic_labels.srv2cli_packets",
+			"data_field": "srv2cli_packets",
+			"sortable": true,
+			"min-width": "80px",
+			"render_type": "full_number",
+			"style": "text-align:right;",
+			"class": [
+				"no-wrap"
+			]
+		},
+		{
 			"title_i18n": "db_search.src2dst_dscp",
 			"data_field": "src2dst_dscp",
 			"min-width": "120px",

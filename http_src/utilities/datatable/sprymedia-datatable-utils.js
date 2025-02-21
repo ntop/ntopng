@@ -855,6 +855,7 @@ export class DataTableRenders {
     }
     
     static formatIP(ip, type, row, zero_is_null) {
+        if (!ip) return "";
         let title = "";
         if (ip.label_long) title = ip.value + " [" + ip.label_long + "]";
         let label = DataTableRenders.filterize(ip.tag_key, ip.value, ip.label, ip.label, title);

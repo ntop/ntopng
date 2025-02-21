@@ -386,11 +386,16 @@ for _key, _value in pairsByKeys(vals, funct) do
       record["column_num_dropped_flows"] = (value["flows.dropped"] or 0)
    end
 
-   local sent2rcvd = round((value["bytes.sent"] * 100) / (value["bytes.sent"]+value["bytes.rcvd"]), 0)
-   if(sent2rcvd == nil) then sent2rcvd = 0 end
    record["column_score"] = format_high_num_value_for_tables(value, "score") 
-   record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
+   record["column_breakdown"] = ""
+
+   local total_bytes = value["bytes.sent"]+value["bytes.rcvd"]
+   local sent2rcvd = 0
+   if total_bytes > 0 then
+     sent2rcvd = round((value["bytes.sent"] * 100) / total_bytes, 0) or 0
+     record["column_breakdown"] = "<div class='progress'><div class='progress-bar bg-warning' style='width: "
 	     .. sent2rcvd .."%;'>Sent</div><div class='progress-bar bg-success' style='width: " .. (100-sent2rcvd) .. "%;'>Rcvd</div></div>"
+   end
 
    local _, custom_column_key = custom_column_utils.getCustomColumnName()
    record["column_"..custom_column_key] = custom_column_utils.hostStatsToColumnValue(value, custom_column_key, true)

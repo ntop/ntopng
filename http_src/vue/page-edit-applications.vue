@@ -164,7 +164,7 @@ const add_action_column = function (rowData) {
   }
 
   const actions = [
-    { class: `pointer`, handler: edit_handler, icon: 'fa-edit', title: i18n('edit') },
+    { class: `pointer ${props.has_protos_file ? '' : 'disabled'}`, handler: edit_handler, icon: 'fa-edit', title: i18n('edit') },
   ]
 
   if(rowData.is_custom) {

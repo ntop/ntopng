@@ -14,7 +14,11 @@ function format_utils.round(num, idp)
       return 0
    end
 
-   if math.abs(num) == math.huge then
+   if num ~= num then -- nan (not a number)
+      tprint("Number is nan")
+      io.write(debug.traceback() .. "\n")
+      res = 0
+   elseif math.abs(num) == math.huge then
       -- This is an infinite, e.g., 1/0 or -1/0
       res = num
 --   elseif num == math.floor(num) then

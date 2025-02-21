@@ -306,7 +306,7 @@ if ((page == "flows" or page == nil) and ntop.isnEdge()) then
             hidden: true,
          }, {
             title: "]]
-    print(i18n("serial"))
+    print(i18n("actions"))
     print [[",
             field: "column_key", /* This is the serial number but called key for placing the flow button pointing to the flow key */
             sortable: true,

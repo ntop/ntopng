@@ -2009,7 +2009,7 @@ local community_timeseries = { {
 
 local function add_active_monitoring_timeseries(tags, timeseries)
     local am_utils = require "am_utils"
-
+    
     -- google.com,metric:cicmp
     local data = split(tags.host, ',')
     local metric = split(data[2], ':')[2]
@@ -3237,6 +3237,33 @@ end
 function timeseries_info.retrieve_specific_timeseries(tags, prefix)
     local timeseries_list = community_timeseries
     local timeseries = {}
+
+    if ntop.isEnterprise() then
+        -- Check for the infrastructure active monitoring
+        if tags.host then
+            if tags.host:find("metric:infrastructure") then
+                local host = split(tags.host, ",")
+                local am_utils = require("am_utils")
+                local active_monitoring_hosts = am_utils.getHosts() or {}
+                for key, info in pairs(active_monitoring_hosts or {}) do
+                    if key:find(host[1]) then
+                        local measurement_key = split(key, "@")[2]
+                        tags.host = measurement_key .. ",metric:" .. info.measurement
+                        timeseries = add_active_monitoring_timeseries(tags, timeseries)
+                        timeseries[#timeseries].query = 'host:' .. tags.host
+                        -- HTTP measurement has 2 timeseries, so add to both the query
+                        if info.measurement == 'http' then
+                            timeseries[#timeseries - 1].query = 'host:' .. tags.host
+                        end
+                    end
+                end
+                if table.len(timeseries) > 0 then
+                    timeseries[1].default_visible = true
+                end
+                return timeseries
+            end
+        end
+    end
 
     if ntop.isPro() then
         package.path = dirs.installdir .. "/scripts/lua/pro/modules/?.lua;" .. package.path
