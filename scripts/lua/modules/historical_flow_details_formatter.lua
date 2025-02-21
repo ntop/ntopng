@@ -306,7 +306,7 @@ local function format_historical_issue_description(alert, alert_id, score, title
 
             html = html .. '<td><a href="' .. url .. '">' .. mitre_info.mitre_id .. "</A>"
 
-            if (mitre_info.mitre_tactic.i18n_label) then
+            if (mitre_info.mitre_tactic) and (mitre_info.mitre_tactic.i18n_label) then
                 html = html .. '<br>' .. i18n(mitre_info.mitre_tactic.i18n_label) .. "</td>"
             end
         else
