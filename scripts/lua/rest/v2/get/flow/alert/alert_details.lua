@@ -1,5 +1,5 @@
 --
--- (C) 2013-24 - ntop.org
+-- (C) 2013-25 - ntop.org
 --
 local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
@@ -13,7 +13,7 @@ local alert_store_instances = alert_store_utils.all_instances_factory()
 
 --
 -- Read alerts data
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/get/flow/alert/list.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/get/flow/alert/alert_details.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

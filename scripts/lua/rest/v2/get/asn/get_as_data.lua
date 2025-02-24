@@ -1,5 +1,5 @@
 --
--- (C) 2013-24 - ntop.org
+-- (C) 2013-25 - ntop.org
 --
 
 dirs = ntop.getDirs()
@@ -9,6 +9,13 @@ local format_utils = require "format_utils"
 local rest_utils = require "rest_utils"
 local json = require("dkjson")
 require "lua_utils"
+
+--
+-- Get AS Name from IP
+-- Example: curl -u admin:admin -H "Content-Type: application/json" http://localhost:3000/lua/rest/v2/get/asn/get_as_data.lua
+--
+-- NOTE: in case of invalid login, no error is returned but redirected to login
+--
 
 -- Get from redis the throughput type bps or pps
 local ts_enabled = areASTimeseriesEnabled(interface.getId())

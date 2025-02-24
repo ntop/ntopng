@@ -11,7 +11,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Read number of active flows per protocol
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/get/flow/l7/counters.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/get/flow/l7/iec104.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

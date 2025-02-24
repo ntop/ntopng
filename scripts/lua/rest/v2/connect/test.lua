@@ -10,8 +10,6 @@ require "lua_utils"
 local json = require "dkjson"
 local rest_utils = require "rest_utils"
 
-sendHTTPContentTypeHeader('application/json')
-
 --
 -- Test ntopng reachability and authentication (used by Python API)
 -- Example: curl -u admin:admin http://localhost:3000/lua/rest/v2/connect/test.lua

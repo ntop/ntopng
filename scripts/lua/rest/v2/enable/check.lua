@@ -13,7 +13,7 @@ local auth = require "auth"
 
 --
 -- Enable User Script
--- Example: curl -u admin:admin http://localhost:3000/lua/rest/v2/disable/check.lua
+-- Example: curl -u admin:admin http://localhost:3000/lua/rest/v2/enable/check.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

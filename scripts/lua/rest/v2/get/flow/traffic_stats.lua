@@ -10,7 +10,7 @@ require "lua_utils"
 local rest_utils = require("rest_utils")
 
 --
--- Read list of active flows
+-- Get Traffic stats
 -- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/get/flow/traffic_stats.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login

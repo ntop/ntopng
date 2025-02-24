@@ -16,7 +16,7 @@ local auth = require "auth"
 
 --
 -- Read alerts count by time
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/get/host/alert/ts.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/get/all/alert/ts.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

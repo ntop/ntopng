@@ -13,7 +13,7 @@ local dashboard_utils = require "dashboard_utils"
 
 --
 -- Get list of components for a dashboard template
--- Example: curl -u admin:admin "http://localhost:3000/lua/pro/rest/v2/get/dashboard/template/data.lua?template=default"
+-- Example: curl -u admin:admin "http://localhost:3000/lua/rest/v2/get/dashboard/template/data.lua?template=default"
 --
 
 local template_id = _GET["template"]

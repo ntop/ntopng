@@ -10,7 +10,7 @@ local rest_utils = require("rest_utils")
 local asset_utils = require("asset_utils")
 --
 -- Read alerts data
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/delete/host/alerts.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/delete/host/asset.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

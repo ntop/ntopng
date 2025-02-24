@@ -13,7 +13,7 @@ local rest_utils = require("rest_utils")
 local host_alert_store = require "host_alert_store".new()
 
 --
--- Read alerts data
+-- Delete host alerts for the given interface
 -- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/delete/host/alerts.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login

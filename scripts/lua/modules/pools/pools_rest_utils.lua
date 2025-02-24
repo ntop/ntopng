@@ -37,7 +37,7 @@ function pools_rest_utils.add_pool(pools)
    -- Create an instance out of the `pools` passed as argument
    local s = pools:create()
 
-   -- Too many pools created for this version
+   -- Too many pools created for this ntopng version
    if s:get_num_pools() >= s:get_max_num_pools() then
       if ntop.isEnterpriseM() then
 	 rest_utils.answer(rest_utils.consts.err.add_pool_failed_too_many_pools_enterprise)

@@ -12,7 +12,7 @@ local rest_utils = require("rest_utils")
 
 --
 -- Get a new ntopng user session (Cookie)
--- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"username": "mario"}' http://localhost:3000/lua/rest/v2/get/ntopng/session.lua
+-- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"username": "Mario", "auth_session_duration": 30}' http://localhost:3000/lua/rest/v2/create/ntopng/session.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --
