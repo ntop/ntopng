@@ -28,6 +28,7 @@ ntopng-prep:
 		find ${NTOPNG_BUILD}/usr/share/ntopng/pro -name "*.lua" -type f -exec $(NTOPNG_HOME)/pro/utils/snzip -c -i {} -o {}r \;; \
 		find ${NTOPNG_BUILD}/usr/share/ntopng/pro -name "*.lua" -type f -exec /bin/rm  {} ';'; \
 		find ${NTOPNG_BUILD}/usr/share/ntopng/pro/scripts -name "*.luar" | xargs rename 's/\.luar/.lua/'; \
+		find ${NTOPNG_BUILD}/usr/share/ntopng/httpdocs/ -name README.md -type f -exec /bin/rm  {} ';'; \
 	fi
 	if hash systemctl 2>/dev/null; then \
 		rm -rf ${NTOPNG_BUILD}/etc/init.d; \
