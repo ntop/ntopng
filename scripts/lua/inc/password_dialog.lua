@@ -62,7 +62,7 @@ print [[
   <label class='form-label' for="old_password_input">]] print(i18n("manage_users.old_password")) print[[</label>
   <div class='input-group mb-]] print(col_md_size) print[[ has-feedback'>
         <span class="input-group-text"><i class="fas fa-lock"></i></span>
-      <input id="old_password_input" type="password" name="old_password" value="" class="form-control" required>
+      <input id="old_password_input" type="password" autocomplete="off" name="old_password" value="" class="form-control" required>
   </div>
   </div>
    ]]
@@ -73,7 +73,7 @@ print [[
     <label class='form-label' for="new_password_input">]] print(i18n("manage_users.new_password")) print[[</label>
     <div class='input-group mb-]] print(col_md_size) print[['>
         <span class="input-group-text"><i class="fas fa-lock"></i></span>
-        <input id="new_password_input" type="password" name="new_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
+        <input id="new_password_input" type="password" autocomplete="off" name="new_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
     </div>
   </div>
 
@@ -81,7 +81,7 @@ print [[
   <label class='form-label' class='form-label' for="confirm_new_password_input">]] print(i18n("manage_users.new_password_confirm")) print[[</label>
   <div class='input-group md-]] print(col_md_size) print[['>
         <span class="input-group-text"><i class="fas fa-lock"></i></span>
-        <input id="confirm_new_password_input" type="password" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
+        <input id="confirm_new_password_input" type="password" autocomplete="off" name="confirm_password" value="" class="form-control" pattern="]] print(getPasswordInputPattern()) print[[" required>
   </div>
   </div>
 

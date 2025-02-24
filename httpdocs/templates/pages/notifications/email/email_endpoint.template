@@ -60,7 +60,7 @@
         <a title="{{ i18n('help') }}" target="blank" href="https://www.ntop.org/guides/ntopng/alerts/available_recipients.html#email"><i class="fa-regular fa-circle-question"></i></a>
     </label>
     <div class="col-sm-7">
-        <input name="smtp_password" type="password" class="form-control" />
+        <input name="smtp_password" type="password" autocomplete="off" class="form-control" />
         <small class="text-muted">{{ i18n("optional_field") }}</small>
     </div>
 </div>

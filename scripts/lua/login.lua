@@ -82,7 +82,7 @@ print[[
         <label for="input-username">]] print(i18n("login.username_ph")) print[[
       </div>
       <div class='form-floating'>
-        <input placeholder='admin' id='input-password' type="password" class="form-control" name="password" pattern="]] print(getPasswordInputPattern()) print[[" required]] print(ternary(ntop.isLoginBlacklisted(), " disabled", "")) print[[>
+        <input placeholder='admin' id='input-password' type="password" autocomplete="off" class="form-control" name="password" pattern="]] print(getPasswordInputPattern()) print[[" required]] print(ternary(ntop.isLoginBlacklisted(), " disabled", "")) print[[>
         <label for="input-password">]] print(i18n("login.password_ph")) print[[
       </div>
 ]]

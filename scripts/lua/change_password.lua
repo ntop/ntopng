@@ -95,8 +95,8 @@ end
 print[[
   <div class="form-group mb-3 has-feedback">
       <input type="hidden" name="csrf" value="]] print(ntop.getRandomCSRFValue()) print[[" />
-      <input type="password" class="form-control" name="new_password" placeholder="]] print(i18n("login.password")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
-      <input type="password" class="form-control" name="confirm_password" placeholder="]] print(i18n("login.confirm_password")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
+      <input type="password" autocomplete="off" class="form-control" name="new_password" placeholder="]] print(i18n("login.password")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
+      <input type="password" autocomplete="off" class="form-control" name="confirm_password" placeholder="]] print(i18n("login.confirm_password")) print[[" pattern="]] print(getPasswordInputPattern()) print[[" required>
   </div>
 
   ]]

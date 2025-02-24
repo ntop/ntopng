@@ -38,7 +38,7 @@
             <label for="password_input">{* messages.password *}</label>
             <div class="input-group mb-6">
               <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input id="password_input" type="password" name="password" value="" class="form-control"  data-pattern="password" required>
+              <input id="password_input" type="password" autocomplete="off" name="password" value="" class="form-control"  data-pattern="password" required>
             </div>
           </div>
 
@@ -46,7 +46,7 @@
             <label for="confirm_password_input">{* messages.confirm_password *}</label>
             <div class="input-group mb-6">
               <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input id="confirm_password_input" type="password" name="confirm_password" value="" class="form-control" data-pattern="password" required>
+              <input id="confirm_password_input" type="password" autocomplete="off" name="confirm_password" value="" class="form-control" data-pattern="password" required>
             </div>
           </div>
 
