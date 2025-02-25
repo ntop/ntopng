@@ -6,6 +6,7 @@ local dirs = ntop.getDirs()
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 require "ntop_utils"
+require "flow_utils"
 local json = require ("dkjson")
 local checks = require("checks")
 
