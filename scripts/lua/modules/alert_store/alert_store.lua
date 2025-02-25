@@ -964,7 +964,7 @@ end
 
 function alert_store:insert(alert)
     local write_table = self:get_write_table_name()
-
+    
     if write_table then
 
         local extra_columns = ""

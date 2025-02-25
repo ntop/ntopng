@@ -52,3 +52,9 @@ Currently used queues are:
 ## Queue messages format
 
 JSON messages are queued/dequeued. The format of the JSON is contains variable fields which depends on the alert type. However, a minimum set of fields is constant and include alert type, entity and severity.
+
+
+## Notifications
+Alerts can be sent to external receivers via notifications (Alerts -> Notifications menu).
+
+To check duplicate alerts you can see: `function alert_utils.check_alert_policy` in `scripts/lua/modules/alert_utils.lua`. A new redis key is added for each alert where the key is: `ntopng.cache.alert.retention.{RECIPIENT_ID}.{ENTITY_ID}.{ALERT_ID}{ALERT_KEY}`. ALERT_KEY is built by concatenating srcIP dstIP srcPort dstPort. If the key is set in redis, the alert is not sent for an hour (3600 seconds as defined by the constant at line 929)

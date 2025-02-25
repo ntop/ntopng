@@ -872,7 +872,6 @@ function alert_utils.filter_notification(notification, recipient_id)
     local alert_key = alert_info.alert_id
     local entity_id = alert_info.entity_id
     local entity_val = alert_info.entity_val
-
     if notification.score == 0 then
         return true
     end
@@ -884,6 +883,7 @@ end
 
 -- ##############################################
 
+-- Function to filter duplicate alerts 
 function alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_info, recipient_id)
     local alert_key = ""
     local alert_key_fields = {}
@@ -894,6 +894,7 @@ function alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_i
     if silence_alerts == "1" then
         if alert_consts.alert_types[alert_id].alert_retention_policy_key then
             alert_key_fields = alert_consts.alert_types[alert_id].alert_retention_policy_key(alert_info)
+
             for _, field in ipairs(alert_key_fields) do
                 alert_key = alert_key .. "." .. alert_info[field]
             end
@@ -915,13 +916,16 @@ function alert_utils.check_alert_policy(entity_id, entity_val, alert_id, alert_i
             return not_set
         end
 
-        local redis_key = string.format("ntopng.cache.alert.retention.%s.%s.%s%s", recipient_id, entity_id, alert_id,
-            alert_key)
-        not_set = isEmptyString(ntop.getCache(redis_key))
+        -- Check if the key is set in redis for this recipient_id, entity_id and alert_id
+        local redis_key = string.format("ntopng.cache.alert.retention.%s.%s.%s%s", recipient_id, entity_id, alert_id, alert_key)
+        local redis_value = ntop.getCache(redis_key)
 
+        not_set = isEmptyString(redis_value)
+        
         if not_set then
             -- Set key with expiration on redis to filter out the same alert for some time
             -- TODO: 3600 must be update with a user preference
+            -- 3600 is in seconds, do not send duplicate alerts if they appear more than once in an hour
             ntop.setCache(redis_key, "1", 3600)
         end
     end

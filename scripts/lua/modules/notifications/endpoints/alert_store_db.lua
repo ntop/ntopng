@@ -94,7 +94,6 @@ function alert_store_db.dequeueRecipientAlerts(recipient, budget)
 
       for _, json_message in ipairs(notifications) do
          local alert = json.decode(json_message)
-
          if alert then
             local alert_store = get_alert_store(alert.entity_id)
             if alert_store then
