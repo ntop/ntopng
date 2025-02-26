@@ -35,7 +35,7 @@ if not auth.has_capability(auth.capabilities.alerts) then
 end
 
 if not checks.isCheckEnabled("host", "external_host_script") then
-   rest_utils.answer(rest_utils.consts.err.not_enabled)
+   rest_utils.answer(rest_utils.consts.err.not_enabled, { "Please enable external_host_script in behavioural checks"})
    return
 end
 

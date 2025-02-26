@@ -349,6 +349,13 @@ local rest_utils = {
                 str= "IFACE_ENCRYPTION_NOT_PRESENT"
             },
 
+            -- Missing parameter(s) in request
+            missing_parameters = {
+                http_code = 422,
+                rc = -59,
+                str= "MISSING_PARAMETERS"
+            },
+
             -- Checks
             not_enabled = {http_code = 400, rc = -2, str = "NOT_ENABLED"}
         }
@@ -386,6 +393,7 @@ function rest_utils.sendHTTPHeaderIfName(mime, ifname, maxage,
         [410] = "Gone",
         [412] = "Precondition Failed",
         [415] = "Unsupported Media Type",
+        [422] = "Unprocessable Content",
         [423] = "Locked",
         [428] = "Precondition Required",
         [429] = "Too many requests",

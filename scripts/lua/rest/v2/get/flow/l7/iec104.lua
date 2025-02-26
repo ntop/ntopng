@@ -23,6 +23,11 @@ local ifid = _GET["ifid"]
 local flow_key = _GET["flow_key"]
 local flow_hash_id = _GET["flow_hash_id"]
 
+if isEmptyString(flow_key) or isEmptyString(flow_hash_id) then
+   rest_utils.answer(rest_utils.consts.err.missing_parameters, {"Required parameters: flow_key and flow_hash_id"})
+   return
+end
+
 if isEmptyString(ifid) then
    rest_utils.answer(rest_utils.consts.err.invalid_interface)
    return
