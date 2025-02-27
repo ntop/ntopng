@@ -717,7 +717,7 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                         checks = checks,
                         notifications_type = notifications_type
                     }, safe_params)
-                    tprint(host_pools_ids)
+
                     -- Finally, register the recipient in C to make sure also the C knows about this edit
                     -- and periodic scripts can be reloaded
                     ntop.recipient_register(tonumber(recipient_id), minimum_severity,
