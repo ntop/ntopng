@@ -1079,50 +1079,52 @@ else
                       formatPackets(flow["cli2srv.fragments"]) .. "</span> / <span id=s2cFrag>" ..
                       formatPackets(flow["srv2cli.fragments"]) .. "</span></td></tr>\n")
         end
-
-	rowspan = 0
-	if ((flow["cli2srv.retransmissions"] or 0 + flow["srv2cli.retransmissions"] or 0) > 0) then
-	   rowspan = rowspan + 1
-	end
-	if ((flow["cli2srv.out_of_order"] or 0 + flow["srv2cli.out_of_order"] or 0) > 0) then
-	   rowspan = rowspan + 1
-	end
-	if ((flow["cli2srv.lost"] or 0 + flow["srv2cli.lost"] or 0) > 0) then
-	   rowspan = rowspan + 1
-	end
-	if ((flow["cli2srv.keep_alive"] or 0 + flow["srv2cli.keep_alive"] or 0) > 0) then
-	   rowspan = rowspan + 1
-	end
-	
-	if rowspan > 1 then
-	   rowspan = rowspan + 1 
-	   print("<tr><th width=10% rowspan=" .. rowspan .. ">" .. i18n("flow_details.tcp_packet_analysis") ..
-		 "</th>")
-	   print("<th></th><th>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " ..
-		 i18n("server") .. " / " .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " ..
-		 i18n("server") .. "</th></tr>\n")
-	   
-	   if ((flow["cli2srv.retransmissions"] or 0 + flow["srv2cli.retransmissions"] or 0) > 0) then
-	      print("<tr><th>" .. i18n("details.retransmissions") .. "</th><td align=right><span id=c2sretr>" ..
-		    formatPackets(flow["cli2srv.retransmissions"] or 0) .. "</span> / <span id=s2cretr>" ..
-		    formatPackets(flow["srv2cli.retransmissions"] or 0) .. "</span></td></tr>\n")
-	   end
-	   if ((flow["cli2srv.out_of_order"] or 0 + flow["srv2cli.out_of_order"] or 0) > 0) then
-	      print("<tr><th>" .. i18n("details.out_of_order") .. "</th><td align=right><span id=c2sOOO>" ..
-                              formatPackets(flow["cli2srv.out_of_order"] or 0) .. "</span> / <span id=s2cOOO>" ..
-                              formatPackets(flow["srv2cli.out_of_order"] or 0) .. "</span></td></tr>\n")
+        if flow["proto.l4"] == "TCP" then
+            rowspan = 0
+            flow["cli2srv.retransmissions"] = nil
+            if ((flow["cli2srv.retransmissions"] or 0 + flow["srv2cli.retransmissions"] or 0) > 0) then
+                rowspan = rowspan + 1
+            end
+            if ((flow["cli2srv.out_of_order"] or 0 + flow["srv2cli.out_of_order"] or 0) > 0) then
+                rowspan = rowspan + 1
+            end
+            if ((flow["cli2srv.lost"] or 0 + flow["srv2cli.lost"] or 0) > 0) then
+                rowspan = rowspan + 1
+            end
+            if ((flow["cli2srv.keep_alive"] or 0 + flow["srv2cli.keep_alive"] or 0) > 0) then
+                rowspan = rowspan + 1
+            end
+            
+            if rowspan > 1 then
+                rowspan = rowspan + 1 
+                print("<tr><th width=10% rowspan=" .. rowspan .. ">" .. i18n("flow_details.tcp_packet_analysis") ..
+                    "</th>")
+                print("<th></th><th>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " ..
+                    i18n("server") .. " / " .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " ..
+                    i18n("server") .. "</th></tr>\n")
+            
+                if ((flow["cli2srv.retransmissions"] or 0 + flow["srv2cli.retransmissions"] or 0) > 0) then
+                    print("<tr><th>" .. i18n("details.retransmissions") .. "</th><td align=right><span id=c2sretr>" ..
+                        formatPackets(flow["cli2srv.retransmissions"] or 0) .. "</span> / <span id=s2cretr>" ..
+                        formatPackets(flow["srv2cli.retransmissions"] or 0) .. "</span></td></tr>\n")
                 end
-	   if ((flow["cli2srv.lost"] or 0 + flow["srv2cli.lost"] or 0) > 0) then
-	      print("<tr><th>" .. i18n("details.lost") .. "</th><td align=right><span id=c2slost>" ..
-		    formatPackets(flow["cli2srv.lost"] or 0) .. "</span> / <span id=s2clost>" ..
-		    formatPackets(flow["srv2cli.lost"] or 0) .. "</span></td></tr>\n")
-	   end
-	   if ((flow["cli2srv.keep_alive"] or 0 + flow["srv2cli.keep_alive"] or 0) > 0) then
-	      print("<tr><th>" .. i18n("details.keep_alive") .. "</th><td align=right><span id=c2skeep_alive>" ..
-		    formatPackets(flow["cli2srv.keep_alive"] or 0) .. "</span> / <span id=s2ckeep_alive>" ..
-		    formatPackets(flow["srv2cli.keep_alive"] or 0) .. "</span></td></tr>\n")
-	   end
-	end
+                if ((flow["cli2srv.out_of_order"] or 0 + flow["srv2cli.out_of_order"] or 0) > 0) then
+                    print("<tr><th>" .. i18n("details.out_of_order") .. "</th><td align=right><span id=c2sOOO>" ..
+                        formatPackets(flow["cli2srv.out_of_order"] or 0) .. "</span> / <span id=s2cOOO>" ..
+                        formatPackets(flow["srv2cli.out_of_order"] or 0) .. "</span></td></tr>\n")
+                end
+                if ((flow["cli2srv.lost"] or 0 + flow["srv2cli.lost"] or 0) > 0) then
+                    print("<tr><th>" .. i18n("details.lost") .. "</th><td align=right><span id=c2slost>" ..
+                        formatPackets(flow["cli2srv.lost"] or 0) .. "</span> / <span id=s2clost>" ..
+                        formatPackets(flow["srv2cli.lost"] or 0) .. "</span></td></tr>\n")
+                end
+                if ((flow["cli2srv.keep_alive"] or 0 + flow["srv2cli.keep_alive"] or 0) > 0) then
+                    print("<tr><th>" .. i18n("details.keep_alive") .. "</th><td align=right><span id=c2skeep_alive>" ..
+                        formatPackets(flow["cli2srv.keep_alive"] or 0) .. "</span> / <span id=s2ckeep_alive>" ..
+                        formatPackets(flow["srv2cli.keep_alive"] or 0) .. "</span></td></tr>\n")
+                end
+            end
+        end
     end
 
     if (not(isEmptyString(flow["protos.tls.client_requested_server_name"]))) then
