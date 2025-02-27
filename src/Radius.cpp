@@ -48,7 +48,8 @@ Radius::~Radius() {
   if (radiusUnprivCapabilitiesGroup) free(radiusUnprivCapabilitiesGroup);
   if (radiusAuthServer) free(radiusAuthServer);
   if (radiusAcctServer) free(radiusAcctServer);
-  if (radiusSecret) free(radiusSecret);
+  if (radiusSecret)     free(radiusSecret);
+  if (authServer)       free(authServer);
 }
 
 /* *************************************** */
