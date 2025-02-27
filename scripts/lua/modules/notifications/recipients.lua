@@ -484,6 +484,7 @@ end
 -- ##############################################
 
 local function format_recipient_checks(checks_list)
+
     if isEmptyString(checks_list) then
         return nil
     end
@@ -526,7 +527,7 @@ end
 -- @param recipient_params A table with endpoint recipient params that will be possibly sanitized
 -- @return A table with a key status which is either "OK" or "failed", and the recipient id assigned to the newly added recipient. When "failed", the table contains another key "error" with an indication of the issue
 function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_categories, check_entities,
-    minimum_severity, host_pools_ids, am_hosts_ids, recipient_params)
+    minimum_severity, host_pools_ids, am_hosts_ids, recipient_params, silence_duplicate_alerts)
     local endpoints = require "endpoints"
     local locked = _lock()
     local res = {
@@ -559,7 +560,6 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                     local safe_params = status["safe_params"]
                     -- Get the list of checks to deliver the alerts
                     local checks = format_recipient_checks(recipient_params["recipient_checks"] or "")
-                    local silence_alerts = recipient_params["recipient_silence_multiple_alerts"]
                     local notifications_type = recipient_params["recipient_notifications_type"] or "alerts"
                     local flow_alert_types = nil
                     local host_alert_types = nil
@@ -595,7 +595,7 @@ function recipients.add_recipient(endpoint_id, endpoint_recipient_name, check_ca
                         minimum_severity = minimum_severity,
                         host_pools_ids = host_pools_ids,
                         am_hosts_ids = am_hosts_ids,
-                        silence_alerts = silence_alerts,
+                        silence_alerts = silence_duplicate_alerts,
                         checks = checks,
                         notifications_type = notifications_type
                     }, safe_params)
@@ -679,6 +679,7 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                 else
                     local safe_params = status["safe_params"]
                     local checks = format_recipient_checks(recipient_params["recipient_checks"] or "")
+                    -- true silences duplicate alerts, false does not
                     local silence_alerts = recipient_params["recipient_silence_multiple_alerts"]
                     local notifications_type = recipient_params["recipient_notifications_type"] or "alerts"
                     local flow_alert_types = nil
@@ -716,7 +717,7 @@ function recipients.edit_recipient(recipient_id, endpoint_recipient_name, check_
                         checks = checks,
                         notifications_type = notifications_type
                     }, safe_params)
-
+                    tprint(host_pools_ids)
                     -- Finally, register the recipient in C to make sure also the C knows about this edit
                     -- and periodic scripts can be reloaded
                     ntop.recipient_register(tonumber(recipient_id), minimum_severity,

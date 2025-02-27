@@ -40,6 +40,7 @@ end
 local items = {}
 
 local notifications_ie = notifications_import_export:create()
+
 items[#items+1] = {
    name = "notifications",
    conf = modules["notifications"],

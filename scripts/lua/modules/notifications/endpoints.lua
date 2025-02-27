@@ -445,7 +445,7 @@ end
 function endpoints.add_configs_with_recipients(configs)
    local recipients = require "recipients"
    local rc = true
-
+   
    -- Restore Endpoints
    for _, conf in ipairs(configs) do
       local endpoint_key = conf.endpoint_key
@@ -467,12 +467,17 @@ function endpoints.add_configs_with_recipients(configs)
                local check_entities   = recipient_conf.check_entities
                local minimum_severity = recipient_conf.minimum_severity
                local recipient_params = recipient_conf.recipient_params
+               local host_pools       = recipient_conf.host_pools or {}
+               local silence_duplicate_alerts = recipient_conf.silence_alerts
 
+               
                ret = recipients.add_recipient(ret.endpoint_id, endpoint_recipient_name,
-					      check_categories, check_entities, minimum_severity,
-					      {}, -- Host pools - restore should take care of this automatically
-					      {}, -- Interface pools - restore should take care of this automatically
-					      recipient_params)
+                  check_categories, check_entities, minimum_severity,
+                  host_pools, -- Host pools - restore should take care of this automatically
+                  {}, -- Interface pools - restore should take care of this automatically
+                  recipient_params,
+                  silence_duplicate_alerts
+               )
 
                if not ret or not ret.status or ret.status ~= "OK" then
                   rc = false

@@ -41,7 +41,6 @@ end
 -- @return A table with a key "success" set to true is returned on success. A key "err" is set in case of failure, with one of the errors defined in rest_utils.consts.err.
 function notifications_import_export:import(conf)
    local res = {}
-
    local success = endpoints.add_configs_with_recipients(conf)
 
    if not success then
