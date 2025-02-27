@@ -35,7 +35,7 @@ Radius::Radius(bool _use_chap) {
   
   result = 0, use_chap = _use_chap; /* true = CHAP, false = PAP */
   radiusAuthServer = radiusAcctServer = radiusSecret = radiusAdminGroup =
-    radiusUnprivCapabilitiesGroup = NULL;
+    radiusUnprivCapabilitiesGroup = authServer = NULL;
 
   /* Check if some information are already stored in redis */
   updateLoginInfo();
