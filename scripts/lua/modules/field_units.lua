@@ -19,6 +19,7 @@ local field_units = {
    contacts = "field_units.contacts",
    score = "field_units.score",
    per_host_score = "field_units.per_host_score",
+   ports = "field_units.ports",
    macs = "field_units.macs",
    exceptions = "field_units.exceptions",
    domains = "field_units.domains"
