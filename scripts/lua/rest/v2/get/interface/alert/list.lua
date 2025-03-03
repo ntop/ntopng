@@ -10,7 +10,7 @@ local rest_utils = require("rest_utils")
 local interface_alert_store = require"interface_alert_store".new()
 
 --
--- Read alerts data
+-- Get list of interfaces alerts
 -- Example: curl -u admin:admin -H "Content-Type: application/json" -d '{"ifid": "1"}' http://localhost:3000/lua/rest/v2/get/interface/alert/list.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login

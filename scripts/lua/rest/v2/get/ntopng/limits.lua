@@ -1,15 +1,14 @@
 --
--- (C) 2013-24 - ntop.org
+-- (C) 2013-25 - ntop.org
 --
 local dirs = ntop.getDirs()
-
 package.path = dirs.installdir .. "/scripts/lua/modules/?.lua;" .. package.path
 
 local rest_utils = require("rest_utils")
 
 --
--- Return all the actively monitored ntopng interfaces along with their ids
--- Example: curl -u admin:admin -H "Content-Type: application/json"  http://localhost:3000/lua/rest/v2/get/ntopng/interfaces.lua
+-- Return limits for the current ntopng license
+-- Example: curl -u admin:admin -H "Content-Type: application/json"  http://localhost:3000/lua/rest/v2/get/ntopng/limits.lua
 --
 -- NOTE: in case of invalid login, no error is returned but redirected to login
 --

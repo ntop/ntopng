@@ -27,4 +27,8 @@ for _,iface in pairs(names) do
    end
 end
 
+if #stats == 0 then
+   stats = {"No flow collectors associated with ntopng"}
+end
+
 rest_utils.answer(rest_utils.consts.success.ok, stats)
