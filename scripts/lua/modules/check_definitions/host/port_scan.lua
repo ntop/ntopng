@@ -47,7 +47,7 @@ local script = {
 -- #################################################################
 
 -- Generate alert (store)
-local function report_host(params, ip, vlan, victim)
+local function report_host(params, ip, vlan, victim, num_victims)
 
    local hostinfo = {
       host = ip,
@@ -59,7 +59,8 @@ local function report_host(params, ip, vlan, victim)
 
    local alert = alert_consts.alert_types.host_alert_port_scan.new(
       interface.getId(),
-      victim
+      victim,
+      num_victims
    )
    local host_key = hostinfo2hostkey(hostinfo)
    alert:set_subtype(host_key)
@@ -72,6 +73,7 @@ local function report_host(params, ip, vlan, victim)
       alert_entity = alert_entities.host
    }
    alert:set_require_attention()
+   alert:set_as_attacker()
    alert:store(alert_info)
 end
 
@@ -109,13 +111,14 @@ local function ports_check(params)
    .. "GROUP BY vlan_id, ip_src_4, ip_src_6, ip_dst_4, ip_dst_6 "
    .. "HAVING count_dst_ports >= %u "
    .. "ORDER BY total_flows DESC "
-   .. "LIMIT 10",
+   .. "LIMIT 50",
       tonumber(interface.getId()),
       interval_begin, interval_end, interval_end,
       threshold
    )
 
    local results = interface.execSQLQuery(q)
+   local port_scan_map = {}
    for _, row in ipairs(results) do
       local vlan_id = tonumber(row.vlan_id) or 0
 
@@ -124,8 +127,23 @@ local function ports_check(params)
 
       local victim_ip = row.ip_dst_4
       if row.ip_dst_6 and row.ip_dst_6 ~= '::' then victim_ip = row.ip_dst_6 end
-
-      report_host(params, ip, vlan_id, victim_ip)
+      -- Concatenate the attacker IP and vlan id to create port_scan_map key
+      ip = ip .. "_" .. vlan_id
+      if port_scan_map[ip] == nil then
+         port_scan_map[ip] = {victim_ip,1}
+      -- Only 3 victims are saved for each attacker
+      elseif port_scan_map[ip][2] < 3 then 
+         port_scan_map[ip][1] = port_scan_map[ip][1] .. ", " .. victim_ip 
+         port_scan_map[ip][2] = port_scan_map[ip][2] + 1
+      -- If the top 3 victims have been saved, only increase the counter
+      else
+         port_scan_map[ip][2] = port_scan_map[ip][2] + 1
+      end
+   end
+   -- attacker_data[1] = top 3 victims, attacker_data[2] = total victims
+   for attacker_ip, attacker_data in pairs(port_scan_map) do
+      local ip, vlan_id = string.match(attacker_ip, "([^_]+)_(%d+)")
+      report_host(params, ip, vlan_id, attacker_data[1], attacker_data[2])
    end
 
 end

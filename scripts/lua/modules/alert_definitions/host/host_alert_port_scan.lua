@@ -31,11 +31,12 @@ host_alert_port_scan.meta = {
 
 -- @brief Prepare an alert table used to generate the alert
 -- @return A table with the alert built
-function host_alert_port_scan:init(ifid, victim)
+function host_alert_port_scan:init(ifid, victim, num_victims)
    self.super:init()
    self.alert_type_params = {
      ifid = ifid,
-     victim = victim
+     victim = victim,
+     num_victims = num_victims
    }
 end
 
@@ -52,7 +53,8 @@ function host_alert_port_scan.format(ifid, alert, alert_type_params)
   local victim = alert_consts.formatHostAlert(ifid, alert_type_params.victim, alert["vlan_id"])
   return i18n("alert_messages.host_alert_port_scan", { 
     attacker = attacker,
-    victim = victim
+    victim = victim,
+    num_victims = alert_type_params.num_victims
   })
 end
 
