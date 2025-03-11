@@ -120,6 +120,7 @@ local function iterative_src_dst_alert(params, results, report_victim, attack)
       -- report attacker
       report_alert(params, ip, vlan_id, attacker_data[1], attacker_data[2], false, attack)
    end
+   return scan_map
 end
 
 -- #################################################################
@@ -160,14 +161,14 @@ local function scan_check(params)
    .. "GROUP BY vlan_id, ip_src, ip_dst "
    .. "HAVING count_dst_ports >= %u "
    .. "ORDER BY total_flows DESC "
-   .. "LIMIT 50",
+   .. "LIMIT 1000",
       tonumber(interface.getId()),
       interval_begin, interval_end, interval_end,
       threshold
    )
 
-   local results_port = interface.execSQLQuery(q_port)
-   iterative_src_dst_alert(params, results_port, false, "Port")
+   local results_port_query = interface.execSQLQuery(q_port)
+   results_port = iterative_src_dst_alert(params, results_port_query, false, "Port")
    
    -- Service Scan
    local q_service = string.format(
@@ -192,7 +193,7 @@ local function scan_check(params)
       .. "GROUP BY vlan_id, ip_src, dst_port "
       .. "HAVING count_ip_dst >= %u "
       .. "ORDER BY total_flows DESC "
-      .. "LIMIT 50",
+      .. "LIMIT 1000",
       tonumber(interface.getId()),
       interval_begin, interval_end, interval_end,
       50
@@ -204,9 +205,11 @@ local function scan_check(params)
       local attacker_ip = row.ip_src
       local attacker_key = row.ip_src .. "_" .. vlan_id
       service_attackers[attacker_key] = true
-      local victim_port = row.dst_port
-      local num_victim = row.count_ip_dst
-      report_alert(params, attacker_ip, vlan_id, victim_port, num_victim, false, "Service")
+      if results_port[attacker_key] == nil or results_port[attacker_key][2] < 10 then
+         local victim_port = row.dst_port
+         local num_victim = row.count_ip_dst
+         report_alert(params, attacker_ip, vlan_id, victim_port, num_victim, false, "Service")
+      end
    end
 
    -- Network Scan 
@@ -232,10 +235,10 @@ local function scan_check(params)
       .. "GROUP BY vlan_id, ip_src, dst_network "
       .. "HAVING count_ip_dst >= %u "
       .. "ORDER BY total_flows DESC "
-      .. "LIMIT 50",
+      .. "LIMIT 1000",
       tonumber(interface.getId()),
       interval_begin, interval_end, interval_end,
-      50
+      100
    )
    local results_network = interface.execSQLQuery(q_network)
    for _, row in ipairs(results_network) do
