@@ -22,9 +22,11 @@
 #include "flow_checks_includes.h"
 
 ndpi_serializer* QoEDegradedAlert::getAlertJSON(ndpi_serializer* serializer) {
-  Flow *f = getFlow();
-  if (serializer) {
-    ndpi_serialize_string_uint32(serializer, "qoe_score", f->getQoEScore());
-  }
+  #ifdef NTOPNG_PRO
+    Flow *f = getFlow();
+    if (serializer) {
+      ndpi_serialize_string_uint32(serializer, "qoe_score", f->getQoEScore());
+    }
+  #endif
   return serializer;
 }
