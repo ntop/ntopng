@@ -111,5 +111,6 @@
 #include "flow_alerts/NedgeBlockedFlowAlert.h"
 #include "flow_alerts/InvalidDNSQueryAlert.h"
 #include "flow_alerts/HostPolicyAlert.h"
+#include "flow_alerts/QoEDegradedAlert.h"
 
 #endif /* _FLOW_ALERTS_INCLUDES_H_ */

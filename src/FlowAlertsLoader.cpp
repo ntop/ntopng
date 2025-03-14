@@ -135,6 +135,8 @@ FlowAlertsLoader::FlowAlertsLoader() {
                 TCPFlowResetAlert::getDefaultScore());
   registerAlert(HostPolicyAlert::getClassType(),
                 HostPolicyAlert::getDefaultScore());
+  registerAlert(QoEDegradedAlert::getClassType(),
+                QoEDegradedAlert::getDefaultScore());
 }
 
 /* **************************************************** */

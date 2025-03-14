@@ -110,6 +110,7 @@ local flow_alert_keys = {
    flow_alert_ndpi_probing_attempt                 = 101,
    flow_alert_access_control_list                  = 102,
    flow_alert_host_policy                          = 103,
+   flow_alert_qoe_degraded                         = 104,
    
    -- NOTE: do not go beyond the size of the alert_map bitmal inside Flow.h (currently 128)
 }

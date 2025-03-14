@@ -158,6 +158,7 @@ void FlowChecksLoader::registerChecks() {
   if ((fcb = new ModbusUnexpectedFunctionCode())) registerCheck(fcb);
   if ((fcb = new ModbusTooManyExceptions())) registerCheck(fcb);
   if ((fcb = new ModbusInvalidTransition())) registerCheck(fcb);
+  if ((fcb = new QoEDegraded())) registerCheck(fcb);
 #ifdef HAVE_NEDGE
   if ((fcb = new NedgeBlockedFlow())) registerCheck(fcb);
 #endif
