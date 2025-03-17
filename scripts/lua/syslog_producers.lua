@@ -28,7 +28,6 @@ for k,v in pairs(syslog_scripts) do
   table.insert(producer_types, { title = i18n(v.."_collector.title"), value = v  })
 end
 
-tprint(syslog_scripts)
 -- #######################################################
 
 -- Title
