@@ -28,6 +28,7 @@ for k,v in pairs(syslog_scripts) do
   table.insert(producer_types, { title = i18n(v.."_collector.title"), value = v  })
 end
 
+tprint(syslog_scripts)
 -- #######################################################
 
 -- Title
@@ -347,7 +348,20 @@ print([[
           ajax: {
               url: `${http_prefix}/lua/rest/v2/get/syslog/producer/list.lua?ifid=]] .. ifid .. [[`,
               type: 'get',
-              dataSrc: ''
+              dataSrc: function(json) {
+
+                  if (!Array.isArray(json)) {
+                      if (typeof json === 'object') {
+                          return json.rsp; // return rsp as new rest API have been changed
+                      }
+
+                      return [];
+                  }
+                  
+                  return json;
+              },error: function(xhr, error, thrown) {
+                  console.error("Error:", error, thrown);
+              }
           },
           buttons: {
               buttons: [
