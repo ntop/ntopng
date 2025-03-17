@@ -16,7 +16,7 @@
 		{
 			"component" : "pie",
 			"id" : "top_hosts",
-			"i18n_name" : "top_hosts.top_hosts_local",
+			"i18n_name" : "top_hosts.top_hosts",
 			"width" : 6,
 			"height" : 4,
 			"params" : {

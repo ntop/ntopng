@@ -8483,6 +8483,7 @@ local lang = {
   ["top_hosts"] = {
     ["note"] = "This page will refresh every few seconds to report top hosts activities.<p>When a host makes traffic a vertical bar is displayed so that you can see the most active hosts.",
     ["top_hosts_local"] = "Top Hosts (Local)",
+    ["top_hosts"] = "Top Hosts (Local and Remote)",
   },
   ["topk_heuristic"] = {
     ["precision"] = {
