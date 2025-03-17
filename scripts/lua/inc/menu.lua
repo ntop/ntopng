@@ -263,11 +263,6 @@ else
                 entry = page_utils.menu_entries.traffic_dashboard,
                 url = '/lua/index.lua'
             }, {
-                entry = page_utils.menu_entries.network_discovery,
-                hidden = not interface.isDiscoverableInterface() or
-                    interface.isLoopback() or ntop.limitResourcesUsage() or infrastructure_view,
-                url = "/lua/discover.lua"
-            }, {
                 entry = page_utils.menu_entries.assets_dashboard,
                 hidden = not (ntop.isEnterpriseL() and is_clickhouse_enabled) or interface.isViewed(),
                 url = "/lua/pro/assets_dashboard.lua"
@@ -293,6 +288,11 @@ else
             {
                 entry = page_utils.menu_entries.active_monitoring,
                 url = "/lua/active_monitoring.lua"
+            }, {
+                entry = page_utils.menu_entries.network_discovery,
+                hidden = not interface.isDiscoverableInterface() or
+                    interface.isLoopback() or ntop.limitResourcesUsage() or infrastructure_view,
+                url = "/lua/discover.lua"
             },
             {
                 entry = page_utils.menu_entries.infrastructure_dashboard,

@@ -317,6 +317,11 @@ function asset_utils.insertHost(entry, ifid)
         return
     end
 
+    if isEmptyString(entry["manufacturer"]) then
+        entry["manufacturer"] = "unknown"
+        tprint("Empty manufacturer")
+    end
+
     if hasClickHouseSupport() then
         query = string.format("INSERT INTO %s " ..
                                   "(type, key, ifid, ip, mac, vlan, network, name, device_type, manufacturer, first_seen, last_seen, version, json_info) " ..

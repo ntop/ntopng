@@ -165,6 +165,11 @@ page_utils.menu_entries = {
         i18n_title = "active_monitoring_stats.active_monitoring",
         section = "monitoring"
     },
+    network_discovery = {
+        key = "network_discovery",
+        i18n_title = "discover.network_discovery",
+        section = "monitoring"
+    },
     vulnerability_scan = {
         key = "vulnerability_scan",
         i18n_title = "scan_hosts",
@@ -177,11 +182,6 @@ page_utils.menu_entries = {
         i18n_title = "dashboard.traffic_dashboard",
         section = "dashboard",
         help_link = "https://www.ntop.org/guides/ntopng/user_interface/network_interface/dashboard/dashboard.html"
-    },
-    network_discovery = {
-        key = "network_discovery",
-        i18n_title = "discover.network_discovery",
-        section = "dashboard"
     },
     traffic_report = {
         key = "traffic_report",
