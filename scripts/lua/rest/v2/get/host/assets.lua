@@ -58,15 +58,17 @@ local tot_assets = asset_utils.getNumAssets(ifid, filters)[1].count
 local assets = asset_utils.getHostsAssets(ifid, order, gui_to_db_columns[sort], start, length, filters)
 
 for _, value in pairs(assets or {}) do
+
     local record = {}
     local json_info = json.decode(value.json_info or "") or {}
-
+    
     local column_ip = {
         ip = value.ip
     }
     if not isEmptyString(value.os) then
         column_ip.os = tonumber(value.os)
     end
+    
     if value["systemhost"] then
         column_ip.system_host = true
     end
@@ -159,7 +161,14 @@ for _, value in pairs(assets or {}) do
         date = date,
         timestamp = last_seen
     }
+    
+    -- Format table value. manufacturer is "unknown" in db
+    if value["manufacturer"] == "unknown" then
+        value["manufacturer"] = i18n("unknown")
+    end
+
     record["manufacturer"] = value["manufacturer"]
+
     record["key"] = value["key"]
     rsp[#rsp + 1] = record
 end

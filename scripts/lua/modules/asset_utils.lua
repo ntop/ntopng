@@ -188,6 +188,7 @@ end
 local function updateData(entry, ifid, type)
     local data = getAssetInfo(ifid, entry.key, type)
     local version = 1
+    
     if data and table.len(data) > 0 then
         data = data[1]
         if data.version and tonumber(data.version) then
@@ -279,8 +280,8 @@ end
 -- This is used for the details table page
 local function getNumAssets(ifid, filters, asset_type, check_last_seen)
     if not ifid then ifid = interface.getId() end
-    local where = build_where(ifid, filters)
 
+    local where = build_where(ifid, filters)
     local query = nil
     if hasClickHouseSupport() then
         query = string.format(
@@ -316,10 +317,12 @@ function asset_utils.insertHost(entry, ifid)
         tprint(entry)
         return
     end
+    
+    -- if manufacturer is unknown push it to db
+    local manufacturer = entry["manufacturer"]
 
     if isEmptyString(entry["manufacturer"]) then
-        entry["manufacturer"] = "unknown"
-        tprint("Empty manufacturer")
+        manufacturer = "unknown"
     end
 
     if hasClickHouseSupport() then
@@ -332,9 +335,9 @@ function asset_utils.insertHost(entry, ifid)
                               ternary(not isEmptyString(entry["name"]),
                                       string.format("'%s'", entry["name"]),
                                       "NULL"), entry["device_type"],
-                              ternary(not isEmptyString(entry["manufacturer"]),
+                              ternary(not isEmptyString(manufacturer),
                                       string.format("'%s'",
-                                                    entry["manufacturer"]),
+                                      manufacturer),
                                       "NULL"), entry["first_seen"],
                               entry["last_seen"] or 0, version,
                               entry["json_info"] or "")
@@ -349,9 +352,9 @@ function asset_utils.insertHost(entry, ifid)
                               ternary(not isEmptyString(entry["name"]),
                                       string.format("'%s'", entry["name"]),
                                       "NULL"), entry["device_type"],
-                              ternary(not isEmptyString(entry["manufacturer"]),
+                              ternary(not isEmptyString(manufacturer),
                                       string.format("'%s'",
-                                                    entry["manufacturer"]),
+                                      manufacturer),
                                       "NULL"), entry["first_seen"],
                               entry["last_seen"] or 0, entry["json_info"] or "",
                               entry["last_seen"] or 0, entry["first_seen"] or 0)
@@ -368,13 +371,21 @@ function asset_utils.insertMac(entry, ifid)
     local query = nil
     local version = 1
     version, entry = updateData(entry, ifid, "mac")
+
+    -- if manufacturer is unknown push it to db as string
+    local manufacturer = entry["manufacturer"]
+
+    if isEmptyString(entry["manufacturer"]) then
+        manufacturer = "unknown"
+    end
+
     if hasClickHouseSupport() then
         query = string.format("INSERT INTO %s " ..
                                   "(type, key, ifid, mac, manufacturer, vlan, device_type, first_seen, last_seen, version, json_info) " ..
                                   "SELECT '%s','%s', %u, '%s','%s', %u, %u, %u, %u, %u, '%s'",
                               table_name, entry["type"], entry["key"],
                               tonumber(ifid), entry["mac"],
-                              entry["manufacturer"], 0, -- VLAN
+                              manufacturer, 0, -- VLAN
         tonumber(entry["device_type"]), tonumber(entry["first_seen"]),
                               tonumber(entry["last_seen"] or 0),
                               tonumber(version), entry["json_info"] or "")
@@ -385,7 +396,7 @@ function asset_utils.insertMac(entry, ifid)
                                   "ON CONFLICT(key) DO UPDATE SET last_seen = %u, first_seen = %u;",
                               table_name, entry["type"], entry["key"],
                               tonumber(ifid), entry["mac"],
-                              entry["manufacturer"],
+                              manufacturer,
                               tonumber(entry["device_type"] or 0),
                               tonumber(entry["first_seen"] or 0),
                               tonumber(entry["last_seen"] or 0),

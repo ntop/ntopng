@@ -24,9 +24,25 @@ local rsp = {}
 local filters = {}
 
 for _, value in pairs(available_filters or {}) do
-    if not filters[value.filter] then filters[value.filter] = {} end
 
-    if value.value then filters[value.filter][value.value] = value.count end
+    --[[
+    Value is a table as below:
+    table
+        value string Super Micro Computer, Inc.
+        count string 9
+        filter string manufacturer
+    ]]
+
+    -- Empty filter
+    if not filters[value.filter] then
+        filters[value.filter] = {} 
+    end
+
+    -- If the filter has a name, add the count of devices to the filters list
+    if value.value then 
+        filters[value.filter][value.value] = value.count 
+    end
+
 end
 
 for key, value in pairsByKeys(filters or {}, asc) do
@@ -40,8 +56,10 @@ for key, value in pairsByKeys(filters or {}, asc) do
     end
     for name, count in pairsByKeys(value or {}) do
         local value = name
+        
         if isEmptyString(value) then goto continue end
         if tonumber(name) then value = tonumber(name) end
+
         if formatter then
             name = formatter(name)
             if isEmptyString(name) then name = value end
@@ -59,6 +77,12 @@ for key, value in pairsByKeys(filters or {}, asc) do
             end
             name = discover_utils.getOsName(name)
         end
+        
+        -- Empty manufacturer filter formatting for dropdown
+        if name == "unknown" then
+            name = i18n("unknown")
+        end
+
         filter_list[#filter_list + 1] = {
             key = key,
             value = value,
@@ -106,5 +130,6 @@ rsp[#rsp + 1] = {
     name = "server_type",
     value = server_filters
 }
+
 
 rest_utils.answer(rest_utils.consts.success.ok, rsp)
