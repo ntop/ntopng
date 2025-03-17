@@ -247,7 +247,7 @@ local function scan_check(params)
       local attacker_key = row.ip_src .. "_" .. vlan_id
       -- Report a network scan only if the host has not performed a service scan
       if service_attackers[attacker_key] == nil then
-         local victim_network = row.dst_network
+         local victim_network = getLocalNetworkAliasById(row.dst_network)
          local num_victim = row.count_ip_dst
          report_alert(params, attacker_ip, vlan_id, victim_network, num_victim, false, "Network")
       end
