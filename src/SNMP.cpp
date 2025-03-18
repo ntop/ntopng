@@ -453,13 +453,16 @@ bool SNMP::send_snmp_request(char *agent_host, u_int version, char *community,
         if((!strcasecmp(level, "authNoPriv")) ||
 	   (!strcasecmp(level, "authPriv"))) {
           if(!strcasecmp(auth_protocol, "md5")) {
-            snmpSession->session.securityAuthProto = usmHMACMD5AuthProtocol;
-            snmpSession->session.securityAuthProtoLen =
-	      sizeof(usmHMACMD5AuthProtocol) / sizeof(oid);
+            const int len = sizeof(usmHMACMD5AuthProtocol) / sizeof(oid);
+            snmpSession->session.securityAuthProto =
+              static_cast<oid *>(netsnmp_memdup(usmHMACMD5AuthProtocol, len));
+            snmpSession->session.securityAuthProtoLen = len;
             snmpSession->session.securityAuthKeyLen = USM_AUTH_KU_LEN;
           } else if(!strcasecmp(auth_protocol, "sha")) {
-            snmpSession->session.securityAuthProto = usmHMACSHA1AuthProtocol;
-            snmpSession->session.securityAuthProtoLen = sizeof(usmHMACSHA1AuthProtocol) / sizeof(oid);
+            const int len = sizeof(usmHMACSHA1AuthProtocol) / sizeof(oid);
+            snmpSession->session.securityAuthProto =
+              static_cast<oid *>(netsnmp_memdup(usmHMACSHA1AuthProtocol, len));
+            snmpSession->session.securityAuthProtoLen = len;
             snmpSession->session.securityAuthKeyLen = USM_AUTH_KU_LEN; /* CHECK */
 #ifdef usmHMAC192SHA256AuthProtocol
           } else if(!strcasecmp(auth_protocol, "sha256")) {

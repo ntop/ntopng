@@ -32,7 +32,7 @@
 class SNMPSession {
  public:
   struct snmp_session session;
-  void *session_ptr;
+  decltype(snmp_sess_open(NULL)) session_ptr;
 
   SNMPSession();
   ~SNMPSession();
