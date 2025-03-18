@@ -165,6 +165,7 @@ const map_table_def_columns = (columns) => {
             let host_icon = `<a href='/lua/host_details.lua?host=${row.host.ip}' data-bs-toggle='tooltip' data-bs-placement='top' title='Host Details'><i class='fas fa-laptop'></i></a>`;
             
             if (is_asset_online) {
+                console.log("Asset is online: ", `<a href="${host_url}">${ip_address}</a> ${host_icon} ${icons}`)
                 return `<a href="${host_url}">${ip_address}</a> ${host_icon} ${icons}`
             }
 
@@ -198,7 +199,8 @@ const map_table_def_columns = (columns) => {
         },
         "status": (value, row) => {
             let badge = `<span class="badge bg-secondary">${i18n('asset_details.offline')}</span>`
-            if (row.last_seen.timestamp == 0) {
+
+            if (row.online) {
                 badge = `<span class="badge bg-success">${i18n('asset_details.online')}</span>`
             }
             return badge

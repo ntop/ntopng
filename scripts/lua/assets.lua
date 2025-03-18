@@ -11,7 +11,7 @@ local json = require("dkjson")
 
 sendHTTPContentTypeHeader('text/html')
 
-local page = _GET["page"] or "overview"
+local page = _GET["page"]
 
 page_utils.print_header_and_set_active_menu_entry(page_utils.menu_entries.assets)
 
@@ -20,12 +20,20 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 -- ######################################   
 
 local base_url = ntop.getHttpPrefix() .. "/lua/assets.lua"
+
 page_utils.print_navbar(i18n("assets"), base_url .. "?", {
     {
         active = page == "details" or page == nil,
         page_name = "details",
-        label = i18n("details.details")
-    }
+        label = "<i class=\"fas fa-lg fa-home\"></i>"
+    },
+    {   -- redirect to dashboard if clickhouse is enabled and ntopng is pro version
+        hidden = (not ntop.isClickHouseEnabled()) and (not ntop.isPro()),
+        active = page == "dashboard",
+        page_name = "dashboard",
+        label = i18n("index_page.dashboard"),
+        url = ntop.getHttpPrefix() .. "/lua/pro/assets_dashboard.lua"
+    },
 })
 
 -- ######################################    
