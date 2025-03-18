@@ -2040,6 +2040,8 @@ local lang = {
     ["the_following_url_will_be_added"] = "The following domain will be added:",
   },
   ["dashboard"] = {
+    ["no_assets_discovered"] = "No assets discovered yet",
+    ["waiting_assets_discovery"] = "Waiting for assets to be detected on your network...",
     ["actual_traffic"] = "Current Traffic",
     ["add_component"] = "Add Widget",
     ["advanced_settings"] = "Advanced Settings",

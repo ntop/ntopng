@@ -1,19 +1,24 @@
 <template>
     <div class="d-flex flex-column flex-grow-1 position-relative" ref="chartParent">
-        <div :id="id" class="d3-chart-container" ref="chartContainer">
+        <div v-if="chart_data_available" :id="id" class="d3-chart-container" ref="chartContainer">
             <h3 v-if="i18n_title">{{ _i18n(i18n_title) }}</h3>
+        </div>
+        <div v-else style="position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 100%; min-height: 250px; padding: 5% 20px; color: #666;">
+            <div style="font-size: clamp(16px, 2vw, 18px); margin-bottom: 2vh;"><i class="fas fa-search"></i> {{_i18n("dashboard.no_assets_discovered")}}</div>
+            <div style="font-size: clamp(14px, 1.5vw, 16px);"> {{ _i18n("dashboard.waiting_assets_discovery") }} </div>
         </div>
     </div>
 </template>
 
 <script setup>
 
-import { ref, onMounted, onBeforeMount, onBeforeUnmount, watch, computed, nextTick } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick } from "vue";
 const d3 = d3v7;
 import dataUtils from "../utilities/data-utils";
 
 const _i18n = (t) => i18n(t);
 
+const chart_data_available = ref(true);
 const chartContainer = ref(null);
 const chartParent = ref(null);
 const url_list = ref(null);
@@ -63,14 +68,16 @@ async function get_chart_data() {
 }
 
 function drawChart(data) {
-    if (!data || !data.series || !data.labels || data.series.length === 0) {
-        console.error("Invalid chart data:", data);
+    const container = chartContainer.value;
+    
+    // Check that container exists before proceeding
+    if (!container) {
+        chart_data_available.value = false;
         return;
     }
 
-    const container = chartContainer.value;
-    if (!container) {
-        console.error("Chart container not found");
+    if (!data || !data.series || !data.labels || data.series.length === 0) {
+        chart_data_available.value = false;
         return;
     }
 
@@ -146,8 +153,7 @@ function drawChart(data) {
     }
 
     if (finalChartItems.length === 0 || finalChartItems.every(item => item.value <= 0)) {
-        console.error("No valid data to display in chart");
-        container.innerHTML = '<div style="text-align: center;">No data available</div>';
+        chart_data_available.value = false;
         return;
     }
 
@@ -337,17 +343,30 @@ onBeforeUnmount(() => {
 
 async function refresh_chart() {
     try {
+        // First ensure chartContainer exists
+        if (!chartContainer.value) {
+            return;
+        }
+        
         const data = await get_chart_data();
+        if (!data) {
+            chart_data_available.value = false;
+            return;
+        }
+        
         chartData.value = data;
-        nextTick(() => {
-            // clear content and redraw on refresh
-            if (chartContainer.value) {
-                chartContainer.value.innerHTML = '';
-            }
+        
+        // Use await with nextTick to ensure DOM is updated
+        await nextTick();
+        
+        // Only proceed if chartContainer still exists
+        if (chartContainer.value) {
+            chartContainer.value.innerHTML = '';
             drawChart(data);
-        });
+        }
     } catch (error) {
         console.error("Error fetching chart data:", error);
+        chart_data_available.value = false;
     }
 }
 
@@ -361,6 +380,47 @@ function redraw_chart() {
         drawChart(chartData.value);
     }
 }
+
+const mountComponent = () => {
+    // set initial dimension
+    if (chartContainer.value && chartParent.value) {
+        chartContainer.value.style.width = '100%';
+        chartContainer.value.style.height = '100%';
+        chartContainer.value.style.minHeight = '300px';
+
+        resizeObserver = new ResizeObserver(() => {
+            if (chartData.value) {
+                // Use nextTick with error handling
+                nextTick().then(() => {
+                    if (chartContainer.value) {
+                        redraw_chart();
+                    }
+                }).catch(err => {
+                    console.error("Error in resize redraw:", err);
+                });
+            }
+        });
+        
+        resizeObserver.observe(chartParent.value);
+
+        // Use a slightly longer timeout to ensure DOM is fully rendered
+        setTimeout(() => {
+            refresh_chart().catch(err => {
+                console.error("Error during initial chart refresh:", err);
+            });
+        }, 200);
+    } else {
+        console.warn("Chart container or parent not available on mount");
+        // Try again in a moment
+        setTimeout(mountComponent, 100);
+    }
+};
+
+
+onMounted(() => {
+    mountComponent();
+});
+
 
 // Expose methods for external use (Match the Sankey component's approach)
 defineExpose({
