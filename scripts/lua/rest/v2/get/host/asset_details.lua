@@ -35,12 +35,26 @@ local list = asset_utils.getInactiveHostInfo(ifid, serial_key) or {}
 
 -- Check if at least an host is inactive
 for _, host_details in pairs(list or {}) do
+
     local network_name = ""
     local json_info = host_details.json_info or {}
-    local first_seen = formatEpoch(host_details["first_seen"]) .. " [" ..
-                           secondsToTime(os.time() - host_details["first_seen"]) .. " " .. i18n("details.ago") .. "]"
-    local last_seen = formatEpoch(host_details["last_seen"]) .. " [" ..
-                          secondsToTime(os.time() - host_details["last_seen"]) .. " " .. i18n("details.ago") .. "]"
+    
+    -- Convert first and last seen to number
+    local first_seen_ts = tonumber(host_details["first_seen"])
+    local last_seen_ts = tonumber(host_details["last_seen"]) 
+    local last_seen
+
+    local first_seen = formatEpoch(first_seen_ts) .. " [" ..
+                           secondsToTime(os.time() - first_seen_ts) .. " " .. i18n("details.ago") .. "]"
+
+    -- Host is online if last_seen_ts is 0 
+    if last_seen_ts == 0 then
+        last_seen = "<span class='badge bg-success'>Online</span>"   
+    else
+        last_seen = formatEpoch(last_seen_ts) .. " [" ..
+                          secondsToTime(os.time() - last_seen_ts) .. " " .. i18n("details.ago") .. "]"
+    end
+
     local url
 
     rsp["host_name"] = host_details["name"]
@@ -83,6 +97,12 @@ for _, host_details in pairs(list or {}) do
 
     -- Special formatted data
     local ip = host_details["ip"]
+
+    -- Host is online, redirect to hosts page
+    if last_seen_ts == 0 then
+        ip = "<a href='/lua/host_details.lua?host=" .. ip .."' data-bs-toggle='tooltip' data-bs-placement='top' title='Host Details'> " .. ip .. " <i class='fas fa-laptop'></i></a>"        
+    end
+    
     if host_details["os_type"] then
         ip = ip .. " " .. discover_utils.getOsAndIcon(host_details["os_type"])
     end
@@ -117,6 +137,7 @@ for _, host_details in pairs(list or {}) do
     }
 
     local name = host_details["name"]
+    
     if isEmptyString(name) then
         name = host_details["ip"]
     end

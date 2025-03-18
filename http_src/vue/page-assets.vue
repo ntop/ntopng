@@ -92,6 +92,8 @@ const map_table_def_columns = (columns) => {
             let ip_address = host.ip
             let icons = ''
 
+            let is_asset_online = row.last_seen.timestamp == 0 ? true : false;
+        
             if (!dataUtils.isEmptyOrNull(host.vlan.name)) {
                 ip_address = `${ip_address}@${host.vlan.name}`
             }
@@ -156,8 +158,18 @@ const map_table_def_columns = (columns) => {
             if (!dataUtils.isEmptyOrNull(host.is_pop_server)) {
                 icons = `${icons} <span class="badge bg-success">${i18n("details.label_pop_server")}</span>`
             }
+            
             const host_url = create_button_host_details(row);
+
+            // If host is online show host details icon fas-laptop to jump to host details page
+            let host_icon = `<a href='/lua/host_details.lua?host=${row.host.ip}' data-bs-toggle='tooltip' data-bs-placement='top' title='Host Details'><i class='fas fa-laptop'></i></a>`;
+            
+            if (is_asset_online) {
+                return `<a href="${host_url}">${ip_address}</a> ${host_icon} ${icons}`
+            }
+
             return `<a href="${host_url}">${ip_address}</a> ${icons}`
+
         },
         "host_name": (value, row) => {
             let name = value.name
@@ -310,12 +322,7 @@ function create_historical_flows_url_link(row) {
 
 function create_button_host_details(row) {
     let url = `/lua/asset_details.lua?ifid=${props.context.ifid}&serial_key=${row.key}`
-    if (row.last_seen.timestamp == 0) {
-        url = `/lua/host_details?ifid=${props.context.ifid}&host=${row.host.ip}`
-        if (row.host.vlan && row.host.vlan.id) {
-            url = `${url}&vlan=${row.host.vlan.id}`
-        }
-    }
+    
     return `${http_prefix}${url}`
 }
 
