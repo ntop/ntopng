@@ -28,7 +28,7 @@ for command, hits in pairs(commands_stats) do
             key = command,
             name = string.upper(string.sub(command, 5)),
         },
-        hits = hits
+        hits = formatValue(hits)
     }
 end
 
