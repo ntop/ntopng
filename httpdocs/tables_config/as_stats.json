@@ -50,7 +50,7 @@
             "id": "name",
             "title_i18n": "name",
             "data_field": "asname",
-			"sortable": false,
+			"sortable": true,
 			"class": [
                 "text-left",
 				"text-nowrap"

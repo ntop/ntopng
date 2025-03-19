@@ -1,45 +1,55 @@
 <!-- (C) 2022 - ntop.org     -->
 <template>
     <slot name="custom_header2"></slot>
-    <div ref="table_container" :id="id">
-        <Loading v-if="loading"></Loading>
+    <div ref="tableContainerRef" :id="id">
+        <!-- Loading during data fetch-->
+        <Loading v-if="isLoading"></Loading>
         <div class="button-group mb-2 d-flex align-items-center"> <!-- TableHeader -->
             <div class="form-group d-flex align-items-end" style="flex-wrap: wrap;">
+                <!-- Slot for custom header-->
                 <slot name="custom_header"></slot>
             </div>
 
             <div style="text-align:right;" class="form-group d-flex align-items-center ms-auto">
                 <div class="d-flex align-items-center">
+                    <!-- Rows per page selector-->
                     <div class="me-2">
                         <label>
-                            <select v-model="per_page" @change="change_per_page">
-                                <option v-for="pp in per_page_options" :value="pp">{{ pp }}</option>
+                            <select v-model="rowsPerPage" @change="change_per_page">
+                                <option v-for="rowsPerPage in rowsPerPageOptions" :value="rowsPerPage">{{ rowsPerPage }}</option>
                             </select>
                         </label>
                     </div>
 
+                    <!-- Custom buttons slot -->
                     <slot name="custom_buttons"></slot>
+                    
+                    <!-- Reset columns size-->
                     <button class="btn btn-link" type="button" @click="reset_column_size">
                         <i class="fas fa-columns" data-bs-toggle="tooltip" data-bs-placement="top"
                             :title="_i18n('reset_column')"></i>
                     </button>
+                    
+                    <!-- Refresh table -->
                     <button class="btn btn-link" type="button" @click="refresh_table()">
                         <i class="fas fa-refresh" data-bs-toggle="tooltip" data-bs-placement="top"
                             :title="_i18n('refresh')"></i>
                     </button>
+                    
+                    <!-- Autorefresh toggle -->
                     <div v-if="show_autorefresh > 0" class="d-inline-block">
-                        <Switch v-model:value="enable_autorefresh" class="me-2 mt-1" :title="autorefresh_title" style=""
+                        <Switch v-model:value="isAutoRefreshEnabled" class="me-2 mt-1" :title="autorefresh_title" style=""
                             @change_value="update_autorefresh">
                         </Switch>
                     </div>
 
-                    <Dropdown :id="id + '_dropdown'" ref="dropdown"> <!-- Dropdown columns -->
+                    <Dropdown :id="id + '_dropdown'" ref="dropdownRef"> <!-- Dropdown columns -->
                         <template v-slot:title>
                             <i class="fas fa-eye" data-bs-toggle="tooltip" data-bs-placement="top"
                                 :title="_i18n('visible_columns')"></i>
                         </template>
                         <template v-slot:menu>
-                            <div v-for="col in columns_wrap" class="form-check form-switch ms-1">
+                            <div v-for="col in processedColumns" class="form-check form-switch ms-1">
                                 <input class="form-check-input" style="cursor:pointer;" :checked="col.visible == true"
                                     @click="change_columns_visibility(col)" type="checkbox" :id="get_col_id(col)">
                                 <label class="form-check-label" :for="get_col_id(col)"
@@ -49,9 +59,10 @@
                         </template>
                     </Dropdown> <!-- Dropdown columns -->
 
+                    <!-- Columns search if enabled in table json definition -->
                     <div v-if="enable_search" class="d-inline me-2 ms-auto">
                         <label>{{ _i18n('search') }}:
-                            <input type="search" v-model="map_search" @input="on_change_map_search" class="">
+                            <input type="search" v-model="searchString" @input="on_change_map_search" class="">
                         </label>
                     </div>
                 </div>
@@ -59,15 +70,19 @@
         </div> <!-- TableHeader -->
 
         <div :key="table_key" style="overflow:auto;width:100%;"> <!-- Table -->
+
+            <!-- Message display -->
             <div v-if="display_message == true" class="centered-message">
                 <span v-html="message_to_display"></span>
             </div>
+
             <table ref="table" class="table table-striped table-bordered ml-0 mr-0 mb-0 ntopng-table"
-                :class="[(display_message || loading) ? 'ntopng-gray-out' : '']" data-resizable="true"
+                :class="[(display_message || isLoading) ? 'ntopng-gray-out' : '']" data-resizable="true"
                 :data-resizable-columns-id="id"> <!-- Table -->
                 <thead>
                     <tr>
-                        <template v-for="(col, col_index) in columns_wrap">
+                        <!-- Column Headers -->
+                        <template v-for="(col, col_index) in processedColumns">
                             <th v-if="col.visible" scope="col"
                                 :class="{ 'pointer': col.sortable, 'unset': !col.sortable, }"
                                 style="white-space: nowrap;"
@@ -75,9 +90,11 @@
                                 @click="change_column_sort(col, col_index)"
                                 :data-resizable-column-id="get_column_id(col.data)">
                                 <div style="display:flex;">
+                                    <!-- Print column name -->
                                     <span v-html="print_column_name(col.data)" class="wrap-column"></span>
-                                    <!-- <i v-show="col.sort == 0" class="fa fa-fw fa-sort"></i> -->
 
+                                    <!-- Sort indicators, 0 double arrow, else up or down-->
+                                    <!-- <i v-show="col.sort == 0" class="fa fa-fw fa-sort"></i> -->
                                     <i v-show="col.sort == 1 && col.sortable" class="fa fa-fw fa-sort-up"></i>
                                     <i v-show="col.sort == 2 && col.sortable" class="fa fa-fw fa-sort-down"></i>
                                 </div>
@@ -86,14 +103,17 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-if="!changing_column_visibility && !changing_rows" v-for="row in active_rows">
-                        <template v-for="(col, col_index) in columns_wrap">
+                    <!-- Data rows -->
+                    <tr v-if="!isChangingColumnVisibility && !isChangingRows" v-for="row in displayedRows">
+                        <template v-for="(col, col_index) in processedColumns">
                             <td v-if="col.visible" scope="col" class="">
+                                <!-- HTML content if provided -->
                                 <div v-if="print_html_row != null && print_html_row(col.data, row, true) != null"
-                                    :class="col.classes" class="wrap-column" :style="col.style"
-                                    v-html="print_html_row(col.data, row)">
-                                </div>
-                                <div :style="col.style" style="" class="wrap-column margin-sm" :class="col.classes">
+                                :class="col.classes" class="wrap-column" :style="col.style"
+                                v-html="print_html_row(col.data, row)">
+                            </div>
+                            <div :style="col.style" style="" class="wrap-column margin-sm" :class="col.classes">
+                                    <!-- Vue node if provided -->
                                     <VueNode :key="row"
                                         v-if="print_vue_node_row != null && print_vue_node_row(col.data, row, vue_obj, true) != null"
                                         :content="print_vue_node_row(col.data, row, vue_obj)"></VueNode>
@@ -101,9 +121,10 @@
                             </td>
                         </template>
                     </tr>
-                    <tr v-if="display_empty_rows && active_rows.length < per_page"
-                        v-for="index in (per_page - active_rows.length)">
-                        <template v-for="(col, col_index) in columns_wrap">
+                    <!-- Show empty rows if present -->
+                    <tr v-if="display_empty_rows && displayedRows.length < rowsPerPage"
+                        v-for="index in (rowsPerPage - displayedRows.length)">
+                        <template v-for="(col, col_index) in processedColumns">
                             <td style="" class="" v-if="col.visible" scope="col">
                                 <div class="wrap-column"></div>
                             </td>
@@ -114,11 +135,13 @@
         </div> <!-- Table div-->
 
         <div>
-            <SelectTablePage ref="select_table_page" :key="select_pages_key" :total_rows="total_rows"
-                :per_page="per_page" @change_active_page="change_active_page">
+            <!-- Pagination component, bottom right -->
+            <SelectTablePage ref="paginationRef" :key="searchDelay" :total_rows="totalRowCount"
+                :per_page="rowsPerPage" @change_active_page="change_active_page">
             </SelectTablePage>
         </div>
 
+        <!-- SQL Query info footer, if present -->
         <div v-if="query_info != null" class="mt-2">
             <div class="text-end">
                 <small style="" class="query text-end"><span class="records">{{ query_info.num_records_processed
@@ -130,7 +153,7 @@
         (query_info.query_duration_msec / 1000).toFixed(3) }}</span> seconds. <span
                         id="historical_flows_table-query" style="cursor: pointer;" class="badge bg-secondary"
                         :title=query_info.query @click="copy_query_into_clipboard"
-                        ref="query_info_sql_button">SQL</span></small>
+                        ref="sqlButtonRef">SQL</span></small>
             </div>
         </div>
     </div>
@@ -158,56 +181,56 @@ const vue_obj = {
 };
 
 const props = defineProps({
-    id: String,
-    columns: Array,
-    get_rows: Function, // async (active_page: number, per_page: number, columns_wrap: any[], search_map: string, first_get_rows: boolean) => { total_rows: number, rows: any[], query_info: { query_duration_msec: number, num_records_processed: string, query: string } }
-    get_column_id: Function,
-    print_column_name: Function,
-    print_html_row: Function,
-    print_vue_node_row: Function,
-    f_is_column_sortable: Function,
-    f_column_min_width: Function,
-    f_sort_rows: Function,
-    f_get_column_classes: Function,
-    f_get_column_style: Function,
-    enable_search: Boolean,
-    display_empty_rows: Boolean,
-    show_autorefresh: Number, // autorefresh seconds, if null or 0 autorefresh switch will not showed
-    default_sort: Object, // { column_id: string, sort: number (0, 1, 2) }
-    csrf: String,
-    paging: Boolean,
-    display_message: Boolean,
-    message_to_display: String,
+    id: String,                     // table id   
+    columns: Array,                 // table columns
+    get_rows: Function,             // async (currentPage: number, rowsPerPage: number, processedColumns: any[], search_map: string, isFirstDataLoad: boolean) => { totalRowCount: number, rows: any[], query_info: { query_duration_msec: number, num_records_processed: string, query: string } }
+    get_column_id: Function,        // function to 
+    print_column_name: Function,    // Function to render column header text/HTML
+    print_html_row: Function,       // Function to render cell HTML content
+    print_vue_node_row: Function,   // Function to render Vue component in cell
+    f_is_column_sortable: Function, // Function to determine if column is sortable
+    f_column_min_width: Function,   // Function to determine column minimum width
+    f_sort_rows: Function,          // Function for custom row sorting
+    f_get_column_classes: Function, // Function to get CSS classes for column
+    f_get_column_style: Function,   // Function to get inline styles for column
+    enable_search: Boolean,         // Enable search functionality
+    display_empty_rows: Boolean,    // Show empty rows to maintain table height  
+    show_autorefresh: Number,       // autorefresh seconds, if null or 0 autorefresh switch will not showed
+    default_sort: Object,           // { column_id: string, sort: number (0, 1, 2) }
+    csrf: String,                   // CSRF token for API calls
+    paging: Boolean,                // Enable server-side pagination
+    display_message: Boolean,       // Display a message instead of the table
+    message_to_display: String,     // Message to display    
 });
 
+// Get number of rows shown per page from local storage
 const get_num_pages = function () {
     return Number(localStorage.getItem("ntopng.tables.rowPerPage")) || 10;
 }
 
 const _i18n = (t) => i18n(t);
 
-const show_table = ref(true);
-const table_container = ref(null);
-const table = ref(null);
-const dropdown = ref(null);
-const rows_html_element = ref([]);
-let active_page = 0;
-let rows = [];
-const columns_wrap = ref([]);
-const active_rows = ref([]);
-const total_rows = ref(0);
-const per_page_options = [10, 20, 40, 50, 80, 100];
-const per_page = ref(get_num_pages());
-const store = window.store;
-const map_search = ref("");
-
-const select_table_page = ref(null);
-const loading = ref(false);
-const query_info = ref(null);
-const query_info_sql_button = ref(null);
-const changing_column_visibility = ref(false);
-const changing_rows = ref(false);
-const enable_autorefresh = ref(false);
+const tableContainerRef = ref(null);                   // Reference to the table container
+const tableRef = ref(null);                             // Reference to the table element
+const dropdownRef = ref(null);                          // Reference to the column visibility dropdown
+const rowElementRefs = ref([]);                   // References to row HTML elements
+let currentPage = 0;                                 // Current active page
+let allRows = [];                                       // All fetched rows data
+const processedColumns = ref([]);                        // Wrapped column definitions with extra properties
+const displayedRows = ref([]);                         // Rows displayed in the current page
+const totalRowCount = ref(0);                           // Total number of rows (for pagination)
+const rowsPerPageOptions = [10, 20, 40, 50, 80, 100];  // Available rows per page options
+const rowsPerPage = ref(get_num_pages());               // Current rows per page setting
+const columnWidthStore = window.store;                          // Store for column width persistence
+const searchString = ref("");                          // Search term
+             
+const paginationRef = ref(null);                 // Reference to pagination component
+const isLoading = ref(false);                          // Loading state flag
+const query_info = ref(null);                        // Query execution info (time, records, SQL)
+const sqlButtonRef = ref(null);             // Reference to SQL button for copy to clipboard
+const isChangingColumnVisibility = ref(false);       // Flag for column visibility changes
+const isChangingRows = ref(false);                    // Flag for row data changes
+const isAutoRefreshEnabled = ref(false);               // Auto-refresh state
 
 onMounted(async () => {
     if (props.columns != null) {
@@ -215,10 +238,12 @@ onMounted(async () => {
     }
 });
 
+// refresh bootstrap tooltip
 onUpdated(() => {
     NtopUtils.reloadBSTooltips();
 });
 
+// autorefresh tooltip text
 const autorefresh_title = computed(() => {
     if (props.show_autorefresh == null || props.show_autorefresh <= 0) {
         return "";
@@ -231,6 +256,7 @@ watch(() => [props.id, props.columns], (cur_value, old_value) => {
     load_table();
 }, { flush: 'pre' });
 
+// get column id as defined in the json of the table definition
 function get_col_id(col) {
     if (col != null && col.id != null) {
         return col.id;
@@ -238,36 +264,43 @@ function get_col_id(col) {
         return "toggle-Begin";
     }
 }
+
+// init table with columns and rows
 async function load_table() {
-    await set_columns_wrap();
-    await set_rows();
-    set_columns_resizable();
-    dropdown.value.load_menu();
-    emit("loaded");
+    await set_columns_wrap();       // Prepare column definitions
+    await set_rows();               // Fetch initial rows
+    set_columns_resizable();        // Initialize resizable columns
+    dropdownRef.value.load_menu();     // Initialize dropdown menu
+    emit("loaded");                 // Emit loaded event
 }
 
-let autorefresh_interval;
+// autorefresh interval and enabling
+let refreshInterval;
 function update_autorefresh() {
-    if (enable_autorefresh.value == false) {
-        clearInterval(autorefresh_interval);
+    if (isAutoRefreshEnabled.value == false) {
+        clearInterval(refreshInterval);
         return;
     }
-    autorefresh_interval = setInterval(() => {
+    refreshInterval = setInterval(() => {
         change_active_page();
     }, props.show_autorefresh * 1000);
 }
 
 async function change_columns_visibility(col) {
-    changing_column_visibility.value = true;
+    isChangingColumnVisibility.value = true;
     col.visible = !col.visible;
+
+    // if server side pagination, get rows
     if (props.paging) {
         await set_rows();
     }
+
+    // redraw with new visibility
     // redraw_table();
     await redraw_table_resizable();
     await set_columns_visibility();
     // set_columns_resizable();
-    changing_column_visibility.value = false;
+    isChangingColumnVisibility.value = false;
 }
 
 async function redraw_table_resizable() {
@@ -275,6 +308,7 @@ async function redraw_table_resizable() {
     set_columns_resizable();
 }
 
+// increase table key to force vuejs to rerender table
 const table_key = ref(0);
 async function redraw_table() {
     table_key.value += 1;
@@ -283,29 +317,39 @@ async function redraw_table() {
 
 function set_columns_resizable() {
     let options = {
-        store: store,
+        store: columnWidthStore, // persist column width
         minWidth: 70,
     };
-    $(table.value).resizableColumns(options);
+    $(tableRef.value).resizableColumns(options);
 }
 
+// get table configuration
 async function get_columns_visibility_dict() {
     if (props.csrf == null) { return {}; }
+
+    // build request parameters
+    // fetches tableId (in httpdocs/tables_config/<tableId>.json where the table scheme is defined)
     const params = { table_id: props.id };
     const url_params = ntopng_url_manager.obj_to_url_params(params);
     const url = `${http_prefix}/lua/rest/v2/get/tables/user_columns_config.lua?${url_params}`;
     let columns_visible = await ntopng_utility.http_request(url);
     let columns_visible_dict = {};
+
+    // convert to dictionary
     columns_visible.forEach((c) => {
         columns_visible_dict[c.id] = c;
     });
+
     return columns_visible_dict;
 }
 
+// save columns visibility in backend
 async function set_columns_visibility() {
     if (props.csrf == null) { return; }
+
+    // prepare request parameters with column configuration
     let params = { table_id: props.id, visible_columns_ids: [], csrf: props.csrf };
-    params.visible_columns_ids = columns_wrap.value.map((c, i) => {
+    params.visible_columns_ids = processedColumns.value.map((c, i) => {
         return {
             id: c.id,
             visible: c.visible,
@@ -313,27 +357,43 @@ async function set_columns_visibility() {
             sort: c.sort,
         };
     });
+
+    // post configuration to server
     const url = `${http_prefix}/lua/rest/v2/add/tables/user_columns_config.lua`;
     await ntopng_utility.http_post_request(url, params);
 }
 
+// preapre column definitions with visibility and sort 
 async function set_columns_wrap() {
+
+    // get configuration
     let cols_visibility_dict = await get_columns_visibility_dict();
+
+    // check if table has sorting enabled
     let is_table_not_sorted = true;
     for (let id in cols_visibility_dict) {
         is_table_not_sorted &= (cols_visibility_dict[id]?.sort);
     }
-    columns_wrap.value = props.columns.map((c, i) => {
+
+    // process column definitions
+    processedColumns.value = props.columns.map((c, i) => {
         let classes = [];
         let style = "";
+
+        // get column CSS class from json config
         if (props.f_get_column_classes != null) {
             classes = props.f_get_column_classes(c);
         }
+        // get column CSS style from json config
         if (props.f_get_column_style != null) {
             style = props.f_get_column_style(c);
         }
+
+        // get column id and condiguration
         let id = props.get_column_id(c);
         let col_opt = cols_visibility_dict[id];
+
+        // determine sort state, 0 = no sort, 1 = asc, 2 = desc
         let sort = col_opt?.sort;
         if (is_table_not_sorted == true && sort == null && props.default_sort != null && id == props.default_sort.column_id) {
             sort = props.default_sort.sort;
@@ -344,7 +404,7 @@ async function set_columns_wrap() {
         }
         return {
             id,
-            visible: col_opt?.visible == null || col_opt?.visible == true,
+            visible: col_opt?.visible == null || col_opt?.visible == true, // defaults column to visible
             sort: sort,
             sortable: is_column_sortable(c),
             min_width: column_min_width(c),
@@ -354,45 +414,57 @@ async function set_columns_wrap() {
             data: c,
         };
     });
+
+    // save column config to server
     await set_columns_visibility();
 }
 
+// reset all column widths to default
 async function reset_column_size() {
     props.columns.forEach((c) => {
         let id = `${props.id}-${props.get_column_id(c)}`;
-        store.remove(id);
+        columnWidthStore.remove(id); // remove saved width from local storage
     });
     await redraw_table_resizable();
 }
 
+// handle row number count per page
 function change_per_page() {
     save_num_pages()
     redraw_select_pages();
     change_active_page(0);
 }
 
+// save rows count per page to local storage
 const save_num_pages = function () {
-    localStorage.setItem("ntopng.tables.rowPerPage", per_page.value);
+    localStorage.setItem("ntopng.tables.rowPerPage", rowsPerPage.value);
 }
 
-const select_pages_key = ref(0);
+// force pagination to redraw
+const searchDelay = ref(0);
 function redraw_select_pages() {
-    select_pages_key.value += 1;
+    searchDelay.value += 1;
 }
 
+
+// force table content to redraw
 const table_content_id = ref(0);
 function refresh_table_content() {
     table_content_id.value += 1;
 }
 
+
+// change pagination active page and update displayed rows
 async function change_active_page(new_active_page) {
     if (new_active_page != null) {
-        active_page = new_active_page;
+        currentPage = new_active_page;
     }
-    if (active_page == null) {
-        active_page = 0;
+    if (currentPage == null) {
+        currentPage = 0;
     }
-    if (props.paging == true || force_refresh) {
+
+    // fetch new rows if paging is enabled
+    if (props.paging == true || shouldForceRefresh) {
         await set_rows();
     } else {
         set_active_rows();
@@ -400,154 +472,207 @@ async function change_active_page(new_active_page) {
     refresh_table_content();
 }
 
+// handle column sort
 async function change_column_sort(col, col_index) {
     if (!col.sortable) {
         return;
     }
+
+    // cycle states: no sort -> asc desc -> none
     col.sort = (col.sort + 1) % 3;
-    columns_wrap.value.filter((c, i) => i != col_index).forEach((c) => c.sort = 0);
+
+    // reset sort on all other columns
+    processedColumns.value.filter((c, i) => i != col_index).forEach((c) => c.sort = 0);
+
+    // no sort, stop
     if (col.sort == 0) { return; }
+
     if (props.paging) {
-        await set_rows();
+        await set_rows(); // server side sorting
     } else {
-        set_active_rows();
+        set_active_rows(); // client side sorting
     }
     await set_columns_visibility();
 }
 
+
+// get sort function for available functions
 function get_sort_function() {
     if (props.f_sort_rows != null) {
         return props.f_sort_rows;
     }
+
+    // default sort strings
     return (col, r0, r1) => {
         let r0_col = props.print_html_row(col.data, r0);
         let r1_col = props.print_html_row(col.data, r1);
         if (col.sort == 1) {
-            return r0_col.localeCompare(r1_col);
+            return r0_col.localeCompare(r1_col); // ascending
         }
-        return r1_col.localeCompare(r0_col);
+        return r1_col.localeCompare(r0_col);     // descending
     };
 }
 
-let force_refresh = false;
-let force_disable_loading = false;
+let shouldForceRefresh = false;
+let shouldDisableLoading = false;
 
 /* ********************************************* */
 
-/*  Function used to reload the table contents, 
-    set disable_loading to true if no loading is needed and
-    consequently do not jump to the first page, but
-    just reload the current page
+/*  Refresh table contents
+    - If disable_loading is true, no loading indicator will be shown
+    - If disable_loading is true, current page will be maintained
 */
+
 async function refresh_table(disable_loading) {
     /* NOTE: first refresh_table is called then set_rows */
-    force_refresh = true;
-    force_disable_loading = disable_loading || false;
+    shouldForceRefresh = true;
+    shouldDisableLoading = disable_loading || false;
 
-    if (force_disable_loading) {
+    if (shouldDisableLoading) {
         /* In case of disabled loading, reload the same page */
-        select_table_page.value.change_active_page();
+        paginationRef.value.change_active_page();
     } else {
         /* Otherwise reload from page 1 */
-        select_table_page.value.change_active_page(0, 0);
+        paginationRef.value.change_active_page(0, 0);
     }
     await nextTick();
 
     /* Reset the refresh/loading params */
-    force_refresh = false;
-    force_disable_loading = false;
+    shouldForceRefresh = false;
+    shouldDisableLoading = false;
 }
 
 /* ********************************************* */
 
-let first_get_rows = true;
+let isFirstDataLoad = true;
+
+// get and update rows data
 async function set_rows() {
-    // changing_rows.value = true;
-    loading.value = true && !force_disable_loading;
-    let res = await props.get_rows(active_page, per_page.value, columns_wrap.value, map_search.value, first_get_rows);
+    // show loading spinner
+    // isChangingRows.value = true;
+    isLoading.value = true && !shouldDisableLoading;
+
+    // get rows from backend
+    let res = await props.get_rows(
+        currentPage,                // current page
+        rowsPerPage.value,             // rows per page
+        processedColumns.value,         // columns definition
+        searchString.value,           // search term
+        isFirstDataLoad              // first load
+    );
+
+    // update query info if available
     query_info.value = null;
     if (res.query_info != null) {
         query_info.value = res.query_info;
     }
-    first_get_rows = false;
-    total_rows.value = res.rows.length;
-    if (props.paging == true) {
-        total_rows.value = res.total_rows;
-    }
-    rows = res.rows;
-    set_active_rows();
-    loading.value = false;
 
+    isFirstDataLoad = false;
+
+    // update total rows count
+    totalRowCount.value = res.rows.length;
+    if (props.paging == true) {
+        totalRowCount.value = res.total_rows; // use number of rows provided by server
+    }
+
+    // store fetched rows and update displayed rows 
+    allRows = res.rows;
+    set_active_rows();
+    isLoading.value = false;
+
+    // wait for dom to update and emit event
     await nextTick();
     emit('rows_loaded', res);
 }
 
+// determine if column is sortable
 function is_column_sortable(col) {
     if (props.f_is_column_sortable != null) {
-        return props.f_is_column_sortable(col);
+        return props.f_is_column_sortable(col); // use custom function to sort
     }
     return true;
 }
 
+// determine column minimum width
 function column_min_width(col) {
     if (props.f_column_min_width != null) {
-        return props.f_column_min_width(col);
+        return props.f_column_min_width(col); // use custom function for min width
     }
     return true;
 }
 
+// set displayed columns for current page
 function set_active_rows() {
     let start_row_index = 0;
+
+    // start index for client side pagination
     if (props.paging == false) {
-        start_row_index = active_page * per_page.value;
+        start_row_index = currentPage * rowsPerPage.value;
     }
+
+    // sort rows client side if enabled
     if (props.paging == false) {
         let f_sort = get_sort_function();
         let col_to_sort = get_column_to_sort();
-        rows = rows.sort((r0, r1) => {
+
+        // sort rows if enabled
+        allRows = allRows.sort((r0, r1) => {
             return f_sort(col_to_sort, r0, r1);
         });
     }
-    active_rows.value = rows.slice(start_row_index, start_row_index + per_page.value);
+
+    // update displayed rows for current page
+    displayedRows.value = allRows.slice(start_row_index, start_row_index + rowsPerPage.value);
 }
 
+// get columns with active sort
 function get_column_to_sort() {
-    let col_to_sort = columns_wrap.value.find((c) => c.sort != 0);
+    let col_to_sort = processedColumns.value.find((c) => c.sort != 0);
     return col_to_sort;
 }
 
+// add timeout to search to prevent request flooding
 let map_search_change_timeout;
 async function on_change_map_search() {
     let timeout = 1000;
+
+    // clear existing timeouts
     if (map_search_change_timeout != null) {
         clearTimeout(map_search_change_timeout);
     } else {
-        timeout = 0;
+        timeout = 0; // no delay for first search
     }
+
+
     map_search_change_timeout = setTimeout(async () => {
-        await set_rows();
+        await set_rows(); // get filtered rows
         map_search_change_timeout = null;
     }, timeout);
 
 }
 
+// set search value
 function search_value(value) {
-    map_search.value = value; /* Add the new value */
-    on_change_map_search();
+    searchString.value = value; /* Add the new value */
+    on_change_map_search(); // trigger search
 }
 
+// copy executed SQL query to clipboard
 function copy_query_into_clipboard($event) {
-    NtopUtils.copyToClipboard(query_info.value.query, query_info_sql_button.value);
+    NtopUtils.copyToClipboard(query_info.value.query, sqlButtonRef.value);
 }
 
+// get current column definition
 function get_columns_defs() {
-    return columns_wrap.value;
+    return processedColumns.value;
 }
 
+// get total number of rows
 function get_rows_num() {
-    return total_rows.value;
+    return totalRowCount.value;
 }
 
+// expose methods for parent components
 defineExpose({ load_table, refresh_table, get_columns_defs, get_rows_num, search_value });
 
 </script>

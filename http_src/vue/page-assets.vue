@@ -7,8 +7,8 @@
         </template>
         <div :class="[(!props.context.is_assets_collection_enabled) ? 'ntopng-gray-out' : '']">
             <TableWithConfig ref="table_assets" :table_id="table_id" :csrf="context.csrf"
-                :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
-                @custom_event="on_table_custom_event">
+             :f_map_columns="map_table_def_columns" :get_extra_params_obj="get_extra_params_obj"
+                @custom_event= "on_table_custom_event">
                 <template v-slot:custom_header>
                     <div class="dropdown me-3 d-inline-block" v-for="item in filter_table_array">
                         <span class="no-wrap d-flex align-items-center my-auto me-2 filters-label"><b>{{
@@ -55,6 +55,7 @@ import { default as osUtils } from "../utilities/map/os-utils.js";
 import { default as ModalDeleteAssets } from "./modal-delete-assets.vue";
 import { default as ModalDeleteAssetsEpoch } from "./modal-delete-assets-epoch.vue";
 import { ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
+import { default as sortingFunctions } from "../utilities/sorting-utils.js";
 
 const _i18n = (t) => i18n(t);
 
@@ -131,9 +132,7 @@ const map_table_def_columns = (columns) => {
             if (!dataUtils.isEmptyOrNull(host.is_multicast)) {
                 icons = `${icons} ${multicast_icon}`
             }
-            if (!dataUtils.isEmptyOrNull(host.localhost)) {
-                icons = `${icons} ${localhost_icon}`
-            }
+            
             if (!dataUtils.isEmptyOrNull(host.remotehost)) {
                 icons = `${icons} ${remotehost_icon}`
             }
@@ -165,7 +164,6 @@ const map_table_def_columns = (columns) => {
             let host_icon = `<a href='/lua/host_details.lua?host=${row.host.ip}' data-bs-toggle='tooltip' data-bs-placement='top' title='Host Details'><i class='fas fa-laptop'></i></a>`;
             
             if (is_asset_online) {
-                console.log("Asset is online: ", `<a href="${host_url}">${ip_address}</a> ${host_icon} ${icons}`)
                 return `<a href="${host_url}">${ip_address}</a> ${host_icon} ${icons}`
             }
 

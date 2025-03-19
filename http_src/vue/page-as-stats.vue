@@ -105,7 +105,7 @@ const map_table_def_columns = (columns) => {
 
 function columns_sorting(col, r0, r1) {
     if (col != null) {
-        if (col.id == "asname") {
+        if (col.id == "name") {
             return sortingFunctions.sortByName(r0.name, r1.name, col.sort);
         } else if (col.id == "num_hosts") {
             return sortingFunctions.sortByNumber(r0.num_hosts, r1.num_hosts, col.sort);

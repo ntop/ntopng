@@ -3,12 +3,8 @@
 	"data_url": "lua/rest/v2/get/host/assets.lua",
 	"use_current_page": false,
 	"enable_search": false,
-	"paging": true,
+	"paging": false,
 	"display_empty_rows": true,
-	"default_sort": {
-		"column_id": "ip_address",
-		"sort": 0
-	},
 	"columns": [
 		{
 			"id": "actions",
@@ -54,6 +50,7 @@
 			]
 		},
 		{
+			"id": "ip_address",
 			"title_i18n": "ip_address",
 			"data_field": "ip_address",
 			"sortable": true,
@@ -63,6 +60,7 @@
 			]
 		},
 		{
+			"id": "name",
 			"title_i18n": "name",
 			"data_field": "host_name",
 			"sortable": true,
@@ -72,6 +70,7 @@
 			]
 		},
 		{
+			"id": "mac_address",
 			"title_i18n": "mac_address",
 			"data_field": "mac",
 			"min-width": "120px",
@@ -81,6 +80,7 @@
 			]
 		},
 		{
+			"id": "manufacturer",
 			"title_i18n": "manufacturer",
 			"data_field": "manufacturer",
 			"sortable": true,
@@ -90,6 +90,7 @@
 			]
 		},
 		{
+			"id": "status",
 			"title_i18n": "status",
 			"data_field": "status",
 			"sortable": true,
@@ -100,6 +101,7 @@
 			]
 		},
 		{
+			"id": "first_seen",
 			"title_i18n": "first_seen",
 			"data_field": "first_seen",
 			"sortable": true,
@@ -110,6 +112,7 @@
 			]
 		},
 		{
+			"id": "last_seen",
 			"title_i18n": "last_seen",
 			"data_field": "last_seen",
 			"sortable": true,
