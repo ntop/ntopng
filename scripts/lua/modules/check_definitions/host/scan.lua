@@ -170,6 +170,44 @@ local function scan_check(params)
    local results_port_query = interface.execSQLQuery(q_port)
    results_port = iterative_src_dst_alert(params, results_port_query, false, "Port")
    
+   -- Service down
+   local q_service_down = string.format(
+      "SELECT "
+         .. "VLAN_ID vlan_id, "
+         .. "COALESCE( "
+            .. "NULLIF(IPv4NumToString(IPV4_SRC_ADDR), '0.0.0.0'), "
+            .. "NULLIF(IPv6NumToString(IPV6_SRC_ADDR), '::') "
+         .. ") AS ip_src, "
+         .. "COALESCE( "
+            .. "NULLIF(IPv4NumToString(IPV4_DST_ADDR), '0.0.0.0'), "
+            .. "NULLIF(IPv6NumToString(IPV6_DST_ADDR), '::') "
+         .. ") AS ip_dst, "
+         .. "IP_DST_PORT dst_port, "
+         .. "COUNT(DISTINCT IP_SRC_PORT) AS count_src_ports, "
+         .. "COUNT(*) AS total_flows, "
+         .. "MAX(LAST_SEEN) AS last_seen "
+      .. "FROM flows "
+      .. "WHERE INTERFACE_ID=%u "
+         .. "AND (FIRST_SEEN >= %u AND FIRST_SEEN <= %u AND LAST_SEEN <= %u) "
+         .. "AND L7_PROTO != 5 "
+         .. "AND DST2SRC_PACKETS <= 1 "
+      .. "GROUP BY vlan_id, ip_src, ip_dst, dst_port "
+      .. "HAVING count_src_ports >= %u "
+      .. "ORDER BY total_flows DESC "
+      .. "LIMIT 500",
+      tonumber(interface.getId()),
+      interval_begin, interval_end, interval_end,
+      50
+   )
+   local results_service_down = interface.execSQLQuery(q_service_down)
+   for _, row in ipairs(results_service_down) do
+      local vlan_id = tonumber(row.vlan_id) or 0
+      local attacker_ip = row.ip_src
+      local victim_port = row.dst_port
+      local victim = row.ip_dst
+      report_alert(params, attacker_ip, vlan_id, victim, victim_port, false, "Service Down")
+   end
+
    -- Service Scan
    local q_service = string.format(
       "SELECT "

@@ -1183,6 +1183,7 @@ local lang = {
     ["host_alert_scan_port"] = "%{attacker} scanned %{num_victims} host(s) including %{victim} [%{attack} scan]",
     ["host_alert_scan_port_victim"] = "%{victim} was scanned by %{attacker} [%{attack} scan]",
     ["host_alert_scan_service"] = "%{attacker} scanned port %{victim} [Total Victims: %{num_victims}] [%{attack} scan]",
+    ["host_alert_scan_servic_down"] = "%{attacker} made too many attempts to contact %{victim}, but the target host did not respond. [Port: %{num_victims}] [%{attack}]",
     ["host_alert_scan_network"] = "%{attacker} scanned network %{victim} [Total Victims: %{num_victims}] [%{attack} scan]",
     ["host_alert_score"] = "Score exceeded by %{entity} [%{value} %{op} %{threshold}]",
     ["host_alert_server_ports_contacts"] = "Host contacted as a Server [Port: %{port}] [Protocol: %{protocol}]",
