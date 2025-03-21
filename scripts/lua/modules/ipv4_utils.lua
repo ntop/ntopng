@@ -114,6 +114,22 @@ function ipv4_utils.cmp(a, b)
    return 0
 end
 
+-- Mask an IPv4 address with a netmask
+-- Example: 192.168.33.1 / 255.255.254.0 -> 192.168.32.0
+function ipv4_utils.maskIp(ip, netmask)
+   local ip_parts = string.split(ip, "%.")
+   local netmask_parts = string.split(netmask, "%.")
+   local r = {}
+
+   for i=1,4 do
+      local ip_part = tonumber(ip_parts[i])
+      local netmask_part = tonumber(netmask_parts[i])
+      r[i] = tostring(ip_part & netmask_part)
+   end
+
+   return r[1].."."..r[2].."."..r[3].."."..r[4]
+end
+
 -- Assumption: 32bit integer are used. This is already assumed by http://bitop.luajit.org/semantics.html
 function ipv4_utils.ipToInt(ip)
   local intrepr = 0
@@ -162,7 +178,7 @@ function ipv4_utils.includes(network, netmask, ip)
   local upper = ipv4_utils.broadcast_address(network, netmask)
 
   return (ipv4_utils.cmp(ip, lower) >= 0) and
-        (ipv4_utils.cmp(ip, upper) <= 0)
+         (ipv4_utils.cmp(ip, upper) <= 0)
 end
 
 -- Get the broadcast address for the given netmask
