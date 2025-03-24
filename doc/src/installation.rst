@@ -19,6 +19,9 @@ development builds are intended for testing or early feature access.
 Installing on MacOS
 -------------------
 
+Package
+^^^^^^^
+
 MacOS installation packages can be found at
 http://packages.ntop.org/ and are installed with a GUI.
 ntopng requires Redis to be installed in order to start. During the ntopng installation,
@@ -36,6 +39,12 @@ The ntopng service can be started/stopped using the launchctl command:
 
 - [Start] :code:`sudo launchctl load /Library/LaunchDaemons/org.ntop.ntopng.plist`
 - [Stop] :code:`sudo launchctl unload /Library/LaunchDaemons/org.ntop.ntopng.plist`
+
+Homebrew
+^^^^^^^
+- Install :code:`brew install ntopng redis`
+- Start redis :code:`brew services start redis`
+- Start ntopng :code:`sudo ntopng`
 
 Installing on Windows
 ---------------------
