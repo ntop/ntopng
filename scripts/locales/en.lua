@@ -184,6 +184,7 @@ local lang = {
   ["confidence_guessed"] = "Guess",
   ["confidence_unknown"] = "Unknown",
   ["configure"] = "Configure",
+  ["configured_localhost"] = "No local hosts detected, although there are active hosts. Please make sure local networks have been properly configured (-m parameter).",
   ["confirm"] = "Confirm",
   ["confirm_delete_obs_point"] = "Are you sure to delete the selected Observation Point?",
   ["connected"] = "Connected",
