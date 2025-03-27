@@ -47,6 +47,7 @@
 #include "host_alerts/ScanDetectionAlert.h"
 #include "host_alerts/TrafficVolumeAlert.h"
 #include "host_alerts/HostScannerAlert.h"
+#include "host_alerts/NATDetectedAlert.h"
 
 /* Pro Alerts - do NOT use #ifdef as alerts must always be available */
 

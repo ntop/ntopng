@@ -87,6 +87,7 @@ void HostChecksLoader::registerChecks() {
   if ((fcb = new HostScanner()))         registerCheck(fcb);
   if ((fcb = new RXOnlyHostScan()))      registerCheck(fcb);
   if ((fcb = new ServerPortsContacts())) registerCheck(fcb);
+  if ((fcb = new NATDetected()))         registerCheck(fcb);
 #endif
 
   // printChecks();
