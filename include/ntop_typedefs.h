@@ -571,7 +571,8 @@ typedef enum {
   host_alert_remote_connection = 12,
   host_alert_host_log = 13,
   host_alert_dangerous_host = 14,
-  host_alert_notused_3 = 15,
+  // chenge an notused or add it in the end
+  host_alert_demo = 15,
   host_alert_countries_contacts = 16,
   host_alert_notused_5 = 17,
   host_alert_icmp_flood = 18,
@@ -617,6 +618,7 @@ typedef enum {
   host_check_ntp_server_contacts,
   host_check_smtp_server_contacts,
   host_check_countries_contacts,
+  host_check_demo,
   host_check_dns_server_contacts,
   host_check_score_host,
   host_check_flow_anomaly,

@@ -46,6 +46,8 @@
 #include "host_checks/DomainNamesContacts.h"
 #include "host_checks/ScanDetection.h"
 
+#include "host_checks/Demo.h"
+
 #ifdef NTOPNG_PRO
 #include "host_checks/DNSFlood.h"
 #include "host_checks/SNMPFlood.h"
