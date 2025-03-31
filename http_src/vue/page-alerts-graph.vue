@@ -474,8 +474,8 @@ async function draw_graph(redraw = false, centerIP = null) {
                 // add filter to url
                 add_filter('ip', clicked_node.id);
 
-                get_host_info();
-            }, 200); 
+                await get_host_info();
+            }, 200);
         })
         .on("dblclick", async function (event, clicked_node) {
             // Clear the single-click timer since this is a double-click
@@ -512,12 +512,11 @@ async function draw_graph(redraw = false, centerIP = null) {
 
             // add filter to url
             add_filter('ip', clicked_node.id);
-            get_host_info();
+            await get_host_info();
             // Redraw graph with the new filtered data
             await draw_graph(true, clicked_node.id);
 
-        })
-        .on("dblclick.zoom", null);
+        });
 
     // Add the node circles with color based on alert count
     const nodeRadius = 10;
@@ -805,6 +804,11 @@ onMounted(async () => {
             showAlertCategoriesDropdown.value = false;
         }
     });
+
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.forEach((tooltipTriggerEl) => {
+          new bootstrap.Tooltip(tooltipTriggerEl);
+        });
 
 });
 
