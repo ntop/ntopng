@@ -2,7 +2,7 @@
 	"id": "exporters",
 	"data_url": "lua/pro/rest/v2/get/exporters/data.lua",
 	"use_current_page": false,
-	"enable_search": false,
+	"enable_search": true,
 	"paging": false,
 	"display_empty_rows": true,
 	"default_sort": {

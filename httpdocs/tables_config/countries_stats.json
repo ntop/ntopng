@@ -2,7 +2,7 @@
 	"id": "device_exclusions",
 	"data_url": "lua/get_countries_data.lua",
 	"use_current_page": false,
-	"enable_search": false,
+	"enable_search": true,
 	"paging": false,
 	"display_empty_rows": true,
 	"columns": [

@@ -327,6 +327,11 @@ else
                 entry = page_utils.menu_entries.alerts_list,
                 url = "/lua/alert_stats.lua"
             }, {
+                entry = page_utils.menu_entries.alerts_graph,
+                url = "/lua/pro/alerts_graph.lua",
+                hidden = true--(not ntop.isEnterprise())
+            },
+            {
                 entry = page_utils.menu_entries.alerts_analysis,
                 url = "/lua/pro/enterprise/alerts_analysis.lua",
                 hidden = (not ntop.isEnterprise())

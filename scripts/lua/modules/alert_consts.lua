@@ -765,6 +765,25 @@ function alert_consts.alertSeverity(v)
 end
 
 -- ################################################################################
+-- ################################################################################
+
+function alert_consts.getSeverityColorById(severity_id)
+   for _, severity in pairs(alert_severities) do
+      if severity.severity_id == severity_id then
+         return severity.color
+      end
+   end
+   return "#000000" 
+end
+
+function alert_consts.getSeverityLabelById(severity_id)
+   for _, severity in pairs(alert_severities) do
+      if severity.severity_id == severity_id then
+         return i18n(severity.i18n_title)
+      end
+   end
+end
+-- ################################################################################
 
 function alert_consts.alertSeverityById(severity_id)
    local key = alert_consts.alertSeverityRaw(severity_id)

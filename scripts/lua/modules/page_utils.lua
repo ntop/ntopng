@@ -229,6 +229,11 @@ page_utils.menu_entries = {
         i18n_title = "details.alerts_analysis",
         section = "alerts"
     },
+    alerts_graph = {
+        key = "alerts_graph",
+        i18n_title = "details.alerts_graph",
+        section = "alerts"
+    },
 
     -- Flows
     flows = {
