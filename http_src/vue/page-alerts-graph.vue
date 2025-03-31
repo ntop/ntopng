@@ -131,7 +131,7 @@
                                                 || '-' }}</span>
                                         </div>
                                         <div class="detail-row">
-                                            <span class="detail-label">{{ _i18n("alert.graph.last_seen") }}</span>
+                                            <span class="detail-label g">{{ _i18n("alert.graph.last_seen") }}</span>
                                             <span class="detail-value">{{ selectedNodeData.host_info[role]?.last_seen ||
                                                 '-' }}</span>
                                         </div>
@@ -148,7 +148,7 @@
                                                 || '-' }}</span>
                                         </div>
                                         <div class="detail-row">
-                                            <span class="detail-label">{{ _i18n("alert.graph.total_score") }}</span>
+                                            <span class="detail-label">{{ _i18n("alert.graph.total_traffic") }}</span>
                                             <span class="detail-value">{{
                                                 formatterUtils.getFormatter("bytes")(selectedNodeData.host_info[role]?.total_traffic_bytes)
                                                 }}</span>
@@ -165,15 +165,15 @@
                                         <div class="card-body p-3">
                                             <h6 class="card-subtitle mb-2 text-muted">{{
                                                 _i18n("alert.graph.alert_summary") }}</h6>
-                                            <div class="progress mb-3" style="height: 8px;" data-bs-toggle="tooltip" data-bs-placement="top">
+                                            <div class="progress mb-3" style="height: 8px;">
                                                 <div v-for="(item, index) in selectedNodeData.severity_info?.[role]"
                                                     :key="index" class="progress-bar"
                                                     :style="{ width: item.percentage + '%', backgroundColor: item.severity_color }"
-                                                    role="progressbar"
-                                                    :title="`${item.percentage.toFixed(2)}% ${item.severity}`"
-                                                    >
+                                                    role="progressbar" data-bs-toggle="tooltip" data-bs-placement="top"
+                                                    :title="`${item.percentage.toFixed(2)}% ${item.severity}`">
                                                 </div>
                                             </div>
+
                                         </div>
                                     </div>
                                 </div>
@@ -204,7 +204,6 @@ const props = defineProps({
 
 // State data
 const ifid = String(props.context.ifid);
-const now = Math.round(new Date().getTime() / 1000)
 const no_data = ref(false);
 const alerts_graph = ref(null);
 const dropdownRef = ref(null);
@@ -214,7 +213,6 @@ const minScore = ref(0);
 // Selected node information (right div next to graph)
 const selectedAlertCategory = ref(null);
 const selectedNodeData = ref({});
-const isNodeLoading = ref(false);
 const selectedNode = ref(false);
 const activeFlows = ref({ recordsTotal: 0, url: "#" });
 
@@ -226,9 +224,6 @@ const live_flows_url = computed(() => {
     return `${http_prefix}/lua/flows_stats.lua?flowhosts_type=${selectedNode.value}%400&l4proto=&application=&alert_type=&qoe=&tcp_flow_state=&dscp=&traffic_type=&host_pool_id=&network=#`;
 });
 
-const active_list_url = computed(() => {
-    return `${http_prefix}/lua/rest/v2/get/flow/active_list.lua?start=0&length=10&map_search=&visible_columns=actions%2Clast_seen%2Cfirst_seen%2Cprotocol%2Cscore%2Cqoe%2Cflow%2Cthroughput%2Cbytes%2Cinfo&flowhosts_type=${selectedNode.value}%400&l4proto=&application=&alert_type=&qoe=&tcp_flow_state=&dscp=&traffic_type=&host_pool_id=&network=`;
-});
 
 // Dropdown state
 const showAlertCategoriesDropdown = ref(false);
@@ -474,7 +469,7 @@ async function draw_graph(redraw = false, centerIP = null) {
                 // add filter to url
                 add_filter('ip', clicked_node.id);
 
-                await get_host_info();
+                get_host_info();
             }, 200);
         })
         .on("dblclick", async function (event, clicked_node) {
@@ -806,9 +801,9 @@ onMounted(async () => {
     });
 
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-        tooltipTriggerList.forEach((tooltipTriggerEl) => {
-          new bootstrap.Tooltip(tooltipTriggerEl);
-        });
+    tooltipTriggerList.forEach((tooltipTriggerEl) => {
+        new bootstrap.Tooltip(tooltipTriggerEl);
+    });
 
 });
 
@@ -909,7 +904,7 @@ function resetGraph() {
     draw_graph(true);
 
     // Reset any filters or selections
-    selectedNode.value = "";
+    selectedNode.value = null;
 
     reset_filters();
 }
@@ -958,12 +953,14 @@ function resetGraph() {
 
 .detail-label {
     color: #6c757d;
-    font-weight: 500;
+    font-weight: bold;
 }
 
 .detail-value {
     color: #212529;
+    font-weight: normal;
 }
+
 
 .alert-summary {
     border-radius: 6px;
