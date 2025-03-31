@@ -125,7 +125,7 @@ Flow::Flow(NetworkInterface *_iface,
   bt_hash = NULL, ebpf = NULL, iec104 = NULL, stun_mapped_address = NULL;
   twh_over_view = false;
   flow_verdict = 0;
-  operating_system = os_unknown;
+  operating_system = ndpi_os_unknown;
   last_update_time.tv_sec = 0, last_update_time.tv_usec = 0;
   bytes_thpt = 0, goodput_bytes_thpt = 0;
   pkts_thpt = 0;
@@ -315,6 +315,7 @@ Flow::Flow(NetworkInterface *_iface,
     break;
   }
 
+  computeKey();
   deferredInitialization();
 }
 
@@ -424,15 +425,14 @@ void Flow::freeDPIMemory() {
 				     vlanId);
 #endif
 
-	h->setTCPfingerprint(ndpiFlow->tcp.fingerprint,
-			     (enum operating_system_hint)ndpiFlow->tcp.os_hint);
+	h->setTCPfingerprint(ndpiFlow->tcp.fingerprint, ndpiFlow->tcp.os_hint);
 
-	if((ndpiFlow->tcp.os_hint == os_hint_unknown) && h->isLocalHost()) {
+	if((ndpiFlow->tcp.os_hint == ndpi_os_unknown) && h->isLocalHost()) {
 	  char buf[64], log[128];
 
 	  snprintf(log, sizeof(log), "%s,%s",
 		   h->get_ip()->print(buf, sizeof(buf)),
-		   Utils::OSType2Str(h->getOS()));
+		   Utils::OS2Str(h->getOS()));
 
 	  ntop->getTrace()->traceEvent(TRACE_DEBUG, "** Unknown TCP fingerprint %s [%s]",
 				       ndpiFlow->tcp.fingerprint, log);
@@ -724,7 +724,7 @@ void Flow::processDetectedProtocol(u_int8_t *payload, u_int16_t payload_len) {
     }
   } 
   
-  if(ndpiFlow && (ndpiFlow->tcp.os_hint != os_hint_unknown)) {
+  if(ndpiFlow && (ndpiFlow->tcp.os_hint != ndpi_os_unknown)) {
     Host *h = cli_h ? cli_h : getViewSharedClient() /* View interface */;
     
     if(h != NULL)
@@ -2232,7 +2232,7 @@ void Flow::hosts_periodic_stats_update(NetworkInterface *iface, Host *cli_host,
       srv_host->getHTTPstats()->incStats(false /* Server */,
 					 partial->get_flow_http_stats());
 
-    if(operating_system != os_unknown) {
+    if(operating_system != ndpi_os_unknown) {
       if(cli_host && !(get_cli_ip_addr()->isBroadcastAddress() ||
 			get_cli_ip_addr()->isMulticastAddress()))
 	cli_host->setOS(operating_system, os_learning_http_user_agent);
@@ -2740,7 +2740,8 @@ bool Flow::equal(const Mac *_src_pkt_mac, const Mac *_dst_pkt_mac,
                  bool *src2srv_direction) const {
   const IpAddress *cli_ip = get_cli_ip_addr(), *srv_ip = get_srv_ip_addr();
   const Mac *src_mac, *dst_mac;
-
+  bool useMacAddressInFlowKey = ntop->getPrefs()->useMacAddressInFlowKey();
+  
 #if 0
   if(ntohs(_cli_port) == 17446) {
     char buf1[64],buf2[64],buf3[64],buf4[64];
@@ -2784,7 +2785,11 @@ bool Flow::equal(const Mac *_src_pkt_mac, const Mac *_dst_pkt_mac,
     return (false);
 
   /* Check if MAC address needs to be used in flow key */
-  if(ntop->getPrefs()->useMacAddressInFlowKey()) {
+  if((cli_ip->key() == 0) && (srv_ip->key() == 0xFFFFFFFF)) {
+    useMacAddressInFlowKey = true;
+  }
+  
+  if(useMacAddressInFlowKey) {
     if(cli_host && src_mac) {
       Mac *cli_mac = cli_host->getMac();
 
@@ -2920,7 +2925,7 @@ void Flow::lua(lua_State *vm, AddressTree *ptree,
   u_char community_id[200];
   char buf[64];
   Mac *cli_mac = get_cli_host() ? get_cli_host()->getMac() : NULL;
-  
+
   if(ptree) {
     if(src_ip) src_match = src_ip->match(ptree);
     if(dst_ip) dst_match = dst_ip->match(ptree);
@@ -3372,7 +3377,7 @@ void Flow::clearRisks() {
 
 /* *************************************** */
 
-u_int32_t Flow::key() {
+void Flow::computeKey() {
   u_int32_t k = cli_port + srv_port + vlanId + protocol + privateFlowId;
 
 #ifdef MAKE_OBSERVATION_POINT_KEY
@@ -3383,7 +3388,16 @@ u_int32_t Flow::key() {
   if(get_srv_ip_addr()) k += get_srv_ip_addr()->key();
   if(icmp_info) k += icmp_info->key();
 
-  return (k);
+  if(get_cli_ip_addr() && get_srv_ip_addr()) {
+    if((get_cli_ip_addr()->key() == 0) && (get_srv_ip_addr()->key() == 0xFFFFFFFF)) {
+      /* Add the MAC address of the source host (dst_mac is not necessary as it's FF:FF:FF:FF:FF:FF) */
+      Mac *cli_mac = get_cli_host()->getMac();
+      
+      if(cli_mac != NULL) k += cli_mac->key();
+    }
+  }
+
+  flow_key = k;
 }
 
 /* *************************************** */
@@ -6381,15 +6395,15 @@ void Flow::dissectHTTP(bool src2dst_direction, char *payload,
 	      char *end = strchr(buf, ')');
 
 	      if(end) {
-		enum operating_system_hint hint;
+		ndpi_os hint;
 
 		end[0] = '\0';
 		ua++;
 
 		Utils::getDeviceTypeFromOsDetail(ua, &hint);
 
-		if(hint != os_hint_unknown)
-		  operating_system = Utils::OShint2OSType(hint);
+		if(hint != ndpi_os_unknown)
+		  operating_system = hint;
 	      }
 	    }
 	  }
@@ -7383,8 +7397,7 @@ void Flow::lua_get_ip(lua_State *vm, bool client) const {
                                 mask_host ? 0 : h->key());
 
     if(h->isProtocolServer())
-      lua_push_bool_table_entry(
-				vm, client ? "cli.protocol_server" : "srv.protocol_server", true);
+      lua_push_bool_table_entry(vm, client ? "cli.protocol_server" : "srv.protocol_server", true);
   } else if(h_ip) {
     /* Host hasn't been instantiated but we still have the ip address (e.g, in
      * viewed interfaces) */
@@ -7410,11 +7423,14 @@ void Flow::lua_get_mac(lua_State *vm, bool client) const {
   Host *h = client ? get_cli_host() : get_srv_host();
 
   if(h) {
-    lua_push_str_table_entry(vm, client ? "cli.mac" : "srv.mac",
-                             Utils::formatMac(h->get_mac(), buf, sizeof(buf)));
-    lua_push_bool_table_entry(
-			      vm, client ? "cli.serialize_by_mac" : "srv.serialize_by_mac",
-			      h->serializeByMac());
+    Mac *m = h->getMac();
+
+    if(m != NULL) {
+      lua_push_str_table_entry(vm, client ? "cli.mac" : "srv.mac",
+			       m->print(buf, sizeof(buf)));
+      lua_push_bool_table_entry(vm, client ? "cli.serialize_by_mac" : "srv.serialize_by_mac",
+				h->serializeByMac());
+    }
   }
 }
 
@@ -8817,7 +8833,9 @@ void Flow::updateTCPHostServices(Host *cli_h, Host *srv_h) {
   switch (ndpi_get_lower_proto(ndpiDetectedProtocol)) {
   case NDPI_PROTOCOL_MAIL_SMTPS:
   case NDPI_PROTOCOL_MAIL_SMTP:
-    if(isBidirectional() && isThreeWayHandshakeOK()) {
+    if(isBidirectional() && isThreeWayHandshakeOK()
+       // && (getConfidence() == NDPI_CONFIDENCE_DPI)
+       ) {
       if(srv_h)
 	srv_h->setSmtpServer(domain_name);
       else if(srv_ip_addr)
@@ -8827,7 +8845,9 @@ void Flow::updateTCPHostServices(Host *cli_h, Host *srv_h) {
 
   case NDPI_PROTOCOL_MAIL_IMAPS:
   case NDPI_PROTOCOL_MAIL_IMAP:
-    if(isBidirectional() && isThreeWayHandshakeOK()) {
+    if(isBidirectional() && isThreeWayHandshakeOK()
+       // && (getConfidence() == NDPI_CONFIDENCE_DPI)
+       ) {
       if(srv_h)
 	srv_h->setImapServer(domain_name);
       else if(srv_ip_addr)
@@ -8837,7 +8857,9 @@ void Flow::updateTCPHostServices(Host *cli_h, Host *srv_h) {
 
   case NDPI_PROTOCOL_MAIL_POPS:
   case NDPI_PROTOCOL_MAIL_POP:
-    if(isBidirectional() && isThreeWayHandshakeOK()) {
+    if(isBidirectional() && isThreeWayHandshakeOK()
+       // && (getConfidence() == NDPI_CONFIDENCE_DPI)
+       ) {
       if(srv_h)
 	srv_h->setPopServer(domain_name);
       else if(srv_ip_addr)
@@ -8876,38 +8898,48 @@ void Flow::updateUDPHostServices(bool src2dst_direction) {
 
   switch (ndpi_get_lower_proto(ndpiDetectedProtocol)) {
   case NDPI_PROTOCOL_DHCP:
-    if(cli_port == htons(67)) {
-      /* Server -> Client */
+    if(getConfidence() == NDPI_CONFIDENCE_DPI) {
+      if(cli_port == htons(67)) {
+	/* Server -> Client */
 
-      if(cli_host && (!cli_host->isBroadcastHost())) {
-	cli_host->setDhcpServer(domain_name);
-      } else if(cli_ip_addr && !cli_ip_addr->isBroadcastAddress()) {
-	cli_ip_addr->setDhcpServer();
-      }
-    } else {
-      if(srv_host && (!srv_host->isBroadcastHost())) {
-	srv_host->setDhcpServer(domain_name);
-      } else if(srv_ip_addr && !srv_ip_addr->isBroadcastAddress()) {
-	srv_ip_addr->setDhcpServer();
-      }
+	if(cli_host && (!cli_host->isBroadcastHost())) {
+	  cli_host->setDhcpServer(domain_name);
+	} else if(cli_ip_addr && !cli_ip_addr->isBroadcastAddress()) {
+	  cli_ip_addr->setDhcpServer();
+	}
+      } else {
+	if(srv_host && (!srv_host->isBroadcastHost())) {
+	  srv_host->setDhcpServer(domain_name);
+	} else if(srv_ip_addr && !srv_ip_addr->isBroadcastAddress()) {
+	  srv_ip_addr->setDhcpServer();
+	}
 
-      if(ndpiFlow && cli_host)
-	cli_host->offlineSetDhcpFingerprint(ndpiFlow->protos.dhcp.fingerprint);
+	if(ndpiFlow && cli_host)
+	  cli_host->offlineSetDhcpFingerprint(ndpiFlow->protos.dhcp.fingerprint);
+      }
     }
     break;
 
   case NDPI_PROTOCOL_NTP:
-    if(isBidirectional()) {
-      if(srv_h)
+    if(isBidirectional()
+       /* && (getConfidence() == NDPI_CONFIDENCE_DPI) */
+       && isTCPEstablished()
+       ) {
+      //char buf[256];
+      
+      if(srv_h) {
 	srv_h->setNtpServer(domain_name);
-      else if(srv_ip_addr)
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NTP] %s", print(buf, sizeof(buf)));
+      } else if(srv_ip_addr) {
 	srv_ip_addr->setNtpServer();
+	// ntop->getTrace()->traceEvent(TRACE_NORMAL, "[NTP] %s", print(buf, sizeof(buf)));
+      }
     }
     break;
 
   case NDPI_PROTOCOL_DNS:
     /* Swap check */
-    if((!swap_requested) && (ndpiFlow != NULL)) {
+    if((!swap_requested) && (ndpiFlow != NULL)) {      
       if(ndpiFlow->protos.dns.is_query) {
 	if(src2dst_direction) {
 	  ;
@@ -8925,33 +8957,47 @@ void Flow::updateUDPHostServices(bool src2dst_direction) {
 	}
       }
     }
-
-    if(swap_requested) {
+    
+    if(isBidirectional()
+       && ((getConfidence() == NDPI_CONFIDENCE_DPI) /* Packet */
+	   || (ntohs(srv_port) == 53) /* nProbe case: let's be conservative */
+	   )
+       ) {
+      // char buf[256];
+      
+      if(swap_requested) {
 #ifdef DEBUG
-      char buf[64];
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** DNS: %s", cli_h->print(buf, sizeof(buf)));
+	char buf[64];
+	
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** DNS: %s", cli_h->print(buf, sizeof(buf)));
 #endif
-
-      if(isBidirectional()) {
-	if(cli_h)
-	  cli_h->setDnsServer(domain_name);
-	else if(cli_ip_addr)
-	  cli_ip_addr->setDnsServer();
-      }
-    } else {
+	
+	if(isBidirectional()) {
+	  if(cli_h) {
+	    cli_h->setDnsServer(domain_name);
+	    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", print(buf, sizeof(buf)));
+	  } else if(cli_ip_addr) {
+	    cli_ip_addr->setDnsServer();
+	    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", print(buf, sizeof(buf)));
+	  }
+	}
+      } else {
 #ifdef DEBUG
-      char buf[64];
-
-      ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** DNS: %s [%u/%u]", srv_h->print(buf, sizeof(buf)),
-				   ndpiFlow->protos.dns.is_query, current_pkt_from_client_to_server(iface->get_ndpi_struct(), ndpiFlow));
+	char buf[64];
+	
+	ntop->getTrace()->traceEvent(TRACE_NORMAL, "*** DNS: %s [%u/%u]", srv_h->print(buf, sizeof(buf)),
+				     ndpiFlow->protos.dns.is_query, current_pkt_from_client_to_server(iface->get_ndpi_struct(), ndpiFlow));
 #endif
-
-      if(isBidirectional()) {
-	if(srv_h)
-	  srv_h->setDnsServer(domain_name);
-	else if(srv_ip_addr)
-	  srv_ip_addr->setDnsServer();
+	
+	if(isBidirectional()) {
+	  if(srv_h) {
+	    srv_h->setDnsServer(domain_name);
+	    // ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", print(buf, sizeof(buf)));
+	  } else if(srv_ip_addr) {
+	    srv_ip_addr->setDnsServer();
+	    //ntop->getTrace()->traceEvent(TRACE_NORMAL, "[DNS] %s", print(buf, sizeof(buf)));
+	  }
+	}
       }
     }
     break;

@@ -2236,26 +2236,7 @@ bool NetworkInterface::processPacket(int32_t if_index, u_int32_t bridge_iface_id
 		ntop->getTrace()->traceEvent(TRACE_WARNING, "[DHCP] %s = '%s'",
 					     client_mac, name);
 #endif
-	      } else if ((id == 55 /* Parameters List (Fingerprint) */) && flow->get_ndpi_flow()) {
-		char fingerprint[64], buf[32];
-		u_int idx, offset = 0;
-
-		len = ndpi_min(len, sizeof(buf) / 2);
-
-		for (idx = 0; idx < len; idx++) {
-		  snprintf((char *)&fingerprint[offset],
-			   sizeof(fingerprint) - offset - 1, "%02X",
-			   payload[i + 2 + idx] & 0xFF);
-		  offset += 2;
-		}
-
-#ifdef DHCP_DEBUG
-		ntop->getTrace()->traceEvent(TRACE_WARNING, "%s = %s",
-					     mac->print(buf, sizeof(buf)),
-					     fingerprint);
-#endif
-		mac->inlineSetFingerprint((char *)flow->get_ndpi_flow()->protos.dhcp.fingerprint);
-	      } else if (id == 0xFF)
+	      }  else if (id == 0xFF)
 		break; /* End of options */
 	    } else
 	      break; /* Invalid lenght */
@@ -4882,7 +4863,7 @@ struct flowHostRetriever {
   bool dhcpOnly;                  /* Not used in flow_search_walker */
   const AddressTree *cidr_filter; /* Not used in flow_search_walker */
   u_int16_t vlan_id;
-  OSType osFilter;
+  ndpi_os osFilter;
   u_int32_t device_ip;
   u_int32_t asnFilter;
   u_int32_t uidFilter;
@@ -5535,7 +5516,7 @@ static bool host_search_walker(GenericHashEntry *he, void *user_data,
        (r->poolFilter != h->get_host_pool())) ||
       (r->country && strlen(r->country) &&
        strcmp(h->get_country(buf, sizeof(buf)), r->country)) ||
-      (r->osFilter != os_any && (h->getOS() != r->osFilter)) ||
+      (r->osFilter != ndpi_os_MAX_OS && (h->getOS() != r->osFilter)) ||
       (r->blacklistedHosts && !h->isBlacklisted()) ||
       (r->anomalousOnly && !h->hasAnomalies()) ||
       (r->dhcpOnly && !h->isDHCPHost()) ||
@@ -6453,7 +6434,7 @@ int NetworkInterface::dropFlowsTraffic(AddressTree *allowed_hosts,
 int NetworkInterface::sortHosts(u_int32_t *begin_slot, bool walk_all, struct flowHostRetriever *retriever,
 				u_int8_t bridge_iface_idx, AddressTree *allowed_hosts, bool host_details,
 				LocationPolicy location, char *countryFilter, char *mac_filter,
-				u_int16_t vlan_id, OSType osFilter, u_int32_t asnFilter,
+				u_int16_t vlan_id, ndpi_os osFilter, u_int32_t asnFilter,
 				int32_t networkFilter, u_int16_t pool_filter, bool filtered_hosts,
 				bool blacklisted_hosts, bool anomalousOnly, bool dhcpOnly,
 				const AddressTree *const cidr_filter, u_int8_t ipver_filter,
@@ -6835,7 +6816,7 @@ int NetworkInterface::sortVLANs(struct flowHostRetriever *retriever,
 int NetworkInterface::getActiveHostsList(lua_State *vm, u_int32_t *begin_slot, bool walk_all,
 					 u_int8_t bridge_iface_idx, AddressTree *allowed_hosts, bool host_details,
 					 LocationPolicy location, char *countryFilter, char *mac_filter,
-					 u_int16_t vlan_id, OSType osFilter, u_int32_t asnFilter,
+					 u_int16_t vlan_id, ndpi_os osFilter, u_int32_t asnFilter,
 					 int32_t networkFilter, u_int16_t pool_filter, bool filtered_hosts,
 					 bool blacklisted_hosts, u_int8_t ipver_filter, int proto_filter,
 					 TrafficType traffic_type_filter, u_int32_t device_ip, bool tsLua,

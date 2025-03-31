@@ -12,17 +12,15 @@ discover.debug = false
 
 discover.progress_string = "discovery.progess"
 
--- Keep in sync with OSType (ntop_typedefs.h)
+-- NOTE: keep in sync with ndpi_os_hint
 discover.osinfo = {
     [0] = {"Unknown", ''},
-    [1] = {"Linux", '<i class=\'fab fa-linux fa-lg\'></i>'},
-    [2] = {"Windows", '<i class=\'fab fa-windows fa-lg\'></i>'},
-    [3] = {"macOS", '<i class=\'fab fa-apple fa-lg\'></i>'},
-    [4] = {"iOS", '<i class=\'fab fa-apple fa-lg\'></i>'},
-    [5] = {"Android", '<i class=\'fab fa-android fa-lg\'></i>'},
-    [6] = {"LaserJET", 'LasetJET'},
-    [7] = {"AppleAirport", 'Apple Airport'}
-    -- NOTE: keep in sync with OperatingSystem in ntop_typedefs.h
+    [1] = {"Windows", '<i class=\'fab fa-windows fa-lg\'></i>'},
+    [2] = {"macOS", '<i class=\'fab fa-apple fa-lg\'></i>'},
+    [3] = {"iOS", '<i class=\'fab fa-apple fa-lg\'></i>'},
+    [4] = {"Android", '<i class=\'fab fa-android fa-lg\'></i>'},   
+    [5] = {"Linux", '<i class=\'fab fa-linux fa-lg\'></i>'},
+    [6] = {"FreeBSD", ''},
 }
 
 -- #################################
@@ -253,7 +251,9 @@ discover.apple_products = {
    ['Mac14,3'] = 'Mac mini (M2, 2023)',
    ['Mac16,10'] = 'Mac mini (M4, 2024)',
    ['Mac16,11'] = 'Mac mini (M4 Pro, 2024)',
-   ['AirPort10,115'] = 'Airport Express'
+   ['AirPort10,115'] = 'Airport Express',
+   ['TimeCapsule8,119'] = 'Time Capsule'
+    
 }
 
 discover.asset_icons = {

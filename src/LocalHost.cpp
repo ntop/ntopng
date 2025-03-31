@@ -175,14 +175,19 @@ void LocalHost::initialize() {
   else
     fingerprints = NULL;
 
-  tcp_fingerprint_host_os = os_hint_unknown;
+  tcp_fingerprint_host_os = ndpi_os_unknown;
 
 #ifdef NTOPNG_PRO
   loadAssetInfo();
 #endif
   
-  if(cur_mac && cur_mac->getDHCPNamePtr())
-    offlineSetDHCPName(cur_mac->getDHCPNamePtr());
+  if(cur_mac) {
+    if(cur_mac->getDHCPNamePtr())
+      offlineSetDHCPName(cur_mac->getDHCPNamePtr());
+
+    if(cur_mac->getDeviceOS() != ndpi_os_unknown)
+      setOS(cur_mac->getDeviceOS(), os_learning_mac_address);
+  }
   
   gettimeofday(&last_periodic_asset_update, NULL);
 }
@@ -369,7 +374,7 @@ void LocalHost::lua(lua_State *vm, AddressTree *ptree, bool host_details,
   if(inconsistent_host_os)
     lua_push_bool_table_entry(vm, "inconsistent_host_os", true);
 
-  if(tcp_fingerprint_host_os != os_hint_unknown) {
+  if(tcp_fingerprint_host_os != ndpi_os_unknown) {
     lua_newtable(vm);
     lua_push_str_table_entry(vm, "os", ndpi_print_os_hint(tcp_fingerprint_host_os));
     lua_pushstring(vm, "fingerprint");
@@ -381,8 +386,8 @@ void LocalHost::lua(lua_State *vm, AddressTree *ptree, bool host_details,
     lua_newtable(vm);
 
     /* Theoretically we should lock here */
-    for(std::map<OSLearningMode, OSType>::iterator it = os_learning.begin(); it != os_learning.end(); it++) {
-      lua_push_str_table_entry(vm, Utils::learningMode2str(it->first), Utils::OSType2Str(it->second));
+    for(std::map<OSLearningMode, ndpi_os>::iterator it = os_learning.begin(); it != os_learning.end(); it++) {
+      lua_push_str_table_entry(vm, Utils::learningMode2str(it->first), Utils::OS2Str(it->second));
     }
 
     lua_pushstring(vm, "os_learning");
@@ -420,7 +425,7 @@ void LocalHost::inlineSetOSDetail(const char *_os_detail) {
     return; /* Already set */
 
   if ((os_detail = strdup(_os_detail))) {
-    enum operating_system_hint hint;
+    ndpi_os hint;
 
     // TODO set mac device type
     DeviceType devtype = Utils::getDeviceTypeFromOsDetail(os_detail, &hint);
@@ -786,8 +791,7 @@ void LocalHost::setResolvedName(const char *resolved_name) {
 
 /* *************************************** */
 
-void LocalHost::setTCPfingerprint(char *_tcp_fingerprint,
-				  enum operating_system_hint os) {
+void LocalHost::setTCPfingerprint(char *_tcp_fingerprint, ndpi_os os) {
 
   if((tcp_fingerprint != NULL) && (strcmp(_tcp_fingerprint, tcp_fingerprint) == 0))
     return; /* Already set */
@@ -795,18 +799,18 @@ void LocalHost::setTCPfingerprint(char *_tcp_fingerprint,
   if (_tcp_fingerprint && _tcp_fingerprint[0] != '\0')
     addDataToAssets((char *) "tcp_fingerprint", (char *) _tcp_fingerprint);
   
-  if(tcp_fingerprint_host_os == os_hint_unknown) {
+  if(tcp_fingerprint_host_os == ndpi_os_unknown) {
     /* Not yet set the host fingerprint */
-    OSType l_os_type = Utils::OShint2OSType(os);
+    ndpi_os l_os_type = os;
     
-    if(l_os_type != os_unknown)
+    if(l_os_type != ndpi_os_unknown)
       setOS(l_os_type, os_learning_tcp_fingerprint);
 
     tcp_fingerprint_host_os = os;
 
     if(tcp_fingerprint == NULL)
       tcp_fingerprint = strdup(_tcp_fingerprint);
-  } else if((os != os_hint_unknown) && (tcp_fingerprint_host_os != os)) {
+  } else if((os != ndpi_os_unknown) && (tcp_fingerprint_host_os != os)) {
     char buf[64];
 
     ntop->getTrace()->traceEvent(TRACE_INFO, "Found OS inconsistency %s vs %s [%s][%s]",
@@ -821,8 +825,8 @@ void LocalHost::setTCPfingerprint(char *_tcp_fingerprint,
 
 /* *************************************** */
 
-bool LocalHost::setOS(OSType _os, OSLearningMode mode) {
-  if((_os != os_unknown) && (getOS() != _os)) {
+bool LocalHost::setOS(ndpi_os _os, OSLearningMode mode) {
+  if((_os != ndpi_os_unknown) && (getOS() != _os)) {
     if(Host::setOS(_os, mode)) {
       char buf[8];
       

@@ -1629,7 +1629,7 @@ static int ntop_get_batched_interface_hosts(lua_State *vm,
   NetworkInterface *curr_iface = getCurrentInterface(vm);
   bool show_details = true, filtered_hosts = false, blacklisted_hosts = false;
   char *sortColumn = (char *)"column_ip", *country = NULL, *mac_filter = NULL;
-  OSType os_filter = os_any;
+  ndpi_os os_filter = ndpi_os_MAX_OS;
   bool a2zSortOrder = true;
   u_int16_t vlan_filter = (u_int16_t)-1;
   u_int32_t asn_filter = (u_int32_t)-1;
@@ -1682,7 +1682,7 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
   bool show_details = true, filtered_hosts = false, blacklisted_hosts = false;
   char *sortColumn = (char *)"column_ip", *country = NULL, *mac_filter = NULL;
   bool a2zSortOrder = true;
-  OSType os_filter = os_any;
+  ndpi_os os_filter = ndpi_os_MAX_OS;
   u_int16_t vlan_filter = (u_int16_t)-1;
   u_int32_t asn_filter = (u_int32_t)-1;
   int32_t network_filter = -2;
@@ -1709,7 +1709,7 @@ static int ntop_get_interface_hosts_criteria(lua_State *vm,
   if (lua_type(vm, 5) == LUA_TBOOLEAN)
     a2zSortOrder = lua_toboolean(vm, 5) ? true : false;
   if (lua_type(vm, 6) == LUA_TSTRING) country = (char *)lua_tostring(vm, 6);
-  if (lua_type(vm, 7) == LUA_TNUMBER) os_filter = (OSType)lua_tointeger(vm, 7);
+  if (lua_type(vm, 7) == LUA_TNUMBER) os_filter = (ndpi_os)lua_tointeger(vm, 7);
   if (lua_type(vm, 8) == LUA_TNUMBER)
     vlan_filter = (u_int16_t)lua_tonumber(vm, 8);
   if (lua_type(vm, 9) == LUA_TNUMBER)
@@ -1920,7 +1920,7 @@ static int ntop_set_host_operating_system(lua_State *vm) {
   NetworkInterface *curr_iface = getCurrentInterface(vm);
   char *host_ip = NULL, buf[64];
   u_int16_t vlan_id = 0;
-  OSType os = os_unknown;
+  ndpi_os os = ndpi_os_unknown;
   Host *host;
 
   if (ntop_lua_check(vm, __FUNCTION__, 1, LUA_TSTRING) != CONST_LUA_OK)
@@ -1930,7 +1930,7 @@ static int ntop_set_host_operating_system(lua_State *vm) {
 
   if (ntop_lua_check(vm, __FUNCTION__, 2, LUA_TNUMBER) != CONST_LUA_OK)
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
-  os = (OSType)lua_tointeger(vm, 2);
+  os = (ndpi_os)lua_tointeger(vm, 2);
 
   host =
       curr_iface->findHostByIP(get_allowed_nets(vm), host_ip, vlan_id,
@@ -1941,7 +1941,9 @@ static int ntop_set_host_operating_system(lua_State *vm) {
 			       curr_iface->get_name(), host_ip, vlan_id, host, os);
 #endif
 
-  if (curr_iface && host && os < os_max_os && os != os_unknown)
+  if (curr_iface && host
+      && (os < ndpi_os_MAX_OS)
+      && (os != ndpi_os_unknown))
     host->setOS(os, os_learning_user_set_via_lua);
 
   lua_pushnil(vm);

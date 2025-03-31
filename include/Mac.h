@@ -35,12 +35,13 @@ class Mac : public GenericHashEntry {
   const char *manuf;
   MacStats *stats, *stats_shadow;
   time_t last_stats_reset;
-
+  ndpi_os device_os; /* This is the OS hint has observed via MAC address */
+  
   struct {
     char *dhcp; /* Extracted from DHCP dissection */
   } names;
 
-  char *fingerprint, *dhcp_fingerprint;
+  char *dhcpv4_fingerprint;
   char *model;
   char *ssid;
 
@@ -118,6 +119,9 @@ class Mac : public GenericHashEntry {
     if (!lockDeviceTypeChanges) device_type = devtype;
     asset_map_updated = true;
   }
+  inline void setDeviceOS(ndpi_os _os) { device_os = _os;   }
+  inline ndpi_os getDeviceOS()         { return(device_os); }
+  
   inline void forceDeviceType(DeviceType devtype) {
     /* Called when a user, from the GUI, wants to change the device type and
      * specify a custom type */
@@ -143,12 +147,10 @@ class Mac : public GenericHashEntry {
   };
   void updateHostPool(bool isInlineCall, bool firstUpdate = false);
   void inlineSetModel(const char *m);
-  bool inlineSetFingerprint(const char *f);
   void setDHCPFingerprint(const char *f);
   void inlineSetSSID(const char *s);
   void inlineSetDHCPName(const char *dhcp_name);
   inline u_int16_t get_host_pool() { return (host_pool_id); }
-  inline const char *getFingerprint() { return (fingerprint); }
 
   inline void requestStatsReset() { stats_reset_requested = true; };
   inline void requestDataReset() {
@@ -203,10 +205,11 @@ class Mac : public GenericHashEntry {
 
 #ifdef NTOPNG_PRO
   void dumpAssetMac(ndpi_serializer *serializer);
-  void dumpAssetInfo(ndpi_serializer *serializer);
+  void dumpAssetInfo(ndpi_serializer *serializer);  
+  void analyzeDevice();
 #endif
 
-  inline char* getDHCPfingerprint() { return(dhcp_fingerprint); }
+  inline char* getDHCPfingerprint() { return(dhcpv4_fingerprint); }
 };
 
 #endif /* _MAC_H_ */

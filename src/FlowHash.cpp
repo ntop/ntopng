@@ -33,34 +33,40 @@ FlowHash::FlowHash(NetworkInterface *_iface, u_int _num_hashes,
 
 static u_int16_t max_num_loops = 0;
 
-Flow *FlowHash::find(Mac *src_mac, Mac *dst_mac, IpAddress *src_ip,
+Flow* FlowHash::find(Mac *src_mac, Mac *dst_mac, IpAddress *src_ip,
                      IpAddress *dst_ip, u_int16_t src_port, u_int16_t dst_port,
                      u_int16_t vlanId, u_int16_t observation_point_id,
                      u_int32_t private_flow_id, u_int8_t protocol,
                      const ICMPinfo *const icmp_info, bool *src2dst_direction,
                      bool is_inline_call, Flow **unswapped_flow) {
-  u_int32_t hash = ((src_ip->key() + 
-                     dst_ip->key() + 
-                     (icmp_info ? icmp_info->key() : 0) +
-		     private_flow_id + 
-                     src_port + 
-                     dst_port + 
-                     vlanId + 
-                     protocol) %
-		    num_hashes);
-  Flow *head = (Flow *)table[hash];
+  u_int32_t hash;
+  Flow *head;
   u_int16_t num_loops = 0;
+
+  hash = src_ip->key() + dst_ip->key() + 
+    (icmp_info ? icmp_info->key() : 0) +
+    private_flow_id + 
+    src_port + dst_port + vlanId +  protocol;
+  
+  if((src_ip->key() == 0) && (dst_ip->key() == 0xFFFFFFFF)) {
+    /* Add the MAC address of the source host (dst_mac is not necessary as it's FF:FF:FF:FF:FF:FF) */
+    if(src_mac != NULL) hash += src_mac->key();
+  }
+
+  hash %= num_hashes;
+
+  head = (Flow *)table[hash];
 
   *unswapped_flow = NULL;
 
 #if 0
   ntop->getTrace()->traceEvent(TRACE_NORMAL, "[%s] %u:%u / %u:%u [icmp key: %u]"
-    "[priv flow id: %u][vlan: %u][protocol: %u]"
-    "[hash: %u][head: 0x%x]",
-    iface->get_name(),
-    src_ip->key(), ntohs(src_port), dst_ip->key(), ntohs(dst_port),
-    icmp_info ? icmp_info->key() : 0,
-    private_flow_id, vlanId, protocol, hash, head);
+			       "[priv flow id: %u][vlan: %u][protocol: %u]"
+			       "[hash: %u][head: 0x%x]",
+			       iface->get_name(),
+			       src_ip->key(), ntohs(src_port), dst_ip->key(), ntohs(dst_port),
+			       icmp_info ? icmp_info->key() : 0,
+			       private_flow_id, vlanId, protocol, hash, head);
 #endif
 
   if (!head) return (NULL);

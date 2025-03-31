@@ -292,11 +292,11 @@ class Utils {
     return (bitmap1 | bitmap2);
   }
 
-  static OSType getOSFromFingerprint(const char *fingerprint, const char *manuf,
+  static ndpi_os getOSFromFingerprint(const char *fingerprint, const char *manuf,
                                      DeviceType devtype);
   static DeviceType getDeviceTypeFromOsDetail(const char *os_detail,
-					      enum operating_system_hint *hint);
-  static OSType OShint2OSType(enum operating_system_hint os);
+					      ndpi_os *hint);
+  static ndpi_os OShint2ndpi_os(ndpi_os os);
   static u_int32_t pow2(u_int32_t v);
   static int exec(const char *command);
 #ifdef __linux__
@@ -343,12 +343,12 @@ class Utils {
   static bool nwInterfaceExists(char *if_name);
   static bool readModbusDeviceInfo(char *ip_address, u_int8_t timeout_sec, lua_State *vm);
   static bool readEthernetIPDeviceInfo(char *ip_address, u_int8_t timeout_sec, lua_State *vm);
-  static const char* OSType2Str(OSType os);
+  static const char* OS2Str(ndpi_os os);
   static const char* learningMode2str(OSLearningMode mode);
   static bool checkNetworkList(char *network_list, char *rsp,
 			       bool (*callback)(char *, char *, void *user_data), void *user_data);
 
-  static DeviceType osType2deviceType(OSType t);
+  static DeviceType osType2deviceType(ndpi_os t);
 };
 
 #endif /* _UTILS_H_ */

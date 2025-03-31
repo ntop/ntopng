@@ -937,34 +937,12 @@ typedef enum {
   interface_type_DB_VIEW
 } InterfaceType;
 
-/*
-  NOTE: Update
-   - Flow::dissectHTTP
-   - Utils::osType2deviceType
-   -  discover.os2label
-
-   when extending the type below
-*/
-typedef enum {
-  os_unknown = 0,
-  os_linux,
-  os_windows,
-  os_macos,
-  os_ios,
-  os_android,
-  os_laserjet,
-  os_apple_airport,
-  os_freebsd,
-
-  os_max_os, /* Keep as last element */
-  os_any
-} OSType;
-
 typedef enum {
   os_learning_unknown = 0,
   os_learning_tcp_fingerprint,
   os_learning_http_user_agent,
-  os_learning_user_set_via_lua
+  os_learning_user_set_via_lua,
+  os_learning_mac_address
 } OSLearningMode;
 
 /* Keep in sync with hosts_map_utils.lua */
@@ -1264,12 +1242,12 @@ typedef enum {
 
 
 typedef enum {
-    unknown = 0,
-    poor,
-    degraded,
-    fair,
-    good,
-    excellent
+  qoe_unknown = 0,
+  qoe_poor,
+  qoe_degraded,
+  qoe_fair,
+  qoe_good,
+  qoe_excellent
 } QoEType;
 
 #endif /* _NTOP_TYPEDEFS_H_ */

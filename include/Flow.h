@@ -40,7 +40,6 @@ typedef struct {
   u_int16_t cli2srv_window, srv2cli_window;
   struct timeval synTime, synAckTime, ackTime; /* network Latency (3-way handshake) */
   float clientRTT3WH, serverRTT3WH; /* Computed at 3WH (msec) */
-
   time_t last_network_issues; /* last time retr/ooo/lost has been observed */
 
   struct {
@@ -97,6 +96,7 @@ private:
 #ifdef NTOPNG_PRO
   FlowUDP *udp;
 #endif
+  u_int32_t flow_key;
   FlowCollectionInfo *collection;
 
   /* Data collected from nProbe */
@@ -205,7 +205,7 @@ private:
 #endif
   char *suspicious_dga_domain; /* Stores the suspicious DGA domain for flows
                                   with NDPI_SUSPICIOUS_DGA_DOMAIN */
-  OSType operating_system;
+  ndpi_os operating_system;
 #ifdef HAVE_NEDGE
   u_int32_t last_conntrack_update;
   u_int32_t marker;
@@ -419,7 +419,8 @@ private:
   void updateUDPHostServices(bool src2dst_direction);
   void updateServerName(Host *h);
   void allocateCollection();
-
+  void computeKey();
+  
 public:
   Flow(NetworkInterface *_iface, int32_t iface_idx,
        u_int16_t _vlanId,
@@ -967,7 +968,7 @@ public:
   static char *printTCPflags(u_int8_t flags, char *const buf, u_int buf_len);
   char *print(char *buf, u_int buf_len, bool full_report = true) const;
 
-  u_int32_t key();
+  inline u_int32_t key() { return(flow_key); }
   static u_int32_t key(Host *cli, u_int16_t cli_port, Host *srv,
                        u_int16_t srv_port, u_int16_t vlan_id,
                        u_int16_t _observation_point_id, u_int16_t protocol);

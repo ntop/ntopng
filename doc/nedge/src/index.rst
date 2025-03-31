@@ -29,6 +29,11 @@ It Combines extensive network visibility with configurable security policies.
    licenses
 
 .. toctree::
+   :caption: Developer's Guide
+
+   api/index
+
+.. toctree::
    :caption: Other Products
 
    ntopng <https://www.ntop.org/guides/ntopng/>

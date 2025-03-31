@@ -826,14 +826,13 @@ else
          print("<td>&nbsp;</td></tr>\n")
       end
 
-      print(
-         "<tr><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("server") ..
-         ": <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / " ..
-         bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>" ..
-         i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " .. i18n("server") ..
-         ": <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / " ..
-         bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
-
+      print("<tr><td nowrap>" .. i18n("client") .. " <i class=\"fas fa-long-arrow-alt-right\"></i> " .. i18n("server") ..
+	    ": <span id=cli2srv>" .. formatPackets(flow["cli2srv.packets"]) .. " / " ..
+	    bytesToSize(flow["cli2srv.bytes"]) .. "</span> <span id=sent_trend></span></td><td nowrap>" ..
+	    i18n("client") .. " <i class=\"fas fa-long-arrow-alt-left\"></i> " .. i18n("server") ..
+	    ": <span id=srv2cli>" .. formatPackets(flow["srv2cli.packets"]) .. " / " ..
+	    bytesToSize(flow["srv2cli.bytes"]) .. "</span> <span id=rcvd_trend></span></td></tr>\n")
+      
       print("<tr><td colspan=2>")
       cli2srv = round((flow["cli2srv.bytes"] * 100) / flow["bytes"], 0)
 

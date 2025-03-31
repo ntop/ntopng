@@ -106,8 +106,8 @@ class Host : public GenericHashEntry,
   ObservationPoint *obs_point;
   ndpi_bitmap *tcp_udp_contacted_ports_no_tx; /* Ports of this host that have
                                                  been contacted by peers */
-  OSType os_type, alt_os_type; /* Operating system type, equivalent to os->get_os_type(),
-				  used by operating system setters and getters */
+  ndpi_os os_type, alt_os_type; /* Operating system type, equivalent to os->get_os_type(),
+					used by operating system setters and getters */
 
   struct {
     u_int32_t numIngressFlows, numEgressFlows;
@@ -789,9 +789,9 @@ class Host : public GenericHashEntry,
   bool isHostAlertDisabled(HostAlertType alert_type);
   bool isFlowAlertDisabled(FlowAlertType alert_type);
 
-  virtual bool setOS(OSType _os, OSLearningMode mode);
-  OSType getOS() const    { return os_type; }
-  OSType getAltOS() const { return alt_os_type; }
+  virtual bool setOS(ndpi_os _os, OSLearningMode mode);
+  ndpi_os getOS() const    { return os_type; }
+  ndpi_os getAltOS() const { return alt_os_type; }
 
   void incCliContactedHosts(IpAddress *peer) {
     stats->incCliContactedHosts(peer);
@@ -978,12 +978,12 @@ class Host : public GenericHashEntry,
 
   virtual SPSCQueue<std::pair<u_int16_t, u_int16_t>> *getContactedServerPorts() { return (NULL);};
   virtual char *getSerializationKey(char *buf, u_int bufsize, bool short_format = false) { return (NULL); };
-  virtual void setTCPfingerprint(char *tcp_fingerprint, enum operating_system_hint os) { ; }
+  virtual void setTCPfingerprint(char *tcp_fingerprint, ndpi_os os) { ; }
 #ifdef NTOPNG_PRO
   void incQoEStats(QoEType qoe_type) { qoe_stats.incQoEStats(qoe_type); };
 #endif
 
-  void setnDPIOS(enum operating_system_hint hint);
+  void setnDPIOS(ndpi_os hint);
 };
 
 #endif /* _HOST_H_ */

@@ -1,0 +1,675 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "6.3",
+    "title": "nEdge",
+    "description": "nEdge RESTful API documentation"
+  },
+  "tags": [
+    {
+      "name": "Interfaces",
+      "description": "Everything about interfaces"
+    },
+    {
+      "name": "Hosts",
+      "description": "Everything about hosts"
+    },
+    {
+      "name": "Alerts",
+      "description": "Everything about alerts"
+    },
+    {
+      "name": "Flows",
+      "description": "Everything about flows"
+    },
+    {
+      "name": "PCAP",
+      "description": "Raw PCAP traffic"
+    },
+    {
+      "name": "Users",
+      "description": "ntopng users management"
+    },
+    {
+      "name": "Infrastructures",
+      "description": "Manage infrastructure configurations"
+    },
+    {
+      "name": "Health",
+      "description": "Everything about system status"
+    },
+    {
+      "name": "Configurations",
+      "description": "Everything about system configurations"
+    },
+    {
+      "name": "Vulnerability Scan",
+      "description": "Everything about vulnerability scan"
+    },
+    {
+      "name": "Policy",
+      "description": "Traffic enforcement policies"
+    }
+  ],
+  "schemes": [
+    "https",
+    "http"
+  ],
+  "paths": {
+    "/lua/pro/rest/v2/get/nedge/interfaces.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get nEdge interfaces",
+        "description": "Get all the network interfaces used by nEdge",
+        "operationId": "get_nedge_interfaces",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/nedge/physical/interface/data.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get interface information",
+        "description": "Read information about an interface",
+        "operationId": "get_nedge_physical_interface_data",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "ifid",
+            "in": "query",
+            "description": "Interface identifier",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-2": {
+            "description": "INVALID_INTERFACE"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/nedge/dhcp_active_leases.lua": {
+      "get": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Get DHCP leases",
+        "description": "Read active DHCP elases",
+        "operationId": "get_nedge_dhcp_active_leases",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/nedge/policy/default.lua": {
+      "get": {
+        "tags": [
+          "Policy"
+        ],
+        "summary": "Get default policy for inter-LAN traffic ",
+        "description": "Read default policy for inter-LAN traffic",
+        "operationId": "get_nedge_policy_default",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/set/nedge/policy/default.lua": {
+      "post": {
+        "tags": [
+          "Policy"
+        ],
+        "summary": "Set default policy for inter-LAN traffic",
+        "description": "Set default policy for inter-LAN traffic",
+        "operationId": "set_nedge_policy_default",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "default_policy",
+            "in": "formData",
+            "description": "Policy: accept or deny",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          },
+          "-7": {
+            "description": "BAD_FORMAT"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/nedge/policy/rules.lua": {
+      "get": {
+        "tags": [
+          "Policy"
+        ],
+        "summary": "Get rules for inter-LAN traffic",
+        "description": "Read all configured rules to allow/deny inter-LAN traffic",
+        "operationId": "get_nedge_policy_rules",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/add/nedge/policy/rule.lua": {
+      "post": {
+        "tags": [
+          "Policy"
+        ],
+        "summary": "Add a policy for inter-LAN traffic",
+        "description": "Add a new policy for inter-LAN traffic and return the ID",
+        "operationId": "add_nedge_policy_rule",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "src_type",
+            "in": "formData",
+            "description": "Source type: 'cidr' or 'interface'",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "src_value",
+            "in": "formData",
+            "description": "Source (e.g. '192.168.1.0/24' or 'eno2.11')",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "dst_type",
+            "in": "formData",
+            "description": "Destination type: 'cidr' or 'interface'",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "dst_value",
+            "in": "formData",
+            "description": "Destination (e.g. '192.168.1.0/24' or 'eno2.11')",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "bidirectional",
+            "in": "formData",
+            "description": "Bidirectionsl: 'true' or 'false'",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "policy",
+            "in": "formData",
+            "description": "Policy: 'accept' or 'deny'",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/nedge/policy/rule.lua": {
+      "post": {
+        "tags": [
+          "Policy"
+        ],
+        "summary": "Edit a policy by ID",
+        "description": "Change a policy rule by ID",
+        "operationId": "edit_nedge_policy_rule",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "formData",
+            "description": "Rule ID to edit",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "new_rule_id",
+            "in": "formData",
+            "description": "New Rule ID",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "src_type",
+            "in": "formData",
+            "description": "Source type: 'cidr' or 'interface'",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "src_value",
+            "in": "formData",
+            "description": "Source (e.g. '192.168.1.0/24' or 'eno2.11')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dst_type",
+            "in": "formData",
+            "description": "Destination type: 'cidr' or 'interface'",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "dst_value",
+            "in": "formData",
+            "description": "Destination (e.g. '192.168.1.0/24' or 'eno2.11')",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "bidirectional",
+            "in": "formData",
+            "description": "Bidirectionsl: 'true' or 'false'",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "policy",
+            "in": "formData",
+            "description": "Policy: 'accept' or 'deny'",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/nedge/policy/rule.lua": {
+      "post": {
+        "tags": [
+          "Policy"
+        ],
+        "summary": "Delete a policy rule",
+        "description": "Delete a policy rule by id",
+        "operationId": "delete_nedge_policy_rule",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "rule_id",
+            "in": "formData",
+            "description": "Rule ID to delete",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/get/nedge/forwarders.lua": {
+      "get": {
+        "tags": [
+          "Policy"
+        ],
+        "summary": "Get broadcast/multicast forwarding rules",
+        "description": "Read all configured broadcast/multicast forwarding rules",
+        "operationId": "get_nedge_forwarders",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/add/nedge/forwarder.lua": {
+      "post": {
+        "tags": [
+          "Policy"
+        ],
+        "summary": "Add a rule for broadcast/multicast forwarding",
+        "description": "Add a new rule for broadcast/multicast forwarding",
+        "operationId": "add_nedge_forwarder",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "repeater_type",
+            "in": "formData",
+            "description": "Repeater type (e.g. 'custom')",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "ip",
+            "in": "formData",
+            "description": "Multicast IP address",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "interfaces",
+            "in": "formData",
+            "description": "Trusted interfaces",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "interface_details",
+            "in": "formData",
+            "description": "",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "restricted_interfaces",
+            "in": "formData",
+            "description": "Restricted interfaces",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "restricted_interface_details",
+            "in": "formData",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/edit/nedge/forwarder.lua": {
+      "post": {
+        "tags": [
+          "Policy"
+        ],
+        "summary": "Edit a broadcast/multicast forwarding rule",
+        "description": "Edit a broadcast/multicast forwarding rules by ID",
+        "operationId": "edit_nedge_forwarder",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "repeater_id",
+            "in": "formData",
+            "description": "Repeater rule ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "new_repeater_id",
+            "in": "formData",
+            "description": "New repeater rule ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "repeater_type",
+            "in": "formData",
+            "description": "Repeater type (e.g. 'custom')",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "ip",
+            "in": "formData",
+            "description": "Multicast IP address",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "interfaces",
+            "in": "formData",
+            "description": "Trusted interfaces",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "interface_details",
+            "in": "formData",
+            "description": "",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "restricted_interfaces",
+            "in": "formData",
+            "description": "Restricted interfaces",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "restricted_interface_details",
+            "in": "formData",
+            "description": "",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/nedge/forwarder.lua": {
+      "post": {
+        "tags": [
+          "Policy"
+        ],
+        "summary": "Delete multicast/broadcast forwarder rule",
+        "description": "Delete multicast/broadcast forwarder rule by id",
+        "operationId": "delete_nedge_forwarder",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "repeater_id",
+            "in": "formData",
+            "description": "Repeater rule ID",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    },
+    "/lua/pro/rest/v2/add/nedge/vlan/add_vlan.lua": {
+      "post": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Add a VLAN interface",
+        "description": "Add a VLAN interface",
+        "operationId": "add_nedge_vlan",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "interface",
+            "in": "formData",
+            "description": "Physical interface",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "vlan_id",
+            "in": "formData",
+            "description": "VLAN ID",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-5": {
+            "description": "INVALID_ARGUMENTS"
+          },
+          "-6": {
+            "description": "INTERNAL_ERROR"
+          }
+        }
+      }
+    },
+    "/lua/rest/v2/delete/nedge/vlan/remove_vlan.lua": {
+      "post": {
+        "tags": [
+          "Interfaces"
+        ],
+        "summary": "Delete a VLAN interface",
+        "description": "Remove a VLAN interface",
+        "operationId": "delete_nedge_vlan",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "name": "delete_vlan",
+            "in": "formData",
+            "description": "VLAN ID",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "0": {
+            "description": "OK"
+          },
+          "-3": {
+            "description": "NOT_GRANTED"
+          }
+        }
+      }
+    }
+  }
+}

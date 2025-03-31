@@ -33,13 +33,20 @@ HostHash::HostHash(NetworkInterface *_iface, u_int _num_hashes,
 
 /* ************************************ */
 
-Host *HostHash::get(u_int16_t vlanId, IpAddress *key, Mac *mac,
+Host* HostHash::get(u_int16_t vlanId, IpAddress *key, Mac *mac,
                     bool is_inline_call, u_int16_t observation_point_id) {
-  u_int32_t hash = (key->key() % num_hashes);
+  u_int32_t hash = key->key();
 
-  /* Check if MAC address needs to be used in host key */
-  if (ntop->getPrefs()->useMacAddressInFlowKey() == false) mac = NULL;
+  if((hash == 0 /* 0.0.0.0 */) && (mac != NULL))
+    hash += mac->key();
+  else {
+    /* Check if MAC address needs to be used in host key */
+    if (ntop->getPrefs()->useMacAddressInFlowKey() == false)
+      mac = NULL;
+  }
 
+  hash %= num_hashes;
+  
   if (table[hash] == NULL) {
     return (NULL);
   } else {

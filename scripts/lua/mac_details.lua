@@ -102,7 +102,7 @@ end
 
 local mac_info = interface.getMacInfo(mac)
 
--- tprint(mac_info)
+-- tprint(mac_info.dhcp_fingerprint)
 
 local only_historical = (mac_info == nil) and (page == "historical")
 local serialize_by_mac = ntop.getPref(string.format("ntopng.prefs.ifid_" .. ifId .. ".serialize_local_broadcast_hosts_as_macs")) == "1"
@@ -245,9 +245,11 @@ if((page == "overview") or (page == nil)) then
       print("</td><td></td></tr>\n")
    end
 
-   if(mac_info.fingerprint ~= "") then
-    print("<tr><th><A HREF=https://en.wikipedia.org/wiki/Device_fingerprint>DHCP Fingerprint</A> "..'<i class="fas fa-hand-o-up fa-lg" aria-hidden="true"></i>'
-	     .."</th><td colspan=2>"..mac_info.fingerprint.."</td></tr>\n")
+   if((mac_info.dhcp_fingerprint ~= nil) and (mac_info.dhcp_fingerprint ~= "")) then
+      print("<tr><th><A HREF=https://en.wikipedia.org/wiki/Device_fingerprint>DHCP Fingerprint</A> "..'<i class="fas fa-hand-o-up fa-lg" aria-hidden="true"></i>'
+	    .."</th><td colspan=2>"..mac_info.dhcp_fingerprint)
+      print_copy_button('dhcp_fingerprint', mac_info.dhcp_fingerprint)
+      print("</td></tr>\n")
    end
 
    if have_nedge then

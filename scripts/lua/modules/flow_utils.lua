@@ -666,16 +666,10 @@ local function formatFlowHost(flow, cli_or_srv, historical_bounds, hyperlink_suf
 
     host_name = host_name .. format_utils.formatFullAddressCategory(host)
 
-    local mac
-    if (host == nil) then
-        mac = nil
-    else
-        mac = host["mac"]
-    end
+    local mac    
+    mac = flow[cli_or_srv..".mac"]
 
-    return
-        hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), hyperlink_params, host_name, tooltip, true --[[ perform link existance checks --]] ),
-        mac
+    return hostinfo2detailshref(flow2hostinfo(flow, cli_or_srv), hyperlink_params, host_name, tooltip, true --[[ perform link existance checks --]] ), mac
 end
 
 function formatFlowPort(flow, cli_or_srv, port, historical_bounds)

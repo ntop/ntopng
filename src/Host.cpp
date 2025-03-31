@@ -291,7 +291,7 @@ void Host::initialize(Mac *_mac, int32_t _iface_idx, u_int16_t _vlanId,
   last_stats_reset = ntop->getLastStatsReset(); /* assume fresh stats, may be
                                                    changed by deserialize */
   as = NULL, asn = 0, asname = NULL, obs_point = NULL;
-  os_type = alt_os_type = os_unknown;
+  os_type = alt_os_type = ndpi_os_unknown;
   ssdpLocation = NULL, blacklist_name = NULL, country = NULL;
 
   memset(&names, 0, sizeof(names));
@@ -888,9 +888,18 @@ void Host::lua(lua_State *vm, AddressTree *ptree, bool host_details,
   char buf[64], buf_id[64], *host_id = buf_id;
   char ip_buf[64], *ipaddr = NULL;
   bool mask_host = Utils::maskHost(isLocalHost());
-
+  
   if((ptree && (!match(ptree))) || mask_host) return;
 
+  /* Some checks first... */
+  if(!is_dhcp_host) {
+    Mac *cur_mac = getMac();
+    
+    if(cur_mac && cur_mac->getDHCPfingerprint()) {
+      is_dhcp_host = 1;
+    }
+  }
+  
   lua_newtable(vm);
 
   lua_push_str_table_entry(vm, "ip",
@@ -1303,9 +1312,6 @@ bool Host::is_hash_entry_state_idle_transition_ready() {
 /* *************************************** */
 
 void Host::periodic_stats_update(const struct timeval *tv) {
-  Mac *cur_mac = getMac();
-  OSType cur_os_type = os_type, cur_os_from_fingerprint = os_unknown;
-
   if(!deferred_init) {
     deferred_init = 1;
     deferredInitialization();
@@ -1316,16 +1322,6 @@ void Host::periodic_stats_update(const struct timeval *tv) {
   checkDataReset();
   checkStatsReset();
   checkBroadcastDomain();
-
-  /*
-    Update  the operating system, according to what comes from the fingerprint,
-    if necessary. The actual pointer will be update above during the next call
-  */
-  if(cur_os_type == os_unknown && cur_mac && cur_mac->getFingerprint() &&
-      (cur_os_from_fingerprint = Utils::getOSFromFingerprint(cur_mac->getFingerprint(),
-							     cur_mac->get_manufacturer(),
-							     cur_mac->getDeviceType())) != cur_os_type)
-    setOS(cur_os_from_fingerprint, os_learning_tcp_fingerprint);
 
   if(stats) stats->updateStats(tv);
 
@@ -2055,13 +2051,13 @@ char *Host::get_mac_based_tskey(Mac *mac, char *buf, size_t bufsize,
 
 /* *************************************** */
 
-bool Host::setOS(OSType _os, OSLearningMode mode) {
+bool Host::setOS(ndpi_os _os, OSLearningMode mode) {
   Mac *cur_mac;
   
-  if(_os == os_unknown)
+  if(_os == ndpi_os_unknown)
     return(false);
   
-  if((os_type != os_unknown) && (os_type != _os)) {
+  if((os_type != ndpi_os_unknown) && (os_type != _os)) {
 #if 0
     char buf[64];
     
@@ -2814,56 +2810,21 @@ void Host::toggleRxOnlyHost(bool rx_only) {
 
 /* *************************************** */
 
-void Host::setnDPIOS(enum operating_system_hint hint) {
-  OSType oh;
-
-  if(hint == os_hint_unknown)
-    return;
-  
-  switch(hint) {
-  case os_hint_windows:
-    oh = os_windows;
-    break;
-    
-  case os_hint_macos:
-    oh = os_macos;
-    break;
-    
-  case os_hint_ios_ipad_os:
-    oh = os_ios;
-    break;
-    
-  case os_hint_android:
-    oh = os_android;
-    break;
-    
-  case os_hint_linux:
-    oh = os_linux;
-    break;
-    
-  case os_hint_freebsd:
-    oh = os_freebsd;
-    break;
-
-  default:
-    /* nothing to do */
-    return;
-  }
-  
-  if(os_type != os_unknown) {
+void Host::setnDPIOS(ndpi_os _os) {  
+  if(os_type != ndpi_os_unknown) {
     /* Already set */
 
-    if(os_type == oh)
+    if(os_type == _os)
       return; /* Nothing changed */
     else {
-      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "OS change detected [%u -> %u]", os_type, oh); */
+      /* ntop->getTrace()->traceEvent(TRACE_WARNING, "OS change detected [%u -> %u]", os_type, _os); */
       
       alt_os_type = os_type;
-      os_type = oh;
+      os_type = _os;
     }
   }
 
-  setOS(oh, os_learning_tcp_fingerprint);
+  setOS(_os, os_learning_tcp_fingerprint);
 }
 
 /* *************************************** */

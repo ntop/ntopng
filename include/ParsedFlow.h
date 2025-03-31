@@ -43,7 +43,7 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   u_int32_t src_ip_addr_pre_nat, dst_ip_addr_pre_nat,
               src_ip_addr_post_nat, dst_ip_addr_post_nat;
   u_int8_t tls_unsafe_cipher, flow_verdict;
-  enum operating_system_hint os_hint;
+  ndpi_os os_hint;
   u_int16_t tls_cipher;
   u_int16_t http_ret_code;
   u_int16_t dns_query_type, dns_ret_code, dns_query_id;
@@ -191,8 +191,8 @@ class ParsedFlow : public ParsedFlowCore, public ParsedeBPF {
   inline u_int8_t getQoEDst2Src()   { return(qoe.dst_to_src); }
   inline void setQoESrc2Dst(u_int8_t t)   { qoe.src_to_dst = t; }
   inline void setQoEDst2Src(u_int8_t t)   { qoe.dst_to_src = t; }
-  inline void setOSHint(enum operating_system_hint t) { os_hint = t;        }
-  inline enum operating_system_hint getOSHint()       { return(os_hint);    }
+  inline void setOSHint(ndpi_os t) { os_hint = t;        }
+  inline ndpi_os getOSHint()       { return(os_hint);    }
 
   u_int32_t get_private_flow_id();
 

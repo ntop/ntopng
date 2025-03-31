@@ -5004,120 +5004,35 @@ int Utils::periodicityToSeconds(ScriptPeriodicity p) {
 
 /* ****************************************************** */
 
-/* TODO move into nDPI */
-OSType Utils::getOSFromFingerprint(const char *fingerprint, const char *manuf,
-                                   DeviceType devtype) {
-  /*
-    Inefficient with many signatures but ok for the
-    time being that we have little data
-  */
-  if (!fingerprint) return (os_unknown);
-
-  if (!strcmp(fingerprint, "017903060F77FC"))
-    return (os_ios);
-  else if ((!strcmp(fingerprint, "017903060F77FC5F2C2E")) ||
-           (!strcmp(fingerprint, "0103060F775FFC2C2E2F")) ||
-           (!strcmp(fingerprint, "0103060F775FFC2C2E")))
-    return (os_macos);
-  else if ((!strcmp(fingerprint, "0103060F1F212B2C2E2F79F9FC")) ||
-           (!strcmp(fingerprint, "010F03062C2E2F1F2179F92B")))
-    return (os_windows);
-  else if ((!strcmp(fingerprint, "0103060C0F1C2A")) ||
-           (!strcmp(fingerprint, "011C02030F06770C2C2F1A792A79F921FC2A")))
-    return (os_linux); /* Android is also linux */
-  else if ((!strcmp(fingerprint, "0603010F0C2C51452B1242439607")) ||
-           (!strcmp(fingerprint, "01032C06070C0F16363A3B45122B7751999A")))
-    return (os_laserjet);
-  else if (!strcmp(fingerprint, "0102030F060C2C"))
-    return (os_apple_airport);
-  else if (!strcmp(fingerprint, "01792103060F1C333A3B77"))
-    return (os_android);
-
-  /* Below you can find ambiguous signatures */
-  if (manuf) {
-    if (!strcmp(fingerprint, "0103063633")) {
-      if (strstr(manuf, "Apple"))
-        return (os_macos);
-      else if (devtype == device_unknown)
-        return (os_windows);
-    }
-  }
-
-  return (os_unknown);
-}
-/*
-  Missing OS mapping
-
-  011C02030F06770C2C2F1A792A
-  010F03062C2E2F1F2179F92BFC
-*/
-
-/* ****************************************************** */
-
-OSType Utils::OShint2OSType(enum operating_system_hint os) {
-
-  switch(os) {
-  case os_hint_windows:
-    return(os_windows);
-    break;
-
-  case os_hint_macos:
-    return(os_macos);
-    break;
-
-  case os_hint_ios_ipad_os:
-    return(os_ios);
-    break;
-
-  case os_hint_android:
-    return(os_android);
-    break;
-
-  case os_hint_linux:
-    return(os_linux);
-    break;
-
-  case os_hint_freebsd:
-    return(os_freebsd);
-    break;
-
-  default:
-    return(os_unknown);
-  }
-}
-
-/* ****************************************************** */
-
-DeviceType Utils::getDeviceTypeFromOsDetail(const char *os,
-					    enum operating_system_hint *hint) {
-  *hint = os_hint_unknown;
+DeviceType Utils::getDeviceTypeFromOsDetail(const char *os, ndpi_os *hint) {
+  *hint = ndpi_os_unknown;
 
   if (strcasestr(os, "iPhone")) {
-    *hint = os_hint_ios_ipad_os;
+    *hint = ndpi_os_ios_ipad_os;
     return (device_phone);
   } else if (strcasestr(os, "Android")) {
-    *hint = os_hint_android;
+    *hint = ndpi_os_android;
     return (device_phone);
   } else if(strcasestr(os, "mobile"))
     return (device_phone);
   else if (strcasestr(os, "Mac OS")
 	   || strstr(os, "Macintosh")
 	   || strstr(os, "OS X")) {
-    *hint = os_hint_macos;
+    *hint = ndpi_os_macos;
     return (device_workstation);
   } else if (strcasestr(os, "Windows")) {
-    *hint = os_hint_windows;
+    *hint = ndpi_os_windows;
     return (device_workstation);
   } else if (strcasestr(os, "Linux")
 	     || strcasestr(os, "Debian")
 	     || strcasestr(os, "Ubuntu")) {
-    *hint = os_hint_linux;
+    *hint = ndpi_os_linux;
     return (device_workstation);
   } else if (strcasestr(os, "FreeBSD")) {
-    *hint = os_hint_freebsd;
+    *hint = ndpi_os_freebsd;
     return (device_workstation);
   } else if (strcasestr(os, "iPad")) {
-    *hint = os_hint_ios_ipad_os;
+    *hint = ndpi_os_ios_ipad_os;
     return (device_tablet);
   } else if (strcasestr(os, "Airport")) {
     return (device_tablet);
@@ -7621,37 +7536,29 @@ bool Utils::readEthernetIPDeviceInfo(char *device_ip, u_int8_t timeout_sec, lua_
 
 /* ******************************************* */
 
-const char* Utils::OSType2Str(OSType os) {
+const char* Utils::OS2Str(ndpi_os os) {
   switch(os) {
-  case os_linux:
-    return("Linux");
-    break;
-
-  case os_windows:
+  case ndpi_os_windows:
     return("Windows");
     break;
 
-  case os_macos:
+  case ndpi_os_macos:
     return("macOS");
     break;
 
-  case os_ios:
+  case ndpi_os_ios_ipad_os:
     return("iOS/iPad");
     break;
 
-  case os_android:
+  case ndpi_os_android:
     return("Android");
     break;
 
-  case os_laserjet:
-    return("LaserJet");
+  case ndpi_os_linux:
+    return("Linux");
     break;
 
-  case os_apple_airport:
-    return("AppleAirport");
-    break;
-
-  case os_freebsd:
+  case ndpi_os_freebsd:
     return("FreeBSD");
     break;
 
@@ -7666,15 +7573,18 @@ const char* Utils::learningMode2str(OSLearningMode mode) {
   switch(mode) {
   case os_learning_unknown:
     break;
+
   case os_learning_tcp_fingerprint:
     return("TCP Fingerprint");
-    break;
+
   case os_learning_http_user_agent:
     return("HTTP UserAgent");
-    break;
+
   case os_learning_user_set_via_lua:
     return("Set by User via Lua");
-    break;
+    
+  case os_learning_mac_address:
+    return("Learnt from MAC address");
   }
 
   return("Unknown");
@@ -7709,30 +7619,22 @@ bool Utils::checkNetworkList(char *network_list, char *rsp,
 
 /* ******************************************* */
 
-DeviceType Utils::osType2deviceType(OSType t) {
+DeviceType Utils::osType2deviceType(ndpi_os t) {
   switch(t) {
-  case os_linux:
-  case os_freebsd:
-  case os_windows:
-  case os_macos:
+  case ndpi_os_linux:
+  case ndpi_os_freebsd:
+  case ndpi_os_windows:
+  case ndpi_os_macos:
     return(device_workstation);
     break;
     
-  case os_ios:
-  case os_android:
+  case ndpi_os_ios_ipad_os:
+  case ndpi_os_android:
     return(device_phone);
     break;
     
-  case os_laserjet:
-    return(device_printer);
-    break;
-    
-  case os_apple_airport:
-    return(device_wifi);    
-    break;
-  case os_unknown:
-  case os_max_os:
-  case os_any:
+  case ndpi_os_unknown:
+  case ndpi_os_MAX_OS:
     break;
   }
 

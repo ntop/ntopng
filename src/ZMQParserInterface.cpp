@@ -1465,7 +1465,7 @@ bool ZMQParserInterface::parsePENNtopField(ParsedFlow *const flow,
     break;
 
   case L7_OS_HINT:
-    flow->setOSHint((enum operating_system_hint)value->int_num);;
+    flow->setOSHint((ndpi_os)value->int_num);;
     break;
     
   default:

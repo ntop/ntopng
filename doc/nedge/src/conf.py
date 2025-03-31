@@ -21,6 +21,10 @@ extensions = [
     'sphinx.ext.intersphinx',
 ]
 
+# Workaround for platforms where swaggerdoc is not available
+if not os.environ.get("PYTHON_SKIP_SWAGGERDOC"):
+    extensions.append('sphinxcontrib.swaggerdoc')
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
