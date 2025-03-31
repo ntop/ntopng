@@ -6,7 +6,7 @@
         <Loading v-if="isLoading"></Loading>
         <div class="button-group mb-2 d-flex align-items-center"> <!-- TableHeader -->
             <div class="form-group d-flex align-items-end" style="flex-wrap: wrap;">
-                <!-- Slot for custom header-->
+                <!-- Slot for custom header--> 
                 <slot name="custom_header"></slot>
             </div>
 
@@ -76,7 +76,7 @@
                 <span v-html="message_to_display"></span>
             </div>
 
-            <table ref="table" class="table table-striped table-bordered ml-0 mr-0 mb-0 ntopng-table"
+            <table ref="tableRef" class="table table-striped table-bordered ml-0 mr-0 mb-0 ntopng-table"
                 :class="[(display_message || isLoading) ? 'ntopng-gray-out' : '']" data-resizable="true"
                 :data-resizable-columns-id="id"> <!-- Table -->
                 <thead>

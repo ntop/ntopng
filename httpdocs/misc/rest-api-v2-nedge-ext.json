@@ -11,42 +11,6 @@
       "description": "Everything about interfaces"
     },
     {
-      "name": "Hosts",
-      "description": "Everything about hosts"
-    },
-    {
-      "name": "Alerts",
-      "description": "Everything about alerts"
-    },
-    {
-      "name": "Flows",
-      "description": "Everything about flows"
-    },
-    {
-      "name": "PCAP",
-      "description": "Raw PCAP traffic"
-    },
-    {
-      "name": "Users",
-      "description": "ntopng users management"
-    },
-    {
-      "name": "Infrastructures",
-      "description": "Manage infrastructure configurations"
-    },
-    {
-      "name": "Health",
-      "description": "Everything about system status"
-    },
-    {
-      "name": "Configurations",
-      "description": "Everything about system configurations"
-    },
-    {
-      "name": "Vulnerability Scan",
-      "description": "Everything about vulnerability scan"
-    },
-    {
       "name": "Policy",
       "description": "Traffic enforcement policies"
     }

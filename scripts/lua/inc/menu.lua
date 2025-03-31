@@ -520,7 +520,7 @@ local health_entries = {
         hidden = false -- TODO: add a check for redis monitoring status
     }, {
         entry = page_utils.menu_entries.clickhouse_status,
-        url = '/lua/enterprise/monitor/clickhouse_monitor.lua',
+        url = '/lua/pro/enterprise/monitor/clickhouse_monitor.lua',
         hidden = not is_clickhouse_enabled
     }
 }
