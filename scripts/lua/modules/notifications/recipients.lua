@@ -94,7 +94,7 @@ local function processStoreAlertFromQueue(alert)
             host = alert.router_ip,
             vlan = alert.vlan_id
         }
-        entity_info = alert_entity_builders.hostAlertEntity(alert.client_ip, alert.vlan_id)
+        entity_info = alert_entity_builders.macEntity(alert.client_mac)
         type_info = alert_consts.alert_types.alert_ip_outsite_dhcp_range.new(router_info, alert.mac_address,
             alert.client_mac, alert.sender_mac)
         type_info:set_score_warning()
