@@ -55,6 +55,7 @@
 #include "host_checks/RXOnlyHostScan.h"
 #include "host_checks/ServerPortsContacts.h"
 #include "host_checks/NATDetected.h"
+#include "host_checks/ScanRealtime.h"
 #endif
 
 #endif /* _HOST_CHECKS_INCLUDES_H_ */

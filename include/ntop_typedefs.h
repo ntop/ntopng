@@ -571,7 +571,7 @@ typedef enum {
   host_alert_remote_connection = 12,
   host_alert_host_log = 13,
   host_alert_dangerous_host = 14,
-  host_alert_notused_3 = 15,
+  host_alert_scan_realtime = 15,
   host_alert_countries_contacts = 16,
   host_alert_notused_5 = 17,
   host_alert_icmp_flood = 18,
@@ -641,6 +641,7 @@ typedef enum {
   host_check_rx_only_host_scan,
   host_check_server_ports_contacts,
   host_check_unexpected_gateway,
+  host_check_scan_realtime,
 
   NUM_DEFINED_HOST_CHECKS, /* Leave it as last member */
 } HostCheckID;
@@ -1249,5 +1250,14 @@ typedef enum {
   qoe_good,
   qoe_excellent
 } QoEType;
+
+typedef enum
+{
+  scan_alert_scan_detention = 0,
+  scan_alert_rx_only,
+  scan_alert_syn,
+  scan_alert_fin,
+  scan_alert_rst
+} ScanAlertType;
 
 #endif /* _NTOP_TYPEDEFS_H_ */

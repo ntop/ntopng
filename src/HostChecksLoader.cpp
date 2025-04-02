@@ -78,7 +78,7 @@ void HostChecksLoader::registerChecks() {
   if ((fcb = new DomainNamesContacts())) registerCheck(fcb);
   if ((fcb = new ICMPFlood()))           registerCheck(fcb);
   if ((fcb = new ScanDetection()))       registerCheck(fcb);
-
+  
 #ifdef NTOPNG_PRO
   if ((fcb = new ScoreAnomaly()))        registerCheck(fcb);
   if ((fcb = new DNSFlood()))            registerCheck(fcb);
@@ -88,6 +88,7 @@ void HostChecksLoader::registerChecks() {
   if ((fcb = new RXOnlyHostScan()))      registerCheck(fcb);
   if ((fcb = new ServerPortsContacts())) registerCheck(fcb);
   if ((fcb = new NATDetected()))         registerCheck(fcb);
+  if ((fcb = new ScanRealtime()))        registerCheck(fcb);
 #endif
 
   // printChecks();
