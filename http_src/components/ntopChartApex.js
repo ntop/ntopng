@@ -82,9 +82,8 @@ const ntopChartApex = function () {
                 },
             },
             tooltip: {
-                // shared: true,
                 x: {
-                    format: "dd MMM yyyy HH:mm:ss"
+                    format: "dd MMM yyyy HH:mm"
                 },
                 y: {}
             },
@@ -92,7 +91,6 @@ const ntopChartApex = function () {
                 labels: {
                     show: true,
                     datetimeUTC: false,
-                    formatter: null,
                 },
                 axisTicks: {
                     show: false,
@@ -113,7 +111,15 @@ const ntopChartApex = function () {
             fill: {
                 type: "solid"
             },
+            plotOptions: {
+                bar: {
+                    startingShape: "rounded",
+                    endingShape: "rounded",
+                    borderRadius: 8,
+                }
+            }
         };
+
         ntopng_utility.copy_object_keys(TS_COLUMN_ChartOptions, chartOptions, true);
         return chartOptions;
     }();
@@ -412,25 +418,25 @@ const ntopChartApex = function () {
                 enabled: false
             },
             yaxis: {
-              labels: {
-                show: true, // Mostra i valori sull'asse Y
-              },
+                labels: {
+                    show: true, // Mostra i valori sull'asse Y
+                },
             },
             grid: {
-              show: true, // Abilita la griglia
-              yaxis: {
-                lines: {
-                  show: true, // Mostra le linee della griglia su Y
+                show: true, // Abilita la griglia
+                yaxis: {
+                    lines: {
+                        show: true, // Mostra le linee della griglia su Y
+                    }
                 }
-              }
             },
             plotOptions: {
-              bar: {
-                horizontal: true,
-                columnWidth: '55%',
-                borderRadius: 5,
-                borderRadiusApplication: 'end'
-              },
+                bar: {
+                    horizontal: true,
+                    columnWidth: '55%',
+                    borderRadius: 5,
+                    borderRadiusApplication: 'end'
+                },
             },
             fill: {
                 opacity: 1
@@ -438,7 +444,7 @@ const ntopChartApex = function () {
             tooltip: {
                 y: {
                     title: {
-                      formatter: () => ''
+                        formatter: () => ''
                     },
                     formatter: NtopUtils.formatValue
                 },
