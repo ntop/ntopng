@@ -455,7 +455,7 @@ function checkIf {
         esac
 	    
 	    if [[ ${TMP[@]} == "" ]]; then
-		"\n\-i=$IF" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
+		echo "-i=$IF" >> $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
 	    else
 		LINE_NUM=$(awk "/^-i=/{ print NR; exit }" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME)
 		sed -i "${LINE_NUM}s/$/ \\n\-i=$IF/" $NTOPNG_CONFIG_PATH/$NTOPNG_STD_NAME
