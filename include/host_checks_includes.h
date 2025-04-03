@@ -30,9 +30,6 @@
 
 #include "host_checks/FlowHits.h"
 #include "host_checks/FlowFlood.h"
-#include "host_checks/SYNScan.h"
-#include "host_checks/FINScan.h"
-#include "host_checks/RSTScan.h"
 #include "host_checks/ICMPFlood.h"
 
 #include "host_checks/ServerContacts.h"
@@ -44,7 +41,6 @@
 #include "host_checks/RemoteConnection.h"
 #include "host_checks/UnexpectedGateway.h"
 #include "host_checks/DomainNamesContacts.h"
-#include "host_checks/ScanDetection.h"
 
 #ifdef NTOPNG_PRO
 #include "host_checks/DNSFlood.h"
@@ -52,7 +48,6 @@
 #include "host_checks/ScoreAnomaly.h"
 #include "host_checks/FlowAnomaly.h"
 #include "host_checks/HostScanner.h"
-#include "host_checks/RXOnlyHostScan.h"
 #include "host_checks/ServerPortsContacts.h"
 #include "host_checks/NATDetected.h"
 #include "host_checks/ScanRealtime.h"
