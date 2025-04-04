@@ -848,10 +848,22 @@ export default class NtopUtils {
             const reader = new FileReader();
             reader.readAsText(file, "UTF-8");
 
-            reader.onload = function () {
+            reader.onload = function (responseJSON) {
                 // Client-side configuration file format check
                 let jsonConfiguration = null
-                try { jsonConfiguration = JSON.parse(reader.result); } catch (e) { }
+                try {
+                    jsonConfiguration = JSON.parse(reader.result);
+                } catch (e) {
+
+                    ToastUtils.showToast({
+                        id: 'import-error-toast',
+                        level: 'error',
+                        title: i18n("error"),
+                        body: e,
+                        delay: 3000
+                    });
+                    return;
+                }
 
                 if (!jsonConfiguration) {
                     $("#import-error").text(i18n_ext.rest_consts[responseJSON.rc_str] || 'Not Implemented Yet').show();

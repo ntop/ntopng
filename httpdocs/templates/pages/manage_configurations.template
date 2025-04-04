@@ -166,6 +166,7 @@ confirm_button = 'btn-danger'
             if ($(`.modal-backdrop`).length > 0) $(`.modal-backdrop`).remove()
         }
         catch (exception) {
+            console.error("Exception:", exception);
         }
         finally {
             $(this).removeAttr("disabled");
