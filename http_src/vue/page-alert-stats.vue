@@ -677,10 +677,25 @@ function click_button_acknowledge(event) {
 
 function click_button_historical_flows(event) {
     const alert = event.row;
+
+    let url = `${http_prefix}/lua/pro/db_search.lua&`
+    let host_ip = alert?.ip?.value; // get alert host ip
+
+    // If host is attacker set it as filter for historical value
+    if (alert.is_attacker) {
+        url += `cli_ip=${host_ip};eq`
+    }
+
+    if (alert.is_victim) {
+        url += `srv_ip=${host_ip};eq`
+    }
+
+    debugger;
+
     if (alert.link_to_past_flows) {
         window.location.href = alert.link_to_past_flows;
     } else {
-        window.location.href = `${http_prefix}/lua/pro/db_search.lua`;
+        window.location.href = url;
     }
 }
 
