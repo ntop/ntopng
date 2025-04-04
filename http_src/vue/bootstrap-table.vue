@@ -3,30 +3,29 @@
 -->
 <template>
   <!-- Normal table -->
-  <table v-if="!(horizontal) || (horizontal == false)" class="table col-sm-12" :class="[no_background ? 'table-borderless' : 'table-striped table-bordered' ]" style="">
+  <table v-if="!(horizontal) || (horizontal == false)" class="ntopng-table">
     <thead v-if="!hide_head">
       <tr>
         <th v-for="col in columns" scope="col" :class="col.class" v-html="print_html_column(col)"></th>
       </tr>
     </thead>
     <tbody>
-      <tr v-for="row in rows" class="">
-        <td v-if="wrap_columns == true" v-for="col in columns" scope="col" style="height:2.5rem;" :class="col.class">
+      <tr v-for="row in rows">
+        <td v-if="wrap_columns" v-for="col in columns" scope="col" :class="col.class">
           <div class="wrap-column" :style="col.style" v-html="print_html_row(col, row)"></div>
         </td>
-        <td v-else v-for="col in columns" scope="col" :class="col.class" class="wrap_column" :style="col.style"
+        <td v-else v-for="col in columns" scope="col" :class="col.class" class="wrap-column" :style="col.style"
           v-html="print_html_row(col, row)">
         </td>
       </tr>
     </tbody>
   </table>
-  <!-- Horizontal table, with th on the rows -->
-  <table v-else class="table table-striped table-bordered">
+  <table v-else class="ntopng-table">
     <tbody>
-      <tr v-for="row in rows ">
+      <tr v-for="row in rows">
         <th v-if="head_width" :class="'col-' + head_width" v-html="print_html_title(row.name)"></th>
         <th v-else class="col-2" v-html="print_html_title(row.name)"></th>
-        <td :class="row_class" style="overflow-wrap:anywhere !important; max-width: 500px;"
+        <td :class="row_class" style="overflow-wrap:anywhere; max-width: 500px;"
           :colspan="[(row.values.length <= 1) ? 2 : 1]" v-for="value in row.values" v-html="print_html_row(value)">
         </td>
       </tr>
@@ -67,10 +66,59 @@ onBeforeMount(() => {
 </script>
 
 <style scoped>
+.ntopng-table {
+  border: none;
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  margin-bottom: 1rem;
+  color: #212529;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+.ntopng-table thead th {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: 600;
+  border: none;
+  padding: 0.75rem;
+  border-bottom: 1px solid #e9ecef;
+  text-transform: capitalize;
+  position: relative;
+}
+.ntopng-table tbody tr {
+  transition: background-color 0.2s ease;
+  height: 2.75rem;
+}
+.ntopng-table tbody tr td {
+  padding: 0.5rem 0.75rem;
+  vertical-align: middle;
+  border: none;
+  border-bottom: 1px solid #e9ecef;
+  height: 2.75rem;
+}
+.ntopng-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.ntopng-table tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.03);
+}
 .wrap-column {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  max-width: 100%;
+  width: 100%;
+  color: #212529;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  padding: 0;
+  margin: 0;
+}
+@media (max-width: 768px) {
+  .ntopng-table {
+    display: block;
+    overflow-x: auto;
+  }
 }
 </style>
