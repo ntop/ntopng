@@ -30,6 +30,9 @@
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
+                            <DateTimeRangePicker id="my-picker" :enable_refresh="true" :disabled_date_picker="false"
+                                min_time_interval_id="5_min" :round_time="true">
+                            </DateTimeRangePicker>
                             <label for="alertCategory" class="form-label fw-semibold">{{
                                 _i18n("alert.graph.alert_categories") }}</label>
                             <div class="dropdown" ref="dropdownRef">
@@ -336,6 +339,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, computed, nextTick } from "vue";
 import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_globals_services.js";
+import { default as DateTimeRangePicker } from "./date-time-range-picker.vue";
 import formatterUtils from "../utilities/formatter-utils";
 import { default as Loading } from "./loading.vue";
 
@@ -526,7 +530,7 @@ async function draw_graph(redraw = false, centerIP = null) {
         .on("click", (event, d) => {
             // last clicked item is an edge
             lastClickedElementIsNode.value = false;
-            
+
             // a link is an alert
             selectedAlertData.value.alerts_count = d.weight;
             selectedAlertData.value.alert_type = d.label.alert;
@@ -687,6 +691,13 @@ async function draw_graph(redraw = false, centerIP = null) {
         .attr("stroke", "#212121")
         .attr("stroke-width", 1);
 
+    nodeGroup.append("text")
+        .attr("x", 0)
+        .attr("y", nodeRadius + 12)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "12px")
+        .text(d => d.id);
+
     // Add Bootstrap tooltips to nodes
     nodeGroup.each(function (d) {
         $(this).tooltip({
@@ -820,31 +831,53 @@ async function draw_graph(redraw = false, centerIP = null) {
             height: height / transform.k
         };
 
-        // Visible coordinates set in minimap
-        const minimapViewX = minimapXScale(visibleBounds.x);
-        const minimapViewY = minimapYScale(visibleBounds.y);
-        const minimapViewWidth = minimapXScale(visibleBounds.x + visibleBounds.width) - minimapViewX;
-        const minimapViewHeight = minimapYScale(visibleBounds.y + visibleBounds.height) - minimapViewY;
+        // Calculate the center point of the visible area
+        const centerX = visibleBounds.x + visibleBounds.width / 2;
+        const centerY = visibleBounds.y + visibleBounds.height / 2;
 
-        // Max zoom
+        // Use the larger dimension to create a square viewport
+        const maxDimension = Math.max(visibleBounds.width, visibleBounds.height);
+
+        // Calculate the square bounds centered on the same point
+        const squareBounds = {
+            x: centerX - maxDimension / 2,
+            y: centerY - maxDimension / 2,
+            width: maxDimension,
+            height: maxDimension
+        };
+
+        // Map to minimap coordinates
+        const minimapViewX = minimapXScale(squareBounds.x);
+        const minimapViewY = minimapYScale(squareBounds.y);
+        const minimapViewWidth = minimapXScale(squareBounds.x + squareBounds.width) - minimapViewX;
+        const minimapViewHeight = minimapYScale(squareBounds.y + squareBounds.height) - minimapViewY;
+
+        // Min viewport size
         const minViewportDimension = 10;
         const adjustedViewWidth = Math.max(minimapViewWidth, minViewportDimension);
         const adjustedViewHeight = Math.max(minimapViewHeight, minViewportDimension);
 
+        // Make the view a square
+        const squareSize = Math.max(adjustedViewWidth, adjustedViewHeight);
+
+        // Center the square on the original center point
+        const squareCenterX = minimapXScale(centerX);
+        const squareCenterY = minimapYScale(centerY);
+
+        // Calculate the top-left corner of the square
+        let squareX = squareCenterX - squareSize / 2;
+        let squareY = squareCenterY - squareSize / 2;
+
         // Constrain viewport to the minimap boundaries
-        const constrainedX = Math.max(0, Math.min(contentWidth - adjustedViewWidth, minimapViewX));
-        const constrainedY = Math.max(0, Math.min(contentHeight - adjustedViewHeight, minimapViewY));
+        squareX = Math.max(0, Math.min(contentWidth - squareSize, squareX));
+        squareY = Math.max(0, Math.min(contentHeight - squareSize, squareY));
 
-        // Constrain viewport width and height
-        const constrainedWidth = Math.min(contentWidth - constrainedX, adjustedViewWidth);
-        const constrainedHeight = Math.min(contentHeight - constrainedY, adjustedViewHeight);
-
-        // Update the viewport rectangle
+        // Update the viewport with a square shape
         viewport
-            .attr("x", constrainedX)
-            .attr("y", constrainedY)
-            .attr("width", constrainedWidth)
-            .attr("height", constrainedHeight);
+            .attr("x", squareX)
+            .attr("y", squareY)
+            .attr("width", Math.min(contentWidth - squareX, squareSize))
+            .attr("height", Math.min(contentHeight - squareY, squareSize));
     }
 
     // Make the minimap clickable to navigate
@@ -1299,7 +1332,7 @@ function resetGraph() {
 .graph-content {
     width: 100%;
     height: 100%;
-    min-height: 700px;
+    min-height: 60vh;
 }
 
 .card {
