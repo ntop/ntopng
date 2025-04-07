@@ -397,6 +397,18 @@ local menu_subpages = {{
         }
     }
 }, {
+    id = "notifications",
+    label = i18n("prefs.notifications"),
+    advanced = false,
+    pro_only = false,
+    hidden = false,
+    entries = {
+        toggle_starttls = {
+            title = i18n("prefs.toggle_toggle_starttls_title"),
+            description = i18n("prefs.toggle_toggle_starttls_description")
+        },
+    }
+},{
     id = "discovery",
     label = i18n("prefs.network_discovery"),
     advanced = false,

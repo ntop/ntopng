@@ -2296,6 +2296,7 @@ local known_parameters = {
     ["toggle_behaviour_analysis"] = validateBool,
     ["toggle_use_mac_in_flow_key"] = validateBool,
     ["toggle_fingerprint_stats"] = validateBool,
+    ["toggle_starttls"] = validateBool,
     ["behaviour_analysis_learning_period"] = validateNumber,
     ["behaviour_analysis_learning_status_during_learning"] = validateNumber,
     ["behaviour_analysis_learning_status_post_learning"] = validateNumber,
