@@ -24,28 +24,10 @@
 ndpi_serializer* ScanRealtimeAlert::getAlertJSON(ndpi_serializer* serializer) {
     #ifdef NTOPNG_PRO
         if (serializer == NULL) return NULL;
-        ndpi_serialize_string_uint64(serializer, "attack_type", attack_type);
-        if (attack_type == scan_alert_scan_detention){
-            ndpi_serialize_string_uint64(serializer, "value", num_incomplete_flows);
-            ndpi_serialize_string_uint64(serializer, "threshold",
-                                        num_incomplete_flows_threshold);
-            ndpi_serialize_string_boolean(serializer, "is_rx_only", false);
-        }
-        else if (attack_type == scan_alert_rx_only)
-        {
-            ndpi_serialize_string_uint64(serializer, "num_server_ports", num_server_ports);
-            ndpi_serialize_string_uint64(serializer, "as_server", as_server);
-            ndpi_serialize_string_uint64(serializer, "as_server_threshold", as_server_threshold);
-            ndpi_serialize_string_boolean(serializer, "is_rx_only", true);
-
-        }
-        else if (attack_type == scan_alert_syn ||
-                attack_type == scan_alert_fin ||
-                attack_type == scan_alert_rst){
-            ndpi_serialize_string_boolean(serializer, "is_attacker", attacker);
-            ndpi_serialize_string_uint64(serializer, "value", hits);
-            ndpi_serialize_string_uint64(serializer, "threshold", sfr_threshold);
-        }
+        ndpi_serialize_start_of_list(serializer, "alerts");
+        for(ScanAlertType alert : alerts)
+            ndpi_serialize_string_uint64(serializer, "alerts_addr", alert);
+        ndpi_serialize_end_of_list(serializer);
     #endif
     
     return serializer;

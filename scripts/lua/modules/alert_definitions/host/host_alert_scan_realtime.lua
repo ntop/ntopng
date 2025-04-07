@@ -16,6 +16,13 @@ local mitre = require "mitre_utils"
 
 local host_alert_scan_realtime = classes.class(alert)
 
+local alert_table = {
+  [0] = "Incomplete Flows Scan",
+  [1] = "RX-only Host Scan",
+  [2] = "SYN Scan",
+  [3] = "FIN Scan",
+  [4] = "RST Scan"
+}
 -- ##############################################
 
 host_alert_scan_realtime.meta = {
@@ -24,7 +31,11 @@ host_alert_scan_realtime.meta = {
   icon = "fas fa-exclamation-triangle",
 
    -- Mitre Att&ck Matrix values
-  mitre_values = {},
+  mitre_values = {
+    mitre_tactic = mitre.tactic.reconnaissance,
+    mitre_technique = mitre.technique.active_scanning,
+    mitre_id = "T1595"
+  },
   has_attacker = true,
 }
 
@@ -47,50 +58,15 @@ function host_alert_scan_realtime.format(ifid, alert, alert_type_params)
   local alert_consts = require("alert_consts")
   local entity = alert_consts.formatHostAlert(ifid, alert["ip"], alert["vlan_id"])
   local i18n_key
-  if alert_type_params.attack_type == 0 then
-    local formatted_alert_type_params = alert_creators.createThresholdCross(
-                                      alert_type_params.metric, 
-                                      alert_type_params.value, 
-                                      alert_type_params.operator, 
-                                      alert_type_params.threshold)
-
-    return i18n("alert_messages.scan_detected", {
-      entity = entity,
-      value = string.format("%u", math.ceil(formatted_alert_type_params.value or 0)),
-      threshold = formatted_alert_type_params.threshold or 0,
-    })
-  elseif alert_type_params.attack_type == 1 then
-    return i18n("alert_messages.rx_scan_detected",{
-      entity = entity,
-      as_server = alert_type_params.as_server,
-      num_server_ports = alert_type_params.num_server_ports,
-    })
-  else
-    if alert_type_params.attack_type == 2 then
-      if alert_type_params.is_attacker then
-        i18n_key = "alert_messages.syn_scan_attacker"
-      else
-        i18n_key = "alert_messages.syn_scan_victim"
-      end
-    elseif alert_type_params.attack_type == 3 then 
-      if alert_type_params.is_attacker then
-        i18n_key = "alert_messages.fin_scan_attacker"
-      else
-        i18n_key = "alert_messages.fin_scan_victim"
-      end
-    elseif alert_type_params.attack_type == 4 then
-      if alert_type_params.is_attacker then
-        i18n_key = "alert_messages.rst_scan_attacker"
-      else
-        i18n_key = "alert_messages.rst_scan_victim"
-      end
-    end
-    return i18n(i18n_key, {
-      entity = entity,
-      value = string.format("%u", math.ceil(alert_type_params.value or 0)),
-      threshold = alert_type_params.threshold or 0,
-    })
+  local alerts = ""
+  for i, alert in ipairs(alert_type_params.alerts) do
+    alerts = alerts .. alert_table[alert] .. ", "
   end
+  alerts = string.sub(alerts, 1, -3)
+  return i18n("alert_messages.scan_realtime",{
+    entity = entity,
+    alerts = alerts
+  })
 end
 
 -- #######################################################

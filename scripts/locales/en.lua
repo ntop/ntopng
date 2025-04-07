@@ -1296,6 +1296,7 @@ local lang = {
     ["shell_script_executed"] = "Shell script '%{script_exec_comm}' executed in response of an alert: '%{alert_type}'",
     ["slow_periodic_activity"] = "Periodic activity \"%{script}\" running for too long [more than %{max_duration}] or executed too late (blocked in queue).",
     ["redis_reads_writes_exceeded"] = "Anomalous number of Redis read and write operations.",
+    ["scan_realtime"] = "%{entity} is a scanner [%{alerts}]",
     ["snmp_flood_attacker"] = "%{entity} is a SNMP flooder [%{value} &gt; %{threshold} client SNMP Flows/sec for ~3 sec]",
     ["snmp_flood_victim"] = "%{entity} is under SNMP flood attack [%{value} &gt; %{threshold} server SNMP Flows/sec for ~3 sec]",
     ["speedtest_failed"] = "Host %{host} %{numeric_ip} speedtest execution failed.",

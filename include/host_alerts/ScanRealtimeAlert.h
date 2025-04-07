@@ -27,7 +27,7 @@
 class ScanRealtimeAlert : public HostAlert {
   private:
     ndpi_serializer* getAlertJSON(ndpi_serializer* serializer);
-    ScanAlertType attack_type;
+    std::vector<ScanAlertType> alerts;
     // Scan Detention
     u_int32_t num_incomplete_flows; u_int32_t num_incomplete_flows_threshold;
     // Rx only
@@ -42,29 +42,9 @@ class ScanRealtimeAlert : public HostAlert {
     
     u_int8_t getAlertScore() const { return SCORE_LEVEL_WARNING; };
 
-    ScanRealtimeAlert(HostCheck* c, Host* h,risk_percentage cli_pctg, ScanAlertType attack,
-        u_int32_t _num_incomplete_flows, u_int32_t _num_incomplete_flows_threshold)
+    ScanRealtimeAlert(HostCheck* c, Host* h,risk_percentage cli_pctg, std::vector<ScanAlertType> _alerts)
         : HostAlert(c, h, cli_pctg) {
-      attack_type = attack;
-      num_incomplete_flows = _num_incomplete_flows;
-      num_incomplete_flows_threshold = _num_incomplete_flows_threshold;
-    };
-    ScanRealtimeAlert(HostCheck* c, Host* h,risk_percentage cli_pctg, ScanAlertType attack,
-        u_int16_t _num_server_ports, u_int32_t _as_server, u_int32_t _as_server_threshold)
-        : HostAlert(c, h, cli_pctg) {
-      attack_type = attack;
-      num_server_ports = _num_server_ports;
-      as_server = _as_server;
-      as_server_threshold = _as_server_threshold;
-    };
-
-    ScanRealtimeAlert(HostCheck* c, Host* h,risk_percentage cli_pctg, ScanAlertType attack,
-        u_int16_t _hits, u_int64_t _threshold, bool _attacker)
-        : HostAlert(c, h, cli_pctg) {
-      attack_type = attack;
-      hits = _hits;
-      sfr_threshold = _threshold;
-      attacker = _attacker;
+      alerts = _alerts;
     };
     ~ScanRealtimeAlert(){};
 
