@@ -65,20 +65,26 @@ onMounted(() => {
         load_menu();
     }
     let el = { dropdown: dropdown.value, dropdown_button: dropdown_button.value };
+   
     $(dropdown.value).on('show.bs.dropdown', function () {
+        console.log('Setting dropdown z-index to auto');
         $(dropdown.value).parent().closest('div').css('overflow', "visible");
         $(dropdown.value).parent().closest('div').css('z-index', 'auto');
         $(dropdown.value).parent().closest('div')[0].style.setProperty('overflow', 'visible', 'important');
         $(dropdown.value).parent().closest('div')[0].style.setProperty('z-index', 'auto', 'important');
+        
+        $(this).find('.dropdown-menu').css('z-index', '1050');
+        
         if (props.f_on_open != null) {
             props.f_on_open(el);
         }
     });
+    
     $(dropdown.value).on('hide.bs.dropdown', function () {
-        $(dropdown.value).parent().closest('div').css('overflow', default_overflow);
-        $(dropdown.value).parent().closest('div').css('z-index', '1');
+
+        $(dropdown.value).parent().closest('div').css('overflow', default_overflow);        
         $(dropdown.value).parent().closest('div')[0].style.setProperty('overflow', default_overflow, 'important');
-        $(dropdown.value).parent().closest('div')[0].style.setProperty('z-index', '1', 'important');
+        
         if (props.f_on_close != null) {
             props.f_on_close(el);
         }
@@ -135,7 +141,4 @@ defineExpose({ load_menu });
 </script>
 
 <style scoped>
-.dropdown-item {
-    cursor: pointer;
-}
 </style>
