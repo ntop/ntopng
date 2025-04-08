@@ -23,8 +23,12 @@ host_alert_scan.meta = {
   i18n_title = "alerts_dashboard.scan_title",
   icon = "fas fa-exclamation-triangle",
 
-   -- Mitre Att&ck Matrix values
-  mitre_values = {},
+  -- Mitre Att&ck Matrix values
+  mitre_values = {
+    mitre_tactic = mitre.tactic.reconnaissance,
+    mitre_technique = mitre.technique.active_scanning,
+    mitre_id = "T1595"
+  },
   has_attacker = true,
 }
 
@@ -33,14 +37,14 @@ host_alert_scan.meta = {
 -- @brief Prepare an alert table used to generate the alert
 -- @return A table with the alert built
 function host_alert_scan:init(ifid, attacker, victim, num_victims, attack)
-   self.super:init()
-   self.alert_type_params = {
-     ifid = ifid,
-     attacker = attacker,
-     victim = victim,
-     num_victims = num_victims,
-     attack = attack
-   }
+  self.super:init()
+  self.alert_type_params = {
+    ifid = ifid,
+    attacker = attacker,
+    victim = victim,
+    num_victims = num_victims,
+    attack = attack
+  }
 end
 
 -- #######################################################

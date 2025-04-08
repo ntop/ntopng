@@ -111,14 +111,18 @@ local function iterative_src_dst_alert(params, results, report_victim, attack)
       end
       -- report a victim (If enabled)
       if report_victim then
-         report_alert(params, attacker_ip, vlan_id, victim_ip, 0, true, attack)
+         if attacker_ip ~= "" then
+            report_alert(params, attacker_ip, vlan_id, victim_ip, 0, true, attack)
+         end
       end
    end
    -- attacker_data[1] = top 3 victims, attacker_data[2] = total victims
    for attacker_ip, attacker_data in pairs(scan_map) do
       local ip, vlan_id = string.match(attacker_ip, "([^_]+)_(%d+)")
       -- report attacker
-      report_alert(params, ip, vlan_id, attacker_data[1], attacker_data[2], false, attack)
+      if attacker_ip ~= "" then
+         report_alert(params, ip, vlan_id, attacker_data[1], attacker_data[2], false, attack)
+      end
    end
    return scan_map
 end
@@ -205,7 +209,9 @@ local function scan_check(params)
       local attacker_ip = row.ip_src
       local victim_port = row.dst_port
       local victim = row.ip_dst
-      report_alert(params, attacker_ip, vlan_id, victim, victim_port, false, "Service Down")
+      if attacker_ip ~= "" then
+         report_alert(params, attacker_ip, vlan_id, victim, victim_port, false, "Service Down")
+      end
    end
 
    -- Service Scan
@@ -246,7 +252,9 @@ local function scan_check(params)
       if results_port[attacker_key] == nil or results_port[attacker_key][2] < 10 then
          local victim_port = row.dst_port
          local num_victim = row.count_ip_dst
-         report_alert(params, attacker_ip, vlan_id, victim_port, num_victim, false, "Service")
+         if attacker_ip ~= "" then
+            report_alert(params, attacker_ip, vlan_id, victim_port, num_victim, false, "Service")
+         end
       end
    end
 
@@ -287,7 +295,9 @@ local function scan_check(params)
       if service_attackers[attacker_key] == nil then
          local victim_network = getLocalNetworkAliasById(row.dst_network)
          local num_victim = row.count_ip_dst
-         report_alert(params, attacker_ip, vlan_id, victim_network, num_victim, false, "Network")
+         if attacker_ip ~= "" then
+            report_alert(params, attacker_ip, vlan_id, victim_network, num_victim, false, "Network")
+         end
       end
    end
 end
