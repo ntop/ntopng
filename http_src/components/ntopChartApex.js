@@ -13,6 +13,7 @@ const ntopChartApex = function () {
             height: "100%",
             width: "100%",
             toolbar: {
+                show: false,
                 tools: {
                     zoomout: false,
                     download: false,
@@ -77,7 +78,7 @@ const ntopChartApex = function () {
                 stacked: true,
                 type: "bar",
                 zoom: {
-                    enabled: true,
+                    enabled: false,
                     type: "x",
                 },
             },
@@ -132,7 +133,7 @@ const ntopChartApex = function () {
                 stacked: true,
                 type: "area",
                 zoom: {
-                    enabled: true,
+                    enabled: false,
                     type: "x",
                 },
             },
@@ -461,7 +462,7 @@ const ntopChartApex = function () {
             chart: {
                 type: "line",
                 zoom: {
-                    enabled: true,
+                    enabled: false,
                     type: "x",
                 },
             },

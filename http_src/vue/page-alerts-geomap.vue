@@ -2,7 +2,7 @@
     <div class="geomap-container" ref="mapContainer">
         <div v-if="loading" class="loading-overlay">
             <div class="loading-spinner"></div>
-            <div class="loading-text">Loading Threat Intelligence...</div>
+            <div class="loading-text">Loading ...</div>
         </div>
         <div ref="tooltipElement" class="tooltip">
             <div class="tooltip-content">
@@ -11,9 +11,6 @@
             </div>
         </div>
         <div class="map-controls">
-            <button @click="resetZoom" class="control-button">
-                <span class="button-icon">⟲</span> Reset View
-            </button>
             <div class="legend">
                 <div class="legend-title">Alert Severity</div>
                 <div class="legend-item">
@@ -98,14 +95,6 @@ const initializeMap = async () => {
         .attr('width', width)
         .attr('height', height)
         .attr('viewBox', [0, 0, width, height]);
-
-    // Add a background rect for zoom reset - cybersecurity theme background
-    svg.append('rect')
-        .attr('width', width)
-        .attr('height', height)
-        .attr('fill', '#0f172a')  // Dark blue background
-        .style('cursor', 'pointer')
-        .on('dblclick', resetZoom);
 
     // Create a group for zoom/pan behavior
     zoomGroup = svg.append('g');
@@ -286,14 +275,6 @@ const initializeMap = async () => {
     loading.value = false;
 };
 
-// Reset zoom function
-const resetZoom = () => {
-    svg.transition().duration(750).call(
-        d3.zoom().transform,
-        d3.zoomIdentity,
-        d3.zoomTransform(svg.node()).invert([width / 2, height / 2])
-    );
-};
 
 // Fetch and process alert data
 const getAlertsData = async () => {
