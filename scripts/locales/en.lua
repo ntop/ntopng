@@ -2575,6 +2575,7 @@ local lang = {
     ["alerts"] = "Alerts",
     ["alerts_analysis"] = "Flow Alerts Analyser",
     ["alerts_graph"] = "Alerts Graph",
+    ["alerts_geomap"] = "Alerts Geomap",
     ["alerts_list"] = "Explorer",
     ["arp_replies"] = "ARP Replies",
     ["arp_requests"] = "ARP Requests",

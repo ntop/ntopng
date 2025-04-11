@@ -329,7 +329,11 @@ else
             }, {
                 entry = page_utils.menu_entries.alerts_graph,
                 url = "/lua/pro/alerts_graph.lua",
-                hidden = (not ntop.isEnterpriseL() and not ntop.isnEdgeEnterprise())
+                hidden = true or (not ntop.isEnterpriseXL())
+            }, {
+                entry = page_utils.menu_entries.alerts_geomap,
+                url = "/lua/pro/alerts_geomap.lua",
+                hidden = true or (not ntop.isEnterpriseXL())
             },
             {
                 entry = page_utils.menu_entries.alerts_analysis,
