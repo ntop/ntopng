@@ -1090,9 +1090,12 @@ li.select2-selection__choice {
 
 
 .ntopng-table tbody tr:hover {
-  background-color: rgba(0, 123, 255, 0.03) !important;
+  background-color: rgba(0, 123, 255, 0.08) !important;
 }
 
+.ntopng-table tbody tr:nth-of-type(odd) {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
 .table-striped tbody tr:nth-of-type(odd),
 .table-striped tbody tr:nth-of-type(even) {
   background-color: transparent !important;

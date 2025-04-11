@@ -31,6 +31,12 @@ git checkout ntopng.js
 cp ../ntopng/httpdocs/dist/ntopng.js ./ || exit 1
 echo "Copied ntopng.js"
 
+cp ../ntopng/httpdocs/dist/dark-mode.css ./ || exit 1
+echo "Copied dark-mode.css"
+
+cp ../ntopng/httpdocs/dist/white-mode.css ./ || exit 1
+echo "Copied white-mode.css"
+
 
 git add ntopng.js || exit 1
 git add dark-mode.css || exit 1
