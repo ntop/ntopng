@@ -2745,6 +2745,7 @@ local known_parameters = {
     ["pcap"] = validatePcap,
     ["uploaded_file"] = validateUploadedFile,
     ["create_new_iface"] = validateBool,
+    ["dump_pcap_on_clickhouse"] = validateBool,
 
     -- See https://github.com/ntop/ntopng/issues/4275
     ["csrf"] = validateSingleWord,

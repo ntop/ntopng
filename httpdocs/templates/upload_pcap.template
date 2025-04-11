@@ -5,7 +5,7 @@
 
 <script type="text/javascript">
     function get_action(form) {
-	form.action = form.action+"?create_new_iface="+document.getElementById('create_new_interface').checked;
+	form.action = form.action+"?create_new_iface="+document.getElementById('create_new_interface').checked+"&dump_pcap_on_clickhouse="+document.getElementById('dump_pcap_on_clickhouse').checked;
     }
 
 function upload_check()
@@ -32,7 +32,12 @@ function upload_check()
  disabled checked 
 {% end %}
 type="checkbox" class="form-check-input" id="create_new_interface"></span><br><small>{{ i18n("create_new_pcap_iface_descr") }} </small></br></td></tr>
-
+<tr><th>{{ i18n("dump_pcap_on_clickhouse") }}</th><td align=left><span class="form-switch"><input
+{% if(enclickhouse ~= true) then %}
+ disabled 
+{% end %}
+type="checkbox" class="form-check-input" id="dump_pcap_on_clickhouse"></span><br><small>{{ i18n("dump_pcap_on_clickhouse_descr") }} </small></br></td></tr>
+    
     <tr><td colspan=2><input type="submit" class="btn btn-primary" value="{{ i18n("upload_pcap") }}"></td></tr>
    </form>
 

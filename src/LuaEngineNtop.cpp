@@ -1687,6 +1687,7 @@ static int ntop_register_runtime_interface(lua_State *vm) {
   char *source = NULL, *name = NULL;
   int if_id = -1, new_if_id = -99;
   bool create_new_interface;
+  bool dump_on_clickhouse;
   NetworkInterface *iface = getCurrentInterface(vm);
 
   ntop->getTrace()->traceEvent(TRACE_DEBUG, "%s() called", __FUNCTION__);
@@ -1699,6 +1700,10 @@ static int ntop_register_runtime_interface(lua_State *vm) {
     return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
   create_new_interface = (bool)lua_toboolean(vm, 3);
 
+  if (ntop_lua_check(vm, __FUNCTION__, 4, LUA_TBOOLEAN) != CONST_LUA_OK)
+    return (ntop_lua_return_value(vm, __FUNCTION__, CONST_LUA_ERROR));
+  dump_on_clickhouse = (bool)lua_toboolean(vm, 4);
+  
   if (lua_type(vm, 4) == LUA_TNUMBER) {
     if_id = (u_int32_t)lua_tonumber(vm, 4);
     create_new_interface = false;

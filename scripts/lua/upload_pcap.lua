@@ -20,7 +20,7 @@ dofile(dirs.installdir .. "/scripts/lua/inc/menu.lua")
 local ifstats = interface.getStats()
 
 if isAdministrator() then
-   print(template.gen("upload_pcap.template", { iftype = ifstats.type }))
+   print(template.gen("upload_pcap.template", { iftype = ifstats.type, enclickhouse = hasClickHouseSupport()}))
 end   
 
 dofile(dirs.installdir .. "/scripts/lua/inc/footer.lua")

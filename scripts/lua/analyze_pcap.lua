@@ -1,5 +1,5 @@
 --
--- (C) 2013-21 - ntop.org
+-- (C) 2013-25 - ntop.org
 --
 
 local dirs = ntop.getDirs()
@@ -24,10 +24,17 @@ else
    create_new_iface = false
 end
 
+if(_POST.dump_pcap_on_clickhouse == "true") then
+   dump_pcap_on_clickhouse = true
+else
+   dump_pcap_on_clickhouse = false
+end
+
 if(_POST.uploaded_file ~= nil) then
    local iface_id = ntop.registerRuntimeInterface('pcap:' .. _POST.uploaded_file, -- pcap path
      _POST.uploaded_file, -- interface name
-     create_new_iface) -- create new or reuse
+     create_new_iface, -- create new or reuse
+     dump_pcap_on_clickhouse)
 
    if iface_id and iface_id > 0 then
       print(template.gen("analyze_pcap.template", { iface_id = toint(iface_id) }))
