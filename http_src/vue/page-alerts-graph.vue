@@ -25,16 +25,6 @@
                             </div>
                         </template>
                     </RangePicker>
-                    <!--
-
-                        <div class="d-flex justify-content-end mt-3">
-                            <button class="btn btn-outline-secondary me-2" @click="reset_filters">
-                                <i class="fa-solid fa-clock-rotate-left"></i> {{ _i18n("alert.graph.reset") }}
-                            </button>
-                            <button class="btn btn-primary" @click="applyFilters">
-                                <i class="fa-solid fa-magnifying-glass"></i> {{ _i18n("alert.graph.apply") }}
-                            </button>
-                        </div>-->
                 </div>
             </div>
             <!-- Graph Visualization Section - Full width when no node selected -->
@@ -97,9 +87,10 @@
 
                                     <div class="col-12">
                                         <span class="detail-label">{{ _i18n("alert.graph.live_flows") }}</span>
-                                        <a :href="activeFlows.live_flows_url" target="_blank" class="fw-bold">
+                                        <a v-if="selectedNode" :href="activeFlows.live_flows_url" target="_blank" class="fw-bold">
                                             {{ activeFlows.recordsTotal }}
                                         </a>
+                                        <a v-else class="disabled">0</a>
                                     </div>
                                     <div class="col-12">
                                         <a :href="hist_flows_url" target="_blank" class="fw-bold">
@@ -334,7 +325,6 @@ import { ntopng_utility, ntopng_url_manager } from "../services/context/ntopng_g
 import { default as RangePicker } from "./range-picker.vue";
 import formatterUtils from "../utilities/formatter-utils";
 import { default as Loading } from "./loading.vue";
-import { default as Spinner } from "./spinner.vue";
 
 const _i18n = (t) => i18n(t);
 const d3 = d3v7;
@@ -449,24 +439,31 @@ const filterCategories = (event) => {
 /**************************** GRAPH FUNCTIONS ******************************* */
 async function draw_graph(redraw = false, centerIP = null) {
     loading.value = true;
+    debugger
+    // remove svg if there was a new filter
+    d3.select(alerts_graph.value).selectAll("*").remove();
+
     // remove old tooltips
     $('.tooltip').remove();
     $('[data-toggle="tooltip"]').tooltip('dispose');
 
     if (redraw && links.length === 0 && nodes.length === 0) {
+
         const data = await get_links_and_nodes();
+
         links = data.links;
         nodes = data.nodes;
     }
 
     if (nodes.length === 0) {
         no_data.value = true;
+        loading.value = false;
+        hostDataLoading.value = false;
         return;
+
     } else {
         no_data.value = false;
     }
-
-    d3.select(alerts_graph.value).select("svg").remove();
 
     const width = alerts_graph.value.clientWidth || alerts_graph.value.offsetWidth || alerts_graph.value.getBoundingClientRect().width;
     const height = alerts_graph.value.clientHeight || 500;
@@ -494,6 +491,7 @@ async function draw_graph(redraw = false, centerIP = null) {
     selectedNode.value = maxNode.id;
     // add filter to url
     add_filter('ip', selectedNode.value);
+    await get_host_info();
 
     // Node color scale based on alert count
     const nodeColorScale = d3.scaleSequential()
@@ -1012,13 +1010,10 @@ const get_alerts_data = async function () {
             "Content-Type": "application/json",
         };
         const rsp = await ntopng_utility.http_request(url, { method: "get", headers });
+        no_data.value = false;
+        
+        return rsp;
 
-        if (rsp) {
-            no_data.value = false;
-            return rsp;
-        }
-
-        return [];
     } catch (err) {
         console.error(err);
     }
@@ -1062,8 +1057,8 @@ const get_host_info = async function () {
 
         if (rsp) {
             selectedNodeData.value = rsp
-            hostDataLoading.value = false;
         }
+        hostDataLoading.value = false;
 
         return [];
     } catch (err) {
@@ -1197,8 +1192,7 @@ onMounted(async () => {
     window.addEventListener("resize", resize);
     document.addEventListener('click', handleClickOutside);
 
-    // get host info and active flows value
-    await get_host_info();
+    // get active flows value
     activeFlows.value = await get_active_flows();
 
     document.addEventListener("click", (event) => {
@@ -1243,7 +1237,8 @@ onBeforeUnmount(() => {
 });
 
 watch(minScore, (newValue) => {
-    add_filter('score', newValue);
+    let score_greater_equal = newValue + ";gte";
+    add_filter('score', score_greater_equal);
 });
 
 watch(maxAlerts, (newValue) => {
@@ -1256,6 +1251,8 @@ watch(alertCategories, (newCategories) => {
 
 function init_url_params() {
     ntopng_url_manager.set_key_to_url("ifid", ifid);
+    // This is to retrieve all alerts and not filter on engaged or require attention
+    ntopng_url_manager.set_key_to_url("status", "any");
 
     if (ntopng_url_manager.get_url_entry("epoch_begin") == null
         || ntopng_url_manager.get_url_entry("epoch_end") == null) {
@@ -1267,7 +1264,8 @@ function init_url_params() {
     }
 
     // initial filters
-    ntopng_url_manager.set_key_to_url("score", minScore.value);
+    let score_greater_equal = minScore.value + ";gte";
+    ntopng_url_manager.set_key_to_url("score", score_greater_equal);
     ntopng_url_manager.set_key_to_url("limit", maxAlerts.value);
     ntopng_url_manager.set_key_to_url("severity", "");
 
@@ -1301,6 +1299,7 @@ const get_extra_params_obj = () => {
 
 const create_url = (url) => {
     let req_params = get_extra_params_obj();
+
     let params_inserted = 0;
 
     for (let param in req_params) {
@@ -1317,24 +1316,17 @@ const create_url = (url) => {
 }
 
 function resetGraph() {
-    // Check if we have the original data cached
-    if (sourceNodes.value.length === 0 || destNodes.value.length === 0) {
-        // If we don't have cached data, we'll need to fetch it again
-        draw_graph(true);
-        return;
-    }
-
-    // Restore original nodes and links from cache
-    nodes = [...sourceNodes.value];
-    links = [...destNodes.value];
-
-    // Redraw the graph with the full dataset
-    // false parameter means don't fetch new data
+    // Reset data and fetch fresh data from the server
+    links = [];
+    nodes = [];
+    
+    // Redraw the graph with fresh data
     draw_graph(true);
-
+    
     // Reset any filters or selections
     selectedNode.value = null;
-
+    
+    // Reset filters to default values
     reset_filters();
 }
 /******************************************************************************/

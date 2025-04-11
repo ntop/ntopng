@@ -33,6 +33,8 @@ echo "Copied ntopng.js"
 
 
 git add ntopng.js || exit 1
+git add dark-mode.css || exit 1
+git add white-mode.css || exit 1
 
 git commit -m 'updated dist' || exit 1
 echo "Committed"

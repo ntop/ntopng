@@ -999,3 +999,202 @@ li.select2-selection__choice {
 .invalid {
   border: 1px solid red;
 }
+
+/* Table Styling */
+/* D3 */
+
+.d3-tooltip {
+  position: absolute;
+  z-index: 1070;
+  font-size: 12px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  padding: 5px;
+  pointer-events: none;
+}
+
+.ntopng-table {
+  border: none !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  width: 100% !important;
+  margin-bottom: 1rem !important;
+  color: #212529 !important;
+  border-radius: 8px !important;
+  overflow: visible !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+}
+
+
+.ntopng-table thead th {
+  background-color: #f8f9fa !important;
+  color: bold !important;
+  font-weight: 600 !important;
+  border: none !important;
+  padding: 0.75rem 0.75rem !important;
+  border-bottom: 1px solid #e9ecef !important;
+  text-transform: capitalize !important;
+  position: relative !important;
+}
+
+
+.ntopng-table th:not(:last-child)::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 25% !important;
+  right: 0 !important;
+  height: 50% !important;
+  width: 2px !important;
+  background: #dee2e6 !important;
+  cursor: col-resize !important;
+}
+
+.ntopng-table th:not(:last-child):hover::after {
+  background: #adb5bd !important;
+}
+
+.ntopng-table th.resizing::after {
+  background: #0d6efd !important;
+  width: 3px !important;
+}
+
+
+.ntopng-table tbody tr {
+  border: none !important;
+  transition: background-color 0.2s ease !important;
+  height: 2.75rem !important;
+}
+
+.ntopng-table tbody tr td {
+  padding: 0.5rem 0.75rem !important;
+  vertical-align: middle !important;
+  border: none !important;
+  border-bottom: 1px solid #e9ecef !important;
+  height: 2.75rem !important;
+  position: relative !important;
+  overflow: visible !important;
+}
+
+
+.ntopng-table tbody tr:empty {
+  height: 2.75rem !important;
+}
+
+
+.ntopng-table tbody tr:last-child td {
+  border-bottom: none !important;
+  position: relative !important;
+  overflow: visible !important;
+}
+
+
+.ntopng-table tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.03) !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd),
+.table-striped tbody tr:nth-of-type(even) {
+  background-color: transparent !important;
+}
+
+.wrap-column {
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  color: #212529 !important;
+  line-height: 1.4 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  pointer-events: auto !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.fa-sort, .fa-sort-up, .fa-sort-down {
+  margin-left: 0.5rem !important;
+  opacity: 0.6 !important;
+}
+
+// pagination link button 
+.page-link {
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 0.4rem 0.65rem !important;
+  color: #495057 !important;
+  font-weight: 500 !important;
+  font-size: 0.85rem !important;
+  transition: all 0.2s ease !important;
+  background-color: #f8f9fa !important;
+  line-height: 1.2 !important;
+}
+
+.page-link:hover {
+  background-color: #e9ecef !important;
+  color: #0d6efd !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08) !important;
+}
+
+.page-item.active .page-link {
+  background-color: #0d6efd !important;
+  color: white !important;
+  box-shadow: 0 2px 5px rgba(13, 110, 253, 0.3) !important;
+}
+
+.page-item.disabled .page-link {
+  background-color: #f1f3f5 !important;
+  color: #adb5bd !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+@media (max-width: 768px) {
+  .ntopng-table {
+    display: block !important;
+    overflow-x: auto !important;
+  }
+  
+  input[type="search"] {
+    width: 150px !important;
+  }
+  
+  input[type="search"]:focus {
+    width: 170px !important;
+  }
+}
+
+.ntopng-gray-out {
+  opacity: 0.6 !important;
+  pointer-events: none !important;
+}
+
+.centered-message {
+  text-align: center !important;
+  padding: 1rem !important;
+  color: #6c757d !important;
+  font-style: italic !important;
+}
+
+.query {
+  color: #6c757d !important;
+  font-size: 0.75rem !important;
+}
+
+.badge.bg-secondary {
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-size: 0.7rem !important;
+  padding: 0.25rem 0.5rem !important;
+}
+
+.badge.bg-secondary:hover {
+  background-color: #5a6268 !important;
+}
+
+.detail-value {
+    color: #212529;
+    font-weight: normal;
+}
