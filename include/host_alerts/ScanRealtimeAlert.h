@@ -34,7 +34,15 @@ public:
     return {host_alert_scan_realtime, alert_category_security};
   }
     
-  u_int8_t getAlertScore() const { return SCORE_LEVEL_WARNING; };
+  u_int8_t getAlertScore() const { 
+    if (alerts.size()==2)
+      return SCORE_LEVEL_SEVERE;
+    else if (alerts.size()==3)
+      return SCORE_LEVEL_CRITICAL;
+    else if (alerts.size()>=4)
+      return SCORE_LEVEL_EMERGENCY;
+    else return SCORE_LEVEL_ERROR;
+  };
 
   ScanRealtimeAlert(HostCheck* c, Host* h,risk_percentage cli_pctg, std::vector<ScanAlertType> _alerts)
     : HostAlert(c, h, cli_pctg) {
