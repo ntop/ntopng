@@ -170,6 +170,7 @@ Prefs::Prefs(Ntop *_ntop) {
   enable_activities_debug = false;
   snmp_polling = true;
   active_monitoring = network_discovery = starttls = false;
+  dump_pcap_to_clickhouse = false;
   vs_max_num_scans = 4;
   vs_slow_scan = false;
   tls_quic_hostnaming = false;
@@ -979,6 +980,7 @@ void Prefs::reloadPrefsFromRedis() {
   active_monitoring = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_ACTIVE_MONITORING, false);
   network_discovery = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_NETWORK_DISCOVERY, false);
   starttls = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_STARTTLS, false);
+  dump_pcap_to_clickhouse = getDefaultBoolPrefsValue(CONST_PREFS_ENABLE_DUMP_PCAP_TO_CLICKHOUSE, false);
 
   enable_arp_matrix_generation =
     getDefaultBoolPrefsValue(CONST_DEFAULT_ARP_MATRIX_GENERATION, false),
@@ -2745,6 +2747,7 @@ void Prefs::lua(lua_State *vm) {
   lua_push_bool_table_entry(vm, "active_monitoring", active_monitoring);
   lua_push_bool_table_entry(vm, "network_discovery", network_discovery);
   lua_push_bool_table_entry(vm, "starttls", starttls);
+  lua_push_bool_table_entry(vm, "dump_pcap_to_clickhouse", dump_pcap_to_clickhouse);
   lua_push_bool_table_entry(vm, "tls_quic_hostnaming", tls_quic_hostnaming);
 
 #ifdef HAVE_NEDGE

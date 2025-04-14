@@ -666,6 +666,8 @@
   NTOPNG_PREFS_PREFIX ".network_discovery"
 #define CONST_PREFS_ENABLE_STARTTLS \
   NTOPNG_PREFS_PREFIX ".starttls"
+#define CONST_PREFS_ENABLE_DUMP_PCAP_TO_CLICKHOUSE \
+  NTOPNG_PREFS_PREFIX ".dump_pcap_to_clickhouse"
 #define CONST_PREFS_ENABLE_ACCESS_LOG NTOPNG_PREFS_PREFIX ".enable_access_log"
 #define CONST_PREFS_ENABLE_SQL_LOG NTOPNG_PREFS_PREFIX ".enable_sql_log"
 #define CONST_TOP_TALKERS_ENABLED NTOPNG_PREFS_PREFIX ".host_top_sites_creation"

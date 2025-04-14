@@ -495,6 +495,8 @@ if auth.has_capability(auth.capabilities.preferences) then
     </form>]]
     end
 
+    -- ================================================================================
+
     function printNotifications()
         print('<form method="post">')
         print('<table class="table">')
@@ -2151,6 +2153,13 @@ if auth.has_capability(auth.capabilities.preferences) then
             pref = "include_alerted_flows_in_aggregated_flows",
             hidden = not showAggregateFlowsPrefs
         })
+
+        prefsToggleButton(subpage_active, {
+            field = "toggle_dump_pcap_to_clickhouse",
+            default = "0",
+            pref = "dump_pcap_to_clickhouse"
+        })
+
         print(
             '<tr><th colspan=2 style="text-align:right;"><button type="submit" class="btn btn-primary" style="width:115px" disabled="disabled">' ..
             i18n("save") .. '</button></th></tr>')

@@ -233,6 +233,10 @@ local menu_subpages = {{
         toggle_flow_aggregated_traffic_limit = {
             title = i18n("prefs.toggle_flow_aggregated_traffic_limit_title"),
             description = i18n("prefs.toggle_flow_aggregated_traffic_limit_description")
+        },
+        toggle_dump_pcap_to_clickhouse = {
+            title = i18n("prefs.toggle_dump_pcap_to_clickhouse_title"),
+            description = i18n("prefs.toggle_dump_pcap_to_clickhouse_description")
         }
     }
 }, {
