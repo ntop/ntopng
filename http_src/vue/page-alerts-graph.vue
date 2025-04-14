@@ -87,7 +87,8 @@
 
                                     <div class="col-12">
                                         <span class="detail-label">{{ _i18n("alert.graph.live_flows") }}</span>
-                                        <a v-if="selectedNode" :href="activeFlows.live_flows_url" target="_blank" class="fw-bold">
+                                        <a v-if="selectedNode" :href="activeFlows.live_flows_url" target="_blank"
+                                            class="fw-bold">
                                             {{ activeFlows.recordsTotal }}
                                         </a>
                                         <a v-else class="disabled">0</a>
@@ -105,7 +106,7 @@
                                             <i class="fa-solid fa-triangle-exclamation"> </i>
                                             <span class="detail-label text-primary">{{
                                                 _i18n("alert.graph.hist_alerts")
-                                            }}</span>
+                                            }} </span>
                                         </a>
                                     </div>
                                 </div>
@@ -338,7 +339,6 @@ const ifid = String(props.context.ifid);
 const hostDataLoading = ref(true);
 const alerts_graph = ref(null);
 const range_picker = ref(null);
-const dropdownRef = ref(null);
 const loading = ref(true);
 const maxAlerts = ref(10000); // max numebr of alerts
 const no_data = ref(false);
@@ -348,13 +348,13 @@ const last_url = ref();
 const minScore = ref(0); // filter alerts with a minimum score of >= 0
 
 // Selected node information (right div next to graph)
-const selectedAlertCategory = ref(null);
 const selectedNodeData = ref({});
 const selectedAlertData = ref({});
 const selectedNode = ref(false);
 const lastClickedElementIsNode = ref(true); // if true last clicked was a node, if false is an edge between nodes
 const activeFlows = ref({ recordsTotal: 0, url: "#" });
 
+/* Computed URLs to get host information*/
 const asnPageUrl = computed(() => {
     return `${http_prefix}/lua/hosts_stats.lua?asn=${selectedNodeData.value?.host_info?.info?.asn || ''}&version=&network=&traffic_type=&mode=&pool=`;
 });
@@ -376,16 +376,12 @@ const hist_alerts_url = computed(() => {
     return `${http_prefix}/lua/alert_stats.lua?page=flow&epoch_begin=${epoch_begin}&epoch_end=${epoch_end}&status=any&ifid=${ifid}&query_preset=&count=&ip=${selectedNode.value}%3Beq`;
 });
 
-
-// Dropdown state
-const showAlertCategoriesDropdown = ref(false);
-const filteredAlertCategories = ref([]);
-const alertCategories = ref([]);
+/**************************************/
 
 // D3 Graph data
 let links = [];
 let nodes = [];
-let simulation = null;
+
 let resizeTimeout;
 
 let clickTimer = null;
@@ -397,16 +393,6 @@ const sourceNodes = ref([]);
 const destNodes = ref([]);
 
 /**********************************************/
-
-const handleClickOutside = (event) => {
-    if (!event.target.closest('#alertCategory') &&
-        !event.target.closest('.dropdown-menu') &&
-        !event.target.closest('.dropdown-item')) {
-        showAlertCategoriesDropdown.value = false;
-    }
-};
-
-
 const applyFilters = async () => {
     // Security check in order to not reload the component if the filters are the same
     if (last_url.value === window.location.href) return;
@@ -421,538 +407,544 @@ const applyFilters = async () => {
     await draw_graph(true, center_graph_on_ip);
 };
 
-const selectAlertCategory = (category) => {
-    selectedAlertCategory.value = `${category.alert_category} (${category.alerts_count})`;
-    showAlertCategoriesDropdown.value = false;
-};
-
-
-// **Filtering function**
-const filterCategories = (event) => {
-    const searchText = event.target.value.toLowerCase();
-    filteredAlertCategories.value = alertCategories.value.filter(category =>
-        category.alert_category.toLowerCase().includes(searchText)
-    );
-};
-
 /******************************************************************************/
 /**************************** GRAPH FUNCTIONS ******************************* */
 async function draw_graph(redraw = false, centerIP = null) {
     loading.value = true;
-    debugger
-    // remove svg if there was a new filter
-    d3.select(alerts_graph.value).selectAll("*").remove();
+    try {
 
-    // remove old tooltips
-    $('.tooltip').remove();
-    $('[data-toggle="tooltip"]').tooltip('dispose');
-
-    if (redraw && links.length === 0 && nodes.length === 0) {
-
-        const data = await get_links_and_nodes();
-
-        links = data.links;
-        nodes = data.nodes;
-    }
-
-    if (nodes.length === 0) {
-        no_data.value = true;
-        loading.value = false;
-        hostDataLoading.value = false;
-        return;
-
-    } else {
-        no_data.value = false;
-    }
-
-    const width = alerts_graph.value.clientWidth || alerts_graph.value.offsetWidth || alerts_graph.value.getBoundingClientRect().width;
-    const height = alerts_graph.value.clientHeight || 500;
-
-    // Create SVG with zoom behavior
-    const svg = d3.select(alerts_graph.value)
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height);
-
-    // Create main group for zoom transformations
-    const mainGroup = svg.append("g");
-
-    // Calculate alert counts for each node
-    nodes.forEach(node => {
-        node.alert_count = links.filter(link => link.target.id === node.id || link.target === node.id ||
-            link.source.id === node.id || link.source === node.id).length;
-    });
-
-    // select as node the one with most alerts
-    const maxNode = nodes.reduce((prev, current) => {
-        return (prev && prev.alert_count > current.alert_count) ? prev : current;
-    }, nodes[0]);
-
-    selectedNode.value = maxNode.id;
-    // add filter to url
-    add_filter('ip', selectedNode.value);
-    await get_host_info();
-
-    // Node color scale based on alert count
-    const nodeColorScale = d3.scaleSequential()
-        .domain([0, d3.max(nodes, d => d.alert_count) || 1])
-        .interpolator(d3.interpolateYlOrRd);
-
-    // Link color scale
-    const linkColorScale = d3.scaleThreshold()
-        .domain([1, 50, 100])
-        .range(["#E0E0E0", "#FFB74D", "#FF9800", "#FF8F00"]);
-
-    // compute nodes position
-    const simulation = d3.forceSimulation(nodes)
-        .force("link", d3.forceLink(links).id(d => d.id).distance(150))
-        .force("charge", d3.forceManyBody().strength(-500))
-        .force("center", d3.forceCenter(width / 2, height / 2))
-        .force("collision", d3.forceCollide().radius(30))
-        .force("x", d3.forceX(width / 2).strength(0.1))
-        .force("y", d3.forceY(height / 2).strength(0.1));
-    simulation.stop();
-    for (let i = 0; i < 300; ++i) simulation.tick();
-
-    const link = mainGroup.append("g")
-        .selectAll("line")
-        .data(links)
-        .enter().append("line")
-        .attr("class", "link")
-        .attr("style", d => {
-            return `stroke: ${linkColorScale(d.weight)} !important`
-        })
-        .attr("stroke-opacity", 0.8)
-        .attr("stroke-width", d => Math.sqrt(d.weight) / 4)
-        .attr("stroke-dasharray", null)
-        .attr("marker-end", "url(#arrow)")
-
-        .on("click", (event, d) => {
-            // last clicked item is an edge
-            lastClickedElementIsNode.value = false;
-
-            // a link is an alert
-            selectedAlertData.value.alerts_count = d.weight;
-            selectedAlertData.value.alert_type = d.label.alert;
-            selectedAlertData.value.proto = d.label.protocol;
-            selectedAlertData.value.l7 = d.label.l7;
-
-            selectedAlertData.value.src_ip = d.source.id;
-            selectedAlertData.value.src_asn = d.source.src_asn;
-            selectedAlertData.value.src_country = d.source.src_country;
-
-            selectedAlertData.value.dst_ip = d.target.id;
-            selectedAlertData.value.dst_asn = d.target.dst_asn;
-            selectedAlertData.value.dst_country = d.target.dst_country;
-        });
-
-    link
-        .attr("x1", d => d.source.x)
-        .attr("y1", d => d.source.y)
-        .attr("x2", d => d.target.x)
-        .attr("y2", d => d.target.y);
-
-    link.each(function (d) {
-        let tooltipContent = `<strong>${d.label.alert}</strong><br>`;
-
-        if (d.label.avg_score) tooltipContent += `Avg Score: ${d.label.avg_score}<br>`;
-        if (d.label.src_asn) tooltipContent += `Source ASN: ${d.label.src_asn}<br>`;
-        if (d.label.dst_asn) tooltipContent += `Destination ASN: ${d.label.dst_asn}<br>`;
-
-        if (d.label.src_country) {
-            tooltipContent += `Source Country: ${d.label.src_country} <img src='/dist/images/blank.gif' class='flag flag-${d.label.src_country.toLowerCase()}'><br>`;
-        }
-        if (d.label.dst_country) {
-            tooltipContent += `Destination Country: ${d.label.dst_country} <img src='/dist/images/blank.gif' class='flag flag-${d.label.dst_country.toLowerCase()}'><br>`;
+        if (redraw) {
+            // remove svg if there was a new filter
+            d3.select(alerts_graph.value).select("svg").remove();
         }
 
-        tooltipContent += `L4 Protocol: ${d.label.protocol}<br>L7 Application: ${d.label.l7}`;
+        // remove old tooltips
+        $('.tooltip').remove();
+        $('[data-toggle="tooltip"]').tooltip('dispose');
 
-        // Apply Bootstrap tooltip
-        $(this).tooltip({
-            title: tooltipContent,
-            html: true,
-            container: 'body',
-            placement: 'top'
+        // fetch data on first rendering
+        if (links.length === 0 && nodes.length === 0) {
+            const data = await get_links_and_nodes();
+            links = data.links;
+            nodes = data.nodes;
+        }
+
+        // redraw graph and links and nodes are not defined
+        if (redraw && links.length === 0 && nodes.length === 0) {
+
+            const data = await get_links_and_nodes();
+
+            links = data.links;
+            nodes = data.nodes;
+
+            if (nodes.length === 0) {
+                no_data.value = true;
+                loading.value = false;
+                hostDataLoading.value = false;
+                return;
+
+            }
+        }
+
+        //no_data.value = false;
+        const width = alerts_graph.value.clientWidth || alerts_graph.value.offsetWidth || alerts_graph.value.getBoundingClientRect().width;
+        const height = alerts_graph.value.clientHeight || 500;
+
+        // Create SVG with zoom behavior
+        const svg = d3.select(alerts_graph.value)
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        // Create main group for zoom transformations
+        const mainGroup = svg.append("g");
+
+        // Calculate alerts counts for each node
+        nodes.forEach(node => {
+            node.alert_count = links.filter(link => link.target.id === node.id || link.target === node.id ||
+                link.source.id === node.id || link.source === node.id).length;
         });
-    });
 
-    mainGroup.append("defs").selectAll("marker")
-        .data(["arrow", "arrowDotted"])
-        .enter().append("marker")
-        .attr("id", d => d)
-        .attr("viewBox", "0 -5 10 10")
-        .attr("refX", 25)
-        .attr("refY", 0)
-        .attr("markerWidth", 6)
-        .attr("markerHeight", 6)
-        .attr("orient", "auto")
-        .append("path")
-        .attr("d", d => d === "arrowDotted" ? "M0,-4L10,0L0,4" : "M0,-5L10,0L0,5")
-        .attr("fill", d => d === "arrowDotted" ? "#FF5722" : "#999");
+        // select as node the one with most alerts
+        const maxNode = nodes.reduce((prev, current) => {
+            return (prev && prev.alert_count > current.alert_count) ? prev : current;
+        }, nodes[0]);
 
-    const nodeGroup = mainGroup.append("g")
-        .selectAll("g")
-        .data(nodes)
-        .enter().append("g")
-        .attr("class", "node-group")
-        .attr("transform", d => `translate(${d.x}, ${d.y})`)
-        .call(drag())
-        .on("click", (event, clicked_node) => {
-            lastClickedElementIsNode.value = true;
-            // Clear any existing timeout
-            if (clickTimer) {
-                clearTimeout(clickTimer);
-                clickTimer = null;
+        selectedNode.value = maxNode.id;
 
-                // If we click the same node twice quickly, it's a double-click
-                if (lastClickedNode === clicked_node.id) {
-                    lastClickedNode = null;
+        // add filter to url
+        add_filter('ip', selectedNode.value);
+        await get_host_info();
+
+        // Node color scale based on alert count
+        const nodeColorScale = d3.scaleSequential()
+            .domain([0, d3.max(nodes, d => d.alert_count) || 1])
+            .interpolator(d3.interpolateYlOrRd);
+
+        // Link color scale
+        const linkColorScale = d3.scaleThreshold()
+            .domain([1, 50, 100])
+            .range(["#E0E0E0", "#FFB74D", "#FF9800", "#FF8F00"]);
+
+        // compute nodes position
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links).id(d => d.id).distance(150))
+            .force("charge", d3.forceManyBody().strength(-500))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collision", d3.forceCollide().radius(30))
+            .force("x", d3.forceX(width / 2).strength(0.1))
+            .force("y", d3.forceY(height / 2).strength(0.1));
+        simulation.stop();
+        for (let i = 0; i < 300; ++i) simulation.tick();
+
+        const link = mainGroup.append("g")
+            .selectAll("line")
+            .data(links)
+            .enter().append("line")
+            .attr("class", "link")
+            .attr("style", d => {
+                return `stroke: ${linkColorScale(d.weight)} !important`
+            })
+            .attr("stroke-opacity", 0.8)
+            .attr("stroke-width", d => Math.sqrt(d.weight) / 4)
+            .attr("stroke-dasharray", null)
+            .attr("marker-end", "url(#arrow)")
+
+            .on("click", (event, d) => {
+                // last clicked item is an edge
+                lastClickedElementIsNode.value = false;
+
+                // a link is an alert
+                selectedAlertData.value.alerts_count = d.weight;
+                selectedAlertData.value.alert_type = d.label.alert;
+                selectedAlertData.value.proto = d.label.protocol;
+                selectedAlertData.value.l7 = d.label.l7;
+
+                selectedAlertData.value.src_ip = d.source.id;
+                selectedAlertData.value.src_asn = d.source.src_asn;
+                selectedAlertData.value.src_country = d.source.src_country;
+
+                selectedAlertData.value.dst_ip = d.target.id;
+                selectedAlertData.value.dst_asn = d.target.dst_asn;
+                selectedAlertData.value.dst_country = d.target.dst_country;
+            });
+
+        link
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+
+        link.each(function (d) {
+            let tooltipContent = `<strong>${d.label.alert}</strong><br>`;
+
+            if (d.label.avg_score) tooltipContent += `Avg Score: ${d.label.avg_score}<br>`;
+            if (d.label.src_asn) tooltipContent += `Source ASN: ${d.label.src_asn}<br>`;
+            if (d.label.dst_asn) tooltipContent += `Destination ASN: ${d.label.dst_asn}<br>`;
+
+            if (d.label.src_country) {
+                tooltipContent += `Source Country: ${d.label.src_country} <img src='/dist/images/blank.gif' class='flag flag-${d.label.src_country.toLowerCase()}'><br>`;
+            }
+            if (d.label.dst_country) {
+                tooltipContent += `Destination Country: ${d.label.dst_country} <img src='/dist/images/blank.gif' class='flag flag-${d.label.dst_country.toLowerCase()}'><br>`;
+            }
+
+            tooltipContent += `L4 Protocol: ${d.label.protocol}<br>L7 Application: ${d.label.l7}`;
+
+            // Apply Bootstrap tooltip
+            $(this).tooltip({
+                title: tooltipContent,
+                html: true,
+                container: 'body',
+                placement: 'top'
+            });
+        });
+
+        mainGroup.append("defs").selectAll("marker")
+            .data(["arrow", "arrowDotted"])
+            .enter().append("marker")
+            .attr("id", d => d)
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 25)
+            .attr("refY", 0)
+            .attr("markerWidth", 6)
+            .attr("markerHeight", 6)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", d => d === "arrowDotted" ? "M0,-4L10,0L0,4" : "M0,-5L10,0L0,5")
+            .attr("fill", d => d === "arrowDotted" ? "#FF5722" : "#999");
+
+        const nodeGroup = mainGroup.append("g")
+            .selectAll("g")
+            .data(nodes)
+            .enter().append("g")
+            .attr("class", "node-group")
+            .attr("transform", d => `translate(${d.x}, ${d.y})`)
+            .call(drag())
+            .on("click", (event, clicked_node) => {
+                lastClickedElementIsNode.value = true;
+                // Clear any existing timeout
+                if (clickTimer) {
+                    clearTimeout(clickTimer);
+                    clickTimer = null;
+
+                    // If we click the same node twice quickly, it's a double-click
+                    if (lastClickedNode === clicked_node.id) {
+                        lastClickedNode = null;
+                        return;
+                    }
+                }
+
+                if (selectedNode.value === clicked_node.id) {
                     return;
                 }
-            }
+                // save last clicked node ip
+                lastClickedNode = clicked_node.id;
 
-            if (selectedNode.value === clicked_node.id) {
-                return;
-            }
-            // save last clicked node ip
-            lastClickedNode = clicked_node.id;
+                // Set a timeout to process this as a single click after a delay
+                clickTimer = setTimeout(() => {
+                    clickTimer = null;
 
-            // Set a timeout to process this as a single click after a delay
-            clickTimer = setTimeout(() => {
-                clickTimer = null;
+                    // Reset all node styles
+                    d3.selectAll(".node-group circle")
+                        .attr("stroke", "#212121")
+                        .attr("stroke-width", 1);
 
-                // Reset all node styles
-                d3.selectAll(".node-group circle")
-                    .attr("stroke", "#212121")
-                    .attr("stroke-width", 1);
+                    // Highlight selected node
+                    d3.select(event.currentTarget).select("circle")
+                        .attr("stroke", "#FFC107") // Amber highlight
+                        .attr("stroke-width", 2);
 
-                // Highlight selected node
-                d3.select(event.currentTarget).select("circle")
-                    .attr("stroke", "#FFC107") // Amber highlight
-                    .attr("stroke-width", 2);
+                    // Update all edges - dashed outgoing and solid  incoming
+                    d3.selectAll(".link")
+                        .attr("stroke-dasharray", link =>
+                            (link.source.id === clicked_node.id || link.source === clicked_node.id) ? "5,5" : null);
 
-                // Update all edges - dashed outgoing and solid  incoming
-                d3.selectAll(".link")
-                    .attr("stroke-dasharray", link =>
-                        (link.source.id === clicked_node.id || link.source === clicked_node.id) ? "5,5" : null);
+                    selectedNode.value = clicked_node.id;
+
+                    // add filter to url
+                    add_filter('ip', clicked_node.id);
+
+                    get_host_info();
+                }, 200);
+            })
+            .on("dblclick", async function (event, clicked_node) {
+                // Clear the single-click timer since this is a double-click
+                if (clickTimer) {
+                    clearTimeout(clickTimer);
+                    clickTimer = null;
+                }
+                lastClickedNode = null;
 
                 selectedNode.value = clicked_node.id;
 
+                // Filter links where the clicked node's ID appears as either source or destination
+                const filteredLinks = links.filter(link => {
+                    const sourceId = link.source.id || link.source;
+                    const targetId = link.target.id || link.target;
+                    return sourceId === clicked_node.id || targetId === clicked_node.id;
+                });
+
+                // Extract the node IDs from filtered links
+                const nodeIds = new Set();
+                filteredLinks.forEach(link => {
+                    nodeIds.add(link.source.id || link.source);
+                    nodeIds.add(link.target.id || link.target);
+                });
+
+                // Filter nodes that are part of the filtered links
+                const filteredNodes = nodes.filter(node => nodeIds.has(node.id));
+
+                // Update global variables
+                nodes = filteredNodes;
+                links = filteredLinks;
+
                 // add filter to url
                 add_filter('ip', clicked_node.id);
+                await get_host_info();
 
-                get_host_info();
-            }, 200);
-        })
-        .on("dblclick", async function (event, clicked_node) {
-            // Clear the single-click timer since this is a double-click
-            if (clickTimer) {
-                clearTimeout(clickTimer);
-                clickTimer = null;
-            }
-            lastClickedNode = null;
-
-            selectedNode.value = clicked_node.id;
-
-            // Filter links where the clicked node's ID appears as either source or destination
-            const filteredLinks = links.filter(link => {
-                const sourceId = link.source.id || link.source;
-                const targetId = link.target.id || link.target;
-                return sourceId === clicked_node.id || targetId === clicked_node.id;
+                // Redraw graph with the new filtered data
+                await draw_graph(true, clicked_node.id);
             });
 
-            // Extract the node IDs from filtered links
-            const nodeIds = new Set();
-            filteredLinks.forEach(link => {
-                nodeIds.add(link.source.id || link.source);
-                nodeIds.add(link.target.id || link.target);
+        // Add the node circles with color based on alert count
+        const nodeRadius = 10;
+        nodeGroup.append("circle")
+            .attr("r", nodeRadius)
+            .attr("fill", d => nodeColorScale(d.alert_count))
+            .attr("stroke", "#212121")
+            .attr("stroke-width", 1);
+
+        nodeGroup.append("text")
+            .attr("x", 0)
+            .attr("y", nodeRadius + 12)
+            .attr("text-anchor", "middle")
+            .attr("font-size", "12px")
+            .text(d => d.id);
+
+        // Add Bootstrap tooltips to nodes
+        nodeGroup.each(function (d) {
+            $(this).tooltip({
+                title: `<strong>${d.id}</strong><br>Alert Count: ${d.alert_count}`,
+                html: true,
+                container: 'body',
+                placement: 'top'
+            });
+        });
+
+        // Get node position and extent for minimap
+        const xExtent = d3.extent(nodes, d => d.x);
+        const yExtent = d3.extent(nodes, d => d.y);
+
+        // Add padding to the extents
+        const paddingFactor = 0.1;
+        const xPadding = (xExtent[1] - xExtent[0]) * paddingFactor || width * paddingFactor;
+        const yPadding = (yExtent[1] - yExtent[0]) * paddingFactor || height * paddingFactor;
+
+        const paddedXExtent = [xExtent[0] - xPadding, xExtent[1] + xPadding];
+        const paddedYExtent = [yExtent[0] - yPadding, yExtent[1] + yPadding];
+
+        // Create minimap inside the draw_graph function
+        const minimapWidth = Math.min(width * 0.14, 180);
+        const minimapHeight = Math.min(height * 0.14, 120);
+        const minimapMargin = 15;
+
+        // Create the minimap container
+        const minimap = svg.append("g")
+            .attr("class", "minimap")
+            .attr("transform", `translate(${width - minimapWidth - minimapMargin}, ${height - minimapHeight - minimapMargin})`);
+
+        const defs = svg.append("defs");
+        defs.append("filter")
+            .attr("id", "drop-shadow")
+            .attr("height", "130%")
+            .append("feDropShadow")
+            .attr("dx", 2)
+            .attr("dy", 2)
+            .attr("stdDeviation", 2)
+            .attr("flood-color", "rgba(0,0,0,0.3)");
+
+        minimap.append("rect")
+            .attr("width", minimapWidth)
+            .attr("height", minimapHeight)
+            .attr("fill", "#f8f9fa")
+            .attr("fill-opacity", 0.9)
+            .attr("stroke", "#dee2e6")
+            .attr("stroke-width", 1)
+            .attr("rx", 6)
+            .attr("ry", 6)
+            .attr("filter", "url(#drop-shadow)");
+
+        // Minimap title
+        minimap.append("text")
+            .attr("x", 8)
+            .attr("y", 14)
+            .attr("font-size", "10px")
+            .attr("fill", "#6c757d")
+            .attr("font-weight", "bold")
+            .text("Network Map");
+
+        const minimapContent = minimap.append("g")
+            .attr("transform", `translate(5, 20)`);
+
+        const contentWidth = minimapWidth - 10;
+        const contentHeight = minimapHeight - 25;
+
+        // Create scales for mapping positions to the minimap
+        const minimapXScale = d3.scaleLinear()
+            .domain(paddedXExtent)
+            .range([0, contentWidth]);
+
+        const minimapYScale = d3.scaleLinear()
+            .domain(paddedYExtent)
+            .range([0, contentHeight]);
+
+        // Add a background for content area
+        minimapContent.append("rect")
+            .attr("width", contentWidth)
+            .attr("height", contentHeight)
+            .attr("fill", "#f1f3f5")
+            .attr("rx", 4)
+            .attr("ry", 4);
+
+        // Add dots for each node
+        minimapContent.selectAll(".minimap-node")
+            .data(nodes)
+            .enter()
+            .append("circle")
+            .attr("class", "minimap-node")
+            .attr("cx", d => minimapXScale(d.x))
+            .attr("cy", d => minimapYScale(d.y))
+            .attr("r", 1.5)
+            .attr("fill", "#4a4a4a")
+            .attr("opacity", 0.8);
+
+        // Add links to minimap
+        minimapContent.selectAll(".minimap-link")
+            .data(links)
+            .enter()
+            .append("line")
+            .attr("class", "minimap-link")
+            .attr("x1", d => minimapXScale(d.source.x))
+            .attr("y1", d => minimapYScale(d.source.y))
+            .attr("x2", d => minimapXScale(d.target.x))
+            .attr("y2", d => minimapYScale(d.target.y))
+            .attr("stroke", "#adb5bd")
+            .attr("stroke-width", 0.5)
+            .attr("opacity", 0.3);
+
+        // Viewport rectangle for better localization
+        const viewport = minimapContent.append("rect")
+            .attr("class", "minimap-viewport")
+            .attr("stroke", "#495057")
+            .attr("stroke-width", 1)
+            .attr("stroke-dasharray", "2,2")
+            .attr("fill", "#212529")
+            .attr("fill-opacity", 0.1)
+            .attr("rx", 2)
+            .attr("ry", 2)
+            .attr("pointer-events", "none");
+
+        // Update viewport when view changes
+        function updateViewport(transform) {
+            // Visible bounds after translation
+            const visibleBounds = {
+                x: -transform.x / transform.k,
+                y: -transform.y / transform.k,
+                width: width / transform.k,
+                height: height / transform.k
+            };
+
+            // Calculate the center point of the visible area
+            const centerX = visibleBounds.x + visibleBounds.width / 2;
+            const centerY = visibleBounds.y + visibleBounds.height / 2;
+
+            // Use the larger dimension to create a square viewport
+            const maxDimension = Math.max(visibleBounds.width, visibleBounds.height);
+
+            // Calculate the square bounds centered on the same point
+            const squareBounds = {
+                x: centerX - maxDimension / 2,
+                y: centerY - maxDimension / 2,
+                width: maxDimension,
+                height: maxDimension
+            };
+
+            // Map to minimap coordinates
+            const minimapViewX = minimapXScale(squareBounds.x);
+            const minimapViewY = minimapYScale(squareBounds.y);
+            const minimapViewWidth = minimapXScale(squareBounds.x + squareBounds.width) - minimapViewX;
+            const minimapViewHeight = minimapYScale(squareBounds.y + squareBounds.height) - minimapViewY;
+
+            // Min viewport size
+            const minViewportDimension = 10;
+            const adjustedViewWidth = Math.max(minimapViewWidth, minViewportDimension);
+            const adjustedViewHeight = Math.max(minimapViewHeight, minViewportDimension);
+
+            // Make the view a square
+            const squareSize = Math.max(adjustedViewWidth, adjustedViewHeight);
+
+            // Center the square on the original center point
+            const squareCenterX = minimapXScale(centerX);
+            const squareCenterY = minimapYScale(centerY);
+
+            // Calculate the top-left corner of the square
+            let squareX = squareCenterX - squareSize / 2;
+            let squareY = squareCenterY - squareSize / 2;
+
+            // Constrain viewport to the minimap boundaries
+            squareX = Math.max(0, Math.min(contentWidth - squareSize, squareX));
+            squareY = Math.max(0, Math.min(contentHeight - squareSize, squareY));
+
+            // Update the viewport with a square shape
+            viewport
+                .attr("x", squareX)
+                .attr("y", squareY)
+                .attr("width", Math.min(contentWidth - squareX, squareSize))
+                .attr("height", Math.min(contentHeight - squareY, squareSize));
+        }
+
+        // Make the minimap clickable to navigate
+        minimapContent.append("rect")
+            .attr("width", contentWidth)
+            .attr("height", contentHeight)
+            .attr("fill", "transparent")
+            .style("cursor", "pointer")
+            .on("click", function (event) {
+
+                const [mx, my] = d3.pointer(event);
+
+                // Convert to main graph coordinates
+                const targetX = minimapXScale.invert(mx);
+                const targetY = minimapYScale.invert(my);
+
+                // Calculate the transform needed to center on this point
+                const scale = d3.zoomTransform(svg.node()).k;
+                const tx = -targetX * scale + width / 2;
+                const ty = -targetY * scale + height / 2;
+
+                svg.transition().duration(500)
+                    .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
             });
 
-            // Filter nodes that are part of the filtered links
-            const filteredNodes = nodes.filter(node => nodeIds.has(node.id));
+        // Get graph size
+        const graphWidth = paddedXExtent[1] - paddedXExtent[0];
+        const graphHeight = paddedYExtent[1] - paddedYExtent[0];
 
-            // Update global variables
-            nodes = filteredNodes;
-            links = filteredLinks;
+        // Set max zoom level (1.0 for 1x)
+        const maxZoom = 6.0;
+        const minZoom = Math.max(0.1, Math.min(
+            width / graphWidth,
+            height / graphHeight
+        ) * 0.9); // 90% of the scale
 
-            // add filter to url
-            add_filter('ip', clicked_node.id);
-            await get_host_info();
-            // Redraw graph with the new filtered data
-            await draw_graph(true, clicked_node.id);
-        });
+        // Create zoom behavior with constraints
+        const zoom = d3.zoom()
+            .scaleExtent([minZoom, maxZoom]) // Set zoom limits
+            .translateExtent([[paddedXExtent[0], paddedYExtent[0]], [paddedXExtent[1], paddedYExtent[1]]])
+            .on("zoom", (event) => {
+                mainGroup.attr("transform", event.transform);
 
-    // Add the node circles with color based on alert count
-    const nodeRadius = 10;
-    nodeGroup.append("circle")
-        .attr("r", nodeRadius)
-        .attr("fill", d => nodeColorScale(d.alert_count))
-        .attr("stroke", "#212121")
-        .attr("stroke-width", 1);
+                // Update minimap viewport when zoom/pan changes
+                updateViewport(event.transform);
+            });
 
-    nodeGroup.append("text")
-        .attr("x", 0)
-        .attr("y", nodeRadius + 12)
-        .attr("text-anchor", "middle")
-        .attr("font-size", "12px")
-        .text(d => d.id);
+        svg.call(zoom);
 
-    // Add Bootstrap tooltips to nodes
-    nodeGroup.each(function (d) {
-        $(this).tooltip({
-            title: `<strong>${d.id}</strong><br>Alert Count: ${d.alert_count}`,
-            html: true,
-            container: 'body',
-            placement: 'top'
-        });
-    });
+        // Initial viewport update
+        updateViewport(d3.zoomIdentity);
 
-    // Get node position and extent for minimap
-    const xExtent = d3.extent(nodes, d => d.x);
-    const yExtent = d3.extent(nodes, d => d.y);
+        // If centerIP is provided, center the graph on that node
+        if (centerIP) {
+            centerOnNode(centerIP, svg, zoom, width, height);
+        } else {
+            // Center and scale the view to fit all nodes
+            const padding = 50;
 
-    // Add padding to the extents
-    const paddingFactor = 0.1;
-    const xPadding = (xExtent[1] - xExtent[0]) * paddingFactor || width * paddingFactor;
-    const yPadding = (yExtent[1] - yExtent[0]) * paddingFactor || height * paddingFactor;
+            const xSize = xExtent[1] - xExtent[0] + padding * 2;
+            const ySize = yExtent[1] - yExtent[0] + padding * 2;
 
-    const paddedXExtent = [xExtent[0] - xPadding, xExtent[1] + xPadding];
-    const paddedYExtent = [yExtent[0] - yPadding, yExtent[1] + yPadding];
+            const scale = Math.min(
+                maxZoom,
+                Math.max(minZoom, Math.min(width / xSize, height / ySize))
+            );
 
-    // Create minimap inside the draw_graph function
-    const minimapWidth = Math.min(width * 0.14, 180);
-    const minimapHeight = Math.min(height * 0.14, 120);
-    const minimapMargin = 15;
+            // Calculate center position
+            const tx = width / 2 - (xExtent[0] + xExtent[1]) / 2 * scale;
+            const ty = height / 2 - (yExtent[0] + yExtent[1]) / 2 * scale;
 
-    // Create the minimap container
-    const minimap = svg.append("g")
-        .attr("class", "minimap")
-        .attr("transform", `translate(${width - minimapWidth - minimapMargin}, ${height - minimapHeight - minimapMargin})`);
-
-    const defs = svg.append("defs");
-    defs.append("filter")
-        .attr("id", "drop-shadow")
-        .attr("height", "130%")
-        .append("feDropShadow")
-        .attr("dx", 2)
-        .attr("dy", 2)
-        .attr("stdDeviation", 2)
-        .attr("flood-color", "rgba(0,0,0,0.3)");
-
-    minimap.append("rect")
-        .attr("width", minimapWidth)
-        .attr("height", minimapHeight)
-        .attr("fill", "#f8f9fa")
-        .attr("fill-opacity", 0.9)
-        .attr("stroke", "#dee2e6")
-        .attr("stroke-width", 1)
-        .attr("rx", 6)
-        .attr("ry", 6)
-        .attr("filter", "url(#drop-shadow)");
-
-    // Minimap title
-    minimap.append("text")
-        .attr("x", 8)
-        .attr("y", 14)
-        .attr("font-size", "10px")
-        .attr("fill", "#6c757d")
-        .attr("font-weight", "bold")
-        .text("Network Map");
-
-    const minimapContent = minimap.append("g")
-        .attr("transform", `translate(5, 20)`);
-
-    const contentWidth = minimapWidth - 10;
-    const contentHeight = minimapHeight - 25;
-
-    // Create scales for mapping positions to the minimap
-    const minimapXScale = d3.scaleLinear()
-        .domain(paddedXExtent)
-        .range([0, contentWidth]);
-
-    const minimapYScale = d3.scaleLinear()
-        .domain(paddedYExtent)
-        .range([0, contentHeight]);
-
-    // Add a background for content area
-    minimapContent.append("rect")
-        .attr("width", contentWidth)
-        .attr("height", contentHeight)
-        .attr("fill", "#f1f3f5")
-        .attr("rx", 4)
-        .attr("ry", 4);
-
-    // Add dots for each node
-    minimapContent.selectAll(".minimap-node")
-        .data(nodes)
-        .enter()
-        .append("circle")
-        .attr("class", "minimap-node")
-        .attr("cx", d => minimapXScale(d.x))
-        .attr("cy", d => minimapYScale(d.y))
-        .attr("r", 1.5)
-        .attr("fill", "#4a4a4a")
-        .attr("opacity", 0.8);
-
-    // Add links to minimap
-    minimapContent.selectAll(".minimap-link")
-        .data(links)
-        .enter()
-        .append("line")
-        .attr("class", "minimap-link")
-        .attr("x1", d => minimapXScale(d.source.x))
-        .attr("y1", d => minimapYScale(d.source.y))
-        .attr("x2", d => minimapXScale(d.target.x))
-        .attr("y2", d => minimapYScale(d.target.y))
-        .attr("stroke", "#adb5bd")
-        .attr("stroke-width", 0.5)
-        .attr("opacity", 0.3);
-
-    // Viewport rectangle for better localization
-    const viewport = minimapContent.append("rect")
-        .attr("class", "minimap-viewport")
-        .attr("stroke", "#495057")
-        .attr("stroke-width", 1)
-        .attr("stroke-dasharray", "2,2")
-        .attr("fill", "#212529")
-        .attr("fill-opacity", 0.1)
-        .attr("rx", 2)
-        .attr("ry", 2)
-        .attr("pointer-events", "none");
-
-    // Update viewport when view changes
-    function updateViewport(transform) {
-        // Visible bounds after translation
-        const visibleBounds = {
-            x: -transform.x / transform.k,
-            y: -transform.y / transform.k,
-            width: width / transform.k,
-            height: height / transform.k
-        };
-
-        // Calculate the center point of the visible area
-        const centerX = visibleBounds.x + visibleBounds.width / 2;
-        const centerY = visibleBounds.y + visibleBounds.height / 2;
-
-        // Use the larger dimension to create a square viewport
-        const maxDimension = Math.max(visibleBounds.width, visibleBounds.height);
-
-        // Calculate the square bounds centered on the same point
-        const squareBounds = {
-            x: centerX - maxDimension / 2,
-            y: centerY - maxDimension / 2,
-            width: maxDimension,
-            height: maxDimension
-        };
-
-        // Map to minimap coordinates
-        const minimapViewX = minimapXScale(squareBounds.x);
-        const minimapViewY = minimapYScale(squareBounds.y);
-        const minimapViewWidth = minimapXScale(squareBounds.x + squareBounds.width) - minimapViewX;
-        const minimapViewHeight = minimapYScale(squareBounds.y + squareBounds.height) - minimapViewY;
-
-        // Min viewport size
-        const minViewportDimension = 10;
-        const adjustedViewWidth = Math.max(minimapViewWidth, minViewportDimension);
-        const adjustedViewHeight = Math.max(minimapViewHeight, minViewportDimension);
-
-        // Make the view a square
-        const squareSize = Math.max(adjustedViewWidth, adjustedViewHeight);
-
-        // Center the square on the original center point
-        const squareCenterX = minimapXScale(centerX);
-        const squareCenterY = minimapYScale(centerY);
-
-        // Calculate the top-left corner of the square
-        let squareX = squareCenterX - squareSize / 2;
-        let squareY = squareCenterY - squareSize / 2;
-
-        // Constrain viewport to the minimap boundaries
-        squareX = Math.max(0, Math.min(contentWidth - squareSize, squareX));
-        squareY = Math.max(0, Math.min(contentHeight - squareSize, squareY));
-
-        // Update the viewport with a square shape
-        viewport
-            .attr("x", squareX)
-            .attr("y", squareY)
-            .attr("width", Math.min(contentWidth - squareX, squareSize))
-            .attr("height", Math.min(contentHeight - squareY, squareSize));
-    }
-
-    // Make the minimap clickable to navigate
-    minimapContent.append("rect")
-        .attr("width", contentWidth)
-        .attr("height", contentHeight)
-        .attr("fill", "transparent")
-        .style("cursor", "pointer")
-        .on("click", function (event) {
-
-            const [mx, my] = d3.pointer(event);
-
-            // Convert to main graph coordinates
-            const targetX = minimapXScale.invert(mx);
-            const targetY = minimapYScale.invert(my);
-
-            // Calculate the transform needed to center on this point
-            const scale = d3.zoomTransform(svg.node()).k;
-            const tx = -targetX * scale + width / 2;
-            const ty = -targetY * scale + height / 2;
-
-            svg.transition().duration(500)
+            svg.transition().duration(750)
                 .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
-        });
+        }
+        loading.value = false;
 
-    // Get graph size
-    const graphWidth = paddedXExtent[1] - paddedXExtent[0];
-    const graphHeight = paddedYExtent[1] - paddedYExtent[0];
-
-    // Set max zoom level (1.0 for 1x)
-    const maxZoom = 6.0;
-    const minZoom = Math.max(0.1, Math.min(
-        width / graphWidth,
-        height / graphHeight
-    ) * 0.9); // 90% of the scale
-
-    // Create zoom behavior with constraints
-    const zoom = d3.zoom()
-        .scaleExtent([minZoom, maxZoom]) // Set zoom limits
-        .translateExtent([[paddedXExtent[0], paddedYExtent[0]], [paddedXExtent[1], paddedYExtent[1]]])
-        .on("zoom", (event) => {
-            mainGroup.attr("transform", event.transform);
-
-            // Update minimap viewport when zoom/pan changes
-            updateViewport(event.transform);
-        });
-
-    svg.call(zoom);
-
-    // Initial viewport update
-    updateViewport(d3.zoomIdentity);
-
-    // If centerIP is provided, center the graph on that node
-    if (centerIP) {
-        centerOnNode(centerIP, svg, zoom, width, height);
-    } else {
-        // Center and scale the view to fit all nodes
-        const padding = 50;
-
-        const xSize = xExtent[1] - xExtent[0] + padding * 2;
-        const ySize = yExtent[1] - yExtent[0] + padding * 2;
-
-        const scale = Math.min(
-            maxZoom,
-            Math.max(minZoom, Math.min(width / xSize, height / ySize))
-        );
-
-        // Calculate center position
-        const tx = width / 2 - (xExtent[0] + xExtent[1]) / 2 * scale;
-        const ty = height / 2 - (yExtent[0] + yExtent[1]) / 2 * scale;
-
-        svg.transition().duration(750)
-            .call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
+    } catch (error) {
+        console.error("Error drawing graph:", error);
+        loading.value = false;
+        hostDataLoading.value = false;
+    } finally {
+        loading.value = false;
     }
-    loading.value = false;
 }
 
 // Function to center the graph on a specific node
@@ -1011,7 +1003,7 @@ const get_alerts_data = async function () {
         };
         const rsp = await ntopng_utility.http_request(url, { method: "get", headers });
         no_data.value = false;
-        
+
         return rsp;
 
     } catch (err) {
@@ -1019,29 +1011,6 @@ const get_alerts_data = async function () {
     }
 };
 
-const get_alert_categories = async function () {
-
-    // Create url filters
-    let url = `${http_prefix}/lua/pro/rest/v2/get/alert/categories.lua?`;
-    url = create_url(url);
-
-    try {
-        let headers = {
-            "Content-Type": "application/json",
-        };
-        const rsp = await ntopng_utility.http_request(url, { method: "get", headers });
-
-        if (rsp) {
-            //rsp = [{"alerts_count":"102","alert_category":"Cybersecurity","category_id":1}
-            alertCategories.value = rsp;
-            filteredAlertCategories.value = [...alertCategories.value];
-        }
-
-        return [];
-    } catch (err) {
-        console.error(err);
-    }
-};
 
 const get_host_info = async function () {
     // Create url filters
@@ -1056,6 +1025,7 @@ const get_host_info = async function () {
         const rsp = await ntopng_utility.http_request(url, { method: "get", headers });
 
         if (rsp) {
+            no_data.value = false;
             selectedNodeData.value = rsp
         }
         hostDataLoading.value = false;
@@ -1182,24 +1152,14 @@ function drag() {
 onMounted(async () => {
     // Set default url parameters
     init_url_params();
-    await get_alert_categories();
 
     // Initially draw the graph
-    await draw_graph(true);
-
-    activeFlows.value = await get_active_flows();
+    await draw_graph();
 
     window.addEventListener("resize", resize);
-    document.addEventListener('click', handleClickOutside);
 
     // get active flows value
     activeFlows.value = await get_active_flows();
-
-    document.addEventListener("click", (event) => {
-        if (dropdownRef.value && !dropdownRef.value.contains(event.target)) {
-            showAlertCategoriesDropdown.value = false;
-        }
-    });
 
     // Init bootstrap tooltip
     nextTick(() => {
@@ -1232,7 +1192,6 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     document.removeEventListener('click', () => { });
-    document.removeEventListener('click', handleClickOutside);
 
 });
 
@@ -1244,10 +1203,6 @@ watch(minScore, (newValue) => {
 watch(maxAlerts, (newValue) => {
     add_filter('limit', newValue);
 });
-
-watch(alertCategories, (newCategories) => {
-    filteredAlertCategories.value = [...newCategories];
-}, { immediate: true });
 
 function init_url_params() {
     ntopng_url_manager.set_key_to_url("ifid", ifid);
@@ -1319,15 +1274,12 @@ function resetGraph() {
     // Reset data and fetch fresh data from the server
     links = [];
     nodes = [];
-    
+
     // Redraw the graph with fresh data
     draw_graph(true);
-    
+
     // Reset any filters or selections
     selectedNode.value = null;
-    
-    // Reset filters to default values
-    reset_filters();
 }
 /******************************************************************************/
 

@@ -329,7 +329,7 @@ else
             }, {
                 entry = page_utils.menu_entries.alerts_graph,
                 url = "/lua/pro/alerts_graph.lua",
-                hidden = true or (not ntop.isEnterpriseXL())
+                hidden = (not ntop.isEnterpriseL()) or ( not ntop.isClickHouseEnabled())
             }, {
                 entry = page_utils.menu_entries.alerts_geomap,
                 url = "/lua/pro/alerts_geomap.lua",
